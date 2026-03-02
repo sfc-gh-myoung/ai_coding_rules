@@ -1,21 +1,20 @@
 # AI Coding Rules
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
-![Version](https://img.shields.io/badge/version-3.5.3-blue)
+![Version](https://img.shields.io/badge/version-3.6.0-blue)
 [![CI](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml/badge.svg)](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
-![Coverage](https://img.shields.io/badge/coverage-93%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Task](https://img.shields.io/badge/Task-Taskfile-brightgreen)](https://taskfile.dev)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/sfc-gh-myoung/ai_coding_rules)
 
-> **One universal ai coding rule set for all AI assistants, IDEs, and agents — portable, intelligent, and IDE-agnostic**
+> **One universal ai coding rule set for all AI assistants, IDEs, and agents — portable, intelligent, and IDE-agnostic built with love using Snowflake Cortex Code**
 
 ## Quick Overview
 
 **What:** Universal AI coding rule system working with any assistant/IDE  
 **Works with:** Cursor, Claude Code, GitHub Copilot, VS Code, ChatGPT, and more  
-**Deploy:** 2 commands (`git clone` + `task deploy`)  
+**Deploy:** 2 commands (`git clone` + `make deploy DEST=...`)  
 **Benefit:** production-ready rules, automatic discovery, zero vendor lock-in
 
 **Quick Checklist:**
@@ -30,11 +29,11 @@ This repository provides a **universal ai coding rule system** designed to work 
 
 **What you get:** A comprehensive collection of production-ready engineering rules covering Python, SQL, Snowflake, Go, Docker, Shell scripting, React, HTMX, Alpine.js, data engineering, analytics, and project governance. The rules work seamlessly with AI coding assistants including Cursor, Claude Code, GitHub Copilot, Visual Studio Code, and others.
 
-**Important:** Some aspects of the rules are opinionated, particularly regarding naming conventions, project structure, usage of uv/uvx/ruff/Task, and documentation standards. You are **encouraged to review and adjust** the rules to align with your best practices or preferred approaches.
+**Important:** Some aspects of the rules are opinionated, particularly regarding naming conventions, project structure, usage of uv/uvx/ruff, and documentation standards. You are **encouraged to review and adjust** the rules to align with your best practices or preferred approaches.
 
 ## Key Features
 
-- **📚 125 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Shell scripting, and project management
+- **📚 130 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Podman, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
 - **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching (matching by meaning, not just exact text)
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
@@ -45,7 +44,6 @@ This project was inspired, in part, by:
 
 - [Cursor Rules](https://cursor.com/docs/context/rules)
 - [GitHub Copilot Custom Instructions](https://docs.github.com/en/copilot/how-tos/configure-custom-instructions/add-repository-instructions)
-- [how-to-add-cline-memory-bank-feature-to-your-cursor](https://forum.cursor.com/t/how-to-add-cline-memory-bank-feature-to-your-cursor/67868)
 - [cline memory bank](https://docs.cline.bot/prompting/cline-memory-bank)
 
 ## Table of Contents
@@ -56,7 +54,6 @@ This project was inspired, in part, by:
 - [Key Features](#key-features)
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
-- [Video Tutorials](#video-tutorials)
 - [Understanding Rules](#understanding-rules)
 - [Rule Selection Guide](#rule-selection-decision-tree)
 - [Rule Categories](#rule-categories)
@@ -69,7 +66,6 @@ This project was inspired, in part, by:
 
 - [Contributing](#contributing)
 - [Claude Agent Skills](#claude-agent-skills)
-- [Project Structure](#project-structure)
 - [Development Commands](#development-commands)
 
 ## Prerequisites
@@ -77,7 +73,6 @@ This project was inspired, in part, by:
 Before getting started, ensure you have:
 
 - **Python 3.11+** — [Download Python](https://www.python.org/downloads/)
-- **Task** — Automation tool: [Installation guide](https://taskfile.dev/installation/)
 - **Git** — For cloning repository: [Install Git](https://git-scm.com/downloads)
 - **uv** — Python package manager: [Install uv](https://docs.astral.sh/uv/)
 
@@ -85,40 +80,8 @@ Before getting started, ensure you have:
 
 ```bash
 python --version  # Should show 3.11 or higher
-task --version    # Should show Task version
 git --version     # Should show Git version
 ```
-
-## Document Map: What to Read First
-
-This repository contains multiple documentation files for different audiences:
-
-| File | Purpose | When to Read |
-|------|---------|--------------|
-| **README.md** | Project overview, setup, usage | Start here (you are here) |
-| **AGENTS.md** | Minimal bootstrap protocol for rule loading | AI agents: first action every response |
-| **PROJECT.md** | Project-specific tooling and guidelines | AI agents: auto-loaded by supporting tools |
-| **rules/000-global-core.md** | Execution protocols (MODE, validation, workflows) | AI agents: after loading foundation |
-| **CONTRIBUTING.md** | Development guidelines, PR process | When contributing rules |
-| **docs/ARCHITECTURE.md** | System architecture, design decisions | When understanding internals or extending |
-| **docs/MEMORY_BANK.md** | Memory Bank system for long-running projects | When using Memory Bank (optional) |
-| **CHANGELOG.md** | Version history, changes | When checking updates |
-| **Taskfile.yml** | Build automation reference | When running tasks |
-
-### Production-Ready Rules
-
-| Directory | Format | Use With |
-|-----------|--------|----------|
-| **rules/** | Standard Markdown | Any IDE, LLM, or agent |
-
-All rules are ready to deploy immediately—no generation step required.
-
-**Quick Decision**:
-
-- **Just want to use rules?** → See [Quick Start](#quick-start)
-- **Want to modify rules?** → See [For Rule Maintainers](#for-rule-maintainers-contributing-to-rules)
-- **Want to configure your AI?** → See [AI Configuration](#ai-configuration)
-- **Want to understand the system?** → See [Architecture](docs/ARCHITECTURE.md)
 
 ## Quick Start
 
@@ -134,142 +97,137 @@ git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git
 git clone git@github.com:sfc-gh-myoung/ai_coding_rules.git
 ```
 
-### Deploy rules to your project
+### Deploy rules
+
+#### Pick your AGENTS.md
+
+Choose which bootstrap protocol to deploy:
+
+| Mode | File | Best For |
+|------|------|----------|
+| **With ACT/PLAN** (default) | `AGENTS.md` | Teams wanting review gates, safety-first workflows |
+| **Without ACT/PLAN** | `AGENTS_NO_MODE.md` | Solo developers, rapid iteration |
+
+**How ACT/PLAN mode works:** The AI presents a task list in PLAN mode and waits for you to type `ACT` before making any file modifications. This gives you a chance to review proposed changes before they happen.
+
+To deploy without ACT/PLAN mode, add `--no-mode`:
 
 ```bash
-cd ai_coding_rules && python scripts/rule_deployer.py --dest ~/my-project
+uv run ai-rules deploy ~/my-project --no-mode
 
-# Or use task:
-cd ai_coding_rules && task deploy DEST=~/my-project
+# Or with make:
+make deploy DEST=~/my-project NO_MODE=1
 ```
 
+#### Deploy rules to your project directory
+
+Copies rules and skills directly into your project. Convenient for standalone projects.
+
+```bash
+cd ai_coding_rules
+uv sync --all-groups                     # Install dependencies
+uv run ai-rules deploy ~/my-project      # Deploy rules
+
+# Or with make:
+make deploy DEST=~/my-project
+```
+
+**Trade-off:** Each project gets its own copy. When rules are updated, re-deploy to each project individually.
+
+#### Deploy rules to a common/shared directory
+
+Stores rules and skills in a shared location (`~/.ai-rules`), while each project gets its own `AGENTS.md` pointing to the shared location.
+
+```bash
+cd ai_coding_rules
+uv sync --all-groups                     # Install dependencies
+
+# First: Deploy rules and skills to shared location (once)
+uv run ai-rules deploy ~/.ai-rules
+
+# Then: Deploy AGENTS.md to each project (points to shared rules)
+uv run ai-rules deploy-split --agents ~/project-a --rules ~/.ai-rules/rules --skills ~/.ai-rules/skills
+uv run ai-rules deploy-split --agents ~/project-b --rules ~/.ai-rules/rules --skills ~/.ai-rules/skills
+
+# Or with make:
+make deploy DEST=~/.ai-rules
+make deploy-split AGENTS=~/project-a RULES=~/.ai-rules/rules SKILLS=~/.ai-rules/skills
+```
+
+**Trade-off:** Update `~/.ai-rules` once to update all projects. Each project only needs its own `AGENTS.md`.
+
 ### Use in your AI assistant
-The benefit of this project is that it uses AGENTS.md to start the rule loading process.  AGENTS.md is
-automatically loaded by most agentic tools and IDEs.  If you are having issues with your tool of choice
+
+The benefit of this project is that it uses AGENTS.md to start the rule loading process. AGENTS.md is
+automatically loaded by most agentic tools and IDEs. If you are having issues with your tool of choice
 not loading AGENTS.md, then you can add the following to your prompt:
 
 ```text
-Load AGENTS.md and follow guidance for rule loading with rules/RULES_INDEX.md.
+Load AGENTS.md and follow guidance for rule loading via RULES_INDEX.md.
 ```
 
 **That's it!** Your project now has production-ready rules ready to use.
 
 **What just happened?**
 
-- ✅ Copied `rules/` directory to your project
-- ✅ Copied `AGENTS.md` and `rules/RULES_INDEX.md` for automatic AI discovery
-- ✅ Ready to use immediately—no additional configuration needed!
+| Approach | What gets copied |
+|----------|------------------|
+| **Project directory** | `rules/`, `skills/`, `AGENTS.md`, `RULES_INDEX.md` to your project |
+| **Shared directory** | Rules/skills to `~/.ai-rules`; only `AGENTS.md` to each project (with paths pointing to shared location) |
+
+Ready to use immediately with any AI assistant or IDE.
 
 **Next Steps:**
 
-- 📝 Customize `PROJECT.md` for your project's tooling and guidelines (recommended)
-- ✅ Deployment complete → [Watch Video Tutorials](#video-tutorials) or [Configure Your AI](#ai-configuration)
+- 📝 Consider creating a `PROJECT.md` for project-specific guidance
+- ✅ Deployment complete → [Configure Your AI](#ai-configuration)
 - 🤔 Want to understand how rules work → [Understanding Rules](#understanding-rules)
-- 🔧 Need different setup? → See [Deployment Options](#deployment-options)
+- 🔧 Need different setup? → See [Additional Deployment Options](#additional-deployment-options)
 
 **Alternative Paths:**
 
 - 🛠️ **Modify or contribute** → See [For Rule Maintainers](#for-rule-maintainers-contributing-to-rules)
 
-## Video Tutorials
+## Document Map: What to Read First
 
-Learn how to use AI Coding Rules through practical demonstrations:
+| File | Purpose | When to Read |
+|------|---------|--------------|
+| **README.md** | Project overview, setup, usage | Start here (you are here) |
+| **[rules/000-global-core.md](rules/000-global-core.md)** | Execution protocols (MODE, validation, workflows) | AI agents: after loading foundation |
+| **[CONTRIBUTING.md](CONTRIBUTING.md)** | Development guidelines, PR process | When contributing rules |
+| **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | System architecture, design decisions | When understanding internals or extending |
+| **[docs/MEMORY_BANK.md](docs/MEMORY_BANK.md)** | Memory Bank system for long-running projects | When using Memory Bank (optional) |
+| **[CHANGELOG.md](CHANGELOG.md)** | Version history, changes | When checking updates |
+| **[Makefile](Makefile)** | Development command targets | When running tasks |
 
-| Demo | Topic | Link |
-|------|-------|------|
-| Demo 1 | Getting Started with AI_CODING_RULES Project | [Watch on YouTube](https://youtu.be/9lVrLegKgDg) |
-| Demo 3 | Bug Fixes and Enhancements on Existing Project | [Watch on YouTube](https://youtu.be/hi5wcnLDEuI) |
-| Demo 4 | Using Snowflake Cortex Code CLI with AI_CODING_RULES | [Watch on YouTube](https://youtu.be/YhYRcfLAfr4) |
-| Demo 5 | Continuation: Snowflake Cortex Code CLI and AI_CODING_RULES | [Watch on YouTube](https://youtu.be/Xse0gqvgzQM) |
+### Additional Deployment Options
 
-> **Note:** These videos are currently unlisted and accessible only via direct link.
-
-**Quick guide:**
-- **New to the project?** → Start with Demo 1
-- **Working on existing code?** → See Demo 3
-- **Using Snowflake Cortex?** → Watch Demos 4 & 5
-
-### Deployment Options
-
-**Basic Deployment (Rules + Skills):**
+**Preview before deploying:**
 
 ```bash
-python scripts/rule_deployer.py --dest ~/my-project
-# Or use task:
-task deploy DEST=~/my-project
+uv run ai-rules deploy ~/my-project --dry-run
+# Or: make deploy-dry DEST=~/my-project
 ```
 
-**What happens:**
-
-- ✅ Copies `rules/` directory to `DEST/rules/`
-- ✅ Copies `skills/` directory to `DEST/skills/` (excludes internal-only skills)
-- ✅ Copies `AGENTS.md` and `rules/RULES_INDEX.md` to project root
-- ✅ Rules and skills ready to use immediately with any AI assistant or IDE
-
-**Skills Exclusions:**
-
-Some skills are internal-only and excluded from deployment (configured in `pyproject.toml`):
-
-```toml
-[tool.rule_deployer]
-exclude_skills = [
-    "rule-creator/",      # Rule creation tool for ai_coding_rules project only
-    "rule-reviewer/",     # Rule review tool for ai_coding_rules project only
-    "bulk-rule-reviewer/" # Bulk review orchestrator for ai_coding_rules project only
-]
-```
-
-**Note:** The `doc-reviewer` skill is deployed by default and can be used in target projects.
-
-**Deploy Skills Only (Agent Configuration Directories):**
+**Deploy skills only (to agent config directories):**
 
 ```bash
-python scripts/rule_deployer.py --dest ~/.claude/skills --only-skills
-# Or use task:
-task deploy:only-skills DEST=~/.claude/skills
+uv run ai-rules deploy ~/.claude/skills --only-skills
+# Or: make deploy-only-skills DEST=~/.claude/skills
+
+# Common locations:
+# Claude Code: ~/.claude/skills
+# Cortex Code: ~/.snowflake/cortex/skills
 ```
 
-**What happens:**
-
-- ✅ Copies only `skills/` directory to `DEST/skills/` (excludes internal-only skills)
-- ✅ Skips rules and root files (AGENTS.md, rules/RULES_INDEX.md)
-- ✅ Ideal for deploying skills to agent-specific configuration directories
-
-**Common use cases:**
+**Deploy rules only (skip skills):**
 
 ```bash
-# Claude Code (Cursor/Windsurf)
-task deploy:only-skills DEST=~/.claude/skills
-
-# Cortex Code
-task deploy:only-skills DEST=~/.snowflake/cortex/skills
-
-# Custom project location
-task deploy:only-skills DEST=./my-project/.ai/skills
+uv run ai-rules deploy ~/my-project --skip-skills
+# Or: make deploy-no-skills DEST=~/my-project
 ```
 
-**Deploy Rules Only (Skip Skills):**
-
-```bash
-python scripts/rule_deployer.py --dest ~/my-project --skip-skills
-# Or use task:
-task deploy:no-skills DEST=~/my-project
-```
-
-**Preview Before Deploying:**
-
-```bash
-python scripts/rule_deployer.py --dest ~/my-project --dry-run
-# Or use task:
-task deploy:dry DEST=~/my-project
-```
-
-**What happens:**
-
-- ✅ Shows what would be copied without making changes
-- ✅ Validates destination path exists
-- ✅ Identifies potential conflicts
-- ✅ Shows which skills will be excluded
+**Skills exclusions:** Some internal-only skills are excluded from deployment (configured in `pyproject.toml`)
 
 ### Option: Git Submodule (Version Tracking)
 
@@ -282,37 +240,14 @@ Track rule updates via git submodule:
 git submodule add https://github.com/sfc-gh-myoung/ai_coding_rules.git .ai-rules
 
 cd .ai-rules
-
-task deploy DEST=..   # Deploy to parent project
+uv sync --all-groups
+uv run ai-rules deploy ..   # Deploy to parent project
+# Or: make deploy DEST=..
 
 # Update rules later
-cd .ai-rules && git pull && task deploy DEST=..
+cd .ai-rules && git pull && uv run ai-rules deploy ..
+# Or: cd .ai-rules && git pull && make deploy DEST=..
 ```
-
-### Option: Deployment Without Task
-
-If you don't have Task installed, use the Python deployment script directly:
-
-```bash
-# Clone the rules repository (choose one)
-
-# GitHub:
-git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git /tmp/ai-rules
-
-cd /tmp/ai-rules
-
-# Install Python dependencies
-uv sync --all-groups
-
-# Deploy using Python script (handles everything automatically)
-uv run python scripts/rule_deployer.py --dest ~/my-project
-
-# Verify deployment
-ls ~/my-project/rules/*.md | wc -l
-ls ~/my-project/AGENTS.md ~/my-project/rules/RULES_INDEX.md  # Both files should exist
-```
-
-**Success!** Your AI assistant can now access specialized rules. See [AI Configuration](#ai-configuration) for IDE-specific setup.
 
 ## Understanding Rules
 
@@ -341,7 +276,7 @@ AI assistants automatically discover and load relevant rules based on your task 
 
   User Task                    AI Agent Actions
   ─────────                   ──────────────────
-     
+
   📝 "Build a                 ┌──────────────────┐
    Snowflake                  │ 1. Read          │
    Streamlit                  │   AGENTS.md      │◄─── Loading Protocol
@@ -389,10 +324,10 @@ Example Loading Sequence:
 - "testing" → loads `206-python-pytest.md`
 
 > **💡 Pro Tip: Keywords Drive Discovery**
-> 
-> The `Keywords` metadata in each rule enables semantic search. When you say "optimize Streamlit performance," 
+>
+> The `Keywords` metadata in each rule enables semantic search. When you say "optimize Streamlit performance,"
 > the AI searches rules/RULES_INDEX.md for rules with keywords: "performance", "streamlit", "caching", "optimization".
-> 
+>
 > **This is why well-crafted prompts matter** - specific keywords help the AI load the most relevant rules.
 > See [prompts/README.md](prompts/README.md) for effective prompt patterns.
 
@@ -421,32 +356,31 @@ This project uses **modular, topic-focused rules** instead of large monolithic f
 <summary>📊 Visual Decision Tree (expand for diagram)</summary>
 
 ```ascii
-┌─────────────────────────────────────────────────┐
-│         Start: What are you building?           │
-└─────────────────┬───────────────────────────────┘
-                  │
-    ┌─────────────┴─────────────┬─────────────────┬──────────────┐
-    ▼                           ▼                 ▼              ▼
-┌─────────┐            ┌──────────────┐   ┌─────────────┐  ┌──────────┐
-│Snowflake│            │Python App    │   │Infrastructure│  │General   │
-└────┬────┘            └──────┬───────┘   └──────┬──────┘  └────┬─────┘
-     │                        │                   │              │
-     ├─SQL/Pipeline           ├─FastAPI           ├─Docker       │
-     │ └►100-snowflake-core   │ └►210-fastapi     │ └►400-docker └►000-global-core
-     │                        │                   │
-     ├─Streamlit              ├─Flask             ├─Shell/Bash
-     │ └►101-snowflake-streamlit-core   │ └►250-python-flask       │ └►300-bash-scripting-core
-     │   +101a (viz)          │                   │
-     │   +101b (perf)         ├─CLI Tool          └─CI/CD
-     │   +101c (security)     │ └►220-python-typer-cli         └►803-project-git-workflow
-     │                        │
-     ├─Notebooks/ML           └─Data Science
-     │ └►109-notebooks          └►500-data-science
-     │
-     └─AI/ML Features
-       └►114-cortex-aisql
-         +114a (agents)
-         +114b (search)
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│                            Start: What are you building?                                 │
+└────────────────────────────────────────┬─────────────────────────────────────────────────┘
+                                         │
+        ┌────────────────┬───────────────┼───────────────┬────────────────┐
+        │                │               │               │                │
+        ▼                ▼               ▼               ▼                ▼
+┌───────────────┐ ┌────────────┐ ┌──────────────┐ ┌─────────────┐ ┌─────────────┐
+│   Snowflake   │ │ Python App │ │Infrastructure│ │   General   │ │  Frontend   │
+└───────┬───────┘ └─────┬──────┘ └──────┬───────┘ └──────┬──────┘ └──────┬──────┘
+        │               │               │                │               │
+        ├─SQL/Pipeline  ├─FastAPI       ├─Docker         │               ├─React
+        │ └►100-core    │ └►210-fastapi │ └►350-docker   └►000-global    │ └►440-react
+        │               │               │                  (always       │
+        ├─Streamlit     ├─Flask         ├─Shell/Bash       load first)   ├─TypeScript
+        │ └►101-sis     │ └►250-flask   │ └►300-bash                     │ └►430-ts
+        │  +101a,b,c    │               │                                │
+        │               ├─CLI Tool      └─CI/CD                          └─JavaScript
+        ├─Notebooks/ML  │ └►220-typer     └►803-git                        └►420-js
+        │ └►109-nb      │
+        │               └─Data Science
+        └─AI/ML           └►920-analytics
+          └►114-aisql
+           +115-agents
+           +116-search
 
 Loading Order (Follow Dependencies):
 1. Always load 000-global-core first
@@ -464,7 +398,7 @@ Loading Order (Follow Dependencies):
 - **Snowflake** → Start with `100-snowflake-core.md`
 - **Python** → Start with `200-python-core.md`
 - **Shell/Bash** → Start with `300-bash-scripting-core.md`
-- **Docker** → Start with `400-docker-best-practices.md`
+- **Docker** → Start with `350-docker-core.md`
 - **General** → Start with `000-global-core.md` (always load first)
 
 **Step 2: Select your use case**
@@ -473,14 +407,14 @@ Loading Order (Follow Dependencies):
 - SQL/Pipeline → `100-snowflake-core.md`
 - Streamlit app → `101-snowflake-streamlit-core.md` (+ 101a for charts, 101b for performance)
 - Notebooks/ML → `109-snowflake-notebooks.md`
-- AI/ML features → `114-cortex-aisql.md` (+ 114a for agents, 114b for search)
+- AI/ML features → `114-snowflake-cortex-aisql.md` (+ 115-snowflake-cortex-agents-core for agents, 116-snowflake-cortex-search for search)
 
 **Python Projects:**
 - FastAPI → `210-python-fastapi-core.md` (+ 210a for security if auth needed)
 - Flask → `250-python-flask.md`
 - CLI Tool → `220-python-typer-cli.md`
 - Testing → `206-python-pytest.md`
-- Data Science → `500-data-science.md`
+- Data Science → `920-data-science-analytics.md`
 
 **React/Frontend Projects:**
 - React app → `440-react-core.md` (architecture, state management, styling)
@@ -492,7 +426,7 @@ Loading Order (Follow Dependencies):
 - Go app → `600-golang-core.md` (project structure, error handling, interfaces, testing, concurrency)
 
 **Infrastructure Projects:**
-- Docker → `400-docker-best-practices.md`
+- Docker → `350-docker-core.md`
 - Shell scripting → `300-bash-scripting-core.md`
 - CI/CD → `803-project-git-workflow.md`
 
@@ -543,12 +477,26 @@ Learn how to write effective prompts that help AI assistants automatically disco
 **Quick preview:**
 
 ```
-Task: Fix all Ruff linting errors in Python validation scripts
-Files: scripts/rule_validator.py, scripts/index_generator.py
+Task: Fix all Ruff linting errors in Python validation modules
+Files: src/ai_rules/commands/validate.py, src/ai_rules/commands/index.py
 Errors: 9 total (F841 unused variables, UP037 quoted type annotations)
 ```
 
 This structured format helps AI assistants automatically load the right rules (`200-python-core`, `201-python-lint-format`) based on file types and keywords.
+
+## Contributing
+
+We welcome contributions! This project thrives on community input.
+
+**Want to contribute?** See [CONTRIBUTING.md](./CONTRIBUTING.md) for complete guidelines including:
+
+- Development environment setup
+- Rule authoring guidelines and template generator usage  
+- Schema validation and testing procedures
+- Pull request process and code quality standards
+- Configuration safety and best practices
+
+For questions or discussions, file an issue on the repository.
 
 ## Claude Agent Skills
 
@@ -569,21 +517,21 @@ You can use these skills in Cursor by telling Cursor to explicitly load the skil
 - Prompt: `Load skills/<skill_name>/SKILL.md`
 
 #### Claude Code
-You can use these skills in Claude Code by deploying the skills to the `.claude/skills` directory, either project or personal locations using the `task deploy` command or via filesystem `cp` command.
+You can use these skills in Claude Code by deploying the skills to the `.claude/skills` directory, either project or personal locations using the `make deploy` command or via filesystem `cp` command.
 
 You can also use these skill by telling Claude Code to explicitly load the skill in your prompt.
 - Prompt: `Load skills/<skill_name>/SKILL.md`
 
 #### Cortex Code CLI
 You can use these skills in Cortex Code CLI by running the skill add command.
-- Prompt: `/skill add <project_path>/skills/<skill_name>` 
+- Prompt: `/skill add <project_path>/skills/<skill_name>`
 
 You can also use these skills by telling Cortex Code CLI to explicitly load the skill in your prompt.
 - Prompt: `Load skills/<skill_name>/SKILL.md`
 
-### Deployed Skills (Available in Target Projects)
+#### Deployed Skills
 
-These skills are deployed by default when running `task deploy`:
+These skills are deployed by default when running `make deploy`:
 
 **doc-reviewer** — Automate documentation quality reviews
 - **Purpose:** Review documentation files for quality, completeness, and staleness
@@ -609,9 +557,9 @@ These skills are deployed by default when running `task deploy`:
 - **Usage guide:** [docs/USING_SKILL_TIMING_SKILL.md](docs/USING_SKILL_TIMING_SKILL.md)
 - **Skill file:** [skills/skill-timing/SKILL.md](skills/skill-timing/SKILL.md)
 
-### Internal-Only Skills (Excluded from Deployment)
+#### Internal Skills
 
-These skills are used only for ai_coding_rules project maintenance and are excluded from deployment:
+These skills are intended to be used specifically for the ai_coding_rules project maintenance:
 
 **rule-creator** — Create new rules with template generation
 - **Purpose:** Generate new rule files from templates with schema validation
@@ -632,165 +580,52 @@ These skills are used only for ai_coding_rules project maintenance and are exclu
 
 **bulk-rule-reviewer** — Orchestrate bulk rule reviews
 - **Purpose:** Execute comprehensive reviews on all rules in `rules/` directory with consolidated priority reporting
-- **Expected duration:** 5-10 hours for 124 rules (3-5 min per rule, sequential execution)
+- **Expected duration:** 1-2 hours with parallel sub-agents (default), 5-10 hours sequential
+- **Parallel execution:** Launches 5 sub-agents by default, each with fresh context (eliminates drift)
 - **Resume capability:** Skip existing reviews to resume after interruption
 - **Output:** Individual review files + master summary report with priority tiers
 - **Trigger keywords:** "bulk review rules", "review all rules", "audit rule repository"
 - **Usage guide:** [docs/USING_BULK_RULE_REVIEWER_SKILL.md](docs/USING_BULK_RULE_REVIEWER_SKILL.md)
 - **Skill file:** [skills/bulk-rule-reviewer/SKILL.md](skills/bulk-rule-reviewer/SKILL.md)
 
-### Skill Deployment Configuration
+## CLI Commands
 
-Skills excluded from deployment are configured in `pyproject.toml`:
-
-```toml
-[tool.rule_deployer]
-exclude_skills = [
-    "rule-creator/",      # Rule creation tool for ai_coding_rules project only
-    "rule-reviewer/",     # Rule review tool for ai_coding_rules project only
-    "bulk-rule-reviewer/" # Bulk review orchestrator for ai_coding_rules project only
-]
-```
-
-To deploy only skills (useful for agent configuration directories):
+The `ai-rules` CLI provides 8 subcommands for rules management:
 
 ```bash
-task deploy:only-skills DEST=~/.claude/skills
+# Show help and all available commands
+uv run ai-rules --help
 ```
 
-## Contributing
+| Command | Description |
+|---------|-------------|
+| `ai-rules validate` | Validate rule files against v3.2 schema |
+| `ai-rules index` | Generate RULES_INDEX.md from rules/ metadata |
+| `ai-rules keywords` | Suggest/update keywords using TF-IDF analysis |
+| `ai-rules deploy` | Deploy rules and skills to target projects |
+| `ai-rules tokens` | Validate and update TokenBudget metadata |
+| `ai-rules new` | Generate new rule file from v3.2 template |
+| `ai-rules badges` | Update README badges (version, tests, coverage) |
+| `ai-rules refs` | Validate rule references in RULES_INDEX.md |
 
-We welcome contributions! This project thrives on community input.
+**Additional CLIs:**
 
-**Want to contribute?** See [CONTRIBUTING.md](./CONTRIBUTING.md) for complete guidelines including:
-
-- Development environment setup
-- Rule authoring guidelines and template generator usage  
-- Schema validation and testing procedures
-- Pull request process and code quality standards
-- Configuration safety and best practices
-
-For questions or discussions, file an issue on the repository.
-
-## Project Structure
-
-```ascii
-ai_coding_rules/
-├── rules/                  ← Production-ready rules (125 total)
-│   └── examples/           ← Validated implementation examples (10 total)
-├── AGENTS.md               ← Rule loading protocol for AI assistants
-├── rules/RULES_INDEX.md          ← Searchable rule catalog
-├── scripts/                ← Validation and deployment tools
-│   ├── index_generator.py      ← Generate rules/RULES_INDEX.md
-│   ├── rule_deployer.py        ← Deploy rules to projects
-│   ├── schema_validator.py     ← Validate rule structure
-│   ├── template_generator.py   ← Create new rule templates
-│   ├── keyword_generator.py    ← Generate semantic keywords for rules
-│   ├── token_validator.py      ← Validate token budgets
-│   └── badge_updater.py        ← Update README badges
-├── docs/                   ← Documentation (12 files)
-│   ├── ARCHITECTURE.md         ← System design decisions
-│   ├── MEMORY_BANK.md          ← Memory Bank system
-│   ├── TOKEN_BUDGETS.md        ← Token budget guidelines
-│   └── USING_*.md              ← Skill usage guides
-├── tests/                  ← Test suite (98% coverage)
-├── schemas/                ← YAML schemas for rule/example validation
-├── prompts/                ← User prompt templates
-└── skills/                 ← Claude Agent Skills (6 total)
-    ├── rule-reviewer/          ← Review individual rules
-    ├── bulk-rule-reviewer/     ← Review all rules at once
-    ├── doc-reviewer/           ← Review documentation
-    ├── plan-reviewer/          ← Review LLM-generated plans
-    ├── rule-creator/           ← Create new rules (internal)
-    └── skill-timing/           ← Measure skill performance
-```
-
-**Key Concepts:**
-
-- **rules/** — Production-ready rules (125 total), deploy directly (no generation needed)
-- **AGENTS.md** — AI discovery protocol in project root
-- **rules/RULES_INDEX.md** — Searchable catalog in project root
-- **scripts/** — Validation (`schema_validator.py`), deployment (`rule_deployer.py`)
-
-**Workflows:**
-
-```bash
-# For users: Deploy rules
-task deploy DEST=~/my-project
-
-# For contributors: Edit and validate
-vim rules/200-python-core.md
-task rules:validate          # Validate changes
-task index:generate          # Update rules/RULES_INDEX.md
-git add rules/ rules/RULES_INDEX.md && git commit -m "feat: update Python rules"
-```
+| CLI | Description |
+|-----|-------------|
+| `uv run agent-eval` | Test AGENTS.md effectiveness with Cortex evaluation |
 
 ## Development Commands
 
-Run `task` to see the full categorized command list with quickstart guide.
+Run `make help` to see the full categorized command list. Common commands:
 
 ```bash
-# Quickstart (most common commands)
-task quality:fix                       # Fix all code quality issues (alias: fix, qf)
-task test                              # Run all pytest tests (alias for test:all)
-task validate                          # Run all CI/CD checks (alias for validate:ci)
-task index:generate                    # Regenerate rules/RULES_INDEX.md
-task deploy DEST=~/my-project          # Deploy rules to project
-
-# Deployment
-task deploy DEST=~/my-project          # Deploy rules to project
-task deploy:dry DEST=~/my-project      # Preview deployment
-task deploy:verbose DEST=~/my-project  # Deploy with verbose output
-task deploy:no-skills DEST=~/my-project # Deploy rules only (skip skills)
-task deploy:only-skills DEST=~/.claude/skills # Deploy only skills (for agent configs)
-
-# Rule Management
-task rule:new FILENAME=100-example     # Create new rule from template
-task rules:validate                    # Validate all rules against schema
-task rules:validate:verbose            # Validate with detailed errors
-
-# Index Management
-task index:generate                    # Generate rules/RULES_INDEX.md
-task index:check                       # Check if index is current
-
-# Token Management
-task tokens:update                     # Update token budgets in all rules
-task tokens:check                      # Check token budget accuracy (all files)
-task tokens:update:file FILE=...       # Update single file token budget
-task tokens:check:file FILE=...        # Check single file token budget
-
-# Keyword Generation
-task keywords:suggest FILE=...         # Suggest keywords for a rule
-task keywords:update FILE=...          # Update keywords in-place
-task keywords:all                      # Suggest keywords for all rules
-
-# Quality & Testing
-task quality:check                     # Run all quality checks
-task quality:fix                       # Fix all quality issues (alias: fix, qf)
-task quality:lint                      # Run ruff linter (check only)
-task quality:format                    # Run ruff formatter (check only)
-task quality:typecheck                 # Run ty type checker (aliases: type, type-check)
-task quality:markdown                  # Run pymarkdownlnt Markdown linter
-task test                              # Run all pytest tests (alias for test:all)
-task test:coverage                     # Run tests with coverage report
-
-# Validation & CI
-task validate                          # Run all CI/CD checks (alias for validate:ci)
-task preflight                         # Verify environment is ready
-
-# Environment
-task env:python                        # Pin Python 3.11 and create venv
-task env:sync                          # Sync dev dependencies (fast)
-task env:deps                          # Lock and sync dependencies
-
-# Cleanup
-task clean:cache                       # Remove Python cache files
-task clean:venv                        # Remove virtual environment
-task clean:all                         # Remove all generated files
-
-# Status
-task status                            # Show project status summary
+make quality-fix    # Fix all code quality issues
+make test           # Run all pytest tests
+make validate       # Run all CI/CD checks
+make deploy DEST=~  # Deploy rules to project
 ```
+
+**See [docs/ARCHITECTURE.md#makefile-architecture](docs/ARCHITECTURE.md#makefile-architecture) for complete command reference.**
 
 ## Rule Categories
 
@@ -801,82 +636,21 @@ The rules are organized by domain using a three-digit numbering system. Each cat
 | **Core Foundation** | 000-099 | 12 | Universal patterns | Operating principles, memory bank, rule governance, context engineering, tool design, skills |
 | **Snowflake** | 100-199 | 58 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines, demo creation |
 | **Python** | 200-299 | 27 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas, **HTMX** |
-| **Shell Scripts** | 300-399 | 7 | Automation | Bash and Zsh scripting, security, testing |
-| **Frontend/Containers** | 400-499 | 5 | Infrastructure & UI | Docker, JavaScript, TypeScript, React, **HTMX frontend** |
+| **Shell/Containers** | 300-399 | 9 | Automation & Infrastructure | Bash and Zsh scripting, security, testing, Docker, **Podman** |
+| **Frontend (JS/TS)** | 400-499 | 3 | Client-side frameworks | JavaScript, TypeScript, React, **HTMX frontend** |
 | **Frontend** | 500-599 | 2 | Client-side | HTMX frontend, browser globals |
 | **Systems/Backend Languages** | 600-699 | 1 | Backend development | **Go/Golang** core patterns, error handling, concurrency |
 | **Reserved** | 700-799 | 0 | Future use | Reserved for future domain expansion |
 | **Project Management** | 800-899 | 5 | Workflows | Git, changelog, README, contributing, Taskfile |
 | **Analytics & Governance** | 900-999 | 4 | Business intelligence | Data science, data governance, business analytics, semantic views |
 
-### HTMX Rules (New in v3.1.0)
-
-The Python domain now includes comprehensive HTMX support for building hypermedia-driven web applications:
-
-| Rule | Focus | Description |
-|------|-------|-------------|
-| **221-python-htmx-core** | Foundation | Request/response lifecycle, HTTP headers, security (CSRF, XSS), HATEOAS principles |
-| **221a-python-htmx-templates** | Templates | Jinja2 organization, partials, fragments, conditional rendering |
-| **221b-python-htmx-flask** | Flask Integration | Flask-HTMX extension, blueprints, session management, authentication |
-| **221c-python-htmx-fastapi** | FastAPI Integration | Async routes, dependency injection, Pydantic validation, background tasks |
-| **221d-python-htmx-testing** | Testing | Pytest fixtures, header assertions, HTML validation, mocking strategies |
-| **221e-python-htmx-patterns** | Common Patterns | CRUD, forms, infinite scroll, search, real-time updates, modals, wizards |
-| **221f-python-htmx-integrations** | Frontend Libraries | Alpine.js, _hyperscript, Tailwind, Bootstrap, Chart.js integration |
-| **500-frontend-htmx-core** | Frontend Reference | HTMX attributes, events, CSS transitions, debugging, browser compatibility |
-
-**🔍 Searchable index:** See [rules/RULES_INDEX.md](rules/RULES_INDEX.md) for complete rule list with keywords, dependencies, and semantic search
+**Searchable index:** See [rules/RULES_INDEX.md](rules/RULES_INDEX.md) for complete rule list with keywords, dependencies, and semantic search.
 
 ## Directive Language Hierarchy
 
-The rules use a structured directive language with clear priority levels to guide both AI agents and human developers:
+The rules use a structured directive language (Critical, Mandatory, Always, Requirement, Rule, Consider) with clear priority levels to guide AI agents and developers.
 
-### Behavioral Control Directives (By Strictness)
-
-```
-├── Critical        [System Safety]      🔴 Must never violate
-├── Mandatory       [Non-negotiable]     🟠 Must always follow  
-├── Always          [Universal Practice] 🟡 Should be consistent
-├── Requirement     [Technical Standard] 🔵 Should implement
-├── Rule            [Best Practice]      🟢 Recommended pattern
-└── Consider        [Optional]           ⚪ Suggestions & alternatives
-```
-
-### Informational Directives
-
-```
-├── Error           [Problem Description]  - Troubleshooting guidance
-├── Exception       [Special Case]        - Override conditions
-├── Forbidden       [Explicit Prohibition] - Explicitly prohibited actions
-└── Note            [Additional Info]     - Cross-references and context
-```
-
-### Usage Examples
-
-- **Critical:** `Critical: In PLAN mode, you are FORBIDDEN from using ANY file-modifying tools`
-- **Mandatory:** `Mandatory: You MUST ask for explicit user confirmation of the TASK LIST`
-- **Always:** `Always: Reference the most recent online official documentation`
-- **Requirement:** `Requirement: Use fenced code blocks with language tags`
-- **Rule:** `Rule: Act as a senior, pragmatic software engineer`
-- **Consider:** `Consider: Use tables for structured information`
-- **Avoid:** `Avoid: Mixing business logic and UI rendering in a single function`
-
-This hierarchy ensures consistent interpretation across different AI models and provides clear guidance on the relative importance of each directive.
-
-## Rule Architecture
-
-The project uses a **production-ready rules architecture**. Rules are authored once in universal Markdown format and work everywhere without transformation.
-
-**Key concepts:**
-
-- **Production-ready rules** in `rules/` directory
-- **Universal Markdown format** works with any IDE, LLM, or agent
-- **Automatic discovery** via `AGENTS.md` and `rules/RULES_INDEX.md` in project root
-- **Direct deployment** - no generation or transformation steps needed
-- **Validation tools** ensure rules follow schema before deployment
-
-Rules preserve essential metadata (Keywords, TokenBudget, ContextTier, Depends) while remaining readable Markdown. ContextTier provides secondary priority signaling; see `000-global-core.md` for primary preservation mechanism (natural language markers). AI assistants use `AGENTS.md` to understand loading protocol and `rules/RULES_INDEX.md` to discover relevant rules by keyword search.
-
-**See [Architecture Documentation](docs/ARCHITECTURE.md) for complete technical details and design decisions.**
+**See [docs/ARCHITECTURE.md#directive-language-hierarchy](docs/ARCHITECTURE.md#directive-language-hierarchy) for complete hierarchy, informational directives, and usage examples.**
 
 ## AI Configuration
 
@@ -916,7 +690,7 @@ def load_rule_with_dependencies(rule_name, rules_dir="rules"):
     """Load a rule and all its dependencies in correct order."""
     loaded = []
     to_load = [rule_name]
-    
+
     while to_load:
         current = to_load.pop(0)
         if current not in loaded and current != "None":
@@ -924,16 +698,16 @@ def load_rule_with_dependencies(rule_name, rules_dir="rules"):
             rule_path = Path(rules_dir) / current
             if rule_path.exists():
                 content = rule_path.read_text()
-                
+
                 # Extract dependencies
                 depends_match = re.search(r'\*\*Depends:\*\* (.+)', content)
                 if depends_match:
                     deps = depends_match.group(1).split(', ')
                     # Add dependencies to load queue (they'll load first)
                     to_load = [f"{d}.md" for d in deps if d != "None"] + to_load
-                
+
                 loaded.append(current)
-    
+
     return loaded  # Returns rules in dependency order
 
 # Example usage
@@ -965,9 +739,9 @@ python --version
 2. **Install Dependencies**
 
 ```bash
-task env:deps
-# OR without Task:
-uv sync
+make env-sync
+# OR directly:
+uv sync --all-groups
 ```
 
 3. **Check for Errors**
@@ -975,61 +749,19 @@ uv sync
    - Review terminal output for error messages
    - Look for permission issues or missing dependencies
 
-4. **Try Direct Script**
+4. **Try Direct CLI**
 
 ```bash
 # For deployment
-uv run scripts/rule_deployer.py --dest ~/my-project
+uv run ai-rules deploy ~/my-project
 ```
 
 5. **Verify Project Structure**
 
 ```bash
 # Check required files exist
-ls scripts/rule_deployer.py scripts/schema_validator.py Taskfile.yml rules/
+ls src/ai_rules/cli.py Makefile rules/
 ```
-
-
-### Task Command Not Found
-
-**Problem:** `task: command not found` or `bash: task: command not found`
-
-**Solutions:**
-
-**Option A - Install Task (Recommended)**
-
-```bash
-# macOS
-brew install go-task/tap/go-task
-
-# Linux
-sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
-
-# Windows (PowerShell)
-choco install go-task
-```
-
-**Option B - Deployment Without Task**
-
-See [Deployment Without Task](#option-deployment-without-task) in Quick Start for complete instructions.
-
-Quick example for universal rules:
-
-```bash
-cd /tmp/ai-rules
-uv sync --all-groups
-uv run python scripts/rule_deployer.py --dest ~/my-project
-```
-
-**Validation:**
-
-```bash
-# If Task installed successfully
-task --version
-
-# Should show: Task version: v3.x.x
-```
-
 
 ### Python Version Conflicts
 
@@ -1048,15 +780,15 @@ python3 --version
 2. **Use uv to Pin Version**
 
 ```bash
-task env:python
+make env-python
 # Creates .python-version file pinning to 3.11
 ```
 
 3. **Clean and Reinstall**
 
 ```bash
-task clean:venv   # Remove virtual environment
-task env:deps     # Reinstall dependencies
+make clean-venv    # Remove virtual environment
+make env-sync      # Reinstall dependencies
 ```
 
 4. **Manual venv Setup (fallback)**
@@ -1069,7 +801,6 @@ source .venv/bin/activate  # Linux/macOS
 
 pip install -e ".[dev]"
 ```
-
 
 ### IDE Not Recognizing Rules
 
@@ -1098,7 +829,6 @@ ls rules/*.md | wc -l
    - Ask: "What rules are available for Snowflake development?"
    - AI should reference rules/RULES_INDEX.md and list rules
    - If not working, verify rules/RULES_INDEX.md is in context
-
 
 ### How to Verify Rules Are Working
 
@@ -1134,7 +864,6 @@ grep -i "fastapi" rules/RULES_INDEX.md
 grep -i "snowflake" rules/RULES_INDEX.md
 ```
 
-
 ### Permission Errors During Deployment
 
 **Problem:** Permission denied when deploying rules
@@ -1150,10 +879,10 @@ touch test.txt && rm test.txt
 2. **Use Custom Destination**
 ```bash
 # Deploy to home directory
-task deploy DEST=~/ai-coding-rules-output
+make deploy DEST=~/ai-coding-rules-output
 
 # Or use absolute path
-task deploy DEST=/tmp/rules-output
+make deploy DEST=/tmp/rules-output
 ```
 
 3. **Fix Repository Permissions**
@@ -1161,7 +890,6 @@ task deploy DEST=/tmp/rules-output
 # If cloned repository has wrong permissions
 chmod -R u+w .
 ```
-
 
 ### Give Specific Rules
 
@@ -1177,14 +905,14 @@ Most of the LLMs and agentic tools will generally do a good job of following the
 
 **Get Help:**
 - **Check Issues:** [GitHub Issues](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)
-- **Review Validation:** Run `task rules:validate` to check rule structure
-- **Enable Debug Mode:** `task deploy:verbose DEST=~/path` for detailed output
+- **Review Validation:** Run `make rules-validate` to check rule structure
+- **Enable Debug Mode:** `make deploy-verbose DEST=~/path` for detailed output
 - **Check Logs:** Review terminal output for specific error messages
 
 **Common Fixes:**
 - Update uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - Clear cache: `rm -rf .venv __pycache__`
-- Reinstall dependencies: `task clean:venv && task env:sync`
+- Reinstall dependencies: `make clean-venv && make env-sync`
 
 ## License
 
@@ -1207,56 +935,3 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 - **Discussions:** [GitHub Discussions](https://github.com/sfc-gh-myoung/ai_coding_rules/discussions)
 - **Documentation:** All rules include links to official documentation
 - **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md)
-
----
-
-## Quick Reference
-
-### Common Commands
-
-**With Task:**
-```bash
-# Deploy/update rules
-git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git /tmp/ai-rules
-cd /tmp/ai-rules
-task deploy DEST=~/my-project
-```
-
-**Without Task (Python script):**
-```bash
-# Deploy/update rules using Python script
-cd /tmp/ai-rules
-uv sync --all-groups
-uv run python scripts/rule_deployer.py --dest ~/my-project
-```
-
-**General:**
-```bash
-# Check rule count
-ls rules/*.md | wc -l
-
-# Search rules (rules/RULES_INDEX.md is in project root after deployment)
-grep -i "keyword" rules/RULES_INDEX.md
-
-# Find specific rule
-find rules -name "*python*"
-```
-
-### Common Prompts
-
-```
-"What rules are available for [technology]?"
-"Load rules for [task] development"
-"Review this code for rule compliance"
-"Which rule covers [specific topic]?"
-"Follow rule [number] for this implementation"
-```
-
-### Key Files
-
-| File | Purpose | Location (after deployment) |
-|------|---------|----------|
-| `AGENTS.md` | Rule discovery guide | **Project root** |
-| `rules/RULES_INDEX.md` | Searchable catalog | **Project root** |
-| `000-global-core.md` | Foundation rules | `rules/` |
-| All rule files | Specialized rules | `rules/` |

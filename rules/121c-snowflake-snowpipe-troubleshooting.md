@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-02-23
 **Keywords:** snowpipe troubleshooting, debugging, error resolution, pipe errors, streaming errors, connection failures, schema errors, offset tracking, latency issues, duplicate data, authentication errors, channel errors
 **TokenBudget:** ~5050
 **ContextTier:** Medium
@@ -425,7 +425,7 @@ Troubleshooting and debugging patterns for both file-based Snowpipe and Snowpipe
   ```
   - **Fix:** Validate data before insert
   - **Fix:** Implement schema validation
-  - **Fix:** Check constraints (PK, FK, CHECK)
+  - **Fix:** Check constraints (PK, FK, NOT NULL)
   - **Fix:** Add data quality checks
 
 ## Debugging Checklists
@@ -449,7 +449,7 @@ Troubleshooting and debugging patterns for both file-based Snowpipe and Snowpipe
 - [ ] Files exist in stage and match pattern
 - [ ] File sizes appropriate (100-250MB compressed)
 - [ ] No schema mismatches or data type errors
-- [ ] No constraint violations (PK, FK, CHECK)
+- [ ] No constraint violations (PK, FK, NOT NULL)
 
 ### Snowpipe Streaming Checklist
 

@@ -5,8 +5,8 @@ FOUNDATION RULE: PRESERVE WHEN POSSIBLE
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-07
+**RuleVersion:** v3.0.2
+**LastUpdated:** 2026-02-10
 **Keywords:** agent, LLM, optimization, format, token, efficiency, understanding, execution, comprehension, design, patterns, priority, agent-first
 **TokenBudget:** ~3400
 **ContextTier:** High
@@ -19,7 +19,7 @@ The PRIMARY design priority for all rules: **agent understanding and execution r
 
 **Design Priorities (Strictly Enforced):**
 
-See `000-global-core.md` "Rule Design Priorities (Hierarchy)" for canonical definitions.
+See `002-rule-governance.md` "Key Principles" for canonical definitions.
 
 1. **Priority 1 (CRITICAL):** Agent understanding and execution reliability - All wording must be unambiguous for autonomous non-human agents
 2. **Priority 2 (HIGH):** Rule discovery efficacy and determinism
@@ -205,8 +205,9 @@ Agents follow explicit instructions reliably; they struggle with implied require
 Some sections require specific structures for deterministic agent behavior:
 
 **Contract Section:**
-- Must use XML tags (`<contract>`, `<inputs_prereqs>`, etc.)
-- All 6 subsections required in order
+- Must use Markdown subsections (###), NOT XML tags
+- Refer to 002-rule-governance.md §Contract Structure for canonical format
+- All subsections required in order
 - Enables consistent extraction by any agent
 
 **Anti-Patterns Section:**

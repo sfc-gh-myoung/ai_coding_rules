@@ -38,6 +38,10 @@
     },
     "ol-prefix": {
       "enabled": false
+    },
+    "no-hard-tabs": {
+      "enabled": true,
+      "code_blocks": false
     }
   }
 }

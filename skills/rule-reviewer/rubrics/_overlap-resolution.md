@@ -18,6 +18,7 @@ This document defines how to assign issues to their PRIMARY dimension when they 
 | Schema validation failure | Parsability OR Completeness | **Parsability** | Structure takes priority |
 | Broken link | Staleness OR Accuracy | **Staleness** | Currency check catches this |
 | Vague guidance | Actionability OR Clarity | **Actionability** | Agent execution is primary |
+| File exceeds line limit | Rule Size (exclusive) | **Rule Size** | No overlap - line count is unique metric |
 
 ## Decision Rules
 
@@ -65,7 +66,15 @@ If issue is CURRENCY related:
 - Examples: Deprecated tools, broken links, old patterns
 - Rationale: Time-based decay
 
-### Rule 7: Cross-Agent Consistency
+### Rule 7: Rule Size
+
+If issue is LINE COUNT related:
+- Assign to **Rule Size**
+- Examples: File exceeds 500 lines, needs splitting
+- Rationale: Physical size constraint (100% deterministic)
+- **Note:** Rule Size has NO overlaps with other dimensions - line count is a unique metric
+
+### Rule 8: Cross-Agent Consistency
 
 If issue is AGENT-SPECIFIC assumption:
 - Assign to **Cross-Agent Consistency**

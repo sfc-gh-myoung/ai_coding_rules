@@ -4,7 +4,13 @@
 
 Extract scores, verdicts, and critical issues from individual review files without loading full content. Calculate statistics and prepare data structure for master summary report. Implements context-efficient parsing strategy.
 
+**Handles both execution modes:**
+- **Parallel:** Merges results from multiple sub-agents
+- **Sequential:** Processes single results list from main agent
+
 ## Inputs
+
+### From Sequential Execution (max_parallel = 1)
 
 - Results list from review-execution.md containing:
   - `rule_name`: Rule identifier
@@ -14,6 +20,28 @@ Extract scores, verdicts, and critical issues from individual review files witho
   - `review_path`: Path to review file
   - `status`: SUCCESS | FAILED | SKIPPED
 
+### From Parallel Execution (max_parallel ≥ 2)
+
+- List of sub-agent results from parallel-execution.md:
+  ```json
+  [
+    {
+      "worker_num": 1,
+      "completed": [...],
+      "failed": [...],
+      "skipped": [...],
+      "summary": {...}
+    },
+    {
+      "worker_num": 2,
+      "completed": [...],
+      "failed": [...],
+      "skipped": [...],
+      "summary": {...}
+    }
+  ]
+  ```
+
 ## Outputs
 
 - Summary data structure with:
@@ -22,8 +50,107 @@ Extract scores, verdicts, and critical issues from individual review files witho
   - **Critical issues summary:** Count distribution (0, 1-2, 3+ issues)
   - **Priority tiers:** Rules grouped by score range
   - **Failed reviews:** List of rules with errors
+  - **Execution metadata:** (parallel mode only) Worker count, per-worker stats
 
 ## Implementation
+
+### Step 0: Normalize Input Format
+
+**Merge results from parallel sub-agents into unified list:**
+
+```python
+def normalize_results(raw_results, execution_mode):
+    """Normalize results from parallel or sequential execution.
+    
+    Args:
+        raw_results: Either a list of results (sequential) or 
+                     list of sub-agent result dicts (parallel)
+        execution_mode: "parallel" | "sequential"
+    
+    Returns:
+        Unified results list for aggregation
+    """
+    if execution_mode == "sequential":
+        # Already in correct format
+        return raw_results
+    
+    # PARALLEL: Merge results from all sub-agents
+    unified_results = []
+    failed_agents = []
+    
+    for agent_result in raw_results:
+        worker_num = agent_result.get("worker_num", "unknown")
+        
+        # Check if sub-agent itself failed
+        if agent_result.get("status") == "AGENT_FAILED":
+            failed_agents.append(worker_num)
+            # Add placeholder failures for all rules assigned to this agent
+            for rule_path in agent_result.get("assigned_rules", []):
+                unified_results.append({
+                    "rule_name": extract_rule_name(rule_path),
+                    "score": None,
+                    "verdict": "AGENT_FAILED",
+                    "critical_issues": None,
+                    "review_path": None,
+                    "status": "FAILED",
+                    "error_message": f"Sub-agent {worker_num} failed"
+                })
+            continue
+        
+        # Merge completed reviews
+        for review in agent_result.get("completed", []):
+            unified_results.append({
+                "rule_name": review["rule_name"],
+                "score": review["score"],
+                "verdict": review["verdict"],
+                "critical_issues": review.get("critical_issues"),
+                "review_path": review["review_path"],
+                "status": "SUCCESS"
+            })
+        
+        # Merge failed reviews
+        for review in agent_result.get("failed", []):
+            unified_results.append({
+                "rule_name": review["rule_name"],
+                "score": None,
+                "verdict": "FAILED",
+                "critical_issues": None,
+                "review_path": None,
+                "status": "FAILED",
+                "error_message": review.get("error_message", "Unknown error")
+            })
+        
+        # Merge skipped reviews
+        for review in agent_result.get("skipped", []):
+            # For skipped, we need to extract score from existing file
+            unified_results.append({
+                "rule_name": review["rule_name"],
+                "score": review.get("score"),  # May need extraction
+                "verdict": review.get("verdict"),
+                "critical_issues": review.get("critical_issues"),
+                "review_path": review["review_path"],
+                "status": "SKIPPED"
+            })
+    
+    if failed_agents:
+        print(f"[Aggregation] WARNING: Sub-agents {failed_agents} failed completely")
+    
+    # Sort by rule name for consistent ordering
+    unified_results.sort(key=lambda r: r["rule_name"])
+    
+    print(f"[Aggregation] Normalized {len(unified_results)} results from "
+          f"{len(raw_results)} sub-agents" if execution_mode == "parallel"
+          else f"[Aggregation] Processing {len(unified_results)} results")
+    
+    return unified_results
+
+
+def extract_rule_name(file_path):
+    """Extract rule name from file path."""
+    import os
+    basename = os.path.basename(file_path)
+    return os.path.splitext(basename)[0]
+```
 
 ### Step 1: Build Enhanced Metadata Structure
 

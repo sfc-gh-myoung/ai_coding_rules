@@ -11,12 +11,13 @@ The bulk-rule-reviewer skill automates comprehensive agent-centric reviews of al
 Key behaviors:
 
 - Reviews all rules in `rules/` directory (or filtered subset)
+- Launches parallel sub-agents by default (5 workers), each with fresh context
 - Invokes rule-reviewer skill for each rule individually
 - Generates individual review files in `{output_root}rule-reviews/` directory
 - Creates master summary report in `{output_root}summaries/`
 - Default `output_root`: `reviews/`
 - Supports resume capability for long-running batches
-- Expected execution time: 5-10 hours for 124 rules (sequential)
+- Expected execution time: 1-2 hours (parallel), 5-10 hours (sequential)
 
 ## Why Not Deployed?
 
@@ -25,7 +26,7 @@ The bulk-rule-reviewer skill is designed for **rule maintainers** working in the
 1. **Requires rule-reviewer skill** - Must invoke rule-reviewer for each file
 2. **Writes to reviews/** - Directory structure specific to rule maintenance
 3. **Targets rule repository** - Most useful for bulk rule quality audits
-4. **Long-running process** - Takes 5-10 hours for full repository review
+4. **Long-running process** - Takes 1-2 hours (parallel) for full repository review
 
 For deployed projects, teams should use the rule-reviewer skill directly for individual rule validation.
 
@@ -124,17 +125,17 @@ The master summary includes:
 
 **FULL Mode (Comprehensive):**
 - All 7 dimensions evaluated per rule
-- Expected duration: 5-10 hours for 124 rules
+- Expected duration: 1-2 hours (parallel with 5 workers), 5-10 hours (sequential)
 - Use for: Quarterly audits, pre-release validation
 
 **FOCUSED Mode (Targeted):**
 - Actionability + Completeness only
-- Faster execution (2-3 hours)
+- Faster execution (~1 hour parallel)
 - Use for: Quick quality checks
 
 **STALENESS Mode (Periodic Maintenance):**
 - Staleness dimension only
-- Fastest execution (1-2 hours)
+- Fastest execution (~30 min parallel)
 - Use for: Monthly maintenance, link rot detection
 
 ## Resume Capability
@@ -212,11 +213,11 @@ This writes reviews to `quarterly-audit/rule-reviews/` and summary to `quarterly
 
 ### Q: How long does a full review take?
 
-**A:** For 124 rules in FULL mode: 5-10 hours (3-5 minutes per rule). This is EXPECTED and REQUIRED for quality reviews.
+**A:** For 124 rules in FULL mode: 1-2 hours with parallel execution (default, 5 workers), or 5-10 hours sequential (3-5 minutes per rule).
 
 ### Q: Why is it so slow?
 
-**A:** Each rule gets a complete agent-centric review using the full rubric. Shortcuts compromise review quality. The skill includes execution integrity warnings to prevent agents from optimizing for speed at the expense of accuracy.
+**A:** Each rule gets a complete agent-centric review using the full rubric. Shortcuts compromise review quality. The skill uses parallel sub-agents by default to balance speed with quality—each sub-agent has fresh context to prevent drift.
 
 ### Q: Where does the rubric come from?
 
@@ -224,7 +225,7 @@ This writes reviews to `quarterly-audit/rule-reviews/` and summary to `quarterly
 
 ### Q: Can I run reviews in parallel?
 
-**A:** Sequential execution (default: `max_parallel=1`) is recommended. Parallel execution is possible but may cause context management issues.
+**A:** Yes! Parallel execution is now the default (`max_parallel: 5`). Each sub-agent gets fresh context, eliminating drift that occurs in long sequential sessions. Set `max_parallel: 1` for sequential execution if needed.
 
 ## Error Handling
 

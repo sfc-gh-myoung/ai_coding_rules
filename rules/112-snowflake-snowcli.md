@@ -4,10 +4,10 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**LastUpdated:** 2026-02-19
 **LoadTrigger:** kw:snowcli, file:snowflake.yml
 **Keywords:** snow CLI, SnowCLI, Snowflake CLI, snowflake-cli, uvx, Taskfile, task automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, stage copy
-**TokenBudget:** ~3250
+**TokenBudget:** ~3750
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md
 
@@ -228,6 +228,31 @@ uvx --from=snowflake-cli==3.13 snow stage copy \
 ```
 **Benefits:** Reliable uploads; correct Python imports; no TypeError; professional deployments; clear syntax
 
+**Anti-Pattern 6: Inverted Flag Logic in Python Wrappers**
+```python
+# Bad: Only adds --auto-compress when True (which is already the default)
+def stage_copy(path, stage, auto_compress=True):
+    flags = ["--overwrite"]
+    if auto_compress:
+        flags.append("--auto-compress")  # Redundant: CLI default is compress
+    # When caller passes auto_compress=False: nothing happens!
+    # CLI still auto-compresses → .py becomes .py.gz → SiS TypeError
+```
+**Problem:** The `snow stage copy` CLI auto-compresses by default. Omitting `--no-auto-compress` does NOT disable compression — it enables it. This bug is especially insidious because deployment succeeds (`[PASS]`) while the app fails at runtime.
+
+**Correct Pattern:**
+```python
+# Good: Default to no compression; pass --no-auto-compress explicitly
+def stage_copy(path, stage, auto_compress=False):
+    flags = ["--overwrite"]
+    if not auto_compress:
+        flags.append("--no-auto-compress")  # Explicitly disable
+    # Default auto_compress=False → safe for SiS deployments
+```
+**Key Rule:** For application deployment wrappers, **default `auto_compress` to `False`** and pass `--no-auto-compress` when disabled. Always verify with `LIST @stage` that uploaded files show `.py` extensions, not `.py.gz`.
+
+**Benefits:** Safe defaults; correct SiS deployments; no silent compression; verifiable uploads
+
 ## Output Format Examples
 ```bash
 # Minimal smoke test
@@ -340,12 +365,28 @@ uvx --from=snowflake-cli==3.14 snow stage copy \
   --no-auto-compress
 ```
 
-**Compression Syntax by Context:**
-- **SQL `PUT` command:** `AUTO_COMPRESS=FALSE` (SQL parameter syntax)
-- **`snow stage copy`:** `--no-auto-compress` (Boolean CLI flag)
-- **WRONG:** `--auto-compress false` - causes error
+### Recursive Directory Upload (Streamlit / Multi-File Apps)
 
-### Stage Copy Common Flags
+For Streamlit apps and other multi-file deployments, use `--recursive` to upload
+an entire directory tree while preserving structure:
+
+```bash
+# Upload entire Streamlit app directory (recommended for multi-file apps)
+uvx --from=snowflake-cli==3.14 snow stage copy \
+  --connection default \
+  streamlit/ @DB.SCHEMA.STREAMLIT_STAGE \
+  --recursive \
+  --no-auto-compress \
+  --overwrite
+```
+
+**Why `--recursive`:**
+- Uploads all files and subdirectories (pages/, utils/, assets/) in one command
+- Preserves directory structure on stage automatically
+- Eliminates need for multiple PUT statements or glob patterns
+- Simpler to maintain as the app grows
+
+**Stage Copy Common Flags**
 
 ```bash
 # Required flags for deployment automation
@@ -362,3 +403,4 @@ snow stage copy SOURCE DEST \
 - **Avoid:** Interactive prompts in CI (missing flags/vars)
 - **Avoid:** Assuming Homebrew exists on CI runners (use `uvx` instead)
 - **Avoid:** Using `--auto-compress false` (incorrect syntax; use `--no-auto-compress`)
+- **Avoid:** Inverted flag logic in Python wrappers that omits `--no-auto-compress` when compression should be disabled (default `auto_compress` parameter to `False` for app deployment functions)

@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
-**Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, src layout
-**TokenBudget:** ~3600
+**LastUpdated:** 2026-02-12
+**Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, flat layout, src layout
+**TokenBudget:** ~4150
 **ContextTier:** High
 **Depends:** 200-python-core.md
 **LoadTrigger:** kw:setup, kw:bootstrap, file:pyproject.toml
@@ -14,7 +14,7 @@
 ## Scope
 
 **What This Rule Covers:**
-Essential Python project setup and packaging guidance covering package structure, pyproject.toml configuration, dependency management, and build error prevention. Includes __init__.py requirements, hatchling build system configuration, uv-based dependency management, virtual environment setup, and modern packaging patterns (src layout, optional dependencies, entry points).
+Essential Python project setup and packaging guidance covering package structure, pyproject.toml configuration, dependency management, and build error prevention. Includes __init__.py requirements, hatchling build system configuration, uv-based dependency management, virtual environment setup, and modern packaging patterns (flat layout, src layout, optional dependencies, entry points).
 
 **When to Load This Rule:**
 - Setting up new Python projects
@@ -261,15 +261,34 @@ uvx ruff format --check .
 uv run pytest tests/
 ```
 
+## Layout Selection
+
+### Flat Layout (Default)
+- **Recommended** for most projects, especially `uv`-based CLIs and small-to-medium packages.
+- Package directory sits at the project root (e.g., `myapp/` next to `pyproject.toml`).
+- Simple, tooling-friendly (`uv`, `pytest`, `ruff` auto-discover the package).
+- Idiomatic for modern Python projects using `uv`.
+
+### src/ Layout
+- **Recommended** for large projects: monorepos, multi-package repositories, large team codebases.
+- Package directory sits under `src/` (e.g., `src/myapp/`).
+- Forces installation before import, preventing accidental use of local source instead of installed package.
+- Preferred when strict import isolation matters (e.g., testing the installed artifact).
+
+### Decision Criteria
+- **Use flat layout** if: project uses `uv`, is a CLI tool, is a small-to-medium package, or is a single-package repository.
+- **Use src/ layout** if: project is large, contains multiple packages, has a large team, or needs strict installed-package testing guarantees.
+- **Always:** Investigate existing project structure before recommending a layout. Never change an existing layout without explicit request.
+
 ## Package Structure Requirements
 
 ### Critical Package Setup
 - **Critical:** Always create `__init__.py` files for Python packages, even if empty.
 - **Critical:** For projects using `pyproject.toml` with hatchling, ensure package directories exist before installation.
-- **Critical:** Use `[tool.hatch.build.targets.wheel]` with `packages = ["app"]` to specify package location.
-- **Always:** Create the main package directory structure before running `uv pip install -e .`.
+- **Critical:** Use `[tool.hatch.build.targets.wheel]` to specify package location (see Build System Configuration for layout-specific values).
+- **Always:** Create the main package directory structure before running `uv sync`.
 
-### Example FastAPI Structure
+### Example FastAPI Structure (Flat Layout)
 
 Directory structure for `fastapi-project/`:
 - `pyproject.toml`
@@ -281,13 +300,25 @@ Directory structure for `fastapi-project/`:
   - **services/** - `__init__.py`
 - **tests/** - `__init__.py`
 
-### Example Command-Line App Structure
+### Example Command-Line App Structure (Flat Layout)
+
+Directory structure for `cli-project/`:
+- `pyproject.toml`
+- **myapp/** - Application package
+  - `__init__.py` - Required for package recognition
+  - `main.py` - Entry point
+  - **cli/** - `__init__.py`, `commands.py` (CLI command definitions)
+  - **core/** - `__init__.py`, `logic.py` (Business logic)
+  - **utils/** - `__init__.py`, `helpers.py` (Utility functions)
+- **tests/** - `__init__.py`
+
+### Example Command-Line App Structure (src/ Layout — Large Projects)
 
 Directory structure for `cli-project/`:
 - `pyproject.toml`
 - **src/myapp/** - Source package
   - `__init__.py` - Required for package recognition
-  - `main.py` - Entry point with click/argparse
+  - `main.py` - Entry point
   - **cli/** - `__init__.py`, `commands.py` (CLI command definitions)
   - **core/** - `__init__.py`, `logic.py` (Business logic)
   - **utils/** - `__init__.py`, `helpers.py` (Utility functions)
@@ -297,7 +328,9 @@ Directory structure for `cli-project/`:
 
 ### Build System Configuration
 - **Critical:** Include `[tool.hatch.build.targets.wheel]` section when using hatchling.
-- **Always:** Specify appropriate package list: `packages = ["app"]` for FastAPI or `packages = ["src/myapp"]` for CLI apps.
+- **Always:** Specify package list appropriate to layout:
+  - **Flat layout:** `packages = ["myapp"]` (or `packages = ["app"]` for FastAPI)
+  - **src/ layout:** `packages = ["src/myapp"]`
 - **Always:** Use consistent naming between project name and main package.
 
 ### Dependency Management with uv
@@ -371,17 +404,23 @@ check_untyped_defs = true
 - **Always:** Use module execution for uvicorn (following `200-python-core.md` uv patterns).
 
 ### Command-Line Applications
-- **Always:** Use `src/` layout for CLI apps to avoid import conflicts.
+- **Default:** Use flat layout (`myapp/` at project root) for CLI apps, especially with `uv`.
+- **Consider:** Use `src/` layout for large CLI projects where import isolation matters (see Layout Selection).
 - **Always:** Define console scripts in `pyproject.toml`: `[project.scripts]` section.
-- **Always:** Use Click or argparse for command-line interface parsing.
+- **Always:** Use Typer or Click for command-line interface parsing (see `220-python-typer-cli.md`).
 - **Always:** Separate CLI parsing from business logic (keep in different modules).
 - **Consider:** Use `uv run python -m myapp` for module execution.
 
 #### Console Scripts Configuration
 ```toml
+# Flat layout (default)
 [project.scripts]
 myapp = "myapp.main:main"
 myapp-dev = "myapp.cli.dev:dev_main"
+
+# src/ layout (large projects) — same import paths, different packages config
+# [project.scripts] section is identical; the difference is in
+# [tool.hatch.build.targets.wheel] packages = ["src/myapp"]
 ```
 
 ## Testing Setup
@@ -398,8 +437,9 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = [
     "--strict-markers",
-    "--cov=app",              # For FastAPI: --cov=app
-    "--cov=src/myapp",        # For CLI apps: --cov=src/myapp
+    "--cov=myapp",                # Flat layout: package name at project root
+    # "--cov=app",                # Flat layout (FastAPI): app/ at project root
+    # "--cov=src/myapp",          # src/ layout: package under src/
     "--cov-report=term-missing",
 ]
 ```

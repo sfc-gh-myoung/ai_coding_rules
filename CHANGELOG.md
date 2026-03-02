@@ -7,6 +7,369 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-03-02
+
+### Added
+- **feat(skill-timing):** add JSON Schema enforcement for standardized output validation
+  - New `schemas/timing-output.schema.json` for timing data structure validation
+  - `validate_timing_data()` function for runtime schema compliance
+- **feat(skill-timing):** add CI/CD integration with exit codes and output formats
+  - Exit codes: 0 (success), 1 (error), 2 (shortcut detected), 3 (above baseline)
+  - `--format` flag supporting human, json, markdown, quiet, csv output modes
+  - `--ci` flag for CI-friendly output with non-zero exit on anomalies
+- **feat(skill-timing):** add missing skill components for production readiness
+  - New `examples/` directory with 4 workflow examples (basic, checkpoints, baseline, CI)
+  - New `VALIDATION.md` self-validation procedures document
+- **feat(skill-timing):** expand README.md with comprehensive human-readable documentation
+  - Complete command reference for all 7 commands with argument tables
+  - Output examples, anomaly detection, exit codes, configuration, troubleshooting
+  - Cross-platform support, multi-agent safety, and secure mode documentation
+- **feat(rules):** add comprehensive Streamlit deployment rule with runtime selection guidance
+  - New `101l-snowflake-streamlit-deployment.md` covering Container Runtime vs Warehouse Runtime selection
+  - External Access Integration (EAI) setup for PyPI package access
+  - Compute pool configuration and dependency file formats (`pyproject.toml` vs `environment.yml`)
+  - Migration guide from Warehouse to Container Runtime
+- **feat(rules):** expand Model Registry rule with ML Observability keywords
+  - Added `model-monitor`, `ml-observability` to LoadTrigger and Keywords
+  - TokenBudget updated from ~5000 to ~5900
+- **feat(rules):** add foreign key dependency ordering guidance to SQL rules
+  - 102-snowflake-sql-core.md: Added FK constraint checklist item for validation
+  - 130-snowflake-demo-sql.md: Added Multi-File Dependencies section with dependency graph examples
+  - 130-snowflake-demo-sql.md: Added Anti-Pattern 5 (FK Reference Before Table Exists) with correct CLI execution order
+  - 130-snowflake-demo-sql.md: Added CLI orchestration alignment checklist items
+- **feat(rules):** expand Typer CLI rule with Rich integration patterns and anti-patterns
+  - Add 5 new anti-patterns: `-h` help conflicts, string options without enums, duplicate console code, missing stderr routing, inconsistent progress indicators
+  - Add dual-console pattern for stdout/stderr separation in CLI apps
+  - Add Rich integration patterns: Live displays, Progress bars, Tables, Panels
+  - New companion example `rules/examples/220-python-typer-cli-example.md` with complete implementation
+  - TokenBudget increased from ~4850 to ~7500
+- **feat(bootstrap):** add `ask_user_question` tool tips to AGENTS templates
+  - Replaces 625-line `clarifying-questions` skill with 4-line guidance
+  - Tips: concrete options, no redundant "Other" choices, 12-char header limit
+- **feat(bootstrap):** add grep anomaly detection and compound search pattern to AGENTS templates
+  - Compound grep pattern (`grep -iE "K1|K2|K3"`) replaces per-keyword searches for efficiency
+  - Grep sanity check (Step 2.C) treats zero results for common keywords as anomaly requiring retry + fallback
+  - Consistency check between Gate 2 (keywords searched) and Gate 3 (rules found)
+  - Keyword extraction heuristic (Step 2.F) for multi-technology requests
+  - Updated `skills/rule-loader/workflows/activity-matching.md` with same guidance
+- **feat(skill-timing):** add gate-level checkpoints for bootstrap performance visibility
+  - New `gates_started` and `rules_loaded` checkpoints track AGENTS.md gate overhead
+  - Compact STDOUT summary with checkpoints inline
+  - Updated timing metadata to include checkpoints row
+- **feat(cli):** add `--pytest-output` flag to `ai-rules badges update`
+  - Accepts pre-captured pytest output file to skip redundant test execution
+  - Makefile target `badges-update` now pipes pytest to temp file for single test run
+  - Increased pytest timeout from 60s to 300s for large test suites
+- **fix(tests):** add autouse fixture blocking Snowflake config in keywords tests
+  - Prevents real credentials lookup during unit tests
+  - `TestLoadSnowflakeConfig` class restores real function for its tests
+- **feat(cli):** add `ai-rules` CLI with 8 subcommands for rule management
+  - `validate` — Run schema validation on rule files
+  - `index` — Generate RULES_INDEX.md from rule files
+  - `keywords` — Extract and analyze keywords from rules
+  - `deploy` — Deploy rules and skills to target directories
+  - `tokens` — Validate and update TokenBudget metadata
+  - `new` — Create new rule files from templates
+  - `badges` — Generate and update README badges
+  - `refs` — Check and fix cross-references between rules
+  - Built with Typer and Rich for modern CLI experience
+  - Entry point: `ai-rules` (via pyproject.toml console_scripts)
+- **feat(build):** add Makefile as primary development automation entry point
+  - Replaces `./dev` bash wrapper with standard Make targets
+  - Targets: `make lint`, `make test`, `make validate`, `make help`, etc.
+  - Self-documenting help via `make help`
+- **feat(layout):** migrate `tools/` to `src/` layout for standard Python packaging
+  - `tools/agent_eval/` → `src/agent_eval/`
+  - `tools/prompt_eval/` → `src/prompt_eval/`
+  - New `src/ai_rules/` package for CLI implementation
+  - Follows PEP 621 src-layout conventions
+- **feat(tests):** add CLI test suite in `tests/cli/`
+  - Unit tests for all 8 CLI subcommands
+  - Integration tests for end-to-end CLI workflows
+  - Pytest fixtures for CLI runner isolation
+- `./dev` bash wrapper script replacing Taskfile.yml as the single entry point for all development commands
+- `scripts/clean.sh` for cache/venv/all cleanup operations
+- `scripts/validate.sh` for composite CI validation
+- `scripts/status.sh` for project status summary
+- AGENTS-only split deploy mode — `deploy:split` now works with `--agents-dest` alone (no `--rules-dest` required)
+- Template fallback in `rule_deployer.py` — if `AGENTS.md` source is missing, auto-generates from template
+- **feat(skills):** add parallel sub-agent execution to bulk-rule-reviewer skill
+  - New `workflows/parallel-execution.md` for parallel orchestration strategy
+  - New `workflows/subagent-prompt-template.md` with complete sub-agent prompts
+  - 5× speedup (1-2 hours vs 5-10 hours for 113 rules)
+  - Fresh context per sub-agent eliminates context drift after rule 50+
+  - Isolated failures (one sub-agent failing doesn't stop others)
+  - Default `max_parallel: 5` (was 1), opt-in sequential with `max_parallel: 1`
+- **feat(tools):** add prompt_eval tool for LLM prompt quality evaluation
+  - New `tools/prompt_eval/` package with CLI, REST API, and web UI interfaces
+  - 6-dimension scoring system (100-point scale): actionability, completeness, token efficiency, cross-agent consistency, parsability, context grounding
+  - Automatic prompt rewriting with dimension-specific improvements
+  - HTML report generation with detailed scoring breakdowns
+  - Snowflake Cortex integration for LLM-powered evaluation
+  - New `prompt-eval` entry point and dependency group in pyproject.toml
+- **feat(AGENTS):** add AGENTS_NO_MODE.md simplified bootstrap protocol
+  - Variant of AGENTS.md without PLAN/ACT workflow for immediate task execution
+  - Deployable via `--no-mode` flag on rule_deployer.py
+- **feat(deploy):** add --no-mode flag to rule_deployer.py and Taskfile deploy tasks
+  - `--no-mode` deploys AGENTS_NO_MODE.md as AGENTS.md to target projects
+  - New `deploy:no-mode` task in Taskfile.yml
+  - `NO_MODE=true` variable support on existing deploy, deploy:dry, deploy:verbose tasks
+- **feat(AGENTS):** add authorization prompt requirement for file modifications
+  - Even when asking clarifying questions, must include: "Authorization (required): Reply with `ACT` once clarification is provided"
+  - Addresses TC-050 test failure where authorization prompt was omitted during clarification
+- **feat(AGENTS):** add explicit Task Switch = NO examples to reduce false positives
+  - Same file/verb/technology, follow-up requests, clarifications are continuations (NO)
+  - Common mistake guidance: treating follow-ups as new tasks (FIRST)
+- **feat(AGENTS):** add typo handling guidance with PRE-FLIGHT requirement
+  - Typos like "ATC", "AC", "ACTT" must still include full PRE-FLIGHT header
+  - Must not skip response structure even when correcting user input
+- **feat(rules):** add LastUpdated maintenance rule to 000-global-core.md
+  - Surgical Editing Principle now includes: update LastUpdated field if present
+  - Supports patterns: `LastUpdated:`, `**LastUpdated:**`, `**Last Updated:**`
+- **feat(tools):** add `models` command to agent_eval CLI
+  - Lists available Cortex REST API models dynamically from Snowflake
+  - Removed static SUPPORTED_MODELS list in favor of runtime discovery
+  - Updated README with output format documentation (request_id for debugging)
+- **feat(tools):** add agent_eval framework for AGENTS.md compliance testing
+  - `tools/agent_eval/cli.py` - CLI with Snowflake Cortex REST API integration for model evaluation
+  - `tools/agent_eval/models.py` - Dataclasses for test cases, results, and evaluation metadata
+  - `tools/agent_eval/parsers.py` - Response parsing and criterion-based scoring utilities
+  - `tools/agent_eval/test_cases.yaml` - 35 test cases across 7 categories (protocol_compliance, task_switch, rule_discovery, failure_handling, act_authorization, validation_gates, edge_cases)
+  - Supports multi-turn conversations, parallel execution, and baseline comparison
+  - PEP 561 typed package with results directory for timestamped evaluation reports
+- **feat(tools):** add connection verification to agent_eval CLI
+  - Verifies Snowflake connection before test execution
+  - Displays connection name, account, and user in header panel
+- **feat(rules):** add 351-podman-core.md for Podman container development
+  - Containerfile authoring and multi-stage builds with Buildah
+  - Rootless container execution and security patterns
+  - Podman Compose for development environments
+  - Quadlet integration for systemd service deployment
+  - Pod management for Kubernetes-style container grouping
+- **feat(rules):** add 102b-snowflake-sql-procedures.md for SQL stored procedures and UDFs
+  - Dollar quoting (`$$`), EXECUTE AS security model, EXECUTE IMMEDIATE with bind variables
+  - Structural templates, nested quoting rules, and decision matrix for security context
+- **feat(rules):** add 821-makefile-automation.md for GNU Make project automation
+  - Targets, .PHONY, self-documenting help, uv/uvx integration, error handling patterns
+- **feat(rules):** add 821a-makefile-advanced-patterns.md for advanced Makefile patterns
+  - Categorized help output, conditional logic, includes, platform detection, AI agent integration
+- **feat(examples):** add 821-makefile-automation-example.md reference implementation
+- **feat(skills):** add `rule-loader` skill for structured rule selection workflows
+  - Domain matching, activity matching, dependency resolution, and token budget workflows
+  - 3 worked examples (Python API, Streamlit dashboard, multi-domain)
+  - Test scenarios for validation
+- **feat(rules):** add `&` ampersand error message pattern and seed data examples to 102-snowflake-sql-core.md
+  - Documents `snow sql` template rendering errors caused by `&` in string literals
+- **feat(examples):** add 109b-sis-streamlit-deployment-example.md reference implementation
+  - Complete Streamlit-in-Snowflake deployment workflow with SPCS integration
+
+### Changed
+- **docs(contributing):** restructure for progressive disclosure and eliminate duplication
+  - Consolidated duplicate "Getting Help" sections into single unified section
+  - Replaced all `./dev` script references with `make` and `uv run ai-rules` commands
+  - Extracted verbose Project Structure to docs/ARCHITECTURE.md reference
+  - Replaced 110-line Rule Structure block with 002-rule-governance.md reference
+  - Added "Who Should Read What" navigation table for quick contributor onboarding
+  - Reordered sections: Types of Contributions and Issue Reporting now appear earlier
+  - Reduced file from 815 to 575 lines (29% reduction)
+- **feat(skill-timing):** upgrade to v1.2.0 with standardized output formatters
+  - Added `--format` and `--ci` flags to `end`, `analyze`, and `aggregate` commands
+  - Standardized formatters for consistent output across all output modes
+  - `check_pricing_staleness()` for model pricing currency validation
+  - `determine_exit_code()` for CI/CD pipeline integration
+- **refactor(rules):** rename and expand Streamlit deployment error rule
+  - Renamed `101f-snowflake-streamlit-spcs-errors.md` to `101f-snowflake-streamlit-deployment-errors.md`
+  - Now covers both Container Runtime and Warehouse Runtime error scenarios
+  - Deleted legacy SPCS-only error file
+- **feat(cli):** improve validate command output with failed examples listing
+  - Failed examples now shown even without `--verbose` flag
+  - Displays first error message for quick context
+
+### Fixed
+- **test(skill-timing):** expand test coverage with 4 new tests (11-14)
+  - JSON format output validation
+  - Markdown format output validation
+  - CI mode exit code verification
+  - Analyze command JSON output validation
+- **fix(rules):** remove invalid CHECK constraint references from Snowflake rules
+  - 102-snowflake-sql-core.md: Added checklist item warning that CHECK constraints are unsupported
+  - 121c-snowflake-snowpipe-troubleshooting.md: Replaced CHECK with NOT NULL in constraint validation guidance (Snowflake does not support CHECK constraints)
+
+## [3.5.3] - 2026-02-18
+
+### Changed
+- **refactor(layout):** migrate `tools/` directory to `src/` layout
+  - `tools/agent_eval/` → `src/agent_eval/`
+  - `tools/prompt_eval/` → `src/prompt_eval/`
+  - CLI code consolidated in `src/ai_rules/`
+  - Import paths updated throughout codebase
+- **refactor(build):** replace `./dev` bash wrapper with Makefile
+  - All `./dev <command>` invocations now use `make <target>`
+  - Makefile provides standard GNU Make interface
+  - Updated documentation references (CONTRIBUTING.md, PROJECT.md, README.md)
+- **feat(deps):** promote `typer` and `rich` from dev to runtime dependencies
+  - Required for `ai-rules` CLI functionality
+  - Moved from `[project.optional-dependencies]` to `[project.dependencies]` in pyproject.toml
+- **feat(rules):** add flat layout as default recommendation for Python project structure (203, 220)
+  - New Layout Selection section in 203-python-project-setup.md with decision criteria (flat default, src/ for large projects)
+  - Flat-layout CLI example added alongside existing src/ layout example in both 203 and 220
+  - Removed absolute `src/` layout mandate for CLI apps; replaced with layout-neutral guidance
+  - Hatchling build config shows both `packages = ["myapp"]` (flat) and `packages = ["src/myapp"]` (src/)
+  - Console scripts annotated with layout context; test config labeled by layout
+  - 220-python-typer-cli.md: code path comments updated for both layouts, installation modernized (`uv sync` replaces `uv pip install`)
+  - RULES_INDEX.md: added `flat layout` to 203 keywords and description
+  - All three rules (200, 203, 220) verified for cross-rule consistency
+- **feat(PROJECT):** expand PROJECT.md with architecture reference content
+  - Component relationships diagram showing rule loading and deployment flows
+  - Rules domain mapping table (000-999 ranges with counts and key rules)
+  - Scripts reference table mapping scripts to task commands
+  - Skills deployment matrix with output directories
+  - Rules examples reference table
+  - Common task patterns section (new rule, fixing validation, deploying, bulk operations)
+- **docs(tools):** update agent_eval README to use `agent-eval` as primary CLI invocation
+  - `agent-eval` is now the primary command in Quick Start and all examples
+  - `uv run python -m tools.agent_eval` documented as alternative fallback
+- **feat(tools):** enhance agent_eval parallel execution progress display
+  - Overall progress bar shows completion count, pass/fail counters (✓ N | ✗ N)
+  - Individual progress tasks appear for each actively running test
+  - Tasks dynamically added when test starts, removed when complete
+  - Thread-safe tracking with `threading.Lock()` for concurrent updates
+- **docs(tools):** add agent_eval tool reference to README.md and ARCHITECTURE.md
+  - Added `tools/` directory to Project Structure with link to tool README
+  - Added `tools/agent_eval/` section in ARCHITECTURE.md Directory Structure
+  - Documents purpose: AGENTS.md effectiveness evaluation via Snowflake Cortex
+- **refactor(core):** move MODE:PLAN/ACT framework from 000-global-core.md to AGENTS.md
+  - 000-global-core.md reduced from ~5750 to ~3500 tokens (~40% reduction)
+  - AGENTS.md now contains complete mode workflow, transitions, and ACT requirements
+  - 000-global-core.md focuses on validation, surgical edits, and context management
+  - Clear separation: AGENTS.md = bootstrap + MODE framework, 000-global-core.md = operational behavior
+- **feat(governance):** expand design priorities hierarchy in 002-rule-governance.md
+  - Added quantified priority weighting (P1: 50% overhead, P2: 30%, P3: baseline, P4: none)
+  - Added trade-off examples and guidance for priority conflicts
+  - Added keywords: design priorities, agent optimization
+  - TokenBudget updated from ~5700 to ~6200
+- **fix(AGENTS):** strengthen protocol compliance for cross-model consistency
+  - Step 2A: Gate 2 should only fail if grep unavailable or request truly empty (not for vague requests)
+  - Step 4: PRE-FLIGHT header mandatory for ALL responses including typo corrections and clarifications
+  - PLAN mode: Authorization prompt required even when asking clarifying questions with proposed tasks
+  - ACT mode: Added explicit response ending format with MODE: PLAN declaration
+  - ACT recognition: Case-insensitive matching, partial authorization ("ACT on items 1-2"), embedded rejection
+  - Partial rule loading: Explicit "DO NOT STOP" guidance with example showing Gate 3 partial success
+- **fix(AGENTS):** replace table format with list format for ACT recognition examples
+  - Improves cross-model compatibility by removing Markdown tables from protocol-critical sections
+  - Arrow characters replaced with `->` text
+- **fix(AGENTS):** improve partial rule loading and ACT recognition
+  - Step 3D: if one rule fails but others load successfully, continue with loaded rules instead of stopping
+  - ACT recognition: trailing punctuation tolerated ("ACT.", "ACT!"), typos explicitly rejected ("ATC", "ACTT")
+- **refactor(tools):** agent_eval CLI simplification
+  - Removed `--baseline` flag and `baseline` command - use timestamped files with `compare` instead
+  - `compare` and `report` commands now require explicit `-b` and `-t` arguments
+  - `list` command now shows test count column
+  - Removed BASELINE.yaml and RESULTS.yaml symlinks in favor of explicit file references
+- **fix(tools):** agent_eval test_cases.yaml improvements
+  - Added `query_ids` field to all test cases for execution debugging
+  - Updated README with correct compare/report usage examples
+- **fix(tools):** agent_eval test_cases.yaml improvements (v1.3.0 → v1.3.1)
+  - TC-060: expanded validation criteria regex to include `read_file|analyze|review|syntax`
+  - TC-035: added second criterion for partial rule loading verification
+  - TC-057: updated test_note to reference AGENTS.md explicit punctuation support
+  - Metadata: corrected total_tests from 51 to 55
+- **refactor(rules):** rename 350-docker-best-practices.md to 350-docker-core.md (v3.0.0 → v3.1.0)
+  - Aligns naming convention with other domain core rules (*-core.md pattern)
+  - No content changes, filename and title only
+- **refactor(docs):** replace all `task` / `Taskfile.yml` references with `./dev` wrapper across documentation
+  - Updated CONTRIBUTING.md, PROJECT.md, README.md, docs/ARCHITECTURE.md
+  - Templates (`AGENTS_MODE.md.template`, `AGENTS_NO_MODE.md.template`) now reference `./dev` for automation discovery
+  - README.md removes Task badge and prerequisite; `./dev` listed as documentation entry point
+- **refactor(deploy):** `rule_deployer.py` now uses CWD-based absolute paths for rules/skills when not deployed in split mode
+- **refactor(deploy):** remove `--agents-dest requires --rules-dest` validation constraint, enabling AGENTS-only deployments
+- **chore(rules):** update TokenBudget in 203-python-project-setup.md (~3600 → ~4150) and 800-project-changelog.md (~3350 → ~3600)
+- **chore(pyproject):** clear default `exclude_skills` list in `[tool.rule_deployer]` (skills no longer excluded by default)
+- **chore(templates):** streamline AGENTS_NO_MODE.md.template header — remove redundant comparison to AGENTS.md and authorization note
+- **refactor(cli):** convert `badges`, `refs`, and `index` from flat commands to Typer sub-apps with explicit subcommands (`badges update`, `refs check`, `index generate`, `index check`)
+- **refactor(cli):** make positional arguments optional on `validate`, `keywords`, `new`, and `deploy` — shows help instead of erroring when called with no arguments
+- **refactor(Makefile):** rename `test-coverage` / `test-coverage-open` targets to `test-cov` / `test-cov-open`
+- **refactor(Makefile):** update Make targets for new CLI sub-command syntax (`index generate`, `badges update`, `refs check`)
+- **feat(AGENTS):** add context continuation check (Step 0.5) and mandatory Gate 2 verification (Step 2D) to bootstrap protocol templates
+- **chore(pyproject):** add pytest `filterwarnings` for deprecated script warnings and `ty` type checker overrides for `prompt_eval` and `tests`
+- **feat(governance):** normalize placeholder filenames across governance rules (002, 002a, 002b, 002c, 002e, 002f, 802) — replace `NNN-rule.md` / `bad-rule.md` with `<your-rule>.md` / `<example-rule>.md`
+- **feat(index):** regenerate RULES_INDEX.md with 102b, 821, 821a entries and activity keywords
+- **refactor(docs):** remove legacy `scripts/` reference section from ARCHITECTURE.md — all script documentation replaced with `ai-rules` CLI equivalents, Mermaid diagrams and directory trees updated
+- **docs(readme):** update file paths from `scripts/` to `src/`, `./dev` to `make`, remove `scripts/` from project directory tree
+- **feat(templates):** add `rule-loader` skill cross-references to AGENTS_MODE and AGENTS_NO_MODE bootstrap templates
+- **chore(pyproject):** bump `requires-python` from `>=3.11` to `>=3.12` and add Python 3.12 classifier
+- **chore(pyproject):** update all dependency version minimums to latest stable releases
+  - Runtime: pyyaml 6.0→6.0.3, typer 0.9→0.17, rich 13.0→14.0
+  - Moved tiktoken (0.5→0.12) from dev to runtime dependencies (used by `ai-rules` CLI)
+  - Optional (agent-eval/prompt-eval): requests 2.28→2.32, fastapi 0.109→0.115, uvicorn 0.27→0.41, jinja2 3.1→3.1.6, python-multipart 0.0.6→0.0.22
+  - Added pydantic>=2.12.5 to prompt-eval (explicitly imported in `api.py`)
+  - Dev: ruff 0.1→0.15, pytest 7.4→9.0, pytest-cov 4.1→7.0, ty pinned to >=0.0.17
+  - Removed redundant typer, rich, requests from dev group (already in runtime/optional deps)
+  - Removed scikit-learn from runtime dependencies (no longer used by `keywords` command)
+- **feat(cli):** refactor `keywords` command to use Cortex LLM instead of TF-IDF
+  - Replaced scikit-learn TF-IDF vectorization with claude-sonnet-4-5 via Snowflake Cortex REST API
+  - Added content-hash based caching (`.keywords-cache.json`) to avoid redundant API calls
+  - LLM generates 5-20 contextually meaningful keywords per rule complexity
+  - High-confidence heuristic signals (technology terms, code languages) supplement LLM output
+  - Added `-c/--connection` for Snowflake connection selection
+  - Added `-f/--force` to bypass cache
+  - Added `-D/--deduplicate` for cross-rule keyword deduplication
+  - Expanded STOP_TERMS list to filter generic schema boilerplate
+- **feat(rules):** update Snowflake Streamlit and deployment rules
+  - 101-snowflake-streamlit-core.md: Enhanced session state patterns
+  - 108-snowflake-data-loading.md: Added COPY INTO guidance
+  - 109b-snowflake-app-deployment-core.md: Expanded SPCS deployment patterns
+  - 109c-snowflake-app-deployment-troubleshooting.md: Additional error scenarios
+  - 112-snowflake-snowcli.md: Updated snow CLI command patterns
+
+### Deprecated
+- **scripts/*.py** — Legacy Python scripts deprecated in favor of `ai-rules` CLI
+  - `scripts/schema_validator.py` → `ai-rules validate`
+  - `scripts/index_generator.py` → `ai-rules index`
+  - `scripts/keyword_generator.py` → `ai-rules keywords`
+  - `scripts/rule_deployer.py` → `ai-rules deploy`
+  - `scripts/token_validator.py` → `ai-rules tokens`
+  - `scripts/template_generator.py` → `ai-rules new`
+  - `scripts/badge_generator.py` → `ai-rules badges`
+  - `scripts/ref_checker.py` → `ai-rules refs`
+  - Scripts remain functional but will be removed in a future major version
+
+### Removed
+- **refactor(tools):** remove `prompt_eval` package from project
+  - Experimental tool deprecated; functionality not actively used
+  - Removes ~3,500 lines from `src/prompt_eval/`
+  - pyproject.toml: removed from packages, scripts, coverage, and optional deps
+- **refactor(skills):** remove `clarifying-questions` skill
+  - Replaced with 4-line `ask_user_question` tips in AGENTS templates
+  - 625+ lines of skill files → 4 lines of guidance
+- `Taskfile.yml` — all commands migrated to `./dev` wrapper using `uv`/`uvx`
+- `AGENTS.md` and `AGENTS_NO_MODE.md` — now generated from templates at deploy time; source `.gitignore`d
+- `scripts/template_sync.py` — no longer needed since AGENTS.md is generated from templates, not synced from source
+- **refactor(scripts):** delete legacy `scripts/*.py` after migration to `src/ai_rules/`
+  - Removed: badge_updater.py, index_generator.py, keyword_generator.py, rule_deployer.py, schema_validator.py, template_generator.py, token_validator.py, validate_index_references.py
+  - All functionality now available via `ai-rules` CLI
+- **refactor(tests):** delete legacy `tests/test_*.py` for removed scripts
+  - Tests migrated to `tests/cli/` for new CLI structure
+- **docs(migration):** remove deprecated migration documentation
+  - Deleted `docs/MIGRATION.md` (v2.x → v3.0 migration guide)
+  - Deleted `docs/MIGRATION_SCHEMA_v3.1_to_v3.2.md` (schema migration guide)
+  - Removed migration references from ARCHITECTURE.md, CHANGELOG.md, CONTRIBUTING.md
+
+### Fixed
+- **test(validation):** add ExampleValidator test suite to test_schema_validator.py
+  - ~1005 lines covering ExampleValidator class (compliant content, missing sections, context validation, batch validation)
+  - Improves test coverage from 93% to 99%
+- **test(deploy):** update test_deployment.py and test_rule_deployer.py for `./dev` migration
+  - Tests now reference `./dev` wrapper instead of `Taskfile.yml`
+  - Added tests for AGENTS-only split deployment and template fallback in deployer
+- **fix(validate):** remove Mermaid diagram detection from schema validator (no longer a Priority 1 violation)
+- **fix(validate):** remove placeholder-aware reference checking and simplify section detection regex
+- **fix(scripts):** rename `warnings` variable to `warning_count` in `schema_validator.py` to avoid shadowing built-in
+- **fix(tokens):** exclude `RULES_INDEX.md` from token budget analysis and improve summary label clarity
+- **test(cli):** expand test suites with +5200 lines across 12 files covering sub-app refactor, edge cases, and comprehensive validation coverage
+- **fix(lint):** add `"code_blocks": false` to `no-hard-tabs` in pymarkdown.rules.json — allow tabs in fenced code blocks (Makefile examples require real tabs)
+- **fix(rules):** strip trailing null bytes from 002a-rule-creation.md, 002b-rule-update.md, 102b-snowflake-sql-procedures.md
+
 ## [3.5.3] - 2026-02-03
 
 ### Added
@@ -1385,7 +1748,6 @@ Processed 2 retrospective findings from Cortex Agent testing project:
 - "Example Prompts" section in main README.md linking to prompt templates
 - Production-ready rule system with 87 rules in `rules/` directory
 - Simplified deployment script with agent-agnostic `--dest` flag
-- Comprehensive migration guide (docs/MIGRATION.md)
 - Test suite for deployment and validation scripts
 
 ### Changed

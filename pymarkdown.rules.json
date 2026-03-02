@@ -46,7 +46,8 @@
       "enabled": false
     },
     "no-hard-tabs": {
-      "enabled": true
+      "enabled": true,
+      "code_blocks": false
     },
     "no-multiple-space-blockquote": {
       "enabled": false

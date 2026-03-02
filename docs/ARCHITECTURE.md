@@ -1,17 +1,20 @@
-# Architecture: AI Coding Rules (v3.5.3)
+# Architecture: AI Coding Rules (v3.6.0)
 
-**Last Updated:** 2026-01-21
+**Last Updated:** 2026-03-02
 
 ## Table of Contents
 
 - [System Overview](#system-overview)
 - [Production-Ready Rules System](#production-ready-rules-system)
 - [Directory Structure](#directory-structure)
+- [Package Layout](#package-layout)
+- [CLI Architecture](#cli-architecture)
+- [Migration Notes](#migration-notes)
 - [Rule Creation Workflow](#rule-creation-workflow)
 - [Schema Validation System](#schema-validation-system)
 - [Deployment System](#deployment-system)
 - [Testing Infrastructure](#testing-infrastructure)
-- [Scripts Reference](#scripts-reference)
+- [Makefile Architecture](#makefile-architecture)
 - [Architecture Diagrams](#architecture-diagrams)
 - [Design Decisions](#design-decisions)
 - [Extension Points](#extension-points)
@@ -19,7 +22,6 @@
 
 ## System Overview
 
-> **Version Note:** This document describes project version v3.5.3. The rule schema version (v3.2) is separate from the project version. Schema version appears in rule metadata (`SchemaVersion: v3.2`), while project version tracks releases.
 
 ### Core Architecture Principles
 
@@ -274,8 +276,8 @@ Rules use 3-digit prefixes for logical organization:
 | **000-099** | Core/Foundational | 000-global-core, 002-rule-governance |
 | **100-199** | Snowflake Ecosystem | 100-snowflake-core, 101-snowflake-streamlit-core |
 | **200-299** | Python Ecosystem | 200-python-core, 201-python-lint-format, 221-python-htmx-core, 221b-python-htmx-flask, 221c-python-htmx-fastapi |
-| **300-399** | Shell/Bash Scripting | 300-bash-scripting-core, 310-zsh-scripting-core |
-| **400-499** | Frontend/Containers | 350-docker-best-practices, 420-javascript-core, 430-typescript-core, 440-react-core, 441-react-backend |
+| **300-399** | Shell/Bash Scripting & Containers | 300-bash-scripting-core, 310-zsh-scripting-core, 350-docker-best-practices, 351-podman-best-practices |
+| **400-499** | Frontend (JavaScript/TypeScript) | 420-javascript-core, 430-typescript-core, 440-react-core, 441-react-backend |
 | **500-599** | Frontend | 500-frontend-htmx-core, 501-frontend-browser-globals-collisions |
 | **600-699** | Systems/Backend Languages | 600-golang-core (Go project structure, error handling, interfaces, testing, concurrency) |
 | **800-899** | Project Management | 800-project-changelog, 801-project-readme, 802-project-contributing, 803-project-git-workflow, 820-taskfile-automation |
@@ -336,7 +338,7 @@ Total HTMX token budget: ~9500 tokens across 8 rules
 
 ### Claude Agent Skills Architecture
 
-Starting in v3.4.0, the project includes three Claude Agent Skills following [Anthropic's best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills).
+Starting in v3.4.0, the project includes seven Claude Agent Skills following [Anthropic's best practices](https://claude.com/blog/equipping-agents-for-the-real-world-with-agent-skills).
 
 **Skill Structure (both skills):**
 
@@ -572,6 +574,32 @@ The 600s range is reserved for systems and backend programming languages, with G
 
 ```
 ai_coding_rules/
+├── src/                        # Python packages (installable via pip/uv)
+│   ├── ai_rules/               # Main CLI package (ai-rules command)
+│   │   ├── __init__.py             # Package metadata (__version__)
+│   │   ├── __main__.py             # Entry point for `python -m ai_rules`
+│   │   ├── cli.py                  # Typer app with 8 registered commands
+│   │   ├── _shared/                # Shared utilities
+│   │   │   ├── console.py          # Rich console helpers (log_info, log_success, etc.)
+│   │   │   └── paths.py            # Project root detection, rules/schemas paths
+│   │   └── commands/               # Individual command modules
+│   │       ├── badges.py           # Update README badges
+│   │       ├── deploy.py           # Deploy rules to projects
+│   │       ├── index.py            # Generate RULES_INDEX.md
+│   │       ├── keywords.py         # TF-IDF keyword extraction
+│   │       ├── new.py              # Create new rule templates
+│   │       ├── refs.py             # Validate index references
+│   │       ├── tokens.py           # Token budget validation
+│   │       └── validate.py         # Schema validation
+│   └── agent_eval/             # AGENTS.md effectiveness evaluation
+│       ├── __init__.py             # Package metadata
+│       ├── __main__.py             # Entry point for `python -m agent_eval`
+│       ├── cli.py                  # Typer CLI (run, list, verify commands)
+│       ├── cortex.py               # Snowflake Cortex REST API client
+│       ├── evaluator.py            # Core evaluation logic
+│       ├── models.py               # Data models
+│       └── parsers.py              # Response parsing
+│
 ├── rules/                      # Production-ready rule files
 │   ├── 000-global-core.md      # Foundation (ContextTier: Critical)
 │   ├── 001-memory-bank.md      # Universal memory bank system
@@ -592,40 +620,44 @@ ai_coding_rules/
 │   │   ├── 106-semantic-view-ddl-example.md
 │   │   ├── 106-semantic-view-workarounds-example.md
 │   │   ├── 106-semantic-view-yaml-vqr-example.md
+│   │   ├── 109b-sis-streamlit-deployment-example.md
+│   │   ├── 110-snowflake-model-registry-example.md
 │   │   ├── 115-cortex-agent-hybrid-python-example.md
 │   │   ├── 115-cortex-agent-hybrid-sql-example.md
 │   │   ├── 115-cortex-agent-prerequisites-example.md
 │   │   ├── 116-cortex-search-service-example.md
 │   │   ├── 120-spcs-service-spec-example.md
-│   │   └── 121-snowpipe-auto-ingest-example.md
-│   └── ... (125 total)
-│
-├── scripts/                    # Automation and validation
-│   ├── template_generator.py  # Creates new rule templates
-│   ├── rule_deployer.py        # Deploys rules to projects
-│   ├── schema_validator.py     # Schema validation
-│   ├── token_validator.py      # Token budget validation
-│   ├── keyword_generator.py    # Keyword extraction using TF-IDF
-│   └── index_generator.py      # Generates RULES_INDEX.md
+│   │   ├── 121-snowpipe-auto-ingest-example.md
+│   │   ├── 220-python-typer-cli-example.md
+│   │   └── 821-makefile-automation-example.md
+│   └── ... (130 total)
 │
 ├── schemas/                    # Validation schemas
 │   ├── rule-schema.yml         # Rule file schema definition
 │   ├── example-schema.yml      # Example file schema definition
 │   └── README.md               # Schema documentation
 │
-├── tests/                      # Test suite (100+ passing tests)
-│   ├── test_template_generator.py
-│   ├── test_rule_deployer.py
-│   ├── test_schema_validator.py
-│   ├── test_token_validator.py
-│   └── test_index_generator.py
+├── tests/                      # Test suite (494 passing tests)
+│   └── cli/                    # CLI command tests
+│       ├── test_badges.py
+│       ├── test_cli_misc.py
+│       ├── test_deploy.py
+│       ├── test_index.py
+│       ├── test_keywords.py
+│       ├── test_new.py
+│       ├── test_paths.py
+│       ├── test_refs.py
+│       ├── test_tokens.py
+│       └── test_validate.py
 │
-├── prompts/                    # Example user prompts and review tools
+├── prompts/                    # Example user prompts
 │   ├── EXAMPLE_PROMPT_01.md    # Linting task example
 │   ├── EXAMPLE_PROMPT_02.md    # Performance optimization example
 │   ├── EXAMPLE_PROMPT_03.md    # Simple task example
-│   ├── RULE_REVIEW_PROMPT.md   # Agent-centric rule review template
-│   ├── ../docs/USING_RULE_REVIEW_PROMPT.md # How to use the rule review prompt
+│   ├── EXAMPLE_PROMPT_04.md    # Additional example
+│   ├── EXAMPLE_PROMPT_05.md    # Additional example
+│   ├── EXAMPLE_PROMPT_06.md    # Additional example
+│   ├── EXAMPLE_PROMPT_07.md    # Additional example
 │   └── README.md               # Prompt writing guide
 │
 ├── skills/                     # Claude Agent Skills (optional deployable artifacts)
@@ -643,6 +675,8 @@ ai_coding_rules/
 │   │   ├── workflows/               # Input, execution, output, error handling
 │   │   ├── examples/                # FULL, FOCUSED, STALENESS + edge-cases.md
 │   │   └── tests/                   # Input, mode, output test cases
+│   ├── bulk-rule-reviewer/      # Internal-only: orchestrate bulk rule reviews (excluded from deploy)
+│   │   └── SKILL.md                 # Main entrypoint with YAML frontmatter
 │   ├── doc-reviewer/           # Deployed by default: automate doc reviews
 │   │   ├── SKILL.md                 # Main entrypoint with YAML frontmatter
 │   │   ├── README.md                # Usage documentation
@@ -650,13 +684,17 @@ ai_coding_rules/
 │   │   ├── workflows/               # Input, execution, output, error handling
 │   │   ├── examples/                # FULL, FOCUSED, STALENESS + edge-cases.md
 │   │   └── tests/                   # Input, mode, output test cases
-│   └── plan-reviewer/          # Deployed by default: automate plan reviews
-│       ├── SKILL.md                 # Main entrypoint with YAML frontmatter
-│       ├── README.md                # Usage documentation
-│       ├── VALIDATION.md            # Self-validation procedures
-│       ├── workflows/               # Input, execution, output, error handling
-│       ├── examples/                # FULL, COMPARISON, META + edge-cases.md
-│       └── tests/                   # Input, mode, output test cases
+│   ├── plan-reviewer/          # Deployed by default: automate plan reviews
+│   │   ├── SKILL.md                 # Main entrypoint with YAML frontmatter
+│   │   ├── README.md                # Usage documentation
+│   │   ├── VALIDATION.md            # Self-validation procedures
+│   │   ├── workflows/               # Input, execution, output, error handling
+│   │   ├── examples/                # FULL, COMPARISON, META-REVIEW + edge-cases.md
+│   │   └── tests/                   # Input, mode, output test cases
+│   ├── rule-loader/            # Deployed by default: load rules for tasks
+│   │   └── SKILL.md                 # Main entrypoint with YAML frontmatter
+│   └── skill-timing/           # Deployed by default: measure skill performance
+│       └── SKILL.md                 # Main entrypoint with YAML frontmatter
 │
 ├── docs/                       # Project documentation
 │   ├── ARCHITECTURE.md         # This file
@@ -665,11 +703,14 @@ ai_coding_rules/
 │
 ├── AGENTS.md                   # Minimal AI agent bootstrap protocol (project root)
 ├── RULES_INDEX.md              # Searchable rule catalog with loading strategy (project root)
+├── templates/                  # Source of truth for AGENTS.md variants
+│   ├── AGENTS_MODE.md.template     # Template for AGENTS.md (full PLAN/ACT protocol)
+│   └── AGENTS_NO_MODE.md.template  # Template for no-mode AGENTS.md
 ├── CHANGELOG.md                # Version history (Keep a Changelog v1.1.0)
 ├── CONTRIBUTING.md             # Contribution guidelines
 ├── README.md                   # Project overview and quick start
-├── Taskfile.yml                # Task automation (Task v3)
-└── pyproject.toml              # Python dependencies (uv-based)
+├── Makefile                    # Task automation (make help for all targets)
+└── pyproject.toml              # Python dependencies and CLI entry points (uv/hatchling)
 ```
 
 ### Key Directory Roles
@@ -678,7 +719,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 125 rules covering all domains (including 8 HTMX rules, Go/Golang core, and Alpine.js)
+- 130 rules covering all domains (including 8 HTMX rules, Go/Golang core, Alpine.js, and Podman)
 
 **`rules/examples/`** — Validated implementation examples
 - Complete, runnable reference implementations for complex rules
@@ -687,30 +728,31 @@ ai_coding_rules/
 - Naming pattern: `{rule-number}-{topic}-{variant}-example.md`
 - Used by agents for concrete patterns when implementing Cortex Agents, Semantic Views, Cortex Search
 
-**`scripts/`** — Automation and validation tools
-- `template_generator.py` creates new rules compliant with the schema
-- `rule_deployer.py` copies rules to target projects
-- `schema_validator.py` validates rules against schema
-- `token_validator.py` checks token budget accuracy
-- `keyword_generator.py` extracts semantic keywords using TF-IDF analysis
-- `index_generator.py` generates RULES_INDEX.md catalog
+**`src/`** — Python packages (installable via pip/uv)
+- Three packages with CLI entry points defined in `pyproject.toml`
+- `ai_rules/` — Main CLI for rule management (8 commands)
+- `agent_eval/` — AGENTS.md effectiveness testing
+- Build system: hatchling with `packages = ["src/ai_rules", "src/agent_eval"]`
+
+**`templates/`** — Source of truth for AGENTS.md variants
+- `AGENTS_MODE.md.template` — Full PLAN/ACT bootstrap protocol (deployed as AGENTS.md by default)
+- `AGENTS_NO_MODE.md.template` — Simplified bootstrap without PLAN/ACT workflow (deployed via `--no-mode`)
+- Used by `ai-rules deploy` for split deployment with placeholder substitution
 
 **`schemas/`** — Declarative validation
 - `rule-schema.yml` defines all requirements for rule files
 - `example-schema.yml` defines validation for example files
-- Used by schema_validator.py
+- Used by `ai-rules validate`
 - Single source of truth for validation logic
 
-**`prompts/`** — User guidance and review tools
+**`prompts/`** — User guidance
 - Example prompts showing best practices
 - Demonstrates keyword triggers
 - Helps users write effective task descriptions
-- **RULE_REVIEW_PROMPT.md** — Agent-centric rule review prompt template (paste into a model)
-- **USING_RULE_REVIEW_PROMPT.md** — Usage guide (modes, examples, cadence, cross-model workflow)
 
 **`skills/`** — Claude Agent Skills
 - Some skills are excluded from deployment in `pyproject.toml` (`[tool.rule_deployer].exclude_skills`)
-- Follows [Anthropic Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
+- Follows [Anthropic Agent Skills best practices](https://claude.com/blog/equipping-agents-for-the-real-world-with-agent-skills)
 - **rule-creator/** (internal-only, excluded from deployment):
   - Creates Cursor rules with template generation and schema validation
   - 5-phase workflow: Discovery → Template → Content → Validation → Indexing
@@ -733,12 +775,179 @@ ai_coding_rules/
   - Writes results to `reviews/plan-reviews/` or `reviews/summaries/` with no-overwrite safety
   - Includes: SKILL.md, README.md, workflows/ (including delta-review.md), examples/, tests/
   - Trigger keywords: "review plan", "compare plans", "plan quality", "meta-review", "plan executability"
+- **bulk-rule-reviewer/** (internal-only, excluded from deployment):
+  - Orchestrates bulk rule reviews across all rules in the rules/ directory
+  - Generates prioritized improvement reports
+  - Trigger keywords: "review all rules", "bulk review", "audit all rules"
+- **rule-loader/** (deployed by default):
+  - Determines which rule files to load for a given user request
+  - Matches file extensions, directory paths, and keywords against RULES_INDEX.md
+  - Trigger keywords: "load rules", "select rules", "which rules"
+- **skill-timing/** (deployed by default):
+  - Measures skill execution time and tracks performance
+  - Supports checkpoints, token tracking, anomaly detection, baseline comparison
+  - Trigger keywords: "time skill", "measure duration", "skill performance"
 - All skills feature:
   - Enhanced YAML frontmatter (version, author, tags, dependencies)
   - Inline validation snippets (hybrid code embedding)
   - Edge case documentation (10 scenarios each)
   - Self-validation procedures and test cases
   - Cross-skill integration (rule-reviewer validates rule-creator output)
+
+## Package Layout
+
+The project uses a modern Python package structure with three installable packages under `src/`.
+
+### Entry Points (pyproject.toml)
+
+```toml
+[project.scripts]
+ai-rules = "ai_rules.cli:app"       # Main CLI for rule management
+agent-eval = "agent_eval.cli:app"   # AGENTS.md effectiveness testing
+```
+
+### Build Configuration
+
+```toml
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_rules", "src/agent_eval"]
+```
+
+### Package Descriptions
+
+| Package | Entry Point | Purpose |
+|---------|-------------|---------|
+| `ai_rules` | `ai-rules` | Unified CLI for all rule management operations |
+| `agent_eval` | `agent-eval` | Test AGENTS.md bootstrap effectiveness via Cortex |
+
+### Installation
+
+```bash
+# Development install (editable mode with all dependencies)
+uv sync --all-groups
+
+# Install specific extras
+uv sync --extra agent-eval
+```
+
+## CLI Architecture
+
+The `ai-rules` CLI uses [Typer](https://typer.tiangolo.com/) for command registration with a modular command structure.
+
+### Command Registration (cli.py)
+
+```python
+# src/ai_rules/cli.py
+import typer
+from ai_rules.commands import badges, deploy, index, keywords, new, refs, tokens, validate
+
+app = typer.Typer(name="ai-rules", help="Unified CLI for AI coding rules management.")
+
+# Register 8 commands
+app.command(name="badges")(badges.badges)
+app.command()(refs)
+app.command(name="new")(new_command)
+app.command(name="tokens")(tokens)
+app.command(name="deploy")(deploy)
+app.command(name="index")(index)
+app.command(name="keywords")(keywords)
+app.command(name="validate")(validate)
+```
+
+### Available Commands
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `ai-rules new` | Generate new rule template | `ai-rules new 300-example --context-tier High` |
+| `ai-rules validate` | Validate rules against schema | `ai-rules validate rules/` |
+| `ai-rules deploy` | Deploy rules to target project | `ai-rules deploy /path/to/project` |
+| `ai-rules index` | Generate RULES_INDEX.md | `ai-rules index --check` |
+| `ai-rules tokens` | Update token budgets | `ai-rules tokens rules/ --dry-run` |
+| `ai-rules keywords` | Extract/update keywords | `ai-rules keywords rules/100-snowflake-core.md --corpus` |
+| `ai-rules badges` | Update README badges | `ai-rules badges` |
+| `ai-rules refs` | Validate index references | `ai-rules refs` |
+
+### Shared Utilities (_shared/)
+
+```python
+# src/ai_rules/_shared/paths.py
+def find_project_root() -> Path:
+    """Find project root by looking for pyproject.toml."""
+    
+def get_rules_dir(project_root: Path | None = None) -> Path:
+    """Get the rules directory path."""
+
+# src/ai_rules/_shared/console.py  
+def log_info(message: str) -> None:     # [blue]ℹ[/blue] message
+def log_success(message: str) -> None:  # [green]✓[/green] message
+def log_warning(message: str) -> None:  # [yellow]⚠[/yellow] message
+def log_error(message: str) -> None:    # [red]✗[/red] message (stderr)
+```
+
+### Makefile Integration
+
+The `Makefile` delegates to the `ai-rules` CLI for most operations:
+
+```makefile
+# Rules management targets delegate to ai-rules CLI
+rules-validate:
+    $(UV) run ai-rules validate rules/
+
+index-generate:
+    $(UV) run ai-rules index
+
+rule-new:
+    $(UV) run ai-rules new $(FILENAME) $(if $(TIER),--context-tier $(TIER))
+
+deploy:
+    $(UV) run ai-rules deploy $(DEST)
+```
+
+## Migration Notes
+
+### tools/ → src/ Migration
+
+The evaluation tools have been restructured as proper Python packages:
+
+| Old Location | New Location | Entry Point |
+|--------------|--------------|-------------|
+| `tools/agent_eval/` | `src/agent_eval/` | `agent-eval` |
+| N/A (new) | `src/ai_rules/` | `ai-rules` |
+
+**Benefits:**
+- Packages are now pip-installable (`pip install -e .`)
+- Proper `__main__.py` support (`python -m ai_rules`)
+- Shared utilities in `_shared/` avoid code duplication
+- Entry points work system-wide after installation
+
+### ./dev → Makefile Migration
+
+The `./dev` bash script has been replaced with a standard `Makefile`:
+
+| Old Command | New Command |
+|-------------|-------------|
+| `./dev test` | `make test` |
+| `./dev test:all` | `make test` |
+| `./dev quality:fix` | `make quality-fix` |
+| `./dev lint` | `make lint` |
+| `./dev lint:fix` | `make lint-fix` |
+| `./dev rule:new FILENAME=xxx` | `make rule-new FILENAME=xxx` |
+| `./dev deploy -- --dest /path` | `make deploy DEST=/path` |
+| `./dev tokens:update` | `make tokens-update` |
+| `./dev index:generate` | `make index-generate` |
+| `./dev validate` | `make validate` |
+| `./dev status` | `make status` |
+
+**Benefits:**
+- Standard build tool familiar to most developers
+- Better IDE integration and tab-completion
+- Parallel execution with `make -j`
+- Clear dependency tracking between targets
+- Self-documenting via `make help`
 
 ## Rule Creation Workflow
 
@@ -748,20 +957,20 @@ ai_coding_rules/
 
 ```bash
 # Basic usage (generates in rules/ directory)
-task rule:new FILENAME=300-example-rule
+make rule-new FILENAME=300-example-rule
 
 # With custom context tier
-task rule:new FILENAME=300-example-rule TIER=High
+make rule-new FILENAME=300-example-rule TIER=High
 
-# With custom keywords (10-15 required)
-task rule:new FILENAME=300-example-rule KEYWORDS="keyword1, keyword2, ... (10-15 total)"
+# With custom keywords (5-20 required)
+ai-rules new 300-example-rule --keywords "keyword1, keyword2, ... (5-20 total)"
 
 # Overwrite existing file (use with caution)
-task rule:new:force FILENAME=300-example-rule
+make rule-new-force FILENAME=300-example-rule
 ```
 
 **What Happens:**
-1. `scripts/template_generator.py` executes
+1. `ai-rules new` executes
 2. Generates v3.2-compliant template in `rules/300-example-rule.md`
 3. Auto-populates metadata based on numbering range
 4. Includes all required sections with placeholders
@@ -807,13 +1016,13 @@ Edit `rules/300-example-rule.md`:
 
 ```bash
 # Validate single rule
-python scripts/schema_validator.py rules/300-example-rule.md
+ai-rules validate rules/300-example-rule.md
 
 # Validate all rules
-task test:all
+make rules-validate
 
 # Verbose output
-python scripts/schema_validator.py rules/300-example-rule.md --verbose
+ai-rules validate rules/300-example-rule.md --verbose
 ```
 
 **Validation Checks:**
@@ -829,7 +1038,7 @@ python scripts/schema_validator.py rules/300-example-rule.md --verbose
 
 ```bash
 # Regenerate RULES_INDEX.md to include new rule
-python scripts/index_generator.py
+make index-generate
 ```
 
 **Step 5: Commit**
@@ -853,7 +1062,7 @@ git commit -m "feat(rules): add 300-example-rule for [purpose]"
 - Design patterns: `fixtures`, `caching`, `batching`, `async`
 - Best practices: `error handling`, `type hints`, `documentation`
 
-**Count Target:** Aim for 12-13 keywords (range: 10-15)
+**Count Target:** Aim for 12-13 keywords (range: 5-20)
 
 **Example (200-python-core.md):**
 ```
@@ -913,7 +1122,7 @@ contract:
 - Required fields: SchemaVersion, RuleVersion, Keywords, TokenBudget, ContextTier, Depends (6 fields)
 - Pattern matching: `**FieldName:** value` format
 - Version validation: SchemaVersion (vX.Y or vX.Y.Z), RuleVersion (vX.Y.Z semver)
-- Count validation: Keywords must be 10-15 terms
+- Count validation: Keywords must be 5-20 terms
 - Enum validation: ContextTier must be Critical|High|Medium|Low
 
 **2. Section Validation**
@@ -939,22 +1148,22 @@ contract:
 
 ```bash
 # Validate single rule
-python scripts/schema_validator.py rules/100-snowflake-core.md
+uv run ai-rules validate rules/100-snowflake-core.md
 
 # Validate all rules
-python scripts/schema_validator.py rules/
+make rules-validate
 
 # Verbose output (show all checks)
-python scripts/schema_validator.py rules/100-snowflake-core.md --verbose
+uv run ai-rules validate rules/100-snowflake-core.md --verbose
 
 # Strict mode (warnings become errors)
-python scripts/schema_validator.py rules/ --strict
+uv run ai-rules validate rules/ --strict
 
 # Debug mode (show schema loading)
-python scripts/schema_validator.py rules/100-snowflake-core.md --debug
+uv run ai-rules validate rules/100-snowflake-core.md --debug
 
 # Custom schema file
-python scripts/schema_validator.py rules/ --schema custom-schema.yml
+uv run ai-rules validate rules/ --schema custom-schema.yml
 ```
 
 **Output Format:**
@@ -987,7 +1196,7 @@ VALIDATION REPORT: rules/example-bad.md
   Line 45: Contract section missing required tag: <validation>
 
 ⚠️  HIGH WARNINGS (1):
-  Line 12: Keywords count is 8, expected 10-15
+  Line 12: Keywords count is 8, expected 5-20
 
 SUMMARY:
   ❌ CRITICAL: 2
@@ -1006,28 +1215,23 @@ SUMMARY:
 ```bash
 # .git/hooks/pre-commit
 #!/bin/bash
-python scripts/schema_validator.py rules/ --strict
+uv run ai-rules validate rules/ --strict
 ```
 
-**Task Automation:**
-```yaml
-# Taskfile.yml
-tasks:
-  test:all:
-    desc: "Run all pytest tests"
-    aliases: [test, t]
-    deps:
-      - env:sync
-    cmds:
-      - "{{.UV}} run pytest tests/ -v"
+**Makefile Automation:**
+```bash
+# Makefile provides task targets
+make test             # Run all pytest tests
+make rules-validate   # Validate all rules
+make validate         # Run all CI/CD checks
 ```
 
 **CI/CD Pipeline:**
 
 See `.github/workflows/ci.yml` for the complete workflow. The `validate` job runs:
 ```bash
-uv run python scripts/schema_validator.py rules/
-uv run python scripts/index_generator.py --check
+uv run ai-rules validate rules/
+uv run ai-rules index --check
 ```
 
 ## Deployment System
@@ -1039,7 +1243,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 125 production-ready rule files
+- `rules/` — 130 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -1067,35 +1271,68 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 
 ```bash
 # Deploy to current directory
-task deploy -- --dest .
+make deploy DEST=.
 
 # Deploy to specific path
-task deploy -- --dest /path/to/project
+make deploy DEST=/path/to/project
 
 # Deploy to home directory project
-task deploy -- --dest ~/my-project
+make deploy DEST=~/my-project
 
 # Dry-run (preview without copying)
-task deploy:dry -- --dest /path/to/project
+make deploy-dry DEST=/path/to/project
 
 # Verbose output
-task deploy:verbose -- --dest /path/to/project
+make deploy-verbose DEST=/path/to/project
 ```
 
-**Direct Script Usage:**
+**Split Deployment (Multi-Destination):**
+
+For AI assistants that require separate directories for agents, rules, and skills:
 
 ```bash
-# Using Python directly
-python scripts/rule_deployer.py --dest /path/to/project
+# Deploy only AGENTS.md (rules/skills paths reference CWD)
+make deploy-split AGENTS=~/.claude
+
+# Deploy AGENTS.md and rules to separate directories
+make deploy-split AGENTS=~/.claude RULES=~/.claude/rules
+
+# With separate skills directory
+make deploy-split AGENTS=~/.claude RULES=~/.claude/rules SKILLS=~/.claude/skills
+
+# Preview split deployment
+make deploy-split AGENTS=~/.claude DRY_RUN=1
+```
+
+When only `AGENTS=` is specified (AGENTS-only mode):
+- Only AGENTS.md is deployed to the target directory
+- `{{rules_path}}` and `{{skills_path}}` in AGENTS.md are replaced with CWD-based absolute paths
+- No rules, skills, or RULES_INDEX.md files are copied
+
+Split mode uses template-based deployment with placeholder substitution:
+- `{{rules_path}}` → Absolute path to rules directory
+- `{{skills_path}}` → Absolute path to skills directory
+
+This ensures AGENTS.md contains correct absolute paths regardless of deployment structure.
+
+**Direct CLI Usage:**
+
+```bash
+# Using ai-rules CLI directly
+ai-rules deploy /path/to/project
 
 # With uv
-uv run scripts/rule_deployer.py --dest /path/to/project
+uv run ai-rules deploy /path/to/project
 
 # Dry-run mode
-python scripts/rule_deployer.py --dest /path/to/project --dry-run
+ai-rules deploy /path/to/project --dry-run
 
 # Verbose mode
-python scripts/rule_deployer.py --dest /path/to/project --verbose
+ai-rules deploy /path/to/project --verbose
+
+# Split deployment
+ai-rules deploy --split --agents-dest ~/.claude --rules-dest ~/.claude/rules
+ai-rules deploy --split --agents-dest ~/.claude --rules-dest ~/.claude/rules --skills-dest ~/.claude/skills
 ```
 
 **Output:**
@@ -1111,15 +1348,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (125 files)
+  ✓ Source rules/ directory exists (130 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 124 rule files...
-  ✓ Copied 125 rules to /path/to/project/rules/
+  → Copying 130 rule files...
+  ✓ Copied 130 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 
@@ -1207,103 +1444,127 @@ AI Response:
   [Analysis and task list...]
 ```
 
+## Evaluation Tools
+
+### agent_eval — AGENTS.md Effectiveness Testing
+
+Tests whether AI agents correctly follow the `AGENTS.md` bootstrap protocol by sending evaluation prompts through Snowflake Cortex and scoring responses against expected behaviors.
+
+**Architecture:**
+- `cli.py` — Typer CLI with `run`, `list`, `verify` commands
+- `evaluator.py` — Core evaluation logic with Cortex LLM integration
+- `cortex.py` — Snowflake Cortex REST API client with `verify_connection()`
+- `test_cases.yaml` — Declarative test definitions with expected behaviors
+
+**Features:** Connection verification, parallel execution with per-test progress tracking, thread-safe counters, configurable Cortex model selection.
+
 ## Testing Infrastructure
 
 ### Test Suite Overview
 
-v3.0 includes comprehensive test coverage ensuring script reliability:
+v3.0 includes comprehensive test coverage ensuring CLI and tooling reliability:
 
 **Test Statistics:**
-- **100+ passing tests** across 5 test files
-- **Comprehensive coverage** across all production scripts
+- **494 passing tests** across 10 test files
+- **Comprehensive coverage** across all CLI commands and utilities
 - **pytest-based** test framework
 - **Fixture-driven** test data management
 
 ### Test Files
 
-**`tests/test_template_generator.py`**
-- Template structure validation
-- Metadata generation tests
-- Keyword generation algorithm
-- Output file creation tests
-- Error handling for invalid inputs
+**`tests/cli/test_badges.py`**
+- README badge update tests
+- Badge count verification
 
-**`tests/test_rule_deployer.py`**
+**`tests/cli/test_cli_misc.py`**
+- CLI miscellaneous tests
+- Help command tests
+
+**`tests/cli/test_deploy.py`**
 - Deployment success scenarios
 - Dry-run mode validation
 - Source file validation
 - Destination writability checks
-- Error handling for missing files
+- Split deployment tests
 
-**`tests/test_schema_validator.py`**
-- Schema loading and parsing
-- Metadata validation tests
-- Section validation tests
-- Contract Markdown subsection validation
-- Error reporting accuracy
-
-**`tests/test_token_validator.py`**
-- Token count accuracy
-- TokenBudget format validation
-- Tolerance checks (±5% default threshold)
-- Multiple rule validation
-- Statistical reporting
-
-**`tests/test_keyword_generator.py`**
-- KeywordCandidate dataclass tests
-- ExtractionResult diff calculations
-- Header, code language, emphasis extraction
-- Technology term matching
-- TF-IDF corpus building
-- Ranking and deduplication
-- File update functionality
-- Domain constants validation
-
-**`tests/test_index_generator.py`**
+**`tests/cli/test_index.py`**
 - RULES_INDEX.md generation
 - Metadata extraction accuracy
 - Table formatting validation
 - Dependency parsing
-- Keyword extraction
+
+**`tests/cli/test_keywords.py`**
+- KeywordCandidate dataclass tests
+- ExtractionResult diff calculations
+- Technology term matching
+- TF-IDF corpus building
+- File update functionality
+
+**`tests/cli/test_new.py`**
+- Template structure validation
+- Metadata generation tests
+- Output file creation tests
+- Error handling for invalid inputs
+
+**`tests/cli/test_paths.py`**
+- Path resolution tests
+- Project root detection
+
+**`tests/cli/test_refs.py`**
+- Reference validation tests
+- Cross-file link checking
+
+**`tests/cli/test_tokens.py`**
+- Token count accuracy
+- TokenBudget format validation
+- Tolerance checks (±5% default threshold)
+- Multiple rule validation
+
+**`tests/cli/test_validate.py`**
+- Schema loading and parsing
+- Metadata validation tests
+- Section validation tests
+- Contract validation
+- Error reporting accuracy
 
 ### Running Tests
 
 **All Tests:**
 ```bash
-# Using Task (recommended)
-task test                 # Alias for test:all
-task test:all             # Run all tests
+# Using make (recommended)
+make test                  # Run all tests
 
 # Using pytest directly
 uv run pytest tests/ -v
 
 # With coverage report
-task test:coverage
+make test-cov
 ```
 
 **Single Test File:**
 ```bash
-uv run pytest tests/test_schema_validator.py -v
+uv run pytest tests/cli/test_validate.py -v
 ```
 
 **Specific Test:**
 ```bash
-uv run pytest tests/test_schema_validator.py::test_validate_metadata_fields -v
+uv run pytest tests/cli/test_validate.py::test_validate_metadata_fields -v
 ```
 
 **Coverage Report:**
 ```bash
-task test:coverage
+make test-cov
 # Generates htmlcov/index.html
+
+# Open coverage report in browser (macOS)
+make test-cov-open
 ```
 
 ### Test Fixtures
 
 **`tests/fixtures/`** — Sample rule files for testing
-- `valid_rule.md` — Fully compliant v3.2 rule
-- `invalid_metadata.md` — Missing Keywords field
-- `invalid_sections.md` — Sections out of order
-- `invalid_contract.md` — Missing Contract subsections
+- `RULES_INDEX_baseline.md` — Baseline index for comparison tests
+- `sample_rules/` — Directory with test rule variations
 
 ### CI/CD Integration
 
@@ -1333,267 +1594,42 @@ test:
     - run: uv run pytest tests/ -v
 ```
 
-## Taskfile Architecture
+## Makefile Architecture
 
-The project uses Task v3 for automation with a comprehensive categorized structure:
+The project uses a standard `Makefile` for task automation, replacing the previous `./dev` bash script.
 
 ### Key Design Patterns
 
-**1. Precondition Tasks (Internal)**
-```yaml
-_check:uv:      # Validates uv is installed
-_check:uvx:     # Validates uvx is installed  
-_check:coreutils:  # Validates awk, find, wc, tr
-_check:xdg-open:   # Validates xdg-open (Linux only)
+**1. Precondition Checks**
+The Makefile validates required tools via the `preflight` target:
+- Validates uv is installed
+- Validates pyproject.toml exists
+
+**2. CLI Delegation**
+Most targets delegate to the `ai-rules` CLI for actual work:
+```makefile
+rules-validate:
+    $(UV) run ai-rules validate rules/
 ```
 
-**2. Automatic Environment Setup**
-Most tasks include `deps: [env:sync]` for automatic dependency installation.
+**3. Self-Documenting Help**
+Running `make` or `make help` shows a categorized menu of all available targets.
 
-**3. Fingerprinting**
-Tasks use `sources:` and `generates:` for intelligent caching:
-```yaml
-env:sync:
-  sources: [pyproject.toml, uv.lock]
-  generates: [.venv/pyvenv.cfg]
-```
+### Command Categories
 
-**4. Ergonomic Aliases**
-Common tasks have short aliases:
-- `task fix` or `task qf` → `task quality:fix`
-- `task test` or `task t` → `task test:all`
-- `task validate` or `task ci` → `task validate:ci`
-- `task lint` → `task quality:lint`
-- `task lint:fix` → `task quality:lint:fix`
-- `task fmt` or `task format` → `task quality:format`
-- `task fmt:fix` or `task format:fix` → `task quality:format:fix`
-- `task type` or `task type-check` → `task quality:typecheck`
-
-**5. Categorized Help**
-Running `task` (default) shows a categorized menu with quickstart guide.
-Use `task ASCII=true` for terminals without Unicode support.
-
-### Task Categories
-
-| Category | Tasks | Purpose |
-|----------|-------|---------|
-| **Environment** | `env:python`, `env:sync`, `env:deps` | Python setup |
-| **Quality** | `quality:*`, `fix` | Linting, formatting, type checking |
-| **Testing** | `test`, `test:coverage` | pytest execution |
-| **Rules** | `rules:validate`, `rule:new` | Rule management |
-| **Index** | `index:generate`, `index:check` | RULES_INDEX.md |
-| **Deployment** | `deploy`, `deploy:dry` | Rule deployment |
-| **Tokens** | `tokens:update`, `tokens:check` | Token budget management |
-| **Keywords** | `keywords:suggest`, `keywords:update` | Keyword generation |
+| Category | Make Target | Purpose |
+|----------|-------------|---------|
+| **Environment** | `env-python`, `env-sync`, `env-deps` | Python setup |
+| **Quality** | `lint`, `format`, `typecheck`, `quality-fix` | Linting, formatting, type checking |
+| **Testing** | `test`, `test-cov` | pytest execution |
+| **Rules** | `rules-validate`, `rule-new` | Rule management |
+| **Index** | `index-generate`, `index-check` | RULES_INDEX.md |
+| **Deployment** | `deploy`, `deploy-dry` | Rule deployment |
+| **Tokens** | `tokens-update`, `tokens-check` | Token budget management |
+| **Keywords** | `keywords-suggest`, `keywords-update` | Keyword generation |
 | **Validation** | `validate`, `preflight` | CI/CD checks |
-| **Cleanup** | `clean:cache`, `clean:venv`, `clean:all` | File cleanup |
+| **Cleanup** | `clean-cache`, `clean-venv`, `clean` | File cleanup |
 | **Status** | `status` | Project summary |
-
-## Scripts Reference
-
-### 1. template_generator.py
-
-**Purpose:** Create new v3.2-compliant rule templates
-
-**Usage:**
-```bash
-python scripts/template_generator.py FILENAME [OPTIONS]
-```
-
-**Options:**
-- `FILENAME` — Rule filename (e.g., 300-example-rule)
-- `--context-tier TIER` — Set ContextTier (Critical/High/Medium/Low, default: Medium)
-- `--keywords "k1, k2, ..."` — Custom keywords (10-15 required)
-- `--output-dir DIR` — Custom output directory (default: rules/)
-- `--force` — Overwrite existing file
-
-**Features:**
-- Auto-generates keywords based on numbering range
-- Creates all required sections with placeholders
-- Pre-fills Contract section with 7 Markdown subsections
-- Validates output against schema v3.2
-
-**Example:**
-```bash
-python scripts/template_generator.py 300-bash-example \
-  --context-tier High \
-  --keywords "bash, shell, scripting, automation, error handling, best practices, functions, variables, testing, debugging, performance"
-```
-
-### 2. rule_deployer.py
-
-**Purpose:** Deploy production-ready rules to target projects
-
-**Usage:**
-```bash
-python scripts/rule_deployer.py --dest PATH [OPTIONS]
-```
-
-**Options:**
-- `--dest PATH` — Destination directory (required)
-- `--dry-run` — Preview without copying files
-- `--verbose` — Detailed logging output
-
-**Features:**
-- Validates source files exist
-- Checks destination writability
-- Copies rules/ directory
-- Copies AGENTS.md and RULES_INDEX.md
-- Detailed deployment report
-
-**Example:**
-```bash
-python scripts/rule_deployer.py \
-  --dest ~/my-project \
-  --verbose
-```
-
-### 3. schema_validator.py
-
-**Purpose:** Validate rules against schema
-
-**Usage:**
-```bash
-python scripts/schema_validator.py PATH [OPTIONS]
-```
-
-**Options:**
-- `PATH` — Rule file or directory to validate
-- `--schema PATH` — Custom schema file (default: schemas/rule-schema.yml)
-- `--verbose` — Show all validation checks
-- `--strict` — Treat warnings as errors
-- `--debug` — Show schema loading and parsing
-
-**Features:**
-- Declarative schema-based validation
-- Metadata field validation
-- Section ordering validation
-- Contract Markdown subsection validation
-- Detailed error reporting with line numbers
-
-**Example:**
-```bash
-python scripts/schema_validator.py rules/ --verbose --strict
-```
-
-### 4. token_validator.py
-
-**Purpose:** Validate TokenBudget accuracy against actual token counts
-
-> **WARNING:** Running without `--dry-run` will **automatically update** TokenBudget values in rule files. Use `--dry-run` to preview changes first.
-
-**Usage:**
-```bash
-python scripts/token_validator.py PATH [OPTIONS]
-```
-
-**Options:**
-- `PATH` — Rule file or directory to validate (positional argument)
-- `--threshold PERCENT` — Minimum difference to trigger update (default: 5%)
-- `--dry-run` — Show what would be updated without making changes
-- `--detailed` — Show detailed analysis for all files
-- `--verbose` — Show verbose output
-
-**Features:**
-- Validates single files or entire directories
-- Calculates accurate token estimates using word count method
-- Compares against declared TokenBudget with configurable threshold (default: ±5%)
-- Statistical summary for multiple files
-- Auto-updates TokenBudget when variance exceeds threshold (unless `--dry-run`)
-
-**Examples:**
-```bash
-# Validate single file (read-only check)
-python scripts/token_validator.py rules/100-snowflake-core.md --detailed
-
-# Validate all rules (read-only check)
-python scripts/token_validator.py rules/ --detailed --dry-run
-
-# Auto-update all rules exceeding threshold
-python scripts/token_validator.py rules/
-
-# Custom threshold for stricter validation
-python scripts/token_validator.py rules/ --threshold 10
-```
-
-### 5. index_generator.py
-
-**Purpose:** Generate RULES_INDEX.md catalog from rule files
-
-**Usage:**
-```bash
-python scripts/index_generator.py [OPTIONS]
-```
-
-**Options:**
-- `--rules-dir DIR` — Source directory (default: rules/)
-- `--check` — Verify RULES_INDEX.md is up-to-date (CI mode)
-- `--dry-run` — Preview output without writing
-
-**Features:**
-- Extracts metadata from all rule files
-- Generates AI agent usage guidance section
-- Generates 6-step rule loading strategy with examples
-- Generates markdown table with columns: File, Scope, Keywords, Depends
-- Sorts by filename (numeric order)
-- Validates metadata completeness
-- Includes rule dependency visualization trees
-
-**Example:**
-```bash
-python scripts/index_generator.py --verbose
-```
-
-### 6. keyword_generator.py
-
-**Purpose:** Generate semantically relevant keywords for rule files using TF-IDF and multi-signal extraction
-
-**Usage:**
-```bash
-python scripts/keyword_generator.py PATH [OPTIONS]
-```
-
-**Options:**
-- `PATH` — Rule file or directory to analyze
-- `--update` — Update Keywords field in-place
-- `--diff` — Show diff between current and suggested keywords
-- `--corpus` — Build TF-IDF corpus from rules/ for better scoring
-- `--count N` — Target number of keywords (default: 12)
-- `--debug` — Enable debug output
-
-**Features:**
-- Multi-signal keyword extraction:
-  - TF-IDF scoring against corpus of all rules
-  - Section header extraction (H2/H3)
-  - Code block language detection
-  - Bold/backtick emphasis extraction
-  - Technology term matching
-- Domain-aware filtering with 100+ stop terms
-- Compound term preservation (e.g., "session state" → "session_state")
-- Case-insensitive deduplication with proper display casing
-
-**Example:**
-```bash
-# Suggest keywords for a single rule
-python scripts/keyword_generator.py rules/101-snowflake-streamlit-core.md --corpus
-
-# Show diff between current and suggested
-python scripts/keyword_generator.py rules/101-snowflake-streamlit-core.md --corpus --diff
-
-# Update keywords in-place
-python scripts/keyword_generator.py rules/101-snowflake-streamlit-core.md --corpus --update
-
-# Analyze all rules
-python scripts/keyword_generator.py rules/ --corpus
-```
-
-**Algorithm:**
-1. Parse rule file content (sections, headers, code blocks, emphasized terms)
-2. Build TF-IDF corpus from all rules in `rules/` directory (if --corpus)
-3. Extract candidates from multiple sources with weighted scores
-4. Filter candidates using domain stop terms and normalize
-5. Rank and deduplicate by combined score
-6. Return top 10-15 keywords sorted by relevance
 
 ## Architecture Diagrams
 
@@ -1602,15 +1638,15 @@ python scripts/keyword_generator.py rules/ --corpus
 ```mermaid
 flowchart TD
     Start([User: Create New Rule]) --> Generate
-    Generate[task rule:new FILENAME=XXX] --> Template
-    Template[template_generator.py] --> Create[Create rules/XXX.md<br/>with v3.0 structure]
+    Generate[make rule-new FILENAME=XXX] --> Template
+    Template[ai-rules new] --> Create[Create rules/XXX.md<br/>with v3.0 structure]
     Create --> Edit[User: Edit Content]
     Edit --> Validate{Validate?}
-    Validate -->|task test:all| SchemaVal[schema_validator.py]
+    Validate -->|make rules-validate| SchemaVal[ai-rules validate]
     SchemaVal --> Pass{Passed?}
     Pass -->|No| Fix[Fix Errors]
     Fix --> Edit
-    Pass -->|Yes| Index[python scripts/index_generator.py]
+    Pass -->|Yes| Index[make index-generate]
     Index --> UpdateIndex[Update RULES_INDEX.md]
     UpdateIndex --> Commit[git commit -m 'feat(rules): add XXX']
     Commit --> End([Rule Ready])
@@ -1627,8 +1663,8 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([User: Deploy Rules]) --> Command
-    Command[task deploy -- --dest PATH] --> Deployer
-    Deployer[rule_deployer.py] --> Validate{Validate Source}
+    Command[make deploy DEST=PATH] --> Deployer
+    Deployer[ai-rules deploy] --> Validate{Validate Source}
     Validate -->|Fail| Error[Error: Missing Files]
     Validate -->|Pass| CheckDest{Check Destination}
     CheckDest -->|Not Writable| Error2[Error: Cannot Write]
@@ -1653,33 +1689,33 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>122 production files]
-    Root --> Scripts[scripts/<br/>5 Python scripts]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>130 production files]
+    Root --> Src[src/ai_rules/<br/>CLI tool]
     Root --> Schemas[schemas/<br/>v3.0 YAML schema]
-    Root --> Tests[tests/<br/>91 passing tests]
+    Root --> Tests[tests/<br/>494 passing tests]
     Root --> Prompts[prompts/<br/>Example prompts]
     Root --> Docs[docs/<br/>Documentation]
     Root --> RootFiles[Root Files]
     
     Rules --> Rule1[000-global-core.md]
     Rules --> Rule2[100-snowflake-core.md]
-    Rules --> Rule3[... 122 total]
+    Rules --> Rule3[... 130 total]
     
-    Scripts --> S1[template_generator.py]
-    Scripts --> S2[rule_deployer.py]
-    Scripts --> S3[schema_validator.py]
-    Scripts --> S4[token_validator.py]
-    Scripts --> S5[keyword_generator.py]
-    Scripts --> S6[index_generator.py]
+    Src --> S1[ai-rules new]
+    Src --> S2[ai-rules deploy]
+    Src --> S3[ai-rules validate]
+    Src --> S4[ai-rules tokens]
+    Src --> S5[ai-rules keywords]
+    Src --> S6[ai-rules index]
     
     Schemas --> Schema[rule-schema.yml]
     
-    Tests --> T1[test_template_generator.py]
-    Tests --> T2[test_rule_deployer.py]
-    Tests --> T3[test_schema_validator.py]
-    Tests --> T4[test_token_validator.py]
-    Tests --> T5[test_keyword_generator.py]
-    Tests --> T6[test_index_generator.py]
+    Tests --> T1[cli/test_badges.py]
+    Tests --> T2[cli/test_deploy.py]
+    Tests --> T3[cli/test_validate.py]
+    Tests --> T4[cli/test_tokens.py]
+    Tests --> T5[cli/test_keywords.py]
+    Tests --> T6[cli/test_index.py]
     
     Prompts --> P1[EXAMPLE_PROMPT_01.md]
     Prompts --> P2[EXAMPLE_PROMPT_02.md]
@@ -1689,11 +1725,11 @@ graph TD
     RootFiles --> RF2[RULES_INDEX.md]
     RootFiles --> RF3[CHANGELOG.md]
     RootFiles --> RF4[README.md]
-    RootFiles --> RF5[Taskfile.yml]
+    RootFiles --> RF5[Makefile]
     
     style Root fill:#e1f5ff
     style Rules fill:#fff4e1
-    style Scripts fill:#ffe1f5
+    style Src fill:#ffe1f5
     style Tests fill:#f5ffe1
 ```
 
@@ -1710,7 +1746,7 @@ graph TD
 3. **Maintainability** — Single source of truth (no template/generated divergence)
 4. **Universality** — Standard Markdown works with any AI assistant or IDE
 5. **Velocity** — Direct editing faster than edit-generate-deploy cycle
-6. **Reduced Complexity** — ~37% code reduction vs. v2.x through focused, single-purpose scripts
+6. **Reduced Complexity** — ~37% code reduction vs. v2.x through focused, single-purpose CLI commands
 
 **Trade-offs Accepted:**
 - Cannot generate IDE-specific formats (e.g., Cursor .mdc with auto-apply)
@@ -1732,7 +1768,7 @@ graph TD
 2. **Broader Compatibility** — Works with emerging tools (Claude Code, Gemini, etc.)
 3. **Easier Contribution** — Contributors edit one file, not four
 4. **Metadata Preservation** — Keywords/TokenBudget/ContextTier enable intelligent loading
-5. **Simpler Architecture** — Focused, single-purpose scripts vs. monolithic generation
+5. **Simpler Architecture** — Focused CLI commands vs. monolithic generation
 
 **What We Lost:**
 - IDE-specific features (Cursor's globs/alwaysApply, Copilot's appliesTo)
@@ -1784,6 +1820,95 @@ if sections["Contract"]["line"] > 160:
 - Added 4 new validation rules without code changes
 - Schema v3.0 phases (1-3) only required schema edits
 - Contributors understand requirements from schema alone
+
+### Why Parallel Sub-Agents for Bulk Operations?
+
+**Decision:** Use parallel sub-agents (not sequential in-context execution) for bulk rule reviews
+
+**Rationale:**
+
+1. **Context Drift Prevention** — Fresh context per sub-agent eliminates quality degradation after 50+ rules
+2. **Speed** — 5× faster execution (1-2 hours vs 5-10 hours for 113 rules)
+3. **Isolation** — One sub-agent failing doesn't stop others; partial results preserved
+4. **Full Protocol Preservation** — Each sub-agent loads complete anti-optimization protocols
+5. **No File Conflicts** — Unique filenames (rule-name-model-date.md) prevent write races
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    BULK-RULE-REVIEWER (Coordinator)                      │
+│   • Partitions rules into N groups                                       │
+│   • Launches N sub-agents in background                                  │
+│   • Monitors progress via agent_output polling                           │
+│   • Aggregates results when all complete                                 │
+└─────────────────────────────────────────────────────────────────────────┘
+         │              │              │              │              │
+         ▼              ▼              ▼              ▼              ▼
+   ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
+   │ Worker 1 │  │ Worker 2 │  │ Worker 3 │  │ Worker 4 │  │ Worker 5 │
+   │ Rules    │  │ Rules    │  │ Rules    │  │ Rules    │  │ Rules    │
+   │ 1-23     │  │ 24-46    │  │ 47-69    │  │ 70-92    │  │ 93-113   │
+   └──────────┘  └──────────┘  └──────────┘  └──────────┘  └──────────┘
+         │              │              │              │              │
+         ▼              ▼              ▼              ▼              ▼
+   ┌──────────────────────────────────────────────────────────────────┐
+   │           Direct File Writes (No Conflicts)                       │
+   │   reviews/rule-reviews/rule-name-claude-sonnet-4-2026-02-12.md   │
+   └──────────────────────────────────────────────────────────────────┘
+```
+
+**Trade-offs Accepted:**
+- More complex orchestration logic
+- Requires agent_output polling for progress
+- Higher token usage (duplicate protocol loading per sub-agent)
+
+**Why Not Sequential?**
+- Context drift causes quality degradation in long sessions
+- Single-threaded: 5-10 hours for 100+ rules
+- One failure can halt entire process
+- Available as fallback via `max_parallel: 1`
+
+**Implementation Files:**
+- `skills/bulk-rule-reviewer/workflows/parallel-execution.md` — Orchestration strategy
+- `skills/bulk-rule-reviewer/workflows/subagent-prompt-template.md` — Sub-agent prompt
+
+## Directive Language Hierarchy
+
+The rules use a structured directive language with clear priority levels to guide both AI agents and human developers.
+
+### Behavioral Control Directives (By Strictness)
+
+| Directive | Category | Priority | Meaning |
+|-----------|----------|----------|---------|
+| **Critical** | System Safety | Highest | Must never violate |
+| **Mandatory** | Non-negotiable | High | Must always follow |
+| **Always** | Universal Practice | High | Should be consistent |
+| **Requirement** | Technical Standard | Medium | Should implement |
+| **Rule** | Best Practice | Medium | Recommended pattern |
+| **Consider** | Optional | Low | Suggestions and alternatives |
+
+### Informational Directives
+
+| Directive | Purpose |
+|-----------|---------|
+| **Error** | Troubleshooting guidance for problem descriptions |
+| **Exception** | Override conditions for special cases |
+| **Forbidden** | Explicitly prohibited actions |
+| **Note** | Cross-references and additional context |
+
+### Usage Examples
+
+```markdown
+Critical: In PLAN mode, you are FORBIDDEN from using ANY file-modifying tools
+Mandatory: You MUST ask for explicit user confirmation of the TASK LIST
+Always: Reference the most recent online official documentation
+Requirement: Use fenced code blocks with language tags
+Rule: Act as a senior, pragmatic software engineer
+Consider: Use tables for structured information
+Avoid: Mixing business logic and UI rendering in a single function
+```
+
+This hierarchy ensures consistent interpretation across different AI models and provides clear guidance on the relative importance of each directive.
 
 ## Extension Points
 
@@ -1839,11 +1964,11 @@ Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2
 **Process:**
 
 1. **Choose Number** — Follow numbering system (see [Rule Numbering System](#rule-numbering-system))
-2. **Generate Template** — `task rule:new FILENAME=XXX-description`
+2. **Generate Template** — `make rule-new FILENAME=XXX-description`
 3. **Fill Content** — Edit `rules/XXX-description.md`
-4. **Select Keywords** — 10-15 terms for semantic discovery
-5. **Validate** — `python scripts/schema_validator.py rules/XXX-description.md`
-6. **Update Index** — `python scripts/index_generator.py`
+4. **Select Keywords** — 5-20 terms for semantic discovery
+5. **Validate** — `make rules-validate` or `uv run ai-rules validate rules/XXX-description.md`
+6. **Update Index** — `make index-generate`
 7. **Commit** — `git commit -m "feat(rules): add XXX-description"`
 
 **Best Practices:**
@@ -1862,7 +1987,7 @@ Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2
 
 1. **Copy Schema** — `cp schemas/rule-schema.yml schemas/custom-schema.yml`
 2. **Edit Schema** — Add/modify validation rules
-3. **Test Locally** — `python scripts/schema_validator.py rules/ --schema schemas/custom-schema.yml`
+3. **Test Locally** — `uv run ai-rules validate rules/ --schema schemas/custom-schema.yml`
 4. **Update CI/CD** — Point to custom schema in pipeline
 5. **Document Changes** — Add SCHEMA_CUSTOMIZATION.md explaining deviations
 
@@ -1885,22 +2010,23 @@ metadata:
 - Requires maintenance when schema evolves
 - Team must understand customizations
 
-### Adding Custom Scripts
+### Adding Custom Automation
 
 **Scenario:** Need project-specific automation
 
 **Process:**
 
-1. **Create Script** — `scripts/custom_task.py`
-2. **Follow Patterns** — Use existing scripts as templates
-3. **Add Tests** — `tests/test_custom_task.py`
-4. **Add Task** — Update `Taskfile.yml`
-5. **Document** — Add to CONTRIBUTING.md
+1. **Create Command** — Add a new command module in `src/ai_rules/commands/`
+2. **Follow Patterns** — Use existing commands as templates (e.g., `validate.py`, `index.py`)
+3. **Add Tests** — `tests/cli/test_custom_task.py`
+4. **Register Command** — Add to `src/ai_rules/cli.py`
+5. **Add Makefile Target** — Add a `make` target that delegates to the CLI
+6. **Document** — Add to CONTRIBUTING.md
 
-**Example:**
+**Example (CLI command):**
 
 ```python
-# scripts/custom_audit.py
+# src/ai_rules/commands/audit.py
 """Audit rules for organization-specific requirements."""
 
 def audit_rule(rule_path: Path) -> list[str]:
@@ -1914,13 +2040,12 @@ def audit_rule(rule_path: Path) -> list[str]:
     return issues
 ```
 
-```yaml
-# Taskfile.yml
-tasks:
-  audit:custom:
-    desc: "Run organization-specific audit"
-    cmds:
-      - python scripts/custom_audit.py rules/
+**Example (Makefile target):**
+
+```makefile
+# Add to Makefile
+audit:  ## Run organization-specific audit
+	$(UV) run ai-rules audit rules/
 ```
 
 ### IDE-Specific Enhancements
@@ -1932,7 +2057,7 @@ tasks:
 **Example for Cursor .mdc:**
 
 ```python
-# scripts/deploy_cursor.py
+# src/ai_rules/commands/deploy_cursor.py
 def convert_to_mdc(rule_path: Path) -> str:
     """Add Cursor-specific frontmatter."""
     content = rule_path.read_text()
@@ -1949,7 +2074,7 @@ alwaysApply: false
 
 **Deploy:**
 ```bash
-python scripts/deploy_cursor.py --dest ~/project/.cursor/rules/
+uv run ai-rules deploy ~/project/.cursor/rules/
 ```
 
 **Benefits:**
@@ -1958,13 +2083,6 @@ python scripts/deploy_cursor.py --dest ~/project/.cursor/rules/
 - No maintenance of multiple source formats
 
 ## Related Documentation
-
-### Migration Guides
-
-For migration paths and historical context:
-
-- **[Migration Guides](MIGRATION.md)** - Project architecture migrations (v2.x → v3.0) and schema migrations (v3.1 → v3.2)
-- **[Schema Migration Guide](MIGRATION_SCHEMA_v3.1_to_v3.2.md)** - Detailed guide for schema v3.1 → v3.2 changes
 
 ### Core Documentation
 
@@ -1977,7 +2095,4 @@ For migration paths and historical context:
 - **[Schema Documentation](../schemas/README.md)** - Current schema v3.2 specification and field documentation
 - **[Rule Schema YAML](../schemas/rule-schema.yml)** - Declarative validation schema
 
-### Community
 
-- **[GitHub Repository](https://github.com/sfc-gh-myoung/ai_coding_rules)** - Source code and issue tracking
-- **[GitHub Issues](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)** - Report bugs or request features

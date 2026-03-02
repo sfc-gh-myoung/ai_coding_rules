@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-01-12
+**LastUpdated:** 2026-02-20
 **Keywords:** demo SQL, workshop, teardown, progress indicators, rerunnable demos, CREATE OR REPLACE, educational SQL, demo patterns, setup scripts, customer learning, per-schema isolation, inline documentation
-**TokenBudget:** ~3900
+**TokenBudget:** ~5000
 **ContextTier:** High
 **Depends:** 102-snowflake-sql-core.md
 
@@ -111,6 +111,8 @@ SQL files with .sql extension, UTF-8 encoding, Unix line endings
 - [ ] Comments teach concepts, not just describe syntax
 - [ ] Teardown file created for cleanup
 - [ ] Tested multiple executions successfully
+- [ ] **FK dependencies mapped** (if multi-file): referenced tables created before referencing tables
+- [ ] **CLI orchestration aligned** (if applicable): print menus match execution order
 
 ## File Naming for Demos
 
@@ -432,6 +434,93 @@ tasks:
       - task: load:customer
 ```
 
+## Multi-File Dependencies and CLI Orchestration
+
+### Foreign Key Dependency Ordering
+
+**Rule:** When SQL files contain foreign key constraints, the referenced table must be created BEFORE the referencing table.
+
+**Why this matters:** Snowflake enforces FK constraints at creation time. If file A creates a table with `FOREIGN KEY ... REFERENCES schema.table_b(id)`, then `table_b` must already exist or the statement fails.
+
+**Dependency Analysis Checklist:**
+
+Before implementing CLI orchestration for multi-file SQL execution:
+
+1. **Map all FK constraints:**
+   ```bash
+   grep -n "FOREIGN KEY\|REFERENCES" sql/*.sql
+   ```
+
+2. **Build dependency graph:**
+   - For each FK: note which file creates the referencing table, which file creates the referenced table
+   - Referenced file must execute BEFORE referencing file
+
+3. **Check views and procedures:**
+   - Views that SELECT FROM tables need those tables to exist
+   - Procedures that reference tables can be created before tables (execution deferred), but will fail at CALL time if tables missing
+
+4. **Document in file headers:**
+   ```sql
+   -- Prerequisites: 09_dedup_fastpath.sql (creates UNIQUE_DESCRIPTIONS table)
+   ```
+
+### CLI Orchestration Alignment
+
+**Rule:** CLI print menus and actual execution order MUST stay synchronized.
+
+**Anti-Pattern:**
+```python
+# Menu says one order...
+print("  6. Create traceability objects")
+print("  7. Create dedup objects")
+
+# ...but code executes differently
+run_sql("06_traceability.sql")  # Needs UNIQUE_DESCRIPTIONS
+run_sql("09_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS - too late!
+```
+
+**Correct Pattern:**
+```python
+# Menu matches execution order
+print("  6. Create de-duplication objects")
+print("  7. Create traceability objects")
+
+# Code matches menu AND respects dependencies
+# CRITICAL: dedup creates UNIQUE_DESCRIPTIONS, traceability has FK to it
+run_sql("09_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS first
+run_sql("06_traceability.sql")   # Can now reference UNIQUE_DESCRIPTIONS
+```
+
+**Alignment Checklist:**
+- [ ] Print statements match actual function call order
+- [ ] Function call order respects FK dependencies
+- [ ] Comments explain WHY the order matters
+- [ ] Multiple entry points (e.g., `setup()` and `db.up()`) use identical order
+
+### Example: Dependency Graph
+
+```
+02_tables.sql
+├── Creates: STANDARD_ITEMS, RAW_RETAIL_ITEMS, ITEM_MATCHES
+│
+09_dedup_fastpath.sql
+├── Creates: UNIQUE_DESCRIPTIONS, CONFIRMED_MATCHES
+├── Depends: STANDARD_ITEMS (FK)
+│
+06_traceability.sql
+├── Creates: RAW_TO_UNIQUE_MAP
+├── Depends: RAW_RETAIL_ITEMS (FK), UNIQUE_DESCRIPTIONS (FK)
+│           ↑ UNIQUE_DESCRIPTIONS created by 09_dedup_fastpath.sql
+│           → 09 must run BEFORE 06
+│
+08_procedures.sql
+├── Calls: DEDUPLICATE_RAW_ITEMS() (defined in 09)
+├── References: UNIQUE_DESCRIPTIONS
+├── Depends: 09_dedup_fastpath.sql must run first
+```
+
+**Execution Order:** 02 then 09 then 06 then 08 (NOT file number order!)
+
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Dropping Database in Demo Files
@@ -512,6 +601,41 @@ CREATE TABLE AMI_DATA (
     consumption_kwh NUMBER(10,3)         -- Kilowatt-hours consumed
 ) COMMENT = 'Smart meter readings (15-minute intervals)';
 ```
+
+### Anti-Pattern 5: FK Reference Before Table Exists
+
+**Problem:**
+```python
+# CLI runs files in numeric order without considering dependencies
+def setup():
+    run_sql("05_normalization.sql")
+    run_sql("06_traceability.sql")   # Has FK to UNIQUE_DESCRIPTIONS
+    run_sql("07_pipeline.sql")
+    run_sql("08_procedures.sql")
+    run_sql("09_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS
+```
+
+**Error Message:**
+```
+SQL compilation error:
+Table 'DEMO_DB.HARMONIZED.UNIQUE_DESCRIPTIONS' does not exist or not authorized.
+```
+
+**Why It Fails:** File 06 contains `FOREIGN KEY (UNIQUE_DESC_ID) REFERENCES HARMONIZED.UNIQUE_DESCRIPTIONS(UNIQUE_DESC_ID)`, but file 09 (which creates `UNIQUE_DESCRIPTIONS`) hasn't run yet. Numeric file order ≠ dependency order.
+
+**Correct Pattern:**
+```python
+# CLI respects FK dependencies, not file numbers
+def setup():
+    run_sql("05_normalization.sql")
+    # CRITICAL: 09 creates UNIQUE_DESCRIPTIONS, 06 references it
+    run_sql("09_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS FIRST
+    run_sql("06_traceability.sql")   # Now FK constraint succeeds
+    run_sql("07_pipeline.sql")
+    run_sql("08_procedures.sql")
+```
+
+**Prevention:** Always run `grep -n "FOREIGN KEY\|REFERENCES" sql/*.sql` before implementing CLI orchestration. Build dependency graph. Document in comments.
 
 ## When to Use Production Patterns
 

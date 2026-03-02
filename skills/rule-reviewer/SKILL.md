@@ -23,7 +23,7 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
 (With `output_root: mytest/` → `mytest/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`)
 
-## Scoring System (100 points)
+## Scoring System (105 points)
 
 **Raw Score Range:** 0-10 per dimension
 **Formula:** Raw (0-10) × (Weight / 2) = Points
@@ -34,6 +34,7 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 - **Consistency** - Weight: 3, Max: 15 points - Internal alignment correct?
 - **Parsability** - Weight: 3, Max: 15 points - Schema valid?
 - **Token Efficiency** - Weight: 2, Max: 10 points - Within ±5% budget?
+- **Rule Size** - Weight: 2, Max: 10 points - Within 500-line target? (100% deterministic)
 - **Staleness** - Weight: 2, Max: 10 points - Current patterns?
 - **Cross-Agent Consistency** - Weight: 1, Max: 5 points - Works across all agents?
 
@@ -46,7 +47,7 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
 ## Review Modes
 
-- **FULL:** All 6 dimensions scored
+- **FULL:** All 7 dimensions scored
 - **FOCUSED:** Actionability + Completeness only (50 points max)
 - **STALENESS:** Staleness dimension only (10 points max)
 
@@ -161,6 +162,7 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
    - `rubrics/consistency.md`
    - `rubrics/parsability.md`
    - `rubrics/token-efficiency.md`
+   - `rubrics/rule-size.md` (100% deterministic - line count)
    - `rubrics/staleness.md`
    - `rubrics/cross-agent-consistency.md`
      - Includes documentation currency check via `web_fetch`
@@ -191,13 +193,18 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 
 ## Verdicts
 
-**Score Ranges:**
-- **90-100** - EXECUTABLE - Production-ready
-- **80-89** - EXECUTABLE_WITH_REFINEMENTS - Good, minor fixes
-- **60-79** - NEEDS_REFINEMENT - Needs work
-- **<60** - NOT_EXECUTABLE - Major issues
+**Score Ranges (based on 105-point scale):**
+- **94-105** - EXECUTABLE - Production-ready
+- **84-93** - EXECUTABLE_WITH_REFINEMENTS - Good, minor fixes
+- **63-83** - NEEDS_REFINEMENT - Needs work
+- **<63** - NOT_EXECUTABLE - Major issues
 
 **Critical dimension override:** If both Actionability ≤4/10 AND Completeness ≤4/10 → NOT_EXECUTABLE regardless of total score
+
+**Rule Size flags:**
+- `OPTIMIZATION_RECOMMENDED` (501-600 lines) - Log warning, suggest consolidation
+- `SPLITTING_REQUIRED` (601-800 lines) - Block deployment, require split plan
+- `NOT_DEPLOYABLE` (>800 lines) - Fail review, mandatory remediation
 
 ## Supported File Types
 
@@ -234,7 +241,7 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 1. Executive Summary (scores table)
 2. Schema Validation Results
 3. Agent Executability Verdict
-4. Dimension Analysis (6 sections for FULL mode)
+4. Dimension Analysis (7 sections for FULL mode)
 5. Critical Issues (list)
 6. Recommendations (prioritized)
 7. Post-Review Checklist
@@ -376,7 +383,8 @@ Before starting ANY review work, confirm each item:
 **During execution:**
 - [ ] Schema validation attempted
 - [ ] Agent Execution Test completed
-- [ ] All dimensions scored (FULL mode)
+- [ ] Line count measured (`wc -l`)
+- [ ] All dimensions scored (FULL mode - 7 dimensions)
 - [ ] Recommendations include line numbers
 
 **Post-execution:**
@@ -408,12 +416,13 @@ Before starting ANY review work, confirm each item:
 **DO:**
 - Read complete rule file
 - Run schema validator
-- Score all dimensions per rubrics
+- Measure line count (`wc -l`)
+- Score all dimensions per rubrics (7 for FULL mode)
 - Generate specific recommendations
 - Write complete review
 
 **DON'T:**
-- Skip dimensions (FULL mode requires all 6)
+- Skip dimensions (FULL mode requires all 7)
 - Estimate scores without rubrics
 - Generate generic recommendations
 - Abbreviate review to save tokens
@@ -580,9 +589,11 @@ Before considering review complete:
 
 - [ ] Schema validator executed
 - [ ] Agent Execution Test performed
-- [ ] All required dimensions scored
+- [ ] Line count measured (`wc -l`)
+- [ ] All required dimensions scored (7 for FULL mode)
 - [ ] Each score has rationale
 - [ ] Critical issues identified
+- [ ] Rule Size flags applied if applicable
 - [ ] Recommendations prioritized
 - [ ] Line numbers provided for fixes
 - [ ] Review written to {output_root}/rule-reviews/
@@ -618,7 +629,7 @@ When invoked by `bulk-rule-reviewer`, this skill may experience context drift af
 ### Mandatory Behaviors (ALWAYS DO)
 
 1. **Batch-load all rubrics BEFORE reading target rule** - See `workflows/review-execution.md` Phase 1
-2. **Create ALL 7 inventories BEFORE reading target rule** - Empty templates from each rubric
+2. **Create ALL 8 inventories BEFORE reading target rule** - Empty templates from each rubric
 3. **Read target rule from line 1 to END** - No skipping sections
 4. **Fill inventories systematically** - One dimension at a time, in order
 5. **Check Non-Issues list for EACH flagged item** - Remove false positives with notes
@@ -651,8 +662,9 @@ When invoked by `bulk-rule-reviewer`, this skill may experience context drift af
 
 Before submitting ANY review, verify:
 
-- [ ] All 8 rubric files read BEFORE reading target rule?
-- [ ] All 7 inventories created (even if empty)?
+- [ ] All 9 rubric files read BEFORE reading target rule?
+- [ ] All 8 inventories created (even if empty)?
+- [ ] Line count measured (`wc -l`) for Rule Size?
 - [ ] Target rule read line 1 to END (no skipping)?
 - [ ] Each inventory filled using only rubric-defined patterns?
 - [ ] Non-Issues list checked for EVERY flagged item?

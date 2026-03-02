@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-02-18
 **Keywords:** schema validator, validation errors, error resolution, exit codes, command options, output parsing, error severity, CRITICAL errors, HIGH warnings, MEDIUM info
 **TokenBudget:** ~2250
 **ContextTier:** High
@@ -18,7 +18,7 @@
 ## Scope
 
 **What This Rule Covers:**
-Core guide for running `schema_validator.py` against v3.2 rules. Covers command usage, interpreting validation output, resolving common errors, and understanding severity levels.
+Core guide for running `ai-rules validate` against v3.2 rules. Covers command usage, interpreting validation output, resolving common errors, and understanding severity levels.
 
 **When to Load This Rule:**
 - Validating rule files against v3.2 schema
@@ -47,7 +47,7 @@ Core guide for running `schema_validator.py` against v3.2 rules. Covers command 
 ### External Documentation
 
 - **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema
-- **Validator Script:** `scripts/schema_validator.py` - Validation implementation
+- **Validator CLI:** `uv run ai-rules validate` - Validation command
 - **[CommonMark Spec](https://spec.commonmark.org/)** - Markdown specification
 
 ## Contract
@@ -61,7 +61,7 @@ Core guide for running `schema_validator.py` against v3.2 rules. Covers command 
 
 ### Mandatory
 
-- `scripts/schema_validator.py`
+- `ai-rules validate` CLI command
 - `schemas/rule-schema.yml`
 - Python 3 with PyYAML
 - Text editor for fixes
@@ -70,11 +70,11 @@ Core guide for running `schema_validator.py` against v3.2 rules. Covers command 
 
 - Committing rules with CRITICAL errors
 - Skipping validation before commits
-- Modifying `schema_validator.py` to pass invalid rules
+- Modifying validator internals to pass invalid rules
 
 ### Execution Steps
 
-1. Run `schema_validator.py` on rule file
+1. Run `ai-rules validate` on rule file
 2. Review validation output (CRITICAL, HIGH, MEDIUM, INFO)
 3. Fix CRITICAL errors (required for passing)
 4. Review and fix HIGH errors (strongly recommended)
@@ -109,7 +109,7 @@ Validation report showing:
 
 ### Post-Execution Checklist
 
-- [ ] `schema_validator.py` runs without Python errors
+- [ ] `ai-rules validate` runs without Python errors
 - [ ] All CRITICAL errors fixed (0 CRITICAL required)
 - [ ] HIGH errors reviewed and fixed
 - [ ] Rule re-validated after fixes
@@ -120,22 +120,22 @@ Validation report showing:
 
 ```bash
 # Validate single rule file
-python3 scripts/schema_validator.py rules/002-rule-governance.md
+uv run ai-rules validate rules/002-rule-governance.md
 
 # Validate all rules in directory
-python3 scripts/schema_validator.py rules/
+uv run ai-rules validate rules/
 
 # Verbose output with detailed checks
-python3 scripts/schema_validator.py rules/002-rule-governance.md --verbose
+uv run ai-rules validate rules/002-rule-governance.md --verbose
 
 # Quiet mode (summary only)
-python3 scripts/schema_validator.py rules/ --quiet
+uv run ai-rules validate rules/ --quiet
 
 # JSON output for programmatic parsing
-python3 scripts/schema_validator.py rules/ --json
+uv run ai-rules validate rules/ --json
 
 # Strict mode (warnings = errors)
-python3 scripts/schema_validator.py rules/ --strict
+uv run ai-rules validate rules/ --strict
 ```
 
 ### Command Options
@@ -154,7 +154,7 @@ python3 scripts/schema_validator.py rules/ --strict
 - **Exit 1 with --strict:** Any errors including MEDIUM
 
 ```bash
-python3 scripts/schema_validator.py rules/002-rule-governance.md
+uv run ai-rules validate rules/002-rule-governance.md
 if [ $? -eq 0 ]; then
     echo "[PASS] Validation passed"
 else
@@ -188,7 +188,7 @@ RESULT: WARNINGS ONLY
 
 ```
 ================================================================================
-VALIDATION REPORT: rules/bad-rule.md
+VALIDATION REPORT: rules/<example-rule>.md
 ================================================================================
 
 SUMMARY:
@@ -339,11 +339,11 @@ Keywords must have 5-20 comma-separated terms.
 **Correct Pattern:**
 ```bash
 # BAD: Only check for CRITICAL
-python3 scripts/schema_validator.py rules/
+uv run ai-rules validate rules/
 # "No CRITICAL errors, ship it!"
 
 # GOOD: Track and address warnings
-python3 scripts/schema_validator.py rules/ --quiet
+uv run ai-rules validate rules/ --quiet
 # Target: 0 CRITICAL, 0 HIGH, <10 MEDIUM total
 ```
 
@@ -359,7 +359,7 @@ python3 scripts/schema_validator.py rules/ --quiet
 vim rules/<rule-file>.md
 
 # Always re-validate
-python3 scripts/schema_validator.py rules/<rule-file>.md
+uv run ai-rules validate rules/<rule-file>.md
 ```
 
 ## ContextTier Validation

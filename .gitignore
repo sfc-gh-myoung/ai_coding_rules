@@ -209,6 +209,7 @@ plans/*
 reviews/*
 !reviews/.gitkeep
 .cortex/
+.snowflake/
 
 # Lock files
 uv.lock

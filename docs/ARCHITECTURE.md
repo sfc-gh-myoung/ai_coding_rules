@@ -1,4 +1,4 @@
-# Architecture: AI Coding Rules (v3.6.0)
+# Architecture: AI Coding Rules (v3.6.1)
 
 **Last Updated:** 2026-03-02
 
@@ -1231,7 +1231,7 @@ make validate         # Run all CI/CD checks
 See `.github/workflows/ci.yml` for the complete workflow. The `validate` job runs:
 ```bash
 uv run ai-rules validate rules/
-uv run ai-rules index --check
+uv run ai-rules index check
 ```
 
 ## Deployment System

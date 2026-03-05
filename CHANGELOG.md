@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.1] - 2026-03-05
+
+### Fixed
+- **fix(docs):** correct CLI command syntax across documentation files
+  - README.md: `deploy-split` is not a CLI subcommand; corrected to `deploy --split --agents-dest`
+  - PROJECT.md: `tokens check` subcommand doesn't exist; corrected to `tokens <path>` with flags
+  - ARCHITECTURE.md: `index --check` syntax invalid; corrected to `index check` subcommand
+
 ## [3.6.0] - 2026-03-02
 
 ### Added

@@ -1,7 +1,7 @@
 # AI Coding Rules
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
-![Version](https://img.shields.io/badge/version-3.6.0-blue)
+![Version](https://img.shields.io/badge/version-3.6.1-blue)
 [![CI](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml/badge.svg)](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
@@ -146,8 +146,8 @@ uv sync --all-groups                     # Install dependencies
 uv run ai-rules deploy ~/.ai-rules
 
 # Then: Deploy AGENTS.md to each project (points to shared rules)
-uv run ai-rules deploy-split --agents ~/project-a --rules ~/.ai-rules/rules --skills ~/.ai-rules/skills
-uv run ai-rules deploy-split --agents ~/project-b --rules ~/.ai-rules/rules --skills ~/.ai-rules/skills
+uv run ai-rules deploy --split --agents-dest ~/project-a --rules-dest ~/.ai-rules/rules --skills-dest ~/.ai-rules/skills
+uv run ai-rules deploy --split --agents-dest ~/project-b --rules-dest ~/.ai-rules/rules --skills-dest ~/.ai-rules/skills
 
 # Or with make:
 make deploy DEST=~/.ai-rules

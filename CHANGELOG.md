@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.6.1] - 2026-03-05
 
+### Changed
+- **refactor(ci):** migrate CI workflow from legacy scripts to `ai-rules` CLI
+  - Replace `python scripts/schema_validator.py` with `ai-rules validate`
+  - Replace `python scripts/index_generator.py --check` with `ai-rules index check`
+  - Lint templates (`AGENTS_MODE.md.template`, `AGENTS_NO_MODE.md.template`) instead of generated `AGENTS.md`
+- **refactor(build):** remove PROJECT.md from Makefile markdown lint target (now generated)
+
 ### Fixed
 - **fix(docs):** correct CLI command syntax across documentation files
   - README.md: `deploy-split` is not a CLI subcommand; corrected to `deploy --split --agents-dest`

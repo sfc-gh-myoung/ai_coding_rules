@@ -150,7 +150,7 @@ typecheck: ## Run ty type checker
 
 .PHONY: markdown
 markdown: ## Run pymarkdownlnt Markdown linter
-	$(UVX) pymarkdownlnt --config pymarkdown.rules.json scan rules/ templates/AGENTS_MODE.md.template templates/AGENTS_NO_MODE.md.template PROJECT.md
+	$(UVX) pymarkdownlnt --config pymarkdown.rules.json scan rules/ templates/AGENTS_MODE.md.template templates/AGENTS_NO_MODE.md.template
 	$(UVX) pymarkdownlnt --config pymarkdown.docs.json scan docs/ README.md CONTRIBUTING.md CHANGELOG.md
 
 .PHONY: quality-check

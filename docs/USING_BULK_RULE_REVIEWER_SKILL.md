@@ -1,8 +1,6 @@
-# Using the Bulk Rule Reviewer Skill (Internal Only)
+# Using the Bulk Rule Reviewer Skill
 
-**Note:** The Bulk Rule Reviewer Skill is **not deployed** to team projects. It remains in the ai_coding_rules source repository for internal use only.
-
-**Last Updated:** 2026-01-21
+**Last Updated:** 2026-03-07
 
 ## Background
 
@@ -19,33 +17,7 @@ Key behaviors:
 - Supports resume capability for long-running batches
 - Expected execution time: 1-2 hours (parallel), 5-10 hours (sequential)
 
-## Why Not Deployed?
-
-The bulk-rule-reviewer skill is designed for **rule maintainers** working in the source ai_coding_rules repository. It:
-
-1. **Requires rule-reviewer skill** - Must invoke rule-reviewer for each file
-2. **Writes to reviews/** - Directory structure specific to rule maintenance
-3. **Targets rule repository** - Most useful for bulk rule quality audits
-4. **Long-running process** - Takes 1-2 hours (parallel) for full repository review
-
-For deployed projects, teams should use the rule-reviewer skill directly for individual rule validation.
-
-## Configuration
-
-The skill is excluded from deployment in [`pyproject.toml`](../pyproject.toml):
-
-```toml
-[tool.rule_deployer]
-exclude_skills = [
-    "rule-creator/",
-    "rule-reviewer/",
-    "bulk-rule-reviewer/",
-]
-```
-
-## For ai_coding_rules Contributors
-
-If you're working in the ai_coding_rules repository and want to run bulk rule reviews:
+## Quick Start
 
 ### 1. Load the skill
 
@@ -257,7 +229,4 @@ For detailed documentation:
 
 ## Related Skills
 
-- **rule-reviewer** - Single rule review (required dependency)
-- **rule-creator** - Create new rules (complementary)
-- **skill-timing** - Execution timing instrumentation
-
+- **rule-reviewer** - Single rule review

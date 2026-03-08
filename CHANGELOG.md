@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **refactor(plan-reviewer):** optimize SKILL.md for token efficiency (v2.2.0 → v2.3.0)
+  - Reduced SKILL.md from 622 to 132 lines (79% reduction)
+  - Shortened frontmatter description from 388 to 168 characters
+  - Added Quick Start section for fast onboarding
+  - Consolidated Review Modes to single table (removed duplicates)
+  - Condensed 12-step workflow to 8-step compact list with references
+  - Added "What NOT to Use This For" exclusions section
+  - Extracted scoring details to `rubrics/SCORING.md` (new file)
+  - Extracted determinism requirements to `workflows/determinism.md` (new file)
+  - Extracted parallel execution specs to `workflows/parallel-specs.md` (new file)
+  - Main file now follows progressive disclosure pattern
+- **docs(doc-reviewer):** restructure USING_DOC_REVIEWER_SKILL.md for clarity
+  - Replace verbose prose with scannable tables (review modes, verdicts, scoring)
+  - Add verification table examples (cross-reference, link validation)
+  - Add architecture diagram showing 5-phase review flow
+  - Add Reference section with file structure and workflow index
+  - Consolidate FAQ into Q&A format without "A:" prefixes
+  - Remove redundant Background section (details now in skill files)
+- **docs(plan-reviewer):** restructure USING_PLAN_REVIEWER_SKILL.md for clarity
+  - Replace verbose prose with scannable tables (modes, verdicts, dimensions)
+  - Add execution mode comparison table (parallel vs sequential)
+  - Add architecture diagram and blocking issues examples
+  - Add Reference section with file structure and workflow index
+  - Consolidate FAQ into Q&A format without "A:" prefixes
+  - Remove redundant Background section (details now in skill files)
+- **refactor(rule-creator):** migrate from legacy scripts to `ai-rules` CLI
+  - Replace `template_generator.py` with `ai-rules new`
+  - Replace `schema_validator.py` with `ai-rules validate`
+  - Replace `index_generator.py` with `ai-rules index`
+  - Update keyword count range from 10-15 to 5-20
+- **docs(rule-reviewer):** add USING_RULE_REVIEWER_SKILL.md user documentation
+  - New comprehensive user guide matching doc-reviewer and plan-reviewer format
+  - Quick Start, review modes table, scoring dimensions, FAQ section
+  - Reference section with file structure and workflow index
+- **docs(skill-timing):** restructure USING_SKILL_TIMING_SKILL.md for clarity
+  - Replace verbose prose with scannable tables (commands, output formats)
+  - Consolidate FAQ into Q&A format without "A:" prefixes
+
 ### Added
 - **feat(plan-reviewer):** add parallel execution mode with 8 sub-agents
   - New `dimension-subagent-template.md` for generating sub-agent prompts
@@ -18,6 +57,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Routing logic in `review-execution.md` for execution mode selection
   - Architecture diagrams and parallel execution flow in README.md
   - Parallel mode usage examples in docs
+- **feat(doc-reviewer):** add parallel execution mode with 6 sub-agents
+  - New `execution_mode` parameter (`parallel` default | `sequential`)
+  - New `workflows/dimension-subagent-template.md` for sub-agent prompts
+  - New `workflows/parallel-execution.md` with coordinator logic
+  - New `workflows/parallel-specs.md` for timeout handling and edge cases
+  - New `workflows/score-aggregation.md` for combining dimension results
+  - New `workflows/overlap-validator.md` to prevent double-counting
+  - Performance: ~3-4× faster execution, automatic fallback on 3+ failures
+- **feat(rule-reviewer):** add parallel execution mode with 7 sub-agents (v2.5.0)
+  - New `execution_mode` parameter (`parallel` default | `sequential`)
+  - New `workflows/dimension-subagent-template.md` for sub-agent prompts
+  - New `workflows/parallel-execution.md` with coordinator logic
+  - New `workflows/score-aggregation.md` for combining dimension results
+  - Routing logic in SKILL.md for execution mode selection
+- **feat(rule-creator):** add Success Criteria, Out of Scope, and Rollback Strategy sections
+  - Measurable outcomes checklist for rule creation validation
+  - Explicit scope boundaries to prevent misuse
+  - Recovery guidance for common failure scenarios
 
 ## [3.6.1] - 2026-03-05
 

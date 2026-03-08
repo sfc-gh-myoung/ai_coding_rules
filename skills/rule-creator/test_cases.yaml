@@ -1,0 +1,147 @@
+# Test cases for rule-creator skill evaluation
+# Following the agent_eval pattern for YAML test case loading
+
+version: "1.0"
+description: "Evaluation test cases for rule-creator skill"
+
+test_cases:
+  - id: "create-python-rule"
+    description: "Create a Python domain rule for a testing library"
+    input:
+      domain: "python"
+      technology: "pytest-asyncio"
+      aspect: "core"
+      context_tier: "Medium"
+    expected:
+      validation_passes: true
+      has_required_sections:
+        - "## Metadata"
+        - "## Scope"
+        - "## References"
+        - "## Contract"
+        - "### Inputs and Prerequisites"
+        - "### Mandatory"
+        - "### Forbidden"
+        - "### Execution Steps"
+        - "### Output Format"
+        - "### Validation"
+      keyword_count_min: 5
+      keyword_count_max: 20
+      file_pattern: "rules/2\\d{2}-python-pytest-asyncio.md"
+    evaluation_criteria:
+      - "Rule file created in correct domain range (200-299)"
+      - "All v3.2 required sections present"
+      - "Keywords within 5-20 range"
+      - "ai-rules validate exits with code 0"
+
+  - id: "create-snowflake-rule"
+    description: "Create a Snowflake domain rule for a feature"
+    input:
+      domain: "snowflake"
+      technology: "snowflake-dynamic-tables"
+      aspect: "core"
+      context_tier: "High"
+    expected:
+      validation_passes: true
+      has_required_sections:
+        - "## Metadata"
+        - "## Scope"
+        - "## References"
+        - "## Contract"
+      keyword_count_min: 5
+      keyword_count_max: 20
+      file_pattern: "rules/1\\d{2}-snowflake-dynamic-tables.md"
+    evaluation_criteria:
+      - "Rule file created in correct domain range (100-199)"
+      - "All v3.2 required sections present"
+      - "ai-rules validate exits with code 0"
+
+  - id: "create-javascript-rule"
+    description: "Create a JavaScript/Frontend domain rule"
+    input:
+      domain: "javascript"
+      technology: "tanstack-query"
+      aspect: "core"
+      context_tier: "Medium"
+    expected:
+      validation_passes: true
+      has_required_sections:
+        - "## Metadata"
+        - "## Contract"
+      keyword_count_min: 5
+      keyword_count_max: 20
+      file_pattern: "rules/4\\d{2}-tanstack-query.md"
+    evaluation_criteria:
+      - "Rule file created in correct domain range (400-499)"
+      - "All v3.2 required sections present"
+      - "ai-rules validate exits with code 0"
+
+  - id: "validation-loop-recovery"
+    description: "Test validation loop with intentional errors"
+    input:
+      domain: "python"
+      technology: "test-validation"
+      inject_errors:
+        - type: "keyword_count"
+          value: 3  # Below minimum of 5
+    expected:
+      validation_first_pass: false
+      validation_after_fix: true
+      max_iterations: 3
+    evaluation_criteria:
+      - "Skill detects CRITICAL keyword count error"
+      - "Skill auto-fixes by adding keywords"
+      - "Validation passes within 3 iterations"
+
+  - id: "existing-rule-detection"
+    description: "Test pre-flight check for existing rules"
+    input:
+      domain: "python"
+      technology: "python-core"  # Already exists
+      aspect: "core"
+    expected:
+      detects_existing: true
+      aborts_creation: true
+    evaluation_criteria:
+      - "Skill searches RULES_INDEX.md for existing rule"
+      - "Skill reports that rule already exists"
+      - "Skill does NOT create duplicate rule"
+
+  - id: "index-entry-creation"
+    description: "Test RULES_INDEX.md entry creation"
+    input:
+      domain: "shell"
+      technology: "zsh-completions"
+      aspect: "core"
+      context_tier: "Low"
+    expected:
+      validation_passes: true
+      index_entry_added: true
+      index_position_correct: true
+    evaluation_criteria:
+      - "Rule created in shell domain (300-399)"
+      - "Entry added to RULES_INDEX.md"
+      - "Entry in correct numeric order"
+      - "Keywords in index match rule keywords"
+
+# Scoring rubric for evaluation
+scoring:
+  validation_passes:
+    weight: 30
+    description: "Rule passes ai-rules validate with 0 CRITICAL errors"
+  
+  section_completeness:
+    weight: 25
+    description: "All required v3.2 sections present and properly formatted"
+  
+  keyword_quality:
+    weight: 15
+    description: "Keywords are relevant, 5-20 count, aid discovery"
+  
+  domain_accuracy:
+    weight: 15
+    description: "Rule placed in correct domain range with proper filename"
+  
+  index_integration:
+    weight: 15
+    description: "RULES_INDEX.md entry correct and in proper position"

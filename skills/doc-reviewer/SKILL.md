@@ -31,6 +31,7 @@ Review project documentation for accuracy with codebase, completeness of coverag
 - **output_root**: Root directory for output files (default: `reviews/`). Subdirectories `doc-reviews/` or `summaries/` appended automatically. Supports relative paths including `../`.
 - **overwrite**: `true` | `false` (default: `false`) - If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
 - **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
+- **execution_mode**: `parallel` (default, 6 sub-agents) | `sequential` - Execution strategy for dimension evaluation
 
 ### Default Target Files
 
@@ -189,13 +190,19 @@ bash skills/skill-timing/scripts/run_timing.sh end \
 
 ### 4. Review Execution
 
-Execute complete review per rubric. This is the core workflow.
+Execute complete review per rubric and `execution_mode`.
+
+**Parallel mode (default):** 6 sub-agents evaluate dimensions concurrently
+- See `workflows/parallel-execution.md`
+
+**Sequential mode:** Single agent evaluates all dimensions  
+- See `workflows/review-execution.md`
+
+**CRITICAL:** Default to `parallel` execution. Do NOT silently use sequential.
 
 **FULL mode:** Score all 6 dimensions
 **FOCUSED mode:** Score specified focus_area dimension(s) only
 **STALENESS mode:** Score Staleness dimension only (fast maintenance check)
-
-**See:** `workflows/review-execution.md` (detailed rubric, verification tables, scoring criteria)
 
 ### 5. [MODE TRANSITION: PLAN → ACT]
 
@@ -221,6 +228,20 @@ Write review to `reviews/doc-reviews/` (single) or `reviews/summaries/` (collect
 Handle validation failures, file write errors, broken links, missing files.
 
 **See:** `workflows/error-handling.md`
+
+## Parallel Execution
+
+**See:** `workflows/parallel-specs.md` for timeout handling, aggregation schema, edge cases, and rollback procedures.
+
+**Performance Targets:**
+| Metric | Sequential | Parallel | Improvement |
+|--------|------------|----------|-------------|
+| Execution time | ~12-15 min | ~3-4 min | 3-4× faster |
+| Token cost | ~12K | ~72K | 6× higher |
+| Context freshness | Degraded after dim 3 | Fresh for all | Better accuracy |
+| Fault tolerance | Restart from beginning | Retry single dimension | Improved |
+
+**Fallback:** If 3+ sub-agents fail, automatically falls back to sequential execution.
 
 ## Review Modes
 

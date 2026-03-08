@@ -1,16 +1,11 @@
 """Shared fixtures for ai-rules CLI tests."""
 
-import os
 from pathlib import Path
 
-# Set NO_COLOR before importing any CLI modules to ensure Rich Console
-# instances are created with ANSI output disabled
-os.environ["NO_COLOR"] = "1"
+import pytest
+from typer.testing import CliRunner
 
-import pytest  # noqa: E402
-from typer.testing import CliRunner  # noqa: E402
-
-from ai_rules.cli import app  # noqa: E402
+from ai_rules.cli import app
 
 
 @pytest.fixture

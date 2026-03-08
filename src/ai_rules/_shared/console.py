@@ -1,6 +1,7 @@
 """Shared Rich console instance for consistent output."""
 
 import os
+import sys
 
 from rich.console import Console
 
@@ -12,14 +13,14 @@ def _should_use_color() -> bool:
     - NO_COLOR env var (https://no-color.org/)
     - CI env var (CI environments typically don't want color)
     - TERM=dumb (dumb terminals can't handle ANSI)
+    - pytest context (disable colors to avoid ANSI in test assertions)
     """
-    if os.environ.get("NO_COLOR"):
-        return False
-    if os.environ.get("CI"):
-        return False
-    if os.environ.get("TERM") == "dumb":
-        return False
-    return True
+    return not (
+        os.environ.get("NO_COLOR")
+        or os.environ.get("CI")
+        or os.environ.get("TERM") == "dumb"
+        or "pytest" in sys.modules
+    )
 
 
 _use_color = _should_use_color()

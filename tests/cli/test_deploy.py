@@ -19,7 +19,7 @@ from typer.testing import CliRunner
 from ai_rules.cli import app
 from ai_rules.commands import deploy as deploy_module
 
-runner = CliRunner(env={"NO_COLOR": "1"})
+runner = CliRunner(env={"NO_COLOR": "1", "CI": "true"})
 
 
 # Fixtures for setting up test directories

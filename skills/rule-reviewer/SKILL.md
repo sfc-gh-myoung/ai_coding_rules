@@ -105,6 +105,15 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
    - File exists (rules/*.md, AGENTS.md, or PROJECT.md)
    - Mode: FULL | FOCUSED | STALENESS
 
+1a. **Collect ALL parameters** (use `ask_user_question`)
+   
+   **See:** `workflows/parameter-collection.md`
+   
+   **MANDATORY:** Prompt for ALL parameters in batched questions (max 4 per call):
+   - Do NOT silently apply defaults for optional parameters
+   - User must explicitly confirm each setting
+   - If `ask_user_question` unavailable, fall back to text-based prompting
+
 1b. **Detect file type**
    ```bash
    target_basename=$(basename "$target_file")
@@ -135,7 +144,7 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
    
    **IF FILE_TYPE == "rule":**
    ```bash
-   uv run python scripts/schema_validator.py [target_file]
+   uv run ai-rules validate [target_file]
    ```
    Parse output for CRITICAL/HIGH/MEDIUM errors
    
@@ -513,46 +522,46 @@ The user authorized ACT. Proceed with the work.
 
 **Why Each Step Matters:**
 
-1. **Schema Validation (schema_validator.py)**
+1. **Schema Validation (ai-rules validate)**
    - **Purpose:** Catch structural errors before agents load rules
    - **Cannot skip:** Parsability score requires this
-   - **Time cost:** 0.5-1 second
+   - **Time cost:** ~2-5 seconds
    - **Value:** Prevents agent confusion from malformed rules
 
 2. **Agent Execution Test**
    - **Purpose:** Count specific blocking issues (undefined thresholds, ambiguity)
    - **Cannot skip:** Directly impacts Actionability score
-   - **Time cost:** 1-2 seconds (manual reading)
+   - **Time cost:** ~15-20 seconds (rule analysis)
    - **Value:** Predicts agent failure modes
 
 3. **Dimension Scoring with Rubrics**
    - **Purpose:** Consistent, reproducible scoring across reviewers
    - **Cannot skip:** Without rubrics, scores drift arbitrarily
-   - **Time cost:** 2-3 seconds per dimension
+   - **Time cost:** ~10-15 seconds per dimension (6 dimensions)
    - **Value:** Enables trend analysis across reviews
 
 4. **Specific Recommendations with Line Numbers**
    - **Purpose:** Actionable improvements (not generic advice)
    - **Cannot skip:** Without line numbers, rule authors can't act
-   - **Time cost:** 1-2 seconds per recommendation
+   - **Time cost:** ~10-15 seconds per recommendation
    - **Value:** Actual rule improvements happen
 
 5. **Complete Review Write**
    - **Purpose:** Durable record for comparison, trend tracking
    - **Cannot skip:** Summary aggregation depends on complete reviews
-   - **Time cost:** 1-2 seconds (file write)
+   - **Time cost:** ~3-5 seconds (file write)
    - **Value:** Historical quality tracking
 
-**Total Time Per Rule:** 8-12 seconds  
+**Total Time Per Rule:** 90-120 seconds (sequential execution)  
 **Total Value:** Reliable quality measurement enabling continuous improvement
 
 **Efficiency Tradeoffs (ALL REJECTED):**
 
-- **Skip schema validation** - Time Saved: 1 sec, Value Lost: Parsability score invalid, Decision: REJECT
-- **Estimate scores without rubrics** - Time Saved: 6 sec, Value Lost: Score consistency lost, Decision: REJECT
-- **Generic recommendations** - Time Saved: 2 sec, Value Lost: No actionable improvements, Decision: REJECT
-- **Abbreviated review** - Time Saved: 2 sec, Value Lost: Aggregation impossible, Decision: REJECT
-- **Template-based content** - Time Saved: 8 sec, Value Lost: No actual analysis performed, Decision: REJECT
+- **Skip schema validation** - Time Saved: ~3 sec, Value Lost: Parsability score invalid, Decision: REJECT
+- **Estimate scores without rubrics** - Time Saved: ~60 sec, Value Lost: Score consistency lost, Decision: REJECT
+- **Generic recommendations** - Time Saved: ~15 sec, Value Lost: No actionable improvements, Decision: REJECT
+- **Abbreviated review** - Time Saved: ~20 sec, Value Lost: Aggregation impossible, Decision: REJECT
+- **Template-based content** - Time Saved: ~90 sec, Value Lost: No actual analysis performed, Decision: REJECT
 
 **Conclusion:** No efficiency tradeoff is worth the quality loss. Period.
 

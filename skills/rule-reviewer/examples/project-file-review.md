@@ -35,7 +35,7 @@ fi
 
 **Rule Files:**
 ```bash
-uv run python scripts/schema_validator.py rules/200-python-core.md
+uv run ai-rules validate rules/200-python-core.md
 # Validates: metadata, section order, required fields
 ```
 

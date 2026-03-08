@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Execute `template_generator.py` to create a v3.0-compliant rule file structure with all required sections, Contract XML tags, and metadata placeholders ready for population.
+Execute `ai-rules new` to create a v3.0-compliant rule file structure with all required sections, Contract XML tags, and metadata placeholders ready for population.
 
 ## Inputs
 

@@ -45,7 +45,7 @@ cat rules/801-project-readme.md
 ### Step 2: Run Schema Validation (MANDATORY)
 
 ```bash
-python scripts/schema_validator.py rules/801-project-readme.md
+uv run ai-rules validate rules/801-project-readme.md
 ```
 
 **Example Output:**

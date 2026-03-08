@@ -1828,7 +1828,7 @@ if sections["Contract"]["line"] > 160:
 **Rationale:**
 
 1. **Context Drift Prevention** — Fresh context per sub-agent eliminates quality degradation after 50+ rules
-2. **Speed** — 5× faster execution (1-2 hours vs 5-10 hours for 113 rules)
+2. **Speed** — 5× faster execution (~50 minutes vs 4-6 hours for 129 rules)
 3. **Isolation** — One sub-agent failing doesn't stop others; partial results preserved
 4. **Full Protocol Preservation** — Each sub-agent loads complete anti-optimization protocols
 5. **No File Conflicts** — Unique filenames (rule-name-model-date.md) prevent write races
@@ -1847,7 +1847,7 @@ if sections["Contract"]["line"] > 160:
    ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
    │ Worker 1 │  │ Worker 2 │  │ Worker 3 │  │ Worker 4 │  │ Worker 5 │
    │ Rules    │  │ Rules    │  │ Rules    │  │ Rules    │  │ Rules    │
-   │ 1-23     │  │ 24-46    │  │ 47-69    │  │ 70-92    │  │ 93-113   │
+   │ 1-26     │  │ 27-52    │  │ 53-78    │  │ 79-104   │  │ 105-129  │
    └──────────┘  └──────────┘  └──────────┘  └──────────┘  └──────────┘
          │              │              │              │              │
          ▼              ▼              ▼              ▼              ▼
@@ -1864,7 +1864,7 @@ if sections["Contract"]["line"] > 160:
 
 **Why Not Sequential?**
 - Context drift causes quality degradation in long sessions
-- Single-threaded: 5-10 hours for 100+ rules
+- Single-threaded: 4-6 hours for 100+ rules
 - One failure can halt entire process
 - Available as fallback via `max_parallel: 1`
 

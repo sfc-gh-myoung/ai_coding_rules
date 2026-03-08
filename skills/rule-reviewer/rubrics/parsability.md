@@ -53,7 +53,7 @@
 - Do NOT start reading rule yet
 
 **Step 2: Run Schema Validator (if available)**
-- Execute: `uv run python scripts/schema_validator.py [target_file]`
+- Execute: `uv run ai-rules validate [target_file]`
 - Record all errors by severity with line numbers
 - If unavailable: Note "Manual assessment" and proceed
 
@@ -151,7 +151,7 @@
 
 Run schema validator first:
 ```bash
-uv run python scripts/schema_validator.py [target_file]
+uv run ai-rules validate [target_file]
 ```
 
 **Error severity levels:**
@@ -243,7 +243,7 @@ Check order (mark sequence violations):
 
 ## Fallback Scoring (Without Schema Validator)
 
-If `schema_validator.py` is unavailable:
+If `ai-rules validate` is unavailable:
 
 1. **Manual metadata check:**
    - Verify all 7 fields present
@@ -258,7 +258,7 @@ If `schema_validator.py` is unavailable:
 3. **Document limitation:**
    ```markdown
    Note: Schema validation unavailable. Manual assessment performed.
-   Recommend running: uv run python scripts/schema_validator.py [file]
+   Recommend running: uv run ai-rules validate [file]
    ```
 
 4. **Scoring adjustment:**
@@ -376,7 +376,7 @@ Or as list:
 ### Step 1: Run Schema Validator
 
 ```bash
-$ uv run python scripts/schema_validator.py rules/example.md
+$ uv run ai-rules validate rules/example.md
 
 [HIGH] Missing metadata field: Depends (line 10)
 [MEDIUM] Section order violation: Contract before References (line 45)
@@ -459,7 +459,7 @@ $ uv run python scripts/schema_validator.py rules/example.md
 **Expected variance:** 0 (schema errors are objective)
 
 **Verification:**
-- Run schema_validator.py (deterministic output)
+- Run ai-rules validate (deterministic output)
 - Count metadata fields against checklist
 - Count markdown issues by category
 - Count visual patterns by type

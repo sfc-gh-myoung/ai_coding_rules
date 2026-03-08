@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **docs(rule-loader):** add USING_RULE_LOADER_SKILL.md user documentation
+  - New comprehensive user guide following plan-reviewer format
+  - Loading modes (Minimal/Standard/Complete) with token ranges
+  - Workflow phases documentation (Foundation, Domain, Activity, Dependency, Budget)
+  - Extension reference table and advanced usage (custom budget, tier filtering)
+- **feat(skills):** add interactive parameter collection via `ask_user_question` to 4 skills
+  - New `workflows/parameter-collection.md` for doc-reviewer, rule-reviewer, bulk-rule-reviewer, rule-creator
+  - Follows pattern established in plan-reviewer skill
+  - Prompts for ALL parameters (required + optional) in batched questions (max 4 per call)
+  - Text-based fallback when `ask_user_question` tool unavailable
+  - Users must explicitly confirm settings; no silent defaults for optional parameters
+
+### Changed
+- **docs(skills):** consolidate skill READMEs into docs/USING_*_SKILL.md files
+  - Merged skills/rule-loader/README.md into docs/USING_RULE_LOADER_SKILL.md
+  - Merged skills/bulk-rule-reviewer/README.md into docs/USING_BULK_RULE_REVIEWER_SKILL.md
+  - Merged skills/skill-timing/README.md into docs/USING_SKILL_TIMING_SKILL.md
+  - All three USING docs restructured with progressive disclosure (Quick Start → Modes → Results → Advanced → FAQ → Reference)
+  - Removed duplicate content, resolved conflicts, added unique content from READMEs
+- **docs(bulk-rule-reviewer):** restructure USING_BULK_RULE_REVIEWER_SKILL.md for clarity
+  - Add execution integrity section with verification steps and red flags
+  - Add detailed input parameters table with types and defaults
+  - Add workflow stages with durations (Discovery, Review Execution, Aggregation, Summary)
+  - Add architecture diagram showing 4-stage orchestration flow
+- **docs(skill-timing):** expand USING_SKILL_TIMING_SKILL.md with full command reference
+  - Add complete argument tables for all 6 commands (start, checkpoint, end, analyze, aggregate, baseline)
+  - Add output format examples (Human, JSON, Markdown)
+  - Add default thresholds table per skill/mode
+  - Add CI/CD exit codes section for pipeline integration
+  - Add token pricing configuration with code examples
+- **refactor(skills):** migrate all skills from deprecated `scripts/*.py` to `ai-rules` CLI
+  - Updated 25+ files across rule-reviewer, rule-creator, bulk-rule-reviewer, doc-reviewer
+  - `scripts/schema_validator.py` → `uv run ai-rules validate`
+  - `scripts/token_validator.py` → `uv run ai-rules tokens`
+  - `scripts/template_generator.py` → `uv run ai-rules new`
+  - `scripts/index_generator.py` → `uv run ai-rules index`
+  - Updated Python subprocess calls, example commands, and workflow documentation
+  - Preserved skill-timing/scripts/* (active, not deprecated)
+
+### Removed
+- **refactor(skills):** delete redundant README.md files consolidated into docs/
+  - Deleted skills/rule-loader/README.md (content in docs/USING_RULE_LOADER_SKILL.md)
+  - Deleted skills/bulk-rule-reviewer/README.md (content in docs/USING_BULK_RULE_REVIEWER_SKILL.md)
+  - Deleted skills/skill-timing/README.md (content in docs/USING_SKILL_TIMING_SKILL.md)
+  - Deleted 5 skills/*/tests/README.md files (doc-reviewer, plan-reviewer, rule-creator, rule-loader, rule-reviewer)
+
 ### Fixed
 - **fix(cli):** resolve Rich/Typer ANSI escape code issues in CI and pytest
   - Configure Console instances to respect `NO_COLOR`, `CI`, and `TERM=dumb` environment variables

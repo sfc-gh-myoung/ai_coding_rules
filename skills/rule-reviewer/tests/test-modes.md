@@ -108,7 +108,7 @@ model: claude-sonnet-45
 
 ### TokenBudget
 - Value: ~XXXX
-- Validation: Run `python scripts/token_validator.py <rule-file>`
+- Validation: Run `uv run ai-rules tokens <rule-file>`
 - Actual tokens (tiktoken): [value]
 - Variance: [%]
 - Appropriateness: [assessment]

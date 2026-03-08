@@ -580,7 +580,7 @@ These skills are intended to be used specifically for the ai_coding_rules projec
 
 **bulk-rule-reviewer** — Orchestrate bulk rule reviews
 - **Purpose:** Execute comprehensive reviews on all rules in `rules/` directory with consolidated priority reporting
-- **Expected duration:** 1-2 hours with parallel sub-agents (default), 5-10 hours sequential
+- **Expected duration:** ~50 minutes with parallel sub-agents (default), 4-6 hours sequential
 - **Parallel execution:** Launches 5 sub-agents by default, each with fresh context (eliminates drift)
 - **Resume capability:** Skip existing reviews to resume after interruption
 - **Output:** Individual review files + master summary report with priority tiers

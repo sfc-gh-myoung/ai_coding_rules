@@ -114,25 +114,49 @@ target_question_delta = [
 ]
 ```
 
-### Question Set 3: Execution Mode
+### Question Set 3: Optional Parameters
+
+**MANDATORY:** Always prompt for ALL optional parameters. Do NOT silently apply defaults.
 
 ```python
-execution_question = {
-    "header": "Execution",
-    "question": "Which execution mode?",
-    "type": "options",
-    "multiSelect": False,
-    "options": [
-        {
-            "label": "parallel",
-            "description": "Use 8 sub-agents (faster, recommended)"
-        },
-        {
-            "label": "sequential",
-            "description": "Legacy single-agent (for debugging)"
-        }
-    ]
-}
+optional_questions = [
+    {
+        "header": "Execution",
+        "question": "Which execution mode?",
+        "type": "options",
+        "multiSelect": False,
+        "options": [
+            {"label": "parallel", "description": "Use 8 sub-agents (faster, default)"},
+            {"label": "sequential", "description": "Single-agent (for debugging)"}
+        ]
+    },
+    {
+        "header": "Timing",
+        "question": "Enable execution timing?",
+        "type": "options",
+        "multiSelect": False,
+        "options": [
+            {"label": "No", "description": "Skip timing metadata (default)"},
+            {"label": "Yes", "description": "Record and embed execution duration"}
+        ]
+    },
+    {
+        "header": "Overwrite",
+        "question": "Overwrite existing review file if present?",
+        "type": "options",
+        "multiSelect": False,
+        "options": [
+            {"label": "No", "description": "Use sequential numbering (-01, -02, etc.) if file exists (default)"},
+            {"label": "Yes", "description": "Replace existing file"}
+        ]
+    },
+    {
+        "header": "Output Dir",
+        "question": "Output directory for review files",
+        "type": "text",
+        "defaultValue": "reviews/"
+    }
+]
 ```
 
 ---
@@ -177,18 +201,46 @@ def collect_parameters_interactively(missing_params: list) -> dict:
             "defaultValue": "plans/"
         })
     
-    # Ask execution mode
-    if 'execution_mode' in missing_params:
-        questions.append({
-            "header": "Execution",
-            "question": "Which execution mode?",
-            "type": "options",
-            "multiSelect": False,
-            "options": [
-                {"label": "parallel", "description": "Use 8 sub-agents (faster, recommended)"},
-                {"label": "sequential", "description": "Legacy single-agent (for debugging)"}
-            ]
-        })
+    # ALWAYS ask ALL optional parameters - never silently default
+    questions.append({
+        "header": "Execution",
+        "question": "Which execution mode?",
+        "type": "options",
+        "multiSelect": False,
+        "options": [
+            {"label": "parallel", "description": "Use 8 sub-agents (faster, default)"},
+            {"label": "sequential", "description": "Single-agent (for debugging)"}
+        ]
+    })
+    
+    questions.append({
+        "header": "Timing",
+        "question": "Enable execution timing?",
+        "type": "options",
+        "multiSelect": False,
+        "options": [
+            {"label": "No", "description": "Skip timing metadata (default)"},
+            {"label": "Yes", "description": "Record and embed execution duration"}
+        ]
+    })
+    
+    questions.append({
+        "header": "Overwrite",
+        "question": "Overwrite existing review file if present?",
+        "type": "options",
+        "multiSelect": False,
+        "options": [
+            {"label": "No", "description": "Use sequential numbering (-01, -02, etc.) if file exists (default)"},
+            {"label": "Yes", "description": "Replace existing file"}
+        ]
+    })
+    
+    questions.append({
+        "header": "Output Dir",
+        "question": "Output directory for review files",
+        "type": "text",
+        "defaultValue": "reviews/"
+    })
     
     # Call ask_user_question tool
     if questions:
@@ -211,7 +263,10 @@ def header_to_param(header: str) -> str:
         "Review Files": "review_files",
         "Current Plan": "target_file",
         "Baseline": "baseline_review",
-        "Execution": "execution_mode"
+        "Execution": "execution_mode",
+        "Timing": "timing_enabled",
+        "Overwrite": "overwrite",
+        "Output Dir": "output_root"
     }
     return mapping.get(header, header.lower().replace(' ', '_'))
 ```

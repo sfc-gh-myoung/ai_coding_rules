@@ -89,6 +89,14 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
 ## Workflow
 
+**Execution Mode Selection:**
+```
+IF execution_mode == "parallel":
+    → Follow workflows/parallel-execution.md (7 sub-agents)
+ELSE:
+    → Follow sequential workflow below
+```
+
 **Progress Display:** Show only `Starting: [rule-name]` and `Complete: [rule-name] → score/100`.
 All canary checks, dimension scoring, and evidence gathering are INTERNAL (silent).
 
@@ -256,6 +264,9 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 - **output_root:** (optional) Root directory for output files (default: `reviews/`). Subdirectory `rule-reviews/` is appended automatically. Supports relative paths including `../`.
 - **overwrite:** (optional) true | false (default: false) - If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
 - **timing_enabled:** (optional) true | false (default: false)
+- **execution_mode:** (optional) `parallel` | `sequential` (default: `parallel`)
+  - `parallel`: Uses 7 sub-agents for dimension evaluation (faster, recommended for 8GB+ RAM)
+  - `sequential`: Legacy single-agent behavior (for debugging or low-resource environments)
 
 ## Integration with Other Skills
 
@@ -614,6 +625,7 @@ When invoked by `bulk-rule-reviewer`, this skill may experience context drift af
 
 ## Version History
 
+- **v2.5.0:** Added parallel execution mode with 7 sub-agents for dimension evaluation
 - **v2.4.0:** Added documentation currency check to staleness dimension
 - **v2.0.0:** Removed PROMPT.md, added progressive disclosure with rubrics/
 - **v1.4.0:** Added timing integration, schema validation

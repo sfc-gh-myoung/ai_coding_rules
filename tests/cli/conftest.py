@@ -11,7 +11,7 @@ from ai_rules.cli import app
 @pytest.fixture
 def runner() -> CliRunner:
     """Typer CLI test runner with colors disabled via NO_COLOR."""
-    return CliRunner(env={"NO_COLOR": "1"})
+    return CliRunner(env={"NO_COLOR": "1", "TERM": "dumb"})
 
 
 @pytest.fixture

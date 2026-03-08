@@ -3,9 +3,9 @@
 from typing import Annotated
 
 import typer
-from rich.console import Console
 
 from ai_rules import __version__
+from ai_rules._shared.console import console
 from ai_rules.commands.badges import badges_app
 from ai_rules.commands.deploy import deploy
 from ai_rules.commands.index import index_app
@@ -14,8 +14,6 @@ from ai_rules.commands.new import new as new_command
 from ai_rules.commands.refs import refs_app
 from ai_rules.commands.tokens import tokens
 from ai_rules.commands.validate import validate
-
-console = Console()
 
 app = typer.Typer(
     name="ai-rules",

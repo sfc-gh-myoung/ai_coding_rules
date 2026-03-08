@@ -1,27 +1,22 @@
 """Shared fixtures for ai-rules CLI tests."""
 
+import os
 from pathlib import Path
 
-import pytest
-from typer.testing import CliRunner
+# Set NO_COLOR before importing any CLI modules to ensure Rich Console
+# instances are created with ANSI output disabled
+os.environ["NO_COLOR"] = "1"
 
-from ai_rules import cli as _cli_mod
-from ai_rules._shared import console as _console_mod
-from ai_rules.cli import app
+import pytest  # noqa: E402
+from typer.testing import CliRunner  # noqa: E402
 
-# Disable ALL ANSI escape sequences (colors, bold, dim, etc.) from Rich
-# Console singletons used by CLI commands.  NO_COLOR only strips colors but
-# preserves style codes like \x1b[1m (bold), which still break plain-text
-# assertions in CliRunner output.  Setting color_system=None on each Console
-# instance disables every kind of ANSI output.
-for _c in (_console_mod.console, _console_mod.err_console, _cli_mod.console):
-    _c._color_system = None
+from ai_rules.cli import app  # noqa: E402
 
 
 @pytest.fixture
 def runner() -> CliRunner:
-    """Typer CLI test runner."""
-    return CliRunner()
+    """Typer CLI test runner with colors disabled via NO_COLOR."""
+    return CliRunner(env={"NO_COLOR": "1"})
 
 
 @pytest.fixture

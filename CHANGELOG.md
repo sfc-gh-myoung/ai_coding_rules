@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **fix(cli):** resolve Rich/Typer ANSI escape code issues in CI and pytest
+  - Configure Console instances to respect `NO_COLOR`, `CI`, and `TERM=dumb` environment variables
+  - Set `force_terminal=False` and `no_color=True` when color output should be disabled
+  - Eliminates ANSI codes (colors, bold, dim) that broke JSON parsing and test assertions
+  - Remove fragile `_color_system = None` hack from test conftest
+  - Set `NO_COLOR=1` in root conftest.py to ensure Console initialization before test imports
+  - Clean JSON output from `ai-rules validate --json` without post-hoc regex stripping
+
 ## [3.6.2] - 2026-03-08
 
 ### Changed

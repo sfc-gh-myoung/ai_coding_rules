@@ -1,9 +1,14 @@
 """Pytest configuration for AI coding rules tests."""
 
+import os
 import sys
 from pathlib import Path
 
-import pytest
+# Set NO_COLOR before any imports to ensure Rich Console instances
+# are created with ANSI output disabled during tests
+os.environ["NO_COLOR"] = "1"
+
+import pytest  # noqa: E402
 
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))

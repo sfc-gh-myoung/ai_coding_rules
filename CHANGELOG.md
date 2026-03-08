@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.2] - 2026-03-08
+
 ### Changed
 - **refactor(plan-reviewer):** optimize SKILL.md for token efficiency (v2.2.0 → v2.3.0)
   - Reduced SKILL.md from 622 to 132 lines (79% reduction)
@@ -75,6 +77,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Measurable outcomes checklist for rule creation validation
   - Explicit scope boundaries to prevent misuse
   - Recovery guidance for common failure scenarios
+
+### Fixed
+- **fix(agent-eval):** convert numeric metadata fields to strings in results output
+  - `total_duration_seconds` and `parallel_workers` now serialize as strings for consistent JSON output
 
 ## [3.6.1] - 2026-03-05
 

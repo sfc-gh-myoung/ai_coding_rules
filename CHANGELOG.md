@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **feat(plan-reviewer):** add parallel execution mode with 8 sub-agents
+  - New `dimension-subagent-template.md` for generating sub-agent prompts
+  - New `parallel-execution.md` with coordinator logic and 5s staggered launch
+  - New `score-aggregation.md` for combining dimension results
+  - New `overlap-validator.md` to prevent double-counting across dimensions
+  - New `parameter-collection.md` for interactive `ask_user_question` support
+  - `execution_mode` parameter in SKILL.md (`parallel` | `sequential`)
+  - Routing logic in `review-execution.md` for execution mode selection
+  - Architecture diagrams and parallel execution flow in README.md
+  - Parallel mode usage examples in docs
+
 ## [3.6.1] - 2026-03-05
 
 ### Changed

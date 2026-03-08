@@ -8,7 +8,84 @@ Execute plan review per specified mode using **batch rubric loading** (NOT progr
 
 ---
 
-## Execution Mode Selection
+## MANDATORY: Execution Mode Enforcement Check
+
+**CRITICAL:** This check MUST be performed FIRST before any other workflow steps.
+
+### Step 0: Verify execution_mode Parameter
+
+```python
+def enforce_execution_mode(params: dict) -> str:
+    """
+    MANDATORY enforcement of execution_mode parameter.
+    
+    This function MUST be called at the START of review execution.
+    DO NOT skip this check. DO NOT silently default to sequential.
+    """
+    
+    execution_mode = params.get('execution_mode', 'parallel')  # Default is parallel
+    
+    # Log the mode being used (for audit trail)
+    print(f"EXECUTION MODE: {execution_mode}")
+    
+    if execution_mode == 'parallel':
+        print("→ Launching 8 sub-agents for dimension evaluation")
+        print("→ See: workflows/parallel-execution.md")
+        return 'parallel'
+    
+    elif execution_mode == 'sequential':
+        print("→ Using legacy single-agent evaluation")
+        print("→ See: Sequential Mode section below")
+        return 'sequential'
+    
+    else:
+        raise ValueError(f"Invalid execution_mode: {execution_mode}. Must be 'parallel' or 'sequential'.")
+```
+
+### Routing Decision
+
+```
+STEP 0: Check execution_mode parameter
+
+IF execution_mode is NOT set:
+    → execution_mode = "parallel" (apply default)
+    → Log: "No execution_mode specified, defaulting to parallel"
+
+IF execution_mode == "parallel":
+    → STOP reading this file
+    → Follow workflows/parallel-execution.md IMMEDIATELY
+    → Use runSubagent tool to launch 8 dimension evaluators
+    → DO NOT continue to "Sequential Mode" section below
+
+IF execution_mode == "sequential":
+    → Continue to "Sequential Mode (Legacy)" section below
+    → Evaluate all 8 dimensions in single agent context
+```
+
+### Anti-Pattern Warning
+
+**❌ WRONG:** Ignoring execution_mode and proceeding with sequential evaluation
+```
+# BAD: Skipping the check and doing sequential anyway
+def execute_review(plan):
+    # Phase 1: Load rubrics...  ← WRONG: Did not check execution_mode first!
+```
+
+**✅ CORRECT:** Always check execution_mode and route appropriately
+```
+# GOOD: Check first, then route
+def execute_review(plan, params):
+    mode = enforce_execution_mode(params)  # ← MANDATORY first step
+    
+    if mode == 'parallel':
+        return execute_parallel_review(plan, params)  # Use sub-agents
+    else:
+        return execute_sequential_review(plan, params)  # Legacy path
+```
+
+---
+
+## Execution Mode Selection (Summary)
 
 **Check `execution_mode` parameter (default: `parallel`):**
 

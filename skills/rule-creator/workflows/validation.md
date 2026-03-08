@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Execute `schema_validator.py` iteratively to validate the populated rule against schema, fix any CRITICAL/HIGH errors, and continue until achieving 0 CRITICAL errors (exit code 0).
+Execute `ai-rules validate` iteratively to validate the populated rule against schema, fix any CRITICAL/HIGH errors, and continue until achieving 0 CRITICAL errors (exit code 0).
 
 ## Inputs
 
@@ -14,7 +14,7 @@ From Phase 3:
 ## Outputs
 
 - Validated rule with 0 CRITICAL errors
-- Exit code 0 from `schema_validator.py`
+- Exit code 0 from `ai-rules validate`
 - All CRITICAL and HIGH errors resolved
 - MEDIUM warnings addressed or documented
 
@@ -24,12 +24,12 @@ From Phase 3:
 
 **Command:**
 ```bash
-python scripts/schema_validator.py rules/[NNN]-[technology]-[aspect].md
+ai-rules validate rules/[NNN]-[technology]-[aspect].md
 ```
 
 **Example:**
 ```bash
-python scripts/schema_validator.py rules/422-daisyui-core.md
+ai-rules validate rules/422-daisyui-core.md
 ```
 
 ### Step 4.2: Capture Exit Code
@@ -66,13 +66,13 @@ SUMMARY:
 
  CRITICAL ISSUES (2):
 ────────────────────────────────────────────────────────────────────────────────
-[Metadata] Keywords count: 8 (expected 10-15)
+[Metadata] Keywords count: 8 (expected 5-20)
   Line: 5
   Fix: Add 2 more keywords to reach minimum of 10
 
-[Contract] Missing XML tag: <validation>
+[Contract] Missing Contract header: ### Validation
   Line: 78
-  Fix: Add <validation> tag in Contract section
+  Fix: Add '### Validation' header in Contract section
 
   HIGH ISSUES (1):
 ────────────────────────────────────────────────────────────────────────────────
@@ -90,7 +90,7 @@ RESULT:  FAILED
 
 **Error:**
 ```
-[Metadata] Keywords count: 8 (expected 10-15)
+[Metadata] Keywords count: 8 (expected 5-20)
   Line: 5
   Fix: Add 2 more keywords to reach minimum of 10
 ```
@@ -106,7 +106,7 @@ RESULT:  FAILED
 
 **Verification:**
 - Count commas + 1 = keyword count
-- Must be between 10-15 (inclusive)
+- Must be between 5-20 (inclusive)
 
 ---
 
@@ -132,52 +132,46 @@ RESULT:  FAILED
 
 ---
 
-#### Error Type 3: Missing Contract XML Tag
+#### Error Type 3: Missing Contract Markdown Header
 
 **Error:**
 ```
-[Contract] Missing XML tag: <validation>
+[Contract] Missing Contract header: ### Validation
   Line: 78
-  Fix: Add <validation> tag in Contract section
+  Fix: Add '### Validation' header in Contract section
 ```
 
 **Fix:**
-Add missing tag to Contract section:
+Add missing header to Contract section:
 ```markdown
 ## Contract
 
-<inputs_prereqs>
+### Inputs and Prerequisites
 ...
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
 ...
-</mandatory>
 
-<forbidden>
+### Forbidden
 ...
-</forbidden>
 
-<steps>
+### Execution Steps
 ...
-</steps>
 
-<output_format>
+### Output Format
 ...
-</output_format>
 
-<validation>
+### Validation
 How to verify success - specific checks agent should run
-</validation>
 ```
 
-**Verification:** All 6 tags must be present:
-1. `<inputs_prereqs>`
-2. `<mandatory>`
-3. `<forbidden>`
-4. `<steps>`
-5. `<output_format>`
-6. `<validation>`
+**Verification:** All 6 headers must be present:
+1. `### Inputs and Prerequisites`
+2. `### Mandatory`
+3. `### Forbidden`
+4. `### Execution Steps`
+5. `### Output Format`
+6. `### Validation`
 
 ---
 
@@ -243,18 +237,13 @@ Add the missing section with proper structure:
   Fix: Reorder sections per schema
 ```
 
-**Correct v3.0 order:**
-1. Purpose
-2. Rule Scope
-3. Quick Start TL;DR
+**Correct v3.2 order:**
+1. Metadata
+2. Scope
+3. References
 4. Contract
-5. Key Principles (optional)
-6. [Main content sections]
-7. Anti-Patterns and Common Mistakes (optional)
-8. Post-Execution Checklist
-9. Validation
-10. Output Format Examples
-11. References
+5. Anti-Patterns and Common Mistakes (optional)
+6. Examples
 
 **Fix:** Reorder sections to match required sequence
 
@@ -291,7 +280,7 @@ For each error:
 
 After applying fixes:
 ```bash
-python scripts/schema_validator.py rules/422-daisyui-core.md
+ai-rules validate rules/422-daisyui-core.md
 EXIT_CODE=$?
 ```
 
@@ -331,8 +320,8 @@ while iteration <= max_iterations:
 **CRITICAL (Must fix - blocks completion):**
 - Missing required metadata fields
 - Missing required sections
-- Missing Contract XML tags
-- Keywords count outside 10-15 range
+- Missing Contract Markdown headers
+- Keywords count outside 5-20 range
 - TokenBudget format invalid
 
 **Action:** Fix immediately, cannot proceed without resolving
@@ -367,7 +356,7 @@ while iteration <= max_iterations:
 
 **Iteration 1:**
 ```bash
-$ python scripts/schema_validator.py rules/422-daisyui-core.md
+$ ai-rules validate rules/422-daisyui-core.md
 
 SUMMARY:
    CRITICAL: 2
@@ -375,7 +364,7 @@ SUMMARY:
   ℹ️  MEDIUM: 0
 
  CRITICAL ISSUES (2):
-[Metadata] Keywords count: 9 (expected 10-15)
+[Metadata] Keywords count: 9 (expected 5-20)
   Fix: Add 1 more keyword
 
 [Metadata] TokenBudget format invalid
@@ -392,7 +381,7 @@ Re-validating...
 
 **Iteration 2:**
 ```bash
-$ python scripts/schema_validator.py rules/422-daisyui-core.md
+$ ai-rules validate rules/422-daisyui-core.md
 
 SUMMARY:
    CRITICAL: 0
@@ -413,7 +402,7 @@ RESULT:   WARNINGS ONLY (exit code 0)
 
 If errors are unclear:
 ```bash
-python scripts/schema_validator.py rules/422-daisyui-core.md --verbose
+ai-rules validate rules/422-daisyui-core.md --verbose
 ```
 
 **Verbose output includes:**
@@ -426,7 +415,7 @@ python scripts/schema_validator.py rules/422-daisyui-core.md --verbose
 
 For automated workflows:
 ```bash
-python scripts/schema_validator.py rules/422-daisyui-core.md --json > validation.json
+ai-rules validate rules/422-daisyui-core.md --json > validation.json
 ```
 
 **Parse JSON output:**
@@ -463,7 +452,7 @@ Before proceeding to Phase 5:
 
 **Symptom:**
 ```
-python: can't open file 'scripts/schema_validator.py'
+ai-rules: command not found
 ```
 
 **Fix:**
@@ -475,7 +464,7 @@ pwd
 cd /Users/myoung/Development/ai_coding_rules
 
 # Verify script exists
-ls scripts/schema_validator.py
+ai-rules --help
 ```
 
 ### Issue: Validation Passes But Rule Seems Incomplete

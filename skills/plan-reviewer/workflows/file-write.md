@@ -67,10 +67,7 @@ def get_next_available_filename(base_path: str, base_filename: str, overwrite: b
         overwrite: If True, always return base_filename (overwrite existing)
     
     Returns:
-        Available filename (may have -01, -02, etc. suffix)
-    
-    Raises:
-        ValueError: If 100+ reviews exist for this plan-model-date
+        Available filename (may have -01, -02, etc. suffix, or timestamp if 100+ exist)
     """
     import os
     
@@ -92,8 +89,10 @@ def get_next_available_filename(base_path: str, base_filename: str, overwrite: b
         if not os.path.exists(os.path.join(base_path, new_filename)):
             return new_filename
     
-    # Error if 100+ reviews exist
-    raise ValueError(f"Too many reviews (100+) for this plan-model-date: {name}")
+    # Fallback: use timestamp (prevents data loss)
+    import time
+    ts = int(time.time())
+    return f"{name}-{ts}{ext}"
 ```
 
 ### Behavior by Parameter Combination
@@ -101,7 +100,7 @@ def get_next_available_filename(base_path: str, base_filename: str, overwrite: b
 **`overwrite: false` (default):**
 - If file doesn't exist: Use base filename
 - If file exists: Try `-01`, `-02`, etc.
-- If 100+ files exist: Error with message
+- If 100+ files exist: Fall back to timestamp suffix
 
 **`overwrite: true`:**
 - Always use base filename (replaces existing)
@@ -131,7 +130,7 @@ Base: plan-IMPROVE_RULE_LOADING-claude-sonnet45-2026-01-21.md
 If exists: plan-IMPROVE_RULE_LOADING-claude-sonnet45-2026-01-21-01.md
 If -01 exists: plan-IMPROVE_RULE_LOADING-claude-sonnet45-2026-01-21-02.md
 ...
-If -99 exists: ERROR "Too many reviews (100+)"
+If -99 exists: Falls back to timestamp (e.g., plan-IMPROVE_RULE_LOADING-claude-sonnet45-2026-01-21-1735689600.md)
 ```
 
 ### Filename Collision Check Procedure
@@ -163,18 +162,17 @@ with open(full_path, 'w') as f:
 
 ### Error Handling
 
-**Too many reviews error:**
-```
-ERROR: Too many reviews (100+) for this plan-model-date
-Plan: IMPROVE_RULE_LOADING
-Model: claude-sonnet45
-Date: 2026-01-21
+**Timestamp fallback (when 100+ reviews exist):**
 
-Resolution options:
-1. Use different date (tomorrow)
-2. Use overwrite: true to replace existing
-3. Archive old reviews to different directory
+If sequential numbering is exhausted (-01 through -99 all exist), the system automatically
+falls back to using a Unix timestamp suffix to ensure the review is never lost:
+
 ```
+plan-IMPROVE_RULE_LOADING-claude-sonnet45-2026-01-21-1735689600.md
+```
+
+This prevents data loss while still indicating it's a high-frequency review scenario.
+Consider archiving old reviews if this occurs frequently.
 
 ## Write Procedure
 

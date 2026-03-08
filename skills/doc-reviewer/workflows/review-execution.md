@@ -1,5 +1,8 @@
 # Workflow: Review Execution
 
+> **Note:** This document describes **sequential** (single-agent) execution.
+> For parallel execution mode (default), see `workflows/parallel-execution.md`.
+
 ## Inputs
 
 - `resolved_targets`: list of file paths to review

@@ -254,13 +254,16 @@ def write_summary_report(summary_data, review_date, model, review_mode, output_r
     # Check if file exists
     if os.path.exists(base_filename):
         # Increment suffix: _bulk-review-claude-sonnet-45-2026-01-06-01.md
-        counter = 1
-        while True:
+        for counter in range(1, 100):
             incremented_filename = f"{output_root}summaries/_bulk-review-{model}-{review_date}-{counter:02d}.md"
             if not os.path.exists(incremented_filename):
                 output_path = incremented_filename
                 break
-            counter += 1
+        else:
+            # Fallback: use timestamp (prevents data loss)
+            import time
+            ts = int(time.time())
+            output_path = f"{output_root}summaries/_bulk-review-{model}-{review_date}-{ts}.md"
     else:
         output_path = base_filename
     

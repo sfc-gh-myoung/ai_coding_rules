@@ -1,7 +1,7 @@
 # YAML Schema for AI Coding Rules v3.2
 # ==============================================================================
 # Purpose: Validation schema for rule files per 002-rule-governance.md v3.2
-# Usage: python scripts/schema_validator.py rules/NNN-rule.md
+# Usage: ai-rules validate rules/NNN-rule.md
 # ==============================================================================
 
 $schema: "http://json-schema.org/draft-07/schema#"

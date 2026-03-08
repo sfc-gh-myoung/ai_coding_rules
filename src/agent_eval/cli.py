@@ -2,6 +2,7 @@
 
 import hashlib
 import os
+import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -37,13 +38,12 @@ from agent_eval.models import (
 
 def _should_use_color() -> bool:
     """Determine if color output should be used."""
-    if os.environ.get("NO_COLOR"):
-        return False
-    if os.environ.get("CI"):
-        return False
-    if os.environ.get("TERM") == "dumb":
-        return False
-    return True
+    return not (
+        os.environ.get("NO_COLOR")
+        or os.environ.get("CI")
+        or os.environ.get("TERM") == "dumb"
+        or "pytest" in sys.modules
+    )
 
 
 _use_color = _should_use_color()

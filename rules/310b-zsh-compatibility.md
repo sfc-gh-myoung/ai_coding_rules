@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-01-20
 **Keywords:** Zsh, shell compatibility, bash vs zsh, portable scripts, cross-shell, migration, emulate, POSIX compliance, scripting, shell scripting
-**TokenBudget:** ~4850
+**TokenBudget:** ~5050
 **ContextTier:** Low
 **Depends:** 300-bash-scripting-core.md
 **LoadTrigger:** ext:.zsh, kw:zsh-compatibility
@@ -36,7 +36,7 @@ Zsh compatibility strategies, bash migration patterns, and cross-shell scripting
 
 ### External Documentation
 
-- [Zsh Compatibility](http://zsh.sourceforge.net/FAQ/zshfaq03.html) - Official FAQ on compatibility issues
+- [Zsh Compatibility](https://zsh.sourceforge.net/FAQ/zshfaq03.html) - Official FAQ on compatibility issues
 - [POSIX Shell Specification](https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html) - Portable shell scripting standards
 - [Bash to Zsh Migration Guide](https://scriptingosx.com/2019/06/moving-to-zsh/) - Practical migration strategies
 
@@ -70,7 +70,10 @@ Zsh compatibility strategies, bash migration patterns, and cross-shell scripting
 
 1. Identify target shells and compatibility requirements
 2. Analyze existing scripts for shell-specific syntax and features
-3. Choose strategy: POSIX portable, emulate mode, or shell-specific versions
+3. Choose strategy based on requirements:
+   - **POSIX portable:** Use when script must run on 3+ different shells (zsh, bash, sh, dash)
+   - **Emulate mode:** Use for zsh scripts that need bash library compatibility (`emulate -L sh`)
+   - **Shell-specific versions:** Use when performance is critical or shell-specific features are required
 4. Set required options explicitly in scripts (setopt for zsh)
 5. Convert shell-specific syntax to portable alternatives or add feature detection
 6. Test scripts in both bash and zsh environments
@@ -132,7 +135,7 @@ Cross-shell compatible scripts with:
 
 **Problem:** Writing scripts with `#!/bin/sh` or `#!/bin/bash` shebang but using zsh-specific syntax like extended globbing, associative array syntax, or zsh parameter expansion.
 
-**Why It Fails:** Scripts fail on systems where /bin/sh is dash or bash. CI/CD environments may not have zsh. Docker containers use minimal shells. Portability broken silently.
+**Why It Fails:** Scripts fail on systems where /bin/sh is dash or bash. CI/CD environments may not have zsh. Docker containers use minimal shells (sh, dash, busybox sh — shells without zsh/bash extensions). Portability broken silently.
 
 **Correct Pattern:**
 ```zsh
@@ -155,7 +158,7 @@ printf "\033[31mError\033[0m\n"  # POSIX printf
 
 **Problem:** Writing scripts that depend on options set in .zshrc (like EXTENDED_GLOB or NULL_GLOB) without explicitly setting them in the script.
 
-**Why It Fails:** Scripts work when sourced but fail when executed. Behavior differs between users with different .zshrc configs. CI environments have different defaults. Subtle bugs from option mismatches.
+**Why It Fails:** Scripts work when sourced but fail when executed. Behavior differs between users with different .zshrc configs. CI environments have different defaults. Specific problematic option mismatches: `EXTENDED_GLOB` (off by default in scripts — `*.txt~backup*` fails), `NULL_GLOB` (unmatched globs cause errors instead of expanding to nothing), `KSH_ARRAYS` (changes array indexing from 1-based to 0-based).
 
 **Correct Pattern:**
 ```zsh
@@ -179,178 +182,93 @@ fi
 
 ## Output Format Examples
 
-```bash
-#!/usr/bin/env bash
-# Script following bash best practices from rule
+```zsh
+#!/usr/bin/env zsh
+# Cross-shell compatible script example
+setopt ERR_EXIT PIPE_FAIL  # Explicit options (don't rely on .zshrc)
 
-set -euo pipefail  # Exit on error, undefined vars, pipe failures
-IFS=$'\n\t'      # Safe word splitting
+# Detect shell and adapt
+if [[ -n "$ZSH_VERSION" ]]; then
+    setopt EXTENDED_GLOB NULL_GLOB
+elif [[ -n "$BASH_VERSION" ]]; then
+    shopt -s extglob nullglob 2>/dev/null
+fi
 
-# Constants
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly LOG_FILE="${SCRIPT_DIR}/output.log"
-
-# Functions with clear contracts
-main() {
-    # Investigation phase
-    check_prerequisites
-
-    # Implementation phase
-    perform_operations
-
-    # Validation phase
-    verify_results
-}
-
-check_prerequisites() {
-    local -a required_commands=(jq curl git)
-
-    for cmd in "${required_commands[@]}"; do
-        if ! command -v "${cmd}" &>/dev/null; then
-            echo "ERROR: Required command not found: ${cmd}" >&2
-            exit 1
-        fi
-    done
-}
-
-perform_operations() {
-    echo "Performing operations following project patterns..."
-    # Implementation details here
-}
-
-verify_results() {
-    echo "Validating results..."
-    # Validation logic here
-}
-
-# Execute main function
-main "$@"
+# Portable prerequisite check
+for cmd in jq curl git; do
+    command -v "$cmd" >/dev/null 2>&1 || {
+        printf 'ERROR: Required command not found: %s\n' "$cmd" >&2
+        exit 1
+    }
+done
 ```
 
-```bash
-# Validation with shellcheck
-shellcheck script.sh
+```zsh
+# Validation with shellcheck and zsh syntax check
+shellcheck --shell=bash script.sh
+zsh -n script.zsh
 ```
 
 ## Bash to Zsh Migration Strategies
 
 ### Compatibility Assessment
-- **Rule:** Evaluate bash scripts for zsh compatibility:
+- **Rule:** Scan for bash-specific constructs before migration:
 ```zsh
-# Check for bash-specific features that need attention
-check_bash_compatibility() {
-    local script="$1"
-    local issues=()
-
-    # Check for problematic patterns
-    grep -n 'declare -[aA]' "$script" && issues+=("declare arrays")
-    grep -n '\[\[.*=~' "$script" && issues+=("regex matching")
-    grep -n 'BASH_' "$script" && issues+=("bash variables")
-    grep -n 'shopt' "$script" && issues+=("bash options")
-
-    if (( ${#issues} > 0 )); then
-        echo "Compatibility issues found:"
-        printf '  - %s\n' "${issues[@]}"
-        return 1
-    else
-        echo "No obvious compatibility issues"
-        return 0
-    fi
-}
+# Quick compatibility scan — run against any bash script
+grep -n 'declare -[aA]\|BASH_\|shopt\|\[\[.*=~\|BASH_SOURCE\|BASH_REMATCH' "$script"
 ```
+Key constructs requiring conversion: `declare` to `typeset`, `BASH_SOURCE` to `${(%):-%x}`, `shopt` to `setopt`, `BASH_REMATCH` to `$MATCH`/`$match`.
 
 ### Migration Patterns
 - **Rule:** Convert bash-specific constructs to zsh equivalents:
-```zsh
-# Bash to zsh array conversion
-# Bash: declare -a array=()
-# Zsh equivalent:
-typeset -a array=()
-# Or simply: array=()
 
-# Bash to zsh associative array conversion
-# Bash: declare -A assoc_array=()
-# Zsh equivalent:
-typeset -A assoc_array=()
-
-# Bash regex matching conversion
-# Bash: [[ "$string" =~ pattern ]]
-# Zsh equivalent:
-if [[ "$string" =~ pattern ]]; then
-    # Use match array in zsh
-    echo "Matched: $MATCH"
-    echo "Groups: ${match[*]}"
-fi
-
-# Or use zsh pattern matching:
-if [[ "$string" == (#b)(*pattern*) ]]; then
-    echo "Matched: ${match[1]}"
-fi
+```
+Bash                                          Zsh Equivalent
+declare -a arr=()                             typeset -a arr=()
+declare -A map=()                             typeset -A map=()
+${arr[0]} (0-based)                           ${arr[1]} (1-based, or setopt KSH_ARRAYS)
+[[ "$s" =~ pat ]]; ${BASH_REMATCH[1]}        [[ "$s" =~ pat ]]; ${match[1]}
+${var^^}                                      ${var:u}
+${var,,}                                      ${var:l}
+BASH_SOURCE[0]                                ${(%):-%x}
 ```
 
 ### Migration Phases
-- **Rule:** Migrate gradually:
+- **Rule:** Migrate gradually using emulate:
 ```zsh
-# Phase 1: Bash compatibility
-emulate -L sh
-setopt BASH_REMATCH
+# Phase 1: Run bash scripts under zsh with bash compatibility
+emulate -L sh          # POSIX mode for maximum compat
+setopt BASH_REMATCH    # Keep BASH_REMATCH behavior
 
-# Phase 2: Native zsh
+# Phase 2: Convert to native zsh
 emulate -L zsh
 setopt EXTENDED_GLOB
 ```
 
 ## Cross-Shell Compatibility Patterns
 
-### Portable Function Writing
-- **Rule:** Write functions that work in both bash and zsh:
+### Canonical Shell Detection Utility
+- **Rule:** Define `detect_shell` once and reuse it — do not repeat shell-detection logic:
 ```zsh
-# Detect shell type
+# Canonical shell detection — use this everywhere, do not duplicate
 detect_shell() {
-    if [[ -n "$ZSH_VERSION" ]]; then
-        echo "zsh"
-    elif [[ -n "$BASH_VERSION" ]]; then
-        echo "bash"
-    else
-        echo "unknown"
+    if [[ -n "${ZSH_VERSION:-}" ]]; then echo "zsh"
+    elif [[ -n "${BASH_VERSION:-}" ]]; then echo "bash"
+    else echo "sh"
     fi
 }
+```
 
-# Portable array handling
-portable_array_append() {
-    local array_name="$1"
-    shift
-
-    case "$(detect_shell)" in
-        zsh)
-            # Zsh: use parameter expansion
-            eval "${array_name}+=(\"\$@\")"
-            ;;
-        bash)
-            # Bash: use array assignment
-            eval "${array_name}+=(\"\$@\")"
-            ;;
-        *)
-            # Fallback for other shells
-            eval "${array_name}=\"\${${array_name}} \$*\""
-            ;;
-    esac
-}
-
-# Portable string manipulation
+### Portable Function Writing
+- **Rule:** Write functions that work in both bash and zsh using `detect_shell`:
+```zsh
+# Portable string manipulation using detect_shell
 portable_uppercase() {
     local input="$1"
-
     case "$(detect_shell)" in
-        zsh)
-            echo "${input:u}"
-            ;;
-        bash)
-            echo "${input^^}"
-            ;;
-        *)
-            echo "$input" | tr '[:lower:]' '[:upper:]'
-            ;;
+        zsh)  echo "${input:u}" ;;
+        bash) echo "${input^^}" ;;
+        *)    echo "$input" | tr '[:lower:]' '[:upper:]' ;;
     esac
 }
 ```
@@ -439,77 +357,21 @@ fi
 
 ## Environment Detection and Adaptation
 
-### Runtime Environment Detection
-- **Rule:** Detect and adapt to runtime environment:
+### Shell-Specific Configuration
+- **Rule:** Use `detect_shell` (defined above) to configure per-shell settings:
 ```zsh
-# Comprehensive environment detection
-detect_environment() {
-    local env_info=()
-
-    # Shell information
-    env_info+=("shell:$(detect_shell)")
-
-    # Version information
-    if [[ -n "$ZSH_VERSION" ]]; then
-        env_info+=("zsh_version:$ZSH_VERSION")
-    elif [[ -n "$BASH_VERSION" ]]; then
-        env_info+=("bash_version:$BASH_VERSION")
-    fi
-
-    # Terminal information
-    env_info+=("term:${TERM:-unknown}")
-    env_info+=("colorterm:${COLORTERM:-none}")
-
-    # OS information
-    env_info+=("os:$OSTYPE")
-
-    # Interactive vs non-interactive
-    if [[ -o interactive ]] 2>/dev/null || [[ $- == *i* ]]; then
-        env_info+=("mode:interactive")
-    else
-        env_info+=("mode:non-interactive")
-    fi
-
-    printf '%s\n' "${env_info[@]}"
-}
-
-# Adaptive configuration based on environment
+# Apply shell-specific settings — uses canonical detect_shell
 configure_shell() {
-    local -A env
-
-    # Parse environment info
-    while IFS=: read -r key value; do
-        env[$key]="$value"
-    done < <(detect_environment)
-
-    # Configure based on detected environment
-    case "${env[shell]}" in
+    case "$(detect_shell)" in
         zsh)
-            configure_zsh "${env[@]}"
+            setopt AUTO_CD CORRECT HIST_VERIFY
+            zmodload zsh/complist 2>/dev/null
             ;;
         bash)
-            configure_bash "${env[@]}"
+            shopt -s autocd cdspell histverify 2>/dev/null
+            [[ -f /etc/bash_completion ]] && source /etc/bash_completion
             ;;
     esac
-}
-
-configure_zsh() {
-    # Zsh-specific configuration
-    setopt AUTO_CD CORRECT HIST_VERIFY
-
-    # Load zsh modules if available
-    zmodload zsh/complist 2>/dev/null
-    zmodload zsh/mathfunc 2>/dev/null
-}
-
-configure_bash() {
-    # Bash-specific configuration
-    shopt -s autocd cdspell histverify 2>/dev/null
-
-    # Enable programmable completion
-    if [[ -f /etc/bash_completion ]]; then
-        source /etc/bash_completion
-    fi
 }
 ```
 
@@ -592,77 +454,114 @@ check_compatibility() {
 }
 ```
 
-## Migration Tools and Utilities
+## Error Recovery
 
-### Automated Migration Assistant
-- **Rule:** Create tools to assist with migration:
+### Missing Shell Binaries
+- **Rule:** Detect and handle missing shells before testing or migration:
 ```zsh
-# Bash to zsh migration tool
-migrate_bash_to_zsh() {
-    local input_file="$1"
-    local output_file="${2:-${input_file%.sh}.zsh}"
-
-    # Create backup
-    cp "$input_file" "${input_file}.backup"
-
-    # Perform automated conversions
-    sed -i.tmp '
-        # Change shebang
-        1s|#!/bin/bash|#!/usr/bin/env zsh|
-        1s|#!/usr/bin/bash|#!/usr/bin/env zsh|
-
-        # Convert declare to typeset
-        s/declare -a/typeset -a/g
-        s/declare -A/typeset -A/g
-        s/declare -r/typeset -r/g
-
-        # Add emulate directive after shebang
-        2i\
-emulate -L zsh
-
-    ' "$input_file"
-
-    # Manual review needed message
-    cat << EOF
-Migration completed for $input_file -> $output_file
-
-Manual review required for:
-- Array indexing (bash: 0-based, zsh: 1-based by default)
-- Regex matching patterns
-- Word splitting behavior
-- Glob patterns
-
-Use 'diff $input_file.backup $output_file' to review changes.
-EOF
+require_shell() {
+    local shell="$1"
+    command -v "$shell" >/dev/null 2>&1 || {
+        echo "ERROR: $shell not found. Install it or skip $shell tests." >&2
+        return 1
+    }
 }
+```
 
-# Interactive migration wizard
-migration_wizard() {
-    local script="$1"
+### Cross-Shell Test Failure Triage
+- **Rule:** When multi-shell tests fail, identify which shell and why:
+```zsh
+run_multi_shell_tests_with_recovery() {
+    local script="$1" failed_shells=()
 
-    echo "Zsh Migration Wizard for: $script"
-    echo "================================="
-
-    # Analyze script
-    echo "Analyzing script..."
-    local issues=($(analyze_bash_script "$script"))
-
-    if (( ${#issues} == 0 )); then
-        echo "No migration issues detected"
-        return 0
-    fi
-
-    echo "Issues found:"
-    for issue in "${issues[@]}"; do
-        echo "  - $issue"
-
-        read -q "REPLY?Fix this issue automatically? (y/n) "
-        echo
-
-        if [[ "$REPLY" == "y" ]]; then
-            fix_migration_issue "$script" "$issue"
+    for shell in zsh bash sh; do
+        require_shell "$shell" || continue
+        if ! "$shell" -n "$script" 2>/dev/null; then
+            echo "$shell: SYNTAX ERROR — run: $shell -n $script" >&2
+            failed_shells+=("$shell")
+        elif ! "$shell" "$script" 2>/tmp/shell_err_$$; then
+            echo "$shell: RUNTIME FAIL — see /tmp/shell_err_$$" >&2
+            failed_shells+=("$shell")
+        else
+            echo "$shell: PASS"
         fi
     done
+
+    if (( ${#failed_shells[@]} > 0 )); then
+        echo "Failed shells: ${failed_shells[*]}"
+        echo "Fallback: restrict shebang to passing shells only"
+        return 1
+    fi
+}
+```
+
+### Migration Failure Recovery
+- **Rule:** Always create backups; rollback on sed/conversion failures:
+```zsh
+# Safe sed wrapper — rolls back on failure
+safe_sed() {
+    local file="$1"; shift
+    cp "$file" "${file}.sedbackup" || return 1
+    if ! sed -i.tmp "$@" "$file"; then
+        cp "${file}.sedbackup" "$file"
+        echo "sed failed, restored original: $file" >&2
+        return 1
+    fi
+    rm -f "${file}.tmp" "${file}.sedbackup"
+}
+```
+
+## Migration Tools and Utilities
+
+### Automated Migration Commands
+- **Rule:** Use concrete sed commands for bash-to-zsh conversion:
+```zsh
+# Step-by-step migration — run each command, review diff after each step
+migrate_bash_to_zsh() {
+    local src="$1"
+    local dest="${2:-${src%.sh}.zsh}"
+
+    # 1. Create backup (abort if backup fails)
+    cp "$src" "${src}.backup" || { echo "Backup failed" >&2; return 1; }
+
+    # 2. Copy to destination
+    cp "$src" "$dest" || { echo "Copy failed" >&2; return 1; }
+
+    # 3. Convert shebang
+    sed -i.tmp '1s|#!/bin/bash|#!/usr/bin/env zsh|; 1s|#!/usr/bin/bash|#!/usr/bin/env zsh|' "$dest"
+
+    # 4. Convert declare to typeset
+    sed -i.tmp 's/declare -a/typeset -a/g; s/declare -A/typeset -A/g; s/declare -r/typeset -r/g' "$dest"
+
+    # 5. Add emulate directive after shebang
+    sed -i.tmp '2i\
+emulate -L zsh' "$dest"
+
+    # 6. Cleanup temp files
+    rm -f "${dest}.tmp"
+
+    # 7. Show what needs manual review
+    echo "Automated conversion complete: $dest"
+    echo "Manual review required for:"
+    grep -n 'BASH_SOURCE\|BASH_REMATCH\|\${\!.*}\|\[\[.*=~' "$dest" 2>/dev/null \
+        && echo "  (see lines above)" \
+        || echo "  No additional issues found"
+    echo "Run: diff '${src}.backup' '$dest'"
+}
+```
+
+### Rollback on Failure
+```zsh
+# If migration produces broken output, restore from backup
+rollback_migration() {
+    local src="$1"
+    if [[ -f "${src}.backup" ]]; then
+        cp "${src}.backup" "$src"
+        echo "Restored from backup: ${src}.backup"
+    else
+        echo "No backup found for $src" >&2
+        return 1
+    fi
 }
 ```
 
@@ -685,14 +584,16 @@ fi
 
 ### Project Structure
 - **Rule:** Organize for multi-shell support:
-
-Directory structure for `project/`:
-- **bin/** - `script.sh` (Portable main script)
-- **lib/** - Library files
-  - `common.sh` - Shared functions
-  - **zsh/** - Zsh-specific
-  - **bash/** - Bash-specific
-- **tests/** - Shell-specific tests
+```
+project/
+├── bin/
+│   └── script.sh          # Portable main script
+├── lib/
+│   ├── common.sh          # Shared functions
+│   ├── zsh/               # Zsh-specific libraries
+│   └── bash/              # Bash-specific libraries
+└── tests/                 # Shell-specific tests
+```
 
 ### Documentation Standards
 - **Rule:** Document compatibility:

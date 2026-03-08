@@ -44,9 +44,12 @@ Comprehensive patterns for designing educational Snowflake notebooks that effect
 - Time budget for tutorial completion
 
 ### Mandatory
-- `edit_notebook` for adding educational cells
-- `read_file` for reviewing existing content
-- Markdown cells for narrative and teaching points
+- Learning objectives section at cell #2 with 3-6 measurable outcomes using action verbs
+- Tutorial structure overview with time estimates for different modes (quick demo, full tutorial)
+- Anti-pattern sections pairing wrong and correct examples with "why wrong" explanations
+- Checkpoint validation cells between major sections (3-7 checks per checkpoint)
+- Teaching point callouts with [NOTE] prefix placed before implementations
+- All technical jargon defined on first use
 
 ### Forbidden
 - Overly technical jargon without definitions for beginner content
@@ -64,13 +67,7 @@ Comprehensive patterns for designing educational Snowflake notebooks that effect
 
 ### Post-Execution Checklist
 
-- [ ] Learning objectives at cell #2 (3-6 measurable outcomes)
-- [ ] Tutorial structure overview with time estimates
-- [ ] Checkpoint validation cells between major sections
-- [ ] Anti-patterns with both wrong and correct examples
-- [ ] Teaching point callouts ([NOTE]) explaining "why"
-- [ ] Progressive complexity (simple first, advanced marked)
-- [ ] All jargon defined on first use
+See detailed Post-Execution Checklist below for comprehensive tutorial validation steps.
 
 ### Output Format
 - Learning objectives section (markdown cell #2 after main header)
@@ -198,29 +195,39 @@ By the end of this notebook, you will understand:
 
 ## Output Format Examples
 
-```sql
--- Analysis Query: Investigate current state
-SELECT column_pattern, COUNT(*) as usage_count
-FROM information_schema.columns
-WHERE table_schema = 'TARGET_SCHEMA'
-GROUP BY column_pattern;
+```markdown
+## [GOAL] Learning Objectives
+By the end of this notebook, you will understand:
+1. **[Concept]** - [Specific measurable outcome]
+2. **[Concept]** - [Specific measurable outcome]
 
--- Implementation: Apply Snowflake best practices
-CREATE OR REPLACE VIEW schema.view_name
-COMMENT = 'Business purpose following semantic model standards'
-AS
-SELECT
-    -- Explicit column list with business context
-    id COMMENT 'Surrogate key',
-    name COMMENT 'Business entity name',
-    created_at COMMENT 'Record creation timestamp'
-FROM schema.source_table
-WHERE is_active = TRUE;
+## Tutorial Structure
+**Part 1: [Name]** (Steps 1-3, ~5 min)
+**Part 2: [Name]** (Steps 4-6, ~8 min)
 
--- Validation: Confirm implementation
-SELECT * FROM schema.view_name LIMIT 5;
-SHOW VIEWS LIKE '%view_name%';
+## Common Anti-Patterns in [Topic]
+**Anti-Pattern 1: [Name]**
+- Why wrong: [Explanation]
+- Correct: [What to do instead]
 ```
+
+```python
+# Checkpoint validation cell
+checks_passed, checks_failed = [], []
+if condition:
+    checks_passed.append("[PASS] Data loaded correctly")
+else:
+    checks_failed.append("[FAIL] Missing data - rerun Step 2")
+print("ALL CHECKS PASSED" if not checks_failed else "Fix issues above")
+```
+
+### SQL-Only Tutorial Guidance
+
+For SQL-focused tutorials without Python:
+- Use SQL cells exclusively with Markdown narrative between them
+- Checkpoint validations use SQL assertions: `SELECT CASE WHEN COUNT(*) > 0 THEN 'PASS' ELSE 'FAIL' END`
+- Anti-patterns show wrong SQL alongside correct SQL
+- Time estimates may be shorter (SQL cells execute faster than Python)
 
 ## Learning Objectives Section
 
@@ -309,24 +316,24 @@ This notebook is organized into [N] parts:
 
 **MANDATORY:**
 
-**Purpose:** Teach what NOT to do by showing common mistakes alongside correct approaches.
+**Purpose:** Teach what NOT to do by showing common mistakes alongside correct approaches. Use "Anti-Pattern" terminology in rule files and "Common Pitfalls" in user-facing tutorial content.
 
 **Structure:**
 ```markdown
 
-## Common Pitfalls in [Topic]
+## Common Anti-Patterns in [Topic]
 
 Understanding what NOT to do is as important as knowing best practices:
 
-**Pitfall 1: [Descriptive Name]**
+**Anti-Pattern 1: [Descriptive Name]**
 - Why wrong: [Explanation of the problem]
 - Correct: [What to do instead]
 
-**Pitfall 2: [Descriptive Name]**
+**Anti-Pattern 2: [Descriptive Name]**
 - Why wrong: [Explanation]
 - Correct: [Correct approach]
 
-**Pitfall 3: [Descriptive Name]**
+**Anti-Pattern 3: [Descriptive Name]**
 - Why wrong: [Explanation]
 - Correct: [Correct approach]
 
@@ -608,73 +615,3 @@ training_df = spine.join(customer_features, on='CUSTOMER_ID') \
 ````
 
 This example demonstrates when to show feature setup (teaching organizational patterns) while using simpler execution (maintaining focus on primary learning objectives like imbalanced data handling).
-
-## Learning Objectives
-1. Learn about ML
-2. Understand data
-3. Build models
-```
-**Problem:** Not measurable, no clear outcomes, too broad
-
-**Correct Pattern:**
-```markdown
-
-## Best Practices
-- Use stratified splitting
-- Apply SMOTE after split
-```
-**Problem:** Doesn't teach what to avoid or why
-
-**Correct Pattern:**
-```markdown
-
-## Common Pitfalls
-**Pitfall 1: Applying SMOTE Before Split**
-- Why wrong: Data leakage (synthetic samples use test data)
-- Correct: Split FIRST, then SMOTE only on training
-
-**Pitfall 2: Using Accuracy for Imbalanced Data**
-- Why wrong: 99% accuracy predicting all "healthy" catches zero failures
-- Correct: Use recall, ROC-AUC, Matthews Correlation
-```
-**Benefits:** Teaches through contrast, explains consequences
-
-**Anti-Pattern 4: No Time Estimates**
-```markdown
-
-## Tutorial Structure
-Part 1: Setup
-Part 2: Training
-Part 3: Evaluation
-```
-**Problem:** Learners don't know time commitment
-
-**Correct Pattern:**
-```markdown
-
-## Checkpoint 1 - [Name] Complete
-
-```python
-# Checkpoint 1 Validation
-checks_passed = []
-checks_failed = []
-
-if [condition]:
-    checks_passed.append("[PASS] [Check passed]")
-else:
-    checks_failed.append("[Check failed] - run Step X")
-
-if checks_failed:
-    print("Fix issues before proceeding")
-else:
-    print("ALL CHECKS PASSED")
-```
-
-### [NOTE] Teaching Point: [Topic]
-
-**[Key Concept]:**
-- [Explanation]
-
-**Why This Matters:**
-- [Business impact]
-```

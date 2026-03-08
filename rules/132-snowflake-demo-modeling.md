@@ -6,8 +6,9 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-01-27
 **Keywords:** Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, data generation, backward compatibility, surrogate keys
-**TokenBudget:** ~3000
+**TokenBudget:** ~3300
 **ContextTier:** High
+**LoadTrigger:** kw:data-modeling, kw:dimensional-model, kw:kimball
 **Depends:** 130-snowflake-demo-sql.md, 131-snowflake-demo-creation.md
 
 ## Scope
@@ -245,9 +246,8 @@ CREATE TABLE DIM_GRID_ASSET (
     manufacturer VARCHAR(100),
     install_date DATE,
     operational_status VARCHAR(20),
-    created_timestamp TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
-    COMMENT = 'Dimension: Grid asset inventory'
-);
+    created_timestamp TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+) COMMENT = 'Dimension: Grid asset inventory';
 ```
 
 ### Bridge Table Patterns (Many-to-Many)
@@ -287,6 +287,17 @@ Every dimensional model MUST include a date dimension with calendar attributes, 
 - Include commonly filtered dimensions
 - Add inline documentation via column comments
 
+```sql
+CREATE VIEW VW_BA_METER_READINGS AS
+SELECT f.read_timestamp, d.asset_name, c.customer_name,
+       f.consumption_kwh, f.demand_kw, dt.fiscal_quarter
+FROM FACT_METER_READINGS f
+JOIN DIM_GRID_ASSET d ON f.asset_id = d.asset_id
+JOIN DIM_CUSTOMER c ON f.customer_id = c.customer_id
+JOIN DIM_DATE dt ON DATE(f.read_timestamp) = dt.date_key
+COMMENT = 'BA View: Pre-joined meter readings with asset and customer dimensions';
+```
+
 ### Executive Dashboard Views (`VW_EXEC_*`)
 
 **Design Principles:**
@@ -295,6 +306,18 @@ Every dimensional model MUST include a date dimension with calendar attributes, 
 - Pre-calculate KPIs and ratios
 - Focus on business outcomes
 
+```sql
+CREATE VIEW VW_EXEC_ENERGY_KPI AS
+SELECT dt.fiscal_quarter, dt.year_num,
+       SUM(f.consumption_kwh) AS total_consumption_kwh,
+       COUNT(DISTINCT f.meter_id) AS active_meters,
+       ROUND(SUM(f.consumption_kwh) / COUNT(DISTINCT f.meter_id), 2) AS avg_consumption_per_meter
+FROM FACT_METER_READINGS f
+JOIN DIM_DATE dt ON DATE(f.read_timestamp) = dt.date_key
+GROUP BY dt.fiscal_quarter, dt.year_num
+COMMENT = 'EXEC View: Quarterly energy KPIs with per-meter averages';
+```
+
 ### Data Science Feature Views (`VW_DS_*`)
 
 **Design Principles:**
@@ -302,6 +325,22 @@ Every dimensional model MUST include a date dimension with calendar attributes, 
 - Include engineered features (lags, rolling aggregates)
 - Handle nulls explicitly
 - Include target variable columns for ML
+
+```sql
+CREATE VIEW VW_DS_ASSET_FEATURES AS
+SELECT d.asset_id, d.asset_type, d.operational_status,
+       COALESCE(agg.avg_consumption_kwh, 0) AS avg_consumption_kwh,
+       COALESCE(agg.max_demand_kw, 0) AS max_demand_kw,
+       COALESCE(agg.reading_count, 0) AS reading_count,
+       DATEDIFF('day', d.install_date, CURRENT_DATE()) AS asset_age_days
+FROM DIM_GRID_ASSET d
+LEFT JOIN (
+  SELECT asset_id, AVG(consumption_kwh) AS avg_consumption_kwh,
+         MAX(demand_kw) AS max_demand_kw, COUNT(*) AS reading_count
+  FROM FACT_METER_READINGS GROUP BY asset_id
+) agg ON d.asset_id = agg.asset_id
+COMMENT = 'DS View: ML-ready asset features for predictive maintenance';
+```
 
 ## Backward Compatibility and Migration
 
@@ -318,7 +357,7 @@ CREATE VIEW GRID_ASSETS AS
 SELECT asset_id, asset_name, asset_type,
        asset_id AS equipment_id  -- Compatibility alias
 FROM DIM_GRID_ASSET
-COMMENT = 'DEPRECATED: Use DIM_GRID_ASSET instead. Removing 2025-02-01.';
+COMMENT = 'DEPRECATED: Use DIM_GRID_ASSET instead. Removing 2026-07-01.';
 ```
 
 ## Data Generator Requirements
@@ -366,17 +405,3 @@ consumption_kwh FLOAT COMMENT 'Total energy in kilowatt-hours',
 operational_status VARCHAR(20) COMMENT 'Values: ACTIVE, FAILED, MAINTENANCE',
 parent_asset_id VARCHAR(50) COMMENT 'References DIM_GRID_ASSET.asset_id'
 ```
-
-## Post-Execution Checklist
-
-- [ ] Entity IDs use `<entity>_id` suffix
-- [ ] FKs exactly match referenced PK names
-- [ ] Display names use `<entity>_name`
-- [ ] Temporal columns use `<event>_timestamp` or `<event>_date`
-- [ ] Boolean columns use `is_`, `has_`, `can_`, `should_`
-- [ ] Measurements include unit in column name
-- [ ] Views use taxonomy prefixes (VW_BA_, VW_EXEC_, VW_DS_)
-- [ ] All columns have COMMENT
-- [ ] Date dimension exists and is used
-- [ ] Backward compatibility views created for renames
-- [ ] FK integrity validated in generator

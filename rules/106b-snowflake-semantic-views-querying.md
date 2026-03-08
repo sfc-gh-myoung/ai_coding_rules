@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:semantic-query, kw:analyst
 **Keywords:** window functions, dimension compatibility, testing, validation, TPC-DS, SEMANTIC_VIEW function, query patterns
-**TokenBudget:** ~2300
+**TokenBudget:** ~2550
 **ContextTier:** High
 **Depends:** 106-snowflake-semantic-views-core.md
 
@@ -40,8 +40,9 @@ Comprehensive guidance for querying Snowflake Semantic Views using `SEMANTIC_VIE
 ### Inputs and Prerequisites
 
 - Semantic view exists (created via `CREATE SEMANTIC VIEW`)
+- Role with SELECT privilege on the semantic view and USAGE on its schema
 - Understanding of DIMENSIONS, METRICS, and FACTS defined in semantic view
-- Query privileges on semantic view and underlying base tables
+- Query privileges on underlying base tables
 
 ### Mandatory
 
@@ -127,6 +128,21 @@ SELECT * FROM SEMANTIC_VIEW(my_view DIMENSIONS(orders.order_date, orders.custome
 ```
 
 ## SEMANTIC_VIEW() Query Syntax
+
+### Key Terminology
+
+- **FACTS**: Raw numeric values at row level (e.g., `amount`, `quantity`). Not aggregated.
+- **METRICS**: Aggregated calculations (e.g., `SUM(amount)`, `COUNT(*)`). Pre-defined in DDL.
+- **DIMENSIONS**: Categorical or temporal attributes for grouping (e.g., `region`, `order_date`).
+
+FACTS and METRICS are **mutually exclusive** in a single query. Use FACTS for row-level detail; use METRICS for aggregated results.
+
+### NULL Handling in Queries
+
+- NULLs in DIMENSIONS appear as NULL grouping values (standard SQL GROUP BY behavior)
+- METRICS like `SUM()`, `AVG()`, `COUNT(col)` ignore NULLs; `COUNT(*)` includes them
+- Use `WHERE dimension IS NOT NULL` to filter NULLs from results
+- `COALESCE` can be applied to returned columns in the outer SELECT
 
 **Basic Syntax:**
 ```sql

@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:bash-security, kw:shell-security
 **Keywords:** Bash, security, input validation, command injection, path security, secure shell scripts, sanitization, permissions, privilege escalation, secrets management
-**TokenBudget:** ~4300
+**TokenBudget:** ~4600
 **ContextTier:** High
 **Depends:** 300-bash-scripting-core.md
 
@@ -123,7 +123,12 @@ Secure bash script with:
 - [ ] No eval with user input
 - [ ] Tested with malicious inputs
 - [ ] shellcheck passes with no warnings
-- [ ] Path traversal prevention verified
+
+**Investigation Required:**
+1. **Identify all input sources** - Map user input, environment variables, file contents, and network data entering the script
+2. **Check existing permission model** - Review file permissions, user context, and privilege levels before changes
+3. **Map command execution paths** - Trace how user data flows into command arguments, identifying injection vectors
+4. **Review secret storage** - Verify no hardcoded credentials; check for secure file permissions on secret stores
 
 ## Anti-Patterns and Common Mistakes
 
@@ -186,55 +191,38 @@ echo  # Newline after hidden input
 
 ```bash
 #!/usr/bin/env bash
-# Script following bash best practices from rule
+# Security-hardened script example
+set -euo pipefail
+IFS=$'\n\t'
 
-set -euo pipefail  # Exit on error, undefined vars, pipe failures
-IFS=$'\n\t'      # Safe word splitting
-
-# Constants
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly LOG_FILE="${SCRIPT_DIR}/output.log"
+readonly ALLOWED_DIR="$SCRIPT_DIR/data"
 
-# Functions with clear contracts
+# Validate input: alphanumeric only, max 255 chars
+validate_input() {
+    local input="$1" field="${2:-input}"
+    [[ ${#input} -le 255 ]] || { echo "Error: $field too long" >&2; return 1; }
+    [[ "$input" =~ ^[a-zA-Z0-9._-]+$ ]] || { echo "Error: Invalid $field" >&2; return 1; }
+}
+
+# Path traversal prevention
+safe_path() {
+    local path="$1" base="$2"
+    local resolved
+    resolved="$(realpath "$path" 2>/dev/null)" || return 1
+    [[ "$resolved" == "$base"* ]] || { echo "Error: Path outside allowed directory" >&2; return 1; }
+    echo "$resolved"
+}
+
 main() {
-    # Investigation phase
-    check_prerequisites
-
-    # Implementation phase
-    perform_operations
-
-    # Validation phase
-    verify_results
+    [[ $# -ge 1 ]] || { echo "Usage: $0 <filename>" >&2; exit 1; }
+    validate_input "$1" "filename"
+    local target
+    target="$(safe_path "$ALLOWED_DIR/$1" "$ALLOWED_DIR")" || exit 1
+    cat -- "$target"
 }
 
-check_prerequisites() {
-    local -a required_commands=(jq curl git)
-
-    for cmd in "${required_commands[@]}"; do
-        if ! command -v "${cmd}" &>/dev/null; then
-            echo "ERROR: Required command not found: ${cmd}" >&2
-            exit 1
-        fi
-    done
-}
-
-perform_operations() {
-    echo "Performing operations following project patterns..."
-    # Implementation details here
-}
-
-verify_results() {
-    echo "Validating results..."
-    # Validation logic here
-}
-
-# Execute main function
 main "$@"
-```
-
-```bash
-# Validation with shellcheck
-shellcheck script.sh
 ```
 
 ## Input Validation and Sanitization
@@ -470,7 +458,9 @@ execute_safe_query() {
         return 1
     fi
 
-    # Use sqlite3 with parameters (if available) or careful escaping
+    # Note: This uses validation-based safety (numeric check above), not true
+    # parameterized queries. For string inputs, prefer parameterized APIs or
+    # use escape_sql_string below. Never interpolate unvalidated strings into SQL.
     sqlite3 "$db_file" "SELECT * FROM users WHERE id = $user_id;"
 }
 
@@ -490,35 +480,27 @@ escape_sql_string() {
 # WRONG - Never do this
 API_KEY="sk-1234567890abcdef"  # Hardcoded secret
 
-# CORRECT - Use environment variables
-check_required_secrets() {
-    local -a required_vars=("$@")
-    local -a missing_vars=()
-
-    for var in "${required_vars[@]}"; do
-        if [[ -z "${!var:-}" ]]; then
-            missing_vars+=("$var")
-        fi
-    done
-
-    if [[ ${#missing_vars[@]} -gt 0 ]]; then
-        echo "Error: Missing required environment variables: ${missing_vars[*]}" >&2
-        echo "Please set these variables before running the script" >&2
-        exit 1
-    fi
-}
-
-# Usage
-check_required_secrets "DATABASE_URL" "API_KEY" "JWT_SECRET"
+# CORRECT - Use environment variable validation from 300-bash-scripting-core.md
+# (check_required_env pattern), then access via ${!var}
 ```
 
 ### Secure Credential Loading
 - **Rule:** Load credentials with permission checks:
 ```bash
+# Cross-platform file permission check
+get_file_perms() {
+    local file="$1"
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        stat -f '%A' "$file" 2>/dev/null
+    else
+        stat -c '%a' "$file" 2>/dev/null
+    fi
+}
+
 load_credentials() {
     local file="$1"
     local perms
-    perms="$(stat -c '%a' "$file" 2>/dev/null)" || return 1
+    perms="$(get_file_perms "$file")" || return 1
 
     if [[ "$perms" != "600" && "$perms" != "400" ]]; then
         echo "Error: Insecure permissions: $perms" >&2
@@ -537,7 +519,7 @@ create_temp_creds() {
     local file
     file="$(mktemp)"
     chmod 600 "$file"
-    trap "rm -f '$file'" EXIT
+    trap "rm -f $(printf '%q' "$file")" EXIT
     echo "$file"
 }
 ```
@@ -590,7 +572,7 @@ create_secret_file() {
 check_perms() {
     local file="$1" expected="$2"
     local actual
-    actual="$(stat -c '%a' "$file" 2>/dev/null)" || return 1
+    actual="$(get_file_perms "$file")" || return 1
     [[ "$actual" == "$expected" ]] || {
         echo "Wrong permissions: $actual, expected $expected" >&2
         return 1
@@ -615,7 +597,7 @@ check_running_as_root() {
 
 # Drop privileges when possible
 drop_privileges() {
-    local target_user="$1"
+    local target_user="$1"; shift
 
     if [[ $EUID -eq 0 ]]; then
         echo "Dropping privileges to user: $target_user"
@@ -662,7 +644,7 @@ audit_log() {
 ## Security Testing and Validation
 
 ### Security Testing
-- **Consider:** Test with malicious inputs:
+- **Critical:** Test with malicious inputs:
 ```bash
 test_security() {
     local func="$1"

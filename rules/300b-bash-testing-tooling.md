@@ -125,6 +125,12 @@ Testing infrastructure with:
 - [ ] Test coverage documented
 - [ ] Development environment setup documented
 
+**Investigation Required:**
+1. **Check existing test infrastructure** - Look for existing test frameworks, test directories, and CI/CD configs before adding new ones
+2. **Verify shellcheck is installed and accessible** - Run `command -v shellcheck` and check version compatibility
+3. **Review current CI/CD pipeline** - Identify gaps in shell testing coverage in existing pipeline configurations
+4. **Identify critical functions requiring test coverage** - Prioritize functions with side effects, file operations, or user input handling
+
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Skipping ShellCheck Static Analysis
@@ -193,56 +199,45 @@ setup() {
 ## Output Format Examples
 
 ```bash
-#!/usr/bin/env bash
-# Script following bash best practices from rule
-
-set -euo pipefail  # Exit on error, undefined vars, pipe failures
-IFS=$'\n\t'      # Safe word splitting
-
-# Constants
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly LOG_FILE="${SCRIPT_DIR}/output.log"
-
-# Functions with clear contracts
-main() {
-    # Investigation phase
-    check_prerequisites
-
-    # Implementation phase
-    perform_operations
-
-    # Validation phase
-    verify_results
-}
-
-check_prerequisites() {
-    local -a required_commands=(jq curl git)
-
-    for cmd in "${required_commands[@]}"; do
-        if ! command -v "${cmd}" &>/dev/null; then
-            echo "ERROR: Required command not found: ${cmd}" >&2
-            exit 1
-        fi
-    done
-}
-
-perform_operations() {
-    echo "Performing operations following project patterns..."
-    # Implementation details here
-}
-
-verify_results() {
-    echo "Validating results..."
-    # Validation logic here
-}
-
-# Execute main function
-main "$@"
+# .shellcheckrc - project-level ShellCheck configuration
+disable=SC2034,SC1091
+shell=bash
 ```
 
 ```bash
-# Validation with shellcheck
-shellcheck script.sh
+# tests/test_deploy.bats - Sample Bats test file
+#!/usr/bin/env bats
+
+setup() {
+    source ./deploy.sh
+}
+
+@test "validate_environment accepts valid env" {
+    export DEPLOY_ENV="production"
+    run validate_environment
+    [ "$status" -eq 0 ]
+}
+
+@test "validate_environment rejects missing env" {
+    unset DEPLOY_ENV
+    run validate_environment
+    [ "$status" -eq 1 ]
+    [[ "$output" =~ "DEPLOY_ENV required" ]]
+}
+```
+
+```yaml
+# .github/workflows/shell.yml - CI/CD snippet
+name: Shell Tests
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get install -y shellcheck
+      - run: find . -name "*.sh" -exec shellcheck {} +
+      - run: npm install -g bats && bats tests/
 ```
 
 ## Static Analysis with ShellCheck
@@ -466,7 +461,7 @@ trap 'debug_error $? $LINENO "$BASH_COMMAND"' ERR
 ```
 
 ### Performance Profiling
-- **Consider:** Basic profiling:
+- **Rule:** Implement basic profiling for performance-sensitive functions:
 ```bash
 profile() {
     local start end
@@ -489,30 +484,19 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: sudo apt-get install shellcheck
       - run: find . -name "*.sh" -exec shellcheck {} +
       - run: chmod +x tests/*.sh && tests/test_*.sh
 ```
 
 ### Pre-commit Hooks
-- **Rule:** Validate before commit:
-```bash
-#!/usr/bin/env bash
-# .git/hooks/pre-commit
-set -e
-
-# Check staged shell scripts
-mapfile -t scripts < <(git diff --cached --name-only | grep '\.sh$' || true)
-for script in "${scripts[@]}"; do
-    [[ -f "$script" ]] && shellcheck "$script"
-done
-```
+- **Rule:** Validate before commit. See `dev-setup.sh` `setup_git_hooks()` function below for the canonical pre-commit hook installation pattern.
 
 ## Code Coverage and Quality Metrics
 
 ### Coverage Tracking
-- **Consider:** Simple coverage:
+- **Rule:** Track test coverage for critical functions:
 ```bash
 # Track function calls
 declare -A CALLS=()
@@ -603,7 +587,7 @@ test_example() {
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    run_test_suite "Template Tests" "test_example"
+    run_tests "test_example"
 fi
 EOF
 
@@ -629,45 +613,4 @@ fi
 ## Documentation and Maintenance
 
 ### Automated Documentation Generation
-- **Consider:** Generate documentation from code:
-```bash
-#!/usr/bin/env bash
-# generate-docs.sh - Extract documentation from shell scripts
-
-generate_function_docs() {
-    local script_file="$1"
-    local output_file="$2"
-
-    echo "# Functions in $(basename "$script_file")" > "$output_file"
-    echo >> "$output_file"
-
-    # Extract function definitions and comments
-    awk '
-        /^[[:space:]]*#/ {
-            comment = comment $0 "\n"
-        }
-        /^[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\(\)/ {
-            if (comment) {
-                print "## " $1
-                print comment
-                print "```bash"
-            }
-            print $0
-            in_function = 1
-            brace_count = 0
-            comment = ""
-        }
-        in_function && /{/ { brace_count++ }
-        in_function && /}/ {
-            brace_count--
-            if (brace_count == 0) {
-                print "```"
-                print ""
-                in_function = 0
-            }
-        }
-        in_function { print }
-        !/^[[:space:]]*#/ && !/^[[:space:]]*[a-zA-Z_]/ { comment = "" }
-    ' "$script_file" >> "$output_file"
-}
-```
+- **Rule:** Generate documentation from code comments using `awk` or dedicated tools (e.g., `shdoc`). Extract function definitions and their preceding comments into markdown format.

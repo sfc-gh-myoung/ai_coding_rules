@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:taskfile-includes, kw:taskfile-help, kw:categorized-help
 **Keywords:** categorized help, subtask files, includes, AI agent, machine-readable, cross-platform, task namespaces, portable tasks, task discovery
-**TokenBudget:** ~2750
+**TokenBudget:** ~2450
 **ContextTier:** Low
 **Depends:** 820-taskfile-automation.md
 
@@ -110,6 +110,11 @@ includes:
 - Use `optional: true` for environment-specific modules
 - Mark non-CLI tasks as `internal: true`
 
+**Debugging Failed Includes:**
+- Run `task --list` — unresolved includes show errors in output
+- Check `optional: true` flag on includes for files that may not exist
+- Verify `dir:` paths are relative to the root Taskfile location
+
 **Invocation examples:**
 - `task db:migrate` runs `migrate` from `task/db.yml`
 - `task dev:setup` runs `setup` from `task/dev/Taskfile.yml`
@@ -170,7 +175,7 @@ tasks:
 **Threshold:** 8+ tasks in Taskfile
 
 **Benefits:**
-- 30% faster task discovery through logical grouping
+- Faster task discovery through logical grouping
 - Improved onboarding with quickstart section
 - Better scannability with visual hierarchy
 
@@ -207,24 +212,12 @@ tasks:
     silent: true
     cmds:
       - |
-        echo "════════════════════════════════════════════════════════════════════════"
-        echo "Project Name - Task Automation"
-        echo "════════════════════════════════════════════════════════════════════════"
-        echo
+        echo "══════ Project Name ══════"
         echo "🚀 QUICKSTART"
-        echo "────────────────────────────────────────────────────────────────────────"
-        echo "  task quality:fix              Fix all code quality issues"
-        echo "  task test                     Run all tests"
-        echo "  task validate                 Run all validation checks"
-        echo
+        echo "  task quality:fix    Fix all code quality issues"
         echo "🔍 CODE QUALITY"
-        echo "────────────────────────────────────────────────────────────────────────"
-        echo "  task lint                     Run linter"
-        echo "  task format                   Run formatter"
-        echo
-        echo "════════════════════════════════════════════════════════════════════════"
+        echo "  task lint           Run linter"
         echo "For standard task list{{":"}} task -l"
-        echo "════════════════════════════════════════════════════════════════════════"
 ```
 
 **Key Details:**
@@ -385,63 +378,20 @@ tasks:
 
 ## Example Portable Taskfile
 
+The full portable Taskfile example is in **820-taskfile-automation.md**. Key structural pattern:
+
 ```yaml
 version: '3.45'
 set: [pipefail]
 
 vars:
-  UV:
-    sh: command -v uv || echo "uv"
-  UVX:
-    sh: command -v uvx || echo "uvx"
-  PYTHON: "{{.UV}} run python"
-  OS:
-    sh: uname -s 2>/dev/null || echo "Windows"
+  UV: { sh: "command -v uv || echo 'uv'" }
 
 tasks:
-  default:
-    desc: "Show available tasks"
-    silent: true
-    cmds:
-      - task --list
-
-  env:setup:
-    desc: "Setup development environment (idempotent)"
-    status:
-      - test -d .venv
-    cmds:
-      - "{{.UV}} venv"
-      - "{{.UV}} sync --all-groups"
-
   quality:lint:
     desc: "Run Ruff linter"
     preconditions:
-      - sh: command -v uvx
-        msg: "uvx not found. Install uv first."
+      - { sh: "command -v uvx", msg: "uvx not found" }
     cmds:
       - "{{.UVX}} ruff check ."
-
-  quality:fix:
-    desc: "Fix all quality issues"
-    cmds:
-      - "{{.UVX}} ruff check --fix ."
-      - "{{.UVX}} ruff format ."
-
-  test:
-    desc: "Run all tests"
-    deps: [env:setup]
-    cmds:
-      - "{{.UV}} run pytest tests/ --tb=short"
-
-  validate:all:
-    desc: "Run all validation checks (CI gate)"
-    cmds:
-      - task: quality:lint
-      - task: quality:format
-      - task: test
-
-  clean:
-    desc: "Remove generated files"
-    cmds:
-      - rm -rf .venv __pycache__ .pytest_cache htmlcov .coverage dist
 ```

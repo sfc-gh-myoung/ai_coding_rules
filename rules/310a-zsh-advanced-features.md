@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-01-20
 **Keywords:** Zsh, completion system, modules, hooks, advanced features, performance optimization, compinit, zstyle, autoload, scripting
-**TokenBudget:** ~5000
+**TokenBudget:** ~4400
 **ContextTier:** Low
 **Depends:** 310-zsh-scripting-core.md
 **LoadTrigger:** ext:.zsh, kw:zsh-advanced
@@ -35,9 +35,9 @@ Comprehensive guidance on zsh's advanced features including the completion syste
 
 ### External Documentation
 
-- [Zsh Completion System](http://zsh.sourceforge.net/Doc/Release/Completion-System.html) - Official completion documentation
-- [Zsh Modules](http://zsh.sourceforge.net/Doc/Release/Zsh-Modules.html) - Available modules and their functions
-- [Zsh Line Editor (ZLE)](http://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html) - Advanced line editing features
+- [Zsh Completion System](https://zsh.sourceforge.net/Doc/Release/Completion-System.html) - Official completion documentation
+- [Zsh Modules](https://zsh.sourceforge.net/Doc/Release/Zsh-Modules.html) - Available modules and their functions
+- [Zsh Line Editor (ZLE)](https://zsh.sourceforge.net/Doc/Release/Zsh-Line-Editor.html) - Advanced line editing features
 
 ## Contract
 
@@ -45,7 +45,7 @@ Comprehensive guidance on zsh's advanced features including the completion syste
 
 - Zsh environment requiring advanced features
 - Understanding of basic zsh scripting (from 310-zsh-scripting-core.md)
-- Access to zsh version 5.0+ with module support
+- Access to zsh version 5.0 or later (5.8+ recommended) with module support
 - Performance profiling goals or completion requirements
 
 ### Mandatory
@@ -59,7 +59,7 @@ Comprehensive guidance on zsh's advanced features including the completion syste
 
 ### Forbidden
 
-- Loading unnecessary modules (impacts performance)
+- Loading modules not required by current script functionality (impacts startup and memory)
 - Running expensive operations synchronously in prompts
 - Complex logic in completion functions without caching
 - Blocking operations in hooks
@@ -78,31 +78,19 @@ Comprehensive guidance on zsh's advanced features including the completion syste
 
 ### Output Format
 
-Optimized zsh configuration with:
-- Completion system initialized with caching
-- Selective module loading
-- Async hooks for expensive operations
+Optimized zsh configuration satisfying all Mandatory items, plus:
 - Custom completions with TTL caching
-- Profiling results showing improved startup time
-- Working prompt and completion system
+- Profiling results showing startup time <100ms
+- Error recovery for compinit and module load failures
 
 ### Validation
-
-**Pre-Task-Completion Checks:**
-- Completion system initialized
-- Modules loaded selectively
-- Hooks implemented without blocking
-- Completions cached appropriately
-- Startup time profiled
-- Async operations working
 
 **Success Criteria:**
 - `zprof` shows improved startup time (target <100ms)
 - Completions work correctly and respond quickly
-- Hooks execute without noticeable lag
+- Hooks execute without perceptible lag (response time <200ms)
 - Prompt updates without blocking
-- Custom completions functional
-- No unnecessary modules loaded
+- No modules loaded beyond those required by current script functionality
 
 ### Design Principles
 
@@ -114,16 +102,10 @@ Optimized zsh configuration with:
 
 ### Post-Execution Checklist
 
-- [ ] Completion system initialized
-- [ ] Modules loaded selectively
-- [ ] Hooks implemented correctly
+- [ ] All Mandatory and Success Criteria items verified
 - [ ] Completions cached with TTL
-- [ ] Startup time profiled and optimized
-- [ ] Custom completions working
-- [ ] Prompt rendering async
-- [ ] No blocking operations in hooks
-- [ ] Performance targets met
-- [ ] All features tested
+- [ ] Error recovery tested (compinit rebuild, module fallback, hook isolation)
+- [ ] Performance targets met (`zprof` <100ms startup, hooks <200ms)
 
 ## Anti-Patterns and Common Mistakes
 
@@ -187,57 +169,11 @@ _my_cli_complete() {
 
 ## Output Format Examples
 
-```bash
-#!/usr/bin/env bash
-# Script following bash best practices from rule
+> See **310-zsh-scripting-core.md** for the foundational zsh script template.
 
-set -euo pipefail  # Exit on error, undefined vars, pipe failures
-IFS=$'\n\t'      # Safe word splitting
-
-# Constants
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly LOG_FILE="${SCRIPT_DIR}/output.log"
-
-# Functions with clear contracts
-main() {
-    # Investigation phase
-    check_prerequisites
-
-    # Implementation phase
-    perform_operations
-
-    # Validation phase
-    verify_results
-}
-
-check_prerequisites() {
-    local -a required_commands=(jq curl git)
-
-    for cmd in "${required_commands[@]}"; do
-        if ! command -v "${cmd}" &>/dev/null; then
-            echo "ERROR: Required command not found: ${cmd}" >&2
-            exit 1
-        fi
-    done
-}
-
-perform_operations() {
-    echo "Performing operations following project patterns..."
-    # Implementation details here
-}
-
-verify_results() {
-    echo "Validating results..."
-    # Validation logic here
-}
-
-# Execute main function
-main "$@"
-```
-
-```bash
-# Validation with shellcheck
-shellcheck script.sh
+```zsh
+# Validate zsh syntax
+zsh -n script.zsh
 ```
 
 ## Zsh Completion System
@@ -350,52 +286,17 @@ periodic() {
 
 ## Advanced Parameter Expansion
 
-### Complex Parameter Transformations
-- **Rule:** Master zsh's parameter expansion flags:
+> For foundational parameter expansion (case modification, basename/dirname, array filtering), see **310-zsh-scripting-core.md § Parameter Expansion Features**.
+> This section covers only advanced patterns beyond the core rule.
+
 ```zsh
-# String transformations
-text="Hello World"
-echo "${text:l}"           # lowercase: hello world
-echo "${text:u}"           # uppercase: HELLO WORLD
-echo "${text:c}"           # capitalize: Hello world
-
-# Array transformations
-files=(file1.txt file2.log file3.conf)
-echo "${files:r}"          # Remove extensions: file1 file2 file3
-echo "${files:e}"          # Extensions only: txt log conf
-echo "${files:t}"          # Basenames: file1.txt file2.log file3.conf
-
-# Numeric transformations
-numbers=(1 2 3 4 5)
-echo "${(j:+:)numbers}"    # Join with +: 1+2+3+4+5
-echo "${(s:+:)string}"     # Split on +
-
-# Sorting and uniqueness
-items=(c a b a c)
-echo "${(u)items}"         # Unique: c a b
-echo "${(o)items}"         # Sort: a a b c c
-echo "${(ou)items}"        # Sort unique: a b c
-```
-
-### Advanced Substitution Patterns
-- **Rule:** Use sophisticated pattern matching:
-```zsh
-# Pattern replacement with conditions
+# Back-reference pattern replacement (advanced)
 path="/usr/local/bin/command"
 echo "${path/(#b)(*\/)(*)/$match[2] in $match[1]}"  # command in /usr/local/bin/
 
-# Multiple pattern matching
+# Multiple pattern matching with back-references
 text="The quick brown fox"
 echo "${text//(#b)([aeiou])/${(U)match[1]}}"  # Uppercase vowels
-
-# Conditional replacement
-version="1.2.3-beta"
-stable_version="${version/%-*}"  # Remove everything after first dash
-
-# Array pattern operations
-files=(test.txt backup.txt.bak config.conf)
-txt_files=(${files:#*.bak})      # Exclude .bak files
-conf_files=(${(M)files:#*.conf}) # Match only .conf files
 ```
 
 ## Zsh Modules and Built-in Extensions
@@ -427,63 +328,76 @@ syswrite -o $fd "Hello"
 sysclose $fd
 ```
 
+### Error Recovery for Advanced Features
+
+```zsh
+# compinit failure recovery (corrupt cache or missing dump)
+autoload -Uz compinit
+if ! compinit -d "${ZSH_COMPDUMP:-$HOME/.zcompdump}" 2>/dev/null; then
+    print -u2 "compinit failed; rebuilding completion dump"
+    command rm -f "${ZSH_COMPDUMP:-$HOME/.zcompdump}"
+    compinit -C  # Recreate from scratch, skip security check
+fi
+
+# zmodload error handling with fallback
+if ! zmodload zsh/datetime 2>/dev/null; then
+    print -u2 "zsh/datetime unavailable; falling back to date(1)"
+    EPOCHSECONDS() { date +%s; }
+fi
+
+if ! zmodload zsh/mathfunc 2>/dev/null; then
+    print -u2 "zsh/mathfunc unavailable; math functions disabled"
+fi
+
+# Hook failure recovery — isolate errors so one bad hook
+# does not break the prompt or shell
+_safe_hook_wrapper() {
+    local hook_fn="$1"
+    if ! "$hook_fn" 2>/dev/null; then
+        print -u2 "hook $hook_fn failed (exit $?); removing to prevent loop"
+        add-zsh-hook -d precmd "$hook_fn"
+    fi
+}
+
+# Register a hook with automatic failure isolation
+safe_add_precmd_hook() {
+    local fn="$1"
+    eval "_wrapped_${fn}() { _safe_hook_wrapper ${fn}; }"
+    add-zsh-hook precmd "_wrapped_${fn}"
+}
+```
+
 ## Advanced Globbing and File Operations
 
-### Recursive and Conditional Globbing
-- **Rule:** Master zsh's globbing qualifiers:
+> For basic extended globbing (`EXTENDED_GLOB`, recursive search, exclusion), see **310-zsh-scripting-core.md § Zsh Globbing and Pattern Matching**.
+> This section covers glob qualifiers for file metadata filtering.
+
 ```zsh
-# Enable extended globbing
 setopt EXTENDED_GLOB NULL_GLOB
 
 # File age qualifiers
 recent_files=(*(m-1))          # Modified within last day
 old_files=(*(m+30))            # Modified more than 30 days ago
-accessed_today=(*(a-1))        # Accessed today
 
 # File size qualifiers
 large_files=(*(Lm+100))        # Larger than 100MB
-small_files=(*(Lk-10))         # Smaller than 10KB
 empty_files=(*(L0))            # Empty files
 
-# File type and permission qualifiers
-executable_files=(*(x))        # Executable files
-readable_dirs=(*(r/))          # Readable directories
-writable_files=(*(w.))         # Writable regular files
-symlinks=(*(N@))               # Symbolic links (NULL_GLOB)
-
-# Complex combinations
-log_files=(logs/**/*.log(Nm-7Lm+1))  # Log files modified in last 7 days, >1MB
+# Complex qualifier combinations
+log_files=(logs/**/*.log(Nm-7Lm+1))  # Last 7 days, >1MB
 
 # Sorting qualifiers
 newest_first=(*(om))           # Sort by modification time (newest first)
 largest_first=(*(OL))          # Sort by size (largest first)
-alphabetical=(*(on))           # Sort by name
-```
-
-### Advanced Pattern Matching
-- **Rule:** Use sophisticated pattern constructs:
-```zsh
-# Approximate matching
-setopt GLOB_COMPLETE
-files=(test*.txt~*backup*)     # Exclude backup files
-
-# Case-insensitive globbing
-setopt NO_CASE_GLOB
-images=(*.jpg *.PNG *.gif)     # Matches any case
 
 # Numeric ranges in patterns
 chapters=(chapter<1-20>.txt)   # Matches chapter1.txt through chapter20.txt
-versions=(v<1-9>.<0-9>.<0-9>)  # Version patterns
-
-# Alternative patterns
-configs=(*.{conf,cfg,ini})     # Multiple extensions
-backups=(**/*.(bak|backup|~))  # Multiple backup patterns recursively
 ```
 
 ## Performance Optimization Techniques
 
 ### Efficient Data Processing
-- **Rule:** Optimize for large data sets:
+- **Rule:** Optimize for large data sets (>10,000 lines or >10MB):
 ```zsh
 # Fast file reading into arrays
 large_array=(${(f)"$(< large_file.txt)"})  # Read entire file at once
@@ -683,60 +597,11 @@ profile_function() {
 }
 ```
 
-### Unit Testing Framework
-- **Rule:** Implement testing for zsh functions:
-```zsh
-# Simple test framework
-typeset -gi test_count=0 test_passed=0
+### Unit Testing
 
-assert_equals() {
-    local expected="$1" actual="$2" message="${3:-test}"
-    (( ++test_count ))
+For zsh function testing, use `assert_equals`/`assert_contains` helpers with a `run_tests` harness that auto-discovers `test_*` functions. Key approach:
+- Maintain `test_count`/`test_passed` counters via `typeset -gi`
+- Iterate test functions with `${(M)${(k)functions}:#test_*}`
+- Return non-zero from `run_tests` on any failure
 
-    if [[ "$expected" == "$actual" ]]; then
-        echo "PASS: $message"
-        (( ++test_passed ))
-    else
-        echo "✗ FAIL: $message"
-        echo "  Expected: '$expected'"
-        echo "  Actual:   '$actual'"
-    fi
-}
-
-assert_contains() {
-    local haystack="$1" needle="$2" message="${3:-contains test}"
-    (( ++test_count ))
-
-    if [[ "$haystack" == *"$needle"* ]]; then
-        echo "PASS: $message"
-        (( ++test_passed ))
-    else
-        echo "✗ FAIL: $message"
-        echo "  String '$haystack' does not contain '$needle'"
-    fi
-}
-
-run_tests() {
-    echo "Running zsh tests..."
-
-    # Reset counters
-    test_count=0 test_passed=0
-
-    # Run all test functions
-    for test_func in ${(M)${(k)functions}:#test_*}; do
-        echo "Running $test_func..."
-        $test_func
-    done
-
-    echo
-    echo "Results: $test_passed/$test_count tests passed"
-
-    if (( test_passed == test_count )); then
-        echo "All tests passed!"
-        return 0
-    else
-        echo "Some tests failed!"
-        return 1
-    fi
-}
-```
+> For comprehensive shell testing frameworks and patterns, see **300b-bash-testing-tooling.md**.

@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:semantic-generator, kw:vqr
 **Keywords:** VQR, verified queries, Generator workflow, iterative development, YAML semantic model, semantic model file, onboarding questions, development workflow, verified query repository, semantic view generator
-**TokenBudget:** ~3400
+**TokenBudget:** ~3500
 **ContextTier:** Medium
 **Depends:** 106-snowflake-semantic-views-core.md
 
@@ -174,47 +174,11 @@ verified_queries:
 
 ### Common VQR Mistakes
 
-```yaml
-# WRONG - Physical table name:
-sql: SELECT * FROM ANALYTICS.CORE.SALES_FACT
-
-# WRONG - Single underscore:
-sql: SELECT * FROM _sales_data
-
-# CORRECT - Double underscore + logical name:
-sql: SELECT * FROM __sales_data
-```
+See Anti-Pattern 1 below for the most common VQR error (using physical table names instead of `__logical_name`).
 
 ### VQR Deployment Workflow
 
-**Step 1: Create YAML with verified queries**
-```yaml
-# sales_model.yaml
-name: sales_analysis
-tables:
-  - name: sales_data
-    base_table:
-      database: PROD
-      schema: ANALYTICS  
-      table: SALES_FACT
-    dimensions:
-      - name: sale_date
-        expr: order_date
-        data_type: DATE
-    metrics:
-      - name: total_revenue
-        expr: SUM(amount)
-
-verified_queries:
-  - name: monthly_revenue
-    question: "What is total revenue by month?"
-    sql: |
-      SELECT DATE_TRUNC('MONTH', sale_date) AS month, SUM(total_revenue)
-      FROM __sales_data
-      GROUP BY month
-    verified_at: 1737590400
-    verified_by: data_team
-```
+**Step 1:** Create YAML with verified queries (see Complete VQR Example above for full syntax)
 
 **Step 2: Upload to stage**
 ```sql
@@ -230,6 +194,24 @@ payload = {
     "messages": [{"role": "user", "content": "What is total revenue by month?"}]
 }
 ```
+
+### VQR Update and Versioning Workflow
+
+When updating verified queries:
+1. Edit the YAML file locally with new/modified queries
+2. Update `verified_at` timestamps for changed queries
+3. Re-upload to stage: `PUT file:///path/to/model.yaml @STAGE/ OVERWRITE=TRUE;`
+4. Test modified queries with Cortex Analyst to confirm accuracy
+5. Commit YAML changes to version control
+
+**Versioning strategy:** Keep YAML files in git alongside application code. Use `verified_at` timestamps to track when each query was last validated.
+
+### VQR SQL Debugging Tips
+
+- **"Table not found" error:** Verify you used `__logical_name` (double underscore), not physical table name
+- **Wrong results:** Run the VQR SQL directly against the base table (replacing `__logical_name` with physical name) to verify logic
+- **Column mismatch:** VQR SQL must reference dimension/metric `name` fields from the YAML, not physical column names
+- **Test independently:** Execute each VQR query in a worksheet before adding to YAML
 
 ### Suggested Queries (Preview)
 
@@ -404,14 +386,21 @@ for query in test_queries:
 
 **Why It Fails:** Cortex Analyst expects `__logical_name` syntax in VQR SQL. Physical table names cause query resolution failures and "table not found" errors.
 
-**Correct Pattern:**
 ```yaml
 # WRONG: Physical table name
 verified_queries:
   - name: revenue_query
     sql: SELECT * FROM ANALYTICS.CORE.SALES_FACT
 
-# CORRECT: Logical name with __ prefix
+# WRONG: Single underscore
+verified_queries:
+  - name: revenue_query
+    sql: SELECT * FROM _sales_data
+```
+
+**Correct Pattern:**
+```yaml
+# CORRECT: Double underscore + logical name from tables.name
 verified_queries:
   - name: revenue_query
     sql: SELECT * FROM __sales_data  # matches tables.name in YAML

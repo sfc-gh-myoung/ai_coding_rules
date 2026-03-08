@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:pandas, kw:dataframe
 **Keywords:** pandas, DataFrame, vectorization, SettingWithCopyWarning, memory optimization, dtypes, groupby, merge, performance, method chaining
-**TokenBudget:** ~6000
+**TokenBudget:** ~5650
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -123,94 +123,6 @@ Performant Pandas code, minimal memory footprint, clear anti-pattern avoidance
 - [ ] Data aggregated before Plotly visualization
 - [ ] DateTime operations reference 251-python-datetime-handling.md
 
-## Anti-Patterns and Common Mistakes
-
-**Anti-Pattern 1: iterrows() for computation (100x slower)**
-```python
-# Problem: Using iterrows() for computation
-for _, row in df.iterrows():
-    df.at[row.name, 'total'] = row['price'] * row['qty']
-```
-**Problem:** 100x slower than vectorization - iterates row-by-row in Python instead of using NumPy's optimized operations.
-
-**Correct Pattern:**
-```python
-# Vectorized operation
-df['total'] = df['price'] * df['qty']
-```
-**Benefits:** 100x+ faster execution using NumPy-level vectorization.
-
-**Anti-Pattern 2: apply() when vectorization possible (10x slower)**
-```python
-# Problem: Using apply() when vectorization available
-df['total'] = df.apply(lambda row: row['price'] * row['qty'], axis=1)
-```
-**Problem:** 10x slower than vectorization - applies Python function to each row instead of vectorized operations.
-
-**Correct Pattern:**
-```python
-# Vectorized operation
-df['total'] = df['price'] * df['qty']
-```
-**Benefits:** 10x+ faster by using pandas vectorized multiplication.
-
-**Anti-Pattern 3: Chained assignment (SettingWithCopyWarning)**
-```python
-# Problem: Chained assignment triggers warning
-df[df['active']]['price'] = df['price'] * 1.1
-```
-**Problem:** Triggers SettingWithCopyWarning - ambiguous whether modifying view or copy of DataFrame.
-
-**Correct Pattern:**
-```python
-# Explicit .loc indexing
-df.loc[df['active'], 'price'] *= 1.1
-```
-**Benefits:** Clear, unambiguous assignment that avoids warnings and ensures correct behavior.
-
-**Anti-Pattern 4: Inefficient dtype usage (wastes 87.5% memory)**
-```python
-df['status_code'] = df['status_code']  # int64 (8 bytes)
-```
-**Correct:** `df['status_code'] = df['status_code'].astype('int8')  # 1 byte`
-
-**Anti-Pattern 5: Multiple groupby calls (slow)**
-```python
-sum_sales = df.groupby('category')['sales'].sum()
-mean_sales = df.groupby('category')['sales'].mean()
-```
-**Correct:** `result = df.groupby('category')['sales'].agg(['sum', 'mean'])`
-
-**Anti-Pattern 6: Using inplace=True (unclear, error-prone)**
-```python
-df.dropna(inplace=True)
-df.sort_values('date', inplace=True)
-```
-**Correct:** `df = df.dropna().sort_values('date')  # Clear assignment`
-
-**Anti-Pattern 7: Loading huge files entirely (out of memory)**
-```python
-df = pd.read_csv('10gb_file.csv')
-```
-**Correct:** `for chunk in pd.read_csv('10gb_file.csv', chunksize=10000):`
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing DataFrame operations BEFORE optimizing** - Check current code for iterrows(), apply(), chained assignment patterns
-> 2. **Profile actual performance** - Measure execution time before and after optimization
-> 3. **Never speculate about DataFrame shape** - Use df.shape, df.dtypes to understand actual data structure
-> 4. **Check memory usage** - Use df.memory_usage(deep=True) to verify dtype optimization impact
-> 5. **Make grounded recommendations based on investigated code** - Don't optimize without measuring
->
-> **Anti-Pattern:**
-> "Based on typical Pandas usage, you probably have this performance issue..."
-> "Let me vectorize this - it should be faster..."
->
-> **Correct Pattern:**
-> "Let me check your current Pandas operations first."
-> [reads code, profiles performance, checks dtypes]
-> "I see you're using iterrows() in process_data() (5.2s for 100k rows). Here's a vectorized version (0.05s, 100x faster)..."
-
 ## Output Format Examples
 
 ```python
@@ -247,6 +159,23 @@ df_viz = filtered_df.groupby('date').agg({'total': 'sum'}).reset_index()
 fig = px.line(df_viz, x='date', y='total')
 st.plotly_chart(fig, width="stretch")
 ```
+
+> **Investigation Required**
+> When applying this rule:
+> 1. **Read existing DataFrame operations BEFORE optimizing** - Check current code for iterrows(), apply(), chained assignment patterns
+> 2. **Profile actual performance** - Measure execution time before and after optimization
+> 3. **Never speculate about DataFrame shape** - Use df.shape, df.dtypes to understand actual data structure
+> 4. **Check memory usage** - Use df.memory_usage(deep=True) to verify dtype optimization impact
+> 5. **Make grounded recommendations based on investigated code** - Don't optimize without measuring
+>
+> **Anti-Pattern:**
+> "Based on typical Pandas usage, you probably have this performance issue..."
+> "Let me vectorize this - it should be faster..."
+>
+> **Correct Pattern:**
+> "Let me check your current Pandas operations first."
+> [reads code, profiles performance, checks dtypes]
+> "I see you're using iterrows() in process_data() (5.2s for 100k rows). Here's a vectorized version (0.05s, 100x faster)..."
 
 ## Vectorization vs Iteration
 
@@ -380,7 +309,7 @@ def complex_calculation(row):
 df['result'] = df.apply(complex_calculation, axis=1)
 
 # ACCEPTABLE: Calling external libraries per row
-df['parsed_date'] = df['date_str'].apply(pd.to_datetime, errors='coerce')
+df['parsed_date'] = pd.to_datetime(df['date_str'], errors='coerce')
 ```
 
 ### Performance Comparison
@@ -748,6 +677,43 @@ st.download_button(
 )
 ```
 
+## Expression Evaluation with eval() and query()
+
+### df.eval() for Computed Columns
+
+**Use `df.eval()` for efficient arithmetic expressions on large DataFrames:**
+```python
+# GOOD: eval() avoids creating intermediate arrays (memory-efficient)
+df = df.eval('total = price * quantity')
+df = df.eval('margin = (price - cost) / price * 100')
+
+# Multiple expressions in one call
+df = df.eval('''
+    total = price * quantity
+    tax = total * 0.08
+    final_price = total + tax
+''')
+```
+
+### query() vs eval() Distinction
+
+```python
+# query() → filters rows (returns subset of DataFrame)
+expensive = df.query('price > 100 and category == "electronics"')
+
+# eval() → computes new columns (returns DataFrame with new/modified columns)
+df = df.eval('profit = revenue - cost')
+
+# Combine: compute then filter
+df = df.eval('margin = (price - cost) / price')
+high_margin = df.query('margin > 0.3')
+```
+
+**When to use each:**
+- `df.query()` — row filtering with readable string expressions (replaces boolean indexing)
+- `df.eval()` — column computation avoiding temporary arrays (memory-efficient for large DataFrames)
+- Both support `@variable` syntax to reference local Python variables
+
 ## Plotly Integration Patterns
 
 ### Aggregate Before Plotting
@@ -777,4 +743,37 @@ df_viz = (
 
 fig = px.line(df_viz, x='date', y='sales', color='category')
 st.plotly_chart(fig, width="stretch")
+```
+
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Chained Assignment Warning
+
+**Problem:** Using chained indexing which may not modify the original DataFrame.
+
+```python
+# WRONG: Chained assignment (may not work)
+df[df['status'] == 'active']['value'] = 100
+```
+
+**Correct Pattern:**
+```python
+# CORRECT: Use .loc for assignment
+df.loc[df['status'] == 'active', 'value'] = 100
+```
+
+### Anti-Pattern 2: Iterating Over Rows
+
+**Problem:** Using loops instead of vectorized operations.
+
+```python
+# WRONG: Slow row iteration
+for idx, row in df.iterrows():
+    df.at[idx, 'total'] = row['price'] * row['quantity']
+```
+
+**Correct Pattern:**
+```python
+# CORRECT: Vectorized operation (100x+ faster)
+df['total'] = df['price'] * df['quantity']
 ```

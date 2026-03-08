@@ -6,9 +6,10 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-06
 **Keywords:** fastapi, async, dependency injection, background tasks, oauth2, jwt, fastapi templates, starlette, pydantic, async routes
-**TokenBudget:** ~4450
+**TokenBudget:** ~4100
 **ContextTier:** Medium
 **Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
+**LoadTrigger:** kw:htmx-fastapi
 
 ## Scope
 
@@ -287,14 +288,15 @@ async def weather(
 
 **Pydantic Model:**
 ```python
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 class UserCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
-    email: str = Field(..., regex=r'^[^@]+@[^@]+\.[^@]+$')
+    email: str = Field(..., pattern=r'^[^@]+@[^@]+\.[^@]+$')
     age: int = Field(..., gt=0, lt=150)
 
-    @validator('email')
+    @field_validator('email', mode='before')
+    @classmethod
     def email_must_be_lowercase(cls, v):
         return v.lower()
 ```
@@ -357,6 +359,7 @@ async def process_data(task_id: str, data: dict):
 
 @app.post("/process")
 async def start_processing(
+    request: Request,
     background_tasks: BackgroundTasks,
     data: dict
 ):
@@ -364,26 +367,20 @@ async def start_processing(
     background_tasks.add_task(process_data, task_id, data)
 
     # Return polling element
-    return f'''
-    <div hx-get="/tasks/{task_id}/status"
-         hx-trigger="every 1s"
-         hx-swap="outerHTML">
-        Processing started...
-    </div>
-    '''
+    return templates.TemplateResponse(
+        "partials/_task_progress.html",
+        {"request": request, "task_id": task_id, "progress": 0}
+    )
 
 @app.get("/tasks/{task_id}/status")
 async def task_status(task_id: str, request: Request):
     task = tasks.get(task_id, {"status": "unknown"})
 
     if task["status"] == "processing":
-        return f'''
-        <div hx-get="/tasks/{task_id}/status"
-             hx-trigger="every 1s"
-             hx-swap="outerHTML">
-            Progress: {task['progress']}%
-        </div>
-        '''
+        return templates.TemplateResponse(
+            "partials/_task_progress.html",
+            {"request": request, "task_id": task_id, "progress": task["progress"]}
+        )
 
     elif task["status"] == "completed":
         return f'<div class="success">{task["result"]}</div>'
@@ -568,11 +565,12 @@ pip install starlette-wtf
 ```
 
 ```python
+import os
 from starlette_wtf import CSRFProtectMiddleware
 
 app.add_middleware(
     CSRFProtectMiddleware,
-    csrf_secret="your-csrf-secret"
+    csrf_secret=os.environ['CSRF_SECRET']
 )
 
 # Template usage
@@ -617,37 +615,6 @@ async def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 ```
 
-## Output Format Examples
+## Output Format
 
-### Complete FastAPI App
-```python
-from fastapi import FastAPI, Request, Depends, Form
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-
-app = FastAPI()
-templates = Jinja2Templates(directory="templates")
-
-def is_htmx(request: Request) -> bool:
-    return request.headers.get('HX-Request') == 'true'
-
-@app.get("/", response_class=HTMLResponse)
-async def home(
-    request: Request,
-    htmx: bool = Depends(is_htmx)
-):
-    template = "partials/_home.html" if htmx else "pages/home.html"
-    return templates.TemplateResponse(template, {"request": request})
-
-@app.post("/users")
-async def create_user(
-    request: Request,
-    name: str = Form(...),
-    email: str = Form(...)
-):
-    user = await create_user_in_db(name, email)
-    return templates.TemplateResponse(
-        "partials/_user_row.html",
-        {"request": request, "user": user}
-    )
-```
+See sections 1-4 for complete examples of Jinja2Templates setup, HTMX detection, async routes, and form handling with Pydantic.

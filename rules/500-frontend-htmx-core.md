@@ -12,7 +12,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:htmx, kw:frontend
 **Keywords:** htmx attributes, client-side, events, css transitions, debugging, browser compatibility, hx-get, hx-post, hx-swap, hx-trigger, hx-target
-**TokenBudget:** ~3600
+**TokenBudget:** ~3400
 **ContextTier:** Low
 **Depends:** 000-global-core.md
 
@@ -56,13 +56,13 @@ Provides a standalone frontend reference for HTMX attributes, client-side events
 
 ### Mandatory
 
-- HTMX library (1.9.x+)
-- Modern browser (Chrome, Firefox, Safari, Edge)
-- HTTP server for testing
+- MUST specify `hx-target` for all non-self swap requests to prevent accidental element replacement
+- MUST add `hx-indicator` for user feedback on every request that may take >200ms
+- MUST implement progressive enhancement fallbacks for forms (include `action` and `method` attributes alongside `hx-post`/`hx-get`)
 
 ### Forbidden
 
-- Using HTMX with incompatible browsers (IE11 and below)
+- Using HTMX with incompatible browsers (IE11 and below — not supported, no polyfills)
 - Missing CSRF protection for state-changing requests
 - Skipping progressive enhancement fallbacks
 
@@ -89,15 +89,15 @@ HTML with HTMX attributes:
 **Pre-Task-Completion Checks:**
 - [ ] HTMX library loaded (CDN or local)
 - [ ] HTMX attributes configured on elements
-- [ ] Swap strategies understood (innerHTML, outerHTML, etc.)
+- [ ] Correct hx-swap value selected for each use case (innerHTML, outerHTML, etc.)
 - [ ] Event listeners set up for lifecycle hooks
 - [ ] CSS transitions defined for smooth UX
 - [ ] Debugging tools ready (browser dev tools, htmx.logAll())
 
 **Success Criteria:**
-- HTMX attributes correctly trigger requests
+- Network tab shows expected HTMX requests with HX-Request: true header
 - Responses swap into target elements as expected
-- CSS transitions animate smoothly
+- CSS transitions complete within 500ms with no visual glitch
 - Event listeners fire at appropriate lifecycle points
 - No console errors
 - Works in all target browsers
@@ -421,12 +421,7 @@ htmx.trigger(element, 'click');
 - Safari 12+
 - Edge 79+
 
-**Polyfills (if needed):**
-```html
-<!-- For older browsers, load Promise polyfill -->
-<script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js"></script>
-<script src="https://unpkg.com/htmx.org@1.9.10"></script>
-```
+**IE11 Note:** IE11 is not supported. HTMX 2.0 officially dropped IE11 support; do not use polyfills.
 
 **Progressive Enhancement:**
 ```html
@@ -483,58 +478,14 @@ htmx.trigger(element, 'click');
 
 **Why It Fails:** Accessibility issues; breaks for users with JS disabled; SEO problems.
 
-**Correct Pattern:**
-```html
-<form action="/submit" method="post" hx-post="/submit" hx-target="#result">
-  <button type="submit">Submit</button>
-</form>
-```
+**Correct Pattern:** See [Progressive Enhancement](#browser-compatibility) above — always include `action` and `method` attributes alongside HTMX attributes on forms.
 
-## Output Format Examples
+## HTMX 2.0 Changes
 
-### Complete HTMX Page
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>HTMX Example</title>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <style>
-        .htmx-indicator { display: none; }
-        .htmx-request .htmx-indicator { display: inline; }
+If upgrading to HTMX 2.0, note these breaking changes:
 
-        .htmx-settling * {
-            transition: opacity 300ms ease-in;
-        }
-        .htmx-swapping * {
-            opacity: 0;
-        }
-    </style>
-</head>
-<body>
-    <button hx-get="/users"
-            hx-target="#user-list"
-            hx-swap="innerHTML"
-            hx-indicator="#spinner">
-        Load Users
-    </button>
-
-    <span id="spinner" class="htmx-indicator">Loading...</span>
-
-    <div id="user-list">
-        <!-- Users will appear here -->
-    </div>
-
-    <script>
-        // Enable debugging
-        htmx.logAll();
-
-        // Listen for events
-        document.body.addEventListener('htmx:afterSwap', function(event) {
-            console.log('Content loaded!');
-        });
-    </script>
-</body>
-</html>
-```
+- **IE11 dropped** — No longer supported; remove any IE11 polyfills
+- **`hx-on` syntax changed** — Use `hx-on:event="handler"` instead of `hx-on="event: handler"`
+- **`hx-swap` default behavior** — `outerHTML` settling behavior changed; test swap transitions after upgrade
+- **Attribute inheritance** — Some attributes no longer inherit by default; check `hx-inherit` docs
+- See [HTMX 2.0 Migration Guide](https://htmx.org/migration-guide-htmx-1/) for full details

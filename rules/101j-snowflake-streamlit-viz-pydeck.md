@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** pydeck, st.pydeck_chart, deck.gl, 3D visualization, hexagon layer, scatterplot layer, geojson layer, arc layer, heatmap layer, terrain, point cloud, WebGL, geospatial
-**TokenBudget:** ~3600
+**TokenBudget:** ~3550
 **ContextTier:** Medium
 **Depends:** 101a-snowflake-streamlit-visualization.md
 
@@ -277,6 +277,38 @@ layer = pdk.Layer(
 )
 ```
 
+### TerrainLayer (3D Terrain Visualization)
+
+```python
+layer = pdk.Layer(
+    'TerrainLayer',
+    elevation_decoder={
+        'rScaler': 256,
+        'gScaler': 1,
+        'bScaler': 1/256,
+        'offset': -32768
+    },
+    elevation_data='https://example.com/terrain-tiles/{z}/{x}/{y}.png',
+    texture='https://example.com/satellite/{z}/{x}/{y}.png',
+    bounds=[-122.52, 37.70, -122.35, 37.82]
+)
+```
+
+### PointCloudLayer (Large Point Sets)
+
+```python
+layer = pdk.Layer(
+    'PointCloudLayer',
+    data=points_df,
+    get_position='[longitude, latitude, elevation]',
+    get_color='[255, height * 2, 0]',
+    get_normal='[0, 0, 1]',
+    point_size=2,
+    pickable=True,
+    auto_highlight=True
+)
+```
+
 ## Multi-Layer Composition
 
 ```python
@@ -446,22 +478,26 @@ def render_pydeck_safely(deck, chart_count):
     return chart_count + 1
 ```
 
-## Common Anti-Patterns
+## Anti-Patterns and Common Mistakes
 
-**Anti-Pattern: Missing ViewState**
+### Anti-Pattern 1: Missing ViewState
+
+**Problem:** Creating PyDeck charts without initial view state configuration.
 ```python
 deck = pdk.Deck(layers=[layer])
 st.pydeck_chart(deck)
 ```
 
-**Correct:**
+**Correct Pattern:**
 ```python
 view_state = pdk.ViewState(latitude=37.77, longitude=-122.4, zoom=10)
 deck = pdk.Deck(layers=[layer], initial_view_state=view_state)
 st.pydeck_chart(deck, width="stretch")
 ```
 
-**Anti-Pattern: Using PyDeck for simple 2D maps**
+### Anti-Pattern 2: Using PyDeck for Simple 2D Maps
+
+**Problem:** Using PyDeck for simple scatter plots when Plotly is more appropriate.
 ```python
 layer = pdk.Layer('ScatterplotLayer', data=df, ...)
 ```
@@ -472,15 +508,19 @@ fig = px.scatter_map(df, lat='latitude', lon='longitude', ...)
 st.plotly_chart(fig, width="stretch")
 ```
 
-**Anti-Pattern: Too many PyDeck charts**
+### Anti-Pattern 3: Too Many PyDeck Charts
+
+**Problem:** Creating separate PyDeck charts in a loop, hitting WebGL context limits.
+
 ```python
 for region in regions:
     deck = pdk.Deck(layers=[create_layer(region)], ...)
     st.pydeck_chart(deck)
 ```
 
-**Correct (consolidate layers):**
+**Correct Pattern:**
 ```python
+# Consolidate all regions into one chart with multiple layers
 layers = [create_layer(region) for region in regions]
 deck = pdk.Deck(layers=layers, initial_view_state=view_state)
 st.pydeck_chart(deck, width="stretch")
@@ -496,40 +536,3 @@ st.pydeck_chart(deck, width="stretch")
 - [ ] Tooltips configured for interactivity
 - [ ] Large datasets sampled or aggregated
 - [ ] Map style appropriate for visualization type
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Using PyDeck for Simple 2D Maps
-
-**Problem:**
-```python
-layer = pdk.Layer('ScatterplotLayer', data=df, ...)
-deck = pdk.Deck(layers=[layer], ...)
-st.pydeck_chart(deck)
-```
-
-**Why It Fails:** PyDeck adds unnecessary WebGL complexity for 2D scatter maps. Use Plotly for simple maps.
-
-**Correct Pattern:**
-```python
-fig = px.scatter_map(df, lat='latitude', lon='longitude')
-st.plotly_chart(fig, use_container_width=True)
-```
-
-### Anti-Pattern 2: Multiple PyDeck Charts Per Page
-
-**Problem:**
-```python
-for region in regions:
-    deck = pdk.Deck(layers=[create_layer(region)])
-    st.pydeck_chart(deck)
-```
-
-**Why It Fails:** Each PyDeck chart creates a separate WebGL context. Multiple contexts exhaust browser resources.
-
-**Correct Pattern:**
-```python
-layers = [create_layer(region) for region in regions]
-deck = pdk.Deck(layers=layers, initial_view_state=view_state)
-st.pydeck_chart(deck, use_container_width=True)
-```

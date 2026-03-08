@@ -1,6 +1,6 @@
-# 002e: Agent Optimization Principles
+# 002g: Agent Optimization Principles
 
-FOUNDATION RULE: PRESERVE WHEN POSSIBLE
+> **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 
 ## Metadata
 
@@ -8,7 +8,7 @@ FOUNDATION RULE: PRESERVE WHEN POSSIBLE
 **RuleVersion:** v3.0.2
 **LastUpdated:** 2026-02-10
 **Keywords:** agent, LLM, optimization, format, token, efficiency, understanding, execution, comprehension, design, patterns, priority, agent-first
-**TokenBudget:** ~3400
+**TokenBudget:** ~3350
 **ContextTier:** High
 **Depends:** 000-global-core.md, 002-rule-governance.md
 
@@ -50,11 +50,6 @@ See `002-rule-governance.md` "Key Principles" for canonical definitions.
 ### External Documentation
 
 - **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema optimized for agent parsing
-- [ ] Verify no horizontal rule separators (`---`) - use headers for structure
-- [ ] Confirm consistent terminology with existing rules
-- [ ] Check that instructions use imperative voice
-- [ ] Validate critical information appears early in sections
-- [ ] Ensure format patterns match 002-rule-governance.md requirements
 
 ## Contract
 
@@ -92,7 +87,7 @@ See `002-rule-governance.md` "Key Principles" for canonical definitions.
 4. Replace decision trees with nested conditional lists
 5. Review instructions for passive voice and rewrite
 6. Verify terminology matches standard terms
-7. Run `task rules:validate` to confirm compliance
+7. Run `ai-rules validate` to confirm compliance
 
 ### Output Format
 
@@ -107,7 +102,7 @@ Rule files with optimized formatting for agent comprehension
 - Schema requirements understood
 
 **Success Criteria:**
-- `task rules:validate` passes
+- `ai-rules validate` passes
 - No ASCII tables in content
 - No arrow characters (`→`) in content
 - No ASCII decision tree characters in content
@@ -122,6 +117,12 @@ Rule files with optimized formatting for agent comprehension
 - Passive voice instructions should be rewritten
 - Inconsistent terminology should be standardized
 
+### Error Recovery
+
+- If ASCII tables cannot be fully converted to lists, add a `<!-- TODO: convert table -->` comment and flag for manual review
+- If terminology conflicts exist between rules, defer to the term defined in 002-rule-governance.md
+- If validation fails after optimization, revert the failing change and re-run `ai-rules validate` before retrying
+
 ### Post-Execution Checklist
 
 - [ ] All ASCII tables replaced with structured lists
@@ -133,7 +134,7 @@ Rule files with optimized formatting for agent comprehension
 - [ ] Critical information front-loaded in sections
 - [ ] Terminology matches standard terms
 - [ ] Schema-critical sections use required structure
-- [ ] `task rules:validate` passes
+- [ ] `ai-rules validate` passes
 - [ ] Token budget within target range
 
 ## Priority Enforcement
@@ -485,22 +486,3 @@ Tables are acceptable only when:
 3. No simpler list structure preserves the information
 
 Even then, consider if the table is truly necessary or if restructuring would help agents.
-
-## Output Format Examples
-
-### Optimized List Format
-
-```markdown
-**Options:**
-- **`--verbose`** - Show detailed output
-- **`--quiet`** - Suppress output
-- **`--dry-run`** - Preview changes without applying
-```
-
-### Optimized Decision Format
-
-```markdown
-**Is the file a rule file?**
-- If YES: Apply agent optimization patterns
-- If NO: Skip optimization
-```

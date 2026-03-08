@@ -52,10 +52,10 @@ Comprehensive directives for creating business-oriented queries, reports, dashbo
 
 ### Mandatory
 
-- Snowflake SQL (CTEs, window functions, explicit columns)
-- Snowsight Dashboards or Streamlit for visualization
-- Business-friendly naming conventions
-- Data quality indicators and freshness timestamps
+- MUST use business-friendly naming in all queries and outputs
+- MUST include data freshness timestamps on dashboards
+- MUST validate color contrast ratios meet WCAG 2.1 AA (≥4.5:1)
+- MUST use CTEs and explicit column selection (no SELECT *)
 
 ### Forbidden
 
@@ -245,18 +245,9 @@ fig.add_trace(go.Bar(name='Loss ▼', marker=dict(color='#CC3311', pattern_shape
 
 ## Ethical Visualization Standards
 
-**FORBIDDEN Manipulations:**
-- Truncated Y-axis without clear visual indicators
-- Cherry-picked date ranges without disclosure
-- 3D effects that distort proportions
-- Inconsistent time intervals
+**FORBIDDEN Manipulations:** Truncated Y-axis without indicators, cherry-picked date ranges without disclosure, 3D effects distorting proportions, inconsistent time intervals.
 
-**Required Disclosures:**
-```python
-st.caption(f" Data as of: {last_update} ({hours_ago:.1f}h ago)")  # Freshness
-st.info(f"Based on {len(df):,} responses | ±{margin:.1%} at 95% CI")  # Confidence
-if active_filters: st.warning(f"Filters: {', '.join(active_filters)}")  # Filters
-```
+**Required Disclosures:** Data freshness timestamps, sample size with confidence intervals, active filter warnings.
 
 ## Accessibility (WCAG 2.1 AA)
 
@@ -301,7 +292,7 @@ GROUP BY 1, 2;
 ```python
 @st.cache_data(ttl=3600)  # 1 hour TTL
 def load_dashboard_data(region: str):
-    return session.sql(f"SELECT * FROM dashboard WHERE region = '{region}'").to_pandas()
+    return session.sql("SELECT * FROM dashboard WHERE region = ?", params=[region]).to_pandas()
 ```
 
 ## Metric Documentation Standard

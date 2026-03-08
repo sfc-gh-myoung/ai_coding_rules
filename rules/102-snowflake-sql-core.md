@@ -11,7 +11,7 @@
 **RuleVersion:** v1.2.0
 **LastUpdated:** 2026-02-23
 **Keywords:** SQL files, file headers, COPY INTO, FILE_FORMAT, CREATE VIEW, fully qualified names, idempotent, reserved characters, CLI compatibility, ON_ERROR, JOIN, ambiguous column, table alias
-**TokenBudget:** ~3950
+**TokenBudget:** ~4100
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** ext:.sql, kw:sql
@@ -53,9 +53,10 @@ Essential SQL file authoring patterns for Snowflake: file headers, COPY INTO syn
 
 ### Inputs and Prerequisites
 
-- Target database/schema identified
-- Snowflake CLI or Snowsight access
-- Understanding of target environment (demo vs production)
+- Snowflake account with SYSADMIN or equivalent role, warehouse (X-SMALL or larger), and target database/schema created
+- USAGE privilege on target database and schema; CREATE TABLE/VIEW privileges on schema
+- For COPY INTO: USAGE privilege on the stage; for external stages, the storage integration must be configured
+- Snowflake CLI (`snow sql`) or Snowsight access for execution
 
 ### Mandatory
 
@@ -478,28 +479,33 @@ CREATE TABLE my_db.my_schema.customers (...);
 SELECT * FROM my_db.my_schema.orders;
 ```
 
-### Anti-Pattern 4: Reserved Characters in SQL Files
+### Anti-Pattern 4: Reserved Characters in SQL Files Without Disabling Templating
 
 **Problem:**
 ```sql
-COMMENT = 'Sales & Marketing data'
+-- Executing via CLI without --enable-templating NONE:
+-- snow sql -f seed_data.sql
+INSERT INTO items (name, brand) VALUES
+('M&Ms Milk Chocolate 1.69oz', 'M&Ms'),
+('A&W Root Beer 20oz', 'Keurig Dr Pepper');
+-- ERROR: SQL template rendering error: 'Ms' is undefined
+```
 
--- Also common in seed data INSERT statements:
+**Why It Fails:** The `&` character is interpreted as a template variable prefix by `snow sql` in LEGACY mode (the default). The CLI attempts to expand `&W`, `&Ms`, etc. as variables. Do NOT corrupt data by replacing `&` with `and` -- instead disable templating at the CLI layer.
+
+**Correct Pattern:**
+```bash
+# Correct: disable templating so & is passed through to Snowflake
+snow sql --enable-templating NONE -f seed_data.sql
+```
+```sql
+-- Keep real data intact -- no need to change SQL
 INSERT INTO items (name, brand) VALUES
 ('M&Ms Milk Chocolate 1.69oz', 'M&Ms'),
 ('A&W Root Beer 20oz', 'Keurig Dr Pepper');
 ```
 
-**Why It Fails:** The `&` character is interpreted as a template variable prefix by snow sql CLI. The CLI attempts to expand `&W`, `&Ms`, etc. as variables, producing `SQL template rendering error: 'X' is undefined`. This is especially common in demo seed data containing brand names like M&Ms, A&W, PB&J.
-
-**Correct Pattern:**
-```sql
-COMMENT = 'Sales and Marketing data'
-
-INSERT INTO items (name, brand) VALUES
-('M and Ms Milk Chocolate 1.69oz', 'M and Ms'),
-('A and W Root Beer 20oz', 'Keurig Dr Pepper');
-```
+See the **Reserved Characters (CLI Compatibility)** section above for full details.
 
 ### Anti-Pattern 5: Unqualified Columns in JOINs
 

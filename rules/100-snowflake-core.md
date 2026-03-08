@@ -11,7 +11,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks, warehouse creation
-**TokenBudget:** ~4600
+**TokenBudget:** ~4350
 **ContextTier:** High
 **Depends:** 000-global-core.md
 **LoadTrigger:** ext:.sql
@@ -84,7 +84,7 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 - **Column Selection:** Explicit column lists (never `SELECT *` in production)
 - **Performance Profiling:** Use Snowflake UI/CLI Query Profile for optimization
 - **Security Policies:** Apply masking/row access policies for sensitive data
-- **Incremental Patterns:** Use Streams + Tasks for mutable large tables (>10M rows OR >5GB uncompressed OR >1M rows with >1000 updates/hour OR >10% rows modified per day)
+- **Incremental Patterns:** Use Streams + Tasks for mutable large tables (see Quantification Standards)
 
 ### Forbidden
 
@@ -99,7 +99,7 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 1. Define explicit columns and joins; add WHERE filters in the first CTE (before JOINs/aggregations) for partition pruning
 2. Normalize VARIANT fields once in a dedicated CTE
 3. Prefer set-based operations; avoid row-wise loops
-4. For mutable large tables (>10M rows OR >5GB OR >1M rows with >1000 updates/hour OR >10% rows modified per day), design Streams + Tasks incremental pattern with idempotency
+4. For mutable large tables (see Quantification Standards), design Streams + Tasks incremental pattern with idempotency
 5. Validate with Query Profile before scaling warehouse
 6. Apply security policies (masking/row access) where needed
 7. Verify no anti-patterns present (SELECT *, DISTINCT dedupe, repeated VARIANT parsing)
@@ -148,7 +148,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **Warehouse Config:** Follows `119-snowflake-warehouse-management.md`
 
 **Incremental Processing:**
-- **Where Applicable:** Streams and Tasks used for mutable large tables (>10M rows OR >5GB OR >1M rows with >1000 updates/hour OR >10% rows modified per day)
+- **Where Applicable:** Streams and Tasks used for mutable large tables (see Quantification Standards)
 - **Idempotency:** MERGE operations handle late arrivals and duplicates
 
 **Success Criteria:**
@@ -181,18 +181,6 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - "I see you're working with semi-structured data. Here's how to optimize VARIANT parsing..."
 - [implements CTE-based extraction, validates with Query Profile]
 
-### Design Principles
-
-- **Cost-First Mindset:** Always consider cost implications of query patterns
-- **Explicit Object Qualification:** Fully qualify objects (`DATABASE.SCHEMA.TABLE`)
-- **Set-Based Operations:** Prefer declarative SQL over procedural loops
-- **CTE Usage:** Use CTEs for logical segmentation and readability
-- **Early Filtering:** Push WHERE filters in the first CTE (before JOINs/aggregations) for partition pruning
-- **VARIANT Optimization:** Parse semi-structured data once at edge, normalize critical fields
-- **Incremental Processing:** Use Streams + Tasks for mutable large tables (>10M rows OR >5GB OR >1M rows with >1000 updates/hour OR >10% rows modified per day)
-- **Security by Design:** Enforce governance with masking policies, row access, and tagging
-- **Query Profiling:** Always use Query Profile to validate performance assumptions
-
 ### Post-Execution Checklist
 
 **Before Starting:**
@@ -214,6 +202,24 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - [ ] Object names follow DDL naming conventions
 - [ ] No `DISTINCT` used for deduplication (use `ROW_NUMBER()` instead)
 - [ ] No template characters (`&`, `<%`, `%>`, `{{`, `}}`) in identifiers
+
+## Design Principles
+
+- **Cost-First Mindset:** Always consider cost implications of query patterns
+- **Explicit Object Qualification:** Fully qualify objects (`DATABASE.SCHEMA.TABLE`)
+- **Set-Based Operations:** Prefer declarative SQL over procedural loops
+- **CTE Usage:** Use CTEs for logical segmentation and readability
+- **Early Filtering:** Push WHERE filters in the first CTE (before JOINs/aggregations) for partition pruning
+- **VARIANT Optimization:** Parse semi-structured data once at edge, normalize critical fields
+- **Incremental Processing:** Use Streams + Tasks for mutable large tables (see Quantification Standards)
+- **Security by Design:** Enforce governance with masking policies, row access, and tagging
+- **Query Profiling:** Always use Query Profile to validate performance assumptions
+
+## Error Recovery
+
+- **Query Timeout:** Use `SELECT SYSTEM$CANCEL_ALL_QUERIES()` to cancel runaway queries. If a warehouse is unresponsive, suspend and resume it: `ALTER WAREHOUSE wh SUSPEND; ALTER WAREHOUSE wh RESUME;`
+- **Warehouse Stuck:** If queries queue indefinitely, check `SHOW WAREHOUSES` for state. Force restart with suspend/resume cycle.
+- **Transaction Rollback:** Wrap multi-statement operations in explicit transactions (`BEGIN ... COMMIT`) with `ROLLBACK` on failure.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -392,49 +398,6 @@ QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) = 1;
 ```
 
 **Benefits:** Single pass; no extra sorting; minimal memory; efficient; clear deduplication; better performance; professional; Snowflake-native
-
-## General Principles
-
-- **Always:** Apply a "cost-first" mindset
-- **Rule:** Always fully qualify objects (`DATABASE.SCHEMA.OBJECT`) in shared code
-- **Rule:** Prefer declarative set-based operations over procedural row loops
-- **Rule:** Use CTEs for logical segmentation
-- **Rule:** Avoid accidental cross joins by using explicit join predicates and aliases
-
-## Optimization and Performance
-
-- **Always:** Push WHERE filters in the first CTE (before JOINs/aggregations) for partition pruning
-- **Rule:** Minimize data movement by avoiding unnecessary re-materialization
-- **Always:** Use semi-structured data types (VARIANT) only at the ingestion edge; normalize critical fields
-- **Always:** Use Snowflake's Query Profile to diagnose performance issues and propose optimizations
-
-## Security and Governance
-
-- **Rule:** Enforce governance with masking policies, row access policies, and tagging, especially for sensitive data
-- **Rule:** Never use `SELECT *` in production code. Explicitly project required columns
-- **Always:** Use Time Travel and Cloning for safe development, testing, and dev/test isolation
-
-## Anti-Patterns Summary
-
-- **Rule:** Avoid deep view nesting (>5 layers)
-- **Rule:** Do not use `DISTINCT` to fix duplicates; solve the root cause upstream
-- **Rule:** Avoid repeated casting of `VARIANT` fields; parse them once in a CTE
-- **Rule:** Avoid recomputing large fact tables from scratch daily unless >70% of rows change per batch OR source system requires full snapshots
-
-## Incremental Patterns
-
-- **Always:** Use **Streams** and **Tasks** for incremental data pipelines instead of full reloads
-- **Always:** Implement idempotency with MERGE operations to handle late arrivals
-
-## Common Tasks and Checklists
-
-**Before any action, verify:**
-- Are objects fully qualified?
-- Are joins explicit?
-- Is `SELECT *` removed?
-- Is an incremental pattern used for mutable, large tables (>10M rows OR >5GB OR >1M rows with >1000 updates/hour OR >10% rows modified per day)?
-- Are security policies or masks applied where needed?
-- Are anti-patterns absent?
 
 ## Object Naming Conventions (DDL)
 

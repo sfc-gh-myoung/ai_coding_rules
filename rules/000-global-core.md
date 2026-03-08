@@ -12,7 +12,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-02-06
 **Keywords:** workflow, safety, confirmation, validation, surgical edits, minimal changes, prompt engineering, task list, context window, professional communication
-**TokenBudget:** ~3500
+**TokenBudget:** ~3800
 **ContextTier:** Critical
 **Depends:** None
 
@@ -59,15 +59,15 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 ### Inputs and Prerequisites
 
 - Project workspace access
-- Tool availability (read_file, list_dir, grep, etc.)
-- Up-to-date rule files
+- Tool availability (read_file, list_dir, grep, and project-specific tools)
+- Up-to-date rule files (from current branch HEAD)
 - User requirements
 
 ### Mandatory
 
 - **Rules loaded:** List all loaded rules in response
 - **Task list:** Present task list before any modifications
-- **Validation:** Run appropriate tests/lints before marking complete
+- **Validation:** Run language-specific validation (see Validation Command Reference) before marking complete
 - **Surgical edits:** Make minimal, targeted changes only
 
 ### Forbidden
@@ -79,7 +79,7 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 
 1. List all loaded rules in `## Rules Loaded` section
 2. Present clear task list for user confirmation
-3. Perform minimal, surgical edits
+3. Perform surgical edits (see Mandatory section above)
 4. Validate changes immediately (lint, test, format)
 5. Update relevant documentation
 
@@ -217,7 +217,7 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 - Make only the minimal changes required
 - Preserve existing code patterns and style
 - Show deltas, not entire files
-- Maintain backward compatibility when possible
+- Maintain backward compatibility unless task explicitly requires breaking changes
 - **Update LastUpdated field:** If edited file contains `LastUpdated:`, `**LastUpdated:**`, or `**Last Updated:**`, set value to current date in YYYY-MM-DD format
 
 ### Multi-File Task Protocol
@@ -241,7 +241,7 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 - Validate all changes before marking tasks complete
 - Run appropriate tests and lints for the technology
 - Update documentation when changes affect usage
-- Ensure no regressions introduced
+- Ensure no regressions introduced via the validation sequence (Syntax, Linting, Formatting, Type Checking, Tests)
 - **Taskfile-first (project standards):** If the project provides an automation entrypoint (prefer
   `Taskfile.yml`), run validation via project-defined tasks:
   - **If task exits 0:** Success, continue to next validation step

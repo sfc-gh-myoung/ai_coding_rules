@@ -82,7 +82,7 @@ Foundational HTMX patterns for Python web applications, covering request/respons
 2. Route logic: Return HTML fragment for HTMX, full page otherwise
 3. Set response headers: `HX-Trigger` for events, `HX-Redirect` for navigation
 4. Implement CSRF token validation for state-changing requests
-5. Use appropriate swap strategies in HTMX attributes
+5. Use swap strategies matching DOM update intent: `innerHTML` for content replacement, `outerHTML` for element replacement, `beforeend` for list append
 6. Handle errors with proper HTTP status codes and `HX-Retarget`
 7. Test request/response cycle with header assertions
 
@@ -132,6 +132,8 @@ Foundational HTMX patterns for Python web applications, covering request/respons
 - [ ] Tests written for request headers and response structure
 - [ ] Security review completed (XSS prevention in partial responses)
 - [ ] Testing strategy defined (unit tests for headers, integration tests for HTML)
+
+> **Investigation Required:** Read existing templates and routes before adding HTMX patterns — check for existing `is_htmx()` helpers, CSRF configuration, and swap strategies
 
 ## Key Principles
 
@@ -285,6 +287,8 @@ def set_csp(response):
     return response
 ```
 
+> **Note:** `'unsafe-inline'` is required for HTMX's inline event attributes (`hx-on:*`). For stricter CSP, use nonce-based approach: set `htmx.config.inlineScriptNonce` to match your CSP nonce.
+
 ### 5. HATEOAS and Hypermedia Principles
 
 **Server Controls Navigation:**
@@ -412,22 +416,9 @@ def get_data():
 
 ### Anti-Pattern 2: Missing CSRF Protection
 
-**Problem:** Omitting CSRF tokens on state-changing HTMX requests.
+**Problem:** Omitting CSRF tokens on state-changing HTMX requests exposes CSRF vulnerabilities.
 
-**Why It Fails:** Exposes application to cross-site request forgery attacks.
-
-**Correct Pattern:**
-```python
-# Configure CSRF in HTMX meta tag (base template)
-# <meta name="csrf-token" content="{{ csrf_token() }}">
-# htmx.config.getCsrfToken = () => document.querySelector('meta[name="csrf-token"]').content
-
-@app.route('/delete/<int:id>', methods=['DELETE'])
-def delete(id):
-    # CSRF validation happens in middleware
-    delete_item(id)
-    return ''
-```
+**Solution:** See [CSRF Protection](#4-security-considerations) above for full implementation. Ensure the `htmx:configRequest` listener injects the CSRF token header on every state-changing request.
 
 ### Anti-Pattern 3: Incorrect Swap Strategy
 
@@ -488,7 +479,7 @@ def users_list():
 ```python
 @app.route('/item/<int:item_id>', methods=['PUT'])
 def update_item(item_id):
-    data = request.json
+    data = request.form
     update_item_in_db(item_id, data)
 
     response = make_response(

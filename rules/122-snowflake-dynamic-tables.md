@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:dynamic-table, kw:incremental
 **Keywords:** automatic pipelines, DOWNSTREAM, FULL, warehouse sizing, data freshness, dynamic table lag, refresh frequency, pipeline automation
-**TokenBudget:** ~2300
+**TokenBudget:** ~2900
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 104-snowflake-streams-tasks.md, 119-snowflake-warehouse-management.md
 
@@ -286,4 +286,78 @@ WHERE state = 'FAILED' ORDER BY refresh_start_time DESC;
 ```sql
 GRANT MONITOR ON DYNAMIC TABLE analytics.DT_SALES TO ROLE analyst_role;  -- Metadata access
 GRANT OWNERSHIP ON DYNAMIC TABLE analytics.DT_SALES TO ROLE data_engineer_role;  -- Admin
+```
+
+## Troubleshooting
+
+### Common Issues and Diagnostics
+
+**UPSTREAM_FAILED Status:**
+```sql
+-- Identify which upstream table caused the failure
+SELECT name, state, error_message, refresh_start_time
+FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(TABLE_NAME => 'DT_SALES'))
+WHERE state = 'UPSTREAM_FAILED' ORDER BY refresh_start_time DESC LIMIT 5;
+
+-- Check upstream dynamic table health
+SELECT name, scheduling_state, last_completed_refresh_action
+FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLES
+WHERE table_schema = 'ANALYTICS' AND scheduling_state != 'ACTIVE';
+```
+
+**Incremental Refresh Falling Back to Full:**
+```sql
+-- Check refresh actions to detect unexpected FULL refreshes
+SELECT name, refresh_action, refresh_start_time,
+  DATEDIFF('second', refresh_start_time, refresh_end_time) AS duration_sec
+FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(TABLE_NAME => 'DT_SALES'))
+WHERE refresh_action = 'FULL' ORDER BY refresh_start_time DESC LIMIT 10;
+-- If seeing FULL when expecting INCREMENTAL, check for unsupported operators
+-- (DISTINCT, window functions, non-deterministic functions, subqueries)
+```
+
+**Target Lag Not Met:**
+```sql
+-- Compare actual lag vs target
+SELECT name, target_lag, scheduling_state, last_refresh_duration_ms,
+  DATEDIFF('minute', last_completed_refresh_time, CURRENT_TIMESTAMP()) AS actual_lag_minutes
+FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLES
+WHERE table_schema = 'ANALYTICS'
+  AND DATEDIFF('minute', last_completed_refresh_time, CURRENT_TIMESTAMP()) > 
+      SPLIT_PART(target_lag, ' ', 1)::INT;
+```
+
+## Lifecycle Management
+
+```sql
+-- Modify target lag
+ALTER DYNAMIC TABLE analytics.DT_SALES SET TARGET_LAG = '30 minutes';
+
+-- Suspend refresh (maintenance window)
+ALTER DYNAMIC TABLE analytics.DT_SALES SUSPEND;
+
+-- Resume refresh
+ALTER DYNAMIC TABLE analytics.DT_SALES RESUME;
+
+-- Change warehouse
+ALTER DYNAMIC TABLE analytics.DT_SALES SET WAREHOUSE = new_wh;
+
+-- Drop dynamic table
+DROP DYNAMIC TABLE IF EXISTS analytics.DT_OLD_SUMMARY;
+```
+
+## Cost Optimization
+
+**Target Lag vs Credit Consumption:**
+- Shorter lag = more frequent refreshes = higher credit usage
+- Use `DOWNSTREAM` for intermediate tables to avoid unnecessary refreshes
+- Monitor credit consumption per dynamic table:
+
+```sql
+-- Credit consumption by dynamic table
+SELECT name, SUM(credits_used) AS total_credits,
+  COUNT(*) AS refresh_count, AVG(credits_used) AS avg_credits_per_refresh
+FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLE_GRAPH_HISTORY
+WHERE start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP())
+GROUP BY name ORDER BY total_credits DESC;
 ```

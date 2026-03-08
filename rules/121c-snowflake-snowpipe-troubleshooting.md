@@ -5,6 +5,7 @@
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-02-23
+**LoadTrigger:** kw:snowpipe-troubleshooting, kw:pipe-errors
 **Keywords:** snowpipe troubleshooting, debugging, error resolution, pipe errors, streaming errors, connection failures, schema errors, offset tracking, latency issues, duplicate data, authentication errors, channel errors
 **TokenBudget:** ~5050
 **ContextTier:** Medium
@@ -227,44 +228,12 @@ Troubleshooting and debugging patterns for both file-based Snowpipe and Snowpipe
 - **Symptom:** SDK fails to connect to Snowflake
 - **Causes:** Invalid authentication (key pair, JWT), network connectivity, firewall rules, incorrect account identifier
 - **Solutions:**
-  ```python
-  # Verify private key format
-  with open('snowflake_key.pem', 'rb') as f:
-      key_content = f.read()
-      print(f"Key length: {len(key_content)} bytes")
-      # Should start with "-----BEGIN PRIVATE KEY-----"
-  
-  # Test JWT generation
-  import jwt
-  from cryptography.hazmat.primitives import serialization
-  from cryptography.hazmat.backends import default_backend
-  from datetime import datetime, timedelta
-  
-  with open('snowflake_key.pem', 'rb') as pem_file:
-      private_key = serialization.load_pem_private_key(
-          pem_file.read(),
-          password=None,
-          backend=default_backend()
-      )
-  
-  payload = {
-      'iss': 'ORGNAME-ACCOUNTNAME.USERNAME.SHA256_FINGERPRINT',
-      'sub': 'ORGNAME-ACCOUNTNAME.USERNAME',
-      'iat': datetime.utcnow(),
-      'exp': datetime.utcnow() + timedelta(minutes=59)
-  }
-  
-  token = jwt.encode(payload, private_key, algorithm='RS256')
-  print(f"JWT token generated: {token[:50]}...")
-  
-  # Verify account identifier format
-  # Should be: ORGNAME-ACCOUNTNAME (not account URL)
-  ```
-  - **Fix:** Verify private key file exists and is readable
-  - **Fix:** Ensure private key format is correct (PEM format)
-  - **Fix:** Verify public key registered in Snowflake user
-  - **Fix:** Check account identifier format (ORGNAME-ACCOUNTNAME)
+  See **121a-snowflake-snowpipe-streaming.md** for client initialization patterns.
+  - **Fix:** Verify private key file exists, is readable, and in PEM format
+  - **Fix:** Ensure public key is registered in Snowflake user (`ALTER USER ... SET RSA_PUBLIC_KEY`)
+  - **Fix:** Check account identifier format (ORGNAME-ACCOUNTNAME, not account URL)
   - **Fix:** Verify user has appropriate privileges (INSERT, CREATE TABLE)
+  - **Fix:** Test network connectivity to Snowflake endpoint
 
 **Schema errors:**
 - **Symptom:** Insert failures with schema mismatch errors
@@ -361,20 +330,23 @@ Troubleshooting and debugging patterns for both file-based Snowpipe and Snowpipe
   
   batch = []
   batch_size = 1000
+  global_offset = 0
   
   for row in data_stream:
       batch.append(row)
       
       if len(batch) >= batch_size:
-          # Insert batch
-          for idx, row in enumerate(batch):
-              channel.insert_row(row, offset_token=f'offset_{idx}')
+          # Insert batch with globally unique offset tokens
+          for row_item in batch:
+              channel.insert_row(row_item, offset_token=f'offset_{global_offset}')
+              global_offset += 1
           batch = []
   
   # Insert remaining rows
   if batch:
-      for idx, row in enumerate(batch):
-          channel.insert_row(row, offset_token=f'offset_{idx}')
+      for row_item in batch:
+          channel.insert_row(row_item, offset_token=f'offset_{global_offset}')
+          global_offset += 1
   
   channel.close()
   ```
@@ -427,6 +399,39 @@ Troubleshooting and debugging patterns for both file-based Snowpipe and Snowpipe
   - **Fix:** Implement schema validation
   - **Fix:** Check constraints (PK, FK, NOT NULL)
   - **Fix:** Add data quality checks
+
+## Diagnostic Decision Tree
+
+**Start here: What is the symptom?**
+
+1. **Data not loading (file-based Snowpipe)**
+   - Check: `SHOW PIPES LIKE 'PIPE_NAME'` - is pipe paused?
+     - Yes: `ALTER PIPE PIPE_NAME SET PIPE_EXECUTION_PAUSED = FALSE`
+   - Check: `LIST @STAGE_NAME PATTERN = '...'` - do files exist?
+     - No: Verify cloud event notifications (SNS/Event Grid/Pub/Sub)
+   - Check: COPY_HISTORY for errors - any LOAD_FAILED?
+     - Yes: Read FIRST_ERROR_MESSAGE, fix file format or schema
+
+2. **Duplicate data**
+   - File-based: Are you mixing bulk COPY and Snowpipe on same files?
+     - Yes: Use separate stages for bulk vs Snowpipe
+   - Streaming: Are offset tokens globally unique across batches?
+     - No: Use monotonically increasing global offset counter
+
+3. **Schema mismatch errors**
+   - Check: `DESC TABLE DB.SCHEMA.TABLE` - do columns match data?
+   - Check: Column types (STRING vs NUMBER vs TIMESTAMP)
+   - Streaming: Configure `on_error` mode and validate rows before insert
+
+4. **High latency / slow performance**
+   - File-based: Check file sizes - are they <1MB?
+     - Yes: Consolidate to 100-250MB compressed files
+   - Streaming: Check batch size - are you inserting one row at a time?
+     - Yes: Batch 100-1000 rows per insert cycle
+
+5. **Permission / authentication errors**
+   - File-based: Verify CREATE PIPE, USAGE ON STAGE, INSERT ON TABLE
+   - Streaming: Verify private key registered, account identifier format
 
 ## Debugging Checklists
 

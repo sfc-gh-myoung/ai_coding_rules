@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-06
 **Keywords:** testing, pytest, unit tests, integration tests, fixtures, mocking, header validation, html assertions, test client, htmx testing
-**TokenBudget:** ~4250
+**TokenBudget:** ~4050
 **ContextTier:** High
 **Depends:** 221-python-htmx-core.md, 206-python-pytest.md
 
@@ -136,19 +136,15 @@ Testing strategies for HTMX endpoints in Python applications, covering unit test
 
 ### 1. Pytest Fixtures for HTMX
 
-**Flask Test Client Fixtures:**
+**Client and HTMX Header Fixtures:**
+
+The `client` fixture differs by framework; the HTMX wrapper pattern is the same for both.
+
+- **Flask:** `client = app.test_client()` (requires `app` fixture via `create_app({'TESTING': True})`)
+- **FastAPI:** `client = TestClient(app)` (from `fastapi.testclient`)
+
 ```python
 import pytest
-from app import create_app
-
-@pytest.fixture
-def app():
-    app = create_app({'TESTING': True})
-    yield app
-
-@pytest.fixture
-def client(app):
-    return app.test_client()
 
 @pytest.fixture
 def htmx_headers():
@@ -160,64 +156,25 @@ def htmx_headers():
 
 @pytest.fixture
 def htmx_client(client, htmx_headers):
-    """Test client with HTMX headers pre-configured"""
+    """Test client wrapper that injects HTMX headers into every request"""
     class HTMXClient:
-        def get(self, *args, **kwargs):
-            kwargs.setdefault('headers', {}).update(htmx_headers)
-            return client.get(*args, **kwargs)
-
-        def post(self, *args, **kwargs):
-            kwargs.setdefault('headers', {}).update(htmx_headers)
-            return client.post(*args, **kwargs)
-
-        def put(self, *args, **kwargs):
-            kwargs.setdefault('headers', {}).update(htmx_headers)
-            return client.put(*args, **kwargs)
-
-        def delete(self, *args, **kwargs):
-            kwargs.setdefault('headers', {}).update(htmx_headers)
-            return client.delete(*args, **kwargs)
-
-    return HTMXClient()
-```
-
-**FastAPI Test Client Fixtures:**
-```python
-import pytest
-from fastapi.testclient import TestClient
-from app.main import app
-
-@pytest.fixture
-def client():
-    return TestClient(app)
-
-@pytest.fixture
-def htmx_headers():
-    return {
-        'HX-Request': 'true',
-        'HX-Current-URL': 'http://localhost/test'
-    }
-
-@pytest.fixture
-def htmx_client(client, htmx_headers):
-    """TestClient wrapper with HTMX headers"""
-    class HTMXTestClient:
         def __init__(self, client, headers):
             self.client = client
             self.headers = headers
 
-        def get(self, url, **kwargs):
+        def _merge(self, kwargs):
             kwargs.setdefault('headers', {}).update(self.headers)
-            return self.client.get(url, **kwargs)
+            return kwargs
 
-        def post(self, url, **kwargs):
-            kwargs.setdefault('headers', {}).update(self.headers)
-            return self.client.post(url, **kwargs)
+        def get(self, *a, **kw):    return self.client.get(*a, **self._merge(kw))
+        def post(self, *a, **kw):   return self.client.post(*a, **self._merge(kw))
+        def put(self, *a, **kw):    return self.client.put(*a, **self._merge(kw))
+        def delete(self, *a, **kw): return self.client.delete(*a, **self._merge(kw))
 
-        # ... put, delete, etc.
-
-    return HTMXTestClient(client, htmx_headers)
+    return HTMXClient(client, htmx_headers)
 ```
+
+> **Async testing:** FastAPI's `TestClient` handles async routes synchronously via `anyio`. For direct async testing, use `httpx.AsyncClient` with `@pytest.mark.anyio`.
 
 ### 2. Unit Tests for HTMX Detection
 
@@ -266,7 +223,7 @@ def test_user_row_structure(htmx_client):
     # Assert structure
     tr = soup.find('tr', id='user-1')
     assert tr is not None
-    assert tr.find('td', text='John Doe') is not None
+    assert tr.find('td', string='John Doe') is not None
 
     # Assert HTMX attributes present
     edit_button = tr.find('button', attrs={'hx-get': '/users/1/edit'})
@@ -392,10 +349,10 @@ def test_form_validation_errors(htmx_client):
     soup = parse_html(response.data)
 
     # Check error messages present
-    name_error = soup.find('span', class_='error', text=lambda t: 'name' in t.lower())
+    name_error = soup.find('span', class_='error', string=lambda t: t and 'name' in t.lower())
     assert name_error is not None
 
-    email_error = soup.find('span', class_='error', text=lambda t: 'email' in t.lower())
+    email_error = soup.find('span', class_='error', string=lambda t: t and 'email' in t.lower())
     assert email_error is not None
 ```
 
@@ -403,7 +360,7 @@ def test_form_validation_errors(htmx_client):
 
 **Mocking Database Calls:**
 ```python
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 
 def test_users_list_with_mock(htmx_client, mocker):
     """Test users endpoint with mocked database"""
@@ -507,7 +464,7 @@ def test_user_row(htmx_client):
     soup = parse_html(response.data)
     tr = soup.find('tr', id='user-1')
     assert tr is not None
-    assert tr.find('td', text='John Doe') is not None
+    assert tr.find('td', string='John Doe') is not None
 ```
 
 ## Output Format Examples

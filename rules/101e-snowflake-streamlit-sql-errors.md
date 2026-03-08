@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** SnowparkSQLException, error messages, Streamlit errors, Snowflake errors, debug SQL error, fix query error, SQL exception, error troubleshooting, query failed, database error, SQL debugging patterns, exception handling, error recovery, common SQL errors, streamlit error, app error, fix error, error handling
-**TokenBudget:** ~4150
+**TokenBudget:** ~4500
 **ContextTier:** Low
 **Depends:** 100-snowflake-core.md, 101-snowflake-streamlit-core.md, 101b-snowflake-streamlit-performance.md
 
@@ -115,6 +115,38 @@ Streamlit error messages with full context; stopped execution on SQL failure; em
 - [ ] Error codes included in error messages
 - [ ] st.stop() called after errors to prevent cascades
 
+## DRY Error Handling Decorator
+
+When many queries need identical error handling, use a decorator to avoid repetitive try/except blocks:
+
+```python
+import functools
+from snowflake.snowpark.exceptions import SnowparkSQLException
+
+def handle_sql_error(table: str, operation: str):
+    """Decorator for consistent SQL error handling across queries."""
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except SnowparkSQLException as e:
+                st.error(f"**SQL Failed: {operation}**\n\n"
+                         f"**Error:** {e}\n**Code:** {get_error_code(e)}\n**Table:** {table}")
+                st.stop()
+        return wrapper
+    return decorator
+
+# Usage
+@handle_sql_error(table="ASSETS", operation="Load assets")
+def load_assets():
+    return session.sql("SELECT * FROM ASSETS").to_pandas()
+
+@handle_sql_error(table="OUTAGES", operation="Load outages")
+def load_outages():
+    return session.sql("SELECT * FROM OUTAGES").to_pandas()
+```
+
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Generic Exception Catching Without SnowparkSQLException**
@@ -135,6 +167,8 @@ def load_data():
 # Good: Specific SQL exception handling with context
 from snowflake.snowpark.exceptions import SnowparkSQLException
 
+def get_error_code(e): return getattr(e, 'error_code', 'N/A')
+
 def load_data():
     try:
         df = session.sql("SELECT * FROM ASSETS").to_pandas()
@@ -144,7 +178,7 @@ def load_data():
         **SQL Query Failed: load_data()**
 
         **Error:** {str(e)}
-        **SQL Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
+        **SQL Error Code:** {get_error_code(e)}
 
         **Query Context:**
         - Table: ASSETS
@@ -186,7 +220,7 @@ except SnowparkSQLException as e:
     **SQL Query Failed: Query 1 - Load Assets**
 
     **Error:** {str(e)}
-    **Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
+    **Error Code:** {get_error_code(e)}
     **Table:** ASSETS
     """)
     st.stop()
@@ -199,7 +233,7 @@ except SnowparkSQLException as e:
     **SQL Query Failed: Query 2 - Load Outages**
 
     **Error:** {str(e)}
-    **Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
+    **Error Code:** {get_error_code(e)}
     **Table:** OUTAGES
     """)
     st.stop()
@@ -278,7 +312,7 @@ except SnowparkSQLException as e:
     **SQL Query Failed**
 
     **Error:** {str(e)}
-    **Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
+    **Error Code:** {get_error_code(e)}
     **Table:** ASSETS
     """)
     st.stop()
@@ -306,7 +340,7 @@ except SnowparkSQLException as e:
     **SQL Query Failed**
 
     **Error Message:** {str(e)}
-    **SQL Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
+    **SQL Error Code:** {get_error_code(e)}
 
     **Table:** ASSETS
     **Operation:** Loading all assets
@@ -358,7 +392,7 @@ def load_data_with_error_handling():
         **SQL Query Failed: load_data_with_error_handling()**
 
         **Error:** {str(e)}
-        **SQL Error Code:** {e.error_code if hasattr(e, 'error_code') else 'N/A'}
+        **SQL Error Code:** {get_error_code(e)}
 
         **Query Context:**
         - Table: UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
@@ -406,7 +440,7 @@ import time
 
 # Example pattern - implement classify_snowflake_connection_error() in your app
 # based on error codes and messages. See classification logic below.
-# from your_app.error_utils import classify_snowflake_connection_error, SnowflakeErrorType
+from your_app.error_utils import classify_snowflake_connection_error, SnowflakeErrorType
 
 def handle_connection_error(error: DatabaseError):
     """

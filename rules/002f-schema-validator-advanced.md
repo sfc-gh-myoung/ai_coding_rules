@@ -11,7 +11,7 @@
 **RuleVersion:** v1.0.1
 **LastUpdated:** 2026-02-18
 **Keywords:** schema validator, CI/CD integration, automation workflow, JSON parsing, programmatic validation, pre-commit hooks, GitHub Actions, batch validation, error automation, validation scripts
-**TokenBudget:** ~2650
+**TokenBudget:** ~2850
 **ContextTier:** Medium
 **Depends:** 002e-schema-validator-usage.md, 002-rule-governance.md, 000-global-core.md
 
@@ -185,6 +185,41 @@ critical_count = int(critical_match.group(1)) if critical_match else 0
 # Extract result status
 result_match = re.search(r'RESULT: \[(PASS|WARN|FAIL)\]', output)
 status = result_match.group(1) if result_match else "UNKNOWN"
+```
+
+### Error Recovery for Malformed JSON
+
+When the validator produces malformed JSON (truncated output, mixed stderr/stdout, or encoding issues), handle it gracefully before falling back to text parsing:
+
+```python
+import json
+import subprocess
+
+result = subprocess.run(
+    ['ai-rules', 'validate', 'rules/', '--json'],
+    capture_output=True,
+    text=True
+)
+
+try:
+    data = json.loads(result.stdout)
+except (json.JSONDecodeError, ValueError) as e:
+    # Log the parse failure for debugging
+    print(f"[WARN] JSON parse failed: {e}")
+    # Check if stderr was mixed into stdout
+    if result.stderr:
+        print(f"[WARN] Stderr present: {result.stderr[:200]}")
+    # Fall back to text output parsing
+    data = None
+
+if data is None:
+    # Re-run without --json and parse text output instead
+    result = subprocess.run(
+        ['ai-rules', 'validate', 'rules/'],
+        capture_output=True,
+        text=True
+    )
+    # Use regex-based text parsing (see Text Output Parsing above)
 ```
 
 ## Automated Validation + Fix Workflow
@@ -384,16 +419,7 @@ else:
 
 ### Anti-Pattern 3: Ignoring MEDIUM Warnings
 
-**Problem:** Never addressing MEDIUM warnings because they don't fail the build.
-
-**Why It Fails:** Accumulated warnings create noise, hide new issues, degrade rule quality.
-
-**Correct Pattern:**
-```bash
-# Track warnings over time
-uv run ai-rules validate rules/ --json | jq '.summary'
-# Schedule cleanup sprints: target <10 MEDIUM across all rules
-```
+See **002e-schema-validator-usage.md, Anti-Pattern 1** for detailed guidance on addressing MEDIUM warnings. In CI/CD contexts, track warning counts over time and schedule periodic cleanup to keep total MEDIUM warnings below 10 across all rules.
 
 ## Key Principles
 

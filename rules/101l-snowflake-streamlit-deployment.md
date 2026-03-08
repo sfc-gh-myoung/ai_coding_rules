@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-02
 **Keywords:** Container Runtime, Warehouse Runtime, deployment, pyproject.toml, environment.yml, compute pool, EAI, external access integration, CREATE STREAMLIT, migration
-**TokenBudget:** ~3700
+**TokenBudget:** ~4000
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md
 
@@ -46,7 +46,7 @@ Comprehensive deployment guidance for Streamlit applications in Snowflake, cover
 
 - Snowflake account with Streamlit privileges
 - Application source code ready for deployment
-- Understanding of compute requirements
+- Understanding of compute requirements: Container Runtime needs a compute pool (`CPU_X64_XS` minimum, ~$0.06/credit); Warehouse Runtime uses a virtual warehouse (`X-SMALL` sufficient for most apps)
 
 ### Mandatory
 
@@ -225,16 +225,16 @@ snowflake-snowpark-python>=1.11
 ### Step 4: Project Structure
 
 ```
-source_directory/
-├── .streamlit/
-│   └── config.toml          # Theme and configuration
-├── pyproject.toml           # Dependencies (recommended)
-├── streamlit_app.py         # Entrypoint
-├── pages/
-│   ├── dashboard.py
-│   └── settings.py
-└── utils/
-    └── helpers.py
+- `source_directory/`
+  - `.streamlit/`
+    - `config.toml` — Theme and configuration
+  - `pyproject.toml` — Dependencies (recommended)
+  - `streamlit_app.py` — Entrypoint
+  - `pages/`
+    - `dashboard.py`
+    - `settings.py`
+  - `utils/`
+    - `helpers.py`
 ```
 
 ### Step 5: Upload to Stage and Create Streamlit
@@ -259,6 +259,21 @@ CREATE STREAMLIT my_db.my_schema.my_app
 - `QUERY_WAREHOUSE`: Warehouse for executing SQL queries within the app
 - `EXTERNAL_ACCESS_INTEGRATIONS`: Required for PyPI package installation
 
+### Pre-Deployment Validation
+
+Run these checks before deploying:
+
+```bash
+# Verify Snowflake CLI connection
+snow connection test
+
+# Validate Streamlit project structure
+snow streamlit validate
+
+# Verify stage files uploaded correctly
+snow stage list-files @my_db.my_schema.my_stage/streamlit_app
+```
+
 ## Warehouse Runtime Setup (Alternative)
 
 ### Step 1: Create Dependency File (environment.yml)
@@ -282,14 +297,14 @@ dependencies:
 ### Step 2: Project Structure
 
 ```
-source_directory/
-├── .streamlit/
-│   └── config.toml          # Limited config options
-├── environment.yml          # Conda dependencies
-├── streamlit_app.py         # Entrypoint (MUST be in root)
-└── pages/
-    ├── dashboard.py
-    └── settings.py
+- `source_directory/`
+  - `.streamlit/`
+    - `config.toml` — Limited config options
+  - `environment.yml` — Conda dependencies
+  - `streamlit_app.py` — Entrypoint (MUST be in root)
+  - `pages/`
+    - `dashboard.py`
+    - `settings.py`
 ```
 
 **Constraint:** Entrypoint file MUST be in the root of source directory.
@@ -492,4 +507,30 @@ snow stage copy ./app @my_stage --recursive
 **Correct Pattern:**
 ```bash
 snow stage copy ./app @my_stage --recursive --no-auto-compress --overwrite
+```
+
+## Compute Pool Troubleshooting
+
+**Pool stuck in `STARTING` or `IDLE`:**
+```sql
+-- Check compute pool status
+DESCRIBE COMPUTE POOL streamlit_compute_pool;
+-- If stuck, try suspending and resuming
+ALTER COMPUTE POOL streamlit_compute_pool SUSPEND;
+ALTER COMPUTE POOL streamlit_compute_pool RESUME;
+```
+
+**App fails with "no available nodes":** Increase `MAX_NODES` or wait for capacity:
+```sql
+ALTER COMPUTE POOL streamlit_compute_pool SET MAX_NODES = 10;
+```
+
+**Permission denied on compute pool:** Ensure the role has USAGE granted:
+```sql
+GRANT USAGE ON COMPUTE POOL streamlit_compute_pool TO ROLE app_developer_role;
+```
+
+**Instance family too small:** If the app crashes with OOM errors, upgrade the instance family:
+```sql
+ALTER COMPUTE POOL streamlit_compute_pool SET INSTANCE_FAMILY = CPU_X64_S;
 ```

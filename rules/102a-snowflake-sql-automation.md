@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:sql-automation, kw:procedure
 **Keywords:** idempotent, MERGE, operations, multi-environment, infrastructure as code, Snowflake variables, production-safe, upsert, SQL automation, deployment scripts, SQL pipeline, config management, environment variables
-**TokenBudget:** ~5700
+**TokenBudget:** ~5650
 **ContextTier:** High
 **Depends:** 102-snowflake-sql-core.md
 
@@ -54,15 +54,31 @@ Guide creation of parameterized SQL templates using <%VARIABLE%> syntax for auto
 
 ### Inputs and Prerequisites
 
-Production Snowflake account, CI/CD pipeline, SQL templates with variables, environment-specific secrets
+- Production Snowflake account with SYSADMIN or equivalent role
+- USAGE privilege on target database/schema; CREATE TABLE, CREATE VIEW privileges on target schema
+- For COPY INTO operations: USAGE on stage and appropriate storage integration
+- CI/CD pipeline (GitHub Actions, GitLab CI, or equivalent) with Snowflake CLI installed
+- Environment-specific secrets configured (SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER, SNOWFLAKE_PASSWORD per environment)
 
 ### Mandatory
 
-Snowflake CLI, Task automation, GitHub Actions, Terraform
+- All environment-specific values parameterized with `<%VARIABLE%>` syntax
+- Use `CREATE TABLE IF NOT EXISTS` for table creation (never `CREATE OR REPLACE TABLE` in production)
+- Use MERGE for idempotent data upserts
+- File headers with Parameters, Usage, Example, Dependencies, and Idempotency sections
+- Tested in dev/test environments before production deployment
 
 ### Forbidden
 
-Manual UI operations, hardcoded credentials, CREATE OR REPLACE for tables with data
+- `CREATE OR REPLACE TABLE` on tables with data (causes data loss)
+- Hardcoded database/schema names in reusable templates (breaks environment portability)
+- Hardcoded credentials in SQL files or CI/CD configs (use secrets management)
+- Non-idempotent scripts that fail on re-run
+
+### Conditional
+
+- `CREATE OR REPLACE` is acceptable for views (no data loss) and stages
+- `FORCE = TRUE` in COPY INTO only when intentional file reloading is needed
 
 ### Execution Steps
 
@@ -534,6 +550,7 @@ FROM <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS
 GROUP BY asset_type;
 ```
 
+<!-- TODO: Extract CI/CD Integration (sections 4.1-4.3) to 102c-snowflake-sql-cicd.md in a future refactor -->
 ## CI/CD Integration
 
 ### 4.1 Taskfile Integration
@@ -656,57 +673,7 @@ snow sql -D DATABASE=PROD -D SCHEMA=GRID -f template.sql
 
 ## Production SQL File Headers
 
-### 5.1 Template Header Format
-
-**Required Sections:**
-```sql
--- ============================================================================
--- Filename: <filename>.sql
--- Description: <What this template does>
---
--- Parameters:
---   PARAM1 - Description and example
---   PARAM2 - Description and example
---
--- Usage:
---   snow sql -D PARAM1=value -D PARAM2=value -f <filename>.sql
---
--- Example:
---   snow sql -D DATABASE=PROD -D SCHEMA=GRID -f <filename>.sql
---
--- Dependencies: <What must exist before running>
--- Returns: <What gets created or modified>
--- Idempotency: <Explain why safe to rerun>
--- ============================================================================
-```
-
-### 5.2 Header Example
-
-```sql
--- ============================================================================
--- Filename: merge_scada_data.sql
--- Description: Upsert SCADA sensor data from stage (production-safe)
---
--- Parameters:
---   DATABASE - Database name (e.g., UTILITY_DEMO_V2)
---   SCHEMA   - Schema name (e.g., GRID_DATA)
---   STAGE    - Stage name (e.g., @UTILITY_DEMO_V2.GRID_DATA.FILES)
---
--- Usage:
---   snow sql -D DATABASE=DB -D SCHEMA=SCH -D STAGE=STG -f merge_scada_data.sql
---
--- Example:
---   snow sql -D DATABASE=PROD -D SCHEMA=GRID_DATA -D STAGE=@PROD.GRID_DATA.FILES -f merge_scada_data.sql
---
--- Dependencies:
---   - SCADA_DATA table must exist
---   - Stage must contain scada_*.csv files
---   - Warehouse must be active
---
--- Returns: Row count of merged records
--- Idempotency: MERGE ensures safe reruns (updates existing, inserts new)
--- ============================================================================
-```
+For the standard template header format and examples, see **Template File Structure** (section 1.2) and **Output Format Examples** above. All production SQL files must include the required header sections: Parameters, Usage, Example, Dependencies, and Idempotency.
 
 ## Validation and Testing
 

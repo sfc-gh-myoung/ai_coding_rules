@@ -51,10 +51,13 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 - SQL scripts for upload/remove/create operations
 
 ### Mandatory
-- Task automation (Taskfile.yml)
-- Snowflake CLI (`uvx snow sql`)
-- SQL template files with Snowflake variables (`<%VARIABLE%>`)
-- PUT, REMOVE, CREATE NOTEBOOK, CREATE STREAMLIT, DROP commands
+- 5-step deployment workflow: DROP, REMOVE, upload (PUT), CREATE, deploy (orchestrator)
+- `AUTO_COMPRESS=FALSE` on all PUT commands for `.py`, `.yml`, `.ipynb` files
+- Explicit `REMOVE @stage/file` before every `PUT` (not just `OVERWRITE=TRUE`)
+- `ROOT_LOCATION` in CREATE must match actual stage file paths
+- Taskfile.yml automation (no manual Snowsight UI deployments)
+- SQL scripts stored in version control, not inline in YAML
+- Snowflake CLI minimum version: 3.12+ (`uvx --from=snowflake-cli>=3.12 snow`)
 
 ### Forbidden
 - Manual file uploads via Snowsight UI (not reproducible)
@@ -90,13 +93,7 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 
 ### Post-Execution Checklist
 
-- [ ] DROP existing object SQL created
-- [ ] REMOVE stage files SQL created
-- [ ] PUT with AUTO_COMPRESS=FALSE
-- [ ] CREATE with correct ROOT_LOCATION
-- [ ] Taskfile targets defined
-- [ ] Deployment tested in dev
-- [ ] SQL scripts in version control
+See detailed Post-Execution Checklist below for comprehensive deployment validation steps.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -656,47 +653,6 @@ tasks:
       - msg: "app.ipynb not found"
 ```
 
-## Why Explicit REMOVE Before PUT?
-
-### The Stale Cache Problem
-
-**Observed Behavior:**
-- `PUT file @stage OVERWRITE=TRUE` successfully replaces the file in the stage
-- However, Snowflake applications (notebooks/Streamlit) may cache content at creation time
-- Subsequent file updates don't automatically propagate to the running application
-- Result: Your fix is in the stage, but the app still shows old code
-
-### The Solution: Explicit REMOVE
-
-```yaml
-deploy:
-  1. drop     # Remove old object (clears object-level cache)
-  2. remove   # Delete stage files (clears file-level cache)
-  3. upload   # Upload fresh files
-  4. create   # Create new object from fresh files
-```
-
-**Benefits:**
-- Guarantees clean state (no possibility of stale content)
-- Predictable deployments (same result every time)
-- Prevents subtle caching issues
-- Minimal overhead (REMOVE is fast)
-- Production-ready reliability
-
-### Real-World Evidence
-
-**Before (OVERWRITE only):**
-```bash
-task notebook:deploy:all  # Uses PUT OVERWRITE=TRUE
-# Result: Stage shows correct timestamp, but Snowsight shows old code
-```
-
-**After (drop, then remove, then upload, then create):**
-```bash
-task notebook:deploy:all  # Uses explicit REMOVE
-# Result: Reliable updates every time
-```
-
 ## Deployment Validation
 
 ### Post-Deployment Checklist
@@ -797,3 +753,37 @@ tasks:
           | grep -q "APP_NOTEBOOK"
         echo "✓ Object validation passed"
 ```
+
+## Rollback and Recovery
+
+### Failed Deployment Recovery
+
+If a deployment fails mid-workflow:
+
+```bash
+# 1. Check current state
+uvx snow sql -q "LIST @DB.SCHEMA.STAGE;"
+uvx snow sql -q "SHOW NOTEBOOKS IN SCHEMA DB.SCHEMA;"
+
+# 2. Clean up partial deployment
+task notebook:drop:app     # Remove broken object
+task notebook:remove:app   # Clean stage
+
+# 3. Redeploy from clean state
+task notebook:deploy:app
+```
+
+### Rollback to Previous Version
+
+```bash
+# Option 1: Redeploy from git (recommended)
+git checkout HEAD~1 -- notebooks/app.ipynb
+task notebook:deploy:app
+git checkout HEAD -- notebooks/app.ipynb  # Restore current version in working tree
+
+# Option 2: Keep previous version in a backup stage
+uvx snow sql -q "COPY FILES INTO @DB.SCHEMA.BACKUP_STAGE FROM @DB.SCHEMA.NOTEBOOK_STAGE;"
+# To restore: reverse the COPY FILES direction
+```
+
+**Prevention:** Always deploy to dev/qa first. Use git tags to mark known-good deployment states.

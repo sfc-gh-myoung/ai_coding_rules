@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:snowpipe, kw:streaming
 **Keywords:** snowpipe, auto-ingest, REST API, file-based ingestion, event notifications, COPY INTO, pipe management, serverless ingestion
-**TokenBudget:** ~2600
+**TokenBudget:** ~3200
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 108-snowflake-data-loading.md
 
@@ -319,3 +319,78 @@ LIST @STAGE_NAME;
 ```
 
 For comprehensive monitoring and troubleshooting, see `121b-snowflake-snowpipe-monitoring.md` and `121c-snowflake-snowpipe-troubleshooting.md`.
+
+## Pipe Lifecycle Management
+
+```sql
+-- Pause pipe (maintenance window)
+ALTER PIPE my_pipe SET PIPE_EXECUTION_PAUSED = TRUE;
+
+-- Resume pipe
+ALTER PIPE my_pipe SET PIPE_EXECUTION_PAUSED = FALSE;
+
+-- Force refresh specific prefix
+ALTER PIPE my_pipe REFRESH PREFIX = 'data/2026/03/';
+
+-- View pipe definition
+DESC PIPE my_pipe;
+
+-- View pipe usage history
+SELECT * FROM TABLE(INFORMATION_SCHEMA.PIPE_USAGE_HISTORY(
+  DATE_RANGE_START => DATEADD(day, -7, CURRENT_TIMESTAMP()),
+  PIPE_NAME => 'DB.SCHEMA.MY_PIPE'
+));
+
+-- Drop pipe
+DROP PIPE IF EXISTS old_pipe;
+```
+
+## Cost Spike Detection and Handling
+
+```sql
+-- Monitor credit consumption per pipe (detect spikes)
+SELECT pipe_name, DATE_TRUNC('hour', start_time) AS hour,
+  SUM(credits_used) AS credits_used, SUM(bytes_inserted) AS bytes_loaded
+FROM SNOWFLAKE.ACCOUNT_USAGE.PIPE_USAGE_HISTORY
+WHERE start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP())
+GROUP BY pipe_name, hour ORDER BY credits_used DESC;
+
+-- Detect cost anomalies (>2x average)
+WITH daily_costs AS (
+  SELECT pipe_name, DATE_TRUNC('day', start_time) AS day, SUM(credits_used) AS daily_credits
+  FROM SNOWFLAKE.ACCOUNT_USAGE.PIPE_USAGE_HISTORY
+  WHERE start_time >= DATEADD(day, -30, CURRENT_TIMESTAMP())
+  GROUP BY pipe_name, day
+)
+SELECT pipe_name, day, daily_credits,
+  AVG(daily_credits) OVER (PARTITION BY pipe_name ORDER BY day ROWS BETWEEN 7 PRECEDING AND 1 PRECEDING) AS avg_7d
+FROM daily_costs
+QUALIFY daily_credits > 2 * avg_7d;
+
+-- Throttle: pause pipe if costs spike
+-- ALTER PIPE high_cost_pipe SET PIPE_EXECUTION_PAUSED = TRUE;
+```
+
+## Error Notification Patterns
+
+```sql
+-- Track persistent load failures
+SELECT pipe_name, file_name, status, first_error_message, error_count,
+  last_load_time
+FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
+  TABLE_NAME => 'TARGET', START_TIME => DATEADD(hour, -24, CURRENT_TIMESTAMP())
+)) WHERE status = 'LOAD_FAILED' OR error_count > 0
+ORDER BY last_load_time DESC;
+
+-- Create alert for persistent failures
+CREATE ALERT IF NOT EXISTS snowpipe_error_alert
+  WAREHOUSE = alert_wh
+  SCHEDULE = '5 MINUTE'
+  IF (EXISTS (
+    SELECT 1 FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
+      TABLE_NAME => 'TARGET', START_TIME => DATEADD(hour, -1, CURRENT_TIMESTAMP())
+    )) WHERE status = 'LOAD_FAILED'
+  ))
+  THEN CALL SYSTEM$SEND_EMAIL('notify_integration', 'team@company.com',
+    'Snowpipe Load Failures', 'Check COPY_HISTORY for details');
+```

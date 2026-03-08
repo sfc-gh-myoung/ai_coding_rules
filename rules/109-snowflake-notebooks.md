@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:notebook, kw:jupyter
 **Keywords:** ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, create notebook, debug notebook, notebook execution, notebook testing, notebook deployment, kernel management, cell execution
-**TokenBudget:** ~5050
+**TokenBudget:** ~5400
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 201-python-lint-format.md
 
@@ -65,11 +65,24 @@ Snowflake account access; Snowpark for Python environment; Jupyter notebook envi
 
 ### Mandatory
 
-`edit_notebook`, `read_file`, `run_terminal_cmd` (for notebook execution), `codebase_search`, `write` (for .py/.sql refactoring)
+- All imports in a single top cell
+- Descriptive cell names following `action_subject` format (lowercase, underscores)
+- Markdown cells for narrative documentation between code sections
+- Secrets from environment variables or secrets manager (never hardcoded)
+- Snowpark DataFrames for large computations (minimize local `.to_pandas()` calls)
+- Deterministic execution: "Restart Kernel & Run All" must succeed
 
 ### Forbidden
 
-Direct database credential exposure; notebook execution without environment validation
+- Hardcoded credentials or connection strings in notebook cells
+- Notebook execution without environment validation (pinned dependencies)
+- Generic cell names (cell1, cell2, untitled)
+- Code cells used for documentation or static text
+
+### Conditional
+
+- `uvx nbqa ruff notebooks/` linting required for production-bound notebooks (optional for exploratory)
+- Production code extraction to `.py`/`.sql` files when notebook exceeds ~500 lines
 
 ### Execution Steps
 
@@ -95,13 +108,7 @@ Verify cell names follow naming conventions; validate deterministic execution; c
 
 ### Post-Execution Checklist
 
-- [ ] All imports in single top cell
-- [ ] Cell names are descriptive (`action_subject` format)
-- [ ] Markdown cells for narrative/documentation
-- [ ] Secrets from environment variables (not hardcoded)
-- [ ] Snowpark DataFrames for large computations
-- [ ] Run `uvx nbqa ruff notebooks/` for linting
-- [ ] Test: "Restart Kernel & Run All" works without errors
+See the detailed Post-Execution Checklist below (after Anti-Patterns section) for comprehensive validation steps.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -312,6 +319,31 @@ When adding cells programmatically or copying from other notebooks, ensure metad
 - **Always:** Follow the rules in `100-snowflake-core.md` for performant, cost-effective queries.
 - **Requirement:** For large datasets, push computation to Snowflake via Snowpark DataFrames; avoid large local pulls.
 - **Requirement:** Refactor production-ready code out of the notebook into `.py` or `.sql` files; notebooks serve as reports or exploratory tools.
+
+## Snowflake Notebooks UI Patterns
+
+### Snowsight Notebook Features
+- **Cell types:** Python, SQL, and Markdown cells are all supported natively
+- **SQL cell results:** SQL cells return results as DataFrames accessible in subsequent Python cells via `cell_name.to_pandas()`
+- **Active warehouse:** Set via notebook settings or `USE WAREHOUSE` in a SQL cell
+- **Packages:** Add Python packages via the Packages panel (not `pip install` in cells)
+- **Session context:** Each notebook has its own Snowpark session accessible via `get_active_session()`
+
+### Session and Kernel Management
+- **`get_active_session()`**: Use this instead of creating manual connections in Snowflake Notebooks
+- **Kernel restart:** Clears all variables; use "Restart & Run All" for reproducibility testing
+- **Idle timeout:** Snowflake Notebooks have a configurable idle timeout; save work frequently
+- **Warehouse selection:** Choose appropriate warehouse size in notebook settings before running compute-heavy cells
+- **Cell execution order:** Cells execute in the kernel's order, not visual order; always use sequential top-to-bottom execution
+
+```python
+# Snowflake Notebook session pattern
+from snowflake.snowpark.context import get_active_session
+session = get_active_session()
+
+# Use session for all Snowpark operations
+df = session.table("DB.SCHEMA.TABLE")
+```
 
 ## Code Quality & Linting
 

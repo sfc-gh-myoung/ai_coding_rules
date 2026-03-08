@@ -11,7 +11,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-01-27
 **Keywords:** multi-tool agents, planning instructions, testing, troubleshooting, semantic views, create agent, debug agent, agent not working, tool execution failed, agent error, fix agent
-**TokenBudget:** ~2150
+**TokenBudget:** ~2500
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 106-snowflake-semantic-views-core.md
 **LoadTrigger:** kw:agent, kw:cortex-agent
@@ -189,35 +189,27 @@ test_questions = [
 
 ### Multi-Domain Analytics (Multiple Cortex Analysts)
 
-**Use Cases:** Comprehensive analysis across different data domains
+**Select when:** Queries routinely span 2+ data domains (e.g., sales AND marketing)
 
 **Tool Configuration:** Multiple Cortex Analyst tools, each with domain-specific semantic views
 
-**When to Use:** Queries span multiple analytical domains regularly
-
 ### Single-Domain Analytics (Single Cortex Analyst)
 
-**Use Cases:** Focused analysis within specific domain
+**Select when:** All queries target one analytical domain with a single semantic view
 
 **Tool Configuration:** Single Cortex Analyst tool with domain-specific semantic view
 
-**When to Use:** Deep analysis needed within one area
-
 ### Research-Focused (Cortex Search Only)
 
-**Use Cases:** Document synthesis, policy research, compliance checking
+**Select when:** No quantitative calculations needed; purely document-based Q&A
 
 **Tool Configuration:** Multiple Cortex Search tools for different document types
 
-**When to Use:** No quantitative calculations required
-
 ### Hybrid (Multiple Analysts + Search)
 
-**Use Cases:** Investment decisions, comprehensive analysis
+**Select when:** >30% of queries mix quantitative data with qualitative document context
 
 **Tool Configuration:** Multiple Cortex Analyst + Cortex Search tools
-
-**When to Use:** Queries mix quantitative and qualitative needs frequently
 
 ## Tool Configuration
 
@@ -281,6 +273,49 @@ SHOW GRANTS TO ROLE agent_runner;
 
 -- Test Cortex function
 SELECT SNOWFLAKE.CORTEX.COMPLETE('llama3.1-8b', 'test');
+```
+
+## Tool Error Handling
+
+### Common Tool Failures and Recovery
+
+**Semantic view returns no results:**
+- Verify semantic view exists: `SHOW SEMANTIC VIEWS IN SCHEMA <schema>;`
+- Test semantic view independently: `SELECT * FROM <semantic_view> LIMIT 5;`
+- Check warehouse is specified and running
+
+**Cortex Search returns irrelevant results:**
+- Verify search service is active: `SHOW CORTEX SEARCH SERVICES IN SCHEMA <schema>;`
+- Check index freshness and document count
+- Refine tool description to clarify when to use
+
+**Agent returns "tool execution failed":**
+1. Test the failing tool independently (outside agent context)
+2. Check role permissions: `SHOW GRANTS TO ROLE <agent_role>;`
+3. Verify warehouse exists and is not suspended
+4. Check Cortex availability: `SHOW PARAMETERS LIKE 'CORTEX%' IN ACCOUNT;`
+
+## Agent Lifecycle Management
+
+```sql
+-- Create agent
+CREATE OR REPLACE CORTEX AGENT my_agent
+  COMMENT = 'Purpose description'
+  AS TOOLS = ['TOOL1'] PLANNING_INSTRUCTIONS = $$ ... $$;
+
+-- Modify agent (e.g., update instructions)
+CREATE OR REPLACE CORTEX AGENT my_agent
+  COMMENT = 'Updated purpose'
+  AS TOOLS = ['TOOL1', 'TOOL2'] PLANNING_INSTRUCTIONS = $$ Updated ... $$;
+
+-- Remove agent
+DROP CORTEX AGENT IF EXISTS my_agent;
+
+-- List agents
+SHOW CORTEX AGENTS;
+
+-- Describe agent configuration
+DESCRIBE CORTEX AGENT my_agent;
 ```
 
 ## Output Format Examples

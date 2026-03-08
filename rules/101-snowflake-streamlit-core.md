@@ -8,7 +8,7 @@
 **RuleVersion:** v4.0.0
 **LastUpdated:** 2026-03-02
 **Keywords:** Streamlit, Container Runtime, Warehouse Runtime, navigation, multipage, session state, config.toml, theming, st.connection
-**TokenBudget:** ~1800
+**TokenBudget:** ~1950
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** kw:streamlit, kw:dashboard
@@ -49,6 +49,12 @@ Foundational Streamlit setup: navigation, state management, runtime selection (C
 - **Connection:** Use `st.connection("snowflake")` for both runtimes
 - **Theming:** Use .streamlit/config.toml ONLY
 - **Navigation:** st.navigation() OR pages/ (never both)
+  - `pages/` directory approach (auto-discovered):
+    ```
+    app.py          # entrypoint
+    pages/1_Home.py
+    pages/2_Dashboard.py
+    ```
 - **Page config:** st.set_page_config() ONCE in entrypoint only
 - **State:** Initialize st.session_state at top level
 - **Secrets:** Use st.secrets (never hardcode)
@@ -131,6 +137,8 @@ st.markdown("<style>.my-class { color: red; }</style>", unsafe_allow_html=True)
 
 **See 101l-snowflake-streamlit-deployment.md for complete deployment guidance.**
 
+Use Container Runtime when you need custom Python packages, external API access, or Streamlit 1.50+ features. Use Warehouse Runtime for simple apps that only need Snowflake-bundled Anaconda packages and no external network access.
+
 ### Container Runtime (Recommended)
 - Long-running service with shared instance
 - Uses `pyproject.toml` with PyPI packages via `uv`
@@ -151,6 +159,8 @@ st.markdown("<style>.my-class { color: red; }</style>", unsafe_allow_html=True)
 conn = st.connection("snowflake")
 df = conn.query("SELECT * FROM my_table")
 ```
+
+**Connection errors:** Wrap `st.connection()` in try/except for production apps. See 100f-snowflake-connection-errors.md for error classification and retry patterns.
 
 ### Stage Upload Requirements
 **All `.py` and config files uploaded to a Streamlit stage MUST disable compression.**

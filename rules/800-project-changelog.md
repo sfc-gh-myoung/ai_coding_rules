@@ -59,7 +59,7 @@ Maintaining high-signal, audit-friendly CHANGELOG.md following Keep a Changelog 
 ### Mandatory
 
 - Read existing CHANGELOG.md to understand format and scope patterns
-- Use Keep a Changelog v1.1.0 standard types: Added, Changed, Deprecated, Removed, Fixed, Security
+- Use Keep a Changelog v1.1.0 standard types (see canonical list in Document Structure and Format)
 - Add entries under ## [Unreleased] section
 - Ensure human-readable, user-impact focused summaries
 
@@ -99,14 +99,14 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
 **Documentation Requirements:**
 - **CRITICAL:** Entry added under `## [Unreleased]` section
-- **CRITICAL:** Entry uses standard Keep a Changelog type (Added, Changed, Deprecated, Removed, Fixed, Security)
+- **CRITICAL:** Entry uses standard Keep a Changelog type (see canonical list in Document Structure and Format)
 - **CRITICAL:** Summary is human-readable and user-impact focused
 - **Format Check:** Entry matches existing format patterns in file
 - **Duplication Check:** No duplicate entries exist
 
 **Success Criteria:**
 - CHANGELOG.md contains entry under `## [Unreleased]`
-- Entry follows Conventional Commit format: `<type>(<scope>): <summary>`
+- If using Conventional Commits, entry follows format: `<type>(<scope>): <summary>`
 - Entry is concise and user-impact oriented
 - Pre-Task-Completion Validation Gate passed
 
@@ -120,7 +120,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 2. **Verify Unreleased section exists** - Create if missing
 3. **Never assume scope conventions** - Check existing scopes in file
 4. **Check for duplicates** - Avoid redundant entries
-5. **Validate Conventional Commits format** - Ensure `type(scope): summary`
+5. **Validate Conventional Commits format (if used)** - Ensure `type(scope): summary`
 
 **Anti-Pattern Examples:**
 - "Adding changelog entry..." (without checking existing format)
@@ -141,7 +141,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
 **After Completion:**
 - [ ] **CRITICAL:** CHANGELOG.md updated with entry under `## [Unreleased]`
-- [ ] **CRITICAL:** Entry follows Conventional Commit format: `<type>(<scope>): <summary>`
+- [ ] **If using Conventional Commits:** Entry follows format: `<type>(<scope>): <summary>`
 - [ ] Entry uses standard Keep a Changelog type
 - [ ] Summary is human-readable and user-impact focused
 - [ ] Format matches existing entries in file
@@ -313,7 +313,7 @@ Preview:
   - **Security** for vulnerability fixes (with CVE references when applicable)
 - **Requirement:** Maintain exactly ONE instance of each category heading (Added, Changed, Deprecated, Removed, Fixed, Security) within each version section. Consolidate all entries of the same type under a single heading.
 - **Requirement:** Each entry is a single line with human-readable summary.
-- **Requirement:** Use Conventional Commit format for consistency: `type(scope): summary`
+- **Consider (Optional):** Use Conventional Commit format for consistency: `type(scope): summary`
   - This is the PREFERRED format per [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification)
   - Conventional Commits enhances Keep a Changelog, not replaces it
   - Entries must remain human-readable and user-impact focused regardless of format
@@ -362,35 +362,28 @@ Preview:
 - **MANDATORY:** Any modification to configuration files (`pyproject.toml`, `Taskfile.yml`, etc.)
 - **MANDATORY:** Any modification to shell scripts (`.sh`, `.bash`, `.zsh`)
 - **MANDATORY:** Any modification to rule files (`.md` in `ai_coding_rules/`)
-- **MANDATORY:** Any modification to documentation files (`README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`)
+- **MANDATORY:** Any modification to documentation files (`README.md`, `CONTRIBUTING.md`)
+- **Exception:** Changes to CHANGELOG.md itself do not require a separate changelog entry.
 - **MANDATORY:** New features, bug fixes, refactors, or performance improvements
 - **MANDATORY:** Documentation-only changes (no longer optional - ALWAYS update CHANGELOG.md)
 - **Rationale:** Documentation changes are user-facing and must be tracked for complete audit trail
 
 ## Usage Examples and Patterns
 
-### Example 1: New Features (Added)
+### Example 1: New Features and Bug Fixes (Added/Fixed)
 
 ```markdown
 ## [Unreleased]
 ### Added
 - Progress bars for long-running CLI operations
 - Async command support for Typer applications
-- Comprehensive model validation patterns with Pydantic
-- Application factory pattern with Flask blueprints
-```
 
-### Example 2: Bug Fixes (Fixed)
-
-```markdown
-## [Unreleased]
 ### Fixed
 - Keyboard interrupt handling in CLI applications
 - Pydantic serialization issues with nested models
-- CSRF token validation in AJAX requests
 ```
 
-### Example 3: Security Vulnerabilities (Security)
+### Example 2: Security Vulnerabilities (Security)
 
 ```markdown
 ## [Unreleased]
@@ -400,25 +393,7 @@ Preview:
 - Updated dependencies to address known vulnerabilities
 ```
 
-### Example 4: Deprecations (Deprecated)
-
-```markdown
-## [Unreleased]
-### Deprecated
-- Legacy API v1 endpoints will be removed in v4.0.0 (migrate to v2)
-- Old configuration format deprecated, use YAML instead (removal in v5.0.0)
-```
-
-### Example 5: Breaking Changes (Removed)
-
-```markdown
-## [Unreleased]
-### Removed
-- Dropped Python 3.7 support (end of life reached)
-- Removed deprecated `get_user()` function (use `fetch_user()` instead)
-```
-
-### Example 6: With Optional Conventional Commits Format
+### Example 3: With Optional Conventional Commits Format
 
 ```markdown
 ## [Unreleased]

@@ -5,8 +5,9 @@
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-06
+**LoadTrigger:** kw:dmf-operations, kw:quality-monitoring
 **Keywords:** remediation, RBAC, privilege requirements, automated monitoring, quality alerts, schedule DMF, quality event tables, quality alerting, DMF results, quality workflows, DMF RBAC, quality notifications, remediation workflows
-**TokenBudget:** ~6550
+**TokenBudget:** ~5600
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 124-snowflake-data-quality-core.md, 111-snowflake-observability-core.md
 
@@ -108,12 +109,7 @@ Operational configurations produce:
 
 ### Post-Execution Checklist
 
-- [ ] DMF evaluation tasks scheduled with appropriate frequency
-- [ ] Event tables configured for results
-- [ ] Alerts set up for quality violations
-- [ ] Remediation workflows defined and tested
-- [ ] RBAC configured with least privilege
-- [ ] Monitoring dashboards created for quality trends
+See [Post-Execution Checklist](#post-execution-checklist) section below for full checklist.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -187,43 +183,7 @@ CREATE ALERT DATA_QUALITY.ALERTS.ORDER_DUPLICATE_ALERT
 ```
 **Benefits:** Automated detection of quality issues; timely alerting enables rapid remediation; clear pass/fail criteria for tracking.
 
-**Anti-Pattern 3: Database Role as Table Owner**
-```sql
--- Creating table with database role ownership
-USE ROLE ACCOUNTADMIN;
-CREATE DATABASE ROLE ANALYTICS.DATA_ENGINEERS;
-GRANT OWNERSHIP ON TABLE ANALYTICS.CORE.CUSTOMERS TO DATABASE ROLE ANALYTICS.DATA_ENGINEERS;
-
--- Attempting to set DMF fails
-USE ROLE ACCOUNTADMIN;
-GRANT EXECUTE DATA METRIC FUNCTION ON ACCOUNT TO DATABASE ROLE ANALYTICS.DATA_ENGINEERS;
--- Error: Cannot grant global privilege to database role
-
-ALTER TABLE ANALYTICS.CORE.CUSTOMERS
-  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (email);
--- Error: Table owner lacks required privilege
-```
-**Problem:** Database roles cannot receive global privileges; DMF operations fail; ownership transfer required.
-
-**Correct Pattern:**
-```sql
--- Use account-scoped custom role for table ownership
-USE ROLE ACCOUNTADMIN;
-
-CREATE ROLE IF NOT EXISTS DATA_QUALITY_ADMIN;
-GRANT EXECUTE DATA METRIC FUNCTION ON ACCOUNT TO ROLE DATA_QUALITY_ADMIN;
-GRANT USAGE ON DATABASE ANALYTICS TO ROLE DATA_QUALITY_ADMIN;
-GRANT USAGE ON SCHEMA ANALYTICS.CORE TO ROLE DATA_QUALITY_ADMIN;
-GRANT OWNERSHIP ON TABLE ANALYTICS.CORE.CUSTOMERS TO ROLE DATA_QUALITY_ADMIN;
-
--- Now DMF operations work
-USE ROLE DATA_QUALITY_ADMIN;
-ALTER TABLE ANALYTICS.CORE.CUSTOMERS
-  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (email);
-```
-**Benefits:** Proper privilege structure enables DMF operations; follows Snowflake security best practices; avoids permission errors.
-
-**Anti-Pattern 4: No Remediation Workflow**
+**Anti-Pattern 3: No Remediation Workflow**
 ```sql
 -- DMFs configured, alerts firing, but no process to fix issues
 -- Alerts accumulate, team ignores them (alert fatigue)
@@ -277,44 +237,6 @@ WHERE detected_timestamp >= DATEADD(month, -1, CURRENT_TIMESTAMP())
 GROUP BY table_name;
 ```
 **Benefits:** Structured response to quality issues; accountability and tracking; continuous improvement of data quality; prevents alert fatigue.
-
-**Anti-Pattern 5: Skipping Data Profiling**
-```sql
--- Creating DMFs without understanding baseline data characteristics
-ALTER TABLE CUSTOMERS
-  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (middle_name);
-
--- Set expectation based on guess
-ALTER TABLE CUSTOMERS
-  MODIFY DATA METRIC SCHEDULE '1 HOUR'
-    EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON middle_name) < 100;
-
--- Reality: 80% of records don't have middle names (legitimate)
--- Alert fires constantly on false positives
-```
-**Problem:** Expectations based on assumptions, not reality; high false positive rate; wasted investigation time; loss of trust in monitoring system.
-
-**Correct Pattern:**
-```sql
--- Step 1: Profile data first using Snowsight Data Profile
--- Navigate to: Catalog » Database Explorer » CUSTOMERS » Data Quality » Data Profile
--- Observe: middle_name has 80% NULLs (this is expected/normal)
-
--- Step 2: Set realistic expectation based on actual data
-ALTER TABLE CUSTOMERS
-  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (middle_name);
-
-ALTER TABLE CUSTOMERS
-  MODIFY DATA METRIC SCHEDULE '1 HOUR'
-    -- Allow for 85% NULLs (current 80% + buffer)
-    EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON middle_name) < (
-      SELECT COUNT(*) * 0.85 FROM CUSTOMERS
-    );
-
--- Step 3: Monitor for significant changes (drift detection)
--- If NULL rate jumps from 80% to 90%, that's a signal worth investigating
-```
-**Benefits:** Expectations grounded in reality; low false positive rate; meaningful alerts drive action; builds trust in monitoring system.
 
 ## Post-Execution Checklist
 
@@ -563,7 +485,8 @@ SELECT
   record_value:table_name::STRING AS table_name,
   COUNT(*) AS total_checks,
   SUM(CASE WHEN record_value:expectation_passed::BOOLEAN = FALSE THEN 1 ELSE 0 END) AS failures,
-  ROUND(failures / total_checks * 100, 2) AS failure_rate_pct
+  ROUND(SUM(CASE WHEN record_value:expectation_passed::BOOLEAN = FALSE THEN 1 ELSE 0 END)::FLOAT
+    / COUNT(*) * 100, 2) AS failure_rate_pct
 FROM <database>.INFORMATION_SCHEMA.EVENT_TABLE_HISTORY
 WHERE record_type = 'DATA_METRIC_FUNCTION_RESULT'
   AND record_timestamp >= DATEADD(day, -7, CURRENT_TIMESTAMP())
@@ -594,8 +517,9 @@ CREATE OR REPLACE ALERT DATA_QUALITY.ALERTS.EMAIL_NULL_ALERT
       AND record_timestamp >= DATEADD(minute, -15, CURRENT_TIMESTAMP())
   ))
   THEN
-    -- Send notification via email, Snowflake notification integration, etc.
+    -- Requires: CREATE NOTIFICATION INTEGRATION dq_email_int TYPE = EMAIL ENABLED = TRUE;
     CALL SYSTEM$SEND_EMAIL(
+      'dq_email_int',
       'data-quality-team@company.com',
       'Data Quality Alert: NULL Count Violation',
       'The email column in CUSTOMERS table has exceeded acceptable NULL threshold.'

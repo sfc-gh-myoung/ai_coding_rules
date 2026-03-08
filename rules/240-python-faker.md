@@ -191,52 +191,24 @@ fake.add_provider(OrderProvider)
 ## Output Format Examples
 
 ```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
+# conftest.py — Faker-specific output example
+import pytest
+from faker import Faker
 
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
-from datetime import datetime, UTC
+@pytest.fixture(scope="session")
+def seeded_faker() -> Faker:
+    """Session-scoped, seeded Faker for reproducible test data."""
+    Faker.seed(12345)
+    return Faker("en_US")
 
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
-
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
-
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
-
-    Args:
-        input_data: Validated input following schema
-
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
+@pytest.fixture
+def fake_user(seeded_faker):
+    """Generate a single fake user dict."""
+    return {
+        "username": seeded_faker.unique.user_name(),
+        "email": seeded_faker.unique.email(),
+        "age": seeded_faker.random_int(min=18, max=80),
+    }
 ```
 
 ```bash
@@ -256,7 +228,7 @@ uv run pytest tests/
 
 ```toml
 # pyproject.toml
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "faker>=20.0.0",
     "pytest>=7.0.0",
@@ -441,24 +413,19 @@ class TechCompanyProvider(BaseProvider):
     """Custom provider for tech company data."""
 
     tech_companies = [
-        'TechCorp', 'DataSystems', 'CloudWorks', 'DevSolutions',
-        'CodeCraft', 'ByteForge', 'PixelPush', 'LogicLabs'
+        'TechCorp', 'DataSystems', 'CloudWorks', ...  # truncated for brevity
     ]
 
     tech_domains = [
-        'AI/ML', 'Web Development', 'Mobile Apps', 'DevOps',
-        'Data Science', 'Cybersecurity', 'Cloud Computing', 'IoT'
+        'AI/ML', 'Web Development', 'DevOps', ...
     ]
 
     tech_roles = [
-        'Software Engineer', 'Data Scientist', 'DevOps Engineer',
-        'Product Manager', 'UX Designer', 'Security Analyst',
-        'Cloud Architect', 'Full Stack Developer'
+        'Software Engineer', 'Data Scientist', 'DevOps Engineer', ...
     ]
 
     programming_languages = [
-        'Python', 'JavaScript', 'Java', 'Go', 'Rust',
-        'TypeScript', 'C++', 'Ruby', 'PHP', 'Swift'
+        'Python', 'JavaScript', 'Go', 'Rust', ...
     ]
 
     def tech_company_name(self) -> str:
@@ -511,7 +478,7 @@ class ProjectProvider(BaseProvider):
             "{adjective} solution for {purpose} using {tech}"
         ]
 
-        return self.generator.parse(self.random_element(templates)).format(
+        return self.random_element(templates).format(
             adjective=self.generator.word(),
             project_type=self.random_element(self.project_types).lower(),
             purpose=self.generator.bs(),
@@ -560,8 +527,8 @@ def fake_user_data(faker):
     """Generate fake user data for testing."""
     def _generate_user(**overrides) -> Dict:
         data = {
-            'username': faker.user_name(),
-            'email': faker.email(),
+            'username': faker.unique.user_name(),  # .unique ensures no duplicates
+            'email': faker.unique.email(),
             'first_name': faker.first_name(),
             'last_name': faker.last_name(),
             'age': faker.random_int(min=18, max=80),

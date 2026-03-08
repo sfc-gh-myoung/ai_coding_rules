@@ -51,14 +51,16 @@ Establishes backend integration patterns for React applications, with Python (Fa
 - Python environment (per 200-python-core.md)
 - Understanding of REST API patterns
 - Knowledge of authentication flows
-
-### Mandatory
-
 - TanStack Query for API state management
-- httpOnly cookies for JWT storage
 - Environment variables for API URLs
 - CORS middleware on backend
 - Type-safe API layer
+
+### Mandatory
+
+- MUST use httpOnly cookies for authentication tokens
+- MUST validate API responses with Zod schemas
+- MUST configure CORS with specific origins (no wildcards in production)
 
 ### Forbidden
 
@@ -122,15 +124,10 @@ Python backend code (FastAPI or Flask) with:
 
 ### Post-Execution Checklist
 
-- [ ] Backend framework selected (FastAPI or Flask)
-- [ ] CORS middleware configured with specific origins
-- [ ] Authentication implemented with httpOnly cookies
-- [ ] TanStack Query configured for API communication
-- [ ] Environment variables set up for API URLs
+- [ ] Verify all Pre-Task-Completion Checks still pass
 - [ ] Frontend tests pass (`npm run test`)
 - [ ] Backend tests pass (`uv run pytest`)
 - [ ] Type checking clean on both frontend and backend
-- [ ] No CORS errors in browser console
 - [ ] API calls work end-to-end with authentication
 
 ## Key Principles
@@ -237,11 +234,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+# SECURITY: Never use allow_origins=["*"] with allow_credentials=True
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],  # Vite dev server
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -261,7 +259,7 @@ async def login(response: Response, credentials: LoginRequest):
     return {"message": "Login successful"}
 ```
 
-#### 3.2 Frontend Auth State
+#### Frontend Auth State
 
 ```typescript
 // src/features/auth/hooks/useAuth.ts
@@ -329,7 +327,9 @@ VITE_API_URL=https://api.example.com
 
 # Backend (.env)
 CORS_ORIGINS=http://localhost:5173,http://localhost:3000
-JWT_SECRET=your-secret-key
+# Generate with: python -c "import secrets; print(secrets.token_hex(32))"
+JWT_SECRET=<generated-hex-value>
+# WARNING: Never commit .env files to source control. Add .env to .gitignore.
 ```
 
 ## Anti-Patterns and Common Mistakes
@@ -362,22 +362,7 @@ fetch(`${API_URL}/users`);
 ```
 
 **Anti-Pattern 3: Data Fetching in useEffect**
-```typescript
-// Bad: Manual state management
-useEffect(() => {
-  fetch('/api/user').then(setUser);
-}, []);
-```
-**Problem:** No caching, no loading states, race conditions.
-
-**Correct Pattern:**
-```typescript
-// Good: TanStack Query
-const { data: user } = useQuery({
-  queryKey: ['user'],
-  queryFn: fetchUser,
-});
-```
+See 440-react-core.md Anti-Pattern 1: Data Fetching in useEffect. Use TanStack Query instead.
 
 > **Investigation Required**
 > When applying this rule:

@@ -208,7 +208,7 @@ If staged changes exist and CHANGELOG.md not staged: Warn and offer to update.
 - Keep descriptions concise (3-5 words)
 
 ### Supported Types
-- `feature/` (or `feat/`) - New features
+- `feature/` (preferred) or `feat/` (alias) - New features
 - `bugfix/` (or `fix/`) - Bug fixes
 - `hotfix/` - Urgent fixes
 - `release/` - Release preparation

@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** plotly, plotly express, graph objects, st.plotly_chart, interactive charts, scatter, line, bar, histogram, heatmap, box plot, violin, sunburst, treemap, animations, faceting, subplots
-**TokenBudget:** ~3150
+**TokenBudget:** ~3000
 **ContextTier:** Medium
 **Depends:** 101a-snowflake-streamlit-visualization.md
 
@@ -101,6 +101,14 @@ st.plotly_chart(fig, width="stretch")
 - [ ] No console errors
 - [ ] Charts render quickly (<2s)
 
+## Colorblind-Safe Palette (Reuse Throughout)
+
+Define once; reference everywhere:
+
+```python
+COLORBLIND_SAFE = ['#0173B2', '#DE8F05', '#029E73', '#D55E00', '#CC78BC', '#CA9161', '#FBAFE4', '#949494']
+```
+
 ## Plotly Express Quick Reference
 
 ### Chart Type Selection
@@ -146,11 +154,7 @@ fig = px.bar(
     color='product',
     barmode='group',
     title='Sales by Region and Product',
-    color_discrete_map={
-        'Product A': '#0173B2',
-        'Product B': '#DE8F05', 
-        'Product C': '#029E73'
-    }
+    color_discrete_sequence=COLORBLIND_SAFE  # Defined above
 )
 st.plotly_chart(fig, width="stretch")
 ```
@@ -274,7 +278,7 @@ fig = px.scatter_map(
     size='value',
     hover_name='name',
     hover_data=['address', 'status'],
-    color_discrete_map={'Active': '#029E73', 'Inactive': '#D55E00'},
+    color_discrete_map={'Active': COLORBLIND_SAFE[2], 'Inactive': COLORBLIND_SAFE[3]},
     zoom=10,
     map_style='carto-positron',
     title='Location Overview'
@@ -351,14 +355,14 @@ fig.update_xaxes(tickangle=45, tickformat='%Y-%m-%d')
 fig.update_yaxes(tickprefix='$', tickformat=',.0f')
 ```
 
-## Colorblind-Safe Palettes
+## Colorblind-Safe Usage Examples
 
 ```python
-COLORBLIND_SAFE = ['#0173B2', '#DE8F05', '#029E73', '#D55E00', '#CC78BC', '#CA9161', '#FBAFE4', '#949494']
-
+# Using the COLORBLIND_SAFE palette defined above
 fig = px.bar(df, x='category', y='value', color='group',
              color_discrete_sequence=COLORBLIND_SAFE)
 
+# Alternative: Plotly built-in Safe palette
 import plotly.colors
 fig = px.scatter(df, x='x', y='y', color='category',
                  color_discrete_sequence=plotly.colors.qualitative.Safe)
@@ -379,19 +383,23 @@ fig = create_expensive_figure(df)
 st.plotly_chart(fig, width="stretch")
 ```
 
-## Common Anti-Patterns
+## Anti-Patterns and Common Mistakes
 
-**Anti-Pattern: Missing responsive width**
+### Anti-Pattern 1: Missing Responsive Width
+
+**Problem:** Not setting responsive width on Plotly charts.
 ```python
 st.plotly_chart(fig)
 ```
 
-**Correct:**
+**Correct Pattern:**
 ```python
 st.plotly_chart(fig, width="stretch")
 ```
 
-**Anti-Pattern: Overusing Graph Objects**
+### Anti-Pattern 2: Overusing Graph Objects
+
+**Problem:** Using Graph Objects for simple visualizations when Plotly Express is simpler.
 ```python
 fig = go.Figure()
 fig.add_trace(go.Scatter(x=df['x'], y=df['y'], mode='lines'))
@@ -403,14 +411,17 @@ fig.update_layout(title='Simple Line')
 fig = px.line(df, x='x', y='y', title='Simple Line')
 ```
 
-**Anti-Pattern: Red-green color scheme**
+### Anti-Pattern 3: Red-Green Color Scheme
+
+**Problem:** Using red-green color combinations that are inaccessible to colorblind users.
+
 ```python
 color_map = {'good': 'green', 'bad': 'red'}
 ```
 
-**Correct:**
+**Correct Pattern:**
 ```python
-color_map = {'good': '#029E73', 'bad': '#D55E00'}
+color_map = {'good': '#029E73', 'bad': '#D55E00'}  # Colorblind-safe
 ```
 
 ## Validation Checklist
@@ -421,36 +432,4 @@ color_map = {'good': '#029E73', 'bad': '#D55E00'}
 - [ ] Appropriate chart type for data purpose
 - [ ] Interactive features tested (hover, zoom, pan)
 - [ ] Performance acceptable for data size
-- [ ] Consistent styling across dashboard
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Using Graph Objects for Simple Charts
-
-**Problem:**
-```python
-fig = go.Figure()
-fig.add_trace(go.Scatter(x=df['x'], y=df['y'], mode='lines'))
-fig.update_layout(title='Simple Line')
-```
-
-**Why It Fails:** Graph Objects require verbose code for simple visualizations. Plotly Express provides the same result with less code.
-
-**Correct Pattern:**
-```python
-fig = px.line(df, x='x', y='y', title='Simple Line')
-```
-
-### Anti-Pattern 2: Red-Green Color Scheme
-
-**Problem:**
-```python
-color_map = {'good': 'green', 'bad': 'red'}
-```
-
-**Why It Fails:** Red-green colorblindness affects ~8% of males. Use colorblind-safe alternatives.
-
-**Correct Pattern:**
-```python
-color_map = {'good': '#029E73', 'bad': '#D55E00'}
-```
+- [ ] Consistent st

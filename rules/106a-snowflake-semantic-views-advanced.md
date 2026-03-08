@@ -40,13 +40,26 @@ Advanced semantic view patterns: anti-patterns, validation rules, quality checks
 ## Contract
 
 ### Inputs and Prerequisites
-Understanding of semantic view basics (from 106-core), semantic view created
+- Understanding of semantic view basics (from 106-core)
+- Role with CREATE SEMANTIC VIEW privilege on target schema
+- USAGE privilege on referenced tables/views
+- Semantic view created and accessible
 
 ### Mandatory
-Validation queries, compliance checks, quality tools
+- Run `DESCRIBE TABLE` to verify physical column names before any semantic view DDL
+- Use `alias.physical_column AS logical_name` mapping syntax consistently
+- Validate with `SHOW SEMANTIC VIEWS/DIMENSIONS/METRICS` after creation
+- Follow clause order: TABLES, FACTS, DIMENSIONS, METRICS
 
 ### Forbidden
-None specific
+- Circular or self-referencing relationships
+- Expression reference cycles between metrics
+- Template characters (`&`, `<%`, `{{`) in SYNONYMS or COMMENT values
+- Window function metrics referenced from other metrics or dimensions
+
+### Conditional
+- PRIMARY KEY required only when relationships are defined
+- Composite keys when table grain requires multiple columns
 
 ### Execution Steps
 1) Review anti-patterns 2) Apply validation rules 3) Run quality checks 4) Verify compliance
@@ -82,52 +95,27 @@ FACTS (orders.total_amount AS order_amount)  -- logical_name AS physical_column
 ```
 
 ### Anti-Pattern 2: Complex Expressions in DIMENSIONS
+
+**Problem:** Using CAST, DATE_TRUNC, or other transformations directly in DIMENSIONS.
 ```sql
--- WRONG: CAST/DATE_TRUNC not allowed in dimensions
-DIMENSIONS (orders.reading_date AS CAST(order_timestamp AS DATE))
+-- WRONG: Complex expression in DIMENSIONS
+DIMENSIONS (orders.DATE_TRUNC('month', order_date) AS order_month)
 ```
-**Problem:** Dimensions must be simple columns.
+
+**Why It Fails:** DIMENSIONS must be direct column references. Complex expressions cause syntax errors.
 
 **Correct Pattern:**
 ```sql
-DIMENSIONS (orders.order_timestamp AS order_timestamp)  -- Use raw column
+-- Use a derived column in the base table or a view
+DIMENSIONS (orders.order_month AS order_month)  -- Pre-computed column
 ```
 
-### Anti-Pattern 3: Missing Equals Sign in COMMENT
-```sql
--- WRONG
-COMMENT 'Sales orders table'
-```
-**Problem:** Syntax error without equals sign.
+### Additional Reference
 
-**Correct Pattern:**
-```sql
-COMMENT = 'Sales orders table'
-```
-
-### Anti-Pattern 4: Wrong Clause Order
-**Problem:** Clause order matters in semantic view DDL.
-
-**Correct Pattern:** Order: TABLES, then FACTS, then DIMENSIONS, then METRICS
-
-### Anti-Pattern 5: Referencing Non-Existent Columns (Most Common Error)
-```sql
--- WRONG: Using invented column names
-FACTS (tfm.load_kilowatts AS load_kw)  -- "load_kilowatts" doesn't exist!
-```
-**Problem:** DDL may compile but queries fail with "invalid identifier".
-
-**Correct Pattern:**
-```sql
--- Step 1: ALWAYS verify physical column names first
-DESCRIBE TABLE PROD.GRID_DATA.TRANSFORMER_DATA;
--- Output shows: EQUIPMENT_ID, LOAD_KW, AMBIENT_TEMP_C, ...
-
--- Step 2: Use exact column names from DESCRIBE output
-FACTS (tfm.load_kw AS load_kw)  -- "load_kw" matches actual column
-```
-
-**Key Insight:** `alias.PHYSICAL_COLUMN AS logical_name` where PHYSICAL_COLUMN must exist in base table.
+See `106-snowflake-semantic-views-core.md` for additional anti-patterns:
+- **Missing Equals Sign in COMMENT** - use `COMMENT = 'text'`
+- **Wrong Clause Order** - must be TABLES, FACTS, DIMENSIONS, METRICS
+- **Referencing Non-Existent Columns** - always verify with `DESCRIBE TABLE` first
 
 ## Validation Rules
 

@@ -135,71 +135,15 @@ Test patterns, RBAC configs, observability queries, troubleshooting steps
 - [ ] Token/output caps set; cost/latency tracked
 
 **Anti-Pattern 1: Flagging Logic in Semantic Views**
-```yaml
-# In Semantic View custom instructions:
-"Flag positions exceeding 6.5% as concentration risks"
-```
-**Problem:** Semantic views should be reusable across agents with different thresholds. Business rules belong in agent instructions.
 
-**Correct Pattern:**
-```yaml
-# In Agent Response Instructions:
-"When position weights exceed 6.5%, flag with ' CONCENTRATION WARNING'"
+See Anti-Patterns section below for detailed patterns covering RBAC (Anti-Pattern 1), component testing (Anti-Pattern 2), and cost/latency budgets (Anti-Pattern 3).
 
-# In Semantic View:
-Just calculate position_weight accurately (no flagging logic)
-```
-
-**Anti-Pattern 2: Overlapping Tool Use Cases**
-```yaml
-Tool A: "Use for portfolio analysis"
-Tool B: "Use for investment analysis"  # Too similar!
-```
-**Problem:** Agent won't know which tool to pick, leading to inconsistent behavior.
-
-**Correct Pattern:**
-```yaml
-Tool A: "Use for portfolio holdings, weights, and sector breakdowns"
-Tool B: "Use for risk metrics, volatility calculations, and correlations"
-```
-
-**Anti-Pattern 3: Missing When-to-Use Guidance**
-```yaml
-Tool Description: "Analyzes portfolio data"
-```
-**Problem:** Too vague. Agent doesn't know WHEN this tool is appropriate vs other tools.
-
-**Correct Pattern:**
-```yaml
-Tool Description: "Use this tool for quantitative portfolio analysis including holdings lists, weight calculations, and sector allocations. Use for questions about 'how much', 'what percentage', 'top N', and data visualizations."
-```
-
-**Anti-Pattern 4: Testing Only End-to-End**
-```python
-# Only test complete agent workflows
-test_full_agent_query("Show me everything about my portfolio")
-```
-**Problem:** When tests fail, you don't know which tool or component is broken.
-
-**Correct Pattern:**
-```python
-# Test components first
-test_analyst_tool_works()
-test_search_tool_works()
-# Then test integration
-test_multi_tool_workflow()
-```
-
-**Anti-Pattern 5: Vague Planning Instructions**
-```
-"Use the best tool for each query"
-```
-**Problem:** Too ambiguous. Agent needs explicit tool selection logic.
-
-**Correct Pattern:**
-```
-"For numerical questions (how much, what percentage, top N), use portfolio_analyzer. For opinions and research (what do analysts say, latest commentary), use search_research_reports."
-```
+**Quick Reference - Common Mistakes:**
+- Putting flagging/threshold logic in semantic views instead of agent instructions
+- Overlapping tool descriptions that confuse tool selection
+- Missing when-to-use guidance in tool descriptions
+- Testing only end-to-end without component testing first
+- Vague planning instructions like "use the best tool"
 
 ## Output Format Examples
 
@@ -442,6 +386,25 @@ Apply these security patterns:
 - Monitor tool selection accuracy (is agent picking right tool?)
 - Track flagging accuracy (are thresholds applied correctly?)
 
+### Agent Health Checks
+
+**Periodic health check pattern:**
+```sql
+-- Check agent availability and recent performance
+SELECT
+    agent_name,
+    COUNT(*) as total_queries_24h,
+    COUNT(CASE WHEN status = 'SUCCESS' THEN 1 END) as successful,
+    COUNT(CASE WHEN status = 'ERROR' THEN 1 END) as errors,
+    ROUND(successful / NULLIF(total_queries_24h, 0) * 100, 1) as success_rate_pct,
+    AVG(latency_ms) as avg_latency_ms,
+    MAX(latency_ms) as max_latency_ms
+FROM SNOWFLAKE.ACCOUNT_USAGE.CORTEX_AGENT_HISTORY
+WHERE start_time >= DATEADD('hour', -24, CURRENT_TIMESTAMP())
+GROUP BY agent_name
+ORDER BY errors DESC;
+```
+
 ## Cost and Latency
 
 - Prefer cached retrieval; restrict tool invocations per turn
@@ -671,7 +634,7 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
 
 **Problem:** Creating agents with unrestricted access to all semantic views and search services, allowing any user to query sensitive data regardless of their role or permissions.
 
-**Why It Fails:** Violates data governance and compliance requirements, exposes confidential information to unauthorized users, creates audit and security risks, and fails regulatory requirements for data access controls.
+**Why It Fails:** Violates data governance; exposes confidential information to unauthorized users; creates audit and security risks.
 
 **Correct Pattern:**
 ```sql
@@ -696,7 +659,7 @@ CREATE CORTEX AGENT portfolio_agent_restricted
 
 **Problem:** Testing the full agent end-to-end without first validating individual tools (Cortex Analyst, Cortex Search) work correctly in isolation.
 
-**Why It Fails:** When integration tests fail, impossible to determine if the issue is in the semantic view, search service, agent configuration, or tool integration. Wastes debugging time and makes root cause analysis difficult.
+**Why It Fails:** When integration tests fail, impossible to determine which component is broken. Wastes debugging time.
 
 **Correct Pattern:**
 ```python
@@ -736,7 +699,7 @@ def test_agent_integration():
 
 **Problem:** Deploying agents without query cost limits, timeout settings, or latency monitoring, allowing unbounded compute usage and slow user experiences.
 
-**Why It Fails:** Agents can generate expensive queries that consume credits rapidly, queries may hang indefinitely causing poor UX, and lack of monitoring prevents identifying performance issues until users complain.
+**Why It Fails:** Agents can generate expensive queries that consume credits rapidly; queries may hang indefinitely causing poor UX.
 
 **Correct Pattern:**
 ```sql

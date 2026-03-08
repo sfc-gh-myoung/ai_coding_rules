@@ -6,7 +6,7 @@
 **RuleVersion:** v4.0.0
 **LastUpdated:** 2026-03-02
 **Keywords:** st.secrets, SQL injection, authentication, secure streamlit, protect app, credentials management, API keys, environment variables, secure deployment, input sanitization, RBAC streamlit, access control, security patterns, Container Runtime, Warehouse Runtime
-**TokenBudget:** ~3850
+**TokenBudget:** ~3800
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 107-snowflake-security-governance.md
 
@@ -209,44 +209,6 @@ if uploaded_file:
         df = pd.read_csv(uploaded_file)
 ```
 
-## Output Format Examples
-```python
-import streamlit as st
-import pandas as pd
-import re
-
-# Secrets management
-try:
-    api_key = st.secrets["api"]["key"]
-except KeyError as e:
-    st.error(f"Missing configuration: {e}")
-    st.stop()
-
-# Input validation
-user_input = st.text_input("Enter value")
-if user_input:
-    # Sanitize input
-    sanitized = re.sub(r'[^a-zA-Z0-9\s_-]', '', user_input)
-
-    if sanitized != user_input:
-        st.warning("Special characters removed from input")
-
-# File upload with validation
-uploaded_file = st.file_uploader("Upload CSV", type=['csv'])
-if uploaded_file:
-    MAX_SIZE = 10 * 1024 * 1024  # 10MB
-
-    if uploaded_file.size > MAX_SIZE:
-        st.error("File too large. Maximum 10MB.")
-        st.stop()
-
-    try:
-        df = pd.read_csv(uploaded_file)
-        st.success(f"Loaded {len(df)} rows")
-    except Exception:
-        st.error("Invalid file format")
-```
-
 ## Secrets Management
 
 **MANDATORY:**
@@ -415,16 +377,12 @@ result = session.sql(query).to_pandas()
 
 **Secure Pattern:**
 ```python
-# [PASS] Safe: Use parameterized queries or query builders
-user_input = st.text_input("Enter user ID")
-
 # Snowpark DataFrame API (safe)
 users_df = session.table('users').filter(col('id') == user_input)
 
-# Or validate and sanitize input
+# Or validate and use parameterized approach
 if user_input.isdigit():
-    query = f"SELECT * FROM users WHERE id = {int(user_input)}"
-    result = session.sql(query).to_pandas()
+    users_df = session.table('users').filter(col('id') == int(user_input))
 else:
     st.error("Invalid user ID format")
 ```
@@ -436,18 +394,19 @@ else:
 
 ```python
 import streamlit as st
-import hashlib
 
-# WARNING: SHA-256 alone is inadequate for production password hashing.
-# For production apps, use bcrypt or argon2 instead.
-# This example is for demonstration purposes only.
+# NOTE: For production apps, use a dedicated auth library (e.g., streamlit-authenticator)
+# or Snowflake's built-in authentication via Container Runtime.
+# This example demonstrates the pattern only.
 
-def hash_password(password: str) -> str:
-    """Hash password using SHA-256. Use bcrypt/argon2 in production."""
-    return hashlib.sha256(password.encode()).hexdigest()
+import bcrypt
+
+def verify_password(password: str, hashed: bytes) -> bool:
+    """Verify password against bcrypt hash."""
+    return bcrypt.checkpw(password.encode(), hashed)
 
 def check_authentication():
-    """Simple authentication check."""
+    """Simple authentication check using bcrypt."""
     if 'authenticated' not in st.session_state:
         st.session_state.authenticated = False
 
@@ -458,11 +417,9 @@ def check_authentication():
         password = st.text_input("Password", type="password")
 
         if st.button("Login"):
-            # In production, check against database
-            # NEVER hardcode passwords like this
             if username == st.secrets["admin"]["username"]:
-                hashed = hash_password(password)
-                if hashed == st.secrets["admin"]["password_hash"]:
+                stored_hash = st.secrets["admin"]["password_hash"].encode()
+                if verify_password(password, stored_hash):
                     st.session_state.authenticated = True
                     st.session_state.username = username
                     st.rerun()
@@ -475,8 +432,6 @@ def check_authentication():
 
 # Check auth before showing app
 check_authentication()
-
-# Main app code
 st.write(f"Welcome, {st.session_state.username}!")
 ```
 
@@ -511,6 +466,31 @@ except Exception as e:
 ## Deployment Security
 
 **MANDATORY:**
+**Session Timeout (for authenticated apps):**
+```python
+import time
+TIMEOUT_SECONDS = 1800  # 30 minutes
+if 'last_activity' in st.session_state:
+    if time.time() - st.session_state.last_activity > TIMEOUT_SECONDS:
+        st.session_state.authenticated = False
+        st.rerun()
+st.session_state.last_activity = time.time()
+```
+
+**Rate Limiting (for user-triggered queries):**
+```python
+import time
+MIN_INTERVAL = 2  # seconds between queries
+if 'last_query' in st.session_state:
+    elapsed = time.time() - st.session_state.last_query
+    if elapsed < MIN_INTERVAL:
+        st.warning(f"Please wait {MIN_INTERVAL - elapsed:.0f}s before querying again.")
+        st.stop()
+st.session_state.last_query = time.time()
+```
+
+**Note:** CORS policies are managed at the deployment/infrastructure level (e.g., Snowflake Container Runtime network rules), not within Streamlit app code.
+
 **Production Deployment Checklist:**
 - [ ] Deploy using HTTPS (never HTTP for production)
 - [ ] Use Snowflake RBAC for data access control

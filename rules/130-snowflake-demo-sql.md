@@ -6,7 +6,8 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-02-20
 **Keywords:** demo SQL, workshop, teardown, progress indicators, rerunnable demos, CREATE OR REPLACE, educational SQL, demo patterns, setup scripts, customer learning, per-schema isolation, inline documentation
-**TokenBudget:** ~5000
+**LoadTrigger:** kw:demo, kw:workshop, kw:quickstart
+**TokenBudget:** ~5300
 **ContextTier:** High
 **Depends:** 102-snowflake-sql-core.md
 
@@ -287,9 +288,15 @@ SELECT '[PASS] GRID_DATA schema removed' AS status;
 COPY INTO UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
 FROM @UTILITY_DEMO_V2.GRID_DATA.DATA_FILES
 PATTERN = '.*grid_assets.*\\.csv'
-FILE_FORMAT = (TYPE = 'CSV', SKIP_HEADER = 1);
+FILE_FORMAT = (TYPE = 'CSV', SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';  -- Skip bad rows in demo context
 
 SELECT '[PASS] Grid assets loaded' AS progress;
+
+-- Pre-check for load errors before committing
+-- COPY INTO UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
+-- FROM @UTILITY_DEMO_V2.GRID_DATA.DATA_FILES
+-- VALIDATION_MODE = 'RETURN_ERRORS';  -- Dry-run: shows errors without loading
 
 -- Load SCADA sensor data
 -- SCADA = Supervisory Control And Data Acquisition (grid sensors)
@@ -510,8 +517,8 @@ run_sql("06_traceability.sql")   # Can now reference UNIQUE_DESCRIPTIONS
 06_traceability.sql
 ├── Creates: RAW_TO_UNIQUE_MAP
 ├── Depends: RAW_RETAIL_ITEMS (FK), UNIQUE_DESCRIPTIONS (FK)
-│           ↑ UNIQUE_DESCRIPTIONS created by 09_dedup_fastpath.sql
-│           → 09 must run BEFORE 06
+│           ^ UNIQUE_DESCRIPTIONS created by 09_dedup_fastpath.sql
+│           so 09 must run BEFORE 06
 │
 08_procedures.sql
 ├── Calls: DEDUPLICATE_RAW_ITEMS() (defined in 09)
@@ -636,6 +643,26 @@ def setup():
 ```
 
 **Prevention:** Always run `grep -n "FOREIGN KEY\|REFERENCES" sql/*.sql` before implementing CLI orchestration. Build dependency graph. Document in comments.
+
+## Demo User RBAC
+
+**Rule:** Create a demo-specific role with minimal required grants:
+
+```sql
+-- Create demo role and user
+CREATE ROLE IF NOT EXISTS demo_user;
+GRANT USAGE ON DATABASE DEMO_DB TO ROLE demo_user;
+GRANT USAGE ON ALL SCHEMAS IN DATABASE DEMO_DB TO ROLE demo_user;
+GRANT SELECT ON ALL TABLES IN DATABASE DEMO_DB TO ROLE demo_user;
+GRANT SELECT ON ALL VIEWS IN DATABASE DEMO_DB TO ROLE demo_user;
+
+-- For hands-on workshops (users need write access)
+GRANT CREATE TABLE ON ALL SCHEMAS IN DATABASE DEMO_DB TO ROLE demo_user;
+GRANT INSERT, UPDATE, DELETE ON ALL TABLES IN DATABASE DEMO_DB TO ROLE demo_user;
+
+-- Warehouse access
+GRANT USAGE ON WAREHOUSE DEMO_WH TO ROLE demo_user;
+```
 
 ## When to Use Production Patterns
 

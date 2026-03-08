@@ -127,9 +127,11 @@ Integration patterns for using HTMX with popular frontend libraries and framewor
 **Setup:**
 ```html
 {# base.html #}
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 ```
+
+> **Note:** For production, self-host libraries or use a package bundler. CDN failures can break your application.
 
 **Dropdown with Alpine.js:**
 ```html
@@ -432,14 +434,13 @@ document.body.addEventListener('htmx:afterRequest', function(event) {
 
 // After swap - reinitialize plugins
 document.body.addEventListener('htmx:afterSwap', function(event) {
-    // Reinitialize select2, datepickers, etc.
-    $(event.detail.target).find('.select2').select2();
-    $(event.detail.target).find('.datepicker').datepicker();
+    // Reinitialize datepickers, etc.
+    event.detail.target.querySelectorAll('.datepicker').forEach(el => initDatepicker(el));
 });
 
 // On error - display error message
 document.body.addEventListener('htmx:responseError', function(event) {
-    alert('Error: ' + event.detail.xhr.status);
+    showToast('Error: ' + event.detail.xhr.status, 'error');
 });
 ```
 
@@ -454,7 +455,7 @@ document.body.addEventListener('htmx:responseError', function(event) {
 **Correct Pattern:**
 ```javascript
 function initPlugins(container) {
-    $(container).find('.datepicker').datepicker();
+    container.querySelectorAll('.datepicker').forEach(el => initDatepicker(el));
 }
 
 document.body.addEventListener('htmx:afterSwap', function(event) {
@@ -496,7 +497,7 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 
     {# HTMX and Alpine.js #}
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
 
     {# Chart.js #}
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
@@ -508,12 +509,18 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
         // Reinitialize charts after HTMX swaps
         let charts = {};
 
-        document.body.addEventListener('htmx:afterSwap', function(event) {
-            // Clean up old charts
-            Object.values(charts).forEach(chart => chart.destroy());
-            charts = {};
+        document.body.addEventListener('htmx:beforeSwap', function(event) {
+            // Destroy only charts within the swap target
+            event.detail.target.querySelectorAll('canvas.chart').forEach(canvas => {
+                if (charts[canvas.id]) {
+                    charts[canvas.id].destroy();
+                    delete charts[canvas.id];
+                }
+            });
+        });
 
-            // Initialize new charts
+        document.body.addEventListener('htmx:afterSwap', function(event) {
+            // Initialize new charts in swapped content
             event.detail.target.querySelectorAll('canvas.chart').forEach(canvas => {
                 const ctx = canvas.getContext('2d');
                 charts[canvas.id] = new Chart(ctx, {...});

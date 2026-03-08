@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-01-13
 **Keywords:** dbt, semantic view, Snowflake, dbt_semantic_view, materialization, Cortex Analyst, YAML, semantic model, dbt models, analytics, business intelligence, data modeling
-**TokenBudget:** ~4800
+**TokenBudget:** ~3500
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -58,7 +58,11 @@ Creating Snowflake semantic views through dbt using the `dbt_semantic_view` pack
 - **Test thoroughly:** Query semantic views with SEMANTIC_VIEW() function before deployment
 
 ### Forbidden
-Direct DDL creation of semantic views; TIME_DIMENSIONS clause; COUNT_IF or RATIO_TO_REPORT functions; table qualification in SEMANTIC_VIEW() queries; skipping primary key definitions
+- Direct DDL creation of semantic views
+- TIME_DIMENSIONS clause
+- COUNT_IF or RATIO_TO_REPORT functions
+- Table qualification in SEMANTIC_VIEW() queries
+- Skipping primary key definitions
 
 ### Execution Steps
 1. Add dbt_semantic_view package to packages.yml and run dbt deps
@@ -77,7 +81,19 @@ Direct DDL creation of semantic views; TIME_DIMENSIONS clause; COUNT_IF or RATIO
 dbt model SQL file with semantic_view materialization; SHOW SEMANTIC VIEWS output; test query results; schema.yml documentation
 
 ### Validation
-dbt run succeeds without errors; SHOW SEMANTIC VIEWS shows created object; DESCRIBE SEMANTIC VIEW returns structure; test queries return expected results; downstream models can reference with ref()
+
+**Success Checks:**
+- `dbt run --select <model_name>` completes without errors
+- `SHOW SEMANTIC VIEWS IN SCHEMA <database>.<schema>` shows the created view
+- `DESCRIBE SEMANTIC VIEW <database>.<schema>.<view_name>` returns structure
+- Test query returns expected results: `SELECT * FROM SEMANTIC_VIEW(<view_name> DIMENSIONS <dim> METRICS <metric>) LIMIT 10`
+- Downstream models can reference with `{{ ref('<model_name>') }}`
+
+**Negative Tests:**
+- Using TIME_DIMENSIONS clause should fail with syntax error
+- Using COUNT_IF or RATIO_TO_REPORT should fail with syntax error
+- Missing PRIMARY KEY should fail with validation error
+- Table-qualified dimensions in queries should fail with syntax error
 
 ### Post-Execution Checklist
 - [ ] dbt_semantic_view package added to packages.yml
@@ -193,25 +209,6 @@ SELECT * FROM SEMANTIC_VIEW(
 ```
 **Benefits:** Valid syntax, cleaner query interface, matches semantic view design.
 
-## Validation
-
-**Success Checks:**
-- `dbt run --select <model_name>` completes without errors
-- `SHOW SEMANTIC VIEWS IN SCHEMA <database>.<schema>` shows the created view
-- `DESCRIBE SEMANTIC VIEW <database>.<schema>.<view_name>` returns structure
-- Test query returns expected results: `SELECT * FROM SEMANTIC_VIEW(<view_name> DIMENSIONS <dim> METRICS <metric>) LIMIT 10`
-- Downstream models can reference with `{{ ref('<model_name>') }}`
-
-**Negative Tests:**
-- Using TIME_DIMENSIONS clause should fail with syntax error
-- Using COUNT_IF or RATIO_TO_REPORT should fail with syntax error
-- Missing PRIMARY KEY should fail with validation error
-- Table-qualified dimensions in queries should fail with syntax error
-
-## Post-Execution Checklist
-
-See [Post-Execution Checklist](#post-execution-checklist) in Contract section above.
-
 ## Output Format Examples
 
 **dbt Model File (models/sv_sales_performance.sql):**
@@ -282,118 +279,18 @@ DESCRIBE SEMANTIC VIEW my_db.my_schema.sv_sales_performance;
 
 ## Setup and Installation
 
-### Phase 1: Add Package to dbt Project
-
-Edit or create `packages.yml` in the dbt project root:
-```yaml
-packages:
-  - package: Snowflake-Labs/dbt_semantic_view
-    version: [">=1.0.0", "<2.0.0"]  # Use latest version
-```
-
-Install the package:
-```bash
-cd <dbt_project_directory>
-dbt deps
-```
-
-Verify installation:
-```bash
-dbt ls --resource-type materialization
-```
-You should see `semantic_view` in the list.
-
-### Phase 2: Analyze Existing dbt Models
-
-**Identify base models:**
-1. What models should be the foundation of the semantic view?
-2. Are they already materialized as tables or views?
-3. What are their primary keys?
-4. How do they relate to each other?
-
-**Questions to answer:**
-- What is the grain of each model? (one row per what?)
-- What are the foreign key relationships?
-- What dimensions (attributes) are available?
-- What metrics (KPIs) should be calculated?
+Add `Snowflake-Labs/dbt_semantic_view` to `packages.yml`, run `dbt deps`, then verify with `dbt ls --resource-type materialization`. Before creating a semantic view, identify base models, their primary keys, foreign key relationships, and target dimensions/metrics. See [dbt_semantic_view Package](https://github.com/Snowflake-Labs/dbt_semantic_view) for detailed setup.
 
 ## Key Components
 
-### 1. TABLES Section
-Physical base tables/models that contain the data. Use `{{ ref() }}` for dbt models or `{{ source() }}` for source tables.
-
-**Syntax:**
-```sql
-TABLES (
-  <logical_name> AS {{ ref('<dbt_model>') }}
-    PRIMARY KEY (<column>)
-    [ WITH SYNONYMS = ('<syn1>', '<syn2>') ]
-    [ COMMENT = '<description>' ]
-)
-```
-
-### 2. RELATIONSHIPS Section
-How tables connect to each other (foreign key joins).
-
-**Syntax:**
-```sql
-RELATIONSHIPS (
-  <name> AS <table1>(<fk_column>) REFERENCES <table2>(<pk_column>)
-    [ COMMENT = '<description>' ]
-)
-```
-
-### 3. DIMENSIONS Section
-Business-friendly attributes for grouping and filtering. Time columns are regular dimensions.
-
-**Syntax:**
-```sql
-DIMENSIONS (
-  <table>.<column> AS <dimension_name>
-    [ WITH SYNONYMS = ('<syn1>', '<syn2>') ]
-    [ COMMENT = '<description>' ]
-)
-```
-
-### 4. METRICS Section
-Business KPIs and aggregations. Use standard SQL aggregation functions and CASE statements.
-
-**Syntax:**
-```sql
-METRICS (
-  <metric_name> AS <aggregation_expression>
-    [ COMMENT = '<description>' ]
-)
-```
+- **TABLES:** `<name> AS {{ ref('<model>') }} PRIMARY KEY (<col>) [WITH SYNONYMS = (...)] [COMMENT = '...']`
+- **RELATIONSHIPS:** `<name> AS <table1>(<fk>) REFERENCES <table2>(<pk>) [COMMENT = '...']`
+- **DIMENSIONS:** `<table>.<col> AS <dim_name> [WITH SYNONYMS = (...)] [COMMENT = '...']` — time columns are regular dimensions
+- **METRICS:** `<name> AS <aggregation_expr> [COMMENT = '...']` — use standard SQL (SUM, AVG, COUNT, CASE)
 
 ## Common Patterns
 
-### Pattern 1: Single Fact Table
-```sql
-{{
-  config(materialized='semantic_view')
-}}
-
-TABLES (
-  facts AS {{ ref('fct_model') }}
-    PRIMARY KEY (id)
-    COMMENT = 'Fact table description'
-)
-
-DIMENSIONS (
-  facts.category AS category
-    COMMENT = 'Category dimension',
-  facts.date AS date
-    COMMENT = 'Date dimension'
-)
-
-METRICS (
-  total AS SUM(facts.amount)
-    COMMENT = 'Total amount'
-)
-```
-
-### Pattern 2: Star Schema (Fact + Dimensions)
+### Star Schema (Fact + Dimensions)
 ```sql
 {{
   config(materialized='semantic_view')
@@ -403,31 +300,19 @@ TABLES (
   facts AS {{ ref('fct_orders') }}
     PRIMARY KEY (order_id)
     COMMENT = 'Orders fact table',
-  
   customers AS {{ ref('dim_customers') }}
     PRIMARY KEY (customer_id)
-    COMMENT = 'Customer dimension',
-  
-  products AS {{ ref('dim_products') }}
-    PRIMARY KEY (product_id)
-    COMMENT = 'Product dimension'
+    COMMENT = 'Customer dimension'
 )
 
 RELATIONSHIPS (
   order_customer AS facts(customer_id) REFERENCES customers(customer_id)
-    COMMENT = 'Link orders to customers',
-  
-  order_product AS facts(product_id) REFERENCES products(product_id)
-    COMMENT = 'Link orders to products'
+    COMMENT = 'Link orders to customers'
 )
 
 DIMENSIONS (
   customers.customer_name AS customer_name
     COMMENT = 'Customer full name',
-  
-  products.product_name AS product_name
-    COMMENT = 'Product name',
-  
   facts.order_date AS order_date
     COMMENT = 'Date order was placed'
 )
@@ -435,13 +320,12 @@ DIMENSIONS (
 METRICS (
   total_sales AS SUM(facts.order_amount)
     COMMENT = 'Total sales revenue',
-  
   order_count AS COUNT(facts.order_id)
     COMMENT = 'Number of orders'
 )
 ```
 
-### Pattern 3: Complex Metrics with CASE
+### Complex Metrics with CASE
 ```sql
 METRICS (
   win_rate_pct AS 
@@ -451,98 +335,26 @@ METRICS (
       ELSE 0 
     END
     COMMENT = 'Win rate as percentage',
-  
   conditional_count AS SUM(CASE WHEN status = 'Active' THEN 1 ELSE 0 END)
     COMMENT = 'Count of active records'
 )
 ```
 
-## Best Practices
+## Design Principles
 
-### Naming Conventions
-- **Model files**: `sv_<domain>_<subject>.sql` (e.g., `sv_sales_performance.sql`)
-- **Logical table names**: Use singular, business-friendly names (e.g., `customer`, not `dim_customers_raw`)
-- **Metrics**: Use descriptive names (e.g., `total_revenue`, `average_order_value`)
-- **Dimensions**: Use business terminology (e.g., `customer_segment`, not `cust_seg_cd`)
-
-### Synonyms
-Add synonyms for:
-- Common abbreviations: `revenue` with synonyms `rev`, `sales`
-- Plural/singular variants: `customer` with synonym `customers`
-- Business vs technical terms: `product_line` with synonym `category`
-
-### Comments
-Always add comments:
-- On TABLES: Describe what the table represents
-- On METRICS: Explain the calculation and business meaning
-- On DIMENSIONS: Clarify the attribute meaning
-- On RELATIONSHIPS: Document the join logic
-- On the semantic view itself: Provide an overview
-
-### Performance
-- Ensure base models are properly materialized (table or incremental)
-- Add clustering keys to base tables for large datasets
-- Consider using incremental models for large fact tables
-- Test query performance with realistic data volumes
+- **Naming:** Model files as `sv_<domain>_<subject>.sql`; use business-friendly names for tables, dimensions, metrics
+- **Synonyms:** Add for abbreviations, plural/singular variants, and business vs technical terms
+- **Comments:** Required on all TABLES, RELATIONSHIPS, DIMENSIONS, METRICS, and the semantic view itself
+- **Performance:** Materialize base models as tables or incremental; add clustering keys for large datasets
+- **Documentation:** Use inline COMMENT clauses (`persist_docs` not supported); add schema.yml entries
 
 ## Testing and Deployment
 
-### Build and Deploy
-```bash
-# Build semantic view
-dbt run --select <semantic_view_model_name>
-
-# Build with dependencies
-dbt build --select +<semantic_view_model_name>
-```
-
-### Verify in Snowflake
-```sql
-SHOW SEMANTIC VIEWS IN SCHEMA <database>.<schema>;
-DESCRIBE SEMANTIC VIEW <database>.<schema>.<semantic_view_name>;
-```
-
-### Test Queries
-```sql
--- Test 1: Query metrics by dimension
-SELECT * FROM SEMANTIC_VIEW(
-  <database>.<schema>.<semantic_view_name>
-  DIMENSIONS <dimension_name>
-  METRICS <metric1>, <metric2>
-)
-ORDER BY <metric1> DESC
-LIMIT 10;
-
--- Test 2: Multi-dimensional analysis
-SELECT * FROM SEMANTIC_VIEW(
-  <database>.<schema>.<semantic_view_name>
-  DIMENSIONS <dim1>, <dim2>, <time_dimension>
-  METRICS <metric1>, <metric2>, <metric3>
-)
-WHERE <time_dimension> >= CURRENT_DATE - 30
-ORDER BY <time_dimension>;
-```
-
-### Documentation
-Add to schema.yml:
-```yaml
-models:
-  - name: <semantic_view_model_name>
-    description: |
-      Semantic view for <domain> analytics. Provides metrics including:
-      - <metric1>: <description>
-      - <metric2>: <description>
-      
-      Dimensions available:
-      - <dimension1>: <description>
-      - <dimension2>: <description>
-    
-    meta:
-      owner: "@<team>"
-      type: semantic_view
-```
-
-Note: The `dbt_semantic_view` package currently does NOT support `persist_docs`. Documentation must be added inline in the SQL file using COMMENT clauses.
+1. Build: `dbt run --select <model>` (with deps: `dbt build --select +<model>`)
+2. Verify: `SHOW SEMANTIC VIEWS IN SCHEMA <db>.<schema>` and `DESCRIBE SEMANTIC VIEW <db>.<schema>.<view>`
+3. Test query: `SELECT * FROM SEMANTIC_VIEW(<view> DIMENSIONS <dim> METRICS <metric>) LIMIT 10`
+4. Document in `schema.yml` with description and `meta.type: semantic_view`
+5. Note: `persist_docs` not supported; use inline COMMENT clauses in SQL
 
 ## Troubleshooting
 
@@ -609,41 +421,4 @@ CREATE OR REPLACE AGENT <database>.agents.<agent_name>
     }
   }
   $$;
-```
-
-## Critical Syntax Rules
-
-### What NOT to Use
-
-**NO TIME_DIMENSIONS clause:**
-- Time columns are regular DIMENSIONS
-- Do not create a separate TIME_DIMENSIONS section
-
-**NO conditional aggregation functions:**
-- COUNT_IF does not exist, use `SUM(CASE WHEN ... THEN 1 ELSE 0 END)`
-- RATIO_TO_REPORT does not exist, use CASE statements with division
-- SAFE_DIVIDE does not exist, use CASE to handle division by zero
-
-**NO table qualification in queries:**
-- Do not use `table.dimension` in SEMANTIC_VIEW() queries
-- Use dimension names directly without table prefix
-
-### What TO Use
-
-**Standard SQL aggregations:**
-- SUM(), AVG(), COUNT(), MIN(), MAX()
-- COUNT(DISTINCT column)
-- CASE statements for conditional logic
-
-**Proper dimension syntax:**
-- Define as `table.column AS dimension_name` in DIMENSIONS section
-- Query as `dimension_name` (no table prefix) in SEMANTIC_VIEW()
-
-**Safe division:**
-```sql
-CASE 
-  WHEN SUM(denominator) > 0 
-  THEN SUM(numerator)::FLOAT / SUM(denominator)
-  ELSE 0 
-END
 ```

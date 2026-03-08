@@ -316,18 +316,7 @@ FILE=/tmp/file
 ```
 
 ### Variable Quoting and Expansion
-- **Critical:** Always quote variables to prevent word splitting and globbing:
-```bash
-# Correct
-rm "$file_name"
-cp "$source_dir"/* "$dest_dir/"
-echo "Processing file: $file_name"
-
-# Dangerous - can break with spaces or special characters
-rm $file_name
-cp $source_dir/* $dest_dir/
-```
-
+- **Critical:** Always quote variables to prevent word splitting and globbing (see Anti-Pattern 1 above for examples)
 - **Rule:** Use `"${variable}"` syntax for clarity in complex expressions
 - **Always:** Quote command substitutions: `"$(command)"`
 - **Critical:** Use arrays for lists instead of space-separated strings
@@ -348,6 +337,15 @@ done
 if [[ ${#files[@]} -eq 0 ]]; then
     echo "No files to process"
 fi
+
+# Associative arrays (Bash 4.0+)
+declare -A config
+config[host]="localhost"
+config[port]="8080"
+
+for key in "${!config[@]}"; do
+    echo "$key=${config[$key]}"
+done
 ```
 
 ## Input Handling and Validation
@@ -416,14 +414,12 @@ process_file() {
 ```
 
 ### Cleanup and Signal Handling
-- **Rule:** Implement cleanup for temporary resources:
+- **Rule:** Implement cleanup for temporary resources (see Temporary Files section for `mktemp` patterns):
 ```bash
 cleanup() {
     [[ -n "${temp_dir:-}" ]] && rm -rf "$temp_dir"
 }
-
 trap cleanup EXIT
-temp_dir="$(mktemp -d)"
 ```
 
 ### Basic Logging
@@ -460,7 +456,7 @@ function_name() {
 
 ### Parameter Handling
 - **Rule:** Use local variables for function parameters
-- **Consider:** Use `getopts` for option parsing:
+- **Rule:** Use `getopts` when scripts accept command-line flags:
 ```bash
 process_options() {
     local verbose=false
@@ -671,15 +667,10 @@ chmod 644 config.conf        # Readable by all, writable by owner
 ```
 
 ### Secure Temporary Files
-- **Rule:** Use mktemp for temporary files:
+- **Rule:** Use `mktemp` for temporary files with restrictive permissions (see Temporary Files section above for creation patterns):
 ```bash
-# Create temporary file
-temp_file="$(mktemp)"
-chmod 600 "$temp_file"
-
-# Create temporary directory
-temp_dir="$(mktemp -d)"
-chmod 700 "$temp_dir"
+chmod 600 "$temp_file"   # Restrict temp file to owner only
+chmod 700 "$temp_dir"    # Restrict temp directory to owner only
 ```
 
 **Note:** For comprehensive security practices including input validation and access control, see `300a-bash-security.md`

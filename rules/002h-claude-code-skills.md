@@ -11,7 +11,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-01-13
 **Keywords:** Claude Code, skills, SKILL.md, skill structure, progressive disclosure, workflows, trigger keywords, skill authoring, skill testing, skill validation, input contracts, output contracts, skill examples, YAML frontmatter, description writing, MCP tools, degrees of freedom, context window, third person, naming conventions
-**TokenBudget:** ~5650
+**TokenBudget:** ~4800
 **ContextTier:** High
 **Depends:** 000-global-core.md, 002-rule-governance.md
 **LoadTrigger:** dir:skills/, kw:skill
@@ -100,6 +100,14 @@ Skill directory structure with:
 - examples/ walkthroughs
 - tests/ validation files
 
+### Error Recovery
+
+- **SKILL.md exceeds 500 lines:** Extract detailed content into `workflows/` or `reference/` files using progressive disclosure. Keep SKILL.md as an overview with cross-references.
+- **YAML frontmatter fails to parse:** Validate YAML syntax separately. Check for unescaped colons in description text, missing closing `---`, or tab characters (use spaces only).
+- **Skill not discovered by Claude:** Verify the `description` field contains specific trigger keywords. Test with exact phrases users would say. Ensure the description is non-empty and under 1024 characters.
+- **MCP tool not found at runtime:** Confirm fully qualified `ServerName:tool_name` format. Verify the MCP server is available in the execution environment.
+- **Package dependency missing:** Add explicit install instructions in the skill workflow. Do not assume packages are pre-installed, especially in API environments with no network access.
+
 ### Validation
 
 **Pre-Task-Completion Checks:**
@@ -182,7 +190,13 @@ Skill directory structure with:
   - Maximum 1024 characters
   - Cannot contain XML tags
   - Should describe what the skill does AND when to use it
-  - **Must be written in third person** (critical for skill discovery)
+  - **Must be written in third person** (critical for skill discovery). The description is injected into the system prompt; inconsistent point-of-view causes skill discovery problems.
+    - Good: "Processes Excel files and generates reports"
+    - Avoid: "I can help you process Excel files"
+    - Avoid: "You can use this to process Excel files"
+  - Be specific and include key terms for both WHAT the skill does and WHEN to use it
+  - Include trigger keywords directly: `"Review project documentation. Triggers on 'review docs', 'audit documentation'."`
+  - Avoid vague descriptions: "Helps with documents", "Processes data", "Does stuff with files"
 
 **Project standard (optional fields):**
 - **version**: Semantic version (e.g., 1.0.0, 2.1.0) - Recommended for tracking changes
@@ -212,25 +226,17 @@ version: 2.0.0
 
 ### 2. Directory Organization
 
-```
-skills/<skill-name>/
-├── SKILL.md           # Entrypoint with frontmatter and workflow overview
-├── README.md          # Usage documentation, quick start, troubleshooting
-├── PROMPT.md          # Optional: detailed prompt templates
-├── VALIDATION.md      # Optional: skill self-validation procedures
-├── workflows/         # Phase-specific detailed guides
-│   ├── phase-1.md
-│   ├── phase-2.md
-│   └── ...
-├── examples/          # Complete workflow walkthroughs
-│   ├── basic-example.md
-│   ├── advanced-example.md
-│   └── edge-cases.md
-└── tests/             # Test cases and validation
-    ├── README.md
-    ├── test-inputs.md
-    └── test-workflows.md
-```
+- **skills/\<skill-name\>/** - Skill root directory
+  - `SKILL.md` - Entrypoint with frontmatter and workflow overview
+  - `README.md` - Usage documentation, quick start, troubleshooting
+  - `PROMPT.md` - Optional: detailed prompt templates
+  - `VALIDATION.md` - Optional: skill self-validation procedures
+  - **workflows/** - Phase-specific detailed guides
+    - `phase-1.md`, `phase-2.md`, etc.
+  - **examples/** - Complete workflow walkthroughs
+    - `basic-example.md`, `advanced-example.md`, `edge-cases.md`
+  - **tests/** - Test cases and validation
+    - `README.md`, `test-inputs.md`, `test-workflows.md`
 
 ### 3. Progressive Disclosure
 
@@ -296,7 +302,7 @@ The context window is shared with system prompt, conversation history, other ski
 
 **Size Limit:** Keep SKILL.md body under 500 lines for optimal performance. If content exceeds this, split into separate files using progressive disclosure patterns.
 
-**Example comparison:****
+**Example comparison:**
 
 ```markdown
 # Concise (Good): ~50 tokens
@@ -376,40 +382,6 @@ Use consistent naming patterns to make skills easier to reference and discuss.
 
 Consistent naming makes skills easier to reference, understand at a glance, organize, and maintain.
 
-#### Description Writing Guidelines
-
-**CRITICAL: Always write in third person.**
-
-The description is injected into the system prompt. Inconsistent point-of-view causes skill discovery problems.
-
-- **Good:** "Processes Excel files and generates reports"
-- **Avoid:** "I can help you process Excel files"
-- **Avoid:** "You can use this to process Excel files"
-
-**Be specific and include key terms.** Include both what the skill does AND specific triggers/contexts for when to use it.
-
-**Effective examples:**
-
-```yaml
-# PDF Processing skill
-description: Extract text and tables from PDF files, fill forms, merge documents. Use when working with PDF files or when the user mentions PDFs, forms, or document extraction.
-
-# Excel Analysis skill
-description: Analyze Excel spreadsheets, create pivot tables, generate charts. Use when analyzing Excel files, spreadsheets, tabular data, or .xlsx files.
-
-# Git Commit Helper skill
-description: Generate descriptive commit messages by analyzing git diffs. Use when the user asks for help writing commit messages or reviewing staged changes.
-```
-
-**Avoid vague descriptions:**
-
-```yaml
-# Bad examples
-description: Helps with documents
-description: Processes data
-description: Does stuff with files
-```
-
 ## Technical Details
 
 ### MCP Tool References
@@ -482,82 +454,18 @@ Skills run in a code execution environment with filesystem access, bash commands
 
 **Example structure:**
 
-```
-bigquery-skill/
-├── SKILL.md (overview, points to reference files)
-└── reference/
-    ├── finance.md (revenue metrics)
-    ├── sales.md (pipeline data)
-    └── product.md (usage analytics)
-```
+- **bigquery-skill/**
+  - `SKILL.md` - Overview, points to reference files
+  - **reference/**
+    - `finance.md` - Revenue metrics
+    - `sales.md` - Pipeline data
+    - `product.md` - Usage analytics
 
 When the user asks about revenue, Claude reads SKILL.md, sees the reference to `reference/finance.md`, and invokes bash to read just that file. The other files remain on filesystem, consuming zero context tokens until needed.
 
 ## Advanced Patterns
 
-### Verifiable Intermediate Outputs (Plan-Validate-Execute)
-
-When Claude performs complex, open-ended tasks, it can make mistakes. The "plan-validate-execute" pattern catches errors early by having Claude first create a plan in a structured format, then validate that plan with a script before executing it.
-
-**Example problem:** Asking Claude to update 50 form fields in a PDF based on a spreadsheet. Without validation, Claude might reference non-existent fields, create conflicting values, miss required fields, or apply updates incorrectly.
-
-**Solution:** Add an intermediate `changes.json` file that gets validated before applying changes.
-
-**Workflow:**
-1. **Analyze** - Understand requirements
-2. **Create plan file** - Generate `changes.json` with all modifications
-3. **Validate plan** - Run validation script on plan file
-4. **Execute** - Apply changes if validation passes
-5. **Verify** - Confirm results
-
-**Why this pattern works:**
-- **Catches errors early**: Validation finds problems before changes are applied
-- **Machine-verifiable**: Scripts provide objective verification
-- **Reversible planning**: Claude can iterate on the plan without touching originals
-- **Clear debugging**: Error messages point to specific problems
-
-**When to use:**
-- Batch operations
-- Destructive changes
-- Complex validation rules
-- High-stakes operations
-
-**Implementation tip:** Make validation scripts verbose with specific error messages like "Field 'signature_date' not found. Available fields: customer_name, order_total, signature_date_signed" to help Claude fix issues.
-
-### Visual Analysis Pattern
-
-When inputs can be rendered as images, have Claude analyze them visually. Convert PDFs to images, then Claude can see field locations and types. Useful for form layouts and structures difficult to parse from text alone.
-
-### Skill Composition Pattern (Orchestrator + Worker)
-
-**Problem:** How do you create a "bulk" or "batch" skill that processes multiple items using another skill's workflow?
-
-**Architecture:**
-
-Orchestrator skill loads and follows the worker skill's documented workflow. Skills cannot invoke other skills programmatically - "Use the X skill" is guidance for users, not a callable API.
-
-```
-bulk-processor/ (orchestrator)
-├── SKILL.md - Batch processing logic  
-└── workflows/batch-execution.md - "For each: load processor/SKILL.md, follow workflow"
-
-processor/ (worker)
-├── SKILL.md - Single-item workflow
-└── workflows/ - Step-by-step processing
-```
-
-**What orchestrator does:**
-- Loads worker SKILL.md once to understand workflow
-- Follows that workflow for each item
-- Uses progressive disclosure (loads rubrics/workflows as needed)
-- Tracks batch metadata (progress, failures, resume)
-
-**What orchestrator does NOT do:**
-- Try to "invoke" worker skill programmatically
-- Reimplement worker logic without consulting docs
-- Skip progressive disclosure
-
-**When to use:** Bulk operations, periodic audits, batch validation, mass migrations.
+**See:** **002l-skill-advanced-patterns.md** for plan-validate-execute, visual analysis, and orchestrator-worker composition patterns.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -641,57 +549,6 @@ description: Reviews rule files for quality and compliance.
 # GOOD: ~250 lines with references
 See rubrics/ for evaluation criteria.
 See workflows/ for step-by-step guides.
-```
-
-## Output Format Examples
-
-### SKILL.md Frontmatter Template
-
-```yaml
----
-name: my-skill
-description: Brief purpose in third person describing what skill does and when to use it. Triggers on "keyword1", "keyword2", "action noun".
-version: 1.0.0
----
-```
-
-**With optional fields:**
-
-```yaml
----
-name: my-skill
-description: Brief purpose in third person. Triggers on "keyword1", "keyword2".
-version: 1.0.0
-author: Project Name
-tags: [domain, action, output-type]
-dependencies: []
----
-```
-
-### SKILL.md Section Structure
-
-The SKILL.md file should contain these sections in order:
-
-1. **Purpose** - 1-2 sentences describing the problem solved
-2. **Use this skill when** - Bullet list of activation scenarios
-3. **Inputs** - Required and optional parameters with defaults
-4. **Output (required)** - File paths and no-overwrite behavior
-5. **Workflow (progressive disclosure)** - Ordered phase list with file references
-6. **Examples** - Links to example walkthroughs
-7. **Quick Validation Snippets** - Inline validation code
-
-### Directory Creation Commands
-
-```bash
-# Create skill directory structure
-mkdir -p skills/my-skill/{workflows,examples,tests}
-
-# Create required files
-touch skills/my-skill/SKILL.md
-touch skills/my-skill/README.md
-touch skills/my-skill/workflows/{input-validation,processing,output}.md
-touch skills/my-skill/examples/{basic,edge-cases}.md
-touch skills/my-skill/tests/{README,test-inputs,test-workflows}.md
 ```
 
 ### Input Validation Snippet Example

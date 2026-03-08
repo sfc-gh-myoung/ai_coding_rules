@@ -54,11 +54,11 @@ Comprehensive rules for data science and analytics on Snowflake. Covers model li
 
 ### Mandatory
 
-- Snowflake SQL (CTEs, window functions, aggregations)
-- Python for ML/analytics (scikit-learn, snowflake-ml, pandas/polars)
-- Snowflake Model Registry for model versioning
-- Query Profile for cost/performance analysis
-- Git for version control
+- MUST investigate data (schemas, distributions, volumes) before recommending models or approaches
+- MUST version model artifacts in Snowflake Model Registry with metrics and data lineage
+- MUST profile data distributions and validate quality before setting thresholds or training
+- MUST use SQL aggregation over Python loops for large-scale data processing
+- MUST quantify uncertainty (confidence intervals, prediction intervals) in all outputs
 
 ### Forbidden
 
@@ -312,19 +312,14 @@ fig.add_trace(go.Scatter(x=dates, y=upper_bounds, fill='tonexty', name='95% Uppe
 
 **SQL-First:**
 ```python
-# Filter in SQL, not pandas
-query = f"""SELECT * FROM sales_fact WHERE region = '{selection}'
-            AND order_date >= DATEADD('year', -1, CURRENT_DATE()) LIMIT 10000"""
+# Filter in SQL, not pandas (use parameterized queries to prevent injection)
+query = session.sql(
+    "SELECT * FROM sales_fact WHERE region = ? AND order_date >= DATEADD('year', -1, CURRENT_DATE()) LIMIT 10000",
+    params=[selection]
+).to_pandas()
 ```
 
-**Streamlit Caching:**
-```python
-@st.cache_data(ttl=3600)
-def load_data(region): return session.sql(query).to_pandas()
-
-@st.cache_resource
-def load_model(): return registry.get_model("churn").default.run
-```
+**Streamlit Caching:** See 940-business-analytics.md for Streamlit caching patterns.
 
 **Timeout Handling:**
 ```python
@@ -333,17 +328,4 @@ session.sql("ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = 300").collect()
 
 ## Ethical Visualization
 
-**FORBIDDEN:**
-- Truncated Y-axis without indicators
-- 3D pie charts
-- Omitting zero baseline for magnitude comparisons
-- Inconsistent time intervals
-- Cherry-picked date ranges
-
-**Required Disclosures:**
-```python
-st.caption(f"Data as of: {last_refresh} | {hours_since:.1f}h ago")
-st.info(f"Based on {len(df):,} records | 95% CI ±{margin:.1%}")
-```
-
-**WCAG 2.1 AA:** 4.5:1 contrast, colorblind-safe palettes, screen reader support, keyboard navigation.
+See 940-business-analytics.md for ethical visualization guidelines.

@@ -223,7 +223,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
   - **poetry:** `poetry run mypy .`
   - **pip:** `mypy .`
 - **CRITICAL:** Syntax validation - All Python files compile without syntax errors
-  - **All toolchains:** `python -m py_compile -q .` (using project's Python)
+  - **All toolchains:** `find . -name "*.py" -exec python -m py_compile {} +` (using project's Python)
 
 **Test Execution (use project's toolchain):**
 - **CRITICAL:** All tests must pass (for projects with test suites)
@@ -236,7 +236,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **CRITICAL:** Update `CHANGELOG.md` with entry under `## [Unreleased]` for code changes
 - **CRITICAL:** Review and update `README.md` when triggers apply (see `000-global-core.md` section 6)
 
-**Validation Protocol:**
+**Pre-Task-Completion Validation Gate:**
 - **Rule:** Run validation immediately after modifications, not in batches
 - **Rule:** Do not mark tasks complete if ANY check fails
 - **Rule:** Fix all failures before responding to user
@@ -731,6 +731,13 @@ strict = true
 - **CRITICAL:** Type checking (ty or mypy) is part of mandatory Pre-Task-Completion Validation Gate
 - **Rule:** Type errors must be resolved before marking tasks complete
 - **Rule:** Do not use `# type: ignore` without documenting the reason
+  ```python
+  # BAD – bare ignore hides real bugs
+  result = some_untyped_lib()  # type: ignore
+
+  # GOOD – specific error code + reason
+  result = some_untyped_lib()  # type: ignore[no-untyped-call]  # third-party lib has no stubs
+  ```
 
 ## Performance Optimization
 

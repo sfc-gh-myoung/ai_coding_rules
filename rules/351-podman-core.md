@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-02-05
 **Keywords:** Podman, Containerfile, containers, rootless containers, buildah, podman-compose, pods, daemonless, systemd, quadlet, image optimization, non-root, healthcheck, security scanning, SBOM
-**TokenBudget:** ~3650
+**TokenBudget:** ~4550
 **ContextTier:** Medium
 **Depends:** 000-global-core.md, 202-markup-config-validation.md
 **LoadTrigger:** file:Containerfile, file:podman-compose.yml, file:podman-compose.yaml, kw:podman, kw:buildah
@@ -52,25 +52,23 @@ Provides practical, production-ready guidance for authoring Containerfiles, buil
 - Buildah for advanced image building (optional)
 - Access to base images/registries
 - Project source with `.containerignore` (or `.dockerignore`)
+- **Tools:** Podman CLI, Buildah, Podman Compose (or docker-compose with podman socket), Hadolint (Containerfile linter), Trivy/Grype (security scanning), syft (SBOM generation), cosign (image signing)
 
 ### Mandatory
 
-- Podman CLI
-- Buildah (for advanced builds)
-- Podman Compose (or docker-compose with podman socket)
-- Hadolint (Containerfile linter)
-- Trivy/Grype (security scanning)
-- SBOM tools (syft)
-- Cosign for signatures
+- MUST run containers rootless by default; only use root mode with documented justification
+- MUST use Quadlet for systemd-managed containers in production
+- MUST scan images with Trivy/Grype before deployment; fail on critical or high CVEs
+- MUST NOT embed secrets in images or image layers
+- MUST NOT use `--privileged` without documented justification
+- MUST NOT use `latest` floating tags in production
+- MUST NOT run as root user when rootless is possible
+- MUST NOT assume Docker daemon is available
 
 ### Forbidden
 
-- Embedding secrets in images
-- Running containers with `--privileged` without justification
-- `latest` floating tags in production
-- Copying secrets into image layers
-- Running as root user when rootless is possible
-- Assuming Docker daemon is available
+See MUST NOT items in Mandatory above. Additionally:
+- Exposing SSH or adding debug tools in production images
 
 ### Execution Steps
 
@@ -104,9 +102,9 @@ Deterministic Containerfile(s) and Compose files with:
 
 **Success Criteria:**
 - Build with Podman succeeds
-- Image size optimized
+- Image size optimized (<200MB for Python, <50MB for Go/distroless, <100MB for Node.js)
 - Hadolint passes with no errors
-- Vulnerability scan clean or acceptable
+- Vulnerability scan clean (no critical or high CVEs; medium CVEs documented with justification)
 - Container runs rootless as non-root
 - Healthcheck defined and working
 - Digest pinning verified
@@ -114,32 +112,23 @@ Deterministic Containerfile(s) and Compose files with:
 
 ### Design Principles
 
-- **Always:** Use multi-stage builds; choose slim, LTS base images
-- **Always:** Add a `.containerignore` to keep contexts tiny; avoid copying VCS/venv/node_modules
-- **Always:** Run rootless by default; add non-root USER; drop Linux capabilities
-- **Always:** Pin base images and packages; avoid `latest`; prefer digest pinning for prod
-- **Always:** Structure layers to maximize caching; separate dependency installation from source copy
-- **Requirement:** Generate SBOM and sign images; store attestations in registry
-- **Requirement:** Provide a `HEALTHCHECK`; avoid long `CMD` shell strings; use JSON exec form
-- **Rule:** Prefer distroless/alpine only when appropriate; verify glibc/musl compatibility
-- **Avoid:** COPY-ing secrets; baking envs into image; using `--privileged` containers
+- **MUST:** Use multi-stage builds; choose slim, LTS base images
+- **MUST:** Add a `.containerignore` to keep contexts tiny; avoid copying VCS/venv/node_modules
+- **MUST:** Run rootless by default; add non-root USER; drop Linux capabilities
+- **MUST:** Pin base images and packages; avoid `latest`; prefer digest pinning for prod
+- **MUST:** Structure layers to maximize caching; separate dependency installation from source copy
+- **MUST:** Generate SBOM and sign images; store attestations in registry
+- **MUST:** Provide a `HEALTHCHECK`; avoid long `CMD` shell strings; use JSON exec form
+- **SHOULD:** Prefer distroless/alpine when appropriate; verify glibc/musl compatibility first
+- **MUST NOT:** COPY secrets into images; bake envs into image layers; use `--privileged` without documented justification
 
 ### Post-Execution Checklist
 
-- [ ] Multi-stage Containerfile implemented
-- [ ] Base images pinned to specific versions/digests
-- [ ] Non-root USER specified in Containerfile
-- [ ] .containerignore configured and tested
-- [ ] Layers optimized for caching
-- [ ] HEALTHCHECK defined
-- [ ] Security scan passing (hadolint, trivy)
-- [ ] SBOM generated
+All items from Pre-Task-Completion Checks above, plus:
 - [ ] Image signed with cosign
 - [ ] Podman Compose configured for development
 - [ ] Quadlet unit files created for production (if using systemd)
-- [ ] Secrets externalized (not in image)
 - [ ] Resource limits defined
-- [ ] Container runs successfully rootless
 
 ## Anti-Patterns and Common Mistakes
 
@@ -187,6 +176,52 @@ podman run -d -p 8080:80 nginx  # Map to unprivileged port
 echo "net.ipv4.ip_unprivileged_port_start=80" | sudo tee /etc/sysctl.d/podman-ports.conf
 ```
 
+### Pattern 3: Common Error Recovery
+
+**Rootless Permission Issues:**
+```bash
+# Check subuid/subgid configuration
+grep $(whoami) /etc/subuid /etc/subgid
+
+# If missing, add mappings (requires root)
+sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 $(whoami)
+
+# Reset user namespace after config change
+podman system migrate
+
+# Debug namespace mapping
+podman unshare cat /proc/self/uid_map
+podman unshare cat /proc/self/gid_map
+```
+
+**SELinux Label Failures:**
+```bash
+# BAD: Volume mount fails with "Permission denied" on SELinux systems
+podman run -v /data:/app/data myapp
+
+# GOOD: Use :Z (private relabel) for single-container volumes
+podman run -v /data:/app/data:Z myapp
+
+# GOOD: Use :z (shared relabel) for volumes shared across containers
+podman run -v /shared:/app/shared:z myapp
+```
+
+**Registry Authentication Failures:**
+```bash
+# Diagnose auth issues
+podman login --get-login registry.example.com
+
+# Check stored credentials
+podman login --verbose registry.example.com
+
+# Auth config location (rootless)
+cat ${XDG_RUNTIME_DIR}/containers/auth.json
+
+# Re-authenticate
+podman logout registry.example.com
+podman login registry.example.com
+```
+
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read existing Containerfile BEFORE suggesting changes** - Check current structure, stages
@@ -206,52 +241,104 @@ echo "net.ipv4.ip_unprivileged_port_start=80" | sudo tee /etc/sysctl.d/podman-po
 
 ## Output Format Examples
 
-```dockerfile
-# Containerfile - Multi-stage build following security best practices
+### Buildah Multi-Stage Workflow (Podman-Specific)
 
-# Stage 1: Build stage
+```bash
+#!/bin/bash
+# build.sh - Buildah multi-stage build with fine-grained control
+set -euo pipefail
+
+# Stage 1: Build in a working container
+builder=$(buildah from python:3.12-slim@sha256:specific-digest)
+buildah run "$builder" -- groupadd -r appuser --gid=1000
+buildah run "$builder" -- useradd -r -g appuser --uid=1000 --home=/app appuser
+buildah config --workingdir /app "$builder"
+buildah copy "$builder" requirements.txt /app/requirements.txt
+buildah run "$builder" -- pip install --no-cache-dir -r /app/requirements.txt
+builder_mount=$(buildah mount "$builder")
+
+# Stage 2: Minimal runtime container
+runtime=$(buildah from python:3.12-slim@sha256:specific-digest)
+buildah copy "$runtime" "$builder_mount/etc/passwd" /etc/passwd
+buildah copy "$runtime" "$builder_mount/etc/group" /etc/group
+buildah copy --chown 1000:1000 "$runtime" "$builder_mount/app" /app
+buildah copy --chown 1000:1000 "$runtime" ./src /app/src
+
+# Configure runtime (numeric UID for rootless compatibility)
+buildah config --user 1000:1000 "$runtime"
+buildah config --workingdir /app "$runtime"
+buildah config --port 8000 "$runtime"
+buildah config --cmd '["python", "app.py"]' "$runtime"
+buildah config --healthcheck-command 'CMD python -c "import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")"' "$runtime"
+buildah config --healthcheck-interval 30s --healthcheck-timeout 3s --healthcheck-start-period 5s "$runtime"
+
+# Commit and clean up
+buildah commit "$runtime" myapp:latest
+buildah rm "$builder" "$runtime"
+
+# Generate SBOM and sign
+syft packages myapp:latest -o spdx-json > myapp-sbom.json
+```
+
+### Containerfile with Podman-Specific Features
+
+```dockerfile
+# Containerfile - Podman rootless build with Quadlet integration
 FROM python:3.12-slim@sha256:specific-digest AS builder
 
-# Create non-root user
 RUN groupadd -r appuser --gid=1000 && \
     useradd -r -g appuser --uid=1000 --home=/app appuser
-
-# Install dependencies
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --no-cache-dir -r requirements.txt
 
-# Stage 2: Runtime stage (minimal attack surface)
 FROM python:3.12-slim@sha256:specific-digest
-
-# Copy non-root user from builder
-COPY --from=builder /etc/passwd /etc/passwd
-COPY --from=builder /etc/group /etc/group
-
-# Set up application
+COPY --from=builder /etc/passwd /etc/group /etc/
 WORKDIR /app
-COPY --from=builder --chown=appuser:appuser /app /app
-COPY --chown=appuser:appuser . .
+COPY --from=builder --chown=1000:1000 /app /app
+COPY --chown=1000:1000 . .
 
-# Switch to non-root user (UID for rootless compatibility)
+# Numeric UID/GID required for rootless compatibility across hosts
 USER 1000:1000
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health')"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
 
-# Expose port and run
 EXPOSE 8000
 CMD ["python", "app.py"]
 ```
 
-```bash
-# Validation with Podman
-podman build --no-cache -t myapp:latest .
-podman run --rm myapp:latest python -c "print('Container validation passed')"
+```ini
+# ~/.config/containers/systemd/myapp.container (Quadlet unit for production)
+[Unit]
+Description=My Application Container
 
-# Verify rootless execution
-podman run --rm myapp:latest id  # Should show non-root UID
+[Container]
+Image=myapp:latest
+PublishPort=8080:8000
+Volume=/data:/app/data:Z
+Environment=APP_ENV=production
+ReadOnly=true
+DropCapability=ALL
+UserNS=auto
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
+```
+
+```bash
+# Build, validate, and deploy with Podman
+podman build --layers -t myapp:latest .
+podman run --rm myapp:latest id  # Verify non-root UID
+podman run --rm --cap-drop=ALL --read-only --tmpfs /tmp myapp:latest python -c "print('Validation passed')"
+
+# Deploy via Quadlet
+systemctl --user daemon-reload
+systemctl --user start myapp.service
 ```
 
 ## Podman-Specific Patterns
@@ -304,23 +391,7 @@ buildah bud --no-cache -t myapp:latest .
 
 ### Quadlet: Systemd Integration (Production)
 
-```ini
-# ~/.config/containers/systemd/myapp.container
-[Unit]
-Description=My Application Container
-
-[Container]
-Image=myapp:latest
-PublishPort=8080:8000
-Volume=/data:/app/data:Z
-Environment=APP_ENV=production
-
-[Service]
-Restart=always
-
-[Install]
-WantedBy=default.target
-```
+See complete Quadlet unit example in Output Format Examples above. Key commands:
 
 ```bash
 # Reload and start
@@ -401,29 +472,29 @@ build/
 
 ## Build Performance and Caching
 
-- **Rule:** Order layers: dependencies first, app code last.
-- **Rule:** Use cache mounts for pip/npm: `--mount=type=cache,target=/root/.cache/pip`
-- **Rule:** Use `--layers` flag for layer caching in CI.
-- **Requirement:** Pin versions; rely on lock files (`uv.lock`, `poetry.lock`, `package-lock.json`).
-- **Consider:** Produce SBOM: `podman build --sbom=true` or `syft packages`.
+- **MUST:** Order layers: dependencies first, app code last.
+- **MUST:** Use cache mounts for pip/npm: `--mount=type=cache,target=/root/.cache/pip`
+- **SHOULD:** Use `--layers` flag for layer caching in CI.
+- **MUST:** Pin versions; rely on lock files (`uv.lock`, `poetry.lock`, `package-lock.json`).
+- **MUST:** Generate SBOM for production images using syft (`podman build --sbom=true` or `syft packages`).
 
 ## Security and Least Privilege
 
-- **Mandatory:** Run rootless by default; only use root mode when absolutely required.
-- **Mandatory:** Set `USER` to non-root UID/GID (use numeric for portability).
-- **Mandatory:** Drop capabilities and use read-only FS when possible:
+- **MUST:** Run rootless by default; only use root mode when absolutely required.
+- **MUST:** Set `USER` to non-root UID/GID (use numeric for portability).
+- **MUST:** Drop capabilities and use read-only FS when possible:
   - `--cap-drop=ALL --read-only --tmpfs /tmp` at runtime.
-- **Requirement:** Keep base images up-to-date; rebuild regularly.
-- **Requirement:** Scan images in CI (Trivy, Grype); fail on critical CVEs.
-- **Rule:** SELinux: Use `:Z` or `:z` volume suffixes for proper labeling.
-- **Avoid:** Exposing SSH or adding debug tools in prod images.
+- **MUST:** Keep base images up-to-date; rebuild regularly.
+- **MUST:** Scan images in CI (Trivy, Grype); fail on critical CVEs.
+- **MUST:** SELinux: Use `:Z` or `:z` volume suffixes for proper labeling on SELinux-enabled hosts.
+- **MUST NOT:** Expose SSH or add debug tools in prod images.
 
 ## Supply Chain Integrity
 
-- **Requirement:** Pin images by digest in prod deployments.
-- **Requirement:** Generate SBOM and attach provenance.
-- **Rule:** Sign images with cosign; enforce signature verification in deployment.
-- **Consider:** Use private registries; restrict pull from trusted sources only.
+- **MUST:** Pin images by digest in prod deployments.
+- **MUST:** Generate SBOM and attach provenance.
+- **MUST:** Sign images with cosign; enforce signature verification in deployment.
+- **MUST:** Use private registries for images containing proprietary code; public registries acceptable for open-source base images.
 
 ## Podman vs Docker Differences
 
@@ -457,15 +528,15 @@ build/
 
 ## Runtime and Orchestration
 
-- **Requirement:** Provide `HEALTHCHECK` in image or orchestrator.
-- **Rule:** Configure resource limits (`--memory`, `--cpus`), ulimits, and log drivers.
-- **Rule:** Externalize configuration via env and mounted secrets; never bake secrets.
-- **Consider:** Readiness/liveness probes, graceful shutdown, and PID 1 handling.
-- **Prefer:** Quadlet for systemd-managed containers in production over manual `podman run`.
+- **MUST:** Provide `HEALTHCHECK` in image or orchestrator.
+- **MUST:** Configure resource limits (`--memory`, `--cpus`), ulimits, and log drivers.
+- **MUST:** Externalize configuration via env and mounted secrets; never bake secrets.
+- **SHOULD:** Add readiness/liveness probes when deploying to Kubernetes or Podman pods with health monitoring. Include graceful shutdown handling and PID 1 signal forwarding (use `tini` or exec form CMD).
+- **SHOULD:** Use Quadlet for systemd-managed containers in production over manual `podman run`.
 
 ## CI/CD and Testing
 
-- **Rule:** Lint Containerfile with Hadolint; scan image on each build.
-- **Rule:** Cache layers in CI with `--layers` flag.
-- **Consider:** Smoke tests using Testcontainers or `podman run` in CI.
+- **MUST:** Lint Containerfile with Hadolint; scan image on each build.
+- **MUST:** Cache layers in CI with `--layers` flag.
+- **SHOULD:** Run smoke tests using Testcontainers or `podman run` in CI to validate container starts and responds.
 - **Note:** Most Docker CI patterns work with Podman; set `DOCKER_HOST` to Podman socket if needed.

@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:security, kw:rbac, kw:grant
 **Keywords:** roles, grants, secure views, security policies, access control, data security, policy troubleshooting, grant management, Data Metric Functions, DMF, least privilege, create masking policy, tagging, SQL
-**TokenBudget:** ~3600
+**TokenBudget:** ~4000
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -60,12 +60,12 @@ Comprehensive data security and access control practices using Snowflake's gover
 
 ### Inputs and Prerequisites
 
-- Snowflake account with SECURITYADMIN or ACCOUNTADMIN privileges
+- SECURITYADMIN role for role/grant management; ACCOUNTADMIN for account-level policies
+- OWNERSHIP on tables for masking/row access policy attachment
+- EXECUTE DATA METRIC FUNCTION privilege for DMF operations
 - Data classification completed (PII, PHI, confidential, public)
 - Compliance requirements identified (GDPR, HIPAA, SOC 2, etc.)
 - Business role definitions and responsibilities documented
-- Understanding of data access patterns and user personas
-- Existing schema and table inventory
 
 ### Mandatory
 
@@ -147,11 +147,13 @@ Comprehensive data security and access control practices using Snowflake's gover
 
 ### Post-Execution Checklist
 
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
+- [ ] Role hierarchy created: functional roles -> access roles -> user assignments
+- [ ] Masking policies applied to all PII/PHI columns
+- [ ] Row access policies enforced for multi-tenant data
+- [ ] Object tags applied for data classification (sensitivity, compliance)
+- [ ] Policies tested from non-privileged roles (verify masking/filtering)
+- [ ] Future grants configured for new objects in managed schemas
+- [ ] DMFs scheduled with appropriate alert thresholds
 
 ## Anti-Patterns and Common Mistakes
 
@@ -282,27 +284,56 @@ WHERE tag_name = 'DATA_CLASSIFICATION'
 ## Output Format Examples
 
 ```sql
--- Analysis Query: Investigate current state
-SELECT column_pattern, COUNT(*) as usage_count
-FROM information_schema.columns
-WHERE table_schema = 'TARGET_SCHEMA'
-GROUP BY column_pattern;
+-- Policy Implementation Workflow
 
--- Implementation: Apply Snowflake best practices
-CREATE OR REPLACE VIEW schema.view_name
-COMMENT = 'Business purpose following semantic model standards'
-AS
-SELECT
-    -- Explicit column list with business context
-    id COMMENT 'Surrogate key',
-    name COMMENT 'Business entity name',
-    created_at COMMENT 'Record creation timestamp'
-FROM schema.source_table
-WHERE is_active = TRUE;
+-- Step 1: Design role hierarchy
+CREATE ROLE IF NOT EXISTS DATA_ANALYST;
+CREATE ROLE IF NOT EXISTS DATA_ENGINEER;
+GRANT ROLE DATA_ANALYST TO ROLE DATA_ENGINEER;  -- Engineers inherit analyst access
 
--- Validation: Confirm implementation
-SELECT * FROM schema.view_name LIMIT 5;
-SHOW VIEWS LIKE '%view_name%';
+-- Step 2: Create and apply masking policy
+CREATE OR REPLACE MASKING POLICY db.governance.mask_email
+  AS (val STRING) RETURNS STRING ->
+  CASE
+    WHEN CURRENT_ROLE() IN ('DATA_STEWARD', 'COMPLIANCE_ADMIN') THEN val
+    ELSE REGEXP_REPLACE(val, '.+@', '***@')
+  END;
+
+ALTER TABLE db.schema.customers MODIFY COLUMN email
+  SET MASKING POLICY db.governance.mask_email;
+
+-- Step 3: Create and apply row access policy
+CREATE OR REPLACE ROW ACCESS POLICY db.governance.region_filter
+  AS (region STRING) RETURNS BOOLEAN ->
+  CURRENT_ROLE() = 'ADMIN' OR region = CURRENT_SESSION()::VARIANT:region;
+
+ALTER TABLE db.schema.sales
+  ADD ROW ACCESS POLICY db.governance.region_filter ON (region);
+
+-- Step 4: Apply tags for classification
+ALTER TABLE db.schema.customers MODIFY COLUMN email
+  SET TAG db.governance.sensitivity = 'PII';
+
+-- Step 5: Validate policies
+USE ROLE DATA_ANALYST;
+SELECT email FROM db.schema.customers LIMIT 1;  -- Should show masked value
+```
+
+### Policy Modification Workflow
+
+```sql
+-- ALTER existing masking policy (add new exempt role)
+CREATE OR REPLACE MASKING POLICY db.governance.mask_email
+  AS (val STRING) RETURNS STRING ->
+  CASE
+    WHEN CURRENT_ROLE() IN ('DATA_STEWARD', 'COMPLIANCE_ADMIN', 'NEW_ROLE') THEN val
+    ELSE REGEXP_REPLACE(val, '.+@', '***@')
+  END;
+
+-- Test policy change before applying to production
+-- 1. Apply to test table first
+-- 2. Verify with multiple roles
+-- 3. Rollback: re-apply previous policy version if issues found
 ```
 
 ## Access Control
@@ -316,6 +347,9 @@ SHOW VIEWS LIKE '%view_name%';
 - **Always:** Apply object tagging to classify data for governance purposes (e.g., PII, `SENSITIVITY_LEVEL`). See `123-snowflake-object-tagging.md` for comprehensive tagging patterns including tag-based masking policies.
 
 ## Data Quality Monitoring (DMFs)
+
+> **Note:** This section covers DMF governance integration. For comprehensive DMF implementation including system/custom DMFs, data profiling, expectations, scheduling, and cost management, see `124-snowflake-data-quality-core.md`.
+
 - **Always:** Use Data Metric Functions (DMFs) to measure and monitor quality metrics (e.g., NULL counts, duplicates, freshness). System DMFs are available in `SNOWFLAKE.CORE`; create custom DMFs for domain-specific checks.
 - **Requirement:** Associate DMFs to supported objects (tables, views, dynamic tables, external tables, Iceberg tables, materialized views, event tables) and schedule evaluations; results are recorded in the dedicated event table for DMFs.
 - **Always:** Define expectations for each DMF association to determine pass/fail thresholds. Use alerts to notify owners on failures to drive remediation.

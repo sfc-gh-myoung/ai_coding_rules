@@ -130,7 +130,7 @@ Foundational observability practices for Snowflake environments through telemetr
 ALTER ACCOUNT SET LOG_LEVEL = DEBUG;
 -- Generates 100x more log data, massive event table costs!
 ```
-**Problem:** 10-100x more log volume; massive serverless costs; event table bloat; retention costs explode; performance impact; signal-to-noise ratio destroyed
+**Problem:** 10-100x more log volume; massive costs; signal-to-noise ratio destroyed
 
 **Correct Pattern:**
 ```sql
@@ -142,7 +142,7 @@ ALTER ACCOUNT SET LOG_LEVEL = WARN;
 -- (But remember to revert after debugging!)
 ALTER DATABASE dev_db SET LOG_LEVEL = DEBUG;
 ```
-**Benefits:** Cost-effective logging; manageable event table size; signal-to-noise balance; production performance maintained; actionable logs only
+**Benefits:** Cost-effective logging; manageable event table size; actionable logs only
 
 **Anti-Pattern 2: Not Setting Retention Policy on Event Tables**
 ```sql
@@ -150,7 +150,7 @@ ALTER DATABASE dev_db SET LOG_LEVEL = DEBUG;
 CREATE EVENT TABLE my_logs;
 -- Logs accumulate forever, costs grow unbounded!
 ```
-**Problem:** Unbounded storage growth; runaway costs; table bloat; query performance degrades; manual cleanup required; budget overruns
+**Problem:** Unbounded storage growth; runaway costs; query performance degrades
 
 **Correct Pattern:**
 ```sql
@@ -164,7 +164,7 @@ ALTER EVENT TABLE my_logs
 
 -- Typical retention: 7-90 days depending on compliance needs
 ```
-**Benefits:** Bounded storage costs; automatic cleanup; predictable costs; optimal query performance; compliance-aligned retention; no manual maintenance
+**Benefits:** Bounded storage costs; automatic cleanup; predictable costs
 
 **Anti-Pattern 3: Querying System Views for Real-Time Monitoring**
 ```sql
@@ -174,7 +174,7 @@ FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
 WHERE start_time > DATEADD('minute', -5, CURRENT_TIMESTAMP());
 -- Data delayed up to 45 minutes! Dashboard shows stale data
 ```
-**Problem:** 45-minute latency on ACCOUNT_USAGE views; stale real-time dashboards; missed incidents; incorrect alerting; troubleshooting delays; poor operational visibility
+**Problem:** 45-minute latency on ACCOUNT_USAGE views; stale dashboards; missed incidents
 
 **Correct Pattern:**
 ```sql
@@ -193,7 +193,7 @@ FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
 WHERE start_time BETWEEN DATEADD('day', -7, CURRENT_DATE())
                      AND CURRENT_DATE();
 ```
-**Benefits:** Real-time monitoring (<1 min); accurate dashboards; timely incident detection; proper data source selection; cost-effective historical analysis
+**Benefits:** Real-time monitoring; accurate dashboards; timely incident detection
 
 **Anti-Pattern 4: Not Verifying Event Table Active Before Emitting Telemetry**
 ```python
@@ -201,7 +201,7 @@ WHERE start_time BETWEEN DATEADD('day', -7, CURRENT_DATE())
 session.sql("SELECT SYSTEM$LOG('INFO', 'Process started')").collect()
 # If no event table configured, telemetry silently dropped!
 ```
-**Problem:** Telemetry silently lost; no logs captured; blind operational state; debugging impossible; incidents go undetected; wasted instrumentation effort
+**Problem:** Telemetry silently lost; debugging impossible; incidents go undetected
 
 **Correct Pattern:**
 ```python
@@ -218,7 +218,7 @@ if not event_table:
 # Now emit telemetry with confidence
 session.sql("SELECT SYSTEM$LOG('INFO', 'Process started')").collect()
 ```
-**Benefits:** Telemetry actually captured; operational visibility guaranteed; early detection of config issues; reliable observability; debuggable systems; production-ready instrumentation
+**Benefits:** Telemetry actually captured; operational visibility guaranteed; reliable observability
 
 ## Foundational Concepts
 
@@ -248,7 +248,7 @@ session.sql("SELECT SYSTEM$LOG('INFO', 'Process started')").collect()
 > 1. Determine the data source: System View (historical) vs Event Table (real-time)
 > 2. Verify time range requirements match the data source latency
 > 3. Check object existence before querying telemetry (use SHOW commands)
-> 4. Never speculate about telemetry configuration—read it first with SHOW PARAMETERS
+ > 4. Never speculate about telemetry configuration - read it first with SHOW PARAMETERS
 > 5. Understand retention implications before recommending data collection strategies
 
 ### OpenTelemetry Standard Alignment
@@ -256,46 +256,19 @@ session.sql("SELECT SYSTEM$LOG('INFO', 'Process started')").collect()
 - **Benefit:** Enables integration with industry-standard observability tools (Grafana, Datadog, Observe).
 - **Structure:** Logs, metrics, and traces follow OpenTelemetry semantic conventions for portability.
 
-### Anti-Patterns for AI Agents
+### Error Recovery for Telemetry Issues
 
-**Anti-Pattern: Speculating about telemetry configuration**
-```python
-# Agent assumes DEBUG logging is enabled
-logger.debug("This will only appear if DEBUG is configured")
-# Agent doesn't verify actual setting
-```
+**When telemetry data is missing or incomplete:**
+1. Verify event table is active: `SHOW PARAMETERS LIKE 'EVENT_TABLE' IN ACCOUNT;`
+2. Check telemetry levels match expectations: `SHOW PARAMETERS LIKE '%LOG_LEVEL%' IN ACCOUNT;`
+3. Confirm handler code emits at correct severity (e.g., INFO not DEBUG when LOG_LEVEL=WARN)
+4. Check event table retention has not expired old data
 
-**Correct Pattern: Investigate configuration first**
-```sql
--- First, check current telemetry configuration
-SHOW PARAMETERS LIKE '%LOG_LEVEL%' IN ACCOUNT;
-SHOW PARAMETERS LIKE '%TRACE_LEVEL%' IN ACCOUNT;
-SHOW PARAMETERS LIKE '%METRIC_LEVEL%' IN ACCOUNT;
-
--- Then provide guidance based on actual settings
-```
-
-**Anti-Pattern: Using System Views for real-time monitoring**
-```sql
--- This won't show recent data (45+ min latency)
-SELECT *
-FROM snowflake.account_usage.query_history
-WHERE start_time >= current_timestamp() - INTERVAL '5 minutes';
-```
-
-**Correct Pattern: Use appropriate data source for time sensitivity**
-```sql
--- For real-time: Use event tables from telemetry
-SELECT timestamp, body, severity_text
-FROM snowflake.account_usage.event_table
-WHERE timestamp >= current_timestamp() - INTERVAL '5 minutes'
-  AND record_type = 'LOG';
-
--- For historical: Use System Views
-SELECT start_time, query_text, execution_status
-FROM snowflake.account_usage.query_history
-WHERE start_time >= current_timestamp() - INTERVAL '24 hours';
-```
+**When telemetry costs spike unexpectedly:**
+1. Check for DEBUG-level overrides: `SHOW PARAMETERS LIKE '%LOG_LEVEL%' IN DATABASE <db>;`
+2. Look for session-level overrides left active: `SHOW PARAMETERS LIKE '%LOG_LEVEL%' IN SESSION;`
+3. Review event table size growth: `SELECT COUNT(*) FROM <event_table> WHERE timestamp > DATEADD('hour', -1, CURRENT_TIMESTAMP());`
+4. Revert verbose levels: `ALTER DATABASE <db> UNSET LOG_LEVEL;`
 
 ## Telemetry Configuration
 

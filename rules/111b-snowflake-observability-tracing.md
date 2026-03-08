@@ -133,21 +133,21 @@ def process_order(order):
             save(order)
 # 4 spans for 18ms total operation - excessive overhead!
 ```
-**Problem:** Span overhead exceeds actual work time; massive trace volume; high costs; performance degradation; signal-to-noise destroyed; unusable traces
+**Problem:** Span overhead exceeds actual work time; massive trace volume; performance degradation
 
 **Correct Pattern:**
 ```python
 # Good: Single span for operation, use events for milestones
 def process_order(order):
     with telemetry.create_span("process_order") as span:
-        span.add_attribute("order_id", order.id)
+        span.set_attribute("order_id", order.id)
         validate(order)  # No span, <10ms
         transform(order)  # No span, <10ms
         span.add_event("validation_complete")
         save(order)  # Only span expensive ops (>100ms)
-        span.add_attribute("success", True)
+        span.set_attribute("success", True)
 ```
-**Benefits:** Minimal overhead; manageable trace volume; cost-effective; performance maintained; clear operation boundaries; actionable traces
+**Benefits:** Minimal overhead; manageable trace volume; clear operation boundaries
 
 **Anti-Pattern 2: Exceeding 128 Events Per Span Limit**
 ```python
@@ -157,7 +157,7 @@ with telemetry.create_span("process_batch") as span:
         span.add_event(f"Processing item {i}")
 # Hits 128 event limit, remaining 9,872 events silently dropped!
 ```
-**Problem:** 128 event limit silently drops events; incomplete traces; missing critical events; debugging impossible; no error raised; data loss
+**Problem:** 128 event limit silently drops events; incomplete traces; debugging impossible
 
 **Correct Pattern:**
 ```python
@@ -167,10 +167,10 @@ with telemetry.create_span("process_batch") as span:
     for i in range(batch_size):
         if i % 1000 == 0:  # Sample every 1000th
             span.add_event(f"Progress: {i}/{batch_size}")
-    span.add_attribute("total_processed", batch_size)
+    span.set_attribute("total_processed", batch_size)
 # 10 events total, well under 128 limit
 ```
-**Benefits:** Stays under 128 limit; all events captured; complete traces; effective debugging; efficient sampling; production-scalable
+**Benefits:** Stays under 128 limit; all events captured; effective debugging
 
 **Anti-Pattern 3: Using TRACE_LEVEL = ALWAYS in Production**
 ```sql
@@ -180,7 +180,7 @@ ALTER SESSION SET TRACE_LEVEL = ALWAYS;
 ALTER ACCOUNT SET TRACE_LEVEL = ALWAYS;
 -- Generates massive trace volume, high costs!
 ```
-**Problem:** Traces every execution; 100x data volume; massive serverless costs; performance impact; event table bloat; production noise; unusable for debugging
+**Problem:** Traces every execution; 100x data volume; massive costs; performance impact
 
 **Correct Pattern:**
 ```sql
@@ -191,7 +191,7 @@ ALTER ACCOUNT SET TRACE_LEVEL = ON_EVENT;
 -- (In dev/test environments only!)
 ALTER SESSION SET TRACE_LEVEL = ALWAYS;
 ```
-**Benefits:** Production cost-effective; traces only instrumented code; manageable volume; performance maintained; development flexibility; targeted debugging
+**Benefits:** Production cost-effective; traces only instrumented code; manageable volume
 
 **Anti-Pattern 4: Not Adding Context Attributes to Spans**
 ```python
@@ -200,24 +200,24 @@ with telemetry.create_span("process_data"):
     result = process(data)
 # Which data? What size? Success? No context!
 ```
-**Problem:** Can't filter traces by criteria; no debugging context; unclear operation details; can't identify patterns; unusable for root cause analysis; poor observability
+**Problem:** Can't filter traces by criteria; no debugging context; unusable for root cause analysis
 
 **Correct Pattern:**
 ```python
 # Good: Add meaningful attributes for filtering and analysis
 with telemetry.create_span("process_data") as span:
-    span.add_attribute("input_size", len(data))
-    span.add_attribute("data_source", data.source)
-    span.add_attribute("user_id", user.id)
+    span.set_attribute("input_size", len(data))
+    span.set_attribute("data_source", data.source)
+    span.set_attribute("user_id", user.id)
 
     result = process(data)
 
-    span.add_attribute("success", result.success)
-    span.add_attribute("output_size", len(result.data))
+    span.set_attribute("success", result.success)
+    span.set_attribute("output_size", len(result.data))
     if not result.success:
-        span.add_attribute("error_code", result.error_code)
+        span.set_attribute("error_code", result.error_code)
 ```
-**Benefits:** Filterable traces; rich debugging context; pattern identification; root cause analysis; production debugging; operational insights; actionable observability
+**Benefits:** Filterable traces; rich debugging context; pattern identification
 
 ## Output Format Examples
 ```python
@@ -425,30 +425,28 @@ def multi_stage_pipeline(session, input_data):
 
 ### Trace Event Limits (Critical)
 
-- **Maximum:** 128 trace events per span
-- **Implication:** High-frequency operations may not capture all events if limit exceeded
+- **Maximum:** 128 trace events per span, 128 custom attributes per span
+- **Implication:** Exceeding limits causes silent data loss (see Anti-Pattern 2 above for sampling strategy)
 - **Mitigation:** Use strategic span creation for key operations, not exhaustive logging
 
-**Anti-Pattern: Creating too many events per span**
-```python
-# Anti-Pattern: Too many events
-with telemetry.create_span("process_batch") as span:
-    for i in range(10000):  # Too many iterations
-        telemetry.add_event(f"Processing item {i}")  # Will hit 128 limit
-```
+### Span Lifecycle Management
 
-**Correct: Sample events strategically**
-```python
-# Correct: Strategic sampling
-with telemetry.create_span("process_batch") as span:
-    batch_size = 10000
-    span.set_attribute("batch_size", batch_size)
+- **Creation:** Always use `create_span()` as a context manager (`with` statement) to ensure proper cleanup
+- **Attributes:** Set input attributes at span start, output/status attributes at span end
+- **Error handling:** Set error attributes in `except` blocks before re-raising
+- **Nesting:** Child spans inherit parent trace_id automatically; no manual propagation needed
 
-    for i in range(batch_size):
-        process_item(i)
-        # Only log milestones
-        if i % 1000 == 0:
-            telemetry.add_event(f"Progress: {i}/{batch_size}")
+```python
+# Correct lifecycle pattern
+with telemetry.create_span("operation") as span:
+    span.set_attribute("input_size", len(data))  # Input attrs at start
+    try:
+        result = process(data)
+        span.set_attribute("success", True)       # Status at end
+    except Exception as e:
+        span.set_attribute("success", False)
+        span.set_attribute("error", str(e))        # Error attrs before raise
+        raise
 ```
 
 ### Span Attribute Limits

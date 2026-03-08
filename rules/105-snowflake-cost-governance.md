@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:cost, kw:budget, kw:billing
 **Keywords:** budget alerts, spend tracking, Snowflake, SQL, CREDIT_QUOTA, WAREHOUSE_METERING_HISTORY, object tagging, monitor credits, warehouse spending, cost alerts, credit limits, budget management, resource monitor, tag enforcement
-**TokenBudget:** ~2100
+**TokenBudget:** ~3300
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -55,15 +55,30 @@ Comprehensive cost management and optimization strategies for Snowflake environm
 
 ### Inputs and Prerequisites
 
-Snowflake account with ACCOUNTADMIN privileges; understanding of workload patterns; cost baseline
+- Snowflake account with ACCOUNTADMIN role (required for resource monitors and account-level usage views)
+- USAGE privilege on `SNOWFLAKE.ACCOUNT_USAGE` schema for cost analysis queries
+- Existing warehouses and workloads to monitor (cost baseline established)
+- Understanding of organizational cost center structure for tagging
 
 ### Mandatory
 
-Snowflake SQL commands; resource monitor configuration; warehouse management commands
+- Every warehouse must have an associated resource monitor with credit quota
+- Resource monitors must have notification triggers at 75% and 90%, and suspend trigger at 100%
+- All warehouses must have mandatory tags: COST_CENTER, WORKLOAD_TYPE, ENVIRONMENT, OWNER_TEAM
+- AUTO_SUSPEND must be enabled on all warehouses (default 60s unless justified)
+- All warehouse creation must follow `119-snowflake-warehouse-management.md`
 
 ### Forbidden
 
-Commands that create oversized warehouses without justification; disabling resource monitors
+- Creating warehouses without resource monitors (unbounded spend risk)
+- Disabling resource monitors on production warehouses
+- Creating X-Large or larger warehouses without documented justification
+- Skipping cost attribution tags on new warehouses
+
+### Conditional
+
+- Clustering keys only when Query Profile shows poor pruning (see `103-snowflake-performance-tuning.md`)
+- Multi-cluster warehouses only for workloads with demonstrated concurrency needs (>50 concurrent queries)
 
 ### Execution Steps
 
@@ -183,6 +198,35 @@ ALTER WAREHOUSE WH_ANALYTICS_M SET RESOURCE_MONITOR = rm_analytics_monthly;
 - **Requirement:** Verify all warehouses follow mandatory tagging and resource monitor association requirements.
 - **Always:** Apply object tagging for cost attribution and chargeback. See `123-snowflake-object-tagging.md` for comprehensive tagging patterns and cost tracking queries.
 
+### Cost Attribution Tag DDL
+```sql
+-- Create cost attribution tags (one-time setup)
+CREATE TAG IF NOT EXISTS my_db.my_schema.cost_center ALLOWED_VALUES 'ENGINEERING', 'ANALYTICS', 'DATA_SCIENCE', 'MARKETING';
+CREATE TAG IF NOT EXISTS my_db.my_schema.workload_type ALLOWED_VALUES 'ETL', 'REPORTING', 'AD_HOC', 'ML_TRAINING';
+CREATE TAG IF NOT EXISTS my_db.my_schema.environment ALLOWED_VALUES 'DEV', 'TEST', 'STAGING', 'PROD';
+CREATE TAG IF NOT EXISTS my_db.my_schema.owner_team COMMENT = 'Team responsible for this resource';
+
+-- Apply tags to warehouse
+ALTER WAREHOUSE wh_analytics SET TAG
+    my_db.my_schema.cost_center = 'ANALYTICS',
+    my_db.my_schema.workload_type = 'REPORTING',
+    my_db.my_schema.environment = 'PROD',
+    my_db.my_schema.owner_team = 'BI_TEAM';
+
+-- Query cost by tag
+SELECT
+    tag_value,
+    SUM(credits_used) AS total_credits
+FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY wmh
+JOIN SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES tr
+    ON wmh.warehouse_name = tr.object_name
+    AND tr.tag_name = 'COST_CENTER'
+    AND tr.domain = 'WAREHOUSE'
+WHERE wmh.start_time >= DATEADD('DAY', -30, CURRENT_TIMESTAMP())
+GROUP BY tag_value
+ORDER BY total_credits DESC;
+```
+
 ## Cost Analysis Queries
 
 ### WAREHOUSE_METERING_HISTORY Query
@@ -214,3 +258,72 @@ LIMIT 10;
 - **Always:** Use Resource Monitors to track and control credit usage.
 - **Always:** Create resource monitors with specific `CREDIT_QUOTA` and `TRIGGERS` to suspend or notify on thresholds.
 - **Always:** Use Snowflake's anomaly detection features to monitor for unexpected credit spikes.
+
+## Serverless Compute Cost Monitoring
+
+Serverless features (Snowpipe, serverless tasks, automatic clustering, materialized views) consume credits outside warehouse metering. Monitor these separately:
+
+```sql
+-- Serverless task credit usage
+SELECT
+    task_name,
+    DATE_TRUNC('DAY', start_time) AS usage_date,
+    SUM(credits_used) AS task_credits
+FROM SNOWFLAKE.ACCOUNT_USAGE.SERVERLESS_TASK_HISTORY
+WHERE start_time >= DATEADD('DAY', -30, CURRENT_TIMESTAMP())
+GROUP BY task_name, usage_date
+ORDER BY task_credits DESC;
+
+-- Snowpipe credit usage
+SELECT
+    pipe_name,
+    DATE_TRUNC('DAY', start_time) AS usage_date,
+    SUM(credits_used) AS pipe_credits
+FROM SNOWFLAKE.ACCOUNT_USAGE.PIPE_USAGE_HISTORY
+WHERE start_time >= DATEADD('DAY', -30, CURRENT_TIMESTAMP())
+GROUP BY pipe_name, usage_date
+ORDER BY pipe_credits DESC;
+```
+
+## Storage Cost Monitoring
+
+```sql
+-- Table-level storage metrics (identify largest tables)
+SELECT
+    table_catalog, table_schema, table_name,
+    ROUND(active_bytes / POWER(1024, 3), 2) AS active_gb,
+    ROUND(time_travel_bytes / POWER(1024, 3), 2) AS time_travel_gb,
+    ROUND(failsafe_bytes / POWER(1024, 3), 2) AS failsafe_gb,
+    ROUND((active_bytes + time_travel_bytes + failsafe_bytes) / POWER(1024, 3), 2) AS total_gb
+FROM SNOWFLAKE.ACCOUNT_USAGE.TABLE_STORAGE_METRICS
+WHERE active_bytes > 0
+ORDER BY total_gb DESC
+LIMIT 20;
+
+-- Account-level storage trend
+SELECT
+    usage_date,
+    ROUND(storage_bytes / POWER(1024, 4), 2) AS storage_tb,
+    ROUND(stage_bytes / POWER(1024, 4), 2) AS stage_tb,
+    ROUND(failsafe_bytes / POWER(1024, 4), 2) AS failsafe_tb
+FROM SNOWFLAKE.ACCOUNT_USAGE.STORAGE_USAGE
+WHERE usage_date >= DATEADD('DAY', -30, CURRENT_DATE())
+ORDER BY usage_date;
+```
+
+**Cost impact of Time Travel and Fail-safe:**
+- Time Travel retention (default 1 day, up to 90 days for Enterprise) stores all changed/deleted data for the retention period
+- Fail-safe (7 days, non-configurable) stores data after Time Travel expires
+- Reduce retention on high-churn staging tables: `ALTER TABLE staging SET DATA_RETENTION_TIME_IN_DAYS = 0;`
+- Use `TRANSIENT` tables for staging/temp data to eliminate Fail-safe storage costs entirely
+
+## Cloud Services Billing Threshold
+
+Snowflake provides a **10% adjustment** for cloud services credits: cloud services compute is free up to 10% of your daily warehouse compute credits. You are only billed for cloud services usage that exceeds this threshold.
+
+**What counts as cloud services:** Authentication, query parsing/optimization, metadata operations, result set caching, SHOW/DESCRIBE commands.
+
+**When to investigate:** If cloud services regularly exceeds 10% of warehouse credits, look for:
+- Excessive SHOW/DESCRIBE/LIST commands in automation scripts
+- High volume of small, simple queries (parsing overhead dominates compute)
+- Frequent clone or metadata-heavy operations

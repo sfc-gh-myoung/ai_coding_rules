@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-01-27
 **Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, Google style, NumPy style, PEP 257, semantic depth, side effects
-**TokenBudget:** ~2450
+**TokenBudget:** ~2700
 **ContextTier:** High
 **Depends:** 200-python-core.md, 201-python-lint-format.md
 **LoadTrigger:** kw:docstring, kw:documentation, kw:comments
@@ -50,7 +50,7 @@ Clear, enforceable standards for Python documentation, source code comments, and
 - **Choose ONE docstring style** - Google (recommended) or NumPy
 - **All public APIs need docstrings** - Modules, classes, functions, methods
 - **Enable Ruff D rules** - `select = ["D"]` in pyproject.toml
-- **Docstrings must be semantically valuable** - Explain context, side effects, preconditions
+- **Docstrings must be semantically valuable** (see Five Questions, below) - Explain context, side effects, preconditions
 - **Document all side effects** - I/O, state mutations, subprocess calls, network requests
 - **Follow PEP 257** - One-line summary, blank line, then details
 
@@ -315,3 +315,22 @@ def execute_operation(operation_id: str, operation_type: OperationType):
 #        Preconditions: Connection established, ALTER TABLE privileges.
 #        Performance: 30-60s typical, 5-15min for tables >1M rows."""
 ```
+
+## Common Ruff D-rule Errors
+
+Requires Ruff 0.4+. These are the most frequently encountered pydocstyle violations:
+
+- **D100** Missing docstring in public module - Add module-level docstring as first statement
+- **D101** Missing docstring in public class - Add class docstring after `class` line
+- **D102** Missing docstring in public method - Add method docstring (skip for `@override` methods)
+- **D103** Missing docstring in public function - Add function docstring
+- **D104** Missing docstring in public package - Add docstring to `__init__.py`
+- **D105** Missing docstring in magic method - Add docstring to `__repr__`, `__eq__`, etc.
+- **D107** Missing docstring in `__init__` - Add docstring or document in class docstring
+
+### Edge Cases
+
+- **`__init__.py` docstrings**: Required by D104. Use to describe package purpose and public API.
+- **Property docstrings**: Document on the `@property` method, not the setter.
+- **Overridden method docstrings**: Use `# noqa: D102` when parent docstring applies unchanged. Add docstring only when behavior differs.
+- **Abstract method docstrings**: Always document — subclasses inherit the contract.

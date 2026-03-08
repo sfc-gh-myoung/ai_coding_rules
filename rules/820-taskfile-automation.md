@@ -87,11 +87,10 @@ Core directives for creating and maintaining project automation using Taskfile.y
 - **Documentation** - Add `desc:` for all public tasks
 
 ### Post-Execution Checklist
-- [ ] `version: '3.45'` or later specified
-- [ ] `set: [pipefail]` added after version
+- [ ] Version and `pipefail` set (see [Version Specification](#version-specification))
 - [ ] Public tasks have `desc`
 - [ ] Non-CLI tasks marked `internal: true`
-- [ ] Commands auto-detected (no hard-coded paths)
+- [ ] Commands auto-detected (see [Command Auto-Detection](#command-auto-detection))
 - [ ] Preconditions present with helpful messages
 - [ ] Validated with `task --list`
 
@@ -99,20 +98,31 @@ Core directives for creating and maintaining project automation using Taskfile.y
 
 ### Anti-Pattern 1: Hardcoded Paths
 
-**Problem:** Using absolute paths instead of variables.
+**Problem:** Using absolute paths for directories or executables instead of variables and auto-detection.
 
 **Correct Pattern:**
 ```yaml
 vars:
   BUILD_DIR: '{{.ROOT_DIR}}/build'
   SRC_DIR: '{{.ROOT_DIR}}/src'
+  UV:
+    sh: command -v uv || echo "uv"
 
 tasks:
   build:
     dir: '{{.SRC_DIR}}'
     cmds:
       - go build -o {{.BUILD_DIR}}/app
+
+  test:
+    preconditions:
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+    cmds:
+      - "{{.UV}} run pytest"
 ```
+
+Use `{{.ROOT_DIR}}` for directory paths; use `command -v` in vars for executable resolution (see [Command Auto-Detection](#command-auto-detection)).
 
 ### Anti-Pattern 2: Missing Dependencies
 
@@ -137,25 +147,6 @@ tasks:
         msg: "Build artifact missing. Run 'task build' first."
     cmds:
       - ./deploy.sh
-```
-
-### Anti-Pattern 3: Hard-Coded Command Paths
-
-**Problem:** Using absolute paths to executables.
-
-**Correct Pattern:**
-```yaml
-vars:
-  UV:
-    sh: command -v uv || echo "uv"
-
-tasks:
-  test:
-    preconditions:
-      - sh: command -v uv
-        msg: "uv not found. Install from https://docs.astral.sh/uv/"
-    cmds:
-      - "{{.UV}} run pytest"
 ```
 
 ## Version and Error Handling
@@ -187,7 +178,7 @@ tasks:
 
 ## Command Auto-Detection
 
-### Dynamic Variable Patterns
+Use `command -v` to resolve executables dynamically. Define once in `vars:`, then reference via `{{.VAR}}`:
 
 ```yaml
 vars:
@@ -196,11 +187,7 @@ vars:
   UVX:
     sh: command -v uvx || echo "uvx"
   PYTHON: "{{.UV}} run python"
-```
 
-### Preconditions with Messages
-
-```yaml
 tasks:
   quality:lint:
     desc: "Run ruff linter"
@@ -337,14 +324,6 @@ command -v uv
 # Verify command
 which uv && uv --version
 ```
-
-## Common Mistakes
-
-- **Generic version** - Use `version: '3.45'` not `version: '3'`
-- **Missing pipefail** - Add `set: [pipefail]` after version
-- **Missing desc** - Add to all CLI-facing tasks
-- **OS-specific commands** - Use `platforms:` guards
-- **Not validating** - Run `task --list` after changes
 
 ## Documentation
 - Reference: https://taskfile.dev/

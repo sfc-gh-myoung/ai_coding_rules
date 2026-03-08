@@ -8,7 +8,7 @@
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-01-27
 **Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, semantic view, create semantic view, SQL, YAML, NLQ, mapping syntax
-**TokenBudget:** ~2250
+**TokenBudget:** ~2550
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** kw:semantic-view, kw:semantic-model
@@ -47,7 +47,8 @@ Creating Snowflake Native Semantic Views using `CREATE SEMANTIC VIEW` DDL: struc
 ## Contract
 
 ### Inputs and Prerequisites
-- Target DATABASE.SCHEMA with privileges
+- Role with CREATE SEMANTIC VIEW privilege on target schema
+- USAGE privilege on referenced tables/views
 - Physical base tables with defined structure
 - Business glossary for naming
 
@@ -218,6 +219,35 @@ CREATE OR REPLACE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
     orders.total_revenue AS SUM(o_totalprice) WITH SYNONYMS ('revenue', 'sales')
   );
 ```
+
+### ALTER SEMANTIC VIEW Patterns
+
+```sql
+-- Add new dimensions or metrics to existing view
+ALTER SEMANTIC VIEW PROD.SALES.SEM_ORDERS ADD
+  DIMENSIONS (
+    orders.status AS o_orderstatus WITH SYNONYMS ('order status')
+  );
+
+-- Drop dimensions or metrics
+ALTER SEMANTIC VIEW PROD.SALES.SEM_ORDERS DROP
+  DIMENSIONS (orders.status);
+
+-- Rename the semantic view
+ALTER SEMANTIC VIEW PROD.SALES.SEM_ORDERS RENAME TO PROD.SALES.SEM_ORDERS_V2;
+```
+
+### NULL Handling and Primary Key Guidance
+
+**NULL in Primary Keys:** PRIMARY KEY columns should not contain NULLs. Snowflake does not enforce PK constraints, so validate data before creating semantic views:
+```sql
+-- Check for NULLs in intended PK column
+SELECT COUNT(*) AS null_count FROM db.schema.table WHERE pk_column IS NULL;
+-- Check for duplicates in intended PK column
+SELECT pk_column, COUNT(*) FROM db.schema.table GROUP BY pk_column HAVING COUNT(*) > 1;
+```
+
+**NULL in FACTS/DIMENSIONS:** NULLs in fact or dimension columns are passed through. Metrics like `SUM()` and `AVG()` ignore NULLs per standard SQL. Use `COALESCE` in base views if NULL substitution is needed.
 
 ### Component Rules
 

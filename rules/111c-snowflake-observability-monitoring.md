@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:monitoring, kw:metrics
 **Keywords:** Copy History, Task History, Dynamic Tables, cost management, AI observability, Cortex AI, token tracking, troubleshooting, performance analysis, monitor queries, monitoring dashboard, observability UI, query monitoring, telemetry volume, SQL
-**TokenBudget:** ~6350
+**TokenBudget:** ~5900
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
 
@@ -122,7 +122,7 @@ FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
 WHERE start_time > DATEADD('day', -7, CURRENT_TIMESTAMP());
 -- Returns 100+ columns, most unused, slow and expensive!
 ```
-**Problem:** Returns unnecessary columns; slow queries; high compute costs; wide result sets; query timeout risk; inefficient data transfer; wasted resources
+**Problem:** Returns unnecessary columns; slow queries; high compute costs
 
 **Correct Pattern:**
 ```sql
@@ -139,7 +139,7 @@ FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
 WHERE start_time > DATEADD('day', -7, CURRENT_TIMESTAMP())
   AND execution_status = 'FAILED';  -- Additional filters
 ```
-**Benefits:** Fast queries; low costs; minimal data transfer; focused results; query performance; production-scalable monitoring; efficient dashboards
+**Benefits:** Fast queries; low costs; focused results
 
 **Anti-Pattern 2: Monitoring Queries Without Timestamp Filters**
 ```sql
@@ -149,7 +149,7 @@ FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
 GROUP BY warehouse_name;
 -- Scans years of data! Very expensive query!
 ```
-**Problem:** Full table scan; extremely slow; high costs; query timeout; unnecessary historical data; dashboard latency; user frustration
+**Problem:** Full table scan; extremely slow; high costs; query timeout
 
 **Correct Pattern:**
 ```sql
@@ -163,7 +163,7 @@ GROUP BY warehouse_name
 ORDER BY total_credits DESC;
 -- Scans only last 30 days, fast and cost-effective
 ```
-**Benefits:** Fast queries; bounded costs; relevant recent data; quick dashboard refresh; production-ready monitoring; user-friendly performance
+**Benefits:** Fast queries; bounded costs; relevant recent data
 
 **Anti-Pattern 3: Using ACCOUNT_USAGE for Real-Time Alerting**
 ```sql
@@ -174,7 +174,7 @@ WHERE start_time > DATEADD('minute', -5, CURRENT_TIMESTAMP())
   AND execution_status = 'FAILED';
 -- Returns stale data, misses recent failures!
 ```
-**Problem:** 45-minute data latency; stale alerts; missed incidents; false negatives; delayed response; poor real-time visibility; SLA violations
+**Problem:** 45-minute data latency; stale alerts; missed incidents
 
 **Correct Pattern:**
 ```sql
@@ -193,7 +193,7 @@ WHERE start_time BETWEEN DATEADD('day', -7, CURRENT_DATE())
   AND execution_status = 'FAILED'
 GROUP BY hour;
 ```
-**Benefits:** Real-time alerting (<1 min); timely incident detection; accurate monitoring; proper data source selection; SLA compliance; operational excellence
+**Benefits:** Real-time alerting (<1 min); timely incident detection; proper data source selection
 
 **Anti-Pattern 4: Not Monitoring Telemetry Volume and Costs**
 ```python
@@ -203,7 +203,7 @@ logging.basicConfig(level=logging.DEBUG)  # In production!
 # Never check: How much data? What's the cost?
 # Costs spiral out of control, surprise bills!
 ```
-**Problem:** Unbounded telemetry costs; surprise budget overruns; no cost visibility; runaway spending; lack of accountability; emergency cost-cutting required
+**Problem:** Unbounded telemetry costs; surprise budget overruns; no cost visibility
 
 **Correct Pattern:**
 ```sql
@@ -231,7 +231,7 @@ ORDER BY day DESC;
 
 -- Set alerts when costs exceed thresholds
 ```
-**Benefits:** Cost visibility; budget control; early warning; informed decisions; predictable spending; resource optimization; financial accountability
+**Benefits:** Cost visibility; budget control; early warning on spending
 
 ## Output Format Examples
 ```sql
@@ -343,57 +343,18 @@ ALTER DATABASE dev_analytics SET METRIC_LEVEL = ALL;
 ```
 
 ### Cost Estimation
-```sql
--- Estimate event table storage and volume
-SELECT
-    record_type,
-    COUNT(*) as record_count,
-    COUNT(*) * 1024 / (1024*1024*1024) as estimated_gb,
-    MIN(timestamp) as earliest,
-    MAX(timestamp) as latest,
-    DATEDIFF(day, earliest, latest) as retention_days
-FROM snowflake.account_usage.event_table
-GROUP BY record_type
-ORDER BY estimated_gb DESC;
-```
+
+See the telemetry cost estimation query in Output Format Examples above (Step 4). Key considerations:
+- Event table storage scales with volume and retention period
+- Use the estimation query weekly to track growth trends
+- Set alerts when estimated_gb exceeds thresholds
 
 ## Monitoring and Analysis
 
 ### Regular Monitoring Queries
 - **Always:** Implement regular monitoring queries to identify issues and performance trends.
 - **Rule:** Create views or stored procedures for common observability queries.
-
-```sql
--- Create monitoring view for error analysis
-CREATE OR REPLACE VIEW system_errors AS
-SELECT
-    DATE_TRUNC('hour', timestamp) as error_hour,
-    resource_attributes:"snow.database.name"::string as database_name,
-    resource_attributes:"snow.executable.name"::string as object_name,
-    severity_text,
-    COUNT(*) as error_count,
-    ARRAY_AGG(DISTINCT body) as sample_messages
-FROM snowflake.account_usage.event_table
-WHERE record_type = 'LOG'
-  AND severity_text IN ('ERROR', 'FATAL')
-  AND timestamp >= current_timestamp() - interval '7 days'
-GROUP BY 1, 2, 3, 4
-ORDER BY error_hour DESC, error_count DESC;
-
--- Create performance monitoring view
-CREATE OR REPLACE VIEW function_performance AS
-SELECT
-    resource_attributes:"snow.executable.name"::string as function_name,
-    DATE_TRUNC('hour', timestamp) as performance_hour,
-    AVG(duration_ms) as avg_duration_ms,
-    PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration_ms) as p95_duration_ms,
-    COUNT(*) as execution_count
-FROM snowflake.account_usage.event_table
-WHERE record_type = 'SPAN'
-  AND timestamp >= current_timestamp() - interval '24 hours'
-GROUP BY 1, 2
-ORDER BY performance_hour DESC, avg_duration_ms DESC;
-```
+- **Templates:** See Output Format Examples above for production-ready error monitoring (`production_error_monitoring`), performance monitoring (`function_performance_monitoring`), AI cost monitoring (`ai_cost_monitoring`), and telemetry cost estimation views.
 
 ### Snowsight Dashboard Queries
 - **Always:** Use Snowsight to visualize telemetry data and create dashboards for operational monitoring.
@@ -405,7 +366,7 @@ SELECT
     DATE_TRUNC('hour', timestamp) as hour,
     COUNT(CASE WHEN severity_text IN ('ERROR', 'FATAL') THEN 1 END) as errors,
     COUNT(*) as total_logs,
-    (errors / total_logs * 100) as error_rate_percent
+    ROUND(errors / NULLIF(total_logs, 0) * 100, 2) as error_rate_percent
 FROM snowflake.account_usage.event_table
 WHERE record_type = 'LOG'
   AND timestamp >= current_timestamp() - interval '24 hours'
@@ -650,23 +611,7 @@ Using Query History (System View) to debug real-time application issues. Instead
 - **Integration:** AI observability data flows into same event tables as other telemetry.
 - **Key Metrics:** Token consumption, model latency, error rates, cost per operation.
 
-**Cost Tracking Query:**
-```sql
--- Monitor Cortex AI token usage and costs
-SELECT
-    DATE_TRUNC('day', timestamp) as usage_day,
-    resource_attributes:"cortex.function"::string as ai_function,
-    resource_attributes:"cortex.model"::string as model_name,
-    SUM(resource_attributes:"cortex.tokens"::number) as total_tokens,
-    COUNT(*) as invocation_count,
-    AVG(duration_ms) as avg_latency_ms
-FROM snowflake.account_usage.event_table
-WHERE record_type = 'SPAN'
-  AND resource_attributes:"cortex.function" IS NOT NULL
-  AND timestamp >= current_timestamp() - INTERVAL '7 days'
-GROUP BY usage_day, ai_function, model_name
-ORDER BY usage_day DESC, total_tokens DESC;
-```
+**Cost Tracking:** See the `ai_cost_monitoring` view in Output Format Examples above (Step 3) for a production-ready AI cost attribution query. Key metrics to track: token consumption per function/model, invocation counts, and average latency.
 
 ### Evaluations and Comparisons
 - **Feature:** Snowflake AI Observability provides built-in evaluation capabilities for generative AI applications.

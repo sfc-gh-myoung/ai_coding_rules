@@ -8,6 +8,31 @@ Execute plan review per specified mode using **batch rubric loading** (NOT progr
 
 ---
 
+## Execution Mode Selection
+
+**Check `execution_mode` parameter (default: `parallel`):**
+
+```
+IF execution_mode == "parallel":
+    → Follow workflows/parallel-execution.md
+    → 8 sub-agents evaluate dimensions simultaneously
+    → ~8× faster execution
+    → Better context isolation per dimension
+
+ELSE (execution_mode == "sequential"):
+    → Follow sequential workflow below (Phase 1, 2, 3)
+    → Single agent evaluates all dimensions
+    → For debugging or low-resource environments
+```
+
+**See:** `workflows/parallel-execution.md` for parallel workflow details.
+
+---
+
+## Sequential Mode (Legacy)
+
+The following phases apply when `execution_mode == "sequential"`:
+
 ## Phase 1: Load All Rubric Definitions (MANDATORY)
 
 **Purpose:** Lock in scoring criteria interpretation BEFORE reviewing plan. Prevents interpretation drift.

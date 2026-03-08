@@ -6,11 +6,62 @@ A Claude skill for reviewing LLM-generated plans to ensure autonomous agents can
 
 This skill automates the complete plan review workflow:
 
+- **Parallel execution mode** (default) — Uses 8 sub-agents to evaluate dimensions simultaneously, ~8× faster
+- **Sequential execution mode** — Legacy single-agent behavior for debugging
 - Validates inputs (target files, date, mode, model)
 - Executes review using 8-dimension rubric optimized for agent executability
 - Evaluates plans across Critical (75 points) and Standard (25 points) dimensions
 - Supports FULL, COMPARISON, META-REVIEW, and DELTA modes
+- **Interactive parameter collection** via ask_user_question
 - Writes results to `reviews/` with automatic suffix for duplicates
+
+## Architecture
+
+### Execution Modes
+
+| Mode | Sub-Agents | Speed | Context | Use Case |
+|------|------------|-------|---------|----------|
+| **parallel** (default) | 8 | ~3-5 min | Fresh per dimension | Production reviews |
+| **sequential** | 1 | ~15-20 min | Degraded after dim 4 | Debugging, low resources |
+
+### Parallel Execution Flow
+
+```
+Coordinator (Main Agent)
+│
+├── Phase 1: Setup
+│   ├── Load plan content
+│   ├── Load overlap resolution rules
+│   └── Prepare shared context
+│
+├── Phase 2: Parallel Evaluation (8 sub-agents)
+│   ├── SA-1: Executability (20pts)
+│   ├── SA-2: Completeness (20pts)
+│   ├── SA-3: Success Criteria (20pts)
+│   ├── SA-4: Scope (15pts)
+│   ├── SA-5: Dependencies (10pts)
+│   ├── SA-6: Decomposition (5pts)
+│   ├── SA-7: Context (5pts)
+│   └── SA-8: Risk Awareness (5pts)
+│
+├── Phase 3: Collect & Validate
+│   ├── Gather dimension worksheets
+│   └── Verify no overlap violations
+│
+└── Phase 4: Aggregate & Report
+    ├── Apply scoring formula
+    └── Generate unified review
+```
+
+### Key Workflows
+
+| Workflow | File | Purpose |
+|----------|------|---------|
+| Parallel execution | `workflows/parallel-execution.md` | Coordinator logic for 8 sub-agents |
+| Sub-agent template | `workflows/dimension-subagent-template.md` | Prompt template for dimension evaluation |
+| Score aggregation | `workflows/score-aggregation.md` | Combine results into final score |
+| Overlap validation | `workflows/overlap-validator.md` | Prevent double-counting |
+| Parameter collection | `workflows/parameter-collection.md` | Interactive input via ask_user_question |
 
 ## Quick Start
 
@@ -24,15 +75,24 @@ skills/plan-reviewer/SKILL.md
 
 ### Step 2: Trigger Review
 
-**FULL mode (single plan):**
+**FULL mode with parallel execution (default, fastest):**
 
 ```text
 Use the plan-reviewer skill.
 
-target_file: plans/IMPROVE_RULE_LOADING.md
-review_date: 2025-12-16
+target_file: plans/my-plan.md
 review_mode: FULL
-model: claude-sonnet-45
+execution_mode: parallel
+```
+
+**FULL mode with sequential execution (debugging):**
+
+```text
+Use the plan-reviewer skill.
+
+target_file: plans/my-plan.md
+review_mode: FULL
+execution_mode: sequential
 ```
 
 **COMPARISON mode (multiple plans):**

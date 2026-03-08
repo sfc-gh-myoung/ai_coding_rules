@@ -1,6 +1,6 @@
 # Using the Plan Reviewer Skill
 
-**Last Updated:** 2026-01-21
+**Last Updated:** 2026-03-08
 
 The Plan Reviewer Skill evaluates LLM-generated plans to ensure autonomous agents can execute them successfully. It scores plans across 8 dimensions optimized for agent executability using a 100-point scoring system.
 
@@ -11,10 +11,13 @@ The plan-reviewer skill runs Agent-Centric Plan Reviews (reviews optimized for A
 Key behaviors:
 
 - **100-point scoring system** using 0-10 raw scores with weighted dimensions: Formula `Raw (0-10) × (Weight / 2) = Points` (Executability 20, Completeness 20, Success Criteria 20, Scope 15, Dependencies 10, Decomposition 5, Context 5, Risk Awareness 5)
+- **Parallel execution mode** (default) — Uses 8 sub-agents to evaluate dimensions simultaneously, ~8× faster
+- **Sequential execution mode** — Legacy single-agent behavior for debugging or low-resource environments
 - **Priority Compliance Gate** — Evaluates plans against Design Priority Hierarchy before scoring
 - **Agent Execution Test** — First gate counts blocking issues (ambiguous phrases, implicit commands, missing branches, undefined thresholds)
 - Reviews plans against 8 dimensions: Executability, Completeness, Success Criteria, Scope, Dependencies, Decomposition, Context, Risk Awareness
 - Supports four review modes: FULL, COMPARISON, META-REVIEW, DELTA
+- **Interactive parameter collection** — Uses ask_user_question when parameters are missing
 - Computes `OUTPUT_FILE` as:
   - FULL mode: `{output_root}plan-reviews/plan-<plan-name>-<model>-<YYYY-MM-DD>.md`
   - COMPARISON mode: `{output_root}summaries/_comparison-<model>-<YYYY-MM-DD>.md`
@@ -68,6 +71,26 @@ review_date: 2026-01-06
 review_mode: FULL
 model: claude-sonnet-45
 timing_enabled: true
+```
+
+**With parallel execution (default, faster):**
+
+```text
+Use the plan-reviewer skill.
+
+target_file: plans/IMPROVE_RULE_LOADING.md
+review_mode: FULL
+execution_mode: parallel
+```
+
+**With sequential execution (for debugging):**
+
+```text
+Use the plan-reviewer skill.
+
+target_file: plans/IMPROVE_RULE_LOADING.md
+review_mode: FULL
+execution_mode: sequential
 ```
 
 **With custom output directory:**

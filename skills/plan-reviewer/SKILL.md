@@ -44,6 +44,9 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 - **output_root**: Root directory for output files (default: `reviews/`). Subdirectories `plan-reviews/` or `summaries/` appended automatically. Supports relative paths including `../`.
 - **overwrite**: `true` | `false` (default: `false`) - If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
 - **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
+- **execution_mode**: `parallel` | `sequential` (default: `parallel`)
+  - `parallel`: Use 8 sub-agents to evaluate dimensions simultaneously (~8× faster)
+  - `sequential`: Legacy single-agent behavior (for debugging or low-resource environments)
 
 ### Output
 

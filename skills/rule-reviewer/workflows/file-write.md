@@ -52,7 +52,10 @@ def get_output_path(rule_name: str, model_slug: str, review_date: str,
         if not Path(suffixed_path).exists():
             return suffixed_path
     
-    raise ValueError(f"Maximum versions (99) exceeded for {rule_name}")
+    # Fallback: use timestamp (prevents data loss)
+    import time
+    ts = int(time.time())
+    return f"{output_root}rule-reviews/{rule_name}-{model_slug}-{review_date}-{ts}.md"
 ```
 
 ## Output

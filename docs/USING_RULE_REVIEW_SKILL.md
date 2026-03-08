@@ -1,115 +1,11 @@
-# Using the Rule Reviewer Skill (Internal Only)
+# Using the Rule Reviewer Skill
 
-**Note:** The Rule Reviewer Skill is **not deployed** to team projects. It remains in the ai_coding_rules source repository for internal use only.
+**Last Updated:** 2026-03-07
 
-**Last Updated:** 2026-01-21
+The Rule Reviewer Skill automates agent-centric rule reviews, scoring rules across 7 dimensions using a 100-point system optimized for AI agent understanding and executability. Reviews are written to `reviews/rule-reviews/` with no-overwrite safety.
 
-## Background
 
-The rule-reviewer skill automates running the Agent-Centric Rule Review (review optimized for AI agent understanding and executability) prompt against
-a target rule file and writing the results to `reviews/` using the required filename
-format from `skills/rule-reviewer/rubrics/*.md`.
-
-Key behaviors:
-
-- Uses the rubric and required output structure from `skills/rule-reviewer/rubrics/*.md`
-- **100-point scoring system** using 0-10 raw scores with weighted dimensions: Formula `Raw (0-10) × (Weight / 2) = Points` (Actionability 25, Completeness 25, Consistency 15, Parsability 15, Token Efficiency 5, Staleness 10, Cross-Agent Consistency 5)
-- **Priority Compliance Gate** — Evaluates rules against Design Priority Hierarchy before scoring
-  - Evaluates rules against the Design Priority Hierarchy from 000-global-core.md before scoring
-- **Agent Execution Test** — First gate counts blocking issues (undefined thresholds, missing branches, ambiguous actions)
-- Computes `OUTPUT_FILE` as:
-  - `{output_root}rule-reviews/<rule-name>-<model>-<YYYY-MM-DD>.md`
-  - Default `output_root`: `reviews/`
-- **No-overwrite safety:** If file exists, uses suffix `-01.md`, `-02.md`, etc.
-- Supports three review modes: FULL, FOCUSED, STALENESS
-
-## Design Priority Hierarchy
-
-Reviews evaluate rules against the priority order defined in `000-global-core.md`:
-
-1. **Priority 1:** Agent Understanding and Execution Reliability (CRITICAL)
-2. **Priority 2:** Token and Context Window Efficiency (HIGH)
-3. **Priority 3:** Human Readability (TERTIARY)
-
-**Scoring Impact:**
-- 3-5 Priority 1 violations: Actionability capped at 15/25 (3/5)
-- 6+ Priority 1 violations: Overall score capped at 60/100 (NEEDS_REFINEMENT)
-
-## Review Dimensions
-
-### Critical Dimensions (50 points)
-
-**Actionability (25 points):**
-- Can agent execute rule instructions without ambiguity?
-- Detects vague phrases ("consider", "as appropriate", "if needed")
-- Verifies explicit commands vs implicit suggestions
-
-**Completeness (25 points):**
-- All required sections present (Metadata, Scope, References, Contract)
-- Error handling documented
-- Edge cases covered
-
-### Standard Dimensions (50 points)
-
-**Consistency (15 points):**
-- Follows schema conventions
-- Terminology matches project standards
-- Formatting uniform throughout
-
-**Parsability (15 points):**
-- Structure supports automated parsing
-- Metadata in correct format
-- Section headers at correct levels
-
-**Token Efficiency (10 points):**
-- Content density appropriate
-- No redundant explanations
-- TokenBudget accurate (within ±5% threshold)
-
-**Staleness (10 points):**
-- References current
-- Links valid
-- Examples up-to-date
-
-**Cross-Agent Consistency (5 points):**
-- Works across all agent types (Claude, GPT, Gemini, etc.)
-- No agent-specific syntax or assumptions
-- Universal conditionals without tool-specific branches
-
-## Quality Verdicts
-
-**Score Ranges:**
-- **90-100 (EXECUTABLE):** Agent can execute as-is
-- **80-89 (EXECUTABLE_WITH_REFINEMENTS):** Minor refinements recommended
-- **60-79 (NEEDS_REFINEMENT):** Significant gaps; agent may fail
-- **<60 (NOT_EXECUTABLE):** Major rework required
-
-## Why Not Deployed?
-
-The rule-reviewer skill is designed for **rule maintainers** working in the source
-ai_coding_rules repository. It:
-
-1. **Requires the rubric files** — `skills/rule-reviewer/rubrics/*.md` (colocated with skill)
-2. **Writes to reviews/** — A directory structure specific to rule maintenance
-3. **Targets rule files** — Most useful for rule authors validating their work
-
-For deployed projects, teams should reference the skill's rubric files in `skills/rule-reviewer/rubrics/` directly if they need to review rules.
-
-## Configuration
-
-Both skills are excluded from deployment in [`pyproject.toml`](../pyproject.toml):
-
-```toml
-[tool.rule_deployer]
-exclude_skills = [
-    "rule-creator/",
-    "rule-reviewer/",
-]
-```
-
-## For ai_coding_rules Contributors
-
-If you're working in the ai_coding_rules repository and want to run rule reviews:
+## Quick Start
 
 ### 1. Load the skill
 
@@ -123,76 +19,213 @@ Load skills/rule-reviewer/SKILL.md
 Use the rule-reviewer skill.
 
 target_file: rules/801-project-readme.md
-review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet-45
 ```
 
-**With custom output directory:**
+The skill will prompt for any missing parameters (date, model).
+
+### 3. Check the output
+
+Reviews are written to `reviews/rule-reviews/<rule-name>-<model>-<date>.md`
+
+On success:
 
 ```text
-Use the rule-reviewer skill.
+✓ Review complete
 
+OUTPUT_FILE: reviews/rule-reviews/801-project-readme-claude-sonnet-45-2026-03-08.md
+Overall: 85/100
+Verdict: EXECUTABLE_WITH_REFINEMENTS
+```
+
+
+## Review Modes
+
+| Mode | Purpose | When to Use |
+|------|---------|-------------|
+| **FULL** | Comprehensive 7-dimension review | Standard rule validation |
+| **FOCUSED** | Subset of dimensions only | Quick checks on specific areas |
+| **STALENESS** | Reference and link validation | Periodic maintenance audits |
+
+### FULL Mode
+
+```text
 target_file: rules/801-project-readme.md
-review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet-45
+```
+
+Reviews all 7 dimensions with complete scoring.
+
+### FOCUSED Mode
+
+```text
+target_file: rules/801-project-readme.md
+review_mode: FOCUSED
+focus_dimensions: actionability, completeness
+```
+
+Reviews only specified dimensions. Useful for targeted validation.
+
+### STALENESS Mode
+
+```text
+target_file: rules/801-project-readme.md
+review_mode: STALENESS
+```
+
+Checks references, links, and example currency without full dimension scoring.
+
+
+## Understanding Your Results
+
+### Verdicts
+
+| Score | Verdict | Action |
+|-------|---------|--------|
+| 90-100 | **EXECUTABLE** | Agent can execute as-is |
+| 80-89 | **EXECUTABLE_WITH_REFINEMENTS** | Minor refinements recommended |
+| 60-79 | **NEEDS_REFINEMENT** | Significant gaps; agent may fail |
+| <60 | **NOT_EXECUTABLE** | Major rework required |
+
+### Scoring Dimensions
+
+Rules are scored across 7 dimensions with weighted points:
+
+**Critical Dimensions (50 points)** — Agent must execute without ambiguity:
+
+| Dimension | Points | Key Question |
+|-----------|--------|--------------|
+| Actionability | 25 | Can agent execute instructions without ambiguity? |
+| Completeness | 25 | Are all required sections present with error handling? |
+
+**Standard Dimensions (50 points)** — Important but recoverable:
+
+| Dimension | Points | Key Question |
+|-----------|--------|--------------|
+| Consistency | 15 | Does rule follow schema conventions and project standards? |
+| Parsability | 15 | Does structure support automated parsing? |
+| Staleness | 10 | Are references current and links valid? |
+| Token Efficiency | 5 | Is content dense without redundancy? |
+| Cross-Agent Consistency | 5 | Does rule work across all agent types? |
+
+**Scoring Formula:** `Raw (0-10) × (Weight / 2) = Points`
+
+### Priority Compliance Gate
+
+Reviews evaluate rules against the Design Priority Hierarchy from `000-global-core.md`:
+
+1. **Priority 1:** Agent Understanding and Execution Reliability (CRITICAL)
+2. **Priority 2:** Token and Context Window Efficiency (HIGH)
+3. **Priority 3:** Human Readability (TERTIARY)
+
+**Impact on score:**
+- 3-5 Priority 1 violations → Actionability capped at 15/25 (3/5)
+- 6+ Priority 1 violations → Overall score capped at 60/100 (NEEDS_REFINEMENT)
+
+### Blocking Issues
+
+The Agent Execution Test counts issues that prevent autonomous execution:
+- Ambiguous phrases ("consider", "as appropriate", "if needed")
+- Implicit commands (descriptions instead of explicit instructions)
+- Missing branches (no else/default/error handling)
+- Undefined thresholds ("large", "significant", "appropriate")
+
+
+## Advanced Usage
+
+### Custom Output Directory
+
+```text
 output_root: quarterly-audit/
 ```
 
-**With execution timing:**
+Writes to `quarterly-audit/rule-reviews/` instead of default `reviews/rule-reviews/`. The skill auto-creates directories and normalizes trailing slashes. Relative paths including `../` are supported.
+
+### Execution Timing
 
 ```text
-Use the rule-reviewer skill.
-
-target_file: rules/801-project-readme.md
-review_date: 2026-01-06
-review_mode: FULL
-model: claude-sonnet-45
 timing_enabled: true
 ```
 
-### 3. Output location
+Adds timing metadata to output (duration, token usage, cost estimation).
 
-The skill will write the review to:
+### No-Overwrite Safety
 
-- Default: `reviews/rule-reviews/801-project-readme-claude-sonnet-45-2026-01-06.md`
-- With `output_root: quarterly-audit/`: `quarterly-audit/rule-reviews/801-project-readme-claude-sonnet-45-2026-01-06.md`
+If the output file exists, suffixes are appended: `-01.md`, `-02.md`, etc.
 
-If the file already exists, it uses suffixes: `-01.md`, `-02.md`, etc.
-
-When `timing_enabled: true`, the output includes a Timing Metadata section with duration, token usage, and cost estimation.
 
 ## FAQ
 
-### Q: What happens if the output file already exists?
+### What should I pass for `model`?
 
-**A:** The rule-reviewer skill uses no-overwrite safety. It appends suffixes (`-01.md`, `-02.md`, etc.) to avoid overwriting existing reviews.
+Prefer a slug like `claude-sonnet-45`. Raw model names are normalized automatically.
 
-### Q: What should I pass for `model`?
+### Does `target_file` have to be under `rules/`?
 
-**A:** Prefer a slug like `claude-sonnet-45`. If you provide a raw model name, the
-skill will normalize it to a slug before writing the file.
+The expected use case is reviewing files under `rules/`, but the skill can review any readable `.md` file. The output filename uses the base filename (without extension) of `target_file`.
 
-### Q: Can I customize the output directory?
+### Where does the rubric come from?
 
-**A:** Yes, use the `output_root` parameter:
-```text
-output_root: mytest/
+The skill uses rubric files in `skills/rule-reviewer/rubrics/` (actionability.md, completeness.md, consistency.md, parsability.md, token-efficiency.md, staleness.md, cross-agent-consistency.md) plus `_overlap-resolution.md` for deterministic scoring.
+
+### Can I use rule-reviewer in a deployed project?
+
+Yes, this skill is available in deployed projects. You can also reference the rubric files in `skills/rule-reviewer/rubrics/` directly.
+
+
+## Reference
+
+### Architecture
+
 ```
-This writes reviews to `mytest/rule-reviews/` instead of `reviews/rule-reviews/`. The skill auto-creates directories and normalizes trailing slashes. Relative paths including `../` are supported.
+Coordinator (Main Agent)
+│
+├── Phase 1: Setup
+│   ├── Load rule content
+│   ├── Load overlap resolution rules
+│   └── Prepare shared context
+│
+├── Phase 2: Dimension Evaluation
+│   ├── Actionability (25pts)
+│   ├── Completeness (25pts)
+│   ├── Consistency (15pts)
+│   ├── Parsability (15pts)
+│   ├── Staleness (10pts)
+│   ├── Token Efficiency (5pts)
+│   └── Cross-Agent Consistency (5pts)
+│
+├── Phase 3: Priority Compliance Check
+│   └── Apply Design Priority Hierarchy caps
+│
+└── Phase 4: Aggregate & Report
+    └── Generate unified review
+```
 
-### Q: Does `target_file` have to be under `rules/`?
+### File Structure
 
-**A:** The expected use case is reviewing files under `rules/`, but the skill can
-review any readable `.md` file path you provide.
-The output filename always uses the base filename (without extension) of `target_file`.
+```text
+skills/rule-reviewer/
+├── SKILL.md               # Main skill (entrypoint)
+├── rubrics/               # Dimension scoring criteria
+│   ├── actionability.md
+│   ├── completeness.md
+│   ├── consistency.md
+│   ├── parsability.md
+│   ├── token-efficiency.md
+│   ├── staleness.md
+│   ├── cross-agent-consistency.md
+│   └── _overlap-resolution.md
+└── tests/                 # Test cases
+```
 
-### Q: Where does the rubric come from?
+### Integration with Other Skills
 
-**A:** The skill uses rubric files in `skills/rule-reviewer/rubrics/` (actionability.md, completeness.md, consistency.md, parsability.md, token-efficiency.md, staleness.md, cross-agent-consistency.md) plus `_overlap-resolution.md` as the rubric. Each rubric includes a Mandatory Issue Inventory template and Non-Issues section for deterministic scoring.
+**With bulk-rule-reviewer:** Run reviews across all rules in `rules/` directory with a single command.
 
-### Q: Can I use rule-reviewer in a deployed project?
+**With skill-timing:** Enable `timing_enabled: true` for execution duration and cost tracking.
 
-**A:** No, this skill is internal-only. For deployed projects, reference the
-skill's rubric files in `skills/rule-reviewer/rubrics/` directly for the review rubric.
+### Support
+
+- **Rubric files:** `skills/rule-reviewer/rubrics/*.md`
+- **Tests:** `skills/rule-reviewer/tests/*.md`
+- **Timing system:** `skills/skill-timing/README.md`

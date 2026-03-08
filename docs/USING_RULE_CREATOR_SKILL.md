@@ -1,159 +1,331 @@
-# Using the Rule Creator Skill (Internal Only)
+# Using the Rule Creator Skill
 
-**Note:** The Rule Creator Skill is **not deployed** to team projects. It remains in the ai_coding_rules source repository for internal use only.
+**Last Updated:** 2026-03-07
 
-**Last Updated:** 2026-01-21
+The Rule Creator Skill automates creation of production-ready Cursor rules following schema v3.2 standards. It guides you through research, template generation, content population, validation, and RULES_INDEX.md registration—reducing rule creation time by ~60-70%.
 
-## Background
+> **Internal Use Only:** This skill is excluded from deployment to consuming projects. See [Deployment Exclusion](#deployment-exclusion) for rationale.
 
-The rule-creator skill automates the creation of new Cursor rules following schema standards (structured format requirements). It's designed for use within the ai_coding_rules project itself, not for deployment to other projects.
 
-## Why Not Deployed?
+## Quick Start
 
-The skill is excluded from deployment (configured in `pyproject.toml`) because:
-- It's specific to ai_coding_rules project structure
-- Requires access to source repository scripts and schemas
-- Generates rules for this project, not consuming projects
-- Needs write access to rules/ directory and RULES_INDEX.md
+### 1. Load the skill
 
-## Configuration
-
-Exclusions are managed in [`pyproject.toml`](../pyproject.toml):
-
-```toml
-[tool.rule_deployer]
-exclude_skills = [
-    "rule-creator/",
-]
-```
-
-To modify exclusions, edit this section in `pyproject.toml`.
-
-## For ai_coding_rules Contributors
-
-If you're contributing to ai_coding_rules and need to create new rules:
-
-### 1. Load the skill in this repository
-
-```
+```text
 Load skills/rule-creator/SKILL.md
 ```
 
 ### 2. Request rule creation
 
-```
-Create a new rule for [TECHNOLOGY] best practices following schema standards
+```text
+Use the rule-creator skill.
+
+rule_name: 422-daisyui-core
+domain: JavaScript/Frontend
+context_tier: Medium
 ```
 
-**Example:**
-```
-Create a new rule for React Testing Library best practices following schema standards
+The skill will guide you through 5 automated phases.
+
+### 3. Check the output
+
+On success:
+
+```text
+✓ Rule creation complete
+
+OUTPUT_FILE: rules/422-daisyui-core.md
+INDEX_UPDATED: RULES_INDEX.md
+Validation: 0 CRITICAL, 2 RECOMMENDED (passed)
+Duration: 18 minutes
 ```
 
-**With execution timing:**
-```
-Create a new rule for DaisyUI best practices following schema standards
 
+## Workflow Phases
+
+| Phase | Name | What Happens |
+|-------|------|--------------|
+| 1 | **Discovery & Research** | Searches RULES_INDEX.md, identifies domain, checks for duplicates |
+| 2 | **Template Generation** | Runs `ai-rules new` with domain and context tier |
+| 3 | **Content Population** | Fills all schema sections with researched, domain-specific content |
+| 4 | **Validation Loop** | Runs `ai-rules validate` until 0 CRITICAL errors |
+| 5 | **Indexing** | Adds entry to RULES_INDEX.md with metadata |
+
+### Phase 1: Discovery & Research
+
+The skill reads RULES_INDEX.md to:
+- Check for existing rules covering the same technology
+- Identify the correct domain range (000-999 based on technology)
+- Gather context from related rules
+
+### Phase 4: Validation Loop
+
+The skill iterates until all CRITICAL errors are resolved:
+
+```text
+Iteration 1: 3 CRITICAL, 5 RECOMMENDED
+Iteration 2: 1 CRITICAL, 3 RECOMMENDED
+Iteration 3: 0 CRITICAL, 2 RECOMMENDED ✓ (passed)
+```
+
+RECOMMENDED issues are logged but do not block completion.
+
+
+## Understanding Your Results
+
+### Verdicts
+
+| Outcome | Criteria | Action |
+|---------|----------|--------|
+| **PASSED** | 0 CRITICAL errors | Rule is schema-compliant |
+| **FAILED** | ≥1 CRITICAL errors after 3 iterations | Manual intervention required |
+
+### Output Artifacts
+
+The skill produces three artifacts:
+
+1. **Rule file:** `rules/<rule-name>.md` — The complete rule document
+2. **Index entry:** Line added to `RULES_INDEX.md` — Enables rule-loader discovery
+3. **Validation log:** Console output — Shows iteration history
+
+### Validation Gates
+
+All rules must pass these gates before completion:
+
+| Gate | Requirement |
+|------|-------------|
+| Discovery | RULES_INDEX.md searched, domain identified, number available |
+| Template | `ai-rules new` executed, v3.2 sections present |
+| Metadata | Keywords (5-20), TokenBudget (~NUMBER), ContextTier valid |
+| Contract | 6 Markdown headers present, placed before line 160 |
+| Validation | `ai-rules validate` returns exit code 0 |
+| Indexing | Entry added to RULES_INDEX.md in correct position |
+
+### Common Errors and Fixes
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `Keywords count: 3 (expected 5-20)` | Too few keywords | Add more semantic keywords |
+| `TokenBudget format invalid` | Missing tilde | Change `1200` to `~1200` |
+| `Missing header: ### Validation` | Incomplete Contract | Add all 6 required headers |
+| `Contract after line 160` | Contract too late | Move Contract earlier in file |
+| `Invalid filename format` | Wrong casing/format | Use `NNN-lowercase-hyphenated` |
+
+
+## Advanced Usage
+
+### Domain Selection
+
+Rules are numbered by domain range. The skill auto-suggests the next available number.
+
+| Range | Domain | Examples |
+|-------|--------|----------|
+| 000-099 | Core/Foundational | 000-global-core, 002-rule-governance |
+| 100-199 | Snowflake | 100-snowflake-core, 125-hybrid-tables |
+| 200-299 | Python | 200-python-core, 209-pytest-mock |
+| 300-399 | Shell/Bash | 300-bash-scripting-core |
+| 420-449 | JavaScript/Frontend | 420-javascript-core, 422-daisyui-core |
+| 600-699 | Golang | 600-golang-core |
+| 800-899 | Project Management | 800-project-changelog |
+| 900-999 | Demos/Examples | 900-demo-creation |
+
+### Context Tier Options
+
+| Tier | Token Budget | Use Case |
+|------|--------------|----------|
+| **Critical** | <500 | Always-loaded core rules |
+| **High** | 500-1500 | Domain foundations |
+| **Medium** | 1500-3000 | Most rules (default) |
+| **Low** | 3000-5000 | Specialized/reference |
+
+```text
+context_tier: High
+```
+
+### Execution Timing
+
+```text
 timing_enabled: true
 ```
 
-### 3. Follow the 5-phase workflow
+Adds timing metadata to track total duration, per-phase breakdown, and validation iterations.
 
-The skill will guide you through:
-- **Phase 1:** Discovery & Research (searches RULES_INDEX.md, identifies domain)
-- **Phase 2:** Template Generation (runs `scripts/template_generator.py`)
-- **Phase 3:** Content Population (fills all sections with researched content)
-- **Phase 4:** Validation Loop (runs `scripts/schema_validator.py` until 0 CRITICAL errors)
-- **Phase 5:** Indexing (adds entry to RULES_INDEX.md)
+**Timing thresholds:**
+- <5 minutes: Warning (possible shortcut)
+- 17-23 minutes: Normal range
+- >30 minutes: Warning (possible issue)
 
-### 4. Scripts run from this repository
+**Checkpoints tracked:**
+- `skill_loaded` → `discovery_complete` → `template_generated` → `content_populated` → `validation_complete` → `indexing_complete`
 
-All scripts execute from the ai_coding_rules directory:
+### Specifying Aspect
 
-```bash
-# Template generation
-python scripts/template_generator.py 422-daisyui-core --context-tier Medium
+For non-core rules, specify aspect:
 
-# Validation
-python scripts/schema_validator.py rules/422-daisyui-core.md
+```text
+Create a new rule for pytest security testing patterns
 ```
 
-The agent will provide the correct commands with proper paths automatically.
+Creates: `209-python-pytest-security.md` (aspect: "security")
 
-## For Deployed Project Teams
+### Multiple Dependencies
 
-If you need to create custom rules in your deployed project:
+If rule depends on multiple domains:
 
-### Option 1: Use the Source Repository
+```text
+Create a new rule for Snowflake+Python integration patterns
+```
 
-1. Clone or reference the ai_coding_rules repository
-2. Load the skill from the source: `../ai_coding_rules/skills/rule-creator/SKILL.md`
-3. Run scripts from the source repository as shown above
+Agent adds both `rules/100-snowflake-core.md` and `rules/200-python-core.md` to Depends.
 
-### Option 2: Manual Rule Creation
+### Manual CLI Execution
 
-Follow the manual rule creation workflow:
-1. Read `rules/002a-rule-creation.md` in your deployed rules
-2. Copy an existing rule as a template
-3. Manually fill all sections
-4. Validate structure matches schema
+If needed, CLI commands can be run directly:
 
-## Examples
+```bash
+ai-rules new 422-daisyui-core --context-tier Medium
+ai-rules validate rules/422-daisyui-core.md
+```
 
-Complete workflow examples are available in the structured skill:
-- `skills/rule-creator/examples/frontend-example.md` - DaisyUI (JavaScript)
-- `skills/rule-creator/examples/python-example.md` - pytest-mock
-- `skills/rule-creator/examples/snowflake-example.md` - Hybrid Tables
-
-## Time Savings
-
-Using the skill vs. manual rule creation:
-- **Manual:** 45-60 minutes
-- **With skill:** 17-23 minutes
-- **Savings:** ~60-70% faster
-
-## Support
-
-For detailed documentation:
-- **Skill README:** `skills/rule-creator/README.md`
-- **Workflow guides:** `skills/rule-creator/workflows/*.md`
-- **Rule governance:** `rules/002-rule-governance.md`
-- **Schema validation:** `rules/002d-schema-validator-usage.md`
 
 ## FAQ
 
-### Q: Can I deploy the rule-creator skill to my project?
+### How long does rule creation take?
 
-**A:** Not recommended. The skill requires:
-- Write access to rules/ directory in source repository
-- Access to scripts/template_generator.py and scripts/schema_validator.py
-- Access to schemas/rule-schema.yml
-- Ability to modify RULES_INDEX.md
+| Method | Duration |
+|--------|----------|
+| Manual | 45-60 minutes |
+| With skill | 17-23 minutes |
 
-These are all specific to the ai_coding_rules project structure.
+**Time savings: ~60-70%**
 
-### Q: How do I add custom skills to deployment?
+### What if validation keeps failing?
 
-**A:** Create new skills in `skills/` directory. They will be deployed automatically unless added to the exclusion list in `pyproject.toml`.
+After 3 iterations, the skill stops and reports remaining errors. Common fixes:
+1. Check for missing required sections (Examples, Anti-patterns)
+2. Ensure all 6 Contract headers are present
+3. Verify keywords are in 5-20 range
 
-### Q: How do I exclude additional skills from deployment?
+### How do I verify the skill executed correctly?
 
-**A:** Edit `pyproject.toml` and add to the `exclude_skills` list:
+**During execution:** Look for `ai-rules new` output, `ai-rules validate` iterations (multiple), and web research queries.
+
+**After execution:** Verify rule file exists (4000-12000 bytes typical), contains no placeholders ("TODO", "[Add content]"), and `ai-rules validate` returns exit code 0.
+
+**Red flags:**
+- Completion in <5 minutes
+- File size <3000 bytes
+- Contains placeholder markers
+- No visible validation iterations
+
+### Can I use this skill in deployed projects?
+
+Not directly. The skill requires:
+- Write access to `rules/` directory
+- Access to `ai-rules` CLI commands
+- Access to `schemas/rule-schema.yml`
+
+**Alternatives:**
+1. Clone ai_coding_rules and load skill from source path
+2. Follow manual guide: `rules/002a-rule-creation.md`
+
+### Can teams create rules without this skill?
+
+Yes. Teams can:
+1. Follow `rules/002a-rule-creation.md`
+2. Copy and adapt existing rules as templates
+3. Use the skill from the source repository
+
+The skill is a productivity tool, not a requirement.
+
+### What domain should I use for ambiguous technologies?
+
+Check RULES_INDEX.md for similar technologies. If still unclear, ask the user. Example: "React Testing Library" → Frontend (420s) or Testing (200s)?
+
+
+## Reference
+
+### Architecture
+
+```text
+User Request
+│
+├── Phase 1: Discovery
+│   ├── Read RULES_INDEX.md
+│   ├── Identify domain range
+│   └── Check for duplicates
+│
+├── Phase 2: Template Generation
+│   └── ai-rules new
+│
+├── Phase 3: Content Population
+│   ├── Research via web/docs
+│   └── Fill all schema sections
+│
+├── Phase 4: Validation Loop
+│   └── ai-rules validate (max 3 iterations)
+│
+└── Phase 5: Indexing
+    └── Append to RULES_INDEX.md
+```
+
+### File Structure
+
+```text
+skills/rule-creator/
+├── SKILL.md               # Main skill (entrypoint)
+├── test_cases.yaml        # Evaluation test cases
+├── examples/              # Complete workflow examples
+│   ├── frontend-example.md
+│   ├── python-example.md
+│   ├── snowflake-example.md
+│   └── edge-cases.md
+├── testing/               # Testing and maintenance
+│   └── TESTING.md
+├── tests/                 # Skill test cases
+└── workflows/             # Step-by-step guides
+    ├── discovery.md
+    ├── template-gen.md
+    ├── content-population.md
+    ├── validation.md
+    └── indexing.md
+```
+
+### CLI Commands
+
+| Command | Purpose |
+|---------|---------|
+| `ai-rules new` | Creates rule skeleton from domain |
+| `ai-rules validate` | Validates against rule-schema.yml |
+| `ai-rules index` | Maintains RULES_INDEX.md |
+
+### Integration with Other Skills
+
+| Skill | Relationship |
+|-------|--------------|
+| **rule-reviewer** | Review created rules for quality |
+| **rule-loader** | Load rules by domain/activity match |
+| **skill-timing** | Track creation duration metrics |
+
+### Deployment Exclusion
+
+This skill is excluded from deployment via `pyproject.toml`:
 
 ```toml
 [tool.rule_deployer]
-exclude_skills = [
-    "rule-creator/",
-    "your-internal-skill/",  # Add your exclusion here
-]
+exclude_skills = ["rule-creator/"]
 ```
 
-### Q: Can teams create their own rules without this skill?
+**Rationale:** Specific to ai_coding_rules project structure, requires source repository CLI and schemas, generates rules for this project only.
 
-**A:** Yes! Teams can:
-1. Follow manual rule creation guide (`rules/002a-rule-creation.md`)
-2. Reference the source repository and use the skill from there
-3. Copy and adapt existing rules as templates
+**For deployed project teams:**
+1. Clone ai_coding_rules and load skill from source path
+2. Follow manual guide: `rules/002a-rule-creation.md`
 
-The skill is a productivity tool, not a requirement for rule creation.
+### Support
 
+- **Skill entrypoint:** `skills/rule-creator/SKILL.md`
+- **Workflow guides:** `skills/rule-creator/workflows/*.md`
+- **Examples:** `skills/rule-creator/examples/*.md`
+- **Rule governance:** `rules/002-rule-governance.md`
+- **Schema validation:** `rules/002d-schema-validator-usage.md`

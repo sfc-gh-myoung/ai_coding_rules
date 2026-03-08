@@ -48,16 +48,16 @@ See `workflows/discovery.md` for domain mappings and detailed discovery process.
 ### Required Behavior
 
 - Execute all 5 phases sequentially (no skipping)
-- Run `template_generator.py` for initial structure
+- Run `ai-rules new` for initial structure
 - Conduct web research for current best practices
 - Fill ALL sections (no placeholders)
-- Run `schema_validator.py` in loop until exit code 0
+- Run `ai-rules validate` in loop until exit code 0
 - Add entry to `RULES_INDEX.md` in numeric order
 
 ### Forbidden
 
 - Skipping phases to save time
-- Manually creating structure without template_generator.py
+- Manually creating structure without `ai-rules new`
 - Proceeding with CRITICAL validation errors
 - Using placeholder text
 - Single-pass validation without re-checking
@@ -95,7 +95,7 @@ Identify domain, assign rule number, research best practices. Extract 10-15 sema
 
 ### Phase 2: Template Generation
 
-Execute `template_generator.py` to create validated structure with 9 sections and 6 XML tags.
+Execute `ai-rules new` to create validated structure with v3.2 sections and Markdown Contract headers.
 
 **See:** `workflows/template-gen.md` for command syntax and verification steps.
 
@@ -172,10 +172,10 @@ Request user ACT authorization before file modifications in Phases 2-5.
 Fast inline checks without external dependencies:
 
 ```python
-# Keyword count (10-15 required)
+# Keyword count (5-20 required)
 def check_keywords(line: str) -> tuple[bool, int]:
     keywords = [k.strip() for k in line.split(',') if k.strip()]
-    return (10 <= len(keywords) <= 15, len(keywords))
+    return (5 <= len(keywords) <= 20, len(keywords))
 
 # Filename format (NNN-lowercase-hyphenated)
 import re
@@ -249,12 +249,44 @@ Expected output:
 ## Anti-Patterns
 
 Common mistakes to avoid:
-- Manual structure creation (always use `template_generator.py`)
+- Manual structure creation (always use `ai-rules new`)
 - Single-pass validation (loop until exit code 0)
 - Proceeding with CRITICAL errors (must resolve first)
 - Placeholder text (complete all sections before validation)
 
 **See:** `examples/edge-cases.md` for detailed examples and resolution strategies.
+
+## Success Criteria
+
+Measurable outcomes for rule creation:
+
+- [ ] Generated rule passes `ai-rules validate` with zero errors
+- [ ] Keywords count is within 5-20 range
+- [ ] All v3.2 required sections present (Scope, References, Contract subsections)
+- [ ] TokenBudget accurate within ±10%
+- [ ] Rule indexed in RULES_INDEX.md via `ai-rules index`
+- [ ] Minimum 2 code examples with proper syntax highlighting
+- [ ] Minimum 2 anti-patterns documented
+
+## Out of Scope
+
+This skill does NOT handle:
+
+- Modifying existing rules (use rule-reviewer skill)
+- Rule deprecation workflows
+- Cross-rule dependency management
+- Production deployment decisions
+- Bulk rule migrations
+
+## Rollback Strategy
+
+Recovery guidance for common failure scenarios:
+
+1. **Failed validation:** Re-run `ai-rules validate` and apply suggested fixes
+2. **Schema mismatch:** Regenerate from `ai-rules new` with correct domain
+3. **Index corruption:** Rebuild with `ai-rules index --rebuild`
+4. **Git recovery:** `git checkout -- rules/NNN-*.md` for uncommitted changes
+5. **Partial completion:** Resume from last successful phase checkpoint
 
 ## Related Skills
 
@@ -275,11 +307,11 @@ model: <current>
 
 ## References
 
-### Scripts
+### CLI Commands
 
-- `scripts/template_generator.py` - Create rule templates
-- `scripts/schema_validator.py` - Validate v3.2 schema
-- `scripts/index_generator.py` - Maintain RULES_INDEX.md
+- `ai-rules new` - Create rule templates (v3.2 compliant)
+- `ai-rules validate` - Validate against v3.2 schema
+- `ai-rules index` - Maintain RULES_INDEX.md
 
 ### Rules
 
@@ -291,4 +323,4 @@ model: <current>
 ### Documentation
 
 - `RULES_INDEX.md` - Semantic discovery index
-- `schemas/rule-schema.yml` - v3.2 schema specification
+- `schemas/rule-schema.yml` - v3.2 s

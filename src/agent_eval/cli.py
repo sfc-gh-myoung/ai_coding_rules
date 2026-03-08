@@ -703,8 +703,8 @@ def run(
     if total > 0:
         results["summary"]["pass_rate"] = round(results["summary"]["passed"] / total * 100, 1)
 
-    results["metadata"]["total_duration_seconds"] = round(overall_duration, 2)
-    results["metadata"]["parallel_workers"] = parallel
+    results["metadata"]["total_duration_seconds"] = str(round(overall_duration, 2))
+    results["metadata"]["parallel_workers"] = str(parallel)
 
     timestamped_file = generate_result_filename(model)
     save_results(results, timestamped_file)

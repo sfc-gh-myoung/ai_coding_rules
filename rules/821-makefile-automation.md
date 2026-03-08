@@ -115,6 +115,8 @@ Core directives for creating and maintaining project automation using Makefiles,
 
 ## Makefile Structure
 
+> **CI/CD & Agent Integration:** For CI/CD pipeline targets and agent-driven automation patterns, see `821a-makefile-advanced-patterns.md`.
+
 ### File Header
 
 ```makefile
@@ -314,22 +316,20 @@ test: ## Run tests
 
 **Why It Fails:** Breaks portability across machines, CI/CD environments, and different OS configurations.
 
-**Correct Pattern:**
+**Correct Pattern:** Use the auto-detection pattern from [Tool Auto-Detection](#tool-auto-detection) above.
 ```makefile
 # WRONG: Hardcoded path
 lint:
-	/usr/local/bin/ruff check .
+  /usr/local/bin/ruff check .
 
 # WRONG: Bare command assumes global install
 lint:
-	ruff check .
+  ruff check .
 
-# CORRECT: Auto-detected via variable
-UVX := $(shell command -v uvx 2>/dev/null || echo "uvx")
-
+# CORRECT: Use auto-detected variable (see Tool Auto-Detection)
 .PHONY: lint
 lint: ## Run linter
-	$(UVX) ruff check .
+  $(UVX) ruff check .
 ```
 
 ### Anti-Pattern 3: Spaces Instead of Tabs

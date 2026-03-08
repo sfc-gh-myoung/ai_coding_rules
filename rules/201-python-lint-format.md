@@ -6,9 +6,9 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-01-15
 **Keywords:** Ruff, linting, formatting, code quality, style checking, lint errors, ruff check, ruff format, pyproject.toml configuration, black, flake8
-**TokenBudget:** ~3350
+**TokenBudget:** ~3100
 **ContextTier:** High
-**Depends:** 200-python-core.md
+**Depends:** 000-global-core.md, 200-python-core.md
 **LoadTrigger:** kw:lint, kw:format, kw:ruff
 
 ## Scope
@@ -124,7 +124,7 @@ Linting and formatting produces:
 - [ ] Run `uvx ruff check .` (must pass with 0 errors)
 - [ ] Run `uvx ruff format --check .` (must pass)
 - [ ] pyproject.toml has [tool.ruff] config
-- [ ] target-version = "py311" set
+- [ ] target-version matches project's minimum supported Python (e.g., `target-version = "py312"  # match pyproject.toml requires-python`)
 - [ ] pydocstyle rules enabled (D)
 
 **Success Criteria:**
@@ -195,16 +195,6 @@ repos:
 # Install: pre-commit install
 # Now formatting happens automatically on every commit
 ```
-
-## Post-Execution Checklist
-- [ ] **CRITICAL:** `uvx ruff check .` passed with zero errors
-- [ ] **CRITICAL:** `uvx ruff format --check .` passed
-- [ ] **CRITICAL:** All lint/format failures fixed before task completion
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
 
 ## Validation
 - **Success checks:** All Python files pass `uvx ruff check .` with zero errors; `uvx ruff format --check .` passes; code is idiomatic and properly formatted; Pre-Task-Completion Validation Gate passed
@@ -302,7 +292,7 @@ uv run pytest tests/
 - **MANDATORY:** Use `uvx ruff check --fix .` and `uvx ruff format .` to apply fixes.
 - **Consider:** If Ruff is unavailable, use `flake8 .` and `black --check .`; fix with `black .` and `isort .`.
 - **Requirement:** Ensure imports are organized and unused code is removed.
-- **Rule:** Never use project-installed ruff via `uv run`; always use isolated `uvx ruff` for consistency.
+- **Rule:** Prefer isolated `uvx ruff` for consistency; fall back to `poetry run ruff` or `flake8` when the project's toolchain requires it.
 
 ### 2.1 Docstring Lint Configuration (Ruff)
 Add the following to `pyproject.toml`:
@@ -318,20 +308,12 @@ ignore = []
 convention = "google"  # or "numpy"
 ```
 
-## Compliance Checklist (MANDATORY)
+## Compliance Notes
 
-**CRITICAL:** These checks are MANDATORY and must pass before task completion.
-
-- **MANDATORY:** Before finalizing any Python code and after any Python file edit, run repo-wide checks that verify:
-  - `uvx ruff check .` passes with zero errors (CRITICAL).
-  - `uvx ruff format --check .` passes (CRITICAL).
-  - If a `Taskfile.yml` exists:
-    - `task lint` passes (should use `uvx ruff` internally).
-    - `task format` passes (should use `uvx ruff` internally).
-  - Fix ALL failures before reporting success; do not rely on editor-only lints.
-  - The final code is idiomatic and correctly formatted.
-- **CRITICAL:** Do NOT mark tasks complete if any check fails.
-- **CRITICAL:** Reference Pre-Task-Completion Validation Gate in `000-global-core.md` and `AGENTS.md`.
+- **CRITICAL:** These checks are part of the Pre-Task-Completion Validation Gate (see Validation section above).
+- If a `Taskfile.yml` exists, `task lint` and `task format` must also pass.
+- Fix ALL failures before reporting success; do not rely on editor-only lints.
+- Reference Pre-Task-Completion Validation Gate in `000-global-core.md` and `AGENTS.md`.
 
 ## Taskfile Integration
 - **Requirement:** Taskfile lint tasks must use `uvx ruff` for tool isolation.

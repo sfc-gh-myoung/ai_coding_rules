@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:pydantic, kw:validation
 **Keywords:** Pydantic, data validation, models, settings, BaseModel, field validation, serialization, Field, validator, model_validator, EmailStr, pydantic-settings
-**TokenBudget:** ~5150
+**TokenBudget:** ~4850
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -63,7 +63,7 @@ Establish comprehensive data validation and serialization patterns using Pydanti
 
 1. Install Pydantic with required extras: `uv add "pydantic[email]"` or `uv add "pydantic-settings"`
 2. Define BaseModel classes with comprehensive type annotations
-3. Add Field() constraints for validation rules (min_length, max_length, ge, le, regex)
+3. Add Field() constraints for validation rules (min_length, max_length, ge, le, pattern)
 4. Implement custom validators using @field_validator or @model_validator decorators
 5. Configure model settings using model_config (from_attributes, validate_assignment, etc.)
 6. Test models with valid and invalid data using pytest
@@ -179,52 +179,31 @@ async def create_user(data: UserCreate):  # Auto-validated!
 ## Output Format Examples
 
 ```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
-
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
 from datetime import datetime, UTC
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
+class OrderItem(BaseModel):
+    """Example Pydantic v2 model with common patterns."""
 
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
+    model_config = ConfigDict(
+        from_attributes=True,
+        validate_assignment=True,
+        json_schema_extra={"example": {"sku": "AB-1234", "quantity": 2, "unit_price": 19.99}},
+    )
 
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
+    sku: str = Field(..., pattern=r'^[A-Z]{2,3}-\d{4,6}$')
+    quantity: int = Field(..., gt=0, le=1000)
+    unit_price: float = Field(..., gt=0)
+    ordered_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
-    Args:
-        input_data: Validated input following schema
+    @field_validator("sku")
+    @classmethod
+    def normalize_sku(cls, v: str) -> str:
+        return v.upper()
 
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
+    @property
+    def total(self) -> float:
+        return self.quantity * self.unit_price
 ```
 
 ```bash
@@ -274,9 +253,9 @@ Directory structure for `project/`:
 - **Rule:** Use descriptive field names and include docstrings for complex models
 
 ```python
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Optional, List
-from pydantic import BaseModel, Field, EmailStr, validator
+from pydantic import BaseModel, ConfigDict, Field, EmailStr
 from enum import Enum
 
 class UserRole(str, Enum):
@@ -287,6 +266,21 @@ class UserRole(str, Enum):
 class User(BaseModel):
     """User model with comprehensive validation."""
 
+    model_config = ConfigDict(
+        validate_assignment=True,
+        use_enum_values=True,
+        json_schema_extra={
+            "example": {
+                "id": 1,
+                "email": "user@example.com",
+                "username": "johndoe",
+                "full_name": "John Doe",
+                "age": 30,
+                "role": "user",
+            }
+        },
+    )
+
     id: int = Field(..., gt=0, description="Unique user identifier")
     email: EmailStr = Field(..., description="User email address")
     username: str = Field(..., min_length=3, max_length=50, pattern=r'^[a-zA-Z0-9_]+$')
@@ -294,25 +288,8 @@ class User(BaseModel):
     age: Optional[int] = Field(None, ge=13, le=120, description="User age in years")
     role: UserRole = Field(default=UserRole.USER)
     is_active: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=datetime.now)
-    tags: List[str] = Field(default_factory=list, max_items=10)
-
-    class Config:
-        # Enable validation on assignment
-        validate_assignment = True
-        # Use enum values in JSON
-        use_enum_values = True
-        # Example values for documentation
-        schema_extra = {
-            "example": {
-                "id": 1,
-                "email": "user@example.com",
-                "username": "johndoe",
-                "full_name": "John Doe",
-                "age": 30,
-                "role": "user"
-            }
-        }
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    tags: List[str] = Field(default_factory=list, max_length=10)
 ```
 
 ### Field Configuration and Validation
@@ -321,52 +298,36 @@ class User(BaseModel):
 - **Rule:** Use built-in validators before creating custom ones
 
 ```python
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Optional
-import re
 
 class Product(BaseModel):
     """Product model with custom validation."""
 
     name: str = Field(..., min_length=1, max_length=200)
-    sku: str = Field(..., regex=r'^[A-Z]{2,3}-\d{4,6}$')
+    sku: str = Field(..., pattern=r'^[A-Z]{2,3}-\d{4,6}$')
     price: float = Field(..., gt=0, le=10000, description="Price in USD")
     discount_percent: Optional[float] = Field(None, ge=0, le=100)
     category: str = Field(..., min_length=1)
 
-    @validator('name')
-    def validate_name(cls, v):
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v: str) -> str:
         """Ensure product name doesn't contain prohibited words."""
         prohibited = ['test', 'sample', 'demo']
         if any(word in v.lower() for word in prohibited):
             raise ValueError('Product name cannot contain prohibited words')
         return v.title()
 
-    @validator('sku')
-    def validate_sku_format(cls, v):
-        """Validate SKU format and check uniqueness."""
-        if not re.match(r'^[A-Z]{2,3}-\d{4,6}$', v):
-            raise ValueError('SKU must follow format: XX-NNNN or XXX-NNNNNN')
-        return v.upper()
-
-    @root_validator
-    def validate_discount_logic(cls, values):
+    @model_validator(mode='before')
+    @classmethod
+    def validate_discount_logic(cls, values: dict) -> dict:
         """Ensure discount logic is consistent."""
         price = values.get('price')
         discount = values.get('discount_percent')
-
-        if discount and discount > 0:
-            if price and price < 10:  # No discount on items under $10
-                raise ValueError('Discount not allowed on items under $10')
-
+        if discount and discount > 0 and price and price < 10:
+            raise ValueError('Discount not allowed on items under $10')
         return values
-
-    @property
-    def discounted_price(self) -> float:
-        """Calculate price after discount."""
-        if self.discount_percent:
-            return self.price * (1 - self.discount_percent / 100)
-        return self.price
 ```
 
 ## Settings Management with Pydantic
@@ -377,7 +338,7 @@ class Product(BaseModel):
 - **Rule:** Validate all configuration values at startup
 
 ```python
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional, List
 from pathlib import Path
@@ -409,7 +370,7 @@ class AppSettings(BaseSettings):
     # Application settings
     app_name: str = Field(default="MyApp", description="Application name")
     debug: bool = Field(default=False, description="Debug mode")
-    log_level: str = Field(default="INFO", regex=r'^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$')
+    log_level: str = Field(default="INFO", pattern=r'^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$')
 
     # Server settings
     host: str = Field(default="0.0.0.0")
@@ -426,46 +387,25 @@ class AppSettings(BaseSettings):
     data_dir: Path = Field(default=Path("./data"))
     log_file: Optional[Path] = Field(default=None)
 
-    @validator('data_dir')
-    def validate_data_dir(cls, v):
+    @field_validator('data_dir')
+    @classmethod
+    def validate_data_dir(cls, v: Path) -> Path:
         """Ensure data directory exists."""
         v.mkdir(parents=True, exist_ok=True)
         return v
 
-    @validator('secret_key')
-    def validate_secret_key(cls, v):
+    @field_validator('secret_key')
+    @classmethod
+    def validate_secret_key(cls, v: str) -> str:
         """Ensure secret key is sufficiently complex."""
         if len(set(v)) < 10:  # At least 10 unique characters
             raise ValueError('Secret key must have sufficient entropy')
         return v
 
 # Global settings instance
+# Tip: Use env_prefix="MYAPP_" in SettingsConfigDict to namespace env vars
+# (e.g., MYAPP_DEBUG=true, MYAPP_DATABASE__HOST=localhost)
 settings = AppSettings()
-```
-
-### Environment Variable Integration
-- **Rule:** Use consistent environment variable naming with prefixes
-- **Always:** Document all environment variables and their purposes
-- **Rule:** Provide sensible defaults for development environments
-
-```python
-# Environment variables example:
-# MYAPP_DEBUG=true
-# MYAPP_LOG_LEVEL=DEBUG
-# MYAPP_DATABASE__HOST=localhost
-# MYAPP_DATABASE__PORT=5432
-# MYAPP_SECRET_KEY=your-secret-key-here
-
-class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="MYAPP_",
-        env_file=".env",
-        env_file_encoding="utf-8"
-    )
-
-    debug: bool = False
-    database_url: str = Field(..., description="Database connection URL")
-    redis_url: Optional[str] = Field(None, description="Redis connection URL")
 ```
 
 ## Serialization and JSON Schema
@@ -476,9 +416,9 @@ class Settings(BaseSettings):
 - **Rule:** Use aliases for external API compatibility
 
 ```python
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, ConfigDict, Field, SecretStr
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, UTC
 
 class UserProfile(BaseModel):
     """User profile with serialization control."""
@@ -491,8 +431,7 @@ class UserProfile(BaseModel):
     created_at: datetime
     last_login: Optional[datetime] = None
 
-    class Config:
-        populate_by_name = True  # Allow both field name and alias
+    model_config = ConfigDict(populate_by_name=True)  # Allow both field name and alias
 
     def to_public_dict(self) -> dict:
         """Serialize for public API responses."""
@@ -512,7 +451,7 @@ user = UserProfile(
     email_address="john@example.com",
     password_hash="hashed_password",
     full_name="John Doe",
-    created_at=datetime.now()
+    created_at=datetime.now(UTC)
 )
 
 public_data = user.to_public_dict()
@@ -524,19 +463,22 @@ public_data = user.to_public_dict()
 - **Rule:** Provide examples and descriptions in schema
 
 ```python
-class APIResponse(BaseModel):
-    success: bool = Field(..., description="Whether request was successful")
-    message: str = Field(..., description="Human-readable message")
-    data: Optional[dict] = Field(None, description="Response data")
+from pydantic import BaseModel, ConfigDict, Field
 
-    class Config:
-        schema_extra = {
+class APIResponse(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
             "examples": [{
                 "success": True,
                 "message": "Operation completed",
-                "data": {"id": 1}
+                "data": {"id": 1},
             }]
-        }
+        },
+    )
+
+    success: bool = Field(..., description="Whether request was successful")
+    message: str = Field(..., description="Human-readable message")
+    data: Optional[dict] = Field(None, description="Response data")
 
 schema = APIResponse.model_json_schema()
 ```
@@ -593,14 +535,15 @@ async def create_user(
 - **Rule:** Use `from_attributes = True` for ORM to Pydantic conversion
 
 ```python
+from pydantic import BaseModel, ConfigDict
+
 class UserSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)  # Enable ORM mode
+
     id: int
     username: str
     email: str
     is_active: bool
-
-    class Config:
-        from_attributes = True  # Enable ORM mode
 
 def get_user_by_id(user_id: int) -> UserSchema:
     user_orm = session.query(UserORM).filter(UserORM.id == user_id).first()
@@ -634,9 +577,10 @@ def validate_users_batch(users_data: List[dict]) -> List[StrictUser]:
 - **Rule:** Use generators for large dataset processing
 
 ```python
+from pydantic import BaseModel, ConfigDict
+
 class EfficientModel(BaseModel):
-    class Config:
-        slots = True
+    model_config = ConfigDict(slots=True)
 
     id: int
     name: str

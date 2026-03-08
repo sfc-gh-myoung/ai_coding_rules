@@ -719,7 +719,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 130 rules covering all domains (including 8 HTMX rules, Go/Golang core, Alpine.js, and Podman)
+- 136 rules covering all domains (including 8 HTMX rules, Go/Golang core, Alpine.js, and Podman)
 
 **`rules/examples/`** — Validated implementation examples
 - Complete, runnable reference implementations for complex rules
@@ -1243,7 +1243,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 130 production-ready rule files
+- `rules/` — 136 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -1256,7 +1256,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 **Target Structure (in user's project):**
 ```
 /path/to/user-project/
-├── rules/                  # 124 rule files
+├── rules/                  # 136 rule files
 │   ├── 000-global-core.md
 │   ├── 100-snowflake-core.md
 │   └── ...
@@ -1348,15 +1348,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (130 files)
+  ✓ Source rules/ directory exists (136 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 130 rule files...
-  ✓ Copied 130 rules to /path/to/project/rules/
+  → Copying 136 rule files...
+  ✓ Copied 136 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 
@@ -1689,7 +1689,7 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>130 production files]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>136 production files]
     Root --> Src[src/ai_rules/<br/>CLI tool]
     Root --> Schemas[schemas/<br/>v3.0 YAML schema]
     Root --> Tests[tests/<br/>494 passing tests]
@@ -1699,7 +1699,7 @@ graph TD
     
     Rules --> Rule1[000-global-core.md]
     Rules --> Rule2[100-snowflake-core.md]
-    Rules --> Rule3[... 130 total]
+    Rules --> Rule3[... 136 total]
     
     Src --> S1[ai-rules new]
     Src --> S2[ai-rules deploy]
@@ -1828,7 +1828,7 @@ if sections["Contract"]["line"] > 160:
 **Rationale:**
 
 1. **Context Drift Prevention** — Fresh context per sub-agent eliminates quality degradation after 50+ rules
-2. **Speed** — 5× faster execution (~50 minutes vs 4-6 hours for 129 rules)
+2. **Speed** — 5× faster execution (~50 minutes vs 4-6 hours for 136 rules)
 3. **Isolation** — One sub-agent failing doesn't stop others; partial results preserved
 4. **Full Protocol Preservation** — Each sub-agent loads complete anti-optimization protocols
 5. **No File Conflicts** — Unique filenames (rule-name-model-date.md) prevent write races

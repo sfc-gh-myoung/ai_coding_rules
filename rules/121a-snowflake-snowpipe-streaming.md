@@ -177,8 +177,7 @@ Snowpipe Streaming implementations produce:
 **Anti-Pattern 1: Not Implementing Offset Token Tracking**
 ```python
 # Bad: No offset tracking, causes duplicate data
-from snowflake.ingest import SnowflakeStreamingIngestClient
-
+# (client/channel setup - see "Python SDK Example" section below for full init pattern)
 client = SnowflakeStreamingIngestClient(...)
 channel = client.open_channel(...)
 
@@ -189,14 +188,12 @@ for row in data_stream:
 
 channel.close()
 ```
-**Problem:** Duplicate data on restarts; no exactly-once semantics; data quality issues; difficult troubleshooting; unprofessional
+**Problem:** Duplicate data on restarts; no exactly-once semantics
 
 **Correct Pattern:**
 ```python
 # Good: Offset token tracking for exactly-once semantics
-from snowflake.ingest import SnowflakeStreamingIngestClient
-import time
-
+# (client/channel setup - see "Python SDK Example" section below for full init pattern)
 client = SnowflakeStreamingIngestClient(...)
 channel = client.open_channel(...)
 
@@ -209,21 +206,17 @@ for idx, row in enumerate(data_stream, start=last_offset + 1):
     
     if response.has_errors():
         print(f"Insert errors: {response.insert_errors}")
-        # Handle errors, retry, or skip
     else:
-        # Persist offset after successful insert
         save_offset_to_storage(idx)
 
 channel.close()
 # On restart, resume from last_offset + 1, no duplicates!
 ```
-**Benefits:** Exactly-once semantics; no duplicates; safe restarts; data quality; professional; audit trail; idempotent
+**Benefits:** Exactly-once semantics; no duplicates on restart; safe recovery
 
 **Anti-Pattern 2: Using Streaming for Bulk Historical Loads**
 ```python
 # Bad: Using Snowpipe Streaming for bulk historical load
-from snowflake.ingest import SnowflakeStreamingIngestClient
-
 client = SnowflakeStreamingIngestClient(...)
 channel = client.open_channel(...)
 
@@ -235,7 +228,7 @@ for row in historical_data_10M_rows:
 channel.close()
 # Takes hours, costs 10x more than COPY INTO!
 ```
-**Problem:** Extremely slow; high costs; high latency; inefficient; wrong tool; unprofessional; wasted resources
+**Problem:** Extremely slow for bulk loads; costs 10x more than COPY INTO
 
 **Correct Pattern:**
 ```python
@@ -244,8 +237,6 @@ channel.close()
 # See 121-snowflake-snowpipe.md for file-based ingestion
 
 # Step 2: Use Snowpipe Streaming only for ongoing real-time data
-from snowflake.ingest import SnowflakeStreamingIngestClient
-
 client = SnowflakeStreamingIngestClient(...)
 channel = client.open_channel(...)
 
@@ -256,15 +247,12 @@ for row in real_time_stream:  # Ongoing stream, not bulk load
         handle_error(response.insert_errors)
 
 channel.close()
-# Fast, cost-effective, right tool for the job!
 ```
-**Benefits:** Fast bulk load; cost-effective; right tool selection; professional; efficient; scalable
+**Benefits:** Right tool for the job; fast bulk load via COPY INTO; streaming for real-time only
 
 **Anti-Pattern 3: Ignoring Schema Evolution Settings**
 ```python
 # Bad: No schema evolution configuration, silent data loss
-from snowflake.ingest import SnowflakeStreamingIngestClient
-
 client = SnowflakeStreamingIngestClient(...)
 
 # Open channel without specifying schema evolution mode
@@ -281,17 +269,16 @@ row = {'id': 1, 'name': 'Alice', 'email': 'alice@example.com'}  # 'email' column
 channel.insert_row(row, 'offset_1')
 # What happens? Depends on default! Data loss? Error? Unknown!
 ```
-**Problem:** Silent data loss; unpredictable behavior; schema mismatches; debugging nightmares; data quality issues; unprofessional
+**Problem:** Silent data loss; unpredictable behavior with unknown columns
 
 **Correct Pattern:**
 ```python
 # Good: Explicit schema evolution configuration
-from snowflake.ingest import SnowflakeStreamingIngestClient
 from snowflake.ingest.utils.constants import OnErrorOption
 
 client = SnowflakeStreamingIngestClient(...)
 
-# Open channel with explicit schema evolution mode
+# Open channel with explicit error handling mode
 channel = client.open_channel(
     database='DB',
     schema='SCHEMA',
@@ -300,10 +287,9 @@ channel = client.open_channel(
     on_error=OnErrorOption.CONTINUE  # Or ABORT, SKIP_FILE
 )
 
-# For production: Use explicit schema management
-# Option 1: Fail on unknown columns (strict)
-# Option 2: Add columns automatically (flexible)
-# Option 3: Ignore unknown columns (defensive)
+# Note: on_error controls error behavior, NOT schema evolution.
+# Schema evolution (ADD_COLUMNS, FAIL_MISSING_COLUMNS, IGNORE_MISSING_COLUMNS)
+# is configured at the table level. See "Schema Evolution" section below.
 
 # Insert row with validation
 row = {'id': 1, 'name': 'Alice', 'email': 'alice@example.com'}
@@ -312,9 +298,8 @@ response = channel.insert_row(row, 'offset_1')
 if response.has_errors():
     for error in response.insert_errors:
         print(f"Schema error: {error}")
-        # Handle: retry, alert, skip, or fail
 ```
-**Benefits:** Predictable behavior; explicit schema control; no silent data loss; easy debugging; data quality; professional
+**Benefits:** Predictable behavior; explicit error control; no silent data loss
 
 ## Snowpipe Streaming Overview
 
@@ -634,8 +619,7 @@ finally:
 ### Channel Lifecycle
 
 ```python
-from snowflake.ingest import SnowflakeStreamingIngestClient
-
+# (See "Python SDK Example" section for full client init pattern)
 client = SnowflakeStreamingIngestClient(...)
 
 # Open channel
@@ -732,28 +716,31 @@ channel.insert_row(row, 'offset_1')
 
 ### Schema Evolution Configuration
 
-```python
-from snowflake.ingest import SnowflakeStreamingIngestClient
-from snowflake.ingest.utils.constants import OnErrorOption
+**Important:** Schema evolution modes and `on_error` are separate concerns:
+- **Schema evolution modes** (ADD_COLUMNS, FAIL_MISSING_COLUMNS, IGNORE_MISSING_COLUMNS) control how the table handles unknown columns. Configured via table properties or channel open parameters.
+- **on_error** (ABORT, CONTINUE, SKIP_FILE) controls what happens when any insert error occurs (type mismatches, constraint violations, etc.).
 
+```python
 client = SnowflakeStreamingIngestClient(...)
 
-# Strict mode: Fail on unknown columns
+# Production: Strict error handling + strict schema
 channel = client.open_channel(
     database='DB',
     schema='SCHEMA',
     table='CRITICAL_TABLE',
     channel_name='CHANNEL',
-    on_error=OnErrorOption.ABORT  # Fail on any error
+    on_error='ABORT'  # Fail on any insert error
+    # Schema evolution mode: set FAIL_MISSING_COLUMNS at table level
 )
 
-# Flexible mode: Add columns automatically
+# Development: Lenient error handling + flexible schema
 channel = client.open_channel(
     database='DB',
     schema='SCHEMA',
     table='EXPLORATORY_TABLE',
     channel_name='CHANNEL',
-    on_error=OnErrorOption.CONTINUE  # Continue on errors
+    on_error='CONTINUE'  # Skip bad rows, continue ingestion
+    # Schema evolution mode: set ADD_COLUMNS at table level
 )
 ```
 
@@ -802,13 +789,7 @@ Common issues covered:
 
 **Quick Reference - Basic Diagnostics:**
 ```sql
--- Check channel status
-SELECT *
-FROM SNOWFLAKE.ACCOUNT_USAGE.STREAMING_CHANNELS
-WHERE database_name = 'DB'
-  AND schema_name = 'SCHEMA'
-  AND table_name = 'TABLE'
-ORDER BY last_commit_time DESC;
+-- Channel status: See monitoring query above (add table_name filter for specific table)
 
 -- Check table schema
 DESC TABLE DB.SCHEMA.TABLE;

@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** time series smoothing, data aggregation, resample, SCADA data, high-frequency data, trend analysis, rolling average, EWMA, exponential smoothing
-**TokenBudget:** ~1850
+**TokenBudget:** ~2150
 **ContextTier:** Low
 **Depends:** 101a-snowflake-streamlit-visualization.md
 
@@ -124,6 +124,8 @@ def smooth_time_series_data(
         df_smooth = df_resampled.max()
     elif method == "min":
         df_smooth = df_resampled.min()
+    else:
+        raise ValueError(f"Unknown method: {method}")
 
     return df_smooth.reset_index()
 ```
@@ -219,6 +221,44 @@ df['voltage_ewma'] = ewma_smooth(df, 'voltage_kv', span=12)
 **When to use EWMA vs resampling:**
 - **EWMA:** Preserves original time resolution, smooths noise adaptively
 - **Resampling:** Reduces data points, fixed time intervals
+
+### Gap Detection
+
+Detect gaps in time series data (e.g., missing sensor readings):
+
+```python
+def detect_gaps(df: pd.DataFrame, time_col: str, threshold: str = "1H") -> pd.DataFrame:
+    """Flag rows where the time gap exceeds the threshold."""
+    df = df.sort_values(time_col)
+    df['gap'] = df[time_col].diff().gt(pd.Timedelta(threshold)).fillna(False)
+    return df
+```
+
+## SQL-Side Aggregation
+
+For large datasets, aggregate in Snowflake before pulling into Python:
+
+```sql
+-- Aggregate 15-minute SCADA data to hourly using TIME_SLICE
+SELECT
+    TIME_SLICE(timestamp, 1, 'HOUR') AS hour_bucket,
+    AVG(voltage_kv) AS avg_voltage,
+    MAX(voltage_kv) AS max_voltage,
+    MIN(voltage_kv) AS min_voltage,
+    COUNT(*) AS reading_count
+FROM scada_readings
+WHERE timestamp >= DATEADD(day, -7, CURRENT_TIMESTAMP())
+GROUP BY hour_bucket
+ORDER BY hour_bucket;
+
+-- Alternative using DATE_TRUNC for calendar-aligned buckets
+SELECT
+    DATE_TRUNC('HOUR', timestamp) AS hour_bucket,
+    AVG(power_factor) AS avg_power_factor
+FROM scada_readings
+GROUP BY hour_bucket
+ORDER BY hour_bucket;
+```
 
 ## Performance Impact
 

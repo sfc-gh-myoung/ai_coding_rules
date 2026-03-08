@@ -11,7 +11,7 @@
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-02-18
 **Keywords:** schema validator, validation errors, error resolution, exit codes, command options, output parsing, error severity, CRITICAL errors, HIGH warnings, MEDIUM info
-**TokenBudget:** ~2250
+**TokenBudget:** ~2400
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
@@ -93,7 +93,7 @@ Validation report showing:
 
 **Pre-Task-Completion Checks:**
 - Python 3.8+ installed with PyYAML library
-- `schema_validator.py` accessible in scripts/ directory
+- `ai-rules validate` accessible via `uv run`
 - Rule file exists and is readable
 
 **Success Criteria:**
@@ -326,6 +326,25 @@ Keywords must have 5-20 comma-separated terms.
 
 # Correct
 **RuleVersion:** v1.0.0
+```
+
+### Error 8: Validator Crashes (Python Error)
+
+**Error:** Python traceback instead of validation report (e.g., `ModuleNotFoundError: No module named 'yaml'` or `FileNotFoundError: schemas/rule-schema.yml`)
+
+**Fix:**
+```bash
+# Missing PyYAML dependency - reinstall via uv
+uv sync
+
+# Corrupted or missing schema file - verify it exists
+ls schemas/rule-schema.yml
+
+# If schema file is missing, restore from git
+git checkout -- schemas/rule-schema.yml
+
+# Re-run validation after fixing environment
+uv run ai-rules validate rules/<rule-file>.md
 ```
 
 ## Anti-Patterns and Common Mistakes

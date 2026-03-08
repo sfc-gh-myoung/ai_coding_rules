@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:agent-instructions
 **Keywords:** Cortex Agents, planning instructions, response instructions, tool orchestration, flagging logic, agent prompts, multi-tool orchestration, tool selection, agent prompting, instruction patterns, agent planning
-**TokenBudget:** ~4900
+**TokenBudget:** ~4650
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md
 
@@ -128,7 +128,7 @@ views:
         ELSE revenue
       END
 ```
-**Problem:** Semantic views should describe data, not implement flagging; business rules hard to update; requires semantic model redeployment; agent can't customize flagging; violates separation of concerns
+**Problem:** Semantic views should describe data, not implement flagging; business rules hard to update; violates separation of concerns
 
 **Correct Pattern:**
 ```markdown
@@ -141,7 +141,7 @@ When presenting revenue data:
    - If revenue < $100K: Flag as "WARNING: LOW - Below threshold"
 3. Explain flagging rationale in response
 ```
-**Benefits:** Business rules in agent layer; easy to update without model changes; flexible per-agent customization; clear separation of concerns; version control friendly
+**Benefits:** Business rules in agent layer; easy to update; flexible per-agent customization
 
 **Anti-Pattern 2: Vague Planning Instructions Without Tool Selection Criteria**
 ```markdown
@@ -151,7 +151,7 @@ When presenting revenue data:
 2. Use the appropriate tool
 3. Return results
 ```
-**Problem:** Agent doesn't know which tool to select; random tool choice; inconsistent behavior; poor user experience; tool usage inefficiencies
+**Problem:** Agent doesn't know which tool to select; random tool choice; inconsistent behavior
 
 **Correct Pattern:**
 ```markdown
@@ -168,7 +168,7 @@ When presenting revenue data:
    - Policy docs: Use policy_search
 4. For mixed queries: Use analyst first, then augment with search
 ```
-**Benefits:** Predictable tool selection; consistent agent behavior; clear decision criteria; optimized tool usage; better user experience; debuggable logic
+**Benefits:** Predictable tool selection; consistent agent behavior; debuggable logic
 
 **Anti-Pattern 3: No Graceful Degradation for Missing Data**
 ```markdown
@@ -178,7 +178,7 @@ When presenting revenue data:
 2. Return results
 [No handling for empty results or tool failures]
 ```
-**Problem:** Poor user experience on empty results; confusing error messages; agent appears broken; no fallback guidance; user abandonment; trust erosion
+**Problem:** Poor user experience on empty results; confusing error messages; no fallback guidance
 
 **Correct Pattern:**
 ```markdown
@@ -194,7 +194,7 @@ When presenting revenue data:
    - Clearly note limitations
    - Suggest complementary searches
 ```
-**Benefits:** Clear failure communication; helpful user guidance; maintains trust; actionable alternatives; professional experience; reduces support burden
+**Benefits:** Clear failure communication; helpful user guidance; maintains trust
 
 **Anti-Pattern 4: Missing Tone and Formatting Guidance in Response Instructions**
 ```markdown
@@ -202,7 +202,7 @@ When presenting revenue data:
 **Response Instructions:**
 Return the data to the user.
 ```
-**Problem:** Inconsistent tone across responses; unprofessional formatting; unclear structure; doesn't match brand voice; poor readability; user confusion
+**Problem:** Inconsistent tone across responses; unprofessional formatting; poor readability
 
 **Correct Pattern:**
 ```markdown
@@ -227,7 +227,7 @@ Key insights:
 
 Consider focusing Q1 investment on APAC enterprise expansion given strong momentum."
 ```
-**Benefits:** Consistent professional tone; readable formatting; structured insights; brand-aligned voice; clear communication; better user satisfaction
+**Benefits:** Consistent professional tone; readable formatting; structured insights
 
 ## Output Format Examples
 
@@ -372,39 +372,9 @@ Planning instructions define HOW the agent selects and orchestrates tools. Be ex
 
 Response instructions define HOW the agent formats and presents answers.
 
-### 5.1 CRITICAL: Flagging Logic Placement Principle
+### 5.1 Flagging Logic Placement
 
-**Agent Instructions:** All flagging, thresholds, highlighting, and business rules
-**Cortex Analyst:** ONLY data calculations and SQL generation
-**Semantic Views:** ONLY data modeling and query logic
-**NEVER:** Put business rule flagging in semantic view custom instructions
-
-**Why This Matters:**
-- Semantic views should be reusable across different agents with different thresholds
-- Business rules change more frequently than data models
-- Agent-level flagging allows consistent application across all tools
-- Keeps semantic views focused on accurate calculations only
-
-**Example - CORRECT:**
-```yaml
-# In Agent Response Instructions:
-"When portfolio positions exceed 6.5%, flag with ' CONCENTRATION WARNING' and recommend action."
-
-# In Cortex Analyst Tool:
-- Just returns position_weight calculations
-
-# In Semantic View:
-- Just calculates position_weight accurately
-```
-
-**Example - INCORRECT:**
-```yaml
-# In Semantic View custom instructions:
-"Flag positions >6.5% as concentrations"  # WRONG - belongs in agent instructions
-
-# In Cortex Analyst Tool description:
-"Flag concentrations above threshold"  # WRONG - belongs in agent instructions
-```
+**Key rule:** All flagging, thresholds, and business rules belong in agent response instructions - NEVER in semantic views or Cortex Analyst tools. See Anti-Pattern 1 above for detailed examples.
 
 ### 5.2 General Response Template
 ```

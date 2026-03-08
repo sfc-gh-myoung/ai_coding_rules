@@ -12,7 +12,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:fastapi, kw:api, kw:rest
 **Keywords:** FastAPI, async, REST API, Pydantic, dependency injection, routing, request validation, response models, APIRouter, uvicorn, async def, application factory
-**TokenBudget:** ~4600
+**TokenBudget:** ~4400
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -70,7 +70,7 @@ Comprehensive FastAPI development best practices for modern web API development.
 
 - Bare `uvicorn` command (always use `uv run uvicorn`)
 - Blocking synchronous code in async route handlers
-- Mixing sync and async without proper handling
+- Mixing sync and async without using `asyncio.to_thread()` for blocking calls within async handlers
 - Reusing same Pydantic model for request and response
 - Creating database sessions directly in route handlers
 - Exposing internal error details to clients in production
@@ -141,13 +141,6 @@ FastAPI application with:
 
 ### Post-Execution Checklist
 
-- [ ] Application factory function created in `app/main.py`
-- [ ] Routes organized with APIRouter in separate modules
-- [ ] Separate Pydantic models for requests and responses
-- [ ] All I/O operations use async def
-- [ ] Dependency injection configured for database sessions
-- [ ] Global exception handlers added
-- [ ] Development server runs with `uv run uvicorn app.main:app --reload`
 - [ ] API documentation accessible at `/docs`
 - [ ] Linting passes (`uvx ruff check .`)
 - [ ] Tests pass (`uv run pytest`)
@@ -230,7 +223,7 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
 ### Project Layout
 - **Always:** Use the application factory pattern for FastAPI apps.
 - **Always:** Organize code into logical modules: `routers/`, `models/`, `services/`, `database/`.
-- **Always:** Follow the project structure from `23-python-project-setup.md` with proper `__init__.py` files.
+- **Always:** Follow the project structure from `203-python-project-setup.md` with proper `__init__.py` files.
 
 Recommended directory structure for `app/`:
 - `__init__.py`
@@ -295,7 +288,7 @@ app = create_app()
 ### Async Best Practices
 - **Critical:** Use `async def` for all route handlers that perform I/O operations.
 - **Always:** Use `await` for database queries, HTTP requests, and file operations.
-- **Rule:** Never mix blocking and non-blocking code without proper handling.
+- **Rule:** Never mix blocking and non-blocking code without using `asyncio.to_thread()` for blocking calls within async handlers.
 
 ```python
 # CORRECT: Async route with proper await
@@ -448,7 +441,7 @@ class UserUpdate(BaseModel):
 ### Input Validation
 - **Always:** Validate all input parameters using Pydantic Field constraints.
 - **Always:** Use appropriate HTTP status codes for validation errors.
-- **Rule:** Provide clear, actionable error messages.
+- **Rule:** Error messages must state what failed and what the client should do differently.
 
 ```python
 from pydantic import field_validator, Field
@@ -558,16 +551,3 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     return Settings()
 ```
-
-## Integration with Python Core Rules
-
-### Compliance with Existing Rules
-- **Always:** Follow all directives from `200-python-core.md` for Python best practices.
-- **Always:** Use `uv run uvicorn` instead of bare `uvicorn` for development.
-- **Always:** Apply linting and formatting rules from `201-python-lint-format.md`.
-- **Always:** Follow project setup patterns from `203-python-project-setup.md`.
-
-### Development Commands
-- **Always:** Follow Python core rules from `200-python-core.md` for all uv commands.
-- **Always:** Apply linting and formatting rules from `201-python-lint-format.md`.
-- **FastAPI Specific:** Use `uv run uvicorn app.main:app --reload` for development server.

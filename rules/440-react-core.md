@@ -57,20 +57,23 @@ Establishes the definitive standards for developing scalable, maintainable React
 - React 18+ project
 - TypeScript 5+ configured
 - Understanding of modern React patterns (hooks, functional components)
-
-### Mandatory
-
 - Package manager: `npm`, `pnpm`, `yarn`, or `bun`
 - Build tool: `vite` or `next`
 - Testing: `vitest` and React Testing Library
 - Linting: `biome` (or `eslint`/`prettier`)
 - Styling: Tailwind CSS
 
+### Mandatory
+
+- MUST use feature-based folder structure (`src/features/<domain>`)
+- MUST use TanStack Query for server state (or RSC for Next.js)
+- MUST test user interactions, not implementation details
+
 ### Forbidden
 
 - `create-react-app` (deprecated)
 - `class components` (legacy pattern)
-- `default exports` for components (exception: Next.js pages/layouts require default exports)
+- `default exports` for components (exception: Next.js convention files requiring default exports: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `route.ts`)
 - `barrel files` (circular dependency risks)
 - `enzyme` testing library (deprecated)
 - Manual data fetching with `useEffect` + `useState`
@@ -114,6 +117,7 @@ TypeScript code (`.tsx`, `.ts`) with:
 - [ ] `vitest` tests written for user interactions
 - [ ] `className` prop support enabled via `cn()` utility
 - [ ] All imports use absolute paths (e.g., `@/components/...`)
+- [ ] Custom hooks under 50 lines of logic (split into smaller hooks if larger)
 
 **Success Criteria:**
 - `npm run test` (vitest) passes all tests
@@ -135,14 +139,7 @@ TypeScript code (`.tsx`, `.ts`) with:
 
 ### Post-Execution Checklist
 
-- [ ] Feature code placed in `src/features/<domain>` structure
-- [ ] `useQuery` or RSC used for data fetching (no `useEffect` for async)
-- [ ] Global UI state uses Zustand (or RTK if enterprise requirement)
-- [ ] Components typed with TypeScript interfaces (no `any`)
-- [ ] No `useEffect` for derived state (use `useMemo` or direct calculation)
-- [ ] `vitest` tests written for user interactions
-- [ ] `className` prop support enabled via `cn()` utility
-- [ ] All imports use absolute paths (e.g., `@/components/...`)
+- [ ] Verify all Pre-Task-Completion Checks still pass
 - [ ] Linting and type-check pass: `npm run lint && npm run type-check`
 
 ## Key Principles

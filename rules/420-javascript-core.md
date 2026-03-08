@@ -11,7 +11,7 @@
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-01-13
 **Keywords:** JavaScript, ES2024, ESM, Node.js, JSDoc, Biome, node:test, Immutability, Async/Await, Functional Programming
-**TokenBudget:** ~3200
+**TokenBudget:** ~4000
 **ContextTier:** High
 **Depends:** 000-global-core.md
 **LoadTrigger:** ext:.js, ext:.jsx, ext:.mjs, ext:.cjs
@@ -169,10 +169,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 4. **Review existing tests** to understand current patterns before adding new ones
 
 **Anti-Pattern Examples:**
-- Using `require()` in ESM project
-- Using `axios` when native `fetch` is available
-- Mutating arrays with `.sort()` instead of `.toSorted()`
-- Using `var` keyword
+See [Anti-Patterns and Common Mistakes](#anti-patterns-and-common-mistakes) section below for common violations.
 
 **Correct Pattern:**
 - "Let me check your package.json and Node.js version first."
@@ -210,6 +207,33 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - [ ] `Object.groupBy` used for grouping logic
 - [ ] Biome configuration file (`biome.json`) present
 - [ ] CHANGELOG.md and README.md updated as required
+
+### Error Recovery
+
+**npm Registry Failures:**
+1. Check network connectivity: `ping registry.npmjs.org`
+2. Clear npm cache: `npm cache clean --force`
+3. Try alternative registry: `npm config set registry https://registry.npmmirror.com` (revert after)
+4. Verify proxy settings if behind corporate firewall: `npm config get proxy`
+
+**Biome Configuration Errors:**
+1. Regenerate config: `npx @biomejs/biome init`
+2. Validate config: ensure `biome.json` is valid JSON (check trailing commas)
+3. Check Biome version compatibility: `npx biome --version`
+4. Reset to defaults if custom rules cause failures, then re-add rules incrementally
+
+**Node.js Version Mismatch:**
+1. Check current version: `node --version`
+2. Required: Node.js 20+ for ES2023 array methods, 21+ for `Object.groupBy`
+3. Switch version with nvm: `nvm use 20` or `nvm install 20`
+4. Update `.nvmrc` or `engines` field in `package.json` to pin version
+
+**ESM/CJS Interop Issues:**
+1. Detect mixed usage: `grep -rn "require(" --include="*.js"` alongside `import` statements
+2. Ensure `"type": "module"` is set in `package.json`
+3. Rename files that must stay CJS to `.cjs` extension
+4. For CJS dependencies in ESM: use `import pkg from 'cjs-pkg'` (default import) or `createRequire`
+5. Check for `__dirname`/`__filename` usage — replace with `import.meta.url` and `fileURLToPath`
 
 ## Anti-Patterns and Common Mistakes
 
@@ -364,6 +388,34 @@ try {
  throw new Error('Operation failed', { cause: err });
 }
 ```
+
+**Error Cause Enforcement:**
+- **Validation check:** `grep -r "throw new Error" --include="*.js" | grep -v "cause"` to detect errors thrown without cause chaining.
+- Every `catch` block that re-throws must include `{ cause: err }` to preserve the original stack trace.
+- Direct throws (not re-throws) do not require `cause`.
+
+### Edge Cases
+
+**Circular Imports:**
+- Detect with: `npx madge --circular --extensions js src/`
+- Resolution: Extract shared logic into a separate module, or use lazy imports (dynamic `import()`) to break cycles.
+- Symptom: Importing a value that is `undefined` at module evaluation time.
+
+**Dynamic Imports (`import()`):**
+- Use for code-splitting, conditional loading, or lazy initialization.
+- Always handle the promise rejection: `const mod = await import('./module.js').catch(handleError);`
+- Type with JSDoc: `/** @type {typeof import('./module.js')} */`
+- Avoid for static dependencies — prefer top-level `import` for better tree-shaking and analysis.
+
+**Top-Level Await Pitfalls:**
+- Requires ESM (`"type": "module"` in package.json) and Node.js 14.8+.
+- Blocks importing modules from executing until the awaited value resolves — avoid in library entry points.
+- Do not use in modules imported by many consumers; prefer explicit async init functions instead.
+
+**`structuredClone` for Deep Copies:**
+- Use `structuredClone(obj)` instead of `JSON.parse(JSON.stringify(obj))` or spread/`Object.assign` for deep copies.
+- Handles `Date`, `Map`, `Set`, `ArrayBuffer`, and circular references correctly.
+- Does **not** clone functions, DOM nodes, or `Error` objects — use manual copying for those.
 
 ## Testing and Tooling
 

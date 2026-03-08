@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-06
 **Keywords:** crud, forms, validation, infinite scroll, lazy loading, sse, progressive enhancement, modals, search, autocomplete, real-time, polling, inline editing
-**TokenBudget:** ~5000
+**TokenBudget:** ~4600
 **ContextTier:** High
 **Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
 
@@ -152,27 +152,6 @@ Reusable HTMX implementation patterns for common web application features includ
                 hx-swap="outerHTML"
                 hx-confirm="Delete {{ user.name }}?">
             Delete
-        </button>
-    </td>
-</tr>
-```
-
-```html
-{# partials/_user_form.html - Edit mode #}
-<tr id="user-{{ user.id }}">
-    <td><input type="text" name="name" value="{{ user.name }}"></td>
-    <td><input type="email" name="email" value="{{ user.email }}"></td>
-    <td>
-        <button hx-put="{{ url_for('update_user', user_id=user.id) }}"
-                hx-target="#user-{{ user.id }}"
-                hx-swap="outerHTML"
-                hx-include="closest tr">
-            Save
-        </button>
-        <button hx-get="{{ url_for('user_detail', user_id=user.id) }}"
-                hx-target="#user-{{ user.id }}"
-                hx-swap="outerHTML">
-            Cancel
         </button>
     </td>
 </tr>
@@ -343,6 +322,7 @@ def submit_user_form():
 def items_list():
     page = int(request.args.get('page', 1))
     per_page = 20
+    htmx = request.headers.get('HX-Request') == 'true'
 
     items = get_items(page=page, per_page=per_page)
     total = get_total_items()
@@ -371,21 +351,10 @@ def load_more():
     total = get_total_items()
     has_more = (page * per_page) < total
 
-    html = ''
-    for item in items:
-        html += render_template('partials/_item.html', item=item)
-
-    if has_more:
-        html += f'''
-        <div hx-get="{url_for('load_more', page=page+1)}"
-             hx-trigger="revealed"
-             hx-swap="afterend"
-             class="loading-trigger">
-            Loading more...
-        </div>
-        '''
-
-    return html
+    return render_template('partials/_load_more_sentinel.html',
+                           items=items,
+                           has_more=has_more,
+                           next_page=page + 1)
 ```
 
 ### 4. Search and Autocomplete
@@ -448,17 +417,8 @@ def autocomplete_cities():
 
     cities = get_matching_cities(query, limit=10)
 
-    html = '<ul class="autocomplete-list">'
-    for city in cities:
-        html += f'''
-        <li hx-get="{url_for('select_city', city=city)}"
-            hx-target="#city-input">
-            {escape(city)}
-        </li>
-        '''
-    html += '</ul>'
-
-    return html
+    return render_template('partials/_autocomplete_results.html',
+                           cities=cities)
 ```
 
 ### 5. Real-Time Updates
@@ -489,6 +449,7 @@ def notifications_stream():
                 html = render_template('partials/_notification.html',
                                      notification=notification)
                 yield f'event: notification\ndata: {html}\n\n'
+            # WARNING: time.sleep() blocks Flask worker. Use gevent or async framework for production. See 221g for async patterns.
             time.sleep(5)  # Check every 5 seconds
 
     return Response(event_stream(), mimetype='text/event-stream')
@@ -632,6 +593,7 @@ def wizard_complete():
 def create_user():
     name = request.form['name']
     email = request.form['email']
+    htmx = request.headers.get('HX-Request') == 'true'
 
     user = create_user_in_db(name, email)
 
@@ -679,42 +641,4 @@ def create_user():
 <form id="form" hx-post="/submit" hx-target="#form" hx-swap="outerHTML">
     ...
 </form>
-```
-
-## Output Format Examples
-
-### Complete CRUD Implementation
-```python
-# Flask routes for CRUD operations
-@app.route('/users/<int:user_id>')
-def user_detail(user_id):
-    user = get_user(user_id)
-    return render_template('partials/_user_row.html', user=user)
-
-@app.route('/users/<int:user_id>/edit')
-def edit_user(user_id):
-    user = get_user(user_id)
-    return render_template('partials/_user_form.html', user=user)
-
-@app.route('/users/<int:user_id>', methods=['PUT'])
-def update_user(user_id):
-    user = get_user(user_id)
-    user.name = request.form['name']
-    user.email = request.form['email']
-
-    if not validate_user(user):
-        return render_template('partials/_user_form.html',
-                             user=user, errors=get_errors(user)), 400
-
-    save_user(user)
-    response = make_response(render_template('partials/_user_row.html', user=user))
-    response.headers['HX-Trigger'] = 'userUpdated'
-    return response
-
-@app.route('/users/<int:user_id>', methods=['DELETE'])
-def delete_user(user_id):
-    delete_user_from_db(user_id)
-    response = make_response('', 200)
-    response.headers['HX-Trigger'] = 'userDeleted'
-    return response
 ```

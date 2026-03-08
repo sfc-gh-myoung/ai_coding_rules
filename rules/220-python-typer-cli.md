@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.1.0
-**LastUpdated:** 2026-02-19
+**LastUpdated:** 2026-03-08
 **Keywords:** Typer, CLI development, command-line interface, click, argument parsing, CLI testing, typer.Argument, typer.Option, CliRunner, rich console, rich progress, rich tables, rich live, dual console, stderr, console output
-**TokenBudget:** ~6850
+**TokenBudget:** ~7450
 **ContextTier:** High
 **Depends:** 200-python-core.md
 **LoadTrigger:** kw:typer, kw:cli
@@ -56,7 +56,6 @@ Provide comprehensive guidance for building robust, user-friendly command-line a
 - Using argparse or click directly (use Typer instead)
 - Hardcoded file paths without configuration options
 - Missing exit codes (always exit 0)
-- Running single worker in production
 - Skipping help text and documentation
 - Mutable default values for command parameters
 
@@ -263,63 +262,41 @@ from myapp._shared.console import log_success, log_error
 log_success("Data exported")
 ```
 
-## Output Format Examples
+### Anti-Pattern 6: ANSI Escape Codes Breaking Test Assertions
 
+**Problem:** Tests using CliRunner fail with cryptic assertion errors because Rich/Typer emit ANSI escape codes (colors, bold, dim) in output.
+
+**Why It Fails:** Rich automatically detects terminal capabilities and adds ANSI codes. In CI environments or when testing Typer's help output, these codes break string assertions:
+```
+AssertionError: assert "--dry-run" in "\x1b[1m-\x1b[0m\x1b[1m-dry\x1b[0m\x1b[1m-run\x1b[0m"
+```
+
+**Correct Pattern:**
 ```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
+# BAD: No environment configuration - ANSI codes leak into output
+runner = CliRunner()
+result = runner.invoke(app, ["--help"])
+assert "--dry-run" in result.stdout  # FAILS! Contains \x1b[1m-\x1b[0m...
 
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
-from datetime import datetime, UTC
+# GOOD: Configure environment to disable ANSI codes
+# NO_COLOR: Standard convention (https://no-color.org/) to disable colors
+# TERM=dumb: Tells Rich the terminal has no capabilities - disables ALL formatting
+runner = CliRunner(env={"NO_COLOR": "1", "TERM": "dumb"})
+result = runner.invoke(app, ["--help"])
+assert "--dry-run" in result.stdout  # Works! Clean text output
 
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
-
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
-
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
-
-    Args:
-        input_data: Validated input following schema
-
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
+# ALSO GOOD: Shared fixture in conftest.py
+@pytest.fixture
+def runner() -> CliRunner:
+    """CliRunner with ANSI codes disabled for clean test assertions."""
+    return CliRunner(env={"NO_COLOR": "1", "TERM": "dumb"})
 ```
 
-```bash
-# Validation commands
-uvx ruff check .
-uvx ruff format --check .
-uv run pytest tests/
-```
+**Why Both Variables Are Needed:**
+- `NO_COLOR=1`: Disables color output (standard convention)
+- `TERM=dumb`: Disables ALL Rich formatting including bold (`\x1b[1m`), dim (`\x1b[2m`), and reset codes (`\x1b[0m`)
+
+Using only `NO_COLOR` still allows bold/dim formatting in Typer's Rich-formatted help text.
 
 ## Project Setup and Structure
 
@@ -342,7 +319,7 @@ myapp = "myapp.cli.main:app"
 
 ### Recommended Project Structure
 - **Default:** Use flat layout (`myapp/` at project root) for CLI applications, especially with `uv`. See `203-python-project-setup.md` Layout Selection for guidance.
-- **Consider:** Use `src/` layout for large CLI projects where import isolation matters.
+- **Rule:** Use `src/` layout for CLI projects with ≥5 command modules or distributed as libraries
 - **Rule:** Separate CLI logic from business logic in different modules
 - **Always:** Create dedicated CLI module structure:
 
@@ -537,7 +514,7 @@ def risky_operation(
 ```python
 # myapp/config/settings.py (flat layout) or src/myapp/config/settings.py (src/ layout)
 from pydantic_settings import BaseSettings
-from pydantic import Field
+from pydantic import ConfigDict, Field
 from pathlib import Path
 from typing import Optional
 
@@ -556,10 +533,11 @@ class AppSettings(BaseSettings):
     api_timeout: int = Field(30, ge=1, le=300, description="API timeout in seconds")
     max_retries: int = Field(3, ge=0, le=10, description="Maximum retry attempts")
 
-    class Config:
-        env_prefix = "MYAPP_"
-        env_file = ".env"
-        case_sensitive = False
+    model_config = ConfigDict(
+        env_prefix="MYAPP_",
+        env_file=".env",
+        case_sensitive=False,
+    )
 
 # Global settings instance
 settings = AppSettings()
@@ -581,7 +559,7 @@ def main(
         overrides["config_file"] = config
 
     if overrides:
-        settings = AppSettings(**{**settings.dict(), **overrides})
+        settings = AppSettings(**{**settings.model_dump(), **overrides})
 ```
 
 ### Environment Variables
@@ -609,6 +587,7 @@ def show_config():
 - **Rule:** Use Typer's built-in testing utilities for CLI tests
 - **Always:** Test both success and failure scenarios
 - **Rule:** Mock external dependencies and file system operations
+- **Critical:** Configure CliRunner with `env={"NO_COLOR": "1", "TERM": "dumb"}` to disable ANSI escape codes
 
 ```python
 # tests/cli/test_commands.py
@@ -619,7 +598,9 @@ from unittest.mock import patch, MagicMock
 
 from myapp.cli.main import app
 
-runner = CliRunner()
+# CRITICAL: NO_COLOR and TERM=dumb prevent ANSI escape codes in test output
+# Without these, assertions fail: "--dry-run" not in "\x1b[1m-\x1b[0m\x1b[1m-dry..."
+runner = CliRunner(env={"NO_COLOR": "1", "TERM": "dumb"})
 
 def test_process_command_success(tmp_path):
     """Test successful file processing."""
@@ -649,10 +630,11 @@ def test_command_with_mock(mock_api):
 ### Integration Testing
 - **Rule:** Test complete workflows end-to-end
 - **Always:** Use temporary directories for file operations
+- **Always:** Use CliRunner with `env={"NO_COLOR": "1", "TERM": "dumb"}` for clean output
 
 ```python
 def test_complete_pipeline(tmp_path):
-    runner = CliRunner()
+    runner = CliRunner(env={"NO_COLOR": "1", "TERM": "dumb"})
     input_file = tmp_path / "input.json"
     input_file.write_text('{"test": "data"}')
 
@@ -802,14 +784,51 @@ Centralize Rich console configuration in a dedicated module for consistent styli
 - **Rule:** Create `_shared/console.py` with standardized logging functions
 - **Rule:** Single source of truth for colors, icons, and formatting
 - **Always:** Import shared functions instead of creating local Console instances
+- **Critical:** Include environment-aware color detection to support CI and testing
 
 ```python
 # myapp/_shared/console.py
 """Centralized console output for consistent CLI styling."""
+import os
+import sys
+
 from rich.console import Console
 
-_stdout = Console()
-_stderr = Console(stderr=True)
+__all__ = [
+    "log_info",
+    "log_success",
+    "log_error",
+    "log_warning",
+    "get_console",
+    "get_error_console",
+]
+
+
+def _should_use_color() -> bool:
+    """Determine if console should use colors based on environment.
+    
+    Checks (in order):
+    - NO_COLOR env var: Standard convention (https://no-color.org/)
+    - CI env var: Disable colors in CI for clean logs
+    - TERM=dumb: Terminal has no capabilities
+    - pytest in sys.modules: Running under pytest
+    """
+    if os.environ.get("NO_COLOR"):
+        return False
+    if os.environ.get("CI"):
+        return False
+    if os.environ.get("TERM") == "dumb":
+        return False
+    if "pytest" in sys.modules:
+        return False
+    return True
+
+
+# Configure consoles with environment-aware color detection
+_use_color = _should_use_color()
+_stdout = Console(no_color=not _use_color, force_terminal=_use_color)
+_stderr = Console(stderr=True, no_color=not _use_color, force_terminal=_use_color)
+
 
 def log_info(msg: str) -> None:
     """Info message to stdout."""
@@ -835,6 +854,8 @@ def get_error_console() -> Console:
     """Get stderr console for error output."""
     return _stderr
 ```
+
+**Why pytest detection via `sys.modules`:** Using `"pytest" in sys.modules` instead of a global `NO_COLOR` environment variable preserves pytest's own terminal colors while disabling your CLI's Rich output during tests.
 
 ### Dual Console Pattern
 

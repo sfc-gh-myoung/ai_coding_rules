@@ -11,7 +11,7 @@
 **RuleVersion:** v3.2.2
 **LastUpdated:** 2026-02-18
 **Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, v3.2 schema, validation, rule numbering, from scratch, new rule
-**TokenBudget:** ~5400
+**TokenBudget:** ~4800
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
@@ -96,7 +96,7 @@ Markdown file named `NNN-technology-aspect.md` with:
 
 **Pre-Task-Completion Checks:**
 - Rule number chosen from correct range
-- File naming follows convention (snake-case)
+- File naming follows convention (kebab-case)
 - Metadata fields all present
 - Required sections in v3.2 order
 - Contract uses Markdown headers, not XML tags
@@ -110,6 +110,13 @@ Markdown file named `NNN-technology-aspect.md` with:
 - All required sections present in v3.2 order
 - Rule added to `RULES_INDEX.md`
 
+**Negative Tests:**
+- File named with spaces triggers error
+- Missing metadata field triggers CRITICAL error
+- Wrong section order triggers HIGH error
+- Missing Contract Markdown subsection triggers CRITICAL error
+- Contract after line 160 triggers HIGH warning
+
 **Error Recovery:**
 - **Permission denied writing rule file:** Report error with path, suggest checking directory permissions
 - **Validator returns CRITICAL errors:** Fix each error per 002e guidance before proceeding
@@ -117,15 +124,35 @@ Markdown file named `NNN-technology-aspect.md` with:
 
 ### Post-Execution Checklist
 
+**Agent Understanding (CRITICAL - Must Pass):**
+- [ ] No ASCII tables in content (use structured lists instead)
+- [ ] No arrow characters outside code blocks (use "then", "to", "Instead")
+- [ ] No ASCII decision trees (use nested conditional lists)
+- [ ] No Mermaid diagrams or ASCII art (use structured text)
+- [ ] All subjective terms quantified with thresholds (e.g., "large" defined as ">1M rows")
+- [ ] All conditionals have explicit branches (if X, then Y; else Z)
+- [ ] Instructions use imperative voice (commands, not passive)
+
+**Token Efficiency (HIGH - Should Pass):**
+- [ ] TokenBudget declared with `~NUMBER` format
+- [ ] TokenBudget within plus or minus 5% of actual token count
+- [ ] No duplicate content (use references to other rules)
+- [ ] Lists preferred over prose paragraphs
+- [ ] Terminology consistent with existing rules (see glossary in 000-global-core.md)
+
+**Schema Compliance:**
 - [ ] Rule number chosen from correct range for domain
-- [ ] File named with snake-case convention (NNN-technology-aspect.md)
+- [ ] File named with kebab-case convention (NNN-technology-aspect.md)
 - [ ] Existing rules reviewed for similar patterns
-- [ ] All metadata fields filled correctly (SchemaVersion: v3.2)
-- [ ] Keywords count is 5-20 terms
-- [ ] All required sections present in v3.2 order (Scope, References, Contract)
-- [ ] Contract uses Markdown headers (###), not XML tags
+- [ ] All 6 metadata fields filled: SchemaVersion (v3.2), RuleVersion, Keywords (5-20), TokenBudget, ContextTier, Depends
+- [ ] All required sections present in v3.2 order (Scope, References, Contract, Anti-Patterns)
+- [ ] Contract section has all Markdown subsections (###) before line 160
+- [ ] Post-Execution Checklist inside Contract section
 - [ ] No numbered section headings in file
-- [ ] Validation passes with 0 CRITICAL errors
+- [ ] No emojis in rule file content
+
+**Final Validation:**
+- [ ] `uv run ai-rules validate rules/<your-rule>.md` returns 0 CRITICAL errors
 - [ ] Rule added to RULES_INDEX.md with keywords
 
 ## Anti-Patterns and Common Mistakes
@@ -531,7 +558,7 @@ Description of expected output format (file type, structure, content)
 
 **Execution Steps:**
 - Actionable, sequential steps
-- 5-10 steps (not too granular, not too high-level)
+- 5-10 steps (each step should produce a verifiable output)
 - Each step should be verifiable
 
 **Output Format:**
@@ -599,119 +626,3 @@ vim RULES_INDEX.md
 ```
 
 **Note:** Use the same keywords as the rule's Keywords metadata for consistency.
-
-## Post-Execution Checklist
-
-### Priority 1: Agent Understanding (CRITICAL - Must Pass)
-
-These checks ensure agents can execute the rule reliably:
-
-- [ ] No ASCII tables in content (use structured lists instead)
-- [ ] No arrow characters (`→`) outside code blocks (use "then", "to", "Instead")
-- [ ] No ASCII decision trees (`├─`, `└─`, `│`) (use nested conditional lists)
-- [ ] No Mermaid diagrams or ASCII art (use structured text)
-- [ ] All subjective terms quantified with thresholds (e.g., "large" defined as ">1M rows")
-- [ ] All conditionals have explicit branches (if X, then Y; else Z)
-- [ ] Instructions use imperative voice (commands, not passive)
-- [ ] Critical information front-loaded in each section
-
-### Priority 2: Token Efficiency (HIGH - Should Pass)
-
-These checks ensure efficient context window usage:
-
-- [ ] TokenBudget declared with `~NUMBER` format
-- [ ] TokenBudget within ±5% of actual token count
-- [ ] No duplicate content (use references to other rules)
-- [ ] Lists preferred over prose paragraphs
-- [ ] Terminology consistent with existing rules (see glossary in 000-global-core.md)
-
-### Schema Compliance (Required)
-
-- [ ] Rule number chosen from correct range (000-099, 100-199, etc.)
-- [ ] File named with snake-case convention (NNN-technology-aspect.md)
-- [ ] All 6 metadata fields filled: SchemaVersion (v3.2), RuleVersion, Keywords (5-20), TokenBudget, ContextTier, Depends
-- [ ] All required sections present in v3.2 order (Scope, References, Contract, Anti-Patterns)
-- [ ] Contract section has all Markdown subsections (###) before line 160
-- [ ] Post-Execution Checklist inside Contract section
-
-### Final Validation
-
-- [ ] `uv run ai-rules validate rules/<your-rule>.md` returns 0 CRITICAL errors
-- [ ] Rule added to RULES_INDEX.md with keywords
-- [ ] No emojis in rule file content
-- [ ] Existing rules reviewed for structural patterns
-
-## Validation
-
-**Success Checks:**
-- New rule file exists at `rules/<NNN>-<technology>-<aspect>.md`
-- `uv run ai-rules validate rules/<your-new-rule>.md` returns 0 CRITICAL errors
-- All 6 metadata fields present and correctly formatted
-- All required sections present in v3.2 order
-- Contract has all Markdown subsections (###) before line 160
-- Keywords count is 5-20
-- Rule appears in RULES_INDEX.md
-
-**Negative Tests:**
-- File named with spaces triggers error
-- Missing metadata field triggers CRITICAL error
-- Wrong section order triggers HIGH error
-- Missing Contract Markdown subsection triggers CRITICAL error
-- Contract after line 160 triggers HIGH warning
-
-## Output Format Examples
-
-### Example 1: New Snowflake Rule
-
-```bash
-# Step 1: Choose number (Snowflake range: 100-199)
-# Creating rule for Snowpipe best practices
-# Number: 121-snowflake-snowpipe.md
-
-# Step 2: Review existing Snowflake rules
-ls -la rules/100-*.md
-cat rules/100-snowflake-core.md  # Review structure
-
-# Step 3: Create new file
-vim rules/121-snowflake-snowpipe.md
-# Fill in metadata:
-# **Keywords:** Snowflake, Snowpipe, data ingestion, streaming, CDC, error handling, monitoring, cost optimization, retry logic, file formats
-# **TokenBudget:** ~1200
-# **ContextTier:** High
-# **Depends:** 000-global-core.md, 100-snowflake-core.md
-
-# Step 4: Write all required sections with Contract
-# [Edit file with all 9 required sections]
-
-# Step 5: Validate
-uv run ai-rules validate rules/121-snowflake-snowpipe.md
-# [PASS] RESULT: PASSED
-
-# Step 6: Add to index
-echo "| 120-snowpipe | Snowpipe data ingestion best practices | Snowflake, Snowpipe, data ingestion, streaming, CDC |" >> RULES_INDEX.md
-```
-
-### Example 2: New Framework Rule
-
-```bash
-# Creating Streamlit widget validation rule
-# Number: 101d-snowflake-streamlit-testing.md
-
-# Review existing Streamlit rules
-grep -l "Streamlit" rules/*.md
-
-# Create new file
-vim rules/101d-snowflake-streamlit-testing.md
-
-# Fill metadata:
-# **Keywords:** Streamlit, validation, forms, widgets, error handling, user input, data validation, UI feedback, session state, form submission
-# **TokenBudget:** ~800
-# **ContextTier:** Medium
-# **Depends:** 000-global-core.md, 101-snowflake-streamlit-core.md
-
-# Write all required sections
-
-# Validate
-uv run ai-rules validate rules/101d-snowflake-streamlit-testing.md
-# [PASS] RESULT: PASSED
-```

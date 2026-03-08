@@ -93,7 +93,14 @@ def call_complete(prompt: str, model: str = "mistral-large") -> str:
         stream=True
     )
     response.raise_for_status()
-    return response.json()
+    # Parse SSE stream (stream=True requires line-by-line parsing, NOT response.json())
+    result = ""
+    for line in response.iter_lines(decode_unicode=True):
+        if line and line.startswith("data: "):
+            data = json.loads(line[6:])
+            if "choices" in data:
+                result += data["choices"][0].get("delta", {}).get("content", "")
+    return result
 ```
 
 ### Validation
@@ -154,51 +161,21 @@ response = requests.post(
 )
 # Network glitch or rate limit = immediate failure!
 ```
-**Problem:** Transient failures cause user errors; rate limits not handled; poor reliability; bad user experience; unnecessary failures; unprofessional
+**Problem:** Transient failures cause user errors; rate limits not handled
 
 **Correct Pattern:**
 ```python
-# Good: Exponential backoff with jitter
-import requests
-import time
-import random
-
-def call_cortex_api_with_retry(prompt, model="mistral-large", max_retries=3):
-    base_delay = 1  # seconds
-    for attempt in range(max_retries):
-        try:
-            response = requests.post(
-                f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
-                headers={"Authorization": f"Bearer {token}"},
-                json={"model": model, "prompt": prompt},
-                timeout=30
-            )
-
-            if response.status_code == 200:
-                return response.json()
-            elif response.status_code == 429:  # Rate limit
-                retry_after = int(response.headers.get('Retry-After', base_delay * (2 ** attempt)))
-                jitter = random.uniform(0, 1)
-                wait_time = retry_after + jitter
-                print(f"Rate limited, waiting {wait_time:.2f}s")
-                time.sleep(wait_time)
-            elif response.status_code >= 500:  # Server error
-                delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
-                print(f"Server error, retrying in {delay:.2f}s")
-                time.sleep(delay)
-            else:
-                response.raise_for_status()
-
-        except requests.exceptions.RequestException as e:
-            if attempt == max_retries - 1:
-                raise
-            delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
-            print(f"Request failed: {e}, retrying in {delay:.2f}s")
-            time.sleep(delay)
-
-    raise Exception(f"Failed after {max_retries} retries")
+# Good: Use with_retry utility (see "Retry and Backoff Implementation" section below)
+# Retry on 429 (rate limit) and 5xx (server errors) with exponential backoff + jitter
+resp = with_retry(lambda: requests.post(
+    f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
+    headers={"Authorization": f"Bearer {token}"},
+    json={"model": "mistral-large", "prompt": prompt},
+    timeout=30
+))
+# Key: Honor Retry-After header on 429, use jitter to avoid thundering herd
 ```
-**Benefits:** Handles rate limits; retries transient errors; better reliability; professional API client; good user experience; production-ready
+**Benefits:** Handles rate limits and transient errors; production-ready reliability
 
 ### Anti-Pattern 2: Not Using Streaming for Long Responses
 ```python
@@ -215,7 +192,7 @@ response = requests.post(
 result = response.json()
 print(result['choices'][0]['text'])  # User waits 30+ seconds!
 ```
-**Problem:** Long wait times; poor UX; appears frozen; user abandons; no progress indication; unprofessional; high latency perception
+**Problem:** Long wait times; poor UX; appears frozen to user
 
 **Correct Pattern:**
 ```python
@@ -252,7 +229,7 @@ for user_query in user_queries:
     print(response['choices'][0]['text'])
 # No idea: How many tokens used? What's the cost? Any patterns?
 ```
-**Problem:** No cost visibility; budget overruns; can't optimize; no usage patterns; billing surprises; no anomaly detection; unprofessional; financial risk
+**Problem:** No cost visibility; budget overruns; can't optimize usage
 
 **Correct Pattern:**
 ```python
@@ -720,7 +697,7 @@ def consume_sse_with_error_handling(url, payload, headers, max_retries=3):
         except RequestException as e:
             print(f"Connection error (attempt {attempt + 1}/{max_retries}): {e}")
             if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)  # Exponential backoff
+                time.sleep(2 ** attempt)  # See "Retry and Backoff Implementation" for full pattern
             else:
                 raise
 
@@ -875,4 +852,4 @@ if __name__ == "__main__":
 - Parse entire response as single JSON object
 - Ignore Content-Type header
 - Skip error handling for malformed events
-- Leave connections open indefinitely
+- Leave connections open

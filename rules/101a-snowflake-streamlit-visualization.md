@@ -6,9 +6,9 @@
 **RuleVersion:** v4.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** st.plotly_chart, st.pydeck_chart, st.altair_chart, dashboard, interactive charts, map visualization, chart types, visualization selection, streamlit plotting
-**TokenBudget:** ~1650
+**TokenBudget:** ~1750
 **ContextTier:** High
-**Depends:** 101-snowflake-streamlit-core.md
+**Depends:** 000-global-core.md, 101-snowflake-streamlit-core.md
 
 ## Scope
 
@@ -55,7 +55,7 @@ Router rule for Streamlit visualization library selection. Provides quick guidan
 ### Mandatory
 
 - **Select appropriate library** using guidance below
-- **Responsive display** - Always use `width="stretch"` (Plotly/PyDeck) or `use_container_width=True` (Altair)
+- **Responsive display** - Always use `use_container_width=True` for all chart types
 - **Clear labels** - Title, axis labels, legends on every chart
 - **Colorblind-safe palettes** - Avoid red-green only schemes
 
@@ -80,13 +80,13 @@ import streamlit as st
 import plotly.express as px
 
 fig = px.line(df, x='date', y='value', title='Chart Title')
-st.plotly_chart(fig, width="stretch")
+st.plotly_chart(fig, use_container_width=True)
 ```
 
 ### Validation
 
 - [ ] Appropriate library selected for use case
-- [ ] `width="stretch"` or `use_container_width=True` used
+- [ ] `use_container_width=True` used on all charts
 - [ ] Clear title and axis labels present
 - [ ] Colorblind-safe colors applied
 
@@ -145,8 +145,15 @@ st.plotly_chart(fig, width="stretch")
 
 **Responsive Display:**
 ```python
-st.plotly_chart(fig, width="stretch")
-st.pydeck_chart(deck, width="stretch")
+st.plotly_chart(fig, use_container_width=True)
+st.pydeck_chart(deck, use_container_width=True)
+st.altair_chart(chart, use_container_width=True)
+```
+
+**Minimal Altair Example:**
+```python
+import altair as alt
+chart = alt.Chart(df).mark_bar().encode(x='category', y='value')
 st.altair_chart(chart, use_container_width=True)
 ```
 
@@ -169,6 +176,11 @@ df_valid = df_valid[
 **Dashboard Design:** See `940-business-analytics.md` for audience segmentation, visual hierarchy, KPI presentation
 
 **Large Dataset Optimization:** Pre-aggregate in SQL, use `@st.cache_data`, sample for EDA
+
+**Data Size Thresholds:**
+- **>50k rows:** Pre-aggregate in SQL before rendering
+- **>10k rows:** Use server-side aggregation for Plotly
+- **>1k points:** Consider WebGL rendering (`scattergl`, `heatmapgl`)
 
 **Time Series Smoothing:** See `101h-snowflake-streamlit-timeseries.md` for `resample()` patterns
 

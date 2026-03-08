@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(rules):** extract 7 new focused rule files from large parent rules
+  - `002i-rule-loadtrigger.md` - LoadTrigger specification (from 002-rule-governance)
+  - `002j-rule-examples.md` - Rule examples guidelines (from 002-rule-governance)
+  - `002k-model-optimization.md` - Model-specific optimization (from 002c-rule-optimization)
+  - `002l-skill-advanced-patterns.md` - Skill composition patterns (from 002h-claude-code-skills)
+  - `003a-long-horizon-tasks.md` - Long-horizon task strategies (from 003-context-engineering)
+  - `004a-tool-set-curation.md` - Tool set curation (from 004-tool-design-for-agents)
+  - `004b-tool-output-efficiency.md` - Tool output efficiency (from 004-tool-design-for-agents)
 - **docs(rule-loader):** add USING_RULE_LOADER_SKILL.md user documentation
   - New comprehensive user guide following plan-reviewer format
   - Loading modes (Minimal/Standard/Complete) with token ranges
@@ -21,6 +29,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Users must explicitly confirm settings; no silent defaults for optional parameters
 
 ### Changed
+- **refactor(rules):** bulk improvements to 129 rules based on review implementation plans
+  - Consolidated duplicate code blocks with cross-references (~1500 lines saved)
+  - Replaced vague terms ("when possible", "etc.") with specific actionable guidance
+  - Added error recovery sections and edge case handling across all domains
+  - Defined quantified thresholds (row counts, timeouts, limits) where previously vague
+  - Migrated Pydantic v1→v2 patterns across 15+ Python rules
+  - Fixed security issues: SQL injection, hardcoded secrets, deprecated APIs
+- **refactor(rules):** rename 3 rule files for naming convention compliance
+  - `002c1-model-optimization.md` → `002k-model-optimization.md`
+  - `002h1-skill-advanced-patterns.md` → `002l-skill-advanced-patterns.md`
+  - `003b-long-horizon-tasks.md` → `003a-long-horizon-tasks.md`
+- **docs(architecture):** update rule count from 129/130 to 136 across all references
 - **docs(skills):** consolidate skill READMEs into docs/USING_*_SKILL.md files
   - Merged skills/rule-loader/README.md into docs/USING_RULE_LOADER_SKILL.md
   - Merged skills/bulk-rule-reviewer/README.md into docs/USING_BULK_RULE_REVIEWER_SKILL.md
@@ -55,6 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Deleted 5 skills/*/tests/README.md files (doc-reviewer, plan-reviewer, rule-creator, rule-loader, rule-reviewer)
 
 ### Fixed
+- **fix(markdown):** add missing trailing newlines to 3 files (MD047 compliance)
 - **fix(cli):** resolve Rich/Typer ANSI escape code issues in CI and pytest
   - Configure Console instances to respect `NO_COLOR`, `CI`, and `TERM=dumb` environment variables
   - Set `force_terminal=False` and `no_color=True` when color output should be disabled

@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:aisql, kw:cortex-aisql
 **Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, embeddings, LLM functions, batching, token costs, text generation, classification, sentiment analysis, summarization, AI function error
-**TokenBudget:** ~4850
+**TokenBudget:** ~5350
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md
 
@@ -509,3 +509,70 @@ filtered = classified.select(
 
 - Track credit consumption for AISQL workloads; evaluate output quality and latency.
 - Use Snowflake AI Observability to trace and evaluate LLM workflows and compare variants.
+
+## NULL Handling for AI Functions
+
+AI functions can return NULL on processing failures (empty input, model timeout, content policy violations). Always wrap AI function calls with NULL handling:
+
+```sql
+-- Classification with NULL fallback
+SELECT id,
+  COALESCE(AI_CLASSIFY(text, ['positive', 'negative', 'neutral']), 'UNKNOWN') AS sentiment
+FROM reviews
+WHERE text IS NOT NULL AND LENGTH(text) > 0;
+
+-- Extraction with NULL check
+SELECT id,
+  CASE
+    WHEN AI_EXTRACT(text, 'Extract person names as JSON') IS NULL THEN '{"names": []}'
+    ELSE AI_EXTRACT(text, 'Extract person names as JSON')
+  END AS entities
+FROM documents;
+
+-- Summarization with input validation
+SELECT id,
+  AI_SUMMARIZE(NULLIF(TRIM(content), '')) AS summary
+FROM articles
+WHERE content IS NOT NULL AND AI_COUNT_TOKENS('llama3.1-8b', content) > 10;
+```
+
+## Model Availability and Error Handling
+
+```sql
+-- Check available models before use
+SHOW CORTEX MODELS;
+
+-- In stored procedures, handle model unavailability
+CREATE OR REPLACE PROCEDURE classify_batch(model_name VARCHAR)
+RETURNS VARCHAR
+LANGUAGE SQL
+AS
+BEGIN
+  BEGIN
+    EXECUTE IMMEDIATE 'SELECT AI_CLASSIFY(''' || :model_name || ''', ''test'', [''a'',''b''])';
+  EXCEPTION
+    WHEN OTHER THEN
+      -- Fall back to alternative model
+      model_name := 'llama3.1-8b';
+  END;
+
+  EXECUTE IMMEDIATE '
+    INSERT INTO results
+    SELECT id, AI_CLASSIFY(''' || :model_name || ''', text, [''positive'',''negative'',''neutral''])
+    FROM source_data WHERE processed = FALSE LIMIT 1000';
+
+  RETURN 'Completed with model: ' || :model_name;
+END;
+```
+
+**Cost estimation before batch operations:**
+
+```sql
+-- Estimate token cost before running batch
+SELECT
+  COUNT(*) AS row_count,
+  SUM(AI_COUNT_TOKENS('llama3.1-8b', LEFT(content, 4000))) AS total_input_tokens,
+  total_input_tokens / 1000000 * 0.15 AS estimated_credits  -- Approximate
+FROM source_data
+WHERE needs_processing = TRUE;
+```

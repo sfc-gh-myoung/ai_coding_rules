@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:flask, kw:web
 **Keywords:** Flask, web, blueprints, Flask-SQLAlchemy, templates, routing, application factory
-**TokenBudget:** ~1850
+**TokenBudget:** ~1900
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -139,6 +139,7 @@ app/
 from flask import Flask
 from app.config import Config
 from app.extensions import db, migrate, login_manager, csrf
+
 from app.blueprints.main import main_bp
 
 def create_app(config_class=Config):
@@ -147,6 +148,7 @@ def create_app(config_class=Config):
     
     db.init_app(app)
     migrate.init_app(app, db)
+    login_manager.init_app(app)
     csrf.init_app(app)
     
     app.register_blueprint(main_bp)
@@ -159,11 +161,17 @@ def create_app(config_class=Config):
 # app/extensions.py
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 
 db = SQLAlchemy()
 migrate = Migrate()
+login_manager = LoginManager()
 csrf = CSRFProtect()
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 ```
 
 ### Blueprint Pattern
@@ -247,6 +255,7 @@ class User(UserMixin, db.Model):
 ```python
 def register_error_handlers(app):
     @app.errorhandler(404)
+    def not_found(error):
         return render_template('errors/404.html'), 404
     
     @app.errorhandler(500)

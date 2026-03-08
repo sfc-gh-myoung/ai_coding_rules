@@ -53,11 +53,11 @@ Comprehensive best practices for Snowflake Feature Store: creating, maintaining,
 
 ### Mandatory
 
-- Feature Store Python API
-- SQL feature transformations
-- Dynamic Tables for managed views
-- ASOF JOIN for point-in-time correctness
-- Snowflake Model Registry
+- Initialize Feature Store with `FeatureStore()` before any feature operations
+- Register entities with `register_entity()` before creating feature views
+- Use `generate_dataset()` with `spine_timestamp_col` for point-in-time correctness
+- Version all feature views when registering with `register_feature_view()`
+- Integrate with Model Registry for lineage tracking
 
 ### Forbidden
 
@@ -129,7 +129,7 @@ training_data = entities_df.join(
 # Uses latest feature values, not values at prediction time!
 # Leaks future information into training data!
 ```
-**Problem:** Data leakage; inflated model performance; production model fails; overfitting; unrealistic accuracy; deployment failure; wasted training
+**Problem:** Data leakage; inflated model performance; production model fails
 
 **Correct Pattern:**
 ```python
@@ -151,7 +151,7 @@ training_data = fs.generate_training_set(
 # ASOF JOIN ensures features use only data available before prediction_timestamp
 # No data leakage, realistic training data
 ```
-**Benefits:** No data leakage; realistic model performance; production accuracy matches training; point-in-time correctness; professional ML engineering; reliable models
+**Benefits:** No data leakage; realistic model performance; production accuracy matches training
 
 **Anti-Pattern 2: Not Versioning Feature Views**
 ```python
@@ -167,7 +167,7 @@ def customer_features(df):
 
 # Models trained on old features break, can't reproduce results!
 ```
-**Problem:** Can't reproduce models; training/inference mismatch; broken lineage; model failures; no rollback; audit gaps; unprofessional; chaos
+**Problem:** Can't reproduce models; training/inference mismatch; broken lineage
 
 **Correct Pattern:**
 ```python
@@ -176,8 +176,8 @@ from snowflake.ml.feature_store import FeatureStore, FeatureView
 
 fs = FeatureStore(session, database='FEATURE_STORE_DB', schema='CUSTOMER_FEATURES')
 
-# Version 1.0.0: Initial features
-@fv(name='customer_features', version='v1.0.0')
+# Version 1.0: Initial features
+@fv(name='customer_features', version='1.0')
 def customer_features_v1(df):
     return df.select(
         col('customer_id'),
@@ -185,8 +185,8 @@ def customer_features_v1(df):
         col('income')
     )
 
-# Version 2.0.0: Breaking change - different feature engineering
-@fv(name='customer_features', version='v2.0.0')  # New version!
+# Version 2.0: Breaking change - different feature engineering
+@fv(name='customer_features', version='2.0')  # New version!
 def customer_features_v2(df):
     return df.select(
         col('customer_id'),
@@ -197,12 +197,12 @@ def customer_features_v2(df):
     )
 
 # Models reference specific versions
-model_v1 = train_model(features='customer_features@v1.0.0')
-model_v2 = train_model(features='customer_features@v2.0.0')
+model_v1 = train_model(features='customer_features@1.0')
+model_v2 = train_model(features='customer_features@2.0')
 
 # Can reproduce, rollback, and maintain multiple versions
 ```
-**Benefits:** Reproducible models; clear lineage; no training/inference mismatch; rollback capability; audit trail; professional; multiple model versions coexist
+**Benefits:** Reproducible models; clear lineage; rollback capability
 
 **Anti-Pattern 3: Using Non-Deterministic Functions in Feature Engineering**
 ```python
@@ -218,7 +218,7 @@ def transaction_features(df):
 
 # Training and inference produce different feature values!
 ```
-**Problem:** Training/inference mismatch; non-reproducible; model instability; debugging nightmare; unreliable predictions; production failures; unprofessional
+**Problem:** Training/inference mismatch; non-reproducible; model instability
 
 **Correct Pattern:**
 ```python
@@ -244,7 +244,7 @@ def time_aware_features(df):
         # Deterministic: same inputs always produce same outputs
     )
 ```
-**Benefits:** Reproducible features; training/inference consistency; debuggable; reliable predictions; professional ML engineering; production-ready
+**Benefits:** Reproducible features; training/inference consistency; reliable predictions
 
 **Anti-Pattern 4: Not Monitoring Feature View Refresh Costs**
 ```python
@@ -261,7 +261,7 @@ FROM raw_events;
 
 -- Bills hundreds of dollars per day, features rarely used!
 ```
-**Problem:** Runaway costs; unnecessary refreshes; wasted credits; budget overruns; expensive features; no ROI tracking; unprofessional; financial risk
+**Problem:** Runaway costs; unnecessary refreshes; wasted credits; budget overruns
 
 **Correct Pattern:**
 ```python
@@ -325,55 +325,26 @@ WHERE start_time >= DATEADD('day', -1, CURRENT_TIMESTAMP())
 GROUP BY table_name
 HAVING SUM(credits_used) > 10;  -- Alert if >10 credits/day
 ```
-**Benefits:** Cost visibility; optimized refreshes; budget control; ROI tracking; proactive alerts; financial responsibility; professional operations; sustainable ML
+**Benefits:** Cost visibility; optimized refreshes; budget control; proactive alerts
 
 ## Output Format Examples
 ```python
-# Feature Store initialization
-from snowflake.ml.feature_store import FeatureStore, FeatureView, Entity
+# Feature Store Quick Reference Template
+# 1. Initialize: See "Feature Store Setup and Organization" section
+fs = FeatureStore(session=session, database="ML_DATABASE",
+    name="DOMAIN_FEATURE_STORE", default_warehouse="FEATURE_WH",
+    creation_mode="create_if_not_exists")
 
-fs = FeatureStore(
-    session=session,
-    database="ML_DATABASE",
-    name="DOMAIN_FEATURE_STORE",
-    default_warehouse="FEATURE_WH",
-    creation_mode="create_if_not_exists"
-)
+# 2. Register entity: See "Entity Modeling and Tagging" section
+entity = fs.register_entity(name="ENTITY_NAME", join_keys=["entity_id"],
+    desc="Entity description")
 
-# Entity registration
-entity = fs.register_entity(
-    name="ENTITY_NAME",
-    join_keys=["entity_id"],
-    desc="Entity description"
-)
+# 3. Create feature view: See "Feature Views - Snowflake-Managed" section
+fv = fs.register_feature_view(feature_view=my_feature_view, version="1.0")
 
-# Managed feature view
-@feature_view(
-    name="ENTITY_FEATURES_30D",
-    entities=[entity],
-    refresh_freq="1 day"
-)
-def entity_features(session):
-    return session.sql("""
-        SELECT
-            entity_id,
-            COUNT(*) AS count_30d,
-            SUM(value) AS sum_30d
-        FROM SOURCE_TABLE
-        WHERE timestamp >= DATEADD('day', -30, CURRENT_DATE())
-        GROUP BY entity_id
-    """)
-
-fv = fs.register_feature_view(feature_view=entity_features, version="1.0")
-
-# Generate training dataset
-training_data = fs.generate_dataset(
-    spine_df=spine_df,
-    features=[fv],
-    spine_timestamp_col="observation_date",
-    name="training_dataset",
-    version="1.0"
-)
+# 4. Generate dataset: See "Dataset Generation" section
+training_data = fs.generate_dataset(spine_df=spine_df, features=[fv],
+    spine_timestamp_col="observation_date", name="training_dataset", version="1.0")
 ```
 
 ## Feature Store Setup and Organization
@@ -670,19 +641,8 @@ GRANT SELECT ON FUTURE DYNAMIC TABLES IN SCHEMA ML_DATABASE.CUSTOMER_FEATURE_STO
 - **Consider:** Batch dataset generation for large training sets; use Snowflake ML Jobs for heavy workloads
 
 ### Cost Monitoring
-```sql
--- Monitor feature view refresh costs
-SELECT
-    table_name,
-    refresh_action,
-    refresh_trigger,
-    completion_time,
-    credits_used
-FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLE_REFRESH_HISTORY
-WHERE table_schema = 'CUSTOMER_FEATURE_STORE'
-  AND start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP())
-ORDER BY credits_used DESC;
-```
+
+See Anti-Pattern 4 (Steps 2-3) for detailed cost monitoring queries using `DYNAMIC_TABLE_REFRESH_HISTORY`. Monitor weekly to track refresh costs per feature view and optimize TARGET_LAG accordingly.
 
 ## Integration with Model Registry
 
@@ -754,20 +714,4 @@ spend_7d - spend_30d AS spend_trend
 
 ## Best Practices Summary
 
-### Feature View Design
-- **Rule:** One feature view per logical feature group (purchase behavior, engagement metrics, demographics)
-- **Always:** Include timestamp column for temporal features
-- **Rule:** Use consistent feature naming across views (lowercase, underscores)
-- **Consider:** Pre-aggregate at feature view level; avoid expensive joins during dataset generation
-
-### Data Quality
-- **Requirement:** Handle NULL values explicitly in feature transformations
-- **Always:** Use `COALESCE` or `IFNULL` for default values
-- **Rule:** Document expected feature distributions and ranges
-- **Consider:** Implement data quality checks on feature views
-
-### Reproducibility
-- **Requirement:** Version all feature views and datasets
-- **Always:** Use deterministic transformations (avoid RANDOM(), CURRENT_TIMESTAMP() without context)
-- **Rule:** Document feature engineering decisions and rationale
-- **Always:** Test feature generation produces consistent results across runs
+See Design Principles (above), Anti-Patterns 1-4, and Feature Engineering Patterns for comprehensive guidance. Key rules: version all feature views, use deterministic transformations, handle NULLs explicitly, and test reproducibility.

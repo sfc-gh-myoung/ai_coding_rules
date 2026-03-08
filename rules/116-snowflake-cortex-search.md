@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:search, kw:cortex-search
 **Keywords:** embeddings, search index, RAG, agent tools, retrieval, AI_EMBED, search service, document retrieval, hybrid search, vector similarity
-**TokenBudget:** ~2050
+**TokenBudget:** ~2650
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 114-snowflake-cortex-aisql.md
 
@@ -241,3 +241,67 @@ SELECT COUNT(*) FROM {source_view};  -- Verify source data
 USE WAREHOUSE COMPUTE_WH;
 GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE agent_runner;
 ```
+
+## Search Service Lifecycle Management
+
+```sql
+-- Refresh a search service (rebuild index from source data)
+ALTER CORTEX SEARCH SERVICE db.schema.docs_search RESUME;
+
+-- Suspend a search service (stop refresh, retain index)
+ALTER CORTEX SEARCH SERVICE db.schema.docs_search SUSPEND;
+
+-- Change target lag for refresh frequency
+ALTER CORTEX SEARCH SERVICE db.schema.docs_search SET TARGET_LAG = '1 hour';
+
+-- Change the warehouse used for refresh
+ALTER CORTEX SEARCH SERVICE db.schema.docs_search SET WAREHOUSE = LARGER_WH;
+
+-- Drop a search service permanently
+DROP CORTEX SEARCH SERVICE IF EXISTS db.schema.docs_search;
+
+-- List all search services
+SHOW CORTEX SEARCH SERVICES IN SCHEMA db.schema;
+
+-- Describe a specific service (row count, columns, status)
+DESC CORTEX SEARCH SERVICE db.schema.docs_search;
+```
+
+## Search Quality Tuning
+
+**Adjusting result quality:**
+
+- **max_results:** Start with 5-10 for agent tools; use 20-50 for comprehensive retrieval
+- **filter expressions:** Use metadata filters to narrow scope before semantic matching
+- **Score thresholds:** Post-filter results by score to remove low-relevance matches
+
+```sql
+-- Tuned query with score filtering
+WITH search AS (
+    SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW('DOCS.SEARCH.reports_service',
+        '{"query": "quarterly earnings", "limit": 20, "filter": {"source": "SEC"}}') AS results
+)
+SELECT r.value:doc_id::STRING AS doc_id,
+       r.value:score::FLOAT AS score,
+       r.value:content::STRING AS content
+FROM search, LATERAL FLATTEN(input => results:results) r
+WHERE r.value:score::FLOAT > 0.5  -- Filter low-relevance results
+ORDER BY score DESC
+LIMIT 10;
+```
+
+## Cost and Performance Guidance
+
+- **Warehouse sizing:** Use MEDIUM+ for initial index creation on large datasets (>1M docs). SMALL is sufficient for queries.
+- **TARGET_LAG:** Use '1 day' for static content; '1 hour' for frequently updated data. Shorter lags increase credit consumption.
+- **Credit consumption:** Index creation is the main cost driver. Queries are lightweight. Monitor with:
+
+```sql
+SELECT query_type, COUNT(*) AS query_count, SUM(credits_used_cloud_services) AS credits
+FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+WHERE query_type LIKE '%SEARCH%'
+  AND start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP())
+GROUP BY query_type;
+```
+
+- **Large document sets:** Chunk documents to 500-1000 tokens. Use metadata filters to reduce search scope. Consider separate services per document category for better relevance.

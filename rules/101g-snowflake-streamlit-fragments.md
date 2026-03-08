@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** st.fragment, run_every, real-time progress, polling, live updates, fragment pattern, auto-refresh, streaming, monitoring dashboard
-**TokenBudget:** ~2300
+**TokenBudget:** ~2500
 **ContextTier:** Medium
 **Depends:** 101-snowflake-streamlit-core.md, 101b-snowflake-streamlit-performance.md
 
@@ -114,11 +114,11 @@ from concurrent.futures import ThreadPoolExecutor
 
 def initialize_analysis_progress(audio_file: str):
     """Initialize progress tracking in database table"""
-    session.sql(f"""
+    session.sql("""
         INSERT INTO UTILITY_DEMO_V2.CUSTOMER_DATA.ANALYSIS_PROGRESS
         (AUDIO_FILE_NAME, STATUS, CURRENT_STEP, TOTAL_STEPS)
-        VALUES ('{audio_file}', 'in_progress', 0, 18)
-    """).collect()
+        VALUES (?, 'in_progress', 0, 18)
+    """, params=[audio_file]).collect()
 
 def call_stored_procedure_async(proc_name: str, *args):
     """Execute stored procedure in background thread"""
@@ -139,13 +139,17 @@ def show_analysis_progress_live(audio_file):
     - Clears session state to prevent re-triggering on subsequent reruns
     """
     # Query current progress from database
-    progress_result = session.sql(f"""
-        SELECT STATUS, CURRENT_STEP, TOTAL_STEPS, STEP_DESCRIPTION, LAST_UPDATED
-        FROM UTILITY_DEMO_V2.CUSTOMER_DATA.ANALYSIS_PROGRESS
-        WHERE AUDIO_FILE_NAME = '{audio_file}'
-        ORDER BY LAST_UPDATED DESC
-        LIMIT 1
-    """).collect()
+    try:
+        progress_result = session.sql("""
+            SELECT STATUS, CURRENT_STEP, TOTAL_STEPS, STEP_DESCRIPTION, LAST_UPDATED
+            FROM UTILITY_DEMO_V2.CUSTOMER_DATA.ANALYSIS_PROGRESS
+            WHERE AUDIO_FILE_NAME = ?
+            ORDER BY LAST_UPDATED DESC
+            LIMIT 1
+        """, params=[audio_file]).collect()
+    except Exception:
+        st.warning("Unable to fetch progress. Retrying...")
+        return
 
     if not progress_result:
         st.warning("Initializing analysis...")
@@ -287,6 +291,27 @@ def polling_with_termination():
     status = check_operation_status()
     st.write(f"Status: {status}")
 
+    if status == "complete":
+        del st.session_state.active_operation
+        st.stop()
+```
+
+### Timeout Pattern for Long-Running Fragment Queries
+
+When fragments execute queries that may take too long, enforce a timeout to prevent blocking:
+
+```python
+import time
+
+@st.fragment(run_every="2s")
+def monitored_fragment():
+    start = st.session_state.get("fragment_start_time")
+    if start and (time.time() - start) > 120:  # 2-minute timeout
+        st.error("Operation timed out after 2 minutes.")
+        del st.session_state.active_operation
+        st.stop()
+
+    status = check_operation_status()
     if status == "complete":
         del st.session_state.active_operation
         st.stop()

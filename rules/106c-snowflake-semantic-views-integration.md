@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-27
 **LoadTrigger:** kw:semantic-integration
 **Keywords:** RBAC, masking policy, row access policy, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst, synonyms, natural language queries
-**TokenBudget:** ~2800
+**TokenBudget:** ~3150
 **ContextTier:** Medium
 **Depends:** 106-snowflake-semantic-views-core.md, 106b-snowflake-semantic-views-querying.md
 
@@ -49,7 +49,8 @@ Integrating Snowflake Semantic Views with Cortex Analyst and Cortex Agent, apply
 ### Inputs and Prerequisites
 
 - Semantic view exists (created via `CREATE SEMANTIC VIEW`)
-- Cortex Analyst/Agent access enabled
+- Role with SELECT on semantic view and USAGE on its schema
+- CORTEX_USER database role or equivalent for Cortex Analyst access
 - Governance policies defined (masking, row access)
 
 ### Mandatory
@@ -264,6 +265,13 @@ ALTER TABLE PROD.GRID_DATA.GRID_ASSETS
 - [ ] Audit logging enabled
 - [ ] **No direct policies on semantic views**
 
+### Masking Policy Impact on Semantic Views
+
+When masking policies are applied to base table columns used by a semantic view:
+- **FACTS/DIMENSIONS**: Masked values flow through to query results. A masked column returning `'***MASKED***'` cannot be aggregated numerically.
+- **METRICS**: Aggregations on masked columns may produce incorrect results (e.g., `SUM()` on masked strings fails).
+- **Recommendation**: Exempt service roles used by Cortex Analyst from masking on columns referenced by semantic views, or use separate unmasked analytical tables.
+
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Applying Policies to Semantic Views Directly
@@ -362,31 +370,30 @@ SHOW GRANTS TO ROLE agent_runner;
 ## Output Format Examples
 
 ```python
-# Complete Cortex Analyst integration pattern
-import requests
-import snowflake.connector
+# Integration validation workflow
+import requests, snowflake.connector
 
-# Step 1: Verify semantic view
 conn = snowflake.connector.connect(...)
 cursor = conn.cursor()
-cursor.execute("SHOW SEMANTIC VIEWS LIKE 'SEM_SALES'")
-print(cursor.fetchall())
 
-# Step 2: Test direct query
+# Step 1: Verify semantic view exists and has expected structure
+cursor.execute("SHOW SEMANTIC VIEWS LIKE 'SEM_SALES' IN SCHEMA PROD.ANALYTICS")
+cursor.execute("SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW PROD.ANALYTICS.SEM_SALES")
+cursor.execute("SHOW SEMANTIC METRICS IN SEMANTIC VIEW PROD.ANALYTICS.SEM_SALES")
+
+# Step 2: Verify governance policies on base tables
 cursor.execute("""
-  SELECT dimension_1, metric_1
-  FROM SEMANTIC_VIEW(PROD.ANALYTICS.SEM_SALES)
-  LIMIT 10
+  SELECT policy_name, ref_column_name
+  FROM TABLE(INFORMATION_SCHEMA.POLICY_REFERENCES(
+    REF_ENTITY_NAME => 'PROD.ANALYTICS.SALES_FACT',
+    REF_ENTITY_DOMAIN => 'TABLE'))
 """)
 
-# Step 3: Call Cortex Analyst
+# Step 3: Test Cortex Analyst with semantic_view parameter
 url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/message"
 payload = {
-    "messages": [{"role": "user", "content": "Top 5 products by revenue?"}],
-    "semantic_view": f"{database}.{schema}.{view_name}"
+    "semantic_view": "PROD.ANALYTICS.SEM_SALES",
+    "messages": [{"role": "user", "content": "Top 5 products by revenue?"}]
 }
 response = requests.post(url, headers=headers, json=payload)
-
-# Step 4: Verify governance
-cursor.execute("SELECT CURRENT_ROLE(), CURRENT_USER()")
 ```

@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:contributing, file:CONTRIBUTING.md
 **Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy, Conventional Commits, rule authoring, PR templates, project governance, git workflow
-**TokenBudget:** ~3300
+**TokenBudget:** ~1750
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -51,11 +51,11 @@ Professional contribution workflow directives covering commits, pull requests, c
 - Access to CONTRIBUTING.md and 002-rule-governance.md
 
 ### Mandatory
-- Git (fork, clone, branch, commit, PR)
-- Task runner (lint, format, validate, generate)
-- Ruff (linting and formatting)
-- uv (package management)
-- Python validation scripts
+- MUST validate with `task rules:validate` before committing any rule changes
+- MUST follow Conventional Commits format for all commit messages
+- MUST create feature branch before committing (never commit directly to main)
+- MUST update CHANGELOG.md under `## [Unreleased]` for user-facing changes
+- MUST run `task lint` and `task format` before submitting PR
 
 ### Forbidden
 - Direct editing of deployed rule files outside rules/ directory
@@ -179,232 +179,37 @@ git commit -m "feat(rule): add new rule"
 
 ## Output Format Examples
 
+### Example 1: Conventional Commit Message
+```
+feat(python): add FastAPI async route patterns rule
+
+- Add rule 210-python-fastapi-core.md with async best practices
+- Include anti-patterns for sync-in-async mixing
+- Reference existing Python rules (200, 201)
+
+Closes #42
+```
+
+### Example 2: PR Description
 ```markdown
-MODE: ACT
+## Summary
+Add Django framework patterns rule (215) covering models, views, ORM optimization,
+and security guidelines (CSRF, XSS, SQL injection).
 
-Investigation:
-- Read CONTRIBUTING.md to understand workflow
-- Checked rule numbering scheme in 002-rule-governance.md
-- Verified 200-299 range is for Python rules
-- Identified next available number: 215
-
-Implementation:
-
-Created new rule: rules/210-python-fastapi-core.md
-
-File Structure:
-- Metadata: Description, Type, AppliesTo, Keywords, TokenBudget (~2200)
-- Quick Start TL;DR with 7 essential patterns
-- 5 detailed sections covering Django best practices
-- Anti-patterns section with 3 examples
-- Investigation-First Protocol
-- Response Template
-
-Updated CHANGELOG.md:
-```markdown
-
-## Implementation Details
-
-### Commit & Changelog Discipline
-- **Requirement:** Follow Conventional Commits: `<type>(<scope>): <imperative summary>`.
-- **Requirement:** Valid types: `feat`, `fix`, `perf`, `refactor`, `style`, `docs`, `chore`, `build`, `ci`, `test`.
-- **Requirement:** Use descriptive scopes aligned with rule categories:
-  - Core: `core`, `governance`, `memory-bank`
-  - Snowflake: `snowflake`, `sql`, `streamlit`, `spcs`
-  - Python: `python`, `fastapi`, `lint`, `setup`
-  - Shell: `bash`, `zsh`, `shell`
-  - Project: `changelog`, `readme`, `contributing`, `taskfile`
-  - Analytics: `data-science`, `governance`, `business`
-- **Always:** After user-facing changes, update `CHANGELOG.md` under `## [Unreleased]`.
-- **Requirement:** Each changelog entry is a single concise line; collapse micro-fixes.
-- **Requirement:** Avoid anti-patterns: "WIP" subjects, unscoped types for multi-domain changes, mixing features and fixes.
-
-### Rule Authoring Standards
-
-#### Rule File Structure
-- **Requirement:** Follow 3-digit numbering scheme with clear domain separation:
-  - `000-099`: Core Foundation (global, memory-bank, governance)
-  - `100-199`: Data Platform - Snowflake
-  - `200-299`: Software Engineering - Python
-  - `300-399`: Software Engineering - Shell Scripts
-  - `500-599`: Data Science & Analytics
-  - `600-699`: Data Governance
-  - `700-799`: Business Intelligence
-  - `800-899`: Project Management
-  - `900-999`: Demo & Synthetic Data
-
-#### Rule Content Guidelines
-- **Requirement:** Keep rules 150-300 lines (max 500 lines).
-- **Requirement:** Split large topics into multiple composable rules within the same range.
-- **Requirement:** Use explicit directive language: `Requirement`, `Always`, `Avoid`, `Rule`, `Consider`.
-- **Always:** Include metadata header with Description, AppliesTo, AutoAttach, Type, Version, LastUpdated.
-- **Always:** Reference related rules using `@rule-name.md` syntax.
-
-#### Subdomain Organization
-- **Rule:** Use 10-number ranges for framework-specific rules:
-  - Python FastAPI: `210-219`
-  - Bash Scripting: `300-309`
-  - Zsh Scripting: `310-319`
-- **Rule:** Use 20-number jumps for major feature areas (e.g., `120` for Snowflake SPCS).
-
-### General Code Standards
-- **Requirement:** SQL must use uppercase keywords and explicit identifiers (avoid `SELECT *`).
-- **Requirement:** Shell scripts must include proper shebang and error handling (`set -euo pipefail`).
-- **Always:** New behavior should include at least one happy-path test and one negative/edge case test.
-- **Requirement:** Test function names follow `test_<function>_when_<condition>_should_<result>`.
-- **Always:** Reference specialized rules as needed (e.g., `200-python-core.md`, `300-bash-scripting-core.md`).
-
-### Contributing Content Boundaries
-```
-[50 lines of detailed development workflow]
-[Environment setup instructions]
-[Rule generation commands]
-[Validation procedures]
-```
-**Problem:** Overwhelms end users, violates progressive disclosure principle, creates maintenance burden
-
-**Correct Pattern:**
-````markdown
-# Good: Minimal pointer in README
-
-## README vs CONTRIBUTING.md Content Boundaries
-
-**Principle:** Progressive disclosure - users first, contributors second
-
-**README.md Should Contain:**
-- Project overview and value proposition
-- Quick Start for end users
-- Installation and usage instructions
-- Troubleshooting for users
-- Minimal contributor pointer with quick reference commands
-- License and acknowledgments
-
-**CONTRIBUTING.md Should Contain:**
-- Complete development workflow
-- Environment setup details
-- Code quality and linting procedures
-- Rule authoring standards
-- PR templates and review process
-- Configuration safety guidelines
-- Testing requirements
-- Validation procedures
-
-**Boundary Pattern:**
-```markdown
-
-## Dual-Platform Repository Support
-
-**Requirement:** Projects hosted on multiple platforms must document both in CONTRIBUTING.md
-
-**Quick Start Section Pattern:**
-```markdown
-
-### Pull Requests & Branching
-- **Requirement:** PR titles must follow Conventional Commits.
-- **Requirement:** PRs must contain delta-only edits; avoid unrelated formatting.
-- **Always:** For multi-user projects, submit PRs to a protected `main` branch.
-- **Rule:** When adding new rules, update README.md to reflect the new structure.
-- **Rule:** When modifying rule numbering, ensure all cross-references are updated.
-
-### Rule Categories and Examples
-
-#### Current Rule Structure
-
-**Core Foundation (000-099):**
-- `000-global-core.md`
-- `001-memory-bank.md`
-- `002-rule-governance.md`
-
-**Snowflake (100-199):**
-- 100-109: Core Snowflake
-- 110-119: [Reserved]
-- 120-129: Snowpark Container Services
-
-**Python (200-299):**
-- 200-209: Core Python
-- 210-219: FastAPI Framework
-
-**Shell Scripts (300-399):**
-- 300-309: Bash Scripting
-- 310-319: Zsh Scripting
-
-**Analytics & Data (500-699):**
-- 500-599: Data Science
-- 600-699: Data Governance
-
-**Business & Project (700-899):**
-- 700-799: Business Intelligence
-- 800-899: Project Management
-
-**Demo & Templates (900-999):**
-- 900-999: Demo Creation
-
-#### Adding New Rules
-- **Rule:** Choose appropriate number range based on domain
-- **Rule:** Use next available number in sequence within the range
-- **Rule:** For new frameworks, reserve 10-number subrange (e.g., 220-229 for Django)
-- **Always:** Update README.md rule categories section
-- **Always:** Validate rule follows governance standards in `002-rule-governance.md`
-
-### Documentation References
-- **Always:** Reference Conventional Commits: https://www.conventionalcommits.org/en/v1.0.0/#specification
-- **Always:** Follow rule governance: `002-rule-governance.md`
-- **Always:** Use README standards: `801-project-readme.md`
-- **Always:** Follow changelog discipline: `800-project-changelog.md`
-
-## [Unreleased]
-### Added
-- New rule 210-python-fastapi-core.md for Django framework patterns
-```
-
-Regenerated all formats:
-```bash
-task rule:all
-[PASS] Generated universal format
-[PASS] Generated cursor format
-[PASS] Generated copilot format
-[PASS] Generated cline format
-```
-
-Validation:
-```bash
-task rules:validate
-[PASS] All rules pass structural validation
-[PASS] Metadata complete and valid
-[PASS] No emoji usage detected
-[PASS] Section structure compliant
-
-task lint
-[PASS] No linting issues found
-
-task format
-[PASS] Formatting is correct
-```
-
-Commit:
-```bash
-git add rules/210-python-fastapi-core.md
-git add CHANGELOG.md
-git commit -m "$(cat <<'EOF'
-feat(python): add Django framework core patterns rule
-
-- Add comprehensive Django best practices rule (215)
-- Cover models, views, templates, forms, admin
-- Include ORM optimization patterns
-- Add security guidelines (CSRF, XSS, SQL injection)
-- Reference existing Python rules (200, 201, 206)
+## Validation
+- [x] `task rules:validate` passes
+- [x] `task lint` passes
+- [x] CHANGELOG.md updated under ## [Unreleased]
+- [x] Follows 002-rule-governance.md v3.2 structure
 
 Closes #123
-EOF
-)"
 ```
 
-Pull Request:
-- Title: feat(python): add Django framework core patterns rule
-- Description:
-  - Addresses #123 - need for Django-specific guidance
-  - Provides comprehensive patterns for Django development
-  - Follows 002-rule-governance.md v5.0 structure
-  - Includes anti-patterns and investigation protocol
-- Validation checklist: All items completed [PASS]
+### Example 3: Changelog Entry
+```markdown
+## [Unreleased]
+### Added
+- New rule 210-python-fastapi-core.md for FastAPI async patterns
+### Fixed
+- Corrected metadata schema references in 802-project-contributing.md
 ```

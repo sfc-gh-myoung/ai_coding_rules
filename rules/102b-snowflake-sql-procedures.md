@@ -11,7 +11,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-02-18
 **Keywords:** stored procedure, CREATE PROCEDURE, UDF, CREATE FUNCTION, dollar quoting, nested quotes, EXECUTE AS, EXECUTE IMMEDIATE, dynamic SQL, bind variables, OWNER, CALLER, RESTRICTED CALLER, SQL scripting, procedure body
-**TokenBudget:** ~5150
+**TokenBudget:** ~5700
 **ContextTier:** High
 **Depends:** 102-snowflake-sql-core.md
 **LoadTrigger:** kw:stored-procedure, kw:create-procedure, kw:udf, kw:create-function
@@ -56,7 +56,9 @@ Best practices for authoring Snowflake SQL Scripting stored procedures and user-
 
 ### Inputs and Prerequisites
 
-- Target database and schema identified
+- Role with CREATE PROCEDURE privilege on target schema (for procedures) or CREATE FUNCTION privilege (for UDFs)
+- For caller's rights procedures, the calling role needs object-level privileges on referenced objects
+- For owner's rights procedures, the owner role must have privileges on all referenced objects
 - Understanding of procedure/function purpose and parameters
 - Knowledge of whether caller context access is needed (session variables, caller's role)
 - Access to Snowflake CLI or Snowsight for testing
@@ -452,6 +454,61 @@ $$;
 - **Inside a VARCHAR inside another VARCHAR:** `''''value''''` -- quadrupled
 
 Avoid going beyond two levels. Refactor into multiple statements or use bind variables instead.
+
+## Exception Handling in Stored Procedures
+
+### EXCEPTION Block Pattern
+
+Use EXCEPTION blocks within BEGIN...END to catch and handle errors in SQL stored procedures:
+
+```sql
+CREATE OR REPLACE PROCEDURE my_db.my_schema.safe_data_load(
+    source_table VARCHAR,
+    target_table VARCHAR
+)
+RETURNS VARCHAR
+LANGUAGE SQL
+EXECUTE AS OWNER
+COMMENT = 'Load data with error handling'
+AS
+$$
+DECLARE
+    row_count INTEGER;
+    err_msg VARCHAR;
+BEGIN
+    MERGE INTO my_db.my_schema.target_data t
+    USING my_db.my_schema.source_data s
+        ON t.id = s.id
+    WHEN MATCHED THEN UPDATE SET t.value = s.value
+    WHEN NOT MATCHED THEN INSERT (id, value) VALUES (s.id, s.value);
+
+    row_count := SQLROWCOUNT;
+    RETURN 'Success: ' || :row_count || ' rows merged';
+
+EXCEPTION
+    WHEN statement_error THEN
+        -- SQLCODE contains the error number, SQLERRM contains the message
+        err_msg := 'Statement error ' || SQLCODE || ': ' || SQLERRM;
+        INSERT INTO my_db.my_schema.error_log (proc_name, error_message, error_time)
+        VALUES ('safe_data_load', :err_msg, CURRENT_TIMESTAMP());
+        RETURN :err_msg;
+    WHEN other THEN
+        -- Catch-all for any other exception
+        err_msg := 'Unexpected error ' || SQLCODE || ': ' || SQLERRM;
+        INSERT INTO my_db.my_schema.error_log (proc_name, error_message, error_time)
+        VALUES ('safe_data_load', :err_msg, CURRENT_TIMESTAMP());
+        RAISE;  -- Re-raise after logging
+END;
+$$;
+```
+
+**Key EXCEPTION handlers:**
+- `WHEN statement_error THEN` -- catches SQL statement execution errors
+- `WHEN expression_error THEN` -- catches expression evaluation errors
+- `WHEN other THEN` -- catch-all for any unhandled exception
+- `SQLCODE` -- numeric error code
+- `SQLERRM` -- error message text
+- `RAISE` -- re-raise the current exception after handling
 
 ## Procedure and UDF Structure Templates
 

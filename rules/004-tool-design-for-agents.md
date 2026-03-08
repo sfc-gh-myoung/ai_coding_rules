@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-01-13
 **Keywords:** tool design, agent tools, token efficiency, tool parameters, function calling, tool overlap, tool contracts, error handling, minimal tool set, self-contained tools, LLM-friendly parameters, single responsibility
-**TokenBudget:** ~5800
+**TokenBudget:** ~4550
 **ContextTier:** High
 **Depends:** 000-global-core.md, 003-context-engineering.md
 
@@ -34,6 +34,8 @@ Comprehensive tool design practices that maximize agent effectiveness. Covers si
 **Related:**
 - **002g-agent-optimization.md** - Agent-first design principles
 - **002c-rule-optimization.md** - Token budgets and optimization
+- **004a-tool-set-curation.md** - Minimal viable tool sets, when to split/merge tools
+- **004b-tool-output-efficiency.md** - Token-efficient tool output design
 
 ### External Documentation
 
@@ -45,16 +47,16 @@ Comprehensive tool design practices that maximize agent effectiveness. Covers si
 
 ### Inputs and Prerequisites
 
-- Understanding of agent capabilities
-- Knowledge of token budgets
-- Awareness of LLM strengths/weaknesses
-- Access to tool development framework
+- Inventory of existing tools available to the agent
+- Target agent's context window size (e.g., 128k tokens) and typical usage patterns
+- Tool development framework or SDK (e.g., OpenAI function calling, Anthropic tool use)
+- 003-context-engineering.md loaded for token budget principles
 
 ### Mandatory
 
-- All development tools
-- Testing frameworks
-- Agent evaluation tools
+- Python or equivalent language for tool implementation
+- Agent testing harness (e.g., pytest with agent fixtures, eval framework)
+- Token counter (e.g., tiktoken) for measuring output efficiency
 
 ### Forbidden
 
@@ -109,17 +111,6 @@ Self-contained tools with:
 
 **Correct Pattern:** "Let me check the existing tools first to see if any handle this use case." [reviews tool specifications and tests relevant tools]
 
-### Design Principles
-
-- **Self-Contained:** Each tool does one thing well, with no hidden dependencies
-- **Minimal Overlap:** Clear boundaries between tools; no ambiguity about which tool to use
-- **Token Efficient:** Return only necessary information; avoid verbose outputs
-- **Clear Contracts:** Inputs, outputs, and errors explicitly specified
-- **LLM-Friendly Parameters:** Descriptive parameters that play to semantic understanding
-- **Promote Good Patterns:** Tool design guides agents toward efficient behaviors
-- **Robust Error Handling:** Clear, actionable error messages
-- **Minimal Viable Set:** Curate smallest set of tools that covers use cases
-
 ### Post-Execution Checklist
 
 - [ ] Each tool has single, clear responsibility
@@ -134,6 +125,17 @@ Self-contained tools with:
 - [ ] Tested with actual agent to validate usability
 - [ ] No stateful tools that assume context memory
 - [ ] Validation provides clear feedback for correction
+
+## Design Principles
+
+- **Self-Contained:** Each tool does one thing well, with no hidden dependencies
+- **Minimal Overlap:** Clear boundaries between tools; no ambiguity about which tool to use
+- **Token Efficient:** Return only necessary information; avoid verbose outputs
+- **Clear Contracts:** Inputs, outputs, and errors explicitly specified
+- **LLM-Friendly Parameters:** Descriptive parameters that play to semantic understanding
+- **Promote Good Patterns:** Tool design guides agents toward efficient behaviors
+- **Robust Error Handling:** Clear, actionable error messages
+- **Minimal Viable Set:** Curate smallest set of tools that covers use cases
 
 ## Anti-Patterns and Common Mistakes
 
@@ -267,32 +269,6 @@ def search(query: str, page: int = 1, limit: int = 10) -> SearchResponse:
 ```
 **Benefits:** Explicit state; agent can resume after context reset; clear API
 
-## Output Format Examples
-
-```markdown
-MODE: [PLAN|ACT]
-
-Rules Loaded:
-- rules/000-global-core.md (foundation)
-- [additional rules based on task]
-
-Analysis:
-[Brief analysis of the requirement]
-
-Task List:
-1. [Specific task with clear deliverable]
-2. [Another task with validation criteria]
-3. [Final task with success metrics]
-
-Implementation:
-[Code/configuration changes following established patterns]
-
-Validation:
-- [x] Changes validated against requirements
-- [x] Tests passing / linting clean
-- [x] Documentation updated
-```
-
 ## Tool Design Fundamentals
 
 ### Single Responsibility Principle
@@ -398,111 +374,7 @@ def codebase_search(semantic_query: str) -> List[Result]:
 
 ## Token Efficiency in Tool Outputs
 
-### Return Only Necessary Information
-
-**Principle:** Every token in a tool response depletes the agent's attention budget. Return the minimal set of information needed to make progress.
-
-**Anti-Pattern: Verbose Outputs**
-```python
-def read_file(path: str) -> dict:
-    return {
-        "success": True,
-        "message": "File read successfully",
-        "file_path": path,
-        "file_size": 1024,
-        "last_modified": "2025-01-22T10:30:00",
-        "encoding": "utf-8",
-        "line_count": 50,
-        "content": "..."  # Actual content buried in metadata
-    }
-```
-**Problem:** Wastes ~100 tokens on metadata; actual content is obscured
-
-**Correct Pattern: Minimal Necessary Output**
-```python
-def read_file(path: str) -> str:
-    """Read file and return contents directly.
-
-    Returns: File contents as string
-    Raises: FileNotFoundError if file doesn't exist
-    """
-    return file_contents  # Just the content, nothing else
-```
-**Benefits:** Agent gets what it needs; no token waste; clear and direct
-
-### Structured, Parseable Formats
-
-**When returning data, use formats that are:**
-- Easy for LLMs to parse
-- Consistent across similar tools
-- Minimal while complete
-
-**Examples:**
-
-**For Search Results:**
-```python
-# Good: Structured, minimal
-{
-    "matches": [
-        {"file": "auth.py", "line": 42, "text": "def login(user):"},
-        {"file": "views.py", "line": 15, "text": "def login_view(request):"}
-    ]
-}
-
-# Bad: Verbose, redundant
-{
-    "search_results": {
-        "query": "login",  # Agent already knows this
-        "timestamp": "2025-01-22T10:30:00",  # Unnecessary
-        "total_matches": 2,  # Can count matches array
-        "execution_time_ms": 145,  # Usually irrelevant
-        "matches": [...]
-    }
-}
-```
-
-**For File Operations:**
-```python
-# Good: Success is silent
-def write_file(path: str, content: str) -> None:
-    # No return value if successful
-    # Raises exception if error
-
-# Bad: Verbose confirmation
-def write_file(path: str, content: str) -> dict:
-    return {
-        "status": "success",
-        "message": "File written successfully",
-        "bytes_written": len(content),
-        "file_path": path
-    }
-```
-
-### Progressive Output for Large Results
-
-**For potentially large outputs, provide mechanisms to limit results:**
-
-```python
-def search_documents(
-    query: str,
-    limit: int = 10,  # Default to reasonable limit
-    fields: List[str] = ["title", "summary"]  # Not full content
-) -> List[Dict]:
-    """Search documents with result limiting.
-
-    Args:
-        query: Search terms
-        limit: Max results to return (default 10)
-        fields: Which fields to include in results
-
-    Returns: List of matching documents with specified fields
-    """
-```
-
-**Benefits:**
-- Agent can start with summaries
-- Load full content only if needed
-- Prevents context overflow
+See **004b-tool-output-efficiency.md** for detailed guidance on minimal outputs, structured formats, and progressive output for large results.
 
 ## Parameter Design
 
@@ -689,100 +561,7 @@ def get_document_by_id(doc_id: str) -> Document:
 
 ## Tool Set Curation
 
-### Minimal Viable Tool Set
-
-**Principle:** Provide the smallest set of tools that covers all necessary use cases.
-
-**Process:**
-1. Identify core capabilities needed
-2. Design minimal tool for each capability
-3. Resist urge to add "nice to have" tools
-4. Validate with actual agent usage
-5. Add tools only when clear gap identified
-
-**Example Minimal Set for Code Repository:**
-
-```python
-# Core file operations
-read_file(path: str) -> str
-write_file(path: str, content: str) -> None
-
-# Code exploration
-grep(pattern: str, path: str = ".") -> List[Match]
-list_directory(path: str) -> List[str]
-
-# Validation
-run_tests(pattern: str = None) -> TestResults
-check_lints() -> LintResults
-
-# Git operations
-git_status() -> Status
-git_diff(file: str = None) -> Diff
-```
-
-**Why This Works:**
-- 8 focused tools cover most needs
-- Each has clear, non-overlapping purpose
-- Agent can combine tools for complex tasks
-- Easy to understand and document
-
-### When to Split Tools
-
-**Split a tool when:**
-- It has multiple distinct use cases
-- Parameters become complex/ambiguous
-- Error handling diverges
-- Output formats differ significantly
-
-**Example:**
-
-```python
-# Before: One complex tool
-def file_operation(path, operation, content=None, lines=None, append=False):
-    if operation == "read":
-        if lines:
-            return read_lines(path, lines)
-        return read_full(path)
-    elif operation == "write":
-        if append:
-            return append_to_file(path, content)
-        return write_file(path, content)
-    # Gets complex fast...
-
-# After: Clear, focused tools
-def read_file(path: str) -> str:
-    """Read entire file"""
-
-def read_lines(path: str, start: int, end: int) -> str:
-    """Read specific line range"""
-
-def write_file(path: str, content: str) -> None:
-    """Write/overwrite file"""
-
-def append_to_file(path: str, content: str) -> None:
-    """Append to existing file"""
-```
-
-### When to Merge Tools
-
-**Merge tools when:**
-- They always get used together
-- They operate on same data/resource
-- Separate calls waste tokens on redundant context
-
-**Example:**
-
-```python
-# Before: Always used together
-user = get_user(user_id)  # API call 1
-preferences = get_user_preferences(user_id)  # API call 2
-settings = get_user_settings(user_id)  # API call 3
-
-# After: One comprehensive call
-user_data = get_user_profile(user_id)  # Returns user + prefs + settings
-```
-
-**Trade-off:** Balance between tool focus and efficiency.
+See **004a-tool-set-curation.md** for detailed guidance on minimal viable tool sets, when to split tools, and when to merge tools.
 
 ## Testing Tool Usability
 

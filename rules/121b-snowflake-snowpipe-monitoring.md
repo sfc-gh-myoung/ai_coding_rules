@@ -5,8 +5,9 @@
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-06
+**LoadTrigger:** kw:snowpipe-monitoring, kw:pipe-costs
 **Keywords:** snowpipe monitoring, cost management, load history, pipe usage, streaming monitoring, channel status, credits tracking, performance metrics, cost optimization, observability, metering history, monitoring queries
-**TokenBudget:** ~4550
+**TokenBudget:** ~5050
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 121-snowflake-snowpipe.md, 121a-snowflake-snowpipe-streaming.md
 
@@ -122,6 +123,24 @@ Monitoring, cost tracking, and performance analysis for both file-based Snowpipe
 - [ ] Automated monitoring tasks scheduled (if applicable)
 - [ ] Cost optimization opportunities identified and documented
 - [ ] Monitoring documentation updated with query patterns
+
+## INFORMATION_SCHEMA vs ACCOUNT_USAGE
+
+**CRITICAL:** Choose the right monitoring source based on your use case:
+
+- **INFORMATION_SCHEMA** (e.g., `TABLE(INFORMATION_SCHEMA.PIPE_USAGE_HISTORY(...))`)
+  - Real-time data, no latency
+  - Retention: 14 days
+  - Scope: current database only
+  - Best for: live debugging, operational monitoring, short-term analysis
+
+- **ACCOUNT_USAGE** (e.g., `SNOWFLAKE.ACCOUNT_USAGE.COPY_HISTORY`)
+  - Up to 45-minute latency
+  - Retention: 365 days
+  - Scope: entire account (all databases)
+  - Best for: trend analysis, cross-database reporting, cost tracking, compliance
+
+**Rule of thumb:** Use INFORMATION_SCHEMA for real-time operational queries. Use ACCOUNT_USAGE for historical analysis and dashboards.
 
 ## File-Based Snowpipe Monitoring
 
@@ -410,6 +429,42 @@ ORDER BY total_credits DESC;
 - Load latency exceeding SLAs
 - Significant changes in file counts, row counts, or sizes
 - Pipes/channels consuming excessive compute credits
+
+**Alert Examples:**
+```sql
+-- Alert on pipe load errors (INFORMATION_SCHEMA for real-time)
+CREATE OR REPLACE ALERT MONITORING.ALERTS.PIPE_ERROR_ALERT
+  WAREHOUSE = MONITORING_WH
+  SCHEDULE = '5 MINUTES'
+  IF (EXISTS (
+    SELECT 1 FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
+      TABLE_NAME => 'TARGET_TABLE',
+      START_TIME => DATEADD(MINUTE, -10, CURRENT_TIMESTAMP())
+    )) WHERE STATUS = 'LOAD_FAILED'
+  ))
+  THEN CALL SYSTEM$SEND_EMAIL(
+    'pipe_notify_int', 'data-eng@company.com',
+    'Snowpipe Load Failure', 'Pipe load failures detected in last 10 minutes.'
+  );
+
+ALTER ALERT MONITORING.ALERTS.PIPE_ERROR_ALERT RESUME;
+
+-- Alert on stalled streaming channels (ACCOUNT_USAGE for cross-database)
+CREATE OR REPLACE ALERT MONITORING.ALERTS.CHANNEL_STALL_ALERT
+  WAREHOUSE = MONITORING_WH
+  SCHEDULE = '15 MINUTES'
+  IF (EXISTS (
+    SELECT 1 FROM SNOWFLAKE.ACCOUNT_USAGE.STREAMING_CHANNELS
+    WHERE DATEDIFF(MINUTE, LAST_COMMIT_TIME, CURRENT_TIMESTAMP()) > 15
+      AND DATABASE_NAME = 'MY_DB'
+  ))
+  THEN CALL SYSTEM$SEND_EMAIL(
+    'pipe_notify_int', 'data-eng@company.com',
+    'Streaming Channel Stalled', 'One or more channels have not committed in 15+ minutes.'
+  );
+
+ALTER ALERT MONITORING.ALERTS.CHANNEL_STALL_ALERT RESUME;
+```
 
 ### Performance Metrics
 

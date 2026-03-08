@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:custom-quality-check
 **Keywords:** quality assertions, custom metrics, validation functions, create custom DMF, custom quality checks, business rule validation, custom expectations, quality functions, UDF for quality, validation logic, custom quality metrics, quality rules, custom validation
-**TokenBudget:** ~3500
+**TokenBudget:** ~3000
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 124-snowflake-data-quality-core.md
 
@@ -180,9 +180,6 @@ ALTER TABLE ORDERS
 MODIFY DATA METRIC SCHEDULE '1 HOUR'
 EXPECT (ANALYTICS.ORPHANED_ORDERS ON ()) = 0;
 ```
-</design_principles>
-
-</contract>
 
 ## Anti-Patterns and Common Mistakes
 
@@ -359,90 +356,6 @@ $$;
 - Test Python UDF DMFs if using complex validation logic
 - Schedule custom DMF and check execution history
 - Validate integration with alerting and monitoring systems
-
-## Output Format Examples
-
-```sql
--- Custom Data Metric Function with SQL UDF for complex business logic
--- Example: Validate referential integrity across multiple tables
-
--- Step 1: Create custom UDF for validation
-CREATE OR REPLACE FUNCTION UDF_CHECK_REFERENTIAL_INTEGRITY(
-  fact_table STRING,
-  dim_table STRING,
-  fk_column STRING,
-  pk_column STRING
-)
-RETURNS NUMBER
-AS
-$$
-  SELECT COUNT(*)
-  FROM IDENTIFIER(:fact_table) f
-  WHERE NOT EXISTS (
-    SELECT 1
-    FROM IDENTIFIER(:dim_table) d
-    WHERE f.fk_column = d.pk_column
-  )
-$$;
-
--- Step 2: Create DMF using custom UDF
-CREATE OR REPLACE DATA METRIC FUNCTION DMF_CUSTOM_REFERENTIAL_INTEGRITY()
-  COMMENT = 'Validate referential integrity between fact and dimension tables'
-  RETURNS NUMBER
-  SCHEDULE = '120 MINUTE'  -- Run every 2 hours
-  AS
-  $$
-    DECLARE
-        orphan_orders NUMBER;
-        orphan_line_items NUMBER;
-        invalid_products NUMBER;
-    BEGIN
-        -- Check 1: Orders without valid customers
-        SELECT UDF_CHECK_REFERENTIAL_INTEGRITY(
-          'PROD_DB.FACT.ORDERS',
-          'PROD_DB.DIM.CUSTOMERS',
-          'customer_id',
-          'customer_id'
-        )
-        INTO orphan_orders;
-
-        -- Check 2: Line items without valid orders
-        SELECT UDF_CHECK_REFERENTIAL_INTEGRITY(
-          'PROD_DB.FACT.LINE_ITEMS',
-          'PROD_DB.FACT.ORDERS',
-          'order_id',
-          'order_id'
-        )
-        INTO orphan_line_items;
-
-        -- Check 3: Line items with invalid product IDs
-        SELECT UDF_CHECK_REFERENTIAL_INTEGRITY(
-          'PROD_DB.FACT.LINE_ITEMS',
-          'PROD_DB.DIM.PRODUCTS',
-          'product_id',
-          'product_id'
-        )
-        INTO invalid_products;
-
-        -- Define expectations: Zero orphaned records allowed
-        EXPECT (orphan_orders) = 0;
-        EXPECT (orphan_line_items) = 0;
-        EXPECT (invalid_products) = 0;
-
-        RETURN 1.0;
-    END;
-  $$;
-
--- Execute and verify
-CALL DMF_CUSTOM_REFERENTIAL_INTEGRITY();
-
--- Check results
-SELECT *
-FROM TABLE(INFORMATION_SCHEMA.DATA_METRIC_FUNCTION_RESULTS(
-  REF('DMF_CUSTOM_REFERENTIAL_INTEGRITY')))
-ORDER BY measurement_time DESC
-LIMIT 5;
-```
 
 ## Expectations
 

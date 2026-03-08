@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-01-20
 **Keywords:** search optimization, pruning, spillage, SQL optimization, Snowflake, partition pruning, QUERY_HISTORY, optimize query, fix slow query, query bottleneck, warehouse performance, micro-partitions, clustering, performance analysis
-**TokenBudget:** ~2850
+**TokenBudget:** ~3200
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** kw:performance, kw:optimization, kw:slow
@@ -64,10 +64,10 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 
 ### Inputs and Prerequisites
 
-- Snowflake account with query execution privileges
-- Access to Query Profile in Snowsight or via SQL
-- Warehouse context for query execution
-- QUERY_HISTORY view access for historical analysis
+- Snowflake account with SYSADMIN or equivalent role (for warehouse resizing) or USAGE privilege on the warehouse
+- Access to QUERY_HISTORY view (requires ACCOUNTADMIN or MONITOR privilege on the account)
+- Access to Query Profile in Snowsight or via INFORMATION_SCHEMA.QUERY_HISTORY
+- Warehouse context for query execution (X-SMALL minimum; sizing depends on workload)
 - Slow query identified (>10s execution time or user complaint)
 - Understanding of table structures and data volumes
 
@@ -103,7 +103,7 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 
 - Optimized SQL query with explicit column selection
 - Query Profile screenshots or statistics (before/after)
-- Performance metrics: Execution time reduction, partitions scanned reduction
+- Performance metrics: Execution time reduction, Partitions Scanned reduction
 - Warehouse sizing recommendations with justification
 - Clustering key recommendations (only if Query Profile shows poor pruning)
 
@@ -129,13 +129,7 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 - Reference official docs for profiling, warehouses, and clustering.
 
 > **Investigation Required**
-> When optimizing query performance:
-> 1. Check Query Profile first - never optimize without profiling: `SELECT * FROM TABLE(INFORMATION_SCHEMA.QUERY_HISTORY_BY_...)`
-> 2. Verify partition pruning effectiveness - check "Partitions Scanned" vs "Partitions Total" in Query Profile
-> 3. Identify actual bottlenecks - look for large TableScans, join explosions, spillage to remote storage
-> 4. Check warehouse size and utilization - query WAREHOUSE_METERING_HISTORY before resizing
-> 5. Never add clustering keys without analyzing query patterns first
-> 6. Measure impact - compare before/after query execution times with same warehouse
+> Always check Query Profile before optimizing (see Mandatory requirements above).
 >
 > **Anti-Pattern:**
 > "Let me add a clustering key to speed this up."
@@ -143,7 +137,7 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 > **Correct Pattern:**
 > "Let me check the Query Profile first to identify the bottleneck."
 > [reviews Query Profile, finds large TableScan]
-> "The issue is partition pruning - 1000/1000 partitions scanned. Let me check the WHERE clause..."
+> "The issue is partition pruning - 1000/1000 Partitions Scanned. Let me check the WHERE clause..."
 
 ### Post-Execution Checklist
 
@@ -193,7 +187,7 @@ SELECT * FROM sales_fact WHERE region = 'WEST' AND product_category = 'Electroni
 
 -- Step 2: Check Query Profile for pruning statistics
 -- In Snowsight: Query History > Click query > Query Profile
--- Look for: "Partitions scanned" vs "Partitions total"
+-- Look for: "Partitions Scanned" vs "Partitions Total"
 -- If scanning >50% of partitions for selective query, clustering may help
 
 -- Step 3: Only add clustering if Query Profile shows poor pruning
@@ -201,7 +195,7 @@ SELECT * FROM sales_fact WHERE region = 'WEST' AND product_category = 'Electroni
 ALTER TABLE sales_fact CLUSTER BY (region, product_category);
 
 -- Step 4: Measure improvement - re-run query, check Query Profile
--- Validate: Partitions scanned reduced significantly
+-- Validate: Partitions Scanned reduced significantly
 ```
 **Benefits:** Data-driven clustering decisions; proven performance gains; cost-justified; Query Profile validated; measurable improvements; production evidence-based
 
@@ -262,27 +256,26 @@ ALTER TABLE my_table CLUSTER BY (date_column);
 ## Output Format Examples
 
 ```sql
--- Analysis Query: Investigate current state
-SELECT column_pattern, COUNT(*) as usage_count
-FROM information_schema.columns
-WHERE table_schema = 'TARGET_SCHEMA'
-GROUP BY column_pattern;
+-- Query Optimization Workflow
 
--- Implementation: Apply Snowflake best practices
-CREATE OR REPLACE VIEW schema.view_name
-COMMENT = 'Business purpose following semantic model standards'
-AS
-SELECT
-    -- Explicit column list with business context
-    id COMMENT 'Surrogate key',
-    name COMMENT 'Business entity name',
-    created_at COMMENT 'Record creation timestamp'
-FROM schema.source_table
-WHERE is_active = TRUE;
+-- Step 1: Capture baseline metrics for the slow query
+SELECT query_id, execution_time, partitions_scanned, partitions_total,
+       bytes_spilled_to_local_storage, bytes_spilled_to_remote_storage
+FROM TABLE(INFORMATION_SCHEMA.QUERY_HISTORY())
+WHERE query_id = '<slow_query_id>';
 
--- Validation: Confirm implementation
-SELECT * FROM schema.view_name LIMIT 5;
-SHOW VIEWS LIKE '%view_name%';
+-- Step 2: Apply optimization (example: rewrite WHERE for pruning)
+-- BEFORE: WHERE DATE(order_timestamp) = '2024-01-15'
+-- AFTER:
+SELECT order_id, customer_id, order_amount
+FROM my_db.my_schema.orders
+WHERE order_timestamp >= '2024-01-15'
+  AND order_timestamp < '2024-01-16';
+
+-- Step 3: Compare before/after metrics
+-- Document: execution_time reduced from Xs to Ys
+-- Document: Partitions Scanned reduced from X to Y (of Z total)
+-- Document: spillage eliminated (or reduced from X bytes to Y bytes)
 ```
 
 ## Query Profiling & Optimization
@@ -293,6 +286,17 @@ SHOW VIEWS LIKE '%view_name%';
 ## Warehouse Sizing & Clustering
 - **Always:** Follow comprehensive warehouse sizing guidance in `119-snowflake-warehouse-management.md` including type selection (CPU/GPU/High-Memory), sizing strategy, auto-suspend configuration, and cost governance.
 - **Requirement:** Consider clustering keys only with clear justification based on query patterns and Query Profile evidence of poor pruning.
+
+## Data Skew and Concurrency
+
+### Data Skew
+- **Detection:** In Query Profile, look for uneven partition sizes or operators where one thread processes significantly more data than others. Skewed joins produce one or two partitions with disproportionate row counts.
+- **Mitigation:** Add a secondary clustering key on the skewed column; pre-filter the larger table in a CTE before joining; or use a salting technique (append a modulo-based suffix to the join key) for extreme skew.
+
+### High-Concurrency Workloads
+- For workloads exceeding 50 concurrent queries, use multi-cluster warehouses with `MIN_CLUSTER_COUNT = 1` and `MAX_CLUSTER_COUNT` set based on peak concurrency (each cluster handles ~8-10 concurrent queries).
+- Use `SCALING_POLICY = 'STANDARD'` for consistent workloads (scales out when queries queue for 20s) or `'ECONOMY'` for cost-sensitive workloads (scales out after 6 minutes of queueing).
+- Monitor `QUERY_HISTORY` for `QUEUED_OVERLOAD_TIME > 0` to detect when scaling is insufficient.
 
 **Progressive Disclosure - Token Budget:**
 - Quick Start + Contract: ~600 tokens (always load for performance tasks)

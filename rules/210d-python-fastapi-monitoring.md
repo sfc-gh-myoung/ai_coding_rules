@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:fastapi-monitoring
 **Keywords:** FastAPI monitoring, health checks, logging, metrics, caching, Redis, observability, structured logging, health endpoints, correlation IDs
-**TokenBudget:** ~3900
+**TokenBudget:** ~3700
 **ContextTier:** Medium
 **Depends:** 210-python-fastapi-core.md
 
@@ -168,74 +168,17 @@ async def add_correlation_id(request: Request, call_next):
         return response
 ```
 
-## Output Format Examples
-
-```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
-
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
-from datetime import datetime, UTC
-
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
-
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
-
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
-
-    Args:
-        input_data: Validated input following schema
-
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
-```
-
-```bash
-# Validation commands
-uvx ruff check .
-uvx ruff format --check .
-uv run pytest tests/
-```
-
 ## Health Checks and Monitoring
 
 ### Health Check Endpoints
 - **Always:** Implement health check endpoints for load balancers.
 - **Always:** Use structured logging with correlation IDs.
-- **Rule:** Monitor application metrics and performance.
+- **Rule:** Collect request duration, status codes, and error rates via MetricsMiddleware.
 
 ```python
 # app/routers/health.py
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.connection import get_db
 from app.config import get_settings
@@ -259,7 +202,7 @@ async def detailed_health_check(db: AsyncSession = Depends(get_db)):
     """Detailed health check with system metrics."""
     try:
         # Database connectivity check
-        await db.execute("SELECT 1")
+        await db.execute(text("SELECT 1"))
         db_status = "healthy"
     except Exception as e:
         db_status = f"unhealthy: {str(e)}"
@@ -299,7 +242,7 @@ async def detailed_health_check(db: AsyncSession = Depends(get_db)):
 async def readiness_check(db: AsyncSession = Depends(get_db)):
     """Kubernetes readiness probe."""
     try:
-        await db.execute("SELECT 1")
+        await db.execute(text("SELECT 1"))
         return {"status": "ready"}
     except Exception:
         raise HTTPException(
@@ -314,6 +257,8 @@ async def liveness_check():
 ```
 
 ## Structured Logging
+
+> **structlog vs stdlib logging:** Use structlog for new services (see Correlation ID example below); use stdlib logging when integrating with existing frameworks that configure their own loggers (see RequestLoggingMiddleware below).
 
 ### Logging Configuration
 - **Always:** Use structured logging with JSON format.
@@ -403,8 +348,8 @@ class RequestLoggingMiddleware:
 ## Performance Optimization
 
 ### Caching Strategies
-- **Always:** Implement caching for expensive operations.
-- **Rule:** Use appropriate cache invalidation strategies.
+- **Always:** Implement caching for operations >100ms or involving external I/O.
+- **Rule:** Use TTL-based expiration (default 300s); explicit delete on write.
 
 ```python
 # app/cache/redis.py
@@ -495,7 +440,6 @@ engine = create_async_engine(
     pool_recycle=3600,      # Recycle connections after 1 hour
     # Performance settings
     echo=settings.debug,    # Log SQL queries in debug mode
-    future=True,           # Use SQLAlchemy 2.0 style
 )
 ```
 
@@ -561,6 +505,7 @@ uv run python -m pytest tests/test_performance.py -v
 ### Configuration Integration
 ```python
 # app/config.py - Monitoring settings
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 from typing import Optional
 
@@ -580,6 +525,5 @@ class Settings(BaseSettings):
     max_request_size: int = 16 * 1024 * 1024  # 16MB
     request_timeout: int = 30
 
-    class Config:
-        env_file = ".env"
+    model_config = ConfigDict(env_file=".env")
 ```

@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.2
 **LastUpdated:** 2026-01-27
 **Keywords:** memory bank, context, session recovery, progress tracking, compaction, rapid recovery
-**TokenBudget:** ~1300
+**TokenBudget:** ~1400
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 
@@ -40,7 +40,8 @@ Memory bank patterns for AI context preservation across sessions. All writes sco
 
 ### Inputs and Prerequisites
 - Project context files
-- Clear documentation structure
+- Markdown-formatted documentation with headings and bullet lists
+- Required tools: file read, file write, directory list
 
 ### Mandatory
 - Read ALL memory bank files at session start
@@ -198,6 +199,10 @@ Update when:
 **Corrupted file:** Rename to `.corrupted-TIMESTAMP`, create from template
 
 **File exceeds budget:** Apply compaction, archive oldest content
+
+**Permission denied:** Report error with path, suggest `chmod u+w memory-bank/` or running with correct user permissions
+
+**Disk full / write failure:** Report error, suggest freeing disk space or reducing memory bank scope. Do not retry writes until space is confirmed available
 
 **Archive Workflow:**
 1. Create `memory-bank/archive/YYYY-MM.md`

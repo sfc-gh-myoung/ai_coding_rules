@@ -442,23 +442,23 @@ CREATE OR REPLACE WAREHOUSE WH_BI_PRODUCTION_M
 
 **Recommended Auto-Suspend Settings:**
 
-- **Interactive BI:** 300-600 sec (5-10 min) - Balance UX and cost
-- **Batch ETL:** 60-120 sec (1-2 min) - Quick shutdown post-job
-- **Dev/Test:** 60-180 sec (1-3 min) - Minimize dev costs
+- **Interactive BI:** 60 sec (1 min) - Minimize idle cost for sporadic queries
+- **ETL/Batch:** 300 sec (5 min) - Allow for job chaining without cold-start
+- **Dev/Test:** 30 sec - Minimize dev costs
 - **Streaming:** 60 sec (1 min) - Near-continuous use
-- **ML Training:** 300-600 sec (5-10 min) - Interactive experimentation
-- **24/7 Critical:** 600+ sec (10+ min) - Balance availability/cost
+- **Data Science/ML:** 600 sec (10 min) - Interactive experimentation with notebooks
+- **24/7 Critical:** 600+ sec (10+ min) - Balance availability and cost
 
 ```sql
--- Example: Interactive BI with 5-min timeout
+-- Example: Interactive BI with 1-min timeout
 CREATE OR REPLACE WAREHOUSE WH_INTERACTIVE_BI_M
   WAREHOUSE_TYPE = 'STANDARD'
   WAREHOUSE_SIZE = 'MEDIUM'
   RESOURCE_CONSTRAINT = 'STANDARD_GEN_2'
-  AUTO_SUSPEND = 300  -- Adjust per workload type above
+  AUTO_SUSPEND = 60  -- Adjust per workload type above
   AUTO_RESUME = TRUE
   INITIALLY_SUSPENDED = TRUE
-  COMMENT = 'Interactive BI - 5min auto-suspend';
+  COMMENT = 'Interactive BI - 1min auto-suspend';
 ```
 
 ## Mandatory Tagging Standards

@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-12
 **Keywords:** test Streamlit app, pytest, test framework, test patterns, app testing, UI testing, test automation, streamlit test suite, integration testing, test coverage, debug tests, test fixtures, testing strategies
-**TokenBudget:** ~3750
+**TokenBudget:** ~3500
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 206-python-pytest.md
 
@@ -202,56 +202,6 @@ def test_cache_with_mock():
         assert mock_query.call_count == 1  # Still 1, cache hit
 ```
 
-## Output Format Examples
-```python
-# test_app.py
-import pytest
-from streamlit.testing.v1 import AppTest
-from unittest.mock import patch, MagicMock
-import pandas as pd
-
-# Unit tests for data functions
-def test_normalize_columns():
-    """Test Snowflake column normalization."""
-    df = pd.DataFrame({'COL1': [1, 2], 'COL2': [3, 4]})
-    result = normalize_columns(df)
-    assert 'col1' in result.columns
-
-def test_process_data_empty():
-    """Test edge case: empty dataframe."""
-    result = process_data(pd.DataFrame())
-    assert result is not None
-
-# AppTest integration tests
-def test_app_loads():
-    """Smoke test: app loads without errors."""
-    at = AppTest.from_file("streamlit_app.py")
-    at.run()
-    assert not at.exception
-
-def test_user_workflow():
-    """Test complete user interaction workflow."""
-    at = AppTest.from_file("streamlit_app.py")
-    at.run()
-
-    # Simulate user actions
-    at.text_input[0].set_value("test").run()
-    at.button[0].click().run()
-
-    # Verify results
-    assert len(at.success) > 0
-
-# Mock external services
-@patch('your_app.get_snowflake_session')
-def test_load_data(mock_session):
-    """Test data loading with mocked database."""
-    mock_df = pd.DataFrame({'col1': [1, 2, 3]})
-    mock_session.return_value.table.return_value.to_pandas.return_value = mock_df
-
-    result = load_data()
-    assert len(result) == 3
-```
-
 ## Unit Testing Data Functions
 
 **MANDATORY:**
@@ -364,12 +314,12 @@ def test_error_handling():
     assert "required" in str(at.error[0]).lower()
 
 def test_navigation():
-    """Test multipage navigation."""
+    """Test multipage navigation via selectbox."""
     at = AppTest.from_file("streamlit_app.py")
     at.run()
 
-    # Navigate to different page
-    at.sidebar.selectbox[0].set_value("Dashboard").run()
+    # Access selectbox by key (AppTest uses flat widget access)
+    at.selectbox(key="page_selector").set_value("Dashboard").run()
 
     # Verify page content changed
     assert "Dashboard" in str(at.title[0])
@@ -394,18 +344,19 @@ def test_form_submission():
     assert "submitted" in str(at.success[0]).lower()
 
 def test_caching():
-    """Test cache behavior."""
-    at = AppTest.from_file("streamlit_app.py")
+    """Test cache behavior using mock call counts."""
+    with patch('your_app.get_snowflake_session') as mock_session:
+        mock_df = pd.DataFrame({'col1': [1, 2, 3]})
+        mock_session.return_value.sql.return_value.to_pandas.return_value = mock_df
 
-    # First run - cache miss
-    at.run()
-    initial_load_time = at.session_state.get('load_time', 0)
+        # First call - cache miss, hits database
+        result1 = load_data()
+        assert mock_session.return_value.sql.call_count == 1
 
-    # Second run - cache hit (should be faster)
-    at.run()
-    cached_load_time = at.session_state.get('load_time', 0)
-
-    assert cached_load_time < initial_load_time or cached_load_time == 0
+        # Second call - cache hit, no additional database call
+        result2 = load_data()
+        assert mock_session.return_value.sql.call_count == 1  # Still 1
+        pd.testing.assert_frame_equal(result1, result2)
 ```
 
 ## Testing Cached Functions
@@ -452,6 +403,32 @@ def test_cache_resource_behavior():
 
         # Verify same connection object
         assert conn1 is conn2
+```
+
+## Reusable Test Fixtures (conftest.py)
+
+```python
+# conftest.py
+import pytest
+import pandas as pd
+from unittest.mock import MagicMock, patch
+
+@pytest.fixture
+def mock_snowflake_session():
+    """Reusable mock for Snowflake session across all tests."""
+    with patch('your_app.get_snowflake_session') as mock:
+        session = MagicMock()
+        mock.return_value = session
+        yield session
+
+@pytest.fixture
+def sample_df():
+    """Standard test DataFrame with lowercase columns."""
+    return pd.DataFrame({
+        'id': [1, 2, 3],
+        'name': ['Alice', 'Bob', 'Charlie'],
+        'value': [100, 200, 300]
+    })
 ```
 
 ## Common Debugging Issues

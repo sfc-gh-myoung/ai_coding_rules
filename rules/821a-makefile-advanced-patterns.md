@@ -187,47 +187,33 @@ test-cov-open: test-cov ## Coverage + open in browser
 ```makefile
 .PHONY: help
 help: ## Show this help message
-	@echo "========================================================================"
-	@echo "Project Name v$(PROJECT_VERSION) -- Development Commands"
-	@echo "========================================================================"
-	@echo ""
-	@echo "QUICKSTART"
-	@echo "------------------------------------------------------------------------"
-	@echo "  make quality-fix              Fix all code quality issues"
-	@echo "  make test                     Run all pytest tests"
-	@echo "  make validate                 Run all CI/CD validation checks"
-	@echo ""
-	@echo "CODE QUALITY"
-	@echo "------------------------------------------------------------------------"
-	@echo "  make lint                     Run ruff linter (check only)"
-	@echo "  make format                   Run ruff formatter (check only)"
-	@echo "  make lint-fix                 Fix lint issues"
-	@echo "  make quality-check            Run all quality checks"
-	@echo ""
-	@echo "TESTING"
-	@echo "------------------------------------------------------------------------"
-	@echo "  make test                     Run all pytest tests"
-	@echo "  make test-cov                 Run tests with coverage report"
-	@echo "========================================================================"
+  @echo "========================================"
+  @echo "Project Name -- Development Commands"
+  @echo "========================================"
+  @echo ""
+  @echo "QUICKSTART"
+  @echo "  make quality-fix    Fix all code quality issues"
+  @echo "  make test           Run all pytest tests"
+  @echo ""
+  @echo "CODE QUALITY"
+  @echo "  make lint           Run ruff linter (check only)"
+  @echo "  make lint-fix       Fix lint issues"
+  # ... additional categories follow same pattern
 ```
 
 ### Auto-Generated Help Alternative
 
-For simpler Makefiles, use `grep`-based help that extracts `##` comments:
+For simpler Makefiles, use `grep`-based help that extracts `##` comments. See `821-makefile-automation.md` for the auto-generated help pattern.
 
-```makefile
-.PHONY: help
-help: ## Show available targets
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		sort | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  %-25s %s\n", $$1, $$2}'
-```
+**Decision Framework — Manual vs Auto-Generated Help:**
 
-**Trade-off:**
-- **Manual help (categorized):** Better organization, quickstart section, visual hierarchy. Higher maintenance.
-- **Auto-generated help (`grep`-based):** Zero maintenance, always current. No categorization or visual hierarchy.
+- **Maintenance:** Manual requires updating help text with each target change. Auto-generated stays current automatically.
+- **Organization:** Manual supports logical grouping, quickstart sections, and visual hierarchy. Auto-generated produces a flat alphabetical list.
+- **Consistency:** Manual depends on discipline to keep in sync. Auto-generated always matches actual targets.
+- **Discoverability:** Manual can highlight key workflows in a quickstart section. Auto-generated treats all targets equally.
+- **Multi-file support:** Manual requires effort to cover included Makefiles. Auto-generated uses `MAKEFILE_LIST` to cover all includes automatically.
 
-**Recommendation:** Use manual categorized help for 8+ targets. Use `grep`-based for smaller Makefiles.
+**Recommendation:** Use manual categorized help when 8+ targets AND the project has clear workflow categories. Use `grep`-based when targets are few, change frequently, or span many included files where manual sync is costly.
 
 ## Include Directives
 

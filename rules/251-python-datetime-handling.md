@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:datetime, kw:timezone
 **Keywords:** datetime, pandas, timezone, datetime64, timedelta, UTC, date arithmetic, tz_localize, tz_convert, datetime.now(UTC)
-**TokenBudget:** ~6200
+**TokenBudget:** ~5800
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -185,7 +185,53 @@ df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S')  # Fast, exp
 ```
 **Benefits:** 10-100x faster parsing; consistent date interpretation; no ambiguity; predictable behavior across locales
 
-**Anti-Pattern 4: Using Timedelta for Calendar Arithmetic**
+**Anti-Pattern 4: Ignoring Timezones**
+```python
+# Bad: Implicit timezone assumptions
+df['date'] = pd.to_datetime(df['date'])  # What timezone?
+df_filtered = df[df['date'] > datetime.datetime.now()]  # Comparing tz-naive with tz-aware?
+```
+**Problem:** Timezone ambiguity causes bugs with international data; tz-naive vs tz-aware comparisons fail silently or raise errors
+
+**Correct Pattern:**
+```python
+# Good: Explicit timezone handling
+df['date'] = pd.to_datetime(df['date']).dt.tz_localize('UTC')
+now_utc = pd.Timestamp.now(tz='UTC')
+df_filtered = df[df['date'] > now_utc]
+```
+**Benefits:** Explicit timezone semantics; no ambiguity; consistent comparisons; correct behavior with international data
+
+**Anti-Pattern 5: Using Python datetime for Vectorized Operations**
+```python
+# Bad: Loop with Python datetime
+for idx, row in df.iterrows():
+    row['next_week'] = row['date'] + datetime.timedelta(days=7)
+```
+**Problem:** 100x slower than vectorized Pandas operations; row-level iteration defeats Pandas optimization
+
+**Correct Pattern:**
+```python
+# Good: Vectorized Pandas operation
+df['next_week'] = df['date'] + pd.Timedelta(days=7)
+```
+**Benefits:** 100x faster; leverages Pandas vectorization; cleaner code; memory efficient
+
+**Anti-Pattern 6: Chained DateTime Operations Without Assignment**
+```python
+# Bad: Modifying copy, not original
+df[df['active'] == True]['date'] = df['date'] + pd.Timedelta(days=1)  # SettingWithCopyWarning!
+```
+**Problem:** SettingWithCopyWarning; changes not applied to original DataFrame; silent data loss
+
+**Correct Pattern:**
+```python
+# Good: Use loc for explicit assignment
+df.loc[df['active'] == True, 'date'] = df.loc[df['active'] == True, 'date'] + pd.Timedelta(days=1)
+```
+**Benefits:** Changes applied to original DataFrame; no copy warning; explicit and predictable behavior
+
+**Anti-Pattern 7: Using Timedelta for Calendar Arithmetic**
 ```python
 # Bad: Timedelta doesn't handle month/year boundaries correctly
 from datetime import datetime, timedelta, UTC
@@ -229,16 +275,7 @@ import datetime
 import pandas as pd
 import streamlit as st
 
-# Helper for type-safe datetime conversions
-def ensure_python_datetime(dt):
-    """Convert any datetime-like to Python datetime."""
-    if dt is None or pd.isna(dt):
-        return None
-    if isinstance(dt, datetime.datetime):
-        return dt
-    if hasattr(dt, 'to_pydatetime'):
-        return dt.to_pydatetime()
-    return pd.to_datetime(dt).to_pydatetime()
+# Use ensure_python_datetime() helper (see Type Conversions section below)
 
 # Parse dates with explicit format
 df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
@@ -271,11 +308,10 @@ import datetime
 
 # Native Python datetime
 py_dt = datetime.datetime(2024, 10, 23, 14, 30, 0)
-py_dt_now = datetime.datetime.now()
+py_dt_now = datetime.datetime.now(datetime.UTC)
 
 # Timezone-aware
-import pytz
-py_dt_utc = datetime.datetime.now(pytz.UTC)
+py_dt_utc = datetime.datetime.now(datetime.UTC)
 ```
 
 **Pandas Timestamp (extends Python datetime):**
@@ -410,8 +446,8 @@ df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
 # GOOD: ISO 8601 format (recommended standard)
 df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%dT%H:%M:%S')
 
-# ACCEPTABLE: Infer format (slower, but flexible)
-df['date'] = pd.to_datetime(df['date'], infer_datetime_format=True)
+# ACCEPTABLE: Mixed formats (flexible, but slower)
+df['date'] = pd.to_datetime(df['date'], format='mixed')
 
 # BAD: No format specification (ambiguous MM/DD vs DD/MM)
 df['date'] = pd.to_datetime(df['date'])  # 01/02/2024 - Jan 2 or Feb 1?
@@ -438,10 +474,10 @@ df = pd.read_csv('data.csv',
                  parse_dates=['order_date', 'ship_date'],
                  date_format='%Y-%m-%d')
 
-# For multiple date formats
+# For specific date format on specific columns
 df = pd.read_csv('data.csv',
                  parse_dates=['order_date'],
-                 date_parser=lambda x: pd.to_datetime(x, format='%Y-%m-%d', errors='coerce'))
+                 date_format='%Y-%m-%d')
 ```
 
 ## Timezone Management
@@ -538,8 +574,11 @@ df['next_month_end'] = df['date'] + MonthEnd(1)  # Next month end
 ### Common Date Math Patterns
 
 ```python
-# Age calculation
-df['age_years'] = (pd.Timestamp.now() - df['birth_date']).dt.days // 365
+# Age calculation (accurate, handles leap years)
+from dateutil.relativedelta import relativedelta
+df['age_years'] = df['birth_date'].apply(
+    lambda bd: relativedelta(pd.Timestamp.now(), bd).years if pd.notna(bd) else None
+)
 
 # Days since event
 df['days_since_order'] = (pd.Timestamp.now() - df['order_date']).dt.days
@@ -596,8 +635,12 @@ df_hourly = df.set_index('timestamp').resample('H').mean().reset_index()
 df_daily = df.set_index('timestamp').resample('D').mean().reset_index()
 
 # For visualization: Aggregate before plotting
+VALID_GRANULARITIES = {'hour', 'day', 'week', 'month', 'quarter', 'year'}
+
 @st.cache_data(ttl=3600)
 def load_aggregated_data(granularity='day'):
+    if granularity not in VALID_GRANULARITIES:
+        raise ValueError(f"Invalid granularity '{granularity}'. Must be one of: {VALID_GRANULARITIES}")
     query = f"""
     SELECT
         DATE_TRUNC('{granularity}', timestamp) as date,
@@ -643,81 +686,4 @@ st.dataframe(df_display)
 st.dataframe(
     df.style.format({'date': lambda x: x.strftime('%Y-%m-%d') if pd.notna(x) else 'N/A'})
 )
-```
-
-## Anti-Patterns and Common Errors
-
-**Anti-Pattern 1: Mixed datetime type comparisons**
-```python
-# BAD: Pandas 2.x TypeError
-failure_time = datetime.datetime.now()
-if df["timestamp"].min() <= failure_time <= df["timestamp"].max():  # TypeError!
-    process()
-```
-**Problem:** Comparing pd.Timestamp (from .min()/.max()) with Python datetime causes TypeError in Pandas 2.x
-
-**Correct:**
-```python
-# GOOD: Normalize to Python datetime
-failure_time = ensure_python_datetime(datetime.datetime.now())
-ts_min = ensure_python_datetime(df["timestamp"].min())
-ts_max = ensure_python_datetime(df["timestamp"].max())
-if ts_min and ts_max and ts_min <= failure_time <= ts_max:
-    process()
-```
-
-**Anti-Pattern 2: Ignoring timezones**
-```python
-# BAD: Implicit timezone assumptions
-df['date'] = pd.to_datetime(df['date'])  # What timezone?
-df_filtered = df[df['date'] > datetime.datetime.now()]  # Comparing tz-naive with tz-aware?
-```
-**Problem:** Timezone ambiguity causes bugs with international data
-
-**Correct:**
-```python
-# GOOD: Explicit timezone handling
-df['date'] = pd.to_datetime(df['date']).dt.tz_localize('UTC')
-now_utc = pd.Timestamp.now(tz='UTC')
-df_filtered = df[df['date'] > now_utc]
-```
-
-**Anti-Pattern 3: Inefficient datetime parsing**
-```python
-# BAD: No format specification (slow, ambiguous)
-df['date'] = pd.to_datetime(df['date'])
-```
-**Problem:** 10x slower, ambiguous date formats (01/02/2024 - Jan 2 or Feb 1?)
-
-**Correct:**
-```python
-# GOOD: Explicit format
-df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
-```
-
-**Anti-Pattern 4: Using Python datetime for vectorized operations**
-```python
-# BAD: Loop with Python datetime
-for idx, row in df.iterrows():
-    row['next_week'] = row['date'] + datetime.timedelta(days=7)
-```
-**Problem:** 100x slower than vectorized Pandas operations
-
-**Correct:**
-```python
-# GOOD: Vectorized Pandas operation
-df['next_week'] = df['date'] + pd.Timedelta(days=7)
-```
-
-**Anti-Pattern 5: Chained datetime operations without assignment**
-```python
-# BAD: Modifying copy, not original
-df[df['active'] == True]['date'] = df['date'] + pd.Timedelta(days=1)  # SettingWithCopyWarning!
-```
-**Problem:** SettingWithCopyWarning, changes not applied to original DataFrame
-
-**Correct:**
-```python
-# GOOD: Use loc for explicit assignment
-df.loc[df['active'] == True, 'date'] = df.loc[df['active'] == True, 'date'] + pd.Timedelta(days=1)
 ```

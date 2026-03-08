@@ -123,7 +123,7 @@ registry.log_model(
 )
 # Model registered but schema inference fails, can't generate SQL for inference!
 ```
-**Problem:** No input schema captured; can't generate SQL inference; deployment failures; unclear model signature; unusable for SQL-based predictions
+**Problem:** No input schema captured; can't generate SQL inference; deployment failures
 
 **Correct Pattern:**
 ```python
@@ -147,7 +147,7 @@ registry.log_model(
     sample_input_data=sample_input  # Schema captured!
 )
 ```
-**Benefits:** Input schema captured; SQL inference enabled; clear model signature; deployment-ready; production-usable; automatic schema validation
+**Benefits:** Input schema captured; SQL inference enabled; deployment-ready
 
 **Anti-Pattern 2: Using WAREHOUSE Target Platform Without Understanding SQL Compatibility**
 ```python
@@ -163,7 +163,7 @@ registry.log_model(
 )
 # Error: Custom transformers not supported in SQL translation!
 ```
-**Problem:** SQL translation fails for custom/complex models; deployment failures; wasted time; emergency fallback required; production delays
+**Problem:** SQL translation fails for custom/complex models; deployment failures; production delays
 
 **Correct Pattern:**
 ```python
@@ -181,7 +181,7 @@ registry.log_model(
 # Use WAREHOUSE only for simple models (linear, tree-based)
 # Check compatibility: https://docs.snowflake.com/en/developer-guide/snowpark-ml/model-registry/overview
 ```
-**Benefits:** Reliable deployment; supports all model types; no SQL translation issues; Python inference flexibility; production-ready; predictable behavior
+**Benefits:** Reliable deployment; supports all model types; Python inference flexibility
 
 **Anti-Pattern 3: Not Tagging Models with Metadata for Governance**
 ```python
@@ -194,7 +194,7 @@ registry.log_model(
 )
 # Can't identify: use case, owner, data source, performance, approval status
 ```
-**Problem:** No governance; can't discover models by use case; unclear ownership; no performance tracking; audit gaps; compliance risk; chaos at scale
+**Problem:** No governance; can't discover models by use case; unclear ownership; compliance risk
 
 **Correct Pattern:**
 ```python
@@ -229,7 +229,7 @@ session.sql(f"""
             approval_status = 'APPROVED'
 """).collect()
 ```
-**Benefits:** Full governance; discoverable by metadata; clear ownership; performance tracked; audit-ready; compliance-friendly; scalable model management
+**Benefits:** Full governance; discoverable by metadata; clear ownership; audit-ready
 
 **Anti-Pattern 4: Not Testing Model Inference After Registration**
 ```python
@@ -244,7 +244,7 @@ print("Model registered!")
 # Never test: Does inference work? Are predictions correct?
 # Discover issues when users complain in production!
 ```
-**Problem:** Silent deployment failures; untested inference; production issues; user complaints; emergency fixes; trust erosion; unprofessional
+**Problem:** Silent deployment failures; untested inference; production issues; trust erosion
 
 **Correct Pattern:**
 ```python
@@ -277,7 +277,7 @@ assert all(0 <= p <= 1 for p in predictions['FRAUD_PROBABILITY']), "Probabilitie
 
 print("✓ Model inference validated, ready for production")
 ```
-**Benefits:** Early error detection; validated inference; confidence in production; no surprises; professional deployment; reliable predictions; user trust
+**Benefits:** Early error detection; validated inference; confidence in production
 
 **Anti-Pattern 5: Not Enabling Monitoring on Registry When Planning to Use MODEL MONITOR**
 ```python
@@ -303,7 +303,7 @@ registry.log_model(
 # ERROR: "MODEL does not exist or not authorized"
 # The model EXISTS but MODEL MONITOR can't use it without monitoring enabled at registry level!
 ```
-**Problem:** MODEL MONITOR requires `options={"enable_monitoring": True}` on the Registry constructor; models registered without this option cannot be monitored; must DROP model and re-register with monitoring-enabled registry; wasted time; production delays; confusing error message
+**Problem:** MODEL MONITOR requires `options={"enable_monitoring": True}` on Registry constructor; models registered without it cannot be monitored and must be re-registered
 
 **Correct Pattern:**
 ```python
@@ -519,17 +519,8 @@ registry = Registry(
 
 ### Model Registration for MODEL MONITOR
 ```python
-from snowflake.ml.registry import Registry
-
-# Initialize with monitoring enabled
-registry = Registry(
-    session=session, 
-    database_name="ML", 
-    schema_name="REGISTRY",
-    options={"enable_monitoring": True}  # REQUIRED for MODEL MONITOR
-)
-
-# Register model - no special parameters needed if Registry has monitoring enabled
+# Initialize with monitoring enabled (see Registry Initialization above)
+# Then register model - no special parameters needed if Registry has monitoring enabled
 model_ref = registry.log_model(
     model=trained_model,
     model_name="customer_churn_predictor",

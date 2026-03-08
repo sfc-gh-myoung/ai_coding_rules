@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-06
 **Keywords:** YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases, Markdown, markdown linting, pymarkdownlnt, markup validation, TOML, environment files
-**TokenBudget:** ~4100
+**TokenBudget:** ~3900
 **ContextTier:** Medium
 **Depends:** None
 **LoadTrigger:** ext:.yml, ext:.yaml, ext:.toml, file:Taskfile.yml
@@ -64,7 +64,7 @@ Safe markup and configuration file practices to prevent parsing errors and maint
 ### Forbidden
 
 - Direct file modification without validation
-- Unicode characters in YAML values
+- Unicode bullet/special characters in YAML structural contexts (i18n strings in values are valid)
 - Secrets in version-controlled config files
 - Inconsistent indentation
 - Unquoted strings containing colons in YAML
@@ -188,77 +188,27 @@ systemctl restart app
 ```
 **Benefits:** Catch errors before deployment; prevent production outages; fast feedback; safe deployments.
 
-## Post-Execution Checklist
-- [ ] YAML files use consistent 2-space indentation
-- [ ] Strings with special characters are properly quoted
-- [ ] Taskfile syntax validated with `task --list`
-- [ ] Environment files follow KEY=VALUE format
-- [ ] TOML configuration uses proper section headers
-- [ ] Markdown files pass `uvx pymarkdownlnt scan` with zero errors
-- [ ] No secrets or sensitive data in configuration files
-- [ ] Configuration validated at application startup
-- [ ] Documentation includes setup and validation instructions
-
-## Validation
-- **Success checks:** All YAML files parse correctly; Taskfile syntax valid; TOML configuration loads without errors; Markdown files pass linting with zero errors; no parsing errors in any markup/config files
-- **Negative tests:** Malformed YAML fails parsing; unquoted special characters cause errors; invalid TOML syntax detected; Markdown linting catches formatting issues; configuration with missing required values fails validation
-
 ## Output Format Examples
 
-```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
-
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
-from datetime import datetime, UTC
-
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
-
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
-
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
-
-    Args:
-        input_data: Validated input following schema
-
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
-```
-
 ```bash
-# Validation commands
-uvx ruff check .
-uvx ruff format --check .
-uv run pytest tests/
+# yamllint output (clean)
+$ uvx yamllint config.yml
+$
+
+# yamllint output (errors)
+$ uvx yamllint config.yml
+config.yml
+  3:1       error    wrong indentation: expected 2 but found 4  (indentation)
+  7:12      error    too many spaces after colon  (colons)
+
+# pymarkdownlnt output (clean)
+$ uvx pymarkdownlnt scan README.md
+No issues found.
+
+# pymarkdownlnt output (errors)
+$ uvx pymarkdownlnt scan README.md
+README.md:5:1: MD022: Headings should be surrounded by blank lines [Expected: 1; Actual: 0]
+README.md:12:81: MD013: Line length [Expected: 80; Actual: 120]
 ```
 
 ## YAML Syntax Safety
@@ -351,17 +301,31 @@ cmds:
 2. **"command not found"**: Variable expansion issues.
    - Fix: Use proper `{{.VARIABLE}}` syntax and quote expansions.
 
-## Validation and Testing
+## YAML Anchors and Aliases
 
-### YAML Validation
-- **Always:** Test YAML syntax after changes: `task --list` for Taskfiles.
-- **Always:** Use YAML linters in CI/CD pipelines.
-- **Consider:** Use IDE extensions for real-time YAML validation.
+### Safe Patterns
+```yaml
+# Define anchor with &, reference with *
+defaults: &defaults
+  adapter: postgres
+  host: localhost
 
-### Configuration Testing
-- **Always:** Test configuration loading in application startup.
-- **Always:** Validate environment variable parsing.
-- **Critical:** Test configuration with different environments (dev, test, prod).
+development:
+  <<: *defaults        # Merge anchor into mapping
+  database: app_dev
+
+production:
+  <<: *defaults
+  database: app_prod
+  host: db.example.com  # Override specific keys
+```
+
+### Common Pitfalls
+- **Critical:** Anchors must be defined before use — YAML is parsed top-to-bottom
+- **Critical:** `<<: *anchor` only works for mappings, not sequences
+- **Always:** Keep anchor definitions near the top of the file for readability
+- **Never:** Use deeply nested anchor chains (A to B to C) -- they are hard to debug
+- **Never:** Use anchors for secrets — the value is duplicated in memory and may appear in logs
 
 ## Documentation and Comments
 
@@ -495,22 +459,6 @@ markdownlint-cli2 "**/*.md"
 ```
 
 **Rationale for pymarkdownlnt:** Consistency with existing Python/`uv` tooling ecosystem.
-
-## Validation Results
-
-**Files Checked:**
-- YAML: [list]
-- TOML: [list]
-- Markdown: [list]
-
-**Issues Found:** [count]
-
-**Actions Taken:**
-1. [Fix description]
-2. [Fix description]
-
-**Validation Passed:** /
-```
 
 > **Investigation Required**
 > When applying this rule:

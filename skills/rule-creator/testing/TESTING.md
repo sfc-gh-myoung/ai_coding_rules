@@ -16,9 +16,9 @@ ls skills/rule-creator/README.md
 ls skills/rule-creator/workflows/*.md
 ls skills/rule-creator/examples/*.md
 
-# 2. Verify supporting scripts exist
-ls scripts/template_generator.py
-ls scripts/schema_validator.py
+# 2. Verify CLI tools are available
+uv run ai-rules new --help
+uv run ai-rules validate --help
 
 # 3. Verify RULES_INDEX.md is accessible
 head -20 RULES_INDEX.md
@@ -70,7 +70,7 @@ grep -c "^## " rules/NNN-testtechnology-core.md
 
 **Verify:**
 ```bash
-python scripts/schema_validator.py rules/NNN-testtechnology-core.md
+uv run ai-rules validate rules/NNN-testtechnology-core.md
 echo $?
 # Expected: 0 (after fixes)
 ```
@@ -120,11 +120,11 @@ Run after any skill modifications:
 
 ### Template Generation Fails
 
-**Symptom:** `template_generator.py` returns error
+**Symptom:** `ai-rules new` returns error
 
 **Check:**
-1. Python 3.11+ installed
-2. PyYAML installed: `pip install pyyaml`
+1. `uv` installed and available on PATH
+2. `ai-rules` CLI installed: `uv run ai-rules --help`
 3. Filename format correct: `NNN-technology-aspect`
 
 ### Validation Never Passes
@@ -252,11 +252,11 @@ def validate_no_placeholders(rule_path):
 **Check 4: Schema Validation Clean**
 ```python
 def validate_schema_clean(rule_path):
-    """Verify schema_validator.py returns exit code 0."""
+    """Verify ai-rules validate returns exit code 0."""
     import subprocess
     
     result = subprocess.run(
-        ["python", "scripts/schema_validator.py", rule_path],
+        ["uv", "run", "ai-rules", "validate", rule_path],
         capture_output=True,
         text=True
     )

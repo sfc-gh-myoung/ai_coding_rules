@@ -85,9 +85,9 @@ utility-first, design system, best practices, patterns, optimization
 - Not specialized/rare (not Low)
 - **Selected: Medium**
 
-**Step 2.2: Execute template_generator.py**
+**Step 2.2: Execute ai-rules new**
 ```bash
-$ python scripts/template_generator.py 422-daisyui-core \
+$ uv run ai-rules new 422-daisyui-core \
     --context-tier Medium \
     --output-dir rules/
 
@@ -95,7 +95,7 @@ $ python scripts/template_generator.py 422-daisyui-core \
 
 Next steps:
 1. Edit rules/422-daisyui-core.md and replace all placeholders
-2. Validate: python scripts/schema_validator.py rules/422-daisyui-core.md
+2. Validate: uv run ai-rules validate rules/422-daisyui-core.md
 3. Add to RULES_INDEX.md
 ```
 
@@ -178,7 +178,7 @@ All web applications using DaisyUI v4.0+ component library for UI development wi
 
 **Iteration 1:**
 ```bash
-$ python scripts/schema_validator.py rules/422-daisyui-core.md
+$ uv run ai-rules validate rules/422-daisyui-core.md
 
 ================================================================================
 VALIDATION REPORT: rules/422-daisyui-core.md
@@ -204,7 +204,7 @@ Recounted keywords - actually had 9, needed 10-15. Added "component-design" keyw
 
 **Iteration 2:**
 ```bash
-$ python scripts/schema_validator.py rules/422-daisyui-core.md
+$ uv run ai-rules validate rules/422-daisyui-core.md
 
 ================================================================================
 VALIDATION REPORT: rules/422-daisyui-core.md
@@ -281,7 +281,7 @@ Ready for use: rules/422-daisyui-core.md
 **What Worked Well:**
 - Domain detection was clear (420-449 for frontend)
 - Web research provided current best practices
-- template_generator.py created perfect structure
+- ai-rules new created perfect structure
 - Validation caught keyword count issue early
 - Passed validation on iteration 2 (within 3 attempt limit)
 
@@ -301,5 +301,4 @@ Ready for use: rules/422-daisyui-core.md
 **Comparison to Manual:**
 - Manual rule creation: ~45-60 minutes
 - With script orchestration: ~19 minutes
-- **Time savings: ~65% faster**
-
+- **Time saving                  

@@ -83,10 +83,10 @@ model: claude-sonnet45
 
 ### Cross-Reference Verification
 
-- **`scripts/rule_deployer.py`** - Type: file, Location: README:45, Exists?: , Notes: —
-- **`scripts/schema_validator.py`** - Type: file, Location: README:52, Exists?: , Notes: —
-- **`scripts/template_generator.py`** - Type: file, Location: README:58, Exists?: , Notes: —
-- **`scripts/old_generator.py`** - Type: file, Location: README:112, Exists?: , Notes: Removed in v3.0
+- **`ai-rules deploy`** - Type: command, Location: README:45, Exists?: , Notes: —
+- **`ai-rules validate`** - Type: command, Location: README:52, Exists?: , Notes: —
+- **`ai-rules new`** - Type: command, Location: README:58, Exists?: , Notes: —
+- **`scripts/old_generator.py`** - Type: file, Location: README:112, Exists?: , Notes: Removed in v3.0; use `ai-rules new`
 - **`task deploy`** - Type: command, Location: README:78, Exists?: , Notes: —
 - **`task generate:rules`** - Type: command, Location: README:85, Exists?: , Notes: Command renamed
 - **`task validate`** - Type: command, Location: README:92, Exists?: , Notes: —

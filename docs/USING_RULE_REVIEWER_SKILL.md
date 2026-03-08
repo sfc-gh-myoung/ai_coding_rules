@@ -176,14 +176,14 @@ Adds timing metadata to output (duration, token usage, cost estimation).
 
 **Timing thresholds:**
 - <60 seconds: Warning (possible shortcut)
-- >600 seconds: Warning (possible issue)
+- >180 seconds: Warning (possible issue)
 
 ### Execution Modes
 
 | Mode | Speed | Use Case |
 |------|-------|----------|
-| **parallel** (default) | ~3-5 min | Production reviews (7 sub-agents) |
-| **sequential** | ~10-15 min | Debugging, low-resource environments |
+| **parallel** (default) | ~90-120 sec | Production reviews (7 sub-agents) |
+| **sequential** | ~2-3 min | Debugging, low-resource environments |
 
 ```text
 execution_mode: sequential
@@ -233,7 +233,7 @@ Use a lowercase-hyphenated slug like `claude-sonnet-45`. Raw model names are nor
 
 Use rule-reviewer for rule files agents will load. Use plan-reviewer for plans agents will execute.
 
-### Why does my review take 3-5 minutes?
+### Why does my review take 90-120 seconds?
 
 This is expected and required. The skill performs comprehensive analysis including:
 - Schema validation
@@ -241,7 +241,7 @@ This is expected and required. The skill performs comprehensive analysis includi
 - Rubric-based scoring for each dimension
 - Specific recommendations with line numbers
 
-Reviews completing in under 2 minutes may indicate incomplete analysis.
+Reviews completing in under 60 seconds may indicate incomplete analysis.
 
 ### Where do the rubrics come from?
 
@@ -338,4 +338,4 @@ skills/rule-reviewer/
 - **Examples:** `skills/rule-reviewer/examples/*.md`
 - **Tests:** `skills/rule-reviewer/tests/*.md`
 - **Troubleshooting:** `workflows/error-handling.md`
-- **Timing system:** `skills/skill-timing/README.md`
+- **Timing system:** `skills/skill-timing/README.    

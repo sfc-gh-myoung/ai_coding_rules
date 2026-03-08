@@ -147,8 +147,8 @@ review_mode: STALENESS
 
 ## Performance Baseline
 
-- **Review time (FULL)** - Target: < 2 min, Acceptable: < 5 min
-- **Review time (FOCUSED)** - Target: < 1 min, Acceptable: < 2 min
+- **Review time (FULL)** - Target: ~2 min (90-120s), Acceptable: < 3 min
+- **Review time (FOCUSED)** - Target: ~1 min (60-90s), Acceptable: < 2 min
 - **File write** - Target: < 1 sec, Acceptable: < 5 sec
 
 ## Troubleshooting
@@ -209,7 +209,7 @@ Validate rule-creator output quality:
 Use rule-creator skill to create rules/999-test-rule.md
 
 # Step 2: Validate creation
-python scripts/schema_validator.py rules/999-test-rule.md
+uv run ai-rules validate rules/999-test-rule.md
 # Expected: exit code 0
 
 # Step 3: Review created rule

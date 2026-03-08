@@ -4,12 +4,40 @@ import os
 
 from rich.console import Console
 
-# Use fixed width to prevent text wrapping in narrow terminals (e.g., CI)
-# This ensures "not found" doesn't become "not\nfound" due to line wrapping
-_width = 200 if os.environ.get("CI") or os.environ.get("TERM") == "dumb" else None
 
-console = Console(width=_width)
-err_console = Console(stderr=True, width=_width)
+def _should_use_color() -> bool:
+    """Determine if color output should be used.
+
+    Respects:
+    - NO_COLOR env var (https://no-color.org/)
+    - CI env var (CI environments typically don't want color)
+    - TERM=dumb (dumb terminals can't handle ANSI)
+    """
+    if os.environ.get("NO_COLOR"):
+        return False
+    if os.environ.get("CI"):
+        return False
+    if os.environ.get("TERM") == "dumb":
+        return False
+    return True
+
+
+_use_color = _should_use_color()
+# Use fixed width in non-color mode to prevent text wrapping in narrow terminals
+# This ensures "not found" doesn't become "not\nfound" due to line wrapping
+_width = 200 if not _use_color else None
+
+console = Console(
+    width=_width,
+    force_terminal=_use_color,
+    no_color=not _use_color,
+)
+err_console = Console(
+    stderr=True,
+    width=_width,
+    force_terminal=_use_color,
+    no_color=not _use_color,
+)
 
 
 def log_info(message: str) -> None:

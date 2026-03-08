@@ -1,6 +1,7 @@
 """CLI commands for AGENTS.md evaluation tool."""
 
 import hashlib
+import os
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -33,8 +34,32 @@ from agent_eval.models import (
     State,
 )
 
-console = Console()
-err_console = Console(stderr=True)
+
+def _should_use_color() -> bool:
+    """Determine if color output should be used."""
+    if os.environ.get("NO_COLOR"):
+        return False
+    if os.environ.get("CI"):
+        return False
+    if os.environ.get("TERM") == "dumb":
+        return False
+    return True
+
+
+_use_color = _should_use_color()
+_width = 200 if not _use_color else None
+
+console = Console(
+    width=_width,
+    force_terminal=_use_color,
+    no_color=not _use_color,
+)
+err_console = Console(
+    stderr=True,
+    width=_width,
+    force_terminal=_use_color,
+    no_color=not _use_color,
+)
 
 TOOLS_DIR = Path(__file__).parent
 TEST_CASES_FILE = TOOLS_DIR / "test_cases.yaml"

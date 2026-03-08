@@ -2079,20 +2079,12 @@ class TestValidateCLIBranches:
         )
 
         assert result.exit_code == 1
-        # Extract JSON from output (may have Rich formatting/control chars)
+        # Parse JSON output - should be clean with NO_COLOR=1 set
         output = result.output.strip()
-        # Find the JSON object in output
         json_start = output.find("{")
         if json_start >= 0:
-            # Remove ANSI escape sequences and other control characters
-            import re as re_module
-
-            clean = re_module.sub(r"\x1b\[[0-9;]*[a-zA-Z]", "", output[json_start:])
-            clean = re_module.sub(r"[\x00-\x1f\x7f](?![\n\r\t])", "", clean)
-            # Replace remaining non-standard whitespace
-            clean = clean.replace("\r", "")
             try:
-                data = json_lib.loads(clean)
+                data = json_lib.loads(output[json_start:])
                 assert data["summary"]["failed"] >= 1
             except json_lib.JSONDecodeError:
                 # If JSON still can't be parsed, just verify exit code was 1

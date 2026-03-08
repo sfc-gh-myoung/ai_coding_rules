@@ -10,7 +10,7 @@ from typer.testing import CliRunner
 
 from ai_rules.cli import app
 
-runner = CliRunner()
+runner = CliRunner(env={"NO_COLOR": "1"})
 
 
 class TestRefsHelp:

@@ -18,7 +18,7 @@ from typer.testing import CliRunner
 from ai_rules.cli import app
 from ai_rules.commands import index as index_module
 
-runner = CliRunner()
+runner = CliRunner(env={"NO_COLOR": "1"})
 
 
 # Sample rule content for testing

@@ -1,9 +1,15 @@
 """Shared Rich console instance for consistent output."""
 
+import os
+
 from rich.console import Console
 
-console = Console()
-err_console = Console(stderr=True)
+# Use fixed width to prevent text wrapping in narrow terminals (e.g., CI)
+# This ensures "not found" doesn't become "not\nfound" due to line wrapping
+_width = 200 if os.environ.get("CI") or os.environ.get("TERM") == "dumb" else None
+
+console = Console(width=_width)
+err_console = Console(stderr=True, width=_width)
 
 
 def log_info(message: str) -> None:

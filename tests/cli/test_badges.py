@@ -17,7 +17,7 @@ from typer.testing import CliRunner
 from ai_rules.cli import app
 from ai_rules.commands import badges
 
-runner = CliRunner()
+runner = CliRunner(env={"NO_COLOR": "1"})
 
 
 class TestBadgesHelpOutput:

@@ -1,4 +1,4 @@
-# Architecture: AI Coding Rules (v3.6.2)
+# Architecture: AI Coding Rules
 
 **Last Updated:** 2026-03-09
 

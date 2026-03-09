@@ -1,7 +1,7 @@
 # AI Coding Rules
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
-![Version](https://img.shields.io/badge/version-3.6.2-blue)
+![Version](https://img.shields.io/badge/version-3.7.0-blue)
 [![CI](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml/badge.svg)](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)

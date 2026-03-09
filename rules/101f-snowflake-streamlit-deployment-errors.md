@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.0.0
-**LastUpdated:** 2026-03-02
+**RuleVersion:** v2.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** deployment error, Container Runtime, Warehouse Runtime, EAI error, compute pool, stage upload, service startup, troubleshooting, runtime error
 **TokenBudget:** ~2600
 **ContextTier:** Low
@@ -54,7 +54,7 @@ Deployment error scenarios and resolution steps for Streamlit applications in bo
 
 ### Forbidden
 
-- Deploying without testing locally first
+- Deploying without testing locally first (run: streamlit run app.py --server.port 8501)
 - Ignoring service logs when debugging
 - Hardcoding credentials
 
@@ -124,7 +124,7 @@ Error: Compute pool 'STREAMLIT_COMPUTE_POOL' is not in ACTIVE state
 1. Check compute pool status: `SHOW COMPUTE POOLS`
 2. Resume if suspended: `ALTER COMPUTE POOL streamlit_compute_pool RESUME`
 3. Wait for ACTIVE state (may take several minutes on first creation)
-4. Verify pool has sufficient resources for app requirements
+4. Verify pool: MIN_NODES >= 1, instance family has >= 4GB memory for typical Streamlit apps. Check with SHOW COMPUTE POOLS.
 
 ### Retrieving Service Logs
 
@@ -150,7 +150,7 @@ No matching distribution found
 1. Verify package exists on PyPI: `pip index versions mypackage` or check pypi.org
 2. Check version constraints in `pyproject.toml` are valid
 3. Test locally: `uv pip install -r pyproject.toml`
-4. Use compatible version ranges, avoid overly strict pins
+4. Use >= constraints (e.g., mypackage>=1.0,<2.0) instead of exact pins (mypackage==1.0.3)
 
 ### Error 4: Python Version Mismatch
 
@@ -305,7 +305,7 @@ df = session.table("LARGE_TABLE").to_pandas()
 df = session.table("LARGE_TABLE").filter(col("DATE") >= "2025-01-01").limit(10000).to_pandas()
 ```
 2. For Container Runtime, increase container memory in compute pool configuration
-3. For Warehouse Runtime, use a larger warehouse or add `STATEMENT_TIMEOUT_IN_SECONDS`:
+3. For Warehouse Runtime, increase warehouse size by one tier (e.g., ALTER WAREHOUSE SET WAREHOUSE_SIZE = 'MEDIUM') or add `STATEMENT_TIMEOUT_IN_SECONDS`:
 ```sql
 ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = 600;
 ```

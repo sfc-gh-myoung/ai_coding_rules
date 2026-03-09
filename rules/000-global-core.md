@@ -9,8 +9,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-02-06
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-03-09
 **Keywords:** workflow, safety, confirmation, validation, surgical edits, minimal changes, prompt engineering, task list, context window, professional communication
 **TokenBudget:** ~3800
 **ContextTier:** Critical
@@ -59,7 +59,7 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 ### Inputs and Prerequisites
 
 - Project workspace access
-- Tool availability (read_file, list_dir, grep, and project-specific tools)
+- Tool availability (read_file, list_dir, grep, and project-specific tools (as defined in Taskfile.yml, Makefile, or package.json scripts))
 - Up-to-date rule files (from current branch HEAD)
 - User requirements
 
@@ -212,7 +212,7 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 
 ## Key Principles
 
-### Surgical Editing Principle
+### Surgical Editing Principle (also referred to as "minimal changes")
 
 - Make only the minimal changes required
 - Preserve existing code patterns and style
@@ -241,7 +241,7 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 - Validate all changes before marking tasks complete
 - Run appropriate tests and lints for the technology
 - Update documentation when changes affect usage
-- Ensure no regressions introduced via the validation sequence (Syntax, Linting, Formatting, Type Checking, Tests)
+- Verify no regressions by running validation sequence (Syntax, Linting, Formatting, Type Checking, Tests)
 - **Taskfile-first (project standards):** If the project provides an automation entrypoint (prefer
   `Taskfile.yml`), run validation via project-defined tasks:
   - **If task exits 0:** Success, continue to next validation step

@@ -336,4 +336,4 @@ This skill is **internal-only** and is not deployed to team projects. It remains
 - **Workflow guides:** `skills/bulk-rule-reviewer/workflows/*.md`
 - **Examples:** `skills/bulk-rule-reviewer/examples/full-bulk-review.md`
 - **Tests:** `skills/bulk-rule-reviewer/tests/validation-tests.md`
-- **Timing system:** `skills/skill-timing/README.md` 
+- **Timing system:** `docs/USING_SKILL_TIMING_SKILL.md`

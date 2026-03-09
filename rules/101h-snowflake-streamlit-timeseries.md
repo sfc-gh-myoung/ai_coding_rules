@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-01-12
+**LastUpdated:** 2026-03-09
 **Keywords:** time series smoothing, data aggregation, resample, SCADA data, high-frequency data, trend analysis, rolling average, EWMA, exponential smoothing
-**TokenBudget:** ~2150
+**TokenBudget:** ~2300
 **ContextTier:** Low
 **Depends:** 101a-snowflake-streamlit-visualization.md
 
@@ -31,13 +31,14 @@ Time-based aggregation and smoothing patterns for high-frequency data visualizat
 
 ### Related
 
-- **251-python-datetime-handling.md** - Datetime optimization for time series
+- **251-python-datetime-core.md** - Datetime optimization for time series
 
 ## Contract
 
 ### Inputs and Prerequisites
 
 - DataFrame with time series data (timestamp column + value columns)
+- pandas >= 1.3.0 (for resample improvements), Streamlit >= 1.20.0
 - High-frequency data causing noisy visualizations or performance issues
 - pandas library available
 
@@ -83,7 +84,7 @@ Smoothed DataFrame with reduced data points and user feedback showing reduction.
 - [ ] UI controls for aggregation level provided
 - [ ] UI controls for aggregation method provided
 - [ ] Original and smoothed counts displayed
-- [ ] Appropriate method selected for use case
+- [ ] Method matches use case: mean for trends, median for noisy data, max for peak detection, min for valley detection, ewma for adaptive smoothing
 
 ## Smoothing Function
 
@@ -111,6 +112,11 @@ def smooth_time_series_data(
     Returns:
         Smoothed DataFrame with reduced number of data points
     """
+    if df.empty:
+        return df
+    if time_col not in df.columns:
+        raise ValueError(f"Column '{time_col}' not found in DataFrame")
+    df[time_col] = pd.to_datetime(df[time_col])
     df_indexed = df.set_index(time_col)
     available_cols = [col for col in value_cols if col in df_indexed.columns]
 
@@ -124,6 +130,8 @@ def smooth_time_series_data(
         df_smooth = df_resampled.max()
     elif method == "min":
         df_smooth = df_resampled.min()
+    elif method == "ewma":
+        df_smooth = df_indexed[available_cols].ewm(span=12, adjust=False).mean()
     else:
         raise ValueError(f"Unknown method: {method}")
 

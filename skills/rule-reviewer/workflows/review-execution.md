@@ -17,15 +17,20 @@
 
 **Read these 9 files completely before reading target rule:**
 
+> **Scoring Rubric v2.0:** 6 scored dimensions (100 points), 2 informational-only
+
+**Scored Dimensions:**
 1. `rubrics/_overlap-resolution.md` (prerequisite for all dimensions)
-2. `rubrics/actionability.md` (25 points, weight 5)
-3. `rubrics/completeness.md` (25 points, weight 5)
-4. `rubrics/consistency.md` (15 points, weight 3)
-5. `rubrics/parsability.md` (15 points, weight 3)
-6. `rubrics/token-efficiency.md` (10 points, weight 2)
-7. `rubrics/rule-size.md` (10 points, weight 2) - 100% deterministic
-8. `rubrics/staleness.md` (10 points, weight 2)
-9. `rubrics/cross-agent-consistency.md` (5 points, weight 1)
+2. `rubrics/actionability.md` (30 points, weight 3.0)
+3. `rubrics/rule-size.md` (25 points, weight 2.5) - 100% deterministic
+4. `rubrics/parsability.md` (15 points, weight 1.5)
+5. `rubrics/completeness.md` (15 points, weight 1.5)
+6. `rubrics/consistency.md` (10 points, weight 1.0)
+7. `rubrics/cross-agent-consistency.md` (5 points, weight 0.5)
+
+**Informational Only (not scored):**
+8. `rubrics/token-efficiency.md` - merged into Rule Size
+9. `rubrics/staleness.md` - findings reported, not scored
 
 ### Step 1.2: Extract Key Information
 
@@ -35,20 +40,22 @@ From EACH rubric, record:
 - **Counting protocol:** How to enumerate
 - **Score decision matrix:** Count → tier → score
 
-### Step 1.3: Create All 8 Empty Inventories
+### Step 1.3: Create All 6 Empty Inventories
 
 **Prepare inventories BEFORE reading target rule.**
 
-Copy the Mandatory Issue Inventory template from each rubric:
+Copy the Mandatory Issue Inventory template from each scored rubric:
 
 1. Actionability Inventory (blocking issues table)
-2. Completeness Inventory (error/edge case/prerequisite/validation checklist)
-3. Consistency Inventory (contradictions, terminology, examples tables)
-4. Parsability Inventory (schema errors, metadata, markdown tables)
-5. Token Efficiency Inventory (budget, redundancy, structure tables)
-6. Rule Size Inventory (line count assessment table)
-7. Staleness Inventory (LastUpdated, tools, patterns, links tables)
-8. Cross-Agent Consistency Inventory (considerations, conditionals tables)
+2. Rule Size Inventory (line count assessment table)
+3. Parsability Inventory (schema errors, metadata, markdown tables)
+4. Completeness Inventory (error/edge case/prerequisite/validation checklist)
+5. Consistency Inventory (contradictions, terminology, examples tables)
+6. Cross-Agent Consistency Inventory (considerations, conditionals tables)
+
+**Informational inventories (if time permits):**
+- Token Efficiency Inventory (budget, redundancy, structure tables) - findings only
+- Staleness Inventory (LastUpdated, tools, patterns, links tables) - findings only
 
 ### Step 1.4: Verification Checkpoint
 
@@ -57,7 +64,7 @@ Before proceeding, verify:
 - [ ] All 9 rubric files read completely?
 - [ ] Pattern definitions extracted?
 - [ ] Non-Issues lists recorded?
-- [ ] All 8 inventories created (empty)?
+- [ ] All 6 scored inventories created (empty)?
 
 **GATE:** Do NOT proceed to Phase 2 until ALL checkboxes are YES.
 
@@ -122,12 +129,11 @@ For EACH dimension:
 ### Step 3.2: Calculate Total Score
 
 ```
-Total = (Actionability × 2.5) + (Completeness × 2.5) + 
-        (Consistency × 1.5) + (Parsability × 1.5) + 
-        (Token Efficiency × 1.0) + (Rule Size × 1.0) +
-        (Staleness × 1.0) + (Cross-Agent Consistency × 0.5)
+Total = (Actionability × 3.0) + (Rule Size × 2.5) + 
+        (Parsability × 1.5) + (Completeness × 1.5) + 
+        (Consistency × 1.0) + (Cross-Agent Consistency × 0.5)
 
-Maximum: 105 points
+Maximum: 100 points (v2.0)
 ```
 
 ### Step 3.3: Generate Review
@@ -135,11 +141,11 @@ Maximum: 105 points
 Include in output:
 
 1. **Header:** Target file, review date, mode, model
-2. **Score Summary:** Total and per-dimension scores (8 dimensions)
+2. **Score Summary:** Total and per-dimension scores (6 scored dimensions)
 3. **All Inventories:** Include completed inventory tables as evidence
-4. **Rule Size Flags:** Include OPTIMIZATION_RECOMMENDED, SPLITTING_REQUIRED, or NOT_DEPLOYABLE if applicable
+4. **Rule Size Flags:** Include SPLIT_RECOMMENDED, SPLIT_REQUIRED, NOT_DEPLOYABLE, or BLOCKED if applicable
 5. **Priority Fixes:** Top 3-5 improvements ordered by impact
-6. **Verdict:** EXECUTABLE (≥94), EXECUTABLE_WITH_REFINEMENTS (84-93), NEEDS_REFINEMENT (63-83), NOT_EXECUTABLE (<63)
+6. **Verdict:** EXECUTABLE (≥90), EXECUTABLE_WITH_REFINEMENTS (75-89), NEEDS_REFINEMENT (50-74), NOT_EXECUTABLE (<50)
 
 ---
 
@@ -147,7 +153,7 @@ Include in output:
 
 - `review_markdown`: Full Markdown review content with:
   - Score summary
-  - All 8 dimension inventories
+  - All 6 scored dimension inventories
   - Rule Size flags (if applicable)
   - Issue details with line numbers
   - Priority fix recommendations
@@ -180,12 +186,12 @@ Before submitting review, verify:
 
 | Requirement | Check |
 |-------------|-------|
-| Score table present | 8 rows (all dimensions) with scores |
+| Score table present | 6 rows (all scored dimensions) with scores |
 | Line count included | Rule Size inventory with `wc -l` result |
 | Line references | ≥15 distinct line citations |
 | Direct quotes | ≥3 with line numbers |
 | Verdict section | One of: EXECUTABLE, EXECUTABLE_WITH_REFINEMENTS, NEEDS_REFINEMENT, NOT_EXECUTABLE |
-| Rule Size flag | OPTIMIZATION_RECOMMENDED, SPLITTING_REQUIRED, NOT_DEPLOYABLE, or None |
+| Rule Size flag | SPLIT_RECOMMENDED, SPLIT_REQUIRED, NOT_DEPLOYABLE, BLOCKED, or None |
 | Recommendations | ≥1 with line numbers (even for 95+ scores) |
 
 **If ANY requirement missing:**

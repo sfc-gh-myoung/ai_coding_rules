@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-08
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-03-09
 **Keywords:** rule update, rule maintenance, versioning, RuleVersion, LastUpdated, semantic versioning, MAJOR, MINOR, PATCH, rule modification, keyword expansion, scope updates, metadata updates, CHANGELOG updates
 **TokenBudget:** ~3500
 **ContextTier:** High
@@ -112,6 +112,7 @@ Updated rule file with:
 
 ### Post-Execution Checklist
 
+- [ ] Filename complies with pattern `<NNN>[<letter>]-<technology>-<aspect>.md` (single-letter suffix only, no multi-char suffixes like a1, b2)
 - [ ] Change type determined (MAJOR/MINOR/PATCH)
 - [ ] RuleVersion incremented correctly
 - [ ] LastUpdated updated to current date
@@ -174,12 +175,12 @@ Updated rule file with:
 ```markdown
 Before:
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-03-09
 **Keywords:** git, workflow, branching strategy
 
 After:
 **RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-07
+**LastUpdated:** 2026-03-09
 **Keywords:** git, git commit, commit message, workflow, branching strategy
 ```
 
@@ -187,12 +188,12 @@ After:
 ```markdown
 Before:
 **RuleVersion:** v2.1.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-03-09
 Content: "Use teh validation command"
 
 After:
 **RuleVersion:** v2.1.1
-**LastUpdated:** 2026-01-07
+**LastUpdated:** 2026-03-09
 Content: "Use the validation command"
 ```
 
@@ -201,12 +202,12 @@ Content: "Use the validation command"
 Before:
 **SchemaVersion:** v3.1
 **RuleVersion:** v2.5.0
-**LastUpdated:** 2025-12-15
+**LastUpdated:** 2026-03-09
 
 After:
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-03-09
 ```
 
 ## When to Update Rules
@@ -217,7 +218,7 @@ After:
 - Adding new examples or anti-patterns to existing guidance
 - Expanding "When to Load This Rule" with new triggers
 - Adding new keywords for improved discoverability
-- Clarifying ambiguous or unclear guidance
+- Rewriting guidance that has 2 or more valid interpretations
 - Fixing typos, broken links, or formatting issues
 - Updating external documentation references
 - Adding new optional tools or commands
@@ -327,7 +328,7 @@ code example
 **LastUpdated:**
 ```markdown
 # Always update to current date
-**LastUpdated:** 2026-01-07
+**LastUpdated:** 2026-03-09
 ```
 
 **Keywords (if adding new terms):**
@@ -397,7 +398,7 @@ All update scenarios follow the same core workflow:
 
 ### Scenario Comparison
 
-**Add keywords (MINOR):** Update Keywords field (maintain 5-20 terms). New terms must match real user queries.
+**Add keywords (MINOR):** Update Keywords field (maintain 5-20 terms). New terms must appear in task descriptions agents typically receive.
 
 **Expand scope/triggers (MINOR):** Update "When to Load This Rule" section. New triggers must align with existing scope.
 
@@ -436,7 +437,7 @@ grep "RuleVersion" rules/<your-rule>.md  # Note current version
 **Correct Pattern:**
 ```markdown
 # ALWAYS update LastUpdated for ANY change
-**LastUpdated:** 2026-01-07  # Current date
+**LastUpdated:** 2026-03-09  # Current date
 ```
 
 **Benefits:** Accurate change tracking; users see recent updates; compliance with versioning policy.

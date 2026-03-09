@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Business intelligence, dashboards, KPIs, reporting, visualization, stakeholder reports, metrics, Snowsight, executive dashboards, data storytelling, WCAG accessibility
-**TokenBudget:** ~2750
+**TokenBudget:** ~2900
 **ContextTier:** High
 **Depends:** 000-global-core.md, 100-snowflake-core.md
 
@@ -308,3 +308,24 @@ METRIC_DEFINITIONS = {
     }
 }
 ```
+
+## Mobile and Responsive Dashboard Design
+
+- MUST ensure dashboards meet WCAG 2.1 AA accessibility standards (color contrast, keyboard navigation, screen reader labels)
+- Use responsive layouts that adapt to tablet and mobile viewports
+- Avoid hover-only interactions — provide tap-friendly alternatives for touch devices
+- Test dashboards at 320px, 768px, and 1024px breakpoints minimum
+- Prefer scalable units (rem, %) over fixed pixels for layout dimensions
+
+## AI Agent Integration
+
+- Structure dashboard data as queryable APIs or views for agent consumption
+- Include metric metadata (definition, owner, refresh frequency) alongside values
+- Design dashboard components to be callable programmatically (not just interactive)
+- Agents SHOULD use the metric definitions dictionary as the authoritative source
+
+## Internationalization Note
+
+- When building dashboards for international audiences, use locale-aware formatting for numbers, dates, and currencies
+- Store display labels separately from logic to enable future localization
+- Use ISO 8601 date formats (YYYY-MM-DD) in data layers; localize only at the presentation layer

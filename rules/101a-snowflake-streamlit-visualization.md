@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v4.0.0
-**LastUpdated:** 2026-01-12
+**RuleVersion:** v4.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** st.plotly_chart, st.pydeck_chart, st.altair_chart, dashboard, interactive charts, map visualization, chart types, visualization selection, streamlit plotting
-**TokenBudget:** ~1750
+**TokenBudget:** ~1950
 **ContextTier:** High
 **Depends:** 000-global-core.md, 101-snowflake-streamlit-core.md
 
@@ -117,7 +117,7 @@ st.plotly_chart(fig, use_container_width=True)
 - Point clouds (>100k points with GPU acceleration)
 - Complex multi-layer geospatial compositing
 
-**Constraints:** Maximum ~8 PyDeck charts per page (WebGL limit)
+**Constraints:** Maximum ~8 PyDeck charts per page (WebGL limit). If >8 PyDeck charts needed: split across `st.tabs()` (each tab gets its own WebGL contexts), or replace simple 2D map views with `px.scatter_map()` from Plotly.
 
 **Load:** `101j-snowflake-streamlit-viz-pydeck.md`
 
@@ -143,6 +143,8 @@ st.plotly_chart(fig, use_container_width=True)
 
 ## Universal Best Practices
 
+**Empty Data Check:** Before rendering any chart, check: `if df.empty: st.info('No data available for this view'); return`
+
 **Responsive Display:**
 ```python
 st.plotly_chart(fig, use_container_width=True)
@@ -155,6 +157,15 @@ st.altair_chart(chart, use_container_width=True)
 import altair as alt
 chart = alt.Chart(df).mark_bar().encode(x='category', y='value')
 st.altair_chart(chart, use_container_width=True)
+```
+
+**Minimal PyDeck Example:**
+```python
+import pydeck as pdk
+layer = pdk.Layer('ScatterplotLayer', data=df, get_position='[lon, lat]',
+                  get_radius=200, get_fill_color=[255, 140, 0])
+view = pdk.ViewState(latitude=37.76, longitude=-122.4, zoom=11)
+st.pydeck_chart(pdk.Deck(layers=[layer], initial_view_state=view))
 ```
 
 **Colorblind-Safe Palette:**
@@ -184,7 +195,13 @@ df_valid = df_valid[
 
 **Time Series Smoothing:** See `101h-snowflake-streamlit-timeseries.md` for `resample()` patterns
 
-**Datetime Handling:** See `251-python-datetime-handling.md` for Pandas 2.0+ type compatibility
+**Datetime Handling:** See `251-python-datetime-core.md` for Pandas 2.0+ type compatibility
+
+## Error Recovery
+
+- **Blank chart:** Verify column names match DataFrame columns exactly (case-sensitive).
+- **Import error:** Verify library installed (`pip show plotly`). For SiS, check `environment.yml` or `pyproject.toml`.
+- **WebGL context lost:** Reduce PyDeck charts per page or use `st.tabs()` to isolate WebGL contexts.
 
 ## Anti-Patterns and Common Mistakes
 

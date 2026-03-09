@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:snowpipe, kw:streaming
 **Keywords:** snowpipe, auto-ingest, REST API, file-based ingestion, event notifications, COPY INTO, pipe management, serverless ingestion
-**TokenBudget:** ~3200
+**TokenBudget:** ~3400
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 108-snowflake-data-loading.md
 
@@ -289,14 +289,6 @@ GRANT SELECT, INSERT ON TABLE TO ROLE pipe_admin;
 GRANT OPERATE ON PIPE TO ROLE pipe_operator;
 ```
 
-**Pipe Management:**
-```sql
-ALTER PIPE my_pipe SET PIPE_EXECUTION_PAUSED = TRUE;   -- Pause
-ALTER PIPE my_pipe SET PIPE_EXECUTION_PAUSED = FALSE;  -- Resume
-ALTER PIPE my_pipe REFRESH;                            -- Force load
-ALTER PIPE my_pipe REFRESH PREFIX = 'events/2025/01/'; -- Refresh prefix
-```
-
 ## Monitoring Quick Reference
 
 ```sql
@@ -394,3 +386,4 @@ CREATE ALERT IF NOT EXISTS snowpipe_error_alert
   THEN CALL SYSTEM$SEND_EMAIL('notify_integration', 'team@company.com',
     'Snowpipe Load Failures', 'Check COPY_HISTORY for details');
 ```
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              

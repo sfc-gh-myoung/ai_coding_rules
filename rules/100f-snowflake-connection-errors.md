@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:connection-error, kw:timeout
 **Keywords:** connection errors, error classification, network policy, authentication, VPN, error codes, 08001, 390114, error handling, snowflake.connector, DatabaseError, message analysis, error detection
-**TokenBudget:** ~3700
+**TokenBudget:** ~3900
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -115,6 +115,16 @@ Error classification enum/constant with user-facing guidance string
 ## Error Classification Hierarchy
 
 ### Critical Pattern: Detection Order Matters
+
+**Language-Agnostic Error Classification:**
+
+1. **NETWORK_POLICY** — Message contains "not allowed to access", "IP/Token", or "network policy". Action: Reconnect VPN, check IP allowlist
+2. **AUTH_EXPIRED** — Error code 390114, 390318, 390144, or 390195. Action: Run `snow connection test`
+3. **TRANSIENT** — Message contains "timeout", "connection reset", or "temporarily unavailable". Action: Retry with exponential backoff
+4. **PERMISSION** — Message contains "insufficient privileges" or "permission denied". Action: Contact admin for role/privileges
+5. **CONNECTION** — Error code 08001, 08003, or 08004 (fallback). Action: Verify account URL, check network
+
+**Detection order matters:** Check patterns top-to-bottom. Network policy MUST be checked before auth codes.
 
 Snowflake error code `08001` appears in multiple scenarios:
 - VPN disconnection (network policy violation)
@@ -394,6 +404,8 @@ def classify_snowflake_connection_error(
     error_code: str
 ) -> Tuple[SnowflakeErrorType, str]:
     """Classify Snowflake connection error using composition of detectors."""
+    error_msg = error_msg or ""
+    error_code = error_code or ""
     for detector, uses_msg, error_type in _DETECTORS:
         if detector(error_msg if uses_msg else error_code):
             return (error_type, _GUIDANCE[error_type])
@@ -415,7 +427,7 @@ try:
 except DatabaseError as e:
     error_type, guidance = classify_snowflake_connection_error(
         str(e),
-        e.errno if hasattr(e, 'errno') else ""
+        str(e.errno) if hasattr(e, 'errno') else ""
     )
 
     if error_type == SnowflakeErrorType.NETWORK_POLICY:

@@ -7,8 +7,8 @@ Template for generating dimension-specific evaluation prompts for parallel rule 
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `{dimension_name}` | Dimension being evaluated | `actionability` |
-| `{weight}` | Dimension weight (1-5) | `5` |
-| `{max_points}` | Maximum points (weight × 5) | `25` |
+| `{weight}` | Dimension weight (0.5-3.0) | `3.0` |
+| `{max_points}` | Maximum points (weight × 10) | `30` |
 | `{target_file}` | Path to rule file | `rules/200-python-core.md` |
 | `{line_count}` | Rule file line count | `450` |
 | `{file_type}` | File type (rule \| project) | `rule` |
@@ -97,16 +97,25 @@ Return ONLY this JSON structure:
 
 ## Dimension Configuration
 
+> **Scoring Rubric v2.0:** 6 scored dimensions (100 points). Token Efficiency and Staleness are informational only.
+
+### Scored Dimensions
+
 | Dimension | Weight | Max Points | Rubric File | Deterministic |
 |-----------|--------|------------|-------------|---------------|
-| Actionability | 5 | 25 | `actionability.md` | No |
-| Completeness | 5 | 25 | `completeness.md` | No |
-| Consistency | 3 | 15 | `consistency.md` | No |
-| Parsability | 3 | 15 | `parsability.md` | No |
-| Token Efficiency | 2 | 10 | `token-efficiency.md` | No |
-| Rule Size | 2 | 10 | `rule-size.md` | **Yes** (inline) |
-| Staleness | 2 | 10 | `staleness.md` | No |
-| Cross-Agent Consistency | 1 | 5 | `cross-agent-consistency.md` | No |
+| Actionability | 3.0 | 30 | `actionability.md` | No |
+| Rule Size | 2.5 | 25 | `rule-size.md` | **Yes** (inline) |
+| Parsability | 1.5 | 15 | `parsability.md` | No |
+| Completeness | 1.5 | 15 | `completeness.md` | No |
+| Consistency | 1.0 | 10 | `consistency.md` | No |
+| Cross-Agent Consistency | 0.5 | 5 | `cross-agent-consistency.md` | No |
+
+### Informational Only (not scored)
+
+| Dimension | Rubric File | Notes |
+|-----------|-------------|-------|
+| Token Efficiency | `token-efficiency.md` | Merged into Rule Size |
+| Staleness | `staleness.md` | Findings reported only |
 
 **Note:** Rule Size is computed inline by coordinator (100% deterministic via `wc -l`), not by sub-agent.
 
@@ -120,9 +129,9 @@ Each sub-agent receives dimension-specific overlap rules. The coordinator extrac
 2. **Actionability**: Ambiguous/undefined instructions → Actionability (blocks execution)
 3. **Completeness**: Missing coverage/edge cases → Completeness (scope gap)
 4. **Consistency**: Self-contradiction → Consistency (internal conflict)
-5. **Token Efficiency**: Duplicated/redundant content → Token Efficiency
-6. **Staleness**: Outdated patterns/tools/references → Staleness
-7. **Cross-Agent Consistency**: Agent-specific logic/hardcoded names → Cross-Agent
+5. **Cross-Agent Consistency**: Agent-specific logic/hardcoded names → Cross-Agent
+6. **Token Efficiency** (informational): Duplicated/redundant content → Token Efficiency findings
+7. **Staleness** (informational): Outdated patterns/tools/references → Staleness findings
 
 ### Issue Type to Owner Mapping
 
@@ -140,10 +149,10 @@ yaml_invalid            → parsability
 metadata_missing        → parsability
 internal_conflict       → consistency
 terminology_mismatch    → consistency
-redundant_section       → token_efficiency
-repeated_instruction    → token_efficiency
-deprecated_tool         → staleness
-outdated_pattern        → staleness
+redundant_section       → token_efficiency (informational)
+repeated_instruction    → token_efficiency (informational)
+deprecated_tool         → staleness (informational)
+outdated_pattern        → staleness (informational)
 hardcoded_agent         → cross_agent_consistency
 ```
 

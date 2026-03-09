@@ -1,4 +1,33 @@
-# Token Efficiency Rubric (10 points)
+# Token Efficiency Rubric
+
+> **STATUS: INFORMATIONAL ONLY - NOT SCORED**
+>
+> As of Scoring Rubric v2.0, Token Efficiency has been **merged into Rule Size** and is no longer a scored dimension. This rubric is retained for:
+> - Historical reference
+> - Informational reporting in reviews
+> - Guidance on reducing line count
+>
+> **Findings from this rubric appear in the recommendations section, not in the score.**
+
+---
+
+## Redundancy Analysis (Informational)
+
+When reviewing rules, note redundancy issues to inform Rule Size recommendations:
+
+| Redundancy Count | Recommendation |
+|------------------|----------------|
+| 0 instances | No action needed |
+| 1-2 instances | Note in recommendations |
+| 3+ instances | Prioritize in remediation |
+
+---
+
+## Original Rubric (Historical Reference)
+
+The following content is preserved for historical reference and to guide redundancy analysis.
+
+---
 
 ## Mandatory Issue Inventory (REQUIRED)
 

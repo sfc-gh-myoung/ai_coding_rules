@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:semantic-integration
 **Keywords:** RBAC, masking policy, row access policy, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst, synonyms, natural language queries
 **TokenBudget:** ~3150
@@ -279,6 +279,8 @@ When masking policies are applied to base table columns used by a semantic view:
 **Problem:** Attempting to add governance policies (masking, row access) directly to semantic views.
 
 **Why It Fails:** Semantic views don't support direct policy attachment. Policies applied to semantic views are silently ignored, creating false security assumptions.
+
+> **CRITICAL:** Policies applied directly to semantic views are SILENTLY IGNORED. Row access policies and masking policies MUST be applied to the underlying base tables. There is no error or warning -- they simply have no effect.
 
 **Correct Pattern:**
 ```sql

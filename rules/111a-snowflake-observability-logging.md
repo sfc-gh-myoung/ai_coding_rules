@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:observability-logging
 **Keywords:** DEBUG, INFO, WARN, ERROR, FATAL, conditional logging, sampling, tight loop logging, standard logging libraries, log volume control, cost management, log configuration, log handlers
 **TokenBudget:** ~4000
@@ -224,7 +224,7 @@ def my_handler(session, input_data):
 
         # Warn about large datasets
         if len(input_data) > 100000:
-            logger.warn(f"Large dataset: {len(input_data)} records (may take time)")
+            logger.warning(f"Large dataset: {len(input_data)} records (may take time)")
 
         # Process with sampling for progress
         results = []
@@ -277,7 +277,7 @@ def process_data(session, df):
         logger.info(f"Filtered to {len(result)} valid records")
 
         if len(result) == 0:
-            logger.warn("No valid records found after filtering")
+            logger.warning("No valid records found after filtering")
             return None
 
         # Additional processing
@@ -310,7 +310,7 @@ public class DataProcessor {
             logger.info("Filtered to {} valid records", result.count());
 
             if (result.count() == 0) {
-                logger.warn("No valid records found after filtering");
+                logger.warning("No valid records found after filtering");
                 return null;
             }
 
@@ -360,7 +360,7 @@ logger.info(f"Processing completed: {len(results)} records processed in {elapsed
 
 **WARN:** Potential issues or unexpected states
 ```python
-logger.warn(f"Large dataset detected: {len(data)} records (may impact performance)")
+logger.warning(f"Large dataset detected: {len(data)} records (may impact performance)")
 ```
 
 **ERROR:** Operation failures that are caught
@@ -387,12 +387,12 @@ def validate_input(data):
         return False
 
     if len(data) > 10000:
-        logger.warn(f"Large dataset detected: {len(data)} records")
+        logger.warning(f"Large dataset detected: {len(data)} records")
 
     # Only log validation details for problematic cases
     invalid_count = sum(1 for row in data if not is_valid(row))
     if invalid_count > 0:
-        logger.warn(f"Found {invalid_count} invalid records out of {len(data)}")
+        logger.warning(f"Found {invalid_count} invalid records out of {len(data)}")
 
     return invalid_count == 0
 ```
@@ -467,12 +467,14 @@ for record in large_dataset:
         log_with_sampling(logger, logging.INFO, f"Processed record {record.id}", sample_rate=0.01)
     else:
         # Always log failures
-        logger.warn(f"Failed to process record {record.id}: {result.error}")
+        logger.warning(f"Failed to process record {record.id}: {result.error}")
 ```
 
 ### Structured Logging Fields
 
-When emitting logs from handlers, include structured context for queryability:
+When emitting logs from handlers, include structured context for queryability.
+
+**Note:** For native structured attribute support without string splitting, use `snowflake.telemetry` module's `set_span_attribute()` which stores attributes as queryable JSON fields directly in the event table. See `111b-snowflake-observability-tracing.md` for details.
 
 ```python
 import logging

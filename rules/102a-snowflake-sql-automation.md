@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:sql-automation, kw:procedure
 **Keywords:** idempotent, MERGE, operations, multi-environment, infrastructure as code, Snowflake variables, production-safe, upsert, SQL automation, deployment scripts, SQL pipeline, config management, environment variables
-**TokenBudget:** ~5650
+**TokenBudget:** ~5150
 **ContextTier:** High
 **Depends:** 102-snowflake-sql-core.md
 
@@ -326,8 +326,16 @@ FILE_FORMAT = (TYPE = 'CSV', SKIP_HEADER = 1);
 MERGE INTO <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS AS target
 USING GRID_ASSETS_STAGE AS source
     ON target.asset_id = source.asset_id
-WHEN MATCHED THEN UPDATE SET /* ... */
-WHEN NOT MATCHED THEN INSERT /* ... */;
+WHEN MATCHED THEN
+    UPDATE SET
+        asset_type = source.asset_type,
+        latitude = source.latitude,
+        longitude = source.longitude,
+        install_date = source.install_date
+WHEN NOT MATCHED THEN
+    INSERT (asset_id, asset_type, latitude, longitude, install_date)
+    VALUES (source.asset_id, source.asset_type, source.latitude,
+            source.longitude, source.install_date);
 ```
 
 ## SQL Template Patterns
@@ -456,7 +464,7 @@ CREATE DATABASE IF NOT EXISTS <%DATABASE%>
 
 **Pattern:**
 ```sql
--- ✓ Production-safe table creation
+-- Production-safe table creation
 CREATE TABLE IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS (
     asset_id VARCHAR PRIMARY KEY,
     asset_type VARCHAR,
@@ -550,126 +558,11 @@ FROM <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS
 GROUP BY asset_type;
 ```
 
-<!-- TODO: Extract CI/CD Integration (sections 4.1-4.3) to 102c-snowflake-sql-cicd.md in a future refactor -->
 ## CI/CD Integration
 
-### 4.1 Taskfile Integration
+For CI/CD pipeline integration (Taskfile, GitHub Actions, environment-specific variables, secrets management), see **102d-snowflake-sql-cicd.md**.
 
-**Pattern:**
-```yaml
-version: '3'
-
-vars:
-  DATABASE: UTILITY_DEMO_V2
-  SCHEMA: GRID_DATA
-  STAGE: '@{{.DATABASE}}.{{.SCHEMA}}.DATA_FILES'
-
-tasks:
-  sql:exec:
-    desc: Execute SQL template with variables
-    silent: true
-    internal: true
-    cmds:
-      - >
-        snow sql
-        -D DATABASE={{.DATABASE}}
-        -D SCHEMA={{.SCHEMA}}
-        -D STAGE={{.STAGE}}
-        -f {{.SQL_FILE}}
-
-  operations:create-schema:
-    desc: Create GRID_DATA schema
-    cmds:
-      - task: sql:exec
-        vars:
-          SQL_FILE: sql/operations/grid/setup/create_schema.sql
-
-  operations:load-assets:
-    desc: Load grid assets from stage
-    cmds:
-      - task: sql:exec
-        vars:
-          SQL_FILE: sql/operations/grid/load/copy_assets.sql
-
-  operations:merge-assets:
-    desc: Upsert grid assets (production-safe)
-    cmds:
-      - task: sql:exec
-        vars:
-          SQL_FILE: sql/operations/grid/merge/merge_assets.sql
-```
-
-**Benefits:**
-- Environment variables centralized
-- Reusable task patterns
-- Easy to test locally
-- CI/CD can call same commands
-
-### 4.2 GitHub Actions Integration
-
-**Pattern:**
-```yaml
-name: Deploy SQL Changes
-
-on:
-  push:
-    branches: [main]
-    paths:
-      - 'sql/operations/**/*.sql'
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Snowflake CLI
-        run: pip install snowflake-cli-labs
-
-      - name: Configure Snowflake Connection
-        env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-        run: |
-          snow connection add prod \
-            --account $SNOWFLAKE_ACCOUNT \
-            --user $SNOWFLAKE_USER \
-            --password $SNOWFLAKE_PASSWORD
-
-      - name: Deploy Schema Changes
-        run: |
-          snow sql \
-            -D DATABASE=PROD \
-            -D SCHEMA=GRID_DATA \
-            -f sql/operations/grid/setup/create_schema.sql
-
-      - name: Deploy Table Changes
-        run: |
-          snow sql \
-            -D DATABASE=PROD \
-            -D SCHEMA=GRID_DATA \
-            -f sql/operations/grid/setup/create_tables.sql
-```
-
-### 4.3 Environment-Specific Variables
-
-**Pattern:**
-```bash
-# Development
-snow sql -D DATABASE=DEV -D SCHEMA=GRID -f template.sql
-
-# Test
-snow sql -D DATABASE=TEST -D SCHEMA=GRID -f template.sql
-
-# Production
-snow sql -D DATABASE=PROD -D SCHEMA=GRID -f template.sql
-```
-
-**Store in CI/CD secrets:**
-- `SNOWFLAKE_ACCOUNT_DEV`
-- `SNOWFLAKE_ACCOUNT_TEST`
-- `SNOWFLAKE_ACCOUNT_PROD`
+**Quick reference:** Use `snow sql -D DATABASE=PROD -D SCHEMA=GRID -f template.sql` for environment-specific deployments. Store credentials in CI/CD secret stores, never in code.
 
 ## Production SQL File Headers
 
@@ -690,8 +583,8 @@ For the standard template header format and examples, see **Template File Struct
 SELECT
     'Schema exists' AS check_name,
     CASE
-        WHEN COUNT(*) > 0 THEN '✓ PASS'
-        ELSE '✗ FAIL'
+        WHEN COUNT(*) > 0 THEN 'PASS'
+        ELSE 'FAIL'
     END AS status
 FROM INFORMATION_SCHEMA.SCHEMATA
 WHERE CATALOG_NAME = '<%DATABASE%>'
@@ -701,8 +594,8 @@ WHERE CATALOG_NAME = '<%DATABASE%>'
 SELECT
     'Required tables exist' AS check_name,
     CASE
-        WHEN COUNT(*) = 5 THEN '✓ PASS'
-        ELSE '✗ FAIL - Found ' || COUNT(*) || ' of 5 tables'
+        WHEN COUNT(*) = 5 THEN 'PASS'
+        ELSE 'FAIL - Found ' || COUNT(*) || ' of 5 tables'
     END AS status
 FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_CATALOG = '<%DATABASE%>'
@@ -730,3 +623,11 @@ SELECT
     MAX(METADATA$ROW_ID) AS max_row_id
 FROM <%DATABASE%>.<%SCHEMA%>.SCADA_DATA;
 ```
+
+### 6.3 Migration Rollback
+
+If a migration fails mid-execution:
+
+1. **After staging table created but before swap:** `DROP TABLE IF EXISTS staging_table;`
+2. **After swap fails:** `ALTER TABLE original RENAME TO original_backup; ALTER TABLE staging RENAME TO original;`
+3. **Always verify after swap:** `SELECT COUNT(*) FROM <%DATABASE%>.<%SCHEMA%>.target_table;` -- confirm row counts match expectations

@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** search optimization, pruning, spillage, SQL optimization, Snowflake, partition pruning, QUERY_HISTORY, optimize query, fix slow query, query bottleneck, warehouse performance, micro-partitions, clustering, performance analysis
 **TokenBudget:** ~3200
 **ContextTier:** High
@@ -141,11 +141,12 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 
 ### Post-Execution Checklist
 
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
+- [ ] Query Profile analyzed before making changes (QUERY_PROFILE in Snowsight)
+- [ ] Verify query plan uses expected clustering keys and pruning (Partitions Scanned < 10% of Total)
+- [ ] Confirm no spilling to remote storage (check BYTES_SPILLED_TO_REMOTE_STORAGE = 0)
+- [ ] Validate warehouse auto-suspend kicks in within configured timeout
+- [ ] Before/after execution times compared on same warehouse size
+- [ ] No functions in WHERE clause that prevent partition pruning
 
 ## Anti-Patterns and Common Mistakes
 
@@ -282,6 +283,19 @@ WHERE order_timestamp >= '2024-01-15'
 - **Always:** Use the Query Profile to diagnose execution, identify bottlenecks, and pinpoint expensive operations (e.g., large `TableScans`, join explosions).
 - **Always:** Compare `Partitions Scanned` vs. `Partitions Total` to find pruning opportunities.
 - **Requirement:** Avoid functions in `WHERE` clauses when they prevent pruning.
+
+### Quick Performance Check
+
+Find slow queries in recent history:
+
+```sql
+SELECT query_id, execution_status, total_elapsed_time,
+       bytes_scanned, rows_produced, compilation_time, execution_time
+FROM TABLE(INFORMATION_SCHEMA.QUERY_HISTORY())
+WHERE total_elapsed_time > 30000
+ORDER BY total_elapsed_time DESC
+LIMIT 10;
+```
 
 ## Warehouse Sizing & Clustering
 - **Always:** Follow comprehensive warehouse sizing guidance in `119-snowflake-warehouse-management.md` including type selection (CPU/GPU/High-Memory), sizing strategy, auto-suspend configuration, and cost governance.

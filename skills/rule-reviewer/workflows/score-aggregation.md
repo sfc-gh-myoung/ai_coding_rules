@@ -4,59 +4,100 @@ Merge dimension results into final review score and generate unified report.
 
 ## Overview
 
+> **Scoring Rubric v2.0:** 6 scored dimensions, 100 points total
+
 This workflow handles:
-1. Combining 8 dimension scores (7 from sub-agents + Rule Size inline)
+1. Combining 6 dimension scores
 2. Applying the scoring formula
-3. Detecting critical dimension overrides
-4. Handling partial results
-5. Generating the final review document
+3. Applying hard caps (Rule Size, Blocking Issues)
+4. Detecting critical dimension overrides
+5. Handling partial results
+6. Generating the final review document
 
 ## Scoring Formula
 
 ```
-Points = Raw Score (0-10) × (Weight / 2)
+Points = Raw Score (0-10) × Weight
 ```
 
 | Dimension | Weight | Max Points |
 |-----------|--------|------------|
-| Actionability | 5 | 25 |
-| Completeness | 5 | 25 |
-| Consistency | 3 | 15 |
-| Parsability | 3 | 15 |
-| Token Efficiency | 2 | 10 |
-| Rule Size | 2 | 10 |
-| Staleness | 2 | 10 |
-| Cross-Agent Consistency | 1 | 5 |
-| **Total** | **23** | **115** (actual max: 105) |
+| Actionability | 3.0 | 30 |
+| Rule Size | 2.5 | 25 |
+| Parsability | 1.5 | 15 |
+| Completeness | 1.5 | 15 |
+| Consistency | 1.0 | 10 |
+| Cross-Agent Consistency | 0.5 | 5 |
+| **Total** | **10** | **100** |
 
-**Note:** Total weight is 23, but max is 105 points because formula is `Raw × (Weight/2)` and max raw is 10.
+**Informational Only (not scored):**
+- Token Efficiency - Findings reported in recommendations
+- Staleness - Findings reported in recommendations
+
+## Hard Caps
+
+```python
+def apply_hard_caps(total_score: float, line_count: int, blocking_issues: int) -> tuple:
+    """Apply hard caps for oversized rules and blocking issues."""
+    
+    capped_score = total_score
+    cap_reason = None
+    
+    # Rule Size hard caps
+    if line_count > 700:
+        capped_score = min(capped_score, 50)
+        cap_reason = f">700 lines ({line_count}) - capped at 50/100"
+    elif line_count > 600:
+        capped_score = min(capped_score, 70)
+        cap_reason = f">600 lines ({line_count}) - capped at 70/100"
+    
+    # Blocking issues hard caps
+    if blocking_issues >= 10:
+        return (capped_score, "NOT_EXECUTABLE", f"≥10 blocking issues ({blocking_issues})")
+    elif blocking_issues >= 6:
+        capped_score = min(capped_score, 80)
+        if not cap_reason:
+            cap_reason = f"≥6 blocking issues ({blocking_issues}) - capped at 80/100"
+    
+    return (capped_score, None, cap_reason)
+```
 
 ## Aggregation Function
 
 ```python
 def aggregate_dimension_results(dimension_results: list) -> dict:
-    """Combine 8 dimension worksheets into final review."""
+    """Combine 6 dimension worksheets into final review."""
     
     total_score = 0
     worksheets = []
     failed_dimensions = []
     
+    # Weight mapping for v2.0
+    weights = {
+        'actionability': 3.0,
+        'rule_size': 2.5,
+        'parsability': 1.5,
+        'completeness': 1.5,
+        'consistency': 1.0,
+        'cross_agent_consistency': 0.5
+    }
+    
     for result in dimension_results:
         if result.get('status') == 'failed' or result.get('status') == 'timeout':
             failed_dimensions.append({
                 'dimension': result['dimension'],
-                'weight': result['weight'],
-                'max_points': result['weight'] * 5,
+                'weight': weights.get(result['dimension'], 1),
+                'max_points': weights.get(result['dimension'], 1) * 10,
                 'status': result.get('status'),
                 'error': result.get('error')
             })
             continue
         
-        # Apply formula: Raw × (Weight/2)
+        # Apply formula: Raw × Weight
         raw_score = result.get('raw_score', 0)
-        weight = result.get('weight', 1)
-        points = raw_score * (weight / 2)
-        max_points = weight * 5
+        weight = weights.get(result['dimension'], 1)
+        points = raw_score * weight
+        max_points = weight * 10
         
         total_score += points
         
@@ -74,7 +115,7 @@ def aggregate_dimension_results(dimension_results: list) -> dict:
     
     # Calculate max possible score based on completed dimensions
     completed_max = sum(w['max_points'] for w in worksheets)
-    full_max = 105  # Always 105 for reference
+    full_max = 100  # Always 100 for reference (v2.0)
     
     return {
         'total_score': round(total_score, 1),
@@ -125,13 +166,13 @@ def apply_critical_override(aggregated: dict) -> dict:
 
 ```python
 def determine_verdict(total_score: float) -> str:
-    """Determine verdict based on 105-point scale."""
+    """Determine verdict based on 100-point scale (v2.0)."""
     
-    if total_score >= 94:
+    if total_score >= 90:
         return "EXECUTABLE"
-    elif total_score >= 84:
+    elif total_score >= 75:
         return "EXECUTABLE_WITH_REFINEMENTS"
-    elif total_score >= 63:
+    elif total_score >= 50:
         return "NEEDS_REFINEMENT"
     else:
         return "NOT_EXECUTABLE"
@@ -139,34 +180,34 @@ def determine_verdict(total_score: float) -> str:
 
 | Score Range | Verdict | Description |
 |-------------|---------|-------------|
-| 94-105 | EXECUTABLE | Production-ready |
-| 84-93 | EXECUTABLE_WITH_REFINEMENTS | Good, minor fixes |
-| 63-83 | NEEDS_REFINEMENT | Needs work |
-| <63 | NOT_EXECUTABLE | Major issues |
+| 90-100 | EXECUTABLE | Production-ready |
+| 75-89 | EXECUTABLE_WITH_REFINEMENTS | Good, minor fixes |
+| 50-74 | NEEDS_REFINEMENT | Needs work |
+| <50 | NOT_EXECUTABLE | Major issues |
 
 ## Partial Results Handling
 
-When fewer than 8 dimensions complete successfully:
+When fewer than 6 dimensions complete successfully:
 
 ```python
 def aggregate_with_partial_results(dimension_results: list) -> dict:
-    """Aggregate results even when some dimensions failed."""
+    """Aggregate results even when some dimensions failed (v2.0)."""
     
     completed = [r for r in dimension_results if r.get('status') == 'completed']
     failed = [r for r in dimension_results if r.get('status') != 'completed']
     
-    # Calculate partial score
-    completed_weight = sum(r['weight'] * 5 for r in completed)  # Max points
-    partial_score = sum(r['raw_score'] * (r['weight'] / 2) for r in completed)
+    # Calculate partial score using v2.0 weights
+    completed_weight = sum(r['weight'] for r in completed)
+    partial_score = sum(r['raw_score'] * r['weight'] for r in completed)
     
     # Extrapolate if we have enough data
-    if len(completed) >= 4:
-        # Scale up to 105-point max
-        extrapolated_score = (partial_score / completed_weight) * 105
+    if len(completed) >= 3:
+        # Scale up to 100-point max
+        extrapolated_score = (partial_score / completed_weight) * 100
     else:
         extrapolated_score = None
     
-    confidence = "high" if len(completed) >= 6 else "medium" if len(completed) >= 4 else "low"
+    confidence = "high" if len(completed) >= 5 else "medium" if len(completed) >= 3 else "low"
     
     report = {
         "status": "partial" if failed else "complete",
@@ -186,7 +227,7 @@ def aggregate_with_partial_results(dimension_results: list) -> dict:
             f"Score of {report['partial_score']}/{report['partial_max']} is incomplete. "
         )
         if extrapolated_score:
-            report["disclaimer"] += f"Extrapolated: ~{report['extrapolated_score']}/105 ({confidence} confidence)"
+            report["disclaimer"] += f"Extrapolated: ~{report['extrapolated_score']}/100 ({confidence} confidence)"
     
     return report
 ```
@@ -195,7 +236,7 @@ def aggregate_with_partial_results(dimension_results: list) -> dict:
 
 ```python
 def apply_rule_size_flags(aggregated: dict) -> dict:
-    """Apply Rule Size flags to aggregated results."""
+    """Apply Rule Size flags to aggregated results (v2.0)."""
     
     rule_size_result = None
     for worksheet in aggregated['worksheets']:
@@ -206,22 +247,27 @@ def apply_rule_size_flags(aggregated: dict) -> dict:
     if not rule_size_result:
         return aggregated
     
+    # v2.0 flags: SPLIT_RECOMMENDED, SPLIT_REQUIRED, NOT_DEPLOYABLE, BLOCKED
     flag = None
     for issue in rule_size_result.get('issues_found', []):
-        if issue.get('description') in ['OPTIMIZATION_RECOMMENDED', 'SPLITTING_REQUIRED', 'NOT_DEPLOYABLE']:
+        if issue.get('description') in ['SPLIT_RECOMMENDED', 'SPLIT_REQUIRED', 'NOT_DEPLOYABLE', 'BLOCKED']:
             flag = issue['description']
             break
     
     if flag:
         aggregated['rule_size_flag'] = flag
         
-        if flag == 'NOT_DEPLOYABLE':
+        if flag == 'BLOCKED':
             aggregated['verdict'] = 'NOT_EXECUTABLE'
-            aggregated['override_reason'] = f"Rule Size flag: {flag} (>800 lines)"
-        elif flag == 'SPLITTING_REQUIRED':
+            aggregated['override_reason'] = f"Rule Size flag: BLOCKED (≥10 blocking issues)"
+        elif flag == 'NOT_DEPLOYABLE':
+            aggregated['verdict'] = 'NOT_EXECUTABLE'
+            aggregated['override_reason'] = f"Rule Size flag: NOT_DEPLOYABLE (>700 lines)"
+        elif flag == 'SPLIT_REQUIRED':
             if aggregated['verdict'] in ['EXECUTABLE', 'EXECUTABLE_WITH_REFINEMENTS']:
                 aggregated['verdict'] = 'NEEDS_REFINEMENT'
-                aggregated['rule_size_warning'] = f"Deployment blocked until split (601-800 lines)"
+                aggregated['rule_size_warning'] = f"Deployment blocked until split (>600 lines)"
+        # SPLIT_RECOMMENDED is advisory only - no verdict change
     
     return aggregated
 ```
@@ -325,14 +371,14 @@ def generate_review_document(aggregated: dict, params: dict, context: dict) -> s
     doc += f"""
 ## Post-Review Checklist
 
-- [{'x' if aggregated['total_score'] >= 63 else ' '}] Score above minimum threshold (63)
+- [{'x' if aggregated['total_score'] >= 50 else ' '}] Score above minimum threshold (50)
 - [{'x' if not aggregated.get('override_reason') else ' '}] No critical overrides triggered
 - [{'x' if not aggregated.get('is_partial') else ' '}] All dimensions evaluated
-- [{'x' if aggregated.get('rule_size_flag') != 'NOT_DEPLOYABLE' else ' '}] Rule size within limits
+- [{'x' if aggregated.get('rule_size_flag') not in ['NOT_DEPLOYABLE', 'BLOCKED'] else ' '}] Rule size within limits
 
 ## Conclusion
 
-This rule scored **{aggregated['total_score']}/105** and received verdict **{aggregated['verdict']}**.
+This rule scored **{aggregated['total_score']}/100** and received verdict **{aggregated['verdict']}**.
 
 ---
 *Generated by rule-reviewer (parallel execution mode)*

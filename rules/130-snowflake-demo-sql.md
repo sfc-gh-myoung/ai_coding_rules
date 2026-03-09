@@ -4,10 +4,10 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-02-20
+**LastUpdated:** 2026-03-09
 **Keywords:** demo SQL, workshop, teardown, progress indicators, rerunnable demos, CREATE OR REPLACE, educational SQL, demo patterns, setup scripts, customer learning, per-schema isolation, inline documentation
 **LoadTrigger:** kw:demo, kw:workshop, kw:quickstart
-**TokenBudget:** ~5300
+**TokenBudget:** ~4600
 **ContextTier:** High
 **Depends:** 102-snowflake-sql-core.md
 
@@ -92,6 +92,12 @@ SQL files with .sql extension, UTF-8 encoding, Unix line endings
 - Objects created with correct names and structure
 - Teardown removes all created objects
 - Comments educate readers on concepts
+
+**Negative Tests:**
+- Setup without database fails gracefully (clear error message, not cryptic SQL error)
+- Load without prior setup shows clear "schema does not exist" error
+- Teardown of non-existent schema succeeds (IF EXISTS prevents errors)
+- Rerun of setup produces identical results (idempotency verified)
 
 ### Design Principles
 
@@ -256,16 +262,11 @@ SELECT 'GRID_DATA schema setup complete!' AS status;
 ```sql
 -- ============================================================================
 -- Filename: grid_teardown.sql
--- Description: Remove GRID_DATA schema and all objects
---
 -- WARNING: This will delete all grid data!
 -- Does NOT affect: CUSTOMER_DATA schema, database, or roles
 -- ============================================================================
 
--- Drop schema with CASCADE to remove all child objects
--- CASCADE ensures tables, views, stages are all removed
 DROP SCHEMA IF EXISTS UTILITY_DEMO_V2.GRID_DATA CASCADE;
-
 SELECT '[PASS] GRID_DATA schema removed' AS status;
 ```
 
@@ -276,11 +277,8 @@ SELECT '[PASS] GRID_DATA schema removed' AS status;
 ```sql
 -- ============================================================================
 -- Filename: grid_load.sql
--- Description: Load all grid data from CSV files into GRID_DATA tables
---
--- Prerequisites:
---   - GRID_DATA schema exists (run grid_setup.sql first)
---   - CSV files uploaded to stage
+-- Prerequisites: GRID_DATA schema exists (run grid_setup.sql first)
+--                CSV files uploaded to stage
 -- ============================================================================
 
 -- Load grid assets
@@ -293,19 +291,7 @@ ON_ERROR = 'CONTINUE';  -- Skip bad rows in demo context
 
 SELECT '[PASS] Grid assets loaded' AS progress;
 
--- Pre-check for load errors before committing
--- COPY INTO UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS
--- FROM @UTILITY_DEMO_V2.GRID_DATA.DATA_FILES
--- VALIDATION_MODE = 'RETURN_ERRORS';  -- Dry-run: shows errors without loading
-
--- Load SCADA sensor data
--- SCADA = Supervisory Control And Data Acquisition (grid sensors)
-COPY INTO UTILITY_DEMO_V2.GRID_DATA.SCADA_DATA
-FROM @UTILITY_DEMO_V2.GRID_DATA.DATA_FILES
-PATTERN = '.*scada.*\\.csv'
-FILE_FORMAT = (TYPE = 'CSV', SKIP_HEADER = 1);
-
-SELECT '[PASS] SCADA data loaded' AS progress;
+-- Repeat COPY INTO pattern for each table (SCADA_DATA, etc.)
 
 SELECT 'Grid data load complete!' AS status;
 ```
@@ -390,48 +376,24 @@ CREATE OR REPLACE STAGE UTILITY_DEMO_V2.GRID_DATA.DATA_FILES;
 
 **NOT production-safe:** For production, use `102a-snowflake-sql-automation.md` patterns (CREATE TABLE IF NOT EXISTS + MERGE).
 
-## Demo Project Structure
+## Demo Project Structure and Orchestration
 
-### Recommended Directory Structure
+**Recommended directory layout for `sql/`:**
+- **setup/** - `database_setup.sql`, `grid_setup.sql`, `customer_setup.sql`
+- **features/** - `grid_load.sql`, `customer_load.sql`, `semantic_views.sql`
+- **teardown/** - `grid_teardown.sql`, `customer_teardown.sql`, `database_teardown.sql`
 
-**Pattern:**
-
-Directory structure for `sql/`:
-- **setup/** - Initial setup scripts
-  - `database_setup.sql` - Create database and RBAC
-  - `grid_setup.sql` - Create GRID_DATA schema
-  - `customer_setup.sql` - Create CUSTOMER_DATA schema
-- **features/** - Feature-specific scripts
-  - `grid_load.sql` - Load grid data
-  - `customer_load.sql` - Load customer data
-  - `semantic_views.sql` - Optional: Create semantic models
-- **teardown/** - Cleanup scripts
-  - `grid_teardown.sql` - Drop GRID_DATA schema
-  - `customer_teardown.sql` - Drop CUSTOMER_DATA schema
-  - `database_teardown.sql` - Drop entire database
-
-### Task Commands Pattern
-
-**Recommended:** Define Taskfile.yml commands for common operations
-
-**Example Taskfile.yml:**
+**Orchestrate with Taskfile.yml** (recommended for `snow sql -f` commands):
 ```yaml
 tasks:
   setup:grid:
     desc: Create GRID_DATA schema and tables
     cmds:
       - snow sql -f sql/setup/grid_setup.sql
-
-  load:grid:
-    desc: Load grid data from CSV files
-    cmds:
-      - snow sql -f sql/features/grid_load.sql
-
   teardown:grid:
     desc: Remove GRID_DATA schema
     cmds:
       - snow sql -f sql/teardown/grid_teardown.sql
-
   demo:full:
     desc: Full demo setup (all schemas)
     cmds:
@@ -441,92 +403,31 @@ tasks:
       - task: load:customer
 ```
 
-## Multi-File Dependencies and CLI Orchestration
+## Multi-File Dependencies
 
 ### Foreign Key Dependency Ordering
 
-**Rule:** When SQL files contain foreign key constraints, the referenced table must be created BEFORE the referencing table.
+**Rule:** When SQL files contain foreign key constraints, the referenced table must be created BEFORE the referencing table. Snowflake enforces FK constraints at creation time.
 
-**Why this matters:** Snowflake enforces FK constraints at creation time. If file A creates a table with `FOREIGN KEY ... REFERENCES schema.table_b(id)`, then `table_b` must already exist or the statement fails.
-
-**Dependency Analysis Checklist:**
-
-Before implementing CLI orchestration for multi-file SQL execution:
-
-1. **Map all FK constraints:**
-   ```bash
-   grep -n "FOREIGN KEY\|REFERENCES" sql/*.sql
-   ```
-
-2. **Build dependency graph:**
-   - For each FK: note which file creates the referencing table, which file creates the referenced table
-   - Referenced file must execute BEFORE referencing file
-
-3. **Check views and procedures:**
-   - Views that SELECT FROM tables need those tables to exist
-   - Procedures that reference tables can be created before tables (execution deferred), but will fail at CALL time if tables missing
-
-4. **Document in file headers:**
-   ```sql
-   -- Prerequisites: 09_dedup_fastpath.sql (creates UNIQUE_DESCRIPTIONS table)
-   ```
-
-### CLI Orchestration Alignment
-
-**Rule:** CLI print menus and actual execution order MUST stay synchronized.
-
-**Anti-Pattern:**
-```python
-# Menu says one order...
-print("  6. Create traceability objects")
-print("  7. Create dedup objects")
-
-# ...but code executes differently
-run_sql("06_traceability.sql")  # Needs UNIQUE_DESCRIPTIONS
-run_sql("09_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS - too late!
+**Dependency analysis:** Before implementing multi-file CLI orchestration:
+```bash
+# Find all FK references across SQL files
+grep -n "FOREIGN KEY\|REFERENCES" sql/*.sql
+```
+For each FK: note which file creates the referencing table and which creates the referenced table. Referenced file must execute first. Document dependencies in file headers:
+```sql
+-- Prerequisites: 09_dedup_fastpath.sql (creates UNIQUE_DESCRIPTIONS table)
 ```
 
-**Correct Pattern:**
-```python
-# Menu matches execution order
-print("  6. Create de-duplication objects")
-print("  7. Create traceability objects")
+**Execution order = dependency order, NOT file number order.** See Anti-Pattern 5 for a concrete example. Ensure CLI print menus match actual execution order.
 
-# Code matches menu AND respects dependencies
-# CRITICAL: dedup creates UNIQUE_DESCRIPTIONS, traceability has FK to it
-run_sql("09_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS first
-run_sql("06_traceability.sql")   # Can now reference UNIQUE_DESCRIPTIONS
-```
-
-**Alignment Checklist:**
-- [ ] Print statements match actual function call order
-- [ ] Function call order respects FK dependencies
-- [ ] Comments explain WHY the order matters
-- [ ] Multiple entry points (e.g., `setup()` and `db.up()`) use identical order
-
-### Example: Dependency Graph
-
-```
-02_tables.sql
-├── Creates: STANDARD_ITEMS, RAW_RETAIL_ITEMS, ITEM_MATCHES
-│
-09_dedup_fastpath.sql
-├── Creates: UNIQUE_DESCRIPTIONS, CONFIRMED_MATCHES
-├── Depends: STANDARD_ITEMS (FK)
-│
-06_traceability.sql
-├── Creates: RAW_TO_UNIQUE_MAP
-├── Depends: RAW_RETAIL_ITEMS (FK), UNIQUE_DESCRIPTIONS (FK)
-│           ^ UNIQUE_DESCRIPTIONS created by 09_dedup_fastpath.sql
-│           so 09 must run BEFORE 06
-│
-08_procedures.sql
-├── Calls: DEDUPLICATE_RAW_ITEMS() (defined in 09)
-├── References: UNIQUE_DESCRIPTIONS
-├── Depends: 09_dedup_fastpath.sql must run first
-```
-
-**Execution Order:** 02 then 09 then 06 then 08 (NOT file number order!)
+> **Investigation Required**
+> Before creating demo SQL files:
+> 1. **Confirm demo audience level** (beginner, intermediate, advanced) to calibrate comment verbosity
+> 2. **Verify target database exists** and you have CREATE SCHEMA privileges
+> 3. **Review existing demo files** in the project to follow established naming patterns
+> 4. **Confirm schema isolation strategy** (one schema per domain vs shared schema)
+> 5. **Map FK dependencies** across files if multi-file demo (run `grep -n "REFERENCES" sql/*.sql`)
 
 ## Anti-Patterns and Common Mistakes
 

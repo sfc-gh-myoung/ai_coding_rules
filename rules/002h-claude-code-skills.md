@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Claude Code, skills, SKILL.md, skill structure, progressive disclosure, workflows, trigger keywords, skill authoring, skill testing, skill validation, input contracts, output contracts, skill examples, YAML frontmatter, description writing, MCP tools, degrees of freedom, context window, third person, naming conventions
-**TokenBudget:** ~4800
+**TokenBudget:** ~4150
 **ContextTier:** High
 **Depends:** 000-global-core.md, 002-rule-governance.md
 **LoadTrigger:** dir:skills/, kw:skill
@@ -200,6 +200,9 @@ Skill directory structure with:
 
 **Project standard (optional fields):**
 - **version**: Semantic version (e.g., 1.0.0, 2.1.0) - Recommended for tracking changes
+  - Major: breaking workflow changes (renamed inputs, removed steps)
+  - Minor: new features or steps (added inputs, new workflow phases)
+  - Patch: bug fixes or wording improvements
 
 **Other optional fields:**
 - **author**: Author or project name
@@ -302,85 +305,43 @@ The context window is shared with system prompt, conversation history, other ski
 
 **Size Limit:** Keep SKILL.md body under 500 lines for optimal performance. If content exceeds this, split into separate files using progressive disclosure patterns.
 
-**Example comparison:**
+**Example - concise vs verbose:**
 
 ```markdown
-# Concise (Good): ~50 tokens
-## Extract PDF text
-
+# Concise (Good): ~50 tokens - assumes Claude knows what PDFs are
 Use pdfplumber for text extraction:
+  import pdfplumber
+  with pdfplumber.open("file.pdf") as pdf:
+      text = pdf.pages[0].extract_text()
 
-```python
-import pdfplumber
-
-with pdfplumber.open("file.pdf") as pdf:
-    text = pdf.pages[0].extract_text()
+# Verbose (Bad): ~150 tokens - explains what PDFs are, compares libraries
+PDF (Portable Document Format) files are a common file format...
 ```
-
-# Verbose (Bad): ~150 tokens
-## Extract PDF text
-
-PDF (Portable Document Format) files are a common file format that contains
-text, images, and other content. To extract text from a PDF, you'll need to
-use a library. There are many libraries available for PDF processing, but we
-recommend pdfplumber because it's easy to use and handles most cases well.
-First, you'll need to install it using pip...
-```
-
-The concise version assumes Claude knows what PDFs are and how libraries work.
 
 #### Set Appropriate Degrees of Freedom
 
-Match the level of specificity to the task's fragility and variability.
+Match specificity to the task's fragility and variability:
 
-**High freedom** (text-based instructions):
-- Use when: Multiple approaches are valid, decisions depend on context, heuristics guide approach
-- Example: "Analyze code structure, check for bugs, suggest improvements, verify conventions"
+- **High freedom** (text-based): Multiple valid approaches, context-dependent decisions
+- **Medium freedom** (pseudocode/templates): Preferred pattern exists, some variation acceptable
+- **Low freedom** (exact scripts): Operations fragile/irreversible, consistency critical, error recovery expensive
 
-**Medium freedom** (pseudocode or scripts with parameters):
-- Use when: Preferred pattern exists, some variation acceptable, configuration affects behavior
-- Example: Template function with customizable parameters
-
-**Low freedom** (specific scripts, few/no parameters):
-- Use when: Operations fragile/error-prone, consistency critical, specific sequence required
-- Example: "Run exactly this script: `python scripts/migrate.py --verify --backup`. Do not modify."
-
-**Analogy:** Think of Claude as a robot exploring a path:
-- **Narrow bridge with cliffs** = Low freedom (exact instructions needed)
-- **Open field with no hazards** = High freedom (general direction sufficient)
+Use high freedom when tasks are exploratory or creative. Use low freedom when output format is rigidly defined or operations are irreversible.
 
 #### Test with All Models You Plan to Use
 
-Skills act as additions to models, so effectiveness depends on the underlying model.
-
-**Testing considerations:**
+Skills act as additions to models, so effectiveness depends on the underlying model. What works for Opus might need more detail for Haiku. Test with all models you intend to support:
 - **Claude Haiku** (fast, economical): Does the skill provide enough guidance?
 - **Claude Sonnet** (balanced): Is the skill clear and efficient?
 - **Claude Opus** (powerful reasoning): Does the skill avoid over-explaining?
 
-What works perfectly for Opus might need more detail for Haiku. If you plan to use your skill across multiple models, aim for instructions that work well with all of them.
-
 #### Naming Conventions
 
-Use consistent naming patterns to make skills easier to reference and discuss.
+**Recommended:** gerund form (verb + -ing): `processing-pdfs`, `analyzing-spreadsheets`, `managing-databases`
 
-**Recommended (gerund form - verb + -ing):**
-- `processing-pdfs`
-- `analyzing-spreadsheets`
-- `managing-databases`
-- `testing-code`
-- `writing-documentation`
+**Acceptable:** noun phrases (`pdf-processing`, `rule-reviewer`) or action-oriented (`process-pdfs`)
 
-**Acceptable alternatives:**
-- Noun phrases: `pdf-processing`, `spreadsheet-analysis`, `rule-reviewer`
-- Action-oriented: `process-pdfs`, `analyze-spreadsheets`
-
-**Avoid:**
-- Vague names: `helper`, `utils`, `tools`
-- Overly generic: `documents`, `data`, `files`
-- Reserved words: `anthropic-helper`, `claude-tools`
-
-Consistent naming makes skills easier to reference, understand at a glance, organize, and maintain.
+**Avoid:** vague names (`helper`, `utils`, `tools`), overly generic (`documents`, `data`). See Forbidden section for reserved word restrictions.
 
 ## Technical Details
 
@@ -430,38 +391,7 @@ reader = PdfReader("file.pdf")
 
 ### Runtime Environment and Progressive Disclosure
 
-Skills run in a code execution environment with filesystem access, bash commands, and code execution capabilities.
-
-**How Claude accesses skills:**
-
-1. **Metadata pre-loaded**: At startup, name and description from all skills' YAML frontmatter are loaded
-2. **Files read on-demand**: Claude uses bash Read tools to access SKILL.md and other files when needed
-3. **Scripts executed efficiently**: Utility scripts can be executed via bash without loading full contents into context. Only output consumes tokens
-4. **No context penalty for large files**: Reference files, data, or documentation don't consume context tokens until actually read
-
-**Implications for skill authoring:**
-
-- **File paths matter**: Claude navigates like a filesystem. Use forward slashes (`reference/guide.md`)
-- **Name files descriptively**: `form_validation_rules.md`, not `doc2.md`
-- **Organize for discovery**: Structure directories by domain or feature
-  - Good: `reference/finance.md`, `reference/sales.md`
-  - Bad: `docs/file1.md`, `docs/file2.md`
-- **Bundle comprehensive resources**: Include complete API docs, extensive examples, large datasets; no context penalty until accessed
-- **Prefer scripts for deterministic operations**: Write `validate_form.py` rather than asking Claude to generate validation code
-- **Make execution intent clear**:
-  - "Run `analyze_form.py` to extract fields" (execute)
-  - "See `analyze_form.py` for the extraction algorithm" (read as reference)
-
-**Example structure:**
-
-- **bigquery-skill/**
-  - `SKILL.md` - Overview, points to reference files
-  - **reference/**
-    - `finance.md` - Revenue metrics
-    - `sales.md` - Pipeline data
-    - `product.md` - Usage analytics
-
-When the user asks about revenue, Claude reads SKILL.md, sees the reference to `reference/finance.md`, and invokes bash to read just that file. The other files remain on filesystem, consuming zero context tokens until needed.
+For details on how Claude accesses skills at runtime (metadata pre-loading, on-demand file reads, script execution, context token implications), see `docs/skill-runtime-environment.md`.
 
 ## Advanced Patterns
 

@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:data-quality, kw:validation
 **Keywords:** data profiling, expectations, quality checks, data validation, NULL detection, uniqueness validation, freshness monitoring, anomaly detection, automated monitoring, event tables, create DMF, quality monitoring, data expectations, quality rules
 **TokenBudget:** ~4550
@@ -497,6 +497,23 @@ ALTER TABLE TRANSACTIONS
   MODIFY DATA METRIC SCHEDULE '1 DAY'
     EXPECT (SNOWFLAKE.CORE.ROW_COUNT ON ()) > 1000;
 ```
+
+## DMF Scheduling
+
+**Set DMF schedule** with `ALTER TABLE` to control evaluation frequency:
+
+```sql
+-- Event-driven: evaluate after data changes
+ALTER TABLE CUSTOMERS SET DATA_METRIC_SCHEDULE = 'TRIGGER_ON_CHANGES';
+
+-- Periodic: evaluate at fixed intervals (minimum 5 minutes)
+ALTER TABLE CUSTOMERS SET DATA_METRIC_SCHEDULE = '5 MINUTE';
+
+-- Hourly checks for less critical tables
+ALTER TABLE REFERENCE_DATA SET DATA_METRIC_SCHEDULE = '60 MINUTE';
+```
+
+**Scheduling guidance:** Use `TRIGGER_ON_CHANGES` for tables fed by Snowpipe or streams. Use `5 MINUTE` for high-criticality tables with frequent updates. Use `60 MINUTE` or `1 DAY` for reference/dimension tables with infrequent changes.
 
 ## Custom DMFs
 

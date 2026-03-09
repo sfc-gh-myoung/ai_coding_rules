@@ -284,4 +284,4 @@ This skill is deployable via `task deploy` for use in other projects.
 - **Workflow guides:** `skills/plan-reviewer/workflows/*.md`
 - **Examples:** `skills/plan-reviewer/examples/*.md`
 - **Tests:** `skills/plan-reviewer/tests/*.md`
-- **Timing system:** `skills/skill-timing/README.md`
+- **Timing system:** `docs/USING_SKILL_TIMING_SKILL.md`

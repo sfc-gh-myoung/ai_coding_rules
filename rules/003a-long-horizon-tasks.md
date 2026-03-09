@@ -9,9 +9,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-08
+**LastUpdated:** 2026-03-09
 **Keywords:** long-horizon tasks, compaction, checkpointing, sub-agents, structured notes, multi-session, context compression, persistent memory, agent coordination
-**TokenBudget:** ~2100
+**TokenBudget:** ~2400
 **ContextTier:** Medium
 **Depends:** 003-context-engineering.md, 000-global-core.md
 
@@ -108,6 +108,15 @@ Strategies for managing context in long-horizon agent tasks: compaction protocol
 - [ ] Sub-agent tasks had clear boundaries and deliverables
 - [ ] No critical state lost during session transitions
 - [ ] Forward-focused summaries (next steps emphasized over history)
+
+## Strategy Selection
+
+Choose the strategy based on task characteristics:
+
+- **Single session approaching limits** -- Strategy 1 (Compaction)
+- **Multi-session, persistent state needed** -- Strategy 2 (Structured Notes)
+- **Parallelizable decomposition possible** -- Strategy 3 (Sub-Agents)
+- **Complex multi-session with parallelization** -- Combine all three
 
 ## Strategy 1: Compaction
 
@@ -229,6 +238,8 @@ memory.store("oauth_progress", {
 state = memory.retrieve("oauth_progress")
 ```
 
+**NOTES.md Recovery:** If persistent notes become corrupted or truncated: (1) re-read recent tool outputs to reconstruct state, (2) check git history for last-known-good version (`git log -1 NOTES.md`), (3) fall back to compaction of current context as emergency recovery.
+
 ## Strategy 3: Sub-Agent Architectures
 
 **Purpose:** Specialized agents handle focused tasks, return condensed summaries to coordinator.
@@ -271,6 +282,15 @@ implementation = sub_agent_implement(
 - Multi-faceted tasks with clear boundaries
 - Tasks benefiting from parallel execution
 - When detailed work can be summarized concisely
+
+**Sub-Agent Failure Handling:**
+- **Timeout:** Retry with narrower scope (e.g., reduce from 3 files to 1)
+- **Empty results:** Verify task description specificity, add concrete example of expected output
+- **Crash:** Escalate to user with partial results and error context
+
+## Combining Strategies
+
+For complex multi-session tasks, combine all three strategies. Example — refactoring a 50-file codebase: use sub-agents for parallel file analysis, structured notes (NOTES.md) for cross-session state tracking, and compaction within each sub-agent session to keep individual contexts focused.
 
 ## Anti-Patterns and Common Mistakes
 

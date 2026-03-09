@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:stream, kw:task, kw:cdc
 **Keywords:** scheduled tasks, pipeline automation, MERGE patterns, SQL, Snowflake, task DAG, AFTER dependencies, Task History, create stream, create task, debug stream, task troubleshooting, stream consumption, task execution error, stream lag
 **TokenBudget:** ~3100
@@ -132,11 +132,12 @@ Patterns for building robust, incremental data pipelines using Snowflake Streams
 
 ### Post-Execution Checklist
 
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
+- [ ] Verify stream has data: `SELECT SYSTEM$STREAM_HAS_DATA('<stream_name>')`
+- [ ] Confirm task schedule is correct: `SHOW TASKS LIKE '<task_name>'`
+- [ ] Validate task tree dependencies: no circular references
+- [ ] Check task history for recent failures: `SELECT * FROM TABLE(INFORMATION_SCHEMA.TASK_HISTORY()) WHERE STATE = 'FAILED'`
+- [ ] Stream offset advances after MERGE completes
+- [ ] Task is in STARTED state: `ALTER TASK <task_name> RESUME`
 
 ## Anti-Patterns and Common Mistakes
 
@@ -321,3 +322,15 @@ SELECT SYSTEM$STREAM_HAS_DATA('MY_DB.MY_SCHEMA.MY_STREAM');
 - **Increase source table retention:** `ALTER TABLE source SET DATA_RETENTION_TIME_IN_DAYS = 14;` -- gives streams more time before staleness.
 - **Schedule tasks frequently enough** that the stream is consumed well before the retention window expires.
 - **Alert on task failures:** A failed task that stops consuming a stream is the most common cause of staleness. Monitor `TASK_HISTORY()` for consecutive failures.
+
+## Task Monitoring Quick-Check
+
+Production monitoring query for task health:
+
+```sql
+SELECT name, state, scheduled_time, completed_time,
+       error_code, error_message,
+       DATEDIFF('second', scheduled_time, completed_time) AS duration_seconds
+FROM TABLE(INFORMATION_SCHEMA.TASK_HISTORY(RESULT_LIMIT => 20))
+ORDER BY scheduled_time DESC;
+```

@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** tool design, agent tools, token efficiency, tool parameters, function calling, tool overlap, tool contracts, error handling, minimal tool set, self-contained tools, LLM-friendly parameters, single responsibility
-**TokenBudget:** ~4550
+**TokenBudget:** ~4200
 **ContextTier:** High
 **Depends:** 000-global-core.md, 003-context-engineering.md
 
@@ -126,16 +126,18 @@ Self-contained tools with:
 - [ ] No stateful tools that assume context memory
 - [ ] Validation provides clear feedback for correction
 
-## Design Principles
+### Error Recovery
 
-- **Self-Contained:** Each tool does one thing well, with no hidden dependencies
-- **Minimal Overlap:** Clear boundaries between tools; no ambiguity about which tool to use
-- **Token Efficient:** Return only necessary information; avoid verbose outputs
-- **Clear Contracts:** Inputs, outputs, and errors explicitly specified
-- **LLM-Friendly Parameters:** Descriptive parameters that play to semantic understanding
-- **Promote Good Patterns:** Tool design guides agents toward efficient behaviors
-- **Robust Error Handling:** Clear, actionable error messages
-- **Minimal Viable Set:** Curate smallest set of tools that covers use cases
+- **Tool returns unexpected format:** Log the raw output, retry once, then surface error to user with the raw output attached
+- **Tool timeout:** Retry with exponential backoff (max 3 attempts), then fail with actionable message including timeout duration
+- **Tool not found at runtime:** Fall back to manual equivalent (e.g., bash command), warn user that tool is unavailable
+- **Parameter validation failure:** Return specific field-level errors so agent can correct and retry without guessing
+
+### Negative Tests
+
+- Agent provides wrong parameter types -- tool returns clear type error, not stack trace
+- Agent calls tool in wrong context -- tool explains why it cannot proceed and suggests correct tool
+- Tool receives empty/null input -- tool returns descriptive validation error, not silent failure
 
 ## Anti-Patterns and Common Mistakes
 
@@ -334,7 +336,9 @@ process()  # What does it process?
 
 ### Tool Boundaries and Overlap
 
-**Critical Rule:** If a human engineer can't definitively say which tool should be used in a given situation, an AI agent can't be expected to do better.
+**Critical Rule:** If a human engineer can't definitively say which tool should be used in a given situation, an AI agent can't be expected to do better. Boundary test: if 2 out of 3 engineers independently choose different tools for the same task, the tools have overlapping boundaries that must be resolved.
+
+**Quantitative threshold:** If an agent selects the wrong tool >20% of the time for a given task category, the tool boundaries need redesign. Track selection accuracy during testing.
 
 **Decision Framework:**
 ```
@@ -373,6 +377,12 @@ def codebase_search(semantic_query: str) -> List[Result]:
 **Benefits:** Clear use cases; no overlap; agent knows which to use when
 
 ## Token Efficiency in Tool Outputs
+
+Key principles for tool output design:
+
+1. **Return only what the agent needs for its next decision** -- omit metadata, timestamps, and internal IDs unless requested
+2. **Use structured formats (JSON/tables) over prose** -- agents parse structured data more reliably and with fewer tokens
+3. **Implement progressive output for large results** -- return summary first, let agent request details on specific items
 
 See **004b-tool-output-efficiency.md** for detailed guidance on minimal outputs, structured formats, and progressive output for large results.
 
@@ -486,91 +496,22 @@ raise PermissionError(
 
 ## Promoting Efficient Agent Behaviors
 
-### Guide Agents Toward Good Patterns
+Tool design can encourage or discourage behaviors. Key principles:
 
-**Tool design can encourage or discourage certain behaviors:**
+- **Encourage targeted exploration over bulk loading** -- provide search/filter tools rather than "get all" tools
+- **Support incremental work** -- allow running subsets (e.g., specific tests) rather than forcing all-or-nothing operations
+- **Eliminate ambiguous decision points** -- either provide ONE tool per task or multiple tools with explicit "Use for:" distinctions in docstrings
 
-**Example: Discouraging Blind Loading**
-
-```python
-# Bad: Encourages loading everything
-def get_all_files() -> List[str]:
-    """Return contents of all files in repository"""
-    # Agents will use this and waste context
-
-# Good: Encourages targeted exploration
-def search_files(pattern: str, file_type: str = None) -> List[Match]:
-    """Search for pattern in specific files.
-
-    Encourages agent to search first, then read matches.
-    """
-
-def read_file(path: str) -> str:
-    """Read a specific file by path.
-
-    Requires agent to know which file to read.
-    """
-```
-
-**Example: Encouraging Incremental Work**
-
-```python
-# Good: Supports incremental progress
-def run_tests(test_pattern: str = None) -> TestResults:
-    """Run specific tests or all tests.
-
-    Args:
-        test_pattern: Optional pattern to run subset (e.g., "test_auth*")
-
-    Allows agent to run relevant tests without full suite.
-    """
-
-# Bad: Forces all-or-nothing
-def run_all_tests() -> TestResults:
-    """Run entire test suite (may take 10 minutes)"""
-    # Agent hesitates to validate changes
-```
-
-### Avoid Ambiguous Decision Points
-
-**If there are multiple ways to accomplish something, either:**
-1. Provide ONE clear tool for the task
-2. Provide multiple tools with CLEAR use case distinctions
-
-**Bad: Ambiguous Tools**
-```python
-def search_api(query: str, mode: str = "auto"):
-    """Search using best mode automatically"""
-    # What does "auto" mean? When does it pick what?
-
-def search_api_fast(query: str):
-    """Fast search (less accurate)"""
-    # When should agent use this vs regular search?
-```
-
-**Good: Clear Distinctions**
-```python
-def search_documents(query: str, limit: int = 10) -> List[Result]:
-    """Semantic search across all documents.
-    Use for: General queries, exploratory search, when you don't know exact location"""
-
-def get_document_by_id(doc_id: str) -> Document:
-    """Retrieve specific document by ID.
-    Use for: When you have the exact document ID from previous search"""
-```
-
-## Tool Set Curation
-
-See **004a-tool-set-curation.md** for detailed guidance on minimal viable tool sets, when to split tools, and when to merge tools.
+See Anti-Patterns 1 and 5 above for detailed before/after examples.
 
 ## Testing Tool Usability
 
 ### Agent-Centric Testing
 
-Don't just test if tool works - test if agent can use it effectively:
+Test if agent can use the tool effectively:
 
 1. Can agent discover when to use this tool?
-2. Can agent provide correct parameters?
+2. Can agent provide correct parameters without documentation lookup?
 3. Does agent understand the output?
 4. Can agent handle errors gracefully?
 5. Does tool guide agent toward efficient patterns?
@@ -582,21 +523,3 @@ Monitor agent mistakes to identify design issues:
 - **Uses tool A when B is more appropriate:** Tool boundaries need clarification
 - **Loads too much data:** Tool should have better filtering
 - **Confused by error messages:** Error messages need improvement
-
-## Template: Tool Design Analysis
-
-```markdown
-## Tool: [name]
-- **Purpose:** [One sentence]
-- **Parameters:** [Type and meaning]
-- **Returns:** [Structure]
-- **Errors:** [Exceptions]
-
-## Token Efficiency
-- **Output Size:** [Estimated tokens]
-- **Optimization:** [How minimized]
-
-## Agent Usability
-- **Use Case:** [When to use]
-- **Error Handling:** [How agent should respond]
-```

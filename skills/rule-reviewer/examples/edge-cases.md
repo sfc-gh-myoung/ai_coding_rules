@@ -429,7 +429,7 @@ When reviewing rules created by rule-creator skill:
    ```
 
 4. **Quality threshold for new rules:**
-   - Overall score: ≥ 75/100
+   - Overall score: ≥ 75/100 (EXECUTABLE_WITH_REFINEMENTS or better)
    - No CRITICAL issues
    - No HIGH issues in Actionability or Completeness dimensions
 

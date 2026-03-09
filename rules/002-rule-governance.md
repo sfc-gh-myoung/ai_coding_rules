@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.4
-**LastUpdated:** 2026-02-18
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-03-09
 **Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings, design priorities, agent optimization
-**TokenBudget:** ~4500
+**TokenBudget:** ~4850
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 **LoadTrigger:** dir:rules/
@@ -136,11 +136,34 @@ Markdown file (.md) with:
 - [ ] Keywords count is 5-20 terms (semantic and discoverable)
 - [ ] `uv run ai-rules validate` runs with 0 CRITICAL errors
 - [ ] TokenBudget reflects actual file size (±10% acceptable)
+- [ ] Filename matches pattern `<NNN>[<letter>]-<technology>-<aspect>.md` (single-letter suffix only)
 - [ ] File added to RULES_INDEX.md with keywords
 - [ ] Dependencies declared in Depends metadata
 - [ ] No emojis in rule file content
 
 ## Schema Requirements (v3.2)
+
+### Rule Filename Convention (MANDATORY)
+
+**Pattern:** `<NNN>[<letter>]-<technology>-<aspect>.md`
+
+Where:
+- `<NNN>` = 3-digit number (000-999), zero-padded
+- `[<letter>]` = Optional single lowercase letter suffix (a-z). Single-letter suffix only (a-z). Multi-character suffixes (a1, b2) are NOT allowed.
+- `<technology>` = Technology domain (e.g., snowflake, python, bash)
+- `<aspect>` = Specific aspect/topic (kebab-case)
+
+**Valid examples:**
+- [PASS] `100-snowflake-core.md`
+- [PASS] `100a-snowflake-auth.md`
+- [PASS] `200b-python-testing.md`
+
+**Invalid examples:**
+- [FAIL] `100a1-something.md` (multi-character suffix)
+- [FAIL] `1-core.md` (not 3-digit)
+- [FAIL] `100_snowflake_sql.md` (underscores)
+
+**Validation regex:** `^[0-9]{3}[a-z]?-[a-z]+-[a-z-]+\.md$`
 
 ### Metadata Fields (6 Required)
 
@@ -242,7 +265,7 @@ uv run ai-rules validate rules/
 ### Success Criteria
 
 - [PASS] **CRITICAL errors:** 0
-- [WARN] **HIGH errors:** Acceptable if documented in commit message with rationale (e.g., model-specific emojis in 002c)
+- [WARN] **HIGH errors:** Acceptable if commit message explains why the HIGH error is acceptable and links to the rule exception (e.g., model-specific emojis in 002c)
 - [INFO] **MEDIUM/INFO:** Review and fix if possible
 
 ### Common Validation Errors
@@ -333,7 +356,7 @@ If both options fail, note the validation gap in commit message and request revi
   - Provide examples for complex patterns
   - Priorities 1, 2, and 3 significantly outweigh Priority 4
 
-  **Design Test:** When in doubt, ask: "Can an agent execute this without judgment?" If the answer is no, revise for Priority 1 compliance.
+  **Design Test:** For every instruction, verify: "Can an agent execute this without judgment?" If the answer is no, revise for Priority 1 compliance.
 
   **Priority Weighting (Quantified):**
   - Priority 1: Accept up to 50% token overhead for explicit error handling
@@ -404,7 +427,7 @@ All rule files MUST follow [CommonMark specification](https://spec.commonmark.or
 
 ### Anti-Pattern 1: Keyword Stuffing for Discovery
 
-**Problem:** Adding irrelevant or duplicate keywords to meet the 10-15 requirement, or using overly generic terms that don't aid semantic discovery.
+**Problem:** Adding irrelevant or duplicate keywords to meet the 5-20 requirement, or using overly generic terms that don't aid semantic discovery.
 
 **Why It Fails:** Pollutes RULES_INDEX.md with false matches, causes wrong rules to load, wastes agent context budget on irrelevant rules, and degrades rule discovery accuracy.
 
@@ -478,6 +501,19 @@ structure:
   required_sections: Metadata, Scope, References, Contract
   Contract_subsections: 7 Markdown ### headers required
 ```
+
+## Importance Marker Inheritance
+
+When splitting rules (e.g., 100-snowflake-core.md into 100a, 100b, 100c):
+
+- Parent rule keeps original marker (CORE/FOUNDATION)
+- Child rules inherit same marker if they're core dependencies
+- Child rules use no marker if they're specialized topics
+
+Example:
+- `200-python-core.md` - CORE RULE (parent)
+- `201-python-lint-format.md` - CORE RULE (core dependency)
+- `206-python-pytest.md` - no marker (specialized testing rule)
 
 ## LoadTrigger Guidelines
 

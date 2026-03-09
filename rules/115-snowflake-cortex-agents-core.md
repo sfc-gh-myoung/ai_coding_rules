@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **Keywords:** multi-tool agents, planning instructions, testing, troubleshooting, semantic views, create agent, debug agent, agent not working, tool execution failed, agent error, fix agent
 **TokenBudget:** ~2500
 **ContextTier:** High
@@ -144,10 +144,15 @@ agent = cortex.Agent(
     tools=[sales_tool, marketing_tool, document_search],
     planning_instructions="""
     1. Identify query type (quantitative, qualitative, mixed)
-    2. For quantitative: Use appropriate analyst tool first
-    3. For qualitative: Use document_search for context
+    2. For quantitative: Use CORTEX_ANALYST for structured data queries against semantic views
+    3. For qualitative: Use document_search for context via CORTEX_SEARCH_SERVICE
     4. For mixed: Get data first, then augment with documents
     5. Always cite data sources
+
+    Tool Selection:
+    - Structured data query -> CORTEX_ANALYST + semantic view
+    - Document search -> CORTEX_SEARCH_SERVICE + search service name
+    - Both needed -> Configure both tools in agent definition
     """
 )
 ```

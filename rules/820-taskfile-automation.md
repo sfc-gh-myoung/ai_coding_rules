@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Taskfile, Taskfile.yml, task automation, build automation, task runner, Task, portable tasks, error handling, command detection, auto-detection, cross-platform, uvx
-**TokenBudget:** ~2250
+**TokenBudget:** ~2500
 **ContextTier:** Medium
 **Depends:** 202-markup-config-validation.md
 **LoadTrigger:** file:Taskfile.yml, kw:deploy, kw:automation, kw:ci
@@ -327,3 +327,61 @@ which uv && uv --version
 
 ## Documentation
 - Reference: https://taskfile.dev/
+
+## Task Fingerprinting for Incremental Builds
+
+Use `sources` and `generates` to skip tasks when inputs haven't changed:
+
+```yaml
+build:
+    cmds:
+        - go build -o bin/app .
+    sources:
+        - "**/*.go"
+    generates:
+        - bin/app
+```
+
+Taskfile uses checksums to detect changes. If sources haven't changed since last run, the task is skipped.
+
+## CI/CD Integration
+
+```yaml
+# GitHub Actions example
+# - name: Install Task
+#   uses: arduino/setup-task@v2
+# - name: Run tests
+#   run: task test
+```
+
+SHOULD provide a single `ci` or `validate:ci` task as the CI entry point:
+
+```yaml
+ci:
+    desc: "Run all CI checks"
+    cmds:
+        - task: quality:lint
+        - task: test
+        - task: build
+```
+
+Adapt for your CI platform (GitHub Actions, GitLab CI, CircleCI).
+
+## Conditional Task Execution
+
+Use `preconditions` and `status` for environment-aware tasks:
+
+```yaml
+deploy:
+    desc: "Deploy application (CI only)"
+    cmds:
+        - echo "Deploying..."
+    preconditions:
+        - sh: "[ \"$CI\" = 'true' ]"
+          msg: "deploy can only run in CI environment"
+    status:
+        - test -f deployed.flag
+```
+
+- **`preconditions`** — Fail with a message if condition is not met (pre-flight check)
+- **`status`** — Skip task if all status commands succeed (already done check)

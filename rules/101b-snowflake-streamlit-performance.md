@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-12
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** @st.cache_data, @st.cache_resource, st.fragment, NULL handling, slow streamlit, streamlit caching, optimize streamlit, fix slow queries, fragment batch processing, streamlit performance, app slow, loading data, caching pattern
-**TokenBudget:** ~4600
+**TokenBudget:** ~4950
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 103-snowflake-performance-tuning.md
 
@@ -39,8 +39,8 @@ Comprehensive guidance for optimizing Streamlit application performance through 
 - **105-snowflake-cost-governance.md** - Cost monitoring for cached queries
 - **111-snowflake-observability-core.md** - Query profiling and monitoring
 - **119-snowflake-warehouse-management.md** - Warehouse sizing for query performance
-- **251-python-datetime-handling.md** - Datetime optimization for time series
-- **252-python-pandas.md** - DataFrame optimization and caching
+- **251-python-datetime-core.md** - Datetime optimization for time series
+- **252-python-pandas-core.md** - DataFrame optimization and caching
 
 ### External Documentation
 
@@ -401,6 +401,10 @@ for _, row in metrics_df.iterrows():
         st.metric(row["metric_name"], "N/A")
 ```
 
+**Cache corruption recovery:** Call `st.cache_data.clear()` to force full refresh. For user-triggered refresh, add button: `if st.button('Refresh Data'): st.cache_data.clear(); st.rerun()`
+
+**Memory pressure:** If DataFrame exceeds 100MB, use server-side pagination (`LIMIT/OFFSET` in SQL) or Snowpark lazy evaluation instead of `.to_pandas()`. Monitor with `df.memory_usage(deep=True).sum()`.
+
 ## Data Loading from Snowflake - Critical Column Name Normalization
 
 **MANDATORY:**
@@ -497,6 +501,7 @@ for region in regions:
     df = session.sql(f"SELECT * FROM sales WHERE region = '{region}'").to_pandas()
     process(df)
 ```
+**WARNING:** This is also a SQL injection risk. Use parameterized queries (`session.sql('SELECT ... WHERE region = ?', params=[region])`) or Snowpark filter methods instead.
 
 **Correct:**
 ```python

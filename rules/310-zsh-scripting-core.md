@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Zsh, Z shell, zsh features, arrays, functions, oh-my-zsh, emulate, setopt, parameter expansion, globbing
 **TokenBudget:** ~4100
 **ContextTier:** Medium
@@ -139,7 +139,7 @@ rm $files  # In zsh, this tries to delete "file1.txt file2.txt" as one file
 # GOOD: Explicit options for predictable behavior
 #!/bin/zsh
 setopt KSH_ARRAYS      # 0-indexed arrays like bash
-setopt SH_WORD_SPLIT   # Word splitting on unquoted vars
+# NOTE: Keep SH_WORD_SPLIT off (zsh default). Use `emulate -L sh` for POSIX blocks.
 
 # Or use zsh idioms correctly
 arr=(a b c)
@@ -210,8 +210,8 @@ zsh -n script.zsh
 # Ensure zsh behavior in mixed environments
 emulate -L zsh
 
-# Set strict error handling
-set -euo pipefail
+# Set strict error handling (zsh-native; `set -euo pipefail` works but prefer native)
+setopt ERR_EXIT NO_UNSET PIPE_FAIL
 ```
 
 ### Zsh Options and Modes
@@ -355,10 +355,11 @@ process_simple() {
 function create_backup() {
     emulate -L zsh
     local -A opts
-    zparseopts -D -A opts h v || return 1
+    zparseopts -D -A opts h v || { echo "Usage: create_backup [-h] [-v] <source>" >&2; return 1; }
 
     local source="$1"
-    [[ -z $source ]] && { echo "Source required" >&2; return 1; }
+    [[ -n ${opts[-h]} ]] && { echo "Usage: create_backup [-h] [-v] <source>"; return 0; }
+    [[ -z $source ]] && { echo "Error: source path required" >&2; return 1; }
 
     [[ -n ${opts[-v]} ]] && echo "Creating backup of $source"
     cp "$source" "${source}.backup"
@@ -391,28 +392,15 @@ function safe_operation() {
 ### Cleanup and Resource Management
 - **Rule:** Implement proper cleanup:
 ```zsh
-# Global cleanup function
 function cleanup() {
     local exit_code=$?
-
-    # Remove temporary files
     [[ -n ${temp_dir:-} ]] && rm -rf "$temp_dir"
-
-    # Kill background processes
     [[ -n ${bg_pid:-} ]] && kill "$bg_pid" 2>/dev/null
-
-    # Restore terminal settings if modified
     [[ -n ${original_stty:-} ]] && stty "$original_stty"
-
     exit $exit_code
 }
-
-# Set up signal handlers
 trap cleanup EXIT INT TERM QUIT
-
-# Create temporary resources
-temp_dir=$(mktemp -d)
-readonly temp_dir
+temp_dir=$(mktemp -d); readonly temp_dir
 ```
 
 ## Zsh Globbing and Pattern Matching
@@ -486,7 +474,7 @@ read -A words <<< "word1 word2 word3"
 
 ### Zsh-Specific Pitfalls
 - **Avoid:** Mixing zsh and bash syntax without proper emulation
-- **Avoid:** Using `setopt SH_WORD_SPLIT` in scripts (breaks zsh behavior)
+- **Avoid:** Using `setopt SH_WORD_SPLIT` in scripts (breaks zsh behavior). Use `emulate -L sh` for POSIX compatibility blocks instead.
 - **Avoid:** Forgetting array index differences (zsh is 1-indexed by default)
 - **Avoid:** Using `$*` instead of `$@` for argument passing
 - **Avoid:** Ignoring zsh's NULL_GLOB behavior with non-matching patterns

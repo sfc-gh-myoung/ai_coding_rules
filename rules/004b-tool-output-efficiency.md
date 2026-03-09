@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-08
+**LastUpdated:** 2026-03-09
 **Keywords:** token efficiency, tool outputs, minimal output, structured output, progressive output, context budget, verbose output
-**TokenBudget:** ~1600
+**TokenBudget:** ~1850
 **ContextTier:** Medium
 **Depends:** 004-tool-design-for-agents.md, 000-global-core.md
 
@@ -76,6 +76,12 @@ Minimal, structured tool responses containing only the information the agent nee
 - Tool output uses fewer tokens than before optimization
 - Agent can still complete its tasks with the reduced output
 - Output format is consistent across similar tools
+
+**Token efficiency targets:**
+- Simple operations (create, delete, update) -- <100 tokens output
+- Read operations -- <500 tokens output
+- Search/list operations -- <2000 tokens output
+- Optimize when any tool output exceeds 5% of context window per call
 
 ### Post-Execution Checklist
 
@@ -191,6 +197,15 @@ def search_documents(
 - Load full content only if needed
 - Prevents context overflow
 
+**Default field selection:** Include fields the agent needs for its NEXT decision. Exclude fields only needed for display, audit, or archival. Rule of thumb: if removing a field would not change the agent's next action, exclude it from defaults.
+
+## Large Output Handling
+
+For tools that must return large content:
+- Content >1000 tokens -- offer line-range or section parameters
+- Content >5000 tokens -- require explicit pagination
+- Binary content (images, files) -- return metadata (name, size, type) not content
+
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Returning Full Objects When Summary Suffices
@@ -231,3 +246,15 @@ def search(query):
 def search(query, limit=10, offset=0):
     return database.find(query, limit=limit, offset=offset)
 ```
+
+### Error Recovery
+
+If agent fails after output optimization, add back fields one at a time starting with the most recently removed. Track which fields were required by logging agent failures correlated with field removal.
+
+### Negative Tests
+
+Tool output should NOT:
+- Contain timestamps unless temporal data was explicitly requested
+- Echo the query or input parameters back in the response
+- Include counts derivable from array length (e.g., `total_matches` alongside a matches array)
+- Contain API version headers or request IDs

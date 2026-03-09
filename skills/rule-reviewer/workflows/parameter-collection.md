@@ -77,7 +77,7 @@ mode_question = {
     "options": [
         {
             "label": "FULL",
-            "description": "Complete review of all 7 dimensions (default)"
+            "description": "Complete review of all 6 scored dimensions (default)"
         },
         {
             "label": "FOCUSED",
@@ -102,7 +102,7 @@ optional_questions = [
         "question": "Which execution mode?",
         "multiSelect": False,
         "options": [
-            {"label": "parallel", "description": "Use 7 sub-agents (faster, default)"},
+            {"label": "parallel", "description": "Use 5 sub-agents (faster, default)"},
             {"label": "sequential", "description": "Single-agent (for debugging)"}
         ]
     },
@@ -174,7 +174,7 @@ def collect_parameters_interactively(missing_params: list) -> dict:
             "question": "Which review mode do you want to use?",
             "multiSelect": False,
             "options": [
-                {"label": "FULL", "description": "Complete review of all 7 dimensions"},
+                {"label": "FULL", "description": "Complete review of all 6 scored dimensions"},
                 {"label": "FOCUSED", "description": "Review Actionability + Completeness only"},
                 {"label": "STALENESS", "description": "Quick check for outdated content"}
             ]
@@ -186,7 +186,7 @@ def collect_parameters_interactively(missing_params: list) -> dict:
         "question": "Which execution mode?",
         "multiSelect": False,
         "options": [
-            {"label": "parallel", "description": "Use 7 sub-agents (faster, default)"},
+            {"label": "parallel", "description": "Use 5 sub-agents (faster, default)"},
             {"label": "sequential", "description": "Single-agent (for debugging)"}
         ]
     })
@@ -267,7 +267,7 @@ def collect_parameters_text(missing_params: list) -> dict:
     
     if 'review_mode' in missing_params:
         print("**Review Mode:**")
-        print("  - FULL: Complete review of all 7 dimensions")
+        print("  - FULL: Complete review of all 6 scored dimensions")
         print("  - FOCUSED: Review Actionability + Completeness only")
         print("  - STALENESS: Quick check for outdated content")
         print()

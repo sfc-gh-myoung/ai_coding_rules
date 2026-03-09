@@ -4,10 +4,10 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-01-27
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:taskfile-includes, kw:taskfile-help, kw:categorized-help
 **Keywords:** categorized help, subtask files, includes, AI agent, machine-readable, cross-platform, task namespaces, portable tasks, task discovery
-**TokenBudget:** ~2450
+**TokenBudget:** ~2600
 **ContextTier:** Low
 **Depends:** 820-taskfile-automation.md
 
@@ -43,9 +43,11 @@ Advanced Taskfile patterns including categorized help output, subtask file organ
 - For cross-platform: target platforms identified
 
 ### Mandatory
-- Namespace convention: `namespace:action` pattern
-- Categorized help for Taskfiles with 8+ tasks
-- Preconditions for tool availability
+- MUST use `namespace:action` naming pattern for all public tasks
+- MUST implement categorized help for Taskfiles with 8+ tasks
+- MUST add `preconditions` for tool availability checks
+- Each task MUST include a `desc:` field (except internal tasks)
+- Variables MUST be defined at the Taskfile-level `vars:` block or at the top of each task
 
 ### Forbidden
 - OS-specific commands without `platforms:` guards
@@ -224,6 +226,22 @@ tasks:
 - `silent: true` prevents command echoing
 - `{{":"}}` template syntax for colons in output
 - Multiline string (`|`) for clean formatting
+
+### CI/CD Pipeline Patterns
+
+```yaml
+ci:
+    desc: "Run full CI pipeline"
+    deps: [quality:lint, test, build]
+    cmds:
+        - task: deploy
+          vars: { ENV: "{{.CI_ENVIRONMENT}}" }
+    preconditions:
+        - sh: "[ -n \"$CI\" ]"
+          msg: "ci task must run in CI environment"
+```
+
+Use `deps` for parallel execution and `preconditions` to enforce CI-only targets.
 
 ### Project-Type Templates
 

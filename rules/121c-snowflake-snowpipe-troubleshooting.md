@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-02-23
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:snowpipe-troubleshooting, kw:pipe-errors
 **Keywords:** snowpipe troubleshooting, debugging, error resolution, pipe errors, streaming errors, connection failures, schema errors, offset tracking, latency issues, duplicate data, authentication errors, channel errors
-**TokenBudget:** ~5050
+**TokenBudget:** ~4150
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 121-snowflake-snowpipe.md, 121a-snowflake-snowpipe-streaming.md
 
@@ -38,6 +38,7 @@ Troubleshooting and debugging patterns for both file-based Snowpipe and Snowpipe
 
 **Related:**
 - **121b-snowflake-snowpipe-monitoring.md** - Monitoring and cost management
+- **121e-snowflake-snowpipe-troubleshooting-advanced.md** - Advanced streaming patterns and debugging checklists
 - **111-snowflake-observability-core.md** - Logging, tracing, and monitoring patterns
 
 ### External Documentation
@@ -246,12 +247,11 @@ Troubleshooting and debugging patterns for both file-based Snowpipe and Snowpipe
   -- Check table schema
   DESC TABLE DB.SCHEMA.TABLE_NAME;
   
-  -- Check for recent schema changes
-  SELECT *
-  FROM SNOWFLAKE.ACCOUNT_USAGE.COLUMNS
+  -- Check for recent schema changes via INFORMATION_SCHEMA
+  SELECT column_name, data_type, ordinal_position, is_nullable
+  FROM DB.INFORMATION_SCHEMA.COLUMNS
   WHERE table_name = 'TABLE_NAME'
     AND table_schema = 'SCHEMA'
-    AND table_catalog = 'DB'
   ORDER BY ordinal_position;
   ```
   ```python
@@ -286,119 +286,20 @@ Troubleshooting and debugging patterns for both file-based Snowpipe and Snowpipe
 **Offset tracking issues:**
 - **Symptom:** Duplicate data, missing data, offset errors
 - **Causes:** Non-unique offset tokens, offset persistence failures, channel reopens without offset
-- **Solutions:**
-  ```python
-  # Good: Offset token tracking for exactly-once semantics
-  from snowflake.ingest import SnowflakeStreamingIngestClient
-  import time
-  
-  client = SnowflakeStreamingIngestClient(...)
-  channel = client.open_channel(...)
-  
-  # Track last committed offset (persist to disk/database)
-  last_offset = load_last_offset_from_storage()
-  
-  # Insert rows with monotonically increasing offset tokens
-  for idx, row in enumerate(data_stream, start=last_offset + 1):
-      response = channel.insert_row(row, offset_token=f'offset_{idx}')
-      
-      if response.has_errors():
-          print(f"Insert errors: {response.insert_errors}")
-          # Handle errors, retry, or skip
-      else:
-          # Persist offset after successful insert
-          save_offset_to_storage(idx)
-  
-  channel.close()
-  # On restart, resume from last_offset + 1, no duplicates!
-  ```
-  - **Fix:** Use unique, monotonically increasing offset tokens
-  - **Fix:** Persist offsets to disk/database after successful inserts
-  - **Fix:** Implement offset recovery logic for channel reopens
-  - **Fix:** Verify offset uniqueness within channel
+- **Fix:** Use unique, monotonically increasing offset tokens. Persist offsets to durable storage after successful inserts. Implement offset recovery for channel reopens.
+- See **121e-snowflake-snowpipe-troubleshooting-advanced.md** for full Python offset tracking pattern.
 
 **High latency:**
 - **Symptom:** Data takes >5 seconds to appear in table
 - **Causes:** Small batch sizes, network latency, classic architecture, channel contention
-- **Solutions:**
-  ```python
-  # Batch rows for better performance
-  from snowflake.ingest import SnowflakeStreamingIngestClient
-  
-  client = SnowflakeStreamingIngestClient(...)
-  channel = client.open_channel(...)
-  
-  batch = []
-  batch_size = 1000
-  global_offset = 0
-  
-  for row in data_stream:
-      batch.append(row)
-      
-      if len(batch) >= batch_size:
-          # Insert batch with globally unique offset tokens
-          for row_item in batch:
-              channel.insert_row(row_item, offset_token=f'offset_{global_offset}')
-              global_offset += 1
-          batch = []
-  
-  # Insert remaining rows
-  if batch:
-      for row_item in batch:
-          channel.insert_row(row_item, offset_token=f'offset_{global_offset}')
-          global_offset += 1
-  
-  channel.close()
-  ```
-  - **Fix:** Increase batch size (100-1000 rows per batch)
-  - **Fix:** Use high-performance architecture for high-volume
-  - **Fix:** Reduce network hops (deploy closer to Snowflake region)
-  - **Fix:** Use multiple channels for parallel ingestion
+- **Fix:** Batch 100-1000 rows per insert cycle. Use multiple channels for parallel ingestion. Deploy closer to Snowflake region.
+- See **121e-snowflake-snowpipe-troubleshooting-advanced.md** for batch performance pattern.
 
 **High error rates:**
 - **Symptom:** >1% of rows failing to insert
 - **Causes:** Schema mismatches, data type errors, constraint violations, malformed data
-- **Solutions:**
-  ```python
-  # Implement data validation before insert
-  from snowflake.ingest import SnowflakeStreamingIngestClient
-  
-  client = SnowflakeStreamingIngestClient(...)
-  channel = client.open_channel(...)
-  
-  def validate_row(row):
-      """Validate row data before insertion"""
-      # Check required fields
-      if 'id' not in row or 'name' not in row:
-          return False, "Missing required fields"
-      
-      # Check data types
-      if not isinstance(row['id'], int):
-          return False, "id must be integer"
-      
-      if not isinstance(row['name'], str):
-          return False, "name must be string"
-      
-      return True, None
-  
-  for idx, row in enumerate(data_stream):
-      valid, error = validate_row(row)
-      
-      if not valid:
-          print(f"Validation error at offset {idx}: {error}")
-          continue  # Skip invalid row
-      
-      response = channel.insert_row(row, offset_token=f'offset_{idx}')
-      
-      if response.has_errors():
-          print(f"Insert error at offset {idx}: {response.insert_errors}")
-  
-  channel.close()
-  ```
-  - **Fix:** Validate data before insert
-  - **Fix:** Implement schema validation
-  - **Fix:** Check constraints (PK, FK, NOT NULL)
-  - **Fix:** Add data quality checks
+- **Fix:** Validate data types and required fields before insert. Implement schema validation. Check constraints (PK, FK, NOT NULL).
+- See **121e-snowflake-snowpipe-troubleshooting-advanced.md** for data validation pattern.
 
 ## Diagnostic Decision Tree
 
@@ -435,92 +336,20 @@ Troubleshooting and debugging patterns for both file-based Snowpipe and Snowpipe
 
 ## Debugging Checklists
 
-### File-Based Snowpipe Checklist
+For comprehensive debugging checklists (authentication, configuration, channel, data, and performance checks for both file-based and streaming Snowpipe), see **121e-snowflake-snowpipe-troubleshooting-advanced.md**.
 
-**Authentication Issues:**
-- [ ] Pipe creation privileges granted (CREATE PIPE, USAGE, SELECT, INSERT)
-- [ ] Stage permissions configured correctly
-- [ ] Storage integration configured (for external stages)
-- [ ] Cloud event notifications configured (SNS, Event Grid, Pub/Sub)
-
-**Configuration Issues:**
-- [ ] Pipe status is not paused (PIPE_EXECUTION_PAUSED = FALSE)
-- [ ] Cloud event notifications configured correctly (SQS queue ARN)
-- [ ] File format specifications explicit and tested
-- [ ] COPY statement validated manually before pipe creation
-- [ ] Pattern matching configured correctly
-
-**Data Issues:**
-- [ ] Files exist in stage and match pattern
-- [ ] File sizes appropriate (100-250MB compressed)
-- [ ] No schema mismatches or data type errors
-- [ ] No constraint violations (PK, FK, NOT NULL)
-
-### Snowpipe Streaming Checklist
-
-**Authentication Issues:**
-- [ ] Private key file exists and is readable
-- [ ] Private key format is correct (PEM format)
-- [ ] Public key registered in Snowflake user
-- [ ] Account identifier is correct (ORGNAME-ACCOUNTNAME)
-- [ ] User has appropriate privileges (INSERT, CREATE TABLE)
-
-**Channel Issues:**
-- [ ] Target table exists in specified database and schema
-- [ ] Channel name is unique and descriptive
-- [ ] On-error mode configured appropriately
-- [ ] Channel not already open in another process
-
-**Data Issues:**
-- [ ] Row data types match table schema
-- [ ] Offset tokens are unique and monotonic
-- [ ] No NULL values in NOT NULL columns
-- [ ] No constraint violations (PK, FK, CHECK)
-
-**Performance Issues:**
-- [ ] Using high-performance architecture for high-volume
-- [ ] Batch size appropriate (100-1000 rows per batch)
-- [ ] Network latency acceptable (<50ms)
-- [ ] Multiple channels for parallel ingestion
+**Quick reference - top items to check first:**
+- File-based: Pipe not paused, event notifications configured, files exist in stage, file sizes 100-250MB
+- Streaming: Private key readable and registered, account identifier correct (ORGNAME-ACCOUNTNAME), target table exists, batch size 100-1000
 
 ## Diagnostic Queries
 
 ### File-Based Snowpipe Diagnostics
 
+Pipe status, load history, error, and stage queries are covered inline in the **Common Issues** section above. For ongoing monitoring queries, see **121b-snowflake-snowpipe-monitoring.md**.
+
+**Additional diagnostic: Test COPY statement without loading data:**
 ```sql
--- Check pipe status and configuration
-SHOW PIPES LIKE 'PIPE_NAME';
-DESC PIPE PIPE_NAME;
-
--- Check recent load history
-SELECT *
-FROM TABLE(INFORMATION_SCHEMA.PIPE_USAGE_HISTORY(
-  DATE_RANGE_START => DATEADD(hour, -1, CURRENT_TIMESTAMP()),
-  PIPE_NAME => 'DB.SCHEMA.PIPE_NAME'
-))
-ORDER BY START_TIME DESC;
-
--- Check for errors in COPY_HISTORY
-SELECT
-  file_name,
-  status,
-  row_count,
-  error_count,
-  first_error_message,
-  first_error_line_number
-FROM SNOWFLAKE.ACCOUNT_USAGE.COPY_HISTORY
-WHERE pipe_name = 'PIPE_NAME'
-  AND last_load_time >= DATEADD(hour, -1, CURRENT_TIMESTAMP())
-  AND (status = 'LOAD_FAILED' OR error_count > 0)
-ORDER BY last_load_time DESC;
-
--- Check stage contents
-LIST @STAGE_NAME;
-
--- Test file pattern matching
-LIST @STAGE_NAME PATTERN = 'your_pattern_here';
-
--- Manually test COPY statement
 COPY INTO TARGET_TABLE
 FROM @STAGE_NAME/sample_file.csv.gz
 FILE_FORMAT = (FORMAT_NAME = FILE_FORMAT_NAME)
@@ -530,21 +359,11 @@ VALIDATION_MODE = RETURN_ERRORS;
 ### Snowpipe Streaming Diagnostics
 
 ```sql
--- Check channel status
-SELECT *
-FROM SNOWFLAKE.ACCOUNT_USAGE.STREAMING_CHANNELS
-WHERE database_name = 'DB'
-  AND schema_name = 'SCHEMA'
-  AND table_name = 'TABLE'
-ORDER BY last_commit_time DESC;
+-- Check channel status (use SHOW CHANNELS, not ACCOUNT_USAGE)
+SHOW CHANNELS IN TABLE DB.SCHEMA.TABLE;
 
--- Check recent load history
-SELECT *
-FROM SNOWFLAKE.ACCOUNT_USAGE.LOAD_HISTORY
-WHERE table_name = 'TABLE'
-  AND load_type = 'SNOWPIPE_STREAMING'
-  AND start_time >= DATEADD(hour, -1, CURRENT_TIMESTAMP())
-ORDER BY start_time DESC;
+-- Check recent data arrival (compare row counts over time)
+SELECT COUNT(*) AS current_row_count FROM DB.SCHEMA.TABLE;
 
 -- Check table schema
 DESC TABLE DB.SCHEMA.TABLE;

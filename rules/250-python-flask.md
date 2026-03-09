@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:flask, kw:web
 **Keywords:** Flask, web, blueprints, Flask-SQLAlchemy, templates, routing, application factory
-**TokenBudget:** ~1900
+**TokenBudget:** ~2150
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -167,11 +167,12 @@ from flask_wtf.csrf import CSRFProtect
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
+login_manager.login_view = "auth.login"
 csrf = CSRFProtect()
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 ```
 
 ### Blueprint Pattern
@@ -188,7 +189,9 @@ from app.blueprints.auth import routes
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = db.session.execute(
+            db.select(User).filter_by(email=form.email.data)
+        ).scalar_one_or_none()
         if user and user.check_password(form.password.data):
             login_user(user)
             return redirect(url_for('main.index'))
@@ -207,6 +210,13 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
+
+    @staticmethod
+    def validate():
+        required = ["SECRET_KEY", "SQLALCHEMY_DATABASE_URI"]
+        missing = [k for k in required if not getattr(Config, k)]
+        if missing:
+            raise RuntimeError(f"Missing required config: {', '.join(missing)}")
 
 class DevelopmentConfig(Config):
     DEBUG = True
@@ -305,6 +315,19 @@ def test_login_page(client):
 </html>
 ```
 
+### Rate Limiting
+```python
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+limiter = Limiter(get_remote_address, app=app, default_limits=["200 per day", "50 per hour"])
+
+@app.route("/api/data")
+@limiter.limit("10 per minute")
+def get_data():
+    return jsonify(data=fetch_data())
+```
+
 ### Production Deployment
 ```python
 # wsgi.py
@@ -321,4 +344,19 @@ gunicorn --workers 4 --bind 0.0.0.0:5000 wsgi:app
 
 # Testing
 uv run pytest tests/ -v --cov=app
+```
+
+### Database Migrations
+```bash
+# Initialize migrations directory
+flask db init
+
+# Generate migration after model changes
+flask db migrate -m "describe the change"
+
+# Apply migrations to database
+flask db upgrade
+
+# Rollback last migration
+flask db downgrade
 ```

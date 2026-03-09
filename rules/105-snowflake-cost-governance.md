@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:cost, kw:budget, kw:billing
 **Keywords:** budget alerts, spend tracking, Snowflake, SQL, CREDIT_QUOTA, WAREHOUSE_METERING_HISTORY, object tagging, monitor credits, warehouse spending, cost alerts, credit limits, budget management, resource monitor, tag enforcement
 **TokenBudget:** ~3300
@@ -124,6 +124,10 @@ Resource monitors active; credit usage within expected ranges; warehouses auto-s
       Verify: Query WAREHOUSE_METERING_HISTORY - ensure dashboards exist and refresh
 - [ ] Regular review process established for credit usage patterns
       Verify: Check for scheduled queries/tasks that report on usage trends
+
+### Quick Credit Cost Reference
+
+Approximate credit costs per hour by warehouse size: XS = 1, Small = 2, Medium = 4, Large = 8, XL = 16, 2XL = 32, 3XL = 64, 4XL = 128. Serverless tasks: ~1.5x equivalent warehouse credits. Snowpipe: ~0.06 credits per file (varies by size). Before generating DDL, estimate monthly credit impact.
 
 ## Anti-Patterns and Common Mistakes
 

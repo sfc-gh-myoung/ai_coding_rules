@@ -41,9 +41,9 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 
 (Default `output_root: reviews/`. With `output_root: mytest/` → `mytest/rule-reviews/...` and `mytest/summaries/...`)
 1. Executive Summary (score distribution, dimension analysis)
-2. Priority 1: Urgent (score <60, NOT_EXECUTABLE)
-3. Priority 2: High (score 60-79, NEEDS_REFINEMENT)
-4. Priority 3: Medium (score 80-89, EXECUTABLE_WITH_REFINEMENTS)
+2. Priority 1: Urgent (score <50, NOT_EXECUTABLE)
+3. Priority 2: High (score 50-74, NEEDS_REFINEMENT)
+4. Priority 3: Medium (score 75-89, EXECUTABLE_WITH_REFINEMENTS)
 5. Priority 4: Excellent (score 90-100, EXECUTABLE)
 6. Failed Reviews (execution errors)
 7. Top 10 Recommendations (impact × effort prioritization)
@@ -98,7 +98,7 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 
 1. Read ONE rule file completely
 2. Run schema validator for THAT rule
-3. Apply ALL 7 rubrics to THAT rule
+3. Apply ALL 6 scored rubrics to THAT rule
 4. Write review file for THAT rule
 5. THEN move to next rule
 

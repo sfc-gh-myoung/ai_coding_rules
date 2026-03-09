@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Bash, shell scripting, set -euo pipefail, error handling, strict mode, functions, variables, script structure, trap, exit codes, shellcheck, input validation
-**TokenBudget:** ~5000
+**TokenBudget:** ~3500
 **ContextTier:** High
 **Depends:** 000-global-core.md
 **LoadTrigger:** ext:.sh, ext:.bash, ext:.zsh
@@ -40,6 +40,7 @@ Foundational bash scripting patterns covering script structure, variables, funct
 **Related:**
 - **300a-bash-security.md** - Security patterns for Bash scripts
 - **300b-bash-testing-tooling.md** - Testing and tooling for Bash
+- **300d-bash-advanced.md** - Advanced patterns, performance, code style, debugging
 - **820-taskfile-automation.md** - Task automation with Taskfiles
 
 ### External Documentation
@@ -163,59 +164,17 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **Command Availability:** Required commands checked with `command -v`
 
 **Success Criteria:**
-- shellcheck passes with no warnings
-- Script handles spaces in filenames
-- Error conditions exit with non-zero codes
-- Cleanup handler executes on exit/signal
-
-**Investigation Required:**
-1. **Read existing scripts BEFORE suggesting changes** - Check current patterns, error handling
-2. **Verify shell type** - Confirm bash vs sh, check shebang and features used
-3. **Never assume error handling exists** - Check for `set -euo pipefail`, trap handlers
-4. **Check for shellcheck compliance** - Run shellcheck to identify existing issues
-5. **Test with actual inputs** - Verify scripts work with edge cases (spaces, special chars)
-
-**Anti-Pattern Examples:**
-- "Adding set -euo pipefail..." (without checking if script is compatible)
-- "Quoting variables..." (without testing for unintended changes)
-- Assuming script uses bash when it's actually sh
-
-**Correct Pattern:**
-- "Let me check your script's current error handling first."
-- [reads script, checks for existing patterns, runs shellcheck]
-- "I see you're missing error handling. Adding set -euo pipefail and trap handlers..."
-- [implements changes, runs shellcheck, tests with edge cases]
-
-### Design Principles
-
-- **Strict Error Handling:** Use `set -euo pipefail` to catch errors early
-- **Quote Everything:** Always quote variables to prevent word splitting
-- **Local Scope:** Use `local` in functions to prevent variable pollution
-- **Trap Signals:** Implement cleanup handlers for graceful exits
-- **Validate Inputs:** Check arguments, files, and command availability
-- **Clear Error Messages:** Write errors to stderr with context
-- **Consistent Style:** Follow established patterns for readability
-- **Portable Code:** Use `#!/usr/bin/env bash` and avoid bashisms when targeting sh
+- shellcheck passes, spaces in filenames handled, errors exit non-zero, cleanup handler runs
 
 ### Post-Execution Checklist
 
-**Before Starting:**
 - [ ] Rule dependencies loaded (000-global-core.md)
-- [ ] Bash 4.0+ available
-- [ ] shellcheck installed
-- [ ] Existing scripts reviewed (if modifying)
-
-**After Completion:**
 - [ ] **CRITICAL:** `shellcheck script.sh` passes with no errors
-- [ ] **CRITICAL:** All variables quoted
-- [ ] **CRITICAL:** `set -euo pipefail` at top of script
+- [ ] **CRITICAL:** All variables quoted, `set -euo pipefail` at top
 - [ ] **CRITICAL:** Functions use `local` variables
-- [ ] Shebang is `#!/usr/bin/env bash`
-- [ ] Trap handler for cleanup present
-- [ ] Input validation implemented
-- [ ] Exit codes meaningful and checked
-- [ ] Error messages go to stderr
-- [ ] Script tested with edge cases
+- [ ] Shebang is `#!/usr/bin/env bash`, trap handler present
+- [ ] Input validation, meaningful exit codes, errors to stderr
+- [ ] Script tested with edge cases (spaces, empty inputs)
 - [ ] CHANGELOG.md and README.md updated as required
 
 ## Anti-Patterns and Common Mistakes
@@ -223,8 +182,6 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 ### Anti-Pattern 1: Unquoted Variables Leading to Word Splitting
 
 **Problem:** Using variables without quotes (`$var` instead of `"$var"`), causing unexpected word splitting and glob expansion when values contain spaces or special characters.
-
-**Why It Fails:** File paths with spaces break scripts, command arguments split incorrectly, and glob patterns expand unexpectedly. Unquoted variables are the #1 cause of bash script bugs in production.
 
 **Correct Pattern:**
 ```bash
@@ -245,9 +202,7 @@ rm "$files"  # Safe: treats *.txt as literal string, not glob
 
 ### Anti-Pattern 2: Missing Error Handling and Strict Mode
 
-**Problem:** Running scripts without `set -euo pipefail`, allowing commands to fail silently and scripts to continue executing with undefined variables or failed pipeline commands.
-
-**Why It Fails:** Silent failures corrupt data, scripts appear to succeed when critical steps failed, and undefined variables cause unpredictable behavior. Production incidents occur because errors weren't caught during testing.
+**Problem:** Running scripts without `set -euo pipefail`, allowing commands to fail silently and scripts to continue with undefined variables or failed pipeline commands.
 
 **Correct Pattern:**
 ```bash
@@ -270,29 +225,24 @@ echo "Success!"  # Only prints if all commands succeeded
 
 ### Anti-Pattern 3: Using `ls` for File Iteration Instead of Globs
 
-**Problem:** Parsing `ls` output to iterate over files (`for file in $(ls *.txt)`), which breaks with filenames containing spaces, newlines, or special characters.
-
-**Why It Fails:** `ls` output is designed for human reading, not parsing. Filenames with spaces split into multiple items, newlines break loops, and special characters cause unexpected behavior.
+**Problem:** Parsing `ls` output to iterate over files (`for file in $(ls *.txt)`) breaks with filenames containing spaces, newlines, or special characters.
 
 **Correct Pattern:**
 ```bash
 # BAD: Parsing ls output breaks with spaces
 for file in $(ls *.txt); do
-    echo "Processing $file"  # Breaks if filename has spaces
+    echo "Processing $file"
 done
-
-# Also bad: ls in command substitution
-files=$(ls *.txt)  # Loses filename structure
 
 # GOOD: Use glob patterns directly
 for file in *.txt; do
-    echo "Processing $file"  # Works with spaces and special chars
+    echo "Processing $file"
 done
 
 # GOOD: Use find for complex searches
 while IFS= read -r -d '' file; do
     echo "Processing $file"
-done < <(find . -name "*.txt" -print0)  # Handles all filenames safely
+done < <(find . -name "*.txt" -print0)
 ```
 
 ## Variable Management
@@ -337,15 +287,7 @@ done
 if [[ ${#files[@]} -eq 0 ]]; then
     echo "No files to process"
 fi
-
-# Associative arrays (Bash 4.0+)
-declare -A config
-config[host]="localhost"
-config[port]="8080"
-
-for key in "${!config[@]}"; do
-    echo "$key=${config[$key]}"
-done
+# Note: For associative arrays (declare -A), see 300d-bash-advanced.md
 ```
 
 ## Input Handling and Validation
@@ -420,18 +362,6 @@ cleanup() {
     [[ -n "${temp_dir:-}" ]] && rm -rf "$temp_dir"
 }
 trap cleanup EXIT
-```
-
-### Basic Logging
-- **Rule:** Simple logging with timestamps:
-```bash
-log() {
-    echo "[$(date '+%H:%M:%S')] $*" >&2
-}
-
-# Usage
-log "Starting process"
-log "Process completed"
 ```
 
 ## Function Design and Modularity
@@ -546,181 +476,25 @@ if ! command1 | command2; then
 fi
 ```
 
-### Process Management
-- **Rule:** Handle background processes:
-```bash
-# Start background task
-long_running_command &
-local pid=$!
-
-# Wait for completion
-wait "$pid"
-```
-
 ## Configuration and Environment
 
 ### Basic Configuration
-- **Rule:** Handle simple configuration files:
+- **Rule:** Handle configuration files safely:
 ```bash
+# WARNING: source executes arbitrary code. Prefer key=value parsing when possible.
 load_simple_config() {
     local config_file="$1"
-
-    if [[ -f "$config_file" ]]; then
+    if [[ -f "$config_file" && -O "$config_file" ]]; then
         # shellcheck source=/dev/null
         source "$config_file"
     else
-        echo "Warning: Config file not found: $config_file" >&2
+        echo "ERROR: Config file missing or not owned by current user: $config_file" >&2
+        return 1
     fi
 }
 ```
 
-### Environment Detection
-- **Rule:** Basic OS detection:
-```bash
-detect_os() {
-    case "$(uname -s)" in
-        Linux*)  echo "linux" ;;
-        Darwin*) echo "macos" ;;
-        *)       echo "unknown" ;;
-    esac
-}
+## Advanced Topics
 
-readonly OS="$(detect_os)"
-```
-
-## Debugging and Troubleshooting
-
-### Debug Mode
-- **Rule:** Simple debug mode implementation:
-```bash
-# Enable debug mode via environment variable
-if [[ "${DEBUG:-false}" == "true" ]]; then
-    set -x
-fi
-
-debug_log() {
-    if [[ "${DEBUG:-false}" == "true" ]]; then
-        echo "[DEBUG] $*" >&2
-    fi
-}
-```
-
-**Note:** For comprehensive testing frameworks and debugging techniques, see `300b-bash-testing-tooling.md`
-
-## Performance Optimization
-
-### Efficient String Operations
-- **Rule:** Use bash built-ins for string operations:
-```bash
-# String manipulation with parameter expansion
-filename="${path##*/}"        # basename
-directory="${path%/*}"        # dirname
-extension="${filename##*.}"   # file extension
-basename="${filename%.*}"     # filename without extension
-
-# Pattern matching
-if [[ "$string" == pattern* ]]; then
-    echo "String starts with pattern"
-fi
-```
-
-### Built-in Preferences
-- **Rule:** Prefer bash built-ins:
-```bash
-# Use built-in arithmetic
-((count++))
-result=$((num1 + num2))
-```
-
-## Code Style and Standards
-
-### Formatting Standards
-- **Rule:** Use consistent formatting:
-  - 4-space indentation
-  - Function names in snake_case
-  - Constants in UPPER_CASE
-  - Local variables in lowercase with underscores
-
-### ShellCheck Basics
-- **Requirement:** Use ShellCheck for static analysis
-- **Rule:** Include basic ShellCheck directives:
-```bash
-# Disable specific checks with justification
-# shellcheck disable=SC2034  # Variable appears unused
-readonly CONFIG_VAR="value"  # Used by sourced script
-
-# Disable for external file sourcing
-# shellcheck source=/dev/null
-source "$external_config"
-```
-
-**Note:** For comprehensive tooling integration and CI/CD setup, see `300b-bash-testing-tooling.md`
-
-## Security Best Practices
-
-### File Permissions
-- **Rule:** Set appropriate basic permissions:
-```bash
-# Script permissions
-chmod 755 script.sh          # Executable by all, writable by owner
-chmod 644 config.conf        # Readable by all, writable by owner
-```
-
-### Secure Temporary Files
-- **Rule:** Use `mktemp` for temporary files with restrictive permissions (see Temporary Files section above for creation patterns):
-```bash
-chmod 600 "$temp_file"   # Restrict temp file to owner only
-chmod 700 "$temp_dir"    # Restrict temp directory to owner only
-```
-
-**Note:** For comprehensive security practices including input validation and access control, see `300a-bash-security.md`
-
-## Additional Anti-Patterns
-
-### Dangerous Practices
-- **Avoid:** Using `eval` with untrusted input
-- **Avoid:** Parsing `ls` output (use arrays or `find` instead)
-- **Avoid:** Using `cat` unnecessarily (`< file` is more efficient)
-- **Avoid:** Ignoring command failures without explicit handling
-- **Avoid:** Using `which` (use `command -v` instead)
-
-### Performance Anti-Patterns
-- **Avoid:** Calling external commands in loops when bash built-ins suffice
-- **Avoid:** Using `expr` for arithmetic (use `$(())` instead)
-- **Avoid:** Unnecessary subshells and command substitutions
-
-## Documentation and Comments
-
-### Usage Documentation
-- **Requirement:** Provide clear usage information:
-```bash
-show_usage() {
-    cat << EOF
-Usage: $0 [OPTIONS] <command> [arguments]
-
-Commands:
-    process <file>    Process the specified file
-    validate <input>  Validate input format
-
-Options:
-    -v, --verbose     Enable verbose output
-    -h, --help        Show this help message
-
-Examples:
-    $0 process data.txt
-    $0 --verbose validate input.json
-
-EOF
-}
-```
-
-### Code Comments
-- **Rule:** Document complex logic:
-```bash
-# Calculate file hash for integrity checking
-calculate_hash() {
-    local file="$1"
-    # Use SHA-256 for security
-    sha256sum "$file" | cut -d' ' -f1
-}
-```
+> For debugging/troubleshooting, code style standards, ShellCheck integration, performance optimization, advanced anti-patterns, security best practices, and documentation conventions, see **300d-bash-advanced.md**.
+> For comprehensive testing frameworks and debugging techniques, see **300b-bash-testing-tooling.md**.

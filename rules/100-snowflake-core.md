@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-12
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks, warehouse creation
 **TokenBudget:** ~4350
 **ContextTier:** High
@@ -120,7 +120,7 @@ agg AS (
   FROM src
   GROUP BY customer_id
 )
-SELECT * FROM agg;
+SELECT customer_id, num_orders, total_amount FROM agg;
 ```
 
 ### Validation
@@ -161,6 +161,12 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **Rule:** Run Query Profile after implementation
 - **Rule:** Verify explicit columns in all queries
 - **Rule:** Confirm early filtering and partition pruning
+
+**Negative Tests — These patterns should NEVER appear in reviewed code:**
+- `SELECT *` in any production query
+- `DISTINCT` used for deduplication (use `QUALIFY ROW_NUMBER()` instead)
+- Repeated VARIANT parsing without CTE extraction
+- Full table reload for mutable data with >10M rows
 
 **Investigation Required:**
 1. **Read SQL files and table definitions BEFORE making recommendations**
@@ -220,6 +226,8 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **Query Timeout:** Use `SELECT SYSTEM$CANCEL_ALL_QUERIES()` to cancel runaway queries. If a warehouse is unresponsive, suspend and resume it: `ALTER WAREHOUSE wh SUSPEND; ALTER WAREHOUSE wh RESUME;`
 - **Warehouse Stuck:** If queries queue indefinitely, check `SHOW WAREHOUSES` for state. Force restart with suspend/resume cycle.
 - **Transaction Rollback:** Wrap multi-statement operations in explicit transactions (`BEGIN ... COMMIT`) with `ROLLBACK` on failure.
+
+- **Stream Staleness:** If stream offset falls behind retention, it cannot be consumed. Detection: `SHOW STREAMS` — check `STALE_AFTER` column. Recovery: Recreate stream with `CREATE OR REPLACE STREAM`, then perform full reload from source.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -289,6 +297,8 @@ WHERE event_type = 'purchase'
 GROUP BY customer_id, customer_name;
 -- Parses each field once, reuses parsed values, much faster!
 ```
+
+**Handle NULL VARIANT values:** Use `COALESCE(raw_json:customer:id::STRING, 'UNKNOWN')` or `NULLIF` to convert empty strings. Always account for missing keys in semi-structured data.
 
 **Benefits:** Parse once; reuse values; lower CPU; faster queries; fewer credits; efficient; better performance; professional
 

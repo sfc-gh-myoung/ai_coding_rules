@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:aisql, kw:cortex-aisql
 **Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, embeddings, LLM functions, batching, token costs, text generation, classification, sentiment analysis, summarization, AI function error
-**TokenBudget:** ~5350
+**TokenBudget:** ~4900
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md
 
@@ -57,6 +57,7 @@ Pragmatic, production-focused patterns for using Snowflake Cortex AISQL function
 - **105-snowflake-cost-governance.md** - Cost monitoring and optimization
 
 **Related:**
+- **114a-snowflake-cortex-ai-transcribe.md** - AI_TRANSCRIBE audio transcription patterns
 - **102-snowflake-sql-core.md** - General SQL file patterns
 - **106-snowflake-semantic-views-core.md** - Semantic views for Cortex Analyst
 - **111-snowflake-observability-core.md** - Observability and tracing
@@ -90,7 +91,7 @@ SQL AISQL functions; Snowpark Python; Snowflake CLI (`snow cortex` older-style);
 
 ### Execution Steps
 
-1. Choose the smallest viable model and enable caching/batching where applicable
+1. Choose the smallest viable model (llama3.1-8b for classification/extraction; scale to 70b only if accuracy <90% on labeled samples) and enable caching/batching where applicable
 2. Control tokens using `AI_COUNT_TOKENS` and concise prompts; prefer templates via `PROMPT`
 3. Use `TO_FILE` for file references; store files in internal stages
 4. Batch over tables using `AI_AGG` / `AI_SUMMARIZE_AGG` for cross-row context
@@ -126,7 +127,11 @@ SQL/Snowpark examples with explicit columns and prompts
 
 ### Design Principles
 
-- Choose the smallest sufficient model; scale only when quality demands it
+- Choose the smallest sufficient model using this guidance:
+  - Text classification/sentiment: `llama3.1-8b` (fastest, lowest cost)
+  - Simple extraction/filtering: `llama3.1-8b` or `mistral-7b`
+  - Summarization/complex extraction: `llama3.1-70b` or `mistral-large2`
+  - Complex reasoning/multi-step: `llama3.1-70b` (test 8b first; scale up only if accuracy <90% on labeled samples)
 - Batch inputs and push AISQL to process columns directly; avoid per-row chat loops
 - Keep prompts short and specific; use `PROMPT` for dynamic parameterization
 - Use `AI_COUNT_TOKENS` preflight for long inputs; truncate or segment when needed
@@ -141,7 +146,7 @@ SQL/Snowpark examples with explicit columns and prompts
       Verify: `SHOW GRANTS TO DATABASE ROLE SNOWFLAKE.CORTEX_USER;` - check role membership
 - [ ] Token budget verified with `AI_COUNT_TOKENS`; prompts concise and templated
       Verify: Run `SELECT AI_COUNT_TOKENS('<prompt>');` - should be under model limits
-- [ ] Batch strategy in place; `AI_AGG` / `AI_SUMMARIZE_AGG` used where appropriate
+- [ ] Batch strategy in place; `AI_AGG` / `AI_SUMMARIZE_AGG` used for multi-row operations (>100 rows)
       Verify: Check query for batch processing - single AI call per batch, not per row
 - [ ] Files referenced via `TO_FILE` from internal stages
       Verify: Check queries use `@stage/file` syntax, not external URLs
@@ -237,6 +242,9 @@ FROM SRC_DB.RAW.ARTICLES;
 ```
 
 ## Batch-friendly Patterns
+
+Process in batches of 10,000 rows per query. For tables >1M rows, use a TASK with LIMIT/OFFSET pagination to avoid warehouse timeouts and control credit consumption.
+
 ### 3.1 Summarize across many rows
 ```sql
 SELECT AI_SUMMARIZE_AGG(abstract_text) AS abstract_summary
@@ -354,117 +362,13 @@ SELECT AI_SIMILARITY(AI_EMBED('snowflake cortex'), AI_EMBED('enterprise llm plat
 
 ## Files: Images, Audio, and Documents
 
-### 6.1 AI_TRANSCRIBE - Audio Transcription (CRITICAL SYNTAX)
+### Audio Transcription (AI_TRANSCRIBE)
 
-**CORRECT Pattern - TO_FILE with two arguments:**
+For complete AI_TRANSCRIBE patterns including TO_FILE syntax, speaker diarization, and common type errors, see **114a-snowflake-cortex-ai-transcribe.md**.
 
-```sql
--- Pattern 1: Direct file reference (recommended)
-SELECT
-    RELATIVE_PATH AS audio_file,
-    AI_TRANSCRIBE(TO_FILE('@STAGE_NAME', RELATIVE_PATH)) AS transcription
-FROM DIRECTORY('@STAGE_NAME')
-WHERE RELATIVE_PATH LIKE '%.mp3';
+**Quick Reference - CRITICAL:** AI_TRANSCRIBE requires `TO_FILE('@stage', 'path')` with two arguments. Do NOT use GET_PRESIGNED_URL or BUILD_SCOPED_FILE_URL (they return VARCHAR, not FILE type).
 
--- Pattern 2: Inline stage and file path
-SELECT AI_TRANSCRIBE(TO_FILE('@financial_consultation', 'consultation.wav')) AS transcript;
-```
-
-**INCORRECT Patterns (will cause type errors):**
-
-```sql
--- WRONG: Using GET_PRESIGNED_URL (returns VARCHAR, not FILE type)
-SELECT AI_TRANSCRIBE(GET_PRESIGNED_URL('@stage', 'file.mp3'));
--- Error: Invalid argument types for function 'AI_TRANSCRIBE': (VARCHAR)
-
--- WRONG: Using BUILD_SCOPED_FILE_URL without TO_FILE wrapper
-SELECT AI_TRANSCRIBE(BUILD_SCOPED_FILE_URL(@stage, path));
--- Error: Invalid argument types for function 'AI_TRANSCRIBE': (VARCHAR)
-
--- WRONG: Wrapping BUILD_SCOPED_FILE_URL result with TO_FILE (single arg)
-SELECT AI_TRANSCRIBE(TO_FILE(BUILD_SCOPED_FILE_URL(@stage, path)));
--- Error: TO_FILE expects 2 arguments (stage, path), not 1
-```
-
-**Why TO_FILE('@stage', 'path') is Required:**
-- `AI_TRANSCRIBE` expects a FILE reference type, not a VARCHAR string
-- `TO_FILE()` takes **two separate arguments**: stage name and file path
-- `GET_PRESIGNED_URL()` and `BUILD_SCOPED_FILE_URL()` return VARCHAR strings (HTTP URLs)
-- Only `TO_FILE('@stage', 'path')` creates the proper FILE type
-
-**Complete Working Example:**
-
-```sql
--- Transcribe audio files from directory listing
-WITH audio_files AS (
-    SELECT RELATIVE_PATH
-    FROM DIRECTORY('@UTILITY_DEMO.CUSTOMER_DATA.AUDIO_FILES')
-    WHERE RELATIVE_PATH LIKE '%.mp3'
-    LIMIT 10
-)
-SELECT
-    RELATIVE_PATH AS audio_file,
-    AI_TRANSCRIBE(
-        TO_FILE('@UTILITY_DEMO.CUSTOMER_DATA.AUDIO_FILES', RELATIVE_PATH)
-    ) AS transcription_json,
-    transcription_json:text::VARCHAR AS transcription_text,
-    transcription_json:audio_duration::FLOAT AS duration_seconds
-FROM audio_files;
-```
-
-**Speaker Recognition (Diarization) with timestamp_granularity:**
-
-```sql
--- AI_TRANSCRIBE with native speaker identification
-WITH audio_files AS (
-    SELECT RELATIVE_PATH
-    FROM DIRECTORY('@CALL_CENTER.AUDIO.RECORDINGS')
-    WHERE RELATIVE_PATH LIKE '%.mp3'
-    LIMIT 1
-),
-transcribed_with_speakers AS (
-    SELECT
-        RELATIVE_PATH AS audio_file,
-        -- timestamp_granularity: 'speaker' returns structured segments
-        AI_TRANSCRIBE(
-            TO_FILE('@CALL_CENTER.AUDIO.RECORDINGS', RELATIVE_PATH),
-            {'timestamp_granularity': 'speaker'}
-        ) AS transcription_json
-    FROM audio_files
-),
--- Flatten segments array to get individual speaker turns
-speaker_segments AS (
-    SELECT
-        audio_file,
-        transcription_json:text::VARCHAR AS full_transcript,
-        transcription_json:audio_duration::FLOAT AS audio_duration,
-        seg.value:speaker_label::VARCHAR AS speaker,  -- SPEAKER_01, SPEAKER_02, etc.
-        seg.value:start::FLOAT AS start_time,
-        seg.value:end::FLOAT AS end_time,
-        seg.value:text::VARCHAR AS segment_text
-    FROM transcribed_with_speakers,
-    LATERAL FLATTEN(input => transcription_json:segments) seg
-)
-SELECT
-    audio_file,
-    speaker,
-    ROUND(start_time, 2) AS start_sec,
-    ROUND(end_time, 2) AS end_sec,
-    ROUND(end_time - start_time, 2) AS duration_sec,
-    segment_text
-FROM speaker_segments
-ORDER BY start_time;
-```
-
-**Speaker Recognition Notes:**
-- `timestamp_granularity: 'speaker'` returns structured segments with speaker changes
-- Speaker labels are generic: SPEAKER_01, SPEAKER_02, etc. (not semantic roles like "agent", "customer")
-- Each segment includes: `speaker_label`, `start`, `end`, `text`
-- Use LATERAL FLATTEN to extract individual speaker turns
-- For semantic role identification (e.g., "Representative" vs "Customer"), chain with AI_COMPLETE
-- Supported file types: FLAC, MP3, OGG, WAV, WebM (up to 60 minutes for speaker mode)
-
-### 6.2 Other File Functions (Images, Documents)
+### Other File Functions (Images, Documents)
 
 ```sql
 -- Reference staged files for multimodal tasks
@@ -497,8 +401,9 @@ filtered = classified.select(
 ```
 
 ## Performance and Warehouse Sizing
-- AISQL functions are optimized for throughput—batch workloads perform best.
-- Use modest warehouses with auto-suspend; scale up only if queueing is sustained.
+- AISQL functions are optimized for throughput -- batch workloads perform best.
+- Use `llama3.1-8b` when p95 latency must be <2s; use `llama3.1-70b` when accuracy is critical and latency up to 10s is acceptable.
+- Start with a MEDIUM warehouse (4 credits/hr) with AUTO_SUSPEND = 60. Scale to LARGE only if query queue time exceeds 30 seconds consistently.
 - Prefer `AI_AGG`/`AI_SUMMARIZE_AGG` to bypass context window limits for multi-row summaries.
 
 ## Security & Data Handling
@@ -507,7 +412,18 @@ filtered = classified.select(
 
 ## Observability
 
-- Track credit consumption for AISQL workloads; evaluate output quality and latency.
+- Set warehouse AUTO_SUSPEND to 60 seconds for AI workloads. Monitor AI service credit consumption:
+```sql
+SELECT
+  DATE_TRUNC('day', START_TIME) AS day,
+  SUM(CREDITS_USED) AS daily_credits
+FROM SNOWFLAKE.ACCOUNT_USAGE.METERING_HISTORY
+WHERE SERVICE_TYPE = 'AI_SERVICES'
+  AND START_TIME >= DATEADD(day, -7, CURRENT_DATE())
+GROUP BY day
+ORDER BY day;
+```
+- Alert when daily AI spend exceeds $50 (adjust threshold to your budget). Create a resource monitor or task-based check.
 - Use Snowflake AI Observability to trace and evaluate LLM workflows and compare variants.
 
 ## NULL Handling for AI Functions
@@ -537,6 +453,8 @@ WHERE content IS NOT NULL AND AI_COUNT_TOKENS('llama3.1-8b', content) > 10;
 ```
 
 ## Model Availability and Error Handling
+
+Not all models support all functions. If you get `Function not supported for model` error, verify the model-function combination with `SHOW CORTEX MODELS` and check the Snowflake Cortex AI function-model compatibility matrix in the documentation. Common incompatibilities: embedding models cannot do classification; small models may not support AI_AGG.
 
 ```sql
 -- Check available models before use

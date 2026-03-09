@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** TypeScript, Zod, Strict Mode, Type Inference, Union Types, Satisfies, Generics, Utility Types, Matt Pocock, Total TypeScript
-**TokenBudget:** ~3500
+**TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** 000-global-core.md
 **LoadTrigger:** ext:.ts, ext:.tsx
@@ -19,7 +19,7 @@
 ## Scope
 
 **What This Rule Covers:**
-Establishes the definitive standards for writing production-grade TypeScript in 2025. This rule enforces **Strict Mode**, prioritizes **Type Inference** over manual typing, mandates **Runtime Validation** (Zod) at I/O boundaries, and explicitly forbids legacy features like Enums and Namespaces.
+Establishes the definitive standards for writing production-grade TypeScript in 2026. This rule enforces **Strict Mode**, prioritizes **Type Inference** over manual typing, mandates **Runtime Validation** (Zod) at I/O boundaries, and explicitly forbids legacy features like Enums and Namespaces.
 
 **When to Load This Rule:**
 - Working with TypeScript files (.ts, .tsx)
@@ -257,6 +257,7 @@ npx tsc --noEmit
  "strict": true,
  "noImplicitAny": true,
  "strictNullChecks": true,
+ "noUncheckedIndexedAccess": true,
  "skipLibCheck": true,
  "moduleResolution": "bundler",
  "resolveJsonModule": true,
@@ -291,6 +292,23 @@ const STATUS = {
  Inactive: 'inactive'
 } as const;
 type StatusType = typeof STATUS[keyof typeof STATUS];
+```
+
+### Discriminated Unions
+- **Rule:** Use discriminated unions for type-safe branching. The discriminant field enables exhaustive narrowing.
+
+```typescript
+type Result<T> =
+ | { success: true; data: T }
+ | { success: false; error: Error };
+
+function handle(result: Result<User>) {
+ if (result.success) {
+  console.log(result.data.name); // narrowed to { success: true; data: User }
+ } else {
+  console.error(result.error.message); // narrowed to { success: false; error: Error }
+ }
+}
 ```
 
 ### Validation & Type Inference
@@ -383,12 +401,7 @@ function handleInput(data: unknown) {
 ```
 
 ### Strict Mode Migration
-- **Rule:** Enable strict flags incrementally when migrating existing projects.
-
-1. Start with `"strict": false` and enable flags one at a time:
-   `strictNullChecks` then `noImplicitAny` then `strictFunctionTypes` then `strict: true`
-2. Fix errors per flag before enabling the next
-3. Use `// @ts-expect-error REASON` (never `@ts-ignore`) for temporary suppression during migration
+- **Rule:** Enable strict flags incrementally: `strictNullChecks` then `noImplicitAny` then `strictFunctionTypes` then `strict: true`. Fix errors per flag before enabling the next. Use `// @ts-expect-error REASON` (never `@ts-ignore`) for temporary suppression.
 
 ### Third-Party Type Conflicts
 - **Rule:** Use `declare module` overrides for incorrect third-party types. Always document the reason.
@@ -419,6 +432,18 @@ async function fetchWithContext(url: string): Promise<Data> {
  } catch (err) {
   throw new Error('fetchWithContext failed', { cause: err });
  }
+}
+```
+
+### Cancellable Async with AbortController
+- **Rule:** Use `AbortController` for cancellable fetch requests and timeouts.
+
+```typescript
+async function fetchWithTimeout(url: string, timeoutMs = 5000): Promise<Response> {
+ const controller = new AbortController();
+ const id = setTimeout(() => controller.abort(), timeoutMs);
+ try { return await fetch(url, { signal: controller.signal }); }
+ finally { clearTimeout(id); }
 }
 ```
 

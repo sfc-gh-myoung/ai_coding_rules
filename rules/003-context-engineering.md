@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** context engineering, attention budget, context rot, token efficiency, compaction, progressive disclosure, sub-agents, agentic search, system prompts, right altitude, long-horizon tasks, memory management, state tracking
-**TokenBudget:** ~4550
+**TokenBudget:** ~3900
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 
@@ -89,7 +89,7 @@ Comprehensive context engineering practices that treat context as a finite resou
 
 1. Assess available attention budget before adding context
 2. Prioritize high-signal, actionable information over noise
-3. Use progressive disclosure - load details only when needed
+3. Use progressive disclosure - load Tier 2 when task requires specific file modifications, error resolution, or dependency analysis; load Tier 3 when Tier 2 references specific files/data that must be read
 4. Apply compaction when approaching context limits
 5. Employ sub-agents for complex, multi-faceted tasks
 6. Maintain structured notes outside context window for long tasks
@@ -116,6 +116,8 @@ Comprehensive context engineering practices that treat context as a finite resou
 - Agent remains focused on task
 - Compaction maintains fidelity
 - Forward-focused (what's next vs what's done)
+
+**Measuring Context Utilization:** Approximate tokens via character count / 4, track tool output sizes, and count conversation turns to estimate budget consumption.
 
 ### Error Recovery
 
@@ -199,30 +201,8 @@ for file in all_python_files:
 **Benefits:** Maintains model performance; keeps attention focused
 
 **Anti-Pattern 3: Vague System Prompts**
-```xml
-<system_prompt>
-Be helpful and provide good code.
-Try to understand what the user wants.
-Do your best work.
-</system_prompt>
-```
-**Problem:** No concrete signals; assumes shared context; Claude 4 won't "go beyond" automatically
-
-**Correct Pattern: Right Altitude Instructions**
-```xml
-<system_prompt>
-You are a Python backend engineer specializing in FastAPI.
-
-## Core Responsibilities
-- Write production-ready async endpoints
-- Follow project style in pyproject.toml
-- Include type hints and comprehensive error handling
-
-## Validation
-- Code must pass: ruff check, ruff format, pytest
-</system_prompt>
-```
-**Benefits:** Clear expectations; specific heuristics; concrete validation criteria
+**Problem:** Generic instructions like "be helpful" provide no concrete signals; Claude 4 won't "go beyond" automatically.
+**Correct Pattern:** Use "right altitude" instructions with specific responsibilities and validation criteria. See `002d-advanced-rule-patterns.md`, Goldilocks Zone section for detailed guidance.
 
 **Anti-Pattern 4: Storing Everything in Context**
 ```python
@@ -273,99 +253,7 @@ implement_caching_layer()  # Premature
 
 ## Output Format Examples
 
-```markdown
-MODE: [PLAN|ACT]
-
-Rules Loaded:
-- rules/000-global-core.md (foundation)
-- [additional rules based on task]
-
-Analysis:
-[Brief analysis of the requirement]
-
-Task List:
-1. [Specific task with clear deliverable]
-2. [Another task with validation criteria]
-3. [Final task with success metrics]
-
-Implementation:
-[Code/configuration changes following established patterns]
-
-Validation:
-- [x] Changes validated against requirements
-- [x] Tests passing / linting clean
-- [x] Documentation updated
-```
-
-## Rule Loading and Discovery
-
-**Canonical Source:** See `RULES_INDEX.md` for the authoritative mapping of
-file extensions, keywords, and technologies to rule files. Always consult
-RULES_INDEX.md rather than hardcoding rule discovery logic.
-
-## Context Preservation Mechanism
-
-**Primary Preservation Mechanism:**
-
-Natural language markers (CRITICAL, CORE RULE, FOUNDATION RULE) are the primary
-mechanism for context preservation. ContextTier metadata is secondary.
-
-See `000-global-core.md`, section "Context Window Management Protocol" for full hierarchy.
-
-## Context vs Prompt Engineering
-
-### The Evolution from Prompts to Context
-
-**Prompt Engineering (Traditional):**
-- Focus: Writing effective one-shot prompts
-- Scope: System instructions, few examples
-- Use Case: Single-turn classification, text generation
-- Challenge: Static instructions for all scenarios
-
-**Context Engineering (Modern):**
-- Focus: Managing entire context state across multiple turns
-- Scope: System instructions + tools + memory + message history + external data
-- Use Case: Multi-turn agents, long-horizon tasks
-- Challenge: Curating what enters limited context window at each inference step
-
-**Key Difference:**
-Context engineering is iterative - the curation phase happens **each time** we decide what to pass to the model, not just once when writing the system prompt.
-
-## Context as Finite Resource
-
-### Attention Budget and Architectural Constraints
-
-**The n² Problem:**
-```
-For n tokens in context:
-- Pairwise relationships = n²
-- Each new token creates relationships with all existing tokens
-- Attention gets stretched thin across growing context
-```
-
-**Example:**
-- 1,000 tokens = 1,000,000 pairwise relationships
-- 10,000 tokens = 100,000,000 pairwise relationships
-- 100,000 tokens = 10,000,000,000 pairwise relationships
-
-**Context Rot:**
-As context length increases, models experience:
-- Reduced recall accuracy ("needle in haystack" degradation)
-- Weakened attention to specific details
-- Increased latency and cost
-- Diminishing marginal returns per token
-
-**Implication:**
-Even with 200K+ context windows, thoughtful curation remains essential for optimal performance.
-
-### Training Distribution Effects
-
-Models have:
-- More training examples with shorter sequences
-- Fewer specialized parameters for long-range dependencies
-- Position encoding adapted to handle extended contexts (with some degradation)
-
-**Result:** Performance gradient rather than hard cliff - models remain capable at long contexts but show reduced precision.
+See `000-global-core.md` for the PLAN/ACT output template.
 
 ## System Prompts at Right Altitude
 
@@ -591,8 +479,8 @@ See `003a-long-horizon-tasks.md` for compaction protocols, structured note-takin
 - Aggressive pruning of outdated content
 
 **Rule System (from 002-rule-governance.md):**
-- Target: 200-400 lines per rule
-- Maximum: 500 lines per rule
+- Target: 200-400 lines per rule (foundational/critical rules may exceed this)
+- Maximum: 500 lines per rule (hard cap: 600)
 - Token budgets declared in metadata
 - Composition over duplication
 
@@ -601,22 +489,10 @@ See `003a-long-horizon-tasks.md` for compaction protocols, structured note-takin
 ### Standard Operating Procedure
 
 **Context Engineering Workflow:**
-1. Assess attention budget for current context window
-2. Prioritize high-signal information (rules, active code)
-3. Load context progressively (foundation, then domain, then specialized)
-4. Perform task with loaded context
-5. If approaching 75% limit: Apply compaction protocol
-   - Summarize completed work
-   - Preserve active rules and current file
-   - Return to step 4
-6. Complete task with validation
-7. Update persistent state (memory-bank if applicable)
-
-**Detailed Steps:**
 1. **Assess Budget:** How much context window is available?
 2. **Prioritize:** What information is essential for this task?
-3. **Load:** Bring in high-signal context progressively
+3. **Load:** Bring in high-signal context progressively (foundation, then domain, then specialized)
 4. **Work:** Execute task with focused context
-5. **Monitor:** Watch for context limits approaching
-6. **Compact:** Summarize and compress when needed
-7. **Document:** Update persistent memory for future sessions
+5. **Monitor:** If approaching 75% limit, apply compaction protocol (summarize completed work, preserve active rules and current file, return to step 4)
+6. **Complete:** Finish task with validation
+7. **Document:** Update persistent state (memory-bank if applicable)

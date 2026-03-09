@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-12
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** SnowparkSQLException, error messages, Streamlit errors, Snowflake errors, debug SQL error, fix query error, SQL exception, error troubleshooting, query failed, database error, SQL debugging patterns, exception handling, error recovery, common SQL errors, streamlit error, app error, fix error, error handling
 **TokenBudget:** ~4500
 **ContextTier:** Low
@@ -140,12 +140,14 @@ def handle_sql_error(table: str, operation: str):
 # Usage
 @handle_sql_error(table="ASSETS", operation="Load assets")
 def load_assets():
-    return session.sql("SELECT * FROM ASSETS").to_pandas()
+    return session.sql("SELECT asset_id, asset_type, install_date FROM ASSETS").to_pandas()
 
 @handle_sql_error(table="OUTAGES", operation="Load outages")
 def load_outages():
-    return session.sql("SELECT * FROM OUTAGES").to_pandas()
+    return session.sql("SELECT outage_id, asset_id, start_time FROM OUTAGES").to_pandas()
 ```
+
+**Long-running queries:** For queries >30s, set `statement_timeout_in_seconds` on the session or wrap with `st.spinner('Running query...')`. Consider adding a timeout check and user cancel button for interactive apps.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -154,7 +156,7 @@ def load_outages():
 # Bad: Catches all errors without SQL-specific handling
 def load_data():
     try:
-        df = session.sql("SELECT * FROM ASSETS").to_pandas()
+        df = session.sql("SELECT asset_id, asset_type FROM ASSETS").to_pandas()
         return df
     except Exception as e:
         st.error(f"Error: {e}")
@@ -171,7 +173,7 @@ def get_error_code(e): return getattr(e, 'error_code', 'N/A')
 
 def load_data():
     try:
-        df = session.sql("SELECT * FROM ASSETS").to_pandas()
+        df = session.sql("SELECT asset_id, asset_type FROM ASSETS").to_pandas()
         return df
     except SnowparkSQLException as e:
         st.error(f"""
@@ -200,9 +202,9 @@ def load_data():
 ```python
 # Bad: Generic error message - which query failed?
 try:
-    df1 = session.sql("SELECT * FROM ASSETS").to_pandas()
-    df2 = session.sql("SELECT * FROM OUTAGES").to_pandas()
-    df3 = session.sql("SELECT * FROM MAINTENANCE").to_pandas()
+    df1 = session.sql("SELECT asset_id, asset_type FROM ASSETS").to_pandas()
+    df2 = session.sql("SELECT outage_id, start_time FROM OUTAGES").to_pandas()
+    df3 = session.sql("SELECT maint_id, schedule_date FROM MAINTENANCE").to_pandas()
 except SnowparkSQLException as e:
     st.error(f"Database error: {e}")  # Which query?!
     st.stop()
@@ -214,7 +216,7 @@ except SnowparkSQLException as e:
 # Good: Label each query with context
 try:
     # Query 1: Assets
-    df1 = session.sql("SELECT * FROM ASSETS").to_pandas()
+    df1 = session.sql("SELECT asset_id, asset_type FROM ASSETS").to_pandas()
 except SnowparkSQLException as e:
     st.error(f"""
     **SQL Query Failed: Query 1 - Load Assets**
@@ -227,7 +229,7 @@ except SnowparkSQLException as e:
 
 try:
     # Query 2: Outages
-    df2 = session.sql("SELECT * FROM OUTAGES").to_pandas()
+    df2 = session.sql("SELECT outage_id, start_time FROM OUTAGES").to_pandas()
 except SnowparkSQLException as e:
     st.error(f"""
     **SQL Query Failed: Query 2 - Load Outages**
@@ -246,7 +248,7 @@ except SnowparkSQLException as e:
 ```python
 # Bad: Continues execution after SQL failure
 try:
-    df = session.sql("SELECT * FROM MISSING_TABLE").to_pandas()
+    df = session.sql("SELECT asset_id, asset_type FROM MISSING_TABLE").to_pandas()
 except SnowparkSQLException as e:
     st.error(f"Query failed: {e}")
     # Missing st.stop()!
@@ -261,7 +263,7 @@ st.dataframe(transformers)  # Cascading failures
 ```python
 # Good: Stop execution after SQL error
 try:
-    df = session.sql("SELECT * FROM ASSETS").to_pandas()
+    df = session.sql("SELECT asset_id, asset_type, install_date FROM ASSETS").to_pandas()
 except SnowparkSQLException as e:
     st.error(f"""
     **SQL Query Failed**
@@ -279,7 +281,7 @@ st.dataframe(transformers)
 ```python
 # Bad: Yellow warning for critical SQL failure
 try:
-    df = session.sql("SELECT * FROM ASSETS").to_pandas()
+    df = session.sql("SELECT asset_id, asset_type FROM ASSETS").to_pandas()
 except SnowparkSQLException as e:
     st.warning(f"Database issue: {e}")  # Wrong severity!
     return pd.DataFrame()  # Returns empty, silently fails
@@ -290,7 +292,7 @@ except SnowparkSQLException as e:
 ```python
 # Good: Red error for SQL failures, yellow for empty results
 try:
-    df = session.sql("SELECT * FROM ASSETS").to_pandas()
+    df = session.sql("SELECT asset_id, asset_type, install_date FROM ASSETS").to_pandas()
 
     # Empty results are warnings (data issue, not failure)
     if df.empty:
@@ -323,7 +325,7 @@ except SnowparkSQLException as e:
 ```python
 # Bad: No error code for Snowflake support
 try:
-    df = session.sql("SELECT * FROM ASSETS").to_pandas()
+    df = session.sql("SELECT asset_id, asset_type FROM ASSETS").to_pandas()
 except SnowparkSQLException as e:
     st.error(f"SQL failed: {str(e)}")  # No error code!
     st.stop()
@@ -334,7 +336,7 @@ except SnowparkSQLException as e:
 ```python
 # Good: Always include error code
 try:
-    df = session.sql("SELECT * FROM ASSETS").to_pandas()
+    df = session.sql("SELECT asset_id, asset_type, install_date FROM ASSETS").to_pandas()
 except SnowparkSQLException as e:
     st.error(f"""
     **SQL Query Failed**
@@ -450,7 +452,7 @@ def handle_connection_error(error: DatabaseError):
     and presents with Streamlit widgets.
     """
     error_msg = str(error)
-    error_code = error.errno if hasattr(error, 'errno') else ""
+    error_code = str(error.errno) if hasattr(error, 'errno') else ""
 
     error_type, guidance = classify_snowflake_connection_error(error_msg, str(error_code))
 

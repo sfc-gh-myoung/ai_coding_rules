@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
-**Keywords:** Zsh, completion system, modules, hooks, advanced features, performance optimization, compinit, zstyle, autoload, scripting
-**TokenBudget:** ~4400
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
+**Keywords:** Zsh, modules, advanced features, performance optimization, parameter expansion, globbing, autoload, scripting, caching, memoization
+**TokenBudget:** ~3500
 **ContextTier:** Low
 **Depends:** 310-zsh-scripting-core.md
 **LoadTrigger:** ext:.zsh, kw:zsh-advanced
@@ -14,14 +14,14 @@
 ## Scope
 
 **What This Rule Covers:**
-Comprehensive guidance on zsh's advanced features including the completion system, modules, hooks, and performance optimization techniques to build sophisticated and efficient zsh environments.
+Comprehensive guidance on zsh's advanced features including modules, parameter expansion, globbing, performance optimization, caching, and advanced scripting patterns.
 
 **When to Load This Rule:**
-- Implementing zsh completion system
 - Optimizing zsh performance and startup time
-- Using zsh hooks (precmd, preexec)
+- Using advanced parameter expansion or globbing qualifiers
 - Loading and configuring zsh modules
-- Writing custom completion functions
+- Implementing caching or memoization patterns
+- Writing advanced scripting patterns (state machines, plugins)
 
 ## References
 
@@ -32,6 +32,7 @@ Comprehensive guidance on zsh's advanced features including the completion syste
 
 **Related:**
 - **310b-zsh-compatibility.md** - Cross-shell compatibility strategies
+- **310d-zsh-completion-prompt.md** - Completion system, hooks, and prompt engineering
 
 ### External Documentation
 
@@ -55,12 +56,12 @@ Comprehensive guidance on zsh's advanced features including the completion syste
 - Implement hooks correctly (precmd, preexec)
 - Cache completions for performance
 - Profile startup time with zprof
-- Use async operations for expensive prompt commands
+- Use async operations for prompt commands taking >100ms (git status, kubectl, network calls)
 
 ### Forbidden
 
 - Loading modules not required by current script functionality (impacts startup and memory)
-- Running expensive operations synchronously in prompts
+- Running operations >100ms synchronously in prompts (git status in large repos, network calls, kubectl context)
 - Complex logic in completion functions without caching
 - Blocking operations in hooks
 - Ignoring startup time performance
@@ -158,7 +159,7 @@ _my_cli_complete() {
     local cache_ttl=300  # 5 minutes
 
     if [[ ! -f "$cache_file" ]] || \
-       (( $(date +%s) - $(stat -f%m "$cache_file") > cache_ttl )); then
+       (( $(date +%s) - $(stat -f%m "$cache_file") > cache_ttl )); then  # macOS; use stat -c%Y on Linux
         curl -s https://api.example.com/items > "$cache_file"
     fi
 
@@ -176,113 +177,9 @@ _my_cli_complete() {
 zsh -n script.zsh
 ```
 
-## Zsh Completion System
+## Zsh Completion, Hooks, and Prompts
 
-### Completion System Setup
-- **Rule:** Initialize and configure the completion system:
-```zsh
-# Initialize completion system
-autoload -Uz compinit
-compinit
-
-# Enable completion caching for performance
-zstyle ':completion:*' use-cache on
-zstyle ':completion:*' cache-path ~/.zsh/cache
-
-# Case-insensitive completion
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
-
-# Menu selection for completions
-zstyle ':completion:*' menu select
-
-# Group completions by type
-zstyle ':completion:*' group-name ''
-zstyle ':completion:*:descriptions' format '%B%d%b'
-```
-
-### Custom Completion Functions
-- **Rule:** Create custom completions:
-```zsh
-_my_script() {
-    local -a commands=(
-        'start:Start service'
-        'stop:Stop service'
-        'status:Show status'
-    )
-
-    case $words[2] in
-        start|stop) _files -g "*.conf" ;;
-        *) _describe 'commands' commands ;;
-    esac
-}
-
-compdef _my_script my_script
-```
-
-### Completion Styles
-- **Rule:** Configure completion behavior:
-```zsh
-# Basic completion styles
-zstyle ':completion:*' file-sort modification
-zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-zstyle ':completion:*:*:kill:*' menu yes select
-zstyle ':completion:*:kill:*' force-list always
-```
-
-## Zsh Hook System
-
-### Hook Functions
-- **Rule:** Use zsh hooks for automated actions:
-```zsh
-# Directory change hooks
-autoload -U add-zsh-hook
-
-# Function to run when changing directories
-chpwd_update_git_status() {
-    if [[ -d .git ]]; then
-        echo "Git repository detected"
-        git status --porcelain | head -5
-    fi
-}
-
-# Register hook
-add-zsh-hook chpwd chpwd_update_git_status
-
-# Pre-command hook (runs before each command)
-preexec_log_command() {
-    local cmd="$1"
-    echo "[$(date '+%H:%M:%S')] Executing: ${cmd%% *}" >> ~/.zsh_command_log
-}
-
-add-zsh-hook preexec preexec_log_command
-
-# Pre-prompt hook (runs before each prompt)
-precmd_update_title() {
-    # Set terminal title to current directory
-    print -Pn "\e]0;%n@%m: %~\a"
-}
-
-add-zsh-hook precmd precmd_update_title
-```
-
-### Periodic Functions
-- **Rule:** Use periodic functions for background tasks:
-```zsh
-# Enable periodic functions
-setopt PERIODIC_FUNCTIONS
-
-# Function that runs every N seconds
-PERIOD=300  # 5 minutes
-
-periodic() {
-    # Check for system updates
-    if command -v apt >/dev/null; then
-        apt list --upgradable 2>/dev/null | wc -l > ~/.update_count
-    elif command -v brew >/dev/null; then
-        brew outdated | wc -l > ~/.update_count
-    fi
-}
-```
+> For the completion system (compinit, zstyle, custom completions), hook system (precmd, preexec, chpwd, periodic), and prompt engineering (PROMPT_SUBST, vcs_info, async prompts), see **310d-zsh-completion-prompt.md**.
 
 ## Advanced Parameter Expansion
 
@@ -458,7 +355,7 @@ cached_command() {
     local cache_file="/tmp/cache_${1//\//_}"
     local max_age=3600  # 1 hour
 
-    if [[ -f "$cache_file" ]] && (( $(date +%s) - $(stat -c %Y "$cache_file") < max_age )); then
+    if [[ -f "$cache_file" ]] && (( $(date +%s) - $(stat -c%Y "$cache_file") < max_age )); then  # Linux; use stat -f%m on macOS
         cat "$cache_file"
         return 0
     fi
@@ -468,76 +365,15 @@ cached_command() {
 }
 ```
 
-## Advanced Prompt Engineering
-
-### Dynamic Prompt Components
-- **Rule:** Create sophisticated prompts:
-```zsh
-# Enable prompt substitution
-setopt PROMPT_SUBST
-
-# Git status in prompt
-autoload -Uz vcs_info
-zstyle ':vcs_info:*' enable git
-zstyle ':vcs_info:git:*' formats ' (%b%u%c)'
-zstyle ':vcs_info:git:*' actionformats ' (%b|%a%u%c)'
-zstyle ':vcs_info:git:*' check-for-changes true
-zstyle ':vcs_info:git:*' unstagedstr '*'
-zstyle ':vcs_info:git:*' stagedstr '+'
-
-precmd() {
-    vcs_info
-}
-
-# Custom prompt with colors and git info
-PROMPT='%F{blue}%n@%m%f:%F{cyan}%~%f${vcs_info_msg_0_}%# '
-
-# Right prompt with additional info
-RPROMPT='%F{yellow}[%D{%H:%M:%S}]%f'
-
-# Conditional prompt elements
-prompt_status() {
-    local status=""
-
-    # Show background jobs
-    (( $(jobs | wc -l) > 0 )) && status+="⚡"
-
-    # Show load average
-    local load=$(uptime | awk -F'load average:' '{print $2}' | awk '{print $1}' | tr -d ',')
-    (( ${load%.*} > 2 )) && status+=""
-
-    # Show battery status (macOS)
-    if command -v pmset >/dev/null; then
-        local battery=$(pmset -g batt | grep -o '[0-9]*%' | head -1)
-        (( ${battery%\%} < 20 )) && status+="🔋"
-    fi
-
-    [[ -n "$status" ]] && echo " $status"
-}
-
-RPROMPT='$(prompt_status)%F{yellow}[%D{%H:%M:%S}]%f'
-```
-
-### Async Prompt Updates
-- **Rule:** Implement async prompts:
-```zsh
-async_git_status() {
-    [[ -d .git ]] || return
-    local status=$(git status --porcelain 2>/dev/null | wc -l)
-    echo "$status" > /tmp/git_status_$$
-}
-
-update_prompt() {
-    async_git_status &
-}
-
-add-zsh-hook precmd update_prompt
-```
+> **Portable stat:** Use `stat -f%m` on macOS/BSD and `stat -c%Y` on Linux. For cross-platform scripts:
+> ```zsh
+> file_mtime() { [[ "$OSTYPE" == darwin* ]] && stat -f%m "$1" || stat -c%Y "$1"; }
+> ```
 
 ## Advanced Scripting Patterns
 
 ### Advanced Patterns
-- **Rule:** Implement complex logic patterns:
+- **Rule:** Extract into functions when: (1) code exceeds 50 lines, (2) nesting exceeds 3 levels, (3) branches exceed 5 conditionals, or (4) cyclomatic complexity > 10:
 ```zsh
 # Simple state machine
 typeset -A states=(idle "start" running "finish")

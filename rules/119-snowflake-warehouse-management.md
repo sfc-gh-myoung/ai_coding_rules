@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:warehouse, kw:compute
 **Keywords:** high-memory warehouse, warehouse tagging, auto-suspend, auto-resume, GEN 2, Snowpark-Optimized, warehouse edition, resource monitors, create warehouse, warehouse configuration, warehouse types, warehouse cost, size warehouse
 **TokenBudget:** ~6500
@@ -93,6 +93,8 @@ Snowflake DDL commands; warehouse configuration; SHOW/DESCRIBE commands; Query P
 Creating warehouses without mandatory tags; using Standard edition when GEN 2 available; oversized warehouses without documented justification; disabling auto-suspend in non-production
 
 ### Execution Steps
+
+> **Investigation Required:** Run `SHOW WAREHOUSES` and `SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY WHERE start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP())` to review existing warehouses and usage before creating or modifying warehouses.
 
 1. Assess workload type (interactive BI, batch ETL, ML training/inference, complex analytics)
 2. Select appropriate warehouse type (Standard CPU, Snowpark-Optimized GPU, High-Memory)
@@ -419,7 +421,7 @@ ALTER WAREHOUSE WH_ANALYTICS_HIMEM_L SET TAG
 
 ### Multi-Cluster Warehouses
 
-**Use multi-cluster for:** High concurrency (many users, unpredictable traffic). **Scaling policies:** STANDARD (immediate, favor performance) vs ECONOMY (delayed, favor cost).
+**Use multi-cluster for:** High concurrency (many users, unpredictable traffic). **Scaling policies:** STANDARD (immediate, favor performance) vs ECONOMY (delayed, favor cost). Use STANDARD scaling when query queue time exceeds 5 seconds. Use ECONOMY when cost reduction is priority and queue times up to 30 seconds are acceptable.
 
 ```sql
 CREATE OR REPLACE WAREHOUSE WH_BI_PRODUCTION_M
@@ -612,12 +614,4 @@ GROUP BY warehouse_name HAVING avg_queue_sec > 0;
 ```sql
 -- 1. Mark deprecated, disable auto-resume
 ALTER WAREHOUSE WH_OLD SET TAG GOVERNANCE.TAGS.LIFECYCLE_STAGE = 'DEPRECATED';
-ALTER WAREHOUSE WH_OLD SET AUTO_RESUME = FALSE;
-
--- 2. Monitor usage for 7 days
-SELECT COUNT(*) FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
-WHERE warehouse_name = 'WH_OLD' AND start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP());
-
--- 3. Drop after confirming zero usage
-DROP WAREHOUSE IF EXISTS WH_OLD;
-```
+ALTER WAREHOUSE WH_OLD SET AUTO_RESUME =                                                                                                                                                                                                                                                                         

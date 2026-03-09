@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:data-loading, kw:copy-into, kw:import
 **Keywords:** bulk loading, ON_ERROR, FILE_FORMAT, load data, external stage, internal stage, data ingestion, file upload, COPY error, loading patterns, stage files, PUT command, GET command
 **TokenBudget:** ~3750
@@ -140,13 +140,13 @@ Comprehensive best practices for efficiently staging and bulk loading data into 
 
 ### Post-Execution Checklist
 
-- [ ] Stage created with appropriate encryption and access controls
-- [ ] FILE_FORMAT defined with explicit delimiter, compression, NULL_IF, encoding
-- [ ] VALIDATION_MODE tested before production load
+- [ ] Stage created with appropriate encryption and access controls. Verify: `SHOW STAGES LIKE '<stage_name>'`
+- [ ] FILE_FORMAT defined with explicit delimiter, compression, NULL_IF, encoding. Verify: `DESCRIBE FILE FORMAT <format_name>`
+- [ ] VALIDATION_MODE tested before production load. Verify: `VALIDATION_MODE = 'RETURN_ERRORS'` returns 0 rows
 - [ ] ON_ERROR strategy defined (CONTINUE, SKIP_FILE, or ABORT_STATEMENT)
-- [ ] Files sized 100-250MB compressed (small files batched)
-- [ ] COPY_HISTORY checked for errors after load
-- [ ] Row counts verified (source vs target)
+- [ ] Files sized 100-250MB compressed (small files batched). Verify: `LIST @<stage>` shows file sizes
+- [ ] COPY_HISTORY checked for errors after load. Verify: `SELECT * FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(TABLE_NAME=>'<TABLE>', START_TIME=>DATEADD(hour,-1,CURRENT_TIMESTAMP())))`
+- [ ] Row counts verified (source vs target). Verify: `SELECT COUNT(*) FROM <target_table>`
 - [ ] Semi-structured data parsed correctly (VARIANT fields accessible)
 
 ## Anti-Patterns and Common Mistakes
@@ -251,8 +251,7 @@ VALIDATION_MODE = 'RETURN_ERRORS';
 -- Step 2: Check row count
 COPY INTO prod_critical_table
 FROM @my_stage/untested_data.csv
-VALIDATION_MODE = 'RETURN_N_ROWS'
-  (N => 10);
+VALIDATION_MODE = 'RETURN_10_ROWS';
 -- Preview first 10 rows
 
 -- Step 3: Only after validation, load to production
@@ -298,9 +297,16 @@ ON_ERROR = CONTINUE
 PATTERN = '.*\.csv\.gz';
 
 -- Step 5: Verify results
-SELECT COUNT(*) FROM db.schema.sales_target WHERE _metadata_file_last_modified > DATEADD(hour, -1, CURRENT_TIMESTAMP());
-SELECT * FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
-  TABLE_NAME => 'db.schema.sales_target', START_TIME => DATEADD(hour, -1, CURRENT_TIMESTAMP())));
+-- Row count check (compare against expected source count)
+SELECT COUNT(*) FROM db.schema.sales_target;
+
+-- Check COPY_HISTORY for load status and errors
+-- Note: TABLE_NAME uses unqualified name; call from the target database context
+SELECT *
+FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
+  TABLE_NAME => 'SALES_TARGET',
+  START_TIME => DATEADD(hour, -1, CURRENT_TIMESTAMP())
+));
 ```
 
 ### Parallel COPY INTO Guidance

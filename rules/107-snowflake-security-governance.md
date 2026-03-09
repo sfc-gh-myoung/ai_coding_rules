@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:security, kw:rbac, kw:grant
 **Keywords:** roles, grants, secure views, security policies, access control, data security, policy troubleshooting, grant management, Data Metric Functions, DMF, least privilege, create masking policy, tagging, SQL
 **TokenBudget:** ~4000
@@ -148,10 +148,10 @@ Comprehensive data security and access control practices using Snowflake's gover
 ### Post-Execution Checklist
 
 - [ ] Role hierarchy created: functional roles -> access roles -> user assignments
-- [ ] Masking policies applied to all PII/PHI columns
-- [ ] Row access policies enforced for multi-tenant data
-- [ ] Object tags applied for data classification (sensitivity, compliance)
-- [ ] Policies tested from non-privileged roles (verify masking/filtering)
+- [ ] Masking policies applied to all PII/PHI columns: `SHOW MASKING POLICIES IN SCHEMA`
+- [ ] Row access policies enforced for multi-tenant data: `SHOW ROW ACCESS POLICIES IN SCHEMA`
+- [ ] Object tags applied for data classification: `SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('db.schema.table', 'TABLE'))`
+- [ ] Policies tested from non-privileged roles (verify masking/filtering works)
 - [ ] Future grants configured for new objects in managed schemas
 - [ ] DMFs scheduled with appropriate alert thresholds
 
@@ -233,7 +233,7 @@ GRANT SELECT ON TABLE customer_orders TO ROLE analyst_role;
 CREATE OR REPLACE ROW ACCESS POLICY tenant_isolation AS (tenant_id NUMBER) RETURNS BOOLEAN ->
   CASE
     WHEN CURRENT_ROLE() = 'SYSADMIN' THEN TRUE
-    ELSE tenant_id = CURRENT_ACCOUNT()  -- Or lookup user's tenant_id from mapping table
+    ELSE tenant_id = (SELECT tenant_id FROM governance.account_tenant_map WHERE account_name = CURRENT_ACCOUNT())
   END;
 
 ALTER TABLE customer_orders
@@ -334,6 +334,9 @@ CREATE OR REPLACE MASKING POLICY db.governance.mask_email
 -- 1. Apply to test table first
 -- 2. Verify with multiple roles
 -- 3. Rollback: re-apply previous policy version if issues found
+--    ALTER TABLE db.schema.customers MODIFY COLUMN email
+--      SET MASKING POLICY db.governance.mask_email_v1;
+--    DROP MASKING POLICY IF EXISTS db.governance.mask_email_v2;
 ```
 
 ## Access Control

@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-02-18
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **Keywords:** schema validator, validation errors, error resolution, exit codes, command options, output parsing, error severity, CRITICAL errors, HIGH warnings, MEDIUM info
 **TokenBudget:** ~2400
 **ContextTier:** High
@@ -26,10 +26,8 @@ Core guide for running `ai-rules validate` against v3.2 rules. Covers command us
 - Understanding exit codes and error severity levels
 - Resolving common validation errors
 
-**For Advanced Topics:**
-- CI/CD integration: Load `002f-schema-validator-advanced.md`
-- Automated fix workflows: Load `002f-schema-validator-advanced.md`
-- Programmatic JSON parsing: Load `002f-schema-validator-advanced.md`
+**For Advanced Topics (CI/CD integration, automated fixes, JSON parsing):**
+- Load `002f-schema-validator-advanced.md`
 
 ## References
 
@@ -56,7 +54,7 @@ Core guide for running `ai-rules validate` against v3.2 rules. Covers command us
 
 - Rule file to validate
 - `schemas/rule-schema.yml` (v3.2)
-- Python 3.8+ environment
+- Python 3.8+ environment (verify with `python3 --version`)
 - PyYAML library installed
 
 ### Mandatory
@@ -214,7 +212,7 @@ RESULT: FAILED
 
 - **CRITICAL:** Blocks validation - MUST fix before commit
 - **HIGH:** Important issue - Strongly recommended to fix
-- **MEDIUM:** Optional improvement - Review and consider
+- **MEDIUM:** Optional improvement - Fix if count exceeds 10 across the project, or if the specific warning affects readability
 - **INFO:** Informational - No action needed
 
 ## Common Errors and Fixes
@@ -347,6 +345,13 @@ git checkout -- schemas/rule-schema.yml
 uv run ai-rules validate rules/<rule-file>.md
 ```
 
+### Handling False Positives
+
+If the validator reports an error you believe is incorrect:
+1. Verify against `schemas/rule-schema.yml` to confirm it's a false positive
+2. Document the exception in a comment near the flagged content
+3. Report as a validator bug via the project issue tracker if confirmed
+
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Ignoring MEDIUM Warnings
@@ -381,8 +386,4 @@ vim rules/<rule-file>.md
 uv run ai-rules validate rules/<rule-file>.md
 ```
 
-## ContextTier Validation
-
-The validator checks ContextTier is one of: Critical, High, Medium, Low.
-
-For tier selection guidance, see `002c-rule-optimization.md`.
+The validator checks ContextTier is one of: Critical, High, Medium, Low. For tier selection guidance, see `002c-rule-optimization.md`.

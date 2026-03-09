@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-02-12
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, flat layout, src layout
 **TokenBudget:** ~3950
 **ContextTier:** High
@@ -51,7 +51,7 @@ Essential Python project setup and packaging guidance covering package structure
 
 - Python project directory
 - Understanding of package structure concepts
-- uv installed for dependency management
+- uv ≥0.4.0 installed for dependency management
 - Basic knowledge of pyproject.toml format
 
 ### Mandatory
@@ -98,6 +98,9 @@ Project setup produces:
 - [ ] [tool.hatch.build.targets.wheel] specifies packages
 - [ ] Package structure created before installation
 - [ ] Dependencies added via `uv add`
+
+**During-Execution Checks:**
+- Verify no warnings in `uv build` output
 
 **Success Criteria:**
 - Package installable with `uv pip install -e .`
@@ -230,8 +233,8 @@ Successfully built my-project-1.0.0.tar.gz and my_project-1.0.0-py3-none-any.whl
 - Preferred when strict import isolation matters (e.g., testing the installed artifact).
 
 ### Decision Criteria
-- **Use flat layout** if: project uses `uv`, is a CLI tool, is a small-to-medium package, or is a single-package repository.
-- **Use src/ layout** if: project is large, contains multiple packages, has a large team, or needs strict installed-package testing guarantees.
+- **Use flat layout** if: project uses `uv`, is a CLI tool, has ≤1 package directory AND ≤50 modules, or is a single-package repository.
+- **Use src/ layout** if: project has >100 modules, >3 package directories, OR >5 contributors, or needs strict installed-package testing guarantees.
 - **Always:** Investigate existing project structure before recommending a layout. Never change an existing layout without explicit request.
 
 ## Package Structure Requirements
@@ -363,7 +366,7 @@ check_untyped_defs = true
 - **Always:** Define console scripts in `pyproject.toml`: `[project.scripts]` section.
 - **Always:** Use Typer or Click for command-line interface parsing (see `220-python-typer-cli.md`).
 - **Always:** Separate CLI parsing from business logic (keep in different modules).
-- **Consider:** Use `uv run python -m myapp` for module execution.
+- **Use** `uv run python -m myapp` when the package defines `__main__.py`.
 
 #### Console Scripts Configuration
 ```toml

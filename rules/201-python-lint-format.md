@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-15
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Ruff, linting, formatting, code quality, style checking, lint errors, ruff check, ruff format, pyproject.toml configuration, black, flake8
 **TokenBudget:** ~3100
 **ContextTier:** High
@@ -56,9 +56,13 @@ Python code quality standards with Ruff as the recommended tool for linting and 
 - **Run linting before task completion** - Must pass with zero errors
 - **Run formatting before task completion** - Code must be properly formatted
 - Configure linter/formatter in pyproject.toml
-- Set appropriate Python version in configuration
+- Set appropriate Python version in configuration (`target-version = "py311"`)
 - Enable docstring linting (Ruff D rules or pydocstyle)
 - All checks must pass with 0 errors (non-negotiable validation gate)
+- Ruff is the authoritative default for linting and formatting
+- Centralize all Ruff configuration in `pyproject.toml`; exclude directories like `.venv`, `notebooks`, and `output`
+- If Ruff is unavailable, fall back to `flake8` (lint) and `black` + `isort` (format/imports) with equivalent configuration. Document the chosen fallback in the PR.
+- Enable pydocstyle (D) rules and set a single convention (`google` or `numpy`) consistent with `204-python-docs-comments.md`
 
 ### Tooling Approach
 
@@ -84,6 +88,8 @@ Python code quality standards with Ruff as the recommended tool for linting and 
 
 ### Execution Steps
 
+**CRITICAL:** Lint and format checks are MANDATORY before task completion.
+
 **Using project's toolchain:**
 
 1. **Identify linter/formatter:**
@@ -96,7 +102,7 @@ Python code quality standards with Ruff as the recommended tool for linting and 
    - **pip + flake8:** `flake8 .`
 
 3. **Fix issues:**
-   - Auto-fix: `ruff check --fix .` or manual corrections
+   - Auto-fix: `uvx ruff check --fix .` or manual corrections
    - Review and commit fixes
 
 4. **Run formatting:**
@@ -104,11 +110,14 @@ Python code quality standards with Ruff as the recommended tool for linting and 
    - **poetry + Ruff:** `poetry run ruff format .`
    - **pip + black:** `black .`
 
-5. **Verify:**
-   - Linting: `ruff check .` (0 errors)
-   - Formatting: `ruff format --check .` (no changes needed)
+5. **Verify (MANDATORY before marking task complete):**
+   - Linting: `uvx ruff check .` (0 errors)
+   - Formatting: `uvx ruff format --check .` (no changes needed)
+   - Ensure imports are organized and unused code is removed
 
 6. **Commit:** Changes with clean code quality
+
+**Tool preference:** Use `uvx ruff` for isolated execution; fall back to `poetry run ruff` or `flake8` when the project's toolchain requires it.
 
 ### Output Format
 
@@ -135,6 +144,7 @@ Linting and formatting produces:
 **Negative Tests:**
 - Ruff should catch common errors (undefined variables, unused imports)
 - Ruff should reject improperly formatted code
+- Task completion with failing checks is blocked
 
 ### Design Principles
 
@@ -196,10 +206,6 @@ repos:
 # Now formatting happens automatically on every commit
 ```
 
-## Validation
-- **Success checks:** All Python files pass `uvx ruff check .` with zero errors; `uvx ruff format --check .` passes; code is idiomatic and properly formatted; Pre-Task-Completion Validation Gate passed
-- **Negative tests:** Files with syntax errors fail lint checks; improperly formatted code fails format check; task completion attempted with failing checks is blocked
-
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read pyproject.toml BEFORE running lint/format** - Check existing Ruff configuration, rules, ignores
@@ -219,80 +225,26 @@ repos:
 
 ## Output Format Examples
 
-```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
-
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
-from datetime import datetime, UTC
-
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
-
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
-
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
-
-    Args:
-        input_data: Validated input following schema
-
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
-```
-
 ```bash
-# Validation commands
-uvx ruff check .
-uvx ruff format --check .
-uv run pytest tests/
+# Successful lint check (target state)
+$ uvx ruff check .
+All checks passed!
+
+# Successful format check
+$ uvx ruff format --check .
+0 files would be reformatted
+
+# Failing lint check — interpret error codes
+$ uvx ruff check .
+app/services/auth.py:12:1: F401 [*] `os` imported but unused
+app/services/auth.py:45:5: B006 Do not use mutable data structures for argument defaults
+Found 2 errors.
+[*] 1 fixable with `--fix`.
+
+# Auto-fix safe issues, then manually fix the rest
+$ uvx ruff check --fix .
+Found 2 errors (1 fixed, 1 remaining).
 ```
-
-## Core Policy
-- **Requirement:** Ruff is the authoritative default for linting and formatting.
-- **Requirement:** Centralize Ruff configuration in `pyproject.toml`.
-- **Requirement:** Set `target-version = "py311"` and exclude directories like `.venv`, `notebooks`, and `output`.
-- **Always:** If Ruff is unavailable, fall back to `flake8` (lint) and `black` + `isort` (format/imports) with equivalent configuration. Document the chosen fallback in the PR.
- - **Requirement:** Enable pydocstyle (D) rules and set a single convention (`google` or `numpy`) consistent with `204-python-docs-comments.md`.
-
-## Agent Workflow
-
-**CRITICAL:** Lint and format checks are MANDATORY before task completion (see Pre-Task-Completion Validation Gate).
-
-- **MANDATORY:** On every Python file modification or creation, run the linter and formatter.
-- **MANDATORY:** Use `uvx ruff check .` and `uvx ruff format --check .` for isolated tool execution.
-- **MANDATORY:** All checks must pass with zero errors before marking task complete.
-- **MANDATORY:** Use `uvx ruff check --fix .` and `uvx ruff format .` to apply fixes.
-- **Consider:** If Ruff is unavailable, use `flake8 .` and `black --check .`; fix with `black .` and `isort .`.
-- **Requirement:** Ensure imports are organized and unused code is removed.
-- **Rule:** Prefer isolated `uvx ruff` for consistency; fall back to `poetry run ruff` or `flake8` when the project's toolchain requires it.
 
 ### 2.1 Docstring Lint Configuration (Ruff)
 Add the following to `pyproject.toml`:
@@ -306,6 +258,24 @@ ignore = []
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"  # or "numpy"
+```
+
+**Ruff Rule Category Reference:**
+
+- **E** — pycodestyle: Style errors (whitespace, etc.)
+- **W** — pycodestyle: Style warnings
+- **F** — pyflakes: Logic errors, undefined names
+- **I** — isort: Import ordering
+- **B** — flake8-bugbear: Common bug risks
+- **C4** — comprehensions: Simplifiable comprehensions
+- **UP** — pyupgrade: Modernize to newer Python syntax
+- **D** — pydocstyle: Docstring format/presence
+
+**Per-file ignores** for common exceptions:
+```toml
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]       # No docstring requirements in tests
+"scripts/**" = ["T20"]   # Allow print statements in scripts
 ```
 
 ## Compliance Notes

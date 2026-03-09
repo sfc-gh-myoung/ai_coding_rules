@@ -9,9 +9,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-08
+**LastUpdated:** 2026-03-09
 **Keywords:** model optimization, context window, loading budget, GPT, Claude, Gemini, token limits, cost efficiency, prompt caching
-**TokenBudget:** ~1800
+**TokenBudget:** ~2100
 **ContextTier:** Low
 **Depends:** 002c-rule-optimization.md
 
@@ -74,6 +74,12 @@ Model optimization recommendation with:
 - Rule selection fits within calculated budget
 - Model-specific strategies applied where applicable
 
+### Error Recovery
+
+- **Unknown model:** Use default 30% loading budget with 200K context assumption
+- **Budget exceeded mid-conversation:** Stop loading additional rules, summarize context, proceed with loaded rules only
+- **Model unavailable:** Fall back to nearest equivalent model in the same provider's lineup
+
 ### Post-Execution Checklist
 
 - [ ] Model context window verified against current provider documentation
@@ -106,12 +112,16 @@ Reserve remaining context for:
 
 ## OpenAI Models
 
+> **Staleness Warning:** Model specifications change frequently. Before using these specs, verify against the provider's current documentation using the source links provided. Last verified: 2026-03-08.
+
 ### GPT-4o (128K context)
 
 **Optimal Rule Size:** 2000-3500 tokens per rule
 **Context Budget:** Load 10-20 rules (~25K-40K tokens total)
 **Performance:** Best with focused, standard-sized rules
 **Strategy:** Prioritize small and standard tiers; defer reference tier
+
+*Source: [platform.openai.com/docs/models/gpt-4o](https://platform.openai.com/docs/models/gpt-4o)*
 
 ### GPT-5.1 (400K context)
 
@@ -131,7 +141,9 @@ Reserve remaining context for:
 **Optimal Rule Size:** 2000-5000 tokens per rule
 **Context Budget:** Load 15-30 rules (~40K-70K tokens total)
 **Performance:** Excellent with comprehensive rules
-**Strategy:** Can handle larger rule sets; use prompt caching for repeated rules
+**Strategy:** Can handle larger rule sets; use prompt caching for repeated rules (Anthropic: set `anthropic-beta: prompt-caching-2024-07-31` header; see Anthropic caching docs for details)
+
+*Source: [docs.claude.com/claude/docs/models-overview](https://docs.claude.com/claude/docs/models-overview)*
 
 ### Claude Sonnet 4.5 (200K standard / 1M beta)
 
@@ -164,15 +176,21 @@ Reserve remaining context for:
 **Performance:** Minimal constraints on rule loading
 **Strategy:** Can load entire rule families; batch loading highly effective
 
+*Source: [ai.google.dev/gemini-api/docs/models#gemini-2.5-pro](https://ai.google.dev/gemini-api/docs/models#gemini-2.5-pro)*
+
 ### Gemini 3 Pro (1M context)
 
 **Optimal Rule Size:** 2000-5000 tokens per rule
 **Context Budget:** Load 30-100+ rules (~60K-200K tokens total)
 **Performance:** Best-in-class reasoning, multimodality, and coding; tops WebDev Arena (1487 Elo)
-**Strategy:** Excellent for agentic coding and long-horizon planning; use Deep Think mode for complex problems
+**Strategy:** Excellent for agentic coding and long-horizon planning; use Deep Think mode for problems requiring >3 reasoning steps or >5000 tokens of analysis
 **Key Features:** Zero-shot generation, advanced tool use, improved multi-step workflow execution
 
 *Source: [blog.google/products/gemini/gemini-3](https://blog.google/products/gemini/gemini-3/)*
+
+## Open-Source Models
+
+For open-source models (Llama, Mistral, DeepSeek, etc.): Apply the same 30-40% loading budget formula using the model's documented context window. Verify output token limits as these vary significantly by deployment configuration and quantization level. When context window is unknown, default to 30% of 128K (38K tokens).
 
 ## Anti-Patterns and Common Mistakes
 

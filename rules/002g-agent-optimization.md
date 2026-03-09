@@ -5,8 +5,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-02-10
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** agent, LLM, optimization, format, token, efficiency, understanding, execution, comprehension, design, patterns, priority, agent-first
 **TokenBudget:** ~3350
 **ContextTier:** High
@@ -449,6 +449,22 @@ Content...
 
 **Rule:** Horizontal rule separators (`---`) are FORBIDDEN in rule files. Use headers to delineate sections.
 
+### Legacy Rule Migration
+
+When optimizing existing rules with heavy visual formatting, fix in priority order:
+
+1. CRITICAL violations first (ASCII tables, undefined subjective terms)
+2. Arrow characters using the Arrow Replacement Guide above
+3. ASCII decision trees using nested conditional lists
+4. Mermaid diagrams and ASCII art, replace with structured text
+5. Horizontal rule separators last (lowest impact)
+
+Run `ai-rules validate` after each step.
+
+### Binary and Image Content
+
+Rules must contain text-only content. Do not embed images or binary content. If visual reference is needed, describe the concept textually or reference an external file path.
+
 ## Format Guidelines Reference
 
 ### List Formatting (Preferred)
@@ -485,4 +501,4 @@ Tables are acceptable only when:
 2. Row/column intersection creates unique meaning
 3. No simpler list structure preserves the information
 
-Even then, consider if the table is truly necessary or if restructuring would help agents.
+If in doubt, use structured lists instead.

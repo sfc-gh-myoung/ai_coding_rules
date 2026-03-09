@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Go, Golang, go.mod, modules, error handling, interfaces, goroutines, channels, testing, go fmt, golangci-lint, concurrency, context, defer
-**TokenBudget:** ~4100
+**TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** 000-global-core.md
 **LoadTrigger:** ext:.go, file:go.mod
@@ -38,7 +38,7 @@ Foundational Go development practices using idiomatic patterns, modern tooling (
 - **000-global-core.md** - Foundation rule with core patterns and validation gates
 
 **Related:**
-- None currently - this is the core Go rule
+- **600a-golang-patterns.md** - HTTP server patterns, graceful shutdown, advanced Go patterns
 
 ### External Documentation
 
@@ -91,73 +91,7 @@ Foundational Go development practices using idiomatic patterns, modern tooling (
 
 ### Output Format
 
-```go
-// Package myservice provides user management functionality.
-package myservice
-
-import (
-    "context"
-    "fmt"
-)
-
-// User represents a user in the system.
-type User struct {
-    ID   int
-    Name string
-}
-
-// GetUser retrieves a user by ID.
-// Returns an error if the user is not found or if the database query fails.
-func GetUser(ctx context.Context, id int) (*User, error) {
-    if id <= 0 {
-        return nil, fmt.Errorf("invalid user ID: %d", id)
-    }
-    
-    // Simulate database query
-    user := &User{ID: id, Name: "John Doe"}
-    return user, nil
-}
-```
-
-```go
-// myservice_test.go
-package myservice_test
-
-import (
-    "context"
-    "testing"
-    
-    "example.com/myservice"
-)
-
-func TestGetUser(t *testing.T) {
-    tests := []struct {
-        name    string
-        id      int
-        wantErr bool
-    }{
-        {name: "valid user", id: 1, wantErr: false},
-        {name: "invalid ID", id: -1, wantErr: true},
-        {name: "zero ID", id: 0, wantErr: true},
-    }
-    
-    for _, tt := range tests {
-        t.Run(tt.name, func(t *testing.T) {
-            ctx := context.Background()
-            user, err := myservice.GetUser(ctx, tt.id)
-            
-            if (err != nil) != tt.wantErr {
-                t.Errorf("GetUser() error = %v, wantErr %v", err, tt.wantErr)
-                return
-            }
-            
-            if !tt.wantErr && user == nil {
-                t.Error("GetUser() returned nil user without error")
-            }
-        })
-    }
-}
-```
+Go source files with: package doc comment, grouped imports (stdlib, external, internal), exported types with godoc, context-aware functions returning `(T, error)`, and table-driven tests using `t.Run` subtests. See examples throughout this rule and in `600a-golang-patterns.md`.
 
 ### Validation
 
@@ -196,18 +130,9 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 4. **Check for existing tests** to understand testing patterns
 5. **Review golangci-lint config** (`.golangci.yml`) for project-specific rules
 
-**Anti-Pattern Examples:**
-- Ignoring errors: `result, _ := doSomething()`
-- Using `panic` in library code
-- Global mutable state without synchronization
-- Missing context parameter for I/O operations
-- Unexported error types
+**Anti-Patterns:** Ignoring errors (`result, _ := doSomething()`), panic in library code, global mutable state, missing context for I/O, unexported error types.
 
-**Correct Pattern:**
-- "Let me check your go.mod and Go version first."
-- [checks go.mod, verifies Go 1.22+, reads existing code]
-- "I see you're using standard project layout. Here's the implementation with proper error handling..."
-- [implements with godoc, runs go fmt, go vet, golangci-lint, tests]
+**Correct Approach:** Check go.mod and Go version first, read existing code, implement with proper error handling, run all tooling.
 
 ### Design Principles
 

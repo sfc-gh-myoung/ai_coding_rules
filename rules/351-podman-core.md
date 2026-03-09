@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-02-05
+**LastUpdated:** 2026-03-09
 **Keywords:** Podman, Containerfile, containers, rootless containers, buildah, podman-compose, pods, daemonless, systemd, quadlet, image optimization, non-root, healthcheck, security scanning, SBOM
 **TokenBudget:** ~4550
 **ContextTier:** Medium
@@ -48,7 +48,7 @@ Provides practical, production-ready guidance for authoring Containerfiles, buil
 
 ### Inputs and Prerequisites
 
-- Podman installed (daemonless, no service required)
+- Podman 4.0+ required (4.5+ recommended for improved rootless; 5.0+ for manifest improvements). Check: `podman --version`
 - Buildah for advanced image building (optional)
 - Access to base images/registries
 - Project source with `.containerignore` (or `.dockerignore`)
@@ -56,11 +56,11 @@ Provides practical, production-ready guidance for authoring Containerfiles, buil
 
 ### Mandatory
 
-- MUST run containers rootless by default; only use root mode with documented justification
+- MUST run containers rootless by default; root mode requires `# ROOT: <specific-technical-reason>` comment in Containerfile. Acceptable: host network access, kernel module loading, cgroup/systemd manipulation. Not acceptable: "needed for app," "legacy," "easier."
 - MUST use Quadlet for systemd-managed containers in production
 - MUST scan images with Trivy/Grype before deployment; fail on critical or high CVEs
 - MUST NOT embed secrets in images or image layers
-- MUST NOT use `--privileged` without documented justification
+- MUST NOT use `--privileged` without `# PRIVILEGED: <specific-technical-reason>` comment. Acceptable: host network namespace, kernel module loading, cgroup manipulation.
 - MUST NOT use `latest` floating tags in production
 - MUST NOT run as root user when rootless is possible
 - MUST NOT assume Docker daemon is available
@@ -119,8 +119,8 @@ Deterministic Containerfile(s) and Compose files with:
 - **MUST:** Structure layers to maximize caching; separate dependency installation from source copy
 - **MUST:** Generate SBOM and sign images; store attestations in registry
 - **MUST:** Provide a `HEALTHCHECK`; avoid long `CMD` shell strings; use JSON exec form
-- **SHOULD:** Prefer distroless/alpine when appropriate; verify glibc/musl compatibility first
-- **MUST NOT:** COPY secrets into images; bake envs into image layers; use `--privileged` without documented justification
+- **SHOULD:** Base image selection: Distroless for single-binary apps (Go/Rust static binaries, Java JARs); Alpine/slim for apps needing shell or package manager; full base only for dev containers. Verify glibc/musl compatibility first.
+- **MUST NOT:** COPY secrets into images; bake envs into image layers; use `--privileged` without `# PRIVILEGED: <reason>` comment
 
 ### Post-Execution Checklist
 
@@ -210,34 +210,16 @@ podman run -v /shared:/app/shared:z myapp
 ```bash
 # Diagnose auth issues
 podman login --get-login registry.example.com
-
-# Check stored credentials
-podman login --verbose registry.example.com
-
-# Auth config location (rootless)
-cat ${XDG_RUNTIME_DIR}/containers/auth.json
-
-# Re-authenticate
-podman logout registry.example.com
-podman login registry.example.com
+# Auth config location (rootless): ${XDG_RUNTIME_DIR}/containers/auth.json
+# Re-authenticate if needed
+podman logout registry.example.com && podman login registry.example.com
 ```
 
 > **Investigation Required**
-> When applying this rule:
-> 1. **Read existing Containerfile BEFORE suggesting changes** - Check current structure, stages
-> 2. **Verify rootless compatibility** - Check if workload requires privileged operations
-> 3. **Check for Docker-specific syntax** - Some Dockerfile features may differ
-> 4. **Verify pod requirements** - Determine if multi-container pods are needed
-> 5. **Test build and run** - Verify changes don't break builds or runtime
+> Before applying: (1) read existing Containerfile, (2) verify rootless compatibility, (3) check for Docker-specific syntax, (4) verify pod requirements, (5) test build and run.
 >
-> **Anti-Pattern:**
-> "Adding rootless config... (without checking if workload supports it)"
-> "Using podman-compose... (without verifying it's installed)"
->
-> **Correct Pattern:**
-> "Let me check your current Containerfile first."
-> [reads Containerfile, checks base image, reviews layers]
-> "I see you're using debian:12. Adding multi-stage build with rootless support..."
+> **Anti-Pattern:** "Adding rootless config... (without checking if workload supports it)"
+> **Correct:** "Let me check your Containerfile first." [reads file, checks base image, reviews layers]
 
 ## Output Format Examples
 
@@ -440,35 +422,22 @@ docker-compose up -d
 ### Example: .containerignore (Same as .dockerignore)
 
 ```
-# VCS & metadata
 .git
 .gitignore
 .github/
-
-# Python
 __pycache__/
 *.py[cod]
 .venv/
 venv/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
-# Node/Frontend
 node_modules/
 dist/
-build/
-
-# Secrets & env (never bake into image)
 .env
 .env.*
 *.pem
 *.key
-
-# Podman/Container specific
-*.container
-*.pod
 ```
+
+See `350-docker-core.md` for extended `.dockerignore` patterns.
 
 ## Build Performance and Caching
 
@@ -480,7 +449,7 @@ build/
 
 ## Security and Least Privilege
 
-- **MUST:** Run rootless by default; only use root mode when absolutely required.
+- **MUST:** Run rootless by default; root only for: port binding <1024 without CAP_NET_BIND_SERVICE, system file modification during build. Use `--userns=keep-id` when rootless is insufficient. All other workloads MUST use rootless.
 - **MUST:** Set `USER` to non-root UID/GID (use numeric for portability).
 - **MUST:** Drop capabilities and use read-only FS when possible:
   - `--cap-drop=ALL --read-only --tmpfs /tmp` at runtime.
@@ -498,33 +467,13 @@ build/
 
 ## Podman vs Docker Differences
 
-**Architecture:**
-- Docker: Daemon-based (requires dockerd service)
-- Podman: Daemonless (runs as user process)
-
-**Default User:**
-- Docker: Root
-- Podman: Rootless
-
-**Build Tool:**
-- Docker: `docker build`
-- Podman: `podman build` or `buildah`
-
-**Compose:**
-- Docker: `docker-compose`
-- Podman: `podman-compose`
-
-**Systemd Integration:**
-- Docker: Limited
-- Podman: Native (Quadlet)
-
-**Pod Support:**
-- Docker: No native support
-- Podman: Kubernetes-style pods
-
-**Socket Path:**
-- Docker: `/var/run/docker.sock`
-- Podman: `$XDG_RUNTIME_DIR/podman/podman.sock`
+- **Architecture:** Docker uses daemon (dockerd); Podman is daemonless (user process)
+- **Default User:** Docker runs as root; Podman runs rootless
+- **Build Tool:** Docker uses `docker build`; Podman uses `podman build` or `buildah`
+- **Compose:** Docker uses `docker-compose`; Podman uses `podman-compose`
+- **Systemd:** Docker has limited support; Podman has native Quadlet integration
+- **Pods:** Docker has no native support; Podman supports Kubernetes-style pods
+- **Socket:** Docker at `/var/run/docker.sock`; Podman at `$XDG_RUNTIME_DIR/podman/podman.sock`
 
 ## Runtime and Orchestration
 

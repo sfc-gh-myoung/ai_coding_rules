@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:spcs, kw:container
 **Keywords:** SPCS, compute pools, OCI images, service spec, container deployment, service logs, platform events
-**TokenBudget:** ~2300
+**TokenBudget:** ~2950
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -62,6 +62,9 @@ Deploying and managing containerized apps on SPCS: compute pools, service specs,
 - Omitting resource limits
 
 ### Execution Steps
+
+> **Investigation Required:** Run `SHOW COMPUTE POOLS` and `DESCRIBE COMPUTE POOL <name>` to verify available GPU types and node limits before creating services.
+
 1. Verify SPCS: `SHOW PARAMETERS LIKE 'ENABLE_SNOWPARK_CONTAINER_SERVICES' IN ACCOUNT;`
 2. Check pool: `SHOW COMPUTE POOLS;`
 3. Verify image: `SHOW IMAGES IN IMAGE REPOSITORY <repo>;`
@@ -321,3 +324,4 @@ DROP COMPUTE POOL IF EXISTS app_pool;
 
 - **Rolling update:** Use `ALTER SERVICE ... FROM @stage` with updated spec. Snowflake handles container replacement.
 - **Blue-green:** Deploy new service with different name, validate, then switch DNS/references and drop old service.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  

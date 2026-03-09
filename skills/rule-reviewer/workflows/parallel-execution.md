@@ -4,7 +4,9 @@ Coordinator workflow for parallel dimension evaluation using sub-agents.
 
 ## Overview
 
-This workflow enables parallel evaluation of rule dimensions by launching 7 sub-agents (one per non-deterministic dimension) while computing Rule Size inline.
+> **Scoring Rubric v2.0:** 6 scored dimensions (100 points), Token Efficiency and Staleness are informational only.
+
+This workflow enables parallel evaluation of rule dimensions by launching 5 sub-agents (one per non-deterministic scored dimension) while computing Rule Size inline.
 
 ```
 Coordinator (Main Agent)
@@ -17,25 +19,24 @@ Coordinator (Main Agent)
 │   ├── Load overlap resolution rules
 │   └── Prepare shared context
 │
-├── Phase 2: Parallel Dimension Evaluation
-│   ├── INLINE: Rule Size (100% deterministic - `wc -l`)
-│   ├── SA-1: Actionability (25pts) [background]
-│   ├── SA-2: Completeness (25pts) [background]
-│   ├── SA-3: Consistency (15pts) [background]
-│   ├── SA-4: Parsability (15pts) [background]
-│   ├── SA-5: Token Efficiency (10pts) [background]
-│   ├── SA-6: Staleness (10pts) [background]
-│   └── SA-7: Cross-Agent Consistency (5pts) [background]
+├── Phase 2: Parallel Dimension Evaluation (6 scored dimensions)
+│   ├── INLINE: Rule Size (25pts, 100% deterministic - `wc -l`)
+│   ├── SA-1: Actionability (30pts) [background]
+│   ├── SA-2: Parsability (15pts) [background]
+│   ├── SA-3: Completeness (15pts) [background]
+│   ├── SA-4: Consistency (10pts) [background]
+│   └── SA-5: Cross-Agent Consistency (5pts) [background]
 │
 ├── Phase 3: Collect & Validate Results
-│   ├── Gather 7 dimension worksheets + Rule Size result
+│   ├── Gather 5 dimension worksheets + Rule Size result
 │   ├── Verify no overlap violations
 │   └── Flag any double-counted issues
 │
 └── Phase 4: Score Aggregation & Report
-    ├── Apply scoring formula: Raw × (Weight/2)
+    ├── Apply scoring formula: Raw × Weight
+    ├── Apply hard caps (line count, blocking issues)
     ├── Apply critical dimension override
-    ├── Calculate total score
+    ├── Calculate total score (max 100)
     └── Generate unified review document
 ```
 
@@ -169,13 +170,14 @@ Rule Size is computed directly by the coordinator since it requires no LLM evalu
 
 ```python
 def compute_rule_size_inline(rule_path: str) -> dict:
-    """Compute Rule Size dimension inline (100% deterministic)."""
+    """Compute Rule Size dimension inline (100% deterministic, v2.0)."""
     
     import subprocess
     result = subprocess.run(['wc', '-l', rule_path], capture_output=True, text=True)
     line_count = int(result.stdout.strip().split()[0])
     
-    # Score based on rule-size.md rubric
+    # Score based on rule-size.md rubric (v2.0)
+    # Hard caps: >600 → max 70/100, >700 → max 50/100
     if line_count <= 300:
         raw_score = 10
         flag = None
@@ -190,21 +192,21 @@ def compute_rule_size_inline(rule_path: str) -> dict:
         tier = "Acceptable"
     elif line_count <= 600:
         raw_score = 6
-        flag = "OPTIMIZATION_RECOMMENDED"
+        flag = "SPLIT_RECOMMENDED"
         tier = "Needs Attention"
-    elif line_count <= 800:
+    elif line_count <= 700:
         raw_score = 4
-        flag = "SPLITTING_REQUIRED"
+        flag = "SPLIT_REQUIRED"  # Hard cap: max 70/100 total
         tier = "Critical"
     else:
         raw_score = 0
-        flag = "NOT_DEPLOYABLE"
+        flag = "BLOCKED"  # Hard cap: max 50/100 total
         tier = "Blocking"
     
     return {
         "dimension": "rule_size",
         "raw_score": raw_score,
-        "weight": 2,
+        "weight": 2.5,  # v2.0 weight
         "tier": tier,
         "line_count": line_count,
         "flag": flag,
@@ -220,17 +222,18 @@ def compute_rule_size_inline(rule_path: str) -> dict:
 
 ```python
 def launch_dimension_subagents(context: dict, params: dict) -> list:
-    """Launch 7 parallel sub-agents for dimension evaluation."""
+    """Launch 5 parallel sub-agents for scored dimension evaluation (v2.0)."""
     
+    # Scored dimensions only - Token Efficiency and Staleness are informational
     dimensions = [
-        ("actionability", 5, "rubrics/actionability.md"),
-        ("completeness", 5, "rubrics/completeness.md"),
-        ("consistency", 3, "rubrics/consistency.md"),
-        ("parsability", 3, "rubrics/parsability.md"),
-        ("token_efficiency", 2, "rubrics/token-efficiency.md"),
-        ("staleness", 2, "rubrics/staleness.md"),
-        ("cross_agent_consistency", 1, "rubrics/cross-agent-consistency.md"),
+        ("actionability", 3.0, "rubrics/actionability.md"),
+        ("parsability", 1.5, "rubrics/parsability.md"),
+        ("completeness", 1.5, "rubrics/completeness.md"),
+        ("consistency", 1.0, "rubrics/consistency.md"),
+        ("cross_agent_consistency", 0.5, "rubrics/cross-agent-consistency.md"),
     ]
+    # Note: Rule Size (2.5 weight) computed inline by coordinator
+    # Note: Token Efficiency and Staleness are informational only (not scored)
     
     agent_ids = []
     for dim_name, weight, rubric_path in dimensions:
@@ -291,14 +294,15 @@ def extract_overlap_rules_for(dimension: str, overlap_rules_content: str) -> str
             ("Rule 4", "Self-contradiction → Consistency (internal conflict)"),
             ("Rule 4", "Terminology inconsistency → Consistency"),
         ],
+        "cross_agent_consistency": [
+            ("Rule 5", "Agent-specific logic/hardcoded names → Cross-Agent Consistency"),
+        ],
+        # Informational only (not scored) - findings still tracked
         "token_efficiency": [
-            ("Rule 5", "Duplicated/redundant content → Token Efficiency"),
+            ("Informational", "Duplicated/redundant content → Token Efficiency findings"),
         ],
         "staleness": [
-            ("Rule 6", "Outdated patterns/tools/references → Staleness"),
-        ],
-        "cross_agent_consistency": [
-            ("Rule 7", "Agent-specific logic/hardcoded names → Cross-Agent Consistency"),
+            ("Informational", "Outdated patterns/tools/references → Staleness findings"),
         ],
     }
     
@@ -312,8 +316,8 @@ def extract_overlap_rules_for(dimension: str, overlap_rules_content: str) -> str
         "schema_violation": "parsability",
         "yaml_invalid": "parsability",
         "internal_conflict": "consistency",
-        "redundant_section": "token_efficiency",
-        "deprecated_tool": "staleness",
+        "redundant_section": "token_efficiency",  # informational
+        "deprecated_tool": "staleness",  # informational
         "hardcoded_agent": "cross_agent_consistency",
     }
     
@@ -333,7 +337,7 @@ def extract_overlap_rules_for(dimension: str, overlap_rules_content: str) -> str
 {types_text}
 
 **Decision Protocol:**
-1. Check if issue matches a priority rule (Rules 1-7 in order)
+1. Check if issue matches a priority rule (Rules 1-5 in order for scored dimensions)
 2. First matching rule determines ownership
 3. If no rule match, use issue type matrix above
 4. If issue type not in matrix, default to Completeness
@@ -503,7 +507,7 @@ See `score-aggregation.md` for detailed aggregation workflow.
 | **30s polling** | Phase 3 | Balance between responsiveness and API overhead |
 | **90s timeout** | Phase 3 | 1.5× median dimension evaluation time |
 | **5s launch delay** | Phase 2 | API rate limit safety margin |
-| **7 sub-agents** | Phase 2 | 8 dimensions minus Rule Size (inline) |
+| **5 sub-agents** | Phase 2 | 6 scored dimensions minus Rule Size (inline) |
 | **Max 2 retries** | Error handling | Diminishing returns after 2 failures |
 
 ## Error Handling

@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:fastapi-deployment
 **Keywords:** FastAPI deployment, Uvicorn, Gunicorn, ASGI, Docker, production deployment, health checks, multi-stage build, OpenAPI, API documentation
-**TokenBudget:** ~3750
+**TokenBudget:** ~3550
 **ContextTier:** High
 **Depends:** 210-python-fastapi-core.md
 
@@ -164,68 +164,18 @@ async def readiness(db: Session = Depends(get_db)):
         raise HTTPException(503, "Database unavailable")
 ```
 
-## Output Format Examples
+### Investigation Required
 
-```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
-
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
-from datetime import datetime, UTC
-
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
-
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
-
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
-
-    Args:
-        input_data: Validated input following schema
-
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
-```
-
-```bash
-# Validation commands
-uvx ruff check .
-uvx ruff format --check .
-uv run pytest tests/
-```
+Before modifying any deployment configuration, check the existing setup:
+1. **Dockerfile** - Read existing Dockerfile for base image, build stages, and installed dependencies
+2. **gunicorn/uvicorn config** - Check for gunicorn.conf.py or uvicorn CLI flags already in use
+3. **docker-compose** - Review docker-compose.yml for service definitions, volumes, and environment variables
+4. Do NOT overwrite working configurations—extend or adjust them
 
 ## API Documentation
 
 ### OpenAPI Customization
-- **Always:** Provide clear descriptions for all endpoints.
+- **Always:** Provide descriptions stating endpoint purpose, required parameters, and response format for all endpoints.
 - **Always:** Use proper HTTP status codes and document them.
 - **Rule:** Include examples in your API documentation.
 
@@ -308,7 +258,7 @@ async def create_user(
 ```
 
 ### Custom OpenAPI Schema
-- **Always:** Customize OpenAPI metadata for better documentation.
+- **Always:** Customize OpenAPI metadata with title, version, description, tags, and security scheme.
 - **Rule:** Organize endpoints with tags and descriptions.
 
 ```python
@@ -378,7 +328,7 @@ app.openapi = custom_openapi
 ### ASGI Server Configuration
 - **Always:** Use Uvicorn with Gunicorn for production deployment.
 - **Always:** Configure proper worker counts and timeout settings.
-- **Rule:** Use environment-specific configuration files.
+- **Rule:** Use separate .env.development/.staging/.production with DATABASE_URL, CORS origins, debug flag, log level.
 
 ```python
 # gunicorn.conf.py
@@ -445,7 +395,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
-RUN pip install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Set work directory
 WORKDIR /app
@@ -500,8 +450,6 @@ CMD ["gunicorn", "app.main:app", "-c", "gunicorn.conf.py"]
 ### Docker Compose for Development
 ```yaml
 # docker-compose.yml
-version: '3.8'
-
 services:
   web:
     build: .

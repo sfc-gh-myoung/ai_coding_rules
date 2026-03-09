@@ -1,4 +1,6 @@
-# Completeness Rubric (25 points)
+# Completeness Rubric (15 points)
+
+> **Weight:** 3 | **Max:** 15 points | **Formula:** Raw × 1.5
 
 ## Mandatory Issue Inventory (REQUIRED)
 
@@ -62,67 +64,67 @@
 ## Scoring Formula
 
 **Raw Score:** 0-10
-**Weight:** 5
-**Points:** Raw × (5/2) = Raw × 2.5
+**Weight:** 3
+**Points:** Raw × 1.5
 
 ## Scoring Criteria
 
-### 10/10 (25 points): Perfect
+### 10/10 (15 points): Perfect
 - 5+ error scenarios with recovery steps
 - All edge cases documented (boundary, concurrency, state)
 - Prerequisites with version numbers
 - Validation steps for pre/during/post execution
 - Fallback strategies for critical operations
 
-### 9/10 (22.5 points): Near-Perfect
+### 9/10 (13.5 points): Near-Perfect
 - 5 error scenarios with recovery
 - 95%+ edge cases covered
 - All prerequisites stated with versions
 - All validation phases present
 
-### 8/10 (20 points): Excellent
+### 8/10 (12 points): Excellent
 - 4 error scenarios with recovery
 - 90-94% edge cases covered
 - Prerequisites stated with versions
 - 3 validation phases present
 
-### 7/10 (17.5 points): Good
+### 7/10 (10.5 points): Good
 - 3-4 error scenarios with recovery
 - 85-89% edge cases covered
 - Prerequisites stated (most versions)
 - 3 validation phases present
 
-### 6/10 (15 points): Acceptable
+### 6/10 (9 points): Acceptable
 - 3 error scenarios with recovery
 - 80-84% edge cases covered
 - Most prerequisites stated
 - 2-3 validation phases
 
-### 5/10 (12.5 points): Borderline
+### 5/10 (7.5 points): Borderline
 - 2 error scenarios with recovery
 - 70-79% edge cases covered
 - Some prerequisites stated
 - 2 validation phases
 
-### 4/10 (10 points): Needs Work
+### 4/10 (6 points): Needs Work
 - 2 error scenarios (partial recovery)
 - 60-69% edge cases covered
 - Prerequisites vague
 - 1-2 validation phases
 
-### 3/10 (7.5 points): Poor
+### 3/10 (4.5 points): Poor
 - 1 error scenario with recovery
 - 50-59% edge cases covered
 - Prerequisites incomplete
 - 1 validation phase
 
-### 2/10 (5 points): Very Poor
+### 2/10 (3 points): Very Poor
 - 1 error scenario (no recovery)
 - 40-49% edge cases covered
 - Prerequisites minimal
 - Minimal validation
 
-### 1/10 (2.5 points): Inadequate
+### 1/10 (1.5 points): Inadequate
 - 0 error scenarios
 - 25-39% edge cases covered
 - Prerequisites missing
@@ -215,16 +217,16 @@ Coverage % = (categories addressed / 4 categories) × 100
 ## Score Decision Matrix
 
 **Score Tier Criteria:**
-- **10/10 (25 pts):** 5+ error scenarios, 95%+ edge cases, complete prerequisites, 3 validation phases
-- **9/10 (22.5 pts):** 5 error scenarios, 95%+ edge cases, complete prerequisites, 3 validation phases
-- **8/10 (20 pts):** 4 error scenarios, 90-94% edge cases, prerequisites with versions, 3 validation phases
-- **7/10 (17.5 pts):** 3-4 error scenarios, 85-89% edge cases, most prerequisites, 3 validation phases
-- **6/10 (15 pts):** 3 error scenarios, 80-84% edge cases, most prerequisites, 2-3 validation phases
-- **5/10 (12.5 pts):** 2 error scenarios, 70-79% edge cases, some prerequisites, 2 validation phases
-- **4/10 (10 pts):** 2 error scenarios (partial), 60-69% edge cases, vague prerequisites, 1-2 validation phases
-- **3/10 (7.5 pts):** 1 error scenario, 50-59% edge cases, incomplete prerequisites, 1 validation phase
-- **2/10 (5 pts):** 1 error (no recovery), 40-49% edge cases, minimal prerequisites, minimal validation
-- **1/10 (2.5 pts):** 0 error scenarios, 25-39% edge cases, missing prerequisites, no validation
+- **10/10 (15 pts):** 5+ error scenarios, 95%+ edge cases, complete prerequisites, 3 validation phases
+- **9/10 (13.5 pts):** 5 error scenarios, 95%+ edge cases, complete prerequisites, 3 validation phases
+- **8/10 (12 pts):** 4 error scenarios, 90-94% edge cases, prerequisites with versions, 3 validation phases
+- **7/10 (10.5 pts):** 3-4 error scenarios, 85-89% edge cases, most prerequisites, 3 validation phases
+- **6/10 (9 pts):** 3 error scenarios, 80-84% edge cases, most prerequisites, 2-3 validation phases
+- **5/10 (7.5 pts):** 2 error scenarios, 70-79% edge cases, some prerequisites, 2 validation phases
+- **4/10 (6 pts):** 2 error scenarios (partial), 60-69% edge cases, vague prerequisites, 1-2 validation phases
+- **3/10 (4.5 pts):** 1 error scenario, 50-59% edge cases, incomplete prerequisites, 1 validation phase
+- **2/10 (3 pts):** 1 error (no recovery), 40-49% edge cases, minimal prerequisites, minimal validation
+- **1/10 (1.5 pts):** 0 error scenarios, 25-39% edge cases, missing prerequisites, no validation
 - **0/10 (0 pts):** 0 error scenarios, <25% edge cases, no prerequisites, no validation
 
 **Note:** Use lowest qualifying tier when scores span multiple tiers.
@@ -366,12 +368,12 @@ Count: 2/3 phases
 - Prerequisites: 3/4 partial = -1 point
 - Validation: 2/3 phases = -1 point
 
-**Final:** 4/10 (10 points) - Needs Work
+**Final:** 4/10 (6 points) - Needs Work
 
 ### Step 6: Document in Review
 
 ```markdown
-## Completeness: 4/10 (10 points)
+## Completeness: 4/10 (6 points)
 
 **Error scenarios:** 2/5 documented with recovery
 - [YES] File not found

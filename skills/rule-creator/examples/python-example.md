@@ -39,7 +39,7 @@ test doubles, test isolation, Python testing, pytest plugins, mock verification
 ### Phase 2: Template Generation (1 min)
 
 ```bash
-$ python scripts/template_generator.py 209-python-pytest-mock \
+$ uv run ai-rules new 209-python-pytest-mock \
     --context-tier Medium \
     --output-dir rules/
 
@@ -107,7 +107,7 @@ def test_something(mocker):
 ### Phase 4: Validation (2 min, 1 iteration)
 
 ```bash
-$ python scripts/schema_validator.py rules/209-python-pytest-mock.md
+$ uv run ai-rules validate rules/209-python-pytest-mock.md
 
 SUMMARY:
    CRITICAL: 0

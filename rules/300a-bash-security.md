@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:bash-security, kw:shell-security
 **Keywords:** Bash, security, input validation, command injection, path security, secure shell scripts, sanitization, permissions, privilege escalation, secrets management
-**TokenBudget:** ~4300
+**TokenBudget:** ~3600
 **ContextTier:** High
 **Depends:** 300-bash-scripting-core.md
 
@@ -32,6 +32,7 @@ Comprehensive bash scripting security practices covering input validation, path 
 
 **Related:**
 - **300b-bash-testing-tooling.md** - Testing security implementations
+- **300c-bash-security-advanced.md** - Advanced security: privilege, network, logging, testing
 
 ### External Documentation
 
@@ -107,10 +108,10 @@ Secure bash script with:
 ### Design Principles
 
 - **Defense in Depth:** Multiple layers of security controls
-- **Least Privilege:** Run with minimum required permissions
-- **Input Validation:** Never trust user data, validate everything
+- **Least Privilege:** Minimum required permissions
+- **Input Validation:** Never trust user data
 - **Secure by Default:** Restrictive permissions, safe defaults
-- **Fail Securely:** Errors should not expose sensitive information
+- **Fail Securely:** Errors MUST NOT expose sensitive information
 
 ### Post-Execution Checklist
 
@@ -123,15 +124,12 @@ Secure bash script with:
 - [ ] No eval with user input
 - [ ] Tested with malicious inputs
 - [ ] shellcheck passes with no warnings
-- [ ] Path traversal prevention verified
 
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Command Injection via Unsanitized Input
 
 **Problem:** Passing user input directly to commands or eval without sanitization, allowing arbitrary command execution.
-
-**Why It Fails:** Attackers can inject shell metacharacters (`;`, `|`, `$()`) to execute arbitrary commands. Remote code execution vulnerabilities. Complete system compromise from simple input fields.
 
 **Correct Pattern:**
 ```bash
@@ -160,8 +158,6 @@ declare -A handlers=(["process"]="do_process" ["validate"]="do_validate")
 
 **Problem:** Hardcoding passwords, API keys, or tokens directly in shell scripts, or passing them as command-line arguments (visible in process list and history).
 
-**Why It Fails:** Secrets visible in `ps aux` output. Logged in shell history files. Committed to version control. Readable by any user with file access. Cannot rotate without script changes.
-
 **Correct Pattern:**
 ```bash
 # BAD: Secrets in script
@@ -186,55 +182,35 @@ echo  # Newline after hidden input
 
 ```bash
 #!/usr/bin/env bash
-# Script following bash best practices from rule
+set -euo pipefail
+IFS=$'\n\t'
 
-set -euo pipefail  # Exit on error, undefined vars, pipe failures
-IFS=$'\n\t'      # Safe word splitting
-
-# Constants
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly LOG_FILE="${SCRIPT_DIR}/output.log"
+readonly ALLOWED_DIR="$SCRIPT_DIR/data"
 
-# Functions with clear contracts
+validate_input() {
+    local input="$1" field="${2:-input}"
+    [[ ${#input} -le 255 ]] || { echo "Error: $field too long" >&2; return 1; }
+    [[ "$input" =~ ^[a-zA-Z0-9._-]+$ ]] || { echo "Error: Invalid $field" >&2; return 1; }
+}
+
+safe_path() {
+    local path="$1" base="$2"
+    local resolved
+    resolved="$(realpath "$path" 2>/dev/null)" || return 1
+    [[ "$resolved" == "$base"* ]] || { echo "Error: Path outside allowed directory" >&2; return 1; }
+    echo "$resolved"
+}
+
 main() {
-    # Investigation phase
-    check_prerequisites
-
-    # Implementation phase
-    perform_operations
-
-    # Validation phase
-    verify_results
+    [[ $# -ge 1 ]] || { echo "Usage: $0 <filename>" >&2; exit 1; }
+    validate_input "$1" "filename"
+    local target
+    target="$(safe_path "$ALLOWED_DIR/$1" "$ALLOWED_DIR")" || exit 1
+    cat -- "$target"
 }
 
-check_prerequisites() {
-    local -a required_commands=(jq curl git)
-
-    for cmd in "${required_commands[@]}"; do
-        if ! command -v "${cmd}" &>/dev/null; then
-            echo "ERROR: Required command not found: ${cmd}" >&2
-            exit 1
-        fi
-    done
-}
-
-perform_operations() {
-    echo "Performing operations following project patterns..."
-    # Implementation details here
-}
-
-verify_results() {
-    echo "Validating results..."
-    # Validation logic here
-}
-
-# Execute main function
 main "$@"
-```
-
-```bash
-# Validation with shellcheck
-shellcheck script.sh
 ```
 
 ## Input Validation and Sanitization
@@ -366,6 +342,7 @@ create_user_file() {
     local user_filename="$1"
     local content="$2"
     local target_dir="$3"
+    local overwrite="${4:-false}"
 
     local safe_filename
     safe_filename="$(sanitize_filename "$user_filename")" || return 1
@@ -373,12 +350,9 @@ create_user_file() {
     local full_path="$target_dir/$safe_filename"
 
     # Ensure we're not overwriting system files
-    if [[ -e "$full_path" ]]; then
+    if [[ -e "$full_path" && "$overwrite" != "true" ]]; then
         echo "Warning: File '$safe_filename' already exists" >&2
-        read -r -p "Overwrite? (y/N): " confirm
-        if [[ "$confirm" != [yY] ]]; then
-            return 1
-        fi
+        return 1
     fi
 
     echo "$content" > "$full_path"
@@ -423,39 +397,6 @@ execute_safe_command() {
 }
 ```
 
-### Parameter Expansion Safety
-- **Rule:** Use parameter expansion safely with user input:
-```bash
-# Safe parameter handling
-process_user_data() {
-    local user_input="$1"
-    local operation="$2"
-
-    # Validate operation is from allowed set
-    case "$operation" in
-        "uppercase"|"lowercase"|"length")
-            # Safe operations
-            ;;
-        *)
-            echo "Error: Invalid operation '$operation'" >&2
-            return 1
-            ;;
-    esac
-
-    case "$operation" in
-        "uppercase")
-            echo "${user_input^^}"
-            ;;
-        "lowercase")
-            echo "${user_input,,}"
-            ;;
-        "length")
-            echo "${#user_input}"
-            ;;
-    esac
-}
-```
-
 ### SQL Injection Prevention in Shell Scripts
 - **Critical:** Use parameterized queries when interfacing with databases:
 ```bash
@@ -470,16 +411,13 @@ execute_safe_query() {
         return 1
     fi
 
-    # Use sqlite3 with parameters (if available) or careful escaping
     sqlite3 "$db_file" "SELECT * FROM users WHERE id = $user_id;"
 }
 
-# For systems without parameterized queries, careful validation
-escape_sql_string() {
-    local input="$1"
-    # Replace single quotes with two single quotes
-    echo "${input//\'/\'\'}"
-}
+# NEVER construct SQL with string concatenation. Use parameterized queries:
+# psql: psql -v id="$user_input" -c "SELECT * FROM users WHERE id = :'id';"
+# mysql: mysql -e "SELECT * FROM users WHERE id = ?" --execute-params="$user_input"
+# If raw SQL is unavoidable, validate input strictly (numeric, enum) before use.
 ```
 
 ## Secrets and Credential Management
@@ -490,43 +428,38 @@ escape_sql_string() {
 # WRONG - Never do this
 API_KEY="sk-1234567890abcdef"  # Hardcoded secret
 
-# CORRECT - Use environment variables
-check_required_secrets() {
-    local -a required_vars=("$@")
-    local -a missing_vars=()
-
-    for var in "${required_vars[@]}"; do
-        if [[ -z "${!var:-}" ]]; then
-            missing_vars+=("$var")
-        fi
-    done
-
-    if [[ ${#missing_vars[@]} -gt 0 ]]; then
-        echo "Error: Missing required environment variables: ${missing_vars[*]}" >&2
-        echo "Please set these variables before running the script" >&2
-        exit 1
-    fi
-}
-
-# Usage
-check_required_secrets "DATABASE_URL" "API_KEY" "JWT_SECRET"
+# CORRECT - Use environment variable validation from 300-bash-scripting-core.md
+# (check_required_env pattern), then access via ${!var}
 ```
 
 ### Secure Credential Loading
 - **Rule:** Load credentials with permission checks:
 ```bash
+# Cross-platform file permission check
+get_file_perms() {
+    local file="$1"
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        stat -f '%A' "$file" 2>/dev/null
+    else
+        stat -c '%a' "$file" 2>/dev/null
+    fi
+}
+
 load_credentials() {
     local file="$1"
     local perms
-    perms="$(stat -c '%a' "$file" 2>/dev/null)" || return 1
+    perms="$(get_file_perms "$file")" || return 1
 
     if [[ "$perms" != "600" && "$perms" != "400" ]]; then
         echo "Error: Insecure permissions: $perms" >&2
         return 1
     fi
 
-    # shellcheck source=/dev/null
-    source "$file"
+    # Safe credential loading -- parse key=value, don't execute
+    while IFS='=' read -r key value; do
+        [[ "$key" =~ ^[A-Z_][A-Z0-9_]*$ ]] || continue
+        export "$key=$value"
+    done < "$file"
 }
 ```
 
@@ -537,7 +470,7 @@ create_temp_creds() {
     local file
     file="$(mktemp)"
     chmod 600 "$file"
-    trap "rm -f '$file'" EXIT
+    trap "rm -f $(printf '%q' "$file")" EXIT
     echo "$file"
 }
 ```
@@ -564,111 +497,8 @@ create_secure_file() {
     echo "Created '$filename' with permissions $permissions"
 }
 
-# Predefined permission sets
-create_executable_script() {
-    local script_name="$1"
-    local script_content="$2"
-    create_secure_file "$script_name" "$script_content" "755"
-}
-
-create_config_file() {
-    local config_name="$1"
-    local config_content="$2"
-    create_secure_file "$config_name" "$config_content" "644"
-}
-
-create_secret_file() {
-    local secret_name="$1"
-    local secret_content="$2"
-    create_secure_file "$secret_name" "$secret_content" "600"
-}
 ```
 
-### Permission Validation
-- **Rule:** Check file permissions:
-```bash
-check_perms() {
-    local file="$1" expected="$2"
-    local actual
-    actual="$(stat -c '%a' "$file" 2>/dev/null)" || return 1
-    [[ "$actual" == "$expected" ]] || {
-        echo "Wrong permissions: $actual, expected $expected" >&2
-        return 1
-    }
-}
-```
+## Advanced Security Topics
 
-## Process and System Security
-
-### Privilege Management
-- **Rule:** Run with minimum required privileges:
-```bash
-check_running_as_root() {
-    if [[ $EUID -eq 0 ]]; then
-        echo "Warning: Running as root. Consider using a non-privileged user." >&2
-        read -r -p "Continue as root? (y/N): " confirm
-        if [[ "$confirm" != [yY] ]]; then
-            exit 1
-        fi
-    fi
-}
-
-# Drop privileges when possible
-drop_privileges() {
-    local target_user="$1"
-
-    if [[ $EUID -eq 0 ]]; then
-        echo "Dropping privileges to user: $target_user"
-        exec sudo -u "$target_user" "$0" "$@"
-    fi
-}
-```
-
-### Resource Limits
-- **Rule:** Set basic resource limits:
-```bash
-set_limits() {
-    ulimit -t 300    # CPU time
-    ulimit -v 1048576 # Memory (1GB)
-    ulimit -n 1024   # Open files
-    ulimit -c 0      # Core dumps
-}
-```
-
-## Network Security
-
-### URL Validation
-- **Rule:** Validate URLs before requests:
-```bash
-validate_url() {
-    local url="$1"
-    [[ "$url" =~ ^https?:// ]] || { echo "Invalid URL" >&2; return 1; }
-    [[ ! "$url" =~ localhost|127\.0\.0\.1 ]] || { echo "Localhost blocked" >&2; return 1; }
-}
-```
-
-## Secure Logging
-
-### Basic Audit Logging
-- **Rule:** Log security events:
-```bash
-audit_log() {
-    local event="$1" details="$2"
-    local msg="[$(date)] EVENT=$event USER=${USER:-unknown} DETAILS=$details"
-    echo "$msg" >> "${LOG_FILE:-/var/log/audit.log}"
-}
-```
-
-## Security Testing and Validation
-
-### Security Testing
-- **Consider:** Test with malicious inputs:
-```bash
-test_security() {
-    local func="$1"
-    local -a bad_inputs=("" "$(printf 'A%.0s' {1..100})" "'; rm -rf /")
-    for input in "${bad_inputs[@]}"; do
-        "$func" "$input" 2>/dev/null || echo "Rejected: $input"
-    done
-}
-```
+> For process/system security (privilege management, resource limits), network security (URL validation), secure logging/audit trails, and security testing patterns, see **300c-bash-security-advanced.md**.

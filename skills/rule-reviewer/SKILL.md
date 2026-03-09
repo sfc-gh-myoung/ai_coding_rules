@@ -23,33 +23,49 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
 (With `output_root: mytest/` → `mytest/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`)
 
-## Scoring System (105 points)
+## Scoring System (100 points)
+
+> **Scoring Rubric v2.0** - 6 scored dimensions, 100 points total
 
 **Raw Score Range:** 0-10 per dimension
-**Formula:** Raw (0-10) × (Weight / 2) = Points
+**Formula:** Raw (0-10) × Weight = Points
 
-**Dimensions:**
-- **Actionability** - Weight: 5, Max: 25 points - Can agents execute without judgment?
-- **Completeness** - Weight: 5, Max: 25 points - All scenarios covered?
-- **Consistency** - Weight: 3, Max: 15 points - Internal alignment correct?
-- **Parsability** - Weight: 3, Max: 15 points - Schema valid?
-- **Token Efficiency** - Weight: 2, Max: 10 points - Within ±5% budget?
-- **Rule Size** - Weight: 2, Max: 10 points - Within 500-line target? (100% deterministic)
-- **Staleness** - Weight: 2, Max: 10 points - Current patterns?
-- **Cross-Agent Consistency** - Weight: 1, Max: 5 points - Works across all agents?
+**Scored Dimensions:**
+
+| Dimension | Weight | Max Points | Focus |
+|-----------|--------|------------|-------|
+| Actionability | 6 | 30 | Can agents execute without judgment? |
+| Rule Size | 5 | 25 | Within 500-line target? (deterministic) |
+| Parsability | 3 | 15 | Schema valid? |
+| Completeness | 3 | 15 | All scenarios covered? |
+| Consistency | 2 | 10 | Internal alignment correct? |
+| Cross-Agent Consistency | 1 | 5 | Works across all agents? |
+
+**Informational Only (Not Scored):**
+- **Token Efficiency** - Merged into Rule Size; findings in recommendations
+- **Staleness** - Flagged in recommendations; not scored
+
+**Hard Caps:**
+
+| Condition | Effect |
+|-----------|--------|
+| >600 lines | Total score capped at 70/100 |
+| >700 lines | Total score capped at 50/100 |
+| ≥6 blocking issues | Total score capped at 80/100 |
+| ≥10 blocking issues | Verdict forced to NOT_EXECUTABLE |
 
 **Detailed rubrics:** `rubrics/[dimension].md`
 
 **Example Calculation (Actionability):**
 - Raw score: 8/10
-- Weight: 5
-- Points: 8 × (5/2) = 8 × 2.5 = 20 points
+- Weight: 6
+- Points: 8 × 3.0 = 24 points
 
 ## Review Modes
 
-- **FULL:** All 7 dimensions scored
-- **FOCUSED:** Actionability + Completeness only (50 points max)
-- **STALENESS:** Staleness dimension only (10 points max)
+- **FULL:** All 6 scored dimensions (100 points max)
+- **FOCUSED:** Actionability + Completeness only (45 points max)
+- **STALENESS:** Informational staleness check (not scored)
 
 ## Critical: Anti-Optimization Protocol
 
@@ -92,7 +108,7 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 **Execution Mode Selection:**
 ```
 IF execution_mode == "parallel":
-    → Follow workflows/parallel-execution.md (7 sub-agents)
+    → Follow workflows/parallel-execution.md (5 sub-agents)
 ELSE:
     → Follow sequential workflow below
 ```
@@ -104,6 +120,15 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
    - Date format: YYYY-MM-DD
    - File exists (rules/*.md, AGENTS.md, or PROJECT.md)
    - Mode: FULL | FOCUSED | STALENESS
+
+1a. **Collect ALL parameters** (use `ask_user_question`)
+   
+   **See:** `workflows/parameter-collection.md`
+   
+   **MANDATORY:** Prompt for ALL parameters in batched questions (max 4 per call):
+   - Do NOT silently apply defaults for optional parameters
+   - User must explicitly confirm each setting
+   - If `ask_user_question` unavailable, fall back to text-based prompting
 
 1b. **Detect file type**
    ```bash
@@ -135,7 +160,7 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
    
    **IF FILE_TYPE == "rule":**
    ```bash
-   uv run python scripts/schema_validator.py [target_file]
+   uv run ai-rules validate [target_file]
    ```
    Parse output for CRITICAL/HIGH/MEDIUM errors
    
@@ -149,7 +174,7 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
    **Rationale:** AGENTS.md and PROJECT.md are bootstrap/configuration files with different structure than domain rules. They don't use rule metadata (SchemaVersion, RuleVersion, TokenBudget) or rule sections (Scope, Contract, References).
 
 4. **Agent Execution Test (SILENT - results go to review file)**
-   Count blocking issues (cap score at 60 if ≥10):
+   Count blocking issues (≥6 caps score at 80/100, ≥10 forces NOT_EXECUTABLE):
    - Undefined thresholds ("large", "significant", "appropriate")
    - Missing conditional branches (no explicit else)
    - Ambiguous actions (multiple interpretations)
@@ -201,18 +226,25 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 
 ## Verdicts
 
-**Score Ranges (based on 105-point scale):**
-- **94-105** - EXECUTABLE - Production-ready
-- **84-93** - EXECUTABLE_WITH_REFINEMENTS - Good, minor fixes
-- **63-83** - NEEDS_REFINEMENT - Needs work
-- **<63** - NOT_EXECUTABLE - Major issues
+**Score Ranges (100-point scale):**
+- **90-100** - EXECUTABLE - Production-ready
+- **75-89** - EXECUTABLE_WITH_REFINEMENTS - Good, minor fixes
+- **50-74** - NEEDS_REFINEMENT - Needs work
+- **<50** - NOT_EXECUTABLE - Major issues
+
+**Hard Cap Overrides:**
+- >600 lines → Total score capped at 70/100, verdict NEEDS_REFINEMENT or lower
+- >700 lines → Total score capped at 50/100, verdict NOT_EXECUTABLE
+- ≥6 blocking issues → Total score capped at 80/100
+- ≥10 blocking issues → Verdict forced to NOT_EXECUTABLE
 
 **Critical dimension override:** If both Actionability ≤4/10 AND Completeness ≤4/10 → NOT_EXECUTABLE regardless of total score
 
 **Rule Size flags:**
-- `OPTIMIZATION_RECOMMENDED` (501-600 lines) - Log warning, suggest consolidation
-- `SPLITTING_REQUIRED` (601-800 lines) - Block deployment, require split plan
-- `NOT_DEPLOYABLE` (>800 lines) - Fail review, mandatory remediation
+- `SPLIT_RECOMMENDED` (501-550 lines) - Review for split opportunities
+- `SPLIT_REQUIRED` (551-600 lines) - Mandatory split plan required
+- `NOT_DEPLOYABLE` (601-700 lines) - Block deployment, hard cap 70/100
+- `BLOCKED` (>700 lines) - Reject review, hard cap 50/100
 
 ## Supported File Types
 
@@ -249,7 +281,7 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 1. Executive Summary (scores table)
 2. Schema Validation Results
 3. Agent Executability Verdict
-4. Dimension Analysis (7 sections for FULL mode)
+4. Dimension Analysis (6 sections for FULL mode)
 5. Critical Issues (list)
 6. Recommendations (prioritized)
 7. Post-Review Checklist
@@ -265,7 +297,7 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 - **overwrite:** (optional) true | false (default: false) - If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
 - **timing_enabled:** (optional) true | false (default: false)
 - **execution_mode:** (optional) `parallel` | `sequential` (default: `parallel`)
-  - `parallel`: Uses 7 sub-agents for dimension evaluation (faster, recommended for 8GB+ RAM)
+  - `parallel`: Uses 5 sub-agents for scored dimension evaluation (faster, recommended for 8GB+ RAM)
   - `sequential`: Legacy single-agent behavior (for debugging or low-resource environments)
 
 ## Integration with Other Skills
@@ -395,7 +427,7 @@ Before starting ANY review work, confirm each item:
 - [ ] Schema validation attempted
 - [ ] Agent Execution Test completed
 - [ ] Line count measured (`wc -l`)
-- [ ] All dimensions scored (FULL mode - 7 dimensions)
+- [ ] All dimensions scored (FULL mode - 6 dimensions)
 - [ ] Recommendations include line numbers
 
 **Post-execution:**
@@ -428,12 +460,12 @@ Before starting ANY review work, confirm each item:
 - Read complete rule file
 - Run schema validator
 - Measure line count (`wc -l`)
-- Score all dimensions per rubrics (7 for FULL mode)
+- Score all dimensions per rubrics (6 for FULL mode)
 - Generate specific recommendations
 - Write complete review
 
 **DON'T:**
-- Skip dimensions (FULL mode requires all 7)
+- Skip dimensions (FULL mode requires all 6)
 - Estimate scores without rubrics
 - Generate generic recommendations
 - Abbreviate review to save tokens
@@ -513,46 +545,46 @@ The user authorized ACT. Proceed with the work.
 
 **Why Each Step Matters:**
 
-1. **Schema Validation (schema_validator.py)**
+1. **Schema Validation (ai-rules validate)**
    - **Purpose:** Catch structural errors before agents load rules
    - **Cannot skip:** Parsability score requires this
-   - **Time cost:** 0.5-1 second
+   - **Time cost:** ~2-5 seconds
    - **Value:** Prevents agent confusion from malformed rules
 
 2. **Agent Execution Test**
    - **Purpose:** Count specific blocking issues (undefined thresholds, ambiguity)
    - **Cannot skip:** Directly impacts Actionability score
-   - **Time cost:** 1-2 seconds (manual reading)
+   - **Time cost:** ~15-20 seconds (rule analysis)
    - **Value:** Predicts agent failure modes
 
 3. **Dimension Scoring with Rubrics**
    - **Purpose:** Consistent, reproducible scoring across reviewers
    - **Cannot skip:** Without rubrics, scores drift arbitrarily
-   - **Time cost:** 2-3 seconds per dimension
+   - **Time cost:** ~10-15 seconds per dimension (6 dimensions)
    - **Value:** Enables trend analysis across reviews
 
 4. **Specific Recommendations with Line Numbers**
    - **Purpose:** Actionable improvements (not generic advice)
    - **Cannot skip:** Without line numbers, rule authors can't act
-   - **Time cost:** 1-2 seconds per recommendation
+   - **Time cost:** ~10-15 seconds per recommendation
    - **Value:** Actual rule improvements happen
 
 5. **Complete Review Write**
    - **Purpose:** Durable record for comparison, trend tracking
    - **Cannot skip:** Summary aggregation depends on complete reviews
-   - **Time cost:** 1-2 seconds (file write)
+   - **Time cost:** ~3-5 seconds (file write)
    - **Value:** Historical quality tracking
 
-**Total Time Per Rule:** 8-12 seconds  
+**Total Time Per Rule:** 90-120 seconds (sequential execution)  
 **Total Value:** Reliable quality measurement enabling continuous improvement
 
 **Efficiency Tradeoffs (ALL REJECTED):**
 
-- **Skip schema validation** - Time Saved: 1 sec, Value Lost: Parsability score invalid, Decision: REJECT
-- **Estimate scores without rubrics** - Time Saved: 6 sec, Value Lost: Score consistency lost, Decision: REJECT
-- **Generic recommendations** - Time Saved: 2 sec, Value Lost: No actionable improvements, Decision: REJECT
-- **Abbreviated review** - Time Saved: 2 sec, Value Lost: Aggregation impossible, Decision: REJECT
-- **Template-based content** - Time Saved: 8 sec, Value Lost: No actual analysis performed, Decision: REJECT
+- **Skip schema validation** - Time Saved: ~3 sec, Value Lost: Parsability score invalid, Decision: REJECT
+- **Estimate scores without rubrics** - Time Saved: ~60 sec, Value Lost: Score consistency lost, Decision: REJECT
+- **Generic recommendations** - Time Saved: ~15 sec, Value Lost: No actionable improvements, Decision: REJECT
+- **Abbreviated review** - Time Saved: ~20 sec, Value Lost: Aggregation impossible, Decision: REJECT
+- **Template-based content** - Time Saved: ~90 sec, Value Lost: No actual analysis performed, Decision: REJECT
 
 **Conclusion:** No efficiency tradeoff is worth the quality loss. Period.
 
@@ -601,7 +633,7 @@ Before considering review complete:
 - [ ] Schema validator executed
 - [ ] Agent Execution Test performed
 - [ ] Line count measured (`wc -l`)
-- [ ] All required dimensions scored (7 for FULL mode)
+- [ ] All required dimensions scored (6 for FULL mode)
 - [ ] Each score has rationale
 - [ ] Critical issues identified
 - [ ] Rule Size flags applied if applicable
@@ -625,7 +657,7 @@ When invoked by `bulk-rule-reviewer`, this skill may experience context drift af
 
 ## Version History
 
-- **v2.5.0:** Added parallel execution mode with 7 sub-agents for dimension evaluation
+- **v2.5.0:** Added parallel execution mode with 5 sub-agents for scored dimension evaluation
 - **v2.4.0:** Added documentation currency check to staleness dimension
 - **v2.0.0:** Removed PROMPT.md, added progressive disclosure with rubrics/
 - **v1.4.0:** Added timing integration, schema validation

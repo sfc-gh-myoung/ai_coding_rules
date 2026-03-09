@@ -3,53 +3,49 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
-**LoadTrigger:** kw:pydantic, kw:validation
-**Keywords:** Pydantic, data validation, models, settings, BaseModel, field validation, serialization, Field, validator, model_validator, EmailStr, pydantic-settings
-**TokenBudget:** ~5150
+**RuleVersion:** v4.0.0
+**LastUpdated:** 2026-03-09
+**LoadTrigger:** kw:pydantic, kw:validation, kw:basemodel
+**Keywords:** Pydantic, data validation, models, BaseModel, field validation, Field, validator, model_validator, EmailStr
+**TokenBudget:** ~2750
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
 ## Scope
 
 **What This Rule Covers:**
-Establish comprehensive data validation and serialization patterns using Pydantic v2, covering model design, settings management, custom validators, and integration strategies for building type-safe, validated Python applications.
+Model definition and field validation patterns using Pydantic v2, covering BaseModel design, Field() constraints, custom validators, and anti-patterns.
 
 **When to Load This Rule:**
-- Python data validation, model definition, settings management
+- Defining Pydantic models for data validation
+- Adding field constraints and custom validators
+- Setting up a Pydantic-based project structure
 
 ## References
 
 ### External Documentation
 - [Pydantic Documentation](https://docs.pydantic.dev/latest/) - Complete guide to data validation and serialization
-- [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Configuration management and environment variables
-- [FastAPI with Pydantic](https://fastapi.tiangolo.com/tutorial/body/) - Request/response models and API integration
+- [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Configuration management
 
 ### Related Rules
 - **200-python-core.md** - Core Python patterns and uv usage
 - **201-python-lint-format.md** - Ruff linting and formatting standards
-- **203-python-project-setup.md** - Python project structure and packaging
-- **210-python-fastapi-core.md** - FastAPI integration patterns
-- **220-python-typer-cli.md** - Typer CLI integration with Pydantic
-- **800-project-changelog.md** - Changelog discipline for data model changes
+- **230a-python-pydantic-settings.md** - Settings management with pydantic-settings
+- **230b-python-pydantic-integration.md** - Serialization, FastAPI, database, performance, testing
 
 ## Contract
 
 ### Inputs and Prerequisites
 
 - Python project with `pyproject.toml` configured
-- Understanding of data validation requirements
-- Knowledge of type annotations and Python typing
-- Access to project codebase for model integration
+- Understanding of type annotations and Python typing
 
 ### Mandatory
 
-- **uv** for dependency management
-- **pydantic>=2.5.0** installed via `uv add pydantic`
-- **pydantic-settings>=2.0.0** for configuration management
-- Type annotations on all model fields
-- Validation rules defined using Field() or validators
+- **Always:** Use `pydantic>=2.5.0` installed via `uv add pydantic`
+- **Always:** Type annotations on all model fields
+- **Rule:** Validation rules defined using Field() or validators
+- **Rule:** Use `ConfigDict(...)` for model configuration (not plain dicts)
 
 ### Forbidden
 
@@ -58,17 +54,17 @@ Establish comprehensive data validation and serialization patterns using Pydanti
 - Validation logic outside Pydantic models
 - Skipping field validation for user input
 - Using mutable default values without default_factory
+- Side-effects in validators (file I/O, network calls, directory creation)
 
 ### Execution Steps
 
-1. Install Pydantic with required extras: `uv add "pydantic[email]"` or `uv add "pydantic-settings"`
+1. Install Pydantic with required extras: `uv add "pydantic[email]"` or `uv add pydantic-settings`
 2. Define BaseModel classes with comprehensive type annotations
-3. Add Field() constraints for validation rules (min_length, max_length, ge, le, regex)
+3. Add Field() constraints for validation rules (min_length, max_length, ge, le, pattern)
 4. Implement custom validators using @field_validator or @model_validator decorators
-5. Configure model settings using model_config (from_attributes, validate_assignment, etc.)
+5. Configure model settings using ConfigDict (from_attributes, validate_assignment)
 6. Test models with valid and invalid data using pytest
-7. Integrate models with FastAPI endpoints or CLI applications
-8. Validate with: `uvx ruff check .` and `uv run pytest tests/`
+7. Validate with: `uvx ruff check .` and `uv run pytest tests/`
 
 ### Output Format
 
@@ -76,7 +72,6 @@ Python modules containing:
 - BaseModel classes with type-annotated fields
 - Field() definitions with validation constraints
 - Custom validators with clear error messages
-- Settings classes using pydantic-settings for configuration
 - Comprehensive docstrings explaining model purpose and fields
 
 ### Validation
@@ -85,15 +80,18 @@ Python modules containing:
 - All model fields have type annotations
 - Field() constraints match business requirements
 - Custom validators raise ValueError with descriptive messages
-- Settings classes load from environment variables correctly
 - Models serialize/deserialize correctly (model_dump, model_validate)
 
 **Success Criteria:**
 - `uvx ruff check .` passes with zero errors
 - `uv run pytest tests/` passes all model validation tests
 - Invalid data raises ValidationError with clear messages
-- Models integrate correctly with FastAPI or CLI applications
-- Settings load from .env files and environment variables
+
+### Design Principles
+
+- **Validators should validate, not mutate:** Never create files, directories, or make network calls in validators
+- **Fail fast:** Raise clear errors at model creation time
+- **Reuse:** Prefer built-in Field constraints over custom validators
 
 ### Post-Execution Checklist
 
@@ -101,11 +99,8 @@ Python modules containing:
 - [ ] All models inherit from BaseModel
 - [ ] Field validation constraints defined
 - [ ] Custom validators implemented where needed
-- [ ] Settings classes use pydantic-settings
+- [ ] ConfigDict used consistently (no plain dicts)
 - [ ] Tests cover valid and invalid data scenarios
-- [ ] Models serialize correctly (JSON, dict)
-- [ ] Integration with FastAPI/CLI verified
-- [ ] Documentation includes field descriptions
 - [ ] Linting and tests pass
 
 ## Anti-Patterns and Common Mistakes
@@ -114,7 +109,7 @@ Python modules containing:
 
 **Problem:** Returning raw dictionaries from API endpoints instead of Pydantic models, losing type safety and automatic serialization.
 
-**Why It Fails:** No compile-time type checking. Typos in field names not caught until runtime. No automatic JSON serialization of complex types (datetime, UUID). Missing OpenAPI schema generation. Inconsistent response formats.
+**Why It Fails:** No compile-time type checking. Typos in field names not caught until runtime. No automatic JSON serialization of complex types (datetime, UUID). Missing OpenAPI schema generation.
 
 **Correct Pattern:**
 ```python
@@ -122,31 +117,24 @@ Python modules containing:
 @app.get("/users/{user_id}")
 async def get_user(user_id: int) -> dict:
     user = db.get_user(user_id)
-    return {
-        "id": user.id,
-        "name": user.name,
-        "created": str(user.created_at)  # Manual serialization!
-    }
+    return {"id": user.id, "name": user.name, "created": str(user.created_at)}
 
 # GOOD: Pydantic response model
 class UserResponse(BaseModel):
     id: int
     name: str
-    created_at: datetime  # Auto-serialized to ISO format
+    created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
 @app.get("/users/{user_id}", response_model=UserResponse)
 async def get_user(user_id: int) -> UserResponse:
-    user = db.get_user(user_id)
-    return UserResponse.model_validate(user)
+    return UserResponse.model_validate(db.get_user(user_id))
 ```
 
 ### Anti-Pattern 2: Validation Logic Outside Pydantic Models
 
 **Problem:** Performing validation in route handlers or service layers instead of using Pydantic validators, scattering validation logic throughout the codebase.
-
-**Why It Fails:** Validation not reusable across endpoints. Easy to forget validation in new code paths. Inconsistent error messages. Validation bypassed when model used directly. No automatic 422 responses.
 
 **Correct Pattern:**
 ```python
@@ -155,13 +143,10 @@ async def get_user(user_id: int) -> UserResponse:
 async def create_user(data: dict):
     if not data.get("email") or "@" not in data["email"]:
         raise HTTPException(400, "Invalid email")
-    if len(data.get("password", "")) < 8:
-        raise HTTPException(400, "Password too short")
-    # Validation scattered, easy to miss
 
 # GOOD: Validation in Pydantic model
 class UserCreate(BaseModel):
-    email: EmailStr  # Built-in email validation
+    email: EmailStr
     password: str
 
     @field_validator("password")
@@ -172,66 +157,60 @@ class UserCreate(BaseModel):
         return v
 
 @app.post("/users")
-async def create_user(data: UserCreate):  # Auto-validated!
+async def create_user(data: UserCreate):  # Auto-validated
     return create_user_in_db(data)
+```
+
+### Anti-Pattern 3: Side-Effects in Validators
+
+**Problem:** Validators that create directories, write files, or make network calls. Validators should only validate and transform data.
+
+```python
+# BAD: Creates directories during validation
+@field_validator("data_dir")
+@classmethod
+def validate_data_dir(cls, v: Path) -> Path:
+    v.mkdir(parents=True, exist_ok=True)  # Side-effect!
+    return v
+
+# GOOD: Validate only; create directories at application startup
+@field_validator("data_dir")
+@classmethod
+def validate_data_dir(cls, v: Path) -> Path:
+    if not v.parent.exists():
+        raise ValueError(f"Parent directory does not exist: {v.parent}")
+    return v
+# Call settings.data_dir.mkdir(parents=True, exist_ok=True) at startup
 ```
 
 ## Output Format Examples
 
 ```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
-
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
 from datetime import datetime, UTC
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
+class OrderItem(BaseModel):
+    """Example Pydantic v2 model with common patterns."""
 
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
+    model_config = ConfigDict(
+        from_attributes=True,
+        validate_assignment=True,
+        json_schema_extra={"example": {"sku": "AB-1234", "quantity": 2, "unit_price": 19.99}},
+    )
 
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
+    sku: str = Field(..., pattern=r'^[A-Z]{2,3}-\d{4,6}$')
+    quantity: int = Field(..., gt=0, le=1000)
+    unit_price: float = Field(..., gt=0)
+    ordered_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
-    Args:
-        input_data: Validated input following schema
+    @field_validator("sku")
+    @classmethod
+    def normalize_sku(cls, v: str) -> str:
+        return v.upper()
 
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
-```
-
-```bash
-# Validation commands
-uvx ruff check .
-uvx ruff format --check .
-uv run pytest tests/
+    @property
+    def total(self) -> float:
+        return self.quantity * self.unit_price
 ```
 
 ## Installation and Setup
@@ -239,7 +218,7 @@ uv run pytest tests/
 ### Dependencies and Environment
 - **Requirement:** Use `uv` for dependency management following `200-python-core.md` patterns
 - **Requirement:** Install Pydantic with: `uv add pydantic` or `uv add "pydantic[email]"` for additional validators
-- **Rule:** Use specific feature sets: `pydantic[email,dotenv]` for email validation and settings
+- **Rule:** Use specific feature sets: `pydantic[email]` for email validation
 - **Always:** Pin Pydantic to v2.x for modern features and performance
 
 ```toml
@@ -247,24 +226,19 @@ uv run pytest tests/
 [project]
 dependencies = [
     "pydantic>=2.5.0",
-    "pydantic[email]>=2.5.0",  # For email validation
-    "pydantic-settings>=2.0.0",  # For settings management
+    "pydantic[email]>=2.5.0",
 ]
 ```
 
 ### Project Structure for Pydantic Models
 - **Rule:** Organize models in dedicated modules for maintainability
 - **Rule:** Separate domain models from API schemas when using with FastAPI
-- **Always:** Use clear naming conventions for different model types
 
 Directory structure for `project/`:
 - **src/myapp/** - Source package
-  - **models/** - Domain models
-    - `__init__.py`, `user.py`, `product.py`
-  - **schemas/** - API request/response schemas
-    - `__init__.py`, `user_schemas.py`, `api_models.py`
-  - **config/** - Configuration
-    - `__init__.py`, `settings.py` (Pydantic Settings)
+  - **models/** - Domain models: `__init__.py`, `user.py`, `product.py`
+  - **schemas/** - API request/response schemas: `__init__.py`, `user_schemas.py`
+  - **config/** - Configuration: `__init__.py`, `settings.py`
 
 ## Model Definition Best Practices
 
@@ -274,9 +248,9 @@ Directory structure for `project/`:
 - **Rule:** Use descriptive field names and include docstrings for complex models
 
 ```python
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Optional, List
-from pydantic import BaseModel, Field, EmailStr, validator
+from pydantic import BaseModel, ConfigDict, Field, EmailStr
 from enum import Enum
 
 class UserRole(str, Enum):
@@ -287,6 +261,21 @@ class UserRole(str, Enum):
 class User(BaseModel):
     """User model with comprehensive validation."""
 
+    model_config = ConfigDict(
+        validate_assignment=True,
+        use_enum_values=True,
+        json_schema_extra={
+            "example": {
+                "id": 1,
+                "email": "user@example.com",
+                "username": "johndoe",
+                "full_name": "John Doe",
+                "age": 30,
+                "role": "user",
+            }
+        },
+    )
+
     id: int = Field(..., gt=0, description="Unique user identifier")
     email: EmailStr = Field(..., description="User email address")
     username: str = Field(..., min_length=3, max_length=50, pattern=r'^[a-zA-Z0-9_]+$')
@@ -294,25 +283,8 @@ class User(BaseModel):
     age: Optional[int] = Field(None, ge=13, le=120, description="User age in years")
     role: UserRole = Field(default=UserRole.USER)
     is_active: bool = Field(default=True)
-    created_at: datetime = Field(default_factory=datetime.now)
-    tags: List[str] = Field(default_factory=list, max_items=10)
-
-    class Config:
-        # Enable validation on assignment
-        validate_assignment = True
-        # Use enum values in JSON
-        use_enum_values = True
-        # Example values for documentation
-        schema_extra = {
-            "example": {
-                "id": 1,
-                "email": "user@example.com",
-                "username": "johndoe",
-                "full_name": "John Doe",
-                "age": 30,
-                "role": "user"
-            }
-        }
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    tags: List[str] = Field(default_factory=list, max_length=10)
 ```
 
 ### Field Configuration and Validation
@@ -321,365 +293,34 @@ class User(BaseModel):
 - **Rule:** Use built-in validators before creating custom ones
 
 ```python
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Optional
-import re
 
 class Product(BaseModel):
     """Product model with custom validation."""
 
     name: str = Field(..., min_length=1, max_length=200)
-    sku: str = Field(..., regex=r'^[A-Z]{2,3}-\d{4,6}$')
+    sku: str = Field(..., pattern=r'^[A-Z]{2,3}-\d{4,6}$')
     price: float = Field(..., gt=0, le=10000, description="Price in USD")
     discount_percent: Optional[float] = Field(None, ge=0, le=100)
     category: str = Field(..., min_length=1)
 
-    @validator('name')
-    def validate_name(cls, v):
+    @field_validator('name')
+    @classmethod
+    def validate_name(cls, v: str) -> str:
         """Ensure product name doesn't contain prohibited words."""
         prohibited = ['test', 'sample', 'demo']
         if any(word in v.lower() for word in prohibited):
             raise ValueError('Product name cannot contain prohibited words')
         return v.title()
 
-    @validator('sku')
-    def validate_sku_format(cls, v):
-        """Validate SKU format and check uniqueness."""
-        if not re.match(r'^[A-Z]{2,3}-\d{4,6}$', v):
-            raise ValueError('SKU must follow format: XX-NNNN or XXX-NNNNNN')
-        return v.upper()
-
-    @root_validator
-    def validate_discount_logic(cls, values):
+    @model_validator(mode='before')
+    @classmethod
+    def validate_discount_logic(cls, values: dict) -> dict:
         """Ensure discount logic is consistent."""
         price = values.get('price')
         discount = values.get('discount_percent')
-
-        if discount and discount > 0:
-            if price and price < 10:  # No discount on items under $10
-                raise ValueError('Discount not allowed on items under $10')
-
+        if discount and discount > 0 and price and price < 10:
+            raise ValueError('Discount not allowed on items under $10')
         return values
-
-    @property
-    def discounted_price(self) -> float:
-        """Calculate price after discount."""
-        if self.discount_percent:
-            return self.price * (1 - self.discount_percent / 100)
-        return self.price
-```
-
-## Settings Management with Pydantic
-
-### Application Settings Pattern
-- **Rule:** Use `pydantic-settings` for configuration management
-- **Always:** Support multiple configuration sources with clear precedence
-- **Rule:** Validate all configuration values at startup
-
-```python
-from pydantic import Field, validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional, List
-from pathlib import Path
-
-class DatabaseSettings(BaseSettings):
-    """Database configuration settings."""
-
-    host: str = Field(default="localhost", description="Database host")
-    port: int = Field(default=5432, ge=1, le=65535)
-    username: str = Field(..., description="Database username")
-    password: str = Field(..., description="Database password")
-    database: str = Field(..., description="Database name")
-
-    @property
-    def url(self) -> str:
-        """Generate database URL."""
-        return f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
-
-class AppSettings(BaseSettings):
-    """Main application settings."""
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        env_nested_delimiter="__",
-        case_sensitive=False
-    )
-
-    # Application settings
-    app_name: str = Field(default="MyApp", description="Application name")
-    debug: bool = Field(default=False, description="Debug mode")
-    log_level: str = Field(default="INFO", regex=r'^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$')
-
-    # Server settings
-    host: str = Field(default="0.0.0.0")
-    port: int = Field(default=8000, ge=1, le=65535)
-
-    # Security settings
-    secret_key: str = Field(..., min_length=32, description="Secret key for encryption")
-    allowed_hosts: List[str] = Field(default_factory=lambda: ["localhost", "127.0.0.1"])
-
-    # Database settings
-    database: DatabaseSettings = Field(default_factory=DatabaseSettings)
-
-    # File paths
-    data_dir: Path = Field(default=Path("./data"))
-    log_file: Optional[Path] = Field(default=None)
-
-    @validator('data_dir')
-    def validate_data_dir(cls, v):
-        """Ensure data directory exists."""
-        v.mkdir(parents=True, exist_ok=True)
-        return v
-
-    @validator('secret_key')
-    def validate_secret_key(cls, v):
-        """Ensure secret key is sufficiently complex."""
-        if len(set(v)) < 10:  # At least 10 unique characters
-            raise ValueError('Secret key must have sufficient entropy')
-        return v
-
-# Global settings instance
-settings = AppSettings()
-```
-
-### Environment Variable Integration
-- **Rule:** Use consistent environment variable naming with prefixes
-- **Always:** Document all environment variables and their purposes
-- **Rule:** Provide sensible defaults for development environments
-
-```python
-# Environment variables example:
-# MYAPP_DEBUG=true
-# MYAPP_LOG_LEVEL=DEBUG
-# MYAPP_DATABASE__HOST=localhost
-# MYAPP_DATABASE__PORT=5432
-# MYAPP_SECRET_KEY=your-secret-key-here
-
-class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_prefix="MYAPP_",
-        env_file=".env",
-        env_file_encoding="utf-8"
-    )
-
-    debug: bool = False
-    database_url: str = Field(..., description="Database connection URL")
-    redis_url: Optional[str] = Field(None, description="Redis connection URL")
-```
-
-## Serialization and JSON Schema
-
-### Model Serialization Patterns
-- **Rule:** Use `model_dump()` for dictionary conversion with proper configuration
-- **Always:** Handle sensitive data appropriately during serialization
-- **Rule:** Use aliases for external API compatibility
-
-```python
-from pydantic import BaseModel, Field, SecretStr
-from typing import Optional
-from datetime import datetime
-
-class UserProfile(BaseModel):
-    """User profile with serialization control."""
-
-    id: int
-    username: str
-    email: str = Field(..., alias="email_address")
-    password_hash: SecretStr = Field(..., exclude=True)  # Never serialize
-    full_name: Optional[str] = None
-    created_at: datetime
-    last_login: Optional[datetime] = None
-
-    class Config:
-        populate_by_name = True  # Allow both field name and alias
-
-    def to_public_dict(self) -> dict:
-        """Serialize for public API responses."""
-        return self.model_dump(
-            exclude={'password_hash', 'email'},
-            by_alias=True
-        )
-
-    def to_internal_dict(self) -> dict:
-        """Serialize for internal use."""
-        return self.model_dump(exclude={'password_hash'})
-
-# Usage example
-user = UserProfile(
-    id=1,
-    username="johndoe",
-    email_address="john@example.com",
-    password_hash="hashed_password",
-    full_name="John Doe",
-    created_at=datetime.now()
-)
-
-public_data = user.to_public_dict()
-# {'id': 1, 'username': 'johndoe', 'full_name': 'John Doe', 'created_at': '...'}
-```
-
-### JSON Schema Generation
-- **Rule:** Use Pydantic's JSON Schema generation for API documentation
-- **Rule:** Provide examples and descriptions in schema
-
-```python
-class APIResponse(BaseModel):
-    success: bool = Field(..., description="Whether request was successful")
-    message: str = Field(..., description="Human-readable message")
-    data: Optional[dict] = Field(None, description="Response data")
-
-    class Config:
-        schema_extra = {
-            "examples": [{
-                "success": True,
-                "message": "Operation completed",
-                "data": {"id": 1}
-            }]
-        }
-
-schema = APIResponse.model_json_schema()
-```
-
-## Integration Patterns
-
-### FastAPI Integration
-- **Rule:** Use Pydantic models for request/response validation in FastAPI
-- **Always:** Separate API schemas from domain models
-- **Rule:** Use dependency injection for settings
-
-```python
-from fastapi import FastAPI, Depends, HTTPException
-from pydantic import BaseModel
-from typing import List
-
-# Request/Response schemas
-class UserCreateRequest(BaseModel):
-    username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr
-    full_name: Optional[str] = None
-
-class UserResponse(BaseModel):
-    id: int
-    username: str
-    email: str
-    full_name: Optional[str]
-    is_active: bool
-
-app = FastAPI()
-
-def get_settings() -> AppSettings:
-    """Dependency for accessing application settings."""
-    return settings
-
-@app.post("/users/", response_model=UserResponse)
-async def create_user(
-    user_data: UserCreateRequest,
-    settings: AppSettings = Depends(get_settings)
-):
-    """Create a new user with validation."""
-    # Business logic here
-    return UserResponse(
-        id=1,
-        username=user_data.username,
-        email=user_data.email,
-        full_name=user_data.full_name,
-        is_active=True
-    )
-```
-
-### Database Integration
-- **Rule:** Use separate Pydantic models for database operations
-- **Rule:** Use `from_attributes = True` for ORM to Pydantic conversion
-
-```python
-class UserSchema(BaseModel):
-    id: int
-    username: str
-    email: str
-    is_active: bool
-
-    class Config:
-        from_attributes = True  # Enable ORM mode
-
-def get_user_by_id(user_id: int) -> UserSchema:
-    user_orm = session.query(UserORM).filter(UserORM.id == user_id).first()
-    return UserSchema.model_validate(user_orm)
-```
-
-## Performance and Optimization
-
-### Validation Performance
-- **Rule:** Use strict mode for better performance
-- **Rule:** Use `TypeAdapter` for simple validation scenarios
-
-```python
-from pydantic import BaseModel, TypeAdapter
-from typing import List
-
-class StrictUser(BaseModel):
-    model_config = {"strict": True}
-    id: int
-    username: str
-    email: str
-
-UserList = TypeAdapter(List[StrictUser])
-
-def validate_users_batch(users_data: List[dict]) -> List[StrictUser]:
-    return UserList.validate_python(users_data)
-```
-
-### Memory Optimization
-- **Rule:** Use `slots = True` for memory-efficient models
-- **Rule:** Use generators for large dataset processing
-
-```python
-class EfficientModel(BaseModel):
-    class Config:
-        slots = True
-
-    id: int
-    name: str
-    value: float
-
-def process_large_dataset(data_stream: Iterator[dict]) -> Iterator[EfficientModel]:
-    for item in data_stream:
-        try:
-            yield EfficientModel.model_validate(item)
-        except ValidationError:
-            continue
-```
-
-## Testing with Pydantic
-
-### Model Testing Patterns
-- **Rule:** Test both valid and invalid data scenarios
-- **Rule:** Use pytest fixtures for reusable test data
-
-```python
-import pytest
-from pydantic import ValidationError
-
-class TestUserModel:
-    @pytest.fixture
-    def valid_user_data(self):
-        return {
-            "id": 1,
-            "email": "test@example.com",
-            "username": "testuser"
-        }
-
-    def test_user_creation_success(self, valid_user_data):
-        user = User(**valid_user_data)
-        assert user.id == 1
-        assert user.email == "test@example.com"
-
-    def test_user_validation_errors(self):
-        with pytest.raises(ValidationError):
-            User(id=-1, email="invalid-email", username="ab")
-
-    def test_user_serialization(self, valid_user_data):
-        user = User(**valid_user_data)
-        user_dict = user.model_dump()
-        assert user_dict['email'] == "test@example.com"
 ```

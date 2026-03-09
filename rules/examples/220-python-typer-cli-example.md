@@ -9,7 +9,7 @@
 **Demonstrates:** Complete Typer CLI application with shared console module, dual console pattern (stdout/stderr), subcommand registration, Rich Table and Live progress displays, and CliRunner testing
 **Use When:** Building CLI applications with Typer that need consistent output styling, progress displays, and testable command structure
 **Version:** 1.0
-**Last Validated:** 2026-02-20
+**Last Validated:** 2026-03-08
 
 ## Prerequisites
 
@@ -46,6 +46,9 @@ myapp/
 ```python
 # myapp/_shared/console.py
 """Centralized console output for consistent CLI styling."""
+import os
+import sys
+
 from rich.console import Console
 from rich.table import Table
 from rich.live import Live
@@ -61,9 +64,31 @@ __all__ = [
     "create_live",
 ]
 
-# Dual console pattern: stdout for data, stderr for status/errors
-_stdout = Console()
-_stderr = Console(stderr=True)
+
+def _should_use_color() -> bool:
+    """Determine if console should use colors based on environment.
+    
+    Checks (in order):
+    - NO_COLOR env var: Standard convention (https://no-color.org/)
+    - CI env var: Disable colors in CI for clean logs
+    - TERM=dumb: Terminal has no capabilities
+    - pytest in sys.modules: Running under pytest (preserves pytest's own colors)
+    """
+    if os.environ.get("NO_COLOR"):
+        return False
+    if os.environ.get("CI"):
+        return False
+    if os.environ.get("TERM") == "dumb":
+        return False
+    if "pytest" in sys.modules:
+        return False
+    return True
+
+
+# Configure consoles with environment-aware color detection
+_use_color = _should_use_color()
+_stdout = Console(no_color=not _use_color, force_terminal=_use_color)
+_stderr = Console(stderr=True, no_color=not _use_color, force_terminal=_use_color)
 
 
 def log_info(msg: str) -> None:
@@ -314,7 +339,9 @@ from typer.testing import CliRunner
 
 from myapp.cli.main import app
 
-runner = CliRunner()
+# CRITICAL: NO_COLOR and TERM=dumb prevent ANSI escape codes in test output
+# Without these, assertions fail: "--dry-run" not in "\x1b[1m-\x1b[0m\x1b[1m-dry..."
+runner = CliRunner(env={"NO_COLOR": "1", "TERM": "dumb"})
 
 
 class TestMainApp:

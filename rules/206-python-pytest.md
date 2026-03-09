@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, AAA pattern, test markers, uv run pytest, unit test, unit tests
-**TokenBudget:** ~3600
+**TokenBudget:** ~3850
 **ContextTier:** High
-**Depends:** 200-python-core.md, 201-python-lint-format.md, 203-python-project-setup.md
+**Depends:** 000-global-core.md, 200-python-core.md, 201-python-lint-format.md, 203-python-project-setup.md
 **LoadTrigger:** kw:test, kw:pytest, kw:coverage
 
 ## Scope
@@ -79,7 +79,7 @@ Pragmatic, industry-standard testing practices with pytest to produce fast, reli
 - Ad-hoc sleeps/timeouts without justification
 - Tests coupled to execution order or global state
 - Shared mutable fixtures
-- Excessive mocking of internal implementation details
+- Excessive mocking of internal implementation details (do not mock >3 private methods [_prefix] or module-level functions not in the public API per test; prefer testing through public interfaces)
 - Skipping tests without explicit user override
 
 ### Execution Steps
@@ -319,7 +319,7 @@ def test_user_session(database, test_user):
 ```
 
 ## Fixture Patterns and Best Practices
-- Requirement: Prefer function-scoped fixtures; use module/session scope only for expensive shared setup.
+- Rule: Prefer function-scoped fixtures; use module/session scope only for setup taking >1 second (e.g., database connections, large file generation, external service initialization).
 - Rule: Avoid `autouse=True` except for universally required safety (e.g., environment isolation).
 - Rule: Keep fixtures single-responsibility; compose instead of nesting complex dependency trees.
 
@@ -341,8 +341,8 @@ def tmp_file(tmp_path):
 ```
 
 ## Test Parametrization
-- Requirement: Use `@pytest.mark.parametrize` for input matrices.
-- Consider: Combine multiple parameters and ids for readability.
+- Rule: Use `@pytest.mark.parametrize` for input matrices.
+- Rule: When a function accepts >3 parameters or complex input domains, combine multiple parameters and use ids for readability.
 
 ```python
 import pytest
@@ -360,7 +360,7 @@ def test_email_validation(email: str, valid: bool) -> None:
 - Rule: Control randomness with a fixed seed in setup; inject RNG where possible.
 - Rule: Freeze or stub clocks for time-dependent code; avoid `time.sleep` in tests.
 - Rule: Use `tmp_path` for filesystem; `monkeypatch` for env vars and module attributes; `capsys` for CLI output.
-- Consider: Use `pytest-httpserver`/`responses` to stub HTTP; avoid live network.
+- Rule: When tests make HTTP calls, use `pytest-httpserver`/`responses` to stub HTTP; avoid live network.
 
 ```python
 import random
@@ -371,8 +371,13 @@ def _seed_rng():
     random.seed(1337)
 ```
 
+## Resource-Aware Testing
+- Rule: Use `tmp_path` (auto-cleanup) for disk-intensive tests to prevent leftover artifacts.
+- Rule: Use `pytest-timeout` for long-running tests to prevent CI hangs: `@pytest.mark.timeout(30)`.
+- Rule: Document expected resource usage in test docstrings when tests consume significant memory or disk.
+
 ## Test Markers and Selection
-- Requirement: Define markers in `pyproject.toml` (or `pytest.ini`) with descriptions.
+- Rule: Define markers in `pyproject.toml` (or `pytest.ini`) with descriptions.
 - Rule: Use markers like `unit`, `integration`, `slow`, `e2e` and filter in CI (e.g., `-m "not slow and not e2e"`).
 
 ```toml
@@ -385,7 +390,7 @@ markers = [
 ```
 
 ## Assertions and Error Handling
-- Requirement: Use plain `assert` with helpful context; pytest rewrites provide clarity.
+- Rule: Use plain `assert` with helpful context; pytest rewrites provide clarity.
 - Rule: Use `pytest.raises` for exceptions and assert on the message where relevant.
 
 ```python
@@ -403,7 +408,7 @@ def test_divide_raises_on_zero():
 
 ## Output Capture and Logging
 - Rule: Use `capsys`/`caplog` to assert on stdout/stderr/logs.
-- Consider: Configure log level for tests to reduce noise while preserving diagnostics.
+- Rule: When tests produce noisy log output, set `log_cli_level = "WARNING"` in pyproject.toml; use `@pytest.mark.filterwarnings` or `caplog.set_level(logging.ERROR)` for noisy tests.
 
 ```python
 def main():
@@ -416,7 +421,7 @@ def test_main_prints_ok(capsys):
 ```
 
 ## Coverage and CI Integration
-- Consider: Use `pytest-cov` for coverage reporting with realistic thresholds.
+- Rule: Target 80% line coverage; 90% for modules in `src/*/services/`, `src/*/domain/`, or `src/*/core/` directories — excluding tests, configs, and migration scripts. Use `pytest-cov` for coverage reporting.
 - Rule: Avoid coverage gaming; focus on assertion quality and meaningful branches.
 
 ```bash

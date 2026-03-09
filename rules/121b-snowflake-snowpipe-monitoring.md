@@ -3,10 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
+**LoadTrigger:** kw:snowpipe-monitoring, kw:pipe-costs
 **Keywords:** snowpipe monitoring, cost management, load history, pipe usage, streaming monitoring, channel status, credits tracking, performance metrics, cost optimization, observability, metering history, monitoring queries
-**TokenBudget:** ~4550
+**TokenBudget:** ~4000
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 121-snowflake-snowpipe.md, 121a-snowflake-snowpipe-streaming.md
 
@@ -36,6 +37,7 @@ Monitoring, cost tracking, and performance analysis for both file-based Snowpipe
 - **121a-snowflake-snowpipe-streaming.md** - Streaming Snowpipe core concepts
 
 **Related:**
+- **121f-snowflake-snowpipe-monitoring-alerts.md** - Alert configuration and cost optimization
 - **121c-snowflake-snowpipe-troubleshooting.md** - Troubleshooting and debugging patterns
 - **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
 - **111-snowflake-observability-core.md** - Logging, tracing, and monitoring patterns
@@ -123,6 +125,26 @@ Monitoring, cost tracking, and performance analysis for both file-based Snowpipe
 - [ ] Cost optimization opportunities identified and documented
 - [ ] Monitoring documentation updated with query patterns
 
+## INFORMATION_SCHEMA vs ACCOUNT_USAGE
+
+**CRITICAL:** Choose the right monitoring source based on your use case:
+
+- **INFORMATION_SCHEMA** (e.g., `TABLE(INFORMATION_SCHEMA.PIPE_USAGE_HISTORY(...))`)
+  - Real-time data, no latency
+  - Retention: 14 days
+  - Scope: current database only
+  - Best for: live debugging, operational monitoring, short-term analysis
+
+- **ACCOUNT_USAGE** (e.g., `SNOWFLAKE.ACCOUNT_USAGE.COPY_HISTORY`)
+  - Up to 45-minute latency
+  - Retention: 365 days
+  - Scope: entire account (all databases)
+  - Best for: trend analysis, cross-database reporting, cost tracking, compliance
+
+**Rule of thumb:** Use INFORMATION_SCHEMA for real-time operational queries. Use ACCOUNT_USAGE for historical analysis and dashboards.
+
+**Time Range Convention:** Adjust `DATEADD` lookback period based on monitoring frequency: `-1 hour` for real-time operational checks, `-7 days` for weekly review, `-30 days` for trend analysis and cost reporting. Examples below use representative defaults.
+
 ## File-Based Snowpipe Monitoring
 
 ### Load History Queries
@@ -197,52 +219,22 @@ WHERE TABLE_NAME = 'RAW_EVENTS'
 ORDER BY LAST_LOAD_TIME DESC;
 ```
 
-### Error Monitoring View
+### Error Monitoring
 
 ```sql
--- Create monitoring query for pipe errors
-CREATE OR REPLACE VIEW pipe_error_monitoring AS
+-- Find loads with errors (real-time, last 1 hour)
 SELECT
-  pipe_name,
-  file_name,
-  last_load_time,
-  status,
-  row_count,
-  row_parsed,
-  first_error_message,
-  first_error_line_number,
-  error_count,
-  error_limit
+  pipe_name, file_name, last_load_time, status,
+  row_count, row_parsed, first_error_message, error_count
 FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
   TABLE_NAME => 'TARGET_TABLE',
   START_TIME => DATEADD(HOUR, -1, CURRENT_TIMESTAMP())
 ))
 WHERE status = 'LOAD_FAILED' OR error_count > 0
 ORDER BY last_load_time DESC;
-
--- Set up scheduled task to check for errors
-CREATE OR REPLACE TASK monitor_pipe_errors
-WAREHOUSE = monitoring_wh
-SCHEDULE = '5 MINUTE'
-AS
-INSERT INTO pipe_error_log
-SELECT * FROM pipe_error_monitoring
-WHERE last_load_time > DATEADD(MINUTE, -10, CURRENT_TIMESTAMP());
-
-ALTER TASK monitor_pipe_errors RESUME;
-
--- Regular manual checks
-SELECT
-  COUNT(*) as total_files,
-  SUM(CASE WHEN status = 'LOADED' THEN 1 ELSE 0 END) as successful,
-  SUM(CASE WHEN status = 'LOAD_FAILED' THEN 1 ELSE 0 END) as failed,
-  SUM(row_count) as total_rows,
-  SUM(error_count) as total_errors
-FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
-  TABLE_NAME => 'TARGET_TABLE',
-  START_TIME => DATEADD(DAY, -7, CURRENT_TIMESTAMP())
-));
 ```
+
+For scheduled error monitoring tasks and ALERT objects, see **121f-snowflake-snowpipe-monitoring-alerts.md**.
 
 ## Snowpipe Streaming Monitoring
 
@@ -377,98 +369,14 @@ GROUP BY CHANNEL_NAME
 ORDER BY total_credits DESC;
 ```
 
-## Cost Optimization Strategies
+## Cost Optimization and Alerting
 
-### File-Based Snowpipe Optimization
+For cost optimization strategies (file sizing, batching, channel efficiency) and alert configuration (ALERT objects, SYSTEM$SEND_EMAIL, scheduled monitoring tasks), see **121f-snowflake-snowpipe-monitoring-alerts.md**.
 
-**Best Practices:**
-1. **Optimize file sizes:** 100-250MB compressed files minimize overhead
-2. **Stage files once per minute:** Avoid micro-files (<1MB)
-3. **Use pattern matching:** Filter files at pipe level to reduce processing
-4. **Minimize transformations:** Complex SELECT logic increases compute time
-5. **Batch notifications:** Configure cloud event filtering to reduce noise
-6. **Monitor and right-size:** Review cost per GB and optimize accordingly
-
-### Snowpipe Streaming Optimization
-
-**Best Practices:**
-1. **Use high-performance architecture:** Lower per-row overhead for high-volume workloads
-2. **Batch rows when possible:** Reduce per-row metadata overhead
-3. **Monitor channel efficiency:** Review cost per GB and optimize accordingly
-4. **Close unused channels:** Avoid idle channel overhead
-5. **Use appropriate schema evolution:** Minimize schema change overhead
-6. **Implement error handling:** Avoid retry storms and duplicate processing
-
-## Monitoring Best Practices
-
-### Alert Configuration
-
-**Set up alerts for:**
-- Pipes in error state or paused unexpectedly
-- Channels in error state or stalled
-- High error rates (>5% of files for Snowpipe, >1% of rows for Streaming)
-- Load latency exceeding SLAs
-- Significant changes in file counts, row counts, or sizes
-- Pipes/channels consuming excessive compute credits
-
-### Performance Metrics
-
-**Key metrics to track:**
-
-**File-Based Snowpipe:**
-- Files loaded per hour/day
-- Average file size
-- Load latency (time from file arrival to data availability)
-- Error rate (% of files with errors)
-- Credits per GB loaded
-- Credits per file
-
-**Snowpipe Streaming:**
-- Rows loaded per second
-- Average batch size
-- Load latency (time from SDK insert to data availability)
-- Error rate (% of rows with errors)
-- Credits per million rows
-- Credits per GB loaded
-
-### Dashboard Queries
-
-**File-Based Snowpipe Dashboard:**
-```sql
--- Pipe health overview
-SELECT
-  pipe_name,
-  COUNT(*) AS load_count,
-  SUM(files_inserted) AS total_files,
-  SUM(rows_inserted) AS total_rows,
-  SUM(bytes_inserted) / POWER(1024, 3) AS total_gb,
-  AVG(DATEDIFF(second, start_time, end_time)) AS avg_load_time_sec,
-  SUM(CASE WHEN error_count > 0 THEN 1 ELSE 0 END) AS loads_with_errors,
-  SUM(credits_used) AS total_credits
-FROM SNOWFLAKE.ACCOUNT_USAGE.PIPE_USAGE_HISTORY
-WHERE start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP())
-GROUP BY pipe_name
-ORDER BY total_credits DESC;
-```
-
-**Snowpipe Streaming Dashboard:**
-```sql
--- Channel health overview
-SELECT
-  channel_name,
-  COUNT(*) AS load_count,
-  SUM(row_count) AS total_rows,
-  SUM(bytes_received) / POWER(1024, 3) AS total_gb,
-  AVG(DATEDIFF(second, start_time, end_time)) AS avg_latency_sec,
-  MAX(last_commit_time) AS last_activity,
-  DATEDIFF(minute, MAX(last_commit_time), CURRENT_TIMESTAMP()) AS minutes_since_last_commit,
-  SUM(credits_used) AS total_credits
-FROM SNOWFLAKE.ACCOUNT_USAGE.LOAD_HISTORY
-WHERE start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP())
-  AND load_type = 'SNOWPIPE_STREAMING'
-GROUP BY channel_name
-ORDER BY total_credits DESC;
-```
+**Quick Reference:**
+- Optimal file size: 100-250MB compressed (avoid micro-files <1MB)
+- Alert on error rates: >5% for file-based Snowpipe, >1% for Streaming
+- Alert on stalled channels: no commits in 15+ minutes
 
 ## Design Principles
 

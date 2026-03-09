@@ -8,7 +8,7 @@ version: 1.3.0
 
 ## Overview
 
-Create production-ready Cursor rule files that comply with v3.2 schema by orchestrating `template_generator.py`, `schema_validator.py`, and web research.
+Create production-ready Cursor rule files that comply with v3.2 schema by orchestrating `ai-rules new`, `ai-rules validate`, and web research.
 
 ### When to Use
 
@@ -63,6 +63,17 @@ See `workflows/discovery.md` for domain mappings and detailed discovery process.
 - Single-pass validation without re-checking
 
 ## Workflow
+
+### Parameter Collection
+
+Collect ALL parameters (required AND optional) using `ask_user_question` tool.
+
+**See:** `workflows/parameter-collection.md`
+
+**MANDATORY:** Prompt for ALL parameters in batched questions (max 4 per call):
+- Do NOT silently apply defaults for optional parameters
+- User must explicitly confirm each setting
+- If `ask_user_question` unavailable, fall back to text-based prompting
 
 ### [OPTIONAL] Timing Start
 
@@ -121,7 +132,7 @@ Fill all sections with researched content. Add minimum 2 code examples and 2 ant
 
 ### Phase 4: Validation & Iteration
 
-Run `schema_validator.py` in loop until exit code 0. Apply fixes for CRITICAL errors. Max 3 iterations. If CRITICAL errors remain after 3 iterations: STOP, report unresolved errors to user with specific fix guidance.
+Run `ai-rules validate` in loop until exit code 0. Apply fixes for CRITICAL errors. Max 3 iterations. If CRITICAL errors remain after 3 iterations: STOP, report unresolved errors to user with specific fix guidance.
 
 **See:** `workflows/validation.md` for error resolution patterns and validation loop implementation.
 
@@ -192,21 +203,21 @@ def check_context_tier(tier: str) -> bool:
     return tier.strip() in VALID_TIERS
 ```
 
-Full validation: `python scripts/schema_validator.py rules/<file>.md`
+Full validation: `uv run ai-rules validate rules/<file>.md`
 
 ## Validation Gates
 
 All must pass before completion:
 
 - [ ] Domain range identified, number available
-- [ ] `template_generator.py` executed successfully
+- [ ] `ai-rules new` executed successfully
 - [ ] Keywords: 10-15 comma-separated terms
 - [ ] TokenBudget: ~NUMBER format
 - [ ] All 9 sections present in order
 - [ ] Contract has 6 XML tags before line 160
 - [ ] Minimum 2 code examples
 - [ ] Minimum 2 anti-patterns
-- [ ] `schema_validator.py` exit code 0 (0 CRITICAL errors)
+- [ ] `ai-rules validate` exit code 0 (0 CRITICAL errors)
 - [ ] Entry added to `RULES_INDEX.md`
 
 ## Examples
@@ -323,4 +334,4 @@ model: <current>
 ### Documentation
 
 - `RULES_INDEX.md` - Semantic discovery index
-- `schemas/rule-schema.yml` - v3.2 s
+- `schemas/rule-schema.yml` -       

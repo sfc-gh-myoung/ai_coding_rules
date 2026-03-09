@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-02-19
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:snowcli, file:snowflake.yml
 **Keywords:** snow CLI, SnowCLI, Snowflake CLI, snowflake-cli, uvx, Taskfile, task automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, stage copy
-**TokenBudget:** ~3750
+**TokenBudget:** ~4100
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md
 
@@ -220,7 +220,7 @@ snow stage copy streamlit/app.py @STAGE --auto-compress false
 snow stage copy streamlit/app.py @STAGE --no-auto-compress --overwrite
 
 # For Streamlit/Python files (compression breaks imports):
-uvx --from=snowflake-cli==3.13 snow stage copy \
+uvx --from=snowflake-cli==3.14 snow stage copy \
   --connection default \
   streamlit/app.py @DB.SCHEMA.STAGE \
   --overwrite \
@@ -298,15 +298,18 @@ Notes:
 - For pinned CI/CD, stick to `uvx --from=snowflake-cli==3.14 ...`
 
 ## Version Pinning and Upgrade Strategy
+
+> **Investigation Required:** Run `snow connection list` and `snow connection test --connection <name>` before modifying any connection configuration.
+
 - **Rule:** Default to `snowflake-cli==3.14` in all automation until you explicitly validate a newer release in a staging environment
 - **Rule:** Surface the CLI version in logs (`snow --version`) at the start of jobs for traceability
-- **Consider:** Maintain a single pin in your Taskfile/CI templates to centralize upgrades
+- **Rule:** Maintain a single pin in your Taskfile/CI templates to centralize upgrades
 
 ## Configuration and Authentication
 - **Rule:** Use profiles or environment variables; never hardcode credentials in scripts or rule files
 - **Rule:** Prefer secure methods (key-pair/OAuth/SSO) over user/password; centralize secrets in CI secret managers or OS keychains
 - **Rule:** Ensure least-privilege roles and rotate keys regularly per security policy
-- **Consider:** For local dev, rely on OS keychain integrations where available; for CI, inject secrets as env vars/files at runtime
+- **Rule:** For local dev, rely on OS keychain integrations where available; for CI, inject secrets as env vars/files at runtime
 
 References for concepts and configuration flows are covered in official docs: `https://docs.snowflake.com/developer-guide/snowflake-cli/index`.
 
@@ -404,3 +407,37 @@ snow stage copy SOURCE DEST \
 - **Avoid:** Assuming Homebrew exists on CI runners (use `uvx` instead)
 - **Avoid:** Using `--auto-compress false` (incorrect syntax; use `--no-auto-compress`)
 - **Avoid:** Inverted flag logic in Python wrappers that omits `--no-auto-compress` when compression should be disabled (default `auto_compress` parameter to `False` for app deployment functions)
+
+## Command Lifecycle Patterns
+
+### App Teardown
+```bash
+# Clean up deployed Snowflake Native App
+uvx --from=snowflake-cli==3.14 snow app teardown --connection prod_connection --force
+```
+
+### Stage Diff
+```bash
+# Compare local files with stage contents before deploying
+uvx --from=snowflake-cli==3.14 snow stage diff @DB.SCHEMA.STAGE ./local_dir/
+```
+
+### Connection Profile Management
+```bash
+# List configured connections
+uvx --from=snowflake-cli==3.14 snow connection list
+
+# Test a specific connection
+uvx --from=snowflake-cli==3.14 snow connection test --connection prod_connection
+
+# Add a new connection (interactive - local dev only)
+uvx --from=snowflake-cli==3.14 snow connection add
+```
+
+## Common CLI Errors and Resolutions
+
+- **"Authentication failed":** Expired token or invalid credentials. Fix: Refresh OAuth token, rotate PAT, or verify key-pair path.
+- **"Connection refused" / timeout:** Incorrect account URL or network restrictions. Fix: Verify account identifier format (`orgname-acctname`) and firewall rules.
+- **"Insufficient privileges":** Role lacks required grants. Fix: Verify `current_role()` has the needed privileges; switch with `--role`.
+- **"Got unexpected extra argument":** Wrong flag syntax (e.g., `--auto-compress false`). Fix: Use boolean flags (`--no-auto-compress`).
+- **"Object does not exist":** Wrong database/schema context. Fix: Fully qualify object names or set `--database`/`--schema` flags.

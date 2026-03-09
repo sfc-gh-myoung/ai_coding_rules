@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:spcs, kw:container
 **Keywords:** SPCS, compute pools, OCI images, service spec, container deployment, service logs, platform events
-**TokenBudget:** ~1900
+**TokenBudget:** ~2950
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -62,6 +62,9 @@ Deploying and managing containerized apps on SPCS: compute pools, service specs,
 - Omitting resource limits
 
 ### Execution Steps
+
+> **Investigation Required:** Run `SHOW COMPUTE POOLS` and `DESCRIBE COMPUTE POOL <name>` to verify available GPU types and node limits before creating services.
+
 1. Verify SPCS: `SHOW PARAMETERS LIKE 'ENABLE_SNOWPARK_CONTAINER_SERVICES' IN ACCOUNT;`
 2. Check pool: `SHOW COMPUTE POOLS;`
 3. Verify image: `SHOW IMAGES IN IMAGE REPOSITORY <repo>;`
@@ -164,6 +167,8 @@ spec:
     port: 8080
     public: true
     protocol: HTTP
+    authentication:
+      type: SNOWFLAKE_JWT
 capabilities:
   securityContext: { executeAsCaller: false }
 ```
@@ -264,3 +269,59 @@ def get():
 ```sql
 SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.COMPUTE_POOL_HISTORY WHERE START_TIME >= DATEADD(day, -7, CURRENT_TIMESTAMP());
 ```
+
+## RBAC and Permissions
+
+**Required Privileges:**
+
+- **CREATE COMPUTE POOL:** Granted at account level to pool admins
+- **CREATE SERVICE:** Granted on schema where services are deployed
+- **USAGE on COMPUTE POOL:** Required for any role deploying services
+- **BIND SERVICE ENDPOINT:** Required for roles accessing public endpoints
+- **READ on IMAGE REPOSITORY:** Required to pull images
+
+```sql
+-- Grant compute pool creation
+GRANT CREATE COMPUTE POOL ON ACCOUNT TO ROLE spcs_admin;
+
+-- Grant service deployment
+GRANT CREATE SERVICE ON SCHEMA my_db.my_schema TO ROLE spcs_deployer;
+GRANT USAGE ON COMPUTE POOL app_pool TO ROLE spcs_deployer;
+
+-- Grant image repository access
+GRANT READ ON IMAGE REPOSITORY my_db.my_schema.my_repo TO ROLE spcs_deployer;
+
+-- Grant endpoint access to consuming roles
+GRANT BIND SERVICE ENDPOINT ON ACCOUNT TO ROLE app_user;
+```
+
+## Service Lifecycle Management
+
+```sql
+-- Suspend a running service (stops containers, retains config)
+ALTER SERVICE my_svc SUSPEND;
+
+-- Resume a suspended service
+ALTER SERVICE my_svc RESUME;
+
+-- Update service spec (triggers rolling restart)
+ALTER SERVICE my_svc FROM @stage SPECIFICATION = 'spec.yaml';
+
+-- Change compute pool assignment
+ALTER SERVICE my_svc SET COMPUTE_POOL = new_pool;
+
+-- Change min/max instances for scaling
+ALTER SERVICE my_svc SET MIN_INSTANCES = 2 MAX_INSTANCES = 5;
+
+-- Drop a service permanently
+DROP SERVICE IF EXISTS my_svc;
+
+-- Drop a compute pool (must drop all services first)
+DROP COMPUTE POOL IF EXISTS app_pool;
+```
+
+**Upgrade Strategies:**
+
+- **Rolling update:** Use `ALTER SERVICE ... FROM @stage` with updated spec. Snowflake handles container replacement.
+- **Blue-green:** Deploy new service with different name, validate, then switch DNS/references and drop old service.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  

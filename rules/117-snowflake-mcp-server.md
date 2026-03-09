@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:mcp, kw:mcp-server
 **Keywords:** MCP, Model Context Protocol, Snowflake-managed MCP server, CREATE MCP SERVER, SYSTEM_EXECUTE_SQL, CORTEX_ANALYST_MESSAGE, CORTEX_SEARCH_SERVICE_QUERY, CORTEX_AGENT_RUN, tools/list, tools/call, initialize, OAuth, SECURITY INTEGRATION, RBAC, PAT
-**TokenBudget:** ~2600
+**TokenBudget:** ~3150
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 107-snowflake-security-governance.md, 112-snowflake-snowcli.md
 
@@ -267,3 +267,80 @@ CREATE OR REPLACE MCP SERVER MY_MCP
   }
 }
 ```
+
+## MCP Server Lifecycle Management
+
+```sql
+-- Alter MCP server specification
+CREATE OR REPLACE MCP SERVER MY_DB.MY_SCHEMA.MY_MCP
+  FROM SPECIFICATION $$
+    tools:
+      - name: "updated_tool"
+        type: "CORTEX_ANALYST_MESSAGE"
+        identifier: "MY_DB.MY_SCHEMA.NEW_SEMANTIC_VIEW"
+        title: "Updated Analyst Tool"
+        description: "Updated Cortex Analyst tool."
+  $$;
+
+-- Drop MCP server
+DROP MCP SERVER IF EXISTS MY_DB.MY_SCHEMA.OLD_MCP;
+
+-- Inspect server specification
+DESCRIBE MCP SERVER MY_DB.MY_SCHEMA.MY_MCP;
+
+-- List all MCP servers
+SHOW MCP SERVERS IN SCHEMA MY_DB.MY_SCHEMA;
+```
+
+## CORTEX_AGENT_RUN Tool Integration
+
+```sql
+-- MCP server with Cortex Agent tool
+CREATE OR REPLACE MCP SERVER MY_DB.MY_SCHEMA.AGENT_MCP
+  FROM SPECIFICATION $$
+    tools:
+      - name: "support_agent"
+        type: "CORTEX_AGENT_RUN"
+        identifier: "MY_DB.MY_SCHEMA.SUPPORT_AGENT"
+        title: "Customer Support Agent"
+        description: "Cortex Agent for customer support queries."
+
+      - name: "doc_search"
+        type: "CORTEX_SEARCH_SERVICE_QUERY"
+        identifier: "MY_DB.MY_SCHEMA.DOC_SEARCH_SERVICE"
+        title: "Document Search"
+        description: "Search internal documentation for product guides and FAQs."
+  $$;
+
+-- Grant agent USAGE for invocation
+GRANT USAGE ON MCP SERVER MY_DB.MY_SCHEMA.AGENT_MCP TO ROLE MCP_CLIENT_ROLE;
+GRANT USAGE ON CORTEX AGENT MY_DB.MY_SCHEMA.SUPPORT_AGENT TO ROLE MCP_CLIENT_ROLE;
+```
+
+## Authentication and Security
+
+**OAuth (Recommended):**
+- Configure OAuth security integration for MCP client authentication
+- Clients authenticate via OAuth 2.0 flow before calling MCP endpoints
+- Tokens are short-lived and rotatable
+
+**Personal Access Tokens (PAT):**
+- Use only when OAuth is not feasible
+- Create with least-privilege role
+- Set expiration and rotation schedule
+- Never embed PATs in client configurations stored in repos
+
+```sql
+-- Verify MCP server security configuration
+DESCRIBE MCP SERVER MY_DB.MY_SCHEMA.MY_MCP;
+-- Check that no sensitive data appears in server_spec metadata
+```
+
+## Error Handling and Troubleshooting
+
+**Common Errors:**
+
+- **Tool invocation failed:** Missing per-tool grants. Fix: Grant SELECT/USAGE on underlying objects.
+- **Connection refused:** Hostname with underscores. Fix: Use hyphens in hostnames.
+- **Authentication failed:** Expired/invalid token. Fix: Refresh OAuth token or rotate PAT.
+- **Tool not found:** Tool                                                                                                                                                                      

@@ -19,13 +19,13 @@ Pre-review validation failed: Rule structure invalid
 Issue: YAML frontmatter parsing error at line 5
 
 Options:
-A. Run schema_validator.py first to identify structural issues
+A. Run ai-rules validate first to identify structural issues
 B. Perform partial review (content only, skip metadata scoring)
 C. Decline review until structure is fixed
 
 Recommendation: Option A
 
-Command: python scripts/schema_validator.py rules/broken-rule.md
+Command: uv run ai-rules validate rules/broken-rule.md
 
 This will identify:
 - Missing required sections
@@ -87,7 +87,7 @@ focus_area: (not provided)
 FOCUSED review requires a focus_area parameter.
 
 Available focus areas for rule reviews:
-A. metadata - Keywords, TokenBudget (use scripts/token_validator.py), ContextTier, Depends
+A. metadata - Keywords, TokenBudget (use ai-rules tokens), ContextTier, Depends
 B. contract - XML tags, placement, completeness
 C. examples - Code examples, anti-patterns quality
 D. references - External links, related rules accuracy
@@ -156,7 +156,7 @@ Lines: 622
 Estimated tokens (tiktoken): ~6500
 
 Run token validation:
-$ python scripts/token_validator.py rules/000-global-core.md
+$ uv run ai-rules tokens rules/000-global-core.md
 
 Considerations:
 - Full review may timeout
@@ -326,7 +326,7 @@ Placeholders to resolve:
 - Line 45-46: Key Principles section
 - Line 52: TODO marker
 
-After completion, run schema_validator.py, then request review."
+After completion, run ai-rules validate, then request review."
 ```
 
 ---
@@ -347,7 +347,7 @@ Cross-skill validation request detected.
 
 Workflow:
 1. Verify rule-creator completion:
-   - Check schema_validator.py passed (exit code 0)
+   - Check ai-rules validate passed (exit code 0)
    - Check RULES_INDEX.md entry exists
 
 2. Run rule-reviewer FULL review:
@@ -377,7 +377,7 @@ This provides end-to-end quality assurance for newly created rules.
 ```
 Does rule file parse correctly?
 ├─ YES → Proceed to review
-└─ NO → Run schema_validator first (Edge Case 1)
+└─ NO → Run ai-rules validate first (Edge Case 1)
 
 Is review mode appropriate for rule age?
 ├─ YES → Proceed
@@ -410,7 +410,7 @@ When reviewing rules created by rule-creator skill:
 
 1. **Verify creation completion:**
    ```bash
-   python scripts/schema_validator.py rules/<file>.md
+   uv run ai-rules validate rules/<file>.md
    # Must return exit code 0
    ```
 
@@ -429,7 +429,7 @@ When reviewing rules created by rule-creator skill:
    ```
 
 4. **Quality threshold for new rules:**
-   - Overall score: ≥ 75/100
+   - Overall score: ≥ 75/100 (EXECUTABLE_WITH_REFINEMENTS or better)
    - No CRITICAL issues
    - No HIGH issues in Actionability or Completeness dimensions
 

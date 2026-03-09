@@ -1,0 +1,57 @@
+# GitHub Release Notes Configuration
+# Organizes auto-generated release notes by category based on PR labels
+# Docs: https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes
+
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+      - dependencies
+    authors:
+      - dependabot
+      - dependabot[bot]
+      - github-actions[bot]
+
+  categories:
+    - title: "⚠️ Breaking Changes"
+      labels:
+        - breaking
+        - breaking-change
+
+    - title: "🚀 Features"
+      labels:
+        - enhancement
+        - feature
+        - feat
+
+    - title: "🐛 Bug Fixes"
+      labels:
+        - bug
+        - fix
+        - bugfix
+
+    - title: "📚 Documentation"
+      labels:
+        - documentation
+        - docs
+
+    - title: "🔧 Maintenance"
+      labels:
+        - chore
+        - refactor
+        - maintenance
+        - internal
+
+    - title: "🧪 Testing"
+      labels:
+        - test
+        - testing
+
+    - title: "📦 Dependencies"
+      labels:
+        - dependencies
+        - deps
+
+    - title: "Other Changes"
+      labels:
+        - "*"

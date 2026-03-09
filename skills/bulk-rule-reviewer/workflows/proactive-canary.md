@@ -118,7 +118,7 @@ Like canaries in coal mines that detect danger before miners:
 - Post-Read Canary: ~10 seconds (verify specific findings)
 - Mid-Review Canary: ~5 seconds (rubric/reference check)
 
-**Total for 113 rules:** ~30 minutes additional
+**Total for 129 rules:** ~30 minutes additional
 **Value:** Prevents batch-wide quality compromise
 
 **This is insurance, not overhead.**

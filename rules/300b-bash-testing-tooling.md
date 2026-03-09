@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:bash-testing, kw:bats
 **Keywords:** Bash, testing, ShellCheck, bats, shell script testing, CI/CD, debugging, static analysis, linting, test automation
-**TokenBudget:** ~4200
+**TokenBudget:** ~3200
 **ContextTier:** Medium
 **Depends:** 300-bash-scripting-core.md
 
@@ -61,7 +61,7 @@ Comprehensive bash testing, debugging, and modern tooling integration including 
 
 - Deploying scripts without ShellCheck validation
 - Relying solely on manual testing
-- Ignoring ShellCheck warnings without justification
+- Disabling ShellCheck warnings without mandatory inline justification
 - Skipping error path testing
 - Testing only happy path scenarios
 
@@ -131,8 +131,6 @@ Testing infrastructure with:
 
 **Problem:** Not running ShellCheck on bash scripts before deployment, missing common bugs, security issues, and portability problems.
 
-**Why It Fails:** Unquoted variables cause word splitting bugs. Deprecated syntax breaks on newer shells. Security vulnerabilities go undetected. Portability issues discovered only in production.
-
 **Correct Pattern:**
 ```bash
 # BAD: No static analysis
@@ -159,8 +157,6 @@ repos:
 ### Anti-Pattern 2: Testing Scripts Only Manually
 
 **Problem:** Relying on manual testing of shell scripts instead of automated unit tests with frameworks like Bats or shunit2.
-
-**Why It Fails:** Regressions introduced silently. Edge cases not covered. Refactoring becomes risky. No CI/CD integration. "Works on my machine" issues.
 
 **Correct Pattern:**
 ```bash
@@ -190,61 +186,6 @@ setup() {
 # Run: bats test_deploy.bats
 ```
 
-## Output Format Examples
-
-```bash
-#!/usr/bin/env bash
-# Script following bash best practices from rule
-
-set -euo pipefail  # Exit on error, undefined vars, pipe failures
-IFS=$'\n\t'      # Safe word splitting
-
-# Constants
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly LOG_FILE="${SCRIPT_DIR}/output.log"
-
-# Functions with clear contracts
-main() {
-    # Investigation phase
-    check_prerequisites
-
-    # Implementation phase
-    perform_operations
-
-    # Validation phase
-    verify_results
-}
-
-check_prerequisites() {
-    local -a required_commands=(jq curl git)
-
-    for cmd in "${required_commands[@]}"; do
-        if ! command -v "${cmd}" &>/dev/null; then
-            echo "ERROR: Required command not found: ${cmd}" >&2
-            exit 1
-        fi
-    done
-}
-
-perform_operations() {
-    echo "Performing operations following project patterns..."
-    # Implementation details here
-}
-
-verify_results() {
-    echo "Validating results..."
-    # Validation logic here
-}
-
-# Execute main function
-main "$@"
-```
-
-```bash
-# Validation with shellcheck
-shellcheck script.sh
-```
-
 ## Static Analysis with ShellCheck
 
 ### ShellCheck Integration
@@ -271,9 +212,9 @@ shellcheck --format=diff script.sh    # Show suggested fixes
 ```
 
 ### ShellCheck Configuration
-- **Rule:** Use `.shellcheckrc`:
+- **Rule:** Use `.shellcheckrc` for project-wide settings (only for confirmed false positives, not style preferences):
 ```bash
-# .shellcheckrc
+# .shellcheckrc -- project-wide disables for false positives only
 disable=SC2034,SC1091
 shell=bash
 ```
@@ -466,7 +407,7 @@ trap 'debug_error $? $LINENO "$BASH_COMMAND"' ERR
 ```
 
 ### Performance Profiling
-- **Consider:** Basic profiling:
+- **Rule:** Implement basic profiling for performance-sensitive functions:
 ```bash
 profile() {
     local start end
@@ -489,30 +430,19 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: sudo apt-get install shellcheck
       - run: find . -name "*.sh" -exec shellcheck {} +
       - run: chmod +x tests/*.sh && tests/test_*.sh
 ```
 
 ### Pre-commit Hooks
-- **Rule:** Validate before commit:
-```bash
-#!/usr/bin/env bash
-# .git/hooks/pre-commit
-set -e
-
-# Check staged shell scripts
-mapfile -t scripts < <(git diff --cached --name-only | grep '\.sh$' || true)
-for script in "${scripts[@]}"; do
-    [[ -f "$script" ]] && shellcheck "$script"
-done
-```
+- **Rule:** Validate before commit. See `dev-setup.sh` `setup_git_hooks()` function below for the canonical pre-commit hook installation pattern.
 
 ## Code Coverage and Quality Metrics
 
 ### Coverage Tracking
-- **Consider:** Simple coverage:
+- **Rule:** Track test coverage for critical functions:
 ```bash
 # Track function calls
 declare -A CALLS=()
@@ -526,148 +456,10 @@ show_coverage() {
 
 ## Development Environment Setup
 
-### IDE Integration
-- **Rule:** Configure development environment for bash scripting:
-```bash
-# VS Code settings.json for bash development
-{
-    "shellcheck.enable": true,
-    "shellcheck.executablePath": "/usr/bin/shellcheck",
-    "shellcheck.run": "onType",
-    "files.associations": {
-        "*.sh": "shellscript",
-        "*.bash": "shellscript"
-    },
-    "editor.formatOnSave": true,
-    "[shellscript]": {
-        "editor.defaultFormatter": "foxundermoon.shell-format"
-    }
-}
-```
-
-### Development Scripts
-- **Rule:** Create development helper scripts:
-```bash
-#!/usr/bin/env bash
-# dev-setup.sh - Development environment setup
-
-setup_git_hooks() {
-    echo "Setting up git hooks..."
-
-    # Create pre-commit hook
-    cat > .git/hooks/pre-commit << 'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-
-# Run ShellCheck on staged files
-mapfile -t staged_scripts < <(git diff --cached --name-only | grep '\.sh$' || true)
-for script in "${staged_scripts[@]}"; do
-    [[ -f "$script" ]] && shellcheck "$script"
-done
-EOF
-
-    chmod +x .git/hooks/pre-commit
-    echo "Pre-commit hook installed"
-}
-
-install_dependencies() {
-    echo "Installing development dependencies..."
-
-    # Install ShellCheck based on OS
-    if command -v apt-get >/dev/null; then
-        sudo apt-get update && sudo apt-get install -y shellcheck
-    elif command -v brew >/dev/null; then
-        brew install shellcheck
-    elif command -v dnf >/dev/null; then
-        sudo dnf install -y ShellCheck
-    else
-        echo "Please install ShellCheck manually"
-        exit 1
-    fi
-}
-
-create_project_structure() {
-    echo "Creating project structure..."
-
-    mkdir -p {src,tests,scripts,docs}
-
-    # Create basic test template
-    cat > tests/test_template.sh << 'EOF'
-#!/usr/bin/env bash
-# Test template
-
-source "$(dirname "${BASH_SOURCE[0]}")/../test_framework.sh"
-
-test_example() {
-    assert_equals "expected" "expected" "example test"
-}
-
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    run_test_suite "Template Tests" "test_example"
-fi
-EOF
-
-    chmod +x tests/test_template.sh
-}
-
-# Main setup
-main() {
-    echo "Setting up bash development environment..."
-
-    install_dependencies
-    setup_git_hooks
-    create_project_structure
-
-    echo "Development environment setup complete!"
-}
-
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "$@"
-fi
-```
-
-## Documentation and Maintenance
-
-### Automated Documentation Generation
-- **Consider:** Generate documentation from code:
-```bash
-#!/usr/bin/env bash
-# generate-docs.sh - Extract documentation from shell scripts
-
-generate_function_docs() {
-    local script_file="$1"
-    local output_file="$2"
-
-    echo "# Functions in $(basename "$script_file")" > "$output_file"
-    echo >> "$output_file"
-
-    # Extract function definitions and comments
-    awk '
-        /^[[:space:]]*#/ {
-            comment = comment $0 "\n"
-        }
-        /^[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\(\)/ {
-            if (comment) {
-                print "## " $1
-                print comment
-                print "```bash"
-            }
-            print $0
-            in_function = 1
-            brace_count = 0
-            comment = ""
-        }
-        in_function && /{/ { brace_count++ }
-        in_function && /}/ {
-            brace_count--
-            if (brace_count == 0) {
-                print "```"
-                print ""
-                in_function = 0
-            }
-        }
-        in_function { print }
-        !/^[[:space:]]*#/ && !/^[[:space:]]*[a-zA-Z_]/ { comment = "" }
-    ' "$script_file" >> "$output_file"
-}
-```
+### Setup Checklist
+- Install ShellCheck via package manager (`apt-get install shellcheck`, `brew install shellcheck`, or Docker)
+- Install Bats: `npm install -g bats` or `brew install bats-core`
+- Configure IDE ShellCheck extension (VS Code: `shellcheck.enable: true`, `shellcheck.run: "onType"`)
+- Create project structure: `mkdir -p {src,tests,scripts,docs}`
+- Set up pre-commit hook for ShellCheck (see CI/CD Integration section above)
+- Create test template in `tests/` directory using framework from Testing Frameworks section

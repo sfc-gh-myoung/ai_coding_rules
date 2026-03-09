@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Data governance, data quality, lineage, metadata management, compliance, data catalog, Great Expectations, schema evolution, data observability, incident response
-**TokenBudget:** ~2050
+**TokenBudget:** ~2550
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -52,13 +52,13 @@ Comprehensive directives for ensuring data quality, governance, and operational 
 
 ### Mandatory
 
-- Data quality as code (version expectation suites in Git)
-- Data profiling before creating expectations
-- Schema evolution (add columns first, avoid destructive changes)
-- Single source of truth for metric definitions
-- Automated quality gates in ETL/ELT pipelines
-- Data drift monitoring with thresholds
-- Secrets management (no hard-coded credentials)
+- MUST implement data quality as code (version expectation suites in Git)
+- MUST profile data distributions before creating expectations
+- MUST use non-destructive schema evolution (add columns first, avoid destructive changes)
+- MUST maintain a single source of truth for metric definitions
+- MUST automate quality gates in ETL/ELT pipelines
+- MUST implement data drift monitoring with thresholds
+- MUST use secrets management (no hard-coded credentials)
 
 ### Forbidden
 
@@ -146,7 +146,7 @@ Comprehensive directives for ensuring data quality, governance, and operational 
 
 ## Anti-Patterns and Common Mistakes
 
-### Pattern 1: Hard-Coded Thresholds Without Profiling
+### Anti-Pattern 1: Hard-Coded Thresholds Without Profiling
 
 **Problem:**
 Creating expectation suites with arbitrary thresholds (e.g., "column must be >0") without first profiling actual data distributions.
@@ -179,7 +179,7 @@ expectation_suite.add_expectation(
 )
 ```
 
-### Pattern 2: Destructive Schema Changes in Production
+### Anti-Pattern 2: Destructive Schema Changes in Production
 
 **Problem:**
 Dropping or renaming columns, changing data types, or deleting tables without backward compatibility period.
@@ -207,15 +207,68 @@ COMMENT ON COLUMN orders.status IS 'DEPRECATED: Use order_status. Removal date: 
 -- ALTER TABLE orders DROP COLUMN status;
 ```
 
-## Data Quality as Code
-- **Requirement:** Treat data quality as code. Version expectation suites and integrate into CI/CD.
-- **Requirement:** Layer expectations: start with schema/basic validity, then add business rules.
-- **Requirement:** Keep suites lean and focused; avoid noisy or redundant checks.
-- **Always:** Use profiling to discover initial expectations, then manually curate and refine before acceptance.
-- **Requirement:** Never hard-code credentials or secrets in data quality configurations.
-- **Always:** Integrate validation as a gating step in ETL/ELT pipelines.
-- **Always:** Monitor for data drift by tracking distribution changes. Threshold: >10% shift in mean, median, or standard deviation triggers alert.
-- **Always:** Reference Great Expectations docs: https://docs.greatexpectations.io/
+### Anti-Pattern 3: Manual Quality Checks Without Automation
+
+**Problem:**
+Running ad-hoc SQL queries to verify data quality instead of using automated validation frameworks.
+
+**Why It Fails:**
+Manual checks are inconsistent, not repeatable, and don't scale. They rely on individual knowledge, get skipped under time pressure, and leave no audit trail.
+
+**Correct Pattern:**
+```python
+# BAD: Manual SQL queries for quality checks
+# A developer runs this ad-hoc before each release:
+# SELECT COUNT(*) FROM orders WHERE amount < 0;
+# SELECT COUNT(DISTINCT customer_id) FROM orders;
+
+# GOOD: Automated Great Expectations or dbt tests
+# great_expectations/expectations/orders_suite.json (version-controlled)
+expectation_suite.add_expectation(
+    ExpectationConfiguration(
+        expectation_type="expect_column_values_to_be_between",
+        kwargs={"column": "amount", "min_value": 0}
+    )
+)
+# Runs automatically in CI/CD pipeline on every deployment
+context.run_checkpoint(checkpoint_name="orders_quality_gate")
+```
+
+### Anti-Pattern 4: Unversioned Expectation Suites
+
+**Problem:**
+Defining quality rules ad-hoc in scripts or notebooks without version control, making them impossible to audit, review, or roll back.
+
+**Why It Fails:**
+Without version control, there is no history of rule changes, no peer review, and no way to correlate a quality regression with a specific rule modification. Teams lose track of what is validated and why.
+
+**Correct Pattern:**
+```yaml
+# BAD: Ad-hoc quality rules in a notebook or one-off script
+# Cell 1: check nulls... Cell 2: check ranges... (no history, no review)
+
+# GOOD: Version-controlled expectation files in Git
+# great_expectations/expectations/orders_suite.json
+# - Committed to Git with meaningful commit messages
+# - Changes go through pull request review
+# - CI validates expectation suite syntax on every push
+
+# dbt alternative: version-controlled schema tests
+# models/staging/schema.yml
+version: 2
+models:
+  - name: stg_orders
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+      - name: amount
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+```
 
 ## Data Stewardship and Schema Evolution
 - **Requirement:** Every metric must have a Single Source of Truth in a catalog, with formula, lineage, and ownership.
@@ -238,7 +291,24 @@ COMMENT ON COLUMN orders.status IS 'DEPRECATED: Use order_status. Removal date: 
 - **Requirement:** Preserve all evidence (logs, query history) until root cause is identified.
 - **Requirement:** Make failures visible; avoid silent failures.
 
-## Final Self-Audit Checklist
-- **Always:** Ensure all changes comply with these rules.
-- **Always:** Confirm the solution addresses the problem with a clear plan.
-- **Always:** Verify that the solution promotes data quality, stewardship, and reliability.
+## AI Agent Integration
+
+- Agents MUST respect data governance policies (masking, row-level security) when querying data
+- Agents SHOULD use the data catalog as the authoritative source for metric definitions
+- Agent-generated queries MUST go through the same quality gates as human-authored queries
+- Log agent data access for audit trail compliance
+- Expose governance metadata (sensitivity labels, ownership) to agents via structured APIs
+
+## Data Catalog CLI Reference
+
+Use Snowflake CLI for quick metadata inspection:
+
+```bash
+# Describe a table's schema and metadata
+snow object describe table DB.SCHEMA.TABLE_NAME
+
+# Run ad-hoc governance queries
+snow sql -q "SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.ACCESS_HISTORY LIMIT 10"
+```
+
+See also: `snow object list`, `snow sql` for interactive exploration.

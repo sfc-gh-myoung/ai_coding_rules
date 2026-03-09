@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:agent-instructions
 **Keywords:** Cortex Agents, planning instructions, response instructions, tool orchestration, flagging logic, agent prompts, multi-tool orchestration, tool selection, agent prompting, instruction patterns, agent planning
-**TokenBudget:** ~4900
+**TokenBudget:** ~4650
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md
 
@@ -66,6 +66,8 @@ Putting business logic in semantic views (belongs in agent instructions)
 
 ### Execution Steps
 
+> **Investigation Required:** Run `DESCRIBE CORTEX AGENT <name>` to review current instruction content before modifying.
+
 1. Define planning logic for tool selection
 2. Write response instructions with flagging
 3. Test orchestration patterns
@@ -100,6 +102,7 @@ Planning/response instruction templates
 - **CRITICAL:** Business rule flagging belongs in response instructions, NEVER in semantic views
 - Explicit is better than implicit for multi-tool agents
 - Test tool selection logic independently before integration
+- Keep instruction text under 4000 characters per field. For longer instructions, reference a document in a Cortex Search service.
 
 ### Post-Execution Checklist
 
@@ -114,120 +117,6 @@ Planning/response instruction templates
 - [ ] Domain-specific terminology and conventions documented
 - [ ] Instructions tested with edge cases (empty results, errors, ambiguous questions)
 - [ ] Agent responses reviewed for consistency with instructions
-
-**Anti-Pattern 1: Putting Business Logic in Semantic Views Instead of Agent Instructions**
-```yaml
-# Bad: Flagging logic embedded in semantic view
-views:
-  - name: revenue_view
-    semantic_type: measure
-    expr: |
-      CASE
-        WHEN revenue > 1000000 THEN 'HIGH_ALERT'
-        WHEN revenue < 100000 THEN 'LOW_WARNING'
-        ELSE revenue
-      END
-```
-**Problem:** Semantic views should describe data, not implement flagging; business rules hard to update; requires semantic model redeployment; agent can't customize flagging; violates separation of concerns
-
-**Correct Pattern:**
-```markdown
-# Good: Flagging logic in agent response instructions
-**Response Instructions:**
-When presenting revenue data:
-1. Calculate total revenue from revenue_view
-2. Apply flagging rules:
-   - If revenue > $1M: Flag as "WARNING: HIGH - Exceeds target"
-   - If revenue < $100K: Flag as "WARNING: LOW - Below threshold"
-3. Explain flagging rationale in response
-```
-**Benefits:** Business rules in agent layer; easy to update without model changes; flexible per-agent customization; clear separation of concerns; version control friendly
-
-**Anti-Pattern 2: Vague Planning Instructions Without Tool Selection Criteria**
-```markdown
-# Bad: Unclear when to use which tool
-**Planning Instructions:**
-1. Analyze the user's question
-2. Use the appropriate tool
-3. Return results
-```
-**Problem:** Agent doesn't know which tool to select; random tool choice; inconsistent behavior; poor user experience; tool usage inefficiencies
-
-**Correct Pattern:**
-```markdown
-# Good: Explicit tool selection criteria
-**Planning Instructions:**
-1. Classify query type:
-   - QUANTITATIVE (numbers, calculations, rankings): Use sales_analyst tool
-   - QUALITATIVE (summaries, explanations, context): Use document_search tool
-2. For quantitative queries:
-   - Sales metrics: Use sales_analyst
-   - Marketing metrics: Use marketing_analyst
-3. For qualitative queries:
-   - Product docs: Use product_search
-   - Policy docs: Use policy_search
-4. For mixed queries: Use analyst first, then augment with search
-```
-**Benefits:** Predictable tool selection; consistent agent behavior; clear decision criteria; optimized tool usage; better user experience; debuggable logic
-
-**Anti-Pattern 3: No Graceful Degradation for Missing Data**
-```markdown
-# Bad: Agent fails silently or errors when data unavailable
-**Planning Instructions:**
-1. Query the sales_analyst tool
-2. Return results
-[No handling for empty results or tool failures]
-```
-**Problem:** Poor user experience on empty results; confusing error messages; agent appears broken; no fallback guidance; user abandonment; trust erosion
-
-**Correct Pattern:**
-```markdown
-# Good: Graceful degradation with helpful guidance
-**Planning Instructions:**
-1. Query the sales_analyst tool
-2. If results empty or tool unavailable:
-   - Explain what data was attempted (e.g., "I searched for Q4 2024 sales data")
-   - Specify why unavailable (e.g., "Data not yet loaded for this quarter")
-   - Suggest alternatives (e.g., "Try Q3 2024 data or check back next week")
-3. If partial data available:
-   - Present what's available
-   - Clearly note limitations
-   - Suggest complementary searches
-```
-**Benefits:** Clear failure communication; helpful user guidance; maintains trust; actionable alternatives; professional experience; reduces support burden
-
-**Anti-Pattern 4: Missing Tone and Formatting Guidance in Response Instructions**
-```markdown
-# Bad: No guidance on response style
-**Response Instructions:**
-Return the data to the user.
-```
-**Problem:** Inconsistent tone across responses; unprofessional formatting; unclear structure; doesn't match brand voice; poor readability; user confusion
-
-**Correct Pattern:**
-```markdown
-# Good: Explicit tone and formatting requirements
-**Response Instructions:**
-Tone: Professional, conversational, helpful
-Structure:
-1. Brief summary sentence (1-2 lines)
-2. Key insights as bulleted list (3-5 bullets)
-3. Data table if >5 rows
-4. Closing context or recommendation
-
-Example:
-"Q4 revenue reached $1.2M, up 15% from Q3.
-
-Key insights:
-• Enterprise segment drove 60% of growth
-• APAC region outperformed at +25% QoQ
-• SaaS recurring revenue now 80% of total
-
-[Revenue breakdown table]
-
-Consider focusing Q1 investment on APAC enterprise expansion given strong momentum."
-```
-**Benefits:** Consistent professional tone; readable formatting; structured insights; brand-aligned voice; clear communication; better user satisfaction
 
 ## Output Format Examples
 
@@ -372,39 +261,9 @@ Planning instructions define HOW the agent selects and orchestrates tools. Be ex
 
 Response instructions define HOW the agent formats and presents answers.
 
-### 5.1 CRITICAL: Flagging Logic Placement Principle
+### 5.1 Flagging Logic Placement
 
-**Agent Instructions:** All flagging, thresholds, highlighting, and business rules
-**Cortex Analyst:** ONLY data calculations and SQL generation
-**Semantic Views:** ONLY data modeling and query logic
-**NEVER:** Put business rule flagging in semantic view custom instructions
-
-**Why This Matters:**
-- Semantic views should be reusable across different agents with different thresholds
-- Business rules change more frequently than data models
-- Agent-level flagging allows consistent application across all tools
-- Keeps semantic views focused on accurate calculations only
-
-**Example - CORRECT:**
-```yaml
-# In Agent Response Instructions:
-"When portfolio positions exceed 6.5%, flag with ' CONCENTRATION WARNING' and recommend action."
-
-# In Cortex Analyst Tool:
-- Just returns position_weight calculations
-
-# In Semantic View:
-- Just calculates position_weight accurately
-```
-
-**Example - INCORRECT:**
-```yaml
-# In Semantic View custom instructions:
-"Flag positions >6.5% as concentrations"  # WRONG - belongs in agent instructions
-
-# In Cortex Analyst Tool description:
-"Flag concentrations above threshold"  # WRONG - belongs in agent instructions
-```
+**Key rule:** All flagging, thresholds, and business rules belong in agent response instructions - NEVER in semantic views or Cortex Analyst tools. See Anti-Pattern 1 above for detailed examples.
 
 ### 5.2 General Response Template
 ```
@@ -523,4 +382,83 @@ Response Instructions: |
   - Include visualizations for trends and distributions
   - Use professional, analytical tone
   - Apply flagging logic per thresholds defined above
+```
+
+### Anti-Pattern 4: Putting Business Logic in Semantic Views Instead of Agent Instructions
+
+**Problem:** Embedding flagging logic, conditional formatting, or business rules in semantic view expressions instead of agent response instructions.
+
+**Why It Fails:** Semantic views should describe data structure, not implement business rules. Flagging logic in views is hard to update, violates separation of concerns, and prevents per-agent customization.
+
+**Correct Pattern:**
+```yaml
+# BAD: Flagging logic in semantic view
+views:
+  - name: revenue_view
+    expr: "CASE WHEN revenue > 1000000 THEN 'HIGH_ALERT' ELSE revenue END"
+
+# GOOD: Flagging logic in agent response instructions
+Response Instructions: |
+  When presenting revenue data:
+  1. Get revenue from revenue_view
+  2. If revenue > $1M: Flag as "WARNING: HIGH - Exceeds target"
+  3. If revenue < $100K: Flag as "WARNING: LOW - Below threshold"
+```
+
+### Anti-Pattern 5: Vague Planning Instructions Without Tool Selection Criteria
+
+**Problem:** Planning instructions that say "analyze the question" and "use the appropriate tool" without specifying which tool for which query type.
+
+**Why It Fails:** Agent selects tools randomly; inconsistent behavior across identical queries; no debuggable decision logic.
+
+**Correct Pattern:**
+```markdown
+# BAD: "Analyze the question and use the appropriate tool"
+
+# GOOD: Explicit tool selection criteria
+Planning Instructions:
+1. Classify query type:
+   - QUANTITATIVE (numbers, rankings): Use sales_analyst tool
+   - QUALITATIVE (summaries, context): Use document_search tool
+2. For mixed queries: Use analyst first, then augment with search
+```
+
+### Anti-Pattern 6: No Graceful Degradation for Missing Data
+
+**Problem:** Agent fails silently or returns cryptic errors when data is unavailable or tool calls return empty results.
+
+**Why It Fails:** Poor user experience; confusing error messages; no fallback guidance; users lose trust in the agent.
+
+**Correct Pattern:**
+```markdown
+# GOOD: Graceful degradation with helpful guidance
+Planning Instructions:
+1. Query the sales_analyst tool
+2. If results empty or tool unavailable:
+   - Explain what data was attempted
+   - Specify why unavailable
+   - Suggest alternatives
+3. If partial data available:
+   - Present what is available
+   - Note limitations clearly
+```
+
+### Anti-Pattern 7: Missing Tone and Formatting Guidance in Response Instructions
+
+**Problem:** Response instructions that say "return the data to the user" without specifying tone, structure, or formatting requirements.
+
+**Why It Fails:** Inconsistent tone across responses; unprofessional formatting; poor readability; no structured insights.
+
+**Correct Pattern:**
+```markdown
+# BAD: "Return the data to the user."
+
+# GOOD: Explicit tone and formatting
+Response Instructions:
+Tone: Professional, conversational, helpful
+Structure:
+1. Brief summary sentence (1-2 lines)
+2. Key insights as bulleted list (3-5 bullets)
+3. Data table if >5 rows
+4. Closing context or recommendation
 ```

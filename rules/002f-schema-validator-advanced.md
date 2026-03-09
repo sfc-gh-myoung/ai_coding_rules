@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-02-18
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** schema validator, CI/CD integration, automation workflow, JSON parsing, programmatic validation, pre-commit hooks, GitHub Actions, batch validation, error automation, validation scripts
-**TokenBudget:** ~2650
+**TokenBudget:** ~3150
 **ContextTier:** Medium
 **Depends:** 002e-schema-validator-usage.md, 002-rule-governance.md, 000-global-core.md
 
@@ -105,6 +105,8 @@ Advanced automation patterns for schema validation including programmatic output
 
 ### JSON Output Parsing (Preferred)
 
+Verify `--json` support: `uv run ai-rules validate --help | grep json`. If unsupported, use text parsing fallback below.
+
 Use `--json` flag for structured output that's easy to parse:
 
 ```python
@@ -177,14 +179,57 @@ When JSON is unavailable, use regex patterns:
 ```python
 import re
 
-# Extract counts
-critical_match = re.search(r'\[FAIL\] CRITICAL: (\d+)', output)
-high_match = re.search(r'\[WARN\]\s+HIGH: (\d+)', output)
+# Strip ANSI escape codes first
+clean = re.sub(r'\x1b\[[0-9;]*m', '', output)
+
+# Extract counts from summary table (format: "│ CRITICAL │   3 │")
+critical_match = re.search(r'CRITICAL\s*│\s*(\d+)', clean)
+high_match = re.search(r'HIGH\s*│\s*(\d+)', clean)
 critical_count = int(critical_match.group(1)) if critical_match else 0
+high_count = int(high_match.group(1)) if high_match else 0
 
 # Extract result status
-result_match = re.search(r'RESULT: \[(PASS|WARN|FAIL)\]', output)
-status = result_match.group(1) if result_match else "UNKNOWN"
+if 'All validations passed' in clean:
+    status = "PASS"
+elif 'RESULT: FAILED' in clean:
+    status = "FAIL"
+else:
+    status = "UNKNOWN"
+```
+
+### Error Recovery for Malformed JSON
+
+When the validator produces malformed JSON (truncated output, mixed stderr/stdout, or encoding issues), handle it gracefully before falling back to text parsing:
+
+```python
+import json
+import subprocess
+
+result = subprocess.run(
+    ['ai-rules', 'validate', 'rules/', '--json'],
+    capture_output=True,
+    text=True
+)
+
+try:
+    data = json.loads(result.stdout)
+except (json.JSONDecodeError, ValueError) as e:
+    # Log the parse failure for debugging
+    print(f"[WARN] JSON parse failed: {e}")
+    # Check if stderr was mixed into stdout
+    if result.stderr:
+        print(f"[WARN] Stderr present: {result.stderr[:200]}")
+    # Fall back to text output parsing
+    data = None
+
+if data is None:
+    # Re-run without --json and parse text output instead
+    result = subprocess.run(
+        ['ai-rules', 'validate', 'rules/'],
+        capture_output=True,
+        text=True
+    )
+    # Use regex-based text parsing (see Text Output Parsing above)
 ```
 
 ## Automated Validation + Fix Workflow
@@ -227,6 +272,10 @@ def validate_file(file_path):
 
 def fix_keywords_count(file_path, target=12):
     """Add generic keywords to reach target count."""
+    import shutil
+    backup_path = file_path + '.bak'
+    shutil.copy(file_path, backup_path)
+    
     with open(file_path, 'r') as f:
         content = f.read()
     
@@ -241,7 +290,10 @@ def fix_keywords_count(file_path, target=12):
         content = re.sub(r'\*\*Keywords:\*\* .+', new_line, content)
         with open(file_path, 'w') as f:
             f.write(content)
+        import os
+        os.remove(backup_path)  # Clean up backup on success
         return True
+    os.remove(backup_path)  # Clean up if no match found
     return False
 
 def main(file_path):
@@ -315,6 +367,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
+      # Update to latest stable versions at integration time
       - uses: actions/checkout@v3
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -339,6 +392,16 @@ validate-rules:
     - changes:
         - rules/**/*.md
 ```
+
+### CI/CD Environment Troubleshooting
+
+Common issues when running validation in CI/CD runners:
+
+- **Python not found:** Ensure Python step runs before validation, or use a Python-based Docker image
+- **`uv` not installed:** Add `pip install uv` before `uv sync`, or use `pipx install uv` for isolation
+- **Schema file missing:** Ensure `schemas/rule-schema.yml` is included in the checkout (not excluded by sparse checkout or `.gitattributes`)
+- **Wrong working directory:** Validate that `rules/` path is relative to the repository root, not a subdirectory
+- **Permission denied:** CI runners may need explicit read access to rule files; check file permissions in the Docker image
 
 ## Anti-Patterns and Common Mistakes
 
@@ -384,16 +447,7 @@ else:
 
 ### Anti-Pattern 3: Ignoring MEDIUM Warnings
 
-**Problem:** Never addressing MEDIUM warnings because they don't fail the build.
-
-**Why It Fails:** Accumulated warnings create noise, hide new issues, degrade rule quality.
-
-**Correct Pattern:**
-```bash
-# Track warnings over time
-uv run ai-rules validate rules/ --json | jq '.summary'
-# Schedule cleanup sprints: target <10 MEDIUM across all rules
-```
+See **002e-schema-validator-usage.md, Anti-Pattern 1** for detailed guidance on addressing MEDIUM warnings. In CI/CD contexts, track warning counts over time and schedule periodic cleanup to keep total MEDIUM warnings below 10 across all rules.
 
 ## Key Principles
 

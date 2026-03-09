@@ -72,7 +72,7 @@ Comprehensive testing strategies for FastAPI applications. Covers TestClient usa
 3. Configure TestClient with dependency overrides
 4. Write tests following AAA pattern (Arrange-Act-Assert)
 5. Test both success and error scenarios
-6. Use `@pytest.mark.asyncio` for async tests
+6. Configure `asyncio_mode = "auto"` so async tests are auto-detected (no marker needed)
 7. Mock external dependencies via `app.dependency_overrides`
 8. Create reusable test utilities and factories
 9. Run tests with `uv run pytest tests/`
@@ -96,7 +96,7 @@ Test suite with:
 - Dependencies overridden via app.dependency_overrides
 - AAA pattern used in tests
 - Both success and error status codes tested
-- Async tests marked with @pytest.mark.asyncio
+- Async tests auto-detected via `asyncio_mode = "auto"` (no marker needed)
 - Tests isolated (no shared state)
 
 **Success Criteria:**
@@ -129,7 +129,7 @@ Test suite with:
 - [ ] Dependencies overridden via app.dependency_overrides
 - [ ] AAA pattern used in all tests
 - [ ] Both 200 and error status codes tested
-- [ ] Async tests marked with @pytest.mark.asyncio
+- [ ] Async tests auto-detected via `asyncio_mode = "auto"` (no marker needed)
 - [ ] Tests isolated (no shared state)
 - [ ] Test coverage >80%
 - [ ] All tests passing (`uv run pytest tests/`)
@@ -153,10 +153,8 @@ def test_async_endpoint():
     response = client.get("/async-data")  # Runs in thread, misses async bugs
 
 # GOOD: Use httpx.AsyncClient for async testing
-import pytest
 from httpx import AsyncClient, ASGITransport
 
-@pytest.mark.anyio
 async def test_async_endpoint():
     async with AsyncClient(
         transport=ASGITransport(app=app),
@@ -220,7 +218,6 @@ async def test_db():
 ```python
 # tests/conftest.py
 import pytest
-import asyncio
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
@@ -230,13 +227,6 @@ from app.config import get_settings
 
 # Test database setup
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create an instance of the default event loop for the test session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
 
 @pytest.fixture
 async def test_db():
@@ -273,8 +263,8 @@ def client(test_app):
 ## API Testing Patterns
 
 ### Comprehensive Endpoint Testing
-- **Always:** Test all CRUD operations and edge cases.
-- **Rule:** Use factory patterns for test data creation.
+- **Always:** Test all CRUD operations and error scenarios: invalid input (422), unauthorized (401), not found (404), duplicate (409).
+- **Rule:** Use helper functions for test data creation.
 - **Always:** Test authentication and authorization flows.
 
 ```python
@@ -314,8 +304,7 @@ class TestUserEndpoints:
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         error_data = response.json()
-        assert "validation_error" in error_data["type"]
-        assert "email" in str(error_data["details"])
+        assert any("email" in str(err["loc"]) for err in error_data["detail"])
 
     def test_get_user_authenticated(self, client, auth_headers):
         """Test getting user with valid authentication."""
@@ -332,7 +321,6 @@ class TestUserEndpoints:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    @pytest.mark.asyncio
     async def test_async_service_function(self, test_db):
         """Test async service functions directly."""
         from app.services.user_service import create_user
@@ -351,7 +339,7 @@ class TestUserEndpoints:
 ## Test Utilities and Fixtures
 
 ### Reusable Testing Components
-- **Always:** Create reusable test fixtures and utilities.
+- **Always:** Create test fixtures and utilities shared across ≥2 test modules via conftest.py.
 - **Rule:** Mock external dependencies in tests.
 
 ```python
@@ -405,7 +393,7 @@ addopts = [
     "--cov-report=term-missing",
     "--asyncio-mode=auto",
 ]
-asyncio_mode = "auto"
+asyncio_mode = "auto"  # With this setting, async tests are auto-detected — no marker needed
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",

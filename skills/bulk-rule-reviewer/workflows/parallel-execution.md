@@ -3,7 +3,7 @@
 ## Purpose
 
 Execute bulk rule reviews using parallel sub-agents to achieve:
-1. **5× speedup** (1-2 hours instead of 5-10 hours for 113 rules)
+1. **5× speedup** (~50 minutes instead of 4-6 hours for 129 rules)
 2. **Eliminate context drift** (fresh context per sub-agent)
 3. **Improved fault tolerance** (isolated failures)
 
@@ -293,7 +293,7 @@ With `skip_existing=true` (default):
 
 | Metric | Sequential (max_parallel=1) | Parallel (max_parallel=5) |
 |--------|----------------------------|---------------------------|
-| Total time | 5-10 hours | 1-2 hours |
+| Total time | 4-6 hours | ~50 minutes |
 | Token cost | ~50K | ~250K (5× skill loading) |
 | Dollar cost | ~$0.45 | ~$2.25 |
 | Context drift risk | High (after rule 50) | None |

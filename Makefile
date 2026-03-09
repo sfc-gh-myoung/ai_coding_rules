@@ -58,6 +58,8 @@ help: ## Show this help message
 	@echo "  make rules-validate-verbose   Validate rules (verbose output)"
 	@echo "  make examples-validate        Validate example rules"
 	@echo "  make examples-validate-verbose Validate examples (verbose)"
+	@echo "  make templates-validate       Validate AGENTS template files"
+	@echo "  make templates-validate-verbose Validate templates (verbose)"
 	@echo "  make index-generate           Generate rules/RULES_INDEX.md"
 	@echo "  make index-check              Check if RULES_INDEX.md is current"
 	@echo "  make index-dry                Preview index generation"
@@ -200,6 +202,14 @@ examples-validate: ## Validate example rules
 .PHONY: examples-validate-verbose
 examples-validate-verbose: ## Validate examples (verbose)
 	$(UV) run ai-rules validate rules/examples/ --examples --verbose
+
+.PHONY: templates-validate
+templates-validate: ## Validate AGENTS template files
+	$(UV) run ai-rules validate templates/ --templates
+
+.PHONY: templates-validate-verbose
+templates-validate-verbose: ## Validate templates (verbose)
+	$(UV) run ai-rules validate templates/ --templates --verbose
 
 .PHONY: index-generate
 index-generate: ## Generate rules/RULES_INDEX.md from rules/
@@ -353,7 +363,7 @@ preflight: ## Verify environment is ready
 	@echo "Environment ready"
 
 .PHONY: validate
-validate: quality-check test rules-validate examples-validate index-check ## Run all CI/CD validation checks
+validate: quality-check test rules-validate examples-validate templates-validate index-check ## Run all CI/CD validation checks
 	@echo "All validation checks passed!"
 
 # ============================================================================

@@ -8,11 +8,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:fastapi, kw:api, kw:rest
 **Keywords:** FastAPI, async, REST API, Pydantic, dependency injection, routing, request validation, response models, APIRouter, uvicorn, async def, application factory
-**TokenBudget:** ~4600
+**TokenBudget:** ~3750
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -54,7 +54,7 @@ Comprehensive FastAPI development best practices for modern web API development.
 ### Inputs and Prerequisites
 
 - FastAPI project requirements
-- Python 3.9+ environment
+- Python 3.11+ environment
 - Understanding of async/await patterns
 - Basic knowledge of REST API design
 
@@ -64,13 +64,12 @@ Comprehensive FastAPI development best practices for modern web API development.
 - FastAPI and Pydantic libraries
 - `uvicorn` ASGI server
 - Async database driver (if using database)
-- Text editor or IDE
 
 ### Forbidden
 
 - Bare `uvicorn` command (always use `uv run uvicorn`)
 - Blocking synchronous code in async route handlers
-- Mixing sync and async without proper handling
+- Mixing sync and async without using `asyncio.to_thread()` for blocking calls within async handlers
 - Reusing same Pydantic model for request and response
 - Creating database sessions directly in route handlers
 - Exposing internal error details to clients in production
@@ -127,6 +126,8 @@ FastAPI application with:
 
 ### Design Principles
 
+**Directive Severity:** **Always/Critical** = mandatory, never skip. **Rule** = strong default, skip only with documented justification. **Requirement** = contextual must, applies when the described situation exists.
+
 1. **Modular Architecture** - Organize code into logical, testable modules
 2. **Async-First Development** - Leverage Python's async capabilities for performance
 3. **Security by Design** - Implement authentication, authorization, and input validation
@@ -141,13 +142,6 @@ FastAPI application with:
 
 ### Post-Execution Checklist
 
-- [ ] Application factory function created in `app/main.py`
-- [ ] Routes organized with APIRouter in separate modules
-- [ ] Separate Pydantic models for requests and responses
-- [ ] All I/O operations use async def
-- [ ] Dependency injection configured for database sessions
-- [ ] Global exception handlers added
-- [ ] Development server runs with `uv run uvicorn app.main:app --reload`
 - [ ] API documentation accessible at `/docs`
 - [ ] Linting passes (`uvx ruff check .`)
 - [ ] Tests pass (`uv run pytest`)
@@ -230,7 +224,7 @@ async def get_user(user_id: int, db: Session = Depends(get_db)):
 ### Project Layout
 - **Always:** Use the application factory pattern for FastAPI apps.
 - **Always:** Organize code into logical modules: `routers/`, `models/`, `services/`, `database/`.
-- **Always:** Follow the project structure from `23-python-project-setup.md` with proper `__init__.py` files.
+- **Always:** Follow the project structure from `203-python-project-setup.md` with proper `__init__.py` files.
 
 Recommended directory structure for `app/`:
 - `__init__.py`
@@ -295,7 +289,7 @@ app = create_app()
 ### Async Best Practices
 - **Critical:** Use `async def` for all route handlers that perform I/O operations.
 - **Always:** Use `await` for database queries, HTTP requests, and file operations.
-- **Rule:** Never mix blocking and non-blocking code without proper handling.
+- **Rule:** Never mix blocking and non-blocking code without using `asyncio.to_thread()` for blocking calls within async handlers.
 
 ```python
 # CORRECT: Async route with proper await
@@ -315,66 +309,12 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 ```
 
 ### Cross-Thread Async Communication (SSE, Background Tasks)
-- **Critical:** When running synchronous code in a thread that needs to communicate with async code, capture the event loop BEFORE starting the thread.
-- **Always:** Use `asyncio.get_running_loop()` (not `get_event_loop()`) to capture the loop in an async context.
-- **Always:** Use `loop.call_soon_threadsafe()` to safely add items to an `asyncio.Queue` from a background thread.
-- **Always:** Use `asyncio.to_thread()` for running blocking code - it properly integrates with the event loop.
-- **Never:** Call `asyncio.get_event_loop()` from inside a thread - threads don't have event loops.
 
-```python
-# CORRECT: Cross-thread communication for SSE streaming with progress updates
-@router.get("/process/stream")
-async def process_with_progress():
-    """Stream progress updates from a blocking operation."""
-    # Capture event loop BEFORE starting thread work
-    loop = asyncio.get_running_loop()
-    progress_queue: asyncio.Queue[dict] = asyncio.Queue()
+For cross-thread SSE communication patterns including `loop.call_soon_threadsafe()`, `asyncio.Queue`, and `asyncio.to_thread()`, see **210d-python-fastapi-monitoring.md**.
 
-    def progress_callback(step: str, message: str) -> None:
-        """Thread-safe callback using loop.call_soon_threadsafe()."""
-        loop.call_soon_threadsafe(
-            progress_queue.put_nowait,
-            {"step": step, "message": message}
-        )
-
-    async def run_blocking_work():
-        """Run blocking code in thread pool with asyncio.to_thread()."""
-        return await asyncio.to_thread(
-            blocking_function, progress_callback
-        )
-
-    async def event_generator():
-        """Generate SSE events from progress queue."""
-        task = asyncio.create_task(run_blocking_work())
-
-        while True:
-            if task.done():
-                # Drain remaining messages
-                while not progress_queue.empty():
-                    msg = await progress_queue.get()
-                    yield f"data: {json.dumps(msg)}\n\n"
-
-                # Send final result
-                try:
-                    result = task.result()
-                    yield f"data: {json.dumps({'status': 'done'})}\n\n"
-                except Exception as e:
-                    yield f"data: {json.dumps({'status': 'error', 'message': str(e)})}\n\n"
-                break
-
-            try:
-                msg = await asyncio.wait_for(progress_queue.get(), timeout=0.5)
-                yield f"data: {json.dumps(msg)}\n\n"
-            except TimeoutError:
-                yield f"data: {json.dumps({'step': 'ping'})}\n\n"
-
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
-
-# INCORRECT: Trying to access event loop from thread
-def bad_callback(step: str, message: str) -> None:
-    # This will raise "no current event loop in thread" error!
-    asyncio.get_event_loop().call_soon_threadsafe(...)
-```
+Key rules:
+- **Critical:** Capture the event loop with `asyncio.get_running_loop()` BEFORE starting threads
+- **Never:** Call `asyncio.get_event_loop()` from inside a thread
 
 ### Database Connections
 - **Always:** Use connection pooling with async database drivers.
@@ -448,7 +388,7 @@ class UserUpdate(BaseModel):
 ### Input Validation
 - **Always:** Validate all input parameters using Pydantic Field constraints.
 - **Always:** Use appropriate HTTP status codes for validation errors.
-- **Rule:** Provide clear, actionable error messages.
+- **Rule:** Error messages must state what failed and what the client should do differently.
 
 ```python
 from pydantic import field_validator, Field
@@ -518,56 +458,6 @@ def add_exception_handlers(app: FastAPI):
 
 ## Configuration Management
 
-### Environment-Based Configuration
-- **Always:** Use environment variables for configuration.
-- **Always:** Use Pydantic Settings for type-safe configuration.
-- **Rule:** Never commit secrets to version control.
+Use Pydantic `BaseSettings` for type-safe, environment-based configuration with `.env` file support. Cache with `@lru_cache()` for performance.
 
-```python
-# app/config.py
-from pydantic import BaseSettings, PostgresDsn, field_validator, ConfigDict
-from typing import List, Optional
-from functools import lru_cache
-
-class Settings(BaseSettings):
-    model_config = ConfigDict(env_file=".env", case_sensitive=False)
-
-    app_name: str = "FastAPI App"
-    debug: bool = False
-    version: str = "1.0.0"
-
-    # Database
-    database_url: PostgresDsn
-
-    # Security
-    secret_key: str
-    access_token_expire_minutes: int = 30
-
-    # CORS
-    allowed_origins: List[str] = ["http://localhost:3000"]
-    allowed_hosts: List[str] = ["localhost", "127.0.0.1"]
-
-    @field_validator('allowed_origins', mode='before')
-    @classmethod
-    def assemble_cors_origins(cls, v):
-        if isinstance(v, str):
-            return [i.strip() for i in v.split(",")]
-        return v
-
-@lru_cache()
-def get_settings() -> Settings:
-    return Settings()
-```
-
-## Integration with Python Core Rules
-
-### Compliance with Existing Rules
-- **Always:** Follow all directives from `200-python-core.md` for Python best practices.
-- **Always:** Use `uv run uvicorn` instead of bare `uvicorn` for development.
-- **Always:** Apply linting and formatting rules from `201-python-lint-format.md`.
-- **Always:** Follow project setup patterns from `203-python-project-setup.md`.
-
-### Development Commands
-- **Always:** Follow Python core rules from `200-python-core.md` for all uv commands.
-- **Always:** Apply linting and formatting rules from `201-python-lint-format.md`.
-- **FastAPI Specific:** Use `uv run uvicorn app.main:app --reload` for development server.
+For complete configuration patterns including CORS, security settings, and environment-specific config, see **210c-python-fastapi-deployment.md**.

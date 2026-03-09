@@ -71,7 +71,7 @@ constraints: online research allowed
 
 **Input:**
 ```bash
-python scripts/template_generator.py 210-python-pydantic-core \
+uv run ai-rules new 210-python-pydantic-core \
     --context-tier Medium \
     --output-dir rules/
 ```
@@ -108,7 +108,7 @@ grep -n "## Contract" rules/210-python-pydantic-core.md
 
 **Input:**
 ```bash
-python scripts/template_generator.py InvalidName \
+uv run ai-rules new InvalidName \
     --output-dir rules/
 ```
 
@@ -127,7 +127,7 @@ python scripts/template_generator.py InvalidName \
 
 **Input:**
 ```bash
-python scripts/template_generator.py 200-python-core \
+uv run ai-rules new 200-python-core \
     --output-dir rules/
 ```
 
@@ -202,7 +202,7 @@ Keywords from research: pydantic, validation, data models, type hints,
 
 **Input:**
 ```bash
-python scripts/schema_validator.py rules/210-python-pydantic-core.md
+uv run ai-rules validate rules/210-python-pydantic-core.md
 ```
 
 **Expected:**

@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.4
-**LastUpdated:** 2026-02-18
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-03-09
 **Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings, design priorities, agent optimization
-**TokenBudget:** ~6200
+**TokenBudget:** ~4850
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 **LoadTrigger:** dir:rules/
@@ -90,7 +90,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 Markdown file (.md) with:
 - v3.2 schema metadata
 - Required sections in correct order
-- Contract with Markdown headers (###), not XML tags
+- Contract with Markdown headers (###) (see Forbidden section)
 - Descriptive section names (not numbered)
 - 5-20 keywords for semantic discovery
 
@@ -136,11 +136,34 @@ Markdown file (.md) with:
 - [ ] Keywords count is 5-20 terms (semantic and discoverable)
 - [ ] `uv run ai-rules validate` runs with 0 CRITICAL errors
 - [ ] TokenBudget reflects actual file size (±10% acceptable)
+- [ ] Filename matches pattern `<NNN>[<letter>]-<technology>-<aspect>.md` (single-letter suffix only)
 - [ ] File added to RULES_INDEX.md with keywords
 - [ ] Dependencies declared in Depends metadata
 - [ ] No emojis in rule file content
 
 ## Schema Requirements (v3.2)
+
+### Rule Filename Convention (MANDATORY)
+
+**Pattern:** `<NNN>[<letter>]-<technology>-<aspect>.md`
+
+Where:
+- `<NNN>` = 3-digit number (000-999), zero-padded
+- `[<letter>]` = Optional single lowercase letter suffix (a-z). Single-letter suffix only (a-z). Multi-character suffixes (a1, b2) are NOT allowed.
+- `<technology>` = Technology domain (e.g., snowflake, python, bash)
+- `<aspect>` = Specific aspect/topic (kebab-case)
+
+**Valid examples:**
+- [PASS] `100-snowflake-core.md`
+- [PASS] `100a-snowflake-auth.md`
+- [PASS] `200b-python-testing.md`
+
+**Invalid examples:**
+- [FAIL] `100a1-something.md` (multi-character suffix)
+- [FAIL] `1-core.md` (not 3-digit)
+- [FAIL] `100_snowflake_sql.md` (underscores)
+
+**Validation regex:** `^[0-9]{3}[a-z]?-[a-z]+-[a-z-]+\.md$`
 
 ### Metadata Fields (6 Required)
 
@@ -242,7 +265,7 @@ uv run ai-rules validate rules/
 ### Success Criteria
 
 - [PASS] **CRITICAL errors:** 0
-- [WARN] **HIGH errors:** Acceptable if intentional (e.g., model-specific emojis in 002c)
+- [WARN] **HIGH errors:** Acceptable if commit message explains why the HIGH error is acceptable and links to the rule exception (e.g., model-specific emojis in 002c)
 - [INFO] **MEDIUM/INFO:** Review and fix if possible
 
 ### Common Validation Errors
@@ -333,7 +356,7 @@ If both options fail, note the validation gap in commit message and request revi
   - Provide examples for complex patterns
   - Priorities 1, 2, and 3 significantly outweigh Priority 4
 
-  **Design Test:** When in doubt, ask: "Can an agent execute this without judgment?" If the answer is no, revise for Priority 1 compliance.
+  **Design Test:** For every instruction, verify: "Can an agent execute this without judgment?" If the answer is no, revise for Priority 1 compliance.
 
   **Priority Weighting (Quantified):**
   - Priority 1: Accept up to 50% token overhead for explicit error handling
@@ -359,7 +382,7 @@ If both options fail, note the validation gap in commit message and request revi
 - **CommonMark Compliance:** All Markdown must follow [CommonMark spec](https://spec.commonmark.org/) for consistent parsing
 - **Semantic Discovery:** Keywords (5-20) enable AI agents to automatically discover relevant rules
 - **Progressive Disclosure:** Scope section provides overview, Contract defines execution requirements
-- **Validation-First:** Always run schema_validator.py before committing rule changes
+- **Validation-First:** Always run `ai-rules validate` before committing rule changes
 - **Text-Only Format:** No emojis in rule files (schema requirement for universal compatibility)
 - **Agent-First Formatting:** See `002g-agent-optimization.md` for required formatting patterns
 
@@ -404,7 +427,7 @@ All rule files MUST follow [CommonMark specification](https://spec.commonmark.or
 
 ### Anti-Pattern 1: Keyword Stuffing for Discovery
 
-**Problem:** Adding irrelevant or duplicate keywords to meet the 10-15 requirement, or using overly generic terms that don't aid semantic discovery.
+**Problem:** Adding irrelevant or duplicate keywords to meet the 5-20 requirement, or using overly generic terms that don't aid semantic discovery.
 
 **Why It Fails:** Pollutes RULES_INDEX.md with false matches, causes wrong rules to load, wastes agent context budget on irrelevant rules, and degrades rule discovery accuracy.
 
@@ -479,269 +502,23 @@ structure:
   Contract_subsections: 7 Markdown ### headers required
 ```
 
-### LoadTrigger Specification
+## Importance Marker Inheritance
+
+When splitting rules (e.g., 100-snowflake-core.md into 100a, 100b, 100c):
+
+- Parent rule keeps original marker (CORE/FOUNDATION)
+- Child rules inherit same marker if they're core dependencies
+- Child rules use no marker if they're specialized topics
+
+Example:
+- `200-python-core.md` - CORE RULE (parent)
+- `201-python-lint-format.md` - CORE RULE (core dependency)
+- `206-python-pytest.md` - no marker (specialized testing rule)
 
 ## LoadTrigger Guidelines
 
-### What is LoadTrigger?
-
-**LoadTrigger** is an optional metadata field that enables dynamic rule discovery based on file context, keywords, or activities. It allows the system to automatically suggest relevant rules when specific conditions are met.
-
-### When to Use LoadTrigger
-
-**Add LoadTrigger when:**
-- Rule applies to specific file extensions (e.g., `.py`, `.sql`, `.tsx`)
-- Rule applies to specific filenames (e.g., `pyproject.toml`, `Dockerfile`)
-- Rule applies to specific directories (e.g., `rules/`, `tests/`)
-- Rule provides guidance for specific activities or keywords (e.g., `kw:testing`, `kw:performance`)
-
-**Skip LoadTrigger for:**
-- Foundation/infrastructure rules (always loaded automatically)
-- Sub-rules with explicit Depends relationships (loaded via parent rule)
-- Highly specialized rules (loaded only when explicitly requested)
-
-### LoadTrigger Syntax
-
-LoadTrigger uses four trigger types:
-
-```markdown
-**LoadTrigger:** ext:.py, kw:python, kw:testing
-```
-
-**Trigger Types:**
-
-1. **ext:** - File extension triggers
-   - `ext:.py` - Python files
-   - `ext:.sql` - SQL files
-   - `ext:.tsx` - TypeScript React files
-
-2. **file:** - Specific filename triggers
-   - `file:pyproject.toml` - Python project config
-   - `file:Dockerfile` - Docker configuration
-   - `file:CHANGELOG.md` - Changelog file
-
-3. **dir:** - Directory-based triggers
-   - `dir:rules/` - Rules directory
-   - `dir:tests/` - Test directory
-
-4. **kw:** - Keyword/activity triggers
-   - `kw:testing` - Testing activities
-   - `kw:performance` - Performance optimization
-   - `kw:security` - Security-related work
-
-### LoadTrigger Patterns
-
-**Language Rules:**
-```markdown
-**LoadTrigger:** ext:.py, kw:python
-```
-
-**Framework Rules:**
-```markdown
-**LoadTrigger:** kw:fastapi, kw:api, file:main.py
-```
-
-**Activity Rules:**
-```markdown
-**LoadTrigger:** kw:testing, kw:unit-test, kw:pytest
-```
-
-**Multi-Context Rules:**
-```markdown
-**LoadTrigger:** ext:.tsx, kw:react, kw:frontend
-```
-
-### LoadTrigger Best Practices
-
-**DO:**
-- Use 2-4 triggers per rule (average: 2.1 based on current data)
-- Combine extension + keyword triggers for language rules
-- Use specific, descriptive keywords
-- Include synonyms for discoverability (e.g., `kw:mock, kw:test-data, kw:faker`)
-- Check existing rules for similar triggers to maintain consistency
-
-**DON'T:**
-- Use overly generic keywords that match 3+ rules
-- Duplicate triggers unnecessarily (some overlap is intentional)
-- Add LoadTriggers to foundation rules (000-series, 001-core, 002-governance)
-- Use LoadTriggers for sub-rules that should be loaded via Depends
-
-### LoadTrigger Examples
-
-**Example 1: Python Core Rule**
-```markdown
-**LoadTrigger:** ext:.py, ext:.pyi, kw:python
-```
-Triggers on: Python files OR "python" keyword
-
-**Example 2: FastAPI Testing Rule**
-```markdown
-**LoadTrigger:** kw:fastapi-testing, kw:test
-```
-Triggers on: FastAPI testing activities
-
-**Example 3: Multi-Extension React Rule**
-```markdown
-**LoadTrigger:** ext:.jsx, ext:.tsx, kw:react
-```
-Triggers on: JSX/TSX files OR "react" keyword
-
-**Example 4: Config File Rule**
-```markdown
-**LoadTrigger:** file:pyproject.toml, kw:python-project
-```
-Triggers on: pyproject.toml file OR "python-project" keyword
-
-### LoadTrigger Anti-Patterns
-
-**[BAD] Too Generic:**
-```markdown
-**LoadTrigger:** kw:code, kw:file
-```
-Problems: Matches almost everything, no specificity
-
-**[BAD] Redundant Keywords:**
-```markdown
-**LoadTrigger:** kw:python, kw:py, kw:python-lang, kw:python-code
-```
-Problems: All synonyms, no additional value
-
-**[BAD] Wrong Context:**
-```markdown
-# In 000-global-core.md
-**LoadTrigger:** kw:core
-```
-Problems: Foundation rules should NOT have LoadTriggers
-
-**[GOOD] Good LoadTrigger:**
-```markdown
-**LoadTrigger:** ext:.sql, kw:snowflake, kw:query
-```
-Benefits: Specific extension + domain keywords
-
-### LoadTrigger Impact on RULES_INDEX.md
-
-When you add LoadTrigger to a rule, it automatically appears in `RULES_INDEX.md` after running:
-
-```bash
-uv run ai-rules index generate
-```
-
-The index organizes rules by trigger type:
-- **Section 2:** Directory and file extension rules
-- **Section 3:** Activity rules (keyword-based)
-
-**Example Index Entry:**
-```markdown
-### 3. Activity Rules (Keyword Match)
-- **python**, **testing**: Consider `200-python-core.md`
-- **fastapi**, **api**: Consider `210-python-fastapi.md`
-```
-
-### Validation and Testing
-
-**After adding LoadTrigger:**
-
-1. Regenerate index: `uv run ai-rules index generate`
-2. Validate references: `uv run ai-rules refs check`
-3. Run tests: `uv run pytest --tb=short -q`
-4. Check formatting: `uvx ruff check .`
-
-**Current Coverage Statistics (as of 2026-01-20):**
-- Total rules: 122
-- Rules with LoadTrigger: 84 (69%)
-- Average triggers per rule: 2.1
-- Target achieved: 125% (target was 67 rules / 55%)
-
-### LoadTrigger Decision Process
-
-When creating or updating a rule, ask:
-
-1. **Is this a foundation rule?** Then use: No LoadTrigger (always loaded)
-2. **Does it have a parent rule via Depends?** Then use: No LoadTrigger (loaded by parent)
-3. **Does it apply to specific file types?** Then use: Add ext:/file: triggers
-4. **Does it guide specific activities?** Then use: Add kw: triggers
-5. **Is it highly specialized?** Then use: Skip LoadTrigger (on-demand only)
-
-**Refer to:** `docs/loadtrigger_decisions.md` for detailed categorization and rationale for all rules in the repository.
+**See:** `002i-rule-loadtrigger.md` for complete LoadTrigger specification, syntax, patterns, best practices, and examples.
 
 ## Rule Examples
 
-### Purpose
-
-The `rules/examples/` directory contains validated, complete implementation examples that accompany complex rule files. These examples provide concrete reference implementations that improve agent accuracy when creating configurations.
-
-### When Examples Are Needed
-
-**Add examples for:**
-- Complex multi-tool orchestration (Cortex Agents, Cortex Search)
-- Multi-step configurations (Semantic Views with VQRs)
-- Language-variant patterns (SQL DDL vs Python SDK)
-
-**Skip examples for:**
-- Simple, self-contained rules
-- Rules with inline code blocks that are sufficient
-
-### Example File Structure
-
-Example files follow a lightweight schema different from rule files:
-
-```markdown
-# NNN Example: Topic (Language)
-
-> **EXAMPLE FILE** - Reference implementation for `NNN-rule-name.md`
-> Not a rule file. Not validated against rule-schema.yml.
-
-## Context
-
-**Parent Rule:** NNN-rule-name.md
-**Demonstrates:** What pattern this shows
-**Use When:** Activation scenario
-**Version:** 1.0
-**Last Validated:** YYYY-MM-DD
-
-## Prerequisites
-
-- [ ] Requirement 1
-- [ ] Requirement 2
-
-## Implementation
-
-```sql|python|yaml
--- Complete, runnable code
-```
-
-## Validation
-
-```bash
--- Verification commands
-```
-
-**Expected Result:** What success looks like
-```
-
-### Example Discovery
-
-**For agents:** When loading a rule with complex patterns, check for companion examples:
-
-```
-rules/examples/NNN-topic-variant-example.md
-```
-
-Example naming follows pattern: `{rule-number}-{topic}-{variant}-example.md`
-
-**Discovery:** Check `rules/examples/` for `{rule-number}-*-example.md` files.
-
-### Validation
-
-Example files are validated separately from rule files:
-
-```bash
-# Validate all examples
-task examples:validate
-
-# Validate examples (verbose)
-task examples:validate:verbose
-```
-
-Examples are validated against `schemas/example-schema.yml`, not `schemas/rule-schema.yml`.
+**See:** `002j-rule-examples.md` for complete guidelines on creating and maintaining validated example files in `rules/examples/`.

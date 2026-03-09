@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:observability-logging
 **Keywords:** DEBUG, INFO, WARN, ERROR, FATAL, conditional logging, sampling, tight loop logging, standard logging libraries, log volume control, cost management, log configuration, log handlers
-**TokenBudget:** ~4350
+**TokenBudget:** ~4000
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
 
@@ -108,7 +108,7 @@ def process_data(records):
         print(f"Processing record {record['id']}")  # No persistence
     print("Processing complete")
 ```
-**Problem:** Logs not captured in event tables; no persistence; can't query historical logs; debugging impossible in production; no log levels; no structured data
+**Problem:** Logs not captured in event tables; no persistence; debugging impossible in production
 
 **Correct Pattern:**
 ```python
@@ -122,7 +122,7 @@ def process_data(records):
     logger.info("Processing complete")
 # Logs automatically routed to event table for querying
 ```
-**Benefits:** Logs persisted in event tables; queryable history; production debugging; proper log levels; structured data; automatic routing
+**Benefits:** Logs persisted in event tables; queryable history; proper log levels
 
 **Anti-Pattern 2: Logging Every Iteration in Tight Loops**
 ```python
@@ -131,7 +131,7 @@ for i, record in enumerate(large_dataset):  # 1 million records
     logger.info(f"Processing record {i}: {record['id']}")
 # Generates 1 million log entries! Massive costs!
 ```
-**Problem:** Massive log volume; 1000x normal costs; event table bloat; performance degradation; signal-to-noise ratio destroyed; unusable logs
+**Problem:** Massive log volume; 1000x normal costs; performance degradation
 
 **Correct Pattern:**
 ```python
@@ -142,7 +142,7 @@ for i, record in enumerate(large_dataset):
 # Final summary
 logger.info(f"Completed processing {len(large_dataset)} records")
 ```
-**Benefits:** 1000x fewer logs; manageable costs; performance maintained; signal preserved; actionable logs; production-scalable
+**Benefits:** 1000x fewer logs; manageable costs; actionable signal
 
 **Anti-Pattern 3: Logging Sensitive Data (PII, Credentials)**
 ```python
@@ -151,7 +151,7 @@ def authenticate_user(username, password, ssn):
     logger.info(f"Authenticating user: {username}, SSN: {ssn}, password: {password}")
     # SECURITY VIOLATION: PII and credentials in logs!
 ```
-**Problem:** Security breach; PII exposure; compliance violations (GDPR, HIPAA); credential leakage; audit failures; regulatory fines; data breach liability
+**Problem:** Security breach; PII exposure; compliance violations (GDPR, HIPAA)
 
 **Correct Pattern:**
 ```python
@@ -162,7 +162,7 @@ def authenticate_user(username, password, ssn):
     logger.info(f"Authenticating user_hash: {user_hash}")
     # Never log: password, ssn, credit cards, tokens, API keys
 ```
-**Benefits:** Security maintained; compliance-ready; no PII exposure; safe debugging; audit-friendly; regulatory compliance; zero breach liability
+**Benefits:** Security maintained; compliance-ready; no PII exposure
 
 **Anti-Pattern 4: Using DEBUG Log Level in Production**
 ```python
@@ -177,7 +177,7 @@ def process_order(order):
     logger.debug(f"Processing payment {order['payment']}")
     # Generates massive log volume, high costs
 ```
-**Problem:** 10-100x log volume increase; massive serverless costs; event table bloat; performance impact; signal-to-noise destroyed; production noise
+**Problem:** 10-100x log volume increase; massive costs; signal-to-noise destroyed
 
 **Correct Pattern:**
 ```python
@@ -199,7 +199,7 @@ def process_order(order):
     if validation_error:
         logger.error(f"Order validation failed: {error_code}")
 ```
-**Benefits:** Cost-effective production logging; manageable volume; performance maintained; actionable signal; development flexibility; production scalability
+**Benefits:** Cost-effective production logging; manageable volume; actionable signal
 
 ## Output Format Examples
 ```python
@@ -224,7 +224,7 @@ def my_handler(session, input_data):
 
         # Warn about large datasets
         if len(input_data) > 100000:
-            logger.warn(f"Large dataset: {len(input_data)} records (may take time)")
+            logger.warning(f"Large dataset: {len(input_data)} records (may take time)")
 
         # Process with sampling for progress
         results = []
@@ -277,7 +277,7 @@ def process_data(session, df):
         logger.info(f"Filtered to {len(result)} valid records")
 
         if len(result) == 0:
-            logger.warn("No valid records found after filtering")
+            logger.warning("No valid records found after filtering")
             return None
 
         # Additional processing
@@ -310,7 +310,7 @@ public class DataProcessor {
             logger.info("Filtered to {} valid records", result.count());
 
             if (result.count() == 0) {
-                logger.warn("No valid records found after filtering");
+                logger.warning("No valid records found after filtering");
                 return null;
             }
 
@@ -360,7 +360,7 @@ logger.info(f"Processing completed: {len(results)} records processed in {elapsed
 
 **WARN:** Potential issues or unexpected states
 ```python
-logger.warn(f"Large dataset detected: {len(data)} records (may impact performance)")
+logger.warning(f"Large dataset detected: {len(data)} records (may impact performance)")
 ```
 
 **ERROR:** Operation failures that are caught
@@ -387,12 +387,12 @@ def validate_input(data):
         return False
 
     if len(data) > 10000:
-        logger.warn(f"Large dataset detected: {len(data)} records")
+        logger.warning(f"Large dataset detected: {len(data)} records")
 
     # Only log validation details for problematic cases
     invalid_count = sum(1 for row in data if not is_valid(row))
     if invalid_count > 0:
-        logger.warn(f"Found {invalid_count} invalid records out of {len(data)}")
+        logger.warning(f"Found {invalid_count} invalid records out of {len(data)}")
 
     return invalid_count == 0
 ```
@@ -467,71 +467,27 @@ for record in large_dataset:
         log_with_sampling(logger, logging.INFO, f"Processed record {record.id}", sample_rate=0.01)
     else:
         # Always log failures
-        logger.warn(f"Failed to process record {record.id}: {result.error}")
+        logger.warning(f"Failed to process record {record.id}: {result.error}")
 ```
 
-## Common Logging Anti-Patterns
+### Structured Logging Fields
 
-### Anti-Pattern 1: Using DEBUG level in production
-```sql
--- Setting DEBUG for all production workloads
-ALTER DATABASE prod_db SET LOG_LEVEL = DEBUG;
-```
-**Problem:** Generates excessive log volume, increases costs, and may expose sensitive information.
+When emitting logs from handlers, include structured context for queryability.
 
-**Correct Pattern: Environment-appropriate log levels**
-```sql
--- Production: Conservative logging
-ALTER DATABASE prod_db SET LOG_LEVEL = WARN;
+**Note:** For native structured attribute support without string splitting, use `snowflake.telemetry` module's `set_span_attribute()` which stores attributes as queryable JSON fields directly in the event table. See `111b-snowflake-observability-tracing.md` for details.
 
--- Development: Verbose logging for debugging
-ALTER DATABASE dev_db SET LOG_LEVEL = DEBUG;
-
--- Critical functions: Targeted debugging
-ALTER FUNCTION prod_db.schema.critical_udf(varchar) SET LOG_LEVEL = INFO;
-```
-
-### Anti-Pattern 2: Not using standard logging libraries
-```python
-def my_function():
-    # Using print statements instead of logging
-    print("Starting processing")  # Does NOT route to event tables
-    print(f"Error occurred: {error}")  # Not captured in telemetry
-```
-
-**Correct Pattern: Use standard logging libraries**
 ```python
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
-def my_function():
-    # Automatically routes to event tables
-    logger.info("Starting processing")
-    try:
-        # Processing logic
-        pass
-    except Exception as e:
-        logger.error(f"Error occurred: {e}")  # Captured in telemetry
-```
+def process_order(session, order_id):
+    # Include structured context as JSON for event table querying
+    context = json.dumps({"order_id": order_id, "stage": "validation"})
+    logger.info(f"Processing order | {context}")
 
-### Anti-Pattern 3: Logging sensitive data
-```python
-def authenticate_user(username, password):
-    # NEVER LOG PASSWORDS OR TOKENS
-    logger.debug(f"Authenticating user {username} with password {password}")  # FORBIDDEN
-```
-
-**Correct Pattern: Exclude sensitive data**
-```python
-def authenticate_user(username, password):
-    # Log non-sensitive information only
-    logger.info(f"Authentication attempt for user {username}")
-
-    result = perform_authentication(username, password)
-
-    if result.success:
-        logger.info(f"User {username} authenticated successfully")
-    else:
-        logger.warn(f"Authentication failed for user {username}: {result.error_code}")
+    # Query these structured logs from event table:
+    # SELECT PARSE_JSON(SPLIT(body, '| ')[1]):order_id::STRING
+    # FROM <event_table> WHERE record_type = 'LOG';
 ```

@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-01-13
+**LastUpdated:** 2026-03-09
 **Keywords:** altair, vega-lite, st.altair_chart, declarative visualization, grammar of graphics, mark_point, mark_line, mark_bar, encoding, selection, interactive, layered charts
-**TokenBudget:** ~3350
+**TokenBudget:** ~3400
 **ContextTier:** Medium
 **Depends:** 101a-snowflake-streamlit-visualization.md
 
@@ -54,14 +54,14 @@ Altair visualization patterns using the declarative grammar of graphics approach
 ### Mandatory
 
 - **Declarative encoding** - Map data columns to visual properties
-- **width="stretch"** - Use for responsive charts OR set explicit container width
+- **use_container_width=True** - Use for responsive charts (the code examples demonstrate this pattern)
 - **Clear encoding** - Explicit axis titles and labels
 
 ### Forbidden
 
-- Mixing imperative and declarative styles unnecessarily
+- Using go.Figure() or manual data manipulation when alt.transform_*() or alt.Chart() can achieve the same result
 - Missing axis labels/titles
-- Overly complex single charts (split into linked views instead)
+- Charts with >3 encoding channels per mark (split into linked views -- see Anti-Pattern 3)
 
 ### Execution Steps
 
@@ -89,7 +89,7 @@ st.altair_chart(chart, use_container_width=True)
 - [ ] Data type suffixes specified for all encodings
 - [ ] `use_container_width=True` used for responsive display
 - [ ] Clear axis titles and labels present
-- [ ] Appropriate chart type for data relationship
+- [ ] Chart type matches data per When to Use section: scatter for correlation, line for trends, bar for comparison, heatmap for matrix
 - [ ] Interactive selections tested (if applicable)
 
 ### Post-Execution Checklist
@@ -320,6 +320,8 @@ chart = alt.Chart(df).mark_line().encode(
 st.altair_chart(chart)
 ```
 
+**Note:** `use_container_width=True` may cause rendering issues with faceted or concatenated charts. For faceted charts, set explicit `width` in `.properties()` and omit `use_container_width`.
+
 ## Concatenation
 
 ### Horizontal Concatenation
@@ -418,29 +420,62 @@ else:
 chart = alt.Chart(df_sample).mark_point().encode(...)
 ```
 
-## Common Anti-Patterns
+## Error Handling for Altair Rendering
 
-**Anti-Pattern: Missing data type suffix**
+**Encoding type mismatch:** Ensure columns match declared types. A `:T` encoding on a string column without date format causes silent failures or blank charts.
+
+```python
+# Ensure date column is datetime before using :T encoding
+df['date'] = pd.to_datetime(df['date'], errors='coerce')
+```
+
+**Unsupported mark/encoding combos:** Not all marks support all encodings. For example, `mark_rect()` does not support `size`. Check [Altair encoding docs](https://altair-viz.github.io/user_guide/encoding.html) for supported combinations.
+
+**Data type coercion:** Altair infers types from the first few rows. Explicitly cast columns to avoid misinterpretation:
+
+```python
+df['category'] = df['category'].astype(str)  # Prevent numeric inference
+df['value'] = pd.to_numeric(df['value'], errors='coerce')  # Ensure numeric
+```
+
+**Empty DataFrame:** Always check before rendering to avoid blank charts:
+
+```python
+if df.empty:
+    st.info("No data available for visualization.")
+    st.stop()
+```
+
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Missing Data Type Suffix
+
+**Problem:** Omitting Altair data type suffixes in encodings.
 ```python
 alt.Chart(df).encode(x='date', y='value')
 ```
 
-**Correct:**
+**Correct Pattern:**
 ```python
 alt.Chart(df).encode(x='date:T', y='value:Q')
 ```
 
-**Anti-Pattern: Not using use_container_width**
+### Anti-Pattern 2: Not Using use_container_width
+
+**Problem:** Not using `use_container_width=True` for responsive layouts.
 ```python
 st.altair_chart(chart)
 ```
 
-**Correct:**
+**Correct Pattern:**
 ```python
 st.altair_chart(chart, use_container_width=True)
 ```
 
-**Anti-Pattern: Overloading single chart**
+### Anti-Pattern 3: Overloading Single Chart
+
+**Problem:** Using too many encoding channels on a single chart, making it unreadable.
+
 ```python
 chart = alt.Chart(df).mark_point().encode(
     x='x:Q', y='y:Q', color='c1:N', size='s:Q', 
@@ -448,8 +483,9 @@ chart = alt.Chart(df).mark_point().encode(
 )
 ```
 
-**Correct (split into linked views):**
+**Correct Pattern:**
 ```python
+# Split into linked views with max 3 encoding channels per mark
 brush = alt.selection_interval()
 scatter = alt.Chart(df).mark_point().encode(x='x:Q', y='y:Q', color='c1:N').add_params(brush)
 detail = alt.Chart(df).mark_bar().encode(x='c2:N', y='count()').transform_filter(brush)
@@ -461,48 +497,8 @@ chart = scatter | detail
 - [ ] Using `use_container_width=True` for responsive display
 - [ ] Data type suffixes specified (`:Q`, `:N`, `:O`, `:T`)
 - [ ] Clear axis titles and labels
-- [ ] Appropriate chart type for data relationship
+- [ ] Chart type matches data: scatter for correlation, line for trends, bar for comparison, heatmap for matrix
 - [ ] Large datasets sampled or using vegafusion
 - [ ] Interactive selections tested
 - [ ] Colorblind-safe color schemes
 - [ ] Tooltips configured for hover information
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Fixed Chart Width
-
-**Problem:**
-```python
-st.altair_chart(chart)
-```
-
-**Why It Fails:** Chart has fixed width, breaks on mobile and different screen sizes.
-
-**Correct Pattern:**
-```python
-st.altair_chart(chart, use_container_width=True)
-```
-
-### Anti-Pattern 2: Overloading Single Chart
-
-**Problem:**
-```python
-chart = alt.Chart(df).mark_point().encode(
-    x='x:Q', y='y:Q', color='c1:N', size='s:Q', 
-    shape='c2:N', opacity='o:Q', strokeWidth='sw:Q'
-)
-```
-
-**Why It Fails:** Too many encodings make chart unreadable. Users can't interpret 7+ visual dimensions simultaneously.
-
-**Correct Pattern:**
-```python
-brush = alt.selection_interval()
-scatter = alt.Chart(df).mark_point().encode(
-    x='x:Q', y='y:Q', color='c1:N'
-).add_params(brush)
-detail = alt.Chart(df).mark_bar().encode(
-    x='c2:N', y='count()'
-).transform_filter(brush)
-chart = scatter | detail
-```

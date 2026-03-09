@@ -3,10 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-12
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure, Streamlit, data visualization
-**TokenBudget:** ~1900
+**LoadTrigger:** kw:demo-creation, kw:synthetic-data
+**TokenBudget:** ~2300
 **ContextTier:** Low
 **Depends:** 130-snowflake-demo-sql.md
 
@@ -201,13 +202,73 @@ for _ in range(1000):
 ```
 **Benefits:** Realistic correlations, meaningful patterns, supports narrative storytelling.
 
-## Core Principles
+## DemoScenario Pattern
 
-- **Story-first approach:** Make demos lead with a customer problem and clear outcome
-- **Reproducibility:** Ensure data is deterministic via consistent seeding (Faker seed=42)
-- **Resilience:** Build offline fallback for live failures
-- **Progressive disclosure:** Start with basic insights, show advanced features later
-- **Performance:** Minimize latency with pre-warmed data and caches
+**Rule:** Never hard-code record counts. Use a scenario pattern for configurable data generation:
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class DemoScenario:
+    name: str
+    customers: int = 100
+    orders: int = 500
+    products: int = 50
+    days_of_history: int = 90
+
+# Usage
+scenario = DemoScenario(name="quick_demo", customers=50, orders=200)
+
+def generate_demo_data(scenario: DemoScenario):
+    fake = Faker()
+    fake.seed_instance(42)
+    customers = [fake.simple_profile() for _ in range(scenario.customers)]
+    # Generate orders referencing customer IDs
+    orders = [{'customer_id': fake.random_element(range(scenario.customers)),
+               'amount': fake.pyfloat(min_value=10, max_value=500)}
+              for _ in range(scenario.orders)]
+    return customers, orders
+```
+
+## Offline Fallback Pattern
+
+```python
+import json
+from pathlib import Path
+
+CACHE_DIR = Path("demo_cache")
+
+def get_demo_data(scenario: DemoScenario):
+    cache_file = CACHE_DIR / f"{scenario.name}.json"
+    try:
+        # Try live generation from Snowflake
+        df = session.sql("SELECT * FROM demo_source LIMIT 1000").to_pandas()
+        # Cache for offline use
+        CACHE_DIR.mkdir(exist_ok=True)
+        df.to_json(cache_file, orient="records")
+        return df
+    except Exception:
+        # Fall back to cached data
+        if cache_file.exists():
+            return pd.read_json(cache_file, orient="records")
+        # Final fallback: generate synthetic
+        return generate_demo_data(scenario)
+```
+
+## Vectorized Snowflake Writes
+
+**Connection Paradigms:** Use Snowpark `session` for interactive/notebook contexts (e.g., `session.sql(...).collect()`). Use `snowflake-connector-python` `conn` for batch scripts (e.g., `write_pandas(conn, ...)`). Do not mix paradigms in the same script.
+
+```python
+from snowflake.connector.pandas_tools import write_pandas
+
+# Tag queries for cost tracking
+session.sql("ALTER SESSION SET QUERY_TAG = 'demo_data_pipeline'").collect()
+
+# Vectorized write (much faster than row-by-row INSERT)
+write_pandas(conn, df, table_name='DEMO_TABLE', database='DEMO_DB', schema='PUBLIC', overwrite=True)
+```
 
 ## Data Generation and Loading
 

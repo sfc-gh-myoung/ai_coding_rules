@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Python classes, OOP, inheritance, dataclasses, @property, class design, encapsulation, composition, Protocol, ABC, type hints
-**TokenBudget:** ~3250
+**TokenBudget:** ~2950
 **ContextTier:** Medium
 **Depends:** 200-python-core.md, 201-python-lint-format.md, 204-python-docs-comments.md
 **LoadTrigger:** kw:class, kw:oop, kw:dataclass
@@ -35,7 +35,6 @@ Practical, modern guidelines for when and how to use classes in Python, emphasiz
 - **204-python-docs-comments.md** - Documentation standards
 
 **Related:**
-- **200-python-core.md** - Type hints and error handling patterns
 - **206-python-pytest.md** - Testing class-based code
 
 ### External Documentation
@@ -59,7 +58,7 @@ Practical, modern guidelines for when and how to use classes in Python, emphasiz
 - **Composition over inheritance** - Favor has-a over is-a relationships
 - **Use @property for computed attributes** - Not Java-style getters/setters
 - **Add type hints to all class methods** - Including __init__, properties, methods
-- **frozen=True for immutable data** - Use @dataclass(frozen=True) when appropriate
+- **frozen=True for immutable data** - Use @dataclass(frozen=True) for value objects and read-only configuration
 - **Never create classes for single functions** - Use plain functions instead
 
 ### Forbidden
@@ -184,20 +183,7 @@ class EmailService:
     def send_welcome(self, user: User) -> None: ...
 ```
 
-## Post-Execution Checklist
-- [ ] Chosen class over functions for justified state + behavior needs
-- [ ] Composition preferred; shallow or no inheritance
-- [ ] `@dataclass` used for data carriers; `kw_only=True`; `slots=True` considered
-- [ ] Public API fully type-annotated and documented with clear docstrings
-- [ ] Encapsulation via properties where invariants/validation exist
-- [ ] Helpful `__repr__` without secrets; equality semantics deliberate
-- [ ] Resource management via context managers where applicable
-- [ ] No heavy side effects in `__init__`; dependencies injected explicitly
-- [ ] Lints and tests pass (`uvx ruff`, `uv run pytest`)
-
-## Validation
-- **Success Checks:** Ruff lint/format pass; tests cover main behaviors; class design adheres to principles; public API is stable and annotated.
-- **Negative Tests:** Deep inheritance; mutable global state; side effects in constructors; missing type hints; leaking secrets in `__repr__`.
+## Implementation Details
 
 > **Investigation Required**
 > When applying this rule:
@@ -242,29 +228,30 @@ class Notifier:
 
 ## Class Design Guidelines
 
+Directive levels: **Mandatory** = must always follow. **Rule** = strong default, override only with documented reason. **Avoid** = don't unless justified by specific constraint.
+
 ### 1.1 When to use a class
 - Rule: Use a class when modeling state + behavior that naturally belong together or when you need polymorphism via interfaces.
-- Consider: Prefer pure functions and modules for stateless utilities.
-- Consider: Use `@dataclass` for simple data carriers; elevate to rich domain objects only when behavior is justified.
+- Rule: When module has no shared state, use functions instead of classes.
+- Rule: Use `@dataclass` for simple data carriers; elevate to rich domain objects only when behavior is justified.
 
 ### 1.2 Data classes
 ```python
 from dataclasses import dataclass
-from typing import Optional
 
 @dataclass(slots=True, kw_only=True, frozen=False)
 class Customer:
     id: str
     name: str
-    email: Optional[str] = None
+    email: str | None = None
 
     def update_email(self, new_email: str) -> None:
         self.email = new_email
 ```
 
-- Requirement: Use `kw_only=True` for readability and future-proofing.
+- Rule: Use `kw_only=True` for readability and future-proofing.
 - Rule: Use `frozen=True` for value objects that should be immutable; implement methods that return new instances instead of mutating.
-- Consider: `slots=True` to reduce memory footprint; avoid if you rely on dynamic attributes or pickling patterns.
+- Rule: When creating >1000 instances, add `slots=True` to reduce memory footprint; avoid if: (1) code uses `__dict__` directly, (2) code uses `setattr()` with dynamic keys, or (3) code uses `pickle.dumps()`/`loads()` on instances.
 
 ### 1.3 Encapsulation and properties
 ```python
@@ -290,7 +277,7 @@ class Temperature:
 ```
 
 - Rule: Prefer properties over explicit `get_*`/`set_*` methods.
-- Avoid: Hidden side effects in getters/setters; keep them lightweight.
+- Avoid: Hidden side effects in getters/setters. Properties must execute in O(1) time with no I/O, no database calls, and no network requests.
 
 ### 1.4 Interfaces with ABCs and Protocols
 ```python
@@ -309,7 +296,7 @@ class KeyValueStore(Protocol):
     def set(self, key: str, value: str) -> None: ...
 ```
 
-- Requirement: Use `Protocol` for duck-typed interfaces; use ABCs when you need shared base logic or registration.
+- Rule: Use `Protocol` for duck-typed interfaces; use ABCs when you need shared base logic or registration.
 - Avoid: Deep inheritance hierarchies (>2 levels). Prefer composing smaller objects.
 
 ### 1.5 Resource management
@@ -327,7 +314,7 @@ def opened(path: str) -> Iterator[object]:
 ```
 
 - Rule: Use context managers for files, sockets, locks, transactions.
-- Consider: Implement `__enter__`/`__exit__` on classes that own the resource lifecycle.
+- Rule: When class owns resources (files, connections, locks), implement `__enter__`/`__exit__` for context manager support.
 
 ### 1.6 Special methods and representation
 ```python
@@ -342,11 +329,11 @@ class Point:
         return f"Point(x={self.x!r}, y={self.y!r})"
 
     def __str__(self) -> str:  # user-friendly
-        return f"({self.x}, {this.y})"
+        return f"({self.x}, {self.y})"
 ```
 
-- Requirement: Provide `__repr__` suitable for developers; avoid including secrets.
-- Consider: Implement `__eq__`/`__hash__` for value semantics; dataclasses can generate these.
+- Rule: Provide `__repr__` suitable for developers; avoid including secrets.
+- Rule: Implement `__eq__`/`__hash__` for value semantics; dataclasses can generate these.
 
 ### 1.7 Initialization and dependency injection
 ```python
@@ -363,10 +350,10 @@ class Service:
 - Avoid: Performing I/O or long-running work in `__init__`.
 
 ### 1.8 Testing and seams
-- Requirement: Design for testability by accepting interfaces (Protocols/ABCs) that can be faked/mocked.
+- Rule: Design for testability by accepting interfaces (Protocols/ABCs) that can be faked/mocked.
 - Rule: Keep classes small to simplify unit tests; separate pure logic from I/O.
 
 ### 1.9 Performance considerations
-- Consider: `slots=True` for high-volume instances.
-- Consider: Avoid per-instance `__dict__` unless needed.
-- Consider: Use `functools.cached_property` for expensive derived values.
+- Rule: When creating >1000 instances, use `slots=True` for memory efficiency.
+- Rule: Avoid per-instance `__dict__` unless dynamic attributes are needed.
+- Rule: Use `functools.cached_property` for computations taking >1ms or involving >1000 iterations (no I/O, no database calls, O(1) complexity for the cache lookup).

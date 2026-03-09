@@ -1,4 +1,33 @@
-# Token Efficiency Rubric (10 points)
+# Token Efficiency Rubric
+
+> **STATUS: INFORMATIONAL ONLY - NOT SCORED**
+>
+> As of Scoring Rubric v2.0, Token Efficiency has been **merged into Rule Size** and is no longer a scored dimension. This rubric is retained for:
+> - Historical reference
+> - Informational reporting in reviews
+> - Guidance on reducing line count
+>
+> **Findings from this rubric appear in the recommendations section, not in the score.**
+
+---
+
+## Redundancy Analysis (Informational)
+
+When reviewing rules, note redundancy issues to inform Rule Size recommendations:
+
+| Redundancy Count | Recommendation |
+|------------------|----------------|
+| 0 instances | No action needed |
+| 1-2 instances | Note in recommendations |
+| 3+ instances | Prioritize in remediation |
+
+---
+
+## Original Rubric (Historical Reference)
+
+The following content is preserved for historical reference and to guide redundancy analysis.
+
+---
 
 ## Mandatory Issue Inventory (REQUIRED)
 
@@ -45,7 +74,7 @@
 - Do NOT start reading rule yet
 
 **Step 2: Run Token Validator (if available)**
-- Execute: `uv run python scripts/token_validator.py [target_file]`
+- Execute: `uv run ai-rules tokens [target_file]`
 - Record declared, actual, and variance
 - If unavailable: Estimate using formula (Words × 1.3 + Code lines × 4)
 
@@ -140,7 +169,7 @@ TokenBudget: ~5250  (Declared = 5250)
 
 **Step 2:** Run token counter
 ```bash
-uv run python scripts/token_validator.py [target_file]
+uv run ai-rules tokens [target_file]
 ```
 
 **Step 3:** Calculate variance
@@ -228,7 +257,7 @@ Structured % = (structured lines / total content lines) × 100
 ### With Validator Tool
 
 ```bash
-uv run python scripts/token_validator.py rules/example.md
+uv run ai-rules tokens rules/example.md
 
 Output:
   Declared: 5250 tokens
@@ -253,7 +282,7 @@ Example:
 **Document limitation:**
 ```markdown
 Note: Token validator unavailable. Manual estimate used.
-Recommend running: uv run python scripts/token_validator.py [file]
+Recommend running: uv run ai-rules tokens [file]
 ```
 
 ## Redundancy Analysis
@@ -338,7 +367,7 @@ Savings: 60 tokens (71% reduction)
 ### Step 1: Check Token Budget
 
 ```bash
-$ uv run python scripts/token_validator.py rules/example.md
+$ uv run ai-rules tokens rules/example.md
 
 Declared: 5250 tokens
 Actual: 6800 tokens
@@ -590,7 +619,7 @@ Token count: ~4800 tokens
 If token counter available, report actual count:
 
 ```bash
-uv run python scripts/token_validator.py [target_file] --count-only
+uv run ai-rules tokens [target_file]
 ```
 
 Include in review for reference:

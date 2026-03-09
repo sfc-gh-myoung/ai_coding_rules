@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:data-quality, kw:validation
 **Keywords:** data profiling, expectations, quality checks, data validation, NULL detection, uniqueness validation, freshness monitoring, anomaly detection, automated monitoring, event tables, create DMF, quality monitoring, data expectations, quality rules
 **TokenBudget:** ~4550
@@ -195,7 +195,7 @@ $$;
 ALTER TABLE critical_table ADD DATA METRIC FUNCTION check_nulls ON ();
 -- No expectation defined! DMF runs but never alerts on high null rates
 ```
-**Problem:** No pass/fail criteria; metrics collected but not acted upon; silent quality degradation; no alerting; manual result checking required; defeats automation purpose
+**Problem:** No pass/fail criteria; silent quality degradation; no alerting on violations
 
 **Correct Pattern:**
 ```sql
@@ -213,7 +213,7 @@ ALTER TABLE critical_table
 
 -- Set up alerting on expectation failures via event table
 ```
-**Benefits:** Automated pass/fail evaluation; proactive alerting; clear quality thresholds; actionable results; enables quality gates; compliance-ready
+**Benefits:** Automated pass/fail evaluation; proactive alerting; enables quality gates
 
 **Anti-Pattern 2: Not Profiling Data Before Setting Thresholds**
 ```sql
@@ -223,7 +223,7 @@ ALTER TABLE sales_data
   EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON (discount_pct)) = 0;
 -- Expectation fails immediately because discount_pct is NULL for 30% of rows naturally!
 ```
-**Problem:** False positive alerts; arbitrary thresholds; alert fatigue; lost trust in monitoring; production noise; unrealistic expectations; wasted investigation time
+**Problem:** False positive alerts; alert fatigue; lost trust in monitoring
 
 **Correct Pattern:**
 ```sql
@@ -242,7 +242,7 @@ ALTER TABLE sales_data
   EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON (discount_pct)) < 0.40;
 -- Alert only if null rate exceeds normal 32% by significant margin
 ```
-**Benefits:** Realistic thresholds; fewer false positives; actionable alerts; baseline understanding; trust in monitoring; effective quality gates
+**Benefits:** Realistic thresholds based on profiling; actionable alerts; effective quality gates
 
 **Anti-Pattern 3: Exceeding 10,000 DMF-Object Association Limit**
 ```sql
@@ -250,7 +250,7 @@ ALTER TABLE sales_data
 -- [Loop through 15,000 tables and add same DMF to each]
 -- Hits 10,000 association limit and fails
 ```
-**Problem:** Account-wide 10,000 association limit; deployment failures; unmonitored critical tables; wasted associations on low-value tables; serverless cost bloat; monitoring gaps
+**Problem:** Account-wide 10,000 association limit; deployment failures; wasted associations on low-value tables
 
 **Correct Pattern:**
 ```sql
@@ -271,7 +271,7 @@ WHERE tag_name = 'CRITICALITY' AND tag_value = 'HIGH';
 -- Associate DMFs to ~200 critical tables, well under 10,000 limit
 -- Use system DMFs efficiently: FRESHNESS, NULL_COUNT, ROW_COUNT
 ```
-**Benefits:** Stays under 10,000 limit; focuses on high-value tables; cost-effective monitoring; complete critical coverage; scalable approach; prioritized quality
+**Benefits:** Stays under 10,000 limit; focuses on high-value tables; cost-effective monitoring
 
 **Anti-Pattern 4: Using Database Roles as DMF Table Owners**
 ```sql
@@ -283,7 +283,7 @@ GRANT OWNERSHIP ON TABLE customers TO DATABASE ROLE db_owner;
 ALTER TABLE customers ADD DATA METRIC FUNCTION check_freshness ON ();
 -- Error: Database roles cannot have global EXECUTE DATA METRIC FUNCTION privilege
 ```
-**Problem:** Database roles can't hold global privileges; DMF execution fails; requires ownership transfer; deployment complications; cross-database DMF limitations
+**Problem:** Database roles can't hold global privileges; DMF execution fails; requires ownership transfer
 
 **Correct Pattern:**
 ```sql
@@ -297,71 +297,53 @@ GRANT OWNERSHIP ON TABLE customers TO ROLE data_quality_owner;
 -- Now DMF operations succeed
 ALTER TABLE customers ADD DATA METRIC FUNCTION check_freshness ON ();
 ```
-**Benefits:** DMF operations work; proper privilege model; account-scoped role inheritance; cross-database DMF support; clean ownership model; no deployment issues
+**Benefits:** DMF operations work; proper privilege model; account-scoped role inheritance
 
 ## Output Format Examples
 
 ```sql
--- Complete Data Metric Function definition with multiple measurement types
-CREATE OR REPLACE DATA METRIC FUNCTION DMF_CUSTOMER_DATA_QUALITY()
-  COMMENT = 'Comprehensive data quality monitoring for customer dimension table'
-  RETURNS NUMBER
-  SCHEDULE = '60 MINUTE'  -- Run every hour
-  AS
-  $$
-    DECLARE
-        freshness_hours NUMBER;
-        null_count_email NUMBER;
-        null_count_phone NUMBER;
-        duplicate_count NUMBER;
-        invalid_email_count NUMBER;
-        total_rows NUMBER;
-    BEGIN
-        -- 1. Freshness: Data should be updated within last 24 hours
-        SELECT DATEDIFF(HOUR, MAX(last_updated_ts), CURRENT_TIMESTAMP())
-        INTO freshness_hours
-        FROM PROD_DB.DIM.CUSTOMERS;
+-- Complete workflow: Create DMFs, associate with table, set expectations
 
-        -- 2. Null checks: Critical fields should have minimal nulls
-        SELECT
-            SUM(CASE WHEN email IS NULL THEN 1 ELSE 0 END),
-            SUM(CASE WHEN phone IS NULL THEN 1 ELSE 0 END),
-            COUNT(*)
-        INTO null_count_email, null_count_phone, total_rows
-        FROM PROD_DB.DIM.CUSTOMERS;
+-- Step 1: Create custom DMF for email format validation
+CREATE OR REPLACE DATA METRIC FUNCTION DMF_INVALID_EMAIL_COUNT(
+  ARG_T TABLE(email STRING)
+)
+RETURNS FLOAT
+COMMENT = 'Count rows with invalid email format'
+AS
+$$
+  SELECT COUNT(*)::FLOAT
+  FROM ARG_T
+  WHERE email IS NOT NULL
+    AND email NOT REGEXP '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}'
+$$;
 
-        -- 3. Uniqueness: Customer IDs must be unique
-        SELECT COUNT(*) - COUNT(DISTINCT customer_id)
-        INTO duplicate_count
-        FROM PROD_DB.DIM.CUSTOMERS;
+-- Step 2: Associate system and custom DMFs with table
+ALTER TABLE PROD_DB.DIM.CUSTOMERS
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (email);
+ALTER TABLE PROD_DB.DIM.CUSTOMERS
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (phone);
+ALTER TABLE PROD_DB.DIM.CUSTOMERS
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.DUPLICATE_COUNT ON (customer_id);
+ALTER TABLE PROD_DB.DIM.CUSTOMERS
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.FRESHNESS ON (last_updated_ts);
+ALTER TABLE PROD_DB.DIM.CUSTOMERS
+  ADD DATA METRIC FUNCTION DMF_INVALID_EMAIL_COUNT ON (email);
 
-        -- 4. Custom validation: Email format check
-        SELECT COUNT(*)
-        INTO invalid_email_count
-        FROM PROD_DB.DIM.CUSTOMERS
-        WHERE email IS NOT NULL
-        AND email NOT REGEXP '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}';
+-- Step 3: Set schedule and expectations
+ALTER TABLE PROD_DB.DIM.CUSTOMERS
+  MODIFY DATA METRIC SCHEDULE '60 MINUTES'
+    EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON email) < 500          -- <5% null emails
+    EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON phone) < 1000         -- <10% null phones
+    EXPECT (SNOWFLAKE.CORE.DUPLICATE_COUNT ON customer_id) = 0 -- no duplicates
+    EXPECT (SNOWFLAKE.CORE.FRESHNESS ON last_updated_ts) < 1440 -- updated within 24h
+    EXPECT (DMF_INVALID_EMAIL_COUNT ON email) < 100;           -- <1% invalid emails
 
-        -- Define quality expectations
-        EXPECT (freshness_hours) < 24;  -- Data updated within 24 hours
-        EXPECT (null_count_email) < (total_rows * 0.05);  -- <5% null emails
-        EXPECT (null_count_phone) < (total_rows * 0.10);  -- <10% null phones
-        EXPECT (duplicate_count) = 0;  -- No duplicate customer IDs
-        EXPECT (invalid_email_count) < (total_rows * 0.01);  -- <1% invalid emails
-
-        -- Return overall quality score (percentage of passing checks)
-        RETURN 1.0;  -- DMF framework handles pass/fail internally
-    END;
-  $$;
-
--- Execute DMF and check results
-CALL DMF_CUSTOMER_DATA_QUALITY();
-
--- Query execution history
+-- Step 4: Query execution history
 SELECT *
-FROM TABLE(INFORMATION_SCHEMA.DATA_METRIC_FUNCTION_RESULTS(
-  REF('DMF_CUSTOMER_DATA_QUALITY')))
-ORDER BY measurement_time DESC
+FROM SNOWFLAKE.LOCAL.DATA_METRIC_FUNCTION_RESULTS
+WHERE TABLE_NAME = 'CUSTOMERS'
+ORDER BY MEASUREMENT_TIME DESC
 LIMIT 10;
 ```
 
@@ -446,12 +428,9 @@ LIMIT 10;
 ALTER TABLE CUSTOMERS
   ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (email);
 
--- Step 4: Set expectation
+-- Step 4: Set schedule and expectation
 ALTER TABLE CUSTOMERS
-  MODIFY DATA METRIC SCHEDULE
-    '5 MINUTES'
-    USING CRON '*/5 * * * *'
-    SET REFERENCE = 'email_quality_check'
+  MODIFY DATA METRIC SCHEDULE '5 MINUTES'
     EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON email) < 100;
 ```
 
@@ -519,4 +498,23 @@ ALTER TABLE TRANSACTIONS
     EXPECT (SNOWFLAKE.CORE.ROW_COUNT ON ()) > 1000;
 ```
 
+## DMF Scheduling
+
+**Set DMF schedule** with `ALTER TABLE` to control evaluation frequency:
+
+```sql
+-- Event-driven: evaluate after data changes
+ALTER TABLE CUSTOMERS SET DATA_METRIC_SCHEDULE = 'TRIGGER_ON_CHANGES';
+
+-- Periodic: evaluate at fixed intervals (minimum 5 minutes)
+ALTER TABLE CUSTOMERS SET DATA_METRIC_SCHEDULE = '5 MINUTE';
+
+-- Hourly checks for less critical tables
+ALTER TABLE REFERENCE_DATA SET DATA_METRIC_SCHEDULE = '60 MINUTE';
+```
+
+**Scheduling guidance:** Use `TRIGGER_ON_CHANGES` for tables fed by Snowpipe or streams. Use `5 MINUTE` for high-criticality tables with frequent updates. Use `60 MINUTE` or `1 DAY` for reference/dimension tables with infrequent changes.
+
 ## Custom DMFs
+
+See **124a-snowflake-data-quality-custom.md** for custom DMF creation patterns including SQL UDFs, Python UDFs, parameterized column references, and multi-check validation functions.

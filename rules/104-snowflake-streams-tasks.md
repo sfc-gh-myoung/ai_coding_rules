@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:stream, kw:task, kw:cdc
 **Keywords:** scheduled tasks, pipeline automation, MERGE patterns, SQL, Snowflake, task DAG, AFTER dependencies, Task History, create stream, create task, debug stream, task troubleshooting, stream consumption, task execution error, stream lag
-**TokenBudget:** ~2550
+**TokenBudget:** ~3100
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -58,12 +58,12 @@ Patterns for building robust, incremental data pipelines using Snowflake Streams
 
 ### Inputs and Prerequisites
 
-- Source table(s) with change data capture requirements
+- Role with CREATE STREAM and CREATE TASK privileges on target schema (typically SYSADMIN or a custom role with these grants)
+- USAGE privilege on the warehouse assigned to tasks
+- EXECUTE TASK privilege (account-level, granted by ACCOUNTADMIN) for the role that owns the task
+- Source table(s) must exist before stream creation
 - Target table(s) for incremental updates
-- Warehouse for task execution
-- ACCOUNTADMIN or role with CREATE STREAM, CREATE TASK privileges
 - Understanding of data update patterns (frequency, volume, latency requirements)
-- Idempotency requirements defined
 
 ### Mandatory
 
@@ -132,11 +132,12 @@ Patterns for building robust, incremental data pipelines using Snowflake Streams
 
 ### Post-Execution Checklist
 
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
+- [ ] Verify stream has data: `SELECT SYSTEM$STREAM_HAS_DATA('<stream_name>')`
+- [ ] Confirm task schedule is correct: `SHOW TASKS LIKE '<task_name>'`
+- [ ] Validate task tree dependencies: no circular references
+- [ ] Check task history for recent failures: `SELECT * FROM TABLE(INFORMATION_SCHEMA.TASK_HISTORY()) WHERE STATE = 'FAILED'`
+- [ ] Stream offset advances after MERGE completes
+- [ ] Task is in STARTED state: `ALTER TASK <task_name> RESUME`
 
 ## Anti-Patterns and Common Mistakes
 
@@ -252,27 +253,41 @@ LIMIT 10;
 ## Output Format Examples
 
 ```sql
--- Analysis Query: Investigate current state
-SELECT column_pattern, COUNT(*) as usage_count
-FROM information_schema.columns
-WHERE table_schema = 'TARGET_SCHEMA'
-GROUP BY column_pattern;
+-- Pipeline Setup Workflow
 
--- Implementation: Apply Snowflake best practices
-CREATE OR REPLACE VIEW schema.view_name
-COMMENT = 'Business purpose following semantic model standards'
+-- Step 1: Create stream on source table
+CREATE OR REPLACE STREAM my_db.my_schema.orders_stream
+  ON TABLE my_db.my_schema.orders
+  SHOW_INITIAL_ROWS = FALSE;
+
+-- Step 2: Create target table
+CREATE TABLE IF NOT EXISTS my_db.my_schema.orders_processed (
+    order_id NUMBER PRIMARY KEY,
+    customer_id NUMBER,
+    amount NUMBER(12,2),
+    processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP()
+);
+
+-- Step 3: Create task with MERGE and WHEN clause
+CREATE OR REPLACE TASK my_db.my_schema.process_orders
+  WAREHOUSE = 'ETL_WH'
+  SCHEDULE = '5 MINUTE'
+  WHEN SYSTEM$STREAM_HAS_DATA('MY_DB.MY_SCHEMA.ORDERS_STREAM')
 AS
-SELECT
-    -- Explicit column list with business context
-    id COMMENT 'Surrogate key',
-    name COMMENT 'Business entity name',
-    created_at COMMENT 'Record creation timestamp'
-FROM schema.source_table
-WHERE is_active = TRUE;
+  MERGE INTO my_db.my_schema.orders_processed t
+  USING my_db.my_schema.orders_stream s
+    ON t.order_id = s.order_id
+  WHEN MATCHED AND s.METADATA$ACTION = 'DELETE' THEN DELETE
+  WHEN MATCHED THEN UPDATE SET t.amount = s.amount, t.processed_at = CURRENT_TIMESTAMP()
+  WHEN NOT MATCHED THEN INSERT (order_id, customer_id, amount)
+    VALUES (s.order_id, s.customer_id, s.amount);
 
--- Validation: Confirm implementation
-SELECT * FROM schema.view_name LIMIT 5;
-SHOW VIEWS LIKE '%view_name%';
+-- Step 4: Resume the task
+ALTER TASK my_db.my_schema.process_orders RESUME;
+
+-- Step 5: Verify setup
+SHOW STREAMS LIKE 'ORDERS_STREAM' IN SCHEMA my_db.my_schema;
+SHOW TASKS LIKE 'PROCESS_ORDERS' IN SCHEMA my_db.my_schema;
 ```
 
 ## Incremental Pipeline Design
@@ -285,3 +300,37 @@ SHOW VIEWS LIKE '%view_name%';
 - **Requirement:** Tasks and DML must be idempotent. Use `CREATE OR REPLACE` for DDL and ensure re-runs do not duplicate data.
 - **Always:** Consume the `STREAM` at the end of the transaction so its offset advances correctly.
 - **Always:** Monitor task execution and status using Snowsight's Task History.
+
+## Stream Staleness Monitoring
+
+A stream becomes **stale** when its offset falls behind the data retention period of the source table. Once stale, the stream cannot be consumed and must be recreated, losing unprocessed changes.
+
+### Prevention and Detection
+
+```sql
+-- Check stream staleness status
+SELECT stream_name, stale, stale_after
+FROM TABLE(INFORMATION_SCHEMA.STREAMS())
+WHERE stream_schema = 'MY_SCHEMA';
+
+-- Use SYSTEM$STREAM_HAS_DATA() to check for pending changes
+SELECT SYSTEM$STREAM_HAS_DATA('MY_DB.MY_SCHEMA.MY_STREAM');
+```
+
+**Key strategies:**
+- **Monitor `STALE_AFTER`:** This column shows when the stream will become stale. Set alerts when `STALE_AFTER` is within 24 hours of the current time.
+- **Increase source table retention:** `ALTER TABLE source SET DATA_RETENTION_TIME_IN_DAYS = 14;` -- gives streams more time before staleness.
+- **Schedule tasks frequently enough** that the stream is consumed well before the retention window expires.
+- **Alert on task failures:** A failed task that stops consuming a stream is the most common cause of staleness. Monitor `TASK_HISTORY()` for consecutive failures.
+
+## Task Monitoring Quick-Check
+
+Production monitoring query for task health:
+
+```sql
+SELECT name, state, scheduled_time, completed_time,
+       error_code, error_message,
+       DATEDIFF('second', scheduled_time, completed_time) AS duration_seconds
+FROM TABLE(INFORMATION_SCHEMA.TASK_HISTORY(RESULT_LIMIT => 20))
+ORDER BY scheduled_time DESC;
+```

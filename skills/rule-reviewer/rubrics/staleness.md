@@ -1,4 +1,34 @@
-# Staleness Rubric (10 points)
+# Staleness Rubric
+
+> **STATUS: INFORMATIONAL ONLY - NOT SCORED**
+>
+> As of Scoring Rubric v2.0, Staleness is **no longer a scored dimension**. This rubric is retained for:
+> - Historical reference
+> - Informational reporting in reviews
+> - Guidance on identifying outdated content
+>
+> **Findings from this rubric appear in the recommendations section, not in the score.**
+
+---
+
+## Staleness Check (Informational)
+
+When reviewing rules, note staleness issues to inform recommendations:
+
+| Finding Type | Recommendation |
+|--------------|----------------|
+| LastUpdated >180 days | Flag for review |
+| Deprecated tools | Note in recommendations |
+| Broken links | Priority fix |
+| Outdated patterns | Suggest updates |
+
+---
+
+## Original Rubric (Historical Reference)
+
+The following content is preserved for historical reference and to guide staleness analysis.
+
+---
 
 ## Mandatory Issue Inventory (REQUIRED)
 

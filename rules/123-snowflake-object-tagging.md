@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:tag, kw:tagging, kw:metadata
 **Keywords:** cost attribution, resource tagging, governance tags, masking policies, row access policies, tag lineage, tag management
-**TokenBudget:** ~2500
+**TokenBudget:** ~2850
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 107-snowflake-security-governance.md
 
@@ -119,8 +119,7 @@ CREATE TAG SALES.TAG.IS_SENSITIVE;
 
 **Correct Pattern:**
 ```sql
-CREATE TAG GOVERNANCE.TAGS.DATA_CLASSIFICATION
-  ALLOWED_VALUES 'PUBLIC', 'INTERNAL', 'CONFIDENTIAL', 'RESTRICTED';
+-- See Tag Fundamentals section for CREATE TAG with ALLOWED_VALUES
 GRANT APPLY ON TAG GOVERNANCE.TAGS.DATA_CLASSIFICATION TO ROLE ANALYTICS_TEAM;
 ```
 
@@ -155,8 +154,8 @@ ALTER DATABASE DB3 SET TAG ENVIRONMENT = 'Production';
 
 **Correct Pattern:**
 ```sql
-CREATE TAG GOVERNANCE.TAGS.ENVIRONMENT
-  ALLOWED_VALUES 'DEV', 'QA', 'STAGING', 'PROD';
+-- See Tag Fundamentals section for CREATE TAG with ALLOWED_VALUES
+-- Use ALLOWED_VALUES to enforce consistency across all assignments
 ```
 
 ### Anti-Pattern 4: Missing Cost Attribution Tags
@@ -272,6 +271,43 @@ ALTER TABLE CUSTOMERS MODIFY COLUMN email SET TAG
   GOVERNANCE.TAGS.SEMANTIC_CATEGORY = 'EMAIL';
 ```
 
+## Tag-Based Row Access Policies
+
+Assign row access policy to a tag; automatically filters rows on all tagged tables.
+
+```sql
+-- Create row access policy based on tag value
+CREATE ROW ACCESS POLICY GOVERNANCE.POLICIES.REGION_FILTER AS (region_val VARCHAR)
+  RETURNS BOOLEAN ->
+  CURRENT_ROLE() IN ('ADMIN') OR IS_ROLE_IN_SESSION('REGION_' || region_val);
+
+-- Associate row access policy with tag
+ALTER TAG GOVERNANCE.TAGS.REGION SET
+  ROW ACCESS POLICY GOVERNANCE.POLICIES.REGION_FILTER;
+
+-- Tag tables — row access policy automatically applies
+ALTER TABLE SALES SET TAG GOVERNANCE.TAGS.REGION = 'US';
+ALTER TABLE ORDERS SET TAG GOVERNANCE.TAGS.REGION = 'EU';
+```
+
+## Tag Lifecycle Management
+
+```sql
+-- Remove tag from object
+ALTER TABLE CUSTOMERS UNSET TAG GOVERNANCE.TAGS.DATA_CLASSIFICATION;
+ALTER WAREHOUSE WH_ANALYTICS UNSET TAG GOVERNANCE.TAGS.COST_CENTER;
+
+-- Drop tag definition (removes all assignments)
+DROP TAG IF EXISTS GOVERNANCE.TAGS.DEPRECATED_TAG;
+
+-- Modify allowed values
+ALTER TAG GOVERNANCE.TAGS.ENVIRONMENT SET ALLOWED_VALUES 'DEV', 'QA', 'STAGING', 'PROD', 'DR';
+```
+
+**Error Handling:**
+- **ALLOWED_VALUES violation:** Setting a tag to a value not in the allowed list returns an error. Fix: check allowed values with `SHOW TAGS LIKE 'TAG_NAME'` before assignment.
+- **Tag quota exceeded:** Max 50 tags per object. Fix: audit with TAG_REFERENCES and consolidate redundant tags.
+
 ## Cost Attribution
 
 **Warehouse tagging for chargeback:**
@@ -296,6 +332,10 @@ GROUP BY tr.tag_value;
 - **100 tag assignments** maximum per single statement
 
 ## Monitoring Tags
+
+**TAG_REFERENCES: Function vs View**
+- `TABLE(INFORMATION_SCHEMA.TAG_REFERENCES(...))` — real-time table function, scoped to current database
+- `SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES` — account-level view with up to 120-minute latency
 
 ```sql
 -- Get tags for specific object
@@ -322,6 +362,12 @@ GROUP BY tag_name, tag_value, object_domain;
 ## Management Approaches
 
 **Centralized:** Core governance team creates/manages all tags. Teams get APPLY privilege only.
+
+**Tag Naming Conventions:**
+- Use UPPER_SNAKE_CASE for tag names: `DATA_CLASSIFICATION`, `COST_CENTER`, `PII_LEVEL`
+- Group related tags in a dedicated schema: `GOVERNANCE.TAGS`
+- Prefix environment-specific tags: `ENV_TYPE`, `ENV_OWNER`
+- Document every tag with COMMENT and ALLOWED_VALUES constraints
 
 **Decentralized:** Teams create tags in their schemas. Governance creates shared tags.
 

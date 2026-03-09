@@ -11,7 +11,7 @@ This workflow is executed as **MANDATORY STEP 2** in every FULL and FOCUSED revi
 ## Prerequisites
 
 - Rule file has been read completely
-- `scripts/schema_validator.py` is available in project root
+- `ai-rules validate` CLI command is available
 - Python 3.11+ environment is active
 
 ## Execution Steps
@@ -22,7 +22,7 @@ Execute the schema validator and capture both stdout and exit code:
 
 ```python
 import subprocess
-from pathlib import Path
+import shutil
 
 def run_schema_validation(target_file: str) -> tuple[str, int, dict]:
     """
@@ -32,7 +32,7 @@ def run_schema_validation(target_file: str) -> tuple[str, int, dict]:
         (output_text, exit_code, error_counts)
     """
     result = subprocess.run(
-        ['python', 'scripts/schema_validator.py', target_file],
+        ['uv', 'run', 'ai-rules', 'validate', target_file],
         capture_output=True,
         text=True,
         timeout=30
@@ -191,8 +191,8 @@ def add_schema_to_critical_issues(critical_issues: list, parsed_errors: dict) ->
 ### Validator Not Found
 
 ```python
-if not Path('scripts/schema_validator.py').exists():
-    print("WARNING: schema_validator.py not found. Skipping schema validation.")
+if not shutil.which('ai-rules'):
+    print("WARNING: ai-rules CLI not found. Skipping schema validation.")
     print("Parsability will be scored manually without schema validation caps.")
     return None
 ```

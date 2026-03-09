@@ -3,17 +3,17 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-12
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** @st.cache_data, @st.cache_resource, st.fragment, NULL handling, slow streamlit, streamlit caching, optimize streamlit, fix slow queries, fragment batch processing, streamlit performance, app slow, loading data, caching pattern
-**TokenBudget:** ~5450
+**TokenBudget:** ~4950
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 103-snowflake-performance-tuning.md
 
 ## Scope
 
 **What This Rule Covers:**
-Comprehensive guidance for optimizing Streamlit application performance through caching strategies (@st.cache_data, @st.cache_resource), efficient data loading from Snowflake with column normalization, progress indicators (st.spinner, st.progress, fragments), and performance profiling targeting <2s load times. For detailed SQL error handling patterns, see 101e-snowflake-streamlit-sql-errors.md.
+Comprehensive guidance for optimizing Streamlit application performance through caching strategies (@st.cache_data, @st.cache_resource), efficient data loading from Snowflake with column normalization, progress indicators (st.spinner, st.progress, fragments), and performance profiling targeting <2s load times.
 
 **When to Load This Rule:**
 - Optimizing slow Streamlit applications
@@ -22,7 +22,6 @@ Comprehensive guidance for optimizing Streamlit application performance through 
 - Fixing KeyError issues from Snowflake column names
 - Resolving query loop performance problems
 - Profiling and targeting <2s load time
-- For SQL error handling, load 101e-snowflake-streamlit-sql-errors.md
 
 ## References
 
@@ -40,8 +39,8 @@ Comprehensive guidance for optimizing Streamlit application performance through 
 - **105-snowflake-cost-governance.md** - Cost monitoring for cached queries
 - **111-snowflake-observability-core.md** - Query profiling and monitoring
 - **119-snowflake-warehouse-management.md** - Warehouse sizing for query performance
-- **251-python-datetime-handling.md** - Datetime optimization for time series
-- **252-python-pandas.md** - DataFrame optimization and caching
+- **251-python-datetime-core.md** - Datetime optimization for time series
+- **252-python-pandas-core.md** - DataFrame optimization and caching
 
 ### External Documentation
 
@@ -60,22 +59,6 @@ Comprehensive guidance for optimizing Streamlit application performance through 
 **Snowflake Performance:**
 - [Snowflake Query Profile](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Query performance analysis
 - [Snowpark Python](https://docs.snowflake.com/en/developer-guide/snowpark/python/index) - Snowpark for Python documentation
-
-### Related Rules
-
-**Closely Related** (consider loading together):
-- **101-snowflake-streamlit-core.md** - fundamental Streamlit patterns and session management
-- **101e-snowflake-streamlit-sql-errors.md** - comprehensive SQL error handling patterns (extracted from this rule)
-- **103-snowflake-performance-tuning.md** - optimizing underlying Snowflake queries
-
-**Sometimes Related** (load if specific scenario):
-- **101a-snowflake-streamlit-visualization.md** - optimizing chart/visualization performance
-- **101c-snowflake-streamlit-security.md** - implementing secure caching patterns
-- **111-snowflake-observability-core.md** - adding query profiling and monitoring
-
-**Complementary** (different aspects of same domain):
-- **119-snowflake-warehouse-management.md** - warehouse sizing affecting query performance
-- **105-snowflake-cost-governance.md** - monitoring costs of cached query executions
 
 ## Contract
 
@@ -102,11 +85,10 @@ Streamlit app configured (see 101-snowflake-streamlit-core.md), Snowflake connec
 4. Show user feedback for operations >2s (st.spinner) or >5s (st.progress + st.status)
 5. Avoid raw database query loops; fetch all needed data at once
 6. Profile performance and target <2s load time
-7. For SQL error handling, apply patterns from 101e-snowflake-streamlit-sql-errors.md
 
 ### Output Format
 
-Optimized Streamlit app with <2s initial load, cached data operations, normalized column names, appropriate progress indicators. For SQL error handling output, see 101e-snowflake-streamlit-sql-errors.md.
+Optimized Streamlit app with <2s initial load, cached data operations, normalized column names, appropriate progress indicators.
 
 ### Validation
 
@@ -115,7 +97,6 @@ Optimized Streamlit app with <2s initial load, cached data operations, normalize
 - Verify column name normalization (lowercase after Snowflake fetch)
 - Measure load time (<2s target)
 - Validate progress indicators show for long operations
-- For SQL error testing, see 101e-snowflake-streamlit-sql-errors.md
 
 **Success Criteria:**
 - Cache hits on subsequent loads
@@ -129,7 +110,6 @@ Optimized Streamlit app with <2s initial load, cached data operations, normalize
 - Clear cache and verify data reloads
 - Test column access with lowercase (should work)
 - Test with production data volume
-- For SQL error negative tests, see 101e-snowflake-streamlit-sql-errors.md
 
 > **Investigation Required**
 > When applying this rule:
@@ -139,7 +119,6 @@ Optimized Streamlit app with <2s initial load, cached data operations, normalize
 > 4. Never speculate about cache behavior - inspect the decorators and ttl values
 > 5. Verify Snowflake connection patterns (should be cached)
 > 6. Check for query loops that should be replaced with single aggregated query
-> 7. For SQL error handling investigation, see 101e-snowflake-streamlit-sql-errors.md
 
 ### Design Principles
 
@@ -148,7 +127,6 @@ Optimized Streamlit app with <2s initial load, cached data operations, normalize
 - **Fetch Once:** Avoid query loops; aggregate in SQL and fetch once
 - **User Feedback:** Show progress for operations >2 seconds
 - **Profile Always:** Target <2s load time, measure and optimize
-- **Error Handling:** For SQL error patterns, see 101e-snowflake-streamlit-sql-errors.md
 
 ### Post-Execution Checklist
 
@@ -166,7 +144,6 @@ Optimized Streamlit app with <2s initial load, cached data operations, normalize
       Verify: Profile with Chrome DevTools Network tab; check initial page load time
 - [ ] All data loader functions have column normalization
       Verify: Check each function with .to_pandas() includes column normalization
-- [ ] For SQL error handling checklist, see 101e-snowflake-streamlit-sql-errors.md
 - [ ] Cache behavior tested (verify data refreshes after ttl)
       Verify: Wait for TTL expiry + refresh page; check data updates
 - [ ] SQL error handling tested with invalid query
@@ -189,7 +166,7 @@ df = load_data()  # Hits database every time
 @st.cache_data(ttl=600)
 def load_data():
     df = session.table('LARGE_TABLE').to_pandas()
-    df.columns = [col.lower() for col in df.columns]
+    df.columns = [col.lower() for col in df.columns]  # See "Caching Strategies" section
     return df
 
 df = load_data()  # Cached, hits database once per ttl
@@ -255,7 +232,6 @@ def get_snowflake_session() -> Session:
 def load_data() -> pd.DataFrame:
     """
     Load data from Snowflake with caching.
-    For SQL error handling, see 101e-snowflake-streamlit-sql-errors.md.
 
     Returns:
         DataFrame with lowercase column names
@@ -351,7 +327,7 @@ def load_grid_assets() -> pd.DataFrame:
     session = get_snowflake_session()
     df = session.table('UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS').to_pandas()
 
-    # CRITICAL: Normalize column names to lowercase
+    # Apply column normalization (see Output Format Examples section)
     df.columns = [col.lower() for col in df.columns]
 
     return df
@@ -425,6 +401,10 @@ for _, row in metrics_df.iterrows():
         st.metric(row["metric_name"], "N/A")
 ```
 
+**Cache corruption recovery:** Call `st.cache_data.clear()` to force full refresh. For user-triggered refresh, add button: `if st.button('Refresh Data'): st.cache_data.clear(); st.rerun()`
+
+**Memory pressure:** If DataFrame exceeds 100MB, use server-side pagination (`LIMIT/OFFSET` in SQL) or Snowpark lazy evaluation instead of `.to_pandas()`. Monitor with `df.memory_usage(deep=True).sum()`.
+
 ## Data Loading from Snowflake - Critical Column Name Normalization
 
 **MANDATORY:**
@@ -440,7 +420,7 @@ df = session.table('GRID_ASSETS').to_pandas()
 transformers = df[df['asset_type'] == 'TRANSFORMER']  # KeyError!
 ```
 
-**Solution:**
+**Solution — apply column normalization pattern (see Caching section above):**
 ```python
 # CORRECT - Normalize column names to lowercase
 df = session.table('UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS').to_pandas()
@@ -448,22 +428,14 @@ df.columns = [col.lower() for col in df.columns]  # Critical!
 transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
 ```
 
-**Best Practices for Data Loaders:**
+**Best Practice:** Always normalize in data loader functions, not UI code:
 ```python
 @st.cache_data(ttl=600)
 def load_grid_assets() -> pd.DataFrame:
-    """
-    Load grid assets from Snowflake.
-
-    Returns:
-        DataFrame with lowercase column names for Python consistency
-    """
+    """Load grid assets with lowercase column names."""
     session = get_snowflake_session()
     df = session.table('UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS').to_pandas()
-
-    # Normalize to lowercase for consistency
-    df.columns = [col.lower() for col in df.columns]
-
+    df.columns = [col.lower() for col in df.columns]  # Normalize here, not in UI
     return df
 ```
 
@@ -478,38 +450,9 @@ def load_grid_assets() -> pd.DataFrame:
 - **Error Prevention:** Prevents `KeyError` exceptions that are hard to debug in production
 - **Best Practice:** Single normalization point in data loaders vs. scattered `.upper()` calls in UI code
 
-## SQL Error Handling and Debugging
+## SQL Error Handling
 
-**MANDATORY:**
-**Show specific error messages that identify which query failed and why:**
-- **Always:** Wrap SQL queries in try/except blocks with descriptive context
-- **Always:** Display SQL errors using `st.error()` with red styling
-- **Always:** Include the full SQL error message and query context
-- **Always:** Identify which specific query/operation failed
-- **Never:** Show generic error messages that don't help debugging
-
-**Critical Rule:** Every SQL query must have error handling that shows:
-1. Which query failed (descriptive name/purpose)
-2. The full SQL error message from Snowflake
-3. Relevant context (table names, filters, parameters)
-
-**For comprehensive SQL error handling patterns and examples, see 101e-snowflake-streamlit-sql-errors.md.**
-
-### 3.2 Advanced Error Handling Patterns
-
-**For comprehensive error handling patterns, see:**
-- **101e-snowflake-streamlit-sql-errors.md** - Detailed examples for:
-  - Multiple query error handling
-  - User input validation and SQL injection prevention
-  - Complex join error debugging
-  - Error handling best practices checklist
-  - Anti-patterns and common mistakes
-
-**When to use the appendix:**
-- Multiple related queries requiring granular error handling
-- User-provided inputs in SQL queries
-- Complex joins with potential data quality issues
-- Need for comprehensive error message templates
+For SQL error handling patterns (try/except, error messages, query debugging, input validation), see **101e-snowflake-streamlit-sql-errors.md**.
 
 ## Progress Indicators and User Feedback
 
@@ -540,7 +483,7 @@ progress_bar.empty()
 st.success("All batches processed!")
 ```
 
-### 3.3 Advanced: Real-Time Progress with Fragments
+### Advanced: Real-Time Progress with Fragments
 
 **For long-running operations (>30s) requiring live progress updates, see `101g-snowflake-streamlit-fragments.md`.**
 
@@ -558,6 +501,7 @@ for region in regions:
     df = session.sql(f"SELECT * FROM sales WHERE region = '{region}'").to_pandas()
     process(df)
 ```
+**WARNING:** This is also a SQL injection risk. Use parameterized queries (`session.sql('SELECT ... WHERE region = ?', params=[region])`) or Snowpark filter methods instead.
 
 **Correct:**
 ```python
@@ -570,7 +514,7 @@ def load_all_sales() -> pd.DataFrame:
     GROUP BY region, product
     """
     df = session.sql(query).to_pandas()
-    df.columns = [col.lower() for col in df.columns]
+    df.columns = [col.lower() for col in df.columns]  # Apply column normalization
     return df
 
 df = load_all_sales()  # Single query, cached

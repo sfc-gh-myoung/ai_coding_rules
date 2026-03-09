@@ -105,7 +105,7 @@ Unable to verify → Re-read the rule file
 **Step 5: Run Schema Validation**
 
 ```bash
-uv run python scripts/schema_validator.py {rule_path}
+uv run ai-rules validate {rule_path}
 ```
 
 **Step 6: Perform Agent Execution Test**

@@ -1007,7 +1007,7 @@ Examples:
   # Analyze recent timing data
   %(prog)s analyze --skill rule-reviewer --days 7
 
-For detailed documentation, see skills/skill-timing/README.md
+For detailed documentation, see docs/USING_SKILL_TIMING_SKILL.md
         """,
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")

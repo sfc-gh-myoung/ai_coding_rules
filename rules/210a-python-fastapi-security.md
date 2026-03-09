@@ -92,13 +92,17 @@ Secured FastAPI application with:
 ### Validation
 
 **Pre-Task-Completion Checks:**
-- Password hashing configured with bcrypt
-- JWT tokens generated and validated correctly
+- Password hashing configured with bcrypt (passlib)
+- JWT authentication implemented with HTTPBearer
 - Authentication dependencies implemented
-- RBAC dependencies created
-- CORS configured with explicit origins
-- All secrets in environment variables
+- RBAC dependencies created via dependency injection
+- CORS configured with explicit allowed origins
+- All secrets stored in environment variables
+- Rate limiting middleware added
 - API docs disabled in production
+- Security testing completed
+- No hardcoded secrets in codebase
+- Input validation on all security-critical endpoints
 
 **Success Criteria:**
 - Passwords never stored in plaintext
@@ -127,16 +131,14 @@ Secured FastAPI application with:
 
 ### Post-Execution Checklist
 
-- [ ] Passwords hashed with bcrypt (passlib)
-- [ ] JWT authentication implemented with HTTPBearer
-- [ ] All secrets stored in environment variables
-- [ ] RBAC implemented via dependency injection
-- [ ] CORS configured with explicit allowed origins
-- [ ] Rate limiting middleware added
+- [ ] Password hashing uses bcrypt (passlib)
+- [ ] JWT authentication with HTTPBearer on protected endpoints
+- [ ] RBAC dependencies enforce role checks
+- [ ] CORS configured with explicit origin allowlist
+- [ ] All secrets loaded from environment variables
+- [ ] Rate limiting middleware active
 - [ ] API docs disabled in production
-- [ ] Security testing completed
 - [ ] No hardcoded secrets in codebase
-- [ ] Input validation on all security-critical endpoints
 
 ## Anti-Patterns and Common Mistakes
 
@@ -154,13 +156,13 @@ DATABASE_URL = "postgresql://admin:password123@prod-db:5432/app"
 
 # GOOD: Environment variables with validation
 from pydantic_settings import BaseSettings
+from pydantic import ConfigDict
 
 class Settings(BaseSettings):
+    model_config = ConfigDict(env_file=".env")
+
     secret_key: str
     database_url: str
-
-    class Config:
-        env_file = ".env"
 
 settings = Settings()  # Fails fast if secrets missing
 ```
@@ -212,70 +214,12 @@ app.add_middleware(
 > [reads auth_service.py, main.py, checks for HTTPBearer usage]
 > "I see you're using passlib with bcrypt and HTTPBearer for JWT auth. Here's how to add role-based access control following the same pattern..."
 
-## Output Format Examples
-
-```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
-
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
-from datetime import datetime, UTC
-
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
-
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
-
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
-
-    Args:
-        input_data: Validated input following schema
-
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
-```
-
-```bash
-# Validation commands
-uvx ruff check .
-uvx ruff format --check .
-uv run pytest tests/
-```
-
 - **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
 
 ## Authentication Setup
 
 ### JWT Token Authentication
-- **Always:** Implement proper authentication for protected endpoints.
+- **Always:** Implement JWT-based authentication using HTTPBearer for protected endpoints.
 - **Always:** Use JWT tokens with appropriate expiration times.
 - **Rule:** Never store passwords in plain text; use proper hashing.
 
@@ -287,11 +231,12 @@ from datetime import datetime, timedelta, UTC
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer
 from typing import Optional
+from app.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
-SECRET_KEY = "your-secret-key"  # Use environment variable
+SECRET_KEY = settings.jwt_secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -339,7 +284,7 @@ async def get_current_user(token: str = Depends(security)):
 ### Login and Registration Endpoints
 - **Always:** Validate credentials thoroughly before issuing tokens.
 - **Always:** Return consistent error messages to prevent user enumeration.
-- **Rule:** Rate limit authentication endpoints to prevent brute force attacks.
+- **Rule:** Rate limit authentication endpoints to prevent brute force attacks (e.g., 5 requests/minute/IP for login).
 
 ```python
 # app/routers/auth.py
@@ -389,7 +334,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
 ### Role-Based Access Control
 - **Always:** Implement role-based permissions using dependency injection.
 - **Always:** Check permissions at the endpoint level, not in business logic.
-- **Rule:** Use clear, descriptive permission names.
+- **Rule:** Use `{resource}:{action}` format for permission names (e.g., `users:delete`, `posts:create`).
 
 ```python
 # app/dependencies/auth.py
@@ -447,8 +392,8 @@ async def delete_user(
 ## Security Middleware
 
 ### CORS Configuration
-- **Always:** Configure CORS properly for your use case.
-- **Rule:** Be restrictive with allowed origins in production.
+- **Always:** Configure CORS with explicit allowlist of origins.
+- **Rule:** Only allow origins hosting your frontend in production.
 - **Rule:** Only allow necessary HTTP methods and headers.
 
 ```python
@@ -467,7 +412,7 @@ def add_security_middleware(app: FastAPI, settings: Settings):
         allow_origins=settings.allowed_origins,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE"],
-        allow_headers=["*"],
+        allow_headers=["Authorization", "Content-Type", "Accept"],
         max_age=600,  # Cache preflight requests for 10 minutes
     )
 
@@ -525,7 +470,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 ### SQL Injection Prevention
 - **Always:** Use parameterized queries with SQLAlchemy.
 - **Never:** Concatenate user input directly into SQL strings.
-- **Rule:** Validate and sanitize all user inputs.
+- **Rule:** Validate and sanitize all user inputs (strip HTML tags using `bleach.clean()` or Pydantic validators).
 
 ```python
 # CORRECT: Using SQLAlchemy ORM (automatically parameterized)
@@ -648,7 +593,6 @@ class SecuritySettings(BaseSettings):
 ### Deployment Security Checklist
 - **Always:** Disable debug mode in production.
 - **Always:** Hide API documentation in production.
-- **Rule:** Use environment-specific security configurations.
 
 ```python
 # app/main.py - Production security configuration
@@ -678,14 +622,12 @@ def create_secure_app() -> FastAPI:
     if not settings.debug:
         limiter = add_rate_limiting_middleware(app)
 
-        # Apply rate limiting to auth endpoints
-        @app.middleware("http")
-        async def rate_limit_auth(request: Request, call_next):
-            if request.url.path.startswith("/auth/"):
-                # More restrictive rate limiting for auth endpoints
-                pass
-            response = await call_next(request)
-            return response
+        # Apply rate limiting to auth endpoints via slowapi decorator
+        # In your auth router:
+        # @router.post("/token")
+        # @limiter.limit("5/minute")
+        # async def login(request: Request, ...):
+        #     ...
 
     return app
 ```

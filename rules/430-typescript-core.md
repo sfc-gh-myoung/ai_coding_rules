@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** TypeScript, Zod, Strict Mode, Type Inference, Union Types, Satisfies, Generics, Utility Types, Matt Pocock, Total TypeScript
-**TokenBudget:** ~2600
+**TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** 000-global-core.md
 **LoadTrigger:** ext:.ts, ext:.tsx
@@ -19,7 +19,7 @@
 ## Scope
 
 **What This Rule Covers:**
-Establishes the definitive standards for writing production-grade TypeScript in 2025. This rule enforces **Strict Mode**, prioritizes **Type Inference** over manual typing, mandates **Runtime Validation** (Zod) at I/O boundaries, and explicitly forbids legacy features like Enums and Namespaces.
+Establishes the definitive standards for writing production-grade TypeScript in 2026. This rule enforces **Strict Mode**, prioritizes **Type Inference** over manual typing, mandates **Runtime Validation** (Zod) at I/O boundaries, and explicitly forbids legacy features like Enums and Namespaces.
 
 **When to Load This Rule:**
 - Working with TypeScript files (.ts, .tsx)
@@ -54,13 +54,18 @@ Establishes the definitive standards for writing production-grade TypeScript in 
 - Node.js 20+ environment
 - Understanding of type systems
 - Familiarity with modern JavaScript
+- `tsc` compiler for type checking
+- `zod` library for runtime validation
+
+**Recommended:**
+- `@total-typescript/ts-reset` — fixes standard library annoyances (e.g., `JSON.parse` returning `any`). Use when you want safer built-in types without manual overrides.
+- `ts-pattern` — exhaustive pattern matching for discriminated unions. Use when complex branching logic benefits from compile-time exhaustiveness checks.
 
 ### Mandatory
 
-- `tsc` compiler for type checking
-- `zod` library for runtime validation
-- `ts-reset` for improved built-in types (recommended)
-- `ts-pattern` for pattern matching (recommended)
+- MUST enable `strict: true` in `tsconfig.json`
+- MUST validate all external data (API responses, URL params, form inputs) with Zod schemas
+- MUST NOT use `any`, `enum`, or `namespace`
 
 ### Forbidden
 
@@ -252,6 +257,7 @@ npx tsc --noEmit
  "strict": true,
  "noImplicitAny": true,
  "strictNullChecks": true,
+ "noUncheckedIndexedAccess": true,
  "skipLibCheck": true,
  "moduleResolution": "bundler",
  "resolveJsonModule": true,
@@ -286,6 +292,23 @@ const STATUS = {
  Inactive: 'inactive'
 } as const;
 type StatusType = typeof STATUS[keyof typeof STATUS];
+```
+
+### Discriminated Unions
+- **Rule:** Use discriminated unions for type-safe branching. The discriminant field enables exhaustive narrowing.
+
+```typescript
+type Result<T> =
+ | { success: true; data: T }
+ | { success: false; error: Error };
+
+function handle(result: Result<User>) {
+ if (result.success) {
+  console.log(result.data.name); // narrowed to { success: true; data: User }
+ } else {
+  console.error(result.error.message); // narrowed to { success: false; error: Error }
+ }
+}
 ```
 
 ### Validation & Type Inference
@@ -355,4 +378,122 @@ type PostId = Brand<string, 'PostId'>;
 
 const getUser = (id: UserId) => { ... };
 const myId = '123' as UserId; // Explicit cast required at boundary
+```
+
+## Error Recovery Patterns
+
+### Zod Parse Failures
+- **Rule:** Use `.safeParse()` at I/O boundaries to handle invalid data gracefully instead of throwing.
+
+```typescript
+import { z } from 'zod';
+
+const UserSchema = z.object({ name: z.string(), age: z.number() });
+
+function handleInput(data: unknown) {
+ const result = UserSchema.safeParse(data);
+ if (!result.success) {
+  const messages = result.error.issues.map(i => `${i.path.join('.')}: ${i.message}`);
+  return { ok: false, errors: messages } as const;
+ }
+ return { ok: true, data: result.data } as const;
+}
+```
+
+### Strict Mode Migration
+- **Rule:** Enable strict flags incrementally: `strictNullChecks` then `noImplicitAny` then `strictFunctionTypes` then `strict: true`. Fix errors per flag before enabling the next. Use `// @ts-expect-error REASON` (never `@ts-ignore`) for temporary suppression.
+
+### Third-Party Type Conflicts
+- **Rule:** Use `declare module` overrides for incorrect third-party types. Always document the reason.
+
+```typescript
+// fix-bad-lib-types.d.ts — override incorrect return type in bad-lib v2.1.0
+declare module 'bad-lib' {
+ export function getData(): Promise<unknown>; // upstream declares `any`
+}
+```
+
+- Use `// @ts-expect-error` with a justification comment when a surgical override is needed:
+```typescript
+// @ts-expect-error bad-lib v2.1.0 types missing optional config param
+const result = badLib.init({ debug: true });
+```
+
+### Async Error Typing
+- **Rule:** Type async error results explicitly using `Error` cause chaining.
+
+```typescript
+async function fetchWithContext(url: string): Promise<Data> {
+ try {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`, { cause: { url, status: res.status } });
+  const json: unknown = await res.json();
+  return DataSchema.parse(json);
+ } catch (err) {
+  throw new Error('fetchWithContext failed', { cause: err });
+ }
+}
+```
+
+### Cancellable Async with AbortController
+- **Rule:** Use `AbortController` for cancellable fetch requests and timeouts.
+
+```typescript
+async function fetchWithTimeout(url: string, timeoutMs = 5000): Promise<Response> {
+ const controller = new AbortController();
+ const id = setTimeout(() => controller.abort(), timeoutMs);
+ try { return await fetch(url, { signal: controller.signal }); }
+ finally { clearTimeout(id); }
+}
+```
+
+## Concurrent Type Patterns
+
+### Promise.allSettled Return Types
+- **Rule:** Handle `PromiseSettledResult<T>` discriminated union exhaustively.
+
+```typescript
+const results = await Promise.allSettled([fetchUsers(), fetchPosts()]);
+
+for (const result of results) {
+ if (result.status === 'fulfilled') {
+  console.log(result.value); // T
+ } else {
+  console.error(result.reason); // unknown in strict mode
+ }
+}
+
+// Extract only fulfilled values with type safety
+function getFulfilled<T>(results: PromiseSettledResult<T>[]): T[] {
+ return results.filter((r): r is PromiseFulfilledResult<T> => r.status === 'fulfilled').map(r => r.value);
+}
+```
+
+### Async Generator Types
+- **Rule:** Type async generators explicitly for paginated or streaming data.
+
+```typescript
+async function* paginate<T>(fetchPage: (cursor: string) => Promise<{ data: T[]; next?: string }>): AsyncGenerator<T[], void, undefined> {
+ let cursor = '';
+ do {
+  const page = await fetchPage(cursor);
+  yield page.data;
+  cursor = page.next ?? '';
+ } while (cursor);
+}
+
+// Usage: for await (const batch of paginate(fetchUsers)) { ... }
+```
+
+### Typed Error Boundaries
+- **Rule:** Type error boundary state for framework integration (React example).
+
+```typescript
+type ErrorBoundaryState =
+ | { status: 'ok' }
+ | { status: 'error'; error: Error; errorInfo: { componentStack: string } };
+
+function handleError(error: unknown): Error {
+ return error instanceof Error ? error : new Error(String(error));
+}
 ```

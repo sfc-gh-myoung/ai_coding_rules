@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:data-loading, kw:copy-into, kw:import
 **Keywords:** bulk loading, ON_ERROR, FILE_FORMAT, load data, external stage, internal stage, data ingestion, file upload, COPY error, loading patterns, stage files, PUT command, GET command
-**TokenBudget:** ~3200
+**TokenBudget:** ~3750
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -59,12 +59,12 @@ Comprehensive best practices for efficiently staging and bulk loading data into 
 
 ### Inputs and Prerequisites
 
+- Role with USAGE on stage and warehouse; INSERT on target table
+- CREATE STAGE privilege (for new stages) or USAGE on existing stage
+- For external stages: storage integration configured with appropriate cloud credentials
 - Source data files in supported format (CSV, JSON, Parquet, Avro, ORC, XML)
-- Snowflake stage (internal or external) configured and accessible
 - Target table schema defined and created
-- Warehouse for COPY execution
 - File format definition (delimiter, compression, encoding, null handling)
-- Understanding of data volume and load frequency requirements
 - Error handling strategy defined (ON_ERROR behavior)
 
 ### Mandatory
@@ -140,11 +140,14 @@ Comprehensive best practices for efficiently staging and bulk loading data into 
 
 ### Post-Execution Checklist
 
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
+- [ ] Stage created with appropriate encryption and access controls. Verify: `SHOW STAGES LIKE '<stage_name>'`
+- [ ] FILE_FORMAT defined with explicit delimiter, compression, NULL_IF, encoding. Verify: `DESCRIBE FILE FORMAT <format_name>`
+- [ ] VALIDATION_MODE tested before production load. Verify: `VALIDATION_MODE = 'RETURN_ERRORS'` returns 0 rows
+- [ ] ON_ERROR strategy defined (CONTINUE, SKIP_FILE, or ABORT_STATEMENT)
+- [ ] Files sized 100-250MB compressed (small files batched). Verify: `LIST @<stage>` shows file sizes
+- [ ] COPY_HISTORY checked for errors after load. Verify: `SELECT * FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(TABLE_NAME=>'<TABLE>', START_TIME=>DATEADD(hour,-1,CURRENT_TIMESTAMP())))`
+- [ ] Row counts verified (source vs target). Verify: `SELECT COUNT(*) FROM <target_table>`
+- [ ] Semi-structured data parsed correctly (VARIANT fields accessible)
 
 ## Anti-Patterns and Common Mistakes
 
@@ -248,8 +251,7 @@ VALIDATION_MODE = 'RETURN_ERRORS';
 -- Step 2: Check row count
 COPY INTO prod_critical_table
 FROM @my_stage/untested_data.csv
-VALIDATION_MODE = 'RETURN_N_ROWS'
-  (N => 10);
+VALIDATION_MODE = 'RETURN_10_ROWS';
 -- Preview first 10 rows
 
 -- Step 3: Only after validation, load to production
@@ -262,27 +264,81 @@ FILE_FORMAT = (TYPE=CSV);
 ## Output Format Examples
 
 ```sql
--- Analysis Query: Investigate current state
-SELECT column_pattern, COUNT(*) as usage_count
-FROM information_schema.columns
-WHERE table_schema = 'TARGET_SCHEMA'
-GROUP BY column_pattern;
+-- Data Load Workflow
 
--- Implementation: Apply Snowflake best practices
-CREATE OR REPLACE VIEW schema.view_name
-COMMENT = 'Business purpose following semantic model standards'
-AS
-SELECT
-    -- Explicit column list with business context
-    id COMMENT 'Surrogate key',
-    name COMMENT 'Business entity name',
-    created_at COMMENT 'Record creation timestamp'
-FROM schema.source_table
-WHERE is_active = TRUE;
+-- Step 1: Create stage and file format
+CREATE STAGE IF NOT EXISTS db.schema.load_stage
+  ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE');
 
--- Validation: Confirm implementation
-SELECT * FROM schema.view_name LIMIT 5;
-SHOW VIEWS LIKE '%view_name%';
+CREATE FILE FORMAT IF NOT EXISTS db.schema.csv_format
+  TYPE = CSV
+  FIELD_DELIMITER = ','
+  SKIP_HEADER = 1
+  NULL_IF = ('', 'NULL', 'null')
+  FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+  COMPRESSION = GZIP
+  ENCODING = 'UTF-8';
+
+-- Step 2: Upload and verify
+PUT file:///data/sales_*.csv.gz @db.schema.load_stage/sales/;
+LIST @db.schema.load_stage/sales/;
+
+-- Step 3: Validate before loading
+COPY INTO db.schema.sales_target
+FROM @db.schema.load_stage/sales/
+FILE_FORMAT = db.schema.csv_format
+VALIDATION_MODE = 'RETURN_ERRORS';
+
+-- Step 4: Execute load
+COPY INTO db.schema.sales_target
+FROM @db.schema.load_stage/sales/
+FILE_FORMAT = db.schema.csv_format
+ON_ERROR = CONTINUE
+PATTERN = '.*\.csv\.gz';
+
+-- Step 5: Verify results
+-- Row count check (compare against expected source count)
+SELECT COUNT(*) FROM db.schema.sales_target;
+
+-- Check COPY_HISTORY for load status and errors
+-- Note: TABLE_NAME uses unqualified name; call from the target database context
+SELECT *
+FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
+  TABLE_NAME => 'SALES_TARGET',
+  START_TIME => DATEADD(hour, -1, CURRENT_TIMESTAMP())
+));
+```
+
+### Parallel COPY INTO Guidance
+
+**Optimal file sizes:** 100-250MB compressed per file for maximum throughput.
+
+**File count vs warehouse size:**
+- **XS warehouse:** 4-8 files loading in parallel
+- **S warehouse:** 8-16 files
+- **M warehouse:** 16-32 files
+- **L warehouse:** 32-64 files
+- **XL+:** 64+ files
+
+**Best practice:** Split large files to match warehouse parallelism. A 2GB file on an XS warehouse loads slower than 8x 250MB files.
+
+### Encoding and BOM Handling
+
+```sql
+-- Specify encoding explicitly for non-UTF-8 files
+CREATE FILE FORMAT latin1_format
+  TYPE = CSV
+  ENCODING = 'ISO-8859-1'
+  SKIP_HEADER = 1;
+
+-- Handle UTF-8 BOM (Byte Order Mark) from Excel exports
+-- Snowflake auto-detects BOM in UTF-8 files
+-- For explicit handling, use ENCODING = 'UTF-8' (handles BOM automatically)
+
+-- Common encoding issues:
+-- Windows exports: Often WINDOWS-1252, not UTF-8
+-- Excel CSV: May include BOM (EF BB BF prefix)
+-- If garbled characters appear, check source file encoding with: file -I data.csv
 ```
 
 ## Stages

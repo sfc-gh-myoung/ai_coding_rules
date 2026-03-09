@@ -438,7 +438,7 @@ if critical_count > 0:
 
 Before proceeding to Phase 5:
 
-- [x] `schema_validator.py` executed successfully
+- [x] `ai-rules validate` executed successfully
 - [x] Exit code is 0 (no CRITICAL or HIGH errors)
 - [x] All CRITICAL errors resolved
 - [x] HIGH errors addressed or documented
@@ -495,7 +495,7 @@ grep -i "placeholder\|\[.*\]" rules/422-daisyui-core.md
 ## Success Criteria
 
 Validation complete when:
--  `schema_validator.py` returns exit code 0
+-  `ai-rules validate` returns exit code 0
 -  0 CRITICAL errors
 -  0 HIGH errors (or documented exceptions)
 -  MEDIUM warnings acceptable

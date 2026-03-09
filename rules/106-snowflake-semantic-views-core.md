@@ -5,10 +5,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, semantic view, create semantic view, SQL, YAML, NLQ, mapping syntax
-**TokenBudget:** ~2250
+**TokenBudget:** ~2550
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** kw:semantic-view, kw:semantic-model
@@ -47,7 +47,8 @@ Creating Snowflake Native Semantic Views using `CREATE SEMANTIC VIEW` DDL: struc
 ## Contract
 
 ### Inputs and Prerequisites
-- Target DATABASE.SCHEMA with privileges
+- Role with CREATE SEMANTIC VIEW privilege on target schema
+- USAGE privilege on referenced tables/views
 - Physical base tables with defined structure
 - Business glossary for naming
 
@@ -168,6 +169,7 @@ CREATE [OR REPLACE] SEMANTIC VIEW <db>.<schema>.<view>
       [COMMENT = '<desc>']
   )
   DIMENSIONS (
+    -- IMPORTANT: Must be simple column references, not expressions
     <alias>.<logical_name> AS <physical_col>
       [WITH SYNONYMS ('<syn>')]
       [COMMENT = '<desc>']
@@ -198,11 +200,14 @@ CREATE OR REPLACE SEMANTIC VIEW PROD.DATA.SEM_INVENTORY
 ```
 
 ### Multi-Table with Relationships
+
+In multi-table semantic views, always use fully-qualified table names to avoid ambiguity.
+
 ```sql
 CREATE OR REPLACE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
   TABLES (
-    customer PRIMARY KEY (c_custkey),
-    orders PRIMARY KEY (o_orderkey)
+    customer AS PROD.SALES.CUSTOMER PRIMARY KEY (c_custkey),
+    orders AS PROD.SALES.ORDERS PRIMARY KEY (o_orderkey)
   )
   RELATIONSHIPS (
     orders_to_customer AS orders(o_custkey) REFERENCES customer(c_custkey)
@@ -218,6 +223,35 @@ CREATE OR REPLACE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
     orders.total_revenue AS SUM(o_totalprice) WITH SYNONYMS ('revenue', 'sales')
   );
 ```
+
+### ALTER SEMANTIC VIEW Patterns
+
+```sql
+-- Add new dimensions or metrics to existing view
+ALTER SEMANTIC VIEW PROD.SALES.SEM_ORDERS ADD
+  DIMENSIONS (
+    orders.status AS o_orderstatus WITH SYNONYMS ('order status')
+  );
+
+-- Drop dimensions or metrics
+ALTER SEMANTIC VIEW PROD.SALES.SEM_ORDERS DROP
+  DIMENSIONS (orders.status);
+
+-- Rename the semantic view
+ALTER SEMANTIC VIEW PROD.SALES.SEM_ORDERS RENAME TO PROD.SALES.SEM_ORDERS_V2;
+```
+
+### NULL Handling and Primary Key Guidance
+
+**NULL in Primary Keys:** PRIMARY KEY columns should not contain NULLs. Snowflake does not enforce PK constraints, so validate data before creating semantic views:
+```sql
+-- Check for NULLs in intended PK column
+SELECT COUNT(*) AS null_count FROM db.schema.table WHERE pk_column IS NULL;
+-- Check for duplicates in intended PK column
+SELECT pk_column, COUNT(*) FROM db.schema.table GROUP BY pk_column HAVING COUNT(*) > 1;
+```
+
+**NULL in FACTS/DIMENSIONS:** NULLs in fact or dimension columns are passed through. Metrics like `SUM()` and `AVG()` ignore NULLs per standard SQL. Use `COALESCE` in base views if NULL substitution is needed.
 
 ### Component Rules
 

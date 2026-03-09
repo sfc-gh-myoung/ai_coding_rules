@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** logging, Python logging, logger, handlers, formatters, log levels, WebLogHandler, Rich console, SSE streaming, structured logging, operation ID, thread safety, log hierarchy, log propagation
-**TokenBudget:** ~3050
+**TokenBudget:** ~2800
 **ContextTier:** High
 **Depends:** 200-python-core.md
 **LoadTrigger:** kw:logging, kw:log, kw:logger
@@ -92,7 +92,10 @@ Logging implementations produce:
 - [ ] Console functions bridge to Python logger
 - [ ] WebLogHandler attached only during operation execution
 - [ ] SUCCESS messages use consistent prefix pattern
-- [ ] Thread safety considered for custom handlers
+- [ ] Use `threading.Lock` in `emit()` for shared state access in custom handlers
+
+**During-Execution Checks:**
+- Verify handler count on logger does not exceed expected (typically 1-2 handlers)
 
 **Success Criteria:**
 - Logs appear in both CLI and web UI
@@ -121,7 +124,7 @@ Logging implementations produce:
 - [ ] Console functions bridge to Python logger
 - [ ] WebLogHandler attached only during operation execution
 - [ ] SUCCESS messages use consistent prefix pattern
-- [ ] Thread safety considered for custom handlers
+- [ ] Use `threading.Lock` in `emit()` for shared state access in custom handlers
 - [ ] Operation IDs included for log correlation
 - Operation filtering works correctly
 
@@ -156,17 +159,17 @@ console = Console()
 
 def log_info(message: str) -> None:
     """Output to both Rich console and Python logger."""
-    console.print(f"ℹ️  {message}", style="blue")
+    console.print(f"[INFO] {message}", style="blue")
     logger.info(message)
 
 def log_success(message: str) -> None:
     """Output success with prefix for web UI detection."""
-    console.print(f"✓ {message}", style="green")
+    console.print(f"[OK] {message}", style="green")
     logger.info(f"SUCCESS: {message}")  # Prefix enables SUCCESS level mapping
 
 def log_error(message: str) -> None:
     """Output error to both outputs."""
-    console.print(f"✗ {message}", style="red")
+    console.print(f"[ERR] {message}", style="red")
     logger.error(message)
 ```
 
@@ -193,8 +196,10 @@ class WebLogHandler(logging.Handler):
             level_map = {"INFO": "INFO", "WARNING": "WARNING", "ERROR": "ERROR"}
             level = level_map.get(record.levelname, "INFO")
 
-        add_to_sse_stream(level, message, self.operation_id)
+        add_to_sse_stream(level, message, self.operation_id)  # Low-level: pushes to SSE queue
 ```
+
+**Log Volume Control:** For operations expected to produce >1,000 log entries or run >60 seconds, limit WebLogHandler buffer to 10,000 entries. Discard oldest entries when the limit is reached.
 
 ### Operation-Scoped Handler Attachment
 
@@ -241,7 +246,7 @@ def add_log(level: str, message: str, operation_id: str | None = None) -> None:
     if operation_id:
         log_entry["operation_id"] = operation_id
 
-    publish_to_sse_channel("logs", "log", log_entry)
+    publish_to_sse_channel("logs", "log", log_entry)  # High-level: publishes structured log entries to SSE
 ```
 
 **Thread-Safe Publishing from Background Tasks:**
@@ -268,6 +273,10 @@ async def status_stream(demo_id: str):
     )
 ```
 
+**SSE Connection Failure Handling:**
+
+If the SSE connection drops, buffer logs in memory (max 1,000 entries) and retry. Discard oldest entries when the buffer is full to prevent unbounded memory growth.
+
 **Operation Context Logging:**
 
 Include `operation_id` in logs for correlation and filtering:
@@ -281,6 +290,11 @@ operation_id = str(uuid.uuid4())[:8]    # For general operations
 add_log("INFO", "Starting database check...", operation_id)
 add_log("SUCCESS", "Database connection verified", operation_id)
 ```
+
+**Input Validation for Logging Parameters:**
+- Validate `operation_id` format: non-empty string, alphanumeric + hyphens only
+- Handle empty/None log messages gracefully: log a warning instead of propagating errors
+- Never let logging failures crash the application — wrap custom handler `emit()` in try/except
 
 ## Anti-Patterns and Common Mistakes
 
@@ -343,18 +357,6 @@ def deploy_app():
     log_info("Deploying...")  # Single call handles both console and logger
 ```
 
-## Post-Execution Checklist
-
-- [ ] All operational messages use `log_info/success/warning/error`, not `print()`
-- [ ] Logger names follow hierarchical pattern (`app.module.submodule`)
-- [ ] Console output functions bridge to Python logger
-- [ ] WebLogHandler attached only during operation scope
-- [ ] Handler removed in `finally` block to prevent leaks
-- [ ] SUCCESS messages use `"SUCCESS: "` prefix for level detection
-- [ ] Operation IDs included for log filtering
-- [ ] No duplicate logger calls alongside console functions
-- [ ] Thread safety verified for custom handlers
-
 ## Validation
 
 **Success Checks:**
@@ -368,57 +370,3 @@ def deploy_app():
 - `print()` statements do not appear in web UI logs
 - Removing handler prevents logs from appearing in SSE stream
 - Multiple operations do not cross-contaminate log streams
-
-## Output Format Examples
-
-```python
-# Module: utils/console.py
-"""Console output with logging bridge."""
-
-import logging
-from rich.console import Console
-
-logger = logging.getLogger("demo_manager.operations")
-console = Console()
-
-def log_info(message: str) -> None:
-    """Print info and emit to logger for web UI capture."""
-    console.print(f"ℹ️  {message}", style="blue")
-    logger.info(message)
-
-def log_success(message: str) -> None:
-    """Print success and emit with SUCCESS prefix."""
-    console.print(f"✓ {message}", style="green")
-    logger.info(f"SUCCESS: {message}")
-
-def log_warning(message: str) -> None:
-    """Print warning and emit to logger."""
-    console.print(f"⚠️  {message}", style="yellow")
-    logger.warning(message)
-
-def log_error(message: str) -> None:
-    """Print error and emit to logger."""
-    console.print(f"✗ {message}", style="red")
-    logger.error(message)
-```
-
-```python
-# Module: web/routes/operations.py
-"""Operation execution with scoped logging."""
-
-import logging
-from web.routes.logs import WebLogHandler
-
-def execute_operation(operation_id: str, operation_type: str):
-    handler = WebLogHandler(operation_id)
-    handler.setLevel(logging.INFO)
-    op_logger = logging.getLogger("demo_manager")
-    op_logger.addHandler(handler)
-
-    try:
-        # All log_* calls now captured for this operation
-        result = run_manager_operation(operation_type)
-        return result
-    finally:
-        op_logger.removeHandler(handler)
-```

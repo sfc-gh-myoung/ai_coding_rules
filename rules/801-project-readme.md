@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing
-**TokenBudget:** ~5350
+**TokenBudget:** ~3950
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 **LoadTrigger:** kw:readme, kw:documentation, file:README.md
@@ -50,10 +50,10 @@ Comprehensive standards for README.md files following widely accepted industry b
 - Access to project dependencies and tech stack information
 
 ### Mandatory
-- Text editor for README.md
-- Markdown validation tools
-- Link checker for external references
-- Understanding of project structure and setup
+- MUST read existing README.md before modifying
+- MUST test Quick Start commands in a clean environment
+- MUST include project description under 160 characters
+- MUST verify all links are working before completing
 
 ### Forbidden
 - Adding Quick Start without testing commands
@@ -106,6 +106,7 @@ Markdown file (README.md) with:
 - **Immediate Feedback** - Users see results within 60 seconds
 - **Clear Success Indicators** - Tell users what they should see
 - **Investigation-First** - Read existing README before modifying
+- **Directive Hierarchy** - Priority order: Critical > Mandatory > Always > Requirement > Rule > Consider
 
 ### Post-Execution Checklist
 - [ ] **CRITICAL:** README update triggers checked (see 000-global-core.md)
@@ -158,24 +159,7 @@ npm start
 
 **Why It Fails:** Creates maintenance burden (two places to update), overwhelms end users with contributor information, violates progressive disclosure principle.
 
-**Correct Pattern:**
-```markdown
-## Contributing
-
-**This section is for developers who want to modify or contribute.**
-If you're using the project, setup is complete. See [Troubleshooting](#troubleshooting) for support.
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for complete guidelines.
-
-**Quick Reference:**
-```bash
-task quality:fix  # Fix code quality issues
-task test         # Run tests
-task validate     # Run all checks
-```
-
-For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
-```
+**Correct Pattern:** Use the Contributing boundary pattern from [Content Boundaries](#content-boundaries-readme-vs-contributingmd) — minimal pointer with quick reference commands, full workflow in CONTRIBUTING.md.
 
 ### Anti-Pattern 3: Assuming Tech Stack Without Verification
 
@@ -201,62 +185,22 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 **Why It Fails:** Broken badges damage credibility, confuse users about project status, and suggest unmaintained project. Users may question reliability if basic documentation elements are broken.
 
 **Correct Pattern:**
-```markdown
-## Automated Badge Validation
-
-Add to Taskfile.yml:
-
-```yaml
-validate:badges:
-  desc: Verify all README badges are accessible
-  cmds:
-    - |
-      grep -oP 'https://[^)]+\.svg' README.md | while read url; do
-        if ! curl -f -s -o /dev/null "$url"; then
-          echo "BROKEN: $url"
-          exit 1
-        fi
-      done
-    - echo "All badges validated"
-```
-
-**Recovery Procedure:**
-1. Test all badge URLs: `curl -I [badge_url]` (expect HTTP 200)
-2. If 404: Check service documentation for new URL format
-3. If 301/302: Update to final redirect destination URL
-4. If service deprecated: Remove badge or migrate to alternative service (shields.io)
-5. Add badge validation to CI/CD pipeline
-6. Document badge service dependencies in CONTRIBUTING.md
-
-**Prevention:**
+- Validate badge URLs in CI: `grep -oP 'https://[^)]+\.svg' README.md | xargs -I{} curl -f -s -o /dev/null {}`
+- If broken: check service docs for new URL format, update redirects, or migrate to shields.io
 - Use shields.io for custom badges (stable, maintained service)
-- Avoid service-specific badges when alternatives exist
 - Test badges in pull request validation
-- Monitor badge status monthly
-```
 
 ## Implementation Details
 
 ### Quick Start TL;DR for README Content
 
-**MANDATORY:**
 **Essential Patterns:**
 - **Required sections** - Title, Description, Quick Start, Usage, Contributing, License
 - **Quick Start first** - Get users running ASAP
 - **Badge placement** - Build status, version, license at top
 - **Code examples** - Show actual usage, not just API docs
 - **Prerequisites clear** - List all dependencies upfront
-- **Maintainability info** - How to contribute, where to report issues
 - **Never assume knowledge** - Explain setup steps clearly
-
-**Quick Checklist:**
-- [ ] Title clear and descriptive
-- [ ] Description explains purpose
-- [ ] Quick Start/Installation section
-- [ ] Usage examples with code
-- [ ] Contributing guidelines linked
-- [ ] License specified
-- [ ] Badges (if applicable)
 
 ## Essential README Structure
 
@@ -322,46 +266,8 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 ```
 
 ### Recommended Additional Sections
-- **For complex projects,** include these sections based on project complexity:
-
-```markdown
-
-## Table of Contents
-
-**For Users:**
-- [Quick Start](#quick-start)
-- [Usage](#usage)
-- [Troubleshooting](#troubleshooting)
-
-**For Contributors:**
-- [Contributing](#contributing)
-- [Development](#development)
-- [Testing](#testing)
-```
-
-```markdown
-## Features
-
-## Prerequisites
-
-## Configuration
-
-## API Documentation
-
-## Examples
-
-## Testing
-
-## Deployment
-
-## FAQ
-
-## Support
-
-## Acknowledgments
-
-## Changelog
-```
+- **For complex projects:** Features, Prerequisites, Configuration, API Documentation, Examples, Testing, Deployment, FAQ, Support, Acknowledgments, Changelog
+- **Consider:** Table of Contents with separate "For Users" and "For Contributors" groupings
 
 ## Content Guidelines
 
@@ -369,7 +275,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 - **Requirement:** Use a single H1 (`#`) for the project title
 - **Requirement:** Include a concise one-line description immediately after the title
 - **Always:** Add badges/shields for build status, version, license, test coverage, and download count
-- **Rule:** Keep description under 160 characters for social media compatibility
+- **Requirement:** Description ≤160 characters (validate with `wc -c`)
 - **Multi-Platform Projects:** Include badges for hosting platforms
 
 ```markdown
@@ -465,32 +371,6 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 - Modular documentation systems
 - Projects optimizing for LLM consumption
 
-### Directive Language Hierarchy Documentation (Optional)
-
-**Consider:** For rule-based or policy-driven projects, document directive hierarchy
-
-**Pattern:** Show priority levels for behavioral guidance
-- Priority order: Critical, then Mandatory, then Always, then Requirement, then Rule, then Consider
-- Include visual indicators (colors, symbols, emoji) for priority levels
-
-**When to use:** Projects with:
-- Coding standards or style guides
-- Compliance requirements
-- Multi-agent AI systems
-- Quality gates or approval workflows
-
-**Example:**
-```markdown
-## Directive Language Hierarchy
-
-Priority levels (highest to lowest):
-- **Critical** - System Safety [RED] - Must never violate
-- **Mandatory** - Non-negotiable [ORANGE] - Must always follow
-- **Always** - Universal Practice [YELLOW] - Should be consistent
-- **Requirement** - Technical Standard [BLUE] - Should implement
-- **Rule** - Best Practice [GREEN] - Recommended pattern
-- **Consider** - Optional [WHITE] - Suggestions & alternatives
-
 ### API Documentation
 - **Rule:** For libraries, include core API examples in README
 - **Consider:** Link to comprehensive API docs hosted elsewhere
@@ -527,182 +407,26 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 **Contributing:** By submitting a pull request, you agree to license your contribution under Apache 2.0.
 ```
 
-**Why Include Key Points:**
-- Saves users time reading full license text
-- Clarifies common questions upfront
-- Sets expectations for contribution terms
-- Highlights important restrictions (trademark, warranty)
-
 ### Contributing Section
 - **Requirement:** Link to CONTRIBUTING.md if it exists
 - **Always:** Include minimal pointer with quick reference commands
-- **Rule:** Use boundary statement to separate user/contributor content
+- **Rule:** Use boundary statement to separate user/contributor content — see [Content Boundaries](#content-boundaries-readme-vs-contributingmd)
 - **Avoid:** Duplicating detailed contribution workflows from CONTRIBUTING.md in README
-- **Pattern:** Quick reference commands acceptable, full workflow belongs in CONTRIBUTING.md
 
-```markdown
+## Quality and Formatting
 
-## Contributing
-
-**This section and those following are for developers who want to modify or contribute.**
-If you're using the project, setup is complete. See [Troubleshooting](#troubleshooting) for support.
-```
-
-**Alternative:** Use Table of Contents grouping:
-```markdown
-
-## Formatting Standards
-
-### Markdown Syntax
-- **Requirement:** Use consistent heading hierarchy (H1 > H2 > H3)
-- **Always:** Use fenced code blocks with language identifiers
-- **Rule:** Use `**bold**` for emphasis, `*italics*` for subtle emphasis
-- **Avoid:** Mixing heading styles (`#` vs `===`)
-
-### Code Examples
-- **Requirement:** All code examples must be syntactically correct
-- **Always:** Include language identifiers in fenced blocks
-- **Rule:** Test all code examples before publishing
-- **Consider:** Use line numbers for longer examples
-
-```bash
-# Good: Language identifier included
-npm install package-name
-```
-
-### Links and References
-- **Rule:** Use descriptive link text, avoid "click here"
-- **Always:** Verify all links are working and current
-- **Consider:** Use reference-style links for cleaner formatting
-
-```markdown
-# Good
-See the [API documentation](https://example.com/docs) for details.
-
-# Avoid
-Click [here](https://example.com/docs) for more info.
-```
-
-## Quality Assurance
-
-### Content Validation
-- **Requirement:** README must be accurate and up-to-date
-- **Always:** Update README when making significant changes
-- **Rule:** Review README during code review process
-- **Consider:** Automate README validation in CI/CD
-
-### Readability Standards
-- **Rule:** Use clear, concise language appropriate for target audience
-- **Always:** Define technical terms and acronyms on first use
-- **Consider:** Include a glossary for domain-specific terminology
-- **Avoid:** Jargon without explanation
-
-### Visual Organization
-- **Rule:** Use whitespace effectively to improve readability
-- **Always:** Keep line length under 80-100 characters
-- **Consider:** Use tables for structured information
+- **Requirement:** Use consistent heading hierarchy (H1 > H2 > H3), fenced code blocks with language identifiers
+- **Requirement:** All code examples must be syntactically correct and tested
+- **Rule:** Use descriptive link text — avoid "click here"
+- **Always:** Keep line length ≤100 characters
 - **Rule:** Include table of contents for long READMEs (>500 lines)
+- **Avoid:** Horizontal rule markers (`---`) for content separation — use text-based boundary statements instead
 
-### Visual Separation Patterns
+## Lifecycle: README Update Triggers
 
-**Avoid:** Horizontal rule markers (`---`) for content separation
-**Problem:** Overused by LLMs, creates visual noise without semantic meaning
-**Correct Pattern:** Use text-based boundary statements in section headers or TOC grouping
+**Reference:** Pre-Task-Completion Validation Gate in `000-global-core.md` section 6
 
-**Anti-Pattern:**
-```markdown
-
-## For Users
-[content]
-
-## For Contributors
-[content]
-```
-
-### Visual Element Accessibility
-
-**Rule:** For ASCII art, diagrams, or complex visual formatting:
-- **Always:** Provide text-based alternative or description
-- **Consider:** Use `<details>` tag to collapse visual elements
-- **Consider:** Use Mermaid diagrams (more accessible than ASCII art)
-- **Requirement:** Include descriptive summary before visual element
-
-**Pattern:**
-```markdown
-<details>
-<summary>[CHART] Visual Decision Tree (expand for diagram)</summary>
-
-```ascii
-[ASCII art diagram]
-```
-
-</details>
-
-### Text-Based Alternative
-
-**Step 1:** Identify your primary technology
-- Python: Load 200-python-core
-- Snowflake: Load 100-snowflake-core
-
-**Step 2:** Select your use case
-- Python + FastAPI: Load 210-python-fastapi-core
-- Snowflake + Streamlit: Load 101-snowflake-streamlit-core
-```
-
-**Validation:** Test with screen reader (NVDA, JAWS, VoiceOver, or equivalent accessibility testing tool)
-
-**Why This Matters:**
-- Screen readers cannot interpret ASCII art
-- Text alternatives serve users with visual impairments
-- Collapsible sections keep README clean for all users
-
-**Correct Pattern:**
-```markdown
-
-## Accessibility Best Practices
-
-### Inclusive Language
-- **Requirement:** Use inclusive, welcoming language
-- **Avoid:** Assumptions about user knowledge or background
-- **Rule:** Provide context for cultural references or idioms
-- **Always:** Use clear, direct language over clever wordplay
-
-### Screen Reader Compatibility
-- **Rule:** Use descriptive alt text for images
-- **Always:** Structure content with proper heading hierarchy
-- **Rule:** Provide text alternatives for ASCII art or complex visual formatting
-- **Rule:** Ensure links have descriptive text
-
-### International Considerations
-- **Consider:** Provide translations for global projects
-- **Rule:** Use universal examples and references
-- **Always:** Include timezone information for events/releases
-- **Avoid:** Culture-specific assumptions
-
-## Project Lifecycle Management
-
-### Version Control Integration
-- **Rule:** Keep README in sync with codebase changes
-- **Always:** Update version numbers and compatibility information
-- **Consider:** Automate README updates through CI/CD
-- **Rule:** Tag README changes in commit messages
-
-### Maintenance Practices (MANDATORY for Trigger Events)
-
-**Reference:** Pre-Task-Completion Validation Gate in `000-global-core.md` section 6 and `AGENTS.md`
-
-**CRITICAL:** README.md updates are MANDATORY when update triggers apply.
-
-- **MANDATORY:** Review README.md after task completion to check if any triggers from `000-global-core.md` section 6 apply
-- **CRITICAL:** If triggers apply, update README.md BEFORE marking task complete
-- **Requirement:** Review README quarterly for accuracy
-- **Always:** Update links, dependencies, and examples
-- **Rule:** Archive or redirect outdated information
-- **Consider:** Set up automated link checking
-- **Exception:** Only skip README updates if user explicitly requests override (acknowledge that README may be outdated)
-
-### README Update Triggers (from 000-global-core.md)
-These changes REQUIRE README updates before task completion:
+**CRITICAL:** README.md updates are MANDATORY when these triggers apply:
 - Adding, removing, or significantly modifying rule files
 - Changes to project structure or file organization
 - Updates to development workflows or commands
@@ -710,11 +434,7 @@ These changes REQUIRE README updates before task completion:
 - Adding new IDE/agent support
 - Modifying generation scripts or automation tools
 
-### Evolution Patterns
-- **Rule:** Start simple, add complexity as project grows
-- **Always:** Maintain backward compatibility in examples
-- **Consider:** Separate detailed docs from README as project matures
-- **Rule:** Keep README focused on getting started quickly
+**Exception:** Only skip if user explicitly requests override (acknowledge README may be outdated).
 
 ## Common Anti-Patterns to Avoid
 
@@ -749,3 +469,27 @@ These changes REQUIRE README updates before task completion:
 - **Rule:** Validate markdown syntax in CI/CD pipeline
 - **Consider:** Automated link checking and badge updates
 - **Always:** Include README in documentation deployment process
+
+## Accessibility in README Content
+
+- MUST include alt text for all images and badges in README
+- SHOULD use text labels alongside color-coded badges so meaning is not color-dependent
+- Avoid relying solely on images or screenshots to convey critical setup information
+- Use semantic heading hierarchy for screen reader navigation
+- Ensure code blocks have language identifiers for syntax highlighting tools
+
+## Internal Project README Considerations
+
+For internal/private project READMEs, also consider:
+- Include team/owner contact information and escalation paths
+- Reference internal wiki or Confluence for extended documentation
+- Include deployment environment details (staging URLs, internal endpoints)
+- MAY omit License section for internal-only projects
+- Include links to internal CI/CD dashboards and monitoring
+
+## README Anti-Patterns to Avoid
+
+- **Empty sections with "TODO" placeholders** — Remove sections until content is ready rather than leaving stubs
+- **Screenshots without text alternatives** — Always include descriptive text alongside visual content
+- **Installation instructions that skip prerequisites** — List all required tools and versions before commands
+- **"Just run `npm install`" without explaining what the project does** — Always lead with project purpose

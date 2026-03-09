@@ -153,8 +153,8 @@ Common causes:
 - Invalid YAML syntax (tabs instead of spaces)
 - Unescaped special characters in values
 
-Recommendation: Run schema_validator.py first:
-  python scripts/schema_validator.py rules/<file>.md
+Recommendation: Run ai-rules validate first:
+  uv run ai-rules validate rules/<file>.md
 ```
 
 ---

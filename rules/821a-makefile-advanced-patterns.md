@@ -4,10 +4,10 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-02-18
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:makefile-includes, kw:makefile-help, kw:makefile-conditional
 **Keywords:** categorized help, Makefile includes, conditional logic, ifdef, ifeq, variable assignment, simply expanded, recursively expanded, platform detection, multi-target, AI agent, make patterns
-**TokenBudget:** ~2750
+**TokenBudget:** ~3050
 **ContextTier:** Low
 **Depends:** 821-makefile-automation.md
 
@@ -48,9 +48,11 @@ Advanced Makefile patterns including categorized help output, conditional logic,
 - For cross-platform: target platforms identified
 
 ### Mandatory
-- Categorized help for Makefiles with 8+ targets
-- Variable assignment type appropriate to use case (`:=` vs `=` vs `?=`)
-- Platform guards for OS-specific commands
+- MUST implement categorized help for Makefiles with 8+ targets
+- Variable assignment type MUST be appropriate to use case (`:=` for shell, `?=` for overridable, `=` for late-binding)
+- MUST use platform guards for OS-specific commands
+- Each non-internal target MUST include a `## Description` help comment
+- Variables MUST use SCREAMING_SNAKE_CASE
 
 ### Forbidden
 - OS-specific commands without conditional guards
@@ -187,47 +189,33 @@ test-cov-open: test-cov ## Coverage + open in browser
 ```makefile
 .PHONY: help
 help: ## Show this help message
-	@echo "========================================================================"
-	@echo "Project Name v$(PROJECT_VERSION) -- Development Commands"
-	@echo "========================================================================"
-	@echo ""
-	@echo "QUICKSTART"
-	@echo "------------------------------------------------------------------------"
-	@echo "  make quality-fix              Fix all code quality issues"
-	@echo "  make test                     Run all pytest tests"
-	@echo "  make validate                 Run all CI/CD validation checks"
-	@echo ""
-	@echo "CODE QUALITY"
-	@echo "------------------------------------------------------------------------"
-	@echo "  make lint                     Run ruff linter (check only)"
-	@echo "  make format                   Run ruff formatter (check only)"
-	@echo "  make lint-fix                 Fix lint issues"
-	@echo "  make quality-check            Run all quality checks"
-	@echo ""
-	@echo "TESTING"
-	@echo "------------------------------------------------------------------------"
-	@echo "  make test                     Run all pytest tests"
-	@echo "  make test-cov                 Run tests with coverage report"
-	@echo "========================================================================"
+  @echo "========================================"
+  @echo "Project Name -- Development Commands"
+  @echo "========================================"
+  @echo ""
+  @echo "QUICKSTART"
+  @echo "  make quality-fix    Fix all code quality issues"
+  @echo "  make test           Run all pytest tests"
+  @echo ""
+  @echo "CODE QUALITY"
+  @echo "  make lint           Run ruff linter (check only)"
+  @echo "  make lint-fix       Fix lint issues"
+  # ... additional categories follow same pattern
 ```
 
 ### Auto-Generated Help Alternative
 
-For simpler Makefiles, use `grep`-based help that extracts `##` comments:
+For simpler Makefiles, use `grep`-based help that extracts `##` comments. See `821-makefile-automation.md` for the auto-generated help pattern.
 
-```makefile
-.PHONY: help
-help: ## Show available targets
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		sort | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  %-25s %s\n", $$1, $$2}'
-```
+**Decision Framework — Manual vs Auto-Generated Help:**
 
-**Trade-off:**
-- **Manual help (categorized):** Better organization, quickstart section, visual hierarchy. Higher maintenance.
-- **Auto-generated help (`grep`-based):** Zero maintenance, always current. No categorization or visual hierarchy.
+- **Maintenance:** Manual requires updating help text with each target change. Auto-generated stays current automatically.
+- **Organization:** Manual supports logical grouping, quickstart sections, and visual hierarchy. Auto-generated produces a flat alphabetical list.
+- **Consistency:** Manual depends on discipline to keep in sync. Auto-generated always matches actual targets.
+- **Discoverability:** Manual can highlight key workflows in a quickstart section. Auto-generated treats all targets equally.
+- **Multi-file support:** Manual requires effort to cover included Makefiles. Auto-generated uses `MAKEFILE_LIST` to cover all includes automatically.
 
-**Recommendation:** Use manual categorized help for 8+ targets. Use `grep`-based for smaller Makefiles.
+**Recommendation:** Use manual categorized help when 8+ targets AND the project has clear workflow categories. Use `grep`-based when targets are few, change frequently, or span many included files where manual sync is costly.
 
 ## Include Directives
 
@@ -384,9 +372,36 @@ include mk/local.mk
 ```makefile
 # WRONG: Breaks if DEST contains spaces
 deploy:
-	deploy-tool $(DEST)
+  deploy-tool $(DEST)
 
 # CORRECT: Quoted for shell safety
 deploy:
-	deploy-tool "$(DEST)"
+  deploy-tool "$(DEST)"
 ```
+
+## Avoiding Recursive Make
+
+Recursive `$(MAKE) -C subdir/` is a well-documented anti-pattern ("Recursive Make Considered Harmful"). It breaks cross-directory dependency tracking.
+
+SHOULD use include-based alternatives instead:
+
+```makefile
+# Instead of recursive $(MAKE) -C subdir/
+# Use includes:
+include src/module.mk
+include tests/tests.mk
+```
+
+**Why:** Recursive Make prevents Make from seeing the full dependency graph across directories, leading to incorrect builds and missed rebuilds.
+
+## CI/CD Entry Point
+
+SHOULD provide a single CI target:
+
+```makefile
+.PHONY: ci
+ci: lint test build  ## CI pipeline entry point
+	@echo "CI pipeline complete"
+```
+
+Use `make ci` as the sole CI command for consistent local and CI behavior.

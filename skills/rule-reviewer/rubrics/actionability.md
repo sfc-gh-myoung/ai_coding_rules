@@ -1,4 +1,13 @@
-# Actionability Rubric (25 points)
+# Actionability Rubric (30 points)
+
+> **Weight:** 6 | **Max:** 30 points | **Formula:** Raw × 3.0
+
+## Hard Caps (Blocking Issue Thresholds)
+
+| Condition | Effect |
+|-----------|--------|
+| ≥6 blocking issues | Total score capped at 80/100 |
+| ≥10 blocking issues | Verdict forced to NOT_EXECUTABLE |
 
 ## Mandatory Issue Inventory (REQUIRED)
 
@@ -48,58 +57,60 @@
 ## Scoring Formula
 
 **Raw Score:** 0-10
-**Weight:** 5
-**Points:** Raw × (5/2) = Raw × 2.5
+**Weight:** 6
+**Points:** Raw × 3.0
 
 ## Scoring Criteria
 
-### 10/10 (25 points): Perfect
+### 10/10 (30 points): Perfect
 - 0 blocking issues
 - All conditionals have explicit branches (if X then Y; else Z)
 - All actions use imperative voice
 - Quantified examples for all ambiguous terms
 
-### 9/10 (22.5 points): Near-Perfect
+### 9/10 (27 points): Near-Perfect
 - 1 blocking issue
 - 99%+ conditionals have explicit branches
 - 99%+ imperative voice
 
-### 8/10 (20 points): Excellent
+### 8/10 (24 points): Excellent
 - 2-3 blocking issues
 - 97-98% conditionals have explicit branches
 - 97-98% imperative voice
 
-### 7/10 (17.5 points): Good
+### 7/10 (21 points): Good
 - 4-5 blocking issues
 - 95-96% conditionals have explicit branches
 - 95-96% imperative voice
 
-### 6/10 (15 points): Acceptable
+### 6/10 (18 points): Acceptable
 - 6-7 blocking issues
 - 90-94% conditionals have explicit branches
 - 90-94% imperative voice
+- **Note:** ≥6 issues triggers hard cap (max 80/100 total)
 
-### 5/10 (12.5 points): Borderline
+### 5/10 (15 points): Borderline
 - 8-9 blocking issues
 - 85-89% conditionals have explicit branches
 - 85-89% imperative voice
 
-### 4/10 (10 points): Needs Work
+### 4/10 (12 points): Needs Work
 - 10-11 blocking issues
 - 80-84% conditionals have explicit branches
 - 80-84% imperative voice
+- **Note:** ≥10 issues forces NOT_EXECUTABLE verdict
 
-### 3/10 (7.5 points): Poor
+### 3/10 (9 points): Poor
 - 12-14 blocking issues
 - 70-79% conditionals have explicit branches
 - 70-79% imperative voice
 
-### 2/10 (5 points): Very Poor
+### 2/10 (6 points): Very Poor
 - 15-17 blocking issues
 - 60-69% conditionals have explicit branches
 - 60-69% imperative voice
 
-### 1/10 (2.5 points): Inadequate
+### 1/10 (3 points): Inadequate
 - 18-20 blocking issues
 - 50-59% conditionals have explicit branches
 - 50-59% imperative voice
@@ -147,20 +158,21 @@
 ## Score Decision Matrix
 
 **Blocking Issues to Score:**
-- 0 issues: 10/10 (25 pts) - No agent judgment required
-- 1 issue: 9/10 (22.5 pts) - Near-perfect
-- 2-3 issues: 8/10 (20 pts) - Excellent
-- 4-5 issues: 7/10 (17.5 pts) - Minor refinements needed
-- 6-7 issues: 6/10 (15 pts) - Several clarifications needed
-- 8-9 issues: 5/10 (12.5 pts) - Borderline
-- 10-11 issues: 4/10 (10 pts) - Needs work
-- 12-14 issues: 3/10 (7.5 pts) - Poor
-- 15-17 issues: 2/10 (5 pts) - Very poor
-- 18-20 issues: 1/10 (2.5 pts) - Inadequate
+- 0 issues: 10/10 (30 pts) - No agent judgment required
+- 1 issue: 9/10 (27 pts) - Near-perfect
+- 2-3 issues: 8/10 (24 pts) - Excellent
+- 4-5 issues: 7/10 (21 pts) - Minor refinements needed
+- 6-7 issues: 6/10 (18 pts) - Several clarifications needed | **Hard cap: max 80/100 total**
+- 8-9 issues: 5/10 (15 pts) - Borderline
+- 10-11 issues: 4/10 (12 pts) - Needs work | **Forces NOT_EXECUTABLE**
+- 12-14 issues: 3/10 (9 pts) - Poor
+- 15-17 issues: 2/10 (6 pts) - Very poor
+- 18-20 issues: 1/10 (3 pts) - Inadequate
 - >20 issues: 0/10 (0 pts) - Not actionable
 
 **Critical Override:**
-- If blocking issues ≥10: Cap overall rule score at 60/100 regardless of other dimensions
+- If blocking issues ≥6: Cap overall rule score at 80/100 regardless of other dimensions
+- If blocking issues ≥10: Force verdict to NOT_EXECUTABLE regardless of score
 
 ## Undefined Threshold Patterns
 
@@ -261,14 +273,16 @@ Line 150: "The configuration should be verified"
 
 ### Step 3: Determine Score
 
-7 blocking issues = **6/10 (15 points)**
+7 blocking issues = **6/10 (18 points)**
+**Hard cap triggered:** ≥6 issues caps total score at 80/100
 
 ### Step 4: Document in Review
 
 ```markdown
-## Actionability: 6/10 (15 points)
+## Actionability: 6/10 (18 points)
 
 **Blocking issues:** 7
+**Hard Cap Applied:** Total rule score capped at 80/100
 
 **Issue Summary:**
 - Undefined thresholds: 3 (lines 45, 67)
@@ -302,10 +316,15 @@ Line 150: "The configuration should be verified"
 
 ## Agent Execution Test Integration
 
-If Agent Execution Test finds ≥10 blocking issues:
-- Cap Actionability at 4/10 maximum
+If Agent Execution Test finds ≥6 blocking issues:
+- Apply hard cap: Total score max 80/100
 - Document each blocking issue with line number
 - Prioritize undefined thresholds in recommendations
+
+If Agent Execution Test finds ≥10 blocking issues:
+- Force verdict to NOT_EXECUTABLE
+- Cap Actionability at 4/10 maximum
+- Immediate remediation required
 
 ## Non-Issues (Do NOT Count)
 

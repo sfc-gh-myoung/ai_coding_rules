@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-02-18
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-03-09
 **Keywords:** rule update, rule maintenance, versioning, RuleVersion, LastUpdated, semantic versioning, MAJOR, MINOR, PATCH, rule modification, keyword expansion, scope updates, metadata updates, CHANGELOG updates
-**TokenBudget:** ~4500
+**TokenBudget:** ~3500
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
@@ -79,7 +79,7 @@ Workflow and best practices for updating and maintaining existing rule files. Co
 4. Update RuleVersion according to semantic versioning
 5. Update LastUpdated to current date (YYYY-MM-DD)
 6. Update Keywords if adding new discoverable terms
-7. Update TokenBudget if file size changed significantly
+7. Update TokenBudget if file size changed by >50 lines or >10%
 8. Validate with `ai-rules validate` (must pass with 0 CRITICAL errors)
 9. Update CHANGELOG.md with change details
 10. Regenerate RULES_INDEX.md with `task index:generate`
@@ -112,6 +112,7 @@ Updated rule file with:
 
 ### Post-Execution Checklist
 
+- [ ] Filename complies with pattern `<NNN>[<letter>]-<technology>-<aspect>.md` (single-letter suffix only, no multi-char suffixes like a1, b2)
 - [ ] Change type determined (MAJOR/MINOR/PATCH)
 - [ ] RuleVersion incremented correctly
 - [ ] LastUpdated updated to current date
@@ -174,12 +175,12 @@ Updated rule file with:
 ```markdown
 Before:
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-03-09
 **Keywords:** git, workflow, branching strategy
 
 After:
 **RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-07
+**LastUpdated:** 2026-03-09
 **Keywords:** git, git commit, commit message, workflow, branching strategy
 ```
 
@@ -187,12 +188,12 @@ After:
 ```markdown
 Before:
 **RuleVersion:** v2.1.0
-**LastUpdated:** 2026-01-05
+**LastUpdated:** 2026-03-09
 Content: "Use teh validation command"
 
 After:
 **RuleVersion:** v2.1.1
-**LastUpdated:** 2026-01-07
+**LastUpdated:** 2026-03-09
 Content: "Use the validation command"
 ```
 
@@ -201,23 +202,13 @@ Content: "Use the validation command"
 Before:
 **SchemaVersion:** v3.1
 **RuleVersion:** v2.5.0
-**LastUpdated:** 2025-12-15
+**LastUpdated:** 2026-03-09
 
 After:
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-03-09
 ```
-
-### Version Update Checklist
-
-When modifying any rule file:
-- [ ] Determine change type: MAJOR, MINOR, or PATCH
-- [ ] Increment RuleVersion according to semantic versioning
-- [ ] Update LastUpdated to current date (YYYY-MM-DD)
-- [ ] Update CHANGELOG.md with version change details
-- [ ] Run schema validator to ensure compliance
-- [ ] Update RULES_INDEX.md (regenerate with `task index:generate`)
 
 ## When to Update Rules
 
@@ -227,16 +218,16 @@ When modifying any rule file:
 - Adding new examples or anti-patterns to existing guidance
 - Expanding "When to Load This Rule" with new triggers
 - Adding new keywords for improved discoverability
-- Clarifying ambiguous or unclear guidance
+- Rewriting guidance that has 2 or more valid interpretations
 - Fixing typos, broken links, or formatting issues
 - Updating external documentation references
 - Adding new optional tools or commands
 - Expanding existing sections with more detail
 
 **Create new rule instead when:**
-- Topic is substantially different from existing rule
+- Topic shares <30% of keywords with existing rule
 - New rule would be >10,000 tokens (split large rules)
-- Existing rule would become unfocused with additions
+- Existing rule scope description would exceed 3 sentences or cover >2 distinct domains
 - New content targets different ContextTier or domain
 - Change would break existing rule's focused scope
 
@@ -337,7 +328,7 @@ code example
 **LastUpdated:**
 ```markdown
 # Always update to current date
-**LastUpdated:** 2026-01-07
+**LastUpdated:** 2026-03-09
 ```
 
 **Keywords (if adding new terms):**
@@ -346,7 +337,7 @@ code example
 **Keywords:** existing, terms, new-term-1, new-term-2
 ```
 
-**TokenBudget (if file size changed significantly):**
+**TokenBudget (if file size changed by >50 lines or >10%):**
 ```bash
 # Check current token count
 wc -l rules/<your-rule>.md
@@ -394,100 +385,28 @@ uv run ai-rules index generate
 
 ## Common Update Scenarios
 
-### Scenario 1: Adding Keywords for Discoverability
+### Shared Update Template
 
-**Change Type:** MINOR
+All update scenarios follow the same core workflow:
 
-**Steps:**
-1. Identify missing discoverable terms from user queries or feedback
-2. Add terms to Keywords metadata (maintain 5-20 range)
-3. Increment MINOR version (v3.0.0 to v3.1.0)
-4. Update LastUpdated to current date
-5. Validate and update CHANGELOG.md
+1. Make the specific content change
+2. Increment RuleVersion per change type (MAJOR/MINOR/PATCH)
+3. Update LastUpdated to current date
+4. Update TokenBudget if file size changed by >50 lines or >10%
+5. Run `ai-rules validate` (must pass with 0 CRITICAL errors)
+6. Add CHANGELOG.md entry, then regenerate RULES_INDEX.md
 
-**Example:**
-```markdown
-# Before
-**Keywords:** git, workflow, branching strategy
+### Scenario Comparison
 
-# After (added commit-related terms)
-**Keywords:** git, git commit, commit message, workflow, branching strategy, staging
-```
+**Add keywords (MINOR):** Update Keywords field (maintain 5-20 terms). New terms must appear in task descriptions agents typically receive.
 
-### Scenario 2: Expanding Scope/Triggers
+**Expand scope/triggers (MINOR):** Update "When to Load This Rule" section. New triggers must align with existing scope.
 
-**Change Type:** MINOR
+**Add anti-patterns/examples (MINOR):** Add to Anti-Patterns section. Include problem, why it fails, correct pattern, benefits.
 
-**Steps:**
-1. Add new triggers to "When to Load This Rule" section
-2. Ensure new triggers align with existing rule scope
-3. Increment MINOR version
-4. Update LastUpdated
-5. Validate and document in CHANGELOG.md
+**Fix typos/links (PATCH):** Fix inline text or URLs. No semantic change to guidance.
 
-**Example:**
-```markdown
-**When to Load This Rule:**
-- Existing trigger 1
-- Existing trigger 2
-- Writing git commit messages  # NEW
-- Using Conventional Commits format  # NEW
-```
-
-### Scenario 3: Adding Anti-Patterns/Examples
-
-**Change Type:** MINOR
-
-**Steps:**
-1. Add new anti-pattern to "Anti-Patterns and Common Mistakes" section
-2. Include problem, why it fails, correct pattern, and benefits
-3. Increment MINOR version
-4. Update LastUpdated
-5. Update TokenBudget if file grew significantly
-6. Validate and document
-
-### Scenario 4: Fixing Typos/Links
-
-**Change Type:** PATCH
-
-**Steps:**
-1. Fix typo, broken link, or formatting issue
-2. Increment PATCH version (v2.1.0 to v2.1.1)
-3. Update LastUpdated
-4. Validate (should still pass)
-5. Document in CHANGELOG.md
-
-**Example:**
-```markdown
-# Before
-Content: "Use teh validation command"
-
-# After
-Content: "Use the validation command"
-```
-
-### Scenario 5: Schema Migration
-
-**Change Type:** MAJOR
-
-**Steps:**
-1. Update SchemaVersion (v3.1 to v3.2)
-2. Restructure sections per new schema requirements
-3. Reset RuleVersion to vX.0.0 (increment MAJOR from previous)
-4. Update LastUpdated
-5. Validate with new schema
-6. Document breaking changes in CHANGELOG.md
-
-**Example:**
-```markdown
-# Before
-**SchemaVersion:** v3.1
-**RuleVersion:** v2.5.0
-
-# After
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0  # MAJOR increment due to schema change
-```
+**Schema migration (MAJOR):** Update SchemaVersion and restructure sections. Reset MINOR and PATCH to 0; restructure per new schema.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -518,7 +437,7 @@ grep "RuleVersion" rules/<your-rule>.md  # Note current version
 **Correct Pattern:**
 ```markdown
 # ALWAYS update LastUpdated for ANY change
-**LastUpdated:** 2026-01-07  # Current date
+**LastUpdated:** 2026-03-09  # Current date
 ```
 
 **Benefits:** Accurate change tracking; users see recent updates; compliance with versioning policy.
@@ -549,16 +468,7 @@ v3.1.0 to v3.1.1  # Correct
 
 **Why It Fails:** No change history; users don't know what changed; violates project governance; hard to track evolution.
 
-**Correct Pattern:**
-```markdown
-# Always add CHANGELOG.md entry
-## [Unreleased]
-
-### Changed
-- **docs(rules):** update NNN-rule-name (v3.0.0 to v3.1.0)
-  - Added 5 new keywords for discoverability
-  - Impact: Improves rule discovery for commit workflows
-```
+**Correct Pattern:** Follow the CHANGELOG format in Step 6 above for every rule change.
 
 **Benefits:** Complete change history; users see what changed; governance compliance; easier debugging.
 
@@ -578,57 +488,3 @@ uv run ai-rules validate rules/<your-rule>.md
 ```
 
 **Benefits:** Catches errors early; maintains schema compliance; smooth CI/CD; high rule quality.
-
-## Output Format Examples
-
-### Example 1: Keyword Addition Update
-
-```bash
-# Step 1: Read current state
-grep "RuleVersion\|LastUpdated\|Keywords" rules/803-project-git-workflow.md
-
-# Output:
-# **RuleVersion:** v3.0.0
-# **LastUpdated:** 2026-01-06
-# **Keywords:** git, workflow, branching strategy
-
-# Step 2: Make changes (add commit-related keywords)
-vim rules/803-project-git-workflow.md
-
-# Step 3: Update metadata
-# **RuleVersion:** v3.1.0  # MINOR (added keywords)
-# **LastUpdated:** 2026-01-07
-# **Keywords:** git, git commit, commit message, workflow, branching strategy
-
-# Step 4: Validate
-uv run ai-rules validate rules/803-project-git-workflow.md
-# All validations passed!
-
-# Step 5: Update CHANGELOG.md
-# - **docs(rules):** expand 803 keywords for commit message discoverability
-
-# Step 6: Regenerate index
-task index:generate
-```
-
-### Example 2: Typo Fix Update
-
-```bash
-# Step 1: Fix typo
-# Before: "Use teh validation command"
-# After: "Use the validation command"
-
-# Step 2: Update metadata
-# **RuleVersion:** v2.1.0 to v2.1.1  # PATCH (typo fix)
-# **LastUpdated:** 2026-01-07
-
-# Step 3: Validate
-uv run ai-rules validate rules/<your-rule>.md
-# All validations passed!
-
-# Step 4: Update CHANGELOG.md
-# - **fix(rules):** correct typo in <your-rule>.md (v2.1.0 to v2.1.1)
-
-# Step 5: Regenerate index
-task index:generate
-```

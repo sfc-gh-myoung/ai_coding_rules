@@ -42,7 +42,7 @@ indexes, performance optimization, query patterns, table design, workload manage
 ### Phase 2: Template Generation (1 min)
 
 ```bash
-$ python scripts/template_generator.py 125-snowflake-hybrid-tables \
+$ uv run ai-rules new 125-snowflake-hybrid-tables \
     --context-tier High \
     --output-dir rules/
 
@@ -153,7 +153,7 @@ Don't use Hybrid Tables for bulk analytics; don't omit PRIMARY KEY; don't create
 
 **Iteration 1:**
 ```bash
-$ python scripts/schema_validator.py rules/125-snowflake-hybrid-tables.md
+$ uv run ai-rules validate rules/125-snowflake-hybrid-tables.md
 
 SUMMARY:
    CRITICAL: 1
@@ -171,7 +171,7 @@ RESULT:  FAILED (exit code 1)
 
 **Iteration 2:**
 ```bash
-$ python scripts/schema_validator.py rules/125-snowflake-hybrid-tables.md
+$ uv run ai-rules validate rules/125-snowflake-hybrid-tables.md
 
 SUMMARY:
    CRITICAL: 0

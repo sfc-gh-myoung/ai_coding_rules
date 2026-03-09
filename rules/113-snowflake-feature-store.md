@@ -3,13 +3,14 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:feature-store, kw:ml-features
 **Keywords:** feature views, entity modeling, ML pipeline, ASOF JOIN, point-in-time correctness, Dynamic Tables, feature versioning, create features, feature catalog, feature pipeline, feature discovery, feature registry, feature lineage
-**TokenBudget:** ~6150
+**TokenBudget:** ~4300
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 110-snowflake-model-registry.md
+**Companions:** 113a-snowflake-feature-store-patterns.md, 113b-snowflake-feature-store-engineering.md
 
 ## Scope
 
@@ -53,11 +54,11 @@ Comprehensive best practices for Snowflake Feature Store: creating, maintaining,
 
 ### Mandatory
 
-- Feature Store Python API
-- SQL feature transformations
-- Dynamic Tables for managed views
-- ASOF JOIN for point-in-time correctness
-- Snowflake Model Registry
+- Initialize Feature Store with `FeatureStore()` before any feature operations
+- Register entities with `register_entity()` before creating feature views
+- Use `generate_dataset()` with `spine_timestamp_col` for point-in-time correctness
+- Version all feature views when registering with `register_feature_view()`
+- Integrate with Model Registry for lineage tracking
 
 ### Forbidden
 
@@ -118,262 +119,55 @@ Comprehensive best practices for Snowflake Feature Store: creating, maintaining,
 
 ## Anti-Patterns and Common Mistakes
 
-**Anti-Pattern 1: Not Using ASOF JOIN for Point-in-Time Correctness**
+> **See companion rule:** `113a-snowflake-feature-store-patterns.md` for 4 detailed anti-pattern/correct-pattern pairs covering data leakage, versioning, non-deterministic functions, and refresh cost monitoring.
+
+**Key rules:** Always use ASOF JOIN for training data, version all feature views, use only deterministic transformations, and monitor refresh costs.
+
+**Anti-Pattern 1: Generating Training Datasets Without Point-in-Time Correctness**
+
+**Problem:** Developers join features to training labels using a standard JOIN on entity keys without considering temporal alignment. This causes data leakage — the model trains on feature values computed from future data that would not have been available at prediction time. The model appears to perform well in offline evaluation but degrades in production because it no longer has access to "future" features.
+
+**Correct Pattern:** Always use `generate_dataset()` with `spine_timestamp_col` to enable ASOF JOIN. This ensures each training example only sees feature values that existed at the time of the observation.
+
 ```python
-# Bad: Regular JOIN causes data leakage
-training_data = entities_df.join(
-    features_df,
-    on='customer_id',
-    how='left'
-)
-# Uses latest feature values, not values at prediction time!
-# Leaks future information into training data!
-```
-**Problem:** Data leakage; inflated model performance; production model fails; overfitting; unrealistic accuracy; deployment failure; wasted training
+# Wrong: Standard join causes data leakage — features may include future data
+spine_df = session.sql("SELECT customer_id, churned AS label FROM CHURN_LABELS")
+features_df = session.table("CUSTOMER_FEATURES")
+# Simple join has no temporal awareness — 2024-03-01 label gets 2024-03-31 features
+train_df = spine_df.join(features_df, on="customer_id")
 
-**Correct Pattern:**
-```python
-# Good: ASOF JOIN for point-in-time correctness
-from snowflake.ml.feature_store import FeatureStore
-
-fs = FeatureStore(session, database='FEATURE_STORE_DB', schema='CUSTOMER_FEATURES')
-
-training_data = fs.generate_training_set(
-    spine_df=entities_df,  # Has customer_id and prediction_timestamp
-    features=[
-        'customer_features@v1',
-        'transaction_features@v2'
-    ],
-    spine_timestamp_col='prediction_timestamp',  # Point-in-time!
-    exclude_columns=['internal_id']
-)
-
-# ASOF JOIN ensures features use only data available before prediction_timestamp
-# No data leakage, realistic training data
-```
-**Benefits:** No data leakage; realistic model performance; production accuracy matches training; point-in-time correctness; professional ML engineering; reliable models
-
-**Anti-Pattern 2: Not Versioning Feature Views**
-```python
-# Bad: Overwrite feature view without versioning
-@fv(name='customer_features', version='v1')
-def customer_features(df):
-    return df.select('customer_id', 'age', 'income')
-
-# Later: Change feature logic but keep same name/version
-@fv(name='customer_features', version='v1')  # Same name!
-def customer_features(df):
-    return df.select('customer_id', 'age_bucket', 'income_log')  # Different features!
-
-# Models trained on old features break, can't reproduce results!
-```
-**Problem:** Can't reproduce models; training/inference mismatch; broken lineage; model failures; no rollback; audit gaps; unprofessional; chaos
-
-**Correct Pattern:**
-```python
-# Good: Semantic versioning for feature views
-from snowflake.ml.feature_store import FeatureStore, FeatureView
-
-fs = FeatureStore(session, database='FEATURE_STORE_DB', schema='CUSTOMER_FEATURES')
-
-# Version 1.0.0: Initial features
-@fv(name='customer_features', version='v1.0.0')
-def customer_features_v1(df):
-    return df.select(
-        col('customer_id'),
-        col('age'),
-        col('income')
-    )
-
-# Version 2.0.0: Breaking change - different feature engineering
-@fv(name='customer_features', version='v2.0.0')  # New version!
-def customer_features_v2(df):
-    return df.select(
-        col('customer_id'),
-        when(col('age') < 30, 'young')
-         .when(col('age') < 50, 'middle')
-         .otherwise('senior').alias('age_bucket'),
-        log(col('income') + 1).alias('income_log')
-    )
-
-# Models reference specific versions
-model_v1 = train_model(features='customer_features@v1.0.0')
-model_v2 = train_model(features='customer_features@v2.0.0')
-
-# Can reproduce, rollback, and maintain multiple versions
-```
-**Benefits:** Reproducible models; clear lineage; no training/inference mismatch; rollback capability; audit trail; professional; multiple model versions coexist
-
-**Anti-Pattern 3: Using Non-Deterministic Functions in Feature Engineering**
-```python
-# Bad: Non-deterministic transformations
-@fv(name='transaction_features', version='v1')
-def transaction_features(df):
-    return df.select(
-        col('transaction_id'),
-        col('amount'),
-        CURRENT_TIMESTAMP().alias('feature_created_at'),  # Changes every run!
-        uniform(0, 1, random()).alias('random_feature')   # Different every time!
-    )
-
-# Training and inference produce different feature values!
-```
-**Problem:** Training/inference mismatch; non-reproducible; model instability; debugging nightmare; unreliable predictions; production failures; unprofessional
-
-**Correct Pattern:**
-```python
-# Good: Deterministic transformations only
-@fv(name='transaction_features', version='v1')
-def transaction_features(df):
-    return df.select(
-        col('transaction_id'),
-        col('amount'),
-        col('transaction_timestamp'),  # Use existing timestamp column
-        (col('amount') * 0.1).alias('amount_scaled'),  # Deterministic math
-        when(col('amount') > 1000, 1).otherwise(0).alias('high_value_flag')  # Deterministic logic
-    )
-
-# If you need current time context, use spine timestamp
-@fv(name='time_aware_features', version='v1')
-def time_aware_features(df):
-    # df already has event_timestamp from source
-    return df.select(
-        col('customer_id'),
-        col('event_timestamp'),
-        datediff('day', col('last_purchase_date'), col('event_timestamp')).alias('days_since_last_purchase')
-        # Deterministic: same inputs always produce same outputs
-    )
-```
-**Benefits:** Reproducible features; training/inference consistency; debuggable; reliable predictions; professional ML engineering; production-ready
-
-**Anti-Pattern 4: Not Monitoring Feature View Refresh Costs**
-```python
-# Bad: Set aggressive refresh schedule without monitoring
-CREATE DYNAMIC TABLE customer_features_view
-TARGET_LAG = '1 MINUTE'  -- Refreshes constantly!
-WAREHOUSE = LARGE_WH     -- Expensive warehouse!
-AS
-SELECT
-  customer_id,
-  -- Complex aggregations over millions of rows
-  COUNT(*) OVER (PARTITION BY customer_id ORDER BY timestamp ROWS BETWEEN 1000 PRECEDING AND CURRENT ROW) as rolling_count
-FROM raw_events;
-
--- Bills hundreds of dollars per day, features rarely used!
-```
-**Problem:** Runaway costs; unnecessary refreshes; wasted credits; budget overruns; expensive features; no ROI tracking; unprofessional; financial risk
-
-**Correct Pattern:**
-```python
-# Good: Monitor costs and optimize refresh schedule
-
-# Step 1: Start with conservative refresh schedule
-CREATE DYNAMIC TABLE customer_features_view
-TARGET_LAG = '1 HOUR'    -- Less frequent initially
-WAREHOUSE = SMALL_WH     -- Start small
-AS
-SELECT
-  customer_id,
-  COUNT(*) as purchase_count,
-  SUM(amount) as total_spend
-FROM transactions
-GROUP BY customer_id;
-
-# Step 2: Monitor refresh costs
-SELECT
-  table_name,
-  refresh_action,
-  completion_time,
-  credits_used,
-  rows_inserted,
-  rows_updated
-FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLE_REFRESH_HISTORY
-WHERE table_name = 'CUSTOMER_FEATURES_VIEW'
-  AND start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP())
-ORDER BY start_time DESC;
-
-# Step 3: Calculate cost per refresh
-SELECT
-  AVG(credits_used) as avg_credits_per_refresh,
-  SUM(credits_used) as total_credits_weekly,
-  COUNT(*) as refresh_count
-FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLE_REFRESH_HISTORY
-WHERE table_name = 'CUSTOMER_FEATURES_VIEW'
-  AND start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP());
-
-# Step 4: Optimize based on actual usage
--- If features rarely change, increase TARGET_LAG to reduce costs
-ALTER DYNAMIC TABLE customer_features_view
-SET TARGET_LAG = '4 HOURS';  -- Reduce refresh frequency
-
--- If costs still high, use smaller warehouse
-ALTER DYNAMIC TABLE customer_features_view
-SET WAREHOUSE = XSMALL_WH;
-
-# Step 5: Set up cost alerts
-CREATE OR REPLACE TASK monitor_feature_costs
-WAREHOUSE = MONITORING_WH
-SCHEDULE = '1 DAY'
-AS
-INSERT INTO feature_cost_alerts
-SELECT
-  table_name,
-  SUM(credits_used) as daily_credits,
-  CURRENT_DATE() as alert_date
-FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLE_REFRESH_HISTORY
-WHERE start_time >= DATEADD('day', -1, CURRENT_TIMESTAMP())
-GROUP BY table_name
-HAVING SUM(credits_used) > 10;  -- Alert if >10 credits/day
-```
-**Benefits:** Cost visibility; optimized refreshes; budget control; ROI tracking; proactive alerts; financial responsibility; professional operations; sustainable ML
-
-## Output Format Examples
-```python
-# Feature Store initialization
-from snowflake.ml.feature_store import FeatureStore, FeatureView, Entity
-
-fs = FeatureStore(
-    session=session,
-    database="ML_DATABASE",
-    name="DOMAIN_FEATURE_STORE",
-    default_warehouse="FEATURE_WH",
-    creation_mode="create_if_not_exists"
-)
-
-# Entity registration
-entity = fs.register_entity(
-    name="ENTITY_NAME",
-    join_keys=["entity_id"],
-    desc="Entity description"
-)
-
-# Managed feature view
-@feature_view(
-    name="ENTITY_FEATURES_30D",
-    entities=[entity],
-    refresh_freq="1 day"
-)
-def entity_features(session):
-    return session.sql("""
-        SELECT
-            entity_id,
-            COUNT(*) AS count_30d,
-            SUM(value) AS sum_30d
-        FROM SOURCE_TABLE
-        WHERE timestamp >= DATEADD('day', -30, CURRENT_DATE())
-        GROUP BY entity_id
-    """)
-
-fv = fs.register_feature_view(feature_view=entity_features, version="1.0")
-
-# Generate training dataset
+# Correct: Use generate_dataset with spine_timestamp_col for ASOF JOIN
+spine_df = session.sql("""
+    SELECT customer_id, observation_date, churned AS label
+    FROM CHURN_LABELS WHERE observation_date >= '2024-01-01'
+""")
 training_data = fs.generate_dataset(
     spine_df=spine_df,
-    features=[fv],
-    spine_timestamp_col="observation_date",
-    name="training_dataset",
+    features=[customer_purchases_fv, customer_engagement_fv],
+    spine_timestamp_col="observation_date",  # Enables ASOF JOIN
+    name="churn_training_v1",
     version="1.0"
 )
+```
+
+**Anti-Pattern 2: Registering Feature Views Without Versioning**
+
+**Problem:** Feature view transformations are updated in place without incrementing the version. When a model is retrained on the updated features, there is no record of which feature definition produced the original training data. Debugging model performance regressions becomes impossible because you cannot reproduce the exact features used in a prior training run.
+
+**Correct Pattern:** Always version feature views when registering and increment the version whenever the transformation logic changes. This enables reproducibility and lineage tracking through the Model Registry.
+
+```python
+# Wrong: Overwriting feature view without version tracking
+fv = FeatureView(name="CUSTOMER_PURCHASES", entities=[customer_entity],
+                 feature_df=session.sql("SELECT customer_id, COUNT(*) AS orders FROM ORDERS GROUP BY 1"))
+fs.register_feature_view(feature_view=fv, version="1.0")
+# Later, transformation changes but version stays the same — lineage broken
+fv_updated = FeatureView(name="CUSTOMER_PURCHASES", entities=[customer_entity],
+                         feature_df=session.sql("SELECT customer_id, COUNT(*) AS orders, SUM(amount) AS spend FROM ORDERS GROUP BY 1"))
+fs.register_feature_view(feature_view=fv_updated, version="1.0")  # Overwrites!
+
+# Correct: Increment version when transformation changes
+fs.register_feature_view(feature_view=fv_updated, version="1.1")  # New version preserves lineage
 ```
 
 ## Feature Store Setup and Organization
@@ -485,7 +279,7 @@ customer_purchases_fv = fs.register_feature_view(
 ### Refresh Schedule Best Practices
 - **Always:** Align refresh frequency with source data update cadence
 - **Rule:** Use incremental refresh for large datasets (default behavior with Dynamic Tables)
-- **Consider:** Balance freshness requirements vs. compute costs
+- **Rule:** Set target lag to 1 hour for standard features; reduce to 5 minutes only for fraud detection or real-time serving features
 
 ```python
 # Common refresh patterns
@@ -573,37 +367,7 @@ With ASOF JOIN (point-in-time correct):
 
 ## Feature Engineering Patterns
 
-### Aggregation Features
-- **Rule:** Use time-window aggregations (7d, 30d, 90d) for behavioral features
-- **Always:** Include multiple aggregation functions (COUNT, SUM, AVG, MAX, MIN, STDDEV)
-- **Consider:** Create features at multiple time windows for model to learn temporal patterns
-
-```sql
--- Multi-window aggregation pattern
-SELECT
-    customer_id,
-    -- 7-day window
-    COUNT(DISTINCT order_id) AS orders_7d,
-    SUM(order_amount) AS spend_7d,
-    -- 30-day window
-    COUNT(DISTINCT order_id) AS orders_30d,
-    SUM(order_amount) AS spend_30d,
-    -- Ratios (velocity indicators)
-    orders_7d / NULLIF(orders_30d, 0) AS order_velocity_ratio
-FROM ORDERS
-WHERE order_date >= DATEADD('day', -30, CURRENT_DATE())
-GROUP BY customer_id
-```
-
-### Time-Based Features
-- **Rule:** Extract temporal components for cyclical patterns (day_of_week, hour, month)
-- **Always:** Use `DATEDIFF` for recency features (days_since_last_purchase)
-- **Consider:** Create lag features for time-series forecasting
-
-### Derived and Ratio Features
-- **Rule:** Create ratios and derived metrics to capture relationships
-- **Always:** Use `NULLIF` to prevent division by zero errors
-- **Consider:** Normalize features within feature view for model stability
+> **See companion rule:** `113b-snowflake-feature-store-engineering.md` for aggregation features, time-based features, derived ratios, and common RFM (Recency, Frequency, Monetary) patterns with SQL templates.
 
 ## Feature Versioning and Lineage
 
@@ -662,27 +426,16 @@ GRANT SELECT ON FUTURE DYNAMIC TABLES IN SCHEMA ML_DATABASE.CUSTOMER_FEATURE_STO
 ### Feature View Performance
 - **Rule:** Use clustering keys on high-cardinality join keys in feature views
 - **Always:** Monitor Dynamic Table refresh costs and optimize refresh frequency
-- **Consider:** Use materialized views for expensive aggregations queried frequently
+- **Rule:** Use materialized views for expensive aggregations queried more than 10 times per day
 
 ### Dataset Generation Optimization
 - **Rule:** Filter spine DataFrame to relevant time ranges before joining features
 - **Always:** Use appropriate warehouse size based on dataset size and join complexity
-- **Consider:** Batch dataset generation for large training sets; use Snowflake ML Jobs for heavy workloads
+- **Rule:** Batch dataset generation for training sets exceeding 10M rows; use Snowflake ML Jobs for datasets exceeding 100M rows
 
 ### Cost Monitoring
-```sql
--- Monitor feature view refresh costs
-SELECT
-    table_name,
-    refresh_action,
-    refresh_trigger,
-    completion_time,
-    credits_used
-FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLE_REFRESH_HISTORY
-WHERE table_schema = 'CUSTOMER_FEATURE_STORE'
-  AND start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP())
-ORDER BY credits_used DESC;
-```
+
+See Anti-Pattern 4 (Steps 2-3) for detailed cost monitoring queries using `DYNAMIC_TABLE_REFRESH_HISTORY`. Monitor weekly to track refresh costs per feature view and optimize TARGET_LAG accordingly.
 
 ## Integration with Model Registry
 
@@ -722,52 +475,3 @@ model_ref = registry.log_model(
     comment=f"Trained on {training_data.name} (Feature Store lineage tracked)"
 )
 ```
-
-## Common Feature Patterns
-
-### Recency Features
-```sql
--- Days since last event
-DATEDIFF('day', MAX(event_timestamp), CURRENT_DATE()) AS days_since_last_event
-```
-
-### Frequency Features
-```sql
--- Count distinct events in time window
-COUNT(DISTINCT event_id) AS events_30d
-```
-
-### Monetary Features
-```sql
--- Spend aggregations with nullif for safety
-SUM(amount) AS total_spend_30d,
-AVG(amount) AS avg_transaction_value,
-SUM(amount) / NULLIF(COUNT(*), 0) AS spend_per_transaction
-```
-
-### Velocity and Trend Features
-```sql
--- Compare recent vs. historical behavior
-orders_7d / NULLIF(orders_30d, 0) AS order_acceleration,
-spend_7d - spend_30d AS spend_trend
-```
-
-## Best Practices Summary
-
-### Feature View Design
-- **Rule:** One feature view per logical feature group (purchase behavior, engagement metrics, demographics)
-- **Always:** Include timestamp column for temporal features
-- **Rule:** Use consistent feature naming across views (lowercase, underscores)
-- **Consider:** Pre-aggregate at feature view level; avoid expensive joins during dataset generation
-
-### Data Quality
-- **Requirement:** Handle NULL values explicitly in feature transformations
-- **Always:** Use `COALESCE` or `IFNULL` for default values
-- **Rule:** Document expected feature distributions and ranges
-- **Consider:** Implement data quality checks on feature views
-
-### Reproducibility
-- **Requirement:** Version all feature views and datasets
-- **Always:** Use deterministic transformations (avoid RANDOM(), CURRENT_TIMESTAMP() without context)
-- **Rule:** Document feature engineering decisions and rationale
-- **Always:** Test feature generation produces consistent results across runs

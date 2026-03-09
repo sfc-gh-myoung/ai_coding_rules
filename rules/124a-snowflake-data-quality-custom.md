@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:custom-quality-check
 **Keywords:** quality assertions, custom metrics, validation functions, create custom DMF, custom quality checks, business rule validation, custom expectations, quality functions, UDF for quality, validation logic, custom quality metrics, quality rules, custom validation
-**TokenBudget:** ~3500
+**TokenBudget:** ~3000
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 124-snowflake-data-quality-core.md
 
@@ -41,7 +41,7 @@ Patterns for creating custom Data Metric Functions (DMFs) and expectations to im
 
 ### Inputs and Prerequisites
 
-- Understanding of DMF fundamentals from 124-core
+- Understanding of DMF fundamentals from 124-snowflake-data-quality-core
 - Business rules and quality requirements defined
 - EXECUTE DATA METRIC FUNCTION privilege
 
@@ -88,6 +88,16 @@ Custom DMF implementations produce:
 **Negative Tests:**
 - DMF should fail gracefully with invalid inputs
 - Expectations should not trigger on valid data
+- Custom DMF with wrong return type should fail at creation time
+
+**Integration Tests:**
+- Create custom DMF with SQL UDF and verify it executes successfully
+- Test custom DMF with edge cases (empty tables, null values, extreme thresholds)
+- Verify custom validation logic correctly identifies data quality issues
+- Compare custom DMF results with standard DMF functions for accuracy
+- Test Python UDF DMFs if using complex validation logic
+- Schedule custom DMF and check execution history
+- Validate integration with alerting and monitoring systems
 
 ### Design Principles
 
@@ -98,12 +108,18 @@ Custom DMF implementations produce:
 
 ### Post-Execution Checklist
 
-- [ ] Custom DMF created with clear business rule
+- [ ] Custom DMF created with clear naming convention (DMF_CUSTOM_ prefix)
 - [ ] DMF returns FLOAT type for compatibility
-- [ ] Expectation set with appropriate threshold
-- [ ] Validation tested with sample data and edge cases
-- [ ] Metric semantics documented
-- [ ] Business rationale captured
+- [ ] SQL UDF or Python UDF defined with appropriate input/output types
+- [ ] Custom validation logic tested with sample data and edge cases
+- [ ] Edge cases handled (empty tables, null values, division by zero)
+- [ ] Expectation set with appropriate threshold based on business requirements
+- [ ] DMF scheduled to run at appropriate frequency
+- [ ] Execution history monitored for failures or anomalies
+- [ ] Documentation includes business logic and threshold rationale
+- [ ] Custom DMF performance tested (execution time < 5 minutes for large tables)
+- [ ] Access controls configured for custom functions and DMFs
+
 ### Custom DMF Requirements
 **Must return FLOAT:**
 - Custom DMFs must return FLOAT data type for compatibility with expectations
@@ -180,9 +196,6 @@ ALTER TABLE ORDERS
 MODIFY DATA METRIC SCHEDULE '1 HOUR'
 EXPECT (ANALYTICS.ORPHANED_ORDERS ON ()) = 0;
 ```
-</design_principles>
-
-</contract>
 
 ## Anti-Patterns and Common Mistakes
 
@@ -328,20 +341,6 @@ $$;
 ```
 **Benefits:** Bugs caught in dev; validated logic; confidence in production; realistic expectations; no false alerts; professional deployment; reduced risk
 
-## Post-Execution Checklist
-
-- [ ] Custom DMF created with clear naming convention (DMF_CUSTOM_ prefix)
-- [ ] SQL UDF or Python UDF defined with appropriate input/output types
-- [ ] Custom validation logic tested with sample data
-- [ ] Edge cases handled (empty tables, null values, division by zero)
-- [ ] EXPECT statements use custom function results
-- [ ] Thresholds based on business requirements (not arbitrary)
-- [ ] DMF scheduled to run at appropriate frequency
-- [ ] Execution history monitored for failures or anomalies
-- [ ] Documentation includes business logic and threshold rationale
-- [ ] Custom DMF performance tested (execution time < 5 minutes for large tables)
-- [ ] Access controls configured for custom functions and DMFs
-
 > **Investigation Required**
 > When applying this rule:
 > 1. Read existing data quality patterns and validation logic BEFORE creating custom DMFs
@@ -349,100 +348,6 @@ $$;
 > 3. Never speculate about data patterns without analyzing actual data distribution
 > 4. Check execution time and performance impact of custom DMFs on large tables
 > 5. Make grounded recommendations based on investigated data characteristics and validation requirements
-
-## Validation
-
-- Create custom DMF with SQL UDF and verify it executes successfully
-- Test custom DMF with edge cases (empty tables, null values, extreme thresholds)
-- Verify custom validation logic correctly identifies data quality issues
-- Compare custom DMF results with standard DMF functions for accuracy
-- Test Python UDF DMFs if using complex validation logic
-- Schedule custom DMF and check execution history
-- Validate integration with alerting and monitoring systems
-
-## Output Format Examples
-
-```sql
--- Custom Data Metric Function with SQL UDF for complex business logic
--- Example: Validate referential integrity across multiple tables
-
--- Step 1: Create custom UDF for validation
-CREATE OR REPLACE FUNCTION UDF_CHECK_REFERENTIAL_INTEGRITY(
-  fact_table STRING,
-  dim_table STRING,
-  fk_column STRING,
-  pk_column STRING
-)
-RETURNS NUMBER
-AS
-$$
-  SELECT COUNT(*)
-  FROM IDENTIFIER(:fact_table) f
-  WHERE NOT EXISTS (
-    SELECT 1
-    FROM IDENTIFIER(:dim_table) d
-    WHERE f.fk_column = d.pk_column
-  )
-$$;
-
--- Step 2: Create DMF using custom UDF
-CREATE OR REPLACE DATA METRIC FUNCTION DMF_CUSTOM_REFERENTIAL_INTEGRITY()
-  COMMENT = 'Validate referential integrity between fact and dimension tables'
-  RETURNS NUMBER
-  SCHEDULE = '120 MINUTE'  -- Run every 2 hours
-  AS
-  $$
-    DECLARE
-        orphan_orders NUMBER;
-        orphan_line_items NUMBER;
-        invalid_products NUMBER;
-    BEGIN
-        -- Check 1: Orders without valid customers
-        SELECT UDF_CHECK_REFERENTIAL_INTEGRITY(
-          'PROD_DB.FACT.ORDERS',
-          'PROD_DB.DIM.CUSTOMERS',
-          'customer_id',
-          'customer_id'
-        )
-        INTO orphan_orders;
-
-        -- Check 2: Line items without valid orders
-        SELECT UDF_CHECK_REFERENTIAL_INTEGRITY(
-          'PROD_DB.FACT.LINE_ITEMS',
-          'PROD_DB.FACT.ORDERS',
-          'order_id',
-          'order_id'
-        )
-        INTO orphan_line_items;
-
-        -- Check 3: Line items with invalid product IDs
-        SELECT UDF_CHECK_REFERENTIAL_INTEGRITY(
-          'PROD_DB.FACT.LINE_ITEMS',
-          'PROD_DB.DIM.PRODUCTS',
-          'product_id',
-          'product_id'
-        )
-        INTO invalid_products;
-
-        -- Define expectations: Zero orphaned records allowed
-        EXPECT (orphan_orders) = 0;
-        EXPECT (orphan_line_items) = 0;
-        EXPECT (invalid_products) = 0;
-
-        RETURN 1.0;
-    END;
-  $$;
-
--- Execute and verify
-CALL DMF_CUSTOM_REFERENTIAL_INTEGRITY();
-
--- Check results
-SELECT *
-FROM TABLE(INFORMATION_SCHEMA.DATA_METRIC_FUNCTION_RESULTS(
-  REF('DMF_CUSTOM_REFERENTIAL_INTEGRITY')))
-ORDER BY measurement_time DESC
-LIMIT 5;
-```
 
 ## Expectations
 
@@ -484,8 +389,9 @@ EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON email) < (
 
 **Range-Based Threshold:**
 ```sql
--- Row count should be between 10K and 100K
-EXPECT (SNOWFLAKE.CORE.ROW_COUNT ON ()) BETWEEN 10000 AND 100000
+-- Row count should be between 10K and 100K (use two comparisons)
+EXPECT (SNOWFLAKE.CORE.ROW_COUNT ON ()) >= 10000
+EXPECT (SNOWFLAKE.CORE.ROW_COUNT ON ()) <= 100000
 ```
 
 **Zero Tolerance:**

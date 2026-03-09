@@ -4,10 +4,10 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-02-18
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** file:Makefile, kw:makefile, kw:make
 **Keywords:** Makefile, GNU Make, make, build automation, make target, phony, make help, portable make, make variables, uv, uvx, make dependencies, make error handling, make cleanup
-**TokenBudget:** ~2950
+**TokenBudget:** ~3250
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -114,6 +114,8 @@ Core directives for creating and maintaining project automation using Makefiles,
 - [ ] Validated with `make help` and `make -n`
 
 ## Makefile Structure
+
+> **CI/CD & Agent Integration:** For CI/CD pipeline targets and agent-driven automation patterns, see `821a-makefile-advanced-patterns.md`.
 
 ### File Header
 
@@ -314,22 +316,20 @@ test: ## Run tests
 
 **Why It Fails:** Breaks portability across machines, CI/CD environments, and different OS configurations.
 
-**Correct Pattern:**
+**Correct Pattern:** Use the auto-detection pattern from [Tool Auto-Detection](#tool-auto-detection) above.
 ```makefile
 # WRONG: Hardcoded path
 lint:
-	/usr/local/bin/ruff check .
+  /usr/local/bin/ruff check .
 
 # WRONG: Bare command assumes global install
 lint:
-	ruff check .
+  ruff check .
 
-# CORRECT: Auto-detected via variable
-UVX := $(shell command -v uvx 2>/dev/null || echo "uvx")
-
+# CORRECT: Use auto-detected variable (see Tool Auto-Detection)
 .PHONY: lint
 lint: ## Run linter
-	$(UVX) ruff check .
+  $(UVX) ruff check .
 ```
 
 ### Anti-Pattern 3: Spaces Instead of Tabs
@@ -365,7 +365,54 @@ deploy:
 .PHONY: deploy
 deploy: ## Deploy (DEST=... required)
 ifndef DEST
-	$(error DEST is required. Usage: make deploy DEST=/path/to/project)
+  $(error DEST is required. Usage: make deploy DEST=/path/to/project)
 endif
-	deploy-tool $(DEST)
+  deploy-tool $(DEST)
 ```
+
+## Parallel Builds
+
+Use `make -j` for parallel target execution:
+
+```makefile
+# Detect available cores and build in parallel
+NPROCS := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
+
+.PHONY: parallel-build
+parallel-build: ## Build with parallel jobs
+	$(MAKE) -j$(NPROCS) build
+```
+
+**Note:** Use `.NOTPARALLEL:` for order-dependent targets that must not run in parallel.
+
+## CI/CD Integration
+
+SHOULD provide a single `ci` target as the CI pipeline entry point:
+
+```makefile
+.PHONY: ci
+ci: lint test build ## CI pipeline entry point
+	@echo "CI pipeline complete"
+```
+
+```yaml
+# GitHub Actions example
+# - name: Build and test
+#   run: make ci
+```
+
+## .ONESHELL Directive
+
+`.ONESHELL` runs all recipe lines in a single shell invocation (GNU Make 3.82+):
+
+```makefile
+.ONESHELL:
+
+.PHONY: deploy
+deploy: ## Package and deploy
+	cd build/
+	tar czf release.tar.gz .
+	scp release.tar.gz server:/opt/app/
+```
+
+Without `.ONESHELL`, each line runs in a separate shell, so `cd` does not persist between lines.

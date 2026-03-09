@@ -185,7 +185,7 @@ Adds timing metadata to output (duration, token usage, cost estimation).
 | Cost | ~$0.03 |
 ```
 
-**See:** `skills/skill-timing/README.md` for full documentation on timing features, baseline comparison, and analysis tools.
+**See:** `docs/USING_SKILL_TIMING_SKILL.md` for full documentation on timing features, baseline comparison, and analysis tools.
 
 ### Execution Modes
 

@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-02-23
+**RuleVersion:** v1.3.0
+**LastUpdated:** 2026-03-09
 **Keywords:** SQL files, file headers, COPY INTO, FILE_FORMAT, CREATE VIEW, fully qualified names, idempotent, reserved characters, CLI compatibility, ON_ERROR, JOIN, ambiguous column, table alias
-**TokenBudget:** ~3950
+**TokenBudget:** ~4100
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** ext:.sql, kw:sql
@@ -53,9 +53,10 @@ Essential SQL file authoring patterns for Snowflake: file headers, COPY INTO syn
 
 ### Inputs and Prerequisites
 
-- Target database/schema identified
-- Snowflake CLI or Snowsight access
-- Understanding of target environment (demo vs production)
+- Snowflake account with SYSADMIN or equivalent role, warehouse (X-SMALL or larger), and target database/schema created
+- USAGE privilege on target database and schema; CREATE TABLE/VIEW privileges on schema
+- For COPY INTO: USAGE privilege on the stage; for external stages, the storage integration must be configured
+- Snowflake CLI (`snow sql`) or Snowsight access for execution
 
 ### Mandatory
 
@@ -115,6 +116,8 @@ SQL files with .sql extension, UTF-8 encoding, Unix line endings
 - [ ] SQL executes without errors via CLI
 - [ ] **FK constraints reference existing tables** (or will exist when executed)
 - [ ] **No CHECK constraints** (unsupported in Snowflake)
+- [ ] Performance optimized (see **103-snowflake-performance-tuning.md**)
+- [ ] Cost implications reviewed (see **105-snowflake-cost-governance.md**)
 
 ## File Header Standard
 
@@ -168,6 +171,34 @@ SQL files with .sql extension, UTF-8 encoding, Unix line endings
 -- Idempotency: <Explain why safe to rerun>
 -- ============================================================================
 ```
+
+## Runtime SQL Validation
+
+### Pre-Execution Syntax Check
+
+**Rule:** Validate generated SQL before executing against production data
+
+Use `EXPLAIN` to catch syntax errors without modifying data:
+
+```sql
+-- Validate DML syntax without executing
+EXPLAIN
+SELECT c.CUSTOMER_ID, o.ORDER_TOTAL
+FROM ANALYTICS_DB.SALES.CUSTOMERS c
+JOIN ANALYTICS_DB.SALES.ORDERS o ON c.CUSTOMER_ID = o.CUSTOMER_ID;
+```
+
+For DDL statements, use `IF NOT EXISTS` or `OR REPLACE` guards so scripts are safe to rerun:
+
+```sql
+-- Safe to rerun: won't fail if table already exists
+CREATE TABLE IF NOT EXISTS ANALYTICS_DB.SALES.CUSTOMERS (
+    CUSTOMER_ID NUMBER PRIMARY KEY,
+    NAME VARCHAR(255)
+);
+```
+
+**Note:** `EXPLAIN` works for SELECT, INSERT, UPDATE, DELETE, and MERGE. It does not work for DDL (CREATE, ALTER, DROP) -- use `IF NOT EXISTS` guards for those instead.
 
 ## COPY INTO Syntax
 
@@ -296,81 +327,47 @@ CREATE TABLE CUSTOMERS (...);  -- May fail in CLI automation
 - Single-file scripts executed as one unit
 - Development/exploration only
 
-## Reserved Characters (CLI Compatibility)
+## CTE Naming Conventions
 
 ### Rule
 
-**Disable client-side template expansion when SQL contains reserved characters**
+**Name CTEs descriptively to reflect their purpose**
 
-**Why:** `snow sql` (LEGACY mode, the default) interprets `&` as a template variable prefix. The correct fix is `--enable-templating NONE`, NOT substituting characters in data.
+**Why:** Generic names like `cte1`, `temp`, `data` make SQL unreadable and unmaintainable.
 
-### Reserved Characters
-
-**Characters that CLI tools interpret as template syntax:**
-- **`&`** - `snow sql` LEGACY mode interprets as template variable prefix
-- **`<%` `%>`** - `snowsql` interprets as variable delimiters
-- **`{{` `}}`** - Jinja2, dbt interpret as template syntax
-
-### Error Message Pattern
-
-When `&` is present and templating is not disabled, `snow sql` produces these errors:
-```
-Warning: &{ ... } syntax is deprecated and will no longer be supported. Use <% ... %> syntax instead.
-SQL template rendering error: 'W' is undefined
-SQL template rendering error: 'Ms' is undefined
-```
-
-The text after `&` is treated as a variable name (e.g., `A&W` becomes variable `W`, `M&Ms` becomes variable `Ms`).
-
-### The Fix: `--enable-templating NONE`
-
-**Do NOT replace `&` with `and` in data.** That corrupts real brand names, product descriptions, and other data that legitimately contains `&`.
-
-The correct fix is to disable client-side template expansion at the CLI layer:
-
-```bash
-# Correct: disable templating so & is passed through to Snowflake
-snow sql --enable-templating NONE -c my_connection -f sql/03_seed_data.sql
-
-# In Python wrappers, add the flag to the command builder:
-cmd = [*get_snow_command(), "sql", "--enable-templating", "NONE", "-c", connection]
-```
-
-`--enable-templating NONE` should be the default for all non-templated SQL execution. Only use LEGACY or other modes when you actually need client-side variable expansion.
-
-### Incorrect Approach (Data Substitution)
-
+**Correct:**
 ```sql
--- WRONG: Do NOT corrupt data to work around CLI templating
-INSERT INTO products (name, brand) VALUES
-('M and Ms Milk Chocolate 1.69oz', 'M and Ms'),  -- WRONG: corrupts brand name
-('A and W Root Beer 20oz', 'A and W'),             -- WRONG: corrupts brand name
-('PB and J Sandwich on White', 'Fresh');           -- WRONG: corrupts product name
+WITH filtered_orders AS (
+    SELECT * FROM ANALYTICS_DB.SALES.ORDERS WHERE STATUS = 'COMPLETED'
+),
+aggregated_metrics AS (
+    SELECT CUSTOMER_ID, SUM(ORDER_TOTAL) AS TOTAL_SPEND
+    FROM filtered_orders
+    GROUP BY CUSTOMER_ID
+),
+ranked_customers AS (
+    SELECT *, RANK() OVER (ORDER BY TOTAL_SPEND DESC) AS SPEND_RANK
+    FROM aggregated_metrics
+)
+SELECT * FROM ranked_customers WHERE SPEND_RANK <= 100;
 ```
 
-### Correct Approach (Disable Templating)
-
+**Incorrect:**
 ```sql
--- CORRECT: Keep real brand names with &, execute with --enable-templating NONE
-INSERT INTO products (name, brand) VALUES
-('M&Ms Milk Chocolate 1.69oz', 'M&Ms'),
-('A&W Root Beer 20oz', 'A&W'),
-('PB&J Sandwich on White', 'Fresh');
+-- WRONG: Generic CTE names
+WITH cte1 AS (...),
+     temp AS (...),
+     data AS (...)
+SELECT * FROM data;
 ```
 
-### When Templating Cannot Be Disabled
+**Naming pattern:** `<verb_or_adjective>_<noun>` -- e.g., `filtered_orders`, `daily_revenue`, `active_users`, `joined_events`.
 
-For `<%` `%>` in `snowsql` or `{{` `}}` in dbt/Jinja contexts where you cannot disable templating, avoid these characters in SQL comments and string literals. Use the `--variable` flag or dbt `var()` for actual variable substitution instead of embedding template syntax in SQL.
+## Reserved Characters (CLI Compatibility)
 
-### SQL Single-Quote Escaping
+For reserved character handling (`&`, `<%`, `%>`, `{{`, `}}`), single-quote escaping, and `--enable-templating NONE` usage, see **102c-snowflake-sql-reserved-chars.md**.
 
-Brand names with apostrophes (e.g., Frank's RedHot) must use doubled single quotes inside SQL string literals:
-
-```sql
--- Correct: apostrophe escaped as '' inside SQL string
-INSERT INTO products (name, brand) VALUES
-('Frank''s RedHot Original Cayenne Pepper Sauce 5oz', 'Frank''s RedHot');
-```
+**Quick rule:** Use `snow sql --enable-templating NONE -f file.sql` when SQL contains `&` characters. Never replace `&` with `and` in data.
 
 ## Idempotent Patterns Overview
 
@@ -478,28 +475,33 @@ CREATE TABLE my_db.my_schema.customers (...);
 SELECT * FROM my_db.my_schema.orders;
 ```
 
-### Anti-Pattern 4: Reserved Characters in SQL Files
+### Anti-Pattern 4: Reserved Characters in SQL Files Without Disabling Templating
 
 **Problem:**
 ```sql
-COMMENT = 'Sales & Marketing data'
+-- Executing via CLI without --enable-templating NONE:
+-- snow sql -f seed_data.sql
+INSERT INTO items (name, brand) VALUES
+('M&Ms Milk Chocolate 1.69oz', 'M&Ms'),
+('A&W Root Beer 20oz', 'Keurig Dr Pepper');
+-- ERROR: SQL template rendering error: 'Ms' is undefined
+```
 
--- Also common in seed data INSERT statements:
+**Why It Fails:** The `&` character is interpreted as a template variable prefix by `snow sql` in LEGACY mode (the default). The CLI attempts to expand `&W`, `&Ms`, etc. as variables. Do NOT corrupt data by replacing `&` with `and` -- instead disable templating at the CLI layer.
+
+**Correct Pattern:**
+```bash
+# Correct: disable templating so & is passed through to Snowflake
+snow sql --enable-templating NONE -f seed_data.sql
+```
+```sql
+-- Keep real data intact -- no need to change SQL
 INSERT INTO items (name, brand) VALUES
 ('M&Ms Milk Chocolate 1.69oz', 'M&Ms'),
 ('A&W Root Beer 20oz', 'Keurig Dr Pepper');
 ```
 
-**Why It Fails:** The `&` character is interpreted as a template variable prefix by snow sql CLI. The CLI attempts to expand `&W`, `&Ms`, etc. as variables, producing `SQL template rendering error: 'X' is undefined`. This is especially common in demo seed data containing brand names like M&Ms, A&W, PB&J.
-
-**Correct Pattern:**
-```sql
-COMMENT = 'Sales and Marketing data'
-
-INSERT INTO items (name, brand) VALUES
-('M and Ms Milk Chocolate 1.69oz', 'M and Ms'),
-('A and W Root Beer 20oz', 'Keurig Dr Pepper');
-```
+See the **Reserved Characters (CLI Compatibility)** section above for full details.
 
 ### Anti-Pattern 5: Unqualified Columns in JOINs
 

@@ -41,9 +41,9 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 
 (Default `output_root: reviews/`. With `output_root: mytest/` → `mytest/rule-reviews/...` and `mytest/summaries/...`)
 1. Executive Summary (score distribution, dimension analysis)
-2. Priority 1: Urgent (score <60, NOT_EXECUTABLE)
-3. Priority 2: High (score 60-79, NEEDS_REFINEMENT)
-4. Priority 3: Medium (score 80-89, EXECUTABLE_WITH_REFINEMENTS)
+2. Priority 1: Urgent (score <50, NOT_EXECUTABLE)
+3. Priority 2: High (score 50-74, NEEDS_REFINEMENT)
+4. Priority 3: Medium (score 75-89, EXECUTABLE_WITH_REFINEMENTS)
 5. Priority 4: Excellent (score 90-100, EXECUTABLE)
 6. Failed Reviews (execution errors)
 7. Top 10 Recommendations (impact × effort prioritization)
@@ -98,7 +98,7 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 
 1. Read ONE rule file completely
 2. Run schema validator for THAT rule
-3. Apply ALL 7 rubrics to THAT rule
+3. Apply ALL 6 scored rubrics to THAT rule
 4. Write review file for THAT rule
 5. THEN move to next rule
 
@@ -316,7 +316,7 @@ You may have noticed rule files emphasize token efficiency (TokenBudget metadata
 
 **For this skill specifically:**
 - **Cost:** ~50K tokens × 4 reviews/year = 200K tokens/year ≈ $1.80 annually
-- **Value:** Comprehensive quality assurance for 113 rules
+- **Value:** Comprehensive quality assurance for 129 rules
 - **ROI:** One prevented bad rule saves 10-100× the token cost
 
 **DO NOT apply rule token-efficiency principles to skill execution.**
@@ -528,6 +528,17 @@ If agent repeatedly attempts shortcuts despite self-correction:
 
 ## Workflow
 
+### Parameter Collection
+
+Collect ALL parameters (required AND optional) using `ask_user_question` tool.
+
+**See:** `workflows/parameter-collection.md`
+
+**MANDATORY:** Prompt for ALL parameters in batched questions (max 4 per call):
+- Do NOT silently apply defaults for optional parameters
+- User must explicitly confirm each setting
+- If `ask_user_question` unavailable, fall back to text-based prompting
+
 ### [OPTIONAL] Timing Start
 
 **When:** Only if `timing_enabled: true` in inputs  
@@ -574,7 +585,7 @@ When `max_parallel >= 2`, use parallel sub-agents for faster execution:
 5. **Aggregate results** when all sub-agents complete
 
 **Benefits:**
-- 5× speedup (1-2 hours instead of 5-10 hours)
+- 5× speedup (~50 minutes instead of 4-6 hours)
 - Fresh context per sub-agent (eliminates drift)
 - Isolated failures (one agent failing doesn't stop others)
 
@@ -651,13 +662,13 @@ If you're thinking ANY of these thoughts, STOP and re-read this skill:
 - "This will take too long" → Comprehensive review completes efficiently
 - "I can optimize this" → NO. Quality > efficiency
 - "Templates would be faster" → Templates = zero signal
-- "Token costs are high" → $0.45 for 113 rules is cheap QA (Skills ≠ Rules)
+- "Token costs are high" → $0.45 for 129 rules is cheap QA (Skills ≠ Rules)
 - "Users won't notice abbreviated reviews" → They will. Bad rules escape.
 
 **Correct Agent Self-Talk During Execution:**
 
 **WRONG (Optimization-Seeking):**
-- "I've done 10 rules in 8 minutes, so 113 will take 90 minutes..."
+- "I've done 10 rules in 8 minutes, so 129 will take 90 minutes..."
 - "This seems like a lot of work, should I ask the user?"
 - "Maybe I can create a template to speed this up..."
 - "Let me calculate the token cost..."

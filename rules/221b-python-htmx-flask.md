@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-01-20
 **LoadTrigger:** kw:htmx-flask
 **Keywords:** flask, flask-htmx, blueprints, flask-login, session management, flask routes, flask templates, flask csrf, flask extensions, request context
-**TokenBudget:** ~3450
+**TokenBudget:** ~3300
 **ContextTier:** Medium
 **Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
 
@@ -67,7 +67,7 @@ Flask-specific integration patterns for HTMX applications, covering Flask-HTMX e
 
 ### Forbidden
 
-- Mixing business logic in routes
+- Mixing database queries, data transformations, and external API calls in routes (keep in service layer)
 - Bypassing CSRF protection
 - Returning JSON for HTMX requests
 - Using global state instead of session
@@ -145,6 +145,8 @@ from flask_htmx import HTMX
 
 app = Flask(__name__)
 htmx = HTMX(app)
+# The `htmx` variable here is the app-level HTMX instance.
+# In blueprints, import the proxy: `from flask_htmx import htmx`
 
 # Now access via `htmx` object in routes
 @app.route('/data')
@@ -289,7 +291,7 @@ from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'
+app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 csrf = CSRFProtect(app)
 ```
 
@@ -317,7 +319,7 @@ csrf = CSRFProtect(app)
 </form>
 ```
 
-**Exempting Specific Routes (Use Sparingly):**
+**Exempting Specific Routes (Only for public read-only endpoints accepting no user input):**
 ```python
 @app.route('/public/data', methods=['POST'])
 @csrf.exempt  # Only for truly public endpoints
@@ -479,39 +481,18 @@ def get_data():
 
 **Correct Pattern:**
 ```html
+<!-- In base.html head -->
 <meta name="csrf-token" content="{{ csrf_token() }}">
-<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
 <script>
-  document.body.addEventListener('htmx:configRequest', (event) => {
-    event.detail.headers['X-CSRFToken'] =
-      document.querySelector('meta[name="csrf-token"]').content;
-  });
+document.body.addEventListener('htmx:configRequest', function(evt) {
+    evt.detail.headers['X-CSRFToken'] = document.querySelector('meta[name="csrf-token"]').content;
+});
 </script>
 ```
 
 ## Output Format Examples
 
 ### Complete Flask App Structure
-```python
-# app/__init__.py
-from flask import Flask
-from flask_htmx import HTMX
-from flask_wtf.csrf import CSRFProtect
-from flask_login import LoginManager
 
-def create_app():
-    app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'secret'
-
-    htmx = HTMX(app)
-    csrf = CSRFProtect(app)
-    login_manager = LoginManager(app)
-
-    from app.blueprints.pages import pages
-    from app.blueprints.htmx_routes import htmx_bp
-
-    app.register_blueprint(pages)
-    app.register_blueprint(htmx_bp)
-
-    return app
-```
+See `create_app()` in Section 2 (Blueprint Registration) for the full application factory pattern.

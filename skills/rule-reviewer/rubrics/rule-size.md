@@ -1,4 +1,6 @@
-# Rule Size Rubric (10 points)
+# Rule Size Rubric (25 points)
+
+> **Weight:** 5 | **Max:** 25 points | **Formula:** Raw × 2.5
 
 ## Mandatory Issue Inventory (REQUIRED)
 
@@ -10,6 +12,7 @@
 - **Unambiguous signals:** Clear thresholds produce clear remediation actions
 - **Zero inter-run variance:** Same file always produces same line count
 - **Agent executability:** Clear decision boundaries for autonomous action
+- **Heavy enforcement:** 25% of total score ensures oversized rules are severely penalized
 
 ### Inventory Template
 
@@ -18,12 +21,14 @@
 | Metric | Value |
 |--------|-------|
 | Total lines | NNN |
+| Optimal threshold | 300 |
 | Target threshold | 500 |
-| Warning threshold | 600 |
-| Critical threshold | 700 |
+| Warning threshold | 550 |
+| Split required threshold | 600 |
+| Hard cap threshold | 700 |
 | Variance from target | +NN% or -NN% |
 | Score tier | X/10 |
-| Flag | [None/OPTIMIZATION_RECOMMENDED/SPLITTING_REQUIRED/NOT_DEPLOYABLE] |
+| Flag | [None/SPLIT_RECOMMENDED/SPLIT_REQUIRED/NOT_DEPLOYABLE/BLOCKED] |
 
 ### Counting Protocol (3 Steps)
 
@@ -50,114 +55,97 @@ Examples:
 ## Scoring Formula
 
 **Raw Score:** 0-10
-**Weight:** 2
-**Points:** Raw × (2/2) = Raw × 1.0
+**Weight:** 5
+**Points:** Raw × 2.5
+
+## Hard Caps (Score Ceiling)
+
+| Condition | Maximum Score | Effect |
+|-----------|---------------|--------|
+| >600 lines | 70/100 | NEEDS_REFINEMENT forced |
+| >700 lines | 50/100 | NOT_EXECUTABLE forced |
+| >800 lines | 30/100 | Review rejected |
+
+**Note:** Hard caps apply to the TOTAL rule score, not just this dimension.
 
 ## Scoring Criteria
 
-### 10/10 (10 points): Optimal
-- ≤400 lines
+### 10/10 (25 points): Optimal
+- ≤300 lines
 - Well under target
-- High information density
+- Highest information density
 - Flag: None
 
-### 9/10 (9 points): Excellent
-- 401-450 lines
+### 9/10 (22.5 points): Excellent
+- 301-400 lines
 - Under target
-- Good density
+- High density
 - Flag: None
 
-### 8/10 (8 points): Good
-- 451-500 lines
+### 8/10 (20 points): Good (At Target)
+- 401-500 lines
 - At target threshold
 - Acceptable density
 - Flag: None
 
-### 7/10 (7 points): Acceptable
+### 5/10 (12.5 points): Over Target
 - 501-550 lines
 - Slightly over target (+0-10%)
-- Review for consolidation opportunities
-- Flag: `OPTIMIZATION_RECOMMENDED`
+- 50% penalty at 501 lines
+- Flag: `SPLIT_RECOMMENDED`
 
-### 6/10 (6 points): Warning
+### 3/10 (7.5 points): Warning
 - 551-600 lines
 - Over target (+10-20%)
-- Identify verbose sections
-- Flag: `OPTIMIZATION_RECOMMENDED`
-
-### 5/10 (5 points): Over Limit
-- 601-650 lines
-- Exceeds 20% threshold (+20-30%)
 - Identify split candidates
-- Flag: `SPLITTING_REQUIRED`
+- Flag: `SPLIT_REQUIRED`
 
-### 4/10 (4 points): Critical
-- 651-700 lines
-- Significantly over (+30-40%)
+### 1/10 (2.5 points): Critical
+- 601-700 lines
+- Significantly over (+20-40%)
 - Mandatory split before deployment
-- Flag: `SPLITTING_REQUIRED`
-
-### 3/10 (3 points): Severe
-- 701-750 lines
-- Severely over (+40-50%)
-- Block deployment until addressed
-- Flag: `SPLITTING_REQUIRED`
-
-### 2/10 (2 points): Unacceptable
-- 751-800 lines
-- Unacceptably large (+50-60%)
-- Immediate remediation required
+- **Hard cap:** Total score max 70/100
 - Flag: `NOT_DEPLOYABLE`
 
-### 1/10 (1 point): Critical Failure
-- 801-900 lines
-- Major restructure required (+60-80%)
+### 0/10 (0 points): Blocked
+- >700 lines
 - Cannot be deployed
-- Flag: `NOT_DEPLOYABLE`
-
-### 0/10 (0 points): Invalid
-- >900 lines
-- Complete rewrite required (>80% over)
-- Rule is not viable in current form
-- Flag: `NOT_DEPLOYABLE`
+- **Hard cap:** Total score max 50/100
+- Flag: `BLOCKED`
 
 ## Score Decision Matrix
 
-| Lines | Score | Points | Flag | Agent Action |
-|-------|-------|--------|------|--------------|
-| ≤400 | 10/10 | 10 | None | None required |
-| 401-450 | 9/10 | 9 | None | None required |
-| 451-500 | 8/10 | 8 | None | None required |
-| 501-550 | 7/10 | 7 | `OPTIMIZATION_RECOMMENDED` | Review for consolidation |
-| 551-600 | 6/10 | 6 | `OPTIMIZATION_RECOMMENDED` | Identify verbose sections |
-| 601-650 | 5/10 | 5 | `SPLITTING_REQUIRED` | Identify split candidates |
-| 651-700 | 4/10 | 4 | `SPLITTING_REQUIRED` | Mandatory split plan |
-| 701-750 | 3/10 | 3 | `SPLITTING_REQUIRED` | Block deployment |
-| 751-800 | 2/10 | 2 | `NOT_DEPLOYABLE` | Immediate remediation |
-| 801-900 | 1/10 | 1 | `NOT_DEPLOYABLE` | Major restructure |
-| >900 | 0/10 | 0 | `NOT_DEPLOYABLE` | Complete rewrite |
+| Lines | Raw | Points | Flag | Agent Action | Hard Cap |
+|-------|-----|--------|------|--------------|----------|
+| ≤300 | 10 | 25 | None | None (optimal) | - |
+| 301-400 | 9 | 22.5 | None | None | - |
+| 401-500 | 8 | 20 | None | None (at target) | - |
+| 501-550 | 5 | 12.5 | `SPLIT_RECOMMENDED` | Review for split | - |
+| 551-600 | 3 | 7.5 | `SPLIT_REQUIRED` | Mandatory split plan | - |
+| 601-700 | 1 | 2.5 | `NOT_DEPLOYABLE` | Block deployment | Max 70/100 |
+| >700 | 0 | 0 | `BLOCKED` | Reject review | Max 50/100 |
 
 ## Flag Definitions
 
-### `OPTIMIZATION_RECOMMENDED` (501-600 lines)
+### `SPLIT_RECOMMENDED` (501-550 lines)
 
-**Meaning:** Rule exceeds target but is within acceptable tolerance.
+**Meaning:** Rule exceeds 500-line target. Split recommended but not blocking.
 
 **Agent Behavior:**
 - Log warning in review output
-- Suggest consolidation opportunities
+- Suggest split opportunities
 - Do NOT block deployment
 - Track for future optimization
 
 **Remediation Options:**
-1. Consolidate redundant sections
+1. Identify logical split points (sections >100 lines)
 2. Move examples to separate file
 3. Extract reference tables
 4. Compress verbose prose to lists
 
-### `SPLITTING_REQUIRED` (601-800 lines)
+### `SPLIT_REQUIRED` (551-600 lines)
 
-**Meaning:** Rule exceeds 20% threshold. Must be split before deployment.
+**Meaning:** Rule exceeds target by >10%. Must be split before deployment.
 
 **Agent Behavior:**
 - Flag as blocking issue
@@ -181,20 +169,35 @@ Analyze rule structure:
 - Domain-specific subsections → Extract to NNNa, NNNb pattern
 ```
 
-### `NOT_DEPLOYABLE` (>800 lines)
+### `NOT_DEPLOYABLE` (601-700 lines)
 
-**Meaning:** Rule is too large for agent context windows. Cannot be deployed.
+**Meaning:** Rule significantly exceeds target. Cannot be deployed without split.
 
 **Agent Behavior:**
 - Fail the review
+- **Apply hard cap: Max total score 70/100**
+- Force verdict: NEEDS_REFINEMENT minimum
 - Require immediate remediation
-- Do NOT allow any deployment path
-- Escalate to human maintainer
 
 **Remediation:**
-- Major restructure required
-- Split into 2-4 focused rules
+- Major split required
+- Split into 2-3 focused rules
 - May require architectural review
+
+### `BLOCKED` (>700 lines)
+
+**Meaning:** Rule is too large for agent context windows. Review rejected.
+
+**Agent Behavior:**
+- Reject the review
+- **Apply hard cap: Max total score 50/100**
+- Force verdict: NOT_EXECUTABLE
+- Do NOT allow any deployment path
+
+**Remediation:**
+- Complete restructure required
+- Split into 3-4+ focused rules
+- Architectural review mandatory
 
 ## Rationale: Why 500 Lines?
 
@@ -249,19 +252,21 @@ Variance = ((650 - 500) / 500) × 100 = +30%
 ### Step 3: Look Up Score
 
 **From Decision Matrix:**
-- 651-700 lines = 4/10 (4 points)
-- Flag: `SPLITTING_REQUIRED`
+- 601-700 lines = 1/10 (2.5 points)
+- Flag: `NOT_DEPLOYABLE`
+- **Hard cap applies: Total score max 70/100**
 
 ### Step 4: Document in Review
 
 ```markdown
-## Rule Size: 4/10 (4 points)
+## Rule Size: 1/10 (2.5 points)
 
 **Line count:** 650 lines
 **Target:** 500 lines
-**Variance:** +30% (exceeds 20% threshold)
+**Variance:** +30% (exceeds target by >20%)
 
-**Flag:** `SPLITTING_REQUIRED`
+**Flag:** `NOT_DEPLOYABLE`
+**Hard Cap Applied:** Total rule score capped at 70/100
 
 **Split candidates identified:**
 - Lines 140-280: Anti-Patterns section (140 lines) → Extract to 350a-docker-anti-patterns.md
@@ -274,9 +279,9 @@ Variance = ((650 - 500) / 500) × 100 = +30%
 4. Update cross-references
 
 **Expected post-split:**
-- 350-docker-core.md: ~370 lines (8/10)
-- 350a-docker-anti-patterns.md: ~150 lines (10/10)
-- 350b-docker-security.md: ~130 lines (10/10)
+- 350-docker-core.md: ~370 lines (9/10 = 22.5 pts)
+- 350a-docker-anti-patterns.md: ~150 lines (10/10 = 25 pts)
+- 350b-docker-security.md: ~130 lines (10/10 = 25 pts)
 ```
 
 ## Inter-Run Consistency Target
@@ -297,16 +302,26 @@ wc -l rules/example.md
 
 ## Interaction with Other Dimensions
 
-### No Overlap with Token Efficiency
+### Token Efficiency Merger
 
-Rule Size and Token Efficiency measure different concerns:
+As of Scoring Rubric v2.0, Token Efficiency has been merged into Rule Size as an informational modifier. Token Efficiency is no longer a scored dimension.
 
-| Dimension | Measures | Can Coexist? |
-|-----------|----------|--------------|
-| **Rule Size** | Physical line count | Yes |
-| **Token Efficiency** | Budget accuracy, redundancy, structure | Yes |
+**What moved to Rule Size:**
+- Line count remains the primary metric (100% deterministic)
+- Redundancy findings are reported in Rule Size recommendations
+- Structure ratio findings inform split recommendations
 
-**Example:** A 480-line rule (Rule Size: 8/10) can still have redundancy issues (Token Efficiency: 6/10). These are independent assessments.
+**Redundancy Modifier (Informational):**
+
+When reviewing Rule Size, note any redundancy issues for recommendations:
+
+| Redundancy Count | Recommendation |
+|------------------|----------------|
+| 0 instances | No action needed |
+| 1-2 instances | Note in recommendations |
+| 3+ instances | Prioritize in remediation |
+
+**Note:** Redundancy does NOT affect the Rule Size score. It informs recommendations for how to reduce line count.
 
 ### Relationship to Completeness
 
@@ -340,4 +355,11 @@ Small rules may lack coverage.
 
 ## Version History
 
+- **v2.0.0:** Scoring Rubric v2.0 update (2026-03-08)
+  - Weight increased: 2 → 5 (now 25% of total score)
+  - Max points increased: 10 → 25
+  - New thresholds: Optimal at ≤300, 50% penalty at 501
+  - Added hard caps: >600 lines caps total at 70, >700 caps at 50
+  - New flags: SPLIT_RECOMMENDED, SPLIT_REQUIRED, BLOCKED
+  - Token Efficiency merged as informational modifier
 - **v1.0.0:** Initial release (2026-02-04)

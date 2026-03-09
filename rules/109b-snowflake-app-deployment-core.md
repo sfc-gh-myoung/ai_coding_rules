@@ -8,11 +8,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-02-19
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:app-deployment, kw:deploy
 **Keywords:** CREATE NOTEBOOK, stages, deployment automation, SiS, deploy app, deployment pipeline, app publishing, deployment patterns, deploy to snowflake, stage deployment, production deployment, app versioning, automated deployment
-**TokenBudget:** ~6700
+**TokenBudget:** ~3650
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 109-snowflake-notebooks.md, 101-snowflake-streamlit-core.md, 820-taskfile-automation.md
 
@@ -51,10 +51,13 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 - SQL scripts for upload/remove/create operations
 
 ### Mandatory
-- Task automation (Taskfile.yml)
-- Snowflake CLI (`uvx snow sql`)
-- SQL template files with Snowflake variables (`<%VARIABLE%>`)
-- PUT, REMOVE, CREATE NOTEBOOK, CREATE STREAMLIT, DROP commands
+- 5-step deployment workflow: DROP, REMOVE, upload (PUT), CREATE, deploy (orchestrator)
+- `AUTO_COMPRESS=FALSE` on all PUT commands for `.py`, `.yml`, `.ipynb` files
+- Explicit `REMOVE @stage/file` before every `PUT` (not just `OVERWRITE=TRUE`)
+- `ROOT_LOCATION` in CREATE must match actual stage file paths
+- Taskfile.yml automation (no manual Snowsight UI deployments)
+- SQL scripts stored in version control, not inline in YAML
+- Snowflake CLI minimum version: 3.12+ (`uvx --from=snowflake-cli>=3.12 snow`)
 
 ### Forbidden
 - Manual file uploads via Snowsight UI (not reproducible)
@@ -90,13 +93,7 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 
 ### Post-Execution Checklist
 
-- [ ] DROP existing object SQL created
-- [ ] REMOVE stage files SQL created
-- [ ] PUT with AUTO_COMPRESS=FALSE
-- [ ] CREATE with correct ROOT_LOCATION
-- [ ] Taskfile targets defined
-- [ ] Deployment tested in dev
-- [ ] SQL scripts in version control
+See detailed Post-Execution Checklist below for comprehensive deployment validation steps.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -340,362 +337,19 @@ Directory structure for `project/`:
 
 ## SQL Script Patterns
 
-### Upload Script (PUT)
+> For complete SQL script templates (upload/PUT, remove, create, drop) and CLI-based recursive upload patterns, see **109g-snowflake-app-deployment-sql-scripts.md**.
 
-```sql
--- ============================================================================
--- Filename: upload_app_files.sql
--- Description: Upload application files to stage
---
--- Parameters:
---   STAGE        - Snowflake stage name (e.g., DB.SCHEMA.STAGE)
---   NOTEBOOK_DIR - Local directory (e.g., notebooks)
---
--- Usage:
---   snow sql -D STAGE=STG -D NOTEBOOK_DIR=notebooks -f upload_app_files.sql
--- ============================================================================
-
-PUT 'file://<%NOTEBOOK_DIR%>/app.ipynb'
-@<%STAGE%>
-AUTO_COMPRESS=FALSE
-OVERWRITE=TRUE;
-```
-
-**Key Parameters:**
-- `AUTO_COMPRESS=FALSE` - Keep files uncompressed for Snowflake processing
-- `OVERWRITE=TRUE` - Replace existing file (but explicit REMOVE is still recommended)
-
-**MANDATORY:**
-**CRITICAL for Streamlit in Snowflake (SiS):**
-- `AUTO_COMPRESS=FALSE` is **mandatory**, not optional
-- Python's import system cannot read gzipped .py files
-- Compressed files cause: "TypeError: bad argument type for built-in operation"
-- Applies to: .py files, environment.yml, all Python modules
-
-**Stage Path Requirement:**
-- Upload files directly to stage root: `@STAGE_NAME`
-- **Never** use subdirectory paths like: `@STAGE_NAME/streamlit/`
-- ROOT_LOCATION in CREATE STREAMLIT must match actual file location
-- Subdirectory mismatch causes same "TypeError" (Snowflake cannot find files)
-
-### Remove Script (REMOVE)
-
-```sql
--- ============================================================================
--- Filename: remove_app_files.sql
--- Description: Remove application files from stage
--- Ensures clean deployment by removing old files before uploading new ones.
---
--- Parameters:
---   STAGE - Snowflake stage name
---
--- Usage:
---   snow sql -D STAGE=DB.SCHEMA.STAGE -f remove_app_files.sql
--- ============================================================================
-
-REMOVE @<%STAGE%>/app.ipynb;
-REMOVE @<%STAGE%>/environment.yml;
-```
-
-**Why Explicit REMOVE?**
-- Prevents stale file caching issues
-- Ensures clean state before upload
-- More predictable than relying on OVERWRITE=TRUE alone
-- Belt-and-suspenders approach for production reliability
-
-### Create Script (CREATE NOTEBOOK/STREAMLIT)
-
-```sql
--- ============================================================================
--- Filename: create_notebook.sql
--- Description: Create notebook object from staged files
---
--- Parameters:
---   DATABASE  - Database name
---   STAGE     - Stage name with files
---   WAREHOUSE - Compute warehouse
---
--- Usage:
---   snow sql -D DATABASE=DB -D STAGE=STG -D WAREHOUSE=WH -f create_notebook.sql
--- ============================================================================
-
-CREATE NOTEBOOK IF NOT EXISTS <%DATABASE%>.SCHEMA.NOTEBOOK_NAME
-FROM '@<%STAGE%>'
-QUERY_WAREHOUSE = <%WAREHOUSE%>
-MAIN_FILE = 'app.ipynb';
-```
-
-### Drop Script (DROP NOTEBOOK/STREAMLIT)
-
-```sql
--- ============================================================================
--- Filename: drop_notebook.sql
--- Description: Drop notebook object
---
--- Parameters:
---   DATABASE - Database name
---
--- Usage:
---   snow sql -D DATABASE=DB -f drop_notebook.sql
--- ============================================================================
-
-DROP NOTEBOOK IF EXISTS <%DATABASE%>.SCHEMA.NOTEBOOK_NAME;
-```
-
-### Streamlit Upload Script (SiS-Specific)
-
-**Critical Requirements for Streamlit in Snowflake:**
-
-```sql
--- ============================================================================
--- Filename: upload_streamlit_app.sql
--- Description: Upload Streamlit application files to stage (SiS deployment)
---
--- CRITICAL REQUIREMENTS:
---   1. AUTO_COMPRESS=FALSE - Python import system cannot read gzipped files
---   2. Stage root path - Files at @STAGE, not @STAGE/streamlit/
---   3. ROOT_LOCATION must match actual file locations
---
--- Parameters:
---   STAGE - Snowflake stage name (e.g., UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE)
---   APP_DIR - Local Streamlit app directory (e.g., streamlit/streamlit_sis)
---
--- Usage:
---   snow sql -D STAGE=DB.SCHEMA.STAGE -D APP_DIR=streamlit/sis -f upload_streamlit_app.sql
--- ============================================================================
-
--- Main application file (must be at stage root)
-PUT file://<%APP_DIR%>/streamlit_app.py
-    @<%STAGE%>
-    AUTO_COMPRESS=FALSE
-    OVERWRITE=TRUE;
-
--- Page files (subdirectory allowed)
-PUT file://<%APP_DIR%>/pages/*.py
-    @<%STAGE%>/pages/
-    AUTO_COMPRESS=FALSE
-    OVERWRITE=TRUE;
-
--- Utility files (subdirectory allowed)
-PUT file://<%APP_DIR%>/utils/*.py
-    @<%STAGE%>/utils/
-    AUTO_COMPRESS=FALSE
-    OVERWRITE=TRUE;
-
--- Environment specification (must be at stage root)
-PUT file://<%APP_DIR%>/environment.yml
-    @<%STAGE%>
-    AUTO_COMPRESS=FALSE
-    OVERWRITE=TRUE;
-
-SELECT '✓ Streamlit application files uploaded' AS progress;
-```
-
-**Key Requirements:**
-- Files at stage root: `streamlit_app.py`, `environment.yml`
-- Subdirectories allowed for organization: `@STAGE/pages/`, `@STAGE/utils/`
-- ROOT_LOCATION in CREATE STREAMLIT matches: `'@STAGE'` (not `'@STAGE/streamlit'`)
-- **Never** nest in extra subdirectory: `@STAGE/streamlit/`
-- **environment.yml must pin `streamlit>=1.50`** - Without it, SiS defaults to Streamlit 1.22.0 which lacks modern APIs (`st.navigation()`, `st.Page()`, etc.)
-
-### Snowflake CLI Recursive Upload (Recommended for Multi-File Apps)
-
-For Streamlit apps with multiple files (pages, utils, assets), `snow stage copy --recursive`
-is the recommended approach over individual SQL PUT statements:
-
-```bash
-# Upload entire Streamlit app directory recursively
-uvx --from=snowflake-cli==3.14 snow stage copy \
-  --connection default \
-  streamlit/ @DB.SCHEMA.STREAMLIT_STAGE \
-  --recursive \
-  --no-auto-compress \
-  --overwrite
-```
-
-**Advantages over SQL PUT:**
-- Single command uploads all files and preserves directory structure
-- No need to enumerate individual PUT statements per file/glob
-- Handles nested directories (pages/, utils/, assets/) automatically
-- Easier to maintain as app grows
-
-**Complete CLI-Based Deployment Workflow:**
-```bash
-# 1. Drop existing Streamlit object
-uvx --from=snowflake-cli==3.14 snow sql \
-  -q "DROP STREAMLIT IF EXISTS DB.SCHEMA.MY_APP;"
-
-# 2. Remove old stage files
-uvx --from=snowflake-cli==3.14 snow sql \
-  -q "REMOVE @DB.SCHEMA.STREAMLIT_STAGE;"
-
-# 3. Upload all files recursively
-uvx --from=snowflake-cli==3.14 snow stage copy \
-  --connection default \
-  streamlit/ @DB.SCHEMA.STREAMLIT_STAGE \
-  --recursive \
-  --no-auto-compress \
-  --overwrite
-
-# 4. Create Streamlit object
-uvx --from=snowflake-cli==3.14 snow sql \
-  -q "CREATE STREAMLIT DB.SCHEMA.MY_APP
-      ROOT_LOCATION = '@DB.SCHEMA.STREAMLIT_STAGE'
-      MAIN_FILE = 'streamlit_app.py'
-      QUERY_WAREHOUSE = MY_WH;"
-```
-
-**CREATE STREAMLIT Statement (matches upload paths):**
-```sql
-CREATE STREAMLIT IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.APP_NAME
-    ROOT_LOCATION = '@<%STAGE%>'  -- Matches PUT locations
-    MAIN_FILE = 'streamlit_app.py'
-    QUERY_WAREHOUSE = <%WAREHOUSE%>;
-```
+**Key rules:**
+- `AUTO_COMPRESS=FALSE` is mandatory for all .py, .yml, .ipynb files
+- Explicit `REMOVE @stage/file` before every `PUT`
+- `ROOT_LOCATION` in CREATE must match actual stage file paths
+- For multi-file apps, use `snow stage copy --recursive --no-auto-compress`
 
 ## Taskfile Implementation
 
-### Task Structure Per Application
+> For complete Taskfile implementation with task definitions, variables, includes, preconditions, and deployment validation, see **109h-snowflake-app-deployment-taskfile.md**.
 
-```yaml
-# task/notebook/Taskfile.yml
-version: '3.45'
-
-set: [pipefail]
-
-vars:
-  SNOWFLAKE_CLI_VERSION: "3.12"
-  SNOWFLAKE_DB: UTILITY_DEMO_V2
-  SNOWFLAKE_WH: UTILITY_DEMO_WH
-  NOTEBOOK_DIR: notebooks
-  SNOW_CLI_BASE: "uvx --from=snowflake-cli=={{.SNOWFLAKE_CLI_VERSION}} snow"
-
-includes:
-  utils:
-    taskfile: ../utils/Taskfile.yml
-    internal: true
-
-tasks:
-  # 1. DROP - Remove notebook object
-  drop:app:
-    desc: Drop notebook object from schema
-    silent: true
-    cmds:
-      - echo "Dropping notebook object..."
-      - task: utils:sql:template
-        vars:
-          SQL_FILE: sql/operations/notebook/drop/drop_app.sql
-          DATABASE: "{{.SNOWFLAKE_DB}}"
-      - echo "Notebook object dropped"
-
-  # 2. REMOVE - Delete stage files
-  remove:app:
-    desc: Remove notebook files from stage
-    silent: true
-    vars:
-      SNOWFLAKE_STAGE: "{{.SNOWFLAKE_DB}}.SCHEMA.NOTEBOOK_STAGE"
-    cmds:
-      - echo "Removing notebook files from stage..."
-      - task: utils:sql:template
-        vars:
-          SQL_FILE: sql/operations/notebook/remove/remove_app_files.sql
-          STAGE: "{{.SNOWFLAKE_STAGE}}"
-      - echo "Notebook files removed from @SCHEMA.NOTEBOOK_STAGE"
-
-  # 3. UPLOAD - Upload files to stage
-  upload:app:
-    desc: Upload notebook files to stage
-    silent: true
-    vars:
-      SNOWFLAKE_STAGE: "{{.SNOWFLAKE_DB}}.SCHEMA.NOTEBOOK_STAGE"
-    cmds:
-      - echo "Uploading notebook files to stage..."
-      - task: utils:sql:template
-        vars:
-          SQL_FILE: sql/operations/notebook/upload/upload_app_files.sql
-          STAGE: "{{.SNOWFLAKE_STAGE}}"
-          NOTEBOOK_DIR: "{{.NOTEBOOK_DIR}}"
-      - echo "Notebook uploaded to @SCHEMA.NOTEBOOK_STAGE"
-    preconditions:
-      - test -f {{.NOTEBOOK_DIR}}/app.ipynb
-      - msg: "app.ipynb not found"
-
-  # 4. CREATE - Create notebook from stage
-  create:app:
-    desc: Create notebook object from staged files
-    silent: true
-    vars:
-      SNOWFLAKE_STAGE: "{{.SNOWFLAKE_DB}}.SCHEMA.NOTEBOOK_STAGE"
-    cmds:
-      - echo "Creating notebook from staged files..."
-      - task: utils:sql:template
-        vars:
-          SQL_FILE: sql/operations/notebook/create/create_app.sql
-          DATABASE: "{{.SNOWFLAKE_DB}}"
-          STAGE: "{{.SNOWFLAKE_STAGE}}"
-          WAREHOUSE: "{{.SNOWFLAKE_WH}}"
-      - echo "Notebook created successfully"
-
-  # 5. DEPLOY - Full workflow (drop, then remove, then upload, then create)
-  deploy:app:
-    desc: Deploy notebook with clean slate (drop + remove + upload + create)
-    silent: true
-    vars:
-      NOTEBOOK_NAME: APP_NOTEBOOK
-    cmds:
-      - echo "Deploying notebook to Snowflake..."
-      - task: drop:app
-      - task: remove:app
-      - task: upload:app
-      - task: create:app
-      - echo "Notebook deployed successfully"
-      - echo ""
-      - echo "Access in Snowsight - Projects - Notebooks - {{.NOTEBOOK_NAME}}"
-    preconditions:
-      - test -f {{.NOTEBOOK_DIR}}/app.ipynb
-      - msg: "app.ipynb not found"
-```
-
-## Why Explicit REMOVE Before PUT?
-
-### The Stale Cache Problem
-
-**Observed Behavior:**
-- `PUT file @stage OVERWRITE=TRUE` successfully replaces the file in the stage
-- However, Snowflake applications (notebooks/Streamlit) may cache content at creation time
-- Subsequent file updates don't automatically propagate to the running application
-- Result: Your fix is in the stage, but the app still shows old code
-
-### The Solution: Explicit REMOVE
-
-```yaml
-deploy:
-  1. drop     # Remove old object (clears object-level cache)
-  2. remove   # Delete stage files (clears file-level cache)
-  3. upload   # Upload fresh files
-  4. create   # Create new object from fresh files
-```
-
-**Benefits:**
-- Guarantees clean state (no possibility of stale content)
-- Predictable deployments (same result every time)
-- Prevents subtle caching issues
-- Minimal overhead (REMOVE is fast)
-- Production-ready reliability
-
-### Real-World Evidence
-
-**Before (OVERWRITE only):**
-```bash
-task notebook:deploy:all  # Uses PUT OVERWRITE=TRUE
-# Result: Stage shows correct timestamp, but Snowsight shows old code
-```
-
-**After (drop, then remove, then upload, then create):**
-```bash
-task notebook:deploy:all  # Uses explicit REMOVE
-# Result: Reliable updates every time
-```
+**Key structure:** Each application needs 5 tasks: `upload`, `create`, `drop`, `remove`, `deploy` (which runs drop, remove, upload, create in order).
 
 ## Deployment Validation
 
@@ -731,69 +385,4 @@ uvx snow sql -q "SHOW NOTEBOOKS IN SCHEMA DB.SCHEMA;"
 
 ## Advanced Patterns
 
-### Multi-Environment Deployment
-
-```yaml
-vars:
-  ENV: "{{.ENV | default \"dev\"}}"
-  DB_NAME:
-    sh: |
-      case "{{.ENV}}" in
-        prod) echo "PROD_DB" ;;
-        qa)   echo "QA_DB" ;;
-        *)    echo "DEV_DB" ;;
-      esac
-
-tasks:
-  deploy:app:
-    cmds:
-      - echo "Deploying to {{.ENV}} environment ({{.DB_NAME}})..."
-      - task: drop:app
-        vars: {SNOWFLAKE_DB: "{{.DB_NAME}}"}
-      - task: remove:app
-        vars: {SNOWFLAKE_DB: "{{.DB_NAME}}"}
-      - task: upload:app
-        vars: {SNOWFLAKE_DB: "{{.DB_NAME}}"}
-      - task: create:app
-        vars: {SNOWFLAKE_DB: "{{.DB_NAME}}"}
-```
-
-**Usage:**
-```bash
-task notebook:deploy:app ENV=dev
-task notebook:deploy:app ENV=qa
-task notebook:deploy:app ENV=prod
-```
-
-### Deployment with Validation
-
-```yaml
-tasks:
-  deploy:app:
-    cmds:
-      - task: drop:app
-      - task: remove:app
-      - task: upload:app
-      - task: validate:stage
-      - task: create:app
-      - task: validate:object
-
-  validate:stage:
-    desc: Verify files in stage
-    silent: true
-    cmds:
-      - |
-        echo "Validating stage contents..."
-        uvx snow sql -q "LIST @{{.SNOWFLAKE_STAGE}};" | grep -q "app.ipynb"
-        echo "✓ Stage validation passed"
-
-  validate:object:
-    desc: Verify object exists
-    silent: true
-    cmds:
-      - |
-        echo "Validating notebook object..."
-        uvx snow sql -q "SHOW NOTEBOOKS IN SCHEMA {{.SNOWFLAKE_DB}}.SCHEMA;" \
-          | grep -q "APP_NOTEBOOK"
-        echo "✓ Object validation passed"
-```
+> For multi-environment deployment (dev/qa/prod), deployment with validation gates, and rollback/recovery procedures, see **109i-snowflake-app-deployment-advanced.md**.

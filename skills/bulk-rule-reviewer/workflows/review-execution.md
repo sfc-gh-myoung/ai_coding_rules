@@ -76,7 +76,7 @@ When parallel mode is selected, delegate to `workflows/parallel-execution.md`:
 4. **Aggregate results** when all complete
 
 **Benefits:**
-- 5× speedup (1-2 hours vs 5-10 hours)
+- 5× speedup (~50 minutes vs 4-6 hours)
 - Fresh context per sub-agent (no drift)
 - Isolated failures
 
@@ -129,12 +129,12 @@ def verify_protocol_compliance():
     print("   Execute rule-reviewer workflow for EACH rule")
     print("   Load rule-reviewer/SKILL.md to understand process")
     print("   Load rubrics/*.md for dimension scoring")
-    print("   Run schema_validator.py for each rule")
+    print("   Run ai-rules validate for each rule")
     print("   NO batch processing or parallel shortcuts")
     print("   FULL reviews (not abbreviated)")
     print("   Sequential execution (unless max_parallel set)")
     print()
-    print("Estimated time: 5-10 hours for 113 rules")
+    print("Estimated time: 4-6 hours for 129 rules")
     print("Resume capability: Use skip_existing=true to resume after interruption")
     print()
     print("="*60)
@@ -468,7 +468,7 @@ def execute_rule_review_workflow(target_file, review_date, review_mode, model):
     
     Follows the workflow defined in skills/rule-reviewer/SKILL.md:
     1. Validate inputs
-    2. Run schema validation (scripts/schema_validator.py)
+    2. Run schema validation (ai-rules validate)
     3. Perform Agent Execution Test
     4. Score dimensions (load rubrics progressively as needed)
     5. Generate recommendations
@@ -615,7 +615,7 @@ Only show the minimal progress output below. Do NOT display:
 **Output Format (ONLY this format):**
 
 ```
-Starting bulk review: 113 rules
+Starting bulk review: 129 rules
 Review mode: FULL | Model: claude-sonnet-45 | Date: 2026-01-06
 Skip existing: true
 

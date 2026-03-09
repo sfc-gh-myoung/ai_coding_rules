@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** React, Next.js, RSC, Hooks, Tailwind, Zustand, TanStack Query, Shadcn, Feature-based, TypeScript, Vitest, Testing Library, debug hooks, fix React error, component rendering
-**TokenBudget:** ~3050
+**TokenBudget:** ~3400
 **ContextTier:** High
 **Depends:** 000-global-core.md, 420-javascript-core.md, 430-typescript-core.md
 **LoadTrigger:** ext:.jsx, ext:.tsx, kw:react
@@ -19,7 +19,7 @@
 ## Scope
 
 **What This Rule Covers:**
-Establishes the definitive standards for developing scalable, maintainable React applications in 2025. This rule enforces "Feature-based" architecture, Server Components (RSC) usage, and modern state management patterns to replace legacy approaches like global Redux or huge `useEffect` chains.
+Establishes the definitive standards for developing scalable, maintainable React applications in 2026. This rule enforces "Feature-based" architecture, Server Components (RSC) usage, and modern state management patterns to replace legacy approaches like global Redux or huge `useEffect` chains.
 
 **When to Load This Rule:**
 - Building or maintaining React applications
@@ -57,20 +57,23 @@ Establishes the definitive standards for developing scalable, maintainable React
 - React 18+ project
 - TypeScript 5+ configured
 - Understanding of modern React patterns (hooks, functional components)
-
-### Mandatory
-
 - Package manager: `npm`, `pnpm`, `yarn`, or `bun`
 - Build tool: `vite` or `next`
 - Testing: `vitest` and React Testing Library
 - Linting: `biome` (or `eslint`/`prettier`)
 - Styling: Tailwind CSS
 
+### Mandatory
+
+- MUST use feature-based folder structure (`src/features/<domain>`)
+- MUST use TanStack Query for server state (or RSC for Next.js)
+- MUST test user interactions, not implementation details
+
 ### Forbidden
 
 - `create-react-app` (deprecated)
 - `class components` (legacy pattern)
-- `default exports` for components (exception: Next.js pages/layouts require default exports)
+- `default exports` for components (exception: Next.js convention files requiring default exports: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `route.ts`)
 - `barrel files` (circular dependency risks)
 - `enzyme` testing library (deprecated)
 - Manual data fetching with `useEffect` + `useState`
@@ -114,6 +117,7 @@ TypeScript code (`.tsx`, `.ts`) with:
 - [ ] `vitest` tests written for user interactions
 - [ ] `className` prop support enabled via `cn()` utility
 - [ ] All imports use absolute paths (e.g., `@/components/...`)
+- [ ] Custom hooks under 50 lines of logic (split into smaller hooks if larger)
 
 **Success Criteria:**
 - `npm run test` (vitest) passes all tests
@@ -135,14 +139,7 @@ TypeScript code (`.tsx`, `.ts`) with:
 
 ### Post-Execution Checklist
 
-- [ ] Feature code placed in `src/features/<domain>` structure
-- [ ] `useQuery` or RSC used for data fetching (no `useEffect` for async)
-- [ ] Global UI state uses Zustand (or RTK if enterprise requirement)
-- [ ] Components typed with TypeScript interfaces (no `any`)
-- [ ] No `useEffect` for derived state (use `useMemo` or direct calculation)
-- [ ] `vitest` tests written for user interactions
-- [ ] `className` prop support enabled via `cn()` utility
-- [ ] All imports use absolute paths (e.g., `@/components/...`)
+- [ ] Verify all Pre-Task-Completion Checks still pass
 - [ ] Linting and type-check pass: `npm run lint && npm run type-check`
 
 ## Key Principles
@@ -196,6 +193,19 @@ export const Button = ({ children, onClick, variant = 'primary' }: ButtonProps) 
 #### Server State (Async Data)
 - **Requirement:** DO NOT use `useEffect` + `useState` for data fetching.
 - **Always:** Use **TanStack Query** (Client) or **Server Components** (Next.js/RSC) for async operations.
+
+```typescript
+// Recommended default configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,   // 5 minutes
+      retry: 2,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+```
 
 ```typescript
 // Good: Using TanStack Query
@@ -316,6 +326,28 @@ const user = useUserStore(s => s.user); // Direct access
 </Layout>
 ```
 **Benefits:** Decouples components, easier refactoring.
+
+**Hydration Mismatch Recovery (SSR/RSC):**
+```tsx
+// Hydration-safe pattern for client-only values (Date.now(), window.innerWidth, localStorage)
+function useClientValue<T>(serverValue: T, clientValue: T): T {
+  const [value, setValue] = useState(serverValue);
+  useEffect(() => setValue(clientValue), [clientValue]);
+  return value;
+}
+// Usage: const theme = useClientValue("light", getSystemTheme());
+```
+
+**Suspense Boundary Placement:**
+```tsx
+// Place Suspense boundaries around independently loadable sections, not at page level
+<Suspense fallback={<HeaderSkeleton />}>
+  <Header />
+</Suspense>
+<Suspense fallback={<ContentSkeleton />}>
+  <MainContent />
+</Suspense>
+```
 
 > **Investigation Required**
 > When applying this rule:

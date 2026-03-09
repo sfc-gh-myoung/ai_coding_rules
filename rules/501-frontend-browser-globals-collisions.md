@@ -3,21 +3,23 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** browser globals, javascript globals, window.history, HTMX history, Alpine.js, name collisions, reserved identifiers, implicit globals, historyRestore, hx-push-url, popstate, best practices, anti-patterns
-**TokenBudget:** ~1400
+**TokenBudget:** ~1550
 **ContextTier:** High
+**LoadTrigger:** kw:browser-globals, kw:window-history, kw:htmx-history
 **Depends:** 500-frontend-htmx-core.md
-
-## Purpose
-
-Prevent accidental collisions with built-in browser globals (e.g., `window.history`) that can break HTMX navigation, Alpine components, and browser back/forward behavior.
-Codifies safe naming, scoping, and namespacing patterns for inline scripts and small frontend helpers.
 
 ## Scope
 
-HTMX-driven UIs and server-rendered apps that embed JavaScript/Alpine helpers (<50 lines) in templates (including inline `<script>` blocks).
+**What This Rule Covers:**
+Prevent accidental collisions with built-in browser globals (e.g., `window.history`) that can break HTMX navigation, Alpine components, and browser back/forward behavior. Codifies safe naming, scoping, and namespacing patterns for inline scripts and small frontend helpers in HTMX-driven UIs and server-rendered apps that embed JavaScript/Alpine helpers (<50 lines) in templates (including inline `<script>` blocks).
+
+**When to Load This Rule:**
+- Working with inline `<script>` blocks or small JS helpers in HTMX/Alpine templates
+- Debugging broken browser back/forward navigation in HTMX apps
+- Reviewing or creating top-level JavaScript functions/variables in server-rendered pages
 
 ## References
 
@@ -35,15 +37,22 @@ HTMX-driven UIs and server-rendered apps that embed JavaScript/Alpine helpers (<
 Basic knowledge of browser global objects (`window`, `history`, `location`) and HTMX history (`hx-push-url`, history restoration).
 
 ### Mandatory
-Ability to edit templates/JS; browser devtools access to verify history behavior; HTMX/Alpine loaded if used in the app.
+- Edit access to templates/JS
+- Browser devtools access to verify history behavior
+- HTMX/Alpine loaded if used in the app
 
 **Essential Patterns:**
-- **No globals by default:** Keep helpers module-scoped or namespaced; don't define top-level functions/vars that shadow browser globals
-- **Avoid reserved browser identifiers:** Never name functions/vars: `history`, `location`, `event`, `name`, `top`, `parent`, `frames`, `self`, `window`, `document`, `navigator`, `screen`, `alert`, `confirm`, `prompt`, `open`, `close`, `length`, `status`
-- **Namespace if you must expose:** If something must be referenced from HTML (`x-data="..."`), expose it under a single app namespace (e.g., `window.unistore.*`)
+- Variables MUST NOT shadow browser globals (`window`, `document`, `navigator`, `location`, `event`, `name`, `status`, `length`, `history`, `top`, `parent`, `frames`, `self`, `screen`, `alert`, `confirm`, `prompt`, `open`, `close`)
+- MUST use `const` or `let` for all declarations; `var` is FORBIDDEN
+- MUST NOT define top-level functions/vars that collide with browser built-ins
+- MUST namespace any globals exposed for HTML references (e.g., `window.unistore.*` for `x-data="..."`)
+- ES modules (`import`/`export`) MUST be preferred — they are automatically in strict mode, preventing implicit global creation
+- For non-module scripts, MUST add `"use strict";` at the top to prevent accidental global variable creation
 
 ### Forbidden
-Creating new top-level globals named after browser APIs; using implicit globals; "fixing" by disabling HTMX history unless explicitly requested.
+- Top-level globals named after browser APIs
+- Implicit globals (missing `const`/`let`)
+- Disabling HTMX history as a fix
 
 ### Execution Steps
 1. Identify all JS entry points: base template scripts, page templates, and any static JS bundles.
@@ -56,9 +65,16 @@ Creating new top-level globals named after browser APIs; using implicit globals;
 Template and/or JS changes that remove browser-global collisions (renames + namespacing), plus updated references in HTML.
 
 ### Validation
+
+**Success Checks:**
 - Browser back/forward works without manual refresh on HTMX-swapped pages
 - `window.history` remains an object (not a function) in console: `typeof window.history === "object"`
 - No console errors during `htmx:afterSwap` / `htmx:historyRestore` / `popstate`
+- Back/forward restores content correctly on HTMX-driven navigation (`htmx:historyRestore` fires and UI updates)
+
+**Negative Tests:**
+- If you intentionally add `function history(){}` at top-level, back/forward and/or HTMX history will break (this should be caught in review)
+- If you remove `const`/`let` for a variable assignment, it should show up as `window.<name>` unexpectedly
 
 ### Post-Execution Checklist
 - [ ] No top-level `history`, `location`, or `event` identifiers introduced
@@ -109,17 +125,6 @@ function init() {
 ```
 **Benefits:** Scoped state, predictable behavior across HTMX swaps, and fewer accidental collisions.
 
-## Validation
-
-**Success Checks:**
-- In browser console: `typeof window.history === "object"`
-- Back/forward restores content correctly on HTMX-driven navigation (`htmx:historyRestore` fires and UI updates)
-- No console errors on navigation across all tabs
-
-**Negative Tests:**
-- If you intentionally add `function history(){}` at top-level, back/forward and/or HTMX history will break (this should be caught in review)
-- If you remove `const`/`let` for a variable assignment, it should show up as `window.<name>` unexpectedly
-
 ## Output Format Examples
 
 ```bash
@@ -131,4 +136,18 @@ typeof window.history
 ```html
 <!-- Namespaced Alpine component factory -->
 <div x-data="unistore.historyComponent()"></div>
+```
+
+```json
+// .eslintrc.json — prevent accidental use of dangerous globals
+{
+  "rules": {
+    "no-restricted-globals": [
+      "error",
+      "event", "name", "status", "length", "top", "parent",
+      "frames", "self", "screen", "alert", "confirm", "prompt",
+      "open", "close"
+    ]
+  }
+}
 ```

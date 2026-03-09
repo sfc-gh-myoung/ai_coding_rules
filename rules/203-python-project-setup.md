@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-02-12
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, flat layout, src layout
-**TokenBudget:** ~4150
+**TokenBudget:** ~3950
 **ContextTier:** High
 **Depends:** 200-python-core.md
 **LoadTrigger:** kw:setup, kw:bootstrap, file:pyproject.toml
@@ -35,7 +35,9 @@ Essential Python project setup and packaging guidance covering package structure
 **Related:**
 - **201-python-lint-format.md** - Code quality configuration in pyproject.toml
 - **204-python-docs-comments.md** - Documentation standards
-- **206-python-pytest.md** - Type checking configuration
+- **206-python-pytest.md** - Testing configuration
+- **210-python-fastapi-core.md** - FastAPI application patterns
+- **220-python-typer-cli.md** - CLI application patterns
 
 ### External Documentation
 
@@ -49,7 +51,7 @@ Essential Python project setup and packaging guidance covering package structure
 
 - Python project directory
 - Understanding of package structure concepts
-- uv installed for dependency management
+- uv ≥0.4.0 installed for dependency management
 - Basic knowledge of pyproject.toml format
 
 ### Mandatory
@@ -58,7 +60,8 @@ Essential Python project setup and packaging guidance covering package structure
 - Use pyproject.toml for modern build configuration
 - Specify package location in hatchling config: `packages = ["app"]`
 - Create structure before install (mkdir + __init__.py BEFORE `uv pip install -e .`)
-- Use `uv add package` for dependency management (not manual edits)
+- Use `uv add package` for adding new dependencies to pyproject.toml (not manual edits)
+- Use `uv pip install -e .` for installing the project itself in editable mode
 - Never use bare `pip` (always use `uv`)
 
 ### Forbidden
@@ -95,6 +98,9 @@ Project setup produces:
 - [ ] [tool.hatch.build.targets.wheel] specifies packages
 - [ ] Package structure created before installation
 - [ ] Dependencies added via `uv add`
+
+**During-Execution Checks:**
+- Verify no warnings in `uv build` output
 
 **Success Criteria:**
 - Package installable with `uv pip install -e .`
@@ -175,17 +181,6 @@ line-length = 120
 testpaths = ["tests"]
 ```
 
-## Post-Execution Checklist
-- [ ] Required dependencies and context verified
-- [ ] Appropriate tools selected and validated
-- [ ] Implementation follows established patterns
-- [ ] Output format matches requirements
-- [ ] Validation steps completed successfully
-
-## Validation
-- **Success checks:** [How to verify correct implementation]
-- **Negative tests:** [What should fail and how to detect failures]
-
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read pyproject.toml BEFORE making packaging changes** - Check existing build system, package config
@@ -205,60 +200,22 @@ testpaths = ["tests"]
 
 ## Output Format Examples
 
-```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
-
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
-from datetime import datetime, UTC
-
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
-
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
-
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
-
-    Args:
-        input_data: Validated input following schema
-
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
-```
-
 ```bash
-# Validation commands
-uvx ruff check .
-uvx ruff format --check .
-uv run pytest tests/
+# Verify project structure
+$ find . -name "__init__.py"
+./app/__init__.py
+./app/routers/__init__.py
+./app/models/__init__.py
+./tests/__init__.py
+
+# Install and verify
+$ uv pip install -e .
+$ uv run python -c "import app; print('OK')"
+OK
+
+# Build check
+$ uv build
+Successfully built my-project-1.0.0.tar.gz and my_project-1.0.0-py3-none-any.whl
 ```
 
 ## Layout Selection
@@ -276,8 +233,8 @@ uv run pytest tests/
 - Preferred when strict import isolation matters (e.g., testing the installed artifact).
 
 ### Decision Criteria
-- **Use flat layout** if: project uses `uv`, is a CLI tool, is a small-to-medium package, or is a single-package repository.
-- **Use src/ layout** if: project is large, contains multiple packages, has a large team, or needs strict installed-package testing guarantees.
+- **Use flat layout** if: project uses `uv`, is a CLI tool, has ≤1 package directory AND ≤50 modules, or is a single-package repository.
+- **Use src/ layout** if: project has >100 modules, >3 package directories, OR >5 contributors, or needs strict installed-package testing guarantees.
 - **Always:** Investigate existing project structure before recommending a layout. Never change an existing layout without explicit request.
 
 ## Package Structure Requirements
@@ -409,7 +366,7 @@ check_untyped_defs = true
 - **Always:** Define console scripts in `pyproject.toml`: `[project.scripts]` section.
 - **Always:** Use Typer or Click for command-line interface parsing (see `220-python-typer-cli.md`).
 - **Always:** Separate CLI parsing from business logic (keep in different modules).
-- **Consider:** Use `uv run python -m myapp` for module execution.
+- **Use** `uv run python -m myapp` when the package defines `__main__.py`.
 
 #### Console Scripts Configuration
 ```toml

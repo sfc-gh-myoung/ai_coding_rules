@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-01-20
-**Keywords:** Alpine.js, reactivity, x-data, x-bind, x-on, x-model, x-show, x-if, magic properties, $el, $refs, $store, declarative, progressive enhancement, lightweight
-**TokenBudget:** ~5650
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
+**Keywords:** Alpine.js, reactivity, x-data, x-bind, x-on, x-model, x-show, x-if, magic properties, $el, $refs, declarative, progressive enhancement, lightweight
+**TokenBudget:** ~3350
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 **LoadTrigger:** kw:alpinejs, kw:alpine
@@ -31,6 +31,7 @@ Provides comprehensive guidance for Alpine.js 3.x, a lightweight JavaScript fram
 - **000-global-core.md** - Foundation for all rules
 
 **Related:**
+- **421a-javascript-alpinejs-advanced.md** - Stores, plugins, transitions, lifecycle, error recovery
 - **420-javascript-core.md** - JavaScript patterns and best practices
 - **500-frontend-htmx-core.md** - HTMX patterns for server-driven interactivity
 
@@ -44,17 +45,18 @@ Provides comprehensive guidance for Alpine.js 3.x, a lightweight JavaScript fram
 
 ### Inputs and Prerequisites
 
-- Alpine.js 3.x library available
+- Alpine.js 3.x library (CDN or npm)
 - Basic HTML/JavaScript knowledge
 - Understanding of reactive programming concepts
 - Modern browser (Chrome, Firefox, Safari, Edge)
 
 ### Mandatory
 
-- Alpine.js 3.x library (CDN or npm)
-- x-data directive for component scope
-- Proper directive syntax
-- x-cloak for FOUC (Flash of Unstyled Content) prevention
+- MUST wrap Alpine directives inside x-data scope
+- MUST add x-cloak CSS (`[x-cloak] { display: none !important; }`) to prevent FOUC
+- MUST use Alpine.data() for reusable components (when pattern appears 2+ times)
+- MUST use `<template>` wrapper for x-for and x-if directives
+- MUST use regular functions (not arrow functions) for component methods
 
 ### Forbidden
 
@@ -86,19 +88,27 @@ HTML with Alpine.js directives:
 
 **Pre-Task-Completion Checks:**
 - [ ] Alpine.js 3.x library loaded (CDN or npm)
-- [ ] x-data components properly scoped
-- [ ] x-cloak directive used to prevent flash of unstyled content
+- [ ] Grep for @click, x-bind, x-show, x-model outside x-data scope returns 0 results
+- [ ] x-cloak directive and `[x-cloak] { display: none !important; }` CSS present
 - [ ] Event handlers use correct syntax (@click, not onclick)
-- [ ] Alpine.data() used for reusable components
-- [ ] Magic properties understood ($el, $refs, $store)
+- [ ] Extract to Alpine.data() when component pattern appears 2+ times
+- [ ] Magic properties used when component needs element refs ($refs), global state ($store), or event dispatch ($dispatch)
 
 **Success Criteria:**
-- Alpine.js directives trigger reactive updates correctly
-- Data binding reflects state changes in real-time
-- Event handlers execute without errors
+- All @click handlers execute without console errors
+- State changes reflect in DOM within one event loop tick
 - x-cloak prevents flash of unstyled content
-- Components are reusable with Alpine.data()
 - No console errors in browser dev tools
+
+### Post-Execution Checklist
+
+- [ ] Alpine.js 3.x library loaded correctly
+- [ ] Grep for directives outside x-data scope returns 0 results
+- [ ] x-cloak directive and CSS implemented
+- [ ] Event handlers use @ syntax
+- [ ] Reactive data bindings work correctly
+- [ ] Reusable components extracted with Alpine.data()
+- [ ] No console errors in browser
 
 ### Design Principles
 
@@ -107,18 +117,6 @@ HTML with Alpine.js directives:
 - **Lightweight:** Small JavaScript footprint (~15KB gzipped)
 - **Reactive Data:** Changes to data automatically update the DOM
 - **Component Scoping:** Each x-data creates an isolated reactive scope
-
-### Post-Execution Checklist
-
-- [ ] Alpine.js 3.x library loaded correctly
-- [ ] x-data components properly scoped
-- [ ] x-cloak directive and CSS implemented
-- [ ] Event handlers use @ syntax
-- [ ] Reactive data bindings work correctly
-- [ ] Magic properties used appropriately
-- [ ] Reusable components extracted with Alpine.data()
-- [ ] No console errors in browser
-- [ ] Flash of unstyled content prevented
 
 ## Key Principles
 
@@ -145,13 +143,8 @@ HTML with Alpine.js directives:
 **Attribute Binding (x-bind or `:`):**
 ```html
 <div x-data="{ isActive: true }">
-    <!-- Long form -->
-    <button x-bind:class="isActive ? 'active' : ''">Button</button>
-
     <!-- Short form (preferred) -->
     <button :class="isActive ? 'active' : ''">Button</button>
-
-    <!-- Multiple attributes -->
     <input :disabled="!isActive" :value="count">
 </div>
 ```
@@ -159,36 +152,23 @@ HTML with Alpine.js directives:
 **Event Handling (x-on or `@`):**
 ```html
 <div x-data="{ count: 0 }">
-    <!-- Long form -->
-    <button x-on:click="count++">Increment</button>
-
     <!-- Short form (preferred) -->
     <button @click="count++">Increment</button>
-
-    <!-- Call methods -->
-    <button @click="increment()">Increment</button>
-
-    <!-- Event modifiers -->
     <button @click.prevent="submit()">Submit</button>
     <input @keyup.enter="search()">
     <div @click.outside="close()">Modal</div>
 </div>
 ```
 
-**Text Content (x-text):**
+**Text and HTML Content:**
 ```html
 <div x-data="{ message: 'Hello Alpine' }">
     <span x-text="message"></span>
-    <!-- Output: Hello Alpine -->
 </div>
-```
 
-**HTML Content (x-html):**
-```html
+<!-- WARNING: Only use x-html with trusted content to prevent XSS -->
 <div x-data="{ content: '<strong>Bold</strong>' }">
     <div x-html="content"></div>
-    <!-- Output: Bold (rendered HTML) -->
-    <!-- WARNING: Only use with trusted content to prevent XSS -->
 </div>
 ```
 
@@ -200,31 +180,22 @@ HTML with Alpine.js directives:
 </div>
 
 <!-- Modifiers -->
-<input x-model.number="age">        <!-- Convert to number -->
-<input x-model.debounce.500ms="search"> <!-- Debounce 500ms -->
-<input x-model.lazy="email">        <!-- Update on change, not input -->
+<input x-model.number="age">
+<input x-model.debounce.500ms="search">
+<input x-model.lazy="email">
 ```
 
-**Visibility Toggle (x-show):**
+**Visibility Toggle (x-show) vs Conditional Rendering (x-if):**
 ```html
-<div x-data="{ open: false }">
+<div x-data="{ open: false, showChart: false }">
     <button @click="open = !open">Toggle</button>
 
-    <!-- x-show: Element stays in DOM, uses CSS display -->
-    <div x-show="open">
-        Content (toggle CSS display)
-    </div>
-</div>
-```
+    <!-- x-show: stays in DOM, toggles CSS display (fast for simple content) -->
+    <div x-show="open">Simple content</div>
 
-**Conditional Rendering (x-if):**
-```html
-<div x-data="{ show: false }">
-    <button @click="show = !show">Toggle</button>
-
-    <!-- x-if: Element added/removed from DOM -->
-    <template x-if="show">
-        <div>Content (added/removed from DOM)</div>
+    <!-- x-if: adds/removes from DOM (use for expensive components) -->
+    <template x-if="showChart">
+        <div>Complex chart component</div>
     </template>
 </div>
 ```
@@ -238,42 +209,24 @@ HTML with Alpine.js directives:
         </template>
     </ul>
 </div>
-
-<!-- With index -->
-<template x-for="(item, index) in items" :key="index">
-    <li><span x-text="index + 1"></span>: <span x-text="item"></span></li>
-</template>
 ```
 
 ### Reactivity System
 
-**Methods in x-data:**
+**Methods and Computed Properties:**
 ```html
 <div x-data="{
     count: 0,
-    increment() {
-        this.count++
-    },
-    reset() {
-        this.count = 0
+    items: ['foo', 'bar', 'baz'],
+    search: '',
+    increment() { this.count++ },
+    reset() { this.count = 0 },
+    get filteredItems() {
+        return this.items.filter(i => i.startsWith(this.search))
     }
 }">
     <button @click="increment()">Count: <span x-text="count"></span></button>
     <button @click="reset()">Reset</button>
-</div>
-```
-
-**Computed Properties (Getters):**
-```html
-<div x-data="{
-    items: ['foo', 'bar', 'baz'],
-    search: '',
-    get filteredItems() {
-        return this.items.filter(
-            i => i.startsWith(this.search)
-        )
-    }
-}">
     <input x-model="search" placeholder="Search...">
     <ul>
         <template x-for="item in filteredItems" :key="item">
@@ -283,90 +236,13 @@ HTML with Alpine.js directives:
 </div>
 ```
 
-**Watchers ($watch magic):**
-```html
-<div x-data="{
-    count: 0,
-    init() {
-        this.$watch('count', value => {
-            console.log('Count changed to:', value)
-        })
-    }
-}">
-    <button @click="count++">Increment</button>
-</div>
-```
-
-### Magic Properties
-
-**$el - Current Element Reference:**
-```html
-<button @click="$el.innerHTML = 'Clicked!'">
-    Click me
-</button>
-
-<div x-data="{ init() { console.log(this.$el) } }">
-    <!-- Logs the div element -->
-</div>
-```
-
-**$refs - Named Element References:**
-```html
-<div x-data>
-    <input type="text" x-ref="content">
-    <button @click="navigator.clipboard.writeText($refs.content.value)">
-        Copy
-    </button>
-</div>
-```
-
-**$store - Global State:**
-```html
-<!-- Register store -->
-<script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.store('darkMode', {
-            on: false,
-            toggle() {
-                this.on = !this.on
-            }
-        })
-    })
-</script>
-
-<!-- Access store -->
-<div x-data>
-    <button @click="$store.darkMode.toggle()">
-        Toggle: <span x-text="$store.darkMode.on"></span>
-    </button>
-</div>
-```
-
-**$dispatch - Custom Events:**
-```html
-<div x-data @notify="alert($event.detail.message)">
-    <button @click="$dispatch('notify', { message: 'Hello!' })">
-        Notify
-    </button>
-</div>
-
-<!-- Cross-component communication -->
-<div x-data @custom-event.window="console.log('Received')">
-    <!-- Listens globally -->
-</div>
-```
-
 **$watch - Reactive Side Effects:**
 ```html
 <div x-data="{
     open: false,
     init() {
         this.$watch('open', value => {
-            if (value) {
-                document.body.style.overflow = 'hidden'
-            } else {
-                document.body.style.overflow = ''
-            }
+            document.body.style.overflow = value ? 'hidden' : ''
         })
     }
 }">
@@ -374,218 +250,64 @@ HTML with Alpine.js directives:
 </div>
 ```
 
-**$nextTick - Wait for DOM Update:**
-```html
-<div x-data="{ count: 0 }">
-    <span x-text="count"></span>
-    <button @click="
-        count++
-        $nextTick(() => {
-            console.log('DOM updated, count is:', $el.previousElementSibling.textContent)
-        })
-    ">Increment</button>
-</div>
-```
+### Magic Properties
 
-**$root - Root Component Access:**
+**$el, $refs, $root, $data:**
 ```html
 <div x-data="{ message: 'Hello' }">
-    <div x-data="{ localMessage: 'World' }">
+    <!-- $el: current element -->
+    <button @click="$el.innerHTML = 'Clicked!'">Click me</button>
+
+    <!-- $refs: named element references -->
+    <input type="text" x-ref="content">
+    <button @click="navigator.clipboard.writeText($refs.content.value)">Copy</button>
+
+    <!-- $root: access root component data from nested scope -->
+    <div x-data="{ local: 'World' }">
         <span x-text="$root.message"></span>
-        <!-- Accesses parent's message -->
     </div>
+
+    <!-- $data: introspect component data -->
+    <button @click="console.log($data)">Log Data</button>
 </div>
 ```
 
-**$data - Component Data Object:**
-```html
-<div x-data="{ name: 'Alpine', version: 3 }">
-    <button @click="console.log($data)">
-        Log Data
-        <!-- Logs: { name: 'Alpine', version: 3 } -->
-    </button>
-</div>
-```
+For `$store` (global state), `$dispatch` (cross-component events), and `$nextTick` (DOM update timing), see `421a-javascript-alpinejs-advanced.md`.
 
 ### Component Patterns
 
 **Alpine.data() - Reusable Components:**
 ```html
-<!-- Register component -->
 <script>
     document.addEventListener('alpine:init', () => {
-        Alpine.data('dropdown', () => ({
-            open: false,
-            toggle() {
-                this.open = !this.open
-            },
-            close() {
-                this.open = false
-            }
+        Alpine.data('dropdown', (initialOpen = false) => ({
+            open: initialOpen,
+            toggle() { this.open = !this.open },
+            close() { this.open = false }
         }))
     })
 </script>
 
-<!-- Use component multiple times -->
+<!-- Reuse across page -->
 <div x-data="dropdown">
     <button @click="toggle()">Toggle</button>
-    <div x-show="open" @click.outside="close()">
-        Dropdown content
-    </div>
+    <div x-show="open" @click.outside="close()" x-transition>Content</div>
 </div>
 
-<div x-data="dropdown">
-    <!-- Another instance -->
-</div>
+<div x-data="dropdown(true)"><!-- Starts open --></div>
 ```
 
-**Component Parameters:**
-```html
-<script>
-    Alpine.data('dropdown', (initialOpen = false) => ({
-        open: initialOpen,
-        toggle() {
-            this.open = !this.open
-        }
-    }))
-</script>
-
-<!-- Pass parameters -->
-<div x-data="dropdown(true)">
-    <!-- Starts open -->
-</div>
-```
-
-**Alpine.store() - Global Stores:**
-```html
-<script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.store('tabs', {
-            current: 'first',
-            items: ['first', 'second', 'third']
-        })
-    })
-</script>
-
-<!-- Access from any component -->
-<div x-data>
-    <button
-        x-for="tab in $store.tabs.items"
-        @click="$store.tabs.current = tab"
-        :class="$store.tabs.current === tab && 'active'">
-        <span x-text="tab"></span>
-    </button>
-</div>
-```
-
-### Lifecycle Hooks
-
-**x-init - Initialization:**
-```html
-<div x-data="{ message: '' }" x-init="message = 'Initialized!'">
-    <span x-text="message"></span>
-</div>
-
-<!-- With async initialization -->
-<div x-data="{ data: null }"
-     x-init="data = await (await fetch('/api/data')).json()">
-    <span x-text="data"></span>
-</div>
-```
-
-**init() Method:**
-```html
-<script>
-    Alpine.data('timer', () => ({
-        count: 0,
-        interval: null,
-        init() {
-            this.interval = setInterval(() => {
-                this.count++
-            }, 1000)
-        },
-        destroy() {
-            clearInterval(this.interval)
-        }
-    }))
-</script>
-
-<div x-data="timer">
-    <span x-text="count"></span> seconds
-</div>
-```
-
-**x-effect - Reactive Side Effects:**
-```html
-<div x-data="{ count: 0 }" x-effect="console.log('Count is:', count)">
-    <button @click="count++">Increment</button>
-    <!-- Console logs on every count change -->
-</div>
-```
-
-### Advanced Patterns
-
-**Preventing Flash (x-cloak):**
-```html
-<style>
-    [x-cloak] { display: none !important; }
-</style>
-
-<div x-data="{ show: false }" x-cloak>
-    <!-- Hidden until Alpine initializes -->
-    <div x-show="show">Content</div>
-</div>
-```
-
-**Transitions (x-transition):**
-```html
-<div x-data="{ open: false }">
-    <button @click="open = !open">Toggle</button>
-
-    <div x-show="open" x-transition>
-        <!-- Animated with CSS transitions -->
-        Fades in and out
-    </div>
-
-    <!-- Custom transition -->
-    <div x-show="open"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 transform scale-90"
-         x-transition:enter-end="opacity-100 transform scale-100">
-        Custom animation
-    </div>
-</div>
-```
+For lifecycle hooks (x-init, init/destroy), transitions (x-transition), and error recovery patterns, see `421a-javascript-alpinejs-advanced.md`.
 
 ## Anti-Patterns and Common Mistakes
 
-### Critical Violations
-
 **Anti-Pattern 1: Missing x-data Scope**
 
-Problem: Directives fail without component scope
-Correct Pattern: Always wrap Alpine directives in x-data
+Problem: Directives silently fail without component scope.
+Correct Pattern: Always wrap Alpine directives in an x-data element.
 
-**Anti-Pattern 2: Wrong this Context**
-
-Problem: Arrow functions break `this` binding in methods
-Correct Pattern: Use regular functions in methods to preserve `this`
-
-**Anti-Pattern 3: x-html with User Input**
-
-Problem: XSS vulnerability when using x-html with untrusted content
-Correct Pattern: Only use x-html with trusted, sanitized content
-
-**Anti-Pattern 4: Direct DOM Manipulation**
-
-Problem: Bypasses Alpine's reactivity system
-Correct Pattern: Use reactive data instead of direct DOM manipulation
-
-### Common Pitfalls
-
-**Pitfall 1: Missing x-data Scope**
 ```html
-<!-- BAD: No x-data scope -->
+<!-- BAD: No x-data scope — directives silently fail -->
 <button @click="count++">Increment</button>
 
 <!-- GOOD: Proper scope -->
@@ -594,306 +316,116 @@ Correct Pattern: Use reactive data instead of direct DOM manipulation
 </div>
 ```
 
-**Pitfall 2: Incorrect this Context**
+**Anti-Pattern 2: Arrow Functions Break `this` Context**
+
+Problem: Arrow functions do not bind `this` to the component data, causing undefined references.
+Correct Pattern: Use regular function syntax for component methods.
+
 ```html
+<!-- BAD: Arrow function — this is undefined -->
 <div x-data="{
     count: 0,
-    // BAD: Arrow function breaks this
-    increment: () => {
-        this.count++ // this is undefined
-    }
+    increment: () => { this.count++ }
 }">
     <button @click="increment()">Broken</button>
 </div>
 
-<!-- GOOD: Regular function -->
+<!-- GOOD: Regular function preserves this -->
 <div x-data="{
     count: 0,
-    increment() {
-        this.count++ // this works correctly
-    }
+    increment() { this.count++ }
 }">
     <button @click="increment()">Works</button>
 </div>
 ```
 
-**Pitfall 3: Mutating State from Template**
+**Anti-Pattern 3: x-html with User Input (XSS)**
+
+Problem: Using x-html with unsanitized user input creates XSS vulnerabilities.
+Correct Pattern: Use x-text for user-provided content; only use x-html with trusted, sanitized content.
+
 ```html
-<!-- BAD: Complex logic in template -->
-<div x-data="{ items: [1, 2, 3] }">
-    <button @click="items.push(items.length + 1); items.sort()">
-        Add & Sort
+<!-- BAD: Renders unsanitized user input as HTML -->
+<div x-data="{ userInput: '' }">
+    <input x-model="userInput">
+    <div x-html="userInput"></div>
+</div>
+
+<!-- GOOD: Use x-text for user content -->
+<div x-data="{ userInput: '' }">
+    <input x-model="userInput">
+    <div x-text="userInput"></div>
+</div>
+```
+
+**Pitfall 4: Direct DOM Manipulation**
+```html
+<!-- BAD: Bypasses reactivity -->
+<div x-data="{ count: 0 }">
+    <span id="counter"></span>
+    <button @click="document.getElementById('counter').textContent = ++count">
+        Increment
     </button>
 </div>
 
-<!-- GOOD: Extract to method -->
-<div x-data="{
-    items: [1, 2, 3],
-    addAndSort() {
-        this.items.push(this.items.length + 1)
-        this.items.sort()
-    }
-}">
-    <button @click="addAndSort()">Add & Sort</button>
+<!-- GOOD: Let Alpine handle DOM updates -->
+<div x-data="{ count: 0 }">
+    <span x-text="count"></span>
+    <button @click="count++">Increment</button>
 </div>
 ```
 
-**Pitfall 4: Using x-show vs x-if Incorrectly**
-```html
-<!-- BAD: x-show for expensive components -->
-<div x-show="showChart">
-    <!-- Complex chart component always in DOM -->
-</div>
+**Pitfall 5: Complex Logic in Templates**
 
-<!-- GOOD: x-if removes from DOM when hidden -->
-<template x-if="showChart">
-    <div>
-        <!-- Complex chart component -->
-    </div>
-</template>
-
-<!-- x-show is fine for simple toggling -->
-<div x-show="open">Simple content</div>
-```
-
-**Pitfall 5: Forgetting x-cloak**
-```html
-<!-- BAD: Flash of unstyled content -->
-<div x-data="{ show: false }">
-    <div x-show="show">Content</div>
-</div>
-
-<!-- GOOD: Prevent flash -->
-<style>[x-cloak] { display: none !important; }</style>
-<div x-data="{ show: false }" x-cloak>
-    <div x-show="show">Content</div>
-</div>
-```
-
-**Pitfall 6: Not Using x-model Modifiers**
-```html
-<!-- BAD: Manual parsing -->
-<div x-data="{ age: 0 }">
-    <input type="number" @input="age = parseInt($event.target.value)">
-</div>
-
-<!-- GOOD: Use .number modifier -->
-<div x-data="{ age: 0 }">
-    <input type="number" x-model.number="age">
-</div>
-
-<!-- BAD: No debouncing for search -->
-<input x-model="search">
-
-<!-- GOOD: Debounce search input -->
-<input x-model.debounce.500ms="search">
-```
-
-**Pitfall 7: Nested x-data Scope Confusion**
-```html
-<div x-data="{ foo: 'bar' }">
-    <span x-text="foo"></span> <!-- Works: "bar" -->
-
-    <div x-data="{ foo: 'baz' }">
-        <span x-text="foo"></span> <!-- Shows: "baz" (shadows parent) -->
-        <span x-text="$root.foo"></span> <!-- Access parent: "bar" -->
-    </div>
-</div>
-```
-
-**Pitfall 8: Incorrect Event Handler Syntax**
-```html
-<!-- BAD: Using onclick instead of @click -->
-<button onclick="count++">Won't work</button>
-
-<!-- GOOD: Alpine syntax -->
-<button @click="count++">Works</button>
-
-<!-- BAD: Forgetting parentheses for methods with params -->
-<button @click="setCount">Doesn't call method</button>
-
-<!-- GOOD: Call with parentheses -->
-<button @click="setCount(5)">Works</button>
-```
-
-**Pitfall 9: Memory Leaks (Missing destroy)**
-```html
-<script>
-    // BAD: No cleanup
-    Alpine.data('timer', () => ({
-        interval: null,
-        init() {
-            this.interval = setInterval(() => {
-                console.log('tick')
-            }, 1000)
-        }
-        // Missing destroy() - interval keeps running
-    }))
-
-    // GOOD: Proper cleanup
-    Alpine.data('timer', () => ({
-        interval: null,
-        init() {
-            this.interval = setInterval(() => {
-                console.log('tick')
-            }, 1000)
-        },
-        destroy() {
-            clearInterval(this.interval)
-        }
-    }))
-</script>
-```
-
-**Pitfall 10: Not Using Alpine.data for Reusable Components**
-```html
-<!-- BAD: Duplicating inline component logic -->
-<div x-data="{ open: false, toggle() { this.open = !this.open } }">
-    <button @click="toggle()">Toggle</button>
-</div>
-
-<div x-data="{ open: false, toggle() { this.open = !this.open } }">
-    <button @click="toggle()">Toggle</button>
-</div>
-
-<!-- GOOD: Extract to Alpine.data() -->
-<script>
-    Alpine.data('dropdown', () => ({
-        open: false,
-        toggle() { this.open = !this.open }
-    }))
-</script>
-
-<div x-data="dropdown">
-    <button @click="toggle()">Toggle</button>
-</div>
-
-<div x-data="dropdown">
-    <button @click="toggle()">Toggle</button>
-</div>
-```
+Extract template logic when: (1) attribute logic exceeds 80 characters, (2) contains nested ternaries, (3) chains more than 3 method calls, or (4) uses more than 2 boolean operators. See `421a-javascript-alpinejs-advanced.md` for additional anti-patterns (memory leaks, x-model modifiers, component duplication).
 
 ## Output Format Examples
 
-### Complete Alpine.js Page
+### Essential Alpine.js Page Template
 
 ```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alpine.js Example</title>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        [x-cloak] { display: none !important; }
-        .active { background: blue; color: white; }
-    </style>
-</head>
-<body>
-    <!-- Simple Counter -->
-    <div x-data="{ count: 0 }" x-cloak>
-        <button @click="count++">Increment</button>
-        <span x-text="count"></span>
-    </div>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14/dist/cdn.min.js"></script>
+<style>[x-cloak] { display: none !important; }</style>
 
-    <!-- Dropdown Component -->
-    <div x-data="dropdown" x-cloak>
-        <button @click="toggle()">Toggle Dropdown</button>
-        <div x-show="open" @click.outside="close()" x-transition>
-            <p>Dropdown content</p>
-        </div>
-    </div>
+<div x-data="dropdown" x-cloak>
+    <button @click="toggle()">Toggle</button>
+    <div x-show="open" @click.outside="close()" x-transition>Content</div>
+</div>
 
-    <!-- Search with Computed Properties -->
-    <div x-data="{
-        search: '',
-        items: ['foo', 'bar', 'baz', 'foobar'],
-        get filteredItems() {
-            return this.items.filter(i => i.includes(this.search))
-        }
-    }" x-cloak>
-        <input x-model.debounce.300ms="search" placeholder="Search...">
-        <ul>
-            <template x-for="item in filteredItems" :key="item">
-                <li x-text="item"></li>
-            </template>
-        </ul>
-    </div>
-
-    <script>
-        // Register reusable components
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('dropdown', () => ({
-                open: false,
-                toggle() {
-                    this.open = !this.open
-                },
-                close() {
-                    this.open = false
-                }
-            }))
-        })
-    </script>
-</body>
-</html>
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('dropdown', () => ({
+        open: false,
+        toggle() { this.open = !this.open },
+        close() { this.open = false }
+    }))
+})
+</script>
 ```
 
-### Progressive Enhancement Pattern
+### Progressive Enhancement: Form with Validation
 
 ```html
-<!-- Server-rendered HTML with Alpine enhancement -->
 <form action="/submit" method="POST" x-data="{
-    email: '',
-    password: '',
-    errors: {},
-    async handleSubmit(e) {
-        e.preventDefault()
+    email: '', password: '', errors: {},
+    async handleSubmit() {
         this.errors = {}
-
         try {
-            const response = await fetch('/api/login', {
+            const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: this.email,
-                    password: this.password
-                })
+                body: JSON.stringify({ email: this.email, password: this.password })
             })
-
-            if (!response.ok) {
-                this.errors = await response.json()
-            } else {
-                window.location.href = '/dashboard'
-            }
-        } catch (error) {
-            this.errors.general = 'Network error'
-        }
+            if (!res.ok) this.errors = await res.json()
+            else window.location.href = '/dashboard'
+        } catch (e) { this.errors.general = 'Network error' }
     }
 }">
-    <div>
-        <label for="email">Email:</label>
-        <input
-            type="email"
-            id="email"
-            name="email"
-            x-model="email"
-            required>
-        <span x-show="errors.email" x-text="errors.email" class="error"></span>
-    </div>
-
-    <div>
-        <label for="password">Password:</label>
-        <input
-            type="password"
-            id="password"
-            name="password"
-            x-model="password"
-            required>
-        <span x-show="errors.password" x-text="errors.password" class="error"></span>
-    </div>
-
-    <button type="submit" @click.prevent="handleSubmit">Login</button>
+    <input type="email" x-model="email" required>
+    <span x-show="errors.email" x-text="errors.email" class="error"></span>
+    <input type="password" x-model="password" required>
+    <span x-show="errors.password" x-text="errors.password" class="error"></span>
+    <button type="submit" @click.prevent="handleSubmit()">Login</button>
     <span x-show="errors.general" x-text="errors.general" class="error"></span>
 </form>
 ```

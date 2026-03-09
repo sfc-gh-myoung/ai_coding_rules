@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.4.1
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.5.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:git, kw:commit, kw:workflow
 **Keywords:** git, commit, commit message, workflow, branching, GitHub, pull requests, feature branches, Conventional Commits, branch naming
-**TokenBudget:** ~2050
+**TokenBudget:** ~2300
 **ContextTier:** Medium
 **Depends:** 800-project-changelog.md, 802-project-contributing.md
 
@@ -46,7 +46,12 @@ Git workflow best practices including commit formatting, branching strategies, P
 - Awareness of pre-commit hooks in sandboxed environments
 
 ### Mandatory
-- Git commands, GitHub CLI (`gh`), validation commands
+- MUST create feature branches from main/develop — never commit directly to protected branches
+- Each commit MUST be atomic — one logical change per commit
+- Branch names MUST follow `type/description` format (e.g., `feature/add-login`, `fix/null-pointer`)
+- MUST use Conventional Commits format for all commit messages
+- MUST update CHANGELOG.md under `## [Unreleased]` for user-facing changes
+- MUST run Pre-Task-Completion Validation Gate checks before pushing
 
 ### Forbidden
 - Direct commits to protected branches without PR
@@ -264,3 +269,19 @@ grep -A 10 "## \[Unreleased\]" CHANGELOG.md | grep -q .
 1. Request elevated permissions (preferred)
 2. Run `pre-commit run --all-files` separately
 3. Use `--no-verify` only after manual checks pass (emergency only)
+
+## Merge Strategy Decision Matrix
+
+Choose one strategy per project and document it in CONTRIBUTING.md:
+
+- **Squash merge:** SHOULD use for feature branches with messy commit history — produces a clean single commit on main
+- **Rebase:** SHOULD use when maintaining a linear history on main is important — rewrites branch commits onto tip of main
+- **Merge commit:** SHOULD use for long-lived branches where preserving branch history and context is valuable
+- **Note:** Whichever strategy is chosen, MUST be applied consistently across the project
+
+## Merge Conflict Resolution
+
+- MUST resolve conflicts locally before pushing — never use GitHub's web-based conflict editor for non-trivial conflicts
+- Use `git mergetool` or IDE merge resolution for complex conflicts
+- After resolving, run the full test suite before pushing
+- Communicate with the conflicting author if changes are non-trivial or touch shared logic

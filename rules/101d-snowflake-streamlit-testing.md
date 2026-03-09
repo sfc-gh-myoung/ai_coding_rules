@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-12
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** test Streamlit app, pytest, test framework, test patterns, app testing, UI testing, test automation, streamlit test suite, integration testing, test coverage, debug tests, test fixtures, testing strategies
-**TokenBudget:** ~3500
+**TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 206-python-pytest.md
 
@@ -298,7 +298,7 @@ def test_user_interaction():
     at.button[0].click().run()
 
     # Verify state change
-    assert at.session_state.query_executed == True
+    assert at.session_state.query_executed == True  # Replace 'query_executed' with your app's actual session state key
 
 def test_error_handling():
     """Verify graceful error handling."""
@@ -363,6 +363,16 @@ def test_caching():
 
 **MANDATORY:**
 **Test cached functions to ensure proper cache invalidation:**
+
+**Cache Isolation Fixture (add to conftest.py):**
+```python
+@pytest.fixture(autouse=True)
+def clear_cache():
+    """Clear Streamlit caches between tests to prevent interference."""
+    st.cache_data.clear()
+    yield
+    st.cache_data.clear()
+```
 
 ```python
 import streamlit as st

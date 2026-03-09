@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-02-19
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:snowcli, file:snowflake.yml
 **Keywords:** snow CLI, SnowCLI, Snowflake CLI, snowflake-cli, uvx, Taskfile, task automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, stage copy
 **TokenBudget:** ~4100
@@ -298,15 +298,18 @@ Notes:
 - For pinned CI/CD, stick to `uvx --from=snowflake-cli==3.14 ...`
 
 ## Version Pinning and Upgrade Strategy
+
+> **Investigation Required:** Run `snow connection list` and `snow connection test --connection <name>` before modifying any connection configuration.
+
 - **Rule:** Default to `snowflake-cli==3.14` in all automation until you explicitly validate a newer release in a staging environment
 - **Rule:** Surface the CLI version in logs (`snow --version`) at the start of jobs for traceability
-- **Consider:** Maintain a single pin in your Taskfile/CI templates to centralize upgrades
+- **Rule:** Maintain a single pin in your Taskfile/CI templates to centralize upgrades
 
 ## Configuration and Authentication
 - **Rule:** Use profiles or environment variables; never hardcode credentials in scripts or rule files
 - **Rule:** Prefer secure methods (key-pair/OAuth/SSO) over user/password; centralize secrets in CI secret managers or OS keychains
 - **Rule:** Ensure least-privilege roles and rotate keys regularly per security policy
-- **Consider:** For local dev, rely on OS keychain integrations where available; for CI, inject secrets as env vars/files at runtime
+- **Rule:** For local dev, rely on OS keychain integrations where available; for CI, inject secrets as env vars/files at runtime
 
 References for concepts and configuration flows are covered in official docs: `https://docs.snowflake.com/developer-guide/snowflake-cli/index`.
 

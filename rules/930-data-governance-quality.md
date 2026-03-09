@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Data governance, data quality, lineage, metadata management, compliance, data catalog, Great Expectations, schema evolution, data observability, incident response
-**TokenBudget:** ~2350
+**TokenBudget:** ~2550
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -52,13 +52,13 @@ Comprehensive directives for ensuring data quality, governance, and operational 
 
 ### Mandatory
 
-- Data quality as code (version expectation suites in Git)
-- Data profiling before creating expectations
-- Schema evolution (add columns first, avoid destructive changes)
-- Single source of truth for metric definitions
-- Automated quality gates in ETL/ELT pipelines
-- Data drift monitoring with thresholds
-- Secrets management (no hard-coded credentials)
+- MUST implement data quality as code (version expectation suites in Git)
+- MUST profile data distributions before creating expectations
+- MUST use non-destructive schema evolution (add columns first, avoid destructive changes)
+- MUST maintain a single source of truth for metric definitions
+- MUST automate quality gates in ETL/ELT pipelines
+- MUST implement data drift monitoring with thresholds
+- MUST use secrets management (no hard-coded credentials)
 
 ### Forbidden
 
@@ -290,3 +290,25 @@ models:
 - **Requirement:** After stabilization, run a blameless postmortem focusing on systems/processes.
 - **Requirement:** Preserve all evidence (logs, query history) until root cause is identified.
 - **Requirement:** Make failures visible; avoid silent failures.
+
+## AI Agent Integration
+
+- Agents MUST respect data governance policies (masking, row-level security) when querying data
+- Agents SHOULD use the data catalog as the authoritative source for metric definitions
+- Agent-generated queries MUST go through the same quality gates as human-authored queries
+- Log agent data access for audit trail compliance
+- Expose governance metadata (sensitivity labels, ownership) to agents via structured APIs
+
+## Data Catalog CLI Reference
+
+Use Snowflake CLI for quick metadata inspection:
+
+```bash
+# Describe a table's schema and metadata
+snow object describe table DB.SCHEMA.TABLE_NAME
+
+# Run ad-hoc governance queries
+snow sql -q "SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.ACCESS_HISTORY LIMIT 10"
+```
+
+See also: `snow object list`, `snow sql` for interactive exploration.

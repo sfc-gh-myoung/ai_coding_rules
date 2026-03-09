@@ -338,4 +338,4 @@ skills/rule-reviewer/
 - **Examples:** `skills/rule-reviewer/examples/*.md`
 - **Tests:** `skills/rule-reviewer/tests/*.md`
 - **Troubleshooting:** `workflows/error-handling.md`
-- **Timing system:** `skills/skill-timing/README.    
+- **Timing system:** `docs/USING_SKILL_TIMING_SKILL.md`

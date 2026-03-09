@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v4.0.0
-**LastUpdated:** 2026-03-02
+**RuleVersion:** v4.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** st.secrets, SQL injection, authentication, secure streamlit, protect app, credentials management, API keys, environment variables, secure deployment, input sanitization, RBAC streamlit, access control, security patterns, Container Runtime, Warehouse Runtime
 **TokenBudget:** ~3800
 **ContextTier:** High
@@ -278,6 +278,8 @@ except KeyError as e:
     st.stop()
 ```
 
+**Secrets rotation:** Update `secrets.toml` (local) or Snowflake secret object (deployed), then restart app to clear `@st.cache_resource` connections.
+
 **FORBIDDEN:**
 - Never commit secrets.toml to version control (add to .gitignore)
 - Never log secrets or expose them in error messages
@@ -380,6 +382,9 @@ result = session.sql(query).to_pandas()
 # Snowpark DataFrame API (safe)
 users_df = session.table('users').filter(col('id') == user_input)
 
+# Parameterized SQL (safe)
+users_df = session.sql("SELECT id, name FROM users WHERE id = ?", params=[user_input]).to_pandas()
+
 # Or validate and use parameterized approach
 if user_input.isdigit():
     users_df = session.table('users').filter(col('id') == int(user_input))
@@ -476,6 +481,8 @@ if 'last_activity' in st.session_state:
         st.rerun()
 st.session_state.last_activity = time.time()
 ```
+
+**Multiple browser tabs:** Each tab gets a separate `st.session_state` instance. Auth state must be managed per-tab or via shared backend session store.
 
 **Rate Limiting (for user-triggered queries):**
 ```python

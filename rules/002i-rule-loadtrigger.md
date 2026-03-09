@@ -8,9 +8,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-08
+**LastUpdated:** 2026-03-09
 **Keywords:** loadtrigger, dynamic rule loading, rule discovery, file extension trigger, keyword trigger, directory trigger, filename trigger, RULES_INDEX
-**TokenBudget:** ~1900
+**TokenBudget:** ~2100
 **ContextTier:** Medium
 **Depends:** 002-rule-governance.md
 
@@ -74,12 +74,28 @@ LoadTrigger metadata field in rule file:
 1. Regenerate index: `uv run ai-rules index generate`
 2. Validate references: `uv run ai-rules refs check`
 3. Run tests: `uv run pytest --tb=short -q`
-4. Check formatting: `uvx ruff check .`
+4. Check formatting: `uvx ruff check .` (validates Python scripts that process LoadTrigger values)
+
+**Pre-Task-Completion Checks:**
+1. Target rule file exists and passes `uv run ai-rules validate`
+2. Rule is not a foundation rule (000-series, 001-core, 002-governance)
+3. Rule has no unresolved Depends chain
 
 **Success Criteria:**
 - LoadTrigger uses valid trigger types (ext, file, dir, kw)
 - 2-4 triggers per rule
 - No overly generic keywords
+
+**Negative Tests:**
+- LoadTrigger with invalid prefix (e.g., `type:.py`) should fail validation
+- More than 4 triggers per rule should generate a warning
+- Foundation rule (000-series) with LoadTrigger should be flagged
+
+### Error Recovery
+
+- **`uv run ai-rules index generate` fails:** Verify Python environment, check for syntax errors in rule file metadata, try regenerating with `--verbose`
+- **LoadTrigger format errors:** Check trigger prefix (ext:/file:/dir:/kw:), verify no trailing whitespace, ensure comma separation between triggers
+- **Conflicting triggers with existing rules:** Some overlap is intentional (see Best Practices). If >3 rules share identical triggers, consolidate trigger coverage or make keywords more specific.
 
 ### Post-Execution Checklist
 
@@ -254,7 +270,7 @@ When creating or updating a rule, ask:
 
 **Refer to:** `docs/loadtrigger_decisions.md` for detailed categorization and rationale for all rules in the repository.
 
-**Current Coverage Statistics (as of 2026-01-20):**
+**Current Coverage Statistics (as of 2026-01-20, regenerate with `uv run ai-rules index stats`):**
 - Total rules: 122
 - Rules with LoadTrigger: 84 (69%)
 - Average triggers per rule: 2.1

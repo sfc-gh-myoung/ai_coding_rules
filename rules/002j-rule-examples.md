@@ -8,9 +8,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-08
+**LastUpdated:** 2026-03-09
 **Keywords:** rule examples, example files, example schema, reference implementations, example discovery, example validation
-**TokenBudget:** ~1000
+**TokenBudget:** ~1250
 **ContextTier:** Medium
 **Depends:** 002-rule-governance.md
 
@@ -54,7 +54,7 @@ Guidelines for creating and maintaining validated example files that accompany c
 
 1. Determine if a rule needs examples (see criteria below)
 2. Create example file using the template structure
-3. Validate with `task examples:validate`
+3. Validate structure matches `schemas/example-schema.yml`
 4. Verify discovery path matches naming convention
 
 ### Output Format
@@ -63,15 +63,32 @@ Markdown file in `rules/examples/` following the example schema.
 
 ### Validation
 
+**Pre-Task-Completion Checks:**
+1. Parent rule exists at `rules/{rule-number}-*.md`
+2. `rules/examples/` directory is writable
+3. Naming convention doesn't conflict with existing files (`ls rules/examples/{rule-number}-*`)
+
 **Success Criteria:**
 - Example file follows naming convention
 - Example validates against `schemas/example-schema.yml`
+
+**Negative Tests:**
+- Example file missing Context section should fail validation
+- Example file with wrong naming convention should be flagged
+- Example file referencing non-existent parent rule should warn
+
+### Error Recovery
+
+- **Validation fails:** Fix reported errors in example structure and re-run validation
+- **`example-schema.yml` not found:** Verify schema file exists at `schemas/example-schema.yml`
+- **Example references non-existent parent rule:** Verify parent rule exists at `rules/{rule-number}-*.md`
+- **Naming convention conflict:** Check existing files with `ls rules/examples/{rule-number}-*` and use a unique variant name
 
 ### Post-Execution Checklist
 
 - [ ] Example file created in `rules/examples/`
 - [ ] Naming follows `{rule-number}-{topic}-{variant}-example.md`
-- [ ] Validated with `task examples:validate`
+- [ ] Validated against `schemas/example-schema.yml`
 
 ## When Examples Are Needed
 
@@ -82,13 +99,13 @@ Markdown file in `rules/examples/` following the example schema.
 
 **Skip examples for:**
 - Rules with 3 or fewer inline code blocks totaling 30 lines or less
-- Rules with inline code blocks that are sufficient
+- Rules where all code examples are self-contained single-block snippets under 15 lines
 
 ## Example File Structure
 
 Example files follow a lightweight schema different from rule files:
 
-```markdown
+````markdown
 # NNN Example: Topic (Language)
 
 > **EXAMPLE FILE** - Reference implementation for `NNN-rule-name.md`
@@ -109,7 +126,8 @@ Example files follow a lightweight schema different from rule files:
 
 ## Implementation
 
-```sql|python|yaml
+```python
+# Use appropriate language identifier: sql, python, yaml, bash, etc.
 -- Complete, runnable code
 ```
 
@@ -120,7 +138,7 @@ Example files follow a lightweight schema different from rule files:
 ```
 
 **Expected Result:** What success looks like
-```
+````
 
 ## Example Discovery
 
@@ -139,11 +157,11 @@ Example naming follows pattern: `{rule-number}-{topic}-{variant}-example.md`
 Example files are validated separately from rule files:
 
 ```bash
-# Validate all examples
-task examples:validate
+# Validate example structure against schema
+uv run python -c "import yaml; yaml.safe_load(open('schemas/example-schema.yml'))"
 
-# Validate examples (verbose)
-task examples:validate:verbose
+# Verify example file has required sections
+grep -c '## Context\|## Prerequisites\|## Implementation\|## Validation' rules/examples/<example>.md
 ```
 
 Examples are validated against `schemas/example-schema.yml`, not `schemas/rule-schema.yml`.

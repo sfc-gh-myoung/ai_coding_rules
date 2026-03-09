@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:contributing, file:CONTRIBUTING.md
 **Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy, Conventional Commits, rule authoring, PR templates, project governance, git workflow
-**TokenBudget:** ~1750
+**TokenBudget:** ~1950
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -213,3 +213,23 @@ Closes #123
 ### Fixed
 - Corrected metadata schema references in 802-project-contributing.md
 ```
+
+## Merge Conflict Resolution
+
+- Rebase onto main before submitting PR: `git fetch origin && git rebase origin/main`
+- Resolve conflicts locally, not in the GitHub UI
+- After resolving, run the full test suite before pushing
+- When in doubt about conflicting changes, communicate with the other author
+
+## CI Failure Troubleshooting
+
+- Check CI logs for the specific failure before pushing fixes
+- Run the failing tests locally to reproduce: `task test` or equivalent
+- If CI failure is unrelated to your changes, note it in the PR description
+- Contact maintainers if CI infrastructure issues are suspected
+
+## Contribution Anti-Patterns
+
+- Do NOT submit large PRs that mix features and refactoring — split into separate PRs
+- Do NOT push directly to main — always use feature branches and PRs
+- Do NOT merge your own PRs without review (unless solo maintainer)

@@ -12,7 +12,6 @@ Run these checks to verify basic functionality:
 ```bash
 # 1. Verify skill files exist
 ls skills/rule-reviewer/SKILL.md
-ls skills/rule-reviewer/README.md
 ls skills/rule-reviewer/workflows/*.md
 ls skills/rule-reviewer/examples/*.md
 

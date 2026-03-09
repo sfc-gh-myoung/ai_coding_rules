@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, Google style, NumPy style, PEP 257, semantic depth, side effects
-**TokenBudget:** ~2700
+**TokenBudget:** ~2950
 **ContextTier:** High
 **Depends:** 200-python-core.md, 201-python-lint-format.md
 **LoadTrigger:** kw:docstring, kw:documentation, kw:comments
@@ -82,6 +82,9 @@ Clear, enforceable standards for Python documentation, source code comments, and
 - `uvx ruff check .` passes all D rules
 - Docstrings provide semantic value beyond type hints
 - Comments explain "why", not "what"
+
+**During-Execution Checks:**
+- During docstring writing, verify each docstring answers all Five Questions (What, Why, When, How, Effects)
 
 ### Design Principles
 
@@ -172,6 +175,33 @@ def fetch_user(user_id: str, include_roles: bool = False) -> User:
     Raises:
         UserNotFoundError: If the user_id does not exist.
         PermissionError: If the caller lacks access.
+    """
+```
+
+## NumPy-style Example
+
+```python
+def fetch_user(user_id: str, include_roles: bool = False) -> User:
+    """Fetch user by identifier.
+
+    Parameters
+    ----------
+    user_id : str
+        Stable user identifier (UUID string).
+    include_roles : bool, optional
+        When true, also loads role memberships.
+
+    Returns
+    -------
+    User
+        Hydrated user object. If `include_roles` is true, roles are populated.
+
+    Raises
+    ------
+    UserNotFoundError
+        If the user_id does not exist.
+    PermissionError
+        If the caller lacks access.
     """
 ```
 
@@ -318,7 +348,7 @@ def execute_operation(operation_id: str, operation_type: OperationType):
 
 ## Common Ruff D-rule Errors
 
-Requires Ruff 0.4+. These are the most frequently encountered pydocstyle violations:
+Requires Ruff ≥0.4.0. These are the most frequently encountered pydocstyle violations:
 
 - **D100** Missing docstring in public module - Add module-level docstring as first statement
 - **D101** Missing docstring in public class - Add class docstring after `class` line
@@ -334,3 +364,4 @@ Requires Ruff 0.4+. These are the most frequently encountered pydocstyle violati
 - **Property docstrings**: Document on the `@property` method, not the setter.
 - **Overridden method docstrings**: Use `# noqa: D102` when parent docstring applies unchanged. Add docstring only when behavior differs.
 - **Abstract method docstrings**: Always document — subclasses inherit the contract.
+- **Generated code docstrings**: Skip manual docstrings for generated code (protobuf stubs, auto-generated dataclasses). Use `# noqa: D101` on generated files or add to `[tool.ruff.lint.per-file-ignores]`.

@@ -5,10 +5,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v4.0.0
-**LastUpdated:** 2026-03-02
+**RuleVersion:** v4.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Streamlit, Container Runtime, Warehouse Runtime, navigation, multipage, session state, config.toml, theming, st.connection
-**TokenBudget:** ~1950
+**TokenBudget:** ~2050
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** kw:streamlit, kw:dashboard
@@ -45,7 +45,7 @@ Foundational Streamlit setup: navigation, state management, runtime selection (C
 - Runtime selected (Container Runtime recommended, see 101l)
 
 ### Mandatory
-- **Runtime selection:** Choose Container or Warehouse Runtime (see 101l-deployment)
+- **Runtime selection:** Choose Container or Warehouse Runtime (see 101l-snowflake-streamlit-deployment)
 - **Connection:** Use `st.connection("snowflake")` for both runtimes
 - **Theming:** Use .streamlit/config.toml ONLY
 - **Navigation:** st.navigation() OR pages/ (never both)
@@ -107,6 +107,12 @@ pg.run()
 - [ ] Session state initialized
 - [ ] No custom CSS injection
 
+## Error Recovery
+
+- **Navigation failure (page file not found):** Verify file exists in pages/ directory with `LIST @STAGE`. Check filename matches exactly (case-sensitive).
+- **Session state corruption:** Clear with `del st.session_state[key]` or full reset by clearing all keys in a loop.
+- **Stage upload compressed files:** Detect with `LIST @STAGE PATTERN='.*\\.gz'`; re-upload with `--no-auto-compress`.
+
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Buttons for Navigation
@@ -157,7 +163,7 @@ Use Container Runtime when you need custom Python packages, external API access,
 ```python
 # Recommended - works in both runtimes
 conn = st.connection("snowflake")
-df = conn.query("SELECT * FROM my_table")
+df = conn.query("SELECT col1, col2 FROM my_table")
 ```
 
 **Connection errors:** Wrap `st.connection()` in try/except for production apps. See 100f-snowflake-connection-errors.md for error classification and retry patterns.
@@ -231,6 +237,8 @@ def login_callback():
 
 st.button("Login", on_click=login_callback)
 ```
+
+**Multi-user isolation:** Each user gets isolated session state. Do not use module-level variables for user-specific data — they are shared across all users in Container Runtime.
 
 ## Layout Components
 

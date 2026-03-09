@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** logging, Python logging, logger, handlers, formatters, log levels, WebLogHandler, Rich console, SSE streaming, structured logging, operation ID, thread safety, log hierarchy, log propagation
-**TokenBudget:** ~2600
+**TokenBudget:** ~2800
 **ContextTier:** High
 **Depends:** 200-python-core.md
 **LoadTrigger:** kw:logging, kw:log, kw:logger
@@ -94,6 +94,9 @@ Logging implementations produce:
 - [ ] SUCCESS messages use consistent prefix pattern
 - [ ] Use `threading.Lock` in `emit()` for shared state access in custom handlers
 
+**During-Execution Checks:**
+- Verify handler count on logger does not exceed expected (typically 1-2 handlers)
+
 **Success Criteria:**
 - Logs appear in both CLI and web UI
 - No duplicate log entries
@@ -156,17 +159,17 @@ console = Console()
 
 def log_info(message: str) -> None:
     """Output to both Rich console and Python logger."""
-    console.print(f"ℹ️  {message}", style="blue")
+    console.print(f"[INFO] {message}", style="blue")
     logger.info(message)
 
 def log_success(message: str) -> None:
     """Output success with prefix for web UI detection."""
-    console.print(f"✓ {message}", style="green")
+    console.print(f"[OK] {message}", style="green")
     logger.info(f"SUCCESS: {message}")  # Prefix enables SUCCESS level mapping
 
 def log_error(message: str) -> None:
     """Output error to both outputs."""
-    console.print(f"✗ {message}", style="red")
+    console.print(f"[ERR] {message}", style="red")
     logger.error(message)
 ```
 
@@ -193,10 +196,10 @@ class WebLogHandler(logging.Handler):
             level_map = {"INFO": "INFO", "WARNING": "WARNING", "ERROR": "ERROR"}
             level = level_map.get(record.levelname, "INFO")
 
-        add_to_sse_stream(level, message, self.operation_id)
+        add_to_sse_stream(level, message, self.operation_id)  # Low-level: pushes to SSE queue
 ```
 
-**Log Volume Control:** For long-running operations, limit WebLogHandler buffer to 10,000 entries. Discard oldest entries when the limit is reached.
+**Log Volume Control:** For operations expected to produce >1,000 log entries or run >60 seconds, limit WebLogHandler buffer to 10,000 entries. Discard oldest entries when the limit is reached.
 
 ### Operation-Scoped Handler Attachment
 
@@ -243,7 +246,7 @@ def add_log(level: str, message: str, operation_id: str | None = None) -> None:
     if operation_id:
         log_entry["operation_id"] = operation_id
 
-    publish_to_sse_channel("logs", "log", log_entry)
+    publish_to_sse_channel("logs", "log", log_entry)  # High-level: publishes structured log entries to SSE
 ```
 
 **Thread-Safe Publishing from Background Tasks:**
@@ -287,6 +290,11 @@ operation_id = str(uuid.uuid4())[:8]    # For general operations
 add_log("INFO", "Starting database check...", operation_id)
 add_log("SUCCESS", "Database connection verified", operation_id)
 ```
+
+**Input Validation for Logging Parameters:**
+- Validate `operation_id` format: non-empty string, alphanumeric + hyphens only
+- Handle empty/None log messages gracefully: log a warning instead of propagating errors
+- Never let logging failures crash the application — wrap custom handler `emit()` in try/except
 
 ## Anti-Patterns and Common Mistakes
 

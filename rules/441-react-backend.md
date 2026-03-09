@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:react-backend
 **Keywords:** React backend, FastAPI, Flask, Python API, CORS, JWT, authentication, API integration, full-stack, Express alternative, fetch, axios, TanStack Query backend, Next.js API routes, httpOnly cookies
-**TokenBudget:** ~3050
+**TokenBudget:** ~3200
 **ContextTier:** High
 **Depends:** 440-react-core.md, 200-python-core.md
 
@@ -286,6 +286,41 @@ export const useAuth = () => {
 };
 ```
 
+#### Refresh Token Rotation
+```typescript
+// Server MUST invalidate the old refresh token on each rotation
+async function refreshTokens(currentRefreshToken: string) {
+  const { accessToken, refreshToken } = await api.post("/auth/refresh", {
+    refreshToken: currentRefreshToken,
+  });
+  // Old refresh token is now invalid server-side (prevents replay attacks)
+  setTokens({ accessToken, refreshToken });
+  return accessToken;
+}
+```
+
+#### CSRF Protection
+```typescript
+// Required for cookie-based auth (SSR). SPA with token-based auth is CSRF-safe.
+const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+api.defaults.headers.common["X-CSRF-Token"] = csrfToken;
+```
+
+#### 401 Interceptor
+```typescript
+// Global handler: redirect to login on expired/invalid tokens
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      clearTokens();
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  }
+);
+```
+
 ### CORS Configuration
 
 #### FastAPI CORS
@@ -306,7 +341,7 @@ app.add_middleware(
 )
 ```
 
-#### 4.2 Flask CORS
+#### Flask CORS
 
 ```python
 from flask import Flask
@@ -363,6 +398,15 @@ fetch(`${API_URL}/users`);
 
 **Anti-Pattern 3: Data Fetching in useEffect**
 See 440-react-core.md Anti-Pattern 1: Data Fetching in useEffect. Use TanStack Query instead.
+
+**Negative Test Example:**
+```typescript
+it("handles API failure gracefully", async () => {
+  server.use(rest.get("/api/user", (req, res, ctx) => ctx.status(500)));
+  render(<UserProfile />);
+  expect(await screen.findByText("Something went wrong")).toBeInTheDocument();
+});
+```
 
 > **Investigation Required**
 > When applying this rule:

@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:role, kw:introspection, kw:access
 **Keywords:** account roles, database roles, SHOW GRANTS, role introspection, RBAC, Python automation, error 000906, too many qualifiers, grants inspection, programmatic RBAC
 **TokenBudget:** ~1850
@@ -137,7 +137,13 @@ def get_role_grants(role_name):
 ```
 **Problem:** Only handles `SNOWFLAKE.*` database roles; misses custom database roles in user databases
 
-**Correct Pattern:** Use generic dot detection after stripping quotes — see Output Format Examples.
+**Correct Pattern:** Use generic dot detection after stripping quotes:
+```python
+def is_database_role(role_name):
+    if role_name.startswith('"') and role_name.endswith('"'):
+        return False
+    return '.' in role_name.strip('"')
+```
 
 ## Output Format Examples
 
@@ -198,11 +204,3 @@ quoted_grants = get_role_grants(cur, '"my.dotted.role"')  # Account role despite
 ```
 
 **Security Note:** The `role_name` parameter uses f-strings in SHOW GRANTS commands. Ensure role names come from trusted sources (e.g., `SHOW ROLES` output) rather than untrusted user input. For user-provided names, validate against the output of `SHOW ROLES` before use.
-
-## Post-Execution Checklist
-
-- [ ] Script handles both account roles and database roles without errors
-- [ ] Quoted identifier handling implemented (strip outer quotes before dot check)
-- [ ] Error handling catches SQL compilation error 000906 with retry logic
-- [ ] Role names sourced from trusted SHOW ROLES output
-- [ ] Test cases: `PUBLIC`, `SNOWFLAKE.CORTEX_USER`, `"my.dotted.role"`

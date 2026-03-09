@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-01-12
+**LastUpdated:** 2026-03-09
 **Keywords:** plotly, plotly express, graph objects, st.plotly_chart, interactive charts, scatter, line, bar, histogram, heatmap, box plot, violin, sunburst, treemap, animations, faceting, subplots
-**TokenBudget:** ~3000
+**TokenBudget:** ~3250
 **ContextTier:** Medium
 **Depends:** 101a-snowflake-streamlit-visualization.md
 
@@ -57,7 +57,7 @@ Deep patterns for Plotly visualization in Streamlit, including Plotly Express fo
 - **Plotly Express first** - Use `px.*` for standard charts (5-100x less code than Graph Objects)
 - **width="stretch"** - Always use for responsive charts
 - **Clear labels** - Title, axis labels, and legends on every chart
-- **Colorblind-safe palettes** - Use `plotly.colors.qualitative.Safe` or similar
+- **Colorblind-safe palettes** - Use `plotly.colors.qualitative.Safe`, COLORBLIND_SAFE (defined below), or `px.colors.qualitative.Vivid`
 
 ### Forbidden
 
@@ -383,6 +383,40 @@ fig = create_expensive_figure(df)
 st.plotly_chart(fig, width="stretch")
 ```
 
+## Error Handling
+
+### Empty DataFrame
+
+```python
+if df.empty:
+    st.warning("No data available for visualization.")
+else:
+    fig = px.line(df, x='date', y='value', title='Trend')
+    st.plotly_chart(fig, width="stretch")
+```
+
+### Missing Columns
+
+```python
+required_cols = ['date', 'value', 'category']
+missing = set(required_cols) - set(df.columns)
+if missing:
+    st.error(f"Missing required columns: {missing}")
+else:
+    fig = px.scatter(df, x='date', y='value', color='category')
+    st.plotly_chart(fig, width="stretch")
+```
+
+### Plotly Import Failure
+
+```python
+try:
+    import plotly.express as px
+except ImportError:
+    st.error("Plotly not installed. Add 'plotly' to your environment.yml or pyproject.toml.")
+    st.stop()
+```
+
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Missing Responsive Width
@@ -429,7 +463,7 @@ color_map = {'good': '#029E73', 'bad': '#D55E00'}  # Colorblind-safe
 - [ ] Using `width="stretch"` for all charts
 - [ ] Clear title and axis labels present
 - [ ] Colorblind-safe palette used
-- [ ] Appropriate chart type for data purpose
+- [ ] Chart type matches data per Chart Type Selection guide above
 - [ ] Interactive features tested (hover, zoom, pan)
-- [ ] Performance acceptable for data size
-- [ ] Consistent st
+- [ ] Performance acceptable for data size: renders in <2s; use WebGL for >5000 rows
+- [ ] Consistent styling across dashboard (colors, fonts, labels)

@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-02-04
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose, BuildKit, distroless, security scanning, SBOM, non-root, healthcheck
 **TokenBudget:** ~4000
 **ContextTier:** Medium
@@ -47,8 +47,9 @@ Provides practical, production-ready guidance for authoring Dockerfiles, buildin
 
 ### Inputs and Prerequisites
 
-- Container runtime (Docker/Podman)
-- BuildKit enabled
+- Container runtime (Docker Engine 20.10+ with BuildKit default, or Podman)
+- Docker Compose v2+ (integrated CLI plugin)
+- BuildKit features used: `--mount=type=cache` (18.09+), heredocs (20.10.13+)
 - Access to base images/registries
 - Project source with `.dockerignore`
 - Hadolint (Dockerfile linter)
@@ -69,7 +70,7 @@ Provides practical, production-ready guidance for authoring Dockerfiles, buildin
 ### Forbidden
 
 - Embedding secrets in images
-- Running containers with privileged mode without justification
+- Running containers with privileged mode without documented justification (MUST include `# PRIVILEGED: <reason>` comment; acceptable reasons: host device access `/dev/*`, kernel parameter modification via sysctl, Docker-in-Docker for CI; NOT acceptable: "app needs it", "debugging", "easier than finding specific capabilities")
 - `latest` floating tags in production
 - Copying secrets into image layers
 - Running as root user
@@ -129,7 +130,10 @@ Deterministic Dockerfile(s) and Compose files with:
 - **MUST:** Structure layers to maximize caching; separate dependency installation from source copy
 - **MUST:** Generate SBOM and sign images; store attestations in registry
 - **MUST:** Provide a `HEALTHCHECK`; avoid long `CMD` shell strings; use JSON exec form
-- **SHOULD:** Prefer distroless/alpine only when appropriate; verify glibc/musl compatibility before switching
+- **SHOULD:** Select base image tier based on application needs:
+  - **Distroless:** Single static binary (Go, Rust), Java JAR with bundled JRE
+  - **Minimal (Alpine/slim):** Apps needing shell for debugging, Python/Node.js apps (verify glibc/musl compatibility before switching to Alpine)
+  - **Full base:** Development containers, apps requiring system packages. When unsure, default to Alpine/slim.
 - **MUST NOT:** COPY secrets into images; bake environment-specific values into image layers; use privileged containers without documented justification
 
 ### Post-Execution Checklist
@@ -318,100 +322,33 @@ CMD ["uv", "run", "python", "-m", "myapp"]
 ```
 # VCS & metadata
 .git
-.gitignore
-.gitattributes
 .github/
-.hg/
-.svn/
 
-# OS junk
-.DS_Store
-Thumbs.db
-ehthumbs.db
-Icon?
-*.swp
-*.swo
-
-# Editors/IDE
+# IDE/Editor
 .vscode/
 .idea/
-.vs/
-*.suo
-*.user
-*.iml
 
 # Python
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
 .venv/
-venv/
-.pytype/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-.tox/
-.coverage
-.coverage.*
-coverage.xml
-htmlcov/
-.eggs/
-*.egg-info/
 
 # Node/Frontend
 node_modules/
-npm-debug.log*
-yarn-error.log*
-.pnpm-store/
-.next/
-.nuxt/
-.svelte-kit/
-.vite/
-.babel-cache/
-.cache/
 dist/
 build/
-
-# Java/JVM
-target/
-build/
-.gradle/
-.mvn/
-*.class
-
-# Go
-bin/
-
-# .NET / Microsoft
-bin/
-obj/
-.vs/
-*.svclog
-*.user
-*.suo
-
-# Containers & tooling
-docker-compose*.yml
-.docker/
-Dockerfile.*.local
+.next/
 
 # Secrets & env (never bake into image)
 .env
 .env.*
 *.pem
 *.key
-*.crt
-*.pfx
-*.keystore
-id_rsa
-id_dsa
-
-# Tests, docs, examples (uncomment if not needed during build)
-# tests/
-# docs/
-# examples/
 ```
+See [Docker .dockerignore reference](https://docs.docker.com/build/concepts/context/#dockerignore-files) for comprehensive patterns.
 
 ## Build Performance and Caching
 - **MUST:** Order layers: dependencies first, app code last.

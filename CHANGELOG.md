@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(rules):** add Anti-Patterns sections with code examples to 34 rule files
+  - Each anti-pattern includes Problem/Correct Pattern structure with code blocks
+  - Covers Streamlit (101m-n), Notebooks (109d-j), ML (110a-b, 113-113b, 114a), Agents (115c-d), REST API (118a), Snowpipe (121d-f), Python (202a, 230a-b, 240a-b, 251-251b, 252-252b), SQL (102b-c)
 - **feat(rules):** extract 7 new focused rule files from large parent rules
   - `002i-rule-loadtrigger.md` - LoadTrigger specification (from 002-rule-governance)
   - `002j-rule-examples.md` - Rule examples guidelines (from 002-rule-governance)
@@ -29,6 +32,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Users must explicitly confirm settings; no silent defaults for optional parameters
 
 ### Changed
+- **fix(rules):** resolve all validation warnings (33→0 MEDIUM warnings)
+  - Added required code examples to Anti-Patterns sections across all domains
+  - Fixed Scope section format in 501-frontend-browser-globals-collisions.md
+- **fix(examples):** update 002a-rule-template.md to follow example file format
+  - Added EXAMPLE FILE blockquote, Prerequisites, Implementation, Validation sections
+- **chore(rules):** increment RuleVersion (minor) in 61 modified files
+- **chore(rules):** update LastUpdated to 2026-03-09 in 169 modified files
+- **chore(rules):** remove stale file 121c1-snowpipe-troubleshooting-advanced.md
 - **refactor(rules):** bulk improvements to 129 rules based on review implementation plans
   - Consolidated duplicate code blocks with cross-references (~1500 lines saved)
   - Replaced vague terms ("when possible", "etc.") with specific actionable guidance

@@ -3,23 +3,23 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:monitoring, kw:metrics
-**Keywords:** Copy History, Task History, Dynamic Tables, cost management, AI observability, Cortex AI, token tracking, troubleshooting, performance analysis, monitor queries, monitoring dashboard, observability UI, query monitoring, telemetry volume, SQL
-**TokenBudget:** ~5900
+**Keywords:** Copy History, Task History, Dynamic Tables, cost management, troubleshooting, performance analysis, monitor queries, monitoring dashboard, telemetry volume, SQL
+**TokenBudget:** ~4100
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
+**Companions:** 111d-snowflake-observability-snowsight.md
 
 ## Scope
 
 **What This Rule Covers:**
-Monitoring, analysis, and cost management for Snowflake observability. Covers Snowsight monitoring interfaces (Traces & Logs, Query History, Copy History, Task History), AI observability patterns for Cortex AI token tracking, troubleshooting workflows, System Views vs Event Tables selection, and telemetry cost optimization.
+Monitoring, analysis, and cost management for Snowflake observability. Covers monitoring query patterns, troubleshooting workflows, System Views vs Event Tables selection, and telemetry cost optimization.
 
 **When to Load This Rule:**
 - Creating monitoring queries and dashboards
-- Troubleshooting performance or errors using Snowsight
-- Analyzing AI costs (Cortex AI token usage)
+- Troubleshooting performance or errors
 - Setting up proactive alerts
 - Optimizing telemetry volume and costs
 
@@ -299,7 +299,7 @@ ORDER BY estimated_gb DESC;
 
 ### Data Volume Control
 - **Rule:** Implement strategies to control telemetry data volume and associated storage costs.
-- **Always:** Use appropriate log levels and conditional logging to prevent data overflow.
+- **Always:** Use WARN or higher in production; use DEBUG only in development or targeted debugging sessions.
 
 ```python
 import random
@@ -377,7 +377,7 @@ ORDER BY hour;
 ## Security and Governance Integration
 
 ### Telemetry Data Protection
-- **Rule:** Apply appropriate access controls to event tables and telemetry data.
+- **Rule:** Grant SELECT on event_table to TELEMETRY_ANALYST role; restrict TELEMETRY_ADMIN for unmasked access.
 - **Always:** Consider data masking for sensitive information in log messages.
 
 ```sql
@@ -445,266 +445,29 @@ WHERE ABS(DATEDIFF(second, t.timestamp, l.timestamp)) < 10;
 
 ## Snowsight Monitoring Interfaces
 
-### Traces & Logs Monitoring Page
-- **Navigation:** Monitoring > Traces & Logs
-- **Purpose:** Unified interface for real-time monitoring of application telemetry from event tables.
-- **Features:**
-  - Filter by time range, log level, trace ID
-  - Search log message content
-  - View trace spans with execution timeline
-  - Drill into individual trace details with nested spans
-
-**Usage for AI Agents:**
-> **Investigation Required**
-> When recommending Snowsight monitoring:
-> 1. Verify user has access to Monitoring > Traces & Logs
-> 2. Confirm event table is active and receiving data
-> 3. Guide user to specific filters (severity, time range) relevant to their issue
-> 4. Reference trace IDs for end-to-end debugging workflows
-
-**Correct Pattern:**
-"Navigate to Monitoring > Traces & Logs, filter by Severity = ERROR, Time Range = Last Hour"
-
-**Anti-Pattern:**
-Telling users to "check logs" without specific navigation path
-
-### Query History Interface
-- **Navigation:** Monitoring > Query History
-- **Purpose:** Historical analysis of all SQL queries executed in the account (System View based).
-- **Latency:** 45 minutes to 3 hours for data availability.
-- **Key Use Cases:**
-  - SQL performance optimization
-  - Identifying expensive queries
-  - Analyzing query patterns and trends
-  - Troubleshooting failed queries
-
-**Programmatic Access:**
-```sql
--- Query History System View (historical data)
-SELECT
-    query_id,
-    query_text,
-    user_name,
-    warehouse_name,
-    execution_status,
-    total_elapsed_time / 1000 as duration_seconds,
-    rows_produced,
-    bytes_scanned
-FROM snowflake.account_usage.query_history
-WHERE start_time >= current_timestamp() - INTERVAL '24 hours'
-  AND execution_status = 'FAIL'
-ORDER BY start_time DESC
-LIMIT 100;
-```
-
-### Copy History (Data Loading Monitoring)
-- **Navigation:** Monitoring > Copy History
-- **Purpose:** Track all data loading operations via COPY INTO commands (System View based).
-- **Monitors:** Snowpipe, bulk COPY INTO, continuous data ingestion.
-- **Key Metrics:** Rows loaded, bytes transferred, file count, errors.
-
-**Programmatic Access:**
-```sql
--- Copy History System View
-SELECT
-    file_name,
-    table_name,
-    last_load_time,
-    status,
-    row_count,
-    row_parsed,
-    file_size,
-    error_count,
-    error_limit
-FROM snowflake.account_usage.copy_history
-WHERE last_load_time >= current_timestamp() - INTERVAL '24 hours'
-  AND status != 'LOADED'  -- Show problems
-ORDER BY last_load_time DESC;
-```
-
-**AI Agent Guidance:**
-- Use for diagnosing data pipeline loading issues
-- Correlate with Task History for scheduled load jobs
-- Check for parse errors, schema mismatches, file format issues
-
-### Task History (Pipeline Monitoring)
-- **Navigation:** Monitoring > Task History
-- **Purpose:** Monitor execution of scheduled tasks (System View based).
-- **Tracks:** Task runs, execution status, duration, error messages.
-- **Critical for:** Pipeline orchestration, scheduled data transformations, incremental processing.
-
-**Programmatic Access:**
-```sql
--- Task History System View
-SELECT
-    name as task_name,
-    database_name,
-    schema_name,
-    state,
-    scheduled_time,
-    completed_time,
-    DATEDIFF(second, scheduled_time, completed_time) as duration_seconds,
-    error_code,
-    error_message
-FROM snowflake.account_usage.task_history
-WHERE scheduled_time >= current_timestamp() - INTERVAL '24 hours'
-  AND state IN ('FAILED', 'CANCELLED')  -- Show problems
-ORDER BY scheduled_time DESC;
-```
-
-**AI Agent Usage:**
-- Diagnose task failures and scheduling issues
-- Analyze task execution patterns and dependencies
-- Recommend optimizations for task DAGs
-
-### Dynamic Tables Monitoring
-- **Navigation:** Data > Databases > [Select Table] > Refresh History
-- **Purpose:** Monitor automatic refresh operations for Dynamic Tables (System View based).
-- **Tracks:** Refresh timestamps, lag, data freshness, refresh mode (INCREMENTAL vs FULL).
-
-**Programmatic Access:**
-```sql
--- Dynamic Tables Refresh History
-SELECT
-    name as dynamic_table_name,
-    database_name,
-    schema_name,
-    refresh_action,
-    refresh_trigger,
-    state,
-    completion_target,
-    data_timestamp,
-    refresh_start_time,
-    refresh_end_time
-FROM snowflake.account_usage.dynamic_table_refresh_history
-WHERE refresh_start_time >= current_timestamp() - INTERVAL '24 hours'
-ORDER BY refresh_start_time DESC;
-```
-
-**AI Agent Guidance:**
-- Use to verify Dynamic Table refresh patterns
-- Diagnose lag issues and staleness
-- Correlate with target lag configuration
-- Reference `122-snowflake-dynamic-tables.md` for optimization patterns
-
-### Unified Monitoring Strategy
-
-**System Views (Historical) for:**
-- Long-term performance trends
-- Cost analysis and attribution
-- Compliance and auditing
-- Batch job retrospectives
-
-**Event Tables (Real-Time) for:**
-- Live application debugging
-- Real-time alerting
-- User code telemetry
-- Distributed tracing
-
-**Anti-Pattern:**
-Using Query History (System View) to debug real-time application issues. Instead, use Traces & Logs (Event Tables) for real-time, Query History for historical analysis
+> **See companion rule:** `111d-snowflake-observability-snowsight.md` for Snowsight UI navigation paths (Traces & Logs, Query History, Copy History, Task History, Dynamic Tables), unified monitoring strategy, and AI Agent guidance for each interface.
 
 ## AI Observability
 
-### Cortex AI Function Monitoring
-- **Purpose:** Track usage, cost, and performance of Snowflake Cortex AI functions (COMPLETE, CLASSIFY, EXTRACT, SENTIMENT, etc.).
-- **Integration:** AI observability data flows into same event tables as other telemetry.
-- **Key Metrics:** Token consumption, model latency, error rates, cost per operation.
-
-**Cost Tracking:** See the `ai_cost_monitoring` view in Output Format Examples above (Step 3) for a production-ready AI cost attribution query. Key metrics to track: token consumption per function/model, invocation counts, and average latency.
-
-### Evaluations and Comparisons
-- **Feature:** Snowflake AI Observability provides built-in evaluation capabilities for generative AI applications.
-- **Use Cases:**
-  - Compare responses across different LLM models
-  - Measure output quality with evaluation metrics
-  - A/B testing for prompt engineering
-  - Track model performance over time
-
-**Reference Documentation:**
-- [Snowflake AI Observability](https://docs.snowflake.com/en/user-guide/snowflake-cortex/ai-observability)
-- Cross-reference with `114-snowflake-cortex-aisql.md` for cost optimization patterns
-
-### Tracing Generative AI Applications
-- **Always:** Use distributed tracing to monitor end-to-end AI application workflows.
-- **Pattern:** Create spans for prompt preparation, model invocation, response processing.
-
-```python
-from snowflake import telemetry
-import logging
-
-logger = logging.getLogger(__name__)
-
-def generate_insights(session, user_query):
-    """Generate AI insights with comprehensive tracing."""
-
-    with telemetry.create_span("ai_insight_generation") as span:
-        span.set_attribute("user_query_length", len(user_query))
-        span.set_attribute("model", "mistral-large2")
-
-        # Prompt preparation span
-        with telemetry.create_span("prompt_preparation") as prep_span:
-            prompt = f"Analyze this query: {user_query}"
-            prep_span.set_attribute("prompt_length", len(prompt))
-
-        # AI model invocation span
-        with telemetry.create_span("cortex_complete") as ai_span:
-            result = session.sql(f"""
-                SELECT SNOWFLAKE.CORTEX.COMPLETE(
-                    'mistral-large2',
-                    '{prompt}'
-                )
-            """).collect()
-
-            response = result[0][0]
-            ai_span.set_attribute("response_length", len(response))
-            ai_span.set_attribute("success", True)
-
-        logger.info(f"AI insight generated: {len(response)} chars")
-        span.set_attribute("total_processing_complete", True)
-        return response
-```
-
-### Cost Monitoring for AI Workloads
-- **Rule:** Track token consumption and costs for Cortex AI functions to manage budget.
-- **Integration:** Combine cost data from `ACCOUNT_USAGE.METERING_HISTORY` with telemetry for comprehensive cost attribution.
-
-```sql
--- AI Cost Attribution by Application
-SELECT
-    t.resource_attributes:"snow.executable.name"::string as application_name,
-    t.resource_attributes:"cortex.function"::string as ai_function,
-    COUNT(*) as invocations,
-    SUM(t.resource_attributes:"cortex.tokens"::number) as total_tokens,
-    -- Estimated cost (adjust multiplier based on actual pricing)
-    total_tokens * 0.0001 as estimated_cost_usd
-FROM snowflake.account_usage.event_table t
-WHERE t.record_type = 'SPAN'
-  AND t.resource_attributes:"cortex.function" IS NOT NULL
-  AND t.timestamp >= current_timestamp() - INTERVAL '30 days'
-GROUP BY application_name, ai_function
-ORDER BY estimated_cost_usd DESC;
-```
-
-**Cross-Reference:** See `114-snowflake-cortex-aisql.md` for detailed AISQL cost governance patterns.
+> **See companion rule:** `111d-snowflake-observability-snowsight.md` for Cortex AI function monitoring, cost attribution queries, LLM evaluation capabilities, and generative AI application tracing patterns.
 
 ## Limitations and Considerations
 
 ### Event Table Retention
 - **Default:** Retention controlled by `DATA_RETENTION_TIME_IN_DAYS` on event table.
 - **Cost Impact:** Longer retention increases storage costs.
-- **Recommendation:** Balance compliance needs with cost efficiency (7-90 days typical).
+- **Rule:** Set retention to 30 days for standard monitoring; extend to 90 days only when compliance regulations (SOX, HIPAA) require it.
 
 ### Cost Implications of Verbose Logging
 - **DEBUG Level:** Can generate 10-100x more log entries than WARN level.
 - **Storage:** Event tables consume storage based on volume and retention.
 - **Compute:** Querying large event tables requires warehouse credits.
-- **Best Practice:** Use INFO/WARN in production, DEBUG only for targeted debugging.
+- **Rule:** Set log level to INFO or WARN in production environments; use DEBUG only for targeted debugging sessions.
 
 ### Performance Impact of TRACE_LEVEL = ALWAYS
 - **ALWAYS:** Generates trace spans for every function/procedure invocation regardless of errors.
-- **Performance:** Minimal overhead (<5% typically), but consider cumulative impact at scale.
-- **Recommendation:** Use `ON_EVENT` for production (traces only on errors), `ALWAYS` for debugging.
+- **Performance:** Minimal overhead (<5% typically); monitor total span count and switch to ON_EVENT if exceeding 1M spans/day.
+- **Rule:** Use `ON_EVENT` for production (traces only on errors), `ALWAYS` for debugging.
 
 ```sql
 -- Production: Trace only on errors

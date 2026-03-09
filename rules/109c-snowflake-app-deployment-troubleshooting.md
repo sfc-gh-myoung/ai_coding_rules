@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-02-19
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:deployment-error
 **Keywords:** Snowflake deployment troubleshooting, Streamlit debugging, SiS TypeError, notebook deployment issues, deployment errors, stage file debugging, AUTO_COMPRESS debugging, ROOT_LOCATION errors, deployment anti-patterns, diagnostic commands, deployment validation, cache issues
-**TokenBudget:** ~5300
+**TokenBudget:** ~3500
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 109-snowflake-notebooks.md, 101-snowflake-streamlit-core.md, 109b-snowflake-app-deployment-core.md
 
@@ -33,6 +33,7 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 
 ### Related Rules
 - **Core Deployment**: `109b-snowflake-app-deployment-core.md` - Base deployment patterns
+- **SiS TypeError/AttributeError Debugging**: `109j-snowflake-sis-typeerror-debugging.md` - Detailed diagnostic workflows for TypeError and AttributeError
 - **Streamlit Core**: `101-snowflake-streamlit-core.md` - Streamlit development
 - **Snowflake Notebooks**: `109-snowflake-notebooks.md` - Notebook best practices
 - **Snowflake Core**: `100-snowflake-core.md` - Foundational practices
@@ -251,119 +252,7 @@ def snow_stage_copy(source, dest, auto_compress=False, recursive=False):
 
 ### Issue: Streamlit SiS fails with "TypeError: bad argument type for built-in operation"
 
-**Symptoms:**
-- Streamlit application fails to load in Snowflake
-- Error message: "TypeError: bad argument type for built-in operation"
-- Application worked previously or in development
-- No pages render, blank screen or error displayed
-
-**Common Causes:**
-
-**Cause 1: Missing AUTO_COMPRESS=FALSE**
-- Python files uploaded with compression (default behavior)
-- Python's import system cannot read gzipped `.py` files
-- Applies to all `.py` files: `streamlit_app.py`, `pages/*.py`, `utils/*.py`
-
-**Cause 2: Stage Path Mismatch**
-- Files uploaded to subdirectory (e.g., `@STAGE/streamlit/`)
-- ROOT_LOCATION points to different path (e.g., `@STAGE`)
-- Snowflake cannot find application files
-
-**Cause 3: Inverted Compression Flag in Python/CLI Wrappers**
-- Python wrapper function adds `--auto-compress` when `True` (redundant — already the default)
-- But never adds `--no-auto-compress` when `False` — compression is never actually disabled
-- Deployment reports success (`[PASS]`) but app fails at runtime
-- Especially insidious because `auto_compress=False` in the calling code *looks* correct
-
-**Diagnostic Steps:**
-
-Execute these commands to identify root cause:
-
-```bash
-# Step 1: Check actual file locations and compression status
-uvx snow sql -q "LIST @UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE;"
-
-# Expected output (CORRECT - uncompressed):
-# streamlit_stage/streamlit_app.py          | 4096  | <hash> | ...
-# streamlit_stage/pages/1_Home.py           | 2048  | <hash> | ...
-# streamlit_stage/environment.yml           | 512   | <hash> | ...
-
-# Bad output (WRONG - compressed files):
-# streamlit_stage/streamlit_app.py.gz       | 1024  | <hash> | ...
-# streamlit_stage/pages/1_Home.py.gz        | 512   | <hash> | ...
-
-# Step 2: Verify ROOT_LOCATION matches actual file paths
-uvx snow sql -q "DESCRIBE STREAMLIT UTILITY_DEMO_V2.GRID_DATA.APP_NAME;"
-
-# Look for ROOT_LOCATION value in output
-# Expected: ROOT_LOCATION = @UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE
-# Must match LIST output paths (no extra /streamlit/ subdirectory nesting)
-
-# Verify paths align:
-# LIST shows: streamlit_stage/streamlit_app.py
-# ROOT_LOCATION: @STREAMLIT_STAGE  (correct - matches root)
-# NOT: @STREAMLIT_STAGE/streamlit  (wrong - extra subdirectory)
-
-# Step 3: Detailed file listing with grep filter
-uvx snow sql -q "LIST @UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE;" \
-  | grep -E "\.py$|\.yml$"
-
-# Should show .py extensions (not .py.gz):
-# streamlit_app.py   ✓ Correct
-# pages/1_Home.py    ✓ Correct
-# environment.yml    ✓ Correct
-```
-
-**Solutions:**
-
-**For Compression Issue:**
-```bash
-# 1. Redeploy with AUTO_COMPRESS=FALSE
-task streamlit:remove:app   # Remove old compressed files
-task streamlit:upload:app   # Upload with AUTO_COMPRESS=FALSE
-task streamlit:create:app   # Recreate Streamlit object
-```
-
-**For Path Mismatch:**
-```sql
--- Option 1: Fix upload paths (recommended)
--- Update upload script to use stage root:
-PUT file://streamlit_app.py @STAGE  -- Not @STAGE/streamlit/
-    AUTO_COMPRESS=FALSE
-    OVERWRITE=TRUE;
-
--- Option 2: Fix ROOT_LOCATION to match current files
-DROP STREAMLIT IF EXISTS DB.SCHEMA.APP_NAME;
-CREATE STREAMLIT DB.SCHEMA.APP_NAME
-    ROOT_LOCATION = '@STAGE/streamlit'  -- Match actual file location
-    MAIN_FILE = 'streamlit_app.py'
-    QUERY_WAREHOUSE = WH;
-```
-
-**Verification:**
-```bash
-# Verify files are uncompressed and correctly located
-uvx snow sql -q "LIST @STAGE;" | grep -E "\.py$|\.yml$"
-
-# Should see (file extensions without .gz):
-# streamlit_stage/streamlit_app.py          ✓ Uncompressed
-# streamlit_stage/pages/1_Page.py           ✓ Uncompressed
-# streamlit_stage/environment.yml           ✓ Uncompressed
-
-# Should NOT see:
-# streamlit_stage/streamlit_app.py.gz       ✗ Compressed (causes TypeError)
-# streamlit_stage/streamlit/app.py          ✗ Wrong path (ROOT_LOCATION mismatch)
-
-# Verify Streamlit app loads without errors
-# Navigate to Snowsight > Apps > Streamlit > APP_NAME
-# Expected: Application loads, pages render, no TypeError
-
-# Verify import system works
-uvx snow sql -q "
-SELECT SYSTEM\$CHECK_FILE_EXISTS('@STAGE/streamlit_app.py');
-"
-# Should return: TRUE (file exists and is accessible)
-```
+See **109j-snowflake-sis-typeerror-debugging.md** for the full diagnostic workflow covering three root causes (missing AUTO_COMPRESS=FALSE, stage path mismatch, inverted compression flag in wrappers), step-by-step diagnostic commands, solutions, and verification steps.
 
 ### Issue: "Notebook shows old code after deploy"
 
@@ -394,92 +283,7 @@ SELECT SYSTEM\$CHECK_FILE_EXISTS('@STAGE/streamlit_app.py');
 
 ### Issue: "AttributeError: module 'streamlit' has no attribute 'X'"
 
-**Symptoms:**
-- Streamlit app fails with `AttributeError: module 'streamlit' has no attribute 'navigation'`
-  (or `'Page'`, `'dialog'`, `'fragment'`, or other modern API)
-- App works locally but fails when deployed to SiS
-- Error appears immediately on app load or when navigating to a page that uses the missing API
-
-**Root Cause:**
-Missing or incorrect `environment.yml` in the stage. Without `environment.yml`, SiS defaults
-to its bundled Streamlit version (currently **1.22.0**), which predates many modern APIs:
-
-- `st.navigation()` — requires 1.36+ (not available in SiS default 1.22.0)
-- `st.Page()` — requires 1.36+ (not available in SiS default 1.22.0)
-- `st.dialog()` — requires 1.37+ (not available in SiS default 1.22.0)
-- `st.fragment()` — requires 1.37+ (not available in SiS default 1.22.0)
-- `st.rerun()` — requires 1.27+ (not available in SiS default 1.22.0)
-
-**Diagnostic Steps:**
-
-```bash
-# Step 1: Check if environment.yml exists in stage
-uvx snow sql -q "LIST @DB.SCHEMA.STREAMLIT_STAGE;" | grep environment.yml
-
-# If no output -> environment.yml is MISSING (root cause confirmed)
-
-# Step 2: If environment.yml exists, download and check contents
-uvx snow sql -q "GET @DB.SCHEMA.STREAMLIT_STAGE/environment.yml file:///tmp/;"
-cat /tmp/environment.yml
-
-# Check: Does it pin streamlit to a recent version?
-# BAD:  just "- streamlit" (no version, uses bundled default)
-# GOOD: "- streamlit=1.51.0" (explicit pin)
-
-# Step 3: Verify what Streamlit version the app is using
-# Add this temporarily to streamlit_app.py:
-#   import streamlit as st
-#   st.write(f"Streamlit version: {st.__version__}")
-```
-
-**Fix:**
-
-1. **Create `environment.yml`** in your Streamlit app directory:
-   ```yaml
-   name: my_app
-   channels:
-     - snowflake
-   dependencies:
-     - streamlit=1.51.0
-     - pandas
-     - plotly
-   ```
-
-2. **Redeploy with environment.yml included:**
-   ```bash
-   # Using snow stage copy (recommended for multi-file apps)
-   uvx --from=snowflake-cli==3.14 snow stage copy \
-     streamlit/ @DB.SCHEMA.STREAMLIT_STAGE \
-     --recursive --no-auto-compress --overwrite
-
-   # Or using SQL PUT (single file)
-   uvx snow sql -q "PUT file://streamlit/environment.yml
-       @DB.SCHEMA.STREAMLIT_STAGE
-       AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
-   ```
-
-3. **Recreate the Streamlit object** (environment.yml is read at creation time):
-   ```bash
-   uvx snow sql -q "DROP STREAMLIT IF EXISTS DB.SCHEMA.MY_APP;"
-   uvx snow sql -q "CREATE STREAMLIT DB.SCHEMA.MY_APP
-       ROOT_LOCATION = '@DB.SCHEMA.STREAMLIT_STAGE'
-       MAIN_FILE = 'streamlit_app.py'
-       QUERY_WAREHOUSE = MY_WH;"
-   ```
-
-**Verification:**
-```bash
-# Confirm environment.yml is in stage
-uvx snow sql -q "LIST @DB.SCHEMA.STREAMLIT_STAGE;" | grep environment.yml
-# Expected: environment.yml listed (not .gz)
-
-# Open app in Snowsight - should load without AttributeError
-```
-
-**Prevention:**
-- Always include `environment.yml` with a pinned Streamlit version in your app directory
-- Add `environment.yml` to your deployment precondition checks
-- Pin to `streamlit=1.51.0` (or latest available in snowflake channel)
+See **109j-snowflake-sis-typeerror-debugging.md** for the full diagnostic workflow covering missing or outdated `environment.yml`, Streamlit API version compatibility table, diagnostic commands, fix steps, and prevention guidance.
 
 ### Issue: "REMOVE fails - file not found"
 
@@ -543,7 +347,4 @@ SHOW GRANTS ON WAREHOUSE COMPUTE_WH;
 -- Grant deployment privileges to a role
 GRANT USAGE ON SCHEMA DB.SCHEMA TO ROLE DEPLOYER;
 GRANT WRITE ON STAGE DB.SCHEMA.NOTEBOOK_STAGE TO ROLE DEPLOYER;
-GRANT CREATE NOTEBOOK ON SCHEMA DB.SCHEMA TO ROLE DEPLOYER;
-GRANT CREATE STREAMLIT ON SCHEMA DB.SCHEMA TO ROLE DEPLOYER;
-GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE DEPLOYER;
-```
+GRANT CREATE NOTEBOOK ON SCHEMA DB.SCHEMA                                                                                                                                          

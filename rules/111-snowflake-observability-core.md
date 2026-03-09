@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:observability, kw:monitoring
 **Keywords:** LOG_LEVEL, TRACE_LEVEL, METRIC_LEVEL, SHOW PARAMETERS, OpenTelemetry, System Views vs Telemetry, monitoring, logging, tracing, debug observability, event table queries, observability patterns, configure telemetry
 **TokenBudget:** ~4650
@@ -114,12 +114,12 @@ Foundational observability practices for Snowflake environments through telemetr
 - Verify event tables are active before emitting telemetry (`SHOW PARAMETERS LIKE 'EVENT_TABLE'`)
 
 ### Post-Execution Checklist
-- [ ] Event table verified as active before emitting telemetry (`SHOW PARAMETERS LIKE 'EVENT_TABLE'`)
-- [ ] Telemetry levels appropriate for environment (WARN+ for prod, DEBUG for dev only)
-- [ ] Cost implications reviewed for verbose logging levels (DEBUG can be 10-100x more data)
-- [ ] System Views used for historical analysis (>45 min old), Event Tables for real-time
-- [ ] Investigation-first protocol followed (read config with `SHOW PARAMETERS` before recommending changes)
-- [ ] Retention policy set on custom event tables (7-90 days typical)
+- [ ] Verify: Event table active: `SHOW PARAMETERS LIKE 'EVENT_TABLE' IN ACCOUNT`
+- [ ] Verify: Telemetry levels appropriate: `SHOW PARAMETERS LIKE '%LOG_LEVEL%' IN ACCOUNT` (WARN+ for prod, DEBUG for dev only)
+- [ ] Verify: Cost implications reviewed for verbose logging levels (DEBUG can be 10-100x more data)
+- [ ] Verify: System Views used for historical analysis (>45 min old), Event Tables for real-time
+- [ ] Verify: Investigation-first protocol followed (read config with `SHOW PARAMETERS` before recommending changes)
+- [ ] Verify: Retention policy set on custom event tables (7-90 days typical)
 - [ ] Cross-references noted: 111a (logging), 111b (tracing), 111c (monitoring)
 
 ## Anti-Patterns and Common Mistakes
@@ -248,7 +248,7 @@ session.sql("SELECT SYSTEM$LOG('INFO', 'Process started')").collect()
 > 1. Determine the data source: System View (historical) vs Event Table (real-time)
 > 2. Verify time range requirements match the data source latency
 > 3. Check object existence before querying telemetry (use SHOW commands)
- > 4. Never speculate about telemetry configuration - read it first with SHOW PARAMETERS
+> 4. Never speculate about telemetry configuration - read it first with SHOW PARAMETERS
 > 5. Understand retention implications before recommending data collection strategies
 
 ### OpenTelemetry Standard Alignment

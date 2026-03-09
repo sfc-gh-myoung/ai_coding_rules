@@ -4,10 +4,10 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-02-18
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:makefile-includes, kw:makefile-help, kw:makefile-conditional
 **Keywords:** categorized help, Makefile includes, conditional logic, ifdef, ifeq, variable assignment, simply expanded, recursively expanded, platform detection, multi-target, AI agent, make patterns
-**TokenBudget:** ~2750
+**TokenBudget:** ~3050
 **ContextTier:** Low
 **Depends:** 821-makefile-automation.md
 
@@ -48,9 +48,11 @@ Advanced Makefile patterns including categorized help output, conditional logic,
 - For cross-platform: target platforms identified
 
 ### Mandatory
-- Categorized help for Makefiles with 8+ targets
-- Variable assignment type appropriate to use case (`:=` vs `=` vs `?=`)
-- Platform guards for OS-specific commands
+- MUST implement categorized help for Makefiles with 8+ targets
+- Variable assignment type MUST be appropriate to use case (`:=` for shell, `?=` for overridable, `=` for late-binding)
+- MUST use platform guards for OS-specific commands
+- Each non-internal target MUST include a `## Description` help comment
+- Variables MUST use SCREAMING_SNAKE_CASE
 
 ### Forbidden
 - OS-specific commands without conditional guards
@@ -370,9 +372,36 @@ include mk/local.mk
 ```makefile
 # WRONG: Breaks if DEST contains spaces
 deploy:
-	deploy-tool $(DEST)
+  deploy-tool $(DEST)
 
 # CORRECT: Quoted for shell safety
 deploy:
-	deploy-tool "$(DEST)"
+  deploy-tool "$(DEST)"
 ```
+
+## Avoiding Recursive Make
+
+Recursive `$(MAKE) -C subdir/` is a well-documented anti-pattern ("Recursive Make Considered Harmful"). It breaks cross-directory dependency tracking.
+
+SHOULD use include-based alternatives instead:
+
+```makefile
+# Instead of recursive $(MAKE) -C subdir/
+# Use includes:
+include src/module.mk
+include tests/tests.mk
+```
+
+**Why:** Recursive Make prevents Make from seeing the full dependency graph across directories, leading to incorrect builds and missed rebuilds.
+
+## CI/CD Entry Point
+
+SHOULD provide a single CI target:
+
+```makefile
+.PHONY: ci
+ci: lint test build  ## CI pipeline entry point
+	@echo "CI pipeline complete"
+```
+
+Use `make ci` as the sole CI command for consistent local and CI behavior.

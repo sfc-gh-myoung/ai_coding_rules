@@ -5,8 +5,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, semantic view, create semantic view, SQL, YAML, NLQ, mapping syntax
 **TokenBudget:** ~2550
 **ContextTier:** High
@@ -169,6 +169,7 @@ CREATE [OR REPLACE] SEMANTIC VIEW <db>.<schema>.<view>
       [COMMENT = '<desc>']
   )
   DIMENSIONS (
+    -- IMPORTANT: Must be simple column references, not expressions
     <alias>.<logical_name> AS <physical_col>
       [WITH SYNONYMS ('<syn>')]
       [COMMENT = '<desc>']
@@ -199,11 +200,14 @@ CREATE OR REPLACE SEMANTIC VIEW PROD.DATA.SEM_INVENTORY
 ```
 
 ### Multi-Table with Relationships
+
+In multi-table semantic views, always use fully-qualified table names to avoid ambiguity.
+
 ```sql
 CREATE OR REPLACE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
   TABLES (
-    customer PRIMARY KEY (c_custkey),
-    orders PRIMARY KEY (o_orderkey)
+    customer AS PROD.SALES.CUSTOMER PRIMARY KEY (c_custkey),
+    orders AS PROD.SALES.ORDERS PRIMARY KEY (o_orderkey)
   )
   RELATIONSHIPS (
     orders_to_customer AS orders(o_custkey) REFERENCES customer(c_custkey)

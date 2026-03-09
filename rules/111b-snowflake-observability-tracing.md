@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:tracing, kw:distributed-tracing
 **Keywords:** span attributes, trace_id, performance analysis, metrics collection, cpu_usage, memory_usage, telemetry.create_span, OpenTelemetry, nested spans, tracing patterns, span creation, trace analysis, distributed traces
 **TokenBudget:** ~4600
@@ -360,6 +360,8 @@ from snowflake import telemetry
 def process_with_performance_tracking(session, data):
     """Track performance of expensive operations."""
 
+    start_time = time.time()
+
     with telemetry.create_span("full_processing") as main_span:
         main_span.set_attribute("total_records", len(data))
 
@@ -379,7 +381,7 @@ def process_with_performance_tracking(session, data):
             result = perform_aggregation(enriched_data)
             transform_span.set_attribute("result_size", len(result))
 
-        main_span.set_attribute("total_duration_ms", (time.time() - main_span.start_time) * 1000)
+        main_span.set_attribute("total_duration_ms", (time.time() - start_time) * 1000)
         return result
 ```
 
@@ -561,7 +563,7 @@ def process_batch(session, batch_data):
                 results.append(processed)
             except Exception as e:
                 error_count += 1
-                logger.warn(f"Record processing failed: {e}")
+                logger.warning(f"Record processing failed: {e}")
 
         # Emit completion metrics
         telemetry.emit_metric("records_processed", len(results))

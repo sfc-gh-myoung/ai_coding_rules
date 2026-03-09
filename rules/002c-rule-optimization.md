@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-08
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **Keywords:** token budget, optimization, performance, rule sizing, progressive loading, context window, model limits, cost efficiency, caching, batch loading
 **TokenBudget:** ~3950
 **ContextTier:** High
@@ -128,7 +128,7 @@ Rule file with:
 **Token Ranges:**
 - **Optimal (2000-3500):** Load normally
 - **Acceptable (3500-5000):** Load when task requires
-- **Caution (5000-7000):** Consider if split needed
+- **Caution (5000-7000):** Evaluate split using decision tree below
 - **Avoid (>7000):** Split into focused files
 
 **Line Count Targets:**
@@ -143,7 +143,7 @@ Rule file with:
 **Split if ANY of these conditions are true:**
 1. **Token count >5500** AND rule covers multiple major concepts
 2. **Rule addresses 3+ independent use cases** (even if <5500 tokens)
-3. **Sections can be loaded independently** without losing coherence
+3. **Sections can be loaded independently** without requiring cross-references back to the parent rule for basic execution
 4. **Different sections target different loading contexts** (e.g., core vs advanced patterns)
 
 **Do NOT split if:**
@@ -202,8 +202,8 @@ See `000-global-core.md`, section "Context Window Management Protocol" for prese
 - Security constraints
 
 **Real Examples:**
-- `201-python-lint-format.md` (~1950 tokens)
-- `221b-python-htmx-flask.md` (~1950 tokens)
+- `001-memory-bank.md` (~1400 tokens) - Context management
+- `101-snowflake-streamlit-core.md` (~1950 tokens)
 
 **Loading:** Load based on task domain and keywords
 
@@ -218,10 +218,9 @@ See `000-global-core.md`, section "Context Window Management Protocol" for prese
 - Common workflows
 
 **Real Examples:**
-- `000-global-core.md` (~3300 tokens) - Foundation
-- `100-snowflake-core.md` (~2850 tokens) - Snowflake foundation
-- `001-memory-bank.md` (~2850 tokens) - Context management
-- `002d-advanced-rule-patterns.md` (~2900 tokens)
+- `115-snowflake-cortex-agents-core.md` (~2500 tokens)
+- `201-python-lint-format.md` (~3100 tokens)
+- `221b-python-htmx-flask.md` (~3300 tokens)
 
 **Loading:** Loaded based on task domain (Python tasks -> load 200-python-core)
 
@@ -236,9 +235,10 @@ See `000-global-core.md`, section "Context Window Management Protocol" for prese
 - Multi-section documentation
 
 **Real Examples:**
-- `200-python-core.md` (~4050 tokens) - Python foundation
-- `115-snowflake-cortex-agents-core.md` (~4650 tokens)
-- `101-snowflake-streamlit-core.md` (~3700 tokens)
+- `206-python-pytest.md` (~3600 tokens)
+- `002d-advanced-rule-patterns.md` (~3700 tokens)
+- `000-global-core.md` (~3800 tokens) - Foundation
+- `100-snowflake-core.md` (~4350 tokens) - Snowflake foundation
 
 **Loading:** Loaded when specifically needed for complex tasks
 
@@ -252,9 +252,7 @@ See `000-global-core.md`, section "Context Window Management Protocol" for prese
 - Reference documentation (loaded rarely)
 
 **Real Examples:**
-- `204-python-docs-comments.md` (~5700 tokens)
-- `803-project-git-workflow.md` (~5200 tokens)
-- `820-taskfile-automation.md` (~7100 tokens)
+- `200-python-core.md` (~6500 tokens) - Python foundation
 
 **Loading:** Loaded only when explicitly requested or for reference
 
@@ -269,11 +267,18 @@ See `000-global-core.md`, section "Context Window Management Protocol" for prese
 > **Semantic Coherence vs Token Optimization:** Never sacrifice rule coherence for token savings. A 6000-token rule covering a tightly coupled workflow is better than three 2000-token rules with circular dependencies. Split only when concepts are genuinely separable.
 
 **Split File Naming Convention:**
+
+Split files use the standard filename pattern with a single lowercase letter suffix:
+
+**Pattern:** `<NNN>[<letter>]-<technology>-<aspect>.md`
+
+Single-letter suffix only (a-z). Multi-character suffixes (a1, b2) are NOT allowed.
+
 - Letter suffixes indicate subtopic specialization
 - Core file (no suffix) provides foundation; suffixes extend it
 - Load only the suffix needed for the task (saves tokens)
 - Examples:
-  - `101-snowflake-streamlit-core.md` - Foundation
+  - `101-snowflake-streamlit-core.md` - Foundation (no suffix)
   - `101a-snowflake-streamlit-visualization.md` - Visualization patterns
   - `101b-snowflake-streamlit-performance.md` - Performance optimization
   - `101c-snowflake-streamlit-security.md` - Security patterns
@@ -293,49 +298,49 @@ If you're loading >40% of context window with rules, you're likely over-loading.
 ### Critical Rules (Always Load)
 
 Load at every session start:
-- `000-global-core.md` (~3300 tokens) - Foundation
+- `000-global-core.md` (~3800 tokens) - Foundation
 
 Then add domain core based on task:
-- Python tasks: `200-python-core.md` (~4050 tokens)
-- Snowflake tasks: `100-snowflake-core.md` (~2850 tokens)
-- Streamlit tasks: `101-snowflake-streamlit-core.md` (~3700 tokens)
+- Python tasks: `200-python-core.md` (~6500 tokens)
+- Snowflake tasks: `100-snowflake-core.md` (~4350 tokens)
+- Streamlit tasks: `101-snowflake-streamlit-core.md` (~1950 tokens)
 
-**Total:** ~6,000-7,000 tokens baseline
+**Total:** ~6,000-10,000 tokens baseline
 
 ### Standard Context (Most Tasks)
 
 Foundation + Domain Core + 2-3 specialized rules:
 
 **Example - Python Testing Task:**
-- `000-global-core.md` (~3300)
-- `200-python-core.md` (~4050)
-- `206-python-pytest.md` (~2050)
-- `201-python-lint-format.md` (~1950)
+- `000-global-core.md` (~3800)
+- `200-python-core.md` (~6500)
+- `206-python-pytest.md` (~3600)
+- `201-python-lint-format.md` (~3100)
 
-**Total:** ~11,350 tokens
+**Total:** ~17,000 tokens
 
 ### Extended Context (Complex Tasks)
 
 Foundation + Domain Core + 4-6 specialized rules:
 
 **Example - Streamlit Dashboard with Snowflake:**
-- `000-global-core.md` (~3300)
-- `100-snowflake-core.md` (~2850)
-- `101-snowflake-streamlit-core.md` (~3700)
-- `115-snowflake-cortex-agents-core.md` (~4650)
+- `000-global-core.md` (~3800)
+- `100-snowflake-core.md` (~4350)
+- `101-snowflake-streamlit-core.md` (~1950)
+- `115-snowflake-cortex-agents-core.md` (~2500)
 
-**Total:** ~14,500 tokens
+**Total:** ~12,600 tokens
 
 ### Maximum Context (Comprehensive Projects)
 
 Foundation + Multiple Domain Cores + Full rule families:
 
 **Example - Multi-Domain Project:**
-- `000-global-core.md` (~3300)
+- `000-global-core.md` (~3800)
 - Python core + 3 specialized (~10,000 tokens)
 - Snowflake core + 3 specialized (~12,000 tokens)
 
-**Total:** ~25,300 tokens
+**Total:** ~25,800 tokens
 
 **Note:** Only for comprehensive implementations; most tasks need <15K tokens
 
@@ -345,7 +350,7 @@ Foundation + Multiple Domain Cores + Full rule families:
 - Task is read-only (no modifications) AND rule is for editing patterns
 - Rule's Keywords don't match any terms in the user's request
 - Rule is Low tier AND you're already at 80%+ of loading budget
-- Rule covers advanced features not needed for the current task
+- Rule covers features not matching any keywords in the user's request
 
 **Never defer:**
 - `000-global-core.md` (always required)
@@ -450,8 +455,8 @@ wc -w rules/<your-rule>.md
 **Correct Pattern:** Progressive loading (~10K-20K tokens)
 ```
 # Load only what's needed
-1. Foundation: 000-global-core.md (~3300)
-2. Domain: 200-python-core.md (~4050) based on task
-3. Specialized: 206-python-pytest.md (~2050) as needed
+1. Foundation: 000-global-core.md (~3800)
+2. Domain: 200-python-core.md (~6500) based on task
+3. Specialized: 206-python-pytest.md (~3600) as needed
 ```
 **Benefits:** Efficient, focused, fast - uses 5-10% of context budget instead of 100%.

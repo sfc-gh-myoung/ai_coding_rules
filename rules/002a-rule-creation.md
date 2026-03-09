@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-02-18
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-03-09
 **Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, v3.2 schema, validation, rule numbering, from scratch, new rule
-**TokenBudget:** ~4800
+**TokenBudget:** ~4200
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
@@ -75,7 +75,7 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 
 1. Choose rule number from appropriate range (000-099 core, 100-199 Snowflake, etc.)
 2. Review existing rules in same category for patterns and structure
-3. Create new file `rules/<NNN>-<technology>-<aspect>.md` with H1 title and `## Metadata` header
+3. Create new file `rules/<NNN>[<letter>]-<technology>-<aspect>.md` with H1 title and `## Metadata` header
 4. Fill required metadata fields (SchemaVersion: v3.2, RuleVersion, Keywords: 5-20 terms, TokenBudget, ContextTier, Depends)
 5. Write required sections in v3.2 order: Scope, References, Contract, Anti-Patterns (optional)
 6. Add Contract section with Markdown subsections (###), NOT XML tags
@@ -85,7 +85,7 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 
 ### Output Format
 
-Markdown file named `NNN-technology-aspect.md` with:
+Markdown file named `<NNN>[<letter>]-<technology>-<aspect>.md` with:
 - v3.2-compliant structure
 - Metadata with SchemaVersion: v3.2
 - Contract with Markdown headers (###), not XML tags
@@ -96,7 +96,7 @@ Markdown file named `NNN-technology-aspect.md` with:
 
 **Pre-Task-Completion Checks:**
 - Rule number chosen from correct range
-- File naming follows convention (kebab-case)
+- File naming follows convention: `<NNN>[<letter>]-<technology>-<aspect>.md` (single-letter suffix only, no multi-char suffixes)
 - Metadata fields all present
 - Required sections in v3.2 order
 - Contract uses Markdown headers, not XML tags
@@ -105,7 +105,7 @@ Markdown file named `NNN-technology-aspect.md` with:
 
 **Success Criteria:**
 - `ai-rules validate` returns 0 CRITICAL errors
-- File named correctly (NNN-technology-aspect.md)
+- File named correctly (`<NNN>[<letter>]-<technology>-<aspect>.md`, single-letter suffix only)
 - All required metadata fields present and formatted correctly
 - All required sections present in v3.2 order
 - Rule added to `RULES_INDEX.md`
@@ -142,7 +142,7 @@ Markdown file named `NNN-technology-aspect.md` with:
 
 **Schema Compliance:**
 - [ ] Rule number chosen from correct range for domain
-- [ ] File named with kebab-case convention (NNN-technology-aspect.md)
+- [ ] File named with kebab-case convention (`<NNN>[<letter>]-<technology>-<aspect>.md`, single-letter suffix only)
 - [ ] Existing rules reviewed for similar patterns
 - [ ] All 6 metadata fields filled: SchemaVersion (v3.2), RuleVersion, Keywords (5-20), TokenBudget, ContextTier, Depends
 - [ ] All required sections present in v3.2 order (Scope, References, Contract, Anti-Patterns)
@@ -229,26 +229,31 @@ Within each range, use logical grouping:
 
 ### Naming Convention
 
-**Pattern:** `NNN-technology-aspect.md`
+**Pattern:** `<NNN>[<letter>]-<technology>-<aspect>.md`
 
 **Requirements:**
-- Use hyphens between components (not underscores): `NNN-technology-aspect.md`
-- 3-digit number prefix (pad with zeros: 001, 099, 100)
-- Technology or domain identifier
-- Specific aspect or feature
+- `<NNN>` = 3-digit number prefix (000-999), zero-padded
+- `[<letter>]` = Optional single lowercase letter suffix (a-z). Single-letter suffix only (a-z). Multi-character suffixes (a1, b2) are NOT allowed.
+- `<technology>` = Technology or domain identifier (kebab-case)
+- `<aspect>` = Specific aspect or feature (kebab-case)
+- Use hyphens between components (not underscores)
 - `.md` extension
 
-**Examples:**
-- CORRECT: `100-snowflake-core.md`, `206-python-pytest.md`, `101-snowflake-streamlit-core.md`
-- INCORRECT: `100_snowflake_core.md`, `200-python_pytest.md`, `streamlit_best_practices.md`
+**Validation regex:** `^[0-9]{3}[a-z]?-[a-z]+-[a-z-]+\.md$`
 
 **Examples:**
 - [PASS] `100-snowflake-core.md`
+- [PASS] `100a-snowflake-auth.md`
+- [PASS] `200b-python-testing.md`
 - [PASS] `110-snowflake-model-registry.md`
 - [PASS] `206-python-pytest.md`
+- [PASS] `101-snowflake-streamlit-core.md`
+- [FAIL] `100a1-something.md` (multi-character suffix "a1")
+- [FAIL] `1-core.md` (not 3-digit)
 - [FAIL] `100-SnowflakeSQL.md` (wrong: CamelCase)
 - [FAIL] `streamlit.md` (wrong: no number)
-- [FAIL] `100_snowflake_sql.md` (wrong: underscores in number)
+- [FAIL] `100_snowflake_sql.md` (wrong: underscores)
+- [FAIL] `200-python_pytest.md` (wrong: underscore in name)
 
 ## Review Existing Rules for Patterns (Overview)
 
@@ -277,183 +282,24 @@ Review 2-3 existing rules to understand:
 
 ## Create New Rule File (Overview)
 
-### File Structure Template (v3.2)
-
-```markdown
-# [NNN]-[technology]-[aspect]
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** [YYYY-MM-DD]
-**Keywords:** [5-20 keywords here]
-**TokenBudget:** ~[estimate]
-**ContextTier:** [Critical|High|Medium|Low]
-**Depends:** 000-global-core.md
-
-## Scope
-
-**What This Rule Covers:**
-[1-2 sentence description of what this rule accomplishes]
-
-**When to Load This Rule:**
-- [Condition 1]
-- [Condition 2]
-- [Condition 3]
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **[related-rule].md** - [Brief description]
-
-### External Documentation
-
-- **[Resource Name]:** [URL or path]
-```
-
-### Metadata Field Guidance
-
-#### RuleVersion and LastUpdated
-
-**For New Rules:**
-- **RuleVersion:** Always start at `v1.0.0` for new rule files
-- **LastUpdated:** Set to creation date in `YYYY-MM-DD` format
-
-**For Updating Existing Rules:**
-See `002b-rule-update.md` for complete versioning policy and update workflows.
-
-### Importance Markers
-
-Add an importance marker after the title for foundation rules:
-
-**When to use CORE FOUNDATION marker (domain cores only):**
-- Rule name ends with `-core.md`
-- Defines essential patterns for a technology domain
-- Other rules in the domain depend on it
-
-**When to use FOUNDATION marker (governance rules only):**
-- Rule is in 002-series
-- Defines rule creation/maintenance patterns
-- Required for rule infrastructure work
-
-**When to use no marker (most rules):**
-- Standard specialized rules
-- Can be summarized if context limits reached
-
-```markdown
-## Contract
-
-### Inputs and Prerequisites
-[Prerequisites here]
-
-### Mandatory
-[Required tools/libraries]
-
-### Forbidden
-[Prohibited actions]
-
-### Execution Steps
-1. [Step 1]
-2. [Step 2]
-3. [Step 3]
-4. [Step 4]
-5. [Step 5]
-
-### Output Format
-[Expected output description]
-
-### Validation
-**Pre-Task-Completion Checks:**
-- [Check 1]
-
-**Success Criteria:**
-- [Criterion 1]
-
-### Post-Execution Checklist
-- [ ] Verification item 1
-- [ ] Verification item 2
-
-## Anti-Patterns and Common Mistakes
-[Anti-patterns with code examples]
-```
+For the complete v3.2 rule template with importance markers and Contract structure, see `rules/examples/002a-rule-template.md`.
 
 ## Fill Required Metadata
 
-### Metadata Field Order (MANDATORY)
+For detailed metadata field guidance, see `002-rule-governance.md` §Metadata Fields.
 
-```markdown
-# [Rule Number]-[technology]-[aspect]
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**Keywords:** [5-20 comma-separated keywords]
-**TokenBudget:** ~[number]
-**ContextTier:** [Critical | High | Medium | Low]
-**Depends:** [rule-dependencies]
-```
-
-### Field Requirements
-
-**Required Metadata Fields:**
-- **SchemaVersion:** `v3.2` format (e.g., `**SchemaVersion:** v3.2`) - REQUIRED for v3.2 compliance
-- **RuleVersion:** `vX.Y.Z` format (e.g., `**RuleVersion:** v1.0.0`) - REQUIRED for issue tracking
-- **Keywords:** 5-20 comma-separated terms - CRITICAL for semantic discovery
-- **TokenBudget:** See `002-rule-governance.md` for complete format requirements
-- **ContextTier:** One of Critical/High/Medium/Low only (see `002c-rule-optimization.md` for selection guidance)
-- **Depends:** Rule path(s) (e.g., `000-global-core.md`) - At least one required
-
-### Keywords Best Practices
-
-**Purpose:** Enable semantic discovery - AI agents search keywords to find relevant rules.
-
-**Guidelines:**
-- Include primary technology (e.g., Snowflake, Python, React)
-- Include domain concepts (e.g., performance, security, testing)
-- Include specific features (e.g., CTE, widget, authentication)
-- Use searchable terms agents would query
-- Avoid generic words (e.g., "code", "rule", "best")
-
-**Example - Good Keywords:**
-```markdown
-**Keywords:** Snowflake, Cortex Agent, tool usage, function calling, error handling, retry logic, state management, debugging, monitoring, observability
-```
-
-**Example - Bad Keywords:**
-```markdown
-**Keywords:** agent, stuff, things, code, best practices, good, patterns, rules, tips, advice
-```
-
-### TokenBudget Estimation
-
-**Quick Guide:**
-- Small rule (~300 lines): `~800`
-- Medium rule (~500 lines): `~1200`
-- Large rule (~800 lines): `~1800`
-- Very large rule (~1200 lines): `~2500`
-
-**Validation:** Run `uv run ai-rules tokens` after creation to get actual count.
-
-### ContextTier Selection
-
-**Tier Guidelines:**
-- **Critical:** Framework core, always loaded (000-global-core, 002-rule-governance)
-- **High:** Frequently used, broad applicability (100-snowflake-sql, 200-python-core)
-- **Medium:** Specific features, moderate usage (115-model-registry, 320-streamlit-widgets)
-- **Low:** Specialized, rarely used (600-data-pipeline-advanced)
+**Quick Reference - Required Fields (in order):**
+- **SchemaVersion:** `v3.2`
+- **RuleVersion:** `v1.0.0` for new rules (see `002b-rule-update.md` for versioning policy)
+- **LastUpdated:** Creation date in `YYYY-MM-DD` format
+- **Keywords:** 5-20 comma-separated terms that appear in task descriptions agents typically receive
+- **TokenBudget:** `~NUMBER` format (Small ~800, Medium ~1200, Large ~1800)
+- **ContextTier:** Critical / High / Medium / Low (see `002c-rule-optimization.md` for selection guidance)
+- **Depends:** At least one rule dependency (e.g., `000-global-core.md`)
 
 ## Write Required Sections (v3.2)
 
-### Section Order (MANDATORY)
-
-See `002-rule-governance.md` for complete v3.2 schema changes and section requirements.
+For complete v3.2 section requirements and ordering, see `002-rule-governance.md` §Required Sections.
 
 **Required sections (in order):**
 1. **Metadata** - All 6 required fields
@@ -467,36 +313,6 @@ See `002-rule-governance.md` for complete v3.2 schema changes and section requir
 - Contract uses Markdown headers (###), not XML tags
 - Post-Execution Checklist moved inside Contract
 - Validation moved inside Contract
-
-### Scope Section (v3.2 - Replaces Purpose + Rule Scope)
-
-**Format:**
-```markdown
-## Scope
-
-**What This Rule Covers:**
-[1-2 sentence description of what this rule accomplishes and why it matters]
-
-**When to Load This Rule:**
-- [Loading condition 1]
-- [Loading condition 2]
-- [Loading condition 3]
-```
-
-**Example:**
-```markdown
-## Scope
-
-**What This Rule Covers:**
-Best practices for Snowflake SQL query optimization, focusing on CTE usage, join strategies, and warehouse sizing for cost-effective performance.
-
-**When to Load This Rule:**
-- Writing or optimizing Snowflake SQL queries
-- Debugging slow query performance
-- Designing warehouse sizing strategies
-```
-
-**Note:** v3.2 ELIMINATED the separate Purpose, Rule Scope, and Quick Start TL;DR sections. Use Scope for overview.
 
 ## Add Contract Section (v3.2 - Markdown Headers)
 
@@ -626,3 +442,65 @@ vim RULES_INDEX.md
 ```
 
 **Note:** Use the same keywords as the rule's Keywords metadata for consistency.
+
+## Multi-File Task Patterns
+
+### Atomic Changes (Single ACT Session)
+
+Use when files are tightly coupled and changes must be consistent:
+- Refactoring that renames functions/classes across files
+- Updating API contracts (client + server)
+- Schema migrations (DDL + application code)
+
+**Task List Format:**
+```
+1. Update function signature in `auth.py`
+2. Update all call sites in `middleware.py`
+3. Update route handlers in `routes.py`
+4. Run validation suite (all files)
+```
+
+**Rollback Strategy:**
+
+If validation fails, you MUST:
+- Revert ALL files to original state
+- Return to PLAN mode
+- Present revised task list with fixes
+
+**Rollback Mechanisms:**
+- **Git repo available (preferred):** Use `git checkout -- <file>` or `git stash`
+- **No git, few files:** Store original content in-memory before edit, restore via write tool
+- **No git, many files:** Read and store each file before editing; revert individually on failure
+
+**Selection:** Check git availability first (`git status`). If unavailable, use in-memory for simple tasks or incremental for multi-file changes.
+
+**Rollback Reporting:**
+```markdown
+WARNING: Validation failed. Reverting changes:
+- Reverted: `auth.py` (original restored)
+- Reverted: `middleware.py` (original restored)
+- Unchanged: `routes.py` (not yet modified)
+
+MODE: PLAN
+[Revised task list with fixes]
+```
+
+### Progressive Changes (Multiple ACT Sessions)
+
+Use when files are loosely coupled:
+- Adding independent features to different modules
+- Updating documentation across multiple files
+- Performance optimizations in separate components
+
+**Task List Format:**
+```
+Session 1: Update `auth.py`
+- [specific changes]
+- [validation]
+- [await "ACT"]
+
+Session 2: Update `middleware.py`
+- [specific changes]
+- [validation]
+- [await "ACT"]
+```

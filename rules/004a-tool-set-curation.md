@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-08
+**LastUpdated:** 2026-03-09
 **Keywords:** tool set curation, minimal viable tool set, tool splitting, tool merging, tool overlap, tool bloat, tool boundaries
-**TokenBudget:** ~1400
+**TokenBudget:** ~1550
 **ContextTier:** Medium
 **Depends:** 004-tool-design-for-agents.md, 000-global-core.md
 
@@ -53,10 +53,11 @@ Curating minimal viable tool sets for AI agents. Covers deciding the right numbe
 ### Execution Steps
 
 1. Identify core capabilities the agent needs
-2. Map each capability to a minimal set of tools
+2. Design a minimal tool for each capability
 3. Check for overlap between tools, then eliminate ambiguity
-4. Validate coverage with actual agent usage
-5. Add tools only when a clear gap is identified through testing
+4. Resist adding "nice to have" tools without proven need
+5. Validate coverage with actual agent usage
+6. Add tools only when a clear gap is identified through testing
 
 ### Output Format
 
@@ -82,16 +83,24 @@ A curated tool set with clear boundaries between each tool and documented ration
 - [ ] Split/merge decisions documented with rationale
 - [ ] Validated with actual agent usage
 
+### Error Recovery
+
+- **Curation removes a needed tool:** Add it back and mark as "required" to prevent future removal
+- **Splitting creates >20 total tools:** Re-evaluate whether the split was justified or if split tools should share a namespace
+- **Agent can't complete task after curation:** Identify the missing capability, add the minimal tool to cover it, then re-validate
+
+### Negative Tests
+
+After curation, the agent should NOT:
+- Hesitate between two tools for the same task
+- Call two tools when one would suffice
+- Fail a task due to missing capability in the tool set
+
 ## Minimal Viable Tool Set
 
-**Principle:** Provide the smallest set of tools that covers all necessary use cases.
+**Principle:** Provide the smallest set of tools that covers all necessary use cases. Follow the Execution Steps above.
 
-**Process:**
-1. Identify core capabilities needed
-2. Design minimal tool for each capability
-3. Resist urge to add "nice to have" tools
-4. Validate with actual agent usage
-5. Add tools only when clear gap identified
+**Tool count guidance:** 5-12 tools -- lean and focused. 13-20 tools -- review for overlap. 20+ tools -- audit required, likely bloated.
 
 **Example Minimal Set for Code Repository:**
 
@@ -175,7 +184,7 @@ settings = get_user_settings(user_id)  # API call 3
 user_data = get_user_profile(user_id)  # Returns user + prefs + settings
 ```
 
-**Trade-off:** Balance between tool focus and efficiency.
+**Decision criteria:** Merge when tools share 3+ parameters AND are called together >80% of the time. Split when a tool has >4 distinct use cases OR >6 parameters. Otherwise, keep as-is.
 
 ## Anti-Patterns and Common Mistakes
 

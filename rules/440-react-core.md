@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** React, Next.js, RSC, Hooks, Tailwind, Zustand, TanStack Query, Shadcn, Feature-based, TypeScript, Vitest, Testing Library, debug hooks, fix React error, component rendering
-**TokenBudget:** ~3050
+**TokenBudget:** ~3400
 **ContextTier:** High
 **Depends:** 000-global-core.md, 420-javascript-core.md, 430-typescript-core.md
 **LoadTrigger:** ext:.jsx, ext:.tsx, kw:react
@@ -19,7 +19,7 @@
 ## Scope
 
 **What This Rule Covers:**
-Establishes the definitive standards for developing scalable, maintainable React applications in 2025. This rule enforces "Feature-based" architecture, Server Components (RSC) usage, and modern state management patterns to replace legacy approaches like global Redux or huge `useEffect` chains.
+Establishes the definitive standards for developing scalable, maintainable React applications in 2026. This rule enforces "Feature-based" architecture, Server Components (RSC) usage, and modern state management patterns to replace legacy approaches like global Redux or huge `useEffect` chains.
 
 **When to Load This Rule:**
 - Building or maintaining React applications
@@ -195,6 +195,19 @@ export const Button = ({ children, onClick, variant = 'primary' }: ButtonProps) 
 - **Always:** Use **TanStack Query** (Client) or **Server Components** (Next.js/RSC) for async operations.
 
 ```typescript
+// Recommended default configuration
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,   // 5 minutes
+      retry: 2,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+```
+
+```typescript
 // Good: Using TanStack Query
 import { useQuery } from '@tanstack/react-query';
 import { fetchUser } from './api';
@@ -313,6 +326,28 @@ const user = useUserStore(s => s.user); // Direct access
 </Layout>
 ```
 **Benefits:** Decouples components, easier refactoring.
+
+**Hydration Mismatch Recovery (SSR/RSC):**
+```tsx
+// Hydration-safe pattern for client-only values (Date.now(), window.innerWidth, localStorage)
+function useClientValue<T>(serverValue: T, clientValue: T): T {
+  const [value, setValue] = useState(serverValue);
+  useEffect(() => setValue(clientValue), [clientValue]);
+  return value;
+}
+// Usage: const theme = useClientValue("light", getSystemTheme());
+```
+
+**Suspense Boundary Placement:**
+```tsx
+// Place Suspense boundaries around independently loadable sections, not at page level
+<Suspense fallback={<HeaderSkeleton />}>
+  <Header />
+</Suspense>
+<Suspense fallback={<ContentSkeleton />}>
+  <MainContent />
+</Suspense>
+```
 
 > **Investigation Required**
 > When applying this rule:

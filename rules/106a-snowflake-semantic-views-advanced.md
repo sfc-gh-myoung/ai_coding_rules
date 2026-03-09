@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:semantic-view-advanced
 **Keywords:** validation rules, semantic model quality, semantic view pitfalls, debug semantic view, validation failures, relationship errors
 **TokenBudget:** ~1900
@@ -40,7 +40,7 @@ Advanced semantic view patterns: anti-patterns, validation rules, quality checks
 ## Contract
 
 ### Inputs and Prerequisites
-- Understanding of semantic view basics (from 106-core)
+- Understanding of semantic view basics (from 106-snowflake-semantic-views-core)
 - Role with CREATE SEMANTIC VIEW privilege on target schema
 - USAGE privilege on referenced tables/views
 - Semantic view created and accessible

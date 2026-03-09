@@ -71,20 +71,30 @@ Result: FAILED
 - 2 conditionals without explicit branches
 - 1 visual formatting issue (ASCII arrow character)
 
-**Total:** 6 blocking issues (under threshold of 10, scoring proceeds normally)
+**Total:** 6 blocking issues (triggers hard cap: total score capped at 80/100)
 
-### Step 4: Score All 7 Dimensions
+### Step 4: Score All 6 Dimensions
 
-Using weighted formula from SKILL.md:
-- Actionability: 3/5 × 5 = 15/25
-- Completeness: 4/5 × 5 = 20/25
-- Consistency: 5/5 × 3 = 15/15
-- Parsability: 2/5 × 3 = 6/15 (capped by schema CRITICAL errors)
-- Token Efficiency: 4/5 × 2 = 8/10
-- Rule Size: 8/10 × 2 = 8/10 (480 lines, within target)
-- Staleness: 5/5 × 2 = 10/10
+Using weighted formula from SKILL.md (Scoring Rubric v2.0):
 
-**Overall Score:** 82/105
+| Dimension | Raw | Weight | Points |
+|-----------|-----|--------|--------|
+| Actionability | 6/10 | ×3.0 | 18/30 |
+| Rule Size | 9/10 | ×2.5 | 22.5/25 |
+| Parsability | 4/10 | ×1.5 | 6/15 |
+| Completeness | 8/10 | ×1.5 | 12/15 |
+| Consistency | 8/10 | ×1.0 | 8/10 |
+| Cross-Agent | 9/10 | ×0.5 | 4.5/5 |
+
+**Raw Total:** 71/100
+
+**Hard Cap Applied:** 6 blocking issues → capped at 80/100
+
+**Final Score:** 71/100 (under cap, no adjustment needed)
+
+**Informational Dimensions (not scored):**
+- Token Efficiency: 3 redundancy issues noted → See recommendations
+- Staleness: LastUpdated current, no deprecated patterns → No action needed
 
 ### Step 5: Generate Review Output
 
@@ -130,8 +140,8 @@ reviews/rule-reviews/801-project-readme-claude-sonnet45-2025-12-12.md
 
 1. **Schema validation is mandatory** - Run before dimension scoring
 2. **Line count is 100% deterministic** - `wc -l` for Rule Size dimension
-3. **CRITICAL errors cap Parsability** - 1+ CRITICAL = max 2/5 score
-4. **HIGH errors also cap** - 3+ HIGH = max 3/5 score
-5. **Rule Size flags trigger actions** - >600 lines = SPLITTING_REQUIRED
+3. **6 scored dimensions** - Token Efficiency and Staleness are informational only
+4. **Hard caps apply** - >600 lines caps at 70/100, ≥6 blocking issues caps at 80/100
+5. **Rule Size flags trigger actions** - >600 lines = SPLIT_REQUIRED, >700 = BLOCKED
 6. **Schema errors go to Critical Issues** - All CRITICAL/HIGH violations listed
-7. **Specific recommendations required** - Include line numbers and fix suggestions from validator
+7. **New verdict thresholds** - 90-100 EXECUTABLE, 75-89 REFINEMENTS, 50-74 NEEDS_REFINEMENT, <50 NOT_EXECUTABLE

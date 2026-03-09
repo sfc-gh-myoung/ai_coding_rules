@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-12
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure, Streamlit, data visualization
 **LoadTrigger:** kw:demo-creation, kw:synthetic-data
 **TokenBudget:** ~2300
@@ -257,6 +257,8 @@ def get_demo_data(scenario: DemoScenario):
 ```
 
 ## Vectorized Snowflake Writes
+
+**Connection Paradigms:** Use Snowpark `session` for interactive/notebook contexts (e.g., `session.sql(...).collect()`). Use `snowflake-connector-python` `conn` for batch scripts (e.g., `write_pandas(conn, ...)`). Do not mix paradigms in the same script.
 
 ```python
 from snowflake.connector.pandas_tools import write_pandas

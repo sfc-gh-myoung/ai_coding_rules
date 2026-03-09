@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** JavaScript, ES2024, ESM, Node.js, JSDoc, Biome, node:test, Immutability, Async/Await, Functional Programming
 **TokenBudget:** ~4000
 **ContextTier:** High
@@ -200,7 +200,7 @@ See [Anti-Patterns and Common Mistakes](#anti-patterns-and-common-mistakes) sect
 - [ ] **CRITICAL:** `"type": "module"` present in package.json
 - [ ] **CRITICAL:** No `var` keywords used
 - [ ] JSDoc comments present for exported functions
-- [ ] `// @ts-check` enabled for complex logic
+- [ ] `// @ts-check` enabled for files >100 lines, >3 params, or nullable value handling
 - [ ] `node:test` used for testing
 - [ ] No `require()` statements found
 - [ ] Native `fetch` used instead of axios/request
@@ -306,7 +306,7 @@ console.log(add(2, 3));
 
 ### Type Safety with JSDoc
 - **Requirement:** Use JSDoc to define signatures for exported functions.
-- **Always:** Enable TypeScript checking in JS files using `// @ts-check`.
+- **Always:** Enable TypeScript checking in JS files using `// @ts-check` when the file exceeds 100 lines, uses >3 function parameters, handles nullable/optional values, or contains data transformations with non-obvious types.
 
 ```javascript
 // @ts-check
@@ -438,3 +438,12 @@ describe('Math Utils', () => {
 
 ### Linting with Biome
 - **Requirement:** Use **Biome** (`@biomejs/biome`) for linting and formatting. It is significantly faster than ESLint + Prettier and requires less configuration.
+
+```json
+// biome.json — minimal configuration
+{
+    "linter": { "enabled": true },
+    "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2 },
+    "organizeImports": { "enabled": true }
+}
+```

@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:dmf-operations, kw:quality-monitoring
 **Keywords:** remediation, RBAC, privilege requirements, automated monitoring, quality alerts, schedule DMF, quality event tables, quality alerting, DMF results, quality workflows, DMF RBAC, quality notifications, remediation workflows
-**TokenBudget:** ~5600
+**TokenBudget:** ~4400
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 124-snowflake-data-quality-core.md, 111-snowflake-observability-core.md
 
@@ -47,7 +47,7 @@ Operational patterns for Data Quality Monitoring including DMF scheduling, event
 
 ### Inputs and Prerequisites
 
-- DMFs configured from 124-core or 124a-custom
+- DMFs configured from 124-snowflake-data-quality-core or 124a-snowflake-data-quality-custom
 - Expectations set with thresholds
 - Event tables available for monitoring
 - EXECUTE DATA METRIC FUNCTION privilege
@@ -109,7 +109,18 @@ Operational configurations produce:
 
 ### Post-Execution Checklist
 
-See [Post-Execution Checklist](#post-execution-checklist) section below for full checklist.
+- [ ] Data profiling completed before implementing DMFs
+- [ ] System or custom DMFs selected based on quality requirements
+- [ ] Table owner has EXECUTE DATA METRIC FUNCTION privilege (account-level)
+- [ ] Table owner is account-scoped custom role (not database role)
+- [ ] DMFs associated with tables using ALTER TABLE commands
+- [ ] Expectations defined with explicit pass/fail criteria
+- [ ] Schedules configured (balance frequency vs cost)
+- [ ] Event table configured to capture results
+- [ ] Alerts configured for expectation failures
+- [ ] Remediation workflow documented with SLAs
+- [ ] Cost monitoring via DATA_QUALITY_MONITORING_USAGE_HISTORY established
+- [ ] Account limit of 10,000 DMF-object associations tracked
 
 ## Anti-Patterns and Common Mistakes
 
@@ -238,44 +249,6 @@ GROUP BY table_name;
 ```
 **Benefits:** Structured response to quality issues; accountability and tracking; continuous improvement of data quality; prevents alert fatigue.
 
-## Post-Execution Checklist
-
-- [ ] Snowflake Enterprise Edition account confirmed
-- [ ] Data profiling completed for tables before implementing DMFs
-- [ ] System DMFs or custom DMFs selected based on quality requirements
-- [ ] Table owner role has EXECUTE DATA METRIC FUNCTION privilege (global, account-level)
-- [ ] Table owner is account-scoped custom role or system role (not database role)
-- [ ] DMFs associated with tables/views using ALTER TABLE/VIEW commands
-- [ ] Expectations defined for all DMFs with explicit pass/fail criteria
-- [ ] Schedules configured appropriately (balance frequency vs cost)
-- [ ] Event table configured to capture results
-- [ ] Monitoring queries and dashboards created for tracking trends
-- [ ] Alerts configured for expectation failures
-- [ ] Remediation workflow documented with clear SLAs
-- [ ] Cost monitoring via DATA_QUALITY_MONITORING_USAGE_HISTORY established
-- [ ] Account limit of 10,000 DMF-object associations tracked
-- [ ] Documentation includes runbooks for common failure scenarios
-
-## Validation
-
-- **Success Checks:**
-  - DMFs execute successfully on schedule and write to event table
-  - Expectations evaluate correctly with appropriate pass/fail logic
-  - Alerts fire when expectations fail
-  - Remediation workflow followed and incidents resolved within SLA
-  - Cost consumption tracked and within budget expectations
-  - Privilege structure enables all DMF operations
-  - Data profiling informs realistic expectation thresholds
-  - Monitoring dashboards provide visibility into quality trends
-
-- **Negative Tests:**
-  - Attempting to set DMF with database role table owner fails appropriately
-  - Exceeding 10,000 association limit triggers error
-  - Setting DMF on shared table fails with clear error
-  - Unscheduled DMF queries (SELECT) do not incur billing charges
-  - Missing expectations result in no pass/fail evaluation
-  - Alert queries with no failures return empty result set
-
 > **Investigation Required**
 > When applying this rule:
 > 1. **Profile data BEFORE recommending DMFs—verify baseline characteristics**
@@ -299,70 +272,8 @@ GROUP BY table_name;
 > ```
 > "Based on the profile showing 2% NULLs currently, I recommend setting an expectation at 5% to allow for normal variation while detecting significant quality degradation..."
 
-## Output Format Examples
-
-```sql
--- Filename: data_quality_setup.sql
--- Description: [DMF implementation for specific table/quality concern]
--- Tables: [List of tables being monitored]
--- Quality Metrics: [List of metrics being measured]
-
--- Step 1: Profile data to understand baseline (do this in Snowsight UI first)
--- Navigate: Catalog » Database Explorer » <TABLE> » Data Quality » Data Profile
-
--- Step 2: Create custom DMFs if needed
-CREATE DATA METRIC FUNCTION <schema>.<dmf_name>()
-RETURNS FLOAT
-AS
-$$
-  -- Custom quality logic returning FLOAT
-  SELECT <metric_calculation>::FLOAT
-  FROM <table>
-$$;
-
--- Step 3: Associate DMFs with tables
-ALTER TABLE <schema>.<table>
-  ADD DATA METRIC FUNCTION <dmf_name> ON (<column_list>);
-
--- Step 4: Set expectations and schedule
-ALTER TABLE <schema>.<table>
-  MODIFY DATA METRIC SCHEDULE '<interval>'
-  [USING CRON '<cron_expression>']
-  EXPECT (<dmf_name> ON <column>) <comparison> <threshold>;
-
--- Step 5: Query results
-SELECT *
-FROM <database>.INFORMATION_SCHEMA.EVENT_TABLE_HISTORY
-WHERE record_type = 'DATA_METRIC_FUNCTION_RESULT'
-  AND record_value:table_name::STRING = '<TABLE>'
-ORDER BY record_timestamp DESC
-LIMIT 10;
-
--- Step 6: Create alert for failures
-CREATE ALERT <schema>.ALERTS.<alert_name>
-  WAREHOUSE = <warehouse>
-  SCHEDULE = '<interval>'
-  IF (EXISTS (
-    SELECT 1 FROM <event_table>
-    WHERE expectation_passed = FALSE
-      AND record_timestamp >= DATEADD(minute, -<interval_minutes>, CURRENT_TIMESTAMP())
-  ))
-  THEN <action>;
-
--- Step 7: Monitor cost consumption
-SELECT
-  usage_date,
-  object_name,
-  SUM(credits_used) AS credits
-FROM SNOWFLAKE.ACCOUNT_USAGE.DATA_QUALITY_MONITORING_USAGE_HISTORY
-WHERE object_name = '<TABLE>'
-GROUP BY usage_date, object_name
-ORDER BY usage_date DESC;
-```
-
 ## Scheduling DMF Evaluations
 
-**MANDATORY:**
 Schedule DMF evaluations to run automatically at defined intervals.
 
 ### Schedule Syntax
@@ -410,7 +321,6 @@ ALTER TABLE BUSINESS_METRICS
 
 ## Event Tables and Results
 
-**MANDATORY:**
 DMF results are automatically captured in event tables for monitoring and analysis.
 
 ### Event Table Structure
@@ -437,14 +347,7 @@ LIMIT 100;
 
 ### Monitoring DMF Results in Snowsight
 
-**Access Results UI:**
-```
-1. Navigate to: Catalog » Database Explorer
-2. Select table with DMFs
-3. Click "Data Quality" tab
-4. View "Quality Checks" section
-5. See pass/fail status and history
-```
+Navigate to Catalog > Database Explorer > [table] > Data Quality > Quality Checks for UI-based monitoring. For programmatic access, use the event table queries above.
 
 ### Query Patterns for Analysis
 
@@ -460,23 +363,6 @@ FROM <database>.INFORMATION_SCHEMA.EVENT_TABLE_HISTORY
 WHERE record_type = 'DATA_METRIC_FUNCTION_RESULT'
   AND record_value:expectation_passed::BOOLEAN = FALSE
 ORDER BY record_timestamp DESC;
-```
-
-**Trend Analysis:**
-```sql
--- Track metric trends over time
-SELECT
-  DATE_TRUNC('hour', record_timestamp) AS hour,
-  record_value:metric_name::STRING AS metric_name,
-  AVG(record_value:value::FLOAT) AS avg_value,
-  MIN(record_value:value::FLOAT) AS min_value,
-  MAX(record_value:value::FLOAT) AS max_value
-FROM <database>.INFORMATION_SCHEMA.EVENT_TABLE_HISTORY
-WHERE record_type = 'DATA_METRIC_FUNCTION_RESULT'
-  AND record_value:table_name::STRING = 'CUSTOMERS'
-  AND record_timestamp >= DATEADD(day, -7, CURRENT_TIMESTAMP())
-GROUP BY hour, metric_name
-ORDER BY hour DESC, metric_name;
 ```
 
 **Failure Rate by Table:**
@@ -496,7 +382,6 @@ ORDER BY failure_rate_pct DESC;
 
 ## Alerts and Remediation
 
-**MANDATORY:**
 Configure alerts to notify stakeholders when expectations fail and establish remediation workflows.
 
 ### Alert Configuration
@@ -528,7 +413,6 @@ CREATE OR REPLACE ALERT DATA_QUALITY.ALERTS.EMAIL_NULL_ALERT
 
 ### Remediation Workflow
 
-**MANDATORY:**
 **Establish Standard Remediation Process:**
 
 1. **Detection:** Alert fires on expectation failure
@@ -541,22 +425,8 @@ CREATE OR REPLACE ALERT DATA_QUALITY.ALERTS.EMAIL_NULL_ALERT
 
 **Remediation Query Template:**
 ```sql
--- Investigate specific failure
-SELECT
-  record_timestamp,
-  record_value:table_name::STRING AS table_name,
-  record_value:metric_name::STRING AS metric_name,
-  record_value:column_name::STRING AS column_name,
-  record_value:value::FLOAT AS metric_value,
-  record_value:expectation::STRING AS expectation,
-  record_value:expectation_threshold::FLOAT AS threshold
-FROM <database>.INFORMATION_SCHEMA.EVENT_TABLE_HISTORY
-WHERE record_type = 'DATA_METRIC_FUNCTION_RESULT'
-  AND record_value:expectation_passed::BOOLEAN = FALSE
-  AND record_timestamp >= DATEADD(hour, -1, CURRENT_TIMESTAMP())
-ORDER BY record_timestamp DESC;
-
--- Query problematic data
+-- Investigate specific failure (use Find Failing Expectations query above for details)
+-- Then query the problematic data directly:
 SELECT COUNT(*) AS null_count
 FROM CUSTOMERS
 WHERE email IS NULL;
@@ -572,8 +442,7 @@ WHERE email IS NULL
 
 ## Privilege Requirements
 
-**MANDATORY:**
-**CRITICAL:** Understand and configure privileges correctly for DMF operations.
+Understand and configure privileges correctly for DMF operations.
 
 ### Required Privileges
 
@@ -620,27 +489,13 @@ GRANT OWNERSHIP ON TABLE ANALYTICS.CORE.CUSTOMERS TO ROLE DATA_ENGINEERING;
 
 ## Supported Objects
 
-**MANDATORY:**
-DMFs can be set on the following Snowflake objects:
+**DMFs can be set on:** Tables, Views, Dynamic Tables, External Tables, Apache Iceberg Tables, Materialized Views, Event Tables.
 
-**Supported:**
-- Tables (regular tables)
-- Views (standard views)
-- Dynamic Tables
-- External Tables
-- Apache Iceberg™ Tables
-- Materialized Views
-- Event Tables
-
-**Not Supported:**
-- Shared tables or views (data sharing consumers cannot set DMFs)
-- Objects in reader accounts
-- Object tags (cannot set DMFs on tags themselves)
+**Not supported:** Shared tables/views (data sharing consumers), reader accounts, object tags.
 
 ## Billing and Cost Management
 
-**MANDATORY:**
-**COST AWARENESS:** DMFs use serverless compute and consume credits from your Snowflake account.
+DMFs use serverless compute and consume credits from your Snowflake account.
 
 ### Billing Model
 
@@ -676,41 +531,17 @@ GROUP BY object_name
 ORDER BY total_credits DESC;
 ```
 
-### Cost Optimization Strategies
+### Cost Optimization
 
-**RECOMMENDED:**
-1. **Right-size schedules:** Don't over-monitor (balance frequency with budget)
+1. **Right-size schedules:** Balance frequency with budget
 2. **Business hours only:** Use CRON for weekday/business hours schedules
 3. **Progressive monitoring:** Start with critical tables, expand gradually
 4. **Consolidate checks:** Combine related metrics in custom DMFs
-5. **Review consumption:** Regularly query usage history and adjust
 
-## Limitations and Quotas
+### Limits and Quotas
 
-**MANDATORY:**
-**ACCOUNT LIMITS:** Understand and plan for DMF limitations.
-
-### Hard Limits
-
-**Maximum DMF-Object Associations:**
-- **10,000 total associations** per account
-- Each instance of setting a DMF on a table/view counts as one association
-- Plan capacity carefully for large deployments
-
-**Data Sharing:**
-- Cannot grant privileges on DMFs to shares
-- Cannot set DMFs on shared tables/views (consumer side)
-
-**Object Type Restrictions:**
-- Cannot set DMFs on object tags
-- Cannot set DMFs in reader accounts
-
-**Trial Accounts:**
+- **10,000 total DMF-object associations** per account (plan capacity for large deployments)
+- Cannot grant privileges on DMFs to shares or set DMFs on shared tables (consumer side)
+- Cannot set DMFs on object tags or in reader accounts
 - Data Quality feature not supported in trial accounts
-
-### Replication Considerations
-
-**DMF Replication Behavior:**
-- DMFs replicate within database replication
-- Schedules and expectations replicate to secondary
-- Monitor both primary and secondary independently
+- DMFs replicate within database replication; monitor primary and secondary independently

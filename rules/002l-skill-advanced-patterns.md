@@ -9,9 +9,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-08
+**LastUpdated:** 2026-03-09
 **Keywords:** skill advanced patterns, plan-validate-execute, visual analysis, skill composition, orchestrator worker, batch skills, verifiable outputs, intermediate validation
-**TokenBudget:** ~1500
+**TokenBudget:** ~1950
 **ContextTier:** Low
 **Depends:** 002h-claude-code-skills.md
 **LoadTrigger:** kw:skill composition, kw:plan-validate-execute, kw:orchestrator skill, kw:batch skill, kw:visual analysis pattern
@@ -72,12 +72,27 @@ Skill workflow files updated with the chosen advanced pattern integrated into th
 - Intermediate validation scripts exist for plan-validate-execute patterns
 - Orchestrator skills reference worker SKILL.md files, not reimplemented logic
 
+### Error Recovery
+
+- **Validation script bugs:** Fix the validation script, then re-run the plan-validate-execute cycle from step 3
+- **Batch partial failure (worker fails on item N):** Continue to item N+1, record failure with error details, report all failures at end
+- **Worker SKILL.md changes between runs:** Re-read worker documentation before each batch; adapt if interface has changed
+- **Plan-validate catches errors:** Fix errors in the plan file and re-validate; maximum 3 retry attempts before escalating to the user
+
 ### Post-Execution Checklist
 
 - [ ] Advanced pattern selected matches the skill's complexity requirements
 - [ ] Plan-validate-execute: validation script exists and produces clear error messages
 - [ ] Orchestrator-worker: orchestrator references worker SKILL.md, does not duplicate logic
 - [ ] Pattern integrated into workflow files, not inlined in SKILL.md
+
+## Pattern Selection
+
+Choose the pattern based on the operation type:
+
+- **Plan-Validate-Execute:** Batch/destructive operations, schema migrations, multi-step changes requiring rollback
+- **Visual Analysis:** Form/layout-dependent inputs, document structure analysis, spatial relationships are critical
+- **Orchestrator-Worker:** N items need the same workflow applied, batch processing with independent items
 
 ## Key Principles
 
@@ -112,7 +127,21 @@ When Claude performs complex, open-ended tasks, it can make mistakes. The "plan-
 
 ### Visual Analysis Pattern
 
-When inputs can be rendered as images, have Claude analyze them visually. Convert PDFs to images, then Claude can see field locations and types. Useful for form layouts and structures difficult to parse from text alone.
+When inputs can be rendered as images, have Claude analyze them visually instead of relying on text extraction alone.
+
+**When to use:**
+- Form/layout-dependent inputs (PDFs, screenshots, diagrams)
+- Document structure where spatial relationships matter
+- Inputs where text extraction loses critical formatting
+
+**Workflow:**
+1. **Identify visual inputs** - Determine which inputs benefit from image-based analysis
+2. **Convert to images** - Render PDFs/documents to PNG/JPEG (e.g., `pdf2image`, `Pillow`, or built-in PDF reading)
+3. **Analyze visually** - Use Claude's vision capabilities to identify fields, layouts, and relationships
+4. **Extract structured data** - Convert visual observations into structured format (JSON, CSV)
+5. **Validate extraction** - Compare extracted data against expected schema or field list
+
+**Implementation tip:** For multi-page documents, process one page at a time to keep context focused. Include the page number in extracted data for traceability.
 
 ### Skill Composition Pattern (Orchestrator + Worker)
 
@@ -143,6 +172,8 @@ Orchestrator skill loads and follows the worker skill's documented workflow. Ski
 - Skip progressive disclosure
 
 **When to use:** Bulk operations, periodic audits, batch validation, mass migrations.
+
+**Batch failure handling:** When worker fails on item N: (1) Log error with item identifier and error details, (2) Continue to item N+1, (3) After all items processed, report summary: `{succeeded: X, failed: Y, errors: [...]}`
 
 ## Anti-Patterns and Common Mistakes
 
@@ -181,8 +212,10 @@ def orchestrator_process_item(item):
 
 **Correct Pattern:**
 ```python
-# CORRECT: Load and follow worker skill workflow
+# CORRECT: Read worker skill docs, follow documented workflow
 def orchestrator_process_item(item):
-    workflow = load_skill("worker/SKILL.md")
-    return follow_workflow(workflow, item)
+    # Read worker/SKILL.md to understand the workflow
+    # Execute each step from the worker's documented process
+    # Do not reimplement — follow the documented steps
+    pass
 ```

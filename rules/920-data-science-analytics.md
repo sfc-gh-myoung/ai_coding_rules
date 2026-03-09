@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Data science, Snowflake, pandas, Snowpark, ML, model lifecycle, feature engineering, NaN handling, model versioning, Jupyter
-**TokenBudget:** ~2600
+**TokenBudget:** ~2750
 **ContextTier:** High
 **Depends:** 200-python-core.md, 000-global-core.md
 
@@ -35,7 +35,7 @@ Comprehensive rules for data science and analytics on Snowflake. Covers model li
 - **100-snowflake-core.md** - Snowflake SQL patterns
 - **101-snowflake-streamlit-core.md** - Streamlit dashboard patterns
 - **110-snowflake-model-registry.md** - Model versioning and registry
-- **252-python-pandas.md** - Pandas best practices
+- **252-python-pandas-core.md** - Pandas best practices
 
 ### External Documentation
 
@@ -329,3 +329,32 @@ session.sql("ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = 300").collect()
 ## Ethical Visualization
 
 See 940-business-analytics.md for ethical visualization guidelines.
+
+## Snowpark Error Handling
+
+```python
+from snowflake.snowpark import Session
+from snowflake.snowpark.exceptions import SnowparkSQLException
+
+try:
+    result = session.sql("SELECT ...").collect()
+except SnowparkSQLException as e:
+    logger.error(f"Snowpark query failed: {e.message}")
+    raise
+```
+
+MUST handle `SnowparkSQLException` in production Snowpark code. For session management, use context managers or explicit `session.close()` in finally blocks.
+
+## Model Deployment Lifecycle
+
+- **Registry:** Version all models in Snowflake Model Registry or MLflow with metrics, data lineage, and SHAP values
+- **Staging:** Promote models through stages: development, staging, production
+- **Deployment Checklist:** Validate on holdout set, stage in registry, run integration tests, promote to production
+- **Monitoring:** Set up drift detection and performance monitoring before promoting to production
+
+## AI Agent Integration
+
+- Structure analysis outputs as structured data (JSON/YAML) for agent consumption
+- Include metadata (timestamp, confidence score, data range, model version) with analysis results
+- Design visualization functions to be callable programmatically, not just interactively
+- Expose metric definitions as queryable data for agent self-service

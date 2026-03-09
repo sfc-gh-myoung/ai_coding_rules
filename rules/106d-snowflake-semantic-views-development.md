@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-01-27
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:semantic-generator, kw:vqr
 **Keywords:** VQR, verified queries, Generator workflow, iterative development, YAML semantic model, semantic model file, onboarding questions, development workflow, verified query repository, semantic view generator
 **TokenBudget:** ~3500
@@ -262,6 +262,7 @@ payload = {
 SHOW PARAMETERS LIKE 'CORTEX%' IN ACCOUNT;
 
 -- Step 2: Use Generator via Snowsight or API
+-- NOTE: The Semantic View Generator is a Snowsight-only feature. There is no CLI equivalent.
 -- Generator analyzes table structure and suggests DDL
 
 -- Step 3: Review generated DDL before execution

@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-01-12
+**LastUpdated:** 2026-03-09
 **Keywords:** st.fragment, run_every, real-time progress, polling, live updates, fragment pattern, auto-refresh, streaming, monitoring dashboard
 **TokenBudget:** ~2500
 **ContextTier:** Medium
@@ -39,6 +39,7 @@ Advanced Streamlit fragment patterns for real-time progress tracking, live polli
 
 ### Inputs and Prerequisites
 
+- Streamlit >= 1.33.0 (fragments introduced in 1.33)
 - Streamlit app with long-running operation (>30s)
 - Database table or API endpoint for progress tracking
 - Understanding of st.session_state
@@ -56,7 +57,7 @@ Advanced Streamlit fragment patterns for real-time progress tracking, live polli
 - **Conditional Rendering:** Fragment MUST be called outside button's `if` block to persist across reruns
 - **Cleanup on Completion:** Clear session state variables when operation completes to stop fragment
 - **Use `st.stop()`:** Call `st.stop()` inside fragment to halt auto-refresh when done
-- **Read-Only Display:** Fragment body should only contain display elements (no widgets)
+- **Read-Only Display:** Fragment body must only contain display elements (no widgets)
 
 ### Forbidden
 
@@ -319,7 +320,11 @@ def monitored_fragment():
 
 ## Performance Considerations
 
-- **Polling Frequency:** Balance between responsiveness and database load (0.5s-2s typical)
+- **Polling Frequency:** 0.5s for progress bars, 2s for dashboard monitoring, 5s for background job polling
 - **Scoped Reruns:** Only fragment reruns, not entire app (preserves user inputs, scroll position)
 - **Database Load:** Each auto-refresh queries database; ensure queries are indexed and fast (<100ms)
 - **Connection Pooling:** Use Streamlit's `st.connection()` for efficient connection management
+
+## Limitations
+
+- **No Nesting:** Fragments cannot be nested inside other fragments. A fragment function cannot call another fragment function. Use a single fragment that manages multiple UI components instead.

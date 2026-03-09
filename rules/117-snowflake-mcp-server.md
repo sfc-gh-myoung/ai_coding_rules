@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:mcp, kw:mcp-server
 **Keywords:** MCP, Model Context Protocol, Snowflake-managed MCP server, CREATE MCP SERVER, SYSTEM_EXECUTE_SQL, CORTEX_ANALYST_MESSAGE, CORTEX_SEARCH_SERVICE_QUERY, CORTEX_AGENT_RUN, tools/list, tools/call, initialize, OAuth, SECURITY INTEGRATION, RBAC, PAT
 **TokenBudget:** ~3150
@@ -304,6 +304,12 @@ CREATE OR REPLACE MCP SERVER MY_DB.MY_SCHEMA.AGENT_MCP
         identifier: "MY_DB.MY_SCHEMA.SUPPORT_AGENT"
         title: "Customer Support Agent"
         description: "Cortex Agent for customer support queries."
+
+      - name: "doc_search"
+        type: "CORTEX_SEARCH_SERVICE_QUERY"
+        identifier: "MY_DB.MY_SCHEMA.DOC_SEARCH_SERVICE"
+        title: "Document Search"
+        description: "Search internal documentation for product guides and FAQs."
   $$;
 
 -- Grant agent USAGE for invocation
@@ -337,5 +343,4 @@ DESCRIBE MCP SERVER MY_DB.MY_SCHEMA.MY_MCP;
 - **Tool invocation failed:** Missing per-tool grants. Fix: Grant SELECT/USAGE on underlying objects.
 - **Connection refused:** Hostname with underscores. Fix: Use hyphens in hostnames.
 - **Authentication failed:** Expired/invalid token. Fix: Refresh OAuth token or rotate PAT.
-- **Tool not found:** Tool name mismatch. Fix: Check `DESCRIBE MCP SERVER` for exact tool names.
-- **Invalid tool schema:** Malformed specification. Fix: Validate YAML in specification block.
+- **Tool not found:** Tool                                                                                                                                                                      

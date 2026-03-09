@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:notebook-tutorial
 **Keywords:** checkpoints, learning objectives, pedagogical design, educational content, progressive learning, Snowflake notebooks, teaching point callouts, validation gates, tutorial structure, learning design, educational notebooks, teaching methodology, notebook education
-**TokenBudget:** ~5250
+**TokenBudget:** ~3600
 **ContextTier:** High
 **Depends:** 109-snowflake-notebooks.md, 920-data-science-analytics.md
 
@@ -360,119 +360,15 @@ This notebook avoids all these pitfalls through careful design!
 
 ## Checkpoint Validations
 
-**MANDATORY:**
+> For the full checkpoint validation pattern with code templates, best practices, and actionable error message patterns, see **109e-snowflake-notebook-checkpoints.md**.
 
-**Purpose:** Automated validation gates that verify learner progress and prevent proceeding with errors.
-
-**Structure:**
-```markdown
-
-## Checkpoint N - [Name] Complete
-
-Before proceeding to [next section], verify all [previous section] steps succeeded.
-```
-
-```python
-# Checkpoint [N] Validation
-print("=" * 80)
-print("[PASS] CHECKPOINT [N]: [NAME]")
-print("=" * 80)
-
-checks_passed = []
-checks_failed = []
-
-# Check 1: [Description]
-if [condition]:
-    checks_passed.append("[PASS] [Success message]")
-else:
-    checks_failed.append("[Failure message] - run Step X.Y")
-
-# Check 2: [Description]
-if [condition]:
-    checks_passed.append("[PASS] [Success message]")
-else:
-    checks_failed.append("[Failure message] - run Step X.Y")
-
-# Display results
-print("\nValidation Results:")
-print("-" * 80)
-for check in checks_passed:
-    print(check)
-
-if checks_failed:
-    print("\nIssues Detected:")
-    for check in checks_failed:
-        print(check)
-    print("\nFix issues above before proceeding to [next section]")
-    print("=" * 80)
-else:
-    print("\nALL CHECKS PASSED - Ready for [next section]!")
-    print("=" * 80)
-    print("\nNext Steps:")
-    print("  - [Description of what comes next]")
-```
-
-**Best Practices:**
-- **Requirement:** Place checkpoints between major sections (not every cell)
-- **Requirement:** 3-7 validation checks per checkpoint
-- **Always:** Check for critical state (data loaded, models trained, features present)
-- **Always:** Provide actionable error messages (which step to re-run)
-- **Always:** Show progress summary (what's complete, what's next)
-- **Consider:** Include diagnostic information (row counts, feature counts, time elapsed)
+**Key requirements:** Place checkpoints between major sections (3-7 checks per checkpoint). Always provide actionable error messages referencing which step to re-run.
 
 ## Teaching Point Callouts
 
-**MANDATORY:**
+> For the full teaching point callout pattern with structure templates, best practices, and examples, see **109e-snowflake-notebook-checkpoints.md**.
 
-**Purpose:** Inline explanations of WHY decisions were made, providing context and rationale.
-
-**Structure:**
-```markdown
-### [NOTE] Teaching Point: [Topic]
-
-**[Key Concept/Question]:**
-- [Explanation point 1]
-- [Explanation point 2]
-- [Explanation point 3]
-
-**Why This Matters:**
-- [Business or technical impact]
-- [Cost/performance/reliability consideration]
-
-**[Comparison/Strategy]:**
-1. **Approach A:** [Description and tradeoffs]
-2. **Approach B:** [Description and tradeoffs]
-
-**Demo Strategy:** [How this notebook demonstrates the concept]
-```
-
-**Best Practices:**
-- **Requirement:** Use [NOTE] emoji prefix for visual scanning
-- **Always:** Place BEFORE the implementation (context before code)
-- **Always:** Explain business rationale, not just technical details
-- **Consider:** Use tables for comparing approaches
-- **Consider:** Reference external documentation for deeper learning
-
-**Example - Good:**
-```markdown
-### [NOTE] Teaching Point: Why Class Imbalance Matters
-
-**The Real-World Problem:**
-- In production datasets, failures are rare (often <5% of samples)
-- Standard ML algorithms optimize for overall accuracy
-- Result: Model predicts "healthy" for everything, achieving 95% accuracy but 0% recall!
-
-**Why This Fails in Practice:**
-- **Business Cost Asymmetry:** Missed failure = $100,000+ in emergency repairs
-- **False alarm cost:** $1,000 for planned inspection
-- **Cost ratio:** 100:1 (some utilities report 10-50x)
-
-**Two Solutions to Explore:**
-1. **Path A (SMOTE):** Create synthetic failure samples to balance training data
-2. **Path B (Algorithm-Level):** Use algorithms that internally handle imbalance
-
-**Demo Strategy:** We'll train 4 models (2 from each path) and compare results.
-```
+**Key requirements:** Use [NOTE] callout prefix. Place BEFORE the implementation (context before code). Explain business rationale, not just technical details.
 
 ## Progressive Complexity Management
 
@@ -508,110 +404,6 @@ else:
 
 ## Two-Approach Clarification Pattern
 
-**MANDATORY:**
+> For the full two-approach clarification pattern with templates, best practices, and a real-world Feature Store example, see **109f-snowflake-notebook-two-approach-pattern.md**.
 
-**Purpose:** When notebook demonstrates feature but uses simplified approach, explain BOTH approaches and WHY the simpler one is used.
-
-**Structure:**
-```markdown
-
-## [NOTE] [Feature]: Two Approaches Explained
-
-**Why did we [setup feature] but not use it?**
-
-The notebook demonstrates **two valid approaches** for [task]:
-
-### Approach A: [Production Name] ✨
-```[language]
-[Code example]
-```
-
-**Benefits:**
-- [Benefit 1]
-- [Benefit 2]
-- [Benefit 3]
-
-**Use when:** [Scenario]
-
-### Approach B: [Simplified Name]
-```[language]
-[Code example]
-```
-
-**Benefits:**
-- [Benefit 1]
-- [Benefit 2]
-- [Benefit 3]
-
-**Use when:** [Scenario]
-
-### This Notebook's Approach
-
-**We use Approach B** to keep the focus on [primary learning goal]. The [feature] setup in Steps X-Y shows you **how to organize for production** while using the simpler approach for actual training.
-
-**For production deployments:** Uncomment the [feature] code in Step [X] and use `[method]()`.
-
-**Learning Takeaway:** [Key insight about when to use each approach]
-```
-
-**Best Practices:**
-- **Requirement:** Use when demonstrating feature but not fully utilizing it
-- **Always:** Explain why BOTH approaches are valid
-- **Always:** Clarify which approach the notebook uses and WHY
-- **Always:** Provide guidance on when to use production approach
-
-### Real-World Example: Feature Store Setup
-
-**Scenario:** Notebook demonstrates Feature Store entity/feature organization but trains models using simplified DataFrame approach.
-
-````markdown
-
-## [NOTE] Feature Store: Two Approaches Explained
-
-**Why did we set up Feature Store entities but not use `fs.generate_dataset()`?**
-
-The notebook demonstrates **two valid approaches** for feature engineering:
-
-### Approach A: Feature Store `generate_dataset()` ✨
-```python
-# Production-ready: Automatic joins, time-travel, lineage tracking
-training_df = fs.generate_dataset(
-    spine_df=spine,
-    features=[customer_features, order_features],
-    spine_timestamp_col='OBSERVATION_DATE'
-)
-```
-
-**Benefits:**
-- Automatic feature joins across entities (no manual merge logic required)
-- Point-in-time correctness (prevents data leakage in temporal scenarios)
-- Lineage tracking (see which features used in which models via Feature Store UI)
-- Version control (track feature definitions and transformations over time)
-
-**Use when:** Multi-entity features (10+ features), production deployment scenarios, team collaboration with shared feature definitions
-
-### Approach B: Direct Snowpark DataFrame Operations
-```python
-# Explicit joins for learning purposes
-training_df = spine.join(customer_features, on='CUSTOMER_ID') \
-                   .join(order_features, on='ORDER_ID')
-```
-
-**Benefits:**
-- Transparent logic (see exactly how features combine in explicit joins)
-- Simpler for single-entity features (no Feature Store overhead)
-- Easier to debug for beginners (direct DataFrame operations, familiar pandas-like API)
-- Faster iteration for exploratory analysis (no entity registration needed)
-
-**Use when:** Learning Feature Store concepts, exploratory analysis with <10 features, single-entity scenarios, rapid prototyping
-
-### This Notebook's Approach
-
-**We use Approach B** to keep the focus on ML algorithms and imbalanced data strategies. The Feature Store setup in Steps 2-3 shows you **how to organize for production** (entity registration, feature definitions) while using the simpler DataFrame approach for actual training.
-
-**For production deployments:** Uncomment the `fs.generate_dataset()` code in Step 4 and use `training_df = fs.retrieve_feature_values(spine_df=spine, features=[...])` for automatic joins and lineage tracking.
-
-**Learning Takeaway:** Feature Store adds governance and automation valuable for production multi-entity scenarios. Use it when team collaboration, lineage tracking, and point-in-time correctness matter. Use direct DataFrames for exploration, learning, and single-entity feature engineering.
-````
-
-This example demonstrates when to show feature setup (teaching organizational patterns) while using simpler execution (maintaining focus on primary learning objectives like imbalanced data handling).
+**When to use:** When a tutorial demonstrates a feature (e.g., Feature Store) but uses a simplified approach for learning purposes. Always explain BOTH approaches as valid, clarify which the notebook uses, and provide production migration guidance.

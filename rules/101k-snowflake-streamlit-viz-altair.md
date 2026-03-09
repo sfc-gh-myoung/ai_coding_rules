@@ -4,7 +4,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-01-13
+**LastUpdated:** 2026-03-09
 **Keywords:** altair, vega-lite, st.altair_chart, declarative visualization, grammar of graphics, mark_point, mark_line, mark_bar, encoding, selection, interactive, layered charts
 **TokenBudget:** ~3400
 **ContextTier:** Medium
@@ -54,14 +54,14 @@ Altair visualization patterns using the declarative grammar of graphics approach
 ### Mandatory
 
 - **Declarative encoding** - Map data columns to visual properties
-- **width="stretch"** - Use for responsive charts OR set explicit container width
+- **use_container_width=True** - Use for responsive charts (the code examples demonstrate this pattern)
 - **Clear encoding** - Explicit axis titles and labels
 
 ### Forbidden
 
-- Mixing imperative and declarative styles unnecessarily
+- Using go.Figure() or manual data manipulation when alt.transform_*() or alt.Chart() can achieve the same result
 - Missing axis labels/titles
-- Overly complex single charts (split into linked views instead)
+- Charts with >3 encoding channels per mark (split into linked views -- see Anti-Pattern 3)
 
 ### Execution Steps
 
@@ -89,7 +89,7 @@ st.altair_chart(chart, use_container_width=True)
 - [ ] Data type suffixes specified for all encodings
 - [ ] `use_container_width=True` used for responsive display
 - [ ] Clear axis titles and labels present
-- [ ] Appropriate chart type for data relationship
+- [ ] Chart type matches data per When to Use section: scatter for correlation, line for trends, bar for comparison, heatmap for matrix
 - [ ] Interactive selections tested (if applicable)
 
 ### Post-Execution Checklist
@@ -438,6 +438,14 @@ df['category'] = df['category'].astype(str)  # Prevent numeric inference
 df['value'] = pd.to_numeric(df['value'], errors='coerce')  # Ensure numeric
 ```
 
+**Empty DataFrame:** Always check before rendering to avoid blank charts:
+
+```python
+if df.empty:
+    st.info("No data available for visualization.")
+    st.stop()
+```
+
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Missing Data Type Suffix
@@ -489,7 +497,7 @@ chart = scatter | detail
 - [ ] Using `use_container_width=True` for responsive display
 - [ ] Data type suffixes specified (`:Q`, `:N`, `:O`, `:T`)
 - [ ] Clear axis titles and labels
-- [ ] Appropriate chart type for data relationship
+- [ ] Chart type matches data: scatter for correlation, line for trends, bar for comparison, heatmap for matrix
 - [ ] Large datasets sampled or using vegafusion
 - [ ] Interactive selections tested
 - [ ] Colorblind-safe color schemes

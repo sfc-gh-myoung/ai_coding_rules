@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, data generation, backward compatibility, surrogate keys
 **TokenBudget:** ~3300
 **ContextTier:** High
@@ -224,6 +224,8 @@ CREATE TABLE FACT_METER_READINGS (
     customer_id VARCHAR(50) NOT NULL,
     consumption_kwh FLOAT NOT NULL,
     demand_kw FLOAT NOT NULL,
+    load_timestamp TIMESTAMP_NTZ NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+    source_system VARCHAR(50) NOT NULL,
     PRIMARY KEY (meter_id, read_timestamp)
 );
 ```

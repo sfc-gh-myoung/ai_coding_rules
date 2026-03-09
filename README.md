@@ -33,7 +33,7 @@ This repository provides a **universal ai coding rule system** designed to work 
 
 ## Key Features
 
-- **📚 130 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Podman, Shell scripting, and project management
+- **📚 180 Production-Ready Rules** — Comprehensive coverage across Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Podman, Shell scripting, and project management
 - **🔄 Universal Format** — Write once, use everywhere: Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and more
 - **🤖 Intelligent Discovery** — AI assistants automatically find and load relevant rules using semantic keyword matching (matching by meaning, not just exact text)
 - **🎯 Dependency-Aware** — Explicit dependency chains ensure rules load in the correct order
@@ -575,7 +575,7 @@ These skills are intended to be used specifically for the ai_coding_rules projec
 - **Priority Compliance Gate:** Agent Execution Test as first gate; Priority 1 violations cap scores
 - **Cross-model compatibility:** Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
 - **Trigger keywords:** "review rule", "audit rule", "check rule quality", "rule staleness"
-- **Usage guide:** [docs/USING_RULE_REVIEW_SKILL.md](docs/USING_RULE_REVIEW_SKILL.md)
+- **Usage guide:** [docs/USING_RULE_REVIEWER_SKILL.md](docs/USING_RULE_REVIEWER_SKILL.md)
 - **Skill file:** [skills/rule-reviewer/SKILL.md](skills/rule-reviewer/SKILL.md)
 
 **bulk-rule-reviewer** — Orchestrate bulk rule reviews
@@ -633,15 +633,15 @@ The rules are organized by domain using a three-digit numbering system. Each cat
 
 | Domain | Range | # Rules | Focus Area | Key Topics |
 |--------|-------|---------|------------|------------|
-| **Core Foundation** | 000-099 | 12 | Universal patterns | Operating principles, memory bank, rule governance, context engineering, tool design, skills |
-| **Snowflake** | 100-199 | 58 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines, demo creation |
-| **Python** | 200-299 | 27 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas, **HTMX** |
-| **Shell/Containers** | 300-399 | 9 | Automation & Infrastructure | Bash and Zsh scripting, security, testing, Docker, **Podman** |
-| **Frontend (JS/TS)** | 400-499 | 3 | Client-side frameworks | JavaScript, TypeScript, React, **HTMX frontend** |
+| **Core Foundation** | 000-099 | 20 | Universal patterns | Operating principles, memory bank, rule governance, context engineering, tool design, skills, model optimization |
+| **Snowflake** | 100-199 | 85 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines, demo creation, data quality, dynamic tables |
+| **Python** | 200-299 | 41 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas, **HTMX**, datetime, Faker |
+| **Shell/Containers** | 300-399 | 12 | Automation & Infrastructure | Bash and Zsh scripting, security, testing, Docker, **Podman** |
+| **Frontend (JS/TS)** | 400-499 | 6 | Client-side frameworks | JavaScript, TypeScript, React, Alpine.js, **HTMX frontend** |
 | **Frontend** | 500-599 | 2 | Client-side | HTMX frontend, browser globals |
-| **Systems/Backend Languages** | 600-699 | 1 | Backend development | **Go/Golang** core patterns, error handling, concurrency |
+| **Systems/Backend Languages** | 600-699 | 2 | Backend development | **Go/Golang** core patterns, advanced patterns, error handling, concurrency |
 | **Reserved** | 700-799 | 0 | Future use | Reserved for future domain expansion |
-| **Project Management** | 800-899 | 5 | Workflows | Git, changelog, README, contributing, Taskfile |
+| **Project Management** | 800-899 | 8 | Workflows | Git, changelog, README, contributing, Taskfile, Makefile |
 | **Analytics & Governance** | 900-999 | 4 | Business intelligence | Data science, data governance, business analytics, semantic views |
 
 **Searchable index:** See [rules/RULES_INDEX.md](rules/RULES_INDEX.md) for complete rule list with keywords, dependencies, and semantic search.

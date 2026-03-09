@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing
-**TokenBudget:** ~3750
+**TokenBudget:** ~3950
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 **LoadTrigger:** kw:readme, kw:documentation, file:README.md
@@ -469,3 +469,27 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 - **Rule:** Validate markdown syntax in CI/CD pipeline
 - **Consider:** Automated link checking and badge updates
 - **Always:** Include README in documentation deployment process
+
+## Accessibility in README Content
+
+- MUST include alt text for all images and badges in README
+- SHOULD use text labels alongside color-coded badges so meaning is not color-dependent
+- Avoid relying solely on images or screenshots to convey critical setup information
+- Use semantic heading hierarchy for screen reader navigation
+- Ensure code blocks have language identifiers for syntax highlighting tools
+
+## Internal Project README Considerations
+
+For internal/private project READMEs, also consider:
+- Include team/owner contact information and escalation paths
+- Reference internal wiki or Confluence for extended documentation
+- Include deployment environment details (staging URLs, internal endpoints)
+- MAY omit License section for internal-only projects
+- Include links to internal CI/CD dashboards and monitoring
+
+## README Anti-Patterns to Avoid
+
+- **Empty sections with "TODO" placeholders** — Remove sections until content is ready rather than leaving stubs
+- **Screenshots without text alternatives** — Always include descriptive text alongside visual content
+- **Installation instructions that skip prerequisites** — List all required tools and versions before commands
+- **"Just run `npm install`" without explaining what the project does** — Always lead with project purpose

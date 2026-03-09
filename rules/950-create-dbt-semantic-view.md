@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** dbt, semantic view, Snowflake, dbt_semantic_view, materialization, Cortex Analyst, YAML, semantic model, dbt models, analytics, business intelligence, data modeling
 **TokenBudget:** ~3500
 **ContextTier:** High
@@ -34,28 +34,23 @@ Creating Snowflake semantic views through dbt using the `dbt_semantic_view` pack
 ## Contract
 
 ### Inputs and Prerequisites
-- dbt project with base models (materialized as tables or views)
-- Snowflake warehouse access
-- Understanding of star schema design
-- Business requirements for metrics and dimensions
+- Snowflake account with semantic view support
+- dbt 1.x+ installed with Snowflake adapter
+- Snowflake warehouse available for dbt execution
+- dbt_semantic_view package installed (via packages.yml)
+- Base dbt models exist for all tables to include
 - Primary keys identified for all tables (verify with `DESCRIBE TABLE <table_name>` or `SHOW PRIMARY KEYS IN TABLE <table_name>`)
 - Relationships (foreign keys) mapped between tables
 - dbt_semantic_view package version identified
 
 ### Mandatory
-- dbt 1.x+
-- Snowflake warehouse
-- dbt_semantic_view package installed
-- Base models with primary keys defined
-- packages.yml file
-
-**Essential Patterns:**
-- **Always use dbt:** Create semantic views through dbt using `dbt_semantic_view` package, never direct DDL
-- **Use ref() and source():** Reference base models with `{{ ref() }}` and `{{ source() }}` for lineage tracking
-- **Add inline comments:** Document with COMMENT clauses (persist_docs not supported)
-- **No TIME_DIMENSIONS:** Time columns are regular dimensions, not a separate clause
-- **Standard SQL only:** Use CASE statements, no COUNT_IF or RATIO_TO_REPORT functions
-- **Test thoroughly:** Query semantic views with SEMANTIC_VIEW() function before deployment
+- MUST create semantic views through dbt using `dbt_semantic_view` package, never direct DDL
+- MUST reference base models with `{{ ref() }}` and `{{ source() }}` for lineage tracking
+- MUST add inline comments with COMMENT clauses (persist_docs not supported)
+- MUST define primary keys for all tables in the semantic view
+- MUST use standard SQL only (CASE statements, no COUNT_IF or RATIO_TO_REPORT)
+- MUST test semantic views with SEMANTIC_VIEW() function before deployment
+- Time columns are regular dimensions, not a separate TIME_DIMENSIONS clause
 
 ### Forbidden
 - Direct DDL creation of semantic views
@@ -209,7 +204,7 @@ SELECT * FROM SEMANTIC_VIEW(
 ```
 **Benefits:** Valid syntax, cleaner query interface, matches semantic view design.
 
-## Output Format Examples
+## Examples
 
 **dbt Model File (models/sv_sales_performance.sql):**
 ```sql

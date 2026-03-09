@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:tag, kw:tagging, kw:metadata
 **Keywords:** cost attribution, resource tagging, governance tags, masking policies, row access policies, tag lineage, tag management
 **TokenBudget:** ~2850
@@ -279,7 +279,7 @@ Assign row access policy to a tag; automatically filters rows on all tagged tabl
 -- Create row access policy based on tag value
 CREATE ROW ACCESS POLICY GOVERNANCE.POLICIES.REGION_FILTER AS (region_val VARCHAR)
   RETURNS BOOLEAN ->
-  CURRENT_ROLE() IN ('ADMIN') OR region_val = CURRENT_SESSION()::VARCHAR;
+  CURRENT_ROLE() IN ('ADMIN') OR IS_ROLE_IN_SESSION('REGION_' || region_val);
 
 -- Associate row access policy with tag
 ALTER TAG GOVERNANCE.TAGS.REGION SET
@@ -362,6 +362,12 @@ GROUP BY tag_name, tag_value, object_domain;
 ## Management Approaches
 
 **Centralized:** Core governance team creates/manages all tags. Teams get APPLY privilege only.
+
+**Tag Naming Conventions:**
+- Use UPPER_SNAKE_CASE for tag names: `DATA_CLASSIFICATION`, `COST_CENTER`, `PII_LEVEL`
+- Group related tags in a dedicated schema: `GOVERNANCE.TAGS`
+- Prefix environment-specific tags: `ENV_TYPE`, `ENV_OWNER`
+- Document every tag with COMMENT and ALLOWED_VALUES constraints
 
 **Decentralized:** Teams create tags in their schemas. Governance creates shared tags.
 

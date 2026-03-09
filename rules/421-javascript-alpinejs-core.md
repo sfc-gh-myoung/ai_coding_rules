@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-08
-**Keywords:** Alpine.js, reactivity, x-data, x-bind, x-on, x-model, x-show, x-if, magic properties, $el, $refs, $store, declarative, progressive enhancement, lightweight
-**TokenBudget:** ~4700
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
+**Keywords:** Alpine.js, reactivity, x-data, x-bind, x-on, x-model, x-show, x-if, magic properties, $el, $refs, declarative, progressive enhancement, lightweight
+**TokenBudget:** ~3350
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 **LoadTrigger:** kw:alpinejs, kw:alpine
@@ -31,6 +31,7 @@ Provides comprehensive guidance for Alpine.js 3.x, a lightweight JavaScript fram
 - **000-global-core.md** - Foundation for all rules
 
 **Related:**
+- **421a-javascript-alpinejs-advanced.md** - Stores, plugins, transitions, lifecycle, error recovery
 - **420-javascript-core.md** - JavaScript patterns and best practices
 - **500-frontend-htmx-core.md** - HTMX patterns for server-driven interactivity
 
@@ -271,45 +272,7 @@ HTML with Alpine.js directives:
 </div>
 ```
 
-**$store - Global State:**
-```html
-<script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.store('darkMode', {
-            on: false,
-            toggle() { this.on = !this.on }
-        })
-    })
-</script>
-
-<div x-data>
-    <button @click="$store.darkMode.toggle()">
-        Toggle: <span x-text="$store.darkMode.on"></span>
-    </button>
-</div>
-```
-
-**$dispatch - Custom Events:**
-```html
-<div x-data @notify="alert($event.detail.message)">
-    <button @click="$dispatch('notify', { message: 'Hello!' })">Notify</button>
-</div>
-
-<!-- Cross-component communication -->
-<div x-data @custom-event.window="console.log('Received')">
-    <!-- Listens globally -->
-</div>
-```
-
-**$nextTick - Wait for DOM Update:**
-```html
-<div x-data="{ count: 0 }">
-    <span x-text="count"></span>
-    <button @click="count++; $nextTick(() => console.log('DOM updated'))">
-        Increment
-    </button>
-</div>
-```
+For `$store` (global state), `$dispatch` (cross-component events), and `$nextTick` (DOM update timing), see `421a-javascript-alpinejs-advanced.md`.
 
 ### Component Patterns
 
@@ -334,138 +297,7 @@ HTML with Alpine.js directives:
 <div x-data="dropdown(true)"><!-- Starts open --></div>
 ```
 
-**Alpine.store() - Global Stores:**
-```html
-<script>
-    document.addEventListener('alpine:init', () => {
-        Alpine.store('tabs', {
-            current: 'first',
-            items: ['first', 'second', 'third']
-        })
-    })
-</script>
-
-<div x-data>
-    <template x-for="tab in $store.tabs.items" :key="tab">
-        <button
-            @click="$store.tabs.current = tab"
-            :class="$store.tabs.current === tab && 'active'"
-            x-text="tab">
-        </button>
-    </template>
-</div>
-```
-
-### Lifecycle Hooks
-
-**x-init and init() Method:**
-```html
-<!-- Inline initialization -->
-<div x-data="{ message: '' }" x-init="message = 'Initialized!'">
-    <span x-text="message"></span>
-</div>
-
-<!-- Async initialization -->
-<div x-data="{ data: null }"
-     x-init="data = await (await fetch('/api/data')).json()">
-    <span x-text="data"></span>
-</div>
-
-<!-- Component with init/destroy lifecycle -->
-<script>
-    Alpine.data('timer', () => ({
-        count: 0,
-        interval: null,
-        init() {
-            this.interval = setInterval(() => this.count++, 1000)
-        },
-        destroy() {
-            clearInterval(this.interval)
-        }
-    }))
-</script>
-```
-
-**x-effect - Reactive Side Effects:**
-```html
-<div x-data="{ count: 0 }" x-effect="console.log('Count is:', count)">
-    <button @click="count++">Increment</button>
-</div>
-```
-
-**Preventing Flash (x-cloak):**
-```html
-<style>[x-cloak] { display: none !important; }</style>
-
-<div x-data="{ show: false }" x-cloak>
-    <div x-show="show">Content</div>
-</div>
-```
-
-**Transitions (x-transition):**
-```html
-<div x-data="{ open: false }">
-    <button @click="open = !open">Toggle</button>
-    <div x-show="open" x-transition>Fades in and out</div>
-
-    <!-- Custom transition classes -->
-    <div x-show="open"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 transform scale-90"
-         x-transition:enter-end="opacity-100 transform scale-100">
-        Custom animation
-    </div>
-</div>
-```
-
-### Error Recovery Patterns
-
-**CDN Load Failure - Fallback Script:**
-```html
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
-        onerror="loadAlpineFallback()"></script>
-<script>
-function loadAlpineFallback() {
-    const s = document.createElement('script');
-    s.src = 'https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js';
-    s.defer = true;
-    document.head.appendChild(s);
-}
-</script>
-```
-
-**Alpine Initialization Failure:**
-```html
-<script>
-document.addEventListener('alpine:init', () => {
-    try {
-        Alpine.data('myComponent', () => ({ /* ... */ }))
-        Alpine.store('myStore', { /* ... */ })
-    } catch (e) {
-        console.error('Alpine init failed:', e);
-        document.querySelectorAll('[x-cloak]').forEach(el => {
-            el.removeAttribute('x-cloak');
-        });
-    }
-})
-</script>
-```
-
-**Async x-init Failure:**
-```html
-<div x-data="{ data: null, error: null }"
-     x-init="
-        try {
-            data = await (await fetch('/api/data')).json()
-        } catch (e) {
-            error = 'Failed to load data'
-            console.error('x-init fetch failed:', e)
-        }
-     ">
-    <div x-show="error" x-text="error" class="error"></div>
-    <div x-show="data" x-text="JSON.stringify(data)"></div>
-</div>
-```
+For lifecycle hooks (x-init, init/destroy), transitions (x-transition), and error recovery patterns, see `421a-javascript-alpinejs-advanced.md`.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -544,85 +376,15 @@ Correct Pattern: Use x-text for user-provided content; only use x-html with trus
 ```
 
 **Pitfall 5: Complex Logic in Templates**
-```html
-<!-- BAD: Hard to read and maintain -->
-<button @click="items.push(items.length + 1); items.sort()">Add & Sort</button>
 
-<!-- GOOD: Extract to method -->
-<div x-data="{
-    items: [1, 2, 3],
-    addAndSort() {
-        this.items.push(this.items.length + 1)
-        this.items.sort()
-    }
-}">
-    <button @click="addAndSort()">Add & Sort</button>
-</div>
-```
-
-**Pitfall 6: Forgetting x-cloak**
-```html
-<!-- BAD: Flash of unstyled content -->
-<div x-data="{ show: false }">
-    <div x-show="show">Content</div>
-</div>
-
-<!-- GOOD: Prevent flash -->
-<style>[x-cloak] { display: none !important; }</style>
-<div x-data="{ show: false }" x-cloak>
-    <div x-show="show">Content</div>
-</div>
-```
-
-**Pitfall 7: Not Using x-model Modifiers**
-```html
-<!-- BAD: Manual parsing -->
-<input type="number" @input="age = parseInt($event.target.value)">
-
-<!-- GOOD: Use modifiers -->
-<input type="number" x-model.number="age">
-<input x-model.debounce.500ms="search">
-```
-
-**Pitfall 8: Memory Leaks (Missing destroy)**
-```html
-<!-- BAD: No cleanup — interval keeps running after component removal -->
-Alpine.data('timer', () => ({
-    interval: null,
-    init() { this.interval = setInterval(() => console.log('tick'), 1000) }
-}))
-
-<!-- GOOD: Proper cleanup -->
-Alpine.data('timer', () => ({
-    interval: null,
-    init() { this.interval = setInterval(() => console.log('tick'), 1000) },
-    destroy() { clearInterval(this.interval) }
-}))
-```
-
-**Pitfall 9: Duplicating Inline Components**
-```html
-<!-- BAD: Same logic repeated -->
-<div x-data="{ open: false, toggle() { this.open = !this.open } }">...</div>
-<div x-data="{ open: false, toggle() { this.open = !this.open } }">...</div>
-
-<!-- GOOD: Extract to Alpine.data() when pattern appears 2+ times -->
-<script>
-    Alpine.data('dropdown', () => ({
-        open: false,
-        toggle() { this.open = !this.open }
-    }))
-</script>
-<div x-data="dropdown">...</div>
-<div x-data="dropdown">...</div>
-```
+Extract template logic when: (1) attribute logic exceeds 80 characters, (2) contains nested ternaries, (3) chains more than 3 method calls, or (4) uses more than 2 boolean operators. See `421a-javascript-alpinejs-advanced.md` for additional anti-patterns (memory leaks, x-model modifiers, component duplication).
 
 ## Output Format Examples
 
 ### Essential Alpine.js Page Template
 
 ```html
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14/dist/cdn.min.js"></script>
 <style>[x-cloak] { display: none !important; }</style>
 
 <div x-data="dropdown" x-cloak>

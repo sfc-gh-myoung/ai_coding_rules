@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:dynamic-table, kw:incremental
 **Keywords:** automatic pipelines, DOWNSTREAM, FULL, warehouse sizing, data freshness, dynamic table lag, refresh frequency, pipeline automation
-**TokenBudget:** ~2900
+**TokenBudget:** ~3050
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 104-snowflake-streams-tasks.md, 119-snowflake-warehouse-management.md
 
@@ -145,6 +145,20 @@ TARGET_LAG = '30 seconds'  -- Too aggressive
 **Problem:** DT scheduling overhead; minimum ~1 minute practical lag.
 
 **Correct Pattern:** Use Streams + Tasks for <1 minute requirements; DT for 1-15+ minutes.
+
+### UPSTREAM_FAILED Recovery
+
+When a Dynamic Table shows `scheduling_state = 'UPSTREAM_FAILED'`:
+
+1. Identify the failed upstream: `SELECT name, state FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLES WHERE table_schema = '<schema>';`
+2. Fix the root cause in the upstream table (schema change, permission, or query error)
+3. Run `ALTER DYNAMIC TABLE <upstream> REFRESH` to force a refresh of the upstream table
+4. Downstream tables recover automatically once the upstream succeeds
+
+**Target Lag Decision Guide:**
+- 1-5 minutes: Real-time dashboards, operational reports
+- 15-60 minutes: Hourly aggregations, standard analytics
+- DOWNSTREAM: Intermediate pipeline stages (refreshes only when consumed by downstream)
 
 ## Implementation Details
 
@@ -357,7 +371,9 @@ DROP DYNAMIC TABLE IF EXISTS analytics.DT_OLD_SUMMARY;
 -- Credit consumption by dynamic table
 SELECT name, SUM(credits_used) AS total_credits,
   COUNT(*) AS refresh_count, AVG(credits_used) AS avg_credits_per_refresh
-FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLE_GRAPH_HISTORY
-WHERE start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP())
+FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(
+  NAME_PREFIX => 'MY_DB.MY_SCHEMA.'
+))
+WHERE refresh_start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP())
 GROUP BY name ORDER BY total_credits DESC;
 ```

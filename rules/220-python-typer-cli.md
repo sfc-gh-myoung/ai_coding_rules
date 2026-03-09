@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-08
-**Keywords:** Typer, CLI development, command-line interface, click, argument parsing, CLI testing, typer.Argument, typer.Option, CliRunner, rich console, rich progress, rich tables, rich live, dual console, stderr, console output
-**TokenBudget:** ~7450
+**RuleVersion:** v4.0.0
+**LastUpdated:** 2026-03-09
+**Keywords:** Typer, CLI development, command-line interface, click, argument parsing, typer.Argument, typer.Option, rich console, exit codes
+**TokenBudget:** ~3500
 **ContextTier:** High
 **Depends:** 200-python-core.md
 **LoadTrigger:** kw:typer, kw:cli
@@ -14,25 +14,35 @@
 ## Scope
 
 **What This Rule Covers:**
-Provide comprehensive guidance for building robust, user-friendly command-line applications using Typer, covering project setup, argument handling, testing strategies, and deployment patterns for maintainable CLI tools.
+Core guidance for building robust command-line applications using Typer, covering project setup, argument handling, command definitions, error handling, and packaging.
 
 **When to Load This Rule:**
-- Python CLI development, command-line applications, user interfaces
+- Python CLI development, command-line applications
+- Setting up Typer project structure
+- Defining commands with proper arguments and options
+- Implementing error handling with exit codes
 
 ## References
 
-### External Documentation
-- [Typer Documentation](https://typer.tiangolo.com/) - Modern CLI framework with automatic help generation
-- [Rich Documentation](https://rich.readthedocs.io/) - Terminal styling, progress bars, and rich text rendering
-- [Click Documentation](https://click.palletsprojects.com/) - Underlying CLI framework and advanced patterns
+### Dependencies
 
-### Related Rules
+**Must Load First:**
 - **200-python-core.md** - Core Python patterns and uv usage
+
+**Related:**
+- **220a-python-typer-config.md** - Configuration and environment management (Recommended)
+- **220b-python-typer-testing.md** - CLI testing strategies (Recommended)
+- **220c-python-typer-rich.md** - Rich integration and console patterns (Recommended)
 - **201-python-lint-format.md** - Ruff linting and formatting standards
 - **203-python-project-setup.md** - Python project structure and packaging
 - **230-python-pydantic.md** - Pydantic integration with Typer
-- **800-project-changelog.md** - Changelog discipline for CLI changes
 - **207-python-logging.md** - CLI apps needing Rich console + Python logger bridge
+
+### External Documentation
+
+- [Typer Documentation](https://typer.tiangolo.com/) - Modern CLI framework with automatic help generation
+- [Rich Documentation](https://rich.readthedocs.io/) - Terminal styling, progress bars, and rich text rendering
+- [Click Documentation](https://click.palletsprojects.com/) - Underlying CLI framework and advanced patterns
 
 ## Contract
 
@@ -41,7 +51,6 @@ Provide comprehensive guidance for building robust, user-friendly command-line a
 - Python project with `pyproject.toml` configured
 - Understanding of CLI requirements and user workflows
 - Knowledge of command-line argument patterns
-- Access to project codebase for CLI integration
 
 ### Mandatory
 
@@ -67,7 +76,7 @@ Provide comprehensive guidance for building robust, user-friendly command-line a
 4. Implement commands with Annotated parameters for metadata
 5. Add error handling with appropriate exit codes
 6. Configure console scripts in pyproject.toml [project.scripts]
-7. Write CLI tests using typer.testing.CliRunner
+7. Write CLI tests using typer.testing.CliRunner (see 220b)
 8. Validate with: `uvx ruff check .` and `uv run pytest tests/cli/`
 
 ### Output Format
@@ -77,7 +86,6 @@ Python CLI application with:
 - Command functions with comprehensive docstrings
 - Type-annotated parameters using Annotated
 - Error handling with typer.Exit(code)
-- Rich formatting for output (tables, panels, progress bars)
 - Console script entry points in pyproject.toml
 
 ### Validation
@@ -94,7 +102,18 @@ Python CLI application with:
 - `uv run pytest tests/cli/` passes all CLI tests
 - `myapp --help` displays comprehensive help text
 - Error conditions return appropriate exit codes
-- CLI integrates with project business logic correctly
+
+**Negative Tests:**
+- Command without exit code handling (should always return 0 even on failure)
+- Missing type annotations (should lack auto-validation)
+- Hardcoded paths (should fail on other machines)
+
+### Design Principles
+
+- **Exit Codes Matter:** Non-zero for errors enables shell automation
+- **Type Safety:** Annotated parameters for auto-validation and help
+- **Separation of Concerns:** CLI layer thin, business logic separate
+- **User Experience:** Clear help text, progress feedback, error messages
 
 ### Post-Execution Checklist
 
@@ -103,8 +122,6 @@ Python CLI application with:
 - [ ] All commands have type annotations
 - [ ] Help text and examples provided
 - [ ] Exit codes implemented for all error paths
-- [ ] Configuration supports CLI/env/file precedence
-- [ ] Tests use CliRunner for validation
 - [ ] Console scripts configured in pyproject.toml
 - [ ] Cross-platform compatibility verified
 - [ ] Linting and tests pass
@@ -145,7 +162,7 @@ def process_file(path: str):
 
 **Problem:** CLI tools with hardcoded file paths, directories, or URLs that can't be overridden via arguments or environment variables.
 
-**Why It Fails:** Tools only work in original developer's environment. Can't run in CI/CD with different directory structures. No way to test with mock data. Users must modify source code to change paths.
+**Why It Fails:** Tools only work in original developer's environment. Can't run in CI/CD with different directory structures. No way to test with mock data.
 
 **Correct Pattern:**
 ```python
@@ -173,7 +190,7 @@ def export_data(
 
 **Problem:** Defining `-h` as a short option for custom parameters (e.g., `--host`) shadows Typer's built-in `--help` shortcut.
 
-**Why It Fails:** Users expect `-h` to show help; instead they get cryptic errors or unexpected behavior. Muscle memory from other CLIs (git, docker) reinforced `-h` = help.
+**Why It Fails:** Users expect `-h` to show help; instead they get cryptic errors or unexpected behavior.
 
 **Correct Pattern:**
 ```python
@@ -192,118 +209,13 @@ def connect(
     ...
 ```
 
-### Anti-Pattern 4: String Options Without Enum Validation
-
-**Problem:** Accepting arbitrary strings for options that have a fixed set of valid values.
-
-**Why It Fails:** Typos silently produce wrong behavior. No autocompletion in shells. Help text doesn't show valid choices. Runtime errors instead of CLI validation.
-
-**Correct Pattern:**
-```python
-# BAD: Arbitrary string
-@app.command()
-def export(
-    format: Annotated[str, typer.Option(help="Output format")] = "json",
-):
-    if format not in ("json", "csv", "yaml"):
-        raise typer.Exit(1)  # Error happens at runtime
-
-# GOOD: Enum validation at CLI layer
-class OutputFormat(str, Enum):
-    json = "json"
-    csv = "csv"
-    yaml = "yaml"
-
-@app.command()
-def export(
-    format: Annotated[OutputFormat, typer.Option(help="Output format")] = OutputFormat.json,
-):
-    ...  # Typer validates automatically, --help shows choices
-```
-
-### Anti-Pattern 5: Duplicate Console Code Across Packages
-
-**Problem:** Each CLI module creates its own `Console()` instance with inconsistent styling (colors, spinners, error formatting).
-
-**Why It Fails:** Visual inconsistency confuses users. Maintenance burden when updating styles. No central control over stderr vs stdout routing.
-
-**Correct Pattern:**
-```python
-# BAD: Duplicated in every module
-# cli/commands/data.py
-console = Console()
-console.print("[green]Success[/green]")
-
-# cli/commands/config.py  
-console = Console()  # Different instance, maybe different style
-console.print("[bold green]Success![/bold green]")  # Inconsistent
-
-# GOOD: Shared console module
-# myapp/_shared/console.py
-from rich.console import Console
-
-_stdout = Console()
-_stderr = Console(stderr=True)
-
-def log_info(msg: str) -> None:
-    _stdout.print(f"[blue]ℹ[/blue] {msg}")
-
-def log_success(msg: str) -> None:
-    _stdout.print(f"[green]✓[/green] {msg}")
-
-def log_error(msg: str) -> None:
-    _stderr.print(f"[red]✗[/red] {msg}")
-
-def log_warning(msg: str) -> None:
-    _stderr.print(f"[yellow]![/yellow] {msg}")
-
-# cli/commands/data.py
-from myapp._shared.console import log_success, log_error
-log_success("Data exported")
-```
-
-### Anti-Pattern 6: ANSI Escape Codes Breaking Test Assertions
-
-**Problem:** Tests using CliRunner fail with cryptic assertion errors because Rich/Typer emit ANSI escape codes (colors, bold, dim) in output.
-
-**Why It Fails:** Rich automatically detects terminal capabilities and adds ANSI codes. In CI environments or when testing Typer's help output, these codes break string assertions:
-```
-AssertionError: assert "--dry-run" in "\x1b[1m-\x1b[0m\x1b[1m-dry\x1b[0m\x1b[1m-run\x1b[0m"
-```
-
-**Correct Pattern:**
-```python
-# BAD: No environment configuration - ANSI codes leak into output
-runner = CliRunner()
-result = runner.invoke(app, ["--help"])
-assert "--dry-run" in result.stdout  # FAILS! Contains \x1b[1m-\x1b[0m...
-
-# GOOD: Configure environment to disable ANSI codes
-# NO_COLOR: Standard convention (https://no-color.org/) to disable colors
-# TERM=dumb: Tells Rich the terminal has no capabilities - disables ALL formatting
-runner = CliRunner(env={"NO_COLOR": "1", "TERM": "dumb"})
-result = runner.invoke(app, ["--help"])
-assert "--dry-run" in result.stdout  # Works! Clean text output
-
-# ALSO GOOD: Shared fixture in conftest.py
-@pytest.fixture
-def runner() -> CliRunner:
-    """CliRunner with ANSI codes disabled for clean test assertions."""
-    return CliRunner(env={"NO_COLOR": "1", "TERM": "dumb"})
-```
-
-**Why Both Variables Are Needed:**
-- `NO_COLOR=1`: Disables color output (standard convention)
-- `TERM=dumb`: Disables ALL Rich formatting including bold (`\x1b[1m`), dim (`\x1b[2m`), and reset codes (`\x1b[0m`)
-
-Using only `NO_COLOR` still allows bold/dim formatting in Typer's Rich-formatted help text.
-
 ## Project Setup and Structure
 
 ### Installation and Dependencies
+
 - **Requirement:** Use `uv` for dependency management following `200-python-core.md` patterns
-- **Requirement:** Install Typer with: `uv add typer` or `uv add "typer[all]"` for full features
-- **Rule:** Use `typer-slim` for minimal installations when rich formatting isn't needed
+- **Requirement:** Install Typer with: `uv add "typer[all]"` for full features including Rich
+- **Decision:** Use `typer[all]>=0.9.0` (default). Use `typer-slim` only for Docker images where binary size matters and no Rich output formatting is needed.
 - **Always:** Include Typer in `[project.dependencies]` not `[project.optional-dependencies]`
 
 ```toml
@@ -318,10 +230,10 @@ myapp = "myapp.cli.main:app"
 ```
 
 ### Recommended Project Structure
-- **Default:** Use flat layout (`myapp/` at project root) for CLI applications, especially with `uv`. See `203-python-project-setup.md` Layout Selection for guidance.
-- **Rule:** Use `src/` layout for CLI projects with ≥5 command modules or distributed as libraries
+
+- **Default:** Use flat layout (`myapp/` at project root) for CLI applications. See `203-python-project-setup.md` for guidance.
+- **Rule:** Use `src/` layout for CLI projects with 5+ command modules or distributed as libraries
 - **Rule:** Separate CLI logic from business logic in different modules
-- **Always:** Create dedicated CLI module structure:
 
 #### Flat Layout (Default)
 
@@ -342,39 +254,15 @@ Directory structure for `cli-project/`:
   - **config/** - Configuration
     - `__init__.py`, `settings.py`
 - **tests/** - Test suite
-  - `__init__.py`
-  - **cli/** - `test_commands.py`
-  - **core/** - `test_services.py`
-
-#### src/ Layout (Large Projects)
-
-Directory structure for `cli-project/`:
-- `pyproject.toml`
-- **src/myapp/** - Source package
-  - `__init__.py`
-  - **cli/** - CLI layer
-    - `__init__.py`
-    - `main.py` - Main CLI app and entry point
-    - **commands/** - Command modules
-      - `__init__.py`
-      - `config.py` - Config-related commands
-      - `data.py` - Data processing commands
-    - `utils.py` - CLI utilities and helpers
-  - **core/** - Business logic (CLI-independent)
-    - `__init__.py`, `models.py`, `services.py`
-  - **config/** - Configuration
-    - `__init__.py`, `settings.py`
-- **tests/** - Test suite
-  - `__init__.py`
   - **cli/** - `test_commands.py`
   - **core/** - `test_services.py`
 
 ## CLI Application Design Patterns
 
 ### Main Application Setup
+
 - **Rule:** Create a main Typer app with proper configuration:
 ```python
-# myapp/cli/main.py (flat layout) or src/myapp/cli/main.py (src/ layout)
 import typer
 from typing_extensions import Annotated
 
@@ -384,42 +272,30 @@ app = typer.Typer(
     name="myapp",
     help="My awesome CLI application",
     add_completion=True,
-    rich_markup_mode="rich",  # Enable rich formatting
+    rich_markup_mode="rich",
 )
 
-# Add command groups
 app.add_typer(config.app, name="config", help="Configuration management")
 app.add_typer(data.app, name="data", help="Data processing commands")
 
 @app.callback()
 def main(
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False,
-    config_file: Annotated[typer.FileText, typer.Option(help="Configuration file path")] = None,
 ):
-    """
-    My awesome CLI application.
-
-    Use --help with any command for more information.
-    """
+    """My awesome CLI application."""
     if verbose:
         typer.echo("Verbose mode enabled")
-
-    # Set global configuration
-    if config_file:
-        # Load configuration logic here
-        pass
 
 if __name__ == "__main__":
     app()
 ```
 
 ### Command Definition Best Practices
+
 - **Rule:** Use type annotations for automatic validation and help generation
-- **Rule:** Provide clear docstrings for commands and parameters
 - **Always:** Use `Annotated` for parameter metadata with Python 3.9+
 
 ```python
-# myapp/cli/commands/data.py (flat layout) or src/myapp/cli/commands/data.py (src/ layout)
 import typer
 from pathlib import Path
 from typing_extensions import Annotated
@@ -440,24 +316,17 @@ def process(
     batch_size: Annotated[int, typer.Option(min=1, max=10000, help="Processing batch size")] = 100,
     dry_run: Annotated[bool, typer.Option("--dry-run", help="Show what would be done")] = False,
 ):
-    """
-    Process input file and generate output in specified format.
-
-    This command reads the input file, processes the data according to
-    the specified parameters, and writes the result to the output file.
-    """
+    """Process input file and generate output in specified format."""
     if dry_run:
         typer.echo(f"[bold yellow]DRY RUN:[/bold yellow] Would process {input_file}")
         return
-
-    # Implementation here
     typer.echo(f"Processing {input_file} with batch size {batch_size}")
 ```
 
 ### Error Handling and User Experience
-- **Rule:** Use Typer's built-in error handling and rich formatting
-- **Always:** Provide helpful error messages with context
+
 - **Rule:** Use appropriate exit codes for different error conditions
+- **Always:** Provide helpful error messages with context
 
 ```python
 import typer
@@ -487,234 +356,38 @@ def risky_operation(
             typer.echo(f"Error: Input path {input_path} does not exist", err=True)
             raise typer.Exit(1)
 
-        if not force and input_path.stat().st_size > 1000000:  # 1MB
+        if not force and input_path.stat().st_size > 1000000:
             if not typer.confirm("File is large. Continue?"):
-                typer.echo("Operation cancelled")
                 raise typer.Exit(0)
 
-        # Perform operation
         console.print("[green]SUCCESS[/green] Operation completed successfully")
-
     except PermissionError:
-        handle_processing_error(
-            Exception("Permission denied"),
-            "Check file permissions and try again"
-        )
+        handle_processing_error(Exception("Permission denied"), "Check file permissions")
     except Exception as e:
         handle_processing_error(e, "Unexpected error occurred")
-```
-
-## Configuration and Environment Management
-
-### Configuration Patterns
-- **Rule:** Support multiple configuration sources (files, environment, CLI options)
-- **Rule:** Use Pydantic Settings for configuration validation
-- **Always:** Follow the precedence: CLI options > Environment > Config file > Defaults
-
-```python
-# myapp/config/settings.py (flat layout) or src/myapp/config/settings.py (src/ layout)
-from pydantic_settings import BaseSettings
-from pydantic import ConfigDict, Field
-from pathlib import Path
-from typing import Optional
-
-class AppSettings(BaseSettings):
-    """Application settings with multiple sources."""
-
-    # Core settings
-    debug: bool = Field(False, description="Enable debug mode")
-    log_level: str = Field("INFO", description="Logging level")
-
-    # File paths
-    data_dir: Path = Field(Path.home() / ".myapp" / "data", description="Data directory")
-    config_file: Optional[Path] = Field(None, description="Configuration file path")
-
-    # API settings
-    api_timeout: int = Field(30, ge=1, le=300, description="API timeout in seconds")
-    max_retries: int = Field(3, ge=0, le=10, description="Maximum retry attempts")
-
-    model_config = ConfigDict(
-        env_prefix="MYAPP_",
-        env_file=".env",
-        case_sensitive=False,
-    )
-
-# Global settings instance
-settings = AppSettings()
-
-# CLI integration
-@app.callback()
-def main(
-    debug: Annotated[bool, typer.Option("--debug", help="Enable debug mode")] = None,
-    config: Annotated[Optional[Path], typer.Option("--config", help="Config file")] = None,
-):
-    """Main CLI callback with configuration override."""
-    global settings
-
-    # Override settings from CLI
-    overrides = {}
-    if debug is not None:
-        overrides["debug"] = debug
-    if config is not None:
-        overrides["config_file"] = config
-
-    if overrides:
-        settings = AppSettings(**{**settings.model_dump(), **overrides})
-```
-
-### Environment Variables
-- **Rule:** Use consistent naming with prefixes
-- **Always:** Document required variables
-
-```python
-# Environment variables: MYAPP_DEBUG, MYAPP_LOG_LEVEL, MYAPP_DATA_DIR
-
-@app.command()
-def show_config():
-    """Display current configuration."""
-    table = Table(title="Configuration")
-    table.add_column("Setting")
-    table.add_column("Value")
-
-    for field_name, field_value in settings:
-        table.add_row(field_name, str(field_value))
-    console.print(table)
-```
-
-## Testing Strategies
-
-### CLI Testing with Typer's Test Client
-- **Rule:** Use Typer's built-in testing utilities for CLI tests
-- **Always:** Test both success and failure scenarios
-- **Rule:** Mock external dependencies and file system operations
-- **Critical:** Configure CliRunner with `env={"NO_COLOR": "1", "TERM": "dumb"}` to disable ANSI escape codes
-
-```python
-# tests/cli/test_commands.py
-import pytest
-from typer.testing import CliRunner
-from pathlib import Path
-from unittest.mock import patch, MagicMock
-
-from myapp.cli.main import app
-
-# CRITICAL: NO_COLOR and TERM=dumb prevent ANSI escape codes in test output
-# Without these, assertions fail: "--dry-run" not in "\x1b[1m-\x1b[0m\x1b[1m-dry..."
-runner = CliRunner(env={"NO_COLOR": "1", "TERM": "dumb"})
-
-def test_process_command_success(tmp_path):
-    """Test successful file processing."""
-    input_file = tmp_path / "input.txt"
-    input_file.write_text("test data")
-
-    result = runner.invoke(app, ["data", "process", str(input_file)])
-
-    assert result.exit_code == 0
-    assert "Processing" in result.stdout
-
-def test_process_command_missing_file():
-    """Test error handling for missing input file."""
-    result = runner.invoke(app, ["data", "process", "nonexistent.txt"])
-
-    assert result.exit_code != 0
-    assert "does not exist" in result.stdout
-
-@patch('myapp.core.services.external_api_call')
-def test_command_with_mock(mock_api):
-    """Test command with external dependencies."""
-    mock_api.return_value = {"status": "success"}
-    result = runner.invoke(app, ["data", "sync"])
-    assert result.exit_code == 0
-```
-
-### Integration Testing
-- **Rule:** Test complete workflows end-to-end
-- **Always:** Use temporary directories for file operations
-- **Always:** Use CliRunner with `env={"NO_COLOR": "1", "TERM": "dumb"}` for clean output
-
-```python
-def test_complete_pipeline(tmp_path):
-    runner = CliRunner(env={"NO_COLOR": "1", "TERM": "dumb"})
-    input_file = tmp_path / "input.json"
-    input_file.write_text('{"test": "data"}')
-
-    result = runner.invoke(app, ["process", str(input_file)])
-    assert result.exit_code == 0
-```
-
-## Performance and User Experience
-
-### Progress Indicators
-- **Rule:** Use Rich progress bars for long-running operations
-- **Always:** Provide feedback for operations over 2 seconds
-
-```python
-from rich.progress import Progress
-
-@app.command()
-def long_operation(items: int = 100):
-    """Process items with progress tracking."""
-    with Progress() as progress:
-        task = progress.add_task("Processing...", total=items)
-        for i in range(items):
-            # Simulate work
-            time.sleep(0.1)
-            progress.update(task, advance=1)
-    console.print("[green]SUCCESS[/green] Complete!")
-```
-
-### Async Command Support
-- **Rule:** Use async commands for I/O-bound operations
-- **Always:** Handle async exceptions properly
-
-```python
-import asyncio
-import aiohttp
-
-@app.command()
-def fetch_data(urls: List[str], concurrent: int = 5):
-    """Fetch data from multiple URLs concurrently."""
-
-    async def fetch_all():
-        semaphore = asyncio.Semaphore(concurrent)
-        async with aiohttp.ClientSession() as session:
-            tasks = [fetch_url(session, url, semaphore) for url in urls]
-            return await asyncio.gather(*tasks)
-
-    results = asyncio.run(fetch_all())
-    for result in results:
-        console.print(f"{result['status']}: {result['url']}")
 ```
 
 ## Packaging and Distribution
 
 ### Console Scripts Configuration
-- **Rule:** Define entry points in `pyproject.toml` for easy installation
-- **Always:** Use descriptive script names that don't conflict with system commands
-- **Rule:** Support both module execution and script entry points
 
 ```toml
 # pyproject.toml
 [project.scripts]
 myapp = "myapp.cli.main:app"
 myapp-dev = "myapp.cli.dev:dev_app"  # Development utilities
-
-# Alternative: using entry points
-[project.entry-points."console_scripts"]
-myapp = "myapp.cli.main:app"
 ```
 
 ### Installation Setup
-- **Rule:** Follow `203-python-project-setup.md` patterns
-- **Always:** Include CLI testing dependencies
 
 ```bash
-# Development setup with uv (modern workflow)
+# Development setup with uv
 uv sync --all-groups
 uv run myapp --install-completion
 ```
 
 ### Cross-Platform Considerations
+
 - **Rule:** Use `pathlib.Path` for all file operations
 - **Rule:** Handle platform-specific features gracefully
 
@@ -733,30 +406,7 @@ def get_config_dir() -> Path:
         return Path.home() / ".config" / "myapp"
 ```
 
-## Documentation and Help
-
-### Auto-Generated Documentation
-- **Rule:** Use comprehensive docstrings for help generation
-- **Always:** Include examples in command help text
-
-```python
-@app.command()
-def transform(
-    input_file: Path,
-    output_format: OutputFormat = OutputFormat.json,
-):
-    """
-    Transform data between formats.
-
-    Examples:
-        myapp transform data.csv --output-format json
-        myapp transform config.json --output-format yaml
-    """
-    # Implementation here
-```
-
 ### Version Management
-- **Rule:** Use `importlib.metadata` for version retrieval
 
 ```python
 from importlib.metadata import version
@@ -775,200 +425,47 @@ def main(
     pass
 ```
 
-## Rich Integration Best Practices
+### Performance and Async Support
 
-### Shared Console Module Pattern
-
-Centralize Rich console configuration in a dedicated module for consistent styling across all CLI commands.
-
-- **Rule:** Create `_shared/console.py` with standardized logging functions
-- **Rule:** Single source of truth for colors, icons, and formatting
-- **Always:** Import shared functions instead of creating local Console instances
-- **Critical:** Include environment-aware color detection to support CI and testing
+- **Rule:** Use Rich progress bars for long-running operations (see 220c)
+- **Rule:** Use async commands for I/O-bound operations
 
 ```python
-# myapp/_shared/console.py
-"""Centralized console output for consistent CLI styling."""
-import os
-import sys
-
-from rich.console import Console
-
-__all__ = [
-    "log_info",
-    "log_success",
-    "log_error",
-    "log_warning",
-    "get_console",
-    "get_error_console",
-]
-
-
-def _should_use_color() -> bool:
-    """Determine if console should use colors based on environment.
-    
-    Checks (in order):
-    - NO_COLOR env var: Standard convention (https://no-color.org/)
-    - CI env var: Disable colors in CI for clean logs
-    - TERM=dumb: Terminal has no capabilities
-    - pytest in sys.modules: Running under pytest
-    """
-    if os.environ.get("NO_COLOR"):
-        return False
-    if os.environ.get("CI"):
-        return False
-    if os.environ.get("TERM") == "dumb":
-        return False
-    if "pytest" in sys.modules:
-        return False
-    return True
-
-
-# Configure consoles with environment-aware color detection
-_use_color = _should_use_color()
-_stdout = Console(no_color=not _use_color, force_terminal=_use_color)
-_stderr = Console(stderr=True, no_color=not _use_color, force_terminal=_use_color)
-
-
-def log_info(msg: str) -> None:
-    """Info message to stdout."""
-    _stdout.print(f"[blue]ℹ[/blue] {msg}")
-
-def log_success(msg: str) -> None:
-    """Success message to stdout."""
-    _stdout.print(f"[green]✓[/green] {msg}")
-
-def log_error(msg: str) -> None:
-    """Error message to stderr."""
-    _stderr.print(f"[red]✗[/red] {msg}")
-
-def log_warning(msg: str) -> None:
-    """Warning message to stderr."""
-    _stderr.print(f"[yellow]![/yellow] {msg}")
-
-def get_console() -> Console:
-    """Get stdout console for tables, progress, etc."""
-    return _stdout
-
-def get_error_console() -> Console:
-    """Get stderr console for error output."""
-    return _stderr
-```
-
-**Why pytest detection via `sys.modules`:** Using `"pytest" in sys.modules` instead of a global `NO_COLOR` environment variable preserves pytest's own terminal colors while disabling your CLI's Rich output during tests.
-
-### Dual Console Pattern
-
-Use separate consoles for stdout and stderr to enable proper shell piping and redirection.
-
-- **Rule:** `Console()` for stdout - tables, progress bars, normal output
-- **Rule:** `Console(stderr=True)` for errors and warnings
-- **Benefit:** Users can redirect stdout while still seeing errors: `mycli export 2>/dev/null > data.json`
-
-```python
-from rich.console import Console
-from rich.table import Table
-
-stdout_console = Console()
-stderr_console = Console(stderr=True)
+import asyncio
+import aiohttp
 
 @app.command()
-def list_items():
-    """List items with table output to stdout, errors to stderr."""
-    try:
-        items = fetch_items()
-        table = Table(title="Items")
-        table.add_column("ID")
-        table.add_column("Name")
-        for item in items:
-            table.add_row(str(item.id), item.name)
-        stdout_console.print(table)  # Goes to stdout - can be piped
-    except ConnectionError as e:
-        stderr_console.print(f"[red]Error:[/red] {e}")  # Goes to stderr
-        raise typer.Exit(1)
+def fetch_data(urls: list[str], concurrent: int = 5):
+    """Fetch data from multiple URLs concurrently."""
+
+    async def fetch_all():
+        semaphore = asyncio.Semaphore(concurrent)
+        async with aiohttp.ClientSession() as session:
+            tasks = [fetch_url(session, url, semaphore) for url in urls]
+            return await asyncio.gather(*tasks)
+
+    results = asyncio.run(fetch_all())
+    for result in results:
+        console.print(f"{result['status']}: {result['url']}")
 ```
 
-### Live Progress Display
+### Documentation and Help
 
-Use `rich.live.Live` for multi-step operations with real-time status updates.
-
-- **Rule:** Prefer Live over Progress for multi-dimensional status (multiple items with states)
-- **Rule:** Use `live.update()` to refresh display without flicker
-- **Always:** Use context manager for proper cleanup
+- **Rule:** Use comprehensive docstrings for help generation
+- **Always:** Include examples in command help text
 
 ```python
-from rich.live import Live
-from rich.table import Table
-from rich.console import Console
-
-console = Console()
-
 @app.command()
-def sync_items(items: list[str]):
-    """Sync multiple items with live status table."""
-    status = {item: "pending" for item in items}
-    
-    def make_table() -> Table:
-        table = Table(title="Sync Progress")
-        table.add_column("Item")
-        table.add_column("Status")
-        for item, state in status.items():
-            color = {"pending": "dim", "syncing": "yellow", "done": "green", "failed": "red"}[state]
-            table.add_row(item, f"[{color}]{state}[/{color}]")
-        return table
-    
-    with Live(make_table(), console=console, refresh_per_second=4) as live:
-        for item in items:
-            status[item] = "syncing"
-            live.update(make_table())
-            
-            try:
-                do_sync(item)
-                status[item] = "done"
-            except Exception:
-                status[item] = "failed"
-            
-            live.update(make_table())
-
-    # Final summary
-    done = sum(1 for s in status.values() if s == "done")
-    console.print(f"Completed: {done}/{len(items)}")
-```
-
-### Context Object State Pattern
-
-Use Typer's context object for shared state instead of module-level globals.
-
-- **Rule:** Use `ctx.ensure_object(dict)` in callback to initialize state
-- **Rule:** Access state via `ctx.obj` in commands
-- **Avoid:** Module-level `State()` class instances (hard to test, hidden coupling)
-
-```python
-import typer
-from typing_extensions import Annotated
-
-app = typer.Typer()
-
-@app.callback()
-def main(
-    ctx: typer.Context,
-    verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False,
-    config_file: Annotated[str, typer.Option("--config")] = None,
-):
-    """Initialize shared state via context."""
-    ctx.ensure_object(dict)
-    ctx.obj["verbose"] = verbose
-    ctx.obj["config"] = load_config(config_file) if config_file else {}
-
-@app.command()
-def process(
-    ctx: typer.Context,
+def transform(
     input_file: Path,
+    output_format: OutputFormat = OutputFormat.json,
 ):
-    """Command that uses shared context state."""
-    if ctx.obj["verbose"]:
-        console.print(f"Processing {input_file}")
-    
-    config = ctx.obj["config"]
-    # Use config...
+    """
+    Transform data between formats.
+
+    Examples:
+        myapp transform data.csv --output-format json
+        myapp transform config.json --output-format yaml
+    """
+    # Implementation here
 ```

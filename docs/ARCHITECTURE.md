@@ -1,6 +1,6 @@
 # Architecture: AI Coding Rules (v3.6.2)
 
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-03-09
 
 ## Table of Contents
 
@@ -273,39 +273,100 @@ Rules use 3-digit prefixes for logical organization:
 
 | Range | Domain | Example Rules |
 |-------|--------|---------------|
-| **000-099** | Core/Foundational | 000-global-core, 002-rule-governance |
-| **100-199** | Snowflake Ecosystem | 100-snowflake-core, 101-snowflake-streamlit-core |
-| **200-299** | Python Ecosystem | 200-python-core, 201-python-lint-format, 221-python-htmx-core, 221b-python-htmx-flask, 221c-python-htmx-fastapi |
-| **300-399** | Shell/Bash Scripting & Containers | 300-bash-scripting-core, 310-zsh-scripting-core, 350-docker-best-practices, 351-podman-best-practices |
-| **400-499** | Frontend (JavaScript/TypeScript) | 420-javascript-core, 430-typescript-core, 440-react-core, 441-react-backend |
-| **500-599** | Frontend | 500-frontend-htmx-core, 501-frontend-browser-globals-collisions |
-| **600-699** | Systems/Backend Languages | 600-golang-core (Go project structure, error handling, interfaces, testing, concurrency) |
-| **800-899** | Project Management | 800-project-changelog, 801-project-readme, 802-project-contributing, 803-project-git-workflow, 820-taskfile-automation |
+| **000-099** | Core/Foundational | 000-global-core, 001-memory-bank, 002-rule-governance (+002a-002l companions), 003-context-engineering, 004-tool-design-for-agents |
+| **100-199** | Snowflake Ecosystem | 100-snowflake-core, 101-streamlit (+101a-101n), 102-sql (+102a-102e), 103-performance, 104-streams-tasks, 105-cost, 106-semantic-views (+106a-106d), 107-security, 108-data-loading, 109-notebooks (+109a-109j), 110-model-registry (+110a-110b), 111-observability (+111a-111d), 112-snowcli, 113-feature-store (+113a-113b), 114-cortex-aisql, 115-cortex-agents (+115a-115d), 116-cortex-search, 117-mcp-server, 118-cortex-rest-api (+118a), 119-warehouse, 120-spcs, 121-snowpipe (+121a-121d), 122-dynamic-tables, 123-object-tagging, 124-data-quality (+124a-124b), 125-role-introspection, 130-132 demo series |
+| **200-299** | Python Ecosystem | 200-python-core (+200a-200b), 201-lint-format, 202-markup-config (+202a), 203-project-setup, 204-docs, 205-classes, 206-pytest, 207-logging, 210-fastapi (+210a-210d), 220-typer (+220a-220c), 221-htmx (+221a-221g), 230-pydantic (+230a-230b), 240-faker (+240a-240b), 250-flask, 251-datetime (+251a-251b), 252-pandas (+252a-252b) |
+| **300-399** | Shell/Bash & Containers | 300-bash-scripting-core (+300a-300d), 310-zsh (+310a-310d), 350-docker-core, 351-podman-core |
+| **400-499** | Frontend (JavaScript/TypeScript) | 420-javascript-core, 421-alpinejs (+421a), 430-typescript-core, 440-react-core, 441-react-backend |
+| **500-599** | Frontend (Framework-Agnostic) | 500-frontend-htmx-core, 501-frontend-browser-globals-collisions |
+| **600-699** | Systems/Backend Languages | 600-golang-core (+600a-golang-patterns) |
+| **800-899** | Project Management | 800-changelog, 801-readme, 802-contributing, 803-git-workflow, 820-taskfile (+820a), 821-makefile (+821a) |
 | **900-999** | Analytics/Governance | 920-data-science-analytics, 930-data-governance-quality, 940-business-analytics, 950-create-dbt-semantic-view |
 
 **Demo Rules (130-series):** Demo creation rules are now consolidated under Snowflake (130-snowflake-demo-sql, 131-snowflake-demo-creation, 132-snowflake-demo-modeling).
 
-**Split Rules Pattern:** Rules may use letter suffixes (e.g., 101a, 101b, 101c) for subtopic specialization, improving token efficiency by allowing focused loading.
+### Companion Rule Pattern (Rule Splitting)
+
+Rules use letter suffixes to split large topics into focused, independently-loadable companion files. This is the primary architectural pattern for managing token budgets while providing comprehensive coverage.
+
+**Naming Convention:** `<NNN><letter>-<technology>-<aspect>.md`
+
+- Core rule: `NNN-technology-core.md` (no suffix) — Foundation, always loaded first
+- Companions: `NNNa-technology-aspect.md`, `NNNb-...`, `NNNc-...` etc.
+- Letter suffixes proceed alphabetically: a, b, c, d, ... (up to n observed in 101-series)
+
+**How It Works:**
+
+1. Core rule provides foundational concepts and serves as the dependency target
+2. Companion rules extend the core with specialized subtopics
+3. Only the companions relevant to the current task are loaded (token savings)
+4. All companions declare the core rule in their `Depends` field
+
+**Example Families:**
+
+| Core Rule | Companions | Total Files |
+|-----------|------------|-------------|
+| `002-rule-governance.md` | 002a through 002l (creation, update, optimization, advanced patterns, validators, agent optimization, skills, loadtrigger, examples, model optimization, skill patterns) | 13 |
+| `101-snowflake-streamlit-core.md` | 101a through 101n (visualization, performance, security, testing, SQL errors, deployment errors, fragments, timeseries, Plotly, PyDeck, Altair, deployment, PyDeck layers, migration) | 15 |
+| `102-snowflake-sql-core.md` | 102a through 102e (automation, procedures, reserved chars, CI/CD, antipatterns) | 6 |
+| `109-snowflake-notebooks.md` | 109a through 109j (tutorials, app deployment core, troubleshooting, linting, checkpoints, two-approach, SQL scripts, taskfile, advanced, TypeError debugging) | 11 |
+| `221-python-htmx-core.md` | 221a through 221g (templates, Flask, FastAPI, testing, patterns, integrations, SSE) | 8 |
+
+**Cross-Reference Patterns:**
+
+Companion rules reference each other via the `Depends` field and `Related Rules` in the References section:
+- `Depends:` lists prerequisite rules that must be loaded first
+- `Related Rules` in References section lists sibling companions for discoverability
+- RULES_INDEX.md Keywords enable discovery across the family
+
+**Token Budget Benefits:**
+
+- Load only what's needed: a Streamlit security task loads `101-core` + `101c-security` (~4K tokens) instead of all 15 files (~25K+ tokens)
+- Progressive expansion: start with core, add companions as task complexity grows
+- Independent updates: modify a companion without affecting siblings
+
+**Design Constraints:**
+
+- Core rule must be self-sufficient for basic tasks (companions are optional extensions)
+- Companions must not create circular dependencies
+- Each companion should cover a single, clearly delineated subtopic
+- Split when a rule exceeds ~5500 tokens and covers multiple separable concepts
+
+**Rule Size Limits (Line Counts):**
+
+Per `003-context-engineering.md` and `002c-rule-optimization.md`:
+
+| Threshold | Lines | Tokens | Action |
+|-----------|-------|--------|--------|
+| **Optimal** | 200-400 | ~2000-3500 | Standard rules, load normally |
+| **Advisory limit** | 500 | ~5000 | Begin evaluating split candidates |
+| **Hard cap** | 600 | ~5500+ | Must split into companion files |
+
+- Token budgets are declared in metadata as `~NUMBER` format (e.g., `~2500`)
+- `ai-rules tokens` CLI validates declared budgets against actual counts (±5% tolerance)
+- Rules exceeding the hard cap trigger split recommendations during validation
 
 ### HTMX Rules Architecture (v3.1.0)
 
-Starting in v3.1.0, the project includes comprehensive HTMX support for building hypermedia-driven web applications. The HTMX rules follow a layered architecture:
+Starting in v3.1.0, the project includes comprehensive HTMX support for building hypermedia-driven web applications. The HTMX rules follow a layered architecture using the companion rule pattern:
 
 **Architecture Layers:**
 
-1. **Core Foundation (220)** — Request/response lifecycle, HTTP headers, security patterns (CSRF, XSS), HATEOAS principles
-2. **Templates (221)** — Jinja2 organization patterns, partials, fragments, conditional rendering
-3. **Framework Integration (222-223)** — Flask-HTMX extension and FastAPI async patterns with dependency injection
-4. **Testing (224)** — Pytest fixtures, header assertions, HTML validation, mocking strategies  
-5. **Patterns (225)** — Common implementation patterns (CRUD, forms, infinite scroll, search, real-time, modals)
-6. **Frontend Integration (226, 500)** — Alpine.js, _hyperscript, CSS frameworks, pure HTMX frontend reference
+1. **Core Foundation (221)** — Request/response lifecycle, HTTP headers, security patterns (CSRF, XSS), HATEOAS principles
+2. **Templates (221a)** — Jinja2 organization patterns, partials, fragments, conditional rendering
+3. **Framework Integration (221b-221c)** — Flask-HTMX extension and FastAPI async patterns with dependency injection
+4. **Testing (221d)** — Pytest fixtures, header assertions, HTML validation, mocking strategies
+5. **Patterns (221e)** — Common implementation patterns (CRUD, forms, infinite scroll, search, real-time, modals)
+6. **Integrations (221f)** — Alpine.js, _hyperscript, CSS frameworks
+7. **SSE (221g)** — Server-Sent Events patterns
+8. **Frontend (500)** — Pure HTMX frontend reference without backend concerns
 
 **Design Decisions:**
 
 - **Consistent Naming:** All HTMX rules follow `python-htmx-*.md` pattern for easy discovery
-- **Framework Parity:** Separate rules for Flask (222) and FastAPI (223) to cover both ecosystems equally
-- **Security First:** Core rule (220) includes CSRF and XSS protection as foundational concepts
-- **Testing Emphasis:** Dedicated testing rule (224) ensures testability is a first-class concern
+- **Framework Parity:** Separate rules for Flask (221b) and FastAPI (221c) to cover both ecosystems equally
+- **Security First:** Core rule (221) includes CSRF and XSS protection as foundational concepts
+- **Testing Emphasis:** Dedicated testing rule (221d) ensures testability is a first-class concern
 - **Progressive Enhancement:** Rules emphasize graceful degradation and accessibility throughout
 
 **Dependency Chain:**
@@ -319,22 +380,11 @@ Starting in v3.1.0, the project includes comprehensive HTMX support for building
           ├── 221c-python-htmx-fastapi.md (FastAPI integration)
           ├── 221d-python-htmx-testing.md (testing strategies)
           ├── 221e-python-htmx-patterns.md (common patterns)
-          └── 221f-python-htmx-integrations.md (frontend libraries)
+          ├── 221f-python-htmx-integrations.md (frontend libraries)
+          └── 221g-python-htmx-sse.md (Server-Sent Events)
 
 500-frontend-htmx-core.md (standalone frontend reference)
 ```
-
-**Token Budget Management:**
-
-Total HTMX token budget: ~9500 tokens across 8 rules
-- Core (220): ~1500 tokens — Largest due to security, headers, and HATEOAS coverage
-- Templates (221): ~1200 tokens — Template organization patterns
-- Flask (222): ~1000 tokens — Framework-specific patterns
-- FastAPI (223): ~1000 tokens — Async patterns
-- Testing (224): ~1200 tokens — Comprehensive testing strategies
-- Patterns (225): ~1800 tokens — Largest due to multiple pattern examples (CRUD, forms, search, etc.)
-- Integrations (226): ~800 tokens — Lightest, focused on library integration points
-- Frontend (500): ~1000 tokens — Pure HTMX reference without backend concerns
 
 ### Claude Agent Skills Architecture
 
@@ -603,16 +653,19 @@ ai_coding_rules/
 ├── rules/                      # Production-ready rule files
 │   ├── 000-global-core.md      # Foundation (ContextTier: Critical)
 │   ├── 001-memory-bank.md      # Universal memory bank system
-│   ├── 002-rule-governance.md  # Schema standards
+│   ├── 002-rule-governance.md  # Schema standards (core)
+│   ├── 002a-rule-creation.md   # Companion: creation workflow
+│   ├── 002b-rule-update.md     # Companion: update workflow
+│   ├── ...                     # 002c-002l companions
+│   ├── 003-context-engineering.md
+│   ├── 004-tool-design-for-agents.md
 │   ├── 100-snowflake-core.md   # Domain cores
+│   ├── 101-snowflake-streamlit-core.md
+│   ├── 101a-...through 101n-...  # 14 Streamlit companions
 │   ├── 200-python-core.md
 │   ├── 221-python-htmx-core.md # HTMX foundation
-│   ├── 221a-python-htmx-templates.md
-│   ├── 221b-python-htmx-flask.md
-│   ├── 221c-python-htmx-fastapi.md
-│   ├── 221d-python-htmx-testing.md
-│   ├── 221e-python-htmx-patterns.md
-│   ├── 221f-python-htmx-integrations.md
+│   ├── 221a-...through 221g-...  # 7 HTMX companions
+│   ├── 300-bash-scripting-core.md
 │   ├── 500-frontend-htmx-core.md
 │   ├── 600-golang-core.md      # Go/Golang foundation
 │   ├── examples/               # Validated implementation examples
@@ -630,7 +683,7 @@ ai_coding_rules/
 │   │   ├── 121-snowpipe-auto-ingest-example.md
 │   │   ├── 220-python-typer-cli-example.md
 │   │   └── 821-makefile-automation-example.md
-│   └── ... (130 total)
+│   └── ... (179 total rules + 14 examples)
 │
 ├── schemas/                    # Validation schemas
 │   ├── rule-schema.yml         # Rule file schema definition
@@ -663,14 +716,12 @@ ai_coding_rules/
 ├── skills/                     # Claude Agent Skills (optional deployable artifacts)
 │   ├── rule-creator/            # Internal-only: create rules (excluded from deploy)
 │   │   ├── SKILL.md                 # Main entrypoint with YAML frontmatter
-│   │   ├── README.md                # Usage documentation
 │   │   ├── VALIDATION.md            # Self-validation procedures
 │   │   ├── workflows/               # 5-phase workflow guides
 │   │   ├── examples/                # Frontend, Python, Snowflake + edge-cases.md
 │   │   └── tests/                   # Input and workflow test cases
 │   ├── rule-reviewer/           # Internal-only: automate rule reviews (excluded from deploy)
 │   │   ├── SKILL.md                 # Main entrypoint with YAML frontmatter
-│   │   ├── README.md                # Usage documentation
 │   │   ├── VALIDATION.md            # Self-validation procedures
 │   │   ├── workflows/               # Input, execution, output, error handling
 │   │   ├── examples/                # FULL, FOCUSED, STALENESS + edge-cases.md
@@ -679,14 +730,12 @@ ai_coding_rules/
 │   │   └── SKILL.md                 # Main entrypoint with YAML frontmatter
 │   ├── doc-reviewer/           # Deployed by default: automate doc reviews
 │   │   ├── SKILL.md                 # Main entrypoint with YAML frontmatter
-│   │   ├── README.md                # Usage documentation
 │   │   ├── VALIDATION.md            # Self-validation procedures
 │   │   ├── workflows/               # Input, execution, output, error handling
 │   │   ├── examples/                # FULL, FOCUSED, STALENESS + edge-cases.md
 │   │   └── tests/                   # Input, mode, output test cases
 │   ├── plan-reviewer/          # Deployed by default: automate plan reviews
 │   │   ├── SKILL.md                 # Main entrypoint with YAML frontmatter
-│   │   ├── README.md                # Usage documentation
 │   │   ├── VALIDATION.md            # Self-validation procedures
 │   │   ├── workflows/               # Input, execution, output, error handling
 │   │   ├── examples/                # FULL, COMPARISON, META-REVIEW + edge-cases.md
@@ -719,7 +768,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 136 rules covering all domains (including 8 HTMX rules, Go/Golang core, Alpine.js, and Podman)
+- 180 rules covering all domains (including HTMX, Go/Golang, Alpine.js, Podman, and extensive companion rule families)
 
 **`rules/examples/`** — Validated implementation examples
 - Complete, runnable reference implementations for complex rules
@@ -1243,7 +1292,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 136 production-ready rule files
+- `rules/` — 179 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -1256,7 +1305,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 **Target Structure (in user's project):**
 ```
 /path/to/user-project/
-├── rules/                  # 136 rule files
+├── rules/                  # 179 rule files
 │   ├── 000-global-core.md
 │   ├── 100-snowflake-core.md
 │   └── ...
@@ -1348,15 +1397,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (136 files)
+  ✓ Source rules/ directory exists (180 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 136 rule files...
-  ✓ Copied 136 rules to /path/to/project/rules/
+  → Copying 180 rule files...
+  ✓ Copied 180 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 
@@ -1689,9 +1738,9 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>136 production files]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>179 production files]
     Root --> Src[src/ai_rules/<br/>CLI tool]
-    Root --> Schemas[schemas/<br/>v3.0 YAML schema]
+    Root --> Schemas[schemas/<br/>v3.2 YAML schema]
     Root --> Tests[tests/<br/>494 passing tests]
     Root --> Prompts[prompts/<br/>Example prompts]
     Root --> Docs[docs/<br/>Documentation]
@@ -1699,7 +1748,7 @@ graph TD
     
     Rules --> Rule1[000-global-core.md]
     Rules --> Rule2[100-snowflake-core.md]
-    Rules --> Rule3[... 136 total]
+    Rules --> Rule3[... 179 total]
     
     Src --> S1[ai-rules new]
     Src --> S2[ai-rules deploy]
@@ -1828,7 +1877,7 @@ if sections["Contract"]["line"] > 160:
 **Rationale:**
 
 1. **Context Drift Prevention** — Fresh context per sub-agent eliminates quality degradation after 50+ rules
-2. **Speed** — 5× faster execution (~50 minutes vs 4-6 hours for 136 rules)
+2. **Speed** — 5× faster execution (~50 minutes vs 4-6 hours for 180 rules)
 3. **Isolation** — One sub-agent failing doesn't stop others; partial results preserved
 4. **Full Protocol Preservation** — Each sub-agent loads complete anti-optimization protocols
 5. **No File Conflicts** — Unique filenames (rule-name-model-date.md) prevent write races
@@ -1974,10 +2023,12 @@ Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2
 **Best Practices:**
 
 - **Study existing rules** in same range (e.g., 200-299 for Python)
-- **Keep focused** — One rule per topic (split if >2000 tokens)
-- **Use split pattern** — Add letter suffixes for subtopics (101a, 101b, 101c)
+- **Keep focused** — One rule per topic (split if >500 lines / ~5000 tokens)
+- **Use companion pattern** — Add letter suffixes for subtopics (e.g., `101a`, `101b`, `101c`); see [Companion Rule Pattern](#companion-rule-pattern-rule-splitting)
+- **Naming:** `<NNN><letter>-<technology>-<aspect>.md` (e.g., `102a-snowflake-sql-automation.md`)
 - **Test thoroughly** — Include real-world examples and anti-patterns
-- **Document dependencies** — Specify all prerequisite rules in Depends field
+- **Document dependencies** — Specify all prerequisite rules in `Depends` field
+- **Cross-reference siblings** — List related companions in `Related Rules` section
 
 ### Customizing Schema
 

@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:htmx, kw:frontend
 **Keywords:** htmx attributes, client-side, events, css transitions, debugging, browser compatibility, hx-get, hx-post, hx-swap, hx-trigger, hx-target
 **TokenBudget:** ~3400
@@ -269,6 +269,15 @@ HTML with HTMX attributes:
 </button>
 ```
 
+**CSRF Protection:** MUST include CSRF tokens on all mutating requests.
+```javascript
+// Attach CSRF token to every HTMX request globally
+document.body.addEventListener('htmx:configRequest', function(event) {
+    event.detail.headers['X-CSRFToken'] =
+        document.querySelector('meta[name="csrf-token"]').content;
+});
+```
+
 ### Response Indicators
 
 **Loading Indicators:**
@@ -380,19 +389,8 @@ document.body.addEventListener('showNotification', function(event) {
 
 **Enable Logging:**
 ```javascript
-// Enable verbose logging
+// Enable verbose logging — shows full request lifecycle in console
 htmx.logAll();
-```
-
-**Console Output:**
-```
-htmx:configRequest GET /users
-htmx:beforeRequest GET /users
-htmx:xhr:loadstart GET /users
-htmx:xhr:loadend GET /users
-htmx:beforeSwap GET /users
-htmx:afterSwap GET /users
-htmx:afterSettle GET /users
 ```
 
 **Inspecting HTMX Requests:**
@@ -474,15 +472,24 @@ htmx.trigger(element, 'click');
 
 ### Anti-Pattern 4: Missing Progressive Enhancement
 
-**Problem:** HTMX-only forms that break completely without JavaScript.
-
-**Why It Fails:** Accessibility issues; breaks for users with JS disabled; SEO problems.
+**Problem:** HTMX-only forms that break without JavaScript — accessibility issues, SEO problems.
 
 **Correct Pattern:** See [Progressive Enhancement](#browser-compatibility) above — always include `action` and `method` attributes alongside HTMX attributes on forms.
 
-## HTMX 2.0 Changes
+### Progressive Enhancement with hx-boost
 
-If upgrading to HTMX 2.0, note these breaking changes:
+Use `hx-boost="true"` on navigation links and forms to convert standard requests into AJAX with no other attribute changes. The page degrades gracefully when JS is disabled.
+```html
+<nav hx-boost="true">
+    <a href="/about">About</a> <!-- AJAX-ified, falls back to normal link -->
+</nav>
+```
+
+### Server-Sent Events (SSE) and WebSockets
+
+For real-time updates, use the official [SSE extension](https://htmx.org/extensions/sse/) (`hx-ext="sse"`) or [WebSocket extension](https://htmx.org/extensions/ws/) (`hx-ext="ws"`). These extensions MUST be loaded separately from `htmx.org/dist/ext/`.
+
+## HTMX 2.0 Changes
 
 - **IE11 dropped** — No longer supported; remove any IE11 polyfills
 - **`hx-on` syntax changed** — Use `hx-on:event="handler"` instead of `hx-on="event: handler"`

@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:semantic-query, kw:analyst
 **Keywords:** window functions, dimension compatibility, testing, validation, TPC-DS, SEMANTIC_VIEW function, query patterns
 **TokenBudget:** ~2550
@@ -162,12 +162,12 @@ SELECT * FROM SEMANTIC_VIEW(
 
 **Allowed Combinations:**
 ```sql
-SELECT * FROM SEMANTIC_VIEW(view DIMENSIONS d1, d2);              -- ✓
-SELECT * FROM SEMANTIC_VIEW(view METRICS m1, m2);                 -- ✓
-SELECT * FROM SEMANTIC_VIEW(view FACTS f1, f2);                   -- ✓
-SELECT * FROM SEMANTIC_VIEW(view DIMENSIONS d1 METRICS m1);       -- ✓
-SELECT * FROM SEMANTIC_VIEW(view DIMENSIONS d1 FACTS f1);         -- ✓
-SELECT * FROM SEMANTIC_VIEW(view FACTS f1 METRICS m1);            -- ✗ FORBIDDEN
+SELECT * FROM SEMANTIC_VIEW(view DIMENSIONS d1, d2);              -- OK
+SELECT * FROM SEMANTIC_VIEW(view METRICS m1, m2);                 -- OK
+SELECT * FROM SEMANTIC_VIEW(view FACTS f1, f2);                   -- OK
+SELECT * FROM SEMANTIC_VIEW(view DIMENSIONS d1 METRICS m1);       -- OK
+SELECT * FROM SEMANTIC_VIEW(view DIMENSIONS d1 FACTS f1);         -- OK
+SELECT * FROM SEMANTIC_VIEW(view FACTS f1 METRICS m1);            -- FORBIDDEN
 ```
 
 ## Dimension Compatibility

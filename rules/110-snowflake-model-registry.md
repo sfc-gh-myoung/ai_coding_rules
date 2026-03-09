@@ -3,27 +3,25 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-02-25
-**LoadTrigger:** kw:model-registry, kw:ml-model, kw:model-monitor, kw:ml-observability
-**Keywords:** model governance, model lifecycle, model logging, model inference, RBAC, model privileges, register model, log model, model management, ML registry, model tracking, model metadata, deploy model, model lineage, model monitor, ML observability, task parameter, drift detection, baseline data, scoring data
-**TokenBudget:** ~5900
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
+**LoadTrigger:** kw:model-registry, kw:ml-model
+**Keywords:** model governance, model lifecycle, model logging, model inference, RBAC, model privileges, register model, log model, model management, ML registry, model tracking, model metadata, deploy model, model lineage
+**TokenBudget:** ~4200
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md
+**Companions:** 110a-snowflake-model-monitor.md, 110b-snowflake-model-registry-operations.md
 
 ## Scope
 
 **What This Rule Covers:**
-Comprehensive best practices for using Snowflake Model Registry to manage machine learning models, ensuring secure, performant, and governable ML operations through proper lifecycle management, access control, versioning strategies, MODEL MONITOR integration for ML Observability, and cost optimization.
+Comprehensive best practices for using Snowflake Model Registry to manage machine learning models, ensuring secure, performant, and governable ML operations through proper lifecycle management, access control, and versioning strategies.
 
 **When to Load This Rule:**
 - Logging models to Snowflake Model Registry
 - Managing ML model versions and lifecycle
 - Implementing model access control and governance
 - Running model inference in Snowflake
-- Optimizing model registry costs
-- Creating MODEL MONITORs for ML Observability
-- Setting up drift detection and model performance monitoring
 
 ## References
 
@@ -275,7 +273,7 @@ print(f"Test predictions: {predictions}")
 assert len(predictions) == 2, "Should return 2 predictions"
 assert all(0 <= p <= 1 for p in predictions['FRAUD_PROBABILITY']), "Probabilities in [0,1]"
 
-print("✓ Model inference validated, ready for production")
+print("Model inference validated, ready for production")
 ```
 **Benefits:** Early error detection; validated inference; confidence in production
 
@@ -481,8 +479,8 @@ def promote_model(source_reg, target_reg, model_name, version_name):
     if metrics.get("accuracy", 0) >= 0.90:
         # Export and re-import to target registry
         source_mv.export("/tmp/model_export")
-        # Additional validation and import logic
-        pass
+        target_reg.log_model(model_name=model_name, version_name=version_name,
+                             source="/tmp/model_export")
 ```
 
 ### Model Monitoring and Maintenance
@@ -498,210 +496,11 @@ def promote_model(source_reg, target_reg, model_name, version_name):
 
 ## MODEL MONITOR Integration (ML Observability)
 
-### Prerequisites for MODEL MONITOR
+> **See companion rule:** `110a-snowflake-model-monitor.md` for complete MODEL MONITOR patterns including prerequisites, creation syntax, schema alignment, required table structures, and privilege grants.
+
 - **Critical Requirement:** Registry MUST be initialized with `options={"enable_monitoring": True}` to use MODEL MONITOR
-- **Rule:** The `enable_monitoring` option must be set at Registry creation time - models registered without it cannot be monitored
-- **Warning:** Models registered without `enable_monitoring` will cause "MODEL does not exist or not authorized" errors when creating monitors, even though the model exists
-- **Rule:** If model was registered without `enable_monitoring`, you must DROP the model and re-register using a monitoring-enabled Registry
+- **Warning:** Models registered without `enable_monitoring` will cause "MODEL does not exist or not authorized" errors when creating monitors
 
-### Registry Initialization for MODEL MONITOR
-```python
-from snowflake.ml.registry import Registry
+## Cost Governance, Queries, and Operations
 
-# REQUIRED: Enable monitoring in options to use MODEL MONITOR
-registry = Registry(
-    session=session,
-    database_name="ML",
-    schema_name="REGISTRY",
-    options={"enable_monitoring": True}  # CRITICAL for MODEL MONITOR!
-)
-```
-
-### Model Registration for MODEL MONITOR
-```python
-# Initialize with monitoring enabled (see Registry Initialization above)
-# Then register model - no special parameters needed if Registry has monitoring enabled
-model_ref = registry.log_model(
-    model=trained_model,
-    model_name="customer_churn_predictor",
-    version_name="v1_0_0",
-    comment="Binary classifier for customer churn prediction",
-    sample_input_data=X_test.head(5),
-    conda_dependencies=["scikit-learn", "pandas", "numpy"]
-)
-```
-
-### Creating a MODEL MONITOR
-- **Requirement:** Prepare baseline and scoring data tables before creating monitor
-- **Rule:** Baseline table should contain representative sample of training data distribution
-- **Rule:** Scoring table accumulates production predictions for drift comparison
-- **Critical:** Set explicit session context (USE DATABASE/SCHEMA) before CREATE MODEL MONITOR to ensure model reference resolves correctly
-- **Critical:** Baseline and scoring table schemas MUST match exactly - same columns with same names and compatible types
-- **Tip:** You can create MODEL MONITOR without BASELINE for accuracy-only monitoring; add BASELINE later once schemas align
-
-```sql
--- IMPORTANT: Set session context before creating monitor
-USE DATABASE ML;
-USE SCHEMA MONITORING;
-
--- Create MODEL MONITOR for drift detection and performance monitoring
-CREATE MODEL MONITOR customer_churn_monitor
-  WITH 
-    MODEL = CUSTOMER_CHURN_PREDICTOR,  -- Uses current schema context
-    VERSION = V1_0_0,
-    SOURCE = SCORING_DATA,              -- Production predictions
-    BASELINE = BASELINE_DATA,           -- Training distribution (optional, enables drift)
-    TIMESTAMP_COLUMN = PREDICTION_TIMESTAMP,
-    PREDICTION_SCORE_COLUMNS = (PREDICTION),
-    ACTUAL_CLASS_COLUMNS = (ACTUAL_LABEL),  -- Optional: for accuracy monitoring
-    ID_COLUMNS = (CUSTOMER_ID),
-    WAREHOUSE = MY_WH,
-    REFRESH_INTERVAL = '1 hour',
-    AGGREGATION_WINDOW = '1 day';
-
--- Check monitor status
-SHOW MODEL MONITORS;
-DESC MODEL MONITOR customer_churn_monitor;
-```
-
-### Schema Alignment for Baseline/Scoring Tables
-- **Rule:** Both tables must have identical feature columns for drift detection to work
-- **Warning:** Extra columns in baseline that don't exist in scoring will cause schema mismatch errors
-- **Pattern:** Create a view over baseline that selects only the columns present in scoring table
-
-```sql
--- If baseline has extra columns, create aligned view
-CREATE OR REPLACE VIEW ML.MONITORING.BASELINE_ALIGNED AS
-SELECT 
-    CUSTOMER_ID,
-    FEATURE_1,
-    FEATURE_2,
-    PREDICTION,
-    ACTUAL_LABEL,
-    PREDICTION_TIMESTAMP
-FROM ML.MONITORING.BASELINE_DATA;
--- Then use BASELINE = BASELINE_ALIGNED in MODEL MONITOR
-```
-
-### Required Table Structures
-```sql
--- Baseline table: sample from training data
-CREATE TABLE ML.MONITORING.BASELINE_DATA (
-    CUSTOMER_ID VARCHAR,
-    FEATURE_1 FLOAT,
-    FEATURE_2 FLOAT,
-    -- ... all model input features
-    PREDICTION FLOAT,           -- Model prediction
-    ACTUAL_LABEL INT,           -- Ground truth (if available)
-    PREDICTION_TIMESTAMP TIMESTAMP_NTZ
-);
-
--- Scoring table: production predictions (append-only)
-CREATE TABLE ML.MONITORING.SCORING_DATA (
-    CUSTOMER_ID VARCHAR,
-    FEATURE_1 FLOAT,
-    FEATURE_2 FLOAT,
-    -- ... all model input features (must match baseline)
-    PREDICTION FLOAT,
-    ACTUAL_LABEL INT,           -- Populated later when ground truth available
-    PREDICTION_TIMESTAMP TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
-);
-```
-
-### MODEL MONITOR Privileges
-```sql
--- Grant privileges for MODEL MONITOR operations
-GRANT USAGE ON MODEL ML.REGISTRY.CUSTOMER_CHURN_PREDICTOR TO ROLE ml_monitoring;
-GRANT SELECT ON TABLE ML.MONITORING.BASELINE_DATA TO ROLE ml_monitoring;
-GRANT SELECT ON TABLE ML.MONITORING.SCORING_DATA TO ROLE ml_monitoring;
-GRANT CREATE MODEL MONITOR ON SCHEMA ML.MONITORING TO ROLE ml_monitoring;
-```
-
-## Cost Governance and Optimization
-
-### Storage Optimization
-- **Rule:** Monitor model storage costs and implement cleanup policies
-- **Always:** Compress model artifacts when possible
-- **Consider:** Archive infrequently used models to lower-cost storage
-
-### Compute Optimization
-- **Rule:** Right-size warehouses for model training and inference workloads
-- **Always:** Use auto-suspend and auto-resume for inference warehouses
-- **Rule:** Monitor inference costs and optimize batch sizes
-
-### Resource Monitoring
-- **Requirement:** Implement resource monitors for model-related compute:
-
-```sql
--- Create resource monitor for ML workloads
-CREATE RESOURCE MONITOR ml_workload_monitor
-WITH CREDIT_QUOTA = 1000
-TRIGGERS
-  ON 75 PERCENT DO NOTIFY
-  ON 90 PERCENT DO SUSPEND
-  ON 100 PERCENT DO SUSPEND_IMMEDIATE;
-```
-
-## Model Registry Queries and Administration
-
-### Information Schema Queries
-- **Always:** Use `INFORMATION_SCHEMA.MODEL_VERSIONS` for model governance:
-
-```sql
--- Model performance dashboard
-SELECT
-    catalog_name,
-    schema_name,
-    model_name,
-    model_version_name,
-    metadata:metric:accuracy AS accuracy,
-    metadata:metric:f1_score AS f1_score,
-    comment,
-    owner,
-    created_on,
-    last_altered_on
-FROM ml.information_schema.model_versions
-WHERE schema_name = 'REGISTRY'
-ORDER BY accuracy DESC;
-```
-
-### Model Maintenance Queries
-- **Rule:** Regular model auditing and cleanup:
-
-```sql
--- Identify models without recent usage
-SELECT
-    model_name,
-    model_version_name,
-    last_altered_on,
-    DATEDIFF('day', last_altered_on, CURRENT_TIMESTAMP()) as days_since_update
-FROM ml.information_schema.model_versions
-WHERE days_since_update > 90
-ORDER BY days_since_update DESC;
-```
-
-## Integration with ML Workflows
-
-### Notebook Integration
-- **Rule:** Use registry operations within Snowflake notebooks for seamless ML workflows
-- **Always:** Document model experiments and results in notebook metadata
-- **Consider:** Automated model registration from notebook environments
-
-### CI/CD Integration
-- **Requirement:** Integrate model registry operations into automated ML pipelines
-- **Rule:** Implement automated testing for model versions before production deployment
-- **Always:** Use version control for model training scripts and registry operations
-
-## Compliance and Governance
-
-### Model Documentation
-- **Requirement:** Maintain comprehensive model documentation including:
-  - Model purpose and business use case
-  - Training data sources and characteristics
-  - Model limitations and assumptions
-  - Performance metrics and validation results
-
-### Audit and Compliance
-- **Rule:** Implement audit logging for all model registry operations
-- **Always:** Maintain model lineage and data provenance information
-- **Requirement:** Regular compliance reviews for model access and usage
+> **See companion rule:** `110b-snowflake-model-registry-operations.md` for cost governance, resource monitoring, administrative queries, model maintenance, CI/CD integration, and compliance patterns.

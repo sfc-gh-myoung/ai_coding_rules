@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:bash-testing, kw:bats
 **Keywords:** Bash, testing, ShellCheck, bats, shell script testing, CI/CD, debugging, static analysis, linting, test automation
-**TokenBudget:** ~4200
+**TokenBudget:** ~3200
 **ContextTier:** Medium
 **Depends:** 300-bash-scripting-core.md
 
@@ -61,7 +61,7 @@ Comprehensive bash testing, debugging, and modern tooling integration including 
 
 - Deploying scripts without ShellCheck validation
 - Relying solely on manual testing
-- Ignoring ShellCheck warnings without justification
+- Disabling ShellCheck warnings without mandatory inline justification
 - Skipping error path testing
 - Testing only happy path scenarios
 
@@ -125,19 +125,11 @@ Testing infrastructure with:
 - [ ] Test coverage documented
 - [ ] Development environment setup documented
 
-**Investigation Required:**
-1. **Check existing test infrastructure** - Look for existing test frameworks, test directories, and CI/CD configs before adding new ones
-2. **Verify shellcheck is installed and accessible** - Run `command -v shellcheck` and check version compatibility
-3. **Review current CI/CD pipeline** - Identify gaps in shell testing coverage in existing pipeline configurations
-4. **Identify critical functions requiring test coverage** - Prioritize functions with side effects, file operations, or user input handling
-
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Skipping ShellCheck Static Analysis
 
 **Problem:** Not running ShellCheck on bash scripts before deployment, missing common bugs, security issues, and portability problems.
-
-**Why It Fails:** Unquoted variables cause word splitting bugs. Deprecated syntax breaks on newer shells. Security vulnerabilities go undetected. Portability issues discovered only in production.
 
 **Correct Pattern:**
 ```bash
@@ -165,8 +157,6 @@ repos:
 ### Anti-Pattern 2: Testing Scripts Only Manually
 
 **Problem:** Relying on manual testing of shell scripts instead of automated unit tests with frameworks like Bats or shunit2.
-
-**Why It Fails:** Regressions introduced silently. Edge cases not covered. Refactoring becomes risky. No CI/CD integration. "Works on my machine" issues.
 
 **Correct Pattern:**
 ```bash
@@ -196,50 +186,6 @@ setup() {
 # Run: bats test_deploy.bats
 ```
 
-## Output Format Examples
-
-```bash
-# .shellcheckrc - project-level ShellCheck configuration
-disable=SC2034,SC1091
-shell=bash
-```
-
-```bash
-# tests/test_deploy.bats - Sample Bats test file
-#!/usr/bin/env bats
-
-setup() {
-    source ./deploy.sh
-}
-
-@test "validate_environment accepts valid env" {
-    export DEPLOY_ENV="production"
-    run validate_environment
-    [ "$status" -eq 0 ]
-}
-
-@test "validate_environment rejects missing env" {
-    unset DEPLOY_ENV
-    run validate_environment
-    [ "$status" -eq 1 ]
-    [[ "$output" =~ "DEPLOY_ENV required" ]]
-}
-```
-
-```yaml
-# .github/workflows/shell.yml - CI/CD snippet
-name: Shell Tests
-on: [push]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: sudo apt-get install -y shellcheck
-      - run: find . -name "*.sh" -exec shellcheck {} +
-      - run: npm install -g bats && bats tests/
-```
-
 ## Static Analysis with ShellCheck
 
 ### ShellCheck Integration
@@ -266,9 +212,9 @@ shellcheck --format=diff script.sh    # Show suggested fixes
 ```
 
 ### ShellCheck Configuration
-- **Rule:** Use `.shellcheckrc`:
+- **Rule:** Use `.shellcheckrc` for project-wide settings (only for confirmed false positives, not style preferences):
 ```bash
-# .shellcheckrc
+# .shellcheckrc -- project-wide disables for false positives only
 disable=SC2034,SC1091
 shell=bash
 ```
@@ -510,107 +456,10 @@ show_coverage() {
 
 ## Development Environment Setup
 
-### IDE Integration
-- **Rule:** Configure development environment for bash scripting:
-```bash
-# VS Code settings.json for bash development
-{
-    "shellcheck.enable": true,
-    "shellcheck.executablePath": "/usr/bin/shellcheck",
-    "shellcheck.run": "onType",
-    "files.associations": {
-        "*.sh": "shellscript",
-        "*.bash": "shellscript"
-    },
-    "editor.formatOnSave": true,
-    "[shellscript]": {
-        "editor.defaultFormatter": "foxundermoon.shell-format"
-    }
-}
-```
-
-### Development Scripts
-- **Rule:** Create development helper scripts:
-```bash
-#!/usr/bin/env bash
-# dev-setup.sh - Development environment setup
-
-setup_git_hooks() {
-    echo "Setting up git hooks..."
-
-    # Create pre-commit hook
-    cat > .git/hooks/pre-commit << 'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-
-# Run ShellCheck on staged files
-mapfile -t staged_scripts < <(git diff --cached --name-only | grep '\.sh$' || true)
-for script in "${staged_scripts[@]}"; do
-    [[ -f "$script" ]] && shellcheck "$script"
-done
-EOF
-
-    chmod +x .git/hooks/pre-commit
-    echo "Pre-commit hook installed"
-}
-
-install_dependencies() {
-    echo "Installing development dependencies..."
-
-    # Install ShellCheck based on OS
-    if command -v apt-get >/dev/null; then
-        sudo apt-get update && sudo apt-get install -y shellcheck
-    elif command -v brew >/dev/null; then
-        brew install shellcheck
-    elif command -v dnf >/dev/null; then
-        sudo dnf install -y ShellCheck
-    else
-        echo "Please install ShellCheck manually"
-        exit 1
-    fi
-}
-
-create_project_structure() {
-    echo "Creating project structure..."
-
-    mkdir -p {src,tests,scripts,docs}
-
-    # Create basic test template
-    cat > tests/test_template.sh << 'EOF'
-#!/usr/bin/env bash
-# Test template
-
-source "$(dirname "${BASH_SOURCE[0]}")/../test_framework.sh"
-
-test_example() {
-    assert_equals "expected" "expected" "example test"
-}
-
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    run_tests "test_example"
-fi
-EOF
-
-    chmod +x tests/test_template.sh
-}
-
-# Main setup
-main() {
-    echo "Setting up bash development environment..."
-
-    install_dependencies
-    setup_git_hooks
-    create_project_structure
-
-    echo "Development environment setup complete!"
-}
-
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "$@"
-fi
-```
-
-## Documentation and Maintenance
-
-### Automated Documentation Generation
-- **Rule:** Generate documentation from code comments using `awk` or dedicated tools (e.g., `shdoc`). Extract function definitions and their preceding comments into markdown format.
+### Setup Checklist
+- Install ShellCheck via package manager (`apt-get install shellcheck`, `brew install shellcheck`, or Docker)
+- Install Bats: `npm install -g bats` or `brew install bats-core`
+- Configure IDE ShellCheck extension (VS Code: `shellcheck.enable: true`, `shellcheck.run: "onType"`)
+- Create project structure: `mkdir -p {src,tests,scripts,docs}`
+- Set up pre-commit hook for ShellCheck (see CI/CD Integration section above)
+- Create test template in `tests/` directory using framework from Testing Frameworks section

@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-01-12
+**LastUpdated:** 2026-03-09
 **Keywords:** pydeck, st.pydeck_chart, deck.gl, 3D visualization, hexagon layer, scatterplot layer, geojson layer, arc layer, heatmap layer, terrain, point cloud, WebGL, geospatial
-**TokenBudget:** ~3550
+**TokenBudget:** ~2550
 **ContextTier:** Medium
 **Depends:** 101a-snowflake-streamlit-visualization.md
 
@@ -69,7 +69,7 @@ PyDeck (deck.gl) visualization patterns for Streamlit, including 3D visualizatio
 
 1. Import pydeck as pdk and streamlit as st
 2. Validate coordinate data (lat/lon within valid ranges)
-3. Create Layer with appropriate type and styling
+3. Select layer type per PyDeck vs Plotly decision matrix (When to Use section)
 4. Configure ViewState (latitude, longitude, zoom, pitch, bearing)
 5. Create Deck combining layers and view state
 6. Render with `st.pydeck_chart(deck, width="stretch")`
@@ -147,207 +147,7 @@ st.pydeck_chart(deck, width="stretch")
 
 ## Common Layer Patterns
 
-### HexagonLayer (Density Aggregation)
-
-```python
-layer = pdk.Layer(
-    'HexagonLayer',
-    data=df,
-    get_position='[longitude, latitude]',
-    radius=200,
-    elevation_scale=50,
-    elevation_range=[0, 1000],
-    extruded=True,
-    coverage=0.8,
-    pickable=True,
-    auto_highlight=True
-)
-
-view_state = pdk.ViewState(
-    latitude=df['latitude'].mean(),
-    longitude=df['longitude'].mean(),
-    zoom=10,
-    pitch=50,
-    bearing=-27
-)
-
-deck = pdk.Deck(
-    layers=[layer],
-    initial_view_state=view_state,
-    map_style='mapbox://styles/mapbox/dark-v10'
-)
-st.pydeck_chart(deck, width="stretch")
-```
-
-### ScatterplotLayer (Large Point Datasets)
-
-```python
-layer = pdk.Layer(
-    'ScatterplotLayer',
-    data=df,
-    get_position='[longitude, latitude]',
-    get_color='[category == "A" ? 255 : 0, category == "B" ? 255 : 0, 200, 180]',
-    get_radius='value * 10',
-    radius_min_pixels=2,
-    radius_max_pixels=50,
-    pickable=True,
-    opacity=0.8,
-    stroked=True,
-    line_width_min_pixels=1
-)
-```
-
-### GeoJsonLayer (Polygons with Extrusion)
-
-```python
-layer = pdk.Layer(
-    'GeoJsonLayer',
-    data=geojson_url,
-    opacity=0.8,
-    stroked=True,
-    filled=True,
-    extruded=True,
-    wireframe=True,
-    get_elevation='properties.height',
-    get_fill_color='[255, 255, properties.value * 2.55]',
-    get_line_color=[255, 255, 255],
-    pickable=True
-)
-```
-
-### ArcLayer (Flow/Connection Visualization)
-
-```python
-layer = pdk.Layer(
-    'ArcLayer',
-    data=connections_df,
-    get_source_position='[source_lon, source_lat]',
-    get_target_position='[target_lon, target_lat]',
-    get_source_color='[64, 255, 0]',
-    get_target_color='[0, 128, 200]',
-    get_width='flow_volume / 100',
-    pickable=True,
-    auto_highlight=True
-)
-```
-
-### ColumnLayer (3D Bar Charts on Map)
-
-```python
-layer = pdk.Layer(
-    'ColumnLayer',
-    data=df,
-    get_position='[longitude, latitude]',
-    get_elevation='value',
-    elevation_scale=100,
-    radius=50,
-    get_fill_color='[value * 2, 100, 200, 200]',
-    pickable=True,
-    auto_highlight=True
-)
-```
-
-### HeatmapLayer (Continuous Density)
-
-```python
-layer = pdk.Layer(
-    'HeatmapLayer',
-    data=df,
-    get_position='[longitude, latitude]',
-    get_weight='intensity',
-    aggregation=pdk.types.String('MEAN'),
-    radius_pixels=50,
-    intensity=1,
-    threshold=0.05
-)
-```
-
-### PathLayer (Routes/Trajectories)
-
-```python
-layer = pdk.Layer(
-    'PathLayer',
-    data=routes_df,
-    get_path='coordinates',
-    get_color='[255, 100, 100]',
-    width_scale=20,
-    width_min_pixels=2,
-    get_width=5,
-    pickable=True
-)
-```
-
-### TerrainLayer (3D Terrain Visualization)
-
-```python
-layer = pdk.Layer(
-    'TerrainLayer',
-    elevation_decoder={
-        'rScaler': 256,
-        'gScaler': 1,
-        'bScaler': 1/256,
-        'offset': -32768
-    },
-    elevation_data='https://example.com/terrain-tiles/{z}/{x}/{y}.png',
-    texture='https://example.com/satellite/{z}/{x}/{y}.png',
-    bounds=[-122.52, 37.70, -122.35, 37.82]
-)
-```
-
-### PointCloudLayer (Large Point Sets)
-
-```python
-layer = pdk.Layer(
-    'PointCloudLayer',
-    data=points_df,
-    get_position='[longitude, latitude, elevation]',
-    get_color='[255, height * 2, 0]',
-    get_normal='[0, 0, 1]',
-    point_size=2,
-    pickable=True,
-    auto_highlight=True
-)
-```
-
-## Multi-Layer Composition
-
-```python
-scatter_layer = pdk.Layer(
-    'ScatterplotLayer',
-    data=points_df,
-    get_position='[longitude, latitude]',
-    get_color='[255, 0, 0, 160]',
-    get_radius=50,
-    pickable=True
-)
-
-arc_layer = pdk.Layer(
-    'ArcLayer',
-    data=connections_df,
-    get_source_position='[src_lon, src_lat]',
-    get_target_position='[dst_lon, dst_lat]',
-    get_source_color='[0, 255, 0]',
-    get_target_color='[255, 0, 0]',
-    get_width=2
-)
-
-polygon_layer = pdk.Layer(
-    'GeoJsonLayer',
-    data=boundaries_geojson,
-    opacity=0.3,
-    stroked=True,
-    filled=True,
-    get_fill_color='[100, 100, 200, 80]',
-    get_line_color='[255, 255, 255]'
-)
-
-deck = pdk.Deck(
-    layers=[polygon_layer, arc_layer, scatter_layer],
-    initial_view_state=view_state,
-    tooltip={'text': '{name}'}
-)
-st.pydeck_chart(deck, width="stretch")
-```
+See **101m-snowflake-streamlit-pydeck-layers.md** for complete layer patterns: ScatterplotLayer, HexagonLayer, GeoJsonLayer, ArcLayer, ColumnLayer, HeatmapLayer, PathLayer, TerrainLayer, PointCloudLayer, and multi-layer composition.
 
 ## ViewState Configuration
 
@@ -529,10 +329,10 @@ st.pydeck_chart(deck, width="stretch")
 ## Validation Checklist
 
 - [ ] Using `width="stretch"` for responsive display
-- [ ] ViewState configured with appropriate lat/lon/zoom/pitch
+- [ ] ViewState configured with valid lat (-90 to 90), lon (-180 to 180), zoom (5-18), pitch (0-60)
 - [ ] Coordinates validated before rendering
 - [ ] Maximum 8 PyDeck charts per page
 - [ ] Using PyDeck only for 3D/hexbin/terrain use cases
 - [ ] Tooltips configured for interactivity
 - [ ] Large datasets sampled or aggregated
-- [ ] Map style appropriate for visualization type
+- [ ] Map style: light-v10 for data overlay, dark-v10 for glowing effects, None for clean 3D

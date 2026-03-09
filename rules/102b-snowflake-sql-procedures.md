@@ -9,7 +9,7 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-02-18
+**LastUpdated:** 2026-03-09
 **Keywords:** stored procedure, CREATE PROCEDURE, UDF, CREATE FUNCTION, dollar quoting, nested quotes, EXECUTE AS, EXECUTE IMMEDIATE, dynamic SQL, bind variables, OWNER, CALLER, RESTRICTED CALLER, SQL scripting, procedure body
 **TokenBudget:** ~5700
 **ContextTier:** High
@@ -405,6 +405,21 @@ $$;
 
 **Bind variables do not work for:** table names, column names, schema names, or other identifiers. For those, use string concatenation with validation.
 
+### CRITICAL: Colon Prefix for Variables in SQL Statements
+
+Within SQL statements inside a procedure body (SELECT, INSERT, UPDATE, DELETE, MERGE), reference variables and parameters with colon prefix: `:my_var`, `:P_PARAM`. Without the colon, Snowflake treats them as column identifiers and raises "invalid identifier" errors.
+
+```sql
+-- CORRECT: colon prefix on variables in SQL statements
+SELECT name INTO :result_var FROM my_db.my_schema.users WHERE id = :user_id;
+UPDATE my_db.my_schema.users SET status = :new_status WHERE id = :user_id;
+
+-- WRONG: missing colon prefix -- Snowflake looks for columns named "result_var" and "user_id"
+SELECT name INTO result_var FROM my_db.my_schema.users WHERE id = user_id;
+```
+
+**Note:** The colon is only needed inside SQL statements. In procedural code (assignments, IF conditions, RETURN), use the variable name directly without colon: `result_var := 'value';`
+
 ### String Concatenation (When Bind Variables Are Not Possible)
 
 When you must construct identifiers dynamically (table names, column names), concatenate strings. Validate inputs to prevent injection:
@@ -510,6 +525,38 @@ $$;
 - `SQLERRM` -- error message text
 - `RAISE` -- re-raise the current exception after handling
 
+## Transaction Handling
+
+For multi-statement procedures that must be atomic, use explicit transaction control:
+
+```sql
+AS
+$$
+BEGIN
+    BEGIN TRANSACTION;
+    
+    DELETE FROM my_db.my_schema.old_records WHERE created_at < :cutoff_date;
+    INSERT INTO my_db.my_schema.archive SELECT * FROM my_db.my_schema.staging;
+    
+    COMMIT;
+    RETURN 'Transaction committed';
+EXCEPTION
+    WHEN OTHER THEN
+        ROLLBACK;
+        RAISE;
+END;
+$$;
+```
+
+**Key rules:** Always pair `BEGIN TRANSACTION` with `COMMIT` in the happy path and `ROLLBACK` in the exception handler. Use `RAISE` after `ROLLBACK` to propagate the error to the caller.
+
+## Debugging Procedures
+
+1. **Use `SYSTEM$LOG()`** for server-side logging: `SYSTEM$LOG('info', 'Processing ' || :row_count || ' rows');`
+2. **Test body SQL outside the procedure first** -- run the SELECT/INSERT/MERGE statements directly to verify logic
+3. **Check `QUERY_HISTORY`** for the procedure's internal queries: `SELECT * FROM TABLE(INFORMATION_SCHEMA.QUERY_HISTORY()) WHERE QUERY_TEXT ILIKE '%procedure_name%' ORDER BY START_TIME DESC LIMIT 10;`
+4. **Use `RESULT_SCAN(LAST_QUERY_ID())`** to inspect intermediate results during development
+
 ## Procedure and UDF Structure Templates
 
 ### Stored Procedure Template
@@ -573,29 +620,28 @@ $$;
 
 ## Anti-Patterns and Common Mistakes
 
-### Anti-Pattern 1: Using Single-Quote Delimiters for Bodies with Strings
+Common procedure anti-patterns (see **102e-snowflake-sql-procedure-antipatterns.md** for full examples):
 
-**Problem:**
+### Anti-Pattern 1: Single-Quote Delimiters for Bodies with String Literals
+
+**Problem:** Using single-quote delimiters for procedure bodies that contain string literals causes quoting conflicts and hard-to-read escaped code.
+
+**Correct Pattern:** Use `$$` delimiters so internal strings need no extra escaping.
+
 ```sql
--- Quoting nightmare: every internal quote must be escaped
+-- Wrong: single-quote delimiter forces painful escaping of every internal string
 CREATE OR REPLACE PROCEDURE my_db.my_schema.log_event(event_name VARCHAR)
 RETURNS VARCHAR
 LANGUAGE SQL
+EXECUTE AS OWNER
 AS
-'
-BEGIN
+'BEGIN
     INSERT INTO my_db.my_schema.audit_log (event, message)
-    VALUES (:event_name, ''Event processed at '' || CURRENT_TIMESTAMP()::VARCHAR);
+    VALUES (''STATUS_CHANGE'', ''Record '' || event_name || '' processed'');
     RETURN ''Done'';
-END;
-';
-```
+END;';
 
-**Why It Fails:** Every single quote inside the body must be doubled. As procedures grow, this becomes unreadable and error-prone. Adding a new string literal requires finding and escaping quotes correctly. Debugging is difficult because the visual noise obscures the actual SQL logic.
-
-**Correct Pattern:**
-```sql
--- Clean: $$ eliminates all escaping
+-- Correct: $$ delimiters let you write normal SQL strings
 CREATE OR REPLACE PROCEDURE my_db.my_schema.log_event(event_name VARCHAR)
 RETURNS VARCHAR
 LANGUAGE SQL
@@ -604,154 +650,87 @@ AS
 $$
 BEGIN
     INSERT INTO my_db.my_schema.audit_log (event, message)
-    VALUES (:event_name, 'Event processed at ' || CURRENT_TIMESTAMP()::VARCHAR);
+    VALUES ('STATUS_CHANGE', 'Record ' || :event_name || ' processed');
     RETURN 'Done';
 END;
 $$;
 ```
 
-**Benefits:** Readable body; no escaping needed for string literals; easier maintenance; standard practice.
+### Anti-Pattern 2: Omitting EXECUTE AS
 
-### Anti-Pattern 2: Omitting EXECUTE AS (Silent Default to OWNER)
+**Problem:** Leaving out the `EXECUTE AS` clause silently defaults to OWNER, which may grant unintended elevated privileges to callers.
 
-**Problem:**
+**Correct Pattern:** Always explicitly specify `EXECUTE AS OWNER`, `CALLER`, or `RESTRICTED CALLER`.
+
 ```sql
--- No EXECUTE AS specified: silently defaults to OWNER
-CREATE OR REPLACE PROCEDURE my_db.my_schema.check_access()
-RETURNS VARCHAR
+-- Wrong: no EXECUTE AS -- silently defaults to OWNER
+CREATE OR REPLACE PROCEDURE my_db.my_schema.get_user_data(user_id INTEGER)
+RETURNS TABLE (id INTEGER, name VARCHAR)
 LANGUAGE SQL
-AS
-$$
-BEGIN
-    -- Developer expects this to run as CALLER but it runs as OWNER
-    -- Session variables are inaccessible, caller permissions ignored
-    RETURN CURRENT_ROLE();
-END;
-$$;
-```
-
-**Why It Fails:** The default is OWNER, which means the procedure runs with the creating role's privileges. If the developer intended CALLER rights (to respect the calling user's permissions or access session variables), the procedure silently does the wrong thing. This is a common source of security and permission bugs.
-
-**Correct Pattern:**
-```sql
-CREATE OR REPLACE PROCEDURE my_db.my_schema.check_access()
-RETURNS VARCHAR
-LANGUAGE SQL
-EXECUTE AS CALLER
-COMMENT = 'Returns the current role of the calling user'
-AS
-$$
-BEGIN
-    RETURN CURRENT_ROLE();
-END;
-$$;
-```
-
-**Benefits:** Intent is explicit; no ambiguity about security context; easier code review; prevents privilege surprises.
-
-### Anti-Pattern 3: String Concatenation Instead of Bind Variables
-
-**Problem:**
-```sql
 AS
 $$
 DECLARE
-    query VARCHAR;
-    rs RESULTSET;
+    res RESULTSET;
 BEGIN
-    -- SQL injection risk: region_param is concatenated directly
-    query := 'SELECT * FROM my_db.my_schema.orders WHERE region = ''' || :region_param || '''';
+    res := (SELECT id, name FROM my_db.my_schema.users WHERE id = :user_id);
+    RETURN TABLE(res);
+END;
+$$;
+
+-- Correct: explicitly state the security context
+CREATE OR REPLACE PROCEDURE my_db.my_schema.get_user_data(user_id INTEGER)
+RETURNS TABLE (id INTEGER, name VARCHAR)
+LANGUAGE SQL
+EXECUTE AS CALLER
+AS
+$$
+DECLARE
+    res RESULTSET;
+BEGIN
+    res := (SELECT id, name FROM my_db.my_schema.users WHERE id = :user_id);
+    RETURN TABLE(res);
+END;
+$$;
+```
+
+### Anti-Pattern 3: String Concatenation in EXECUTE IMMEDIATE
+
+**Problem:** Concatenating user-supplied values directly into dynamic SQL creates SQL injection vulnerabilities.
+
+**Correct Pattern:** Use bind variables (`?` with `USING`) for values.
+
+```sql
+-- Wrong: string concatenation -- SQL injection risk
+CREATE OR REPLACE PROCEDURE my_db.my_schema.find_orders(region VARCHAR, min_amount NUMBER)
+RETURNS TABLE (order_id INTEGER, amount NUMBER)
+LANGUAGE SQL
+EXECUTE AS OWNER
+AS
+$$
+DECLARE
+    rs RESULTSET;
+    query VARCHAR;
+BEGIN
+    query := 'SELECT order_id, amount FROM my_db.my_schema.orders WHERE region = '''
+             || :region || ''' AND amount > ' || :min_amount::VARCHAR;
     rs := (EXECUTE IMMEDIATE :query);
     RETURN TABLE(rs);
 END;
 $$;
-```
 
-**Why It Fails:** Direct string concatenation allows SQL injection if the parameter contains malicious input (e.g., `' OR 1=1 --`). It also introduces nested quoting complexity that makes the code fragile and hard to read.
-
-**Correct Pattern:**
-```sql
+-- Correct: bind variables prevent injection and avoid nested quoting
+CREATE OR REPLACE PROCEDURE my_db.my_schema.find_orders(region VARCHAR, min_amount NUMBER)
+RETURNS TABLE (order_id INTEGER, amount NUMBER)
+LANGUAGE SQL
+EXECUTE AS OWNER
 AS
 $$
 DECLARE
-    query VARCHAR DEFAULT 'SELECT * FROM my_db.my_schema.orders WHERE region = ?';
     rs RESULTSET;
+    query VARCHAR DEFAULT 'SELECT order_id, amount FROM my_db.my_schema.orders WHERE region = ? AND amount > ?';
 BEGIN
-    rs := (EXECUTE IMMEDIATE :query USING (:region_param));
+    rs := (EXECUTE IMMEDIATE :query USING (:region, :min_amount));
     RETURN TABLE(rs);
 END;
 $$;
 ```
-
-**Benefits:** Prevents SQL injection; eliminates nested quoting; cleaner code; better performance (Snowflake can cache the query plan).
-
-### Anti-Pattern 4: Literal `$$` Inside a Dollar-Quoted Body
-
-**Problem:**
-```sql
-AS
-$$
-BEGIN
-    -- This terminates the body prematurely!
-    RETURN 'The delimiter is $$';
-END;
-$$;
-```
-
-**Why It Fails:** The `$$` inside the string literal is interpreted as the closing delimiter for the procedure body. Everything after it becomes a syntax error. This is the one limitation of dollar-quoting.
-
-**Correct Pattern:**
-```sql
-AS
-$$
-DECLARE
-    result VARCHAR;
-BEGIN
-    result := '$' || '$';
-    RETURN 'The delimiter is ' || :result;
-END;
-$$;
-```
-
-**Benefits:** Avoids premature body termination; works correctly; clear intent.
-
-### Anti-Pattern 5: Unqualified Object Names Inside Procedure Bodies
-
-**Problem:**
-```sql
-CREATE OR REPLACE PROCEDURE my_db.my_schema.refresh_summary()
-RETURNS VARCHAR
-LANGUAGE SQL
-EXECUTE AS OWNER
-AS
-$$
-BEGIN
-    -- Relies on session context for object resolution
-    TRUNCATE TABLE summary_table;
-    INSERT INTO summary_table SELECT * FROM source_table;
-    RETURN 'Refreshed';
-END;
-$$;
-```
-
-**Why It Fails:** When the procedure is called from a different database or schema context, `summary_table` and `source_table` resolve to the caller's current schema (for CALLER) or may fail entirely. This makes the procedure fragile and non-portable.
-
-**Correct Pattern:**
-```sql
-CREATE OR REPLACE PROCEDURE my_db.my_schema.refresh_summary()
-RETURNS VARCHAR
-LANGUAGE SQL
-EXECUTE AS OWNER
-COMMENT = 'Truncate and reload the summary table from source'
-AS
-$$
-BEGIN
-    TRUNCATE TABLE my_db.my_schema.summary_table;
-    INSERT INTO my_db.my_schema.summary_table
-    SELECT * FROM my_db.my_schema.source_table;
-    RETURN 'Refreshed';
-END;
-$$;
-```
-
-**Benefits:** Works from any calling context regardless of the caller's current database or schema; no silent wrong-table bugs; fully portable.

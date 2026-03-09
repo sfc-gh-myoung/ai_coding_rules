@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.3
-**LastUpdated:** 2026-02-18
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:changelog, file:CHANGELOG.md
 **Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns, project governance, git workflow, version control
 **TokenBudget:** ~3600
@@ -347,11 +347,11 @@ Preview:
 
 **Reference:** Pre-Task-Completion Validation Gate in `000-global-core.md` and `AGENTS.md`
 
-**CRITICAL:** CHANGELOG.md updates are MANDATORY before task completion for all code changes.
+**MUST:** CHANGELOG.md updates are required before task completion for all code changes.
 
-- **MANDATORY:** After making ANY code change, append a new entry under `## [Unreleased]` before marking task complete.
-- **CRITICAL:** Do not mark tasks complete without updating CHANGELOG.md for code changes.
-- **MANDATORY:** On release, finalize Unreleased, add the new version heading, and move entries.
+- **MUST** append a new entry under `## [Unreleased]` before marking task complete after ANY code change.
+- **MUST NOT** mark tasks complete without updating CHANGELOG.md for code changes.
+- **MUST** finalize Unreleased on release, add the new version heading, and move entries.
 - **Always:** If available, validate the structure with `scripts/validate_changelog_structure.py`.
 - **Exception:** Only skip if user explicitly requests override (acknowledge that changelog will be incomplete).
 
@@ -405,3 +405,18 @@ Preview:
 - fix(cli): keyboard interrupt handling
 - fix(pydantic): serialization issues with nested models
 ```
+
+## Monorepo Changelog Strategy
+
+- **Root CHANGELOG.md:** Cross-cutting changes affecting the entire project (CI/CD, shared configs, meta-releases)
+- **Per-package CHANGELOG.md:** Package-specific changes (e.g., `packages/core/CHANGELOG.md`)
+- **Rule:** Update the changelog closest to the change. If a change spans packages, update root.
+- **Tooling:** Use `changesets` or `lerna-changelog` for automated multi-package changelog management
+- **Versioning:** Each package MAY have independent version numbers following SemVer
+
+## Automated Changelog Tools
+
+- **`conventional-changelog`** — Generates changelog from Conventional Commits history
+- **`changesets`** — Monorepo changelog management with per-package versioning
+- **`git-cliff`** — Highly configurable changelog generator using commit conventions
+- **Note:** Automated tools supplement human-written summaries; MUST review generated entries for user-impact clarity

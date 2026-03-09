@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
-**Keywords:** Zsh, shell compatibility, bash vs zsh, portable scripts, cross-shell, migration, emulate, POSIX compliance, scripting, shell scripting
-**TokenBudget:** ~5050
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
+**Keywords:** Zsh, shell compatibility, bash vs zsh, portable scripts, cross-shell, migration, emulate, POSIX compliance, shell detection
+**TokenBudget:** ~3900
 **ContextTier:** Low
 **Depends:** 300-bash-scripting-core.md
 **LoadTrigger:** ext:.zsh, kw:zsh-compatibility
@@ -33,6 +33,7 @@ Zsh compatibility strategies, bash migration patterns, and cross-shell scripting
 **Related:**
 - **310-zsh-scripting-core.md** - Foundation zsh scripting patterns
 - **310a-zsh-advanced-features.md** - Advanced zsh features
+- **310c-zsh-compatibility-platforms.md** - Platforms, testing, and performance
 
 ### External Documentation
 
@@ -73,7 +74,7 @@ Zsh compatibility strategies, bash migration patterns, and cross-shell scripting
 3. Choose strategy based on requirements:
    - **POSIX portable:** Use when script must run on 3+ different shells (zsh, bash, sh, dash)
    - **Emulate mode:** Use for zsh scripts that need bash library compatibility (`emulate -L sh`)
-   - **Shell-specific versions:** Use when performance is critical or shell-specific features are required
+   - **Shell-specific versions:** Use when loop iterations exceed 10,000, script runtime exceeds 5 seconds, or input files exceed 100MB
 4. Set required options explicitly in scripts (setopt for zsh)
 5. Convert shell-specific syntax to portable alternatives or add feature detection
 6. Test scripts in both bash and zsh environments
@@ -222,16 +223,12 @@ Key constructs requiring conversion: `declare` to `typeset`, `BASH_SOURCE` to `$
 ### Migration Patterns
 - **Rule:** Convert bash-specific constructs to zsh equivalents:
 
-```
-Bash                                          Zsh Equivalent
-declare -a arr=()                             typeset -a arr=()
-declare -A map=()                             typeset -A map=()
-${arr[0]} (0-based)                           ${arr[1]} (1-based, or setopt KSH_ARRAYS)
-[[ "$s" =~ pat ]]; ${BASH_REMATCH[1]}        [[ "$s" =~ pat ]]; ${match[1]}
-${var^^}                                      ${var:u}
-${var,,}                                      ${var:l}
-BASH_SOURCE[0]                                ${(%):-%x}
-```
+- `declare -a arr=()` -> `typeset -a arr=()`
+- `declare -A map=()` -> `typeset -A map=()`
+- `${arr[0]}` (0-based) -> `${arr[1]}` (1-based, or `setopt KSH_ARRAYS`)
+- `[[ "$s" =~ pat ]]; ${BASH_REMATCH[1]}` -> `[[ "$s" =~ pat ]]; ${match[1]}`
+- `${var^^}` -> `${var:u}` / `${var,,}` -> `${var:l}`
+- `BASH_SOURCE[0]` -> `${(%):-%x}`
 
 ### Migration Phases
 - **Rule:** Migrate gradually using emulate:
@@ -248,7 +245,7 @@ setopt EXTENDED_GLOB
 ## Cross-Shell Compatibility Patterns
 
 ### Canonical Shell Detection Utility
-- **Rule:** Define `detect_shell` once and reuse it — do not repeat shell-detection logic:
+- **Requirement (MANDATORY):** Define `detect_shell` once and reuse it -- MUST NOT duplicate shell-detection logic:
 ```zsh
 # Canonical shell detection — use this everywhere, do not duplicate
 detect_shell() {
@@ -355,106 +352,9 @@ if command -v fzf >/dev/null; then
 fi
 ```
 
-## Environment Detection and Adaptation
+## Environment Detection, Testing, and Error Recovery
 
-### Shell-Specific Configuration
-- **Rule:** Use `detect_shell` (defined above) to configure per-shell settings:
-```zsh
-# Apply shell-specific settings — uses canonical detect_shell
-configure_shell() {
-    case "$(detect_shell)" in
-        zsh)
-            setopt AUTO_CD CORRECT HIST_VERIFY
-            zmodload zsh/complist 2>/dev/null
-            ;;
-        bash)
-            shopt -s autocd cdspell histverify 2>/dev/null
-            [[ -f /etc/bash_completion ]] && source /etc/bash_completion
-            ;;
-    esac
-}
-```
-
-### Capability-Based Feature Loading
-- **Rule:** Load features based on capabilities:
-```zsh
-# Feature capability matrix
-declare -A shell_features=(
-    [zsh:extended_glob]=true
-    [zsh:associative_arrays]=true
-    [zsh:parameter_flags]=true
-    [bash:associative_arrays]=true
-    [bash:regex_match]=true
-)
-
-has_feature() {
-    local feature="$1"
-    local shell_key="$(detect_shell):$feature"
-
-    [[ "${shell_features[$shell_key]}" == "true" ]]
-}
-
-# Load features conditionally
-load_advanced_features() {
-    if has_feature "extended_glob"; then
-        enable_extended_globbing
-    fi
-
-    if has_feature "associative_arrays"; then
-        setup_config_system
-    fi
-
-    if has_feature "parameter_flags"; then
-        setup_advanced_text_processing
-    fi
-}
-```
-
-## Testing Cross-Shell Compatibility
-
-### Multi-Shell Testing
-- **Rule:** Test across shells:
-```zsh
-test_shells=(zsh bash)
-
-run_multi_shell_tests() {
-    local script="$1" passed=0 total=0
-
-    for shell in "${test_shells[@]}"; do
-        command -v "$shell" >/dev/null || continue
-        ((total++))
-
-        if "$shell" "$script"; then
-            echo "$shell: PASS"
-            ((passed++))
-        else
-            echo "$shell: FAIL"
-        fi
-    done
-
-    echo "Results: $passed/$total passed"
-}
-```
-
-### Compatibility Checking
-- **Rule:** Validate compatibility:
-```zsh
-check_compatibility() {
-    local script="$1" issues=()
-
-    grep -q 'declare -[aA]' "$script" && issues+=("bash declare")
-    grep -q 'setopt' "$script" && issues+=("zsh options")
-
-    if (( ${#issues} > 0 )); then
-        echo "Issues: ${issues[*]}"
-        return 1
-    fi
-
-    echo "Compatible"
-}
-```
-
-## Error Recovery
+> For environment detection and adaptation, capability-based feature loading, multi-shell testing, compatibility checking, and test failure triage, see **310c-zsh-compatibility-platforms.md**.
 
 ### Missing Shell Binaries
 - **Rule:** Detect and handle missing shells before testing or migration:
@@ -465,33 +365,6 @@ require_shell() {
         echo "ERROR: $shell not found. Install it or skip $shell tests." >&2
         return 1
     }
-}
-```
-
-### Cross-Shell Test Failure Triage
-- **Rule:** When multi-shell tests fail, identify which shell and why:
-```zsh
-run_multi_shell_tests_with_recovery() {
-    local script="$1" failed_shells=()
-
-    for shell in zsh bash sh; do
-        require_shell "$shell" || continue
-        if ! "$shell" -n "$script" 2>/dev/null; then
-            echo "$shell: SYNTAX ERROR — run: $shell -n $script" >&2
-            failed_shells+=("$shell")
-        elif ! "$shell" "$script" 2>/tmp/shell_err_$$; then
-            echo "$shell: RUNTIME FAIL — see /tmp/shell_err_$$" >&2
-            failed_shells+=("$shell")
-        else
-            echo "$shell: PASS"
-        fi
-    done
-
-    if (( ${#failed_shells[@]} > 0 )); then
-        echo "Failed shells: ${failed_shells[*]}"
-        echo "Fallback: restrict shebang to passing shells only"
-        return 1
-    fi
 }
 ```
 
@@ -510,6 +383,8 @@ safe_sed() {
     rm -f "${file}.tmp" "${file}.sedbackup"
 }
 ```
+
+> **Platform note:** `sed -i` differs across platforms. GNU (Linux) accepts `sed -i 's/...'` directly; BSD (macOS) requires a backup extension: `sed -i '' 's/...'`. Using `sed -i.tmp` works on both platforms (creates a `.tmp` backup file). Always use `sed -i.tmp` for portable scripts.
 
 ## Migration Tools and Utilities
 
@@ -580,87 +455,6 @@ if [[ -n "$BASH_VERSION" ]]; then
 fi
 ```
 
-## Best Practices for Mixed Environments
+## Best Practices and Performance
 
-### Project Structure
-- **Rule:** Organize for multi-shell support:
-```
-project/
-├── bin/
-│   └── script.sh          # Portable main script
-├── lib/
-│   ├── common.sh          # Shared functions
-│   ├── zsh/               # Zsh-specific libraries
-│   └── bash/              # Bash-specific libraries
-└── tests/                 # Shell-specific tests
-```
-
-### Documentation Standards
-- **Rule:** Document compatibility:
-```zsh
-#!/usr/bin/env zsh
-# Compatibility: Zsh 5.0+, Bash 4.0+
-# Features: Extended globbing (zsh only)
-
-# Compatibility check
-[[ -n "$ZSH_VERSION" || -n "$BASH_VERSION" ]] || {
-    echo "Requires zsh or bash" >&2; exit 1
-}
-```
-
-## Performance Considerations
-
-### Shell-Specific Optimizations
-- **Rule:** Optimize for target shell capabilities:
-```zsh
-# Performance-aware function selection
-fast_string_processing() {
-    local input="$1"
-
-    if [[ -n "$ZSH_VERSION" ]]; then
-        # Use zsh parameter expansion (fastest)
-        echo "${input:u}"
-    elif [[ -n "$BASH_VERSION" ]] && (( BASH_VERSINFO[0] >= 4 )); then
-        # Use bash 4.0+ parameter expansion
-        echo "${input^^}"
-    else
-        # Fall back to external command (slowest)
-        echo "$input" | tr '[:lower:]' '[:upper:]'
-    fi
-}
-
-# Conditional feature loading
-load_performance_features() {
-    case "$(detect_shell)" in
-        zsh)
-            # Load zsh-specific optimizations
-            setopt EXTENDED_GLOB
-            zmodload zsh/mathfunc
-            ;;
-        bash)
-            # Load bash-specific optimizations
-            shopt -s extglob
-            ;;
-    esac
-}
-```
-
-### Performance Benchmarking
-- **Rule:** Compare shell performance:
-```zsh
-benchmark_function() {
-    local func="$1" iterations="${2:-100}"
-
-    for shell in zsh bash; do
-        command -v "$shell" >/dev/null || continue
-
-        local start=$(date +%s)
-        for ((i=1; i<=iterations; i++)); do
-            "$shell" -c "$func"
-        done
-        local end=$(date +%s)
-
-        echo "$shell: $((end - start))s"
-    done
-}
-```
+> For project structure, documentation standards, performance benchmarking, and multi-shell testing, see **310c-zsh-compatibility-platforms.md**.

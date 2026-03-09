@@ -8,11 +8,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:htmx, kw:hypermedia
 **Keywords:** htmx, hypermedia, hateoas, hx-request, hx-trigger, partial rendering, sse, websockets, csrf, xss, http headers, swap strategies, oob swaps, response patterns
-**TokenBudget:** ~4200
+**TokenBudget:** ~4000
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -56,7 +56,7 @@ Foundational HTMX patterns for Python web applications, covering request/respons
 ### Inputs and Prerequisites
 
 - Python web framework installed (Flask/FastAPI)
-- HTMX library included in frontend
+- HTMX 1.9.x included in frontend (patterns compatible with 2.0.x with minor attribute name changes)
 - Understanding of HTTP request/response cycle
 - Template engine configured (Jinja2 recommended)
 
@@ -276,18 +276,42 @@ def add_comment():
 
 **Content Security Policy:**
 ```python
-# Allow inline HTMX event handlers
+# Nonce-based CSP (preferred over 'unsafe-inline')
+import secrets
+
 @app.after_request
 def set_csp(response):
+    nonce = secrets.token_urlsafe(16)
     response.headers['Content-Security-Policy'] = (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://unpkg.com/htmx.org; "
-        "style-src 'self' 'unsafe-inline';"
+        f"default-src 'self'; "
+        f"script-src 'self' 'nonce-{nonce}' https://unpkg.com/htmx.org; "
+        f"style-src 'self' 'nonce-{nonce}';"
     )
+    # Store nonce for template access via g or context processor
     return response
 ```
 
-> **Note:** `'unsafe-inline'` is required for HTMX's inline event attributes (`hx-on:*`). For stricter CSP, use nonce-based approach: set `htmx.config.inlineScriptNonce` to match your CSP nonce.
+```python
+# Context processor to make nonce available in templates
+@app.context_processor
+def inject_csp_nonce():
+    import secrets
+    nonce = secrets.token_urlsafe(16)
+    return dict(csp_nonce=nonce)
+```
+
+```html
+<!-- In template: use nonce on inline scripts -->
+<script nonce="{{ csp_nonce }}" src="https://unpkg.com/htmx.org@1.9.10"></script>
+<script nonce="{{ csp_nonce }}">
+  document.body.addEventListener('htmx:configRequest', (event) => {
+    event.detail.headers['X-CSRFToken'] =
+      document.querySelector('meta[name="csrf-token"]').content;
+  });
+</script>
+```
+
+> **Note:** Set `htmx.config.inlineScriptNonce` to your CSP nonce value so HTMX's internal inline scripts also pass CSP checks.
 
 ### 5. HATEOAS and Hypermedia Principles
 
@@ -451,53 +475,4 @@ def update():
         response = make_response(f'<p class="error">{escape(str(e))}</p>', 400)
         response.headers['HX-Retarget'] = '#error-container'
         return response
-```
-
-## Output Format Examples
-
-### Endpoint with HTMX Detection
-```python
-# Flask example
-from flask import Flask, request, render_template
-
-app = Flask(__name__)
-
-@app.route('/users')
-def users_list():
-    users = get_users()
-
-    # Detect HTMX request
-    if request.headers.get('HX-Request') == 'true':
-        # Return partial for HTMX
-        return render_template('partials/users_table.html', users=users)
-
-    # Return full page for browser navigation
-    return render_template('users_page.html', users=users)
-```
-
-### Response with Trigger Event
-```python
-@app.route('/item/<int:item_id>', methods=['PUT'])
-def update_item(item_id):
-    data = request.form
-    update_item_in_db(item_id, data)
-
-    response = make_response(
-        render_template('partials/item.html', item=get_item(item_id))
-    )
-    response.headers['HX-Trigger'] = 'itemUpdated'
-    return response
-```
-
-### CSRF Token Configuration
-```html
-<!-- base.html -->
-<meta name="csrf-token" content="{{ csrf_token() }}">
-<script src="https://unpkg.com/htmx.org@1.9.10"></script>
-<script>
-  document.body.addEventListener('htmx:configRequest', (event) => {
-    event.detail.headers['X-CSRFToken'] =
-      document.querySelector('meta[name="csrf-token"]').content;
-  });
-</script>
 ```

@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:search, kw:cortex-search
 **Keywords:** embeddings, search index, RAG, agent tools, retrieval, AI_EMBED, search service, document retrieval, hybrid search, vector similarity
-**TokenBudget:** ~2650
+**TokenBudget:** ~2850
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 114-snowflake-cortex-aisql.md
 
@@ -156,6 +156,37 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW('service', '{"query": "test", "limit": 5}
 ```
 
 ## Implementation Details
+
+### Document Chunking Strategy
+
+Split long documents into 500-1000 token chunks with 10-20% overlap for optimal retrieval:
+
+```sql
+-- Chunk documents before indexing for better retrieval quality
+-- Use a chunking UDF or view that splits text at paragraph boundaries
+CREATE OR REPLACE VIEW chunked_documents AS
+SELECT
+  doc_id,
+  chunk_index,
+  chunk_text,
+  source,
+  author,
+  published_at
+FROM raw.documents,
+  LATERAL FLATTEN(input => SPLIT_TO_TABLE(full_text, '\n\n')) chunks
+WHERE LENGTH(chunks.value::STRING) > 50;
+
+CREATE CORTEX SEARCH SERVICE docs_search
+ON chunk_text
+ATTRIBUTES doc_id, source, author
+WAREHOUSE = COMPUTE_WH
+TARGET_LAG = '1 day'
+AS (SELECT * FROM chunked_documents);
+```
+
+### PII Handling in Search Content
+
+Apply masking or redaction to PII columns before creating search services. Search results bypass row access policies. Use projection policies on sensitive columns or pre-filter PII from source views before indexing.
 
 ### Creating Search Services
 ```sql

@@ -120,7 +120,7 @@ F. Keyword extraction heuristic:
    2. Technical terms (capitalized, hyphenated, acronyms like SSE/API/SPCS) are almost always keywords
    3. Each technology should be included in the grep OR pattern
    
-   **Example:** "FastAPI + HTMX + SSE in SPCS" → `grep -iE "fastapi|htmx|sse|spcs"` (4 keywords)
+   **Example:** "FastAPI + HTMX + SSE in SPCS" becomes `grep -iE "fastapi|htmx|sse|spcs"` (4 keywords)
 
 **Step 3: Load Matching Rules**
 
@@ -364,9 +364,9 @@ PRE-FLIGHT:
 
 **Correct Pattern:**
 Before implementing a fix, ask: "What object types will I create or modify?"
-- Error involves TASK → load task rules (104)
-- Fix creates PROCEDURE → load procedure rules (102b)
-- Fix modifies SQL file → load SQL file rules (102)
+- Error involves TASK: then load task rules (104)
+- Fix creates PROCEDURE: then load procedure rules (102b)
+- Fix modifies SQL file: then load SQL file rules (102)
 
 Load rules for BOTH the error domain AND the solution domain.
 

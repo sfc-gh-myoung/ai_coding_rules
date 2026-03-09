@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-01-12
+**LastUpdated:** 2026-03-09
 **Keywords:** time series smoothing, data aggregation, resample, SCADA data, high-frequency data, trend analysis, rolling average, EWMA, exponential smoothing
-**TokenBudget:** ~1850
+**TokenBudget:** ~2300
 **ContextTier:** Low
 **Depends:** 101a-snowflake-streamlit-visualization.md
 
@@ -31,13 +31,14 @@ Time-based aggregation and smoothing patterns for high-frequency data visualizat
 
 ### Related
 
-- **251-python-datetime-handling.md** - Datetime optimization for time series
+- **251-python-datetime-core.md** - Datetime optimization for time series
 
 ## Contract
 
 ### Inputs and Prerequisites
 
 - DataFrame with time series data (timestamp column + value columns)
+- pandas >= 1.3.0 (for resample improvements), Streamlit >= 1.20.0
 - High-frequency data causing noisy visualizations or performance issues
 - pandas library available
 
@@ -83,7 +84,7 @@ Smoothed DataFrame with reduced data points and user feedback showing reduction.
 - [ ] UI controls for aggregation level provided
 - [ ] UI controls for aggregation method provided
 - [ ] Original and smoothed counts displayed
-- [ ] Appropriate method selected for use case
+- [ ] Method matches use case: mean for trends, median for noisy data, max for peak detection, min for valley detection, ewma for adaptive smoothing
 
 ## Smoothing Function
 
@@ -111,6 +112,11 @@ def smooth_time_series_data(
     Returns:
         Smoothed DataFrame with reduced number of data points
     """
+    if df.empty:
+        return df
+    if time_col not in df.columns:
+        raise ValueError(f"Column '{time_col}' not found in DataFrame")
+    df[time_col] = pd.to_datetime(df[time_col])
     df_indexed = df.set_index(time_col)
     available_cols = [col for col in value_cols if col in df_indexed.columns]
 
@@ -124,6 +130,10 @@ def smooth_time_series_data(
         df_smooth = df_resampled.max()
     elif method == "min":
         df_smooth = df_resampled.min()
+    elif method == "ewma":
+        df_smooth = df_indexed[available_cols].ewm(span=12, adjust=False).mean()
+    else:
+        raise ValueError(f"Unknown method: {method}")
 
     return df_smooth.reset_index()
 ```
@@ -219,6 +229,44 @@ df['voltage_ewma'] = ewma_smooth(df, 'voltage_kv', span=12)
 **When to use EWMA vs resampling:**
 - **EWMA:** Preserves original time resolution, smooths noise adaptively
 - **Resampling:** Reduces data points, fixed time intervals
+
+### Gap Detection
+
+Detect gaps in time series data (e.g., missing sensor readings):
+
+```python
+def detect_gaps(df: pd.DataFrame, time_col: str, threshold: str = "1H") -> pd.DataFrame:
+    """Flag rows where the time gap exceeds the threshold."""
+    df = df.sort_values(time_col)
+    df['gap'] = df[time_col].diff().gt(pd.Timedelta(threshold)).fillna(False)
+    return df
+```
+
+## SQL-Side Aggregation
+
+For large datasets, aggregate in Snowflake before pulling into Python:
+
+```sql
+-- Aggregate 15-minute SCADA data to hourly using TIME_SLICE
+SELECT
+    TIME_SLICE(timestamp, 1, 'HOUR') AS hour_bucket,
+    AVG(voltage_kv) AS avg_voltage,
+    MAX(voltage_kv) AS max_voltage,
+    MIN(voltage_kv) AS min_voltage,
+    COUNT(*) AS reading_count
+FROM scada_readings
+WHERE timestamp >= DATEADD(day, -7, CURRENT_TIMESTAMP())
+GROUP BY hour_bucket
+ORDER BY hour_bucket;
+
+-- Alternative using DATE_TRUNC for calendar-aligned buckets
+SELECT
+    DATE_TRUNC('HOUR', timestamp) AS hour_bucket,
+    AVG(power_factor) AS avg_power_factor
+FROM scada_readings
+GROUP BY hour_bucket
+ORDER BY hour_bucket;
+```
 
 ## Performance Impact
 

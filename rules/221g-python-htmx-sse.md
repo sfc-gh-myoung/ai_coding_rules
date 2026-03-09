@@ -6,7 +6,7 @@
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-01-06
 **Keywords:** sse, server-sent events, htmx, alpine.js, eventsource, real-time, streaming, live updates, push notifications, event types, sse-manager
-**TokenBudget:** ~3050
+**TokenBudget:** ~2800
 **ContextTier:** High
 **Depends:** 221-python-htmx-core.md, 221f-python-htmx-integrations.md
 
@@ -278,6 +278,30 @@ async def demo_status_stream(demo_id: str):
     return EventSourceResponse(status_generator())
 ```
 
+### Heartbeat and Reconnection
+
+Keep SSE connections alive and handle drops gracefully:
+
+```python
+async def event_generator_with_heartbeat():
+    while True:
+        event = await get_next_event(timeout=15)
+        if event:
+            yield {"event": event.type, "data": json.dumps(event.data)}
+        else:
+            # Send heartbeat to keep connection alive
+            yield {"event": "ping", "data": ""}
+        await asyncio.sleep(0)
+```
+
+EventSource auto-reconnects by default. Control the retry interval from the server by including a `retry:` field in the SSE stream (value in milliseconds):
+
+```text
+retry: 5000
+event: status
+data: {"connected": true}
+```
+
 ### Anti-Pattern (Will Crash)
 
 ```python
@@ -395,35 +419,4 @@ data: {"step": "downloading", "percent": 45}
 
 event: complete
 data: {}
-```
-
-### Backend Response Pattern (FastAPI)
-
-```python
-from sse_starlette.sse import EventSourceResponse
-
-async def sse_endpoint():
-    async def generator():
-        yield {"event": "status", "data": json.dumps({"ready": True})}
-        yield {"event": "update", "data": json.dumps({"count": 42})}
-    return EventSourceResponse(generator())
-```
-
-### Frontend Listener Pattern (Alpine.js + HTMX)
-
-```html
-<div x-data="page()" x-init="init()">
-    <div id="target" hx-get="/content" hx-trigger="load, contentUpdated"></div>
-</div>
-<script>
-function page() {
-    return {
-        init() {
-            window.sseManager.connect('channel', (data, event) => {
-                htmx.trigger('#target', 'contentUpdated');
-            });
-        }
-    };
-}
-</script>
 ```

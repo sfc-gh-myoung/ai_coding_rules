@@ -35,7 +35,7 @@ Replace placeholder values:
 **SchemaVersion:** v3.0
 **Keywords:** [REPLACE with 10-15 keywords from Phase 1]
 **TokenBudget:** ~[ESTIMATE: lines × 2, round to 50]
-**ContextTier:** [KEEP from template_generator.py]
+**ContextTier:** [KEEP from ai-rules new]
 **Depends:** rules/000-global-core.md, rules/[domain-core].md
 ```
 
@@ -526,5 +526,5 @@ Proceed to **Phase 4: Validation Loop** (`workflows/validation.md`)
 **Preparation:**
 - File should be fully populated
 - No placeholder text remaining
-- Ready for `schema_validator.py` execution
+- Ready for `ai-rules validate` execution
 

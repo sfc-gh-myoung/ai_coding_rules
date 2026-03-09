@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-02-19
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:deployment-error
 **Keywords:** Snowflake deployment troubleshooting, Streamlit debugging, SiS TypeError, notebook deployment issues, deployment errors, stage file debugging, AUTO_COMPRESS debugging, ROOT_LOCATION errors, deployment anti-patterns, diagnostic commands, deployment validation, cache issues
-**TokenBudget:** ~7150
+**TokenBudget:** ~3500
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 109-snowflake-notebooks.md, 101-snowflake-streamlit-core.md, 109b-snowflake-app-deployment-core.md
 
@@ -33,6 +33,7 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 
 ### Related Rules
 - **Core Deployment**: `109b-snowflake-app-deployment-core.md` - Base deployment patterns
+- **SiS TypeError/AttributeError Debugging**: `109j-snowflake-sis-typeerror-debugging.md` - Detailed diagnostic workflows for TypeError and AttributeError
 - **Streamlit Core**: `101-snowflake-streamlit-core.md` - Streamlit development
 - **Snowflake Notebooks**: `109-snowflake-notebooks.md` - Notebook best practices
 - **Snowflake Core**: `100-snowflake-core.md` - Foundational practices
@@ -46,10 +47,12 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 - Taskfile deployment scripts for re-deployment
 
 ### Mandatory
-- Snowflake CLI diagnostic commands (LIST, DESCRIBE, SHOW)
-- Task automation for re-deployment
-- grep/filtering for log analysis
-- Browser dev tools for client-side debugging
+- Run diagnostic commands (LIST, DESCRIBE, SHOW) before suggesting fixes
+- Evidence-based root cause identification from command outputs
+- Full deployment workflow for remediation (DROP, REMOVE, PUT, CREATE)
+- `AUTO_COMPRESS=FALSE` verified in all PUT commands for application files
+- `ROOT_LOCATION` verified to match actual stage file paths
+- Post-fix verification commands to confirm resolution
 
 ### Forbidden
 - Skipping diagnostic phase and guessing solutions
@@ -86,250 +89,19 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 
 ### Post-Execution Checklist
 
-- [ ] Diagnostic commands executed and outputs captured
-- [ ] Root cause identified with evidence
-- [ ] Full deployment workflow run (DROP, REMOVE, PUT, CREATE)
-- [ ] AUTO_COMPRESS=FALSE verified in PUT commands
-- [ ] ROOT_LOCATION matches stage file paths
-- [ ] Post-fix verification commands confirm resolution
-- [ ] Application loads without errors in Snowflake
+See detailed Post-Execution Checklist below for comprehensive troubleshooting validation steps.
 
 ## Anti-Patterns and Common Mistakes
 
-**Anti-Pattern 1: Using OVERWRITE without explicit REMOVE**
-```yaml
-# File: task/notebook/Taskfile.yml - INCOMPLETE DEPLOYMENT
-version: '3.45'
+### Deployment Process Anti-Patterns
 
-set: [pipefail]
+See `109b-snowflake-app-deployment-core.md` for these foundational anti-patterns:
+- **Anti-Pattern 1: Skipping REMOVE Step** - OVERWRITE alone causes stale cache issues
+- **Anti-Pattern 2: Manual Snowsight UI Uploads** - Not reproducible or version-controlled
+- **Anti-Pattern 3: Monolithic Deploy Tasks** - Combining all operations in one task prevents isolated debugging
+- **Anti-Pattern 4: Hardcoded Credentials** - Security risk; use Snowflake CLI config instead
 
-vars:
-  SNOWFLAKE_DB: PROD_DB
-  NOTEBOOK_STAGE: "{{.SNOWFLAKE_DB}}.SCHEMA.NOTEBOOK_STAGE"
-
-tasks:
-  upload:notebook:
-    desc: Upload notebook to stage
-    cmds:
-      - uvx snow sql -q "PUT file://notebooks/app.ipynb @{{.NOTEBOOK_STAGE}} OVERWRITE=TRUE;"
-
-  create:notebook:
-    desc: Create notebook from stage
-    cmds:
-      - uvx snow sql -q "CREATE NOTEBOOK DB.SCHEMA.APP FROM '@{{.NOTEBOOK_STAGE}}';"
-
-  deploy:notebook:
-    desc: Deploy notebook (INCOMPLETE - missing REMOVE)
-    cmds:
-      - task: upload:notebook  # Only uploads with OVERWRITE
-      - task: create:notebook  # May use cached old version
-```
-**Problem:** No explicit REMOVE step before upload. Even though `OVERWRITE=TRUE` replaces the file in the stage, Snowflake applications (notebooks/Streamlit) cache content at creation time. Subsequent file updates don't automatically propagate to running applications. Result: Stage metadata shows new timestamp, but Snowsight displays old cached code. Developers waste time debugging "phantom" issues that only exist in stale cached versions.
-
-**Correct Pattern:**
-```yaml
-# File: task/notebook/Taskfile.yml - COMPLETE DEPLOYMENT
-version: '3.45'
-
-set: [pipefail]
-
-vars:
-  SNOWFLAKE_DB: PROD_DB
-  NOTEBOOK_STAGE: "{{.SNOWFLAKE_DB}}.SCHEMA.NOTEBOOK_STAGE"
-
-tasks:
-  drop:notebook:
-    desc: Drop notebook object
-    cmds:
-      - uvx snow sql -q "DROP NOTEBOOK IF EXISTS DB.SCHEMA.APP;"
-
-  remove:notebook:
-    desc: Remove stage files explicitly
-    cmds:
-      - uvx snow sql -q "REMOVE @{{.NOTEBOOK_STAGE}}/app.ipynb;"
-      - uvx snow sql -q "REMOVE @{{.NOTEBOOK_STAGE}}/environment.yml;"
-
-  upload:notebook:
-    desc: Upload notebook to stage
-    cmds:
-      - uvx snow sql -q "PUT file://notebooks/app.ipynb @{{.NOTEBOOK_STAGE}} AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
-
-  create:notebook:
-    desc: Create notebook from stage
-    cmds:
-      - uvx snow sql -q "CREATE NOTEBOOK DB.SCHEMA.APP FROM '@{{.NOTEBOOK_STAGE}}';"
-
-  deploy:notebook:
-    desc: Deploy notebook with clean slate
-    cmds:
-      - task: drop:notebook     # 1. Remove old object (clears object cache)
-      - task: remove:notebook   # 2. Delete stage files (clears file cache)
-      - task: upload:notebook   # 3. Upload fresh files
-      - task: create:notebook   # 4. Create from fresh files
-```
-**Benefits:** Guarantees clean state every deployment, prevents stale caching bugs, predictable results (same output every time), production-ready reliability with minimal overhead (<1s for REMOVE operations)
-
-**Anti-Pattern 2: Manual uploads via Snowsight UI**
-```
-User workflow:
-1. Navigate to Snowsight > Data > Databases > PROD_DB > Stages > NOTEBOOK_STAGE
-2. Click "Upload Files" button
-3. Select app.ipynb from local filesystem
-4. Click "Upload" and wait for confirmation
-5. Navigate to Projects > Notebooks
-6. Click "Create Notebook", then Select stage location
-7. Repeat steps 1-6 for every update
-```
-**Problem:** Not reproducible (no script record of deployment), no version control (can't audit who deployed what when), no automation (manual clicking required for each deploy), error-prone (easy to forget files or upload to wrong stage), team friction (process differs per developer)
-
-**Correct Pattern:**
-```bash
-# Automated, version-controlled deployment
-task notebook:deploy:app
-
-# Single command handles:
-# - Drops old object
-# - Removes stale files
-# - Uploads all dependencies
-# - Creates fresh notebook
-# - Validates deployment
-
-# All deployment logic stored in version control (Taskfile.yml + SQL scripts)
-# Reproducible across environments (dev, qa, prod)
-# Auditable (git log shows deployment changes)
-```
-**Benefits:** One-command deployment, version-controlled process, reproducible results, team consistency, CI/CD ready, auditable history
-
-**Anti-Pattern 3: Combining upload and create in one task**
-```yaml
-# File: task/notebook/Taskfile.yml - MONOLITHIC TASK (HARD TO DEBUG)
-version: '3.45'
-
-tasks:
-  deploy:notebook:
-    desc: Deploy notebook (monolithic - all-in-one)
-    cmds:
-      # All SQL commands inline - no modularity
-      - uvx snow sql -q "DROP NOTEBOOK IF EXISTS DB.SCHEMA.APP;"
-      - uvx snow sql -q "REMOVE @DB.SCHEMA.STAGE/app.ipynb;"
-      - uvx snow sql -q "PUT file://notebooks/app.ipynb @DB.SCHEMA.STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
-      - uvx snow sql -q "CREATE NOTEBOOK DB.SCHEMA.APP FROM '@DB.SCHEMA.STAGE' MAIN_FILE='app.ipynb';"
-```
-**Problem:** No modularity (can't test individual steps in isolation), difficult debugging (which of 4 commands failed?), can't reuse operations (need to duplicate PUT command in other tasks), hard to maintain (SQL commands embedded in YAML, not in dedicated SQL files), no validation between steps (upload might succeed but create might fail silently)
-
-**Correct Pattern:**
-```yaml
-# File: task/notebook/Taskfile.yml - MODULAR TASKS
-version: '3.45'
-
-includes:
-  utils:
-    taskfile: ../utils/Taskfile.yml
-    internal: true
-
-tasks:
-  drop:notebook:
-    desc: Drop notebook object
-    cmds:
-      - task: utils:sql:template
-        vars: {SQL_FILE: sql/operations/notebook/drop/drop_app.sql}
-
-  remove:notebook:
-    desc: Remove stage files
-    cmds:
-      - task: utils:sql:template
-        vars: {SQL_FILE: sql/operations/notebook/remove/remove_app_files.sql}
-
-  upload:notebook:
-    desc: Upload to stage
-    cmds:
-      - task: utils:sql:template
-        vars: {SQL_FILE: sql/operations/notebook/upload/upload_app_files.sql}
-    preconditions:
-      - test -f notebooks/app.ipynb  # Validate file exists
-
-  create:notebook:
-    desc: Create from stage
-    cmds:
-      - task: utils:sql:template
-        vars: {SQL_FILE: sql/operations/notebook/create/create_app.sql}
-
-  deploy:notebook:
-    desc: Full deployment workflow
-    cmds:
-      - task: drop:notebook     # Test individually: task drop:notebook
-      - task: remove:notebook   # Test individually: task remove:notebook
-      - task: upload:notebook   # Test individually: task upload:notebook
-      - task: create:notebook   # Test individually: task create:notebook
-
-# SQL files stored separately in sql/operations/notebook/{drop,remove,upload,create}/*.sql
-```
-**Benefits:** Testable in isolation (`task upload:notebook` to test just upload), reusable operations (other tasks can call `upload:notebook`), easier debugging (know exactly which step failed), maintainable SQL (edit SQL files without touching YAML), validation gates (preconditions prevent bad deploys), CI/CD friendly (run individual steps in pipeline stages)
-
-**Anti-Pattern 4: Hardcoding credentials in scripts**
-```sql
--- File: sql/operations/notebook/upload/upload_app.sql - INSECURE
--- ============================================================================
--- DANGER: Hardcoded credentials - security vulnerability!
--- ============================================================================
-
-USE DATABASE PROD_DB;
-USE SCHEMA ANALYTICS;
-USE WAREHOUSE COMPUTE_WH;
-
--- Connect with embedded credentials (NEVER DO THIS)
-ALTER SESSION SET ACCOUNT_IDENTIFIER = 'abc12345.us-east-1';
-ALTER SESSION SET USER = 'admin@company.com';
-ALTER SESSION SET PASSWORD = 'PLACEHOLDER_PASSWORD';  -- Plain text password!
-
-PUT 'file://notebooks/app.ipynb'
-@PROD_DB.ANALYTICS.NOTEBOOK_STAGE
-AUTO_COMPRESS=FALSE
-OVERWRITE=TRUE;
-```
-**Problem:** Security risk (credentials visible in version control, git history permanently stores secrets), not portable (hardcoded account/user breaks for other developers), credential rotation nightmare (must update every SQL file when password changes), audit trail issues (can't track who actually deployed using shared credentials), compliance violations (SOC2, GDPR, PCI-DSS prohibit plain text secrets)
-
-**Correct Pattern:**
-```sql
--- File: sql/operations/notebook/upload/upload_app.sql - SECURE
--- ============================================================================
--- Uses Snowflake CLI connection configuration (no credentials in file)
--- ============================================================================
-
--- No credentials needed - Snowflake CLI handles authentication
--- Connection defined in ~/.snowflake/config.toml or environment variables
-
-PUT 'file://notebooks/app.ipynb'
-@<%STAGE%>  -- Variable substitution via Taskfile
-AUTO_COMPRESS=FALSE
-OVERWRITE=TRUE;
-```
-
-```toml
-# File: ~/.snowflake/config.toml - Secure credential storage
-[connections.prod]
-account = "abc12345.us-east-1"
-user = "dev@company.com"
-authenticator = "externalbrowser"  # SSO authentication (no password storage)
-database = "PROD_DB"
-schema = "ANALYTICS"
-warehouse = "COMPUTE_WH"
-```
-
-```yaml
-# File: task/notebook/Taskfile.yml - Uses configured connection
-tasks:
-  upload:notebook:
-    desc: Upload using secure connection
-    cmds:
-      # Snowflake CLI automatically uses connection from config.toml
-      - task: utils:sql:template
-        vars:
-          SQL_FILE: sql/operations/notebook/upload/upload_app.sql
-          STAGE: "{{.SNOWFLAKE_DB}}.{{.SNOWFLAKE_SCHEMA}}.NOTEBOOK_STAGE"
-    # No credentials in Taskfile - all auth handled by CLI config
-```
-**Benefits:** Secure credential management (secrets never in version control), portable across developers (each uses own credentials from config), SSO integration (externalbrowser authenticator for corporate auth), easy credential rotation (update config.toml once), audit trail (individual credentials tracked in Snowflake), compliance ready (meets security standards)
+### Troubleshooting-Specific Anti-Patterns
 
 **Anti-Pattern 5: Omitting AUTO_COMPRESS=FALSE for Streamlit SiS**
 ```sql
@@ -471,128 +243,16 @@ def snow_stage_copy(source, dest, auto_compress=False, recursive=False):
 > "Found the issue: files are compressed (.py.gz). Need to redeploy with AUTO_COMPRESS=FALSE."
 
 ## Troubleshooting Deployment Issues
+
+### Additional References
 - [Snowflake REMOVE Command](https://docs.snowflake.com/en/sql-reference/sql/remove) - Idempotent file removal patterns
 - [Snowflake LIST Command](https://docs.snowflake.com/en/sql-reference/sql/list) - Stage file inspection and diagnostics
 - [Streamlit in Snowflake Troubleshooting](https://docs.snowflake.com/en/developer-guide/streamlit/troubleshooting) - Official SiS debugging guide
 - [Snowflake Stages](https://docs.snowflake.com/en/user-guide/data-load-local-file-system-create-stage) - Stage architecture and file organization
 
-## Troubleshooting Deployment Issues
-
 ### Issue: Streamlit SiS fails with "TypeError: bad argument type for built-in operation"
 
-**Symptoms:**
-- Streamlit application fails to load in Snowflake
-- Error message: "TypeError: bad argument type for built-in operation"
-- Application worked previously or in development
-- No pages render, blank screen or error displayed
-
-**Common Causes:**
-
-**Cause 1: Missing AUTO_COMPRESS=FALSE**
-- Python files uploaded with compression (default behavior)
-- Python's import system cannot read gzipped `.py` files
-- Applies to all `.py` files: `streamlit_app.py`, `pages/*.py`, `utils/*.py`
-
-**Cause 2: Stage Path Mismatch**
-- Files uploaded to subdirectory (e.g., `@STAGE/streamlit/`)
-- ROOT_LOCATION points to different path (e.g., `@STAGE`)
-- Snowflake cannot find application files
-
-**Cause 3: Inverted Compression Flag in Python/CLI Wrappers**
-- Python wrapper function adds `--auto-compress` when `True` (redundant — already the default)
-- But never adds `--no-auto-compress` when `False` — compression is never actually disabled
-- Deployment reports success (`[PASS]`) but app fails at runtime
-- Especially insidious because `auto_compress=False` in the calling code *looks* correct
-
-**Diagnostic Steps:**
-
-Execute these commands to identify root cause:
-
-```bash
-# Step 1: Check actual file locations and compression status
-uvx snow sql -q "LIST @UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE;"
-
-# Expected output (CORRECT - uncompressed):
-# streamlit_stage/streamlit_app.py          | 4096  | <hash> | ...
-# streamlit_stage/pages/1_Home.py           | 2048  | <hash> | ...
-# streamlit_stage/environment.yml           | 512   | <hash> | ...
-
-# Bad output (WRONG - compressed files):
-# streamlit_stage/streamlit_app.py.gz       | 1024  | <hash> | ...
-# streamlit_stage/pages/1_Home.py.gz        | 512   | <hash> | ...
-
-# Step 2: Verify ROOT_LOCATION matches actual file paths
-uvx snow sql -q "DESCRIBE STREAMLIT UTILITY_DEMO_V2.GRID_DATA.APP_NAME;"
-
-# Look for ROOT_LOCATION value in output
-# Expected: ROOT_LOCATION = @UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE
-# Must match LIST output paths (no extra /streamlit/ subdirectory nesting)
-
-# Verify paths align:
-# LIST shows: streamlit_stage/streamlit_app.py
-# ROOT_LOCATION: @STREAMLIT_STAGE  (correct - matches root)
-# NOT: @STREAMLIT_STAGE/streamlit  (wrong - extra subdirectory)
-
-# Step 3: Detailed file listing with grep filter
-uvx snow sql -q "LIST @UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE;" \
-  | grep -E "\.py$|\.yml$"
-
-# Should show .py extensions (not .py.gz):
-# streamlit_app.py   ✓ Correct
-# pages/1_Home.py    ✓ Correct
-# environment.yml    ✓ Correct
-```
-
-**Solutions:**
-
-**For Compression Issue:**
-```bash
-# 1. Redeploy with AUTO_COMPRESS=FALSE
-task streamlit:remove:app   # Remove old compressed files
-task streamlit:upload:app   # Upload with AUTO_COMPRESS=FALSE
-task streamlit:create:app   # Recreate Streamlit object
-```
-
-**For Path Mismatch:**
-```sql
--- Option 1: Fix upload paths (recommended)
--- Update upload script to use stage root:
-PUT file://streamlit_app.py @STAGE  -- Not @STAGE/streamlit/
-    AUTO_COMPRESS=FALSE
-    OVERWRITE=TRUE;
-
--- Option 2: Fix ROOT_LOCATION to match current files
-DROP STREAMLIT IF EXISTS DB.SCHEMA.APP_NAME;
-CREATE STREAMLIT DB.SCHEMA.APP_NAME
-    ROOT_LOCATION = '@STAGE/streamlit'  -- Match actual file location
-    MAIN_FILE = 'streamlit_app.py'
-    QUERY_WAREHOUSE = WH;
-```
-
-**Verification:**
-```bash
-# Verify files are uncompressed and correctly located
-uvx snow sql -q "LIST @STAGE;" | grep -E "\.py$|\.yml$"
-
-# Should see (file extensions without .gz):
-# streamlit_stage/streamlit_app.py          ✓ Uncompressed
-# streamlit_stage/pages/1_Page.py           ✓ Uncompressed
-# streamlit_stage/environment.yml           ✓ Uncompressed
-
-# Should NOT see:
-# streamlit_stage/streamlit_app.py.gz       ✗ Compressed (causes TypeError)
-# streamlit_stage/streamlit/app.py          ✗ Wrong path (ROOT_LOCATION mismatch)
-
-# Verify Streamlit app loads without errors
-# Navigate to Snowsight > Apps > Streamlit > APP_NAME
-# Expected: Application loads, pages render, no TypeError
-
-# Verify import system works
-uvx snow sql -q "
-SELECT SYSTEM\$CHECK_FILE_EXISTS('@STAGE/streamlit_app.py');
-"
-# Should return: TRUE (file exists and is accessible)
-```
+See **109j-snowflake-sis-typeerror-debugging.md** for the full diagnostic workflow covering three root causes (missing AUTO_COMPRESS=FALSE, stage path mismatch, inverted compression flag in wrappers), step-by-step diagnostic commands, solutions, and verification steps.
 
 ### Issue: "Notebook shows old code after deploy"
 
@@ -623,92 +283,7 @@ SELECT SYSTEM\$CHECK_FILE_EXISTS('@STAGE/streamlit_app.py');
 
 ### Issue: "AttributeError: module 'streamlit' has no attribute 'X'"
 
-**Symptoms:**
-- Streamlit app fails with `AttributeError: module 'streamlit' has no attribute 'navigation'`
-  (or `'Page'`, `'dialog'`, `'fragment'`, or other modern API)
-- App works locally but fails when deployed to SiS
-- Error appears immediately on app load or when navigating to a page that uses the missing API
-
-**Root Cause:**
-Missing or incorrect `environment.yml` in the stage. Without `environment.yml`, SiS defaults
-to its bundled Streamlit version (currently **1.22.0**), which predates many modern APIs:
-
-- `st.navigation()` — requires 1.36+ (not available in SiS default 1.22.0)
-- `st.Page()` — requires 1.36+ (not available in SiS default 1.22.0)
-- `st.dialog()` — requires 1.37+ (not available in SiS default 1.22.0)
-- `st.fragment()` — requires 1.37+ (not available in SiS default 1.22.0)
-- `st.rerun()` — requires 1.27+ (not available in SiS default 1.22.0)
-
-**Diagnostic Steps:**
-
-```bash
-# Step 1: Check if environment.yml exists in stage
-uvx snow sql -q "LIST @DB.SCHEMA.STREAMLIT_STAGE;" | grep environment.yml
-
-# If no output -> environment.yml is MISSING (root cause confirmed)
-
-# Step 2: If environment.yml exists, download and check contents
-uvx snow sql -q "GET @DB.SCHEMA.STREAMLIT_STAGE/environment.yml file:///tmp/;"
-cat /tmp/environment.yml
-
-# Check: Does it pin streamlit to a recent version?
-# BAD:  just "- streamlit" (no version, uses bundled default)
-# GOOD: "- streamlit=1.51.0" (explicit pin)
-
-# Step 3: Verify what Streamlit version the app is using
-# Add this temporarily to streamlit_app.py:
-#   import streamlit as st
-#   st.write(f"Streamlit version: {st.__version__}")
-```
-
-**Fix:**
-
-1. **Create `environment.yml`** in your Streamlit app directory:
-   ```yaml
-   name: my_app
-   channels:
-     - snowflake
-   dependencies:
-     - streamlit=1.51.0
-     - pandas
-     - plotly
-   ```
-
-2. **Redeploy with environment.yml included:**
-   ```bash
-   # Using snow stage copy (recommended for multi-file apps)
-   uvx --from=snowflake-cli==3.14 snow stage copy \
-     streamlit/ @DB.SCHEMA.STREAMLIT_STAGE \
-     --recursive --no-auto-compress --overwrite
-
-   # Or using SQL PUT (single file)
-   uvx snow sql -q "PUT file://streamlit/environment.yml
-       @DB.SCHEMA.STREAMLIT_STAGE
-       AUTO_COMPRESS=FALSE OVERWRITE=TRUE;"
-   ```
-
-3. **Recreate the Streamlit object** (environment.yml is read at creation time):
-   ```bash
-   uvx snow sql -q "DROP STREAMLIT IF EXISTS DB.SCHEMA.MY_APP;"
-   uvx snow sql -q "CREATE STREAMLIT DB.SCHEMA.MY_APP
-       ROOT_LOCATION = '@DB.SCHEMA.STREAMLIT_STAGE'
-       MAIN_FILE = 'streamlit_app.py'
-       QUERY_WAREHOUSE = MY_WH;"
-   ```
-
-**Verification:**
-```bash
-# Confirm environment.yml is in stage
-uvx snow sql -q "LIST @DB.SCHEMA.STREAMLIT_STAGE;" | grep environment.yml
-# Expected: environment.yml listed (not .gz)
-
-# Open app in Snowsight - should load without AttributeError
-```
-
-**Prevention:**
-- Always include `environment.yml` with a pinned Streamlit version in your app directory
-- Add `environment.yml` to your deployment precondition checks
-- Pin to `streamlit=1.51.0` (or latest available in snowflake channel)
+See **109j-snowflake-sis-typeerror-debugging.md** for the full diagnostic workflow covering missing or outdated `environment.yml`, Streamlit API version compatibility table, diagnostic commands, fix steps, and prevention guidance.
 
 ### Issue: "REMOVE fails - file not found"
 
@@ -738,3 +313,38 @@ WHERE NOTEBOOK_NAME = 'APP_NOTEBOOK';
 task notebook:drop:app  # Run drop manually
 task notebook:create:app  # Then create
 ```
+
+### Issue: Permission/Role Errors During Deployment
+
+**Symptoms:**
+- "Insufficient privileges" or "Access denied" during PUT, CREATE, or DROP
+- Deployment works for one developer but not another
+
+**Diagnostic Steps:**
+```sql
+-- Check current role and privileges
+SELECT CURRENT_ROLE(), CURRENT_USER();
+
+-- Verify stage access
+SHOW GRANTS ON STAGE DB.SCHEMA.NOTEBOOK_STAGE;
+
+-- Verify schema privileges (needed for CREATE NOTEBOOK/STREAMLIT)
+SHOW GRANTS ON SCHEMA DB.SCHEMA;
+
+-- Verify warehouse access (needed for QUERY_WAREHOUSE in CREATE)
+SHOW GRANTS ON WAREHOUSE COMPUTE_WH;
+```
+
+**Required Privileges:**
+- **PUT/REMOVE**: WRITE privilege on stage
+- **CREATE NOTEBOOK**: CREATE NOTEBOOK privilege on schema
+- **CREATE STREAMLIT**: CREATE STREAMLIT privilege on schema
+- **DROP**: OWNERSHIP on the object, or appropriate DROP privilege
+- **QUERY_WAREHOUSE**: USAGE privilege on the warehouse
+
+**Fix:**
+```sql
+-- Grant deployment privileges to a role
+GRANT USAGE ON SCHEMA DB.SCHEMA TO ROLE DEPLOYER;
+GRANT WRITE ON STAGE DB.SCHEMA.NOTEBOOK_STAGE TO ROLE DEPLOYER;
+GRANT CREATE NOTEBOOK ON SCHEMA DB.SCHEMA                                                                                                                                          

@@ -103,7 +103,7 @@ for i, rule_file in enumerate(rule_files):
 **Trade-off analysis:**
 - Every rule: Too frequent, breaks flow without adding value
 - Every 10 rules: Too infrequent, drift can establish before detection
-- Every 5 rules: Catches drift early, reasonable overhead (~20 extra checkpoints for 113 rules)
+- Every 5 rules: Catches drift early, reasonable overhead (~26 extra checkpoints for 129 rules)
 
 **Measured impact:**
 - Gate execution: ~10 seconds

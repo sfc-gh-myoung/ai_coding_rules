@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Data science, Snowflake, pandas, Snowpark, ML, model lifecycle, feature engineering, NaN handling, model versioning, Jupyter
-**TokenBudget:** ~2600
+**TokenBudget:** ~2750
 **ContextTier:** High
 **Depends:** 200-python-core.md, 000-global-core.md
 
@@ -35,7 +35,7 @@ Comprehensive rules for data science and analytics on Snowflake. Covers model li
 - **100-snowflake-core.md** - Snowflake SQL patterns
 - **101-snowflake-streamlit-core.md** - Streamlit dashboard patterns
 - **110-snowflake-model-registry.md** - Model versioning and registry
-- **252-python-pandas.md** - Pandas best practices
+- **252-python-pandas-core.md** - Pandas best practices
 
 ### External Documentation
 
@@ -54,11 +54,11 @@ Comprehensive rules for data science and analytics on Snowflake. Covers model li
 
 ### Mandatory
 
-- Snowflake SQL (CTEs, window functions, aggregations)
-- Python for ML/analytics (scikit-learn, snowflake-ml, pandas/polars)
-- Snowflake Model Registry for model versioning
-- Query Profile for cost/performance analysis
-- Git for version control
+- MUST investigate data (schemas, distributions, volumes) before recommending models or approaches
+- MUST version model artifacts in Snowflake Model Registry with metrics and data lineage
+- MUST profile data distributions and validate quality before setting thresholds or training
+- MUST use SQL aggregation over Python loops for large-scale data processing
+- MUST quantify uncertainty (confidence intervals, prediction intervals) in all outputs
 
 ### Forbidden
 
@@ -312,19 +312,14 @@ fig.add_trace(go.Scatter(x=dates, y=upper_bounds, fill='tonexty', name='95% Uppe
 
 **SQL-First:**
 ```python
-# Filter in SQL, not pandas
-query = f"""SELECT * FROM sales_fact WHERE region = '{selection}'
-            AND order_date >= DATEADD('year', -1, CURRENT_DATE()) LIMIT 10000"""
+# Filter in SQL, not pandas (use parameterized queries to prevent injection)
+query = session.sql(
+    "SELECT * FROM sales_fact WHERE region = ? AND order_date >= DATEADD('year', -1, CURRENT_DATE()) LIMIT 10000",
+    params=[selection]
+).to_pandas()
 ```
 
-**Streamlit Caching:**
-```python
-@st.cache_data(ttl=3600)
-def load_data(region): return session.sql(query).to_pandas()
-
-@st.cache_resource
-def load_model(): return registry.get_model("churn").default.run
-```
+**Streamlit Caching:** See 940-business-analytics.md for Streamlit caching patterns.
 
 **Timeout Handling:**
 ```python
@@ -333,17 +328,33 @@ session.sql("ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = 300").collect()
 
 ## Ethical Visualization
 
-**FORBIDDEN:**
-- Truncated Y-axis without indicators
-- 3D pie charts
-- Omitting zero baseline for magnitude comparisons
-- Inconsistent time intervals
-- Cherry-picked date ranges
+See 940-business-analytics.md for ethical visualization guidelines.
 
-**Required Disclosures:**
+## Snowpark Error Handling
+
 ```python
-st.caption(f"Data as of: {last_refresh} | {hours_since:.1f}h ago")
-st.info(f"Based on {len(df):,} records | 95% CI ±{margin:.1%}")
+from snowflake.snowpark import Session
+from snowflake.snowpark.exceptions import SnowparkSQLException
+
+try:
+    result = session.sql("SELECT ...").collect()
+except SnowparkSQLException as e:
+    logger.error(f"Snowpark query failed: {e.message}")
+    raise
 ```
 
-**WCAG 2.1 AA:** 4.5:1 contrast, colorblind-safe palettes, screen reader support, keyboard navigation.
+MUST handle `SnowparkSQLException` in production Snowpark code. For session management, use context managers or explicit `session.close()` in finally blocks.
+
+## Model Deployment Lifecycle
+
+- **Registry:** Version all models in Snowflake Model Registry or MLflow with metrics, data lineage, and SHAP values
+- **Staging:** Promote models through stages: development, staging, production
+- **Deployment Checklist:** Validate on holdout set, stage in registry, run integration tests, promote to production
+- **Monitoring:** Set up drift detection and performance monitoring before promoting to production
+
+## AI Agent Integration
+
+- Structure analysis outputs as structured data (JSON/YAML) for agent consumption
+- Include metadata (timestamp, confidence score, data range, model version) with analysis results
+- Design visualization functions to be callable programmatically, not just interactively
+- Expose metric definitions as queryable data for agent self-service

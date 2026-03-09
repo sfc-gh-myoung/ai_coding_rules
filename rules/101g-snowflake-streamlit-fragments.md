@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.0
-**LastUpdated:** 2026-01-12
+**LastUpdated:** 2026-03-09
 **Keywords:** st.fragment, run_every, real-time progress, polling, live updates, fragment pattern, auto-refresh, streaming, monitoring dashboard
-**TokenBudget:** ~2300
+**TokenBudget:** ~2500
 **ContextTier:** Medium
 **Depends:** 101-snowflake-streamlit-core.md, 101b-snowflake-streamlit-performance.md
 
@@ -39,6 +39,7 @@ Advanced Streamlit fragment patterns for real-time progress tracking, live polli
 
 ### Inputs and Prerequisites
 
+- Streamlit >= 1.33.0 (fragments introduced in 1.33)
 - Streamlit app with long-running operation (>30s)
 - Database table or API endpoint for progress tracking
 - Understanding of st.session_state
@@ -56,7 +57,7 @@ Advanced Streamlit fragment patterns for real-time progress tracking, live polli
 - **Conditional Rendering:** Fragment MUST be called outside button's `if` block to persist across reruns
 - **Cleanup on Completion:** Clear session state variables when operation completes to stop fragment
 - **Use `st.stop()`:** Call `st.stop()` inside fragment to halt auto-refresh when done
-- **Read-Only Display:** Fragment body should only contain display elements (no widgets)
+- **Read-Only Display:** Fragment body must only contain display elements (no widgets)
 
 ### Forbidden
 
@@ -114,11 +115,11 @@ from concurrent.futures import ThreadPoolExecutor
 
 def initialize_analysis_progress(audio_file: str):
     """Initialize progress tracking in database table"""
-    session.sql(f"""
+    session.sql("""
         INSERT INTO UTILITY_DEMO_V2.CUSTOMER_DATA.ANALYSIS_PROGRESS
         (AUDIO_FILE_NAME, STATUS, CURRENT_STEP, TOTAL_STEPS)
-        VALUES ('{audio_file}', 'in_progress', 0, 18)
-    """).collect()
+        VALUES (?, 'in_progress', 0, 18)
+    """, params=[audio_file]).collect()
 
 def call_stored_procedure_async(proc_name: str, *args):
     """Execute stored procedure in background thread"""
@@ -139,13 +140,17 @@ def show_analysis_progress_live(audio_file):
     - Clears session state to prevent re-triggering on subsequent reruns
     """
     # Query current progress from database
-    progress_result = session.sql(f"""
-        SELECT STATUS, CURRENT_STEP, TOTAL_STEPS, STEP_DESCRIPTION, LAST_UPDATED
-        FROM UTILITY_DEMO_V2.CUSTOMER_DATA.ANALYSIS_PROGRESS
-        WHERE AUDIO_FILE_NAME = '{audio_file}'
-        ORDER BY LAST_UPDATED DESC
-        LIMIT 1
-    """).collect()
+    try:
+        progress_result = session.sql("""
+            SELECT STATUS, CURRENT_STEP, TOTAL_STEPS, STEP_DESCRIPTION, LAST_UPDATED
+            FROM UTILITY_DEMO_V2.CUSTOMER_DATA.ANALYSIS_PROGRESS
+            WHERE AUDIO_FILE_NAME = ?
+            ORDER BY LAST_UPDATED DESC
+            LIMIT 1
+        """, params=[audio_file]).collect()
+    except Exception:
+        st.warning("Unable to fetch progress. Retrying...")
+        return
 
     if not progress_result:
         st.warning("Initializing analysis...")
@@ -292,9 +297,34 @@ def polling_with_termination():
         st.stop()
 ```
 
+### Timeout Pattern for Long-Running Fragment Queries
+
+When fragments execute queries that may take too long, enforce a timeout to prevent blocking:
+
+```python
+import time
+
+@st.fragment(run_every="2s")
+def monitored_fragment():
+    start = st.session_state.get("fragment_start_time")
+    if start and (time.time() - start) > 120:  # 2-minute timeout
+        st.error("Operation timed out after 2 minutes.")
+        del st.session_state.active_operation
+        st.stop()
+
+    status = check_operation_status()
+    if status == "complete":
+        del st.session_state.active_operation
+        st.stop()
+```
+
 ## Performance Considerations
 
-- **Polling Frequency:** Balance between responsiveness and database load (0.5s-2s typical)
+- **Polling Frequency:** 0.5s for progress bars, 2s for dashboard monitoring, 5s for background job polling
 - **Scoped Reruns:** Only fragment reruns, not entire app (preserves user inputs, scroll position)
 - **Database Load:** Each auto-refresh queries database; ensure queries are indexed and fast (<100ms)
 - **Connection Pooling:** Use Streamlit's `st.connection()` for efficient connection management
+
+## Limitations
+
+- **No Nesting:** Fragments cannot be nested inside other fragments. A fragment function cannot call another fragment function. Use a single fragment that manages multiple UI components instead.

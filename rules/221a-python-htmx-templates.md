@@ -65,7 +65,7 @@ Jinja2 template organization patterns for HTMX applications, covering partial re
 
 - Mixing full-page and partial logic in single template
 - Returning partials without proper IDs
-- Deeply nested template inheritance for partials
+- More than 1 level of inheritance for partials (partials should be standalone fragments, never extending other templates)
 - Passing unnecessary context to partials
 - Hard-coding URLs in templates
 
@@ -183,9 +183,9 @@ Directory structure for `templates/`:
                 document.querySelector('meta[name="csrf-token"]').content;
         });
 
-        // Global event handling
+        // Global event handling (add app-specific logic as needed)
         document.body.addEventListener('htmx:afterSwap', (event) => {
-            console.log('HTMX swap completed');
+            // Initialize dynamic content after swap if needed
         });
     </script>
 
@@ -287,36 +287,33 @@ def users_list():
     return render_template('pages/users.html', users=users)
 ```
 
-**Method 2: Template-Level Detection:**
+**Method 2: Template-Level Detection (Include-Based):**
+
+> **Note:** `{% extends %}` must be the first tag in a Jinja2 template and cannot appear inside conditionals. Use `{% include %}` for conditional rendering at the template level.
+
 ```html
 {# templates/users.html #}
+{# This template does NOT use extends — it builds the page inline #}
 {% if request.headers.get('HX-Request') %}
     {# Partial response for HTMX #}
     {% include 'partials/_users_table.html' %}
 {% else %}
-    {# Full page response #}
-    {% extends "base.html" %}
-    {% block content %}
-        <h1>Users</h1>
-        {% include 'partials/_users_table.html' %}
-    {% endblock %}
+    {# Full page response assembled via includes #}
+    <!DOCTYPE html>
+    <html>
+    <head><title>Users</title></head>
+    <body>
+        {% include 'components/_navbar.html' %}
+        <main>
+            <h1>Users</h1>
+            {% include 'partials/_users_table.html' %}
+        </main>
+    </body>
+    </html>
 {% endif %}
 ```
 
-**Method 3: Macro-Based Conditional:**
-```html
-{# templates/macros/render.html #}
-{% macro render_content(content_template, context) %}
-    {% if request.headers.get('HX-Request') %}
-        {% include content_template with context %}
-    {% else %}
-        {% extends "base.html" %}
-        {% block content %}
-            {% include content_template with context %}
-        {% endblock %}
-    {% endif %}
-{% endmacro %}
-```
+> For most projects, Method 1 (view-level detection) is simpler and avoids this limitation entirely.
 
 ### 6. Reusable Components
 
@@ -461,20 +458,5 @@ Directory structure for `templates/`:
   - `_modal.html` - Modal component
 
 ### View with Conditional Rendering
-```python
-from flask import Flask, render_template, request
 
-@app.route('/users')
-def users_list():
-    users = get_users()
-    search_query = request.args.get('q', '')
-
-    if search_query:
-        users = [u for u in users if search_query.lower() in u.name.lower()]
-
-    # Return partial for HTMX, full page otherwise
-    if request.headers.get('HX-Request') == 'true':
-        return render_template('partials/_users_table.html', users=users)
-
-    return render_template('pages/users.html', users=users)
-```
+See Section 5, Method 1 for the recommended view-level detection pattern with search filtering.

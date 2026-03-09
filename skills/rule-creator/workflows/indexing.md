@@ -8,7 +8,7 @@ Add the newly created and validated rule to `RULES_INDEX.md` in the correct nume
 
 From Phase 4:
 - Validated rule file: `rules/NNN-technology-aspect.md`
-- Exit code 0 from `schema_validator.py`
+- Exit code 0 from `ai-rules validate`
 - Metadata (rule number, keywords, scope, dependencies)
 
 ## Outputs
@@ -300,9 +300,9 @@ Indexing complete when:
 
 ```
  Phase 1: Discovery & Research - Domain identified, best practices gathered
- Phase 2: Template Generation - template_generator.py created structure
+ Phase 2: Template Generation - ai-rules new created structure
  Phase 3: Content Population - All sections filled with quality content
- Phase 4: Validation Loop - schema_validator.py returned exit code 0
+ Phase 4: Validation Loop - ai-rules validate returned exit code 0
  Phase 5: Indexing - Rule added to RULES_INDEX.md
 
 🎉 Production-ready rule created: rules/422-daisyui-core.md
@@ -317,5 +317,5 @@ Indexing complete when:
 ## Final Verification
 
 - Confirm the rule file exists: `rules/422-daisyui-core.md`
-- Confirm it validates: `python scripts/schema_validator.py rules/422-daisyui-core.md` returns exit code 0
-
+- Confirm it validates: `uv run ai-rules validate rules/422-daisyui-core.md` returns exit code 0
+ 

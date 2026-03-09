@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:connection-error, kw:timeout
 **Keywords:** connection errors, error classification, network policy, authentication, VPN, error codes, 08001, 390114, error handling, snowflake.connector, DatabaseError, message analysis, error detection
-**TokenBudget:** ~3400
+**TokenBudget:** ~3900
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 
@@ -115,6 +115,16 @@ Error classification enum/constant with user-facing guidance string
 ## Error Classification Hierarchy
 
 ### Critical Pattern: Detection Order Matters
+
+**Language-Agnostic Error Classification:**
+
+1. **NETWORK_POLICY** — Message contains "not allowed to access", "IP/Token", or "network policy". Action: Reconnect VPN, check IP allowlist
+2. **AUTH_EXPIRED** — Error code 390114, 390318, 390144, or 390195. Action: Run `snow connection test`
+3. **TRANSIENT** — Message contains "timeout", "connection reset", or "temporarily unavailable". Action: Retry with exponential backoff
+4. **PERMISSION** — Message contains "insufficient privileges" or "permission denied". Action: Contact admin for role/privileges
+5. **CONNECTION** — Error code 08001, 08003, or 08004 (fallback). Action: Verify account URL, check network
+
+**Detection order matters:** Check patterns top-to-bottom. Network policy MUST be checked before auth codes.
 
 Snowflake error code `08001` appears in multiple scenarios:
 - VPN disconnection (network policy violation)
@@ -256,6 +266,23 @@ Temporary network issue - retrying automatically.
 Auto-retry with exponential backoff (3 attempts).
 ```
 
+**Retry Implementation:**
+```python
+import time
+
+def retry_on_transient(func, max_retries=3, base_delay=1.0):
+    """Retry a Snowflake operation on transient errors with exponential backoff."""
+    for attempt in range(max_retries):
+        try:
+            return func()
+        except DatabaseError as e:
+            if not _is_transient_error(str(e)):
+                raise  # Non-transient errors should not be retried
+            if attempt == max_retries - 1:
+                raise  # Exhausted retries
+            time.sleep(base_delay * 2 ** attempt)  # 1s, 2s, 4s
+```
+
 ### 4. Permission Errors
 
 **Detection Pattern:**
@@ -343,66 +370,46 @@ class SnowflakeErrorType(Enum):
     CONNECTION = "connection"
     UNKNOWN = "unknown"
 
+# Guidance messages per error type
+_GUIDANCE = {
+    SnowflakeErrorType.NETWORK_POLICY: (
+        "NETWORK POLICY VIOLATION\n\n"
+        "1. Reconnect to your VPN\n"
+        "2. Wait 5 seconds\n"
+        "3. Retry connection"
+    ),
+    SnowflakeErrorType.AUTH_EXPIRED: "AUTHENTICATION EXPIRED\n\nRun: snow connection test",
+    SnowflakeErrorType.TRANSIENT: "NETWORK TIMEOUT - Retrying automatically",
+    SnowflakeErrorType.PERMISSION: "PERMISSION DENIED\n\nContact administrator for privileges",
+    SnowflakeErrorType.CONNECTION: (
+        "CONNECTION FAILED\n\n"
+        "1. Verify account URL\n"
+        "2. Check network\n"
+        "3. Run: snow connection test"
+    ),
+}
+
+# Compose detectors: reuses functions defined in sections 1-5 above
+_DETECTORS = [
+    # (check_func, uses_msg, error_type)
+    (_is_network_policy_error, True,  SnowflakeErrorType.NETWORK_POLICY),
+    (_is_auth_error,           False, SnowflakeErrorType.AUTH_EXPIRED),
+    (_is_transient_error,      True,  SnowflakeErrorType.TRANSIENT),
+    (_is_permission_error,     True,  SnowflakeErrorType.PERMISSION),
+    (_is_connection_error,     False, SnowflakeErrorType.CONNECTION),
+]
+
 def classify_snowflake_connection_error(
     error_msg: str,
     error_code: str
 ) -> Tuple[SnowflakeErrorType, str]:
-    """
-    Classify Snowflake connection error and return user guidance.
-
-    Args:
-        error_msg: Full error message string
-        error_code: Snowflake error code (e.g., "08001")
-
-    Returns:
-        (ErrorType, user_guidance_string)
-    """
-    # Order matters: Most specific first!
-
-    # 1. Network Policy (VPN disconnect)
-    if _is_network_policy_error(error_msg):
-        guidance = (
-            "NETWORK POLICY VIOLATION\n\n"
-            "1. Reconnect to your VPN\n"
-            "2. Wait 5 seconds\n"
-            "3. Retry connection"
-        )
-        return (SnowflakeErrorType.NETWORK_POLICY, guidance)
-
-    # 2. Authentication
-    if _is_auth_error(error_code):
-        guidance = (
-            "AUTHENTICATION EXPIRED\n\n"
-            "Run: snow connection test"
-        )
-        return (SnowflakeErrorType.AUTH_EXPIRED, guidance)
-
-    # 3. Transient
-    if _is_transient_error(error_msg):
-        guidance = "NETWORK TIMEOUT - Retrying automatically"
-        return (SnowflakeErrorType.TRANSIENT, guidance)
-
-    # 4. Permission
-    if _is_permission_error(error_msg):
-        guidance = (
-            "PERMISSION DENIED\n\n"
-            "Contact administrator for privileges"
-        )
-        return (SnowflakeErrorType.PERMISSION, guidance)
-
-    # 5. Generic Connection
-    if _is_connection_error(error_code):
-        guidance = (
-            "CONNECTION FAILED\n\n"
-            "1. Verify account URL\n"
-            "2. Check network\n"
-            "3. Run: snow connection test"
-        )
-        return (SnowflakeErrorType.CONNECTION, guidance)
-
-    # 6. Unknown
-    guidance = f"Error {error_code}: {error_msg}"
-    return (SnowflakeErrorType.UNKNOWN, guidance)
+    """Classify Snowflake connection error using composition of detectors."""
+    error_msg = error_msg or ""
+    error_code = error_code or ""
+    for detector, uses_msg, error_type in _DETECTORS:
+        if detector(error_msg if uses_msg else error_code):
+            return (error_type, _GUIDANCE[error_type])
+    return (SnowflakeErrorType.UNKNOWN, f"Error {error_code}: {error_msg}")
 ```
 
 ### Usage in Python Scripts
@@ -420,7 +427,7 @@ try:
 except DatabaseError as e:
     error_type, guidance = classify_snowflake_connection_error(
         str(e),
-        e.errno if hasattr(e, 'errno') else ""
+        str(e.errno) if hasattr(e, 'errno') else ""
     )
 
     if error_type == SnowflakeErrorType.NETWORK_POLICY:
@@ -433,6 +440,33 @@ except DatabaseError as e:
         subprocess.run(["snow", "connection", "test"])
     else:
         print(guidance)
+```
+
+### Usage in Streamlit Apps
+
+```python
+import streamlit as st
+from snowflake.connector.errors import DatabaseError
+
+def get_connection():
+    try:
+        return st.connection("snowflake")
+    except DatabaseError as e:
+        error_type, guidance = classify_snowflake_connection_error(
+            str(e), str(getattr(e, 'errno', ''))
+        )
+        if error_type == SnowflakeErrorType.NETWORK_POLICY:
+            st.error("VPN disconnected. Reconnect and click Retry.")
+        elif error_type == SnowflakeErrorType.AUTH_EXPIRED:
+            st.error("Authentication expired. Run `snow connection test`, then Retry.")
+        elif error_type == SnowflakeErrorType.TRANSIENT:
+            st.warning("Temporary network issue. Retrying...")
+        else:
+            st.error(guidance)
+
+        if st.button("Retry Connection"):
+            st.rerun()
+        return None
 ```
 
 ## Anti-Patterns and Common Mistakes

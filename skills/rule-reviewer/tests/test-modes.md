@@ -24,14 +24,20 @@ model: claude-sonnet-45
 
 ## Overall Score: X/100
 
-## Dimension Scores
+## Dimension Scores (Scoring Rubric v2.0)
 
-- **Actionability** - Max: 25, Raw: X/5, Points: Y/25, Notes: ...
-- **Completeness** - Max: 20, Raw: X/5, Points: Y/20, Notes: ...
-- **Consistency** - Max: 20, Raw: X/5, Points: Y/20, Notes: ...
-- **Parsability** - Max: 15, Raw: X/5, Points: Y/15, Notes: ...
-- **Token Efficiency** - Max: 10, Raw: X/5, Points: Y/10, Notes: ...
-- **Staleness** - Max: 10, Raw: X/5, Points: Y/10, Notes: ...
+| Dimension | Raw | Weight | Points | Max |
+|-----------|-----|--------|--------|-----|
+| Actionability | X/10 | ×3.0 | Y | 30 |
+| Rule Size | X/10 | ×2.5 | Y | 25 |
+| Parsability | X/10 | ×1.5 | Y | 15 |
+| Completeness | X/10 | ×1.5 | Y | 15 |
+| Consistency | X/10 | ×1.0 | Y | 10 |
+| Cross-Agent | X/10 | ×0.5 | Y | 5 |
+
+**Informational (not scored):**
+- Token Efficiency: [findings]
+- Staleness: [findings]
 
 ## Issues Found
 
@@ -53,8 +59,9 @@ model: claude-sonnet-45
 ```
 
 **Pass Criteria:**
-- [ ] All dimensions scored
-- [ ] Overall score calculated
+- [ ] All 6 dimensions scored
+- [ ] Informational dimensions (Token Efficiency, Staleness) tracked
+- [ ] Overall score calculated (out of 100)
 - [ ] Issues categorized by severity
 - [ ] Recommendations provided
 - [ ] Checklist included
@@ -108,7 +115,7 @@ model: claude-sonnet-45
 
 ### TokenBudget
 - Value: ~XXXX
-- Validation: Run `python scripts/token_validator.py <rule-file>`
+- Validation: Run `uv run ai-rules tokens <rule-file>`
 - Actual tokens (tiktoken): [value]
 - Variance: [%]
 - Appropriateness: [assessment]
@@ -187,6 +194,8 @@ model: claude-sonnet-45
 
 ## STALENESS Mode Tests
 
+> **Scoring Rubric v2.0:** STALENESS mode is now informational only - no numeric score is calculated.
+
 ### Test S.1: STALENESS Review - Current Rule
 
 **Input:**
@@ -201,7 +210,7 @@ model: claude-sonnet-45
 ```markdown
 # Staleness Review: 200-python-core.md
 
-## Staleness Assessment: CURRENT
+## Staleness Assessment: CURRENT (Informational)
 
 ## Version References
 - **Python** - Rule Version: 3.11+, Current Version: 3.13, Status: Minor
@@ -213,13 +222,17 @@ model: claude-sonnet-45
 ## Outdated Recommendations
 - None found
 
-## Overall: LOW STALENESS RISK
+## Recommendations
+- [Any updates suggested]
+
+Note: This is an informational review. No score is calculated.
 ```
 
 **Pass Criteria:**
 - [ ] Version references checked
 - [ ] Deprecated patterns scanned
-- [ ] Staleness risk assessed
+- [ ] Staleness findings documented
+- [ ] Recommendations provided (not scores)
 - [ ] No false positives for current content
 
 ---
@@ -235,14 +248,14 @@ review_mode: STALENESS
 **Expected:**
 - Outdated versions identified
 - Deprecated patterns found
-- Staleness risk: HIGH
+- Staleness findings: CRITICAL
 - Update recommendations provided
 
 **Pass Criteria:**
 - [ ] Outdated content detected
 - [ ] Specific versions cited
-- [ ] HIGH risk assigned
-- [ ] Update path recommended
+- [ ] CRITICAL findings flagged
+- [ ] Update path recommended (no score)
 
 ---
 

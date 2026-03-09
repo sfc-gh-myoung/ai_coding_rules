@@ -190,7 +190,7 @@ The list of file paths produced by this workflow is passed to the review executi
 
 ## Testing Checklist
 
-- [ ] Discovers all 113 rules with default pattern
+- [ ] Discovers all 129 rules with default pattern
 - [ ] Filters correctly with `rules/100-*.md` pattern
 - [ ] Returns empty result gracefully for non-matching pattern
 - [ ] Handles missing `rules/` directory with clear error

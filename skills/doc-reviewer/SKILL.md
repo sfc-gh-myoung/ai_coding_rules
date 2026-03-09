@@ -139,16 +139,27 @@ Validate review_date, review_mode, model, target_files, review_scope.
 
 **See:** `workflows/input-validation.md`
 
-### 2. Model Slugging
+### 2. Parameter Collection
+
+Collect ALL parameters (required AND optional) using `ask_user_question` tool.
+
+**See:** `workflows/parameter-collection.md`
+
+**MANDATORY:** Prompt for ALL parameters in batched questions (max 4 per call):
+- Do NOT silently apply defaults for optional parameters
+- User must explicitly confirm each setting
+- If `ask_user_question` unavailable, fall back to text-based prompting
+
+### 3. Model Slugging
 
 Convert model name to lowercase-hyphenated slug for filenames.
 
 **See:** `workflows/model-slugging.md`
 
-### 3. [CONDITIONAL] Timing Instrumentation
+### 4. [CONDITIONAL] Timing Instrumentation
 
 **Execute IF:** `timing_enabled: true`  
-**Skip IF:** `timing_enabled: false` (default) → Proceed to step 4
+**Skip IF:** `timing_enabled: false` (default) → Proceed to step 5
 
 **When enabled, execute ALL steps below (not optional once enabled):**
 
@@ -188,7 +199,7 @@ bash skills/skill-timing/scripts/run_timing.sh end \
 
 **See:** `../skill-timing/workflows/` for detailed workflow documentation.
 
-### 4. Review Execution
+### 5. Review Execution
 
 Execute complete review per rubric and `execution_mode`.
 
@@ -204,17 +215,17 @@ Execute complete review per rubric and `execution_mode`.
 **FOCUSED mode:** Score specified focus_area dimension(s) only
 **STALENESS mode:** Score Staleness dimension only (fast maintenance check)
 
-### 5. [MODE TRANSITION: PLAN → ACT]
+### 6. [MODE TRANSITION: PLAN → ACT]
 
 Request user ACT authorization before file modifications.
 
-### 6. File Write
+### 7. File Write
 
 Write review to `reviews/doc-reviews/` (single) or `reviews/summaries/` (collection) with appropriate filename.
 
 **See:** `workflows/file-write.md`
 
-### 7. Post-Execution Validation
+### 8. Post-Execution Validation
 
 **Always:** Verify review file was written successfully.
 
@@ -223,7 +234,7 @@ Write review to `reviews/doc-reviews/` (single) or `reviews/summaries/` (collect
 2. IF missing AND `_timing_run_id` captured: Attempt recovery embed now
 3. IF missing AND no `_timing_run_id`: WARN "Timing enabled but run_id not captured"
 
-### 8. Error Handling
+### 9. Error Handling
 
 Handle validation failures, file write errors, broken links, missing files.
 

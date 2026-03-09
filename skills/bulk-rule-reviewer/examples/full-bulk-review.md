@@ -267,9 +267,9 @@ Files generated:
 
 **Review Date:** 2026-01-06
 **Model:** Claude Sonnet 4.5
-**Rules Reviewed:** 113
+**Rules Reviewed:** 129
 **Review Mode:** FULL
-**Completion Status:** 111/113 (2 failed)
+**Completion Status:** 127/129 (2 failed)
 
 ---
 

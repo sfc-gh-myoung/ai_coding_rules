@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-01-13
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** system prompt altitude, investigation-first, anti-patterns, multi-session workflows, parallel execution, advanced patterns, heuristics, goldilocks zone, context management, state management
-**TokenBudget:** ~4300
+**TokenBudget:** ~3450
 **ContextTier:** Medium
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
@@ -38,6 +38,7 @@ Advanced patterns for writing rules that balance specificity with flexibility. F
 **Related:**
 - **002a-rule-creation.md** - Step-by-step rule creation workflow
 - **002c-rule-optimization.md** - Token budgets and performance
+- **004-tool-design-for-agents.md** - Tool Design Altitude patterns (moved from this rule)
 
 ### External Documentation
 
@@ -48,10 +49,9 @@ Advanced patterns for writing rules that balance specificity with flexibility. F
 
 ### Inputs and Prerequisites
 
-- Complex rule design task
-- Understanding of system prompt engineering
-- Knowledge of LLM limitations
-- Familiarity with advanced rule patterns
+- A rule design task that requires patterns beyond basic rule creation (e.g., multi-session workflows, anti-pattern libraries, investigation-first protocols)
+- Has read 002-rule-governance.md (schema requirements) and 002a-rule-creation.md (basic creation workflow)
+- Existing rule draft or clear requirements for the rule being designed
 
 ### Mandatory
 
@@ -206,7 +206,7 @@ You are a technical support agent for ProductX.
 3. Can the model adapt to variations while following the spirit?
 4. Are success criteria explicit and measurable?
 
-**Principle:** Give strong heuristics, not brittle if-else trees. Trust the model to apply principles to specific situations.
+**Principle:** Give strong heuristics, not brittle if-else trees. A rule at the right altitude should have ≤5 conditional branches and ≥3 concrete examples per concept.
 
 ## Investigation-First Protocol
 
@@ -444,41 +444,7 @@ When gathering data from multiple sources:
 
 ## Tool Design Altitude
 
-### Tool Specifications Need Right Altitude
-
-[FAIL] **Too Low (Over-Specified):**
-```python
-def search(query: str, mode: int):
-    """mode: 0=exact, 1=fuzzy, 2=semantic, 3=hybrid"""
-    # Agent must memorize arbitrary codes
-```
-
-[FAIL] **Too High (Under-Specified):**
-```python
-def do_operation(data: str, operation: str):
-    """Perform operation on data"""
-    # What operations? What format?
-```
-
-[PASS] **Right Altitude (Clear Contract):**
-```python
-def search(
-    query: str,
-    mode: Literal["exact", "fuzzy", "semantic"] = "semantic"
-) -> List[Result]:
-    """Search with specified matching strategy.
-
-    Args:
-        query: Search term or phrase
-        mode: Matching strategy
-            - exact: Case-sensitive exact match
-            - fuzzy: Handles typos, word order
-            - semantic: Meaning-based search
-
-    Returns:
-        List of results ranked by relevance
-    """
-```
+See **004-tool-design-for-agents.md** for Tool Design Altitude patterns, including over-specified, under-specified, and right-altitude examples for tool APIs.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -519,149 +485,15 @@ STATE_recovery_log.md
 STATE_session_handoff.yml
 
 # GOOD: Minimal state for task complexity
-# Simple task (1-2 sessions): Use activeContext.md only
+# Simple task (1-2 sessions): Use activeContext.md only (see 001-memory-bank.md)
 # Medium task (3-5 sessions): Add task-specific checklist
 # Complex task (5+ sessions): Consider dedicated STATE.md
 ```
 
-## Output Format Examples
-
-### Example 1: Investigation-First Pattern in Python Rule
-
-```python
-# Example: Adding investigation block to Python refactoring rule
-
-def refactor_with_investigation(file_path: str):
-    """
-    Refactor Python code following investigation-first protocol.
-
-    Steps:
-    1. Read file to understand current structure
-    2. Analyze dependencies and imports
-    3. Apply refactoring with verified assumptions
-    """
-    # Step 1: Investigation Required
-    with open(file_path, 'r') as f:
-        current_code = f.read()
-
-    # Step 2: Verify assumptions
-    imports = extract_imports(current_code)
-    function_signatures = extract_signatures(current_code)
-
-    # Step 3: Apply refactoring with facts
-    refactored = apply_changes(current_code, imports, function_signatures)
-
-    return refactored
-```
-
-### Example 2: System Prompt Altitude
-
-```markdown
-## Snowflake SQL Optimization
-
-### Guidelines (Right Altitude)
-- Prefer CTEs over subqueries for readability
-- Use QUALIFY for window function filtering
-- Cluster tables by frequently filtered columns
-- Partition large tables by date when querying recent data
-- Monitor warehouse credit usage with QUERY_HISTORY
-
-### Constraints
-- Don't use SELECT * in production queries
-- Don't create tables without explicit clustering keys
-- Verify query execution plan before deploying changes
-```
-
-### Example 2: Investigation-First
-
-```markdown
-## Python Code Refactoring
-
-> **Investigation Required**
-> Before refactoring:
-> 1. Read the Python file to understand current structure
-> 2. Check test files to understand expected behavior
-> 3. Verify import statements and dependencies
-> 4. Never assume function signatures without reading code
-> 5. Confirm refactoring won't break existing tests
-
-**MANDATORY:**
-- Read file with Read tool first
-- Check tests exist: `grep -r "test_" tests/`
-- Run tests before and after changes
-```
-
 ## Multi-File Task Patterns
 
-### Atomic Changes (Single ACT Session)
-
-Use when files are tightly coupled and changes must be consistent:
-- Refactoring that renames functions/classes across files
-- Updating API contracts (client + server)
-- Schema migrations (DDL + application code)
-
-**Task List Format:**
-```
-1. Update function signature in `auth.py`
-2. Update all call sites in `middleware.py`
-3. Update route handlers in `routes.py`
-4. Run validation suite (all files)
-```
-
-**Rollback Strategy:**
-
-If validation fails, you MUST:
-- Revert ALL files to original state
-- Return to PLAN mode
-- Present revised task list with fixes
-
-**Rollback Mechanisms:**
-- **Git repo available (preferred):** Use `git checkout -- <file>` or `git stash`
-- **No git, few files:** Store original content in-memory before edit, restore via write tool
-- **No git, many files:** Read and store each file before editing; revert individually on failure
-
-**Selection:** Check git availability first (`git status`). If unavailable, use in-memory for simple tasks or incremental for multi-file changes.
-
-**Rollback Reporting:**
-```markdown
-WARNING: Validation failed. Reverting changes:
-- Reverted: `auth.py` (original restored)
-- Reverted: `middleware.py` (original restored)
-- Unchanged: `routes.py` (not yet modified)
-
-MODE: PLAN
-[Revised task list with fixes]
-```
-
-### Progressive Changes (Multiple ACT Sessions)
-
-Use when files are loosely coupled:
-- Adding independent features to different modules
-- Updating documentation across multiple files
-- Performance optimizations in separate components
-
-**Task List Format:**
-```
-Session 1: Update `auth.py`
-- [specific changes]
-- [validation]
-- [await "ACT"]
-
-Session 2: Update `middleware.py`
-- [specific changes]
-- [validation]
-- [await "ACT"]
-```
+For multi-file task patterns (atomic vs progressive changes, rollback strategies), see **002a-rule-creation.md**, section "Multi-File Task Patterns".
 
 ## Importance Marker Inheritance
 
-When splitting rules (e.g., 100-snowflake-core.md into 100a, 100b, 100c):
-
-- Parent rule keeps original marker (CORE/FOUNDATION)
-- Child rules inherit same marker if they're core dependencies
-- Child rules use no marker if they're specialized topics
-
-Example:
-- `200-python-core.md` - CORE RULE (parent)
-- `201-python-lint-format.md` - CORE RULE (core dependency)
-- `206-python-pytest.md` - no marker (specialized testing rule)
+For importance marker inheritance during rule splits, see **002-rule-governance.md**, section "Importance Marker Inheritance".

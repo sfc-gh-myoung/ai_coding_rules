@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases, Markdown, markdown linting, pymarkdownlnt, markup validation, TOML, environment files
-**TokenBudget:** ~4100
+**TokenBudget:** ~3500
 **ContextTier:** Medium
 **Depends:** None
 **LoadTrigger:** ext:.yml, ext:.yaml, ext:.toml, file:Taskfile.yml
@@ -34,6 +34,7 @@ Safe markup and configuration file practices to prevent parsing errors and maint
 - None (standalone rule)
 
 **Related:**
+- **202a-markdown-linting.md** - Markdown linting patterns and pymarkdownlnt configuration (Recommended)
 - **203-python-project-setup.md** - pyproject.toml configuration
 - **820-taskfile-automation.md** - Taskfile patterns
 
@@ -64,7 +65,7 @@ Safe markup and configuration file practices to prevent parsing errors and maint
 ### Forbidden
 
 - Direct file modification without validation
-- Unicode characters in YAML values
+- Unicode bullet/special characters in YAML structural contexts (i18n strings in values are valid)
 - Secrets in version-controlled config files
 - Inconsistent indentation
 - Unquoted strings containing colons in YAML
@@ -88,13 +89,11 @@ Validation produces:
 ### Validation
 
 **Pre-Task-Completion Checks:**
-- [ ] All YAML files pass yamllint
-- [ ] Strings with colons are quoted
-- [ ] No Unicode characters in YAML values
-- [ ] TOML arrays use consistent formatting
-- [ ] .env files in .gitignore
-- [ ] Markdown linted (if using pymarkdownlnt)
-- [ ] All configs parse successfully
+- [ ] Ran yamllint on all modified YAML files
+- [ ] Ran TOML validation on modified `.toml` files
+- [ ] Ran pymarkdownlnt on modified Markdown files (or delegated to 202a)
+- [ ] Verified no secrets present in committed config files
+- [ ] Confirmed all config files parse without errors
 
 **Success Criteria:**
 - yamllint returns 0 errors
@@ -118,14 +117,12 @@ Validation produces:
 
 ### Post-Execution Checklist
 
-- [ ] All YAML files pass yamllint
-- [ ] Strings with colons are quoted
-- [ ] No Unicode characters in YAML values
+- [ ] All YAML strings with colons are properly quoted
+- [ ] No Unicode characters used in YAML structural contexts
+- [ ] Consistent indentation (2-space YAML, 4-space TOML) throughout
+- [ ] .env files excluded via .gitignore; .env.example provided
 - [ ] TOML arrays use consistent formatting
-- [ ] .env files in .gitignore
-- [ ] Markdown linted (if using pymarkdownlnt)
-- [ ] All configs parse successfully
-- [ ] No secrets in version-controlled files
+- [ ] Configuration documentation updated if structure changed
 
 ## Anti-Patterns and Common Mistakes
 
@@ -188,77 +185,27 @@ systemctl restart app
 ```
 **Benefits:** Catch errors before deployment; prevent production outages; fast feedback; safe deployments.
 
-## Post-Execution Checklist
-- [ ] YAML files use consistent 2-space indentation
-- [ ] Strings with special characters are properly quoted
-- [ ] Taskfile syntax validated with `task --list`
-- [ ] Environment files follow KEY=VALUE format
-- [ ] TOML configuration uses proper section headers
-- [ ] Markdown files pass `uvx pymarkdownlnt scan` with zero errors
-- [ ] No secrets or sensitive data in configuration files
-- [ ] Configuration validated at application startup
-- [ ] Documentation includes setup and validation instructions
-
-## Validation
-- **Success checks:** All YAML files parse correctly; Taskfile syntax valid; TOML configuration loads without errors; Markdown files pass linting with zero errors; no parsing errors in any markup/config files
-- **Negative tests:** Malformed YAML fails parsing; unquoted special characters cause errors; invalid TOML syntax detected; Markdown linting catches formatting issues; configuration with missing required values fails validation
-
 ## Output Format Examples
 
-```python
-# Investigation: Check current implementation
-# Read existing files, understand patterns
-
-# Implementation: Following uv + ruff + pytest standards
-from typing import Protocol
-from datetime import datetime, UTC
-
-class ServiceProtocol(Protocol):
-    """Clear contract for service implementations."""
-
-    def process(self, data: dict) -> dict:
-        """Process data following validation rules."""
-        ...
-
-def implementation_function(input_data: dict) -> dict:
-    """
-    Implement feature following project conventions.
-
-    Args:
-        input_data: Validated input following schema
-
-    Returns:
-        Processed result with metadata
-
-    Raises:
-        ValueError: If input validation fails
-    """
-    # Use datetime.now(UTC) not datetime.utcnow()
-    timestamp = datetime.now(UTC)
-
-    # Implement business logic
-    result = {"status": "success", "timestamp": timestamp}
-    return result
-
-# Validation: Test the implementation
-def test_implementation_function():
-    """Test following AAA pattern."""
-    # Arrange
-    test_input = {"key": "value"}
-
-    # Act
-    result = implementation_function(test_input)
-
-    # Assert
-    assert result["status"] == "success"
-    assert "timestamp" in result
-```
-
 ```bash
-# Validation commands
-uvx ruff check .
-uvx ruff format --check .
-uv run pytest tests/
+# yamllint output (clean)
+$ uvx yamllint config.yml
+$
+
+# yamllint output (errors)
+$ uvx yamllint config.yml
+config.yml
+  3:1       error    wrong indentation: expected 2 but found 4  (indentation)
+  7:12      error    too many spaces after colon  (colons)
+
+# pymarkdownlnt output (clean)
+$ uvx pymarkdownlnt scan README.md
+No issues found.
+
+# pymarkdownlnt output (errors)
+$ uvx pymarkdownlnt scan README.md
+README.md:5:1: MD022: Headings should be surrounded by blank lines [Expected: 1; Actual: 0]
+README.md:12:81: MD013: Line length [Expected: 80; Actual: 120]
 ```
 
 ## YAML Syntax Safety
@@ -288,6 +235,29 @@ cmds:
 - **Always:** Quote strings with leading/trailing spaces: `"  Indented text  "`
 - **Always:** Quote strings with special shell characters: `"command --flag=\"value\""`
 - **Critical:** Use double quotes for strings containing variables: `"{{.VARIABLE}}"`
+
+### yamllint Configuration
+
+Create `.yamllint.yml` in project root for consistent YAML validation:
+
+```yaml
+extends: default
+rules:
+  line-length:
+    max: 120
+    allow-non-breakable-inline-mappings: true
+  truthy:
+    check-keys: false
+  comments:
+    min-spaces-from-content: 1
+  indentation:
+    spaces: 2
+    indent-sequences: true
+  document-start: disable
+```
+
+- **Always:** Run `uvx yamllint .` to validate all YAML files in a project
+- **Rule:** Customize `.yamllint.yml` per project — disable `document-start` for Taskfiles, adjust `line-length` for readability
 
 ## Shell Command Safety in YAML
 
@@ -332,6 +302,24 @@ cmds:
 - **Always:** Use arrays for multiple values: `select = ["E", "W", "F"]`
 - **Reference:** See `201-python-lint-format.md` for complete Ruff configuration patterns.
 
+#### TOML Validation
+
+Validate TOML files before committing to catch syntax errors early:
+
+```bash
+# Validate pyproject.toml using Python's built-in tomllib (3.11+)
+python -c "import tomllib; tomllib.load(open('pyproject.toml', 'rb'))"
+
+# Validate any TOML file
+python -c "import tomllib, sys; tomllib.load(open(sys.argv[1], 'rb'))" config.toml
+```
+
+**Common TOML errors:**
+- Missing closing brackets in section headers: `[tool.ruff` should be `[tool.ruff]`
+- Using single quotes for multi-line strings: use `"""triple quotes"""`
+- Duplicate section headers: TOML forbids redefining the same table
+- Incorrect array-of-tables syntax: use `[[tool.mypy.overrides]]` not `[tool.mypy.overrides]` for repeated sections
+
 ## Common Parsing Errors and Solutions
 
 ### YAML Parsing Issues
@@ -351,17 +339,31 @@ cmds:
 2. **"command not found"**: Variable expansion issues.
    - Fix: Use proper `{{.VARIABLE}}` syntax and quote expansions.
 
-## Validation and Testing
+## YAML Anchors and Aliases
 
-### YAML Validation
-- **Always:** Test YAML syntax after changes: `task --list` for Taskfiles.
-- **Always:** Use YAML linters in CI/CD pipelines.
-- **Consider:** Use IDE extensions for real-time YAML validation.
+### Safe Patterns
+```yaml
+# Define anchor with &, reference with *
+defaults: &defaults
+  adapter: postgres
+  host: localhost
 
-### Configuration Testing
-- **Always:** Test configuration loading in application startup.
-- **Always:** Validate environment variable parsing.
-- **Critical:** Test configuration with different environments (dev, test, prod).
+development:
+  <<: *defaults        # Merge anchor into mapping
+  database: app_dev
+
+production:
+  <<: *defaults
+  database: app_prod
+  host: db.example.com  # Override specific keys
+```
+
+### Common Pitfalls
+- **Critical:** Anchors must be defined before use — YAML is parsed top-to-bottom
+- **Critical:** `<<: *anchor` only works for mappings, not sequences
+- **Always:** Keep anchor definitions near the top of the file for readability
+- **Never:** Use deeply nested anchor chains (A to B to C) -- they are hard to debug
+- **Never:** Use anchors for secrets — the value is duplicated in memory and may appear in logs
 
 ## Documentation and Comments
 
@@ -390,127 +392,7 @@ cmds:
 
 ## Markdown Linting
 
-### Purpose
-Markdown linting ensures consistent syntax, formatting, and structure across all project documentation files.
-
-### Tool: pymarkdownlnt (Python-Native)
-
-**Rationale:** Python-native linter that integrates with existing `uv`/`uvx` tooling.
-
-#### Installation and Usage
-```bash
-# Check Markdown files using uvx (no installation required)
-uvx pymarkdownlnt scan "**/*.md"
-
-# Check specific files
-uvx pymarkdownlnt scan README.md CHANGELOG.md CONTRIBUTING.md
-
-# Check with configuration file
-uvx pymarkdownlnt --config pymarkdown.json scan .
-```
-
-#### Configuration
-
-Create `.pymarkdown` or `pymarkdown.json` in project root:
-
-```json
-{
-  "plugins": {
-    "line-length": {
-      "enabled": false
-    },
-    "no-inline-html": {
-      "enabled": false
-    }
-  }
-}
-```
-
-**Common rules to adjust:**
-- `line-length`: Often disabled for long links and code blocks
-- `no-inline-html`: Often disabled for badges and advanced formatting
-- `first-line-heading`: Project-dependent (may require H1 as first line)
-
-#### Integration with Taskfile
-
-Add Markdown linting tasks to `Taskfile.yml`:
-
-```yaml
-lint-markdown:
-  desc: "Lint Markdown files with pymarkdownlnt"
-  cmds:
-    - uvx pymarkdownlnt scan "**/*.md"
-
-lint-markdown-fix:
-  desc: "Lint Markdown files with auto-fix where possible"
-  cmds:
-    - uvx pymarkdownlnt --fix scan "**/*.md"
-
-lint:
-  desc: "Run all linting checks"
-  cmds:
-    - task: lint-ruff
-    - task: lint-markdown
-```
-
-#### Pre-Task-Completion Validation
-
-**CRITICAL:** Markdown linting is part of the Pre-Task-Completion Validation Gate.
-
-- **Rule (Taskfile-first):** If `Taskfile.yml` exists and provides a Markdown lint task (commonly
-  `task lint`, `task check`, `task validate`, or `task lint-markdown`), run the project-defined task
-  instead of invoking the tool directly.
-- **Rule (fallback):** If no Taskfile task exists, run `uvx pymarkdownlnt scan "**/*.md"` after
-  modifying Markdown files
-- **Rule:** Fix all Markdown linting errors before marking task complete
-- **Exception:** Only skip validation if user explicitly requests override
-
-#### Common Markdown Issues
-
-1. **Inconsistent heading hierarchy**: H1 to H3 without H2
-   - Fix: Use proper heading levels (H1, then H2, then H3)
-
-2. **Missing blank lines**: No blank line before/after headings or code blocks
-   - Fix: Add blank lines for readability
-
-3. **Trailing spaces**: Unnecessary spaces at end of lines
-   - Fix: Remove trailing whitespace
-
-4. **Inconsistent list formatting**: Mixed bullet styles or indentation
-   - Fix: Use consistent list markers and 2-space indentation
-
-5. **Bare URLs**: URLs not wrapped in angle brackets or link syntax
-   - Fix: Use `<https://example.com>` or `[text](https://example.com)`
-
-### Alternative: markdownlint (Node.js)
-
-**Note:** If team prefers Node.js tooling, `markdownlint-cli2` is the industry standard.
-
-```bash
-# Install globally
-npm install -g markdownlint-cli2
-
-# Check files
-markdownlint-cli2 "**/*.md"
-```
-
-**Rationale for pymarkdownlnt:** Consistency with existing Python/`uv` tooling ecosystem.
-
-## Validation Results
-
-**Files Checked:**
-- YAML: [list]
-- TOML: [list]
-- Markdown: [list]
-
-**Issues Found:** [count]
-
-**Actions Taken:**
-1. [Fix description]
-2. [Fix description]
-
-**Validation Passed:** /
-```
+For Markdown linting patterns, tool configuration (pymarkdownlnt), and integration with Taskfile, see **202a-markdown-linting.md**.
 
 > **Investigation Required**
 > When applying this rule:

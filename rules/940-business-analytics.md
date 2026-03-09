@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-01-27
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Business intelligence, dashboards, KPIs, reporting, visualization, stakeholder reports, metrics, Snowsight, executive dashboards, data storytelling, WCAG accessibility
-**TokenBudget:** ~2750
+**TokenBudget:** ~2900
 **ContextTier:** High
 **Depends:** 000-global-core.md, 100-snowflake-core.md
 
@@ -52,10 +52,10 @@ Comprehensive directives for creating business-oriented queries, reports, dashbo
 
 ### Mandatory
 
-- Snowflake SQL (CTEs, window functions, explicit columns)
-- Snowsight Dashboards or Streamlit for visualization
-- Business-friendly naming conventions
-- Data quality indicators and freshness timestamps
+- MUST use business-friendly naming in all queries and outputs
+- MUST include data freshness timestamps on dashboards
+- MUST validate color contrast ratios meet WCAG 2.1 AA (≥4.5:1)
+- MUST use CTEs and explicit column selection (no SELECT *)
 
 ### Forbidden
 
@@ -245,18 +245,9 @@ fig.add_trace(go.Bar(name='Loss ▼', marker=dict(color='#CC3311', pattern_shape
 
 ## Ethical Visualization Standards
 
-**FORBIDDEN Manipulations:**
-- Truncated Y-axis without clear visual indicators
-- Cherry-picked date ranges without disclosure
-- 3D effects that distort proportions
-- Inconsistent time intervals
+**FORBIDDEN Manipulations:** Truncated Y-axis without indicators, cherry-picked date ranges without disclosure, 3D effects distorting proportions, inconsistent time intervals.
 
-**Required Disclosures:**
-```python
-st.caption(f" Data as of: {last_update} ({hours_ago:.1f}h ago)")  # Freshness
-st.info(f"Based on {len(df):,} responses | ±{margin:.1%} at 95% CI")  # Confidence
-if active_filters: st.warning(f"Filters: {', '.join(active_filters)}")  # Filters
-```
+**Required Disclosures:** Data freshness timestamps, sample size with confidence intervals, active filter warnings.
 
 ## Accessibility (WCAG 2.1 AA)
 
@@ -301,7 +292,7 @@ GROUP BY 1, 2;
 ```python
 @st.cache_data(ttl=3600)  # 1 hour TTL
 def load_dashboard_data(region: str):
-    return session.sql(f"SELECT * FROM dashboard WHERE region = '{region}'").to_pandas()
+    return session.sql("SELECT * FROM dashboard WHERE region = ?", params=[region]).to_pandas()
 ```
 
 ## Metric Documentation Standard
@@ -317,3 +308,24 @@ METRIC_DEFINITIONS = {
     }
 }
 ```
+
+## Mobile and Responsive Dashboard Design
+
+- MUST ensure dashboards meet WCAG 2.1 AA accessibility standards (color contrast, keyboard navigation, screen reader labels)
+- Use responsive layouts that adapt to tablet and mobile viewports
+- Avoid hover-only interactions — provide tap-friendly alternatives for touch devices
+- Test dashboards at 320px, 768px, and 1024px breakpoints minimum
+- Prefer scalable units (rem, %) over fixed pixels for layout dimensions
+
+## AI Agent Integration
+
+- Structure dashboard data as queryable APIs or views for agent consumption
+- Include metric metadata (definition, owner, refresh frequency) alongside values
+- Design dashboard components to be callable programmatically (not just interactive)
+- Agents SHOULD use the metric definitions dictionary as the authoritative source
+
+## Internationalization Note
+
+- When building dashboards for international audiences, use locale-aware formatting for numbers, dates, and currencies
+- Store display labels separately from logic to enable future localization
+- Use ISO 8601 date formats (YYYY-MM-DD) in data layers; localize only at the presentation layer

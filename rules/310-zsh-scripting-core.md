@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** Zsh, Z shell, zsh features, arrays, functions, oh-my-zsh, emulate, setopt, parameter expansion, globbing
-**TokenBudget:** ~5300
+**TokenBudget:** ~4100
 **ContextTier:** Medium
 **Depends:** 300-bash-scripting-core.md
 **LoadTrigger:** ext:.zsh, kw:zsh
@@ -51,7 +51,7 @@ Foundational zsh scripting patterns covering unique zsh features, script structu
 
 - Zsh script or configuration file requiring development
 - Understanding of shell scripting fundamentals
-- Access to zsh shell (version 5.0+ recommended)
+- Access to zsh shell (version 5.0 or later required)
 - Knowledge of bash differences (if migrating from bash)
 
 ### Mandatory
@@ -84,50 +84,36 @@ Foundational zsh scripting patterns covering unique zsh features, script structu
 
 ### Output Format
 
-Zsh script with:
-- Proper shebang (`#!/usr/bin/env zsh`)
-- setopt configuration for error handling
-- Functions using `emulate -L zsh`
-- Correct array usage (1-indexed or KSH_ARRAYS set)
-- Proper variable quoting throughout
+Zsh script satisfying all Mandatory items above, plus:
 - Zsh-specific features leveraged appropriately
+- Correct array usage (1-indexed or KSH_ARRAYS set)
 
 ### Validation
 
 **Pre-Task-Completion Checks:**
-- Shebang is `#!/usr/bin/env zsh`
-- setopt configured for error handling
-- Functions use `emulate -L zsh`
-- Arrays indexed correctly (1-based or KSH_ARRAYS set)
-- Variables quoted in all contexts
+- All Mandatory items satisfied
 - No bash-specific syntax without compatibility mode
 
 **Success Criteria:**
 - `zsh -n script.zsh` passes syntax check
-- Script executes without errors on target zsh version
+- Script executes without errors on target zsh version (5.0+)
 - Arrays accessed correctly (test with sample data)
 - Parameter expansion works as expected
-- No word splitting issues with unquoted variables
-- Functions behave consistently with emulate set
 
 ### Design Principles
 
 - **Leverage Zsh Features:** Use advanced capabilities (arrays, globbing, parameter expansion)
 - **Explicit Configuration:** Set options explicitly, don't rely on defaults
 - **Namespace Safety:** Avoid polluting global namespace in configuration files
-- **Compatibility Awareness:** Understand bash differences, test cross-shell if needed
+- **Compatibility Awareness:** Test cross-shell if script must run on both bash and zsh
 - **Consistent Behavior:** Use `emulate -L zsh` in functions for predictability
 
 ### Post-Execution Checklist
 
-- [ ] Shebang set to `#!/usr/bin/env zsh`
-- [ ] setopt configured for error handling
-- [ ] Functions use `emulate -L zsh`
-- [ ] Arrays indexed correctly
-- [ ] Variables quoted properly
+- [ ] All Mandatory and Pre-Task items verified
 - [ ] Zsh-specific features used appropriately
 - [ ] Syntax validated with `zsh -n`
-- [ ] Script tested on target zsh version
+- [ ] Script tested on target zsh version (5.0+)
 - [ ] No namespace pollution in .zshrc
 - [ ] Compatibility verified if needed
 
@@ -153,7 +139,7 @@ rm $files  # In zsh, this tries to delete "file1.txt file2.txt" as one file
 # GOOD: Explicit options for predictable behavior
 #!/bin/zsh
 setopt KSH_ARRAYS      # 0-indexed arrays like bash
-setopt SH_WORD_SPLIT   # Word splitting on unquoted vars
+# NOTE: Keep SH_WORD_SPLIT off (zsh default). Use `emulate -L sh` for POSIX blocks.
 
 # Or use zsh idioms correctly
 arr=(a b c)
@@ -187,60 +173,29 @@ typeset -U path  # Remove duplicates
 
 ## Output Format Examples
 
-```bash
-#!/usr/bin/env bash
-# Script following bash best practices from rule
+```zsh
+#!/usr/bin/env zsh
+emulate -L zsh
+setopt ERR_EXIT NO_UNSET PIPE_FAIL EXTENDED_GLOB
 
-set -euo pipefail  # Exit on error, undefined vars, pipe failures
-IFS=$'\n\t'      # Safe word splitting
+readonly SCRIPT_DIR="${0:A:h}"
 
-# Constants
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly LOG_FILE="${SCRIPT_DIR}/output.log"
-
-# Functions with clear contracts
 main() {
-    # Investigation phase
-    check_prerequisites
-
-    # Implementation phase
-    perform_operations
-
-    # Validation phase
-    verify_results
-}
-
-check_prerequisites() {
+    emulate -L zsh
     local -a required_commands=(jq curl git)
-
     for cmd in "${required_commands[@]}"; do
-        if ! command -v "${cmd}" &>/dev/null; then
-            echo "ERROR: Required command not found: ${cmd}" >&2
-            exit 1
-        fi
+        command -v "$cmd" &>/dev/null || { print -u2 "ERROR: Missing: $cmd"; return 1 }
     done
+    print "Processing complete."
 }
 
-perform_operations() {
-    echo "Performing operations following project patterns..."
-    # Implementation details here
-}
-
-verify_results() {
-    echo "Validating results..."
-    # Validation logic here
-}
-
-# Execute main function
 main "$@"
 ```
 
-```bash
-# Validation with shellcheck
-shellcheck script.sh
+```zsh
+# Validate syntax
+zsh -n script.zsh
 ```
-
-- ****300-bash-scripting-core.md**** - Bash scripting fundamentals for comparison
 
 ## Script Foundation & Zsh Setup
 
@@ -255,8 +210,8 @@ shellcheck script.sh
 # Ensure zsh behavior in mixed environments
 emulate -L zsh
 
-# Set strict error handling
-set -euo pipefail
+# Set strict error handling (zsh-native; `set -euo pipefail` works but prefer native)
+setopt ERR_EXIT NO_UNSET PIPE_FAIL
 ```
 
 ### Zsh Options and Modes
@@ -400,10 +355,11 @@ process_simple() {
 function create_backup() {
     emulate -L zsh
     local -A opts
-    zparseopts -D -A opts h v || return 1
+    zparseopts -D -A opts h v || { echo "Usage: create_backup [-h] [-v] <source>" >&2; return 1; }
 
     local source="$1"
-    [[ -z $source ]] && { echo "Source required" >&2; return 1; }
+    [[ -n ${opts[-h]} ]] && { echo "Usage: create_backup [-h] [-v] <source>"; return 0; }
+    [[ -z $source ]] && { echo "Error: source path required" >&2; return 1; }
 
     [[ -n ${opts[-v]} ]] && echo "Creating backup of $source"
     cp "$source" "${source}.backup"
@@ -415,369 +371,122 @@ function create_backup() {
 ### Zsh Error Handling
 - **Requirement:** Implement robust error handling:
 ```zsh
-# Global error handler
+# Global error handler using funcstack
 function handle_error() {
     local exit_code=$?
-    local line_number=$1
-
-    echo "Error: Command failed with exit code $exit_code at line $line_number" >&2
-    echo "Function: ${funcstack[2]:-main}" >&2
-    echo "Script: $0" >&2
-
-    # Print call stack
-    echo "Call stack:" >&2
-    local i=1
-    while [[ $i -le ${#funcstack[@]} ]]; do
-        echo "  $i: ${funcstack[$i]} (${funcfiletrace[$i]})" >&2
-        ((i++))
-    done
-
+    echo "Error: exit $exit_code at line $1 in ${funcstack[2]:-main}" >&2
     exit $exit_code
 }
-
-# Set up error trapping
 trap 'handle_error $LINENO' ERR
 
-# Function-specific error handling
+# Function-specific: use ERR_RETURN to return (not exit) on error
 function safe_operation() {
     emulate -L zsh
-    setopt ERR_RETURN  # Return from function on error
-
+    setopt ERR_RETURN
     local file="$1"
-
-    # Check preconditions
-    [[ -f "$file" ]] || {
-        echo "Error: File not found: $file" >&2
-        return 1
-    }
-
-    # Perform operation with error checking
-    cp "$file" "${file}.backup" || {
-        echo "Error: Failed to create backup" >&2
-        return 1
-    }
+    [[ -f "$file" ]] || { echo "Error: File not found: $file" >&2; return 1 }
+    cp "$file" "${file}.backup"
 }
 ```
 
 ### Cleanup and Resource Management
 - **Rule:** Implement proper cleanup:
 ```zsh
-# Global cleanup function
 function cleanup() {
     local exit_code=$?
-
-    # Remove temporary files
     [[ -n ${temp_dir:-} ]] && rm -rf "$temp_dir"
-
-    # Kill background processes
     [[ -n ${bg_pid:-} ]] && kill "$bg_pid" 2>/dev/null
-
-    # Restore terminal settings if modified
     [[ -n ${original_stty:-} ]] && stty "$original_stty"
-
     exit $exit_code
 }
-
-# Set up signal handlers
 trap cleanup EXIT INT TERM QUIT
-
-# Create temporary resources
-temp_dir=$(mktemp -d)
-readonly temp_dir
+temp_dir=$(mktemp -d); readonly temp_dir
 ```
 
 ## Zsh Globbing and Pattern Matching
 
+> For comprehensive globbing patterns and advanced matching, see **310a-zsh-advanced-features.md**.
+
 ### Extended Globbing
-- **Rule:** Use zsh globbing features:
+- **Rule:** Enable and use zsh globbing features:
 ```zsh
 setopt EXTENDED_GLOB
 
-# Basic glob patterns
 files=(*.txt~*backup*)         # Exclude backup files
 logs=(**/*.log)               # Recursive search
 recent=(*(m-1))               # Modified within last day
 dirs=(*(N/))                  # Directories only
 ```
 
-### Pattern Matching in Conditionals
-- **Rule:** Use zsh pattern matching effectively:
-```zsh
-# Pattern matching with case
-case "$filename" in
-    *.txt|*.log)
-        echo "Text file: $filename"
-        ;;
-    *.jpg|*.png|*.gif)
-        echo "Image file: $filename"
-        ;;
-    *.(tar.gz|tgz|zip))
-        echo "Archive file: $filename"
-        ;;
-    *)
-        echo "Unknown file type: $filename"
-        ;;
-esac
-
-# Pattern matching in conditionals
-if [[ "$string" == (#i)*error* ]]; then  # Case-insensitive match
-    echo "Contains 'error' (case-insensitive)"
-fi
-
-if [[ "$version" == <1-9>.<0-9>.<0-9> ]]; then  # Numeric ranges
-    echo "Valid version format"
-fi
-```
+### Pattern Matching
+- **Rule:** Use `(#i)` for case-insensitive and `<n-m>` for numeric range matching in `[[ ]]` conditionals.
 
 ## Input/Output and Command Execution
 
-### Command Substitution and Pipelines
+> For advanced I/O patterns (coprocesses, bidirectional pipes), see **310a-zsh-advanced-features.md**.
+
 - **Rule:** Use zsh-optimized command execution:
 ```zsh
 # Command substitution
 current_time=$(date '+%Y-%m-%d %H:%M:%S')
-file_count=$(print -l *.txt | wc -l)
 
 # Process substitution
 diff <(sort file1) <(sort file2)
 
-# Coprocess for bidirectional communication
-coproc PROC {
-    while read -r line; do
-        echo "Processed: $line"
-    done
-}
-
-echo "test data" >&p
-read -r result <&p
-```
-
-### Zsh-Specific I/O Features
-- **Rule:** Leverage zsh I/O capabilities:
-```zsh
-# Advanced read with timeout and prompt
-if read -t 10 -p "Enter value (10s timeout): " user_input; then
-    echo "Got input: $user_input"
-else
-    echo "Timeout or EOF"
-fi
-
 # Read into array
 read -A words <<< "word1 word2 word3"
-
-# Here-documents with parameter expansion control
-cat <<-'EOF'
-    This text will not expand variables: $HOME
-EOF
-
-cat <<-EOF
-    This text will expand variables: $HOME
-EOF
 ```
 
 ## Configuration and Environment
 
-### Zsh Configuration
-- **Rule:** Understand startup files:
-```zsh
-# Startup order: zshenv then zprofile then zshrc then zlogin
+> For detailed configuration management and environment adaptation, see **310b-zsh-compatibility.md**.
 
-# Check shell type
-[[ -o interactive ]] && echo "Interactive shell"
-[[ -o login ]] && echo "Login shell"
-```
-
-### Environment Detection and Adaptation
-- **Rule:** Detect and adapt to environment:
-```zsh
-# Zsh version checking
-autoload -U is-at-least
-if is-at-least 5.8; then
-    echo "Modern zsh version"
-    setopt HIST_REDUCE_BLANKS
-else
-    echo "Older zsh version, using compatibility mode"
-fi
-
-# OS detection with zsh built-ins
-case "$OSTYPE" in
-    darwin*)
-        alias ls='ls -G'
-        ;;
-    linux*)
-        alias ls='ls --color=auto'
-        ;;
-    freebsd*|openbsd*)
-        alias ls='ls -G'
-        ;;
-esac
-
-# Terminal capability detection
-if [[ "$TERM" == *color* ]] || [[ "$COLORTERM" == *color* ]]; then
-    # Enable colors
-    autoload -U colors && colors
-fi
-```
+- **Rule:** Startup file order: `zshenv` > `zprofile` > `zshrc` > `zlogin`
+- **Rule:** Use `[[ -o interactive ]]` and `[[ -o login ]]` to detect shell type
+- **Rule:** Use `autoload -U is-at-least` to check zsh version requirements
+- **Rule:** Use `$OSTYPE` for OS detection (`darwin*`, `linux*`, `freebsd*`)
 
 ## Performance and Optimization
 
-### Zsh Performance Best Practices
-- **Rule:** Optimize for zsh performance:
-```zsh
-# Use zsh built-ins instead of external commands
-# Fast string operations
-string="hello world"
-echo "${string:u}"           # Uppercase (faster than tr)
-echo "${string//o/0}"        # Replace all 'o' with '0'
+> Prefer zsh built-ins over external commands for operations called repeatedly in loops.
 
-# Efficient array operations
-large_array=(${(f)"$(< large_file)"})  # Read file into array efficiently
-
-# Use zsh's arithmetic evaluation
-(( result = num1 + num2 ))   # Faster than expr or bc
-
-# Avoid unnecessary subshells
-files=(*.txt)                # Direct glob assignment
-# Instead of: files=($(ls *.txt))
-```
-
-### Memory Management
-- **Rule:** Manage memory efficiently:
-```zsh
-# Unset large variables when done
-unset large_array large_string
-
-# Use local variables in functions
-function process_large_data() {
-    emulate -L zsh
-    local -a data
-
-    # Process data locally
-    data=(${(f)"$(< "$1")"})
-
-    # Process and return result
-    echo "${#data}"
-    # data automatically cleaned up when function exits
-}
-```
+- **Rule:** Use parameter expansion (`${string:u}`, `${string//o/0}`) instead of `tr`/`sed`
+- **Rule:** Use `(( ))` arithmetic instead of `expr` or `bc`
+- **Rule:** Use direct glob assignment (`files=(*.txt)`) instead of `$(ls *.txt)`
+- **Rule:** Read files into arrays with `(${(f)"$(< file)"})` instead of line-by-line loops
+- **Rule:** Unset variables holding large data (>1MB) when no longer needed
+- **Rule:** Use `local` variables in functions (auto-cleaned on function exit)
 
 ## Zsh Modules and Autoloading
 
-### Loading Modules
-- **Rule:** Load useful modules:
-```zsh
-zmodload zsh/datetime zsh/mathfunc zsh/stat
-
-echo "Timestamp: $EPOCHSECONDS"
-echo "Sine: $(( sin(1.0) ))"
-```
-
-### Autoloading
-- **Rule:** Use autoloading:
-```zsh
-fpath=(~/.zsh/functions $fpath)
-autoload -Uz colors && colors
-```
+- **Rule:** Load modules with `zmodload zsh/datetime zsh/mathfunc zsh/stat`
+- **Rule:** Add custom function dirs to `fpath` and use `autoload -Uz`
 
 ## Compatibility and Portability
 
-### Bash Compatibility Mode
-- **Rule:** Handle bash compatibility when needed:
-```zsh
-# Enable bash compatibility for specific functions
-function bash_compatible_function() {
-    emulate -L sh  # Use POSIX/bash behavior
+> For detailed cross-shell migration strategies and compatibility patterns, see **310b-zsh-compatibility.md**.
 
-    # Bash-compatible code here
-    local array=("$@")
-    echo "Elements: ${array[@]}"
-}
-
-# Detect if running under bash
-if [[ -n "$BASH_VERSION" ]]; then
-    echo "Running under bash"
-elif [[ -n "$ZSH_VERSION" ]]; then
-    echo "Running under zsh"
-fi
-```
-
-### Cross-Shell Function Writing
-- **Rule:** Write portable functions when needed:
-```zsh
-# Portable function that works in both bash and zsh
-portable_function() {
-    # Use POSIX-compatible features only
-    local input="$1"
-
-    # Avoid zsh-specific features
-    if [ -n "$input" ]; then
-        echo "Processing: $input"
-    else
-        echo "No input provided" >&2
-        return 1
-    fi
-}
-```
+- **Rule:** Use `emulate -L sh` inside functions that must be bash-compatible
+- **Rule:** Detect shell with `$BASH_VERSION` / `$ZSH_VERSION` checks
+- **Rule:** For POSIX-portable functions, use `[ ]` instead of `[[ ]]` and avoid zsh-specific features
 
 ## Common Anti-Patterns to Avoid
 
 ### Zsh-Specific Pitfalls
 - **Avoid:** Mixing zsh and bash syntax without proper emulation
-- **Avoid:** Using `setopt SH_WORD_SPLIT` in scripts (breaks zsh behavior)
+- **Avoid:** Using `setopt SH_WORD_SPLIT` in scripts (breaks zsh behavior). Use `emulate -L sh` for POSIX compatibility blocks instead.
 - **Avoid:** Forgetting array index differences (zsh is 1-indexed by default)
 - **Avoid:** Using `$*` instead of `$@` for argument passing
 - **Avoid:** Ignoring zsh's NULL_GLOB behavior with non-matching patterns
 
 ### Performance Anti-Patterns
-- **Avoid:** Unnecessary external command calls when zsh built-ins exist
+- **Avoid:** External command calls (`tr`, `sed`, `expr`) that have zsh built-in equivalents
 - **Avoid:** Using `$(...)` for simple variable assignments
 - **Avoid:** Creating subshells for array operations
 - **Avoid:** Using `eval` with dynamic content
 
 ## Documentation and Style
 
-### Code Documentation
-- **Rule:** Document zsh-specific features and requirements:
-```zsh
-# Document zsh version requirements
-# Requires: zsh 5.0+ for associative array features
-
-# Document zsh-specific options used
-# Uses: EXTENDED_GLOB for advanced pattern matching
-
-function complex_function() {
-    # Document zsh-specific behavior
-    # Note: Uses zsh 1-indexed arrays
-    emulate -L zsh
-
-    local -a items=("$@")
-    echo "First item: ${items[1]}"  # zsh arrays start at 1
-}
-```
-
-### Usage Information
-- **Requirement:** Provide clear usage documentation:
-```zsh
-show_usage() {
-    cat << 'EOF'
-Usage: script.zsh [OPTIONS] <command> [arguments]
-
-Requirements:
-  - zsh 5.0 or later
-  - EXTENDED_GLOB option support
-
-Commands:
-  process <file>     Process the specified file
-  validate <input>   Validate input format
-
-Options:
-  -v, --verbose      Enable verbose output
-  -h, --help         Show this help message
-
-Examples:
-  ./script.zsh process data.txt
-  ./script.zsh --verbose validate input.json
-
-EOF
-}
-```
+- **Rule:** Document zsh version requirements and options used in script headers (see Script Metadata section)
+- **Rule:** Comment zsh-specific behavior (e.g., `# zsh arrays start at 1`)
+- **Rule:** Provide usage information via a `show_usage()` function with `cat << 'EOF'`

@@ -184,7 +184,7 @@ def validate_review_structure(review_path):
 
 ### Execution Time Sanity Check
 
-Expected: 3-5 minutes per rule minimum
+Expected: 90-120 seconds per rule minimum
 
 ```python
 def validate_execution_time(start_time, end_time, rule_count):

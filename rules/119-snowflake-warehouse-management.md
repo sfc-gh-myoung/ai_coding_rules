@@ -614,4 +614,12 @@ GROUP BY warehouse_name HAVING avg_queue_sec > 0;
 ```sql
 -- 1. Mark deprecated, disable auto-resume
 ALTER WAREHOUSE WH_OLD SET TAG GOVERNANCE.TAGS.LIFECYCLE_STAGE = 'DEPRECATED';
-ALTER WAREHOUSE WH_OLD SET AUTO_RESUME =                                                                                                                                                                                                                                                                         
+ALTER WAREHOUSE WH_OLD SET AUTO_RESUME = FALSE;
+
+-- 2. Monitor usage for 7 days
+SELECT COUNT(*) FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+WHERE warehouse_name = 'WH_OLD' AND start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP());
+
+-- 3. Drop after confirming zero usage
+DROP WAREHOUSE IF EXISTS WH_OLD;
+```

@@ -343,4 +343,4 @@ DESCRIBE MCP SERVER MY_DB.MY_SCHEMA.MY_MCP;
 - **Tool invocation failed:** Missing per-tool grants. Fix: Grant SELECT/USAGE on underlying objects.
 - **Connection refused:** Hostname with underscores. Fix: Use hyphens in hostnames.
 - **Authentication failed:** Expired/invalid token. Fix: Refresh OAuth token or rotate PAT.
-- **Tool not found:** Tool                                                                                                                                                                      
+- **Tool not found:** Tool name misspelled or not registered. Fix: Verify tool name in MCP server spec with `DESCRIBE MCP SERVER`.

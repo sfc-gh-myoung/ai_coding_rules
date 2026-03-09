@@ -3536,3 +3536,169 @@ link_validation: {}
         result = runner.invoke(app, ["validate", str(nonexistent)])
 
         assert result.exit_code == 1
+
+
+# ============================================================================
+# Null Byte Detection Tests
+# ============================================================================
+
+
+class TestNullByteDetection:
+    """Test null byte detection in validation."""
+
+    @pytest.fixture
+    def rules_project_structure(self, tmp_path: Path) -> Path:
+        """Create minimal project structure for validation."""
+        # Create pyproject.toml
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('[project]\nname = "test"')
+
+        # Create schemas directory with minimal schema
+        schemas_dir = tmp_path / "schemas"
+        schemas_dir.mkdir()
+        schema_content = """version: "3.2"
+metadata:
+  header:
+    required: false
+    severity: HIGH
+    error_message: "Missing metadata"
+  required_fields: []
+  field_order:
+    required: false
+    order: []
+    severity: INFO
+    error_message: "order"
+structure:
+  title:
+    count: 1
+    severity: CRITICAL
+  required_sections: []
+  section_order:
+    validate_sequence: false
+    severity: MEDIUM
+    error_message: "order"
+content_rules: {}
+restrictions: {}
+link_validation: {}
+"""
+        schema_path = schemas_dir / "rule-schema.yml"
+        schema_path.write_text(schema_content)
+
+        # Create rules directory
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+
+        return tmp_path
+
+    @pytest.mark.unit
+    def test_detects_null_byte_in_file(
+        self, rules_project_structure: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Test that null bytes are detected and reported as CRITICAL."""
+        monkeypatch.chdir(rules_project_structure)
+
+        # Create rule file with null byte
+        rules_dir = rules_project_structure / "rules"
+        rule_file = rules_dir / "corrupted.md"
+        rule_file.write_bytes(b"# 100-test: Title\n\x00Truncated content after null")
+
+        result = runner.invoke(app, ["validate", str(rules_dir)])
+
+        assert result.exit_code == 1
+        # Summary shows failed files with critical errors
+        assert "CRITICAL" in result.output or "Failed" in result.output
+        assert "corrupted.md" in result.output
+
+    @pytest.mark.unit
+    def test_verbose_shows_null_byte_locations(
+        self, rules_project_structure: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Test that --verbose shows detailed null byte locations."""
+        monkeypatch.chdir(rules_project_structure)
+
+        # Create rule file with null byte at known position
+        rules_dir = rules_project_structure / "rules"
+        rule_file = rules_dir / "corrupted.md"
+        # Null byte on line 2, column 1
+        rule_file.write_bytes(b"# 100-test: Title\n\x00Truncated content")
+
+        result = runner.invoke(app, ["validate", str(rules_dir), "--verbose"])
+
+        assert result.exit_code == 1
+        # Should show line and column info
+        assert "line" in result.output.lower()
+        # Should show byte offset
+        assert "offset" in result.output.lower() or "byte" in result.output.lower()
+
+    @pytest.mark.unit
+    def test_multiple_null_bytes_summary_mode(
+        self, rules_project_structure: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Test file with multiple null bytes shows count in summary mode."""
+        monkeypatch.chdir(rules_project_structure)
+
+        # Create rule file with 3 null bytes
+        rules_dir = rules_project_structure / "rules"
+        rule_file = rules_dir / "corrupted.md"
+        rule_file.write_bytes(b"# 100-test: Title\n\x00First\n\x00Second\n\x00Third null byte")
+
+        result = runner.invoke(app, ["validate", str(rules_dir)])
+
+        assert result.exit_code == 1
+        # Summary indicates failed files (verbose shows count details)
+        assert "CRITICAL" in result.output or "Failed" in result.output
+        assert "corrupted.md" in result.output
+
+    @pytest.mark.unit
+    def test_multiple_null_bytes_verbose_mode(
+        self, rules_project_structure: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Test file with multiple null bytes shows each location in verbose mode."""
+        monkeypatch.chdir(rules_project_structure)
+
+        # Create rule file with 3 null bytes
+        rules_dir = rules_project_structure / "rules"
+        rule_file = rules_dir / "corrupted.md"
+        rule_file.write_bytes(b"# 100-test: Title\n\x00First\n\x00Second\n\x00Third null byte")
+
+        result = runner.invoke(app, ["validate", str(rules_dir), "--verbose"])
+
+        assert result.exit_code == 1
+        # Should show multiple CRITICAL errors for each null byte
+        critical_count = result.output.lower().count("null byte at line")
+        assert critical_count == 3
+
+    @pytest.mark.unit
+    def test_clean_file_passes_integrity_check(
+        self, rules_project_structure: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Test that files without null bytes pass integrity check."""
+        monkeypatch.chdir(rules_project_structure)
+
+        # Create clean rule file
+        rules_dir = rules_project_structure / "rules"
+        rule_file = rules_dir / "clean.md"
+        rule_file.write_text("# 100-test: Title\n\nClean content without null bytes")
+
+        result = runner.invoke(app, ["validate", str(rules_dir)])
+
+        # Should not mention null bytes
+        assert "null byte" not in result.output.lower()
+
+    @pytest.mark.unit
+    def test_fix_suggestion_provided(
+        self, rules_project_structure: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Test that fix suggestion is provided for null byte errors."""
+        monkeypatch.chdir(rules_project_structure)
+
+        # Create rule file with null byte
+        rules_dir = rules_project_structure / "rules"
+        rule_file = rules_dir / "corrupted.md"
+        rule_file.write_bytes(b"# 100-test: Title\n\x00Truncated")
+
+        result = runner.invoke(app, ["validate", str(rules_dir)])
+
+        assert result.exit_code == 1
+        # Should suggest sed command to fix
+        assert "sed" in result.output.lower() or "--verbose" in result.output

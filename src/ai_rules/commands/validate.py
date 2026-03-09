@@ -253,6 +253,99 @@ class SchemaValidator:
             for key, value in context.items():
                 err_console.print(f"[dim]  {key}: {value}[/dim]")
 
+    def _get_null_byte_locations(self, content: str, positions: list[int]) -> list[dict[str, Any]]:
+        """Convert byte offsets of null bytes to line/column locations.
+
+        Args:
+            content: Full file content
+            positions: List of byte offsets where null bytes were found
+
+        Returns:
+            List of dicts with line, column, offset, and preview for each null byte
+        """
+        locations = []
+        lines = content.split("\n")
+
+        for pos in positions:
+            # Find line number (1-indexed)
+            line_num = content[:pos].count("\n") + 1
+            # Find column (1-indexed)
+            line_start = content.rfind("\n", 0, pos) + 1
+            column = pos - line_start + 1
+
+            # Get line preview (handle line containing null byte)
+            if line_num <= len(lines):
+                preview = lines[line_num - 1][:60].replace("\x00", "<NUL>")
+                if len(lines[line_num - 1]) > 60:
+                    preview += "..."
+            else:
+                preview = "<unable to extract>"
+
+            locations.append(
+                {
+                    "line": line_num,
+                    "column": column,
+                    "offset": pos,
+                    "preview": preview,
+                }
+            )
+
+        return locations
+
+    def _validate_file_integrity(
+        self, content: str, result: ValidationResult, verbose: bool = False
+    ) -> bool:
+        """Check for null bytes and other file integrity issues.
+
+        Null bytes in text files cause silent truncation - content after the
+        null byte is ignored, causing validators to pass on incomplete files.
+
+        Args:
+            content: Full file content to check
+            result: ValidationResult to append errors to
+            verbose: If True, report each null byte location; otherwise summary only
+
+        Returns:
+            True if file is clean, False if corruption detected
+        """
+        null_positions = []
+        for i, char in enumerate(content):
+            if char == "\x00":
+                null_positions.append(i)
+
+        if null_positions:
+            # Calculate line/column for each occurrence
+            locations = self._get_null_byte_locations(content, null_positions)
+
+            if verbose:
+                # Detailed output: show each location
+                for loc in locations:
+                    result.errors.append(
+                        ValidationError(
+                            severity="CRITICAL",
+                            message=f"Null byte at line {loc['line']}, column {loc['column']} (byte offset {loc['offset']})",
+                            error_group="File Integrity",
+                            line_num=loc["line"],
+                            line_preview=loc["preview"],
+                            fix_suggestion="Remove null bytes using: sed -i 's/\\x00//g' <file>",
+                        )
+                    )
+            else:
+                # Summary output: single error with count
+                result.errors.append(
+                    ValidationError(
+                        severity="CRITICAL",
+                        message=f"File contains {len(null_positions)} null byte(s) - content may be silently truncated",
+                        error_group="File Integrity",
+                        line_num=locations[0]["line"] if locations else 1,
+                        fix_suggestion="Run with --verbose to see all locations. Fix: sed -i 's/\\x00//g' <file>",
+                    )
+                )
+            return False
+
+        result.passed_checks += 1
+        return True
+
     def _normalize_section_name(self, section_text: str) -> str:
         """Normalize section name for flexible matching.
 
@@ -379,11 +472,12 @@ class SchemaValidator:
 
         return h1_lines
 
-    def validate_file(self, file_path: Path) -> ValidationResult:
+    def validate_file(self, file_path: Path, verbose: bool = False) -> ValidationResult:
         """Validate a single rule file against the schema.
 
         Args:
             file_path: Path to rule file to validate
+            verbose: If True, show detailed null byte locations
 
         Returns:
             ValidationResult with errors and passed checks
@@ -402,6 +496,11 @@ class SchemaValidator:
                     error_group="File",
                 )
             )
+            return result
+
+        # File integrity check (runs first, before line parsing)
+        # Null bytes cause silent truncation - stop early if detected
+        if not self._validate_file_integrity(content, result, verbose=verbose):
             return result
 
         # Parse markdown structure
@@ -1231,13 +1330,14 @@ class SchemaValidator:
             console.print(Panel("[yellow]RESULT: WARNINGS ONLY[/yellow]", border_style="yellow"))
 
     def validate_directory(
-        self, directory: Path, excluded_files: set[str] | None = None
+        self, directory: Path, excluded_files: set[str] | None = None, verbose: bool = False
     ) -> list[ValidationResult]:
         """Validate all rule files in a directory.
 
         Args:
             directory: Directory containing rule files
             excluded_files: Set of filenames to exclude
+            verbose: If True, show detailed null byte locations
 
         Returns:
             List of ValidationResults
@@ -1253,7 +1353,7 @@ class SchemaValidator:
             if file_path.name in excluded_files:
                 continue
 
-            result = self.validate_file(file_path)
+            result = self.validate_file(file_path, verbose=verbose)
             results.append(result)
 
         return results
@@ -1405,11 +1505,99 @@ class ExampleValidator:
             for key, value in context.items():
                 err_console.print(f"[dim]  {key}: {value}[/dim]")
 
-    def validate_file(self, file_path: Path) -> ValidationResult:
+    def _get_null_byte_locations(self, content: str, positions: list[int]) -> list[dict[str, Any]]:
+        """Convert byte offsets of null bytes to line/column locations.
+
+        Args:
+            content: Full file content
+            positions: List of byte offsets where null bytes were found
+
+        Returns:
+            List of dicts with line, column, offset, and preview for each null byte
+        """
+        locations = []
+        lines = content.split("\n")
+
+        for pos in positions:
+            # Find line number (1-indexed)
+            line_num = content[:pos].count("\n") + 1
+            # Find column (1-indexed)
+            line_start = content.rfind("\n", 0, pos) + 1
+            column = pos - line_start + 1
+
+            # Get line preview (handle line containing null byte)
+            if line_num <= len(lines):
+                preview = lines[line_num - 1][:60].replace("\x00", "<NUL>")
+                if len(lines[line_num - 1]) > 60:
+                    preview += "..."
+            else:
+                preview = "<unable to extract>"
+
+            locations.append(
+                {
+                    "line": line_num,
+                    "column": column,
+                    "offset": pos,
+                    "preview": preview,
+                }
+            )
+
+        return locations
+
+    def _validate_file_integrity(
+        self, content: str, result: ValidationResult, verbose: bool = False
+    ) -> bool:
+        """Check for null bytes and other file integrity issues.
+
+        Args:
+            content: Full file content to check
+            result: ValidationResult to append errors to
+            verbose: If True, report each null byte location; otherwise summary only
+
+        Returns:
+            True if file is clean, False if corruption detected
+        """
+        null_positions = []
+        for i, char in enumerate(content):
+            if char == "\x00":
+                null_positions.append(i)
+
+        if null_positions:
+            locations = self._get_null_byte_locations(content, null_positions)
+
+            if verbose:
+                for loc in locations:
+                    result.errors.append(
+                        ValidationError(
+                            severity="CRITICAL",
+                            message=f"Null byte at line {loc['line']}, column {loc['column']} (byte offset {loc['offset']})",
+                            error_group="File Integrity",
+                            line_num=loc["line"],
+                            line_preview=loc["preview"],
+                            fix_suggestion="Remove null bytes using: sed -i 's/\\x00//g' <file>",
+                        )
+                    )
+            else:
+                result.errors.append(
+                    ValidationError(
+                        severity="CRITICAL",
+                        message=f"File contains {len(null_positions)} null byte(s) - content may be silently truncated",
+                        error_group="File Integrity",
+                        line_num=locations[0]["line"] if locations else 1,
+                        fix_suggestion="Run with --verbose to see all locations. Fix: sed -i 's/\\x00//g' <file>",
+                    )
+                )
+            return False
+
+        result.passed_checks += 1
+        return True
+
+    def validate_file(self, file_path: Path, verbose: bool = False) -> ValidationResult:
         """Validate a single example file against the schema.
 
         Args:
             file_path: Path to example file to validate
+            verbose: If True, show detailed null byte locations
 
         Returns:
             ValidationResult with errors and passed checks
@@ -1427,6 +1615,10 @@ class ExampleValidator:
                     error_group="File",
                 )
             )
+            return result
+
+        # File integrity check (runs first, before line parsing)
+        if not self._validate_file_integrity(content, result, verbose=verbose):
             return result
 
         lines = content.split("\n")
@@ -1501,11 +1693,12 @@ class ExampleValidator:
                 )
             )
 
-    def validate_directory(self, directory: Path) -> list[ValidationResult]:
+    def validate_directory(self, directory: Path, verbose: bool = False) -> list[ValidationResult]:
         """Validate all example files in a directory.
 
         Args:
             directory: Directory containing example files (typically rules/examples/)
+            verbose: If True, show detailed null byte locations
 
         Returns:
             List of ValidationResults
@@ -1514,7 +1707,7 @@ class ExampleValidator:
         example_files = sorted(directory.glob("*.md"))
 
         for file_path in example_files:
-            result = self.validate_file(file_path)
+            result = self.validate_file(file_path, verbose=verbose)
             results.append(result)
 
         return results
@@ -1606,6 +1799,13 @@ def validate(
             help="Validate example files in rules/examples/ against example-schema.yml.",
         ),
     ] = False,
+    templates: Annotated[
+        bool,
+        typer.Option(
+            "--templates",
+            help="Validate AGENTS template files against ASCII pattern rules.",
+        ),
+    ] = False,
 ) -> None:
     """Validate AI coding rules against YAML schema.
 
@@ -1660,7 +1860,7 @@ def validate(
             log_info(f"Examples directory not found: {examples_dir}")
             raise typer.Exit(0)  # Not an error if no examples exist yet
 
-        results = example_validator.validate_directory(examples_dir)
+        results = example_validator.validate_directory(examples_dir, verbose=verbose)
 
         if not results:
             log_info(f"No example files found in {examples_dir}")
@@ -1701,6 +1901,69 @@ def validate(
             raise typer.Exit(1) from None
         raise typer.Exit(0)
 
+    # Handle --templates mode separately
+    if templates:
+        try:
+            validator = SchemaValidator(schema_path=schema, debug=debug, project_root=project_root)
+        except Exception as e:
+            log_error(f"Error loading schema: {e}")
+            raise typer.Exit(1) from None
+
+        # Determine templates directory
+        if path.is_dir():
+            templates_dir = path
+        else:
+            templates_dir = path.parent if "templates" in str(path) else project_root / "templates"
+
+        if not templates_dir.exists():
+            log_info(f"Templates directory not found: {templates_dir}")
+            raise typer.Exit(0)
+
+        template_files = sorted(templates_dir.glob("*.md.template"))
+
+        if not template_files:
+            log_info(f"No template files found in {templates_dir}")
+            raise typer.Exit(0)
+
+        results: list[ValidationResult] = []
+        for template_path in template_files:
+            result = validator.validate_agents_md(template_path)
+            results.append(result)
+
+        if verbose:
+            for result in results:
+                validator.format_result(result, detailed=True)
+                console.print()
+
+        # Print summary
+        total_files = len(results)
+        failed = sum(1 for r in results if r.has_critical_or_high)
+        clean = sum(1 for r in results if r.is_clean)
+
+        # List failed templates (even without verbose mode)
+        if failed > 0 and not verbose:
+            console.print("\n[bold red]FAILED TEMPLATES:[/bold red]")
+            for result in results:
+                if result.has_critical_or_high:
+                    console.print(f"  • {result.file_path.name}")
+                    for error in result.errors:
+                        if error.severity in ("CRITICAL", "HIGH"):
+                            console.print(f"    [dim]{error.message}[/dim]")
+                            break
+            console.print()
+
+        summary_table = Table(title="Template Validation Summary")
+        summary_table.add_column("Metric", style="bold")
+        summary_table.add_column("Count", justify="right")
+        summary_table.add_row("Total templates", str(total_files))
+        summary_table.add_row("[green]Valid[/green]", str(clean))
+        summary_table.add_row("[red]Invalid[/red]", str(failed))
+        console.print(summary_table)
+
+        if failed > 0:
+            raise typer.Exit(1) from None
+        raise typer.Exit(0)
+
     # Initialize validator for rule files
     try:
         validator = SchemaValidator(schema_path=schema, debug=debug, project_root=project_root)
@@ -1714,7 +1977,7 @@ def validate(
         if path.name == "AGENTS.md":
             result = validator.validate_agents_md(path)
         else:
-            result = validator.validate_file(path)
+            result = validator.validate_file(path, verbose=verbose)
         validator.format_result(result, detailed=verbose)
 
         if result.has_critical_or_high or (strict and result.errors):
@@ -1739,22 +2002,13 @@ def validate(
                 task = progress.add_task("Validating files...", total=len(rule_files))
                 for file_path in rule_files:
                     progress.update(task, description=f"Validating {file_path.name}...")
-                    result = validator.validate_file(file_path)
+                    result = validator.validate_file(file_path, verbose=verbose)
                     results.append(result)
                     progress.advance(task)
         else:
             for file_path in rule_files:
-                result = validator.validate_file(file_path)
+                result = validator.validate_file(file_path, verbose=verbose)
                 results.append(result)
-
-        # Also validate AGENTS.md if validating rules/ directory
-        # Look for AGENTS.md in the parent directory of rules/
-        if path.name == "rules" or str(path).endswith("rules"):
-            agents_path = path.parent / "AGENTS.md"
-            if agents_path.exists():
-                agents_result = validator.validate_agents_md(agents_path)
-                if agents_result.errors:
-                    results.append(agents_result)
 
         # JSON output mode
         if json_output:

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Execute `ai-rules new` to create a v3.0-compliant rule file structure with all required sections, Contract XML tags, and metadata placeholders ready for population.
+Execute `template_generator.py` to create a v3.0-compliant rule file structure with all required sections, Contract XML tags, and metadata placeholders ready for population.
 
 ## Inputs
 
@@ -15,8 +15,8 @@ From Phase 1:
 ## Outputs
 
 - File created: `rules/NNN-technology-aspect.md`
-- All required v3.2 sections present
-- Contract section with 6 Markdown subsections
+- All 9 required sections present
+- Contract section with 6 XML tags
 - Metadata structure ready for population
 - Placeholder content to replace
 
@@ -26,10 +26,12 @@ From Phase 1:
 
 Select appropriate tier based on rule importance and usage frequency:
 
-- ****Critical**** - When to Use: Core framework, always loaded, Token Range: <500, Examples: 000-global-core
-- ****High**** - When to Use: Domain foundations, frequent, Token Range: 500-1500, Examples: 100-snowflake-core, 200-python-core
-- ****Medium**** - When to Use: Specific features, moderate, Token Range: 1500-3000, Examples: Most new technology rules
-- ****Low**** - When to Use: Specialized, rare, Token Range: 3000-5000, Examples: Advanced/reference docs
+| Tier | When to Use | Token Range | Examples |
+|------|-------------|-------------|----------|
+| **Critical** | Core framework, always loaded | <500 | 000-global-core |
+| **High** | Domain foundations, frequent | 500-1500 | 100-snowflake-core, 200-python-core |
+| **Medium** | Specific features, moderate | 1500-3000 | Most new technology rules |
+| **Low** | Specialized, rare | 3000-5000 | Advanced/reference docs |
 
 **Decision criteria:**
 - Is this a domain foundation? → High
@@ -47,53 +49,60 @@ Format: `NNN-technology-aspect`
 - aspect: usually "core" for foundational rules
 
 **Examples:**
--  `422-daisyui-core`
--  `231-python-msgspec`
--  `125-snowflake-hybrid-tables`
--  `42-DaisyUI-Core` (wrong: not 3 digits, wrong case)
--  `422_daisyui_core` (wrong: underscores)
+- ✓ `422-daisyui-core`
+- ✓ `231-python-msgspec`
+- ✓ `125-snowflake-hybrid-tables`
+- ✗ `42-DaisyUI-Core` (wrong: not 3 digits, wrong case)
+- ✗ `422_daisyui_core` (wrong: underscores)
 
-### Step 2.3: Execute ai-rules new
+### Step 2.3: Execute template_generator.py
 
 **Command format:**
 ```bash
-ai-rules new [NNN]-[technology]-[aspect] \
-  --context-tier [Critical|High|Medium|Low]
+python scripts/template_generator.py [NNN]-[technology]-[aspect] \
+  --context-tier [Critical|High|Medium|Low] \
+  --output-dir rules/
 ```
 
 **Example: DaisyUI**
 ```bash
-ai-rules new 422-daisyui-core --context-tier Medium
+python scripts/template_generator.py 422-daisyui-core \
+  --context-tier Medium \
+  --output-dir rules/
 ```
 
 **Example: Snowflake Feature**
 ```bash
-ai-rules new 125-snowflake-hybrid-tables --context-tier High
+python scripts/template_generator.py 125-snowflake-hybrid-tables \
+  --context-tier High \
+  --output-dir rules/
 ```
 
 **Example: Python Library**
 ```bash
-ai-rules new 231-python-msgspec --context-tier Medium
+python scripts/template_generator.py 231-python-msgspec \
+  --context-tier Medium \
+  --output-dir rules/
 ```
 
 ### Step 2.4: Verify Success Output
 
 **Expected output:**
 ```
- Created rule template: rules/422-daisyui-core.md
+✅ Created rule template: rules/422-daisyui-core.md
 
 Next steps:
 1. Edit rules/422-daisyui-core.md and replace all placeholders with actual content
-2. Validate: ai-rules validate rules/422-daisyui-core.md
+2. Validate: python scripts/schema_validator.py rules/422-daisyui-core.md
 3. Add to RULES_INDEX.md
 ```
 
 **Check exit code:**
 ```bash
 if [ $? -eq 0 ]; then
-  echo " Template created successfully"
+  echo "✓ Template created successfully"
 else
-  echo " Template creation failed - check error message"
+  echo "✗ Template creation failed - check error message"
   # See error handling below
 fi
 ```
@@ -192,7 +201,32 @@ Read created file and confirm presence of:
 - [Link](URL) - Description
 ```
 
-### Step 2.7: Check Contract Placement
+### Step 2.6: Count Sections
+
+Verify all 9 required sections present:
+
+1. ✓ Purpose
+2. ✓ Rule Scope
+3. ✓ Quick Start TL;DR
+4. ✓ Contract
+5. ✓ Anti-Patterns and Common Mistakes
+6. ✓ Post-Execution Checklist
+7. ✓ Validation
+8. ✓ Output Format Examples
+9. ✓ References
+
+### Step 2.7: Verify Contract XML Tags
+
+Confirm all 6 tags present in Contract section:
+
+1. ✓ `<inputs_prereqs>...</inputs_prereqs>`
+2. ✓ `<mandatory>...</mandatory>`
+3. ✓ `<forbidden>...</forbidden>`
+4. ✓ `<steps>...</steps>`
+5. ✓ `<output_format>...</output_format>`
+6. ✓ `<validation>...</validation>`
+
+### Step 2.8: Check Contract Placement
 
 **Requirement:** Contract section must appear before line 160
 
@@ -205,7 +239,7 @@ grep -n "^## Contract" rules/422-daisyui-core.md
 ```
 
 **If Contract after line 160:**
-- This is an `ai-rules new` issue (unlikely)
+- This is a template_generator.py issue (unlikely)
 - File structure may need adjustment
 - Report issue and manually adjust if needed
 
@@ -257,39 +291,39 @@ Error: Context tier must be one of: Critical, High, Medium, Low
 - Check spelling: `Meduim` → `Medium`
 - Retry with correct tier value
 
-### Error 4: Command Not Found
+### Error 4: Script Not Found
 
 **Error message:**
 ```
-ai-rules: command not found
+python: can't open file 'scripts/template_generator.py': No such file or directory
 ```
 
 **Fix:**
 - Verify current directory: `pwd`
 - Should be in project root: `/Users/myoung/Development/ai_coding_rules`
-- Ensure CLI is installed: `pip install -e .` or `uv pip install -e .`
-- Verify command works: `ai-rules --help`
+- If not, cd to project root first
+- Verify script exists: `ls scripts/template_generator.py`
 
-### Error 5: Python Environment Issues
+### Error 5: Python Not Found
 
 **Error message:**
 ```
-ModuleNotFoundError: No module named 'typer'
+bash: python: command not found
 ```
 
 **Fix:**
-- Activate virtual environment: `source .venv/bin/activate`
-- Install dependencies: `uv pip install -e .`
-- Verify Python 3.11+: `python3 --version`
+- Try `python3` instead: `python3 scripts/template_generator.py ...`
+- Verify Python installed: `python3 --version`
+- Should be Python 3.11+ for uv compatibility
 
 ## Validation Checklist
 
 Before proceeding to Phase 3, verify:
 
-- [x] `ai-rules new` executed successfully (exit code 0)
+- [x] template_generator.py executed successfully (exit code 0)
 - [x] File created at `rules/NNN-technology-aspect.md`
-- [x] All required v3.2 sections present
-- [x] Contract section has 6 Markdown headers
+- [x] All 9 required sections present
+- [x] Contract section has 6 XML tags
 - [x] Contract placed before line 160
 - [x] Metadata structure present (Keywords, TokenBudget, ContextTier, Depends)
 - [x] Placeholder content ready for population
@@ -307,13 +341,15 @@ ContextTier: Medium
 
 **Execution:**
 ```bash
-$ ai-rules new 422-daisyui-core --context-tier Medium
+$ python scripts/template_generator.py 422-daisyui-core \
+    --context-tier Medium \
+    --output-dir rules/
 
- Created rule template: rules/422-daisyui-core.md
+✅ Created rule template: rules/422-daisyui-core.md
 
 Next steps:
 1. Edit rules/422-daisyui-core.md and replace all placeholders
-2. Validate: ai-rules validate rules/422-daisyui-core.md
+2. Validate: python scripts/schema_validator.py rules/422-daisyui-core.md
 3. Add to RULES_INDEX.md
 ```
 
@@ -327,7 +363,7 @@ $ grep -n "^## " rules/422-daisyui-core.md
 9:## Purpose
 13:## Rule Scope
 17:## Quick Start TL;DR
-35:## Contract (line 35 < 160 )
+35:## Contract (line 35 < 160 ✓)
 65:## Anti-Patterns and Common Mistakes
 85:## Post-Execution Checklist
 95:## Validation
@@ -335,17 +371,17 @@ $ grep -n "^## " rules/422-daisyui-core.md
 120:## References
 
 $ grep -c "<inputs_prereqs>\|<mandatory>\|<forbidden>\|<steps>\|<output_format>\|<validation>" rules/422-daisyui-core.md
-6  # All 6 XML tags present 
+6  # All 6 XML tags present ✓
 ```
 
 **Output Summary:**
 ```
- Template created: rules/422-daisyui-core.md
- Size: 3.2KB (reasonable starting point)
- Sections: 9/9 present
- Contract XML tags: 6/6 present
- Contract placement: Line 35 (before 160 )
- Ready for Phase 3: Content Population
+✓ Template created: rules/422-daisyui-core.md
+✓ Size: 3.2KB (reasonable starting point)
+✓ Sections: 9/9 present
+✓ Contract XML tags: 6/6 present
+✓ Contract placement: Line 35 (before 160 ✓)
+✓ Ready for Phase 3: Content Population
 ```
 
 ## Next Phase
@@ -359,4 +395,5 @@ Proceed to **Phase 3: Content Population** (`workflows/content-population.md`)
 - Anti-Patterns from Phase 1 (3 patterns)
 - External references from Phase 1
 
-**Action:** Begin replacing placeholders with rese                
+**Action:** Begin replacing placeholders with researched content
+

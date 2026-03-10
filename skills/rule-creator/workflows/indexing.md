@@ -8,7 +8,7 @@ Add the newly created and validated rule to `RULES_INDEX.md` in the correct nume
 
 From Phase 4:
 - Validated rule file: `rules/NNN-technology-aspect.md`
-- Exit code 0 from `ai-rules validate`
+- Exit code 0 from `schema_validator.py`
 - Metadata (rule number, keywords, scope, dependencies)
 
 ## Outputs
@@ -104,7 +104,9 @@ grep "^| 42[0-9]-" RULES_INDEX.md
 # Find line with 421-javascript-alpinejs-core
 # Add new line after it:
 
-- **** - `421-javascript-alpinejs-core.md`: `440-react-core.md`, ...: ...
+|| `421-javascript-alpinejs-core.md` | ... |
+|| `422-daisyui-core.md` | DaisyUI component library patterns and best practices | daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization, utility-first, design system | rules/420-javascript-core.md |
+|| `440-react-core.md` | ... |
 ```
 
 **Important formatting:**
@@ -184,13 +186,17 @@ Compare keywords in index entry with rule metadata:
 
 **Before addition:**
 ```markdown
-- **** - `420-javascript-core.md`: `430-typescript-core.md`, JavaScript and frontend foundations: TypeScript files in frontend and backend, JavaScript, ES2024, ESM, Node.js, JSDoc, Biome: TypeScript, Zod, Strict Mode, Type Inference, rules/000-global-core.md: rules/000-global-core.md
+|| `420-javascript-core.md` | JavaScript and frontend foundations | JavaScript, ES2024, ESM, Node.js, JSDoc, Biome | rules/000-global-core.md |
+|| `421-javascript-alpinejs-core.md` | Alpine.js 3.x usage in web applications | Alpine.js, reactivity, x-data, x-bind, x-on, x-model | rules/000-global-core.md |
+|| `430-typescript-core.md` | TypeScript files in frontend and backend | TypeScript, Zod, Strict Mode, Type Inference | rules/000-global-core.md |
 ```
 
 **After addition:**
 ```markdown
-- **** - `420-javascript-core.md`: `422-daisyui-core.md`, JavaScript and frontend foundations: DaisyUI component library patterns and best practices, JavaScript, ES2024, ESM, Node.js, JSDoc, Biome: daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization, rules/000-global-core.md: rules/420-javascript-core.md
-- **** - `420-javascript-core.md`: `430-typescript-core.md`, JavaScript and frontend foundations: TypeScript files in frontend and backend, JavaScript, ES2024, ESM, Node.js, JSDoc, Biome: TypeScript, Zod, Strict Mode, Type Inference, rules/000-global-core.md: rules/000-global-core.md
+|| `420-javascript-core.md` | JavaScript and frontend foundations | JavaScript, ES2024, ESM, Node.js, JSDoc, Biome | rules/000-global-core.md |
+|| `421-javascript-alpinejs-core.md` | Alpine.js 3.x usage in web applications | Alpine.js, reactivity, x-data, x-bind, x-on, x-model | rules/000-global-core.md |
+|| `422-daisyui-core.md` | DaisyUI component library patterns and best practices | daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization | rules/420-javascript-core.md |
+|| `430-typescript-core.md` | TypeScript files in frontend and backend | TypeScript, Zod, Strict Mode, Type Inference | rules/000-global-core.md |
 ```
 
 **Verification:**
@@ -198,9 +204,9 @@ Compare keywords in index entry with rule metadata:
 $ grep "422-daisyui-core" RULES_INDEX.md
 || `422-daisyui-core.md` | DaisyUI component library patterns and best practices | daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization | rules/420-javascript-core.md |
 
- Entry added successfully
- Numeric order maintained (421 → 422 → 430)
- Table formatting intact
+✓ Entry added successfully
+✓ Numeric order maintained (421 → 422 → 430)
+✓ Table formatting intact
 ```
 
 ## Error Handling
@@ -318,4 +324,3 @@ Indexing complete when:
 
 - Confirm the rule file exists: `rules/422-daisyui-core.md`
 - Confirm it validates: `uv run ai-rules validate rules/422-daisyui-core.md` returns exit code 0
- 

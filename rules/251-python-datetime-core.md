@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:datetime, kw:timezone
 **Keywords:** datetime, timezone, UTC, timedelta, tz_localize, tz_convert, datetime.now(UTC), pd.Timestamp, type conversion, zoneinfo
-**TokenBudget:** ~2450
+**TokenBudget:** ~3000
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -83,6 +83,12 @@ Type-safe datetime operations, explicit timezone handling, Pandas 2.x compatible
 - Timezone operations are explicit
 - Date parsing uses format specification when known
 - No deprecated datetime APIs used
+
+**Success Criteria:**
+- All datetime comparisons use same types (no mixed pd.Timestamp/datetime)
+- All timezone operations are explicit (no implicit local time)
+- Parsing uses `format=` on datasets >1K rows
+- Type conversions documented at integration boundaries
 
 **Negative Tests:**
 - Mixed datetime comparison without conversion (should fail)
@@ -184,12 +190,35 @@ for idx, row in df.iterrows():
 df['next_week'] = df['date'] + pd.Timedelta(days=7)
 ```
 
+### Type Preservation in Arithmetic
+
+Arithmetic operations preserve types — be aware of what you get back:
+
+```python
+import pandas as pd
+from datetime import datetime, UTC
+
+ts = pd.Timestamp.now(tz='UTC')
+result = ts + pd.Timedelta(days=7)
+type(result)  # pd.Timestamp — NOT datetime.datetime
+
+# If you need Python datetime:
+py_dt = result.to_pydatetime()  # Convert explicitly
+
+# DataFrame column arithmetic also returns Timestamp:
+df['next_week'] = df['date'] + pd.Timedelta(days=7)
+# df['next_week'].dtype → datetime64[ns, UTC]
+
+# See 251a for full arithmetic details (relativedelta, business days, etc.)
+```
+
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read data files BEFORE datetime operations** - Check existing date formats, timezone awareness
 > 2. **Verify Pandas version** - Check if Pandas 2.x compatibility needed
 > 3. **Never assume datetime types** - Check df.dtypes to see datetime64 vs object
 > 4. **Check existing timezone handling** - Read code to understand if tz-aware or naive
+> 5. **Check if `python-dateutil` is installed** (`uv pip list | grep dateutil`) — needed for `relativedelta`, `rrule`, flexible parsing
 
 ## DateTime Type System
 
@@ -258,6 +287,23 @@ df['date_python'] = df['date'].apply(lambda x: x.to_pydatetime() if pd.notna(x) 
 df['date'] = df['date'].dt.tz_localize(None)
 ```
 
+### Epoch Timestamp Type Conversion
+
+```python
+# Epoch (int/float) → pd.Timestamp:
+ts = pd.Timestamp(1709913600, unit='s')
+ts = pd.Timestamp(1709913600000, unit='ms')
+
+# pd.Timestamp → epoch:
+epoch_s = int(ts.timestamp())  # seconds
+epoch_ms = int(ts.timestamp() * 1000)  # milliseconds
+
+# Python datetime → epoch:
+from datetime import datetime, UTC
+dt = datetime.now(UTC)
+epoch = int(dt.timestamp())
+```
+
 ## Date Parsing Best Practices
 
 ### Explicit Format Specification
@@ -281,6 +327,32 @@ df['date'] = pd.to_datetime(df['date'], errors='coerce')  # Invalid becomes NaT
 ```python
 # BEST: Parse dates during CSV read
 df = pd.read_csv('data.csv', parse_dates=['order_date', 'ship_date'], date_format='%Y-%m-%d')
+```
+
+### Epoch / Unix Timestamp Conversion
+
+Convert Unix timestamps (seconds or milliseconds since 1970-01-01):
+
+```python
+import pandas as pd
+
+# Seconds since epoch (common in APIs, logs):
+df['datetime'] = pd.to_datetime(df['epoch_seconds'], unit='s')
+
+# Milliseconds since epoch (common in JavaScript, Java):
+df['datetime'] = pd.to_datetime(df['epoch_ms'], unit='ms')
+
+# With timezone — epoch is always UTC:
+df['datetime'] = pd.to_datetime(df['epoch_seconds'], unit='s', utc=True)
+
+# Convert datetime back to epoch:
+df['epoch'] = df['datetime'].astype('int64') // 10**9  # seconds
+df['epoch_ms'] = df['datetime'].astype('int64') // 10**6  # milliseconds
+
+# Python stdlib equivalent:
+from datetime import datetime, UTC
+dt = datetime.fromtimestamp(1709913600, tz=UTC)  # Always specify tz!
+# Never use datetime.fromtimestamp(ts) without tz — returns local time
 ```
 
 ## Timezone Management

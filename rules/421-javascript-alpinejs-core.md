@@ -6,7 +6,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Alpine.js, reactivity, x-data, x-bind, x-on, x-model, x-show, x-if, magic properties, $el, $refs, declarative, progressive enhancement, lightweight
-**TokenBudget:** ~3350
+**TokenBudget:** ~4250
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 **LoadTrigger:** kw:alpinejs, kw:alpine
@@ -66,6 +66,8 @@ Provides comprehensive guidance for Alpine.js 3.x, a lightweight JavaScript fram
 - Missing x-data scope
 - Using x-html with untrusted content (XSS risk)
 
+> **CSP Note:** Alpine.js evaluates inline expressions using `Function()`, which requires `unsafe-eval` in Content-Security-Policy. If your CSP blocks `unsafe-eval`, use the Alpine.js CSP build: `@alpinejs/csp` (see [Alpine CSP docs](https://alpinejs.dev/advanced/csp)). The CSP build requires all expressions to be defined in JavaScript rather than inline attributes.
+
 ### Execution Steps
 
 1. Load Alpine.js library in HTML (CDN or bundler)
@@ -117,6 +119,55 @@ HTML with Alpine.js directives:
 - **Lightweight:** Small JavaScript footprint (~15KB gzipped)
 - **Reactive Data:** Changes to data automatically update the DOM
 - **Component Scoping:** Each x-data creates an isolated reactive scope
+
+### Error Recovery
+
+**Alpine.js CDN Load Failure:**
+If the Alpine.js script fails to load (network error, CDN outage), the page renders with raw Alpine directives visible. Add an `onerror` fallback:
+
+```html
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"
+        onerror="document.querySelectorAll('[x-cloak]').forEach(el => el.removeAttribute('x-cloak'))">
+</script>
+```
+
+This removes x-cloak so content is at least visible. For critical applications, add a fallback CDN:
+
+```html
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"
+        onerror="this.onerror=null; this.src='https://unpkg.com/alpinejs@3.14.8/dist/cdn.min.js'">
+</script>
+```
+
+**x-data Parse Error:**
+If inline x-data object syntax has a typo (missing comma, unquoted key in wrong context), Alpine silently fails to initialize that component. Debugging steps:
+1. Check browser console for Alpine.js initialization errors
+2. Common cause: trailing comma in inline object literal — `x-data="{ a: 1, }"` fails in some browsers
+3. Move complex data to `Alpine.data()` registration for better error messages:
+```html
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('myComponent', () => ({
+        // IDE will catch syntax errors here
+        a: 1,
+        b: 2
+    }))
+})
+</script>
+<div x-data="myComponent">...</div>
+```
+
+**alpine:init Timing:**
+If `Alpine.data()` is called after Alpine initializes, components using that data won't work. Ensure registration scripts run before Alpine loads:
+```html
+<!-- Registration BEFORE Alpine -->
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('myComponent', () => ({ /* ... */ }))
+})
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+```
 
 ## Key Principles
 
@@ -208,6 +259,8 @@ HTML with Alpine.js directives:
             <li x-text="item"></li>
         </template>
     </ul>
+    <!-- Empty state: x-for renders nothing when array is empty (no error) -->
+    <div x-show="items.length === 0">No items found.</div>
 </div>
 ```
 
@@ -273,6 +326,28 @@ HTML with Alpine.js directives:
 ```
 
 For `$store` (global state), `$dispatch` (cross-component events), and `$nextTick` (DOM update timing), see `421a-javascript-alpinejs-advanced.md`.
+
+**Nested x-data Scopes:**
+Nested `x-data` creates child scopes. Child components can access parent data, but child data with the same name shadows parent data:
+
+```html
+<div x-data="{ name: 'parent', shared: 'from parent' }">
+    <p x-text="name"></p> <!-- "parent" -->
+    <div x-data="{ name: 'child' }">
+        <p x-text="name"></p>    <!-- "child" (shadowed) -->
+        <p x-text="shared"></p>  <!-- "from parent" (inherited) -->
+    </div>
+</div>
+```
+
+To explicitly access the root component's data from a nested scope, use `$root`:
+```html
+<div x-data="{ name: 'parent' }">
+    <div x-data="{ name: 'child' }">
+        <p x-text="$root.name"></p> <!-- "parent" via $root -->
+    </div>
+</div>
+```
 
 ### Component Patterns
 
@@ -384,7 +459,8 @@ Extract template logic when: (1) attribute logic exceeds 80 characters, (2) cont
 ### Essential Alpine.js Page Template
 
 ```html
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"
+        integrity="sha256-..." crossorigin="anonymous"></script>
 <style>[x-cloak] { display: none !important; }</style>
 
 <div x-data="dropdown" x-cloak>
@@ -402,6 +478,8 @@ document.addEventListener('alpine:init', () => {
 })
 </script>
 ```
+
+> **Supply chain note:** Pin CDN URLs to exact patch versions (e.g., `@3.14.8`, not `@3.14`). Add `integrity` and `crossorigin` attributes for Subresource Integrity (SRI). Generate hash: `curl -s <url> | openssl dgst -sha256 -binary | openssl base64 -A`.
 
 ### Progressive Enhancement: Form with Validation
 

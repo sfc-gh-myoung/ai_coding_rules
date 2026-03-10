@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Podman, Containerfile, containers, rootless containers, buildah, podman-compose, pods, daemonless, systemd, quadlet, image optimization, non-root, healthcheck, security scanning, SBOM
-**TokenBudget:** ~4550
+**TokenBudget:** ~5050
 **ContextTier:** Medium
 **Depends:** 000-global-core.md, 202-markup-config-validation.md
 **LoadTrigger:** file:Containerfile, file:podman-compose.yml, file:podman-compose.yaml, kw:podman, kw:buildah
@@ -255,7 +255,7 @@ buildah config --healthcheck-command 'CMD python -c "import urllib.request; urll
 buildah config --healthcheck-interval 30s --healthcheck-timeout 3s --healthcheck-start-period 5s "$runtime"
 
 # Commit and clean up
-buildah commit "$runtime" myapp:latest
+buildah commit "$runtime" "myapp:v${VERSION:-1.0.0}"
 buildah rm "$builder" "$runtime"
 
 # Generate SBOM and sign
@@ -297,7 +297,7 @@ CMD ["python", "app.py"]
 Description=My Application Container
 
 [Container]
-Image=myapp:latest
+Image=myapp:v1.2.3
 PublishPort=8080:8000
 Volume=/data:/app/data:Z
 Environment=APP_ENV=production
@@ -337,6 +337,8 @@ podman info --format '{{.Host.Security.Rootless}}'  # Should be true
 # User namespace mapping (automatic in rootless)
 podman unshare cat /proc/self/uid_map
 ```
+
+**If `Rootless: false` unexpectedly:** Check that Podman is not running as root or via `sudo`. Verify `/etc/subuid` and `/etc/subgid` contain entries for your user. Run `podman system migrate` after modifying sub-ID ranges. If using `machinectl` or `loginctl`, ensure lingering is enabled: `loginctl enable-linger $USER`. For WSL2, ensure the user namespace kernel parameter is set: `sysctl -w kernel.unprivileged_userns_clone=1`.
 
 ### Pod-Based Deployments (Kubernetes-Style)
 
@@ -384,6 +386,11 @@ systemctl --user enable myapp.service
 # Check status
 systemctl --user status myapp.service
 ```
+
+#### Quadlet Failure Recovery
+- **Unit fails to generate:** Run `/usr/lib/systemd/system-generators/podman-system-generator --dryrun` (system) or `podman-system-generator --user --dryrun` to see parsing errors. Check file syntax, ensure `[Container]` section header is present, and verify file extension is `.container`.
+- **Service fails to start:** Run `journalctl --user -u webapp --no-pager -n 50` to check logs. Common causes: image pull failure (check registry auth), volume mount SELinux denial (use `:Z` suffix), port already in use. Fix and re-run `systemctl --user daemon-reload && systemctl --user restart webapp`.
+- **Health check failures after start:** Verify health endpoint responds: `podman exec <id> curl -f http://localhost:8080/health`. Check `--start-period` if the application needs warmup time. Increase `HealthInterval` or `HealthRetries` if the service is slow.
 
 ### Podman Compose
 
@@ -446,6 +453,30 @@ See `350-docker-core.md` for extended `.dockerignore` patterns.
 - **SHOULD:** Use `--layers` flag for layer caching in CI.
 - **MUST:** Pin versions; rely on lock files (`uv.lock`, `poetry.lock`, `package-lock.json`).
 - **MUST:** Generate SBOM for production images using syft (`podman build --sbom=true` or `syft packages`).
+
+#### Build Cache Cleanup
+
+Build caches accumulate over time. Clean them periodically:
+
+```bash
+# View cache usage
+podman system df
+
+# Remove dangling (unused) images and build cache
+podman system prune --force
+
+# Remove all unused images (not just dangling) and build cache
+podman system prune --all --force
+
+# Remove build cache only (Podman ≥ 4.1)
+podman buildx prune --force
+
+# In CI: always clean cache after pushing final image
+# to avoid disk exhaustion on ephemeral runners
+podman system prune --all --force --volumes
+```
+
+**Caution:** `--volumes` also removes unused named volumes. Do not use in environments with persistent data volumes.
 
 ## Security and Least Privilege
 

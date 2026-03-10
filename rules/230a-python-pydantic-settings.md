@@ -142,7 +142,7 @@ class AppSettings(BaseSettings):
 ### Application Settings with Nested Configuration
 
 ```python
-from pydantic import Field, field_validator
+from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional, List
 from pathlib import Path
@@ -153,13 +153,13 @@ class DatabaseSettings(BaseSettings):
     host: str = Field(default="localhost", description="Database host")
     port: int = Field(default=5432, ge=1, le=65535)
     username: str = Field(..., description="Database username")
-    password: str = Field(..., description="Database password")
+    password: SecretStr = Field(..., description="Database password")
     database: str = Field(..., description="Database name")
 
     @property
     def url(self) -> str:
         """Generate database URL."""
-        return f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
+        return f"postgresql://{self.username}:{self.password.get_secret_value()}@{self.host}:{self.port}/{self.database}"
 
 class AppSettings(BaseSettings):
     """Main application settings."""
@@ -181,7 +181,7 @@ class AppSettings(BaseSettings):
     port: int = Field(default=8000, ge=1, le=65535)
 
     # Security settings
-    secret_key: str = Field(..., min_length=32, description="Secret key for encryption")
+    secret_key: SecretStr = Field(..., min_length=32, description="Secret key for encryption")
     allowed_hosts: List[str] = Field(default_factory=lambda: ["localhost", "127.0.0.1"])
 
     # Nested database settings
@@ -201,9 +201,10 @@ class AppSettings(BaseSettings):
 
     @field_validator("secret_key")
     @classmethod
-    def validate_secret_key(cls, v: str) -> str:
+    def validate_secret_key(cls, v: SecretStr) -> SecretStr:
         """Ensure secret key is sufficiently complex."""
-        if len(set(v)) < 10:
+        secret = v.get_secret_value()
+        if len(set(secret)) < 10:
             raise ValueError("Secret key must have sufficient entropy")
         return v
 

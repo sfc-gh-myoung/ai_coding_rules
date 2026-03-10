@@ -4,10 +4,10 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:htmx-templates
 **Keywords:** jinja2, templates, partials, fragments, template composition, conditional rendering, htmx templates, template organization, reusable components, template context
-**TokenBudget:** ~3550
+**TokenBudget:** ~4500
 **ContextTier:** High
 **Depends:** 221-python-htmx-core.md
 
@@ -125,6 +125,14 @@ Jinja2 template organization patterns for HTMX applications, covering partial re
 - [ ] Tests validate partial and full-page rendering
 - [ ] No hard-coded URLs (using `url_for()` or equivalent)
 
+> **Investigation Required**
+> Before creating or modifying HTMX templates, the agent MUST:
+> 1. Check existing template directory structure — adopt existing conventions (e.g., `partials/` vs `fragments/` vs `components/`)
+> 2. Read existing `base.html` for HTMX script includes, CSRF meta tags, and `htmx:configRequest` listener
+> 3. Check existing partial naming patterns — use `_prefix` only if the project already does; match existing convention
+> 4. Verify current CSRF protection setup before adding `htmx:configRequest` event listener (may already exist)
+> 5. Read existing macros in `templates/macros/` before creating new ones — extend rather than duplicate
+
 ## Key Principles
 
 ### 1. Template Directory Structure
@@ -172,7 +180,7 @@ Directory structure for `templates/`:
 
     {% include 'components/_footer.html' %}
 
-    {# HTMX Library #}
+    {# HTMX Library — 1.9.x (current stable); 2.0.x renames hx-ws → ws-connect, hx-sse → sse-connect #}
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 
     {# HTMX Configuration #}
@@ -394,6 +402,135 @@ def inject_common():
 # Now available in all templates
 # {{ app_name }}, {{ current_year }}, {{ is_htmx }}
 ```
+
+### Error Template Partials
+
+Validation error and toast partials are needed in nearly every HTMX application:
+
+**`templates/partials/_validation_errors.html`:**
+```html
+{% if errors %}
+<div id="validation-errors" class="errors" role="alert">
+    {% for field, messages in errors.items() %}
+    <div class="error-group">
+        <strong>{{ field }}:</strong>
+        <ul>
+            {% for msg in messages %}
+            <li>{{ msg }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+```
+
+**`templates/partials/_error_toast.html`:**
+```html
+<div id="toast-container"
+     class="toast toast-error"
+     role="alert"
+     _="on load wait 5s then remove me">
+    <span class="toast-icon">✕</span>
+    <span class="toast-message">{{ message }}</span>
+</div>
+```
+
+**Usage with HX-Retarget (server pushes error to specific container):**
+```python
+if errors:
+    response = make_response(
+        render_template('partials/_validation_errors.html', errors=errors), 400
+    )
+    response.headers['HX-Retarget'] = '#form-errors'
+    response.headers['HX-Reswap'] = 'innerHTML'
+    return response
+```
+
+### Pagination Partial (Load More)
+
+**`templates/partials/_load_more.html`:**
+```html
+{% if has_more %}
+<div id="load-more-sentinel"
+     hx-get="{{ url_for('users.list_users', page=next_page) }}"
+     hx-trigger="revealed"
+     hx-swap="outerHTML"
+     hx-indicator="#loading-spinner">
+    <div id="loading-spinner" class="htmx-indicator">
+        Loading more...
+    </div>
+</div>
+{% endif %}
+```
+
+**Route:**
+```python
+@app.route('/users')
+def list_users():
+    page = request.args.get('page', 1, type=int)
+    per_page = 20
+    users = User.query.paginate(page=page, per_page=per_page)
+
+    if request.headers.get('HX-Request') == 'true':
+        return render_template('partials/_user_rows.html',
+                             users=users.items,
+                             has_more=users.has_next,
+                             next_page=page + 1)
+    return render_template('pages/users.html',
+                         users=users.items,
+                         has_more=users.has_next,
+                         next_page=page + 1)
+```
+
+**Key rules:**
+- The sentinel replaces itself (`hx-swap="outerHTML"`) with new rows + a new sentinel
+- `hx-trigger="revealed"` fires when the element scrolls into view
+- `{% if has_more %}` prevents rendering when no more pages exist
+
+### Template Testing
+
+Render partials in isolation to verify HTML structure:
+
+```python
+import pytest
+from flask import Flask
+
+@pytest.fixture
+def app():
+    app = Flask(__name__, template_folder='../templates')
+    app.config['TESTING'] = True
+    return app
+
+
+def test_user_row_partial(app):
+    """Test that user row partial renders correct HTML structure."""
+    with app.app_context():
+        from flask import render_template
+        html = render_template('partials/_user_row.html', user={
+            'id': 42, 'name': 'Jane Doe', 'email': 'jane@example.com',
+        })
+        assert 'id="user-42"' in html
+        assert 'Jane Doe' in html
+        assert 'hx-delete=' in html  # Delete button present
+
+
+def test_validation_errors_partial(app):
+    """Test error partial with multiple fields."""
+    with app.app_context():
+        from flask import render_template
+        html = render_template('partials/_validation_errors.html', errors={
+            'name': ['Name is required'],
+            'email': ['Invalid email format'],
+        })
+        assert 'Name is required' in html
+        assert 'Invalid email format' in html
+```
+
+**Key rules:**
+- Test partials with minimal context — only pass required template variables
+- Assert HTML structure (IDs, HTMX attributes) not just content
+- Use `app.app_context()` for Flask or `Jinja2Environment` for framework-agnostic testing
 
 ## Anti-Patterns and Common Mistakes
 

@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:dynamic-table, kw:incremental
 **Keywords:** automatic pipelines, DOWNSTREAM, FULL, warehouse sizing, data freshness, dynamic table lag, refresh frequency, pipeline automation
-**TokenBudget:** ~3050
+**TokenBudget:** ~3400
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 104-snowflake-streams-tasks.md, 119-snowflake-warehouse-management.md
 
@@ -296,6 +296,25 @@ FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(TABLE_NAME => 'DT_SA
 WHERE state = 'FAILED' ORDER BY refresh_start_time DESC;
 ```
 
+### Dependency Chain Visualization
+```sql
+-- Show DT-to-DT dependency chain (which DTs feed into which)
+SELECT
+  referencing_object_name AS downstream_dt,
+  referenced_object_name AS upstream_source,
+  referenced_object_type AS source_type
+FROM SNOWFLAKE.ACCOUNT_USAGE.OBJECT_DEPENDENCIES
+WHERE referencing_object_type = 'DYNAMIC TABLE'
+  AND referencing_object_domain = 'TABLE'
+ORDER BY downstream_dt, upstream_source;
+
+-- Find all upstream sources for a specific DT:
+SELECT referenced_object_name, referenced_object_type
+FROM SNOWFLAKE.ACCOUNT_USAGE.OBJECT_DEPENDENCIES
+WHERE referencing_object_name = 'DT_CUSTOMER_ANALYTICS'
+  AND referencing_object_type = 'DYNAMIC TABLE';
+```
+
 ### Security
 ```sql
 GRANT MONITOR ON DYNAMIC TABLE analytics.DT_SALES TO ROLE analyst_role;  -- Metadata access
@@ -359,6 +378,26 @@ ALTER DYNAMIC TABLE analytics.DT_SALES SET WAREHOUSE = new_wh;
 -- Drop dynamic table
 DROP DYNAMIC TABLE IF EXISTS analytics.DT_OLD_SUMMARY;
 ```
+
+### Time Travel on Dynamic Table Results
+
+Use `DATA_TIMESTAMP_OUTPUT_EXPRESSION` to track when data was current:
+
+```sql
+-- Set the expression to include data freshness timestamp
+ALTER DYNAMIC TABLE analytics.DT_SALES
+  SET DATA_TIMESTAMP_OUTPUT_EXPRESSION = 'CURRENT_TIMESTAMP()';
+
+-- Query with AT clause for point-in-time results:
+SELECT * FROM analytics.DT_SALES AT(TIMESTAMP => '2024-03-09 12:00:00'::TIMESTAMP_LTZ);
+
+-- Check when the data was last refreshed:
+SELECT SYSTEM$DYNAMIC_TABLE_REFRESH_HISTORY('analytics.DT_SALES');
+```
+
+> **Note:** Time travel on Dynamic Tables uses the refresh history — you can only travel
+> to points where a refresh completed. The retention period follows standard Snowflake
+> time travel settings (default 1 day, max 90 days with Enterprise edition).
 
 ## Cost Optimization
 

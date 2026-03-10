@@ -485,18 +485,12 @@ def call_cortex_agent_sse(
         raise Exception(f"Request failed: {e}")
 
 # Example usage:
-if __name__ == "__main__":
-    account_url = os.getenv("SNOWFLAKE_ACCOUNT_URL")
-    pat_token = os.getenv("SNOWFLAKE_PAT")
-
-    response = call_cortex_agent_sse(
-        account_url=account_url,
-        agent_name="ANALYTICS.AI.PORTFOLIO_AGENT",
-        question="What are the top 5 holdings by weight?",
-        pat_token=pat_token
-    )
-
-    print(f"\nFinal response length: {len(response)} characters")
+# response = call_cortex_agent_sse(
+#     account_url=os.getenv("SNOWFLAKE_ACCOUNT_URL"),
+#     agent_name="ANALYTICS.AI.PORTFOLIO_AGENT",
+#     question="What are the top 5 holdings by weight?",
+#     pat_token=os.getenv("SNOWFLAKE_PAT")
+# )
 ```
 
 ### SSE Best Practices

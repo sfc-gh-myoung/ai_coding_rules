@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Alpine.js, stores, plugins, transitions, x-teleport, $dispatch, custom directives, advanced patterns, SSE, lifecycle, error recovery
-**TokenBudget:** ~2200
+**TokenBudget:** ~2700
 **ContextTier:** Low
 **Depends:** 421-javascript-alpinejs-core.md
 **LoadTrigger:** kw:alpinejs-advanced, kw:alpine-stores, kw:alpine-plugins
@@ -87,6 +87,14 @@ HTML with advanced Alpine.js patterns:
 - [ ] Transitions render smoothly without layout shifts
 - [ ] No console errors in browser dev tools
 
+### Success Criteria
+
+- Store changes via `Alpine.store('name').prop = value` reflect across all consuming components immediately
+- `$dispatch` events are received by all target listeners (verify with console.log in handler)
+- No interval or listener leaks after component removal (verify in DevTools, Memory tab: take heap snapshot before and after component removal)
+- Transitions complete without janky repaints (check Performance tab for layout thrashing)
+- `x-init` async operations complete and update component state correctly
+
 ## Key Principles
 
 ### Global Stores (Alpine.store)
@@ -108,6 +116,16 @@ HTML with advanced Alpine.js patterns:
 </div>
 ```
 
+> **Reactivity Warning:** Do not replace entire store objects — this breaks existing reactive bindings:
+> ```javascript
+> // BAD: Replaces the proxy, breaks reactivity
+> Alpine.store('darkMode', { on: true, toggle() { this.on = !this.on } })
+>
+> // GOOD: Modify properties on the existing store
+> Alpine.store('darkMode').on = true
+> ```
+> If you need to reset a store, update each property individually or use `Object.assign(Alpine.store('name'), defaults)`.
+
 ### Cross-Component Communication ($dispatch)
 
 ```html
@@ -120,6 +138,17 @@ HTML with advanced Alpine.js patterns:
     <!-- Listens globally -->
 </div>
 ```
+
+> **Important:** `$dispatch` events bubble through the DOM and stop at `x-data` boundaries. Sibling components cannot hear each other's events by default. Use the `.window` modifier to listen globally: `@custom-event.window="handler()"`. Without `.window`, events dispatched from one component won't reach sibling or unrelated components.
+
+**When to use `.window`:**
+- Cross-component communication between siblings or unrelated components
+- Global notifications or status updates
+- Theme/mode toggling across the entire page
+
+**When NOT to use `.window`:**
+- Parent-child communication within the same x-data tree (events bubble naturally)
+- Component-internal events
 
 ### DOM Update Timing ($nextTick)
 
@@ -190,17 +219,20 @@ HTML with advanced Alpine.js patterns:
 
 **CDN Load Failure - Fallback Script:**
 ```html
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14/dist/cdn.min.js"
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"
         onerror="loadAlpineFallback()"></script>
 <script>
+const ALPINE_VERSION = '3.14.8';
 function loadAlpineFallback() {
     const s = document.createElement('script');
-    s.src = 'https://unpkg.com/alpinejs@3.14/dist/cdn.min.js';
+    s.src = `https://unpkg.com/alpinejs@${ALPINE_VERSION}/dist/cdn.min.js`;
     s.defer = true;
     document.head.appendChild(s);
 }
 </script>
 ```
+
+> **Version management:** Define `ALPINE_VERSION` once and reference it in both primary and fallback URLs. Pin to exact patch version (e.g., `3.14.8`, not `3.14`).
 
 **Alpine Initialization Failure:**
 ```html
@@ -251,6 +283,7 @@ Correct Pattern: Extract template logic when: (1) attribute logic exceeds 80 cha
 
 ```html
 <!-- BAD: Hard to read and maintain -->
+<!-- NOTE: items.sort() mutates the original array (violates 420-javascript-core immutability mandate) -->
 <button @click="items.push(items.length + 1); items.sort()">Add & Sort</button>
 
 <!-- GOOD: Extract to method -->
@@ -264,6 +297,8 @@ Correct Pattern: Extract template logic when: (1) attribute logic exceeds 80 cha
     <button @click="addAndSort()">Add & Sort</button>
 </div>
 ```
+
+> **Cross-rule note:** `items.sort()` mutates the original array. Per `420-javascript-core`, use `items.toSorted()` (ES2023+) or `[...items].sort()` for a non-mutating sort. In Alpine.js templates, prefer a computed getter: `get sortedItems() { return this.items.toSorted() }`.
 
 **Pitfall: Memory Leaks (Missing destroy)**
 

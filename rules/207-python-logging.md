@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** logging, Python logging, logger, handlers, formatters, log levels, WebLogHandler, Rich console, SSE streaming, structured logging, operation ID, thread safety, log hierarchy, log propagation
-**TokenBudget:** ~2800
+**TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** 200-python-core.md
 **LoadTrigger:** kw:logging, kw:log, kw:logger
@@ -67,6 +67,15 @@ Best practices for Python logging in applications with dual output requirements 
 - Bare `except` swallowing log errors
 - Modifying root logger configuration in libraries
 
+> **Investigation Required:**
+> Before modifying logging configuration:
+> 1. Check existing logging setup — look for `logging.config`, `dictConfig`, `basicConfig`, or Rich handlers
+> 2. Check for structured logging libraries (structlog, python-json-logger)
+> 3. Check if the project uses Rich — if so, use `RichHandler`
+> 4. Check for log aggregation services (Datadog, Sentry, CloudWatch) that may require specific formatters
+> 5. Check `pyproject.toml` for logging-related dependencies
+> 6. Never replace a working logging configuration without understanding what consumes the logs
+
 ### Execution Steps
 
 1. Define logger with hierarchical name at module level
@@ -95,7 +104,10 @@ Logging implementations produce:
 - [ ] Use `threading.Lock` in `emit()` for shared state access in custom handlers
 
 **During-Execution Checks:**
-- Verify handler count on logger does not exceed expected (typically 1-2 handlers)
+- Limit handlers per logger:
+  - **Development:** 1-2 handlers (console + optional file)
+  - **Production:** 2-3 handlers (console + file + optional external service)
+  - **Maximum:** 4 handlers. If you need more, use a single handler with a logging pipeline (e.g., structlog processors)
 
 **Success Criteria:**
 - Logs appear in both CLI and web UI
@@ -149,6 +161,27 @@ parent_logger.addHandler(handler)  # Captures demo_manager.* logs
 ### Bridging Rich Console to Logger
 
 When using Rich for CLI output, bridge to the logger for web UI capture:
+
+```python
+# Detect Rich availability
+try:
+    from rich.console import Console
+    from rich.logging import RichHandler
+    console = Console()
+    handler = RichHandler(rich_tracebacks=True)
+except ImportError:
+    console = None
+    handler = logging.StreamHandler()
+    handler.setFormatter(
+        logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+    )
+
+logging.basicConfig(level=logging.INFO, handlers=[handler])
+```
+
+**Rule:** Always provide a stdlib fallback when using Rich. Production servers and Docker containers may not have Rich installed. The `try/except ImportError` pattern ensures logging always works.
+
+When Rich is available, use the bridge pattern:
 
 ```python
 import logging
@@ -295,6 +328,85 @@ add_log("SUCCESS", "Database connection verified", operation_id)
 - Validate `operation_id` format: non-empty string, alphanumeric + hyphens only
 - Handle empty/None log messages gracefully: log a warning instead of propagating errors
 - Never let logging failures crash the application — wrap custom handler `emit()` in try/except
+
+### Log File Rotation
+
+When logging to files, always configure rotation to prevent disk exhaustion:
+
+```python
+from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
+
+# Size-based rotation: 10MB per file, keep 5 backups
+handler = RotatingFileHandler(
+    "app.log",
+    maxBytes=10 * 1024 * 1024,  # 10MB
+    backupCount=5,
+    encoding="utf-8",
+)
+
+# Time-based rotation: daily, keep 30 days
+handler = TimedRotatingFileHandler(
+    "app.log",
+    when="midnight",
+    interval=1,
+    backupCount=30,
+    encoding="utf-8",
+)
+```
+
+**Decision:** Use `RotatingFileHandler` for applications with variable log volume. Use `TimedRotatingFileHandler` for applications with predictable daily patterns.
+
+**Docker/container note:** In containers, log to stdout (not files) and let the container runtime handle rotation (`docker --log-opt max-size=10m`).
+
+### JSON Structured Logging (Production)
+
+For production deployments with log aggregation (Datadog, CloudWatch, ELK):
+
+```python
+import json
+import logging
+from datetime import UTC, datetime
+
+
+class JSONFormatter(logging.Formatter):
+    """JSON log formatter for structured logging."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        log_data = {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "module": record.module,
+            "function": record.funcName,
+            "line": record.lineno,
+        }
+        if record.exc_info and record.exc_info[0] is not None:
+            log_data["exception"] = self.formatException(record.exc_info)
+        # Add extra fields
+        for key in ("request_id", "user_id", "trace_id"):
+            if hasattr(record, key):
+                log_data[key] = getattr(record, key)
+        return json.dumps(log_data)
+
+
+# Configure for production
+handler = logging.StreamHandler()
+handler.setFormatter(JSONFormatter())
+logging.basicConfig(level=logging.INFO, handlers=[handler])
+```
+
+**Alternative:** Use `python-json-logger` for simpler setup:
+```python
+from pythonjsonlogger import jsonlogger
+
+handler = logging.StreamHandler()
+handler.setFormatter(jsonlogger.JsonFormatter(
+    "%(asctime)s %(levelname)s %(name)s %(message)s"
+))
+```
+
+**Decision:** Use custom `JSONFormatter` for full control, `python-json-logger` for quick setup.
 
 ## Anti-Patterns and Common Mistakes
 

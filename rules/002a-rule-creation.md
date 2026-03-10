@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.3.0
+**RuleVersion:** v3.3.1
 **LastUpdated:** 2026-03-09
 **Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, v3.2 schema, validation, rule numbering, from scratch, new rule
-**TokenBudget:** ~4200
+**TokenBudget:** ~3900
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
@@ -74,11 +74,11 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 ### Execution Steps
 
 1. Choose rule number from appropriate range (000-099 core, 100-199 Snowflake, etc.)
-2. Review existing rules in same category for patterns and structure
+2. Review 2-3 existing rules in same number range for: metadata format, section ordering, keyword style, and anti-pattern structure (see lines 274-278 for specific patterns checklist)
 3. Create new file `rules/<NNN>[<letter>]-<technology>-<aspect>.md` with H1 title and `## Metadata` header
 4. Fill required metadata fields (SchemaVersion: v3.2, RuleVersion, Keywords: 5-20 terms, TokenBudget, ContextTier, Depends)
 5. Write required sections in v3.2 order: Scope, References, Contract, Anti-Patterns (optional)
-6. Add Contract section with Markdown subsections (###), NOT XML tags
+6. Add Contract section with Contract subsections (### headers), NOT XML tags
 7. Use descriptive section names (not numbered: "Environment Setup" not "1. Environment Setup")
 8. Validate with `ai-rules validate` (must pass with 0 CRITICAL errors)
 9. Add rule to `RULES_INDEX.md` with keywords
@@ -88,7 +88,7 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 Markdown file named `<NNN>[<letter>]-<technology>-<aspect>.md` with:
 - v3.2-compliant structure
 - Metadata with SchemaVersion: v3.2
-- Contract with Markdown headers (###), not XML tags
+- Contract with Contract subsections (### headers), not XML tags
 - Descriptive section names (not numbered)
 - 5-20 keywords
 
@@ -274,7 +274,7 @@ grep -l "your-technology" rules/*.md
 Review 2-3 existing rules to understand:
 - Metadata format and keyword selection (5-20 keywords)
 - Section structure and v3.2 ordering (Scope, References, Contract)
-- Contract Markdown ### header usage (NOT XML tags)
+- Contract subsections (### headers) usage (NOT XML tags)
 - Anti-Patterns section examples
 - Output Format Examples style
 
@@ -445,62 +445,8 @@ vim RULES_INDEX.md
 
 ## Multi-File Task Patterns
 
-### Atomic Changes (Single ACT Session)
+For multi-file editing patterns (atomic changes, progressive changes, rollback strategies),
+see `002d-advanced-rule-patterns.md`, section "Multi-File Task Patterns."
 
-Use when files are tightly coupled and changes must be consistent:
-- Refactoring that renames functions/classes across files
-- Updating API contracts (client + server)
-- Schema migrations (DDL + application code)
-
-**Task List Format:**
-```
-1. Update function signature in `auth.py`
-2. Update all call sites in `middleware.py`
-3. Update route handlers in `routes.py`
-4. Run validation suite (all files)
-```
-
-**Rollback Strategy:**
-
-If validation fails, you MUST:
-- Revert ALL files to original state
-- Return to PLAN mode
-- Present revised task list with fixes
-
-**Rollback Mechanisms:**
-- **Git repo available (preferred):** Use `git checkout -- <file>` or `git stash`
-- **No git, few files:** Store original content in-memory before edit, restore via write tool
-- **No git, many files:** Read and store each file before editing; revert individually on failure
-
-**Selection:** Check git availability first (`git status`). If unavailable, use in-memory for simple tasks or incremental for multi-file changes.
-
-**Rollback Reporting:**
-```markdown
-WARNING: Validation failed. Reverting changes:
-- Reverted: `auth.py` (original restored)
-- Reverted: `middleware.py` (original restored)
-- Unchanged: `routes.py` (not yet modified)
-
-MODE: PLAN
-[Revised task list with fixes]
-```
-
-### Progressive Changes (Multiple ACT Sessions)
-
-Use when files are loosely coupled:
-- Adding independent features to different modules
-- Updating documentation across multiple files
-- Performance optimizations in separate components
-
-**Task List Format:**
-```
-Session 1: Update `auth.py`
-- [specific changes]
-- [validation]
-- [await "ACT"]
-
-Session 2: Update `middleware.py`
-- [specific changes]
-- [validation]
-- [await "ACT"]
-```
+Key principle: Tightly coupled files require single authorization with all-or-nothing
+validation. Loosely coupled files allow independent authorization.

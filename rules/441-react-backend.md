@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:react-backend
 **Keywords:** React backend, FastAPI, Flask, Python API, CORS, JWT, authentication, API integration, full-stack, Express alternative, fetch, axios, TanStack Query backend, Next.js API routes, httpOnly cookies
-**TokenBudget:** ~3200
+**TokenBudget:** ~4350
 **ContextTier:** High
 **Depends:** 440-react-core.md, 200-python-core.md
 
@@ -129,6 +129,15 @@ Python backend code (FastAPI or Flask) with:
 - [ ] Backend tests pass (`uv run pytest`)
 - [ ] Type checking clean on both frontend and backend
 - [ ] API calls work end-to-end with authentication
+
+### Negative Tests
+
+- [ ] Requesting from an unlisted origin returns no `Access-Control-Allow-Origin` header:
+  ```bash
+  curl -s -H "Origin: http://evil.example.com" http://localhost:8000/api/health -v 2>&1 | grep "Access-Control"
+  # Should return empty (no CORS headers)
+  ```
+- [ ] Accessing `/auth/refresh` without valid refresh cookie returns 401
 
 ## Key Principles
 
@@ -289,14 +298,71 @@ export const useAuth = () => {
 #### Refresh Token Rotation
 ```typescript
 // Server MUST invalidate the old refresh token on each rotation
-async function refreshTokens(currentRefreshToken: string) {
-  const { accessToken, refreshToken } = await api.post("/auth/refresh", {
-    refreshToken: currentRefreshToken,
+// Frontend simply calls the refresh endpoint — cookies are handled by the browser
+async function refreshAuth(): Promise<void> {
+  const response = await fetch('/auth/refresh', {
+    method: 'POST',
+    credentials: 'include',  // Sends httpOnly cookies automatically
   });
-  // Old refresh token is now invalid server-side (prevents replay attacks)
-  setTokens({ accessToken, refreshToken });
-  return accessToken;
+
+  if (!response.ok) {
+    // Refresh failed — token expired or revoked, redirect to login
+    clearAuthState();  // Clear any client-side auth state (user info, not tokens)
+    window.location.href = '/login';
+    throw new Error('Session expired');
+  }
+  // Server sets new httpOnly cookies in the response
+  // No client-side token storage needed — browser handles cookie updates
 }
+```
+
+**Server-side (Python/FastAPI) complement:**
+```python
+@app.post("/auth/refresh")
+async def refresh_token(request: Request, response: Response):
+    refresh_token = request.cookies.get("refresh_token")
+    if not refresh_token or not validate_refresh_token(refresh_token):
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    # Rotate: invalidate old, issue new
+    invalidate_token(refresh_token)
+    new_access = create_access_token(user_id)
+    new_refresh = create_refresh_token(user_id)
+
+    response.set_cookie("access_token", new_access, httponly=True, secure=True, samesite="lax")
+    response.set_cookie("refresh_token", new_refresh, httponly=True, secure=True, samesite="lax")
+    return {"status": "refreshed"}
+```
+
+#### Concurrent Refresh Protection
+
+When multiple API calls fail with 401 simultaneously, prevent each from triggering a separate refresh:
+
+```typescript
+let refreshPromise: Promise<void> | null = null;
+
+async function refreshAuthOnce(): Promise<void> {
+  // If a refresh is already in progress, wait for it instead of starting another
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = refreshAuth()  // From refresh token rotation above
+    .finally(() => { refreshPromise = null; });
+
+  return refreshPromise;
+}
+
+// In 401 interceptor:
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401 && !error.config._retry) {
+      error.config._retry = true;
+      await refreshAuthOnce();
+      return api(error.config);  // Replay the original request
+    }
+    return Promise.reject(error);
+  }
+);
 ```
 
 #### CSRF Protection
@@ -319,6 +385,25 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+```
+
+#### CORS Preflight Failure Debugging
+
+If you see `403` or `CORS error` on `OPTIONS` requests:
+
+1. **Verify origin match:** The origin in `allow_origins` must match exactly — protocol + host + port. `http://localhost:3000` ≠ `http://localhost:5173` ≠ `https://localhost:3000`.
+2. **Check credentials:** If using cookies, `allow_credentials=True` (FastAPI) or `supports_credentials=True` (Flask-CORS) must be set. With credentials, `allow_origins` cannot be `["*"]` — list specific origins.
+3. **Check methods:** Ensure `allow_methods` includes the method being used (`POST`, `PUT`, `DELETE`, `PATCH`). `GET` and `HEAD` don't trigger preflight.
+4. **Check headers:** If sending custom headers (e.g., `X-CSRF-Token`), add them to `allow_headers`.
+5. **Server logs:** Check the backend logs for CORS middleware rejection messages — the browser error is intentionally vague for security.
+
+```bash
+# Quick test: simulate preflight from terminal
+curl -X OPTIONS http://localhost:8000/api/endpoint \
+  -H "Origin: http://localhost:3000" \
+  -H "Access-Control-Request-Method: POST" \
+  -H "Access-Control-Request-Headers: Content-Type" \
+  -v 2>&1 | grep -i "access-control"
 ```
 
 ### CORS Configuration
@@ -396,8 +481,41 @@ const API_URL = import.meta.env.VITE_API_URL;
 fetch(`${API_URL}/users`);
 ```
 
-**Anti-Pattern 3: Data Fetching in useEffect**
-See 440-react-core.md Anti-Pattern 1: Data Fetching in useEffect. Use TanStack Query instead.
+**Anti-Pattern 3: useEffect for Data Fetching from Backend API**
+
+```typescript
+// BAD: Manual fetch in useEffect
+function UserProfile({ userId }: { userId: string }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/users/${userId}`)
+      .then(res => res.json())
+      .then(data => { setUser(data); setLoading(false); });
+  }, [userId]);
+  // Problems: no error handling, no caching, no deduplication, race conditions
+
+  if (loading) return <Spinner />;
+  return <div>{user?.name}</div>;
+}
+```
+
+```typescript
+// GOOD: TanStack Query with typed API
+function UserProfile({ userId }: { userId: string }) {
+  const { data: user, isLoading, error } = useQuery({
+    queryKey: ['users', userId],
+    queryFn: () => api.get<User>(`/api/users/${userId}`).then(r => r.data),
+  });
+
+  if (isLoading) return <Spinner />;
+  if (error) return <ErrorDisplay error={error} />;
+  return <div>{user.name}</div>;
+}
+```
+
+**Why:** TanStack Query provides caching, automatic retry, deduplication, background refetching, and proper loading/error states. Manual `useEffect` + `fetch` requires reimplementing all of this. See `440-react-core.md` Anti-Pattern 1 for additional context.
 
 **Negative Test Example:**
 ```typescript

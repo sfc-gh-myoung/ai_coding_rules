@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Markdown, markdown linting, pymarkdownlnt, documentation, markup validation
-**TokenBudget:** ~1950
+**TokenBudget:** ~2800
 **ContextTier:** Low
 **Depends:** 202-markup-config-validation.md
 **LoadTrigger:** ext:.md, kw:markdown, kw:pymarkdownlnt
@@ -42,6 +42,23 @@ Markdown linting patterns, tool configuration, and integration for consistent do
 
 - Markdown files (`.md`) in the project
 - uv/uvx available for running pymarkdownlnt
+- Pin pymarkdownlnt version in `pyproject.toml` for reproducibility:
+  ```toml
+  [project.optional-dependencies]
+  dev = [
+      "pymarkdownlnt>=0.9.20",
+  ]
+  ```
+- In pre-commit (if used):
+  ```yaml
+  - repo: local
+    hooks:
+      - id: markdown-lint
+        name: Markdown Lint
+        entry: uvx pymarkdownlnt scan
+        language: system
+        types: [markdown]
+  ```
 - Parent rule 202 loaded for general config validation context
 
 ### Mandatory
@@ -99,6 +116,39 @@ README.md:12:81: MD013: Line length [Expected: 80; Actual: 120]
 - **Automation:** Integrate linting into CI and Taskfile workflows
 - **Python-native:** Use pymarkdownlnt for ecosystem consistency with uv/uvx
 
+### Error Handling
+
+**pymarkdownlnt not installed:**
+```bash
+# Always available via uvx — no installation needed
+uvx pymarkdownlnt scan path/to/file.md
+
+# If uvx fails, install directly
+uv add --group dev pymarkdownlnt
+uv run pymarkdownlnt scan path/to/file.md
+```
+
+**Common errors and fixes:**
+
+- **MD001 (Heading levels should increment by one):** Ensure H2 follows H1, H3 follows H2
+- **MD009 (Trailing spaces):** Configure editor to trim trailing whitespace
+- **MD012 (Multiple blank lines):** Remove extra blank lines (max 1 between sections)
+- **MD013 (Line length exceeded):** Wrap text or configure line_length in `.pymarkdown.yml`
+- **MD033 (Inline HTML):** Replace with Markdown equivalent or disable for badges
+- **MD041 (First line not heading):** Add `# Title` as first line, or disable for included files
+
+**Bulk fix workflow:**
+```bash
+# Scan all Markdown files
+uvx pymarkdownlnt scan docs/ README.md
+
+# Fix specific file
+uvx pymarkdownlnt --fix scan path/to/file.md
+
+# Scan with specific config
+uvx pymarkdownlnt -c .pymarkdown.yml scan .
+```
+
 ### Post-Execution Checklist
 
 - [ ] All Markdown files pass pymarkdownlnt
@@ -126,6 +176,38 @@ uvx pymarkdownlnt --config pymarkdown.json scan .
 
 Create `.pymarkdown` or `pymarkdown.json` in project root:
 
+**Recommended base configuration:**
+```yaml
+# .pymarkdown.yml
+mode:
+  strict-config: true
+
+plugins:
+  md013:
+    line_length: 120
+    code_blocks: false
+    tables: false
+  md033:
+    allowed_elements: "br,img,details,summary,sup,sub"
+  md024:
+    siblings_only: true  # Allow same heading in different sections
+```
+
+**Rule project configuration (for Cursor/AI rule files):**
+```yaml
+plugins:
+  md013:
+    line_length: 150  # Rules contain long code examples
+    code_blocks: false
+    tables: false
+  md033:
+    enabled: false  # Rules may use HTML for formatting
+  md041:
+    enabled: false  # Rules start with blockquote, not heading
+```
+
+**JSON format alternative:**
+
 ```json
 {
   "plugins": {
@@ -142,7 +224,18 @@ Create `.pymarkdown` or `pymarkdown.json` in project root:
 **Common rules to adjust:**
 - `line-length`: Often disabled for long links and code blocks
 - `no-inline-html`: Often disabled for badges and advanced formatting
-- `first-line-heading`: Project-dependent (may require H1 as first line)
+- `first-line-heading`: Defaults by context:
+  - **Documentation projects** (README, docs/): 80 characters line length (readable in terminals)
+  - **Code-adjacent Markdown** (inline docs, comments): Match project's Python line length (typically 88 or 120)
+  - **Rule files** (rules/*.md): 120 characters (accommodates code examples)
+  - Configure in `.pymarkdown.yml`:
+    ```yaml
+    plugins:
+      md013:
+        line_length: 120  # Match your project standard
+        code_blocks: false  # Don't enforce in code blocks
+        tables: false       # Don't enforce in tables
+    ```
 
 ### Integration with Taskfile
 
@@ -214,7 +307,18 @@ git add README.md && git commit -m "update docs"
 
 **Problem:** Setting most pymarkdownlnt rules to `enabled: false` rather than configuring sensible thresholds. Linter becomes useless; real issues go undetected.
 
-**Correct Pattern:** Only disable rules that genuinely conflict with project needs (e.g., `line-length` for files with long URLs). Keep all structural rules enabled.
+**Correct Pattern:** Only disable rules when ALL of these conditions are met:
+1. The rule violation is intentional (not accidental formatting)
+2. Fixing the violation would degrade documentation quality or readability
+3. The violation occurs in ≥5 files (systematic, not isolated)
+4. The rule is documented as disabled in `.pymarkdown.yml` with a comment:
+   ```yaml
+   plugins:
+     md033:  # Allow inline HTML for badges, collapsible sections
+       enabled: false
+   ```
+- **Common valid disables:** MD033 (inline HTML for badges), MD013 in tables, MD041 (first-line heading in included files)
+- **Never disable:** MD001 (heading increment), MD009 (trailing spaces), MD012 (blank lines)
 
 ```json
 // Wrong: Disabling everything defeats the purpose

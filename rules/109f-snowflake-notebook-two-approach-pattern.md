@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:two-approach, kw:notebook-approach
+**LoadTrigger:** kw:two-approach, kw:notebook-approach, kw:tutorial-approach, kw:approach-comparison
 **Keywords:** two-approach pattern, feature store approach, simplified approach, production vs learning, approach clarification, tutorial approach selection
-**TokenBudget:** ~2450
+**TokenBudget:** ~2600
 **ContextTier:** Low
 **Depends:** 109a-snowflake-notebooks-tutorials.md
 
@@ -128,6 +128,8 @@ The notebook demonstrates **two valid approaches** for [task]:
 - **Always:** Clarify which approach the notebook uses and WHY
 - **Always:** Provide guidance on when to use production approach
 
+> For scenarios with three or more valid approaches, use the same pattern structure but add Approach C/D sections. Keep the "This Notebook's Approach" section to explain which single approach the tutorial uses and why.
+
 ### Real-World Example: Feature Store Setup
 
 **Scenario:** Notebook demonstrates Feature Store entity/feature organization but trains models using simplified DataFrame approach.
@@ -183,6 +185,12 @@ training_df = spine.join(customer_features, on='CUSTOMER_ID') \
 ````
 
 This example demonstrates when to show feature setup (teaching organizational patterns) while using simpler execution (maintaining focus on primary learning objectives like imbalanced data handling).
+
+### Real-World Example: Stored Procedures vs Inline SQL
+
+**Scenario:** Tutorial teaches data transformation concepts using inline SQL cells, but production would use stored procedures for reusability and parameterization.
+
+**This Notebook's Approach:** We use inline SQL to keep transformations visible and step-by-step. For production, wrap these transformations in stored procedures with parameterized inputs. See `102-snowflake-stored-procedures.md` for procedure patterns.
 
 ## Anti-Patterns and Common Mistakes
 

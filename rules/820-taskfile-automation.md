@@ -6,7 +6,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Taskfile, Taskfile.yml, task automation, build automation, task runner, Task, portable tasks, error handling, command detection, auto-detection, cross-platform, uvx
-**TokenBudget:** ~2500
+**TokenBudget:** ~3400
 **ContextTier:** Medium
 **Depends:** 202-markup-config-validation.md
 **LoadTrigger:** file:Taskfile.yml, kw:deploy, kw:automation, kw:ci
@@ -75,9 +75,23 @@ Core directives for creating and maintaining project automation using Taskfile.y
 - Instructions for invoking tasks
 
 ### Validation
-- `task --list` executes without errors
-- `task --dry-run <task>` shows correct expansion
-- Tasks execute on multiple platforms
+
+**Pre-Task-Completion Checks:**
+- [ ] `task --list` executes without errors
+- [ ] `task --dry-run <task>` shows correct command expansion for key tasks
+- [ ] All public tasks have `desc:` visible in `task --list`
+- [ ] `set: [pipefail]` declared at Taskfile level
+
+**Success Criteria:**
+- [ ] `task` (no arguments) runs default task (help or categorized output)
+- [ ] All public tasks have descriptions in `task --list` output
+- [ ] Parameter-required tasks fail with clear messages: `task deploy` without DEST shows error
+- [ ] Tool preconditions show installation instructions on failure
+
+**Negative Tests:**
+- [ ] Task without `desc:` does NOT appear in `task --list` output (mark `internal: true`)
+- [ ] `task --dry-run deploy` without DEST variable shows clear error message
+- [ ] Pipeline command with intentional failure is caught by `pipefail`
 
 ### Design Principles
 - **Taskfile-First** - Centralize automation in Taskfile.yml
@@ -93,6 +107,16 @@ Core directives for creating and maintaining project automation using Taskfile.y
 - [ ] Commands auto-detected (see [Command Auto-Detection](#command-auto-detection))
 - [ ] Preconditions present with helpful messages
 - [ ] Validated with `task --list`
+
+### Investigation Required
+
+Before creating or modifying a Taskfile, complete these checks:
+
+1. **Read existing Taskfile.yml:** `cat Taskfile.yml` — understand current structure and naming conventions
+2. **Check for shared defaults:** `ls Taskfile.dist.yml 2>/dev/null` — some projects use a distribution Taskfile
+3. **Identify existing namespaces:** `task --list | awk -F: '{print $1}' | sort -u` — observe project conventions
+4. **Verify Task version:** `task --version` — ensure v3.45+ for built-in UNIX commands
+5. **Check for user overrides:** `ls .taskrc.yml 2>/dev/null` — user-specific configuration may exist
 
 ## Anti-Patterns and Common Mistakes
 
@@ -147,6 +171,66 @@ tasks:
         msg: "Build artifact missing. Run 'task build' first."
     cmds:
       - ./deploy.sh
+
+### Anti-Pattern 3: Tasks Without Descriptions
+
+**Problem:** Omitting `desc:` fields on public tasks.
+
+**Why It Fails:** `task --list` shows tasks with empty descriptions, making discovery impossible. AI agents cannot determine task purpose without descriptions.
+
+**Correct Pattern:**
+```yaml
+## WRONG: No description
+tasks:
+  lint:
+    cmds:
+      - uvx ruff check .
+
+## CORRECT: Description for discovery
+tasks:
+  quality:lint:
+    desc: "Run Ruff linter on all Python files"
+    cmds:
+      - uvx ruff check .
+```
+
+### Anti-Pattern 4: OS-Specific Commands Without Platform Guards
+
+**Problem:** Using platform-specific commands (e.g., `open`, `brew`) without `platforms:` guards.
+
+**Why It Fails:** Tasks fail silently or with confusing errors on unsupported platforms. CI/CD pipelines break on different OS.
+
+**Correct Pattern:**
+```yaml
+## WRONG: macOS-only without guard
+tasks:
+  open:docs:
+    cmds:
+      - open docs/index.html  # Fails on Linux/Windows
+
+## CORRECT: Platform-guarded
+tasks:
+  open:docs:
+    desc: "Open docs (macOS)"
+    platforms: [darwin]
+    cmds:
+      - open docs/index.html
+```
+
+### Anti-Pattern 5: Missing pipefail Leading to Silent Failures
+
+**Problem:** Not setting `set: [pipefail]` at Taskfile level.
+
+**Why It Fails:** Pipeline commands like `cmd1 | cmd2` succeed even when `cmd1` fails, masking errors in CI and development.
+
+**Correct Pattern:**
+```yaml
+## WRONG: No pipefail
+version: '3.45'
+
+## CORRECT: pipefail catches pipeline errors
+version: '3.45'
+set: [pipefail]
 ```
 
 ## Version and Error Handling
@@ -286,16 +370,16 @@ tasks:
 ### Colon Handling
 
 ```yaml
-# GOOD: Quoted string
+## GOOD: Quoted string
 cmds:
   - 'echo "Status: Complete"'
 
-# GOOD: Block scalar
+## GOOD: Block scalar
 cmds:
   - |
     echo "Status: Complete"
 
-# ALTERNATIVE: Template
+## ALTERNATIVE: Template
 cmds:
   - echo "Status{{":"}} Complete"
 ```
@@ -303,25 +387,44 @@ cmds:
 ### Common YAML Issues
 
 ```yaml
-# WRONG - Causes parsing error
+## WRONG - Causes parsing error
 cmds:
   - echo "Step 1: Creating database"
 
-# CORRECT - Use dashes
+## CORRECT - Use dashes
 cmds:
   - echo "Step 1 - Creating database"
 ```
 
+### Windows Compatibility
+
+For cross-platform Taskfiles that must support Windows:
+
+- Use `platforms: [linux, darwin]` to restrict POSIX-only commands
+- Use `platforms: [windows]` for Windows-specific alternatives
+- POSIX shell commands (`command -v`, `uname`, pipe operators) are unavailable on bare Windows
+- For Windows, use PowerShell with explicit platform guard:
+
+```yaml
+tasks:
+  check:tool:
+    platforms: [windows]
+    cmds:
+      - powershell -Command "Get-Command uv -ErrorAction SilentlyContinue"
+```
+
+**Note:** If targeting only macOS/Linux (common for most development projects), no Windows support is required. Document the supported platforms in the Taskfile header comment.
+
 ### Debugging Command Detection
 
 ```bash
-# Test variable resolution
+## Test variable resolution
 task --dry-run test
 
-# Check shell command
+## Check shell command
 command -v uv
 
-# Verify command
+## Verify command
 which uv && uv --version
 ```
 
@@ -347,11 +450,11 @@ Taskfile uses checksums to detect changes. If sources haven't changed since last
 ## CI/CD Integration
 
 ```yaml
-# GitHub Actions example
-# - name: Install Task
-#   uses: arduino/setup-task@v2
-# - name: Run tests
-#   run: task test
+## GitHub Actions example
+## - name: Install Task
+##   uses: arduino/setup-task@v2
+## - name: Run tests
+##   run: task test
 ```
 
 SHOULD provide a single `ci` or `validate:ci` task as the CI entry point:

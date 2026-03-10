@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases, Markdown, markdown linting, pymarkdownlnt, markup validation, TOML, environment files
-**TokenBudget:** ~3500
+**TokenBudget:** ~3950
 **ContextTier:** Medium
 **Depends:** None
 **LoadTrigger:** ext:.yml, ext:.yaml, ext:.toml, file:Taskfile.yml
@@ -69,6 +69,16 @@ Safe markup and configuration file practices to prevent parsing errors and maint
 - Secrets in version-controlled config files
 - Inconsistent indentation
 - Unquoted strings containing colons in YAML
+
+### Tool Unavailability Handling
+
+When validation tools are not available:
+
+- **yamllint** (detect with `which yamllint`): Fallback to `python -c "import yaml; yaml.safe_load(open('file.yml'))"` for syntax-only check
+- **pymarkdownlnt** (detect with `uvx pymarkdownlnt`): Skip Markdown linting, add TODO comment: `# TODO: Install pymarkdownlnt for MD linting`
+- **taplo (TOML)** (detect with `which taplo`): Fallback to `python -c "import tomllib; tomllib.load(open('file.toml', 'rb'))"` for syntax check
+
+**Key rule:** Never skip YAML syntax validation — Python's built-in `yaml.safe_load()` is always available as a fallback. TOML validation can use Python 3.11+ built-in `tomllib`.
 
 ### Execution Steps
 
@@ -258,6 +268,10 @@ rules:
 
 - **Always:** Run `uvx yamllint .` to validate all YAML files in a project
 - **Rule:** Customize `.yamllint.yml` per project — disable `document-start` for Taskfiles, adjust `line-length` for readability
+- yamllint warning classification:
+  - **Must fix (parsing risk):** `truthy` (bare Yes/No/On/Off), `empty-values`, `key-duplicates`
+  - **Must fix (readability):** `indentation`, `colons`, `brackets` (inconsistent formatting)
+  - **Informational (ignore):** `line-length` (if content requires it), `comments-indentation` (style preference), `document-start` (optional `---`)
 
 ## Shell Command Safety in YAML
 
@@ -267,7 +281,7 @@ rules:
 - **Always:** Use double quotes for consistency in YAML context.
 
 ### Command Chaining
-- **Consider:** Use `&&` for dependent commands: `cmd1 && cmd2`
+- **Use** `&&` for dependent commands: `cmd1 && cmd2`
 - **Always:** Test complex shell commands outside YAML first.
 - **Critical:** Escape quotes properly in nested contexts: `"echo \"Hello World\""`
 
@@ -370,12 +384,16 @@ production:
 ### YAML Comments
 - **Always:** Use `#` for comments in YAML files.
 - **Always:** Document complex configurations with inline comments.
-- **Consider:** Add header comments explaining file purpose.
+- **Add** header comments explaining file purpose for YAML files with >5 top-level keys.
 
 ### Configuration Documentation
 - **Always:** Document required environment variables.
 - **Always:** Provide example configurations.
-- **Critical:** Document any non-obvious configuration interactions.
+- **Critical:** Add comments for configuration values that meet ANY of these criteria:
+  1. Magic numbers (e.g., `timeout: 2147483647` — explain it's max int32)
+  2. Values that differ from tool defaults (e.g., `max-line-length: 120` when default is 79)
+  3. Values with non-obvious units (e.g., `ttl: 3600` — add `# seconds (1 hour)`)
+  4. Values that reference external systems (e.g., `port: 5433` — add `# PostgreSQL replica`)
 
 ## Security Considerations
 
@@ -388,7 +406,7 @@ production:
 ### Configuration Validation
 - **Always:** Validate configuration values at application startup.
 - **Always:** Provide clear error messages for missing required configuration.
-- **Consider:** Use configuration schemas for validation (e.g., Pydantic Settings).
+- **Add** configuration schemas (Pydantic Settings, JSON Schema, or yamale) for config files with >10 keys or nested structures >3 levels deep.
 
 ## Markdown Linting
 

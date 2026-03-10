@@ -11,7 +11,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Zsh, Z shell, zsh features, arrays, functions, oh-my-zsh, emulate, setopt, parameter expansion, globbing
-**TokenBudget:** ~4100
+**TokenBudget:** ~4400
 **ContextTier:** Medium
 **Depends:** 300-bash-scripting-core.md
 **LoadTrigger:** ext:.zsh, kw:zsh
@@ -50,7 +50,7 @@ Foundational zsh scripting patterns covering unique zsh features, script structu
 ### Inputs and Prerequisites
 
 - Zsh script or configuration file requiring development
-- Understanding of shell scripting fundamentals
+- Understanding of shell scripting fundamentals (variables, functions, conditionals, loops, and exit codes as covered in 300-bash-scripting-core.md)
 - Access to zsh shell (version 5.0 or later required)
 - Knowledge of bash differences (if migrating from bash)
 
@@ -74,7 +74,7 @@ Foundational zsh scripting patterns covering unique zsh features, script structu
 ### Execution Steps
 
 1. Set proper shebang (`#!/usr/bin/env zsh`) and configure setopt for error handling
-2. Identify zsh-specific features to leverage (arrays, parameter expansion, globbing)
+2. Replace bash constructs with zsh equivalents: `basename` becomes `${path:t}`, `dirname` becomes `${path:h}`, `tr '[:lower:]' '[:upper:]'` becomes `${text:u}`, `tr '[:upper:]' '[:lower:]'` becomes `${text:l}`
 3. Implement functions with `emulate -L zsh` for consistent behavior
 4. Use zsh arrays correctly (1-indexed or configure KSH_ARRAYS for 0-indexed)
 5. Apply zsh parameter expansion for string manipulation
@@ -287,6 +287,12 @@ left_pad="${text:<10}"         # Left-align in 10 chars
 # Default values with type checking
 count=${count:-0}              # Default to 0
 files=(${files[@]:-})          # Default to empty array
+
+# Edge case: empty or root paths
+# ${empty_var:t}  → "" (empty string)
+# ${"/:t"}        → "" (empty string — root has no tail)
+# ${"/:h"}        → "/" (root is its own head)
+# Always guard: [[ -n "${filepath}" ]] || return 1
 ```
 
 ### Array Handling
@@ -400,7 +406,8 @@ function cleanup() {
     exit $exit_code
 }
 trap cleanup EXIT INT TERM QUIT
-temp_dir=$(mktemp -d); readonly temp_dir
+temp_dir=$(mktemp -d) || { print -u2 "Failed to create temp directory"; exit 1 }
+readonly temp_dir
 ```
 
 ## Zsh Globbing and Pattern Matching
@@ -480,10 +487,28 @@ read -A words <<< "word1 word2 word3"
 - **Avoid:** Ignoring zsh's NULL_GLOB behavior with non-matching patterns
 
 ### Performance Anti-Patterns
-- **Avoid:** External command calls (`tr`, `sed`, `expr`) that have zsh built-in equivalents
-- **Avoid:** Using `$(...)` for simple variable assignments
-- **Avoid:** Creating subshells for array operations
-- **Avoid:** Using `eval` with dynamic content
+
+**BAD:** Using external commands when parameter expansion works:
+
+```zsh
+# BAD: External command for simple string operation
+local upper=$(echo "$text" | tr '[:lower:]' '[:upper:]')
+local base=$(basename "$filepath")
+```
+
+**GOOD:** Use zsh parameter expansion:
+
+```zsh
+# GOOD: Built-in parameter expansion — no subprocess
+local upper="${text:u}"
+local base="${filepath:t}"
+```
+
+Additional anti-patterns:
+- Using `$(...)` for simple variable assignments
+- Creating subshells for array operations
+- Using `eval` with dynamic content
+- Ignoring startup time impact of plugins and completions (profile with `zprof`)
 
 ## Documentation and Style
 

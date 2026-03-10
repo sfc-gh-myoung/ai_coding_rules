@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:security, kw:rbac, kw:grant
 **Keywords:** roles, grants, secure views, security policies, access control, data security, policy troubleshooting, grant management, Data Metric Functions, DMF, least privilege, create masking policy, tagging, SQL
@@ -88,6 +88,8 @@ Comprehensive data security and access control practices using Snowflake's gover
 - Granting ownership without role hierarchy justification
 - Creating DMFs without clear expectations and alert thresholds
 - Skipping data profiling before implementing quality checks
+
+> **Not covered:** Network policies (IP whitelisting) — see Snowflake documentation for `CREATE NETWORK POLICY`.
 
 ### Execution Steps
 
@@ -278,6 +280,8 @@ WHERE tag_name = 'DATA_CLASSIFICATION'
   AND tag_value = 'PII';
 
 -- Apply masking policies automatically to all PII-tagged columns
+-- Use TAG_REFERENCES to discover PII columns, then apply masking:
+-- See 123-snowflake-object-tagging.md for tag-based masking automation patterns
 ```
 **Benefits:** Automated PII discovery; tag-based policy application; scalable governance; compliance automation; data catalog integration; consistent classification
 
@@ -306,6 +310,8 @@ ALTER TABLE db.schema.customers MODIFY COLUMN email
 CREATE OR REPLACE ROW ACCESS POLICY db.governance.region_filter
   AS (region STRING) RETURNS BOOLEAN ->
   CURRENT_ROLE() = 'ADMIN' OR region = CURRENT_SESSION()::VARIANT:region;
+  -- Note: Requires a session variable set via ALTER SESSION SET CURRENT_SESSION = PARSE_JSON('{"region": "WEST"}')
+  -- Alternative: Use a mapping table lookup instead of session variables
 
 ALTER TABLE db.schema.sales
   ADD ROW ACCESS POLICY db.governance.region_filter ON (region);
@@ -340,13 +346,10 @@ CREATE OR REPLACE MASKING POLICY db.governance.mask_email
 ```
 
 ## Access Control
-- **Requirement:** Implement Role-Based Access Control (RBAC) following least privilege.
-- **Requirement:** Use role hierarchies to simplify permission management and inherit privileges.
-- **Always:** Define functional roles that map directly to business responsibilities.
+
+See Contract section above for RBAC, masking, row access, and tagging requirements.
 
 ## Data Protection Policies
-- **Always:** Use masking policies to dynamically mask or tokenize sensitive data in columns.
-- **Always:** Use row access policies to enforce row-level security based on a user's role or other session context.
 - **Always:** Apply object tagging to classify data for governance purposes (e.g., PII, `SENSITIVITY_LEVEL`). See `123-snowflake-object-tagging.md` for comprehensive tagging patterns including tag-based masking policies.
 
 ## Data Quality Monitoring (DMFs)
@@ -362,7 +365,6 @@ CREATE OR REPLACE MASKING POLICY db.governance.mask_email
 - **Requirement:** Document and operate within limitations: maximum 10,000 DMF-object associations per account; cannot set DMFs on shared objects or in reader accounts; cannot set DMFs on object tags.
 - **Rule:** Establish a remediation workflow: investigate failures, triage severity, correct data/process, and track resolution SLAs.
 - **Avoid:** Relying on DMFs alone for protection. Combine DMFs with masking, row access, and tags for comprehensive governance.
-- **Note:** For comprehensive Data Quality Monitoring guidance including system/custom DMFs, data profiling, expectations, scheduling, and cost management, see `124-snowflake-data-quality-core.md`.
 
 ## Data Profiling
 - **Always:** Use Snowflake Data Profile to baseline datasets (distributions, distinct counts, NULLs) and to inform policy design and DMF selection.

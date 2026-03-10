@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-03-09
 **Keywords:** testing, pytest, unit tests, integration tests, fixtures, mocking, header validation, html assertions, test client, htmx testing
-**TokenBudget:** ~4050
+**TokenBudget:** ~4600
 **ContextTier:** High
 **Depends:** 221-python-htmx-core.md, 206-python-pytest.md
 
@@ -66,7 +66,7 @@ Testing strategies for HTMX endpoints in Python applications, covering unit test
 
 - Testing without HX-Request header
 - Skipping HTML structure validation
-- Not testing error cases
+- Not testing at minimum: 400 (validation failure), 401 (unauthorized), 404 (not found), and 500 (server error) responses for each HTMX endpoint group
 - Missing header assertions
 - Testing only happy path
 - Relying on visual inspection instead of assertions
@@ -131,6 +131,14 @@ Testing strategies for HTMX endpoints in Python applications, covering unit test
 - [ ] Test coverage >80% for HTMX routes
 - [ ] All tests pass consistently
 - [ ] Mocking strategy defined for external dependencies
+
+> **Investigation Required**
+> Before creating or modifying HTMX tests, the agent MUST:
+> 1. Read existing `conftest.py` files for HTMX test fixtures — never create duplicate `htmx_client` fixtures
+> 2. Check installed HTML parsing library: `uv pip list | grep -i beautifulsoup` — use existing parser
+> 3. Inspect current test directory structure and file naming conventions (e.g., `test_htmx_*.py` vs `tests/htmx/`)
+> 4. Check if `pytest-cov` is configured in `pyproject.toml` for coverage settings
+> 5. Verify existing mock patterns — use `@patch` or `mocker.patch()` consistently with the project
 
 ## Key Principles
 
@@ -398,6 +406,64 @@ def test_weather_endpoint_with_mock(htmx_client, mocker):
     assert 'Sunny' in response.data.decode()
 ```
 
+### Testing OOB Swaps
+
+HTMX Out-of-Band swaps return multiple elements in a single response. Parse and assert each independently:
+
+```python
+def test_update_user_with_oob_notification(htmx_client):
+    """Update should return updated row + OOB notification."""
+    response = htmx_client.put('/users/1', data={'name': 'Updated Name'})
+    assert response.status_code == 200
+
+    soup = parse_html(response.data)
+
+    # Primary content — updated user row
+    user_row = soup.find('tr', id='user-1')
+    assert user_row is not None
+    assert 'Updated Name' in user_row.text
+
+    # OOB element — notification toast
+    oob_element = soup.find(attrs={'hx-swap-oob': 'true'})
+    assert oob_element is not None
+    assert oob_element.get('id') == 'notification-area'
+
+    # HX-Trigger header for client-side events
+    assert 'userUpdated' in response.headers.get('HX-Trigger', '')
+```
+
+**Key rules:**
+- Parse the full response body — OOB elements are siblings of the primary content
+- Use `soup.find(attrs={'hx-swap-oob': 'true'})` to locate OOB elements
+- Assert both primary content and each OOB element independently
+
+### Testing CSRF Protection
+
+```python
+def test_csrf_required_on_htmx_post(htmx_client, app):
+    """POST without CSRF token should be rejected."""
+    response = htmx_client.post('/users', data={'name': 'Test'})
+    assert response.status_code == 400  # Flask-WTF rejects without token
+
+
+def test_csrf_token_in_htmx_request(htmx_client, app):
+    """POST with CSRF token should succeed."""
+    with app.test_request_context():
+        from flask_wtf.csrf import generate_csrf
+        token = generate_csrf()
+
+    response = htmx_client.post(
+        '/users',
+        data={'name': 'Test User', 'csrf_token': token},
+        headers={'X-CSRFToken': token},  # HTMX sends via htmx:configRequest
+    )
+    assert response.status_code in (200, 201)
+```
+
+**Key rules:**
+- Test that POST/PUT/DELETE endpoints reject requests without CSRF tokens
+- Test that the `X-CSRFToken` header (set by `htmx:configRequest`) is accepted
+
 ### 7. Parameterized Tests
 
 **Testing Multiple Scenarios:**
@@ -481,29 +547,4 @@ Directory structure for `tests/`:
 
 ### Example Test File
 
-```python
-# tests/test_users_htmx.py
-import pytest
-from bs4 import BeautifulSoup
-
-def parse_html(response_data):
-    return BeautifulSoup(response_data, 'html.parser')
-
-def test_users_list_htmx(htmx_client):
-    """Test users list returns partial HTML for HTMX request"""
-    response = htmx_client.get('/users')
-
-    assert response.status_code == 200
-    assert '<html>' not in response.data.decode()
-
-    soup = parse_html(response.data)
-    rows = soup.find_all('tr', id=lambda x: x and x.startswith('user-'))
-    assert len(rows) > 0
-
-def test_users_list_full_page(client):
-    """Test users list returns full page for regular request"""
-    response = client.get('/users')
-
-    assert response.status_code == 200
-    assert '<html>' in response.data.decode()
-```
+See sections 1-7 above for individual test patterns. Combine fixtures (section 1), assertions (sections 2-3), and integration patterns (section 4) into `tests/htmx/test_<feature>.py` files.

@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:deployment-taskfile, kw:deploy-task
 **Keywords:** Taskfile deployment, task automation, deployment tasks, task structure, deploy task, upload task, create task, drop task, remove task, deployment workflow
-**TokenBudget:** ~2550
+**TokenBudget:** ~3100
 **ContextTier:** Low
 **Depends:** 109b-snowflake-app-deployment-core.md, 820-taskfile-automation.md
 
@@ -101,6 +101,12 @@ includes:
     taskfile: ../utils/Taskfile.yml
     internal: true
 
+# The shared utility task referenced above (../utils/Taskfile.yml):
+# tasks:
+#   sql:template:
+#     cmds:
+#       - "{{.SNOW_CLI_BASE}} sql -D STAGE={{.STAGE}} -D DATABASE={{.DATABASE}} -f {{.SQL_FILE}}"
+
 tasks:
   # 1. DROP - Remove notebook object
   drop:app:
@@ -180,6 +186,56 @@ tasks:
     preconditions:
       - test -f {{.NOTEBOOK_DIR}}/app.ipynb
       - msg: "app.ipynb not found"
+```
+
+### Streamlit Taskfile Variant
+
+For Streamlit apps, adjust the upload task for `pages/`, `utils/`, and `environment.yml`:
+
+```yaml
+# task/streamlit/Taskfile.yml — key differences from notebook variant
+vars:
+  STREAMLIT_DIR: streamlit
+  SNOWFLAKE_STAGE: "{{.SNOWFLAKE_DB}}.SCHEMA.STREAMLIT_STAGE"
+
+tasks:
+  upload:app:
+    desc: Upload Streamlit files to stage
+    silent: true
+    cmds:
+      - task: utils:sql:template
+        vars:
+          SQL_FILE: sql/operations/streamlit/upload/upload_app_files.sql
+          STAGE: "{{.SNOWFLAKE_STAGE}}"
+          APP_DIR: "{{.STREAMLIT_DIR}}"
+    preconditions:
+      - test -f {{.STREAMLIT_DIR}}/streamlit_app.py
+      - test -f {{.STREAMLIT_DIR}}/environment.yml
+
+  create:app:
+    desc: Create Streamlit object from staged files
+    cmds:
+      - task: utils:sql:template
+        vars:
+          SQL_FILE: sql/operations/streamlit/create/create_app.sql
+          DATABASE: "{{.SNOWFLAKE_DB}}"
+          STAGE: "{{.SNOWFLAKE_STAGE}}"
+          WAREHOUSE: "{{.SNOWFLAKE_WH}}"
+```
+
+> Upload SQL must include `pages/*.py`, `utils/*.py`, and `environment.yml` with `AUTO_COMPRESS=FALSE`. See **109g** for the full PUT script template.
+
+### Verification Task
+
+Add a `verify:app` task to confirm deployment succeeded:
+
+```yaml
+  verify:app:
+    desc: Verify deployment succeeded
+    silent: true
+    cmds:
+      - "{{.SNOW_CLI_BASE}} sql -q 'LIST @{{.SNOWFLAKE_STAGE}};'"
+      - "{{.SNOW_CLI_BASE}} sql -q 'SHOW NOTEBOOKS IN SCHEMA {{.SNOWFLAKE_DB}}.SCHEMA;'"
 ```
 
 ## Anti-Patterns and Common Mistakes
@@ -273,4 +329,17 @@ drop:app:
 upload:app:
   cmds:
     - snow sql -q "PUT file://app.ipynb @{{.SNOWFLAKE_STAGE}} AUTO_COMPRESS=FALSE;"
+```
+
+**Multi-Environment Deployment:**
+
+```bash
+# Deploy to dev (default)
+task deploy:app
+
+# Deploy to QA
+ENV_DB=QA_DB task deploy:app
+
+# Deploy to prod
+ENV_DB=PROD_DB task deploy:app
 ```

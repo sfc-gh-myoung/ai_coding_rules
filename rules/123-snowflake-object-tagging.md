@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:tag, kw:tagging, kw:metadata
 **Keywords:** cost attribution, resource tagging, governance tags, masking policies, row access policies, tag lineage, tag management
-**TokenBudget:** ~2850
+**TokenBudget:** ~3450
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 107-snowflake-security-governance.md
 
@@ -271,6 +271,26 @@ ALTER TABLE CUSTOMERS MODIFY COLUMN email SET TAG
   GOVERNANCE.TAGS.SEMANTIC_CATEGORY = 'EMAIL';
 ```
 
+### Automated PII Tagging with SYSTEM$CLASSIFY
+
+Use Snowflake's built-in classification to automatically detect and tag PII columns:
+
+```sql
+-- Classify all columns in a table (returns JSON with detected categories):
+SELECT SYSTEM$CLASSIFY('MY_DB.MY_SCHEMA.CUSTOMERS');
+
+-- Apply classification results as tags automatically:
+CALL SYSTEM$CLASSIFY('MY_DB.MY_SCHEMA.CUSTOMERS', {'auto_tag': true});
+
+-- Classify entire schema:
+CALL SYSTEM$CLASSIFY_SCHEMA('MY_DB.MY_SCHEMA', {'auto_tag': true});
+```
+
+> **Integration with tag-based masking:** After `SYSTEM$CLASSIFY` auto-tags columns with
+> `SNOWFLAKE.CORE.SEMANTIC_CATEGORY` (e.g., `EMAIL`, `PHONE_NUMBER`), attach masking
+> policies to those system tags for automatic protection. See 107-snowflake-security-governance
+> for masking policy details.
+
 ## Tag-Based Row Access Policies
 
 Assign row access policy to a tag; automatically filters rows on all tagged tables.
@@ -357,6 +377,35 @@ WHERE tr.tag_name IS NULL;
 SELECT tag_name, tag_value, object_domain, COUNT(*) AS count
 FROM SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES
 GROUP BY tag_name, tag_value, object_domain;
+```
+
+### Tag-Based Access History
+
+Query who accessed objects with specific tags:
+
+```sql
+-- Who accessed CONFIDENTIAL data in the last 7 days?
+SELECT ah.user_name, ah.query_start_time, ah.direct_objects_accessed,
+  tr.tag_value AS classification
+FROM SNOWFLAKE.ACCOUNT_USAGE.ACCESS_HISTORY ah,
+  LATERAL FLATTEN(ah.direct_objects_accessed) obj
+JOIN SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES tr
+  ON tr.object_name = obj.value:"objectName"::STRING
+  AND tr.tag_name = 'DATA_CLASSIFICATION'
+  AND tr.tag_value = 'CONFIDENTIAL'
+WHERE ah.query_start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP())
+ORDER BY ah.query_start_time DESC;
+
+-- Access frequency by tag value (audit summary):
+SELECT tr.tag_value, COUNT(DISTINCT ah.user_name) AS unique_users,
+  COUNT(*) AS access_count
+FROM SNOWFLAKE.ACCOUNT_USAGE.ACCESS_HISTORY ah,
+  LATERAL FLATTEN(ah.direct_objects_accessed) obj
+JOIN SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES tr
+  ON tr.object_name = obj.value:"objectName"::STRING
+  AND tr.tag_name = 'DATA_CLASSIFICATION'
+WHERE ah.query_start_time >= DATEADD(day, -30, CURRENT_TIMESTAMP())
+GROUP BY tr.tag_value ORDER BY access_count DESC;
 ```
 
 ## Management Approaches

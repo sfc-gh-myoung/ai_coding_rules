@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** React, Next.js, RSC, Hooks, Tailwind, Zustand, TanStack Query, Shadcn, Feature-based, TypeScript, Vitest, Testing Library, debug hooks, fix React error, component rendering
-**TokenBudget:** ~3400
+**TokenBudget:** ~4200
 **ContextTier:** High
 **Depends:** 000-global-core.md, 420-javascript-core.md, 430-typescript-core.md
 **LoadTrigger:** ext:.jsx, ext:.tsx, kw:react
@@ -73,7 +73,13 @@ Establishes the definitive standards for developing scalable, maintainable React
 
 - `create-react-app` (deprecated)
 - `class components` (legacy pattern)
-- `default exports` for components (exception: Next.js convention files requiring default exports: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `route.ts`)
+- `default exports` for components. Next.js convention files exempt:
+  - `page.tsx`
+  - `layout.tsx`
+  - `loading.tsx`
+  - `error.tsx`
+  - `not-found.tsx`
+  - `route.ts`
 - `barrel files` (circular dependency risks)
 - `enzyme` testing library (deprecated)
 - Manual data fetching with `useEffect` + `useState`
@@ -141,6 +147,12 @@ TypeScript code (`.tsx`, `.ts`) with:
 
 - [ ] Verify all Pre-Task-Completion Checks still pass
 - [ ] Linting and type-check pass: `npm run lint && npm run type-check`
+- [ ] No `useEffect` used for data fetching (use TanStack Query or RSC)
+- [ ] Feature-based directory structure maintained (`src/features/<domain>`)
+- [ ] No default exports (except Next.js convention files: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `route.ts`)
+- [ ] TanStack Query error boundaries wrap feature sections
+- [ ] Tests use Testing Library queries (`getByRole`, `getByText`), not implementation details
+- [ ] No barrel files (`index.ts` re-exports) introduced
 
 ## Key Principles
 
@@ -245,6 +257,39 @@ export const useUIStore = create<UIStore>((set) => ({
 }));
 ```
 
+**Zustand Persist Middleware (with SSR safety):**
+```typescript
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+
+interface ThemeStore {
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
+}
+
+const useThemeStore = create<ThemeStore>()(
+  persist(
+    (set) => ({
+      theme: 'light',
+      toggleTheme: () => set((s) => ({ theme: s.theme === 'light' ? 'dark' : 'light' })),
+    }),
+    {
+      name: 'theme-store',
+      storage: createJSONStorage(() => {
+        // SSR/private browsing safety: fall back to in-memory if localStorage unavailable
+        try {
+          return localStorage;
+        } catch {
+          return sessionStorage;
+        }
+      }),
+    }
+  )
+);
+```
+
+> **Note:** `persist` hydrates asynchronously. Use `useThemeStore.persist.hasHydrated()` to avoid flash of default state. In SSR (Next.js), the store hydrates on the client only — use the hydration mismatch pattern from above.
+
 ### Styling & UI Patterns
 
 #### Tailwind & Shadcn/UI
@@ -348,6 +393,64 @@ function useClientValue<T>(serverValue: T, clientValue: T): T {
   <MainContent />
 </Suspense>
 ```
+
+**TanStack Query Error Recovery:**
+```tsx
+import { QueryErrorResetBoundary } from '@tanstack/react-query';
+import { ErrorBoundary } from 'react-error-boundary';
+
+// Wrap feature sections with error boundary + retry
+function FeatureSection() {
+  return (
+    <QueryErrorResetBoundary>
+      {({ reset }) => (
+        <ErrorBoundary
+          onReset={reset}
+          fallbackRender={({ resetErrorBoundary }) => (
+            <div>
+              <p>Something went wrong loading this section.</p>
+              <button onClick={() => resetErrorBoundary()}>Retry</button>
+            </div>
+          )}
+        >
+          <Suspense fallback={<FeatureSkeleton />}>
+            <FeatureContent />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+    </QueryErrorResetBoundary>
+  );
+}
+```
+
+Enable error propagation in individual queries:
+```typescript
+// In useQuery options — propagate failures to nearest ErrorBoundary
+useQuery({
+  queryKey: ['feature', id],
+  queryFn: fetchFeature,
+  throwOnError: true,  // TanStack Query v5+
+  retry: 3,            // Retries before propagating to boundary
+});
+```
+
+**'use client' Directive Recovery (Next.js):**
+
+If a component uses hooks (`useState`, `useEffect`, `useQuery`) without `'use client'`, Next.js throws:
+> "You're importing a component that needs useState. It only works in a Client Component but none of its parents are marked with 'use client'."
+
+**Fix:** Add `'use client'` as the very first line of the file (before imports):
+```typescript
+'use client';
+
+import { useState } from 'react';
+// ...
+```
+
+**Guidelines:**
+- Only add `'use client'` to the nearest component that needs interactivity — don't mark entire feature directories
+- Server Components (default in Next.js App Router) can import Client Components, but not vice versa for server-only logic
+- If unsure, check: does this component use `useState`, `useEffect`, `useContext`, `useQuery`, or browser APIs? If yes, it needs `'use client'`
 
 > **Investigation Required**
 > When applying this rule:

@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:makefile-includes, kw:makefile-help, kw:makefile-conditional
 **Keywords:** categorized help, Makefile includes, conditional logic, ifdef, ifeq, variable assignment, simply expanded, recursively expanded, platform detection, multi-target, AI agent, make patterns
-**TokenBudget:** ~3050
+**TokenBudget:** ~3650
 **ContextTier:** Low
 **Depends:** 821-makefile-automation.md
 
@@ -48,11 +48,14 @@ Advanced Makefile patterns including categorized help output, conditional logic,
 - For cross-platform: target platforms identified
 
 ### Mandatory
-- MUST implement categorized help for Makefiles with 8+ targets
-- Variable assignment type MUST be appropriate to use case (`:=` for shell, `?=` for overridable, `=` for late-binding)
-- MUST use platform guards for OS-specific commands
-- Each non-internal target MUST include a `## Description` help comment
-- Variables MUST use SCREAMING_SNAKE_CASE
+
+> **Inherited:** All mandates from `821-makefile-automation.md` apply (SHELL, .DEFAULT_GOAL, .PHONY, help target, auto-detection, ## comments, ifndef guards). This companion rule adds:
+
+- MUST implement categorized help for Makefiles with 8+ targets (extends parent's help target requirement)
+- Variable assignment type MUST be appropriate to use case: `:=` for shell commands, `?=` for user-overridable defaults, `=` for late-binding references, `+=` for accumulation
+- Variables MUST use SCREAMING_SNAKE_CASE naming convention
+- MUST use Make conditionals (`ifdef`/`ifeq`) for parse-time decisions; shell conditionals (`if [ ... ]`) for runtime decisions
+- MUST use `-include` (with dash prefix) for optional included files; `include` only for required files
 
 ### Forbidden
 - OS-specific commands without conditional guards
@@ -81,11 +84,52 @@ Advanced Makefile patterns including categorized help output, conditional logic,
 - `make -n TARGET` expands correctly for conditional targets
 - Included files parse without errors
 
+**Negative Tests:**
+- Using `=` instead of `:=` for `UV` variable: `time make lint` should show slower execution due to repeated shell evaluation
+- `include mk/missing.mk` (without `-` prefix) MUST produce: `mk/missing.mk: No such file or directory`
+- `ifeq` with trailing whitespace MUST fail to match — verify with `$(info OS=[$(OS)])` debugging
+
 ### Post-Execution Checklist
 - [ ] Categorized help implemented for 8+ targets
 - [ ] Variable assignment types correct (`:=` for shell, `?=` for overridable)
 - [ ] Platform guards on OS-specific targets
 - [ ] Includes use `-include` for optional files
+
+### Error Recovery
+
+Common error patterns and resolutions for advanced Makefile features:
+
+**`include mk/local.mk: No such file or directory`**
+- **Cause:** Using `include` for a file that doesn't exist
+- **Fix:** Use `-include mk/local.mk` (dash prefix) for optional files
+
+**`ifeq` not matching expected value:**
+- **Cause:** Trailing whitespace in variable value or comparison string
+- **Fix:** Use `$(strip ...)` to trim whitespace:
+  ```makefile
+  ifeq ($(strip $(OS)),Darwin)
+    # ...
+  endif
+  ```
+
+**Recursive variable expansion overflow (stack depth exceeded):**
+- **Cause:** Using `=` (recursive) for shell commands that reference other recursive variables
+- **Fix:** Switch to `:=` (simply expanded) for all shell commands and computed values
+
+**`*** commands commence before first target. Stop.`**
+- **Cause:** Recipe-like lines (tab-indented) before any target definition, often in included files
+- **Fix:** Ensure included files only define variables or targets, never bare recipes
+
+### Investigation Required
+
+Before applying advanced Makefile patterns, complete these checks:
+
+1. **Read existing Makefile:** `cat Makefile` — count targets and assess current variable assignment patterns
+2. **Check for existing include structure:** `ls mk/ 2>/dev/null` or `grep '^-\?include' Makefile`
+3. **Identify target platforms:** Check CI config for OS matrix: `grep -r 'os:' .github/workflows/*.yml 2>/dev/null`
+4. **Check if categorized help exists:** `make help 2>/dev/null | head -20` — determine current help format
+5. **Verify GNU Make version:** `make --version | head -1` — confirm 3.81+ for conditionals, 4.0+ for extended features
+6. **Check parent 821 compliance:** Verify SHELL, .DEFAULT_GOAL, .PHONY, help target are present
 
 ## Variable Assignment Types
 

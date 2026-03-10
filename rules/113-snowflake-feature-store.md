@@ -293,7 +293,11 @@ refresh_freq="1 week"    # Static/slow-changing features
 ### External Feature Views with dbt
 - **Rule:** Use external feature views when features are managed by tools like dbt
 - **Always:** Register external views to make them discoverable in Feature Store
-- **Requirement:** Ensure external pipeline maintains feature freshness
+- **Requirement:** Ensure external pipeline maintains feature freshness — verify with:
+  ```sql
+  SELECT MAX(update_ts) FROM ML_DATABASE.DBT_MODELS.CUSTOMER_SEGMENTS;
+  -- Alert if MAX(update_ts) < DATEADD('hour', -24, CURRENT_TIMESTAMP())
+  ```
 
 ```python
 # Register existing view/table as external feature view
@@ -357,7 +361,7 @@ train_df = training_data.read.to_pandas()
 - **Rule:** Use same dataset generation process for training and inference to prevent train/serve skew
 
 **Why This Matters:**
-```
+```text
 Without ASOF JOIN (data leakage):
   2024-03-01 prediction uses features calculated on 2024-03-31
 
@@ -430,12 +434,24 @@ GRANT SELECT ON FUTURE DYNAMIC TABLES IN SCHEMA ML_DATABASE.CUSTOMER_FEATURE_STO
 
 ### Dataset Generation Optimization
 - **Rule:** Filter spine DataFrame to relevant time ranges before joining features
-- **Always:** Use appropriate warehouse size based on dataset size and join complexity
+- **Always:** Use appropriate warehouse size based on dataset size and join complexity:
+  - `MEDIUM` for datasets < 10M rows
+  - `LARGE` for 10M–100M rows
+  - `XLARGE` for > 100M rows
 - **Rule:** Batch dataset generation for training sets exceeding 10M rows; use Snowflake ML Jobs for datasets exceeding 100M rows
 
 ### Cost Monitoring
 
 See Anti-Pattern 4 (Steps 2-3) for detailed cost monitoring queries using `DYNAMIC_TABLE_REFRESH_HISTORY`. Monitor weekly to track refresh costs per feature view and optimize TARGET_LAG accordingly.
+
+```sql
+-- Quick cost check: refresh credits per feature view (last 7 days)
+SELECT name, SUM(credits_used) AS total_credits, COUNT(*) AS refresh_count
+FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(
+  DATE_RANGE_START => DATEADD('day', -7, CURRENT_TIMESTAMP())
+))
+GROUP BY name ORDER BY total_credits DESC;
+```
 
 ## Integration with Model Registry
 

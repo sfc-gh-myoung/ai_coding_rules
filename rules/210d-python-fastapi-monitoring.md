@@ -4,10 +4,10 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:fastapi-monitoring
 **Keywords:** FastAPI monitoring, health checks, logging, metrics, caching, Redis, observability, structured logging, health endpoints, correlation IDs
-**TokenBudget:** ~3700
+**TokenBudget:** ~4300
 **ContextTier:** Medium
 **Depends:** 210-python-fastapi-core.md
 
@@ -55,6 +55,15 @@ Establish monitoring, logging, and performance optimization patterns for FastAPI
 - Single health check endpoint without readiness/liveness separation
 - Synchronous blocking operations in async endpoints
 - Hardcoded connection pool sizes without configuration
+
+> **Investigation Required:**
+> Before adding monitoring to a FastAPI application:
+> 1. Check for existing monitoring setup (Prometheus, Datadog, New Relic, Sentry)
+> 2. Check existing middleware — don't duplicate metric collection
+> 3. Check if Sentry SDK is already initialized (duplicate init causes issues)
+> 4. Check deployment platform for built-in monitoring (AWS CloudWatch, GCP Cloud Monitoring)
+> 5. Check `/metrics` endpoint — if it exists, extend it rather than replacing
+> 6. Check log format requirements from ops team (JSON, logfmt, plain text)
 
 ### Execution Steps
 
@@ -201,42 +210,17 @@ async def health_check():
 async def detailed_health_check(db: AsyncSession = Depends(get_db)):
     """Detailed health check with system metrics."""
     try:
-        # Database connectivity check
         await db.execute(text("SELECT 1"))
         db_status = "healthy"
     except Exception as e:
         db_status = f"unhealthy: {str(e)}"
 
-    # System metrics
     memory = psutil.virtual_memory()
-    disk = psutil.disk_usage('/')
-
-    health_data = {
+    return {
         "status": "healthy" if db_status == "healthy" else "degraded",
         "timestamp": datetime.now(UTC).isoformat(),
-        "version": get_settings().version,
-        "checks": {
-            "database": db_status,
-            "memory": {
-                "total": memory.total,
-                "available": memory.available,
-                "percent": memory.percent
-            },
-            "disk": {
-                "total": disk.total,
-                "free": disk.free,
-                "percent": (disk.used / disk.total) * 100
-            }
-        }
+        "checks": {"database": db_status, "memory_percent": memory.percent},
     }
-
-    if health_data["status"] == "degraded":
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=health_data
-        )
-
-    return health_data
 
 @router.get("/health/ready")
 async def readiness_check(db: AsyncSession = Depends(get_db)):
@@ -483,6 +467,83 @@ class MetricsMiddleware(BaseHTTPMiddleware):
 
         return response
 ```
+
+### Alerting Thresholds
+
+- **Error rate (5xx):** Warning >1% for 5 min, Critical >5% for 2 min, Action: Page on-call
+- **P99 latency:** Warning >2s for 5 min, Critical >5s for 2 min, Action: Page on-call
+- **Request rate:** Warning >2x normal for 10 min, Critical >5x normal for 5 min, Action: Investigate (DDoS?)
+- **Memory usage:** Warning >80% for 10 min, Critical >95% for 2 min, Action: Scale or investigate leak
+- **CPU usage:** Warning >80% for 10 min, Critical >95% for 5 min, Action: Scale horizontally
+- **DB connection pool:** Warning >80% utilized, Critical >95% utilized, Action: Increase pool or fix leaks
+- **Health check:** Warning 1 failure, Critical 3 consecutive failures, Action: Restart container
+
+**Prometheus alert example:**
+```yaml
+groups:
+  - name: fastapi-alerts
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High 5xx error rate ({{ $value | humanizePercentage }})"
+```
+
+### Monitoring Validation Tests
+
+```python
+def test_metrics_endpoint_exists(client):
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    assert "http_requests_total" in response.text
+
+
+def test_error_increments_counter(client):
+    # Trigger a 500 error
+    client.get("/api/will-fail")
+    response = client.get("/metrics")
+    assert 'http_requests_total{method="GET",status="500"' in response.text
+
+
+def test_health_returns_200(client):
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "healthy"
+```
+
+### Structured Logging for Monitoring
+
+Connect request logs to metrics with trace context:
+
+```python
+import logging
+import uuid
+from starlette.middleware.base import BaseHTTPMiddleware
+
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        request_id = str(uuid.uuid4())
+        logger = logging.getLogger("api")
+
+        response = await call_next(request)
+
+        logger.info(
+            "request completed",
+            extra={
+                "request_id": request_id,
+                "method": request.method,
+                "path": request.url.path,
+                "status": response.status_code,
+            },
+        )
+        response.headers["X-Request-ID"] = request_id
+        return response
+```
+
+See **207-python-logging.md** for JSON formatter patterns compatible with log aggregation.
 
 ## Integration with Core Rules
 

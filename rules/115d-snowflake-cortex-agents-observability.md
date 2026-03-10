@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:agent-observability, kw:agent-costs
 **Keywords:** agent observability, agent evaluation, agent cost management, agent monitoring, agent latency, agent health, agent errors, debug agent, agent logs, agent trace, cortex agent troubleshooting, agent cost tracking
-**TokenBudget:** ~3600
+**TokenBudget:** ~3850
 **ContextTier:** Low
 **Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md, 115b-snowflake-cortex-agents-operations.md, 111-snowflake-observability-core.md
 
@@ -98,6 +98,26 @@ Observability, evaluation, cost management, dedicated warehouse patterns, and er
 ## Observability and Evaluation
 
 - **Rule:** Use AI Observability to capture traces of agent reasoning, tool invocations, and outcomes
+
+### Enabling AI Observability Traces
+
+```sql
+-- Enable tracing for agent queries
+ALTER SESSION SET TRACE_LEVEL = 'ON_EVENT';
+
+-- Query trace results for agent debugging
+SELECT
+  trace_id,
+  span_name,
+  span_attributes:"cortex.tool"::STRING AS tool_used,
+  span_attributes:"cortex.model"::STRING AS model,
+  duration_ms
+FROM SNOWFLAKE.TELEMETRY.DEFAULT_EVENT_TABLE
+WHERE record_type = 'SPAN'
+  AND span_attributes:"cortex.function" IS NOT NULL
+  AND timestamp > DATEADD('hour', -1, CURRENT_TIMESTAMP())
+ORDER BY timestamp DESC;
+```
 - **Rule:** Employ golden questions and assertions; compare model/tool variants and track regression
 - **Always:** Monitor tool selection accuracy (is agent picking right tool?)
 - **Always:** Track flagging accuracy (are thresholds applied correctly?)
@@ -124,6 +144,20 @@ FROM SNOWFLAKE.ACCOUNT_USAGE.CORTEX_AGENT_HISTORY
 WHERE start_time >= DATEADD('hour', -24, CURRENT_TIMESTAMP())
 GROUP BY agent_name
 ORDER BY errors DESC;
+```
+
+**Schedule health checks with a TASK:**
+```sql
+CREATE OR REPLACE TASK agent_health_check
+  WAREHOUSE = AGENT_HEALTH_WH
+  SCHEDULE = '60 MINUTE'
+AS
+  INSERT INTO agent_health_log
+  SELECT agent_name, COUNT(*) AS queries, COUNT(CASE WHEN status='ERROR' THEN 1 END) AS errors, CURRENT_TIMESTAMP()
+  FROM SNOWFLAKE.ACCOUNT_USAGE.CORTEX_AGENT_HISTORY
+  WHERE start_time >= DATEADD('hour', -1, CURRENT_TIMESTAMP())
+  GROUP BY agent_name;
+ALTER TASK agent_health_check RESUME;
 ```
 
 ## Cost and Latency Management

@@ -8,17 +8,20 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** long-horizon tasks, compaction, checkpointing, sub-agents, structured notes, multi-session, context compression, persistent memory, agent coordination
-**TokenBudget:** ~2400
+**TokenBudget:** ~2950
 **ContextTier:** Medium
 **Depends:** 003-context-engineering.md, 000-global-core.md
 
 ## Scope
 
 **What This Rule Covers:**
-Strategies for managing context in long-horizon agent tasks: compaction protocols, structured note-taking for persistent memory, and sub-agent architectures for delegating and parallelizing work.
+Strategies for managing context in long-horizon agent tasks (>10 agent turns within a session,
+OR tasks spanning multiple sessions). A task is long-horizon when context from earlier
+turns is needed for later turns and cannot be fully reconstructed from the current state.
+Covers compaction protocols, structured note-taking for persistent memory, and sub-agent architectures for delegating and parallelizing work.
 
 **When to Load This Rule:**
 - Working on tasks spanning multiple sessions or many turns
@@ -52,7 +55,10 @@ Strategies for managing context in long-horizon agent tasks: compaction protocol
 
 - Read tool, Write tool (for structured notes)
 - Grep tool, Glob tool (for context exploration)
-- memory.store / memory.retrieve (for persistent state)
+- memory.store / memory.retrieve (for persistent state), or file-based persistence
+  (NOTES.md) when agent memory is unavailable. Choose ONE primary method per project
+  and use it consistently — do not split decisions across both NOTES.md and memory API,
+  as this creates divergent state.
 - Sub-agent orchestration tools (for delegation patterns)
 
 ### Forbidden
@@ -63,7 +69,9 @@ Strategies for managing context in long-horizon agent tasks: compaction protocol
 
 ### Execution Steps
 
-1. Identify task as long-horizon (multi-turn or multi-session)
+1. Identify task as long-horizon (>10 turns within a session OR spanning multiple sessions).
+   Signs: you find yourself re-reading earlier conversation to recall decisions, or context
+   window is >60% utilized.
 2. Select appropriate strategy: compaction, structured notes, sub-agents, or a combination
 3. Apply chosen strategy following patterns below
 4. Monitor context usage and compact at 75% capacity
@@ -240,6 +248,19 @@ state = memory.retrieve("oauth_progress")
 
 **NOTES.md Recovery:** If persistent notes become corrupted or truncated: (1) re-read recent tool outputs to reconstruct state, (2) check git history for last-known-good version (`git log -1 NOTES.md`), (3) fall back to compaction of current context as emergency recovery.
 
+### Persistence Fallback
+
+If persistent storage is unavailable (sandboxed environment, no file write access):
+
+1. **In-context persistence:** Maintain a running summary at the top of each response.
+   Format: `## Context: [key decisions | current state | remaining steps]`
+2. **User-mediated:** Ask the user to save the summary and paste it at the start of
+   the next session: "Please save this summary for our next session: [summary]"
+3. **Structured output:** Include a JSON block at the end of each response with state
+   that the user can feed back: `{"task_state": {...}, "decisions": [...], "remaining": [...]}`
+
+**Priority:** File-based > Agent memory > In-context > User-mediated
+
 ## Strategy 3: Sub-Agent Architectures
 
 **Purpose:** Specialized agents handle focused tasks, return condensed summaries to coordinator.
@@ -312,9 +333,35 @@ for step in task_steps:
 context = []
 for step in task_steps:
     result = execute(step)
-    summary = summarize(result, max_tokens=500)
+    summary = summarize(result, max_tokens=500)  # See summarization procedure below
     context.append(summary)
 ```
+
+**Summarization procedure:**
+1. Identify all decisions, conclusions, and action items from the conversation
+2. Discard greetings, false starts, corrected mistakes, and exploratory dead ends
+3. Produce a structured summary: 10-20% of original token count, preserving:
+   - All technical decisions and their rationale
+   - File paths and line numbers referenced
+   - Current task state and remaining steps
+   - Error messages and their resolutions
+4. Write summary to `NOTES.md` or the agent's persistent memory
+
+**Target:** Summary should be 10-20% of the original conversation tokens. If the
+summary exceeds 20%, it's not compressed enough — remove additional narrative.
+
+### Compaction Quality Check
+
+After compacting conversation history, verify the summary:
+
+1. **Decision preservation:** Can you list every technical decision made? If any are missing,
+   the summary is too aggressive — add them back.
+2. **Task continuity:** Can you continue the task using ONLY the summary (without the original
+   conversation)? If not, the summary is missing context — expand it.
+3. **File reference check:** Are all file paths and line numbers from the original conversation
+   preserved in the summary? Missing references cause wasted re-investigation.
+4. **Token target:** Is the summary 10-20% of the original? If >20%, further compress
+   narrative sections. If <10%, verify nothing was lost.
 
 ### Anti-Pattern 2: No Checkpointing for Long Tasks
 

@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
+**RuleVersion:** v3.2.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:semantic-integration
 **Keywords:** RBAC, masking policy, row access policy, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst, synonyms, natural language queries
@@ -157,7 +157,7 @@ agent = root.databases["PROD"].schemas["GRID_DATA"].cortex_agents.create(
             "PROD.GRID_DATA.SEM_ASSET_INVENTORY"
         ],
         instructions="Answer questions about transformer health and assets.",
-        model="mistral-large2"
+        model="mistral-large2"  # Use mistral-large2 for cost-effective queries; see 115 for model selection guidance
     )
 )
 
@@ -202,6 +202,8 @@ CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_CUSTOMER
 - Add plural and singular forms
 - Include abbreviations and acronyms
 - Test with actual user questions
+- Test each synonym individually with Cortex Analyst to verify matching
+- Track which synonyms users actually use in production queries
 
 ## Governance and Security
 
@@ -271,6 +273,10 @@ When masking policies are applied to base table columns used by a semantic view:
 - **FACTS/DIMENSIONS**: Masked values flow through to query results. A masked column returning `'***MASKED***'` cannot be aggregated numerically.
 - **METRICS**: Aggregations on masked columns may produce incorrect results (e.g., `SUM()` on masked strings fails).
 - **Recommendation**: Exempt service roles used by Cortex Analyst from masking on columns referenced by semantic views, or use separate unmasked analytical tables.
+
+### Schema Change Impact
+
+If base table columns are renamed or dropped, the semantic view becomes invalid. Run `GET_DDL('SEMANTIC_VIEW', 'view_name')` to check references, then `CREATE OR REPLACE SEMANTIC VIEW` with updated column names.
 
 ## Anti-Patterns and Common Mistakes
 

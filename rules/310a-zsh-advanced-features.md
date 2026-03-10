@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Zsh, modules, advanced features, performance optimization, parameter expansion, globbing, autoload, scripting, caching, memoization
-**TokenBudget:** ~3500
+**TokenBudget:** ~3800
 **ContextTier:** Low
 **Depends:** 310-zsh-scripting-core.md
 **LoadTrigger:** ext:.zsh, kw:zsh-advanced
@@ -52,7 +52,7 @@ Comprehensive guidance on zsh's advanced features including modules, parameter e
 ### Mandatory
 
 - Initialize completion system with `autoload -Uz compinit && compinit`
-- Load modules selectively (only what's needed)
+- MUST load modules required by current features: `zsh/datetime` for EPOCHSECONDS, `zsh/mathfunc` for math operations, `zsh/net/tcp` for network access, `zsh/system` for sysopen/syswrite
 - Implement hooks correctly (precmd, preexec)
 - Cache completions for performance
 - Profile startup time with zprof
@@ -83,6 +83,11 @@ Optimized zsh configuration satisfying all Mandatory items, plus:
 - Custom completions with TTL caching
 - Profiling results showing startup time <100ms
 - Error recovery for compinit and module load failures
+
+### Pre-Task Checks
+- [ ] Verify zsh version: `is-at-least 5.0 || print -u2 "zsh 5.0+ required"`
+- [ ] Verify zmodload availability: `zmodload zsh/datetime 2>/dev/null`
+- [ ] Baseline startup time measured with `zprof`
 
 ### Validation
 
@@ -160,7 +165,10 @@ _my_cli_complete() {
 
     if [[ ! -f "$cache_file" ]] || \
        (( $(date +%s) - $(stat -f%m "$cache_file") > cache_ttl )); then  # macOS; use stat -c%Y on Linux
-        curl -s https://api.example.com/items > "$cache_file"
+        curl -s --connect-timeout 2 --max-time 5 https://api.example.com/items > "$cache_file" || {
+            # Fall back to empty cache on network failure
+            : > "$cache_file"
+        }
     fi
 
     local items=("${(@f)$(cat "$cache_file")}")
@@ -259,6 +267,8 @@ _safe_hook_wrapper() {
 # Register a hook with automatic failure isolation
 safe_add_precmd_hook() {
     local fn="$1"
+    # Validate function name to prevent injection
+    [[ "$fn" =~ '^[a-zA-Z_][a-zA-Z0-9_]*$' ]] || { print -u2 "Invalid function name: $fn"; return 1; }
     eval "_wrapped_${fn}() { _safe_hook_wrapper ${fn}; }"
     add-zsh-hook precmd "_wrapped_${fn}"
 }
@@ -368,6 +378,13 @@ cached_command() {
 > **Portable stat:** Use `stat -f%m` on macOS/BSD and `stat -c%Y` on Linux. For cross-platform scripts:
 > ```zsh
 > file_mtime() { [[ "$OSTYPE" == darwin* ]] && stat -f%m "$1" || stat -c%Y "$1"; }
+> ```
+> **Cache integrity:** Use `-s` (exists AND non-empty) instead of `-f` to avoid sourcing truncated files:
+> ```zsh
+> if [[ -s "$cache_file" ]]; then   # -s: exists AND non-empty
+>     source "$cache_file"
+> fi
+> # For critical data, add format validation: [[ "$(head -1 "$cache_file")" == "# cache_version=1" ]] || rm -f "$cache_file"
 > ```
 
 ## Advanced Scripting Patterns

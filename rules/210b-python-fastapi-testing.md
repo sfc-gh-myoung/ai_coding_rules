@@ -4,10 +4,10 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:fastapi-testing
 **Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking, test fixtures, AAA pattern, async testing, Python
-**TokenBudget:** ~3050
+**TokenBudget:** ~3950
 **ContextTier:** High
 **Depends:** 210-python-fastapi-core.md
 
@@ -61,9 +61,47 @@ Comprehensive testing strategies for FastAPI applications. Covers TestClient usa
 
 - Testing against production database
 - Sharing state between tests
-- Using synchronous TestClient for async endpoints without understanding limitations
+- Using TestClient for async-specific tests (use `httpx.AsyncClient` instead — see limitations below)
 - Skipping error scenario tests
-- Hardcoding test data without factories
+- Hardcoding test data when factories are warranted:
+  - **≥3 tests** create similar objects (DRY threshold)
+  - Objects have **≥5 fields** (too many to repeat inline)
+  - Tests need **variations** of the same base object (override pattern)
+  
+  ```python
+  # Factory pattern for FastAPI tests
+  def create_user(**overrides) -> dict:
+      defaults = {
+          "username": "testuser",
+          "email": "test@example.com",
+          "password": "SecureP@ss123",
+          "is_active": True,
+      }
+      defaults.update(overrides)
+      return defaults
+  
+  # Usage
+  response = client.post("/users", json=create_user())
+  response = client.post("/users", json=create_user(is_active=False))
+  ```
+  
+  For inline data (< 3 tests or ≤ 4 fields), construct directly in the test.
+
+**TestClient limitations:**
+1. **Sync wrapper:** Uses `requests` internally — blocks. Use `httpx.AsyncClient` for testing async behavior (concurrent requests, streaming)
+2. **No real server:** Uses ASGI transport, not HTTP. WebSocket and redirect tests may behave differently
+3. **No startup/shutdown:** Doesn't trigger lifespan events unless `with TestClient(app) as client:` context manager is used
+4. **Single-threaded:** Cannot test race conditions or concurrent request behavior
+
+```python
+# Use context manager to trigger lifespan:
+with TestClient(app) as client:  # Triggers startup/shutdown
+    response = client.get("/health")
+
+# For async testing:
+async with httpx.AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+    response = await ac.get("/health")
+```
 
 ### Execution Steps
 
@@ -336,6 +374,43 @@ class TestUserEndpoints:
         assert user.id is not None
 ```
 
+### WebSocket Testing
+
+```python
+def test_websocket_echo():
+    with TestClient(app) as client:
+        with client.websocket_connect("/ws/test-client") as ws:
+            ws.send_text("hello")
+            data = ws.receive_text()
+            assert data == "Echo: hello"
+
+
+def test_websocket_disconnect():
+    with TestClient(app) as client:
+        with client.websocket_connect("/ws/test-client") as ws:
+            ws.send_text("hello")
+            ws.receive_text()
+        # Connection closed after context manager exit
+        # Server should handle WebSocketDisconnect gracefully
+```
+
+### SSE (Server-Sent Events) Testing
+
+```python
+import httpx
+
+async def test_sse_stream():
+    async with httpx.AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        async with ac.stream("GET", "/events") as response:
+            events = []
+            async for line in response.aiter_lines():
+                if line.startswith("data:"):
+                    events.append(line[5:].strip())
+                if len(events) >= 3:
+                    break
+            assert len(events) == 3
+```
+
 ## Test Utilities and Fixtures
 
 ### Reusable Testing Components
@@ -372,6 +447,64 @@ def auth_headers():
     """Fixture for authentication headers."""
     return get_auth_headers()
 ```
+
+### Faker Integration for API Tests
+
+```python
+import pytest
+from faker import Faker
+
+@pytest.fixture
+def fake():
+    f = Faker()
+    f.seed_instance(12345)
+    return f
+
+@pytest.fixture
+def fake_user(fake):
+    return {
+        "username": fake.user_name(),
+        "email": fake.email(),
+        "full_name": fake.name(),
+        "password": fake.password(length=16, special_chars=True),
+    }
+
+def test_create_user(client, fake_user):
+    response = client.post("/users", json=fake_user)
+    assert response.status_code == 201
+    assert response.json()["email"] == fake_user["email"]
+```
+
+See **240-python-faker.md** and **240a-python-faker-testing.md** for comprehensive Faker patterns.
+
+### Async Test Configuration
+
+```toml
+# pyproject.toml
+[tool.pytest.ini_options]
+asyncio_mode = "auto"  # All async tests run automatically
+```
+
+```python
+# conftest.py
+import pytest
+from httpx import ASGITransport, AsyncClient
+
+@pytest.fixture
+async def async_client():
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as ac:
+        yield ac
+
+# Usage
+async def test_async_endpoint(async_client):
+    response = await async_client.get("/api/data")
+    assert response.status_code == 200
+```
+
+**Install:** `uv add --group dev pytest-asyncio httpx`
 
 ## Integration with Core Rules
 

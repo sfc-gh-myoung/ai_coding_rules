@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** skill advanced patterns, plan-validate-execute, visual analysis, skill composition, orchestrator worker, batch skills, verifiable outputs, intermediate validation
-**TokenBudget:** ~1950
+**TokenBudget:** ~2500
 **ContextTier:** Low
 **Depends:** 002h-claude-code-skills.md
 **LoadTrigger:** kw:skill composition, kw:plan-validate-execute, kw:orchestrator skill, kw:batch skill, kw:visual analysis pattern
@@ -51,15 +51,18 @@ Advanced patterns for Claude Code skill authoring: the plan-validate-execute pat
 
 ### Forbidden
 
-- Applying plan-validate-execute to trivial single-step operations
+- Applying plan-validate-execute to trivial tasks (≤2 steps AND no destructive effects like file deletion or database
+  modification). A task is NOT trivial if it modifies more than one file or requires validation after completion.
 - Orchestrator skills reimplementing worker logic instead of referencing worker SKILL.md
 - Skipping the validation step in plan-validate-execute workflows
 
 ### Execution Steps
 
-1. Identify which advanced pattern applies to your skill
-2. Follow the pattern-specific guidance below
-3. Integrate the pattern into your skill's workflow files
+1. Read the skill definition at `skills/<skill-name>/SKILL.md` to understand the workflow
+   (located in the skill's own directory within the `skills/` project root folder)
+2. Execute the skill's defined steps sequentially, using the tools specified in each step
+3. Record changes in `skills/<skill-name>/changes.json` — create if it does not exist
+   (schema defined below in "Changes Tracking Schema" section)
 
 ### Output Format
 
@@ -87,6 +90,29 @@ Skill workflow files updated with the chosen advanced pattern integrated into th
 - [ ] Pattern integrated into workflow files, not inlined in SKILL.md
 
 ## Pattern Selection
+
+### Changes Tracking Schema
+
+The `changes.json` file tracks skill execution history:
+
+```json
+{
+  "skill_name": "rule-reviewer",
+  "executions": [
+    {
+      "timestamp": "2026-03-09T14:30:00Z",
+      "trigger": "user-request",
+      "files_modified": ["rules/002g-agent-optimization.md"],
+      "files_created": ["reviews/rule-reviews/002g-review.md"],
+      "status": "completed",
+      "summary": "Reviewed 002g rule — score 81/100"
+    }
+  ]
+}
+```
+
+**Required fields:** `timestamp`, `status` (completed|failed|partial), `summary`
+**Optional fields:** `trigger`, `files_modified`, `files_created`, `error_message`
 
 Choose the pattern based on the operation type:
 
@@ -134,6 +160,18 @@ When inputs can be rendered as images, have Claude analyze them visually instead
 - Document structure where spatial relationships matter
 - Inputs where text extraction loses critical formatting
 
+**Choose the tool based on the input type and analysis goal:**
+
+- **Screenshot/PNG/JPG:** Read tool — need to understand UI layout, read text, identify elements
+- **Code diff:** File comparison — comparing two versions of the same file for changes
+- **Diagram/flowchart:** Read tool — need to extract structure or validate against specification
+- **PDF document:** Read tool (PDF mode) — extract text and visual content from multi-page docs
+
+**Decision criteria:**
+1. Can you describe what you need to learn from the visual? Use Read tool.
+2. Are you comparing two known files? Use file comparison.
+3. Is the visual a generated artifact you're validating? Read tool + structural check.
+
 **Workflow:**
 1. **Identify visual inputs** - Determine which inputs benefit from image-based analysis
 2. **Convert to images** - Render PDFs/documents to PNG/JPEG (e.g., `pdf2image`, `Pillow`, or built-in PDF reading)
@@ -174,6 +212,21 @@ Orchestrator skill loads and follows the worker skill's documented workflow. Ski
 **When to use:** Bulk operations, periodic audits, batch validation, mass migrations.
 
 **Batch failure handling:** When worker fails on item N: (1) Log error with item identifier and error details, (2) Continue to item N+1, (3) After all items processed, report summary: `{succeeded: X, failed: Y, errors: [...]}`
+
+### Skill Composition
+
+When a skill needs to invoke another skill as a sub-task:
+
+1. **Direct invocation:** Use `$skill-name` syntax in the skill's execution steps
+2. **Data passing:** The parent skill sets up context; the child skill reads it from
+   the shared working directory or explicit file handoff
+3. **Error propagation:** If the child skill fails, the parent skill must handle the error:
+   - Log the failure in `changes.json`
+   - Attempt fallback if defined
+   - Report the specific child skill failure to the user
+
+**Avoid:** Circular composition (skill A calls skill B which calls skill A).
+Detect by checking if the child skill lists the parent in its `Depends`.
 
 ## Anti-Patterns and Common Mistakes
 

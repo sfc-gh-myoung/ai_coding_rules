@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:locale, kw:custom-provider, kw:faker-performance
 **Keywords:** Faker, localization, locale, custom providers, BaseProvider, performance optimization, batch generation, caching, multi-language
-**TokenBudget:** ~2100
+**TokenBudget:** ~3300
 **ContextTier:** Low
 **Depends:** 240-python-faker.md
 
@@ -70,6 +70,16 @@ Custom Faker providers, localized data generators, and batch-optimized generatio
 - [ ] Localized generators handle all required locales
 - [ ] Large dataset generators use memory-efficient patterns
 - [ ] All generators use seed_instance()
+
+### Investigation Required
+
+Before adding custom providers, localization, or performance optimizations, agents MUST check:
+
+- [ ] **Existing custom providers**: Search for `class.*BaseProvider` in the project to find existing providers and avoid duplicating functionality
+- [ ] **Supported locales**: Check application requirements for which locales are actually needed — don't add locales speculatively
+- [ ] **Dataset size requirements**: Ask about expected data volumes before implementing streaming/batch generators — premature optimization if generating <1K records
+- [ ] **Provider registration**: Search for `add_provider` calls to understand existing provider setup and avoid registration conflicts
+- [ ] **Built-in coverage**: Check Faker's built-in providers first at `faker.providers.*` — only create custom providers for truly domain-specific data
 
 ### Design Principles
 
@@ -241,7 +251,99 @@ tech_profile = {
 }
 ```
 
+### Provider Registration Order
+
+Providers registered later **override** methods from earlier providers with the same name:
+
+```python
+class ProviderA(BaseProvider):
+    def status(self) -> str:
+        return self.random_element(["active", "inactive"])
+
+class ProviderB(BaseProvider):
+    def status(self) -> str:
+        return self.random_element(["open", "closed", "pending"])
+
+fake = Faker()
+fake.add_provider(ProviderA)
+fake.add_provider(ProviderB)  # ProviderB.status() wins
+
+fake.status()  # → "open", "closed", or "pending" (from ProviderB, not ProviderA)
+# Order matters! Register base providers first, domain-specific last.
+```
+
+### DynamicProvider for Runtime Data
+
+When provider data comes from external sources (database, config, API), use `DynamicProvider`:
+
+```python
+from faker.providers import DynamicProvider
+
+# Create provider with initial values:
+status_provider = DynamicProvider(
+    provider_name="order_status",
+    elements=["pending", "processing", "shipped", "delivered", "cancelled"],
+)
+
+fake = Faker()
+fake.seed_instance(12345)
+fake.add_provider(status_provider)
+
+# Use like any provider:
+fake.order_status()  # → "shipped" (seeded, deterministic)
+
+# Add values at runtime (e.g., from database query):
+new_statuses = ["on_hold", "returned", "refunded"]
+for status in new_statuses:
+    status_provider.add_element(status)
+
+# Now generates from expanded pool:
+fake.order_status()  # → may return "on_hold" etc.
+```
+
+Loading from external sources:
+```python
+import json
+
+def create_provider_from_config(config_path: str) -> DynamicProvider:
+    """Load provider values from a JSON config file."""
+    with open(config_path) as f:
+        config = json.load(f)
+    return DynamicProvider(
+        provider_name=config["name"],
+        elements=config["values"],
+    )
+
+# config/departments.json: {"name": "department", "values": ["Engineering", "Sales", ...]}
+dept_provider = create_provider_from_config("config/departments.json")
+fake.add_provider(dept_provider)
+fake.department()  # → "Engineering"
+```
+
 ## Performance Optimization
+
+### When to Use Each Pattern
+
+- **<1,000 records:** Simple loop — no optimization needed, Faker generates ~10K/sec
+- **1K–100K records:** Pre-computed cache — cache repeated lookups (companies, domains); generate unique fields per record
+- **100K–1M records:** Streaming generator — `yield` keeps memory flat; process records as they're generated
+- **>1M records:** Batch + streaming — generate in batches (e.g., 10K) for database inserts; stream batches to avoid memory spikes
+
+```python
+# Quick benchmark to decide:
+import time
+
+fake = Faker()
+fake.seed_instance(12345)
+
+start = time.perf_counter()
+[fake.name() for _ in range(10_000)]
+elapsed = time.perf_counter() - start
+print(f"10K names: {elapsed:.2f}s")  # ~0.5-1.0s typical
+
+# If your target count * elapsed/10K < 5 seconds, a simple loop is fine.
+# Optimize only when generation takes >5 seconds.
+```
 
 ### Efficient Large Dataset Generation
 
@@ -277,4 +379,59 @@ class PerformantDataGenerator:
         for start in range(0, total, batch_size):
             end = min(start + batch_size, total)
             yield list(self.generate_users_stream(end - start))
+```
+
+### Packaging Custom Providers for Reuse
+
+For providers used across multiple projects, package them as a reusable module:
+
+```
+my_faker_providers/
+├── pyproject.toml
+├── src/
+│   └── my_faker_providers/
+│       ├── __init__.py
+│       ├── tech.py          # TechCompanyProvider
+│       └── project.py       # ProjectProvider
+└── tests/
+    └── test_providers.py
+```
+
+```python
+# src/my_faker_providers/__init__.py
+from .tech import TechCompanyProvider
+from .project import ProjectProvider
+
+__all__ = ["TechCompanyProvider", "ProjectProvider"]
+
+# Usage in other projects:
+# uv add --group dev my-faker-providers
+# from my_faker_providers import TechCompanyProvider
+```
+
+```toml
+# pyproject.toml
+[project]
+name = "my-faker-providers"
+version = "0.1.0"
+dependencies = ["faker>=28.0.0"]
+```
+
+### Testing Custom Providers
+
+```python
+def test_tech_company_deterministic():
+    """Verify provider produces deterministic output with seed."""
+    fake = Faker()
+    fake.seed_instance(12345)
+    fake.add_provider(TechCompanyProvider)
+    result1 = fake.tech_company_name()
+
+    # Reset and regenerate — should be identical
+    fake2 = Faker()
+    fake2.seed_instance(12345)
+    fake2.add_provider(TechCompanyProvider)
+    result2 = fake2.tech_company_name()
+
+    assert result1 == result2
 ```

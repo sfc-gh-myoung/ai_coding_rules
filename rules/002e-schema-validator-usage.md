@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
+**RuleVersion:** v3.2.1
 **LastUpdated:** 2026-03-09
 **Keywords:** schema validator, validation errors, error resolution, exit codes, command options, output parsing, error severity, CRITICAL errors, HIGH warnings, MEDIUM info
-**TokenBudget:** ~2400
+**TokenBudget:** ~2600
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
@@ -76,7 +76,7 @@ Core guide for running `ai-rules validate` against v3.2 rules. Covers command us
 2. Review validation output (CRITICAL, HIGH, MEDIUM, INFO)
 3. Fix CRITICAL errors (required for passing)
 4. Review and fix HIGH errors (strongly recommended)
-5. Consider MEDIUM errors (optional improvements)
+5. Consider MEDIUM errors — fix if project total exceeds 10 (see Error Severity Levels)
 6. Re-run validation until 0 CRITICAL errors
 
 ### Output Format
@@ -212,7 +212,8 @@ RESULT: FAILED
 
 - **CRITICAL:** Blocks validation - MUST fix before commit
 - **HIGH:** Important issue - Strongly recommended to fix
-- **MEDIUM:** Optional improvement - Fix if count exceeds 10 across the project, or if the specific warning affects readability
+- **MEDIUM:** Optional improvement - Fix if count exceeds 10 across the project, or if the warning is in a section that other
+  rules reference via Depends (cross-referenced content must be clean)
 - **INFO:** Informational - No action needed
 
 ## Common Errors and Fixes
@@ -349,8 +350,16 @@ uv run ai-rules validate rules/<rule-file>.md
 
 If the validator reports an error you believe is incorrect:
 1. Verify against `schemas/rule-schema.yml` to confirm it's a false positive
-2. Document the exception in a comment near the flagged content
+2. Document the exception in a comment near the flagged content. Example:
+
+   <!-- Validator exception: TokenBudget format uses project convention (~NNNN)
+        which differs from standard numeric format. Verified 2026-03-09. -->
 3. Report as a validator bug via the project issue tracker if confirmed
+
+**Note:** Schema validation confirms structural correctness (fields present, format valid)
+but does not verify content accuracy. A rule may pass all schema checks while containing
+incorrect guidance. Complement automated validation with manual review or peer review
+for content accuracy.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -362,11 +371,11 @@ If the validator reports an error you believe is incorrect:
 
 **Correct Pattern:**
 ```bash
-# BAD: Only check for CRITICAL
+[FAIL] **Problem:** Only check for CRITICAL
 uv run ai-rules validate rules/
 # "No CRITICAL errors, ship it!"
 
-# GOOD: Track and address warnings
+[PASS] **Correct Pattern:** Track and address warnings
 uv run ai-rules validate rules/ --quiet
 # Target: 0 CRITICAL, 0 HIGH, <10 MEDIUM total
 ```

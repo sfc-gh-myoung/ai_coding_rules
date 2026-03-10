@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** tool set curation, minimal viable tool set, tool splitting, tool merging, tool overlap, tool bloat, tool boundaries
-**TokenBudget:** ~1550
+**TokenBudget:** ~2200
 **ContextTier:** Medium
 **Depends:** 004-tool-design-for-agents.md, 000-global-core.md
 
@@ -128,6 +128,22 @@ git_diff(file: str = None) -> Diff
 - Agent can combine tools for complex tasks
 - Easy to understand and document
 
+### Example: Data Analysis Agent Tool Set
+
+**Core tools (always loaded):**
+- `query_database` — execute SQL queries against the data warehouse
+- `read_file` — read CSV/Parquet/Excel files from local filesystem
+- `write_file` — save analysis results and transformed data
+
+**Conditional tools (loaded when needed):**
+- `create_chart` — visualization (load when user mentions "chart", "plot", "graph")
+- `statistical_test` — hypothesis testing (load when user mentions "significant", "correlation")
+- `export_report` — generate PDF/HTML reports (load when user mentions "report", "export")
+
+**Excluded tools (available but not loaded by default):**
+- `train_model` — ML model training (separate agent specialization)
+- `deploy_pipeline` — ETL deployment (separate agent specialization)
+
 ## When to Split Tools
 
 **Split a tool when:**
@@ -135,6 +151,13 @@ git_diff(file: str = None) -> Diff
 - Parameters become complex or ambiguous
 - Error handling diverges
 - Output formats differ significantly
+- **Different error handling is needed:** If operation A needs retry logic but operation B
+  needs immediate abort, they belong in separate tools. Divergent error handling is a
+  strong signal that the operations have different reliability characteristics.
+
+Example: A `database_operation(action, query)` tool where `action="read"` should retry
+on timeout but `action="delete"` should never retry — split into `database_read` and
+`database_delete`.
 
 **Example:**
 
@@ -185,6 +208,38 @@ user_data = get_user_profile(user_id)  # Returns user + prefs + settings
 ```
 
 **Decision criteria:** Merge when tools share 3+ parameters AND are called together >80% of the time. Split when a tool has >4 distinct use cases OR >6 parameters. Otherwise, keep as-is.
+
+**Measurement method for co-occurrence:** Track tool co-occurrence over N=50 recent agent interactions:
+1. Log each interaction's tool usage: `[tool_a, tool_b, tool_c]`
+2. For each tool pair, count interactions where both appear
+3. co_occurrence(A, B) = count(A∩B) / count(A∪B)
+4. If co_occurrence > 0.80 for any pair, consider merging
+
+**Quick heuristic (without tracking):** If you always use tool B immediately after tool A,
+and never use tool A without tool B, they should probably be merged.
+
+### Tool Versioning
+
+When a tool changes (new parameters, different output format, renamed):
+
+1. **Check curation impact:** Does the change affect any bundled tool groups or pipelines?
+2. **If parameters added:** Update tool documentation; no curation change needed
+3. **If parameters removed/renamed:** Update all dependent pipelines and bundled groups
+4. **If output format changes:** Verify downstream tools still parse the output correctly
+5. **Version pin recommendation:** For critical tool sets, pin to a tool version in the
+   agent configuration and test before upgrading
+
+### Experimental Tool Promotion
+
+New tools start as experimental before joining the curated set:
+
+1. **Trial period:** Add tool to a test agent configuration, not the main set
+2. **Track usage:** Does the agent use it? In what percentage of interactions?
+3. **After evaluation period, decide:**
+   - Used in >30% of relevant interactions -- Promote to conditional tool
+   - Used in >70% of relevant interactions -- Promote to core tool
+   - Used in <10% of interactions -- Remove from the set
+4. **Document decision:** Record promotion/removal rationale in the agent's tool config comments
 
 ## Anti-Patterns and Common Mistakes
 

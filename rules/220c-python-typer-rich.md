@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Typer, Rich, console output, progress bars, Live display, color detection, stderr, dual console
-**TokenBudget:** ~1900
+**TokenBudget:** ~3450
 **ContextTier:** Medium
 **Depends:** 220-python-typer-cli.md
 **LoadTrigger:** kw:rich, kw:console, kw:progress-bar
@@ -81,6 +81,14 @@ Shared console module with environment-aware output, dual stream support, and Ri
 - **Single Source:** One console module, shared across all commands
 - **Stream Separation:** Data on stdout, status on stderr
 - **Environment Awareness:** Respect NO_COLOR, CI, TERM conventions
+
+> **Investigation Required**
+> Before creating or modifying Rich console patterns, the agent MUST:
+> 1. Check for existing `console.py` or shared console modules — never create a second one
+> 2. Search for existing Rich imports (`from rich` or `import rich`) across the project
+> 3. Verify whether `typer[all]` or bare `typer` + `rich` is installed: `uv pip list | grep -i rich`
+> 4. Read existing stderr/stdout patterns to maintain consistent stream separation
+> 5. Check if `NO_COLOR` or `TERM` environment handling already exists in the project
 
 ### Post-Execution Checklist
 
@@ -207,6 +215,57 @@ def log_warning(msg: str) -> None:
     _stderr.print(f"[yellow]WARN:[/yellow] {msg}")
 ```
 
+### Rich Markup Escaping
+
+User-provided strings may contain characters that Rich interprets as markup. Always escape untrusted input:
+
+```python
+from rich.markup import escape
+
+def display_file_info(path: str, size: int) -> None:
+    """Display file info — path may contain [brackets] or other Rich markup chars."""
+    safe_path = escape(path)  # Escapes [, ], and other markup characters
+    get_console().print(f"File: {safe_path} ({size:,} bytes)")
+
+
+# BAD — user input interpreted as markup:
+# path = "data/[backup]/report.csv"
+# console.print(f"File: {path}")  # Rich tries to parse [backup] as a style tag
+
+# GOOD — escaped input is safe:
+# console.print(f"File: {escape(path)}")  # Displays literal [backup]
+```
+
+**When to escape:**
+- File paths from user input or filesystem scans
+- Database column names or values displayed in tables
+- Any string not authored by the developer
+
+**When escaping is NOT needed:**
+- Hardcoded format strings with known Rich markup (e.g., `"[red]Error:[/red]"`)
+- Enum values from a known set
+- Numeric/boolean values converted to string
+
+```python
+from rich.table import Table
+from rich.markup import escape
+
+def display_results(results: list[dict[str, str]]) -> None:
+    """Display results in a table — escape all user data."""
+    table = Table(title="Search Results")
+    table.add_column("Name", style="cyan")
+    table.add_column("Path")
+    table.add_column("Status", style="green")
+
+    for r in results:
+        table.add_row(
+            escape(r["name"]),      # User data — escape
+            escape(r["path"]),      # File path — escape
+            r["status"],            # Known enum ("ok"/"error") — safe
+        )
+    get_console().print(table)
+```
+
 ### Dual Console Usage in Commands
 
 ```python
@@ -223,6 +282,37 @@ def export(output: Path):
     console.print_json(data=data)            # stdout - pipeable
     log_info("Export complete")              # stderr
 ```
+
+### File Output (No ANSI Codes)
+
+When writing Rich-formatted output to a file, create a file-specific Console to strip ANSI codes:
+
+```python
+from pathlib import Path
+from rich.console import Console
+from rich.table import Table
+
+def export_report(data: list[dict], output_path: Path) -> None:
+    """Export report to file without ANSI escape codes."""
+    table = Table(title="Report")
+    table.add_column("Name")
+    table.add_column("Value", justify="right")
+    for row in data:
+        table.add_row(row["name"], str(row["value"]))
+
+    # File console — no_color=True strips all ANSI, width prevents wrapping
+    with open(output_path, "w") as f:
+        file_console = Console(file=f, no_color=True, width=120)
+        file_console.print(table)
+
+    get_error_console().print(f"[green]✓[/green] Report saved to {output_path}")
+```
+
+**Key rules:**
+- `no_color=True` ensures no ANSI codes in file output
+- Set explicit `width=120` to prevent line wrapping based on terminal width
+- This is the ONE exception to the "never create Console instances outside the shared module" rule — file-targeted Consoles are inherently single-use
+- Always confirm file write to stderr, not stdout
 
 ## Context Object State Pattern
 
@@ -281,3 +371,83 @@ def sync_with_progress(items: list[str]) -> None:
                 status[item] = "error"
             live.update(make_status_table(status))
 ```
+
+### Simple Spinner with console.status()
+
+For single-task operations where a Live table is overkill, use `console.status()`:
+
+```python
+from myapp._shared.console import get_error_console, get_console
+
+def deploy_app(target: str) -> None:
+    """Deploy with a simple spinner on stderr."""
+    err = get_error_console()
+    out = get_console()
+
+    with err.status("[bold cyan]Deploying...[/bold cyan]") as status:
+        # Phase 1
+        status.update("[bold cyan]Building artifacts...[/bold cyan]")
+        build_artifacts()
+
+        # Phase 2
+        status.update(f"[bold cyan]Uploading to {target}...[/bold cyan]")
+        upload_to_target(target)
+
+        # Phase 3
+        status.update("[bold cyan]Running health checks...[/bold cyan]")
+        run_health_checks(target)
+
+    # Spinner clears automatically when context manager exits
+    out.print(f"[green]✓[/green] Deployed to {target}")
+```
+
+**When to use `console.status()` vs `Live`:**
+
+- **`console.status()`:** Use for single task with phases — simple spinner
+- **`Live` + `Table`:** Use for multiple items with individual status tracking
+- **`Progress`:** Use for known total with measurable progress (file downloads, batch processing)
+
+**Key rules:**
+- Always use `get_error_console()` for spinners — keeps stdout clean for piped data
+- `status.update()` changes the spinner text for each phase
+- Spinner auto-clears when the `with` block exits
+- Works correctly with `NO_COLOR=1` — falls back to text-only status
+
+### Table Column Overflow
+
+For tables with potentially long strings, configure column overflow behavior:
+
+```python
+from rich.table import Table
+from rich.markup import escape
+
+def display_logs(entries: list[dict]) -> None:
+    """Display log entries with overflow handling."""
+    table = Table(title="Recent Logs", show_lines=True)
+    table.add_column("Time", style="cyan", width=19, no_wrap=True)
+    table.add_column("Level", style="bold", width=8, no_wrap=True)
+    table.add_column("Message", overflow="fold", max_width=80)
+    table.add_column("Source", overflow="ellipsis", max_width=30)
+
+    for entry in entries:
+        table.add_row(
+            entry["time"],
+            entry["level"],
+            escape(entry["message"]),    # User data — escape
+            escape(entry["source"]),     # File path — escape
+        )
+    get_console().print(table)
+```
+
+**Overflow modes:**
+
+- **`"fold"`:** Wraps text to next line within cell — use for log messages, descriptions
+- **`"ellipsis"`:** Truncates with `…` — use for file paths, identifiers
+- **`"crop"`:** Hard truncates (no indicator) — rarely use, prefer ellipsis instead
+
+**Key rules:**
+- Use `no_wrap=True` for fixed-width columns (timestamps, status codes)
+- Use `max_width` to cap column width for variable-length content
+- Use `overflow="ellipsis"` for paths and identifiers that can be truncated
+- Use `overflow="fold"` for content the user needs to read fully
+- Always `escape()` user-provided data in table cells

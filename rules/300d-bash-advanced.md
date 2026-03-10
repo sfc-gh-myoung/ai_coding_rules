@@ -11,7 +11,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Bash, advanced patterns, associative arrays, performance, code style, ShellCheck, debugging, documentation, security, parameter expansion
-**TokenBudget:** ~2500
+**TokenBudget:** ~2700
 **ContextTier:** Medium
 **Depends:** 300-bash-scripting-core.md
 **LoadTrigger:** ext:.sh, ext:.bash
@@ -68,7 +68,7 @@ Advanced bash scripting patterns including associative arrays, performance optim
 
 ### Execution Steps
 
-1. Review script for performance optimization opportunities (parameter expansion, built-in arithmetic)
+1. Replace all `$(basename ...)`, `$(dirname ...)`, `$(echo ... | tr)`, and `$(echo ... | cut)` calls with parameter expansion equivalents from the Performance Optimization section
 2. Add associative arrays where key-value data structures are needed
 3. Implement debug mode with `DEBUG` environment variable
 4. Add usage/help documentation with heredoc patterns
@@ -125,7 +125,7 @@ extension="${filename##*.}"
 - [ ] Associative arrays use `declare -A` with Bash 4.0+ check
 - [ ] Debug mode available via `DEBUG=true`
 - [ ] Scripts with arguments include usage/help output
-- [ ] File permissions set appropriately (755 scripts, 644 configs, 600 temp files)
+- [ ] File permissions set appropriately (755 scripts, 644 configs, 600 temp files, 700 temp directories)
 
 ## Associative Arrays
 
@@ -158,6 +158,11 @@ if [[ "${BASH_VERSINFO[0]}" -lt 4 ]]; then
     echo "Error: This script requires Bash 4.0+ for associative arrays" >&2
     exit 1
 fi
+
+# Note: macOS ships Bash 3.2 by default (GPLv2 licensing constraint).
+# Use `brew install bash` for Bash 5.x, then ensure shebang uses:
+#   #!/usr/bin/env bash  (picks up Homebrew bash if in PATH)
+# or: #!/opt/homebrew/bin/bash  (explicit path on Apple Silicon Macs)
 ```
 
 ## Performance Optimization
@@ -179,6 +184,11 @@ fi
 # String replacement
 new_string="${string//old/new}"    # Replace all occurrences
 new_string="${string/old/new}"     # Replace first occurrence
+
+# Edge case: empty or unset variables under set -u
+# Use default-value syntax to prevent "unbound variable" errors:
+safe_name="${full_name:-}"        # Empty string if unset (no error)
+safe_path="${file_path:-/tmp}"    # Default to /tmp if unset
 ```
 
 ### Built-in Arithmetic
@@ -315,10 +325,10 @@ chmod 644 config.conf        # Readable by all, writable by owner
 ### Secure Temporary Files
 - **Rule:** Use `mktemp` with restrictive permissions:
 ```bash
-temp_file="$(mktemp)"
+temp_file="$(mktemp)" || { echo "Failed to create temp file" >&2; exit 1; }
 chmod 600 "$temp_file"   # Restrict to owner only
 
-temp_dir="$(mktemp -d)"
+temp_dir="$(mktemp -d)" || { echo "Failed to create temp directory" >&2; exit 1; }
 chmod 700 "$temp_dir"    # Restrict directory to owner only
 ```
 

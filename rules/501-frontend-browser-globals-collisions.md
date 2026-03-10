@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** browser globals, javascript globals, window.history, HTMX history, Alpine.js, name collisions, reserved identifiers, implicit globals, historyRestore, hx-push-url, popstate, best practices, anti-patterns
-**TokenBudget:** ~1550
+**TokenBudget:** ~1950
 **ContextTier:** High
 **LoadTrigger:** kw:browser-globals, kw:window-history, kw:htmx-history
 **Depends:** 500-frontend-htmx-core.md
@@ -76,12 +76,28 @@ Template and/or JS changes that remove browser-global collisions (renames + name
 - If you intentionally add `function history(){}` at top-level, back/forward and/or HTMX history will break (this should be caught in review)
 - If you remove `const`/`let` for a variable assignment, it should show up as `window.<name>` unexpectedly
 
+**Automated Validation:**
+```bash
+# Catch browser global collisions via ESLint (uses config from Tooling section below)
+npx eslint --rule 'no-restricted-globals: [error, event, name, status, length, top, parent, frames, self, screen]' src/
+
+# Detect implicit globals (missing const/let/var)
+npx eslint --rule 'no-implicit-globals: error' src/
+```
+
 ### Post-Execution Checklist
 - [ ] No top-level `history`, `location`, or `event` identifiers introduced
 - [ ] No implicit globals (missing `const`/`let`) introduced
 - [ ] HTMX navigation works (click links, `hx-push-url`, back/forward restore)
 - [ ] Alpine component factories referenced from HTML are namespaced (or otherwise collision-safe)
 - [ ] Rule references added where relevant (HTMX + integrations rules)
+
+> **Investigation Required**
+> When applying this rule:
+> 1. List all `<script>` tags in the base HTML template (check for non-module scripts)
+> 2. Search for top-level `function` or `var` declarations matching the 19 browser globals (line 45)
+> 3. Check if HTMX history is used (`hx-push-url`, `hx-boost`) — collisions are most dangerous here
+> 4. Identify any third-party scripts loaded globally that may create collisions
 
 ## Anti-Patterns and Common Mistakes
 
@@ -125,6 +141,13 @@ function init() {
 ```
 **Benefits:** Scoped state, predictable behavior across HTMX swaps, and fewer accidental collisions.
 
+**Third-Party Script Collisions:**
+If a vendor script creates global collisions you cannot rename (e.g., analytics library defines `window.event`):
+1. **Isolate in iframe:** Load the vendor script in a sandboxed iframe to separate its global scope
+2. **Wrap in module:** Use `<script type="module">` — modules have their own scope and don't create globals
+3. **Load order:** Ensure your code loads after the vendor script and checks for existing globals before overwriting
+4. **Report upstream:** File an issue with the library maintainer requesting namespaced globals
+
 ## Output Format Examples
 
 ```bash
@@ -146,7 +169,15 @@ typeof window.history
       "error",
       "event", "name", "status", "length", "top", "parent",
       "frames", "self", "screen", "alert", "confirm", "prompt",
-      "open", "close"
+      "open", "close",
+      {
+        "name": "history",
+        "message": "Use window.history explicitly to avoid collisions with local variables."
+      },
+      {
+        "name": "location",
+        "message": "Use window.location explicitly to avoid collisions with local variables."
+      }
     ]
   }
 }

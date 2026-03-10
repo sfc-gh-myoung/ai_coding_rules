@@ -4,25 +4,22 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
-**Keywords:** crud, forms, validation, infinite scroll, lazy loading, sse, progressive enhancement, modals, search, autocomplete, real-time, polling, inline editing
-**TokenBudget:** ~4600
-**ContextTier:** High
+**LastUpdated:** 2026-03-09
+**Keywords:** crud, forms, validation, progressive enhancement, search, autocomplete, inline editing
+**TokenBudget:** ~3400
+**ContextTier:** Medium
 **Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
 
 ## Scope
 
 **What This Rule Covers:**
-Reusable HTMX implementation patterns for common web application features including CRUD operations, form validation, infinite scroll, real-time updates, progressive enhancement, modals, search, and multi-step workflows.
+Core HTMX implementation patterns: CRUD operations, form validation, search/autocomplete, and progressive enhancement. For advanced patterns (infinite scroll, modals, wizards, real-time), see 221i.
 
 **When to Load This Rule:**
 - Implementing CRUD operations with HTMX
 - Building forms with server-side validation
-- Creating infinite scroll or lazy loading
 - Implementing search and autocomplete
-- Building modals and drawers with HTMX
-- Creating multi-step forms/wizards
-- Implementing real-time updates with SSE or polling
+- Adding progressive enhancement to existing forms
 
 ## References
 
@@ -33,6 +30,7 @@ Reusable HTMX implementation patterns for common web application features includ
 - **221a-python-htmx-templates.md** - Jinja2 patterns
 
 **Related:**
+- **221i-python-htmx-patterns-advanced.md** - Advanced patterns (scroll, modals, wizards, real-time)
 - **221b-python-htmx-flask.md** - Flask-specific patterns
 - **221c-python-htmx-fastapi.md** - FastAPI patterns
 - **221d-python-htmx-testing.md** - Testing these patterns
@@ -66,10 +64,10 @@ Reusable HTMX implementation patterns for common web application features includ
 ### Forbidden
 
 - Client-side validation only
-- Missing server-side checks
-- No error handling
+- Accepting form input without server-side type checking, length limits (`len(name) >= 2`), and format validation (`@` in email) on every form submission
+- Routes that can raise exceptions without returning an HTML error partial with appropriate HTTP status code (400 for validation, 404 for not found, 500 for server error)
 - Hard-coded IDs
-- Skipping progressive enhancement
+- Forms and links that only work with JavaScript — always include `action=` and `method=` HTML attributes alongside `hx-*` attributes for non-JS fallback. Exception: autocomplete and infinite scroll, which fundamentally require JavaScript.
 - Using JSON responses for HTMX
 
 ### Execution Steps
@@ -130,6 +128,27 @@ Reusable HTMX implementation patterns for common web application features includ
 - [ ] Tests cover success and error cases
 - [ ] Templates organized (partials separate from full pages)
 - [ ] Security reviewed (CSRF, XSS, input validation)
+
+> **Investigation Required**
+> Before implementing HTMX patterns, the agent MUST:
+> 1. Check existing HTMX patterns in the project — never add a duplicate CRUD/search/modal implementation
+> 2. Verify current form validation approach (server-side vs client-side) and match it
+> 3. Check existing modal/drawer implementation — don't mix Alpine.js modals with _hyperscript modals
+> 4. Read current session configuration if implementing wizard/multi-step patterns
+> 5. Check whether progressive enhancement is a project requirement (accessibility compliance may mandate it)
+
+### Pattern Selection Guide
+
+- **Edit data inline:** Inline CRUD (221e §1)
+- **Validate form input:** Server-side validation (221e §2)
+- **Find items by text:** Search / autocomplete (221e §3)
+- **Works without JS:** Progressive enhancement (221e §5)
+- **Load content on scroll:** Infinite scroll (221i §1)
+- **Live data updates:** SSE or polling (221i §2)
+- **Overlay content:** Modals / drawers (221i §3)
+- **Multi-page form:** Multi-step wizard (221i §4)
+
+Implement patterns from 221e (core) first. Add 221i (advanced) patterns only when the use case specifically requires them.
 
 ## Key Principles
 
@@ -296,68 +315,7 @@ def submit_user_form():
     return response
 ```
 
-### 3. Infinite Scroll / Lazy Loading
-
-**Infinite Scroll Pattern:**
-```html
-{# Initial page load #}
-<div id="results-container">
-    {% for item in items %}
-        {% include 'partials/_item.html' %}
-    {% endfor %}
-
-    {% if has_more %}
-        <div hx-get="{{ url_for('load_more', page=next_page) }}"
-             hx-trigger="revealed"
-             hx-swap="afterend"
-             class="loading-trigger">
-            Loading more...
-        </div>
-    {% endif %}
-</div>
-```
-
-```python
-@app.route('/items')
-def items_list():
-    page = int(request.args.get('page', 1))
-    per_page = 20
-    htmx = request.headers.get('HX-Request') == 'true'
-
-    items = get_items(page=page, per_page=per_page)
-    total = get_total_items()
-    has_more = (page * per_page) < total
-
-    if htmx:
-        # Return partial for lazy loading
-        html = render_template('partials/_items_list.html',
-                             items=items,
-                             has_more=has_more,
-                             next_page=page + 1)
-        return html
-
-    # Full page load
-    return render_template('pages/items.html',
-                         items=items,
-                         has_more=has_more,
-                         next_page=page + 1)
-
-@app.route('/load_more')
-def load_more():
-    page = int(request.args.get('page', 2))
-    per_page = 20
-
-    items = get_items(page=page, per_page=per_page)
-    total = get_total_items()
-    has_more = (page * per_page) < total
-
-    return render_template('partials/_load_more_sentinel.html',
-                           items=items,
-                           has_more=has_more,
-                           next_page=page + 1)
-```
-
-### 4. Search and Autocomplete
+### 3. Search and Autocomplete
 
 **Search with Debounce:**
 ```html
@@ -421,157 +379,7 @@ def autocomplete_cities():
                            cities=cities)
 ```
 
-### 5. Real-Time Updates
-
-**Server-Sent Events (SSE):**
-```html
-{# Include HTMX SSE extension #}
-<script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/sse.js"></script>
-
-<div hx-ext="sse"
-     sse-connect="{{ url_for('notifications_stream') }}"
-     sse-swap="notification"
-     id="notifications">
-    {# Notifications appear here #}
-</div>
-```
-
-```python
-# Flask SSE endpoint
-import time
-
-@app.route('/notifications/stream')
-def notifications_stream():
-    def event_stream():
-        while True:
-            notification = get_latest_notification()
-            if notification:
-                html = render_template('partials/_notification.html',
-                                     notification=notification)
-                yield f'event: notification\ndata: {html}\n\n'
-            # WARNING: time.sleep() blocks Flask worker. Use gevent or async framework for production. See 221g for async patterns.
-            time.sleep(5)  # Check every 5 seconds
-
-    return Response(event_stream(), mimetype='text/event-stream')
-```
-
-**Polling Pattern:**
-```html
-<div id="status"
-     hx-get="{{ url_for('get_status') }}"
-     hx-trigger="every 2s"
-     hx-swap="innerHTML">
-    Loading status...
-</div>
-```
-
-```python
-@app.route('/status')
-def get_status():
-    status = get_current_status()
-    return render_template('partials/_status.html', status=status)
-```
-
-### 6. Modals and Drawers
-
-**Modal Pattern:**
-```html
-{# Modal container in base template #}
-<div id="modal-container"></div>
-
-{# Button to open modal #}
-<button hx-get="{{ url_for('user_detail_modal', user_id=user.id) }}"
-        hx-target="#modal-container"
-        hx-swap="innerHTML">
-    View Details
-</button>
-```
-
-```html
-{# partials/_modal.html #}
-<div class="modal-overlay" onclick="this.remove()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <button class="modal-close"
-                onclick="document.getElementById('modal-container').innerHTML = ''">
-            ×
-        </button>
-
-        <h2>{{ title }}</h2>
-        <div class="modal-body">
-            {{ content|safe }}
-        </div>
-    </div>
-</div>
-```
-
-```python
-@app.route('/users/<int:user_id>/modal')
-def user_detail_modal(user_id):
-    user = get_user(user_id)
-    content = render_template('partials/_user_detail.html', user=user)
-    return render_template('partials/_modal.html',
-                         title=f'User: {user.name}',
-                         content=content)
-```
-
-### 7. Multi-Step Forms / Wizards
-
-**Wizard Pattern:**
-```html
-{# Step 1: Basic Info #}
-<form id="wizard-form"
-      hx-post="{{ url_for('wizard_step_2') }}"
-      hx-target="#wizard-form"
-      hx-swap="outerHTML">
-    <h3>Step 1: Basic Information</h3>
-
-    <input type="text" name="name" placeholder="Name" required>
-    <input type="email" name="email" placeholder="Email" required>
-
-    <button type="submit">Next</button>
-</form>
-```
-
-```python
-@app.route('/wizard/step2', methods=['POST'])
-def wizard_step_2():
-    # Store step 1 data in session
-    session['wizard'] = {
-        'name': request.form['name'],
-        'email': request.form['email']
-    }
-
-    # Return step 2 form
-    return render_template('partials/_wizard_step_2.html')
-
-@app.route('/wizard/step3', methods=['POST'])
-def wizard_step_3():
-    # Add step 2 data to session
-    session['wizard']['address'] = request.form['address']
-    session['wizard']['phone'] = request.form['phone']
-
-    # Return step 3 form
-    return render_template('partials/_wizard_step_3.html')
-
-@app.route('/wizard/complete', methods=['POST'])
-def wizard_complete():
-    # Get all wizard data from session
-    data = session.get('wizard', {})
-    data['preferences'] = request.form.getlist('preferences')
-
-    # Save to database
-    user = create_user_from_wizard(data)
-
-    # Clear session
-    session.pop('wizard', None)
-
-    # Return success message with redirect
-    response = make_response('<div class="success">Account created!</div>')
-    response.headers['HX-Redirect'] = url_for('dashboard')
-    return response
-```
-
-### 8. Progressive Enhancement
+### 5. Progressive Enhancement
 
 **Graceful Degradation Pattern:**
 ```html

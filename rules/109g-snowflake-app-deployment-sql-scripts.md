@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:deployment-sql, kw:put-script
 **Keywords:** PUT command, REMOVE command, CREATE NOTEBOOK, CREATE STREAMLIT, deployment scripts, upload script, stage upload, SQL deployment templates, snow stage copy, recursive upload
-**TokenBudget:** ~3450
+**TokenBudget:** ~3700
 **ContextTier:** Low
 **Depends:** 109b-snowflake-app-deployment-core.md
 
@@ -81,6 +81,21 @@ Each script executes without errors. Stage contents match expectations after upl
 
 ## SQL Script Patterns
 
+### Stage Creation Script (CREATE STAGE)
+
+```sql
+-- ============================================================================
+-- Filename: create_stage.sql
+-- Description: Create internal stage for application files
+-- ============================================================================
+
+CREATE STAGE IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.<%STAGE%>
+    ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE')
+    COMMENT = 'Stage for application deployment files';
+```
+
+> Run this once per environment before any PUT/upload operations.
+
 ### Upload Script (PUT)
 
 ```sql
@@ -115,7 +130,7 @@ OVERWRITE=TRUE;
 
 **Stage Path Requirement:**
 - Upload files directly to stage root: `@STAGE_NAME`
-- **Never** use subdirectory paths like: `@STAGE_NAME/streamlit/`
+- **Never** use an extra nesting subdirectory for the main app file: `@STAGE_NAME/streamlit/streamlit_app.py` — upload `streamlit_app.py` directly to `@STAGE_NAME`. Subdirectories for `pages/` and `utils/` are fine.
 - ROOT_LOCATION in CREATE STREAMLIT must match actual file location
 - Subdirectory mismatch causes same "TypeError" (Snowflake cannot find files)
 
@@ -239,6 +254,17 @@ SELECT '[PASS] Streamlit application files uploaded' AS progress;
 - **Never** nest in extra subdirectory: `@STAGE/streamlit/`
 - **environment.yml must pin `streamlit>=1.50`** - Without it, SiS defaults to Streamlit 1.22.0 which lacks modern APIs (`st.navigation()`, `st.Page()`, etc.)
 
+**environment.yml Template:**
+```yaml
+# environment.yml template for SiS
+name: sf_env
+channels:
+  - snowflake
+dependencies:
+  - streamlit>=1.50
+  - snowflake-snowpark-python
+```
+
 ### Snowflake CLI Recursive Upload (Recommended for Multi-File Apps)
 
 For Streamlit apps with multiple files (pages, utils, assets), `snow stage copy --recursive`
@@ -246,6 +272,8 @@ is the recommended approach over individual SQL PUT statements:
 
 ```bash
 # Upload entire Streamlit app directory recursively
+# Note: Pin CLI version in one place for easy updates
+# SNOW_CLI_VERSION=3.14
 uvx --from=snowflake-cli==3.14 snow stage copy \
   --connection default \
   streamlit/ @DB.SCHEMA.STREAMLIT_STAGE \
@@ -291,7 +319,12 @@ uvx --from=snowflake-cli==3.14 snow sql \
 CREATE STREAMLIT IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.APP_NAME
     ROOT_LOCATION = '@<%STAGE%>'  -- Matches PUT locations
     MAIN_FILE = 'streamlit_app.py'
-    QUERY_WAREHOUSE = <%WAREHOUSE%>;
+    QUERY_WAREHOUSE = <%WAREHOUSE%>
+    -- Optional parameters:
+    -- TITLE = 'My Application'
+    -- COMMENT = 'Description of the app'
+    -- EXTERNAL_ACCESS_INTEGRATIONS = (my_integration)
+    ;
 ```
 
 ## Anti-Patterns and Common Mistakes

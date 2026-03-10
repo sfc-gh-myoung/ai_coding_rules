@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Python classes, OOP, inheritance, dataclasses, @property, class design, encapsulation, composition, Protocol, ABC, type hints
-**TokenBudget:** ~2950
+**TokenBudget:** ~4050
 **ContextTier:** Medium
 **Depends:** 200-python-core.md, 201-python-lint-format.md, 204-python-docs-comments.md
 **LoadTrigger:** kw:class, kw:oop, kw:dataclass
@@ -233,7 +233,7 @@ Directive levels: **Mandatory** = must always follow. **Rule** = strong default,
 ### 1.1 When to use a class
 - Rule: Use a class when modeling state + behavior that naturally belong together or when you need polymorphism via interfaces.
 - Rule: When module has no shared state, use functions instead of classes.
-- Rule: Use `@dataclass` for simple data carriers; elevate to rich domain objects only when behavior is justified.
+- Rule: Use `@dataclass` for simple data carriers; elevate to rich domain objects only when the class needs methods that mutate state, enforce invariants, or coordinate with external resources.
 
 ### 1.2 Data classes
 ```python
@@ -251,6 +251,32 @@ class Customer:
 
 - Rule: Use `kw_only=True` for readability and future-proofing.
 - Rule: Use `frozen=True` for value objects that should be immutable; implement methods that return new instances instead of mutating.
+
+  ```python
+  @dataclass(frozen=True)
+  class Point:
+      x: float
+      y: float
+
+  # Attempting mutation raises FrozenInstanceError:
+  # point = Point(1.0, 2.0)
+  # point.x = 3.0  # FrozenInstanceError
+
+  # To "modify" frozen dataclasses, create a new instance:
+  from dataclasses import replace
+
+  point = Point(1.0, 2.0)
+  moved = replace(point, x=3.0)  # New instance with x=3.0
+  ```
+
+  **When to use `frozen=True`:**
+  - Value objects (coordinates, money, config)
+  - Dictionary keys (frozen dataclasses are hashable)
+  - Thread-shared data (immutable = thread-safe)
+
+  **When NOT to use `frozen=True`:**
+  - Objects that accumulate state over time (use regular dataclass)
+  - Performance-critical code with many mutations (replace() creates copies)
 - Rule: When creating >1000 instances, add `slots=True` to reduce memory footprint; avoid if: (1) code uses `__dict__` directly, (2) code uses `setattr()` with dynamic keys, or (3) code uses `pickle.dumps()`/`loads()` on instances.
 
 ### 1.3 Encapsulation and properties
@@ -297,7 +323,51 @@ class KeyValueStore(Protocol):
 ```
 
 - Rule: Use `Protocol` for duck-typed interfaces; use ABCs when you need shared base logic or registration.
+- Inheritance is acceptable when ANY of these conditions is met:
+  1. **Framework requirement:** The base class is from a framework (e.g., `BaseModel`, `TestCase`, `APIView`) and inheritance is the intended extension mechanism
+  2. **IS-A relationship:** The subclass truly IS-A specialization (e.g., `HttpError` IS-A `AppError`), not just shares some methods
+  3. **Abstract interface:** The base class defines an abstract interface with `ABC` and all methods are `@abstractmethod`
+  4. **Mixin with single responsibility:** The mixin adds exactly one capability (e.g., `TimestampMixin` adds `created_at`/`updated_at`)
+
+  Inheritance is **NOT justified** when:
+  - You just want to reuse some methods: use composition instead
+  - The "base class" has state that the child doesn't need: use composition instead
+  - You have more than 2 levels of inheritance: flatten with composition instead
 - Avoid: Deep inheritance hierarchies (>2 levels). Prefer composing smaller objects.
+
+### Abstract Interfaces
+
+When you need to define an interface that multiple classes must implement:
+
+```python
+from abc import ABC, abstractmethod
+
+class Repository(ABC):
+    """Interface for data repositories."""
+
+    @abstractmethod
+    def get(self, id: str) -> Model:
+        """Retrieve a model by ID."""
+        ...
+
+    @abstractmethod
+    def save(self, model: Model) -> None:
+        """Persist a model."""
+        ...
+
+class PostgresRepository(Repository):
+    def get(self, id: str) -> Model:
+        return self.db.query(Model).get(id)
+
+    def save(self, model: Model) -> None:
+        self.db.add(model)
+        self.db.commit()
+```
+
+**Rules:**
+- All methods in ABC should be `@abstractmethod` (no partial interfaces)
+- Use `Protocol` (typing) for structural subtyping instead of ABC when duck typing is preferred
+- Maximum 1 level of abstract class hierarchy
 
 ### 1.5 Resource management
 ```python
@@ -315,6 +385,34 @@ def opened(path: str) -> Iterator[object]:
 
 - Rule: Use context managers for files, sockets, locks, transactions.
 - Rule: When class owns resources (files, connections, locks), implement `__enter__`/`__exit__` for context manager support.
+
+**Class-based context manager:**
+```python
+class DatabaseConnection:
+    """Database connection with automatic cleanup."""
+
+    def __init__(self, url: str) -> None:
+        self.url = url
+        self._conn: Connection | None = None
+
+    def __enter__(self) -> Connection:
+        self._conn = connect(self.url)
+        return self._conn
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        if self._conn is not None:
+            if exc_type is not None:
+                self._conn.rollback()
+            self._conn.close()
+            self._conn = None
+```
+
+**Decision:** Use class-based when the context manager has state or complex cleanup. Use `@contextmanager` for simple acquire/release patterns.
 
 ### 1.6 Special methods and representation
 ```python
@@ -357,3 +455,28 @@ class Service:
 - Rule: When creating >1000 instances, use `slots=True` for memory efficiency.
 - Rule: Avoid per-instance `__dict__` unless dynamic attributes are needed.
 - Rule: Use `functools.cached_property` for computations taking >1ms or involving >1000 iterations (no I/O, no database calls, O(1) complexity for the cache lookup).
+
+### Memory Optimization with __slots__
+
+Use `__slots__` for classes with many instances (>1000):
+
+```python
+class Sensor:
+    __slots__ = ("id", "value", "timestamp")
+
+    def __init__(self, id: str, value: float, timestamp: datetime) -> None:
+        self.id = id
+        self.value = value
+        self.timestamp = timestamp
+```
+
+**Benefits:** ~40% less memory per instance, slightly faster attribute access.
+**Trade-off:** No `__dict__`, cannot add arbitrary attributes at runtime.
+**Prefer dataclasses with `slots=True` (Python 3.10+):**
+```python
+@dataclass(slots=True)
+class Sensor:
+    id: str
+    value: float
+    timestamp: datetime
+```

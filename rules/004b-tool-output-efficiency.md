@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** token efficiency, tool outputs, minimal output, structured output, progressive output, context budget, verbose output
-**TokenBudget:** ~1850
+**TokenBudget:** ~2600
 **ContextTier:** Medium
 **Depends:** 004-tool-design-for-agents.md, 000-global-core.md
 
@@ -46,6 +46,12 @@ Designing token-efficient tool outputs for AI agents. Covers returning only nece
 - Token budget awareness for the target agent
 - Measurement of actual output token counts
 
+**Tokenizer specification:**
+- For Claude models: Use `tiktoken` with `cl100k_base` encoding (approximate)
+- For OpenAI models: Use `tiktoken` with the model-specific encoding
+- For quick estimation: word count × 1.33 ≈ token count (see 002c-rule-optimization.md)
+- For CI/CD: `uv run ai-rules tokens` uses the project-standard tokenizer
+
 ### Forbidden
 
 - Returning metadata the agent did not request (timestamps, request IDs, API versions)
@@ -63,6 +69,20 @@ Designing token-efficient tool outputs for AI agents. Covers returning only nece
 ### Output Format
 
 Minimal, structured tool responses containing only the information the agent needs for its next action.
+
+**3-Step Necessity Assessment:**
+1. **Trace forward:** For each output field, identify which downstream tool or decision
+   consumes it. If no consumer exists, the field is unnecessary.
+2. **Trace backward:** For each downstream action, identify what minimum data it needs.
+   Only include those fields in the output.
+3. **Verify:** Remove one field at a time; if the downstream workflow still succeeds,
+   the field was unnecessary.
+
+Example: If a `list_files` tool returns `{name, size, modified, permissions, owner, group}`,
+but the agent only needs to display file names and check if files are recent:
+- **Keep:** `name`, `modified`
+- **Remove:** `size`, `permissions`, `owner`, `group`
+- **Savings:** ~60% token reduction per file entry
 
 ### Validation
 
@@ -90,6 +110,16 @@ Minimal, structured tool responses containing only the information the agent nee
 - [ ] Success responses are minimal (silent success where possible)
 - [ ] Large results use progressive loading with sensible defaults
 - [ ] Token count measured before and after optimization
+
+### Error Recovery for Output
+
+When a tool returns more output than expected:
+
+1. **Truncate with warning:** `{"data": [...first 100 items...], "truncated": true, "total": 5000}`
+2. **Suggest refinement:** `{"error": "Query returned 5000 results", "suggestion": "Add filters to narrow results"}`
+3. **Automatic pagination:** If configured, return first page with `next_page` token
+
+If agent fails after output optimization, add back fields one at a time starting with the most recently removed. Track which fields were required by logging agent failures correlated with field removal.
 
 ## Return Only Necessary Information
 
@@ -206,6 +236,39 @@ For tools that must return large content:
 - Content >5000 tokens -- require explicit pagination
 - Binary content (images, files) -- return metadata (name, size, type) not content
 
+### Irreducibly Large Outputs
+
+When output cannot be reduced (binary file content, full error logs, large query results):
+
+1. **Paginate:** Return the first N results with a `has_more: true` flag and a continuation
+   token. Let the agent request more only if needed.
+2. **Line-range filter:** For log files and large text, accept `start_line` and `end_line`
+   parameters to return a specific window instead of the full content.
+3. **Summary + detail:** Return a summary object with key statistics, plus a
+   `detail_available: true` flag. The agent requests full detail only when the summary
+   is insufficient.
+4. **File reference:** Instead of including large content in the response, write it to a
+   temp file and return the file path: `{"output_file": "/tmp/results.json", "line_count": 5000}`
+
+**Never return >50K tokens in a single tool response.** If output would exceed this,
+use pagination or file reference.
+
+### Streaming Output Pattern
+
+For tools that produce incremental output (build processes, long-running queries):
+
+1. **Summary header first:** Begin output with a structured summary line:
+   ```
+   [PROGRESS] Step 3/7 | 42% complete | ETA: 30s | Errors: 0
+   ```
+2. **Incremental detail after:** Follow with detailed output for the current step only
+3. **Final summary:** End with a structured completion summary:
+   ```
+   [COMPLETE] 7/7 steps | Duration: 2m14s | Errors: 0 | Warnings: 2
+   ```
+
+This pattern lets agents decide whether to read full output or act on the summary alone.
+
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Returning Full Objects When Summary Suffices
@@ -246,10 +309,6 @@ def search(query):
 def search(query, limit=10, offset=0):
     return database.find(query, limit=limit, offset=offset)
 ```
-
-### Error Recovery
-
-If agent fails after output optimization, add back fields one at a time starting with the most recently removed. Track which fields were required by logging agent failures correlated with field removal.
 
 ### Negative Tests
 

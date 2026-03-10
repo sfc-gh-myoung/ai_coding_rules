@@ -65,7 +65,7 @@ Answer honestly BEFORE proceeding:
 
 Before proceeding to rule #[N], I commit to:
 - [ ] Reading the COMPLETE rule file
-- [ ] Running schema_validator.py
+- [ ] Running `ai-rules validate`
 - [ ] Performing Agent Execution Test (counting blocking issues)
 - [ ] Loading and consulting rubrics for EACH dimension
 - [ ] Writing ≥15 line references with direct quotes

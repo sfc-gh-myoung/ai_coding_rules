@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure, Streamlit, data visualization
 **LoadTrigger:** kw:demo-creation, kw:synthetic-data
-**TokenBudget:** ~2300
+**TokenBudget:** ~3050
 **ContextTier:** Low
 **Depends:** 130-snowflake-demo-sql.md
 
@@ -270,6 +270,35 @@ session.sql("ALTER SESSION SET QUERY_TAG = 'demo_data_pipeline'").collect()
 write_pandas(conn, df, table_name='DEMO_TABLE', database='DEMO_DB', schema='PUBLIC', overwrite=True)
 ```
 
+## Snowflake-Native Data Generation with GENERATOR()
+
+For generating data directly in Snowflake without Python, use the `GENERATOR()` table function:
+
+```sql
+-- Generate 10,000 rows of synthetic customer data
+CREATE OR REPLACE TABLE DEMO_DB.PUBLIC.CUSTOMERS AS
+SELECT
+    ROW_NUMBER() OVER (ORDER BY SEQ4()) AS customer_id,
+    'CUST-' || LPAD(ROW_NUMBER() OVER (ORDER BY SEQ4()), 6, '0') AS customer_code,
+    ARRAY_CONSTRUCT('Enterprise', 'SMB', 'Consumer')[UNIFORM(0, 2, RANDOM(42))] AS segment,
+    DATEADD(day, -UNIFORM(30, 1095, RANDOM(42)), CURRENT_DATE()) AS signup_date,
+    ROUND(UNIFORM(1000, 50000, RANDOM(42))::FLOAT + RANDOM(42) / 1e18, 2) AS annual_spend
+FROM TABLE(GENERATOR(ROWCOUNT => 10000));
+
+-- Generate correlated orders referencing customers
+CREATE OR REPLACE TABLE DEMO_DB.PUBLIC.ORDERS AS
+SELECT
+    ROW_NUMBER() OVER (ORDER BY SEQ4()) AS order_id,
+    UNIFORM(1, 10000, RANDOM(42)) AS customer_id,
+    DATEADD(day, -UNIFORM(0, 365, RANDOM(42)), CURRENT_DATE()) AS order_date,
+    ROUND(UNIFORM(10, 2000, RANDOM(42))::FLOAT, 2) AS amount
+FROM TABLE(GENERATOR(ROWCOUNT => 50000));
+```
+
+**When to use GENERATOR() vs Python Faker:**
+- **GENERATOR()**: Large volumes (>10K rows), simple column types, no need for realistic names/emails
+- **Python Faker**: Realistic PII (names, emails, addresses), complex correlations, narrative-driven data
+
 ## Data Generation and Loading
 
 - **Narrative alignment:** Keep synthetic data realistic, not random noise
@@ -287,3 +316,39 @@ write_pandas(conn, df, table_name='DEMO_TABLE', database='DEMO_DB', schema='PUBL
 - **Annotations:** Provide context for anomalies and AI outputs for explainability
 - **Reset capability:** Provide clean reset to clear caches and session state between runs
 - **Timestamps:** Use relative timestamps so demos stay fresh over time
+
+## Streamlit Demo Integration
+
+Minimal pattern for a Streamlit demo app with Snowflake data:
+
+```python
+import streamlit as st
+from snowflake.snowpark.context import get_active_session
+
+session = get_active_session()
+
+st.title("Customer Analytics Demo")
+
+# Sidebar: scenario selection
+scenario = st.selectbox("Demo Scenario", ["Quick (50 customers)", "Full (500 customers)"])
+n_customers = 50 if "Quick" in scenario else 500
+
+# Load or generate data
+@st.cache_data(ttl=300)
+def load_demo_data(n):
+    return session.sql(f"SELECT * FROM DEMO_DB.ANALYTICS.CUSTOMERS LIMIT {n}").to_pandas()
+
+try:
+    df = load_demo_data(n_customers)
+    st.metric("Total Customers", len(df))
+    st.dataframe(df, use_container_width=True)
+except Exception as e:
+    st.error(f"Could not load data. Check that DEMO_DB exists. Error: {e}")
+
+# Reset button
+if st.button("Reset Demo"):
+    st.cache_data.clear()
+    st.rerun()
+```
+
+**Key patterns:** Use `@st.cache_data` for pre-warming, `try/except` with `st.error()` (never raw tracebacks), sidebar for scenario selection, and a reset button that clears cache + reruns.

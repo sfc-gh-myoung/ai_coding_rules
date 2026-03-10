@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:faker, kw:test-data, kw:mock
 **Keywords:** Faker, test data generation, fake data, providers, synthetic data, seeding, deterministic testing, Python testing
-**TokenBudget:** ~2450
+**TokenBudget:** ~3300
 **ContextTier:** Low
 **Depends:** 200-python-core.md
 
@@ -139,6 +139,33 @@ def test_user_creation(fake):
     assert user.is_valid()
 ```
 
+### Seed Value Selection
+
+```python
+# Seed values are arbitrary — any integer produces a deterministic sequence.
+# Common conventions:
+
+# 1. Fixed test seed — same across all tests for team consistency:
+FAKER_SEED = 12345  # Defined once in conftest.py or constants
+
+# 2. Per-scenario seeds — different seeds for different test domains:
+USER_SEED = 100
+ORDER_SEED = 200
+PRODUCT_SEED = 300
+
+# 3. CI reproducibility — log the seed to reproduce failures:
+import os
+SEED = int(os.environ.get("FAKER_SEED", "12345"))
+fake.seed_instance(SEED)
+# In CI: FAKER_SEED=67890 pytest tests/  (reproduce a specific run)
+```
+
+**When to change seeds:**
+- **Never** change seeds in existing tests without reason — it changes all generated data and may break assertions
+- **New test suites:** Pick any seed, document it in conftest.py
+- **Debugging:** Use CI's logged seed to reproduce exact data
+- **Parallel workers:** Use worker-specific offsets (see 240a for xdist patterns)
+
 ### Anti-Pattern 2: Generating Unrealistic Data That Bypasses Validation
 
 **Problem:** Using generic Faker methods that produce data not matching real-world constraints (e.g., `fake.text()` for fields with length limits).
@@ -172,6 +199,7 @@ fake.add_provider(OrderProvider)
 > 3. **Never assume seeding strategy** - Read tests to understand reproducibility requirements
 > 4. **Verify custom providers** - Check if domain-specific providers already defined
 > 5. **Match existing patterns** - Follow project's test data conventions
+> 6. **Verify Faker is dev-only** - Check `pyproject.toml` — Faker must be in `[dependency-groups] dev` or `[project.optional-dependencies] dev`, never in `[project.dependencies]`. Using Faker in production code is forbidden.
 >
 > **Anti-Pattern:**
 > "Adding Faker to generate test data... (without checking existing approach)"
@@ -181,6 +209,53 @@ fake.add_provider(OrderProvider)
 > "Let me check your existing test data setup first."
 > [reads test files, checks conftest.py, reviews fixtures]
 > "I see you have pytest fixtures with seeded Faker. Adding new provider following this pattern..."
+
+## Unique Value Management
+
+Faker's `unique` attribute tracks previously generated values to prevent duplicates. Values accumulate across calls within the same Faker instance. **Clear between tests to avoid `UniquenessException`:**
+
+```python
+@pytest.fixture(autouse=True)
+def reset_unique_values(seeded_faker):
+    """Reset unique value tracking before each test.
+
+    Without this, unique values accumulate across tests and eventually
+    exhaust the available pool, raising UniquenessException.
+    """
+    yield
+    seeded_faker.unique.clear()
+```
+
+### UniquenessException
+
+When all possible values have been generated, `unique` raises `UniquenessException`:
+
+```python
+from faker import Faker
+from faker.exceptions import UniquenessException
+
+fake = Faker()
+fake.seed_instance(12345)
+
+# Small pool — only 2 possible values:
+try:
+    for _ in range(10):
+        value = fake.unique.random_element(["active", "inactive"])
+except UniquenessException:
+    # Raised on 3rd call — only 2 unique values exist
+    # Solutions:
+    # 1. Clear and regenerate: fake.unique.clear()
+    # 2. Use non-unique method: fake.random_element(["active", "inactive"])
+    # 3. Expand the pool: add more elements to the list
+    pass
+```
+
+### When to Use `unique` vs Regular Methods
+
+- **Usernames, emails (must be unique):** Use `fake.unique.user_name()` because database constraints require uniqueness
+- **Status fields, categories:** Use `fake.random_element([...])` because duplicates are expected and valid
+- **Batch IDs, order numbers:** Use `fake.unique.random_int(min=1000, max=9999)` because business logic requires uniqueness
+- **Descriptions, notes:** Use `fake.text()` because content can repeat
 
 ## Output Format Examples
 
@@ -294,4 +369,22 @@ class DataGenerator:
 generator = DataGenerator(seed=12345)  # Reproducible data
 user_data = generator.generate_user()
 product_data = generator.generate_product()
+```
+
+### Locale Fallback Behavior
+
+When a provider method doesn't exist for the specified locale, Faker falls back to `en_US`:
+
+```python
+from faker import Faker
+
+# Japanese locale — some providers fall back to English
+fake_ja = Faker("ja_JP")
+fake_ja.seed_instance(12345)
+
+fake_ja.name()      # → Japanese name (provider exists)
+fake_ja.ssn()       # → Falls back to en_US format (no ja_JP SSN provider)
+
+# To explicitly set fallback locale:
+fake = Faker(["ja_JP", "en_US"])  # ja_JP primary, en_US fallback
 ```

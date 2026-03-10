@@ -3,25 +3,25 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
-**LoadTrigger:** kw:fastapi-security, kw:oauth
-**Keywords:** FastAPI security, authentication, OAuth2, JWT, CORS, middleware, API keys, security best practices, bcrypt, HTTPBearer, role-based access control, RBAC
-**TokenBudget:** ~4900
+**RuleVersion:** v4.0.0
+**LastUpdated:** 2026-03-09
+**LoadTrigger:** kw:fastapi-security, kw:oauth, kw:jwt, kw:rbac
+**Keywords:** FastAPI security, authentication, OAuth2, JWT, API keys, bcrypt, HTTPBearer, role-based access control, RBAC, token refresh, password hashing
+**TokenBudget:** ~3800
 **ContextTier:** High
 **Depends:** 210-python-fastapi-core.md
 
 ## Scope
 
 **What This Rule Covers:**
-Comprehensive security practices for FastAPI applications. Covers authentication (OAuth2, JWT), authorization (RBAC), password hashing (bcrypt), CORS configuration, security middleware, input validation, and production security hardening to protect APIs and user data.
+Authentication and authorization patterns for FastAPI applications. Covers JWT token authentication, OAuth2 password flow, password hashing (bcrypt), role-based access control (RBAC), token refresh, and secrets management. For CORS, security headers, rate limiting, and input validation, see **210e-python-fastapi-security-hardening.md**.
 
 **When to Load This Rule:**
 - Implementing authentication and authorization in FastAPI
 - Securing FastAPI endpoints with JWT tokens
-- Configuring CORS and security middleware
 - Setting up role-based access control (RBAC)
-- Hardening FastAPI applications for production deployment
+- Managing JWT token lifecycle (creation, validation, refresh)
+- Configuring password hashing and secrets
 
 ## References
 
@@ -32,6 +32,7 @@ Comprehensive security practices for FastAPI applications. Covers authentication
 
 **Related:**
 - **200-python-core.md** - Python core patterns
+- **210e-python-fastapi-security-hardening.md** - CORS, headers, rate limiting, input validation
 - **210b-python-fastapi-testing.md** - Testing security implementations
 
 ### External Documentation
@@ -52,71 +53,61 @@ Comprehensive security practices for FastAPI applications. Covers authentication
 
 ### Mandatory
 
-- `passlib` for password hashing (bcrypt)
+- `passlib` for password hashing (bcrypt) — or direct `bcrypt` library
 - `python-jose` or `pyjwt` for JWT tokens
 - `fastapi.security` modules (HTTPBearer, OAuth2PasswordBearer)
-- Environment variables for secrets
-- CORS middleware configuration
+- Environment variables for secrets (no defaults for secret keys)
 
 ### Forbidden
 
 - Hardcoding secrets in source code
 - Storing plaintext passwords
-- Using `allow_origins=["*"]` in production CORS
-- Exposing API docs in production without auth
-- Skipping input validation on security-critical endpoints
+- JWT secrets with default/fallback values
+- Using access tokens as refresh tokens (check `type` claim)
 
 ### Execution Steps
 
-1. Set up password hashing with bcrypt via passlib
+1. Set up password hashing with bcrypt via passlib (or direct bcrypt)
 2. Implement JWT token generation and validation
-3. Create authentication dependencies (get_current_user)
-4. Implement role-based access control via dependency injection
-5. Configure CORS middleware with explicit allowed origins
-6. Add security middleware (trusted hosts, rate limiting)
-7. Move all secrets to environment variables
-8. Disable API docs in production (docs_url=None)
-9. Validate with security testing (auth flows, RBAC)
-10. Audit for security best practices
+3. Implement token refresh with access/refresh token pair
+4. Create authentication dependencies (get_current_user)
+5. Implement role-based access control via dependency injection
+6. Move all secrets to environment variables (no defaults)
+7. Validate with security testing (auth flows, RBAC)
+8. Apply hardening from **210e-python-fastapi-security-hardening.md**
 
 ### Output Format
 
 Secured FastAPI application with:
 - Bcrypt password hashing
 - JWT authentication with HTTPBearer
+- Token refresh with access/refresh pair
 - RBAC via dependency injection
-- Properly configured CORS
 - Environment-based secrets management
-- Production security hardening
 
 ### Validation
 
 **Pre-Task-Completion Checks:**
-- Password hashing configured with bcrypt (passlib)
+- Password hashing configured with bcrypt (passlib or direct)
 - JWT authentication implemented with HTTPBearer
+- Token refresh endpoint with type validation
 - Authentication dependencies implemented
 - RBAC dependencies created via dependency injection
-- CORS configured with explicit allowed origins
-- All secrets stored in environment variables
-- Rate limiting middleware added
-- API docs disabled in production
-- Security testing completed
+- All secrets stored in environment variables (no defaults)
 - No hardcoded secrets in codebase
-- Input validation on all security-critical endpoints
 
 **Success Criteria:**
 - Passwords never stored in plaintext
 - JWT tokens validated on protected endpoints
+- Token refresh works with type claim validation
 - Unauthorized requests return 401
 - Forbidden requests return 403 (RBAC)
-- CORS only allows specified origins
 - No secrets in source code or git history
-- API docs inaccessible in production
 
 **Negative Tests:**
 - Invalid JWT token rejected with 401
 - Missing role returns 403
-- CORS blocks unauthorized origins
+- Access token rejected at refresh endpoint
 - Hardcoded secrets trigger security scan alerts
 
 ### Design Principles
@@ -124,21 +115,19 @@ Secured FastAPI application with:
 1. **Authentication First** - Implement proper JWT-based authentication with secure token handling
 2. **Authorization Controls** - Use dependency injection for role-based access control
 3. **Password Security** - Hash passwords with bcrypt; never store plaintext credentials
-4. **CORS Configuration** - Configure cross-origin requests appropriately for your environment
-5. **Security Middleware** - Layer security controls with trusted hosts and rate limiting
-6. **Environment Secrets** - Store all secrets in environment variables, never in code
-7. **Production Hardening** - Disable debug features and docs in production environments
+4. **Token Lifecycle** - Implement access/refresh token pairs with proper expiration
+5. **Environment Secrets** - Store all secrets in environment variables, never in code
+6. **Fail-Fast Secrets** - No default values for secret keys; app must fail at startup if missing
 
 ### Post-Execution Checklist
 
-- [ ] Password hashing uses bcrypt (passlib)
+- [ ] Password hashing uses bcrypt (passlib or direct)
 - [ ] JWT authentication with HTTPBearer on protected endpoints
+- [ ] Token refresh endpoint with type claim validation
 - [ ] RBAC dependencies enforce role checks
-- [ ] CORS configured with explicit origin allowlist
-- [ ] All secrets loaded from environment variables
-- [ ] Rate limiting middleware active
-- [ ] API docs disabled in production
+- [ ] All secrets loaded from environment variables (no defaults)
 - [ ] No hardcoded secrets in codebase
+- [ ] Hardening applied from 210e
 
 ## Anti-Patterns and Common Mistakes
 
@@ -167,54 +156,47 @@ class Settings(BaseSettings):
 settings = Settings()  # Fails fast if secrets missing
 ```
 
-### Anti-Pattern 2: Overly Permissive CORS Configuration
+### Anti-Pattern 2: Missing Input Validation on User Data
 
-**Problem:** Setting `allow_origins=["*"]` in production CORS middleware, allowing any website to make authenticated requests to your API.
+**Problem:** Accepting user input without validation allows injection attacks and data corruption.
 
-**Why It Fails:** Enables cross-site request forgery (CSRF) attacks. Malicious sites can make authenticated API calls using victim's cookies. Credential theft and data exfiltration become trivial.
+**Why It Fails:** Unvalidated input can contain malicious payloads, exceed expected lengths, or have unexpected types that break downstream processing.
 
 **Correct Pattern:**
 ```python
-# BAD: Allow all origins in production
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Any site can call your API!
-    allow_credentials=True,
-)
+# BAD: No validation on user input
+@app.post("/users")
+async def create_user(data: dict):
+    return db.insert(data)  # Accepts anything!
 
-# GOOD: Explicit origin allowlist
-ALLOWED_ORIGINS = [
-    "https://myapp.com",
-    "https://admin.myapp.com",
-]
-if settings.environment == "development":
-    ALLOWED_ORIGINS.append("http://localhost:3000")
+# GOOD: Pydantic model with constraints
+from pydantic import BaseModel, EmailStr, Field
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-)
+class UserCreate(BaseModel):
+    email: EmailStr
+    username: str = Field(min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_]+$")
+    age: int = Field(ge=0, le=150)
+
+@app.post("/users")
+async def create_user(data: UserCreate):
+    return db.insert(data.model_dump())  # Validated and typed
 ```
 
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read existing auth implementation BEFORE adding security** - Check for auth_service.py, security.py, existing JWT patterns
 > 2. **Verify environment variable usage** - Check .env files, config.py for how secrets are currently loaded
-> 3. **Never speculate about CORS requirements** - Ask user about allowed origins, or check existing middleware
-> 4. **Check existing middleware stack** - Read main.py to see what security middleware is already configured
+> 3. **Never speculate about auth requirements** - Ask user about authentication needs, or check existing patterns
+> 4. **Check existing auth setup** - Read main.py to see what authentication is already configured
 > 5. **Make grounded recommendations based on investigated security setup** - Match existing patterns
 >
 > **Anti-Pattern:**
 > "Based on typical FastAPI apps, you probably need JWT authentication..."
-> "Let me add CORS middleware - it should work with standard settings..."
 >
 > **Correct Pattern:**
 > "Let me check your existing authentication setup first."
 > [reads auth_service.py, main.py, checks for HTTPBearer usage]
 > "I see you're using passlib with bcrypt and HTTPBearer for JWT auth. Here's how to add role-based access control following the same pattern..."
-
-- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
 
 ## Authentication Setup
 
@@ -225,6 +207,8 @@ app.add_middleware(
 
 ```python
 # app/services/auth_service.py
+# passlib — widely used but maintenance status uncertain as of 2024+
+# Alternative: use bcrypt directly if passlib becomes unmaintained
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, UTC
@@ -280,6 +264,54 @@ async def get_current_user(token: str = Depends(security)):
         raise credentials_exception
     return user
 ```
+
+**Direct bcrypt alternative** (no passlib dependency):
+
+```python
+import bcrypt
+
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+def verify_password(password: str, hashed: str) -> bool:
+    return bcrypt.checkpw(password.encode(), hashed.encode())
+```
+
+> **Note:** Monitor passlib's PyPI page for maintenance updates. If passlib is abandoned, migrate to direct `bcrypt` library.
+
+### Token Refresh Pattern
+
+```python
+from datetime import UTC, datetime, timedelta
+
+def create_token_pair(user_id: str) -> dict[str, str]:
+    """Create access + refresh token pair."""
+    access = create_access_token(
+        data={"sub": user_id, "type": "access"},
+        expires_delta=timedelta(minutes=30),
+    )
+    refresh = create_access_token(
+        data={"sub": user_id, "type": "refresh"},
+        expires_delta=timedelta(days=7),
+    )
+    return {"access_token": access, "refresh_token": refresh}
+
+
+@app.post("/auth/refresh")
+async def refresh_token(refresh_token: str = Body(...)):
+    """Exchange refresh token for new access token."""
+    payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=[ALGORITHM])
+    if payload.get("type") != "refresh":
+        raise HTTPException(401, "Invalid token type")
+    user_id = payload.get("sub")
+    return create_token_pair(user_id)
+```
+
+**Rules:**
+- Access tokens: short-lived (15-30 minutes)
+- Refresh tokens: longer-lived (7-30 days)
+- Always check `type` claim to prevent access tokens being used as refresh
+- Rotate refresh tokens on each use (return new pair)
 
 ### Login and Registration Endpoints
 - **Always:** Validate credentials thoroughly before issuing tokens.
@@ -389,149 +421,6 @@ async def delete_user(
     return {"message": "User deleted successfully"}
 ```
 
-## Security Middleware
-
-### CORS Configuration
-- **Always:** Configure CORS with explicit allowlist of origins.
-- **Rule:** Only allow origins hosting your frontend in production.
-- **Rule:** Only allow necessary HTTP methods and headers.
-
-```python
-# app/middleware/security.py
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from app.config import Settings
-
-def add_security_middleware(app: FastAPI, settings: Settings):
-    """Add security middleware to FastAPI application."""
-
-    # CORS middleware
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.allowed_origins,
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE"],
-        allow_headers=["Authorization", "Content-Type", "Accept"],
-        max_age=600,  # Cache preflight requests for 10 minutes
-    )
-
-    # Trusted hosts middleware (production only)
-    if not settings.debug:
-        app.add_middleware(
-            TrustedHostMiddleware,
-            allowed_hosts=settings.allowed_hosts
-        )
-
-def add_rate_limiting_middleware(app: FastAPI):
-    """Add rate limiting middleware (example with slowapi)."""
-    from slowapi import Limiter, _rate_limit_exceeded_handler
-    from slowapi.util import get_remote_address
-    from slowapi.errors import RateLimitExceeded
-
-    limiter = Limiter(key_func=get_remote_address)
-    app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
-    return limiter
-```
-
-### Security Headers
-- **Always:** Add security headers to protect against common attacks.
-- **Rule:** Use HTTPS in production; redirect HTTP to HTTPS.
-
-```python
-# app/middleware/headers.py
-from fastapi import Request, Response
-from fastapi.middleware.base import BaseHTTPMiddleware
-
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    """Add security headers to all responses."""
-
-    async def dispatch(self, request: Request, call_next):
-        response: Response = await call_next(request)
-
-        # Security headers
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
-
-        # HSTS (only over HTTPS)
-        if request.url.scheme == "https":
-            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-
-        return response
-```
-
-## Input Sanitization and Validation
-
-### SQL Injection Prevention
-- **Always:** Use parameterized queries with SQLAlchemy.
-- **Never:** Concatenate user input directly into SQL strings.
-- **Rule:** Validate and sanitize all user inputs (strip HTML tags using `bleach.clean()` or Pydantic validators).
-
-```python
-# CORRECT: Using SQLAlchemy ORM (automatically parameterized)
-async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
-    """Get user by email - safe from SQL injection."""
-    result = await db.execute(
-        select(User).where(User.email == email)
-    )
-    return result.scalar_one_or_none()
-
-# CORRECT: Using raw SQL with parameters
-async def search_users(db: AsyncSession, search_term: str) -> List[User]:
-    """Search users by name - parameterized query."""
-    result = await db.execute(
-        text("SELECT * FROM users WHERE full_name ILIKE :search"),
-        {"search": f"%{search_term}%"}
-    )
-    return result.fetchall()
-
-# INCORRECT: String concatenation (vulnerable to SQL injection)
-async def bad_search_users(db: AsyncSession, search_term: str):
-    """DO NOT USE - vulnerable to SQL injection."""
-    query = f"SELECT * FROM users WHERE full_name LIKE '%{search_term}%'"
-    result = await db.execute(text(query))  # DANGEROUS!
-    return result.fetchall()
-```
-
-### Input Validation with Pydantic
-- **Always:** Use Pydantic validators for complex validation logic.
-- **Rule:** Sanitize inputs that will be displayed to users.
-
-```python
-# app/models/security.py
-from pydantic import BaseModel, field_validator, Field, EmailStr
-import re
-from typing import Optional
-
-class SecureUserInput(BaseModel):
-    """Example of secure input validation."""
-    username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr
-    bio: Optional[str] = Field(None, max_length=500)
-
-    @field_validator('username')
-    @classmethod
-    def validate_username(cls, v: str) -> str:
-        # Only allow alphanumeric and underscore
-        if not re.match(r'^[a-zA-Z0-9_]+$', v):
-            raise ValueError('Username can only contain letters, numbers, and underscores')
-        return v.lower()
-
-    @field_validator('bio')
-    @classmethod
-    def sanitize_bio(cls, v: Optional[str]) -> Optional[str]:
-        if v:
-            # Remove potentially dangerous characters
-            v = re.sub(r'[<>"\']', '', v)
-            return v.strip()
-        return v
-```
-
 ## Environment and Configuration Security
 
 ### Secure Configuration Management
@@ -541,16 +430,15 @@ class SecureUserInput(BaseModel):
 
 ```python
 # app/config/security.py
-from pydantic import BaseSettings, field_validator, ConfigDict
-from typing import List
-import secrets
+from pydantic_settings import BaseSettings
+from pydantic import field_validator, ConfigDict
 
 class SecuritySettings(BaseSettings):
     """Security-focused configuration settings."""
     model_config = ConfigDict(env_prefix="SECURITY_", env_file=".env")
 
-    # JWT Configuration
-    jwt_secret_key: str = secrets.token_urlsafe(32)
+    # JWT Configuration — NO defaults for secrets
+    jwt_secret_key: str  # Required — MUST be set, fails at startup if missing
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 30
     jwt_refresh_expire_days: int = 7
@@ -559,19 +447,6 @@ class SecuritySettings(BaseSettings):
     password_min_length: int = 8
     password_require_uppercase: bool = True
     password_require_numbers: bool = True
-    password_require_symbols: bool = False
-
-    # Rate Limiting
-    rate_limit_requests: int = 100
-    rate_limit_window: int = 3600  # 1 hour
-
-    # CORS
-    cors_origins: List[str] = ["http://localhost:3000"]
-    cors_credentials: bool = True
-
-    # Security Headers
-    enable_security_headers: bool = True
-    hsts_max_age: int = 31536000  # 1 year
 
     @field_validator('jwt_secret_key')
     @classmethod
@@ -579,55 +454,17 @@ class SecuritySettings(BaseSettings):
         if len(v) < 32:
             raise ValueError('JWT secret key must be at least 32 characters long')
         return v
-
-    @field_validator('cors_origins', mode='before')
-    @classmethod
-    def parse_cors_origins(cls, v):
-        if isinstance(v, str):
-            return [origin.strip() for origin in v.split(',')]
-        return v
 ```
 
-## Production Security Hardening
-
-### Deployment Security Checklist
-- **Always:** Disable debug mode in production.
-- **Always:** Hide API documentation in production.
+**Rule:** JWT secrets MUST NOT have default values. Use `BaseSettings` with no default (raises `ValidationError`) or `os.environ["KEY"]` (raises `KeyError`) to fail-fast at startup.
 
 ```python
-# app/main.py - Production security configuration
-from app.config import get_settings
-from app.middleware.security import add_security_middleware, SecurityHeadersMiddleware
+# WRONG — has a default value (security vulnerability)
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
+SECRET_KEY = secrets.token_urlsafe(32)  # Generates new key on every restart!
 
-def create_secure_app() -> FastAPI:
-    """Create FastAPI app with production security settings."""
-    settings = get_settings()
-
-    # Production-specific FastAPI configuration
-    app = FastAPI(
-        title=settings.app_name,
-        description=settings.description,
-        version=settings.version,
-        # Disable docs in production
-        docs_url="/docs" if settings.debug else None,
-        redoc_url="/redoc" if settings.debug else None,
-        openapi_url="/openapi.json" if settings.debug else None,
-    )
-
-    # Add security middleware
-    add_security_middleware(app, settings)
-    app.add_middleware(SecurityHeadersMiddleware)
-
-    # Add rate limiting
-    if not settings.debug:
-        limiter = add_rate_limiting_middleware(app)
-
-        # Apply rate limiting to auth endpoints via slowapi decorator
-        # In your auth router:
-        # @router.post("/token")
-        # @limiter.limit("5/minute")
-        # async def login(request: Request, ...):
-        #     ...
-
-    return app
+# CORRECT — no default, fails fast
+SECRET_KEY = os.environ["JWT_SECRET_KEY"]  # Raises KeyError if not set
 ```
+
+For CORS, security headers, rate limiting, input validation, and production hardening, see **210e-python-fastapi-security-hardening.md**.

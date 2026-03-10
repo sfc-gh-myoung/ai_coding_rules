@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** file:Makefile, kw:makefile, kw:make
 **Keywords:** Makefile, GNU Make, make, build automation, make target, phony, make help, portable make, make variables, uv, uvx, make dependencies, make error handling, make cleanup
-**TokenBudget:** ~3250
+**TokenBudget:** ~3700
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -91,6 +91,11 @@ Core directives for creating and maintaining project automation using Makefiles,
 - Parameter-required targets fail with clear error messages when parameters are missing
 - Targets execute correctly on the development platform
 
+**Negative Tests:**
+- `make deploy` without `DEST=...` MUST produce: `*** DEST is required. Usage: make deploy DEST=/path/to/project.  Stop.`
+- If a `test/` directory exists and `.PHONY: test` is missing, `make test` should skip (demonstrates why .PHONY is mandatory)
+- `make -n <target>` should show command expansion without executing — verify no side effects in dry run
+
 **Error Recovery:**
 - **make: command not found:** Install GNU Make via system package manager
 - **Missing separator error:** Recipe lines must use tabs, not spaces
@@ -112,6 +117,16 @@ Core directives for creating and maintaining project automation using Makefiles,
 - [ ] Required parameters guarded with `ifndef`/`$(error ...)`
 - [ ] Python commands use `$(UV)`/`$(UVX)` wrappers
 - [ ] Validated with `make help` and `make -n`
+
+### Investigation Required
+
+Before creating or modifying a Makefile, complete these checks:
+
+1. **Read existing Makefile:** `cat Makefile` — understand current targets, variables, and structure
+2. **Identify toolchain(s):** Check for `pyproject.toml` (Python), `go.mod` (Go), `Dockerfile` (Docker), `package.json` (Node.js)
+3. **Check for .env files:** `ls .env* 2>/dev/null` — targets may depend on environment variables
+4. **Verify GNU Make version:** `make --version | head -1` — confirm 3.81+ (4.0+ for extended features)
+5. **Check for sub-Makefiles:** `grep -r 'include ' Makefile 2>/dev/null` — identify include directives and dependencies
 
 ## Makefile Structure
 
@@ -384,6 +399,28 @@ parallel-build: ## Build with parallel jobs
 ```
 
 **Note:** Use `.NOTPARALLEL:` for order-dependent targets that must not run in parallel.
+
+### Recursive Make: $(MAKE) vs bare make
+
+Always use `$(MAKE)` instead of bare `make` in recipes that invoke Make recursively:
+
+```makefile
+# WRONG: bare make loses MAKEFLAGS and may use wrong binary
+.PHONY: all
+all:
+  make -C subdir build
+
+# CORRECT: $(MAKE) preserves MAKEFLAGS and uses the correct Make binary
+.PHONY: all
+all:
+  $(MAKE) -C subdir build
+```
+
+**Why `$(MAKE)`:**
+- Preserves `MAKEFLAGS` (e.g., `-j4` for parallel builds, `-k` for keep-going)
+- Uses the same Make binary as the parent invocation (important when multiple Make versions are installed)
+- Enables `--question` mode and other flag propagation
+- Required for `make -n` (dry run) to work correctly with sub-makes
 
 ## CI/CD Integration
 

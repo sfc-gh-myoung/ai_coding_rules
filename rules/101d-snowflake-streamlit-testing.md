@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** test Streamlit app, pytest, test framework, test patterns, app testing, UI testing, test automation, streamlit test suite, integration testing, test coverage, debug tests, test fixtures, testing strategies
-**TokenBudget:** ~3700
+**TokenBudget:** ~3950
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 206-python-pytest.md
 
@@ -30,13 +30,13 @@ Comprehensive testing and debugging guidance for Streamlit applications using Ap
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
-- **206-python-pytest.md** - Python testing with pytest
+- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
+- **206-python-pytest.md** - Python testing with pytest `[Available]`
 
 **Related:**
-- **101b-snowflake-streamlit-performance.md** - Cache behavior testing
-- **200-python-core.md** - Python testing fundamentals
+- **101b-snowflake-streamlit-performance.md** - Cache behavior testing `[Available]`
+- **200-python-core.md** - Python testing fundamentals `[Available]`
 
 ### External Documentation
 
@@ -94,6 +94,13 @@ Test suite with unit tests for data functions, AppTest integration tests, >80% c
 - No tests hitting production data
 - CI/CD integration working
 
+**Negative Tests:**
+Tests MUST verify that:
+- Invalid inputs raise appropriate errors (e.g., `pytest.raises(KeyError)`)
+- Empty DataFrames are handled gracefully (no crash, returns empty or default)
+- Unauthenticated access is rejected (redirected to login or shown error)
+- Malformed query parameters do not cause unhandled exceptions
+
 **Coverage Target:** >80% code coverage with pytest-cov
 
 ### Design Principles
@@ -114,6 +121,17 @@ Test suite with unit tests for data functions, AppTest integration tests, >80% c
 - [ ] All tests pass: `uv run pytest`
 - [ ] Test coverage >80%: `uv run pytest --cov`
 - [ ] CI/CD pipeline configured to run tests
+
+### CI/CD Configuration
+
+**pyproject.toml pytest config:**
+```toml
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=src --cov-report=term-missing --tb=short"
+```
+
+**Run tests:** `uv run pytest --cov --cov-report=term-missing`
 
 ## Anti-Patterns and Common Mistakes
 
@@ -262,6 +280,13 @@ def test_aggregation(sample_data):
 
 **MANDATORY:**
 **Use Streamlit AppTest (Streamlit 1.28+) for UI/integration testing:**
+
+**Widget Access Methods:**
+- **Key-based (recommended):** `at.text_input(key="username")` -- most stable, survives reordering
+- **Label-based:** `at.text_input("Username")` -- readable, but breaks if label changes
+- **Index-based:** `at.text_input[0]` -- fragile, breaks if widget order changes
+
+Use key-based access as the default. Assign `key=` to all widgets in your app code to enable stable test access.
 
 **Basic AppTest Examples:**
 ```python
@@ -449,7 +474,7 @@ def sample_df():
 - **Check:** Blocking operations without feedback (add st.spinner)
 
 ### Slow Performance
-- **Profile:** Use `st.write(st.query_params)` to check rerun frequency (Streamlit 1.30+)
+- **Profile:** Run `streamlit run app.py --logger.level=debug` to see rerun frequency and timing
 - **Optimize:** Expensive operations with proper caching
 - **Consider:** Lazy loading for large datasets, sampling for development/testing
 

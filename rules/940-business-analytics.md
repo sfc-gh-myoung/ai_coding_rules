@@ -6,7 +6,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Business intelligence, dashboards, KPIs, reporting, visualization, stakeholder reports, metrics, Snowsight, executive dashboards, data storytelling, WCAG accessibility
-**TokenBudget:** ~2900
+**TokenBudget:** ~4150
 **ContextTier:** High
 **Depends:** 000-global-core.md, 100-snowflake-core.md
 
@@ -52,7 +52,25 @@ Comprehensive directives for creating business-oriented queries, reports, dashbo
 
 ### Mandatory
 
-- MUST use business-friendly naming in all queries and outputs
+- MUST use business-friendly naming in all queries and outputs:
+  - Use full words, not abbreviations (`customer_count` not `cust_cnt`, `revenue` not `rev`)
+  - Include units in column aliases when applicable (`"Revenue ($M)"` not `"Revenue"`, `"Growth Rate (%)"` not `"Growth"`)
+  - Use Title Case for display names in dashboards and reports (`"Monthly Recurring Revenue"` not `"monthly_recurring_revenue"`)
+  - Avoid internal codes, IDs, or system-generated names in user-facing output (`"Product Category"` not `"prod_cat_id"`)
+  - Exception: Technical columns needed for filtering/joining may retain internal names if hidden from display
+
+  ```sql
+  -- BAD: Abbreviations and missing units
+  SELECT cust_cnt, rev, churn_pct FROM dashboard_metrics;
+
+  -- GOOD: Full words, units, Title Case aliases
+  SELECT
+      customer_count AS "Customer Count",
+      revenue_usd AS "Revenue ($M)",
+      churn_rate AS "30-Day Churn Rate (%)"
+  FROM dashboard_metrics;
+  ```
+
 - MUST include data freshness timestamps on dashboards
 - MUST validate color contrast ratios meet WCAG 2.1 AA (≥4.5:1)
 - MUST use CTEs and explicit column selection (no SELECT *)
@@ -94,6 +112,14 @@ Comprehensive directives for creating business-oriented queries, reports, dashbo
 - Business stakeholder confirms insights are actionable
 - All metrics documented with definitions
 
+**Negative Tests:**
+- Dashboard with >7 charts on a single page MUST trigger a simplification review (see AP1: Cluttered Dashboard)
+- Query using `SELECT *` MUST fail linting or code review (see Forbidden: line 63)
+- Color-only encoding without shapes, patterns, or icons MUST fail accessibility check (see AP5: Red/Green Color Scheme)
+- Column aliases using abbreviations or missing units MUST be flagged during review (see Mandatory: line 55)
+- Pie chart with >5 slices MUST be replaced with horizontal bar or top-5-plus-Other pattern (see AP3, Forbidden: line 244)
+- Truncated Y-axis without zero baseline MUST be flagged as misleading (see AP4, Ethical Standards: line 248)
+
 ### Design Principles
 
 - **Business-First Language:** Translate technical outputs into business insights
@@ -116,6 +142,26 @@ Comprehensive directives for creating business-oriented queries, reports, dashbo
 - [ ] Dashboard loads <2s
 - [ ] Screen reader tested (NVDA/JAWS)
 - [ ] Keyboard navigation works
+
+### Investigation Required
+
+Before building business analytics dashboards or reports, investigate the following:
+
+1. **Identify target audience role:** Determine whether the primary audience is C-Level (4 KPIs, weekly), Directors (5-8 KPIs, daily), Analysts (10-15 KPIs, real-time), or Operations (5-7 KPIs, real-time alerts). This drives layout, chart selection, and update frequency.
+2. **Discover available business-facing views and their freshness:** Query `INFORMATION_SCHEMA.TABLES` and check `LAST_ALTERED` timestamps. Identify which views/tables are production-ready vs staging.
+   ```sql
+   SELECT TABLE_SCHEMA, TABLE_NAME, LAST_ALTERED, ROW_COUNT
+   FROM INFORMATION_SCHEMA.TABLES
+   WHERE TABLE_TYPE = 'VIEW' AND TABLE_SCHEMA = 'ANALYTICS'
+   ORDER BY LAST_ALTERED DESC;
+   ```
+3. **Determine KPIs and their documented definitions:** Check if a metric definitions dictionary exists (see Metric Documentation Standard section). Flag any metrics without documented calculation logic or ownership.
+4. **Check existing dashboards for patterns and standards:** Review current Snowsight dashboards or Streamlit apps. Identify established color palettes, layout patterns, and naming conventions already in use.
+5. **Verify WCAG compliance requirements:** Confirm whether the organization requires WCAG 2.1 AA compliance. Check if existing dashboards have been audited for accessibility (color contrast, screen reader, keyboard nav).
+
+```
+⚠️ Investigation Required: Complete items 1-5 above before proceeding. The audience role (item 1) determines layout pattern (F-pattern vs Z-pattern) and visualization density.
+```
 
 ## Anti-Patterns and Common Mistakes
 
@@ -323,6 +369,77 @@ METRIC_DEFINITIONS = {
 - Include metric metadata (definition, owner, refresh frequency) alongside values
 - Design dashboard components to be callable programmatically (not just interactive)
 - Agents SHOULD use the metric definitions dictionary as the authoritative source
+
+**Agent-Accessible Metric Lookup:**
+```python
+def get_metric(name: str) -> dict:
+    """Look up a metric from the authoritative definitions dictionary.
+
+    Agents use this to resolve metric names to their canonical
+    definitions, calculations, and ownership before querying.
+    """
+    metric = METRIC_DEFINITIONS.get(name)
+    if not metric:
+        return {"error": f"Unknown metric: {name}. "
+                f"Available: {list(METRIC_DEFINITIONS.keys())}"}
+    return {
+        "display_name": metric["display_name"],
+        "definition": metric["definition"],
+        "calculation": metric["calculation"],
+        "owner": metric["owner"],
+        "update_frequency": metric["update_frequency"]
+    }
+
+
+def get_dashboard_data(session, metric_names: list[str], filters: dict = None) -> dict:
+    """Programmatic dashboard data access for agents.
+
+    Returns metric values with metadata for agent consumption.
+    Respects the same query patterns as human-facing dashboards.
+    """
+    results = {}
+    for name in metric_names:
+        defn = get_metric(name)
+        if "error" in defn:
+            results[name] = defn
+            continue
+
+        # Use CTEs and explicit columns (no SELECT *)
+        query = f"""
+            WITH metric_data AS (
+                SELECT {defn['calculation']} AS value,
+                       CURRENT_TIMESTAMP() AS queried_at
+                FROM dashboard_metrics
+            )
+            SELECT value, queried_at FROM metric_data
+        """
+        if filters:
+            # Parameterized queries for injection prevention
+            pass  # Apply filters via parameterized WHERE clauses
+
+        row = session.sql(query).collect()[0]
+        results[name] = {
+            **defn,
+            "value": row["VALUE"],
+            "queried_at": str(row["QUERIED_AT"]),
+            "freshness": defn["update_frequency"]
+        }
+    return results
+```
+
+**Example Agent Usage:**
+```python
+# Agent resolves metric before querying
+metric_info = get_metric("mrr")
+# Returns: {"display_name": "Monthly Recurring Revenue (MRR)",
+#           "definition": "Sum of all active subscription values...",
+#           "calculation": "SUM(subscription_amount) WHERE status = 'active'",
+#           "owner": "Finance Team", "update_frequency": "Daily at 00:00 UTC"}
+
+# Agent fetches current dashboard data
+data = get_dashboard_data(session, ["mrr", "customer_churn_rate"],
+                          filters={"region": "APAC"})
+```
 
 ## Internationalization Note
 

@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, flat layout, src layout
-**TokenBudget:** ~3950
+**TokenBudget:** ~4350
 **ContextTier:** High
 **Depends:** 200-python-core.md
 **LoadTrigger:** kw:setup, kw:bootstrap, file:pyproject.toml
@@ -184,7 +184,7 @@ testpaths = ["tests"]
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read pyproject.toml BEFORE making packaging changes** - Check existing build system, package config
-> 2. **Verify project structure** - Use list_dir to understand if src/ layout or flat layout
+> 2. **Verify project structure** - Use `glob` or file-listing tools to discover project layout (src/ vs flat)
 > 3. **Never assume package name** - Read pyproject.toml [project] name field
 > 4. **Check for existing __init__.py files** - Don't duplicate or break existing structure
 > 5. **Test installation** - Try `uv pip install -e .` after making changes
@@ -236,6 +236,32 @@ Successfully built my-project-1.0.0.tar.gz and my_project-1.0.0-py3-none-any.whl
 - **Use flat layout** if: project uses `uv`, is a CLI tool, has ≤1 package directory AND ≤50 modules, or is a single-package repository.
 - **Use src/ layout** if: project has >100 modules, >3 package directories, OR >5 contributors, or needs strict installed-package testing guarantees.
 - **Always:** Investigate existing project structure before recommending a layout. Never change an existing layout without explicit request.
+
+### Monorepo Structure
+
+For projects with multiple related packages:
+
+```
+monorepo/
+├── packages/
+│   ├── core/
+│   │   ├── src/core/
+│   │   ├── tests/
+│   │   └── pyproject.toml
+│   └── api/
+│       ├── src/api/
+│       ├── tests/
+│       └── pyproject.toml
+├── pyproject.toml          # Root workspace config
+├── uv.lock                 # Single lockfile
+└── README.md
+```
+
+Configure workspace in root `pyproject.toml`:
+```toml
+[tool.uv.workspace]
+members = ["packages/*"]
+```
 
 ## Package Structure Requirements
 
@@ -362,7 +388,7 @@ check_untyped_defs = true
 
 ### Command-Line Applications
 - **Default:** Use flat layout (`myapp/` at project root) for CLI apps, especially with `uv`.
-- **Consider:** Use `src/` layout for large CLI projects where import isolation matters (see Layout Selection).
+- **Use** `src/` layout for large CLI projects where import isolation matters (see Layout Selection).
 - **Always:** Define console scripts in `pyproject.toml`: `[project.scripts]` section.
 - **Always:** Use Typer or Click for command-line interface parsing (see `220-python-typer-cli.md`).
 - **Always:** Separate CLI parsing from business logic (keep in different modules).
@@ -400,6 +426,31 @@ addopts = [
     "--cov-report=term-missing",
 ]
 ```
+
+### Network Failure Handling
+
+When dependency installation fails due to network issues:
+
+```bash
+# Retry with timeout
+uv sync --timeout 120
+
+# Use cached packages (offline mode)
+uv sync --offline  # Only works if packages were previously downloaded
+
+# Check if it's a DNS/proxy issue
+python -c "import urllib.request; urllib.request.urlopen('https://pypi.org')"
+
+# Use alternative index
+uv sync --index-url https://pypi.tuna.tsinghua.edu.cn/simple/  # Mirror example
+```
+
+**Common failures:**
+
+- **ConnectionError (No internet):** Check network, use `--offline` if cached
+- **HTTPError 403 (Corporate proxy):** Set `UV_HTTP_PROXY` environment variable
+- **ResolutionError (Conflicting deps):** Run `uv pip compile --no-deps` to debug
+- **TimeoutError (Slow connection):** Use `--timeout 120` or try mirror
 
 ## Troubleshooting Common Issues
 

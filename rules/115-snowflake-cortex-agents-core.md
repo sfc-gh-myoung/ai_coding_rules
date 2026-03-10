@@ -11,7 +11,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** multi-tool agents, planning instructions, testing, troubleshooting, semantic views, create agent, debug agent, agent not working, tool execution failed, agent error, fix agent
-**TokenBudget:** ~2500
+**TokenBudget:** ~2700
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 106-snowflake-semantic-views-core.md
 **LoadTrigger:** kw:agent, kw:cortex-agent
@@ -81,7 +81,7 @@ Cortex Agents, semantic views, Cortex Search, Cortex Analyst
 ### Execution Steps
 
 1. Choose agent archetype based on use case
-2. Define objectives; select smallest model that meets quality
+2. Define objectives; select smallest model that meets quality (prefer llama3.1-8b for classification tasks; scale to 70b only for complex multi-step reasoning — see 114-snowflake-cortex-aisql.md model ladder)
 3. Ground with governed sources (semantic views, curated indices)
 4. Configure tools with clear descriptions
 5. Write planning instructions for tool selection
@@ -104,6 +104,8 @@ Agent configs, planning templates, SQL/Python snippets
 - Smallest sufficient model reduces cost and risk
 - Ground with curated, governed sources; prefer semantic views
 - **CRITICAL:** Flagging logic belongs in agent instructions, NEVER in semantic views
+- **Timeout:** Set query timeout to 120s for Cortex Analyst tools; 30s for Cortex Search tools
+- **Cost:** Each agent query consumes credits for model inference + tool execution; monitor via QUERY_HISTORY filtering on query type
 - Test tools independently before integration
 
 ### Post-Execution Checklist
@@ -303,9 +305,9 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE('llama3.1-8b', 'test');
 ## Agent Lifecycle Management
 
 ```sql
--- Create agent
+-- Create agent (COMMENT is mandatory for discoverability)
 CREATE OR REPLACE CORTEX AGENT my_agent
-  COMMENT = 'Purpose description'
+  COMMENT = 'Purpose description'  -- REQUIRED: describe the agent's purpose
   AS TOOLS = ['TOOL1'] PLANNING_INSTRUCTIONS = $$ ... $$;
 
 -- Modify agent (e.g., update instructions)

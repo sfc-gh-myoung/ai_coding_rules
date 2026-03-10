@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:taskfile-includes, kw:taskfile-help, kw:categorized-help
 **Keywords:** categorized help, subtask files, includes, AI agent, machine-readable, cross-platform, task namespaces, portable tasks, task discovery
-**TokenBudget:** ~2600
+**TokenBudget:** ~3450
 **ContextTier:** Low
 **Depends:** 820-taskfile-automation.md
 
@@ -43,11 +43,14 @@ Advanced Taskfile patterns including categorized help output, subtask file organ
 - For cross-platform: target platforms identified
 
 ### Mandatory
-- MUST use `namespace:action` naming pattern for all public tasks
+
+> **Inherited:** All mandates from `820-taskfile-automation.md` apply (version, pipefail, desc, preconditions, uv/uvx). This companion rule adds:
+
 - MUST implement categorized help for Taskfiles with 8+ tasks
-- MUST add `preconditions` for tool availability checks
-- Each task MUST include a `desc:` field (except internal tasks)
+- MUST use `namespace:action` naming pattern for subtask organization (extends parent naming convention to multi-file structures)
 - Variables MUST be defined at the Taskfile-level `vars:` block or at the top of each task
+- MUST use `platforms:` guards on all OS-specific commands in cross-platform Taskfiles
+- MUST mark non-CLI internal tasks with `internal: true`
 
 ### Forbidden
 - OS-specific commands without `platforms:` guards
@@ -75,6 +78,17 @@ Advanced Taskfile patterns including categorized help output, subtask file organ
 - [ ] Subtask files use namespaces
 - [ ] Cross-platform compatibility verified
 - [ ] AI-consumable output options provided
+
+### Investigation Required
+
+Before applying advanced Taskfile patterns, complete these checks:
+
+1. **Read existing Taskfile.yml:** `cat Taskfile.yml` — count tasks and assess current structure
+2. **Check for existing subtask directory:** `ls task/ 2>/dev/null` — identify existing modules
+3. **Count current tasks:** `task --list | wc -l` — if 8+, categorized help is mandatory
+4. **Identify target platforms:** Check CI/CD config for OS matrix (e.g., `.github/workflows/*.yml`)
+5. **Check parent 820 rule compliance:** Verify `version`, `set: [pipefail]`, `desc:` on all public tasks
+6. **Determine AI agent consumption:** Check if tasks are invoked by AI coding agents (e.g., Cortex Code, Cursor)
 
 ## Subtask Files and Includes
 
@@ -116,6 +130,35 @@ includes:
 - Run `task --list` — unresolved includes show errors in output
 - Check `optional: true` flag on includes for files that may not exist
 - Verify `dir:` paths are relative to the root Taskfile location
+
+**Error: Failed Include Resolution**
+
+When an included path doesn't exist and `optional: true` is missing:
+
+```
+task: error loading Taskfile: stat ./task/missing/Taskfile.yml: no such file or directory
+```
+
+**Resolution:**
+1. Add `optional: true` if the include is environment-specific:
+   ```yaml
+   includes:
+     local:
+       dir: ./task/local
+       optional: true  # Safe if file doesn't exist
+   ```
+2. Or verify the path exists: `ls ./task/missing/Taskfile.yml`
+3. Check for typos in `dir:` or `taskfile:` paths
+
+**Error: Circular Include**
+
+If Taskfile A includes B and B includes A:
+
+```
+task: include cycle detected
+```
+
+**Resolution:** Restructure includes so each file includes only lower-level modules, never the root.
 
 **Invocation examples:**
 - `task db:migrate` runs `migrate` from `task/db.yml`
@@ -393,6 +436,63 @@ tasks:
     cmds:
       - ruff check .
 ```
+
+### Anti-Pattern 3: Using flatten on Includes with Overlapping Names
+
+**Problem:** Using `flatten` on included Taskfiles where task names collide.
+
+**Why It Fails:** When two included files both define a task with the same name (e.g., `lint`), the last include wins silently. No error is shown, and the overridden task is lost.
+
+**Correct Pattern:**
+```yaml
+# WRONG: flatten with potential collisions
+includes:
+  frontend:
+    dir: ./task/frontend
+    flatten: true  # frontend:lint becomes just "lint"
+  backend:
+    dir: ./task/backend
+    flatten: true  # backend:lint also becomes "lint" - COLLISION
+
+# CORRECT: Use namespaces, add aliases for frequently used tasks
+includes:
+  frontend:
+    dir: ./task/frontend
+  backend:
+    dir: ./task/backend
+
+# In root Taskfile, create aliases if needed:
+tasks:
+  lint:
+    desc: "Run all linters"
+    cmds:
+      - task: frontend:lint
+      - task: backend:lint
+```
+
+### Anti-Pattern 4: Deeply Nested Include Namespaces
+
+**Problem:** Nesting includes more than 2 levels deep, creating unwieldy task names.
+
+**Why It Fails:** Task names like `infra:docker:build:staging` are hard to type, hard to remember, and break tab-completion. Discoverability drops as namespace depth increases.
+
+**Correct Pattern:**
+```yaml
+# WRONG: 3+ levels of nesting
+includes:
+  infra:
+    dir: ./task/infra  # Contains includes for docker, k8s, etc.
+    # Results in: infra:docker:build, infra:k8s:deploy:staging
+
+# CORRECT: Maximum 2 levels, use flat structure with clear prefixes
+includes:
+  docker:
+    dir: ./task/docker    # docker:build, docker:push
+  k8s:
+    dir: ./task/k8s       # k8s:deploy, k8s:rollback
+```
+
+**Rule of thumb:** If `task --list` output requires horizontal scrolling, namespaces are too deep.
 
 ## Example Portable Taskfile
 

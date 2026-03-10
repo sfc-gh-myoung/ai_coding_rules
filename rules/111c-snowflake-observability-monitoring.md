@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:monitoring, kw:metrics
 **Keywords:** Copy History, Task History, Dynamic Tables, cost management, troubleshooting, performance analysis, monitor queries, monitoring dashboard, telemetry volume, SQL
@@ -233,6 +233,31 @@ ORDER BY day DESC;
 ```
 **Benefits:** Cost visibility; budget control; early warning on spending
 
+### Proactive Alerting
+
+- **Rule:** Use `CREATE ALERT` to automate incident detection based on event table conditions.
+
+```sql
+-- Alert when error count exceeds threshold in 5-minute window
+CREATE OR REPLACE ALERT error_spike_alert
+  WAREHOUSE = admin_wh
+  SCHEDULE = '5 MINUTE'
+  IF (EXISTS (
+    SELECT 1 FROM snowflake.account_usage.event_table
+    WHERE record_type = 'LOG'
+      AND severity_text IN ('ERROR', 'FATAL')
+      AND timestamp > DATEADD('minute', -5, CURRENT_TIMESTAMP())
+    HAVING COUNT(*) > 10
+  ))
+  THEN
+    CALL SYSTEM$SEND_EMAIL(
+      'ops_alerts', 'oncall@example.com',
+      'Error Spike Detected', 'More than 10 errors in last 5 minutes.'
+    );
+
+ALTER ALERT error_spike_alert RESUME;
+```
+
 ## Output Format Examples
 ```sql
 -- Monitoring Setup Template
@@ -269,6 +294,9 @@ GROUP BY 1, 2
 ORDER BY hour DESC, avg_duration_ms DESC;
 
 -- Step 3: Monitor AI costs
+-- Note: `resource_attributes:"cortex.function"` is populated only for Cortex AI function calls.
+-- Expected values for cortex.function: COMPLETE, EXTRACT, SUMMARIZE, TRANSLATE, SENTIMENT, EMBED, etc.
+-- `cortex.tokens` tracks input+output token counts for cost attribution.
 CREATE OR REPLACE VIEW ai_cost_monitoring AS
 SELECT
     DATE_TRUNC('day', timestamp) as usage_day,
@@ -301,26 +329,7 @@ ORDER BY estimated_gb DESC;
 - **Rule:** Implement strategies to control telemetry data volume and associated storage costs.
 - **Always:** Use WARN or higher in production; use DEBUG only in development or targeted debugging sessions.
 
-```python
-import random
-
-# Volume-conscious logging strategy
-def log_with_sampling(logger, level, message, sample_rate=0.1):
-    """Log messages with sampling to control volume."""
-    if random.random() < sample_rate:
-        logger.log(level, f"[SAMPLED {sample_rate*100}%] {message}")
-
-# Use for high-frequency operations
-for record in large_dataset:
-    result = process_record(record)
-
-    # Only log a sample of successful operations
-    if result.success:
-        log_with_sampling(logger, logging.INFO, f"Processed record {record.id}", sample_rate=0.01)
-    else:
-        # Always log failures
-        logger.warn(f"Failed to process record {record.id}: {result.error}")
-```
+> For the `log_with_sampling()` helper function and sampling strategies, see `111a-snowflake-observability-logging.md` (Sampling Strategies section).
 
 ### Organizational Strategy
 - **Rule:** Group production objects under specific databases or schemas for simplified telemetry management.
@@ -402,46 +411,7 @@ ALTER TABLE custom_event_table MODIFY COLUMN body SET MASKING POLICY log_message
 - **Always:** Use trace data to identify performance bottlenecks and optimize critical paths.
 - **Rule:** Correlate telemetry data with query profiles for comprehensive performance analysis.
 
-```sql
--- Identify slow function executions
-SELECT
-    resource_attributes:"snow.executable.name"::string as function_name,
-    span_name,
-    duration_ms,
-    timestamp,
-    trace_id
-FROM snowflake.account_usage.event_table
-WHERE record_type = 'SPAN'
-  AND duration_ms > 5000  -- Functions taking more than 5 seconds
-  AND timestamp >= current_timestamp() - interval '1 hour'
-ORDER BY duration_ms DESC;
-
--- Correlate with error logs
-SELECT
-    t.function_name,
-    t.duration_ms,
-    l.severity_text,
-    l.body as error_message
-FROM (
-    SELECT
-        resource_attributes:"snow.executable.name"::string as function_name,
-        duration_ms,
-        trace_id,
-        timestamp
-    FROM snowflake.account_usage.event_table
-    WHERE record_type = 'SPAN' AND duration_ms > 5000
-) t
-JOIN (
-    SELECT
-        trace_id,
-        severity_text,
-        body,
-        timestamp
-    FROM snowflake.account_usage.event_table
-    WHERE record_type = 'LOG' AND severity_text IN ('ERROR', 'WARN')
-) l ON t.trace_id = l.trace_id
-WHERE ABS(DATEDIFF(second, t.timestamp, l.timestamp)) < 10;
-```
+> For the complete trace-log correlation query and trace analysis patterns, see `111b-snowflake-observability-tracing.md` (Querying Trace Data section).
 
 ## Snowsight Monitoring Interfaces
 

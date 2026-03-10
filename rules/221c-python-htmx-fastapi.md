@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
-**Keywords:** fastapi, async, dependency injection, background tasks, oauth2, jwt, fastapi templates, starlette, pydantic, async routes
-**TokenBudget:** ~4100
+**LastUpdated:** 2026-03-09
+**Keywords:** fastapi, async, dependency injection, background tasks, fastapi templates, starlette, pydantic, async routes
+**TokenBudget:** ~3450
 **ContextTier:** Medium
 **Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
 **LoadTrigger:** kw:htmx-fastapi
@@ -14,7 +14,7 @@
 ## Scope
 
 **What This Rule Covers:**
-FastAPI-specific integration patterns for HTMX applications, covering async route handlers, Jinja2 template configuration, dependency injection for HTMX detection, background task patterns with polling, and authentication strategies.
+FastAPI-specific integration patterns for HTMX applications, covering async route handlers, Jinja2 template configuration, dependency injection for HTMX detection, background task patterns with polling, and response header management. For authentication, SSE, and CSRF, see 221h.
 
 **When to Load This Rule:**
 - Building FastAPI applications with HTMX
@@ -22,7 +22,6 @@ FastAPI-specific integration patterns for HTMX applications, covering async rout
 - Using dependency injection for HTMX detection
 - Configuring Jinja2 templates with FastAPI
 - Implementing background tasks with HTMX polling
-- Setting up authentication for HTMX endpoints in FastAPI
 
 ## References
 
@@ -33,6 +32,7 @@ FastAPI-specific integration patterns for HTMX applications, covering async rout
 - **221a-python-htmx-templates.md** - Jinja2 patterns
 
 **Related:**
+- **221h-python-htmx-fastapi-auth.md** - Auth, SSE, CSRF for FastAPI+HTMX
 - **221d-python-htmx-testing.md** - Testing FastAPI+HTMX
 - **221e-python-htmx-patterns.md** - CRUD, forms, etc.
 - **200-python-core.md** - Python standards
@@ -69,10 +69,10 @@ FastAPI-specific integration patterns for HTMX applications, covering async rout
 
 - Blocking I/O in async routes
 - Returning JSON for HTMX requests
-- Mixing sync/async inappropriately
-- Skipping input validation
+- Using synchronous I/O libraries (`requests`, `urllib3`, `psycopg2`, `pymysql`) inside `async def` routes — use async alternatives (`httpx`, `asyncpg`, `aiomysql`) or wrap with `asyncio.to_thread()`
+- Accepting form data without Pydantic model validation or FastAPI parameter constraints (`Field(min_length=1, max_length=255)`, `Query(ge=1, le=100)`, `Path(gt=0)`) — every user input must have type + constraint validation
 - Bypassing CSRF protection
-- Using global state
+- Using unmanaged global state for request data — use dependency injection, Redis, or database instead. Module-level registries for lifecycle management (e.g., background task tracking) are acceptable when clearly labeled for production replacement.
 
 ### Execution Steps
 
@@ -132,6 +132,15 @@ FastAPI-specific integration patterns for HTMX applications, covering async rout
 - [ ] Exception handlers check for HTMX requests
 - [ ] Tests cover async routes and HTMX behavior
 - [ ] Background task + polling pattern tested
+
+> **Investigation Required**
+> Before modifying FastAPI+HTMX integration, the agent MUST:
+> 1. Check if `Jinja2Templates` is already configured — never create a duplicate `templates` instance
+> 2. Verify existing dependency injection patterns for HTMX detection (`is_htmx()` or `HTMXContext`)
+> 3. Check current CSRF middleware setup (Starlette-WTF may already be configured)
+> 4. Read existing `Depends()` patterns to match the project's DI style
+> 5. Check if `python-multipart` is installed (required for form data): `uv pip list | grep multipart`
+> 6. Verify existing authentication dependencies before adding JWT patterns
 
 ## Key Principles
 
@@ -343,8 +352,10 @@ from fastapi import BackgroundTasks
 import asyncio
 import uuid
 
-# In-memory task storage (use Redis in production)
-tasks = {}
+# NOTE: Module-level dict for demo only. In production, replace with:
+# - Redis: `await redis.hset(f"task:{task_id}", mapping=task_data)`
+# - Database: `await db.execute(insert(Task).values(...))`
+tasks: dict[str, dict] = {}
 
 async def process_data(task_id: str, data: dict):
     """Long-running background task"""
@@ -416,172 +427,6 @@ async def login(username: str = Form(...), password: str = Form(...)):
     response = HTMLResponse(content="", status_code=200)
     response.headers['HX-Redirect'] = '/dashboard'
     return response
-```
-
-### 7. Authentication with Dependency Injection
-
-**JWT Authentication:**
-```python
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
-
-security = HTTPBearer()
-
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
-):
-    token = credentials.credentials
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        if username is None:
-            raise HTTPException(status_code=401)
-        return username
-    except JWTError:
-        raise HTTPException(status_code=401)
-
-@app.get("/dashboard")
-async def dashboard(
-    request: Request,
-    current_user: str = Depends(get_current_user),
-    htmx: bool = Depends(is_htmx)
-):
-    if htmx:
-        return templates.TemplateResponse(
-            "partials/_dashboard.html",
-            {"request": request, "user": current_user}
-        )
-
-    return templates.TemplateResponse(
-        "pages/dashboard.html",
-        {"request": request, "user": current_user}
-    )
-```
-
-**Exception Handler for HTMX:**
-```python
-from fastapi import Request
-from fastapi.responses import HTMLResponse
-
-@app.exception_handler(HTTPException)
-async def htmx_exception_handler(request: Request, exc: HTTPException):
-    is_htmx_request = request.headers.get('HX-Request') == 'true'
-
-    if exc.status_code == 401 and is_htmx_request:
-        # Redirect to login for HTMX requests
-        response = HTMLResponse(content="", status_code=401)
-        response.headers['HX-Redirect'] = '/login'
-        return response
-
-    # Default handling for non-HTMX
-    return HTMLResponse(content=str(exc.detail), status_code=exc.status_code)
-```
-
-### 8. Server-Sent Events (SSE) with HTMX
-
-**SSE Streaming for Long-Running Operations:**
-```python
-from fastapi.responses import StreamingResponse
-import asyncio
-import json
-
-@app.get("/operations/{op_id}/stream")
-async def stream_operation_progress(op_id: str):
-    """Stream progress updates via SSE for HTMX consumption."""
-    # Capture event loop BEFORE any thread work
-    loop = asyncio.get_running_loop()
-    progress_queue: asyncio.Queue[dict] = asyncio.Queue()
-
-    def progress_callback(step: str, message: str) -> None:
-        """Thread-safe callback - uses captured loop reference."""
-        loop.call_soon_threadsafe(
-            progress_queue.put_nowait,
-            {"step": step, "message": message, "timestamp": datetime.now().isoformat()}
-        )
-
-    async def event_generator():
-        # Run blocking work with asyncio.to_thread()
-        task = asyncio.create_task(
-            asyncio.to_thread(run_operation, op_id, progress_callback)
-        )
-
-        while True:
-            if task.done():
-                # Drain remaining messages
-                while not progress_queue.empty():
-                    msg = await progress_queue.get()
-                    yield f"data: {json.dumps(msg)}\n\n"
-
-                try:
-                    result = task.result()
-                    yield f"data: {json.dumps({'step': 'done', 'success': True})}\n\n"
-                except Exception as e:
-                    yield f"data: {json.dumps({'step': 'error', 'message': str(e)})}\n\n"
-                break
-
-            try:
-                msg = await asyncio.wait_for(progress_queue.get(), timeout=0.5)
-                yield f"data: {json.dumps(msg)}\n\n"
-            except TimeoutError:
-                # Keepalive ping
-                yield f"data: {json.dumps({'step': 'ping'})}\n\n"
-
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
-    )
-```
-
-**HTMX SSE Extension Usage:**
-```html
-<!-- Include SSE extension -->
-<script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
-
-<!-- Connect to SSE stream -->
-<div hx-ext="sse" sse-connect="/operations/123/stream">
-    <div sse-swap="message" hx-swap="beforeend">
-        <!-- Progress messages will be appended here -->
-    </div>
-</div>
-```
-
-**Critical Pattern - Cross-Thread Communication:**
-```python
-# ✓ CORRECT: Capture loop before thread starts
-loop = asyncio.get_running_loop()  # In async context
-loop.call_soon_threadsafe(queue.put_nowait, data)  # From thread
-
-# ✗ WRONG: Accessing event loop from thread
-asyncio.get_event_loop()  # Raises "no current event loop in thread"
-```
-
-### 9. CSRF Protection
-
-**Using Starlette-WTF:**
-```bash
-pip install starlette-wtf
-```
-
-```python
-import os
-from starlette_wtf import CSRFProtectMiddleware
-
-app.add_middleware(
-    CSRFProtectMiddleware,
-    csrf_secret=os.environ['CSRF_SECRET']
-)
-
-# Template usage
-@app.get("/form")
-async def form_page(request: Request):
-    return templates.TemplateResponse(
-        "partials/_form.html",
-        {"request": request}
-    )
-
-# In template: {{ csrf_token() }}
 ```
 
 ## Anti-Patterns and Common Mistakes

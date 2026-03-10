@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:streamlit-pandas, kw:plotly-pandas, kw:pandas-io, kw:cache-data
 **Keywords:** pandas Streamlit, pandas Plotly, cache_data, DataFrame caching, interactive filtering, CSV download, aggregate visualization, data loading
-**TokenBudget:** ~1550
+**TokenBudget:** ~1800
 **ContextTier:** Medium
 **Depends:** 252-python-pandas-core.md
 
@@ -48,10 +48,11 @@ Pandas integration with Streamlit (caching, filtering, download) and Plotly (agg
 - **Always:** Aggregate data before Plotly visualization (never plot 1M+ raw rows)
 - **Rule:** Optimize dtypes inside cached loading functions
 - **Rule:** Use `df.query()` for interactive filtering with Streamlit widgets
+- **Rule:** Verify minimum versions: Streamlit ≥1.18 (for `st.cache_data`), Plotly ≥5.0 (for `px` API)
 
 ### Forbidden
 
-- Plotting raw large DataFrames without aggregation (slow, cluttered)
+- Plotting raw DataFrames >1M rows without aggregation (slow, cluttered)
 - Missing `@st.cache_data` on data loading functions
 - Using `inplace=True` inside cached functions (confusing behavior)
 
@@ -195,7 +196,7 @@ df_viz = (
 )
 
 fig = px.line(df_viz, x='date', y='sales', color='category')
-st.plotly_chart(fig, width="stretch")
+st.plotly_chart(fig, use_container_width=True)
 ```
 
 ## Output Format Example
@@ -220,5 +221,49 @@ filtered_df = df.query('category == @category')
 
 df_viz = filtered_df.groupby('date').agg({'total': 'sum'}).reset_index()
 fig = px.line(df_viz, x='date', y='total')
-st.plotly_chart(fig, width="stretch")
+st.plotly_chart(fig, use_container_width=True)
+```
+
+## Error Handling
+
+### Data Loading Errors
+
+```python
+@st.cache_data(ttl=3600)
+def load_data_safe(filepath: str) -> pd.DataFrame:
+    try:
+        df = pd.read_csv(filepath)
+    except FileNotFoundError:
+        st.error(f"Data file not found: {filepath}")
+        return pd.DataFrame()
+    except pd.errors.EmptyDataError:
+        st.warning("Data file is empty")
+        return pd.DataFrame()
+    df['category'] = df['category'].astype('category')
+    return df
+```
+
+### Empty DataFrame Widget Guards
+
+```python
+df = load_data_safe('data.csv')
+if df.empty:
+    st.warning("No data available")
+    st.stop()
+
+# Safe widget population — avoid errors on empty unique()
+categories = df['category'].unique().tolist()
+if not categories:
+    st.info("No categories found in data")
+    st.stop()
+category = st.selectbox('Category', categories)
+```
+
+### Cache Invalidation
+
+```python
+# Force cache refresh when data source changes
+if st.button("Refresh Data"):
+    st.cache_data.clear()
+    st.rerun()
 ```

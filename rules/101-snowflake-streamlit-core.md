@@ -5,10 +5,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v4.1.0
+**RuleVersion:** v4.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Streamlit, Container Runtime, Warehouse Runtime, navigation, multipage, session state, config.toml, theming, st.connection
-**TokenBudget:** ~2050
+**TokenBudget:** ~2350
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
 **LoadTrigger:** kw:streamlit, kw:dashboard
@@ -29,7 +29,7 @@ Foundational Streamlit setup: navigation, state management, runtime selection (C
 ### Dependencies
 **Must Load First:** 100-snowflake-core.md
 
-**Related:** 101a (visualization), 101b (performance), 101c (security), 101l (deployment)
+**Related:** 101a-snowflake-streamlit-visualization.md, 101b-snowflake-streamlit-performance.md, 101c-snowflake-streamlit-security.md, 101l-snowflake-streamlit-deployment.md
 
 ### External Documentation
 - [Streamlit Documentation](https://docs.streamlit.io/)
@@ -49,12 +49,19 @@ Foundational Streamlit setup: navigation, state management, runtime selection (C
 - **Connection:** Use `st.connection("snowflake")` for both runtimes
 - **Theming:** Use .streamlit/config.toml ONLY
 - **Navigation:** st.navigation() OR pages/ (never both)
-  - `pages/` directory approach (auto-discovered):
+  - `pages/` directory approach (auto-discovered, use numbered prefixes for ordering):
     ```
     app.py          # entrypoint
     pages/1_Home.py
     pages/2_Dashboard.py
     ```
+  - `st.navigation()` approach (use descriptive names without prefixes):
+    ```
+    app.py          # entrypoint
+    pages/home.py
+    pages/dashboard.py
+    ```
+  - **Note:** Numbered prefixes (e.g., `1_Home.py`) are for `pages/` auto-discovery ordering. With `st.navigation()`, use descriptive names without prefixes.
 - **Page config:** st.set_page_config() ONCE in entrypoint only
 - **State:** Initialize st.session_state at top level
 - **Secrets:** Use st.secrets (never hardcode)
@@ -107,6 +114,16 @@ pg.run()
 - [ ] Session state initialized
 - [ ] No custom CSS injection
 
+### Negative Tests
+
+**These patterns should NEVER appear in reviewed code:**
+- `st.set_page_config()` called in multiple files -- FAIL
+- `unsafe_allow_html=True` used for styling -- FAIL
+- `st.button()` used for page navigation -- FAIL
+- Module-level variable used for user-specific data -- FAIL
+- `if value is not None` used for DataFrame NaN check (use `pd.notna()`) -- FAIL
+- Mixing `st.navigation()` with `pages/` auto-discovery -- FAIL
+
 ## Error Recovery
 
 - **Navigation failure (page file not found):** Verify file exists in pages/ directory with `LIST @STAGE`. Check filename matches exactly (case-sensitive).
@@ -151,6 +168,12 @@ Use Container Runtime when you need custom Python packages, external API access,
 - Requires External Access Integration (EAI)
 - Python 3.11, Streamlit 1.50+
 - Best for: Custom packages, external APIs, production apps
+
+**Minimal `pyproject.toml`:**
+```toml
+[project]
+dependencies = ["streamlit>=1.50", "snowflake-connector-python"]
+```
 
 ### Warehouse Runtime
 - On-demand, per-viewer instances
@@ -239,6 +262,8 @@ st.button("Login", on_click=login_callback)
 ```
 
 **Multi-user isolation:** Each user gets isolated session state. Do not use module-level variables for user-specific data — they are shared across all users in Container Runtime.
+
+**Persistence:** Session state is lost on app restart/redeployment. For persistent state, use Snowflake tables or `st.connection().query()` to store/retrieve user preferences.
 
 ## Layout Components
 

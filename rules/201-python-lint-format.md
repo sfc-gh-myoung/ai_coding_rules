@@ -6,7 +6,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Ruff, linting, formatting, code quality, style checking, lint errors, ruff check, ruff format, pyproject.toml configuration, black, flake8
-**TokenBudget:** ~3100
+**TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** 000-global-core.md, 200-python-core.md
 **LoadTrigger:** kw:lint, kw:format, kw:ruff
@@ -61,7 +61,14 @@ Python code quality standards with Ruff as the recommended tool for linting and 
 - All checks must pass with 0 errors (non-negotiable validation gate)
 - Ruff is the authoritative default for linting and formatting
 - Centralize all Ruff configuration in `pyproject.toml`; exclude directories like `.venv`, `notebooks`, and `output`
-- If Ruff is unavailable, fall back to `flake8` (lint) and `black` + `isort` (format/imports) with equivalent configuration. Document the chosen fallback in the PR.
+- If Ruff is unavailable, fall back to `flake8` (lint) and `black` + `isort` (format/imports) with the following equivalent configuration:
+
+  - **Ruff `line-length = 88`:** flake8 `max-line-length = 88`, black `line-length = 88`
+  - **Ruff `target-version = "py311"`:** flake8 N/A, black `target-version = ["py311"]`
+  - **Ruff `select = ["E", "W", "F", "I"]`:** flake8 `select = E,W,F` + `isort`, black N/A
+  - **Ruff `ignore = ["E501"]`:** flake8 `extend-ignore = E501`, black N/A
+
+  Document the chosen fallback in the PR with a note explaining which Ruff rules are not covered by the fallback.
 - Enable pydocstyle (D) rules and set a single convention (`google` or `numpy`) consistent with `204-python-docs-comments.md`
 
 ### Tooling Approach
@@ -73,6 +80,17 @@ Python code quality standards with Ruff as the recommended tool for linting and 
 
 **Recommended (NEW projects):**
 - Ruff for linting AND formatting (single tool, fast)
+- Pin Ruff version in `pyproject.toml`:
+  ```toml
+  [tool.ruff]
+  required-version = ">=0.8.0"
+  ```
+- Pin in pre-commit:
+  ```yaml
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0  # Pin exact version, update deliberately
+  ```
+- **Why pin:** Ruff releases frequently and new rules can break CI. Pin version and update deliberately via PR.
 
 **Alternative (EXISTING projects):**
 - black + flake8 (established ecosystem)
@@ -84,7 +102,12 @@ Python code quality standards with Ruff as the recommended tool for linting and 
 - Using blanket `# noqa` comments without specific codes
 - Mixing formatters (choose one: Ruff OR black, not both)
 - Skipping pre-commit hooks in production projects
-- Changing project's established linter without justification
+- Changing project's established linter without justification. Valid justifications:
+  1. Current tool is unmaintained or has known security vulnerabilities
+  2. Team has explicitly decided to migrate (documented in ADR or team decision)
+  3. Current tool blocks a required feature (e.g., Python version support)
+  4. Performance is measurably impacting CI (>5 minutes for lint step)
+  Invalid justification: "Ruff is better" without team consensus
 
 ### Execution Steps
 
@@ -125,7 +148,8 @@ Linting and formatting produces:
 - Clean code passing all Ruff checks (0 errors)
 - Consistently formatted Python files
 - pyproject.toml with [tool.ruff] configuration
-- Pre-commit hooks configured (optional but recommended)
+- Pre-commit hooks configured (if applicable)
+- Pre-commit integration is **mandatory** for projects with >3 contributors or CI pipelines. For single-developer projects without CI, pre-commit is recommended but not required — the validation gate (200a) still applies.
 
 ### Validation
 
@@ -163,6 +187,45 @@ Linting and formatting produces:
 - [ ] pydocstyle rules (D) enabled
 - [ ] Pre-commit hooks configured (if applicable)
 - [ ] No blanket `# noqa` comments without justification
+
+### Error Handling
+
+**Ruff check failures:**
+```bash
+# Auto-fix safe issues
+uv run ruff check . --fix
+
+# Preview unsafe fixes before applying
+uv run ruff check . --fix --unsafe-fixes --diff
+
+# Fix specific rule
+uv run ruff check . --fix --select E501
+```
+
+**Ruff format conflicts:**
+```bash
+# Check without modifying
+uv run ruff format --check --diff .
+
+# If format and lint conflict (rare):
+# 1. Run format first: uv run ruff format .
+# 2. Then run lint: uv run ruff check . --fix
+# Order matters — format output is lint input
+```
+
+**Type checking failures (ty/mypy):**
+- Read the exact error code and message
+- Fix the code to satisfy the type checker
+- Only add `# type: ignore[error-code]` as last resort, with a comment explaining why
+- Never use bare `# type: ignore` without a specific error code
+
+**Common Ruff errors and fixes:**
+
+- **E501 (line too long):** Wrap with parentheses or refactor
+- **F401 (unused import):** Remove the import
+- **F841 (unused variable):** Prefix with `_` or remove
+- **I001 (unsorted imports):** Run `ruff check --fix --select I`
+- **D100 (missing docstring):** Add module docstring
 
 ## Anti-Patterns and Common Mistakes
 

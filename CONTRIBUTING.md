@@ -349,6 +349,25 @@ All rules must follow the v3.2 schema defined in [rules/002-rule-governance.md](
 
 For complete structure requirements, see [002-rule-governance.md](rules/002-rule-governance.md).
 
+### Rule Versioning
+
+Rule files use [Semantic Versioning](https://semver.org) for the `RuleVersion` field. When modifying any rule file in `rules/`, you must update both the version and date:
+
+**Version Increment Criteria:**
+
+| Change Type | Version | Examples |
+|-------------|---------|----------|
+| **MAJOR** (vX.0.0) | Breaking changes | Removed sections, renamed keywords, schema upgrades, changed contract requirements |
+| **MINOR** (vX.Y.0) | Additive changes | New keywords, examples, anti-patterns, new sections, expanded guidance |
+| **PATCH** (vX.Y.Z) | Non-functional fixes | Typos, formatting, broken links, updated references, clarifications |
+
+**Required Updates:**
+
+1. **RuleVersion**: Increment per semantic versioning criteria above
+2. **LastUpdated**: Set to current date in `YYYY-MM-DD` format
+
+For comprehensive versioning policy and edge cases, see [002b-rule-update.md](rules/002b-rule-update.md).
+
 ### Directive Language
 
 Use explicit, actionable language:

@@ -75,7 +75,7 @@ Pragmatic, production-focused patterns for using Snowflake Cortex AISQL function
 ### Inputs and Prerequisites
 
 - Snowflake account with required RBAC; `SNOWFLAKE.CORTEX_USER` privileges granted to intended roles (avoid PUBLIC if not desired)
-- Appropriate warehouses sized for batch throughput with auto-suspend
+- MEDIUM warehouse (4 credits/hr) with AUTO_SUSPEND = 60 for batch throughput
 - Staged files where applicable (audio/images/documents) and stage privileges
 - Model allowlists per org policy
 
@@ -185,7 +185,7 @@ WHERE category = 'electronics';
 
 ### Anti-Pattern 2: Using Large Models by Default
 
-**Problem:** Defaulting to mistral-large or claude-3-opus for all AI tasks without testing smaller models first.
+**Problem:** Defaulting to mistral-large or large models for all AI tasks without testing smaller models first.
 
 **Why It Fails:** Larger models cost 10-50x more per token than smaller models. Most classification, extraction, and summarization tasks perform equally well with llama3.1-8b or mistral-7b. Starting large wastes credits without measurable quality improvement.
 
@@ -244,6 +244,23 @@ FROM SRC_DB.RAW.ARTICLES;
 ## Batch-friendly Patterns
 
 Process in batches of 10,000 rows per query. For tables >1M rows, use a TASK with LIMIT/OFFSET pagination to avoid warehouse timeouts and control credit consumption.
+
+```sql
+-- TASK-based pagination for >1M rows
+CREATE OR REPLACE TASK ai_batch_process
+  WAREHOUSE = AI_WH
+  SCHEDULE = '1 MINUTE'
+  ALLOW_OVERLAPPING_EXECUTION = FALSE
+AS
+  INSERT INTO results_table
+  SELECT id, AI_CLASSIFY('llama3.1-8b', text_col, ['pos','neg','neutral']) AS label
+  FROM source_table
+  WHERE id > (SELECT COALESCE(MAX(id), 0) FROM results_table)
+  ORDER BY id
+  LIMIT 10000;
+-- Resume task: ALTER TASK ai_batch_process RESUME;
+-- Monitor: SELECT * FROM TABLE(INFORMATION_SCHEMA.TASK_HISTORY()) WHERE NAME='AI_BATCH_PROCESS';
+```
 
 ### 3.1 Summarize across many rows
 ```sql
@@ -405,6 +422,7 @@ filtered = classified.select(
 - Use `llama3.1-8b` when p95 latency must be <2s; use `llama3.1-70b` when accuracy is critical and latency up to 10s is acceptable.
 - Start with a MEDIUM warehouse (4 credits/hr) with AUTO_SUSPEND = 60. Scale to LARGE only if query queue time exceeds 30 seconds consistently.
 - Prefer `AI_AGG`/`AI_SUMMARIZE_AGG` to bypass context window limits for multi-row summaries.
+- **Timeout/Retry:** If an AI function returns NULL due to a transient LLM timeout, retry with a smaller LIMIT or a smaller model. For batch jobs, wrap in a TASK with automatic retry on failure.
 
 ## Security & Data Handling
 - Avoid including secrets or PII in prompts. Apply masking/row access policies per `107-snowflake-security-governance.md`.

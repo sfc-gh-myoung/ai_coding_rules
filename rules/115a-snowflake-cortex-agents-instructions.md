@@ -68,6 +68,17 @@ Putting business logic in semantic views (belongs in agent instructions)
 
 > **Investigation Required:** Run `DESCRIBE CORTEX AGENT <name>` to review current instruction content before modifying.
 
+```sql
+-- Example output of DESCRIBE CORTEX AGENT:
+-- +------------------+-----------------------------+
+-- | property         | value                       |
+-- +------------------+-----------------------------+
+-- | TOOLS            | ['TOOL1', 'TOOL2']          |
+-- | PLANNING_INSTR.. | You are a financial analyst..|
+-- | RESPONSE_INSTR.. | Format responses as markdown.|
+-- +------------------+-----------------------------+
+```
+
 1. Define planning logic for tool selection
 2. Write response instructions with flagging
 3. Test orchestration patterns
@@ -103,6 +114,7 @@ Planning/response instruction templates
 - Explicit is better than implicit for multi-tool agents
 - Test tool selection logic independently before integration
 - Keep instruction text under 4000 characters per field. For longer instructions, reference a document in a Cortex Search service.
+  - Validate with: `SELECT LENGTH($$your_instructions$$);` — must be <4000
 
 ### Post-Execution Checklist
 
@@ -302,6 +314,15 @@ Response instructions define HOW the agent formats and presents answers.
 7. If no documents found: "No {document type} found for {topic}. Suggest expanding search to {alternatives}."
 8. Highlight contradictory information and explain differences
 ```
+
+## Common Mistakes in Instruction Wording
+
+- **Avoid:** "Always use Tool X" — the agent may call Tool X even when irrelevant
+- **Better:** "Use Tool X when the user asks about financial data"
+- **Avoid:** "Be helpful" — too vague, provides no guidance
+- **Better:** "If the user's question is unclear, ask one clarifying question before proceeding"
+- **Avoid:** "Never make mistakes" — impossible constraint, causes agent to hedge excessively
+- **Better:** "If confidence is below 80%, state the uncertainty and suggest verification steps"
 
 ## Anti-Patterns and Common Mistakes
 

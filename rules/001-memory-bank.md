@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
 **Keywords:** memory bank, context, session recovery, progress tracking, compaction, rapid recovery
 **TokenBudget:** ~1400
@@ -41,7 +41,7 @@ Memory bank patterns for AI context preservation across sessions. All writes sco
 ### Inputs and Prerequisites
 - Project context files
 - Markdown-formatted documentation with headings and bullet lists
-- Required tools: file read, file write, directory list
+- Required tools: file read, file write, directory list (if directory list unavailable, use file read to check known paths)
 
 ### Mandatory
 - Read ALL memory bank files at session start
@@ -73,9 +73,9 @@ Structured documentation with clear sections, minimal redundancy, forward-lookin
 
 ### Design Principles
 - **Rapid Recovery:** Productive within 20-30 lines
-- **Signal Maximization:** Every line actionable
+- **Signal Maximization:** Every line contains a specific instruction, threshold, or status
 - **Zero Redundancy:** Each info in exactly one place
-- **Aggressive Pruning:** Remove outdated content ruthlessly
+- **Aggressive Pruning:** Remove outdated content per Pruning Rules temporal thresholds below
 - **Context Rot Awareness:** As context grows, attention degrades
 
 ### Post-Execution Checklist

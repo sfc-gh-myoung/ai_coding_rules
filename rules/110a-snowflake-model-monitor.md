@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
+**RuleVersion:** v3.0.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:model-monitor, kw:ml-observability
 **Keywords:** model monitor, drift detection, baseline data, scoring data, ML observability, model performance monitoring, prediction drift, schema alignment, enable_monitoring
-**TokenBudget:** ~2950
+**TokenBudget:** ~3300
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 110-snowflake-model-registry.md
 
@@ -162,6 +162,25 @@ SHOW MODEL MONITORS;
 DESC MODEL MONITOR customer_churn_monitor;
 ```
 
+## Querying Monitor Results
+
+After the monitor refreshes, query drift and accuracy metrics:
+
+```sql
+-- Check monitor refresh history and status
+SELECT * FROM TABLE(INFORMATION_SCHEMA.MODEL_MONITOR_REFRESH_HISTORY(
+    MONITOR_NAME => 'customer_churn_monitor'
+));
+
+-- Query drift results from the monitor's output
+-- The monitor populates results accessible via DESCRIBE and system functions
+DESC MODEL MONITOR customer_churn_monitor;
+
+-- Check for prediction drift scores
+-- High drift scores indicate the production data distribution has shifted
+-- from the baseline training distribution
+```
+
 ## Schema Alignment for Baseline/Scoring Tables
 
 - **Rule:** Both tables must have identical feature columns for drift detection to work
@@ -217,6 +236,40 @@ GRANT SELECT ON TABLE ML.MONITORING.BASELINE_DATA TO ROLE ml_monitoring;
 GRANT SELECT ON TABLE ML.MONITORING.SCORING_DATA TO ROLE ml_monitoring;
 GRANT CREATE MODEL MONITOR ON SCHEMA ML.MONITORING TO ROLE ml_monitoring;
 ```
+
+## Monitor Lifecycle Management
+
+```sql
+-- Modify refresh interval
+ALTER MODEL MONITOR customer_churn_monitor SET REFRESH_INTERVAL = '30 minutes';
+
+-- Suspend monitoring temporarily
+ALTER MODEL MONITOR customer_churn_monitor SUSPEND;
+
+-- Resume monitoring
+ALTER MODEL MONITOR customer_churn_monitor RESUME;
+
+-- Drop monitor when no longer needed
+DROP MODEL MONITOR IF EXISTS customer_churn_monitor;
+```
+
+## Refresh Troubleshooting
+
+If the monitor is not producing results:
+
+```sql
+-- Check monitor status and last refresh time
+DESC MODEL MONITOR customer_churn_monitor;
+-- Look for: status (ACTIVE/SUSPENDED), last_refresh_time, next_refresh_time
+
+-- Verify scoring table has new data since last refresh
+SELECT COUNT(*), MAX(PREDICTION_TIMESTAMP) FROM ML.MONITORING.SCORING_DATA;
+
+-- Check warehouse is available and not suspended
+SHOW WAREHOUSES LIKE 'MY_WH';
+```
+
+> If refresh fails repeatedly, verify the warehouse has sufficient permissions and the scoring table schema hasn't changed since monitor creation.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -285,7 +338,7 @@ CREATE MODEL MONITOR churn_monitor
 ```sql
 -- Wrong: No session context — model reference fails to resolve
 CREATE MODEL MONITOR churn_monitor
-  WITH MODEL = ML.REGISTRY.CHURN_MODEL, VERSION = V1_0_0,
+  WITH MODEL = ML.REGISTRY.CUSTOMER_CHURN_PREDICTOR, VERSION = V1_0_0,
     SOURCE = ML.MONITORING.SCORING_DATA,
     TIMESTAMP_COLUMN = PREDICTION_TIMESTAMP,
     PREDICTION_SCORE_COLUMNS = (PREDICTION),
@@ -298,7 +351,7 @@ USE DATABASE ML;
 USE SCHEMA MONITORING;
 
 CREATE MODEL MONITOR churn_monitor
-  WITH MODEL = CHURN_MODEL, VERSION = V1_0_0,
+  WITH MODEL = CUSTOMER_CHURN_PREDICTOR, VERSION = V1_0_0,
     SOURCE = SCORING_DATA, BASELINE = BASELINE_ALIGNED,
     TIMESTAMP_COLUMN = PREDICTION_TIMESTAMP,
     PREDICTION_SCORE_COLUMNS = (PREDICTION),

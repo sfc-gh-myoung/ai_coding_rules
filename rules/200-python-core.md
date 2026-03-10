@@ -11,7 +11,7 @@
 **RuleVersion:** v4.0.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, pytest, validation, uv run, uvx, ty, type checking, mypy, type hints
-**TokenBudget:** ~2350
+**TokenBudget:** ~3350
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 **LoadTrigger:** ext:.py, ext:.pyi, file:pyproject.toml
@@ -159,6 +159,9 @@ See **200a-python-validation-gate.md** for the full Pre-Task-Completion Validati
 3. **Never speculate about project structure** - Use list_dir to understand src/ vs flat layout
 4. **Check existing tests** - Read conftest.py, test files to understand test patterns
 5. **Make grounded recommendations based on investigated project setup** - Match existing patterns and tooling
+6. **Check for async code** - If present, load async patterns
+7. **Check for type checking configuration** - ty, mypy, or pyright
+8. **Verify virtual environment is active** - Run `which python` to confirm
 
 ### Design Principles
 
@@ -238,6 +241,30 @@ from datetime import datetime, UTC
 timestamp = datetime.now(UTC)  # Modern, timezone-aware
 ```
 
+### File Operations with Pathlib
+
+Always use `pathlib.Path` for file operations:
+
+```python
+from pathlib import Path
+
+# Reading files
+config = Path("config.toml")
+if config.exists():
+    content = config.read_text(encoding="utf-8")
+
+# Writing files
+output = Path("output") / "results.json"
+output.parent.mkdir(parents=True, exist_ok=True)
+output.write_text(json.dumps(data), encoding="utf-8")
+
+# Iterating files
+for py_file in Path("src").rglob("*.py"):
+    process(py_file)
+```
+
+**Forbidden:** `os.path.join()`, `open()` with string paths (use `Path.open()` or `Path.read_text()`).
+
 ## Code Structure and Style Guidelines
 
 - **Rule:** Keep modules small and cohesive (target <300 lines).
@@ -250,6 +277,75 @@ timestamp = datetime.now(UTC)  # Modern, timezone-aware
 - **Always:** Raise specific exceptions with actionable context.
 - **Rule:** Avoid broad `except:` clauses or silently passing exceptions.
 - **Rule:** Do not swallow exceptions; re-raise with added context when necessary.
+- Use structural pattern matching (`match`/`case`) for complex conditionals:
+
+```python
+# Prefer match/case over long if/elif chains
+match command:
+    case {"action": "create", "name": str(name)}:
+        create_resource(name)
+    case {"action": "delete", "id": int(id_)}:
+        delete_resource(id_)
+    case {"action": action}:
+        raise ValueError(f"Unknown action: {action}")
+    case _:
+        raise ValueError("Invalid command format")
+```
+
+### Async/Await Patterns
+
+When working with async Python code:
+
+```python
+import asyncio
+from collections.abc import AsyncIterator
+
+
+async def fetch_data(url: str) -> dict[str, Any]:
+    """Fetch data from API endpoint.
+
+    Args:
+        url: The API endpoint URL.
+
+    Returns:
+        Parsed JSON response as dictionary.
+
+    Raises:
+        httpx.HTTPStatusError: If response status is not 2xx.
+    """
+    import httpx
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+        response.raise_for_status()
+        return response.json()
+
+
+async def process_items(items: list[str]) -> AsyncIterator[str]:
+    """Process items concurrently with controlled concurrency.
+
+    Args:
+        items: List of items to process.
+
+    Yields:
+        Processed item results.
+    """
+    semaphore = asyncio.Semaphore(10)
+
+    async def _process(item: str) -> str:
+        async with semaphore:
+            await asyncio.sleep(0.1)  # Simulate I/O
+            return item.upper()
+
+    tasks = [asyncio.create_task(_process(item)) for item in items]
+    for task in asyncio.as_completed(tasks):
+        yield await task
+```
+
+**Key async rules:**
+- Use `async with` for async context managers (httpx, aiofiles)
+- Use `asyncio.Semaphore` to limit concurrency
+- Use `collections.abc.AsyncIterator` for async generator return types
+- Never use `asyncio.run()` inside an already-running event loop
 
 ## Modern Python Patterns
 
@@ -257,6 +353,71 @@ timestamp = datetime.now(UTC)  # Modern, timezone-aware
 - **Always:** Import from `collections.abc` instead of `typing` for abstract base classes (e.g., `AsyncGenerator`).
 - **Always:** Use `dict` and `list` for type annotations instead of `Dict` and `List` from typing.
 - **Always:** Follow Python 3.11+ patterns and avoid deprecated functionality.
+
+### Complete Module Example
+
+```python
+"""User management module demonstrating all core patterns.
+
+Combines modern type annotations, proper error handling,
+datetime usage, and structural patterns from this rule.
+"""
+
+from __future__ import annotations
+
+import logging
+from collections.abc import Sequence
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
+
+logger = logging.getLogger(__name__)
+
+
+def load_users(config_path: Path) -> list[dict[str, Any]]:
+    """Load users from configuration file.
+
+    Args:
+        config_path: Path to the user configuration file.
+
+    Returns:
+        List of user dictionaries with validated fields.
+
+    Raises:
+        FileNotFoundError: If config_path does not exist.
+        ValueError: If configuration format is invalid.
+    """
+    if not config_path.exists():
+        raise FileNotFoundError(f"Config not found: {config_path}")
+
+    import tomllib
+    with config_path.open("rb") as f:
+        data = tomllib.load(f)
+
+    if "users" not in data:
+        raise ValueError("Missing 'users' key in configuration")
+
+    return [
+        {
+            "name": u["name"],
+            "created_at": datetime.now(UTC),
+            "active": u.get("active", True),
+        }
+        for u in data["users"]
+    ]
+
+
+def filter_active(users: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Filter to only active users.
+
+    Args:
+        users: Sequence of user dictionaries.
+
+    Returns:
+        List containing only users where active is True.
+    """
+    return [u for u in users if u.get("active", False)]
+```
 
 ## Performance Optimization
 

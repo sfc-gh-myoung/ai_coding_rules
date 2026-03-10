@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** tool design, agent tools, token efficiency, tool parameters, function calling, tool overlap, tool contracts, error handling, minimal tool set, self-contained tools, LLM-friendly parameters, single responsibility
-**TokenBudget:** ~4200
+**TokenBudget:** ~4500
 **ContextTier:** High
 **Depends:** 000-global-core.md, 003-context-engineering.md
 
@@ -63,7 +63,11 @@ Comprehensive tool design practices that maximize agent effectiveness. Covers si
 - Tools that create bloated, redundant tool sets without clear boundaries
 - Verbose tool outputs that waste tokens
 - Ambiguous parameter names
-- Stateful tools that assume context memory
+- Stateful tools that maintain hidden state between calls without documentation.
+  **Exception:** Explicitly stateful tools (database connections, session managers) are
+  acceptable when: (1) state is documented in the tool's return value, (2) state lifetime
+  is explicit, and (3) state can be inspected. The prohibition is against HIDDEN state —
+  undocumented side effects that change tool behavior between calls.
 
 ### Execution Steps
 
@@ -79,7 +83,9 @@ Comprehensive tool design practices that maximize agent effectiveness. Covers si
 
 Self-contained tools with:
 - Clear specifications
-- Token-efficient responses
+- Token-efficient responses (metadata overhead must be <10% of total output tokens;
+  measure by comparing useful content tokens vs overhead tokens like JSON keys, brackets,
+  and boilerplate)
 - Structured error messages
 - No hidden dependencies
 
@@ -214,7 +220,7 @@ def process_data(
 ```
 **Benefits:** Self-documenting; agent understands options; no memorization needed
 
-**Anti-Pattern 4: Missing Error Context**
+**Anti-Pattern 4: Missing Error Context (Error Context Stripping)**
 ```python
 def api_call(endpoint: str) -> dict:
     response = requests.get(endpoint)
@@ -222,7 +228,9 @@ def api_call(endpoint: str) -> dict:
         raise Exception("API call failed")  # What failed? Why?
     return response.json()
 ```
-**Problem:** Agent doesn't know what went wrong or how to fix it
+**Problem:** Agent doesn't know what went wrong or how to fix it. Generic error
+messages like `"Processing failed"` strip the context the agent needs to recover.
+Always include: what failed, why, what input triggered it, and a suggested fix.
 
 **Correct Pattern: Actionable Errors**
 ```python
@@ -275,10 +283,19 @@ def search(query: str, page: int = 1, limit: int = 10) -> SearchResponse:
 
 ### Single Responsibility Principle
 
-**Each tool should:**
-- Have one clear, focused purpose
-- Do that one thing extremely well
-- Not try to handle multiple disparate use cases
+**Each tool must pass these three tests:**
+
+1. **Verb-noun test:** Can the tool be described as a single verb-noun pair?
+   PASS: "list_files", "create_user", "validate_schema"
+   FAIL: "manage_files" (list + create + delete = multiple verbs)
+
+2. **Parameter test:** Do all parameters serve the same operation?
+   PASS: `search(query, max_results, format)` — all serve the search operation
+   FAIL: `process(data, mode, cleanup_after)` — `cleanup_after` implies a second operation
+
+3. **Docstring test:** Can the tool's purpose be described in one sentence without "and"?
+   PASS: "Validates a rule file against the v3.2 schema"
+   FAIL: "Validates a rule file and formats it for production deployment"
 
 **Example:**
 

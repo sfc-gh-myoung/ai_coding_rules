@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** pydeck, st.pydeck_chart, deck.gl, 3D visualization, hexagon layer, scatterplot layer, geojson layer, arc layer, heatmap layer, terrain, point cloud, WebGL, geospatial
-**TokenBudget:** ~2550
+**TokenBudget:** ~2950
 **ContextTier:** Medium
-**Depends:** 101a-snowflake-streamlit-visualization.md
+**Depends:** 000-global-core.md, 101a-snowflake-streamlit-visualization.md
 
 ## Scope
 
@@ -28,7 +28,8 @@ PyDeck (deck.gl) visualization patterns for Streamlit, including 3D visualizatio
 ### Dependencies
 
 **Must Load First:**
-- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection
+- **000-global-core.md** - Foundation patterns and conventions `[Available]`
+- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection `[Available]`
 
 **Related:**
 - **101i-snowflake-streamlit-viz-plotly.md** - Plotly for 2D charts and maps
@@ -147,7 +148,7 @@ st.pydeck_chart(deck, width="stretch")
 
 ## Common Layer Patterns
 
-See **101m-snowflake-streamlit-pydeck-layers.md** for complete layer patterns: ScatterplotLayer, HexagonLayer, GeoJsonLayer, ArcLayer, ColumnLayer, HeatmapLayer, PathLayer, TerrainLayer, PointCloudLayer, and multi-layer composition.
+See **101m-snowflake-streamlit-pydeck-layers.md** `[Available]` for complete layer patterns: ScatterplotLayer, HexagonLayer, GeoJsonLayer, ArcLayer, ColumnLayer, HeatmapLayer, PathLayer, TerrainLayer, PointCloudLayer, and multi-layer composition.
 
 ## ViewState Configuration
 
@@ -190,6 +191,8 @@ deck = pdk.Deck(
 - `mapbox://styles/mapbox/satellite-v9` - Satellite imagery
 - `None` - No basemap (transparent)
 
+**Mapbox token:** Mapbox styles require an API token. For token-free usage, use `map_style=None` (no basemap). For local development with Mapbox styles: `MAPBOX_API_KEY = st.secrets.get("mapbox_api_key", "")` and set via `pdk.settings.custom_libraries`. In Streamlit in Snowflake, Mapbox styles may not be available -- use `map_style=None` for reliable rendering.
+
 ## Coordinate Validation
 
 ```python
@@ -229,6 +232,8 @@ layer = pdk.Layer(
 )
 ```
 
+**Note:** JavaScript expressions in `get_color` and `get_radius` work reliably when data is passed as a list of dicts. When using a DataFrame, PyDeck auto-converts, but some expression features may not work as expected. If expressions fail, convert first: `data=df.to_dict('records')`.
+
 ## Tooltips
 
 ```python
@@ -263,6 +268,20 @@ layer = pdk.Layer(
 )
 ```
 
+**Caching:** Cache expensive data loading, not the deck object itself (PyDeck objects are not serializable by `@st.cache_data`):
+
+```python
+@st.cache_data(ttl=600)
+def load_geo_data():
+    return session.sql("SELECT * FROM locations").to_pandas()
+
+df = load_geo_data()
+# Build deck from cached data (deck creation is fast)
+layer = pdk.Layer('ScatterplotLayer', data=df, get_position='[longitude, latitude]')
+deck = pdk.Deck(layers=[layer], initial_view_state=view_state)
+st.pydeck_chart(deck, width="stretch")
+```
+
 ## WebGL Context Limit Warning
 
 ```python
@@ -276,6 +295,18 @@ def render_pydeck_safely(deck, chart_count):
     
     st.pydeck_chart(deck, width="stretch")
     return chart_count + 1
+```
+
+## Render Error Handling
+
+PyDeck relies on WebGL, which may fail in some browser/environment configurations:
+
+```python
+try:
+    st.pydeck_chart(deck, width="stretch")
+except Exception as e:
+    st.error(f"Map rendering failed (WebGL may not be supported): {e}")
+    st.info("Try refreshing the page or using a WebGL-compatible browser (Chrome, Firefox).")
 ```
 
 ## Anti-Patterns and Common Mistakes

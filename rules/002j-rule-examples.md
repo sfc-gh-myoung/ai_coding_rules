@@ -7,10 +7,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** rule examples, example files, example schema, reference implementations, example discovery, example validation
-**TokenBudget:** ~1250
+**TokenBudget:** ~1550
 **ContextTier:** Medium
 **Depends:** 002-rule-governance.md
 
@@ -79,7 +79,11 @@ Markdown file in `rules/examples/` following the example schema.
 
 ### Error Recovery
 
-- **Validation fails:** Fix reported errors in example structure and re-run validation
+- **Validation fails:** Fix reported errors in example structure and re-run validation:
+  - **YAML snippets:** Run `python3 -c "import yaml; yaml.safe_load(open('file.yaml'))"` — must not raise
+  - **JSON snippets:** Run `python3 -c "import json; json.load(open('file.json'))"` — must not raise
+  - **Markdown:** Run `uv run ai-rules validate examples/<rule-name>-example.md` — exit code 0
+  - **Code blocks:** Verify syntax highlighting language identifier matches content language
 - **`example-schema.yml` not found:** Verify schema file exists at `schemas/example-schema.yml`
 - **Example references non-existent parent rule:** Verify parent rule exists at `rules/{rule-number}-*.md`
 - **Naming convention conflict:** Check existing files with `ls rules/examples/{rule-number}-*` and use a unique variant name
@@ -94,7 +98,7 @@ Markdown file in `rules/examples/` following the example schema.
 
 **Add examples for:**
 - Configurations requiring >3 tools or >5 sequential steps
-- Multi-step configurations (Semantic Views with VQRs)
+- Workflows with 4+ sequential steps (Semantic Views with VQRs). Shorter workflows (1-3 steps) can use inline examples without full sequence demonstration.
 - Language-variant patterns (SQL DDL vs Python SDK)
 
 **Skip examples for:**
@@ -158,7 +162,7 @@ Example files are validated separately from rule files:
 
 ```bash
 # Validate example structure against schema
-uv run python -c "import yaml; yaml.safe_load(open('schemas/example-schema.yml'))"
+uv run python -c "import yaml; yaml.safe_load(open('schemas/example-schema.yml').read())"
 
 # Verify example file has required sections
 grep -c '## Context\|## Prerequisites\|## Implementation\|## Validation' rules/examples/<example>.md
@@ -206,3 +210,21 @@ example_rule.md
 002a-rule-creation-basic-example.md
 101-streamlit-dashboard-example.md
 ```
+
+## Example Staleness
+
+Examples should be reviewed when:
+
+1. **Parent rule updated:** If the parent rule's Contract section changes, verify examples
+   still demonstrate current behavior (check `LastUpdated` dates)
+2. **Schema version bump:** After any schema version change (v3.1 to v3.2), verify all examples
+   use current metadata format
+3. **Tool changes:** If referenced tools (`uv run ai-rules`, etc.) change flags or output
+   format, update example output accordingly
+4. **Quarterly check:** Review examples every 90 days for accuracy — add to project
+   maintenance checklist
+
+**Staleness indicators:**
+- Example uses deprecated field names
+- Example output format doesn't match current tool output
+- Example references removed or renamed sections

@@ -148,27 +148,18 @@ See Anti-Patterns section below for detailed patterns covering RBAC (Anti-Patter
 ## Output Format Examples
 
 ```sql
--- Analysis Query: Investigate current state
-SELECT column_pattern, COUNT(*) as usage_count
-FROM information_schema.columns
-WHERE table_schema = 'TARGET_SCHEMA'
-GROUP BY column_pattern;
-
--- Implementation: Apply Snowflake best practices
-CREATE OR REPLACE VIEW schema.view_name
-COMMENT = 'Business purpose following semantic model standards'
-AS
+-- Agent-specific output processing example
+-- Query agent and process structured response
 SELECT
-    -- Explicit column list with business context
-    id COMMENT 'Surrogate key',
-    name COMMENT 'Business entity name',
-    created_at COMMENT 'Record creation timestamp'
-FROM schema.source_table
-WHERE is_active = TRUE;
+  query_text,
+  response:message::STRING AS agent_response,
+  response:tool_calls[0]:name::STRING AS tool_used,
+  response:citations AS sources
+FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));
 
--- Validation: Confirm implementation
-SELECT * FROM schema.view_name LIMIT 5;
-SHOW VIEWS LIKE '%view_name%';
+-- Validation: Confirm agent returns expected tool usage
+SELECT CORTEX_AGENT('my_agent', 'What is the total revenue?');
+-- Verify tool_used = 'analyst_tool_revenue'
 ```
 
 ## Testing, RBAC, Observability, Cost Management, and Troubleshooting
@@ -180,7 +171,7 @@ SHOW VIEWS LIKE '%view_name%';
 ## Cortex Agent Plan
 - Archetype: <Multi-Domain Analytics / Single-Domain / Research / Hybrid>
 - Objective: <clear objective>
-- Model: <smallest sufficient model>
+- Model: <smallest sufficient model — see 114-snowflake-cortex-aisql.md model ladder>
 - Grounding: <semantic views / indices>
 - Tools (allowlist):
   - Cortex Analyst: [analyst_tool_1, analyst_tool_2]
@@ -191,6 +182,18 @@ SHOW VIEWS LIKE '%view_name%';
 - Cost/Latency: <budgets, caps>
 - Testing: <component + integration approach>
 - Evaluation: <gold Qs, assertions>
+
+**Filled Example (Portfolio Agent):**
+- Archetype: Multi-Domain Analytics
+- Objective: Answer portfolio performance and risk questions
+- Model: llama3.1-70b (multi-step reasoning required)
+- Grounding: Semantic views for holdings, risk metrics; Cortex Search for research docs
+- Tools: analyst_portfolio, analyst_risk, search_research
+- Planning Logic: Use analyst_portfolio for quantitative queries, search_research for qualitative
+- Response Instructions: Flag positions >5% of portfolio as "CONCENTRATION_WARNING"
+- RBAC: AGENT_PORTFOLIO_ROLE with SELECT on analytics schema
+- Cost/Latency: 0.5 credits/query cap, 30s timeout
+- Testing: 20 golden questions covering each tool + edge cases
 
 ## Agent Configuration
 - System prompt: <summary>
@@ -283,7 +286,7 @@ CREATE CORTEX AGENT optimized_agent
   TOOLS = (analyst_tool_1, analyst_tool_2, search_docs)
   WAREHOUSE = AGENT_WH  -- Dedicated warehouse for cost tracking
   QUERY_TIMEOUT = 30    -- 30 second timeout
-  MAX_CREDITS_PER_QUERY = 0.5;  -- Cost cap per query
+  MAX_CREDITS_PER_QUERY = 0.5;  -- Cost cap per query (NOTE: if not available, use a resource monitor on AGENT_WH instead)
 
 -- Monitor performance
 SELECT 

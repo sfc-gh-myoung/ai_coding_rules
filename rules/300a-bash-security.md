@@ -45,9 +45,8 @@ Comprehensive bash scripting security practices covering input validation, path 
 ### Inputs and Prerequisites
 
 - Bash script requiring security hardening
-- Understanding of security threat models
-- Access to script execution environment
-- Knowledge of input sources and trust boundaries
+- Identified all input sources (user args, env vars, file contents) and defined trust boundaries per OWASP guidelines
+- Knowledge of target system's execution environment (user privileges, network exposure, filesystem access)
 
 ### Mandatory
 
@@ -188,11 +187,8 @@ IFS=$'\n\t'
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly ALLOWED_DIR="$SCRIPT_DIR/data"
 
-validate_input() {
-    local input="$1" field="${2:-input}"
-    [[ ${#input} -le 255 ]] || { echo "Error: $field too long" >&2; return 1; }
-    [[ "$input" =~ ^[a-zA-Z0-9._-]+$ ]] || { echo "Error: Invalid $field" >&2; return 1; }
-}
+# Input validation — see Input Validation section for validate_input()
+validate_input "$1" '^[a-zA-Z0-9._-]+$' "filename"
 
 safe_path() {
     local path="$1" base="$2"
@@ -204,7 +200,7 @@ safe_path() {
 
 main() {
     [[ $# -ge 1 ]] || { echo "Usage: $0 <filename>" >&2; exit 1; }
-    validate_input "$1" "filename"
+    validate_input "$1" '^[a-zA-Z0-9._-]+$' "filename"
     local target
     target="$(safe_path "$ALLOWED_DIR/$1" "$ALLOWED_DIR")" || exit 1
     cat -- "$target"
@@ -289,6 +285,10 @@ validate_path() {
 
     echo "$abs_path"
 }
+
+# Note: validate_path is subject to TOCTOU (time-of-check-time-of-use) race
+# conditions — the path could change between validation and use. For concurrent
+# environments, see 300c-bash-security-advanced.md for mitigation strategies.
 
 # Secure file operations with path validation
 secure_copy() {
@@ -411,13 +411,13 @@ execute_safe_query() {
         return 1
     fi
 
+    # GOOD: Validated numeric input — safe for interpolation after regex check
     sqlite3 "$db_file" "SELECT * FROM users WHERE id = $user_id;"
 }
 
-# NEVER construct SQL with string concatenation. Use parameterized queries:
-# psql: psql -v id="$user_input" -c "SELECT * FROM users WHERE id = :'id';"
-# mysql: mysql -e "SELECT * FROM users WHERE id = ?" --execute-params="$user_input"
-# If raw SQL is unavoidable, validate input strictly (numeric, enum) before use.
+# WARNING: String interpolation after regex validation is acceptable ONLY for
+# strictly numeric/alphanumeric patterns. For arbitrary text, use parameterized
+# queries or escape via printf '%q'. Shell scripts should prefer whitelisted commands.
 ```
 
 ## Secrets and Credential Management
@@ -470,6 +470,8 @@ create_temp_creds() {
     local file
     file="$(mktemp)"
     chmod 600 "$file"
+    # printf '%q' evaluated at trap DEFINITION time (not execution time)
+    # This is intentional: prevents variable injection in trap string
     trap "rm -f $(printf '%q' "$file")" EXIT
     echo "$file"
 }

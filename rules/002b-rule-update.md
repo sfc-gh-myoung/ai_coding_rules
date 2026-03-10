@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.2.0
+**RuleVersion:** v1.2.1
 **LastUpdated:** 2026-03-09
 **Keywords:** rule update, rule maintenance, versioning, RuleVersion, LastUpdated, semantic versioning, MAJOR, MINOR, PATCH, rule modification, keyword expansion, scope updates, metadata updates, CHANGELOG updates
-**TokenBudget:** ~3500
+**TokenBudget:** ~3950
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
@@ -169,6 +169,15 @@ Updated rule file with:
 
 **Format:** `YYYY-MM-DD` (e.g., 2026-01-07)
 
+### Version Rollback
+
+If a version bump needs to be reverted:
+
+1. **Git revert:** `git checkout HEAD~1 -- rules/<rule>.md` (if committed)
+2. **Manual revert:** Restore previous RuleVersion and LastUpdated values
+3. **CHANGELOG:** Add a revert entry: `"Reverted vX.Y.Z — [reason]"`
+4. **Do NOT** reuse a version number — if v2.1.0 is reverted, next version is v2.1.1
+
 ### Version Update Examples
 
 **Example 1: Adding Keywords (MINOR)**
@@ -237,7 +246,7 @@ After:
 Is the change related to existing rule's scope?
 - YES: Does it enhance/clarify existing guidance?
   - YES: Update existing rule (MINOR or PATCH)
-  - NO: Does it fundamentally change the approach?
+  - NO: Does it change >50% of section content OR restructure heading hierarchy?
     - YES: Update existing rule (MAJOR)
     - NO: Consider creating new rule
 - NO: Create new rule in appropriate domain
@@ -249,11 +258,11 @@ Is the change related to existing rule's scope?
 
 ```bash
 # Open rule file
-vim rules/<your-rule>.md
+Open/read rules/<your-rule>.md
 
 # Check current version
-grep "RuleVersion" rules/<your-rule>.md
-grep "LastUpdated" rules/<your-rule>.md
+Search for "RuleVersion" in the rule file
+Search for "LastUpdated" in the rule file
 ```
 
 ### Step 2: Determine Change Type
@@ -340,8 +349,9 @@ code example
 **TokenBudget (if file size changed by >50 lines or >10%):**
 ```bash
 # Check current token count
-wc -l rules/<your-rule>.md
-# Estimate: ~2 tokens per line average
+uv run ai-rules tokens rules/<rule>.md
+# As a rough heuristic: word count × 1.33 ≈ token count
+# Line-based estimation varies widely (3-10 tokens/line) and is not recommended
 # Update TokenBudget to reflect new size (±10% acceptable)
 ```
 
@@ -488,3 +498,16 @@ uv run ai-rules validate rules/<your-rule>.md
 ```
 
 **Benefits:** Catches errors early; maintains schema compliance; smooth CI/CD; high rule quality.
+
+## Concurrent Edit Handling
+
+When multiple agents or developers may be editing the same rule:
+
+1. **Before editing:** Check for uncommitted changes: `git status rules/<rule>.md`
+2. **If changes detected:** Read current file state before applying edits
+3. **On merge conflict:**
+   - Preserve both sets of changes where possible (additive changes)
+   - For conflicting edits to the same line, prefer the version that is more specific
+   - Re-run validation after conflict resolution
+   - Bump version appropriately for the combined changes
+4. **Prevention:** Use git branches for rule modifications — one branch per rule update

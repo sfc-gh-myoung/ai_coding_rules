@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:multi-env-deploy, kw:deployment-rollback
 **Keywords:** multi-environment deployment, deployment rollback, deployment recovery, deployment validation, environment-specific deployment, dev qa prod deployment, rollback strategy
-**TokenBudget:** ~2400
+**TokenBudget:** ~2700
 **ContextTier:** Low
 **Depends:** 109b-snowflake-app-deployment-core.md, 109h-snowflake-app-deployment-taskfile.md
 
@@ -170,17 +170,59 @@ task notebook:deploy:app
 ### Rollback to Previous Version
 
 ```bash
-# Option 1: Redeploy from git (recommended)
+# Option 1: Redeploy from git (quick fix)
 git checkout HEAD~1 -- notebooks/app.ipynb
 task notebook:deploy:app
 git checkout HEAD -- notebooks/app.ipynb  # Restore current version in working tree
 
-# Option 2: Keep previous version in a backup stage
+# Option 2: Backup stage with COPY FILES (recommended for production)
 uvx snow sql -q "COPY FILES INTO @DB.SCHEMA.BACKUP_STAGE FROM @DB.SCHEMA.NOTEBOOK_STAGE;"
 # To restore: reverse the COPY FILES direction
 ```
 
 **Prevention:** Always deploy to dev/qa first. Use git tags to mark known-good deployment states.
+
+### Deployment Locking
+
+Use a Snowflake table to track active deployments and prevent concurrent deploys:
+
+```sql
+-- Check for active deployment lock before deploying
+SELECT * FROM deployment_locks WHERE env = 'prod' AND status = 'active';
+
+-- Acquire lock
+INSERT INTO deployment_locks (env, status, locked_by, locked_at)
+VALUES ('prod', 'active', CURRENT_USER(), CURRENT_TIMESTAMP());
+
+-- Release lock after deployment completes
+UPDATE deployment_locks SET status = 'released', released_at = CURRENT_TIMESTAMP()
+WHERE env = 'prod' AND status = 'active';
+```
+
+### Deployment Audit Trail
+
+After each deployment, log a record for traceability:
+
+```sql
+INSERT INTO deployment_log (env, app, version, deployed_by, deployed_at, status)
+VALUES ('prod', 'MY_NOTEBOOK', 'v1.2.0', CURRENT_USER(), CURRENT_TIMESTAMP(), 'success');
+```
+
+> Query `deployment_log` to identify when issues were introduced or to verify rollback history.
+
+### Deployment Notifications
+
+Add a Taskfile task that sends a notification on deployment completion or failure:
+
+```yaml
+  notify:deploy:
+    desc: Send deployment notification via webhook
+    cmds:
+      - |
+        curl -s -X POST "{{.WEBHOOK_URL}}" \
+          -H "Content-Type: application/json" \
+          -d '{"text": "Deployed {{.APP_NAME}} to {{.ENV}} — status: {{.STATUS}}"}'
+```
 
 ## Anti-Patterns and Common Mistakes
 

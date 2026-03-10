@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:contributing, file:CONTRIBUTING.md
 **Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy, Conventional Commits, rule authoring, PR templates, project governance, git workflow
-**TokenBudget:** ~1950
+**TokenBudget:** ~2600
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -64,7 +64,12 @@ Professional contribution workflow directives covering commits, pull requests, c
 - Amending commits authored by others
 
 ### Execution Steps
-1. Fork repository and create feature branch following naming conventions
+1. Fork repository and create feature branch following naming conventions:
+   - `feat/add-snowflake-cortex-rule` — new feature or rule
+   - `fix/schema-validation-error` — bug fix
+   - `docs/update-contributing-guide` — documentation change
+   - `refactor/consolidate-anti-patterns` — code restructuring
+   - Match branch type prefix to Conventional Commits type (see 803-project-git-workflow.md)
 2. Edit rules/ directory files directly (production-ready rules)
 3. Follow Conventional Commits format for all commit messages
 4. Update CHANGELOG.md under ## [Unreleased] for user-facing changes
@@ -112,6 +117,16 @@ Well-structured pull request with:
 - [ ] Validation passed (task rules:validate, task lint)
 - [ ] PR created with descriptive title and description
 - [ ] All code review feedback addressed
+
+### Investigation Required
+
+Before making contributions, complete these checks:
+
+1. **Read existing CONTRIBUTING.md:** `cat CONTRIBUTING.md` — understand current workflow before proposing changes
+2. **Check Taskfile.yml for available commands:** `task --list` — verify validation commands exist
+3. **Verify rule numbering scheme:** `ls rules/*.md | sort` — identify next available rule number if creating new rules
+4. **Check for PR template:** `ls .github/PULL_REQUEST_TEMPLATE.md` — if present, use it for PR descriptions
+5. **Review existing branch naming:** `git branch -r | head -20` — observe project conventions in practice
 
 ## Anti-Patterns and Common Mistakes
 
@@ -221,12 +236,65 @@ Closes #123
 - After resolving, run the full test suite before pushing
 - When in doubt about conflicting changes, communicate with the other author
 
+## PR Review Feedback Protocol
+
+When a reviewer requests changes, follow this workflow:
+
+1. **Address feedback in new commits** — do NOT amend or squash during review (preserves review context and comment threads)
+2. **Re-run validation after each fix:**
+   ```bash
+   task rules:validate
+   task lint
+   task format
+   ```
+3. **Reply to each review comment** indicating how it was addressed:
+   - "Fixed in commit `abc1234`" — link to specific commit
+   - "Won't fix — rationale: ..." — explain disagreement respectfully
+   - "Moved to follow-up issue #N" — for out-of-scope requests
+4. **Request re-review** when all feedback is addressed:
+   ```bash
+   gh pr ready
+   gh pr edit --add-reviewer <reviewer-username>
+   ```
+5. **After approval:** Squash merge per project merge strategy (see 803-project-git-workflow.md)
+
+**Anti-Pattern:** Force-pushing during review destroys comment threads and reviewer context. Always use new commits until final merge.
+
 ## CI Failure Troubleshooting
 
 - Check CI logs for the specific failure before pushing fixes
 - Run the failing tests locally to reproduce: `task test` or equivalent
 - If CI failure is unrelated to your changes, note it in the PR description
 - Contact maintainers if CI infrastructure issues are suspected
+
+## Validation Negative Tests
+
+Verify the validation pipeline catches common errors by intentionally introducing them:
+
+### Test 1: Invalid Metadata
+```yaml
+# Break SchemaVersion in any rule file
+SchemaVersion: v2.0  # Invalid — must be v3.2
+```
+**Expected:** `task rules:validate` fails with schema version error.
+
+### Test 2: Missing Required Section
+Remove the `## Contract` section from a rule file.
+**Expected:** `task rules:validate` fails with missing section error.
+
+### Test 3: Non-Conventional Commit
+```bash
+git commit -m "updated stuff"
+```
+**Expected:** Pre-commit hook (if configured) rejects the message. CI Conventional Commits check fails.
+
+### Test 4: Direct Main Push
+```bash
+git checkout main && git commit -m "feat: test" && git push
+```
+**Expected:** Branch protection rejects the push. Must use feature branch + PR.
+
+**Note:** Run these tests on a throwaway branch. Revert all changes after verification.
 
 ## Contribution Anti-Patterns
 

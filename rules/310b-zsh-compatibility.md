@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Zsh, shell compatibility, bash vs zsh, portable scripts, cross-shell, migration, emulate, POSIX compliance, shell detection
-**TokenBudget:** ~3900
+**TokenBudget:** ~4150
 **ContextTier:** Low
 **Depends:** 300-bash-scripting-core.md
 **LoadTrigger:** ext:.zsh, kw:zsh-compatibility
@@ -54,7 +54,7 @@ Zsh compatibility strategies, bash migration patterns, and cross-shell scripting
 
 - Use `emulate` for compatibility mode when needed
 - Test scripts in both bash and zsh environments
-- Write POSIX-compliant code for maximum portability
+- MUST write POSIX-compliant code when targeting multiple shells: use `[ ]` instead of `[[ ]]`, `printf` instead of `echo -e`, `$(...)` instead of backticks, avoid bash/zsh arrays, use `local` cautiously (POSIX extension)
 - Document shell requirements clearly in shebang and comments
 - Set required options explicitly in scripts (don't rely on .zshrc)
 - Implement feature detection for shell-specific functionality
@@ -69,7 +69,7 @@ Zsh compatibility strategies, bash migration patterns, and cross-shell scripting
 
 ### Execution Steps
 
-1. Identify target shells and compatibility requirements
+1. List target shells (bash 3.2+, zsh 5.0+, sh/dash) and document minimum version requirements in script header
 2. Analyze existing scripts for shell-specific syntax and features
 3. Choose strategy based on requirements:
    - **POSIX portable:** Use when script must run on 3+ different shells (zsh, bash, sh, dash)
@@ -271,6 +271,11 @@ portable_uppercase() {
 ```
 
 ### Feature Detection Patterns
+
+> **When to use which:** Use `detect_shell` (above) for shell-specific **syntax routing** (e.g., choosing zsh
+> parameter expansion vs bash equivalent). Use feature detection (below) when a capability **varies within
+> a shell version** (e.g., associative arrays require bash 4+, not all bash versions have them).
+
 - **Rule:** Use feature detection instead of shell detection:
 ```zsh
 # Test for specific features rather than shell type
@@ -328,6 +333,10 @@ cd_and_list() {
 }
 
 # Shell-specific configurations
+# WARNING: $0 returns the sourcing script's path when a file is sourced.
+# For reliable detection in sourced files:
+#   bash: ${BASH_SOURCE[0]:-$0}
+#   zsh:  ${(%):-%x}
 case "$0" in
     *zsh*)
         # Zsh-specific settings
@@ -415,7 +424,10 @@ emulate -L zsh' "$dest"
     # 6. Cleanup temp files
     rm -f "${dest}.tmp"
 
-    # 7. Show what needs manual review
+    # 7. Validate converted file parses correctly
+    zsh -n "$dest" || { echo "Syntax error after conversion" >&2; rollback_migration "$dest"; return 1; }
+
+    # 8. Show what needs manual review
     echo "Automated conversion complete: $dest"
     echo "Manual review required for:"
     grep -n 'BASH_SOURCE\|BASH_REMATCH\|\${\!.*}\|\[\[.*=~' "$dest" 2>/dev/null \

@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
+**RuleVersion:** v3.0.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:snowsight-monitoring, kw:ai-observability
 **Keywords:** Snowsight monitoring, Traces and Logs, Query History UI, Copy History, Task History, Dynamic Tables monitoring, AI observability, Cortex AI monitoring, token tracking, AI cost attribution, LLM evaluation, generative AI tracing
@@ -257,6 +257,13 @@ ORDER BY refresh_start_time DESC;
 **Anti-Pattern:**
 Using Query History (System Views) to debug real-time application issues. Instead, use Traces & Logs (Event Tables) for real-time, Query History for historical analysis.
 
+### Alerts Interface
+- **Navigation:** Monitoring > Alerts
+- **Purpose:** View, create, and manage Snowflake Alerts for proactive monitoring.
+- **Key Use Cases:** Error spike detection, cost threshold alerts, pipeline failure notifications.
+
+> See `111c-snowflake-observability-monitoring.md` (Proactive Alerting section) for `CREATE ALERT` SQL syntax and examples.
+
 ## AI Observability
 
 ### Cortex AI Function Monitoring
@@ -322,19 +329,21 @@ def generate_insights(session, user_query):
 - **Rule:** Track token consumption and costs for Cortex AI functions to manage budget.
 - **Integration:** Combine cost data from `ACCOUNT_USAGE.METERING_HISTORY` with telemetry for comprehensive cost attribution.
 
+> For the base AI cost attribution query, see the `ai_cost_monitoring` view in `111c-snowflake-observability-monitoring.md` (Output Format Examples, Step 3). The query below extends it with `estimated_cost_usd`:
+
 ```sql
--- AI Cost Attribution by Application
+-- AI Cost Attribution with estimated cost (extends 111c's ai_cost_monitoring view)
+-- Pricing as of 2026-Q1. Verify current rates at docs.snowflake.com/en/user-guide/cost-understanding-overall
 SELECT
-    t.resource_attributes:"snow.executable.name"::string as application_name,
-    t.resource_attributes:"cortex.function"::string as ai_function,
+    resource_attributes:"snow.executable.name"::string as application_name,
+    resource_attributes:"cortex.function"::string as ai_function,
     COUNT(*) as invocations,
-    SUM(t.resource_attributes:"cortex.tokens"::number) as total_tokens,
-    -- Estimated cost (adjust multiplier based on actual pricing)
+    SUM(resource_attributes:"cortex.tokens"::number) as total_tokens,
     total_tokens * 0.0001 as estimated_cost_usd
-FROM snowflake.account_usage.event_table t
-WHERE t.record_type = 'SPAN'
-  AND t.resource_attributes:"cortex.function" IS NOT NULL
-  AND t.timestamp >= current_timestamp() - INTERVAL '30 days'
+FROM snowflake.account_usage.event_table
+WHERE record_type = 'SPAN'
+  AND resource_attributes:"cortex.function" IS NOT NULL
+  AND timestamp >= current_timestamp() - INTERVAL '30 days'
 GROUP BY application_name, ai_function
 ORDER BY estimated_cost_usd DESC;
 ```
@@ -415,6 +424,7 @@ from snowflake import telemetry
 def generate_response_flat(session, query):
     with telemetry.create_span("ai_workflow") as span:
         prompt = build_prompt(query)
+        # SECURITY: f-string shown as anti-pattern — use parameterized query instead
         result = session.sql(f"SELECT SNOWFLAKE.CORTEX.COMPLETE('mistral-large2', '{prompt}')").collect()
         parsed = parse_response(result[0][0])
         return parsed

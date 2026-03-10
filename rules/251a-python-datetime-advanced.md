@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:timedelta, kw:dateoffset, kw:date-arithmetic, kw:time-series
 **Keywords:** datetime arithmetic, Timedelta, DateOffset, business days, calendar math, relativedelta, performance, downsampling, resample
-**TokenBudget:** ~1750
+**TokenBudget:** ~2600
 **ContextTier:** Medium
 **Depends:** 251-python-datetime-core.md
 
@@ -77,6 +77,16 @@ Vectorized datetime arithmetic, calendar-aware calculations, performance-optimiz
 - **Calendar-aware:** Use DateOffset for month/year arithmetic
 - **Vectorized:** Never iterate rows for datetime math
 - **Performance:** Downsample before visualization
+
+### Investigation Required
+
+Before implementing date arithmetic, agents MUST check:
+
+- [ ] **Existing arithmetic patterns**: Search for `Timedelta`, `DateOffset`, `relativedelta` in the codebase to match existing approach
+- [ ] **Datetime types in use**: Run `df.dtypes` to identify datetime64 vs object columns before applying arithmetic
+- [ ] **Dataset size**: Check `df.shape[0]` — vectorized ops critical for >10K rows, `.apply()` acceptable for <1K
+- [ ] **python-dateutil status**: Check `pyproject.toml` for `python-dateutil` — needed for `relativedelta` age calculations
+- [ ] **Business calendar requirements**: Ask whether custom holidays apply before using `BDay()` — may need `CustomBusinessDay`
 
 ### Post-Execution Checklist
 
@@ -157,15 +167,50 @@ df['month_end'] = df['date'] + MonthEnd(0)      # Current month end
 df['next_month_end'] = df['date'] + MonthEnd(1)  # Next month end
 ```
 
+### Custom Business Days
+
+For business calendars with holidays:
+
+```python
+from pandas.tseries.offsets import CustomBusinessDay
+from pandas.tseries.holiday import USFederalHolidayCalendar
+
+us_bday = CustomBusinessDay(calendar=USFederalHolidayCalendar())
+
+# Skip US holidays AND weekends:
+df['next_business_day'] = df['date'] + us_bday
+
+# Custom holiday list:
+holidays = ['2024-12-25', '2024-01-01', '2024-07-04']
+custom_bday = CustomBusinessDay(holidays=holidays)
+```
+
+### DST Transition Warning
+
+```python
+# Arithmetic across DST transitions can shift times:
+ts = pd.Timestamp('2024-03-10 01:00', tz='America/New_York')
+result = ts + pd.Timedelta(hours=1)
+# Result: 2024-03-10 03:00 (skips 2:00 AM — spring forward)
+# Use DateOffset for calendar-aware arithmetic when DST matters
+```
+
 ### Common Date Math Patterns
+
+> **Note:** `relativedelta` has no vectorized Pandas equivalent. Using `.apply()` below
+> is an acceptable exception to the "use vectorized operations" mandate (Mandatory item 3).
+> For datasets >100K rows, consider the vectorized approximation.
 
 ```python
 from dateutil.relativedelta import relativedelta
 
-# Age calculation (accurate, handles leap years)
+# Acceptable .apply() — no vectorized alternative for calendar-aware age:
 df['age_years'] = df['birth_date'].apply(
     lambda bd: relativedelta(pd.Timestamp.now(), bd).years if pd.notna(bd) else None
 )
+
+# For large datasets — vectorized approximation (±1 day accuracy):
+df['age_approx'] = (pd.Timestamp.now(tz='UTC') - df['birth_date']).dt.days // 365
 
 # Days since event
 df['days_since_order'] = (pd.Timestamp.now() - df['order_date']).dt.days
@@ -176,6 +221,30 @@ df['weeks_between'] = (df['end_date'] - df['start_date']).dt.days // 7
 # Quarter start/end
 df['quarter_start'] = df['date'].dt.to_period('Q').dt.start_time
 df['quarter_end'] = df['date'].dt.to_period('Q').dt.end_time
+```
+
+### Generating Date Sequences
+
+Use `pd.date_range()` to create date sequences for indices, filling gaps, or test data:
+
+```python
+import pandas as pd
+
+# Daily range:
+dates = pd.date_range(start='2024-01-01', periods=365, freq='D')
+
+# Business days only:
+biz_dates = pd.date_range(start='2024-01-01', end='2024-12-31', freq='B')
+
+# Monthly start dates:
+months = pd.date_range(start='2024-01', periods=12, freq='MS')  # Month Start
+
+# With timezone:
+utc_dates = pd.date_range(start='2024-01-01', periods=24, freq='h', tz='UTC')
+
+# Fill gaps in time series:
+full_index = pd.date_range(start=df.index.min(), end=df.index.max(), freq='D')
+df_complete = df.reindex(full_index).ffill()
 ```
 
 ## Performance Optimization
@@ -214,4 +283,27 @@ df['date'] = df['date'].dt.tz_convert('UTC').dt.tz_localize(None)
 # Resample to reduce data points
 df_hourly = df.set_index('timestamp').resample('h').mean().reset_index()
 df_daily = df.set_index('timestamp').resample('D').mean().reset_index()
+```
+
+### Time-Based GroupBy
+
+Use `pd.Grouper(freq=...)` for groupby with time frequencies:
+
+```python
+# Monthly aggregation with groupby (alternative to resample):
+monthly = df.groupby(pd.Grouper(key='date', freq='M')).agg(
+    total_sales=('amount', 'sum'),
+    order_count=('order_id', 'count'),
+    avg_price=('price', 'mean'),
+)
+
+# Grouper + categorical column — sales by month and region:
+by_month_region = df.groupby([
+    pd.Grouper(key='date', freq='M'),
+    'region'
+]).agg(total=('amount', 'sum'))
+
+# When to use Grouper vs resample:
+# - resample: DatetimeIndex required, simpler syntax
+# - Grouper: works with any datetime column, combines with non-time groups
 ```

@@ -38,6 +38,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Users must explicitly confirm settings; no silent defaults for optional parameters
 
 ### Changed
+- **refactor(skills):** simplify rule-creator SKILL.md (309→93 lines, 70% reduction)
+  - Move detailed workflows to `workflows/*.md` files
+  - Convert to progressive disclosure pattern
+- **refactor(skills):** update rule-creator workflows for ai-rules CLI
+- **fix(templates):** remove redundant anti-pattern from AGENTS_MODE.md.template
+- **fix(templates):** add missing trailing newline to AGENTS_MODE.md.template
 - **refactor(rules):** extract anti-patterns from 002g to 002m (~350 tokens saved)
 - **refactor(rules):** expand standard terminology list in 002g (9→15 terms)
 - **refactor(rules):** add code block exception for ASCII tables in external output

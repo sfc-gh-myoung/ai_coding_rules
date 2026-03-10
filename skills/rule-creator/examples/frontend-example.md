@@ -301,4 +301,5 @@ Ready for use: rules/422-daisyui-core.md
 **Comparison to Manual:**
 - Manual rule creation: ~45-60 minutes
 - With script orchestration: ~19 minutes
-- **Time saving                  
+- **Time savings: ~65% faster**
+

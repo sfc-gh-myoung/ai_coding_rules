@@ -293,7 +293,7 @@ Rules use letter suffixes to split large topics into focused, independently-load
 
 - Core rule: `NNN-technology-core.md` (no suffix) — Foundation, always loaded first
 - Companions: `NNNa-technology-aspect.md`, `NNNb-...`, `NNNc-...` etc.
-- Letter suffixes proceed alphabetically: a, b, c, d, ... (up to n observed in 101-series)
+- Letter suffixes must be single lowercase letters only: a, b, c, ... z (multi-character suffixes like "a1" or "g1" are not allowed)
 
 **How It Works:**
 
@@ -306,11 +306,12 @@ Rules use letter suffixes to split large topics into focused, independently-load
 
 | Core Rule | Companions | Total Files |
 |-----------|------------|-------------|
-| `002-rule-governance.md` | 002a through 002l (creation, update, optimization, advanced patterns, validators, agent optimization, skills, loadtrigger, examples, model optimization, skill patterns) | 13 |
+| `002-rule-governance.md` | 002a through 002m (creation, update, optimization, advanced patterns, validators, agent optimization, skills, loadtrigger, examples, model optimization, skill patterns, format antipatterns) | 14 |
 | `101-snowflake-streamlit-core.md` | 101a through 101n (visualization, performance, security, testing, SQL errors, deployment errors, fragments, timeseries, Plotly, PyDeck, Altair, deployment, PyDeck layers, migration) | 15 |
 | `102-snowflake-sql-core.md` | 102a through 102e (automation, procedures, reserved chars, CI/CD, antipatterns) | 6 |
 | `109-snowflake-notebooks.md` | 109a through 109j (tutorials, app deployment core, troubleshooting, linting, checkpoints, two-approach, SQL scripts, taskfile, advanced, TypeError debugging) | 11 |
-| `221-python-htmx-core.md` | 221a through 221g (templates, Flask, FastAPI, testing, patterns, integrations, SSE) | 8 |
+| `221-python-htmx-core.md` | 221a through 221i (templates, Flask, FastAPI, testing, patterns, integrations, SSE, FastAPI auth, advanced patterns) | 10 |
+| `210-python-fastapi-core.md` | 210a through 210e (security, testing, deployment, monitoring, security hardening) | 6 |
 
 **Cross-Reference Patterns:**
 
@@ -2024,8 +2025,8 @@ Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2
 
 - **Study existing rules** in same range (e.g., 200-299 for Python)
 - **Keep focused** — One rule per topic (split if >500 lines / ~5000 tokens)
-- **Use companion pattern** — Add letter suffixes for subtopics (e.g., `101a`, `101b`, `101c`); see [Companion Rule Pattern](#companion-rule-pattern-rule-splitting)
-- **Naming:** `<NNN><letter>-<technology>-<aspect>.md` (e.g., `102a-snowflake-sql-automation.md`)
+- **Use companion pattern** — Add single-letter suffixes for subtopics (e.g., `101a`, `101b`, `101c`); see [Companion Rule Pattern](#companion-rule-pattern-rule-splitting)
+- **Naming:** `<NNN><letter>-<technology>-<aspect>.md` where `<letter>` is a single lowercase letter a-z (e.g., `102a-snowflake-sql-automation.md`)
 - **Test thoroughly** — Include real-world examples and anti-patterns
 - **Document dependencies** — Specify all prerequisite rules in `Depends` field
 - **Cross-reference siblings** — List related companions in `Related Rules` section

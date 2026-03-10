@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:cortex-api, kw:rest-api
 **Keywords:** idempotency, rate limits, Complete endpoint, Embed endpoint, exponential backoff, REST API, Cortex API, response format, retry logic, cost controls, batch vs interactive
-**TokenBudget:** ~4000
+**TokenBudget:** ~4250
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 111-snowflake-observability-core.md
 **Companions:** 118a-snowflake-cortex-rest-api-streaming.md
@@ -148,6 +148,39 @@ def call_complete(prompt: str, model: str = "mistral-large") -> str:
 - [ ] Costs within budget
 
 ## Anti-Patterns and Common Mistakes
+
+### Circuit Breaker and Connection Pooling
+
+- **Rule:** After 5 consecutive failures, stop retrying for 60 seconds before attempting again (circuit breaker pattern)
+- **Rule:** Use `requests.Session()` for connection reuse across multiple API calls — avoids TCP handshake overhead
+- **Consider:** Rate limits vary by account tier; check Snowflake documentation for current limits. If you receive HTTP 429 responses, reduce request frequency.
+
+```python
+import requests
+
+# Connection pooling with session reuse
+session = requests.Session()
+session.headers.update({"Authorization": f"Bearer {token}"})
+
+# Circuit breaker state
+consecutive_failures = 0
+circuit_open_until = None
+
+def call_api_with_circuit_breaker(payload):
+    global consecutive_failures, circuit_open_until
+    if circuit_open_until and time.time() < circuit_open_until:
+        raise Exception("Circuit breaker open — waiting 60s")
+    try:
+        resp = session.post(url, json=payload)
+        resp.raise_for_status()
+        consecutive_failures = 0
+        return resp.json()
+    except Exception:
+        consecutive_failures += 1
+        if consecutive_failures >= 5:
+            circuit_open_until = time.time() + 60
+        raise
+```
 
 ### Anti-Pattern 1: Not Implementing Retry Logic with Exponential Backoff
 ```python

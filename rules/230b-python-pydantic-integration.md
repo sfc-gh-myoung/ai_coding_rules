@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:serialization, kw:model-dump, kw:type-adapter
 **Keywords:** Pydantic, serialization, JSON schema, FastAPI integration, database ORM, TypeAdapter, performance, testing, model_dump, SecretStr
-**TokenBudget:** ~2150
+**TokenBudget:** ~3450
 **ContextTier:** Medium
 **Depends:** 230-python-pydantic.md
 
@@ -77,6 +77,16 @@ Pydantic models with serialization, API integration, ORM support, and test cover
 - [ ] SecretStr fields excluded from serialization
 - [ ] ORM models convert correctly with from_attributes
 - [ ] Batch processing logs and counts errors
+
+### Investigation Required
+
+Before modifying serialization, integration, or performance patterns, agents MUST check:
+
+- [ ] **Existing serialization helpers**: Search for `model_dump`, `to_dict`, `to_json` in the project — avoid creating duplicate serialization methods
+- [ ] **ORM conversion patterns**: Search for `from_attributes` and `model_validate` to understand existing ORM-to-Pydantic conversion flow
+- [ ] **Pydantic version**: Check `pyproject.toml` — if Pydantic v1, methods like `.dict()` and `.from_orm()` need migration to v2 equivalents
+- [ ] **Batch processing code**: Search for `ValidationError` catch blocks to identify existing error handling patterns (especially silent `continue` anti-patterns)
+- [ ] **API response models**: Check FastAPI routes for existing `response_model` usage and request/response model separation
 
 ### Design Principles
 
@@ -176,6 +186,70 @@ class UserProfile(BaseModel):
     def to_internal_dict(self) -> dict:
         """Serialize for internal use."""
         return self.model_dump(exclude={"password_hash"})
+```
+
+### Custom Field Serialization
+
+Use `@field_serializer` for per-field control over serialization output:
+
+```python
+from datetime import datetime, UTC
+from pydantic import BaseModel, Field, field_serializer, ConfigDict
+
+class AuditEvent(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    event_type: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    metadata: dict = Field(default_factory=dict)
+
+    @field_serializer("created_at")
+    def serialize_datetime(self, value: datetime, _info) -> str:
+        """ISO 8601 format with Z suffix for UTC."""
+        return value.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    @field_serializer("metadata")
+    def serialize_metadata(self, value: dict, _info) -> dict:
+        """Remove internal keys starting with underscore."""
+        return {k: v for k, v in value.items() if not k.startswith("_")}
+
+# event.model_dump() →
+# {"event_type": "login", "created_at": "2026-03-09T14:30:00Z",
+#  "metadata": {"ip": "10.0.0.1"}}  # _internal_id stripped
+```
+
+### Direct JSON Serialization
+
+For JSON output, prefer `model_dump_json()` over `json.dumps(model_dump())` — it skips the intermediate dict and is faster:
+
+```python
+response = ApiResponse(status="ok", data={"user_id": 42})
+
+# GOOD: Direct JSON string — faster, handles datetime automatically
+json_str = response.model_dump_json(indent=2)
+
+# GOOD: Selective JSON serialization
+json_str = response.model_dump_json(exclude={"timestamp"})
+
+# BAD: Intermediate dict step — slower, may need custom encoder for datetime
+import json
+json_str = json.dumps(response.model_dump(), default=str)  # Avoid this
+```
+
+### Direct JSON Deserialization
+
+Use `model_validate_json()` to parse JSON strings directly:
+
+```python
+# GOOD: Direct from JSON string — faster, single-pass parsing
+user = User.model_validate_json('{"username": "jane", "email": "jane@example.com"}')
+
+# GOOD: From bytes (e.g., HTTP request body)
+user = User.model_validate_json(request.body)
+
+# BAD: Intermediate dict step — slower
+import json
+user = User.model_validate(json.loads(json_string))  # Avoid this
 ```
 
 ### JSON Schema Generation
@@ -317,3 +391,80 @@ class TestUserModel:
         user_dict = user.model_dump()
         assert user_dict["email"] == "test@example.com"
 ```
+
+## Computed Fields in Serialization
+
+Use `@computed_field` to include derived values in `model_dump()` and JSON schema:
+
+```python
+from pydantic import BaseModel, Field, computed_field
+
+class Invoice(BaseModel):
+    items: list[dict] = Field(description="Line items with 'amount' key")
+    tax_rate: float = Field(default=0.08, ge=0, le=1)
+
+    @computed_field
+    @property
+    def subtotal(self) -> float:
+        """Sum of all item amounts — included in serialization."""
+        return sum(item.get("amount", 0) for item in self.items)
+
+    @computed_field
+    @property
+    def tax(self) -> float:
+        """Tax amount — included in serialization."""
+        return round(self.subtotal * self.tax_rate, 2)
+
+    @computed_field
+    @property
+    def total(self) -> float:
+        """Grand total — included in serialization."""
+        return round(self.subtotal + self.tax, 2)
+
+invoice = Invoice(items=[{"desc": "Widget", "amount": 100}, {"desc": "Gadget", "amount": 50}])
+invoice.model_dump()
+# {"items": [...], "tax_rate": 0.08, "subtotal": 150.0, "tax": 12.0, "total": 162.0}
+# ^^^ subtotal, tax, total are ALL included because of @computed_field
+# Compare: plain @property would NOT appear in model_dump()
+```
+
+## JSON Schema Generation
+
+Use `model_json_schema()` to generate OpenAPI-compatible schemas:
+
+```python
+from pydantic import BaseModel, Field
+
+class CreateUserRequest(BaseModel):
+    """Request body for creating a new user."""
+    username: str = Field(
+        min_length=3, max_length=50,
+        json_schema_extra={"examples": ["jane_doe"]}
+    )
+    email: str = Field(
+        pattern=r"^[\w.+-]+@[\w-]+\.[\w.]+$",
+        json_schema_extra={"examples": ["jane@example.com"]}
+    )
+    role: str = Field(
+        default="viewer",
+        json_schema_extra={"enum": ["admin", "editor", "viewer"]}
+    )
+
+# Generate JSON Schema (for OpenAPI docs, Swagger UI, etc.)
+schema = CreateUserRequest.model_json_schema()
+# {
+#   "title": "CreateUserRequest",
+#   "description": "Request body for creating a new user.",
+#   "properties": {
+#     "username": {"type": "string", "minLength": 3, "maxLength": 50, ...},
+#     ...
+#   },
+#   "required": ["username", "email"]
+# }
+
+# Customize schema generation mode:
+schema_serial = CreateUserRequest.model_json_schema(mode="serialization")
+schema_valid = CreateUserRequest.model_json_schema(mode="validation")
+```
+
+FastAPI automatically uses `model_json_schema()` for Swagger UI docs — `json_schema_extra` values appear as examples in the interactive documentation.

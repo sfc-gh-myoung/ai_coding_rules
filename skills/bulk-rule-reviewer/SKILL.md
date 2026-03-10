@@ -193,13 +193,13 @@ Agents commonly attempt these shortcuts. **ALL ARE FORBIDDEN:**
 - **Token-saving shortcuts** - Generating abbreviated reviews
 - **Time-saving shortcuts** - Estimating scores without proper analysis
 - **Template-based reviews** - Using examples/ as templates without actual analysis
-- **Skipping schema validation** - Not running schema_validator.py
+- **Skipping schema validation** - Not running `ai-rules validate`
 
 ### Required Actions
 
 - Load rule-reviewer/SKILL.md to understand complete workflow
 - Load rubrics/*.md files as needed for each dimension being scored
-- Run schema_validator.py for each rule
+- Run `ai-rules validate` for each rule
 - Perform Agent Execution Test (count blocking issues)
 - Score all dimensions according to review_mode (FULL/FOCUSED/STALENESS)
 - Generate specific recommendations with line numbers
@@ -401,7 +401,7 @@ Skills are NOT rules. Do not apply rule optimization principles here:
 
 Each review must contain:
 - Executive Summary with scores table (all 6 dimensions for FULL mode)
-- Schema Validation Results (from schema_validator.py output)
+- Schema Validation Results (from `ai-rules validate` output)
 - Agent Executability Verdict (based on Agent Execution Test)
 - Dimension Analysis sections (detailed scoring rationale)
 - Critical Issues list (specific line numbers)
@@ -471,7 +471,7 @@ Even excellent rules (95-100 score) should have at least LOW severity suggestion
 
 5. **Skipping schema validation**
    - **Detection:** Review lacks "Schema Validation Results" section with actual output
-   - **Action:** HALT. Run schema_validator.py. Include output.
+   - **Action:** HALT. Run `ai-rules validate`. Include output.
 
 6. **Using examples/ as templates**
    - **Detection:** Review text matches example patterns without rule-specific details
@@ -635,7 +635,7 @@ For each rule file:
 6. **POST-READ CANARY:** Verify you can name 3 specific things unique to THIS rule
 7. **LOAD rule-reviewer/SKILL.md if not already loaded**
 8. **LOAD relevant rubrics for dimensions being scored**
-9. **RUN schema_validator.py on the rule file**
+9. **RUN `ai-rules validate` on the rule file**
 10. **PERFORM Agent Execution Test (count blocking issues)**
 11. **MID-REVIEW CANARY (after dimension 3):** Check rubric loading and reference reuse
 12. **SCORE each dimension according to rubric, citing line numbers and quotes**

@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:search, kw:cortex-search
 **Keywords:** embeddings, search index, RAG, agent tools, retrieval, AI_EMBED, search service, document retrieval, hybrid search, vector similarity
-**TokenBudget:** ~2850
+**TokenBudget:** ~3100
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 114-snowflake-cortex-aisql.md
 
@@ -100,6 +100,33 @@ AS (SELECT * FROM {SOURCE_VIEW});
 - [ ] Tool descriptions include document type and when-to-use guidance
 
 ## Anti-Patterns and Common Mistakes
+
+### SEARCH vs SEARCH_PREVIEW
+
+- **`SEARCH_PREVIEW`:** Use for testing and validation — returns results directly in SQL with no agent context needed
+- **`SEARCH` (via Cortex Agent tools):** Used by agents at runtime for RAG — requires a Cortex Agent with a search tool configured
+- **Rule:** Always validate with `SEARCH_PREVIEW` before wiring into an agent
+
+### Python SDK Example
+
+```python
+from snowflake.core import Root
+
+root = Root(session)
+search_service = root.databases["DB"].schemas["SCHEMA"].cortex_search_services["MY_SERVICE"]
+results = search_service.search(query="revenue trends", columns=["chunk_text", "source"], limit=5)
+for r in results.results:
+    print(r["chunk_text"])
+```
+
+### Index Rebuild for Stale Content
+
+- **Rule:** If search results are stale after source data changes, force a refresh:
+  ```sql
+  ALTER CORTEX SEARCH SERVICE db.schema.docs_search SUSPEND;
+  ALTER CORTEX SEARCH SERVICE db.schema.docs_search RESUME;
+  -- This triggers a full re-index from the source query
+  ```
 
 ### Anti-Pattern 1: Not Chunking Long Documents
 ```sql

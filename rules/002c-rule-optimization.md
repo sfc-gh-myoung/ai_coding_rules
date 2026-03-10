@@ -8,17 +8,20 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
+**RuleVersion:** v3.2.1
 **LastUpdated:** 2026-03-09
 **Keywords:** token budget, optimization, performance, rule sizing, progressive loading, context window, model limits, cost efficiency, caching, batch loading
-**TokenBudget:** ~3950
+**TokenBudget:** ~4350
 **ContextTier:** High
 **Depends:** 002-rule-governance.md, 000-global-core.md, 002k-model-optimization.md
 
 ## Scope
 
 **What This Rule Covers:**
-Guidelines for optimizing rule token budgets, sizing rules appropriately, and loading rules efficiently. Covers token budget tiers (Small: 1000-2000, Standard: 2000-3500, Large: 3500-5000+), progressive loading strategies, and performance optimization across different AI models for cost efficiency.
+Guidelines for optimizing rule token budgets, sizing rules appropriately, and loading rules efficiently. Covers token budget tiers (Small: 1000-1999, Standard: 2000-3499, Large: 3500-4999, Reference: 5000+), progressive loading strategies, and performance optimization across different AI models for cost efficiency.
+
+Note: Tier boundaries are inclusive on the lower end. A rule at exactly 2000 tokens
+is Standard tier. A rule at exactly 3500 tokens is Large tier.
 
 **When to Load This Rule:**
 - Creating rules with appropriate token budgets
@@ -68,12 +71,15 @@ Guidelines for optimizing rule token budgets, sizing rules appropriately, and lo
 
 ### Execution Steps
 
-1. Estimate rule token count (words x 1.33 = tokens approximately)
+1. Estimate rule token count using `uv run ai-rules tokens rules/<rule>.md`
+   (manual fallback: word count × 1.33 ≈ token count)
 2. Choose appropriate TokenBudget tier based on size
 3. Set ContextTier to match tier (Small=Critical/High, Standard=High/Medium, etc.)
-4. Verify rule focuses on single concept
+4. Verify rule focuses on single concept (all Keywords share a common domain;
+   rule can be summarized in one sentence without "and" joining unrelated topics)
 5. Run `ai-rules tokens` to confirm actual count
-6. Split rule if >5000 tokens or covers multiple unrelated topics
+6. Split rule if >5000 tokens (review recommended) or >5500 tokens (split required),
+   or if it covers multiple unrelated topics
 
 ### Output Format
 
@@ -81,7 +87,8 @@ Rule file with:
 - TokenBudget metadata matching actual size (`~NUMBER` format)
 - ContextTier aligned with token budget tier
 - Focused on single concept
-- Token count: 2000-3500 tokens (optimal) or <5000 tokens (maximum)
+- Token count: 2000-3500 tokens (optimal), <5000 tokens (acceptable),
+  5000-5500 (review and consider splitting), >5500 (split required)
 
 ### Validation
 
@@ -89,7 +96,9 @@ Rule file with:
 - TokenBudget declared with `~NUMBER` format (no text labels)
 - ContextTier matches TokenBudget tier appropriately
 - Rule size calculated or estimated
-- Rule focuses on single concept (not multi-topic)
+- Rule focuses on single concept: all Keywords cluster around one domain,
+  and the Scope section describes one coherent purpose. A rule covering "token budgets
+  AND progressive loading AND model optimization" is multi-topic — split into focused rules.
 - `ai-rules tokens` ready to run
 
 **Success Criteria:**
@@ -103,12 +112,22 @@ Rule file with:
 - Text label TokenBudget (small/medium/large) triggers validation error
 - Missing tilde prefix triggers format error
 - Token variance >5% triggers auto-update (configurable via `--threshold`)
-- Rule >5500 tokens triggers split recommendation
+- Rule >5000 tokens triggers split review; >5500 tokens triggers mandatory
+  split recommendation
 
 **Error Recovery:**
 - **`ai-rules tokens` not found:** Check `uv run ai-rules tokens` is available, fall back to word count estimate (words x 1.33)
 - **Validator fails to parse rule:** Check for malformed YAML/frontmatter, validate Markdown syntax first
 - **Token count wildly off:** Re-run validator, check for binary content or encoding issues
+
+### Auto-Update Recovery
+
+If `uv run ai-rules tokens` was run without `--dry-run` and modified files unintentionally:
+
+1. **Check git status:** `git diff rules/<rule>.md` to see what changed
+2. **If only TokenBudget changed:** Verify the new value is accurate — keep it if correct
+3. **If other content changed unexpectedly:** Revert with `git checkout -- rules/<rule>.md`
+4. **Prevention:** Always use `--dry-run` first: `uv run ai-rules tokens --dry-run rules/<rule>.md`
 
 ### Post-Execution Checklist
 
@@ -165,7 +184,13 @@ Rule file with:
 - [FAIL] `**TokenBudget:** medium` (FORBIDDEN)
 - [FAIL] `**TokenBudget:** 1200` (missing tilde)
 
-**Calculation:** Approximately 1.33 tokens per word, or 5-6 tokens per line as rough estimate.
+**Calculation:** Token estimation methods (in order of accuracy):
+1. **CLI tool (recommended):** `uv run ai-rules tokens rules/<rule>.md`
+2. **Word-based heuristic:** word count × 1.33 ≈ token count
+3. **Character-based heuristic:** character count / 4 ≈ token count
+
+Note: Line-based estimation is unreliable (actual tokens per line varies from 3 to 12
+depending on content density). Do not use "tokens per line" for estimation.
 
 > **IMPORTANT:** Token budget examples are point-in-time snapshots. Before relying on specific values for budget calculations:
 > 1. Check **RULES_INDEX.md** (auto-generated, always current)
@@ -191,7 +216,7 @@ ContextTier provides fine-grained prioritization within natural language tiers:
 
 See `000-global-core.md`, section "Context Window Management Protocol" for preservation hierarchy.
 
-### Small (1000-2000 tokens)
+### Small (1000-1999 tokens)
 
 **TokenBudget Range:** `~1000` to `~2000`
 **ContextTier:** Critical or High
@@ -207,7 +232,7 @@ See `000-global-core.md`, section "Context Window Management Protocol" for prese
 
 **Loading:** Load based on task domain and keywords
 
-### Standard (2000-3500 tokens)
+### Standard (2000-3499 tokens)
 
 **TokenBudget Range:** `~2000` to `~3500`
 **ContextTier:** High or Medium
@@ -224,7 +249,7 @@ See `000-global-core.md`, section "Context Window Management Protocol" for prese
 
 **Loading:** Loaded based on task domain (Python tasks -> load 200-python-core)
 
-### Large (3500-5000 tokens)
+### Large (3500-4999 tokens)
 
 **TokenBudget Range:** `~3500` to `~5000`
 **ContextTier:** Medium or Low

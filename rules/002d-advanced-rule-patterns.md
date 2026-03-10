@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
 **Keywords:** system prompt altitude, investigation-first, anti-patterns, multi-session workflows, parallel execution, advanced patterns, heuristics, goldilocks zone, context management, state management
-**TokenBudget:** ~3450
+**TokenBudget:** ~4000
 **ContextTier:** Medium
 **Depends:** 002-rule-governance.md, 000-global-core.md
 
@@ -69,8 +69,13 @@ Advanced patterns for writing rules that balance specificity with flexibility. F
 
 ### Execution Steps
 
-1. Identify rule complexity level (simple vs advanced patterns needed)
-2. Choose appropriate altitude for guidance (specific heuristics, flexible application)
+1. Identify rule complexity level:
+   - **Simple:** ≤2 anti-patterns, no multi-session state, single investigation block
+   - **Advanced:** 3+ anti-patterns, OR multi-session state needed, OR 3+ investigation blocks
+   - **If uncertain:** Apply the self-test at "Finding the Right Altitude" section below
+2. Choose appropriate altitude by applying self-test questions (see "Finding the Right
+   Altitude" section): all 4 questions must answer YES for the rule to be at the right
+   altitude. If any answer NO, adjust specificity up (more concrete) or down (more general).
 3. Add Investigation-First blocks for file/code references
 4. Structure Anti-Patterns with Problem/Correct pairs and explanations
 5. Design multi-session state management if needed
@@ -442,6 +447,33 @@ When gathering data from multiple sources:
 - [PASS] Analysis results guide next action
 - [PASS] Error handling requires sequential checks
 
+### Partial Parallel Failure
+
+**Partial Parallel Failure:** If N of M parallel operations fail:
+1. Report successful results immediately with explicit caveat: "Completed X of Y operations"
+2. List failed operations with specific error messages
+3. Offer targeted retry for failed operations only (not full re-execution)
+4. If >50% fail, abort remaining operations and report — likely a systemic issue
+
+### Combining Patterns
+
+When a rule requires multiple advanced patterns:
+
+1. **Investigation-First + Multi-Session State:** Use Investigation-First for the initial
+   file/code analysis, then persist findings via State Files or Structured Checklists.
+   The investigation results become the initial state for multi-session work.
+
+2. **Investigation-First + Parallel Execution:** Investigate sequentially first to
+   determine what can be parallelized, then dispatch parallel operations. Never
+   parallelize the investigation phase itself.
+
+3. **Multi-Session + Parallel:** Use state files as coordination points. Each parallel
+   branch writes to its own state file; the orchestrator merges results.
+
+**Priority when patterns conflict:** Investigation-First takes precedence (always read
+before acting), then Multi-Session State (preserve context), then Parallel Execution
+(optimize throughput).
+
 ## Tool Design Altitude
 
 See **004-tool-design-for-agents.md** for Tool Design Altitude patterns, including over-specified, under-specified, and right-altitude examples for tool APIs.
@@ -456,11 +488,11 @@ See **004-tool-design-for-agents.md** for Tool Design Altitude patterns, includi
 
 **Correct Pattern:**
 ```markdown
-# BAD: Premature abstraction
+[FAIL] **Problem:** Premature abstraction
 "Always consider the trade-offs between different approaches"
 "Use appropriate error handling for the context"
 
-# GOOD: Concrete then abstract
+[PASS] **Correct Pattern:** Concrete then abstract
 ## Specific Pattern (from real use cases)
 When catching database exceptions in FastAPI:
 1. Log full traceback with structlog
@@ -479,12 +511,12 @@ Error handling should: log details internally, return safe messages externally
 
 **Correct Pattern:**
 ```markdown
-# BAD: Over-engineered state for simple task
+[FAIL] **Problem:** Over-engineered state for simple task
 STATE_v3_checkpoint_2024-01-15.json
 STATE_recovery_log.md
 STATE_session_handoff.yml
 
-# GOOD: Minimal state for task complexity
+[PASS] **Correct Pattern:** Minimal state for task complexity
 # Simple task (1-2 sessions): Use activeContext.md only (see 001-memory-bank.md)
 # Medium task (3-5 sessions): Add task-specific checklist
 # Complex task (5+ sessions): Consider dedicated STATE.md
@@ -492,7 +524,38 @@ STATE_session_handoff.yml
 
 ## Multi-File Task Patterns
 
-For multi-file task patterns (atomic vs progressive changes, rollback strategies), see **002a-rule-creation.md**, section "Multi-File Task Patterns".
+### Atomic Changes
+
+When modifying tightly coupled files (e.g., refactoring, API contracts, schemas):
+
+1. **Single Authorization:** Present all changes as one task list
+2. **All-or-Nothing:** If any file fails validation, revert ALL changes
+3. **Cross-Validation:** Verify consistency across all modified files
+
+### Progressive Changes
+
+When modifying loosely coupled files (e.g., independent features):
+
+1. **Multiple Authorizations:** Each file can be a separate task
+2. **Independent Validation:** Each file validated separately
+3. **Partial Completion:** Some files can succeed while others need revision
+
+### Rollback Strategies
+
+**If Validation Fails:**
+
+Option A (git available):
+```bash
+git checkout -- rules/<your-rule>.md
+```
+
+Option B (edit tool available):
+- Store original content in-memory before edit
+- Restore from stored content if validation fails
+
+Option C (neither available):
+- Report exact error to user
+- Provide corrected content for manual application
 
 ## Importance Marker Inheritance
 

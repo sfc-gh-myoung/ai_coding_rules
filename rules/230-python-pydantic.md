@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:pydantic, kw:validation, kw:basemodel
 **Keywords:** Pydantic, data validation, models, BaseModel, field validation, Field, validator, model_validator, EmailStr
-**TokenBudget:** ~2750
+**TokenBudget:** ~3800
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -103,6 +103,16 @@ Python modules containing:
 - [ ] Tests cover valid and invalid data scenarios
 - [ ] Linting and tests pass
 
+### Investigation Required
+
+Before creating or modifying Pydantic models, agents MUST check:
+
+- [ ] **Existing models**: Search for `class.*BaseModel` in the project to find existing Pydantic models and avoid duplication
+- [ ] **Pydantic version**: Check `pyproject.toml` for current Pydantic version — if v1, migration is needed before applying v2 patterns
+- [ ] **Model organization**: Identify existing directory structure (models/, schemas/, types/) to place new models consistently
+- [ ] **Installed extras**: Check if `pydantic[email]` is already installed — avoid duplicate dependency declarations
+- [ ] **Existing validators**: Search for `@field_validator` and `@model_validator` to understand current validation patterns
+
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Using Dict Instead of Pydantic Models for API Responses
@@ -187,7 +197,7 @@ def validate_data_dir(cls, v: Path) -> Path:
 
 ```python
 from datetime import datetime, UTC
-from pydantic import BaseModel, Field, ConfigDict, field_validator
+from pydantic import BaseModel, Field, ConfigDict, field_validator, computed_field
 
 class OrderItem(BaseModel):
     """Example Pydantic v2 model with common patterns."""
@@ -208,9 +218,14 @@ class OrderItem(BaseModel):
     def normalize_sku(cls, v: str) -> str:
         return v.upper()
 
+    # @computed_field includes the field in model_dump() and JSON schema
+    # Unlike @property, computed fields appear in serialization output
+    @computed_field
     @property
     def total(self) -> float:
+        """Total price — included in serialization."""
         return self.quantity * self.unit_price
+        # item.model_dump() → {"sku": "AB-1234", ..., "total": 39.98}
 ```
 
 ## Installation and Setup
@@ -323,4 +338,112 @@ class Product(BaseModel):
         if discount and discount > 0 and price and price < 10:
             raise ValueError('Discount not allowed on items under $10')
         return values
+```
+
+## Nested Models
+
+Pydantic supports model composition — use nested models for structured data:
+
+```python
+from pydantic import BaseModel, Field, ConfigDict
+from typing import List, Optional
+
+class Address(BaseModel):
+    """Mailing or billing address."""
+    street: str = Field(min_length=1, max_length=200)
+    city: str = Field(min_length=1, max_length=100)
+    state: str = Field(min_length=2, max_length=2, pattern=r"^[A-Z]{2}$")
+    zip_code: str = Field(pattern=r"^\d{5}(-\d{4})?$")
+    country: str = Field(default="US", max_length=2)
+
+class Customer(BaseModel):
+    """Customer with multiple addresses."""
+    model_config = ConfigDict(from_attributes=True)
+
+    name: str = Field(min_length=1, max_length=100)
+    billing_address: Address
+    shipping_addresses: List[Address] = Field(default_factory=list)
+    primary_phone: Optional[str] = Field(
+        default=None, pattern=r"^\+?1?\d{10,15}$"
+    )
+
+# Nested models validate recursively:
+customer = Customer(
+    name="Jane Doe",
+    billing_address={"street": "123 Main St", "city": "Portland",
+                     "state": "OR", "zip_code": "97201"},
+    shipping_addresses=[
+        {"street": "456 Oak Ave", "city": "Seattle",
+         "state": "WA", "zip_code": "98101"}
+    ]
+)
+# customer.billing_address is an Address instance, not a dict
+```
+
+## Discriminated Unions
+
+Use discriminated unions for polymorphic data with a type field:
+
+```python
+from pydantic import BaseModel, Field
+from typing import Annotated, Literal, Union
+
+class CreditCardPayment(BaseModel):
+    payment_type: Literal["credit_card"]
+    card_number: str = Field(pattern=r"^\d{16}$")
+    expiry: str = Field(pattern=r"^\d{2}/\d{2}$")
+    cvv: str = Field(pattern=r"^\d{3,4}$")
+
+class BankTransferPayment(BaseModel):
+    payment_type: Literal["bank_transfer"]
+    routing_number: str = Field(pattern=r"^\d{9}$")
+    account_number: str = Field(min_length=8, max_length=17)
+
+class CryptoPayment(BaseModel):
+    payment_type: Literal["crypto"]
+    wallet_address: str = Field(min_length=26, max_length=62)
+    network: str = Field(pattern=r"^(ethereum|bitcoin|solana)$")
+
+# Discriminator selects the right model based on payment_type:
+Payment = Annotated[
+    Union[CreditCardPayment, BankTransferPayment, CryptoPayment],
+    Field(discriminator="payment_type")
+]
+
+class Order(BaseModel):
+    order_id: str
+    payment: Payment  # Validates against correct submodel automatically
+```
+
+## Custom Types with Annotated Validators
+
+Use `Annotated` with `BeforeValidator` / `AfterValidator` for reusable type-level validation:
+
+```python
+from typing import Annotated
+from pydantic import BaseModel, AfterValidator, BeforeValidator
+
+def strip_whitespace(v: str) -> str:
+    """Pre-process: strip leading/trailing whitespace."""
+    return v.strip()
+
+def validate_not_empty(v: str) -> str:
+    """Post-process: ensure string is not empty after stripping."""
+    if not v:
+        raise ValueError("Value must not be empty or whitespace-only")
+    return v
+
+# Reusable custom type — use across multiple models:
+CleanString = Annotated[str, BeforeValidator(strip_whitespace), AfterValidator(validate_not_empty)]
+
+def normalize_email(v: str) -> str:
+    """Normalize email to lowercase."""
+    return v.lower().strip()
+
+NormalizedEmail = Annotated[str, BeforeValidator(normalize_email)]
+
+class ContactForm(BaseModel):
+    name: CleanString  # Strips whitespace, rejects empty
+    email: NormalizedEmail  # Lowercases and strips
+    message: CleanString
 ```

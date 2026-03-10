@@ -9,8 +9,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.4.0
+**LastUpdated:** 2026-03-10
 **Keywords:** workflow, safety, confirmation, validation, surgical edits, minimal changes, prompt engineering, task list, context window, professional communication
 **TokenBudget:** ~3800
 **ContextTier:** Critical
@@ -59,7 +59,7 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 ### Inputs and Prerequisites
 
 - Project workspace access
-- Tool availability (read_file, list_dir, grep, and project-specific tools (as defined in Taskfile.yml, Makefile, or package.json scripts))
+- Tool availability (read_file, list_dir, grep, and project-specific tools (as defined in Taskfile.yml, Makefile, or package.json scripts)). If tool discovery fails, list available tools and ask user for guidance.
 - Up-to-date rule files (from current branch HEAD)
 - User requirements
 
@@ -215,10 +215,13 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 ### Surgical Editing Principle (also referred to as "minimal changes")
 
 - Make only the minimal changes required
-- Preserve existing code patterns and style
+- Preserve existing code patterns and style (match indentation, naming conventions, import ordering, and formatting of surrounding code within the same file)
 - Show deltas, not entire files
 - Maintain backward compatibility unless task explicitly requires breaking changes
-- **Update LastUpdated field:** If edited file contains `LastUpdated:`, `**LastUpdated:**`, or `**Last Updated:**`, set value to current date in YYYY-MM-DD format
+- **Update version fields (rule files only):** When editing files in `rules/`:
+  - Update `RuleVersion` per semantic versioning (MAJOR/MINOR/PATCH per 002b-rule-update.md)
+  - Update `LastUpdated` to current date (YYYY-MM-DD format)
+- **Update LastUpdated field (other files):** If edited file contains `LastUpdated:`, `**LastUpdated:**`, or `**Last Updated:**`, set value to current date in YYYY-MM-DD format
 
 ### Multi-File Task Protocol
 
@@ -241,7 +244,7 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 - Validate all changes before marking tasks complete
 - Run appropriate tests and lints for the technology
 - Update documentation when changes affect usage
-- Verify no regressions by running validation sequence (Syntax, Linting, Formatting, Type Checking, Tests)
+- Verify no regressions by running validation sequence (Syntax, Linting, Formatting, Type Checking, Tests) — "no regressions" means: all previously passing tests still pass, no new linting errors introduced, and no formatting violations added
 - **Taskfile-first (project standards):** If the project provides an automation entrypoint (prefer
   `Taskfile.yml`), run validation via project-defined tasks:
   - **If task exits 0:** Success, continue to next validation step

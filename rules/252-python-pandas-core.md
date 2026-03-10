@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:pandas, kw:dataframe
 **Keywords:** pandas, DataFrame, vectorization, SettingWithCopyWarning, method chaining, loc, iloc, np.where, np.select, apply, iterrows
-**TokenBudget:** ~2200
+**TokenBudget:** ~2550
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -45,6 +45,8 @@ Core Pandas best practices: vectorization over loops, explicit indexing with .lo
 
 Python 3.11+, pandas 2.x+, basic NumPy knowledge
 
+> **Pandas 2.x Copy-on-Write (CoW):** Pandas 2.0+ enables Copy-on-Write by default in future versions. With CoW, chained assignment silently does nothing instead of warning. Always use `.loc` for assignments. To test CoW behavior now: `pd.set_option('mode.copy_on_write', True)`
+
 ### Mandatory
 
 - **Always:** Use vectorized operations instead of loops (10x-100x+ faster)
@@ -57,7 +59,7 @@ Python 3.11+, pandas 2.x+, basic NumPy knowledge
 - `iterrows()` for computation (read-only display OK)
 - `apply()` when vectorization is possible
 - Chained assignment without .loc (e.g., `df[mask]['col'] = val`)
-- `df.append()` (deprecated in Pandas 2.x)
+- `df.append()` (deprecated in Pandas 2.x; use `pd.concat([df, new_rows])` instead)
 - `inplace=True` (generally discouraged; use assignment instead)
 
 ### Execution Steps
@@ -148,6 +150,7 @@ df['total'] = df['price'] * df['qty']
 > 2. **Profile actual performance** - Measure before and after
 > 3. **Never speculate about DataFrame shape** - Use df.shape, df.dtypes
 > 4. **Check memory usage** - Use df.memory_usage(deep=True)
+> 5. **Check Pandas version** - `python -c "import pandas; print(pandas.__version__)"` — behavior differs between 1.x and 2.x (Copy-on-Write default, deprecated APIs)
 
 ## Vectorization Patterns
 
@@ -250,6 +253,8 @@ min_price = 50
 filtered = df.query('price >= @min_price')
 ```
 
+> **Note:** For large DataFrames (>100K rows), `pd.eval()` and `df.eval()` can speed up arithmetic expressions by using Numexpr under the hood. Example: `df.eval('total = price * quantity', inplace=False)`
+
 ## Method Chaining
 
 ### Readable Pipelines
@@ -266,6 +271,27 @@ result = (
     .agg({'total': 'sum', 'discount': 'sum'})
     .reset_index()
     .sort_values('total', ascending=False)
+)
+```
+
+### Using .pipe() for Reusable Transformations
+
+```python
+def remove_outliers(df: pd.DataFrame, column: str, n_std: float = 3) -> pd.DataFrame:
+    mean, std = df[column].mean(), df[column].std()
+    return df[df[column].between(mean - n_std * std, mean + n_std * std)]
+
+def add_computed_columns(df: pd.DataFrame) -> pd.DataFrame:
+    return df.assign(
+        total=lambda x: x['price'] * x['quantity'],
+        margin=lambda x: x['total'] - x['cost'],
+    )
+
+result = (
+    df
+    .pipe(remove_outliers, column='price')
+    .pipe(add_computed_columns)
+    .sort_values('margin', ascending=False)
 )
 ```
 

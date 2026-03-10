@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** pydeck layers, HexagonLayer, ScatterplotLayer, GeoJsonLayer, ArcLayer, ColumnLayer, HeatmapLayer, PathLayer, TerrainLayer, PointCloudLayer, multi-layer
-**TokenBudget:** ~2450
+**TokenBudget:** ~2950
 **ContextTier:** Low
 **Depends:** 101j-snowflake-streamlit-viz-pydeck.md
 
@@ -64,7 +64,21 @@ Configured PyDeck layer ready for `pdk.Deck(layers=[...])`.
 - [ ] Required parameters set for chosen layer type
 - [ ] pickable=True for interactive layers
 
+### Layer Selection Guide
+
+- **Dense point aggregation / heatmap bins** -- HexagonLayer
+- **Individual point display with attributes** -- ScatterplotLayer
+- **Building footprints / region boundaries** -- GeoJsonLayer
+- **Network flows / origin-destination** -- ArcLayer
+- **Comparative values by location (3D bars)** -- ColumnLayer
+- **Continuous density surface** -- HeatmapLayer
+- **Route tracking / GPS trajectories** -- PathLayer
+- **3D terrain with satellite imagery** -- TerrainLayer
+- **LiDAR / 3D point cloud data** -- PointCloudLayer
+
 ## HexagonLayer (Density Aggregation)
+
+**Performance:** Handles millions of points (aggregates client-side in WebGL).
 
 ```python
 layer = pdk.Layer(
@@ -98,6 +112,8 @@ st.pydeck_chart(deck, width="stretch")
 
 ## ScatterplotLayer (Large Point Datasets)
 
+**Performance:** Smooth up to ~100K points with WebGL; beyond that, consider HexagonLayer for aggregation.
+
 ```python
 layer = pdk.Layer(
     'ScatterplotLayer',
@@ -116,6 +132,8 @@ layer = pdk.Layer(
 
 ## GeoJsonLayer (Polygons with Extrusion)
 
+**Performance:** Depends on geometry complexity; keep polygons under ~10K features for smooth rendering.
+
 ```python
 layer = pdk.Layer(
     'GeoJsonLayer',
@@ -130,9 +148,16 @@ layer = pdk.Layer(
     get_line_color=[255, 255, 255],
     pickable=True
 )
+
+# Full Deck assembly for GeoJsonLayer
+view_state = pdk.ViewState(latitude=40.7, longitude=-73.9, zoom=10, pitch=45)
+deck = pdk.Deck(layers=[layer], initial_view_state=view_state)
+st.pydeck_chart(deck, width="stretch")
 ```
 
 ## ArcLayer (Flow/Connection Visualization)
+
+**Performance:** Smooth up to ~50K arcs; for denser networks, pre-aggregate flows.
 
 ```python
 layer = pdk.Layer(
@@ -146,9 +171,16 @@ layer = pdk.Layer(
     pickable=True,
     auto_highlight=True
 )
+
+# Full Deck assembly for ArcLayer
+view_state = pdk.ViewState(latitude=37.7, longitude=-122.4, zoom=6, pitch=50)
+deck = pdk.Deck(layers=[layer], initial_view_state=view_state)
+st.pydeck_chart(deck, width="stretch")
 ```
 
 ## ColumnLayer (3D Bar Charts on Map)
+
+**Performance:** Reasonable up to ~50K columns; similar to ScatterplotLayer.
 
 ```python
 layer = pdk.Layer(
@@ -166,6 +198,8 @@ layer = pdk.Layer(
 
 ## HeatmapLayer (Continuous Density)
 
+**Performance:** Best under 50K points; for larger datasets, pre-aggregate or use HexagonLayer instead.
+
 ```python
 layer = pdk.Layer(
     'HeatmapLayer',
@@ -180,6 +214,8 @@ layer = pdk.Layer(
 ```
 
 ## PathLayer (Routes/Trajectories)
+
+**Performance:** Smooth up to ~10K paths; complex paths with many vertices are more expensive than simple ones.
 
 ```python
 layer = pdk.Layer(
@@ -196,6 +232,8 @@ layer = pdk.Layer(
 
 ## TerrainLayer (3D Terrain Visualization)
 
+**Performance:** Rendering cost dominated by tile resolution, not data size; keep zoom levels reasonable.
+
 ```python
 layer = pdk.Layer(
     'TerrainLayer',
@@ -205,13 +243,15 @@ layer = pdk.Layer(
         'bScaler': 1/256,
         'offset': -32768
     },
-    elevation_data='https://example.com/terrain-tiles/{z}/{x}/{y}.png',
-    texture='https://example.com/satellite/{z}/{x}/{y}.png',
+    elevation_data='https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
+    texture='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     bounds=[-122.52, 37.70, -122.35, 37.82]
 )
 ```
 
 ## PointCloudLayer (Large Point Sets)
+
+**Performance:** Efficient for millions of points when using fixed point_size (avoids per-point radius computation).
 
 ```python
 layer = pdk.Layer(
@@ -282,14 +322,15 @@ layer = pdk.Layer(
 )
 ```
 
-**Correct Pattern:** Use bracket-notation strings for column-based accessors, and Python lists only for static literal values.
+**Correct Pattern:** Use Python lists `[255, 0, 0, 180]` for static values (same for all rows). Use string expressions `'[column_a, column_b]'` for per-row dynamic values evaluated client-side by deck.gl.
 
 ```python
 layer = pdk.Layer(
     'ScatterplotLayer',
     data=df,
     get_position='[longitude, latitude]',  # String accessor - evaluated per row
-    get_color=[255, 0, 0, 180],            # Static list - same for all points
+    get_color=[255, 0, 0, 180],            # Python list - static, same for all points
+    get_radius='value * 10',               # String expression - dynamic per row
 )
 ```
 

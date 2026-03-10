@@ -12,7 +12,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:fastapi, kw:api, kw:rest
 **Keywords:** FastAPI, async, REST API, Pydantic, dependency injection, routing, request validation, response models, APIRouter, uvicorn, async def, application factory
-**TokenBudget:** ~3750
+**TokenBudget:** ~4600
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -328,9 +328,11 @@ from sqlalchemy.orm import sessionmaker
 
 engine = create_async_engine(
     DATABASE_URL,
-    pool_size=20,
-    max_overflow=30,
-    pool_pre_ping=True,
+    pool_size=20,          # Max persistent connections
+    max_overflow=10,       # Additional connections under load
+    pool_timeout=30,       # Seconds to wait before raising error
+    pool_recycle=3600,     # Recycle connections after 1 hour
+    pool_pre_ping=True,    # Verify connection health before use
 )
 
 AsyncSessionLocal = sessionmaker(
@@ -348,6 +350,37 @@ async def get_db() -> AsyncSession:
         finally:
             await session.close()
 ```
+
+**When pool exhaustion occurs (TimeoutError):**
+1. Check for leaked connections: ensure all `async with session` blocks use `try/finally`
+2. Check slow queries: `SHOW PROCESSLIST` or query pg_stat_activity
+3. Increase `pool_size` temporarily while investigating
+4. Add connection pool metrics to monitoring (see 210d)
+
+**Lifespan event for proper cleanup:**
+```python
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: engine created above
+    yield
+    # Shutdown: dispose pool
+    await engine.dispose()
+
+app = FastAPI(lifespan=lifespan)
+```
+
+### Pool Sizing Rules
+
+- **Development:** Workers 1, pool_size 5, max_overflow 0, Total Max 5
+- **Small (1-2 CPU):** Workers 2-4, pool_size 10, max_overflow 5, Total Max 60
+- **Medium (4-8 CPU):** Workers 4-8, pool_size 20, max_overflow 10, Total Max 240
+- **Large (8+ CPU):** Workers 8+, pool_size 20, max_overflow 10, Total Max per-worker
+
+**Formula:** `total_max = workers × (pool_size + max_overflow)`
+**Constraint:** `total_max` must be less than database `max_connections` (typically 100-200 for PostgreSQL).
+**Rule:** Set `pool_size = max_connections / (2 × workers)` as starting point, then tune based on monitoring.
 
 ## Request/Response Handling and Validation
 
@@ -460,4 +493,71 @@ def add_exception_handlers(app: FastAPI):
 
 Use Pydantic `BaseSettings` for type-safe, environment-based configuration with `.env` file support. Cache with `@lru_cache()` for performance.
 
+```python
+from pydantic_settings import BaseSettings
+
+
+class Settings(BaseSettings):
+    """Application settings loaded from environment."""
+
+    model_config = {"env_prefix": "APP_", "env_file": ".env"}
+
+    database_url: str
+    redis_url: str = "redis://localhost:6379"
+    debug: bool = False
+    api_key: str  # Required — app fails to start if missing
+
+
+settings = Settings()  # Reads from APP_DATABASE_URL, APP_REDIS_URL, etc.
+```
+
+**Rules:**
+- All settings in ONE `Settings` class (no scattered `os.getenv()`)
+- Required settings have no default (fail-fast at startup)
+- Optional settings have sensible defaults
+- Prefix with `env_prefix` to namespace (e.g., `APP_`)
+- Use `.env` file for local development, environment variables for production
+
 For complete configuration patterns including CORS, security settings, and environment-specific config, see **210c-python-fastapi-deployment.md**.
+
+## WebSocket Endpoints
+
+```python
+from fastapi import WebSocket, WebSocketDisconnect
+
+@app.websocket("/ws/{client_id}")
+async def websocket_endpoint(websocket: WebSocket, client_id: str):
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_text(f"Echo: {data}")
+    except WebSocketDisconnect:
+        logger.info(f"Client {client_id} disconnected")
+```
+
+**Rules:**
+- Always handle `WebSocketDisconnect` exception
+- Use `client_id` or token for client identification
+- For broadcast patterns, see **210d-python-fastapi-monitoring.md** for connection management
+
+## Middleware Ordering
+
+Middleware executes in **reverse registration order** (last registered = first executed):
+
+```python
+# Register in this order (most important first):
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+```
+
+**Execution order for request:** GZip, then TrustedHost, then CORS, then Route Handler
+**Execution order for response:** Route Handler, then CORS, then TrustedHost, then GZip
+
+**Rule:** Register security middleware (CORS, TrustedHost) before compression/caching middleware.

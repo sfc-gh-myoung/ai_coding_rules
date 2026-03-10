@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** JavaScript, ES2024, ESM, Node.js, JSDoc, Biome, node:test, Immutability, Async/Await, Functional Programming
-**TokenBudget:** ~4000
+**TokenBudget:** ~4450
 **ContextTier:** High
 **Depends:** 000-global-core.md
 **LoadTrigger:** ext:.js, ext:.jsx, ext:.mjs, ext:.cjs
@@ -164,7 +164,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
 **Investigation Required:**
 1. **Check `package.json`** for `"type": "module"` before writing any code
-2. **Verify Node.js version** (`node -v`) to ensure support for `toSorted` (Node 20+) and `groupBy` (Node 21+)
+2. **Verify Node.js version** (`node -v`) to ensure support for `toSorted` (Node 20+) and `Object.groupBy` (Node 22+ LTS; available in Node 21 non-LTS)
 3. **Scan for existing CommonJS** files (`.cjs`) to ensure interoperability if needed
 4. **Review existing tests** to understand current patterns before adding new ones
 
@@ -317,11 +317,17 @@ console.log(add(2, 3));
  * @returns {Promise<{name: string, email: string}>}
  */
 export async function fetchUser(id) {
- const res = await fetch(`https://api.example.com/users/${id}`);
- if (!res.ok) throw new Error('Failed to fetch');
+ const res = await fetch(`https://api.example.com/users/${encodeURIComponent(id)}`);
+ if (!res.ok) throw new Error('Failed to fetch', { cause: { status: res.status } });
  return res.json();
 }
 ```
+
+> **Note:** Template literals in URL path segments are safe for simple IDs but use `encodeURIComponent()` for user-supplied values. For query parameters, always use `URLSearchParams`:
+> ```javascript
+> const params = new URLSearchParams({ q: userInput, page: '1' });
+> const res = await fetch(`https://api.example.com/search?${params}`);
+> ```
 
 ## Data Manipulation and Immutability
 
@@ -374,9 +380,14 @@ const result = Object.groupBy(inventory, ({ type }) => type);
 // db.js
 import { connect } from 'some-db-driver';
 
-// Allowed in modules
-export const db = await connect(process.env.DB_URL);
+// Allowed in modules — wrap in try/catch if failure should not block all importers
+export const db = await connect(process.env.DB_URL).catch(err => {
+  console.error('Database connection failed:', err.message);
+  process.exit(1);  // Fail fast rather than exporting undefined
+});
 ```
+
+> **Warning:** Top-level await errors propagate as rejected module promises. Any module that imports a failing top-level await module will also fail to load. Wrap critical initialization in try/catch or `.catch()` with explicit failure handling.
 
 ### Structured Error Handling
 - **Always:** Use `cause` property in Errors to preserve stack traces when wrapping errors.
@@ -417,6 +428,11 @@ try {
 - Handles `Date`, `Map`, `Set`, `ArrayBuffer`, and circular references correctly.
 - Does **not** clone functions, DOM nodes, or `Error` objects — use manual copying for those.
 
+**Browser vs Node.js ESM:**
+- In browsers, ESM requires import maps for bare specifiers (`import 'lodash'`). Node.js resolves bare specifiers via `node_modules` automatically.
+- Browsers require file extensions in import paths; Node.js can omit `.js` for local modules (though explicit extensions are recommended for cross-environment compatibility).
+- Test in both environments if targeting universal JavaScript. Use a bundler (Vite, esbuild) to resolve differences for production browser builds.
+
 ## Testing and Tooling
 
 ### Native Test Runner
@@ -434,6 +450,16 @@ describe('Math Utils', () => {
  assert.equal(add(2, 2), 4);
  });
 });
+```
+
+**Run with readable output:**
+```bash
+node --test --test-reporter=spec tests/
+```
+
+**For watch mode during development:**
+```bash
+node --test --watch tests/
 ```
 
 ### Linting with Biome

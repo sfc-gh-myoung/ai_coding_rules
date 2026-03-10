@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** migration, Warehouse Runtime, Container Runtime, environment.yml, pyproject.toml, get_active_session, st.connection, runtime migration
-**TokenBudget:** ~1900
+**TokenBudget:** ~2100
 **ContextTier:** Low
 **Depends:** 101l-snowflake-streamlit-deployment.md
 
@@ -36,6 +36,10 @@ Step-by-step migration from Warehouse Runtime to Container Runtime for existing 
 
 - Existing Streamlit app deployed on Warehouse Runtime
 - Access to create EAI and compute pools
+- Required privileges:
+  - CREATE EXTERNAL ACCESS INTEGRATION privilege
+  - CREATE COMPUTE POOL privilege (or ACCOUNTADMIN)
+  - USAGE on warehouse
 
 ### Mandatory
 
@@ -65,6 +69,8 @@ Migrated Streamlit app running on Container Runtime.
 - App loads without errors on Container Runtime
 - All queries execute correctly
 - Secrets accessible
+
+**Troubleshooting:** If app fails to start on Container Runtime, check compute pool status: `DESCRIBE COMPUTE POOL <name>` -- state must be ACTIVE or IDLE. If SUSPENDED, resume it with `ALTER COMPUTE POOL <name> RESUME`.
 
 ### Post-Execution Checklist
 
@@ -124,7 +130,7 @@ session = conn.session()
 See `101c-snowflake-streamlit-security.md` for detailed secrets migration patterns.
 
 **Summary:**
-- Container Runtime: Use SQL functions to retrieve secrets
+- Container Runtime: Use `SYSTEM$GET_SECRET('secret_name')` in SQL or `SELECT SYSTEM$GET_SECRET('my_secret')` from Python via session.sql()
 - Warehouse Runtime: Can use `_snowflake` module directly
 
 ## Step 4: Set Up Infrastructure
@@ -132,6 +138,13 @@ See `101c-snowflake-streamlit-security.md` for detailed secrets migration patter
 1. Create External Access Integration (see 101l)
 2. Create Compute Pool (see 101l)
 3. Grant necessary permissions
+
+**Verify infrastructure before proceeding:**
+
+```sql
+SHOW COMPUTE POOLS LIKE 'streamlit%';
+DESCRIBE EXTERNAL ACCESS INTEGRATION pypi_access_integration;
+```
 
 ## Step 5: Recreate Streamlit Object
 

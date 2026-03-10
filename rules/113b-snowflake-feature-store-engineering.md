@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:feature-engineering
 **Keywords:** feature engineering, aggregation features, time-based features, recency features, frequency features, monetary features, velocity features, RFM features, windowed aggregations, derived features
-**TokenBudget:** ~2300
+**TokenBudget:** ~2550
 **ContextTier:** Low
 **Depends:** 100-snowflake-core.md, 113-snowflake-feature-store.md
 
@@ -122,7 +122,7 @@ GROUP BY customer_id
 
 - **Rule:** Create ratios and derived metrics to capture relationships
 - **Requirement:** Use `NULLIF` to prevent division by zero errors
-- **Rule:** Normalize features within feature view when model stability requires it
+- **Rule:** Normalize features within feature view when feature ranges differ by >100x (e.g., income in thousands vs. age in decades)
 
 ## Common Feature Patterns (RFM)
 
@@ -151,6 +151,23 @@ SUM(amount) / NULLIF(COUNT(*), 0) AS spend_per_transaction
 -- Compare recent vs. historical behavior
 orders_7d / NULLIF(orders_30d, 0) AS order_acceleration,
 spend_7d - spend_30d AS spend_trend
+-- Edge case: When all windows return 0, velocity ratios will be NULL — handle with COALESCE:
+-- COALESCE(orders_7d / NULLIF(orders_30d, 0), 0) AS order_acceleration
+```
+
+## Feature Validation Commands
+
+- **Always:** Validate feature correctness after creating or updating feature views:
+
+```sql
+-- Check for unexpected NULLs in critical features
+SELECT COUNT(*) AS null_count FROM <feature_view> WHERE <feature_col> IS NULL;
+
+-- Verify value ranges are within expected bounds
+SELECT MIN(<feature_col>), MAX(<feature_col>), AVG(<feature_col>) FROM <feature_view>;
+
+-- Check row counts match expected entity count
+SELECT COUNT(DISTINCT <entity_col>) FROM <feature_view>;
 ```
 
 ## Anti-Patterns and Common Mistakes
@@ -237,3 +254,14 @@ FROM ORDERS
 WHERE order_date >= DATEADD('day', -90, CURRENT_DATE())
 GROUP BY customer_id;
 ```
+
+## Error Recovery
+
+- **If feature view refresh fails:** Check `DYNAMIC_TABLE_REFRESH_HISTORY` for error details:
+  ```sql
+  SELECT * FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(
+    NAME => 'MY_FEATURE_VIEW'
+  )) ORDER BY refresh_start_time DESC LIMIT 5;
+  ```
+- **If refresh shows UPSTREAM_FAILED:** The source table or upstream dynamic table has an error — fix upstream first.
+- **If features return unexpected NULLs:** Verify source data freshness and check for schema changes in upstream tables.

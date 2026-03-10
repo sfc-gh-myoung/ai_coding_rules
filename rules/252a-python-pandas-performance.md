@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:pandas-performance, kw:groupby, kw:merge, kw:memory-optimization
 **Keywords:** pandas performance, memory optimization, dtype, categorical, groupby, merge, join, eval, query, chunking, sparse, thread-safety, multiprocessing
-**TokenBudget:** ~2200
+**TokenBudget:** ~2550
 **ContextTier:** Medium
 **Depends:** 252-python-pandas-core.md
 
@@ -49,8 +49,8 @@ Pandas performance optimization: memory-efficient dtypes, categorical data, grou
 
 ### Mandatory
 
-- **Always:** Optimize dtypes for memory efficiency on large datasets
-- **Always:** Use categorical for repeating string columns
+- **Always:** Optimize dtypes for memory efficiency on datasets >100K rows
+- **Always:** Use categorical for string columns with cardinality <50% of row count
 - **Rule:** Pre-filter before groupby/aggregation
 - **Rule:** Validate merge keys with `validate=` and `indicator=`
 - **Rule:** Use eval()/query() for memory-efficient expressions on large DataFrames
@@ -154,7 +154,7 @@ df['percentage'] = df['percentage'].astype('float32')
 
 ### Categorical Data
 
-Use for columns with repeating string values (massive memory savings):
+Use for columns with repeating string values (up to 90%+ memory savings for low-cardinality columns):
 
 ```python
 # Convert to categorical
@@ -302,4 +302,53 @@ with multiprocessing.Pool(4) as pool:
     chunks = np.array_split(df, 4)
     results = pool.map(worker, chunks)
     df_result = pd.concat(results)
+```
+
+## Error Recovery
+
+### Dtype Conversion Failures
+
+```python
+# Safe dtype conversion with error handling
+try:
+    df['col'] = df['col'].astype('int8')
+except (ValueError, OverflowError):
+    # Values outside int8 range (-128 to 127)
+    df['col'] = pd.to_numeric(df['col'], downcast='integer')
+```
+
+### Merge Key Mismatches
+
+```python
+# Detect merge issues before they cause silent data loss
+result = df1.merge(df2, on='id', how='left', indicator=True)
+unmatched = result[result['_merge'] == 'left_only']
+if len(unmatched) > 0:
+    print(f"WARNING: {len(unmatched)} rows in df1 have no match in df2")
+result = result.drop(columns='_merge')
+```
+
+### Chunked Processing Failures
+
+```python
+# Resilient chunk processing — skip bad chunks instead of failing entirely
+results = []
+for i, chunk in enumerate(pd.read_csv('huge.csv', chunksize=10_000)):
+    try:
+        results.append(chunk['sales'].sum())
+    except Exception as e:
+        print(f"WARNING: Chunk {i} failed: {e}, skipping")
+total = sum(results)
+```
+
+### Empty DataFrame Edge Cases
+
+```python
+# Always guard against empty DataFrames after filtering
+filtered = df.query('status == "active"')
+if filtered.empty:
+    print("No active records found")
+    result = pd.DataFrame(columns=df.columns)  # Return empty with same schema
+else:
+    result = filtered.groupby('category')['sales'].sum().reset_index()
 ```

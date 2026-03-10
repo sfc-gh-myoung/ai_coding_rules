@@ -7,10 +7,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** loadtrigger, dynamic rule loading, rule discovery, file extension trigger, keyword trigger, directory trigger, filename trigger, RULES_INDEX
-**TokenBudget:** ~2100
+**TokenBudget:** ~2400
 **ContextTier:** Medium
 **Depends:** 002-rule-governance.md
 
@@ -51,7 +51,7 @@ LoadTrigger metadata field specification for dynamic rule discovery based on fil
 
 - Adding LoadTriggers to foundation rules (000-series, 001-core, 002-governance)
 - Using LoadTriggers for sub-rules that should be loaded via Depends
-- Using overly generic keywords that match 3+ rules
+- Using overly generic keywords that match 5+ rules across different domain families
 
 ### Execution Steps
 
@@ -178,12 +178,19 @@ LoadTrigger uses four trigger types:
 - Use 2-4 triggers per rule (average: 2.1 based on current data)
 - Combine extension + keyword triggers for language rules
 - Use specific, descriptive keywords
-- Include synonyms for discoverability (e.g., `kw:mock, kw:test-data, kw:faker`)
+- Include synonyms when they represent different search terms users might use.
+  **Useful synonyms:** different words for the same concept (kw:mock, kw:faker — different tools).
+  **Redundant synonyms:** lexical variants of the same word (kw:python, kw:py — same word, shortened).
+  Test: Would a user search for each synonym independently? If yes, keep it. If one synonym
+  is just an abbreviation or variation of another, remove it.
 - Check existing rules for similar triggers to maintain consistency
 
 **DON'T:**
-- Use overly generic keywords that match 3+ rules
-- Duplicate triggers unnecessarily (some overlap is intentional)
+- Use overly generic keywords that match 5+ rules across different domain families.
+  A keyword is overly generic if it matches 5+ rules across 3+ domain families
+  (e.g., `kw:code` matches Python, SQL, and JavaScript families). Overlap within
+  the same domain family (e.g., `kw:testing` matching pytest and unit-testing rules)
+  is intentional and acceptable.
 - Add LoadTriggers to foundation rules (000-series, 001-core, 002-governance)
 - Use LoadTriggers for sub-rules that should be loaded via Depends
 
@@ -268,10 +275,26 @@ When creating or updating a rule, ask:
 4. **Does it guide specific activities?** Add kw: triggers
 5. **Is it highly specialized?** Skip LoadTrigger (on-demand only)
 
-**Refer to:** `docs/loadtrigger_decisions.md` for detailed categorization and rationale for all rules in the repository.
+### Combined Depends + LoadTrigger
 
-**Current Coverage Statistics (as of 2026-01-20, regenerate with `uv run ai-rules index stats`):**
-- Total rules: 122
-- Rules with LoadTrigger: 84 (69%)
-- Average triggers per rule: 2.1
-- Target achieved: 125% (target was 67 rules / 55%)
+Some sub-rules need both a Depends relationship (for ordered loading when parent is loaded)
+AND independent discoverability via LoadTrigger (for direct access without parent).
+
+**When to use both:**
+- The rule has a parent (Depends) but is also useful standalone
+- Example: `002j-rule-examples.md` depends on `002-rule-governance.md` but should also
+  load when a user mentions "example" or "examples" directly
+
+**Configuration:** Set both fields. The AGENTS.md bootstrap loads via LoadTrigger first;
+if the parent is already loaded, Depends ensures correct ordering.
+
+**Refer to:** LoadTrigger choices should be documented in git commit messages or
+in the rule's own metadata comments.
+
+**Coverage Statistics:**
+Run `uv run ai-rules index stats` for current numbers. As of last check:
+- Total rules: ~130+
+- Rules with LoadTrigger: ~85+ (~65-70%)
+- Average triggers per rule: ~2.1
+
+Note: These numbers drift as rules are added. Regenerate before citing.

@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:git, kw:commit, kw:workflow
 **Keywords:** git, commit, commit message, workflow, branching, GitHub, pull requests, feature branches, Conventional Commits, branch naming
-**TokenBudget:** ~2300
+**TokenBudget:** ~3100
 **ContextTier:** Medium
 **Depends:** 800-project-changelog.md, 802-project-contributing.md
 
@@ -71,9 +71,21 @@ Git workflow best practices including commit formatting, branching strategies, P
 Clean git history with semantic commits; properly named branches; complete PR descriptions
 
 ### Validation
-**Pre-Task-Completion Checks:** Git state verified, branch protection checked, validation commands available
 
-**Success Criteria:** Git state passes, branch follows convention, CHANGELOG updated, status checks pass
+**Pre-Task-Completion Checks:**
+- [ ] Git repository initialized with remote: `git remote -v`
+- [ ] Current branch is NOT main/master: `git branch --show-current`
+- [ ] Pre-commit hooks available: `pre-commit --version` or check `.pre-commit-config.yaml`
+- [ ] `task validate` command accessible: `task --list | grep validate`
+- [ ] CHANGELOG.md exists: `ls CHANGELOG.md`
+
+**Success Criteria:**
+- [ ] Git state is clean: `git status --porcelain` returns empty
+- [ ] Branch follows `type/description` convention: `git branch --show-current | grep -E "^(feature|feat|fix|bugfix|hotfix|release|chore|docs|refactor)/"`
+- [ ] CHANGELOG.md updated under `## [Unreleased]`: `grep -A 5 "## \[Unreleased\]" CHANGELOG.md | grep -q .`
+- [ ] All commits use Conventional Commits format: `git log --oneline -5`
+- [ ] Status checks pass: `task validate` exits with code 0
+- [ ] No merge conflicts: `git diff --check` returns empty
 
 ### Design Principles
 - **Feature Branch Workflow:** All changes through feature branches and PR review
@@ -89,6 +101,16 @@ Clean git history with semantic commits; properly named branches; complete PR de
 - [ ] Pre-commit hooks pass (or elevated permissions granted)
 - [ ] Git state validated: `git status --porcelain` returns empty
 - [ ] PR created with clear title and description
+
+### Investigation Required
+
+Before starting git workflow tasks, complete these checks:
+
+1. **Check current branch:** `git branch --show-current` — ensure you are NOT on main/master
+2. **Check existing branch naming conventions:** `git branch -r | grep -oP '^\s*origin/\K[^/]+' | sort -u` — observe what type prefixes the project uses
+3. **Verify pre-commit hook configuration:** `ls .pre-commit-config.yaml .husky/ .git/hooks/pre-commit 2>/dev/null` — identify which hook framework is in use
+4. **Check if CONTRIBUTING.md documents merge strategy:** `grep -i "merge\|squash\|rebase" CONTRIBUTING.md` — understand the project's merge policy
+5. **Verify branch protection status:** `gh api repos/{owner}/{repo}/branches/main/protection 2>/dev/null | head -5` — check if branch protection is configured
 
 ## Anti-Patterns and Common Mistakes
 
@@ -132,6 +154,34 @@ git reset --hard HEAD~3 && git push --force origin main  # WRONG
 **Problem:** Destroys history; breaks collaborators' clones.
 
 **Correct Pattern:** Use `git revert` to undo changes, then push normally.
+
+### Recovery: Accidental Commit on Main
+
+If you accidentally committed to `main` before pushing:
+
+```bash
+# Step 1: Note the commit hash
+git log --oneline -1
+# Output: abc1234 feat(rules): my accidental commit
+
+# Step 2: Undo the commit (keeps your changes staged)
+git reset --soft HEAD~1
+
+# Step 3: Create the proper feature branch
+git checkout -b feature/my-intended-branch
+
+# Step 4: Commit on the correct branch
+git commit -m "feat(rules): my intended commit"
+
+# Step 5: Verify main is clean
+git checkout main
+git log --oneline -3  # Should not contain your commit
+```
+
+**If you already pushed to main:**
+1. Do NOT force push. Create a revert commit: `git revert HEAD`
+2. Push the revert: `git push origin main`
+3. Create a feature branch with the original changes and submit a PR
 
 ### Anti-Pattern 5: Ignoring Pre-Commit Hook Failures
 ```bash
@@ -278,6 +328,25 @@ Choose one strategy per project and document it in CONTRIBUTING.md:
 - **Rebase:** SHOULD use when maintaining a linear history on main is important — rewrites branch commits onto tip of main
 - **Merge commit:** SHOULD use for long-lived branches where preserving branch history and context is valuable
 - **Note:** Whichever strategy is chosen, MUST be applied consistently across the project
+
+### Example: Documenting Merge Strategy in CONTRIBUTING.md
+
+```markdown
+## Merge Strategy
+
+This project uses **squash merge** for all pull requests.
+
+**What this means:**
+- All commits in your PR are combined into a single commit on main
+- The PR title becomes the commit message (must follow Conventional Commits)
+- Your branch commits are preserved in the PR history on GitHub
+
+**How to merge:**
+1. Ensure all checks pass and approvals are obtained
+2. Click "Squash and merge" on GitHub (NOT "Create a merge commit")
+3. Verify the commit message follows Conventional Commits format
+4. Delete the feature branch after merge
+```
 
 ## Merge Conflict Resolution
 

@@ -6,7 +6,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, data generation, backward compatibility, surrogate keys
-**TokenBudget:** ~3300
+**TokenBudget:** ~4350
 **ContextTier:** High
 **LoadTrigger:** kw:data-modeling, kw:dimensional-model, kw:kimball
 **Depends:** 130-snowflake-demo-sql.md, 131-snowflake-demo-creation.md
@@ -252,6 +252,42 @@ CREATE TABLE DIM_GRID_ASSET (
 ) COMMENT = 'Dimension: Grid asset inventory';
 ```
 
+### SCD Patterns for Dimensions
+
+**Type 1 (Overwrite):** Current value only — simplest for demos:
+```sql
+-- MERGE overwrites changed attributes, keeps same PK
+MERGE INTO DIM_GRID_ASSET tgt USING staging src ON tgt.asset_id = src.asset_id
+WHEN MATCHED AND (tgt.operational_status != src.operational_status
+                   OR tgt.asset_name != src.asset_name) THEN
+  UPDATE SET tgt.operational_status = src.operational_status,
+             tgt.asset_name = src.asset_name,
+             tgt.updated_timestamp = CURRENT_TIMESTAMP()
+WHEN NOT MATCHED THEN
+  INSERT (asset_id, asset_name, asset_type, operational_status, created_timestamp)
+  VALUES (src.asset_id, src.asset_name, src.asset_type, src.operational_status, CURRENT_TIMESTAMP());
+```
+
+**Type 2 (History):** Track attribute changes over time with surrogate keys:
+```sql
+CREATE TABLE DIM_CUSTOMER_SCD2 (
+    customer_sk INT AUTOINCREMENT PRIMARY KEY,  -- Surrogate key
+    customer_id VARCHAR(50) NOT NULL,           -- Natural/business key
+    customer_name VARCHAR(100),
+    segment VARCHAR(20),
+    effective_from TIMESTAMP_NTZ NOT NULL,
+    effective_to TIMESTAMP_NTZ DEFAULT '9999-12-31',
+    is_current BOOLEAN DEFAULT TRUE
+) COMMENT = 'Dimension: Customer with SCD Type 2 history';
+
+-- Current-only view for simple queries:
+CREATE VIEW VW_BA_CURRENT_CUSTOMERS AS
+SELECT customer_sk, customer_id, customer_name, segment
+FROM DIM_CUSTOMER_SCD2 WHERE is_current = TRUE;
+```
+
+**Guidance:** Use Type 1 for demo attributes that don't need history (operational_status). Use Type 2 when demos showcase historical analysis (customer segment changes over time).
+
 ### Bridge Table Patterns (Many-to-Many)
 
 **Naming:** `BRIDGE_<entity1>_<entity2>`
@@ -407,3 +443,81 @@ consumption_kwh FLOAT COMMENT 'Total energy in kilowatt-hours',
 operational_status VARCHAR(20) COMMENT 'Values: ACTIVE, FAILED, MAINTENANCE',
 parent_asset_id VARCHAR(50) COMMENT 'References DIM_GRID_ASSET.asset_id'
 ```
+
+## Naming Convention Compliance Check
+
+Run these queries to validate naming conventions after creating demo objects:
+
+```sql
+-- Find tables missing naming convention (no FACT_, DIM_, BRIDGE_, AGG_ prefix)
+SELECT table_name
+FROM INFORMATION_SCHEMA.TABLES
+WHERE table_schema = 'MY_SCHEMA'
+  AND table_type = 'BASE TABLE'
+  AND table_name NOT LIKE 'FACT_%'
+  AND table_name NOT LIKE 'DIM_%'
+  AND table_name NOT LIKE 'BRIDGE_%'
+  AND table_name NOT LIKE 'AGG_%'
+ORDER BY table_name;
+
+-- Find views missing taxonomy prefix
+SELECT table_name AS view_name
+FROM INFORMATION_SCHEMA.VIEWS
+WHERE table_schema = 'MY_SCHEMA'
+  AND table_name NOT LIKE 'VW_BA_%'
+  AND table_name NOT LIKE 'VW_EXEC_%'
+  AND table_name NOT LIKE 'VW_DS_%'
+  AND table_name NOT LIKE 'VW_DE_%'
+  AND table_name NOT LIKE 'VW_REF_%'
+  AND table_name NOT LIKE 'VW_OPS_%'
+ORDER BY view_name;
+
+-- Find columns missing COMMENT
+SELECT table_name, column_name
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE table_schema = 'MY_SCHEMA'
+  AND (comment IS NULL OR comment = '')
+ORDER BY table_name, ordinal_position;
+
+-- Find PKs not following <entity>_id pattern
+SELECT tc.table_name, kcu.column_name
+FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
+  ON tc.constraint_name = kcu.constraint_name
+WHERE tc.constraint_type = 'PRIMARY KEY'
+  AND tc.table_schema = 'MY_SCHEMA'
+  AND kcu.column_name NOT LIKE '%_id'
+ORDER BY tc.table_name;
+```
+
+## Aggregate Tables
+
+Pre-aggregate fact tables for common query patterns to improve demo performance:
+
+**Naming:** `AGG_<grain>_<business_process>` (e.g., `AGG_DAILY_METER_READINGS`, `AGG_MONTHLY_BILLING`)
+
+```sql
+-- Daily aggregate: pre-computed for dashboard queries
+CREATE OR REPLACE TABLE AGG_DAILY_METER_READINGS AS
+SELECT
+    DATE(read_timestamp) AS reading_date,
+    asset_id,
+    customer_id,
+    SUM(consumption_kwh) AS total_consumption_kwh,
+    AVG(demand_kw) AS avg_demand_kw,
+    COUNT(*) AS reading_count
+FROM FACT_METER_READINGS
+GROUP BY reading_date, asset_id, customer_id;
+
+-- Monthly aggregate: executive dashboard grain
+CREATE OR REPLACE TABLE AGG_MONTHLY_ENERGY AS
+SELECT
+    DATE_TRUNC('month', read_timestamp)::DATE AS month_start,
+    COUNT(DISTINCT meter_id) AS active_meters,
+    SUM(consumption_kwh) AS total_kwh,
+    ROUND(SUM(consumption_kwh) / COUNT(DISTINCT meter_id), 2) AS avg_kwh_per_meter
+FROM FACT_METER_READINGS
+GROUP BY month_start;
+```
+
+**When to use:** Create aggregate tables when VW_EXEC_ views are slow due to scanning large fact tables. For demos, pre-build aggregates during setup to ensure fast dashboard queries.

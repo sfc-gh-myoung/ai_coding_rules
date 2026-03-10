@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:changelog, file:CHANGELOG.md
 **Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns, project governance, git workflow, version control
-**TokenBudget:** ~3600
+**TokenBudget:** ~4350
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -304,6 +304,48 @@ Preview:
   The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   ```
+
+### New CHANGELOG.md Creation Template
+
+When creating a CHANGELOG.md for a new project, use this complete template:
+
+```markdown
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [0.1.0] - YYYY-MM-DD
+
+### Added
+- Initial project setup
+
+[Unreleased]: https://github.com/user/repo/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/user/repo/releases/tag/v0.1.0
+```
+
+**Notes:**
+- Pre-populate all 6 standard type headings under `## [Unreleased]` as empty sections
+- Include an initial version entry with project setup
+- Add comparison links at the bottom
+- Replace `user/repo` with actual GitHub repository path
+
 - **Requirement:** Group entries under Keep a Changelog standard types:
   - **Added** for new features
   - **Changed** for changes in existing functionality
@@ -352,7 +394,11 @@ Preview:
 - **MUST** append a new entry under `## [Unreleased]` before marking task complete after ANY code change.
 - **MUST NOT** mark tasks complete without updating CHANGELOG.md for code changes.
 - **MUST** finalize Unreleased on release, add the new version heading, and move entries.
-- **Always:** If available, validate the structure with `scripts/validate_changelog_structure.py`.
+- **Always:** Validate CHANGELOG structure with these deterministic checks:
+  1. Verify `## [Unreleased]` heading exists: `grep -c '## \[Unreleased\]' CHANGELOG.md`
+  2. Verify no duplicate category headings within version blocks
+  3. Verify all entries are under standard Keep a Changelog types
+  4. If `scripts/validate_changelog_structure.py` exists, also run it for comprehensive validation
 - **Exception:** Only skip if user explicitly requests override (acknowledge that changelog will be incomplete).
 
 ### What Constitutes a Change Requiring Changelog Entry
@@ -363,7 +409,7 @@ Preview:
 - **MANDATORY:** Any modification to shell scripts (`.sh`, `.bash`, `.zsh`)
 - **MANDATORY:** Any modification to rule files (`.md` in `ai_coding_rules/`)
 - **MANDATORY:** Any modification to documentation files (`README.md`, `CONTRIBUTING.md`)
-- **Exception:** Changes to CHANGELOG.md itself do not require a separate changelog entry.
+- **Exception:** Changes to CHANGELOG.md itself — including format fixes, backfilling entries, or correcting typos — do not require a separate changelog entry. However, adding entries for other code changes remains mandatory per lines 360-368.
 - **MANDATORY:** New features, bug fixes, refactors, or performance improvements
 - **MANDATORY:** Documentation-only changes (no longer optional - ALWAYS update CHANGELOG.md)
 - **Rationale:** Documentation changes are user-facing and must be tracked for complete audit trail
@@ -420,3 +466,56 @@ Preview:
 - **`changesets`** — Monorepo changelog management with per-package versioning
 - **`git-cliff`** — Highly configurable changelog generator using commit conventions
 - **Note:** Automated tools supplement human-written summaries; MUST review generated entries for user-impact clarity
+
+## Release Workflow
+
+When releasing a new version, follow these exact steps to move entries from Unreleased to a versioned section:
+
+### Step 1: Create Version Heading
+
+```markdown
+## [x.y.z] - YYYY-MM-DD
+```
+
+Replace `x.y.z` with the new version number and `YYYY-MM-DD` with the release date.
+
+### Step 2: Move Entries
+
+Move all entries from `## [Unreleased]` to the new version heading. Remove empty type headings
+(e.g., if no `### Deprecated` entries exist, omit that heading from the release).
+
+### Step 3: Reset Unreleased Section
+
+Leave `## [Unreleased]` empty (or with empty type headings) for future entries.
+
+### Step 4: Update Comparison Links
+
+```markdown
+[Unreleased]: https://github.com/user/repo/compare/vx.y.z...HEAD
+[x.y.z]: https://github.com/user/repo/compare/vprevious...vx.y.z
+```
+
+### Example
+
+Before release:
+```markdown
+## [Unreleased]
+### Added
+- New CLI progress bars
+### Fixed
+- Login failure with special characters
+```
+
+After release:
+```markdown
+## [Unreleased]
+
+## [1.2.0] - 2026-03-09
+### Added
+- New CLI progress bars
+### Fixed
+- Login failure with special characters
+
+[Unreleased]: https://github.com/user/repo/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/user/repo/compare/v1.1.0...v1.2.0
+```

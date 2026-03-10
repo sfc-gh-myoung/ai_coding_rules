@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v4.1.0
+**RuleVersion:** v4.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** st.plotly_chart, st.pydeck_chart, st.altair_chart, dashboard, interactive charts, map visualization, chart types, visualization selection, streamlit plotting
-**TokenBudget:** ~1950
+**TokenBudget:** ~2250
 **ContextTier:** High
 **Depends:** 000-global-core.md, 101-snowflake-streamlit-core.md
 
@@ -48,7 +48,7 @@ Router rule for Streamlit visualization library selection. Provides quick guidan
 
 ### Inputs and Prerequisites
 
-- Streamlit 1.46+ with visualization libraries installed
+- Streamlit 1.50+ with visualization libraries installed
 - Data prepared in pandas DataFrame
 - Chart requirements identified
 
@@ -89,6 +89,12 @@ st.plotly_chart(fig, use_container_width=True)
 - [ ] `use_container_width=True` used on all charts
 - [ ] Clear title and axis labels present
 - [ ] Colorblind-safe colors applied
+
+**Negative Tests -- These patterns should NEVER appear in reviewed code:**
+- Chart rendered without `use_container_width=True` -- FAIL
+- Chart missing title or axis labels -- FAIL
+- >8 PyDeck charts on single page -- FAIL
+- PyDeck used for simple 2D scatter map -- FAIL
 
 ### Post-Execution Checklist
 
@@ -141,6 +147,10 @@ st.plotly_chart(fig, use_container_width=True)
 **3D map:** PyDeck `HexagonLayer`, `ColumnLayer`
 **Linked views:** Altair with `selection_interval()`
 
+### Multi-Library Composition
+
+When requirements span libraries (e.g., linked brushing + maps), use one library per visual section. Plotly and Altair can coexist on the same page. Limit PyDeck to dedicated map sections due to WebGL constraints. Do not mix Altair and Plotly for the same data view -- pick one per visual component.
+
 ## Universal Best Practices
 
 **Empty Data Check:** Before rendering any chart, check: `if df.empty: st.info('No data available for this view'); return`
@@ -172,6 +182,8 @@ st.pydeck_chart(pdk.Deck(layers=[layer], initial_view_state=view))
 ```python
 SAFE_COLORS = ['#0173B2', '#DE8F05', '#029E73', '#D55E00', '#CC78BC']
 ```
+
+**Accessibility:** For charts with critical data, include a data table alternative using `st.dataframe()` below the chart for screen reader access.
 
 **Coordinate Validation (Maps):**
 ```python
@@ -234,5 +246,23 @@ st.plotly_chart(fig, width=800, height=600)
 
 **Correct Pattern:**
 ```python
+st.plotly_chart(fig, use_container_width=True)
+```
+
+### Anti-Pattern 3: Missing Chart Labels
+
+**Problem:**
+```python
+fig = px.bar(df, x='category', y='value')
+st.plotly_chart(fig, use_container_width=True)
+```
+
+**Why It Fails:** Charts without titles or axis labels are unreadable in dashboards. Users cannot understand what the data represents.
+
+**Correct Pattern:**
+```python
+fig = px.bar(df, x='category', y='value',
+             title='Sales by Category',
+             labels={'category': 'Product Category', 'value': 'Revenue ($)'})
 st.plotly_chart(fig, use_container_width=True)
 ```

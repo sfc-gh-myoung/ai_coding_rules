@@ -6,7 +6,7 @@
 **RuleVersion:** v4.0.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Typer, CLI development, command-line interface, click, argument parsing, typer.Argument, typer.Option, rich console, exit codes
-**TokenBudget:** ~3500
+**TokenBudget:** ~4300
 **ContextTier:** High
 **Depends:** 200-python-core.md
 **LoadTrigger:** kw:typer, kw:cli
@@ -102,11 +102,16 @@ Python CLI application with:
 - `uv run pytest tests/cli/` passes all CLI tests
 - `myapp --help` displays comprehensive help text
 - Error conditions return appropriate exit codes
+- `uv run myapp --help` displays all commands with descriptions
+- `uv run myapp <command> --help` displays all options with types and defaults
+- Console scripts work: `myapp` is callable after `uv sync`
 
 **Negative Tests:**
 - Command without exit code handling (should always return 0 even on failure)
 - Missing type annotations (should lack auto-validation)
 - Hardcoded paths (should fail on other machines)
+- Conflicting short options (e.g., two commands using `-h`)
+- Mutable default value on command parameter (must use `typer.Option(default_factory=list)`)
 
 ### Design Principles
 
@@ -114,6 +119,15 @@ Python CLI application with:
 - **Type Safety:** Annotated parameters for auto-validation and help
 - **Separation of Concerns:** CLI layer thin, business logic separate
 - **User Experience:** Clear help text, progress feedback, error messages
+
+> **Investigation Required**
+> Before modifying or creating CLI commands, the agent MUST:
+> 1. Read existing CLI structure — check for existing Typer app instances in cli/, commands/, or main.py
+> 2. Check `pyproject.toml` for existing `[project.scripts]` console script entry points
+> 3. Verify current argument patterns — Annotated style vs legacy `typer.Argument()` positional style
+> 4. Read existing command modules to match naming conventions and command group structure
+> 5. Check for existing short option conflicts (e.g., `-h`, `-v`, `-o`) before adding new options
+> 6. Never add duplicate commands or conflicting short options to an existing CLI app
 
 ### Post-Execution Checklist
 
@@ -365,6 +379,99 @@ def risky_operation(
         handle_processing_error(Exception("Permission denied"), "Check file permissions")
     except Exception as e:
         handle_processing_error(e, "Unexpected error occurred")
+```
+
+### Signal Handling
+
+For long-running CLI operations, register signal handlers to ensure clean exit:
+
+```python
+import signal
+from contextlib import contextmanager
+
+@contextmanager
+def graceful_shutdown():
+    """Context manager for clean Ctrl+C handling in long-running operations."""
+    original_sigint = signal.getsignal(signal.SIGINT)
+    original_sigterm = signal.getsignal(signal.SIGTERM)
+    shutdown_requested = False
+
+    def handler(signum, frame):
+        nonlocal shutdown_requested
+        if shutdown_requested:
+            # Second signal — force exit
+            raise typer.Exit(code=130)
+        shutdown_requested = True
+        err_console.print("\n[yellow]Shutdown requested. Finishing current item...[/yellow]")
+
+    signal.signal(signal.SIGINT, handler)
+    signal.signal(signal.SIGTERM, handler)
+    try:
+        yield lambda: shutdown_requested
+    finally:
+        signal.signal(signal.SIGINT, original_sigint)
+        signal.signal(signal.SIGTERM, original_sigterm)
+
+
+@app.command()
+def batch_process(
+    directory: Annotated[Path, typer.Argument(help="Directory to process")],
+) -> None:
+    """Process all files in a directory with graceful shutdown support."""
+    with graceful_shutdown() as should_stop:
+        for path in sorted(directory.iterdir()):
+            if should_stop():
+                err_console.print("[yellow]Stopped early. Partial results saved.[/yellow]")
+                raise typer.Exit(code=130)
+            process_single_file(path)
+```
+
+**Key rules:**
+- Exit code 130 = SIGINT (standard Unix convention)
+- First Ctrl+C requests graceful shutdown; second forces exit
+- Always restore original handlers in `finally` block
+- Use a context manager to avoid leaking signal state
+
+### Shell Completion
+
+Typer includes built-in shell completion. Enable it in the app constructor:
+
+```python
+app = typer.Typer(
+    add_completion=True,  # Default is True
+    rich_markup_mode="rich",
+)
+```
+
+To install completions for a user:
+
+```bash
+# Bash
+myapp --install-completion bash
+# Zsh
+myapp --install-completion zsh
+# Fish
+myapp --install-completion fish
+```
+
+For custom completion of dynamic values (e.g., database names, remote hosts):
+
+```python
+def complete_project_name(incomplete: str) -> list[str]:
+    """Return matching project names for shell completion."""
+    projects = ["web-app", "api-server", "cli-tool", "data-pipeline"]
+    return [p for p in projects if p.startswith(incomplete)]
+
+
+@app.command()
+def deploy(
+    project: Annotated[
+        str,
+        typer.Argument(help="Project name", autocompletion=complete_project_name),
+    ],
+) -> None:
+    """Deploy a project."""
+    ...
 ```
 
 ## Packaging and Distribution

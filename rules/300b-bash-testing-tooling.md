@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:bash-testing, kw:bats
 **Keywords:** Bash, testing, ShellCheck, bats, shell script testing, CI/CD, debugging, static analysis, linting, test automation
-**TokenBudget:** ~3200
+**TokenBudget:** ~3600
 **ContextTier:** Medium
 **Depends:** 300-bash-scripting-core.md
 
@@ -55,7 +55,7 @@ Comprehensive bash testing, debugging, and modern tooling integration including 
 - CI/CD integration for automated testing
 - Debug mode implementation for troubleshooting
 - Pre-commit hooks for quality checks
-- Test coverage for critical functions
+- Test coverage for critical functions (functions that: (a) modify files or state, (b) handle user input, (c) interface with external systems, or (d) manage credentials)
 
 ### Forbidden
 
@@ -102,7 +102,7 @@ Testing infrastructure with:
 - CI/CD pipeline green on latest commit
 - Debug mode produces useful trace output
 - Error paths tested and verified
-- Test coverage documented (>80% for critical functions)
+- Test coverage documented (>80% for critical functions: state-modifying, input-handling, external-interfacing, credential-managing)
 
 ### Design Principles
 
@@ -141,15 +141,28 @@ for f in $(ls *.txt); do  # SC2045: Iterating over ls output
 done
 
 # GOOD: ShellCheck in CI/CD pipeline
-# .github/workflows/lint.yml
-- name: ShellCheck
-  run: shellcheck scripts/*.sh
+shellcheck --severity=warning scripts/*.sh
+shellcheck --format=gcc scripts/*.sh
+```
 
-# Or pre-commit hook
+```yaml
+# .github/workflows/lint.yml
+name: Shell Lint
+on: [push, pull_request]
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@2.0.0
+```
+
+```yaml
 # .pre-commit-config.yaml
 repos:
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.9.0.6
+    rev: v0.9.0
     hooks:
       - id: shellcheck
 ```
@@ -420,7 +433,7 @@ profile() {
 
 ## CI/CD Integration
 
-### CI/CD Integration
+### CI/CD Pipeline Configuration
 - **Rule:** Automate testing:
 ```yaml
 # .github/workflows/shell.yml
@@ -456,6 +469,12 @@ show_coverage() {
 
 ## Development Environment Setup
 
+### Tool Version Requirements
+
+- **ShellCheck 0.8.0+** — Install: `apt install shellcheck` or `brew install shellcheck`
+- **Bats 1.5.0+** — Install: `npm install -g bats` or `brew install bats-core`
+- **Node.js 14+** — Required only if installing Bats via npm
+
 ### Setup Checklist
 - Install ShellCheck via package manager (`apt-get install shellcheck`, `brew install shellcheck`, or Docker)
 - Install Bats: `npm install -g bats` or `brew install bats-core`
@@ -463,3 +482,14 @@ show_coverage() {
 - Create project structure: `mkdir -p {src,tests,scripts,docs}`
 - Set up pre-commit hook for ShellCheck (see CI/CD Integration section above)
 - Create test template in `tests/` directory using framework from Testing Frameworks section
+
+### Missing Tool Fallbacks
+
+**If ShellCheck is unavailable:**
+1. Install via Docker: `docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable scripts/*.sh`
+2. Install via package manager: `apt install shellcheck` / `brew install shellcheck` / `dnf install ShellCheck`
+3. If installation is not possible: Document as manual review requirement and add `# shellcheck disable=` comments for known issues
+
+**If Bats is unavailable:**
+1. Use the Simple Testing Framework from the Testing Frameworks section as a lightweight alternative
+2. Install via package manager: `brew install bats-core` / `apt install bats`

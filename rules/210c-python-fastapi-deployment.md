@@ -4,10 +4,10 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:fastapi-deployment
 **Keywords:** FastAPI deployment, Uvicorn, Gunicorn, ASGI, Docker, production deployment, health checks, multi-stage build, OpenAPI, API documentation
-**TokenBudget:** ~3550
+**TokenBudget:** ~4250
 **ContextTier:** High
 **Depends:** 210-python-fastapi-core.md
 
@@ -40,6 +40,17 @@ Establish production deployment patterns and API documentation practices for Fas
 - Understanding of ASGI server architecture (Uvicorn, Gunicorn)
 - Knowledge of Docker containerization
 - Access to deployment environment (cloud, on-premise)
+- Python version requirements:
+  - **Minimum:** Python 3.11 (for `datetime.UTC`, `tomllib`, improved error messages)
+  - **Recommended:** Python 3.12 (for better error messages, `type` statement, faster startup)
+  - **Docker base image:** Match the Python version used in development:
+    ```bash
+    # Check local version
+    python --version  # e.g., Python 3.12.7
+    # Use matching Docker image
+    FROM python:3.12.7-slim-bookworm
+    ```
+  - **Never** use a newer Python in Docker than in development (may introduce incompatibilities)
 
 ### Mandatory
 
@@ -170,7 +181,12 @@ Before modifying any deployment configuration, check the existing setup:
 1. **Dockerfile** - Read existing Dockerfile for base image, build stages, and installed dependencies
 2. **gunicorn/uvicorn config** - Check for gunicorn.conf.py or uvicorn CLI flags already in use
 3. **docker-compose** - Review docker-compose.yml for service definitions, volumes, and environment variables
-4. Do NOT overwrite working configurations—extend or adjust them
+4. **Target platform** - Identify: Docker standalone, Kubernetes, AWS ECS, serverless (Lambda/Cloud Run)
+5. **CI/CD pipeline** - Check existing build/push/deploy steps
+6. **Python version** - Check current Python version in production vs development
+7. **Container registry** - Check registry (Docker Hub, ECR, GCR, GHCR) and authentication
+8. Do NOT overwrite working configurations—extend or adjust them
+9. Never change deployment configuration without testing in staging first
 
 ## API Documentation
 
@@ -379,8 +395,8 @@ certfile = os.getenv("SSL_CERTFILE")
 - **Always:** Use specific base image versions, not 'latest'.
 
 ```dockerfile
-# Dockerfile
-FROM python:3.11-slim as builder
+# Dockerfile — pin exact versions, never use :latest
+FROM python:3.12.7-slim-bookworm as builder
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -394,8 +410,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+# Install uv — pin version, never use :latest
+COPY --from=ghcr.io/astral-sh/uv:0.5 /uv /usr/local/bin/uv
 
 # Set work directory
 WORKDIR /app
@@ -409,7 +425,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN uv sync --frozen --no-dev
 
 # Production stage
-FROM python:3.11-slim as production
+FROM python:3.12.7-slim-bookworm as production
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -484,6 +500,73 @@ services:
 volumes:
   postgres_data:
 ```
+
+### Container Resource Limits
+
+Always set resource limits in production:
+
+```yaml
+# docker-compose.yml (production)
+services:
+  api:
+    image: myapp:v1.2.3
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "512M"
+        reservations:
+          cpus: "0.5"
+          memory: "256M"
+```
+
+**Kubernetes:**
+```yaml
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "250m"
+  limits:
+    memory: "512Mi"
+    cpu: "1000m"
+```
+
+**Sizing guidance:**
+
+- **API only:** Memory 256-512MB, CPU 0.5-1, Workers 2-4
+- **API + ML model:** Memory 1-2GB, CPU 1-2, Workers 1-2
+- **API + heavy DB:** Memory 512MB-1GB, CPU 1-2, Workers 2-4
+
+### Health Check Endpoint
+
+Every FastAPI deployment must have a health check endpoint:
+
+```python
+from fastapi import FastAPI, status
+from fastapi.responses import JSONResponse
+
+@app.get("/health", status_code=status.HTTP_200_OK)
+async def health_check():
+    """Health check for load balancers and container orchestrators."""
+    return {"status": "healthy"}
+
+
+@app.get("/health/ready")
+async def readiness_check(db: AsyncSession = Depends(get_db)):
+    """Readiness check — verifies database connectivity."""
+    try:
+        await db.execute(text("SELECT 1"))
+        return {"status": "ready", "database": "connected"}
+    except Exception:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"status": "not ready", "database": "disconnected"},
+        )
+```
+
+**Two endpoints:**
+- `/health` — Liveness: app process is running (always returns 200)
+- `/health/ready` — Readiness: app can serve traffic (checks dependencies)
 
 ## Integration with Core Rules
 

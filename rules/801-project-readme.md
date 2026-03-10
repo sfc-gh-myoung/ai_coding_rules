@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing
-**TokenBudget:** ~3950
+**TokenBudget:** ~4450
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 **LoadTrigger:** kw:readme, kw:documentation, file:README.md
@@ -90,7 +90,10 @@ Markdown file (README.md) with:
 - All code examples syntactically correct and tested
 - All links working and pointing to current resources
 - Badges reflect current project status
-- Language is clear, inclusive, and professional
+- Language passes readability check: Flesch-Kincaid grade level ≤12
+- No jargon used without definition on first occurrence
+- No gendered pronouns (use "they/them" or rephrase)
+- No slang, colloquialisms, or culture-specific idioms
 
 **Success Criteria:**
 - README.md validates with markdown linter
@@ -153,6 +156,45 @@ npm start
 **Next Steps:** See [Configuration](#configuration) for customization options.
 ````
 
+#### Platform-Specific Troubleshooting
+
+If commands differ between macOS, Linux, and Windows, show the primary platform first
+with a collapsible `<details>` block for alternatives. Always specify which OS was tested.
+
+**Example:**
+````markdown
+## Quick Start
+
+**Tested on:** macOS 14, Ubuntu 22.04
+
+```bash
+# Clone and install
+git clone https://github.com/org/repo.git
+cd repo
+npm install
+```
+
+<details>
+<summary>Windows instructions</summary>
+
+```powershell
+git clone https://github.com/org/repo.git
+cd repo
+npm install
+```
+
+**Note:** Use PowerShell, not Command Prompt. If `npm install` fails, try running
+as Administrator or use `npm install --no-optional`.
+
+</details>
+````
+
+**Key Principles:**
+- State which OS was tested in the Quick Start header
+- Use `<details>` for alternative platforms — keeps primary path clean
+- Include platform-specific error resolutions
+- Never assume a single platform without stating it
+
 ### Anti-Pattern 2: Duplicating CONTRIBUTING.md Content in README
 
 **Problem:** Including detailed development workflow, environment setup, and contribution guidelines in README instead of linking to CONTRIBUTING.md.
@@ -189,6 +231,16 @@ npm start
 - If broken: check service docs for new URL format, update redirects, or migrate to shields.io
 - Use shields.io for custom badges (stable, maintained service)
 - Test badges in pull request validation
+
+### Investigation Required
+
+Before modifying any README.md, complete these checks:
+
+1. **Check if README.md exists:** `ls README.md` — if missing, use the Required Sections template (line 249)
+2. **Identify project type:** Check `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, or `Gemfile` for actual tech stack
+3. **Verify current badges are functional:** `grep -oP 'https://[^)]+\.svg' README.md | xargs -I{} curl -f -s -o /dev/null {}`
+4. **Check CONTRIBUTING.md exists:** `ls CONTRIBUTING.md` — if present, verify no content duplication per Content Boundaries pattern
+5. **Identify target audience:** Check if project is library (API docs needed), application (setup docs needed), or framework (tutorial needed)
 
 ## Implementation Details
 
@@ -489,7 +541,9 @@ For internal/private project READMEs, also consider:
 
 ## README Anti-Patterns to Avoid
 
+> **Note:** See also [Anti-Patterns and Common Mistakes](#anti-patterns-and-common-mistakes) for detailed patterns with Problem/Correct format.
+
 - **Empty sections with "TODO" placeholders** — Remove sections until content is ready rather than leaving stubs
-- **Screenshots without text alternatives** — Always include descriptive text alongside visual content
-- **Installation instructions that skip prerequisites** — List all required tools and versions before commands
-- **"Just run `npm install`" without explaining what the project does** — Always lead with project purpose
+- **Screenshots without text alternatives** — Always include descriptive text alongside visual content (see also Accessibility, line 475)
+- **Installation instructions that skip prerequisites** — List all required tools and versions before commands (see AP1)
+- **"Just run `npm install`" without explaining what the project does** — Always lead with project purpose (see AP3)

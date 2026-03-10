@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:notebook, kw:jupyter
 **Keywords:** ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, create notebook, debug notebook, notebook execution, notebook testing, notebook deployment, kernel management, cell execution
-**TokenBudget:** ~3850
+**TokenBudget:** ~4450
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 201-python-lint-format.md
 
@@ -86,11 +86,15 @@ Snowflake account access; Snowpark for Python environment; Jupyter notebook envi
 
 ### Execution Steps
 
-1. Validate environment and dependencies
-2. Implement descriptive cell naming conventions
-3. Structure notebook with proper Markdown documentation
-4. Push computation to Snowflake via Snowpark
-5. Refactor production code to separate files
+1. Set up environment: configure warehouse, install packages via Packages panel
+2. Validate dependencies: pin versions, verify Snowpark connectivity
+3. Implement descriptive cell naming conventions (`action_subject` format)
+4. Structure notebook with proper Markdown documentation between code sections
+5. Centralize all imports in a single top cell
+6. Push computation to Snowflake via Snowpark DataFrames
+7. Test deterministic execution: "Restart Kernel & Run All" must succeed
+8. Lint with `uvx nbqa ruff notebooks/` for production-bound notebooks
+9. Refactor production code to separate `.py`/`.sql` files when notebook exceeds 500 lines
 
 ### Output Format
 
@@ -160,6 +164,43 @@ connection = snowflake.connector.connect(
 # Or use Streamlit secrets: st.secrets["snowflake"]["password"]
 ```
 
+### Anti-Pattern 3: Using pip install in Notebook Cells
+
+**Problem:** Installing packages with `pip install` or `!pip install` in notebook cells instead of using the Snowflake Notebook Packages panel.
+
+**Why It Fails:** `pip install` in cells is not persistent across kernel restarts in Snowflake Notebooks, creates inconsistent environments, and may conflict with pre-installed packages. The Packages panel ensures reproducible dependency management.
+
+**Correct Pattern:**
+```python
+# BAD: pip install in cells
+!pip install pandas==2.0.0
+!pip install scikit-learn
+
+# GOOD: Use the Packages panel in Snowflake Notebook settings
+# Navigate to notebook settings > Packages > Add package with version pin
+# Packages are managed at the notebook level and persist across sessions
+```
+
+### Anti-Pattern 4: Pulling Entire Tables Locally with .to_pandas()
+
+**Problem:** Converting large Snowpark DataFrames to pandas DataFrames for processing that could be done in Snowflake.
+
+**Why It Fails:** Transfers large datasets to the notebook's local compute, causing memory errors, slow performance, and unnecessary egress costs. Snowpark pushes computation to Snowflake's distributed engine.
+
+**Correct Pattern:**
+```python
+# BAD: Pull entire table locally for filtering
+df = session.table("LARGE_TABLE").to_pandas()  # 10M rows to local memory
+result = df[df['status'] == 'active'].groupby('region').sum()
+
+# GOOD: Filter and aggregate in Snowpark, then collect small result
+result = (session.table("LARGE_TABLE")
+    .filter(col("STATUS") == "active")
+    .group_by("REGION")
+    .agg(sum("AMOUNT").alias("TOTAL"))
+    .to_pandas())  # Only collect the small aggregated result
+```
+
 ## Post-Execution Checklist
 - [ ] All cells have descriptive, user-friendly names (not cell1, cell2, etc.)
       Verify: Open notebook in Snowsight > Projects > Notebooks > [notebook name] > Check left sidebar cell names should follow action_subject format
@@ -167,7 +208,7 @@ connection = snowflake.connector.connect(
       Verify: Review cell names in notebook left panel. Should be "load_customer_data", not "LoadCustomerData" or "Load Customer Data"
 - [ ] Environment and dependencies properly configured and pinned with exact versions
       Verify: Check packages section in notebook settings. Versions should be pinned with == (e.g., pandas==2.0.0, not pandas>=2.0)
-- [ ] **CRITICAL:** `uvx nbqa ruff notebooks/` passes with zero errors
+- [ ] **REQUIRED:** `uvx nbqa ruff notebooks/` passes with zero errors
       Verify: Run command in terminal. Must show "All checks passed!" or 0 errors, no E/W/F violations
 - [ ] **CRITICAL:** `uvx nbqa ruff format --check notebooks/` passes
       Verify: Run command in terminal. Must show "n files would be left unchanged" or no formatting changes needed
@@ -210,7 +251,8 @@ session = snowpark.Session.builder.configs(connection_params).create()
 customers_df = session.table("CUSTOMERS").select(
     col("CUSTOMER_ID"),
     col("CUSTOMER_NAME"),
-    col("REGISTRATION_DATE")
+    col("REGISTRATION_DATE"),
+    month(col("REGISTRATION_DATE")).alias("REGISTRATION_MONTH")
 )
 
 # Cell: calculate_monthly_metrics
@@ -319,6 +361,20 @@ When adding cells programmatically or copying from other notebooks, ensure metad
 - **Always:** Follow the rules in `100-snowflake-core.md` for performant, cost-effective queries.
 - **Requirement:** For large datasets, push computation to Snowflake via Snowpark DataFrames; avoid large local pulls.
 - **Requirement:** Refactor production-ready code out of the notebook into `.py` or `.sql` files; notebooks serve as reports or exploratory tools.
+
+## Notebook Scheduling
+
+For automated notebook execution, convert notebooks to Snowflake Tasks. See `104-snowflake-streams-tasks.md` for task scheduling patterns.
+
+```sql
+-- Schedule notebook execution via Snowflake Task
+CREATE OR REPLACE TASK run_daily_notebook
+  WAREHOUSE = COMPUTE_WH
+  SCHEDULE = 'USING CRON 0 6 * * * America/Los_Angeles'
+  COMMENT = 'Daily execution of analytics notebook'
+AS
+  EXECUTE NOTEBOOK "DB"."SCHEMA"."MY_NOTEBOOK"();
+```
 
 ## Snowflake Notebooks UI Patterns
 

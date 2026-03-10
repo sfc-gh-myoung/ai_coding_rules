@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
 **Keywords:** validation, type checking, linting, formatting, pytest, ruff, ty, mypy, pre-task, gate, syntax
-**TokenBudget:** ~2200
+**TokenBudget:** ~3050
 **ContextTier:** High
 **Depends:** 200-python-core.md
 **LoadTrigger:** kw:validate, kw:type-check, kw:lint
@@ -52,6 +52,42 @@ The mandatory Pre-Task-Completion Validation Gate for all Python tasks: linting,
 - Marking tasks complete without running the validation gate
 - Using bare `# type: ignore` without a specific error code
 - Skipping tests unless user explicitly requests override
+
+### Pre-Commit Hook Integration
+
+Automate validation with pre-commit hooks:
+
+```yaml
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: type-check
+        name: Type Check (ty)
+        entry: uvx ty check src/
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: pytest-quick
+        name: Quick Tests
+        entry: uv run pytest -x -q --no-header
+        language: system
+        types: [python]
+        pass_filenames: false
+```
+
+**Install hooks:**
+```bash
+uv add --group dev pre-commit
+uv run pre-commit install
+uv run pre-commit run --all-files  # Verify setup
+```
 
 ### Execution Steps
 
@@ -131,9 +167,58 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 ### Design Principles
 
 - **Zero Tolerance:** All checks must pass with 0 errors
-- **Toolchain Respect:** Use project's detected toolchain for all commands
 - **Immediate Feedback:** Run validation after each modification, not in batches
 - **No Silent Failures:** Every check failure must be addressed before task completion
+
+### Validation Failure Recovery
+
+When validation fails, follow this sequence:
+
+1. **Lint failures:** Run `uv run ruff check . --fix` to auto-fix. Review changes before committing.
+2. **Format failures:** Run `uv run ruff format .` to auto-format. Always safe to auto-apply.
+3. **Type check failures:**
+   - Read the error message carefully — ty/mypy errors are precise
+   - Add type annotations to untyped parameters
+   - Use `assert isinstance(x, Type)` to narrow types instead of `# type: ignore`
+   - If genuinely unfixable: `# type: ignore[specific-error]` with comment explaining why
+4. **Test failures:**
+   - Run failing test in isolation: `uv run pytest path/to/test.py::test_name -vvs`
+   - Check if failure is pre-existing: `git stash && uv run pytest path/to/test.py::test_name`
+   - Fix the code, not the test (unless test itself is wrong)
+5. **Multiple failures:** Fix in order: format, then lint, then type check, then tests (each may resolve downstream issues)
+
+### CI/CD Pipeline Configuration
+
+Replicate the validation gate in CI:
+
+```yaml
+# .github/workflows/validate.yml
+name: Python Validation Gate
+on: [push, pull_request]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+      - run: uv sync --frozen
+      - name: Lint
+        run: uv run ruff check .
+      - name: Format Check
+        run: uv run ruff format --check .
+      - name: Type Check
+        run: uvx ty check src/
+      - name: Tests
+        run: uv run pytest --tb=short -q
+```
+
+**Key principles:**
+- Use `--frozen` to prevent lockfile changes in CI
+- Run lint before tests (faster feedback)
+- Use `--check` flags (don't auto-fix in CI)
 
 ### Post-Execution Checklist
 
@@ -170,17 +255,17 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
 **When to Use ty vs mypy:**
 
-**Use ty for:**
-- NEW projects without legacy mypy configuration
-- Standard type checking (fast, no setup required)
-- CI/CD pipelines (consistent, isolated execution)
-- Projects using Astral toolchain (uv + ruff + ty)
+- **Speed:** ty is ~100x faster (Rust-based); mypy is slower (Python, incremental caching helps)
+- **Config:** ty has zero-config by default; mypy requires `mypy.ini` or `pyproject.toml`
+- **Plugin support:** ty has none (as of 2026); mypy has rich plugin ecosystem (django-stubs, sqlalchemy-stubs)
+- **Strictness:** ty is strict by default; mypy is configurable (`--strict`, `--disallow-untyped-defs`)
+- **Install:** ty uses `uvx ty check src/`; mypy uses `uv run mypy src/`
+- **Best for:** ty suits new projects with fast feedback; mypy suits Django/SQLAlchemy projects needing stubs
 
-**Use mypy for:**
-- EXISTING projects already using mypy
-- Projects with mypy plugins (ty doesn't support plugins yet)
-- Django/SQLAlchemy projects (mypy has better stub support)
-- Maximum strictness needed (mypy has more configuration options)
+**Decision:**
+- **New projects:** Use ty (faster, simpler)
+- **Existing projects:** Match existing type checker
+- **Django/SQLAlchemy:** Use mypy with stubs until ty supports plugins
 
 **Configuration in pyproject.toml:**
 ```toml
@@ -205,6 +290,14 @@ strict = true
   # GOOD - specific error code + reason
   result = some_untyped_lib()  # type: ignore[no-untyped-call]  # third-party lib has no stubs
   ```
+
+> **Investigation Required:**
+> Before running validation:
+> 1. Check which type checker the project uses (ty, mypy, pyright)
+> 2. Check pyproject.toml for existing lint/format/type-check configuration
+> 3. Check for `.pre-commit-config.yaml` — if present, use `pre-commit run` instead of manual commands
+> 4. Check for CI configuration (`.github/workflows/`) — local validation should match CI
+> 5. Check if project has custom Ruff rules or ignores that affect validation
 
 ## Anti-Patterns and Common Mistakes
 

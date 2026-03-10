@@ -8,7 +8,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks, warehouse creation
 **TokenBudget:** ~4350
@@ -50,14 +50,14 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 - **119-snowflake-warehouse-management.md** - Warehouse sizing, types, and configuration
 
 **Related:**
-- **101-snowflake-streamlit-core.md** - Streamlit UI development on Snowflake
-- **102-snowflake-sql-core.md** - General SQL file patterns
-- **104-snowflake-streams-tasks.md** - Incremental pipelines with Streams + Tasks
-- **106-snowflake-semantic-views-core.md** - View layering and naming conventions
-- **107-snowflake-security-governance.md** - Security policies and governance
-- **108-snowflake-data-loading.md** - Data loading patterns (COPY INTO)
-- **121-snowflake-snowpipe.md** - Continuous ingestion with Snowpipe
-- **123-snowflake-object-tagging.md** - Object tagging for governance
+- **101-snowflake-streamlit-core.md** `[Available]` - Streamlit UI development on Snowflake
+- **102-snowflake-sql-core.md** `[Available]` - General SQL file patterns
+- **104-snowflake-streams-tasks.md** `[Available]` - Incremental pipelines with Streams + Tasks
+- **106-snowflake-semantic-views-core.md** `[Available]` - View layering and naming conventions
+- **107-snowflake-security-governance.md** `[Available]` - Security policies and governance
+- **108-snowflake-data-loading.md** `[Available]` - Data loading patterns (COPY INTO)
+- **121-snowflake-snowpipe.md** `[Available]` - Continuous ingestion with Snowpipe
+- **123-snowflake-object-tagging.md** `[Available]` - Object tagging for governance
 
 ### External Documentation
 
@@ -129,40 +129,22 @@ SELECT customer_id, num_orders, total_amount FROM agg;
 
 Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
-**Code Quality:**
+**Checklist:**
 - **CRITICAL:** All queries use explicit column selection (no `SELECT *`)
 - **CRITICAL:** WHERE clauses applied early to reduce scan size
 - **CRITICAL:** VARIANT fields parsed once in dedicated CTE
 - **CRITICAL:** No `DISTINCT` used for deduplication (use `ROW_NUMBER()` with `QUALIFY`)
-- **Format Check:** SQL keywords in UPPERCASE for consistency
-- **Object Naming:** Follows DDL naming conventions
-
-**Performance:**
 - **CRITICAL:** Query Profile reviewed for performance bottlenecks
 - **CRITICAL:** Partition pruning and early filtering confirmed
-- **CRITICAL:** Minimal data movement verified
-
-**Security and Governance:**
 - **CRITICAL:** Row Access Policies or Dynamic Data Masking applied for PII
+- **Format Check:** SQL keywords in UPPERCASE for consistency
+- **Object Naming:** Follows DDL naming conventions
 - **Resource Monitors:** Configured for cost governance
 - **Warehouse Config:** Follows `119-snowflake-warehouse-management.md`
-
-**Incremental Processing:**
-- **Where Applicable:** Streams and Tasks used for mutable large tables (see Quantification Standards)
+- **Incremental:** Streams and Tasks used for mutable large tables where applicable (see Quantification Standards)
 - **Idempotency:** MERGE operations handle late arrivals and duplicates
 
-**Success Criteria:**
-- Query Profile shows pruning and minimized data movement
-- No `SELECT *` in production code
-- Incremental pattern present for mutable facts
-- Security policies applied where needed
-
-**Validation Protocol:**
-- **Rule:** Run Query Profile after implementation
-- **Rule:** Verify explicit columns in all queries
-- **Rule:** Confirm early filtering and partition pruning
-
-**Negative Tests — These patterns should NEVER appear in reviewed code:**
+**Negative Tests -- These patterns should NEVER appear in reviewed code:**
 - `SELECT *` in any production query
 - `DISTINCT` used for deduplication (use `QUALIFY ROW_NUMBER()` instead)
 - Repeated VARIANT parsing without CTE extraction
@@ -174,18 +156,6 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 3. **Never speculate about table structures or data types**
 4. **Check Query Profile for actual performance characteristics**
 5. **Make grounded recommendations based on investigated schema and data**
-
-**Anti-Pattern Examples:**
-- Using `SELECT *` in production queries
-- Parsing VARIANT fields multiple times across clauses
-- Full table scans when incremental processing is viable
-- `DISTINCT` for deduplication instead of `QUALIFY ROW_NUMBER()`
-
-**Correct Pattern:**
-- "Let me check your table structure first."
-- [reads table definitions, examines Query Profile]
-- "I see you're working with semi-structured data. Here's how to optimize VARIANT parsing..."
-- [implements CTE-based extraction, validates with Query Profile]
 
 ### Post-Execution Checklist
 
@@ -220,6 +190,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **Incremental Processing:** Use Streams + Tasks for mutable large tables (see Quantification Standards)
 - **Security by Design:** Enforce governance with masking policies, row access, and tagging
 - **Query Profiling:** Always use Query Profile to validate performance assumptions
+- **Timestamp Types:** Use TIMESTAMP_NTZ for event timestamps (UTC-normalized), TIMESTAMP_LTZ for user-facing display, TIMESTAMP_TZ when source preserves time zone. Default to TIMESTAMP_NTZ for data warehouse patterns.
 
 ## Error Recovery
 
@@ -300,6 +271,8 @@ GROUP BY customer_id, customer_name;
 
 **Handle NULL VARIANT values:** Use `COALESCE(raw_json:customer:id::STRING, 'UNKNOWN')` or `NULLIF` to convert empty strings. Always account for missing keys in semi-structured data.
 
+**Note:** Parsing VARIANT in a WHERE clause within the extraction CTE is acceptable (necessary for filtering before extraction). The rule prohibits re-parsing the same VARIANT path in multiple downstream CTEs or clauses.
+
 **Benefits:** Parse once; reuse values; lower CPU; faster queries; fewer credits; efficient; better performance; professional
 
 ### Anti-Pattern 3: Not Using Streams and Tasks for Incremental Processing
@@ -354,6 +327,8 @@ USING (
 ) src
 ON tgt.customer_id = src.customer_id AND tgt.hour = src.hour
 WHEN MATCHED THEN UPDATE SET total_amount = tgt.total_amount + src.total_amount
+-- NOTE: For non-additive metrics (averages, count distinct), use full replacement:
+-- WHEN MATCHED THEN UPDATE SET total_amount = src.total_amount
 WHEN NOT MATCHED THEN INSERT (customer_id, hour, total_amount)
   VALUES (src.customer_id, src.hour, src.total_amount);
 

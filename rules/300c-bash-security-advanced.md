@@ -45,8 +45,8 @@ Advanced bash security patterns covering privilege management, resource limits, 
 
 - Core security patterns from 300a-bash-security.md understood
 - Scripts already have basic security (input validation, quoted variables, no eval)
-- Understanding of privilege models (root, sudo, file ownership)
-- Knowledge of target system's network exposure
+- Understand EUID values (0=root), sudo delegation, and file ownership (`stat -c '%U' file`)
+- Knowledge of target system's network exposure (listening ports, firewall rules, inbound access)
 
 ### Mandatory
 
@@ -136,11 +136,7 @@ deploy() {
 echo "Login failed" >> /var/log/app.log
 
 # GOOD: Structured security logging with context
-audit_log() {
-    local event="$1" details="$2"
-    local msg="[$(date -u '+%Y-%m-%dT%H:%M:%SZ')] EVENT=$event USER=${USER:-unknown} PID=$$ DETAILS=$details"
-    echo "$msg" >> "${LOG_FILE:-/var/log/audit.log}"
-}
+# GOOD: Use audit_log() — see Secure Logging section for implementation
 audit_log "AUTH_FAILURE" "source_ip=$remote_ip username=$attempted_user"
 ```
 
@@ -171,10 +167,13 @@ drop_privileges() {
 - **Rule:** Set resource limits for scripts processing external data:
 ```bash
 set_limits() {
-    ulimit -t 300     # CPU time (seconds)
-    ulimit -v 1048576 # Memory (1GB in KB)
-    ulimit -n 1024    # Open files
-    ulimit -c 0       # Disable core dumps (prevent secret leaks)
+    ulimit -t 300      # CPU seconds (SIGXCPU on exceed, then SIGKILL)
+    ulimit -v 1048576  # 1GB memory (allocation fails, script exits)
+    ulimit -n 1024     # Open files (EMFILE error on open/socket)
+    ulimit -c 0        # No core dumps (security: prevents credential leaks)
+
+    # Trap SIGXCPU for graceful shutdown when CPU limit approached
+    trap 'echo "CPU limit reached — shutting down" >&2; exit 152' XCPU
 }
 ```
 
@@ -213,8 +212,9 @@ process_user_data() {
 validate_url() {
     local url="$1"
     [[ "$url" =~ ^https?:// ]] || { echo "Invalid URL scheme" >&2; return 1; }
-    [[ ! "$url" =~ localhost|127\.0\.0\.1|0\.0\.0\.0 ]] || {
-        echo "Localhost/internal URLs blocked" >&2; return 1
+    # Block localhost (IPv4, IPv6, hostname) and cloud metadata endpoints
+    [[ ! "$url" =~ (localhost|\[::1\]|127\.|0\.0\.0\.0|169\.254\.) ]] || {
+        echo "Blocked: internal/metadata URL" >&2; return 1
     }
 }
 ```
@@ -293,6 +293,7 @@ test_security() {
             ((failed++))
         fi
     done
-    [[ $failed -eq 0 ]] && echo "PASS: All malicious inputs rejected"
+    [[ $failed -eq 0 ]] && echo "All security tests passed" || echo "$failed security test(s) failed" >&2
+    return $failed
 }
 ```

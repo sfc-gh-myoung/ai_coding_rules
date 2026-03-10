@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, AAA pattern, test markers, uv run pytest, unit test, unit tests
-**TokenBudget:** ~3850
+**TokenBudget:** ~4700
 **ContextTier:** High
 **Depends:** 000-global-core.md, 200-python-core.md, 201-python-lint-format.md, 203-python-project-setup.md
 **LoadTrigger:** kw:test, kw:pytest, kw:coverage
@@ -81,6 +81,12 @@ Pragmatic, industry-standard testing practices with pytest to produce fast, reli
 - Shared mutable fixtures
 - Excessive mocking of internal implementation details (do not mock >3 private methods [_prefix] or module-level functions not in the public API per test; prefer testing through public interfaces)
 - Skipping tests without explicit user override
+  - Valid skip reasons:
+    1. **Platform-specific:** `@pytest.mark.skipif(sys.platform == "win32", reason="Unix-only feature")`
+    2. **Missing dependency:** `@pytest.mark.skipif(not HAS_REDIS, reason="Redis not installed")`
+    3. **Known bug with ticket:** `@pytest.mark.skip(reason="BUG-1234: Flaky due to race condition, fix in progress")`
+    4. **Environment-specific:** `@pytest.mark.skipif(not os.getenv("CI"), reason="Only runs in CI")`
+  - Invalid skip reasons: "TODO: fix later", "Flaky" without a ticket, bare `@pytest.mark.skip()` without `reason=`
 
 ### Execution Steps
 
@@ -132,6 +138,15 @@ uv run pytest -q
 uv run pytest -m "unit and not slow"
 uv run pytest --cov=yourpkg --cov-report=term-missing
 ```
+
+### Post-Execution Checklist
+
+- [ ] All tests pass (`uv run pytest` returns 0)
+- [ ] Code quality checks pass (`uvx ruff check .` and `uvx ruff format --check .`)
+- [ ] Tests follow AAA pattern (Arrange-Act-Assert)
+- [ ] Fixtures are small, explicit, and function-scoped by default
+- [ ] No bare `pytest` commands used (always `uv run pytest`)
+- [ ] No skipped tests without explicit justification
 
 ### Validation
 
@@ -205,6 +220,31 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **Isolate Externalities:** Patch environment, clock, filesystem, and network
 - **Selective Execution:** Use markers to include/exclude categories in different pipelines
 - **Visibility:** Capture logs and stdout/stderr when helpful; ensure `__repr__` is informative
+
+## Flaky Test Protocol
+
+When a test passes and fails intermittently:
+
+1. **Identify:** Run the test 10 times to confirm flakiness:
+   ```bash
+   uv run pytest tests/test_suspect.py::test_name --count=10 -x
+   # Requires: uv add --dev pytest-repeat
+   ```
+
+2. **Classify the cause:**
+   - **Race condition (Fails under load or parallel):** Add locks or make test sequential (`@pytest.mark.serial`)
+   - **Time dependency (Fails near midnight/DST):** Use `freezegun` or `time-machine` to freeze time
+   - **Resource leak (Fails late in suite):** Add proper teardown in fixture
+   - **External service (Fails on network issues):** Mock the external call or use `vcr.py`
+
+3. **Fix or quarantine** — never leave flaky tests unmarked:
+   ```python
+   @pytest.mark.xfail(reason="BUG-1234: Race condition in cache invalidation", strict=False)
+   def test_cache_update():
+       ...
+   ```
+
+4. **Track:** Every `xfail` must have a ticket number. Review quarantined tests weekly.
 
 ### Post-Execution Checklist
 
@@ -320,7 +360,13 @@ def test_user_session(database, test_user):
 
 ## Fixture Patterns and Best Practices
 - Rule: Prefer function-scoped fixtures; use module/session scope only for setup taking >1 second (e.g., database connections, large file generation, external service initialization).
-- Rule: Avoid `autouse=True` except for universally required safety (e.g., environment isolation).
+- Rule: Only use `autouse=True` fixtures for these specific cases:
+  1. **Database cleanup:** Rollback/truncate after each test to prevent test pollution
+  2. **Temporary directory:** Create and clean up temp files
+  3. **Environment variable reset:** Restore `os.environ` after tests that modify it
+  4. **Freeze time:** Reset mocked time (when using `freezegun` or `time-machine`)
+  
+  **Never use `autouse=True` for:** Test data setup (use explicit fixtures), logging configuration, mock setup (be explicit about what's mocked).
 - Rule: Keep fixtures single-responsibility; compose instead of nesting complex dependency trees.
 
 ```python
@@ -356,6 +402,20 @@ def test_email_validation(email: str, valid: bool) -> None:
     assert ("@" in email) is valid
 ```
 
+### Parametrize Best Practices
+- Rule: Always provide `ids=` for parametrized tests to make failure output readable.
+- Rule: Limit parameter sets to ≤10 per test. If you need more, split into separate test functions or use `pytest.param` with marks:
+  ```python
+  @pytest.mark.parametrize("input_val,expected", [
+      pytest.param("valid", True, id="happy-path"),
+      pytest.param("", False, id="empty-string"),
+      pytest.param(None, False, id="none-value", marks=pytest.mark.xfail),
+  ])
+  def test_validation(input_val, expected):
+      assert validate(input_val) is expected
+  ```
+- Rule: Group related parameters into tuples or dataclasses rather than having >3 separate parametrize arguments.
+
 ## Test Isolation and Mocking
 - Rule: Control randomness with a fixed seed in setup; inject RNG where possible.
 - Rule: Freeze or stub clocks for time-dependent code; avoid `time.sleep` in tests.
@@ -374,7 +434,12 @@ def _seed_rng():
 ## Resource-Aware Testing
 - Rule: Use `tmp_path` (auto-cleanup) for disk-intensive tests to prevent leftover artifacts.
 - Rule: Use `pytest-timeout` for long-running tests to prevent CI hangs: `@pytest.mark.timeout(30)`.
-- Rule: Document expected resource usage in test docstrings when tests consume significant memory or disk.
+- Rule: Mark slow tests with `@pytest.mark.slow` based on these thresholds:
+  - **Unit tests:** >500ms is slow (expected: <100ms each)
+  - **Integration tests:** >5s is slow (expected: <2s each)
+  - **E2E tests:** >30s is slow (expected: <10s each)
+  
+  Run without slow tests for fast feedback: `uv run pytest -m "not slow"`
 
 ## Test Markers and Selection
 - Rule: Define markers in `pyproject.toml` (or `pytest.ini`) with descriptions.

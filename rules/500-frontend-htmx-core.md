@@ -8,11 +8,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:htmx, kw:frontend
 **Keywords:** htmx attributes, client-side, events, css transitions, debugging, browser compatibility, hx-get, hx-post, hx-swap, hx-trigger, hx-target
-**TokenBudget:** ~3400
+**TokenBudget:** ~3800
 **ContextTier:** Low
 **Depends:** 000-global-core.md
 
@@ -129,6 +129,13 @@ HTML with HTMX attributes:
 - [ ] Tested in all target browsers
 - [ ] No console errors
 
+> **Investigation Required**
+> When applying this rule:
+> 1. Check if HTMX is already loaded (search for `<script src` containing `htmx`)
+> 2. Identify HTMX version (1.x vs 2.0) — check `htmx.version` in console or script URL
+> 3. Scan for existing HTMX patterns (`hx-get`, `hx-post`, `hx-swap`) to match conventions
+> 4. Verify CSRF middleware is configured on the backend if using cookie-based auth
+
 ## Key Principles
 
 ### Core HTMX Attributes
@@ -235,11 +242,11 @@ HTML with HTMX attributes:
     Update
 </button>
 
-<!-- Include all inputs in parent -->
+<!-- Include all inputs in parent container -->
 <div>
     <input name="field1">
     <input name="field2">
-    <button hx-post="/save" hx-include="previous input, previous input">
+    <button hx-post="/save" hx-include="closest div">
         Save
     </button>
 </div>
@@ -369,6 +376,14 @@ document.body.addEventListener('htmx:beforeSwap', function(event) {
         event.detail.target = document.getElementById('error-div');
     }
 });
+
+// Empty response handling: 200 with empty body clears target with innerHTML swap
+// Use hx-swap="none" for fire-and-forget, or return empty-state HTML from server
+document.body.addEventListener('htmx:beforeSwap', function(event) {
+    if (event.detail.xhr.status === 200 && !event.detail.xhr.responseText.trim()) {
+        event.detail.shouldSwap = false;  // Prevent clearing the target
+    }
+});
 ```
 
 **Custom Events (Server-Triggered):**
@@ -487,7 +502,16 @@ Use `hx-boost="true"` on navigation links and forms to convert standard requests
 
 ### Server-Sent Events (SSE) and WebSockets
 
-For real-time updates, use the official [SSE extension](https://htmx.org/extensions/sse/) (`hx-ext="sse"`) or [WebSocket extension](https://htmx.org/extensions/ws/) (`hx-ext="ws"`). These extensions MUST be loaded separately from `htmx.org/dist/ext/`.
+For real-time updates, use the official SSE or WebSocket extensions. Load separately from `htmx.org/dist/ext/`.
+
+```html
+<!-- SSE: Server pushes updates to client -->
+<div hx-ext="sse" sse-connect="/events" sse-swap="message">
+    <!-- Content updates when server sends SSE "message" event -->
+</div>
+```
+
+See [SSE extension docs](https://htmx.org/extensions/sse/) and [WebSocket extension docs](https://htmx.org/extensions/ws/) for configuration options.
 
 ## HTMX 2.0 Changes
 

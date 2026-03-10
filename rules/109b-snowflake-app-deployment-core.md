@@ -8,7 +8,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:app-deployment, kw:deploy
 **Keywords:** CREATE NOTEBOOK, stages, deployment automation, SiS, deploy app, deployment pipeline, app publishing, deployment patterns, deploy to snowflake, stage deployment, production deployment, app versioning, automated deployment
@@ -57,11 +57,11 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 - `ROOT_LOCATION` in CREATE must match actual stage file paths
 - Taskfile.yml automation (no manual Snowsight UI deployments)
 - SQL scripts stored in version control, not inline in YAML
-- Snowflake CLI minimum version: 3.12+ (`uvx --from=snowflake-cli>=3.12 snow`)
+- Snowflake CLI minimum version: 3.12+ (`uvx --from=snowflake-cli>=3.12 snow`) — verify against [Snowflake CLI releases](https://docs.snowflake.com/en/developer-guide/snowflake-cli/index) for latest requirements
 
 ### Forbidden
 - Manual file uploads via Snowsight UI (not reproducible)
-- Hardcoded credentials in automation scripts
+- Hardcoded credentials in automation scripts. Use environment variables or Snowflake CLI connection configuration (`~/.snowflake/connections.toml`). Never embed credentials in Taskfile.yml or SQL scripts.
 - Deployment without version control
 - Mixing deployment modes (don't deploy same app to multiple stages)
 
@@ -100,7 +100,7 @@ See detailed Post-Execution Checklist below for comprehensive deployment validat
 **Anti-Pattern 1: Skipping REMOVE Step**
 ```sql
 -- Bad: Only PUT + CREATE without REMOVE
-PUT file://@~/apps/my_app.py @apps_stage/my_app AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+PUT file://./apps/my_app.py @apps_stage/my_app AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 CREATE STREAMLIT my_app ROOT_LOCATION = '@apps_stage/my_app';
 ```
 **Problem:** Stale files from previous deployments remain on stage, causing import errors and version conflicts.
@@ -109,7 +109,7 @@ CREATE STREAMLIT my_app ROOT_LOCATION = '@apps_stage/my_app';
 ```sql
 -- Good: Always REMOVE before PUT
 REMOVE @apps_stage/my_app;
-PUT file://@~/apps/my_app.py @apps_stage/my_app AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+PUT file://./apps/my_app.py @apps_stage/my_app AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 CREATE STREAMLIT my_app ROOT_LOCATION = '@apps_stage/my_app';
 ```
 **Benefits:** Clean slate for each deployment; no version conflicts; predictable state.
@@ -117,14 +117,14 @@ CREATE STREAMLIT my_app ROOT_LOCATION = '@apps_stage/my_app';
 **Anti-Pattern 2: Using AUTO_COMPRESS=TRUE**
 ```sql
 -- Bad: Default AUTO_COMPRESS causes import errors
-PUT file://@~/apps/*.py @apps_stage/my_app AUTO_COMPRESS=TRUE;
+PUT file://./apps/*.py @apps_stage/my_app AUTO_COMPRESS=TRUE;
 ```
 **Problem:** Snowflake compresses .py files to .py.gz, breaking Python imports with `TypeError: expected str, bytes or os.PathLike object, not NoneType`.
 
 **Correct Pattern:**
 ```sql
 -- Good: Explicitly disable compression for Python files
-PUT file://@~/apps/*.py @apps_stage/my_app AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+PUT file://./apps/*.py @apps_stage/my_app AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 ```
 **Benefits:** Python imports work correctly; no compression-related errors.
 
@@ -351,6 +351,8 @@ Directory structure for `project/`:
 
 **Key structure:** Each application needs 5 tasks: `upload`, `create`, `drop`, `remove`, `deploy` (which runs drop, remove, upload, create in order).
 
+> **CI/CD integration:** Taskfile tasks can be called directly from GitHub Actions or GitLab CI pipelines. See **109i-snowflake-app-deployment-advanced.md** for environment-specific deployment patterns.
+
 ## Deployment Validation
 
 ### Post-Deployment Checklist
@@ -384,5 +386,9 @@ uvx snow sql -q "SHOW NOTEBOOKS IN SCHEMA DB.SCHEMA;"
 - **Total deployment:** < 15 seconds
 
 ## Advanced Patterns
+
+### Rollback Strategy
+
+If deployment fails: re-deploy the previous version using the same 5-step workflow with the previous file versions. For quick rollback, keep the last known-good files in a `_backup/` directory on your local machine and re-run `task deploy:app` pointing to those files.
 
 > For multi-environment deployment (dev/qa/prod), deployment with validation gates, and rollback/recovery procedures, see **109i-snowflake-app-deployment-advanced.md**.

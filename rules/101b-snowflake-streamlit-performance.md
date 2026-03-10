@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** @st.cache_data, @st.cache_resource, st.fragment, NULL handling, slow streamlit, streamlit caching, optimize streamlit, fix slow queries, fragment batch processing, streamlit performance, app slow, loading data, caching pattern
 **TokenBudget:** ~4950
@@ -28,9 +28,9 @@ Comprehensive guidance for optimizing Streamlit application performance through 
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns and session management
-- **103-snowflake-performance-tuning.md** - Snowflake query optimization
+- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns and session management `[Available]`
+- **103-snowflake-performance-tuning.md** - Snowflake query optimization `[Available]`
 
 **Related:**
 - **101e-snowflake-streamlit-sql-errors.md** - Comprehensive SQL error handling patterns
@@ -166,7 +166,7 @@ df = load_data()  # Hits database every time
 @st.cache_data(ttl=600)
 def load_data():
     df = session.table('LARGE_TABLE').to_pandas()
-    df.columns = [col.lower() for col in df.columns]  # See "Caching Strategies" section
+    df.columns = [col.lower() for col in df.columns]  # See "Data Loading from Snowflake" section
     return df
 
 df = load_data()  # Cached, hits database once per ttl
@@ -251,7 +251,7 @@ def load_data() -> pd.DataFrame:
             """
             df = session.sql(query).to_pandas()
 
-            # CRITICAL: Normalize column names
+            # CRITICAL: Normalize column names (see "Data Loading from Snowflake" section)
             df.columns = [col.lower() for col in df.columns]
 
         return df
@@ -327,7 +327,7 @@ def load_grid_assets() -> pd.DataFrame:
     session = get_snowflake_session()
     df = session.table('UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS').to_pandas()
 
-    # Apply column normalization (see Output Format Examples section)
+    # Apply column normalization (see "Data Loading from Snowflake" section)
     df.columns = [col.lower() for col in df.columns]
 
     return df
@@ -403,6 +403,8 @@ for _, row in metrics_df.iterrows():
 
 **Cache corruption recovery:** Call `st.cache_data.clear()` to force full refresh. For user-triggered refresh, add button: `if st.button('Refresh Data'): st.cache_data.clear(); st.rerun()`
 
+**Cache and deployments:** Cache is cleared on app redeployment. First load after deployment will be slower as caches rebuild. For zero-downtime deployments, pre-warm caches with a startup query in your main script before rendering UI.
+
 **Memory pressure:** If DataFrame exceeds 100MB, use server-side pagination (`LIMIT/OFFSET` in SQL) or Snowpark lazy evaluation instead of `.to_pandas()`. Monitor with `df.memory_usage(deep=True).sum()`.
 
 ## Data Loading from Snowflake - Critical Column Name Normalization
@@ -413,6 +415,15 @@ for _, row in metrics_df.iterrows():
 - **Always:** Normalize column names to lowercase immediately after loading data from Snowflake
 - **Rule:** Apply normalization in data loader functions, not in UI code, to ensure consistency
 
+**Recommended Utility:**
+```python
+def normalize_sf_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize Snowflake DataFrame column names to lowercase."""
+    df.columns = [c.lower() for c in df.columns]
+    return df
+```
+Use this utility in all data loader functions instead of inline normalization. Define once in a shared module and import everywhere.
+
 **Problem:**
 ```python
 # This will fail with KeyError: 'asset_type'
@@ -420,11 +431,11 @@ df = session.table('GRID_ASSETS').to_pandas()
 transformers = df[df['asset_type'] == 'TRANSFORMER']  # KeyError!
 ```
 
-**Solution — apply column normalization pattern (see Caching section above):**
+**Solution:**
 ```python
 # CORRECT - Normalize column names to lowercase
 df = session.table('UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS').to_pandas()
-df.columns = [col.lower() for col in df.columns]  # Critical!
+df = normalize_sf_df(df)  # Critical!
 transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
 ```
 
@@ -435,8 +446,7 @@ def load_grid_assets() -> pd.DataFrame:
     """Load grid assets with lowercase column names."""
     session = get_snowflake_session()
     df = session.table('UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS').to_pandas()
-    df.columns = [col.lower() for col in df.columns]  # Normalize here, not in UI
-    return df
+    return normalize_sf_df(df)  # Normalize here, not in UI
 ```
 
 **MANDATORY:**
@@ -496,12 +506,13 @@ Covers: `@st.fragment(run_every=...)`, session state persistence, conditional re
 
 **Anti-Pattern:**
 ```python
-# Inefficient: N+1 query problem
+# BAD: N+1 query problem AND SQL injection vulnerability
 for region in regions:
+    # NEVER DO THIS -- injectable f-string SQL
     df = session.sql(f"SELECT * FROM sales WHERE region = '{region}'").to_pandas()
     process(df)
 ```
-**WARNING:** This is also a SQL injection risk. Use parameterized queries (`session.sql('SELECT ... WHERE region = ?', params=[region])`) or Snowpark filter methods instead.
+**WARNING:** This pattern has two problems: (1) N+1 queries causing massive performance degradation, and (2) SQL injection risk from f-string interpolation. Use parameterized queries (`session.sql('SELECT ... WHERE region = ?', params=[region])`) or Snowpark filter methods instead.
 
 **Correct:**
 ```python
@@ -514,7 +525,7 @@ def load_all_sales() -> pd.DataFrame:
     GROUP BY region, product
     """
     df = session.sql(query).to_pandas()
-    df.columns = [col.lower() for col in df.columns]  # Apply column normalization
+    df.columns = [col.lower() for col in df.columns]  # See "Data Loading from Snowflake" section
     return df
 
 df = load_all_sales()  # Single query, cached

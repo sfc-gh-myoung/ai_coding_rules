@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
 **Keywords:** virtual environment, venv, uv, poetry, pip, pipenv, uvx, tool isolation, ModuleNotFoundError, environment setup, dependency management
-**TokenBudget:** ~2100
+**TokenBudget:** ~3000
 **ContextTier:** High
 **Depends:** 200-python-core.md
 **LoadTrigger:** kw:venv, kw:virtual-environment, kw:uv, kw:poetry
@@ -227,6 +227,110 @@ pip install -r requirements-dev.txt
 - Activate: `source .venv/bin/activate` (Unix) or `.venv\Scripts\activate` (Windows)
 - Install: `pip install -r requirements.txt`
 
+**Conda/Mamba Projects:**
+
+If conda is detected (`environment.yml` or `conda-lock.yml` present), adapt commands:
+
+```bash
+# Detect conda environment
+conda info --envs
+conda list  # Check installed packages
+
+# Activate environment
+conda activate project_env
+
+# Install packages (prefer conda-forge)
+conda install -c conda-forge pandas numpy
+
+# For pip-only packages within conda
+pip install --no-deps package_name  # --no-deps prevents conflicts
+
+# Export environment
+conda env export --from-history > environment.yml
+```
+
+**Key rule:** In conda projects, use `conda install` for packages with C extensions (numpy, pandas, scipy). Use `pip install --no-deps` only for pure-Python packages not on conda-forge.
+
+### Exporting Requirements
+
+When a `requirements.txt` is needed (Docker, legacy CI, deployment):
+
+```bash
+# From uv (preferred — deterministic)
+uv pip compile pyproject.toml -o requirements.txt
+uv pip compile pyproject.toml --extra dev -o requirements-dev.txt
+
+# From poetry
+poetry export -f requirements.txt -o requirements.txt --without-hashes
+
+# From pip (least reproducible)
+pip freeze > requirements.txt  # Includes ALL packages — review before committing
+```
+
+**Rules for requirements.txt:**
+- Always pin exact versions: `requests==2.31.0` not `requests>=2.31`
+- Regenerate after every `uv add` / `uv remove`
+- Never manually edit — always regenerate from pyproject.toml
+- Add to `.gitignore` if using lockfile-based workflow (uv.lock is the source of truth)
+- Keep in git if deployment requires it (Docker, Heroku)
+
+### Virtual Environment Health Check
+
+Run these checks when environment issues occur:
+
+```bash
+# 1. Verify correct Python is active
+which python          # Should point to .venv/bin/python
+python --version      # Should match pyproject.toml requires-python
+
+# 2. Verify virtual environment
+echo $VIRTUAL_ENV     # Should be set to project's .venv path
+pip list --format=freeze | head -5  # Quick check of installed packages
+
+# 3. Verify key packages
+python -c "import pkg; print(pkg.__version__)"  # Test specific imports
+
+# 4. Full environment rebuild (nuclear option)
+rm -rf .venv
+uv sync               # Recreate from lockfile
+```
+
+**When to rebuild:**
+- Python version mismatch between system and `.venv`
+- Corrupted packages after interrupted install
+- Moving project to new machine
+- Switching between uv/poetry/pip toolchains
+
+### Docker Environment Integration
+
+When Python projects run in Docker:
+
+```dockerfile
+# Use uv in Docker for fast installs
+FROM python:3.12-slim
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Copy dependency files first (cache layer)
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies (no venv needed in container)
+RUN uv sync --frozen --no-dev --no-editable
+
+# Copy application code
+COPY src/ src/
+
+# Run with uv
+CMD ["uv", "run", "python", "-m", "myapp"]
+```
+
+**Key rules for Docker:**
+- Copy `pyproject.toml` and `uv.lock` before source code (Docker layer caching)
+- Use `--frozen` to prevent lockfile changes
+- Use `--no-dev` to exclude dev dependencies
+- No virtual environment needed inside containers (use `--no-editable`)
+
 ## Troubleshooting Environment Issues
 
 **ModuleNotFoundError diagnosis:**
@@ -256,6 +360,15 @@ pip install -r requirements-dev.txt
 - **Always:** Include environment setup tasks with status checks to avoid redundant operations
 - **Always:** Prefer `task validate` (or `task check` / `task ci`) when Taskfile.yml exists, falling back to direct tool commands otherwise
 - **Documentation:** Provide setup instructions appropriate for project's chosen toolchain
+
+> **Investigation Required:**
+> Before modifying environment:
+> 1. Read pyproject.toml for toolchain (uv, poetry, pip)
+> 2. Check for lockfiles (uv.lock, poetry.lock, conda-lock.yml)
+> 3. Verify virtual environment location (.venv, conda env)
+> 4. Check for `environment.yml` — if present, project uses conda
+> 5. Check for `.python-version` — pyenv may manage Python versions
+> 6. Check for `Dockerfile` — may need requirements.txt export
 
 ## Anti-Patterns and Common Mistakes
 

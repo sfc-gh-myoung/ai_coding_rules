@@ -317,11 +317,17 @@ def test_login_page(client):
 
 ### Rate Limiting
 ```python
+# extensions.py
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-limiter = Limiter(get_remote_address, app=app, default_limits=["200 per day", "50 per hour"])
+limiter = Limiter(get_remote_address, default_limits=["200 per day", "50 per hour"])
 
+# In create_app():
+limiter.init_app(app)
+```
+
+```python
 @app.route("/api/data")
 @limiter.limit("10 per minute")
 def get_data():

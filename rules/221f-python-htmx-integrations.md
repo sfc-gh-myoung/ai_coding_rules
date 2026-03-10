@@ -4,9 +4,9 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.0
-**LastUpdated:** 2026-01-06
+**LastUpdated:** 2026-03-09
 **Keywords:** alpinejs, hyperscript, tailwind, bootstrap, css frameworks, icon libraries, chartjs, frontend libraries, client-side enhancements, htmx integration, javascript frameworks
-**TokenBudget:** ~3900
+**TokenBudget:** ~4150
 **ContextTier:** Low
 **Depends:** 221-python-htmx-core.md
 
@@ -62,8 +62,8 @@ Integration patterns for using HTMX with popular frontend libraries and framewor
 
 - jQuery (not recommended with HTMX)
 - Heavy JavaScript frameworks (React, Vue, Angular)
-- Conflicting event handlers
-- Global state in JavaScript
+- Multiple `htmx:afterSwap` listeners that initialize the same plugin type (e.g., two separate listeners both calling `new bootstrap.Tooltip(...)`) — consolidate into a single listener with conditional checks per plugin type
+- Unmanaged global state in JavaScript — use scoped registries (e.g., `let chartInstances = {}`) for lifecycle management of third-party library instances. Avoid arbitrary global variables for application data.
 
 ### Execution Steps
 
@@ -119,6 +119,49 @@ Integration patterns for using HTMX with popular frontend libraries and framewor
 - [ ] No console errors after HTMX swaps
 - [ ] Integration tested with multiple swap operations
 - [ ] No conflicts between HTMX and frontend libraries
+
+> **Investigation Required**
+> Before adding frontend library integrations, the agent MUST:
+> 1. Check which frontend libraries are already in the project — never add a library that conflicts with an existing one
+> 2. Read existing `base.html` script and CSS loading order — add new libraries in the correct position
+> 3. Check for existing `htmx:afterSwap` event listeners — extend the existing listener rather than creating a duplicate
+> 4. Determine if Alpine.js or _hyperscript is already chosen — **do not use both** in the same project
+> 5. Check existing chart library (Chart.js vs D3.js vs Plotly) — don't introduce a second charting library
+> 6. Verify CDN vs self-hosted strategy — match the project's existing approach
+
+### Choosing Alpine.js vs _hyperscript
+
+- **Stateful UI (dropdowns, modals, tabs):** Alpine.js — `x-data` provides reactive state management
+- **Stateless animations (fade, remove):** _hyperscript — inline `_="..."` keeps simple behavior close to HTML
+- **SSE event routing to multiple elements:** Alpine.js — SSE manager pattern requires state
+- **Simple class toggling:** _hyperscript — `on click toggle .active on me` is more readable
+
+**Rule:** Choose one for the project. If the project already uses one, use the same. If starting fresh, choose Alpine.js for complex interactivity, _hyperscript for mostly-static pages with occasional animations.
+
+### ARIA Attributes for Dynamic Elements
+
+All HTMX-driven interactive elements MUST include ARIA attributes:
+
+```html
+<!-- Dropdown -->
+<div x-data="{ open: false }">
+    <button @click="open = !open"
+            aria-haspopup="true"
+            :aria-expanded="open">Menu</button>
+    <div x-show="open" role="menu" aria-label="Navigation menu">
+        <a href="/dashboard" role="menuitem">Dashboard</a>
+    </div>
+</div>
+
+<!-- Modal -->
+<div x-show="showModal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="modal-title"
+     @keydown.escape.window="showModal = false">
+    <h2 id="modal-title">Edit User</h2>
+</div>
+```
 
 ## Key Principles
 
@@ -483,50 +526,5 @@ document.body.addEventListener('htmx:afterSwap', function(event) {
 ## Output Format Examples
 
 ### Complete Integration Example
-```html
-{# base.html #}
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>HTMX with Frontend Integrations</title>
 
-    {# CSS Frameworks #}
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    {# HTMX and Alpine.js #}
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
-
-    {# Chart.js #}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
-</head>
-<body>
-    {% block content %}{% endblock %}
-
-    <script>
-        // Reinitialize charts after HTMX swaps
-        let charts = {};
-
-        document.body.addEventListener('htmx:beforeSwap', function(event) {
-            // Destroy only charts within the swap target
-            event.detail.target.querySelectorAll('canvas.chart').forEach(canvas => {
-                if (charts[canvas.id]) {
-                    charts[canvas.id].destroy();
-                    delete charts[canvas.id];
-                }
-            });
-        });
-
-        document.body.addEventListener('htmx:afterSwap', function(event) {
-            // Initialize new charts in swapped content
-            event.detail.target.querySelectorAll('canvas.chart').forEach(canvas => {
-                const ctx = canvas.getContext('2d');
-                charts[canvas.id] = new Chart(ctx, {...});
-            });
-        });
-    </script>
-</body>
-</html>
-```
+See sections 1-5 for individual library setup. Combine the `<head>` includes (Alpine.js, HTMX, CSS framework, chart library) and `htmx:afterSwap` handlers in your `base.html` per the patterns above.

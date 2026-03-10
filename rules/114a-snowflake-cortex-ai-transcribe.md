@@ -236,6 +236,9 @@ ORDER BY start_time;
 - Use LATERAL FLATTEN to extract individual speaker turns
 - For semantic role identification (e.g., "Representative" vs "Customer"), chain with AI_COMPLETE
 - Supported file types: FLAC, MP3, OGG, WAV, WebM (up to 60 minutes for speaker mode)
+- **Audio Format:** If source audio is in an unsupported format, convert to FLAC or WAV before staging (e.g., `ffmpeg -i input.m4a output.flac`)
+- **Quality:** For best transcription quality, use mono audio at 16kHz+ sample rate
+- **Cost:** Transcription credits scale approximately linearly with audio duration; estimate costs on a sample of 5 files and extrapolate
 
 ## Anti-Patterns and Common Mistakes
 

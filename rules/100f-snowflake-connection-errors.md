@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:connection-error, kw:timeout
 **Keywords:** connection errors, error classification, network policy, authentication, VPN, error codes, 08001, 390114, error handling, snowflake.connector, DatabaseError, message analysis, error detection
@@ -343,6 +343,20 @@ Actions:
 4. Try: snow connection test
 ```
 
+### 6. Unknown Errors (Fallback for Unrecognized Patterns)
+
+**When none of the above detectors match**, the error is classified as UNKNOWN.
+
+**User Guidance:**
+```
+UNRECOGNIZED ERROR
+
+Actions:
+1. Log the full error message and code for diagnosis
+2. Run: snow connection test
+3. If the error recurs, escalate to Snowflake support with the error code and message
+```
+
 ## Common Error Code Patterns
 
 **Error Code Reference:**
@@ -387,6 +401,7 @@ _GUIDANCE = {
         "2. Check network\n"
         "3. Run: snow connection test"
     ),
+    SnowflakeErrorType.UNKNOWN: "UNRECOGNIZED ERROR\n\nLog error details and run: snow connection test",
 }
 
 # Compose detectors: reuses functions defined in sections 1-5 above
@@ -403,13 +418,18 @@ def classify_snowflake_connection_error(
     error_msg: str,
     error_code: str
 ) -> Tuple[SnowflakeErrorType, str]:
-    """Classify Snowflake connection error using composition of detectors."""
+    """Classify Snowflake connection error using composition of detectors.
+
+    Composes the detection functions from sections 1-5 above into a
+    classifier following priority order: network_policy, auth, transient,
+    permission, connection, unknown.
+    """
     error_msg = error_msg or ""
     error_code = error_code or ""
     for detector, uses_msg, error_type in _DETECTORS:
         if detector(error_msg if uses_msg else error_code):
             return (error_type, _GUIDANCE[error_type])
-    return (SnowflakeErrorType.UNKNOWN, f"Error {error_code}: {error_msg}")
+    return (SnowflakeErrorType.UNKNOWN, _GUIDANCE[SnowflakeErrorType.UNKNOWN])
 ```
 
 ### Usage in Python Scripts
@@ -438,36 +458,15 @@ except DatabaseError as e:
     elif error_type == SnowflakeErrorType.AUTH_EXPIRED:
         print(guidance)
         subprocess.run(["snow", "connection", "test"])
+        # If `snow` CLI is not installed, guide the user to re-authenticate
+        # through their configured method (browser, key pair, or OAuth).
     else:
         print(guidance)
 ```
 
 ### Usage in Streamlit Apps
 
-```python
-import streamlit as st
-from snowflake.connector.errors import DatabaseError
-
-def get_connection():
-    try:
-        return st.connection("snowflake")
-    except DatabaseError as e:
-        error_type, guidance = classify_snowflake_connection_error(
-            str(e), str(getattr(e, 'errno', ''))
-        )
-        if error_type == SnowflakeErrorType.NETWORK_POLICY:
-            st.error("VPN disconnected. Reconnect and click Retry.")
-        elif error_type == SnowflakeErrorType.AUTH_EXPIRED:
-            st.error("Authentication expired. Run `snow connection test`, then Retry.")
-        elif error_type == SnowflakeErrorType.TRANSIENT:
-            st.warning("Temporary network issue. Retrying...")
-        else:
-            st.error(guidance)
-
-        if st.button("Retry Connection"):
-            st.rerun()
-        return None
-```
+**See `101e-snowflake-streamlit-sql-errors.md` for Streamlit-specific error handling patterns using this classification.**
 
 ## Anti-Patterns and Common Mistakes
 

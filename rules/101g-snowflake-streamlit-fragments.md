@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** st.fragment, run_every, real-time progress, polling, live updates, fragment pattern, auto-refresh, streaming, monitoring dashboard
-**TokenBudget:** ~2500
+**TokenBudget:** ~2850
 **ContextTier:** Medium
-**Depends:** 101-snowflake-streamlit-core.md, 101b-snowflake-streamlit-performance.md
+**Depends:** 000-global-core.md, 101-snowflake-streamlit-core.md, 101b-snowflake-streamlit-performance.md
 
 ## Scope
 
@@ -27,8 +27,9 @@ Advanced Streamlit fragment patterns for real-time progress tracking, live polli
 ### Dependencies
 
 **Must Load First:**
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
-- **101b-snowflake-streamlit-performance.md** - Caching and performance basics
+- **000-global-core.md** - Foundation patterns and conventions `[Available]`
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
+- **101b-snowflake-streamlit-performance.md** - Caching and performance basics `[Available]`
 
 ### External Documentation
 
@@ -84,6 +85,12 @@ Working fragment with live progress updates that terminates cleanly.
 - Fragment stops when operation completes
 - No infinite polling loops
 
+**Negative Tests:**
+- Fragment stops auto-refreshing after operation completes (no orphan polling)
+- Button is disabled or hidden while async operation is in progress
+- Future errors are surfaced to the user (not silently swallowed)
+- Fragment handles database connection timeout gracefully (displays error, stops polling)
+
 ### Post-Execution Checklist
 
 - [ ] Fragment defined at module level (not inside button block)
@@ -122,11 +129,18 @@ def initialize_analysis_progress(audio_file: str):
     """, params=[audio_file]).collect()
 
 def call_stored_procedure_async(proc_name: str, *args):
-    """Execute stored procedure in background thread"""
+    """Execute stored procedure in background thread."""
     executor = ThreadPoolExecutor(max_workers=1)
     def run_proc():
-        return session.call(proc_name, *args)
-    return executor.submit(run_proc)
+        try:
+            return session.call(proc_name, *args)
+        except Exception as e:
+            return e  # Store error for fragment to surface
+    future = executor.submit(run_proc)
+    # NOTE: executor is intentionally not shut down here -- it will be
+    # garbage-collected after the future completes. For long-lived apps,
+    # consider a module-level executor with atexit cleanup.
+    return future
 
 @st.fragment(run_every="0.5s")
 def show_analysis_progress_live(audio_file):
@@ -221,6 +235,12 @@ if st.button(
         st.session_state.analysis_future = future
 
     st.rerun()  # Trigger rerun to show fragment
+
+# In the fragment, check future result for errors:
+# result = st.session_state.analysis_future.result()
+# if isinstance(result, Exception):
+#     st.error(f"Procedure failed: {result}")
+#     st.stop()
 ```
 
 ## Anti-Patterns and Common Mistakes
@@ -323,8 +343,9 @@ def monitored_fragment():
 - **Polling Frequency:** 0.5s for progress bars, 2s for dashboard monitoring, 5s for background job polling
 - **Scoped Reruns:** Only fragment reruns, not entire app (preserves user inputs, scroll position)
 - **Database Load:** Each auto-refresh queries database; ensure queries are indexed and fast (<100ms)
-- **Connection Pooling:** Use Streamlit's `st.connection()` for efficient connection management
+- **Connection Pooling:** Use `st.connection("snowflake")` inside fragments rather than `get_active_session()`. `st.connection()` manages connection lifecycle and handles reconnection automatically, which is important for long-lived fragments that poll repeatedly.
 
 ## Limitations
 
 - **No Nesting:** Fragments cannot be nested inside other fragments. A fragment function cannot call another fragment function. Use a single fragment that manages multiple UI components instead.
+- **Multiple Fragments:** Multiple `@st.fragment(run_every=...)` functions can run simultaneously on the same page. Each fragment reruns independently at its own interval. Be aware that each active fragment adds database polling load -- keep the total number of concurrent auto-refreshing fragments low (2-3 max) and stagger intervals to avoid query spikes.

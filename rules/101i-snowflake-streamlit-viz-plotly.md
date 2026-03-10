@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** plotly, plotly express, graph objects, st.plotly_chart, interactive charts, scatter, line, bar, histogram, heatmap, box plot, violin, sunburst, treemap, animations, faceting, subplots
-**TokenBudget:** ~3250
+**TokenBudget:** ~3450
 **ContextTier:** Medium
-**Depends:** 101a-snowflake-streamlit-visualization.md
+**Depends:** 000-global-core.md, 101a-snowflake-streamlit-visualization.md
 
 ## Scope
 
@@ -27,7 +27,8 @@ Deep patterns for Plotly visualization in Streamlit, including Plotly Express fo
 ### Dependencies
 
 **Must Load First:**
-- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection
+- **000-global-core.md** - Foundation patterns and conventions `[Available]`
+- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection `[Available]`
 
 **Related:**
 - **101j-snowflake-streamlit-viz-pydeck.md** - PyDeck for 3D/geospatial
@@ -55,7 +56,7 @@ Deep patterns for Plotly visualization in Streamlit, including Plotly Express fo
 ### Mandatory
 
 - **Plotly Express first** - Use `px.*` for standard charts (5-100x less code than Graph Objects)
-- **width="stretch"** - Always use for responsive charts
+- **width="stretch"** - Always use for responsive charts (requires Streamlit 1.46+; for older versions use `use_container_width=True`)
 - **Clear labels** - Title, axis labels, and legends on every chart
 - **Colorblind-safe palettes** - Use `plotly.colors.qualitative.Safe`, COLORBLIND_SAFE (defined below), or `px.colors.qualitative.Vivid`
 
@@ -120,8 +121,8 @@ COLORBLIND_SAFE = ['#0173B2', '#DE8F05', '#029E73', '#D55E00', '#CC78BC', '#CA91
 **Part-to-whole:** `px.pie()`, `px.sunburst()`, `px.treemap()`
 **Ranking:** `px.bar()` (horizontal)
 **Geospatial 2D:** `px.scatter_map()`, `px.choropleth_map()`
-**3D scatter:** `px.scatter_3d()`
-**Flow/process:** `px.funnel()`, `px.sankey()`
+**3D scatter:** `px.scatter_3d()` -- use sparingly; 3D is hard to interpret on 2D screens. Prefer 2D scatter with color/size encoding.
+**Flow/process:** `px.funnel()` for conversion funnels. For Sankey diagrams, use `go.Sankey()` from Graph Objects (not available in Express).
 **Matrix/correlation:** `px.imshow()`
 
 ### Basic Patterns
@@ -307,7 +308,7 @@ fig = px.density_map(
     z='event_count',
     radius=15,
     zoom=10,
-    map_style='stamen-terrain',
+    map_style='open-street-map',  # 'stamen-terrain' deprecated; use 'open-street-map' or 'carto-positron'
     title='Event Density'
 )
 st.plotly_chart(fig, width="stretch")
@@ -373,6 +374,13 @@ fig = px.scatter(df, x='x', y='y', color='category',
 ```python
 if len(df) > 5000:
     fig = px.scatter(df, x='x', y='y', render_mode='webgl')
+
+# For very large datasets (>100K rows), WebGL alone is not enough.
+# Pre-aggregate in Snowflake or sample before rendering:
+# if len(df) > 100_000:
+#     df = df.sample(n=100_000, random_state=42)
+# Plotly WebGL handles ~100K points; beyond that, use server-side
+# aggregation (see 101h time series smoothing) or sampling.
 
 @st.cache_data(ttl=600)
 def create_expensive_figure(data):

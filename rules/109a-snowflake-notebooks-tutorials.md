@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:notebook-tutorial
 **Keywords:** checkpoints, learning objectives, pedagogical design, educational content, progressive learning, Snowflake notebooks, teaching point callouts, validation gates, tutorial structure, learning design, educational notebooks, teaching methodology, notebook education
@@ -102,38 +102,34 @@ See detailed Post-Execution Checklist below for comprehensive tutorial validatio
 ```
 **Problem:** Not measurable, no clear outcomes, too broad - learners won't know what specific skills they'll gain.
 
-**Correct Pattern:**
-```markdown
-## [GOAL] Learning Objectives
-
-By the end of this notebook, you will understand:
-
-1. **Feature Engineering** - How to organize 16 ML features using Snowflake Feature Store
-2. **Imbalanced Data Strategies** - Compare SMOTE vs Algorithm-level balancing approaches
-3. **Threshold Optimization** - Tune decision thresholds to align with business objectives
-```
-**Benefits:** Specific, measurable outcomes with clear deliverables that learners can validate.
+**Correct Pattern:** See Learning Objectives section below for the correct pattern with detailed examples and best practices.
 
 **Anti-Pattern 2: No Anti-Pattern Teaching**
+
+**Problem:** Listing best practices without showing what to avoid or why — learners may still make common mistakes.
+
 ```markdown
 ## Best Practices
-- Use stratified splitting
-- Apply SMOTE after split
+1. Use parameterized queries
+2. Validate inputs
+3. Handle errors
 ```
-**Problem:** Doesn't teach what to avoid or why - learners may still make common mistakes.
 
-**Correct Pattern:**
+**Correct Pattern:** Show both incorrect and correct approaches with explanations.
+
 ```markdown
-## Common Pitfalls
-**Pitfall 1: Applying SMOTE Before Split**
-- Why wrong: Data leakage (synthetic samples use test data)
-- Correct: Split FIRST, then SMOTE only on training
+## Common Mistakes and Solutions
 
-**Pitfall 2: Using Accuracy for Imbalanced Data**
-- Why wrong: 99% accuracy predicting all "healthy" catches zero failures
-- Correct: Use recall, ROC-AUC, Matthews Correlation
+### Anti-Pattern: String Concatenation in Queries
+**Wrong:**
+sql = f"SELECT * FROM users WHERE id = {user_id}"
+
+**Correct:**
+sql = "SELECT * FROM users WHERE id = ?"
+cursor.execute(sql, (user_id,))
+
+**Why:** String concatenation enables SQL injection attacks.
 ```
-**Benefits:** Teaches through contrast, explains consequences, prevents common errors.
 
 ## Post-Execution Checklist
 
@@ -147,6 +143,14 @@ By the end of this notebook, you will understand:
 - [ ] Two-approach clarifications when demonstrating but not fully using features
 - [ ] Time estimates realistic and tested
 - [ ] All technical jargon defined on first use
+
+### Tutorial Validation Script
+
+Validate tutorial structure programmatically by checking:
+- Learning objectives cell exists at position 2 (after main header)
+- Checkpoint cells exist between major sections
+- `[NOTE]` callouts precede code cells that implement key concepts
+- Time estimates are present in Tutorial Structure section
 
 ## Validation
 
@@ -231,7 +235,7 @@ For SQL-focused tutorials without Python:
 
 ## Learning Objectives Section
 
-**MANDATORY:**
+> Sections below expand on Contract Mandatory requirements. See Contract for the authoritative list.
 
 **Purpose:** Set clear expectations for what learners will achieve by completing the notebook.
 
@@ -275,8 +279,6 @@ Too vague, not measurable, no clear outcome
 
 ## Tutorial Structure Overview
 
-**MANDATORY:**
-
 **Purpose:** Provide roadmap of tutorial organization with time estimates for self-paced learning.
 
 **Structure:**
@@ -314,8 +316,6 @@ This notebook is organized into [N] parts:
 
 ## Anti-Pattern Sections
 
-**MANDATORY:**
-
 **Purpose:** Teach what NOT to do by showing common mistakes alongside correct approaches. Use "Anti-Pattern" terminology in rule files and "Common Pitfalls" in user-facing tutorial content.
 
 **Structure:**
@@ -347,16 +347,7 @@ This notebook avoids all these pitfalls through careful design!
 - **Always:** Show concrete impact (performance, cost, accuracy)
 - **Consider:** Reference where in notebook the correct pattern is demonstrated
 
-**Example - Good:**
-```markdown
-**Pitfall 1: Applying SMOTE Before Train/Test Split**
-- Why wrong: Synthetic samples use information from test set (data leakage)
-- Correct: Split FIRST, then apply SMOTE only to training data
-
-**Pitfall 2: Using Accuracy for Imbalanced Data**
-- Why wrong: 99.998% accuracy by predicting all healthy catches zero failures
-- Correct: Use recall, ROC-AUC, Matthews Correlation, PR curve
-```
+**Example:** See Anti-Pattern 2 above for a complete pitfall teaching example with SMOTE/accuracy contrast.
 
 ## Checkpoint Validations
 
@@ -371,8 +362,6 @@ This notebook avoids all these pitfalls through careful design!
 **Key requirements:** Use [NOTE] callout prefix. Place BEFORE the implementation (context before code). Explain business rationale, not just technical details.
 
 ## Progressive Complexity Management
-
-**MANDATORY:**
 
 **Purpose:** Gradually increase complexity, building on foundational concepts before introducing advanced topics.
 
@@ -401,6 +390,14 @@ This notebook avoids all these pitfalls through careful design!
 ## Step 3 - Performance Optimization (Advanced - Optional)
 [Caching, parallelization, cost optimization]
 ```
+
+## Tutorial Versioning
+
+When Snowflake APIs or features change, update tutorials promptly:
+- Add a version stamp cell at the top: `Last verified: YYYY-MM-DD, Snowflake version: X.Y`
+- Use a changelog markdown cell to document significant updates
+- Mark deprecated patterns with `[DEPRECATED]` prefix and link to the replacement approach
+- Re-run all checkpoint validation cells after updates to confirm tutorials still pass
 
 ## Two-Approach Clarification Pattern
 

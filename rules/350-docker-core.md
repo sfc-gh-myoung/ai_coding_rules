@@ -6,7 +6,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose, BuildKit, distroless, security scanning, SBOM, non-root, healthcheck
-**TokenBudget:** ~4000
+**TokenBudget:** ~4250
 **ContextTier:** Medium
 **Depends:** 000-global-core.md, 202-markup-config-validation.md
 **LoadTrigger:** file:Dockerfile, file:docker-compose.yml, file:docker-compose.yaml, kw:docker, kw:container
@@ -57,6 +57,12 @@ Provides practical, production-ready guidance for authoring Dockerfiles, buildin
 - SBOM tools (syft)
 - Cosign for image signatures
 - SLSA provenance tooling
+
+**Toolchain Verification:** Before starting, verify tools are available:
+```bash
+command -v hadolint && command -v trivy && command -v syft && command -v cosign
+```
+Install missing tools before proceeding. See each tool's documentation for installation instructions.
 
 ### Mandatory
 
@@ -120,6 +126,7 @@ Deterministic Dockerfile(s) and Compose files with:
 - **Build failure (BuildKit):** Verify BuildKit is enabled: `DOCKER_BUILDKIT=1` or `docker buildx create --use`. Check `docker buildx ls` for builder health. For multi-platform builds, ensure QEMU is registered: `docker run --rm --privileged multiarch/qemu-user-static --reset -p yes`.
 - **Security scan failure (CVEs found):** Update base image to latest patched version. If CVE is in a dependency, pin to a fixed version. For false positives or accepted risks, document with `--ignore` flags and add justification to the security policy. Re-scan after each change.
 - **Registry access failure:** Verify authentication: `docker login <registry>`. Check network connectivity and proxy settings. For rate-limited registries (Docker Hub), use authenticated pulls or mirror to a private registry. Fallback: cache base images in CI artifacts.
+- **HEALTHCHECK runtime failure:** If HEALTHCHECK fails: verify the health endpoint responds locally (`curl -f http://localhost:<port>/health`), check container logs (`docker logs <id>`), verify the `--start-period` is sufficient for application startup (increase if startup is slow). For orchestrated deployments, configure `restart: unless-stopped` in Compose or appropriate Kubernetes restart policy (`restartPolicy: Always` with `livenessProbe`). Common causes: app not yet listening, wrong port, endpoint returns non-2xx.
 
 ### Design Principles
 
@@ -269,8 +276,8 @@ CMD ["python", "app.py"]
 
 ```bash
 # Validation
-docker build --no-cache -t myapp:latest .
-docker run --rm myapp:latest python -c "print('Container validation passed')"
+docker build --no-cache -t myapp:test .
+docker run --rm myapp:test python -c "print('Container validation passed')"
 ```
 
 ## Image Authoring Patterns
@@ -304,7 +311,11 @@ FROM base AS deps
 WORKDIR /app
 COPY pyproject.toml uv.lock* ./
 # Prefer uv for speed & determinism; fallback to pip if needed
-RUN pip install --no-cache-dir uv && uv sync --frozen --no-dev || pip install --no-cache-dir -r requirements.txt
+RUN if command -v uv >/dev/null 2>&1 || pip install --no-cache-dir uv; then \
+        uv sync --frozen --no-dev; \
+    else \
+        pip install --no-cache-dir -r requirements.txt; \
+    fi
 
 FROM base AS runtime
 WORKDIR /app
@@ -376,12 +387,15 @@ See [Docker .dockerignore reference](https://docs.docker.com/build/concepts/cont
 ### Python
 - Use `uv` or `pip --no-cache-dir`; separate `requirements.txt` or lockfile from sources.
 - For FastAPI/Uvicorn: prefer gunicorn/uvicorn workers and graceful shutdown signals.
+- For data science: use `--mount=type=cache,target=/root/.cache/pip` to speed up large dependency installs.
 
 ### Node.js
 - Copy only `package.json`/`package-lock.json` first; run `npm ci` then copy sources.
+- Use `node:20-slim` or `node:20-alpine` for production; full `node:20` only for build stages.
 
 ### Java
 - Use multi-stage with Maven/Gradle in builder; run with JRE or distroless Java.
+- Pin JRE version explicitly: `eclipse-temurin:21-jre-alpine@sha256:...`.
 
 ## Runtime and Orchestration
 - **MUST:** Provide `HEALTHCHECK` in image or orchestrator.

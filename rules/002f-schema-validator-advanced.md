@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
+**RuleVersion:** v1.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** schema validator, CI/CD integration, automation workflow, JSON parsing, programmatic validation, pre-commit hooks, GitHub Actions, batch validation, error automation, validation scripts
-**TokenBudget:** ~3150
+**TokenBudget:** ~3350
 **ContextTier:** Medium
 **Depends:** 002e-schema-validator-usage.md, 002-rule-governance.md, 000-global-core.md
 
@@ -114,7 +114,7 @@ import json
 import subprocess
 
 result = subprocess.run(
-    ['ai-rules', 'validate', 'rules/', '--json'],
+    ['uv', 'run', 'ai-rules', 'validate', 'rules/', '--json'],
     capture_output=True,
     text=True
 )
@@ -136,6 +136,14 @@ for file_info in data['failed_files']:
 ```
 
 ### JSON Structure Reference
+
+**Verify this structure matches your validator version:**
+```bash
+uv run ai-rules validate rules/ --json | python3 -c \
+  "import json,sys; print(json.dumps(json.load(sys.stdin), indent=2))" | head -20
+```
+
+The `--json` flag outputs results in the following structure:
 
 ```json
 {
@@ -206,7 +214,7 @@ import json
 import subprocess
 
 result = subprocess.run(
-    ['ai-rules', 'validate', 'rules/', '--json'],
+    ['uv', 'run', 'ai-rules', 'validate', 'rules/', '--json'],
     capture_output=True,
     text=True
 )
@@ -225,7 +233,7 @@ except (json.JSONDecodeError, ValueError) as e:
 if data is None:
     # Re-run without --json and parse text output instead
     result = subprocess.run(
-        ['ai-rules', 'validate', 'rules/'],
+        ['uv', 'run', 'ai-rules', 'validate', 'rules/'],
         capture_output=True,
         text=True
     )
@@ -263,7 +271,7 @@ import sys
 def validate_file(file_path):
     """Run validator and return parsed results."""
     result = subprocess.run(
-        ['ai-rules', 'validate', file_path, '--json'],
+        ['uv', 'run', 'ai-rules', 'validate', file_path, '--json'],
         capture_output=True,
         text=True
     )
@@ -271,30 +279,34 @@ def validate_file(file_path):
     return result.returncode, data
 
 def fix_keywords_count(file_path, target=12):
-    """Add generic keywords to reach target count."""
+    """Add content-derived keywords to reach target count."""
+    import os
     import shutil
     backup_path = file_path + '.bak'
     shutil.copy(file_path, backup_path)
     
-    with open(file_path, 'r') as f:
-        content = f.read()
-    
-    import re
-    match = re.search(r'\*\*Keywords:\*\* (.+)', content)
-    if match:
-        keywords = [k.strip() for k in match.group(1).split(',')]
-        generic = ['validation', 'best practices', 'guidelines', 'requirements']
-        while len(keywords) < target:
-            keywords.append(generic[len(keywords) % len(generic)])
-        new_line = f'**Keywords:** {", ".join(keywords)}'
-        content = re.sub(r'\*\*Keywords:\*\* .+', new_line, content)
-        with open(file_path, 'w') as f:
-            f.write(content)
-        import os
-        os.remove(backup_path)  # Clean up backup on success
-        return True
-    os.remove(backup_path)  # Clean up if no match found
-    return False
+    try:
+        with open(file_path, 'r') as f:
+            content = f.read()
+        
+        import re
+        match = re.search(r'\*\*Keywords:\*\* (.+)', content)
+        if match:
+            keywords = [k.strip() for k in match.group(1).split(',')]
+            # Extract additional keywords from rule's section headings and key terms
+            additional = extract_keywords_from_headings(content)
+            keywords.extend(additional[:target - len(keywords)])
+            # Example: A rule about SQL stored procedures would get
+            # keywords like "procedure", "stored-procedure", "sql-body"
+            new_line = f'**Keywords:** {", ".join(keywords)}'
+            content = re.sub(r'\*\*Keywords:\*\* .+', new_line, content)
+            with open(file_path, 'w') as f:
+                f.write(content)
+            return True
+        return False
+    finally:
+        if os.path.exists(backup_path):
+            os.remove(backup_path)
 
 def main(file_path):
     """Main workflow with iteration limit."""
@@ -402,6 +414,10 @@ Common issues when running validation in CI/CD runners:
 - **Schema file missing:** Ensure `schemas/rule-schema.yml` is included in the checkout (not excluded by sparse checkout or `.gitattributes`)
 - **Wrong working directory:** Validate that `rules/` path is relative to the repository root, not a subdirectory
 - **Permission denied:** CI runners may need explicit read access to rule files; check file permissions in the Docker image
+- **Empty directory:** If `ai-rules validate rules/` finds no `.md` files, it returns
+  exit code 0 with a summary showing `total_files: 0`. This is not an error — the
+  directory simply has no rules to validate. To verify the directory path is correct,
+  use `ls rules/*.md` first.
 
 ## Anti-Patterns and Common Mistakes
 

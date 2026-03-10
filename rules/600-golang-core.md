@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Go, Golang, go.mod, modules, error handling, interfaces, goroutines, channels, testing, go fmt, golangci-lint, concurrency, context, defer
-**TokenBudget:** ~3700
+**TokenBudget:** ~3900
 **ContextTier:** High
 **Depends:** 000-global-core.md
 **LoadTrigger:** ext:.go, file:go.mod
@@ -400,6 +400,8 @@ func watch(ctx context.Context, ch chan Event) {
 }
 ```
 
+> **Panic Recovery:** For HTTP server panic recovery middleware (preventing a single request from crashing the server), see `600a-golang-patterns.md` Recovery Middleware section. Libraries MUST NOT use `recover()` — they should return errors. Only use panic recovery at the outermost handler level.
+
 **Anti-Pattern 5: Package-Level `init()` with Side Effects**
 ```go
 // Bad: Hidden initialization, hard to test
@@ -437,17 +439,54 @@ func main() {
 
 ### Golangci-lint Configuration
 
-See project `.golangci.yml` or reference [golangci-lint docs](https://golangci-lint.run/). At minimum enable: errcheck, gosimple, govet, staticcheck, unused, gocritic, gofmt, goimports.
+```yaml
+# .golangci.yml — minimal recommended configuration
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - staticcheck
+    - unused
+    - gocritic
+    - gofmt
+    - goimports
+  disable-all: true
 
-### Automation with Taskfiles
-
-For build automation patterns (Makefile, Taskfile), see rules `820-taskfile-automation.md` and `821-makefile-automation.md`.
+linters-settings:
+  gocritic:
+    enabled-checks:
+      - appendAssign
+      - dupBranchBody
+      - equalFold
+```
 
 ## Testing Patterns
 
 ### Table-Driven Tests
 
-Use the table-driven pattern shown in the Output Format section above. Key elements: named test cases, `t.Run` subtests, and clear `got` vs `want` assertions.
+```go
+func TestAdd(t *testing.T) {
+    tests := []struct {
+        name     string
+        a, b     int
+        expected int
+    }{
+        {"positive", 2, 3, 5},
+        {"zero", 0, 0, 0},
+        {"negative", -1, 1, 0},
+    }
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            got := Add(tt.a, tt.b)
+            if got != tt.expected {
+                t.Errorf("Add(%d, %d) = %d, want %d", tt.a, tt.b, got, tt.expected)
+            }
+        })
+    }
+}
+```
+Key elements: named test cases, `t.Run` subtests, and clear `got` vs `want` assertions.
 
 ### Test Helpers
 

@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(rules):** add 4 new rule files
+  - `002m-agent-format-antipatterns.md` - Format anti-pattern examples extracted from 002g
+  - `210e-python-fastapi-security-hardening.md` - FastAPI security hardening patterns
+  - `221h-python-htmx-fastapi-auth.md` - HTMX+FastAPI authentication patterns
+  - `221i-python-htmx-patterns-advanced.md` - Advanced HTMX patterns
+- **feat(rules):** add `examples/002-rule-governance-structure-example.md`
 - **feat(rules):** add Anti-Patterns sections with code examples to 34 rule files
   - Each anti-pattern includes Problem/Correct Pattern structure with code blocks
   - Covers Streamlit (101m-n), Notebooks (109d-j), ML (110a-b, 113-113b, 114a), Agents (115c-d), REST API (118a), Snowpipe (121d-f), Python (202a, 230a-b, 240a-b, 251-251b, 252-252b), SQL (102b-c)
@@ -32,6 +38,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Users must explicitly confirm settings; no silent defaults for optional parameters
 
 ### Changed
+- **refactor(rules):** extract anti-patterns from 002g to 002m (~350 tokens saved)
+- **refactor(rules):** expand standard terminology list in 002g (9→15 terms)
+- **refactor(rules):** add code block exception for ASCII tables in external output
+- **docs(contributing):** add Rule Versioning section with semantic versioning criteria
 - **fix(rules):** resolve all validation warnings (33→0 MEDIUM warnings)
   - Added required code examples to Anti-Patterns sections across all domains
   - Fixed Scope section format in 501-frontend-browser-globals-collisions.md

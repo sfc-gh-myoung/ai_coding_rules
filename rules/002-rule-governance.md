@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.3.0
+**RuleVersion:** v3.3.1
 **LastUpdated:** 2026-03-09
 **Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings, design priorities, agent optimization
-**TokenBudget:** ~4850
+**TokenBudget:** ~4550
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 **LoadTrigger:** dir:rules/
@@ -165,7 +165,7 @@ Where:
 
 **Validation regex:** `^[0-9]{3}[a-z]?-[a-z]+-[a-z-]+\.md$`
 
-### Metadata Fields (6 Required)
+### Metadata Fields (6 Required + 1 Optional)
 
 **Required Fields:**
 - **SchemaVersion:** `v3.2` - CRITICAL (must be v3.2 for new/updated rules)
@@ -381,47 +381,20 @@ If both options fail, note the validation gap in commit message and request revi
 - **Schema Compliance:** All rules must validate against schemas/rule-schema.yml with zero CRITICAL errors
 - **CommonMark Compliance:** All Markdown must follow [CommonMark spec](https://spec.commonmark.org/) for consistent parsing
 - **Semantic Discovery:** Keywords (5-20) enable AI agents to automatically discover relevant rules
-- **Progressive Disclosure:** Scope section provides overview, Contract defines execution requirements
+- **Progressive Disclosure:** Scope section provides overview (5-15 lines covering what the rule does and when to load it). Contract section provides unlimited detailed execution steps, validation, and error handling. If an agent only reads the Scope, it should know whether to load the full rule.
 - **Validation-First:** Always run `ai-rules validate` before committing rule changes
 - **Text-Only Format:** No emojis in rule files (schema requirement for universal compatibility)
 - **Agent-First Formatting:** See `002g-agent-optimization.md` for required formatting patterns
 
 ## CommonMark Compliance
 
-All rule files MUST follow [CommonMark specification](https://spec.commonmark.org/). Key requirements:
+Rules are parsed as CommonMark-compliant Markdown. See `002e-schema-validator-usage.md`
+for full CommonMark compliance requirements. Key rules:
 
-### Code Fence Rules
-
-**Nested Code Blocks:** When showing markdown examples containing code blocks:
-- Outer fence MUST have MORE characters than any inner fence
-- Use 4 backticks (`` ```` ``) to wrap content containing 3 backticks (`` ``` ``)
-
-`````markdown
-<!-- WRONG: Inner fence closes outer fence prematurely -->
-```markdown
-## Example
-```python
-# This closes the outer block!
-```
-```
-
-<!-- CORRECT: Outer fence longer than inner -->
-````markdown
-## Example
-```python
-# This stays inside the outer block
-```
-````
-`````
-
-**Fence Character Consistency:**
-- Do not mix backticks (`` ` ``) and tildes (`~`) in the same document
-- Closing fence must use same character as opening fence
-- Closing fence must be at least as long as opening fence
-
-**Indentation:**
-- Fenced code blocks inside lists must maintain consistent indentation
-- Opening and closing fences must have matching indentation levels
+- ATX-style headings with strict hierarchy (H1 to H2 to H3)
+- Dash (`-`) for unordered lists, 2-space nesting
+- Triple backticks with language identifier; quad backticks for nesting
+- Prefer structured lists over tables (see 002g-agent-optimization.md)
 
 ## Anti-Patterns and Common Mistakes
 
@@ -461,46 +434,9 @@ All rule files MUST follow [CommonMark specification](https://spec.commonmark.or
 
 ## Output Format Examples
 
-```bash
-# Create new rule file
-vim rules/<your-new-rule>.md
-
-# Fill metadata and all required sections
-# Update: Keywords, TokenBudget, ContextTier, Depends
-
-# Validate
-uv run ai-rules validate rules/<your-new-rule>.md
-
-# Expected output (success):
-================================================================================
-VALIDATION REPORT: rules/<your-new-rule>.md
-================================================================================
-[PASS] Passed: 458 checks
-
-[PASS] RESULT: PASSED
-================================================================================
-
-# Add to index
-echo "| NNN-new-rule | Description | Keywords here |" >> RULES_INDEX.md
-```
-
-```yaml
-# schemas/rule-schema.yml structure (reference)
-version: "3.2"
-metadata:
-  required_fields:
-    - SchemaVersion (v3.2)
-    - RuleVersion (vX.Y.Z)
-    - Keywords (5-20 items)
-    - TokenBudget (~NUMBER format)
-    - ContextTier (enum: Critical/High/Medium/Low)
-    - Depends (min 1 dependency)
-  optional_fields:
-    - LoadTrigger (dynamic loading triggers)
-structure:
-  required_sections: Metadata, Scope, References, Contract
-  Contract_subsections: 7 Markdown ### headers required
-```
+See `rules/examples/002-rule-governance-structure-example.md` for minimal and full
+rule structure examples. The example file demonstrates both a minimal rule template
+and a complete rule structure with all required sections.
 
 ## Importance Marker Inheritance
 

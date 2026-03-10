@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** context engineering, attention budget, context rot, token efficiency, compaction, progressive disclosure, sub-agents, agentic search, system prompts, right altitude, long-horizon tasks, memory management, state tracking
-**TokenBudget:** ~3900
+**TokenBudget:** ~4300
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 
@@ -74,7 +74,8 @@ Comprehensive context engineering practices that treat context as a finite resou
 
 - Read tool, Write tool (file access and modification)
 - Grep tool, Glob tool (targeted code search and file discovery)
-- memory.store / memory.retrieve (persistent state across sessions)
+- memory.store / memory.retrieve (persistent state across sessions), or file-based
+  persistence (NOTES.md, .context/decisions.md) when agent-native memory is unavailable
 - Context window monitoring (attention budget tracking)
 - Compaction prompts (context summarization when approaching limits)
 
@@ -87,7 +88,9 @@ Comprehensive context engineering practices that treat context as a finite resou
 
 ### Execution Steps
 
-1. Assess available attention budget before adding context
+1. Assess available attention budget before adding context. The attention budget is
+   the portion of the context window available for the agent's active reasoning and
+   task execution, after subtracting loaded rules, conversation history, and output reserve.
 2. Prioritize high-signal, actionable information over noise
 3. Use progressive disclosure - load Tier 2 when task requires specific file modifications, error resolution, or dependency analysis; load Tier 3 when Tier 2 references specific files/data that must be read
 4. Apply compaction when approaching context limits
@@ -154,6 +157,17 @@ Comprehensive context engineering practices that treat context as a finite resou
 
 - **Context as Finite Resource:** Treat context like limited working memory - every token depletes attention budget
 - **Context Rot:** As context grows, model's ability to recall specific information degrades (n² pairwise attention relationships)
+
+**Attention Budget Formula:**
+```
+attention_budget = context_window - rules_loaded - conversation_history - output_reserve
+
+Example for 200K context (Claude Sonnet 4.5):
+  200,000 - 30,000 (rules) - 60,000 (history) - 40,000 (output) = 70,000 tokens
+```
+
+When attention_budget < 20% of context_window, begin shedding Medium/Low tier rules.
+When attention_budget < 10%, escalate to user for context compaction.
 - **Progressive Disclosure:** Load information hierarchically - summaries first, details on-demand
 - **Right Altitude:** System prompts must balance between brittle hardcoded logic and vague high-level guidance
 - **Token Efficiency:** Minimize context pollution - every token must provide actionable value
@@ -294,24 +308,28 @@ See `002d-advanced-rule-patterns.md` for System Prompt Altitude and Goldilocks Z
 - Blocking issues/decisions
 - Tool specifications
 - Recent conversation (≤3 turns)
+- Detection: file extension match OR keyword match in user message
 
 **Important (Include When Relevant):**
 - Domain-specific knowledge
 - Referenced files/data
 - Active state/progress tracking
 - Error messages requiring action
+- Detection: Depends chain traversal of Critical-tier rules OR project language detection
 
 **Optional (Load On-Demand):**
 - Historical context
 - Detailed documentation
 - Large code files
 - Archived decisions
+- Detection: LoadTrigger keyword match without direct file path match
 
 **Exclude (Remove/Don't Load):**
 - Redundant information
 - Completed work details
 - Irrelevant tool outputs
 - Stale context
+- Detection: no LoadTrigger match; loaded only via manual request or broad category match
 ```
 
 ## Progressive Disclosure
@@ -480,9 +498,25 @@ See `003a-long-horizon-tasks.md` for compaction protocols, structured note-takin
 
 **Rule System (from 002-rule-governance.md):**
 - Target: 200-400 lines per rule (foundational/critical rules may exceed this)
-- Maximum: 500 lines per rule (hard cap: 600)
+- Maximum: 500 lines per rule (hard cap: 600, approximately 4000-5000 tokens at typical
+  density). This cap ensures a single rule never exceeds 5% of a 100K context window,
+  leaving room for 10-15 other rules plus conversation. See 002c-rule-optimization.md
+  for detailed size scoring: 401-500 lines is optimal (8/10 score), >600 triggers mandatory review.
 - Token budgets declared in metadata
 - Composition over duplication
+
+### Small-Context Models (<16K tokens)
+
+For models with limited context (Haiku, GPT-3.5, smaller open-source models):
+
+1. **Load only Critical tier rules** — skip High, Medium, Low entirely
+2. **Single rule at a time:** Load the one most relevant rule, complete the task, unload
+3. **No conversation history:** Each turn starts fresh; persist state to files
+4. **Compress aggressively:** Summarize any context to <500 tokens before including
+5. **Avoid multi-file tasks:** Break into single-file steps with explicit state handoff
+
+**Token budget guideline:** Reserve 60% for task input/output, 20% for the single loaded
+rule, 20% for system prompt and formatting overhead.
 
 ## Context Engineering Workflow
 

@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:notebook-checkpoint, kw:teaching-point
 **Keywords:** checkpoint validation, teaching point callouts, notebook validation gates, progress verification, learning checkpoints, NOTE prefix, tutorial checkpoints
-**TokenBudget:** ~2400
+**TokenBudget:** ~2650
 **ContextTier:** Low
 **Depends:** 109a-snowflake-notebooks-tutorials.md
 
@@ -75,6 +75,8 @@ Verify checkpoints catch common errors and provide actionable fixes. Verify teac
 - [ ] Actionable error messages reference specific steps to re-run
 - [ ] Progress summary shows what is complete and what is next
 
+**Testing checkpoints:** After creating checkpoints, test with intentionally incorrect state (e.g., empty DataFrame, wrong column names) to verify they catch errors and produce actionable messages. A checkpoint that always passes provides no value.
+
 ## Implementation Details
 
 ### Checkpoint Validations
@@ -129,6 +131,17 @@ else:
     print("  - [Description of what comes next]")
 ```
 
+**SQL-only checkpoint pattern** (for SQL-focused tutorials):
+```sql
+-- SQL Checkpoint: Verify data loaded correctly
+SELECT
+  CASE WHEN COUNT(*) > 0 THEN '[PASS] Data loaded'
+       ELSE '[FAIL] No data found - rerun Step 2' END AS check_1,
+  CASE WHEN COUNT(DISTINCT region) >= 3 THEN '[PASS] All regions present'
+       ELSE '[FAIL] Missing regions - check source data' END AS check_2
+FROM target_table;
+```
+
 **Best Practices:**
 - **Requirement:** Place checkpoints between major sections (not every cell)
 - **Requirement:** 3-7 validation checks per checkpoint
@@ -136,6 +149,8 @@ else:
 - **Always:** Provide actionable error messages (which step to re-run)
 - **Always:** Show progress summary (what's complete, what's next)
 - **Consider:** Include diagnostic information (row counts, feature counts, time elapsed)
+
+**Checkpoint frequency:** For short tutorials (10-20 cells): 2-3 checkpoints. For medium tutorials (20-40 cells): 3-5 checkpoints. For long tutorials (40+ cells): 5-7 checkpoints. Place at natural section boundaries, not arbitrarily.
 
 ### Teaching Point Callouts
 

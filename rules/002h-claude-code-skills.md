@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.3.0
+**RuleVersion:** v3.4.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Claude Code, skills, SKILL.md, skill structure, progressive disclosure, workflows, trigger keywords, skill authoring, skill testing, skill validation, input contracts, output contracts, skill examples, YAML frontmatter, description writing, MCP tools, degrees of freedom, context window, third person, naming conventions
-**TokenBudget:** ~4150
+**TokenBudget:** ~4500
 **ContextTier:** High
 **Depends:** 000-global-core.md, 002-rule-governance.md
 **LoadTrigger:** dir:skills/, kw:skill
@@ -69,7 +69,7 @@ Best practices for authoring Claude Code skills in the `skills/` directory. Cove
 - Putting detailed implementation in SKILL.md (use workflow files; **see Size Limit below**)
 - Omitting required YAML frontmatter fields (`name`, `description`)
 - Writing description in first person ("I can help") or second person ("you can use")
-- Using vague or generic trigger keywords
+- Using vague or generic trigger keywords (see specificity criteria below)
 - Skipping input validation
 - Hardcoding paths without defaults
 - Using bare tool names instead of fully qualified MCP tool names (ServerName:tool_name)
@@ -196,7 +196,17 @@ Skill directory structure with:
     - Avoid: "You can use this to process Excel files"
   - Be specific and include key terms for both WHAT the skill does and WHEN to use it
   - Include trigger keywords directly: `"Review project documentation. Triggers on 'review docs', 'audit documentation'."`
-  - Avoid vague descriptions: "Helps with documents", "Processes data", "Does stuff with files"
+  - A non-vague description must include at least:
+    1. One **action verb** (create, review, validate, analyze, generate, deploy)
+    2. One **domain noun** (rule, schema, document, database, pipeline)
+    3. One **qualifying context** (quality, compliance, format, Snowflake, Python)
+  - Examples:
+    - PASS: "Reviews rule files for schema compliance and agent executability"
+      (verb: reviews, noun: rule files, context: schema compliance + agent executability)
+    - PASS: "Generates Snowflake stored procedures from natural language descriptions"
+      (verb: generates, noun: stored procedures, context: Snowflake + natural language)
+    - FAIL: "Helps with documents" (verb: helps — too generic, no context)
+    - FAIL: "Processes data" (verb: processes — too generic, no domain noun specificity)
 
 **Project standard (optional fields):**
 - **version**: Semantic version (e.g., 1.0.0, 2.1.0) - Recommended for tracking changes
@@ -391,11 +401,22 @@ reader = PdfReader("file.pdf")
 
 ### Runtime Environment and Progressive Disclosure
 
-For details on how Claude accesses skills at runtime (metadata pre-loading, on-demand file reads, script execution, context token implications), see `docs/skill-runtime-environment.md`.
+For runtime environment details, refer to the Anthropic skill documentation.
+Key runtime considerations: package availability differs between claude.ai (can install)
+and API (no network access). See lines 371-372 for platform-specific guidance.
 
 ## Advanced Patterns
 
 **See:** **002l-skill-advanced-patterns.md** for plan-validate-execute, visual analysis, and orchestrator-worker composition patterns.
+
+### Concurrent Skill Modification
+
+When multiple developers may edit the same skill:
+
+1. Use git branches — one branch per skill modification
+2. Check `git status skills/<skill-name>/` before editing
+3. If conflict on SKILL.md: prefer the version with more specific trigger keywords
+4. If conflict on workflow files: merge both changes, re-test the complete workflow
 
 ## Anti-Patterns and Common Mistakes
 
@@ -480,6 +501,16 @@ description: Reviews rule files for quality and compliance.
 See rubrics/ for evaluation criteria.
 See workflows/ for step-by-step guides.
 ```
+
+### Testing Skill Discovery
+
+To verify a skill triggers correctly:
+
+1. Identify 3-5 natural language prompts that SHOULD trigger the skill
+2. Identify 2-3 prompts that should NOT trigger it
+3. For each prompt, verify the description's trigger keywords would match
+4. Test with the actual agent: "When I say '[prompt]', does this skill appear?"
+5. If discovery fails: add more specific keywords to the description field
 
 ### Input Validation Snippet Example
 

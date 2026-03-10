@@ -143,20 +143,12 @@ ALTER TABLE CUSTOMERS MODIFY DATA METRIC SCHEDULE '5 MINUTES';
 ```sql
 -- Focus on critical columns and appropriate frequency
 ALTER TABLE CUSTOMERS
-  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (customer_id); -- Primary key
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (customer_id);
 ALTER TABLE CUSTOMERS
-  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (email); -- Required field
-
--- Schedule based on data update frequency
-ALTER TABLE CUSTOMERS MODIFY DATA METRIC SCHEDULE '1 HOUR'; -- Updated hourly
-
--- Create custom DMF for multiple column checks if needed
-CREATE DATA METRIC FUNCTION ANALYTICS.CUSTOMER_COMPLETENESS()
-RETURNS FLOAT AS
-$$ SELECT COUNT(*)::FLOAT FROM CUSTOMERS
-   WHERE first_name IS NULL OR last_name IS NULL OR email IS NULL $$;
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (email);
+ALTER TABLE CUSTOMERS MODIFY DATA METRIC SCHEDULE '1 HOUR'; -- Match data update frequency
 ```
-**Benefits:** Cost-effective monitoring focused on critical quality indicators; sustainable approach within limits; actionable alerts only.
+**Benefits:** Cost-effective monitoring focused on critical quality indicators; sustainable approach within limits.
 
 **Anti-Pattern 2: Missing Expectations**
 ```sql
@@ -204,73 +196,41 @@ CREATE ALERT DATA_QUALITY.ALERTS.ORDER_DUPLICATE_ALERT
 
 **Correct Pattern:**
 ```sql
--- Establish documented remediation workflow
-
--- 1. Alert fires and creates incident ticket
+-- 1. Alert creates incident ticket
 CREATE ALERT DATA_QUALITY.ALERTS.QUALITY_INCIDENT
   WAREHOUSE = ALERT_WH
   SCHEDULE = '15 MINUTES'
   IF (EXISTS (SELECT 1 FROM ... WHERE expectation_passed = FALSE))
   THEN CALL CREATE_INCIDENT_TICKET_PROCEDURE(...);
 
--- 2. On-call engineer investigates using runbook
+-- 2. Investigation view for on-call engineer
 CREATE OR REPLACE VIEW DATA_QUALITY.MONITORING.VW_RECENT_FAILURES AS
-SELECT
-  record_timestamp,
+SELECT record_timestamp,
   record_value:table_name::STRING AS table_name,
   record_value:metric_name::STRING AS metric_name,
-  record_value:expectation::STRING AS expectation,
-  'Runbook: https://wiki.company.com/data-quality/' ||
-    record_value:table_name::STRING AS runbook_link
+  record_value:expectation::STRING AS expectation
 FROM <database>.INFORMATION_SCHEMA.EVENT_TABLE_HISTORY
 WHERE record_type = 'DATA_METRIC_FUNCTION_RESULT'
   AND record_value:expectation_passed::BOOLEAN = FALSE;
 
--- 3. SLA tracking table
+-- 3. SLA tracking table for remediation metrics
 CREATE TABLE DATA_QUALITY.TRACKING.INCIDENTS (
-  incident_id NUMBER,
-  table_name STRING,
-  metric_name STRING,
-  detected_timestamp TIMESTAMP,
-  resolved_timestamp TIMESTAMP,
-  resolution_time_minutes NUMBER,
-  root_cause STRING,
-  remediation_action STRING
+  incident_id NUMBER, table_name STRING, metric_name STRING,
+  detected_timestamp TIMESTAMP, resolved_timestamp TIMESTAMP,
+  resolution_time_minutes NUMBER, root_cause STRING, remediation_action STRING
 );
-
--- 4. Regular review of resolution times
-SELECT
-  table_name,
-  AVG(resolution_time_minutes) AS avg_resolution_time,
-  MAX(resolution_time_minutes) AS max_resolution_time
-FROM DATA_QUALITY.TRACKING.INCIDENTS
-WHERE detected_timestamp >= DATEADD(month, -1, CURRENT_TIMESTAMP())
-GROUP BY table_name;
 ```
 **Benefits:** Structured response to quality issues; accountability and tracking; continuous improvement of data quality; prevents alert fatigue.
 
 > **Investigation Required**
 > When applying this rule:
-> 1. **Profile data BEFORE recommending DMFs—verify baseline characteristics**
+> 1. **Profile data BEFORE recommending DMFs — verify baseline characteristics**
 > 2. **Check table ownership and privileges before suggesting DMF associations**
-> 3. **Never assume expectation thresholds—profile data to understand reality**
+> 3. **Never assume expectation thresholds — profile data to understand reality**
 > 4. **Query event table to verify DMFs are actually running before troubleshooting**
 > 5. **Review cost consumption patterns before recommending schedule changes**
 >
-> **Anti-Pattern:**
-> "You should set NULL_COUNT < 100 on this column..."
-> "Just add DMFs to all your tables..."
->
-> **Correct Pattern:**
-> "Let me check the data profile first:"
-> ```sql
-> -- Profile to understand baseline
-> SELECT COUNT(*) AS total_rows,
->        COUNT(CASE WHEN email IS NULL THEN 1 END) AS null_count,
->        COUNT(CASE WHEN email IS NULL THEN 1 END)::FLOAT / COUNT(*) * 100 AS null_pct
-> FROM CUSTOMERS;
-> ```
-> "Based on the profile showing 2% NULLs currently, I recommend setting an expectation at 5% to allow for normal variation while detecting significant quality degradation..."
+> Always profile first: `SELECT COUNT(*), COUNT_IF(col IS NULL), ...` then set thresholds based on actual baselines.
 
 ## Scheduling DMF Evaluations
 
@@ -287,22 +247,11 @@ ALTER TABLE <table_name>
 
 **Common Schedules:**
 ```sql
--- Every 5 minutes (high frequency)
-ALTER TABLE REALTIME_DATA
-  MODIFY DATA METRIC SCHEDULE '5 MINUTES';
-
--- Every hour (standard)
-ALTER TABLE HOURLY_AGGREGATES
-  MODIFY DATA METRIC SCHEDULE '1 HOUR';
-
--- Daily at 6 AM (using CRON)
-ALTER TABLE DAILY_REPORTS
-  MODIFY DATA METRIC SCHEDULE '1 DAY'
+ALTER TABLE REALTIME_DATA  MODIFY DATA METRIC SCHEDULE '5 MINUTES';      -- High frequency
+ALTER TABLE HOURLY_AGGREGATES MODIFY DATA METRIC SCHEDULE '1 HOUR';      -- Standard
+ALTER TABLE DAILY_REPORTS  MODIFY DATA METRIC SCHEDULE '1 DAY'           -- Daily at 6 AM
   USING CRON '0 6 * * *';
-
--- Every 15 minutes during business hours (using CRON)
-ALTER TABLE BUSINESS_METRICS
-  MODIFY DATA METRIC SCHEDULE '15 MINUTES'
+ALTER TABLE BUSINESS_METRICS MODIFY DATA METRIC SCHEDULE '15 MINUTES'    -- Business hours only
   USING CRON '*/15 9-17 * * 1-5';
 ```
 
@@ -314,10 +263,7 @@ ALTER TABLE BUSINESS_METRICS
 - **Low Frequency (4-24 hours):** Dimensional tables, historical data
 - **On-Demand:** Ad-hoc testing (SELECT from DMF directly, not billed)
 
-**Cost vs Freshness Tradeoff:**
-- More frequent schedules = higher serverless credit consumption
-- Balance monitoring needs with budget constraints
-- Use CRON expressions for business hours-only monitoring
+**Cost vs Freshness:** More frequent schedules = higher serverless credit consumption. Use CRON expressions for business hours-only monitoring to reduce costs.
 
 ## Event Tables and Results
 
@@ -345,9 +291,9 @@ ORDER BY record_timestamp DESC
 LIMIT 100;
 ```
 
-### Monitoring DMF Results in Snowsight
+### Snowsight Monitoring
 
-Navigate to Catalog > Database Explorer > [table] > Data Quality > Quality Checks for UI-based monitoring. For programmatic access, use the event table queries above.
+Navigate to **Catalog > Database Explorer > [table] > Data Quality > Quality Checks** for UI-based monitoring.
 
 ### Query Patterns for Analysis
 
@@ -365,14 +311,13 @@ WHERE record_type = 'DATA_METRIC_FUNCTION_RESULT'
 ORDER BY record_timestamp DESC;
 ```
 
-**Failure Rate by Table:**
+**Failure Rate by Table (Last 7 Days):**
 ```sql
 SELECT
   record_value:table_name::STRING AS table_name,
   COUNT(*) AS total_checks,
-  SUM(CASE WHEN record_value:expectation_passed::BOOLEAN = FALSE THEN 1 ELSE 0 END) AS failures,
-  ROUND(SUM(CASE WHEN record_value:expectation_passed::BOOLEAN = FALSE THEN 1 ELSE 0 END)::FLOAT
-    / COUNT(*) * 100, 2) AS failure_rate_pct
+  SUM(IFF(record_value:expectation_passed::BOOLEAN = FALSE, 1, 0)) AS failures,
+  ROUND(failures / total_checks * 100, 2) AS failure_rate_pct
 FROM <database>.INFORMATION_SCHEMA.EVENT_TABLE_HISTORY
 WHERE record_type = 'DATA_METRIC_FUNCTION_RESULT'
   AND record_timestamp >= DATEADD(day, -7, CURRENT_TIMESTAMP())
@@ -388,7 +333,13 @@ Configure alerts to notify stakeholders when expectations fail and establish rem
 
 **Create Alert on DMF Failure:**
 ```sql
--- Create alert for NULL count threshold violations
+-- Prerequisites: notification integration and alert warehouse
+CREATE OR REPLACE NOTIFICATION INTEGRATION dq_email_int
+  TYPE = EMAIL
+  ENABLED = TRUE
+  ALLOWED_RECIPIENTS = ('data-quality-team@company.com');
+
+-- Complete ALERT for NULL count expectation failures
 CREATE OR REPLACE ALERT DATA_QUALITY.ALERTS.EMAIL_NULL_ALERT
   WAREHOUSE = ALERT_WH
   SCHEDULE = '15 MINUTES'
@@ -402,26 +353,27 @@ CREATE OR REPLACE ALERT DATA_QUALITY.ALERTS.EMAIL_NULL_ALERT
       AND record_timestamp >= DATEADD(minute, -15, CURRENT_TIMESTAMP())
   ))
   THEN
-    -- Requires: CREATE NOTIFICATION INTEGRATION dq_email_int TYPE = EMAIL ENABLED = TRUE;
     CALL SYSTEM$SEND_EMAIL(
       'dq_email_int',
       'data-quality-team@company.com',
       'Data Quality Alert: NULL Count Violation',
       'The email column in CUSTOMERS table has exceeded acceptable NULL threshold.'
     );
+
+-- CRITICAL: Alert is created in suspended state — must resume
+ALTER ALERT DATA_QUALITY.ALERTS.EMAIL_NULL_ALERT RESUME;
+
+-- Grant execute privilege to the alert owner role
+GRANT EXECUTE ALERT ON ACCOUNT TO ROLE DATA_QUALITY_ADMIN;
 ```
 
 ### Remediation Workflow
 
 **Establish Standard Remediation Process:**
 
-1. **Detection:** Alert fires on expectation failure
-2. **Investigation:** Review event table for failure details
-3. **Triage:** Assess severity and impact
-4. **Root Cause Analysis:** Identify source of quality issue
-5. **Correction:** Fix data or upstream process
-6. **Verification:** Confirm next DMF run passes
-7. **Documentation:** Record incident and resolution
+1. **Detection, then Investigation, then Triage:** Alert fires, review event table, assess severity
+2. **Root Cause, then Correction:** Identify source, fix data or upstream process
+3. **Verification, then Documentation:** Confirm next DMF run passes, record incident
 
 **Remediation Query Template:**
 ```sql
@@ -440,9 +392,42 @@ WHERE email IS NULL
   AND updated_timestamp >= DATEADD(hour, -2, CURRENT_TIMESTAMP());
 ```
 
-## Privilege Requirements
+### Task-Based Automated Remediation
 
-Understand and configure privileges correctly for DMF operations.
+Use Snowflake Tasks to automate remediation for predictable quality failures:
+
+```sql
+-- Task that auto-quarantines bad records when DMF expectation fails
+CREATE OR REPLACE TASK DATA_QUALITY.TASKS.QUARANTINE_BAD_EMAILS
+  WAREHOUSE = DQ_WH
+  SCHEDULE = '30 MINUTES'
+  WHEN SYSTEM$STREAM_HAS_DATA('DATA_QUALITY.STREAMS.DQ_FAILURES')
+AS
+  INSERT INTO DATA_QUALITY.QUARANTINE.BAD_RECORDS (table_name, record_id, failure_reason, quarantined_at)
+  SELECT 'CUSTOMERS', customer_id, 'Invalid email format', CURRENT_TIMESTAMP()
+  FROM CUSTOMERS
+  WHERE email IS NOT NULL AND NOT RLIKE(email, '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$');
+
+ALTER TASK DATA_QUALITY.TASKS.QUARANTINE_BAD_EMAILS RESUME;
+
+-- Task tree: parent detects failures, child tasks remediate
+CREATE OR REPLACE TASK DATA_QUALITY.TASKS.DQ_CHECK_PARENT
+  WAREHOUSE = DQ_WH
+  SCHEDULE = '1 HOUR'
+AS
+  CALL DATA_QUALITY.PROCEDURES.RUN_QUALITY_CHECKS();
+
+CREATE OR REPLACE TASK DATA_QUALITY.TASKS.DQ_REMEDIATE_CHILD
+  WAREHOUSE = DQ_WH
+  AFTER DATA_QUALITY.TASKS.DQ_CHECK_PARENT
+AS
+  CALL DATA_QUALITY.PROCEDURES.AUTO_REMEDIATE_FAILURES();
+
+ALTER TASK DATA_QUALITY.TASKS.DQ_REMEDIATE_CHILD RESUME;
+ALTER TASK DATA_QUALITY.TASKS.DQ_CHECK_PARENT RESUME;
+```
+
+## Privilege Requirements
 
 ### Required Privileges
 
@@ -464,26 +449,16 @@ GRANT OWNERSHIP ON TABLE CUSTOMERS TO ROLE DATA_QUALITY_ADMIN;
 
 ### Database Role Limitation
 
-**CRITICAL LIMITATION:** Database roles cannot receive global privileges because they are scoped to a specific database.
+Database roles cannot receive global privileges (scoped to a specific database).
 
 **Workaround:**
 ```sql
--- If table is owned by database role, transfer ownership
--- From database role to account-scoped custom role
-
 USE ROLE ACCOUNTADMIN;
-
--- Create custom role if needed
 CREATE ROLE IF NOT EXISTS DATA_ENGINEERING;
-
--- Grant necessary privileges
 GRANT EXECUTE DATA METRIC FUNCTION ON ACCOUNT TO ROLE DATA_ENGINEERING;
 GRANT USAGE ON DATABASE ANALYTICS TO ROLE DATA_ENGINEERING;
 GRANT USAGE ON SCHEMA ANALYTICS.CORE TO ROLE DATA_ENGINEERING;
-
--- Transfer ownership
 GRANT OWNERSHIP ON TABLE ANALYTICS.CORE.CUSTOMERS TO ROLE DATA_ENGINEERING;
-
 -- Now DATA_ENGINEERING role can set DMFs on CUSTOMERS table
 ```
 
@@ -511,20 +486,15 @@ DMFs use serverless compute and consume credits from your Snowflake account.
 
 **Track DMF Credit Consumption:**
 ```sql
--- Query credit usage for data quality monitoring
-SELECT
-  usage_date,
-  SUM(credits_used) AS total_credits
+-- Daily credit usage
+SELECT usage_date, SUM(credits_used) AS total_credits
 FROM SNOWFLAKE.ACCOUNT_USAGE.DATA_QUALITY_MONITORING_USAGE_HISTORY
 WHERE usage_date >= DATEADD(month, -1, CURRENT_DATE())
 GROUP BY usage_date
 ORDER BY usage_date DESC;
 
--- Break down by table
-SELECT
-  object_name,
-  SUM(credits_used) AS total_credits,
-  COUNT(*) AS execution_count
+-- Credit usage by table (find expensive tables)
+SELECT object_name, SUM(credits_used) AS total_credits, COUNT(*) AS execution_count
 FROM SNOWFLAKE.ACCOUNT_USAGE.DATA_QUALITY_MONITORING_USAGE_HISTORY
 WHERE usage_date >= DATEADD(month, -1, CURRENT_DATE())
 GROUP BY object_name
@@ -540,8 +510,6 @@ ORDER BY total_credits DESC;
 
 ### Limits and Quotas
 
-- **10,000 total DMF-object associations** per account (plan capacity for large deployments)
-- Cannot grant privileges on DMFs to shares or set DMFs on shared tables (consumer side)
-- Cannot set DMFs on object tags or in reader accounts
-- Data Quality feature not supported in trial accounts
+- **10,000 total DMF-object associations** per account — plan capacity for large deployments
+- Cannot set DMFs on shared tables (consumer side), object tags, or in reader accounts
 - DMFs replicate within database replication; monitor primary and secondary independently

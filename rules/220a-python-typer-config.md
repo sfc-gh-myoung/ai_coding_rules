@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Typer, CLI configuration, Pydantic Settings, environment variables, config precedence, CLI options
-**TokenBudget:** ~1300
+**TokenBudget:** ~2550
 **ContextTier:** Medium
 **Depends:** 220-python-typer-cli.md
 **LoadTrigger:** kw:cli-config, kw:pydantic-settings
@@ -70,15 +70,32 @@ Settings class with validated configuration, CLI overrides, and env var support.
 - [ ] CLI options override environment and file values
 - [ ] Defaults are sensible for development
 
+**Success Criteria (Runnable):**
+- `uv run myapp show-config` displays all current settings with sources
+- `MYAPP_DEBUG=true uv run myapp show-config` shows debug=True from env
+- `uv run myapp --config test.toml show-config` loads from TOML file
+- `MYAPP_DEBUG=true uv run myapp --config test.toml show-config` shows env overrides file
+
 **Negative Tests:**
 - Invalid config value (should raise ValidationError at startup)
 - Missing required env var without CLI override (should fail with clear message)
+- `MYAPP_API_TIMEOUT=abc uv run myapp show-config` shows validation error, exit code 1
+- `uv run myapp --config nonexistent.toml` shows file not found error, exit code 1
 
 ### Design Principles
 
 - **Precedence:** CLI > Environment > Config file > Defaults
 - **Validation:** Fail fast at startup with clear error messages
 - **Discoverability:** Document all env vars and their defaults
+
+> **Investigation Required**
+> Before adding or modifying configuration patterns, the agent MUST:
+> 1. Read existing settings/config classes — check for existing `BaseSettings` subclasses in the project
+> 2. Check current environment variable patterns — look for existing `env_prefix` values to avoid conflicts
+> 3. Read `.env` files and `pyproject.toml` for existing config conventions
+> 4. Check if `pydantic-settings` is already installed (`uv pip list | grep pydantic-settings`)
+> 5. Verify the config precedence chain matches the project's existing behavior
+> 6. Never create a second settings class when one already exists — extend the existing class
 
 ### Post-Execution Checklist
 
@@ -151,6 +168,55 @@ class AppSettings(BaseSettings):
 settings = AppSettings()
 ```
 
+### Config File Loading
+
+To load settings from a TOML config file with proper precedence:
+
+```python
+import tomllib
+from pathlib import Path
+from pydantic import Field, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class AppSettings(BaseSettings):
+    """Application settings with TOML file support."""
+    config_file: Path | None = None
+    api_url: str = "https://api.example.com"
+    api_timeout: int = Field(30, ge=1, le=300)
+    max_retries: int = Field(3, ge=0, le=10)
+    debug: bool = False
+
+    model_config = SettingsConfigDict(
+        env_prefix="MYAPP_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def load_config_file(cls, data: dict) -> dict:
+        """Load values from TOML config file if specified."""
+        config_path = data.get("config_file")
+        if config_path is not None:
+            path = Path(config_path)
+            if not path.exists():
+                raise ValueError(f"Config file not found: {path}")
+            with open(path, "rb") as f:
+                file_data = tomllib.load(f)
+            # File values are lowest priority — only fill missing keys
+            for key, value in file_data.items():
+                data.setdefault(key, value)
+        return data
+```
+
+Example TOML config file (`~/.config/myapp/config.toml`):
+```toml
+api_url = "https://api.staging.example.com"
+api_timeout = 60
+debug = true
+```
+
 ### CLI Override Pattern
 
 ```python
@@ -174,6 +240,38 @@ def main(
         ctx.obj["settings"] = settings
 ```
 
+### Config Validation Error Handling
+
+Wrap settings initialization to catch validation errors from any source:
+
+```python
+from pydantic import ValidationError
+
+@app.callback()
+def main(
+    ctx: typer.Context,
+    config_file: Annotated[Optional[Path], typer.Option("--config", "-c")] = None,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False,
+) -> None:
+    """My CLI application."""
+    try:
+        settings = AppSettings(config_file=config_file)
+    except ValidationError as e:
+        err_console.print("[red]Configuration error:[/red]")
+        for error in e.errors():
+            field = ".".join(str(loc) for loc in error["loc"])
+            err_console.print(f"  {field}: {error['msg']}")
+        raise typer.Exit(code=1)
+
+    ctx.ensure_object(dict)
+    ctx.obj["settings"] = settings
+```
+
+Common failure modes this handles:
+- `MYAPP_DEBUG=notabool` produces "debug: Input should be a valid boolean"
+- `MYAPP_API_TIMEOUT=-5` produces "api_timeout: Input should be greater than or equal to 1"
+- `--config nonexistent.toml` produces "config_file: Config file not found: nonexistent.toml"
+
 ### Show Config Command
 
 ```python
@@ -191,3 +289,57 @@ def show_config(ctx: typer.Context):
         table.add_row(field_name, str(field_value))
     console.print(table)
 ```
+
+### Nested Configuration
+
+For complex settings with grouped sub-configurations:
+
+```python
+from pydantic import BaseModel, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class DatabaseConfig(BaseModel):
+    """Database connection settings (not a BaseSettings — no env support)."""
+    host: str = "localhost"
+    port: int = Field(5432, ge=1, le=65535)
+    name: str = "myapp"
+
+
+class AppSettings(BaseSettings):
+    """Application settings with nested database config."""
+    debug: bool = False
+    database: DatabaseConfig = DatabaseConfig()
+
+    model_config = SettingsConfigDict(
+        env_prefix="MYAPP_",
+        env_nested_delimiter="__",  # MYAPP_DATABASE__HOST=dbhost
+    )
+```
+
+With `env_nested_delimiter="__"`:
+- `MYAPP_DATABASE__HOST=dbhost` sets `settings.database.host`
+- `MYAPP_DATABASE__PORT=5433` sets `settings.database.port`
+
+### Secrets Management
+
+For sensitive values (API keys, passwords), use Pydantic's `SecretStr`:
+
+```python
+from pydantic import SecretStr
+
+class AppSettings(BaseSettings):
+    api_key: SecretStr  # Required — no default
+    db_password: SecretStr = SecretStr("")
+
+    model_config = SettingsConfigDict(
+        env_prefix="MYAPP_",
+        secrets_dir="/run/secrets",  # Docker secrets mount point
+    )
+```
+
+**Key rules:**
+- `SecretStr` values display as `'**********'` in logs and `show-config` output
+- Access the actual value with `settings.api_key.get_secret_value()`
+- Use `secrets_dir` for Docker/Kubernetes secret file mounts
+- Never log or print secret values without explicit `.get_secret_value()` call

@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Container Runtime, Warehouse Runtime, deployment, pyproject.toml, environment.yml, compute pool, EAI, external access integration, CREATE STREAMLIT, migration
-**TokenBudget:** ~3600
+**TokenBudget:** ~3850
 **ContextTier:** High
-**Depends:** 101-snowflake-streamlit-core.md
+**Depends:** 000-global-core.md, 101-snowflake-streamlit-core.md
 
 ## Scope
 
@@ -27,7 +27,8 @@ Comprehensive deployment guidance for Streamlit applications in Snowflake, cover
 ### Dependencies
 
 **Must Load First:**
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns and state management
+- **000-global-core.md** - Foundation patterns and conventions `[Available]`
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns and state management `[Available]`
 
 **Related:**
 - **101f-snowflake-streamlit-deployment-errors.md** - Deployment error troubleshooting
@@ -46,7 +47,7 @@ Comprehensive deployment guidance for Streamlit applications in Snowflake, cover
 
 - Snowflake account with Streamlit privileges
 - Application source code ready for deployment
-- Understanding of compute requirements: Container Runtime needs a compute pool (`CPU_X64_XS` minimum, ~$0.06/credit); Warehouse Runtime uses a virtual warehouse (`X-SMALL` sufficient for most apps)
+- Understanding of compute requirements: Container Runtime needs a compute pool (`CPU_X64_XS` minimum; see Snowflake pricing docs for current costs); Warehouse Runtime uses a virtual warehouse (`X-SMALL` sufficient for most apps)
 
 ### Mandatory
 
@@ -227,9 +228,9 @@ snowflake-snowpark-python>=1.11
 ```
 - `source_directory/`
   - `.streamlit/`
-    - `config.toml` — Theme and configuration
-  - `pyproject.toml` — Dependencies (recommended)
-  - `streamlit_app.py` — Entrypoint
+    - `config.toml` -- Theme and configuration
+    - `pyproject.toml` -- Dependencies (recommended)
+    - `streamlit_app.py` -- Entrypoint
   - `pages/`
     - `dashboard.py`
     - `settings.py`
@@ -250,7 +251,13 @@ CREATE STREAMLIT my_db.my_schema.my_app
   RUNTIME_NAME = 'SYSTEM$ST_CONTAINER_RUNTIME_PY3_11'
   COMPUTE_POOL = streamlit_compute_pool
   QUERY_WAREHOUSE = my_warehouse
-  EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration);
+  EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration)
+  QUERY_TAG = 'streamlit_app_my_app';
+
+-- Recommended: Set session parameters after creation
+ALTER STREAMLIT my_db.my_schema.my_app SET
+  STATEMENT_TIMEOUT_IN_SECONDS = 300
+  CLIENT_SESSION_KEEP_ALIVE = TRUE;
 ```
 
 **Key Parameters:**
@@ -285,7 +292,13 @@ snow stage list-files @my_db.my_schema.my_stage/streamlit_app
 
 If deployment fails:
 
-1. `ALTER SERVICE <name> FROM SPECIFICATION_FILE='<previous_version>.yaml'`
+1. Re-upload previous version files to stage and recreate:
+   ```sql
+   CREATE OR REPLACE STREAMLIT my_db.my_schema.my_app
+     FROM '@my_stage/streamlit_app_previous'
+     MAIN_FILE = 'streamlit_app.py'
+     ...;  -- same parameters as original
+   ```
 2. If SPCS compute pool is exhausted, suspend other services first
 3. For data issues, restore from last-known-good table snapshot
 
@@ -314,9 +327,9 @@ dependencies:
 ```
 - `source_directory/`
   - `.streamlit/`
-    - `config.toml` — Limited config options
-  - `environment.yml` — Conda dependencies
-  - `streamlit_app.py` — Entrypoint (MUST be in root)
+    - `config.toml` -- Limited config options
+    - `environment.yml` -- Conda dependencies
+    - `streamlit_app.py` -- Entrypoint (MUST be in root)
   - `pages/`
     - `dashboard.py`
     - `settings.py`
@@ -349,14 +362,22 @@ PUT file://environment.yml @my_stage AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 CREATE STREAMLIT my_db.my_schema.my_app
   FROM '@my_db.my_schema.my_stage/streamlit_app'
   MAIN_FILE = 'streamlit_app.py'
-  QUERY_WAREHOUSE = my_warehouse;
+  QUERY_WAREHOUSE = my_warehouse
+  QUERY_TAG = 'streamlit_app_my_app';
 ```
 
 **Key Difference:** No `RUNTIME_NAME`, `COMPUTE_POOL`, or `EXTERNAL_ACCESS_INTEGRATIONS`.
 
 ## Migration: Warehouse to Container Runtime
 
-For migrating from Warehouse Runtime to Container Runtime, see **101n-snowflake-streamlit-migration.md** for step-by-step dependency conversion, connection handling updates, and infrastructure setup.
+**Migration checklist (see 101n-snowflake-streamlit-migration.md for full details):**
+
+1. **Convert dependencies:** `environment.yml` (conda) to `pyproject.toml` (pip/uv)
+2. **Update connections:** Replace `get_active_session()` with `st.connection("snowflake")`
+3. **Set up EAI:** Create network rule + external access integration for PyPI
+4. **Create compute pool:** `CREATE COMPUTE POOL` with appropriate instance family
+5. **Update CREATE STREAMLIT:** Add `RUNTIME_NAME`, `COMPUTE_POOL`, `EXTERNAL_ACCESS_INTEGRATIONS`
+6. **Update secrets:** Migrate from `_snowflake.get_generic_secret_string()` to `st.secrets`
 
 ## Anti-Patterns and Common Mistakes
 

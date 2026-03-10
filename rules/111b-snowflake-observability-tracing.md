@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:tracing, kw:distributed-tracing
 **Keywords:** span attributes, trace_id, performance analysis, metrics collection, cpu_usage, memory_usage, telemetry.create_span, OpenTelemetry, nested spans, tracing patterns, span creation, trace analysis, distributed traces
@@ -250,7 +250,7 @@ def my_handler(session, input_data):
                 for i, record in enumerate(valid_records):
                     # Sample progress events (every 1000 records)
                     if i % 1000 == 0 and i > 0:
-                        telemetry.add_event(f"Progress: {i}/{len(valid_records)}")
+                        process_span.add_event(f"Progress: {i}/{len(valid_records)}")
 
                     try:
                         result = process_record(record)
@@ -289,23 +289,14 @@ def complex_calculation(session, input_data):
     with telemetry.create_span("complex_calculation") as span:
         span.set_attribute("input_size", len(input_data))
 
-        # Nested span for data validation
-        with telemetry.create_span("data_validation") as validation_span:
-            validation_span.set_attribute("validation_type", "business_rules")
-            valid_data = validate_business_rules(input_data)
-            validation_span.set_attribute("valid_records", len(valid_data))
-
-        # Nested span for computation
-        with telemetry.create_span("computation") as compute_span:
-            compute_span.set_attribute("algorithm", "weighted_average")
-            result = perform_calculation(valid_data)
-            compute_span.set_attribute("result_count", len(result))
+        # Nested spans for sub-operations (see Nested Spans section below for full multi-stage example)
+        result = perform_calculation(input_data)
 
         span.set_attribute("processing_complete", True)
         return result
 ```
 
-### Span Context and Attributes
+> **Note:** For Java/Scala handlers, use the `snowflake-telemetry-java` package with equivalent span creation APIs. See Snowflake documentation for Java-specific tracing syntax.
 
 - Add relevant attributes to spans to aid performance analysis and troubleshooting
 - Include attributes: input size, processing time, success status, error details
@@ -360,8 +351,6 @@ from snowflake import telemetry
 def process_with_performance_tracking(session, data):
     """Track performance of expensive operations."""
 
-    start_time = time.time()
-
     with telemetry.create_span("full_processing") as main_span:
         main_span.set_attribute("total_records", len(data))
 
@@ -377,11 +366,10 @@ def process_with_performance_tracking(session, data):
 
         # Span for complex transformation
         with telemetry.create_span("transformation") as transform_span:
-            transform_span.set_attribute("transform_type", "aggregation")
             result = perform_aggregation(enriched_data)
             transform_span.set_attribute("result_size", len(result))
 
-        main_span.set_attribute("total_duration_ms", (time.time() - start_time) * 1000)
+        main_span.set_attribute("total_duration_ms", (time.time() - time.time()) * 1000)
         return result
 ```
 
@@ -453,9 +441,8 @@ with telemetry.create_span("operation") as span:
 
 ### Span Attribute Limits
 
-- **Constraint:** Limited number of custom attributes per span (typically 128)
-- **Best Practice:** Use attributes judiciously for high-cardinality data
-- Prefer logging detailed messages over excessive span attributes
+- **Constraint:** Limited to 128 custom attributes per span (see Anti-Pattern 2 above for event limit)
+- **Best Practice:** Use attributes judiciously; prefer logging detailed messages over excessive span attributes
 
 ```python
 # Good: Essential attributes only
@@ -463,31 +450,17 @@ with telemetry.create_span("operation") as span:
     span.set_attribute("input_size", len(data))
     span.set_attribute("operation_type", "transformation")
     span.set_attribute("success", True)
-
-# Anti-Pattern: Too many attributes
-with telemetry.create_span("operation") as span:
-    for i, record in enumerate(data):  # Don't create attribute per record
-        span.set_attribute(f"record_{i}_status", record.status)  # BAD
+    # Don't create an attribute per record — use set_attribute for aggregates only
 ```
 
 ## Querying Trace Data
 
 ### Trace Analysis Queries
-```sql
--- Identify slow function executions
-SELECT
-    resource_attributes:"snow.executable.name"::string as function_name,
-    span_name,
-    duration_ms,
-    timestamp,
-    trace_id
-FROM snowflake.account_usage.event_table
-WHERE record_type = 'SPAN'
-  AND duration_ms > 5000  -- Functions taking more than 5 seconds
-  AND timestamp >= current_timestamp() - interval '1 hour'
-ORDER BY duration_ms DESC;
 
--- Correlate traces with error logs
+> For comprehensive monitoring queries (slow function identification, error correlation, AI cost tracking), see `111c-snowflake-observability-monitoring.md`. The query below focuses on trace-specific correlation:
+
+```sql
+-- Correlate traces with error logs (trace-specific pattern)
 SELECT
     t.function_name,
     t.duration_ms,

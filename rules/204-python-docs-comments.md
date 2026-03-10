@@ -6,7 +6,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, Google style, NumPy style, PEP 257, semantic depth, side effects
-**TokenBudget:** ~2950
+**TokenBudget:** ~3800
 **ContextTier:** High
 **Depends:** 200-python-core.md, 201-python-lint-format.md
 **LoadTrigger:** kw:docstring, kw:documentation, kw:comments
@@ -43,7 +43,9 @@ Clear, enforceable standards for Python documentation, source code comments, and
 
 - Python 3.11+ codebase
 - pyproject.toml for configuration
-- Ruff for linting (pydocstyle rules)
+- Ruff ≥0.4.0 for docstring rules (D series) with convention support
+  - Earlier Ruff versions may not support `convention = "google"` in `[tool.ruff.lint.pydocstyle]`
+  - Check version: `uvx ruff version`
 
 ### Mandatory
 
@@ -59,7 +61,16 @@ Clear, enforceable standards for Python documentation, source code comments, and
 - Mixing Google and NumPy styles in the same project
 - Missing docstrings for public APIs
 - Duplicating type information already in type hints
-- Comments that merely restate the code ("what" instead of "why")
+- Comments that restate what the code does. A comment **restates** if:
+  1. It uses the same words as the code: `x += 1  # Increment x`
+  2. It describes the "what" without adding "why": `users = get_users()  # Get users`
+  3. It paraphrases a built-in operation: `if not items:  # Check if empty`
+
+  Comments **add value** when they explain:
+  1. **Why:** `timeout = 30  # Matches upstream SLA requirement`
+  2. **Non-obvious behavior:** `# sort() is stable — preserves insertion order for equal elements`
+  3. **Business context:** `# Users created before 2024 use legacy auth flow`
+  4. **Warning:** `# WARNING: This modifies the input dict in place`
 
 ### Execution Steps
 
@@ -156,8 +167,25 @@ if user.role == "admin":
 select = ["E", "W", "F", "I", "B", "C4", "UP", "D"]
 
 [tool.ruff.lint.pydocstyle]
-convention = "google"  # or "numpy"
+convention = "google"  # or "numpy" — pick ONE
 ```
+
+**Common Ruff D-rule issues:**
+
+- **D100 (Missing docstring in public module):** Add module docstring as first string literal
+- **D103 (Missing docstring in public function):** Add docstring or prefix with `_` if internal
+- **D400 (First line should end with a period):** Add period to summary line
+- **D401 (First line should be in imperative mood):** Use "Return" not "Returns", "Calculate" not "Calculates"
+- **D203 vs D211 (Conflicting D rules):** Ignore D203 when using google convention: `ignore = ["D203"]`
+
+**If Ruff D rules produce unexpected errors:**
+1. Check convention is set (missing convention causes conflicting rules)
+2. Check `src/` and `tests/` are not excluded from D rules
+3. Verify `per-file-ignores` isn't suppressing expected checks:
+   ```toml
+   [tool.ruff.lint.per-file-ignores]
+   "tests/*" = ["D100", "D103"]  # Tests don't need module/function docstrings
+   ```
 
 ## Google-style Example
 
@@ -240,6 +268,27 @@ Thread Safety: Not thread-safe. Create separate instances for concurrent operati
 """
 ```
 
+### Class Docstrings — class vs `__init__`
+
+**Where to put the docstring — class vs `__init__`:**
+
+```python
+# CORRECT: Docstring on the class (Google convention)
+class UserService:
+    """Manages user CRUD operations.
+
+    Attributes:
+        db: Database connection instance.
+        cache_ttl: Cache timeout in seconds.
+    """
+
+    def __init__(self, db: Database, cache_ttl: int = 300) -> None:
+        self.db = db
+        self.cache_ttl = cache_ttl
+```
+
+**Rule:** Put the docstring on the **class**, not `__init__`. Document `__init__` parameters in the class docstring's `Attributes` section (Google) or `Parameters` section (NumPy). This is enforced by Ruff D107 (missing docstring in `__init__`) being ignored when the class has a docstring.
+
 ### Function Docstrings - Document Behavior
 
 ```python
@@ -292,6 +341,32 @@ def execute_operation(operation_id: str, operation_type: OperationType):
 - Block comments above code they describe
 - Remove commented-out code; use version control
 - Keep comments up to date when behavior changes
+
+### Inline Comments
+
+**Format:** Two spaces before `#`, one space after:
+```python
+result = compute(x)  # Normalize to unit vector
+```
+
+**When to use inline comments:**
+- Explain non-obvious constants: `MAX_RETRIES = 3  # Matches circuit breaker threshold`
+- Mark workarounds: `# HACK: pandas 2.1 bug — fixed in 2.2, remove when upgraded`
+- Flag assumptions: `# ASSUMES: input is already sorted by timestamp`
+
+**When NOT to use inline comments:**
+- On obvious operations (see "restates" criteria in Forbidden above)
+- To disable linting: use `# noqa: E501` only with specific code, never bare `# noqa`
+- To explain complex logic — refactor instead or add a block comment above
+
+**Block comments** (full-line comments) for multi-line explanations:
+```python
+# The retry logic uses exponential backoff with jitter to avoid
+# thundering herd problems when multiple workers reconnect
+# simultaneously after a database failover.
+for attempt in range(MAX_RETRIES):
+    ...
+```
 
 ## Docstring Quality Checklist
 

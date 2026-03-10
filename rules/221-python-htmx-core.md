@@ -12,7 +12,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:htmx, kw:hypermedia
 **Keywords:** htmx, hypermedia, hateoas, hx-request, hx-trigger, partial rendering, sse, websockets, csrf, xss, http headers, swap strategies, oob swaps, response patterns
-**TokenBudget:** ~4000
+**TokenBudget:** ~4800
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -74,7 +74,7 @@ Foundational HTMX patterns for Python web applications, covering request/respons
 - Ignoring CSRF protection
 - Client-side routing (violates hypermedia principles)
 - Skipping XSS sanitization in partials
-- Using HTMX without server-side validation
+- Using HTMX without server-side validation (type checking, length limits, allowed values) — validate ALL user input server-side even though HTMX submits via AJAX
 
 ### Execution Steps
 
@@ -276,28 +276,31 @@ def add_comment():
 
 **Content Security Policy:**
 ```python
-# Nonce-based CSP (preferred over 'unsafe-inline')
+# Nonce-based CSP — CRITICAL: use a single nonce per request
 import secrets
+from flask import g
+
+@app.before_request
+def generate_csp_nonce():
+    """Generate a single CSP nonce per request, stored in flask.g."""
+    g.csp_nonce = secrets.token_urlsafe(16)
+
 
 @app.after_request
 def set_csp(response):
-    nonce = secrets.token_urlsafe(16)
+    """Add CSP header using the same nonce generated in before_request."""
     response.headers['Content-Security-Policy'] = (
         f"default-src 'self'; "
-        f"script-src 'self' 'nonce-{nonce}' https://unpkg.com/htmx.org; "
-        f"style-src 'self' 'nonce-{nonce}';"
+        f"script-src 'self' 'nonce-{g.csp_nonce}' https://unpkg.com/htmx.org; "
+        f"style-src 'self' 'nonce-{g.csp_nonce}';"
     )
-    # Store nonce for template access via g or context processor
     return response
-```
 
-```python
-# Context processor to make nonce available in templates
+
 @app.context_processor
 def inject_csp_nonce():
-    import secrets
-    nonce = secrets.token_urlsafe(16)
-    return dict(csp_nonce=nonce)
+    """Make the SAME nonce available in templates."""
+    return {'csp_nonce': g.csp_nonce}
 ```
 
 ```html
@@ -360,6 +363,37 @@ def order_actions(order_id):
     return '<p>No actions available</p>'
 ```
 
+### Progressive Enhancement with hx-boost
+
+`hx-boost="true"` converts regular links and forms to AJAX requests with no code changes:
+
+```html
+<!-- Apply to entire page — all links and forms become AJAX -->
+<body hx-boost="true">
+    <nav>
+        <a href="/dashboard">Dashboard</a>  <!-- Now AJAX, with history -->
+        <a href="/settings">Settings</a>    <!-- Now AJAX, with history -->
+    </nav>
+
+    <form action="/search" method="get">   <!-- Now AJAX submit -->
+        <input type="text" name="q">
+        <button type="submit">Search</button>
+    </form>
+
+    <!-- Opt out specific elements -->
+    <a href="/download/report.pdf" hx-boost="false">Download PDF</a>
+    <a href="https://external-site.com" hx-boost="false">External Link</a>
+</body>
+```
+
+**When to use:**
+- Existing server-rendered apps — add `hx-boost="true"` to `<body>` for instant navigation
+- Multi-page apps that want SPA-like transitions without rewriting routes
+
+**When NOT to use:**
+- Single-purpose partials (use `hx-get`/`hx-post` with `hx-target` instead)
+- External links or file download links (opt out with `hx-boost="false"`)
+
 ### 6. HTMX Extensions
 
 **Server-Sent Events (SSE):**
@@ -404,6 +438,16 @@ async def sse_status():
 - **Mixing SSE approaches:** Causes duplicate connections - Choose ONE per element
 - **Event type mismatch:** Updates never trigger - Match backend event types exactly
 - **Using `sse:` with Alpine.js:** HTMX ignores events - Use camelCase custom events
+- **Polling interval below 5s without rate limiting:** `hx-trigger="every 1s"` creates 60 req/min per user — use SSE instead
+
+**Polling rate limits:**
+
+- **`every 1s` (60 req/min per user):** Avoid — use SSE instead
+- **`every 5s` (12 req/min per user):** Acceptable for dashboards with rate limiting
+- **`every 30s` (2 req/min per user):** Safe for background status checks
+- **`every 60s` (1 req/min per user):** Safe for any use case
+
+For intervals under 30s, add server-side rate limiting (e.g., Flask-Limiter `@limiter.limit("12/minute")` or FastAPI `slowapi`).
 
 **WebSockets (with extension):**
 ```python
@@ -476,3 +520,46 @@ def update():
         response.headers['HX-Retarget'] = '#error-container'
         return response
 ```
+
+### Authentication Error Handling
+
+HTMX requests that receive 401/403 responses need special handling — the browser won't automatically redirect to a login page for AJAX requests.
+
+**Server-side (Flask):**
+```python
+@app.errorhandler(401)
+def unauthorized(e):
+    if request.headers.get('HX-Request') == 'true':
+        response = make_response("", 200)
+        response.headers['HX-Redirect'] = url_for('auth.login')
+        return response
+    return redirect(url_for('auth.login'))
+```
+
+**Server-side (FastAPI):**
+```python
+@app.exception_handler(HTTPException)
+async def auth_exception_handler(request: Request, exc: HTTPException):
+    if exc.status_code in (401, 403) and request.headers.get('HX-Request') == 'true':
+        response = HTMLResponse("")
+        response.headers['HX-Redirect'] = '/login'
+        return response
+    raise exc
+```
+
+**Client-side fallback (catches any missed 401s):**
+```html
+<script>
+document.body.addEventListener('htmx:responseError', function(event) {
+    if (event.detail.xhr.status === 401) {
+        window.location.href = '/login';
+    }
+});
+</script>
+```
+
+**Key rules:**
+- Use `HX-Redirect` header — HTMX will follow the redirect client-side
+- Return HTTP 200 with `HX-Redirect` (not 302) — HTMX handles the redirect itself
+- Add client-side `htmx:responseError` as a safety net for edge cases
+- For 403 (forbidden), show an inline error partial instead of redirecting

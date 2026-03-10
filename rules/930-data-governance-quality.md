@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Data governance, data quality, lineage, metadata management, compliance, data catalog, Great Expectations, schema evolution, data observability, incident response
-**TokenBudget:** ~2550
+**TokenBudget:** ~4300
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -56,6 +56,61 @@ Comprehensive directives for ensuring data quality, governance, and operational 
 - MUST profile data distributions before creating expectations
 - MUST use non-destructive schema evolution (add columns first, avoid destructive changes)
 - MUST maintain a single source of truth for metric definitions
+
+  **Implementation Pattern — Metric Definitions File:**
+  ```yaml
+  # metrics/metric_definitions.yml (version-controlled)
+  metrics:
+    monthly_recurring_revenue:
+      display_name: "Monthly Recurring Revenue (MRR)"
+      formula: "SUM(subscription_amount) WHERE status = 'active' AND date = last_day_of_month"
+      owner: "Finance Team"
+      update_frequency: "Daily at 00:00 UTC"
+      data_source: "DB.ANALYTICS.SUBSCRIPTIONS"
+      lineage:
+        - "RAW.STRIPE.INVOICES"
+        - "STAGING.STG_SUBSCRIPTIONS"
+      quality_checks:
+        - "not_null"
+        - "positive_value"
+      last_reviewed: "2026-03-01"
+
+    customer_churn_rate:
+      display_name: "Customer Churn Rate (%)"
+      formula: "(COUNT(churned_customers) / COUNT(total_customers_start)) * 100"
+      owner: "Customer Success"
+      update_frequency: "Monthly"
+      data_source: "DB.ANALYTICS.CUSTOMER_LIFECYCLE"
+      lineage:
+        - "RAW.CRM.ACCOUNTS"
+        - "STAGING.STG_CUSTOMER_STATUS"
+      quality_checks:
+        - "between_0_and_100"
+        - "not_null"
+      last_reviewed: "2026-02-15"
+  ```
+
+  **dbt Alternative — Semantic Models:**
+  ```yaml
+  # models/staging/schema.yml
+  semantic_models:
+    - name: revenue_metrics
+      description: "Single source of truth for revenue calculations"
+      model: ref('fct_revenue')
+      entities:
+        - name: transaction_id
+          type: primary
+      measures:
+        - name: total_revenue
+          agg: sum
+          expr: amount
+          description: "Total revenue from all sources"
+        - name: order_count
+          agg: count
+          expr: order_id
+  ```
+
+  Every metric MUST have: name, formula, owner, update_frequency, data_source, and lineage. Store in version control alongside expectation suites.
 - MUST automate quality gates in ETL/ELT pipelines
 - MUST implement data drift monitoring with thresholds
 - MUST use secrets management (no hard-coded credentials)
@@ -143,6 +198,20 @@ Comprehensive directives for ensuring data quality, governance, and operational 
 - [ ] Secrets management implemented (no hard-coded credentials)
 - [ ] Quality validation automated (no manual checks)
 - [ ] Schema evolution strategy documented
+
+### Investigation Required
+
+Before implementing data governance changes, investigate the following:
+
+1. **Inventory existing quality checks:** Identify all ad-hoc queries, manual processes, and existing automated checks. Document what is currently validated and what gaps exist.
+2. **Map data lineage for critical tables:** Trace upstream sources and downstream consumers for each table targeted by governance policies. Use `SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.ACCESS_HISTORY` to discover actual access patterns.
+3. **Identify current metric definitions and their locations:** Find all places where metrics are defined (dashboards, notebooks, SQL scripts, dbt models). Flag duplicates and conflicts.
+4. **Review schema change history for breaking patterns:** Query `SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY` for ALTER TABLE statements in the past 90 days. Identify tables with frequent schema changes.
+5. **Check existing monitoring and alerting infrastructure:** Determine what monitoring tools are in place (Snowflake Alerts, Tasks, external tools). Identify coverage gaps for freshness, volume, and schema drift.
+
+```
+⚠️ Investigation Required: Complete items 1-5 above before proceeding with governance implementation. Results inform which quality gates, monitoring thresholds, and incident response procedures to configure.
+```
 
 ## Anti-Patterns and Common Mistakes
 
@@ -279,10 +348,45 @@ models:
 - **Requirement:** Validate that downstream consumers are unaffected before production deployment.
 - **Always:** Reference Snowflake schema management docs: https://docs.snowflake.com/en/user-guide/database-schemas
 
+**Deprecation Pattern:**
+```sql
+-- Mark column as deprecated with removal date
+COMMENT ON COLUMN orders.legacy_status IS
+  'DEPRECATED: Use order_status instead. Removal date: 2026-06-01. Migration: UPDATE orders SET order_status = legacy_status;';
+
+-- Track deprecations in a governance table
+INSERT INTO governance.column_deprecations (table_name, column_name, replacement, deprecation_date, removal_date, migration_sql)
+VALUES ('orders', 'legacy_status', 'order_status', '2026-03-09', '2026-06-01',
+        'UPDATE orders SET order_status = legacy_status');
+```
+
 ## Data Observability
 - **Always:** Implement observability to monitor freshness, volume, and schema changes.
 - **Always:** Use Snowflake Tasks to automate freshness checks and other metrics.
 - **Always:** Create automated alerts for anomalies and quality failures.
+
+**Freshness Check Task:**
+```sql
+-- Automated freshness monitoring with Snowflake Tasks
+CREATE OR REPLACE TASK governance.check_data_freshness
+  WAREHOUSE = 'GOVERNANCE_WH'
+  SCHEDULE = 'USING CRON 0 * * * * America/New_York'
+AS
+  INSERT INTO governance.freshness_log (table_name, last_updated, check_time, is_stale)
+  SELECT 'ANALYTICS.SALES_FACT',
+         MAX(updated_at),
+         CURRENT_TIMESTAMP(),
+         CASE WHEN DATEDIFF('hour', MAX(updated_at), CURRENT_TIMESTAMP()) > 4
+              THEN TRUE ELSE FALSE END
+  FROM analytics.sales_fact;
+
+-- Alert on stale data
+CREATE OR REPLACE ALERT governance.stale_data_alert
+  WAREHOUSE = 'GOVERNANCE_WH'
+  SCHEDULE = 'USING CRON 0 * * * * America/New_York'
+  IF (EXISTS (SELECT 1 FROM governance.freshness_log WHERE is_stale = TRUE AND check_time > DATEADD('hour', -1, CURRENT_TIMESTAMP())))
+  THEN CALL SYSTEM$SEND_EMAIL('ops-alerts', 'Data Freshness Alert', 'Stale data detected. Check governance.freshness_log.');
+```
 
 ## Incident Response and Reliability
 - **Always:** Respond with a clear plan; triage severity and assign an incident commander.
@@ -291,6 +395,29 @@ models:
 - **Requirement:** Preserve all evidence (logs, query history) until root cause is identified.
 - **Requirement:** Make failures visible; avoid silent failures.
 
+**Incident Log Schema:**
+```sql
+CREATE TABLE IF NOT EXISTS governance.incident_log (
+    incident_id VARCHAR DEFAULT UUID_STRING(),
+    severity VARCHAR NOT NULL,          -- P1, P2, P3, P4
+    title VARCHAR NOT NULL,
+    affected_tables ARRAY,
+    incident_commander VARCHAR,
+    opened_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
+    resolved_at TIMESTAMP_NTZ,
+    root_cause VARCHAR,
+    actions_taken ARRAY,
+    postmortem_url VARCHAR,
+    status VARCHAR DEFAULT 'OPEN'       -- OPEN, INVESTIGATING, MITIGATED, RESOLVED
+);
+
+-- Log an action during incident response
+INSERT INTO governance.incident_log (severity, title, affected_tables, incident_commander)
+VALUES ('P2', 'Revenue metrics showing NULL for APAC region',
+        ARRAY_CONSTRUCT('ANALYTICS.SALES_FACT', 'STAGING.STG_ORDERS'),
+        'data-eng-oncall@company.com');
+```
+
 ## AI Agent Integration
 
 - Agents MUST respect data governance policies (masking, row-level security) when querying data
@@ -298,6 +425,74 @@ models:
 - Agent-generated queries MUST go through the same quality gates as human-authored queries
 - Log agent data access for audit trail compliance
 - Expose governance metadata (sensitivity labels, ownership) to agents via structured APIs
+
+**Governance-Aware Agent Query Pattern:**
+```python
+from snowflake.snowpark import Session
+from datetime import datetime
+import logging
+
+logger = logging.getLogger("agent_governance")
+
+def governance_aware_query(
+    session: Session,
+    query: str,
+    agent_id: str,
+    purpose: str
+) -> list:
+    """Execute a query with governance checks and audit logging."""
+    # 1. Log agent access for audit trail
+    session.sql(f"""
+        INSERT INTO governance.agent_access_log
+            (agent_id, query_text, purpose, executed_at)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP())
+    """, params=[agent_id, query, purpose]).collect()
+
+    # 2. Validate query goes through quality gates
+    # Agent queries use the same governed role as human queries
+    session.sql("USE ROLE DATA_READER").collect()
+
+    # 3. Execute with row-level security and masking active
+    results = session.sql(query).collect()
+
+    logger.info(f"Agent {agent_id} executed query for '{purpose}', "
+                f"returned {len(results)} rows")
+    return results
+
+
+def get_metric_definition(session: Session, metric_name: str) -> dict:
+    """Look up metric from the single source of truth (data catalog)."""
+    result = session.sql(f"""
+        SELECT metric_name, formula, owner, update_frequency, data_source
+        FROM governance.metric_catalog
+        WHERE metric_name = ?
+    """, params=[metric_name]).collect()
+
+    if not result:
+        return {"error": f"Unknown metric: {metric_name}. "
+                "Check governance.metric_catalog for available metrics."}
+    row = result[0]
+    return {
+        "metric_name": row["METRIC_NAME"],
+        "formula": row["FORMULA"],
+        "owner": row["OWNER"],
+        "update_frequency": row["UPDATE_FREQUENCY"],
+        "data_source": row["DATA_SOURCE"]
+    }
+```
+
+**Agent Access Log Table:**
+```sql
+CREATE TABLE IF NOT EXISTS governance.agent_access_log (
+    log_id VARCHAR DEFAULT UUID_STRING(),
+    agent_id VARCHAR NOT NULL,
+    query_text VARCHAR NOT NULL,
+    purpose VARCHAR,
+    executed_at TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
+    row_count INTEGER,
+    status VARCHAR DEFAULT 'SUCCESS'
+);
+```
 
 ## Data Catalog CLI Reference
 

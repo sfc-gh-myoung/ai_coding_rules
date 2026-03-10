@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
+**RuleVersion:** v3.0.2
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:sis-typeerror
 **Keywords:** TypeError bad argument, AttributeError streamlit, SiS debugging, AUTO_COMPRESS, ROOT_LOCATION mismatch, environment.yml, streamlit version, compression debugging, stage path mismatch
-**TokenBudget:** ~4000
+**TokenBudget:** ~4200
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 109c-snowflake-app-deployment-troubleshooting.md
 
@@ -167,7 +167,13 @@ uvx snow sql -q "LIST @UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE;" \
 # streamlit_app.py   [OK] Correct
 # pages/1_Home.py    [OK] Correct
 # environment.yml    [OK] Correct
+
+# Step 4: If using a Python wrapper, verify the actual CLI command
+# Add --verbose to your deployment command or check logs for --no-auto-compress
+# If wrapper uses auto_compress=False but doesn't pass --no-auto-compress, files are still compressed
 ```
+
+> **Multi-page apps:** Verify each page file individually: `LIST @STAGE/pages/;` — all `.py` files in subdirectories must also be uncompressed. A single compressed page file can cause TypeError for that page only.
 
 **Solutions:**
 
@@ -234,6 +240,8 @@ SELECT SYSTEM\$CHECK_FILE_EXISTS('@STAGE/streamlit_app.py');
 Missing or incorrect `environment.yml` in the stage. Without `environment.yml`, SiS defaults
 to its bundled Streamlit version (currently **1.22.0**), which predates many modern APIs:
 
+> **Staleness guard:** Add `st.write(st.__version__)` temporarily to verify the actual bundled version. The default may change as Snowflake updates SiS.
+
 - `st.navigation()` -- requires 1.36+ (not available in SiS default 1.22.0)
 - `st.Page()` -- requires 1.36+ (not available in SiS default 1.22.0)
 - `st.dialog()` -- requires 1.37+ (not available in SiS default 1.22.0)
@@ -274,6 +282,8 @@ cat /tmp/environment.yml
      - pandas
      - plotly
    ```
+
+   > **Package compatibility:** Some packages in the `snowflake` channel have version constraints. Run `conda search -c snowflake streamlit` locally to see available versions before pinning.
 
 2. **Redeploy with environment.yml included:**
    ```bash

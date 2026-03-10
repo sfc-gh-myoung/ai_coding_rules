@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:mcp, kw:mcp-server
 **Keywords:** MCP, Model Context Protocol, Snowflake-managed MCP server, CREATE MCP SERVER, SYSTEM_EXECUTE_SQL, CORTEX_ANALYST_MESSAGE, CORTEX_SEARCH_SERVICE_QUERY, CORTEX_AGENT_RUN, tools/list, tools/call, initialize, OAuth, SECURITY INTEGRATION, RBAC, PAT
-**TokenBudget:** ~3150
+**TokenBudget:** ~3400
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 107-snowflake-security-governance.md, 112-snowflake-snowcli.md
 
@@ -344,3 +344,33 @@ DESCRIBE MCP SERVER MY_DB.MY_SCHEMA.MY_MCP;
 - **Connection refused:** Hostname with underscores. Fix: Use hyphens in hostnames.
 - **Authentication failed:** Expired/invalid token. Fix: Refresh OAuth token or rotate PAT.
 - **Tool not found:** Tool name misspelled or not registered. Fix: Verify tool name in MCP server spec with `DESCRIBE MCP SERVER`.
+
+## Python SDK Example
+
+```python
+# Programmatic MCP server interaction via Snowpark
+from snowflake.core import Root
+
+root = Root(session)
+mcp_server = root.databases["DB"].schemas["SCHEMA"].mcp_servers["MY_MCP"]
+# Describe server to list available tools
+desc = session.sql("DESCRIBE MCP SERVER DB.SCHEMA.MY_MCP").collect()
+for row in desc:
+    print(f"Tool: {row['name']}, Type: {row['type']}")
+```
+
+## MCP Server Monitoring
+
+```sql
+-- Health check: verify MCP server is responsive and tools are available
+DESCRIBE MCP SERVER DB.SCHEMA.MY_MCP;
+-- Expected: rows listing each tool with status
+
+-- Monitor MCP-related queries for errors
+SELECT query_text, error_message, start_time
+FROM TABLE(INFORMATION_SCHEMA.QUERY_HISTORY())
+WHERE query_text ILIKE '%MCP%'
+  AND error_message IS NOT NULL
+  AND start_time >= DATEADD('day', -1, CURRENT_TIMESTAMP())
+ORDER BY start_time DESC;
+```

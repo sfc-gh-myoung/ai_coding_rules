@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:nbqa, kw:notebook-linting
 **Keywords:** nbqa, ruff, notebook linting, code quality, Jupyter, notebook formatting, lint notebooks, notebook validation
-**TokenBudget:** ~3350
+**TokenBudget:** ~3500
 **ContextTier:** Low
 **Depends:** 109-snowflake-notebooks.md, 201-python-lint-format.md
 
@@ -94,16 +94,9 @@ Jupyter notebooks should maintain the same code quality standards as Python modu
 
 #### Installation and Usage
 
+See Contract Mandatory and Execution Steps above for the core commands. No installation required — `uvx` runs nbqa and Ruff directly.
+
 ```bash
-# Check notebooks with Ruff linter (no installation required)
-uvx nbqa ruff notebooks/
-
-# Format notebooks with Ruff
-uvx nbqa ruff format notebooks/
-
-# Auto-fix linting issues
-uvx nbqa ruff check --fix notebooks/
-
 # Check specific notebook
 uvx nbqa ruff notebooks/grid_asset_prediction.ipynb
 ```
@@ -163,12 +156,7 @@ lint:
 
 #### Pre-Task-Completion Validation
 
-**CRITICAL:** Notebook linting is part of the Pre-Task-Completion Validation Gate.
-
-- **Requirement:** Run `uvx nbqa ruff notebooks/` after modifying notebook files
-- **Requirement:** Run `uvx nbqa ruff format --check notebooks/` to verify formatting
-- **Rule:** Fix all notebook linting errors before marking task complete
-- **Exception:** Only skip validation if user explicitly requests override
+**CRITICAL:** Notebook linting is part of the Pre-Task-Completion Validation Gate. See Contract Mandatory items above for required commands. Only skip validation if user explicitly requests override.
 
 #### How nbqa Works
 
@@ -206,12 +194,17 @@ line-length = 100  # Slightly longer for notebook readability
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "C4", "UP"]
-ignore = ["E501"]  # Allow long lines in notebooks for complex expressions
+ignore = ["E501"]  # E501 ignored for linting (long lines allowed); line-length=100 still enforced by formatter
 
 # Notebook-specific: Allow unused variables in exploratory cells
 [tool.ruff.lint.per-file-ignores]
 "notebooks/*.ipynb" = ["F841"]  # Unused variable assignment
 ```
+
+**Notebook-valuable Ruff rules:** Beyond the defaults, these rules are particularly useful for notebooks:
+- `B006` — mutable default arguments (common in notebook function definitions)
+- `C4` — unnecessary comprehensions (simplify list/dict/set comprehensions)
+- `UP` — pyupgrade for modern Python syntax (f-strings, type hints)
 
 ### Alternative Tools
 
@@ -318,6 +311,19 @@ select = ["E", "W", "F", "I", "B", "C4", "UP"]
 
 **Correct Pattern:** Add notebook linting to the project's Taskfile (`task lint-notebooks`) and run it as part of the local development workflow before every commit. Include it in pre-commit hooks or make it a habit alongside `task lint`. Fix issues properly rather than suppressing them to pass CI.
 
+**Pre-commit hook example** (`.pre-commit-config.yaml`):
+```yaml
+repos:
+  - repo: local
+    hooks:
+      - id: nbqa-ruff
+        name: nbqa-ruff
+        entry: uvx nbqa ruff
+        language: system
+        files: \.ipynb$
+        types: [file]
+```
+
 ```yaml
 # Wrong: Linting only in CI, developers never run locally
 # .github/workflows/ci.yml
@@ -337,4 +343,16 @@ lint:
   cmds:
     - task: lint-ruff
     - task: lint-notebooks
+```
+
+**Correct CI/CD pattern** — run the same Taskfile tasks in CI:
+```yaml
+# .github/workflows/ci.yml
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - run: task lint-notebooks  # Same task locally and in CI
 ```

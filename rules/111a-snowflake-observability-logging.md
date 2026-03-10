@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:observability-logging
 **Keywords:** DEBUG, INFO, WARN, ERROR, FATAL, conditional logging, sampling, tight loop logging, standard logging libraries, log volume control, cost management, log configuration, log handlers
@@ -368,9 +368,9 @@ logger.warning(f"Large dataset detected: {len(data)} records (may impact perform
 logger.error(f"Failed to process record {record.id}: {str(e)}")
 ```
 
-**FATAL:** Critical system failures
+**CRITICAL:** Critical system failures
 ```python
-logger.fatal(f"Database connection lost: {str(e)}")
+logger.critical(f"Database connection lost: {str(e)}")
 ```
 
 ## Conditional Logging
@@ -421,32 +421,8 @@ def process_large_dataset(records):
 ## Sampling Strategies
 
 ### Anti-Pattern: Logging in Tight Loops
-**Anti-Pattern: Excessive logging without sampling**
-```python
-def process_large_dataset(records):
-    """Process with excessive logging."""
-    for record in records:  # Could be millions of records
-        logger.debug(f"Processing record {record.id}")  # Generates huge log volume
-        process_record(record)
-```
-**Problem:** Generates millions of log entries, overwhelming event tables and increasing storage costs.
 
-### Correct Pattern: Use Sampling or Conditional Logging
-```python
-def process_large_dataset(records):
-    """Process with intelligent logging."""
-    total = len(records)
-    for i, record in enumerate(records):
-        # Log progress at intervals
-        if i % 10000 == 0:
-            logger.info(f"Progress: {i}/{total} records ({i/total*100:.1f}%)")
-
-        try:
-            process_record(record)
-        except Exception as e:
-            # Always log failures
-            logger.error(f"Failed processing record {record.id}: {e}")
-```
+> See **Anti-Pattern 2** above for the wrong pattern (logging every iteration). The correct sampling approach is shown in **Progress Logging for Long Operations** above.
 
 ### Sampling with Configurable Rate
 ```python

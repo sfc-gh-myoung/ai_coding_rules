@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:snowcli, file:snowflake.yml
 **Keywords:** snow CLI, SnowCLI, Snowflake CLI, snowflake-cli, uvx, Taskfile, task automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, stage copy
@@ -301,17 +301,17 @@ Notes:
 
 > **Investigation Required:** Run `snow connection list` and `snow connection test --connection <name>` before modifying any connection configuration.
 
-- **Rule:** Default to `snowflake-cli==3.14` in all automation until you explicitly validate a newer release in a staging environment
+- **Rule:** Default to `snowflake-cli==3.14` in all automation until you run the full test suite with the new version in a staging environment and confirm 0 failures
 - **Rule:** Surface the CLI version in logs (`snow --version`) at the start of jobs for traceability
 - **Rule:** Maintain a single pin in your Taskfile/CI templates to centralize upgrades
 
 ## Configuration and Authentication
 - **Rule:** Use profiles or environment variables; never hardcode credentials in scripts or rule files
 - **Rule:** Prefer secure methods (key-pair/OAuth/SSO) over user/password; centralize secrets in CI secret managers or OS keychains
-- **Rule:** Ensure least-privilege roles and rotate keys regularly per security policy
+- **Rule:** Ensure least-privilege roles and rotate keys every 90 days or per your organization's security policy
 - **Rule:** For local dev, rely on OS keychain integrations where available; for CI, inject secrets as env vars/files at runtime
 
-References for concepts and configuration flows are covered in official docs: `https://docs.snowflake.com/developer-guide/snowflake-cli/index`.
+References for concepts and configuration flows are covered in official docs: [Snowflake CLI Documentation](https://docs.snowflake.com/developer-guide/snowflake-cli/index).
 
 ## Automation Patterns (CI/CD)
 - **Always:** Use non-interactive flags and provide all required parameters via env/flags
@@ -332,7 +332,7 @@ uvx --from=snowflake-cli==3.14 snow sql -q "create warehouse if not exists CI_WH
 ## Output, Logging, and Troubleshooting
 - **Rule:** Prefer structured output (JSON) for automation; only use human-friendly tables in interactive sessions
 - **Rule:** Include `--verbose`/`--debug` (if available) when capturing logs for incident analysis
-- **Consider:** Capture CLI stdout/stderr separately in CI and archive logs on failure
+- **Consider:** Capture CLI stdout/stderr separately in CI. Archive logs on failure.
 
 ## Stage Copy Command Syntax
 

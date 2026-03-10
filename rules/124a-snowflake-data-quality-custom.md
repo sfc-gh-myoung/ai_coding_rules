@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:custom-quality-check
 **Keywords:** quality assertions, custom metrics, validation functions, create custom DMF, custom quality checks, business rule validation, custom expectations, quality functions, UDF for quality, validation logic, custom quality metrics, quality rules, custom validation
-**TokenBudget:** ~3000
+**TokenBudget:** ~3600
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 124-snowflake-data-quality-core.md
 
@@ -197,6 +197,43 @@ MODIFY DATA METRIC SCHEDULE '1 HOUR'
 EXPECT (ANALYTICS.ORPHANED_ORDERS ON ()) = 0;
 ```
 
+**Example 4: Python UDF DMF (Complex Validation)**
+```sql
+-- Python UDF DMF for regex-based validation (e.g., phone number format)
+CREATE OR REPLACE DATA METRIC FUNCTION DMF_INVALID_PHONE_FORMAT(
+  ARG_T TABLE(phone STRING)
+)
+RETURNS FLOAT
+LANGUAGE PYTHON
+RUNTIME_VERSION = '3.11'
+PACKAGES = ('snowflake-snowpark-python')
+HANDLER = 'main'
+AS
+$$
+import re
+
+def main(df):
+    """Count phone numbers not matching E.164 or US format."""
+    pattern = re.compile(r'^\+?1?\d{10,15}$')
+    invalid = df[~df['PHONE'].apply(
+        lambda x: bool(pattern.match(str(x).replace('-','').replace(' ','')))
+        if x is not None else True  # NULLs handled by NULL_COUNT DMF
+    )]
+    return float(len(invalid))
+$$;
+
+-- Associate and set expectation:
+ALTER TABLE CUSTOMERS
+  ADD DATA METRIC FUNCTION DMF_INVALID_PHONE_FORMAT ON (phone);
+ALTER TABLE CUSTOMERS
+  MODIFY DATA METRIC SCHEDULE '1 HOUR'
+    EXPECT (DMF_INVALID_PHONE_FORMAT ON phone) < 50;
+```
+
+> **When to use Python UDF DMFs:** Use when validation requires regex, statistical
+> analysis, or logic too complex for SQL. SQL DMFs are faster and cheaper — prefer
+> SQL unless Python capabilities are specifically needed.
+
 ## Anti-Patterns and Common Mistakes
 
 **Anti-Pattern 1: Custom DMF Doesn't Return FLOAT Type**
@@ -351,8 +388,7 @@ $$;
 
 ## Expectations
 
-**MANDATORY:**
-**CRITICAL:** Define expectations for every DMF to establish pass/fail criteria and enable automated alerting.
+Define expectations for every DMF to establish pass/fail criteria and enable automated alerting.
 
 ### Expectation Syntax
 
@@ -398,4 +434,48 @@ EXPECT (SNOWFLAKE.CORE.ROW_COUNT ON ()) <= 100000
 ```sql
 -- Absolutely zero duplicates allowed
 EXPECT (SNOWFLAKE.CORE.DUPLICATE_COUNT ON order_id) = 0
+```
+
+## Parameterized Column References
+
+Create reusable DMFs that work on any table by using the `ARG_T TABLE(...)` parameter:
+
+```sql
+-- Reusable DMF: NULL rate for any STRING column
+CREATE OR REPLACE DATA METRIC FUNCTION DMF_NULL_RATE(
+  ARG_T TABLE(col STRING)
+)
+RETURNS FLOAT
+COMMENT = 'Returns NULL rate (0.0-1.0) for any string column'
+AS
+$$
+  SELECT
+    CASE WHEN COUNT(*) = 0 THEN 0.0
+         ELSE COUNT_IF(col IS NULL)::FLOAT / COUNT(*)::FLOAT
+    END
+  FROM ARG_T
+$$;
+
+-- Apply to different tables and columns:
+ALTER TABLE CUSTOMERS
+  ADD DATA METRIC FUNCTION DMF_NULL_RATE ON (email);
+ALTER TABLE CUSTOMERS
+  ADD DATA METRIC FUNCTION DMF_NULL_RATE ON (phone);
+ALTER TABLE ORDERS
+  ADD DATA METRIC FUNCTION DMF_NULL_RATE ON (shipping_address);
+
+-- Multi-column parameterized DMF:
+CREATE OR REPLACE DATA METRIC FUNCTION DMF_DATE_RANGE_CHECK(
+  ARG_T TABLE(date_col TIMESTAMP_NTZ)
+)
+RETURNS FLOAT
+COMMENT = 'Returns count of dates outside 2020-2030 range'
+AS
+$$
+  SELECT COUNT_IF(
+    date_col < '2020-01-01'::TIMESTAMP_NTZ
+    OR date_col > '2030-12-31'::TIMESTAMP_NTZ
+  )::FLOAT
+  FROM ARG_T
+$$;
 ```

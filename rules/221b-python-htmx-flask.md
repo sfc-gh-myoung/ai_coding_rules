@@ -4,10 +4,10 @@
 
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.0.1
-**LastUpdated:** 2026-01-20
+**LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:htmx-flask
 **Keywords:** flask, flask-htmx, blueprints, flask-login, session management, flask routes, flask templates, flask csrf, flask extensions, request context
-**TokenBudget:** ~3300
+**TokenBudget:** ~4450
 **ContextTier:** Medium
 **Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
 
@@ -127,14 +127,21 @@ Flask-specific integration patterns for HTMX applications, covering Flask-HTMX e
 - [ ] Session used for user-specific state
 - [ ] Tests cover HTMX-specific routes and behavior
 
+> **Investigation Required**
+> Before modifying Flask+HTMX integration, the agent MUST:
+> 1. Check if `create_app()` factory already exists — extend it, never create a second factory
+> 2. Verify Flask-HTMX extension status: `uv pip list | grep flask-htmx`
+> 3. Read existing blueprint structure and naming conventions
+> 4. Check current CSRF protection — Flask-WTF may already be configured with `htmx:configRequest` listener
+> 5. Read existing Flask-Login setup and unauthorized handler before adding auth patterns
+> 6. Check existing error handlers (404, 500) — extend rather than replace
+
 ## Key Principles
 
 ### 1. Flask-HTMX Extension Setup
 
 **Installation:**
 ```bash
-pip install flask-htmx
-# or
 uv add flask-htmx
 ```
 
@@ -403,7 +410,134 @@ def view_cart():
     return render_template('pages/cart.html', items=items)
 ```
 
-### 7. Error Handling
+### 7. Flash Messages with HTMX
+
+Flask's `flash()` system needs special handling for HTMX partial responses:
+
+**`templates/partials/_flash_messages.html`:**
+```html
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="flash-messages" role="alert">
+    {% for category, message in messages %}
+    <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+```
+
+**Route pattern — trigger flash refresh via HX-Trigger:**
+```python
+@app.route('/users', methods=['POST'])
+def create_user():
+    user = create_user_from_form(request.form)
+    flash(f'User {user.name} created.', 'success')
+
+    if htmx:
+        response = make_response(render_template('partials/_user_row.html', user=user))
+        response.headers['HX-Trigger'] = json.dumps({
+            'userCreated': None,
+            'showFlash': None,  # Trigger flash container refresh
+        })
+        return response
+    return redirect(url_for('users.list_users'))
+```
+
+**Base template — flash container with HTMX listener:**
+```html
+<div id="flash-container"
+     hx-get="{{ url_for('main.flash_messages') }}"
+     hx-trigger="showFlash from:body"
+     hx-swap="innerHTML">
+    {% include 'partials/_flash_messages.html' %}
+</div>
+```
+
+```python
+@app.route('/flash-messages')
+def flash_messages():
+    return render_template('partials/_flash_messages.html')
+```
+
+**Key rules:**
+- Use `HX-Trigger: {"showFlash": null}` to refresh the flash container after HTMX actions
+- The flash container listens for `showFlash` events from any element (`from:body`)
+- For non-HTMX requests, `redirect()` triggers normal flash display on next page load
+
+### 8. File Upload with HTMX
+
+HTMX supports file uploads with `hx-encoding="multipart/form-data"`:
+
+```html
+<form hx-post="{{ url_for('files.upload') }}"
+      hx-encoding="multipart/form-data"
+      hx-target="#upload-result"
+      hx-indicator="#upload-spinner">
+    <input type="file" name="file" accept=".csv,.xlsx" required>
+    <button type="submit">Upload</button>
+    <span id="upload-spinner" class="htmx-indicator">Uploading...</span>
+</form>
+<div id="upload-result"></div>
+```
+
+```python
+from werkzeug.utils import secure_filename
+
+ALLOWED_EXTENSIONS = {'.csv', '.xlsx'}
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    file = request.files.get('file')
+    if not file or not file.filename:
+        return render_template('partials/_error_toast.html',
+                             message='No file selected'), 400
+
+    filename = secure_filename(file.filename)
+    ext = Path(filename).suffix.lower()
+    if ext not in ALLOWED_EXTENSIONS:
+        return render_template('partials/_error_toast.html',
+                             message=f'Invalid file type: {ext}'), 400
+
+    content = file.read()
+    if len(content) > MAX_FILE_SIZE:
+        return render_template('partials/_error_toast.html',
+                             message='File too large (max 10 MB)'), 400
+    file.seek(0)
+
+    save_path = Path(app.config['UPLOAD_FOLDER']) / filename
+    file.save(save_path)
+    return render_template('partials/_upload_success.html',
+                         filename=filename, size=len(content))
+```
+
+**Key rules:**
+- `hx-encoding="multipart/form-data"` is REQUIRED — without it, files are not sent
+- Always use `secure_filename()` from Werkzeug
+- Validate file extension and size server-side (never trust client `accept` attribute)
+
+### 9. Flask Async Routes (Flask 2.0+)
+
+Flask 2.0+ supports `async def` routes. HTMX endpoints work identically — no client-side changes needed:
+
+```python
+@htmx_bp.route('/users/search')
+async def search_users():
+    query = request.args.get('q', '').strip()
+    if not query or len(query) < 2:
+        return render_template('partials/_empty_results.html')
+
+    users = await db.execute(select(User).where(User.name.ilike(f'%{query}%')))
+    return render_template('partials/_users_table.html', users=users.scalars().all())
+```
+
+**Key rules:**
+- Requires `uv add flask[async]` (installs `asgiref`)
+- Use `async def` only for I/O-bound operations (database, HTTP calls) — sync `def` for CPU-bound work
+- The `htmx` proxy from Flask-HTMX works in both sync and async routes
+
+### 10. Error Handling
 
 **Global Error Handlers:**
 ```python
@@ -434,44 +568,34 @@ def server_error(error):
     return render_template('errors/500.html'), 500
 ```
 
-**Route-Specific Error Handling:**
-```python
-@app.route('/users/<int:user_id>', methods=['PUT'])
-def update_user(user_id):
-    try:
-        user = get_user_or_404(user_id)
-        user.name = request.form['name']
-        db.session.commit()
-
-        return render_template('partials/_user_row.html', user=user)
-
-    except ValueError as e:
-        response = make_response(
-            f'<div class="error">{escape(str(e))}</div>',
-            400
-        )
-        response.headers['HX-Retarget'] = '#error-container'
-        return response
-```
-
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Manual HTMX Header Checking
 
 **Problem:** Manually checking `HX-Request` header instead of using Flask-HTMX extension.
 
-**Why It Fails:** Repetitive code; easy to miss edge cases; harder to maintain.
-
 **Correct Pattern:**
 ```python
-from flask_htmx import htmx
+# BAD: Manual header checking
+@app.route("/items")
+def get_items():
+    is_htmx = request.headers.get("HX-Request") == "true"
+    if is_htmx:
+        return render_template("partials/items.html")
+    return render_template("items.html")
 
-@app.route('/data')
-def get_data():
-    if htmx:
-        return render_template('partials/_data.html')
-    return render_template('pages/data.html')
+# GOOD: Use Flask-HTMX extension
+from flask_htmx import HTMX
+htmx = HTMX(app)
+
+@app.route("/items")
+def get_items():
+    if htmx:  # Extension handles all edge cases
+        return render_template("partials/items.html")
+    return render_template("items.html")
 ```
+
+Use `if htmx:` from the Flask-HTMX extension (see Section 1) — it handles all edge cases.
 
 ### Anti-Pattern 2: Missing CSRF Token Configuration
 
@@ -492,7 +616,5 @@ document.body.addEventListener('htmx:configRequest', function(evt) {
 ```
 
 ## Output Format Examples
-
-### Complete Flask App Structure
 
 See `create_app()` in Section 2 (Blueprint Registration) for the full application factory pattern.

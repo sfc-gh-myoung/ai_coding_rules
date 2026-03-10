@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
+**RuleVersion:** v3.2.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:model-registry, kw:ml-model
 **Keywords:** model governance, model lifecycle, model logging, model inference, RBAC, model privileges, register model, log model, model management, ML registry, model tracking, model metadata, deploy model, model lineage
-**TokenBudget:** ~4200
+**TokenBudget:** ~3900
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md
 **Companions:** 110a-snowflake-model-monitor.md, 110b-snowflake-model-registry-operations.md
@@ -85,6 +85,12 @@ Comprehensive best practices for using Snowflake Model Registry to manage machin
 - Test inference returns expected predictions
 - Validate RBAC privileges are correctly assigned
 - Confirm metrics and metadata are populated
+
+```sql
+-- Discovery queries
+SHOW MODELS IN SCHEMA ml.registry;
+SELECT * FROM INFORMATION_SCHEMA.MODEL_VERSIONS WHERE MODEL_NAME = 'customer_churn_predictor';
+```
 
 ### Design Principles
 - Registry-first approach: all models must be logged and versioned through the Model Registry
@@ -200,7 +206,7 @@ registry.log_model(
 registry.log_model(
     model=trained_model,
     model_name="customer_churn_predictor",
-    version_name="v1.2.0",  # Semantic versioning
+    version_name="v1_2_0",  # Semantic versioning (underscores, not periods)
     sample_input_data=sample_df,
     comment="""
     Customer churn prediction model for subscription business
@@ -219,6 +225,12 @@ registry.log_model(
 )
 
 # Add tags for discovery
+# First, ensure tags exist
+session.sql("CREATE TAG IF NOT EXISTS use_case ALLOWED_VALUES 'churn_prediction', 'fraud_detection', 'recommendation'").collect()
+session.sql("CREATE TAG IF NOT EXISTS owner_team").collect()
+session.sql("CREATE TAG IF NOT EXISTS data_classification ALLOWED_VALUES 'PUBLIC', 'CONFIDENTIAL', 'RESTRICTED'").collect()
+session.sql("CREATE TAG IF NOT EXISTS approval_status ALLOWED_VALUES 'PENDING', 'APPROVED', 'REJECTED'").collect()
+
 session.sql(f"""
     ALTER MODEL customer_churn_predictor
     SET TAG use_case = 'churn_prediction',
@@ -230,101 +242,12 @@ session.sql(f"""
 **Benefits:** Full governance; discoverable by metadata; clear ownership; audit-ready
 
 **Anti-Pattern 4: Not Testing Model Inference After Registration**
-```python
-# Bad: Register model but never test inference
-registry.log_model(
-    model=trained_model,
-    model_name="fraud_detector",
-    version_name="v1",
-    sample_input_data=sample_df
-)
-print("Model registered!")
-# Never test: Does inference work? Are predictions correct?
-# Discover issues when users complain in production!
-```
-**Problem:** Silent deployment failures; untested inference; production issues; trust erosion
 
-**Correct Pattern:**
-```python
-# Good: Test inference immediately after registration
-# Step 1: Register model
-registry.log_model(
-    model=trained_model,
-    model_name="fraud_detector",
-    version_name="v1",
-    target_platforms=[TargetPlatform.WAREHOUSE],
-    sample_input_data=sample_df
-)
-
-# Step 2: Load model and test inference
-fraud_model = registry.get_model("fraud_detector").version("v1")
-
-# Step 3: Test with sample data
-test_data = pd.DataFrame({
-    'transaction_amount': [150.0, 5000.0],
-    'merchant_category': ['grocery', 'electronics'],
-    'distance_from_home': [5.2, 500.0]
-})
-
-predictions = fraud_model.run(test_data)
-print(f"Test predictions: {predictions}")
-
-# Step 4: Validate predictions are reasonable
-assert len(predictions) == 2, "Should return 2 predictions"
-assert all(0 <= p <= 1 for p in predictions['FRAUD_PROBABILITY']), "Probabilities in [0,1]"
-
-print("Model inference validated, ready for production")
-```
-**Benefits:** Early error detection; validated inference; confidence in production
+> See **110b-snowflake-model-registry-operations.md** for the full inference testing anti-pattern with correct validation workflow.
 
 **Anti-Pattern 5: Not Enabling Monitoring on Registry When Planning to Use MODEL MONITOR**
-```python
-# Bad: Initialize Registry without enable_monitoring option
-from snowflake.ml.registry import Registry
 
-registry = Registry(
-    session=session,
-    database_name="ML",
-    schema_name="REGISTRY"
-    # Missing options={"enable_monitoring": True}!
-)
-
-registry.log_model(
-    model=trained_model,
-    model_name="fraud_detector",
-    version_name="v1_0_0",
-    sample_input_data=sample_df
-)
-
-# Later, try to create MODEL MONITOR...
-# CREATE MODEL MONITOR fraud_monitor...
-# ERROR: "MODEL does not exist or not authorized"
-# The model EXISTS but MODEL MONITOR can't use it without monitoring enabled at registry level!
-```
-**Problem:** MODEL MONITOR requires `options={"enable_monitoring": True}` on Registry constructor; models registered without it cannot be monitored and must be re-registered
-
-**Correct Pattern:**
-```python
-# Good: Enable monitoring on Registry constructor
-from snowflake.ml.registry import Registry
-
-registry = Registry(
-    session=session,
-    database_name="ML",
-    schema_name="REGISTRY",
-    options={"enable_monitoring": True}  # REQUIRED for MODEL MONITOR!
-)
-
-registry.log_model(
-    model=trained_model,
-    model_name="fraud_detector",
-    version_name="v1_0_0",
-    sample_input_data=sample_df
-)
-
-# Now MODEL MONITOR creation will work!
-```
-**Benefits:** MODEL MONITOR compatible; ML Observability enabled; drift detection ready; no re-registration required; production-ready
+> See **110a-snowflake-model-monitor.md** for the full monitoring enablement anti-pattern with correct `options={"enable_monitoring": True}` pattern.
 
 ## Model Registry Setup and Organization
 
@@ -341,6 +264,7 @@ reg = Registry(
     session=session,
     database_name="ML",
     schema_name="REGISTRY"
+    # Add options={"enable_monitoring": True} if using MODEL MONITOR (see 110a)
 )
 ```
 
@@ -471,16 +395,23 @@ except Exception as e:
 
 ```python
 # Model promotion workflow
-def promote_model(source_reg, target_reg, model_name, version_name):
-    # Validate model performance
+# Note: Snowflake does not have a direct cross-registry export/import API.
+# Cross-environment promotion requires re-logging the model in the target registry.
+def promote_model(source_session, target_session, model_name, version_name):
+    # 1. Validate model performance in source
+    source_reg = Registry(session=source_session, database_name="ML_DEV", schema_name="REGISTRY")
     source_mv = source_reg.get_model(model_name).version(version_name)
     metrics = source_mv.show_metrics()
 
     if metrics.get("accuracy", 0) >= 0.90:
-        # Export and re-import to target registry
-        source_mv.export("/tmp/model_export")
-        target_reg.log_model(model_name=model_name, version_name=version_name,
-                             source="/tmp/model_export")
+        # 2. Re-log model in target registry with the original model object
+        target_reg = Registry(session=target_session, database_name="ML_PROD", schema_name="REGISTRY")
+        target_reg.log_model(
+            model=source_mv,  # Pass model version as source
+            model_name=model_name,
+            version_name=version_name,
+            sample_input_data=sample_df
+        )
 ```
 
 ### Model Monitoring and Maintenance

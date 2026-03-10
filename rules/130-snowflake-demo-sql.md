@@ -298,43 +298,12 @@ SELECT 'Grid data load complete!' AS status;
 
 ## Progress Indicators
 
-### Rule
-
-**Include SELECT statements to show progress after each major operation**
-
-**Pattern:**
-```sql
-CREATE SCHEMA IF NOT EXISTS UTILITY_DEMO_V2.GRID_DATA;
-SELECT '[PASS] Schema created' AS progress;
-
-CREATE OR REPLACE TABLE UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS (...);
-SELECT '[PASS] GRID_ASSETS table created' AS progress;
-
-CREATE OR REPLACE VIEW UTILITY_DEMO_V2.GRID_DATA.VW_SUMMARY AS ...;
-SELECT '[PASS] VW_SUMMARY view created' AS progress;
-
-SELECT 'Setup complete!' AS status;
-```
-
-**Benefits:**
-- Users see immediate feedback
-- Easy to spot where errors occur
-- Confirms each step succeeded
-- Professional demo experience
+Add `SELECT '[PASS] ...' AS progress;` after each major operation (CREATE SCHEMA, CREATE TABLE, COPY INTO, etc.). End each file with `SELECT '... complete!' AS status;`. This gives users immediate feedback, makes errors easy to locate, and creates a professional demo experience. See the setup template above for a complete example.
 
 ## Inline Educational Comments
 
-### Rule
+Demo SQL should teach as it executes. Explain concepts in comments, use "Step N" structure, add inline comments for column purposes, and explain acronyms/domain terms.
 
-**SQL files for demos should teach as they execute**
-
-**Pattern:**
-- Explain concepts in comments
-- Use "Step 1, Step 2" structure
-- Inline comments for column purposes
-- Explain acronyms and domain terms
-
-**Example:**
 ```sql
 -- Step 3: Create AMI data table
 -- AMI = Advanced Metering Infrastructure (smart meters)
@@ -349,32 +318,16 @@ CREATE OR REPLACE TABLE UTILITY_DEMO_V2.GRID_DATA.AMI_DATA (
 
 ## Demo-Safe Idempotent Patterns
 
-### Rule
+Make demos rerunnable without errors:
 
-**Make demos rerunnable without errors**
-
-**Demo-Safe Patterns:**
 ```sql
--- Schema: IF NOT EXISTS (won't error if exists)
-CREATE SCHEMA IF NOT EXISTS UTILITY_DEMO_V2.GRID_DATA;
-
--- Tables: CREATE OR REPLACE (drops and recreates - OK for demos)
--- WARNING: This deletes data - only safe for demo/dev environments
-CREATE OR REPLACE TABLE UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS (...);
-
--- Views: CREATE OR REPLACE (always safe - no data loss)
-CREATE OR REPLACE VIEW UTILITY_DEMO_V2.GRID_DATA.VW_SUMMARY AS ...;
-
--- Stages: CREATE OR REPLACE (safe - files remain in cloud storage)
-CREATE OR REPLACE STAGE UTILITY_DEMO_V2.GRID_DATA.DATA_FILES;
+CREATE SCHEMA IF NOT EXISTS UTILITY_DEMO_V2.GRID_DATA;       -- Won't error if exists
+CREATE OR REPLACE TABLE UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS (...);  -- Drops & recreates
+CREATE OR REPLACE VIEW UTILITY_DEMO_V2.GRID_DATA.VW_SUMMARY AS ...;   -- Always safe
+CREATE OR REPLACE STAGE UTILITY_DEMO_V2.GRID_DATA.DATA_FILES;         -- Files remain in cloud
 ```
 
-**Why `CREATE OR REPLACE TABLE` is OK for demos:**
-- Demo data is ephemeral and regenerable
-- Users expect to reset demo state
-- Simplifies rerunning without manual cleanup
-
-**NOT production-safe:** For production, use `102a-snowflake-sql-automation.md` patterns (CREATE TABLE IF NOT EXISTS + MERGE).
+`CREATE OR REPLACE TABLE` is OK for demos (data is ephemeral/regenerable). **NOT production-safe** — for production use `102a-snowflake-sql-automation.md` patterns (CREATE TABLE IF NOT EXISTS + MERGE).
 
 ## Demo Project Structure and Orchestration
 
@@ -383,24 +336,15 @@ CREATE OR REPLACE STAGE UTILITY_DEMO_V2.GRID_DATA.DATA_FILES;
 - **features/** - `grid_load.sql`, `customer_load.sql`, `semantic_views.sql`
 - **teardown/** - `grid_teardown.sql`, `customer_teardown.sql`, `database_teardown.sql`
 
-**Orchestrate with Taskfile.yml** (recommended for `snow sql -f` commands):
+**Orchestrate with Taskfile.yml** (`snow sql -f` commands):
 ```yaml
 tasks:
   setup:grid:
-    desc: Create GRID_DATA schema and tables
-    cmds:
-      - snow sql -f sql/setup/grid_setup.sql
+    cmds: [snow sql -f sql/setup/grid_setup.sql]
   teardown:grid:
-    desc: Remove GRID_DATA schema
-    cmds:
-      - snow sql -f sql/teardown/grid_teardown.sql
+    cmds: [snow sql -f sql/teardown/grid_teardown.sql]
   demo:full:
-    desc: Full demo setup (all schemas)
-    cmds:
-      - task: setup:grid
-      - task: setup:customer
-      - task: load:grid
-      - task: load:customer
+    cmds: [task: setup:grid, task: setup:customer, task: load:grid, task: load:customer]
 ```
 
 ## Multi-File Dependencies
@@ -428,6 +372,56 @@ For each FK: note which file creates the referencing table and which creates the
 > 3. **Review existing demo files** in the project to follow established naming patterns
 > 4. **Confirm schema isolation strategy** (one schema per domain vs shared schema)
 > 5. **Map FK dependencies** across files if multi-file demo (run `grep -n "REFERENCES" sql/*.sql`)
+
+## Quick Reference: Minimal Setup/Teardown Pair
+
+**`analytics_setup.sql`** (copy and adapt):
+```sql
+-- ============================================================================
+-- Filename: analytics_setup.sql
+-- Prerequisites: Database DEMO_DB must exist
+-- Creates: ANALYTICS schema, 2 tables, 1 view
+-- ============================================================================
+CREATE SCHEMA IF NOT EXISTS DEMO_DB.ANALYTICS
+    COMMENT = 'Customer analytics for demo';
+SELECT '[PASS] Schema created' AS progress;
+
+CREATE OR REPLACE TABLE DEMO_DB.ANALYTICS.CUSTOMERS (
+    customer_id INT PRIMARY KEY,
+    name STRING,
+    segment STRING       -- e.g., 'enterprise', 'smb', 'consumer'
+) COMMENT = 'Customer master data';
+SELECT '[PASS] CUSTOMERS created' AS progress;
+
+CREATE OR REPLACE TABLE DEMO_DB.ANALYTICS.ORDERS (
+    order_id INT PRIMARY KEY,
+    customer_id INT REFERENCES DEMO_DB.ANALYTICS.CUSTOMERS(customer_id),
+    order_date DATE,
+    amount NUMBER(10,2)
+) COMMENT = 'Order transactions';
+SELECT '[PASS] ORDERS created' AS progress;
+
+CREATE OR REPLACE VIEW DEMO_DB.ANALYTICS.VW_CUSTOMER_SUMMARY AS
+SELECT c.customer_id, c.name, c.segment,
+    COUNT(o.order_id) AS order_count, SUM(o.amount) AS total_spend
+FROM DEMO_DB.ANALYTICS.CUSTOMERS c
+LEFT JOIN DEMO_DB.ANALYTICS.ORDERS o ON c.customer_id = o.customer_id
+GROUP BY c.customer_id, c.name, c.segment;
+SELECT '[PASS] VW_CUSTOMER_SUMMARY created' AS progress;
+
+SELECT 'ANALYTICS setup complete!' AS status;
+```
+
+**`analytics_teardown.sql`** (matching pair):
+```sql
+-- ============================================================================
+-- Filename: analytics_teardown.sql
+-- WARNING: Deletes all analytics data!
+-- Does NOT affect: other schemas, database, or roles
+-- ============================================================================
+DROP SCHEMA IF EXISTS DEMO_DB.ANALYTICS CASCADE;
+SELECT '[PASS] ANALYTICS schema removed' AS status;
+```
 
 ## Anti-Patterns and Common Mistakes
 
@@ -464,120 +458,48 @@ CREATE OR REPLACE TABLE customers (id INT, name STRING);
 
 ### Anti-Pattern 3: Missing Progress Indicators
 
-**Problem:**
-```sql
-CREATE SCHEMA IF NOT EXISTS my_schema;
-CREATE OR REPLACE TABLE table1 (...);
-CREATE OR REPLACE TABLE table2 (...);
-CREATE OR REPLACE TABLE table3 (...);
-```
-
-**Why It Fails:** User sees no feedback during long setup. Hard to spot where errors occur.
-
-**Correct Pattern:**
-```sql
-CREATE SCHEMA IF NOT EXISTS my_schema;
-SELECT '[PASS] Schema created' AS progress;
-
-CREATE OR REPLACE TABLE table1 (...);
-SELECT '[PASS] table1 created' AS progress;
-
-CREATE OR REPLACE TABLE table2 (...);
-SELECT '[PASS] table2 created' AS progress;
-```
+Running multiple DDL statements with no `SELECT '[PASS]...'` between them gives users no feedback and makes errors hard to locate. Always add progress indicators after each major step (see Progress Indicators section above).
 
 ### Anti-Pattern 4: No Educational Comments
 
-**Problem:**
-```sql
-CREATE TABLE AMI_DATA (
-    meter_id VARCHAR,
-    reading_time TIMESTAMP_NTZ,
-    consumption_kwh NUMBER(10,3)
-);
-```
-
-**Why It Fails:** Demo audiences don't learn concepts. Acronyms like "AMI" are unexplained. No teaching value.
-
-**Correct Pattern:**
-```sql
--- AMI = Advanced Metering Infrastructure (smart meters)
--- Records electricity consumption every 15 minutes
-CREATE TABLE AMI_DATA (
-    meter_id VARCHAR,                    -- Unique meter identifier
-    reading_time TIMESTAMP_NTZ,          -- When reading was taken
-    consumption_kwh NUMBER(10,3)         -- Kilowatt-hours consumed
-) COMMENT = 'Smart meter readings (15-minute intervals)';
-```
+Demo SQL without concept explanations and column-level comments has no teaching value. Acronyms go unexplained. Always explain "why" in comments (see Inline Educational Comments section above).
 
 ### Anti-Pattern 5: FK Reference Before Table Exists
 
-**Problem:**
 ```python
-# CLI runs files in numeric order without considering dependencies
+# Bad: CLI runs files in numeric order without considering dependencies
 def setup():
-    run_sql("05_normalization.sql")
     run_sql("06_traceability.sql")   # Has FK to UNIQUE_DESCRIPTIONS
-    run_sql("07_pipeline.sql")
-    run_sql("08_procedures.sql")
-    run_sql("09_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS
+    run_sql("09_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS — too late!
 ```
 
-**Error Message:**
-```
-SQL compilation error:
-Table 'DEMO_DB.HARMONIZED.UNIQUE_DESCRIPTIONS' does not exist or not authorized.
-```
+**Error:** `Table 'UNIQUE_DESCRIPTIONS' does not exist or not authorized.`
 
-**Why It Fails:** File 06 contains `FOREIGN KEY (UNIQUE_DESC_ID) REFERENCES HARMONIZED.UNIQUE_DESCRIPTIONS(UNIQUE_DESC_ID)`, but file 09 (which creates `UNIQUE_DESCRIPTIONS`) hasn't run yet. Numeric file order ≠ dependency order.
-
-**Correct Pattern:**
 ```python
-# CLI respects FK dependencies, not file numbers
+# Correct: respect FK dependencies, not file numbers
 def setup():
-    run_sql("05_normalization.sql")
-    # CRITICAL: 09 creates UNIQUE_DESCRIPTIONS, 06 references it
     run_sql("09_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS FIRST
     run_sql("06_traceability.sql")   # Now FK constraint succeeds
-    run_sql("07_pipeline.sql")
-    run_sql("08_procedures.sql")
 ```
 
-**Prevention:** Always run `grep -n "FOREIGN KEY\|REFERENCES" sql/*.sql` before implementing CLI orchestration. Build dependency graph. Document in comments.
+**Prevention:** Run `grep -n "FOREIGN KEY\|REFERENCES" sql/*.sql` before implementing CLI orchestration.
 
 ## Demo User RBAC
 
-**Rule:** Create a demo-specific role with minimal required grants:
+Create a demo-specific role with minimal required grants:
 
 ```sql
--- Create demo role and user
 CREATE ROLE IF NOT EXISTS demo_user;
 GRANT USAGE ON DATABASE DEMO_DB TO ROLE demo_user;
 GRANT USAGE ON ALL SCHEMAS IN DATABASE DEMO_DB TO ROLE demo_user;
 GRANT SELECT ON ALL TABLES IN DATABASE DEMO_DB TO ROLE demo_user;
 GRANT SELECT ON ALL VIEWS IN DATABASE DEMO_DB TO ROLE demo_user;
-
--- For hands-on workshops (users need write access)
+-- For hands-on workshops: add write access
 GRANT CREATE TABLE ON ALL SCHEMAS IN DATABASE DEMO_DB TO ROLE demo_user;
 GRANT INSERT, UPDATE, DELETE ON ALL TABLES IN DATABASE DEMO_DB TO ROLE demo_user;
-
--- Warehouse access
 GRANT USAGE ON WAREHOUSE DEMO_WH TO ROLE demo_user;
 ```
 
 ## When to Use Production Patterns
 
-**If user requests:**
-- "production ready"
-- "production quality"
-- "for automation"
-- "CI/CD pipeline"
-- "parameterized templates"
-- "multi-environment deployment"
-
-**Then use:** `102a-snowflake-sql-automation.md` for:
-- SQL templates with variables (`<%DATABASE%>`, `<%SCHEMA%>`)
-- Production idempotency (MERGE, WHERE NOT EXISTS)
-- CREATE TABLE IF NOT EXISTS (never CREATE OR REPLACE TABLE)
-- Environment-agnostic patterns
-- CI/CD integration
+If the user requests "production ready", "CI/CD pipeline", "parameterized templates", or "multi-environment deployment", use `102a-snowflake-sql-automation.md` instead (CREATE TABLE IF NOT EXISTS + MERGE, SQL templates with variables, environment-agnostic patterns).

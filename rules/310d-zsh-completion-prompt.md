@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Zsh, completion system, compinit, zstyle, hooks, precmd, preexec, prompt, PROMPT_SUBST, vcs_info, async prompt
-**TokenBudget:** ~2200
+**TokenBudget:** ~2450
 **ContextTier:** Low
 **Depends:** 310-zsh-scripting-core.md, 310a-zsh-advanced-features.md
 **LoadTrigger:** ext:.zsh, kw:zsh-completion, kw:zsh-prompt
@@ -149,7 +149,14 @@ zsh -n script.zsh
 autoload -Uz compinit
 compinit
 
+# For compinit failure recovery (corrupt cache, missing dump file), see
+# 310a-zsh-advanced-features.md § Error Recovery — covers cache rebuild
+# with `rm -f ~/.zcompdump*` and `compinit -C` fallback.
+
 # Enable completion caching for performance
+# Ensure cache directory exists
+[[ -d ~/.zsh/cache ]] || mkdir -p ~/.zsh/cache
+
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache
 
@@ -257,7 +264,11 @@ periodic() {
 setopt PROMPT_SUBST
 
 # Git status in prompt
-autoload -Uz vcs_info
+# Load vcs_info with fallback prompt if unavailable
+autoload -Uz vcs_info 2>/dev/null || {
+    PROMPT='%n@%m:%~%# '
+    return
+}
 zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:git:*' formats ' (%b%u%c)'
 zstyle ':vcs_info:git:*' actionformats ' (%b|%a%u%c)'
@@ -265,9 +276,11 @@ zstyle ':vcs_info:git:*' check-for-changes true
 zstyle ':vcs_info:git:*' unstagedstr '*'
 zstyle ':vcs_info:git:*' stagedstr '+'
 
-precmd() {
+# Register vcs_info update via add-zsh-hook (NEVER override precmd directly)
+_my_vcs_update() {
     vcs_info
 }
+add-zsh-hook precmd _my_vcs_update
 
 # Custom prompt with colors and git info
 PROMPT='%F{blue}%n@%m%f:%F{cyan}%~%f${vcs_info_msg_0_}%# '
@@ -290,13 +303,18 @@ RPROMPT='$(prompt_status)%F{yellow}[%D{%H:%M:%S}]%f'
 ```zsh
 async_git_status() {
     [[ -d .git ]] || return
+    local tmpfile="${XDG_RUNTIME_DIR:-/tmp}/git_status_$$"
     local status=$(git status --porcelain 2>/dev/null | wc -l)
-    echo "$status" > /tmp/git_status_$$
+    echo "$status" > "$tmpfile"
 }
 
-update_prompt() {
+# Cleanup trap — register once at shell startup
+trap 'rm -f "${XDG_RUNTIME_DIR:-/tmp}/git_status_$$"' EXIT
+
+# In precmd hook:
+_async_prompt_update() {
     async_git_status &
+    disown  # Prevent "job table full" and zombie processes
 }
-
-add-zsh-hook precmd update_prompt
+add-zsh-hook precmd _async_prompt_update
 ```

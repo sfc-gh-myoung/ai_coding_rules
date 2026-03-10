@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** altair, vega-lite, st.altair_chart, declarative visualization, grammar of graphics, mark_point, mark_line, mark_bar, encoding, selection, interactive, layered charts
 **TokenBudget:** ~3400
 **ContextTier:** Medium
-**Depends:** 101a-snowflake-streamlit-visualization.md
+**Depends:** 000-global-core.md, 101a-snowflake-streamlit-visualization.md
 
 ## Scope
 
@@ -27,7 +27,8 @@ Altair visualization patterns using the declarative grammar of graphics approach
 ### Dependencies
 
 **Must Load First:**
-- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection
+- **000-global-core.md** - Foundation patterns and conventions `[Available]`
+- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection `[Available]`
 
 **Related:**
 - **101i-snowflake-streamlit-viz-plotly.md** - Plotly for general-purpose charts
@@ -50,6 +51,7 @@ Altair visualization patterns using the declarative grammar of graphics approach
 - Streamlit 1.46+ with altair installed
 - Data in pandas DataFrame format
 - Understanding of declarative visualization concepts
+- vegafusion package for datasets >5000 rows (optional -- enables server-side data transformations)
 
 ### Mandatory
 
@@ -148,8 +150,7 @@ chart = alt.Chart(df).mark_point().encode(
     tooltip=['name', 'x', 'y', 'category']
 ).properties(
     title='Scatter Plot',
-    width=600,
-    height=400
+    height=400  # width omitted -- use_container_width=True handles responsive width
 )
 st.altair_chart(chart, use_container_width=True)
 ```
@@ -223,6 +224,8 @@ st.altair_chart(chart, use_container_width=True)
 ## Layered Charts
 
 ```python
+threshold = 50  # Define threshold value for conditional styling
+
 base = alt.Chart(df).encode(
     x=alt.X('date:T', title='Date')
 )
@@ -324,21 +327,13 @@ st.altair_chart(chart)
 
 ## Concatenation
 
-### Horizontal Concatenation
-
 ```python
 chart1 = alt.Chart(df).mark_bar().encode(x='category:N', y='value:Q')
 chart2 = alt.Chart(df).mark_line().encode(x='date:T', y='value:Q')
 
-combined = chart1 | chart2
-st.altair_chart(combined, use_container_width=True)
-```
-
-### Vertical Concatenation
-
-```python
-combined = chart1 & chart2
-st.altair_chart(combined, use_container_width=True)
+combined_h = chart1 | chart2  # Horizontal concatenation
+combined_v = chart1 & chart2  # Vertical concatenation
+st.altair_chart(combined_h, use_container_width=True)
 ```
 
 ## Data Transformations
@@ -390,15 +385,15 @@ chart = alt.Chart(df).mark_point().encode(
 ## Color Scales
 
 ```python
+# Continuous: use built-in schemes (viridis, plasma, inferno, magma)
 chart = alt.Chart(df).mark_point().encode(
-    x='x:Q',
-    y='y:Q',
+    x='x:Q', y='y:Q',
     color=alt.Color('value:Q', scale=alt.Scale(scheme='viridis'))
 )
 
+# Categorical: explicit colorblind-safe mapping
 chart = alt.Chart(df).mark_bar().encode(
-    x='category:N',
-    y='value:Q',
+    x='category:N', y='value:Q',
     color=alt.Color('category:N', scale=alt.Scale(
         domain=['A', 'B', 'C'],
         range=['#0173B2', '#DE8F05', '#029E73']

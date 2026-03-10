@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
+**RuleVersion:** v3.0.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:model-registry-operations
 **Keywords:** model cost governance, model queries, model administration, model compliance, model audit, model maintenance, resource monitor ML, model integration, CI/CD models, notebook models
-**TokenBudget:** ~2550
+**TokenBudget:** ~3100
 **ContextTier:** Low
 **Depends:** 100-snowflake-core.md, 110-snowflake-model-registry.md
 
@@ -121,6 +121,21 @@ TRIGGERS
   ON 100 PERCENT DO SUSPEND_IMMEDIATE;
 ```
 
+**Cost Attribution by Model:**
+```sql
+-- Estimate inference cost by model using query history
+SELECT
+    REGEXP_SUBSTR(query_text, 'MODEL\\s+([\\w.]+)', 1, 1, 'i', 1) AS model_name,
+    COUNT(*) AS inference_count,
+    SUM(total_elapsed_time) / 1000 AS total_seconds,
+    SUM(credits_used_cloud_services) AS cloud_credits
+FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+WHERE query_text ILIKE '%!predict%'
+  AND start_time >= DATEADD('day', -30, CURRENT_TIMESTAMP())
+GROUP BY model_name
+ORDER BY cloud_credits DESC;
+```
+
 ## Model Registry Queries and Administration
 
 ### Information Schema Queries
@@ -170,6 +185,8 @@ ORDER BY days_since_update DESC;
 - **Rule:** Implement automated testing for model versions before production deployment
 - **Always:** Use version control for model training scripts and registry operations
 
+> See **Anti-Pattern 3** below for a complete validation gate example with schema checks, holdout tests, and production comparison.
+
 ## Compliance and Governance
 
 ### Model Documentation
@@ -183,6 +200,30 @@ ORDER BY days_since_update DESC;
 - **Rule:** Implement audit logging for all model registry operations
 - **Always:** Maintain model lineage and data provenance information
 - **Requirement:** Regular compliance reviews for model access and usage
+
+**Model Documentation Template** (use as comment when logging models):
+```
+Model: <model_name> v<version>
+Purpose: <business use case>
+Owner: <team/email>
+Training Data: <source table, row count, date range>
+Limitations: <known edge cases or constraints>
+Approved By: <governance board, date>
+```
+
+**Model Access Audit Query:**
+```sql
+-- Audit model access via ACCESS_HISTORY
+SELECT
+    user_name,
+    query_start_time,
+    direct_objects_accessed
+FROM SNOWFLAKE.ACCOUNT_USAGE.ACCESS_HISTORY,
+    LATERAL FLATTEN(direct_objects_accessed) obj
+WHERE obj.value:objectName::STRING ILIKE '%CHURN_PREDICTOR%'
+  AND query_start_time >= DATEADD('day', -30, CURRENT_TIMESTAMP())
+ORDER BY query_start_time DESC;
+```
 
 ## Anti-Patterns and Common Mistakes
 
@@ -248,6 +289,21 @@ ALTER MODEL ML.REGISTRY.CHURN_PREDICTOR DROP VERSION V1_0_0;
 ALTER MODEL ML.REGISTRY.CHURN_PREDICTOR DROP VERSION V1_1_0;
 ```
 
+**Automated Cleanup Task:**
+```sql
+-- Schedule weekly cleanup of stale model versions
+CREATE OR REPLACE TASK model_cleanup_task
+  WAREHOUSE = ADMIN_WH
+  SCHEDULE = 'USING CRON 0 6 * * MON America/Los_Angeles'
+AS
+  -- Generates DROP statements for stale non-production versions
+  -- Review output before enabling task; adjust threshold as needed
+  SELECT 'ALTER MODEL ML.REGISTRY.' || model_name || ' DROP VERSION ' || model_version_name || ';'
+  FROM ML.INFORMATION_SCHEMA.MODEL_VERSIONS
+  WHERE DATEDIFF('day', last_altered_on, CURRENT_TIMESTAMP()) > 90
+    AND (comment IS NULL OR comment NOT ILIKE '%PRODUCTION%');
+```
+
 **Anti-Pattern 3: Deploying Model Versions Without Automated Validation**
 
 **Problem:** A new model version is registered and immediately promoted to production without running validation tests. The model may have been trained on stale data, have degraded accuracy on edge cases, or have incompatible input/output schemas compared to the previous version. Issues are only discovered when downstream consumers report bad predictions.
@@ -274,14 +330,19 @@ new_version = registry.get_model("CHURN_MODEL").version("v2_0_0")
 
 # Gate 2: Run holdout test set and check metrics
 predictions = new_version.run(X_holdout, function_name="predict")
-accuracy = (predictions["output"] == y_holdout).mean()
+# Note: Check predictions.columns to find the actual output column name
+output_col = predictions.columns[-1]  # Typically the last column
+accuracy = (predictions[output_col] == y_holdout).mean()
 assert accuracy >= 0.85, f"Accuracy {accuracy} below threshold 0.85"
 
 # Gate 3: Compare against current production version
 prod_predictions = prev_version.run(X_holdout, function_name="predict")
-prod_accuracy = (prod_predictions["output"] == y_holdout).mean()
+prod_accuracy = (prod_predictions[output_col] == y_holdout).mean()
 assert accuracy >= prod_accuracy * 0.98, "New version regression vs production"
 
-# All gates passed — tag as production
-new_version.comment = "PRODUCTION - validated and promoted"
+# All gates passed — tag as production via SQL
+session.sql("""
+    ALTER MODEL ML.REGISTRY.CHURN_MODEL MODIFY VERSION V2_0_0
+    SET COMMENT = 'PRODUCTION - validated and promoted'
+""").collect()
 ```

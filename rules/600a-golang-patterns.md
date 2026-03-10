@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Go, Golang, HTTP server, middleware, graceful shutdown, timeouts, database patterns, production, server configuration
-**TokenBudget:** ~1650
+**TokenBudget:** ~2250
 **ContextTier:** Low
 **Depends:** 600-golang-core.md
 **LoadTrigger:** kw:go-http, kw:go-server, kw:go-middleware
@@ -68,6 +68,24 @@ Advanced Go patterns for production services including HTTP server configuration
 ### Output Format
 Production-ready Go HTTP server with timeouts, graceful shutdown, and middleware.
 
+### Pre-Task Checks
+- [ ] Check existing `http.Server` configuration: `grep -r "http.Server" --include="*.go" .`
+- [ ] Check for existing signal handling: `grep -r "signal.Notify" --include="*.go" .`
+- [ ] Verify Go version supports required features: `go version` (requires 1.22+)
+- [ ] Check database driver import: `grep -r "database/sql" --include="*.go" .`
+
+### Success Criteria
+```bash
+# Health check responds
+curl -sf http://localhost:8080/health && echo "PASS" || echo "FAIL"
+
+# Graceful shutdown: start server, send SIGTERM, verify in-flight requests complete
+kill -SIGTERM $(pgrep myserver) && echo "Shutdown signal sent"
+
+# Race detector passes
+go test -race ./...
+```
+
 ### Validation
 - Server starts and responds to health checks
 - Graceful shutdown completes in-flight requests
@@ -80,6 +98,13 @@ Production-ready Go HTTP server with timeouts, graceful shutdown, and middleware
 - [ ] Middleware chain includes recovery and logging
 - [ ] Database connection pool configured (MaxOpenConns, MaxIdleConns)
 - [ ] All tests pass with `-race` flag
+
+> **Investigation Required**
+> When applying this rule:
+> 1. Check existing `http.Server` configuration for timeout values — avoid overwriting intentional settings
+> 2. Identify signal handling patterns already in use (`os.Signal`, `signal.Notify`) — don't duplicate handlers
+> 3. Review current database connection configuration (`sql.Open`, connection pool settings)
+> 4. Check if a middleware chain already exists and what order it uses — recovery must be outermost
 
 ## HTTP Server with Timeouts
 
@@ -96,6 +121,27 @@ srv := &http.Server{
 ```
 
 **Why:** Without timeouts, slow clients can hold connections indefinitely, exhausting server resources.
+
+**TLS/HTTPS Configuration:**
+```go
+// For production: use TLS with explicit certificate paths
+srv := &http.Server{
+    Addr:         ":8443",
+    Handler:      mux,
+    ReadTimeout:  5 * time.Second,
+    WriteTimeout: 10 * time.Second,
+    IdleTimeout:  120 * time.Second,
+    TLSConfig: &tls.Config{
+        MinVersion: tls.VersionTLS12,
+    },
+}
+
+if err := srv.ListenAndServeTLS("cert.pem", "key.pem"); err != nil && err != http.ErrServerClosed {
+    log.Fatalf("TLS server failed: %v", err)
+}
+```
+
+> **Certificate errors:** If `ListenAndServeTLS` fails with "no such file" or "failed to find certificate", verify paths are absolute or relative to the working directory. Use `crypto/x509` to validate certificates programmatically in tests.
 
 ## Graceful Shutdown
 
@@ -160,8 +206,13 @@ mux := http.NewServeMux()
 mux.HandleFunc("GET /health", healthHandler)
 mux.HandleFunc("GET /api/users", usersHandler)
 
-handler := recoveryMiddleware(loggingMiddleware(mux))
+// Recovery MUST be outermost — wraps everything including logging
+handler := recoveryMiddleware(loggingMiddleware(authMiddleware(mux)))
 ```
+
+> **Middleware ordering matters:** Recovery middleware MUST be the outermost wrapper. If logging is outermost instead, a panic bypasses the logger's duration measurement and may leave partial log entries. If auth is outermost, a panic in auth logic crashes the server.
+>
+> Correct order (outermost to innermost): `recovery` then `logging` then `auth` then `handler`
 
 ## Database Access Patterns
 

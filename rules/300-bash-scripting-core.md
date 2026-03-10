@@ -58,7 +58,7 @@ Foundational bash scripting patterns covering script structure, variables, funct
 ### Inputs and Prerequisites
 
 - Bash 4.0+ available (check with `bash --version`)
-- shellcheck installed for static analysis
+- shellcheck 0.8+ installed for static analysis (install: https://github.com/koalaman/shellcheck#installing)
 - Existing scripts or new script requirements identified
 - Target platform compatibility requirements (Linux, macOS, etc.)
 
@@ -79,7 +79,7 @@ Foundational bash scripting patterns covering script structure, variables, funct
 - Global variables in functions (use `local`)
 - Missing error handling (`set -euo pipefail` required)
 - Scripts without cleanup handlers (trap)
-- Untested shell expansions or glob patterns
+- Shell expansions or glob patterns not verified with `shellcheck`
 
 ### Execution Steps
 
@@ -87,7 +87,7 @@ Foundational bash scripting patterns covering script structure, variables, funct
 2. Include script metadata, help functions, and proper signal trapping
 3. Quote all variables and validate inputs
 4. Use local variables in functions to prevent pollution
-5. Implement comprehensive error handling with meaningful exit codes
+5. Implement error handling with meaningful exit codes (see Return Values and Exit Codes section)
 6. Run shellcheck for static analysis
 7. Test scripts with edge cases (spaces in filenames, empty inputs)
 
@@ -248,7 +248,7 @@ done < <(find . -name "*.txt" -print0)
 ## Variable Management
 
 ### Variable Declaration and Naming
-- **Requirement:** Use descriptive, lowercase variable names with underscores
+- **Requirement:** Use descriptive, lowercase variable names with underscores (minimum 3 characters, e.g., `idx` not `i` — except standard loop counters)
 - **Rule:** Constants in UPPERCASE: `readonly MAX_RETRIES=3`
 - **Always:** Declare readonly variables when values won't change
 - **Avoid:** Single-letter variables except for standard loop counters
@@ -448,8 +448,8 @@ find "$directory" -name "*.txt" -type f -print0 | \
 ### Temporary Files
 - **Rule:** Use `mktemp` for temporary files:
 ```bash
-temp_file="$(mktemp)"
-temp_dir="$(mktemp -d)"
+temp_file="$(mktemp)" || { echo "ERROR: mktemp failed" >&2; exit 1; }
+temp_dir="$(mktemp -d)" || { echo "ERROR: mktemp -d failed" >&2; exit 1; }
 trap 'rm -f "$temp_file"; rm -rf "$temp_dir"' EXIT
 ```
 

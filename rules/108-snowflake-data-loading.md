@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:data-loading, kw:copy-into, kw:import
 **Keywords:** bulk loading, ON_ERROR, FILE_FORMAT, load data, external stage, internal stage, data ingestion, file upload, COPY error, loading patterns, stage files, PUT command, GET command
@@ -164,9 +164,10 @@ FILES = ('file0001.csv', 'file0002.csv', ..., 'file10000.csv');
 **Correct Pattern:**
 ```bash
 # Good: Concatenate small files into 100-250MB batches before loading
-# Outside Snowflake: Combine files
-cat file*.csv > batch_001.csv  # Create 150MB batches
-cat file*.csv > batch_002.csv
+# Note: For files WITH headers, strip headers from all but the first file:
+head -1 file0001.csv > batch_001.csv && tail -n +2 -q file*.csv >> batch_001.csv
+# For headerless files, simple concatenation works:
+# cat file*.csv > batch_001.csv
 
 # Then load larger files
 COPY INTO target_table
@@ -197,9 +198,9 @@ COPY INTO json_table
 FROM @my_stage/data.json.gz
 FILE_FORMAT = my_json_format;
 
--- For consistent types, enable subcolumnarization
-ALTER TABLE json_table
-  SET ENABLE_SCHEMA_EVOLUTION = TRUE;
+-- For subcolumnarization, ensure consistent data types within JSON elements
+-- Note: Schema evolution (ENABLE_SCHEMA_EVOLUTION) is a separate feature for
+-- auto-adding new columns during COPY INTO — it does not enable subcolumnarization
 ```
 **Benefits:** Consistent parsing; correct type handling; subcolumnarization enabled; better query performance; data quality assured; predictable loading behavior
 
@@ -261,6 +262,23 @@ FILE_FORMAT = (TYPE=CSV);
 ```
 **Benefits:** Errors caught before loading; no partial loads; no data corruption; production safety; confidence in load; zero downtime; professional deployment
 
+### Partial Load Recovery
+
+When using `ON_ERROR = CONTINUE`, some rows may be rejected. To find and reload rejected rows:
+
+```sql
+-- Find files with errors from COPY_HISTORY
+SELECT file_name, error_count, first_error, first_error_line
+FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
+  TABLE_NAME => 'TARGET_TABLE',
+  START_TIME => DATEADD(hour, -1, CURRENT_TIMESTAMP())
+))
+WHERE error_count > 0;
+
+-- Extract rejected rows for investigation and re-processing
+-- Fix source data issues, then reload corrected files
+```
+
 ## Output Format Examples
 
 ```sql
@@ -295,6 +313,11 @@ FROM @db.schema.load_stage/sales/
 FILE_FORMAT = db.schema.csv_format
 ON_ERROR = CONTINUE
 PATTERN = '.*\.csv\.gz';
+
+-- Optional: Auto-remove staged files after successful load
+-- COPY INTO ... PURGE = TRUE;
+-- Optional: Reload previously loaded files (use carefully)
+-- COPY INTO ... FORCE = TRUE;
 
 -- Step 5: Verify results
 -- Row count check (compare against expected source count)
@@ -341,16 +364,9 @@ CREATE FILE FORMAT latin1_format
 -- If garbled characters appear, check source file encoding with: file -I data.csv
 ```
 
-## Stages
-- **Requirement:** Stage data files in an internal or external stage before loading.
-- **Requirement:** Use a separate, dedicated stage for each external data source for organization and security.
-- **Always:** Use `PUT` and `GET` to manage files in internal stages.
+## Stages and Bulk Loading
 
-## Bulk Data Loading with COPY INTO
-- **Requirement:** Use `COPY INTO` for bulk, one-time, and scheduled batch loads.
-- **Always:** For continuous, near-real-time ingestion, use Snowpipe instead (see `121-snowflake-snowpipe.md`).
-- **Requirement:** Be explicit about error handling (`ON_ERROR = CONTINUE`, `SKIP_FILE`, or `ABORT_STATEMENT`).
-- **Requirement:** Specify file formats explicitly with `FILE_FORMAT` parameter.
+See Contract section for stage, COPY INTO, file format, and optimization requirements.
 
 ## File Preparation and Optimization
 - **Requirement:** Aim for compressed file sizes between 100–250 MB for optimal performance and cost.

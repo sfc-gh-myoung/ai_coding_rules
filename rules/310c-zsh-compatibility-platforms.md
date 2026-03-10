@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
 **Keywords:** Zsh, shell testing, multi-shell, environment detection, platform compatibility, performance benchmarking, BSD vs GNU, cross-shell testing
-**TokenBudget:** ~2400
+**TokenBudget:** ~2650
 **ContextTier:** Low
 **Depends:** 310b-zsh-compatibility.md
 **LoadTrigger:** ext:.zsh, kw:zsh-platform, kw:zsh-testing
@@ -59,7 +59,7 @@ Environment detection and adaptation, cross-shell testing strategies, platform-s
 
 - Assuming GNU `sed`/`stat`/`date` behavior on macOS (BSD tools differ)
 - Skipping cross-shell testing for scripts claiming compatibility
-- Blocking on expensive operations in performance-critical paths without benchmarking
+- Running operations taking >100ms synchronously in loops executing >1000 times without benchmarking first
 
 ### Execution Steps
 
@@ -79,6 +79,11 @@ Tested, platform-aware scripts with:
 - Platform-annotated code where BSD/GNU differences exist
 
 ### Validation
+
+### Pre-Task Checks
+- [ ] Target shells installed: `require_shell zsh && require_shell bash`
+- [ ] `detect_shell` utility sourced from 310b
+- [ ] Platform detected: `echo $OSTYPE` (darwin*, linux-gnu, etc.)
 
 **Success Criteria:**
 - Scripts pass syntax and runtime tests in all target shells
@@ -227,6 +232,8 @@ check_compatibility() {
 ### Missing Shell Binaries
 - **Rule:** Detect and handle missing shells before testing:
 ```zsh
+# Shell requirement check — canonical implementation in 310b-zsh-compatibility.md (§ Missing Shell Binaries)
+# Duplicated here for self-contained testing; keep in sync with 310b
 require_shell() {
     local shell="$1"
     command -v "$shell" >/dev/null 2>&1 || {
@@ -241,6 +248,7 @@ require_shell() {
 ```zsh
 run_multi_shell_tests_with_recovery() {
     local script="$1" failed_shells=()
+    trap 'rm -f /tmp/shell_err_$$' RETURN  # Clean up on function exit
     for shell in zsh bash sh; do
         require_shell "$shell" || continue
         if ! "$shell" -n "$script" 2>/dev/null; then
@@ -312,6 +320,7 @@ fast_string_processing() {
 ```zsh
 benchmark_function() {
     local func="$1" iterations="${2:-100}"
+    type "$func" >/dev/null 2>&1 || { echo "Function not found: $func" >&2; return 1; }
     for shell in zsh bash; do
         command -v "$shell" >/dev/null || continue
         local start=$(date +%s)

@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
 **Keywords:** dbt, semantic view, Snowflake, dbt_semantic_view, materialization, Cortex Analyst, YAML, semantic model, dbt models, analytics, business intelligence, data modeling
-**TokenBudget:** ~3500
+**TokenBudget:** ~5100
 **ContextTier:** High
 **Depends:** 200-python-core.md
 
@@ -60,17 +60,19 @@ Creating Snowflake semantic views through dbt using the `dbt_semantic_view` pack
 - Skipping primary key definitions
 
 ### Execution Steps
-1. Add dbt_semantic_view package to packages.yml and run dbt deps
-2. Analyze existing dbt models to identify tables, relationships, dimensions, and metrics
-3. Create semantic view model file in models/ directory with semantic_view materialization
-4. Define TABLES section with ref() or source() and PRIMARY KEY for each table
-5. Define RELATIONSHIPS section for foreign key connections between tables
-6. Define DIMENSIONS section with business-friendly column aliases and synonyms
-7. Define METRICS section with aggregation expressions and CASE statements for ratios
-8. Add COMMENT clauses for all tables, relationships, dimensions, and metrics
-9. Build semantic view with dbt run --select model_name
-10. Test with SEMANTIC_VIEW() queries in Snowflake
-11. Add documentation to schema.yml and integrate into CI/CD pipeline
+1. **[~2 min]** Add dbt_semantic_view package to packages.yml and run `dbt deps`
+2. **[~10 min]** Analyze existing dbt models to identify tables, relationships, dimensions, and metrics
+3. **[~5 min]** Create semantic view model file in models/ directory with `semantic_view` materialization
+4. **[~5 min]** Define TABLES section with `ref()` or `source()` and PRIMARY KEY for each table
+5. **[~5 min]** Define RELATIONSHIPS section for foreign key connections between tables
+6. **[~10 min]** Define DIMENSIONS section with business-friendly column aliases and synonyms
+7. **[~10 min]** Define METRICS section with aggregation expressions and CASE statements for ratios
+8. **[~5 min]** Add COMMENT clauses for all tables, relationships, dimensions, and metrics
+9. **[~2 min]** Build semantic view with `dbt run --select model_name`
+10. **[~5 min]** Test with `SEMANTIC_VIEW()` queries in Snowflake
+11. **[~10 min]** Add documentation to schema.yml and integrate into CI/CD pipeline
+
+**Total estimated time:** ~70 minutes for a new semantic view (less for simple single-table views)
 
 ### Output Format
 dbt model SQL file with semantic_view materialization; SHOW SEMANTIC VIEWS output; test query results; schema.yml documentation
@@ -253,7 +255,7 @@ COMMENT = 'Sales performance analytics combining Notion and Salesforce data'
 **Test Query:**
 ```sql
 SELECT * FROM SEMANTIC_VIEW(
-  my_db.my_schema.sv_sales_performance
+  <database>.<schema>.sv_sales_performance
   DIMENSIONS product_category, region
   METRICS total_revenue, total_orders
 )
@@ -268,8 +270,8 @@ LIMIT 10;
 dbt run --select sv_sales_performance
 
 # Verify in Snowflake
-SHOW SEMANTIC VIEWS IN SCHEMA my_db.my_schema;
-DESCRIBE SEMANTIC VIEW my_db.my_schema.sv_sales_performance;
+SHOW SEMANTIC VIEWS IN SCHEMA <database>.<schema>;
+DESCRIBE SEMANTIC VIEW <database>.<schema>.sv_sales_performance;
 ```
 
 ## Setup and Installation
@@ -278,10 +280,10 @@ Add `Snowflake-Labs/dbt_semantic_view` to `packages.yml`, run `dbt deps`, then v
 
 ## Key Components
 
-- **TABLES:** `<name> AS {{ ref('<model>') }} PRIMARY KEY (<col>) [WITH SYNONYMS = (...)] [COMMENT = '...']`
-- **RELATIONSHIPS:** `<name> AS <table1>(<fk>) REFERENCES <table2>(<pk>) [COMMENT = '...']`
-- **DIMENSIONS:** `<table>.<col> AS <dim_name> [WITH SYNONYMS = (...)] [COMMENT = '...']` — time columns are regular dimensions
-- **METRICS:** `<name> AS <aggregation_expr> [COMMENT = '...']` — use standard SQL (SUM, AVG, COUNT, CASE)
+- **TABLES** — Syntax: `<name> AS {{ ref('<model>') }} PRIMARY KEY (<col>)`. Required: `PRIMARY KEY`. Optional: `WITH SYNONYMS`, `COMMENT`. One entry per table.
+- **RELATIONSHIPS** — Syntax: `<name> AS <table1>(<fk>) REFERENCES <table2>(<pk>)`. Required: FK and PK columns. Optional: `COMMENT`. Only for multi-table views.
+- **DIMENSIONS** — Syntax: `<table>.<col> AS <dim_name>`. Required: Table-qualified column. Optional: `WITH SYNONYMS`, `COMMENT`. Time columns are regular dimensions.
+- **METRICS** — Syntax: `<name> AS <aggregation_expr>`. Required: Aggregation expression. Optional: `COMMENT`. Use standard SQL: SUM, AVG, COUNT, CASE.
 
 ## Common Patterns
 
@@ -320,6 +322,80 @@ METRICS (
 )
 ```
 
+### Multi-Table Pattern (3+ Tables)
+```sql
+{{
+  config(materialized='semantic_view', tags=['semantic_view', 'sales'])
+}}
+
+TABLES (
+  orders AS {{ ref('fct_orders') }}
+    PRIMARY KEY (order_id)
+    COMMENT = 'Orders fact table',
+  customers AS {{ ref('dim_customers') }}
+    PRIMARY KEY (customer_id)
+    COMMENT = 'Customer dimension',
+  products AS {{ ref('dim_products') }}
+    PRIMARY KEY (product_id)
+    COMMENT = 'Product dimension',
+  regions AS {{ ref('dim_regions') }}
+    PRIMARY KEY (region_id)
+    COMMENT = 'Geographic region dimension'
+)
+
+RELATIONSHIPS (
+  order_customer AS orders(customer_id) REFERENCES customers(customer_id)
+    COMMENT = 'Link orders to customers',
+  order_product AS orders(product_id) REFERENCES products(product_id)
+    COMMENT = 'Link orders to products',
+  customer_region AS customers(region_id) REFERENCES regions(region_id)
+    COMMENT = 'Link customers to regions (chained relationship)'
+)
+
+DIMENSIONS (
+  customers.customer_name AS customer_name
+    WITH SYNONYMS = ('buyer', 'client')
+    COMMENT = 'Customer full name',
+  products.product_name AS product_name
+    WITH SYNONYMS = ('item', 'sku_name')
+    COMMENT = 'Product display name',
+  products.category AS product_category
+    WITH SYNONYMS = ('product_line', 'department')
+    COMMENT = 'Product category',
+  regions.region_name AS region
+    WITH SYNONYMS = ('territory', 'geographic_area')
+    COMMENT = 'Sales region name',
+  orders.order_date AS order_date
+    WITH SYNONYMS = ('purchase_date', 'transaction_date')
+    COMMENT = 'Date order was placed'
+)
+
+METRICS (
+  total_revenue AS SUM(orders.order_amount)
+    COMMENT = 'Total revenue from orders',
+  order_count AS COUNT(orders.order_id)
+    COMMENT = 'Number of orders',
+  avg_order_value AS AVG(orders.order_amount)
+    COMMENT = 'Average order value',
+  unique_customers AS COUNT(DISTINCT orders.customer_id)
+    COMMENT = 'Number of unique customers'
+)
+
+COMMENT = 'Multi-table sales analytics with customer, product, and region dimensions'
+```
+
+**Test Query (3+ tables):**
+```sql
+SELECT * FROM SEMANTIC_VIEW(
+  <database>.<schema>.sv_sales_multi
+  DIMENSIONS customer_name, product_category, region
+  METRICS total_revenue, order_count
+)
+WHERE region IS NOT NULL
+ORDER BY total_revenue DESC
+LIMIT 20;
+```
+
 ### Complex Metrics with CASE
 ```sql
 METRICS (
@@ -343,10 +419,77 @@ METRICS (
 - **Performance:** Materialize base models as tables or incremental; add clustering keys for large datasets
 - **Documentation:** Use inline COMMENT clauses (`persist_docs` not supported); add schema.yml entries
 
+## Performance Considerations
+
+### Base Model Materialization
+
+For semantic views over large datasets (>1M rows), base model materialization directly impacts query performance:
+
+- **<100K rows** — Recommended: `view`. Acceptable latency for small datasets.
+- **100K–1M rows** — Recommended: `table`. Materialized for consistent performance.
+- **>1M rows** — Recommended: `incremental`. Avoids full-table rebuild on each run.
+- **>10M rows** — Recommended: `incremental` + clustering. Add `cluster_by` for frequently filtered columns.
+
+```sql
+-- Base model optimized for large semantic views
+{{
+  config(
+    materialized='incremental',
+    unique_key='order_id',
+    cluster_by=['region', 'order_date'],
+    on_schema_change='append_new_columns'
+  )
+}}
+
+SELECT
+    order_id,
+    customer_id,
+    region,
+    order_date,
+    order_amount
+FROM {{ source('raw', 'orders') }}
+{% if is_incremental() %}
+WHERE order_date > (SELECT MAX(order_date) FROM {{ this }})
+{% endif %}
+```
+
+### Query Optimization
+
+- Use `APPROX_COUNT_DISTINCT` instead of `COUNT(DISTINCT ...)` for metrics on large tables (>10M rows)
+- Avoid metrics that require full-table scans without filters (add date range constraints)
+- Test query performance with `EXPLAIN` before deploying:
+  ```sql
+  EXPLAIN
+  SELECT * FROM SEMANTIC_VIEW(
+    <database>.<schema>.<view_name>
+    DIMENSIONS region, order_date
+    METRICS total_revenue, order_count
+  )
+  WHERE order_date >= '2025-01-01';
+  ```
+
+### Monitoring Performance
+
+```sql
+-- Check query duration for semantic view queries
+SELECT query_id, query_text, total_elapsed_time / 1000 AS duration_seconds,
+       bytes_scanned / (1024*1024*1024) AS gb_scanned
+FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+WHERE query_text ILIKE '%SEMANTIC_VIEW%'
+  AND start_time > DATEADD('day', -7, CURRENT_TIMESTAMP())
+ORDER BY total_elapsed_time DESC
+LIMIT 10;
+```
+
+**Performance Targets:**
+- Simple queries (1-2 dimensions, 1-2 metrics): <2 seconds
+- Complex queries (3+ dimensions, 3+ metrics): <10 seconds
+- Full-scan queries (no filters): <30 seconds for tables up to 10M rows
+
 ## Testing and Deployment
 
 1. Build: `dbt run --select <model>` (with deps: `dbt build --select +<model>`)
-2. Verify: `SHOW SEMANTIC VIEWS IN SCHEMA <db>.<schema>` and `DESCRIBE SEMANTIC VIEW <db>.<schema>.<view>`
+2. Verify: `SHOW SEMANTIC VIEWS IN SCHEMA <database>.<schema>` and `DESCRIBE SEMANTIC VIEW <database>.<schema>.<view_name>`
 3. Test query: `SELECT * FROM SEMANTIC_VIEW(<view> DIMENSIONS <dim> METRICS <metric>) LIMIT 10`
 4. Document in `schema.yml` with description and `meta.type: semantic_view`
 5. Note: `persist_docs` not supported; use inline COMMENT clauses in SQL
@@ -386,6 +529,56 @@ dbt compile --select <model>
 - Add dbt tests to base models (not_null, relationships, accepted_values)
 - Check for NULL values in key columns
 - Validate data types match expectations
+
+### Rollback Procedure
+
+If a semantic view deployment fails or produces incorrect results, follow this rollback procedure:
+
+**Step 1: Identify the failure scope**
+```sql
+-- Check if the semantic view exists in a broken state
+SHOW SEMANTIC VIEWS IN SCHEMA <database>.<schema>;
+DESCRIBE SEMANTIC VIEW <database>.<schema>.<view_name>;
+```
+
+**Step 2: Drop the broken semantic view**
+```sql
+-- Remove the failed semantic view
+DROP SEMANTIC VIEW IF EXISTS <database>.<schema>.<view_name>;
+
+-- Verify removal
+SHOW SEMANTIC VIEWS IN SCHEMA <database>.<schema>;
+```
+
+**Step 3: Restore the previous version via dbt**
+```bash
+# Revert to the last known-good commit
+git log --oneline models/sv_*.sql  # Find last good commit
+git checkout <last-good-commit> -- models/<model_name>.sql
+
+# Rebuild from the known-good version
+dbt run --select <model_name>
+
+# Verify restoration
+# In Snowflake:
+# SHOW SEMANTIC VIEWS IN SCHEMA <database>.<schema>;
+# SELECT * FROM SEMANTIC_VIEW(<view_name> DIMENSIONS <dim> METRICS <metric>) LIMIT 5;
+```
+
+**Step 4: If no previous version exists (first deployment)**
+```sql
+-- Simply drop the semantic view and investigate
+DROP SEMANTIC VIEW IF EXISTS <database>.<schema>.<view_name>;
+
+-- Check base model data quality before retrying
+SELECT COUNT(*), COUNT(DISTINCT <primary_key>) FROM <base_table>;
+-- If counts differ, fix duplicates in base model first
+```
+
+**Step 5: Document the failure**
+- Record what failed and why in the PR or issue tracker
+- Add a dbt test to prevent recurrence if the failure was data-related
+- Update the model if the failure was schema-related
 
 ## Integration with Cortex Agent
 

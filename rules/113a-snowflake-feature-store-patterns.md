@@ -132,12 +132,12 @@ training_data = fs.generate_training_set(
 **Anti-Pattern 2: Not Versioning Feature Views**
 ```python
 # Bad: Overwrite feature view without versioning
-@fv(name='customer_features', version='v1')
+@fv(name='customer_features', version='1.0')
 def customer_features(df):
     return df.select('customer_id', 'age', 'income')
 
 # Later: Change feature logic but keep same name/version
-@fv(name='customer_features', version='v1')  # Same name!
+@fv(name='customer_features', version='1.0')  # Same name!
 def customer_features(df):
     return df.select('customer_id', 'age_bucket', 'income_log')  # Different features!
 
@@ -183,7 +183,7 @@ model_v2 = train_model(features='customer_features@2.0')
 **Anti-Pattern 3: Using Non-Deterministic Functions in Feature Engineering**
 ```python
 # Bad: Non-deterministic transformations
-@fv(name='transaction_features', version='v1')
+@fv(name='transaction_features', version='1.0')
 def transaction_features(df):
     return df.select(
         col('transaction_id'),
@@ -199,7 +199,7 @@ def transaction_features(df):
 **Correct Pattern:**
 ```python
 # Good: Deterministic transformations only
-@fv(name='transaction_features', version='v1')
+@fv(name='transaction_features', version='1.0')
 def transaction_features(df):
     return df.select(
         col('transaction_id'),
@@ -210,7 +210,7 @@ def transaction_features(df):
     )
 
 # If you need current time context, use spine timestamp
-@fv(name='time_aware_features', version='v1')
+@fv(name='time_aware_features', version='1.0')
 def time_aware_features(df):
     # df already has event_timestamp from source
     return df.select(
@@ -256,6 +256,9 @@ FROM transactions
 GROUP BY customer_id;
 
 # Step 2: Monitor refresh costs
+# Note: DYNAMIC_TABLE_REFRESH_HISTORY may return empty results if:
+# - The dynamic table was created less than 24 hours ago (Account Usage latency)
+# - No refreshes have occurred yet. Use INFORMATION_SCHEMA equivalent for real-time data.
 SELECT
   table_name,
   refresh_action,
@@ -278,11 +281,11 @@ WHERE table_name = 'CUSTOMER_FEATURES_VIEW'
   AND start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP());
 
 # Step 4: Optimize based on actual usage
--- If features rarely change, increase TARGET_LAG to reduce costs
+-- If source data updates less than once per 4 hours, increase TARGET_LAG to reduce costs
 ALTER DYNAMIC TABLE customer_features_view
 SET TARGET_LAG = '4 HOURS';  -- Reduce refresh frequency
 
--- If costs still high, use smaller warehouse
+-- If daily credits exceed budget threshold (e.g., >5 credits/day), use smaller warehouse
 ALTER DYNAMIC TABLE customer_features_view
 SET WAREHOUSE = XSMALL_WH;
 

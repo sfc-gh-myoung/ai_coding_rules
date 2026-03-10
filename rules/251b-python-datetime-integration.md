@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:datetime-sql, kw:streamlit-datetime, kw:plotly-datetime
 **Keywords:** datetime SQL, parameterized queries, Streamlit date input, Plotly datetime, datetime display, date formatting, SQL injection
-**TokenBudget:** ~1350
+**TokenBudget:** ~2500
 **ContextTier:** Medium
 **Depends:** 251-python-datetime-core.md
 
@@ -72,6 +72,16 @@ Parameterized SQL queries, Streamlit date widgets, formatted datetime display.
 - [ ] No f-strings in SQL construction
 - [ ] Streamlit date inputs convert types correctly
 - [ ] Display formatting uses strftime
+
+### Investigation Required
+
+Before modifying datetime integration code, agents MUST check:
+
+- [ ] **Database adapter**: Identify which adapter is in use (psycopg2, SQLAlchemy, snowflake-connector-python) — placeholder syntax differs (%s, :param, ?)
+- [ ] **Streamlit presence**: Check `pyproject.toml` for `streamlit` — skip Streamlit sections if not used
+- [ ] **Existing datetime formatting**: Search for `strftime` and `dt.tz_convert` to match existing display patterns
+- [ ] **Database column types**: Check schema for TIMESTAMP vs VARCHAR date columns — VARCHAR requires parsing before use
+- [ ] **Plotly version**: Check for `plotly` in dependencies — `use_container_width` requires Streamlit >=1.18
 
 ### Design Principles
 
@@ -150,6 +160,33 @@ df = session.sql(
 )
 ```
 
+### SQL Keyword Allowlist Validation
+
+SQL keywords (table names, column names, ORDER BY direction) cannot be parameterized.
+Use allowlist validation instead:
+
+```python
+# Allowlist for time granularity in DATE_TRUNC:
+VALID_GRANULARITIES = {"day", "week", "month", "quarter", "year"}
+
+def get_aggregated_data(cursor, granularity: str, start_date):
+    if granularity not in VALID_GRANULARITIES:
+        raise ValueError(f"Invalid granularity: {granularity}. Must be one of {VALID_GRANULARITIES}")
+
+    # Safe: granularity is validated against allowlist
+    query = f"SELECT DATE_TRUNC('{granularity}', created_at) AS period, COUNT(*) FROM events WHERE created_at > %s GROUP BY 1"
+    cursor.execute(query, (start_date,))
+
+# Allowlist for sort direction:
+VALID_DIRECTIONS = {"ASC", "DESC"}
+
+def get_sorted_events(cursor, direction: str = "DESC"):
+    if direction.upper() not in VALID_DIRECTIONS:
+        raise ValueError(f"Invalid sort direction: {direction}")
+    query = f"SELECT * FROM events ORDER BY created_at {direction.upper()}"
+    cursor.execute(query)
+```
+
 ## Streamlit Integration
 
 ### Date Input Widgets
@@ -168,6 +205,25 @@ end_ts = pd.Timestamp(end_date)
 
 # Filter DataFrame
 filtered_df = df[(df["date"] >= start_ts) & (df["date"] <= end_ts)]
+```
+
+### Time Input Widget
+
+```python
+import streamlit as st
+from datetime import time, datetime
+
+# Time input for filtering:
+start_time = st.time_input("Start time", value=time(9, 0))
+end_time = st.time_input("End time", value=time(17, 0))
+
+# Combine date and time:
+selected_date = st.date_input("Date")
+start_dt = datetime.combine(selected_date, start_time)
+
+# Filter DataFrame by time range:
+mask = (df['timestamp'].dt.time >= start_time) & (df['timestamp'].dt.time <= end_time)
+filtered = df[mask]
 ```
 
 ### Timezone Display
@@ -194,4 +250,87 @@ st.dataframe(df_display)
 st.dataframe(
     df.style.format({"date": lambda x: x.strftime("%Y-%m-%d") if pd.notna(x) else "N/A"})
 )
+```
+
+## JSON Datetime Serialization
+
+Use ISO 8601 format for JSON interchange:
+
+```python
+from datetime import datetime, UTC
+import json
+
+# Serialize to ISO 8601:
+dt = datetime.now(UTC)
+json_str = dt.isoformat()  # "2024-03-09T14:30:00+00:00"
+
+# Parse from ISO 8601 (Python 3.11+):
+dt = datetime.fromisoformat("2024-03-09T14:30:00+00:00")
+
+# In JSON responses (FastAPI/Flask):
+response = {
+    "created_at": dt.isoformat(),
+    "updated_at": dt.isoformat(),
+}
+
+# Pandas DataFrame to JSON:
+df['date_str'] = df['datetime_col'].dt.strftime('%Y-%m-%dT%H:%M:%S%z')
+json_data = df.to_json(orient='records', date_format='iso')
+
+# Custom JSON encoder for datetime:
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
+
+json.dumps({"event_time": dt}, cls=DateTimeEncoder)
+```
+
+## Plotly Datetime Visualization
+
+Configure datetime axes in Plotly charts:
+
+```python
+import plotly.express as px
+import pandas as pd
+
+# Line chart with datetime x-axis:
+fig = px.line(df, x='date', y='value', title='Daily Metrics')
+
+# Customize datetime axis formatting:
+fig.update_xaxes(
+    dtick="M1",                    # Tick every month
+    tickformat="%b %Y",           # "Jan 2024" format
+    ticklabelmode="period",       # Center labels on period
+    rangeslider_visible=True,     # Date range slider
+)
+
+# Date range selection buttons:
+fig.update_layout(
+    xaxis=dict(
+        rangeselector=dict(
+            buttons=list([
+                dict(count=7, label="1w", step="day"),
+                dict(count=1, label="1m", step="month"),
+                dict(count=6, label="6m", step="month"),
+                dict(step="all", label="All"),
+            ])
+        ),
+    )
+)
+
+# In Streamlit:
+st.plotly_chart(fig, use_container_width=True)
+```
+
+### Aggregated Time Series for Plotly
+
+```python
+# Always aggregate before plotting large datasets:
+daily = df.resample('D', on='timestamp').agg(
+    avg_value=('value', 'mean'),
+    record_count=('value', 'count'),
+)
+fig = px.line(daily, y='avg_value', title='Daily Average')
 ```

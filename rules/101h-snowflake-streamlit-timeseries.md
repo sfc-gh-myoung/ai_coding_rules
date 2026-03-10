@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** time series smoothing, data aggregation, resample, SCADA data, high-frequency data, trend analysis, rolling average, EWMA, exponential smoothing
-**TokenBudget:** ~2300
+**TokenBudget:** ~2550
 **ContextTier:** Low
 **Depends:** 101a-snowflake-streamlit-visualization.md
 
@@ -107,7 +107,7 @@ def smooth_time_series_data(
         time_col: Name of timestamp column to use for resampling
         value_cols: List of value columns to aggregate
         aggregation_level: Pandas frequency string ("15min", "30min", "1H", "2H", "4H")
-        method: Aggregation method ("mean", "median", "max", "min")
+        method: Aggregation method ("mean", "median", "max", "min", "ewma")
 
     Returns:
         Smoothed DataFrame with reduced number of data points
@@ -116,6 +116,7 @@ def smooth_time_series_data(
         return df
     if time_col not in df.columns:
         raise ValueError(f"Column '{time_col}' not found in DataFrame")
+    df = df.copy()  # Prevent mutation of caller's DataFrame
     df[time_col] = pd.to_datetime(df[time_col])
     df_indexed = df.set_index(time_col)
     available_cols = [col for col in value_cols if col in df_indexed.columns]
@@ -131,12 +132,20 @@ def smooth_time_series_data(
     elif method == "min":
         df_smooth = df_resampled.min()
     elif method == "ewma":
-        df_smooth = df_indexed[available_cols].ewm(span=12, adjust=False).mean()
+        # Resample first to reduce points, then apply EWMA for adaptive smoothing
+        df_smooth = df_indexed[available_cols].resample(aggregation_level).mean()
+        df_smooth = df_smooth.ewm(span=12, adjust=False).mean()
     else:
         raise ValueError(f"Unknown method: {method}")
 
     return df_smooth.reset_index()
 ```
+
+**Timezone handling:** `resample()` requires timezone-consistent data. For mixed-timezone data from Snowflake (e.g., TIMESTAMP_LTZ columns), normalize before resampling:
+```python
+df[time_col] = pd.to_datetime(df[time_col], utc=True)
+```
+If all timestamps are already UTC (common with TIMESTAMP_NTZ), no conversion is needed.
 
 ## UI Controls Pattern
 
@@ -152,10 +161,14 @@ with col1:
 with col2:
     smoothing_method = st.selectbox(
         "Aggregation Method",
-        options=["mean", "median", "max", "min"],
+        options=["mean", "median", "max", "min", "ewma"],
         index=0,  # Default to mean
-        help="Mean provides smoothest results, max/min preserve extremes"
+        help="Mean provides smoothest results, max/min preserve extremes, ewma for adaptive smoothing"
     )
+
+# NOTE: When "ewma" is selected, aggregation_level controls output resolution
+# (data is resampled first, then EWMA applied). The `span` parameter in the
+# smoothing function controls the EWMA decay -- higher span = smoother.
 
 original_count = len(scada_data)
 if aggregation_level != "15min":
@@ -273,6 +286,7 @@ ORDER BY hour_bucket;
 - 15-min SCADA (96 points/day) aggregated to 1H (24 points/day) = 75% reduction
 - Faster chart rendering, better UX, preserved patterns
 - Always display both original and smoothed counts to user
+- **NaN behavior:** `resample().mean()` skips NaN by default, but `resample().max()` and `resample().min()` propagate NaN -- this matters for sensor data with missing readings. Use `resample().max(min_count=1)` to treat all-NaN windows as NaN while still computing max when at least one value exists.
 
 ## Anti-Patterns and Common Mistakes
 

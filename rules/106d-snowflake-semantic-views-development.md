@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
+**RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:semantic-generator, kw:vqr
 **Keywords:** VQR, verified queries, Generator workflow, iterative development, YAML semantic model, semantic model file, onboarding questions, development workflow, verified query repository, semantic view generator
@@ -170,6 +170,16 @@ verified_queries:
       ORDER BY month
     verified_at: 1737590400
     verified_by: analytics_team
+
+  - name: customer_revenue
+    question: "Revenue by customer region?"
+    sql: |
+      SELECT c.region, SUM(s.total_revenue)
+      FROM __sales_data s
+      JOIN __customer_data c ON s.customer_id = c.customer_id
+      GROUP BY c.region
+    verified_at: 1737590400
+    verified_by: analytics_team
 ```
 
 ### Common VQR Mistakes
@@ -212,6 +222,12 @@ When updating verified queries:
 - **Wrong results:** Run the VQR SQL directly against the base table (replacing `__logical_name` with physical name) to verify logic
 - **Column mismatch:** VQR SQL must reference dimension/metric `name` fields from the YAML, not physical column names
 - **Test independently:** Execute each VQR query in a worksheet before adding to YAML
+
+### Common YAML Validation Errors
+
+- **YAML parsing error:** Check indentation (2 spaces), ensure `sql: |` uses pipe for multiline, verify no tabs are used
+- **Unexpected key error:** Verify field names match expected schema (`name`, `question`, `sql`, `verified_at`, `verified_by`)
+- **Multiline SQL truncated:** Ensure `sql: |` (pipe) is used, not `sql: >` (folded), and indentation is consistent under the pipe
 
 ### Suggested Queries (Preview)
 
@@ -257,25 +273,11 @@ payload = {
 
 ### Generator Workflow
 
-```sql
--- Step 1: Verify Generator availability
-SHOW PARAMETERS LIKE 'CORTEX%' IN ACCOUNT;
+The Semantic View Generator is a **Snowsight-only** feature (no CLI equivalent). It analyzes table structure and suggests DDL.
 
--- Step 2: Use Generator via Snowsight or API
--- NOTE: The Semantic View Generator is a Snowsight-only feature. There is no CLI equivalent.
--- Generator analyzes table structure and suggests DDL
+**Usage:** Snowsight > Data > select table > Generate Semantic View > Review output > Execute validated DDL
 
--- Step 3: Review generated DDL before execution
--- Generator produces CREATE SEMANTIC VIEW with:
--- - Inferred PRIMARY KEY from constraints
--- - Numeric columns as FACTS
--- - String/date columns as DIMENSIONS
--- - Common aggregations as METRICS
-
--- Step 4: Execute and validate
-CREATE OR REPLACE SEMANTIC VIEW ...;
-SHOW SEMANTIC VIEWS IN SCHEMA ...;
-```
+**Generator produces:** `CREATE SEMANTIC VIEW` with inferred PRIMARY KEY, numeric columns as FACTS, string/date columns as DIMENSIONS, and common aggregations as METRICS.
 
 ### Generator Limitations
 
@@ -458,7 +460,7 @@ verified_queries:
   - name: high_load_transformers
     question: "Which transformers have high load?"
     sql: |
-      SELECT equipment_id, AVG(load_kw) AS avg_load
+      SELECT equipment_id, AVG(load_kw) AS avg_load  -- 'load_kw' is the expr from metrics, not the metric name 'avg_load'
       FROM __transformer_health
       GROUP BY equipment_id
       HAVING AVG(load_kw) > 80

@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:agent-testing, kw:agent-rbac
 **Keywords:** agent testing, component testing, integration testing, agent RBAC, agent permissions, agent grants, cortex agent security, test agent, agent validation, agent role, agent access control
-**TokenBudget:** ~3150
+**TokenBudget:** ~3300
 **ContextTier:** Low
 **Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md, 115b-snowflake-cortex-agents-operations.md
 
@@ -255,6 +255,25 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE('llama3.1-8b', 'test');
 - **Warehouses:** Use dedicated warehouses with auto-suspend for cost control
 
 ## Anti-Patterns and Common Mistakes
+
+### CI/CD Integration
+
+- **Rule:** Run agent component tests in CI pipelines before deploying agent changes
+- **Consider:** Use a dedicated test warehouse with AUTO_SUSPEND = 60 for CI test runs
+- **Rule:** Fail the pipeline if any golden question assertion fails
+
+### Test Data Setup/Teardown
+
+- **Rule:** Create isolated test semantic views with sample data for agent testing:
+  ```sql
+  CREATE OR REPLACE VIEW test_schema.test_sv AS SELECT * FROM prod_schema.sv LIMIT 100;
+  -- Teardown after tests: DROP VIEW IF EXISTS test_schema.test_sv;
+  ```
+
+### Performance Benchmarks
+
+- **Rule:** Agent query response time should be <10s for single-tool queries, <20s for multi-tool queries
+- **Consider:** Track p95 latency over time; investigate if it degrades by >50%
 
 **Anti-Pattern 1: Testing Only End-to-End Without Component Tests**
 

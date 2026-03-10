@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v2.1.0
+**RuleVersion:** v2.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** deployment error, Container Runtime, Warehouse Runtime, EAI error, compute pool, stage upload, service startup, troubleshooting, runtime error
-**TokenBudget:** ~2600
+**TokenBudget:** ~2800
 **ContextTier:** Low
 **Depends:** 101-snowflake-streamlit-core.md, 101l-snowflake-streamlit-deployment.md
 
@@ -27,11 +27,12 @@ Deployment error scenarios and resolution steps for Streamlit applications in bo
 ### Dependencies
 
 **Must Load First:**
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
-- **101l-snowflake-streamlit-deployment.md** - Deployment guidance
+- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
+- **101l-snowflake-streamlit-deployment.md** - Deployment guidance `[Available]`
 
 **Related:**
-- **101c-snowflake-streamlit-security.md** - Security patterns
+- **101c-snowflake-streamlit-security.md** - Security patterns `[Available]`
 
 ### External Documentation
 
@@ -54,7 +55,7 @@ Deployment error scenarios and resolution steps for Streamlit applications in bo
 
 ### Forbidden
 
-- Deploying without testing locally first (run: streamlit run app.py --server.port 8501)
+- Deploying without testing locally first (run: `streamlit run app.py --server.port 8501`). Local testing validates UI logic only. Use `snow streamlit deploy --replace` to a dev environment for full integration testing with Snowflake features.
 - Ignoring service logs when debugging
 - Hardcoding credentials
 
@@ -74,6 +75,12 @@ Resolved deployment with Streamlit app accessible.
 - App loads without errors
 - All features functional
 - Logs show no warnings
+
+**Negative Tests:**
+- EAI includes both `pypi.org` and `files.pythonhosted.org` -- FAIL if either missing
+- Stage files are `.py` not `.py.gz` -- FAIL if compressed
+- Compute pool is ACTIVE before deployment -- FAIL if suspended or provisioning
+- `get_active_session()` not used in Container Runtime code -- FAIL if present
 
 ### Post-Execution Checklist
 
@@ -158,7 +165,7 @@ No matching distribution found
 Error: Container Runtime requires Python 3.11
 ```
 
-**Cause:** Container Runtime only supports Python 3.11.
+**Cause:** Container Runtime only supports Python 3.11 (as of 2026-03; check [Snowflake documentation](https://docs.snowflake.com/en/developer-guide/streamlit/app-development/runtime-environments) for current supported versions).
 
 **Resolution:**
 1. Update `pyproject.toml`:

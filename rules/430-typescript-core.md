@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
+**RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** TypeScript, Zod, Strict Mode, Type Inference, Union Types, Satisfies, Generics, Utility Types, Matt Pocock, Total TypeScript
-**TokenBudget:** ~3700
+**TokenBudget:** ~3950
 **ContextTier:** High
 **Depends:** 000-global-core.md
 **LoadTrigger:** ext:.ts, ext:.tsx
@@ -322,7 +322,7 @@ export const UserSchema = z.object({
  id: z.string().uuid(),
  username: z.string().min(3),
  email: z.string().email(),
- role: z.enum(['admin', 'user', 'guest']), // Zod enum is safe
+ role: z.enum(['admin', 'user', 'guest']), // z.enum() is Zod runtime validation — NOT the banned TypeScript `enum` keyword
 });
 
 // 2. Infer Type (Compile time)
@@ -378,6 +378,10 @@ type PostId = Brand<string, 'PostId'>;
 
 const getUser = (id: UserId) => { ... };
 const myId = '123' as UserId; // Explicit cast required at boundary
+
+// Zod integration: validate and brand at I/O boundary
+const UserIdSchema = z.string().uuid().transform(s => s as UserId);
+const parsed = UserIdSchema.parse(rawInput); // typed as UserId
 ```
 
 ## Error Recovery Patterns
@@ -401,7 +405,24 @@ function handleInput(data: unknown) {
 ```
 
 ### Strict Mode Migration
-- **Rule:** Enable strict flags incrementally: `strictNullChecks` then `noImplicitAny` then `strictFunctionTypes` then `strict: true`. Fix errors per flag before enabling the next. Use `// @ts-expect-error REASON` (never `@ts-ignore`) for temporary suppression.
+- **Rule:** Enable strict flags incrementally. Fix all errors per flag before enabling the next.
+
+**Migration sequence:**
+```json
+// Step 1: Start with null safety (highest-value flag)
+{ "compilerOptions": { "strictNullChecks": true } }
+
+// Step 2: Eliminate implicit any
+{ "compilerOptions": { "strictNullChecks": true, "noImplicitAny": true } }
+
+// Step 3: Function parameter bivariance
+{ "compilerOptions": { "strictNullChecks": true, "noImplicitAny": true, "strictFunctionTypes": true } }
+
+// Step 4: Enable full strict (includes all above + strictBindCallApply, etc.)
+{ "compilerOptions": { "strict": true } }
+```
+
+Use `// @ts-expect-error REASON` (never `@ts-ignore`) for temporary suppression during migration. Track remaining suppressions: `grep -rn "@ts-expect-error" --include="*.ts" --include="*.tsx" | wc -l`.
 
 ### Third-Party Type Conflicts
 - **Rule:** Use `declare module` overrides for incorrect third-party types. Always document the reason.
@@ -497,3 +518,5 @@ function handleError(error: unknown): Error {
  return error instanceof Error ? error : new Error(String(error));
 }
 ```
+
+> **See also:** Type narrowing patterns (`in`, `instanceof`, `is` predicates) are essential when working with `unknown` — consider creating a `430a-typescript-patterns.md` companion rule.

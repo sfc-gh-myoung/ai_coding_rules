@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v4.1.0
+**RuleVersion:** v4.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** st.secrets, SQL injection, authentication, secure streamlit, protect app, credentials management, API keys, environment variables, secure deployment, input sanitization, RBAC streamlit, access control, security patterns, Container Runtime, Warehouse Runtime
-**TokenBudget:** ~3800
+**TokenBudget:** ~4050
 **ContextTier:** High
 **Depends:** 101-snowflake-streamlit-core.md, 107-snowflake-security-governance.md
 
@@ -29,13 +29,13 @@ Comprehensive security guidance for Streamlit applications including input valid
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
-- **107-snowflake-security-governance.md** - Snowflake security and RBAC
+- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
+- **107-snowflake-security-governance.md** - Snowflake security and RBAC `[Available]`
 
 **Related:**
-- **100-snowflake-core.md** - Base Snowflake connection and credential patterns
-- **200-python-core.md** - Python security patterns
+- **100-snowflake-core.md** - Base Snowflake connection and credential patterns `[Available]`
+- **200-python-core.md** - Python security patterns `[Available]`
 
 ### External Documentation
 
@@ -280,12 +280,9 @@ except KeyError as e:
 
 **Secrets rotation:** Update `secrets.toml` (local) or Snowflake secret object (deployed), then restart app to clear `@st.cache_resource` connections.
 
-**FORBIDDEN:**
-- Never commit secrets.toml to version control (add to .gitignore)
-- Never log secrets or expose them in error messages
-- Never display secrets in UI (even in debug mode)
+**FORBIDDEN:** (See Contract Forbidden section above, plus:)
 - Never pass secrets in URL parameters
-- Never hardcode credentials: `api_key = "sk-1234567890abcdef"`  # Security violation!
+- Never hardcode credentials: `api_key = "sk-1234567890abcdef"`  -- Security violation!
 
 ## Input Validation
 
@@ -397,6 +394,8 @@ else:
 **RECOMMENDED:**
 **For sensitive applications, implement authentication:**
 
+**Note:** `bcrypt` is available in Container Runtime (add to `pyproject.toml`). In Warehouse Runtime, check Anaconda channel availability; use `hashlib` (e.g., `hashlib.scrypt`) as a fallback if `bcrypt` is unavailable.
+
 ```python
 import streamlit as st
 
@@ -418,18 +417,22 @@ def check_authentication():
     if not st.session_state.authenticated:
         st.title("Login")
 
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
+        # Use st.form to prevent state loss on rerun (st.button alone loses
+        # input values after rerun, causing authentication to silently fail).
+        with st.form("login_form"):
+            username = st.text_input("Username")
+            password = st.text_input("Password", type="password")
+            submitted = st.form_submit_button("Login")
 
-        if st.button("Login"):
-            if username == st.secrets["admin"]["username"]:
-                stored_hash = st.secrets["admin"]["password_hash"].encode()
-                if verify_password(password, stored_hash):
-                    st.session_state.authenticated = True
-                    st.session_state.username = username
-                    st.rerun()
-                else:
-                    st.error("Invalid credentials")
+        if submitted:
+            # Always hash-check even on wrong username to prevent timing attacks
+            stored_hash = st.secrets.get("admin", {}).get("password_hash", "").encode()
+            dummy_hash = bcrypt.hashpw(b"dummy", bcrypt.gensalt())
+            hash_to_check = stored_hash if username == st.secrets.get("admin", {}).get("username") else dummy_hash
+            if bcrypt.checkpw(password.encode(), hash_to_check) and username == st.secrets.get("admin", {}).get("username"):
+                st.session_state.authenticated = True
+                st.session_state.username = username
+                st.rerun()
             else:
                 st.error("Invalid credentials")
 

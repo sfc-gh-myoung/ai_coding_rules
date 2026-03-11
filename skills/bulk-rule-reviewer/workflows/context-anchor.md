@@ -98,21 +98,27 @@ A **Context Anchor** is a section of skill documentation that:
 **Solution: Periodic file re-reads inject fresh context that cannot be summarized:**
 
 ```python
-# Every 10 rules - mandatory
-if rule_number % 10 == 0:
-    read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
+# Every 5 rules - mandatory (output format)
+if rule_number % 5 == 0:
+    read_file("skills/rule-reviewer/examples/TEMPLATE.md")
 
 # On drift detection - immediate
 if previous_review_size < 2500:
-    read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
+    read_file("skills/rule-reviewer/examples/TEMPLATE.md")
     read_file("skills/bulk-rule-reviewer/SKILL.md")
+
+# On format deviation - immediate
+if format_deviation_detected:
+    read_file("skills/rule-reviewer/examples/TEMPLATE.md")
+    # Regenerate the review
 ```
 
-**CRITICAL_CONTEXT.md contains (~150 tokens):**
-- Evidence requirements table
-- Review output format template
+**TEMPLATE.md contains (~200 tokens):**
+- EXACT Executive Summary table format with column headers
+- All 7 required section headers in order
 - Quality gate thresholds
-- Score table format
+- Anti-drift protocol with self-check questions
+- Evidence requirements (merged from former CRITICAL_CONTEXT.md)
 
 **Why this works:** File reads are "new" content that gets full attention weight, unlike "old" content from conversation start that gets summarized.
 

@@ -112,21 +112,46 @@ for i, rule_file in enumerate(rule_files):
 
 ## Context Refresh (MANDATORY)
 
-**Every 10 rules (N % 10 == 0):** Force re-read of critical context:
+**Every 5 rules (N % 5 == 0):** Force re-read of output format template:
 
 ```python
-if rule_number % 10 == 0:
-    read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
-    print(f"Context refreshed at rule #{rule_number}")
+if rule_number % 5 == 0:
+    read_file("skills/rule-reviewer/examples/TEMPLATE.md")
+    print(f"Output format template refreshed at rule #{rule_number}")
 ```
 
-**Drift Detection Trigger:** If previous review file size < 2500 bytes:
+**Why every 5 rules?** Format drift is the primary cause of inconsistent reviews. The TEMPLATE.md contains the EXACT table structure and section order that all reviews MUST follow.
+
+**Drift Detection Trigger:** If previous review file size < 2500 bytes OR format deviation detected:
 
 ```python
 if previous_review_size < 2500:
     print("DRIFT DETECTED: Review too short")
-    read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
+    read_file("skills/rule-reviewer/examples/TEMPLATE.md")
     read_file("skills/bulk-rule-reviewer/SKILL.md")  # Full re-read
+
+# Format deviation check - run after EVERY review
+def check_format_deviation(review_content):
+    """Check if review matches TEMPLATE.md structure."""
+    required_patterns = [
+        r'\| Dimension \| Raw \(0-10\) \| Weight \| Points \| Notes \|',  # Exact header
+        r'## Executive Summary',
+        r'## Schema Validation Results',
+        r'## Agent Executability Analysis',
+        r'## Dimension Analysis',
+        r'## Critical Issues',
+        r'## Recommendations',
+        r'## Conclusion'
+    ]
+    for pattern in required_patterns:
+        if not re.search(pattern, review_content):
+            return True  # Deviation detected
+    return False
+
+if check_format_deviation(last_review_content):
+    print("FORMAT DEVIATION DETECTED")
+    read_file("skills/rule-reviewer/examples/TEMPLATE.md")
+    # Regenerate the review with correct format
 ```
 
 **Why file re-read, not memory?** LLM context management summarizes "older" content (skill instructions loaded at start) to make room for "newer" content (rules being processed). Periodic file re-reads inject fresh context that cannot be summarized away.

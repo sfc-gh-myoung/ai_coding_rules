@@ -153,16 +153,21 @@ This skill MUST execute the complete rule-reviewer workflow for each rule file.
 - Summarize completed review contents SECOND
 - NEVER summarize anchor sections
 
-**Structural Enforcement (NEW):** Re-read `CRITICAL_CONTEXT.md` every 10 rules:
+**Structural Enforcement (MANDATORY):** Re-read `TEMPLATE.md` every 5 rules:
 
 ```python
-if rule_number % 10 == 0:
-    read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
+if rule_number % 5 == 0:
+    read_file("skills/rule-reviewer/examples/TEMPLATE.md")
 ```
 
-**Drift Detection:** If any review file is <2500 bytes, immediately re-read:
-1. `CRITICAL_CONTEXT.md` (output format requirements)
+**Drift Detection:** If any review file is <2500 bytes OR format deviates, immediately re-read:
+1. `skills/rule-reviewer/examples/TEMPLATE.md` (output format specification)
 2. `SKILL.md` (full protocol)
+
+**Format Deviation Check:** After EVERY review, verify the output matches TEMPLATE.md structure:
+- Executive Summary table with exact headers: `| Dimension | Raw (0-10) | Weight | Points | Notes |`
+- All 7 required sections present in order
+- If deviation detected: re-read TEMPLATE.md and regenerate the review
 
 **See:** `workflows/context-anchor.md` and `workflows/inter-rule-gate.md` for full protocol
 

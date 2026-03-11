@@ -80,12 +80,15 @@ Before reading the rule, verify internally:
 - Can I reuse previous work? → "No, different rule" (CORRECT)
 - Any wrong answer → Re-read Anti-Optimization Protocol
 
-**Step 2: Load rule-reviewer Skill**
+**Step 2: Load rule-reviewer Skill and Output Template**
 
 If not already loaded:
 ```
 Read: skills/rule-reviewer/SKILL.md
+Read: skills/rule-reviewer/examples/TEMPLATE.md  # CRITICAL: Output format specification
 ```
+
+**IMPORTANT:** The TEMPLATE.md defines the EXACT output format for reviews. Your reviews MUST match this structure.
 
 **Step 3: Read Rule File**
 

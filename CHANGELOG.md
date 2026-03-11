@@ -8,108 +8,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **feat(rules):** add 4 new rule files
-  - `002m-agent-format-antipatterns.md` - Format anti-pattern examples extracted from 002g
-  - `210e-python-fastapi-security-hardening.md` - FastAPI security hardening patterns
-  - `221h-python-htmx-fastapi-auth.md` - HTMX+FastAPI authentication patterns
-  - `221i-python-htmx-patterns-advanced.md` - Advanced HTMX patterns
+- **feat(skills):** add `skills/rule-reviewer/examples/TEMPLATE.md` output format specification
+- **feat(rules):** add 4 new rule files (002m, 210e, 221h, 221i)
 - **feat(rules):** add `examples/002-rule-governance-structure-example.md`
-- **feat(rules):** add Anti-Patterns sections with code examples to 34 rule files
-  - Each anti-pattern includes Problem/Correct Pattern structure with code blocks
-  - Covers Streamlit (101m-n), Notebooks (109d-j), ML (110a-b, 113-113b, 114a), Agents (115c-d), REST API (118a), Snowpipe (121d-f), Python (202a, 230a-b, 240a-b, 251-251b, 252-252b), SQL (102b-c)
-- **feat(rules):** extract 7 new focused rule files from large parent rules
-  - `002i-rule-loadtrigger.md` - LoadTrigger specification (from 002-rule-governance)
-  - `002j-rule-examples.md` - Rule examples guidelines (from 002-rule-governance)
-  - `002k-model-optimization.md` - Model-specific optimization (from 002c-rule-optimization)
-  - `002l-skill-advanced-patterns.md` - Skill composition patterns (from 002h-claude-code-skills)
-  - `003a-long-horizon-tasks.md` - Long-horizon task strategies (from 003-context-engineering)
-  - `004a-tool-set-curation.md` - Tool set curation (from 004-tool-design-for-agents)
-  - `004b-tool-output-efficiency.md` - Tool output efficiency (from 004-tool-design-for-agents)
-- **docs(rule-loader):** add USING_RULE_LOADER_SKILL.md user documentation
-  - New comprehensive user guide following plan-reviewer format
-  - Loading modes (Minimal/Standard/Complete) with token ranges
-  - Workflow phases documentation (Foundation, Domain, Activity, Dependency, Budget)
-  - Extension reference table and advanced usage (custom budget, tier filtering)
-- **feat(skills):** add interactive parameter collection via `ask_user_question` to 4 skills
-  - New `workflows/parameter-collection.md` for doc-reviewer, rule-reviewer, bulk-rule-reviewer, rule-creator
-  - Follows pattern established in plan-reviewer skill
-  - Prompts for ALL parameters (required + optional) in batched questions (max 4 per call)
-  - Text-based fallback when `ask_user_question` tool unavailable
-  - Users must explicitly confirm settings; no silent defaults for optional parameters
 
 ### Changed
+- **fix(skills):** prevent format drift in bulk-rule-reviewer reviews
 - **refactor(skills):** simplify rule-creator SKILL.md (309→93 lines, 70% reduction)
-  - Move detailed workflows to `workflows/*.md` files
-  - Convert to progressive disclosure pattern
-- **refactor(skills):** update rule-creator workflows for ai-rules CLI
 - **fix(templates):** remove redundant anti-pattern from AGENTS_MODE.md.template
-- **fix(templates):** add missing trailing newline to AGENTS_MODE.md.template
 - **refactor(rules):** extract anti-patterns from 002g to 002m (~350 tokens saved)
 - **refactor(rules):** expand standard terminology list in 002g (9→15 terms)
-- **refactor(rules):** add code block exception for ASCII tables in external output
 - **docs(contributing):** add Rule Versioning section with semantic versioning criteria
-- **fix(rules):** resolve all validation warnings (33→0 MEDIUM warnings)
-  - Added required code examples to Anti-Patterns sections across all domains
-  - Fixed Scope section format in 501-frontend-browser-globals-collisions.md
-- **fix(examples):** update 002a-rule-template.md to follow example file format
-  - Added EXAMPLE FILE blockquote, Prerequisites, Implementation, Validation sections
-- **chore(rules):** increment RuleVersion (minor) in 61 modified files
-- **chore(rules):** update LastUpdated to 2026-03-09 in 169 modified files
-- **chore(rules):** remove stale file 121c1-snowpipe-troubleshooting-advanced.md
-- **refactor(rules):** bulk improvements to 129 rules based on review implementation plans
-  - Consolidated duplicate code blocks with cross-references (~1500 lines saved)
-  - Replaced vague terms ("when possible", "etc.") with specific actionable guidance
-  - Added error recovery sections and edge case handling across all domains
-  - Defined quantified thresholds (row counts, timeouts, limits) where previously vague
-  - Migrated Pydantic v1→v2 patterns across 15+ Python rules
-  - Fixed security issues: SQL injection, hardcoded secrets, deprecated APIs
-- **refactor(rules):** rename 3 rule files for naming convention compliance
-  - `002c1-model-optimization.md` → `002k-model-optimization.md`
-  - `002h1-skill-advanced-patterns.md` → `002l-skill-advanced-patterns.md`
-  - `003b-long-horizon-tasks.md` → `003a-long-horizon-tasks.md`
-- **docs(architecture):** update rule count from 129/130 to 136 across all references
-- **docs(skills):** consolidate skill READMEs into docs/USING_*_SKILL.md files
-  - Merged skills/rule-loader/README.md into docs/USING_RULE_LOADER_SKILL.md
-  - Merged skills/bulk-rule-reviewer/README.md into docs/USING_BULK_RULE_REVIEWER_SKILL.md
-  - Merged skills/skill-timing/README.md into docs/USING_SKILL_TIMING_SKILL.md
-  - All three USING docs restructured with progressive disclosure (Quick Start → Modes → Results → Advanced → FAQ → Reference)
-  - Removed duplicate content, resolved conflicts, added unique content from READMEs
-- **docs(bulk-rule-reviewer):** restructure USING_BULK_RULE_REVIEWER_SKILL.md for clarity
-  - Add execution integrity section with verification steps and red flags
-  - Add detailed input parameters table with types and defaults
-  - Add workflow stages with durations (Discovery, Review Execution, Aggregation, Summary)
-  - Add architecture diagram showing 4-stage orchestration flow
-- **docs(skill-timing):** expand USING_SKILL_TIMING_SKILL.md with full command reference
-  - Add complete argument tables for all 6 commands (start, checkpoint, end, analyze, aggregate, baseline)
-  - Add output format examples (Human, JSON, Markdown)
-  - Add default thresholds table per skill/mode
-  - Add CI/CD exit codes section for pipeline integration
-  - Add token pricing configuration with code examples
-- **refactor(skills):** migrate all skills from deprecated `scripts/*.py` to `ai-rules` CLI
-  - Updated 25+ files across rule-reviewer, rule-creator, bulk-rule-reviewer, doc-reviewer
-  - `scripts/schema_validator.py` → `uv run ai-rules validate`
-  - `scripts/token_validator.py` → `uv run ai-rules tokens`
-  - `scripts/template_generator.py` → `uv run ai-rules new`
-  - `scripts/index_generator.py` → `uv run ai-rules index`
-  - Updated Python subprocess calls, example commands, and workflow documentation
-  - Preserved skill-timing/scripts/* (active, not deprecated)
 
 ### Removed
-- **refactor(skills):** delete redundant README.md files consolidated into docs/
-  - Deleted skills/rule-loader/README.md (content in docs/USING_RULE_LOADER_SKILL.md)
-  - Deleted skills/bulk-rule-reviewer/README.md (content in docs/USING_BULK_RULE_REVIEWER_SKILL.md)
-  - Deleted skills/skill-timing/README.md (content in docs/USING_SKILL_TIMING_SKILL.md)
-  - Deleted 5 skills/*/tests/README.md files (doc-reviewer, plan-reviewer, rule-creator, rule-loader, rule-reviewer)
+- **refactor(skills):** delete `skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md` (merged into TEMPLATE.md)
 
 ### Fixed
 - **fix(markdown):** add missing trailing newlines to 3 files (MD047 compliance)
+
+## [3.7.0] - 2026-03-09
+
+### Added
+- **feat(rules):** add 44 new rule files, bringing total to 180 production-ready rules
+- **feat(rules):** add Anti-Patterns sections with code examples to 34 rule files
+- **feat(rules):** extract 7 new focused rule files from large parent rules
+- **feat(skills):** add interactive parameter collection via `ask_user_question` to 4 skills
+- **feat(ci):** add automated release workflow with PR auto-labeling
+- **docs(rule-loader):** add USING_RULE_LOADER_SKILL.md user documentation
+
+### Changed
+- **refactor(rules):** bulk improvements to 129 rules (consolidated duplicates, error recovery, quantified thresholds)
+- **refactor(rules):** migrate Pydantic v1→v2 patterns across 15+ Python rules
+- **refactor(skills):** migrate all skills from deprecated `scripts/*.py` to `ai-rules` CLI
+- **docs(skills):** consolidate skill READMEs into docs/USING_*_SKILL.md files with progressive disclosure
+
+### Removed
+- **refactor(skills):** delete redundant README.md files consolidated into docs/
+
+### Fixed
+- **fix(rules):** resolve all validation warnings (33→0 MEDIUM warnings)
 - **fix(cli):** resolve Rich/Typer ANSI escape code issues in CI and pytest
-  - Configure Console instances to respect `NO_COLOR`, `CI`, and `TERM=dumb` environment variables
-  - Set `force_terminal=False` and `no_color=True` when color output should be disabled
-  - Eliminates ANSI codes (colors, bold, dim) that broke JSON parsing and test assertions
-  - Remove fragile `_color_system = None` hack from test conftest
-  - Set `NO_COLOR=1` in root conftest.py to ensure Console initialization before test imports
-  - Clean JSON output from `ai-rules validate --json` without post-hoc regex stripping
 
 ## [3.6.2] - 2026-03-08
 

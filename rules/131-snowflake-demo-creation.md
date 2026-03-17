@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-13
 **Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure, Streamlit, data visualization
 **LoadTrigger:** kw:demo-creation, kw:synthetic-data
-**TokenBudget:** ~3050
+**TokenBudget:** ~2450
 **ContextTier:** Low
 **Depends:** 130-snowflake-demo-sql.md
 
@@ -70,6 +70,7 @@ Directives for creating realistic, deterministic, and effective demo application
 
 ### Execution Steps
 
+0. **Check platform-native solutions first** — Before building custom infrastructure (REST clients, auth flows, polling mechanisms), verify if Snowflake provides a native SDK, connector, or feature that solves the problem. Present platform-native vs custom options to the user.
 1. Define demo narrative with customer problem and clear outcome
 2. Design data schema with referential integrity constraints
 3. Implement batch data generation with Faker seeding (seed=42 for reproducibility)

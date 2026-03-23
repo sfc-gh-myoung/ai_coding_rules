@@ -13,8 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(skills):** add `skills/rule-reviewer/examples/TEMPLATE.md` output format specification
 - **feat(rules):** add 4 new rule files (002m, 210e, 221h, 221i)
 - **feat(rules):** add `examples/002-rule-governance-structure-example.md`
-- **feat(templates):** add File Integrity Gate for null byte detection/remediation
-- **feat(lint):** add `.markdownlint.json` config (disable MD013 line length)
 
 ### Changed
 - **fix(rules):** correct TokenBudget values in 131-snowflake-demo-creation.md and 206-python-pytest.md

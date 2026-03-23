@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, AAA pattern, test markers, uv run pytest, unit test, unit tests
-**TokenBudget:** ~4700
+**TokenBudget:** ~5300
 **ContextTier:** High
 **Depends:** 000-global-core.md, 200-python-core.md, 201-python-lint-format.md, 203-python-project-setup.md
 **LoadTrigger:** kw:test, kw:pytest, kw:coverage

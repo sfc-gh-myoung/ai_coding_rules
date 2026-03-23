@@ -7,7 +7,7 @@
 **LastUpdated:** 2026-03-09
 **Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure, Streamlit, data visualization
 **LoadTrigger:** kw:demo-creation, kw:synthetic-data
-**TokenBudget:** ~3050
+**TokenBudget:** ~3100
 **ContextTier:** Low
 **Depends:** 130-snowflake-demo-sql.md
 

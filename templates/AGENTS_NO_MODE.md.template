@@ -310,51 +310,6 @@ These requirements MUST be met before marking any task complete:
 
 **Validation Retry:** Max 3 attempts. After 3 failures, stop and report error with request for guidance.
 
-### File Integrity Gate (MUST FOLLOW)
-
-Null bytes (`\x00`) silently corrupt text files. MUST check after every file edit and before every commit.
-
-**Post-Edit Check (run after each file modification):**
-
-```bash
-# Check specific file(s) just edited - exits 1 if null bytes found
-perl -ne 'if (/\x00/) { print "NULL BYTES DETECTED: $ARGV\n"; exit 1 }' <edited_file>
-```
-
-**Pre-Commit Check (run before git commit):**
-
-```bash
-# Check all text files in project
-find . -type f \( -name '*.sql' -o -name '*.md' -o -name '*.py' -o -name '*.yaml' -o -name '*.yml' -o -name '*.json' -o -name '*.toml' -o -name '*.sh' -o -name '*.txt' -o -name '*.ts' -o -name '*.tsx' \) \
-  -exec perl -ne 'if (/\x00/) { print "NULL BYTES: $ARGV\n"; $found=1 } END { exit 1 if $found }' {} +
-```
-
-**Detection Signals:**
-
-- `git diff` shows "Binary files ... differ" for a text file = RED FLAG
-- Editors show garbled characters or truncation
-- Tools report "invalid character" errors
-
-**Remediation (strip null bytes):**
-
-```bash
-# Preview null byte locations (shows byte offsets)
-perl -ne 'print "$ARGV:$.: $1\n" while /(.{0,20}\x00.{0,20})/g' <file>
-
-# Remove null bytes (creates backup)
-perl -i.bak -pe 's/\x00//g' <file>
-
-# Verify fix
-perl -ne 'exit 1 if /\x00/' <file> && echo "Clean" || echo "Still has null bytes"
-```
-
-**Agent Behavior:**
-
-1. After ANY file edit: Run post-edit check on edited file(s)
-2. If null bytes detected: STOP, report finding, apply remediation
-3. Before suggesting git commit: Run pre-commit check on all text files
-4. Include check results in validation output
-
 ### Anti-Pattern: Skipping Validation Steps
 
 **Problem:** Marking a task complete without running linting, tests, or verification.

@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-13
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-03-09
 **Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, AAA pattern, test markers, uv run pytest, unit test, unit tests
-**TokenBudget:** ~5300
+**TokenBudget:** ~4700
 **ContextTier:** High
 **Depends:** 000-global-core.md, 200-python-core.md, 201-python-lint-format.md, 203-python-project-setup.md
 **LoadTrigger:** kw:test, kw:pytest, kw:coverage
@@ -429,67 +429,6 @@ import pytest
 @pytest.fixture(autouse=True)
 def _seed_rng():
     random.seed(1337)
-```
-
-## Event Loop Conflicts
-- Rule: Never create a new `asyncio.event_loop` in tests if the framework (e.g., FastAPI/Uvicorn) manages its own loop.
-- Rule: Use `@pytest.mark.anyio` or `pytest-asyncio` with `asyncio_mode = "auto"` — never manually call `asyncio.run()` or `loop.run_until_complete()` inside test functions.
-- Rule: If you see `RuntimeError: This event loop is already running`, you are fighting the framework. Switch to `async def test_...` with the appropriate marker.
-
-```python
-# BAD: manual event loop inside test
-def test_fetch_data():
-    loop = asyncio.get_event_loop()
-    result = loop.run_until_complete(fetch_data())  # Conflicts with framework loop
-    assert result is not None
-
-# GOOD: let pytest-asyncio manage the loop
-@pytest.mark.asyncio
-async def test_fetch_data():
-    result = await fetch_data()
-    assert result is not None
-```
-
-## Mocking Lazy Imports with create=True
-- Rule: When patching an attribute that doesn't exist at import time (lazy imports, optional dependencies), use `patch("module.attr", create=True)` to avoid `AttributeError`.
-- Rule: Always verify the patch target path matches the actual import path used by the code under test.
-
-```python
-from unittest.mock import patch, MagicMock
-
-# BAD: fails because `heavy_lib` isn't imported at module level
-@patch("myapp.processor.heavy_lib")
-def test_process(mock_lib):
-    ...  # AttributeError: myapp.processor does not have attribute 'heavy_lib'
-
-# GOOD: create=True handles lazy/conditional imports
-@patch("myapp.processor.heavy_lib", create=True)
-def test_process(mock_lib):
-    mock_lib.transform.return_value = "mocked"
-    result = process_data("input")
-    assert result == "mocked"
-```
-
-## Dual Patching for Module-Level Imports
-- Rule: When a module imports a function at the top level (`from lib import func`), patching `lib.func` alone won't affect the already-bound name in the importing module. Patch BOTH the origin and the import site.
-- Rule: Prefer patching at the import site (`module_under_test.func`) as the primary target.
-
-```python
-from unittest.mock import patch
-
-# myapp/service.py does: from myapp.db import get_connection
-
-# BAD: only patches origin, doesn't affect service.py's local binding
-@patch("myapp.db.get_connection")
-def test_service(mock_conn):
-    ...  # service.py still calls the real get_connection!
-
-# GOOD: patch where the name is looked up
-@patch("myapp.service.get_connection")
-def test_service(mock_conn):
-    mock_conn.return_value = FakeConnection()
-    result = run_service()
-    assert result.success
 ```
 
 ## Resource-Aware Testing

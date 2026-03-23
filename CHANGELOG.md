@@ -7,18 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [3.7.1] - 2026-03-23
-
 ### Added
 - **feat(skills):** add `skills/rule-reviewer/examples/TEMPLATE.md` output format specification
 - **feat(rules):** add 4 new rule files (002m, 210e, 221h, 221i)
 - **feat(rules):** add `examples/002-rule-governance-structure-example.md`
-- **feat(templates):** add File Integrity Gate for null byte detection/remediation
-- **feat(lint):** add `.markdownlint.json` config (disable MD013 line length)
 
 ### Changed
-- **fix(rules):** correct TokenBudget values in 131-snowflake-demo-creation.md and 206-python-pytest.md
-- **refactor(index):** remove 5 obsolete rule entries from RULES_INDEX.md (101f, 133, 251, 252, 350 duplicates)
 - **fix(skills):** prevent format drift in bulk-rule-reviewer reviews
 - **refactor(skills):** simplify rule-creator SKILL.md (309→93 lines, 70% reduction)
 - **fix(templates):** remove redundant anti-pattern from AGENTS_MODE.md.template

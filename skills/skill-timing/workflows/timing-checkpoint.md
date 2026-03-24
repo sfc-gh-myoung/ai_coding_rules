@@ -51,7 +51,6 @@ If this command fails:
 1. Log warning: "Checkpoint recording failed"
 2. Continue with skill execution
 
-## MODE Compatibility
+## File Write Requirements
 
-**PLAN Mode:**  Safe (modifies temp file only)
-**ACT Mode:**  Also safe
+**This operation:** Read-only (updates in-progress timing file in `reviews/.timing-data/`)

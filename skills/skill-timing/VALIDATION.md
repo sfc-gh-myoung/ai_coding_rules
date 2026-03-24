@@ -43,7 +43,7 @@ except ValidationError as e:
 ### Timing Start
 
 - [ ] Returns valid 16-character hex `run_id`
-- [ ] Creates timing file in temp directory
+- [ ] Creates timing file in `reviews/.timing-data/`
 - [ ] Updates agent recovery registry
 - [ ] `TIMING_RUN_ID`, `TIMING_FILE`, `TIMING_AGENT_ID` in output
 
@@ -79,7 +79,7 @@ echo "$OUTPUT" | grep -q "CHECKPOINT_STATUS=recorded" && echo "PASS: checkpoint 
 
 - [ ] Computes correct duration
 - [ ] Validates timing data before output
-- [ ] Cleans up temp file
+- [ ] Cleans up in-progress file
 - [ ] Saves completed data to `reviews/.timing-data/`
 - [ ] Outputs standardized format
 
@@ -203,9 +203,6 @@ echo "Average timing overhead: ${AVG}s per start/end cycle"
 ## Cleanup After Validation
 
 ```bash
-# Remove test timing files
-TEMP_DIR=$(python3 -c "import tempfile; print(tempfile.gettempdir())")
-rm -f "$TEMP_DIR"/skill-timing-*.json
-rm -f "$TEMP_DIR"/skill-timing-registry.json
-rm -rf reviews/.timing-data/skill-timing-*-test*.json
+rm -f reviews/.timing-data/skill-timing-*-test*.json
+rm -f reviews/.timing-data/skill-timing-registry.json
 ```

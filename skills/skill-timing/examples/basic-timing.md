@@ -24,7 +24,7 @@ bash skills/skill-timing/scripts/run_timing.sh start \
 **Output:**
 ```
 TIMING_RUN_ID=a1b2c3d4e5f67890
-TIMING_FILE=/tmp/skill-timing-a1b2c3d4e5f67890.json
+TIMING_FILE=reviews/.timing-data/skill-timing-a1b2c3d4e5f67890.json
 TIMING_AGENT_ID=cortex-code-12345
 ```
 
@@ -50,7 +50,7 @@ TIMING_START=2026-01-06T10:30:00+00:00
 TIMING_END=2026-01-06T10:33:45+00:00
 TIMING_STATUS=completed
 
-TIMING: skill-timing v1.2.0
+TIMING: skill-timing v1.3.0
 ----------------------------------------
 Run ID:      a1b2c3d4e5f67890
 Skill:       rule-reviewer
@@ -70,7 +70,7 @@ Baseline:    N/A
 ----------------------------------------
 ```
 
-### Step 4: Embed Timing Metadata (ACT Mode Required)
+### Step 4: Embed Timing Metadata
 
 Parse the STDOUT and append the timing metadata to the output file:
 

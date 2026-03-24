@@ -76,7 +76,7 @@ bash skills/skill-timing/scripts/run_timing.sh end \
 ## Expected Output
 
 ```
-TIMING: skill-timing v1.2.0
+TIMING: skill-timing v1.3.0
 ----------------------------------------
 Run ID:      a1b2c3d4e5f67890
 Skill:       rule-reviewer

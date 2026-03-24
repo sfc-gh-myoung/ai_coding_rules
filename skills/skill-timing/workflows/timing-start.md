@@ -57,10 +57,9 @@ If this command fails:
 2. Set `run_id` to `none`
 3. Continue with skill execution
 
-## MODE Compatibility
+## File Write Requirements
 
-**PLAN Mode:**  Safe to execute (creates temp file only)
-**ACT Mode:**  Also safe
+**This operation:** Creates timing file in `reviews/.timing-data/` and updates registry
 
 ## Next Step
 

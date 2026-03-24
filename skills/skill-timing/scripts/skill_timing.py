@@ -34,7 +34,6 @@ import os
 import re
 import secrets
 import sys
-import tempfile
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -73,7 +72,7 @@ COST_PER_1M_TOKENS = {
 TTL_DAYS = 7
 REGISTRY_STALE_HOURS = 24
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 
 EXIT_SUCCESS = 0
 EXIT_ERROR = 1
@@ -89,24 +88,28 @@ PRICING_REVIEW_INTERVAL_DAYS = 90
 # ============================================================================
 
 
-def get_temp_dir() -> Path:
-    """Get cross-platform temp directory."""
-    return Path(tempfile.gettempdir())
+TIMING_DATA_DIR = Path("reviews/.timing-data")
+
+
+def get_timing_data_dir() -> Path:
+    """Get timing data directory, creating it if needed."""
+    TIMING_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    return TIMING_DATA_DIR
 
 
 def get_timing_file(run_id: str) -> Path:
-    """Get path to timing file for a run."""
-    return get_temp_dir() / f"skill-timing-{run_id}.json"
+    """Get path to in-progress timing file (project-local)."""
+    return get_timing_data_dir() / f"skill-timing-{run_id}.json"
 
 
 def get_completed_file(run_id: str) -> Path:
-    """Get path to completed timing file (saved to reviews/ for persistence)."""
-    return Path("reviews/.timing-data") / f"skill-timing-{run_id}-complete.json"
+    """Get path to completed timing file."""
+    return get_timing_data_dir() / f"skill-timing-{run_id}-complete.json"
 
 
 def get_registry_file() -> Path:
-    """Get path to agent recovery registry."""
-    return get_temp_dir() / "skill-timing-registry.json"
+    """Get path to agent recovery registry (project-local)."""
+    return get_timing_data_dir() / "skill-timing-registry.json"
 
 
 def get_baselines_file() -> Path:
@@ -256,18 +259,21 @@ def compare_to_baseline(skill_name: str, mode: str, model: str, duration_sec: fl
 
 
 def cleanup_stale_files():
-    """Remove stale timing files older than TTL."""
-    temp_dir = get_temp_dir()
+    """Remove stale in-progress timing files older than TTL."""
+    data_dir = get_timing_data_dir()
     cutoff = time.time() - (TTL_DAYS * 24 * 60 * 60)
 
-    # Only clean up temp directory files (not reviews/.timing-data/)
-    for pattern in ["skill-timing-*.json"]:
-        for filepath in glob.glob(str(temp_dir / pattern)):
-            try:
-                if Path(filepath).stat().st_mtime < cutoff:
-                    Path(filepath).unlink()
-            except Exception:
-                pass
+    for filepath in glob.glob(str(data_dir / "skill-timing-*.json")):
+        fp = Path(filepath)
+        if fp.name.endswith("-complete.json"):
+            continue
+        if fp.name == "skill-timing-registry.json":
+            continue
+        try:
+            if fp.stat().st_mtime < cutoff:
+                fp.unlink()
+        except Exception:
+            pass
 
 
 def update_registry(skill_name: str, agent_id: str, run_id: str, target_file: str):
@@ -606,6 +612,16 @@ def cmd_end(args):
                 print(f"RECOVERED_RUN_ID={recovered_id}")
 
     if not timing_file.exists():
+        completed_file = get_completed_file(run_id)
+        if completed_file.exists():
+            if output_format == "json":
+                print(json.dumps(json.loads(completed_file.read_text())))
+            elif output_format == "markdown":
+                print(generate_markdown_table(json.loads(completed_file.read_text())))
+            elif output_format != "quiet":
+                print(f"TIMING_STATUS=already_completed")
+                print(f"TIMING_COMPLETED_FILE={completed_file}")
+            sys.exit(EXIT_SUCCESS)
         if output_format == "json":
             print(
                 json.dumps(

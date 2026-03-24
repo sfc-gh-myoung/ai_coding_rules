@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
-# Comprehensive test suite for skill-timing
-# Tests all timing commands, error handling, and edge cases
-
-set -e  # Exit on any error
+set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+TIMING_DATA_DIR="$PROJECT_ROOT/reviews/.timing-data"
 
 echo "========================================"
 echo "Skill Timing Test Suite"
@@ -48,8 +46,6 @@ fi
 echo "✓ PASS: Captured valid RUN_ID: $RUN_ID"
 echo ""
 
-# Note: Don't clean up RUN_ID timing file yet, needed for checkpoint test
-
 # Test 4: Checkpoint command
 echo "TEST 4: Checkpoint command"
 CHECKPOINT_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" checkpoint \
@@ -67,7 +63,6 @@ echo ""
 
 # Test 5: End command
 echo "TEST 5: End command"
-# Create a dummy output file for the test
 touch "$PROJECT_ROOT/test-output.md"
 
 END_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
@@ -83,11 +78,7 @@ if ! echo "$END_OUTPUT" | grep -qE "TIMING_STATUS=(completed|warning)"; then
     exit 1
 fi
 
-# Cleanup dummy file and completed timing files from this test
 rm -f "$PROJECT_ROOT/test-output.md"
-TEMP_DIR=$(python3 -c "import tempfile; print(tempfile.gettempdir())")
-rm -f "$TEMP_DIR"/skill-timing-*-complete.json 2>/dev/null
-
 echo "✓ PASS: End command completed"
 echo ""
 
@@ -109,12 +100,8 @@ echo ""
 
 # Test 7: Parallel execution safety (collision resistance)
 echo "TEST 7: Parallel execution (10 concurrent runs)"
-# Get temp directory
-TEMP_DIR=$(python3 -c "import tempfile; print(tempfile.gettempdir())")
 
-# Clean up any existing timing files from previous runs
-rm -f "$TEMP_DIR"/skill-timing-*.json 2>/dev/null
-rm -f "$TEMP_DIR"/skill-timing-registry.json 2>/dev/null
+rm -f "$TIMING_DATA_DIR"/skill-timing-*.json 2>/dev/null
 
 for i in {1..10}; do
     bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
@@ -124,35 +111,41 @@ for i in {1..10}; do
 done
 wait
 
-# Count unique timing files created (exclude registry file)
-RUN_IDS=$(ls -1 "$TEMP_DIR"/skill-timing-*.json 2>/dev/null | grep -v "registry" | wc -l | tr -d ' ')
+RUN_IDS=$(ls -1 "$TIMING_DATA_DIR"/skill-timing-*.json 2>/dev/null | grep -v "registry" | grep -v "\-complete" | wc -l | tr -d ' ')
 
 if [[ "$RUN_IDS" -ne 10 ]]; then
     echo "❌ FAIL: Expected 10 unique run IDs, got $RUN_IDS"
     echo "Timing files created:"
-    ls -1 "$TEMP_DIR"/skill-timing-*.json 2>/dev/null
-    # Cleanup
-    rm -f "$TEMP_DIR"/skill-timing-*.json
+    ls -1 "$TIMING_DATA_DIR"/skill-timing-*.json 2>/dev/null
+    rm -f "$TIMING_DATA_DIR"/skill-timing-*.json
     exit 1
 fi
 
-# Cleanup parallel test timing files
-rm -f "$TEMP_DIR"/skill-timing-*.json
+rm -f "$TIMING_DATA_DIR"/skill-timing-*.json
 
 echo "✓ PASS: Parallel execution safe (10 unique run IDs)"
 echo ""
 
-# Test 8: Cross-platform temp directory
-echo "TEST 8: Cross-platform path handling"
-python3 -c "
-import tempfile
-from pathlib import Path
+# Test 8: Timing files created in project directory (not /tmp)
+echo "TEST 8: Project-local file storage"
+TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    --skill storage-test --target test.md --model test-model 2>&1)
+TEST_FILE=$(echo "$TEST_OUTPUT" | grep "TIMING_FILE=" | cut -d= -f2)
 
-temp_dir = Path(tempfile.gettempdir())
-assert temp_dir.exists(), 'Temp directory not accessible'
-assert temp_dir.is_absolute(), 'Temp directory not absolute path'
-print(f'✓ PASS: Temp directory: {temp_dir}')
-"
+if [[ "$TEST_FILE" != reviews/.timing-data/* ]]; then
+    echo "❌ FAIL: Timing file not in reviews/.timing-data/: $TEST_FILE"
+    exit 1
+fi
+
+TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+touch "$PROJECT_ROOT/test-storage.md"
+bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    --run-id "$TEST_RUN_ID" \
+    --output-file "$PROJECT_ROOT/test-storage.md" \
+    --skill storage-test --format quiet >/dev/null 2>&1 || true
+rm -f "$PROJECT_ROOT/test-storage.md"
+
+echo "✓ PASS: Timing files stored in reviews/.timing-data/"
 echo ""
 
 # Test 9: CLI help text
@@ -166,17 +159,15 @@ echo ""
 
 # Test 10: Baseline with lowered min-samples for testing
 echo "TEST 10: Baseline system (with --min-samples 2)"
-# Create 2 test timing runs
 for i in {1..2}; do
     TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
         --skill baseline-test \
         --target test.md \
         --model test-model 2>&1)
     TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
-    
-    # Wait a moment to ensure different durations
+
     sleep 1
-    
+
     touch "$PROJECT_ROOT/test-baseline.md"
     bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
         --run-id "$TEST_RUN_ID" \
@@ -185,7 +176,6 @@ for i in {1..2}; do
     rm -f "$PROJECT_ROOT/test-baseline.md"
 done
 
-# Try to set baseline with min-samples 2
 BASELINE_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" baseline set \
     --skill baseline-test \
     --mode FULL \
@@ -199,15 +189,10 @@ if ! echo "$BASELINE_OUTPUT" | grep -q "Baseline set"; then
     exit 1
 fi
 
-# Cleanup baseline file
 rm -f "$PROJECT_ROOT/reviews/.timing-baselines.json"
 
 echo "✓ PASS: Baseline system works with --min-samples flag"
 echo ""
-
-# Cleanup all test timing files
-rm -f "$TEMP_DIR"/skill-timing-*-complete.json
-rm -f "$TEMP_DIR"/skill-timing-registry.json
 
 # Test 11: JSON output format validation
 echo "TEST 11: JSON output format"
@@ -285,7 +270,6 @@ echo ""
 
 # Test 14: Analyze --format json
 echo "TEST 14: Analyze command JSON format"
-# Create a test run for analyze
 TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
     --skill analyze-test --target test.md --model test-model 2>&1)
 TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
@@ -310,11 +294,38 @@ fi
 echo "✓ PASS: Analyze JSON format valid"
 echo ""
 
+# Test 15: Completed-file recovery (idempotent end)
+echo "TEST 15: Completed-file recovery"
+TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    --skill recovery-test --target test.md --model test-model 2>&1)
+TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+
+touch "$PROJECT_ROOT/test-recovery.md"
+bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    --run-id "$TEST_RUN_ID" \
+    --output-file "$PROJECT_ROOT/test-recovery.md" \
+    --skill recovery-test --format quiet >/dev/null 2>&1 || true
+
+RECOVERY_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    --run-id "$TEST_RUN_ID" \
+    --output-file "$PROJECT_ROOT/test-recovery.md" \
+    --skill recovery-test --format markdown 2>&1) || true
+
+if ! echo "$RECOVERY_OUTPUT" | grep -q "## Timing Metadata"; then
+    echo "❌ FAIL: Completed-file recovery did not return timing data"
+    echo "Output was: $RECOVERY_OUTPUT"
+    rm -f "$PROJECT_ROOT/test-recovery.md"
+    exit 1
+fi
+rm -f "$PROJECT_ROOT/test-recovery.md"
+echo "✓ PASS: Completed-file recovery works (idempotent end)"
+echo ""
+
 # Final cleanup
-rm -f "$TEMP_DIR"/skill-timing-*-complete.json
-rm -f "$TEMP_DIR"/skill-timing-registry.json
-rm -rf "$PROJECT_ROOT/reviews/.timing-data"
+rm -f "$TIMING_DATA_DIR"/skill-timing-*-complete.json
+rm -f "$TIMING_DATA_DIR"/skill-timing-registry.json
+rm -f "$TIMING_DATA_DIR"/skill-timing-*.json
 
 echo "========================================"
-echo "All 14 tests passed!"
+echo "All 15 tests passed!"
 echo "========================================"

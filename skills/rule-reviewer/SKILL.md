@@ -338,16 +338,27 @@ bash skills/skill-timing/scripts/run_timing.sh checkpoint \
 bash skills/skill-timing/scripts/run_timing.sh checkpoint \
     --run-id rule-reviewer-200-python-core-20260108-abc123 --name review_complete
 
-# 4. End (store _timing_stdout from output)
+# 4. End (store _timing_stdout from output — use --format markdown)
 bash skills/skill-timing/scripts/run_timing.sh end \
     --run-id rule-reviewer-200-python-core-20260108-abc123 \
     --output-file reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-08.md \
-    --skill rule-reviewer
+    --skill rule-reviewer --format markdown
 
 # 5. Embed: Parse _timing_stdout, append to output file (ACT mode required)
 ```
 
-**Post-execution validation:** Verify timing metadata exists in output file (see Error Handling).
+**Timing Validation Checkpoints (MANDATORY when timing_enabled: true):**
+
+After each timing command, validate the output before proceeding:
+
+1. **After `start`:** Verify output contains `TIMING_RUN_ID=`. If missing, STOP and report timing failure.
+2. **After each `checkpoint`:** Verify output contains `CHECKPOINT_STATUS=recorded`. If `missing`, the in-progress file was lost — attempt recovery via `end --run-id none --skill <name>`.
+3. **After `end`:** Verify output does NOT contain `WARNING` or `TIMING_STATUS=missing`. If `end` fails:
+   - **Fallback:** Re-run `end` with `--format markdown` — the completed file may already exist and will be returned.
+   - **Last resort:** Read `reviews/.timing-data/skill-timing-{run_id}-complete.json` directly and format manually.
+4. **After file write:** Verify the review file contains a `## Timing Metadata` section. If missing, append timing data from the `end` output.
+
+**If ALL timing validation fails:** Write the review WITHOUT timing metadata and note `**Timing data unavailable** - validation failed at step N` in the Timing Metadata section. Never block the review on timing failures.
 
 **See:** `../skill-timing/workflows/` for detailed workflow documentation
 

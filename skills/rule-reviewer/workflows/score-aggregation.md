@@ -420,7 +420,3 @@ def get_output_path(params: dict) -> str:
     
     raise ValueError(f"Maximum review versions exceeded for {rule_name}")
 ```
-
-## Version History
-
-- **v1.0.0:** Initial score aggregation workflow for parallel execution

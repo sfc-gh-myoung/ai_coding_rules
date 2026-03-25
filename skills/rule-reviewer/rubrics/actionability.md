@@ -13,12 +13,7 @@
 
 **CRITICAL:** You MUST create and fill this inventory BEFORE calculating score.
 
-### Why This Is Required
-
-- **Eliminates counting variance:** Same rule → same inventory → same score
-- **Prevents false negatives:** Line-by-line enumeration catches all matches
-- **Provides evidence:** Inventory shows exactly what was counted
-- **Enables verification:** Users can audit scoring decisions
+> **Why inventories are required:** Eliminates counting variance (same rule → same inventory → same score), prevents false negatives, provides auditable evidence, enables verification.
 
 ### Inventory Template
 
@@ -29,96 +24,24 @@
 | 89 | "Consider adding indexes..." | Ambiguous action | Actionability | 1 |
 | 150 | "should be verified" | Passive voice | Actionability | 0.5 |
 
-### Counting Protocol (5 Steps)
+### Counting Protocol
 
-**Step 1: Create Empty Inventory**
-- Copy template above into working document
-- Do NOT start reading rule yet
-
-**Step 2: Read Rule Systematically**
-- Start at line 1, read to END (no skipping)
-- For EACH potential issue: Add row with line number
-- Record ALL matches (filter false positives later)
-
-**Step 3: Calculate Raw Totals**
-- Sum counts by category (undefined thresholds, missing branches, ambiguous actions, passive voice)
-- This is your RAW count (before filtering)
-
-**Step 4: Check Non-Issues List**
-- Review EACH flagged item in inventory
-- Check against "Non-Issues" section below
-- Remove false positives with note
-- Recalculate totals
-
-**Step 5: Look Up Score**
-- Use adjusted totals in Score Decision Matrix
-- Record score with inventory evidence
+> **Standard 5-Step Counting Protocol:**
+> 1. **Create Empty Inventory** — Copy template above into working document. Do NOT start reading rule yet.
+> 2. **Read Rule Systematically** — Start at line 1, read to END (no skipping). Record all matches with line numbers.
+> 3. **Calculate Raw Totals** — Sum counts by category using dimension-specific definitions.
+> 4. **Check Non-Issues List** — Review EACH flagged item against this dimension's Non-Issues section. Remove false positives with note. Recalculate totals.
+> 5. **Look Up Score** — Use adjusted totals in Score Decision Matrix. Record score with inventory evidence.
+>
+> **Inter-run consistency:** Use inventory tables with line numbers for evidence. If variance exceeds threshold documented below, re-count using checklists and document ambiguous cases.
+>
+> **Dimension-specific:** Count undefined thresholds, missing branches, ambiguous actions, passive voice per category.
 
 ## Scoring Formula
 
 **Raw Score:** 0-10
 **Weight:** 6
 **Points:** Raw × 3.0
-
-## Scoring Criteria
-
-### 10/10 (30 points): Perfect
-- 0 blocking issues
-- All conditionals have explicit branches (if X then Y; else Z)
-- All actions use imperative voice
-- Quantified examples for all ambiguous terms
-
-### 9/10 (27 points): Near-Perfect
-- 1 blocking issue
-- 99%+ conditionals have explicit branches
-- 99%+ imperative voice
-
-### 8/10 (24 points): Excellent
-- 2-3 blocking issues
-- 97-98% conditionals have explicit branches
-- 97-98% imperative voice
-
-### 7/10 (21 points): Good
-- 4-5 blocking issues
-- 95-96% conditionals have explicit branches
-- 95-96% imperative voice
-
-### 6/10 (18 points): Acceptable
-- 6-7 blocking issues
-- 90-94% conditionals have explicit branches
-- 90-94% imperative voice
-- **Note:** ≥6 issues triggers hard cap (max 80/100 total)
-
-### 5/10 (15 points): Borderline
-- 8-9 blocking issues
-- 85-89% conditionals have explicit branches
-- 85-89% imperative voice
-
-### 4/10 (12 points): Needs Work
-- 10-11 blocking issues
-- 80-84% conditionals have explicit branches
-- 80-84% imperative voice
-- **Note:** ≥10 issues forces NOT_EXECUTABLE verdict
-
-### 3/10 (9 points): Poor
-- 12-14 blocking issues
-- 70-79% conditionals have explicit branches
-- 70-79% imperative voice
-
-### 2/10 (6 points): Very Poor
-- 15-17 blocking issues
-- 60-69% conditionals have explicit branches
-- 60-69% imperative voice
-
-### 1/10 (3 points): Inadequate
-- 18-20 blocking issues
-- 50-59% conditionals have explicit branches
-- 50-59% imperative voice
-
-### 0/10 (0 points): Not Actionable
-- >20 blocking issues
-- <50% conditionals have explicit branches
-- Agent cannot execute without judgment calls
 
 ## Counting Definitions
 
@@ -298,21 +221,7 @@ Line 150: "The configuration should be verified"
 
 ## Inter-Run Consistency Target
 
-**Expected variance:** ±1 blocking issue count between runs
-
-**If counts differ by >2:**
-1. Re-read Counting Definitions section
-2. List each issue with line number
-3. Compare against compound phrase table
-4. Document ambiguous cases
-
-**Acceptable variance sources:**
-- Partial issues (0.5) rounding differently
-- Compound phrases counted as 1 vs 2
-
-**Unacceptable variance:**
-- Skipping entire categories
-- Inconsistent application of counting rules
+**Expected variance:** ±1 blocking issue count between runs. If counts differ by >2, re-read Counting Definitions, list each issue with line number, compare against compound phrase table.
 
 ## Agent Execution Test Integration
 
@@ -377,3 +286,15 @@ If Agent Execution Test finds ≥10 blocking issues:
 **Example:** "If A, do X. If B, do Y. Otherwise, do Z."
 **Why NOT an issue:** All branches are covered by chain
 **Action:** Remove from inventory with note "Complete conditional chain"
+
+### Pattern 9: Standard Agent Tool Operations
+**Pattern:** References to common agent file/edit/search tool names
+**Example:** "Use read_file to inspect the code", "edit with old_string/new_string"
+**Why NOT an issue:** These are universal agent operations (read, write, search, edit) expressed using common tool names; all agent platforms have equivalents
+**Action:** Remove from inventory with note "Universal agent operation"
+
+### Pattern 10: Status Assertion Checklists
+**Pattern:** Checklist items asserting completion state as pass/fail gates
+**Example:** "- [ ] Rules loaded section present" / "- [ ] Validation executed"
+**Why NOT an issue:** Checklists conventionally use status assertions (verify state is true/false); the implicit action is "verify this condition holds"
+**Action:** Remove from inventory with note "Status assertion checklist"

@@ -29,6 +29,7 @@ This document defines how to assign issues to their PRIMARY dimension when they 
 | Schema validation failure | Parsability OR Completeness | **Parsability** | Structure takes priority |
 | Vague guidance | Actionability OR Clarity | **Actionability** | Agent execution is primary |
 | File exceeds line limit | Rule Size (exclusive) | **Rule Size** | No overlap - line count is unique metric |
+| Agent tool name references (read_file, edit, grep) | Cross-Agent OR Actionability | **Neither (exclude)** | Universal agent operations with known equivalents — not agent-specific, not execution-blocking |
 
 ## Decision Rules
 

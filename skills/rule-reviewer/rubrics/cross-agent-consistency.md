@@ -4,12 +4,7 @@
 
 **CRITICAL:** You MUST create and fill this inventory BEFORE calculating score.
 
-### Why This Is Required
-
-- **Eliminates counting variance:** Same rule → same inventory → same score
-- **Prevents false negatives:** Systematic checks catch all agent-specific issues
-- **Provides evidence:** Inventory shows exactly what was found
-- **Enables verification:** Users can audit scoring decisions
+> **Why inventories are required:** Eliminates counting variance (same rule → same inventory → same score), prevents false negatives, provides auditable evidence, enables verification.
 
 ### Inventory Template
 
@@ -38,32 +33,18 @@
 | Conditionals with explicit else/default | NN |
 | Universal conditional % | NN% |
 
-### Counting Protocol (5 Steps)
+### Counting Protocol
 
-**Step 1: Create Empty Inventory**
-- Copy templates above into working document
-- Do NOT start reading rule yet
-
-**Step 2: Read Rule Systematically**
-- Start at line 1, read to END (no skipping)
-- Flag each agent-specific reference (tools, capabilities, terminology)
-- Track each conditional statement
-
-**Step 3: Calculate Raw Totals**
-- Sum agent-specific considerations (1.0 or 0.5 each)
-- Count conditionals with/without explicit else
-- Calculate universal conditional percentage
-
-**Step 4: Check Non-Issues List**
-- Review EACH flagged item in inventory
-- Check against "Non-Issues" section below
-- Remove false positives with note
-- Recalculate totals
-
-**Step 5: Look Up Score**
-- Use adjusted totals in Score Decision Matrix
-- Take lower of: consideration count tier OR universal % tier
-- Record score with inventory evidence
+> **Standard 5-Step Counting Protocol:**
+> 1. **Create Empty Inventory** — Copy template above into working document. Do NOT start reading rule yet.
+> 2. **Read Rule Systematically** — Start at line 1, read to END (no skipping). Record all matches with line numbers.
+> 3. **Calculate Raw Totals** — Sum counts by category using dimension-specific definitions.
+> 4. **Check Non-Issues List** — Review EACH flagged item against this dimension's Non-Issues section. Remove false positives with note. Recalculate totals.
+> 5. **Look Up Score** — Use adjusted totals in Score Decision Matrix. Record score with inventory evidence.
+>
+> **Inter-run consistency:** Use inventory tables with line numbers for evidence. If variance exceeds threshold documented below, re-count using checklists and document ambiguous cases.
+>
+> **Dimension-specific:** Count agent-specific considerations (1.0 or 0.5 each), count conditionals with/without explicit else, calculate universal conditional %. Use lower of consideration count tier OR universal % tier.
 
 ## Purpose
 
@@ -76,55 +57,6 @@ Gemini CLI, GitHub Copilot).
 **Raw Score:** 0-10
 **Weight:** 1
 **Points:** Raw × (1/2) = Raw × 0.5
-
-## Scoring Criteria
-
-### 10/10 (5 points): Perfect
-- 0 agent-specific interpretations required
-- All conditionals use explicit if/else with defined outcomes
-- All thresholds quantified with exact values
-- No features assuming specific tool availability
-- No model-specific terminology or capabilities assumed
-
-### 9/10 (4.5 points): Near-Perfect
-- 1 minor agent-specific consideration
-- 99%+ universal conditionals
-
-### 8/10 (4 points): Excellent
-- 2-3 minor agent-specific considerations
-- 97-98% universal conditionals
-
-### 7/10 (3.5 points): Good
-- 4-5 agent-specific considerations
-- 95-96% universal conditionals
-
-### 6/10 (3 points): Acceptable
-- 6-8 agent-specific considerations
-- 90-94% universal conditionals
-
-### 5/10 (2.5 points): Borderline
-- 9-11 agent-specific considerations
-- 85-89% universal conditionals
-
-### 4/10 (2 points): Needs Work
-- 12-14 agent-specific considerations
-- 80-84% universal conditionals
-
-### 3/10 (1.5 points): Poor
-- 15-17 agent-specific considerations
-- 70-79% universal conditionals
-
-### 2/10 (1 point): Very Poor
-- 18-20 agent-specific considerations
-- 60-69% universal conditionals
-
-### 1/10 (0.5 points): Inadequate
-- 21-25 agent-specific considerations
-- 50-59% universal conditionals
-
-### 0/10 (0 points): Not Cross-Agent Compatible
-- >25 agent-specific considerations
-- <50% universal conditionals
 
 ## Score Decision Matrix
 
@@ -180,8 +112,10 @@ Gemini CLI, GitHub Copilot).
 
 - Universal programming concepts
 - Standard tool references (git, npm, pytest, etc.)
+- Standard agent tool operations (read_file/Read, edit/Edit, list_dir/Glob, grep/Grep, search — these are universal operations with platform-specific names)
 - Explicit conditionals with all branches defined
 - Quantified thresholds
+- Issues already assigned to Actionability via overlap resolution Rule 2 (do not double-count)
 
 ## Worked Example
 
@@ -238,12 +172,7 @@ Universal %: 17/20 = 85%
 
 ## Inter-Run Consistency Target
 
-**Expected variance:** ±1 consideration count
-
-**Verification:**
-- Use inventory table with line numbers
-- Count by category
-- Calculate percentage from explicit conditional count
+**Expected variance:** ±1 consideration count. Verify using inventory table with line numbers, count by category, calculate percentage from explicit conditional count.
 
 ## Non-Issues (Do NOT Count)
 

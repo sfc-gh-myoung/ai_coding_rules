@@ -185,7 +185,3 @@ def generate_dimension_prompt(dimension_name: str, weight: int, rubric_path: str
         overlap_rules=overlap_rules
     )
 ```
-
-## Version History
-
-- **v1.0.0:** Initial template for parallel rule review

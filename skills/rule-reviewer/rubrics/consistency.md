@@ -6,12 +6,7 @@
 
 **CRITICAL:** You MUST create and fill this inventory BEFORE calculating score.
 
-### Why This Is Required
-
-- **Eliminates counting variance:** Same rule → same inventory → same score
-- **Prevents false negatives:** Systematic tracking catches all inconsistencies
-- **Provides evidence:** Inventory shows exactly what was found
-- **Enables verification:** Users can audit scoring decisions
+> **Why inventories are required:** Eliminates counting variance (same rule → same inventory → same score), prevents false negatives, provides auditable evidence, enables verification.
 
 ### Inventory Template
 
@@ -42,108 +37,24 @@
 |------------|---------|-------------|--------|
 | 000-global-core.md | Y/N | Y/N | Y/N |
 
-### Counting Protocol (5 Steps)
+### Counting Protocol
 
-**Step 1: Create Empty Inventory**
-- Copy all four templates above into working document
-- Do NOT start reading rule yet
-
-**Step 2: Read Rule Systematically**
-- Start at line 1, read to END (no skipping)
-- Track each key term with all line numbers
-- Note each code example with line number
-- Record each threshold/value definition
-
-**Step 3: Calculate Raw Totals**
-- Contradictions: Count direct conflicts
-- Terminology: Count variations without defined equivalence
-- Examples: Calculate compliance percentage
-- Dependencies: Count issues
-
-**Step 4: Check Non-Issues List**
-- Review EACH flagged item in inventory
-- Check against "Non-Issues" section below
-- Remove false positives with note
-- Recalculate totals
-
-**Step 5: Look Up Score**
-- Use adjusted totals in Score Decision Matrix
-- Record score with inventory evidence
+> **Standard 5-Step Counting Protocol:**
+> 1. **Create Empty Inventory** — Copy template above into working document. Do NOT start reading rule yet.
+> 2. **Read Rule Systematically** — Start at line 1, read to END (no skipping). Record all matches with line numbers.
+> 3. **Calculate Raw Totals** — Sum counts by category using dimension-specific definitions.
+> 4. **Check Non-Issues List** — Review EACH flagged item against this dimension's Non-Issues section. Remove false positives with note. Recalculate totals.
+> 5. **Look Up Score** — Use adjusted totals in Score Decision Matrix. Record score with inventory evidence.
+>
+> **Inter-run consistency:** Use inventory tables with line numbers for evidence. If variance exceeds threshold documented below, re-count using checklists and document ambiguous cases.
+>
+> **Dimension-specific:** Track contradictions, terminology variations, example-mandate compliance %, and dependency issues.
 
 ## Scoring Formula
 
 **Raw Score:** 0-10
 **Weight:** 2
 **Points:** Raw × 1.0
-
-## Scoring Criteria
-
-### 10/10 (10 points): Perfect
-- 0 internal contradictions
-- 0 terminology inconsistencies
-- 100% example-mandate alignment
-- All dependencies valid and referenced
-- All cross-references accurate
-
-### 9/10 (9 points): Near-Perfect
-- 0 internal contradictions
-- 1 terminology variation
-- 99%+ example-mandate alignment
-- All dependencies valid
-
-### 8/10 (8 points): Excellent
-- 0 internal contradictions
-- 2 terminology variations
-- 97-98% example-mandate alignment
-- 1 minor dependency issue
-
-### 7/10 (7 points): Good
-- 0 internal contradictions
-- 3 terminology variations
-- 95-96% example-mandate alignment
-- 1-2 minor dependency issues
-
-### 6/10 (6 points): Acceptable
-- 1 internal contradiction
-- 4 terminology variations
-- 90-94% example-mandate alignment
-- 2 dependency issues
-
-### 5/10 (5 points): Borderline
-- 1 internal contradiction
-- 5 terminology variations
-- 85-89% example-mandate alignment
-- 2-3 dependency issues
-
-### 4/10 (4 points): Needs Work
-- 2 internal contradictions
-- 6 terminology variations
-- 80-84% example-mandate alignment
-- 3 dependency issues
-
-### 3/10 (3 points): Poor
-- 2-3 internal contradictions
-- 7 terminology variations
-- 70-79% example-mandate alignment
-- 4 dependency issues
-
-### 2/10 (2 points): Very Poor
-- 3-4 internal contradictions
-- 8-9 terminology variations
-- 60-69% example-mandate alignment
-- 5+ dependency issues
-
-### 1/10 (1 point): Inadequate
-- 4-5 internal contradictions
-- 10+ terminology variations
-- 50-59% example-mandate alignment
-- Dependencies broken or circular
-
-### 0/10 (0 points): Not Consistent
-- 6+ internal contradictions
-- Pervasive terminology issues
-- <50% example-mandate alignment
-- Cannot reliably execute
 
 ## Counting Definitions
 
@@ -375,18 +286,7 @@ Section B: "In development only: SELECT * for exploration, replace before commit
 
 ## Inter-Run Consistency Target
 
-**Expected variance:** ±1 issue count per category
-
-**Verification checklist:**
-- [ ] Scanned all code examples against mandates
-- [ ] Tracked all key terms with line numbers
-- [ ] Verified all dependency files exist
-- [ ] Checked all external links
-
-**If variance exceeds threshold:**
-- Use tracking tables (provided above)
-- Document each issue with line numbers
-- Note ambiguous cases
+**Expected variance:** ±1 issue count per category. Verify by scanning all code examples against mandates, tracking all key terms with line numbers, verifying dependency files, and checking external links.
 
 ## Non-Issues (Do NOT Count)
 

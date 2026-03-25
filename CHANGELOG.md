@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **docs(rules):** remediate 351-podman-core review findings (v1.0.0 to v1.1.0)
+  - Replace `:latest` tags with versioned tags in 10 examples across build, run, and Buildah commands
+  - Quantify "periodically" to CI-run or weekly cadence for build cache cleanup
+  - Quantify "regularly" to weekly CI rebuild with 48-hour CVE response SLA
+  - Replace "when possible" with explicit criteria for read-only filesystem usage
+  - Replace "slow" health check threshold with `start-period` elapsed diagnostic
+  - Add numbered base image selection decision tree (distroless/alpine/slim/full)
+  - Fix `####` to `###` heading hierarchy skip at Build Cache Cleanup
+  - Standardize "prod" to "production" for terminology consistency
+  - Extract Output Format Examples to 351a-podman-examples.md (~100 lines)
+  - Review score: 73 to ~85/100
+- **docs(rules):** remediate 350-docker-core review findings (v3.2.0 to v3.3.0)
+  - Add `@sha256:` digest placeholders to all correct-pattern FROM examples (4 images)
+  - Quantify "rebuild regularly" to weekly CI cadence with CVE-triggered immediate rebuilds
+  - Replace "non-obvious" with deterministic comment criteria (non-default config, security decisions)
+  - Add inline install commands for hadolint, trivy, syft, cosign (macOS + Linux)
+  - Fix Python runtime CMD from `uv run python` to `python` (uv not in runtime stage)
+  - Add resource exhaustion (disk/memory) edge case to Error Recovery
+  - Add `depends_on` with `condition: service_healthy` to Compose section
+  - Standardize digest pinning terminology: digests preferred over versions
+  - Review score: 83.5 to ~90/100
 - **docs(rules):** add deferred Anthropic alignment items to 002l-skill-advanced-patterns (v1.1.0 to v1.2.0)
   - Add Claude A/B iterative skill development pattern (from official "Evaluation and iteration" guidance)
   - Add TOC guidance for reference files >100 lines

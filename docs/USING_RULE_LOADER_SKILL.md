@@ -1,6 +1,6 @@
 # Using the Rule Loader Skill
 
-**Last Updated:** 2026-03-08
+**Last Updated:** 2026-03-25
 
 The Rule Loader Skill determines which rule files to load for any user request by analyzing file extensions, directory paths, and keywords against RULES_INDEX.md. It ensures consistent, dependency-aware rule discovery across all agents and sessions, formalizing the rule-loading algorithm from AGENTS.md (Steps 1-3) into a reusable skill with progressive disclosure.
 
@@ -107,7 +107,7 @@ The skill executes 5 phases in order:
 
 | Phase | Name | What Happens |
 |-------|------|--------------|
-| 1 | **Foundation Loading** | Always loads `000-global-core.md` (~3,500 tokens) |
+| 1 | **Foundation Loading** | Always loads `000-global-core.md` (~4,050 tokens) |
 | 2 | **Domain Matching** | Matches file extensions and directories to domain rules |
 | 3 | **Activity Matching** | Searches RULES_INDEX.md for keyword matches |
 | 4 | **Dependency Resolution** | Loads prerequisites before dependent rules |
@@ -206,7 +206,7 @@ Each rule declares a `TokenBudget` value in its metadata (e.g., `~3,500`). The s
 User Request
 │
 ├── Phase 1: Foundation Loading
-│   └── Load 000-global-core.md (always, ~3,500 tokens)
+│   └── Load 000-global-core.md (always, ~4,050 tokens)
 │
 ├── Phase 2: Domain Matching
 │   ├── Check directory paths (skills/, rules/)
@@ -239,8 +239,7 @@ skills/rule-loader/
 │   ├── python-api.md               # Python + FastAPI endpoint
 │   └── multi-domain.md             # Snowflake SQL + Python
 └── tests/
-    ├── README.md                   # Test overview
-    └── test-scenarios.md           # Input/output test cases
+    └── test-scenarios.md           # Input/output test cases (16 scenarios)
 ```
 
 ### Extension Reference

@@ -619,7 +619,7 @@ def cmd_end(args):
             elif output_format == "markdown":
                 print(generate_markdown_table(json.loads(completed_file.read_text())))
             elif output_format != "quiet":
-                print(f"TIMING_STATUS=already_completed")
+                print("TIMING_STATUS=already_completed")
                 print(f"TIMING_COMPLETED_FILE={completed_file}")
             sys.exit(EXIT_SUCCESS)
         if output_format == "json":

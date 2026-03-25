@@ -1,7 +1,7 @@
 ---
 name: rule-loader
 description: Determines which rule files to load for a given user request by matching file extensions, directory paths, and keywords against RULES_INDEX.md. Handles foundation loading, domain matching, activity matching, dependency resolution, and token budget management. Use when loading rules, selecting rules for a task, resolving rule dependencies, or managing token budgets during rule loading.
-version: 1.0.0
+version: 1.2.0
 ---
 
 # Rule Loader
@@ -28,8 +28,16 @@ Given a user request, determine which rules to load, in what order, respecting d
 
 ### Optional
 - `rules_path`: `string` (default: `rules/`) - Path to the rules directory
-- `token_budget_limit`: `number` (default: `20000`) - Maximum token budget for loaded rules
+- `token_budget_limit`: `number` (default: `20000`) - Hard maximum token budget for loaded rules. A soft warning triggers at 75% of this value (default: 15,000) to begin evaluating Low-tier deferrals.
 - `context_tier_filter`: `string` (default: `all`) - Filter by ContextTier: `all`, `critical`, `critical+high`, `critical+high+medium`
+
+### Input Validation
+
+Before executing Phase 1:
+
+1. `user_request` must be a non-empty string. If empty or whitespace-only: STOP with "No user request provided."
+2. `token_budget_limit` must be a positive integer >= 5000. If below 5000: WARN "Token budget too low for foundation + any domain rule. Minimum recommended: 5000."
+3. `context_tier_filter` must be one of: `all`, `critical`, `critical+high`, `critical+high+medium`. If invalid: WARN and default to `all`.
 
 ## Output (required)
 
@@ -110,6 +118,7 @@ See `examples/` for complete walkthroughs:
 - `streamlit-dashboard.md` - "Write tests for my Streamlit dashboard"
 - `python-api.md` - "Add a FastAPI endpoint"
 - `multi-domain.md` - Cross-domain request (Snowflake SQL + Python)
+- `token-budget-deferral.md` - Token budget deferral with Low-tier rule deferred
 
 ## Related
 

@@ -7,7 +7,7 @@
 ## Phase 1: Foundation Loading
 
 ```
-Load: 000-global-core.md (~3,500 tokens)
+Load: 000-global-core.md (~4,050 tokens)
 ```
 
 ## Phase 2: Domain Matching
@@ -56,12 +56,12 @@ grep -i "streamlit" rules/RULES_INDEX.md
 
 | Rule | TokenBudget | ContextTier |
 |------|------------|-------------|
-| 000-global-core.md | ~3,500 | Critical |
+| 000-global-core.md | ~4,050 | Critical |
 | 200-python-core.md | ~1,800 | High |
 | 100-snowflake-core.md | ~1,800 | High |
 | 101-snowflake-streamlit-core.md | ~3,700 | High |
 | 206-python-pytest.md | ~3,500 | Medium |
-| **Total** | **~14,300** | |
+| **Total** | **~14,850** | |
 
 Under 15,000 warning threshold. Load all rules.
 

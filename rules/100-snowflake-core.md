@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-03-25
 **Keywords:** SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks, warehouse creation
-**TokenBudget:** ~4350
+**TokenBudget:** ~5050
 **ContextTier:** High
 **Depends:** 000-global-core.md
 **LoadTrigger:** ext:.sql
@@ -76,6 +76,8 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 - Table/view inventory known
 - Access roles configured
 - Understanding of data model and business requirements
+- Snowflake CLI (`snow`) >= 3.0 or SnowSQL >= 1.3 (if executing via CLI)
+- Snowflake Python Connector >= 3.0 or JDBC/ODBC driver current (if programmatic access)
 
 ### Mandatory
 
@@ -83,7 +85,7 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 - **Object Qualification:** Fully qualify all objects (`DATABASE.SCHEMA.TABLE`)
 - **Column Selection:** Explicit column lists (never `SELECT *` in production)
 - **Performance Profiling:** Use Snowflake UI/CLI Query Profile for optimization
-- **Security Policies:** Apply masking/row access policies for sensitive data
+- **Security Policies:** Apply masking/row access policies for sensitive data (columns containing PII, PHI, financial identifiers such as SSN/credit card/bank account, or data classified as CONFIDENTIAL or above per organizational tagging)
 - **Incremental Patterns:** Use Streams + Tasks for mutable large tables (see Quantification Standards)
 
 ### Forbidden
@@ -99,9 +101,9 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 1. Define explicit columns and joins; add WHERE filters in the first CTE (before JOINs/aggregations) for partition pruning
 2. Normalize VARIANT fields once in a dedicated CTE
 3. Prefer set-based operations; avoid row-wise loops
-4. For mutable large tables (see Quantification Standards), design Streams + Tasks incremental pattern with idempotency
+4. For mutable large tables (see Quantification Standards), design Streams + Tasks incremental processing pattern with idempotency
 5. Validate with Query Profile before scaling warehouse
-6. Apply security policies (masking/row access) where needed
+6. Apply security policies (masking/row access) when table contains columns tagged with MASKING_POLICY, PII, or CONFIDENTIAL classification
 7. Verify no anti-patterns present (SELECT *, DISTINCT dedupe, repeated VARIANT parsing)
 
 ### Output Format
@@ -141,7 +143,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **Object Naming:** Follows DDL naming conventions
 - **Resource Monitors:** Configured for cost governance
 - **Warehouse Config:** Follows `119-snowflake-warehouse-management.md`
-- **Incremental:** Streams and Tasks used for mutable large tables where applicable (see Quantification Standards)
+- **Incremental:** Streams and Tasks used for mutable large tables meeting Quantification Standards thresholds (>10M rows OR >5GB uncompressed OR >1M rows with >1000 updates/hour OR >10% rows modified per day)
 - **Idempotency:** MERGE operations handle late arrivals and duplicates
 
 **Negative Tests -- These patterns should NEVER appear in reviewed code:**
@@ -173,7 +175,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - [ ] Warehouse configuration follows `119-snowflake-warehouse-management.md`
 - [ ] Row Access Policies or Dynamic Data Masking applied for PII
 - [ ] Resource monitors configured for cost governance
-- [ ] Streams and Tasks used for incremental processing where applicable
+- [ ] Streams and Tasks used for incremental processing when table meets Quantification Standards thresholds
 - [ ] SQL keywords in UPPERCASE for consistency
 - [ ] Object names follow DDL naming conventions
 - [ ] No `DISTINCT` used for deduplication (use `ROW_NUMBER()` instead)
@@ -181,12 +183,12 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
 ## Design Principles
 
-- **Cost-First Mindset:** Always consider cost implications of query patterns
+- **Cost-First Mindset:** Before scaling warehouse size, review Query Profile for bytes scanned and partitions pruned; prefer query optimization over warehouse upsizing
 - **Explicit Object Qualification:** Fully qualify objects (`DATABASE.SCHEMA.TABLE`)
 - **Set-Based Operations:** Prefer declarative SQL over procedural loops
 - **CTE Usage:** Use CTEs for logical segmentation and readability
 - **Early Filtering:** Push WHERE filters in the first CTE (before JOINs/aggregations) for partition pruning
-- **VARIANT Optimization:** Parse semi-structured data once at edge, normalize critical fields
+- **VARIANT Optimization:** Parse semi-structured data once at edge, normalize fields used in JOIN, WHERE, or GROUP BY clauses
 - **Incremental Processing:** Use Streams + Tasks for mutable large tables (see Quantification Standards)
 - **Security by Design:** Enforce governance with masking policies, row access, and tagging
 - **Query Profiling:** Always use Query Profile to validate performance assumptions
@@ -199,6 +201,14 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **Transaction Rollback:** Wrap multi-statement operations in explicit transactions (`BEGIN ... COMMIT`) with `ROLLBACK` on failure.
 
 - **Stream Staleness:** If stream offset falls behind retention, it cannot be consumed. Detection: `SHOW STREAMS` — check `STALE_AFTER` column. Recovery: Recreate stream with `CREATE OR REPLACE STREAM`, then perform full reload from source.
+
+- **External Stage Errors:** If `COPY INTO` fails with "access denied" or timeout on S3/Azure/GCS stages: 1. Verify storage integration: `DESC INTEGRATION <integration_name>`. 2. Check IAM role trust policy or SAS token expiration. 3. Test stage access: `LIST @<stage_name>`. 4. If intermittent, retry with `ON_ERROR = 'CONTINUE'` and inspect `COPY_HISTORY()` for failed files.
+
+- **API Integration Timeout:** If external function calls timeout: 1. Check `SHOW EXTERNAL FUNCTIONS` for endpoint status. 2. Verify API integration: `DESC API INTEGRATION <name>`. 3. Increase `MAX_BATCH_ROWS` or decrease payload size. 4. Add retry logic with exponential backoff in the calling stored procedure.
+
+- **Empty Result Sets:** If a CTE or subquery returns zero rows, downstream JOINs produce empty results silently. Detection: Add `SELECT COUNT(*) FROM <cte_name>` assertions in development. For Tasks: wrap MERGE source in a zero-row guard — if source returns 0 rows and this is unexpected, log a warning via `SYSTEM$LOG('WARN', 'Zero rows in source')` and skip the MERGE.
+
+- **Zero-Row Streams:** `SYSTEM$STREAM_HAS_DATA()` returns FALSE for zero-row streams, so the Task will not execute. If the stream is stale (past retention), it must be recreated. If the stream has data but `METADATA$ACTION` filtering removes all rows, the stream is consumed but no MERGE occurs — verify `METADATA$ACTION` filter logic covers UPDATE and DELETE actions.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -222,7 +232,7 @@ SELECT
   customer_id,
   order_date,
   total_amount
-FROM large_table
+FROM MY_DB.MY_SCHEMA.large_table
 WHERE order_date >= '2024-01-01';
 -- Scans only required columns, much faster and cheaper
 ```
@@ -256,7 +266,7 @@ WITH parsed AS (
     raw_json:amount::number AS amount,
     raw_json:event_type::string AS event_type,
     raw_json:timestamp::timestamp_ntz AS event_timestamp
-  FROM events
+  FROM MY_DB.MY_SCHEMA.events
   WHERE raw_json:timestamp::timestamp_ntz >= '2024-01-01'
 )
 SELECT
@@ -301,27 +311,27 @@ GROUP BY customer_id, hour;
 ```sql
 -- Good: Incremental processing with Streams and Tasks
 -- Step 1: Create Stream to capture changes (with error handling)
-CREATE STREAM IF NOT EXISTS orders_stream ON TABLE orders;
+CREATE STREAM IF NOT EXISTS MY_DB.MY_SCHEMA.orders_stream ON TABLE MY_DB.MY_SCHEMA.orders;
 
 -- Error handling for Stream creation:
 -- If orders table doesn't exist:
---   1. Verify table name: SELECT * FROM information_schema.tables WHERE table_name = 'ORDERS';
---   2. If found, check permissions: SHOW GRANTS ON TABLE orders;
+--   1. Verify table name: SELECT * FROM MY_DB.information_schema.tables WHERE table_name = 'ORDERS';
+--   2. If found, check permissions: SHOW GRANTS ON TABLE MY_DB.MY_SCHEMA.orders;
 --   3. If not found, report error: "Table orders does not exist. Verify table name and database/schema."
 
 -- Step 2: Create Task for incremental aggregation
 CREATE TASK incremental_aggregation
 WAREHOUSE = compute_wh
 SCHEDULE = '60 MINUTE'
-WHEN SYSTEM$STREAM_HAS_DATA('orders_stream')  -- Only runs if new data
+WHEN SYSTEM$STREAM_HAS_DATA('MY_DB.MY_SCHEMA.orders_stream')  -- Only runs if new data
 AS
-MERGE INTO summary_table tgt
+MERGE INTO MY_DB.MY_SCHEMA.summary_table tgt
 USING (
   SELECT
     customer_id,
     DATE_TRUNC('hour', order_timestamp) AS hour,
     SUM(amount) AS total_amount
-  FROM orders_stream  -- Only new/changed rows!
+  FROM MY_DB.MY_SCHEMA.orders_stream  -- Only new/changed rows!
   WHERE METADATA$ACTION = 'INSERT'
   GROUP BY customer_id, hour
 ) src
@@ -336,10 +346,11 @@ ALTER TASK incremental_aggregation RESUME;
 -- Processes only new rows, MERGE updates incrementally, extremely efficient!
 
 -- Error handling for Task failures:
--- If MERGE fails with timeout: Increase warehouse size (ALTER WAREHOUSE compute_wh SET WAREHOUSE_SIZE = 'MEDIUM') OR reduce batch window
+-- If MERGE fails with timeout and Query Profile shows bytes spilled to remote storage: Increase warehouse size (ALTER WAREHOUSE compute_wh SET WAREHOUSE_SIZE = 'MEDIUM')
+-- If MERGE fails with timeout and Query Profile shows full table scan: Reduce batch window or add clustering key on the MERGE join columns
 -- If MERGE fails with constraint violation: Add data validation CTE before MERGE to filter invalid rows
 -- If warehouse suspended: Check resource monitor settings (SHOW RESOURCE MONITORS) and credit limits
--- If repeated failures: Add error notification via SYSTEM$SEND_EMAIL or external integration
+-- If task fails 3+ consecutive times: Add error notification via SYSTEM$SEND_EMAIL or external integration
 -- Monitor with: SELECT * FROM TABLE(INFORMATION_SCHEMA.TASK_HISTORY()) WHERE NAME = 'incremental_aggregation' ORDER BY SCHEDULED_TIME DESC LIMIT 10;
 ```
 
@@ -377,7 +388,7 @@ SELECT
   order_id,
   order_timestamp,
   amount
-FROM orders_with_duplicates
+FROM MY_DB.MY_SCHEMA.orders_with_duplicates
 QUALIFY ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY updated_at DESC) = 1;
 -- Single pass, efficient filtering, clear intent, optimal performance!
 ```

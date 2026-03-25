@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.4.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.5.0
+**LastUpdated:** 2026-03-25
 **Keywords:** Claude Code, skills, SKILL.md, skill structure, progressive disclosure, workflows, trigger keywords, skill authoring, skill testing, skill validation, input contracts, output contracts, skill examples, YAML frontmatter, description writing, MCP tools, degrees of freedom, context window, third person, naming conventions
 **TokenBudget:** ~4500
 **ContextTier:** High
@@ -86,27 +86,26 @@ Best practices for authoring Claude Code skills in the `skills/` directory. Cove
 4. Write "Use this skill when" section with activation scenarios
 5. Define Inputs section (required and optional with defaults)
 6. Define Outputs section (file paths, formats, no-overwrite behavior)
-7. Create workflow files in `workflows/` for each phase (see Size Limit below)
-8. Create example files in `examples/` showing complete walkthroughs
-9. Create test files in `tests/` with input validation and workflow tests
-10. Create README.md with usage documentation and quick start
+7. Create executable scripts in `scripts/` for deterministic operations (optional)
+8. Create reference files in `references/` for documentation loaded as needed (optional)
+9. Create asset files in `assets/` for templates, fonts, icons (optional)
+10. Verify all workflow files referenced in SKILL.md exist and are accessible
 
 ### Output Format
 
 Skill directory structure with:
 - SKILL.md entrypoint with YAML frontmatter
-- README.md documentation
-- workflows/ phase guides
-- examples/ walkthroughs
-- tests/ validation files
+- scripts/ executable code (optional)
+- references/ documentation loaded as needed (optional)
+- assets/ templates and resources (optional)
 
 ### Error Recovery
 
-- **SKILL.md exceeds 500 lines:** Extract detailed content into `workflows/` or `reference/` files using progressive disclosure. Keep SKILL.md as an overview with cross-references.
-- **YAML frontmatter fails to parse:** Validate YAML syntax separately. Check for unescaped colons in description text, missing closing `---`, or tab characters (use spaces only).
-- **Skill not discovered by Claude:** Verify the `description` field contains specific trigger keywords. Test with exact phrases users would say. Ensure the description is non-empty and under 1024 characters.
-- **MCP tool not found at runtime:** Confirm fully qualified `ServerName:tool_name` format. Verify the MCP server is available in the execution environment.
-- **Package dependency missing:** Add explicit install instructions in the skill workflow. Do not assume packages are pre-installed, especially in API environments with no network access.
+- **SKILL.md exceeds 500 lines:** Extract content into `references/` or `scripts/` files. Keep SKILL.md as overview with cross-references.
+- **YAML frontmatter fails to parse:** Check for unescaped colons, missing `---` delimiters, or tab characters (use spaces only).
+- **Skill not discovered:** Verify `description` contains specific trigger keywords and is non-empty, under 1024 chars. Add negative triggers if over-triggering.
+- **MCP tool not found:** Confirm `ServerName:tool_name` format. Verify MCP server is available.
+- **Package dependency missing:** Add explicit install instructions. Do not assume packages are pre-installed (API has no network access).
 
 ### Validation
 
@@ -158,13 +157,11 @@ Skill directory structure with:
 - [ ] Package dependencies explicitly listed and verified
 
 **Progressive Disclosure:**
-- [ ] Workflow phases reference existing files in workflows/
-- [ ] At least one complete example exists in examples/
+- [ ] All referenced files (scripts/, references/, assets/) exist and are accessible
 - [ ] Quick validation snippets provided for input checking
-- [ ] All referenced files exist and are accessible
 
 **Documentation & Testing:**
-- [ ] README.md documents usage and troubleshooting
+- [ ] SKILL.md or references/ documents usage and troubleshooting
 - [ ] Skill tested with representative inputs
 - [ ] Tested with all models intended for use (Haiku, Sonnet, Opus if applicable)
 
@@ -214,10 +211,11 @@ Skill directory structure with:
   - Minor: new features or steps (added inputs, new workflow phases)
   - Patch: bug fixes or wording improvements
 
-**Other optional fields:**
-- **author**: Author or project name
-- **tags**: Category labels array
-- **dependencies**: Prerequisite skills array
+**Other optional fields (Anthropic specification):**
+- **license**: License identifier (e.g., MIT, Apache-2.0) for open-source skills
+- **compatibility**: Environment requirements, 1-500 chars (e.g., intended product, required system packages)
+- **allowed-tools**: Restrict tool access (e.g., `"Bash(python:*) Bash(npm:*) WebFetch"`)
+- **metadata**: Custom key-value pairs (author, version, mcp-server, tags, etc.)
 
 **Example:**
 
@@ -240,33 +238,17 @@ version: 2.0.0
 ### 2. Directory Organization
 
 - **skills/\<skill-name\>/** - Skill root directory
-  - `SKILL.md` - Entrypoint with frontmatter and workflow overview
-  - `README.md` - Usage documentation, quick start, troubleshooting
-  - `PROMPT.md` - Optional: detailed prompt templates
-  - `VALIDATION.md` - Optional: skill self-validation procedures
-  - **workflows/** - Phase-specific detailed guides
-    - `phase-1.md`, `phase-2.md`, etc.
-  - **examples/** - Complete workflow walkthroughs
-    - `basic-example.md`, `advanced-example.md`, `edge-cases.md`
-  - **tests/** - Test cases and validation
-    - `README.md`, `test-inputs.md`, `test-workflows.md`
+  - `SKILL.md` - Entrypoint with frontmatter and workflow overview (required)
+  - **scripts/** - Executable code: Python, Bash, etc. (optional)
+  - **references/** - Documentation loaded as needed (optional)
+    - `api-guide.md`, `examples.md`, etc.
+  - **assets/** - Templates, fonts, icons used in output (optional)
 
 ### 3. Progressive Disclosure
 
-**SKILL.md (High-Level):**
-- Core workflow overview
-- Quick validation snippets
-- Phase references to workflow files
-
-**workflows/ (Detailed):**
-- Step-by-step instructions per phase
-- Decision trees and conditionals
-- Error handling procedures
-
-**examples/ (Concrete):**
-- Complete end-to-end walkthroughs
-- Real inputs and outputs
-- Edge case handling
+**Level 1 — YAML frontmatter:** Always loaded. Provides enough info for Claude to know when to use the skill.
+**Level 2 — SKILL.md body:** Loaded when skill is relevant. Contains full instructions.
+**Level 3 — Linked files:** `scripts/`, `references/`, `assets/` loaded only as needed. Keep references one level deep from SKILL.md.
 
 ### 4. Input/Output Contracts
 
@@ -305,6 +287,12 @@ description: Review project documentation. Triggers on "review docs", "audit doc
 - Domain nouns: "rule", "documentation", "code", "tests"
 - Combinations: "create rule", "review docs", "validate schema"
 
+**Negative triggers (prevent over-triggering):**
+When a skill triggers too broadly, add exclusions to the description:
+```yaml
+description: Advanced data analysis for CSV files. Use for statistical modeling. Do NOT use for simple data exploration.
+```
+
 ### 6. Core Principles from Official Best Practices
 
 #### Concise is Key
@@ -337,6 +325,14 @@ Match specificity to the task's fragility and variability:
 - **Low freedom** (exact scripts): Operations fragile/irreversible, consistency critical, error recovery expensive
 
 Use high freedom when tasks are exploratory or creative. Use low freedom when output format is rigidly defined or operations are irreversible.
+
+#### Avoid Time-Sensitive Information
+
+Do not embed dates or version-specific deadlines in skills. Use "Current method" / "Old patterns" sections instead.
+
+#### Build Evaluations First
+
+Create evaluations BEFORE writing extensive documentation: identify gaps by running Claude without the skill, build 3 test scenarios, establish baseline, write minimal instructions, iterate. This ensures the skill solves real problems.
 
 #### Test with All Models You Plan to Use
 
@@ -398,12 +394,6 @@ from pypdf import PdfReader
 reader = PdfReader("file.pdf")
 ```"
 ````
-
-### Runtime Environment and Progressive Disclosure
-
-For runtime environment details, refer to the Anthropic skill documentation.
-Key runtime considerations: package availability differs between claude.ai (can install)
-and API (no network access). See lines 371-372 for platform-specific guidance.
 
 ## Advanced Patterns
 
@@ -501,6 +491,14 @@ description: Reviews rule files for quality and compliance.
 See rubrics/ for evaluation criteria.
 See workflows/ for step-by-step guides.
 ```
+
+### Anti-Pattern 6: Windows-Style Paths
+
+**Problem:** `scripts\helper.py, reference\guide.md`
+
+**Correct Pattern:** `scripts/helper.py, reference/guide.md`
+
+Always use forward slashes. Unix paths work cross-platform; backslashes fail on Unix.
 
 ### Testing Skill Discovery
 

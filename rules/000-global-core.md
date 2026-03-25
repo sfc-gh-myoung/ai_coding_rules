@@ -9,10 +9,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.4.0
-**LastUpdated:** 2026-03-10
+**RuleVersion:** v3.5.0
+**LastUpdated:** 2026-03-25
 **Keywords:** workflow, safety, confirmation, validation, surgical edits, minimal changes, prompt engineering, task list, context window, professional communication
-**TokenBudget:** ~3800
+**TokenBudget:** ~4050
 **ContextTier:** Critical
 **Depends:** None
 
@@ -29,8 +29,9 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 - Defines surgical editing principles
 
 > **Note:** This rule assumes the AGENTS.md bootstrap protocol has been completed.
-> AGENTS.md defines the MODE:PLAN/ACT framework. This rule defines operational behavior:
-> validation commands, surgical edits, communication standards, and context management.
+> AGENTS.md defines the bootstrap sequence and task authorization model.
+> This rule defines operational behavior: validation commands, surgical edits,
+> communication standards, and context management.
 
 ## References
 
@@ -40,7 +41,7 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 - None (this IS the foundation)
 
 **Related:**
-- **AGENTS.md** - Bootstrap protocol, MODE:PLAN/ACT framework, and rule discovery
+- **AGENTS.md** - Bootstrap protocol, task authorization model, and rule discovery
 - **001-memory-bank.md** - Context continuity across sessions
 - **002-rule-governance.md** - Rule authoring standards
 - **002a-rule-creation.md** - Creating new rules
@@ -59,9 +60,16 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 ### Inputs and Prerequisites
 
 - Project workspace access
+- **Permissions:** File read/write access, shell command execution, tool invocation within workspace scope
 - Tool availability (read_file, list_dir, grep, and project-specific tools (as defined in Taskfile.yml, Makefile, or package.json scripts)). If tool discovery fails, list available tools and ask user for guidance.
 - Up-to-date rule files (from current branch HEAD)
 - User requirements
+
+**Edge Cases:**
+- If user request is empty or unclear: Ask for clarification before proceeding
+- If no rules match keywords in RULES_INDEX.md: Proceed with foundation rule only, note "No domain rules matched" in Rules Loaded
+- If no files require validation (e.g., documentation-only change): Skip validation sequence, note "No code changes to validate"
+- If a rule has already been loaded in this session: Skip re-loading, note "already loaded" in Rules Loaded section
 
 ### Mandatory
 
@@ -72,7 +80,7 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 
 ### Forbidden
 
-- **File modifications without authorization:** See AGENTS.md for MODE:PLAN/ACT protocol
+- **File modifications without presenting task list:** Always present a task list before making changes
 - **False rule declaration:** Never declare rule as loaded when `read_file` failed
 
 ### Execution Steps
@@ -81,13 +89,13 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 2. Present clear task list for user confirmation
 3. Perform surgical edits (see Mandatory section above)
 4. Validate changes immediately (lint, test, format)
-5. Update relevant documentation
+5. Update documentation files that import or reference the modified API, config, or interface (search for imports and usages)
 
 ### Output Format
 
 **Required Response Structure:**
 
-See AGENTS.md for complete response format including MODE declaration.
+See AGENTS.md for complete response header format (PRE-FLIGHT gates).
 
 ```markdown
 ## Rules Loaded
@@ -102,7 +110,7 @@ See AGENTS.md for complete response format including MODE declaration.
 
 **Pre-Task-Completion Validation Gate (CRITICAL):**
 
-Reference: See `AGENTS.md` for complete MODE validation and authorization protocol.
+Reference: Validation gates are defined below. AGENTS.md defines the bootstrap sequence.
 
 **Rules Validation:**
 - **CRITICAL:** Rules loaded section present with all loaded rules
@@ -110,7 +118,7 @@ Reference: See `AGENTS.md` for complete MODE validation and authorization protoc
 
 **Task Confirmation:**
 - **CRITICAL:** Task list presented before modifications
-- **CRITICAL:** User authorization obtained before changes (see AGENTS.md)
+- **CRITICAL:** Task list presented before changes
 
 **Code Quality:**
 - **CRITICAL:** Surgical edits only (minimal changes)
@@ -120,7 +128,7 @@ Reference: See `AGENTS.md` for complete MODE validation and authorization protoc
 **Success Criteria:**
 - Minimal edits applied
 - Validation passes
-- Documentation current
+- Documentation updated for changed behavior or APIs
 
 **Validation Protocol:**
 - **Rule:** Run validation immediately after modifications
@@ -174,7 +182,7 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 3. **List loaded rules explicitly** - Always state which rules informed analysis
 4. **Never speculate about project organization** - Use list_dir, read_file to understand actual structure
 5. **Verify tool availability** - Check what tools are accessible before proposing solutions
-6. **Make grounded recommendations** - Don't assume standard patterns without verification
+6. **Make recommendations verified by reading project files before suggesting** - Don't assume standard patterns without verification
 
 **Anti-Pattern Examples:**
 - "Based on typical projects, you probably have this file structure..."
@@ -185,11 +193,11 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 - "Let me check your project structure first."
 - [reads directory structure, examines key files]
 - "I see you're using [specific pattern]. Here's my task list..."
-- [awaits authorization per AGENTS.md]
+- [presents task list, then proceeds per AGENTS.md task execution model]
 
 ### Design Principles
 
-- **Task Confirmation:** Always present task list before modifications (see AGENTS.md for authorization protocol)
+- **Task Confirmation:** Always present task list before modifications
 - **Surgical Editing:** Make minimal, targeted changes - preserve existing patterns
 - **Professional Communication:** Concise, code-first solutions with technical tone
 - **Validation First:** Test, lint, and verify all changes before completion
@@ -198,7 +206,7 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 
 **Before Starting:**
 - [ ] Foundation rule loaded (000-global-core.md)
-- [ ] Understanding of AGENTS.md authorization protocol
+- [ ] AGENTS.md bootstrap protocol completed
 - [ ] Awareness of validation requirements
 
 **After Completion:**
@@ -208,7 +216,7 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 - [ ] Made minimal, surgical edits
 - [ ] Validated changes work correctly
 - [ ] Updated relevant documentation
-- [ ] No unauthorized modifications made
+- [ ] No modifications made without task list presentation
 
 ## Key Principles
 
@@ -225,8 +233,8 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 
 ### Multi-File Task Protocol
 
-**Atomic Changes:** Tightly coupled files (refactoring, API contracts, schema) require single authorization
-**Progressive Changes:** Loosely coupled files (independent features) allow multiple authorizations
+**Atomic Changes:** Tightly coupled files (changes that break compilation or tests if applied partially) must be modified together
+**Progressive Changes:** Loosely coupled files (independently compilable and testable) may be modified in separate steps
 
 **Rollback:** If validation fails, revert ALL files to original state
 
@@ -243,7 +251,7 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 
 - Validate all changes before marking tasks complete
 - Run appropriate tests and lints for the technology
-- Update documentation when changes affect usage
+- Update documentation when changes modify public APIs, configuration schemas, CLI interfaces, or documented behavior
 - Verify no regressions by running validation sequence (Syntax, Linting, Formatting, Type Checking, Tests) — "no regressions" means: all previously passing tests still pass, no new linting errors introduced, and no formatting violations added
 - **Taskfile-first (project standards):** If the project provides an automation entrypoint (prefer
   `Taskfile.yml`), run validation via project-defined tasks:
@@ -274,15 +282,15 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 1. **Syntax** — Ensure code parses correctly
 2. **Linting** — Check for code quality issues
 3. **Formatting** — Verify code style compliance
-4. **Type Checking** — Validate type correctness (if applicable)
+4. **Type Checking** — Validate type correctness (when language has static types; otherwise skip)
 5. **Unit Tests** — Run automated test suite
-6. **Integration Tests** — Test component interactions (if applicable)
+6. **Integration Tests** — Test component interactions (when integration test suite exists and changes cross component boundaries; otherwise skip)
 
 ## Anti-Patterns and Common Mistakes
 
 ### Critical Violations
 
-**Critical Violations (see AGENTS.md for MODE-related violations):**
+**Critical Violations:**
 - **Rules not listed:** Missing `## Rules Loaded` section - Add section listing all loaded rules
 - **False rule declaration:** Declared rule as loaded when `read_file` failed - STOP, remove false declaration, report failure to user with options (A) Provide correct path, (B) Proceed without rule, (C) Cancel task
 
@@ -344,11 +352,13 @@ Memory/Disk Full:
 When approaching context limits, agents must preserve rules in priority order to
 maintain consistent behavior. This protocol works across all LLM providers.
 
+**Detecting context pressure:** If your runtime exposes remaining context budget, monitor it directly. Otherwise, use heuristic indicators: conversation exceeding ~50 turns, tool responses being truncated, or repeated context-related errors.
+
 ### Preservation Priority Order
 
 **ALWAYS PRESERVE (Never Summarize):**
 
-1. **AGENTS.md** - Bootstrap protocol and MODE/ACT framework
+1. **AGENTS.md** - Bootstrap protocol and task authorization model
 2. **000-global-core.md** - This file (foundation patterns)
 3. **Active domain -core.md file** - The primary domain rule for current task
    - Examples: 200-python-core.md (Python tasks), 100-snowflake-core.md (Snowflake tasks),
@@ -366,11 +376,11 @@ maintain consistent behavior. This protocol works across all LLM providers.
 2. **File contents** - Code/files you've already fully analyzed and finished modifying
 3. **Reference rules** - Large guides (>4000 tokens) used for lookup, not active application
 4. **Specialized rules** - Not currently relevant to the active task
-5. **Example sections** - Keep patterns/requirements, condense lengthy examples
+5. **Example sections** - Keep patterns/requirements, condense examples exceeding 20 lines
 
 **NEVER:**
 
-- Summarize or compact AGENTS.md (breaks bootstrap and authorization protocol)
+- Summarize or compact AGENTS.md (breaks bootstrap protocol)
 - Summarize or compact 000-global-core.md (breaks foundation patterns)
 - Drop the active domain -core.md file while working in that domain
 - Forget the rule loading protocol

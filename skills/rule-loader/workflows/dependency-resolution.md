@@ -59,3 +59,13 @@ Dependencies loaded via this phase use the reason format:
 | `002a-rule-creation.md` | `002-rule-governance.md`, `000-global-core.md` |
 
 Consult RULES_INDEX.md for the authoritative dependency list for each rule.
+
+### Step 5: Check for Companion Examples (complex configurations only)
+
+If any loaded rule involves Cortex Agent, Cortex Search, or Semantic View:
+
+1. Check for companion example: `{rules_path}/examples/{rule-number}-*-example.md`
+2. If example exists: Load for reference implementation
+3. Record with reason: `"(companion example for NNN-rule-name.md)"`
+
+This step is only required for complex configuration rules. Skip for standard domain and activity rules.

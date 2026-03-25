@@ -12,6 +12,19 @@ For each rule selected in Phases 1-4, read its `TokenBudget` metadata value. Sum
 
 ### Step 2: Check Against Limit
 
+The budget uses a two-tier threshold model:
+
+- **Soft warning** at 75% of `token_budget_limit`: Begin evaluating Low-tier rules for deferral
+- **Hard limit** at 100% of `token_budget_limit`: Mandatory deferral by priority
+
+With default `token_budget_limit: 20000`:
+- Soft warning: 15,000 tokens
+- Hard limit: 20,000 tokens
+
+With custom `token_budget_limit: 10000`:
+- Soft warning: 7,500 tokens
+- Hard limit: 10,000 tokens
+
 ```
 IF total_tokens <= 15000:
     Load all rules (no action needed)
@@ -66,12 +79,12 @@ Deferred rules must be declared in the Rules Loaded section:
 
 | Rule | TokenBudget | ContextTier |
 |------|------------|-------------|
-| 000-global-core.md | ~3,500 | Critical |
+| 000-global-core.md | ~4,050 | Critical |
 | 200-python-core.md | ~1,800 | High |
 | 206-python-pytest.md | ~3,500 | Medium |
 | 100-snowflake-core.md | ~1,800 | High |
 | 101-snowflake-streamlit-core.md | ~3,700 | High |
 
-**Total:** ~14,300 tokens (under warning threshold, load all)
+**Total:** ~14,850 tokens (under warning threshold, load all)
 
-If a 6th rule with ~4,000 tokens were needed, total would hit ~18,300. At that point, evaluate whether any Medium/Low tier rules can be deferred.
+If a 6th rule with ~4,000 tokens were needed, total would hit ~18,850. At that point, evaluate whether any Medium/Low tier rules can be deferred.

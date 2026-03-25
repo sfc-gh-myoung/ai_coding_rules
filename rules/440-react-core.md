@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-03-25
 **Keywords:** React, Next.js, RSC, Hooks, Tailwind, Zustand, TanStack Query, Shadcn, Feature-based, TypeScript, Vitest, Testing Library, debug hooks, fix React error, component rendering
 **TokenBudget:** ~4200
 **ContextTier:** High
@@ -39,6 +39,7 @@ Establishes the definitive standards for developing scalable, maintainable React
 - **430-typescript-core.md** - TypeScript strict typing
 
 **Related:**
+- **440a-react-anti-patterns.md** - Anti-patterns, error recovery, hydration, resource exhaustion, cleanup, output examples
 - **441-react-backend.md** - Python backend patterns, API communication, authentication
 
 ### External Documentation
@@ -66,7 +67,7 @@ Establishes the definitive standards for developing scalable, maintainable React
 ### Mandatory
 
 - MUST use feature-based folder structure (`src/features/<domain>`)
-- MUST use TanStack Query for server state (or RSC for Next.js)
+- MUST use TanStack Query for server state (or Server Components for Next.js). For other React frameworks (Remix, Astro, etc.), default to TanStack Query and consult framework SSR documentation.
 - MUST test user interactions, not implementation details
 
 ### Forbidden
@@ -80,7 +81,7 @@ Establishes the definitive standards for developing scalable, maintainable React
   - `error.tsx`
   - `not-found.tsx`
   - `route.ts`
-- `barrel files` (circular dependency risks)
+- `barrel files` (circular dependency risks — exception: one `index.ts` per feature as public API boundary, re-exporting only that feature's public surface)
 - `enzyme` testing library (deprecated)
 - Manual data fetching with `useEffect` + `useState`
 
@@ -117,7 +118,7 @@ TypeScript code (`.tsx`, `.ts`) with:
 - [ ] Verify Tailwind and testing libraries are configured
 - [ ] Feature code placed in `src/features/<domain>` structure
 - [ ] `useQuery` or RSC used for data fetching (no `useEffect` for async)
-- [ ] Global UI state uses Zustand (or RTK if enterprise requirement)
+- [ ] Global UI state uses Zustand (or RTK if: >5 independent state slices with cross-slice middleware, team already uses Redux, or requires Redux DevTools time-travel debugging)
 - [ ] Components typed with TypeScript interfaces (no `any`)
 - [ ] No `useEffect` for derived state (use `useMemo` or direct calculation)
 - [ ] `vitest` tests written for user interactions
@@ -152,13 +153,13 @@ TypeScript code (`.tsx`, `.ts`) with:
 - [ ] No default exports (except Next.js convention files: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `route.ts`)
 - [ ] TanStack Query error boundaries wrap feature sections
 - [ ] Tests use Testing Library queries (`getByRole`, `getByText`), not implementation details
-- [ ] No barrel files (`index.ts` re-exports) introduced
+- [ ] No barrel files introduced (exception: feature-level `index.ts` as public API boundary)
 
 ## Key Principles
 
 ### Project Architecture & Structure
 
-#### Feature-Based Organization
+#### Feature-based Organization
 - **Requirement:** Organize the `src` directory by "features" (business domains) rather than technical layers.
 - **Rule:** Shared UI components go in `src/components/ui`. Domain-specific logic goes in `src/features/<domain>`.
 
@@ -239,7 +240,7 @@ export const UserProfile = ({ userId }: { userId: string }) => {
 
 #### Client State (Global UI)
 - **Recommended:** Use **Zustand** for global client state (sidebar open/close, theme, session tokens).
-- **Alternative:** **Redux Toolkit** is valid for complex enterprise apps with extensive middleware needs.
+- **Alternative:** **Redux Toolkit** when: (a) >5 independent state slices with cross-slice middleware, (b) existing Redux codebase, or (c) Redux DevTools time-travel debugging required.
 - **Avoid:** React Context for frequently-updating state (performance issues with re-renders).
 
 ```typescript
@@ -267,7 +268,7 @@ interface ThemeStore {
   toggleTheme: () => void;
 }
 
-const useThemeStore = create<ThemeStore>()(
+export const useThemeStore = create<ThemeStore>()(
   persist(
     (set) => ({
       theme: 'light',
@@ -332,125 +333,7 @@ test('increments count when button is clicked', () => {
 
 ## Anti-Patterns and Common Mistakes
 
-**Anti-Pattern 1: Data Fetching in useEffect**
-```typescript
-// Bad: Manual fetching management
-const [data, setData] = useState(null);
-const [loading, setLoading] = useState(true);
-
-useEffect(() => {
-  fetch('/api/user').then(d => {
-    setData(d);
-    setLoading(false);
-  });
-}, []);
-```
-**Problem:** Race conditions, no caching, no deduplication, boiler-plate heavy.
-
-**Correct Pattern:**
-```typescript
-// Good: Using Query
-const { data } = useQuery({ queryKey: ['user'], queryFn: fetchUser });
-```
-**Benefits:** Automatic caching, deduplication, background refetching, loading/error states handled.
-
-**Anti-Pattern 2: Prop Drilling**
-```typescript
-// Bad: Passing props down 5 levels
-<Layout user={user} theme={theme} settings={settings} />
-```
-**Problem:** Components become tightly coupled to data they don't use.
-
-**Correct Pattern:**
-```typescript
-// Good: Composition or Zustand
-const user = useUserStore(s => s.user); // Direct access
-// OR
-<Layout>
-  <Header user={user} />
-</Layout>
-```
-**Benefits:** Decouples components, easier refactoring.
-
-**Hydration Mismatch Recovery (SSR/RSC):**
-```tsx
-// Hydration-safe pattern for client-only values (Date.now(), window.innerWidth, localStorage)
-function useClientValue<T>(serverValue: T, clientValue: T): T {
-  const [value, setValue] = useState(serverValue);
-  useEffect(() => setValue(clientValue), [clientValue]);
-  return value;
-}
-// Usage: const theme = useClientValue("light", getSystemTheme());
-```
-
-**Suspense Boundary Placement:**
-```tsx
-// Place Suspense boundaries around independently loadable sections, not at page level
-<Suspense fallback={<HeaderSkeleton />}>
-  <Header />
-</Suspense>
-<Suspense fallback={<ContentSkeleton />}>
-  <MainContent />
-</Suspense>
-```
-
-**TanStack Query Error Recovery:**
-```tsx
-import { QueryErrorResetBoundary } from '@tanstack/react-query';
-import { ErrorBoundary } from 'react-error-boundary';
-
-// Wrap feature sections with error boundary + retry
-function FeatureSection() {
-  return (
-    <QueryErrorResetBoundary>
-      {({ reset }) => (
-        <ErrorBoundary
-          onReset={reset}
-          fallbackRender={({ resetErrorBoundary }) => (
-            <div>
-              <p>Something went wrong loading this section.</p>
-              <button onClick={() => resetErrorBoundary()}>Retry</button>
-            </div>
-          )}
-        >
-          <Suspense fallback={<FeatureSkeleton />}>
-            <FeatureContent />
-          </Suspense>
-        </ErrorBoundary>
-      )}
-    </QueryErrorResetBoundary>
-  );
-}
-```
-
-Enable error propagation in individual queries:
-```typescript
-// In useQuery options — propagate failures to nearest ErrorBoundary
-useQuery({
-  queryKey: ['feature', id],
-  queryFn: fetchFeature,
-  throwOnError: true,  // TanStack Query v5+
-  retry: 3,            // Retries before propagating to boundary
-});
-```
-
-**'use client' Directive Recovery (Next.js):**
-
-If a component uses hooks (`useState`, `useEffect`, `useQuery`) without `'use client'`, Next.js throws:
-> "You're importing a component that needs useState. It only works in a Client Component but none of its parents are marked with 'use client'."
-
-**Fix:** Add `'use client'` as the very first line of the file (before imports):
-```typescript
-'use client';
-
-import { useState } from 'react';
-// ...
-```
-
-**Guidelines:**
-- Only add `'use client'` to the nearest component that needs interactivity — don't mark entire feature directories
-- Server Components (default in Next.js App Router) can import Client Components, but not vice versa for server-only logic
-- If unsure, check: does this component use `useState`, `useEffect`, `useContext`, `useQuery`, or browser APIs? If yes, it needs `'use client'`
+> **See:** [440a-react-anti-patterns.md](./440a-react-anti-patterns.md) for anti-patterns, error recovery patterns, hydration handling, resource exhaustion prevention, cleanup/unmount patterns, and output format examples.
 
 > **Investigation Required**
 > When applying this rule:
@@ -459,52 +342,3 @@ import { useState } from 'react';
 > 3. **Scan existing `src` folder** to respect current architectural patterns if migrating gradually.
 > 4. **If uncertain, explicitly state:** "I need to check the routing configuration to recommend the correct data loading strategy."
 > 5. **Make grounded recommendations** based on the actual tech stack version (e.g., Next 13 vs 14).
-
-## Output Format Examples
-
-```markdown
-MODE: PLAN
-
-Investigation:
-- Reviewed `package.json`: Found Next.js 14, TypeScript, Tailwind.
-- Checked `src` structure: Currently flat structure, will migrate to Feature-based.
-- Analysis: Need to implement `Auth` feature using Server Actions and Zustand.
-
-Implementation:
-Moving auth logic to `src/features/auth`. Creating strict separation between Server Components (forms) and Client Components (interactivity).
-```
-
-```tsx
-// src/features/auth/components/LoginForm.tsx
-'use client';
-
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, type LoginInput } from '../types';
-import { useAuthStore } from '../stores/authStore';
-
-export const LoginForm = () => {
-  const setUser = useAuthStore((s) => s.setUser);
-  const { register, handleSubmit } = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema)
-  });
-
-  const onSubmit = async (data: LoginInput) => {
-    // Implementation...
-  };
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <input {...register('email')} className="input-primary" />
-      <button type="submit" className="btn-primary">Login</button>
-    </form>
-  );
-};
-```
-
-```bash
-# Validation commands
-npm run lint
-npm run test
-npm run type-check
-```

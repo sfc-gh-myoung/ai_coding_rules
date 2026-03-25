@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **docs(rules):** remediate 440-react-core review findings (v3.2.0 to v3.3.0)
+  - Extract anti-patterns, error recovery, and output examples to new 440a-react-anti-patterns.md companion file (~177 lines moved)
+  - Resolve barrel file / index.ts contradiction: add scoped exception for feature-level public API boundary
+  - Replace undefined "enterprise requirement" with 3 specific RTK decision criteria (>5 slices + middleware, existing Redux, DevTools)
+  - Add resource exhaustion prevention section: bundle size budget, query cache limits, list virtualization
+  - Add cleanup/unmount patterns: AbortController, useEffect cleanup, useSyncExternalStore
+  - Fix missing `export` on useThemeStore example
+  - Standardize RSC terminology (full term before abbreviation) and add framework fallback for Remix/Astro
+  - Normalize "Feature-Based" to "Feature-based" capitalization
+  - Review score: 71.5 to ~83-85/100
 - **docs(rules):** remediate 420-javascript-core review findings (v3.2.0 to v3.3.0)
   - Quantify "complex logic" to ">100 lines, >3 params, or nullable value handling" (lines 70, 145)
   - Replace "project-specific rules" with explicit Biome config cross-reference (line 87)

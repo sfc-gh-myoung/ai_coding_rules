@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **docs(rules):** remediate 420-javascript-core review findings (v3.2.0 to v3.3.0)
+  - Quantify "complex logic" to ">100 lines, >3 params, or nullable value handling" (lines 70, 145)
+  - Replace "project-specific rules" with explicit Biome config cross-reference (line 87)
+  - Replace "pure JS projects" with "projects without TypeScript compilation" (line 439)
+  - Fix Node.js version contradiction: 14.8+ aligned to 20+ prerequisite floor (line 422)
+  - Standardize test runner name to `node:test` in body text (lines 22, 439)
+  - Standardize Object.groupBy version to "22+ LTS" with 21 non-LTS noted (line 227)
+  - Consolidate @ts-check criteria via cross-reference to authoritative definition (line 203)
+  - Update year reference from 2025 to 2026 (line 22)
+  - Add blank line before ## Contract heading for CommonMark compliance (line 53)
+  - Review score: 82.5 to ~89-90/100
 - **docs(rules):** remediate 351-podman-core review findings (v1.0.0 to v1.1.0)
   - Replace `:latest` tags with versioned tags in 10 examples across build, run, and Buildah commands
   - Quantify "periodically" to CI-run or weekly cadence for build cache cleanup

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **feat(skills):** reduce rule-reviewer cross-model scoring variance (v2.5.2 → v2.5.3)
+  - Add Non-Issues Patterns 9-10 to actionability rubric (agent tool names, status assertion checklists)
+  - Add Domain Applicability Adjustment to completeness rubric with common N/A exclusion table
+  - Expand cross-agent-consistency "Do NOT Count" list with agent tool operations and overlap refs
+  - Add tool name exclusion row to overlap resolution matrix
+  - New `rubrics/_calibration-examples.md` with 8 pre-resolved scoring anchors
+  - Target: overall score variance ±9.5 pts → ±3-4 pts across models
+- **refactor(skills):** optimize rule-reviewer for token efficiency (v2.4.0 → v2.5.2, 14 files, -2544 lines)
+  - SKILL.md: consolidate Anti-Optimization Protocol into compact Execution Discipline section with Skills vs Rules distinction
+  - Rubrics: replace prose scoring criteria with lookup tables across 8 rubrics (actionability, completeness, consistency, cross-agent-consistency, parsability, rule-size, staleness, token-efficiency)
+  - rule-size.md: update scoring thresholds (501-550 scores 5, 551-600 scores 3, 601-700 scores 1 `NOT_DEPLOYABLE`)
+  - token-efficiency.md: convert from scored rubric to informational non-issues list with project file guidance
+  - Workflows: rewrite parallel-execution.md from Python code blocks to declarative tables and prose
+  - Workflows: simplify parameter-collection.md by replacing implementation functions with batch instructions
+  - Workflows: clarify error-handling.md timing recovery conditions
+  - Workflows: remove Version History footers from dimension-subagent-template, parallel-execution, score-aggregation
+
 ## [3.7.1] - 2026-03-23
 
 ### Added

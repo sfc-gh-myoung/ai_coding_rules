@@ -4,12 +4,7 @@
 
 **CRITICAL:** You MUST create and fill this inventory BEFORE calculating score.
 
-### Why This Is Required
-
-- **Eliminates counting variance:** Same rule → same inventory → same score
-- **Prevents false negatives:** Systematic checks catch all issues
-- **Provides evidence:** Inventory shows exactly what was found
-- **Enables verification:** Users can audit scoring decisions
+> **Why inventories are required:** Eliminates counting variance (same rule → same inventory → same score), prevents false negatives, provides auditable evidence, enables verification.
 
 ### Inventory Template
 
@@ -46,104 +41,24 @@
 |------|--------------|-------------|
 | 150 | Arrow | Unicode arrow character |
 
-### Counting Protocol (5 Steps)
+### Counting Protocol
 
-**Step 1: Create Empty Inventory**
-- Copy all templates above into working document
-- Do NOT start reading rule yet
-
-**Step 2: Run Schema Validator (if available)**
-- Execute: `uv run ai-rules validate [target_file]`
-- Record all errors by severity with line numbers
-- If unavailable: Note "Manual assessment" and proceed
-
-**Step 3: Read Rule Systematically**
-- Check each metadata field against checklist
-- Scan for markdown structure issues
-- Scan for visual formatting patterns
-
-**Step 4: Check Non-Issues List**
-- Review EACH flagged item in inventory
-- Check against "Non-Issues" section below
-- Remove false positives with note
-- Recalculate totals
-
-**Step 5: Look Up Score**
-- Use adjusted totals in Score Decision Matrix
-- Record score with inventory evidence
+> **Standard 5-Step Counting Protocol:**
+> 1. **Create Empty Inventory** — Copy template above into working document. Do NOT start reading rule yet.
+> 2. **Read Rule Systematically** — Start at line 1, read to END (no skipping). Record all matches with line numbers.
+> 3. **Calculate Raw Totals** — Sum counts by category using dimension-specific definitions.
+> 4. **Check Non-Issues List** — Review EACH flagged item against this dimension's Non-Issues section. Remove false positives with note. Recalculate totals.
+> 5. **Look Up Score** — Use adjusted totals in Score Decision Matrix. Record score with inventory evidence.
+>
+> **Inter-run consistency:** Use inventory tables with line numbers for evidence. If variance exceeds threshold documented below, re-count using checklists and document ambiguous cases.
+>
+> **Dimension-specific:** Run schema validator in Step 2, check metadata fields, scan for markdown and visual formatting issues.
 
 ## Scoring Formula
 
 **Raw Score:** 0-10
 **Weight:** 3
 **Points:** Raw × (3/2) = Raw × 1.5
-
-## Scoring Criteria
-
-### 10/10 (15 points): Perfect
-- Schema validation: 0 errors
-- All 7 metadata fields present and correct
-- Markdown structure valid (proper heading hierarchy)
-- 0 visual formatting issues (no ASCII art, arrows, box drawing)
-
-### 9/10 (13.5 points): Near-Perfect
-- Schema validation: 0 errors
-- All 7 metadata fields present
-- 1 minor markdown issue
-- 0 visual formatting issues
-
-### 8/10 (12 points): Excellent
-- Schema validation: 1 LOW severity issue
-- 7/7 metadata fields present
-- 2 minor markdown issues
-- 0 visual formatting issues
-
-### 7/10 (10.5 points): Good
-- Schema validation: 2 LOW severity issues
-- 6-7 metadata fields present
-- 3 markdown issues
-- 0-1 visual formatting issues
-
-### 6/10 (9 points): Acceptable
-- Schema validation: 1 MEDIUM error
-- 6/7 metadata fields present
-- 4 markdown issues
-- 1 visual formatting issue
-
-### 5/10 (7.5 points): Borderline
-- Schema validation: 2 MEDIUM errors
-- 5-6 metadata fields present
-- 5 markdown issues
-- 2 visual formatting issues
-
-### 4/10 (6 points): Needs Work
-- Schema validation: 1 HIGH error OR 3 MEDIUM
-- 4-5 metadata fields present
-- 6-7 markdown issues
-- 3 visual formatting issues
-
-### 3/10 (4.5 points): Poor
-- Schema validation: 2 HIGH errors
-- 3-4 metadata fields present
-- 8-9 markdown issues
-- 4 visual formatting issues
-
-### 2/10 (3 points): Very Poor
-- Schema validation: 3+ HIGH errors
-- 2-3 metadata fields present
-- 10+ markdown issues
-- 5+ visual formatting issues
-
-### 1/10 (1.5 points): Inadequate
-- Schema validation: 1 CRITICAL error
-- 1-2 metadata fields present
-- Malformed markdown
-- Extensive visual formatting
-
-### 0/10 (0 points): Not Parsable
-- Schema validation: Multiple CRITICAL errors
-- Metadata missing or invalid
-- Cannot be parsed by agents
 
 ## Counting Definitions
 

@@ -7,7 +7,7 @@
 ## Phase 1: Foundation Loading
 
 ```
-Load: 000-global-core.md (~3,500 tokens)
+Load: 000-global-core.md (~4,050 tokens)
 ```
 
 ## Phase 2: Domain Matching
@@ -34,7 +34,7 @@ grep -i "security" rules/RULES_INDEX.md
 #          107-snowflake-security-governance.md (keyword: security)
 ```
 
-`210a` is relevant (FastAPI security). `107` is Snowflake-specific, not relevant here.
+`210a` is relevant (FastAPI security). `107` is Snowflake-specific security (not relevant for standalone FastAPI auth).
 
 ## Phase 4: Dependency Resolution
 
@@ -54,11 +54,11 @@ grep -i "security" rules/RULES_INDEX.md
 
 | Rule | TokenBudget | ContextTier |
 |------|------------|-------------|
-| 000-global-core.md | ~3,500 | Critical |
+| 000-global-core.md | ~4,050 | Critical |
 | 200-python-core.md | ~1,800 | High |
 | 210-python-fastapi-core.md | ~3,500 | High |
 | 210a-python-fastapi-security.md | ~3,000 | Medium |
-| **Total** | **~11,800** | |
+| **Total** | **~12,350** | |
 
 Under 15,000 warning threshold. Load all rules.
 

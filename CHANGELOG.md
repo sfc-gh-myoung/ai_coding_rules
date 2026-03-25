@@ -8,6 +8,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **docs(rules):** add deferred Anthropic alignment items to 002l-skill-advanced-patterns (v1.1.0 to v1.2.0)
+  - Add Claude A/B iterative skill development pattern (from official "Evaluation and iteration" guidance)
+  - Add TOC guidance for reference files >100 lines
+  - Add "Solve, don't punt" script error handling pattern
+  - Add 5,000-word size heuristic as troubleshooting diagnostic
+  - Fix stale `workflows/` directory references to `references/` (consistency with 002h v3.5.0)
+  - Update Keywords for semantic discovery of new sections
+  - Net line delta: +55 (274 to 329)
+- **feat(skills):** upgrade rule-loader skill to v1.2.0 with full AGENTS.md parity (12 files modified, 1 created)
+  - Fix foundation TokenBudget from ~3,500 to ~4,050 across all workflows and examples; recalculate totals
+  - Add grep sanity check (Step 2.5) and multi-technology keyword splitting heuristic to activity matching
+  - Add PROJECT.md check (Step 0), implied extension logic table, and deduplication guidance to domain matching
+  - Add companion example loading (Step 5) to dependency resolution for Cortex/Semantic rules
+  - Clarify two-tier token budget threshold model (75% soft warning, 100% hard limit)
+  - Add input validation snippets for all 3 skill parameters
+  - Add 6 new test scenarios (11-16): multi-tech splitting, grep anomaly, tier filter, custom path, circular deps, transitive failure
+  - New `examples/token-budget-deferral.md` with deferral walkthrough and context_tier_filter variant
+  - Remove stale `tests/README.md` reference from `docs/USING_RULE_LOADER_SKILL.md`
+- **docs(rules):** improve 206-python-pytest agent executability (v3.1.0 to v3.2.0)
+  - Quantify "appropriate scope" with deterministic >1s threshold for module/session fixtures
+  - Replace "when helpful" with contract-based criterion for output capture
+  - Remove ambiguous "complex input domains" qualifier from parametrize guidance
+  - Add explicit `test_<module>_<behavior>.py` naming pattern
+  - Add large parametrize set boundary (>50 entries: use pytest_generate_tests or fixture/file)
+  - Add duplicate parametrize entry detection guidance
+  - Consolidate duplicate Post-Execution Checklist into cross-reference (-5 lines)
+- **docs(rules):** improve 100-snowflake-core agent executability (v3.2.0 to v3.3.0)
+  - Define "sensitive data" with explicit criteria (PII, PHI, financial identifiers, CONFIDENTIAL tags)
+  - Replace 3 "where needed/applicable" phrases with deterministic trigger conditions
+  - Fully qualify all object references in 4 anti-pattern Correct Pattern examples
+  - Quantify "critical fields" (JOIN/WHERE/GROUP BY columns) and "repeated failures" (3+ consecutive)
+  - Replace "always consider cost" with actionable Query Profile review step
+  - Add external dependency error handling (S3/Azure/GCS stages, API integration timeouts)
+  - Add boundary edge cases (empty result sets, zero-row streams)
+  - Add tool version requirements to prerequisites (Snow CLI, connectors)
+  - Split MERGE timeout recovery into conditional branches (bytes spilled vs full scan)
+  - Standardize "incremental processing pattern" terminology
+- **docs(rules):** improve 200-python-core agent executability (v4.0.0 to v4.1.0)
+  - Replace 4 ambiguous terms ("as required", "appropriate", "Integrate with") with deterministic criteria
+  - Add conditional type-checker investigation (ty preferred, mypy/pyright fallback)
+  - Add async investigation step referencing Async/Await Patterns section
+  - Add 20 lines of state/resource error scenarios (empty collections, None guards, file handles)
+  - Add minimal edge cases to `load_users` example (empty check, None/type guard)
+  - Standardize "tooling" to "toolchain" across 4 occurrences
+  - Replace "list_dir" agent tool reference with generic "List directory contents"
+- **docs(rules):** improve 300-bash-scripting-core agent executability (v3.1.0 to v3.2.0)
+  - Define "standard loop counters" exhaustively as `i`, `j`, `k` in `for` loops
+  - Add timeout error handling pattern (`timeout 30 cmd || exit`)
+  - Add permission-denied recovery pattern with write-check guard
+  - Add encoding edge case note (`LC_ALL=C` for byte-oriented processing)
+  - Add `ARG_MAX` boundary mention for commands processing many files
+  - Merge `mktemp` file/dir into single chained command
+- **docs(rules):** improve 310-zsh-scripting-core agent executability (v3.1.0 to v3.2.0)
+  - Replace "appropriately" and ambiguous qualifiers with deterministic criteria
+  - Standardize "Requirement:" labels to "Rule:" for consistency with 300-bash-scripting-core
+  - Compress anti-pattern examples and remove redundant cross-references (-18 lines, 517 to 499)
+  - Replace Unicode arrows and em dashes with ASCII equivalents for validator compliance
+- **docs(rules):** update 000-global-core (v3.4.1 to v3.5.0) — authorization-agnostic remediation
+  - Remove all MODE:PLAN/ACT and authorization-specific references (14 rewrites)
+  - Replace "authorization" with "task list presentation" for deployment-agnostic behavior
+  - Define "tightly coupled" as "changes that break compilation or tests if applied partially"
+  - Define "affect usage" as "modify public APIs, configuration schemas, CLI interfaces, or documented behavior"
+  - Define "lengthy examples" as "exceeding 20 lines"
+  - Replace "grounded recommendations" with "recommendations verified by reading project files"
+  - Add edge case handling (empty input, no rules matched, no validation needed, duplicate loads)
+  - Add explicit permissions documentation to Inputs and Prerequisites
+  - Add context pressure detection heuristic (50 turns, truncated responses)
+  - Add explicit else clauses to Type Checking and Integration Tests validation steps
 - **feat(skills):** reduce rule-reviewer cross-model scoring variance (v2.5.2 → v2.5.3)
   - Add Non-Issues Patterns 9-10 to actionability rubric (agent tool names, status assertion checklists)
   - Add Domain Applicability Adjustment to completeness rubric with common N/A exclusion table

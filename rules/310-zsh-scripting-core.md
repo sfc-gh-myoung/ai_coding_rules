@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-25
 **Keywords:** Zsh, Z shell, zsh features, arrays, functions, oh-my-zsh, emulate, setopt, parameter expansion, globbing
-**TokenBudget:** ~4400
+**TokenBudget:** ~4300
 **ContextTier:** Medium
 **Depends:** 300-bash-scripting-core.md
 **LoadTrigger:** ext:.zsh, kw:zsh
@@ -22,11 +22,9 @@
 Foundational zsh scripting patterns covering unique zsh features, script structure, variables, functions, and essential practices to leverage zsh's advanced capabilities while maintaining compatibility.
 
 **When to Load This Rule:**
-- Writing zsh scripts or configuration files
-- Converting bash scripts to zsh
+- Writing or converting zsh scripts and configuration files
 - Leveraging zsh-specific features (arrays, parameter expansion, globbing)
-- Setting up zsh development environment
-- Troubleshooting zsh compatibility issues
+- Setting up zsh environment or troubleshooting compatibility issues
 
 ## References
 
@@ -61,7 +59,7 @@ Foundational zsh scripting patterns covering unique zsh features, script structu
 - Configure setopt for strictness (ERR_EXIT, NO_UNSET, PIPE_FAIL)
 - Quote variables properly (`"$var"` not `$var`)
 - Use zsh arrays correctly (1-indexed by default, or set KSH_ARRAYS for 0-indexed)
-- Leverage zsh parameter expansion features
+- Use zsh parameter expansion (`${var:t}`, `${var:h}`, `${var:u}`, `${var:l}`) instead of external commands (`basename`, `dirname`, `tr`)
 
 ### Forbidden
 
@@ -85,7 +83,7 @@ Foundational zsh scripting patterns covering unique zsh features, script structu
 ### Output Format
 
 Zsh script satisfying all Mandatory items above, plus:
-- Zsh-specific features leveraged appropriately
+- Parameter expansion used instead of external commands (`${var:t}` not `basename`, `${var:u}` not `tr`)
 - Correct array usage (1-indexed or KSH_ARRAYS set)
 
 ### Validation
@@ -100,6 +98,10 @@ Zsh script satisfying all Mandatory items above, plus:
 - Arrays accessed correctly (test with sample data)
 - Parameter expansion works as expected
 
+**During-Execution Checks:**
+- Verify intermediate files exist before using them: `[[ -f "$intermediate" ]] || return 1`
+- Log progress for long operations: `print -u2 "Processing $i of ${#files[@]}"`
+
 ### Design Principles
 
 - **Leverage Zsh Features:** Use advanced capabilities (arrays, globbing, parameter expansion)
@@ -111,7 +113,7 @@ Zsh script satisfying all Mandatory items above, plus:
 ### Post-Execution Checklist
 
 - [ ] All Mandatory and Pre-Task items verified
-- [ ] Zsh-specific features used appropriately
+- [ ] Parameter expansion used instead of external commands where applicable
 - [ ] Syntax validated with `zsh -n`
 - [ ] Script tested on target zsh version (5.0+)
 - [ ] No namespace pollution in .zshrc
@@ -123,18 +125,12 @@ Zsh script satisfying all Mandatory items above, plus:
 
 **Problem:** Writing scripts that assume bash-like behavior for word splitting, glob expansion, or array indexing without setting appropriate zsh options.
 
-**Why It Fails:** Zsh arrays are 1-indexed by default (bash is 0-indexed). Word splitting doesn't occur on unquoted variables by default. Scripts behave differently than expected, causing subtle bugs.
-
 **Correct Pattern:**
 ```zsh
 # BAD: Assuming bash behavior
-#!/bin/zsh
-arr=(a b c)
-echo ${arr[0]}  # Empty in zsh! Arrays are 1-indexed
-
-# BAD: Assuming word splitting
+arr=(a b c); echo ${arr[0]}  # Empty in zsh! Arrays are 1-indexed
 files="file1.txt file2.txt"
-rm $files  # In zsh, this tries to delete "file1.txt file2.txt" as one file
+rm $files  # Zsh treats this as one filename (no word splitting)
 
 # GOOD: Explicit options for predictable behavior
 #!/bin/zsh
@@ -152,21 +148,14 @@ rm "${files[@]}"  # Proper array expansion
 
 **Problem:** Defining functions and variables in .zshrc without namespacing, causing conflicts with system commands or other configurations.
 
-**Why It Fails:** Custom `ls` function shadows /bin/ls. Variables overwrite environment settings. Plugin conflicts become impossible to debug. Shell startup slows down.
-
 **Correct Pattern:**
 ```zsh
-# BAD: Global namespace pollution
-# .zshrc
-ls() { command ls -la "$@"; }  # Shadows system ls
-PATH="/my/path"  # Overwrites instead of extends
+# BAD: ls() { command ls -la "$@"; }  -- shadows system ls
+# BAD: PATH="/my/path"  -- overwrites instead of extends
 
 # GOOD: Namespaced functions and safe PATH
-# .zshrc
 my_ls() { command ls -la "$@"; }
 alias ll='my_ls'  # Alias instead of shadowing
-
-# Extend PATH safely
 path=(/my/path $path)  # zsh array syntax
 typeset -U path  # Remove duplicates
 ```
@@ -200,7 +189,7 @@ zsh -n script.zsh
 ## Script Foundation & Zsh Setup
 
 ### Shebang and Environment
-- **Requirement:** Use proper zsh shebang: `#!/usr/bin/env zsh` or `#!/bin/zsh`
+- **Rule:** Use proper zsh shebang: `#!/usr/bin/env zsh` or `#!/bin/zsh`
 - **Rule:** Use `#!/usr/bin/env zsh` for portability across systems
 - **Always:** Specify zsh when using zsh-specific features
 - **Critical:** Use `emulate -L zsh` in functions for consistent behavior
@@ -215,7 +204,7 @@ setopt ERR_EXIT NO_UNSET PIPE_FAIL
 ```
 
 ### Zsh Options and Modes
-- **Requirement:** Set appropriate zsh options for script reliability:
+- **Rule:** Set zsh options for script reliability:
 ```zsh
 # Essential options for scripts
 setopt ERR_EXIT          # Exit on command failure (equivalent to set -e)
@@ -230,7 +219,7 @@ unsetopt SH_WORD_SPLIT   # Maintain zsh word splitting behavior
 ```
 
 ### Script Metadata and Documentation
-- **Requirement:** Include comprehensive header documentation:
+- **Rule:** Include comprehensive header documentation:
 ```zsh
 #!/usr/bin/env zsh
 # Script: script_name.zsh
@@ -244,6 +233,9 @@ unsetopt SH_WORD_SPLIT   # Maintain zsh word splitting behavior
 emulate -L zsh
 setopt ERR_EXIT NO_UNSET PIPE_FAIL EXTENDED_GLOB
 ```
+
+- **Rule:** Comment zsh-specific behavior (e.g., `# zsh arrays start at 1`)
+- **Rule:** Provide usage information via a `show_usage()` function with `cat << 'EOF'`
 
 ## Zsh-Specific Variable Management
 
@@ -260,10 +252,8 @@ function process_data() {
     local -r readonly_var="value" # Read-only variable
 }
 
-# Global variables with type declarations
-typeset -g global_var="value"
-typeset -gi global_counter=0
-typeset -gA global_config=()
+# Global variables: typeset -g (string), -gi (int), -gA (assoc array)
+typeset -g global_var="value"; typeset -gi global_counter=0; typeset -gA global_config=()
 ```
 
 ### Parameter Expansion Features
@@ -289,14 +279,14 @@ count=${count:-0}              # Default to 0
 files=(${files[@]:-})          # Default to empty array
 
 # Edge case: empty or root paths
-# ${empty_var:t}  → "" (empty string)
-# ${"/:t"}        → "" (empty string — root has no tail)
-# ${"/:h"}        → "/" (root is its own head)
+# ${empty_var:t}  -> "" (empty string)
+# ${"/:t"}        -> "" (empty string -- root has no tail)
+# ${"/:h"}        -> "/" (root is its own head)
 # Always guard: [[ -n "${filepath}" ]] || return 1
 ```
 
 ### Array Handling
-- **Requirement:** Use zsh's powerful array features:
+- **Rule:** Use zsh's powerful array features:
 ```zsh
 # Array declaration and manipulation
 files=(file1.txt file2.txt "file with spaces.txt")
@@ -318,13 +308,7 @@ last_element=${files[-1]}
 all_but_first=(${files[2,-1]})
 
 # Associative arrays
-typeset -A config=(
-    host "localhost"
-    port 8080
-    debug true
-)
-
-# Access associative array
+typeset -A config=(host "localhost" port 8080 debug true)
 echo "Host: ${config[host]}"
 echo "All keys: ${(k)config}"
 echo "All values: ${(v)config}"
@@ -375,7 +359,7 @@ function create_backup() {
 ## Error Handling and Debugging
 
 ### Zsh Error Handling
-- **Requirement:** Implement robust error handling:
+- **Rule:** Implement robust error handling:
 ```zsh
 # Global error handler using funcstack
 function handle_error() {
@@ -408,6 +392,20 @@ function cleanup() {
 trap cleanup EXIT INT TERM QUIT
 temp_dir=$(mktemp -d) || { print -u2 "Failed to create temp directory"; exit 1 }
 readonly temp_dir
+```
+
+### Resource and Encoding Safety
+
+```zsh
+# Disk space check before large writes
+local available_kb=$(df -k "${target_dir}" | tail -1 | awk '{print $4}')
+(( available_kb > 10240 )) || { print -u2 "ERROR: <10MB free in ${target_dir}"; return 1 }
+
+# Guard against empty/zero-length arrays before iteration
+[[ ${#files[@]} -gt 0 ]] || { print -u2 "WARN: No files to process"; return 0 }
+
+# Locale-safe byte operations (avoid UTF-8 multi-byte issues)
+LC_ALL=C command grep -c 'pattern' "$file"
 ```
 
 ## Zsh Globbing and Pattern Matching
@@ -452,10 +450,10 @@ read -A words <<< "word1 word2 word3"
 - **Rule:** Use `[[ -o interactive ]]` and `[[ -o login ]]` to detect shell type
 - **Rule:** Use `autoload -U is-at-least` to check zsh version requirements
 - **Rule:** Use `$OSTYPE` for OS detection (`darwin*`, `linux*`, `freebsd*`)
+- **Rule:** Load modules with `zmodload zsh/datetime zsh/mathfunc zsh/stat`
+- **Rule:** Add custom function dirs to `fpath` and use `autoload -Uz`
 
 ## Performance and Optimization
-
-> Prefer zsh built-ins over external commands for operations called repeatedly in loops.
 
 - **Rule:** Use parameter expansion (`${string:u}`, `${string//o/0}`) instead of `tr`/`sed`
 - **Rule:** Use `(( ))` arithmetic instead of `expr` or `bc`
@@ -464,14 +462,7 @@ read -A words <<< "word1 word2 word3"
 - **Rule:** Unset variables holding large data (>1MB) when no longer needed
 - **Rule:** Use `local` variables in functions (auto-cleaned on function exit)
 
-## Zsh Modules and Autoloading
-
-- **Rule:** Load modules with `zmodload zsh/datetime zsh/mathfunc zsh/stat`
-- **Rule:** Add custom function dirs to `fpath` and use `autoload -Uz`
-
 ## Compatibility and Portability
-
-> For detailed cross-shell migration strategies and compatibility patterns, see **310b-zsh-compatibility.md**.
 
 - **Rule:** Use `emulate -L sh` inside functions that must be bash-compatible
 - **Rule:** Detect shell with `$BASH_VERSION` / `$ZSH_VERSION` checks
@@ -499,19 +490,10 @@ local base=$(basename "$filepath")
 **GOOD:** Use zsh parameter expansion:
 
 ```zsh
-# GOOD: Built-in parameter expansion — no subprocess
+# GOOD: Built-in parameter expansion -- no subprocess
 local upper="${text:u}"
 local base="${filepath:t}"
 ```
 
-Additional anti-patterns:
-- Using `$(...)` for simple variable assignments
-- Creating subshells for array operations
-- Using `eval` with dynamic content
-- Ignoring startup time impact of plugins and completions (profile with `zprof`)
-
-## Documentation and Style
-
-- **Rule:** Document zsh version requirements and options used in script headers (see Script Metadata section)
-- **Rule:** Comment zsh-specific behavior (e.g., `# zsh arrays start at 1`)
-- **Rule:** Provide usage information via a `show_usage()` function with `cat << 'EOF'`
+- **Avoid:** Using `eval` with dynamic content (use parameter expansion or arrays instead)
+- **Avoid:** Ignoring startup time impact of plugins and completions (profile with `zprof`)

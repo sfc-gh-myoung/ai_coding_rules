@@ -25,7 +25,7 @@ Load the foundation rule (`000-global-core.md`) which is required for every agen
 
 ## Token Cost
 
-~3,500 tokens (per 000-global-core.md TokenBudget metadata)
+~4,050 tokens (per 000-global-core.md TokenBudget metadata)
 
 ## Failure Modes
 

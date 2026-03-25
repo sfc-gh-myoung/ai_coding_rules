@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-25
 **Keywords:** Bash, shell scripting, set -euo pipefail, error handling, strict mode, functions, variables, script structure, trap, exit codes, shellcheck, input validation
 **TokenBudget:** ~3500
 **ContextTier:** High
@@ -187,15 +187,12 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 ```bash
 # BAD: Unquoted variables cause word splitting
 file_path="/path/to/my documents/file.txt"
-cat $file_path  # Fails: cat tries to open 3 files: /path/to/my, documents/file.txt
-
+cat $file_path
 files="*.txt"
-rm $files  # Dangerous: glob expands, might delete unintended files
-
+rm $files
 # GOOD: Always quote variables
 file_path="/path/to/my documents/file.txt"
 cat "$file_path"  # Works: treated as single argument
-
 files="*.txt"
 rm "$files"  # Safe: treats *.txt as literal string, not glob
 ```
@@ -209,20 +206,19 @@ rm "$files"  # Safe: treats *.txt as literal string, not glob
 # BAD: No error handling, continues after failures
 #!/bin/bash
 mkdir /tmp/data
-cp important.txt /tmp/data/  # Fails silently if file doesn't exist
-process_data /tmp/data/important.txt  # Processes wrong/missing file
+cp important.txt /tmp/data/
+process_data /tmp/data/important.txt
 echo "Success!"  # Prints even though cp failed
-
 # GOOD: Strict mode catches errors immediately
 #!/usr/bin/env bash
 set -euo pipefail  # Exit on error, undefined vars, pipe failures
-
 mkdir /tmp/data
 cp important.txt /tmp/data/  # Script stops here if file missing
 process_data /tmp/data/important.txt  # Only runs if cp succeeded
 echo "Success!"  # Only prints if all commands succeeded
+# Timeout handling
+timeout 30 long_running_command || { echo "ERROR: Command timed out after 30s" >&2; exit 1; }
 ```
-
 ### Anti-Pattern 3: Using `ls` for File Iteration Instead of Globs
 
 **Problem:** Parsing `ls` output to iterate over files (`for file in $(ls *.txt)`) breaks with filenames containing spaces, newlines, or special characters.
@@ -233,12 +229,10 @@ echo "Success!"  # Only prints if all commands succeeded
 for file in $(ls *.txt); do
     echo "Processing $file"
 done
-
 # GOOD: Use glob patterns directly
 for file in *.txt; do
     echo "Processing $file"
 done
-
 # GOOD: Use find for complex searches
 while IFS= read -r -d '' file; do
     echo "Processing $file"
@@ -248,10 +242,10 @@ done < <(find . -name "*.txt" -print0)
 ## Variable Management
 
 ### Variable Declaration and Naming
-- **Requirement:** Use descriptive, lowercase variable names with underscores (minimum 3 characters, e.g., `idx` not `i` — except standard loop counters)
+- **Requirement:** Use descriptive, lowercase variable names with underscores (minimum 3 characters, e.g., `idx` not `i` — except `i`, `j`, `k` in `for` loops)
 - **Rule:** Constants in UPPERCASE: `readonly MAX_RETRIES=3`
 - **Always:** Declare readonly variables when values won't change
-- **Avoid:** Single-letter variables except for standard loop counters
+- **Avoid:** Single-letter variables except `i`, `j`, `k` in `for` loops
 
 ```bash
 # Good practices
@@ -272,6 +266,7 @@ FILE=/tmp/file
 - **Critical:** Use arrays for lists instead of space-separated strings
 
 ### Array Handling
+- **Rule:** For commands processing many files, use `xargs` or `find -exec` to avoid `ARG_MAX` limits (~2MB on Linux)
 - **Requirement:** Use arrays for multiple values:
 ```bash
 # Declare arrays
@@ -287,8 +282,9 @@ done
 if [[ ${#files[@]} -eq 0 ]]; then
     echo "No files to process"
 fi
-# Note: For associative arrays (declare -A), see 300d-bash-advanced.md
 ```
+
+- **Rule:** For byte-oriented processing of files with unknown encoding, set `LC_ALL=C`
 
 ## Input Handling and Validation
 
@@ -353,6 +349,11 @@ process_file() {
 
     cp "$file" "$backup_dir/"
 }
+# Permission check before write operations
+if [[ ! -w "$dest_dir" ]]; then
+    echo "ERROR: No write permission: $dest_dir" >&2
+    return 1
+fi
 ```
 
 ### Cleanup and Signal Handling
@@ -448,8 +449,7 @@ find "$directory" -name "*.txt" -type f -print0 | \
 ### Temporary Files
 - **Rule:** Use `mktemp` for temporary files:
 ```bash
-temp_file="$(mktemp)" || { echo "ERROR: mktemp failed" >&2; exit 1; }
-temp_dir="$(mktemp -d)" || { echo "ERROR: mktemp -d failed" >&2; exit 1; }
+temp_file="$(mktemp)" && temp_dir="$(mktemp -d)" || { echo "ERROR: mktemp failed" >&2; exit 1; }
 trap 'rm -f "$temp_file"; rm -rf "$temp_dir"' EXIT
 ```
 

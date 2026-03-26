@@ -1,9 +1,11 @@
 # Using the Doc Reviewer Skill
 
-**Last Updated:** 2026-03-07
+**Last Updated:** 2026-03-26
 
-The Doc Reviewer Skill automates comprehensive documentation reviews for your project. It evaluates `README.md`, `CONTRIBUTING.md`, and files in `docs/` against six quality dimensions using a 100-point scoring system.
-
+The Doc Reviewer Skill reviews project documentation for user-facing quality and
+accuracy. Use it to audit README and CONTRIBUTING files, review `docs/*.md`,
+validate references against the codebase, and run focused maintenance checks for
+staleness or specific documentation concerns.
 
 ## Quick Start
 
@@ -13,335 +15,293 @@ The Doc Reviewer Skill automates comprehensive documentation reviews for your pr
 Load skills/doc-reviewer/SKILL.md
 ```
 
-### 2. Request a review
+### 2. Run a minimal FULL review
 
 ```text
 Use the doc-reviewer skill.
 
-target_files: README.md
-review_date: 2026-03-08
 review_mode: FULL
+target_files: README.md
+review_date: 2026-03-26
 model: claude-sonnet-45
 ```
 
-The skill will evaluate all 6 dimensions and write a scored review.
+The skill validates inputs, collects missing parameters, and runs the dimension
+review in parallel by default.
 
 ### 3. Check the output
 
-Reviews are written to `reviews/doc-reviews/<name>-<model>-<date>.md`
+Single-file reviews are written to:
+`reviews/doc-reviews/<doc-name>-<model>-<date>.md`
 
-On success:
+Example success output:
 
 ```text
 ✓ Review complete
 
-OUTPUT_FILE: reviews/doc-reviews/README-claude-sonnet-45-2026-03-08.md
+OUTPUT_FILE: reviews/doc-reviews/README-claude-sonnet-45-2026-03-26.md
 Overall: 85/100
 Verdict: GOOD
 ```
 
-
 ## Review Modes
 
-| Mode | Purpose | When to Use |
-|------|---------|-------------|
-| **FULL** | Comprehensive 6-dimension evaluation | New docs, major revisions, quarterly audits |
-| **FOCUSED** | Targeted dimension review | Post-refactoring, specific feedback |
-| **STALENESS** | Accuracy, Staleness, Consistency only | Monthly maintenance, link rot detection |
+| Mode | Purpose | Required Inputs | Typical Use Case | Output Location |
+|------|---------|-----------------|------------------|-----------------|
+| **FULL** | Comprehensive 6-dimension review | `review_date`, `review_mode`, `model` | New documentation, major rewrites, periodic audits | `reviews/doc-reviews/<name>-<model>-<date>.md` or collection summary |
+| **FOCUSED** | Targeted review of a specific area | FULL inputs plus `focus_area` | Accuracy-only or clarity-only review after changes | Same as FULL, based on scope |
+| **STALENESS** | Fast maintenance review for currency and drift | `review_date`, `review_mode`, `model` | Link rot, outdated commands, deprecated patterns | Same as FULL, based on scope |
 
-### FULL Mode
+### FULL
+
+Use FULL mode for the standard comprehensive review.
 
 ```text
 review_mode: FULL
+target_files: README.md, CONTRIBUTING.md
 ```
 
-### FOCUSED Mode
+### FOCUSED
+
+FOCUSED mode requires `focus_area`.
 
 ```text
 review_mode: FOCUSED
-focus_dimensions: Accuracy, Staleness
+target_files: docs/ARCHITECTURE.md
+focus_area: accuracy
 ```
 
-**Available Focus Areas:**
-- `accuracy` - Cross-reference verification
-- `completeness` - Coverage analysis
-- `clarity` - Readability assessment
-- `consistency` - Style compliance
-- `staleness` - Link and version checking
-- `structure` - Organization review
+Current skill behavior uses `focus_area`, not `focus_dimensions`.
 
-### STALENESS Mode
+### STALENESS
+
+Use STALENESS mode for lighter-weight maintenance checks.
 
 ```text
 review_mode: STALENESS
+target_files: README.md, docs/SETUP.md
 ```
-
 
 ## Understanding Your Results
 
 ### Verdicts
 
-| Score | Verdict | Action |
-|-------|---------|--------|
-| 90-100 | **EXCELLENT** | Publication-ready |
+The current skill materials use this verdict scale:
+
+| Score | Verdict | Meaning |
+|------:|---------|---------|
+| 90-100 | **EXCELLENT** | High-quality documentation |
 | 80-89 | **GOOD** | Minor improvements recommended |
-| 60-79 | **NEEDS_WORK** | Significant gaps; major revision needed |
-| <60 | **POOR** | Substantial rework required |
+| 60-79 | **NEEDS_IMPROVEMENT** | Significant updates required |
+| 40-59 | **POOR** | Major revision needed |
+| <40 | **INADEQUATE** | Rewrite-level issues |
 
 ### Scoring Dimensions
 
-Documentation is scored across 6 dimensions with weighted points:
+#### Critical dimensions (50 points)
 
-**Critical Dimensions (50 points)** — Factual accuracy and coverage:
+| Dimension | Max Points | Core Question |
+|-----------|-----------:|---------------|
+| Accuracy | 25 | Does the documentation match the codebase and commands? |
+| Completeness | 25 | Are the necessary topics and steps covered? |
 
-| Dimension | Points | Key Question |
-|-----------|--------|--------------|
-| Accuracy | 25 | Do code references exist? Are examples executable? |
-| Completeness | 25 | Are all essential topics covered? |
+#### Important dimensions (35 points)
 
-**Important Dimensions (35 points)** — Readability and organization:
+| Dimension | Max Points | Core Question |
+|-----------|-----------:|---------------|
+| Clarity | 20 | Can the intended audience follow the content? |
+| Structure | 15 | Is the information organized and easy to navigate? |
 
-| Dimension | Points | Key Question |
-|-----------|--------|--------------|
-| Clarity | 20 | Is language accessible? Is jargon defined? |
-| Structure | 15 | Is organization logical? Is navigation easy? |
+#### Standard dimensions (15 points)
 
-**Standard Dimensions (15 points)** — Maintenance and consistency:
+| Dimension | Max Points | Core Question |
+|-----------|-----------:|---------------|
+| Staleness | 10 | Are links, versions, and patterns current? |
+| Consistency | 5 | Does the content follow project conventions? |
 
-| Dimension | Points | Key Question |
-|-----------|--------|--------------|
-| Staleness | 10 | Are links valid? Are versions current? |
-| Consistency | 5 | Does it follow project style guide? |
-
-**Scoring Formula:** `Raw (0-10) × (Weight / 2) = Points`
+Scoring formula: `Raw (0-10) × (Weight / 2) = Points`
 
 ### Verification Tables
 
-Reviews include audit tables to support scoring:
+Reviews should include evidence tables that justify the score.
 
 | Table | Purpose |
 |-------|---------|
-| **Accuracy Verification** | Code references (file paths, commands, functions) verified against codebase |
-| **Completeness Table** | Features documented vs undocumented |
-| **Clarity Table** | Jargon audit, concept order, new user accessibility |
-| **Structure Table** | Section order, heading hierarchy, navigation |
-| **Staleness Table** | Link validation, tool versions, deprecated patterns |
-| **Consistency Table** | Formatting, terminology, code style compliance |
+| Cross-Reference Verification | Confirms referenced files, commands, functions, and paths |
+| Link Validation | Records link status, redirects, or manual follow-up |
+| Coverage Checklist | Tracks documented versus undocumented areas |
 
-**Cross-Reference Verification Example:**
+### Critical Override Behavior
 
-```markdown
-| Reference | Type | Location | Exists? | Notes |
-|-----------|------|----------|---------|-------|
-| `scripts/deploy.py` | file | README:45 | Yes | — |
-| `utils.parse()` | function | docs/API:23 | No | Not found |
-```
+Low accuracy or completeness can force a worse overall outcome than the numeric
+score alone suggests. If core references are wrong or critical setup guidance is
+missing, treat that as a high-priority fix regardless of the headline score.
 
-**Link Validation Example:**
+### How to Interpret Low Scores
 
-```markdown
-| Link | Type | Source | Status | Notes |
-|------|------|--------|--------|-------|
-| `./docs/API.md` | internal | README:12 | Valid | — |
-| `https://example.com` | external | README:89 | Manual | Manual check required |
-| `./missing.md` | internal | CONTRIB:34 | Invalid | Not found |
-```
+For low-scoring documentation:
 
+1. fix factual accuracy first
+2. close major coverage gaps second
+3. improve clarity and structure next
+4. clean up staleness and consistency last
+
+That ordering matches the weighting and the real user impact.
 
 ## Advanced Usage
 
-### Custom Output Directory
+### Optional Inputs
+
+| Input | Default | Purpose |
+|-------|---------|---------|
+| `target_files` | Default project docs | Specify one or more Markdown files |
+| `review_scope` | `single` | Review files individually or as one collection |
+| `focus_area` | none | Required for `FOCUSED` mode |
+| `output_root` | `reviews/` | Change the output root directory |
+| `overwrite` | `false` | Replace an existing output file |
+| `timing_enabled` | `false` | Add timing metadata |
+| `execution_mode` | `parallel` | Choose `parallel` or `sequential` execution |
+
+### Default Target Files
+
+When `target_files` is omitted, the skill defaults to reviewing:
+
+- `README.md`
+- `CONTRIBUTING.md`
+- all Markdown files under `docs/`
+
+### Review Scope
+
+| Scope | Output Behavior | Use Case |
+|-------|-----------------|----------|
+| `single` | One review file per target document | Detailed file-by-file analysis |
+| `collection` | One consolidated review | Portfolio-level documentation audit |
+
+Collection output is written to:
+`reviews/summaries/_docs-collection-<model>-<date>.md`
+
+### Execution Mode
+
+The current skill defaults to `parallel`, not sequential.
+
+| Mode | Characteristics | When to Use |
+|------|-----------------|-------------|
+| `parallel` | Uses 6 sub-agents for dimension review | Standard path and current default |
+| `sequential` | Single-agent fallback path | Debugging or constrained environments |
+
+```text
+execution_mode: sequential
+```
+
+### Output Root
 
 ```text
 output_root: quarterly-audit/
 ```
 
-Writes to `quarterly-audit/doc-reviews/` instead of default `reviews/doc-reviews/`. The skill auto-creates directories and normalizes trailing slashes. Relative paths including `../` are supported.
+Examples:
 
-### Execution Timing
+- single scope: `quarterly-audit/doc-reviews/...`
+- collection scope: `quarterly-audit/summaries/...`
+
+### No-overwrite Safety
+
+By default, existing outputs are preserved and the skill appends `-01`, `-02`,
+and so on.
+
+To intentionally replace an existing file:
+
+```text
+overwrite: true
+```
+
+### Timing Behavior
 
 ```text
 timing_enabled: true
 ```
 
-Adds timing metadata to output (duration, token usage, cost estimation).
+When enabled, the skill starts a timing run, records checkpoints, and embeds
+metadata in the review output after execution completes.
 
-**Timing thresholds:**
-- <30 seconds: Warning (unusually fast for thorough review)
-- <60 seconds: Warning (may indicate shortcuts)
-- >1200 seconds: Warning (possible issue)
+### Determinism and Operational Notes
 
-**Example timing metadata in output:**
+The skill’s workflow emphasizes consistency:
 
-```markdown
-## Timing Metadata
+- load rubrics before reviewing targets
+- create verification structures before scoring
+- read target documentation end to end
+- check non-issues and overlap rules before assigning findings
+- include verification tables in the final output
 
-| Metric | Value |
-|--------|-------|
-| Run ID | `a1b2c3d4e5f67890` |
-| Duration | 2m 30s (150.5s) |
-| Model | claude-sonnet-45 |
-| Tokens | 12,300 (8,500 in / 3,800 out) |
-| Cost | ~$0.03 |
-```
-
-**See:** `docs/USING_SKILL_TIMING_SKILL.md` for full documentation on timing features, baseline comparison, and analysis tools.
-
-### Execution Modes
-
-Unlike plan-reviewer which uses parallel sub-agents, doc-reviewer runs sequentially through each dimension. This is by design—documentation review requires cross-referencing between sections that benefits from sequential analysis.
-
-| Mode | Speed | Use Case |
-|------|-------|----------|
-| **sequential** (default) | ~2-20 min | All reviews (varies by file count) |
-
-### Review Scope Options
-
-| Scope | Output | Use Case |
-|-------|--------|----------|
-| `single` | One review per file | Detailed per-file analysis |
-| `collection` | One consolidated review | Project-wide documentation audit |
-
-**Collection scope example:**
-
-```text
-target_files: README.md, CONTRIBUTING.md, docs/ARCHITECTURE.md
-review_scope: collection
-```
-
-Output: `reviews/summaries/_docs-collection-<model>-<date>.md`
-
-### Default Target Files
-
-When `target_files` is not specified:
-- `README.md`
-- `CONTRIBUTING.md`
-- All `.md` files in `docs/`
-
-### Example Workflows
-
-#### New Project Setup
-
-```text
-target_files: README.md, CONTRIBUTING.md
-review_mode: FULL
-review_scope: single
-```
-
-Review each file individually to establish baseline quality.
-
-#### Quarterly Audit
-
-```text
-review_mode: STALENESS
-review_scope: collection
-```
-
-Run staleness checks across all project documentation.
-
-#### Post-Refactoring Check
-
-```text
-target_files: docs/ARCHITECTURE.md, docs/API.md
-review_mode: FOCUSED
-focus_dimensions: Accuracy
-```
-
-Verify code references are still valid after major refactoring.
-
+Those constraints are there to reduce score drift across repeated runs.
 
 ## FAQ
 
+### Which files are reviewed by default?
+
+If you do not provide `target_files`, the skill reviews `README.md`,
+`CONTRIBUTING.md`, and all Markdown files in `docs/`.
+
+### How does `focus_area` work?
+
+`focus_area` narrows a FOCUSED review to a specific concern such as accuracy,
+clarity, or staleness. It is required when `review_mode` is `FOCUSED`.
+
+### What is the difference between `single` and `collection` scope?
+
+`single` produces one review per file. `collection` produces one consolidated
+summary across the selected files.
+
+### When should I use doc-reviewer instead of plan-reviewer?
+
+Use `doc-reviewer` for human-facing documentation. Use `plan-reviewer` for plans
+that an autonomous agent is expected to execute.
+
 ### What happens if the output file already exists?
 
-The skill uses no-overwrite safety. It appends suffixes (`-01.md`, `-02.md`, etc.) to avoid overwriting existing reviews.
+Unless `overwrite: true` is set, the skill preserves the existing file and writes
+a suffixed filename instead.
 
-### What should I pass for `model`?
+### How are code references and links verified?
 
-Prefer a slug like `claude-sonnet-45`. If you provide a raw model name, the skill normalizes it to a slug before writing the file.
-
-### Can I review non-markdown files?
-
-No, the skill is designed for `.md` files only. For other documentation formats, convert to Markdown first or use the rubric manually.
-
-### How are code references verified?
-
-The skill scans documentation for references to functions, classes, files, and commands. It checks if these exist in the codebase and reports discrepancies in the Accuracy Verification Table.
-
-### Can I customize the review dimensions?
-
-In FOCUSED mode, specify which dimensions to evaluate. The rubric files in `skills/doc-reviewer/rubrics/` can be customized for project-specific needs.
-
-### How long does a FULL review take?
-
-| Scope | Duration |
-|-------|----------|
-| Single small file (README) | 2-5 minutes |
-| Collection of 5-10 files | 10-20 minutes |
-| Large documentation set | 20-40 minutes |
-
-### Where does the rubric come from?
-
-The skill uses rubric files in `skills/doc-reviewer/rubrics/` (accuracy.md, completeness.md, clarity.md, structure.md, staleness.md, consistency.md) plus `_overlap-resolution.md` for deterministic scoring.
-
-### What's the difference between doc-reviewer and plan-reviewer?
-
-- **doc-reviewer**: Human readability, accuracy, link validation, style consistency
-- **plan-reviewer**: Agent executability, task completeness, scope clarity
-
-Use doc-reviewer for documentation humans will read. Use plan-reviewer for plans an agent will execute.
-
+The skill checks documented file paths, commands, and references against the
+project where possible, validates internal links directly, and records external
+links for validation or manual follow-up.
 
 ## Reference
 
-### Architecture
+### Architecture Overview
 
-```
-User Request
+```text
+Coordinator
 │
-├── Phase 1: Parameter Collection
-│   ├── Validate target_files
-│   ├── Determine review_mode
-│   └── Compute output path
-│
-├── Phase 2: Rubric Loading
-│   ├── Load dimension rubrics
-│   └── Load overlap resolution
-│
-├── Phase 3: Document Analysis
-│   ├── Scan for code references
-│   ├── Validate internal links
-│   └── Flag external URLs
-│
-├── Phase 4: Dimension Scoring
-│   ├── Accuracy (25pts)
-│   ├── Completeness (25pts)
-│   ├── Clarity (20pts)
-│   ├── Structure (15pts)
-│   ├── Staleness (10pts)
-│   └── Consistency (5pts)
-│
-└── Phase 5: Report Generation
-    ├── Create verification tables
-    ├── Calculate weighted score
-    └── Write review file
+├── Phase 1: Input validation and parameter collection
+├── Phase 2: Model slugging and optional timing start
+├── Phase 3: Review execution
+│   ├── parallel: 6 dimension sub-agents
+│   └── sequential: single review path
+├── Phase 4: Score aggregation and output assembly
+└── Phase 5: File write and error handling
 ```
 
 ### Key Workflows
 
 | Workflow | File | Purpose |
 |----------|------|---------|
-| Parameter collection | `workflows/parameter-collection.md` | Interactive input handling |
-| Score aggregation | `workflows/score-aggregation.md` | Combine dimension results |
-| Overlap validation | `workflows/overlap-validator.md` | Prevent double-counting |
-| Error handling | `workflows/error-handling.md` | Recovery and troubleshooting |
+| Input validation | `skills/doc-reviewer/workflows/input-validation.md` | Validate parameters and mode-specific requirements |
+| Parameter collection | `skills/doc-reviewer/workflows/parameter-collection.md` | Gather required and optional inputs |
+| Parallel execution | `skills/doc-reviewer/workflows/parallel-execution.md` | Default 6-sub-agent review path |
+| Sequential review | `skills/doc-reviewer/workflows/review-execution.md` | Single-agent fallback path |
+| File writing | `skills/doc-reviewer/workflows/file-write.md` | Output naming and write behavior |
+| Error handling | `skills/doc-reviewer/workflows/error-handling.md` | Recovery behavior |
 
 ### File Structure
 
 ```text
 skills/doc-reviewer/
-├── SKILL.md               # Main skill (entrypoint)
-├── rubrics/               # Dimension scoring criteria
+├── SKILL.md
+├── rubrics/
 │   ├── accuracy.md
 │   ├── completeness.md
 │   ├── clarity.md
@@ -349,45 +309,31 @@ skills/doc-reviewer/
 │   ├── staleness.md
 │   ├── consistency.md
 │   └── _overlap-resolution.md
-├── examples/              # Workflow examples
-├── tests/                 # Test cases
-├── testing/               # Skill maintenance guides
-└── workflows/             # Step-by-step guides
+├── examples/
+├── tests/
+├── testing/
+└── workflows/
 ```
 
-### Integration with Other Skills
+### Related Skills
 
 | Skill | Relationship |
 |-------|--------------|
-| **plan-reviewer** | doc-reviewer for human docs, plan-reviewer for agent-executable plans |
-| **rule-reviewer** | Review rule files for accuracy |
-| **skill-timing** | Track review duration metrics |
+| `plan-reviewer` | Reviews agent-executable plans rather than user documentation |
+| `rule-reviewer` | Reviews rule files instead of project documentation |
+| `skill-timing` | Provides the optional timing workflow |
 
-### Output Paths
+### Output Path Summary
 
-| Mode/Scope | Output Path |
-|------------|-------------|
-| Single file | `reviews/doc-reviews/<name>-<model>-<date>.md` |
-| Collection | `reviews/summaries/_docs-collection-<model>-<date>.md` |
-| Custom root | `<output_root>/doc-reviews/<name>-<model>-<date>.md` |
+| Scope | Output Pattern |
+|-------|----------------|
+| single | `reviews/doc-reviews/<name>-<model>-<date>.md` |
+| collection | `reviews/summaries/_docs-collection-<model>-<date>.md` |
 
-### Integration with Project Rules
+### Source of Truth
 
-The skill checks documentation against these project rules if they exist:
+Prefer these files when behavior details matter:
 
-- `rules/801-project-readme.md` — README structure and content guidelines
-- `rules/802-project-contributing.md` — CONTRIBUTING file standards
-
-If these rules don't exist, the skill uses standard documentation templates.
-
-### Deployment
-
-This skill is **deployable** (included when running `task deploy`). After deployment to a project, users can review that project's documentation.
-
-### Support
-
-- **Workflow guides:** `skills/doc-reviewer/workflows/*.md`
-- **Examples:** `skills/doc-reviewer/examples/*.md`
-- **Validation tests:** `skills/doc-reviewer/tests/*.md`
-- **Troubleshooting:** `skills/doc-reviewer/workflows/error-handling.md`
-- **Skill maintenance:** `skills/doc-reviewer/testing/TESTING.md`
+- `skills/doc-reviewer/SKILL.md`
+- `skills/doc-reviewer/rubrics/`
+- `skills/doc-reviewer/workflows/`

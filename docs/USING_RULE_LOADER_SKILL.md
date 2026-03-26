@@ -180,7 +180,7 @@ Check these causes in order:
 
 ### What happens if RULES_INDEX.md is not found?
 
-The skill falls back to foundation + file-extension matching only. Keyword-based activity matching is skipped. Regenerate the index with `task index:generate`.
+The skill falls back to foundation + file-extension matching only. Keyword-based activity matching is skipped. Regenerate the index with `make index-generate`.
 
 ### What if a rule file is not found?
 

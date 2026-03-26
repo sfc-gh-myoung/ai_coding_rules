@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **fix:** replace stale `task index:generate` references with `make index-generate` across 7 files
+  - Fix root cause in `src/ai_rules/commands/index.py` (generator emits stale string)
+  - Fix `rules/002b-rule-update.md` (v1.2.1 to v1.2.2)
+  - Fix `docs/USING_RULE_LOADER_SKILL.md`, `tests/fixtures/RULES_INDEX_baseline.md`
+  - Fix `memory-bank/techContext.md`, `memory-bank/systemPatterns.md`
+  - Regenerate `rules/RULES_INDEX.md` with corrected source
+  - Impact: Agents now reference correct `make index-generate` command
+
 - **docs(rules):** update 112-snowflake-snowcli (v3.1.1 to v3.2.0)
   - Update version pin from 3.14 to 3.16.0 (14+ occurrences)
   - Fix outdated docs URL (snowflake-cli-v2 to snowflake-cli)

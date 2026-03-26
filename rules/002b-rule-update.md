@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.2.1
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.2.2
+**LastUpdated:** 2026-03-26
 **Keywords:** rule update, rule maintenance, versioning, RuleVersion, LastUpdated, semantic versioning, MAJOR, MINOR, PATCH, rule modification, keyword expansion, scope updates, metadata updates, CHANGELOG updates
 **TokenBudget:** ~3950
 **ContextTier:** High
@@ -82,7 +82,7 @@ Workflow and best practices for updating and maintaining existing rule files. Co
 7. Update TokenBudget if file size changed by >50 lines or >10%
 8. Validate with `ai-rules validate` (must pass with 0 CRITICAL errors)
 9. Update CHANGELOG.md with change details
-10. Regenerate RULES_INDEX.md with `task index:generate`
+10. Regenerate RULES_INDEX.md with `make index-generate`
 
 ### Output Format
 
@@ -387,7 +387,7 @@ Add entry under `## [Unreleased]` section:
 
 ```bash
 # Regenerate index with updated metadata
-task index:generate
+make index-generate
 
 # Or directly:
 uv run ai-rules index generate

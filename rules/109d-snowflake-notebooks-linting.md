@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.1.2
+**LastUpdated:** 2026-03-26
 **LoadTrigger:** kw:nbqa, kw:notebook-linting
 **Keywords:** nbqa, ruff, notebook linting, code quality, Jupyter, notebook formatting, lint notebooks, notebook validation
 **TokenBudget:** ~3500
@@ -14,12 +14,12 @@
 ## Scope
 
 **What This Rule Covers:**
-Code quality tooling and linting configuration for Jupyter Notebooks using nbqa and Ruff, including Taskfile integration, common linting issues, Ruff configuration, and when to skip linting.
+Code quality tooling and linting configuration for Jupyter Notebooks using nbqa and Ruff, including automation integration, common linting issues, Ruff configuration, and when to skip linting.
 
 **When to Load This Rule:**
 - Setting up notebook linting in a project
 - Configuring nbqa with Ruff for notebooks
-- Integrating notebook linting into CI/CD or Taskfile
+- Integrating notebook linting into CI/CD or project automation (Makefile)
 - Troubleshooting notebook linting issues
 - Deciding when to skip linting for specific notebooks
 
@@ -72,14 +72,14 @@ Run `uvx nbqa ruff notebooks/` and confirm zero errors. Run `uvx nbqa ruff forma
 ### Design Principles
 
 - Same code quality standards for notebooks as Python modules.
-- Automate linting via Taskfile for consistent CI/CD integration.
+- Automate linting via project automation (Makefile) for consistent CI/CD integration.
 - Default to linting; exceptions should be rare and documented.
 
 ### Post-Execution Checklist
 
 - [ ] `uvx nbqa ruff notebooks/` passes with zero errors
 - [ ] `uvx nbqa ruff format --check notebooks/` passes
-- [ ] Taskfile includes lint-notebooks and format-notebooks tasks
+- [ ] Makefile includes lint/format targets for notebooks (or direct uvx commands)
 - [ ] pyproject.toml has notebook-specific Ruff configuration
 
 ## Implementation Details
@@ -101,58 +101,42 @@ See Contract Mandatory and Execution Steps above for the core commands. No insta
 uvx nbqa ruff notebooks/grid_asset_prediction.ipynb
 ```
 
-#### Integration with Taskfile
+#### Integration with Project Automation
 
-Add notebook linting tasks to project `Taskfile.yml`:
+Add notebook linting targets to project `Makefile`:
 
-```yaml
-lint-notebooks:
-  desc: "Lint Jupyter notebooks with Ruff via nbqa"
-  cmds:
-    - uvx nbqa ruff notebooks/
+```makefile
+.PHONY: lint-notebooks format-notebooks format-notebooks-fix validate-notebook-metadata lint
 
-format-notebooks:
-  desc: "Format Jupyter notebooks with Ruff via nbqa"
-  cmds:
-    - uvx nbqa ruff format notebooks/
+lint-notebooks: ## Lint Jupyter notebooks with Ruff via nbqa
+	uvx nbqa ruff notebooks/
 
-format-notebooks-fix:
-  desc: "Format Jupyter notebooks with Ruff and apply fixes"
-  cmds:
-    - uvx nbqa ruff format notebooks/
-    - uvx nbqa ruff check --fix notebooks/
+format-notebooks: ## Format Jupyter notebooks with Ruff via nbqa
+	uvx nbqa ruff format notebooks/
 
-validate-notebook-metadata:
-  desc: "Verify all notebook cells have proper metadata names"
-  cmds:
-    - |
-      python3 -c "
-      import json, re, sys, glob
-      issues = []
-      for nb_path in glob.glob('notebooks/**/*.ipynb', recursive=True):
-          if '.ipynb_checkpoints' in nb_path: continue
-          with open(nb_path) as f:
-              nb = json.load(f)
-          for i, cell in enumerate(nb['cells']):
-              name = cell.get('metadata', {}).get('name')
-              if not name:
-                  issues.append(f'{nb_path} cell {i}: Missing name')
-              elif re.match(r'^(cell|Cell|untitled)\d*$', name):
-                  issues.append(f'{nb_path} cell {i}: Generic name \"{name}\"')
-      if issues:
-          print('\n'.join(issues))
-          sys.exit(1)
-      print('All notebooks have valid cell names')
-      "
+format-notebooks-fix: ## Format and fix Jupyter notebooks
+	uvx nbqa ruff format notebooks/
+	uvx nbqa ruff check --fix notebooks/
 
-lint:
-  desc: "Run all linting checks"
-  cmds:
-    - task: lint-ruff
-    - task: lint-markdown
-    - task: lint-notebooks
-    - task: validate-notebook-metadata
+validate-notebook-metadata: ## Verify all notebook cells have proper metadata names
+	python3 -c " \
+		import json, re, sys, glob; \
+		issues = []; \
+		[issues.extend([ \
+			f'{nb_path} cell {i}: Missing name' \
+			if not cell.get('metadata', {}).get('name') \
+			else f'{nb_path} cell {i}: Generic name \"{cell.get("metadata", {}).get("name")}\"' \
+			for i, cell in enumerate(json.load(open(nb_path))['cells']) \
+			if not cell.get('metadata', {}).get('name') or re.match(r'^(cell|Cell|untitled)\d*$$', cell.get('metadata', {}).get('name', '')) \
+		]) for nb_path in glob.glob('notebooks/**/*.ipynb', recursive=True) if '.ipynb_checkpoints' not in nb_path]; \
+		print('\n'.join(issues)) if issues else print('All notebooks have valid cell names'); \
+		sys.exit(1) if issues else None \
+	"
+
+lint: lint-ruff lint-markdown lint-notebooks validate-notebook-metadata ## Run all linting checks
 ```
+
+> **Note:** If your project uses Taskfile.yml instead of Makefile, see `820-taskfile-automation.md` for equivalent task definitions.
 
 #### Pre-Task-Completion Validation
 
@@ -309,43 +293,20 @@ select = ["E", "W", "F", "I", "B", "C4", "UP"]
 
 **Problem:** Notebook linting is configured only in CI/CD pipelines. Developers push notebooks without running `uvx nbqa ruff notebooks/` locally, discover failures after commit, and make quick `# noqa` fixes to pass CI rather than properly fixing the code. This leads to accumulation of suppressed warnings and degraded code quality over time.
 
-**Correct Pattern:** Add notebook linting to the project's Taskfile (`task lint-notebooks`) and run it as part of the local development workflow before every commit. Include it in pre-commit hooks or make it a habit alongside `task lint`. Fix issues properly rather than suppressing them to pass CI.
+**Correct Pattern:** Add notebook linting to the project's Makefile and run it as part of the local development workflow before every commit. Include it in pre-commit hooks and run alongside other lint targets. Fix issues properly rather than suppressing them to pass CI.
 
-**Pre-commit hook example** (`.pre-commit-config.yaml`):
-```yaml
-repos:
-  - repo: local
-    hooks:
-      - id: nbqa-ruff
-        name: nbqa-ruff
-        entry: uvx nbqa ruff
-        language: system
-        files: \.ipynb$
-        types: [file]
+```makefile
+# Makefile
+.PHONY: lint-notebooks lint
+
+lint-notebooks: ## Lint Jupyter notebooks with Ruff via nbqa
+	uvx nbqa ruff notebooks/
+	uvx nbqa ruff format --check notebooks/
+
+lint: lint-ruff lint-notebooks ## Run all linting checks (run before every commit)
 ```
 
-```yaml
-# Wrong: Linting only in CI, developers never run locally
-# .github/workflows/ci.yml
-# - run: uvx nbqa ruff notebooks/
-# Result: Developers add "# noqa" to fix CI failures without understanding issues
-
-# Correct: Add to Taskfile for local + CI use
-# Taskfile.yml
-lint-notebooks:
-  desc: "Lint Jupyter notebooks with Ruff via nbqa"
-  cmds:
-    - uvx nbqa ruff notebooks/
-    - uvx nbqa ruff format --check notebooks/
-
-lint:
-  desc: "Run all linting checks (run before every commit)"
-  cmds:
-    - task: lint-ruff
-    - task: lint-notebooks
-```
-
-**Correct CI/CD pattern** — run the same Taskfile tasks in CI:
+**Correct CI/CD pattern** — run the same Makefile targets in CI:
 ```yaml
 # .github/workflows/ci.yml
 jobs:
@@ -354,5 +315,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
-      - run: task lint-notebooks  # Same task locally and in CI
+      - run: make lint-notebooks  # Same target locally and in CI
 ```

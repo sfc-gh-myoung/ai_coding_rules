@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-03-26
 **LoadTrigger:** kw:sql-automation, kw:procedure
 **Keywords:** idempotent, MERGE, operations, multi-environment, infrastructure as code, Snowflake variables, production-safe, upsert, SQL automation, deployment scripts, SQL pipeline, config management, environment variables
 **TokenBudget:** ~5150
@@ -48,7 +48,8 @@ Guide creation of parameterized SQL templates using <%VARIABLE%> syntax for auto
 - [Terraform Snowflake Provider](https://registry.terraform.io/providers/Snowflake-Labs/snowflake/latest/docs) - Infrastructure as code
 
 **Task Automation:**
-- [Taskfile](https://taskfile.dev/) - Task runner for SQL templates
+- [GNU Make](https://www.gnu.org/software/make/) - Build automation for SQL templates
+- [Taskfile](https://taskfile.dev/) - Alternative task runner for SQL templates
 
 ## Contract
 
@@ -91,7 +92,7 @@ Guide creation of parameterized SQL templates using <%VARIABLE%> syntax for auto
 
 ### Output Format
 
-SQL template files (.sql), Taskfile.yml tasks, CI/CD workflow files
+SQL template files (.sql), Makefile targets, CI/CD workflow files
 
 ### Validation
 
@@ -114,7 +115,7 @@ SQL template files (.sql), Taskfile.yml tasks, CI/CD workflow files
 - **Parameterization**: All environment-specific values as variables
 - **Idempotency**: Safe to run multiple times (MERGE, WHERE NOT EXISTS)
 - **Environment Agnostic**: Works across dev/test/prod with different parameters
-- **Automation Ready**: Integrates with Taskfile, GitHub Actions
+- **Automation Ready**: Integrates with Makefile, GitHub Actions
 - **Audit Trail**: Clear tracking of what was executed and when
 - **Data Preservation**: Never use CREATE OR REPLACE for tables with data
 
@@ -560,7 +561,7 @@ GROUP BY asset_type;
 
 ## CI/CD Integration
 
-For CI/CD pipeline integration (Taskfile, GitHub Actions, environment-specific variables, secrets management), see **102d-snowflake-sql-cicd.md**.
+For CI/CD pipeline integration (Makefile, GitHub Actions, environment-specific variables, secrets management), see **102d-snowflake-sql-cicd.md**.
 
 **Quick reference:** Use `snow sql -D DATABASE=PROD -D SCHEMA=GRID -f template.sql` for environment-specific deployments. Store credentials in CI/CD secret stores, never in code.
 

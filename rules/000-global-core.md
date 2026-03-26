@@ -9,8 +9,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.5.0
-**LastUpdated:** 2026-03-25
+**RuleVersion:** v3.5.1
+**LastUpdated:** 2026-03-26
 **Keywords:** workflow, safety, confirmation, validation, surgical edits, minimal changes, prompt engineering, task list, context window, professional communication
 **TokenBudget:** ~4050
 **ContextTier:** Critical
@@ -253,12 +253,14 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 - Run appropriate tests and lints for the technology
 - Update documentation when changes modify public APIs, configuration schemas, CLI interfaces, or documented behavior
 - Verify no regressions by running validation sequence (Syntax, Linting, Formatting, Type Checking, Tests) — "no regressions" means: all previously passing tests still pass, no new linting errors introduced, and no formatting violations added
-- **Taskfile-first (project standards):** If the project provides an automation entrypoint (prefer
-  `Taskfile.yml`), run validation via project-defined tasks:
-  - **If task exits 0:** Success, continue to next validation step
-  - **If task exits non-zero:** Report failure with task output, STOP
-  - **If Taskfile.yml missing OR task not found:** Fall back to direct tool commands
-  - **Common tasks:** `task validate`, `task check`, `task ci`, `task lint`, `task test`
+- **Automation-first (project standards):** Detect and use the project's automation entrypoint:
+  1. Check for `Makefile` at project root -> use `make <target>`
+  2. Check for `Taskfile.yml` at project root -> use `task <target>`
+  3. Check for `package.json` scripts -> use `npm run <target>`
+  4. If none found -> fall back to direct tool commands (see Validation Command Reference below)
+  - **If automation command exits 0:** Success, continue to next validation step
+  - **If automation command exits non-zero:** Report failure with output, STOP
+  - **Common target names:** `validate`, `check`, `ci`, `lint`, `test`
 
 **Validation Strategies:**
 - **Fast-fail:** Chain with `&&` for final checks (stops at first failure)
@@ -266,7 +268,7 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 
 ### Validation Command Reference
 
-**Preferred:** Use project-defined tasks (`task validate`, `task check`, `task ci`, `task lint`, `task test`)
+**Preferred:** Use project-defined automation targets (`validate`, `check`, `ci`, `lint`, `test`) via detected entrypoint (Makefile, Taskfile.yml, or package.json).
 
 **Fallback:** Load language-specific rule for technology commands:
 - **Python:** Load 200-python-core.md (ruff, pytest)

@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **refactor(rules):** makefile-primary remediation — replace Taskfile-first references with Makefile-primary patterns across 7 rule files
+  - `802-project-contributing.md` (v3.1.0 to v3.1.1): all `task` commands to `make` equivalents, `Task` to `GNU Make`, `Taskfile.yml` to `Makefile`
+  - `109-snowflake-notebooks.md` (v3.1.1 to v3.1.2): cross-reference fix (`"Taskfile integration"` to `"automation integration"`)
+  - `109c-snowflake-app-deployment-troubleshooting.md` (v3.1.1 to v3.1.2): prerequisites, decision tree, and deploy commands updated
+  - `109d-snowflake-notebooks-linting.md` (v1.1.1 to v1.1.2): full Taskfile YAML code blocks rewritten as Makefile syntax with `.PHONY` and tab-indented recipes
+  - `201-python-lint-format.md` (v3.2.0 to v3.2.1): Taskfile Integration section replaced with brief Automation Integration delegating to 820/821
+  - `102a-snowflake-sql-automation.md` (v3.1.0 to v3.1.1): external docs links and design principles updated to Makefile-primary
+  - `102d-snowflake-sql-cicd.md` (v1.0.0 to v1.0.1): full Taskfile section rewritten as Makefile Integration with `$(SNOW)`, `$(MAKE)`, `?=` patterns; keywords changed from `Taskfile` to `Makefile`
+  - RULES_INDEX.md regenerated (102d description now shows "Makefile integration")
+
+- **refactor(rules):** automation-framework-agnostic remediation — remove Taskfile/Makefile bias from 14 rule files
+  - Centralize automation-detection protocol in `000-global-core.md` (v3.5.0 to v3.5.1): Makefile first, Taskfile second, package.json third, direct fallback
+  - Replace hardcoded `task <target>` with generic "project automation entrypoint" language across 13 additional files
+  - Files updated: 200-python-core, 803-project-git-workflow, 202a-markdown-linting, 202-markup-config-validation, 200b-python-environment-tooling, 112-snowflake-snowcli, 300-bash-scripting-core, 600-golang-core, 600a-golang-patterns, 800-project-changelog, 109b-snowflake-app-deployment-core, 109i-snowflake-app-deployment-advanced, 109d-snowflake-notebooks-linting
+  - Dedicated automation rules (820, 820a, 821, 821a, 109h) intentionally excluded
+
 - **chore(docs):** update hardcoded rule counts from 180/179/129/113 to 187 across README, ARCHITECTURE, schemas, prompts, and bulk-rule-reviewer skill files
   - Replace static counts with dynamic phrasing where appropriate (e.g., "current rule set")
   - Files updated: README.md, docs/ARCHITECTURE.md, docs/USING_BULK_RULE_REVIEWER_SKILL.md, prompts/README.md, schemas/README.md, and 5 bulk-rule-reviewer files

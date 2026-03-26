@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-03-26
 **Keywords:** Ruff, linting, formatting, code quality, style checking, lint errors, ruff check, ruff format, pyproject.toml configuration, black, flake8
 **TokenBudget:** ~3700
 **ContextTier:** High
@@ -344,41 +344,17 @@ convention = "google"  # or "numpy"
 ## Compliance Notes
 
 - **CRITICAL:** These checks are part of the Pre-Task-Completion Validation Gate (see Validation section above).
-- If a `Taskfile.yml` exists, `task lint` and `task format` must also pass.
+- If the project has automation (Makefile, Taskfile.yml, or package.json), the project's lint and format targets must also pass. See `000-global-core.md` for automation detection.
 - Fix ALL failures before reporting success; do not rely on editor-only lints.
 - Reference Pre-Task-Completion Validation Gate in `000-global-core.md` and `AGENTS.md`.
 
-## Taskfile Integration
-- **Requirement:** Taskfile lint tasks must use `uvx ruff` for tool isolation.
-- **Requirement:** Separate check and fix tasks for better workflow control.
-- **Pattern:** Structure linting tasks to provide both check-only and fix modes.
+## Automation Integration
 
-### Taskfile Example Pattern
-```yaml
-lint-ruff:
-  desc: "Run ruff linter and formatter checks"
-  cmds:
-    - uvx ruff check .
-    - uvx ruff format --check .
+For integrating Ruff linting and formatting into project automation:
+- **Makefile projects:** See `821-makefile-automation.md` for target patterns
+- **Taskfile projects:** See `820-taskfile-automation.md` for task definitions
 
-lint-ty:
-  desc: "Run ty type checker"
-  cmds:
-    - uvx ty check .
-
-format:
-  desc: "Auto-format code with ruff"
-  cmds:
-    - uvx ruff format .
-    - uvx ruff check --fix .
-
-lint:
-  desc: "Run all code quality checks"
-  cmds:
-    - task: lint-ruff
-    - task: lint-ty    # primary type checker (Astral toolchain)
-    # - task: lint-mypy  # fallback: uv run mypy when mypy plugins needed
-```
+Automation targets should provide both check-only and fix modes, using `uvx ruff` for tool isolation. See Design Principles above.
 
 ## Tool Isolation Benefits
 - **Benefit:** `uvx ruff` ensures consistent tool versions across environments.

@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v4.1.0
-**LastUpdated:** 2026-03-25
+**RuleVersion:** v4.1.1
+**LastUpdated:** 2026-03-26
 **Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, pytest, validation, uv run, uvx, ty, type checking, mypy, type hints
 **TokenBudget:** ~3600
 **ContextTier:** Critical
@@ -90,7 +90,7 @@ These requirements apply regardless of toolchain choice:
 - Run test suite for projects with tests
 - Centralize configuration in `pyproject.toml`
 - Use `datetime.now(UTC)` instead of deprecated `datetime.utcnow()`
-- Run validation via project task automation if present: `task validate`, `make check`, or equivalent; if no automation file exists, run tools directly
+- Run validation via the project's automation entrypoint if present (see `000-global-core.md` automation-detection protocol); if no automation file exists, run tools directly
 - Pass Pre-Task-Completion Validation Gate before marking any task complete (see **200a-python-validation-gate.md**)
 
 ### Forbidden

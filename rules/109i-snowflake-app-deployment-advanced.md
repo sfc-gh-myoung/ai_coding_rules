@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-03-26
 **LoadTrigger:** kw:multi-env-deploy, kw:deployment-rollback
 **Keywords:** multi-environment deployment, deployment rollback, deployment recovery, deployment validation, environment-specific deployment, dev qa prod deployment, rollback strategy
 **TokenBudget:** ~2700
@@ -27,7 +27,7 @@ Advanced deployment patterns for Snowflake applications including multi-environm
 ### Related Rules
 **Closely Related** (consider loading together):
 - **109b-snowflake-app-deployment-core.md** - Parent rule with core deployment patterns
-- **109h-snowflake-app-deployment-taskfile.md** - Taskfile implementation patterns
+- **109h-snowflake-app-deployment-taskfile.md** - Taskfile implementation patterns (Makefile alternative: see 821)
 - **109c-snowflake-app-deployment-troubleshooting.md** - Deployment debugging
 
 ## Contract
@@ -35,7 +35,7 @@ Advanced deployment patterns for Snowflake applications including multi-environm
 ### Inputs and Prerequisites
 
 - Core deployment workflow functional (109b)
-- Taskfile structure in place (109h)
+- Automation structure in place (Taskfile per 109h, or Makefile per 821)
 - Multiple target environments configured
 
 ### Mandatory
@@ -58,7 +58,7 @@ Advanced deployment patterns for Snowflake applications including multi-environm
 
 ### Output Format
 
-Environment-aware Taskfile configuration and rollback scripts.
+Environment-aware automation configuration and rollback scripts.
 
 ### Validation
 
@@ -212,7 +212,7 @@ VALUES ('prod', 'MY_NOTEBOOK', 'v1.2.0', CURRENT_USER(), CURRENT_TIMESTAMP(), 's
 
 ### Deployment Notifications
 
-Add a Taskfile task that sends a notification on deployment completion or failure:
+Add an automation target that sends a notification on deployment completion or failure:
 
 ```yaml
   notify:deploy:

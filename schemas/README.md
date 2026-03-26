@@ -610,7 +610,7 @@ RESULT: ❌ FAILED (1 CRITICAL, 2 HIGH, 3 MEDIUM issues)
 
 **Expected Performance:**
 - Single file: ~10-20ms
-- All 111 rules: ~1-2 seconds
+- All 187 rules: ~1-2 seconds
 - Parallel mode: ~0.5-1 second
 
 **Optimization:**

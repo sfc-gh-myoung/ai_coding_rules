@@ -2,7 +2,7 @@
 
 ## Scenario 1: Mid-Review Efficiency Optimization
 
-Agent reviewing 113 rules, at rule 15/113, notices task will take ~15 more minutes.
+Agent reviewing 187 rules, at rule 15/187, notices the full run will take additional time.
 
 ###  WRONG: Efficiency Optimization Attempt
 
@@ -20,9 +20,9 @@ Agent reviewing 113 rules, at rule 15/113, notices task will take ~15 more minut
 
 **Agent response:**
 
-> "Progress: 15/113 rules complete (13.3%). Estimated remaining time: 17 minutes.
+> "Progress: 15/187 rules complete (8.0%). Continuing comprehensive review process.
 >
-> Continuing comprehensive review process for rule 16/113: `rules/104-snowflake-streams-tasks.md`
+> Continuing comprehensive review process for rule 16/187: `rules/104-snowflake-streams-tasks.md`
 >
 > [Proceeds with full schema validation, Agent Execution Test, rubric-based scoring, specific recommendations, complete review write]"
 
@@ -37,7 +37,7 @@ Agent reviewing 113 rules, at rule 15/113, notices task will take ~15 more minut
 
 ## Scenario 2: Token Cost Concern
 
-Agent at rule 30/113, token usage at 25K.
+Agent at rule 30/187, token usage at 25K.
 
 ###  WRONG: Token Conservation (Category Error)
 
@@ -56,17 +56,17 @@ Agent at rule 30/113, token usage at 25K.
 
 **Agent response:**
 
-> "Progress: 30/113 rules complete (26.5%). Token usage: 25K. Projected total: 96K.
+> "Progress: 30/187 rules complete (16.0%). Token usage: 25K.
 >
 > **Note:** This skill is not optimized for token efficiency (unlike rules). Skills prioritize comprehensive quality over token cost. Quarterly usage makes token efficiency irrelevant.
 >
 > **Economic Context:**
 > - Skill cost: ~$0.45 per review
 > - Annual usage: 4 reviews = $1.80/year
-> - Value: Comprehensive QA for 113 rules
+> - Value: Comprehensive QA for the full rule set
 > - ROI: One prevented bad rule = 10-100× cost savings
 >
-> Projected cost: ~$0.45 for complete QA of 113 rules. This is acceptable.
+> Projected cost remains acceptable for complete QA of the full rule set.
 >
 > Continuing with rule 31/113..."
 
@@ -98,7 +98,7 @@ User: "Can you speed this up?"
 
 **Agent response:**
 
-> "I understand the time concern. The current process takes ~19 minutes for 113 rules (measured). Here are options that maintain quality:
+> "I understand the time concern. Here are options that maintain quality while adjusting scope:
 >
 > **Option A:** Use filter_pattern to review subset
 > - Example: `filter_pattern: rules/100-*.md` (Snowflake only)
@@ -108,7 +108,7 @@ User: "Can you speed this up?"
 >
 > **Option B:** Use STALENESS mode for quick check
 > - Reviews only LastUpdated and tool currency
-> - Time: ~4 minutes for 113 rules
+> - Time: scales with the current rule count
 > - Quality: Valid staleness signal (1 dimension only)
 > - Tradeoff: Only one dimension scored
 >
@@ -136,7 +136,7 @@ User: "Can you speed this up?"
 
 ## Scenario 4: Time Estimate Panic
 
-Agent calculates 113 rules × 5 minutes = 565 minutes (9+ hours) and panics.
+Agent calculates the current rule count × 5 minutes and panics.
 
 ###  WRONG: Premature Optimization
 
@@ -154,7 +154,7 @@ Agent calculates 113 rules × 5 minutes = 565 minutes (9+ hours) and panics.
 **Agent response:**
 
 > "Calculating expected duration:
-> - Rules to review: 113
+> - Rules to review: 187
 > - Time per rule: Unknown (will measure)
 >
 > Starting comprehensive review. I'll report actual timing after first 10 rules.
@@ -195,7 +195,7 @@ Agent notices many rules have similar structures and considers templating.
 
 **Agent response:**
 
-> "Progress: 25/113 rules complete. Currently reviewing `rules/103-snowflake-performance-tuning.md`
+> "Progress: 25/187 rules complete. Currently reviewing `rules/103-snowflake-performance-tuning.md`
 >
 > [Performs full schema validation]
 > [Performs Agent Execution Test]
@@ -218,7 +218,7 @@ Agent notices many rules have similar structures and considers templating.
 
 ## Key Lessons
 
-1. **Time is not the constraint** - 19 minutes for 113 rules is reasonable
+1. **Time is not the only constraint** - quality remains the primary goal for full-repository reviews
 2. **Tokens are not the constraint** - $0.45 for comprehensive QA is cheap for skills (quarterly use)
 3. **Quality cannot be compromised** - Shortcuts defeat the skill's purpose
 4. **Measure before optimizing** - Actual performance often better than estimates
@@ -239,7 +239,7 @@ Agent notices many rules have similar structures and considers templating.
 
 **Instead, remember:**
 - Skills are used rarely → Token efficiency irrelevant
-- Annual cost: $1.80 for 4 reviews → Trivial
+- Annual cost remains low relative to the value of full-repository quality assurance
 - One bad rule: 10-100× more expensive → Prevention is cheap
 - Quality signal cannot be compressed → Every step matters
 - Legitimate alternatives exist → Don't compromise core process

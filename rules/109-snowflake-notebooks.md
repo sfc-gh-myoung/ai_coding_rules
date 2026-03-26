@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.2
+**LastUpdated:** 2026-03-26
 **LoadTrigger:** kw:notebook, kw:jupyter
 **Keywords:** ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, create notebook, debug notebook, notebook execution, notebook testing, notebook deployment, kernel management, cell execution
 **TokenBudget:** ~4450
@@ -403,7 +403,7 @@ df = session.table("DB.SCHEMA.TABLE")
 
 ## Code Quality & Linting
 
-> For notebook linting with nbqa, Ruff, Taskfile integration, Ruff configuration, common linting issues, and when to skip linting, see **109d-snowflake-notebooks-linting.md**.
+> For notebook linting with nbqa, Ruff, automation integration, Ruff configuration, common linting issues, and when to skip linting, see **109d-snowflake-notebooks-linting.md**.
 
 **Quick Reference:**
 ```bash

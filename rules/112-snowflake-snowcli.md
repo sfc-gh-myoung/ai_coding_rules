@@ -6,7 +6,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-26
 **LoadTrigger:** kw:snowcli, file:snowflake.yml
-**Keywords:** snow CLI, SnowCLI, Snowflake CLI, snowflake-cli, uvx, Taskfile, task automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, stage copy, config.toml, PAT authentication, WIF authentication, project definition, connection management, stage-to-stage copy
+**Keywords:** snow CLI, SnowCLI, Snowflake CLI, snowflake-cli, uvx, automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, stage copy, config.toml, PAT authentication, WIF authentication, project definition, connection management, stage-to-stage copy
 **TokenBudget:** ~4900
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md
@@ -14,11 +14,11 @@
 ## Scope
 
 **What This Rule Covers:**
-Clear, reproducible guidance for installing, invoking, and automating Snowflake CLI (SnowCLI) with hermetic, pinned execution. Covers uvx usage, Taskfile automation, profile/env var configuration, CI/CD patterns, version pinning, and secure credential management.
+Clear, reproducible guidance for installing, invoking, and automating Snowflake CLI (SnowCLI) with hermetic, pinned execution. Covers uvx usage, build automation integration, profile/env var configuration, CI/CD patterns, version pinning, and secure credential management.
 
 **When to Load This Rule:**
 - Setting up SnowCLI for local development
-- Creating Taskfile automation for Snowflake deployments
+- Creating automation targets for Snowflake deployments
 - Configuring CI/CD pipelines with SnowCLI
 - Managing SnowCLI versions and dependencies
 - Securing SnowCLI credentials
@@ -34,7 +34,7 @@ Clear, reproducible guidance for installing, invoking, and automating Snowflake 
 - **100-snowflake-core.md** - Snowflake foundation patterns
 
 **Related:**
-- **820-taskfile-automation.md** - Taskfile best practices
+- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
 - **803-project-git-workflow.md** - CI/CD integration patterns
 
 ### External Documentation
@@ -42,7 +42,6 @@ Clear, reproducible guidance for installing, invoking, and automating Snowflake 
 **SnowCLI Documentation:**
 - [Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/index) - Official SnowCLI documentation
 - [UV Tool](https://github.com/astral-sh/uv) - UV tool for Python package management
-- [Taskfile](https://taskfile.dev) - Task automation tool
 
 ## Contract
 
@@ -58,7 +57,7 @@ Clear, reproducible guidance for installing, invoking, and automating Snowflake 
 - `uvx` (preferred) or `uv tool install`
 - Homebrew (Mac dev-only fallback)
 - Environment variables and secure secret stores
-- Taskfile targets
+- Project automation targets (Makefile, Taskfile, or equivalent)
 
 ### Forbidden
 
@@ -69,7 +68,7 @@ Clear, reproducible guidance for installing, invoking, and automating Snowflake 
 ### Execution Steps
 
 1. Use hermetic, pinned execution: `uvx --from=snowflake-cli==3.16.0 snow {{.CLI_ARGS}}`
-2. Provide Taskfile wrapper for developer ergonomics
+2. Provide automation wrapper (Makefile target or Taskfile task) for developer ergonomics
 3. Use profile-based or env var configuration; never hardcode secrets
 4. Use non-interactive flags and machine-readable output (JSON) in automation
 5. Validate pinned version and basic connectivity before running workflows
@@ -77,7 +76,7 @@ Clear, reproducible guidance for installing, invoking, and automating Snowflake 
 ### Output Format
 
 - Shell command snippets
-- Taskfile targets
+- Project automation targets (Makefile, Taskfile, or equivalent)
 - Configuration notes
 
 ### Validation
@@ -85,7 +84,7 @@ Clear, reproducible guidance for installing, invoking, and automating Snowflake 
 **Pre-Task-Completion Checks:**
 - `snow --version` resolves to pinned version when invoked through `uvx`
 - Core commands run non-interactively in CI
-- No credentials present in code or Taskfile
+- No credentials present in code or automation files
 
 **Success Criteria:**
 - Commands execute with pinned version
@@ -104,7 +103,7 @@ Clear, reproducible guidance for installing, invoking, and automating Snowflake 
 ### Post-Execution Checklist
 
 - [ ] uvx with pinned snowflake-cli version configured
-- [ ] Taskfile wrapper created for common commands
+- [ ] Automation wrapper created for common commands (Makefile target or Taskfile task)
 - [ ] Profile-based or env var config (no hardcoded credentials)
 - [ ] Non-interactive flags for CI/CD
 - [ ] Version validation in workflows
@@ -127,12 +126,19 @@ snow --version
 # Good: Use uvx for isolated, pinned execution
 uvx --from=snowflake-cli==3.16.0 snow --version
 
-# In Taskfile.yaml - single source of truth for version
-CLI_VERSION: "3.16.0"
-tasks:
-  deploy:
-    cmds:
-      - uvx --from=snowflake-cli=={{.CLI_VERSION}} snow {{.CLI_ARGS}}
+# In project automation (Makefile, Taskfile, or CI config) - single source of truth for version
+# Example (Makefile):
+CLI_VERSION := 3.16.0
+snow:
+	uvx --from=snowflake-cli==$(CLI_VERSION) snow $(ARGS)
+
+# Example (Taskfile.yml):
+# CLI_VERSION: "3.16.0"
+# tasks:
+#   snow:
+#     cmds: [uvx --from=snowflake-cli=={{.CLI_VERSION}} snow {{.CLI_ARGS}}]
+#
+# For complete examples, see 820-taskfile-automation.md or 821-makefile-automation.md
 ```
 **Benefits:** Consistent versions; isolated execution; easy version updates; reproducible environments; CI reliability; no conflicts
 
@@ -274,20 +280,22 @@ uvx --from=snowflake-cli==3.16.0 snow sql -q "select 1 as ok"
 
 Rationale: `uvx` downloads and executes the requested version in an isolated environment, avoiding global state and ensuring deterministic behavior. See official repo guidance that recommends `uv`/`uvx` and shows `uvx --from snowflake-cli snow --help` for quick use. Reference: `https://github.com/snowflakedb/snowflake-cli`.
 
-### Developer convenience (Taskfile wrapper)
-```yaml
-# Taskfile.yml
-version: '3'
-tasks:
-  snow:
-    desc: Run Snowflake CLI via pinned uvx (pass args with CLI_ARGS)
-    cmds:
-      - uvx --from=snowflake-cli==3.16.0 snow {{.CLI_ARGS}}
-    vars:
-      CLI_ARGS: "--help"
+### Developer convenience (automation wrapper)
+
+Wrap the pinned `uvx` invocation in the project's automation tool for ergonomic use:
+
+```bash
+# Makefile example:
+CLI_VERSION := 3.16.0
+.PHONY: snow
+snow: ## Run Snowflake CLI via pinned uvx
+	uvx --from=snowflake-cli==$(CLI_VERSION) snow $(ARGS)
+# Usage: make snow ARGS="sql -q 'select 1'"
 ```
 
-Developers can run: `task snow -- -q "select 1"` or `task snow -- --version`.
+For Taskfile.yml wrapper patterns, see `820-taskfile-automation.md`.
+
+Developers can run: `make snow ARGS="-q 'select 1'"` or equivalent.
 
 ### Alternative (Mac dev-only fallback)
 ```bash
@@ -310,7 +318,7 @@ Binary installers (deb, rpm, macOS pkg, Windows MSI) and FIPS-compliant Docker i
 
 - **Rule:** Default to `snowflake-cli==3.16.0` in all automation until you run the full test suite with the new version in a staging environment and confirm 0 failures
 - **Rule:** Surface the CLI version in logs (`snow --version`) at the start of jobs for traceability
-- **Rule:** Maintain a single pin in your Taskfile/CI templates to centralize upgrades
+- **Rule:** Maintain a single pin in your automation files (Makefile, Taskfile, or CI templates) to centralize upgrades
 
 ## Configuration and Authentication
 

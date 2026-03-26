@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.5.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.5.1
+**LastUpdated:** 2026-03-26
 **LoadTrigger:** kw:git, kw:commit, kw:workflow
 **Keywords:** git, commit, commit message, workflow, branching, GitHub, pull requests, feature branches, Conventional Commits, branch naming
 **TokenBudget:** ~3100
@@ -76,7 +76,7 @@ Clean git history with semantic commits; properly named branches; complete PR de
 - [ ] Git repository initialized with remote: `git remote -v`
 - [ ] Current branch is NOT main/master: `git branch --show-current`
 - [ ] Pre-commit hooks available: `pre-commit --version` or check `.pre-commit-config.yaml`
-- [ ] `task validate` command accessible: `task --list | grep validate`
+- [ ] Project validation command accessible (e.g., `make validate`, `task validate`, or equivalent per project automation)
 - [ ] CHANGELOG.md exists: `ls CHANGELOG.md`
 
 **Success Criteria:**
@@ -84,7 +84,7 @@ Clean git history with semantic commits; properly named branches; complete PR de
 - [ ] Branch follows `type/description` convention: `git branch --show-current | grep -E "^(feature|feat|fix|bugfix|hotfix|release|chore|docs|refactor)/"`
 - [ ] CHANGELOG.md updated under `## [Unreleased]`: `grep -A 5 "## \[Unreleased\]" CHANGELOG.md | grep -q .`
 - [ ] All commits use Conventional Commits format: `git log --oneline -5`
-- [ ] Status checks pass: `task validate` exits with code 0
+- [ ] Status checks pass: project validation command exits with code 0
 - [ ] No merge conflicts: `git diff --check` returns empty
 
 ### Design Principles
@@ -124,7 +124,7 @@ git checkout main && git commit -m "quick fix" && git push  # WRONG
 ```bash
 git checkout -b fix/critical-bug
 git commit -m "fix(core): resolve critical validation bug"
-task validate
+# Run project validation (make validate, task validate, or equivalent)
 git push origin fix/critical-bug
 gh pr create --title "fix(core): resolve critical validation bug"
 ```
@@ -189,7 +189,7 @@ git commit --no-verify -m "feat: new feature"  # WRONG: blindly bypasses
 ```
 **Problem:** Skips quality checks; may introduce issues.
 
-**Correct Pattern:** Request elevated permissions or run `task validate` first, then use `--no-verify` only after manual verification.
+**Correct Pattern:** Request elevated permissions or run the project's validation command first, then use `--no-verify` only after manual verification.
 
 ## Conventional Commits Specification
 
@@ -285,7 +285,7 @@ git checkout -b feature/SF-123-add-cortex-agents  # With ticket
 git checkout main && git pull origin main
 git checkout -b feature/my-new-feature
 # ... make changes ...
-task validate
+# Run project validation (make validate, task validate, or equivalent)
 # Update CHANGELOG.md
 git add . && git commit -m "feat(rules): add git workflow patterns"
 git status --porcelain  # Should be empty

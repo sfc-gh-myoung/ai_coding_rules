@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-03-26
 **Keywords:** Go, Golang, go.mod, modules, error handling, interfaces, goroutines, channels, testing, go fmt, golangci-lint, concurrency, context, defer
 **TokenBudget:** ~3900
 **ContextTier:** High
@@ -177,7 +177,7 @@ Directory structure for `project/`:
 - **pkg/** - Public packages (importable)
   - **api/**
 - `go.mod`, `go.sum`
-- `Makefile` (or `Taskfile.yml`)
+- `Makefile` or `Taskfile.yml` (project automation)
 - `README.md`
 
 **Rules:**

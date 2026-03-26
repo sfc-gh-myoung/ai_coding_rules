@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-03-26
 **Keywords:** YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases, Markdown, markdown linting, pymarkdownlnt, markup validation, TOML, environment files
 **TokenBudget:** ~3950
 **ContextTier:** Medium
@@ -14,11 +14,11 @@
 ## Scope
 
 **What This Rule Covers:**
-Safe markup and configuration file practices to prevent parsing errors and maintain consistency across YAML, TOML, environment files, and Markdown documentation. Covers YAML syntax safety, quoting rules, indentation standards, shell command safety, Taskfile patterns, TOML validation, Markdown linting with pymarkdownlnt, and security considerations for configuration files.
+Safe markup and configuration file practices to prevent parsing errors and maintain consistency across YAML, TOML, environment files, and Markdown documentation. Covers YAML syntax safety, quoting rules, indentation standards, shell command safety, automation file patterns (Taskfile, Makefile), TOML validation, Markdown linting with pymarkdownlnt, and security considerations for configuration files.
 
 **When to Load This Rule:**
 - Writing or editing YAML configuration files
-- Creating or modifying Taskfile.yml
+- Creating or modifying automation files (Taskfile.yml, Makefile)
 - Troubleshooting YAML parsing errors
 - Validating TOML configuration (pyproject.toml, etc.)
 - Linting Markdown documentation
@@ -36,7 +36,7 @@ Safe markup and configuration file practices to prevent parsing errors and maint
 **Related:**
 - **202a-markdown-linting.md** - Markdown linting patterns and pymarkdownlnt configuration (Recommended)
 - **203-python-project-setup.md** - pyproject.toml configuration
-- **820-taskfile-automation.md** - Taskfile patterns
+- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
 
 ### External Documentation
 
@@ -285,7 +285,9 @@ rules:
 - **Always:** Test complex shell commands outside YAML first.
 - **Critical:** Escape quotes properly in nested contexts: `"echo \"Hello World\""`
 
-## Taskfile-Specific Guidelines
+## Automation File Guidelines (Taskfile / Makefile)
+
+> The patterns below apply to Taskfile.yml syntax. For Makefile patterns, see `821-makefile-automation.md`.
 
 ### Silent Mode Usage
 - **Always:** Add `silent: true` to tasks with multiple echo statements.
@@ -417,7 +419,7 @@ For Markdown linting patterns, tool configuration (pymarkdownlnt), and integrati
 > 1. **Read existing config files BEFORE making changes** - Check current YAML/TOML structure, indentation style
 > 2. **Verify what validation tools are available** - Check for yamllint, toml parsers in project
 > 3. **Never assume config structure** - Read files to understand existing patterns
-> 4. **Check for existing validation tasks** - Look in Taskfile.yml for lint tasks
+> 4. **Check for existing validation targets** - Look in Makefile, Taskfile.yml, or package.json for lint/validation targets
 > 5. **Test config changes** - Parse files after modifications to ensure they're valid
 >
 > **Anti-Pattern:**

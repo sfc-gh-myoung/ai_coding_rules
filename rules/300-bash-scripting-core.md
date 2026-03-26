@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-25
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-03-26
 **Keywords:** Bash, shell scripting, set -euo pipefail, error handling, strict mode, functions, variables, script structure, trap, exit codes, shellcheck, input validation
 **TokenBudget:** ~3500
 **ContextTier:** High
@@ -41,7 +41,7 @@ Foundational bash scripting patterns covering script structure, variables, funct
 - **300a-bash-security.md** - Security patterns for Bash scripts
 - **300b-bash-testing-tooling.md** - Testing and tooling for Bash
 - **300d-bash-advanced.md** - Advanced patterns, performance, code style, debugging
-- **820-taskfile-automation.md** - Task automation with Taskfiles
+- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
 
 ### External Documentation
 

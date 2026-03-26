@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **chore(docs):** update hardcoded rule counts from 180/179/129/113 to 187 across README, ARCHITECTURE, schemas, prompts, and bulk-rule-reviewer skill files
+  - Replace static counts with dynamic phrasing where appropriate (e.g., "current rule set")
+  - Files updated: README.md, docs/ARCHITECTURE.md, docs/USING_BULK_RULE_REVIEWER_SKILL.md, prompts/README.md, schemas/README.md, and 5 bulk-rule-reviewer files
+
 - **fix:** replace stale `task index:generate` references with `make index-generate` across 7 files
   - Fix root cause in `src/ai_rules/commands/index.py` (generator emits stale string)
   - Fix `rules/002b-rule-update.md` (v1.2.1 to v1.2.2)

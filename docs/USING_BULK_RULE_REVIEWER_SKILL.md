@@ -36,7 +36,7 @@ On success:
 ```text
 ✓ Bulk review complete
 
-Individual reviews: reviews/rule-reviews/<rule-name>-claude-sonnet-45-2026-01-06.md (129 files)
+Individual reviews: reviews/rule-reviews/<rule-name>-claude-sonnet-45-2026-01-06.md (up to 187 files)
 Master summary: reviews/summaries/_bulk-review-claude-sonnet-45-2026-01-06.md
 ```
 
@@ -177,7 +177,7 @@ The skill supports resuming after interruptions via `skip_existing: true` (defau
 ```text
 ✓ Skipping 000-global-core (review exists)
 ✓ Skipping 001-memory-bank (review exists)
-[67/129] Reviewing: rules/067-new-rule.md
+[67/187] Reviewing: rules/067-new-rule.md
 ```
 
 **Benefits:** Resume after interruption without re-work. Save 3-4 hours when resuming mid-batch.
@@ -237,7 +237,7 @@ Yes. Set `skip_existing: false` to overwrite existing reviews with fresh evaluat
 
 ### How long does a full review take?
 
-For ~129 rules in FULL mode: ~50 minutes with parallel execution (5 workers), or 4-6 hours sequential (90-120 seconds per rule).
+For the full current rule set in FULL mode: ~50 minutes with parallel execution (5 workers), or longer in sequential mode depending on rule count and complexity.
 
 ### Why is it slow?
 
@@ -296,7 +296,7 @@ skills/bulk-rule-reviewer/
 ├── SKILL.md                       # Main skill (entrypoint)
 ├── CRITICAL_CONTEXT.md            # Execution integrity rules
 ├── examples/
-│   ├── full-bulk-review.md        # Complete 113-rule walkthrough
+│   ├── full-bulk-review.md        # Complete walkthrough example
 │   └── shortcut-prevention.md     # Anti-shortcut patterns
 ├── tests/
 │   └── validation-tests.md        # Validation test cases

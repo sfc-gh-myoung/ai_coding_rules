@@ -684,7 +684,7 @@ ai_coding_rules/
 │   │   ├── 121-snowpipe-auto-ingest-example.md
 │   │   ├── 220-python-typer-cli-example.md
 │   │   └── 821-makefile-automation-example.md
-│   └── ... (179 total rules + 14 examples)
+│   └── ... (187 total rules + 14 examples)
 │
 ├── schemas/                    # Validation schemas
 │   ├── rule-schema.yml         # Rule file schema definition
@@ -769,7 +769,7 @@ ai_coding_rules/
 - Production-ready files
 - Directly editable
 - No generation required
-- 180 rules covering all domains (including HTMX, Go/Golang, Alpine.js, Podman, and extensive companion rule families)
+- 187 rules covering all domains (including HTMX, Go/Golang, Alpine.js, Podman, and extensive companion rule families)
 
 **`rules/examples/`** — Validated implementation examples
 - Complete, runnable reference implementations for complex rules
@@ -1293,7 +1293,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 ### Deployment Architecture
 
 **Source Files (in ai_coding_rules repository):**
-- `rules/` — 179 production-ready rule files
+- `rules/` — 187 production-ready rule files
 - `AGENTS.md` — Discovery guide with loading protocol
 - `RULES_INDEX.md` — Searchable catalog with keywords
 
@@ -1306,7 +1306,7 @@ v3.0 deployment is **agent-agnostic** — a single `--dest` flag deploys rules t
 **Target Structure (in user's project):**
 ```
 /path/to/user-project/
-├── rules/                  # 179 rule files
+├── rules/                  # 187 rule files
 │   ├── 000-global-core.md
 │   ├── 100-snowflake-core.md
 │   └── ...
@@ -1398,15 +1398,15 @@ Configuration:
   Mode: LIVE (files will be copied)
 
 Validation:
-  ✓ Source rules/ directory exists (180 files)
+  ✓ Source rules/ directory exists (187 files)
   ✓ Source AGENTS.md exists
   ✓ Source RULES_INDEX.md exists
   ✓ Destination writable
 
 Deployment:
   → Creating destination rules/ directory
-  → Copying 180 rule files...
-  ✓ Copied 180 rules to /path/to/project/rules/
+  → Copying 187 rule files...
+  ✓ Copied 187 rules to /path/to/project/rules/
   ✓ Copied AGENTS.md to /path/to/project/
   ✓ Copied RULES_INDEX.md to /path/to/project/
 
@@ -1739,7 +1739,7 @@ flowchart TD
 
 ```mermaid
 graph TD
-    Root[ai_coding_rules/] --> Rules[rules/<br/>179 production files]
+    Root[ai_coding_rules/] --> Rules[rules/<br/>187 production files]
     Root --> Src[src/ai_rules/<br/>CLI tool]
     Root --> Schemas[schemas/<br/>v3.2 YAML schema]
     Root --> Tests[tests/<br/>494 passing tests]
@@ -1749,7 +1749,7 @@ graph TD
     
     Rules --> Rule1[000-global-core.md]
     Rules --> Rule2[100-snowflake-core.md]
-    Rules --> Rule3[... 179 total]
+    Rules --> Rule3[... 187 total]
     
     Src --> S1[ai-rules new]
     Src --> S2[ai-rules deploy]

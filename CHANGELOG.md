@@ -8,6 +8,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **docs(rules):** update 112-snowflake-snowcli (v3.1.1 to v3.2.0)
+  - Update version pin from 3.14 to 3.16.0 (14+ occurrences)
+  - Fix outdated docs URL (snowflake-cli-v2 to snowflake-cli)
+  - Add config.toml as primary configuration file
+  - Add PAT, WIF, OAuth 2.0 authentication methods
+  - Add missing CLI command groups (cortex, notebook, dbt, git, spcs, validate-image)
+  - Add key environment variables for CI/CD
+  - Add binary installer and pipx installation methods
+  - Add snowflake.yml project definition coverage
+  - Add stage-to-stage copy documentation
+  - Expand connection management commands (remove, set-default, -x)
+  - Expand "When to Load" triggers
+  - Add v3.16.0 --recursive FQN bug fix note
+  - Impact: Aligns rule with current Snowflake CLI v3.16.0 documentation
+
+- **docs(rules):** update 950-dbt-core (v1.0.0 to v1.1.0)
+  - Add schema customization concept (generate_schema_name macro)
+  - Add versioning documentation link and snow://dbt/ URI scheme
+  - Add snow dbt deploy/execute CLI reference links
+  - Add v3.16.0 file ordering bug fix to troubleshooting
+  - Impact: Completes dbt Projects on Snowflake lifecycle coverage
 - **docs(rules):** remediate 440-react-core review findings (v3.2.0 to v3.3.0)
   - Extract anti-patterns, error recovery, and output examples to new 440a-react-anti-patterns.md companion file (~177 lines moved)
   - Resolve barrel file / index.ts contradiction: add scoped exception for feature-level public API boundary

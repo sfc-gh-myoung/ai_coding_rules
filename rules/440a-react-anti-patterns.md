@@ -11,7 +11,7 @@
 **RuleVersion:** v3.3.0
 **LastUpdated:** 2026-03-25
 **Keywords:** React, Anti-Patterns, Error Recovery, Hydration, Suspense, ErrorBoundary, useEffect, use client, Resource Exhaustion, Cleanup, Unmount, AbortController
-**TokenBudget:** ~2200
+**TokenBudget:** ~2450
 **ContextTier:** Medium
 **Depends:** 440-react-core.md, 430-typescript-core.md
 **LoadTrigger:** kw:anti-pattern, kw:error boundary, kw:hydration

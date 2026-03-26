@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **docs(skills):** rewrite plan-reviewer and doc-reviewer guides for current skill behavior and clearer operational usage
+  - Align both docs to the rule-reviewer guide structure with Quick Start, modes, results, FAQ, and reference sections
+  - Correct stale skill details including `focus_area`, parallel execution default, output behaviors, and current mode guidance
+  - Improve user-facing examples and operational notes so skill invocation no longer requires cross-checking `SKILL.md`
+- **docs(templates):** refresh AGENTS templates to use Makefile examples instead of Taskfile examples
 - **refactor(rules):** makefile-primary remediation — replace Taskfile-first references with Makefile-primary patterns across 7 rule files
   - `802-project-contributing.md` (v3.1.0 to v3.1.1): all `task` commands to `make` equivalents, `Task` to `GNU Make`, `Taskfile.yml` to `Makefile`
   - `109-snowflake-notebooks.md` (v3.1.1 to v3.1.2): cross-reference fix (`"Taskfile integration"` to `"automation integration"`)

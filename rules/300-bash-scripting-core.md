@@ -11,7 +11,7 @@
 **RuleVersion:** v3.2.1
 **LastUpdated:** 2026-03-26
 **Keywords:** Bash, shell scripting, set -euo pipefail, error handling, strict mode, functions, variables, script structure, trap, exit codes, shellcheck, input validation
-**TokenBudget:** ~3500
+**TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** 000-global-core.md
 **LoadTrigger:** ext:.sh, ext:.bash, ext:.zsh

@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-03-26
 **Keywords:** demo SQL, workshop, teardown, progress indicators, rerunnable demos, CREATE OR REPLACE, educational SQL, demo patterns, setup scripts, customer learning, per-schema isolation, inline documentation
 **LoadTrigger:** kw:demo, kw:workshop, kw:quickstart
 **TokenBudget:** ~4600
@@ -128,7 +128,9 @@ SQL files with .sql extension, UTF-8 encoding, Unix line endings
 **Rule:** Use `<schema>_<operation>.sql` format
 
 **Pattern:**
-```text
+```
+
+For Taskfile patterns, see `820-taskfile-automation.md`. For Makefile patterns, see `821-makefile-automation.md`.text
 <lowercase_schema>_<operation>.sql
 ```
 
@@ -336,7 +338,8 @@ CREATE OR REPLACE STAGE UTILITY_DEMO_V2.GRID_DATA.DATA_FILES;         -- Files r
 - **features/** - `grid_load.sql`, `customer_load.sql`, `semantic_views.sql`
 - **teardown/** - `grid_teardown.sql`, `customer_teardown.sql`, `database_teardown.sql`
 
-**Orchestrate with Taskfile.yml** (`snow sql -f` commands):
+**Orchestrate with project automation** (for example, Taskfile or Makefile wrapping `snow sql -f` commands):
+Taskfile example:
 ```yaml
 tasks:
   setup:grid:

@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.1.2
+**RuleVersion:** v1.1.3
 **LastUpdated:** 2026-03-26
 **LoadTrigger:** kw:nbqa, kw:notebook-linting
 **Keywords:** nbqa, ruff, notebook linting, code quality, Jupyter, notebook formatting, lint notebooks, notebook validation
@@ -19,7 +19,7 @@ Code quality tooling and linting configuration for Jupyter Notebooks using nbqa 
 **When to Load This Rule:**
 - Setting up notebook linting in a project
 - Configuring nbqa with Ruff for notebooks
-- Integrating notebook linting into CI/CD or project automation (Makefile)
+- Integrating notebook linting into CI/CD or project automation (Makefile, Taskfile, or equivalent)
 - Troubleshooting notebook linting issues
 - Deciding when to skip linting for specific notebooks
 
@@ -72,14 +72,14 @@ Run `uvx nbqa ruff notebooks/` and confirm zero errors. Run `uvx nbqa ruff forma
 ### Design Principles
 
 - Same code quality standards for notebooks as Python modules.
-- Automate linting via project automation (Makefile) for consistent CI/CD integration.
+- Automate linting via project automation for consistent CI/CD integration.
 - Default to linting; exceptions should be rare and documented.
 
 ### Post-Execution Checklist
 
 - [ ] `uvx nbqa ruff notebooks/` passes with zero errors
 - [ ] `uvx nbqa ruff format --check notebooks/` passes
-- [ ] Makefile includes lint/format targets for notebooks (or direct uvx commands)
+- [ ] Project automation includes lint/format targets for notebooks (or direct uvx commands)
 - [ ] pyproject.toml has notebook-specific Ruff configuration
 
 ## Implementation Details
@@ -103,7 +103,7 @@ uvx nbqa ruff notebooks/grid_asset_prediction.ipynb
 
 #### Integration with Project Automation
 
-Add notebook linting targets to project `Makefile`:
+Add notebook linting targets to the project's automation entrypoint. Example `Makefile` implementation:
 
 ```makefile
 .PHONY: lint-notebooks format-notebooks format-notebooks-fix validate-notebook-metadata lint
@@ -136,7 +136,7 @@ validate-notebook-metadata: ## Verify all notebook cells have proper metadata na
 lint: lint-ruff lint-markdown lint-notebooks validate-notebook-metadata ## Run all linting checks
 ```
 
-> **Note:** If your project uses Taskfile.yml instead of Makefile, see `820-taskfile-automation.md` for equivalent task definitions.
+> **Note:** This Makefile block is an example implementation. For Taskfile patterns, see `820-taskfile-automation.md`. For Makefile patterns, see `821-makefile-automation.md`.
 
 #### Pre-Task-Completion Validation
 
@@ -293,7 +293,7 @@ select = ["E", "W", "F", "I", "B", "C4", "UP"]
 
 **Problem:** Notebook linting is configured only in CI/CD pipelines. Developers push notebooks without running `uvx nbqa ruff notebooks/` locally, discover failures after commit, and make quick `# noqa` fixes to pass CI rather than properly fixing the code. This leads to accumulation of suppressed warnings and degraded code quality over time.
 
-**Correct Pattern:** Add notebook linting to the project's Makefile and run it as part of the local development workflow before every commit. Include it in pre-commit hooks and run alongside other lint targets. Fix issues properly rather than suppressing them to pass CI.
+**Correct Pattern:** Add notebook linting to the project's automation entrypoint and run it as part of the local development workflow before every commit. Include it in pre-commit hooks and run alongside other lint targets. Fix issues properly rather than suppressing them to pass CI.
 
 ```makefile
 # Makefile
@@ -306,7 +306,7 @@ lint-notebooks: ## Lint Jupyter notebooks with Ruff via nbqa
 lint: lint-ruff lint-notebooks ## Run all linting checks (run before every commit)
 ```
 
-**Correct CI/CD pattern** — run the same Makefile targets in CI:
+**Correct CI/CD pattern** — run the same automation targets in CI:
 ```yaml
 # .github/workflows/ci.yml
 jobs:

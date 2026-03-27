@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.1
+**RuleVersion:** v1.0.2
 **LastUpdated:** 2026-03-26
 **Keywords:** virtual environment, venv, uv, poetry, pip, pipenv, uvx, tool isolation, ModuleNotFoundError, environment setup, dependency management
 **TokenBudget:** ~3000
@@ -14,14 +14,14 @@
 ## Scope
 
 **What This Rule Covers:**
-Virtual environment management, tool isolation patterns (uvx vs uv run), detailed command patterns for each toolchain (uv, poetry, pip), environment setup best practices, troubleshooting common environment issues, and project integration with Taskfile.
+Virtual environment management, tool isolation patterns (uvx vs uv run), detailed command patterns for each toolchain (uv, poetry, pip), environment setup best practices, troubleshooting common environment issues, and project integration with project automation entrypoints.
 
 **When to Load This Rule:**
 - Setting up Python development environments
 - Managing virtual environments
 - Troubleshooting ModuleNotFoundError or import issues
 - Configuring tool isolation (uvx, pipx)
-- Integrating Python tooling with Taskfile or Makefile
+- Integrating Python tooling with project automation
 
 ## References
 

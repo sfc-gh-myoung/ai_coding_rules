@@ -27,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add minimal, full-options, and mode-specific invocation examples to each guide
   - Add Type column to optional inputs tables and document parameter constraints
   - Files updated: USING_BULK_RULE_REVIEWER, USING_DOC_REVIEWER, USING_PLAN_REVIEWER, USING_RULE_CREATOR, USING_RULE_LOADER, USING_RULE_REVIEWER, USING_SKILL_TIMING
+- **refactor(rules):** replace hardcoded `make` commands with generic automation language in 4 rule files
+  - `802-project-contributing.md` (v3.1.1 to v3.1.2): `make rules-validate`/`make lint`/`make format` to "project automation commands" with project-specific examples
+  - `109d-snowflake-notebooks-linting.md` (v1.1.2 to v1.1.3): Makefile-specific language to automation-agnostic phrasing
+  - `130-snowflake-demo-sql.md` (v1.0.0 to v1.0.1): `Taskfile.yml` orchestration to generic automation with Taskfile example
+  - `200b-python-environment-tooling.md` (v1.0.1 to v1.0.2): Taskfile integration reference to project automation entrypoints
+  - RULES_INDEX.md regenerated with updated 200b description
 - **docs(skills):** rewrite plan-reviewer and doc-reviewer guides for current skill behavior and clearer operational usage
   - Align both docs to the rule-reviewer guide structure with Quick Start, modes, results, FAQ, and reference sections
   - Correct stale skill details including `focus_area`, parallel execution default, output behaviors, and current mode guidance

@@ -145,6 +145,38 @@ Each sub-agent receives dimension-specific ownership rules extracted from `rubri
 - On failure: record error, continue collecting others
 - On timeout: mark dimension incomplete, continue
 
+### 3.1a: Collect Per-Dimension Timings (IF timing_enabled)
+
+After collecting all sub-agent results, build the `_dimension_timings` array:
+
+For each completed sub-agent result:
+1. Extract `start_epoch` and `end_epoch` from the result JSON
+2. Compute `duration_seconds = end_epoch - start_epoch`
+3. Append to `_dimension_timings`:
+   ```json
+   {
+     "dimension": result.dimension,
+     "duration_seconds": round(duration_seconds, 2),
+     "mode": "self-report",
+     "start_epoch": result.start_epoch,
+     "end_epoch": result.end_epoch
+   }
+   ```
+
+For Rule Size (computed inline by coordinator):
+- Record `start_epoch` before `wc -l` command
+- Run `wc -l` on the target rule file
+- If `wc -l` exits non-zero or produces no output:
+  - Set `duration_seconds: -1`
+  - Set `mode: "failed"`
+  - Log: "WARNING: Rule Size inline measurement failed — wc -l returned non-zero"
+- Else:
+  - Record `end_epoch` after score lookup
+  - Append with `"mode": "inline"` and computed duration
+
+For failed/timed-out sub-agents:
+- Append with `"duration_seconds": -1, "mode": "failed"`
+
 ### 3.2 Validate No Overlaps
 
 After collecting all results:
@@ -166,6 +198,19 @@ After collecting all results:
 ## Phase 4: Score Aggregation
 
 See `score-aggregation.md` for detailed aggregation workflow.
+
+### Timing Integration (IF timing_enabled)
+
+Before calling `timing-end`, serialize `_dimension_timings` to JSON string:
+
+```bash
+bash skills/skill-timing/scripts/run_timing.sh end \
+    --run-id {{_timing_run_id}} \
+    --output-file {{output_file}} \
+    --skill rule-reviewer \
+    --format markdown \
+    --dimension-timings '{{_dimension_timings_json}}'
+```
 
 ## Threshold Rationale
 

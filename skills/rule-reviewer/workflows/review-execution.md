@@ -96,6 +96,38 @@ For EACH dimension:
 7. Staleness (currency checks)
 8. Cross-Agent Consistency (universal compatibility)
 
+### Step 2.2a: Per-Dimension Timing (IF timing_enabled)
+
+When `timing_enabled: true`, wrap each dimension evaluation with checkpoint pairs:
+
+| Before Dimension | After Dimension |
+|-----------------|-----------------|
+| checkpoint `dim_parsability_start` | checkpoint `dim_parsability_end` |
+| checkpoint `dim_rule_size_start` | checkpoint `dim_rule_size_end` |
+| checkpoint `dim_actionability_start` | checkpoint `dim_actionability_end` |
+| checkpoint `dim_completeness_start` | checkpoint `dim_completeness_end` |
+| checkpoint `dim_consistency_start` | checkpoint `dim_consistency_end` |
+| checkpoint `dim_token_efficiency_start` | checkpoint `dim_token_efficiency_end` |
+| checkpoint `dim_staleness_start` | checkpoint `dim_staleness_end` |
+| checkpoint `dim_cross_agent_start` | checkpoint `dim_cross_agent_end` |
+
+**After all dimensions scored:** Compute per-dimension durations from checkpoint pairs and construct `_dimension_timings` JSON array:
+
+```
+_dimension_timings = []
+for each dimension:
+    start_cp = checkpoint where name == f"dim_{dimension}_start"
+    end_cp = checkpoint where name == f"dim_{dimension}_end"
+    duration = end_cp.elapsed_seconds - start_cp.elapsed_seconds
+    _dimension_timings.append({
+        "dimension": dimension,
+        "duration_seconds": round(duration, 2),
+        "mode": "checkpoint"
+    })
+```
+
+**Pass to timing-end:** Include `--dimension-timings '{{_dimension_timings_json}}'` in the end command.
+
 ### Step 2.3: Apply Non-Issues Filters
 
 For EACH filled inventory:

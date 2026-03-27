@@ -1,7 +1,7 @@
 ---
 name: skill-timing
 description: Measures skill execution time and tracks performance. Use when you want to time a skill, measure duration, track how long something takes, compare performance across models, analyze execution speed, or detect agent shortcuts.
-version: 1.3.0
+version: 1.4.0
 tags: [timing, performance, measurement, instrumentation, metrics, ci-cd]
 ---
 
@@ -125,6 +125,7 @@ Finalize timing and compute duration.
 - `input_tokens` - Input token count
 - `output_tokens` - Output token count
 - `format` - Output format: `human` (default), `json`, `markdown`, `quiet`
+- `dimension_timings` - JSON array of per-dimension timing data
 
 **Command:**
 ```bash
@@ -134,7 +135,8 @@ bash skills/skill-timing/scripts/run_timing.sh end \
     --skill rule-reviewer \
     --input-tokens 50000 \
     --output-tokens 5000 \
-    --format markdown
+    --format markdown \
+    --dimension-timings '[{"dimension":"actionability","duration_seconds":42.3,"mode":"checkpoint"}]'
 ```
 
 **Output (markdown format):**
@@ -214,10 +216,14 @@ bash skills/skill-timing/scripts/run_timing.sh analyze \
     --skill rule-reviewer \
     --model claude-sonnet-45 \
     --days 7 \
-    --format json
+    --format json \
+    --per-dimension
 ```
 
 **Output formats:** `human` (default), `json`, `csv`
+
+**Flags:**
+- `--per-dimension` - Include per-dimension timing breakdown (requires `dimension_timings` in completed data)
 
 ## Integration Pattern
 
@@ -241,6 +247,13 @@ bash skills/skill-timing/scripts/run_timing.sh analyze \
 | Before file write | timing-end --format markdown | `_timing_stdout` |
 | After file write | Append `_timing_stdout` to file | - |
 
+**Per-Dimension Timing (optional):**
+
+When the skill evaluates multiple dimensions (e.g., rule-reviewer):
+- **Sequential mode:** Use checkpoint pairs (`dim_{name}_start` / `dim_{name}_end`) around each dimension
+- **Parallel mode:** Sub-agents self-report `start_epoch` / `end_epoch` in their JSON output
+- Pass collected timings to `timing-end` via `--dimension-timings` JSON flag
+
 **Validation:** Verify `## Timing Metadata` exists in output file.
 ```
 
@@ -253,6 +266,7 @@ bash skills/skill-timing/scripts/run_timing.sh analyze \
 | `_timing_run_id` | timing-start STDOUT | checkpoint, end | If lost, end attempts registry recovery |
 | `_timing_enabled` | Input parameter | Conditional checks | Boolean flag |
 | `_timing_stdout` | timing-end STDOUT | Metadata embedding | Full markdown table |
+| `_dimension_timings` | Checkpoint deltas or sub-agent JSON | timing-end `--dimension-timings` | Per-dimension timing array |
 
 **If agent loses `_timing_run_id`:** timing-end can attempt recovery from registry using `--run-id none --skill <name>`, but may fail.
 
@@ -306,8 +320,10 @@ skill-timing/
 ├── SKILL.md                          # This file
 ├── CHANGELOG.md                      # Version history and changes
 ├── VALIDATION.md                     # Schema validation rules
+└── schemas/
+    └── timing-output.schema.json    # JSON schema for timing output
 ├── scripts/
-│   ├── skill_timing.py              # Core CLI (v1.3.0)
+│   ├── skill_timing.py              # Core CLI (v1.4.0)
 │   └── run_timing.sh                # Wrapper script
 ├── workflows/
 │   ├── timing-start.md              # Detailed start workflow
@@ -319,5 +335,5 @@ skill-timing/
 │   ├── baseline-workflow.md         # Baseline usage
 │   └── ci-integration.md            # CI/CD integration
 └── tests/
-    └── test_skill_timing.sh         # Test suite
+    └── test_skill_timing.sh         # Test suite (23 tests)
 ```

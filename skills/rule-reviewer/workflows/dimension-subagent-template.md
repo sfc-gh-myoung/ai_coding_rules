@@ -80,6 +80,8 @@ Return ONLY this JSON structure:
   "raw_score": <0-10>,
   "weight": {weight},
   "tier": "<tier name from rubric>",
+  "start_epoch": "<time.time() at evaluation start>",
+  "end_epoch": "<time.time() at evaluation end>",
   "evidence": [
     {"line": <N>, "pattern": "<pattern matched>", "quote": "<exact quote>"}
   ],
@@ -93,6 +95,14 @@ Return ONLY this JSON structure:
   "status": "completed"
 }
 ```
+
+## Timing Instrumentation
+
+Record wall-clock time around your evaluation:
+1. Before step 1 (reading rule content): Record `start_epoch` = current Unix timestamp
+2. After step 5 (calculating score): Record `end_epoch` = current Unix timestamp
+3. Include both in your JSON output
+
 ```
 
 ## Dimension Configuration

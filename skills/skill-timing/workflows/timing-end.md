@@ -18,6 +18,7 @@ Finalize timing instrumentation and compute execution duration. This workflow ha
 - `skill_name`: Name of the skill (for recovery)
 - `input_tokens`: (optional) Input token count
 - `output_tokens`: (optional) Output token count
+- `dimension_timings`: (optional) JSON array of per-dimension timing data. Format: `[{"dimension":"name","duration_seconds":N,"mode":"checkpoint|self-report|inline"}]`
 
 ## Token Sources
 
@@ -48,7 +49,8 @@ bash skills/skill-timing/scripts/run_timing.sh end \
     --skill '{{skill_name}}' \
     --input-tokens {{input_tokens}} \
     --output-tokens {{output_tokens}} \
-    --format markdown
+    --format markdown \
+    --dimension-timings '{{dimension_timings_json}}'
 ```
 
 **Output (STDOUT):** A markdown timing table ready to append to the output file:
@@ -65,6 +67,15 @@ bash skills/skill-timing/scripts/run_timing.sh end \
 | Checkpoints | skill_loaded: 31.73s, review_complete: 358.71s |
 | Tokens | 55,000 (50,000 in / 5,000 out) |
 | Cost | $0.2250 |
+
+### Per-Dimension Timing
+
+| Dimension | Duration | Mode |
+|-----------|----------|------|
+| actionability | 42.30s | checkpoint |
+| rule_size | 0.10s | inline |
+| parsability | 38.70s | checkpoint |
+| **Total (dimension work)** | **81.10s** | - |
 ```
 
 **Note:** The `--format markdown` flag produces output ready for direct embedding. Without it, output is human-readable but not suitable for file embedding.

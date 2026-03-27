@@ -1,44 +1,57 @@
 # Using the Rule Reviewer Skill
 
-**Last Updated:** 2026-03-07
+**Last Updated:** 2026-03-27
 
 The Rule Reviewer Skill evaluates rule files to ensure autonomous agents can execute them successfully. It scores rules across 8 dimensions using a weighted scoring system optimized for agent executability.
 
+## Examples
 
-## Quick Start
-
-### 1. Load the skill
-
-```text
-Load skills/rule-reviewer/SKILL.md
-```
-
-### 2. Request a review
+### Minimal Required Example
 
 ```text
 Use the rule-reviewer skill.
 
-target_file: rules/200-python-core.md
-review_date: 2026-01-06
-review_mode: FULL
-model: claude-sonnet-45
+target_file: rules/200-python-core.md  # Required — rule to evaluate
+review_date: 2026-03-27              # Required — date stamp for output
+review_mode: FULL                    # Required — review depth
+model: claude-sonnet-45              # Required — model slug for naming
 ```
 
-The skill validates inputs and prompts for any missing parameters.
-
-### 3. Check the output
-
-Reviews are written to `reviews/rule-reviews/<rule-name>-<model>-<date>.md`
-
-On success:
+### FULL With All Optional Settings
 
 ```text
-✓ Review complete
+Use the rule-reviewer skill.
 
-OUTPUT_FILE: reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md
-Target: rules/200-python-core.md
-Mode: FULL
-Model: claude-sonnet-45
+target_file: rules/200-python-core.md  # Required
+review_date: 2026-03-27              # Required
+review_mode: FULL                    # Required
+model: claude-sonnet-45              # Required
+output_root: quarterly-audit/        # Optional (default: reviews/) — custom output directory
+execution_mode: sequential           # Optional (default: parallel) — use for debugging
+timing_enabled: true                 # Optional (default: false) — adds timing metadata
+overwrite: true                      # Optional (default: false) — replaces existing file
+```
+
+### FOCUSED Mode Example
+
+```text
+Use the rule-reviewer skill.
+
+target_file: rules/200-python-core.md  # Required
+review_mode: FOCUSED                 # Required — Actionability + Completeness only
+review_date: 2026-03-27              # Required
+model: claude-sonnet-45              # Required
+```
+
+### STALENESS Mode Example
+
+```text
+Use the rule-reviewer skill.
+
+target_file: rules/200-python-core.md  # Required
+review_mode: STALENESS               # Required — Staleness dimension only
+review_date: 2026-03-27              # Required
+model: claude-sonnet-45              # Required
 ```
 
 

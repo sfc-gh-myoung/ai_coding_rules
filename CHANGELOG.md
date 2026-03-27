@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add inline measurement fallback for deterministic dimensions (e.g., rule_size via `wc -l`)
   - Add `_dimension_timings` variable flow from review-execution through timing-end
   - Update dimension-subagent-template with self-report epoch timing for parallel mode
+- **docs(skills):** replace Quick Start sections with concrete Examples in 7 USING_*_SKILL.md guides
+  - Add minimal, full-options, and mode-specific invocation examples to each guide
+  - Add Type column to optional inputs tables and document parameter constraints
+  - Files updated: USING_BULK_RULE_REVIEWER, USING_DOC_REVIEWER, USING_PLAN_REVIEWER, USING_RULE_CREATOR, USING_RULE_LOADER, USING_RULE_REVIEWER, USING_SKILL_TIMING
 - **docs(skills):** rewrite plan-reviewer and doc-reviewer guides for current skill behavior and clearer operational usage
   - Align both docs to the rule-reviewer guide structure with Quick Start, modes, results, FAQ, and reference sections
   - Correct stale skill details including `focus_area`, parallel execution default, output behaviors, and current mode guidance

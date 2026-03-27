@@ -1,6 +1,6 @@
 # Using the Bulk Rule Reviewer Skill
 
-**Last Updated:** 2026-03-08
+**Last Updated:** 2026-03-27
 
 The Bulk Rule Reviewer Skill executes comprehensive agent-centric reviews on all rule files in the `rules/` directory, generating a consolidated priority report showing which rules need attention. It orchestrates the rule-reviewer skill for each rule, maintaining the same quality standards as individual reviews.
 
@@ -10,34 +10,55 @@ The Bulk Rule Reviewer Skill executes comprehensive agent-centric reviews on all
 - Technical debt tracking and prioritization
 - Baseline quality measurement
 
+## Examples
 
-## Quick Start
-
-### 1. Load the skill
-
-```text
-Load skills/bulk-rule-reviewer/SKILL.md
-```
-
-### 2. Request a bulk review
+### Minimal Required Example
 
 ```text
 Use the bulk-rule-reviewer skill.
 
-review_date: 2026-01-06
-review_mode: FULL
-model: claude-sonnet-45
+review_date: 2026-03-27              # Required — date stamp for output files
+review_mode: FULL                    # Required — review depth
+model: claude-sonnet-45              # Required — model slug for naming
 ```
 
-### 3. Check the output
-
-On success:
+### With All Optional Settings
 
 ```text
-✓ Bulk review complete
+Use the bulk-rule-reviewer skill.
 
-Individual reviews: reviews/rule-reviews/<rule-name>-claude-sonnet-45-2026-01-06.md (up to 187 files)
-Master summary: reviews/summaries/_bulk-review-claude-sonnet-45-2026-01-06.md
+review_date: 2026-03-27              # Required
+review_mode: FULL                    # Required
+model: claude-sonnet-45              # Required
+output_root: quarterly-audit/        # Optional (default: reviews/) — custom output directory
+filter_pattern: rules/200-*.md       # Optional (default: rules/*.md) — filter by domain
+skip_existing: false                 # Optional (default: true) — force re-review of all rules
+max_parallel: 3                      # Optional (default: 5) — concurrent sub-agents (1-10)
+timing_enabled: true                 # Optional (default: false) — adds timing metadata
+```
+
+Do not combine `skip_existing: false` with `max_parallel: 10` on large rule sets — this produces maximum load. Use lower parallelism when forcing re-reviews.
+
+### Resume After Interruption
+
+```text
+Use the bulk-rule-reviewer skill.
+
+review_date: 2026-03-27              # Required — same date as interrupted run
+review_mode: FULL                    # Required
+model: claude-sonnet-45              # Required
+skip_existing: true                  # Optional (default: true) — skips already-reviewed rules
+```
+
+### Sequential Mode (Debugging)
+
+```text
+Use the bulk-rule-reviewer skill.
+
+review_date: 2026-03-27              # Required
+review_mode: FOCUSED                 # Required — Actionability + Completeness only
+model: claude-sonnet-45              # Required
+max_parallel: 1                      # Optional — sequential execution for debugging
 ```
 
 

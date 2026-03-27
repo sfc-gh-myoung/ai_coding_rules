@@ -1,49 +1,79 @@
 # Using the Plan Reviewer Skill
 
-**Last Updated:** 2026-03-26
+**Last Updated:** 2026-03-27
 
 The Plan Reviewer Skill evaluates LLM-generated plans for autonomous agent
 executability. Use it to score a single plan, compare competing plans,
 meta-review prior review outputs, or measure whether a revised plan actually
 resolved earlier issues.
 
-## Quick Start
+## Examples
 
-### 1. Load the skill
-
-```text
-Load skills/plan-reviewer/SKILL.md
-```
-
-### 2. Run a minimal FULL review
+### Minimal Required Example
 
 ```text
 Use the plan-reviewer skill.
 
-review_mode: FULL
-target_file: plans/my-plan.md
-review_date: 2026-03-26
-model: claude-sonnet-45
+review_mode: FULL                    # Required
+target_file: plans/deploy-feature.md # Required
+review_date: 2026-03-27             # Required
+model: claude-sonnet-45             # Required
 ```
 
-The skill validates inputs, collects any missing parameters, slugs the model
-name for filenames, and runs the review in parallel by default.
-
-### 3. Check the output
-
-FULL reviews are written to:
-`reviews/plan-reviews/<plan-name>-<model>-<date>.md`
-
-Example success output:
+### FULL With All Optional Settings
 
 ```text
-✓ Review complete
+Use the plan-reviewer skill.
 
-OUTPUT_FILE: reviews/plan-reviews/my-plan-claude-sonnet-45-2026-03-26.md
-Target: plans/my-plan.md
-Mode: FULL
-Model: claude-sonnet-45
+review_mode: FULL                    # Required
+target_file: plans/my-plan.md       # Required
+review_date: 2026-03-27             # Required
+model: claude-sonnet-45             # Required
+output_root: quarterly-audit/       # Optional (default: reviews/) — custom output directory
+execution_mode: sequential          # Optional (default: parallel) — use for debugging
+timing_enabled: true                # Optional (default: false) — adds timing metadata
+overwrite: true                     # Optional (default: false) — replaces existing file
 ```
+
+### COMPARISON Example
+
+```text
+Use the plan-reviewer skill.
+
+review_mode: COMPARISON             # Required
+target_files: plans/approach-a.md, plans/approach-b.md  # Required (COMPARISON only)
+review_date: 2026-03-27             # Required
+model: claude-sonnet-45             # Required
+```
+
+Do not combine `target_file` with `target_files` — use `target_file` for FULL/DELTA, `target_files` for COMPARISON.
+
+### META-REVIEW Example
+
+```text
+Use the plan-reviewer skill.
+
+review_mode: META-REVIEW            # Required
+review_files: reviews/plan-reviews/plan-a-claude-sonnet-45-2026-03-20.md, reviews/plan-reviews/plan-a-gpt-5-2026-03-20.md  # Required (META-REVIEW only)
+review_date: 2026-03-27             # Required
+model: claude-sonnet-45             # Required
+```
+
+Do not combine `review_files` with `target_file` or `target_files` — `review_files` is META-REVIEW only.
+
+### DELTA Example
+
+```text
+Use the plan-reviewer skill.
+
+review_mode: DELTA                  # Required
+target_file: plans/my-plan-v2.md   # Required
+baseline_review: reviews/plan-reviews/my-plan-claude-sonnet-45-2026-03-20.md  # Required (DELTA only)
+review_date: 2026-03-27             # Required
+model: claude-sonnet-45             # Required
+```
+
+Do not combine `baseline_review` with COMPARISON or META-REVIEW modes.
 
 ## Review Modes
 
@@ -156,12 +186,12 @@ supporting dimensions.
 
 ### Optional Inputs
 
-| Input | Default | Purpose |
-|-------|---------|---------|
-| `output_root` | `reviews/` | Change the root directory for output files |
-| `execution_mode` | `parallel` | Choose `parallel` or `sequential` review execution |
-| `timing_enabled` | `false` | Add timing metadata to the output |
-| `overwrite` | `false` | Replace an existing output file instead of suffixing |
+| Input | Type | Default | Purpose |
+|-------|------|---------|---------|
+| `output_root` | Optional | `reviews/` | Change the root directory for output files |
+| `execution_mode` | Optional | `parallel` | Choose `parallel` (Recommended) or `sequential` (debugging) |
+| `timing_enabled` | Optional | `false` | Add timing metadata to the output |
+| `overwrite` | Optional | `false` | Replace an existing output file instead of suffixing |
 
 ### Execution Mode
 

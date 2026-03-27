@@ -1,48 +1,79 @@
 # Using the Doc Reviewer Skill
 
-**Last Updated:** 2026-03-26
+**Last Updated:** 2026-03-27
 
 The Doc Reviewer Skill reviews project documentation for user-facing quality and
 accuracy. Use it to audit README and CONTRIBUTING files, review `docs/*.md`,
 validate references against the codebase, and run focused maintenance checks for
 staleness or specific documentation concerns.
 
-## Quick Start
+## Examples
 
-### 1. Load the skill
-
-```text
-Load skills/doc-reviewer/SKILL.md
-```
-
-### 2. Run a minimal FULL review
+### Minimal Required Example
 
 ```text
 Use the doc-reviewer skill.
 
-review_mode: FULL
-target_files: README.md
-review_date: 2026-03-26
-model: claude-sonnet-45
+review_mode: FULL                    # Required
+target_files: README.md              # Optional (default: README.md, CONTRIBUTING.md, docs/*.md)
+review_date: 2026-03-27              # Required
+model: claude-sonnet-45              # Required
 ```
 
-The skill validates inputs, collects missing parameters, and runs the dimension
-review in parallel by default.
-
-### 3. Check the output
-
-Single-file reviews are written to:
-`reviews/doc-reviews/<doc-name>-<model>-<date>.md`
-
-Example success output:
+### FULL With All Optional Settings
 
 ```text
-✓ Review complete
+Use the doc-reviewer skill.
 
-OUTPUT_FILE: reviews/doc-reviews/README-claude-sonnet-45-2026-03-26.md
-Overall: 85/100
-Verdict: GOOD
+review_mode: FULL                    # Required
+target_files: README.md, docs/SETUP.md  # Optional (default: project docs)
+review_date: 2026-03-27              # Required
+model: claude-sonnet-45              # Required
+review_scope: collection             # Optional (default: single) — one consolidated review
+output_root: quarterly-audit/        # Optional (default: reviews/) — custom output directory
+execution_mode: sequential           # Optional (default: parallel) — use for debugging
+timing_enabled: true                 # Optional (default: false) — adds timing metadata
+overwrite: true                      # Optional (default: false) — replaces existing file
 ```
+
+### FOCUSED Example
+
+```text
+Use the doc-reviewer skill.
+
+review_mode: FOCUSED                 # Required
+target_files: docs/ARCHITECTURE.md   # Optional
+focus_area: accuracy                 # Required (FOCUSED only)
+review_date: 2026-03-27              # Required
+model: claude-sonnet-45              # Required
+```
+
+Do not combine `focus_area` with FULL or STALENESS modes — it is FOCUSED-mode only.
+
+### STALENESS Example
+
+```text
+Use the doc-reviewer skill.
+
+review_mode: STALENESS               # Required
+target_files: README.md, docs/SETUP.md  # Optional
+review_date: 2026-03-27              # Required
+model: claude-sonnet-45              # Required
+```
+
+### Collection Scope Example
+
+```text
+Use the doc-reviewer skill.
+
+review_mode: FULL                    # Required
+target_files: README.md, CONTRIBUTING.md, docs/SETUP.md  # Optional
+review_scope: collection             # Optional (default: single) — produces one consolidated review
+review_date: 2026-03-27              # Required
+model: claude-sonnet-45              # Required
+```
+
+Do not combine `review_scope: collection` with FOCUSED mode when reviewing a single file — use `single` scope instead.
 
 ## Review Modes
 
@@ -152,15 +183,15 @@ That ordering matches the weighting and the real user impact.
 
 ### Optional Inputs
 
-| Input | Default | Purpose |
-|-------|---------|---------|
-| `target_files` | Default project docs | Specify one or more Markdown files |
-| `review_scope` | `single` | Review files individually or as one collection |
-| `focus_area` | none | Required for `FOCUSED` mode |
-| `output_root` | `reviews/` | Change the output root directory |
-| `overwrite` | `false` | Replace an existing output file |
-| `timing_enabled` | `false` | Add timing metadata |
-| `execution_mode` | `parallel` | Choose `parallel` or `sequential` execution |
+| Input | Type | Default | Purpose |
+|-------|------|---------|---------|
+| `target_files` | Optional | Default project docs | Specify one or more Markdown files |
+| `review_scope` | Optional | `single` | Review files individually or as one collection |
+| `focus_area` | Required (FOCUSED) | none | Required for `FOCUSED` mode |
+| `output_root` | Optional | `reviews/` | Change the output root directory |
+| `overwrite` | Optional | `false` | Replace an existing output file |
+| `timing_enabled` | Optional | `false` | Add timing metadata |
+| `execution_mode` | Optional | `parallel` | Choose `parallel` (Recommended) or `sequential` (debugging) |
 
 ### Default Target Files
 

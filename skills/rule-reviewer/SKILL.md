@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/rule-reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 2.5.3
+version: 2.6.0
 ---
 
 # Rule Reviewer
@@ -313,10 +313,10 @@ bulk-rule-reviewer invokes this skill once per rule file. **Never** implement re
 | Before review | Start timing | `run_timing.sh start --skill rule-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
 | After schema validation | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
 | After scoring complete | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
-| Before file write | Compute | `run_timing.sh end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer` | Store `_timing_stdout` |
+| Before file write | Compute | `run_timing.sh end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer --dimension-timings '{{_dimension_timings_json}}'` | Store `_timing_stdout` |
 | After file write | Embed | Parse `_timing_stdout`, append timing metadata section to output file | - |
 
-**Working memory contract:** Retain `_timing_run_id` and `_timing_stdout` from start through embed.
+**Working memory contract:** Retain `_timing_run_id`, `_timing_stdout`, and `_dimension_timings` from start through embed.
 
 **Quick Reference:**
 ```bash
@@ -478,6 +478,7 @@ When invoked by `bulk-rule-reviewer`, this skill may experience context drift af
 
 ## Version History
 
+- **v2.6.0:** Added per-dimension timing support — sequential mode uses checkpoint pairs (`dim_{name}_start`/`dim_{name}_end`), parallel mode uses sub-agent self-reported `start_epoch`/`end_epoch`. New `--dimension-timings` flag on timing-end, `--per-dimension` on analyze/baseline. Requires skill-timing v1.4.0 (2026-03-27)
 - **v2.5.3:** Cross-model consistency improvements — added Non-Issues Patterns 9-10 (tool names, checklists), domain applicability adjustment for completeness edge cases, expanded cross-agent "Do NOT Count" list, added overlap resolution for tool names, new calibration examples file (2026-03-25)
 - **v2.5.2:** Fixed agent determinism regressions from v2.5.1 optimization (2026-03-24)
   - Inlined shared preamble into all 5 scored rubrics (eliminates cross-reference dependency for sub-agents)

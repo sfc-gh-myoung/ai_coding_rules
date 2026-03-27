@@ -7,7 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **feat(skill-timing):** add per-dimension timing support (v1.3.0 to v1.4.0)
+  - New `--dimension-timings` flag on `end` command accepts JSON array of per-dimension durations
+  - New `--per-dimension` flag on `analyze` and `baseline set` commands for dimension-level breakdowns
+  - Per-dimension baseline comparison with delta/status reporting in `baseline compare`
+  - Markdown, JSON, and human-readable output formats include per-dimension timing tables
+  - JSON schema extended with `dimension_timings` array (checkpoint, self-report, inline, failed modes)
+  - Validation for dimension timing entries (required fields, duration bounds)
+  - 8 new tests (16-23) covering dimension timing end-to-end, formats, edge cases, and mixed runs
+
 ### Changed
+- **feat(skills):** integrate per-dimension timing into rule-reviewer workflows
+  - Add checkpoint-pair timing protocol for sequential dimension evaluation
+  - Add inline measurement fallback for deterministic dimensions (e.g., rule_size via `wc -l`)
+  - Add `_dimension_timings` variable flow from review-execution through timing-end
+  - Update dimension-subagent-template with self-report epoch timing for parallel mode
 - **docs(skills):** rewrite plan-reviewer and doc-reviewer guides for current skill behavior and clearer operational usage
   - Align both docs to the rule-reviewer guide structure with Quick Start, modes, results, FAQ, and reference sections
   - Correct stale skill details including `focus_area`, parallel execution default, output behaviors, and current mode guidance

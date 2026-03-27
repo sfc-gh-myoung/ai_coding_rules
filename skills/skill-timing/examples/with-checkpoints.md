@@ -149,3 +149,29 @@ The checkpoints reveal where time is spent:
 | Cost | $0.1200 |
 | Baseline | N/A |
 ```
+
+## Per-Dimension Timing
+
+When using `--dimension-timings`, the output includes a per-dimension breakdown:
+
+```bash
+bash skills/skill-timing/scripts/run_timing.sh end \
+    --run-id a1b2c3d4e5f67890 \
+    --output-file reviews/200-python-core-review.md \
+    --skill rule-reviewer \
+    --format markdown \
+    --dimension-timings '[{"dimension":"actionability","duration_seconds":42.3,"mode":"checkpoint"},{"dimension":"rule_size","duration_seconds":0.1,"mode":"inline"},{"dimension":"parsability","duration_seconds":38.7,"mode":"checkpoint"}]'
+```
+
+**Result (appended to markdown):**
+
+```markdown
+### Per-Dimension Timing
+
+| Dimension | Duration | Mode |
+|-----------|----------|------|
+| actionability | 42.30s | checkpoint |
+| rule_size | 0.10s | inline |
+| parsability | 38.70s | checkpoint |
+| **Total (dimension work)** | **81.10s** | - |
+```

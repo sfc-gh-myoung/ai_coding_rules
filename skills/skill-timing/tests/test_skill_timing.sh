@@ -326,6 +326,303 @@ rm -f "$TIMING_DATA_DIR"/skill-timing-*-complete.json
 rm -f "$TIMING_DATA_DIR"/skill-timing-registry.json
 rm -f "$TIMING_DATA_DIR"/skill-timing-*.json
 
+# Test 16: Dimension timings passed via --dimension-timings
+echo "TEST 16: Dimension timings via --dimension-timings"
+TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    --skill dim-test --target test.md --model test-model 2>&1)
+TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+
+sleep 1
+
+touch "$PROJECT_ROOT/test-dim.md"
+DIM_JSON='[{"dimension":"actionability","duration_seconds":42.3,"mode":"checkpoint"},{"dimension":"rule_size","duration_seconds":0.1,"mode":"inline"}]'
+DIM_MD_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    --run-id "$TEST_RUN_ID" \
+    --output-file "$PROJECT_ROOT/test-dim.md" \
+    --skill dim-test \
+    --format markdown \
+    --dimension-timings "$DIM_JSON" 2>&1) || true
+
+if ! echo "$DIM_MD_OUTPUT" | grep -q "### Per-Dimension Timing"; then
+    echo "❌ FAIL: Markdown output missing Per-Dimension Timing table"
+    echo "Output was: $DIM_MD_OUTPUT"
+    rm -f "$PROJECT_ROOT/test-dim.md"
+    exit 1
+fi
+
+COMPLETED_FILE="$TIMING_DATA_DIR/skill-timing-${TEST_RUN_ID}-complete.json"
+if ! python3 -c "import json; d=json.load(open('$COMPLETED_FILE')); assert 'dimension_timings' in d, 'missing dimension_timings'" 2>/dev/null; then
+    echo "❌ FAIL: Completed JSON missing dimension_timings array"
+    rm -f "$PROJECT_ROOT/test-dim.md"
+    exit 1
+fi
+
+rm -f "$PROJECT_ROOT/test-dim.md"
+echo "✓ PASS: Dimension timings stored and rendered in markdown"
+echo ""
+
+# Test 17: Dimension timings in JSON output format
+echo "TEST 17: Dimension timings in JSON format"
+TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    --skill dim-json-test --target test.md --model test-model 2>&1)
+TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+
+sleep 1
+
+touch "$PROJECT_ROOT/test-dim-json.md"
+DIM_JSON='[{"dimension":"parsability","duration_seconds":38.7,"mode":"self-report"}]'
+DIM_JSON_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    --run-id "$TEST_RUN_ID" \
+    --output-file "$PROJECT_ROOT/test-dim-json.md" \
+    --skill dim-json-test \
+    --format json \
+    --dimension-timings "$DIM_JSON" 2>&1) || true
+
+if ! echo "$DIM_JSON_OUTPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); assert 'dimension_timings' in d and isinstance(d['dimension_timings'], list)" 2>/dev/null; then
+    echo "❌ FAIL: JSON output missing or invalid dimension_timings"
+    echo "Output was: $DIM_JSON_OUTPUT"
+    rm -f "$PROJECT_ROOT/test-dim-json.md"
+    exit 1
+fi
+
+rm -f "$PROJECT_ROOT/test-dim-json.md"
+echo "✓ PASS: Dimension timings present in JSON output"
+echo ""
+
+# Test 18: Empty dimension timings (graceful handling)
+echo "TEST 18: Empty dimension timings"
+TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    --skill dim-empty-test --target test.md --model test-model 2>&1)
+TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+
+sleep 1
+
+touch "$PROJECT_ROOT/test-dim-empty.md"
+DIM_EMPTY_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    --run-id "$TEST_RUN_ID" \
+    --output-file "$PROJECT_ROOT/test-dim-empty.md" \
+    --skill dim-empty-test \
+    --format markdown \
+    --dimension-timings '[]' 2>&1) || true
+
+if echo "$DIM_EMPTY_OUTPUT" | grep -q "### Per-Dimension Timing"; then
+    echo "❌ FAIL: Empty array should not produce Per-Dimension table"
+    rm -f "$PROJECT_ROOT/test-dim-empty.md"
+    exit 1
+fi
+
+rm -f "$PROJECT_ROOT/test-dim-empty.md"
+echo "✓ PASS: Empty dimension timings handled gracefully"
+echo ""
+
+# Test 19: Malformed dimension timings (error handling)
+echo "TEST 19: Malformed dimension timings"
+TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    --skill dim-malformed-test --target test.md --model test-model 2>&1)
+TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+
+sleep 1
+
+touch "$PROJECT_ROOT/test-dim-malformed.md"
+DIM_MALFORMED_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    --run-id "$TEST_RUN_ID" \
+    --output-file "$PROJECT_ROOT/test-dim-malformed.md" \
+    --skill dim-malformed-test \
+    --format markdown \
+    --dimension-timings 'not-json' 2>&1) || true
+
+if ! echo "$DIM_MALFORMED_OUTPUT" | grep -qi "WARNING.*parse"; then
+    echo "❌ FAIL: No warning for malformed JSON"
+    echo "Output was: $DIM_MALFORMED_OUTPUT"
+    rm -f "$PROJECT_ROOT/test-dim-malformed.md"
+    exit 1
+fi
+
+if ! echo "$DIM_MALFORMED_OUTPUT" | grep -q "## Timing Metadata"; then
+    echo "❌ FAIL: Timing still should complete despite malformed dimension-timings"
+    rm -f "$PROJECT_ROOT/test-dim-malformed.md"
+    exit 1
+fi
+
+rm -f "$PROJECT_ROOT/test-dim-malformed.md"
+echo "✓ PASS: Malformed dimension timings handled gracefully"
+echo ""
+
+# Test 20: Analyze with --per-dimension
+echo "TEST 20: Analyze with --per-dimension"
+for i in {1..2}; do
+    TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+        --skill pd-analyze-test --target test.md --model test-model 2>&1)
+    TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+    sleep 1
+    touch "$PROJECT_ROOT/test-pd-analyze.md"
+    DIM_JSON='[{"dimension":"actionability","duration_seconds":40.0,"mode":"checkpoint"},{"dimension":"parsability","duration_seconds":35.0,"mode":"checkpoint"}]'
+    bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+        --run-id "$TEST_RUN_ID" \
+        --output-file "$PROJECT_ROOT/test-pd-analyze.md" \
+        --skill pd-analyze-test \
+        --format quiet \
+        --dimension-timings "$DIM_JSON" >/dev/null 2>&1 || true
+    rm -f "$PROJECT_ROOT/test-pd-analyze.md"
+done
+
+PD_ANALYZE_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" analyze \
+    --skill pd-analyze-test \
+    --days 1 \
+    --format json \
+    --per-dimension 2>&1)
+
+if ! echo "$PD_ANALYZE_OUTPUT" | python3 -c "import json,sys; d=json.load(sys.stdin); assert 'per_dimension' in d" 2>/dev/null; then
+    echo "❌ FAIL: Analyze JSON missing per_dimension"
+    echo "Output was: $PD_ANALYZE_OUTPUT"
+    exit 1
+fi
+
+echo "✓ PASS: Analyze --per-dimension works"
+echo ""
+
+# Test 21: Baseline set with --per-dimension
+echo "TEST 21: Baseline set with --per-dimension"
+for i in {1..3}; do
+    TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+        --skill pd-baseline-test --target test.md --model test-model --mode FULL 2>&1)
+    TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+    sleep 1
+    touch "$PROJECT_ROOT/test-pd-baseline.md"
+    DIM_JSON='[{"dimension":"actionability","duration_seconds":42.0,"mode":"checkpoint"},{"dimension":"rule_size","duration_seconds":0.1,"mode":"inline"}]'
+    bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+        --run-id "$TEST_RUN_ID" \
+        --output-file "$PROJECT_ROOT/test-pd-baseline.md" \
+        --skill pd-baseline-test \
+        --format quiet \
+        --dimension-timings "$DIM_JSON" >/dev/null 2>&1 || true
+    rm -f "$PROJECT_ROOT/test-pd-baseline.md"
+done
+
+BASELINE_PD_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" baseline set \
+    --skill pd-baseline-test \
+    --mode FULL \
+    --model test-model \
+    --days 1 \
+    --min-samples 3 \
+    --per-dimension 2>&1 || true)
+
+if ! echo "$BASELINE_PD_OUTPUT" | grep -q "Baseline set"; then
+    echo "❌ FAIL: Baseline not set with --per-dimension"
+    echo "Output was: $BASELINE_PD_OUTPUT"
+    exit 1
+fi
+
+BASELINES_FILE="$PROJECT_ROOT/reviews/.timing-baselines.json"
+if ! python3 -c "
+import json
+d=json.load(open('$BASELINES_FILE'))
+dims=d['pd-baseline-test']['FULL']['test-model'].get('dimensions',{})
+assert 'actionability' in dims, 'missing actionability dimension'
+assert 'avg_seconds' in dims['actionability'], 'missing avg_seconds'
+assert 'stddev_seconds' in dims['actionability'], 'missing stddev_seconds'
+" 2>/dev/null; then
+    echo "❌ FAIL: Baselines JSON missing dimensions sub-key"
+    exit 1
+fi
+
+echo "✓ PASS: Baseline set with --per-dimension works"
+echo ""
+
+# Test 22: Baseline compare with per-dimension output
+echo "TEST 22: Baseline compare with per-dimension"
+TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    --skill pd-baseline-test --target test.md --model test-model --mode FULL 2>&1)
+TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+sleep 1
+touch "$PROJECT_ROOT/test-pd-compare.md"
+DIM_JSON='[{"dimension":"actionability","duration_seconds":142.0,"mode":"checkpoint"},{"dimension":"rule_size","duration_seconds":0.1,"mode":"inline"}]'
+bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    --run-id "$TEST_RUN_ID" \
+    --output-file "$PROJECT_ROOT/test-pd-compare.md" \
+    --skill pd-baseline-test \
+    --format quiet \
+    --dimension-timings "$DIM_JSON" >/dev/null 2>&1 || true
+rm -f "$PROJECT_ROOT/test-pd-compare.md"
+
+COMPARE_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" baseline compare \
+    --run-id "$TEST_RUN_ID" 2>&1 || true)
+
+if ! echo "$COMPARE_OUTPUT" | grep -q "Per-Dimension Comparison"; then
+    echo "❌ FAIL: Baseline compare missing per-dimension output"
+    echo "Output was: $COMPARE_OUTPUT"
+    exit 1
+fi
+
+if ! echo "$COMPARE_OUTPUT" | grep -q "significantly"; then
+    echo "❌ FAIL: Outlier dimension not flagged"
+    echo "Output was: $COMPARE_OUTPUT"
+    exit 1
+fi
+
+echo "✓ PASS: Baseline compare with per-dimension works"
+echo ""
+
+# Test 23: Analyze with mixed runs (some with/without dimension_timings)
+echo "TEST 23: Analyze with mixed runs"
+TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    --skill mixed-test --target test.md --model test-model 2>&1)
+TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+sleep 1
+touch "$PROJECT_ROOT/test-mixed.md"
+bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    --run-id "$TEST_RUN_ID" \
+    --output-file "$PROJECT_ROOT/test-mixed.md" \
+    --skill mixed-test \
+    --format quiet >/dev/null 2>&1 || true
+rm -f "$PROJECT_ROOT/test-mixed.md"
+
+for i in {1..2}; do
+    TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+        --skill mixed-test --target test.md --model test-model 2>&1)
+    TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
+    sleep 1
+    touch "$PROJECT_ROOT/test-mixed.md"
+    DIM_JSON='[{"dimension":"actionability","duration_seconds":40.0,"mode":"checkpoint"}]'
+    bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+        --run-id "$TEST_RUN_ID" \
+        --output-file "$PROJECT_ROOT/test-mixed.md" \
+        --skill mixed-test \
+        --format quiet \
+        --dimension-timings "$DIM_JSON" >/dev/null 2>&1 || true
+    rm -f "$PROJECT_ROOT/test-mixed.md"
+done
+
+MIXED_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" analyze \
+    --skill mixed-test \
+    --days 1 \
+    --format json \
+    --per-dimension 2>/dev/null)
+
+MIXED_CHECK=$(echo "$MIXED_OUTPUT" | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+pd=d.get('per_dimension',{})
+act=pd.get('actionability',{})
+print(act.get('count',0))
+" 2>/dev/null)
+
+if [[ "$MIXED_CHECK" != "2" ]]; then
+    echo "❌ FAIL: Expected 2 runs in per-dimension, got $MIXED_CHECK"
+    echo "Output was: $MIXED_OUTPUT"
+    exit 1
+fi
+
+echo "✓ PASS: Mixed runs handled correctly (only 2 contribute to per-dimension)"
+echo ""
+
+# Test cleanup
+rm -f "$TIMING_DATA_DIR"/skill-timing-*-complete.json
+rm -f "$TIMING_DATA_DIR"/skill-timing-registry.json
+rm -f "$TIMING_DATA_DIR"/skill-timing-*.json
+rm -f "$PROJECT_ROOT/reviews/.timing-baselines.json"
+rm -f /tmp/skill_timing_test_*
+
 echo "========================================"
-echo "All 15 tests passed!"
+echo "All 23 tests passed!"
 echo "========================================"

@@ -77,6 +77,13 @@ To produce a valid review under these requirements, the agent MUST:
 
 **There is no way to satisfy these requirements without reading the file.**
 
+### 4. Template Compliance
+
+- [ ] Executive Summary table uses exact column headers from REVIEW-OUTPUT-TEMPLATE.md
+- [ ] All 9 required H2 sections present in correct order
+- [ ] Post-Review Checklist has exactly 11 items
+- [ ] Informational sections (Token Efficiency, Staleness) are inline, not separate H2
+
 ## Integration Point
 
 Call this verification before `file-write.md` workflow:

@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/rule-reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 2.6.0
+version: 2.7.1
 ---
 
 # Rule Reviewer
@@ -34,12 +34,12 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
 | Dimension | Weight | Max Points | Focus |
 |-----------|--------|------------|-------|
-| Actionability | 6 | 30 | Can agents execute without judgment? |
-| Rule Size | 5 | 25 | Within 500-line target? (deterministic) |
-| Parsability | 3 | 15 | Schema valid? |
-| Completeness | 3 | 15 | All scenarios covered? |
-| Consistency | 2 | 10 | Internal alignment correct? |
-| Cross-Agent Consistency | 1 | 5 | Works across all agents? |
+| Actionability | 3.0 | 30 | Can agents execute without judgment? |
+| Rule Size | 2.5 | 25 | Within 500-line target? (deterministic) |
+| Parsability | 1.5 | 15 | Schema valid? |
+| Completeness | 1.5 | 15 | All scenarios covered? |
+| Consistency | 1.0 | 10 | Internal alignment correct? |
+| Cross-Agent Consistency | 0.5 | 5 | Works across all agents? |
 
 **Informational Only (Not Scored):**
 - **Token Efficiency** - Merged into Rule Size; findings in recommendations
@@ -58,7 +58,7 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
 **Example Calculation (Actionability):**
 - Raw score: 8/10
-- Weight: 6
+- Weight: 3.0
 - Points: 8 × 3.0 = 24 points
 
 ## Review Modes
@@ -211,6 +211,7 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
    - Direct quotes with line numbers
    - Rule-specific findings (not generic)
    - See `workflows/review-verification.md`
+   - Verify output matches `references/REVIEW-OUTPUT-TEMPLATE.md` structure
    - **FAILURE → Trigger reset: Re-read SKILL.md completely**
 
 10. **Write review**
@@ -273,14 +274,18 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 
 ## Required Sections in Review
 
-1. Executive Summary (scores table)
-2. Schema Validation Results
-3. Agent Executability Verdict
-4. Dimension Analysis (6 sections for FULL mode)
-5. Critical Issues (list)
-6. Recommendations (prioritized)
-7. Post-Review Checklist
-8. Conclusion
+1. File Header (H1 + 5 metadata fields)
+2. Executive Summary (score table + verdict block)
+3. Schema Validation Results
+4. Agent Executability Verdict
+5. Dimension Analysis (6 subsections for FULL mode)
+6. Critical Issues
+7. Recommendations (with inline Staleness)
+8. Post-Review Checklist (11 fixed items)
+9. Conclusion
+10. Timing Metadata (conditional)
+
+**Authoritative template:** `references/REVIEW-OUTPUT-TEMPLATE.md`
 
 ## Inputs
 
@@ -317,6 +322,28 @@ bulk-rule-reviewer invokes this skill once per rule file. **Never** implement re
 | After file write | Embed | Parse `_timing_stdout`, append timing metadata section to output file | - |
 
 **Working memory contract:** Retain `_timing_run_id`, `_timing_stdout`, and `_dimension_timings` from start through embed.
+
+**Per-Dimension Timing Validation (v2.7.1+):**
+
+When collecting timing data from sub-agents, two validation gates ensure accuracy:
+
+**Gate 1: Timestamp Plausibility**
+- Verify timestamps fall within coordinator window (±60s buffer)
+- Reject if end_epoch ≤ start_epoch
+- Reject if timestamps outside possible execution window
+
+**Gate 2: Fabrication Pattern Detection**
+- Flag suspiciously round durations (exact 60s multiples ≥60s)
+- Flag unusually long durations (>300s for single dimension)
+
+**Validation Outcomes:**
+- `mode: "self-report"` - Validation passed, timing accurate
+- `mode: "self-report-flagged"` - Warning issued but timing accepted
+- `mode: "validation-failed"` - Timestamps rejected, duration set to -1
+
+Sub-agents receive explicit bash timing instructions requiring `date +%s` commands before/after work. This ensures real timestamps (not approximations) are collected for performance regression analysis and cross-model comparison.
+
+**See:** `workflows/parallel-execution.md` Section 3.1a for validation logic.
 
 **Quick Reference:**
 ```bash
@@ -441,6 +468,8 @@ See `examples/` for complete review samples:
 - `staleness-review.md` - STALENESS mode example
 - `edge-cases.md` - Error scenarios
 
+**Output template:** `references/REVIEW-OUTPUT-TEMPLATE.md` (authoritative fill-in skeleton)
+
 ## Related Skills
 
 - **bulk-rule-reviewer:** Batch review orchestrator (uses this skill)
@@ -478,6 +507,7 @@ When invoked by `bulk-rule-reviewer`, this skill may experience context drift af
 
 ## Version History
 
+- **v2.7.0:** Standardized review output template -- created references/REVIEW-OUTPUT-TEMPLATE.md as authoritative fill-in skeleton (opus-4-6 structure), integrated template loading into review-execution and file-write workflows, fixed 11-item Post-Review Checklist, standardized Executive Summary table columns (Raw (0-10) | Weight | Points | Max), inline Token Efficiency and Staleness, added structural validation gate (Step 5a) in file-write.md, added template compliance check in review-verification.md. Removed examples/TEMPLATE.md (superseded). Aligned weight notation to decimal across all files. Added Per-Dimension Timing subsection to REVIEW-OUTPUT-TEMPLATE.md (was missing from v2.6.0 template integration). (2026-03-27)
 - **v2.6.0:** Added per-dimension timing support — sequential mode uses checkpoint pairs (`dim_{name}_start`/`dim_{name}_end`), parallel mode uses sub-agent self-reported `start_epoch`/`end_epoch`. New `--dimension-timings` flag on timing-end, `--per-dimension` on analyze/baseline. Requires skill-timing v1.4.0 (2026-03-27)
 - **v2.5.3:** Cross-model consistency improvements — added Non-Issues Patterns 9-10 (tool names, checklists), domain applicability adjustment for completeness edge cases, expanded cross-agent "Do NOT Count" list, added overlap resolution for tool names, new calibration examples file (2026-03-25)
 - **v2.5.2:** Fixed agent determinism regressions from v2.5.1 optimization (2026-03-24)

@@ -168,16 +168,29 @@ Total = (Actionability × 3.0) + (Rule Size × 2.5) +
 Maximum: 100 points (v2.0)
 ```
 
-### Step 3.3: Generate Review
+### Step 3.2a: Load Output Template
 
-Include in output:
+Read `references/REVIEW-OUTPUT-TEMPLATE.md` before generating review content.
 
-1. **Header:** Target file, review date, mode, model
-2. **Score Summary:** Total and per-dimension scores (6 scored dimensions)
-3. **All Inventories:** Include completed inventory tables as evidence
-4. **Rule Size Flags:** Include SPLIT_RECOMMENDED, SPLIT_REQUIRED, NOT_DEPLOYABLE, or BLOCKED if applicable
-5. **Priority Fixes:** Top 3-5 improvements ordered by impact
-6. **Verdict:** EXECUTABLE (≥90), EXECUTABLE_WITH_REFINEMENTS (75-89), NEEDS_REFINEMENT (50-74), NOT_EXECUTABLE (<50)
+**Purpose:** Lock in output structure to prevent cross-model structural drift.
+
+**GATE:** Do NOT generate review markdown until template is loaded.
+
+### Step 3.3: Generate Review (Using Output Template)
+
+Populate `references/REVIEW-OUTPUT-TEMPLATE.md` section by section:
+1. Fill File Header placeholders
+2. Fill Executive Summary score table (6 rows + Total)
+3. Fill Schema Validation Results
+4. Fill Agent Executability Verdict
+5. Fill Dimension Analysis (6 subsections, each with inventory)
+6. Fill Critical Issues
+7. Fill Recommendations with inline Staleness
+8. Fill Post-Review Checklist (11 fixed items)
+9. Fill Conclusion
+10. Fill Timing Metadata (if timing_enabled)
+
+**Do NOT deviate from section order, heading names, or table column headers.**
 
 ---
 

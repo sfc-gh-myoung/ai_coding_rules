@@ -27,7 +27,7 @@ review_date: 2026-03-27              # Required
 review_mode: FULL                    # Required
 model: claude-sonnet-45              # Required
 output_root: quarterly-audit/        # Optional (default: reviews/) — custom output directory
-execution_mode: sequential           # Optional (default: parallel) — use for debugging
+execution_mode: sequential           # Optional (default: parallel) — sequential is also valid for production
 timing_enabled: true                 # Optional (default: false) — adds timing metadata
 overwrite: true                      # Optional (default: false) — replaces existing file
 ```
@@ -193,10 +193,12 @@ Adds timing metadata to output (duration, token usage, cost estimation).
 
 ### Execution Modes
 
-| Mode | Speed | Use Case |
-|------|-------|----------|
-| **parallel** (default) | ~90-120 sec | Production reviews (7 sub-agents) |
-| **sequential** | ~2-3 min | Debugging, low-resource environments |
+| Mode | Characteristics | When to Use |
+|------|-----------------|-------------|
+| **parallel** (default) | 5 sub-agents, each with isolated context per dimension | Recommended when context isolation between dimensions is important |
+| **sequential** | Single-agent evaluates all dimensions in sequence | Valid for production; useful when debugging or in constrained environments |
+
+Parallel mode's primary benefit is **context isolation**: each sub-agent receives only its assigned rubric and the target rule, preventing cross-dimension contamination. Performance is not guaranteed to be faster than sequential due to coordination overhead and sub-agent variability.
 
 ```text
 execution_mode: sequential
@@ -273,14 +275,14 @@ Coordinator (Main Agent)
 │   ├── Detect file type (rule vs project)
 │   └── Run schema validation
 │
-├── Phase 2: Parallel Evaluation (7 sub-agents)
-│   ├── SA-1: Actionability (25pts)
-│   ├── SA-2: Completeness (25pts)
-│   ├── SA-3: Consistency (15pts)
-│   ├── SA-4: Parsability (15pts)
-│   ├── SA-5: Token Efficiency (10pts)
-│   ├── SA-6: Rule Size (10pts)
-│   └── SA-7: Staleness + Cross-Agent (15pts)
+├── Phase 2: Dimension Evaluation (parallel: 5 sub-agents, or sequential)
+│   ├── Actionability (25pts)
+│   ├── Completeness (25pts)
+│   ├── Consistency (15pts)
+│   ├── Parsability (15pts)
+│   ├── Token Efficiency (10pts)
+│   ├── Rule Size (10pts) — computed inline
+│   └── Staleness + Cross-Agent (15pts)
 │
 ├── Phase 3: Collect & Validate
 │   ├── Gather dimension worksheets

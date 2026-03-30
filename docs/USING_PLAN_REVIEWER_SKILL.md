@@ -30,7 +30,7 @@ target_file: plans/my-plan.md       # Required
 review_date: 2026-03-27             # Required
 model: claude-sonnet-45             # Required
 output_root: quarterly-audit/       # Optional (default: reviews/) — custom output directory
-execution_mode: sequential          # Optional (default: parallel) — use for debugging
+execution_mode: sequential          # Optional (default: parallel) — sequential is also valid for production
 timing_enabled: true                # Optional (default: false) — adds timing metadata
 overwrite: true                     # Optional (default: false) — replaces existing file
 ```
@@ -189,18 +189,18 @@ supporting dimensions.
 | Input | Type | Default | Purpose |
 |-------|------|---------|---------|
 | `output_root` | Optional | `reviews/` | Change the root directory for output files |
-| `execution_mode` | Optional | `parallel` | Choose `parallel` (Recommended) or `sequential` (debugging) |
+| `execution_mode` | Optional | `parallel` | Choose `parallel` (context isolation) or `sequential` |
 | `timing_enabled` | Optional | `false` | Add timing metadata to the output |
 | `overwrite` | Optional | `false` | Replace an existing output file instead of suffixing |
 
 ### Execution Mode
 
-Parallel is the default and expected mode.
+Parallel is the default mode. Its primary benefit is **context isolation**: each sub-agent evaluates a single dimension with only its rubric and the target plan, preventing cross-dimension contamination.
 
 | Mode | Characteristics | When to Use |
 |------|-----------------|-------------|
-| `parallel` | Uses 8 sub-agents for dimension evaluation | Standard production review path |
-| `sequential` | Single-agent review path | Debugging or constrained environments |
+| `parallel` | Uses 8 sub-agents, each with isolated context per dimension | Recommended for context isolation between dimensions |
+| `sequential` | Single-agent review path | Valid for production; useful when debugging or in constrained environments |
 
 ```text
 execution_mode: sequential
@@ -278,8 +278,8 @@ documentation such as README, CONTRIBUTING, or files in `docs/`.
 ### Why can reviews take several minutes?
 
 The skill can load many rubrics, create worksheets, evaluate 8 dimensions, and
-assemble an auditable report. Parallel mode speeds this up, but thorough review
-still takes time.
+assemble an auditable report. Parallel mode provides context isolation between dimensions, but thorough review
+still takes time regardless of execution mode.
 
 ### Where do the scoring rules come from?
 

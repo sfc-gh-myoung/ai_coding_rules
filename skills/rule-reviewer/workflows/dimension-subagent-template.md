@@ -96,12 +96,49 @@ Return ONLY this JSON structure:
 }
 ```
 
-## Timing Instrumentation
+## Timing Instrumentation (MANDATORY)
 
-Record wall-clock time around your evaluation:
-1. Before step 1 (reading rule content): Record `start_epoch` = current Unix timestamp
-2. After step 5 (calculating score): Record `end_epoch` = current Unix timestamp
-3. Include both in your JSON output
+**CRITICAL: Use bash tool for accurate timestamps - do NOT approximate or fabricate**
+
+**Step 1: Record Start Time**
+IMMEDIATELY execute this command BEFORE any analysis work:
+```bash
+date +%s
+```
+Store the exact numeric output as `start_epoch` (e.g., 1774626649)
+
+**Step 2: Perform Your Evaluation**
+- Read rule content completely
+- Apply rubric criteria
+- Fill inventory
+- Calculate score
+
+**Step 3: Record End Time**
+IMMEDIATELY execute this command AFTER completing your analysis:
+```bash
+date +%s
+```
+Store the exact numeric output as `end_epoch` (e.g., 1774626702)
+
+**Step 4: Include in JSON Response**
+Return both timestamps in your JSON output:
+```json
+{
+  "start_epoch": 1774626649,
+  "end_epoch": 1774626702,
+  ...
+}
+```
+
+**IMPORTANT REQUIREMENTS:**
+- Use ONLY the exact numeric output from `date +%s` bash commands
+- Do NOT round, approximate, estimate, or fabricate timestamps
+- Record timestamps IMMEDIATELY before/after work (not mid-analysis)
+- If bash command fails, return `start_epoch: null, end_epoch: null`
+- Do NOT use internal clock estimation (you don't have one)
+
+**Why This Matters:**
+Accurate timing data enables performance regression detection and bottleneck analysis across models and rubrics. Fabricated timing pollutes this analysis and makes optimization impossible.
 
 ```
 

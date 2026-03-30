@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **fix(rule-reviewer):** remediate per-dimension timing fabrication in parallel mode (v2.7.0 → v2.7.1)
+  - Sub-agent prompts now require explicit `date +%s` bash commands for timestamps (no approximation)
+  - Added Gate 1 (timestamp plausibility) and Gate 2 (fabrication pattern detection) validation in Phase 3.1a
+  - Validation outcomes: `self-report` (pass), `self-report-flagged` (warn), `validation-failed` (reject)
+  - New `scripts/validate_timing.py` for post-hoc timing data quality checks on review files
+  - Investigation report: `docs/reports/timing-integrity-investigation-findings-2026-03-27.md`
+
 ### Added
 - **feat(skill-timing):** add per-dimension timing support (v1.3.0 to v1.4.0)
   - New `--dimension-timings` flag on `end` command accepts JSON array of per-dimension durations

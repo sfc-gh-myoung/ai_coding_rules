@@ -31,7 +31,7 @@ review_date: 2026-03-27              # Required
 model: claude-sonnet-45              # Required
 review_scope: collection             # Optional (default: single) — one consolidated review
 output_root: quarterly-audit/        # Optional (default: reviews/) — custom output directory
-execution_mode: sequential           # Optional (default: parallel) — use for debugging
+execution_mode: sequential           # Optional (default: parallel) — sequential is also valid for production
 timing_enabled: true                 # Optional (default: false) — adds timing metadata
 overwrite: true                      # Optional (default: false) — replaces existing file
 ```
@@ -191,7 +191,7 @@ That ordering matches the weighting and the real user impact.
 | `output_root` | Optional | `reviews/` | Change the output root directory |
 | `overwrite` | Optional | `false` | Replace an existing output file |
 | `timing_enabled` | Optional | `false` | Add timing metadata |
-| `execution_mode` | Optional | `parallel` | Choose `parallel` (Recommended) or `sequential` (debugging) |
+| `execution_mode` | Optional | `parallel` | Choose `parallel` (context isolation) or `sequential` |
 
 ### Default Target Files
 
@@ -213,12 +213,12 @@ Collection output is written to:
 
 ### Execution Mode
 
-The current skill defaults to `parallel`, not sequential.
+The current skill defaults to `parallel`, not sequential. Parallel mode's primary benefit is **context isolation**: each sub-agent evaluates a single dimension with only its rubric, preventing cross-dimension contamination.
 
 | Mode | Characteristics | When to Use |
 |------|-----------------|-------------|
-| `parallel` | Uses 6 sub-agents for dimension review | Standard path and current default |
-| `sequential` | Single-agent fallback path | Debugging or constrained environments |
+| `parallel` | Uses 6 sub-agents, each with isolated context per dimension | Recommended for context isolation between dimensions |
+| `sequential` | Single-agent fallback path | Valid for production; useful when debugging or in constrained environments |
 
 ```text
 execution_mode: sequential

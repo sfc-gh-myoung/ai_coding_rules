@@ -1,3 +1,5 @@
+<!-- Output format: delegated to score-aggregation.md + references/REVIEW-OUTPUT-TEMPLATE.md -->
+
 # Parallel Execution Workflow
 
 Coordinator workflow for parallel dimension evaluation using sub-agents.
@@ -147,23 +149,81 @@ Each sub-agent receives dimension-specific ownership rules extracted from `rubri
 
 ### 3.1a: Collect Per-Dimension Timings (IF timing_enabled)
 
-After collecting all sub-agent results, build the `_dimension_timings` array:
+After collecting all sub-agent results, build the `_dimension_timings` array with validation:
 
-For each completed sub-agent result:
+**For each completed sub-agent result:**
+
 1. Extract `start_epoch` and `end_epoch` from the result JSON
-2. Compute `duration_seconds = end_epoch - start_epoch`
-3. Append to `_dimension_timings`:
-   ```json
-   {
-     "dimension": result.dimension,
-     "duration_seconds": round(duration_seconds, 2),
-     "mode": "self-report",
-     "start_epoch": result.start_epoch,
-     "end_epoch": result.end_epoch
-   }
+2. **VALIDATE timestamps (Gate 1 & Gate 2):**
+   
+   **Gate 1: Timestamp Plausibility Check**
+   ```
+   # Get coordinator timing bounds
+   coordinator_start = timing_data.start_time_epoch
+   coordinator_end = current_unix_time()
+   
+   # Check bounds (allow 60s buffer for launch/collection overhead)
+   if start_epoch < (coordinator_start - 60):
+       validation_fail = "Start before coordinator start (minus 60s buffer)"
+   elif end_epoch > (coordinator_end + 60):
+       validation_fail = "End after coordinator end (plus 60s buffer)"
+   elif end_epoch <= start_epoch:
+       validation_fail = "End timestamp before or equal to start timestamp"
+   else:
+       validation_fail = None
+   ```
+   
+   **Gate 2: Fabrication Pattern Detection**
+   ```
+   duration_seconds = end_epoch - start_epoch
+   
+   # Check for suspiciously round durations
+   if duration_seconds >= 60 and duration_seconds % 60 == 0:
+       validation_warning = "WARN: Suspiciously round duration (exact 60s multiple)"
+   # Check for implausibly long durations
+   elif duration_seconds > 300:
+       validation_warning = "WARN: Unusually long duration (>5min for single dimension)"
+   else:
+       validation_warning = None
    ```
 
-For Rule Size (computed inline by coordinator):
+3. **Handle validation results:**
+   - **If validation_fail is set:** Mark as failed timing, log warning
+     ```json
+     {
+       "dimension": result.dimension,
+       "duration_seconds": -1,
+       "mode": "validation-failed",
+       "validation_error": validation_fail,
+       "start_epoch": result.start_epoch,
+       "end_epoch": result.end_epoch
+     }
+     ```
+   
+   - **If validation_warning is set:** Accept timing but flag it
+     ```json
+     {
+       "dimension": result.dimension,
+       "duration_seconds": round(duration_seconds, 2),
+       "mode": "self-report-flagged",
+       "validation_warning": validation_warning,
+       "start_epoch": result.start_epoch,
+       "end_epoch": result.end_epoch
+     }
+     ```
+   
+   - **If validation passes:** Accept timing
+     ```json
+     {
+       "dimension": result.dimension,
+       "duration_seconds": round(duration_seconds, 2),
+       "mode": "self-report",
+       "start_epoch": result.start_epoch,
+       "end_epoch": result.end_epoch
+     }
+     ```
+
+**For Rule Size (computed inline by coordinator):**
 - Record `start_epoch` before `wc -l` command
 - Run `wc -l` on the target rule file
 - If `wc -l` exits non-zero or produces no output:
@@ -174,8 +234,18 @@ For Rule Size (computed inline by coordinator):
   - Record `end_epoch` after score lookup
   - Append with `"mode": "inline"` and computed duration
 
-For failed/timed-out sub-agents:
+**For failed/timed-out sub-agents:**
 - Append with `"duration_seconds": -1, "mode": "failed"`
+
+**Validation Summary:**
+After processing all dimensions, log validation statistics:
+```
+Timing Validation Summary:
+- Passed: N dimensions
+- Flagged (warnings): N dimensions
+- Failed: N dimensions
+- Total: N dimensions
+```
 
 ### 3.2 Validate No Overlaps
 

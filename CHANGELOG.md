@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - JSON schema extended with `dimension_timings` array (checkpoint, self-report, inline, failed modes)
   - Validation for dimension timing entries (required fields, duration bounds)
   - 8 new tests (16-23) covering dimension timing end-to-end, formats, edge cases, and mixed runs
+- **feat(rules):** add `502-frontend-revealjs-core.md` for Reveal.js 6.0.0 presentation framework
+  - Version-pinned to Reveal.js 6.0.0; supports npm/ESM setup and standalone HTML boilerplate
+  - Enforces `.reveal > .slides > section` hierarchy and `plugins` array (not deprecated `dependencies`)
+  - Requires `data-trim` and explicit language class on all `<code>` blocks
+  - Covers Highlight, Markdown, Notes, Math, Search, Zoom plugins; CSS custom-property theming; `data-line-numbers` step highlights
+  - RULES_INDEX.md updated with activity keywords: presentation, revealjs, reveal.js, slide-deck, slides
 
 ### Changed
 - **feat(skills):** integrate per-dimension timing into rule-reviewer workflows

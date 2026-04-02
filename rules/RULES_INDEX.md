@@ -199,6 +199,7 @@ Use `grep -i "KEYWORD" RULES_INDEX.md` to search Keywords column:
 - **react-backend**: Consider `441-react-backend.md`
 - **frontend**, **htmx**: Consider `500-frontend-htmx-core.md`
 - **browser-globals**, **htmx-history**, **window-history**: Consider `501-frontend-browser-globals-collisions.md`
+- **presentation**, **revealjs**, **reveal.js**, **slide-deck**, **slides**: Consider `502-frontend-revealjs-core.md`
 - **go-http**, **go-middleware**, **go-server**: Consider `600a-golang-patterns.md`
 - **changelog**: Consider `800-project-changelog.md`
 - **documentation**, **readme**: Consider `801-project-readme.md`
@@ -725,6 +726,10 @@ User: "Write tests for my Streamlit dashboard"
 **`501-frontend-browser-globals-collisions.md`** - Prevent accidental collisions with built-in browser globals (e.g., `window.history`) that can break HTMX navigation, Alpine components, and browser back/forward behavior. Codifies safe naming, scoping, and namespacing patterns for inline scripts and small frontend helpers in HTMX-driven UIs and server-rendered apps that embed JavaScript/Alpine helpers (<50 lines) in templates (including inline `<script>` blocks).
 - Keywords: browser globals, javascript globals, window.history, HTMX history, Alpine.js, name collisions, reserved identifiers, implicit globals, historyRestore, hx-push-url, popstate, best practices, anti-patterns
 - Depends: `500-frontend-htmx-core.md`
+
+**`502-frontend-revealjs-core.md`** - Best practices for building HTML presentations with Reveal.js 6.0.0: project setup (npm/ESM), slide markup (horizontal/vertical slides, fragments, Markdown), configuration, built-in plugin usage (Highlight, Markdown, Notes, Math, Search, Zoom), code highlighting with step-by-step line highlights, and theming via built-in themes or CSS custom properties.
+- Keywords: Reveal.js, revealjs, presentation, slides, HTML presentation, slide deck, code highlighting, speaker notes, Markdown slides, fragments, vertical slides, reveal themes, presentation framework, auto-animate
+- Depends: `000-global-core.md`
 
 **`821-makefile-automation.md`** - Core directives for creating and maintaining project automation using Makefiles, ensuring consistent, portable, and well-documented target management with GNU Make.
 - Keywords: Makefile, GNU Make, make, build automation, make target, phony, make help, portable make, make variables, uv, uvx, make dependencies, make error handling, make cleanup

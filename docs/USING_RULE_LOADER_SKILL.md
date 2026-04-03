@@ -1,39 +1,46 @@
 # Using the Rule Loader Skill
 
-**Last Updated:** 2026-03-08
+**Last Updated:** 2026-03-27
 
 The Rule Loader Skill determines which rule files to load for any user request by analyzing file extensions, directory paths, and keywords against RULES_INDEX.md. It ensures consistent, dependency-aware rule discovery across all agents and sessions, formalizing the rule-loading algorithm from AGENTS.md (Steps 1-3) into a reusable skill with progressive disclosure.
 
+## Examples
 
-## Quick Start
-
-### 1. Load the skill
-
-```text
-Load skills/rule-loader/SKILL.md
-```
-
-### 2. Request rule loading
+### Minimal Required Example
 
 ```text
 Use the rule-loader skill.
 
-user_request: "Write tests for my Streamlit dashboard"
+user_request: "Fix this Python bug"  # Required — the request to analyze
 ```
 
-The skill analyzes the request and selects appropriate rules.
-
-### 3. Check the output
-
-On success:
+### With All Optional Settings
 
 ```text
-## Rules Loaded
-- rules/000-global-core.md (foundation)
-- rules/200-python-core.md (file extension: .py)
-- rules/100-snowflake-core.md (dependency of 101)
-- rules/101-snowflake-streamlit-core.md (keyword: Streamlit)
-- rules/206-python-pytest.md (keyword: test)
+Use the rule-loader skill.
+
+user_request: "Build a Streamlit dashboard with Snowflake backend and pytest tests"  # Required
+token_budget_limit: 10000            # Optional (default: standard) — max tokens for loaded rules
+context_tier_filter: critical+high   # Optional (default: all) — pre-filter by tier
+rules_path: custom-rules/            # Optional (default: rules/) — alternate rules directory
+```
+
+### Minimal Mode (Constrained Context)
+
+```text
+Use the rule-loader skill.
+
+user_request: "Fix this Python bug"  # Required
+token_budget_limit: 5000             # Optional — limits to foundation + domain only
+```
+
+### Complete Mode (Multi-Domain)
+
+```text
+Use the rule-loader skill.
+
+user_request: "Build a Streamlit dashboard with Snowflake backend and pytest tests"  # Required
+context_tier_filter: all             # Optional (default: all) — includes all tiers
 ```
 
 
@@ -107,7 +114,7 @@ The skill executes 5 phases in order:
 
 | Phase | Name | What Happens |
 |-------|------|--------------|
-| 1 | **Foundation Loading** | Always loads `000-global-core.md` (~3,500 tokens) |
+| 1 | **Foundation Loading** | Always loads `000-global-core.md` (~4,050 tokens) |
 | 2 | **Domain Matching** | Matches file extensions and directories to domain rules |
 | 3 | **Activity Matching** | Searches RULES_INDEX.md for keyword matches |
 | 4 | **Dependency Resolution** | Loads prerequisites before dependent rules |
@@ -180,7 +187,7 @@ Check these causes in order:
 
 ### What happens if RULES_INDEX.md is not found?
 
-The skill falls back to foundation + file-extension matching only. Keyword-based activity matching is skipped. Regenerate the index with `task index:generate`.
+The skill falls back to foundation + file-extension matching only. Keyword-based activity matching is skipped. Regenerate the index with `make index-generate`.
 
 ### What if a rule file is not found?
 
@@ -206,7 +213,7 @@ Each rule declares a `TokenBudget` value in its metadata (e.g., `~3,500`). The s
 User Request
 │
 ├── Phase 1: Foundation Loading
-│   └── Load 000-global-core.md (always, ~3,500 tokens)
+│   └── Load 000-global-core.md (always, ~4,050 tokens)
 │
 ├── Phase 2: Domain Matching
 │   ├── Check directory paths (skills/, rules/)
@@ -239,8 +246,7 @@ skills/rule-loader/
 │   ├── python-api.md               # Python + FastAPI endpoint
 │   └── multi-domain.md             # Snowflake SQL + Python
 └── tests/
-    ├── README.md                   # Test overview
-    └── test-scenarios.md           # Input/output test cases
+    └── test-scenarios.md           # Input/output test cases (16 scenarios)
 ```
 
 ### Extension Reference

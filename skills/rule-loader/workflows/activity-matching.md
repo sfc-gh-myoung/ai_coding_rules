@@ -16,6 +16,19 @@ From the user request, identify:
 
 If ANY word could be a keyword, extract it. Only fail if the request is truly empty.
 
+**Multi-technology splitting heuristic:**
+
+When the user request contains multiple technologies joined by delimiters (`+`, `and`, `with`, `,`, `using`):
+
+1. Split request on delimiters to identify individual technologies
+2. Technical terms (capitalized, hyphenated, acronyms like SSE/API/SPCS) are almost always keywords
+3. Each technology should be included in the grep OR pattern
+
+**Example:** `"FastAPI + HTMX + SSE in SPCS"` becomes:
+```bash
+grep -iE "fastapi|htmx|sse|spcs" {rules_path}/RULES_INDEX.md
+```
+
 ### Step 2: Search RULES_INDEX.md
 
 Execute a single compound grep combining all keywords:
@@ -32,6 +45,21 @@ grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" {rules_path}/RULES_INDEX.md
 **If grep unavailable:** Read RULES_INDEX.md via `read_file` and manually scan for keywords. This is the required fallback.
 
 **FORBIDDEN:** Substituting glob, find, ls, or any file-discovery tool for grep.
+
+### Step 2.5: Sanity Check (MANDATORY)
+
+Zero results is almost always an anomaly. RULES_INDEX.md contains 750+ lines with 159 keyword entries across 100+ rules.
+
+**On zero results for any common keyword (python, sql, docker, deploy, test, snowflake, fastapi, streamlit):**
+
+1. Re-execute grep once (transient failure recovery)
+2. If still zero: Execute `read_file` fallback immediately
+3. Document anomaly in response: "Grep returned unexpectedly empty - used fallback"
+
+**Expected output volume:**
+- Multi-technology requests: 5-50 matching lines
+- Single-technology requests: 1-10 matching lines
+- Zero lines for reasonable keywords = ANOMALY requiring fallback
 
 ### Step 3: Record Matches
 

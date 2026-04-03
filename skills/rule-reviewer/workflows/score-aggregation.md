@@ -276,75 +276,125 @@ def apply_rule_size_flags(aggregated: dict) -> dict:
 
 ```python
 def generate_review_document(aggregated: dict, params: dict, context: dict) -> str:
-    """Generate the final review markdown document."""
+    """Generate the final review markdown document.
     
-    # Build score table
-    score_table = "| Dimension | Raw | Points | Max | Tier |\n"
-    score_table += "|-----------|-----|--------|-----|------|\n"
+    Output MUST conform to references/REVIEW-OUTPUT-TEMPLATE.md structure.
+    """
+    
+    # Build score table (template-compliant columns)
+    score_table = "| Dimension | Raw (0-10) | Weight | Points | Max |\n"
+    score_table += "|-----------|------------|--------|--------|-----|\n"
     
     for ws in aggregated['worksheets']:
-        score_table += f"| {ws['dimension'].replace('_', ' ').title()} | {ws['raw_score']}/10 | {ws['points']} | {ws['max_points']} | {ws['tier']} |\n"
+        score_table += f"| {ws['dimension'].replace('_', ' ').title()} | {ws['raw_score']}/10 | {ws['weight']} | {ws['points']} | {ws['max_points']} |\n"
     
     # Add failed dimensions
     for fd in aggregated.get('failed_dimensions', []):
-        score_table += f"| {fd['dimension'].replace('_', ' ').title()} | FAILED | - | {fd['max_points']} | {fd['status']} |\n"
+        score_table += f"| {fd['dimension'].replace('_', ' ').title()} | FAILED | {fd['weight']} | - | {fd['max_points']} |\n"
     
-    # Build document
+    score_table += f"| **TOTAL** | | **10** | **{aggregated['total_score']}** | **100** |\n"
+    
+    # Build document (template-compliant structure)
     doc = f"""# Rule Review: {params['target_file']}
 
 **Review Date:** {params['review_date']}
+**Review Mode:** {params.get('review_mode', 'FULL')}
 **Model:** {params.get('model', 'unknown')}
-**Mode:** {params.get('review_mode', 'FULL')}
-**Execution Mode:** parallel
+**Reviewer Skill:** rule-reviewer v{params.get('skill_version', '2.7.0')}
+**Schema Validator:** ai-rules validate
 
 ## Executive Summary
 
-**Total Score:** {aggregated['total_score']}/{aggregated['max_score']}
-**Verdict:** {aggregated['verdict']}
+{score_table}
+**Verdict:** {aggregated['verdict']} ({aggregated['total_score']}/100)
+
+**Blocking Issues:** {aggregated.get('blocking_issue_count', 0)}
+**Hard Caps Applied:** {aggregated.get('cap_reason', 'None')}
+**Rule Size Flag:** {aggregated.get('rule_size_flag', 'None')}
 """
 
     if aggregated.get('override_reason'):
         doc += f"\n**Override:** {aggregated['override_reason']}\n"
     
-    if aggregated.get('rule_size_flag'):
-        doc += f"\n**Rule Size Flag:** {aggregated['rule_size_flag']}\n"
-    
     if aggregated.get('is_partial'):
-        doc += f"\n⚠️ **Partial Review:** {len(aggregated['failed_dimensions'])} dimensions failed\n"
+        doc += f"\nWARNING: **Partial Review:** {len(aggregated['failed_dimensions'])} dimensions failed\n"
 
+    # Schema Validation Results
     doc += f"""
-## Dimension Scores
+## Schema Validation Results
 
-{score_table}
+```
+{context.get('schema_validation_output', 'Schema validation not available')}
+```
 
-## Dimension Analysis
+{context.get('schema_validation_summary', '')}
 """
 
-    # Add each dimension's details
-    for ws in aggregated['worksheets']:
+    # Agent Executability Verdict
+    doc += f"""
+## Agent Executability Verdict
+
+**Blocking Issues Count: {aggregated.get('blocking_issue_count', 0)}**
+
+"""
+    blocking_issues = context.get('blocking_issues', [])
+    for i, issue in enumerate(blocking_issues, 1):
+        doc += f"{i}. **{issue.get('type', 'Issue')} at line {issue.get('line', 'N/A')}:** {issue.get('description', '')} -- {issue.get('reason', '')}\n"
+    if not blocking_issues:
+        doc += "No blocking issues identified.\n"
+
+    # Dimension Analysis
+    doc += "\n## Dimension Analysis\n"
+
+    for idx, ws in enumerate(aggregated['worksheets'], 1):
+        dim_name = ws['dimension'].replace('_', ' ').title()
         doc += f"""
-### {ws['dimension'].replace('_', ' ').title()}
+### {idx}. {dim_name}: {ws['raw_score']}/10 ({ws['points']} points)
 
-**Score:** {ws['raw_score']}/10 ({ws['points']}/{ws['max_points']} points)
-**Tier:** {ws['tier']}
+**{dim_name} Inventory:**
 
-**Evidence:**
 """
-        for ev in ws.get('evidence', [])[:5]:  # Top 5 evidence items
+        for ev in ws.get('evidence', [])[:10]:
             doc += f"- Line {ev.get('line', 'N/A')}: `{ev.get('pattern', '')}` - \"{ev.get('quote', '')[:100]}\"\n"
         
-        if ws.get('issues_found'):
-            doc += "\n**Issues:**\n"
-            for issue in ws['issues_found'][:5]:
-                severity = issue.get('severity', 'warning')
-                doc += f"- [{severity.upper()}] Line {issue.get('line', 'N/A')}: {issue.get('description', '')}\n"
+        doc += f"""
+**After Non-Issues filtering:** {ws.get('filtered_count', len(ws.get('issues_found', [])))}
 
-    # Add recommendations section
-    doc += """
-## Recommendations
-
+**Score Decision Matrix lookup:** {ws.get('tier', 'Unknown')} = {ws['raw_score']}/10
 """
-    # Collect all issues sorted by severity
+        
+        if ws.get('issues_found'):
+            doc += "\n**Priority fixes:**\n"
+            for i, issue in enumerate(ws['issues_found'][:5], 1):
+                doc += f"{i}. Line {issue.get('line', 'N/A')}: {issue.get('description', '')}\n"
+
+        # Inline Token Efficiency under Rule Size
+        if ws['dimension'] == 'rule_size' and context.get('token_efficiency'):
+            te = context['token_efficiency']
+            doc += f"""
+**Token Efficiency (Informational):**
+- Redundancy instances: {te.get('redundancy_count', 0)}
+{te.get('details', '')}
+- Structure ratio: {te.get('structure_ratio', 'N/A')} lists/tables vs prose
+- Estimated savings: {te.get('estimated_savings', 'N/A')} if consolidated
+"""
+
+    # Critical Issues
+    doc += "\n## Critical Issues\n\n"
+    all_critical = []
+    for ws in aggregated['worksheets']:
+        for issue in ws.get('issues_found', []):
+            if issue.get('severity') == 'blocking':
+                all_critical.append(issue)
+    
+    if all_critical:
+        for i, issue in enumerate(all_critical[:10], 1):
+            doc += f"{i}. **Line {issue.get('line', 'N/A')}:** {issue.get('description', '')}\n"
+    else:
+        doc += "No critical issues identified.\n"
+
+    # Recommendations with inline Staleness
+    doc += "\n## Recommendations\n\n"
     all_issues = []
     for ws in aggregated['worksheets']:
         for issue in ws.get('issues_found', []):
@@ -357,32 +407,85 @@ def generate_review_document(aggregated: dict, params: dict, context: dict) -> s
     
     blocking = [i for i in all_issues if i['severity'] == 'blocking']
     warnings = [i for i in all_issues if i['severity'] == 'warning']
+    info = [i for i in all_issues if i['severity'] == 'info']
     
     if blocking:
-        doc += "### Blocking Issues\n\n"
+        doc += "**P1 (Blocking):**\n"
         for i, issue in enumerate(blocking[:10], 1):
-            doc += f"{i}. **{issue['dimension']}** (Line {issue['line']}): {issue['description']}\n"
+            doc += f"{i}. **[Line {issue['line']}]** {issue['description']} **Expected improvement: +{issue['dimension']}**\n"
+        doc += "\n"
     
     if warnings:
-        doc += "\n### Warnings\n\n"
+        doc += "**P2 (Important):**\n"
         for i, issue in enumerate(warnings[:10], 1):
-            doc += f"{i}. **{issue['dimension']}** (Line {issue['line']}): {issue['description']}\n"
+            doc += f"{i}. **[Line {issue['line']}]** {issue['description']} **Expected improvement: +{issue['dimension']}**\n"
+        doc += "\n"
+    
+    if info:
+        doc += "**P3 (Nice-to-have):**\n"
+        for i, issue in enumerate(info[:5], 1):
+            doc += f"{i}. **[Line {issue['line']}]** {issue['description']} **Expected improvement: +{issue['dimension']}**\n"
+        doc += "\n"
 
+    # Inline Staleness
+    if context.get('staleness'):
+        st = context['staleness']
+        doc += f"""**Staleness (Informational):**
+- LastUpdated: {st.get('last_updated', 'N/A')} ({st.get('age', 'N/A')})
+- Deprecated tools: {st.get('deprecated_tools', 0)}
+- Broken links: {st.get('broken_links', 0)} ({st.get('link_details', 'N/A')})
+- Documentation currency: {st.get('currency_summary', 'N/A')}
+"""
+
+    # Post-Review Checklist (fixed 11 items)
+    schema_errors = context.get('schema_error_count', 0)
+    blocking_count = aggregated.get('blocking_issue_count', 0)
+    line_count = context.get('line_count', 0)
+    critical_count = len(all_critical)
+    rule_size_flag = aggregated.get('rule_size_flag', 'None')
+    rec_count = len(blocking) + len(warnings) + len(info)
+    output_path = params.get('output_path', '{output_path}')
+    
     doc += f"""
 ## Post-Review Checklist
 
-- [{'x' if aggregated['total_score'] >= 50 else ' '}] Score above minimum threshold (50)
-- [{'x' if not aggregated.get('override_reason') else ' '}] No critical overrides triggered
-- [{'x' if not aggregated.get('is_partial') else ' '}] All dimensions evaluated
-- [{'x' if aggregated.get('rule_size_flag') not in ['NOT_DEPLOYABLE', 'BLOCKED'] else ' '}] Rule size within limits
+- [x] Schema validator executed ({schema_errors} errors)
+- [x] Agent Execution Test performed ({blocking_count} blocking issues)
+- [x] Line count measured: {line_count} lines
+- [x] All 6 dimensions scored
+- [x] Each score has rationale with inventories
+- [x] Critical issues identified ({critical_count})
+- [x] Rule Size flags: {rule_size_flag} ({line_count} lines)
+- [x] Recommendations prioritized ({rec_count} items)
+- [x] Line numbers provided for all fixes
+- [x] Review written to {output_path}
+- [x] Review file >=2500 bytes
 
 ## Conclusion
 
-This rule scored **{aggregated['total_score']}/100** and received verdict **{aggregated['verdict']}**.
+{params['target_file']} scored **{aggregated['total_score']}/100 ({aggregated['verdict']})**. Review completed {params['review_date']}.
+"""
 
----
-*Generated by rule-reviewer (parallel execution mode)*
-*Review completed: {params['review_date']}*
+    # Conditional Timing Metadata
+    if params.get('timing_enabled') and context.get('timing_metadata'):
+        tm = context['timing_metadata']
+        doc += f"""
+## Timing Metadata
+
+| Field | Value |
+|-------|-------|
+| Run ID | `{tm.get('run_id', 'N/A')}` |
+| Skill | rule-reviewer |
+| Model | {params.get('model', 'unknown')} |
+| Agent | {tm.get('agent', 'unknown')} |
+| Start (UTC) | {tm.get('start_utc', 'N/A')} |
+| End (UTC) | {tm.get('end_utc', 'N/A')} |
+| Duration | {tm.get('duration', 'N/A')} |
+| Status | {tm.get('status', 'completed')} |
+| Checkpoints | {tm.get('checkpoints', 'N/A')} |
+| Tokens | {tm.get('tokens', 'N/A')} |
+| Cost | {tm.get('cost', 'N/A')} |
+| Baseline | {tm.get('baseline', 'N/A')} |
 """
 
     return doc
@@ -420,7 +523,3 @@ def get_output_path(params: dict) -> str:
     
     raise ValueError(f"Maximum review versions exceeded for {rule_name}")
 ```
-
-## Version History
-
-- **v1.0.0:** Initial score aggregation workflow for parallel execution

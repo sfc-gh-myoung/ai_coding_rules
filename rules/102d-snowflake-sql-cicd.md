@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** CI/CD, GitHub Actions, Taskfile, deployment automation, environment variables, multi-environment, pipeline, secrets management
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-03-26
+**Keywords:** CI/CD, GitHub Actions, Makefile, deployment automation, environment variables, multi-environment, pipeline, secrets management
 **TokenBudget:** ~1300
 **ContextTier:** Low
 **Depends:** 102a-snowflake-sql-automation.md
@@ -13,12 +13,12 @@
 ## Scope
 
 **What This Rule Covers:**
-CI/CD pipeline patterns for automated Snowflake SQL deployments: Taskfile integration, GitHub Actions workflows, and environment-specific variable management across dev/test/prod.
+CI/CD pipeline patterns for automated Snowflake SQL deployments: Makefile integration, GitHub Actions workflows, and environment-specific variable management across dev/test/prod.
 
 **When to Load This Rule:**
 - Setting up CI/CD pipelines for Snowflake SQL deployments
 - Configuring GitHub Actions for SQL automation
-- Using Taskfile for SQL template execution
+- Using Makefile for SQL template execution
 - Managing environment-specific secrets and variables
 
 ## References
@@ -49,14 +49,14 @@ CI/CD pipeline patterns for automated Snowflake SQL deployments: Taskfile integr
 
 ### Execution Steps
 
-1. Configure Taskfile with centralized variables
+1. Configure Makefile with centralized variables
 2. Set up GitHub Actions workflow triggered on SQL file changes
 3. Configure environment-specific secrets in CI/CD platform
 4. Test pipeline in dev before enabling for prod
 
 ### Output Format
 
-Taskfile.yml, GitHub Actions workflow YAML, environment variable configurations.
+Makefile, GitHub Actions workflow YAML, environment variable configurations.
 
 ### Validation
 
@@ -66,62 +66,46 @@ Taskfile.yml, GitHub Actions workflow YAML, environment variable configurations.
 
 ### Post-Execution Checklist
 
-- [ ] Taskfile centralizes all environment variables
+- [ ] Makefile centralizes all environment variables
 - [ ] GitHub Actions workflow triggers on correct file paths
 - [ ] Secrets configured per environment (DEV, TEST, PROD)
 - [ ] Pipeline tested in dev before prod deployment
 
-## Taskfile Integration
+## Makefile Integration
 
 **Pattern:**
-```yaml
-version: '3'
+```makefile
+DATABASE ?= UTILITY_DEMO_V2
+SCHEMA ?= GRID_DATA
+STAGE ?= @$(DATABASE).$(SCHEMA).DATA_FILES
+SNOW ?= uvx --from=snowflake-cli-labs snow
 
-vars:
-  DATABASE: UTILITY_DEMO_V2
-  SCHEMA: GRID_DATA
-  STAGE: '@{{.DATABASE}}.{{.SCHEMA}}.DATA_FILES'
+.PHONY: sql-exec operations-create-schema operations-load-assets operations-merge-assets
 
-tasks:
-  sql:exec:
-    desc: Execute SQL template with variables
-    silent: true
-    internal: true
-    cmds:
-      - >
-        snow sql
-        -D DATABASE={{.DATABASE}}
-        -D SCHEMA={{.SCHEMA}}
-        -D STAGE={{.STAGE}}
-        -f {{.SQL_FILE}}
+sql-exec: ## Execute SQL template with variables (internal)
+	$(SNOW) sql \
+		-D DATABASE=$(DATABASE) \
+		-D SCHEMA=$(SCHEMA) \
+		-D STAGE=$(STAGE) \
+		-f $(SQL_FILE)
 
-  operations:create-schema:
-    desc: Create GRID_DATA schema
-    cmds:
-      - task: sql:exec
-        vars:
-          SQL_FILE: sql/operations/grid/setup/create_schema.sql
+operations-create-schema: ## Create GRID_DATA schema
+	$(MAKE) sql-exec SQL_FILE=sql/operations/grid/setup/create_schema.sql
 
-  operations:load-assets:
-    desc: Load grid assets from stage
-    cmds:
-      - task: sql:exec
-        vars:
-          SQL_FILE: sql/operations/grid/load/copy_assets.sql
+operations-load-assets: ## Load grid assets from stage
+	$(MAKE) sql-exec SQL_FILE=sql/operations/grid/load/copy_assets.sql
 
-  operations:merge-assets:
-    desc: Upsert grid assets (production-safe)
-    cmds:
-      - task: sql:exec
-        vars:
-          SQL_FILE: sql/operations/grid/merge/merge_assets.sql
+operations-merge-assets: ## Upsert grid assets (production-safe)
+	$(MAKE) sql-exec SQL_FILE=sql/operations/grid/merge/merge_assets.sql
 ```
 
 **Benefits:**
 - Environment variables centralized
-- Reusable task patterns
+- Reusable target patterns
 - Easy to test locally
 - CI/CD can call same commands
+
+> **Note:** If your project uses Taskfile.yml instead of Makefile, see `820-taskfile-automation.md` for equivalent Taskfile patterns.
 
 ## GitHub Actions Integration
 

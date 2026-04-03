@@ -160,3 +160,105 @@ CRITICAL ERROR: Cannot proceed - rules/000-global-core.md not accessible
 ```
 
 **Notes:** No rules loaded, no further phases executed. Complete stop.
+
+---
+
+## Scenario 11: Multi-Technology Keyword Splitting
+
+**Input:** `user_request: "FastAPI + HTMX + SSE in SPCS"`
+
+**Expected grep pattern:** `grep -iE "fastapi|htmx|sse|spcs" rules/RULES_INDEX.md`
+
+**Expected rules:**
+```markdown
+## Rules Loaded
+- rules/000-global-core.md (foundation)
+- rules/200-python-core.md (implied .py from keyword: FastAPI)
+- rules/210-python-fastapi-core.md (keyword: fastapi)
+```
+
+**Notes:** All 4 keywords must appear in the grep OR pattern. HTMX/SSE/SPCS may not match any rules in RULES_INDEX.md — note "No rules found for [keyword]" for each unmatched term.
+
+---
+
+## Scenario 12: Grep Zero-Result Anomaly Recovery
+
+**Input:** `user_request: "Deploy the Python application"`
+**Condition:** grep returns empty (simulated anomaly)
+
+**Expected behavior:**
+1. Re-execute grep once (transient failure recovery)
+2. If still zero: Execute `read_file` fallback immediately
+3. Document anomaly: "Grep returned unexpectedly empty - used fallback"
+
+**Expected rules (after fallback):**
+```markdown
+## Rules Loaded
+- rules/000-global-core.md (foundation)
+- rules/200-python-core.md (file extension: .py)
+- rules/820-taskfile-automation.md (keyword: deploy)
+```
+
+**Notes:** "deploy" and "python" are common keywords that should always return matches. Zero results is an anomaly requiring retry then fallback.
+
+---
+
+## Scenario 13: context_tier_filter Parameter
+
+**Input:** `user_request: "Write tests for my Streamlit dashboard"`
+**Config:** `context_tier_filter: critical+high`
+
+**Expected rules:**
+```markdown
+## Rules Loaded
+- rules/000-global-core.md (foundation)
+- rules/200-python-core.md (file extension: .py)
+- rules/100-snowflake-core.md (dependency of 101)
+- rules/101-snowflake-streamlit-core.md (keyword: Streamlit)
+```
+
+**Notes:** `206-python-pytest.md` (Medium tier) excluded by the `critical+high` filter despite matching the "test" keyword.
+
+---
+
+## Scenario 14: Custom rules_path
+
+**Input:** `user_request: "Fix the bug in auth.py"`
+**Config:** `rules_path: custom-rules/`
+
+**Expected rules:**
+```markdown
+## Rules Loaded
+- custom-rules/000-global-core.md (foundation)
+- custom-rules/200-python-core.md (file extension: .py)
+```
+
+**Notes:** All paths use `custom-rules/` prefix instead of default `rules/`. Foundation loading, domain matching, and activity matching all use the custom path.
+
+---
+
+## Scenario 15: Circular Dependency Detection
+
+**Condition:** Rule A depends on Rule B, Rule B depends on Rule A
+
+**Expected behavior:**
+1. Warning logged: "Circular dependency detected between A and B"
+2. Cycle broken: both rules loaded once
+3. No infinite loop
+
+**Notes:** Circular dependencies should not exist in well-formed rules but must be handled gracefully if encountered.
+
+---
+
+## Scenario 16: Transitive Dependency Failure
+
+**Condition:** Rule A depends on B, B depends on C, C not found
+
+**Expected behavior:**
+1. Log: "Rule load failed: C not found"
+2. Log: "Skipping B - dependency C missing"
+3. Log: "Skipping A - dependency B missing"
+
+**Expected Gate 3:** PASSED if other non-dependent rules loaded successfully
+
+**Notes:** Transitive failures cascade. If A-B-C is the only chain, Gate 3 still passes if the foundation and other matched rules loaded.

@@ -68,51 +68,6 @@ Examples:
 
 **Note:** Hard caps apply to the TOTAL rule score, not just this dimension.
 
-## Scoring Criteria
-
-### 10/10 (25 points): Optimal
-- ≤300 lines
-- Well under target
-- Highest information density
-- Flag: None
-
-### 9/10 (22.5 points): Excellent
-- 301-400 lines
-- Under target
-- High density
-- Flag: None
-
-### 8/10 (20 points): Good (At Target)
-- 401-500 lines
-- At target threshold
-- Acceptable density
-- Flag: None
-
-### 5/10 (12.5 points): Over Target
-- 501-550 lines
-- Slightly over target (+0-10%)
-- 50% penalty at 501 lines
-- Flag: `SPLIT_RECOMMENDED`
-
-### 3/10 (7.5 points): Warning
-- 551-600 lines
-- Over target (+10-20%)
-- Identify split candidates
-- Flag: `SPLIT_REQUIRED`
-
-### 1/10 (2.5 points): Critical
-- 601-700 lines
-- Significantly over (+20-40%)
-- Mandatory split before deployment
-- **Hard cap:** Total score max 70/100
-- Flag: `NOT_DEPLOYABLE`
-
-### 0/10 (0 points): Blocked
-- >700 lines
-- Cannot be deployed
-- **Hard cap:** Total score max 50/100
-- Flag: `BLOCKED`
-
 ## Score Decision Matrix
 
 | Lines | Raw | Points | Flag | Agent Action | Hard Cap |
@@ -352,14 +307,3 @@ Small rules may lack coverage.
 **Pattern:** Rule contains many code examples for clarity
 **Why NOT an issue:** Examples improve agent executability (Priority 1)
 **Action:** Note in review: "Example-heavy—consider extracting to examples/"
-
-## Version History
-
-- **v2.0.0:** Scoring Rubric v2.0 update (2026-03-08)
-  - Weight increased: 2 → 5 (now 25% of total score)
-  - Max points increased: 10 → 25
-  - New thresholds: Optimal at ≤300, 50% penalty at 501
-  - Added hard caps: >600 lines caps total at 70, >700 caps at 50
-  - New flags: SPLIT_RECOMMENDED, SPLIT_REQUIRED, BLOCKED
-  - Token Efficiency merged as informational modifier
-- **v1.0.0:** Initial release (2026-02-04)

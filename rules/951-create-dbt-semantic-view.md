@@ -8,7 +8,7 @@
 **Keywords:** dbt, semantic view, Snowflake, dbt_semantic_view, materialization, Cortex Analyst, YAML, semantic model, dbt models, analytics, business intelligence, data modeling
 **TokenBudget:** ~5100
 **ContextTier:** High
-**Depends:** 200-python-core.md
+**Depends:** 950-dbt-core.md, 200-python-core.md
 
 ## Purpose
 

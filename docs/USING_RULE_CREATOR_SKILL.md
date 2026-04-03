@@ -1,44 +1,48 @@
 # Using the Rule Creator Skill
 
-**Last Updated:** 2026-03-07
+**Last Updated:** 2026-03-27
 
 The Rule Creator Skill automates creation of production-ready Cursor rules following schema v3.2 standards. It guides you through research, template generation, content population, validation, and RULES_INDEX.md registration—reducing rule creation time by ~60-70%.
 
 > **Internal Use Only:** This skill is excluded from deployment to consuming projects. See [Deployment Exclusion](#deployment-exclusion) for rationale.
 
+## Examples
 
-## Quick Start
-
-### 1. Load the skill
-
-```text
-Load skills/rule-creator/SKILL.md
-```
-
-### 2. Request rule creation
+### Minimal Required Example
 
 ```text
 Use the rule-creator skill.
 
-rule_name: 422-daisyui-core
-domain: JavaScript/Frontend
-context_tier: Medium
+rule_name: 422-daisyui-core          # Required — rule filename (NNN-lowercase-hyphenated)
+domain: JavaScript/Frontend           # Required — technology domain
 ```
 
-The skill will guide you through 5 automated phases.
-
-### 3. Check the output
-
-On success:
+### With All Optional Settings
 
 ```text
-✓ Rule creation complete
+Use the rule-creator skill.
 
-OUTPUT_FILE: rules/422-daisyui-core.md
-INDEX_UPDATED: RULES_INDEX.md
-Validation: 0 CRITICAL, 2 RECOMMENDED (passed)
-Duration: 18 minutes
+rule_name: 209-python-pytest-security  # Required
+domain: Python                         # Required
+context_tier: High                     # Optional (default: Medium) — token budget tier
+timing_enabled: true                   # Optional (default: false) — track creation duration
 ```
+
+### With Aspect (Non-Core Rule)
+
+```text
+Create a new rule for pytest security testing patterns
+```
+
+Creates: `209-python-pytest-security.md` (aspect: "security").
+
+### Multiple Dependencies
+
+```text
+Create a new rule for Snowflake+Python integration patterns
+```
+
+Agent adds both `rules/100-snowflake-core.md` and `rules/200-python-core.md` to Depends.
 
 
 ## Workflow Phases

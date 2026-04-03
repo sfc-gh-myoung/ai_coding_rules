@@ -1,6 +1,6 @@
 # Using the Bulk Rule Reviewer Skill
 
-**Last Updated:** 2026-03-08
+**Last Updated:** 2026-03-27
 
 The Bulk Rule Reviewer Skill executes comprehensive agent-centric reviews on all rule files in the `rules/` directory, generating a consolidated priority report showing which rules need attention. It orchestrates the rule-reviewer skill for each rule, maintaining the same quality standards as individual reviews.
 
@@ -10,34 +10,55 @@ The Bulk Rule Reviewer Skill executes comprehensive agent-centric reviews on all
 - Technical debt tracking and prioritization
 - Baseline quality measurement
 
+## Examples
 
-## Quick Start
-
-### 1. Load the skill
-
-```text
-Load skills/bulk-rule-reviewer/SKILL.md
-```
-
-### 2. Request a bulk review
+### Minimal Required Example
 
 ```text
 Use the bulk-rule-reviewer skill.
 
-review_date: 2026-01-06
-review_mode: FULL
-model: claude-sonnet-45
+review_date: 2026-03-27              # Required — date stamp for output files
+review_mode: FULL                    # Required — review depth
+model: claude-sonnet-45              # Required — model slug for naming
 ```
 
-### 3. Check the output
-
-On success:
+### With All Optional Settings
 
 ```text
 ✓ Bulk review complete
 
-Individual reviews: reviews/rule-reviews/<rule-name>-claude-sonnet-45-2026-01-06.md (129 files)
-Master summary: reviews/summaries/_bulk-review-claude-sonnet-45-2026-01-06.md
+review_date: 2026-03-27              # Required
+review_mode: FULL                    # Required
+model: claude-sonnet-45              # Required
+output_root: quarterly-audit/        # Optional (default: reviews/) — custom output directory
+filter_pattern: rules/200-*.md       # Optional (default: rules/*.md) — filter by domain
+skip_existing: false                 # Optional (default: true) — force re-review of all rules
+max_parallel: 3                      # Optional (default: 5) — concurrent sub-agents (1-10)
+timing_enabled: true                 # Optional (default: false) — adds timing metadata
+```
+
+Do not combine `skip_existing: false` with `max_parallel: 10` on large rule sets — this produces maximum load. Use lower parallelism when forcing re-reviews.
+
+### Resume After Interruption
+
+```text
+Use the bulk-rule-reviewer skill.
+
+review_date: 2026-03-27              # Required — same date as interrupted run
+review_mode: FULL                    # Required
+model: claude-sonnet-45              # Required
+skip_existing: true                  # Optional (default: true) — skips already-reviewed rules
+```
+
+### Sequential Mode (Debugging)
+
+```text
+Use the bulk-rule-reviewer skill.
+
+review_date: 2026-03-27              # Required
+review_mode: FOCUSED                 # Required — Actionability + Completeness only
+model: claude-sonnet-45              # Required
+max_parallel: 1                      # Optional — sequential execution (one rule at a time)
 ```
 
 
@@ -55,7 +76,7 @@ Master summary: reviews/summaries/_bulk-review-claude-sonnet-45-2026-01-06.md
 review_mode: FULL
 ```
 
-All 7 dimensions evaluated per rule. Expected duration: ~50 minutes (parallel with 5 workers).
+All 7 dimensions evaluated per rule. Each worker gets fresh context per rule to prevent cross-rule drift. Duration varies by rule count, complexity, and model.
 
 ### FOCUSED Mode
 
@@ -63,7 +84,7 @@ All 7 dimensions evaluated per rule. Expected duration: ~50 minutes (parallel wi
 review_mode: FOCUSED
 ```
 
-Faster execution (~1 hour parallel). Evaluates only the two most critical dimensions.
+Evaluates only the two most critical dimensions. Each worker gets fresh context per rule.
 
 ### STALENESS Mode
 
@@ -71,7 +92,7 @@ Faster execution (~1 hour parallel). Evaluates only the two most critical dimens
 review_mode: STALENESS
 ```
 
-Fastest execution (~30 min parallel). Checks for outdated references and deprecated patterns.
+Checks for outdated references and deprecated patterns. Each worker gets fresh context per rule.
 
 
 ## Understanding Your Results
@@ -158,12 +179,12 @@ Adds timing metadata to the master summary:
 
 ### Execution Modes
 
-| Mode | Setting | Speed | Use Case |
-|------|---------|-------|----------|
-| **Parallel** (default) | `max_parallel: 5` | ~50 minutes | Production reviews |
-| **Sequential** | `max_parallel: 1` | 4-6 hours | Debugging, low-resource |
+| Mode | Setting | Characteristics | When to Use |
+|------|---------|-----------------|-------------|
+| **Parallel** (default) | `max_parallel: 5` | N concurrent sub-agents, each with fresh context per rule | Recommended — context isolation prevents cross-rule drift |
+| **Sequential** | `max_parallel: 1` | One rule at a time | Debugging, low-resource, or when observing individual rule progress |
 
-Parallel execution launches N sub-agents, each with fresh context to prevent drift.
+Parallel execution's primary benefit is **context isolation**: each sub-agent receives a fresh context for its assigned rules, preventing accumulated drift from one rule's review contaminating the next. Duration depends on rule count, model, and sub-agent variability — it is not guaranteed to be proportionally faster than sequential.
 
 ### Resume Capability
 
@@ -177,7 +198,7 @@ The skill supports resuming after interruptions via `skip_existing: true` (defau
 ```text
 ✓ Skipping 000-global-core (review exists)
 ✓ Skipping 001-memory-bank (review exists)
-[67/129] Reviewing: rules/067-new-rule.md
+[67/187] Reviewing: rules/067-new-rule.md
 ```
 
 **Benefits:** Resume after interruption without re-work. Save 3-4 hours when resuming mid-batch.
@@ -200,7 +221,7 @@ filter_pattern: rules/002*.md        # Governance rules only
 
 ## Execution Integrity
 
-**CRITICAL:** Bulk reviews take ~50 minutes (parallel) or 4-6 hours (sequential). This is expected and required.
+**CRITICAL:** Bulk reviews take significant time regardless of execution mode. This is expected and required for thorough analysis.
 
 ### Verification During Execution
 
@@ -212,7 +233,7 @@ filter_pattern: rules/002*.md        # Governance rules only
 ### Verification After Execution
 
 - Review file sizes: 3000-8000 bytes each
-- Execution time: ~50 minutes for 100+ rules (parallel)
+- Execution time: varies by rule count, model, and complexity
 - Spot-check reviews for complete sections
 
 ### Red Flags
@@ -237,11 +258,11 @@ Yes. Set `skip_existing: false` to overwrite existing reviews with fresh evaluat
 
 ### How long does a full review take?
 
-For ~129 rules in FULL mode: ~50 minutes with parallel execution (5 workers), or 4-6 hours sequential (90-120 seconds per rule).
+For the full current rule set in FULL mode: duration depends on rule count, model, and complexity. Parallel mode (`max_parallel: 5`) provides context isolation per rule but is not guaranteed to be proportionally faster than sequential due to coordination overhead and sub-agent variability.
 
 ### Why is it slow?
 
-Each rule gets a complete agent-centric review using the full rubric. Shortcuts compromise review quality. The parallel execution provides 5× speedup while maintaining quality through fresh context per sub-agent.
+Each rule gets a complete agent-centric review using the full rubric. Shortcuts compromise review quality. Parallel execution's primary benefit is fresh context per sub-agent, which prevents cross-rule drift and maintains review independence.
 
 ### Where does the rubric come from?
 
@@ -272,7 +293,7 @@ Bulk Review Orchestrator
 │   ├── Apply filter_pattern
 │   └── Sort alphabetically
 │
-├── Stage 2: Review Execution (1-2 hours parallel)
+├── Stage 2: Review Execution
 │   ├── Partition rules into N groups (N = max_parallel)
 │   ├── Launch N sub-agents with fresh context
 │   ├── Each sub-agent: load rule-reviewer, process rules
@@ -296,7 +317,7 @@ skills/bulk-rule-reviewer/
 ├── SKILL.md                       # Main skill (entrypoint)
 ├── CRITICAL_CONTEXT.md            # Execution integrity rules
 ├── examples/
-│   ├── full-bulk-review.md        # Complete 113-rule walkthrough
+│   ├── full-bulk-review.md        # Complete walkthrough example
 │   └── shortcut-prevention.md     # Anti-shortcut patterns
 ├── tests/
 │   └── validation-tests.md        # Validation test cases

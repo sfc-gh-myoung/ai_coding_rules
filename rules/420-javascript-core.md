@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-03-25
 **Keywords:** JavaScript, ES2024, ESM, Node.js, JSDoc, Biome, node:test, Immutability, Async/Await, Functional Programming
 **TokenBudget:** ~4450
 **ContextTier:** High
@@ -19,7 +19,7 @@
 ## Scope
 
 **What This Rule Covers:**
-Definitive standards for writing modern, robust JavaScript in 2025, enforcing ECMAScript Modules (ESM), immutable data patterns (ES2023+ methods), type safety via JSDoc, and modern tooling (Biome, Node Native Test Runner).
+Definitive standards for writing modern, robust JavaScript in 2026, enforcing ECMAScript Modules (ESM), immutable data patterns (ES2023+ methods), type safety via JSDoc, and modern tooling (Biome, `node:test`).
 
 **When to Load This Rule:**
 - Writing or modifying JavaScript code
@@ -50,6 +50,7 @@ Definitive standards for writing modern, robust JavaScript in 2025, enforcing EC
 **Best Practices Guides:**
 - [Biome](https://biomejs.dev/) - Fast formatter and linter for JavaScript
 - [ES2024 Features](https://github.com/tc39/proposals/blob/main/finished-proposals.md) - Stage 4 ECMAScript proposals
+
 ## Contract
 
 ### Inputs and Prerequisites
@@ -67,7 +68,7 @@ Definitive standards for writing modern, robust JavaScript in 2025, enforcing EC
 - **[Grouping]** - Use `Object.groupBy()` for data grouping
 - **[Testing]** - Use `node:test` and `node:assert` for unit tests
 - **[Linting]** - Use Biome for fast linting/formatting
-- **[Type Safety]** - Use `// @ts-check` and JSDoc for complex logic
+- **[Type Safety]** - Use `// @ts-check` and JSDoc for files >100 lines, >3 params, or nullable value handling
 
 ### Forbidden
 
@@ -84,7 +85,7 @@ Definitive standards for writing modern, robust JavaScript in 2025, enforcing EC
 2. **Verify Type Safety:** Add `// @ts-check` to the top of files and use JSDoc for critical functions
 3. **Prefer Immutability:** Use new array methods (`toSorted`, `with`, `toSpliced`) instead of mutating originals
 4. **Use Native APIs:** Prefer `fetch`, `node:test`, and `node:assert` over third-party libraries
-5. **Configure Biome:** Set up `biome.json` with project-specific rules
+5. **Configure Biome:** Set up `biome.json` with linting, formatting, and import organization enabled (see [Linting with Biome](#linting-with-biome) for minimal config)
 6. **Test with node:test:** Write tests using native Node.js test runner
 
 ### Output Format
@@ -142,7 +143,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **CRITICAL:** No `var` keywords used
 - **CRITICAL:** No `require()` or `module.exports` statements
 - **Format Check:** JSDoc comments present for exported functions
-- **Format Check:** `// @ts-check` enabled for complex logic
+- **Format Check:** `// @ts-check` enabled for files >100 lines, >3 params, or nullable value handling
 
 **Testing:**
 - **CRITICAL:** `node --test` or `npm test` passes all tests
@@ -200,7 +201,7 @@ See [Anti-Patterns and Common Mistakes](#anti-patterns-and-common-mistakes) sect
 - [ ] **CRITICAL:** `"type": "module"` present in package.json
 - [ ] **CRITICAL:** No `var` keywords used
 - [ ] JSDoc comments present for exported functions
-- [ ] `// @ts-check` enabled for files >100 lines, >3 params, or nullable value handling
+- [ ] `// @ts-check` enabled per Type Safety criteria (see [Type Safety with JSDoc](#type-safety-with-jsdoc))
 - [ ] `node:test` used for testing
 - [ ] No `require()` statements found
 - [ ] Native `fetch` used instead of axios/request
@@ -224,7 +225,7 @@ See [Anti-Patterns and Common Mistakes](#anti-patterns-and-common-mistakes) sect
 
 **Node.js Version Mismatch:**
 1. Check current version: `node --version`
-2. Required: Node.js 20+ for ES2023 array methods, 21+ for `Object.groupBy`
+2. Required: Node.js 20+ for ES2023 array methods, 22+ LTS for `Object.groupBy` (also available in Node 21 non-LTS)
 3. Switch version with nvm: `nvm use 20` or `nvm install 20`
 4. Update `.nvmrc` or `engines` field in `package.json` to pin version
 
@@ -419,7 +420,7 @@ try {
 - Avoid for static dependencies — prefer top-level `import` for better tree-shaking and analysis.
 
 **Top-Level Await Pitfalls:**
-- Requires ESM (`"type": "module"` in package.json) and Node.js 14.8+.
+- Requires ESM (`"type": "module"` in package.json) and Node.js 20+ (per this rule's prerequisites).
 - Blocks importing modules from executing until the awaited value resolves — avoid in library entry points.
 - Do not use in modules imported by many consumers; prefer explicit async init functions instead.
 
@@ -436,7 +437,7 @@ try {
 ## Testing and Tooling
 
 ### Native Test Runner
-- **Requirement:** Use Node.js native test runner (`node:test`) for pure JS projects to reduce dependency tree size.
+- **Requirement:** Use `node:test` for projects without TypeScript compilation (no `.ts`/`.tsx` source files) to reduce dependency tree size.
 - **Rule:** Use `node:assert` for assertions.
 
 ```javascript

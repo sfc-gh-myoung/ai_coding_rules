@@ -2,7 +2,7 @@
 
 # AI Agent Bootstrap Protocol
 
-**Last Updated:** 2026-02-10
+**Last Updated:** 2026-03-26
 
 > **CRITICAL: DO NOT SUMMARIZE THIS FILE**
 >
@@ -109,7 +109,7 @@ D. Gate 2 verification (MANDATORY):
 
 E. High-risk actions (MANDATORY additional search):
    - git/commit/push/merge: Search "git", expect 803-project-git-workflow.md
-   - deploy/deployment: Search "deploy", expect 820-taskfile-automation.md
+   - deploy/deployment: Search "deploy", expect 821-makefile-automation.md
    - test/pytest: Search "test", expect 206-python-pytest.md
    - README/documentation: Search "readme", expect 801-project-readme.md
    - CHANGELOG: Search "changelog", expect 800-project-changelog.md

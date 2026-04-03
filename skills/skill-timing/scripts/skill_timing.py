@@ -34,7 +34,6 @@ import os
 import re
 import secrets
 import sys
-import tempfile
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -73,7 +72,7 @@ COST_PER_1M_TOKENS = {
 TTL_DAYS = 7
 REGISTRY_STALE_HOURS = 24
 
-VERSION = "1.2.0"
+VERSION = "1.4.0"
 
 EXIT_SUCCESS = 0
 EXIT_ERROR = 1
@@ -89,24 +88,28 @@ PRICING_REVIEW_INTERVAL_DAYS = 90
 # ============================================================================
 
 
-def get_temp_dir() -> Path:
-    """Get cross-platform temp directory."""
-    return Path(tempfile.gettempdir())
+TIMING_DATA_DIR = Path("reviews/.timing-data")
+
+
+def get_timing_data_dir() -> Path:
+    """Get timing data directory, creating it if needed."""
+    TIMING_DATA_DIR.mkdir(parents=True, exist_ok=True)
+    return TIMING_DATA_DIR
 
 
 def get_timing_file(run_id: str) -> Path:
-    """Get path to timing file for a run."""
-    return get_temp_dir() / f"skill-timing-{run_id}.json"
+    """Get path to in-progress timing file (project-local)."""
+    return get_timing_data_dir() / f"skill-timing-{run_id}.json"
 
 
 def get_completed_file(run_id: str) -> Path:
-    """Get path to completed timing file (saved to reviews/ for persistence)."""
-    return Path("reviews/.timing-data") / f"skill-timing-{run_id}-complete.json"
+    """Get path to completed timing file."""
+    return get_timing_data_dir() / f"skill-timing-{run_id}-complete.json"
 
 
 def get_registry_file() -> Path:
-    """Get path to agent recovery registry."""
-    return get_temp_dir() / "skill-timing-registry.json"
+    """Get path to agent recovery registry (project-local)."""
+    return get_timing_data_dir() / "skill-timing-registry.json"
 
 
 def get_baselines_file() -> Path:
@@ -220,7 +223,13 @@ def check_alerts(skill_name: str, mode: str, duration_sec: float) -> list:
     return alerts
 
 
-def compare_to_baseline(skill_name: str, mode: str, model: str, duration_sec: float) -> dict | None:
+def compare_to_baseline(
+    skill_name: str,
+    mode: str,
+    model: str,
+    duration_sec: float,
+    dimension_timings: list | None = None,
+) -> dict | None:
     """Compare duration against baseline if available."""
     baselines_file = get_baselines_file()
     if not baselines_file.exists():
@@ -244,30 +253,68 @@ def compare_to_baseline(skill_name: str, mode: str, model: str, duration_sec: fl
         else:
             status = "significantly_outside"
 
-        return {
+        result = {
             "baseline_avg_seconds": avg,
             "baseline_stddev_seconds": stddev,
             "delta_seconds": round(delta, 2),
             "delta_percent": round(delta_percent, 1),
             "status": status,
         }
+
+        if dimension_timings and "dimensions" in baseline:
+            dim_comparisons = []
+            for dt in dimension_timings:
+                dim_name = dt.get("dimension", "")
+                dim_dur = dt.get("duration_seconds", 0)
+                if dim_dur < 0:
+                    continue
+                dim_bl = baseline["dimensions"].get(dim_name)
+                if not dim_bl:
+                    continue
+                dim_avg = dim_bl["avg_seconds"]
+                dim_stddev = dim_bl.get("stddev_seconds", dim_avg * 0.2)
+                dim_delta = dim_dur - dim_avg
+                dim_delta_pct = dim_delta / dim_avg * 100 if dim_avg > 0 else 0.0
+                if abs(dim_delta) <= dim_stddev:
+                    dim_status = "within_normal"
+                elif abs(dim_delta) <= 2 * dim_stddev:
+                    dim_status = "slightly_outside"
+                else:
+                    dim_status = "significantly_outside"
+                dim_comparisons.append(
+                    {
+                        "dimension": dim_name,
+                        "current_seconds": round(dim_dur, 2),
+                        "baseline_avg_seconds": dim_avg,
+                        "delta_seconds": round(dim_delta, 2),
+                        "delta_percent": round(dim_delta_pct, 1),
+                        "status": dim_status,
+                    }
+                )
+            if dim_comparisons:
+                result["dimension_comparisons"] = dim_comparisons
+
+        return result
     except Exception:
         return None
 
 
 def cleanup_stale_files():
-    """Remove stale timing files older than TTL."""
-    temp_dir = get_temp_dir()
+    """Remove stale in-progress timing files older than TTL."""
+    data_dir = get_timing_data_dir()
     cutoff = time.time() - (TTL_DAYS * 24 * 60 * 60)
 
-    # Only clean up temp directory files (not reviews/.timing-data/)
-    for pattern in ["skill-timing-*.json"]:
-        for filepath in glob.glob(str(temp_dir / pattern)):
-            try:
-                if Path(filepath).stat().st_mtime < cutoff:
-                    Path(filepath).unlink()
-            except Exception:
-                pass
+    for filepath in glob.glob(str(data_dir / "skill-timing-*.json")):
+        fp = Path(filepath)
+        if fp.name.endswith("-complete.json"):
+            continue
+        if fp.name == "skill-timing-registry.json":
+            continue
+        try:
+            if fp.stat().st_mtime < cutoff:
+                fp.unlink()
+        except Exception:
+            pass
 
 
 def update_registry(skill_name: str, agent_id: str, run_id: str, target_file: str):
@@ -343,6 +390,18 @@ def validate_timing_data(data: dict) -> tuple[bool, list[str]]:
         errors.append(f"Invalid status: {data.get('status')}")
     if "duration_seconds" in data and data["duration_seconds"] < 0:
         errors.append(f"Invalid duration: {data['duration_seconds']}")
+    dim_timings = data.get("dimension_timings", [])
+    if dim_timings:
+        if not isinstance(dim_timings, list):
+            errors.append("dimension_timings must be an array")
+        else:
+            for i, dt in enumerate(dim_timings):
+                if not isinstance(dt, dict):
+                    errors.append(f"dimension_timings[{i}] must be an object")
+                elif "dimension" not in dt or "duration_seconds" not in dt:
+                    errors.append(f"dimension_timings[{i}] missing required fields")
+                elif dt["duration_seconds"] < -1:
+                    errors.append(f"dimension_timings[{i}] has invalid duration")
     return (len(errors) == 0, errors)
 
 
@@ -402,6 +461,20 @@ def print_stdout_summary(
         print("Checkpoints:")
         for cp in checkpoints:
             print(f"  {cp['name']}:  {format_checkpoint_elapsed(cp['elapsed_seconds'])}")
+        print(sep)
+
+    dim_timings = data.get("dimension_timings", [])
+    if dim_timings:
+        print("Per-Dimension Timing:")
+        for dt in dim_timings:
+            dur = dt.get("duration_seconds", 0)
+            print(
+                f"  {dt.get('dimension', 'unknown'):30s} {format_duration_seconds(dur):>10s}  ({dt.get('mode', '')})"
+            )
+        total = sum(
+            d.get("duration_seconds", 0) for d in dim_timings if d.get("duration_seconds", 0) >= 0
+        )
+        print(f"  {'Total (dimension work)':30s} {format_duration_seconds(total):>10s}")
         print(sep)
 
     if tokens:
@@ -486,6 +559,28 @@ def generate_markdown_table(data: dict) -> str:
         f"| Cost | {cost_str} |",
         f"| Baseline | {baseline_str} |",
     ]
+
+    dim_timings = data.get("dimension_timings", [])
+    if dim_timings:
+        lines.append("")
+        lines.append("### Per-Dimension Timing")
+        lines.append("")
+        lines.append("| Dimension | Duration | Mode |")
+        lines.append("|-----------|----------|------|")
+        total_dim_time = 0
+        for dt in dim_timings:
+            dur = dt.get("duration_seconds", 0)
+            if dur >= 0:
+                total_dim_time += dur
+            lines.append(
+                f"| {dt.get('dimension', 'unknown')} "
+                f"| {format_duration_seconds(dur)} "
+                f"| {dt.get('mode', 'unknown')} |"
+            )
+        lines.append(
+            f"| **Total (dimension work)** | **{format_duration_seconds(total_dim_time)}** | - |"
+        )
+
     return "\n".join(lines)
 
 
@@ -606,6 +701,16 @@ def cmd_end(args):
                 print(f"RECOVERED_RUN_ID={recovered_id}")
 
     if not timing_file.exists():
+        completed_file = get_completed_file(run_id)
+        if completed_file.exists():
+            if output_format == "json":
+                print(json.dumps(json.loads(completed_file.read_text())))
+            elif output_format == "markdown":
+                print(generate_markdown_table(json.loads(completed_file.read_text())))
+            elif output_format != "quiet":
+                print("TIMING_STATUS=already_completed")
+                print(f"TIMING_COMPLETED_FILE={completed_file}")
+            sys.exit(EXIT_SUCCESS)
         if output_format == "json":
             print(
                 json.dumps(
@@ -656,6 +761,14 @@ def cmd_end(args):
     data["duration_human"] = format_duration(duration_sec)
     data["output_file"] = args.output_file
 
+    if args.dimension_timings:
+        try:
+            dim_timings = json.loads(args.dimension_timings)
+            if isinstance(dim_timings, list):
+                data["dimension_timings"] = dim_timings
+        except (json.JSONDecodeError, TypeError):
+            print("WARNING: Could not parse --dimension-timings JSON", file=sys.stderr)
+
     # Validate output file exists (for metadata embedding guidance)
     if (
         args.output_file
@@ -677,7 +790,11 @@ def cmd_end(args):
 
     # Baseline comparison
     baseline = compare_to_baseline(
-        data["skill_name"], data["review_mode"], data["model"], duration_sec
+        data["skill_name"],
+        data["review_mode"],
+        data["model"],
+        duration_sec,
+        dimension_timings=data.get("dimension_timings"),
     )
     if baseline:
         data["baseline_comparison"] = baseline
@@ -770,6 +887,41 @@ def cmd_baseline_set(args):
         "stddev_seconds": round(stddev, 2),
     }
 
+    per_dimension = getattr(args, "per_dimension", False)
+    if per_dimension:
+        dim_data: dict[str, list[float]] = {}
+        timing_data_dir_pd = Path("reviews/.timing-data")
+        if timing_data_dir_pd.exists():
+            for filepath in glob.glob(str(timing_data_dir_pd / "skill-timing-*-complete.json")):
+                try:
+                    data = json.loads(Path(filepath).read_text())
+                    if (
+                        data.get("skill_name") == args.skill
+                        and data.get("review_mode") == args.mode
+                        and data.get("model") == args.model
+                        and data.get("end_epoch", 0) >= cutoff
+                        and "dimension_timings" in data
+                    ):
+                        for dt in data["dimension_timings"]:
+                            dim_name = dt.get("dimension", "unknown")
+                            dur = dt.get("duration_seconds", 0)
+                            if dur >= 0:
+                                dim_data.setdefault(dim_name, []).append(dur)
+                except Exception:
+                    pass
+
+        if dim_data:
+            dimensions_bl = {}
+            for dim_name, durs in dim_data.items():
+                d_avg = sum(durs) / len(durs)
+                d_var = sum((d - d_avg) ** 2 for d in durs) / len(durs)
+                d_stddev = d_var**0.5
+                dimensions_bl[dim_name] = {
+                    "avg_seconds": round(d_avg, 2),
+                    "stddev_seconds": round(d_stddev, 2),
+                }
+            baselines[args.skill][args.mode][args.model]["dimensions"] = dimensions_bl
+
     baselines_file.write_text(json.dumps(baselines, indent=2))
 
     print(f"Baseline set for {args.skill}/{args.mode}/{args.model}:")
@@ -790,7 +942,11 @@ def cmd_baseline_compare(args):
 
     data = json.loads(completed_file.read_text())
     comparison = compare_to_baseline(
-        data["skill_name"], data["review_mode"], data["model"], data["duration_seconds"]
+        data["skill_name"],
+        data["review_mode"],
+        data["model"],
+        data["duration_seconds"],
+        dimension_timings=data.get("dimension_timings"),
     )
 
     if comparison is None:
@@ -807,6 +963,24 @@ def cmd_baseline_compare(args):
     )
     print(f"  Delta: {sign}{comparison['delta_seconds']}s ({sign}{comparison['delta_percent']}%)")
     print(f"  Status: {comparison['status'].replace('_', ' ')}")
+
+    dim_comparisons = comparison.get("dimension_comparisons", [])
+    if dim_comparisons:
+        print("")
+        print("  Per-Dimension Comparison:")
+        print(f"    {'Dimension':30s} {'Current':>10s} {'Baseline':>10s} {'Delta':>12s} {'Status'}")
+        for dc in dim_comparisons:
+            d_sign = "+" if dc["delta_percent"] >= 0 else ""
+            print(
+                f"    {dc['dimension']:30s} {format_duration_seconds(dc['current_seconds']):>10s}"
+                f" {format_duration_seconds(dc['baseline_avg_seconds']):>10s}"
+                f" {d_sign}{dc['delta_percent']:.1f}%{' ':>6s}"
+                f" {dc['status'].replace('_', ' ')}"
+            )
+    elif data.get("dimension_timings"):
+        print("")
+        print("  NOTE: Baseline was set without --per-dimension. Per-dimension comparison skipped.")
+        print("  Re-run `baseline set --per-dimension` to enable.")
 
 
 def cmd_analyze(args):
@@ -866,6 +1040,44 @@ def cmd_analyze(args):
         "filters": {"skill": args.skill, "model": args.model, "days": args.days},
     }
 
+    per_dimension = getattr(args, "per_dimension", False)
+    dim_result = {}
+    if per_dimension:
+        dim_runs = [r for r in runs if "dimension_timings" in r]
+        skipped = len(runs) - len(dim_runs)
+        if skipped > 0:
+            print(
+                f"NOTE: {skipped} run(s) lack dimension_timings data and are excluded from per-dimension breakdown.",
+                file=sys.stderr,
+            )
+        if dim_runs:
+            dim_data_analyze: dict[str, list[float]] = {}
+            for r in dim_runs:
+                for dt in r.get("dimension_timings", []):
+                    dim_name = dt.get("dimension", "unknown")
+                    dur = dt.get("duration_seconds", 0)
+                    if dur >= 0:
+                        dim_data_analyze.setdefault(dim_name, []).append(dur)
+
+            for dim_name, durs in sorted(dim_data_analyze.items()):
+                durs.sort()
+                d_avg = sum(durs) / len(durs)
+                d_median = durs[len(durs) // 2]
+                d_var = sum((d - d_avg) ** 2 for d in durs) / len(durs)
+                d_stddev = d_var**0.5
+                d_p5 = durs[max(0, int(len(durs) * 0.05))]
+                d_p95 = durs[min(len(durs) - 1, int(len(durs) * 0.95))]
+                dim_result[dim_name] = {
+                    "count": len(durs),
+                    "avg_seconds": round(d_avg, 2),
+                    "median_seconds": round(d_median, 2),
+                    "stddev_seconds": round(d_stddev, 2),
+                    "p5_seconds": round(d_p5, 2),
+                    "p95_seconds": round(d_p95, 2),
+                }
+            if dim_result:
+                result["per_dimension"] = dim_result
+
     if output_format == "json":
         result["runs"] = [
             {
@@ -922,6 +1134,19 @@ def cmd_analyze(args):
         print(f"P5:          {format_duration(p5)} ({format_duration_seconds(p5)})")
         print(f"P50:         {format_duration(p50)} ({format_duration_seconds(p50)})")
         print(f"P95:         {format_duration(p95)} ({format_duration_seconds(p95)})")
+        print(sep)
+
+    if per_dimension and dim_result and output_format not in ("json", "csv") and not args.output:
+        print("")
+        print("Per-Dimension Breakdown:")
+        print(f"  {'Dimension':30s} {'Avg':>10s} {'Median':>10s} {'Stddev':>10s} {'P95':>10s}")
+        for dim_name, stats in dim_result.items():
+            print(
+                f"  {dim_name:30s} {format_duration_seconds(stats['avg_seconds']):>10s}"
+                f" {format_duration_seconds(stats['median_seconds']):>10s}"
+                f" {format_duration_seconds(stats['stddev_seconds']):>10s}"
+                f" {format_duration_seconds(stats['p95_seconds']):>10s}"
+            )
         print(sep)
 
 
@@ -1058,6 +1283,11 @@ For detailed documentation, see docs/USING_SKILL_TIMING_SKILL.md
         action="store_true",
         help="CI mode: JSON output to stdout, exit code based on baseline/thresholds",
     )
+    end_parser.add_argument(
+        "--dimension-timings",
+        default=None,
+        help='JSON array of per-dimension timing data. Format: [{"dimension":"name","duration_seconds":N,"mode":"checkpoint|self-report"}]',
+    )
     end_parser.set_defaults(func=cmd_end)
 
     # baseline command group
@@ -1083,6 +1313,11 @@ For detailed documentation, see docs/USING_SKILL_TIMING_SKILL.md
         help="Minimum sample size required (default: 5, lower for testing)",
     )
     baseline_set_parser.set_defaults(func=cmd_baseline_set)
+    baseline_set_parser.add_argument(
+        "--per-dimension",
+        action="store_true",
+        help="Also set per-dimension baselines from dimension_timings data",
+    )
 
     # baseline compare
     baseline_compare_parser = baseline_subparsers.add_parser(
@@ -1106,6 +1341,11 @@ For detailed documentation, see docs/USING_SKILL_TIMING_SKILL.md
         help="Output format: human (default), json (machine-readable), csv (spreadsheet)",
     )
     analyze_parser.set_defaults(func=cmd_analyze)
+    analyze_parser.add_argument(
+        "--per-dimension",
+        action="store_true",
+        help="Show per-dimension timing breakdown (requires dimension_timings in completed data)",
+    )
 
     # aggregate command
     aggregate_parser = subparsers.add_parser(

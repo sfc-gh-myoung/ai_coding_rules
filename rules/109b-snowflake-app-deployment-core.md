@@ -8,11 +8,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.2
+**LastUpdated:** 2026-03-26
 **LoadTrigger:** kw:app-deployment, kw:deploy
 **Keywords:** CREATE NOTEBOOK, stages, deployment automation, SiS, deploy app, deployment pipeline, app publishing, deployment patterns, deploy to snowflake, stage deployment, production deployment, app versioning, automated deployment
-**TokenBudget:** ~3650
+**TokenBudget:** ~3900
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 109-snowflake-notebooks.md, 101-snowflake-streamlit-core.md, 820-taskfile-automation.md
 
@@ -38,7 +38,7 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 ### Related Rules
 - **Snowflake Notebooks**: `109-snowflake-notebooks.md` - Core notebook patterns
 - **Streamlit Core**: `101-snowflake-streamlit-core.md` - Streamlit app development
-- **Taskfile Automation**: `820-taskfile-automation.md` - Task automation patterns
+- **Build Automation**: `820-taskfile-automation.md` / `821-makefile-automation.md` - Automation patterns
 - **Troubleshooting**: `109c-snowflake-app-deployment-troubleshooting.md` - Deployment debugging
 
 ## Contract
@@ -46,7 +46,7 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 ### Inputs and Prerequisites
 - Snowflake connection and credentials
 - Application files ready for deployment (.ipynb, .py, environment.yml)
-- Taskfile.yml structure in place
+- Project automation entrypoint (Makefile or Taskfile.yml) in place
 - Internal stages created in target schemas
 - SQL scripts for upload/remove/create operations
 
@@ -55,13 +55,13 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 - `AUTO_COMPRESS=FALSE` on all PUT commands for `.py`, `.yml`, `.ipynb` files
 - Explicit `REMOVE @stage/file` before every `PUT` (not just `OVERWRITE=TRUE`)
 - `ROOT_LOCATION` in CREATE must match actual stage file paths
-- Taskfile.yml automation (no manual Snowsight UI deployments)
+- Automated deployment via project automation (no manual Snowsight UI deployments)
 - SQL scripts stored in version control, not inline in YAML
 - Snowflake CLI minimum version: 3.12+ (`uvx --from=snowflake-cli>=3.12 snow`) — verify against [Snowflake CLI releases](https://docs.snowflake.com/en/developer-guide/snowflake-cli/index) for latest requirements
 
 ### Forbidden
 - Manual file uploads via Snowsight UI (not reproducible)
-- Hardcoded credentials in automation scripts. Use environment variables or Snowflake CLI connection configuration (`~/.snowflake/connections.toml`). Never embed credentials in Taskfile.yml or SQL scripts.
+- Hardcoded credentials in automation scripts. Use environment variables or Snowflake CLI connection configuration (`~/.snowflake/connections.toml`). Never embed credentials in automation files (Makefile, Taskfile.yml) or SQL scripts.
 - Deployment without version control
 - Mixing deployment modes (don't deploy same app to multiple stages)
 
@@ -73,7 +73,7 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 5. Validate with actual deployment to Snowflake
 
 ### Output Format
-- Taskfile.yml with modular deployment tasks
+- Automation file (Makefile or Taskfile.yml) with modular deployment targets
 - SQL script files in organized directory structure
 - Documentation of deployment workflow
 
@@ -164,7 +164,7 @@ Bad: Manually upload files via UI, then Create app via UI
 
 **Correct Pattern:**
 ```yaml
-# Good: Automated deployment via Taskfile
+# Good: Automated deployment via project automation
 tasks:
   deploy:app:
     desc: Deploy application (reproducible, version-controlled)
@@ -212,10 +212,10 @@ tasks:
 
 > **Investigation Required**
 > When applying this rule:
-> 1. **Read existing deployment scripts BEFORE creating new ones** - Check Taskfile, SQL patterns, stage paths
+> 1. **Read existing deployment scripts BEFORE creating new ones** - Check automation files (Makefile, Taskfile), SQL patterns, stage paths
 > 2. **Verify stage structure** - List stage contents to understand organization
 > 3. **Never assume stage paths** - Check ROOT_LOCATION in existing CREATE statements
-> 4. **Check Taskfile patterns** - Match existing task naming and structure
+> 4. **Check automation patterns** - Match existing target naming and structure
 > 5. **Test deployment** - Run in dev environment before suggesting for production
 >
 > **Anti-Pattern:**
@@ -224,7 +224,7 @@ tasks:
 >
 > **Correct Pattern:**
 > "Let me check your existing deployment setup first."
-> [reads Taskfile.yml, checks SQL scripts, lists stage]
+> [reads automation file, checks SQL scripts, lists stage]
 > "I see you use 3-step deployment with AUTO_COMPRESS=FALSE. Following this pattern for the new app..."
 
 ## Output Format Examples
@@ -323,9 +323,9 @@ tasks:
 ### Recommended Layout
 
 Directory structure for `project/`:
-- **task/** - Taskfile definitions
-  - **notebook/** - `Taskfile.yml` (Notebook deployment tasks)
-  - **streamlit/** - `Taskfile.yml` (Streamlit deployment tasks)
+- **task/** - Automation definitions (Taskfile or Makefile per app)
+  - **notebook/** - Deployment automation (Notebook deployment targets)
+  - **streamlit/** - Deployment automation (Streamlit deployment targets)
 - **sql/operations/** - SQL scripts by app type
   - **notebook/** - Notebook-specific scripts
     - **upload/** - `upload_*.sql`
@@ -333,7 +333,7 @@ Directory structure for `project/`:
     - **create/** - `create_*.sql`
     - **drop/** - `drop_*.sql`
   - **streamlit/** - Same structure as notebook
-- `Taskfile.yml` - Root taskfile with includes
+- `Taskfile.yml` or `Makefile` - Root automation with includes
 
 ## SQL Script Patterns
 
@@ -345,13 +345,13 @@ Directory structure for `project/`:
 - `ROOT_LOCATION` in CREATE must match actual stage file paths
 - For multi-file apps, use `snow stage copy --recursive --no-auto-compress`
 
-## Taskfile Implementation
+## Automation Implementation
 
-> For complete Taskfile implementation with task definitions, variables, includes, preconditions, and deployment validation, see **109h-snowflake-app-deployment-taskfile.md**.
+> For complete Taskfile-based implementation with task definitions, variables, includes, preconditions, and deployment validation, see **109h-snowflake-app-deployment-taskfile.md**. For Makefile-based patterns, see **821-makefile-automation.md**.
 
 **Key structure:** Each application needs 5 tasks: `upload`, `create`, `drop`, `remove`, `deploy` (which runs drop, remove, upload, create in order).
 
-> **CI/CD integration:** Taskfile tasks can be called directly from GitHub Actions or GitLab CI pipelines. See **109i-snowflake-app-deployment-advanced.md** for environment-specific deployment patterns.
+> **CI/CD integration:** Automation targets (Makefile or Taskfile) can be called directly from GitHub Actions or GitLab CI pipelines. See **109i-snowflake-app-deployment-advanced.md** for environment-specific deployment patterns.
 
 ## Deployment Validation
 

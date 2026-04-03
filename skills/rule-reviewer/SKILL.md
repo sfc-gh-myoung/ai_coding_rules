@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/rule-reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 2.4.0
+version: 2.7.1
 ---
 
 # Rule Reviewer
@@ -34,12 +34,12 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
 | Dimension | Weight | Max Points | Focus |
 |-----------|--------|------------|-------|
-| Actionability | 6 | 30 | Can agents execute without judgment? |
-| Rule Size | 5 | 25 | Within 500-line target? (deterministic) |
-| Parsability | 3 | 15 | Schema valid? |
-| Completeness | 3 | 15 | All scenarios covered? |
-| Consistency | 2 | 10 | Internal alignment correct? |
-| Cross-Agent Consistency | 1 | 5 | Works across all agents? |
+| Actionability | 3.0 | 30 | Can agents execute without judgment? |
+| Rule Size | 2.5 | 25 | Within 500-line target? (deterministic) |
+| Parsability | 1.5 | 15 | Schema valid? |
+| Completeness | 1.5 | 15 | All scenarios covered? |
+| Consistency | 1.0 | 10 | Internal alignment correct? |
+| Cross-Agent Consistency | 0.5 | 5 | Works across all agents? |
 
 **Informational Only (Not Scored):**
 - **Token Efficiency** - Merged into Rule Size; findings in recommendations
@@ -58,7 +58,7 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
 **Example Calculation (Actionability):**
 - Raw score: 8/10
-- Weight: 6
+- Weight: 3.0
 - Points: 8 × 3.0 = 24 points
 
 ## Review Modes
@@ -67,41 +67,36 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 - **FOCUSED:** Actionability + Completeness only (45 points max)
 - **STALENESS:** Informational staleness check (not scored)
 
-## Critical: Anti-Optimization Protocol
+## Execution Discipline
 
-**FOUNDATIONAL PRINCIPLE:** This skill prioritizes ACCURACY over efficiency.
+**FOUNDATIONAL PRINCIPLE:** This skill prioritizes ACCURACY over efficiency. The user authorized this review knowing the scope. Proceed with the full process.
 
-**Forbidden Optimization Thoughts:**
-- "This will take too long"
-- "I can save time by..."
-- "Token costs are high"
-- "The user won't notice if I..."
-- "I should ask about time constraints"
-- "Let me create a faster approach"
+**Forbidden Behaviors:**
+- Calculating or mentioning projected completion time
+- Asking about time constraints mid-execution
+- Proposing "faster" or "streamlined" alternatives
+- Creating template-based reviews without analysis
+- Estimating scores without consulting rubrics
+- Skipping dimensions, schema validation, or Agent Execution Test
+- Expressing concern about token costs or scope
+- Abbreviating reviews to save tokens
 
-**Required Mindset:**
-- "I will complete the full process for this rule"
-- "Quality signals are worth the cost"
-- "The user authorized ACT knowing the scope"
-- "Previous runs completed successfully at this pace"
+**Required Behaviors:**
+- Read the complete rule file (line 1 to END)
+- Run schema validator (`uv run ai-rules validate`)
+- Measure line count (`wc -l`)
+- Consult rubrics for each scored dimension
+- Generate specific recommendations with line numbers
+- Write complete review (3000-8000 bytes for FULL mode)
 
-**If you find yourself thinking about optimizing the review process itself:**
-1. STOP
-2. Re-read this section
-3. Return to the comprehensive process
-4. Do NOT ask the user about time/complexity
+**Skills vs Rules Distinction:**
+- **Rules** are loaded 100s-1000s of times → token efficiency CRITICAL
+- **Skills** are used occasionally → quality over efficiency, tokens IRRELEVANT
+- Do NOT apply token-efficiency principles from rules to this skill's execution
 
-**IMPORTANT DISTINCTION:**
-- Optimizing the SKILL EXECUTION (forbidden)
-  - "I can review faster by skipping rubric consultation"
-  - "I'll estimate scores to save time"
-  - "Let me create a template"
-- Evaluating RULE OPTIMIZATION (required)
-  - Scoring Token Efficiency dimension
-  - Identifying verbose patterns in rules
-  - Recommending rule consolidation
+**Self-Correction Triggers:** If you think or write "to save time", "for efficiency", "should I continue with", "would you prefer", or "let me create a streamlined" → STOP, re-read this section, resume comprehensive process silently.
 
-**The user has already considered timing and scope. Proceed with the work.**
+**Pre-Execution Commitment:** Before starting ANY review, confirm you will NOT calculate projected time, NOT ask about time constraints, NOT create template-based reviews, NOT propose faster alternatives, and WILL read the file completely, consult rubrics, and write specific analysis.
 
 ## Workflow
 
@@ -216,6 +211,7 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
    - Direct quotes with line numbers
    - Rule-specific findings (not generic)
    - See `workflows/review-verification.md`
+   - Verify output matches `references/REVIEW-OUTPUT-TEMPLATE.md` structure
    - **FAILURE → Trigger reset: Re-read SKILL.md completely**
 
 10. **Write review**
@@ -278,14 +274,18 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 
 ## Required Sections in Review
 
-1. Executive Summary (scores table)
-2. Schema Validation Results
-3. Agent Executability Verdict
-4. Dimension Analysis (6 sections for FULL mode)
-5. Critical Issues (list)
-6. Recommendations (prioritized)
-7. Post-Review Checklist
-8. Conclusion
+1. File Header (H1 + 5 metadata fields)
+2. Executive Summary (score table + verdict block)
+3. Schema Validation Results
+4. Agent Executability Verdict
+5. Dimension Analysis (6 subsections for FULL mode)
+6. Critical Issues
+7. Recommendations (with inline Staleness)
+8. Post-Review Checklist (11 fixed items)
+9. Conclusion
+10. Timing Metadata (conditional)
+
+**Authoritative template:** `references/REVIEW-OUTPUT-TEMPLATE.md`
 
 ## Inputs
 
@@ -318,10 +318,32 @@ bulk-rule-reviewer invokes this skill once per rule file. **Never** implement re
 | Before review | Start timing | `run_timing.sh start --skill rule-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
 | After schema validation | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
 | After scoring complete | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
-| Before file write | Compute | `run_timing.sh end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer` | Store `_timing_stdout` |
-| After file write (ACT) | Embed | Parse `_timing_stdout`, append timing metadata section to output file | - |
+| Before file write | Compute | `run_timing.sh end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer --dimension-timings '{{_dimension_timings_json}}'` | Store `_timing_stdout` |
+| After file write | Embed | Parse `_timing_stdout`, append timing metadata section to output file | - |
 
-**Working memory contract:** Retain `_timing_run_id` and `_timing_stdout` from start through embed.
+**Working memory contract:** Retain `_timing_run_id`, `_timing_stdout`, and `_dimension_timings` from start through embed.
+
+**Per-Dimension Timing Validation (v2.7.1+):**
+
+When collecting timing data from sub-agents, two validation gates ensure accuracy:
+
+**Gate 1: Timestamp Plausibility**
+- Verify timestamps fall within coordinator window (±60s buffer)
+- Reject if end_epoch ≤ start_epoch
+- Reject if timestamps outside possible execution window
+
+**Gate 2: Fabrication Pattern Detection**
+- Flag suspiciously round durations (exact 60s multiples ≥60s)
+- Flag unusually long durations (>300s for single dimension)
+
+**Validation Outcomes:**
+- `mode: "self-report"` - Validation passed, timing accurate
+- `mode: "self-report-flagged"` - Warning issued but timing accepted
+- `mode: "validation-failed"` - Timestamps rejected, duration set to -1
+
+Sub-agents receive explicit bash timing instructions requiring `date +%s` commands before/after work. This ensures real timestamps (not approximations) are collected for performance regression analysis and cross-model comparison.
+
+**See:** `workflows/parallel-execution.md` Section 3.1a for validation logic.
 
 **Quick Reference:**
 ```bash
@@ -338,16 +360,27 @@ bash skills/skill-timing/scripts/run_timing.sh checkpoint \
 bash skills/skill-timing/scripts/run_timing.sh checkpoint \
     --run-id rule-reviewer-200-python-core-20260108-abc123 --name review_complete
 
-# 4. End (store _timing_stdout from output)
+# 4. End (store _timing_stdout from output — use --format markdown)
 bash skills/skill-timing/scripts/run_timing.sh end \
     --run-id rule-reviewer-200-python-core-20260108-abc123 \
     --output-file reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-08.md \
-    --skill rule-reviewer
+    --skill rule-reviewer --format markdown
 
-# 5. Embed: Parse _timing_stdout, append to output file (ACT mode required)
+# 5. Embed: Parse _timing_stdout, append to output file
 ```
 
-**Post-execution validation:** Verify timing metadata exists in output file (see Error Handling).
+**Timing Validation Checkpoints (MANDATORY when timing_enabled: true):**
+
+After each timing command, validate the output before proceeding:
+
+1. **After `start`:** Verify output contains `TIMING_RUN_ID=`. If missing, STOP and report timing failure.
+2. **After each `checkpoint`:** Verify output contains `CHECKPOINT_STATUS=recorded`. If `missing`, the in-progress file was lost — attempt recovery via `end --run-id none --skill <name>`.
+3. **After `end`:** Verify output does NOT contain `WARNING` or `TIMING_STATUS=missing`. If `end` fails:
+   - **Fallback:** Re-run `end` with `--format markdown` — the completed file may already exist and will be returned.
+   - **Last resort:** Read `reviews/.timing-data/skill-timing-{run_id}-complete.json` directly and format manually.
+4. **After file write:** Verify the review file contains a `## Timing Metadata` section. If missing, append timing data from the `end` output.
+
+**If ALL timing validation fails:** Write the review WITHOUT timing metadata and note `**Timing data unavailable** - validation failed at step N` in the Timing Metadata section. Never block the review on timing failures.
 
 **See:** `../skill-timing/workflows/` for detailed workflow documentation
 
@@ -398,27 +431,10 @@ Don't load all rubrics at once. Read as needed:
 
 Only load what you need for current dimension.
 
-## Validation Requirements
-
-**Pre-Execution Commitment Checklist**
-
-Before starting ANY review work, confirm each item:
-
-- [ ] I will NOT calculate projected completion time
-- [ ] I will NOT ask about time constraints mid-execution
-- [ ] I will NOT create template-based review
-- [ ] I will NOT propose "faster" alternatives
-- [ ] I will read the rule file completely
-- [ ] I will perform actual Agent Execution Test (count blocking issues)
-- [ ] I will consult rubrics for each dimension
-- [ ] I will write 3000-8000 byte review with specific analysis
-- [ ] I will trust the user's ACT authorization
-
-**If you cannot commit to all items above, STOP and report an error.**
-**Do NOT proceed with partial commitment.**
+## Validation Checklists
 
 **Pre-execution:**
-- [ ] target_file exists under rules/
+- [ ] target_file exists
 - [ ] review_date matches YYYY-MM-DD format
 - [ ] review_mode is valid enum
 - [ ] model slug is lowercase-hyphenated
@@ -434,174 +450,6 @@ Before starting ANY review work, confirm each item:
 - [ ] Review file written
 - [ ] Path confirmed
 - [ ] No overwrites occurred
-
-## Critical Execution Protocol
-
-**Execution Protocol: No Mid-Stream Questions**
-
-**RULE:** Once user types "ACT", do NOT:
-- Ask about time constraints
-- Propose alternative approaches
-- Calculate projected completion times
-- Express concern about scope
-- Request clarification on depth/quality trade-offs
-
-**The ACT command means:**
-- User understands the review scope
-- User wants comprehensive review (3000-8000 bytes)
-- User prioritizes accuracy over speed
-
-**If you catch yourself about to ask "Should I..." or "Would you prefer...":**
-- STOP
-- The answer is: Continue with comprehensive review
-- Return to the workflow
-
-**DO:**
-- Read complete rule file
-- Run schema validator
-- Measure line count (`wc -l`)
-- Score all dimensions per rubrics (6 for FULL mode)
-- Generate specific recommendations
-- Write complete review
-
-**DON'T:**
-- Skip dimensions (FULL mode requires all 6)
-- Estimate scores without rubrics
-- Generate generic recommendations
-- Abbreviate review to save tokens
-- Skip schema validation
-- Ask about time/complexity mid-execution
-- Calculate projected completion time
-- Propose "streamlined" approaches
-
-## Quality Over Efficiency Principle
-
-**FOUNDATIONAL UNDERSTANDING:**
-
-This skill exists to provide **reliable quality signals** for rule improvements. Token efficiency is explicitly NOT a goal.
-
-**Agent Behavior Pattern Observed:**
-Agents frequently attempt to "optimize" by:
-- Creating template-based reviews without analysis
-- Asking about time constraints mid-execution
-- Proposing "streamlined" approaches
-- Calculating projected completion times
-- Expressing concern about token costs
-
-**ALL OF THESE ARE FORBIDDEN.**
-
-**Why Agents Do This:**
-- Pattern matching to "helpful" behavior (offering options)
-- Misapplying token-efficiency principles from rules to skills
-- Anthropomorphizing user patience/time constraints
-- Attempting to be "considerate" of resources
-
-**Why This Is Wrong:**
-1. **User has already authorized:** "ACT" means proceed with full scope
-2. **Scope is acceptable:** Comprehensive review is expected
-3. **Quality cannot be compromised:** One bad rule costs more than comprehensive review
-4. **Skills ≠ Rules:** Token efficiency principles don't apply here
-
-**Correct Behavior:**
-- Execute the full workflow for the rule
-- Do NOT calculate or mention projected completion time
-- Do NOT ask about time constraints
-- Do NOT propose "faster" alternatives
-- Trust that the user understands the scope
-
-**Detection Test:**
-If you're thinking "Should I ask the user about..." - the answer is NO.
-The user authorized ACT. Proceed with the work.
-
-**Critical Distinction: Skills vs. Rules**
-
-**RULES (100-snowflake-core.md):**
-- Usage: Loaded 100s-1000s of times
-- Token Efficiency: CRITICAL priority
-- Optimization: Minimize tokens, preserve quality
-- TokenBudget metadata: REQUIRED
-
-**SKILLS (rule-reviewer):**
-- Usage: Occasional (quarterly/annually)
-- Token Efficiency: IRRELEVANT
-- Optimization: Maximize quality, ignore tokens
-- TokenBudget metadata: NOT APPLICABLE
-
-**Why Skills Don't Optimize for Tokens:**
-
-1. **Usage Frequency:** Quarterly use = 4× annual execution
-2. **Annual Cost:** 50K tokens × 4 = 200K tokens ≈ $1.80
-3. **Value Delivered:** Comprehensive QA for 113 rules
-4. **Cost of Failure:** One bad rule = 10-100× the token cost
-
-**Design Philosophy:**
-- Quality Signal > Speed
-- Reliability > Token Efficiency
-- Completeness > Brevity
-- Accuracy > Convenience
-- Thoroughness > Cost
-
-**If you're thinking about token costs during skill execution, you're in the wrong mindset.**
-
-**Why Each Step Matters:**
-
-1. **Schema Validation (ai-rules validate)**
-   - **Purpose:** Catch structural errors before agents load rules
-   - **Cannot skip:** Parsability score requires this
-   - **Time cost:** ~2-5 seconds
-   - **Value:** Prevents agent confusion from malformed rules
-
-2. **Agent Execution Test**
-   - **Purpose:** Count specific blocking issues (undefined thresholds, ambiguity)
-   - **Cannot skip:** Directly impacts Actionability score
-   - **Time cost:** ~15-20 seconds (rule analysis)
-   - **Value:** Predicts agent failure modes
-
-3. **Dimension Scoring with Rubrics**
-   - **Purpose:** Consistent, reproducible scoring across reviewers
-   - **Cannot skip:** Without rubrics, scores drift arbitrarily
-   - **Time cost:** ~10-15 seconds per dimension (6 dimensions)
-   - **Value:** Enables trend analysis across reviews
-
-4. **Specific Recommendations with Line Numbers**
-   - **Purpose:** Actionable improvements (not generic advice)
-   - **Cannot skip:** Without line numbers, rule authors can't act
-   - **Time cost:** ~10-15 seconds per recommendation
-   - **Value:** Actual rule improvements happen
-
-5. **Complete Review Write**
-   - **Purpose:** Durable record for comparison, trend tracking
-   - **Cannot skip:** Summary aggregation depends on complete reviews
-   - **Time cost:** ~3-5 seconds (file write)
-   - **Value:** Historical quality tracking
-
-**Total Time Per Rule:** 90-120 seconds (sequential execution)  
-**Total Value:** Reliable quality measurement enabling continuous improvement
-
-**Efficiency Tradeoffs (ALL REJECTED):**
-
-- **Skip schema validation** - Time Saved: ~3 sec, Value Lost: Parsability score invalid, Decision: REJECT
-- **Estimate scores without rubrics** - Time Saved: ~60 sec, Value Lost: Score consistency lost, Decision: REJECT
-- **Generic recommendations** - Time Saved: ~15 sec, Value Lost: No actionable improvements, Decision: REJECT
-- **Abbreviated review** - Time Saved: ~20 sec, Value Lost: Aggregation impossible, Decision: REJECT
-- **Template-based content** - Time Saved: ~90 sec, Value Lost: No actual analysis performed, Decision: REJECT
-
-**Conclusion:** No efficiency tradeoff is worth the quality loss. Period.
-
-**Self-Correction Trigger Words:**
-If you think or write any of these phrases, you're taking a shortcut:
-- "To save time..."
-- "For efficiency..."
-- "This would take approximately..."
-- "Should I continue with..."
-- "Would you prefer..."
-- "Let me create a streamlined..."
-
-**Immediate Action:**
-1. STOP
-2. Re-read the Anti-Optimization Protocol
-3. Resume comprehensive process
-4. Do NOT notify user of the self-correction (just fix it)
 
 ## Expected Review Size
 
@@ -619,6 +467,8 @@ See `examples/` for complete review samples:
 - `focused-review.md` - FOCUSED mode example  
 - `staleness-review.md` - STALENESS mode example
 - `edge-cases.md` - Error scenarios
+
+**Output template:** `references/REVIEW-OUTPUT-TEMPLATE.md` (authoritative fill-in skeleton)
 
 ## Related Skills
 
@@ -657,6 +507,15 @@ When invoked by `bulk-rule-reviewer`, this skill may experience context drift af
 
 ## Version History
 
+- **v2.7.0:** Standardized review output template -- created references/REVIEW-OUTPUT-TEMPLATE.md as authoritative fill-in skeleton (opus-4-6 structure), integrated template loading into review-execution and file-write workflows, fixed 11-item Post-Review Checklist, standardized Executive Summary table columns (Raw (0-10) | Weight | Points | Max), inline Token Efficiency and Staleness, added structural validation gate (Step 5a) in file-write.md, added template compliance check in review-verification.md. Removed examples/TEMPLATE.md (superseded). Aligned weight notation to decimal across all files. Added Per-Dimension Timing subsection to REVIEW-OUTPUT-TEMPLATE.md (was missing from v2.6.0 template integration). (2026-03-27)
+- **v2.6.0:** Added per-dimension timing support — sequential mode uses checkpoint pairs (`dim_{name}_start`/`dim_{name}_end`), parallel mode uses sub-agent self-reported `start_epoch`/`end_epoch`. New `--dimension-timings` flag on timing-end, `--per-dimension` on analyze/baseline. Requires skill-timing v1.4.0 (2026-03-27)
+- **v2.5.3:** Cross-model consistency improvements — added Non-Issues Patterns 9-10 (tool names, checklists), domain applicability adjustment for completeness edge cases, expanded cross-agent "Do NOT Count" list, added overlap resolution for tool names, new calibration examples file (2026-03-25)
+- **v2.5.2:** Fixed agent determinism regressions from v2.5.1 optimization (2026-03-24)
+  - Inlined shared preamble into all 5 scored rubrics (eliminates cross-reference dependency for sub-agents)
+  - Fixed Rule Size scoring table in parallel-execution.md (was using 6-tier simplified table instead of canonical 7-tier)
+  - Restructured staleness deprecated tools from ambiguous inline `|` format to proper tables
+  - Each scored rubric is now fully self-contained for sub-agent consumption
+- **v2.5.1:** Optimization pass - compressed anti-optimization protocol, archived informational rubrics, deduplicated scoring matrices, extracted shared boilerplate, streamlined parameter collection and parallel execution
 - **v2.5.0:** Added parallel execution mode with 5 sub-agents for scored dimension evaluation
 - **v2.4.0:** Added documentation currency check to staleness dimension
 - **v2.0.0:** Removed PROMPT.md, added progressive disclosure with rubrics/

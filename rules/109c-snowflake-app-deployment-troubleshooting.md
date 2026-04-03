@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.2
+**LastUpdated:** 2026-03-26
 **LoadTrigger:** kw:deployment-error
 **Keywords:** Snowflake deployment troubleshooting, Streamlit debugging, SiS TypeError, notebook deployment issues, deployment errors, stage file debugging, AUTO_COMPRESS debugging, ROOT_LOCATION errors, deployment anti-patterns, diagnostic commands, deployment validation, cache issues
 **TokenBudget:** ~3500
@@ -44,7 +44,7 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 - Active Snowflake connection
 - Access to stage LIST/DESCRIBE permissions
 - Knowledge of deployed application names and stage locations
-- Taskfile deployment scripts for re-deployment
+- Deployment automation scripts (Makefile or equivalent) for re-deployment
 
 ### Mandatory
 - Run diagnostic commands (LIST, DESCRIBE, SHOW) before suggesting fixes
@@ -170,13 +170,13 @@ See `109b-snowflake-app-deployment-core.md` Anti-Pattern 3 for the inverted comp
 - [ ] Diagnostic commands executed before suggesting fixes
 - [ ] Root cause identified with evidence (command outputs)
 - [ ] Solutions address underlying issue, not symptoms
-- [ ] Remediation uses automation (Taskfile), not manual steps
+- [ ] Remediation uses automation (Makefile or project entrypoint), not manual steps
 - [ ] Verification commands provided to confirm fix
 - [ ] AUTO_COMPRESS=FALSE verified for all .py files in Streamlit
 - [ ] ROOT_LOCATION matches actual stage file paths
 - [ ] Explicit REMOVE step included in deployment workflow
 - [ ] Modular task structure (can test individual operations)
-- [ ] No credentials hardcoded in scripts or Taskfiles
+- [ ] No credentials hardcoded in scripts or automation files
 - [ ] Python/CLI wrappers pass `--no-auto-compress` (not absence of `--auto-compress`)
 - [ ] Verified with `LIST @stage` that files show `.py` not `.py.gz` after upload
 
@@ -216,7 +216,7 @@ See `109b-snowflake-app-deployment-core.md` Anti-Pattern 3 for the inverted comp
 
 - **TypeError?** Check `AUTO_COMPRESS=FALSE`, then check `ROOT_LOCATION` path, then check wrapper flags (`--no-auto-compress`)
 - **AttributeError?** Check `environment.yml`, then check Streamlit version, then see 109j
-- **Stale code?** Run full deploy (`task deploy:app`), then clear browser cache (`Cmd+Shift+R`)
+- **Stale code?** Run full deploy (e.g., `make deploy`), then clear browser cache (`Cmd+Shift+R`)
 - **Permission denied?** Check `CURRENT_ROLE()`, then run `SHOW GRANTS TO ROLE`, then grant missing privileges
 - **CREATE fails?** Run `DROP` first, then check object exists, then verify stage files with `LIST`
 
@@ -243,7 +243,8 @@ See **109j-snowflake-sis-typeerror-debugging.md** for the full diagnostic workfl
 
 1. **Run full deployment (includes REMOVE):**
    ```bash
-   task notebook:deploy:app
+   # Run full deployment (includes REMOVE)
+   make deploy  # or project-specific deploy target
    ```
 
 2. **Force browser cache clear:**
@@ -297,8 +298,57 @@ WHERE NOTEBOOK_NAME = 'APP_NOTEBOOK';
 
 **Manual fix:**
 ```bash
-task notebook:drop:app  # Run drop manually
-task notebook:create:app  # Then create
+# Run drop and create manually per 109b deployment workflow
+uvx snow sql -q "DROP NOTEBOOK IF EXISTS DB.SCHEMA.APP_NOTEBOOK;"
+uvx snow sql -q "CREATE NOTEBOOK ...;"  # See 109b for full CREATE syntax
+```
+
+### Issue: Permission/Role Errors During Deployment
+
+**Symptoms:**
+- "Insufficient privileges" or "Access denied" during PUT, CREATE, or DROP
+- Deployment works for one developer but not another
+
+**Diagnostic Steps:**
+```sql
+-- Check current role and privileges
+SELECT CURRENT_ROLE(), CURRENT_USER();
+
+-- Verify stage access
+SHOW GRANTS ON STAGE DB.SCHEMA.NOTEBOOK_STAGE;
+
+-- Verify schema privileges (needed for CREATE NOTEBOOK/STREAMLIT)
+SHOW GRANTS ON SCHEMA DB.SCHEMA;
+
+-- Verify warehouse access (needed for QUERY_WAREHOUSE in CREATE)
+SHOW GRANTS ON WAREHOUSE COMPUTE_WH;
+```
+
+**Required Privileges:**
+- **PUT/REMOVE**: WRITE privilege on stage
+- **CREATE NOTEBOOK**: CREATE NOTEBOOK privilege on schema
+- **CREATE STREAMLIT**: CREATE STREAMLIT privilege on schema
+- **DROP**: OWNERSHIP on the object, or appropriate DROP privilege
+- **QUERY_WAREHOUSE**: USAGE privilege on the warehouse
+
+**Fix:**
+```sql
+-- Grant deployment privileges to a role
+GRANT USAGE ON SCHEMA DB.SCHEMA TO ROLE DEPLOYER;
+GRANT WRITE ON STAGE DB.SCHEMA.NOTEBOOK_STAGE TO ROLE DEPLOYER;
+GRANT CREATE NOTEBOOK ON SCHEMA DB.SCHEMA TO ROLE DEPLOYER;
+GRANT CREATE STREAMLIT ON SCHEMA DB.SCHEMA TO ROLE DEPLOYER;
+GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE DEPLOYER;
+
+-- Check effective privileges for a user
+SHOW GRANTS TO ROLE DEPLOYER;
+
+-- Revoke excessive privileges if needed
+REVOKE ALL ON SCHEMA DB.SCHEMA FROM ROLE DEPLOYER;
+
+-- Debug role hierarchy
+SHOW GRANTS OF ROLE DEPLOYER;  -- Who has DEPLOYER role?
+SHOW GRANTS TO ROLE DEPLOYER;  -- What can DEPLOYER do?
 ```
 
 ### Issue: Permission/Role Errors During Deployment

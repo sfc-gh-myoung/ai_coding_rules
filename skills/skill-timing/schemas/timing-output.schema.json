@@ -152,6 +152,38 @@
         }
       }
     },
+    "dimension_timings": {
+      "type": "array",
+      "description": "Per-dimension timing breakdown for multi-dimension skills",
+      "items": {
+        "type": "object",
+        "required": ["dimension", "duration_seconds", "mode"],
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "description": "Dimension name (e.g., actionability, rule_size)"
+          },
+          "duration_seconds": {
+            "type": "number",
+            "minimum": -1,
+            "description": "Time spent on this dimension in seconds (-1 for failed/timed-out)"
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["checkpoint", "self-report", "inline", "failed"],
+            "description": "How timing was measured: checkpoint (sequential), self-report (parallel sub-agent), inline (deterministic), failed (error)"
+          },
+          "start_epoch": {
+            "type": "number",
+            "description": "Unix timestamp when dimension evaluation started (parallel mode)"
+          },
+          "end_epoch": {
+            "type": "number",
+            "description": "Unix timestamp when dimension evaluation ended (parallel mode)"
+          }
+        }
+      }
+    },
     "baseline_comparison": {
       "type": "object",
       "description": "Comparison against historical baseline",

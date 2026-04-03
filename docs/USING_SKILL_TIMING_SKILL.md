@@ -1,6 +1,6 @@
 # Using the Skill Timing Skill
 
-**Last Updated:** 2026-03-08
+**Last Updated:** 2026-03-27
 
 The Skill Timing Skill provides execution timing instrumentation for measuring and analyzing skill performance. It tracks wall-clock duration, records checkpoints, estimates token costs, detects anomalies, and compares against historical baselines.
 
@@ -16,47 +16,57 @@ The Skill Timing Skill provides execution timing instrumentation for measuring a
 **Prerequisites:** Python 3.10+ and Bash shell. Optional: `uv` for faster execution.
 
 
-## Quick Start
+## Examples
 
-### Integrated Use (Recommended)
-
-Add `timing_enabled: true` to any supported skill:
+### Minimal Integrated Example
 
 ```text
 Use the doc-reviewer skill.
 
-target_files: README.md
-review_mode: FULL
-timing_enabled: true
+target_files: README.md              # Required (by parent skill)
+review_mode: FULL                    # Required (by parent skill)
+timing_enabled: true                 # Required — enables timing
 ```
 
-Output includes timing metadata in the review file and a summary in STDOUT.
-
-### Manual Use
+### Manual Use With All Options
 
 ```bash
 # 1. Start timing
 bash skills/skill-timing/scripts/run_timing.sh start \
-    --skill rule-reviewer \
-    --target rules/100-snowflake-core.md \
-    --model claude-sonnet-45
+    --skill rule-reviewer \           # Required — skill being timed
+    --target rules/100-snowflake-core.md \  # Required — target file
+    --model claude-sonnet-45 \        # Required — model slug
+    --mode FULL \                     # Optional (default: FULL) — review mode
+    --agent cortex-code               # Optional (default: auto-detected) — agent name
 
 # Output: TIMING_RUN_ID=a1b2c3d4e5f67890
 
-# 2. (Optional) Record checkpoints
+# 2. Record checkpoints
 bash skills/skill-timing/scripts/run_timing.sh checkpoint \
-    --run-id a1b2c3d4e5f67890 \
-    --name rules_loaded
+    --run-id a1b2c3d4e5f67890 \       # Required — from start output
+    --name rules_loaded                # Required — checkpoint name
 
-# 3. End timing
+# 3. End timing with all options
 bash skills/skill-timing/scripts/run_timing.sh end \
-    --run-id a1b2c3d4e5f67890 \
-    --output-file reviews/rule-review.md \
-    --skill rule-reviewer \
-    --input-tokens 12500 \
-    --output-tokens 4200
+    --run-id a1b2c3d4e5f67890 \       # Required — from start output
+    --output-file reviews/rule-review.md \  # Required — output path
+    --skill rule-reviewer \           # Required — for recovery
+    --input-tokens 12500 \            # Optional — token count
+    --output-tokens 4200 \            # Optional — token count
+    --format json \                   # Optional (default: human) — output format
+    --ci                              # Optional — CI mode with exit codes
 ```
 
+### Baseline Set Example
+
+```bash
+bash skills/skill-timing/scripts/run_timing.sh baseline set \
+    --skill rule-reviewer \           # Required — skill name
+    --mode FULL \                     # Required — review mode
+    --model claude-sonnet-45 \        # Required — model slug
+    --days 30 \                       # Optional (default: 30) — days of history
+    --min-samples 5                   # Optional (default: 5) — minimum data points
+```
 
 ## Commands
 

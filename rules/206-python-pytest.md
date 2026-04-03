@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-03-25
 **Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, AAA pattern, test markers, uv run pytest, unit test, unit tests
 **TokenBudget:** ~4700
 **ContextTier:** High
@@ -90,7 +90,7 @@ Pragmatic, industry-standard testing practices with pytest to produce fast, reli
 
 ### Execution Steps
 
-1. Organize tests under `tests/` with clear naming: `test_*.py` and `Test*` classes (optional)
+1. Organize tests under `tests/` using `test_<module>_<behavior>.py` naming; `Test*` classes optional
 2. Use AAA pattern (Arrange-Act-Assert); one behavior per test
 3. Model setup with fixtures; avoid `setUp`/`tearDown`; keep fixtures small and focused
 4. Parametrize inputs with `@pytest.mark.parametrize` instead of loops
@@ -141,12 +141,7 @@ uv run pytest --cov=yourpkg --cov-report=term-missing
 
 ### Post-Execution Checklist
 
-- [ ] All tests pass (`uv run pytest` returns 0)
-- [ ] Code quality checks pass (`uvx ruff check .` and `uvx ruff format --check .`)
-- [ ] Tests follow AAA pattern (Arrange-Act-Assert)
-- [ ] Fixtures are small, explicit, and function-scoped by default
-- [ ] No bare `pytest` commands used (always `uv run pytest`)
-- [ ] No skipped tests without explicit justification
+See comprehensive Post-Execution Checklist in the Flaky Test Protocol section below.
 
 ### Validation
 
@@ -215,11 +210,36 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
 - **Fast and Deterministic:** Tests must be hermetic, avoiding hidden time or network dependencies
 - **Clear Intent:** Descriptive test names; one assertion group per behavior; meaningful failure messages
-- **Fixtures Over Inheritance:** Prefer fixtures with appropriate scope; avoid deep dependency chains
+- **Fixtures Over Inheritance:** Prefer function-scoped fixtures (use module/session only for setup >1s); avoid deep dependency chains
 - **Parametrize Broadly:** Use parametrization to cover input spaces succinctly
 - **Isolate Externalities:** Patch environment, clock, filesystem, and network
 - **Selective Execution:** Use markers to include/exclude categories in different pipelines
-- **Visibility:** Capture logs and stdout/stderr when helpful; ensure `__repr__` is informative
+- **Visibility:** Capture logs/stdout when the function under test writes output as part of its contract; ensure `__repr__` is informative
+
+## Flaky Test Protocol
+
+When a test passes and fails intermittently:
+
+1. **Identify:** Run the test 10 times to confirm flakiness:
+   ```bash
+   uv run pytest tests/test_suspect.py::test_name --count=10 -x
+   # Requires: uv add --dev pytest-repeat
+   ```
+
+2. **Classify the cause:**
+   - **Race condition (Fails under load or parallel):** Add locks or make test sequential (`@pytest.mark.serial`)
+   - **Time dependency (Fails near midnight/DST):** Use `freezegun` or `time-machine` to freeze time
+   - **Resource leak (Fails late in suite):** Add proper teardown in fixture
+   - **External service (Fails on network issues):** Mock the external call or use `vcr.py`
+
+3. **Fix or quarantine** — never leave flaky tests unmarked:
+   ```python
+   @pytest.mark.xfail(reason="BUG-1234: Race condition in cache invalidation", strict=False)
+   def test_cache_update():
+       ...
+   ```
+
+4. **Track:** Every `xfail` must have a ticket number. Review quarantined tests weekly.
 
 ## Flaky Test Protocol
 
@@ -388,7 +408,7 @@ def tmp_file(tmp_path):
 
 ## Test Parametrization
 - Rule: Use `@pytest.mark.parametrize` for input matrices.
-- Rule: When a function accepts >3 parameters or complex input domains, combine multiple parameters and use ids for readability.
+- Rule: When a function accepts >3 parameters, combine multiple parameters into tuples or dataclasses and use ids for readability.
 
 ```python
 import pytest
@@ -415,6 +435,8 @@ def test_email_validation(email: str, valid: bool) -> None:
       assert validate(input_val) is expected
   ```
 - Rule: Group related parameters into tuples or dataclasses rather than having >3 separate parametrize arguments.
+- Rule: For parametrize sets >50 entries, use `pytest_generate_tests` or load test data from a fixture/file to keep test files readable and avoid slow collection.
+- Rule: Avoid duplicate entries in parametrize sets — pytest runs them separately but duplicate ids cause confusing output. Use `set()` or unique ids to detect.
 
 ## Test Isolation and Mocking
 - Rule: Control randomness with a fixed seed in setup; inject RNG where possible.

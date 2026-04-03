@@ -7,226 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.7.2] - 2026-04-03
+
 ### Fixed
 - **fix(rule-reviewer):** remediate per-dimension timing fabrication in parallel mode (v2.7.0 → v2.7.1)
   - Sub-agent prompts now require explicit `date +%s` bash commands for timestamps (no approximation)
-  - Added Gate 1 (timestamp plausibility) and Gate 2 (fabrication pattern detection) validation in Phase 3.1a
-  - Validation outcomes: `self-report` (pass), `self-report-flagged` (warn), `validation-failed` (reject)
-  - New `scripts/validate_timing.py` for post-hoc timing data quality checks on review files
-  - Investigation report: `docs/reports/timing-integrity-investigation-findings-2026-03-27.md`
+  - Added Gate 1/Gate 2 timestamp validation in Phase 3.1a with `self-report` / `self-report-flagged` / `validation-failed` outcomes
+  - New `scripts/validate_timing.py` for post-hoc timing data quality checks
+- **fix:** replace stale `task index:generate` references with `make index-generate` across 7 files
+  - Root cause fixed in `src/ai_rules/commands/index.py`; RULES_INDEX.md regenerated
 
 ### Added
 - **feat(skill-timing):** add per-dimension timing support (v1.3.0 to v1.4.0)
-  - New `--dimension-timings` flag on `end` command accepts JSON array of per-dimension durations
-  - New `--per-dimension` flag on `analyze` and `baseline set` commands for dimension-level breakdowns
-  - Per-dimension baseline comparison with delta/status reporting in `baseline compare`
-  - Markdown, JSON, and human-readable output formats include per-dimension timing tables
-  - JSON schema extended with `dimension_timings` array (checkpoint, self-report, inline, failed modes)
-  - Validation for dimension timing entries (required fields, duration bounds)
-  - 8 new tests (16-23) covering dimension timing end-to-end, formats, edge cases, and mixed runs
-- **feat(rules):** add `502-frontend-revealjs-core.md` for Reveal.js 6.0.0 presentation framework
-  - Version-pinned to Reveal.js 6.0.0; supports npm/ESM setup and standalone HTML boilerplate
-  - Enforces `.reveal > .slides > section` hierarchy and `plugins` array (not deprecated `dependencies`)
-  - Requires `data-trim` and explicit language class on all `<code>` blocks
-  - Covers Highlight, Markdown, Notes, Math, Search, Zoom plugins; CSS custom-property theming; `data-line-numbers` step highlights
-  - RULES_INDEX.md updated with activity keywords: presentation, revealjs, reveal.js, slide-deck, slides
+  - New `--dimension-timings`, `--per-dimension` flags on `end`, `analyze`, `baseline set` commands
+  - Per-dimension baseline comparison, JSON schema extension, and 8 new tests (16-23)
+- **feat(rules):** add `502-frontend-revealjs-core.md` for Reveal.js 6.0.0 presentations
+  - Covers npm/ESM setup, `.reveal > .slides > section` hierarchy, plugin registration, code block formatting, CSS theming
+  - RULES_INDEX.md updated with activity keywords
 
 ### Changed
 - **feat(skills):** integrate per-dimension timing into rule-reviewer workflows
-  - Add checkpoint-pair timing protocol for sequential dimension evaluation
-  - Add inline measurement fallback for deterministic dimensions (e.g., rule_size via `wc -l`)
-  - Add `_dimension_timings` variable flow from review-execution through timing-end
-  - Update dimension-subagent-template with self-report epoch timing for parallel mode
-- **docs(skills):** replace Quick Start sections with concrete Examples in 7 USING_*_SKILL.md guides
-  - Add minimal, full-options, and mode-specific invocation examples to each guide
-  - Add Type column to optional inputs tables and document parameter constraints
-  - Files updated: USING_BULK_RULE_REVIEWER, USING_DOC_REVIEWER, USING_PLAN_REVIEWER, USING_RULE_CREATOR, USING_RULE_LOADER, USING_RULE_REVIEWER, USING_SKILL_TIMING
-- **refactor(rules):** replace hardcoded `make` commands with generic automation language in 4 rule files
-  - `802-project-contributing.md` (v3.1.1 to v3.1.2): `make rules-validate`/`make lint`/`make format` to "project automation commands" with project-specific examples
-  - `109d-snowflake-notebooks-linting.md` (v1.1.2 to v1.1.3): Makefile-specific language to automation-agnostic phrasing
-  - `130-snowflake-demo-sql.md` (v1.0.0 to v1.0.1): `Taskfile.yml` orchestration to generic automation with Taskfile example
-  - `200b-python-environment-tooling.md` (v1.0.1 to v1.0.2): Taskfile integration reference to project automation entrypoints
-  - RULES_INDEX.md regenerated with updated 200b description
-- **docs(skills):** rewrite plan-reviewer and doc-reviewer guides for current skill behavior and clearer operational usage
-  - Align both docs to the rule-reviewer guide structure with Quick Start, modes, results, FAQ, and reference sections
-  - Correct stale skill details including `focus_area`, parallel execution default, output behaviors, and current mode guidance
-  - Improve user-facing examples and operational notes so skill invocation no longer requires cross-checking `SKILL.md`
-- **docs(templates):** refresh AGENTS templates to use Makefile examples instead of Taskfile examples
-- **refactor(rules):** makefile-primary remediation — replace Taskfile-first references with Makefile-primary patterns across 7 rule files
-  - `802-project-contributing.md` (v3.1.0 to v3.1.1): all `task` commands to `make` equivalents, `Task` to `GNU Make`, `Taskfile.yml` to `Makefile`
-  - `109-snowflake-notebooks.md` (v3.1.1 to v3.1.2): cross-reference fix (`"Taskfile integration"` to `"automation integration"`)
-  - `109c-snowflake-app-deployment-troubleshooting.md` (v3.1.1 to v3.1.2): prerequisites, decision tree, and deploy commands updated
-  - `109d-snowflake-notebooks-linting.md` (v1.1.1 to v1.1.2): full Taskfile YAML code blocks rewritten as Makefile syntax with `.PHONY` and tab-indented recipes
-  - `201-python-lint-format.md` (v3.2.0 to v3.2.1): Taskfile Integration section replaced with brief Automation Integration delegating to 820/821
-  - `102a-snowflake-sql-automation.md` (v3.1.0 to v3.1.1): external docs links and design principles updated to Makefile-primary
-  - `102d-snowflake-sql-cicd.md` (v1.0.0 to v1.0.1): full Taskfile section rewritten as Makefile Integration with `$(SNOW)`, `$(MAKE)`, `?=` patterns; keywords changed from `Taskfile` to `Makefile`
-  - RULES_INDEX.md regenerated (102d description now shows "Makefile integration")
-
-- **refactor(rules):** automation-framework-agnostic remediation — remove Taskfile/Makefile bias from 14 rule files
-  - Centralize automation-detection protocol in `000-global-core.md` (v3.5.0 to v3.5.1): Makefile first, Taskfile second, package.json third, direct fallback
-  - Replace hardcoded `task <target>` with generic "project automation entrypoint" language across 13 additional files
-  - Files updated: 200-python-core, 803-project-git-workflow, 202a-markdown-linting, 202-markup-config-validation, 200b-python-environment-tooling, 112-snowflake-snowcli, 300-bash-scripting-core, 600-golang-core, 600a-golang-patterns, 800-project-changelog, 109b-snowflake-app-deployment-core, 109i-snowflake-app-deployment-advanced, 109d-snowflake-notebooks-linting
-  - Dedicated automation rules (820, 820a, 821, 821a, 109h) intentionally excluded
-
-- **chore(docs):** update hardcoded rule counts from 180/179/129/113 to 187 across README, ARCHITECTURE, schemas, prompts, and bulk-rule-reviewer skill files
-  - Replace static counts with dynamic phrasing where appropriate (e.g., "current rule set")
-  - Files updated: README.md, docs/ARCHITECTURE.md, docs/USING_BULK_RULE_REVIEWER_SKILL.md, prompts/README.md, schemas/README.md, and 5 bulk-rule-reviewer files
-
-- **fix:** replace stale `task index:generate` references with `make index-generate` across 7 files
-  - Fix root cause in `src/ai_rules/commands/index.py` (generator emits stale string)
-  - Fix `rules/002b-rule-update.md` (v1.2.1 to v1.2.2)
-  - Fix `docs/USING_RULE_LOADER_SKILL.md`, `tests/fixtures/RULES_INDEX_baseline.md`
-  - Fix `memory-bank/techContext.md`, `memory-bank/systemPatterns.md`
-  - Regenerate `rules/RULES_INDEX.md` with corrected source
-  - Impact: Agents now reference correct `make index-generate` command
-
-- **docs(rules):** update 112-snowflake-snowcli (v3.1.1 to v3.2.0)
-  - Update version pin from 3.14 to 3.16.0 (14+ occurrences)
-  - Fix outdated docs URL (snowflake-cli-v2 to snowflake-cli)
-  - Add config.toml as primary configuration file
-  - Add PAT, WIF, OAuth 2.0 authentication methods
-  - Add missing CLI command groups (cortex, notebook, dbt, git, spcs, validate-image)
-  - Add key environment variables for CI/CD
-  - Add binary installer and pipx installation methods
-  - Add snowflake.yml project definition coverage
-  - Add stage-to-stage copy documentation
-  - Expand connection management commands (remove, set-default, -x)
-  - Expand "When to Load" triggers
-  - Add v3.16.0 --recursive FQN bug fix note
-  - Impact: Aligns rule with current Snowflake CLI v3.16.0 documentation
-
-- **docs(rules):** update 950-dbt-core (v1.0.0 to v1.1.0)
-  - Add schema customization concept (generate_schema_name macro)
-  - Add versioning documentation link and snow://dbt/ URI scheme
-  - Add snow dbt deploy/execute CLI reference links
-  - Add v3.16.0 file ordering bug fix to troubleshooting
-  - Impact: Completes dbt Projects on Snowflake lifecycle coverage
-- **docs(rules):** remediate 440-react-core review findings (v3.2.0 to v3.3.0)
-  - Extract anti-patterns, error recovery, and output examples to new 440a-react-anti-patterns.md companion file (~177 lines moved)
-  - Resolve barrel file / index.ts contradiction: add scoped exception for feature-level public API boundary
-  - Replace undefined "enterprise requirement" with 3 specific RTK decision criteria (>5 slices + middleware, existing Redux, DevTools)
-  - Add resource exhaustion prevention section: bundle size budget, query cache limits, list virtualization
-  - Add cleanup/unmount patterns: AbortController, useEffect cleanup, useSyncExternalStore
-  - Fix missing `export` on useThemeStore example
-  - Standardize RSC terminology (full term before abbreviation) and add framework fallback for Remix/Astro
-  - Normalize "Feature-Based" to "Feature-based" capitalization
-  - Review score: 71.5 to ~83-85/100
-- **docs(rules):** remediate 420-javascript-core review findings (v3.2.0 to v3.3.0)
-  - Quantify "complex logic" to ">100 lines, >3 params, or nullable value handling" (lines 70, 145)
-  - Replace "project-specific rules" with explicit Biome config cross-reference (line 87)
-  - Replace "pure JS projects" with "projects without TypeScript compilation" (line 439)
-  - Fix Node.js version contradiction: 14.8+ aligned to 20+ prerequisite floor (line 422)
-  - Standardize test runner name to `node:test` in body text (lines 22, 439)
-  - Standardize Object.groupBy version to "22+ LTS" with 21 non-LTS noted (line 227)
-  - Consolidate @ts-check criteria via cross-reference to authoritative definition (line 203)
-  - Update year reference from 2025 to 2026 (line 22)
-  - Add blank line before ## Contract heading for CommonMark compliance (line 53)
-  - Review score: 82.5 to ~89-90/100
-- **docs(rules):** remediate 351-podman-core review findings (v1.0.0 to v1.1.0)
-  - Replace `:latest` tags with versioned tags in 10 examples across build, run, and Buildah commands
-  - Quantify "periodically" to CI-run or weekly cadence for build cache cleanup
-  - Quantify "regularly" to weekly CI rebuild with 48-hour CVE response SLA
-  - Replace "when possible" with explicit criteria for read-only filesystem usage
-  - Replace "slow" health check threshold with `start-period` elapsed diagnostic
-  - Add numbered base image selection decision tree (distroless/alpine/slim/full)
-  - Fix `####` to `###` heading hierarchy skip at Build Cache Cleanup
-  - Standardize "prod" to "production" for terminology consistency
-  - Extract Output Format Examples to 351a-podman-examples.md (~100 lines)
-  - Review score: 73 to ~85/100
-- **docs(rules):** remediate 350-docker-core review findings (v3.2.0 to v3.3.0)
-  - Add `@sha256:` digest placeholders to all correct-pattern FROM examples (4 images)
-  - Quantify "rebuild regularly" to weekly CI cadence with CVE-triggered immediate rebuilds
-  - Replace "non-obvious" with deterministic comment criteria (non-default config, security decisions)
-  - Add inline install commands for hadolint, trivy, syft, cosign (macOS + Linux)
-  - Fix Python runtime CMD from `uv run python` to `python` (uv not in runtime stage)
-  - Add resource exhaustion (disk/memory) edge case to Error Recovery
-  - Add `depends_on` with `condition: service_healthy` to Compose section
-  - Standardize digest pinning terminology: digests preferred over versions
-  - Review score: 83.5 to ~90/100
-- **docs(rules):** add deferred Anthropic alignment items to 002l-skill-advanced-patterns (v1.1.0 to v1.2.0)
-  - Add Claude A/B iterative skill development pattern (from official "Evaluation and iteration" guidance)
-  - Add TOC guidance for reference files >100 lines
-  - Add "Solve, don't punt" script error handling pattern
-  - Add 5,000-word size heuristic as troubleshooting diagnostic
-  - Fix stale `workflows/` directory references to `references/` (consistency with 002h v3.5.0)
-  - Update Keywords for semantic discovery of new sections
-  - Net line delta: +55 (274 to 329)
-- **feat(skills):** upgrade rule-loader skill to v1.2.0 with full AGENTS.md parity (12 files modified, 1 created)
-  - Fix foundation TokenBudget from ~3,500 to ~4,050 across all workflows and examples; recalculate totals
-  - Add grep sanity check (Step 2.5) and multi-technology keyword splitting heuristic to activity matching
-  - Add PROJECT.md check (Step 0), implied extension logic table, and deduplication guidance to domain matching
-  - Add companion example loading (Step 5) to dependency resolution for Cortex/Semantic rules
-  - Clarify two-tier token budget threshold model (75% soft warning, 100% hard limit)
-  - Add input validation snippets for all 3 skill parameters
-  - Add 6 new test scenarios (11-16): multi-tech splitting, grep anomaly, tier filter, custom path, circular deps, transitive failure
-  - New `examples/token-budget-deferral.md` with deferral walkthrough and context_tier_filter variant
-  - Remove stale `tests/README.md` reference from `docs/USING_RULE_LOADER_SKILL.md`
-- **docs(rules):** improve 206-python-pytest agent executability (v3.1.0 to v3.2.0)
-  - Quantify "appropriate scope" with deterministic >1s threshold for module/session fixtures
-  - Replace "when helpful" with contract-based criterion for output capture
-  - Remove ambiguous "complex input domains" qualifier from parametrize guidance
-  - Add explicit `test_<module>_<behavior>.py` naming pattern
-  - Add large parametrize set boundary (>50 entries: use pytest_generate_tests or fixture/file)
-  - Add duplicate parametrize entry detection guidance
-  - Consolidate duplicate Post-Execution Checklist into cross-reference (-5 lines)
-- **docs(rules):** improve 100-snowflake-core agent executability (v3.2.0 to v3.3.0)
-  - Define "sensitive data" with explicit criteria (PII, PHI, financial identifiers, CONFIDENTIAL tags)
-  - Replace 3 "where needed/applicable" phrases with deterministic trigger conditions
-  - Fully qualify all object references in 4 anti-pattern Correct Pattern examples
-  - Quantify "critical fields" (JOIN/WHERE/GROUP BY columns) and "repeated failures" (3+ consecutive)
-  - Replace "always consider cost" with actionable Query Profile review step
-  - Add external dependency error handling (S3/Azure/GCS stages, API integration timeouts)
-  - Add boundary edge cases (empty result sets, zero-row streams)
-  - Add tool version requirements to prerequisites (Snow CLI, connectors)
-  - Split MERGE timeout recovery into conditional branches (bytes spilled vs full scan)
-  - Standardize "incremental processing pattern" terminology
-- **docs(rules):** improve 200-python-core agent executability (v4.0.0 to v4.1.0)
-  - Replace 4 ambiguous terms ("as required", "appropriate", "Integrate with") with deterministic criteria
-  - Add conditional type-checker investigation (ty preferred, mypy/pyright fallback)
-  - Add async investigation step referencing Async/Await Patterns section
-  - Add 20 lines of state/resource error scenarios (empty collections, None guards, file handles)
-  - Add minimal edge cases to `load_users` example (empty check, None/type guard)
-  - Standardize "tooling" to "toolchain" across 4 occurrences
-  - Replace "list_dir" agent tool reference with generic "List directory contents"
-- **docs(rules):** improve 300-bash-scripting-core agent executability (v3.1.0 to v3.2.0)
-  - Define "standard loop counters" exhaustively as `i`, `j`, `k` in `for` loops
-  - Add timeout error handling pattern (`timeout 30 cmd || exit`)
-  - Add permission-denied recovery pattern with write-check guard
-  - Add encoding edge case note (`LC_ALL=C` for byte-oriented processing)
-  - Add `ARG_MAX` boundary mention for commands processing many files
-  - Merge `mktemp` file/dir into single chained command
-- **docs(rules):** improve 310-zsh-scripting-core agent executability (v3.1.0 to v3.2.0)
-  - Replace "appropriately" and ambiguous qualifiers with deterministic criteria
-  - Standardize "Requirement:" labels to "Rule:" for consistency with 300-bash-scripting-core
-  - Compress anti-pattern examples and remove redundant cross-references (-18 lines, 517 to 499)
-  - Replace Unicode arrows and em dashes with ASCII equivalents for validator compliance
-- **docs(rules):** update 000-global-core (v3.4.1 to v3.5.0) — authorization-agnostic remediation
-  - Remove all MODE:PLAN/ACT and authorization-specific references (14 rewrites)
-  - Replace "authorization" with "task list presentation" for deployment-agnostic behavior
-  - Define "tightly coupled" as "changes that break compilation or tests if applied partially"
-  - Define "affect usage" as "modify public APIs, configuration schemas, CLI interfaces, or documented behavior"
-  - Define "lengthy examples" as "exceeding 20 lines"
-  - Replace "grounded recommendations" with "recommendations verified by reading project files"
-  - Add edge case handling (empty input, no rules matched, no validation needed, duplicate loads)
-  - Add explicit permissions documentation to Inputs and Prerequisites
-  - Add context pressure detection heuristic (50 turns, truncated responses)
-  - Add explicit else clauses to Type Checking and Integration Tests validation steps
+  - Add checkpoint-pair timing protocol (sequential) and self-report epoch timing (parallel)
 - **feat(skills):** reduce rule-reviewer cross-model scoring variance (v2.5.2 → v2.5.3)
-  - Add Non-Issues Patterns 9-10 to actionability rubric (agent tool names, status assertion checklists)
-  - Add Domain Applicability Adjustment to completeness rubric with common N/A exclusion table
-  - Expand cross-agent-consistency "Do NOT Count" list with agent tool operations and overlap refs
-  - Add tool name exclusion row to overlap resolution matrix
-  - New `rubrics/_calibration-examples.md` with 8 pre-resolved scoring anchors
+  - New calibration examples, domain applicability adjustments, and tool-name exclusion patterns
   - Target: overall score variance ±9.5 pts → ±3-4 pts across models
 - **refactor(skills):** optimize rule-reviewer for token efficiency (v2.4.0 → v2.5.2, 14 files, -2544 lines)
-  - SKILL.md: consolidate Anti-Optimization Protocol into compact Execution Discipline section with Skills vs Rules distinction
-  - Rubrics: replace prose scoring criteria with lookup tables across 8 rubrics (actionability, completeness, consistency, cross-agent-consistency, parsability, rule-size, staleness, token-efficiency)
-  - rule-size.md: update scoring thresholds (501-550 scores 5, 551-600 scores 3, 601-700 scores 1 `NOT_DEPLOYABLE`)
-  - token-efficiency.md: convert from scored rubric to informational non-issues list with project file guidance
-  - Workflows: rewrite parallel-execution.md from Python code blocks to declarative tables and prose
-  - Workflows: simplify parameter-collection.md by replacing implementation functions with batch instructions
-  - Workflows: clarify error-handling.md timing recovery conditions
-  - Workflows: remove Version History footers from dimension-subagent-template, parallel-execution, score-aggregation
+  - Replace prose scoring criteria with lookup tables across 8 rubrics; simplify workflows
+- **feat(skills):** upgrade rule-loader skill to v1.2.0 with full AGENTS.md parity
+  - Add grep sanity check, multi-technology keyword splitting, PROJECT.md check, companion example loading
+  - 6 new test scenarios; new `examples/token-budget-deferral.md`
+- **docs(skills):** replace Quick Start sections with concrete Examples in 7 USING_*_SKILL.md guides
+- **docs(skills):** rewrite plan-reviewer and doc-reviewer guides for current skill behavior
+- **docs(rules):** improve agent executability across 8 core rules
+  - 100-snowflake-core (v3.3.0), 200-python-core (v4.1.0), 206-python-pytest (v3.2.0), 300-bash-scripting-core (v3.2.0), 310-zsh-scripting-core (v3.2.0), 000-global-core (v3.5.0): replace ambiguous qualifiers with deterministic criteria, add error recovery patterns and edge cases
+- **docs(rules):** remediate review findings in 4 frontend/container rules
+  - 440-react-core (v3.3.0), 420-javascript-core (v3.3.0), 351-podman-core (v1.1.0), 350-docker-core (v3.3.0): quantify thresholds, fix version contradictions, extract companion files
+- **docs(rules):** update 112-snowflake-snowcli (v3.2.0) — pin to CLI v3.16.0, add PAT/WIF/OAuth auth, config.toml, 6 new command groups
+- **docs(rules):** update 950-dbt-core (v1.1.0) — add schema customization, snow://dbt/ URI, deploy/execute CLI refs
+- **docs(rules):** add deferred Anthropic alignment items to 002l-skill-advanced-patterns (v1.2.0)
+- **refactor(rules):** automation-framework-agnostic remediation across 14 rule files
+  - Centralize automation-detection protocol in 000-global-core.md; replace hardcoded `task`/`make` with generic language
+- **refactor(rules):** makefile-primary remediation across 7 rule files
+  - Replace Taskfile-first references with Makefile-primary patterns; RULES_INDEX.md regenerated
+- **refactor(rules):** replace hardcoded `make` commands with generic automation language in 4 rule files
+- **docs(templates):** refresh AGENTS templates — Makefile examples and Last Updated timestamps (→ 2026-03-26)
+- **chore(docs):** update hardcoded rule counts to 187 across README, ARCHITECTURE, schemas, and skill files
 
 ## [3.7.1] - 2026-03-23
 

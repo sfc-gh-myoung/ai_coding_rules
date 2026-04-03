@@ -423,8 +423,9 @@ endif
 	git merge --squash -X theirs release/v$(VERSION)
 	git commit -S -m "chore: squash merge release/v$(VERSION) into main"
 	git tag -s v$(VERSION) -m "Release $(VERSION)"
-	git push origin main --tags
-	git push gitlab main --tags
+	git push origin main
+	git push origin refs/tags/v$(VERSION)
+	git push gitlab refs/tags/v$(VERSION)
 	gh release create v$(VERSION) --title "v$(VERSION)" --draft --generate-notes
 	@echo "Release v$(VERSION) complete!"
 
@@ -447,8 +448,8 @@ endif
 	@echo "  GitHub:         gh release create v$(VERSION) --draft --generate-notes"
 
 .PHONY: mirror
-mirror: ## Push main and tags to gitlab mirror
-	git push gitlab main --tags
+mirror: ## Push main to gitlab mirror
+	git push gitlab main
 
 # ============================================================================
 # Status

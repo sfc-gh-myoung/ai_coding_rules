@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Root cause fixed in `src/ai_rules/commands/index.py`; RULES_INDEX.md regenerated
 
 ### Added
+- **feat(makefile):** add `release`, `release-dry`, and `mirror` targets for local release workflow
+  - `make release VERSION=X.Y.Z` — bump version, tag, push to origin + gitlab, create draft GitHub release
+  - `make release-dry VERSION=X.Y.Z` — preview all release steps without executing
+  - `make mirror` — push main and tags to gitlab mirror
 - **feat(skill-timing):** add per-dimension timing support (v1.3.0 to v1.4.0)
   - New `--dimension-timings`, `--per-dimension` flags on `end`, `analyze`, `baseline set` commands
   - Per-dimension baseline comparison, JSON schema extension, and 8 new tests (16-23)
@@ -52,6 +56,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **refactor(rules):** replace hardcoded `make` commands with generic automation language in 4 rule files
 - **docs(templates):** refresh AGENTS templates — Makefile examples and Last Updated timestamps (→ 2026-03-26)
 - **chore(docs):** update hardcoded rule counts to 187 across README, ARCHITECTURE, schemas, and skill files
+
+### Removed
+- **chore(ci):** delete `.github/workflows/release.yml` — releases are now done locally via `make release` to ensure all commits are GPG-signed via Beyond Identity
+
+### Infrastructure
+- **feat(git):** establish GitHub-to-GitLab mirror workflow using orphan-commit strategy
+  - GitLab mirror: `ai_coding_rules_github_mirror` (squashed history, clean BI-signed root)
+  - Future syncs via `make mirror` (`git push gitlab main --tags`)
 
 ## [3.7.1] - 2026-03-23
 

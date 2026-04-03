@@ -102,6 +102,12 @@ help: ## Show this help message
 	@echo "  make clean-venv               Remove virtual environment"
 	@echo "  make clean                    Remove all generated files"
 	@echo ""
+	@echo "RELEASE"
+	@echo "────────────────────────────────────────────────────────────────────────"
+	@echo "  make release VERSION=X.Y.Z    Bump, tag, push, create GitHub release"
+	@echo "  make release-dry VERSION=...  Preview release changes"
+	@echo "  make mirror                   Push main + tags to gitlab mirror"
+	@echo ""
 	@echo "STATUS"
 	@echo "────────────────────────────────────────────────────────────────────────"
 	@echo "  make status                   Show project status summary"
@@ -384,6 +390,43 @@ clean-venv: ## Remove virtual environment
 .PHONY: clean
 clean: clean-cache clean-venv ## Remove all generated files
 	rm -rf htmlcov .coverage .ruff_cache
+
+# ============================================================================
+# Release
+# ============================================================================
+
+.PHONY: release
+release: ## Create a release (VERSION=X.Y.Z required)
+ifndef VERSION
+	$(error VERSION is required. Usage: make release VERSION=3.7.2)
+endif
+	@echo "Releasing v$(VERSION)..."
+	@sed -i '' 's/^version = ".*"/version = "$(VERSION)"/' pyproject.toml
+	@sed -i '' 's/badge\/version-[0-9]*\.[0-9]*\.[0-9]*/badge\/version-$(VERSION)/' README.md
+	git add pyproject.toml README.md
+	git commit -S -m "chore: bump version to $(VERSION)"
+	git tag -s v$(VERSION) -m "Release $(VERSION)"
+	git push origin main --tags
+	git push gitlab main --tags
+	gh release create v$(VERSION) --title "v$(VERSION)" --draft --generate-notes
+	@echo "Release v$(VERSION) complete!"
+
+.PHONY: release-dry
+release-dry: ## Preview release changes (VERSION=X.Y.Z required)
+ifndef VERSION
+	$(error VERSION is required. Usage: make release-dry VERSION=3.7.2)
+endif
+	@echo "DRY RUN — Release v$(VERSION)"
+	@echo "  pyproject.toml: version = \"$(PROJECT_VERSION)\" -> \"$(VERSION)\""
+	@echo "  README.md:      badge/version-$(PROJECT_VERSION) -> badge/version-$(VERSION)"
+	@echo "  Commit:         chore: bump version to $(VERSION)"
+	@echo "  Tag:            v$(VERSION)"
+	@echo "  Push:           origin main --tags, gitlab main --tags"
+	@echo "  GitHub:         gh release create v$(VERSION) --draft --generate-notes"
+
+.PHONY: mirror
+mirror: ## Push main and tags to gitlab mirror
+	git push gitlab main --tags
 
 # ============================================================================
 # Status

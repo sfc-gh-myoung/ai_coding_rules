@@ -104,9 +104,10 @@ help: ## Show this help message
 	@echo ""
 	@echo "RELEASE"
 	@echo "────────────────────────────────────────────────────────────────────────"
-	@echo "  make release VERSION=X.Y.Z    Bump, tag, push, create GitHub release"
-	@echo "  make release-dry VERSION=...  Preview release changes"
-	@echo "  make mirror                   Push main + tags to gitlab mirror"
+	@echo "  make release VERSION=X.Y.Z         Bump version on release branch"
+	@echo "  make release-merge VERSION=X.Y.Z   Squash merge to main, tag, publish"
+	@echo "  make release-dry VERSION=...       Preview release branch changes"
+	@echo "  make mirror                        Push main + tags to gitlab mirror"
 	@echo ""
 	@echo "STATUS"
 	@echo "────────────────────────────────────────────────────────────────────────"
@@ -396,15 +397,31 @@ clean: clean-cache clean-venv ## Remove all generated files
 # ============================================================================
 
 .PHONY: release
-release: ## Create a release (VERSION=X.Y.Z required)
+release: ## Bump version and commit on current release branch (VERSION=X.Y.Z required)
 ifndef VERSION
 	$(error VERSION is required. Usage: make release VERSION=3.7.2)
 endif
-	@echo "Releasing v$(VERSION)..."
+	@echo "Bumping version to v$(VERSION) on $$(git branch --show-current)..."
 	@sed -i '' 's/^version = ".*"/version = "$(VERSION)"/' pyproject.toml
 	@sed -i '' 's/badge\/version-[0-9]*\.[0-9]*\.[0-9]*/badge\/version-$(VERSION)/' README.md
 	git add pyproject.toml README.md
 	git commit -S -m "chore: bump version to $(VERSION)"
+	git push origin HEAD
+	@echo "Version bumped. Run 'make release-merge VERSION=$(VERSION)' when ready."
+
+.PHONY: release-merge
+release-merge: ## Squash merge release branch into main, tag, and publish (VERSION=X.Y.Z required)
+ifndef VERSION
+	$(error VERSION is required. Usage: make release-merge VERSION=3.7.2)
+endif
+	@BRANCH=$$(git branch --show-current); \
+	if [ "$$BRANCH" = "main" ]; then \
+		echo "ERROR: Run from release/v$(VERSION), not main."; exit 1; \
+	fi
+	git checkout main
+	git pull origin main
+	git merge --squash -X theirs release/v$(VERSION)
+	git commit -S -m "chore: squash merge release/v$(VERSION) into main"
 	git tag -s v$(VERSION) -m "Release $(VERSION)"
 	git push origin main --tags
 	git push gitlab main --tags
@@ -412,14 +429,19 @@ endif
 	@echo "Release v$(VERSION) complete!"
 
 .PHONY: release-dry
-release-dry: ## Preview release changes (VERSION=X.Y.Z required)
+release-dry: ## Preview release branch version bump (VERSION=X.Y.Z required)
 ifndef VERSION
 	$(error VERSION is required. Usage: make release-dry VERSION=3.7.2)
 endif
-	@echo "DRY RUN — Release v$(VERSION)"
+	@echo "DRY RUN — Release branch prep v$(VERSION)"
 	@echo "  pyproject.toml: version = \"$(PROJECT_VERSION)\" -> \"$(VERSION)\""
 	@echo "  README.md:      badge/version-$(PROJECT_VERSION) -> badge/version-$(VERSION)"
 	@echo "  Commit:         chore: bump version to $(VERSION)"
+	@echo "  Push:           origin HEAD (release branch only)"
+	@echo ""
+	@echo "DRY RUN — release-merge v$(VERSION)"
+	@echo "  Squash merge:   release/v$(VERSION) -> main (-X theirs)"
+	@echo "  Commit:         chore: squash merge release/v$(VERSION) into main"
 	@echo "  Tag:            v$(VERSION)"
 	@echo "  Push:           origin main --tags, gitlab main --tags"
 	@echo "  GitHub:         gh release create v$(VERSION) --draft --generate-notes"

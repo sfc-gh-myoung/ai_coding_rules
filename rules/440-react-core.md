@@ -334,7 +334,6 @@ test('increments count when button is clicked', () => {
 ## Anti-Patterns and Common Mistakes
 
 > **See:** [440a-react-anti-patterns.md](./440a-react-anti-patterns.md) for anti-patterns, error recovery patterns, hydration handling, resource exhaustion prevention, cleanup/unmount patterns, and output format examples.
-
 > **Investigation Required**
 > When applying this rule:
 > 1. **Read `package.json` first** to determine framework (Next.js vs Vite) and dependencies.

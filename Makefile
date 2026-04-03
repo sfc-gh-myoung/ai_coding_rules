@@ -107,7 +107,7 @@ help: ## Show this help message
 	@echo "  make release VERSION=X.Y.Z         Bump version on release branch"
 	@echo "  make release-merge VERSION=X.Y.Z   Squash merge to main, tag, publish"
 	@echo "  make release-dry VERSION=...       Preview release branch changes"
-	@echo "  make mirror                        Push main + tags to gitlab mirror"
+	@echo "  make mirror                        Squash-sync main to gitlab mirror"
 	@echo ""
 	@echo "STATUS"
 	@echo "────────────────────────────────────────────────────────────────────────"
@@ -425,9 +425,8 @@ endif
 	git tag -s v$(VERSION) -m "Release $(VERSION)"
 	git push origin main
 	git push origin refs/tags/v$(VERSION)
-	git push gitlab refs/tags/v$(VERSION)
 	gh release create v$(VERSION) --title "v$(VERSION)" --draft --generate-notes
-	@echo "Release v$(VERSION) complete!"
+	@echo "Release v$(VERSION) complete! Run 'make mirror' to sync GitLab."
 
 .PHONY: release-dry
 release-dry: ## Preview release branch version bump (VERSION=X.Y.Z required)
@@ -448,8 +447,17 @@ endif
 	@echo "  GitHub:         gh release create v$(VERSION) --draft --generate-notes"
 
 .PHONY: mirror
-mirror: ## Push main to gitlab mirror
-	git push gitlab main
+mirror: ## Squash-sync current main to gitlab mirror (orphan commit, force-push)
+	@git diff --quiet HEAD 2>/dev/null || { echo "ERROR: Uncommitted changes detected. Commit or stash first."; exit 1; }
+	@GITHUB_SHA=$$(git rev-parse --short main); \
+	echo "Syncing to GitLab mirror ($$GITHUB_SHA)..."; \
+	git branch -D _gitlab-sync 2>/dev/null || true; \
+	git checkout --orphan _gitlab-sync; \
+	git commit -S -m "mirror: sync to $$GITHUB_SHA"; \
+	git push gitlab HEAD:main --force; \
+	git checkout main; \
+	git branch -D _gitlab-sync; \
+	echo "GitLab mirror synced to $$GITHUB_SHA."
 
 # ============================================================================
 # Status

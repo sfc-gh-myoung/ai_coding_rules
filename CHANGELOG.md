@@ -56,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **refactor(rules):** replace hardcoded `make` commands with generic automation language in 4 rule files
 - **docs(templates):** refresh AGENTS templates — Makefile examples and Last Updated timestamps (→ 2026-03-26)
 - **chore(docs):** update hardcoded rule counts to 187 across README, ARCHITECTURE, schemas, and skill files
+- **chore(validate):** fix ruff lint violations in `scripts/validate_timing.py` (D-series docstrings, UP-series type annotations, W293 whitespace, unused imports) and `skills/skill-timing/scripts/skill_timing.py` (SIM108 ternary); fix MD028 blank-line-in-blockquote in `440-react-core.md`; regenerate RULES_INDEX.md
 
 ### Removed
 - **chore(ci):** delete `.github/workflows/release.yml` — releases are now done locally via `make release` to ensure all commits are GPG-signed via Beyond Identity

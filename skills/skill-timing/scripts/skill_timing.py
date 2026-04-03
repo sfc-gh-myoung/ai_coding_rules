@@ -224,7 +224,10 @@ def check_alerts(skill_name: str, mode: str, duration_sec: float) -> list:
 
 
 def compare_to_baseline(
-    skill_name: str, mode: str, model: str, duration_sec: float,
+    skill_name: str,
+    mode: str,
+    model: str,
+    duration_sec: float,
     dimension_timings: list | None = None,
 ) -> dict | None:
     """Compare duration against baseline if available."""
@@ -271,24 +274,23 @@ def compare_to_baseline(
                 dim_avg = dim_bl["avg_seconds"]
                 dim_stddev = dim_bl.get("stddev_seconds", dim_avg * 0.2)
                 dim_delta = dim_dur - dim_avg
-                if dim_avg > 0:
-                    dim_delta_pct = (dim_delta / dim_avg) * 100
-                else:
-                    dim_delta_pct = 0.0
+                dim_delta_pct = dim_delta / dim_avg * 100 if dim_avg > 0 else 0.0
                 if abs(dim_delta) <= dim_stddev:
                     dim_status = "within_normal"
                 elif abs(dim_delta) <= 2 * dim_stddev:
                     dim_status = "slightly_outside"
                 else:
                     dim_status = "significantly_outside"
-                dim_comparisons.append({
-                    "dimension": dim_name,
-                    "current_seconds": round(dim_dur, 2),
-                    "baseline_avg_seconds": dim_avg,
-                    "delta_seconds": round(dim_delta, 2),
-                    "delta_percent": round(dim_delta_pct, 1),
-                    "status": dim_status,
-                })
+                dim_comparisons.append(
+                    {
+                        "dimension": dim_name,
+                        "current_seconds": round(dim_dur, 2),
+                        "baseline_avg_seconds": dim_avg,
+                        "delta_seconds": round(dim_delta, 2),
+                        "delta_percent": round(dim_delta_pct, 1),
+                        "status": dim_status,
+                    }
+                )
             if dim_comparisons:
                 result["dimension_comparisons"] = dim_comparisons
 
@@ -466,8 +468,12 @@ def print_stdout_summary(
         print("Per-Dimension Timing:")
         for dt in dim_timings:
             dur = dt.get("duration_seconds", 0)
-            print(f"  {dt.get('dimension', 'unknown'):30s} {format_duration_seconds(dur):>10s}  ({dt.get('mode', '')})")
-        total = sum(d.get("duration_seconds", 0) for d in dim_timings if d.get("duration_seconds", 0) >= 0)
+            print(
+                f"  {dt.get('dimension', 'unknown'):30s} {format_duration_seconds(dur):>10s}  ({dt.get('mode', '')})"
+            )
+        total = sum(
+            d.get("duration_seconds", 0) for d in dim_timings if d.get("duration_seconds", 0) >= 0
+        )
         print(f"  {'Total (dimension work)':30s} {format_duration_seconds(total):>10s}")
         print(sep)
 
@@ -571,7 +577,9 @@ def generate_markdown_table(data: dict) -> str:
                 f"| {format_duration_seconds(dur)} "
                 f"| {dt.get('mode', 'unknown')} |"
             )
-        lines.append(f"| **Total (dimension work)** | **{format_duration_seconds(total_dim_time)}** | - |")
+        lines.append(
+            f"| **Total (dimension work)** | **{format_duration_seconds(total_dim_time)}** | - |"
+        )
 
     return "\n".join(lines)
 
@@ -782,7 +790,10 @@ def cmd_end(args):
 
     # Baseline comparison
     baseline = compare_to_baseline(
-        data["skill_name"], data["review_mode"], data["model"], duration_sec,
+        data["skill_name"],
+        data["review_mode"],
+        data["model"],
+        duration_sec,
         dimension_timings=data.get("dimension_timings"),
     )
     if baseline:
@@ -904,7 +915,7 @@ def cmd_baseline_set(args):
             for dim_name, durs in dim_data.items():
                 d_avg = sum(durs) / len(durs)
                 d_var = sum((d - d_avg) ** 2 for d in durs) / len(durs)
-                d_stddev = d_var ** 0.5
+                d_stddev = d_var**0.5
                 dimensions_bl[dim_name] = {
                     "avg_seconds": round(d_avg, 2),
                     "stddev_seconds": round(d_stddev, 2),
@@ -931,7 +942,10 @@ def cmd_baseline_compare(args):
 
     data = json.loads(completed_file.read_text())
     comparison = compare_to_baseline(
-        data["skill_name"], data["review_mode"], data["model"], data["duration_seconds"],
+        data["skill_name"],
+        data["review_mode"],
+        data["model"],
+        data["duration_seconds"],
         dimension_timings=data.get("dimension_timings"),
     )
 
@@ -1032,7 +1046,10 @@ def cmd_analyze(args):
         dim_runs = [r for r in runs if "dimension_timings" in r]
         skipped = len(runs) - len(dim_runs)
         if skipped > 0:
-            print(f"NOTE: {skipped} run(s) lack dimension_timings data and are excluded from per-dimension breakdown.", file=sys.stderr)
+            print(
+                f"NOTE: {skipped} run(s) lack dimension_timings data and are excluded from per-dimension breakdown.",
+                file=sys.stderr,
+            )
         if dim_runs:
             dim_data_analyze: dict[str, list[float]] = {}
             for r in dim_runs:
@@ -1047,7 +1064,7 @@ def cmd_analyze(args):
                 d_avg = sum(durs) / len(durs)
                 d_median = durs[len(durs) // 2]
                 d_var = sum((d - d_avg) ** 2 for d in durs) / len(durs)
-                d_stddev = d_var ** 0.5
+                d_stddev = d_var**0.5
                 d_p5 = durs[max(0, int(len(durs) * 0.05))]
                 d_p95 = durs[min(len(durs) - 1, int(len(durs) * 0.95))]
                 dim_result[dim_name] = {

@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.2
+**LastUpdated:** 2026-03-26
 **LoadTrigger:** kw:contributing, file:CONTRIBUTING.md
 **Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy, Conventional Commits, rule authoring, PR templates, project governance, git workflow
 **TokenBudget:** ~2600
@@ -46,20 +46,20 @@ Professional contribution workflow directives covering commits, pull requests, c
 
 ### Inputs and Prerequisites
 - Forked repository with feature branch
-- Development environment set up (Python 3.11+, Task, uv, Ruff)
+- Development environment set up (Python 3.11+, GNU Make, uv, Ruff)
 - Understanding of rule numbering scheme and governance standards
 - Access to CONTRIBUTING.md and 002-rule-governance.md
 
 ### Mandatory
-- MUST validate with `task rules:validate` before committing any rule changes
+- MUST validate with the project's automation commands before committing any rule changes (for this project: `make rules-validate`)
 - MUST follow Conventional Commits format for all commit messages
 - MUST create feature branch before committing (never commit directly to main)
 - MUST update CHANGELOG.md under `## [Unreleased]` for user-facing changes
-- MUST run `task lint` and `task format` before submitting PR
+- MUST run the project's lint and format commands before submitting PR (for this project: `make lint` and `make format`)
 
 ### Forbidden
 - Direct editing of deployed rule files outside rules/ directory
-- Committing without validation (task rules:validate)
+- Committing without project validation (for this project: `make rules-validate`)
 - Force push to main/master branches
 - Amending commits authored by others
 
@@ -73,7 +73,7 @@ Professional contribution workflow directives covering commits, pull requests, c
 2. Edit rules/ directory files directly (production-ready rules)
 3. Follow Conventional Commits format for all commit messages
 4. Update CHANGELOG.md under ## [Unreleased] for user-facing changes
-5. Validate with task rules:validate and task lint
+5. Validate with the project's automation commands (for this project: `make rules-validate` and `make lint`)
 6. Submit PR with descriptive title and complete description
 7. Address all code review feedback before merge
 
@@ -89,16 +89,16 @@ Well-structured pull request with:
 **Pre-Task-Completion Checks:**
 - CONTRIBUTING.md read before making changes
 - Rule numbering scheme verified
-- Tool availability checked in Taskfile.yml
+- Tool availability checked in project automation
 - Conventional Commits format understood
 
 **Success Criteria:**
-- task rules:validate passes without critical errors
-- task lint passes cleanly
-- task format passes without changes
+- Project validation command passes without critical errors (for this project: `make rules-validate`)
+- Project lint command passes cleanly (for this project: `make lint`)
+- Project format command passes without changes (for this project: `make format`)
 - CHANGELOG.md updated (if user-facing change)
 - All commits follow Conventional Commits format
-- Generated files included in PR (task rule:all run)
+- Generated files included in PR after running project validation
 
 ### Design Principles
 - **Investigation-First** - Read CONTRIBUTING.md before making changes
@@ -114,7 +114,7 @@ Well-structured pull request with:
 - [ ] Rule numbering scheme verified (if creating rules)
 - [ ] Conventional Commits format used for all commits
 - [ ] CHANGELOG.md updated under ## [Unreleased]
-- [ ] Validation passed (task rules:validate, task lint)
+- [ ] Validation passed using project automation commands
 - [ ] PR created with descriptive title and description
 - [ ] All code review feedback addressed
 
@@ -123,7 +123,7 @@ Well-structured pull request with:
 Before making contributions, complete these checks:
 
 1. **Read existing CONTRIBUTING.md:** `cat CONTRIBUTING.md` — understand current workflow before proposing changes
-2. **Check Taskfile.yml for available commands:** `task --list` — verify validation commands exist
+2. **Check project automation for available commands:** `make help`, `task --list`, or equivalent — verify validation commands exist
 3. **Verify rule numbering scheme:** `ls rules/*.md | sort` — identify next available rule number if creating new rules
 4. **Check for PR template:** `ls .github/PULL_REQUEST_TEMPLATE.md` — if present, use it for PR descriptions
 5. **Review existing branch naming:** `git branch -r | head -20` — observe project conventions in practice
@@ -142,7 +142,7 @@ git add /some/project/.cursor/rules/100-snowflake-core.md
 ```bash
 # Good: Edit source rules
 vim rules/100-snowflake-core.md
-task rules:validate  # Validate changes
+make rules-validate  # Example project validation command
 git add rules/100-snowflake-core.md
 ```
 **Benefits:** Changes in canonical source location, validated before deployment
@@ -178,8 +178,8 @@ git push
 ```bash
 # Good: Validate before commit
 vim rules/<your-new-rule>.md
-task rules:validate  # Ensure compliance
-task lint           # Check code quality
+make rules-validate  # Example project validation command
+make lint           # Example project lint command
 git add rules/<your-new-rule>.md
 git commit -m "feat(rule): add new rule"
 ```
@@ -212,8 +212,8 @@ Add Django framework patterns rule (215) covering models, views, ORM optimizatio
 and security guidelines (CSRF, XSS, SQL injection).
 
 ## Validation
-- [x] `task rules:validate` passes
-- [x] `task lint` passes
+- [x] Project validation command passes (`make rules-validate` in this project)
+- [x] Project lint command passes (`make lint` in this project)
 - [x] CHANGELOG.md updated under ## [Unreleased]
 - [x] Follows 002-rule-governance.md v3.2 structure
 
@@ -243,9 +243,9 @@ When a reviewer requests changes, follow this workflow:
 1. **Address feedback in new commits** — do NOT amend or squash during review (preserves review context and comment threads)
 2. **Re-run validation after each fix:**
    ```bash
-   task rules:validate
-   task lint
-   task format
+   make rules-validate
+   make lint
+   make format
    ```
 3. **Reply to each review comment** indicating how it was addressed:
    - "Fixed in commit `abc1234`" — link to specific commit
@@ -263,7 +263,7 @@ When a reviewer requests changes, follow this workflow:
 ## CI Failure Troubleshooting
 
 - Check CI logs for the specific failure before pushing fixes
-- Run the failing tests locally to reproduce: `task test` or equivalent
+- Run the failing tests locally to reproduce using project automation: `make test`, `task test`, or equivalent
 - If CI failure is unrelated to your changes, note it in the PR description
 - Contact maintainers if CI infrastructure issues are suspected
 
@@ -276,11 +276,11 @@ Verify the validation pipeline catches common errors by intentionally introducin
 # Break SchemaVersion in any rule file
 SchemaVersion: v2.0  # Invalid — must be v3.2
 ```
-**Expected:** `task rules:validate` fails with schema version error.
+**Expected:** Project validation fails with schema version error (`make rules-validate` in this project).
 
 ### Test 2: Missing Required Section
 Remove the `## Contract` section from a rule file.
-**Expected:** `task rules:validate` fails with missing section error.
+**Expected:** Project validation fails with missing section error (`make rules-validate` in this project).
 
 ### Test 3: Non-Conventional Commit
 ```bash

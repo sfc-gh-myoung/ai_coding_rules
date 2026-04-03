@@ -397,7 +397,7 @@ def generate_agent_guidance() -> str:
 - This file is **READ-ONLY** for rule discovery purposes
 - Use `grep`, `read_file`, or codebase_search to find relevant rules
 - **Never modify** this file during task execution
-- Regeneration happens automatically via `task index:generate`
+- Regeneration happens automatically via `make index-generate`
 - To suggest improvements, modify source rule files or `scripts/index_generator.py`
 
 """
@@ -615,7 +615,7 @@ Last updated: {timestamp}
 
 To regenerate this index:
   1. Make changes to rule files in rules/ directory
-  2. Run: task index:generate
+  2. Run: make index-generate
   3. Commit both rule files AND RULES_INDEX.md together
 
 This index provides semantic discovery for AI agents.

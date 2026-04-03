@@ -648,7 +648,7 @@ Try: rules/*.md (all rules) or rules/100-*.md (Snowflake rules)
 
 **Setup:**
 ```bash
-# 113 rules exist
+# 188 rules exist
 ```
 
 **Input:**

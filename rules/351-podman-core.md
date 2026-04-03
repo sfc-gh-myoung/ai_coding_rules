@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-03-25
 **Keywords:** Podman, Containerfile, containers, rootless containers, buildah, podman-compose, pods, daemonless, systemd, quadlet, image optimization, non-root, healthcheck, security scanning, SBOM
-**TokenBudget:** ~5050
+**TokenBudget:** ~4350
 **ContextTier:** Medium
 **Depends:** 000-global-core.md, 202-markup-config-validation.md
 **LoadTrigger:** file:Containerfile, file:podman-compose.yml, file:podman-compose.yaml, kw:podman, kw:buildah
@@ -33,6 +33,7 @@ Provides practical, production-ready guidance for authoring Containerfiles, buil
 - **202-markup-config-validation.md** - Configuration validation patterns
 
 **Related:**
+- **351a-podman-examples.md** - Complete output format examples
 - **350-docker-core.md** - Docker-specific patterns (Podman is largely compatible)
 - **200-python-core.md** - Python-specific container patterns
 - **203-python-project-setup.md** - Python project structure for containers
@@ -115,11 +116,11 @@ Deterministic Containerfile(s) and Compose files with:
 - **MUST:** Use multi-stage builds; choose slim, LTS base images
 - **MUST:** Add a `.containerignore` to keep contexts tiny; avoid copying VCS/venv/node_modules
 - **MUST:** Run rootless by default; add non-root USER; drop Linux capabilities
-- **MUST:** Pin base images and packages; avoid `latest`; prefer digest pinning for prod
+- **MUST:** Pin base images and packages; avoid `latest`; prefer digest pinning for production
 - **MUST:** Structure layers to maximize caching; separate dependency installation from source copy
 - **MUST:** Generate SBOM and sign images; store attestations in registry
 - **MUST:** Provide a `HEALTHCHECK`; avoid long `CMD` shell strings; use JSON exec form
-- **SHOULD:** Base image selection: Distroless for single-binary apps (Go/Rust static binaries, Java JARs); Alpine/slim for apps needing shell or package manager; full base only for dev containers. Verify glibc/musl compatibility first.
+- **SHOULD:** Base image selection decision tree: (1) Static binary with no runtime deps (Go, Rust): use `distroless/static`; (2) JVM app: use `distroless/java`; (3) Needs shell or `apt`/`apk` at runtime: use Alpine or `-slim` variant; (4) Dev container or build stage: use full base image. Always verify glibc vs musl compatibility before choosing Alpine.
 - **MUST NOT:** COPY secrets into images; bake envs into image layers; use `--privileged` without `# PRIVILEGED: <reason>` comment
 
 ### Post-Execution Checklist
@@ -221,107 +222,12 @@ podman logout registry.example.com && podman login registry.example.com
 > **Anti-Pattern:** "Adding rootless config... (without checking if workload supports it)"
 > **Correct:** "Let me check your Containerfile first." [reads file, checks base image, reviews layers]
 
-## Output Format Examples
+### Output Format Examples
 
-### Buildah Multi-Stage Workflow (Podman-Specific)
-
-```bash
-#!/bin/bash
-# build.sh - Buildah multi-stage build with fine-grained control
-set -euo pipefail
-
-# Stage 1: Build in a working container
-builder=$(buildah from python:3.12-slim@sha256:specific-digest)
-buildah run "$builder" -- groupadd -r appuser --gid=1000
-buildah run "$builder" -- useradd -r -g appuser --uid=1000 --home=/app appuser
-buildah config --workingdir /app "$builder"
-buildah copy "$builder" requirements.txt /app/requirements.txt
-buildah run "$builder" -- pip install --no-cache-dir -r /app/requirements.txt
-builder_mount=$(buildah mount "$builder")
-
-# Stage 2: Minimal runtime container
-runtime=$(buildah from python:3.12-slim@sha256:specific-digest)
-buildah copy "$runtime" "$builder_mount/etc/passwd" /etc/passwd
-buildah copy "$runtime" "$builder_mount/etc/group" /etc/group
-buildah copy --chown 1000:1000 "$runtime" "$builder_mount/app" /app
-buildah copy --chown 1000:1000 "$runtime" ./src /app/src
-
-# Configure runtime (numeric UID for rootless compatibility)
-buildah config --user 1000:1000 "$runtime"
-buildah config --workingdir /app "$runtime"
-buildah config --port 8000 "$runtime"
-buildah config --cmd '["python", "app.py"]' "$runtime"
-buildah config --healthcheck-command 'CMD python -c "import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")"' "$runtime"
-buildah config --healthcheck-interval 30s --healthcheck-timeout 3s --healthcheck-start-period 5s "$runtime"
-
-# Commit and clean up
-buildah commit "$runtime" "myapp:v${VERSION:-1.0.0}"
-buildah rm "$builder" "$runtime"
-
-# Generate SBOM and sign
-syft packages myapp:latest -o spdx-json > myapp-sbom.json
-```
-
-### Containerfile with Podman-Specific Features
-
-```dockerfile
-# Containerfile - Podman rootless build with Quadlet integration
-FROM python:3.12-slim@sha256:specific-digest AS builder
-
-RUN groupadd -r appuser --gid=1000 && \
-    useradd -r -g appuser --uid=1000 --home=/app appuser
-WORKDIR /app
-COPY requirements.txt .
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --no-cache-dir -r requirements.txt
-
-FROM python:3.12-slim@sha256:specific-digest
-COPY --from=builder /etc/passwd /etc/group /etc/
-WORKDIR /app
-COPY --from=builder --chown=1000:1000 /app /app
-COPY --chown=1000:1000 . .
-
-# Numeric UID/GID required for rootless compatibility across hosts
-USER 1000:1000
-
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
-
-EXPOSE 8000
-CMD ["python", "app.py"]
-```
-
-```ini
-# ~/.config/containers/systemd/myapp.container (Quadlet unit for production)
-[Unit]
-Description=My Application Container
-
-[Container]
-Image=myapp:v1.2.3
-PublishPort=8080:8000
-Volume=/data:/app/data:Z
-Environment=APP_ENV=production
-ReadOnly=true
-DropCapability=ALL
-UserNS=auto
-
-[Service]
-Restart=always
-
-[Install]
-WantedBy=default.target
-```
-
-```bash
-# Build, validate, and deploy with Podman
-podman build --layers -t myapp:latest .
-podman run --rm myapp:latest id  # Verify non-root UID
-podman run --rm --cap-drop=ALL --read-only --tmpfs /tmp myapp:latest python -c "print('Validation passed')"
-
-# Deploy via Quadlet
-systemctl --user daemon-reload
-systemctl --user start myapp.service
-```
+See `351a-podman-examples.md` for complete, production-ready examples including:
+- Buildah multi-stage build script with SBOM generation
+- Containerfile with rootless, Quadlet, and HEALTHCHECK patterns
+- Build, validate, and deploy script with security checks
 
 ## Podman-Specific Patterns
 
@@ -329,7 +235,7 @@ systemctl --user start myapp.service
 
 ```bash
 # Default: Run rootless (no sudo needed)
-podman run -d --name myapp -p 8080:8000 myapp:latest
+podman run -d --name myapp -p 8080:8000 myapp:v1.0.0
 
 # Check rootless status
 podman info --format '{{.Host.Security.Rootless}}'  # Should be true
@@ -347,8 +253,8 @@ podman unshare cat /proc/self/uid_map
 podman pod create --name mypod -p 8080:80
 
 # Add containers to pod
-podman run -d --pod mypod --name web nginx:alpine
-podman run -d --pod mypod --name api myapp:latest
+podman run -d --pod mypod --name web nginx:1.27-alpine
+podman run -d --pod mypod --name api myapp:v1.0.0
 
 # Containers in pod share localhost
 # web can reach api at localhost:8000
@@ -361,16 +267,16 @@ podman generate kube mypod > mypod.yaml
 
 ```bash
 # Buildah for fine-grained control
-buildah from python:3.12-slim
-buildah run python:3.12-slim -- pip install flask
-buildah config --user 1000:1000 python:3.12-slim
-buildah commit python:3.12-slim myapp:latest
+buildah from python:3.12-slim@sha256:a1b2c3...
+buildah run python:3.12-slim@sha256:a1b2c3... -- pip install flask
+buildah config --user 1000:1000 python:3.12-slim@sha256:a1b2c3...
+buildah commit python:3.12-slim@sha256:a1b2c3... myapp:v1.0.0
 
 # Build from Containerfile
-buildah bud -t myapp:latest .
+buildah bud -t myapp:v1.0.0 .
 
 # Build without cache
-buildah bud --no-cache -t myapp:latest .
+buildah bud --no-cache -t myapp:v1.0.0 .
 ```
 
 ### Quadlet: Systemd Integration (Production)
@@ -390,7 +296,7 @@ systemctl --user status myapp.service
 #### Quadlet Failure Recovery
 - **Unit fails to generate:** Run `/usr/lib/systemd/system-generators/podman-system-generator --dryrun` (system) or `podman-system-generator --user --dryrun` to see parsing errors. Check file syntax, ensure `[Container]` section header is present, and verify file extension is `.container`.
 - **Service fails to start:** Run `journalctl --user -u webapp --no-pager -n 50` to check logs. Common causes: image pull failure (check registry auth), volume mount SELinux denial (use `:Z` suffix), port already in use. Fix and re-run `systemctl --user daemon-reload && systemctl --user restart webapp`.
-- **Health check failures after start:** Verify health endpoint responds: `podman exec <id> curl -f http://localhost:8080/health`. Check `--start-period` if the application needs warmup time. Increase `HealthInterval` or `HealthRetries` if the service is slow.
+- **Health check failures after start:** Verify health endpoint responds: `podman exec <id> curl -f http://localhost:8080/health`. Check `--start-period` if the application needs warmup time. Increase `HealthInterval` or `HealthRetries` if health checks fail after `start-period` elapses (check with `podman inspect --format '{{.State.Health.Status}}'`).
 
 ### Podman Compose
 
@@ -454,9 +360,9 @@ See `350-docker-core.md` for extended `.dockerignore` patterns.
 - **MUST:** Pin versions; rely on lock files (`uv.lock`, `poetry.lock`, `package-lock.json`).
 - **MUST:** Generate SBOM for production images using syft (`podman build --sbom=true` or `syft packages`).
 
-#### Build Cache Cleanup
+### Build Cache Cleanup
 
-Build caches accumulate over time. Clean them periodically:
+Build caches accumulate over time. Clean after each CI pipeline run, or weekly on development machines:
 
 ```bash
 # View cache usage
@@ -482,16 +388,16 @@ podman system prune --all --force --volumes
 
 - **MUST:** Run rootless by default; root only for: port binding <1024 without CAP_NET_BIND_SERVICE, system file modification during build. Use `--userns=keep-id` when rootless is insufficient. All other workloads MUST use rootless.
 - **MUST:** Set `USER` to non-root UID/GID (use numeric for portability).
-- **MUST:** Drop capabilities and use read-only FS when possible:
-  - `--cap-drop=ALL --read-only --tmpfs /tmp` at runtime.
-- **MUST:** Keep base images up-to-date; rebuild regularly.
+- **MUST:** Drop capabilities and use read-only FS unless the application requires runtime file writes (logs, uploads, SQLite). Use `--tmpfs` for temporary write paths:
+  - `--cap-drop=ALL --read-only --tmpfs /tmp --tmpfs /var/log` at runtime.
+- **MUST:** Keep base images up-to-date; rebuild weekly in CI or within 48 hours of base image CVE advisories.
 - **MUST:** Scan images in CI (Trivy, Grype); fail on critical CVEs.
 - **MUST:** SELinux: Use `:Z` or `:z` volume suffixes for proper labeling on SELinux-enabled hosts.
-- **MUST NOT:** Expose SSH or add debug tools in prod images.
+- **MUST NOT:** Expose SSH or add debug tools in production images.
 
 ## Supply Chain Integrity
 
-- **MUST:** Pin images by digest in prod deployments.
+- **MUST:** Pin images by digest in production deployments.
 - **MUST:** Generate SBOM and attach provenance.
 - **MUST:** Sign images with cosign; enforce signature verification in deployment.
 - **MUST:** Use private registries for images containing proprietary code; public registries acceptable for open-source base images.

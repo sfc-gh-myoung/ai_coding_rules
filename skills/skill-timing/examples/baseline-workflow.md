@@ -22,7 +22,7 @@ bash skills/skill-timing/scripts/run_timing.sh analyze \
 
 **Output:**
 ```
-TIMING: Analysis v1.2.0
+TIMING: Analysis v1.3.0
 ----------------------------------------
 Count:       12 runs
 Filters:     skill=rule-reviewer, model=claude-sonnet-45, days=30
@@ -85,7 +85,7 @@ bash skills/skill-timing/scripts/run_timing.sh end \
 
 **Output with Baseline:**
 ```
-TIMING: skill-timing v1.2.0
+TIMING: skill-timing v1.3.0
 ----------------------------------------
 Run ID:      a1b2c3d4e5f67890
 ...

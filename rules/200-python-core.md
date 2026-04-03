@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v4.0.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v4.1.1
+**LastUpdated:** 2026-03-26
 **Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, pytest, validation, uv run, uvx, ty, type checking, mypy, type hints
-**TokenBudget:** ~3350
+**TokenBudget:** ~3600
 **ContextTier:** Critical
 **Depends:** 000-global-core.md
 **LoadTrigger:** ext:.py, ext:.pyi, file:pyproject.toml
@@ -79,18 +79,18 @@ Foundational Python development practices: investigation-first toolchain detecti
 
 **Recommended for NEW projects:** uv + Ruff + ty (Astral ecosystem: fast, modern, comprehensive)
 
-**Rule:** Match project's existing tooling. Only recommend changes when the user explicitly asks, the project has no established toolchain, or the existing toolchain causes problems.
+**Rule:** Match project's existing toolchain. Only recommend changes when the user explicitly asks, the project has no established toolchain, or the existing toolchain causes problems.
 
 ### Mandatory (Universal Requirements)
 
-These requirements apply regardless of tooling choice:
+These requirements apply regardless of toolchain choice:
 
 - Apply consistent linting and formatting to all modified Python files
 - Apply type checking to all modified Python files
 - Run test suite for projects with tests
 - Centralize configuration in `pyproject.toml`
 - Use `datetime.now(UTC)` instead of deprecated `datetime.utcnow()`
-- Integrate with project's task automation (Taskfile, Makefile, etc.)
+- Run validation via the project's automation entrypoint if present (see `000-global-core.md` automation-detection protocol); if no automation file exists, run tools directly
 - Pass Pre-Task-Completion Validation Gate before marking any task complete (see **200a-python-validation-gate.md**)
 
 ### Forbidden
@@ -108,7 +108,7 @@ These requirements apply regardless of tooling choice:
 2. **Environment Setup:** Use project's dependency manager to ensure environment is ready (see **200b-python-environment-tooling.md**)
 3. **Implementation:** Write or modify Python code following modern patterns (type hints, clear error handling, modular structure)
 4. **Validation:** Run comprehensive validation suite using project's toolchain (see **200a-python-validation-gate.md**)
-5. **Documentation:** Update CHANGELOG.md and README.md as required
+5. **Documentation:** Update CHANGELOG.md for user-facing behavior changes, dependency version bumps, or API modifications; update README.md when CLI usage, setup instructions, or configuration options change
 6. **Verification:** Confirm all validation checks pass before task completion
 
 ### Output Format
@@ -156,18 +156,18 @@ See **200a-python-validation-gate.md** for the full Pre-Task-Completion Validati
 **Investigation Required:**
 1. **Read pyproject.toml BEFORE making recommendations** - Check existing dependencies, Python version, tool configurations
 2. **Verify toolchain** - Check if project uses uv, poetry, or pip
-3. **Never speculate about project structure** - Use list_dir to understand src/ vs flat layout
+3. **Never speculate about project structure** - List directory contents to understand src/ vs flat layout
 4. **Check existing tests** - Read conftest.py, test files to understand test patterns
-5. **Make grounded recommendations based on investigated project setup** - Match existing patterns and tooling
-6. **Check for async code** - If present, load async patterns
-7. **Check for type checking configuration** - ty, mypy, or pyright
+5. **Make grounded recommendations based on investigated project setup** - Match existing patterns and toolchain
+6. **Check for async code** - If async/await found, reference the Async/Await Patterns section in this rule; if project uses FastAPI, also load 210-python-fastapi-core.md
+7. **Check for type checking configuration** - If `ty.toml` or `[tool.ty]` found, use `ty check`; if `mypy.ini` or `[tool.mypy]` found, use `mypy .`; if `pyrightconfig.json` found, use `pyright`; if none found, default to `ty check`
 8. **Verify virtual environment is active** - Run `which python` to confirm
 
 ### Design Principles
 
 - **Investigation-First:** Check project's existing toolchain before prescribing tools
 - **Toolchain Respect:** Match project's dependency manager (uv, poetry, pip)
-- **Python Version:** Pin appropriate Python version in `pyproject.toml`
+- **Python Version:** Pin the Python version from `pyproject.toml`'s `requires-python` field; if absent, default to `>=3.11`
 - **Code Quality:** Apply consistent linting and formatting on every file modification
 - **Type Safety:** Apply type checking on every file modification for static type safety
 - **Validation First:** Never mark tasks complete without passing Pre-Task-Completion Validation Gate
@@ -214,7 +214,7 @@ convention = "google"
 # Still running: uv run python script.py
 ```
 
-**Problem:** Breaks project's established conventions; may cause dependency version conflicts; ignores team's tooling decisions
+**Problem:** Breaks project's established conventions; may cause dependency version conflicts; ignores team's toolchain decisions
 
 **Correct Pattern:**
 ```bash
@@ -291,6 +291,28 @@ match command:
     case _:
         raise ValueError("Invalid command format")
 ```
+
+### State and Resource Error Handling
+
+**If lock file conflict** (e.g., `uv.lock` modified during operation):
+1. Abort current operation
+2. Re-read lock file to verify state
+3. Retry operation once; if conflict persists, report to user
+
+**If partial write** (file operation interrupted):
+1. Check file integrity: `python -c "import ast; ast.parse(open('file.py').read())"`
+2. If corrupt, restore from git: `git checkout -- file.py`
+3. Re-apply changes surgically
+
+**If disk space exhausted** during dependency install or file write:
+1. Check available space: `df -h .`
+2. Clear caches: `uv cache clean` (uv) or `pip cache purge` (pip)
+3. If still insufficient, report with required space estimate
+
+**If memory pressure** during large file processing:
+1. Process files in batches (<1000 lines per chunk)
+2. Use generators instead of loading full collections into memory
+3. If OOM persists, reduce scope and report to user
 
 ### Async/Await Patterns
 
@@ -385,7 +407,7 @@ def load_users(config_path: Path) -> list[dict[str, Any]]:
 
     Raises:
         FileNotFoundError: If config_path does not exist.
-        ValueError: If configuration format is invalid.
+        ValueError: If configuration format is invalid or users list is empty.
     """
     if not config_path.exists():
         raise FileNotFoundError(f"Config not found: {config_path}")
@@ -397,13 +419,18 @@ def load_users(config_path: Path) -> list[dict[str, Any]]:
     if "users" not in data:
         raise ValueError("Missing 'users' key in configuration")
 
+    raw_users: list[dict[str, Any]] = data["users"]
+    if len(raw_users) == 0:
+        return []
+
     return [
         {
             "name": u["name"],
             "created_at": datetime.now(UTC),
             "active": u.get("active", True),
         }
-        for u in data["users"]
+        for u in raw_users
+        if u.get("name") and isinstance(u["name"], str)
     ]
 
 

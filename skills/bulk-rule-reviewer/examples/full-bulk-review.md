@@ -2,7 +2,7 @@
 
 ## Overview
 
-This example demonstrates a complete bulk review of all 113 rules in the `rules/` directory, from invocation to master summary report generation.
+This example demonstrates a complete bulk review of the full current rule set in the `rules/` directory, from invocation to master summary report generation.
 
 **Scenario:** Quarterly quality audit (2026-Q1)  
 **Date:** 2026-01-06  
@@ -58,13 +58,13 @@ Parameters:
   max_parallel: 1
 
 Environment:
-  rules/ directory:  (113 files found)
+  rules/ directory:  (187 files found)
   reviews/ directory:  (writable)
 
 Proceeding with bulk review...
 
 [Stage 1: Discovery]
-Found 113 rule files
+Found 187 rule files
 
 rules/000-global-core.md
 rules/001-memory-bank.md
@@ -76,7 +76,7 @@ rules/002d-rule-optimization.md
 rules/002e-agent-optimization.md
 rules/002f-claude-code-skills.md
 rules/003-context-engineering.md
-... (113 total)
+... (187 total)
 ```
 
 ---
@@ -86,11 +86,11 @@ rules/003-context-engineering.md
 ```
 [Stage 2: Review Execution]
 
-Starting bulk review: 113 rules
+Starting bulk review: 187 rules
 Review mode: FULL | Model: claude-sonnet-45 | Date: 2026-01-06
 Skip existing: true
 
-[1/113] Reviewing: rules/000-global-core.md
+[1/187] Reviewing: rules/000-global-core.md
   Invoking rule-reviewer skill...
   Parsing: Foundation rule, 589 lines, ~5250 tokens
   Evaluating: Actionability (25/25), Completeness (25/25), 
@@ -99,7 +99,7 @@ Skip existing: true
    Complete: 100/100 (EXECUTABLE)
   Review written to: reviews/rule-reviews/000-global-core-claude-sonnet-45-2026-01-06.md
 
-[2/113] Reviewing: rules/001-memory-bank.md
+[2/187] Reviewing: rules/001-memory-bank.md
   Invoking rule-reviewer skill...
   Parsing: Memory protocol rule, 287 lines, ~2100 tokens
   Evaluating: Actionability (23/25), Completeness (23/25),
@@ -108,7 +108,7 @@ Skip existing: true
    Complete: 94/100 (EXECUTABLE)
   Review written to: reviews/rule-reviews/001-memory-bank-claude-sonnet-45-2026-01-06.md
 
-[3/113] Reviewing: rules/002-rule-governance.md
+[3/187] Reviewing: rules/002-rule-governance.md
   Invoking rule-reviewer skill...
   Parsing: Governance rule, 412 lines, ~3500 tokens
   Evaluating: Actionability (22/25), Completeness (22/25),
@@ -117,7 +117,7 @@ Skip existing: true
    Complete: 88/100 (EXECUTABLE_WITH_REFINEMENTS)
   Review written to: reviews/rule-reviews/002-rule-governance-claude-sonnet-45-2026-01-06.md
 
-[4/113] Reviewing: rules/002a-rule-creation.md
+[4/187] Reviewing: rules/002a-rule-creation.md
   Invoking rule-reviewer skill...
   Parsing: Creation guide, 523 lines, ~4200 tokens
   Evaluating: Actionability (24/25), Completeness (24/25),
@@ -126,7 +126,7 @@ Skip existing: true
    Complete: 96/100 (EXECUTABLE)
   Review written to: reviews/rule-reviews/002a-rule-creation-guide-claude-sonnet-45-2026-01-06.md
 
-[5/113] Reviewing: rules/002b-rule-maintenance.md
+[5/187] Reviewing: rules/002b-rule-maintenance.md
   Invoking rule-reviewer skill...
   Parsing: Maintenance guide, 298 lines, ~2300 tokens
   Evaluating: Actionability (23/25), Completeness (22/25),
@@ -143,16 +143,16 @@ Skip existing: true
 ### Progress Updates (Every 10 Reviews)
 
 ```
---- Progress: 10/113 complete, 0 failed, 0 skipped ---
+--- Progress: 10/187 complete, 0 failed, 0 skipped ---
     Average score: 91.3/100
     Verdicts: 7 EXECUTABLE, 3 EXECUTABLE_WITH_REFINEMENTS
 
-[11/113] Reviewing: rules/100-snowflake-core.md
+[11/187] Reviewing: rules/100-snowflake-core.md
    Complete: 100/100 (EXECUTABLE)
 
 ...
 
---- Progress: 20/113 complete, 1 failed, 0 skipped ---
+--- Progress: 20/187 complete, 1 failed, 0 skipped ---
     Average score: 88.7/100
     Verdicts: 12 EXECUTABLE, 7 EXECUTABLE_WITH_REFINEMENTS, 1 FAILED
 
@@ -161,12 +161,12 @@ Skip existing: true
 
 ...
 
---- Progress: 50/113 complete, 2 failed, 0 skipped ---
+--- Progress: 50/187 complete, 2 failed, 0 skipped ---
     Average score: 87.5/100
 
 ...
 
---- Progress: 100/113 complete, 2 failed, 0 skipped ---
+--- Progress: 100/187 complete, 2 failed, 0 skipped ---
     Average score: 87.2/100
 ```
 
@@ -175,7 +175,7 @@ Skip existing: true
 ### Failed Review Example
 
 ```
-[67/113] Reviewing: rules/deprecated-legacy-rule.md
+[67/187] Reviewing: rules/deprecated-legacy-rule.md
   Invoking rule-reviewer skill...
   Parsing: Legacy rule, 892 lines, ~7200 tokens
    Failed: Malformed markdown - unclosed code block at line 234
@@ -195,7 +195,7 @@ Skip existing: true
 ============================================================
 Bulk Review Complete
 ============================================================
-Total rules: 113
+Total rules: 187
 Successful: 111
 Failed: 2
 Skipped: 0
@@ -267,7 +267,7 @@ Files generated:
 
 **Review Date:** 2026-01-06
 **Model:** Claude Sonnet 4.5
-**Rules Reviewed:** 129
+**Rules Reviewed:** 187
 **Review Mode:** FULL
 **Completion Status:** 127/129 (2 failed)
 
@@ -404,7 +404,7 @@ Focus on quantifying all thresholds and adding explicit error recovery.
 
 ## Files Generated
 
-### Individual Reviews (111 files)
+### Individual Reviews (example output set)
 
 ```
 reviews/
@@ -424,7 +424,7 @@ reviews/
 
 - **Total duration:** 7 hours 23 minutes
 - **Average review time:** 3.9 minutes per rule
-- **Success rate:** 98.2% (111/113)
+- **Success rate:** Example run summary
 - **Failed reviews:** 2 (malformed markdown)
 - **Context efficiency:** No overflow events
 - **Resume capability:** Not needed (no interruptions)
@@ -460,7 +460,7 @@ reviews/
 
 **What Could Improve:**
 - 2 failed reviews due to malformed markdown (need pre-validation)
-- Sequential execution took 7+ hours (consider partial batches)
+- Sequential execution can take many hours for full-repository reviews (consider partial batches)
 - Some dimension scores missing from reviews (extraction robustness)
 
 **Recommendations for Next Run:**

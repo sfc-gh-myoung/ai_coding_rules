@@ -96,6 +96,38 @@ For EACH dimension:
 7. Staleness (currency checks)
 8. Cross-Agent Consistency (universal compatibility)
 
+### Step 2.2a: Per-Dimension Timing (IF timing_enabled)
+
+When `timing_enabled: true`, wrap each dimension evaluation with checkpoint pairs:
+
+| Before Dimension | After Dimension |
+|-----------------|-----------------|
+| checkpoint `dim_parsability_start` | checkpoint `dim_parsability_end` |
+| checkpoint `dim_rule_size_start` | checkpoint `dim_rule_size_end` |
+| checkpoint `dim_actionability_start` | checkpoint `dim_actionability_end` |
+| checkpoint `dim_completeness_start` | checkpoint `dim_completeness_end` |
+| checkpoint `dim_consistency_start` | checkpoint `dim_consistency_end` |
+| checkpoint `dim_token_efficiency_start` | checkpoint `dim_token_efficiency_end` |
+| checkpoint `dim_staleness_start` | checkpoint `dim_staleness_end` |
+| checkpoint `dim_cross_agent_start` | checkpoint `dim_cross_agent_end` |
+
+**After all dimensions scored:** Compute per-dimension durations from checkpoint pairs and construct `_dimension_timings` JSON array:
+
+```
+_dimension_timings = []
+for each dimension:
+    start_cp = checkpoint where name == f"dim_{dimension}_start"
+    end_cp = checkpoint where name == f"dim_{dimension}_end"
+    duration = end_cp.elapsed_seconds - start_cp.elapsed_seconds
+    _dimension_timings.append({
+        "dimension": dimension,
+        "duration_seconds": round(duration, 2),
+        "mode": "checkpoint"
+    })
+```
+
+**Pass to timing-end:** Include `--dimension-timings '{{_dimension_timings_json}}'` in the end command.
+
 ### Step 2.3: Apply Non-Issues Filters
 
 For EACH filled inventory:
@@ -136,16 +168,29 @@ Total = (Actionability × 3.0) + (Rule Size × 2.5) +
 Maximum: 100 points (v2.0)
 ```
 
-### Step 3.3: Generate Review
+### Step 3.2a: Load Output Template
 
-Include in output:
+Read `references/REVIEW-OUTPUT-TEMPLATE.md` before generating review content.
 
-1. **Header:** Target file, review date, mode, model
-2. **Score Summary:** Total and per-dimension scores (6 scored dimensions)
-3. **All Inventories:** Include completed inventory tables as evidence
-4. **Rule Size Flags:** Include SPLIT_RECOMMENDED, SPLIT_REQUIRED, NOT_DEPLOYABLE, or BLOCKED if applicable
-5. **Priority Fixes:** Top 3-5 improvements ordered by impact
-6. **Verdict:** EXECUTABLE (≥90), EXECUTABLE_WITH_REFINEMENTS (75-89), NEEDS_REFINEMENT (50-74), NOT_EXECUTABLE (<50)
+**Purpose:** Lock in output structure to prevent cross-model structural drift.
+
+**GATE:** Do NOT generate review markdown until template is loaded.
+
+### Step 3.3: Generate Review (Using Output Template)
+
+Populate `references/REVIEW-OUTPUT-TEMPLATE.md` section by section:
+1. Fill File Header placeholders
+2. Fill Executive Summary score table (6 rows + Total)
+3. Fill Schema Validation Results
+4. Fill Agent Executability Verdict
+5. Fill Dimension Analysis (6 subsections, each with inventory)
+6. Fill Critical Issues
+7. Fill Recommendations with inline Staleness
+8. Fill Post-Review Checklist (11 fixed items)
+9. Fill Conclusion
+10. Fill Timing Metadata (if timing_enabled)
+
+**Do NOT deviate from section order, heading names, or table column headers.**
 
 ---
 

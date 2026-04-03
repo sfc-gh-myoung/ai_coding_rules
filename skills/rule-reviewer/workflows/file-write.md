@@ -23,6 +23,16 @@
    - **If `overwrite: false` (default):** Use sequential numbering to avoid conflicts:
      - `{output_root}rule-reviews/<rule_name>-<model_slug>-<review_date>-01.md`
      - then `-02.md`, `-03.md`, etc. until an unused filename is found
+5a. **Structural Validation (MANDATORY):**
+    Before writing, verify the review content contains:
+    - [ ] H1 heading: `# Rule Review: {filename}`
+    - [ ] H2 headings present (in order): Executive Summary, Schema Validation Results, Agent Executability Verdict, Dimension Analysis, Critical Issues, Recommendations, Post-Review Checklist, Conclusion
+    - [ ] Executive Summary table columns: `Dimension | Raw (0-10) | Weight | Points | Max`
+    - [ ] Post-Review Checklist contains exactly 11 items
+    - [ ] Verdict block contains: Verdict, Blocking Issues, Hard Caps Applied, Rule Size Flag
+    
+    **If ANY check fails:** STOP. Re-read `references/REVIEW-OUTPUT-TEMPLATE.md` and fix structure before writing.
+
 6. Write `review_markdown` to the determined path.
 
 ## Overwrite Parameter Logic

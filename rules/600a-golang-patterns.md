@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-03-26
 **Keywords:** Go, Golang, HTTP server, middleware, graceful shutdown, timeouts, database patterns, production, server configuration
 **TokenBudget:** ~2250
 **ContextTier:** Low
@@ -32,8 +32,7 @@ Advanced Go patterns for production services including HTTP server configuration
 - **600-golang-core.md** - Core Go patterns and conventions
 
 **Related:**
-- **820-taskfile-automation.md** - Build automation for Go projects
-- **821-makefile-automation.md** - Makefile automation for Go projects
+- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
 
 ### External Documentation
 - [net/http Package](https://pkg.go.dev/net/http) - Standard library HTTP server

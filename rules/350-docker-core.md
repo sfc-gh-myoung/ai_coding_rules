@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-03-25
 **Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose, BuildKit, distroless, security scanning, SBOM, non-root, healthcheck
-**TokenBudget:** ~4250
+**TokenBudget:** ~4550
 **ContextTier:** Medium
 **Depends:** 000-global-core.md, 202-markup-config-validation.md
 **LoadTrigger:** file:Dockerfile, file:docker-compose.yml, file:docker-compose.yaml, kw:docker, kw:container
@@ -62,14 +62,23 @@ Provides practical, production-ready guidance for authoring Dockerfiles, buildin
 ```bash
 command -v hadolint && command -v trivy && command -v syft && command -v cosign
 ```
-Install missing tools before proceeding. See each tool's documentation for installation instructions.
+Install missing tools before proceeding:
+```bash
+# macOS (Homebrew)
+brew install hadolint trivy syft cosign
+
+# Linux (binary install)
+curl -sSfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+# See hadolint and cosign GitHub releases for latest binaries
+```
 
 ### Mandatory
 
 - MUST use multi-stage builds for production images
 - MUST run containers as non-root user
 - MUST include HEALTHCHECK in Dockerfile or orchestrator
-- MUST pin base images to specific versions or digests
+- MUST pin base images to specific digests (preferred) or versions
 - MUST scan images for vulnerabilities in CI pipeline
 - MUST generate SBOM for production images
 
@@ -94,7 +103,7 @@ Install missing tools before proceeding. See each tool's documentation for insta
 
 Deterministic Dockerfile(s) and Compose files with:
 - Explicit versions
-- Comments where non-obvious
+- Comments on non-default configuration choices and security-relevant decisions
 - Validated by linters/scanners
 - Multi-stage builds
 - Security best practices
@@ -117,7 +126,7 @@ Deterministic Dockerfile(s) and Compose files with:
 - Vulnerability scan clean: no critical or high CVEs; medium CVEs documented with justification
 - Container runs as non-root
 - Healthcheck defined and working
-- Digest pinning verified
+- Images pinned by digest verified
 - SBOM generated
 
 **Error Recovery:**
@@ -127,6 +136,7 @@ Deterministic Dockerfile(s) and Compose files with:
 - **Security scan failure (CVEs found):** Update base image to latest patched version. If CVE is in a dependency, pin to a fixed version. For false positives or accepted risks, document with `--ignore` flags and add justification to the security policy. Re-scan after each change.
 - **Registry access failure:** Verify authentication: `docker login <registry>`. Check network connectivity and proxy settings. For rate-limited registries (Docker Hub), use authenticated pulls or mirror to a private registry. Fallback: cache base images in CI artifacts.
 - **HEALTHCHECK runtime failure:** If HEALTHCHECK fails: verify the health endpoint responds locally (`curl -f http://localhost:<port>/health`), check container logs (`docker logs <id>`), verify the `--start-period` is sufficient for application startup (increase if startup is slow). For orchestrated deployments, configure `restart: unless-stopped` in Compose or appropriate Kubernetes restart policy (`restartPolicy: Always` with `livenessProbe`). Common causes: app not yet listening, wrong port, endpoint returns non-2xx.
+- **Resource exhaustion (disk/memory):** If build fails with "no space left on device": run `docker system prune -af` to reclaim space, reduce build context with `.dockerignore`, or increase Docker Desktop disk allocation. If build OOMs with large dependencies (numpy, torch): increase Docker memory limit (`docker run --memory=8g`) or use `--mount=type=tmpfs` for temporary build files. Monitor with `docker system df`.
 
 ### Design Principles
 
@@ -206,7 +216,7 @@ CMD ["python", "app.py"]
 
 **Correct Pattern:**
 ```dockerfile
-FROM python:3.12-slim
+FROM python:3.12-slim@sha256:a1b2c3...
 WORKDIR /app
 # Copy dependency manifest first — this layer is cached until requirements change
 COPY requirements.txt .
@@ -285,7 +295,7 @@ docker run --rm myapp:test python -c "print('Container validation passed')"
 ```Dockerfile
 # Filename: Dockerfile
 # Stage 1: builder
-FROM --platform=$BUILDPLATFORM golang:1.22-bookworm AS builder
+FROM --platform=$BUILDPLATFORM golang:1.22-bookworm@sha256:b3c4d5... AS builder
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
@@ -293,7 +303,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH go build -o app ./cmd/app
 
 # Stage 2: runtime (distroless/static as appropriate)
-FROM gcr.io/distroless/static:nonroot
+FROM gcr.io/distroless/static:nonroot@sha256:d4e5f6...
 WORKDIR /app
 COPY --from=builder /src/app /app/app
 USER nonroot:nonroot
@@ -303,7 +313,7 @@ ENTRYPOINT ["/app/app"]
 ### Python (uv/pip) Example
 ```Dockerfile
 # Filename: Dockerfile
-FROM python:3.11-slim AS base
+FROM python:3.11-slim@sha256:a7b8c9... AS base
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
@@ -326,7 +336,7 @@ COPY . .
 USER 10001:10001
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -fsS http://localhost:8000/health || exit 1
-CMD ["uv", "run", "python", "-m", "myapp"]
+CMD ["python", "-m", "myapp"]
 ```
 
 ### Example: .dockerignore (Industry-standard)
@@ -372,7 +382,7 @@ See [Docker .dockerignore reference](https://docs.docker.com/build/concepts/cont
 - **MUST:** Run as non-root; set `USER` to an unprivileged UID/GID.
 - **MUST:** Drop capabilities and use read-only FS when possible:
   - `--cap-drop=ALL --read-only --tmpfs /tmp` at runtime.
-- **MUST:** Keep base images up-to-date; rebuild regularly.
+- **MUST:** Keep base images up-to-date; rebuild weekly in CI or immediately when base image CVE advisories are published.
 - **MUST:** Scan images in CI (Docker Scout, Trivy, Grype); fail on critical CVEs.
 - **SHOULD:** Avoid package managers in runtime stage; copy only built artifacts.
 - **MUST NOT:** Expose SSH or add debug tools in production images.
@@ -407,6 +417,7 @@ See [Docker .dockerignore reference](https://docs.docker.com/build/concepts/cont
 - **MUST:** Separate `compose.yml` (dev) and `compose.prod.yml` (prod overrides).
 - **SHOULD:** Use `.env` files for local development; MUST NOT commit secrets to version control.
 - **MUST:** Follow YAML safety practices (see `202-markup-config-validation.md`).
+- **SHOULD:** Use `depends_on` with `condition: service_healthy` for service startup ordering; define `healthcheck` in dependent services to prevent race conditions where a service starts before its dependencies are ready.
 
 ## CI/CD and Testing
 - **MUST:** Lint Dockerfile with Hadolint; scan image on each build.

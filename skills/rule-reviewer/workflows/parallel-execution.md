@@ -1,3 +1,5 @@
+<!-- Output format: delegated to score-aggregation.md + references/REVIEW-OUTPUT-TEMPLATE.md -->
+
 # Parallel Execution Workflow
 
 Coordinator workflow for parallel dimension evaluation using sub-agents.
@@ -40,88 +42,31 @@ Coordinator (Main Agent)
     └── Generate unified review document
 ```
 
-## Pre-Launch Validation
+## Phase 1: Setup
+
+### 1.1 Pre-Launch Validation
 
 Before launching sub-agents, validate the rule file:
 
-```python
-def validate_rule_file(rule_path: str) -> dict:
-    """Validate rule file before sub-agent launch."""
-    
-    errors = []
-    warnings = []
-    
-    # Check file exists
-    if not os.path.exists(rule_path):
-        errors.append(f"Rule file not found: {rule_path}")
-        return {"valid": False, "errors": errors, "warnings": warnings}
-    
-    # Check file size
-    size = os.path.getsize(rule_path)
-    if size == 0:
-        errors.append(f"Rule file is empty (0 bytes): {rule_path}")
-        return {"valid": False, "errors": errors, "warnings": warnings}
-    
-    if size < 500:
-        warnings.append(f"Rule file unusually small ({size} bytes)")
-    
-    # Check file is readable
-    try:
-        with open(rule_path, 'r') as f:
-            content = f.read()
-    except Exception as e:
-        errors.append(f"Cannot read rule file: {e}")
-        return {"valid": False, "errors": errors, "warnings": warnings}
-    
-    # Check for YAML frontmatter
-    if not content.startswith('---'):
-        warnings.append("Missing YAML frontmatter (expected for rule files)")
-    
-    # Check for minimum structure
-    if content.count('#') < 3:
-        warnings.append("Rule has fewer than 3 headers. May be poorly structured.")
-    
-    return {
-        "valid": len(errors) == 0,
-        "errors": errors,
-        "warnings": warnings,
-        "size_bytes": size,
-        "line_count": content.count('\n') + 1
-    }
-```
+| Check | Condition | Action |
+|-------|-----------|--------|
+| File exists | `os.path.exists(rule_path)` returns false | **ERROR** - abort |
+| File not empty | Size == 0 bytes | **ERROR** - abort |
+| File readable | Cannot read file | **ERROR** - abort |
+| File unusually small | Size < 500 bytes | **WARNING** - continue |
+| YAML frontmatter | Does not start with `---` | **WARNING** - continue |
+| Minimum structure | Fewer than 3 headers | **WARNING** - continue |
 
-## Phase 1: Setup
+### 1.2 Input Validation
 
-### 1.1 Input Validation
+| Parameter | Required | Validation |
+|-----------|----------|------------|
+| `target_file` | Yes | Must be provided |
+| `review_date` | Yes | Must match `YYYY-MM-DD` regex |
+| `review_mode` | Yes | Must be FULL, FOCUSED, or STALENESS |
+| `model` | No | Auto-detect from session |
 
-```python
-def validate_inputs(params: dict) -> tuple[bool, list]:
-    """Validate all required inputs."""
-    errors = []
-    
-    # Required parameters
-    if not params.get('target_file'):
-        errors.append("target_file is required")
-    if not params.get('review_date'):
-        errors.append("review_date is required")
-    if not params.get('review_mode'):
-        errors.append("review_mode is required")
-    
-    # Date format validation
-    if params.get('review_date'):
-        import re
-        if not re.match(r'^\d{4}-\d{2}-\d{2}$', params['review_date']):
-            errors.append(f"review_date must be YYYY-MM-DD format, got: {params['review_date']}")
-    
-    # Mode validation
-    valid_modes = ['FULL', 'FOCUSED', 'STALENESS']
-    if params.get('review_mode') and params['review_mode'] not in valid_modes:
-        errors.append(f"review_mode must be one of {valid_modes}")
-    
-    return len(errors) == 0, errors
-```
-
-### 1.2 File Type Detection
+### 1.3 File Type Detection
 
 ```bash
 target_basename=$(basename "$target_file")
@@ -138,413 +83,228 @@ else
 fi
 ```
 
-### 1.3 Load Shared Context
+### 1.4 Load Shared Context
 
-```python
-def load_shared_context(params: dict) -> dict:
-    """Load all context needed by sub-agents."""
-    
-    # Read rule content once
-    rule_content = read_file(params['target_file'])
-    
-    # Load overlap resolution rules
-    overlap_rules = read_file("skills/rule-reviewer/rubrics/_overlap-resolution.md")
-    
-    # Get line count for Rule Size
-    line_count = len(rule_content.split('\n'))
-    
-    return {
-        'rule_content': rule_content,
-        'overlap_rules': overlap_rules,
-        'line_count': line_count,
-        'file_type': params.get('file_type', 'rule'),
-        'target_file': params['target_file']
-    }
-```
+1. Read rule content once (store for all sub-agents)
+2. Load overlap resolution rules from `rubrics/_overlap-resolution.md`
+3. Get line count for Rule Size: `wc -l [target_file]`
+4. Store: `rule_content`, `overlap_rules`, `line_count`, `file_type`, `target_file`
 
 ## Phase 2: Parallel Dimension Evaluation
 
 ### 2.1 Rule Size (Inline - 100% Deterministic)
 
-Rule Size is computed directly by the coordinator since it requires no LLM evaluation:
+Computed directly by coordinator (no LLM needed). Run `wc -l [rule_path]` and look up score:
 
-```python
-def compute_rule_size_inline(rule_path: str) -> dict:
-    """Compute Rule Size dimension inline (100% deterministic, v2.0)."""
-    
-    import subprocess
-    result = subprocess.run(['wc', '-l', rule_path], capture_output=True, text=True)
-    line_count = int(result.stdout.strip().split()[0])
-    
-    # Score based on rule-size.md rubric (v2.0)
-    # Hard caps: >600 → max 70/100, >700 → max 50/100
-    if line_count <= 300:
-        raw_score = 10
-        flag = None
-        tier = "Optimal"
-    elif line_count <= 400:
-        raw_score = 9
-        flag = None
-        tier = "Good"
-    elif line_count <= 500:
-        raw_score = 8
-        flag = None
-        tier = "Acceptable"
-    elif line_count <= 600:
-        raw_score = 6
-        flag = "SPLIT_RECOMMENDED"
-        tier = "Needs Attention"
-    elif line_count <= 700:
-        raw_score = 4
-        flag = "SPLIT_REQUIRED"  # Hard cap: max 70/100 total
-        tier = "Critical"
-    else:
-        raw_score = 0
-        flag = "BLOCKED"  # Hard cap: max 50/100 total
-        tier = "Blocking"
-    
-    return {
-        "dimension": "rule_size",
-        "raw_score": raw_score,
-        "weight": 2.5,  # v2.0 weight
-        "tier": tier,
-        "line_count": line_count,
-        "flag": flag,
-        "evidence": [{"line": "N/A", "pattern": "line_count", "quote": f"{line_count} lines"}],
-        "issues_found": [{"description": flag, "severity": "blocking"}] if flag else [],
-        "issues_deferred": [],
-        "inventory_complete": True,
-        "status": "completed"
-    }
-```
+| Lines | Raw Score | Points | Flag | Hard Cap |
+|-------|-----------|--------|------|----------|
+| ≤300 | 10 | 25 | None | - |
+| 301-400 | 9 | 22.5 | None | - |
+| 401-500 | 8 | 20 | None | - |
+| 501-550 | 5 | 12.5 | `SPLIT_RECOMMENDED` | - |
+| 551-600 | 3 | 7.5 | `SPLIT_REQUIRED` | - |
+| 601-700 | 1 | 2.5 | `NOT_DEPLOYABLE` | Max 70/100 |
+| >700 | 0 | 0 | `BLOCKED` | Max 50/100 |
 
 ### 2.2 Launch Sub-Agents
 
-```python
-def launch_dimension_subagents(context: dict, params: dict) -> list:
-    """Launch 5 parallel sub-agents for scored dimension evaluation (v2.0)."""
-    
-    # Scored dimensions only - Token Efficiency and Staleness are informational
-    dimensions = [
-        ("actionability", 3.0, "rubrics/actionability.md"),
-        ("parsability", 1.5, "rubrics/parsability.md"),
-        ("completeness", 1.5, "rubrics/completeness.md"),
-        ("consistency", 1.0, "rubrics/consistency.md"),
-        ("cross_agent_consistency", 0.5, "rubrics/cross-agent-consistency.md"),
-    ]
-    # Note: Rule Size (2.5 weight) computed inline by coordinator
-    # Note: Token Efficiency and Staleness are informational only (not scored)
-    
-    agent_ids = []
-    for dim_name, weight, rubric_path in dimensions:
-        # Generate dimension-specific prompt
-        prompt = generate_dimension_prompt(
-            dimension_name=dim_name,
-            weight=weight,
-            rubric_path=rubric_path,
-            rule_content=context['rule_content'],
-            overlap_rules=extract_overlap_rules_for(dim_name, context['overlap_rules']),
-            params=params
-        )
-        
-        # Launch background sub-agent using Task tool
-        agent_id = task(
-            subagent_type="general-purpose",
-            description=f"Evaluate {dim_name}",
-            prompt=prompt,
-            run_in_background=True,
-            agent_mode="autonomous"
-        )
-        
-        # 5s delay between launches to avoid API rate limiting
-        time.sleep(5)
-        
-        agent_ids.append({
-            'id': agent_id,
-            'dimension': dim_name,
-            'weight': weight,
-            'status': 'running'
-        })
-    
-    return agent_ids
-```
+Launch 5 sub-agents using the Task tool, one per non-deterministic scored dimension:
 
-### 2.3 Extract Overlap Rules
+| Sub-Agent | Dimension | Weight | Rubric Path |
+|-----------|-----------|--------|-------------|
+| SA-1 | Actionability | 3.0 | `rubrics/actionability.md` |
+| SA-2 | Parsability | 1.5 | `rubrics/parsability.md` |
+| SA-3 | Completeness | 1.5 | `rubrics/completeness.md` |
+| SA-4 | Consistency | 1.0 | `rubrics/consistency.md` |
+| SA-5 | Cross-Agent Consistency | 0.5 | `rubrics/cross-agent-consistency.md` |
 
-```python
-def extract_overlap_rules_for(dimension: str, overlap_rules_content: str) -> str:
-    """Extract overlap rules relevant to a specific dimension."""
-    
-    # Priority rules mapping
-    PRIORITY_RULES = {
-        "parsability": [
-            ("Rule 1", "Schema/YAML validation errors → Parsability ALWAYS wins"),
-        ],
-        "actionability": [
-            ("Rule 2", "Ambiguous/undefined instructions → Actionability (blocks execution)"),
-            ("Rule 2", "Missing verification commands → Actionability"),
-            ("Rule 2", "Undefined helper functions → Actionability"),
-        ],
-        "completeness": [
-            ("Rule 3", "Missing coverage/edge cases → Completeness (scope gap)"),
-            ("Rule 3", "Missing prerequisites → Completeness"),
-            ("Rule 3", "Missing error handling → Completeness"),
-        ],
-        "consistency": [
-            ("Rule 4", "Self-contradiction → Consistency (internal conflict)"),
-            ("Rule 4", "Terminology inconsistency → Consistency"),
-        ],
-        "cross_agent_consistency": [
-            ("Rule 5", "Agent-specific logic/hardcoded names → Cross-Agent Consistency"),
-        ],
-        # Informational only (not scored) - findings still tracked
-        "token_efficiency": [
-            ("Informational", "Duplicated/redundant content → Token Efficiency findings"),
-        ],
-        "staleness": [
-            ("Informational", "Outdated patterns/tools/references → Staleness findings"),
-        ],
-    }
-    
-    # Issue type ownership
-    OWNERSHIP_MATRIX = {
-        "undefined_helper": "actionability",
-        "missing_verification": "actionability",
-        "ambiguous_instruction": "actionability",
-        "missing_parameter": "completeness",
-        "missing_error_handling": "completeness",
-        "schema_violation": "parsability",
-        "yaml_invalid": "parsability",
-        "internal_conflict": "consistency",
-        "redundant_section": "token_efficiency",  # informational
-        "deprecated_tool": "staleness",  # informational
-        "hardcoded_agent": "cross_agent_consistency",
-    }
-    
-    dim_key = dimension.lower().replace("-", "_")
-    relevant_rules = PRIORITY_RULES.get(dim_key, [])
-    owned_types = [k for k, v in OWNERSHIP_MATRIX.items() if v == dim_key]
-    
-    rules_text = "\n".join([f"- {r[0]}: {r[1]}" for r in relevant_rules]) or "- No primary ownership rules"
-    types_text = ", ".join(owned_types) or "None exclusively owned"
-    
-    return f"""### {dimension.title()} Ownership Rules
+**Launch procedure:**
+1. For each dimension, generate a prompt containing: rubric content, rule content, overlap rules for that dimension, and review parameters
 
-**Priority Rules (first match wins):**
-{rules_text}
+> **Note:** Each rubric file is self-contained — it includes the full counting protocol inline. No additional files (e.g., `_shared-preamble.md`) need to be loaded for sub-agents.
+2. Launch via Task tool with `subagent_type="general-purpose"`, `run_in_background=True`
+3. Wait 5 seconds between launches (API rate limit safety)
+4. Track each agent ID, dimension name, weight, and status
 
-**Issue Types Owned by {dimension}:**
-{types_text}
+### 2.3 Overlap Rules Per Dimension
 
-**Decision Protocol:**
-1. Check if issue matches a priority rule (Rules 1-5 in order for scored dimensions)
+Each sub-agent receives dimension-specific ownership rules extracted from `rubrics/_overlap-resolution.md`. See that file for the full priority rules mapping and issue type ownership matrix.
+
+**Decision protocol for each sub-agent:**
+1. Check if issue matches a priority rule (Rules 1-5 in order)
 2. First matching rule determines ownership
-3. If no rule match, use issue type matrix above
+3. If no rule match, use issue type matrix
 4. If issue type not in matrix, default to Completeness
-5. Document ownership decision with reasoning in issues_deferred
-"""
-```
+5. Document ownership decisions in `issues_deferred`
 
 ## Phase 3: Collect & Validate Results
 
 ### 3.1 Monitor Sub-Agent Progress
 
-```python
-def collect_dimension_results(agent_ids: list, timeout_seconds: int = 90) -> list:
-    """Collect results from all sub-agents with timeout handling."""
-    
-    import time
-    
-    results = []
-    pending = agent_ids.copy()
-    start_time = time.time()
-    
-    while pending and (time.time() - start_time) < timeout_seconds * len(agent_ids):
-        for agent in pending[:]:
-            # Poll agent output
-            output = agent_output(agent_id=agent['id'])
-            
-            if output.get('status') == 'completed':
-                # Parse JSON result from agent output
-                result = parse_dimension_result(output['messages'])
-                result['dimension'] = agent['dimension']
-                result['weight'] = agent['weight']
-                results.append(result)
-                pending.remove(agent)
-                print(f"✓ {agent['dimension']} complete: {result['raw_score']}/10")
-            elif output.get('status') == 'failed':
-                # Record failure
-                results.append({
-                    'dimension': agent['dimension'],
-                    'weight': agent['weight'],
-                    'status': 'failed',
-                    'error': output.get('error', 'Unknown error')
-                })
-                pending.remove(agent)
-                print(f"✗ {agent['dimension']} failed: {output.get('error')}")
-        
-        if pending:
-            time.sleep(30)  # Poll every 30 seconds
-    
-    # Handle timeouts
-    for agent in pending:
-        results.append({
-            'dimension': agent['dimension'],
-            'weight': agent['weight'],
-            'status': 'timeout',
-            'error': f'Timed out after {timeout_seconds}s'
-        })
-        print(f"⏱ {agent['dimension']} timed out")
-    
-    return results
+- Poll each agent every 30 seconds via `agent_output(agent_id)`
+- Timeout: 90 seconds per agent
+- On completion: parse dimension result (raw_score, evidence, issues)
+- On failure: record error, continue collecting others
+- On timeout: mark dimension incomplete, continue
+
+### 3.1a: Collect Per-Dimension Timings (IF timing_enabled)
+
+After collecting all sub-agent results, build the `_dimension_timings` array with validation:
+
+**For each completed sub-agent result:**
+
+1. Extract `start_epoch` and `end_epoch` from the result JSON
+2. **VALIDATE timestamps (Gate 1 & Gate 2):**
+   
+   **Gate 1: Timestamp Plausibility Check**
+   ```
+   # Get coordinator timing bounds
+   coordinator_start = timing_data.start_time_epoch
+   coordinator_end = current_unix_time()
+   
+   # Check bounds (allow 60s buffer for launch/collection overhead)
+   if start_epoch < (coordinator_start - 60):
+       validation_fail = "Start before coordinator start (minus 60s buffer)"
+   elif end_epoch > (coordinator_end + 60):
+       validation_fail = "End after coordinator end (plus 60s buffer)"
+   elif end_epoch <= start_epoch:
+       validation_fail = "End timestamp before or equal to start timestamp"
+   else:
+       validation_fail = None
+   ```
+   
+   **Gate 2: Fabrication Pattern Detection**
+   ```
+   duration_seconds = end_epoch - start_epoch
+   
+   # Check for suspiciously round durations
+   if duration_seconds >= 60 and duration_seconds % 60 == 0:
+       validation_warning = "WARN: Suspiciously round duration (exact 60s multiple)"
+   # Check for implausibly long durations
+   elif duration_seconds > 300:
+       validation_warning = "WARN: Unusually long duration (>5min for single dimension)"
+   else:
+       validation_warning = None
+   ```
+
+3. **Handle validation results:**
+   - **If validation_fail is set:** Mark as failed timing, log warning
+     ```json
+     {
+       "dimension": result.dimension,
+       "duration_seconds": -1,
+       "mode": "validation-failed",
+       "validation_error": validation_fail,
+       "start_epoch": result.start_epoch,
+       "end_epoch": result.end_epoch
+     }
+     ```
+   
+   - **If validation_warning is set:** Accept timing but flag it
+     ```json
+     {
+       "dimension": result.dimension,
+       "duration_seconds": round(duration_seconds, 2),
+       "mode": "self-report-flagged",
+       "validation_warning": validation_warning,
+       "start_epoch": result.start_epoch,
+       "end_epoch": result.end_epoch
+     }
+     ```
+   
+   - **If validation passes:** Accept timing
+     ```json
+     {
+       "dimension": result.dimension,
+       "duration_seconds": round(duration_seconds, 2),
+       "mode": "self-report",
+       "start_epoch": result.start_epoch,
+       "end_epoch": result.end_epoch
+     }
+     ```
+
+**For Rule Size (computed inline by coordinator):**
+- Record `start_epoch` before `wc -l` command
+- Run `wc -l` on the target rule file
+- If `wc -l` exits non-zero or produces no output:
+  - Set `duration_seconds: -1`
+  - Set `mode: "failed"`
+  - Log: "WARNING: Rule Size inline measurement failed — wc -l returned non-zero"
+- Else:
+  - Record `end_epoch` after score lookup
+  - Append with `"mode": "inline"` and computed duration
+
+**For failed/timed-out sub-agents:**
+- Append with `"duration_seconds": -1, "mode": "failed"`
+
+**Validation Summary:**
+After processing all dimensions, log validation statistics:
+```
+Timing Validation Summary:
+- Passed: N dimensions
+- Flagged (warnings): N dimensions
+- Failed: N dimensions
+- Total: N dimensions
 ```
 
 ### 3.2 Validate No Overlaps
 
-```python
-def validate_no_overlaps(dimension_results: list, overlap_rules: str) -> list:
-    """Ensure no double-counting across dimensions."""
-    
-    line_citations = {}  # line_num -> list of (dimension, pattern)
-    violations = []
-    
-    for result in dimension_results:
-        if result.get('status') != 'completed':
-            continue
-            
-        for evidence in result.get('evidence', []):
-            line = evidence.get('line')
-            if line is None or line == 'N/A':
-                continue
-                
-            if line in line_citations:
-                # Check if overlap is allowed
-                owner = get_owner(evidence['pattern'], overlap_rules)
-                
-                if owner != result['dimension']:
-                    violations.append({
-                        'line': line,
-                        'claimed_by': result['dimension'],
-                        'owned_by': owner,
-                        'pattern': evidence['pattern']
-                    })
-            else:
-                line_citations[line] = []
-            
-            line_citations[line].append((result['dimension'], evidence['pattern']))
-    
-    return violations
-```
+After collecting all results:
 
-### 3.3 Get Issue Owner
+1. Build a map of line numbers to (dimension, pattern) pairs across all results
+2. For each line cited by multiple dimensions, determine the owner using the priority-based ownership rules
+3. If a dimension claims a line it doesn't own, record a violation
+4. Defer to the owning dimension's score for violations
 
-```python
-def get_owner(issue_pattern: str, overlap_rules_content: str) -> str:
-    """Determine dimension owner for an issue based on pattern."""
-    
-    OWNERSHIP = {
-        # Parsability owns (Rule 1 - always wins for schema)
-        "schema": "parsability",
-        "yaml": "parsability",
-        "frontmatter": "parsability",
-        
-        # Actionability owns (Rule 2 - blocks execution)
-        "undefined": "actionability",
-        "ambiguous": "actionability",
-        "verification": "actionability",
-        
-        # Completeness owns (Rule 3 - scope gaps)
-        "missing": "completeness",
-        "error handling": "completeness",
-        "edge case": "completeness",
-        
-        # Consistency owns (Rule 4 - self-contradiction)
-        "contradict": "consistency",
-        "inconsistent": "consistency",
-        "mismatch": "consistency",
-        
-        # Token Efficiency owns (Rule 5 - duplication)
-        "redundant": "token_efficiency",
-        "duplicate": "token_efficiency",
-        
-        # Staleness owns (Rule 6 - outdated)
-        "deprecated": "staleness",
-        "outdated": "staleness",
-        
-        # Cross-Agent Consistency owns (Rule 7)
-        "hardcoded": "cross_agent_consistency",
-    }
-    
-    pattern_lower = issue_pattern.lower()
-    
-    # Priority order check
-    priority_order = [
-        "schema", "yaml", "frontmatter",  # Rule 1
-        "undefined", "ambiguous",  # Rule 2
-        "contradict",  # Rule 4
-        "redundant", "duplicate",  # Rule 5
-        "deprecated", "outdated",  # Rule 6
-        "hardcoded",  # Rule 7
-        "missing", "error handling",  # Rule 3 (lower priority)
-    ]
-    
-    for key in priority_order:
-        if key in pattern_lower:
-            return OWNERSHIP[key]
-    
-    # Default: completeness catches unmatched
-    return "completeness"
-```
+**Ownership priority order** (first keyword match wins):
+1. `schema`, `yaml`, `frontmatter` → Parsability
+2. `undefined`, `ambiguous`, `verification` → Actionability
+3. `contradict`, `inconsistent`, `mismatch` → Consistency
+4. `redundant`, `duplicate` → Token Efficiency (informational)
+5. `deprecated`, `outdated` → Staleness (informational)
+6. `hardcoded` → Cross-Agent Consistency
+7. `missing`, `error handling`, `edge case` → Completeness (default)
 
 ## Phase 4: Score Aggregation
 
 See `score-aggregation.md` for detailed aggregation workflow.
+
+### Timing Integration (IF timing_enabled)
+
+Before calling `timing-end`, serialize `_dimension_timings` to JSON string:
+
+```bash
+bash skills/skill-timing/scripts/run_timing.sh end \
+    --run-id {{_timing_run_id}} \
+    --output-file {{output_file}} \
+    --skill rule-reviewer \
+    --format markdown \
+    --dimension-timings '{{_dimension_timings_json}}'
+```
 
 ## Threshold Rationale
 
 | Value | Location | Rationale |
 |-------|----------|-----------|
 | **30s polling** | Phase 3 | Balance between responsiveness and API overhead |
-| **90s timeout** | Phase 3 | 1.5× median dimension evaluation time |
+| **90s timeout** | Phase 3 | 1.5x median dimension evaluation time |
 | **5s launch delay** | Phase 2 | API rate limit safety margin |
 | **5 sub-agents** | Phase 2 | 6 scored dimensions minus Rule Size (inline) |
 | **Max 2 retries** | Error handling | Diminishing returns after 2 failures |
 
 ## Error Handling
 
-### Sub-Agent Failure
-
-If a sub-agent fails:
-1. Record the failure with error message
-2. Continue collecting other results
-3. Report partial results with disclaimer
-4. Recommend re-running with `execution_mode: sequential`
-
-### Timeout Handling
-
-If sub-agent times out:
-1. Kill the agent
-2. Mark dimension as incomplete
-3. Continue with available results
-4. Note which dimensions are missing in report
-
-### Overlap Violations
-
-If overlap violations detected:
-1. Log each violation with line/dimension info
-2. Defer to the owning dimension's score
-3. Flag the issue for coordinator review
-4. Note violations in final report
+| Scenario | Action |
+|----------|--------|
+| Sub-agent fails | Record error, continue collecting others, report partial results, recommend `execution_mode: sequential` |
+| Sub-agent timeout | Kill agent, mark dimension incomplete, continue with available results, note missing dimensions |
+| Overlap violations | Log each violation with line/dimension, defer to owning dimension, flag for review, note in report |
 
 ## Execution Mode Selection
 
-```markdown
+```
 IF execution_mode == "parallel":
     → Follow this workflow (parallel-execution.md)
 ELSE:
     → Follow existing serial workflow in review-execution.md
 ```
-
-## Version History
-
-- **v1.0.0:** Initial parallel execution workflow

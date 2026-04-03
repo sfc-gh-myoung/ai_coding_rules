@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-03-26
 **Keywords:** virtual environment, venv, uv, poetry, pip, pipenv, uvx, tool isolation, ModuleNotFoundError, environment setup, dependency management
 **TokenBudget:** ~3000
 **ContextTier:** High
@@ -14,14 +14,14 @@
 ## Scope
 
 **What This Rule Covers:**
-Virtual environment management, tool isolation patterns (uvx vs uv run), detailed command patterns for each toolchain (uv, poetry, pip), environment setup best practices, troubleshooting common environment issues, and project integration with Taskfile.
+Virtual environment management, tool isolation patterns (uvx vs uv run), detailed command patterns for each toolchain (uv, poetry, pip), environment setup best practices, troubleshooting common environment issues, and project integration with project automation entrypoints.
 
 **When to Load This Rule:**
 - Setting up Python development environments
 - Managing virtual environments
 - Troubleshooting ModuleNotFoundError or import issues
 - Configuring tool isolation (uvx, pipx)
-- Integrating Python tooling with Taskfile or Makefile
+- Integrating Python tooling with project automation
 
 ## References
 
@@ -352,13 +352,13 @@ CMD ["uv", "run", "python", "-m", "myapp"]
 
 ## Project Integration
 
-- **Rule:** Use project's toolchain consistently in Taskfile tasks and documentation
-- **Pattern for Taskfile tasks:**
+- **Rule:** Use project's toolchain consistently in automation targets and documentation
+- **Pattern for automation targets:**
   - Detect toolchain: Check for uv.lock, poetry.lock, or Pipfile.lock
   - Use appropriate prefix: `uv run`, `poetry run`, or bare commands (pip)
 - **Development tools:** Use isolated execution when possible (uvx, pipx) or install as dev dependencies
 - **Always:** Include environment setup tasks with status checks to avoid redundant operations
-- **Always:** Prefer `task validate` (or `task check` / `task ci`) when Taskfile.yml exists, falling back to direct tool commands otherwise
+- **Always:** Prefer the project's automation entrypoint (see `000-global-core.md` automation-detection protocol) over direct tool commands
 - **Documentation:** Provide setup instructions appropriate for project's chosen toolchain
 
 > **Investigation Required:**

@@ -352,7 +352,7 @@ else:
 
 2. **IF missing AND `_timing_run_id` was captured:**
    - Attempt recovery: Re-run timing-end with stored run_id
-   - Append metadata now (ACT mode must be active)
+   - Append metadata now
    - Log: "Timing metadata recovered and embedded"
 
 3. **IF missing AND no `_timing_run_id`:**
@@ -377,7 +377,7 @@ Note: Review file was written successfully. Timing is non-fatal.
 - Agent forgot `_timing_run_id` between steps (working memory loss)
 - timing-start failed silently (check for warning logs)
 - timing-end STDOUT not captured before file write
-- Metadata embed step skipped (wasn't in ACT mode)
+- Metadata embed step skipped (file write not yet performed)
 
 ## Escalation Path
 

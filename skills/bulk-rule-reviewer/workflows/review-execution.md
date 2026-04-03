@@ -134,7 +134,7 @@ def verify_protocol_compliance():
     print("   FULL reviews (not abbreviated)")
     print("   Sequential execution (unless max_parallel set)")
     print()
-    print("Estimated time: 4-6 hours for 129 rules")
+    print("Estimated time: sequential execution will scale with rule count and review depth")
     print("Resume capability: Use skip_existing=true to resume after interruption")
     print()
     print("="*60)
@@ -194,7 +194,7 @@ def score_actionability(rule_content):
 **Violation Detection:**
 
 If execution completes in < 2 hours for 100+ rules: **LIKELY PROTOCOL VIOLATION**
-- Expected: 3-5 minutes per review × 113 rules = 5.6-9.4 hours minimum
+- Expected: review time scales with the current rule count and selected mode
 - If faster: Agent probably took shortcuts
 
 **User Action:** Inspect review files for quality/completeness
@@ -596,7 +596,7 @@ def execute_rule_review_workflow(target_file, review_date, review_mode, model):
 ```
  Skipping 100-snowflake-core (review exists)
  Skipping 101-snowflake-sql-style (review exists)
-[3/113] Reviewing: rules/102-snowflake-warehouse-sizing.md
+[3/187] Reviewing: rules/102-snowflake-warehouse-sizing.md
    Complete: 85/100 (EXECUTABLE_WITH_REFINEMENTS)
 ```
 
@@ -615,32 +615,32 @@ Only show the minimal progress output below. Do NOT display:
 **Output Format (ONLY this format):**
 
 ```
-Starting bulk review: 129 rules
+Starting bulk review: 187 rules
 Review mode: FULL | Model: claude-sonnet-45 | Date: 2026-01-06
 Skip existing: true
 
-[1/113] Starting: 000-global-core.md
-[1/113] Complete: 000-global-core.md → 100/100
-[2/113] Starting: 001-memory-bank.md
-[2/113] Complete: 001-memory-bank.md → 92/100
-[3/113] Starting: 002-rule-governance.md
-[3/113] Complete: 002-rule-governance.md → 88/100
+[1/187] Starting: 000-global-core.md
+[1/187] Complete: 000-global-core.md → 100/100
+[2/187] Starting: 001-memory-bank.md
+[2/187] Complete: 001-memory-bank.md → 92/100
+[3/187] Starting: 002-rule-governance.md
+[3/187] Complete: 002-rule-governance.md → 88/100
 ...
 
---- Progress: 10/113, avg 89.3 ---
+--- Progress: 10/187, avg 89.3 ---
 
-[11/113] Starting: 100-snowflake-core.md
-[11/113] Complete: 100-snowflake-core.md → 95/100
+[11/187] Starting: 100-snowflake-core.md
+[11/187] Complete: 100-snowflake-core.md → 95/100
 ...
 
---- Progress: 20/113, avg 87.8 ---
+--- Progress: 20/187, avg 87.8 ---
 
 ...
 
 ============================================================
 Bulk Review Complete
 ============================================================
-Total: 113 | Success: 111 | Failed: 2 | Skipped: 0
+Total: 187 | Success: 111 | Failed: 2 | Skipped: 0
 Average score: 87.2/100
 ============================================================
 ```
@@ -658,7 +658,7 @@ Average score: 87.2/100
 ## Performance Notes
 
 - Average review time: 3-5 minutes per rule (varies by rule length and complexity)
-- Total expected time for 113 rules: 5.6-9.4 hours (sequential execution)
+Total expected time for full-repository sequential execution depends on rule count and complexity
 - Resume capability critical for long-running batches
 - Progress updates every 10 rules reduce output verbosity
 

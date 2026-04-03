@@ -6,12 +6,7 @@
 
 **CRITICAL:** You MUST create and fill this inventory BEFORE calculating score.
 
-### Why This Is Required
-
-- **Eliminates counting variance:** Same rule → same inventory → same score
-- **Prevents false negatives:** Systematic enumeration catches all gaps
-- **Provides evidence:** Inventory shows exactly what was evaluated
-- **Enables verification:** Users can audit scoring decisions
+> **Why inventories are required:** Eliminates counting variance (same rule → same inventory → same score), prevents false negatives, provides auditable evidence, enables verification.
 
 ### Inventory Template
 
@@ -34,108 +29,24 @@
 | - | Validation | During execution | Y/N | Commands? | |
 | - | Validation | Post-execution | Y/N | Commands? | |
 
-### Counting Protocol (5 Steps)
+### Counting Protocol
 
-**Step 1: Create Empty Inventory**
-- Copy template above into working document
-- Do NOT start reading rule yet
-
-**Step 2: Read Rule Systematically**
-- Start at line 1, read to END (no skipping)
-- For EACH category item: Mark Y/N with line reference
-- Note partial coverage with line numbers
-
-**Step 3: Calculate Raw Totals**
-- Error scenarios: Count present with recovery (max 5)
-- Edge cases: Calculate coverage percentage
-- Prerequisites: Count present with versions (max 4)
-- Validation: Count phases present (max 3)
-
-**Step 4: Check Non-Issues List**
-- Review EACH "N" item in inventory
-- Check against "Non-Issues" section below
-- Mark justified absences
-- Recalculate totals
-
-**Step 5: Look Up Score**
-- Use adjusted totals in Score Decision Matrix
-- Record score with inventory evidence
+> **Standard 5-Step Counting Protocol:**
+> 1. **Create Empty Inventory** — Copy template above into working document. Do NOT start reading rule yet.
+> 2. **Read Rule Systematically** — Start at line 1, read to END (no skipping). Record all matches with line numbers.
+> 3. **Calculate Raw Totals** — Sum counts by category using dimension-specific definitions.
+> 4. **Check Non-Issues List** — Review EACH flagged item against this dimension's Non-Issues section. Remove false positives with note. Recalculate totals.
+> 5. **Look Up Score** — Use adjusted totals in Score Decision Matrix. Record score with inventory evidence.
+>
+> **Inter-run consistency:** Use inventory tables with line numbers for evidence. If variance exceeds threshold documented below, re-count using checklists and document ambiguous cases.
+>
+> **Dimension-specific:** Count error scenarios with recovery (max 5), calculate edge case coverage %, check prerequisites (max 4), check validation phases (max 3).
 
 ## Scoring Formula
 
 **Raw Score:** 0-10
 **Weight:** 3
 **Points:** Raw × 1.5
-
-## Scoring Criteria
-
-### 10/10 (15 points): Perfect
-- 5+ error scenarios with recovery steps
-- All edge cases documented (boundary, concurrency, state)
-- Prerequisites with version numbers
-- Validation steps for pre/during/post execution
-- Fallback strategies for critical operations
-
-### 9/10 (13.5 points): Near-Perfect
-- 5 error scenarios with recovery
-- 95%+ edge cases covered
-- All prerequisites stated with versions
-- All validation phases present
-
-### 8/10 (12 points): Excellent
-- 4 error scenarios with recovery
-- 90-94% edge cases covered
-- Prerequisites stated with versions
-- 3 validation phases present
-
-### 7/10 (10.5 points): Good
-- 3-4 error scenarios with recovery
-- 85-89% edge cases covered
-- Prerequisites stated (most versions)
-- 3 validation phases present
-
-### 6/10 (9 points): Acceptable
-- 3 error scenarios with recovery
-- 80-84% edge cases covered
-- Most prerequisites stated
-- 2-3 validation phases
-
-### 5/10 (7.5 points): Borderline
-- 2 error scenarios with recovery
-- 70-79% edge cases covered
-- Some prerequisites stated
-- 2 validation phases
-
-### 4/10 (6 points): Needs Work
-- 2 error scenarios (partial recovery)
-- 60-69% edge cases covered
-- Prerequisites vague
-- 1-2 validation phases
-
-### 3/10 (4.5 points): Poor
-- 1 error scenario with recovery
-- 50-59% edge cases covered
-- Prerequisites incomplete
-- 1 validation phase
-
-### 2/10 (3 points): Very Poor
-- 1 error scenario (no recovery)
-- 40-49% edge cases covered
-- Prerequisites minimal
-- Minimal validation
-
-### 1/10 (1.5 points): Inadequate
-- 0 error scenarios
-- 25-39% edge cases covered
-- Prerequisites missing
-- No validation guidance
-
-### 0/10 (0 points): Not Complete
-- 0 error scenarios
-- <25% edge cases covered
-- No prerequisites
-- No validation
-- Not executable
 
 ## Counting Definitions
 
@@ -185,6 +96,26 @@
 ```
 Coverage % = (categories addressed / 4 categories) × 100
 ```
+
+### Domain Applicability Adjustment (REQUIRED)
+
+Before calculating edge case coverage %, exclude non-applicable items from the denominator using Non-Issues Pattern 3:
+
+1. For each of the 4 categories, determine if it applies to the rule's domain
+2. Remove non-applicable categories entirely from the count
+3. Calculate: `Adjusted coverage % = items addressed / applicable items × 100`
+4. Document: "Adjusted coverage: X/Y applicable items = Z%"
+
+**Common domain exclusions (apply when rule's domain matches):**
+
+| Rule Domain | Typically N/A Categories | Rationale |
+|-------------|-------------------------|-----------|
+| Workflow/agent operations | Concurrency (0/3) | Single-agent execution model |
+| Single-file editing | Data anomalies (partial) | No multi-record data processing |
+| Documentation/style | Concurrency, data anomalies | No runtime execution |
+| CLI tools (single-threaded) | Concurrency (0/3) | No parallel execution |
+
+**Important:** These are defaults. Override if the rule explicitly addresses the "N/A" domain (e.g., a workflow rule that handles multi-agent coordination DOES need concurrency coverage).
 
 ### Prerequisites Completeness
 

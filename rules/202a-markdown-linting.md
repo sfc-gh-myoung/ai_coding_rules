@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-03-26
 **Keywords:** Markdown, markdown linting, pymarkdownlnt, documentation, markup validation
 **TokenBudget:** ~2800
 **ContextTier:** Low
@@ -19,7 +19,7 @@ Markdown linting patterns, tool configuration, and integration for consistent do
 **When to Load This Rule:**
 - Linting Markdown documentation files
 - Setting up pymarkdownlnt configuration
-- Integrating Markdown linting into Taskfile or CI/CD
+- Integrating Markdown linting into project automation (Makefile, Taskfile, or CI/CD)
 - Fixing Markdown formatting issues
 
 ## References
@@ -30,7 +30,7 @@ Markdown linting patterns, tool configuration, and integration for consistent do
 - **202-markup-config-validation.md** - Parent rule for markup and config validation
 
 **Related:**
-- **820-taskfile-automation.md** - Taskfile integration patterns
+- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
 
 ### External Documentation
 
@@ -66,7 +66,7 @@ Markdown linting patterns, tool configuration, and integration for consistent do
 - **Always:** Lint Markdown files before marking task complete
 - **Always:** Use pymarkdownlnt via uvx for consistency with Python tooling
 - **Always:** Fix all linting errors before committing
-- **Rule:** Use Taskfile lint task if available; fall back to direct uvx invocation
+- **Rule:** Use the project's automation lint target if available; fall back to direct uvx invocation
 
 ### Forbidden
 
@@ -75,8 +75,8 @@ Markdown linting patterns, tool configuration, and integration for consistent do
 
 ### Execution Steps
 
-1. Check if `Taskfile.yml` provides a Markdown lint task (`task lint-markdown` or similar)
-2. If Taskfile task exists, run it; otherwise run `uvx pymarkdownlnt scan "**/*.md"`
+1. Check if the project's automation entrypoint provides a Markdown lint target (e.g., `make lint-markdown`, `task lint-markdown`, or similar)
+2. If an automation target exists, run it; otherwise run `uvx pymarkdownlnt scan "**/*.md"`
 3. Review and fix reported issues
 4. Re-run linter to confirm zero errors
 5. Document any rule exceptions with inline configuration or comments
@@ -113,7 +113,7 @@ README.md:12:81: MD013: Line length [Expected: 80; Actual: 120]
 ### Design Principles
 
 - **Consistency:** Uniform Markdown formatting across all documentation
-- **Automation:** Integrate linting into CI and Taskfile workflows
+- **Automation:** Integrate linting into CI and project automation workflows
 - **Python-native:** Use pymarkdownlnt for ecosystem consistency with uv/uvx
 
 ### Error Handling
@@ -153,7 +153,7 @@ uvx pymarkdownlnt -c .pymarkdown.yml scan .
 
 - [ ] All Markdown files pass pymarkdownlnt
 - [ ] Linter configuration committed to repository
-- [ ] Taskfile integration added if project uses Taskfile
+- [ ] Automation integration added if project uses Makefile, Taskfile, or similar
 
 ## Tool: pymarkdownlnt (Python-Native)
 
@@ -237,32 +237,28 @@ plugins:
         tables: false       # Don't enforce in tables
     ```
 
-### Integration with Taskfile
+### Integration with Project Automation
 
-Add Markdown linting tasks to `Taskfile.yml`:
+Add Markdown linting to the project's automation entrypoint. For implementation examples:
+- **Taskfile:** See `820-taskfile-automation.md`
+- **Makefile:** See `821-makefile-automation.md`
 
-```yaml
-lint-markdown:
-  desc: "Lint Markdown files with pymarkdownlnt"
-  cmds:
-    - uvx pymarkdownlnt scan "**/*.md"
+**Target names to define:** `lint-markdown` (check only), `lint-markdown-fix` (auto-fix), and include in the aggregate `lint` target.
 
-lint-markdown-fix:
-  desc: "Lint Markdown files with auto-fix where possible"
-  cmds:
-    - uvx pymarkdownlnt --fix scan "**/*.md"
+Example direct invocations for automation scripts:
 
-lint:
-  desc: "Run all linting checks"
-  cmds:
-    - task: lint-ruff
-    - task: lint-markdown
+```bash
+# Check only
+uvx pymarkdownlnt scan "**/*.md"
+
+# Auto-fix where possible
+uvx pymarkdownlnt --fix scan "**/*.md"
 ```
 
 ### Pre-Task-Completion Validation
 
-- **Rule (Taskfile-first):** If `Taskfile.yml` exists and provides a Markdown lint task (commonly `task lint`, `task check`, `task validate`, or `task lint-markdown`), run the project-defined task instead of invoking the tool directly.
-- **Rule (fallback):** If no Taskfile task exists, run `uvx pymarkdownlnt scan "**/*.md"` after modifying Markdown files.
+- **Rule (automation-first):** If the project provides an automation lint target (e.g., `make lint-markdown`, `task lint-markdown`), run the project-defined target instead of invoking the tool directly.
+- **Rule (fallback):** If no automation target exists, run `uvx pymarkdownlnt scan "**/*.md"` after modifying Markdown files.
 - **Rule:** Fix all Markdown linting errors before marking task complete.
 - **Exception:** Only skip validation if user explicitly requests override.
 
@@ -289,7 +285,7 @@ lint:
 
 **Problem:** Modifying documentation files without running pymarkdownlnt, leading to inconsistent formatting that accumulates over time. Heading hierarchy breaks; formatting issues make docs harder to read and maintain.
 
-**Correct Pattern:** Always run `uvx pymarkdownlnt scan "**/*.md"` (or Taskfile equivalent) after modifying any Markdown file.
+**Correct Pattern:** Always run `uvx pymarkdownlnt scan "**/*.md"` (or the project's automation equivalent) after modifying any Markdown file.
 
 ```bash
 # Wrong: Edit markdown and commit without linting

@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-03-26
 **LoadTrigger:** kw:changelog, file:CHANGELOG.md
 **Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns, project governance, git workflow, version control
 **TokenBudget:** ~4350
@@ -405,7 +405,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **MANDATORY:** Any modification to Python files (`.py`)
 - **MANDATORY:** Any modification to SQL files (`.sql`)
-- **MANDATORY:** Any modification to configuration files (`pyproject.toml`, `Taskfile.yml`, etc.)
+- **MANDATORY:** Any modification to configuration files (`pyproject.toml`, `Taskfile.yml`, `Makefile`, etc.)
 - **MANDATORY:** Any modification to shell scripts (`.sh`, `.bash`, `.zsh`)
 - **MANDATORY:** Any modification to rule files (`.md` in `ai_coding_rules/`)
 - **MANDATORY:** Any modification to documentation files (`README.md`, `CONTRIBUTING.md`)

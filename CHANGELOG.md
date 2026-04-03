@@ -7,12 +7,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.7.2] - 2026-04-03
+
+### Fixed
+- **fix(rule-reviewer):** remediate per-dimension timing fabrication in parallel mode (v2.7.0 → v2.7.1)
+  - Sub-agent prompts now require explicit `date +%s` bash commands for timestamps (no approximation)
+  - Added Gate 1/Gate 2 timestamp validation in Phase 3.1a with `self-report` / `self-report-flagged` / `validation-failed` outcomes
+  - New `scripts/validate_timing.py` for post-hoc timing data quality checks
+- **fix:** replace stale `task index:generate` references with `make index-generate` across 7 files
+  - Root cause fixed in `src/ai_rules/commands/index.py`; RULES_INDEX.md regenerated
+
+### Added
+- **feat(makefile):** add `release`, `release-dry`, and `mirror` targets for local release workflow
+  - `make release VERSION=X.Y.Z` — bump version, tag, push to origin + gitlab, create draft GitHub release
+  - `make release-dry VERSION=X.Y.Z` — preview all release steps without executing
+  - `make mirror` — push main and tags to gitlab mirror
+- **feat(skill-timing):** add per-dimension timing support (v1.3.0 to v1.4.0)
+  - New `--dimension-timings`, `--per-dimension` flags on `end`, `analyze`, `baseline set` commands
+  - Per-dimension baseline comparison, JSON schema extension, and 8 new tests (16-23)
+- **feat(rules):** add `502-frontend-revealjs-core.md` for Reveal.js 6.0.0 presentations
+  - Covers npm/ESM setup, `.reveal > .slides > section` hierarchy, plugin registration, code block formatting, CSS theming
+  - RULES_INDEX.md updated with activity keywords
+
+### Changed
+- **feat(skills):** integrate per-dimension timing into rule-reviewer workflows
+  - Add checkpoint-pair timing protocol (sequential) and self-report epoch timing (parallel)
+- **feat(skills):** reduce rule-reviewer cross-model scoring variance (v2.5.2 → v2.5.3)
+  - New calibration examples, domain applicability adjustments, and tool-name exclusion patterns
+  - Target: overall score variance ±9.5 pts → ±3-4 pts across models
+- **refactor(skills):** optimize rule-reviewer for token efficiency (v2.4.0 → v2.5.2, 14 files, -2544 lines)
+  - Replace prose scoring criteria with lookup tables across 8 rubrics; simplify workflows
+- **feat(skills):** upgrade rule-loader skill to v1.2.0 with full AGENTS.md parity
+  - Add grep sanity check, multi-technology keyword splitting, PROJECT.md check, companion example loading
+  - 6 new test scenarios; new `examples/token-budget-deferral.md`
+- **docs(skills):** replace Quick Start sections with concrete Examples in 7 USING_*_SKILL.md guides
+- **docs(skills):** rewrite plan-reviewer and doc-reviewer guides for current skill behavior
+- **docs(rules):** improve agent executability across 8 core rules
+  - 100-snowflake-core (v3.3.0), 200-python-core (v4.1.0), 206-python-pytest (v3.2.0), 300-bash-scripting-core (v3.2.0), 310-zsh-scripting-core (v3.2.0), 000-global-core (v3.5.0): replace ambiguous qualifiers with deterministic criteria, add error recovery patterns and edge cases
+- **docs(rules):** remediate review findings in 4 frontend/container rules
+  - 440-react-core (v3.3.0), 420-javascript-core (v3.3.0), 351-podman-core (v1.1.0), 350-docker-core (v3.3.0): quantify thresholds, fix version contradictions, extract companion files
+- **docs(rules):** update 112-snowflake-snowcli (v3.2.0) — pin to CLI v3.16.0, add PAT/WIF/OAuth auth, config.toml, 6 new command groups
+- **docs(rules):** update 950-dbt-core (v1.1.0) — add schema customization, snow://dbt/ URI, deploy/execute CLI refs
+- **docs(rules):** add deferred Anthropic alignment items to 002l-skill-advanced-patterns (v1.2.0)
+- **refactor(rules):** automation-framework-agnostic remediation across 14 rule files
+  - Centralize automation-detection protocol in 000-global-core.md; replace hardcoded `task`/`make` with generic language
+- **refactor(rules):** makefile-primary remediation across 7 rule files
+  - Replace Taskfile-first references with Makefile-primary patterns; RULES_INDEX.md regenerated
+- **refactor(rules):** replace hardcoded `make` commands with generic automation language in 4 rule files
+- **docs(templates):** refresh AGENTS templates — Makefile examples and Last Updated timestamps (→ 2026-03-26)
+- **chore(docs):** update hardcoded rule counts to 187 across README, ARCHITECTURE, schemas, and skill files
+- **chore(validate):** fix ruff lint violations in `scripts/validate_timing.py` (D-series docstrings, UP-series type annotations, W293 whitespace, unused imports) and `skills/skill-timing/scripts/skill_timing.py` (SIM108 ternary); fix MD028 blank-line-in-blockquote in `440-react-core.md`; regenerate RULES_INDEX.md
+
+### Removed
+- **chore(ci):** delete `.github/workflows/release.yml` — releases are now done locally via `make release` to ensure all commits are GPG-signed via Beyond Identity
+
+### Infrastructure
+- **feat(git):** establish GitHub-to-GitLab mirror workflow using orphan-commit strategy
+  - GitLab mirror: `ai_coding_rules_github_mirror` (squashed history, clean BI-signed root)
+  - Future syncs via `make mirror` (`git push gitlab main --tags`)
+
+## [3.7.1] - 2026-03-23
+
 ### Added
 - **feat(skills):** add `skills/rule-reviewer/examples/TEMPLATE.md` output format specification
 - **feat(rules):** add 4 new rule files (002m, 210e, 221h, 221i)
 - **feat(rules):** add `examples/002-rule-governance-structure-example.md`
 
 ### Changed
+- **fix(rules):** correct TokenBudget values in 131-snowflake-demo-creation.md and 206-python-pytest.md
+- **refactor(index):** remove 5 obsolete rule entries from RULES_INDEX.md (101f, 133, 251, 252, 350 duplicates)
 - **fix(skills):** prevent format drift in bulk-rule-reviewer reviews
 - **refactor(skills):** simplify rule-creator SKILL.md (309→93 lines, 70% reduction)
 - **fix(templates):** remove redundant anti-pattern from AGENTS_MODE.md.template

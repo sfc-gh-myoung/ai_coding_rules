@@ -35,7 +35,7 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 
 ### Outputs
 
-**Individual reviews:** `{output_root}/rule-reviews/<rule-name>-<model>-<date>.md` (up to 113 files)
+**Individual reviews:** `{output_root}/rule-reviews/<rule-name>-<model>-<date>.md` (up to 187 files)
 
 **Master summary:** `{output_root}/summaries/_bulk-review-<model>-<date>.md` with sections:
 
@@ -131,7 +131,7 @@ If ANY check fails: STOP, re-read Anti-Optimization Protocol, resume with ONE ru
 
 After EACH rule review, output exactly:
 ```
-[N/124] Complete: {filename} → {score}/100
+[N/<total_rules>] Complete: {filename} → {score}/100
 ```
 
 This output MUST appear after writing EACH review file. If you see yourself planning to output multiple completion messages at once, you are batching - STOP immediately.
@@ -219,10 +219,10 @@ Agents commonly attempt these shortcuts. **ALL ARE FORBIDDEN:**
 Canary checks, dimension scoring, and evidence gathering are INTERNAL PROCESSING.
 Do NOT display intermediate analysis to the user.
 
-**SHOW to user (concise, one line each):**
-- `[45/113] Starting: 310-zsh-scripting-core.md`
-- `[45/113] Complete: 310-zsh-scripting-core.md → 95.5/100`
-- Every 10 rules: brief aggregate summary (e.g., "Progress: 50/113, avg 87.2")
+**Starting/Complete examples:**
+- `[45/<total_rules>] Starting: 310-zsh-scripting-core.md`
+- `[45/<total_rules>] Complete: 310-zsh-scripting-core.md → 95.5/100`
+- Every 10 rules: brief aggregate summary (e.g., "Progress: 50/<total_rules>, avg 87.2")
 
 **DO NOT DISPLAY (internal processing only):**
 - Pre-Rule Canary check questions/answers
@@ -321,7 +321,7 @@ You may have noticed rule files emphasize token efficiency (TokenBudget metadata
 
 **For this skill specifically:**
 - **Cost:** ~50K tokens × 4 reviews/year = 200K tokens/year ≈ $1.80 annually
-- **Value:** Comprehensive quality assurance for 129 rules
+- **Value:** Comprehensive quality assurance for the full current rule set
 - **ROI:** One prevented bad rule saves 10-100× the token cost
 
 **DO NOT apply rule token-efficiency principles to skill execution.**
@@ -356,7 +356,7 @@ You may have noticed rule files emphasize token efficiency (TokenBudget metadata
 
 **The Real Cost:**
 - Short-circuited review: 5 minutes, $0.05, ZERO quality signal
-- Comprehensive review: 19 minutes, $0.45, ACTIONABLE improvements for 113 rules
+- Comprehensive review: Produces actionable improvements across the current repository
 - Debugging one bad rule in production: 2+ hours, frustrated users
 
 **Annual Economic Reality:**
@@ -385,7 +385,7 @@ Skills are NOT rules. Do not apply rule optimization principles here:
 **Time Expectations (Measured - DO NOT RECALCULATE):**
 
 **Actual Performance (2026-01-06 run):**
-- 113 rules reviewed comprehensively
+- Current repository rule count reviewed comprehensively
 - Execution completes efficiently
 
 **DO NOT:**
@@ -622,7 +622,7 @@ When `max_parallel = 1`, use legacy sequential processing (single agent reviews 
 - Request clarification on depth/quality trade-offs
 
 **The ACT command means:**
-- User understands the scope (113 rules)
+- User understands the scope of a full-repository review
 - User wants comprehensive reviews (3000-8000 bytes each)
 - User prioritizes accuracy over speed
 
@@ -891,7 +891,7 @@ model: claude-sonnet-45
 
 ## Examples
 
-- `examples/full-bulk-review.md` - Complete walkthrough with 113 rules
+- `examples/full-bulk-review.md` - Complete walkthrough example
 
 ## Related Skills
 

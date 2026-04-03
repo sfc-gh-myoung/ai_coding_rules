@@ -7,7 +7,7 @@
 ## Phase 1: Foundation Loading
 
 ```
-Load: 000-global-core.md (~3,500 tokens)
+Load: 000-global-core.md (~4,050 tokens)
 ```
 
 ## Phase 2: Domain Matching
@@ -58,12 +58,12 @@ Both `102` (SQL patterns for COPY INTO) and `108` (data loading specifics) are r
 
 | Rule | TokenBudget | ContextTier |
 |------|------------|-------------|
-| 000-global-core.md | ~3,500 | Critical |
+| 000-global-core.md | ~4,050 | Critical |
 | 200-python-core.md | ~1,800 | High |
 | 100-snowflake-core.md | ~1,800 | High |
 | 102-snowflake-sql-core.md | ~3,200 | High |
 | 108-snowflake-data-loading.md | ~3,500 | Medium |
-| **Total** | **~13,800** | |
+| **Total** | **~14,350** | |
 
 Under 15,000 warning threshold. Load all rules.
 
@@ -80,7 +80,7 @@ Under 15,000 warning threshold. Load all rules.
 
 ## Note: Over-Budget Variant
 
-If this request also involved testing (`"...and write pytest tests"`), adding `206-python-pytest.md` (~3,500) would push total to ~17,300. At that point:
+If this request also involved testing (`"...and write pytest tests"`), adding `206-python-pytest.md` (~3,500) would push total to ~17,850. At that point:
 
 ```markdown
 ## Rules Loaded
@@ -90,7 +90,7 @@ If this request also involved testing (`"...and write pytest tests"`), adding `2
 - rules/102-snowflake-sql-core.md (keyword: COPY INTO)
 - rules/108-snowflake-data-loading.md (keyword: data-loading)
 - rules/206-python-pytest.md (keyword: test)
-- [Warning: Token budget at ~17,300 / 20,000]
+- [Warning: Token budget at ~17,850 / 20,000]
 ```
 
 All rules still loaded because none are Low tier. If a Low-tier rule were also matched, it would be deferred first.

@@ -14,14 +14,10 @@ import hashlib
 import json
 import re
 import time
+import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Annotated, Any
-
-try:
-    import tomllib
-except ImportError:
-    import tomli as tomllib  # type: ignore[import-untyped,no-redef,unresolved-import]
 
 import typer
 from rich.columns import Columns

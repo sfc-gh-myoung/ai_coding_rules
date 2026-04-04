@@ -450,14 +450,14 @@ endif
 mirror: ## Squash-sync current main to gitlab mirror (orphan commit, force-push)
 	@git diff --quiet HEAD 2>/dev/null || { echo "ERROR: Uncommitted changes detected. Commit or stash first."; exit 1; }
 	@GITHUB_SHA=$$(git rev-parse --short main); \
-	echo "Syncing to GitLab mirror ($$GITHUB_SHA)..."; \
+	echo "Syncing v$(PROJECT_VERSION) to GitLab mirror ($$GITHUB_SHA)..."; \
 	git branch -D _gitlab-sync 2>/dev/null || true; \
 	git checkout --orphan _gitlab-sync; \
-	git commit -S -m "mirror: sync to $$GITHUB_SHA"; \
+	git commit -S -m "mirror: v$(PROJECT_VERSION) ($$GITHUB_SHA)"; \
 	git push gitlab HEAD:main --force; \
 	git checkout main; \
 	git branch -D _gitlab-sync; \
-	echo "GitLab mirror synced to $$GITHUB_SHA."
+	echo "GitLab mirror synced: v$(PROJECT_VERSION) ($$GITHUB_SHA)"
 
 # ============================================================================
 # Status

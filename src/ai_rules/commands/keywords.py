@@ -21,7 +21,7 @@ from typing import Annotated, Any
 try:
     import tomllib
 except ImportError:
-    import tomli as tomllib  # type: ignore[import-untyped,no-redef]
+    import tomli as tomllib  # type: ignore[import-untyped,no-redef,unresolved-import]
 
 import typer
 from rich.columns import Columns

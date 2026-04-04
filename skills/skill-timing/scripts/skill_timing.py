@@ -400,7 +400,7 @@ def validate_timing_data(data: dict) -> tuple[bool, list[str]]:
                     errors.append(f"dimension_timings[{i}] must be an object")
                 elif "dimension" not in dt or "duration_seconds" not in dt:
                     errors.append(f"dimension_timings[{i}] missing required fields")
-                elif dt["duration_seconds"] < -1:
+                elif isinstance(dur := dt["duration_seconds"], (int, float)) and dur < -1:
                     errors.append(f"dimension_timings[{i}] has invalid duration")
     return (len(errors) == 0, errors)
 

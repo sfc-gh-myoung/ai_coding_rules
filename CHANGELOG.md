@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - New `scripts/validate_timing.py` for post-hoc timing data quality checks
 - **fix:** replace stale `task index:generate` references with `make index-generate` across 7 files
   - Root cause fixed in `src/ai_rules/commands/index.py`; RULES_INDEX.md regenerated
+- **fix(ci):** resolve 4 `ty` typecheck failures blocking CI
+  - `fix(skill-timing)`: narrow `dt["duration_seconds"]` with `isinstance` walrus — resolves `invalid-argument-type` and `unsupported-operator` in `validate_timing_data()`
+  - `fix(agent-eval)`: add `assert self.client is not None` after `connect()` — resolves `unresolved-attribute` on `CortexClient | None`
+  - `fix(keywords)`: add `unresolved-import` to `type: ignore` codes on `tomli` fallback import — resolves ty's `unresolved-import` on Python 3.12
 
 ### Added
 - **feat(makefile):** add `release`, `release-dry`, and `mirror` targets for local release workflow

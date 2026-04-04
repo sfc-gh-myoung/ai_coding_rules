@@ -119,6 +119,7 @@ Now respond to the user's request following this protocol exactly."""
         """
         if not self.client:
             self.connect()
+        assert self.client is not None
 
         system_prompt = self.build_system_prompt()
         messages = [{"role": "system", "content": system_prompt}]
@@ -126,7 +127,7 @@ Now respond to the user's request following this protocol exactly."""
             messages.extend(conversation_history)
         messages.append({"role": "user", "content": user_message})
 
-        result = self.client.complete(messages)  # type: ignore[union-attr]
+        result = self.client.complete(messages)
         return result.text, result.request_id
 
     def evaluate_test(self, test_case: dict[str, Any]) -> dict[str, Any]:

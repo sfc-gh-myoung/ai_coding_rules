@@ -14,7 +14,7 @@
 ## Scope
 
 **What This Rule Covers:**
-SQL file patterns specifically for Snowflake demos, workshops, and customer learning environments. Covers schema-based file naming (`<schema>_<operation>.sql`), per-schema isolation with independent setup/teardown files, progress indicators (`SELECT '[PASS]'`), inline educational comments, and demo-safe idempotent patterns (`CREATE OR REPLACE TABLE`). Prioritizes ease of use, readability, and educational value over automation complexity.
+SQL file patterns specifically for Snowflake demos, workshops, and customer learning environments. Covers schema-based file naming (`NN_<schema>_<operation>.sql`), per-schema isolation with independent setup/teardown files, progress indicators (`SELECT '[PASS]'`), inline educational comments, and demo-safe idempotent patterns (`CREATE OR REPLACE TABLE`). Prioritizes ease of use, readability, and educational value over automation complexity.
 
 **When to Load This Rule:**
 - Creating demo SQL files for Snowflake workshops
@@ -54,7 +54,7 @@ SQL file patterns specifically for Snowflake demos, workshops, and customer lear
 
 ### Mandatory
 
-- `<schema>_<operation>.sql` file naming pattern
+- `NN_<schema>_<operation>.sql` file naming pattern
 - Per-schema isolation (setup/teardown affect only target schema)
 - Progress indicators after each major step
 - Inline educational comments explaining "why"
@@ -110,7 +110,7 @@ SQL files with .sql extension, UTF-8 encoding, Unix line endings
 
 ### Post-Execution Checklist
 
-- [ ] Filename follows `<schema>_<operation>.sql` pattern
+- [ ] Filename follows `NN_<schema>_<operation>.sql` pattern
 - [ ] File header lists prerequisites and what gets created
 - [ ] Progress SELECT statements after each major step
 - [ ] All object names fully qualified (DB.SCHEMA.OBJECT)
@@ -125,27 +125,27 @@ SQL files with .sql extension, UTF-8 encoding, Unix line endings
 
 ### Schema-Based Naming Pattern
 
-**Rule:** Use `<schema>_<operation>.sql` format
+**Rule:** Use `NN_<schema>_<operation>.sql` format
 
 **Pattern:**
 ```
 
 For Taskfile patterns, see `820-taskfile-automation.md`. For Makefile patterns, see `821-makefile-automation.md`.text
-<lowercase_schema>_<operation>.sql
+NN_<lowercase_schema>_<operation>.sql
 ```
 
 **Examples:**
 ```text
-grid_setup.sql           # Create GRID_DATA schema and tables
-grid_load.sql            # Load grid data from CSV files
-grid_teardown.sql        # Drop GRID_DATA schema
+01_grid_setup.sql        # Create GRID_DATA schema and tables
+02_grid_load.sql         # Load grid data from CSV files
+99_grid_teardown.sql     # Drop GRID_DATA schema
 
-customer_setup.sql       # Create CUSTOMER_DATA schema and tables
-customer_load.sql        # Load customer data from CSV files
-customer_teardown.sql    # Drop CUSTOMER_DATA schema
+03_customer_setup.sql    # Create CUSTOMER_DATA schema and tables
+04_customer_load.sql     # Load customer data from CSV files
+98_customer_teardown.sql # Drop CUSTOMER_DATA schema
 
-database_setup.sql       # Create database and RBAC
-database_teardown.sql    # Drop database and role
+00_database_setup.sql    # Create database and RBAC
+99_database_teardown.sql # Drop database and role
 ```
 
 **Benefits:**
@@ -156,19 +156,17 @@ database_teardown.sql    # Drop database and role
 
 ### Multi-Step Operations
 
-**Rule:** Add numeric prefix when order matters within a schema
-
-**Use when:** A schema has dependencies between setup steps
+**Rule:** The two-digit prefix in `NN_<schema>_<operation>.sql` already encodes execution order. For schemas with multiple dependent steps, use sequential numbers:
 
 ```text
-grid_01_setup.sql
-grid_02_load_core.sql
-grid_03_load_sensors.sql
-grid_04_features.sql
-grid_teardown.sql
+01_grid_setup.sql
+02_grid_load_core.sql
+03_grid_load_sensors.sql
+04_grid_features.sql
+99_grid_teardown.sql
 ```
 
-**When NOT to use:** If steps can run in any order, omit numbers
+**Numbering tips:** Reserve `00` for database-level setup, `99`/`98` for teardown, and `01`-`89` for operational steps
 
 ## Per-Schema Setup and Teardown
 
@@ -187,11 +185,11 @@ grid_teardown.sql
 
 ### Setup File Pattern
 
-**Template: grid_setup.sql**
+**Template: 01_grid_setup.sql**
 
 ```sql
 -- ============================================================================
--- Filename: grid_setup.sql
+-- Filename: 01_grid_setup.sql
 -- Description: Create GRID_DATA schema and all related objects
 --
 -- Prerequisites: Database UTILITY_DEMO_V2 must exist
@@ -259,11 +257,11 @@ SELECT 'GRID_DATA schema setup complete!' AS status;
 
 ### Teardown File Pattern
 
-**Template: grid_teardown.sql**
+**Template: 99_grid_teardown.sql**
 
 ```sql
 -- ============================================================================
--- Filename: grid_teardown.sql
+-- Filename: 99_grid_teardown.sql
 -- WARNING: This will delete all grid data!
 -- Does NOT affect: CUSTOMER_DATA schema, database, or roles
 -- ============================================================================
@@ -274,12 +272,12 @@ SELECT '[PASS] GRID_DATA schema removed' AS status;
 
 ### Load File Pattern
 
-**Template: grid_load.sql**
+**Template: 02_grid_load.sql**
 
 ```sql
 -- ============================================================================
--- Filename: grid_load.sql
--- Prerequisites: GRID_DATA schema exists (run grid_setup.sql first)
+-- Filename: 02_grid_load.sql
+-- Prerequisites: GRID_DATA schema exists (run 01_grid_setup.sql first)
 --                CSV files uploaded to stage
 -- ============================================================================
 
@@ -334,18 +332,18 @@ CREATE OR REPLACE STAGE UTILITY_DEMO_V2.GRID_DATA.DATA_FILES;         -- Files r
 ## Demo Project Structure and Orchestration
 
 **Recommended directory layout for `sql/`:**
-- **setup/** - `database_setup.sql`, `grid_setup.sql`, `customer_setup.sql`
-- **features/** - `grid_load.sql`, `customer_load.sql`, `semantic_views.sql`
-- **teardown/** - `grid_teardown.sql`, `customer_teardown.sql`, `database_teardown.sql`
+- **setup/** - `00_database_setup.sql`, `01_grid_setup.sql`, `03_customer_setup.sql`
+- **features/** - `02_grid_load.sql`, `04_customer_load.sql`, `05_shared_semantic_views.sql`
+- **teardown/** - `98_customer_teardown.sql`, `99_grid_teardown.sql`, `99_database_teardown.sql`
 
 **Orchestrate with project automation** (for example, Taskfile or Makefile wrapping `snow sql -f` commands):
 Taskfile example:
 ```yaml
 tasks:
   setup:grid:
-    cmds: [snow sql -f sql/setup/grid_setup.sql]
+    cmds: [snow sql -f sql/setup/01_grid_setup.sql]
   teardown:grid:
-    cmds: [snow sql -f sql/teardown/grid_teardown.sql]
+    cmds: [snow sql -f sql/teardown/99_grid_teardown.sql]
   demo:full:
     cmds: [task: setup:grid, task: setup:customer, task: load:grid, task: load:customer]
 ```
@@ -363,7 +361,7 @@ grep -n "FOREIGN KEY\|REFERENCES" sql/*.sql
 ```
 For each FK: note which file creates the referencing table and which creates the referenced table. Referenced file must execute first. Document dependencies in file headers:
 ```sql
--- Prerequisites: 09_dedup_fastpath.sql (creates UNIQUE_DESCRIPTIONS table)
+-- Prerequisites: 09_grid_dedup_fastpath.sql (creates UNIQUE_DESCRIPTIONS table)
 ```
 
 **Execution order = dependency order, NOT file number order.** See Anti-Pattern 5 for a concrete example. Ensure CLI print menus match actual execution order.
@@ -378,10 +376,10 @@ For each FK: note which file creates the referencing table and which creates the
 
 ## Quick Reference: Minimal Setup/Teardown Pair
 
-**`analytics_setup.sql`** (copy and adapt):
+**`01_analytics_setup.sql`** (copy and adapt):
 ```sql
 -- ============================================================================
--- Filename: analytics_setup.sql
+-- Filename: 01_analytics_setup.sql
 -- Prerequisites: Database DEMO_DB must exist
 -- Creates: ANALYTICS schema, 2 tables, 1 view
 -- ============================================================================
@@ -415,10 +413,10 @@ SELECT '[PASS] VW_CUSTOMER_SUMMARY created' AS progress;
 SELECT 'ANALYTICS setup complete!' AS status;
 ```
 
-**`analytics_teardown.sql`** (matching pair):
+**`99_analytics_teardown.sql`** (matching pair):
 ```sql
 -- ============================================================================
--- Filename: analytics_teardown.sql
+-- Filename: 99_analytics_teardown.sql
 -- WARNING: Deletes all analytics data!
 -- Does NOT affect: other schemas, database, or roles
 -- ============================================================================
@@ -472,8 +470,8 @@ Demo SQL without concept explanations and column-level comments has no teaching 
 ```python
 # Bad: CLI runs files in numeric order without considering dependencies
 def setup():
-    run_sql("06_traceability.sql")   # Has FK to UNIQUE_DESCRIPTIONS
-    run_sql("09_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS — too late!
+    run_sql("06_grid_traceability.sql")   # Has FK to UNIQUE_DESCRIPTIONS
+    run_sql("09_grid_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS — too late!
 ```
 
 **Error:** `Table 'UNIQUE_DESCRIPTIONS' does not exist or not authorized.`
@@ -481,8 +479,8 @@ def setup():
 ```python
 # Correct: respect FK dependencies, not file numbers
 def setup():
-    run_sql("09_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS FIRST
-    run_sql("06_traceability.sql")   # Now FK constraint succeeds
+    run_sql("09_grid_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS FIRST
+    run_sql("06_grid_traceability.sql")   # Now FK constraint succeeds
 ```
 
 **Prevention:** Run `grep -n "FOREIGN KEY\|REFERENCES" sql/*.sql` before implementing CLI orchestration.

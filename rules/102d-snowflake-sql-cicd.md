@@ -90,13 +90,13 @@ sql-exec: ## Execute SQL template with variables (internal)
 		-f $(SQL_FILE)
 
 operations-create-schema: ## Create GRID_DATA schema
-	$(MAKE) sql-exec SQL_FILE=sql/operations/grid/setup/create_schema.sql
+	$(MAKE) sql-exec SQL_FILE=sql/operations/grid/01_grid_create_schema.sql
 
 operations-load-assets: ## Load grid assets from stage
-	$(MAKE) sql-exec SQL_FILE=sql/operations/grid/load/copy_assets.sql
+	$(MAKE) sql-exec SQL_FILE=sql/operations/grid/03_grid_copy_assets.sql
 
 operations-merge-assets: ## Upsert grid assets (production-safe)
-	$(MAKE) sql-exec SQL_FILE=sql/operations/grid/merge/merge_assets.sql
+	$(MAKE) sql-exec SQL_FILE=sql/operations/grid/04_grid_merge_assets.sql
 ```
 
 **Benefits:**
@@ -144,14 +144,14 @@ jobs:
           snow sql \
             -D DATABASE=PROD \
             -D SCHEMA=GRID_DATA \
-            -f sql/operations/grid/setup/create_schema.sql
+            -f sql/operations/grid/01_grid_create_schema.sql
 
       - name: Deploy Table Changes
         run: |
           snow sql \
             -D DATABASE=PROD \
             -D SCHEMA=GRID_DATA \
-            -f sql/operations/grid/setup/create_tables.sql
+            -f sql/operations/grid/02_grid_create_tables.sql
 ```
 
 ## Environment-Specific Variables

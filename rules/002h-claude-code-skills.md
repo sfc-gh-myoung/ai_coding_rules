@@ -11,7 +11,7 @@
 **RuleVersion:** v3.6.0
 **LastUpdated:** 2026-04-04
 **Keywords:** Claude Code, skills, SKILL.md, skill structure, progressive disclosure, workflows, trigger keywords, skill authoring, skill testing, skill validation, input contracts, output contracts, skill examples, YAML frontmatter, description writing, MCP tools, degrees of freedom, context window, third person, naming conventions
-**TokenBudget:** ~4700
+**TokenBudget:** ~5100
 **ContextTier:** High
 **Depends:** 000-global-core.md, 002-rule-governance.md
 **LoadTrigger:** dir:skills/, kw:skill

@@ -58,7 +58,7 @@ Standardized SQL script templates for Snowflake application deployment operation
 
 ### Output Format
 
-SQL script files organized by operation type (upload/, remove/, create/, drop/).
+SQL script files following `NN_<schema>_<operation>.sql` naming convention.
 
 ### Validation
 
@@ -85,7 +85,7 @@ Each script executes without errors. Stage contents match expectations after upl
 
 ```sql
 -- ============================================================================
--- Filename: create_stage.sql
+-- Filename: 01_<schema>_create_stage.sql
 -- Description: Create internal stage for application files
 -- ============================================================================
 
@@ -100,7 +100,7 @@ CREATE STAGE IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.<%STAGE%>
 
 ```sql
 -- ============================================================================
--- Filename: upload_app_files.sql
+-- Filename: 02_<schema>_upload_files.sql
 -- Description: Upload application files to stage
 --
 -- Parameters:
@@ -108,7 +108,7 @@ CREATE STAGE IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.<%STAGE%>
 --   NOTEBOOK_DIR - Local directory (e.g., notebooks)
 --
 -- Usage:
---   snow sql -D STAGE=STG -D NOTEBOOK_DIR=notebooks -f upload_app_files.sql
+--   snow sql -D STAGE=STG -D NOTEBOOK_DIR=notebooks -f 02_<schema>_upload_files.sql
 -- ============================================================================
 
 PUT 'file://<%NOTEBOOK_DIR%>/app.ipynb'
@@ -138,7 +138,7 @@ OVERWRITE=TRUE;
 
 ```sql
 -- ============================================================================
--- Filename: remove_app_files.sql
+-- Filename: 03_<schema>_remove_files.sql
 -- Description: Remove application files from stage
 -- Ensures clean deployment by removing old files before uploading new ones.
 --
@@ -146,7 +146,7 @@ OVERWRITE=TRUE;
 --   STAGE - Snowflake stage name
 --
 -- Usage:
---   snow sql -D STAGE=DB.SCHEMA.STAGE -f remove_app_files.sql
+--   snow sql -D STAGE=DB.SCHEMA.STAGE -f 03_<schema>_remove_files.sql
 -- ============================================================================
 
 REMOVE @<%STAGE%>/app.ipynb;
@@ -163,7 +163,7 @@ REMOVE @<%STAGE%>/environment.yml;
 
 ```sql
 -- ============================================================================
--- Filename: create_notebook.sql
+-- Filename: 04_<schema>_create_notebook.sql
 -- Description: Create notebook object from staged files
 --
 -- Parameters:
@@ -172,7 +172,7 @@ REMOVE @<%STAGE%>/environment.yml;
 --   WAREHOUSE - Compute warehouse
 --
 -- Usage:
---   snow sql -D DATABASE=DB -D STAGE=STG -D WAREHOUSE=WH -f create_notebook.sql
+--   snow sql -D DATABASE=DB -D STAGE=STG -D WAREHOUSE=WH -f 04_<schema>_create_notebook.sql
 -- ============================================================================
 
 CREATE NOTEBOOK IF NOT EXISTS <%DATABASE%>.SCHEMA.NOTEBOOK_NAME
@@ -185,14 +185,14 @@ MAIN_FILE = 'app.ipynb';
 
 ```sql
 -- ============================================================================
--- Filename: drop_notebook.sql
+-- Filename: 99_<schema>_drop_notebook.sql
 -- Description: Drop notebook object
 --
 -- Parameters:
 --   DATABASE - Database name
 --
 -- Usage:
---   snow sql -D DATABASE=DB -f drop_notebook.sql
+--   snow sql -D DATABASE=DB -f 99_<schema>_drop_notebook.sql
 -- ============================================================================
 
 DROP NOTEBOOK IF EXISTS <%DATABASE%>.SCHEMA.NOTEBOOK_NAME;
@@ -204,7 +204,7 @@ DROP NOTEBOOK IF EXISTS <%DATABASE%>.SCHEMA.NOTEBOOK_NAME;
 
 ```sql
 -- ============================================================================
--- Filename: upload_streamlit_app.sql
+-- Filename: 02_<schema>_upload_streamlit.sql
 -- Description: Upload Streamlit application files to stage (SiS deployment)
 --
 -- CRITICAL REQUIREMENTS:
@@ -217,7 +217,7 @@ DROP NOTEBOOK IF EXISTS <%DATABASE%>.SCHEMA.NOTEBOOK_NAME;
 --   APP_DIR - Local Streamlit app directory (e.g., streamlit/streamlit_sis)
 --
 -- Usage:
---   snow sql -D STAGE=DB.SCHEMA.STAGE -D APP_DIR=streamlit/sis -f upload_streamlit_app.sql
+--   snow sql -D STAGE=DB.SCHEMA.STAGE -D APP_DIR=streamlit/sis -f 02_<schema>_upload_streamlit.sql
 -- ============================================================================
 
 -- Main application file (must be at stage root)

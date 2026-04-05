@@ -407,14 +407,13 @@ ON_ERROR = 'CONTINUE';
 
 Directory structure for `sql/operations/`:
 - **grid/** - Domain/schema grouping
-  - **setup/** - `create_schema.sql`, `create_tables.sql`
-  - **load/** - `copy_assets.sql`, `copy_scada.sql`
-  - **merge/** - `upsert_assets.sql`, `upsert_events.sql`
-  - **teardown/** - `drop_schema.sql`
-- **customer/** - Customer domain
-  - **setup/**, **load/**, **merge/**, **teardown/**
+  - `01_grid_create_schema.sql`, `02_grid_create_tables.sql`
+  - `03_grid_copy_assets.sql`, `04_grid_copy_scada.sql`
+  - `05_grid_upsert_assets.sql`, `06_grid_upsert_events.sql`
+  - `99_grid_drop_schema.sql`
+- **customer/** - Customer domain (same numbered pattern)
 - **shared/** - Cross-domain scripts
-  - `create_database.sql`, `create_roles.sql`, `drop_database.sql`
+  - `00_shared_create_database.sql`, `01_shared_create_roles.sql`, `99_shared_drop_database.sql`
 
 **Benefits:**
 - Clear domain separation
@@ -424,19 +423,19 @@ Directory structure for `sql/operations/`:
 
 ### 2.2 Template Naming Convention
 
-**Pattern:** `<operation>_<object>.sql`
+**Pattern:** `NN_<schema>_<operation>.sql`
 
 **Examples:**
 ```text
-create_schema.sql
-create_table_assets.sql
-copy_assets.sql
-merge_assets.sql
-grant_read_access.sql
-drop_schema.sql
+01_grid_create_schema.sql
+02_grid_create_tables.sql
+03_grid_copy_assets.sql
+04_grid_merge_assets.sql
+05_grid_grant_access.sql
+99_grid_drop_schema.sql
 ```
 
-**No numeric prefixes:** Execution order controlled by automation, not filenames
+**Numeric prefixes required:** Two-digit prefix establishes execution order. Automation tools SHOULD respect filename order.
 
 ## Idempotent Production Patterns
 
@@ -492,7 +491,7 @@ CREATE OR REPLACE TABLE <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS (...);
 **Pattern:**
 ```sql
 -- ============================================================================
--- Filename: merge_assets.sql
+-- Filename: 04_grid_merge_assets.sql
 -- Description: Upsert grid assets (insert new, update existing)
 --
 -- Parameters:

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **002h-claude-code-skills.md** (v3.5.0 → v3.6.0): Fixed duplicate Error Recovery section, added "Too Many Options" anti-pattern, added evaluation JSON format example, added "Observing Skill Navigation" section, softened directory conventions, fixed optional frontmatter fields, added workflow cross-reference to 002l, added terminology cross-reference to 002m
+
 ## [3.7.2] - 2026-04-03
 
 ### Fixed

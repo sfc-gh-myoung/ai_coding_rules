@@ -246,7 +246,7 @@ tasks:
     cmds:
       - echo "Dropping application object..."
       - task: utils:sql:template
-        vars: {SQL_FILE: sql/operations/app/drop/drop_app.sql}
+        vars: {SQL_FILE: sql/operations/app/99_app_drop.sql}
 
   remove:app:
     desc: Remove application files from stage
@@ -254,7 +254,7 @@ tasks:
     cmds:
       - echo "Removing files from stage..."
       - task: utils:sql:template
-        vars: {SQL_FILE: sql/operations/app/remove/remove_app_files.sql}
+        vars: {SQL_FILE: sql/operations/app/03_app_remove_files.sql}
 
   upload:app:
     desc: Upload application files to stage
@@ -262,7 +262,7 @@ tasks:
     cmds:
       - echo "Uploading files to stage..."
       - task: utils:sql:template
-        vars: {SQL_FILE: sql/operations/app/upload/upload_app_files.sql}
+        vars: {SQL_FILE: sql/operations/app/02_app_upload_files.sql}
     preconditions:
       - test -f {{.APP_DIR}}/app.py
 
@@ -272,7 +272,7 @@ tasks:
     cmds:
       - echo "Creating application..."
       - task: utils:sql:template
-        vars: {SQL_FILE: sql/operations/app/create/create_app.sql}
+        vars: {SQL_FILE: sql/operations/app/04_app_create.sql}
 
   deploy:app:
     desc: Deploy application (drop + remove + upload + create)
@@ -326,13 +326,12 @@ Directory structure for `project/`:
 - **task/** - Automation definitions (Taskfile or Makefile per app)
   - **notebook/** - Deployment automation (Notebook deployment targets)
   - **streamlit/** - Deployment automation (Streamlit deployment targets)
-- **sql/operations/** - SQL scripts by app type
-  - **notebook/** - Notebook-specific scripts
-    - **upload/** - `upload_*.sql`
-    - **remove/** - `remove_*.sql`
-    - **create/** - `create_*.sql`
-    - **drop/** - `drop_*.sql`
-  - **streamlit/** - Same structure as notebook
+- **sql/operations/** - SQL scripts by app type following `NN_<schema>_<operation>.sql` naming
+  - **notebook/** - Notebook-specific scripts (recommended: flat with numbered files)
+    - `01_notebook_create_stage.sql`, `02_notebook_upload.sql`
+    - `03_notebook_remove.sql`, `04_notebook_create.sql`, `99_notebook_drop.sql`
+  - **streamlit/** - Same numbered pattern as notebook
+  - *Alternative:* For large projects, operation-type subdirs (`upload/`, `create/`, etc.) are acceptable but files within them should still use `NN_<schema>_<operation>.sql` naming
 - `Taskfile.yml` or `Makefile` - Root automation with includes
 
 ## SQL Script Patterns

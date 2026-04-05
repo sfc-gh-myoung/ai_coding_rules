@@ -702,7 +702,7 @@ User: "Write tests for my Streamlit dashboard"
 - Keywords: account roles, database roles, SHOW GRANTS, role introspection, RBAC, Python automation, error 000906, too many qualifiers, grants inspection, programmatic RBAC
 - Depends: `000-global-core.md`, `100-snowflake-core.md`
 ### Other
-**`130-snowflake-demo-sql.md`** - SQL file patterns specifically for Snowflake demos, workshops, and customer learning environments. Covers schema-based file naming (`<schema>_<operation>.sql`), per-schema isolation with independent setup/teardown files, progress indicators (`SELECT '[PASS]'`), inline educational comments, and demo-safe idempotent patterns (`CREATE OR REPLACE TABLE`). Prioritizes ease of use, readability, and educational value over automation complexity.
+**`130-snowflake-demo-sql.md`** - SQL file patterns specifically for Snowflake demos, workshops, and customer learning environments. Covers schema-based file naming (`NN_<schema>_<operation>.sql`), per-schema isolation with independent setup/teardown files, progress indicators (`SELECT '[PASS]'`), inline educational comments, and demo-safe idempotent patterns (`CREATE OR REPLACE TABLE`). Prioritizes ease of use, readability, and educational value over automation complexity.
 - Keywords: demo SQL, workshop, teardown, progress indicators, rerunnable demos, CREATE OR REPLACE, educational SQL, demo patterns, setup scripts, customer learning, per-schema isolation, inline documentation
 - Depends: `102-snowflake-sql-core.md`
 

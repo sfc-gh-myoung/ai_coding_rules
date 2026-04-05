@@ -962,6 +962,10 @@ class SchemaValidator:
         section_end = section_end or len(lines)
         section_content = "\n".join(lines[section_start:section_end])
 
+        if self._section_delegates_to_companion(section_content):
+            result.passed_checks += len(config.get("validations", []))
+            return
+
         # Validate code blocks and keywords
         for validation in config.get("validations", []):
             if validation["type"] == "code_block_count":
@@ -1016,6 +1020,34 @@ class SchemaValidator:
                     )
                 else:
                     result.passed_checks += 1
+
+    def _section_delegates_to_companion(self, section_content: str) -> bool:
+        """Check if a section delegates its content to a companion rule file.
+
+        Detects the pattern: > **See** ... [filename.md](path.md) ...
+        Returns True if the section's substantive content is only a delegation
+        reference (with optional blockquote context like Investigation Required).
+        """
+        non_heading_lines = [
+            line for line in section_content.split("\n")
+            if line.strip() and not re.match(r"^##\s+", line)
+        ]
+        if not non_heading_lines:
+            return False
+
+        has_see_reference = bool(
+            re.search(
+                r">\s*\*\*See(?:\s+companion rule)?[:\*]*\*?\*?\s*.*\[.*\]\(.*\.md\)",
+                section_content,
+            )
+        )
+        if not has_see_reference:
+            return False
+
+        all_blockquote = all(
+            line.strip().startswith(">") for line in non_heading_lines
+        )
+        return all_blockquote
 
     def _validate_restrictions(
         self, content: str, lines: list[str], result: ValidationResult

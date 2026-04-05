@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **fix(validator):** eliminate false-positive MEDIUM warnings for delegation-pattern Anti-Patterns sections
+  - New `_section_delegates_to_companion()` detects `> **See:**` blockquote cross-references to companion `.md` files
+  - Credits all skipped checks as passed (accurate totals in verbose output)
+  - Resolves 4 false positives on `440-react-core.md`; generic enough for any future delegating section
+
 ### Changed
+- **refactor(rules):** standardize SQL file naming convention to `NN_<schema>_<operation>.sql` across 9 rule files
+  - `102a`: removed anti-number-prefix directive (line 439), updated pattern from `<operation>_<object>.sql`, flattened directory examples
+  - `130`: updated all ~30 filename references, rewrote Multi-Step section (number-first ordering), updated Quick Reference templates
+  - `109g`: updated 7 template filename comments to `NN_<schema>_<operation>.sql`
+  - `109b`: flattened directory structure with numbered files (recommends both flat and subdir approaches)
+  - `109h`: updated 3 Taskfile SQL_FILE path references
+  - `102d`: updated 5 CI/CD file path references (Makefile + GitHub Actions)
+  - `102`: updated header example filename
+  - `102c`: added schema component to incidental CLI example
+  - `951`: added explicit dbt exemption note for `sv_<domain>_<subject>.sql` convention
+  - `RULES_INDEX.md`: updated 130 description to reference new pattern
 - **002h-claude-code-skills.md** (v3.5.0 → v3.6.0): Fixed duplicate Error Recovery section, added "Too Many Options" anti-pattern, added evaluation JSON format example, added "Observing Skill Navigation" section, softened directory conventions, fixed optional frontmatter fields, added workflow cross-reference to 002l, added terminology cross-reference to 002m
 
 ## [3.7.2] - 2026-04-03

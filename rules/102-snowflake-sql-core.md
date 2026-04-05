@@ -139,7 +139,7 @@ SQL files with .sql extension, UTF-8 encoding, Unix line endings
 **Example:**
 ```sql
 -- ============================================================================
--- Filename: customer_analytics_setup.sql
+-- Filename: 01_customer_analytics_setup.sql
 -- Description: Create customer analytics schema and core tables
 --
 -- Prerequisites: Database ANALYTICS_DB must exist

@@ -1292,6 +1292,69 @@ class TestValidateAntiPatterns:
 
         assert len(result.errors) == 0
 
+    @pytest.mark.unit
+    def test_anti_patterns_delegation_skips_validation(self, tmp_path: Path, full_schema: Path):
+        """Test that delegation via '> **See:**' suppresses anti-patterns checks."""
+        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
+        content = (
+            "# Title\n\n## Anti-Patterns and Common Mistakes\n\n"
+            "> **See:** [440a-react-anti-patterns.md](./440a-react-anti-patterns.md) "
+            "for anti-patterns, error recovery patterns, and output format examples.\n"
+        )
+        lines = content.split("\n")
+        result = validate_module.ValidationResult(file_path=tmp_path / "test.md")
+
+        validator._validate_anti_patterns(
+            content, lines, result, validator.schema["content_rules"]["anti_patterns"]
+        )
+
+        ap_errors = [e for e in result.errors if e.error_group == "Anti-Patterns"]
+        assert len(ap_errors) == 0
+        assert result.passed_checks >= 3
+
+    @pytest.mark.unit
+    def test_anti_patterns_delegation_with_investigation_block(self, tmp_path: Path, full_schema: Path):
+        """Test delegation works when followed by blockquoted Investigation Required."""
+        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
+        content = (
+            "# Title\n\n## Anti-Patterns and Common Mistakes\n\n"
+            "> **See:** [440a-react-anti-patterns.md](./440a-react-anti-patterns.md) "
+            "for anti-patterns.\n"
+            "> **Investigation Required**\n"
+            "> When applying this rule:\n"
+            "> 1. **Read `package.json` first** to determine framework.\n"
+        )
+        lines = content.split("\n")
+        result = validate_module.ValidationResult(file_path=tmp_path / "test.md")
+
+        validator._validate_anti_patterns(
+            content, lines, result, validator.schema["content_rules"]["anti_patterns"]
+        )
+
+        ap_errors = [e for e in result.errors if e.error_group == "Anti-Patterns"]
+        assert len(ap_errors) == 0
+
+    @pytest.mark.unit
+    def test_anti_patterns_see_ref_with_inline_content_still_validates(self, tmp_path: Path, full_schema: Path):
+        """Test that a See reference mixed with non-blockquote content still validates normally."""
+        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
+        content = (
+            "# Title\n\n## Anti-Patterns and Common Mistakes\n\n"
+            "> **See:** [440a-react-anti-patterns.md](./440a-react-anti-patterns.md) "
+            "for more patterns.\n\n"
+            "### Anti-Pattern 1: Inline example\n\n"
+            "Some inline anti-pattern content without proper structure.\n"
+        )
+        lines = content.split("\n")
+        result = validate_module.ValidationResult(file_path=tmp_path / "test.md")
+
+        validator._validate_anti_patterns(
+            content, lines, result, validator.schema["content_rules"]["anti_patterns"]
+        )
+
+        ap_errors = [e for e in result.errors if e.error_group == "Anti-Patterns"]
+        assert len(ap_errors) >= 1
+
 
 # ============================================================================
 # Validate Restrictions Tests

@@ -92,7 +92,7 @@ The correct fix is to disable client-side template expansion at the CLI layer:
 
 ```bash
 # Correct: disable templating so & is passed through to Snowflake
-snow sql --enable-templating NONE -c my_connection -f sql/03_seed_data.sql
+snow sql --enable-templating NONE -c my_connection -f sql/03_public_seed_data.sql
 
 # In Python wrappers, add the flag to the command builder:
 cmd = [*get_snow_command(), "sql", "--enable-templating", "NONE", "-c", connection]

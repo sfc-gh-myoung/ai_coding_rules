@@ -8,10 +8,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.5.0
-**LastUpdated:** 2026-03-25
+**RuleVersion:** v3.6.0
+**LastUpdated:** 2026-04-04
 **Keywords:** Claude Code, skills, SKILL.md, skill structure, progressive disclosure, workflows, trigger keywords, skill authoring, skill testing, skill validation, input contracts, output contracts, skill examples, YAML frontmatter, description writing, MCP tools, degrees of freedom, context window, third person, naming conventions
-**TokenBudget:** ~4500
+**TokenBudget:** ~4700
 **ContextTier:** High
 **Depends:** 000-global-core.md, 002-rule-governance.md
 **LoadTrigger:** dir:skills/, kw:skill
@@ -81,7 +81,7 @@ Best practices for authoring Claude Code skills in the `skills/` directory. Cove
 2. Create SKILL.md with YAML frontmatter:
    - Required: `name` (lowercase-hyphens, max 64 chars), `description` (third person, max 1024 chars)
    - Project standard: `version` (semantic versioning)
-   - Optional: `author`, `tags`, `dependencies`
+   - Optional (Anthropic spec): `license`, `compatibility`, `allowed-tools`, `metadata` (for custom fields like `author`, `tags`, `dependencies`)
 3. Write Purpose section (1-2 sentences defining the problem solved)
 4. Write "Use this skill when" section with activation scenarios
 5. Define Inputs section (required and optional with defaults)
@@ -98,14 +98,6 @@ Skill directory structure with:
 - scripts/ executable code (optional)
 - references/ documentation loaded as needed (optional)
 - assets/ templates and resources (optional)
-
-### Error Recovery
-
-- **SKILL.md exceeds 500 lines:** Extract content into `references/` or `scripts/` files. Keep SKILL.md as overview with cross-references.
-- **YAML frontmatter fails to parse:** Check for unescaped colons, missing `---` delimiters, or tab characters (use spaces only).
-- **Skill not discovered:** Verify `description` contains specific trigger keywords and is non-empty, under 1024 chars. Add negative triggers if over-triggering.
-- **MCP tool not found:** Confirm `ServerName:tool_name` format. Verify MCP server is available.
-- **Package dependency missing:** Add explicit install instructions. Do not assume packages are pre-installed (API has no network access).
 
 ### Error Recovery
 
@@ -240,7 +232,7 @@ version: 2.0.0
 - **Use this skill when:** Bullet list of activation scenarios
 - **Inputs:** Required and optional parameters with defaults
 - **Outputs:** File paths and formats produced
-- **Workflow:** Ordered list of phases with file references
+- **Workflow:** Ordered list of phases with file references. For complex workflows, use checklist and feedback loop patterns (see 002l-skill-advanced-patterns.md §Iterative Skill Development).
 - **Examples:** Links to example walkthroughs
 
 ### 2. Directory Organization
@@ -248,8 +240,7 @@ version: 2.0.0
 - **skills/\<skill-name\>/** - Skill root directory
   - `SKILL.md` - Entrypoint with frontmatter and workflow overview (required)
   - **scripts/** - Executable code: Python, Bash, etc. (optional)
-  - **references/** - Documentation loaded as needed (optional)
-    - `api-guide.md`, `examples.md`, etc.
+  - **references/** - Documentation loaded as needed (optional; alternatives like `workflows/` or domain-named dirs are acceptable if consistently used within the skill)
   - **assets/** - Templates, fonts, icons used in output (optional)
 
 ### 3. Progressive Disclosure
@@ -338,9 +329,30 @@ Use high freedom when tasks are exploratory or creative. Use low freedom when ou
 
 Do not embed dates or version-specific deadlines in skills. Use "Current method" / "Old patterns" sections instead.
 
+#### Use Consistent Terminology
+
+Choose one term for each concept and use it throughout a skill. See 002m-agent-format-antipatterns.md Anti-Pattern 4 for detailed examples and correct patterns.
+
 #### Build Evaluations First
 
 Create evaluations BEFORE writing extensive documentation: identify gaps by running Claude without the skill, build 3 test scenarios, establish baseline, write minimal instructions, iterate. This ensures the skill solves real problems.
+
+**Evaluation structure example:**
+
+```json
+{
+  "skills": ["skill-name"],
+  "query": "Natural language task description",
+  "files": ["test-files/input.pdf"],
+  "expected_behavior": [
+    "Behavior 1: Correctly processes input",
+    "Behavior 2: Produces expected output format",
+    "Behavior 3: Handles edge case appropriately"
+  ]
+}
+```
+
+There is no built-in evaluation runner — create your own or evaluate manually.
 
 #### Test with All Models You Plan to Use
 
@@ -508,6 +520,23 @@ See workflows/ for step-by-step guides.
 
 Always use forward slashes. Unix paths work cross-platform; backslashes fail on Unix.
 
+### Anti-Pattern 7: Too Many Options Without Default
+
+**Problem:**
+```markdown
+# BAD: Multiple approaches with no recommendation
+"You can use pypdf, or pdfplumber, or PyMuPDF, or pdf2image..."
+```
+
+**Correct Pattern:**
+```markdown
+# GOOD: Clear default with escape hatch
+"Use pdfplumber for text extraction.
+For scanned PDFs requiring OCR, use pdf2image with pytesseract instead."
+```
+
+Provide a single recommended approach. Only mention alternatives when a specific condition requires them.
+
 ### Testing Skill Discovery
 
 To verify a skill triggers correctly:
@@ -517,6 +546,17 @@ To verify a skill triggers correctly:
 3. For each prompt, verify the description's trigger keywords would match
 4. Test with the actual agent: "When I say '[prompt]', does this skill appear?"
 5. If discovery fails: add more specific keywords to the description field
+
+### Observing Skill Navigation
+
+As you iterate on skills, watch how Claude actually uses them:
+
+- **Unexpected exploration paths:** Claude reads files in an unanticipated order — structure may not be intuitive
+- **Missed connections:** Claude fails to follow references — links need to be more explicit or prominent
+- **Overreliance on certain sections:** Claude repeatedly reads the same file — consider moving that content into SKILL.md
+- **Ignored content:** Claude never accesses a bundled file — it may be unnecessary or poorly signaled
+
+Iterate based on observed behavior, not assumptions. The `name` and `description` metadata fields are critical — Claude uses these when deciding whether to trigger the skill.
 
 ### Input Validation Snippet Example
 

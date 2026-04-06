@@ -323,7 +323,12 @@ SELECT CURRENT_WAREHOUSE();
 ### Post-Creation Validation
 ```sql
 SHOW SEMANTIC VIEWS LIKE '%view_name%';
-SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW db.schema.view;
-SHOW SEMANTIC METRICS IN SEMANTIC VIEW db.schema.view;
+SHOW SEMANTIC DIMENSIONS IN db.schema.view;
+SHOW SEMANTIC METRICS IN db.schema.view;
 SELECT GET_DDL('SEMANTIC_VIEW', 'db.schema.view');
 ```
+
+> **SYNTAX NOTE:** `DESCRIBE SEMANTIC VIEW` and `GRANT ... ON SEMANTIC VIEW` use the
+> `SEMANTIC VIEW` keywords, but `SHOW SEMANTIC DIMENSIONS/METRICS/FACTS IN` does NOT.
+> The `IN` clause accepts a bare semantic view name (fully qualified), `ACCOUNT`,
+> `DATABASE <name>`, or `SCHEMA <name>`.

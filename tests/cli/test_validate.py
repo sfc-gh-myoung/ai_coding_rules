@@ -1313,7 +1313,9 @@ class TestValidateAntiPatterns:
         assert result.passed_checks >= 3
 
     @pytest.mark.unit
-    def test_anti_patterns_delegation_with_investigation_block(self, tmp_path: Path, full_schema: Path):
+    def test_anti_patterns_delegation_with_investigation_block(
+        self, tmp_path: Path, full_schema: Path
+    ):
         """Test delegation works when followed by blockquoted Investigation Required."""
         validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
         content = (
@@ -1335,7 +1337,9 @@ class TestValidateAntiPatterns:
         assert len(ap_errors) == 0
 
     @pytest.mark.unit
-    def test_anti_patterns_see_ref_with_inline_content_still_validates(self, tmp_path: Path, full_schema: Path):
+    def test_anti_patterns_see_ref_with_inline_content_still_validates(
+        self, tmp_path: Path, full_schema: Path
+    ):
         """Test that a See reference mixed with non-blockquote content still validates normally."""
         validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
         content = (

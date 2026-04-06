@@ -274,7 +274,8 @@ See `score-aggregation.md` for detailed aggregation workflow.
 Before calling `timing-end`, serialize `_dimension_timings` to JSON string:
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh end \
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
     --run-id {{_timing_run_id}} \
     --output-file {{output_file}} \
     --skill rule-reviewer \

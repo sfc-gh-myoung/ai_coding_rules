@@ -32,7 +32,8 @@ timing_enabled: true                 # Required — enables timing
 
 ```bash
 # 1. Start timing
-bash skills/skill-timing/scripts/run_timing.sh start \
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+$PYTHON skills/skill-timing/scripts/skill_timing.py start \
     --skill rule-reviewer \           # Required — skill being timed
     --target rules/100-snowflake-core.md \  # Required — target file
     --model claude-sonnet-45 \        # Required — model slug
@@ -42,12 +43,12 @@ bash skills/skill-timing/scripts/run_timing.sh start \
 # Output: TIMING_RUN_ID=a1b2c3d4e5f67890
 
 # 2. Record checkpoints
-bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
     --run-id a1b2c3d4e5f67890 \       # Required — from start output
     --name rules_loaded                # Required — checkpoint name
 
 # 3. End timing with all options
-bash skills/skill-timing/scripts/run_timing.sh end \
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
     --run-id a1b2c3d4e5f67890 \       # Required — from start output
     --output-file reviews/rule-review.md \  # Required — output path
     --skill rule-reviewer \           # Required — for recovery
@@ -60,7 +61,7 @@ bash skills/skill-timing/scripts/run_timing.sh end \
 ### Baseline Set Example
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh baseline set \
+$PYTHON skills/skill-timing/scripts/skill_timing.py baseline set \
     --skill rule-reviewer \           # Required — skill name
     --mode FULL \                     # Required — review mode
     --model claude-sonnet-45 \        # Required — model slug
@@ -135,7 +136,7 @@ Analyze timing data across multiple runs.
 | `--format` | No | Output format (human/json/csv) |
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh analyze \
+$PYTHON skills/skill-timing/scripts/skill_timing.py analyze \
     --skill rule-reviewer \
     --days 30 \
     --format json
@@ -152,7 +153,7 @@ Aggregate timing data from review files (parses timing metadata tables).
 | `--format` | No | Output format (json/csv) |
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh aggregate \
+$PYTHON skills/skill-timing/scripts/skill_timing.py aggregate \
     reviews/*.md \
     --format csv
 ```
@@ -174,7 +175,7 @@ Set a performance baseline from recent timing data.
 Compare a specific run against baseline.
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh baseline compare \
+$PYTHON skills/skill-timing/scripts/skill_timing.py baseline compare \
     --run-id a1b2c3d4e5f67890
 ```
 
@@ -299,7 +300,7 @@ Use `--ci` flag for JSON output with exit codes:
 | 3 | Duration significantly above baseline | Warning/Fail |
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh end \
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
     --run-id a1b2c3d4e5f67890 \
     --output-file output.md \
     --skill my-skill \
@@ -440,7 +441,7 @@ skills/skill-timing/
 ├── VALIDATION.md          # Self-validation procedures
 ├── scripts/
 │   ├── skill_timing.py    # Python module
-│   └── run_timing.sh      # Shell wrapper
+│   └── find_python.sh    # Python interpreter discovery
 ├── examples/              # Workflow examples
 │   ├── basic-timing.md
 │   ├── with-checkpoints.md
@@ -499,4 +500,4 @@ This skill is **deployable** (included in `task deploy`). After deployment, user
 - **Workflow guides:** `skills/skill-timing/workflows/*.md`
 - **Examples:** `skills/skill-timing/examples/*.md`
 - **Python module:** `skills/skill-timing/scripts/skill_timing.py`
-- **Shell wrapper:** `skills/skill-timing/scripts/run_timing.sh`
+- **Python interpreter discovery:** `skills/skill-timing/scripts/find_python.sh`

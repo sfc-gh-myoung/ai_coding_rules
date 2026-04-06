@@ -16,7 +16,8 @@ Time a skill execution with intermediate checkpoints to identify bottlenecks.
 ### Step 1: Start Timing
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh start \
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+$PYTHON skills/skill-timing/scripts/skill_timing.py start \
     --skill rule-reviewer \
     --target rules/200-python-core.md \
     --model claude-sonnet-45 \
@@ -31,12 +32,12 @@ After completing each AGENTS.md gate, record a checkpoint:
 
 ```bash
 # After Gate 1 (foundation loaded)
-bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
     --run-id a1b2c3d4e5f67890 \
     --name gates_started
 
 # After Gate 3 (all rules loaded)
-bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
     --run-id a1b2c3d4e5f67890 \
     --name rules_loaded
 ```
@@ -47,17 +48,17 @@ During skill execution:
 
 ```bash
 # After skill is fully loaded and ready
-bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
     --run-id a1b2c3d4e5f67890 \
     --name skill_loaded
 
 # After core work is complete (before file write)
-bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
     --run-id a1b2c3d4e5f67890 \
     --name work_complete
 
 # After file is written
-bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
     --run-id a1b2c3d4e5f67890 \
     --name file_written
 ```
@@ -65,7 +66,7 @@ bash skills/skill-timing/scripts/run_timing.sh checkpoint \
 ### Step 4: End Timing
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh end \
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
     --run-id a1b2c3d4e5f67890 \
     --output-file reviews/200-python-core-review.md \
     --skill rule-reviewer \
@@ -155,7 +156,7 @@ The checkpoints reveal where time is spent:
 When using `--dimension-timings`, the output includes a per-dimension breakdown:
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh end \
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
     --run-id a1b2c3d4e5f67890 \
     --output-file reviews/200-python-core-review.md \
     --skill rule-reviewer \

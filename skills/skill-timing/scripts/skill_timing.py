@@ -60,11 +60,14 @@ ALERT_THRESHOLDS = {
 }
 
 # Cost estimates per 1M tokens (update periodically as pricing changes)
-# Last updated: 2026-01-06
-# Sources: https://www.anthropic.com/pricing, https://openai.com/pricing
+# Last updated: 2026-04-05
+# Sources: https://platform.claude.com/docs/en/about-claude/pricing
 COST_PER_1M_TOKENS = {
     "claude-sonnet-45": {"input": 3.00, "output": 15.00},
-    "claude-opus-45": {"input": 15.00, "output": 75.00},
+    "claude-sonnet-46": {"input": 3.00, "output": 15.00},
+    "claude-opus-45": {"input": 5.00, "output": 25.00},
+    "claude-opus-46": {"input": 5.00, "output": 25.00},
+    "claude-opus-4": {"input": 15.00, "output": 75.00},
     "gpt-4-turbo": {"input": 10.00, "output": 30.00},
     "default": {"input": 5.00, "output": 15.00},
 }
@@ -72,14 +75,14 @@ COST_PER_1M_TOKENS = {
 TTL_DAYS = 7
 REGISTRY_STALE_HOURS = 24
 
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 
 EXIT_SUCCESS = 0
 EXIT_ERROR = 1
 EXIT_SHORTCUT_DETECTED = 2
 EXIT_ABOVE_BASELINE = 3
 
-PRICING_LAST_UPDATED = "2026-01-06"
+PRICING_LAST_UPDATED = "2026-04-05"
 PRICING_REVIEW_INTERVAL_DAYS = 90
 
 
@@ -398,10 +401,30 @@ def validate_timing_data(data: dict) -> tuple[bool, list[str]]:
             for i, dt in enumerate(dim_timings):
                 if not isinstance(dt, dict):
                     errors.append(f"dimension_timings[{i}] must be an object")
-                elif "dimension" not in dt or "duration_seconds" not in dt:
-                    errors.append(f"dimension_timings[{i}] missing required fields")
-                elif isinstance(dur := dt["duration_seconds"], (int, float)) and dur < -1:  # ty: ignore[invalid-argument-type]
-                    errors.append(f"dimension_timings[{i}] has invalid duration")
+                elif "dimension" not in dt or "duration_seconds" not in dt or "mode" not in dt:
+                    errors.append(f"dimension_timings[{i}] missing required fields (need: dimension, duration_seconds, mode)")
+                elif not isinstance(dt["duration_seconds"], (int, float)):
+                    errors.append(f"dimension_timings[{i}] duration_seconds must be numeric")
+                else:
+                    dur = dt["duration_seconds"]
+                    if dur < -1:
+                        errors.append(f"dimension_timings[{i}] has invalid duration ({dur}s)")
+                    elif dur == 0:
+                        errors.append(
+                            f"dimension_timings[{i}] ({dt['dimension']}): "
+                            "0s duration — timestamps likely fabricated or not captured"
+                        )
+                    if "start_epoch" in dt and "end_epoch" in dt:
+                        if dt["end_epoch"] < dt["start_epoch"]:
+                            errors.append(
+                                f"dimension_timings[{i}] ({dt['dimension']}): "
+                                "end_epoch < start_epoch"
+                            )
+                        elif dt["start_epoch"] == dt["end_epoch"] and dur != 0:
+                            errors.append(
+                                f"dimension_timings[{i}] ({dt['dimension']}): "
+                                "start_epoch == end_epoch but duration_seconds != 0"
+                            )
     return (len(errors) == 0, errors)
 
 
@@ -766,8 +789,11 @@ def cmd_end(args):
             dim_timings = json.loads(args.dimension_timings)
             if isinstance(dim_timings, list):
                 data["dimension_timings"] = dim_timings
-        except (json.JSONDecodeError, TypeError):
-            print("WARNING: Could not parse --dimension-timings JSON", file=sys.stderr)
+            else:
+                print("VALIDATION ERROR: --dimension-timings must be a JSON array", file=sys.stderr)
+        except (json.JSONDecodeError, TypeError) as e:
+            print(f"VALIDATION ERROR: Could not parse --dimension-timings JSON: {e}", file=sys.stderr)
+            print("Continuing with aggregate timing only (no per-dimension data).", file=sys.stderr)
 
     # Validate output file exists (for metadata embedding guidance)
     if (
@@ -803,9 +829,23 @@ def cmd_end(args):
     is_valid, validation_errors = validate_timing_data(data)
     if not is_valid:
         data["validation_errors"] = validation_errors
-        if output_format not in ("json", "quiet"):
-            for err in validation_errors:
-                print(f"VALIDATION WARNING: {err}", file=sys.stderr)
+        dim_errors = [e for e in validation_errors if e.startswith("dimension_timings")]
+        if dim_errors:
+            if output_format not in ("json", "quiet"):
+                for err in dim_errors:
+                    print(f"VALIDATION ERROR: {err}", file=sys.stderr)
+                print(
+                    "VALIDATION ERROR: Invalid dimension_timings rejected. "
+                    "Re-run with --dimension-timings '[]' for aggregate timing only.",
+                    file=sys.stderr,
+                )
+            data["dimension_timings"] = []
+            data["validation_errors"] = dim_errors
+        non_dim_errors = [e for e in validation_errors if not e.startswith("dimension_timings")]
+        if non_dim_errors:
+            if output_format not in ("json", "quiet"):
+                for err in non_dim_errors:
+                    print(f"VALIDATION WARNING: {err}", file=sys.stderr)
 
     # Write completed file (ensure directory exists)
     completed_file = get_completed_file(data["run_id"])

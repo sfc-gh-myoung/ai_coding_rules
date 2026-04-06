@@ -21,15 +21,11 @@ Initialize timing instrumentation for skill execution measurement.
 Run this command and capture the `TIMING_RUN_ID` from output:
 
 ```bash
-# Using wrapper script (recommended - handles uv/python3/python fallback):
-bash skills/skill-timing/scripts/run_timing.sh start \
-    --skill '{{skill_name}}' \
-    --target '{{target_file}}' \
-    --model '{{model}}' \
-    --mode '{{review_mode}}'
+# Discover Python interpreter (once per session):
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
 
-# Or direct invocation with uv (if available):
-uv run python skills/skill-timing/scripts/skill_timing.py start \
+# Start timing:
+$PYTHON skills/skill-timing/scripts/skill_timing.py start \
     --skill '{{skill_name}}' \
     --target '{{target_file}}' \
     --model '{{model}}' \

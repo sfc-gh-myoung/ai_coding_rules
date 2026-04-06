@@ -18,7 +18,8 @@ Integrate skill timing into automated CI/CD pipelines with machine-readable outp
 ### JSON Format (for parsing)
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh end \
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
     --run-id a1b2c3d4e5f67890 \
     --output-file output.md \
     --skill rule-reviewer \
@@ -45,7 +46,8 @@ bash skills/skill-timing/scripts/run_timing.sh end \
 ### CI Mode (JSON + exit codes)
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh end \
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
     --run-id a1b2c3d4e5f67890 \
     --output-file output.md \
     --skill rule-reviewer \
@@ -57,7 +59,7 @@ echo "Exit code: $?"
 ### CSV Format (for analysis)
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh analyze \
+$PYTHON skills/skill-timing/scripts/skill_timing.py analyze \
     --skill rule-reviewer \
     --days 7 \
     --format csv
@@ -195,7 +197,9 @@ run_with_timing() {
     
     # Start timing
     local timing_output
-    timing_output=$(bash skills/skill-timing/scripts/run_timing.sh start \
+    timing_output=$(bash skills/skill-timing/scripts/find_python.sh)
+    PYTHON=$timing_output
+    timing_output=$($PYTHON skills/skill-timing/scripts/skill_timing.py start \
         --skill "$skill" \
         --target "$target" \
         --model "$model")
@@ -207,7 +211,7 @@ run_with_timing() {
     # ...
     
     # End timing with JSON output
-    bash skills/skill-timing/scripts/run_timing.sh end \
+    $PYTHON skills/skill-timing/scripts/skill_timing.py end \
         --run-id "$run_id" \
         --output-file "$output" \
         --skill "$skill" \
@@ -235,12 +239,12 @@ For reporting across multiple runs:
 
 ```bash
 # Aggregate from review files
-bash skills/skill-timing/scripts/run_timing.sh aggregate \
+$PYTHON skills/skill-timing/scripts/skill_timing.py aggregate \
     reviews/*.md \
     --format json > aggregate.json
 
 # Or as CSV for spreadsheet import
-bash skills/skill-timing/scripts/run_timing.sh aggregate \
+$PYTHON skills/skill-timing/scripts/skill_timing.py aggregate \
     reviews/*.md \
     --format csv > aggregate.csv
 ```

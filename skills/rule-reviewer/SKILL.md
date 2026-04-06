@@ -315,74 +315,44 @@ bulk-rule-reviewer invokes this skill once per rule file. **Never** implement re
 
 | When | Action | Command | Track |
 |------|--------|---------|-------|
-| Before review | Start timing | `run_timing.sh start --skill rule-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
-| After schema validation | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
-| After scoring complete | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
-| Before file write | Compute | `run_timing.sh end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer --dimension-timings '{{_dimension_timings_json}}'` | Store `_timing_stdout` |
-| After file write | Embed | Parse `_timing_stdout`, append timing metadata section to output file | - |
+| Before review | Start timing | `$PYTHON skill_timing.py start --skill rule-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
+| After schema validation | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
+| After scoring complete | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
+| Before file write | End timing | `$PYTHON skill_timing.py end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer --format markdown --dimension-timings '{{_dimension_timings_json}}'` | Store `_timing_stdout` |
+| After file write | Embed | Append `_timing_stdout` to output file | - |
 
 **Working memory contract:** Retain `_timing_run_id`, `_timing_stdout`, and `_dimension_timings` from start through embed.
 
-**Per-Dimension Timing Validation (v2.7.1+):**
-
-When collecting timing data from sub-agents, two validation gates ensure accuracy:
-
-**Gate 1: Timestamp Plausibility**
-- Verify timestamps fall within coordinator window (±60s buffer)
-- Reject if end_epoch ≤ start_epoch
-- Reject if timestamps outside possible execution window
-
-**Gate 2: Fabrication Pattern Detection**
-- Flag suspiciously round durations (exact 60s multiples ≥60s)
-- Flag unusually long durations (>300s for single dimension)
-
-**Validation Outcomes:**
-- `mode: "self-report"` - Validation passed, timing accurate
-- `mode: "self-report-flagged"` - Warning issued but timing accepted
-- `mode: "validation-failed"` - Timestamps rejected, duration set to -1
-
-Sub-agents receive explicit bash timing instructions requiring `date +%s` commands before/after work. This ensures real timestamps (not approximations) are collected for performance regression analysis and cross-model comparison.
-
-**See:** `workflows/parallel-execution.md` Section 3.1a for validation logic.
+**Per-dimension timing:** Skill-timing handles all timestamp capture, validation, and formatting. See `../skill-timing/SKILL.md` for the `--dimension-timings` schema and epoch capture methods. Rule-reviewer's only responsibility is passing the collected JSON array to `timing-end`.
 
 **Quick Reference:**
 ```bash
-# 1. Start (store _timing_run_id from output)
-bash skills/skill-timing/scripts/run_timing.sh start \
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+$PYTHON skills/skill-timing/scripts/skill_timing.py start \
     --skill rule-reviewer --target rules/200-python-core.md --model claude-sonnet-45 --mode FULL
-# Output: TIMING_RUN_ID=rule-reviewer-200-python-core-20260108-abc123
 
-# 2. Checkpoint: skill_loaded
-bash skills/skill-timing/scripts/run_timing.sh checkpoint \
-    --run-id rule-reviewer-200-python-core-20260108-abc123 --name skill_loaded
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+    --run-id {{_timing_run_id}} --name skill_loaded
 
-# 3. Checkpoint: review_complete
-bash skills/skill-timing/scripts/run_timing.sh checkpoint \
-    --run-id rule-reviewer-200-python-core-20260108-abc123 --name review_complete
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+    --run-id {{_timing_run_id}} --name review_complete
 
-# 4. End (store _timing_stdout from output — use --format markdown)
-bash skills/skill-timing/scripts/run_timing.sh end \
-    --run-id rule-reviewer-200-python-core-20260108-abc123 \
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+    --run-id {{_timing_run_id}} \
     --output-file reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-08.md \
     --skill rule-reviewer --format markdown
-
-# 5. Embed: Parse _timing_stdout, append to output file
 ```
 
-**Timing Validation Checkpoints (MANDATORY when timing_enabled: true):**
+**Validation after each command (MANDATORY):**
 
-After each timing command, validate the output before proceeding:
+1. **After `start`:** Output must contain `TIMING_RUN_ID=`. If missing → STOP, report timing failure.
+2. **After `checkpoint`:** Output must contain `CHECKPOINT_STATUS=recorded`. If `missing` → note and continue.
+3. **After `end`:** Output must NOT contain `VALIDATION ERROR`. If present → per-dimension data was auto-stripped, note "Per-dimension timing unavailable" in review. If `end` fails entirely → re-run with `--format markdown` or read `reviews/.timing-data/skill-timing-{run_id}-complete.json` directly.
+4. **After file write:** Verify `## Timing Metadata` section exists in output file. If missing → append from `_timing_stdout`.
 
-1. **After `start`:** Verify output contains `TIMING_RUN_ID=`. If missing, STOP and report timing failure.
-2. **After each `checkpoint`:** Verify output contains `CHECKPOINT_STATUS=recorded`. If `missing`, the in-progress file was lost — attempt recovery via `end --run-id none --skill <name>`.
-3. **After `end`:** Verify output does NOT contain `WARNING` or `TIMING_STATUS=missing`. If `end` fails:
-   - **Fallback:** Re-run `end` with `--format markdown` — the completed file may already exist and will be returned.
-   - **Last resort:** Read `reviews/.timing-data/skill-timing-{run_id}-complete.json` directly and format manually.
-4. **After file write:** Verify the review file contains a `## Timing Metadata` section. If missing, append timing data from the `end` output.
+**If ALL timing validation fails:** Write the review WITHOUT timing metadata and note `**Timing data unavailable** - validation failed at step N`. Never block the review on timing failures.
 
-**If ALL timing validation fails:** Write the review WITHOUT timing metadata and note `**Timing data unavailable** - validation failed at step N` in the Timing Metadata section. Never block the review on timing failures.
-
-**See:** `../skill-timing/workflows/` for detailed workflow documentation
+**See:** `../skill-timing/SKILL.md` for timing implementation details, validation gates, dimension_timings schema, and epoch capture methods
 
 ## Error Handling
 

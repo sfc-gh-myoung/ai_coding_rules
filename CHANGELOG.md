@@ -14,6 +14,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Resolves 4 false positives on `440-react-core.md`; generic enough for any future delegating section
 
 ### Changed
+- **feat(skill-timing):** upgrade to v1.5.0 with stricter dimension validation and pricing refresh
+  - `mode` now required in `dimension_timings` entries (alongside `dimension`, `duration_seconds`)
+  - Detect fabricated timestamps: 0s duration, `end_epoch < start_epoch`, epoch mismatch with duration
+  - Dimension validation errors now emit `VALIDATION ERROR` (was `WARNING`) and strip invalid data to `[]`
+  - Non-dimension validation errors remain as `VALIDATION WARNING`
+  - Parse failures for `--dimension-timings` upgraded from `WARNING` to `VALIDATION ERROR` with detail
+  - Schema enum expanded: added `self-report-flagged`, `coordinator`, `validation-failed` modes
+  - Pricing updated: `claude-opus-45` $15/$75→$5/$25; added `claude-opus-46`, `claude-sonnet-46`, `claude-opus-4`
+  - SKILL.md: added `## Inputs` / `## Outputs` sections, moved `tags` under `metadata:`, third-person description
+- **chore(skill-timing):** audit fixes — remove dead refs, fix stale examples, add pyproject.toml
+  - Removed `VALIDATION.md` references from SKILL.md and Files tree (file was deleted)
+  - Fixed Files tree formatting and updated CLI version `v1.4.0` → `v1.5.0` in tree
+  - Added `⚠️` marker to Validation Checkpoints header for best-practices compliance
+  - Updated `basic-timing.md` example version `v1.3.0` → `v1.5.0`, simplified Step 4 wording
+  - Added minimal `pyproject.toml` (`requires-python >= 3.10`, no deps)
+  - Deleted `.DS_Store` artifact
+- **refactor(skill-timing):** replace `run_timing.sh` exec wrapper with `find_python.sh` discovery script
+  - `find_python.sh` prints Python interpreter path to stdout (no exec passthrough)
+  - New invocation: `PYTHON=$(bash find_python.sh)` then `$PYTHON skill_timing.py ...`
+  - Fixes argument mangling when passing complex `--dimension-timings` JSON through bash wrapper
+  - Updated 13 files (SKILL.md, test suite, 4 examples, 3 workflows, rule-reviewer, doc-reviewer, docs)
+- **refactor(rule-reviewer):** move timing implementation details to skill-timing SKILL.md
+  - Removed 30+ lines of validation gates, epoch capture code, and schema from rule-reviewer
+  - Rule-reviewer now references `../skill-timing/SKILL.md` for `--dimension-timings` schema
+- **fix(rule-reviewer):** use `python3 -c "import time; print(time.time())"` for fractional epoch precision
+  - Replaces `date +%s` (integer-only) in dimension-subagent-template.md
+  - Fixes whole-number durations in per-dimension timing data
+- **feat(rule-reviewer):** add dimension_timings anti-patterns and schema reference (v2.7.1 → v2.7.2)
+  - 3 anti-pattern pairs (❌/✅): fabricated timestamps, missing `duration_seconds`, ignoring validation errors
+  - `dimension_timings` schema table with required/optional field reference
+  - Validation checkpoint step 3 updated: `WARNING` → `VALIDATION ERROR` with recovery guidance
 - **refactor(rules):** standardize SQL file naming convention to `NN_<schema>_<operation>.sql` across 9 rule files
   - `102a`: removed anti-number-prefix directive (line 439), updated pattern from `<operation>_<object>.sql`, flattened directory examples
   - `130`: updated all ~30 filename references, rewrote Multi-Step section (number-first ordering), updated Quick Reference templates
@@ -26,6 +57,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `951`: added explicit dbt exemption note for `sv_<domain>_<subject>.sql` convention
   - `RULES_INDEX.md`: updated 130 description to reference new pattern
 - **002h-claude-code-skills.md** (v3.5.0 → v3.6.0): Fixed duplicate Error Recovery section, added "Too Many Options" anti-pattern, added evaluation JSON format example, added "Observing Skill Navigation" section, softened directory conventions, fixed optional frontmatter fields, added workflow cross-reference to 002l, added terminology cross-reference to 002m
+
+### Removed
+- **refactor(skill-timing):** delete `VALIDATION.md` — human-facing validation procedures superseded by automated test suite (`tests/test_skill_timing.sh`, 23 tests)
+- **refactor(skill-timing):** delete `run_timing.sh` — exec wrapper replaced by `find_python.sh` discovery + direct `skill_timing.py` invocation
 
 ## [3.7.2] - 2026-04-03
 

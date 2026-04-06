@@ -103,9 +103,9 @@ Return ONLY this JSON structure:
 **Step 1: Record Start Time**
 IMMEDIATELY execute this command BEFORE any analysis work:
 ```bash
-date +%s
+python3 -c "import time; print(time.time())"
 ```
-Store the exact numeric output as `start_epoch` (e.g., 1774626649)
+Store the exact numeric output as `start_epoch` (e.g., 1774626649.837)
 
 **Step 2: Perform Your Evaluation**
 - Read rule content completely
@@ -116,22 +116,22 @@ Store the exact numeric output as `start_epoch` (e.g., 1774626649)
 **Step 3: Record End Time**
 IMMEDIATELY execute this command AFTER completing your analysis:
 ```bash
-date +%s
+python3 -c "import time; print(time.time())"
 ```
-Store the exact numeric output as `end_epoch` (e.g., 1774626702)
+Store the exact numeric output as `end_epoch` (e.g., 1774626702.154)
 
 **Step 4: Include in JSON Response**
 Return both timestamps in your JSON output:
 ```json
 {
-  "start_epoch": 1774626649,
-  "end_epoch": 1774626702,
+  "start_epoch": 1774626649.837,
+  "end_epoch": 1774626702.154,
   ...
 }
 ```
 
 **IMPORTANT REQUIREMENTS:**
-- Use ONLY the exact numeric output from `date +%s` bash commands
+- Use ONLY the exact numeric output from `python3 -c "import time; print(time.time())"` bash commands
 - Do NOT round, approximate, estimate, or fabricate timestamps
 - Record timestamps IMMEDIATELY before/after work (not mid-analysis)
 - If bash command fails, return `start_epoch: null, end_epoch: null`

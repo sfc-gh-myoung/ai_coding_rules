@@ -43,7 +43,8 @@ If `run_id` is `none`, skip this workflow.
 Otherwise, execute:
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh end \
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
     --run-id '{{run_id}}' \
     --output-file '{{output_file}}' \
     --skill '{{skill_name}}' \

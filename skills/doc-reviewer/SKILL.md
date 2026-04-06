@@ -165,10 +165,10 @@ Convert model name to lowercase-hyphenated slug for filenames.
 
 | When | Action | Command | Track |
 |------|--------|---------|-------|
-| Before review | Start timing | `run_timing.sh start --skill doc-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
-| After rubrics loaded | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
-| After review complete | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
-| Before file write | Compute | `run_timing.sh end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill doc-reviewer` | Store `_timing_stdout` |
+| Before review | Start timing | `$PYTHON skill_timing.py start --skill doc-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
+| After rubrics loaded | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
+| After review complete | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
+| Before file write | Compute | `$PYTHON skill_timing.py end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill doc-reviewer` | Store `_timing_stdout` |
 | After file write (ACT) | Embed | Parse `_timing_stdout`, append timing metadata section to output file | - |
 
 **Working memory contract:** Retain `_timing_run_id` and `_timing_stdout` from start through embed.
@@ -176,20 +176,20 @@ Convert model name to lowercase-hyphenated slug for filenames.
 **Quick Reference:**
 ```bash
 # 1. Start (store _timing_run_id from output)
-bash skills/skill-timing/scripts/run_timing.sh start \
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+$PYTHON skills/skill-timing/scripts/skill_timing.py start \
     --skill doc-reviewer --target README.md --model claude-sonnet-45 --mode FULL
-# Output: TIMING_RUN_ID=doc-reviewer-README-20260108-abc123
 
 # 2. Checkpoint: skill_loaded
-bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
     --run-id doc-reviewer-README-20260108-abc123 --name skill_loaded
 
 # 3. Checkpoint: review_complete  
-bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
     --run-id doc-reviewer-README-20260108-abc123 --name review_complete
 
 # 4. End (store _timing_stdout from output)
-bash skills/skill-timing/scripts/run_timing.sh end \
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
     --run-id doc-reviewer-README-20260108-abc123 \
     --output-file reviews/doc-reviews/README-claude-sonnet-45-2026-01-08.md \
     --skill doc-reviewer

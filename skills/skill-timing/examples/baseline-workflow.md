@@ -14,7 +14,8 @@ Establish a performance baseline and compare future runs against it.
 Before setting a baseline, analyze your timing data:
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh analyze \
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+$PYTHON skills/skill-timing/scripts/skill_timing.py analyze \
     --skill rule-reviewer \
     --model claude-sonnet-45 \
     --days 30
@@ -43,7 +44,7 @@ P95:         5m 45s (345.00s)
 Once you have enough data points, set a baseline:
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh baseline set \
+$PYTHON skills/skill-timing/scripts/skill_timing.py baseline set \
     --skill rule-reviewer \
     --mode FULL \
     --model claude-sonnet-45 \
@@ -68,7 +69,7 @@ Future timing runs automatically compare against the baseline:
 
 ```bash
 # Start timing
-bash skills/skill-timing/scripts/run_timing.sh start \
+$PYTHON skills/skill-timing/scripts/skill_timing.py start \
     --skill rule-reviewer \
     --target rules/100-snowflake-core.md \
     --model claude-sonnet-45 \
@@ -77,7 +78,7 @@ bash skills/skill-timing/scripts/run_timing.sh start \
 # [Execute skill...]
 
 # End timing
-bash skills/skill-timing/scripts/run_timing.sh end \
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
     --run-id a1b2c3d4e5f67890 \
     --output-file reviews/100-snowflake-core-review.md \
     --skill rule-reviewer
@@ -102,7 +103,7 @@ Baseline:    +6.4% vs avg (within normal)
 Compare a specific run against baseline:
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh baseline compare \
+$PYTHON skills/skill-timing/scripts/skill_timing.py baseline compare \
     --run-id a1b2c3d4e5f67890
 ```
 
@@ -150,7 +151,7 @@ Re-run baseline set periodically to account for model changes or skill updates:
 
 ```bash
 # Update baseline with recent data only
-bash skills/skill-timing/scripts/run_timing.sh baseline set \
+$PYTHON skills/skill-timing/scripts/skill_timing.py baseline set \
     --skill rule-reviewer \
     --mode FULL \
     --model claude-sonnet-45 \
@@ -162,7 +163,7 @@ bash skills/skill-timing/scripts/run_timing.sh baseline set \
 For testing, use `--min-samples` to lower the threshold:
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh baseline set \
+$PYTHON skills/skill-timing/scripts/skill_timing.py baseline set \
     --skill rule-reviewer \
     --mode FULL \
     --model claude-sonnet-45 \

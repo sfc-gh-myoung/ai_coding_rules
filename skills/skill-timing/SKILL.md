@@ -1,8 +1,9 @@
 ---
 name: skill-timing
-description: Measures skill execution time and tracks performance. Use when you want to time a skill, measure duration, track how long something takes, compare performance across models, analyze execution speed, or detect agent shortcuts.
-version: 1.4.0
-tags: [timing, performance, measurement, instrumentation, metrics, ci-cd]
+description: Measures skill execution time and tracks performance. Use when timing a skill, measuring duration, comparing performance across models, analyzing execution speed, or detecting agent shortcuts.
+version: 1.5.0
+metadata:
+  tags: [timing, performance, measurement, instrumentation, metrics, ci-cd]
 ---
 
 # Skill Timing
@@ -24,7 +25,7 @@ timing_enabled: true
 
 **Output:** Timing metadata embedded in output file with duration, checkpoints, token costs, and baseline comparison.
 
-## When to Use
+## Use this skill when
 
 ✅ **Use this skill when:**
 - Measuring skill execution duration
@@ -50,6 +51,54 @@ Enable comprehensive performance measurement and analysis:
 - **Baseline comparison** - Compare against historical averages
 - **Cross-analysis** - Performance across models, agents, and modes
 
+## Inputs
+
+### Required (timing-start)
+- `skill_name`: `string` — Name of the skill being timed
+- `target_file`: `path` — Target file path
+- `model`: `string` — Model slug (e.g., claude-sonnet-45)
+
+### Required (timing-end)
+- `run_id`: `hex string (16 chars)` — From timing-start output
+- `output_file`: `path` — Output file for metadata embedding
+- `skill_name`: `string` — Skill name (for recovery if run_id lost)
+
+### Optional (timing-end)
+- `input_tokens`: `integer` (default: none) — Input token count
+- `output_tokens`: `integer` (default: none) — Output token count
+- `format`: `string` (default: `human`) — Output format: human, json, markdown, quiet
+- `dimension_timings`: `JSON array` (default: none) — Per-dimension timing data (see schema below)
+- `review_mode`: `string` (default: `FULL`) — Review mode if applicable
+
+### dimension_timings Schema
+
+Each element in the `dimension_timings` JSON array must conform to:
+
+| Field | Required | Type | Notes |
+|-------|----------|------|-------|
+| `dimension` | **Yes** | string | Dimension name (e.g., "actionability") |
+| `duration_seconds` | **Yes** | number | Actual duration in seconds. Use `-1` for failed/unavailable. |
+| `mode` | **Yes** | string | One of: `self-report`, `self-report-flagged`, `coordinator`, `inline`, `validation-failed`, `failed` |
+| `start_epoch` | No | number | Unix timestamp (fractional) when work started |
+| `end_epoch` | No | number | Unix timestamp (fractional) when work ended |
+| `validation_warning` | No | string | Warning message if flagged |
+| `validation_error` | No | string | Error message if validation failed |
+
+**Epoch capture (IMPORTANT):** Use `python3 -c "import time; print(time.time())"` for fractional precision. Do NOT use `date +%s` which returns integer-only epochs and produces whole-number durations.
+
+**Validation gates (applied automatically by `timing-end`):**
+- **Plausibility:** Rejects if `end_epoch` <= `start_epoch` or timestamps fall outside execution window (+-60s buffer)
+- **Fabrication detection:** Flags suspiciously round durations (exact 60s multiples >= 60s) or unusually long durations (>300s for a single dimension)
+- **Outcomes:** `self-report` (passed), `self-report-flagged` (warning but accepted), `validation-failed` (rejected, duration set to -1)
+
+## Outputs
+
+**Timing data:** `reviews/.timing-data/skill-timing-{run_id}-complete.json`
+
+**Metadata block (appended to output_file):** Markdown table with duration, checkpoints, token costs, baseline comparison.
+
+**No overwrites:** Each run produces a unique `run_id`; completed files never collide.
+
 ## Core Operations
 
 ### 1. timing-start
@@ -64,7 +113,8 @@ Initialize timing for a skill execution.
 
 **Command:**
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh start \
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+$PYTHON skills/skill-timing/scripts/skill_timing.py start \
     --skill rule-reviewer \
     --target rules/200-python-core.md \
     --model claude-sonnet-45 \
@@ -92,7 +142,7 @@ Record an intermediate timing checkpoint (optional but recommended).
 
 **Command:**
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh checkpoint \
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
     --run-id a1b2c3d4e5f67890 \
     --name skill_loaded
 ```
@@ -129,7 +179,7 @@ Finalize timing and compute duration.
 
 **Command:**
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh end \
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
     --run-id a1b2c3d4e5f67890 \
     --output-file reviews/output.md \
     --skill rule-reviewer \
@@ -164,7 +214,7 @@ When `timing_enabled: true`, validate after EACH command:
 
 1. **After `start`:** Verify output contains `TIMING_RUN_ID=`. If missing → STOP, report failure.
 2. **After `checkpoint`:** Verify output contains `CHECKPOINT_STATUS=recorded`. If `missing` → in-progress file lost, continue but note.
-3. **After `end`:** Verify output does NOT contain `WARNING` or `TIMING_STATUS=missing`. If failed:
+3. **After `end`:** Check for `VALIDATION ERROR` in stderr. If present, per-dimension timing data was invalid and has been stripped — only aggregate timing remains. If `TIMING_STATUS=missing` or no output:
    - Re-run `end --format markdown` (may recover from completed file)
    - Last resort: Read `reviews/.timing-data/skill-timing-{run_id}-complete.json` directly
 4. **After file write:** Verify `## Timing Metadata` section exists in output file. If missing → append it.
@@ -179,7 +229,7 @@ Set a performance baseline from recent timing data (requires 5+ runs).
 
 **Command:**
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh baseline set \
+$PYTHON skills/skill-timing/scripts/skill_timing.py baseline set \
     --skill rule-reviewer \
     --mode FULL \
     --model claude-sonnet-45 \
@@ -202,7 +252,7 @@ Compare a specific run against the baseline.
 
 **Command:**
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh baseline compare \
+$PYTHON skills/skill-timing/scripts/skill_timing.py baseline compare \
     --run-id a1b2c3d4e5f67890
 ```
 
@@ -212,7 +262,7 @@ Analyze timing data across multiple runs.
 
 **Command:**
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh analyze \
+$PYTHON skills/skill-timing/scripts/skill_timing.py analyze \
     --skill rule-reviewer \
     --model claude-sonnet-45 \
     --days 7 \
@@ -253,6 +303,7 @@ When the skill evaluates multiple dimensions (e.g., rule-reviewer):
 - **Sequential mode:** Use checkpoint pairs (`dim_{name}_start` / `dim_{name}_end`) around each dimension
 - **Parallel mode:** Sub-agents self-report `start_epoch` / `end_epoch` in their JSON output
 - Pass collected timings to `timing-end` via `--dimension-timings` JSON flag
+- **Precision:** Capture fractional epochs with `python3 -c "import time; print(time.time())"` — NOT `date +%s` (integer-only, produces whole-number durations)
 
 **Validation:** Verify `## Timing Metadata` exists in output file.
 ```
@@ -266,7 +317,7 @@ When the skill evaluates multiple dimensions (e.g., rule-reviewer):
 | `_timing_run_id` | timing-start STDOUT | checkpoint, end | If lost, end attempts registry recovery |
 | `_timing_enabled` | Input parameter | Conditional checks | Boolean flag |
 | `_timing_stdout` | timing-end STDOUT | Metadata embedding | Full markdown table |
-| `_dimension_timings` | Checkpoint deltas or sub-agent JSON | timing-end `--dimension-timings` | Per-dimension timing array |
+| `_dimension_timings` | Checkpoint deltas or sub-agent JSON | timing-end `--dimension-timings` | Per-dimension timing array (see dimension_timings Schema above) |
 
 **If agent loses `_timing_run_id`:** timing-end can attempt recovery from registry using `--run-id none --skill <name>`, but may fail.
 
@@ -318,13 +369,11 @@ See [`examples/ci-integration.md`](examples/ci-integration.md)
 ```
 skill-timing/
 ├── SKILL.md                          # This file
-├── CHANGELOG.md                      # Version history and changes
-├── VALIDATION.md                     # Schema validation rules
-└── schemas/
-    └── timing-output.schema.json    # JSON schema for timing output
+├── schemas/
+│   └── timing-output.schema.json    # JSON schema for timing output
 ├── scripts/
-│   ├── skill_timing.py              # Core CLI (v1.4.0)
-│   └── run_timing.sh                # Wrapper script
+│   ├── skill_timing.py              # Core CLI (v1.5.0)
+│   └── find_python.sh               # Python interpreter discovery
 ├── workflows/
 │   ├── timing-start.md              # Detailed start workflow
 │   ├── timing-checkpoint.md         # Detailed checkpoint workflow

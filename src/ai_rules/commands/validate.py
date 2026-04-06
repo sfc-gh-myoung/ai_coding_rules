@@ -1029,7 +1029,8 @@ class SchemaValidator:
         reference (with optional blockquote context like Investigation Required).
         """
         non_heading_lines = [
-            line for line in section_content.split("\n")
+            line
+            for line in section_content.split("\n")
             if line.strip() and not re.match(r"^##\s+", line)
         ]
         if not non_heading_lines:
@@ -1044,9 +1045,7 @@ class SchemaValidator:
         if not has_see_reference:
             return False
 
-        all_blockquote = all(
-            line.strip().startswith(">") for line in non_heading_lines
-        )
+        all_blockquote = all(line.strip().startswith(">") for line in non_heading_lines)
         return all_blockquote
 
     def _validate_restrictions(

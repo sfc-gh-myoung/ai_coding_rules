@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added syntax note clarifying the grammar inconsistency vs `DESCRIBE SEMANTIC VIEW`
 - **fix(skill-timing):** resolve SIM102 lint error and 10 ty type-check errors in `validate_timing_data`
   - Combined nested `if` into single condition; added `cast(dict[str, Any], dt)` for type narrowing
+- **chore:** apply `ruff format` to `validate.py` and `test_validate.py`
 
 ### Added
 - **feat(rule):** add YAML agent spec format section to `115-snowflake-cortex-agents-core`

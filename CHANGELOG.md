@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **fix(rule):** correct `SHOW SEMANTIC DIMENSIONS/METRICS/FACTS IN` syntax in `106-snowflake-semantic-views-core` and companions
+  - Removed erroneous `SEMANTIC VIEW` keyword after `IN` (9 occurrences in 106, 106a, 106b, 106c, 106d)
+  - Added syntax note clarifying the grammar inconsistency vs `DESCRIBE SEMANTIC VIEW`
+- **fix(skill-timing):** resolve SIM102 lint error and 10 ty type-check errors in `validate_timing_data`
+  - Combined nested `if` into single condition; added `cast(dict[str, Any], dt)` for type narrowing
+
+### Added
+- **feat(rule):** add YAML agent spec format section to `115-snowflake-cortex-agents-core`
+  - Documents correct `sample_questions` object format (`question`/`answer` keys, not plain strings)
+  - Covers `tool_spec`/`tool_resources` structure and string quoting best practices
+
+### Fixed
 - **fix(validator):** eliminate false-positive MEDIUM warnings for delegation-pattern Anti-Patterns sections
   - New `_section_delegates_to_companion()` detects `> **See:**` blockquote cross-references to companion `.md` files
   - Credits all skipped checks as passed (accurate totals in verbose output)

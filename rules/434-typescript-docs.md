@@ -6,7 +6,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-04-11
 **Keywords:** TypeScript, TSDoc, documentation, eslint-plugin-jsdoc, API docs, type documentation
-**TokenBudget:** ~3600
+**TokenBudget:** ~3150
 **ContextTier:** High
 **Depends:** 430-typescript-core.md
 **LoadTrigger:** kw:tsdoc, kw:documentation, kw:comments, ext:.ts, ext:.tsx

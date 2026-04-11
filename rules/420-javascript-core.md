@@ -38,6 +38,7 @@ Definitive standards for writing modern, robust JavaScript in 2026, enforcing EC
 - **000-global-core.md** - Foundation rule with core patterns and validation gates
 
 **Related:**
+- **424-javascript-docs.md** - JSDoc documentation standards
 - **440-react-core.md** - React-specific patterns and best practices
 
 ### External Documentation

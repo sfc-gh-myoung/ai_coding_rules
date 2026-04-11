@@ -164,7 +164,7 @@ lint: lint-ruff lint-markdown lint-notebooks validate-notebook-metadata ## Run a
    - Fix: Use Ruff to auto-sort imports with `uvx nbqa ruff check --fix`
 
 5. **Missing docstrings**: Functions defined in notebooks without documentation
-   - Fix: Add docstrings to function cells following `204-python-docs-comments.md`
+   - Fix: Add docstrings to function cells following `204-python-docs.md`
 
 ### Ruff Configuration for Notebooks
 

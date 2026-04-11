@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **feat(rule):** add `434-typescript-docs.md` for TSDoc documentation standards
+  - TSDoc syntax, eslint-plugin-jsdoc `flat/recommended-typescript` config
+  - No type annotations in docs (TypeScript provides types)
+- **feat(rule):** add `424-javascript-docs.md` for JSDoc documentation standards
+  - JSDoc 3 syntax with type annotations, eslint-plugin-jsdoc `flat/recommended` config
+  - `@ts-check` integration for type validation
+
+### Changed
+- **refactor(rule):** rename `204-python-docs-comments.md` to `204-python-docs.md`
+  - Updated 16 files with references to renamed rule
+  - Added Related Rules entries in `430-typescript-core.md` and `420-javascript-core.md`
+
 ### Fixed
 - **fix(rule):** correct `SHOW SEMANTIC DIMENSIONS/METRICS/FACTS IN` syntax in `106-snowflake-semantic-views-core` and companions
   - Removed erroneous `SEMANTIC VIEW` keyword after `IN` (9 occurrences in 106, 106a, 106b, 106c, 106d)

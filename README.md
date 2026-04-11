@@ -571,7 +571,7 @@ These skills are intended to be used specifically for the ai_coding_rules projec
 **rule-reviewer** — Automate rule quality reviews
 - **Purpose:** Review rule files for agent executability and quality
 - **Modes:** FULL, FOCUSED, STALENESS
-- **Scoring:** 100-point system across 6 dimensions (Actionability 25, Completeness 25, Consistency 15, Parsability 15, Token Efficiency 10, Staleness 10)
+- **Scoring:** 100-point system across 6 dimensions (Actionability 30, Rule Size 25, Parsability 15, Completeness 15, Consistency 10, Cross-Agent 5)
 - **Priority Compliance Gate:** Agent Execution Test as first gate; Priority 1 violations cap scores
 - **Cross-model compatibility:** Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
 - **Trigger keywords:** "review rule", "audit rule", "check rule quality", "rule staleness"

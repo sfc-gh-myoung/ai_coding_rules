@@ -1,8 +1,8 @@
 # Using the Rule Reviewer Skill
 
-**Last Updated:** 2026-03-27
+**Last Updated:** 2026-04-11
 
-The Rule Reviewer Skill evaluates rule files to ensure autonomous agents can execute them successfully. It scores rules across 8 dimensions using a weighted scoring system optimized for agent executability.
+The Rule Reviewer Skill evaluates rule files to ensure autonomous agents can execute them successfully. It scores rules across 6 dimensions using a weighted scoring system optimized for agent executability.
 
 ## Examples
 
@@ -65,7 +65,7 @@ model: claude-sonnet-45              # Required
 
 ### FULL Mode
 
-Scores all 8 dimensions for a complete quality assessment.
+Scores all 6 dimensions for a complete quality assessment.
 
 ```text
 target_file: rules/200-python-core.md
@@ -74,7 +74,7 @@ review_mode: FULL
 
 ### FOCUSED Mode
 
-Evaluates only Actionability and Completeness (50 points max). Use for rapid validation.
+Evaluates only Actionability and Completeness (45 points max). Use for rapid validation.
 
 ```text
 target_file: rules/200-python-core.md
@@ -106,32 +106,27 @@ review_mode: STALENESS
 
 ### Scoring Dimensions
 
-Rules are scored across 8 dimensions with weighted points:
-
-**Critical Dimensions (65 points)** — Agent must execute without judgment calls:
+Rules are scored across 6 dimensions with weighted points:
 
 | Dimension | Weight | Max Points | Key Question |
 |-----------|--------|------------|--------------|
-| Actionability | 5 | 25 | Can agents execute without judgment? |
-| Completeness | 5 | 25 | Are all scenarios covered? |
-| Consistency | 3 | 15 | Is internal alignment correct? |
+| Actionability | 3.0 | 30 | Can agents execute without judgment? |
+| Rule Size | 2.5 | 25 | Within 500-line target? (deterministic) |
+| Parsability | 1.5 | 15 | Is metadata/schema valid? |
+| Completeness | 1.5 | 15 | Are all scenarios covered? |
+| Consistency | 1.0 | 10 | Is internal alignment correct? |
+| Cross-Agent Consistency | 0.5 | 5 | Works across all agents? |
 
-**Standard Dimensions (50 points)** — Important for quality:
+**Informational Only (Not Scored):**
+- **Token Efficiency** — Merged into Rule Size; findings in recommendations
+- **Staleness** — Flagged in recommendations; not scored
 
-| Dimension | Weight | Max Points | Key Question |
-|-----------|--------|------------|--------------|
-| Parsability | 3 | 15 | Is metadata/schema valid? |
-| Token Efficiency | 2 | 10 | Within ±5% of TokenBudget? |
-| Rule Size | 2 | 10 | Within 500-line target? |
-| Staleness | 2 | 10 | Are patterns current? |
-| Cross-Agent Consistency | 1 | 5 | Works across all agents? |
-
-**Scoring Formula:** `Raw (0-10) × (Weight / 2) = Points`
+**Scoring Formula:** `Raw (0-10) × Weight = Points`
 
 **Example (Actionability):**
 - Raw score: 8/10
-- Weight: 5
-- Points: 8 × (5/2) = 8 × 2.5 = **20 points**
+- Weight: 3.0
+- Points: 8 × 3.0 = **24 points**
 
 ### Rule Size Flags
 
@@ -276,13 +271,12 @@ Coordinator (Main Agent)
 │   └── Run schema validation
 │
 ├── Phase 2: Dimension Evaluation (parallel: 5 sub-agents, or sequential)
-│   ├── Actionability (25pts)
-│   ├── Completeness (25pts)
-│   ├── Consistency (15pts)
+│   ├── Actionability (30pts)
+│   ├── Rule Size (25pts) — computed inline
 │   ├── Parsability (15pts)
-│   ├── Token Efficiency (10pts)
-│   ├── Rule Size (10pts) — computed inline
-│   └── Staleness + Cross-Agent (15pts)
+│   ├── Completeness (15pts)
+│   ├── Consistency (10pts)
+│   └── Cross-Agent Consistency (5pts)
 │
 ├── Phase 3: Collect & Validate
 │   ├── Gather dimension worksheets

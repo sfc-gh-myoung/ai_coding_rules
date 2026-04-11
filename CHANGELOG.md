@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **feat(prompts):** add reusable prompt templates for common workflows
+  - `analyze-plan.md`: Plan analysis with checklist generation
+  - `commit-changes.md`: Staged changes commit helper
+  - `execute-plan.md`: Plan execution with progress tracking
+  - `update-changelog.md`: Changelog update from staged changes
+
+### Changed
+- **docs(rule-reviewer):** update scoring documentation to match v2.7.2 schema
+  - Fix dimension count (8 → 6 scored dimensions)
+  - Update weights: Actionability 30, Rule Size 25, Parsability 15, Completeness 15, Consistency 10, Cross-Agent 5
+  - Note Token Efficiency and Staleness as informational-only (not scored)
+  - Update FOCUSED mode max points (50 → 45)
+- **docs(skill-timing):** fix stale references in usage documentation
+  - Update version reference (v1.2.0 → v1.5.0)
+  - Remove reference to deleted VALIDATION.md file
+
+### Added
+- **feat(rule-reviewer):** add anti-pattern documentation for dimension_timings (v2.7.2)
+  - 3 anti-pattern pairs: fabricated timestamps, missing required fields, ignoring validation errors
+  - Cross-reference to skill-timing SKILL.md dimension_timings schema
+
 ### Fixed
 - **fix(examples):** correct `SHOW SEMANTIC DIMENSIONS/METRICS` syntax in example files
   - Replace `FOR SEMANTIC VIEW` with `IN` in 5 occurrences across 2 example files

@@ -179,7 +179,7 @@ CREATE OR REPLACE SEMANTIC VIEW my_view AS
 SHOW SEMANTIC VIEWS LIKE 'my_view';
 
 -- Step 3: Verify dimensions are correct
-SHOW SEMANTIC DIMENSIONS FOR SEMANTIC VIEW my_view;
+SHOW SEMANTIC DIMENSIONS IN my_view;
 
 -- Step 4: Test querying the view
 SELECT * FROM TABLE(SEMANTIC_VIEW('my_view')) LIMIT 5;
@@ -196,11 +196,11 @@ SHOW SEMANTIC VIEWS LIKE 'sales_analysis';
 -- Expected: View listed with correct schema
 
 -- Verify dimensions are all simple column references
-SHOW SEMANTIC DIMENSIONS FOR SEMANTIC VIEW sales_analysis;
+SHOW SEMANTIC DIMENSIONS IN sales_analysis;
 -- Expected: All dimensions show simple column mappings
 
 -- Verify metrics are defined correctly
-SHOW SEMANTIC METRICS FOR SEMANTIC VIEW sales_analysis;
+SHOW SEMANTIC METRICS IN sales_analysis;
 -- Expected: Metrics show aggregate functions
 
 -- Test data access

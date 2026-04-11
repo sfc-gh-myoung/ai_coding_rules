@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **fix(examples):** correct `SHOW SEMANTIC DIMENSIONS/METRICS` syntax in example files
+  - Replace `FOR SEMANTIC VIEW` with `IN` in 5 occurrences across 2 example files
+  - `106-semantic-view-workarounds-example.md`: 3 fixes (lines 182, 199, 203)
+  - `115-cortex-agent-prerequisites-example.md`: 2 fixes (lines 60, 61)
+
 ### Added
 - **feat(rules):** add dynamic `GRANT ROLE TO USER` pattern using `SET` + `IDENTIFIER($var)`
   - `130-snowflake-demo-sql.md`: Demo User RBAC section + Anti-Pattern 6 + keywords

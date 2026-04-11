@@ -6,7 +6,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-04-11
 **Keywords:** JavaScript, JSDoc, documentation, eslint-plugin-jsdoc, API docs, type annotations
-**TokenBudget:** ~3800
+**TokenBudget:** ~4300
 **ContextTier:** High
 **Depends:** 420-javascript-core.md
 **LoadTrigger:** kw:jsdoc, kw:documentation, kw:comments, ext:.js, ext:.mjs

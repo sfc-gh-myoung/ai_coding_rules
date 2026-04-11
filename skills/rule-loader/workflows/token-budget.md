@@ -54,7 +54,7 @@ Deferred rules must be declared in the Rules Loaded section:
 - rules/000-global-core.md (foundation)
 - rules/200-python-core.md (file extension: .py)
 - rules/206-python-pytest.md (keyword: test)
-- [Deferred: 204-python-docs-comments.md - Low tier, not required for task]
+- [Deferred: 204-python-docs.md - Low tier, not required for task]
 ```
 
 ## Loading Tiers

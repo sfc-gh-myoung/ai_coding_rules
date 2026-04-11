@@ -31,14 +31,14 @@ Match: implied .py -> 200-python-core.md
 ```bash
 grep -iE "test|docstring|dashboard" rules/RULES_INDEX.md
 # Matches: 206-python-pytest.md (keyword: test)
-#          204-python-docs-comments.md (keyword: docstring)
+#          204-python-docs.md (keyword: docstring)
 ```
 
 ## Phase 4: Dependency Resolution
 
 ```
 206-python-pytest.md -> Depends: 200-python-core.md (already selected)
-204-python-docs-comments.md -> Depends: 200-python-core.md (already selected)
+204-python-docs.md -> Depends: 200-python-core.md (already selected)
 101-snowflake-streamlit-core.md -> Depends: 100-snowflake-core.md (already selected)
 200-python-core.md -> Depends: 000-global-core.md (already loaded)
 100-snowflake-core.md -> Depends: 000-global-core.md (already loaded)
@@ -50,7 +50,7 @@ grep -iE "test|docstring|dashboard" rules/RULES_INDEX.md
 3. 100-snowflake-core.md (keyword: Snowflake)
 4. 101-snowflake-streamlit-core.md (keyword: Streamlit)
 5. 206-python-pytest.md (keyword: test)
-6. 204-python-docs-comments.md (keyword: docstring)
+6. 204-python-docs.md (keyword: docstring)
 
 ## Phase 5: Token Budget Management
 
@@ -63,7 +63,7 @@ grep -iE "test|docstring|dashboard" rules/RULES_INDEX.md
 | 100-snowflake-core.md | ~1,800 | High |
 | 101-snowflake-streamlit-core.md | ~3,700 | High |
 | 206-python-pytest.md | ~3,500 | Medium |
-| 204-python-docs-comments.md | ~3,500 | Low |
+| 204-python-docs.md | ~3,500 | Low |
 | **Total** | **~18,350** | |
 
 ### Step 2: Check Against Limit
@@ -75,11 +75,11 @@ grep -iE "test|docstring|dashboard" rules/RULES_INDEX.md
 
 ### Step 3: Deferral Logic
 
-1. Identify Low-tier rules: `204-python-docs-comments.md` (~3,500, Low)
+1. Identify Low-tier rules: `204-python-docs.md` (~3,500, Low)
 2. Deferring `204` reduces total from ~18,350 to ~14,850 (under soft warning)
 3. No Medium-tier deferrals needed since we are now under 15,000
 
-**Decision:** Defer `204-python-docs-comments.md`
+**Decision:** Defer `204-python-docs.md`
 
 ### Step 4: Declare Deferrals
 
@@ -92,7 +92,7 @@ grep -iE "test|docstring|dashboard" rules/RULES_INDEX.md
 - rules/100-snowflake-core.md (keyword: Snowflake)
 - rules/101-snowflake-streamlit-core.md (keyword: Streamlit)
 - rules/206-python-pytest.md (keyword: test)
-- [Deferred: 204-python-docs-comments.md - Low tier, budget exceeded soft warning at ~18,350]
+- [Deferred: 204-python-docs.md - Low tier, budget exceeded soft warning at ~18,350]
 ```
 
 **Final budget:** ~14,850 / 20,000 tokens
@@ -113,7 +113,7 @@ With this filter, only Critical and High tier rules are candidates. Low and Medi
 
 **Excluded by filter:**
 - 206-python-pytest.md (Medium)
-- 204-python-docs-comments.md (Low)
+- 204-python-docs.md (Low)
 
 | Rule | TokenBudget | ContextTier |
 |------|------------|-------------|

@@ -45,7 +45,7 @@ Foundational Python development practices: investigation-first toolchain detecti
 
 **Related:**
 - **202-markup-config-validation.md** - YAML and configuration file validation
-- **204-python-docs-comments.md** - Documentation and docstring standards
+- **204-python-docs.md** - Documentation and docstring standards
 - **206-python-pytest.md** - Comprehensive testing patterns with pytest
 
 ### External Documentation
@@ -451,4 +451,4 @@ def filter_active(users: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
 - **Rule:** Separate I/O and CPU concerns. Prefer set-based SQL and vectorization over Python loops.
 - **Rule:** Ensure code is idiomatic and follows PEP 8.
 - **Rule:** Include comprehensive type hints.
-- **Rule:** Follow Python documentation standards from `204-python-docs-comments.md` (Google-style docstrings for all public APIs, enforced via Ruff D-rules).
+- **Rule:** Follow Python documentation standards from `204-python-docs.md` (Google-style docstrings for all public APIs, enforced via Ruff D-rules).

@@ -98,7 +98,7 @@ Loaded (Critical/High):
 - 000-global-core.md, 200-python-core.md, 206-python-pytest.md
 
 Deferred (Medium/Low - available if needed):
-- 204-python-docs-comments.md (not required for test execution)
+- 204-python-docs.md (not required for test execution)
 ```
 
 If total exceeds 20,000 tokens, prioritize by ContextTier:
@@ -122,7 +122,7 @@ If total exceeds 20,000 tokens, prioritize by ContextTier:
 ## Rules Loaded
 - rules/000-global-core.md (foundation)
 - rules/200-python-core.md (file extension: .py)
-- [Deferred: 204-python-docs-comments.md - Low tier, not required for task]
+- [Deferred: 204-python-docs.md - Low tier, not required for task]
 ```
 
 ### 6. Declare Loaded Rules
@@ -478,13 +478,13 @@ User: "Write tests for my Streamlit dashboard"
 - Keywords: Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, src layout
 - Depends: `200-python-core.md`
 
-**`204-python-docs-comments.md`** - Clear, enforceable standards for Python documentation (project docs), source code comments, and docstrings, aligned with PEP 257, PEP 8, and modern tooling (Ruff pydocstyle, Sphinx Napoleon). Covers Google and NumPy docstring styles, semantic depth requirements, side effects documentation, preconditions, performance considerations, thread safety, and enforcement patterns.
+**`204-python-docs.md`** - Clear, enforceable standards for Python documentation (project docs), source code comments, and docstrings, aligned with PEP 257, PEP 8, and modern tooling (Ruff pydocstyle, Sphinx Napoleon). Covers Google and NumPy docstring styles, semantic depth requirements, side effects documentation, preconditions, performance considerations, thread safety, and enforcement patterns.
 - Keywords: Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, API documentation, Google style, NumPy style, PEP 257, code quality, semantic depth, side effects, preconditions, performance, thread safety
 - Depends: `200-python-core.md`, `201-python-lint-format.md`
 
 **`205-python-classes.md`** - Practical, modern guidelines for when and how to use classes in Python, emphasizing composition over inheritance, type safety, encapsulation, and pythonic idioms. Covers dataclasses, properties, protocols, ABCs, resource management, and class design patterns that produce readable, maintainable, and testable code.
 - Keywords: Python classes, OOP, inheritance, dataclasses, @property, class design, encapsulation, composition, Protocol, ABC, type hints
-- Depends: `200-python-core.md`, `201-python-lint-format.md`, `204-python-docs-comments.md`
+- Depends: `200-python-core.md`, `201-python-lint-format.md`, `204-python-docs.md`
 
 **`206-python-pytest.md`** - Pragmatic, industry-standard testing practices with pytest to produce fast, reliable, maintainable tests aligned with modern Python tooling conventions.
 - Keywords: pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, AAA pattern, test markers, uv run pytest

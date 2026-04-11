@@ -38,7 +38,7 @@ Pragmatic, industry-standard testing practices with pytest to produce fast, reli
 - **203-python-project-setup.md** - Project structure and pytest configuration
 
 **Related:**
-- **204-python-docs-comments.md** - Documentation standards for test docstrings
+- **204-python-docs.md** - Documentation standards for test docstrings
 - **205-python-classes.md** - Class patterns for test organization
 
 ### External Documentation

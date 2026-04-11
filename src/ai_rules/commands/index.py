@@ -528,7 +528,7 @@ Loaded (Critical/High):
 - 000-global-core.md, 200-python-core.md, 206-python-pytest.md
 
 Deferred (Medium/Low - available if needed):
-- 204-python-docs-comments.md (not required for test execution)
+- 204-python-docs.md (not required for test execution)
 ```
 
 If total exceeds 20,000 tokens, prioritize by ContextTier:
@@ -552,7 +552,7 @@ If total exceeds 20,000 tokens, prioritize by ContextTier:
 ## Rules Loaded
 - rules/000-global-core.md (foundation)
 - rules/200-python-core.md (file extension: .py)
-- [Deferred: 204-python-docs-comments.md - Low tier, not required for task]
+- [Deferred: 204-python-docs.md - Low tier, not required for task]
 ```
 
 ### 6. Declare Loaded Rules

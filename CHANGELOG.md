@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(rules):** add dynamic `GRANT ROLE TO USER` pattern using `SET` + `IDENTIFIER($var)`
+  - `130-snowflake-demo-sql.md`: Demo User RBAC section + Anti-Pattern 6 + keywords
+  - `107-snowflake-security-governance.md`: Step 1b dynamic grant example + keywords
+  - `102-snowflake-sql-core.md`: New "Dynamic Identifiers in DDL" section
+
+### Added
 - **feat(rule):** add `434-typescript-docs.md` for TSDoc documentation standards
   - TSDoc syntax, eslint-plugin-jsdoc `flat/recommended-typescript` config
   - No type annotations in docs (TypeScript provides types)

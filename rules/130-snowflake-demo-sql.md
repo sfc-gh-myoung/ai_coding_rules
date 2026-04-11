@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.2
 **RuleVersion:** v1.0.1
 **LastUpdated:** 2026-03-26
-**Keywords:** demo SQL, workshop, teardown, progress indicators, rerunnable demos, CREATE OR REPLACE, educational SQL, demo patterns, setup scripts, customer learning, per-schema isolation, inline documentation
+**Keywords:** demo SQL, workshop, teardown, progress indicators, rerunnable demos, CREATE OR REPLACE, educational SQL, demo patterns, setup scripts, customer learning, per-schema isolation, inline documentation, dynamic grant, CURRENT_USER, IDENTIFIER
 **LoadTrigger:** kw:demo, kw:workshop, kw:quickstart
 **TokenBudget:** ~4600
 **ContextTier:** High
@@ -485,6 +485,22 @@ def setup():
 
 **Prevention:** Run `grep -n "FOREIGN KEY\|REFERENCES" sql/*.sql` before implementing CLI orchestration.
 
+### Anti-Pattern 6: Direct CURRENT_USER() in GRANT ROLE
+
+**Problem:**
+```sql
+-- WRONG: Causes syntax error
+GRANT ROLE demo_user TO USER CURRENT_USER();
+```
+
+**Why It Fails:** `GRANT ROLE ... TO USER` requires a literal identifier. The parser does not accept function calls in the `TO USER` position.
+
+**Correct Pattern:**
+```sql
+SET MY_USER = CURRENT_USER();
+GRANT ROLE demo_user TO USER IDENTIFIER($MY_USER);
+```
+
 ## Demo User RBAC
 
 Create a demo-specific role with minimal required grants:
@@ -499,6 +515,10 @@ GRANT SELECT ON ALL VIEWS IN DATABASE DEMO_DB TO ROLE demo_user;
 GRANT CREATE TABLE ON ALL SCHEMAS IN DATABASE DEMO_DB TO ROLE demo_user;
 GRANT INSERT, UPDATE, DELETE ON ALL TABLES IN DATABASE DEMO_DB TO ROLE demo_user;
 GRANT USAGE ON WAREHOUSE DEMO_WH TO ROLE demo_user;
+
+-- Grant demo role to the user running the script (dynamic)
+SET DEMO_USER = CURRENT_USER();
+GRANT ROLE demo_user TO USER IDENTIFIER($DEMO_USER);
 ```
 
 ## When to Use Production Patterns

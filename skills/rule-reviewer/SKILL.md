@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/rule-reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 2.7.1
+version: 2.7.2
 ---
 
 # Rule Reviewer
@@ -354,6 +354,57 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py end \
 
 **See:** `../skill-timing/SKILL.md` for timing implementation details, validation gates, dimension_timings schema, and epoch capture methods
 
+### Common Timing Mistakes (Critical to Avoid)
+
+**Anti-Pattern 1: Copy-pasting example epochs from documentation**
+```bash
+# WRONG — Agent uses example epoch from Quick Reference instead of real timestamps
+dimension_timings='[{"dimension":"actionability","start_epoch":1743897960,"end_epoch":1743897960,"mode":"coordinator"}]'
+# Result: All dimensions get identical fabricated epochs → 0s duration, validation error
+```
+
+**Correct:** Capture real timestamps around actual work:
+```bash
+start_epoch=$(python3 -c "import time; print(time.time())")
+# ... perform actual dimension scoring work ...
+end_epoch=$(python3 -c "import time; print(time.time())")
+duration=$(python3 -c "print($end_epoch - $start_epoch)")
+
+dimension_timings='[{"dimension":"actionability","duration_seconds":'$duration',"mode":"self-report","start_epoch":'$start_epoch',"end_epoch":'$end_epoch'}]'
+```
+
+**Anti-Pattern 2: Missing required `duration_seconds` or `mode` field**
+```bash
+# WRONG — Only has start/end epochs, no duration_seconds or mode
+dimension_timings='[{"dimension":"actionability","start_epoch":100,"end_epoch":120}]'
+# Result: skill_timing.py rejects with "missing required fields"
+```
+
+**Correct:** Include all required fields (`dimension`, `duration_seconds`, `mode`):
+```bash
+dimension_timings='[{"dimension":"actionability","duration_seconds":20,"mode":"self-report","start_epoch":100,"end_epoch":120}]'
+```
+
+**Anti-Pattern 3: Ignoring `VALIDATION ERROR` from timing-end**
+```bash
+# WRONG — Agent sees VALIDATION ERROR but proceeds without noting it
+output=$($PYTHON skill_timing.py end --dimension-timings "$dimension_timings" 2>&1)
+# Output contains: "VALIDATION ERROR: dimension_timings[0] missing required fields"
+# Agent ignores error and doesn't note timing failure in review
+```
+
+**Correct:** Check for errors and note in review:
+```bash
+output=$($PYTHON skill_timing.py end --dimension-timings "$dimension_timings" 2>&1)
+
+if echo "$output" | grep -q "VALIDATION ERROR"; then
+    echo "Per-dimension timing validation failed — aggregate timing only"
+    # Note in review: "Per-dimension timing unavailable — validation failed"
+fi
+```
+
+**`dimension_timings` schema reference:** See `../skill-timing/SKILL.md` lines 73-92 for the complete schema with required/optional fields.
+
 ## Error Handling
 
 **Schema validator fails:**
@@ -477,7 +528,10 @@ When invoked by `bulk-rule-reviewer`, this skill may experience context drift af
 
 ## Version History
 
-- **v2.7.0:** Standardized review output template -- created references/REVIEW-OUTPUT-TEMPLATE.md as authoritative fill-in skeleton (opus-4-6 structure), integrated template loading into review-execution and file-write workflows, fixed 11-item Post-Review Checklist, standardized Executive Summary table columns (Raw (0-10) | Weight | Points | Max), inline Token Efficiency and Staleness, added structural validation gate (Step 5a) in file-write.md, added template compliance check in review-verification.md. Removed examples/TEMPLATE.md (superseded). Aligned weight notation to decimal across all files. Added Per-Dimension Timing subsection to REVIEW-OUTPUT-TEMPLATE.md (was missing from v2.6.0 template integration). (2026-03-27)
+- **v2.7.2:** Added dimension_timings anti-patterns and schema reference (2026-04-11)
+  - 3 anti-pattern pairs (fabricated timestamps, missing required fields, ignoring validation errors)
+  - Cross-reference to skill-timing SKILL.md dimension_timings schema
+- **v2.7.1:** Standardized review output template -- created references/REVIEW-OUTPUT-TEMPLATE.md as authoritative fill-in skeleton (opus-4-6 structure), integrated template loading into review-execution and file-write workflows, fixed 11-item Post-Review Checklist, standardized Executive Summary table columns (Raw (0-10) | Weight | Points | Max), inline Token Efficiency and Staleness, added structural validation gate (Step 5a) in file-write.md, added template compliance check in review-verification.md. Removed examples/TEMPLATE.md (superseded). Aligned weight notation to decimal across all files. Added Per-Dimension Timing subsection to REVIEW-OUTPUT-TEMPLATE.md (was missing from v2.6.0 template integration). (2026-03-27)
 - **v2.6.0:** Added per-dimension timing support — sequential mode uses checkpoint pairs (`dim_{name}_start`/`dim_{name}_end`), parallel mode uses sub-agent self-reported `start_epoch`/`end_epoch`. New `--dimension-timings` flag on timing-end, `--per-dimension` on analyze/baseline. Requires skill-timing v1.4.0 (2026-03-27)
 - **v2.5.3:** Cross-model consistency improvements — added Non-Issues Patterns 9-10 (tool names, checklists), domain applicability adjustment for completeness edge cases, expanded cross-agent "Do NOT Count" list, added overlap resolution for tool names, new calibration examples file (2026-03-25)
 - **v2.5.2:** Fixed agent determinism regressions from v2.5.1 optimization (2026-03-24)

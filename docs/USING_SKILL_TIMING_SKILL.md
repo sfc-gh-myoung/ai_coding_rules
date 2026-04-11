@@ -1,6 +1,6 @@
 # Using the Skill Timing Skill
 
-**Last Updated:** 2026-03-27
+**Last Updated:** 2026-04-11
 
 The Skill Timing Skill provides execution timing instrumentation for measuring and analyzing skill performance. It tracks wall-clock duration, records checkpoints, estimates token costs, detects anomalies, and compares against historical baselines.
 
@@ -195,7 +195,7 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py baseline compare \
 ### Human Format Output
 
 ```
-TIMING: skill-timing v1.2.0
+TIMING: skill-timing v1.5.0
 ----------------------------------------
 Run ID:      a1b2c3d4e5f67890
 Skill:       rule-reviewer
@@ -438,7 +438,6 @@ Timing Module (skill_timing.py)
 ```text
 skills/skill-timing/
 ├── SKILL.md               # Skill definition (entrypoint)
-├── VALIDATION.md          # Self-validation procedures
 ├── scripts/
 │   ├── skill_timing.py    # Python module
 │   └── find_python.sh    # Python interpreter discovery
@@ -496,7 +495,6 @@ This skill is **deployable** (included in `task deploy`). After deployment, user
 ### Support
 
 - **Skill entrypoint:** `skills/skill-timing/SKILL.md`
-- **Validation:** `skills/skill-timing/VALIDATION.md`
 - **Workflow guides:** `skills/skill-timing/workflows/*.md`
 - **Examples:** `skills/skill-timing/examples/*.md`
 - **Python module:** `skills/skill-timing/scripts/skill_timing.py`

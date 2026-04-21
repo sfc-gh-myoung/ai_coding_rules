@@ -366,3 +366,41 @@ Stage 3: Aggregation
     ↓
 Stage 4: Summary Report
 ```
+
+
+---
+
+## `timing_enabled` Parameter (Required Collection)
+
+**Added v2.3.0.** The `timing_enabled` parameter MUST be collected explicitly -- no silent default.
+
+Aligns with SKILL.md line "MANDATORY: Prompt for ALL parameters" -- a silent `false` default made timing the default-off path and masked the pipeline entirely.
+
+### Prompt Text
+
+Ask the user via `ask_user_question`:
+
+```json
+{
+  "header": "Timing",
+  "question": "Enable per-rule and per-dimension timing capture? (Adds 1-3s overhead per rule; produces Section 10 Timing Breakdown in master summary)",
+  "options": [
+    {"label": "Yes - enable timing", "description": "Captures bulk-level, per-rule, and per-dimension durations. Requires skill-timing v1.5.0+."},
+    {"label": "No - skip timing", "description": "Faster; master summary omits Section 10 Timing Breakdown. Output byte-identical to pre-v2.3.0."}
+  ]
+}
+```
+
+Map the response to the boolean:
+
+- "Yes - enable timing" -> `timing_enabled: true`
+- "No - skip timing" -> `timing_enabled: false`
+
+### Backwards-Compat Shortcut
+
+If the caller passes `timing_enabled` as an explicit input parameter (programmatic invocation), DO NOT re-prompt. Only prompt when the parameter is unset.
+
+### Validation
+
+- Must be boolean `true` or `false`; reject strings like `"true"` with `VALIDATION ERROR`.
+- If `true`, verify `skill-timing/scripts/find_python.sh` exists and is executable before proceeding. If missing, STOP with error guiding the user to install skill-timing v1.5.0+.

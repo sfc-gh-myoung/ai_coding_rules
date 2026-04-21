@@ -156,3 +156,60 @@ An agent attempting shortcuts cannot:
 - Know the helper function is called "ensure_python_datetime"
 
 **This evidence can ONLY come from reading the actual file.**
+
+
+---
+
+## Gate 8: Per-Rule Timing Presence (When `timing_enabled: true`)
+
+**Added v2.3.0.** Warning-only gate (non-blocking). Bulk runs MUST NOT abort on timing failures; a single missing timing block should not compromise a 100+ rule batch.
+
+### Gate Logic
+
+```python
+def gate_timing_presence(review_path, timing_enabled):
+    """Check that a review file contains the required timing sections.
+
+    Returns (passed: bool, warnings: list[str]).
+    """
+    if not timing_enabled:
+        return True, []
+
+    with open(review_path, "r") as f:
+        content = f.read()
+
+    warnings = []
+    if "## Timing Metadata" not in content:
+        warnings.append(f"{review_path}: missing '## Timing Metadata' section")
+    if "### Per-Dimension Timing" not in content:
+        warnings.append(f"{review_path}: missing '### Per-Dimension Timing' subsection")
+
+    # Non-blocking: warnings aggregate to summary Timing Breakdown 10.5
+    return len(warnings) == 0, warnings
+```
+
+### Master-Summary Check
+
+In addition to the per-file check, after the master summary is written:
+
+```python
+def gate_summary_timing_section(summary_path, timing_enabled):
+    if not timing_enabled:
+        return True, []
+    with open(summary_path, "r") as f:
+        content = f.read()
+    if "## 10. Timing Breakdown" not in content:
+        return False, [f"{summary_path}: summary missing '## 10. Timing Breakdown' section"]
+    return True, []
+```
+
+Unlike per-rule warnings, the summary-level check is **BLOCKING** when `timing_enabled: true` -- an enabled-timing run that produces no Timing Breakdown indicates a pipeline failure that MUST be surfaced.
+
+### Output Routing
+
+- Per-rule warnings -> aggregated into `timing_stats.warnings` -> rendered in summary Section 10.5.
+- Summary-level failure -> printed to STDERR and added to the master summary's "Failed Reviews" section with a synthetic entry `_timing_breakdown: FAILED`.
+
+### Rationale
+
+Bulk runs review 100+ rules; rejecting the entire batch because one review lacks a timing block would penalize successful rules. Use warning + report-in-summary pattern instead. Rejection remains at the rule-reviewer (Gate 7) level for that single rule, where it is appropriate.

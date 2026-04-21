@@ -5,8 +5,8 @@
 **SchemaVersion:** v3.2
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing
-**TokenBudget:** ~4450
+**Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing, author contact, maintainer
+**TokenBudget:** ~5100
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 **LoadTrigger:** kw:readme, kw:documentation, file:README.md
@@ -54,6 +54,7 @@ Comprehensive standards for README.md files following widely accepted industry b
 - MUST test Quick Start commands in a clean environment
 - MUST include project description under 160 characters
 - MUST verify all links are working before completing
+- MUST include Author/Contact section in all operator-authored projects with operator identity block
 
 ### Forbidden
 - Adding Quick Start without testing commands
@@ -314,6 +315,8 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Contributing (minimal pointer to CONTRIBUTING.md)
 
+## Author / Contact
+
 ## License
 ```
 
@@ -530,10 +533,42 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 - Use semantic heading hierarchy for screen reader navigation
 - Ensure code blocks have language identifiers for syntax highlighting tools
 
+## Author / Contact Section
+
+**Requirement:** Every README for a project authored by the operator MUST include an Author / Contact section.
+
+**Placement:** After Contributing, before License.
+
+**Single Author Template:**
+```markdown
+## Author
+
+**Your Name** — Organization
+- Email: your.email@example.com
+- GitHub: [@your-handle](https://github.com/your-handle)
+```
+
+**Multiple Authors Template:**
+```markdown
+## Authors
+
+| Name | Role | Contact |
+|------|------|---------|
+| Author Name | Lead | author@example.com |
+| Contributor Name | Role | contributor@example.com |
+```
+
+**Rules:**
+- MUST appear in every project the operator creates or is the primary author of
+- MUST include at minimum: name, email, and GitHub handle
+- MAY include role, team, or Slack channel for internal projects
+- Agent SHOULD check AGENTS.md or operator profile for contact details to auto-populate
+- For forked or contributed projects, add to existing Authors section rather than replacing
+
 ## Internal Project README Considerations
 
 For internal/private project READMEs, also consider:
-- Include team/owner contact information and escalation paths
+- Include team/owner contact information and escalation paths (see also [Author / Contact Section](#author--contact-section))
 - Reference internal wiki or Confluence for extended documentation
 - Include deployment environment details (staging URLs, internal endpoints)
 - MAY omit License section for internal-only projects

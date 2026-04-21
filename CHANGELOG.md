@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **feat(skill-timing):** add `--auto-dimension-timings` flag to derive per-dimension durations from `dim_<name>_start` / `dim_<name>_end` checkpoint pairs
+- **feat(skill-timing):** emit `PER_DIMENSION_STATUS={present|derived|missing}` stdout marker for downstream gate enforcement
+- **feat(skill-timing):** warn on silent-omission when aggregate timings are reported without per-dimension breakdown
+- **test(skill-timing):** add pytest regression suite (`test_per_dimension_timing.py`) covering explicit, auto-derived, silent-omission, explicit-wins, and malformed cases
+- **feat(rule-reviewer):** add Quality Gate 7 (Per-Dimension Timing Presence) enforcing checkpoint pairs for all 6 scored dimensions (v2.8.0)
+- **feat(rule-reviewer):** add Step 6a mandating `dim_<name>_start` / `dim_<name>_end` checkpoint pairs during review execution
+- **feat(rule-reviewer):** add Anti-Pattern 4 documenting silent-omission of per-dimension timings
+- **test(rule-reviewer):** add end-to-end integration test (`test_gate7_integration.py`) for Gate 7 round-trip
+- **feat(bulk-rule-reviewer):** enforce Gate 7 per-rule verification across batch reviews
+
+### Changed
+- **docs(rule-reviewer):** make Per-Dimension Timing section mandatory in REVIEW-OUTPUT-TEMPLATE when `timing_enabled: true`; add Gate 7 to AUTO-REJECT table
+- **docs(rule-reviewer):** simplify review-execution Step 2.2a to 6 scored dimensions with auto-derive path
+- **docs(rule-reviewer):** clarify explicit-JSON path and Gate 7 alignment in parallel-execution workflow
+
 ### Changed
 - **docs(rules):** update 119-snowflake-warehouse-management (v3.1.0 to v3.2.0)
   - Replaced `RESOURCE_CONSTRAINT = 'STANDARD_GEN_2'` with correct `GENERATION = '2'` DDL syntax throughout

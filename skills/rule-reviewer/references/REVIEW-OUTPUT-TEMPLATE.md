@@ -188,7 +188,10 @@ Result:   {summary}
 
 ### Per-Dimension Timing
 
-> **Conditional:** Include this subsection only when `_dimension_timings` data is available.
+> **Required when `timing_enabled: true`.** The table below must contain at least 6 rows
+> (one per scored dimension). If timing capture fails, include the subsection with a single
+> row stating `unavailable` and the failure reason, so the omission is visible rather than
+> silent. See `workflows/review-verification.md` Gate 7.
 
 | Dimension | Duration | Mode |
 |-----------|----------|------|
@@ -202,7 +205,7 @@ Result:   {summary}
 | staleness | {Xs} | {checkpoint\|self-report\|inline} |
 | **Total (dimension work)** | **{Xs}** | - |
 
-> **Mode key:** `checkpoint` = sequential timing pairs, `self-report` = parallel sub-agent epoch timestamps, `inline` = coordinator-computed (Rule Size only). `-1` = dimension failed/timed out.
+> **Mode key:** `checkpoint` = sequential checkpoint pairs (auto-derived via `--auto-dimension-timings`), `self-report` = parallel sub-agent epoch timestamps, `inline` = coordinator-computed (Rule Size only). `-1` = dimension failed/timed out. Token Efficiency and Staleness rows are informational (v2.0) and only appear when their timings were captured.
 
 ---
 
@@ -217,6 +220,7 @@ Result:   {summary}
 | Score Table | Exact column format: Dimension | Raw (0-10) | Weight | Points | Max |
 | All Sections | 9 sections present (10 with Timing) |
 | Checklist Items | Exactly 11 items with fixed wording |
+| Per-Dimension Timing (Gate 7) | When `timing_enabled: true`, the `### Per-Dimension Timing` subsection is present with >=6 rows (or a single explicit `unavailable` row with reason). |
 
 ## Anti-Drift Protocol
 

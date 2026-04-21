@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-04-21
 **LoadTrigger:** kw:warehouse, kw:compute
 **Keywords:** high-memory warehouse, warehouse tagging, auto-suspend, auto-resume, GEN 2, Snowpark-Optimized, warehouse edition, resource monitors, create warehouse, warehouse configuration, warehouse types, warehouse cost, size warehouse
 **TokenBudget:** ~6500
@@ -37,12 +37,25 @@ Comprehensive best practices for creating, configuring, and managing Snowflake v
 - **Development/testing:** AUTO_SUSPEND = 30 seconds
 - **Never use:** AUTO_SUSPEND = 0 (disables auto-suspend, generates runaway costs)
 
-**Cost Benchmarks (per hour):**
-- **XSMALL:** 1 credit/hour (~$2-4/hour depending on region)
-- **SMALL:** 2 credits/hour
-- **MEDIUM:** 4 credits/hour
-- **LARGE:** 8 credits/hour
-- **XLARGE:** 16 credits/hour
+**Cost Benchmarks (per hour) - See [Credit Consumption Table](https://www.snowflake.com/legal-files/CreditConsumptionTable.pdf):**
+
+**Gen1 Standard (same across all cloud providers):**
+- **XSMALL:** 1 credit/hour | **SMALL:** 2 | **MEDIUM:** 4 | **LARGE:** 8 | **XLARGE:** 16
+- **2XL:** 32 | **3XL:** 64 | **4XL:** 128 | **5XL:** 256 | **6XL:** 512
+
+**Gen2 Standard (varies by cloud provider):**
+| Size | AWS | Azure | GCP |
+|------|-----|-------|-----|
+| XS | 1.35 | 1.25 | 1.35 |
+| S | 2.7 | 2.5 | 2.7 |
+| M | 5.4 | 5.0 | 5.4 |
+| L | 10.8 | 10.0 | 10.8 |
+| XL | 21.6 | 20.0 | 21.6 |
+| 2XL | 43.2 | 40.0 | 43.2 |
+| 3XL | 86.4 | 80.0 | 86.4 |
+| 4XL | 172.8 | 160.0 | 172.8 |
+
+**Note:** Gen2 supports XSMALL through X4LARGE only (X5LARGE/X6LARGE not supported)
 
 ## References
 
@@ -233,28 +246,34 @@ GROUP BY cost_center, workload;
 
 ### Anti-Pattern 4: Not Using GEN 2 Warehouses**
 ```sql
--- Bad: Stuck on GEN 1 (default for old accounts)
+-- Bad: Stuck on GEN 1 (default for older accounts pre-June 2025)
 CREATE WAREHOUSE old_wh
   WAREHOUSE_SIZE = 'MEDIUM';
--- RESOURCE_CONSTRAINT defaults to GEN 1 (slower, older architecture)
+-- Defaults to GEN 1 on older accounts (slower architecture)
 ```
-**Problem:** 2-3x slower query performance; higher costs per query; outdated architecture; missing performance optimizations; competitive disadvantage
+**Problem:** Slower query performance; higher cost per query; outdated architecture; missing DML optimizations (DELETE, UPDATE, MERGE improvements)
 
 **Correct Pattern:**
 ```sql
 -- Good: Explicitly use GEN 2 for better performance
 CREATE WAREHOUSE modern_wh
   WAREHOUSE_SIZE = 'MEDIUM'
-  RESOURCE_CONSTRAINT = 'STANDARD_GEN_2';  -- Explicitly request GEN 2
+  GENERATION = '2';  -- Correct DDL syntax for Gen2
 
 -- Verify GEN 2 is active
 SHOW WAREHOUSES LIKE 'modern_wh';
--- Check RESOURCE_CONSTRAINT column shows STANDARD_GEN_2
+-- Check "generation" column shows 2 (also resource_constraint shows STANDARD_GEN_2)
 
 -- Migrate existing warehouse to GEN 2
-ALTER WAREHOUSE old_wh SET RESOURCE_CONSTRAINT = 'STANDARD_GEN_2';
+ALTER WAREHOUSE old_wh SET GENERATION = '2';
 ```
-**Benefits:** 2-3x faster queries; lower cost per query; modern architecture; performance optimizations; competitive advantage; future-proof
+**Benefits:** Faster queries; better DML performance (DELETE/UPDATE/MERGE); modern architecture; performance optimizations
+
+**Gen2 Limitations (IMPORTANT):**
+- **Supported sizes:** XSMALL through X4LARGE only (X5LARGE and X6LARGE NOT supported)
+- **Not available for:** Snowpark-optimized warehouses, Interactive warehouses
+- **Region check required:** Run `SELECT CURRENT_REGION()` and verify against [Gen2 region availability](https://docs.snowflake.com/en/user-guide/warehouses-gen2#region-availability)
+- **Snowsight:** GENERATION clause not available in UI — must use SQL
 
 > **Investigation Required**
 > When applying this rule:
@@ -276,10 +295,11 @@ ALTER WAREHOUSE old_wh SET RESOURCE_CONSTRAINT = 'STANDARD_GEN_2';
 ## Output Format Examples
 ```sql
 -- Standard CPU warehouse for BI workloads (GEN 2 preferred)
+-- NOTE: Run SELECT CURRENT_REGION() first to verify Gen2 availability
 CREATE OR REPLACE WAREHOUSE WH_[WORKLOAD]_M
   WAREHOUSE_TYPE = 'STANDARD'
-  WAREHOUSE_SIZE = 'MEDIUM'
-  RESOURCE_CONSTRAINT = 'STANDARD_GEN_2'  -- Use GEN 2 when available (omit if not available)
+  WAREHOUSE_SIZE = 'MEDIUM'  -- Gen2 supports XSMALL through X4LARGE only
+  GENERATION = '2'  -- Correct DDL syntax for Gen2 (omit for Gen1 or unsupported regions)
   AUTO_SUSPEND = 300  -- 5 minutes
   AUTO_RESUME = TRUE
   INITIALLY_SUSPENDED = TRUE
@@ -305,21 +325,37 @@ SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('WH_[WORKLOAD]_M', 'WAREHO
 
 ## Warehouse Types and Resource Constraints
 
-### Resource Constraint Options (GEN 2 Mandate)
+### Gen2 Warehouse Configuration
 
-**Rule:** ALWAYS use `RESOURCE_CONSTRAINT = 'STANDARD_GEN_2'` for new standard warehouses when available (generally available in most AWS/Azure regions, Enterprise Edition+).
+**Rule:** Prefer Gen2 warehouses for new standard warehouses when available. Use `GENERATION = '2'` in DDL syntax.
 
-**Why GEN 2:** 20-30% better price-performance, ARM architecture, improved query optimization, better concurrency handling.
+**Why Gen2:** Better DML performance (DELETE, UPDATE, MERGE), improved table scan operations, faster query execution. Gen2 is a performance feature, not a cost-saving feature — it has higher credit-per-hour rates but queries finish faster.
 
-**Available Resource Constraints:**
+**DDL Syntax:**
+```sql
+-- Create Gen2 warehouse
+CREATE WAREHOUSE my_wh GENERATION = '2';
 
-- **Standard GEN 1 (`STANDARD_GEN_1`):** x86, Standard memory - Legacy/compatibility only
-- **Standard GEN 2 (`STANDARD_GEN_2`):** ARM, Standard memory - **Default for all new warehouses**
-- **High-Memory (`MEMORY_16X`):** ARM, 16X memory (256GB @ LARGE) - Memory-intensive queries (prove need first)
-- **High-Memory x86 (`MEMORY_16X_x86`):** x86, 16X memory - x86-specific compatibility + memory
-- **Snowpark GPU:** GPU, Standard memory - ML training, GPU UDFs (set WAREHOUSE_TYPE)
+-- Convert existing to Gen2
+ALTER WAREHOUSE my_wh SET GENERATION = '2';
 
-**Note:** Snowpark-Optimized uses `WAREHOUSE_TYPE = 'SNOWPARK-OPTIMIZED'` (GPU implicit, no RESOURCE_CONSTRAINT needed).
+-- Rollback to Gen1 if needed
+ALTER WAREHOUSE my_wh SET GENERATION = '1';
+```
+
+**Verify Generation:**
+```sql
+SHOW WAREHOUSES LIKE 'my_wh';
+-- Check "generation" column (1 or 2) and "resource_constraint" column (STANDARD_GEN_1 or STANDARD_GEN_2)
+```
+
+**Resource Constraint Values (read-only output column):**
+- **STANDARD_GEN_1:** Gen1 standard warehouse
+- **STANDARD_GEN_2:** Gen2 standard warehouse
+- **MEMORY_16X:** High-memory warehouse (16X memory, 256GB @ LARGE)
+- **MEMORY_16X_x86:** High-memory x86 warehouse
+
+**Note:** Snowpark-Optimized uses `WAREHOUSE_TYPE = 'SNOWPARK-OPTIMIZED'` — Gen2 is NOT available for Snowpark-optimized warehouses.
 
 ### Warehouse Type Decision Matrix
 
@@ -427,7 +463,7 @@ ALTER WAREHOUSE WH_ANALYTICS_HIMEM_L SET TAG
 CREATE OR REPLACE WAREHOUSE WH_BI_PRODUCTION_M
   WAREHOUSE_TYPE = 'STANDARD'
   WAREHOUSE_SIZE = 'MEDIUM'
-  RESOURCE_CONSTRAINT = 'STANDARD_GEN_2'
+  GENERATION = '2'  -- Use Gen2 for better performance
   MIN_CLUSTER_COUNT = 1
   MAX_CLUSTER_COUNT = 5
   SCALING_POLICY = 'STANDARD'  -- Or 'ECONOMY'
@@ -456,7 +492,7 @@ CREATE OR REPLACE WAREHOUSE WH_BI_PRODUCTION_M
 CREATE OR REPLACE WAREHOUSE WH_INTERACTIVE_BI_M
   WAREHOUSE_TYPE = 'STANDARD'
   WAREHOUSE_SIZE = 'MEDIUM'
-  RESOURCE_CONSTRAINT = 'STANDARD_GEN_2'
+  GENERATION = '2'  -- Use Gen2 for better performance
   AUTO_SUSPEND = 60  -- Adjust per workload type above
   AUTO_RESUME = TRUE
   INITIALLY_SUSPENDED = TRUE

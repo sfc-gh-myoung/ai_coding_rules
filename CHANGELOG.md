@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **docs(rules):** update 119-snowflake-warehouse-management (v3.1.0 to v3.2.0)
+  - Replaced `RESOURCE_CONSTRAINT = 'STANDARD_GEN_2'` with correct `GENERATION = '2'` DDL syntax throughout
+  - Added Gen1 and Gen2 per-hour credit tables (AWS/Azure/GCP) with link to Credit Consumption Table
+  - Added Gen2 Limitations section (size support, Snowpark-optimized exclusion, region check, Snowsight UI)
+  - Refined Anti-Pattern 4 (Not Using GEN 2) text and Gen2 verification guidance
+  - Impact: Correct DDL syntax for Gen2 warehouses and accurate cloud-specific cost benchmarks
+
 ### Added
 - **feat(prompts):** add reusable prompt templates for common workflows
   - `analyze-plan.md`: Plan analysis with checklist generation

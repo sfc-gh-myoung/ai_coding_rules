@@ -180,7 +180,49 @@ Consider archiving old reviews if this occurs frequently.
 2. Apply no-overwrite safety
 3. Write full review content
 4. Verify file written successfully
-5. Report success with path
+5. Apply Gate 7 (Per-Dimension Timing presence — see below)
+6. Report success with path
+
+## Gate 7 — Per-Dimension Timing Presence
+
+**Purpose:** Prevent silently-missing Per-Dimension Timing sections when
+`timing_enabled: true`.
+
+### Gate Logic
+
+```
+IF timing_enabled == true:
+    Require heading `### Per-Dimension Timing` in output file
+    Require >= 8 dimension rows in the Per-Dimension Timing table,
+        OR rows explicitly marked `unavailable` with a reason (e.g.,
+        `unavailable (sub-agent timeout)`).
+    IF missing:
+        REJECT the review and take ONE of these remediation paths:
+        1. Re-run `skill_timing.py end` with `--auto-dimension-timings`
+           (preferred when dim_*_start/end checkpoints exist).
+        2. Read `.timing-data/{run_id}.json`, assemble
+           `--dimension-timings` JSON, re-run `end` manually.
+        3. Gate 7 Fallback: Document explicit failure in the review's
+           "Timing Notes" block with the reason data is unavailable,
+           then re-write the file once the section is present.
+ELSE (timing_enabled == false):
+    Gate 7 is a NO-OP. No Per-Dimension Timing table required.
+```
+
+### Pass / Fail / Fallback Cases
+
+| Case | Condition | Outcome |
+|------|-----------|---------|
+| Pass | `timing_enabled: true` and 8 dimension rows present | Continue |
+| Pass | `timing_enabled: true` and rows include explicit `unavailable` with reason | Continue |
+| Fail | `timing_enabled: true` and `### Per-Dimension Timing` heading absent | Reject + remediate (paths 1/2/3) |
+| Fail | `timing_enabled: true` and fewer than 8 rows without `unavailable` markers | Reject + remediate |
+| N/A  | `timing_enabled: false` | Gate bypassed |
+
+### Cross-References
+
+- Trigger for this gate: `SKILL.md` Step 4a requires per-dimension checkpoints.
+- Data source: `skills/skill-timing/` with `--auto-dimension-timings`.
 
 ## Success Output
 

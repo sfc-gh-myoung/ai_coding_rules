@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(plan-reviewer):** bump to v2.4.0 with per-dimension timing capture for all 8 scored dimensions
+- **feat(plan-reviewer):** add copy-pastable Quick Reference block with `skill_timing.py start/checkpoint/end --auto-dimension-timings` flow
+- **feat(plan-reviewer):** add Step 4a mandating `dim_<name>_start` / `dim_<name>_end` checkpoint pairs for executability, completeness, success_criteria, scope, dependencies, decomposition, context, risk_awareness
+- **feat(plan-reviewer):** add Common Timing Mistakes Anti-Pattern block (fabricated epochs, missing fields, ignored `VALIDATION ERROR`, omitted `--auto-dimension-timings`)
+- **feat(plan-reviewer):** add Gate 7 (Per-Dimension Timing Presence) to `workflows/file-write.md` with pass/fail/fallback matrix
+- **feat(plan-reviewer):** define sub-agent `dimension_timings` report schema in `workflows/parallel-specs.md` with 8-entry sample payload
+- **feat(plan-reviewer):** add Timing Discipline section to `workflows/determinism.md` with mandatory/prohibited behaviors
+- **feat(plan-reviewer):** add Per-Dimension Timing template to `rubrics/SCORING.md`
+- **docs(plan-reviewer):** add timing-enabled walkthrough to `examples/full-review.md`
+- **test(plan-reviewer):** add Test 7 to `testing/TESTING.md` covering positive, negative, fallback, and backwards-compat paths
 - **feat(skill-timing):** add `--auto-dimension-timings` flag to derive per-dimension durations from `dim_<name>_start` / `dim_<name>_end` checkpoint pairs
 - **feat(skill-timing):** emit `PER_DIMENSION_STATUS={present|derived|missing}` stdout marker for downstream gate enforcement
 - **feat(skill-timing):** warn on silent-omission when aggregate timings are reported without per-dimension breakdown
@@ -19,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(bulk-rule-reviewer):** enforce Gate 7 per-rule verification across batch reviews
 
 ### Changed
+- **docs(plan-reviewer):** require explicit opt-in/opt-out for `timing_enabled` in `workflows/parameter-collection.md` (no silent default)
+- **docs(plan-reviewer):** note skill-timing v1.5.0 dependency in Related Skills; add Version History entry for v2.4.0
 - **docs(rule-reviewer):** make Per-Dimension Timing section mandatory in REVIEW-OUTPUT-TEMPLATE when `timing_enabled: true`; add Gate 7 to AUTO-REJECT table
 - **docs(rule-reviewer):** simplify review-execution Step 2.2a to 6 scored dimensions with auto-derive path
 - **docs(rule-reviewer):** clarify explicit-JSON path and Gate 7 alignment in parallel-execution workflow

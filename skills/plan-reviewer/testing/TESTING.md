@@ -111,6 +111,67 @@ Expected output path: reviews/plan-TEST_PLAN-test-model-2025-12-16.md
 2. Run review for same plan/model/date
 3. Verify output is `reviews/plan-X-test-model-2025-12-16-01.md`
 
+### Test 7: Gate 7 — Per-Dimension Timing Presence (v2.4.0+)
+
+**Purpose:** Verify that `timing_enabled: true` produces a review with a
+populated 8-row Per-Dimension Timing table and that its absence is rejected.
+
+**7a. Positive path (auto-derive):**
+
+```text
+Input:
+  target_file: plans/TEST_PLAN.md
+  review_mode: FULL
+  timing_enabled: true
+
+Procedure:
+  1. `skill_timing.py start` → capture run_id
+  2. Emit dim_<name>_start/end checkpoint pairs for all 8 dimensions
+  3. `skill_timing.py end --auto-dimension-timings`
+
+Expected:
+  - stdout includes `### Per-Dimension Timing` with 8 rows
+  - `PER_DIMENSION_STATUS=derived` (or `present`) in stdout
+  - Output review file, after skill-timing embedding, contains the heading
+    `### Per-Dimension Timing` with 8 dimension rows
+  - Gate 7 PASSES
+```
+
+**7b. Negative path (missing checkpoints):**
+
+```text
+Input: same as 7a but skip dim_*_start/end checkpoint emission
+
+Expected:
+  - stdout contains `PER_DIMENSION_STATUS=missing`
+  - Gate 7 REJECTS the review per workflows/file-write.md
+  - Remediation: re-run with checkpoints, or use Gate 7 fallback
+```
+
+**7c. Fallback path (explicit unavailable rows):**
+
+```text
+Input: 6 dimensions timed correctly; 2 dimensions timed-out at sub-agent level
+
+Expected:
+  - 8 rows present; 2 marked `unavailable` with reason
+  - Gate 7 PASSES with documented rows
+```
+
+**7d. Backwards compatibility (`timing_enabled: false`):**
+
+```text
+Input:
+  target_file: plans/TEST_PLAN.md
+  review_mode: FULL
+  timing_enabled: false
+
+Expected:
+  - No `### Per-Dimension Timing` section in output
+  - Gate 7 is bypassed (no-op)
+  - Output byte-identical to pre-v2.4.0 baseline for the same plan
+```
+
 ## Calibration Validation
 
 ### Inter-Model Consistency Test

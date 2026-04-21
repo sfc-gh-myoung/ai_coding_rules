@@ -118,6 +118,13 @@ target_question_delta = [
 
 **MANDATORY:** Always prompt for ALL optional parameters. Do NOT silently apply defaults.
 
+**Explicit opt-in/opt-out required for `timing_enabled`:** Never infer a default
+of `false` silently. The user MUST answer the Timing question before the review
+executes. If running non-interactively, `timing_enabled` MUST be passed
+explicitly; otherwise abort with an error rather than defaulting. This aligns
+with SKILL.md's "Do NOT silently apply defaults" rule and is a precondition for
+Gate 7 correctness.
+
 ```python
 optional_questions = [
     {

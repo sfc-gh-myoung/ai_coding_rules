@@ -68,6 +68,7 @@ Enable comprehensive performance measurement and analysis:
 - `output_tokens`: `integer` (default: none) — Output token count
 - `format`: `string` (default: `human`) — Output format: human, json, markdown, quiet
 - `dimension_timings`: `JSON array` (default: none) — Per-dimension timing data (see schema below)
+- `auto_dimension_timings`: `flag` (default: off) — Derive `dimension_timings` automatically from `dim_<name>_start` / `dim_<name>_end` checkpoint pairs. Explicit `dimension_timings` wins if both are supplied (with WARNING).
 - `review_mode`: `string` (default: `FULL`) — Review mode if applicable
 
 ### dimension_timings Schema
@@ -78,7 +79,7 @@ Each element in the `dimension_timings` JSON array must conform to:
 |-------|----------|------|-------|
 | `dimension` | **Yes** | string | Dimension name (e.g., "actionability") |
 | `duration_seconds` | **Yes** | number | Actual duration in seconds. Use `-1` for failed/unavailable. |
-| `mode` | **Yes** | string | One of: `self-report`, `self-report-flagged`, `coordinator`, `inline`, `validation-failed`, `failed` |
+| `mode` | **Yes** | string | One of: `checkpoint` (auto-derived), `self-report`, `self-report-flagged`, `coordinator`, `inline`, `validation-failed`, `failed` |
 | `start_epoch` | No | number | Unix timestamp (fractional) when work started |
 | `end_epoch` | No | number | Unix timestamp (fractional) when work ended |
 | `validation_warning` | No | string | Warning message if flagged |
@@ -176,6 +177,7 @@ Finalize timing and compute duration.
 - `output_tokens` - Output token count
 - `format` - Output format: `human` (default), `json`, `markdown`, `quiet`
 - `dimension_timings` - JSON array of per-dimension timing data
+- `auto_dimension_timings` - Flag: derive `dimension_timings` from `dim_<name>_start` / `dim_<name>_end` checkpoint pairs
 
 **Command:**
 ```bash
@@ -214,7 +216,7 @@ When `timing_enabled: true`, validate after EACH command:
 
 1. **After `start`:** Verify output contains `TIMING_RUN_ID=`. If missing → STOP, report failure.
 2. **After `checkpoint`:** Verify output contains `CHECKPOINT_STATUS=recorded`. If `missing` → in-progress file lost, continue but note.
-3. **After `end`:** Check for `VALIDATION ERROR` in stderr. If present, per-dimension timing data was invalid and has been stripped — only aggregate timing remains. If `TIMING_STATUS=missing` or no output:
+3. **After `end`:** Check for `VALIDATION ERROR` in stderr. If present, per-dimension timing data was invalid and has been stripped — only aggregate timing remains. Check `PER_DIMENSION_STATUS=` marker in stdout — values: `present` (explicit data accepted), `derived` (auto-derived from checkpoints), `missing` (no data supplied/derivable). If `TIMING_STATUS=missing` or no output:
    - Re-run `end --format markdown` (may recover from completed file)
    - Last resort: Read `reviews/.timing-data/skill-timing-{run_id}-complete.json` directly
 4. **After file write:** Verify `## Timing Metadata` section exists in output file. If missing → append it.
@@ -300,10 +302,11 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py analyze \
 **Per-Dimension Timing (optional):**
 
 When the skill evaluates multiple dimensions (e.g., rule-reviewer):
-- **Sequential mode:** Use checkpoint pairs (`dim_{name}_start` / `dim_{name}_end`) around each dimension
-- **Parallel mode:** Sub-agents self-report `start_epoch` / `end_epoch` in their JSON output
-- Pass collected timings to `timing-end` via `--dimension-timings` JSON flag
-- **Precision:** Capture fractional epochs with `python3 -c "import time; print(time.time())"` — NOT `date +%s` (integer-only, produces whole-number durations)
+- **Sequential mode (preferred):** Record checkpoint pairs (`dim_{name}_start` / `dim_{name}_end`) around each dimension, then call `timing-end --auto-dimension-timings` to derive the array automatically (no JSON assembly needed).
+- **Parallel mode:** Sub-agents self-report `start_epoch` / `end_epoch` in their JSON output; coordinator assembles and passes to `timing-end --dimension-timings` explicitly.
+- **Explicit override:** Pass collected timings to `timing-end` via `--dimension-timings` JSON flag. Wins over `--auto-dimension-timings`.
+- **Silent-omission guard:** If `dim_*` checkpoints are recorded but neither flag is passed, `timing-end` emits a stderr WARNING and sets `PER_DIMENSION_STATUS=missing`.
+- **Precision:** Capture fractional epochs with `python3 -c "import time; print(time.time())"` — NOT `date +%s` (integer-only, produces whole-number durations).
 
 **Validation:** Verify `## Timing Metadata` exists in output file.
 ```
@@ -386,3 +389,13 @@ skill-timing/
 └── tests/
     └── test_skill_timing.sh         # Test suite (23 tests)
 ```
+
+## Version History
+
+- **v1.5.0** (2026-04-21): Per-dimension timing enforcement
+  - New `--auto-dimension-timings` flag on `end`: derives `dimension_timings` from `dim_<name>_start` / `dim_<name>_end` checkpoint pairs.
+  - New `PER_DIMENSION_STATUS={present|derived|missing}` stdout marker (grep-able from orchestrators).
+  - Silent-omission guard: stderr WARNING when `dim_*` checkpoints exist but neither `--dimension-timings` nor `--auto-dimension-timings` is supplied.
+  - `mode: "checkpoint"` added as a first-class value in the `dimension_timings` schema.
+  - Paired pytest regression suite in `tests/test_per_dimension_timing.py`.
+  - **Migration note:** [`plans/per-dimension-timing-enforcement-MIGRATION.md`](../../plans/per-dimension-timing-enforcement-MIGRATION.md)

@@ -129,6 +129,24 @@ For each rule:
 
 **CRITICAL:** Working memory must contain rule content BEFORE review generation.
 
+### Quality Gate 7: Per-Dimension Timing Presence (conditional)
+
+**When `timing_enabled: true` for the batch, the bulk orchestrator MUST enforce Gate 7
+on every produced review (see `skills/rule-reviewer/workflows/review-verification.md`):**
+
+1. After `rule-reviewer` writes each review, verify the file contains `### Per-Dimension Timing`
+   with ≥6 rows, OR a single explicit `unavailable` row with a reason.
+2. Verify the `timing-end` stdout captured `PER_DIMENSION_STATUS=present` or
+   `PER_DIMENSION_STATUS=derived` (not `missing`).
+3. On Gate 7 failure, do NOT silently continue to the next rule. Either:
+   - Re-invoke `rule-reviewer` for that rule with the same parameters (checkpoints re-recorded,
+     `--auto-dimension-timings` passed on `timing-end`), OR
+   - Append a single `unavailable` row with the failure reason so the omission is visible.
+4. Aggregate Gate 7 pass/fail counts into the batch summary report.
+
+**Requires skill-timing v1.5.0+ and rule-reviewer v2.8.0+** (for
+`--auto-dimension-timings`, `PER_DIMENSION_STATUS` marker, and mandatory Step 6a checkpoints).
+
 ## Why This Works
 
 An agent attempting shortcuts cannot:

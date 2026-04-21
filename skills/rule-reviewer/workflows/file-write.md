@@ -30,8 +30,9 @@
     - [ ] Executive Summary table columns: `Dimension | Raw (0-10) | Weight | Points | Max`
     - [ ] Post-Review Checklist contains exactly 11 items
     - [ ] Verdict block contains: Verdict, Blocking Issues, Hard Caps Applied, Rule Size Flag
-    
-    **If ANY check fails:** STOP. Re-read `references/REVIEW-OUTPUT-TEMPLATE.md` and fix structure before writing.
+    - [ ] **Gate 7 (if `timing_enabled: true`):** Review contains `### Per-Dimension Timing` heading AND the table has ≥6 dimension rows. See `review-verification.md` for the full gate definition and remediation steps.
+
+    **If ANY check fails:** STOP. Re-read `references/REVIEW-OUTPUT-TEMPLATE.md` and fix structure before writing. For Gate 7 failures, re-run `timing-end` with `--auto-dimension-timings` (sequential mode) or re-assemble `--dimension-timings` JSON (parallel mode).
 
 6. Write `review_markdown` to the determined path.
 

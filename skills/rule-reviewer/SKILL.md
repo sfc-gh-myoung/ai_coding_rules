@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/rule-reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 2.7.2
+version: 2.8.0
 ---
 
 # Rule Reviewer
@@ -196,6 +196,20 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
      - Includes documentation currency check via `web_fetch`
      - See `workflows/doc-currency-check.md` for details
 
+6a. **(If `timing_enabled: true`) Bracket EACH dimension with a checkpoint pair.**
+
+   Required checkpoint names (one pair per scored dimension):
+   - `dim_actionability_start` / `dim_actionability_end`
+   - `dim_rule_size_start` / `dim_rule_size_end`
+   - `dim_parsability_start` / `dim_parsability_end`
+   - `dim_completeness_start` / `dim_completeness_end`
+   - `dim_consistency_start` / `dim_consistency_end`
+   - `dim_cross_agent_start` / `dim_cross_agent_end`
+
+   On `timing-end`, pass `--auto-dimension-timings` (**preferred**) to derive the `dimension_timings` array from the captured checkpoint pairs automatically. Only assemble `--dimension-timings` JSON manually if you are aggregating sub-agent output (parallel mode).
+
+   **FAILURE TO DO THIS:** The `### Per-Dimension Timing` subsection will be absent and the review will fail the post-write Quality Gate 7 (see `workflows/review-verification.md`). Requires skill-timing v1.5.0+.
+
 7. **Mid-Review Canary (after dimension 3) (SILENT)**
    - Have I loaded the rubric for EACH dimension scored? (If NO → Go back)
    - Do my first 3 dimensions have distinct line references? (If NO → Find new evidence)
@@ -317,37 +331,59 @@ bulk-rule-reviewer invokes this skill once per rule file. **Never** implement re
 |------|--------|---------|-------|
 | Before review | Start timing | `$PYTHON skill_timing.py start --skill rule-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
 | After schema validation | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
+| Before EACH dimension | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_start` | - |
+| After EACH dimension | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_end` | - |
 | After scoring complete | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
-| Before file write | End timing | `$PYTHON skill_timing.py end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer --format markdown --dimension-timings '{{_dimension_timings_json}}'` | Store `_timing_stdout` |
+| Before file write | End timing | `$PYTHON skill_timing.py end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer --format markdown --auto-dimension-timings` | Store `_timing_stdout` |
 | After file write | Embed | Append `_timing_stdout` to output file | - |
 
 **Working memory contract:** Retain `_timing_run_id`, `_timing_stdout`, and `_dimension_timings` from start through embed.
 
-**Per-dimension timing:** Skill-timing handles all timestamp capture, validation, and formatting. See `../skill-timing/SKILL.md` for the `--dimension-timings` schema and epoch capture methods. Rule-reviewer's only responsibility is passing the collected JSON array to `timing-end`.
+**Per-dimension timing:** Skill-timing **validates and formats** the timing data you pass in. **You are responsible for capturing** start/end markers (checkpoint pairs in sequential mode, or sub-agent self-reports in parallel mode) around each dimension. Use `--auto-dimension-timings` to derive `dimension_timings` from `dim_<name>_start` / `dim_<name>_end` checkpoint pairs automatically (preferred in sequential mode). See `../skill-timing/SKILL.md` for the explicit `--dimension-timings` schema and epoch capture methods used in parallel mode.
 
-**Quick Reference:**
+**Quick Reference (sequential mode — copy-paste verbatim):**
 ```bash
 PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
-$PYTHON skills/skill-timing/scripts/skill_timing.py start \
-    --skill rule-reviewer --target rules/200-python-core.md --model claude-sonnet-45 --mode FULL
+SCRIPT=skills/skill-timing/scripts/skill_timing.py
 
-$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
-    --run-id {{_timing_run_id}} --name skill_loaded
+# 1. Start
+$PYTHON $SCRIPT start --skill rule-reviewer \
+    --target rules/200-python-core.md --model claude-sonnet-45 --mode FULL
+# -> capture TIMING_RUN_ID into _timing_run_id
 
-$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
-    --run-id {{_timing_run_id}} --name review_complete
+# 2. Bootstrap checkpoint (after setup complete)
+$PYTHON $SCRIPT checkpoint --run-id {{_timing_run_id}} --name skill_loaded
 
-$PYTHON skills/skill-timing/scripts/skill_timing.py end \
-    --run-id {{_timing_run_id}} \
+# 3. Per-dimension checkpoint pairs — MANDATORY when timing_enabled=true
+# Repeat for each of the 6 scored dimensions, bracketing the ACTUAL scoring work:
+for dim in actionability rule_size parsability completeness consistency cross_agent; do
+    $PYTHON $SCRIPT checkpoint --run-id {{_timing_run_id}} --name "dim_${dim}_start"
+    # ... perform dimension scoring work (read rubric, fill inventory, compute score) ...
+    $PYTHON $SCRIPT checkpoint --run-id {{_timing_run_id}} --name "dim_${dim}_end"
+done
+
+# 4. Aggregate checkpoint (after all dimensions scored)
+$PYTHON $SCRIPT checkpoint --run-id {{_timing_run_id}} --name review_complete
+
+# 5. End — --auto-dimension-timings derives dimension_timings from checkpoint pairs
+$PYTHON $SCRIPT end --run-id {{_timing_run_id}} \
     --output-file reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-08.md \
-    --skill rule-reviewer --format markdown
+    --skill rule-reviewer --format markdown \
+    --auto-dimension-timings
+# Verify: stdout contains PER_DIMENSION_STATUS=derived
 ```
+
+**Parallel mode:** sub-agents self-report `start_epoch`/`end_epoch` in JSON. Coordinator assembles the array and passes `--dimension-timings` JSON explicitly. See `workflows/parallel-execution.md`.
 
 **Validation after each command (MANDATORY):**
 
 1. **After `start`:** Output must contain `TIMING_RUN_ID=`. If missing → STOP, report timing failure.
 2. **After `checkpoint`:** Output must contain `CHECKPOINT_STATUS=recorded`. If `missing` → note and continue.
-3. **After `end`:** Output must NOT contain `VALIDATION ERROR`. If present → per-dimension data was auto-stripped, note "Per-dimension timing unavailable" in review. If `end` fails entirely → re-run with `--format markdown` or read `reviews/.timing-data/skill-timing-{run_id}-complete.json` directly.
+3. **After `end`:** Output must NOT contain `VALIDATION ERROR`. Check `PER_DIMENSION_STATUS=` stdout marker:
+   - `present` — explicit `--dimension-timings` accepted (parallel mode)
+   - `derived` — auto-derived from checkpoint pairs (sequential mode, expected)
+   - `missing` — FAIL: re-run with `--auto-dimension-timings` or document unavailability.
+   If `VALIDATION ERROR` present → per-dimension data was auto-stripped, note "Per-dimension timing unavailable" in review. If `end` fails entirely → re-run or read `reviews/.timing-data/skill-timing-{run_id}-complete.json` directly.
 4. **After file write:** Verify `## Timing Metadata` section exists in output file. If missing → append from `_timing_stdout`.
 
 **If ALL timing validation fails:** Write the review WITHOUT timing metadata and note `**Timing data unavailable** - validation failed at step N`. Never block the review on timing failures.
@@ -403,7 +439,26 @@ if echo "$output" | grep -q "VALIDATION ERROR"; then
 fi
 ```
 
-**`dimension_timings` schema reference:** See `../skill-timing/SKILL.md` lines 73-92 for the complete schema with required/optional fields.
+**Anti-Pattern 4: Calling `timing-end` without `--auto-dimension-timings` (or `--dimension-timings`)**
+```bash
+# WRONG — dim_* checkpoints were recorded but neither flag is passed
+$PYTHON skill_timing.py end --run-id X --output-file Y --skill rule-reviewer
+# Result: Per-Dimension Timing section silently omitted. Stderr WARNING is easy to miss.
+#         Stdout shows PER_DIMENSION_STATUS=missing. Review fails Quality Gate 7.
+```
+
+**Correct:** Always pass `--auto-dimension-timings` in sequential mode (preferred), or assemble an explicit `--dimension-timings` JSON array in parallel mode:
+```bash
+# Sequential (auto-derive from dim_*_start / dim_*_end checkpoints)
+$PYTHON skill_timing.py end --run-id X --output-file Y --skill rule-reviewer \
+    --auto-dimension-timings
+
+# Parallel (explicit JSON from sub-agent self-reports)
+$PYTHON skill_timing.py end --run-id X --output-file Y --skill rule-reviewer \
+    --dimension-timings "$dimension_timings_json"
+```
+
+**`dimension_timings` schema reference:** See `../skill-timing/SKILL.md` for the complete schema with required/optional fields.
 
 ## Error Handling
 
@@ -528,6 +583,14 @@ When invoked by `bulk-rule-reviewer`, this skill may experience context drift af
 
 ## Version History
 
+- **v2.8.0:** Elevated per-dimension timing to a first-class workflow step (2026-04-21)
+  - New Step 6a mandates `dim_<name>_start` / `dim_<name>_end` checkpoint pairs around every scored dimension.
+  - Quick Reference expanded with all 6 dimension pairs and `--auto-dimension-timings` invocation.
+  - Anti-Pattern 4 covers silent `--dimension-timings` / `--auto-dimension-timings` omission.
+  - Quality Gate 7 (in `workflows/review-verification.md`) rejects reviews missing `### Per-Dimension Timing` when `timing_enabled: true`.
+  - Clarified misleading "skill-timing handles all capture" sentence — rule-reviewer owns capture.
+  - **Depends on skill-timing v1.5.0+** (`--auto-dimension-timings`, `PER_DIMENSION_STATUS` marker).
+  - **Migration note:** [`plans/per-dimension-timing-enforcement-MIGRATION.md`](../../plans/per-dimension-timing-enforcement-MIGRATION.md)
 - **v2.7.2:** Added dimension_timings anti-patterns and schema reference (2026-04-11)
   - 3 anti-pattern pairs (fabricated timestamps, missing required fields, ignoring validation errors)
   - Cross-reference to skill-timing SKILL.md dimension_timings schema

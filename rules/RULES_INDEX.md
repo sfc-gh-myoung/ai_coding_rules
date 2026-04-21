@@ -1022,7 +1022,7 @@ User: "Write tests for my Streamlit dashboard"
 - Depends: `000-global-core.md`
 
 **`801-project-readme.md`** - Comprehensive standards for README.md files following widely accepted industry best practices, ensuring consistent, professional, and accessible project documentation that serves both technical and non-technical audiences.
-- Keywords: README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing
+- Keywords: README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing, author contact, maintainer
 - Depends: `000-global-core.md`
 
 **`802-project-contributing.md`** - Professional contribution workflow directives covering commits, pull requests, changelog discipline, and rule authoring standards to ensure consistent project collaboration and quality.

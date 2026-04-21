@@ -1,7 +1,7 @@
 ---
 name: bulk-rule-reviewer
 description: Execute agent-centric reviews on all rules in rules/ directory and generate prioritized improvement report
-version: 2.2.0
+version: 2.3.0
 ---
 
 # Bulk Rule Reviewer
@@ -237,6 +237,71 @@ Do NOT display intermediate analysis to the user.
 The review FILE contains all evidence and analysis. Console output should show only progress.
 
 **If canary check FAILS:** Log failure reason briefly, then proceed with reset protocol.
+
+### Common Timing Mistakes (Anti-Pattern Block)
+
+All patterns below assume `timing_enabled: true`. If disabled, skip the entire timing pipeline.
+
+**Pattern 1: Fabricated epochs**
+
+WRONG:
+```bash
+# ❌ Agent invents timestamps to satisfy the schema
+--dimension-timings '[{"dimension":"actionability","duration_seconds":0,"start_epoch":0,"end_epoch":0}]'
+```
+
+Correct:
+```bash
+# ✅ Use real checkpoint pairs; let --auto-dimension-timings derive durations
+$PYTHON ... checkpoint --run-id $BULK_RUN_ID --name rule_${SLUG}_start
+# ... work ...
+$PYTHON ... checkpoint --run-id $BULK_RUN_ID --name rule_${SLUG}_end
+$PYTHON ... end --run-id $BULK_RUN_ID --auto-dimension-timings
+```
+
+**Pattern 2: Missing required fields in `dimension_timings`**
+
+WRONG:
+```json
+[{"dimension": "actionability", "duration_seconds": 12.4}]
+```
+(Missing `mode` field — skill-timing v1.5.0 strips entry with `VALIDATION ERROR`.)
+
+Correct:
+```json
+[{"dimension": "actionability", "duration_seconds": 12.4, "mode": "coordinator"}]
+```
+
+**Pattern 3: Ignored `VALIDATION ERROR` from skill-timing**
+
+WRONG:
+```
+# Agent sees "VALIDATION ERROR: missing `mode`" and proceeds, producing a
+# summary with empty dimension_timings array and no Timing Breakdown section.
+```
+
+Correct:
+```
+# Treat VALIDATION ERROR as fatal for the affected rule: log warning,
+# add to summary Warnings subsection, re-emit checkpoint pair if recoverable,
+# otherwise drop that rule from the Timing Breakdown and continue.
+```
+
+**Pattern 4: Omitting `--dimension-timings` / `--auto-dimension-timings` at `end`**
+
+WRONG (for bulk):
+```bash
+# Bulk run emits rule_*_start/end pairs but never passes --auto-dimension-timings
+# Result: Timing Breakdown section missing; per-rule durations silently lost.
+$PYTHON ... end --run-id $BULK_RUN_ID --output-file ...
+```
+
+Correct:
+```bash
+$PYTHON ... end --run-id $BULK_RUN_ID --auto-dimension-timings --output-file ...
+```
+
+**Sub-agent implication (parallel mode):** Each sub-agent invokes rule-reviewer with `timing_enabled: true`; coordinator merges their returned `dimension_timings` into the bulk `end` call. See `workflows/parallel-execution.md`.
 
 ### Execution Acknowledgment
 
@@ -544,23 +609,77 @@ Collect ALL parameters (required AND optional) using `ask_user_question` tool.
 - User must explicitly confirm each setting
 - If `ask_user_question` unavailable, fall back to text-based prompting
 
-### [OPTIONAL] Timing Start
+### Timing Start (Required when `timing_enabled: true`; skip when `false`)
 
 **When:** Only if `timing_enabled: true` in inputs  
 **MODE:** Safe in PLAN mode
 
-**See:** `../skill-timing/workflows/timing-start.md`
+**See:** `../skill-timing/workflows/timing-start.md` and the **Timing Quick Reference** block below.
 
-**Action:** Capture `run_id` in working memory for later use.
+**Action:** Capture `run_id` in working memory as `BULK_RUN_ID` for later use.
 
-**Note:** Timing tracks the entire bulk review process (all stages), not individual rule-reviewer calls.
+**Note:** Timing tracks the entire bulk review process (all stages) AND per-rule durations via `rule_{slug}_start/end` checkpoint pairs (see Quick Reference). Each rule-reviewer invocation also captures its OWN per-dimension timings under its own child run_id — these are embedded in each review's `## Timing Metadata` section and aggregated by `workflows/aggregation.md`.
 
-### [OPTIONAL] Checkpoint: skill_loaded
+## Timing Quick Reference (When `timing_enabled: true`)
+
+Copy-paste this block verbatim when executing a timed bulk review. The coordinator owns all bulk-level and per-rule checkpoints; sub-agents (parallel mode) report back via JSON.
+
+```bash
+# --- Setup ---
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+BULK_RUN_ID=$($PYTHON skills/skill-timing/scripts/skill_timing.py start \
+    --skill bulk-rule-reviewer --target rules/ --model {{model}} --mode {{review_mode}})
+
+# --- Stage checkpoints ---
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+    --run-id $BULK_RUN_ID --name skill_loaded
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+    --run-id $BULK_RUN_ID --name discovery_complete
+
+# --- FOR EACH rule (MANDATORY when timing_enabled: true) ---
+for rule_file in "${rule_file_paths[@]}"; do
+    RULE_SLUG=$(basename "$rule_file" .md)
+    $PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+        --run-id $BULK_RUN_ID --name rule_${RULE_SLUG}_start
+    # ... invoke rule-reviewer for $rule_file (child run_id captures
+    #     per-dimension timings in its own Timing Metadata section) ...
+    $PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+        --run-id $BULK_RUN_ID --name rule_${RULE_SLUG}_end
+done
+
+# --- Remaining stages ---
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+    --run-id $BULK_RUN_ID --name reviews_complete
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+    --run-id $BULK_RUN_ID --name aggregation_complete
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+    --run-id $BULK_RUN_ID --name summary_complete
+
+# --- End: auto-derive per-rule durations from rule_*_start/end pairs ---
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+    --run-id $BULK_RUN_ID \
+    --output-file {{output_root}}/summaries/_bulk-review-{{model}}-{{date}}.md \
+    --skill bulk-rule-reviewer --format markdown \
+    --auto-dimension-timings
+# Note: --auto-dimension-timings derives rule-reviewer's per-DIMENSION durations
+# from `dim_*_start/end` pairs embedded in each review's child run_id. Bulk-level
+# per-RULE durations are computed by workflows/aggregation.md parsing the
+# `rule_*_start/end` checkpoints on $BULK_RUN_ID (no skill-timing change needed).
+```
+
+**Contract:**
+- Every rule processed MUST emit a matching `rule_${SLUG}_start` / `rule_${SLUG}_end` pair. Missing pairs cause the rule to be dropped from the Timing Breakdown and trigger a warning (see `workflows/per-rule-verification.md` Gate).
+- `--auto-dimension-timings` forwards per-DIMENSION derivation to rule-reviewer's child run_ids. Bulk-level per-RULE durations are derived by `workflows/aggregation.md` parsing the checkpoint log on `$BULK_RUN_ID`; no explicit `--dimension-timings` is required at the bulk level.
+- Sub-agents (parallel mode) MUST return their child run_ids + per-dimension timings per `workflows/parallel-execution.md` schema; the coordinator merges them into the master summary.
+
+**Responsibility split:** *You* capture (bulk run_id, `rule_*_start/end` pairs, child run_ids from rule-reviewer). *skill-timing* validates/formats and emits `PER_DIMENSION_STATUS={present|derived|missing}`. Silent omission produces a summary without the Timing Breakdown section unless the Gate in `workflows/per-rule-verification.md` catches it.
+
+### Checkpoint: skill_loaded (Required when `timing_enabled: true`; skip when `false`)
 
 **When:** Only if timing was started  
 **Checkpoint name:** `skill_loaded`
 
-**See:** `../skill-timing/workflows/timing-checkpoint.md`
+**See:** `../skill-timing/workflows/timing-checkpoint.md` and Quick Reference above.
 
 ### Stage 1: Discovery
 
@@ -568,12 +687,12 @@ Find all `.md` files in `rules/` directory, apply filter_pattern, sort alphabeti
 
 **See:** `workflows/discovery.md`
 
-### [OPTIONAL] Checkpoint: discovery_complete
+### Checkpoint: discovery_complete (Required when `timing_enabled: true`; skip when `false`)
 
 **When:** Only if timing was started  
 **Checkpoint name:** `discovery_complete`
 
-**See:** `../skill-timing/workflows/timing-checkpoint.md`
+**See:** `../skill-timing/workflows/timing-checkpoint.md` and Quick Reference above.
 
 ### Stage 2: Review Execution (Parallel or Sequential)
 
@@ -634,8 +753,9 @@ When `max_parallel = 1`, use legacy sequential processing (single agent reviews 
 For each rule file:
 1. **INTER-RULE GATE (every 5 rules):** If rule_number % 5 == 0, execute `workflows/inter-rule-gate.md`
 2. **PRE-RULE CANARY:** Execute 3 canary questions from `workflows/proactive-canary.md`
-3. Extract rule name from path
+3. Extract rule name from path; compute `RULE_SLUG=$(basename "$rule_file" .md)`
 4. Check if review exists (if skip_existing=true)
+4a. **(If `timing_enabled: true`) Emit `rule_${RULE_SLUG}_start` checkpoint** on `$BULK_RUN_ID` BEFORE step 5. See Quick Reference.
 5. **READ the actual rule file into working memory**
 6. **POST-READ CANARY:** Verify you can name 3 specific things unique to THIS rule
 7. **LOAD rule-reviewer/SKILL.md if not already loaded**
@@ -651,6 +771,7 @@ For each rule file:
     - Must include rule-specific findings
     - **FAILURE triggers `workflows/reset-trigger.md`**
 15. **WRITE complete review to reviews/rule-reviews/ directory** (respects overwrite parameter)
+15a. **(If `timing_enabled: true`) Emit `rule_${RULE_SLUG}_end` checkpoint** on `$BULK_RUN_ID` BEFORE step 16 (the matching `rule_${RULE_SLUG}_start` was emitted at step 4a). Missing end-checkpoints cause the rule to be dropped from the auto-derived Timing Breakdown (see Quick Reference).
 16. Store (rule_name, score, verdict, review_path)
 17. Show progress every 10 reviews
 
@@ -696,12 +817,12 @@ If you're thinking ANY of these thoughts, STOP and re-read this skill:
 
 **See:** `workflows/review-execution.md` for orchestration details, resume capability, error handling.
 
-### [OPTIONAL] Checkpoint: reviews_complete
+### Checkpoint: reviews_complete (Required when `timing_enabled: true`; skip when `false`)
 
 **When:** Only if timing was started  
 **Checkpoint name:** `reviews_complete`
 
-**See:** `../skill-timing/workflows/timing-checkpoint.md`
+**See:** `../skill-timing/workflows/timing-checkpoint.md` and Quick Reference above.
 
 ### Stage 3: Aggregation
 
@@ -713,12 +834,12 @@ For each review file:
 
 **See:** `workflows/aggregation.md` for parsing strategy and statistics calculations.
 
-### [OPTIONAL] Checkpoint: aggregation_complete
+### Checkpoint: aggregation_complete (Required when `timing_enabled: true`; skip when `false`)
 
 **When:** Only if timing was started  
 **Checkpoint name:** `aggregation_complete`
 
-**See:** `../skill-timing/workflows/timing-checkpoint.md`
+**See:** `../skill-timing/workflows/timing-checkpoint.md` and Quick Reference above.
 
 ### Stage 4: Summary Report
 
@@ -730,34 +851,34 @@ Generate master summary with:
 
 **See:** `workflows/summary-report.md` for report format and section generation.
 
-### [OPTIONAL] Checkpoint: summary_complete
+### Checkpoint: summary_complete (Required when `timing_enabled: true`; skip when `false`)
 
 **When:** Only if timing was started  
 **Checkpoint name:** `summary_complete`
 
-**See:** `../skill-timing/workflows/timing-checkpoint.md`
+**See:** `../skill-timing/workflows/timing-checkpoint.md` and Quick Reference above.
 
-### [OPTIONAL] Timing End (Compute)
+### Timing End — Compute (Required when `timing_enabled: true`; skip when `false`)
 
 **When:** Only if timing was started  
 **MODE:** Safe in PLAN mode (outputs to STDOUT only)
 
-**See:** `../skill-timing/workflows/timing-end.md` (Step 1)
+**See:** `../skill-timing/workflows/timing-end.md` (Step 1) and Quick Reference above.
 
-**Action:** Capture STDOUT output for metadata embedding.
+**Action:** Invoke `skill_timing.py end --auto-dimension-timings` per Quick Reference. Capture STDOUT output for metadata embedding. Check `PER_DIMENSION_STATUS=` marker — `missing` triggers warnings aggregated into the summary Timing Breakdown.
 
 ### [MODE TRANSITION: PLAN → ACT]
 
 Request user ACT authorization before file modifications.
 
-### [OPTIONAL] Timing End (Embed)
+### Timing End — Embed (Required when `timing_enabled: true`; skip when `false`)
 
 **When:** Only if timing was started  
 **MODE:** Requires ACT mode (appends metadata to file)
 
-**See:** `../skill-timing/workflows/timing-end.md` (Step 2)
+**See:** `../skill-timing/workflows/timing-end.md` (Step 2) and Quick Reference above.
 
-**Action:** Parse STDOUT, append timing metadata section to summary report file.
+**Action:** Parse STDOUT, append timing metadata section + **Timing Breakdown** section (see `workflows/summary-report.md`) to the master summary report file.
 
 ## Critical Design Decisions
 
@@ -861,9 +982,15 @@ model: claude-sonnet-45
 
 **Next steps:** Immediate actions, short-term goals, long-term strategy.
 
+## Version History
+
+- **v2.3.0** (2026-04-21): Introduced per-rule and per-dimension timing propagation with Quick Reference, mandatory `rule_{slug}_start/end` checkpoint pairs (steps 4a/15a), master-summary Timing Breakdown section, parallel sub-agent reporting contract, Gate enforcement in per-rule verification, Common Timing Mistakes anti-pattern block, and `[OPTIONAL]` → `(Required when timing_enabled: true)` tag demotion. Depends on skill-timing v1.5.0 and rule-reviewer v2.8.0.
+- **v2.2.0** (2026-03-23): Prior release — context preservation, shortcut prevention, silent processing.
+
 ## Installation Requirements
 
-**Dependency:** rule-reviewer skill (required)
+**Dependency:** rule-reviewer skill v2.8.0+ (required — per-dimension Gate 7 timing)
+**Dependency:** skill-timing v1.5.0+ (required when `timing_enabled: true` — `--auto-dimension-timings` flag, `PER_DIMENSION_STATUS` marker)
 
 **Skill location resolution supports two patterns:**
 

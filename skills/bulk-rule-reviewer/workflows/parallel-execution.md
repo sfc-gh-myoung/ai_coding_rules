@@ -314,3 +314,90 @@ With `skip_existing=true` (default):
 - [ ] File writes don't conflict
 - [ ] Resume capability works after partial failure
 - [ ] Master summary includes all rules
+
+
+---
+
+## Timing Contract for Sub-Agents (When `timing_enabled: true`)
+
+**Added v2.3.0.** Defines how sub-agents propagate per-rule and per-dimension timing data back to the coordinator so the bulk master summary can render Section 10 (Timing Breakdown).
+
+### Coordinator Responsibilities
+
+1. Emit `rule_{slug}_start` / `rule_{slug}_end` checkpoints on `$BULK_RUN_ID` for every rule dispatched to a sub-agent (see SKILL.md Quick Reference). These are the canonical per-rule durations.
+2. Inject `timing_enabled: true` into every sub-agent prompt via `workflows/subagent-prompt-template.md`.
+3. Collect sub-agent JSON payloads (schema below) and merge with on-disk review file parsing in `workflows/aggregation.md`.
+4. At end, invoke `skill_timing.py end --run-id $BULK_RUN_ID --auto-dimension-timings`.
+
+### Sub-Agent Responsibilities
+
+Each sub-agent MUST:
+
+1. Invoke rule-reviewer with `timing_enabled: true` (inherited from bulk setting).
+2. Capture each rule-reviewer invocation's child `run_id` and per-dimension timings.
+3. Append a `timing` object to each completed-rule entry in its return payload.
+4. NOT write to the bulk run_id's checkpoint log. Only the coordinator owns `$BULK_RUN_ID` checkpoints to avoid concurrent writes.
+
+### Sub-Agent Return Schema
+
+```json
+{
+  "worker_num": 1,
+  "completed": [
+    {
+      "rule_name": "100-snowflake-core",
+      "score": 94,
+      "verdict": "EXECUTABLE",
+      "critical_issues": 0,
+      "review_path": "reviews/rule-reviews/100-snowflake-core-claude-sonnet-45-2026-04-21.md",
+      "timing": {
+        "run_id": "rr-20260421-001234-abc",
+        "duration_s": 11.42,
+        "dimension_timings": [
+          {"dimension": "actionability", "duration_seconds": 3.12, "mode": "coordinator"},
+          {"dimension": "rule_size", "duration_seconds": 0.85, "mode": "coordinator"},
+          {"dimension": "parsability", "duration_seconds": 1.44, "mode": "coordinator"},
+          {"dimension": "completeness", "duration_seconds": 2.91, "mode": "coordinator"},
+          {"dimension": "consistency", "duration_seconds": 1.74, "mode": "coordinator"},
+          {"dimension": "cross_agent", "duration_seconds": 1.36, "mode": "coordinator"}
+        ],
+        "per_dimension_status": "present"
+      }
+    }
+  ],
+  "failed": [ ... ],
+  "skipped": [ ... ],
+  "summary": { "total": 23, "success": 22, "failed": 1, "skipped": 0 }
+}
+```
+
+### Merge Algorithm
+
+`aggregation.md` Step 0 is extended:
+
+```python
+def merge_subagent_timings(subagent_results):
+    """Flatten sub-agent timing payloads into a single list for cross-check."""
+    timings = []
+    for worker in subagent_results:
+        for entry in worker.get("completed", []):
+            if "timing" in entry:
+                timings.append({
+                    "rule_name": entry["rule_name"],
+                    "worker_num": worker["worker_num"],
+                    **entry["timing"],
+                })
+    return timings
+```
+
+On-disk review files remain the canonical source (coordinator re-parses them). The sub-agent JSON is used for:
+
+- Cross-checking that every completed rule produced a `## Timing Metadata` block.
+- Attributing rules to workers for Section 10.6 (Sub-Agent Timing).
+- Detecting silent sub-agent failures (rule reported complete but review file absent or timing block missing).
+
+### Concurrency Contract
+
+- **Coordinator-owned:** `$BULK_RUN_ID` and all `rule_*_start/end` checkpoints.
+- **Sub-agent-owned:** Child `run_id`s (one per rule-reviewer invocation).
+- **No shared writes:** Sub-agents never call `checkpoint --run-id $BULK_RUN_ID`. This guarantees race-free checkpoint logs.

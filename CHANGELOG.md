@@ -27,6 +27,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(rule-reviewer):** add Anti-Pattern 4 documenting silent-omission of per-dimension timings
 - **test(rule-reviewer):** add end-to-end integration test (`test_gate7_integration.py`) for Gate 7 round-trip
 - **feat(bulk-rule-reviewer):** enforce Gate 7 per-rule verification across batch reviews
+- **feat(bulk-rule-reviewer):** bump to v2.3.0 with per-rule + per-dimension timing propagation
+- **feat(bulk-rule-reviewer):** add copy-pastable Timing Quick Reference block in SKILL.md with bulk + per-rule (`rule_{slug}_start/end`) checkpoint pairs
+- **feat(bulk-rule-reviewer):** add mandatory steps 4a/15a for per-rule checkpoint emission in the main rule-processing loop
+- **feat(bulk-rule-reviewer):** add Common Timing Mistakes anti-pattern block (fabricated epochs, missing `mode`, ignored `VALIDATION ERROR`, omitted `--auto-dimension-timings`)
+- **feat(bulk-rule-reviewer):** add Timing Aggregation section to `workflows/aggregation.md` producing `timing_stats` (per-rule distribution, top-10 slowest, per-dimension median, warnings)
+- **feat(bulk-rule-reviewer):** add Section 10 Timing Breakdown to `workflows/summary-report.md` (gated on `timing_enabled: true`; omitted otherwise for backwards compatibility)
+- **feat(bulk-rule-reviewer):** add Gate 8 (per-rule warning + summary-level BLOCKING) to `workflows/per-rule-verification.md`
+- **feat(bulk-rule-reviewer):** define sub-agent timing contract in `workflows/parallel-execution.md` with JSON payload schema and concurrency contract (coordinator-owned `$BULK_RUN_ID`, sub-agent-owned child run_ids)
+- **feat(bulk-rule-reviewer):** inject timing contract into `workflows/subagent-prompt-template.md` when `timing_enabled: true`
+- **feat(bulk-rule-reviewer):** require explicit `timing_enabled` opt-in/opt-out in `workflows/parameter-collection.md` (no silent default)
+- **docs(bulk-rule-reviewer):** add timing-enabled walkthrough addendum to `examples/full-bulk-review.md`
+- **test(bulk-rule-reviewer):** add 8 timing test cases (T1-T8) covering disabled, sequential, parallel, gate warning path, gate blocking path, sub-agent schema, auto-derive path, anti-pattern rejection
+
+### Changed
+- **docs(bulk-rule-reviewer):** demote `[OPTIONAL]` tags on timing steps to `(Required when timing_enabled: true; skip when false)`
+- **docs(bulk-rule-reviewer):** update Installation Requirements to note skill-timing v1.5.0+ and rule-reviewer v2.8.0+ dependencies
+
+### Fixed
+- **fix(bulk-rule-reviewer):** repair dead `CRITICAL_CONTEXT.md` references in `workflows/review-execution.md` (file deleted in v3.7.1); redirect drift-recovery reads to `workflows/context-anchor.md`
+
+### Added (Rollout)
+- **docs(plans):** add `plans/bulk-rule-reviewer-timing-MIGRATION.md` documenting v2.2.0 -> v2.3.0 migration, dependency versions, opt-in/opt-out, rollback
 
 ### Changed
 - **docs(plan-reviewer):** require explicit opt-in/opt-out for `timing_enabled` in `workflows/parameter-collection.md` (no silent default)

@@ -87,11 +87,12 @@ To produce a valid review under these requirements, the agent MUST:
 ## Quality Gates
 
 The following gates are applied before a review is considered complete. Gates 1-6 are enforced
-implicitly via the checks above. **Gate 7** is a conditional, post-write gate.
+implicitly via the checks above. **Gate 7** is an unconditional post-write gate (as of v2.9.0);
+an explicit `timing_enabled: false` opt-out is satisfied by a single `not-requested` row.
 
-### Gate 7: Per-Dimension Timing Presence (conditional)
+### Gate 7: Per-Dimension Timing Presence (universal default)
 
-**Condition:** `timing_enabled == true`.
+**Default:** Apply unconditionally. `timing_enabled` defaults to `true` as of rule-reviewer v2.9.0.
 
 **Checks:**
 
@@ -110,11 +111,12 @@ implicitly via the checks above. **Gate 7** is a conditional, post-write gate.
    row stating `unavailable` and the failure reason (e.g., `VALIDATION ERROR: ...`) so the
    omission is visible rather than silent.
 
-**Integration point:** This gate is checked in `workflows/file-write.md` Step 5a
-(pre-write structural validation) when `timing_enabled: true`.
+**Explicit opt-out (`timing_enabled: false`):** Gate 7 is satisfied by a single row whose
+`Mode` cell contains `not-requested`. The heading and table must still be present so the
+omission is visible rather than silent. No other remediation is required.
 
-**Skipping the gate:** There is no opt-out flag. If `timing_enabled` is `true`, Per-Dimension
-Timing MUST be present (or explicitly marked `unavailable` with reason).
+**Integration point:** This gate is checked in `workflows/file-write.md` Step 5a
+(pre-write structural validation).
 
 ## Integration Point
 

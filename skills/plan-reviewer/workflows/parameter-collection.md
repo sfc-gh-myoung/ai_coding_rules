@@ -118,12 +118,13 @@ target_question_delta = [
 
 **MANDATORY:** Always prompt for ALL optional parameters. Do NOT silently apply defaults.
 
-**Explicit opt-in/opt-out required for `timing_enabled`:** Never infer a default
-of `false` silently. The user MUST answer the Timing question before the review
-executes. If running non-interactively, `timing_enabled` MUST be passed
-explicitly; otherwise abort with an error rather than defaulting. This aligns
-with SKILL.md's "Do NOT silently apply defaults" rule and is a precondition for
-Gate 7 correctness.
+**Universal-default opt-in for `timing_enabled`:** As of plan-reviewer v2.5.0, the default is
+`true` and Gate 7 is applied unconditionally. The user is still prompted via the Timing
+question below — the default is shown as `Yes` but never silently auto-applied. If running
+non-interactively, `timing_enabled` MUST be passed explicitly; otherwise abort with an error.
+This aligns with SKILL.md's "Do NOT silently apply defaults" rule and is a precondition for
+Gate 7 correctness. Explicit `timing_enabled: false` is satisfied by a single `not-requested`
+row in the Per-Dimension Timing table.
 
 ```python
 optional_questions = [
@@ -139,12 +140,12 @@ optional_questions = [
     },
     {
         "header": "Timing",
-        "question": "Enable execution timing?",
+        "question": "Enable execution timing? (default: Yes — v2.5.0 universal default)",
         "type": "options",
         "multiSelect": False,
         "options": [
-            {"label": "No", "description": "Skip timing metadata (default)"},
-            {"label": "Yes", "description": "Record and embed execution duration"}
+            {"label": "Yes", "description": "Record timing + Per-Dimension Timing (default)"},
+            {"label": "No", "description": "Opt out; Gate 7 satisfied by `not-requested` row"}
         ]
     },
     {

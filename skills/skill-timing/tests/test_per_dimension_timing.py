@@ -13,7 +13,6 @@ Phase 1 Task 1.5:
 from __future__ import annotations
 
 import json
-import os
 import re
 import subprocess
 import sys
@@ -35,7 +34,7 @@ DIMENSIONS = [
 ]
 
 
-def run(args: list[str], cwd: Path) -> subprocess.CompletedProcess:
+def run(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
     """Invoke the skill_timing.py CLI with given args."""
     return subprocess.run(
         [sys.executable, str(SCRIPT), *args],
@@ -69,13 +68,15 @@ def start_run(tmp_path: Path, target: str = "rules/test.md") -> str:
 
 
 def record_checkpoint(tmp_path: Path, run_id: str, name: str) -> None:
+    """Record a named checkpoint for a timing run."""
     result = run(["checkpoint", "--run-id", run_id, "--name", name], cwd=tmp_path)
     assert result.returncode == 0, result.stderr
 
 
 def end_run(
     tmp_path: Path, run_id: str, extra_args: list[str] | None = None
-) -> subprocess.CompletedProcess:
+) -> subprocess.CompletedProcess[str]:
+    """End a timing run with optional extra arguments."""
     output_file = tmp_path / "review.md"
     output_file.touch()
     args = [
@@ -93,6 +94,7 @@ def end_run(
 
 
 def load_completed(tmp_path: Path, run_id: str) -> dict:
+    """Load and return the completed timing JSON for a run."""
     path = tmp_path / "reviews" / ".timing-data" / f"skill-timing-{run_id}-complete.json"
     assert path.exists(), f"completed file missing: {path}"
     return json.loads(path.read_text())
@@ -108,6 +110,7 @@ def _cwd_isolation(tmp_path, monkeypatch):
 # (a) explicit --dimension-timings
 # ---------------------------------------------------------------------------
 def test_explicit_dimension_timings_sets_present(tmp_path):
+    """Explicit --dimension-timings flag sets PER_DIMENSION_STATUS=present."""
     run_id = start_run(tmp_path)
     time.sleep(1.1)
     payload = [
@@ -125,6 +128,7 @@ def test_explicit_dimension_timings_sets_present(tmp_path):
 # (b) auto-derive from checkpoints
 # ---------------------------------------------------------------------------
 def test_auto_dimension_timings_derived(tmp_path):
+    """Auto-derive dimension timings from checkpoint pairs sets PER_DIMENSION_STATUS=derived."""
     run_id = start_run(tmp_path)
     for d in DIMENSIONS:
         record_checkpoint(tmp_path, run_id, f"dim_{d}_start")
@@ -145,6 +149,7 @@ def test_auto_dimension_timings_derived(tmp_path):
 # (c) silent-omission warning
 # ---------------------------------------------------------------------------
 def test_silent_omission_emits_warning(tmp_path):
+    """Partial dim_* checkpoints without --auto flag emits warning and sets status=missing."""
     run_id = start_run(tmp_path)
     record_checkpoint(tmp_path, run_id, "dim_actionability_start")
     time.sleep(0.05)
@@ -163,6 +168,7 @@ def test_silent_omission_emits_warning(tmp_path):
 # (d) explicit + auto-derive -> explicit wins
 # ---------------------------------------------------------------------------
 def test_explicit_wins_over_auto(tmp_path):
+    """When both --dimension-timings and --auto are provided, explicit wins with warning."""
     run_id = start_run(tmp_path)
     for d in DIMENSIONS:
         record_checkpoint(tmp_path, run_id, f"dim_{d}_start")
@@ -188,6 +194,7 @@ def test_explicit_wins_over_auto(tmp_path):
 # (e) malformed checkpoint names -> ignored with WARNING
 # ---------------------------------------------------------------------------
 def test_malformed_checkpoint_names_warn(tmp_path):
+    """Malformed dim_* checkpoint names are ignored with a warning."""
     run_id = start_run(tmp_path)
     # Valid pair plus malformed name
     record_checkpoint(tmp_path, run_id, "dim_actionability_start")

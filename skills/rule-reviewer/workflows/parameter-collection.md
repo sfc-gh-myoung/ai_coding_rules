@@ -35,7 +35,7 @@ IF required parameters missing:
 |-----------|-------------|---------|
 | `output_root` | Output directory | `reviews/` |
 | `overwrite` | Replace existing files | `false` |
-| `timing_enabled` | Enable timing metadata | `false` |
+| `timing_enabled` | Enable timing metadata | `true` (v2.9.0+; set `false` to opt out) |
 | `execution_mode` | `parallel` or `sequential` | `parallel` |
 
 ---
@@ -108,11 +108,11 @@ optional_questions = [
     },
     {
         "header": "Timing",
-        "question": "Enable execution timing?",
+        "question": "Enable execution timing? (default: Yes — timing is the universal default as of v2.9.0)",
         "multiSelect": False,
         "options": [
-            {"label": "No", "description": "Skip timing metadata (default)"},
-            {"label": "Yes", "description": "Record and embed execution duration"}
+            {"label": "Yes", "description": "Record and embed execution duration + Per-Dimension Timing (default)"},
+            {"label": "No", "description": "Opt out; Gate 7 satisfied by single `not-requested` row"}
         ]
     },
     {

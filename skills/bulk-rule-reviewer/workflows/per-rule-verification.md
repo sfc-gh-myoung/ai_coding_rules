@@ -129,10 +129,14 @@ For each rule:
 
 **CRITICAL:** Working memory must contain rule content BEFORE review generation.
 
-### Quality Gate 7: Per-Dimension Timing Presence (conditional)
+### Quality Gate 7: Per-Dimension Timing Presence (universal default)
 
-**When `timing_enabled: true` for the batch, the bulk orchestrator MUST enforce Gate 7
-on every produced review (see `skills/rule-reviewer/workflows/review-verification.md`):**
+**As of v2.4.0, `timing_enabled: true` is the default.** The bulk orchestrator MUST enforce Gate 7
+on every rule-reviewer invocation. Explicit `timing_enabled: false` at the batch level is
+satisfied by each per-rule review emitting a single `not-requested` row — the `### Per-Dimension
+Timing` section itself must still be present.
+
+**Enforcement on every produced review (see `skills/rule-reviewer/workflows/review-verification.md`):**
 
 1. After `rule-reviewer` writes each review, verify the file contains `### Per-Dimension Timing`
    with ≥6 rows, OR a single explicit `unavailable` row with a reason.

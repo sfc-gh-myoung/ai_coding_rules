@@ -8,173 +8,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **feat(plan-reviewer):** bump to v2.4.0 with per-dimension timing capture for all 8 scored dimensions
-- **feat(plan-reviewer):** add copy-pastable Quick Reference block with `skill_timing.py start/checkpoint/end --auto-dimension-timings` flow
-- **feat(plan-reviewer):** add Step 4a mandating `dim_<name>_start` / `dim_<name>_end` checkpoint pairs for executability, completeness, success_criteria, scope, dependencies, decomposition, context, risk_awareness
-- **feat(plan-reviewer):** add Common Timing Mistakes Anti-Pattern block (fabricated epochs, missing fields, ignored `VALIDATION ERROR`, omitted `--auto-dimension-timings`)
-- **feat(plan-reviewer):** add Gate 7 (Per-Dimension Timing Presence) to `workflows/file-write.md` with pass/fail/fallback matrix
-- **feat(plan-reviewer):** define sub-agent `dimension_timings` report schema in `workflows/parallel-specs.md` with 8-entry sample payload
-- **feat(plan-reviewer):** add Timing Discipline section to `workflows/determinism.md` with mandatory/prohibited behaviors
-- **feat(plan-reviewer):** add Per-Dimension Timing template to `rubrics/SCORING.md`
-- **docs(plan-reviewer):** add timing-enabled walkthrough to `examples/full-review.md`
-- **test(plan-reviewer):** add Test 7 to `testing/TESTING.md` covering positive, negative, fallback, and backwards-compat paths
-- **feat(skill-timing):** add `--auto-dimension-timings` flag to derive per-dimension durations from `dim_<name>_start` / `dim_<name>_end` checkpoint pairs
-- **feat(skill-timing):** emit `PER_DIMENSION_STATUS={present|derived|missing}` stdout marker for downstream gate enforcement
-- **feat(skill-timing):** warn on silent-omission when aggregate timings are reported without per-dimension breakdown
-- **test(skill-timing):** add pytest regression suite (`test_per_dimension_timing.py`) covering explicit, auto-derived, silent-omission, explicit-wins, and malformed cases
-- **feat(rule-reviewer):** add Quality Gate 7 (Per-Dimension Timing Presence) enforcing checkpoint pairs for all 6 scored dimensions (v2.8.0)
-- **feat(rule-reviewer):** add Step 6a mandating `dim_<name>_start` / `dim_<name>_end` checkpoint pairs during review execution
-- **feat(rule-reviewer):** add Anti-Pattern 4 documenting silent-omission of per-dimension timings
-- **test(rule-reviewer):** add end-to-end integration test (`test_gate7_integration.py`) for Gate 7 round-trip
-- **feat(bulk-rule-reviewer):** enforce Gate 7 per-rule verification across batch reviews
-- **feat(bulk-rule-reviewer):** bump to v2.3.0 with per-rule + per-dimension timing propagation
-- **feat(bulk-rule-reviewer):** add copy-pastable Timing Quick Reference block in SKILL.md with bulk + per-rule (`rule_{slug}_start/end`) checkpoint pairs
-- **feat(bulk-rule-reviewer):** add mandatory steps 4a/15a for per-rule checkpoint emission in the main rule-processing loop
-- **feat(bulk-rule-reviewer):** add Common Timing Mistakes anti-pattern block (fabricated epochs, missing `mode`, ignored `VALIDATION ERROR`, omitted `--auto-dimension-timings`)
-- **feat(bulk-rule-reviewer):** add Timing Aggregation section to `workflows/aggregation.md` producing `timing_stats` (per-rule distribution, top-10 slowest, per-dimension median, warnings)
-- **feat(bulk-rule-reviewer):** add Section 10 Timing Breakdown to `workflows/summary-report.md` (gated on `timing_enabled: true`; omitted otherwise for backwards compatibility)
-- **feat(bulk-rule-reviewer):** add Gate 8 (per-rule warning + summary-level BLOCKING) to `workflows/per-rule-verification.md`
-- **feat(bulk-rule-reviewer):** define sub-agent timing contract in `workflows/parallel-execution.md` with JSON payload schema and concurrency contract (coordinator-owned `$BULK_RUN_ID`, sub-agent-owned child run_ids)
-- **feat(bulk-rule-reviewer):** inject timing contract into `workflows/subagent-prompt-template.md` when `timing_enabled: true`
-- **feat(bulk-rule-reviewer):** require explicit `timing_enabled` opt-in/opt-out in `workflows/parameter-collection.md` (no silent default)
-- **docs(bulk-rule-reviewer):** add timing-enabled walkthrough addendum to `examples/full-bulk-review.md`
-- **test(bulk-rule-reviewer):** add 8 timing test cases (T1-T8) covering disabled, sequential, parallel, gate warning path, gate blocking path, sub-agent schema, auto-derive path, anti-pattern rejection
+- **feat(skills):** add `CHANGELOG.md` to 7 skills per project convention
+  - rule-reviewer, bulk-rule-reviewer, plan-reviewer, doc-reviewer, rule-creator, rule-loader, skill-timing
+- **feat(skill-timing):** v1.5.0 — `--auto-dimension-timings` flag, `PER_DIMENSION_STATUS` stdout marker, silent-omission warning
+- **feat(plan-reviewer):** v2.4.0 — per-dimension timing capture for 8 dimensions
+  - Quick Reference, Step 4a checkpoint pairs, Gate 7, anti-pattern block, parallel sub-agent schema
+- **feat(rule-reviewer):** v2.8.0 — Gate 7 (Per-Dimension Timing), Step 6a checkpoints, Anti-Pattern 4
+- **feat(bulk-rule-reviewer):** v2.3.0 — per-rule timing propagation
+  - Quick Reference, steps 4a/15a, Timing Aggregation, Gate 8, sub-agent contract, 8 test cases
+- **feat(prompts):** add 4 reusable prompt templates (analyze-plan, commit-changes, execute-plan, update-changelog)
+- **feat(prompts):** add `EXAMPLE_PROMPT_08.md` — bulk rule design-priority audit prompt
+- **feat(rules):** add `804-project-documentation.md` — docs/ folder organization, ARCHITECTURE/DEPLOYMENT/ADR conventions, GitHub Pages, link maintenance
+- **feat(rules):** add dynamic `GRANT ROLE TO USER` pattern using `SET` + `IDENTIFIER($var)` (102, 107, 130)
+- **feat(rules):** add `434-typescript-docs.md` (TSDoc) and `424-javascript-docs.md` (JSDoc) documentation standards
+- **feat(rules):** add YAML agent spec format section to `115-snowflake-cortex-agents-core`
+- **docs(plans):** add `plans/bulk-rule-reviewer-timing-MIGRATION.md`
 
 ### Changed
-- **docs(bulk-rule-reviewer):** demote `[OPTIONAL]` tags on timing steps to `(Required when timing_enabled: true; skip when false)`
-- **docs(bulk-rule-reviewer):** update Installation Requirements to note skill-timing v1.5.0+ and rule-reviewer v2.8.0+ dependencies
+- **feat(rule-reviewer):** v2.9.0 — timing universal default, SKILL.md compression, project-file support
+  - `timing_enabled` defaults to `true`; opt-out emits `not-requested` row (Gate 7 satisfied)
+  - Extracted workflows: `timing-integration.md`, `determinism.md`, `bulk-coordination.md`
+  - File-type detection skips schema validation for `AGENTS.md`/`PROJECT.md`; byte cap 12000 → 13500
+- **feat(bulk-rule-reviewer):** v2.4.0 — timing universal default; depends on rule-reviewer v2.9.0
+- **feat(plan-reviewer):** v2.5.0 — timing universal default; Gate 7 unconditional; byte cap 12000 → 13500
+- **feat(doc-reviewer):** v2.2.0 — per-dimension timing as first-class workflow (Step 4a, Gate 7, output template)
+- **feat(skill-timing):** v1.5.0 — stricter dimension validation, pricing refresh, `find_python.sh` portability
+  - Runner mode for zsh; resolution order `python3` → `python` → `uv run python`
+- **docs(rules):** add CHANGELOG.md convention and `tests/` guidance to 002h-claude-code-skills (v3.7.0)
+- **docs(rules):** add Anti-Pattern 5 (repetitive scope prefixes) and Entry Consolidation Guidelines to 800-project-changelog (v3.2.0)
+- **docs(rules):** update 119-snowflake-warehouse-management (v3.2.0) — correct Gen2 DDL syntax, credit tables
+- **refactor(rules):** rename `204-python-docs-comments.md` to `204-python-docs.md` (16 file refs updated)
+- **refactor(rules):** standardize SQL naming to `NN_<schema>_<operation>.sql` across 9 rule files
 
 ### Fixed
-- **fix(bulk-rule-reviewer):** repair dead `CRITICAL_CONTEXT.md` references in `workflows/review-execution.md` (file deleted in v3.7.1); redirect drift-recovery reads to `workflows/context-anchor.md`
-
-### Added (Rollout)
-- **docs(plans):** add `plans/bulk-rule-reviewer-timing-MIGRATION.md` documenting v2.2.0 -> v2.3.0 migration, dependency versions, opt-in/opt-out, rollback
-
-### Changed
-- **docs(plan-reviewer):** require explicit opt-in/opt-out for `timing_enabled` in `workflows/parameter-collection.md` (no silent default)
-- **docs(plan-reviewer):** note skill-timing v1.5.0 dependency in Related Skills; add Version History entry for v2.4.0
-- **docs(rule-reviewer):** make Per-Dimension Timing section mandatory in REVIEW-OUTPUT-TEMPLATE when `timing_enabled: true`; add Gate 7 to AUTO-REJECT table
-- **docs(rule-reviewer):** simplify review-execution Step 2.2a to 6 scored dimensions with auto-derive path
-- **docs(rule-reviewer):** clarify explicit-JSON path and Gate 7 alignment in parallel-execution workflow
-
-### Changed
-- **docs(rules):** update 119-snowflake-warehouse-management (v3.1.0 to v3.2.0)
-  - Replaced `RESOURCE_CONSTRAINT = 'STANDARD_GEN_2'` with correct `GENERATION = '2'` DDL syntax throughout
-  - Added Gen1 and Gen2 per-hour credit tables (AWS/Azure/GCP) with link to Credit Consumption Table
-  - Added Gen2 Limitations section (size support, Snowpark-optimized exclusion, region check, Snowsight UI)
-  - Refined Anti-Pattern 4 (Not Using GEN 2) text and Gen2 verification guidance
-  - Impact: Correct DDL syntax for Gen2 warehouses and accurate cloud-specific cost benchmarks
-
-### Added
-- **feat(prompts):** add reusable prompt templates for common workflows
-  - `analyze-plan.md`: Plan analysis with checklist generation
-  - `commit-changes.md`: Staged changes commit helper
-  - `execute-plan.md`: Plan execution with progress tracking
-  - `update-changelog.md`: Changelog update from staged changes
-
-### Changed
-- **docs(rule-reviewer):** update scoring documentation to match v2.7.2 schema
-  - Fix dimension count (8 → 6 scored dimensions)
-  - Update weights: Actionability 30, Rule Size 25, Parsability 15, Completeness 15, Consistency 10, Cross-Agent 5
-  - Note Token Efficiency and Staleness as informational-only (not scored)
-  - Update FOCUSED mode max points (50 → 45)
-- **docs(skill-timing):** fix stale references in usage documentation
-  - Update version reference (v1.2.0 → v1.5.0)
-  - Remove reference to deleted VALIDATION.md file
-
-### Added
-- **feat(rule-reviewer):** add anti-pattern documentation for dimension_timings (v2.7.2)
-  - 3 anti-pattern pairs: fabricated timestamps, missing required fields, ignoring validation errors
-  - Cross-reference to skill-timing SKILL.md dimension_timings schema
-
-### Fixed
-- **fix(examples):** correct `SHOW SEMANTIC DIMENSIONS/METRICS` syntax in example files
-  - Replace `FOR SEMANTIC VIEW` with `IN` in 5 occurrences across 2 example files
-  - `106-semantic-view-workarounds-example.md`: 3 fixes (lines 182, 199, 203)
-  - `115-cortex-agent-prerequisites-example.md`: 2 fixes (lines 60, 61)
-
-### Added
-- **feat(rules):** add dynamic `GRANT ROLE TO USER` pattern using `SET` + `IDENTIFIER($var)`
-  - `130-snowflake-demo-sql.md`: Demo User RBAC section + Anti-Pattern 6 + keywords
-  - `107-snowflake-security-governance.md`: Step 1b dynamic grant example + keywords
-  - `102-snowflake-sql-core.md`: New "Dynamic Identifiers in DDL" section
-
-### Added
-- **feat(rule):** add `434-typescript-docs.md` for TSDoc documentation standards
-  - TSDoc syntax, eslint-plugin-jsdoc `flat/recommended-typescript` config
-  - No type annotations in docs (TypeScript provides types)
-- **feat(rule):** add `424-javascript-docs.md` for JSDoc documentation standards
-  - JSDoc 3 syntax with type annotations, eslint-plugin-jsdoc `flat/recommended` config
-  - `@ts-check` integration for type validation
-
-### Changed
-- **refactor(rule):** rename `204-python-docs-comments.md` to `204-python-docs.md`
-  - Updated 16 files with references to renamed rule
-  - Added Related Rules entries in `430-typescript-core.md` and `420-javascript-core.md`
-
-### Fixed
-- **fix(rule):** correct `SHOW SEMANTIC DIMENSIONS/METRICS/FACTS IN` syntax in `106-snowflake-semantic-views-core` and companions
-  - Removed erroneous `SEMANTIC VIEW` keyword after `IN` (9 occurrences in 106, 106a, 106b, 106c, 106d)
-  - Added syntax note clarifying the grammar inconsistency vs `DESCRIBE SEMANTIC VIEW`
-- **fix(skill-timing):** resolve SIM102 lint error and 10 ty type-check errors in `validate_timing_data`
-  - Combined nested `if` into single condition; added `cast(dict[str, Any], dt)` for type narrowing
-- **chore:** apply `ruff format` to `validate.py` and `test_validate.py`
-
-### Added
-- **feat(rule):** add YAML agent spec format section to `115-snowflake-cortex-agents-core`
-  - Documents correct `sample_questions` object format (`question`/`answer` keys, not plain strings)
-  - Covers `tool_spec`/`tool_resources` structure and string quoting best practices
-
-### Fixed
+- **fix(bulk-rule-reviewer):** repair dead `CRITICAL_CONTEXT.md` references; redirect to `workflows/context-anchor.md`
+- **fix(examples):** correct `SHOW SEMANTIC DIMENSIONS/METRICS IN` syntax (5 occurrences in 2 files)
+- **fix(rules):** correct `SHOW SEMANTIC DIMENSIONS/METRICS/FACTS IN` syntax in 106-series (9 occurrences)
+- **fix(skill-timing):** resolve SIM102 lint and 10 ty type-check errors in `validate_timing_data`
 - **fix(validator):** eliminate false-positive MEDIUM warnings for delegation-pattern Anti-Patterns sections
-  - New `_section_delegates_to_companion()` detects `> **See:**` blockquote cross-references to companion `.md` files
-  - Credits all skipped checks as passed (accurate totals in verbose output)
-  - Resolves 4 false positives on `440-react-core.md`; generic enough for any future delegating section
-
-### Changed
-- **feat(skill-timing):** upgrade to v1.5.0 with stricter dimension validation and pricing refresh
-  - `mode` now required in `dimension_timings` entries (alongside `dimension`, `duration_seconds`)
-  - Detect fabricated timestamps: 0s duration, `end_epoch < start_epoch`, epoch mismatch with duration
-  - Dimension validation errors now emit `VALIDATION ERROR` (was `WARNING`) and strip invalid data to `[]`
-  - Non-dimension validation errors remain as `VALIDATION WARNING`
-  - Parse failures for `--dimension-timings` upgraded from `WARNING` to `VALIDATION ERROR` with detail
-  - Schema enum expanded: added `self-report-flagged`, `coordinator`, `validation-failed` modes
-  - Pricing updated: `claude-opus-45` $15/$75→$5/$25; added `claude-opus-46`, `claude-sonnet-46`, `claude-opus-4`
-  - SKILL.md: added `## Inputs` / `## Outputs` sections, moved `tags` under `metadata:`, third-person description
-- **chore(skill-timing):** audit fixes — remove dead refs, fix stale examples, add pyproject.toml
-  - Removed `VALIDATION.md` references from SKILL.md and Files tree (file was deleted)
-  - Fixed Files tree formatting and updated CLI version `v1.4.0` → `v1.5.0` in tree
-  - Added `⚠️` marker to Validation Checkpoints header for best-practices compliance
-  - Updated `basic-timing.md` example version `v1.3.0` → `v1.5.0`, simplified Step 4 wording
-  - Added minimal `pyproject.toml` (`requires-python >= 3.10`, no deps)
-  - Deleted `.DS_Store` artifact
-- **refactor(skill-timing):** replace `run_timing.sh` exec wrapper with `find_python.sh` discovery script
-  - `find_python.sh` prints Python interpreter path to stdout (no exec passthrough)
-  - New invocation: `PYTHON=$(bash find_python.sh)` then `$PYTHON skill_timing.py ...`
-  - Fixes argument mangling when passing complex `--dimension-timings` JSON through bash wrapper
-  - Updated 13 files (SKILL.md, test suite, 4 examples, 3 workflows, rule-reviewer, doc-reviewer, docs)
-- **refactor(rule-reviewer):** move timing implementation details to skill-timing SKILL.md
-  - Removed 30+ lines of validation gates, epoch capture code, and schema from rule-reviewer
-  - Rule-reviewer now references `../skill-timing/SKILL.md` for `--dimension-timings` schema
-- **fix(rule-reviewer):** use `python3 -c "import time; print(time.time())"` for fractional epoch precision
-  - Replaces `date +%s` (integer-only) in dimension-subagent-template.md
-  - Fixes whole-number durations in per-dimension timing data
-- **feat(rule-reviewer):** add dimension_timings anti-patterns and schema reference (v2.7.1 → v2.7.2)
-  - 3 anti-pattern pairs (❌/✅): fabricated timestamps, missing `duration_seconds`, ignoring validation errors
-  - `dimension_timings` schema table with required/optional field reference
-  - Validation checkpoint step 3 updated: `WARNING` → `VALIDATION ERROR` with recovery guidance
-- **refactor(rules):** standardize SQL file naming convention to `NN_<schema>_<operation>.sql` across 9 rule files
-  - `102a`: removed anti-number-prefix directive (line 439), updated pattern from `<operation>_<object>.sql`, flattened directory examples
-  - `130`: updated all ~30 filename references, rewrote Multi-Step section (number-first ordering), updated Quick Reference templates
-  - `109g`: updated 7 template filename comments to `NN_<schema>_<operation>.sql`
-  - `109b`: flattened directory structure with numbered files (recommends both flat and subdir approaches)
-  - `109h`: updated 3 Taskfile SQL_FILE path references
-  - `102d`: updated 5 CI/CD file path references (Makefile + GitHub Actions)
-  - `102`: updated header example filename
-  - `102c`: added schema component to incidental CLI example
-  - `951`: added explicit dbt exemption note for `sv_<domain>_<subject>.sql` convention
-  - `RULES_INDEX.md`: updated 130 description to reference new pattern
-- **002h-claude-code-skills.md** (v3.5.0 → v3.6.0): Fixed duplicate Error Recovery section, added "Too Many Options" anti-pattern, added evaluation JSON format example, added "Observing Skill Navigation" section, softened directory conventions, fixed optional frontmatter fields, added workflow cross-reference to 002l, added terminology cross-reference to 002m
 
 ### Removed
 - **refactor(skill-timing):** delete `VALIDATION.md` — human-facing validation procedures superseded by automated test suite (`tests/test_skill_timing.sh`, 23 tests)

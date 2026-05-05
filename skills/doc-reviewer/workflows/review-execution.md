@@ -127,6 +127,20 @@ For EACH dimension:
 3. Apply tie-breaking rules if on boundary
 4. Record score with evidence
 
+**Per-dimension timing (Step 3.1a — MANDATORY when `timing_enabled: true`)**
+
+Bracket the scoring work for EACH dimension with a checkpoint pair (see SKILL.md Step 4a for the Quick Reference):
+
+```bash
+$PYTHON $SCRIPT checkpoint --run-id {{_timing_run_id}} --name dim_{name}_start
+# ... compute score via decision matrix ...
+$PYTHON $SCRIPT checkpoint --run-id {{_timing_run_id}} --name dim_{name}_end
+```
+
+Required dimension names (exact spelling): `accuracy`, `completeness`, `clarity`, `structure`, `staleness`, `consistency`.
+
+After all 6 pairs are recorded, call `timing-end` with `--auto-dimension-timings`. Missing pairs trigger Quality Gate 7 rejection (see `workflows/review-verification.md`).
+
 ### Step 3.2: Calculate Total Score
 
 ```

@@ -401,7 +401,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 ### Why [Design Decision]?
 [Brief summary with key benefits]
 
-**For complete architectural details, see [ARCHITECTURE.md](ARCHITECTURE.md) or [Design Decisions](#design-decisions) section.**
+**For complete architectural details, see [ARCHITECTURE.md](docs/ARCHITECTURE.md) or [Design Decisions](#design-decisions) section.**
 ```
 
 ### Context-Aware Documentation (for AI/LLM Projects)

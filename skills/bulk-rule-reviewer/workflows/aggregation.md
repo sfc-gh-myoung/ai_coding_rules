@@ -498,9 +498,17 @@ The summary_data structure produced by this workflow is used by the summary repo
 
 ---
 
-## Timing Aggregation (When `timing_enabled: true`)
+## Timing Aggregation (Universal Default — v2.4.0)
 
-**Added v2.3.0.** When `timing_enabled: true`, this workflow also produces a `timing_stats` dict alongside the score stats, which `workflows/summary-report.md` renders in Section 10 (Timing Breakdown).
+**Added v2.3.0, universal default v2.4.0.** `timing_stats` is always produced alongside score stats.
+When `timing_enabled: false`, `timing_stats` is still emitted with per-rule rows flagged
+`per_dimension_status="not-requested"`; the summary Timing Breakdown section is never silently
+omitted. `workflows/summary-report.md` renders the output in Section 10 (Timing Breakdown).
+
+**Warning flags (non-blocking) now surfaced in summary Warnings subsection:**
+- `PER_DIMENSION_STATUS=missing` — timing pipeline failure, investigate
+- `PER_DIMENSION_STATUS=not-requested` — explicit opt-out, informational only
+- Per-dimension row count < 6 (rule-reviewer) — Gate 7 remediation incomplete
 
 ### Step T1: Parse Per-Rule Review Timing Metadata
 

@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-26
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-04-21
 **LoadTrigger:** kw:changelog, file:CHANGELOG.md
 **Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns, project governance, git workflow, version control
-**TokenBudget:** ~4350
+**TokenBudget:** ~5200
 **ContextTier:** Medium
 **Depends:** 000-global-core.md
 
@@ -260,6 +260,35 @@ Multiple instances of the same category heading (e.g., two `### Added` sections)
 - Bug B
 ```
 
+### Pattern 5: Repetitive Scope Prefixes Within a Section
+
+**Problem:**
+Repeating the same `**type(scope):**` prefix multiple times within a single category when entries relate to the same version bump.
+
+**Why It Fails:**
+- Creates visual noise that obscures the actual changes
+- Violates "one entry per version bump" principle
+- Makes scanning difficult when 10+ entries share the same prefix
+- Suggests entries should be consolidated into a single version-bump bullet
+
+**Correct Pattern:**
+```markdown
+# [BAD] - Repetitive prefixes
+### Added
+- **feat(plan-reviewer):** add Step 4a for checkpoint pairs
+- **feat(plan-reviewer):** add Gate 7 verification
+- **feat(plan-reviewer):** add anti-pattern block
+- **feat(plan-reviewer):** add Quick Reference
+- **docs(plan-reviewer):** add timing walkthrough
+- **test(plan-reviewer):** add Test 7 for timing
+
+# [GOOD] - Consolidated by version bump
+### Added
+- **feat(plan-reviewer):** v2.4.0 — per-dimension timing capture
+  - Step 4a checkpoint pairs, Gate 7 verification, anti-pattern block
+  - Quick Reference, timing walkthrough example, Test 7
+```
+
 ## Output Format Examples
 
 ```markdown
@@ -384,6 +413,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CRITICAL:** Security vulnerabilities must use **Security** type and include CVE references when applicable.
 - **CRITICAL:** Deprecated features must use **Deprecated** type and include removal timeline.
 - **Always:** Link to relevant PRs or issues (`[#123]`) when helpful.
+
+## Entry Consolidation Guidelines
+
+### One Entry Per Version Bump
+
+When a component (skill, package, module) receives a version bump, consolidate ALL related changes into a single changelog entry with sub-bullets:
+
+- **Primary bullet:** `**type(scope):** vX.Y.Z — short summary`
+- **Sub-bullets:** Notable specifics (features, files, breaking changes)
+
+### Fold Related Change Types
+
+When `feat()`, `docs()`, and `test()` changes all support the same feature, consolidate under the primary `feat()` entry rather than listing separately:
+
+```markdown
+# [BAD] - Separate entries for related changes
+- **feat(auth):** add OAuth2 support
+- **docs(auth):** add OAuth2 configuration guide
+- **test(auth):** add OAuth2 integration tests
+
+# [GOOD] - Consolidated
+- **feat(auth):** add OAuth2 support with configuration guide and integration tests
+```
+
+### Granularity Threshold
+
+**Too granular (avoid):**
+- Individual workflow files
+- Individual test cases
+- Per-function changes
+
+**Appropriate granularity:**
+- Version bumps with summary of notable changes
+- Features with user-visible impact
+- Breaking changes requiring migration
 
 ## Workflow and Maintenance
 

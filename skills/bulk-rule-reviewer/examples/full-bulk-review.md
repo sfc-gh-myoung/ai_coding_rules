@@ -492,7 +492,7 @@ timing_enabled: true
 
 ### Trace
 
-1. `parameter-collection.md` prompts for `timing_enabled` (no silent default).
+1. `parameter-collection.md` prompts for `timing_enabled` (default Yes as of v2.4.0; user can explicitly opt out to `false`, in which case per-rule reviews emit a `not-requested` row instead of the full 6-row Per-Dimension Timing table).
 2. `SKILL.md` Quick Reference runs `skill_timing.py start` -> `BULK_RUN_ID=bulk-20260421-091234-xyz`.
 3. Stage checkpoint `skill_loaded`, then `discovery_complete`.
 4. For each matched rule (e.g., `100-snowflake-core.md`):

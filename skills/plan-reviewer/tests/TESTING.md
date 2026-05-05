@@ -20,7 +20,7 @@ ls -la skills/plan-reviewer/
 # Expected:
 # SKILL.md
 # README.md
-# testing/TESTING.md
+# testing/TESTING.md → tests/TESTING.md
 # examples/
 # tests/
 # workflows/

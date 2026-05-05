@@ -268,7 +268,7 @@ def collect_parameters_text(missing_params: list) -> dict:
     print("**Other Optional Parameters:**")
     print("  - research_mode: online (default) | offline")
     print("  - context_tier: Auto (default) | Critical | High | Medium | Low")
-    print("  - timing_enabled: false (default) | true")
+    print("  - timing_enabled: true (default) | false")
     print()
     
     return {}  # Empty - user must re-invoke with params

@@ -44,16 +44,14 @@ Comprehensive best practices for creating, configuring, and managing Snowflake v
 - **2XL:** 32 | **3XL:** 64 | **4XL:** 128 | **5XL:** 256 | **6XL:** 512
 
 **Gen2 Standard (varies by cloud provider):**
-| Size | AWS | Azure | GCP |
-|------|-----|-------|-----|
-| XS | 1.35 | 1.25 | 1.35 |
-| S | 2.7 | 2.5 | 2.7 |
-| M | 5.4 | 5.0 | 5.4 |
-| L | 10.8 | 10.0 | 10.8 |
-| XL | 21.6 | 20.0 | 21.6 |
-| 2XL | 43.2 | 40.0 | 43.2 |
-| 3XL | 86.4 | 80.0 | 86.4 |
-| 4XL | 172.8 | 160.0 | 172.8 |
+- **XS:** AWS 1.35 | Azure 1.25 | GCP 1.35
+- **S:** AWS 2.7 | Azure 2.5 | GCP 2.7
+- **M:** AWS 5.4 | Azure 5.0 | GCP 5.4
+- **L:** AWS 10.8 | Azure 10.0 | GCP 10.8
+- **XL:** AWS 21.6 | Azure 20.0 | GCP 21.6
+- **2XL:** AWS 43.2 | Azure 40.0 | GCP 43.2
+- **3XL:** AWS 86.4 | Azure 80.0 | GCP 86.4
+- **4XL:** AWS 172.8 | Azure 160.0 | GCP 172.8
 
 **Note:** Gen2 supports XSMALL through X4LARGE only (X5LARGE/X6LARGE not supported)
 

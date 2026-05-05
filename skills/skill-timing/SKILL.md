@@ -25,6 +25,16 @@ timing_enabled: true
 
 **Output:** Timing metadata embedded in output file with duration, checkpoints, token costs, and baseline comparison.
 
+## Purpose
+
+Enable comprehensive performance measurement and analysis:
+- **Wall-clock duration** - Microsecond precision from start to end
+- **Checkpoints** - Intermediate timing points for bottleneck analysis
+- **Token tracking** - Input/output token counts with cost estimation
+- **Anomaly detection** - Real-time detection of shortcuts and timeouts
+- **Baseline comparison** - Compare against historical averages
+- **Cross-analysis** - Performance across models, agents, and modes
+
 ## Use this skill when
 
 ✅ **Use this skill when:**
@@ -40,16 +50,6 @@ timing_enabled: true
 - The skill execution is trivial (<5 seconds expected)
 - You're just testing syntax (not measuring actual performance)
 - The skill doesn't produce a file output (timing metadata needs a file to embed in)
-
-## Purpose
-
-Enable comprehensive performance measurement and analysis:
-- **Wall-clock duration** - Microsecond precision from start to end
-- **Checkpoints** - Intermediate timing points for bottleneck analysis
-- **Token tracking** - Input/output token counts with cost estimation
-- **Anomaly detection** - Real-time detection of shortcuts and timeouts
-- **Baseline comparison** - Compare against historical averages
-- **Cross-analysis** - Performance across models, agents, and modes
 
 ## Inputs
 
@@ -105,6 +105,8 @@ Each element in the `dimension_timings` JSON array must conform to:
 ### 1. timing-start
 
 Initialize timing for a skill execution.
+
+> **Universal default (as of 2026-04-21):** Reviewer skills (rule-reviewer ≥ v2.9.0, plan-reviewer ≥ v2.5.0, bulk-rule-reviewer ≥ v2.4.0) now treat `timing_enabled: true` as the default. When callers opt out with `timing_enabled: false`, reviewers are expected to emit a single `not-requested` row in their Per-Dimension Timing table rather than omitting the section. skill-timing itself is unchanged; it accepts `not-requested` as a valid mode value inside `dimension_timings` entries for downstream filtering. See `plans/per-dimension-timing-universal-MIGRATION.md`.
 
 **Required inputs:**
 - `skill_name` - Name of the skill being timed
@@ -392,10 +394,4 @@ skill-timing/
 
 ## Version History
 
-- **v1.5.0** (2026-04-21): Per-dimension timing enforcement
-  - New `--auto-dimension-timings` flag on `end`: derives `dimension_timings` from `dim_<name>_start` / `dim_<name>_end` checkpoint pairs.
-  - New `PER_DIMENSION_STATUS={present|derived|missing}` stdout marker (grep-able from orchestrators).
-  - Silent-omission guard: stderr WARNING when `dim_*` checkpoints exist but neither `--dimension-timings` nor `--auto-dimension-timings` is supplied.
-  - `mode: "checkpoint"` added as a first-class value in the `dimension_timings` schema.
-  - Paired pytest regression suite in `tests/test_per_dimension_timing.py`.
-  - **Migration note:** [`plans/per-dimension-timing-enforcement-MIGRATION.md`](../../plans/per-dimension-timing-enforcement-MIGRATION.md)
+See `CHANGELOG.md`.

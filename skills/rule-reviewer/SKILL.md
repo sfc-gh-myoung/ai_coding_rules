@@ -1,12 +1,22 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/rule-reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 2.8.0
+version: 2.9.0
 ---
 
 # Rule Reviewer
 
+## Purpose
+
 Execute comprehensive agent-centric reviews evaluating whether autonomous agents can execute rules without judgment calls.
+
+## Use this skill when
+
+- Reviewing rule files for agent executability (FULL mode)
+- Auditing a specific dimension of a rule (FOCUSED mode)
+- Checking rule staleness against the current codebase (STALENESS mode)
+- Validating rule compliance with schema and conventions
+- Scoring rule quality against the 6-dimension rubric
 
 ## Quick Start
 
@@ -108,83 +118,27 @@ ELSE:
     → Follow sequential workflow below
 ```
 
-**Progress Display:** Show only `Starting: [rule-name]` and `Complete: [rule-name] → score/100`.
-All canary checks, dimension scoring, and evidence gathering are INTERNAL (silent).
+**Progress Display:** Show only `Starting: [rule-name]` and `Complete: [rule-name] → score/100`. All canary checks, dimension scoring, and evidence gathering are INTERNAL (silent).
 
-1. **Validate inputs**
-   - Date format: YYYY-MM-DD
-   - File exists (rules/*.md, AGENTS.md, or PROJECT.md)
-   - Mode: FULL | FOCUSED | STALENESS
+1. **Validate inputs** — date format YYYY-MM-DD, file exists, mode in {FULL, FOCUSED, STALENESS}. See `workflows/input-validation.md`.
 
-1a. **Collect ALL parameters** (use `ask_user_question`)
-   
-   **See:** `workflows/parameter-collection.md`
-   
-   **MANDATORY:** Prompt for ALL parameters in batched questions (max 4 per call):
-   - Do NOT silently apply defaults for optional parameters
-   - User must explicitly confirm each setting
-   - If `ask_user_question` unavailable, fall back to text-based prompting
+1a. **Collect ALL parameters** (use `ask_user_question`). See `workflows/parameter-collection.md`. **MANDATORY:** batched questions (max 4 per call); do NOT silently apply defaults. If `ask_user_question` unavailable, fall back to text-based prompting.
 
-1b. **Detect file type**
-   ```bash
-   target_basename=$(basename "$target_file")
-   
-   if [[ "$target_basename" =~ ^(AGENTS|PROJECT)\.md$ ]]; then
-       FILE_TYPE="project"
-       SKIP_SCHEMA=true
-       echo "File type: Project configuration (schema validation skipped)"
-   elif [[ "$target_file" == rules/*.md ]]; then
-       FILE_TYPE="rule"
-       SKIP_SCHEMA=false
-       echo "File type: Rule (full schema validation)"
-   else
-       echo "ERROR: Target must be AGENTS.md, PROJECT.md, or rules/*.md"
-       exit 1
-   fi
-   ```
+1b. **Detect file type.** Run the `target_basename` / `FILE_TYPE` / `SKIP_SCHEMA` detection from `workflows/input-validation.md` (File-Type Detection section). Outcomes: `rule` → full schema validation; `project` (AGENTS.md/PROJECT.md) → schema validation skipped.
 
-2. **Pre-Review Canary Check (SILENT - do not output)**
-   Before reading the rule file, mentally verify:
-   - What will I find in this rule? (RIGHT: "I don't know yet")
-   - How long will this review take? (RIGHT: "However long it takes")
-   - Can I reuse anything from previous work? (RIGHT: "No, different rule")
-   
-   **Any wrong answer → Re-read Anti-Optimization Protocol before proceeding**
+2. **Pre-Review Canary Check (SILENT).** See Canary Checks below.
 
-3. **Run schema validation (conditional)**
-   
-   **IF FILE_TYPE == "rule":**
-   ```bash
-   uv run ai-rules validate [target_file]
-   ```
-   Parse output for CRITICAL/HIGH/MEDIUM errors
-   
-   **IF FILE_TYPE == "project":**
-   ```bash
-   echo "Schema validation skipped for project file"
-   echo "Note: Project files use different structure than rule schema"
-   ```
-   Set schema_validation_result = "SKIPPED (project file)"
-   
-   **Rationale:** AGENTS.md and PROJECT.md are bootstrap/configuration files with different structure than domain rules. They don't use rule metadata (SchemaVersion, RuleVersion, TokenBudget) or rule sections (Scope, Contract, References).
+3. **Run schema validation (conditional).** If `FILE_TYPE == "rule"`, execute `uv run ai-rules validate <target_file>` and parse CRITICAL/HIGH/MEDIUM errors. If `FILE_TYPE == "project"`, skip and set `schema_validation_result = "SKIPPED (project file)"`. Full procedure, file-type gating, and error handling: `workflows/schema-validation.md`.
 
-4. **Agent Execution Test (SILENT - results go to review file)**
-   Count blocking issues (≥6 caps score at 80/100, ≥10 forces NOT_EXECUTABLE):
+4. **Agent Execution Test (SILENT - results go to review file).** Count blocking issues (≥6 caps score at 80/100, ≥10 forces NOT_EXECUTABLE):
    - Undefined thresholds ("large", "significant", "appropriate")
    - Missing conditional branches (no explicit else)
    - Ambiguous actions (multiple interpretations)
    - Visual formatting (ASCII art, arrows, diagrams)
 
-5. **Post-Read Canary Check (SILENT - do not output)**
-   After reading file, before scoring, verify internally:
-   - Can name 3 specific things unique to THIS file
-   - Can cite a specific line number with content
-   - Know the exact TokenBudget value (rule files) OR file purpose (project files)
-   
-   **Unable to verify → Did not actually read → Re-read file**
+5. **Post-Read Canary Check (SILENT).** See Canary Checks below.
 
-6. **Score dimensions**
-   Read rubrics/ as needed for each dimension:
+6. **Score dimensions.** Read rubrics as needed for each dimension:
    - `rubrics/actionability.md`
    - `rubrics/completeness.md`
    - `rubrics/consistency.md`
@@ -192,11 +146,9 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
    - `rubrics/token-efficiency.md`
    - `rubrics/rule-size.md` (100% deterministic - line count)
    - `rubrics/staleness.md`
-   - `rubrics/cross-agent-consistency.md`
-     - Includes documentation currency check via `web_fetch`
-     - See `workflows/doc-currency-check.md` for details
+   - `rubrics/cross-agent-consistency.md` — includes documentation currency check via `web_fetch`; see `workflows/doc-currency-check.md`
 
-6a. **(If `timing_enabled: true`) Bracket EACH dimension with a checkpoint pair.**
+6a. **(When `timing_enabled: true` — default) Bracket EACH dimension with a checkpoint pair.**
 
    Required checkpoint names (one pair per scored dimension):
    - `dim_actionability_start` / `dim_actionability_end`
@@ -208,53 +160,43 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 
    On `timing-end`, pass `--auto-dimension-timings` (**preferred**) to derive the `dimension_timings` array from the captured checkpoint pairs automatically. Only assemble `--dimension-timings` JSON manually if you are aggregating sub-agent output (parallel mode).
 
-   **FAILURE TO DO THIS:** The `### Per-Dimension Timing` subsection will be absent and the review will fail the post-write Quality Gate 7 (see `workflows/review-verification.md`). Requires skill-timing v1.5.0+.
+   **FAILURE TO DO THIS:** The `### Per-Dimension Timing` subsection will be absent and the review will fail post-write Quality Gate 7 (see `workflows/review-verification.md`). Requires skill-timing v1.5.0+.
 
-7. **Mid-Review Canary (after dimension 3) (SILENT)**
-   - Have I loaded the rubric for EACH dimension scored? (If NO → Go back)
-   - Do my first 3 dimensions have distinct line references? (If NO → Find new evidence)
-   
-8. **Generate recommendations**
-   - Specific line numbers
-   - Quantified fixes
-   - Expected score improvements
+7. **Mid-Review Canary (after dimension 3) (SILENT).** See Canary Checks below.
 
-9. **Verify review authenticity**
-   Before writing, verify review contains:
-   - ≥15 line references (FULL mode)
-   - Direct quotes with line numbers
-   - Rule-specific findings (not generic)
-   - See `workflows/review-verification.md`
-   - Verify output matches `references/REVIEW-OUTPUT-TEMPLATE.md` structure
-   - **FAILURE → Trigger reset: Re-read SKILL.md completely**
+8. **Generate recommendations** — specific line numbers, quantified fixes, expected score improvements.
 
-10. **Write review**
-   Path: `{output_root}/rule-reviews/[rule-name]-[model]-[date].md`
-   Auto-increment: `-01.md`, `-02.md` if exists (when overwrite=false)
+9. **Verify review authenticity.** Before writing, verify review contains ≥15 line references (FULL mode), direct quotes with line numbers, rule-specific findings (not generic); output matches `references/REVIEW-OUTPUT-TEMPLATE.md` structure. See `workflows/review-verification.md`. **FAILURE → Trigger reset: Re-read SKILL.md completely.**
 
-**See workflows/** for detailed error handling
+10. **Write review.** Path: `{output_root}/rule-reviews/[rule-name]-[model]-[date].md`. Auto-increment `-01.md`, `-02.md` if exists (when `overwrite=false`). See `workflows/file-write.md`.
+
+**See `workflows/error-handling.md` for detailed error handling across all steps.**
+
+### Canary Checks (SILENT — never output)
+
+All three canaries are internal self-tests. If any fails, re-read the referenced file and resume silently.
+
+- **Pre-Review (before reading target):** "What will I find?" → "I don't know yet." "How long?" → "However long it takes." "Can I reuse previous work?" → "No, different rule." Wrong answer → re-read Execution Discipline.
+- **Post-Read (after reading, before scoring):** Can name 3 specific things unique to THIS file; can cite a specific line number with content; know the exact `TokenBudget` value (rule files) OR file purpose (project files). Unable to verify → re-read the target file.
+- **Mid-Review (after dimension 3):** Loaded the rubric for EACH dimension scored? First 3 dimensions have distinct line references? If NO on either → go back and gather evidence.
 
 ## Verdicts
 
 **Score Ranges (100-point scale):**
-- **90-100** - EXECUTABLE - Production-ready
-- **75-89** - EXECUTABLE_WITH_REFINEMENTS - Good, minor fixes
-- **50-74** - NEEDS_REFINEMENT - Needs work
-- **<50** - NOT_EXECUTABLE - Major issues
+- **90-100** — EXECUTABLE — Production-ready
+- **75-89** — EXECUTABLE_WITH_REFINEMENTS — Good, minor fixes
+- **50-74** — NEEDS_REFINEMENT — Needs work
+- **<50** — NOT_EXECUTABLE — Major issues
 
-**Hard Cap Overrides:**
-- >600 lines → Total score capped at 70/100, verdict NEEDS_REFINEMENT or lower
-- >700 lines → Total score capped at 50/100, verdict NOT_EXECUTABLE
-- ≥6 blocking issues → Total score capped at 80/100
-- ≥10 blocking issues → Verdict forced to NOT_EXECUTABLE
-
-**Critical dimension override:** If both Actionability ≤4/10 AND Completeness ≤4/10 → NOT_EXECUTABLE regardless of total score
+**Critical dimension override:** If both Actionability ≤4/10 AND Completeness ≤4/10 → NOT_EXECUTABLE regardless of total score.
 
 **Rule Size flags:**
-- `SPLIT_RECOMMENDED` (501-550 lines) - Review for split opportunities
-- `SPLIT_REQUIRED` (551-600 lines) - Mandatory split plan required
-- `NOT_DEPLOYABLE` (601-700 lines) - Block deployment, hard cap 70/100
-- `BLOCKED` (>700 lines) - Reject review, hard cap 50/100
+- `SPLIT_RECOMMENDED` (501-550 lines) — Review for split opportunities
+- `SPLIT_REQUIRED` (551-600 lines) — Mandatory split plan required
+- `NOT_DEPLOYABLE` (601-700 lines) — Block deployment, hard cap 70/100
+- `BLOCKED` (>700 lines) — Reject review, hard cap 50/100
+
+**Hard caps:** See Scoring System above (single source of truth).
 
 ## Supported File Types
 
@@ -284,7 +226,7 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 | Section structure | Scope → Contract → Content | Custom per project |
 | Max score | 100 points | 100 points |
 
-**Both file types are agent-executable documents** - they just follow different schemas optimized for their architectural roles.
+**Both file types are agent-executable documents** — they just follow different schemas optimized for their architectural roles.
 
 ## Required Sections in Review
 
@@ -308,8 +250,8 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 - **review_mode:** FULL | FOCUSED | STALENESS
 - **model:** Lowercase-hyphenated slug (e.g., `claude-sonnet-45`)
 - **output_root:** (optional) Root directory for output files (default: `reviews/`). Subdirectory `rule-reviews/` is appended automatically. Supports relative paths including `../`.
-- **overwrite:** (optional) true | false (default: false) - If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
-- **timing_enabled:** (optional) true | false (default: false)
+- **overwrite:** (optional) true | false (default: false) — If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
+- **timing_enabled:** (optional) true | false (default: true) — set to `false` to explicitly opt out; the Per-Dimension Timing section is then satisfied by a single `not-requested` row.
 - **execution_mode:** (optional) `parallel` | `sequential` (default: `parallel`)
   - `parallel`: Uses 5 sub-agents for scored dimension evaluation (faster, recommended for 8GB+ RAM)
   - `sequential`: Legacy single-agent behavior (for debugging or low-resource environments)
@@ -318,14 +260,14 @@ All canary checks, dimension scoring, and evidence gathering are INTERNAL (silen
 
 ### With bulk-rule-reviewer
 
-bulk-rule-reviewer invokes this skill once per rule file. **Never** implement review logic yourself when bulk-rule-reviewer calls you.
+bulk-rule-reviewer invokes this skill once per rule file. **Never** implement review logic yourself when bulk-rule-reviewer calls you. Context-preservation safeguards (pre-write verification, post-write size check, periodic refresh): `workflows/bulk-coordination.md`.
 
 ### With skill-timing
 
-**Execute IF:** `timing_enabled: true`  
-**Skip IF:** `timing_enabled: false` (default)
+**Execute IF:** `timing_enabled: true` (default).
+**Skip IF:** `timing_enabled: false` (explicit opt-out) — satisfy Gate 7 with a single `not-requested` row.
 
-**When enabled, execute ALL steps below (not optional once enabled):**
+When enabled, execute ALL steps below (not optional once enabled):
 
 | When | Action | Command | Track |
 |------|--------|---------|-------|
@@ -339,126 +281,11 @@ bulk-rule-reviewer invokes this skill once per rule file. **Never** implement re
 
 **Working memory contract:** Retain `_timing_run_id`, `_timing_stdout`, and `_dimension_timings` from start through embed.
 
-**Per-dimension timing:** Skill-timing **validates and formats** the timing data you pass in. **You are responsible for capturing** start/end markers (checkpoint pairs in sequential mode, or sub-agent self-reports in parallel mode) around each dimension. Use `--auto-dimension-timings` to derive `dimension_timings` from `dim_<name>_start` / `dim_<name>_end` checkpoint pairs automatically (preferred in sequential mode). See `../skill-timing/SKILL.md` for the explicit `--dimension-timings` schema and epoch capture methods used in parallel mode.
+**Per-dimension timing responsibility:** skill-timing **validates and formats** the timing data you pass in. **You are responsible for capturing** start/end markers (checkpoint pairs in sequential mode, or sub-agent self-reports in parallel mode) around each dimension. Use `--auto-dimension-timings` in sequential mode (preferred).
 
-**Quick Reference (sequential mode — copy-paste verbatim):**
-```bash
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
-SCRIPT=skills/skill-timing/scripts/skill_timing.py
+**Copy-paste bash quick reference, 4 common anti-patterns, and per-command validation procedure:** `workflows/timing-integration.md`.
 
-# 1. Start
-$PYTHON $SCRIPT start --skill rule-reviewer \
-    --target rules/200-python-core.md --model claude-sonnet-45 --mode FULL
-# -> capture TIMING_RUN_ID into _timing_run_id
-
-# 2. Bootstrap checkpoint (after setup complete)
-$PYTHON $SCRIPT checkpoint --run-id {{_timing_run_id}} --name skill_loaded
-
-# 3. Per-dimension checkpoint pairs — MANDATORY when timing_enabled=true
-# Repeat for each of the 6 scored dimensions, bracketing the ACTUAL scoring work:
-for dim in actionability rule_size parsability completeness consistency cross_agent; do
-    $PYTHON $SCRIPT checkpoint --run-id {{_timing_run_id}} --name "dim_${dim}_start"
-    # ... perform dimension scoring work (read rubric, fill inventory, compute score) ...
-    $PYTHON $SCRIPT checkpoint --run-id {{_timing_run_id}} --name "dim_${dim}_end"
-done
-
-# 4. Aggregate checkpoint (after all dimensions scored)
-$PYTHON $SCRIPT checkpoint --run-id {{_timing_run_id}} --name review_complete
-
-# 5. End — --auto-dimension-timings derives dimension_timings from checkpoint pairs
-$PYTHON $SCRIPT end --run-id {{_timing_run_id}} \
-    --output-file reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-08.md \
-    --skill rule-reviewer --format markdown \
-    --auto-dimension-timings
-# Verify: stdout contains PER_DIMENSION_STATUS=derived
-```
-
-**Parallel mode:** sub-agents self-report `start_epoch`/`end_epoch` in JSON. Coordinator assembles the array and passes `--dimension-timings` JSON explicitly. See `workflows/parallel-execution.md`.
-
-**Validation after each command (MANDATORY):**
-
-1. **After `start`:** Output must contain `TIMING_RUN_ID=`. If missing → STOP, report timing failure.
-2. **After `checkpoint`:** Output must contain `CHECKPOINT_STATUS=recorded`. If `missing` → note and continue.
-3. **After `end`:** Output must NOT contain `VALIDATION ERROR`. Check `PER_DIMENSION_STATUS=` stdout marker:
-   - `present` — explicit `--dimension-timings` accepted (parallel mode)
-   - `derived` — auto-derived from checkpoint pairs (sequential mode, expected)
-   - `missing` — FAIL: re-run with `--auto-dimension-timings` or document unavailability.
-   If `VALIDATION ERROR` present → per-dimension data was auto-stripped, note "Per-dimension timing unavailable" in review. If `end` fails entirely → re-run or read `reviews/.timing-data/skill-timing-{run_id}-complete.json` directly.
-4. **After file write:** Verify `## Timing Metadata` section exists in output file. If missing → append from `_timing_stdout`.
-
-**If ALL timing validation fails:** Write the review WITHOUT timing metadata and note `**Timing data unavailable** - validation failed at step N`. Never block the review on timing failures.
-
-**See:** `../skill-timing/SKILL.md` for timing implementation details, validation gates, dimension_timings schema, and epoch capture methods
-
-### Common Timing Mistakes (Critical to Avoid)
-
-**Anti-Pattern 1: Copy-pasting example epochs from documentation**
-```bash
-# WRONG — Agent uses example epoch from Quick Reference instead of real timestamps
-dimension_timings='[{"dimension":"actionability","start_epoch":1743897960,"end_epoch":1743897960,"mode":"coordinator"}]'
-# Result: All dimensions get identical fabricated epochs → 0s duration, validation error
-```
-
-**Correct:** Capture real timestamps around actual work:
-```bash
-start_epoch=$(python3 -c "import time; print(time.time())")
-# ... perform actual dimension scoring work ...
-end_epoch=$(python3 -c "import time; print(time.time())")
-duration=$(python3 -c "print($end_epoch - $start_epoch)")
-
-dimension_timings='[{"dimension":"actionability","duration_seconds":'$duration',"mode":"self-report","start_epoch":'$start_epoch',"end_epoch":'$end_epoch'}]'
-```
-
-**Anti-Pattern 2: Missing required `duration_seconds` or `mode` field**
-```bash
-# WRONG — Only has start/end epochs, no duration_seconds or mode
-dimension_timings='[{"dimension":"actionability","start_epoch":100,"end_epoch":120}]'
-# Result: skill_timing.py rejects with "missing required fields"
-```
-
-**Correct:** Include all required fields (`dimension`, `duration_seconds`, `mode`):
-```bash
-dimension_timings='[{"dimension":"actionability","duration_seconds":20,"mode":"self-report","start_epoch":100,"end_epoch":120}]'
-```
-
-**Anti-Pattern 3: Ignoring `VALIDATION ERROR` from timing-end**
-```bash
-# WRONG — Agent sees VALIDATION ERROR but proceeds without noting it
-output=$($PYTHON skill_timing.py end --dimension-timings "$dimension_timings" 2>&1)
-# Output contains: "VALIDATION ERROR: dimension_timings[0] missing required fields"
-# Agent ignores error and doesn't note timing failure in review
-```
-
-**Correct:** Check for errors and note in review:
-```bash
-output=$($PYTHON skill_timing.py end --dimension-timings "$dimension_timings" 2>&1)
-
-if echo "$output" | grep -q "VALIDATION ERROR"; then
-    echo "Per-dimension timing validation failed — aggregate timing only"
-    # Note in review: "Per-dimension timing unavailable — validation failed"
-fi
-```
-
-**Anti-Pattern 4: Calling `timing-end` without `--auto-dimension-timings` (or `--dimension-timings`)**
-```bash
-# WRONG — dim_* checkpoints were recorded but neither flag is passed
-$PYTHON skill_timing.py end --run-id X --output-file Y --skill rule-reviewer
-# Result: Per-Dimension Timing section silently omitted. Stderr WARNING is easy to miss.
-#         Stdout shows PER_DIMENSION_STATUS=missing. Review fails Quality Gate 7.
-```
-
-**Correct:** Always pass `--auto-dimension-timings` in sequential mode (preferred), or assemble an explicit `--dimension-timings` JSON array in parallel mode:
-```bash
-# Sequential (auto-derive from dim_*_start / dim_*_end checkpoints)
-$PYTHON skill_timing.py end --run-id X --output-file Y --skill rule-reviewer \
-    --auto-dimension-timings
-
-# Parallel (explicit JSON from sub-agent self-reports)
-$PYTHON skill_timing.py end --run-id X --output-file Y --skill rule-reviewer \
-    --dimension-timings "$dimension_timings_json"
-```
-
-**`dimension_timings` schema reference:** See `../skill-timing/SKILL.md` for the complete schema with required/optional fields.
+**Schema + epoch capture reference:** `../skill-timing/SKILL.md`.
 
 ## Error Handling
 
@@ -477,9 +304,9 @@ $PYTHON skill_timing.py end --run-id X --output-file Y --skill rule-reviewer \
 - User must save manually
 
 **Documentation currency check fails:**
-- If `web_fetch` unavailable: Skip currency check, note in review
-- If >50% links timeout: Skip penalty, note "Currency check incomplete"
-- If all links fail: Note "Unable to verify documentation currency - manual review recommended"
+- If `web_fetch` unavailable: skip currency check, note in review
+- If >50% links timeout: skip penalty, note "Currency check incomplete"
+- If all links fail: note "Unable to verify documentation currency - manual review recommended"
 - Continue with remaining staleness scoring (LastUpdated, deprecated tools, patterns, link status)
 
 **See:** `workflows/error-handling.md`
@@ -498,16 +325,9 @@ If `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` exists:
 
 The existing file at `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` will be replaced. Use this when intentionally re-running a review to replace a previous version.
 
-## Progressive Disclosure
-
-Don't load all rubrics at once. Read as needed:
-- Scoring Actionability → Read `rubrics/actionability.md`
-- Scoring Completeness → Read `rubrics/completeness.md`
-- Etc.
-
-Only load what you need for current dimension.
-
 ## Validation Checklists
+
+Consolidated pre/during/post checks for every review. Also see `workflows/review-verification.md`.
 
 **Pre-execution:**
 - [ ] target_file exists
@@ -516,35 +336,33 @@ Only load what you need for current dimension.
 - [ ] model slug is lowercase-hyphenated
 
 **During execution:**
-- [ ] Schema validation attempted
+- [ ] Schema validation attempted (or skipped with reason for project files)
 - [ ] Agent Execution Test completed
 - [ ] Line count measured (`wc -l`)
-- [ ] All dimensions scored (FULL mode - 6 dimensions)
-- [ ] Recommendations include line numbers
+- [ ] All dimensions scored (FULL mode — 6 dimensions)
+- [ ] Each score has rationale
+- [ ] Critical issues identified
+- [ ] Rule Size flags applied if applicable
+- [ ] Recommendations include line numbers and are prioritized
 
 **Post-execution:**
-- [ ] Review file written
+- [ ] Review file written to `{output_root}/rule-reviews/`
 - [ ] Path confirmed
 - [ ] No overwrites occurred
+- [ ] **Review file ≥2500 bytes (drift check)**
 
 ## Expected Review Size
 
-Typical FULL mode review: 3000-8000 bytes
+Typical FULL mode review: 3000-8000 bytes.
 
 **Size validation:**
 - If <2000 bytes: STOP, expand analysis with more specific findings
-- If 2000-12000 bytes: Acceptable range
-- If >12000 bytes: STOP, consolidate redundant content before writing
+- If 2000-13500 bytes: Acceptable range
+- If >13500 bytes: STOP, consolidate redundant content before writing
 
 ## Examples
 
-See `examples/` for complete review samples:
-- `full-review.md` - FULL mode walkthrough
-- `focused-review.md` - FOCUSED mode example  
-- `staleness-review.md` - STALENESS mode example
-- `edge-cases.md` - Error scenarios
-
-**Output template:** `references/REVIEW-OUTPUT-TEMPLATE.md` (authoritative fill-in skeleton)
+Complete review samples in `examples/`: `full-review.md`, `focused-review.md`, `staleness-review.md`, `project-file-review.md`, `edge-cases.md`. Authoritative fill-in skeleton: `references/REVIEW-OUTPUT-TEMPLATE.md`.
 
 ## Related Skills
 
@@ -552,114 +370,18 @@ See `examples/` for complete review samples:
 - **rule-creator:** Rule authoring (validated with this skill)
 - **skill-timing:** Execution time measurement (optional integration)
 
-## Quality Checklist
+## Determinism Requirements
 
-Before considering review complete:
+**Goal:** Reduce score variance from ±5-8 points to <±2 points across runs.
 
-- [ ] Schema validator executed
-- [ ] Agent Execution Test performed
-- [ ] Line count measured (`wc -l`)
-- [ ] All required dimensions scored (6 for FULL mode)
-- [ ] Each score has rationale
-- [ ] Critical issues identified
-- [ ] Rule Size flags applied if applicable
-- [ ] Recommendations prioritized
-- [ ] Line numbers provided for fixes
-- [ ] Review written to {output_root}/rule-reviews/
-- [ ] File path confirmed
-- [ ] **Review file ≥2500 bytes (drift check)**
+**Mandatory (always do):** batch-load all rubrics BEFORE reading target; create all 8 inventories BEFORE reading target; read target line 1 to END; fill inventories systematically; check Non-Issues list for every flagged item; apply overlap resolution (each issue to ONE dimension only); use Score Decision Matrix for every score; include completed inventories in review output.
 
-## Context Preservation (Bulk Reviews)
+**Prohibited (never do):** read target rule before loading rubrics; skip inventory creation; estimate scores without counting; double-count issues across dimensions; flag items without checking Non-Issues list; omit inventories from review output; score on "feel"; start scoring before completing all inventories.
 
-When invoked by `bulk-rule-reviewer`, this skill may experience context drift after 10-20 rules.
+**Variance tolerance:** dimension scores ±1 point, overall score ±2 points.
 
-**Structural Safeguards:**
-
-1. **Pre-write verification:** Check review has ≥15 line refs, score table, verdict before writing
-2. **Post-write size check:** If <2500 bytes, flag potential drift
-3. **Periodic refresh:** Every 10 rules, re-read `bulk-rule-reviewer/CRITICAL_CONTEXT.md`
-
-**See:** `workflows/review-execution.md` Pre-Write Output Verification section
+**Full contract (variance table, self-verification checklist):** `workflows/determinism.md`.
 
 ## Version History
 
-- **v2.8.0:** Elevated per-dimension timing to a first-class workflow step (2026-04-21)
-  - New Step 6a mandates `dim_<name>_start` / `dim_<name>_end` checkpoint pairs around every scored dimension.
-  - Quick Reference expanded with all 6 dimension pairs and `--auto-dimension-timings` invocation.
-  - Anti-Pattern 4 covers silent `--dimension-timings` / `--auto-dimension-timings` omission.
-  - Quality Gate 7 (in `workflows/review-verification.md`) rejects reviews missing `### Per-Dimension Timing` when `timing_enabled: true`.
-  - Clarified misleading "skill-timing handles all capture" sentence — rule-reviewer owns capture.
-  - **Depends on skill-timing v1.5.0+** (`--auto-dimension-timings`, `PER_DIMENSION_STATUS` marker).
-  - **Migration note:** [`plans/per-dimension-timing-enforcement-MIGRATION.md`](../../plans/per-dimension-timing-enforcement-MIGRATION.md)
-- **v2.7.2:** Added dimension_timings anti-patterns and schema reference (2026-04-11)
-  - 3 anti-pattern pairs (fabricated timestamps, missing required fields, ignoring validation errors)
-  - Cross-reference to skill-timing SKILL.md dimension_timings schema
-- **v2.7.1:** Standardized review output template -- created references/REVIEW-OUTPUT-TEMPLATE.md as authoritative fill-in skeleton (opus-4-6 structure), integrated template loading into review-execution and file-write workflows, fixed 11-item Post-Review Checklist, standardized Executive Summary table columns (Raw (0-10) | Weight | Points | Max), inline Token Efficiency and Staleness, added structural validation gate (Step 5a) in file-write.md, added template compliance check in review-verification.md. Removed examples/TEMPLATE.md (superseded). Aligned weight notation to decimal across all files. Added Per-Dimension Timing subsection to REVIEW-OUTPUT-TEMPLATE.md (was missing from v2.6.0 template integration). (2026-03-27)
-- **v2.6.0:** Added per-dimension timing support — sequential mode uses checkpoint pairs (`dim_{name}_start`/`dim_{name}_end`), parallel mode uses sub-agent self-reported `start_epoch`/`end_epoch`. New `--dimension-timings` flag on timing-end, `--per-dimension` on analyze/baseline. Requires skill-timing v1.4.0 (2026-03-27)
-- **v2.5.3:** Cross-model consistency improvements — added Non-Issues Patterns 9-10 (tool names, checklists), domain applicability adjustment for completeness edge cases, expanded cross-agent "Do NOT Count" list, added overlap resolution for tool names, new calibration examples file (2026-03-25)
-- **v2.5.2:** Fixed agent determinism regressions from v2.5.1 optimization (2026-03-24)
-  - Inlined shared preamble into all 5 scored rubrics (eliminates cross-reference dependency for sub-agents)
-  - Fixed Rule Size scoring table in parallel-execution.md (was using 6-tier simplified table instead of canonical 7-tier)
-  - Restructured staleness deprecated tools from ambiguous inline `|` format to proper tables
-  - Each scored rubric is now fully self-contained for sub-agent consumption
-- **v2.5.1:** Optimization pass - compressed anti-optimization protocol, archived informational rubrics, deduplicated scoring matrices, extracted shared boilerplate, streamlined parameter collection and parallel execution
-- **v2.5.0:** Added parallel execution mode with 5 sub-agents for scored dimension evaluation
-- **v2.4.0:** Added documentation currency check to staleness dimension
-- **v2.0.0:** Removed PROMPT.md, added progressive disclosure with rubrics/
-- **v1.4.0:** Added timing integration, schema validation
-- **v1.3.0:** Added FOCUSED and STALENESS modes
-- **v1.2.0:** Added Agent Execution Test
-- **v1.1.0:** Added no-overwrite safety
-- **v1.0.0:** Initial release
-
-## Determinism Requirements
-
-**Purpose:** Reduce score variance from ±5-8 points to <±2 points across runs.
-
-### Mandatory Behaviors (ALWAYS DO)
-
-1. **Batch-load all rubrics BEFORE reading target rule** - See `workflows/review-execution.md` Phase 1
-2. **Create ALL 8 inventories BEFORE reading target rule** - Empty templates from each rubric
-3. **Read target rule from line 1 to END** - No skipping sections
-4. **Fill inventories systematically** - One dimension at a time, in order
-5. **Check Non-Issues list for EACH flagged item** - Remove false positives with notes
-6. **Apply overlap resolution rules** - Assign each issue to ONE dimension only
-7. **Use Score Decision Matrix for EVERY score** - Look up tier from count/percentage
-8. **Include completed inventories in review output** - As evidence for scoring
-
-### Prohibited Behaviors (NEVER DO)
-
-1. **NEVER read target rule before loading rubrics** - Anchors interpretation incorrectly
-2. **NEVER skip inventory creation** - Leads to inconsistent counting
-3. **NEVER estimate scores without counting** - Creates variance
-4. **NEVER double-count issues across dimensions** - Use overlap resolution
-5. **NEVER flag items without checking Non-Issues list** - Creates false positives
-6. **NEVER omit inventories from review output** - Prevents verification
-7. **NEVER score on "feel" or "impression"** - Use decision matrices only
-8. **NEVER start scoring before completing all inventories** - Order matters
-
-### Expected Variance Tolerance
-
-| Component | Expected Variance |
-|-----------|-------------------|
-| Issue counts per dimension | ±1 item |
-| Dimension scores | ±1 point |
-| Overall score | ±2 points |
-
-**If variance exceeds tolerance:** Review inventory counting, check Non-Issues application, verify overlap resolution.
-
-### Self-Verification Checklist
-
-Before submitting ANY review, verify:
-
-- [ ] All 9 rubric files read BEFORE reading target rule?
-- [ ] All 8 inventories created (even if empty)?
-- [ ] Line count measured (`wc -l`) for Rule Size?
-- [ ] Target rule read line 1 to END (no skipping)?
-- [ ] Each inventory filled using only rubric-defined patterns?
-- [ ] Non-Issues list checked for EVERY flagged item?
-- [ ] Overlap resolution applied to multi-dimension issues?
-- [ ] All inventories included in review output?
-- [ ] All scores from Score Decision Matrix lookups?
-
-**If ANY checkbox is NO:** Review is INVALID. Regenerate from Phase 1.
+See `CHANGELOG.md`.

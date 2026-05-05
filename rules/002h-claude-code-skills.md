@@ -239,9 +239,33 @@ version: 2.0.0
 
 - **skills/\<skill-name\>/** - Skill root directory
   - `SKILL.md` - Entrypoint with frontmatter and workflow overview (required)
+  - `CHANGELOG.md` - Version history (project standard, required when the skill has a `version` field)
   - **scripts/** - Executable code: Python, Bash, etc. (optional)
   - **references/** - Documentation loaded as needed (optional; alternatives like `workflows/` or domain-named dirs are acceptable if consistently used within the skill)
+  - **workflows/** - Procedural sub-documents (optional; common pattern for complex skills)
+  - **rubrics/** - Per-dimension scoring criteria (optional; used by review-style skills)
+  - **examples/** - Example walkthroughs and invocations (optional)
+  - **tests/** - Test artifacts and test documentation (optional; use `tests/` not `testing/`)
   - **assets/** - Templates, fonts, icons used in output (optional)
+
+**CHANGELOG.md convention (project standard):**
+
+- One `CHANGELOG.md` per skill directory, alongside `SKILL.md`.
+- Version history lives in `CHANGELOG.md`, NOT in `SKILL.md`.
+- `SKILL.md` should contain a short `## Version History` section whose body
+  is `See CHANGELOG.md.` (one line). This keeps version history off the hot
+  path and below the 500-line SKILL.md cap.
+- Use reverse-chronological order (newest version first).
+- Each entry should list: version, short description of change, and
+  (optionally) date.
+- When bumping the `version` field in SKILL.md frontmatter, add a matching
+  entry to CHANGELOG.md in the same commit.
+
+**tests vs testing:**
+
+- Use `tests/` for test artifacts and test documentation. Do NOT use
+  `testing/`. If both exist, merge `testing/` into `tests/` and remove
+  `testing/`.
 
 ### 3. Progressive Disclosure
 

@@ -31,7 +31,7 @@ review_date: 2026-03-27             # Required
 model: claude-sonnet-45             # Required
 output_root: quarterly-audit/       # Optional (default: reviews/) — custom output directory
 execution_mode: sequential          # Optional (default: parallel) — sequential is also valid for production
-timing_enabled: true                # Optional (default: false) — adds timing metadata
+timing_enabled: true                # Optional (default: true as of v2.5.0) — adds timing metadata
 overwrite: true                     # Optional (default: false) — replaces existing file
 ```
 

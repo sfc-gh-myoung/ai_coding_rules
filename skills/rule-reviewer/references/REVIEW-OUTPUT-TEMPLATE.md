@@ -169,7 +169,7 @@ Result:   {summary}
 
 ## Timing Metadata
 
-> **Conditional:** Include this section only when `timing_enabled: true`.
+> **Required unless `timing_enabled: false`.** Include this section and the Per-Dimension Timing subsection on every FULL review. When explicitly disabled, satisfy Gate 7 with a single `not-requested` row in the Per-Dimension Timing table.
 
 | Field | Value |
 |-------|-------|
@@ -188,10 +188,11 @@ Result:   {summary}
 
 ### Per-Dimension Timing
 
-> **Required when `timing_enabled: true`.** The table below must contain at least 6 rows
+> **Required unless `timing_enabled: false`.** The table below must contain at least 6 rows
 > (one per scored dimension). If timing capture fails, include the subsection with a single
-> row stating `unavailable` and the failure reason, so the omission is visible rather than
-> silent. See `workflows/review-verification.md` Gate 7.
+> row stating `unavailable` and the failure reason. If `timing_enabled: false` was explicitly
+> passed, include a single row with mode `not-requested`. Either path keeps the omission visible
+> rather than silent. See `workflows/review-verification.md` Gate 7.
 
 | Dimension | Duration | Mode |
 |-----------|----------|------|
@@ -214,7 +215,7 @@ Result:   {summary}
 | Gate | Requirement |
 |------|-------------|
 | Minimum Size | >=2500 bytes |
-| Maximum Size | <=12000 bytes |
+| Maximum Size | <=13500 bytes |
 | Line References | >=15 distinct (FULL mode) |
 | Direct Quotes | >=3 with line numbers |
 | Score Table | Exact column format: Dimension | Raw (0-10) | Weight | Points | Max |

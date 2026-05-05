@@ -126,3 +126,7 @@ See `examples/` for complete walkthroughs:
 - **RULES_INDEX.md** - Authoritative source for rule discovery mappings
 - **002h-claude-code-skills.md** - Skill authoring standards this skill follows
 - **003-context-engineering.md** - Token budget and attention management principles
+
+## Version History
+
+See `CHANGELOG.md`.

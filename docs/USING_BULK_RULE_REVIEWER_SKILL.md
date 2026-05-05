@@ -34,7 +34,7 @@ output_root: quarterly-audit/        # Optional (default: reviews/) — custom o
 filter_pattern: rules/200-*.md       # Optional (default: rules/*.md) — filter by domain
 skip_existing: false                 # Optional (default: true) — force re-review of all rules
 max_parallel: 3                      # Optional (default: 5) — concurrent sub-agents (1-10)
-timing_enabled: true                 # Optional (default: false) — adds timing metadata
+timing_enabled: true                 # Optional (default: true as of v2.4.0) — adds timing metadata
 ```
 
 Do not combine `skip_existing: false` with `max_parallel: 10` on large rule sets — this produces maximum load. Use lower parallelism when forcing re-reviews.

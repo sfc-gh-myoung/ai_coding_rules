@@ -736,9 +736,7 @@ def derive_dimension_timings_from_checkpoints(
         phases = pairs[dim_name]
         if "start" not in phases or "end" not in phases:
             missing = "end" if "start" in phases else "start"
-            warnings.append(
-                f"Dimension '{dim_name}' missing {missing} checkpoint; skipped."
-            )
+            warnings.append(f"Dimension '{dim_name}' missing {missing} checkpoint; skipped.")
             continue
         duration = round(phases["end"] - phases["start"], 2)
         dimension_timings.append(
@@ -852,8 +850,7 @@ def cmd_end(args):
     # ------------------------------------------------------------------
     checkpoints_for_scan = data.get("checkpoints", [])
     dim_checkpoints_present = any(
-        re.match(r"^dim_[a-z_]+_(start|end)$", cp.get("name", ""))
-        for cp in checkpoints_for_scan
+        re.match(r"^dim_[a-z_]+_(start|end)$", cp.get("name", "")) for cp in checkpoints_for_scan
     )
     auto_dim = getattr(args, "auto_dimension_timings", False)
     per_dimension_status = "missing"

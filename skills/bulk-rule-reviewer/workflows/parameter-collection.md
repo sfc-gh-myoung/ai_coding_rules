@@ -37,7 +37,7 @@ IF required parameters missing:
 | `overwrite` | Replace existing files | `false` |
 | `max_parallel` | Concurrent workers (1-10) | `5` |
 | `output_root` | Output directory | `reviews/` |
-| `timing_enabled` | Enable timing metadata | `false` |
+| `timing_enabled` | Enable timing metadata | `true` (v2.4.0+; `false` to opt out) |
 
 ---
 
@@ -304,7 +304,7 @@ def collect_parameters_text(missing_params: list) -> dict:
     print("  - filter_pattern: rules/*.md (default) - glob pattern for rule files")
     print("  - skip_existing: true (default) | false - resume capability")
     print("  - max_parallel: 5 (default) - concurrent workers (1-10)")
-    print("  - timing_enabled: false (default) | true")
+    print("  - timing_enabled: true (default, v2.4.0+) | false (opt-out; per-rule reviews use `not-requested` row)")
     print("  - overwrite: false (default) | true")
     print("  - output_root: reviews/ (default)")
     print()
@@ -372,7 +372,7 @@ Stage 4: Summary Report
 
 ## `timing_enabled` Parameter (Required Collection)
 
-**Added v2.3.0.** The `timing_enabled` parameter MUST be collected explicitly -- no silent default.
+**Added v2.3.0, default flipped v2.4.0.** The `timing_enabled` parameter MUST be collected explicitly -- the user is still prompted, but the default shown is now `true`.
 
 Aligns with SKILL.md line "MANDATORY: Prompt for ALL parameters" -- a silent `false` default made timing the default-off path and masked the pipeline entirely.
 
@@ -383,18 +383,18 @@ Ask the user via `ask_user_question`:
 ```json
 {
   "header": "Timing",
-  "question": "Enable per-rule and per-dimension timing capture? (Adds 1-3s overhead per rule; produces Section 10 Timing Breakdown in master summary)",
+  "question": "Enable per-rule and per-dimension timing capture? (default: Yes. Adds 1-3s overhead per rule; produces Section 10 Timing Breakdown in master summary)",
   "options": [
-    {"label": "Yes - enable timing", "description": "Captures bulk-level, per-rule, and per-dimension durations. Requires skill-timing v1.5.0+."},
-    {"label": "No - skip timing", "description": "Faster; master summary omits Section 10 Timing Breakdown. Output byte-identical to pre-v2.3.0."}
+    {"label": "Yes - enable timing (default)", "description": "Captures bulk-level, per-rule, and per-dimension durations. Requires skill-timing v1.5.0+."},
+    {"label": "No - opt out", "description": "Master summary still includes Timing Breakdown section; per-rule rows marked `not-requested`."}
   ]
 }
 ```
 
 Map the response to the boolean:
 
-- "Yes - enable timing" -> `timing_enabled: true`
-- "No - skip timing" -> `timing_enabled: false`
+- "Yes - enable timing (default)" -> `timing_enabled: true`
+- "No - opt out" -> `timing_enabled: false`
 
 ### Backwards-Compat Shortcut
 

@@ -349,6 +349,37 @@ def collect_dimension_results(agents: list) -> list:
 
 See `workflows/overlap-validator.md` for detailed implementation.
 
+### 4.3 Per-Dimension Timing (when `timing_enabled: true`)
+
+**Schema contract:** Each sub-agent MUST include in its JSON result:
+
+```json
+{
+  "dimension": "accuracy",
+  "raw_score": 8,
+  "evidence": [...],
+  "issues_found": [...],
+  "start_epoch": 1743897960.123,
+  "end_epoch": 1743897975.456,
+  "duration_seconds": 15.33,
+  "mode": "self-report"
+}
+```
+
+**Coordinator responsibilities:**
+
+1. Collect `start_epoch` / `end_epoch` / `duration_seconds` from each of the 6 sub-agents' JSON outputs.
+2. **Validate timestamps** (bounds check: within `coordinator_start-60s` .. `coordinator_end+60s`, `end_epoch > start_epoch`; flag durations >300s or suspiciously round 60s multiples).
+3. Build `_dimension_timings` array with one entry per scored dimension (6 total). Use `mode: "self-report"` on validation pass, `"self-report-flagged"` on warning, `"validation-failed"` with `duration_seconds: -1` on failure.
+4. For failed/timed-out sub-agents: append an entry with `"duration_seconds": -1, "mode": "failed"` so Gate 7 still sees 6 rows.
+5. Serialize to JSON and pass via `--dimension-timings` on `timing-end`.
+
+**Do NOT use `--auto-dimension-timings` in parallel mode.** Sub-agents run concurrently — coordinator checkpoint pairs would double-count wall-clock time. Use explicit `--dimension-timings` JSON derived from sub-agent self-reports.
+
+**Gate 7 verification:** After `timing-end`, confirm stdout contains `PER_DIMENSION_STATUS=present` AND the output file contains `### Per-Dimension Timing` with ≥6 rows. If missing, trigger remediation per `workflows/review-verification.md` Gate 7.
+
+### 4.4 Parse JSON and Aggregate
+
 ```python
 def validate_no_overlaps(results: list, overlap_rules: str) -> list:
     """Check for double-counted issues across dimensions."""

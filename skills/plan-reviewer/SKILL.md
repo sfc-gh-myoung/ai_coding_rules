@@ -1,7 +1,7 @@
 ---
 name: plan-reviewer
 description: Review LLM-generated plans for autonomous agent executability using 8-dimension rubric. Triggers: "review plan", "compare plans", "plan quality", "meta-review".
-version: 2.4.0
+version: 2.5.0
 ---
 
 # Plan Reviewer
@@ -14,13 +14,13 @@ review_mode: FULL
 ```
 Output: `reviews/plan-reviews/<plan-name>-<model>-<date>.md`
 
-## Overview
+## Purpose
 
 Review LLM-generated plans for autonomous agent executability using an 8-dimension rubric optimized for Priority 1 compliance (Agent Understanding).
 
 Plans are scored on whether autonomous agents can execute them without judgment calls or clarification requests.
 
-### When to Use
+## Use this skill when
 
 - Review a plan file for agent executability
 - Compare multiple plans for the same task (choose winner)
@@ -51,7 +51,7 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 **Optional:**
 - `output_root`: Output directory (default: `reviews/`)
 - `execution_mode`: `parallel` (default, 8 sub-agents) or `sequential`
-- `timing_enabled`: Enable execution timing (default: `false`)
+- `timing_enabled`: Enable execution timing (default: `true` — v2.5.0 universal default; set `false` to opt out with `not-requested` row)
 - `overwrite`: Overwrite existing files (default: `false`)
 
 ## Review Modes
@@ -213,5 +213,4 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py end \
 
 ## Version History
 
-- **v2.4.0** (2026-04-21): Introduced per-dimension timing capture with Quick Reference, Step 4a enforcement, Gate 7 verification, anti-pattern block, and parallel sub-agent schema alignment. Depends on skill-timing v1.5.0.
-- **v2.3.0**: Prior version (parallel execution default, parameter collection mandates).
+See `CHANGELOG.md`.

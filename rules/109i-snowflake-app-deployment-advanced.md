@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.1.1
-**LastUpdated:** 2026-03-26
+**RuleVersion:** v1.1.2
+**LastUpdated:** 2026-05-11
 **LoadTrigger:** kw:multi-env-deploy, kw:deployment-rollback
 **Keywords:** multi-environment deployment, deployment rollback, deployment recovery, deployment validation, environment-specific deployment, dev qa prod deployment, rollback strategy
 **TokenBudget:** ~2700
@@ -273,9 +273,9 @@ CREATE NOTEBOOK DB.SCHEMA.MY_NOTEBOOK
 
 **Anti-Pattern 3: Validation Gates That Only Check Object Existence**
 
-**Problem:** The `validate:object` task only checks that the notebook or Streamlit object exists in the schema (e.g., `SHOW NOTEBOOKS | grep APP_NAME`). This passes even when the object was created with wrong parameters, missing files, or an incorrect ROOT_LOCATION. The deployment is marked as successful, but the app fails when users try to open it.
+**Problem:** The `validate:object` task only checks that the notebook or Streamlit object exists in the schema (e.g., `SHOW NOTEBOOKS | grep APP_NAME`). This passes even when the object was created with wrong parameters, missing files, or an incorrect FROM source path. The deployment is marked as successful, but the app fails when users try to open it.
 
-**Correct Pattern:** Validation gates should verify both object existence and object health. Check that `LIST @STAGE` returns the expected number of files, verify file extensions are correct (`.py` not `.py.gz`), confirm ROOT_LOCATION matches stage paths via `DESCRIBE STREAMLIT`, and if possible, perform a basic health check by accessing the app endpoint.
+**Correct Pattern:** Validation gates should verify both object existence and object health. Check that `LIST @STAGE` returns the expected number of files, verify file extensions are correct (`.py` not `.py.gz`), confirm `live_version_location_uri` is populated via `DESCRIBE STREAMLIT` (for FROM-based apps), and if possible, perform a basic health check by accessing the app endpoint.
 
 ```bash
 # Wrong: Only checking if object exists — passes even with broken deployments
@@ -283,7 +283,7 @@ validate:object:
   cmds:
     - uvx snow sql -q "SHOW NOTEBOOKS IN SCHEMA {{.DB}}.{{.SCHEMA}};" | grep -q "APP"
     - echo "[PASS] Object exists"
-# Result: Object exists but has wrong ROOT_LOCATION — app fails at runtime
+# Result: Object exists but live_version_location_uri is not verified — app may fail at runtime
 
 # Correct: Validate existence, file health, and path alignment
 validate:object:

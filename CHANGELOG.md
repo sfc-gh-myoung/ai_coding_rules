@@ -25,6 +25,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **docs(plans):** add `plans/bulk-rule-reviewer-timing-MIGRATION.md`
 
 ### Changed
+- **refactor(rules):** migrate Streamlit deployment rules from legacy `ROOT_LOCATION` to `FROM` syntax (9 rule files + 1 example)
+  - 109b-snowflake-app-deployment-core (v3.1.2 → v3.2.0), 109c-snowflake-app-deployment-troubleshooting (v3.1.2 → v3.2.0), 109g-snowflake-app-deployment-sql-scripts (v1.1.0 → v1.2.0), 109i-snowflake-app-deployment-advanced (v1.1.1 → v1.1.2), 109j-snowflake-sis-typeerror-debugging (v3.0.2 → v3.1.0), 101l-snowflake-streamlit-deployment (v1.1.0 → v1.2.0), 101n-snowflake-streamlit-migration (v1.1.0 → v1.2.0), 112-snowflake-snowcli (v3.2.0 → v3.3.0), examples/109b-sis-streamlit-deployment-example (1.0 → 1.1)
+  - Primary `CREATE STREAMLIT` examples now use `FROM '@stage'` + `ALTER STREAMLIT ... ADD LIVE VERSION FROM LAST`
+  - Legacy `ROOT_LOCATION` blocks relabeled `**LEGACY (ROOT_LOCATION)**` with `snow://` URL caveats in 109c and 109j
+  - New FROM-based diagnostics section added to 109c; new "TypeError on FROM-based apps" section added to 109j
+  - Dual update-workflow guidance added to 109g: FROM apps (recreate or COPY to `live_version_location_uri`) vs legacy ROOT_LOCATION apps (PUT directly to named stage)
+  - `101n` reframed as bidirectional migration patterns (Warehouse ↔ Container Runtime) with new in-place upgrade section
+  - `112` documents `snow streamlit deploy` CLI 3.14+ modern-FROM default with `--legacy` opt-in note (verified locally on 3.16.0)
+  - All `snowflake-cli` version pins updated to `3.16.0`; `LastUpdated` set to `2026-05-11` on all modified files
+- **feat(prompts):** expand `analyze-plan.md` from stub to full structured prompt
+  - Preflight, plan-file selection rules, analysis framework, output spec, and quality checklist
 - **feat(rule-reviewer):** v2.9.0 — timing universal default, SKILL.md compression, project-file support
   - `timing_enabled` defaults to `true`; opt-out emits `not-requested` row (Gate 7 satisfied)
   - Extracted workflows: `timing-integration.md`, `determinism.md`, `bulk-coordination.md`

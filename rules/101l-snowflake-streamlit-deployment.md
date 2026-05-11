@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-05-11
 **Keywords:** Container Runtime, Warehouse Runtime, deployment, pyproject.toml, environment.yml, compute pool, EAI, external access integration, CREATE STREAMLIT, migration
 **TokenBudget:** ~3850
 **ContextTier:** High
@@ -254,6 +254,9 @@ CREATE STREAMLIT my_db.my_schema.my_app
   EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration)
   QUERY_TAG = 'streamlit_app_my_app';
 
+-- Activate live version so non-owner roles can access the app
+ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
+
 -- Recommended: Set session parameters after creation
 ALTER STREAMLIT my_db.my_schema.my_app SET
   STATEMENT_TIMEOUT_IN_SECONDS = 300
@@ -298,6 +301,7 @@ If deployment fails:
      FROM '@my_stage/streamlit_app_previous'
      MAIN_FILE = 'streamlit_app.py'
      ...;  -- same parameters as original
+   ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
    ```
 2. If SPCS compute pool is exhausted, suspend other services first
 3. For data issues, restore from last-known-good table snapshot
@@ -364,6 +368,9 @@ CREATE STREAMLIT my_db.my_schema.my_app
   MAIN_FILE = 'streamlit_app.py'
   QUERY_WAREHOUSE = my_warehouse
   QUERY_TAG = 'streamlit_app_my_app';
+
+-- Activate live version so non-owner roles can access the app
+ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
 ```
 
 **Key Difference:** No `RUNTIME_NAME`, `COMPUTE_POOL`, or `EXTERNAL_ACCESS_INTEGRATIONS`.
@@ -405,6 +412,7 @@ CREATE STREAMLIT my_app
   COMPUTE_POOL = my_pool
   QUERY_WAREHOUSE = my_wh
   EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration);
+ALTER STREAMLIT my_app ADD LIVE VERSION FROM LAST;
 ```
 
 ### Anti-Pattern 2: Using get_active_session() in Container Runtime

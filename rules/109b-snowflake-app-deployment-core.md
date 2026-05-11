@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-03-26
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-05-11
 **LoadTrigger:** kw:app-deployment, kw:deploy
 **Keywords:** CREATE NOTEBOOK, stages, deployment automation, SiS, deploy app, deployment pipeline, app publishing, deployment patterns, deploy to snowflake, stage deployment, production deployment, app versioning, automated deployment
 **TokenBudget:** ~3900
@@ -54,7 +54,8 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 - 5-step deployment workflow: DROP, REMOVE, upload (PUT), CREATE, deploy (orchestrator)
 - `AUTO_COMPRESS=FALSE` on all PUT commands for `.py`, `.yml`, `.ipynb` files
 - Explicit `REMOVE @stage/file` before every `PUT` (not just `OVERWRITE=TRUE`)
-- `ROOT_LOCATION` in CREATE must match actual stage file paths
+- `FROM` source path in CREATE must point to a valid stage location containing all app files
+- After `CREATE STREAMLIT ... FROM ...`, run `ALTER STREAMLIT <name> ADD LIVE VERSION FROM LAST` before the app is viewable by non-owner roles
 - Automated deployment via project automation (no manual Snowsight UI deployments)
 - SQL scripts stored in version control, not inline in YAML
 - Snowflake CLI minimum version: 3.12+ (`uvx --from=snowflake-cli>=3.12 snow`) — verify against [Snowflake CLI releases](https://docs.snowflake.com/en/developer-guide/snowflake-cli/index) for latest requirements
@@ -101,7 +102,11 @@ See detailed Post-Execution Checklist below for comprehensive deployment validat
 ```sql
 -- Bad: Only PUT + CREATE without REMOVE
 PUT file://./apps/my_app.py @apps_stage/my_app AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
-CREATE STREAMLIT my_app ROOT_LOCATION = '@apps_stage/my_app';
+CREATE STREAMLIT my_app
+  FROM '@apps_stage/my_app'
+  MAIN_FILE = 'my_app.py'
+  QUERY_WAREHOUSE = MY_WH;
+ALTER STREAMLIT my_app ADD LIVE VERSION FROM LAST;
 ```
 **Problem:** Stale files from previous deployments remain on stage, causing import errors and version conflicts.
 
@@ -110,7 +115,11 @@ CREATE STREAMLIT my_app ROOT_LOCATION = '@apps_stage/my_app';
 -- Good: Always REMOVE before PUT
 REMOVE @apps_stage/my_app;
 PUT file://./apps/my_app.py @apps_stage/my_app AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
-CREATE STREAMLIT my_app ROOT_LOCATION = '@apps_stage/my_app';
+CREATE STREAMLIT my_app
+  FROM '@apps_stage/my_app'
+  MAIN_FILE = 'my_app.py'
+  QUERY_WAREHOUSE = MY_WH;
+ALTER STREAMLIT my_app ADD LIVE VERSION FROM LAST;
 ```
 **Benefits:** Clean slate for each deployment; no version conflicts; predictable state.
 
@@ -192,7 +201,7 @@ tasks:
 - [ ] Python/CLI wrappers pass `--no-auto-compress` (not absence of `--auto-compress`)
 - [ ] Verified with `LIST @stage` that files show `.py` not `.py.gz` after upload
 - [ ] environment.yml with pinned Streamlit version (>=1.50) included in stage
-- [ ] Stage paths match ROOT_LOCATION (no extra subdirectory nesting)
+- [ ] FROM source stage path contains all required app files (no extra subdirectory nesting)
 
 ## Validation
 
@@ -214,7 +223,7 @@ tasks:
 > When applying this rule:
 > 1. **Read existing deployment scripts BEFORE creating new ones** - Check automation files (Makefile, Taskfile), SQL patterns, stage paths
 > 2. **Verify stage structure** - List stage contents to understand organization
-> 3. **Never assume stage paths** - Check ROOT_LOCATION in existing CREATE statements
+> 3. **Never assume stage paths** - Check FROM source path in existing CREATE statements (or `live_version_location_uri` in `DESCRIBE STREAMLIT` output)
 > 4. **Check automation patterns** - Match existing target naming and structure
 > 5. **Test deployment** - Run in dev environment before suggesting for production
 >
@@ -341,7 +350,7 @@ Directory structure for `project/`:
 **Key rules:**
 - `AUTO_COMPRESS=FALSE` is mandatory for all .py, .yml, .ipynb files
 - Explicit `REMOVE @stage/file` before every `PUT`
-- `ROOT_LOCATION` in CREATE must match actual stage file paths
+- `FROM` source path in CREATE must point to a valid stage location containing all app files
 - For multi-file apps, use `snow stage copy --recursive --no-auto-compress`
 
 ## Automation Implementation

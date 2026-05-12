@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(skills):** add `create-plan` skill (v1.0.1) — produces 15-section implementation plans with 4-phase workflow (Research, Apply Constraints, Write, Self-Audit) and 13-item self-audit checklist
+  - `skills/create-plan/SKILL.md`, `skills/create-plan/CHANGELOG.md`
+  - `docs/USING_CREATE_PLAN_SKILL.md` user guide (292 lines)
 - **feat(skills):** add `CHANGELOG.md` to 7 skills per project convention
   - rule-reviewer, bulk-rule-reviewer, plan-reviewer, doc-reviewer, rule-creator, rule-loader, skill-timing
 - **feat(skill-timing):** v1.5.0 — `--auto-dimension-timings` flag, `PER_DIMENSION_STATUS` stdout marker, silent-omission warning
@@ -25,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **docs(plans):** add `plans/bulk-rule-reviewer-timing-MIGRATION.md`
 
 ### Changed
+- **docs(architecture):** condense `docs/ARCHITECTURE.md` from 2275 to 372 lines — replace verbose section walkthroughs with reference tables, cross-links to README/CONTRIBUTING/USING_*_SKILL guides, and add `create-plan` to per-skill guide table
+- **docs(skills):** replace "comprehensive" wording with explicit dimension counts across 4 USING_*_SKILL.md guides (bulk-rule-reviewer, doc-reviewer, plan-reviewer, rule-reviewer)
+- **chore(gitignore):** ignore generated prompt templates (`prompts/analyze-plan.md`, `commit-changes.md`, `execute-plan.md`, `update-changelog.md`, `update-project-docs.md`)
 - **refactor(rules):** migrate Streamlit deployment rules from legacy `ROOT_LOCATION` to `FROM` syntax (9 rule files + 1 example)
   - 109b-snowflake-app-deployment-core (v3.1.2 → v3.2.0), 109c-snowflake-app-deployment-troubleshooting (v3.1.2 → v3.2.0), 109g-snowflake-app-deployment-sql-scripts (v1.1.0 → v1.2.0), 109i-snowflake-app-deployment-advanced (v1.1.1 → v1.1.2), 109j-snowflake-sis-typeerror-debugging (v3.0.2 → v3.1.0), 101l-snowflake-streamlit-deployment (v1.1.0 → v1.2.0), 101n-snowflake-streamlit-migration (v1.1.0 → v1.2.0), 112-snowflake-snowcli (v3.2.0 → v3.3.0), examples/109b-sis-streamlit-deployment-example (1.0 → 1.1)
   - Primary `CREATE STREAMLIT` examples now use `FROM '@stage'` + `ALTER STREAMLIT ... ADD LIVE VERSION FROM LAST`

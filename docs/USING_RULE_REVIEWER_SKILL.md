@@ -59,7 +59,7 @@ model: claude-sonnet-45              # Required
 
 | Mode | Purpose | When to Use |
 |------|---------|-------------|
-| **FULL** | Comprehensive evaluation | Validate rules before deployment |
+| **FULL** | Full 7-dimension review | Validate rules before deployment |
 | **FOCUSED** | Deep-dive on critical areas | Quick check on Actionability + Completeness only |
 | **STALENESS** | Check for outdated content | Periodic currency audits |
 
@@ -245,7 +245,7 @@ Use rule-reviewer for rule files agents will load. Use plan-reviewer for plans a
 
 ### Why does my review take 90-120 seconds?
 
-This is expected and required. The skill performs comprehensive analysis including:
+This is expected and required. The skill performs detailed analysis including:
 - Schema validation
 - Agent execution testing (counting blocking issues)
 - Rubric-based scoring for each dimension

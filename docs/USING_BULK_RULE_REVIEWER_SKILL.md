@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-03-27
 
-The Bulk Rule Reviewer Skill executes comprehensive agent-centric reviews on all rule files in the `rules/` directory, generating a consolidated priority report showing which rules need attention. It orchestrates the rule-reviewer skill for each rule, maintaining the same quality standards as individual reviews.
+The Bulk Rule Reviewer Skill runs agent-centric reviews on every rule file in the `rules/` directory and generates a consolidated priority report showing which rules need attention. It orchestrates the rule-reviewer skill for each rule, holding to the same quality standards as individual reviews.
 
 **Primary Use Cases:**
 - Periodic quality audits (quarterly/monthly)
@@ -66,7 +66,7 @@ max_parallel: 1                      # Optional — sequential execution (one ru
 
 | Mode | Purpose | When to Use |
 |------|---------|-------------|
-| **FULL** | Comprehensive evaluation (all 7 dimensions) | Quarterly audits, pre-release validation |
+| **FULL** | Full 7-dimension evaluation | Quarterly audits, pre-release validation |
 | **FOCUSED** | Actionability + Completeness only | Quick quality checks |
 | **STALENESS** | Freshness dimension only | Monthly maintenance, link rot detection |
 

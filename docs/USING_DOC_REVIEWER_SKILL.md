@@ -79,13 +79,13 @@ Do not combine `review_scope: collection` with FOCUSED mode when reviewing a sin
 
 | Mode | Purpose | Required Inputs | Typical Use Case | Output Location |
 |------|---------|-----------------|------------------|-----------------|
-| **FULL** | Comprehensive 6-dimension review | `review_date`, `review_mode`, `model` | New documentation, major rewrites, periodic audits | `reviews/doc-reviews/<name>-<model>-<date>.md` or collection summary |
+| **FULL** | Full 6-dimension review | `review_date`, `review_mode`, `model` | New documentation, major rewrites, periodic audits | `reviews/doc-reviews/<name>-<model>-<date>.md` or collection summary |
 | **FOCUSED** | Targeted review of a specific area | FULL inputs plus `focus_area` | Accuracy-only or clarity-only review after changes | Same as FULL, based on scope |
 | **STALENESS** | Fast maintenance review for currency and drift | `review_date`, `review_mode`, `model` | Link rot, outdated commands, deprecated patterns | Same as FULL, based on scope |
 
 ### FULL
 
-Use FULL mode for the standard comprehensive review.
+Use FULL mode for the standard 6-dimension review.
 
 ```text
 review_mode: FULL

@@ -471,3 +471,79 @@ reviews/
 ---
 
 **For detailed implementation, see skill files in `skills/bulk-rule-reviewer/`**
+
+
+---
+
+## Timing-Enabled Walkthrough (v2.3.0)
+
+This walkthrough mirrors the run above but with `timing_enabled: true`. The produced master summary includes **Section 10: Timing Breakdown**.
+
+### Parameters
+
+```
+review_date: 2026-04-21
+review_mode: FULL
+model: claude-sonnet-45
+filter_pattern: rules/100-*.md
+max_parallel: 5
+timing_enabled: true
+```
+
+### Trace
+
+1. `parameter-collection.md` prompts for `timing_enabled` (default Yes as of v2.4.0; user can explicitly opt out to `false`, in which case per-rule reviews emit a `not-requested` row instead of the full 6-row Per-Dimension Timing table).
+2. `SKILL.md` Quick Reference runs `skill_timing.py start` -> `BULK_RUN_ID=bulk-20260421-091234-xyz`.
+3. Stage checkpoint `skill_loaded`, then `discovery_complete`.
+4. For each matched rule (e.g., `100-snowflake-core.md`):
+   - Coordinator emits `rule_100-snowflake-core_start` on `$BULK_RUN_ID`.
+   - Sub-agent invokes rule-reviewer with `timing_enabled: true`; child run_id `rr-20260421-091301-abc`.
+   - Sub-agent returns JSON with embedded `timing` object per `parallel-execution.md` schema.
+   - Coordinator emits `rule_100-snowflake-core_end`.
+5. Stage checkpoints `reviews_complete` -> `aggregation_complete` -> `summary_complete`.
+6. `skill_timing.py end --auto-dimension-timings` derives per-rule durations from the checkpoint pairs and stamps `PER_DIMENSION_STATUS=derived` (or `present` when per-dimension timings were explicit).
+7. `summary-report.md` renders Section 10 Timing Breakdown.
+
+### Sample Section 10 Output (Excerpt)
+
+```markdown
+## 10. Timing Breakdown
+
+**Bulk run_id:** `bulk-20260421-091234-xyz`
+**Total duration:** 412.7s
+**Execution mode:** PARALLEL (5 sub-agents)
+
+### 10.1 Stage Breakdown
+
+| Stage | Duration (s) | Share |
+|-------|--------------|-------|
+| discovery | 0.84 | 0.2% |
+| reviews | 405.91 | 98.4% |
+| aggregation | 4.12 | 1.0% |
+| summary | 1.83 | 0.4% |
+
+### 10.2 Per-Rule Duration Distribution
+
+- Rules measured: 54 of 54
+- Average: 7.52s
+- Median: 6.88s
+- p95: 14.40s
+
+### 10.3 Top 10 Slowest Rules
+
+| # | Rule | Duration (s) | PER_DIMENSION_STATUS |
+|---|------|--------------|----------------------|
+| 1 | 100-snowflake-core | 14.40 | present |
+| 2 | 106-snowflake-semantic-views-core | 13.92 | present |
+| ... | ... | ... | ... |
+
+### 10.5 Warnings
+
+No warnings.
+```
+
+### When Things Go Wrong
+
+- Missing `rule_X_end` checkpoint: rule dropped from 10.2-10.4; listed in 10.5.
+- Sub-agent returns no `timing` object: per-rule-verification Gate 8 warns (non-blocking).
+- Summary has no Section 10 header despite `timing_enabled: true`: Gate 8 summary-level check FAILS BLOCKING -- surface to STDERR and record `_timing_breakdown: FAILED` in the summary.

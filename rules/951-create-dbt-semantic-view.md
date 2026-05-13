@@ -414,6 +414,8 @@ METRICS (
 ## Design Principles
 
 - **Naming:** Model files as `sv_<domain>_<subject>.sql`; use business-friendly names for tables, dimensions, metrics
+
+> **Note:** dbt model files follow dbt ecosystem conventions (`sv_<domain>_<subject>.sql`) and are exempt from the `NN_<schema>_<operation>.sql` deployment script naming convention defined in `102a` and `130`.
 - **Synonyms:** Add for abbreviations, plural/singular variants, and business vs technical terms
 - **Comments:** Required on all TABLES, RELATIONSHIPS, DIMENSIONS, METRICS, and the semantic view itself
 - **Performance:** Materialize base models as tables or incremental; add clustering keys for large datasets

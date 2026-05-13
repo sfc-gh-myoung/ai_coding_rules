@@ -1,23 +1,23 @@
 ---
 name: doc-reviewer
 description: Review project documentation for accuracy, completeness, clarity, and structure. Verifies file references, tests commands, validates links. Use for documentation audits, README reviews, or staleness checks. Triggers on "review docs", "audit documentation", "check README".
-version: 2.1.0
+version: 2.2.0
 ---
 
 # Documentation Reviewer
 
-## Overview
+## Purpose
 
 Review project documentation for accuracy with codebase, completeness of coverage, clarity for users, consistency with conventions, staleness of references, and logical structure. Uses a 6-dimension rubric optimized for user success.
 
-### When to Use
+## Use this skill when
 
 - Review documentation (README, CONTRIBUTING, docs/*.md)
 - Conduct FULL / FOCUSED / STALENESS documentation review
 - Verify documentation is current with the codebase
 - Check for broken links or outdated references
 
-### Inputs
+## Inputs
 
 **Required:**
 - **review_date**: `YYYY-MM-DD`
@@ -30,7 +30,7 @@ Review project documentation for accuracy with codebase, completeness of coverag
 - **focus_area**: Required if `review_mode` is `FOCUSED`. If FOCUSED mode and focus_area missing: STOP, report error `Missing required input: focus_area for FOCUSED mode`
 - **output_root**: Root directory for output files (default: `reviews/`). Subdirectories `doc-reviews/` or `summaries/` appended automatically. Supports relative paths including `../`.
 - **overwrite**: `true` | `false` (default: `false`) - If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
-- **timing_enabled**: `true` | `false` (default: `false`) - Enable execution timing
+- **timing_enabled**: `true` | `false` (default: `false` — doc-reviewer retains its current opt-in default; the per-dimension timing pipeline added in v2.2.0 is wired up but not yet universally enabled. When set to `true`, Step 4a checkpoint pairs and Gate 7 apply.)
 - **execution_mode**: `parallel` (default, 6 sub-agents) | `sequential` - Execution strategy for dimension evaluation
 
 ### Default Target Files
@@ -40,7 +40,7 @@ When `target_files` not specified, reviews:
 - `./CONTRIBUTING.md` - Contribution guidelines  
 - `./docs/*.md` - All documentation files in docs/ folder
 
-### Output
+## Outputs
 
 **Single scope (per-file):** `{output_root}/doc-reviews/<doc-name>-<model>-<YYYY-MM-DD>.md`
 
@@ -156,48 +156,33 @@ Convert model name to lowercase-hyphenated slug for filenames.
 
 **See:** `workflows/model-slugging.md`
 
+
 ### 4. [CONDITIONAL] Timing Instrumentation
 
-**Execute IF:** `timing_enabled: true`  
+**Execute IF:** `timing_enabled: true`
 **Skip IF:** `timing_enabled: false` (default) → Proceed to step 5
 
-**When enabled, execute ALL steps below (not optional once enabled):**
+When enabled, follow the canonical command matrix, per-dimension checkpoint
+names, Quick Reference block, validation gates, and anti-pattern guide in
+`workflows/timing-integration.md`. Requires skill-timing ≥ v1.5.0.
 
-| When | Action | Command | Track |
-|------|--------|---------|-------|
-| Before review | Start timing | `run_timing.sh start --skill doc-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
-| After rubrics loaded | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
-| After review complete | Checkpoint | `run_timing.sh checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
-| Before file write | Compute | `run_timing.sh end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill doc-reviewer` | Store `_timing_stdout` |
-| After file write (ACT) | Embed | Parse `_timing_stdout`, append timing metadata section to output file | - |
+Key rules (full details in `workflows/timing-integration.md`):
 
-**Working memory contract:** Retain `_timing_run_id` and `_timing_stdout` from start through embed.
+- Bracket EACH scored dimension with a `dim_<name>_start` / `dim_<name>_end`
+  checkpoint pair. Missing pairs cause Per-Dimension Timing to be silently
+  omitted and fail Quality Gate 7 (`workflows/review-verification.md`).
+- On `timing-end` in sequential mode, pass `--auto-dimension-timings`
+  (preferred) to auto-derive the `dimension_timings` array from checkpoint
+  pairs. Parallel mode assembles `--dimension-timings` JSON explicitly.
+- Validate each command output: `TIMING_RUN_ID=` after `start`,
+  `CHECKPOINT_STATUS=recorded` after checkpoints, `PER_DIMENSION_STATUS=`
+  after `end` (expect `derived` sequential / `present` parallel).
+- If ALL timing validation fails, write the review WITHOUT timing metadata
+  and note `**Timing data unavailable** - validation failed at step N`.
+  Never block the review on timing failures.
 
-**Quick Reference:**
-```bash
-# 1. Start (store _timing_run_id from output)
-bash skills/skill-timing/scripts/run_timing.sh start \
-    --skill doc-reviewer --target README.md --model claude-sonnet-45 --mode FULL
-# Output: TIMING_RUN_ID=doc-reviewer-README-20260108-abc123
-
-# 2. Checkpoint: skill_loaded
-bash skills/skill-timing/scripts/run_timing.sh checkpoint \
-    --run-id doc-reviewer-README-20260108-abc123 --name skill_loaded
-
-# 3. Checkpoint: review_complete  
-bash skills/skill-timing/scripts/run_timing.sh checkpoint \
-    --run-id doc-reviewer-README-20260108-abc123 --name review_complete
-
-# 4. End (store _timing_stdout from output)
-bash skills/skill-timing/scripts/run_timing.sh end \
-    --run-id doc-reviewer-README-20260108-abc123 \
-    --output-file reviews/doc-reviews/README-claude-sonnet-45-2026-01-08.md \
-    --skill doc-reviewer
-
-# 5. Embed: Parse _timing_stdout, append to output file (ACT mode required)
-```
-
-**See:** `../skill-timing/workflows/` for detailed workflow documentation.
+**Working memory contract:** Retain `_timing_run_id`, `_timing_stdout`,
+`_dimension_timings` from start through embed.
 
 ### 5. Review Execution
 
@@ -231,8 +216,10 @@ Write review to `reviews/doc-reviews/` (single) or `reviews/summaries/` (collect
 
 **IF `timing_enabled: true`:**
 1. Check timing metadata exists: `grep -q "## Timing Metadata" {{output_file}}`
-2. IF missing AND `_timing_run_id` captured: Attempt recovery embed now
-3. IF missing AND no `_timing_run_id`: WARN "Timing enabled but run_id not captured"
+2. Check Per-Dimension Timing exists: `grep -q "### Per-Dimension Timing" {{output_file}}` (Quality Gate 7 — see `workflows/review-verification.md`)
+3. IF missing AND `_timing_run_id` captured: Attempt recovery embed now (re-run `timing-end` with `--auto-dimension-timings`)
+4. IF missing AND no `_timing_run_id`: WARN "Timing enabled but run_id not captured"
+5. IF Per-Dimension Timing cannot be recovered: Append section with single row stating `unavailable` plus failure reason (Gate 7 accepts explicit unavailable rows).
 
 ### 9. Error Handling
 
@@ -315,6 +302,7 @@ Tests external URLs for 200 status, identifies redirects and 404s, checks tool v
 
 - **rule-creator** - Create rules (documentation follows similar quality standards)
 - **plan-reviewer** - Review plans (complementary)
+- **skill-timing** (≥ v1.5.0) - Provides `--auto-dimension-timings` used by Step 4a and Gate 7.
 
 ## References
 
@@ -324,53 +312,16 @@ Tests external URLs for 200 status, identifies redirects and 404s, checks tool v
 - `rules/802-project-contributing.md` - CONTRIBUTING standards
 - `rules/000-global-core.md` - Foundation patterns
 
+
 ## Determinism Requirements
 
-**Purpose:** Reduce score variance from ±5-8 points to <±2 points across runs.
+**See:** `workflows/determinism.md` for mandatory behaviors, prohibited
+behaviors, variance tolerance, and self-verification checklist. Summary:
+batch-load ALL rubrics BEFORE reading target; create ALL 6 verification
+tables BEFORE scoring; use Score Decision Matrix for every score; never
+double-count across dimensions (apply overlap resolution); include completed
+tables in review output.
 
-### Mandatory Behaviors (ALWAYS DO)
+## Version History
 
-1. **Batch-load all rubrics BEFORE reading target documentation** - See `workflows/review-execution.md` Phase 1
-2. **Create ALL 6 verification tables BEFORE reading target** - Empty templates from each rubric
-3. **Read target documentation from line 1 to END** - No skipping sections
-4. **Fill verification tables systematically** - One dimension at a time, in order
-5. **Check Non-Issues list for EACH flagged item** - Remove false positives with notes
-6. **Apply overlap resolution rules** - Assign each issue to ONE dimension only
-7. **Use Score Decision Matrix for EVERY score** - Look up tier from count/percentage
-8. **Include completed verification tables in review output** - As evidence for scoring
-
-### Prohibited Behaviors (NEVER DO)
-
-1. **NEVER read target documentation before loading rubrics** - Anchors interpretation incorrectly
-2. **NEVER skip table creation** - Leads to inconsistent counting
-3. **NEVER estimate scores without counting** - Creates variance
-4. **NEVER double-count issues across dimensions** - Use overlap resolution
-5. **NEVER flag items without checking Non-Issues list** - Creates false positives
-6. **NEVER omit verification tables from review output** - Prevents verification
-7. **NEVER score on "feel" or "impression"** - Use decision matrices only
-8. **NEVER start scoring before completing all tables** - Order matters
-
-### Expected Variance Tolerance
-
-| Component | Expected Variance |
-|-----------|-------------------|
-| Issue counts per dimension | ±1 item |
-| Dimension scores | ±1 point |
-| Overall score | ±2 points |
-
-**If variance exceeds tolerance:** Review table counting, check Non-Issues application, verify overlap resolution.
-
-### Self-Verification Checklist
-
-Before submitting ANY review, verify:
-
-- [ ] All 7 rubric files read BEFORE reading target documentation?
-- [ ] All 6 verification tables created (even if empty)?
-- [ ] Target documentation read line 1 to END (no skipping)?
-- [ ] Each table filled using only rubric-defined criteria?
-- [ ] Non-Issues list checked for EVERY flagged item?
-- [ ] Overlap resolution applied to multi-dimension issues?
-- [ ] All verification tables included in review output?
-- [ ] All scores from Score Decision Matrix lookups?
-
-**If ANY checkbox is NO:** Review is INVALID. Regenerate from Phase 1.
+See `CHANGELOG.md`.

@@ -170,7 +170,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["checkpoint", "self-report", "inline", "failed"],
+            "enum": ["checkpoint", "self-report", "self-report-flagged", "coordinator", "inline", "failed", "validation-failed"],
             "description": "How timing was measured: checkpoint (sequential), self-report (parallel sub-agent), inline (deterministic), failed (error)"
           },
           "start_epoch": {

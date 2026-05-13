@@ -169,3 +169,66 @@ If parallel execution fails catastrophically:
    - Error messages
    - Partial scores if available
    - Recommendation for retry
+
+## Sub-Agent Dimension Timing Report Schema (When `timing_enabled: true`)
+
+Each of the 8 dimension sub-agents MUST return a single `dimension_timings`
+entry for its dimension. The coordinator aggregates all 8 entries into a JSON
+array and passes them to `skill_timing.py end --dimension-timings`.
+
+### Per-Sub-Agent Entry Schema
+
+```json
+{
+  "dimension": "executability",
+  "start_epoch": 1713700000.123,
+  "end_epoch": 1713700001.456,
+  "duration_seconds": 1.333,
+  "mode": "self-report"
+}
+```
+
+| Field | Required | Type | Notes |
+|-------|----------|------|-------|
+| `dimension` | Yes | string | One of the 8 dimension names (snake_case). |
+| `start_epoch` | Yes | float | Unix epoch seconds at dimension scoring start. |
+| `end_epoch` | Yes | float | Unix epoch seconds at dimension scoring end. |
+| `duration_seconds` | Yes | float | Must equal `end_epoch - start_epoch`. |
+| `mode` | Yes | string | Always `"self-report"` for parallel sub-agents. |
+
+### Coordinator Aggregation
+
+1. Wait for all 8 sub-agents (respecting per-dimension timeout).
+2. Collect each sub-agent's `dimension_timings` entry.
+3. Validate each entry against the schema above. Reject non-conforming entries.
+4. Assemble into a single JSON array preserving dimension order (by weight desc).
+5. Pass to `end`:
+
+   ```bash
+   $PYTHON skills/skill-timing/scripts/skill_timing.py end \
+       --run-id {{_timing_run_id}} \
+       --output-file {{output_path}} \
+       --skill plan-reviewer --format markdown \
+       --dimension-timings "$(cat aggregated.json)"
+   ```
+
+6. If a sub-agent times out or fails, emit an `unavailable` row in the
+   Per-Dimension Timing table with the reason (see Gate 7 fallback).
+
+### Sample Aggregated Payload
+
+```json
+[
+  {"dimension": "executability", "start_epoch": 1713700000.10, "end_epoch": 1713700001.45, "duration_seconds": 1.35, "mode": "self-report"},
+  {"dimension": "completeness",  "start_epoch": 1713700000.11, "end_epoch": 1713700001.50, "duration_seconds": 1.39, "mode": "self-report"},
+  {"dimension": "success_criteria","start_epoch": 1713700000.12,"end_epoch": 1713700001.60,"duration_seconds": 1.48, "mode": "self-report"},
+  {"dimension": "scope",         "start_epoch": 1713700000.13, "end_epoch": 1713700001.30, "duration_seconds": 1.17, "mode": "self-report"},
+  {"dimension": "dependencies",  "start_epoch": 1713700000.14, "end_epoch": 1713700000.90, "duration_seconds": 0.76, "mode": "self-report"},
+  {"dimension": "decomposition", "start_epoch": 1713700000.15, "end_epoch": 1713700000.75, "duration_seconds": 0.60, "mode": "self-report"},
+  {"dimension": "context",       "start_epoch": 1713700000.16, "end_epoch": 1713700000.70, "duration_seconds": 0.54, "mode": "self-report"},
+  {"dimension": "risk_awareness","start_epoch": 1713700000.17, "end_epoch": 1713700000.65, "duration_seconds": 0.48, "mode": "self-report"}
+]
+```
+
+This payload conforms to the schema in `skills/skill-timing/schemas/` and is
+directly accepted by `--dimension-timings`.

@@ -7,6 +7,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.7.3] - 2026-05-13
+
+### Added
+- **feat(rules):** add Adaptive Warehouses (Public Preview) section to `119-snowflake-warehouse-management.md` (v3.2.0 → v3.3.0) — `CREATE ADAPTIVE WAREHOUSE` DDL, `MAX_QUERY_PERFORMANCE_LEVEL`/`QUERY_THROUGHPUT_MULTIPLIER` tuning, online conversion, `SYSTEM$BULK_UPDATE_WH` migration, monitoring queries, and limitations; updated decision matrix and design principles
+- **feat(rules):** add cloud-aware "Instance Family Selection" guidance to `120-snowflake-spcs.md` (v3.1.0 → v3.2.0) — current-gen `GEN_X64_G2_*`/`MEM_X64_G2_*` for AWS/Azure with GCP `CPU_X64_*`/`HIGHMEM_X64_*` notes, current-gen GPU families per cloud (L40S/RTX PRO 6000/A10G on AWS, T4/A10/A100 on Azure, L4/A100 on GCP), previous-generation migration map, and mandatory `SHOW COMPUTE POOL INSTANCE FAMILIES` discovery step
+- **feat(rules):** add Anti-Pattern 1b (previous-generation instance families on AWS/Azure) to `120-snowflake-spcs.md`
+- **feat(skills):** add `create-plan` skill (v1.0.1) — produces 15-section implementation plans with 4-phase workflow (Research, Apply Constraints, Write, Self-Audit) and 13-item self-audit checklist
+  - `skills/create-plan/SKILL.md`, `skills/create-plan/CHANGELOG.md`
+  - `docs/USING_CREATE_PLAN_SKILL.md` user guide (292 lines)
+- **feat(skills):** add `CHANGELOG.md` to 7 skills per project convention
+  - rule-reviewer, bulk-rule-reviewer, plan-reviewer, doc-reviewer, rule-creator, rule-loader, skill-timing
+- **feat(skill-timing):** v1.5.0 — `--auto-dimension-timings` flag, `PER_DIMENSION_STATUS` stdout marker, silent-omission warning
+- **feat(plan-reviewer):** v2.4.0 — per-dimension timing capture for 8 dimensions
+  - Quick Reference, Step 4a checkpoint pairs, Gate 7, anti-pattern block, parallel sub-agent schema
+- **feat(rule-reviewer):** v2.8.0 — Gate 7 (Per-Dimension Timing), Step 6a checkpoints, Anti-Pattern 4
+- **feat(bulk-rule-reviewer):** v2.3.0 — per-rule timing propagation
+  - Quick Reference, steps 4a/15a, Timing Aggregation, Gate 8, sub-agent contract, 8 test cases
+- **feat(prompts):** add 4 reusable prompt templates (analyze-plan, commit-changes, execute-plan, update-changelog)
+- **feat(prompts):** add `EXAMPLE_PROMPT_08.md` — bulk rule design-priority audit prompt
+- **feat(rules):** add `804-project-documentation.md` — docs/ folder organization, ARCHITECTURE/DEPLOYMENT/ADR conventions, GitHub Pages, link maintenance
+- **feat(rules):** add dynamic `GRANT ROLE TO USER` pattern using `SET` + `IDENTIFIER($var)` (102, 107, 130)
+- **feat(rules):** add `434-typescript-docs.md` (TSDoc) and `424-javascript-docs.md` (JSDoc) documentation standards
+- **feat(rules):** add YAML agent spec format section to `115-snowflake-cortex-agents-core`
+- **docs(plans):** add `plans/bulk-rule-reviewer-timing-MIGRATION.md`
+
+### Changed
+- **refactor(rules):** modernize Streamlit Container Runtime compute pool examples in `101l-snowflake-streamlit-deployment.md` (v1.2.0 → v1.3.0) — replace `CPU_X64_XS/S/M` with `GEN_X64_G2_2/4/8` (with GCP fallback notes), add `SHOW COMPUTE POOL INSTANCE FAMILIES` discovery step, expand instance family guidelines for cloud-aware selection
+- **refactor(examples):** update `examples/120-spcs-service-spec-example.md` (v1.0 → v1.1) — Step 3 uses `GEN_X64_G2_2` and `GPU_L40S_G1_8` with per-cloud comments and instance-family discovery
+- **chore(rules):** prefer Gen2 in dedicated Cortex Analyst agent warehouse example in `115d-snowflake-cortex-agents-observability.md` (v3.0.0 → v3.0.1) — add `GENERATION = '2'` and cross-reference to 119
+- **docs(architecture):** condense `docs/ARCHITECTURE.md` from 2275 to 372 lines — replace verbose section walkthroughs with reference tables, cross-links to README/CONTRIBUTING/USING_*_SKILL guides, and add `create-plan` to per-skill guide table
+- **docs(skills):** replace "comprehensive" wording with explicit dimension counts across 4 USING_*_SKILL.md guides (bulk-rule-reviewer, doc-reviewer, plan-reviewer, rule-reviewer)
+- **chore(gitignore):** ignore generated prompt templates (`prompts/analyze-plan.md`, `commit-changes.md`, `execute-plan.md`, `update-changelog.md`, `update-project-docs.md`)
+- **refactor(rules):** migrate Streamlit deployment rules from legacy `ROOT_LOCATION` to `FROM` syntax (9 rule files + 1 example)
+  - 109b-snowflake-app-deployment-core (v3.1.2 → v3.2.0), 109c-snowflake-app-deployment-troubleshooting (v3.1.2 → v3.2.0), 109g-snowflake-app-deployment-sql-scripts (v1.1.0 → v1.2.0), 109i-snowflake-app-deployment-advanced (v1.1.1 → v1.1.2), 109j-snowflake-sis-typeerror-debugging (v3.0.2 → v3.1.0), 101l-snowflake-streamlit-deployment (v1.1.0 → v1.2.0), 101n-snowflake-streamlit-migration (v1.1.0 → v1.2.0), 112-snowflake-snowcli (v3.2.0 → v3.3.0), examples/109b-sis-streamlit-deployment-example (1.0 → 1.1)
+  - Primary `CREATE STREAMLIT` examples now use `FROM '@stage'` + `ALTER STREAMLIT ... ADD LIVE VERSION FROM LAST`
+  - Legacy `ROOT_LOCATION` blocks relabeled `**LEGACY (ROOT_LOCATION)**` with `snow://` URL caveats in 109c and 109j
+  - New FROM-based diagnostics section added to 109c; new "TypeError on FROM-based apps" section added to 109j
+  - Dual update-workflow guidance added to 109g: FROM apps (recreate or COPY to `live_version_location_uri`) vs legacy ROOT_LOCATION apps (PUT directly to named stage)
+  - `101n` reframed as bidirectional migration patterns (Warehouse ↔ Container Runtime) with new in-place upgrade section
+  - `112` documents `snow streamlit deploy` CLI 3.14+ modern-FROM default with `--legacy` opt-in note (verified locally on 3.16.0)
+  - All `snowflake-cli` version pins updated to `3.16.0`; `LastUpdated` set to `2026-05-11` on all modified files
+- **feat(prompts):** expand `analyze-plan.md` from stub to full structured prompt
+  - Preflight, plan-file selection rules, analysis framework, output spec, and quality checklist
+- **feat(rule-reviewer):** v2.9.0 — timing universal default, SKILL.md compression, project-file support
+  - `timing_enabled` defaults to `true`; opt-out emits `not-requested` row (Gate 7 satisfied)
+  - Extracted workflows: `timing-integration.md`, `determinism.md`, `bulk-coordination.md`
+  - File-type detection skips schema validation for `AGENTS.md`/`PROJECT.md`; byte cap 12000 → 13500
+- **feat(bulk-rule-reviewer):** v2.4.0 — timing universal default; depends on rule-reviewer v2.9.0
+- **feat(plan-reviewer):** v2.5.0 — timing universal default; Gate 7 unconditional; byte cap 12000 → 13500
+- **feat(doc-reviewer):** v2.2.0 — per-dimension timing as first-class workflow (Step 4a, Gate 7, output template)
+- **feat(skill-timing):** v1.5.0 — stricter dimension validation, pricing refresh, `find_python.sh` portability
+  - Runner mode for zsh; resolution order `python3` → `python` → `uv run python`
+- **docs(rules):** add CHANGELOG.md convention and `tests/` guidance to 002h-claude-code-skills (v3.7.0)
+- **docs(rules):** add Anti-Pattern 5 (repetitive scope prefixes) and Entry Consolidation Guidelines to 800-project-changelog (v3.2.0)
+- **docs(rules):** update 119-snowflake-warehouse-management (v3.2.0) — correct Gen2 DDL syntax, credit tables
+- **refactor(rules):** rename `204-python-docs-comments.md` to `204-python-docs.md` (16 file refs updated)
+- **refactor(rules):** standardize SQL naming to `NN_<schema>_<operation>.sql` across 9 rule files
+
+### Fixed
+- **fix(bulk-rule-reviewer):** repair dead `CRITICAL_CONTEXT.md` references; redirect to `workflows/context-anchor.md`
+- **fix(examples):** correct `SHOW SEMANTIC DIMENSIONS/METRICS IN` syntax (5 occurrences in 2 files)
+- **fix(rules):** correct `SHOW SEMANTIC DIMENSIONS/METRICS/FACTS IN` syntax in 106-series (9 occurrences)
+- **fix(skill-timing):** resolve SIM102 lint and 10 ty type-check errors in `validate_timing_data`
+- **fix(validator):** eliminate false-positive MEDIUM warnings for delegation-pattern Anti-Patterns sections
+
+### Removed
+- **refactor(skill-timing):** delete `VALIDATION.md` — human-facing validation procedures superseded by automated test suite (`tests/test_skill_timing.sh`, 23 tests)
+- **refactor(skill-timing):** delete `run_timing.sh` — exec wrapper replaced by `find_python.sh` discovery + direct `skill_timing.py` invocation
+
 ## [3.7.2] - 2026-04-03
 
 ### Fixed

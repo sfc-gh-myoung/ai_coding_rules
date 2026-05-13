@@ -33,7 +33,7 @@ Python code quality standards with Ruff as the recommended tool for linting and 
 
 **Related:**
 - **203-python-project-setup.md** - Project structure and configuration
-- **204-python-docs-comments.md** - Documentation standards
+- **204-python-docs.md** - Documentation standards
 
 ### External Documentation
 
@@ -69,7 +69,7 @@ Python code quality standards with Ruff as the recommended tool for linting and 
   - **Ruff `ignore = ["E501"]`:** flake8 `extend-ignore = E501`, black N/A
 
   Document the chosen fallback in the PR with a note explaining which Ruff rules are not covered by the fallback.
-- Enable pydocstyle (D) rules and set a single convention (`google` or `numpy`) consistent with `204-python-docs-comments.md`
+- Enable pydocstyle (D) rules and set a single convention (`google` or `numpy`) consistent with `204-python-docs.md`
 
 ### Tooling Approach
 

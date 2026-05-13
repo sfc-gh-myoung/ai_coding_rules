@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
 **LoadTrigger:** kw:security, kw:rbac, kw:grant
-**Keywords:** roles, grants, secure views, security policies, access control, data security, policy troubleshooting, grant management, Data Metric Functions, DMF, least privilege, create masking policy, tagging, SQL
+**Keywords:** roles, grants, secure views, security policies, access control, data security, policy troubleshooting, grant management, Data Metric Functions, DMF, least privilege, create masking policy, tagging, SQL, dynamic grant, IDENTIFIER
 **TokenBudget:** ~4000
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
@@ -294,6 +294,11 @@ WHERE tag_name = 'DATA_CLASSIFICATION'
 CREATE ROLE IF NOT EXISTS DATA_ANALYST;
 CREATE ROLE IF NOT EXISTS DATA_ENGINEER;
 GRANT ROLE DATA_ANALYST TO ROLE DATA_ENGINEER;  -- Engineers inherit analyst access
+
+-- Step 1b: Grant roles to executing user (for setup scripts)
+-- Use SET + IDENTIFIER($var) — GRANT does not accept CURRENT_USER() directly
+SET SETUP_USER = CURRENT_USER();
+GRANT ROLE DATA_ENGINEER TO USER IDENTIFIER($SETUP_USER);
 
 -- Step 2: Create and apply masking policy
 CREATE OR REPLACE MASKING POLICY db.governance.mask_email

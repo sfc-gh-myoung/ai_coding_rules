@@ -217,3 +217,8 @@ uv.lock
 # AGENTS.md should be generated
 AGENTS.md
 PROJECT.md
+prompts/analyze-plan.md
+prompts/commit-changes.md
+prompts/execute-plan.md
+prompts/update-changelog.md
+prompts/update-project-docs.md

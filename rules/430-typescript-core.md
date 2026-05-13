@@ -36,6 +36,7 @@ Establishes the definitive standards for writing production-grade TypeScript in 
 - **000-global-core.md** - Foundation for all rules
 
 **Related:**
+- **434-typescript-docs.md** - TSDoc documentation standards
 - **440-react-core.md** - TypeScript usage in React applications
 - **420-javascript-core.md** - JavaScript patterns that complement TypeScript
 

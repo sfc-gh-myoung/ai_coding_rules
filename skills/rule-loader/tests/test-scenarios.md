@@ -123,7 +123,7 @@
 - rules/100-snowflake-core.md (dependency of 101)
 - rules/101-snowflake-streamlit-core.md (keyword: Streamlit)
 - rules/206-python-pytest.md (keyword: test)
-- [Deferred: 204-python-docs-comments.md - Low tier, budget exceeded at ~14,000]
+- [Deferred: 204-python-docs.md - Low tier, budget exceeded at ~14,000]
 ```
 
 **Notes:** With a lower budget limit, the Low-tier docs/comments rule is deferred. The Medium-tier test rule is kept because it directly matches the primary verb.

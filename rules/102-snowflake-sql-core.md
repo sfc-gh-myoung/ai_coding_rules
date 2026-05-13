@@ -139,7 +139,7 @@ SQL files with .sql extension, UTF-8 encoding, Unix line endings
 **Example:**
 ```sql
 -- ============================================================================
--- Filename: customer_analytics_setup.sql
+-- Filename: 01_customer_analytics_setup.sql
 -- Description: Create customer analytics schema and core tables
 --
 -- Prerequisites: Database ANALYTICS_DB must exist
@@ -404,6 +404,24 @@ SELECT ...;
 ```
 
 **Views are always safe for CREATE OR REPLACE** - they store no data.
+
+## Dynamic Identifiers in DDL
+
+### SET + IDENTIFIER($var) Pattern
+
+Some DDL statements require literal identifiers and do not accept function calls. Use session variables to resolve dynamic values:
+
+```sql
+-- Dynamic user in GRANT ROLE
+SET MY_USER = CURRENT_USER();
+GRANT ROLE MY_ROLE TO USER IDENTIFIER($MY_USER);
+
+-- Dynamic database name
+SET MY_DB = 'ANALYTICS_' || CURRENT_ACCOUNT();
+CREATE DATABASE IF NOT EXISTS IDENTIFIER($MY_DB);
+```
+
+**Why:** DDL parsing happens before function evaluation. The parser expects literal tokens, not function calls.
 
 ### Table Creation
 

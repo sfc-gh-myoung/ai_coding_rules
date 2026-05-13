@@ -8,8 +8,8 @@
 **Parent Rule:** 120-snowflake-spcs.md
 **Demonstrates:** Complete Snowpark Container Services deployment with production-ready YAML specification including security, logging, and RBAC
 **Use When:** Deploying containerized applications to SPCS with proper resource limits, secrets management, and service roles
-**Version:** 1.0
-**Last Validated:** 2026-01-27
+**Version:** 1.1
+**Last Validated:** 2026-05-12
 
 ## Prerequisites
 
@@ -55,21 +55,30 @@ docker push \
 ### Step 3: Create Compute Pool
 
 ```sql
+-- MANDATORY: Verify available instance families and current cloud/region first
+SHOW COMPUTE POOL INSTANCE FAMILIES;
+SELECT CURRENT_REGION();
+
 -- Create compute pool with auto-scaling
+-- AWS/Azure: use current-generation GEN_X64_G2_* families
+-- GCP:       use CPU_X64_* (these ARE current-gen on GCP, not previous-gen)
 CREATE COMPUTE POOL my_app_pool
   MIN_NODES = 1
   MAX_NODES = 5
-  INSTANCE_FAMILY = CPU_X64_XS
+  INSTANCE_FAMILY = GEN_X64_G2_2  -- AWS/Azure current-gen; on GCP swap to CPU_X64_XS
   AUTO_SUSPEND_SECS = 300
   COMMENT = 'Compute pool for my-app service';
 
--- For GPU workloads (ML/AI only)
+-- For GPU workloads (ML/AI only) - cloud-specific current-gen GPU families
+-- AWS:   GPU_L40S_G1_8 (L40S, GenAI inference) or GPU_NV_S (A10G)
+-- Azure: GPU_NV_XS (T4) for cost-effective inference
+-- GCP:   GPU_GCP_NV_L4_1_24G (L4) for inference
 CREATE COMPUTE POOL ml_training_pool
   MIN_NODES = 1
   MAX_NODES = 3
-  INSTANCE_FAMILY = GPU_NV_S
+  INSTANCE_FAMILY = GPU_L40S_G1_8  -- AWS-only; verify region availability
   AUTO_SUSPEND_SECS = 600
-  COMMENT = 'GPU pool for ML training jobs';
+  COMMENT = 'GPU pool for ML inference/fine-tuning jobs';
 
 -- Verify pool status
 SHOW COMPUTE POOLS LIKE 'my_app_pool';

@@ -1,7 +1,7 @@
 ---
 name: plan-reviewer
 description: Review LLM-generated plans for autonomous agent executability using 8-dimension rubric. Triggers: "review plan", "compare plans", "plan quality", "meta-review".
-version: 2.3.0
+version: 2.5.0
 ---
 
 # Plan Reviewer
@@ -14,13 +14,13 @@ review_mode: FULL
 ```
 Output: `reviews/plan-reviews/<plan-name>-<model>-<date>.md`
 
-## Overview
+## Purpose
 
 Review LLM-generated plans for autonomous agent executability using an 8-dimension rubric optimized for Priority 1 compliance (Agent Understanding).
 
 Plans are scored on whether autonomous agents can execute them without judgment calls or clarification requests.
 
-### When to Use
+## Use this skill when
 
 - Review a plan file for agent executability
 - Compare multiple plans for the same task (choose winner)
@@ -51,7 +51,7 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 **Optional:**
 - `output_root`: Output directory (default: `reviews/`)
 - `execution_mode`: `parallel` (default, 8 sub-agents) or `sequential`
-- `timing_enabled`: Enable execution timing (default: `false`)
+- `timing_enabled`: Enable execution timing (default: `true` — v2.5.0 universal default; set `false` to opt out with `not-requested` row)
 - `overwrite`: Overwrite existing files (default: `false`)
 
 ## Review Modes
@@ -84,15 +84,91 @@ Plans are scored on whether autonomous agents can execute them without judgment 
    - Do NOT silently apply defaults for optional parameters
    - User must explicitly confirm each setting
 3. **Slug model name** → `workflows/model-slugging.md`
-4. **[Optional] Start timing** if `timing_enabled: true`
+4. **[Optional] Start timing** if `timing_enabled: true` (see **Timing** section below for full Quick Reference)
+4a. **(If `timing_enabled: true`) Bracket EACH of the 8 dimensions with a checkpoint pair.**
+
+    Required checkpoint names (exact spelling; `dim_<name>_start` / `dim_<name>_end`):
+    - dim_executability_start / dim_executability_end
+    - dim_completeness_start / dim_completeness_end
+    - dim_success_criteria_start / dim_success_criteria_end
+    - dim_scope_start / dim_scope_end
+    - dim_dependencies_start / dim_dependencies_end
+    - dim_decomposition_start / dim_decomposition_end
+    - dim_context_start / dim_context_end
+    - dim_risk_awareness_start / dim_risk_awareness_end
+
+    On `timing-end`, pass `--auto-dimension-timings` (preferred) or assemble
+    `--dimension-timings` JSON manually. FAILURE MODE: the Per-Dimension Timing
+    section will be silently absent from the review; the post-write **Gate 7**
+    in `workflows/file-write.md` will REJECT the review.
+
 5. **Execute review** per `execution_mode`:
    - `parallel`: 8 sub-agents → `workflows/parallel-execution.md`
    - `sequential`: Single agent → `workflows/review-execution.md`
-6. **[Optional] End timing** and embed metadata
-7. **Write output** → `workflows/file-write.md`
+6. **[Optional] End timing** and embed metadata. Include `--auto-dimension-timings` when `timing_enabled: true`.
+7. **Write output** → `workflows/file-write.md` (Gate 7 enforces Per-Dimension Timing presence)
 8. **Handle errors** → `workflows/error-handling.md`
 
 **CRITICAL:** Default to `parallel` execution. Do NOT silently use sequential.
+
+## Timing (When `timing_enabled: true`)
+
+**You capture, skill-timing validates and formats.** Passing no dimension data
+results in a silently-omitted Per-Dimension Timing section unless Gate 7
+catches it. Do not rely on skill-timing to "handle all" capture — it only
+validates and formats what you provide.
+
+### Quick Reference (copy-paste)
+
+```bash
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+
+# Start
+$PYTHON skills/skill-timing/scripts/skill_timing.py start \
+    --skill plan-reviewer --target plans/my-plan.md --model {{model}} --mode FULL
+# → capture run_id from stdout as {{_timing_run_id}}
+
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+    --run-id {{_timing_run_id}} --name skill_loaded
+
+# For EACH of the 8 dimensions (executability, completeness, success_criteria,
+# scope, dependencies, decomposition, context, risk_awareness):
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+    --run-id {{_timing_run_id}} --name dim_{name}_start
+# ... score the dimension ...
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+    --run-id {{_timing_run_id}} --name dim_{name}_end
+
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+    --run-id {{_timing_run_id}} --name review_complete
+
+# End — --auto-dimension-timings derives dimension_timings from dim_*_start/end pairs
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+    --run-id {{_timing_run_id}} \
+    --output-file reviews/plan-reviews/{{plan}}-{{model}}-{{date}}.md \
+    --skill plan-reviewer --format markdown --auto-dimension-timings
+```
+
+**Verify:** `end` stdout must contain `PER_DIMENSION_STATUS=present` or
+`PER_DIMENSION_STATUS=derived`. `missing` triggers Gate 7 rejection.
+
+### Common Timing Mistakes (Anti-Patterns)
+
+1. **Fabricated epochs — DO NOT invent timestamps.**
+   - WRONG: Hand-writing `--dimension-timings '[{"dimension":"scope","start_epoch":1700000000,...}]'` with guessed numbers.
+   - Correct: Emit real `checkpoint` calls and pass `--auto-dimension-timings`.
+
+2. **Missing required fields in manual `--dimension-timings`.**
+   - WRONG: `[{"dimension":"scope","duration_seconds":1.2}]` (no epochs, no mode).
+   - Correct: See `skills/skill-timing/schemas/` for required fields (`dimension`, `start_epoch`, `end_epoch`, `duration_seconds`, `mode`).
+
+3. **Ignoring `VALIDATION ERROR` from skill-timing.**
+   - WRONG: Seeing `VALIDATION ERROR: dimension_timings rejected` and proceeding anyway.
+   - Correct: Treat as a hard failure; re-run `end` with corrected data.
+
+4. **Omitting `--auto-dimension-timings` / `--dimension-timings` entirely.**
+   - WRONG: Capturing `dim_*_start/end` checkpoints but calling `end` without either flag.
+   - Correct: Always pass `--auto-dimension-timings` when `timing_enabled: true`.
 
 ## Determinism
 
@@ -128,8 +204,13 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 
 - **rule-creator** - Create rules (similar executability criteria)
 - **doc-reviewer** - Review documentation (complementary)
+- **skill-timing** (≥ v1.5.0) - Provides `--auto-dimension-timings` used by Step 4a and Gate 7.
 
 ## References
 
 - `rules/000-global-core.md` - Priority hierarchy definition
 - `rules/002h-claude-code-skills.md` - Skill best practices
+
+## Version History
+
+See `CHANGELOG.md`.

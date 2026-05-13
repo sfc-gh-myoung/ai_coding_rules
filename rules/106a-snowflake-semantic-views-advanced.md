@@ -243,8 +243,8 @@ LEFT JOIN actual_columns a ON UPPER(s.column_name) = UPPER(a.COLUMN_NAME);
 ```sql
 SHOW SEMANTIC VIEWS IN SCHEMA my_schema;
 DESCRIBE SEMANTIC VIEW my_schema.my_view;
-SHOW SEMANTIC DIMENSIONS IN SEMANTIC VIEW my_schema.my_view;
-SHOW SEMANTIC METRICS IN SEMANTIC VIEW my_schema.my_view;
+SHOW SEMANTIC DIMENSIONS IN my_schema.my_view;
+SHOW SEMANTIC METRICS IN my_schema.my_view;
 ```
 
 > **Investigation Required:**

@@ -130,7 +130,7 @@ tasks:
       - echo "Removing notebook files from stage..."
       - task: utils:sql:template
         vars:
-          SQL_FILE: sql/operations/notebook/remove/remove_app_files.sql
+          SQL_FILE: sql/operations/notebook/03_notebook_remove_files.sql
           STAGE: "{{.SNOWFLAKE_STAGE}}"
       - echo "Notebook files removed from @SCHEMA.NOTEBOOK_STAGE"
 
@@ -144,7 +144,7 @@ tasks:
       - echo "Uploading notebook files to stage..."
       - task: utils:sql:template
         vars:
-          SQL_FILE: sql/operations/notebook/upload/upload_app_files.sql
+          SQL_FILE: sql/operations/notebook/02_notebook_upload_files.sql
           STAGE: "{{.SNOWFLAKE_STAGE}}"
           NOTEBOOK_DIR: "{{.NOTEBOOK_DIR}}"
       - echo "Notebook uploaded to @SCHEMA.NOTEBOOK_STAGE"
@@ -205,7 +205,7 @@ tasks:
     cmds:
       - task: utils:sql:template
         vars:
-          SQL_FILE: sql/operations/streamlit/upload/upload_app_files.sql
+          SQL_FILE: sql/operations/streamlit/02_streamlit_upload_files.sql
           STAGE: "{{.SNOWFLAKE_STAGE}}"
           APP_DIR: "{{.STREAMLIT_DIR}}"
     preconditions:

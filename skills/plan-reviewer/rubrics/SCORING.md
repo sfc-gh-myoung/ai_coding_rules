@@ -79,3 +79,29 @@ Count blocking issues:
 - Completeness ≤4/10 → Minimum NEEDS_WORK
 - Success Criteria ≤4/10 → Minimum NEEDS_WORK
 - 2+ critical dimensions ≤4/10 → POOR_PLAN
+
+## Per-Dimension Timing (Universal Default — v2.5.0)
+
+Include this section verbatim in the output file. Gate 7 in
+`workflows/file-write.md` applies unconditionally: the section and its 8 rows
+MUST be present. Explicit `timing_enabled: false` is satisfied by a single row
+whose Mode cell contains `not-requested` (still rejected if the whole section
+is missing).
+
+### Per-Dimension Timing
+
+| Dimension | Duration (s) | Mode | Notes |
+|-----------|-------------:|------|-------|
+| executability     | _auto_ | self-report \| derived \| not-requested | |
+| completeness      | _auto_ | self-report \| derived \| not-requested | |
+| success_criteria  | _auto_ | self-report \| derived \| not-requested | |
+| scope             | _auto_ | self-report \| derived \| not-requested | |
+| dependencies      | _auto_ | self-report \| derived \| not-requested | |
+| decomposition     | _auto_ | self-report \| derived \| not-requested | |
+| context           | _auto_ | self-report \| derived \| not-requested | |
+| risk_awareness    | _auto_ | self-report \| derived \| not-requested | |
+
+If a dimension timing is unavailable (sub-agent timeout, validation failure),
+replace the Duration/Mode cells with `unavailable` and document the reason in
+Notes. Gate 7 accepts either `unavailable` (with reason) or `not-requested`
+(explicit opt-out) rows provided the 8 rows are present.

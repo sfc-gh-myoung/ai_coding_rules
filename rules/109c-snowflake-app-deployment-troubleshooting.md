@@ -3,11 +3,11 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-03-26
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-05-13
 **LoadTrigger:** kw:deployment-error
-**Keywords:** Snowflake deployment troubleshooting, Streamlit debugging, SiS TypeError, notebook deployment issues, deployment errors, stage file debugging, AUTO_COMPRESS debugging, ROOT_LOCATION errors, deployment anti-patterns, diagnostic commands, deployment validation, cache issues
-**TokenBudget:** ~3500
+**Keywords:** Snowflake deployment troubleshooting, Streamlit debugging, SiS TypeError, notebook deployment issues, deployment errors, stage file debugging, AUTO_COMPRESS debugging, FROM deployment, live_version_location_uri, ROOT_LOCATION errors (legacy), deployment anti-patterns, diagnostic commands, deployment validation, cache issues
+**TokenBudget:** ~3900
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md, 109-snowflake-notebooks.md, 101-snowflake-streamlit-core.md, 109b-snowflake-app-deployment-core.md
 
@@ -51,19 +51,19 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 - Evidence-based root cause identification from command outputs
 - Full deployment workflow for remediation (DROP, REMOVE, PUT, CREATE)
 - `AUTO_COMPRESS=FALSE` verified in all PUT commands for application files
-- `ROOT_LOCATION` verified to match actual stage file paths
+- For FROM-based apps: `live_version_location_uri` verified via `DESCRIBE STREAMLIT`; for legacy apps: `ROOT_LOCATION` verified to match actual stage file paths
 - Post-fix verification commands to confirm resolution
 
 ### Forbidden
 - Skipping diagnostic phase and guessing solutions
 - Manual file manipulation in Snowsight during troubleshooting
 - Partial re-deployment without full cleanup (REMOVE)
-- Ignoring ROOT_LOCATION path mismatches
+- Ignoring source path mismatches (FROM source path or ROOT_LOCATION for legacy apps)
 
 ### Execution Steps
 1. Execute diagnostic commands to identify root cause
 2. Verify stage file locations and compression status
-3. Check ROOT_LOCATION alignment with actual paths
+3. Check FROM source path alignment (or ROOT_LOCATION for legacy apps)
 4. Validate full deployment workflow with explicit REMOVE
 5. Confirm resolution with post-deployment verification
 
@@ -123,9 +123,12 @@ PUT file://streamlit_app.py @MY_STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 
 See `109b-snowflake-app-deployment-core.md` Anti-Pattern 2 for additional context on the `AUTO_COMPRESS=FALSE` requirement.
 
-**Anti-Pattern 6: Uploading Streamlit files to subdirectory path**
+**LEGACY (ROOT_LOCATION)** Anti-Pattern 6: Uploading Streamlit Files to Subdirectory Path
+
+> **Legacy context:** This anti-pattern applies to apps created with the legacy `ROOT_LOCATION` syntax. For new apps, use `FROM` instead (see `109g-snowflake-app-deployment-sql-scripts.md`). Legacy apps created in older Snowsight versions may show `root_location` as a `snow://` URL instead of a named stage — this is expected for older legacy apps; modern legacy apps use `@stage` paths.
+
 ```sql
-# WRONG: Files nested in subdirectory
+# LEGACY WRONG: Files nested in subdirectory
 PUT file://streamlit_app.py @STAGE/streamlit/
     AUTO_COMPRESS=FALSE
     OVERWRITE=TRUE;
@@ -143,9 +146,9 @@ CREATE STREAMLIT APP
 **Symptom:** Same "TypeError: bad argument type for built-in operation"
 **Debugging:** `LIST @STAGE` shows `streamlit/streamlit_app.py` but ROOT_LOCATION expects different structure
 
-**Correct Pattern:**
+**Legacy Correct Pattern:**
 ```sql
-# Correct: Upload to stage root
+# Upload to stage root
 PUT file://streamlit_app.py @STAGE
     AUTO_COMPRESS=FALSE
     OVERWRITE=TRUE;
@@ -161,6 +164,37 @@ CREATE STREAMLIT APP
     QUERY_WAREHOUSE = WH;
 ```
 
+### FROM-Based App Diagnostics
+
+For apps created with `FROM`, the primary diagnostic pattern differs from legacy ROOT_LOCATION apps.
+
+**Step 1 — Verify source stage before CREATE:**
+```sql
+LIST @DB.SCHEMA.STREAMLIT_STAGE;
+-- Expected: streamlit_app.py, environment.yml, pages/*, utils/* listed without .gz extensions
+-- If empty or missing: re-upload files before recreating the app
+```
+
+**Step 2 — Check live_version_location_uri after CREATE:**
+```sql
+DESCRIBE STREAMLIT DB.SCHEMA.MY_APP;
+-- For FROM-based apps, look for live_version_location_uri (not root_location)
+-- Expected: live_version_location_uri = snow://streamlit/<object_id>/versions/<version>/
+-- If only root_location is present: app was created with legacy ROOT_LOCATION syntax
+```
+
+**Step 3 — Recreate flow when source files change:**
+```sql
+DROP STREAMLIT IF EXISTS DB.SCHEMA.MY_APP;
+-- (Re-upload updated files to source stage if needed)
+CREATE OR REPLACE STREAMLIT DB.SCHEMA.MY_APP
+    FROM '@DB.SCHEMA.STREAMLIT_STAGE'
+    MAIN_FILE = 'streamlit_app.py'
+    QUERY_WAREHOUSE = MY_WH;
+ALTER STREAMLIT DB.SCHEMA.MY_APP ADD LIVE VERSION FROM LAST;
+-- App is now live with the updated files
+```
+
 **Anti-Pattern 7: Inverted Compression Flag Logic in Python Wrappers**
 
 See `109b-snowflake-app-deployment-core.md` Anti-Pattern 3 for the inverted compression flag pattern and correct `--no-auto-compress` usage.
@@ -173,7 +207,7 @@ See `109b-snowflake-app-deployment-core.md` Anti-Pattern 3 for the inverted comp
 - [ ] Remediation uses automation (Makefile or project entrypoint), not manual steps
 - [ ] Verification commands provided to confirm fix
 - [ ] AUTO_COMPRESS=FALSE verified for all .py files in Streamlit
-- [ ] ROOT_LOCATION matches actual stage file paths
+- [ ] For FROM-based apps: `DESCRIBE STREAMLIT` shows `live_version_location_uri` is populated; for legacy apps: ROOT_LOCATION matches actual stage file paths
 - [ ] Explicit REMOVE step included in deployment workflow
 - [ ] Modular task structure (can test individual operations)
 - [ ] No credentials hardcoded in scripts or automation files
@@ -198,7 +232,7 @@ See `109b-snowflake-app-deployment-core.md` Anti-Pattern 3 for the inverted comp
 > When troubleshooting deployment issues:
 > 1. **Execute diagnostic commands BEFORE making assumptions** - LIST @stage, DESCRIBE object, SHOW objects
 > 2. **Verify file compression status** - Look for .gz extensions (indicates compression problem)
-> 3. **Check ROOT_LOCATION alignment** - DESCRIBE output must match LIST paths exactly
+> 3. **Check source path alignment** - For FROM-based apps: `DESCRIBE STREAMLIT` output should show `live_version_location_uri`; for legacy apps: verify ROOT_LOCATION matches LIST paths exactly
 > 4. **Validate full workflow executed** - Confirm drop, then remove, then upload, then create all ran
 > 5. **Test in isolation** - Run individual task operations to identify failing step
 >
@@ -209,12 +243,12 @@ See `109b-snowflake-app-deployment-core.md` Anti-Pattern 3 for the inverted comp
 > **Correct Pattern:**
 > "Let me diagnose the TypeError by checking file compression and paths."
 > [runs LIST @stage to check .py.gz vs .py]
-> [runs DESCRIBE STREAMLIT to verify ROOT_LOCATION]
+> [runs DESCRIBE STREAMLIT to verify live_version_location_uri for FROM apps, or ROOT_LOCATION for legacy apps]
 > "Found the issue: files are compressed (.py.gz). Need to redeploy with AUTO_COMPRESS=FALSE."
 
 ### Quick Troubleshooting Decision Tree
 
-- **TypeError?** Check `AUTO_COMPRESS=FALSE`, then check `ROOT_LOCATION` path, then check wrapper flags (`--no-auto-compress`)
+- **TypeError?** Check `AUTO_COMPRESS=FALSE`, then check FROM source path or `live_version_location_uri` (DESCRIBE STREAMLIT), then check wrapper flags (`--no-auto-compress`)
 - **AttributeError?** Check `environment.yml`, then check Streamlit version, then see 109j
 - **Stale code?** Run full deploy (e.g., `make deploy`), then clear browser cache (`Cmd+Shift+R`)
 - **Permission denied?** Check `CURRENT_ROLE()`, then run `SHOW GRANTS TO ROLE`, then grant missing privileges

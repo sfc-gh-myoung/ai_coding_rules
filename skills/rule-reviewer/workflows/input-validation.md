@@ -28,3 +28,30 @@
 
 - Validated inputs ready for downstream workflows
 - `output_root`: normalized path with trailing slash (e.g., `reviews/` or `../mytest/`)
+
+## File-Type Detection
+
+After input validation, determine whether `target_file` is a rule file or a project file. This controls whether schema validation is run.
+
+```bash
+target_basename=$(basename "$target_file")
+
+if [[ "$target_basename" =~ ^(AGENTS|PROJECT)\.md$ ]]; then
+    FILE_TYPE="project"
+    SKIP_SCHEMA=true
+    echo "File type: Project configuration (schema validation skipped)"
+elif [[ "$target_file" == rules/*.md ]]; then
+    FILE_TYPE="rule"
+    SKIP_SCHEMA=false
+    echo "File type: Rule (full schema validation)"
+else
+    echo "ERROR: Target must be AGENTS.md, PROJECT.md, or rules/*.md"
+    exit 1
+fi
+```
+
+**Rationale:** `AGENTS.md` and `PROJECT.md` are bootstrap/configuration files with different structure than domain rules. They do not use rule metadata (`SchemaVersion`, `RuleVersion`, `TokenBudget`) or rule sections (`Scope`, `Contract`, `References`).
+
+**Outputs set:**
+- `FILE_TYPE` — one of `rule`, `project`
+- `SKIP_SCHEMA` — boolean, consumed by `schema-validation.md`

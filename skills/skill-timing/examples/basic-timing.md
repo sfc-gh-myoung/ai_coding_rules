@@ -15,7 +15,8 @@ Time a rule-reviewer skill execution on a single file with minimal configuration
 ### Step 1: Start Timing
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh start \
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+$PYTHON skills/skill-timing/scripts/skill_timing.py start \
     --skill rule-reviewer \
     --target rules/100-snowflake-core.md \
     --model claude-sonnet-45
@@ -37,7 +38,7 @@ Run the target skill (rule-reviewer in this case). The skill execution happens b
 ### Step 3: End Timing
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh end \
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
     --run-id a1b2c3d4e5f67890 \
     --output-file reviews/100-snowflake-core-review.md \
     --skill rule-reviewer
@@ -50,7 +51,7 @@ TIMING_START=2026-01-06T10:30:00+00:00
 TIMING_END=2026-01-06T10:33:45+00:00
 TIMING_STATUS=completed
 
-TIMING: skill-timing v1.3.0
+TIMING: skill-timing v1.5.0
 ----------------------------------------
 Run ID:      a1b2c3d4e5f67890
 Skill:       rule-reviewer
@@ -72,7 +73,7 @@ Baseline:    N/A
 
 ### Step 4: Embed Timing Metadata
 
-Parse the STDOUT and append the timing metadata to the output file:
+Append the STDOUT from Step 3 directly to the output file (when using `--format markdown`, output is ready for direct embedding):
 
 ```markdown
 ## Timing Metadata

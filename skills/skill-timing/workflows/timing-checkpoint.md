@@ -17,13 +17,11 @@ Record an intermediate timing checkpoint for detailed analysis.
 ## Execution
 
 ```bash
-# Using wrapper script (recommended):
-bash skills/skill-timing/scripts/run_timing.sh checkpoint \
-    --run-id '{{run_id}}' \
-    --name '{{checkpoint_name}}'
+# Discover Python interpreter (once per session):
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
 
-# Or direct invocation with uv (if available):
-uv run python skills/skill-timing/scripts/skill_timing.py checkpoint \
+# Record checkpoint:
+$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
     --run-id '{{run_id}}' \
     --name '{{checkpoint_name}}'
 ```

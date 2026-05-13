@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-05-11
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-05-13
 **LoadTrigger:** kw:deployment-error
 **Keywords:** Snowflake deployment troubleshooting, Streamlit debugging, SiS TypeError, notebook deployment issues, deployment errors, stage file debugging, AUTO_COMPRESS debugging, FROM deployment, live_version_location_uri, ROOT_LOCATION errors (legacy), deployment anti-patterns, diagnostic commands, deployment validation, cache issues
 **TokenBudget:** ~3900
@@ -163,8 +163,6 @@ CREATE STREAMLIT APP
     MAIN_FILE = 'streamlit_app.py'      # Found at @STAGE/streamlit_app.py
     QUERY_WAREHOUSE = WH;
 ```
-
----
 
 ### FROM-Based App Diagnostics
 

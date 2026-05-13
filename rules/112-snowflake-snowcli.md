@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-05-11
+**RuleVersion:** v3.3.1
+**LastUpdated:** 2026-05-13
 **LoadTrigger:** kw:snowcli, file:snowflake.yml
-**Keywords:** snow CLI, SnowCLI, Snowflake CLI, snowflake-cli, uvx, automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, stage copy, config.toml, PAT authentication, WIF authentication, project definition, connection management, stage-to-stage copy, streamlit deploy, FROM deployment, live version
+**Keywords:** SnowCLI, Snowflake CLI, uvx, automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, config.toml, PAT authentication, WIF authentication, project definition, connection management, stage-to-stage copy, streamlit deploy, FROM deployment, live version
 **TokenBudget:** ~4900
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md
@@ -461,12 +461,10 @@ uvx --from=snowflake-cli==3.16.0 snow streamlit deploy --replace --open
 
 ### Key flags
 
-| Flag | Description |
-|------|-------------|
-| `--replace` | Replace the app if it already exists (uploads new/changed files; does not remove stage files) |
-| `--prune` | Delete stage files that no longer exist locally (use with `--replace`) |
-| `--open` | Open the deployed app in a browser |
-| `--legacy` | **Opt-in to legacy `ROOT_LOCATION` SQL syntax.** Do not use for new deployments. |
+- `--replace` — Replace the app if it already exists (uploads new/changed files; does not remove stage files).
+- `--prune` — Delete stage files that no longer exist locally (use with `--replace`).
+- `--open` — Open the deployed app in a browser.
+- `--legacy` — **Opt-in to legacy `ROOT_LOCATION` SQL syntax.** Do not use for new deployments.
 
 ### Verify deployment behavior
 

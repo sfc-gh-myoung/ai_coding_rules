@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-05-12
 **LoadTrigger:** kw:spcs, kw:container
-**Keywords:** SPCS, compute pools, OCI images, service spec, container deployment, service logs, platform events
+**Keywords:** SPCS, compute pools, OCI images, service spec, container deployment, service logs, platform events, instance family, GEN_X64_G2, MEM_X64_G2, current generation, GPU L40S, GPU RTX PRO 6000
 **TokenBudget:** ~2350
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md
@@ -107,8 +107,20 @@ CREATE COMPUTE POOL pool MIN_NODES=5 MAX_NODES=10 INSTANCE_FAMILY=GPU_NV_M;
 
 **Correct Pattern:**
 ```sql
-CREATE COMPUTE POOL pool MIN_NODES=1 MAX_NODES=3 INSTANCE_FAMILY=CPU_X64_S AUTO_SUSPEND_SECS=60;
+-- AWS/Azure (current-gen general compute)
+CREATE COMPUTE POOL pool MIN_NODES=1 MAX_NODES=3 INSTANCE_FAMILY=GEN_X64_G2_4 AUTO_SUSPEND_SECS=60;
+-- GCP (current-gen on GCP retains CPU_X64_* naming)
+-- CREATE COMPUTE POOL pool MIN_NODES=1 MAX_NODES=3 INSTANCE_FAMILY=CPU_X64_S AUTO_SUSPEND_SECS=60;
 ```
+
+### Anti-Pattern 1b: Using Previous-Generation Instance Families on AWS/Azure
+```sql
+-- WRONG on AWS/Azure: CPU_X64_*/HIGHMEM_X64_* are previous-generation
+CREATE COMPUTE POOL pool MIN_NODES=1 MAX_NODES=3 INSTANCE_FAMILY=CPU_X64_S;
+```
+**Problem:** Worse price/performance than current-gen `GEN_X64_G2_*`/`MEM_X64_G2_*`. Snowflake docs recommend current-gen for all new workloads on AWS/Azure.
+
+**Correct Pattern:** See "Instance Family Selection" below.
 
 ### Anti-Pattern 2: Exposing Internal Services Without Auth
 ```yaml
@@ -131,17 +143,50 @@ endpoints:
 
 ## Implementation Details
 
+### Instance Family Selection
+
+> **Investigation Required (MANDATORY before pool creation):** Always run `SHOW COMPUTE POOL INSTANCE FAMILIES;` and `SELECT CURRENT_REGION();` to confirm availability — region availability differs per cloud and changes over time. See [Snowflake docs](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/instance-families).
+
+**Cloud-aware Current-Generation Families (prefer for new workloads):**
+
+- **General Compute (small):** AWS `GEN_X64_G2_2` | Azure `GEN_X64_G2_2` | GCP `CPU_X64_XS`
+- **General Compute (medium):** AWS `GEN_X64_G2_4`/`GEN_X64_G2_8` | Azure `GEN_X64_G2_4`/`GEN_X64_G2_8`/`GEN_X64_G2_16` | GCP `CPU_X64_S`/`CPU_X64_M`
+- **General Compute (large):** AWS `GEN_X64_G2_32` | Azure `GEN_X64_G2_32` | GCP `CPU_X64_SL`/`CPU_X64_L`
+- **High Memory:** AWS `MEM_X64_G2_8/32/64/192` | Azure `MEM_X64_G2_8/32/64/96` | GCP `HIGHMEM_X64_S/M/SL`
+- **GPU (inference, light):** AWS `GPU_NV_S` (A10G) or `GPU_L40S_G1_8` (L40S) | Azure `GPU_NV_XS` (T4) | GCP `GPU_GCP_NV_L4_1_24G` (L4)
+- **GPU (training, heavy):** AWS `GPU_NV_L` (A100 8x), `GPU_L40S_G1_192`, or `GPU_R6K_G1_*` (RTX PRO 6000 Blackwell) | Azure `GPU_NV_3M`/`GPU_NV_SL` (A100) | GCP `GPU_GCP_NV_A100_8_40G`
+
+**Note (GCP):** On Google Cloud, `CPU_X64_*` and `HIGHMEM_X64_*` ARE the current generation — there are no previous-generation families on GCP. On AWS and Azure, those names are previous-generation; use `GEN_X64_G2_*`/`MEM_X64_G2_*` instead.
+
+**Previous-Generation Migration (AWS/Azure only):**
+
+- `CPU_X64_XS` becomes `GEN_X64_G2_2`
+- `CPU_X64_S` becomes `GEN_X64_G2_4`
+- `CPU_X64_M` becomes `GEN_X64_G2_8`
+- `CPU_X64_SL` becomes `GEN_X64_G2_16` (Azure)
+- `CPU_X64_L` becomes `GEN_X64_G2_32`
+- `HIGHMEM_X64_S` becomes `MEM_X64_G2_8`
+- `HIGHMEM_X64_M` becomes `MEM_X64_G2_32`
+- `HIGHMEM_X64_L`/`HIGHMEM_X64_SL` become `MEM_X64_G2_64`/`MEM_X64_G2_96`/`MEM_X64_G2_192` (cloud-specific)
+
 ### Compute Pool Configuration
 ```sql
+-- Verify availability first (MANDATORY)
+SHOW COMPUTE POOL INSTANCE FAMILIES;
+SELECT CURRENT_REGION();
+
+-- General-purpose pool (AWS/Azure current-gen)
 CREATE COMPUTE POOL app_pool
   MIN_NODES = 1 MAX_NODES = 5
-  INSTANCE_FAMILY = CPU_X64_XS
+  INSTANCE_FAMILY = GEN_X64_G2_2  -- AWS/Azure; on GCP use CPU_X64_XS
   AUTO_SUSPEND_SECS = 60;
 
--- GPU for ML
+-- GPU pool for ML (current-gen, AWS example with NVIDIA L40S for GenAI inference)
 CREATE COMPUTE POOL ml_pool
   MIN_NODES = 1 MAX_NODES = 3
-  INSTANCE_FAMILY = GPU_NV_S;
+  INSTANCE_FAMILY = GPU_L40S_G1_8;  -- AWS only (us-east-1/2, us-west-2, eu-central-1, etc.)
+  -- Azure alternative: INSTANCE_FAMILY = GPU_NV_XS (T4)
+  -- GCP alternative:   INSTANCE_FAMILY = GPU_GCP_NV_L4_1_24G (L4)
 ```
 
 ### Complete Service Spec
@@ -264,7 +309,8 @@ def get():
 
 - **Right-size pools:** Start MIN_NODES=1, scale based on metrics
 - **Auto-suspend:** Use 60-300 seconds for variable workloads
-- **GPU only when needed:** CPU_X64_S for most workloads
+- **GPU only when needed:** `GEN_X64_G2_4` (AWS/Azure) or `CPU_X64_S` (GCP) covers most workloads
+- **Prefer current-gen:** On AWS/Azure use `GEN_X64_G2_*`/`MEM_X64_G2_*`; on GCP use `CPU_X64_*`/`HIGHMEM_X64_*` (these ARE current-gen on GCP)
 - **Monitor usage:**
 ```sql
 SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.COMPUTE_POOL_HISTORY WHERE START_TIME >= DATEADD(day, -7, CURRENT_TIMESTAMP());

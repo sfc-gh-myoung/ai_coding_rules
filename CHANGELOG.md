@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **feat(rules):** add Adaptive Warehouses (Public Preview) section to `119-snowflake-warehouse-management.md` (v3.2.0 → v3.3.0) — `CREATE ADAPTIVE WAREHOUSE` DDL, `MAX_QUERY_PERFORMANCE_LEVEL`/`QUERY_THROUGHPUT_MULTIPLIER` tuning, online conversion, `SYSTEM$BULK_UPDATE_WH` migration, monitoring queries, and limitations; updated decision matrix and design principles
+- **feat(rules):** add cloud-aware "Instance Family Selection" guidance to `120-snowflake-spcs.md` (v3.1.0 → v3.2.0) — current-gen `GEN_X64_G2_*`/`MEM_X64_G2_*` for AWS/Azure with GCP `CPU_X64_*`/`HIGHMEM_X64_*` notes, current-gen GPU families per cloud (L40S/RTX PRO 6000/A10G on AWS, T4/A10/A100 on Azure, L4/A100 on GCP), previous-generation migration map, and mandatory `SHOW COMPUTE POOL INSTANCE FAMILIES` discovery step
+- **feat(rules):** add Anti-Pattern 1b (previous-generation instance families on AWS/Azure) to `120-snowflake-spcs.md`
 - **feat(skills):** add `create-plan` skill (v1.0.1) — produces 15-section implementation plans with 4-phase workflow (Research, Apply Constraints, Write, Self-Audit) and 13-item self-audit checklist
   - `skills/create-plan/SKILL.md`, `skills/create-plan/CHANGELOG.md`
   - `docs/USING_CREATE_PLAN_SKILL.md` user guide (292 lines)
@@ -28,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **docs(plans):** add `plans/bulk-rule-reviewer-timing-MIGRATION.md`
 
 ### Changed
+- **refactor(rules):** modernize Streamlit Container Runtime compute pool examples in `101l-snowflake-streamlit-deployment.md` (v1.2.0 → v1.3.0) — replace `CPU_X64_XS/S/M` with `GEN_X64_G2_2/4/8` (with GCP fallback notes), add `SHOW COMPUTE POOL INSTANCE FAMILIES` discovery step, expand instance family guidelines for cloud-aware selection
+- **refactor(examples):** update `examples/120-spcs-service-spec-example.md` (v1.0 → v1.1) — Step 3 uses `GEN_X64_G2_2` and `GPU_L40S_G1_8` with per-cloud comments and instance-family discovery
+- **chore(rules):** prefer Gen2 in dedicated Cortex Analyst agent warehouse example in `115d-snowflake-cortex-agents-observability.md` (v3.0.0 → v3.0.1) — add `GENERATION = '2'` and cross-reference to 119
 - **docs(architecture):** condense `docs/ARCHITECTURE.md` from 2275 to 372 lines — replace verbose section walkthroughs with reference tables, cross-links to README/CONTRIBUTING/USING_*_SKILL guides, and add `create-plan` to per-skill guide table
 - **docs(skills):** replace "comprehensive" wording with explicit dimension counts across 4 USING_*_SKILL.md guides (bulk-rule-reviewer, doc-reviewer, plan-reviewer, rule-reviewer)
 - **chore(gitignore):** ignore generated prompt templates (`prompts/analyze-plan.md`, `commit-changes.md`, `execute-plan.md`, `update-changelog.md`, `update-project-docs.md`)

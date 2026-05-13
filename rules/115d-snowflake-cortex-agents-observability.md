@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-05-12
 **LoadTrigger:** kw:agent-observability, kw:agent-costs
 **Keywords:** agent observability, agent evaluation, agent cost management, agent monitoring, agent latency, agent health, agent errors, debug agent, agent logs, agent trace, cortex agent troubleshooting, agent cost tracking
 **TokenBudget:** ~3850
@@ -168,11 +168,12 @@ ALTER TASK agent_health_check RESUME;
 
 ### Dedicated Warehouses for Cortex Analyst Tools
 
-**Rule:** Configure a dedicated warehouse for each agent's Cortex Analyst tools:
+**Rule:** Configure a dedicated warehouse for each agent's Cortex Analyst tools. Prefer Gen2 (or Adaptive in supported regions \u2014 see 119-snowflake-warehouse-management.md):
 
 ```sql
 CREATE WAREHOUSE IF NOT EXISTS AGENT_ANALYTICS_WH
   WAREHOUSE_SIZE = 'X-SMALL'
+  GENERATION = '2'  -- Prefer Gen2 for better DML/scan performance
   AUTO_SUSPEND = 60
   AUTO_RESUME = TRUE
   INITIALLY_SUSPENDED = TRUE

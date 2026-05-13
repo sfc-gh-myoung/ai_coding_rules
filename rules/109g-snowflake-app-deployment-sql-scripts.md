@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-05-11
+**RuleVersion:** v1.2.1
+**LastUpdated:** 2026-05-13
 **LoadTrigger:** kw:deployment-sql, kw:put-script
 **Keywords:** PUT command, REMOVE command, CREATE NOTEBOOK, CREATE STREAMLIT, deployment scripts, upload script, stage upload, SQL deployment templates, snow stage copy, recursive upload
 **TokenBudget:** ~3700
@@ -394,8 +394,6 @@ CREATE STREAMLIT DB.SCHEMA.MY_APP
     QUERY_WAREHOUSE = WH;
 ```
 
----
-
 **Anti-Pattern 4: FROM Source Path Doesn't Exist or Is Empty**
 
 **Problem:** The stage path passed to `FROM` does not exist, has no files, or points to a subdirectory that doesn't contain the main file. Because `FROM` copies files into an embedded versioned stage at CREATE time, an empty or missing source produces a Streamlit object with no content, causing `TypeError` or a blank app on open.
@@ -420,8 +418,6 @@ CREATE STREAMLIT DB.SCHEMA.MY_APP
     QUERY_WAREHOUSE = MY_WH;
 ALTER STREAMLIT DB.SCHEMA.MY_APP ADD LIVE VERSION FROM LAST;
 ```
-
----
 
 ## Updating an Existing App's Source Files
 

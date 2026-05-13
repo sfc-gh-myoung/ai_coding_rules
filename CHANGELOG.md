@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.7.3] - 2026-05-13
+
 ### Added
 - **feat(rules):** add Adaptive Warehouses (Public Preview) section to `119-snowflake-warehouse-management.md` (v3.2.0 → v3.3.0) — `CREATE ADAPTIVE WAREHOUSE` DDL, `MAX_QUERY_PERFORMANCE_LEVEL`/`QUERY_THROUGHPUT_MULTIPLIER` tuning, online conversion, `SYSTEM$BULK_UPDATE_WH` migration, monitoring queries, and limitations; updated decision matrix and design principles
 - **feat(rules):** add cloud-aware "Instance Family Selection" guidance to `120-snowflake-spcs.md` (v3.1.0 → v3.2.0) — current-gen `GEN_X64_G2_*`/`MEM_X64_G2_*` for AWS/Azure with GCP `CPU_X64_*`/`HIGHMEM_X64_*` notes, current-gen GPU families per cloud (L40S/RTX PRO 6000/A10G on AWS, T4/A10/A100 on Azure, L4/A100 on GCP), previous-generation migration map, and mandatory `SHOW COMPUTE POOL INSTANCE FAMILIES` discovery step

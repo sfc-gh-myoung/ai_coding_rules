@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-05-11
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-05-13
 **LoadTrigger:** kw:sis-typeerror
 **Keywords:** TypeError bad argument, AttributeError streamlit, SiS debugging, AUTO_COMPRESS, FROM source path, live_version_location_uri, ROOT_LOCATION mismatch (legacy), environment.yml, streamlit version, compression debugging, stage path mismatch
 **TokenBudget:** ~4200
@@ -418,8 +418,6 @@ CREATE STREAMLIT DB.SCHEMA.MY_APP
 ALTER STREAMLIT DB.SCHEMA.MY_APP ADD LIVE VERSION FROM LAST;
 -- Object recreated with fresh metadata — TypeError resolved
 ```
-
----
 
 ## TypeError on FROM-based Apps
 

@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-04-21
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-05-12
 **LoadTrigger:** kw:warehouse, kw:compute
-**Keywords:** high-memory warehouse, warehouse tagging, auto-suspend, auto-resume, GEN 2, Snowpark-Optimized, warehouse edition, resource monitors, create warehouse, warehouse configuration, warehouse types, warehouse cost, size warehouse
+**Keywords:** high-memory warehouse, warehouse tagging, auto-suspend, auto-resume, GEN 2, Snowpark-Optimized, warehouse edition, resource monitors, create warehouse, warehouse configuration, warehouse types, warehouse cost, size warehouse, adaptive warehouse, MAX_QUERY_PERFORMANCE_LEVEL, QUERY_THROUGHPUT_MULTIPLIER, SYSTEM$BULK_UPDATE_WH, CREATE ADAPTIVE WAREHOUSE
 **TokenBudget:** ~6500
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 103-snowflake-performance-tuning.md, 105-snowflake-cost-governance.md
@@ -127,7 +127,8 @@ Warehouse created successfully; correct type and edition selected; mandatory tag
 
 ### Design Principles
 
-- **GEN 2 First:** Always prefer GEN 2 warehouses over Standard edition for improved performance and cost efficiency
+- **Adaptive First (when supported):** When Adaptive Warehouses are available in your region/edition, prefer them — they self-tune and eliminate manual sizing. See "Adaptive Warehouses" section.
+- **GEN 2 First:** When Adaptive is not available, always prefer GEN 2 warehouses over Standard edition for improved performance and cost efficiency
 - **Type Selection:** Use Standard CPU for general workloads, Snowpark-Optimized for GPU-accelerated ML, High-Memory for complex analytics
 - **Start Small:** Begin with smaller sizes (XSMALL/SMALL) and scale up based on actual performance metrics
 - **Auto-Suspend Always:** Enable auto-suspend on all warehouses with appropriate timeouts
@@ -355,11 +356,173 @@ SHOW WAREHOUSES LIKE 'my_wh';
 
 **Note:** Snowpark-Optimized uses `WAREHOUSE_TYPE = 'SNOWPARK-OPTIMIZED'` — Gen2 is NOT available for Snowpark-optimized warehouses.
 
+## Adaptive Warehouses (Public Preview)
+
+> **PREVIEW FEATURE:** Adaptive Warehouses are in Public Preview. Available only in select AWS regions: **US West 2 (Oregon), EU West 1 (Ireland), AP Northeast 1 (Tokyo)**. Requires **Enterprise Edition** or higher. See [Snowflake docs](https://docs.snowflake.com/en/user-guide/warehouses-adaptive) for the latest availability.
+
+**What It Is:** Adaptive Compute is a workload-aware warehouse type that replaces the fixed compute engine. Snowflake automatically selects compute resources per query and routes to a shared, account-dedicated pool. With adaptive warehouses you no longer manage:
+
+- Warehouse size (XSMALL/SMALL/MEDIUM/...)
+- Multi-cluster settings (MIN/MAX_CLUSTER_COUNT, SCALING_POLICY)
+- Query Acceleration Service (QAS) settings
+- Suspend/resume semantics
+
+**When to Choose Adaptive vs. Other Warehouse Types:**
+
+- **You want auto-tuning, no manual sizing:** Adaptive (if eligible)
+- **Workload runs in supported AWS region + Enterprise+:** Adaptive
+- **Cross-cloud (Azure/GCP) or non-eligible region:** Standard Gen2
+- **Snowpark UDFs needing high memory or GPU:** Snowpark-Optimized (Adaptive does not support these)
+- **Memory-intensive analytics:** High-Memory (Adaptive does not support `RESOURCE_CONSTRAINT`)
+- **Need X5LARGE / X6LARGE:** Standard Gen1 (Adaptive does not support these sizes)
+
+**Performance and Throughput Properties:**
+
+- **`MAX_QUERY_PERFORMANCE_LEVEL`** (default `XLARGE`): Upper bound on per-statement performance, expressed as a t-shirt size from XSMALL up to X4LARGE. Higher values give more compute headroom per query (better latency on large queries, higher peak per-statement spend).
+- **`QUERY_THROUGHPUT_MULTIPLIER`** (default `2`, integer >= 0; `0` means unlimited): Multiplier on the system-computed minimum throughput. Higher means more concurrency, less queueing, higher peak spend. Lower throttles bursts.
+
+**Configuration Patterns (from Snowflake docs):**
+
+- **Latency-sensitive, critical:** `MAX_QUERY_PERFORMANCE_LEVEL = XLARGE` or higher; `QUERY_THROUGHPUT_MULTIPLIER` high (4-8+); enforce spend with resource monitor or budget.
+- **Cost-sensitive, high throughput:** `MAX_QUERY_PERFORMANCE_LEVEL = MEDIUM` or `LARGE`; `QUERY_THROUGHPUT_MULTIPLIER` medium (2-4); enforce spend with budget.
+- **Tightly budgeted:** `MAX_QUERY_PERFORMANCE_LEVEL = SMALL` or `MEDIUM`; `QUERY_THROUGHPUT_MULTIPLIER` low (1-2); enforce strict resource monitors and budgets.
+
+### Create an Adaptive Warehouse
+
+```sql
+-- Create with defaults (MAX_QUERY_PERFORMANCE_LEVEL=XLARGE, QUERY_THROUGHPUT_MULTIPLIER=2)
+CREATE ADAPTIVE WAREHOUSE WH_ANALYTICS_ADAPTIVE
+  COMMENT = 'Adaptive warehouse for analytics workload';
+
+-- Tuned for a cost-sensitive, high-throughput pattern
+CREATE ADAPTIVE WAREHOUSE WH_ETL_ADAPTIVE
+  WITH MAX_QUERY_PERFORMANCE_LEVEL = LARGE
+       QUERY_THROUGHPUT_MULTIPLIER = 4
+  COMMENT = 'ETL adaptive warehouse - balanced throughput/cost';
+
+-- Equivalent using standard CREATE WAREHOUSE syntax
+CREATE WAREHOUSE WH_BI_ADAPTIVE
+  WITH WAREHOUSE_TYPE = 'ADAPTIVE'
+       MAX_QUERY_PERFORMANCE_LEVEL = MEDIUM
+       QUERY_THROUGHPUT_MULTIPLIER = 6;
+
+-- Apply mandatory tags (same standards as standard warehouses)
+ALTER WAREHOUSE WH_ANALYTICS_ADAPTIVE SET TAG
+  GOVERNANCE.TAGS.COST_CENTER = 'ANALYTICS',
+  GOVERNANCE.TAGS.WORKLOAD_TYPE = 'BI_INTERACTIVE',
+  GOVERNANCE.TAGS.ENVIRONMENT = 'PROD',
+  GOVERNANCE.TAGS.OWNER_TEAM = 'BI_PLATFORM';
+
+-- Resource monitor (still required for cost governance)
+ALTER WAREHOUSE WH_ANALYTICS_ADAPTIVE SET RESOURCE_MONITOR = RM_BI_WORKLOADS;
+```
+
+### Convert Existing Standard Warehouse to Adaptive (Online, No Downtime)
+
+```sql
+-- Single warehouse: online conversion
+ALTER WAREHOUSE my_existing_wh SET WAREHOUSE_TYPE = 'ADAPTIVE';
+
+-- Tune properties post-conversion (Snowflake auto-derives initial values from prior config)
+ALTER WAREHOUSE my_existing_wh SET
+  MAX_QUERY_PERFORMANCE_LEVEL = XLARGE
+  QUERY_THROUGHPUT_MULTIPLIER = 8;
+
+-- Roll back to standard if needed
+ALTER WAREHOUSE my_existing_wh SET WAREHOUSE_TYPE = 'STANDARD';
+```
+
+**Conversion behavior:** Existing queries continue on the old compute resources to completion; new queries route to the new type. During conversion you are billed for both compute footprints until existing queries finish.
+
+### Bulk Migration via SYSTEM$BULK_UPDATE_WH
+
+```sql
+-- Step 1: ALWAYS dry-run first
+SELECT SYSTEM$BULK_UPDATE_WH(
+  'WAREHOUSE_TYPE',
+  'ADAPTIVE',
+  '{"WAREHOUSE_TYPE": "STANDARD"}',  -- filter: standard warehouses only
+  'DRY_RUN'
+);
+
+-- Step 2: Review output, refine filters (name pattern, tags) if needed
+SELECT SYSTEM$BULK_UPDATE_WH(
+  'WAREHOUSE_TYPE',
+  'ADAPTIVE',
+  '{"name": "WH_ANALYTICS.*"}',
+  'DRY_RUN'
+);
+
+-- Step 3: Execute when satisfied with the dry-run set
+SELECT SYSTEM$BULK_UPDATE_WH(
+  'WAREHOUSE_TYPE',
+  'ADAPTIVE',
+  '{"name": "WH_ANALYTICS.*"}',
+  'ACTIVE'
+);
+```
+
+**Filter parameters:** `property_filter` (JSON, matches warehouse properties), `tag_filter` (JSON, all tags must match), `execution_mode` (`DRY_RUN` or `ACTIVE`).
+
+### Monitoring Adaptive Warehouses
+
+```sql
+-- Identify adaptive warehouses and per-day query stats
+WITH adaptive_whs AS (
+  SELECT DISTINCT warehouse_name
+  FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
+  WHERE warehouse_size = 'ADAPTIVE'
+    AND start_time >= DATEADD(day, -7, CURRENT_DATE())
+)
+SELECT
+  q.end_time::DATE AS ds,
+  q.warehouse_name,
+  AVG(q.total_elapsed_time) AS avg_query_time,
+  AVG(q.execution_time) AS avg_exec_time,
+  AVG(q.queued_overload_time) AS avg_queued_overload_time,
+  AVG(q.queued_provisioning_time) AS avg_queued_prov_time
+FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY q
+WHERE q.start_time >= DATEADD(day, -7, CURRENT_DATE())
+  AND q.warehouse_name IN (SELECT warehouse_name FROM adaptive_whs)
+GROUP BY ALL;
+
+-- Check queue load (use to tune QUERY_THROUGHPUT_MULTIPLIER)
+SELECT * FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_LOAD_HISTORY
+WHERE warehouse_name = 'WH_ANALYTICS_ADAPTIVE'
+  AND start_time >= DATEADD(hour, -24, CURRENT_TIMESTAMP());
+```
+
+**Tuning signals:**
+
+- **Persistent `queued_overload_time` > 0:** Increase `QUERY_THROUGHPUT_MULTIPLIER`.
+- **Spend spikes:** Decrease `QUERY_THROUGHPUT_MULTIPLIER`; rely on budgets/resource monitors for hard caps.
+- **Slow large queries:** Increase `MAX_QUERY_PERFORMANCE_LEVEL`.
+
+### Adaptive Limitations
+
+- Enterprise Edition or higher required.
+- Public Preview \u2014 AWS only (US West 2, EU West 1, AP Northeast 1 at time of writing).
+- **Cannot** convert to/from X5LARGE or X6LARGE.
+- **Cannot** convert to/from Snowpark-Optimized or Interactive warehouses.
+- `WAREHOUSE_SIZE`, `MIN_CLUSTER_COUNT`, `MAX_CLUSTER_COUNT`, `SCALING_POLICY`, QAS settings do **not** apply.
+- Query-level cost visibility not available during Public Preview (planned for GA).
+- QAS usage is bundled into compute credits (no separate column).
+
+### SHOW WAREHOUSES Columns for Adaptive
+
+- **`STATE`:** `ENABLED` (active) or `DISABLED`
+- **`MAX_QUERY_PERFORMANCE_LEVEL`:** Upper bound t-shirt size
+- **`QUERY_THROUGHPUT_MULTIPLIER`:** Burst capacity multiplier
+- **`DISABLED_REASONS`:** Reasons if warehouse is disabled
+
+Properties that do not apply (e.g., `WAREHOUSE_SIZE`, `MIN_CLUSTER_COUNT`) appear as `NULL` for adaptive warehouses.
+
 ### Warehouse Type Decision Matrix
 
 **Warehouse Selection by Workload:**
 
-- **General BI/Analytics:** Use Standard (CPU) - Dashboards, ad-hoc queries, reporting - Default for 80%+ of workloads
+- **Adaptive (Public Preview, AWS-only):** Use Adaptive Warehouses for self-tuning workloads where you want to avoid manual sizing/multi-cluster/QAS tuning - See "Adaptive Warehouses" section below for eligibility and DDL
+- **General BI/Analytics:** Use Standard (CPU) - Dashboards, ad-hoc queries, reporting - Default for 80%+ of workloads when Adaptive is not available
 - **ML Training/Inference:** Use Snowpark-Optimized (GPU) - Model training, GPU UDFs, vector operations - Requires GPU-enabled features
 - **Complex Aggregations:** Use High-Memory - Large window functions, complex joins on billions of rows - Use only when Standard shows memory pressure
 - **ETL/Data Loading:** Use Standard (CPU) - COPY INTO, data transformation, pipelines - Size based on volume and SLAs

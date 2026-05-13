@@ -51,7 +51,8 @@ dev = [
     "ruff>=0.15.1",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
-    "ty>=0.0.17",
+    "ty==0.0.35",
+    "pre-commit>=4.0",
 ]
 
 [project.scripts]

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **fix(agent-eval):** type Rich progress task tracking as `TaskID` to satisfy `ty` checks for `Progress.remove_task()`.
+
+### Changed
+
+- **chore(deps):** pin `ty==0.0.35` and add `pre-commit` to the dev toolchain for reproducible local and CI checks.
+- **ci:** add pull-request concurrency and uv cache configuration to reduce duplicate runs and cache-save warning noise.
+- **chore(pre-commit):** add Ruff and `ty` hooks while preserving Entro secret scanning.
+
 ## [3.7.3] - 2026-05-13
 
 ### Added

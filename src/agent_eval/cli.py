@@ -19,6 +19,7 @@ from rich.progress import (
     BarColumn,
     Progress,
     SpinnerColumn,
+    TaskID,
     TaskProgressColumn,
     TextColumn,
 )
@@ -474,7 +475,7 @@ def _run_parallel(
         pass
 
     # Thread-safe tracking of active test tasks
-    active_tasks: dict[str, int] = {}  # test_id -> task_id
+    active_tasks: dict[str, TaskID] = {}  # test_id -> task_id
     lock = threading.Lock()
     completed_count = [0]  # Use list for mutable reference in nested function
     passed_count = [0]

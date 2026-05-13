@@ -245,6 +245,18 @@ uv run ruff format .         # Apply formatting
 uv run ty check .            # Type check
 ```
 
+### Pre-commit hooks
+
+After cloning, install the hooks once:
+
+```bash
+uv run pre-commit install
+```
+
+This runs `ruff`, `ruff-format`, and `ty check` before each commit, matching CI.
+The existing Entro secret-scan hook must also pass unless the team-approved skip
+configuration (`git config entro.skipSecretScan true`) is set.
+
 ### Rule Validation
 
 ```bash

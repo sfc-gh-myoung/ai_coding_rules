@@ -98,7 +98,8 @@ For EACH dimension:
 
 ### Step 2.2a: Per-Dimension Timing (IF timing_enabled)
 
-When `timing_enabled: true`, wrap each dimension evaluation with checkpoint pairs:
+When `timing_enabled: true`, wrap each **scored** dimension evaluation with a checkpoint pair.
+This is **mandatory** — see SKILL.md Step 6a and `workflows/review-verification.md` Gate 7.
 
 | Before Dimension | After Dimension |
 |-----------------|-----------------|
@@ -107,26 +108,25 @@ When `timing_enabled: true`, wrap each dimension evaluation with checkpoint pair
 | checkpoint `dim_actionability_start` | checkpoint `dim_actionability_end` |
 | checkpoint `dim_completeness_start` | checkpoint `dim_completeness_end` |
 | checkpoint `dim_consistency_start` | checkpoint `dim_consistency_end` |
-| checkpoint `dim_token_efficiency_start` | checkpoint `dim_token_efficiency_end` |
-| checkpoint `dim_staleness_start` | checkpoint `dim_staleness_end` |
 | checkpoint `dim_cross_agent_start` | checkpoint `dim_cross_agent_end` |
 
-**After all dimensions scored:** Compute per-dimension durations from checkpoint pairs and construct `_dimension_timings` JSON array:
+Token Efficiency and Staleness are informational-only in v2.0 and do NOT require timing checkpoints.
+
+**Preferred path — auto-derive at `timing-end`:**
 
 ```
-_dimension_timings = []
-for each dimension:
-    start_cp = checkpoint where name == f"dim_{dimension}_start"
-    end_cp = checkpoint where name == f"dim_{dimension}_end"
-    duration = end_cp.elapsed_seconds - start_cp.elapsed_seconds
-    _dimension_timings.append({
-        "dimension": dimension,
-        "duration_seconds": round(duration, 2),
-        "mode": "checkpoint"
-    })
+$PYTHON $SCRIPT end --run-id {{_timing_run_id}} \
+    --output-file {{output_file}} --skill rule-reviewer --format markdown \
+    --auto-dimension-timings
+# Verify: stdout contains PER_DIMENSION_STATUS=derived
 ```
 
-**Pass to timing-end:** Include `--dimension-timings '{{_dimension_timings_json}}'` in the end command.
+No manual JSON assembly is required in sequential mode. `skill_timing.py` v1.5.0+ pairs the
+`dim_<name>_start` / `dim_<name>_end` checkpoints automatically and populates
+`dimension_timings` with `mode: "checkpoint"`.
+
+**Parallel mode fallback:** When a coordinator aggregates sub-agent self-reports, build the
+JSON explicitly and pass via `--dimension-timings` (see `workflows/parallel-execution.md`).
 
 ### Step 2.3: Apply Non-Issues Filters
 

@@ -387,7 +387,7 @@ Foundation + Multiple Domain Cores + Full rule families:
 ## Rules Loaded
 - rules/000-global-core.md (foundation)
 - rules/200-python-core.md (file extension: .py)
-- [Deferred: 204-python-docs-comments.md - Low tier, not required for task]
+- [Deferred: 204-python-docs.md - Low tier, not required for task]
 ```
 
 ### Loading Approach

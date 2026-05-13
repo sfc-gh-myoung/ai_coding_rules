@@ -180,7 +180,51 @@ Consider archiving old reviews if this occurs frequently.
 2. Apply no-overwrite safety
 3. Write full review content
 4. Verify file written successfully
-5. Report success with path
+5. Apply Gate 7 (Per-Dimension Timing presence — see below)
+6. Report success with path
+
+## Gate 7 — Per-Dimension Timing Presence (Universal Default)
+
+**Purpose:** Prevent silently-missing Per-Dimension Timing sections. As of
+plan-reviewer v2.5.0, this gate applies unconditionally (default
+`timing_enabled: true`). Explicit `timing_enabled: false` is satisfied by a
+single `not-requested` row — the section itself must still be present.
+
+### Gate Logic
+
+```
+Require heading `### Per-Dimension Timing` in output file
+Require >= 8 dimension rows in the Per-Dimension Timing table,
+    OR a single row marked `not-requested` (if timing_enabled: false),
+    OR rows explicitly marked `unavailable` with a reason (e.g.,
+    `unavailable (sub-agent timeout)`).
+IF missing:
+    REJECT the review and take ONE of these remediation paths:
+    1. Re-run `skill_timing.py end` with `--auto-dimension-timings`
+       (preferred when dim_*_start/end checkpoints exist).
+    2. Read `.timing-data/{run_id}.json`, assemble
+       `--dimension-timings` JSON, re-run `end` manually.
+    3. Gate 7 Fallback: Document explicit failure in the review's
+       "Timing Notes" block with the reason data is unavailable,
+       then re-write the file once the section is present.
+    4. Opt-out Fallback: If caller passed `timing_enabled: false`,
+       emit a single `not-requested` row to satisfy the gate.
+```
+
+### Pass / Fail / Fallback Cases
+
+| Case | Condition | Outcome |
+|------|-----------|---------|
+| Pass | 8 dimension rows present with real durations | Continue |
+| Pass | Rows include explicit `unavailable` with reason | Continue |
+| Pass | Single `not-requested` row (explicit `timing_enabled: false`) | Continue |
+| Fail | `### Per-Dimension Timing` heading absent | Reject + remediate (paths 1/2/3/4) |
+| Fail | fewer than 8 rows without `unavailable`/`not-requested` markers | Reject + remediate |
+
+### Cross-References
+
+- Trigger for this gate: `SKILL.md` Step 4a requires per-dimension checkpoints.
+- Data source: `skills/skill-timing/` with `--auto-dimension-timings`.
 
 ## Success Output
 

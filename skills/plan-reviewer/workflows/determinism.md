@@ -36,6 +36,25 @@
    - Why: Eliminates subjective scoring
    - Result: Same raw count → same score
 
+## Timing Discipline (When `timing_enabled: true`)
+
+### Mandatory
+
+1. **Capture per-dimension epochs:** Emit `dim_<name>_start` and `dim_<name>_end`
+   checkpoints around EACH of the 8 dimensions (executability, completeness,
+   success_criteria, scope, dependencies, decomposition, context, risk_awareness).
+2. **Pass timing data to `end`:** Use `--auto-dimension-timings` (preferred) or
+   supply a validated `--dimension-timings` JSON array manually.
+3. **Verify `PER_DIMENSION_STATUS`:** Stdout from `skill_timing.py end` must
+   print `PER_DIMENSION_STATUS=present` or `PER_DIMENSION_STATUS=derived`.
+   A value of `missing` is a hard failure — re-run `end`.
+
+### Prohibited
+
+1. ❌ Omitting per-dimension timing when `timing_enabled: true` → Gate 7 rejects.
+2. ❌ Fabricating start/end epochs or duration values.
+3. ❌ Ignoring `VALIDATION ERROR` output from `skill_timing.py end`.
+
 ## Prohibited Behaviors (NEVER DO)
 
 1. ❌ **Scoring without worksheets:** Skipping worksheet creation
@@ -95,6 +114,8 @@
 - [ ] Overlap resolution applied to ambiguous issues?
 - [ ] All 8 worksheets included in review output?
 - [ ] Scores looked up in decision matrices (not invented)?
+- [ ] (If `timing_enabled: true`) Per-dimension `dim_*_start/end` checkpoints emitted for all 8 dimensions?
+- [ ] (If `timing_enabled: true`) `PER_DIMENSION_STATUS=present|derived` confirmed in `end` stdout?
 
 **If ANY checkbox is NO:** Review is INVALID, must be regenerated.
 

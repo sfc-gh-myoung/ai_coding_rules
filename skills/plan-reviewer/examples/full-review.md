@@ -148,3 +148,65 @@ None identified.
 6. **Line numbers cited** for all issues
 7. **Verdict assigned** based on score and thresholds
 
+---
+
+## FULL Mode With `timing_enabled: true`
+
+### Input
+
+```text
+target_file: plans/IMPROVE_RULE_LOADING.md
+review_date: 2026-04-21
+review_mode: FULL
+model: claude-opus-47
+timing_enabled: true
+execution_mode: parallel
+```
+
+### Quick Reference Execution (abbreviated)
+
+```bash
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+
+$PYTHON skills/skill-timing/scripts/skill_timing.py start \
+    --skill plan-reviewer --target plans/IMPROVE_RULE_LOADING.md \
+    --model claude-opus-47 --mode FULL
+# → run_id: 7a1c...
+
+# (8 dimensions, each bracketed)
+$PYTHON ... checkpoint --run-id 7a1c... --name dim_executability_start
+# ...score...
+$PYTHON ... checkpoint --run-id 7a1c... --name dim_executability_end
+# (repeat for completeness, success_criteria, scope, dependencies,
+#  decomposition, context, risk_awareness)
+
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+    --run-id 7a1c... \
+    --output-file reviews/plan-reviews/plan-IMPROVE_RULE_LOADING-claude-opus-47-2026-04-21.md \
+    --skill plan-reviewer --format markdown --auto-dimension-timings
+# → PER_DIMENSION_STATUS=derived
+```
+
+### Expected Per-Dimension Timing Section (embedded in output)
+
+```markdown
+### Per-Dimension Timing
+
+| Dimension         | Duration (s) | Mode        | Notes |
+|-------------------|-------------:|-------------|-------|
+| executability     | 1.35         | derived     | |
+| completeness      | 1.39         | derived     | |
+| success_criteria  | 1.48         | derived     | |
+| scope             | 1.17         | derived     | |
+| dependencies      | 0.76         | derived     | |
+| decomposition     | 0.60         | derived     | |
+| context           | 0.54         | derived     | |
+| risk_awareness    | 0.48         | derived     | |
+```
+
+### Gate 7 Outcome
+
+- 8 rows present → Gate 7 **PASSES**.
+- If any row missing or heading absent → Gate 7 **REJECTS** the review per
+  `workflows/file-write.md`.
+

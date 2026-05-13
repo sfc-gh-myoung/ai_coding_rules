@@ -26,6 +26,8 @@ Exit Codes:
     3 - Duration significantly above baseline
 """
 
+from __future__ import annotations
+
 import argparse
 import glob
 import hashlib
@@ -37,6 +39,7 @@ import sys
 import time
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any, cast
 
 # ============================================================================
 # Configuration
@@ -60,11 +63,14 @@ ALERT_THRESHOLDS = {
 }
 
 # Cost estimates per 1M tokens (update periodically as pricing changes)
-# Last updated: 2026-01-06
-# Sources: https://www.anthropic.com/pricing, https://openai.com/pricing
+# Last updated: 2026-04-05
+# Sources: https://platform.claude.com/docs/en/about-claude/pricing
 COST_PER_1M_TOKENS = {
     "claude-sonnet-45": {"input": 3.00, "output": 15.00},
-    "claude-opus-45": {"input": 15.00, "output": 75.00},
+    "claude-sonnet-46": {"input": 3.00, "output": 15.00},
+    "claude-opus-45": {"input": 5.00, "output": 25.00},
+    "claude-opus-46": {"input": 5.00, "output": 25.00},
+    "claude-opus-4": {"input": 15.00, "output": 75.00},
     "gpt-4-turbo": {"input": 10.00, "output": 30.00},
     "default": {"input": 5.00, "output": 15.00},
 }
@@ -72,14 +78,14 @@ COST_PER_1M_TOKENS = {
 TTL_DAYS = 7
 REGISTRY_STALE_HOURS = 24
 
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 
 EXIT_SUCCESS = 0
 EXIT_ERROR = 1
 EXIT_SHORTCUT_DETECTED = 2
 EXIT_ABOVE_BASELINE = 3
 
-PRICING_LAST_UPDATED = "2026-01-06"
+PRICING_LAST_UPDATED = "2026-04-05"
 PRICING_REVIEW_INTERVAL_DAYS = 90
 
 
@@ -368,7 +374,7 @@ def recover_run_id(skill_name: str, agent_id: str) -> str | None:
     return None
 
 
-def validate_timing_data(data: dict) -> tuple[bool, list[str]]:
+def validate_timing_data(data: dict[str, Any]) -> tuple[bool, list[str]]:
     """Validate timing data against schema (runtime check)."""
     errors = []
     required_fields = [
@@ -398,10 +404,38 @@ def validate_timing_data(data: dict) -> tuple[bool, list[str]]:
             for i, dt in enumerate(dim_timings):
                 if not isinstance(dt, dict):
                     errors.append(f"dimension_timings[{i}] must be an object")
-                elif "dimension" not in dt or "duration_seconds" not in dt:
-                    errors.append(f"dimension_timings[{i}] missing required fields")
-                elif isinstance(dur := dt["duration_seconds"], (int, float)) and dur < -1:  # ty: ignore[invalid-argument-type]
-                    errors.append(f"dimension_timings[{i}] has invalid duration")
+                    continue
+                entry = cast(dict[str, Any], dt)
+                if (
+                    "dimension" not in entry
+                    or "duration_seconds" not in entry
+                    or "mode" not in entry
+                ):
+                    errors.append(
+                        f"dimension_timings[{i}] missing required fields (need: dimension, duration_seconds, mode)"
+                    )
+                elif not isinstance(entry["duration_seconds"], (int, float)):
+                    errors.append(f"dimension_timings[{i}] duration_seconds must be numeric")
+                else:
+                    dur = entry["duration_seconds"]
+                    if dur < -1:
+                        errors.append(f"dimension_timings[{i}] has invalid duration ({dur}s)")
+                    elif dur == 0:
+                        errors.append(
+                            f"dimension_timings[{i}] ({entry['dimension']}): "
+                            "0s duration — timestamps likely fabricated or not captured"
+                        )
+                    if "start_epoch" in entry and "end_epoch" in entry:
+                        if entry["end_epoch"] < entry["start_epoch"]:
+                            errors.append(
+                                f"dimension_timings[{i}] ({entry['dimension']}): "
+                                "end_epoch < start_epoch"
+                            )
+                        elif entry["start_epoch"] == entry["end_epoch"] and dur != 0:
+                            errors.append(
+                                f"dimension_timings[{i}] ({entry['dimension']}): "
+                                "start_epoch == end_epoch but duration_seconds != 0"
+                            )
     return (len(errors) == 0, errors)
 
 
@@ -668,6 +702,56 @@ def cmd_checkpoint(args):
     print("CHECKPOINT_STATUS=recorded")
 
 
+def derive_dimension_timings_from_checkpoints(
+    checkpoints: list, start_epoch: float
+) -> tuple[list[dict], list[str]]:
+    """Derive dimension_timings from dim_{name}_start/dim_{name}_end checkpoint pairs.
+
+    Returns (dimension_timings, warnings).
+    Checkpoint names must match: ^dim_(?P<name>[a-z_]+)_(start|end)$
+    Each checkpoint provides an elapsed_seconds field (relative to start_epoch).
+    Duration is computed as end_elapsed - start_elapsed.
+    """
+    pattern = re.compile(r"^dim_(?P<name>[a-z_]+)_(?P<phase>start|end)$")
+    pairs: dict[str, dict[str, float]] = {}
+    warnings: list[str] = []
+
+    for cp in checkpoints:
+        name = cp.get("name", "")
+        m = pattern.match(name)
+        if not m:
+            if name.startswith("dim_"):
+                warnings.append(
+                    f"Malformed dim_* checkpoint ignored: '{name}' "
+                    "(expected dim_<name>_start or dim_<name>_end)"
+                )
+            continue
+        dim_name = m.group("name")
+        phase = m.group("phase")
+        elapsed = float(cp.get("elapsed_seconds", 0))
+        pairs.setdefault(dim_name, {})[phase] = elapsed
+
+    dimension_timings: list[dict] = []
+    for dim_name in sorted(pairs.keys()):
+        phases = pairs[dim_name]
+        if "start" not in phases or "end" not in phases:
+            missing = "end" if "start" in phases else "start"
+            warnings.append(f"Dimension '{dim_name}' missing {missing} checkpoint; skipped.")
+            continue
+        duration = round(phases["end"] - phases["start"], 2)
+        dimension_timings.append(
+            {
+                "dimension": dim_name,
+                "duration_seconds": duration,
+                "mode": "checkpoint",
+                "start_epoch": round(start_epoch + phases["start"], 6),
+                "end_epoch": round(start_epoch + phases["end"], 6),
+            }
+        )
+
+    return dimension_timings, warnings
+
+
 def cmd_end(args):
     """End timing and compute duration."""
     agent_name = args.agent or os.environ.get("CORTEX_AGENT_NAME", "unknown")
@@ -761,13 +845,60 @@ def cmd_end(args):
     data["duration_human"] = format_duration(duration_sec)
     data["output_file"] = args.output_file
 
+    # ------------------------------------------------------------------
+    # Per-dimension timing resolution (explicit > auto-derive > missing)
+    # ------------------------------------------------------------------
+    checkpoints_for_scan = data.get("checkpoints", [])
+    dim_checkpoints_present = any(
+        re.match(r"^dim_[a-z_]+_(start|end)$", cp.get("name", "")) for cp in checkpoints_for_scan
+    )
+    auto_dim = getattr(args, "auto_dimension_timings", False)
+    per_dimension_status = "missing"
+
     if args.dimension_timings:
         try:
             dim_timings = json.loads(args.dimension_timings)
             if isinstance(dim_timings, list):
                 data["dimension_timings"] = dim_timings
-        except (json.JSONDecodeError, TypeError):
-            print("WARNING: Could not parse --dimension-timings JSON", file=sys.stderr)
+                per_dimension_status = "present"
+                if auto_dim:
+                    print(
+                        "WARNING: Both --dimension-timings and --auto-dimension-timings supplied; "
+                        "explicit --dimension-timings wins.",
+                        file=sys.stderr,
+                    )
+            else:
+                print("VALIDATION ERROR: --dimension-timings must be a JSON array", file=sys.stderr)
+        except (json.JSONDecodeError, TypeError) as e:
+            print(
+                f"VALIDATION ERROR: Could not parse --dimension-timings JSON: {e}", file=sys.stderr
+            )
+            print("Continuing with aggregate timing only (no per-dimension data).", file=sys.stderr)
+    elif auto_dim:
+        derived, derive_warnings = derive_dimension_timings_from_checkpoints(
+            checkpoints_for_scan, start_epoch=data["start_epoch"]
+        )
+        for w in derive_warnings:
+            print(f"WARNING: {w}", file=sys.stderr)
+        if derived:
+            data["dimension_timings"] = derived
+            per_dimension_status = "derived"
+        else:
+            print(
+                "WARNING: --auto-dimension-timings supplied but no dim_*_start/dim_*_end "
+                "checkpoint pairs found; continuing with aggregate timing only.",
+                file=sys.stderr,
+            )
+    elif dim_checkpoints_present:
+        # Silent-omission protection: dim_* checkpoints exist but neither flag was passed.
+        print(
+            "WARNING: dim_* checkpoints found but --dimension-timings / "
+            "--auto-dimension-timings not supplied; per-dimension data will be OMITTED. "
+            "Pass --auto-dimension-timings to derive automatically.",
+            file=sys.stderr,
+        )
+
+    data["per_dimension_status"] = per_dimension_status
 
     # Validate output file exists (for metadata embedding guidance)
     if (
@@ -803,8 +934,21 @@ def cmd_end(args):
     is_valid, validation_errors = validate_timing_data(data)
     if not is_valid:
         data["validation_errors"] = validation_errors
-        if output_format not in ("json", "quiet"):
-            for err in validation_errors:
+        dim_errors = [e for e in validation_errors if e.startswith("dimension_timings")]
+        if dim_errors:
+            if output_format not in ("json", "quiet"):
+                for err in dim_errors:
+                    print(f"VALIDATION ERROR: {err}", file=sys.stderr)
+                print(
+                    "VALIDATION ERROR: Invalid dimension_timings rejected. "
+                    "Re-run with --dimension-timings '[]' for aggregate timing only.",
+                    file=sys.stderr,
+                )
+            data["dimension_timings"] = []
+            data["validation_errors"] = dim_errors
+        non_dim_errors = [e for e in validation_errors if not e.startswith("dimension_timings")]
+        if non_dim_errors and output_format not in ("json", "quiet"):
+            for err in non_dim_errors:
                 print(f"VALIDATION WARNING: {err}", file=sys.stderr)
 
     # Write completed file (ensure directory exists)
@@ -825,6 +969,7 @@ def cmd_end(args):
         print(f"TIMING_START={data['start_iso']}")
         print(f"TIMING_END={data['end_iso']}")
         print(f"TIMING_STATUS={data['status']}")
+        print(f"PER_DIMENSION_STATUS={data.get('per_dimension_status', 'missing')}")
 
     exit_code = output_timing_data(data, output_format)
     sys.exit(exit_code)
@@ -1287,6 +1432,12 @@ For detailed documentation, see docs/USING_SKILL_TIMING_SKILL.md
         "--dimension-timings",
         default=None,
         help='JSON array of per-dimension timing data. Format: [{"dimension":"name","duration_seconds":N,"mode":"checkpoint|self-report"}]',
+    )
+    end_parser.add_argument(
+        "--auto-dimension-timings",
+        action="store_true",
+        help="Derive dimension_timings from dim_<name>_start / dim_<name>_end checkpoint pairs. "
+        "Ignored (with WARNING) if --dimension-timings is also supplied.",
     )
     end_parser.set_defaults(func=cmd_end)
 

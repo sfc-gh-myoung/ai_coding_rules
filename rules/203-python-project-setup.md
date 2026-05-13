@@ -34,7 +34,7 @@ Essential Python project setup and packaging guidance covering package structure
 
 **Related:**
 - **201-python-lint-format.md** - Code quality configuration in pyproject.toml
-- **204-python-docs-comments.md** - Documentation standards
+- **204-python-docs.md** - Documentation standards
 - **206-python-pytest.md** - Testing configuration
 - **210-python-fastapi-core.md** - FastAPI application patterns
 - **220-python-typer-cli.md** - CLI application patterns

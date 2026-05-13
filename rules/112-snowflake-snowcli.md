@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-26
+**RuleVersion:** v3.3.1
+**LastUpdated:** 2026-05-13
 **LoadTrigger:** kw:snowcli, file:snowflake.yml
-**Keywords:** snow CLI, SnowCLI, Snowflake CLI, snowflake-cli, uvx, automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, stage copy, config.toml, PAT authentication, WIF authentication, project definition, connection management, stage-to-stage copy
+**Keywords:** SnowCLI, Snowflake CLI, uvx, automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, config.toml, PAT authentication, WIF authentication, project definition, connection management, stage-to-stage copy, streamlit deploy, FROM deployment, live version
 **TokenBudget:** ~4900
 **ContextTier:** Medium
 **Depends:** 100-snowflake-core.md
@@ -437,6 +437,54 @@ snow stage copy SOURCE DEST \
 snow stage copy @SOURCE_STAGE/path/ @DEST_STAGE/path/ --recursive
 ```
 
+## Streamlit Deploy Command
+
+> **Local CLI verification:** Snowflake CLI 3.16.0 is installed (`snow --version` confirmed). Version 3.14+ uses modern `FROM`-based `CREATE STREAMLIT` syntax by default.
+
+### Default behavior (CLI 3.14+)
+
+`snow streamlit deploy` uses modern `CREATE STREAMLIT ... FROM ...` syntax by default. No additional flags are needed to opt into modern deployment.
+
+```bash
+# Deploy a Streamlit app defined in snowflake.yml (uses modern FROM syntax by default)
+uvx --from=snowflake-cli==3.16.0 snow streamlit deploy
+
+# Redeploy an existing app (replace if exists)
+uvx --from=snowflake-cli==3.16.0 snow streamlit deploy --replace
+
+# Replace and prune files deleted from local filesystem
+uvx --from=snowflake-cli==3.16.0 snow streamlit deploy --replace --prune
+
+# Open app in browser after deployment
+uvx --from=snowflake-cli==3.16.0 snow streamlit deploy --replace --open
+```
+
+### Key flags
+
+- `--replace` — Replace the app if it already exists (uploads new/changed files; does not remove stage files).
+- `--prune` — Delete stage files that no longer exist locally (use with `--replace`).
+- `--open` — Open the deployed app in a browser.
+- `--legacy` — **Opt-in to legacy `ROOT_LOCATION` SQL syntax.** Do not use for new deployments.
+
+### Verify deployment behavior
+
+```bash
+# Verify CLI version is 3.14+ (confirms modern FROM default)
+uvx --from=snowflake-cli==3.16.0 snow --version
+
+# Inspect available flags (confirms --legacy is an explicit opt-in)
+uvx --from=snowflake-cli==3.16.0 snow streamlit deploy --help
+```
+
+### Legacy opt-in
+
+The `--legacy` flag is the only way to use `ROOT_LOCATION` syntax via `snow streamlit deploy`. It must be explicitly passed; it is not the default. Do not use it for new deployments.
+
+```bash
+# LEGACY only: use ROOT_LOCATION syntax (not recommended for new apps)
+uvx --from=snowflake-cli==3.16.0 snow streamlit deploy --legacy
+```
+
 ## Additional Anti-Patterns
 - **Avoid:** `pip install snowflake-cli` into system/global environments
 - **Avoid:** Unpinned SnowCLI versions in automation
@@ -445,6 +493,7 @@ snow stage copy @SOURCE_STAGE/path/ @DEST_STAGE/path/ --recursive
 - **Avoid:** Assuming Homebrew exists on CI runners (use `uvx` instead)
 - **Avoid:** Using `--auto-compress false` (incorrect syntax; use `--no-auto-compress`)
 - **Avoid:** Inverted flag logic in Python wrappers that omits `--no-auto-compress` when compression should be disabled (default `auto_compress` parameter to `False` for app deployment functions)
+- **Avoid:** `snow streamlit deploy --legacy` for new apps (uses deprecated ROOT_LOCATION syntax; omit `--legacy` to use modern FROM-based deployment)
 
 ## Command Lifecycle Patterns
 

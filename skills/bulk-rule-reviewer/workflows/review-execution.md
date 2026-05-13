@@ -325,13 +325,13 @@ def check_for_drift(review_path, rule_number):
     if review_size < 2500:
         print(f"DRIFT DETECTED at rule #{rule_number}: Review only {review_size} bytes")
         print("Executing context refresh...")
-        read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
+        read_file("skills/bulk-rule-reviewer/workflows/context-anchor.md")
         return True
     
     # Periodic context refresh (every 10 rules)
     if rule_number % 10 == 0:
         print(f"Context refresh at rule #{rule_number}")
-        read_file("skills/bulk-rule-reviewer/CRITICAL_CONTEXT.md")
+        read_file("skills/bulk-rule-reviewer/workflows/context-anchor.md")
     
     return False
 

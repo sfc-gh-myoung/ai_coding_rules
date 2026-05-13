@@ -268,3 +268,20 @@ The workflow produces three outputs:
 - **FULL mode:** Always run schema validation (mandatory)
 - **FOCUSED mode:** Run if Parsability is one of the evaluated dimensions
 - **STALENESS mode:** Skip schema validation (not relevant for staleness checks)
+
+## File-Type Conditional Invocation
+
+Schema validation is only meaningful for rule files. Consume `FILE_TYPE` / `SKIP_SCHEMA` set by `workflows/input-validation.md`:
+
+```bash
+if [[ "$FILE_TYPE" == "rule" ]]; then
+    uv run ai-rules validate "$target_file"
+    # parse output for CRITICAL/HIGH/MEDIUM errors (see Step 2 above)
+else
+    echo "Schema validation skipped for project file"
+    echo "Note: Project files use different structure than rule schema"
+    schema_validation_result="SKIPPED (project file)"
+fi
+```
+
+**Rationale:** `AGENTS.md` / `PROJECT.md` do not use the rule metadata schema (`SchemaVersion`, `RuleVersion`, `TokenBudget`) or the `Scope → Contract → References` section structure. Running the validator on them would produce spurious CRITICAL errors.

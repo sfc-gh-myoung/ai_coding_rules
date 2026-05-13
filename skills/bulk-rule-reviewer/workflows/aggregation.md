@@ -494,3 +494,100 @@ The summary_data structure produced by this workflow is used by the summary repo
 - [ ] Critical issues counted accurately
 - [ ] Failed reviews tracked with error messages
 - [ ] Context efficient (only first 150 lines read)
+
+
+---
+
+## Timing Aggregation (Universal Default — v2.4.0)
+
+**Added v2.3.0, universal default v2.4.0.** `timing_stats` is always produced alongside score stats.
+When `timing_enabled: false`, `timing_stats` is still emitted with per-rule rows flagged
+`per_dimension_status="not-requested"`; the summary Timing Breakdown section is never silently
+omitted. `workflows/summary-report.md` renders the output in Section 10 (Timing Breakdown).
+
+**Warning flags (non-blocking) now surfaced in summary Warnings subsection:**
+- `PER_DIMENSION_STATUS=missing` — timing pipeline failure, investigate
+- `PER_DIMENSION_STATUS=not-requested` — explicit opt-out, informational only
+- Per-dimension row count < 6 (rule-reviewer) — Gate 7 remediation incomplete
+
+### Step T1: Parse Per-Rule Review Timing Metadata
+
+For each SUCCESS/SKIPPED review file, read the trailing `## Timing Metadata` section (rule-reviewer v2.8.0 embeds this). Extract:
+
+- `run_id` (child run_id of the rule-reviewer invocation)
+- `duration_s` (wall-clock for that rule)
+- `dimension_timings[]` - list of `{dimension, duration_seconds, mode}` per scored dimension
+- `per_dimension_status` - one of `present` | `derived` | `missing`
+
+```python
+def parse_review_timing(review_path):
+    """Parse Timing Metadata block from a rule-reviewer output file.
+
+    Returns None if block is absent (older reviews or timing_enabled=false).
+    """
+    import re
+    with open(review_path, "r") as f:
+        content = f.read()
+    match = re.search(r"## Timing Metadata\s+(.*?)(?=\n##|\Z)", content, re.DOTALL)
+    if not match:
+        return None
+    block = match.group(1)
+    return {
+        "run_id": _extract(block, r"run_id:\s*(\S+)"),
+        "duration_s": float(_extract(block, r"duration_seconds:\s*([0-9.]+)") or 0.0),
+        "dimension_timings": _extract_dimension_table(block),
+        "per_dimension_status": _extract(block, r"PER_DIMENSION_STATUS=(\w+)") or "missing",
+    }
+```
+
+### Step T2: Build `timing_stats`
+
+```python
+def aggregate_timings(results, bulk_run_id):
+    """Produce timing_stats for the master summary Timing Breakdown."""
+    per_rule = []
+    per_dimension = {}
+    warnings = []
+
+    for r in results:
+        if r["status"] not in ("SUCCESS", "SKIPPED"):
+            continue
+        t = parse_review_timing(r["review_path"])
+        if t is None:
+            warnings.append(f"{r['rule_name']}: no Timing Metadata block")
+            continue
+        per_rule.append({
+            "rule_name": r["rule_name"],
+            "duration_s": t["duration_s"],
+            "status": t["per_dimension_status"],
+        })
+        if t["per_dimension_status"] == "missing":
+            warnings.append(f"{r['rule_name']}: PER_DIMENSION_STATUS=missing")
+        for dt in t["dimension_timings"]:
+            per_dimension.setdefault(dt["dimension"], []).append(dt["duration_seconds"])
+
+    return {
+        "bulk_run_id": bulk_run_id,
+        "per_rule": per_rule,
+        "per_rule_stats": _summary_stats([p["duration_s"] for p in per_rule]),
+        "top_10_slowest": sorted(per_rule, key=lambda p: p["duration_s"], reverse=True)[:10],
+        "per_dimension_median": {d: _median(v) for d, v in per_dimension.items()},
+        "warnings": warnings,
+    }
+```
+
+`_summary_stats` returns `{avg, median, p95}`; `_median` is the standard median.
+
+### Step T3: Return Signature
+
+`aggregate()` now returns `(score_stats, timing_stats)`. Callers that do not enable timing pass `timing_enabled=False` and receive `timing_stats=None`; the summary workflow gates Section 10 on this value.
+
+### Parallel Mode Notes
+
+In parallel mode (`max_parallel >= 2`), each sub-agent returns a list of per-rule timing entries (see `workflows/parallel-execution.md` Timing Contract). The coordinator:
+
+1. Parses review files on disk (canonical source) to build `per_rule` and `per_dimension`.
+2. Cross-checks against sub-agent JSON payloads to detect dropped rules.
+3. Merges both into a single `timing_stats` dict.
+
+**Cross-check rule:** If a sub-agent reports a rule completed but the review file has no `## Timing Metadata` block, emit a warning and treat `per_dimension_status="missing"`.

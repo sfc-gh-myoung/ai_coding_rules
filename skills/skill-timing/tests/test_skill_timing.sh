@@ -5,18 +5,25 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 TIMING_DATA_DIR="$PROJECT_ROOT/reviews/.timing-data"
 
+PYTHON=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/find_python.sh")
+TIMING_PY="$PROJECT_ROOT/skills/skill-timing/scripts/skill_timing.py"
+
 echo "========================================"
 echo "Skill Timing Test Suite"
 echo "========================================"
 echo ""
 
-# Test 1: Wrapper script is executable
-echo "TEST 1: Wrapper script permissions"
-if [[ ! -x "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" ]]; then
-    echo "❌ FAIL: Wrapper not executable"
+# Test 1: find_python.sh is executable and returns a valid interpreter
+echo "TEST 1: find_python.sh permissions and output"
+if [[ ! -x "$PROJECT_ROOT/skills/skill-timing/scripts/find_python.sh" ]]; then
+    echo "❌ FAIL: find_python.sh not executable"
     exit 1
 fi
-echo "✓ PASS: Wrapper is executable"
+if [[ -z "$PYTHON" ]]; then
+    echo "❌ FAIL: find_python.sh returned empty string"
+    exit 1
+fi
+echo "✓ PASS: find_python.sh is executable (PYTHON=$PYTHON)"
 echo ""
 
 # Test 2: Python module loads without errors
@@ -30,7 +37,7 @@ echo ""
 
 # Test 3: Start command and validate run_id capture
 echo "TEST 3: Start command"
-OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+OUTPUT=$($PYTHON "$TIMING_PY" start \
     --skill test-skill \
     --target test.md \
     --model test-model 2>&1)
@@ -48,7 +55,7 @@ echo ""
 
 # Test 4: Checkpoint command
 echo "TEST 4: Checkpoint command"
-CHECKPOINT_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" checkpoint \
+CHECKPOINT_OUTPUT=$($PYTHON "$TIMING_PY" checkpoint \
     --run-id "$RUN_ID" \
     --name test_checkpoint 2>&1)
 
@@ -65,7 +72,7 @@ echo ""
 echo "TEST 5: End command"
 touch "$PROJECT_ROOT/test-output.md"
 
-END_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+END_OUTPUT=$($PYTHON "$TIMING_PY" end \
     --run-id "$RUN_ID" \
     --output-file "$PROJECT_ROOT/test-output.md" \
     --skill test-skill \
@@ -84,7 +91,7 @@ echo ""
 
 # Test 6: Invalid run_id handling
 echo "TEST 6: Invalid run_id format"
-INVALID_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+INVALID_OUTPUT=$($PYTHON "$TIMING_PY" end \
     --run-id "invalid-format-12345" \
     --output-file test.md \
     --skill test-skill 2>&1 || true)
@@ -104,7 +111,7 @@ echo "TEST 7: Parallel execution (10 concurrent runs)"
 rm -f "$TIMING_DATA_DIR"/skill-timing-*.json 2>/dev/null
 
 for i in {1..10}; do
-    bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    $PYTHON "$TIMING_PY" start \
         --skill parallel-test-skill \
         --target "test-$i.md" \
         --model test-model >/dev/null 2>&1 &
@@ -128,7 +135,7 @@ echo ""
 
 # Test 8: Timing files created in project directory (not /tmp)
 echo "TEST 8: Project-local file storage"
-TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
     --skill storage-test --target test.md --model test-model 2>&1)
 TEST_FILE=$(echo "$TEST_OUTPUT" | grep "TIMING_FILE=" | cut -d= -f2)
 
@@ -139,7 +146,7 @@ fi
 
 TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
 touch "$PROJECT_ROOT/test-storage.md"
-bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+$PYTHON "$TIMING_PY" end \
     --run-id "$TEST_RUN_ID" \
     --output-file "$PROJECT_ROOT/test-storage.md" \
     --skill storage-test --format quiet >/dev/null 2>&1 || true
@@ -150,7 +157,7 @@ echo ""
 
 # Test 9: CLI help text
 echo "TEST 9: CLI help text"
-if ! bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" --help 2>&1 | grep -q "Available commands"; then
+if ! $PYTHON "$TIMING_PY" --help 2>&1 | grep -q "Available commands"; then
     echo "❌ FAIL: Help text not comprehensive"
     exit 1
 fi
@@ -160,7 +167,7 @@ echo ""
 # Test 10: Baseline with lowered min-samples for testing
 echo "TEST 10: Baseline system (with --min-samples 2)"
 for i in {1..2}; do
-    TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
         --skill baseline-test \
         --target test.md \
         --model test-model 2>&1)
@@ -169,14 +176,14 @@ for i in {1..2}; do
     sleep 1
 
     touch "$PROJECT_ROOT/test-baseline.md"
-    bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    $PYTHON "$TIMING_PY" end \
         --run-id "$TEST_RUN_ID" \
         --output-file "$PROJECT_ROOT/test-baseline.md" \
         --skill baseline-test >/dev/null 2>&1
     rm -f "$PROJECT_ROOT/test-baseline.md"
 done
 
-BASELINE_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" baseline set \
+BASELINE_OUTPUT=$($PYTHON "$TIMING_PY" baseline set \
     --skill baseline-test \
     --mode FULL \
     --model test-model \
@@ -196,12 +203,12 @@ echo ""
 
 # Test 11: JSON output format validation
 echo "TEST 11: JSON output format"
-TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
     --skill json-test --target test.md --model test-model 2>&1)
 TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
 
 touch "$PROJECT_ROOT/test-json.md"
-JSON_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+JSON_OUTPUT=$($PYTHON "$TIMING_PY" end \
     --run-id "$TEST_RUN_ID" \
     --output-file "$PROJECT_ROOT/test-json.md" \
     --skill json-test \
@@ -219,12 +226,12 @@ echo ""
 
 # Test 12: Markdown output format validation
 echo "TEST 12: Markdown output format"
-TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
     --skill md-test --target test.md --model test-model 2>&1)
 TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
 
 touch "$PROJECT_ROOT/test-md.md"
-MD_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+MD_OUTPUT=$($PYTHON "$TIMING_PY" end \
     --run-id "$TEST_RUN_ID" \
     --output-file "$PROJECT_ROOT/test-md.md" \
     --skill md-test \
@@ -248,12 +255,12 @@ echo ""
 
 # Test 13: CI mode exit codes
 echo "TEST 13: CI mode (--ci flag)"
-TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
     --skill ci-test --target test.md --model test-model 2>&1)
 TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
 
 touch "$PROJECT_ROOT/test-ci.md"
-bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+$PYTHON "$TIMING_PY" end \
     --run-id "$TEST_RUN_ID" \
     --output-file "$PROJECT_ROOT/test-ci.md" \
     --skill ci-test \
@@ -270,18 +277,18 @@ echo ""
 
 # Test 14: Analyze --format json
 echo "TEST 14: Analyze command JSON format"
-TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
     --skill analyze-test --target test.md --model test-model 2>&1)
 TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
 touch "$PROJECT_ROOT/test-analyze.md"
-bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+$PYTHON "$TIMING_PY" end \
     --run-id "$TEST_RUN_ID" \
     --output-file "$PROJECT_ROOT/test-analyze.md" \
     --skill analyze-test \
     --format quiet >/dev/null 2>&1 || true
 rm -f "$PROJECT_ROOT/test-analyze.md"
 
-ANALYZE_JSON=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" analyze \
+ANALYZE_JSON=$($PYTHON "$TIMING_PY" analyze \
     --skill analyze-test \
     --days 1 \
     --format json 2>&1)
@@ -296,17 +303,17 @@ echo ""
 
 # Test 15: Completed-file recovery (idempotent end)
 echo "TEST 15: Completed-file recovery"
-TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
     --skill recovery-test --target test.md --model test-model 2>&1)
 TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
 
 touch "$PROJECT_ROOT/test-recovery.md"
-bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+$PYTHON "$TIMING_PY" end \
     --run-id "$TEST_RUN_ID" \
     --output-file "$PROJECT_ROOT/test-recovery.md" \
     --skill recovery-test --format quiet >/dev/null 2>&1 || true
 
-RECOVERY_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+RECOVERY_OUTPUT=$($PYTHON "$TIMING_PY" end \
     --run-id "$TEST_RUN_ID" \
     --output-file "$PROJECT_ROOT/test-recovery.md" \
     --skill recovery-test --format markdown 2>&1) || true
@@ -328,7 +335,7 @@ rm -f "$TIMING_DATA_DIR"/skill-timing-*.json
 
 # Test 16: Dimension timings passed via --dimension-timings
 echo "TEST 16: Dimension timings via --dimension-timings"
-TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
     --skill dim-test --target test.md --model test-model 2>&1)
 TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
 
@@ -336,7 +343,7 @@ sleep 1
 
 touch "$PROJECT_ROOT/test-dim.md"
 DIM_JSON='[{"dimension":"actionability","duration_seconds":42.3,"mode":"checkpoint"},{"dimension":"rule_size","duration_seconds":0.1,"mode":"inline"}]'
-DIM_MD_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+DIM_MD_OUTPUT=$($PYTHON "$TIMING_PY" end \
     --run-id "$TEST_RUN_ID" \
     --output-file "$PROJECT_ROOT/test-dim.md" \
     --skill dim-test \
@@ -363,7 +370,7 @@ echo ""
 
 # Test 17: Dimension timings in JSON output format
 echo "TEST 17: Dimension timings in JSON format"
-TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
     --skill dim-json-test --target test.md --model test-model 2>&1)
 TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
 
@@ -371,7 +378,7 @@ sleep 1
 
 touch "$PROJECT_ROOT/test-dim-json.md"
 DIM_JSON='[{"dimension":"parsability","duration_seconds":38.7,"mode":"self-report"}]'
-DIM_JSON_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+DIM_JSON_OUTPUT=$($PYTHON "$TIMING_PY" end \
     --run-id "$TEST_RUN_ID" \
     --output-file "$PROJECT_ROOT/test-dim-json.md" \
     --skill dim-json-test \
@@ -391,14 +398,14 @@ echo ""
 
 # Test 18: Empty dimension timings (graceful handling)
 echo "TEST 18: Empty dimension timings"
-TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
     --skill dim-empty-test --target test.md --model test-model 2>&1)
 TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
 
 sleep 1
 
 touch "$PROJECT_ROOT/test-dim-empty.md"
-DIM_EMPTY_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+DIM_EMPTY_OUTPUT=$($PYTHON "$TIMING_PY" end \
     --run-id "$TEST_RUN_ID" \
     --output-file "$PROJECT_ROOT/test-dim-empty.md" \
     --skill dim-empty-test \
@@ -417,22 +424,22 @@ echo ""
 
 # Test 19: Malformed dimension timings (error handling)
 echo "TEST 19: Malformed dimension timings"
-TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
     --skill dim-malformed-test --target test.md --model test-model 2>&1)
 TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
 
 sleep 1
 
 touch "$PROJECT_ROOT/test-dim-malformed.md"
-DIM_MALFORMED_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+DIM_MALFORMED_OUTPUT=$($PYTHON "$TIMING_PY" end \
     --run-id "$TEST_RUN_ID" \
     --output-file "$PROJECT_ROOT/test-dim-malformed.md" \
     --skill dim-malformed-test \
     --format markdown \
     --dimension-timings 'not-json' 2>&1) || true
 
-if ! echo "$DIM_MALFORMED_OUTPUT" | grep -qi "WARNING.*parse"; then
-    echo "❌ FAIL: No warning for malformed JSON"
+if ! echo "$DIM_MALFORMED_OUTPUT" | grep -qi "VALIDATION ERROR.*parse"; then
+    echo "❌ FAIL: No VALIDATION ERROR for malformed JSON"
     echo "Output was: $DIM_MALFORMED_OUTPUT"
     rm -f "$PROJECT_ROOT/test-dim-malformed.md"
     exit 1
@@ -451,13 +458,13 @@ echo ""
 # Test 20: Analyze with --per-dimension
 echo "TEST 20: Analyze with --per-dimension"
 for i in {1..2}; do
-    TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
         --skill pd-analyze-test --target test.md --model test-model 2>&1)
     TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
     sleep 1
     touch "$PROJECT_ROOT/test-pd-analyze.md"
     DIM_JSON='[{"dimension":"actionability","duration_seconds":40.0,"mode":"checkpoint"},{"dimension":"parsability","duration_seconds":35.0,"mode":"checkpoint"}]'
-    bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    $PYTHON "$TIMING_PY" end \
         --run-id "$TEST_RUN_ID" \
         --output-file "$PROJECT_ROOT/test-pd-analyze.md" \
         --skill pd-analyze-test \
@@ -466,7 +473,7 @@ for i in {1..2}; do
     rm -f "$PROJECT_ROOT/test-pd-analyze.md"
 done
 
-PD_ANALYZE_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" analyze \
+PD_ANALYZE_OUTPUT=$($PYTHON "$TIMING_PY" analyze \
     --skill pd-analyze-test \
     --days 1 \
     --format json \
@@ -484,13 +491,13 @@ echo ""
 # Test 21: Baseline set with --per-dimension
 echo "TEST 21: Baseline set with --per-dimension"
 for i in {1..3}; do
-    TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
         --skill pd-baseline-test --target test.md --model test-model --mode FULL 2>&1)
     TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
     sleep 1
     touch "$PROJECT_ROOT/test-pd-baseline.md"
     DIM_JSON='[{"dimension":"actionability","duration_seconds":42.0,"mode":"checkpoint"},{"dimension":"rule_size","duration_seconds":0.1,"mode":"inline"}]'
-    bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    $PYTHON "$TIMING_PY" end \
         --run-id "$TEST_RUN_ID" \
         --output-file "$PROJECT_ROOT/test-pd-baseline.md" \
         --skill pd-baseline-test \
@@ -499,7 +506,7 @@ for i in {1..3}; do
     rm -f "$PROJECT_ROOT/test-pd-baseline.md"
 done
 
-BASELINE_PD_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" baseline set \
+BASELINE_PD_OUTPUT=$($PYTHON "$TIMING_PY" baseline set \
     --skill pd-baseline-test \
     --mode FULL \
     --model test-model \
@@ -531,13 +538,13 @@ echo ""
 
 # Test 22: Baseline compare with per-dimension output
 echo "TEST 22: Baseline compare with per-dimension"
-TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
     --skill pd-baseline-test --target test.md --model test-model --mode FULL 2>&1)
 TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
 sleep 1
 touch "$PROJECT_ROOT/test-pd-compare.md"
 DIM_JSON='[{"dimension":"actionability","duration_seconds":142.0,"mode":"checkpoint"},{"dimension":"rule_size","duration_seconds":0.1,"mode":"inline"}]'
-bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+$PYTHON "$TIMING_PY" end \
     --run-id "$TEST_RUN_ID" \
     --output-file "$PROJECT_ROOT/test-pd-compare.md" \
     --skill pd-baseline-test \
@@ -545,7 +552,7 @@ bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
     --dimension-timings "$DIM_JSON" >/dev/null 2>&1 || true
 rm -f "$PROJECT_ROOT/test-pd-compare.md"
 
-COMPARE_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" baseline compare \
+COMPARE_OUTPUT=$($PYTHON "$TIMING_PY" baseline compare \
     --run-id "$TEST_RUN_ID" 2>&1 || true)
 
 if ! echo "$COMPARE_OUTPUT" | grep -q "Per-Dimension Comparison"; then
@@ -565,12 +572,12 @@ echo ""
 
 # Test 23: Analyze with mixed runs (some with/without dimension_timings)
 echo "TEST 23: Analyze with mixed runs"
-TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
     --skill mixed-test --target test.md --model test-model 2>&1)
 TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
 sleep 1
 touch "$PROJECT_ROOT/test-mixed.md"
-bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+$PYTHON "$TIMING_PY" end \
     --run-id "$TEST_RUN_ID" \
     --output-file "$PROJECT_ROOT/test-mixed.md" \
     --skill mixed-test \
@@ -578,13 +585,13 @@ bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
 rm -f "$PROJECT_ROOT/test-mixed.md"
 
 for i in {1..2}; do
-    TEST_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" start \
+    TEST_OUTPUT=$($PYTHON "$TIMING_PY" start \
         --skill mixed-test --target test.md --model test-model 2>&1)
     TEST_RUN_ID=$(echo "$TEST_OUTPUT" | grep "TIMING_RUN_ID=" | cut -d= -f2)
     sleep 1
     touch "$PROJECT_ROOT/test-mixed.md"
     DIM_JSON='[{"dimension":"actionability","duration_seconds":40.0,"mode":"checkpoint"}]'
-    bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" end \
+    $PYTHON "$TIMING_PY" end \
         --run-id "$TEST_RUN_ID" \
         --output-file "$PROJECT_ROOT/test-mixed.md" \
         --skill mixed-test \
@@ -593,7 +600,7 @@ for i in {1..2}; do
     rm -f "$PROJECT_ROOT/test-mixed.md"
 done
 
-MIXED_OUTPUT=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/run_timing.sh" analyze \
+MIXED_OUTPUT=$($PYTHON "$TIMING_PY" analyze \
     --skill mixed-test \
     --days 1 \
     --format json \

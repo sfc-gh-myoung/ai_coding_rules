@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-03-27
 
-The Bulk Rule Reviewer Skill executes comprehensive agent-centric reviews on all rule files in the `rules/` directory, generating a consolidated priority report showing which rules need attention. It orchestrates the rule-reviewer skill for each rule, maintaining the same quality standards as individual reviews.
+The Bulk Rule Reviewer Skill runs agent-centric reviews on every rule file in the `rules/` directory and generates a consolidated priority report showing which rules need attention. It orchestrates the rule-reviewer skill for each rule, holding to the same quality standards as individual reviews.
 
 **Primary Use Cases:**
 - Periodic quality audits (quarterly/monthly)
@@ -34,7 +34,7 @@ output_root: quarterly-audit/        # Optional (default: reviews/) — custom o
 filter_pattern: rules/200-*.md       # Optional (default: rules/*.md) — filter by domain
 skip_existing: false                 # Optional (default: true) — force re-review of all rules
 max_parallel: 3                      # Optional (default: 5) — concurrent sub-agents (1-10)
-timing_enabled: true                 # Optional (default: false) — adds timing metadata
+timing_enabled: true                 # Optional (default: true as of v2.4.0) — adds timing metadata
 ```
 
 Do not combine `skip_existing: false` with `max_parallel: 10` on large rule sets — this produces maximum load. Use lower parallelism when forcing re-reviews.
@@ -66,7 +66,7 @@ max_parallel: 1                      # Optional — sequential execution (one ru
 
 | Mode | Purpose | When to Use |
 |------|---------|-------------|
-| **FULL** | Comprehensive evaluation (all 7 dimensions) | Quarterly audits, pre-release validation |
+| **FULL** | Full 7-dimension evaluation | Quarterly audits, pre-release validation |
 | **FOCUSED** | Actionability + Completeness only | Quick quality checks |
 | **STALENESS** | Freshness dimension only | Monthly maintenance, link rot detection |
 

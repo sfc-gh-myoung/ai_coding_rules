@@ -805,3 +805,84 @@ Tests should be run:
 - **workflows/input-validation.md:** Validation rules specification
 - **SKILL.md:** Skill definition with input contract
 - **README.md:** Usage examples
+
+
+---
+
+## Timing Test Suite (v2.3.0)
+
+Added alongside the v2.3.0 timing propagation changes. All tests assume skill-timing v1.5.0+ and rule-reviewer v2.8.0+ are installed.
+
+### Test T1: Timing Disabled (Backwards Compat)
+
+**Inputs:** `timing_enabled: false`, `filter_pattern: rules/100-*.md`
+
+**Expected:**
+- Master summary contains Sections 1-9 only.
+- No `## 10. Timing Breakdown` header.
+- Output byte-identical to a pre-v2.3.0 baseline (diff must be empty after stripping dates).
+
+### Test T2: Timing Enabled, Sequential (`max_parallel: 1`)
+
+**Inputs:** `timing_enabled: true`, `max_parallel: 1`, 3-rule filter.
+
+**Expected:**
+- Every review file has `## Timing Metadata` + `### Per-Dimension Timing`.
+- Master summary Section 10 renders with `n_measured = 3`.
+- Stage breakdown table has 4 rows.
+- `10.5 Warnings` = "No warnings."
+
+### Test T3: Timing Enabled, Parallel (`max_parallel: 3`)
+
+**Inputs:** `timing_enabled: true`, `max_parallel: 3`, 9-rule filter.
+
+**Expected:**
+- Equivalent aggregate stats to Test T2 (within +-5% for clock noise).
+- Section 10.6 Sub-Agent Timing renders 3 worker rows.
+- No concurrent-write errors in the skill-timing checkpoint log for `$BULK_RUN_ID`.
+
+### Test T4: Gate 8 Per-Rule Warning Path
+
+**Inputs:** `timing_enabled: true`, one rule's review file manually stripped of `## Timing Metadata` AFTER write.
+
+**Expected:**
+- Gate returns `passed=False, warnings=[<path>: missing '## Timing Metadata'...]`.
+- Bulk DOES NOT abort.
+- Warning appears in Section 10.5.
+- Other rules unaffected.
+
+### Test T5: Gate 8 Summary-Level Blocking Path
+
+**Inputs:** `timing_enabled: true`, summary-report renderer manually disabled to skip Section 10.
+
+**Expected:**
+- Summary-level Gate returns `passed=False`.
+- STDERR contains `summary missing '## 10. Timing Breakdown' section`.
+- `_timing_breakdown: FAILED` synthetic entry appended to Failed Reviews section.
+
+### Test T6: Sub-Agent Schema Validation
+
+**Inputs:** Parallel mode; mock sub-agent returns a `completed` entry without `timing` field despite `timing_enabled: true`.
+
+**Expected:**
+- Aggregation detects missing `timing` field.
+- Rule treated as `per_dimension_status: "missing"`.
+- Warning aggregated in Section 10.5.
+
+### Test T7: Auto-Derive Path
+
+**Inputs:** `timing_enabled: true`, coordinator emits `rule_X_start/end` pairs but never passes `--dimension-timings` to `end`.
+
+**Expected:**
+- `skill_timing.py end --auto-dimension-timings` derives per-rule durations from checkpoint pairs.
+- `PER_DIMENSION_STATUS=derived` in each rule's Timing Metadata.
+- Section 10.2 populated correctly.
+
+### Test T8: Anti-Pattern Rejection
+
+**Inputs:** Coordinator passes a fabricated `dimension_timings` payload (`duration_seconds: 0`, `start_epoch: 0`, `end_epoch: 0`).
+
+**Expected:**
+- skill-timing v1.5.0 emits `VALIDATION ERROR`.
+- Bulk run continues; affected rule downgraded to `per_dimension_status: "validation-failed"`.
+- Warning in Section 10.5.

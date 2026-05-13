@@ -8,7 +8,7 @@
 **Keywords:** Python classes, OOP, inheritance, dataclasses, @property, class design, encapsulation, composition, Protocol, ABC, type hints
 **TokenBudget:** ~4050
 **ContextTier:** Medium
-**Depends:** 200-python-core.md, 201-python-lint-format.md, 204-python-docs-comments.md
+**Depends:** 200-python-core.md, 201-python-lint-format.md, 204-python-docs.md
 **LoadTrigger:** kw:class, kw:oop, kw:dataclass
 
 ## Scope
@@ -32,7 +32,7 @@ Practical, modern guidelines for when and how to use classes in Python, emphasiz
 **Must Load First:**
 - **200-python-core.md** - Python foundation patterns
 - **201-python-lint-format.md** - Code quality and linting
-- **204-python-docs-comments.md** - Documentation standards
+- **204-python-docs.md** - Documentation standards
 
 **Related:**
 - **206-python-pytest.md** - Testing class-based code

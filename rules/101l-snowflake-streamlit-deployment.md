@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.3.0
+**LastUpdated:** 2026-05-12
 **Keywords:** Container Runtime, Warehouse Runtime, deployment, pyproject.toml, environment.yml, compute pool, EAI, external access integration, CREATE STREAMLIT, migration
 **TokenBudget:** ~3850
 **ContextTier:** High
@@ -47,7 +47,7 @@ Comprehensive deployment guidance for Streamlit applications in Snowflake, cover
 
 - Snowflake account with Streamlit privileges
 - Application source code ready for deployment
-- Understanding of compute requirements: Container Runtime needs a compute pool (`CPU_X64_XS` minimum; see Snowflake pricing docs for current costs); Warehouse Runtime uses a virtual warehouse (`X-SMALL` sufficient for most apps)
+- Understanding of compute requirements: Container Runtime needs a compute pool (`GEN_X64_G2_2` on AWS/Azure or `CPU_X64_XS` on GCP minimum; see Snowflake pricing docs for current costs); Warehouse Runtime uses a virtual warehouse (`X-SMALL` sufficient for most apps)
 
 ### Mandatory
 
@@ -178,24 +178,33 @@ GRANT USAGE ON EXTERNAL ACCESS INTEGRATION pypi_access_integration
 ### Step 2: Create Compute Pool
 
 ```sql
+-- MANDATORY: Verify available instance families and your current cloud first
+SHOW COMPUTE POOL INSTANCE FAMILIES;
+SELECT CURRENT_REGION();
+
 -- Create compute pool for Streamlit apps
 -- MIN_NODES = number of apps you want running simultaneously
 -- MAX_NODES = maximum apps during peak usage
+-- AWS/Azure: prefer current-generation GEN_X64_G2_*
+-- GCP:       use CPU_X64_* (these ARE current-gen on GCP)
 CREATE COMPUTE POOL streamlit_compute_pool
   MIN_NODES = 1
   MAX_NODES = 5
-  INSTANCE_FAMILY = CPU_X64_XS;
+  INSTANCE_FAMILY = GEN_X64_G2_2;  -- AWS/Azure; on GCP use CPU_X64_XS
 
 -- Grant usage to app developer role
 GRANT USAGE ON COMPUTE POOL streamlit_compute_pool
   TO ROLE app_developer_role;
 ```
 
-**Instance Family Guidelines:**
-- `CPU_X64_XS`: Basic apps, low memory requirements (default)
-- `CPU_X64_S`: Moderate memory needs
-- `CPU_X64_M`: Large DataFrames, complex visualizations
+**Instance Family Guidelines (cloud-aware):**
+
+- **Basic apps, low memory** — AWS/Azure: `GEN_X64_G2_2`; GCP: `CPU_X64_XS`
+- **Moderate memory needs** — AWS/Azure: `GEN_X64_G2_4`; GCP: `CPU_X64_S`
+- **Large DataFrames, complex visualizations** — AWS/Azure: `GEN_X64_G2_8`; GCP: `CPU_X64_M`
+
 - Note: Streamlit runs single-threaded; multiple CPUs won't help
+- Note: On AWS/Azure, `CPU_X64_*` are previous-generation — prefer `GEN_X64_G2_*` for new pools
 
 ### Step 3: Create Dependency File (pyproject.toml)
 
@@ -254,6 +263,9 @@ CREATE STREAMLIT my_db.my_schema.my_app
   EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration)
   QUERY_TAG = 'streamlit_app_my_app';
 
+-- Activate live version so non-owner roles can access the app
+ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
+
 -- Recommended: Set session parameters after creation
 ALTER STREAMLIT my_db.my_schema.my_app SET
   STATEMENT_TIMEOUT_IN_SECONDS = 300
@@ -298,6 +310,7 @@ If deployment fails:
      FROM '@my_stage/streamlit_app_previous'
      MAIN_FILE = 'streamlit_app.py'
      ...;  -- same parameters as original
+   ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
    ```
 2. If SPCS compute pool is exhausted, suspend other services first
 3. For data issues, restore from last-known-good table snapshot
@@ -364,6 +377,9 @@ CREATE STREAMLIT my_db.my_schema.my_app
   MAIN_FILE = 'streamlit_app.py'
   QUERY_WAREHOUSE = my_warehouse
   QUERY_TAG = 'streamlit_app_my_app';
+
+-- Activate live version so non-owner roles can access the app
+ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
 ```
 
 **Key Difference:** No `RUNTIME_NAME`, `COMPUTE_POOL`, or `EXTERNAL_ACCESS_INTEGRATIONS`.
@@ -405,6 +421,7 @@ CREATE STREAMLIT my_app
   COMPUTE_POOL = my_pool
   QUERY_WAREHOUSE = my_wh
   EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration);
+ALTER STREAMLIT my_app ADD LIVE VERSION FROM LAST;
 ```
 
 ### Anti-Pattern 2: Using get_active_session() in Container Runtime
@@ -483,5 +500,5 @@ GRANT USAGE ON COMPUTE POOL streamlit_compute_pool TO ROLE app_developer_role;
 
 **Instance family too small:** If the app crashes with OOM errors, upgrade the instance family:
 ```sql
-ALTER COMPUTE POOL streamlit_compute_pool SET INSTANCE_FAMILY = CPU_X64_S;
+ALTER COMPUTE POOL streamlit_compute_pool SET INSTANCE_FAMILY = GEN_X64_G2_4;  -- AWS/Azure; on GCP use CPU_X64_S
 ```

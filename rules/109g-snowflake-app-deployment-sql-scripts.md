@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.2.1
+**LastUpdated:** 2026-05-13
 **LoadTrigger:** kw:deployment-sql, kw:put-script
 **Keywords:** PUT command, REMOVE command, CREATE NOTEBOOK, CREATE STREAMLIT, deployment scripts, upload script, stage upload, SQL deployment templates, snow stage copy, recursive upload
 **TokenBudget:** ~3700
@@ -35,13 +35,14 @@ Standardized SQL script templates for Snowflake application deployment operation
 
 - Application files ready for deployment
 - Internal stages created in target schemas
-- Snowflake CLI installed (>=3.12)
+- Snowflake CLI installed (>=3.16.0)
 
 ### Mandatory
 
 - AUTO_COMPRESS=FALSE on all PUT commands for .py, .yml, .ipynb files
 - Explicit REMOVE before every PUT
-- ROOT_LOCATION in CREATE must match actual stage file paths
+- FROM source path in CREATE must point to a valid stage location containing all app files
+- After `CREATE STREAMLIT ... FROM ...`, run `ALTER STREAMLIT <name> ADD LIVE VERSION FROM LAST` before the app is viewable by non-owner roles
 
 ### Forbidden
 
@@ -52,13 +53,13 @@ Standardized SQL script templates for Snowflake application deployment operation
 
 1. Create upload SQL script with AUTO_COMPRESS=FALSE
 2. Create remove SQL script for each staged file
-3. Create CREATE script with matching ROOT_LOCATION
+3. Create CREATE script with correct FROM source path and live-version activation
 4. Create DROP script with IF EXISTS
 5. Test each script individually
 
 ### Output Format
 
-SQL script files organized by operation type (upload/, remove/, create/, drop/).
+SQL script files following `NN_<schema>_<operation>.sql` naming convention.
 
 ### Validation
 
@@ -74,7 +75,8 @@ Each script executes without errors. Stage contents match expectations after upl
 
 - [ ] Upload scripts use AUTO_COMPRESS=FALSE for all .py/.yml/.ipynb files
 - [ ] Remove scripts list every file that upload scripts PUT
-- [ ] CREATE scripts have ROOT_LOCATION matching upload paths
+- [ ] CREATE scripts use `FROM '@<stage>'` syntax matching upload paths
+- [ ] CREATE STREAMLIT scripts include `ALTER STREAMLIT <name> ADD LIVE VERSION FROM LAST`
 - [ ] DROP scripts use IF EXISTS for idempotency
 
 ## Implementation Details
@@ -85,7 +87,7 @@ Each script executes without errors. Stage contents match expectations after upl
 
 ```sql
 -- ============================================================================
--- Filename: create_stage.sql
+-- Filename: 01_<schema>_create_stage.sql
 -- Description: Create internal stage for application files
 -- ============================================================================
 
@@ -100,7 +102,7 @@ CREATE STAGE IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.<%STAGE%>
 
 ```sql
 -- ============================================================================
--- Filename: upload_app_files.sql
+-- Filename: 02_<schema>_upload_files.sql
 -- Description: Upload application files to stage
 --
 -- Parameters:
@@ -108,7 +110,7 @@ CREATE STAGE IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.<%STAGE%>
 --   NOTEBOOK_DIR - Local directory (e.g., notebooks)
 --
 -- Usage:
---   snow sql -D STAGE=STG -D NOTEBOOK_DIR=notebooks -f upload_app_files.sql
+--   snow sql -D STAGE=STG -D NOTEBOOK_DIR=notebooks -f 02_<schema>_upload_files.sql
 -- ============================================================================
 
 PUT 'file://<%NOTEBOOK_DIR%>/app.ipynb'
@@ -131,14 +133,14 @@ OVERWRITE=TRUE;
 **Stage Path Requirement:**
 - Upload files directly to stage root: `@STAGE_NAME`
 - **Never** use an extra nesting subdirectory for the main app file: `@STAGE_NAME/streamlit/streamlit_app.py` — upload `streamlit_app.py` directly to `@STAGE_NAME`. Subdirectories for `pages/` and `utils/` are fine.
-- ROOT_LOCATION in CREATE STREAMLIT must match actual file location
+- FROM source path in CREATE STREAMLIT must match actual file locations
 - Subdirectory mismatch causes same "TypeError" (Snowflake cannot find files)
 
 ### Remove Script (REMOVE)
 
 ```sql
 -- ============================================================================
--- Filename: remove_app_files.sql
+-- Filename: 03_<schema>_remove_files.sql
 -- Description: Remove application files from stage
 -- Ensures clean deployment by removing old files before uploading new ones.
 --
@@ -146,7 +148,7 @@ OVERWRITE=TRUE;
 --   STAGE - Snowflake stage name
 --
 -- Usage:
---   snow sql -D STAGE=DB.SCHEMA.STAGE -f remove_app_files.sql
+--   snow sql -D STAGE=DB.SCHEMA.STAGE -f 03_<schema>_remove_files.sql
 -- ============================================================================
 
 REMOVE @<%STAGE%>/app.ipynb;
@@ -163,7 +165,7 @@ REMOVE @<%STAGE%>/environment.yml;
 
 ```sql
 -- ============================================================================
--- Filename: create_notebook.sql
+-- Filename: 04_<schema>_create_notebook.sql
 -- Description: Create notebook object from staged files
 --
 -- Parameters:
@@ -172,7 +174,7 @@ REMOVE @<%STAGE%>/environment.yml;
 --   WAREHOUSE - Compute warehouse
 --
 -- Usage:
---   snow sql -D DATABASE=DB -D STAGE=STG -D WAREHOUSE=WH -f create_notebook.sql
+--   snow sql -D DATABASE=DB -D STAGE=STG -D WAREHOUSE=WH -f 04_<schema>_create_notebook.sql
 -- ============================================================================
 
 CREATE NOTEBOOK IF NOT EXISTS <%DATABASE%>.SCHEMA.NOTEBOOK_NAME
@@ -185,14 +187,14 @@ MAIN_FILE = 'app.ipynb';
 
 ```sql
 -- ============================================================================
--- Filename: drop_notebook.sql
+-- Filename: 99_<schema>_drop_notebook.sql
 -- Description: Drop notebook object
 --
 -- Parameters:
 --   DATABASE - Database name
 --
 -- Usage:
---   snow sql -D DATABASE=DB -f drop_notebook.sql
+--   snow sql -D DATABASE=DB -f 99_<schema>_drop_notebook.sql
 -- ============================================================================
 
 DROP NOTEBOOK IF EXISTS <%DATABASE%>.SCHEMA.NOTEBOOK_NAME;
@@ -204,20 +206,20 @@ DROP NOTEBOOK IF EXISTS <%DATABASE%>.SCHEMA.NOTEBOOK_NAME;
 
 ```sql
 -- ============================================================================
--- Filename: upload_streamlit_app.sql
+-- Filename: 02_<schema>_upload_streamlit.sql
 -- Description: Upload Streamlit application files to stage (SiS deployment)
 --
 -- CRITICAL REQUIREMENTS:
 --   1. AUTO_COMPRESS=FALSE - Python import system cannot read gzipped files
 --   2. Stage root path - Files at @STAGE, not @STAGE/streamlit/
---   3. ROOT_LOCATION must match actual file locations
+--   3. FROM source path must match actual file locations
 --
 -- Parameters:
 --   STAGE - Snowflake stage name (e.g., UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE)
 --   APP_DIR - Local Streamlit app directory (e.g., streamlit/streamlit_sis)
 --
 -- Usage:
---   snow sql -D STAGE=DB.SCHEMA.STAGE -D APP_DIR=streamlit/sis -f upload_streamlit_app.sql
+--   snow sql -D STAGE=DB.SCHEMA.STAGE -D APP_DIR=streamlit/sis -f 02_<schema>_upload_streamlit.sql
 -- ============================================================================
 
 -- Main application file (must be at stage root)
@@ -250,7 +252,7 @@ SELECT '[PASS] Streamlit application files uploaded' AS progress;
 **Key Requirements:**
 - Files at stage root: `streamlit_app.py`, `environment.yml`
 - Subdirectories allowed for organization: `@STAGE/pages/`, `@STAGE/utils/`
-- ROOT_LOCATION in CREATE STREAMLIT matches: `'@STAGE'` (not `'@STAGE/streamlit'`)
+- FROM source path in CREATE STREAMLIT matches: `'@STAGE'` (not `'@STAGE/streamlit'`)
 - **Never** nest in extra subdirectory: `@STAGE/streamlit/`
 - **environment.yml must pin `streamlit>=1.50`** - Without it, SiS defaults to Streamlit 1.22.0 which lacks modern APIs (`st.navigation()`, `st.Page()`, etc.)
 
@@ -273,8 +275,8 @@ is the recommended approach over individual SQL PUT statements:
 ```bash
 # Upload entire Streamlit app directory recursively
 # Note: Pin CLI version in one place for easy updates
-# SNOW_CLI_VERSION=3.14
-uvx --from=snowflake-cli==3.14 snow stage copy \
+# SNOW_CLI_VERSION=3.16.0
+uvx --from=snowflake-cli==3.16.0 snow stage copy \
   --connection default \
   streamlit/ @DB.SCHEMA.STREAMLIT_STAGE \
   --recursive \
@@ -291,40 +293,45 @@ uvx --from=snowflake-cli==3.14 snow stage copy \
 **Complete CLI-Based Deployment Workflow:**
 ```bash
 # 1. Drop existing Streamlit object
-uvx --from=snowflake-cli==3.14 snow sql \
+uvx --from=snowflake-cli==3.16.0 snow sql \
   -q "DROP STREAMLIT IF EXISTS DB.SCHEMA.MY_APP;"
 
 # 2. Remove old stage files
-uvx --from=snowflake-cli==3.14 snow sql \
+uvx --from=snowflake-cli==3.16.0 snow sql \
   -q "REMOVE @DB.SCHEMA.STREAMLIT_STAGE;"
 
 # 3. Upload all files recursively
-uvx --from=snowflake-cli==3.14 snow stage copy \
+uvx --from=snowflake-cli==3.16.0 snow stage copy \
   --connection default \
   streamlit/ @DB.SCHEMA.STREAMLIT_STAGE \
   --recursive \
   --no-auto-compress \
   --overwrite
 
-# 4. Create Streamlit object
-uvx --from=snowflake-cli==3.14 snow sql \
+# 4. Create Streamlit object and activate live version
+uvx --from=snowflake-cli==3.16.0 snow sql \
   -q "CREATE STREAMLIT DB.SCHEMA.MY_APP
-      ROOT_LOCATION = '@DB.SCHEMA.STREAMLIT_STAGE'
+      FROM '@DB.SCHEMA.STREAMLIT_STAGE'
       MAIN_FILE = 'streamlit_app.py'
       QUERY_WAREHOUSE = MY_WH;"
+uvx --from=snowflake-cli==3.16.0 snow sql \
+  -q "ALTER STREAMLIT DB.SCHEMA.MY_APP ADD LIVE VERSION FROM LAST;"
 ```
 
 **CREATE STREAMLIT Statement (matches upload paths):**
 ```sql
 CREATE STREAMLIT IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.APP_NAME
-    ROOT_LOCATION = '@<%STAGE%>'  -- Matches PUT locations
-    MAIN_FILE = 'streamlit_app.py'
+    FROM '@<%STAGE%>'  -- No = sign; copies files into embedded versioned stage
+    MAIN_FILE = 'streamlit_app.py'  -- Filename only (no leading slash) for warehouse runtime
     QUERY_WAREHOUSE = <%WAREHOUSE%>
     -- Optional parameters:
     -- TITLE = 'My Application'
     -- COMMENT = 'Description of the app'
     -- EXTERNAL_ACCESS_INTEGRATIONS = (my_integration)
     ;
+
+-- Activate live version so non-owner roles can access the app
+ALTER STREAMLIT <%DATABASE%>.<%SCHEMA%>.APP_NAME ADD LIVE VERSION FROM LAST;
 ```
 
 ## Anti-Patterns and Common Mistakes
@@ -365,14 +372,14 @@ PUT file://streamlit/environment.yml @STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 -- Verify: LIST @STAGE; should show .py and .yml (not .py.gz or .yml.gz)
 ```
 
-**Anti-Pattern 3: ROOT_LOCATION Pointing to a Subdirectory That Doesn't Match Upload Paths**
+**LEGACY (ROOT_LOCATION)** Anti-Pattern 3: Path Mismatch Between Upload and ROOT_LOCATION
 
-**Problem:** Files are uploaded to the stage root (`@STAGE/streamlit_app.py`) but the CREATE STREAMLIT statement specifies `ROOT_LOCATION = '@STAGE/streamlit'`, or vice versa -- files are uploaded to `@STAGE/streamlit/` but ROOT_LOCATION points to `@STAGE`. This path mismatch causes Snowflake to look for files in the wrong location, producing the same `"TypeError"` as compression issues, making it hard to diagnose.
+> **Legacy context:** This anti-pattern applies to apps created with the legacy `ROOT_LOCATION` syntax. For new apps, use `FROM` instead (see CREATE STREAMLIT templates above). Legacy apps created in older Snowsight versions may show `root_location` as a `snow://` URL instead of a named stage — this is expected for older legacy apps; modern legacy apps use `@stage` paths.
 
-**Correct Pattern:** After uploading, run `LIST @STAGE;` to see the actual file paths. Then set `ROOT_LOCATION` to match exactly where the files are. If `LIST` shows `streamlit_stage/streamlit_app.py`, then `ROOT_LOCATION = '@STAGE'`. If it shows `streamlit_stage/streamlit/streamlit_app.py`, then `ROOT_LOCATION = '@STAGE/streamlit'`. Always verify alignment between the two.
+**Problem:** Files are uploaded to the stage root (`@STAGE/streamlit_app.py`) but the CREATE STREAMLIT statement specifies `ROOT_LOCATION = '@STAGE/streamlit'`, or vice versa. This path mismatch causes the same `"TypeError"` as compression issues, making it hard to diagnose.
 
 ```sql
--- Wrong: Files uploaded to stage root but ROOT_LOCATION points to subdirectory
+-- LEGACY: Files uploaded to stage root but ROOT_LOCATION points to subdirectory
 PUT file://streamlit_app.py @STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 -- LIST @STAGE shows: streamlit_stage/streamlit_app.py
 CREATE STREAMLIT DB.SCHEMA.MY_APP
@@ -380,11 +387,76 @@ CREATE STREAMLIT DB.SCHEMA.MY_APP
     MAIN_FILE = 'streamlit_app.py'
     QUERY_WAREHOUSE = WH;
 
--- Correct: ROOT_LOCATION matches actual file paths from LIST output
-PUT file://streamlit_app.py @STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
--- LIST @STAGE shows: streamlit_stage/streamlit_app.py
+-- LEGACY Correct: ROOT_LOCATION matches actual file paths from LIST output
 CREATE STREAMLIT DB.SCHEMA.MY_APP
     ROOT_LOCATION = '@STAGE'  -- Matches actual upload location
     MAIN_FILE = 'streamlit_app.py'
     QUERY_WAREHOUSE = WH;
+```
+
+**Anti-Pattern 4: FROM Source Path Doesn't Exist or Is Empty**
+
+**Problem:** The stage path passed to `FROM` does not exist, has no files, or points to a subdirectory that doesn't contain the main file. Because `FROM` copies files into an embedded versioned stage at CREATE time, an empty or missing source produces a Streamlit object with no content, causing `TypeError` or a blank app on open.
+
+**Correct Pattern:** Run `LIST @STAGE;` before `CREATE STREAMLIT` to confirm files exist at the expected path. Verify `MAIN_FILE` is a filename only (no leading `/`) for warehouse runtime.
+
+```sql
+-- Verify files exist before creating the Streamlit object
+LIST @DB.SCHEMA.STREAMLIT_STAGE;
+-- Expected: streamlit_app.py, environment.yml, pages/*, utils/* listed (no .gz extensions)
+
+-- Wrong: MAIN_FILE with leading slash (warehouse runtime rejects it)
+CREATE STREAMLIT DB.SCHEMA.MY_APP
+    FROM '@DB.SCHEMA.STREAMLIT_STAGE'
+    MAIN_FILE = '/streamlit_app.py'  -- Leading slash causes file-not-found error
+    QUERY_WAREHOUSE = MY_WH;
+
+-- Correct: FROM with verified stage path; MAIN_FILE filename only
+CREATE STREAMLIT DB.SCHEMA.MY_APP
+    FROM '@DB.SCHEMA.STREAMLIT_STAGE'
+    MAIN_FILE = 'streamlit_app.py'  -- Filename only, no leading slash
+    QUERY_WAREHOUSE = MY_WH;
+ALTER STREAMLIT DB.SCHEMA.MY_APP ADD LIVE VERSION FROM LAST;
+```
+
+## Updating an Existing App's Source Files
+
+How to push source file updates depends on whether the app was created with `FROM` or legacy `ROOT_LOCATION`.
+
+### FROM-Based Apps (Recommended)
+
+`FROM` copies files into an **embedded versioned stage** at CREATE time. Edits to the original source stage do **not** automatically update the app. To update:
+
+**Option A — Recreate (recommended for full redeployment):**
+```sql
+DROP STREAMLIT IF EXISTS DB.SCHEMA.MY_APP;
+-- (re-upload files to source stage if needed)
+CREATE STREAMLIT DB.SCHEMA.MY_APP
+    FROM '@DB.SCHEMA.STREAMLIT_STAGE'
+    MAIN_FILE = 'streamlit_app.py'
+    QUERY_WAREHOUSE = MY_WH;
+ALTER STREAMLIT DB.SCHEMA.MY_APP ADD LIVE VERSION FROM LAST;
+```
+
+**Option B — Copy files into live_version_location_uri (in-place update):**
+```sql
+-- Retrieve the embedded stage URI
+DESCRIBE STREAMLIT DB.SCHEMA.MY_APP;
+-- Note the live_version_location_uri value (e.g. snow://streamlit/...)
+
+-- Copy updated files directly into the embedded stage
+COPY FILES
+  INTO @<live_version_location_uri>/
+  FROM @DB.SCHEMA.STREAMLIT_STAGE/;
+```
+
+### **LEGACY (ROOT_LOCATION)** Apps
+
+Legacy apps read from the named stage at runtime. To update: PUT or COPY FILES directly against the stage referenced by `root_location` — no recreate needed.
+
+```sql
+-- Update source files in the legacy stage
+REMOVE @DB.SCHEMA.STREAMLIT_STAGE/streamlit_app.py;
+PUT file://streamlit_app.py @DB.SCHEMA.STREAMLIT_STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
+-- App picks up changes on next load (no ALTER or recreate required)
 ```

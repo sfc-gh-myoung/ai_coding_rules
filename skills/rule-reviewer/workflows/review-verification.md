@@ -84,6 +84,40 @@ To produce a valid review under these requirements, the agent MUST:
 - [ ] Post-Review Checklist has exactly 11 items
 - [ ] Informational sections (Token Efficiency, Staleness) are inline, not separate H2
 
+## Quality Gates
+
+The following gates are applied before a review is considered complete. Gates 1-6 are enforced
+implicitly via the checks above. **Gate 7** is an unconditional post-write gate (as of v2.9.0);
+an explicit `timing_enabled: false` opt-out is satisfied by a single `not-requested` row.
+
+### Gate 7: Per-Dimension Timing Presence (universal default)
+
+**Default:** Apply unconditionally. `timing_enabled` defaults to `true` as of rule-reviewer v2.9.0.
+
+**Checks:**
+
+- [ ] Output file contains the `### Per-Dimension Timing` heading
+- [ ] Table under that heading has ≥6 rows (one per scored dimension)
+- [ ] `timing-end` stdout contained `PER_DIMENSION_STATUS=present` or `PER_DIMENSION_STATUS=derived`
+- [ ] No `PER_DIMENSION_STATUS=missing` line observed during the run
+
+**Failure remediation (in order):**
+
+1. Re-run `timing-end` with `--auto-dimension-timings` (sequential mode) so the checkpoint pairs
+   recorded in Step 6a of SKILL.md are used to derive the `dimension_timings` array.
+2. In parallel mode, re-aggregate the sub-agent self-reports and re-run with
+   `--dimension-timings` JSON.
+3. If the timing data for this run is unrecoverable, append the subsection with a single
+   row stating `unavailable` and the failure reason (e.g., `VALIDATION ERROR: ...`) so the
+   omission is visible rather than silent.
+
+**Explicit opt-out (`timing_enabled: false`):** Gate 7 is satisfied by a single row whose
+`Mode` cell contains `not-requested`. The heading and table must still be present so the
+omission is visible rather than silent. No other remediation is required.
+
+**Integration point:** This gate is checked in `workflows/file-write.md` Step 5a
+(pre-write structural validation).
+
 ## Integration Point
 
 Call this verification before `file-write.md` workflow:

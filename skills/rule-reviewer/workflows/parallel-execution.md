@@ -271,16 +271,36 @@ See `score-aggregation.md` for detailed aggregation workflow.
 
 ### Timing Integration (IF timing_enabled)
 
-Before calling `timing-end`, serialize `_dimension_timings` to JSON string:
+Parallel mode uses sub-agent self-reports (not coordinator checkpoints) for per-dimension
+timing. Before calling `timing-end`, serialize the aggregated `_dimension_timings` array to a
+JSON string and pass it explicitly via `--dimension-timings`. Do **not** use
+`--auto-dimension-timings` in parallel mode — coordinator checkpoints would double-count
+wall-clock time (dimensions run concurrently, not sequentially).
 
 ```bash
-bash skills/skill-timing/scripts/run_timing.sh end \
+PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+$PYTHON skills/skill-timing/scripts/skill_timing.py end \
     --run-id {{_timing_run_id}} \
     --output-file {{output_file}} \
     --skill rule-reviewer \
     --format markdown \
     --dimension-timings '{{_dimension_timings_json}}'
+# Verify: stdout contains PER_DIMENSION_STATUS=present
 ```
+
+**Coordinator responsibilities:**
+
+1. Collect `start_epoch` / `end_epoch` from each sub-agent's JSON output.
+2. Build `_dimension_timings` with one entry per scored dimension (6 total), `mode: "self-report"`
+   (or `"self-report-flagged"` / `"validation-failed"` per Step 3.1a validation).
+3. Serialize to JSON, pass via `--dimension-timings`.
+4. Verify `PER_DIMENSION_STATUS=present` in stdout and that the output file contains
+   `### Per-Dimension Timing` with ≥6 rows — this satisfies Quality Gate 7
+   (see `workflows/review-verification.md`).
+
+**Gate 7 failure remediation in parallel mode:** Re-aggregate the sub-agent self-reports and
+re-run `timing-end` with the corrected `--dimension-timings` JSON, or append a single
+`unavailable` row with the failure reason if timing data is unrecoverable.
 
 ## Threshold Rationale
 

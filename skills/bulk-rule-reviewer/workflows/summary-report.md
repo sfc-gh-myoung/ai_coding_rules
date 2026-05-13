@@ -394,3 +394,87 @@ This is the final workflow in the bulk review pipeline.
 - [ ] Failed reviews listed with error messages
 - [ ] Appendix table formatted correctly
 - [ ] File path returned to user
+
+
+---
+
+## Section 10: Timing Breakdown (When `timing_enabled: true`)
+
+**Added v2.3.0.** This section is appended to the master summary ONLY when `timing_enabled: true` and `timing_stats` is non-null. When disabled, the summary is byte-identical to pre-v2.3.0 output (backwards compatible).
+
+### Rendered Template
+
+```markdown
+## 10. Timing Breakdown
+
+**Bulk run_id:** `{timing_stats.bulk_run_id}`
+**Total duration:** {bulk_total_s:.1f}s
+**Execution mode:** {"PARALLEL (" + str(max_parallel) + " sub-agents)" if max_parallel >= 2 else "SEQUENTIAL"}
+
+### 10.1 Stage Breakdown
+
+| Stage | Duration (s) | Share |
+|-------|--------------|-------|
+| discovery | {t_discovery:.2f} | {pct_discovery}% |
+| reviews | {t_reviews:.2f} | {pct_reviews}% |
+| aggregation | {t_aggregation:.2f} | {pct_aggregation}% |
+| summary | {t_summary:.2f} | {pct_summary}% |
+
+Derived from the stage checkpoints emitted in the Timing Quick Reference (`skill_loaded`, `discovery_complete`, `reviews_complete`, `aggregation_complete`, `summary_complete`).
+
+### 10.2 Per-Rule Duration Distribution
+
+- **Rules measured:** {n_measured} of {n_total}
+- **Average:** {avg_s:.2f}s
+- **Median:** {median_s:.2f}s
+- **p95:** {p95_s:.2f}s
+
+Histogram (5s buckets):
+```
+  [ 0 -  5s] ############ {count_0_5}
+  [ 5 - 10s] ###### {count_5_10}
+  [10 - 20s] ### {count_10_20}
+  [20 - 40s] # {count_20_40}
+  [40s+    ] . {count_40_plus}
+```
+
+### 10.3 Top 10 Slowest Rules
+
+| # | Rule | Duration (s) | PER_DIMENSION_STATUS |
+|---|------|--------------|----------------------|
+| 1 | {rule_name} | {duration_s:.2f} | {status} |
+| ... | ... | ... | ... |
+
+### 10.4 Per-Dimension Median (across all rules)
+
+| Dimension | Median (s) | n |
+|-----------|-----------|---|
+| actionability | {median_actionability:.2f} | {n_actionability} |
+| rule_size | {median_rule_size:.2f} | {n_rule_size} |
+| parsability | {median_parsability:.2f} | {n_parsability} |
+| completeness | {median_completeness:.2f} | {n_completeness} |
+| consistency | {median_consistency:.2f} | {n_consistency} |
+| cross_agent | {median_cross_agent:.2f} | {n_cross_agent} |
+
+### 10.5 Warnings
+
+Rules with `PER_DIMENSION_STATUS=missing` or absent `## Timing Metadata` blocks:
+
+- {warning_1}
+- {warning_2}
+- ...
+
+These rules are excluded from 10.2-10.4 statistics but remain in the score tables.
+```
+
+### Rendering Rules
+
+1. **Gate:** If `timing_stats is None`, emit nothing for Section 10 and continue. The rest of the summary is unchanged.
+2. **Ordering:** Section 10 appears AFTER the Appendix and BEFORE any timing metadata embedded by `skill_timing.py end --output-file` (if timing-end appends its own block, the Section 10 narrative precedes it).
+3. **Warnings:** If `timing_stats.warnings` is empty, render "No warnings." Never omit 10.5.
+4. **Parallel mode:** Add a sub-section "10.6 Sub-Agent Timing" rendering per-worker stats from the sub-agent JSON contract (see `workflows/parallel-execution.md`).
+
+### Backwards Compatibility
+
+- `timing_enabled: false` -> `timing_stats` is `None` -> Section 10 omitted.
+- Pre-v2.3.0 summary consumers see no new sections; byte-level diff against baseline must be empty aside from the regular score-table content.

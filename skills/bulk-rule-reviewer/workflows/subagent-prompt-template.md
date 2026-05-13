@@ -346,3 +346,53 @@ Before launching a sub-agent, verify the prompt:
 - [ ] Includes evidence requirements
 - [ ] Specifies output JSON format
 - [ ] Has correct parameter values
+
+
+---
+
+## Timing Injection (When `timing_enabled: true`)
+
+**Added v2.3.0.** When the bulk coordinator sets `timing_enabled: true`, inject the following block into the sub-agent prompt immediately AFTER the parameter list and BEFORE the per-rule work instructions:
+
+```markdown
+### Timing Requirements (MANDATORY when timing_enabled: true)
+
+You MUST invoke rule-reviewer with `timing_enabled: true` for every rule in your assigned partition. For each rule:
+
+1. Let rule-reviewer's child `run_id` wrap the review (rule-reviewer v2.8.0 captures its OWN per-dimension checkpoint pairs; do NOT re-implement).
+2. After rule-reviewer returns, parse its STDOUT for the `## Timing Metadata` block and include it in your per-rule JSON return payload under the `timing` key.
+3. Do NOT emit any `rule_{slug}_start/end` checkpoints yourself -- the coordinator owns `$BULK_RUN_ID` and does this wrapping. You only own your child run_ids.
+4. Return schema per `workflows/parallel-execution.md` Timing Contract:
+
+```json
+{
+  "rule_name": "<slug>",
+  "score": <int>,
+  "verdict": "<enum>",
+  "critical_issues": <int>,
+  "review_path": "<path>",
+  "timing": {
+    "run_id": "<child-run-id>",
+    "duration_s": <float>,
+    "dimension_timings": [{"dimension": "<name>", "duration_seconds": <float>, "mode": "coordinator"}, ...],
+    "per_dimension_status": "present|derived|missing"
+  }
+}
+```
+
+5. If rule-reviewer reports `PER_DIMENSION_STATUS=missing` for a rule, include the entry anyway with `per_dimension_status: "missing"`. The coordinator aggregates these into summary Section 10.5 Warnings.
+```
+
+When `timing_enabled: false`, OMIT this block entirely from the rendered sub-agent prompt. The sub-agent return schema falls back to its pre-v2.3.0 form (no `timing` field).
+
+### Rendering
+
+```python
+def render_subagent_prompt(base_template, params):
+    prompt = base_template.format(**params)
+    if params.get("timing_enabled", False):
+        prompt += TIMING_INJECTION_BLOCK
+    return prompt
+```
+
+`TIMING_INJECTION_BLOCK` is the literal markdown block above.

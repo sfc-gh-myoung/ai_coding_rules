@@ -11,7 +11,7 @@
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
 **Keywords:** multi-tool agents, planning instructions, testing, troubleshooting, semantic views, create agent, debug agent, agent not working, tool execution failed, agent error, fix agent
-**TokenBudget:** ~2700
+**TokenBudget:** ~3100
 **ContextTier:** High
 **Depends:** 100-snowflake-core.md, 106-snowflake-semantic-views-core.md
 **LoadTrigger:** kw:agent, kw:cortex-agent
@@ -323,6 +323,60 @@ SHOW CORTEX AGENTS;
 
 -- Describe agent configuration
 DESCRIBE CORTEX AGENT my_agent;
+```
+
+## YAML Agent Spec Format (Programmatic API)
+
+When creating agents via the REST API or Python SDK (rather than SQL DDL), the agent
+is defined with a YAML specification. Key formatting requirements:
+
+### sample_questions: Use Object Format (NOT Plain Strings)
+
+```yaml
+# CORRECT -- objects with question/answer keys
+instructions:
+  sample_questions:
+    - question: "What is the total spend by location this week?"
+      answer: "I'll query the purchasing data to calculate total spend broken down by location for the current week."
+    - question: "Which items have the worst ML forecast accuracy?"
+      answer: "I'll analyze forecast accuracy metrics to identify items with the largest deviation."
+
+# INCORRECT -- plain strings cause 399510 (22023) spec validation error
+instructions:
+  sample_questions:
+    - "What is the total spend by location this week?"
+    - "Which items have the worst ML forecast accuracy?"
+```
+
+### String Quoting
+
+The Snowflake agent spec parser is stricter than standard YAML. Always quote string values explicitly:
+
+```yaml
+tools:
+  - tool_spec:
+      type: "cortex_analyst_text_to_sql"
+      name: "my_analyst"
+      description: "Converts natural language to SQL queries"
+
+tool_resources:
+  my_analyst:
+    semantic_view: "DB.SCHEMA.MY_SEMANTIC_VIEW"
+```
+
+### Instruction Strings: Prefer Inline Over Block Scalars
+
+```yaml
+# PREFERRED -- inline quoted strings (matches Snowflake documentation examples)
+instructions:
+  orchestration: "You are an assistant. Route questions through the analyst tool."
+  response: "Always include context. Format dollar amounts with $ and 2 decimal places."
+
+# AVOID -- block scalars (valid YAML but not in Snowflake examples, may cause issues)
+instructions:
+  orchestration: >
+    You are an assistant.
+    Route questions through the analyst tool.
 ```
 
 ## Output Format Examples

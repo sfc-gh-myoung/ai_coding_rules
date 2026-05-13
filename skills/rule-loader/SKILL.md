@@ -51,7 +51,7 @@ A `## Rules Loaded` section listing all selected rules with loading reasons, for
 - rules/100-snowflake-core.md (dependency of 101)
 - rules/101-snowflake-streamlit-core.md (keyword: Streamlit)
 - rules/206-python-pytest.md (keyword: test)
-- [Deferred: 204-python-docs-comments.md - Low tier, not required for task]
+- [Deferred: 204-python-docs.md - Low tier, not required for task]
 ```
 
 ## Workflow (progressive disclosure)
@@ -126,3 +126,7 @@ See `examples/` for complete walkthroughs:
 - **RULES_INDEX.md** - Authoritative source for rule discovery mappings
 - **002h-claude-code-skills.md** - Skill authoring standards this skill follows
 - **003-context-engineering.md** - Token budget and attention management principles
+
+## Version History
+
+See `CHANGELOG.md`.

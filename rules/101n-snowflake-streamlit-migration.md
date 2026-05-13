@@ -1,11 +1,11 @@
-# Streamlit Migration: Warehouse to Container Runtime
+# Streamlit Deployment Migration Patterns
 
 ## Metadata
 
 **SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** migration, Warehouse Runtime, Container Runtime, environment.yml, pyproject.toml, get_active_session, st.connection, runtime migration
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-05-11
+**Keywords:** migration, Warehouse Runtime, Container Runtime, in-place upgrade, live version, environment.yml, pyproject.toml, get_active_session, st.connection, runtime migration, bidirectional migration
 **TokenBudget:** ~2100
 **ContextTier:** Low
 **Depends:** 101l-snowflake-streamlit-deployment.md
@@ -13,11 +13,13 @@
 ## Scope
 
 **What This Rule Covers:**
-Step-by-step migration from Warehouse Runtime to Container Runtime for existing Streamlit applications.
+Streamlit deployment migration patterns: Warehouse ↔ Container Runtime migrations, in-place upgrades within the same runtime (e.g., updating Streamlit version or dependencies), and safe swap workflows.
 
 **When to Load This Rule:**
 - Migrating an existing Warehouse Runtime app to Container Runtime
-- Converting environment.yml to pyproject.toml
+- Migrating a Container Runtime app back to Warehouse Runtime
+- Upgrading Streamlit version or dependencies within the same runtime
+- Converting environment.yml to pyproject.toml (or vice versa)
 - Replacing get_active_session() with st.connection()
 
 ## References
@@ -160,6 +162,9 @@ CREATE STREAMLIT my_db.my_schema.my_app
   COMPUTE_POOL = streamlit_compute_pool
   QUERY_WAREHOUSE = my_warehouse
   EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration);
+
+-- Activate live version so non-owner roles can access the app
+ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
 ```
 
 ## Migration Checklist
@@ -171,7 +176,64 @@ CREATE STREAMLIT my_db.my_schema.my_app
 - [ ] Create External Access Integration
 - [ ] Create Compute Pool
 - [ ] Recreate Streamlit object with new parameters
+- [ ] Run `ALTER STREAMLIT <name> ADD LIVE VERSION FROM LAST` after CREATE
 - [ ] Test all functionality in new runtime
+
+## Container to Warehouse Runtime (Downgrade)
+
+If reverting a Container Runtime app to Warehouse Runtime (e.g., to reduce infrastructure complexity or use Anaconda-only packages):
+
+1. **Convert `pyproject.toml` back to `environment.yml`** with `snowflake` channel and pinned Streamlit version.
+2. **Update connection handling** — `st.connection("snowflake")` still works in Warehouse Runtime; no changes required if already using it.
+3. **Remove EAI and compute pool** from the `CREATE STREAMLIT` statement.
+4. **Re-upload files to stage** with `AUTO_COMPRESS=FALSE` (mandatory for Warehouse Runtime `.py` files).
+5. **Recreate the Streamlit object** without `RUNTIME_NAME` or `COMPUTE_POOL`:
+
+```sql
+DROP STREAMLIT my_db.my_schema.my_app;
+CREATE STREAMLIT my_db.my_schema.my_app
+  FROM '@my_db.my_schema.my_stage/streamlit_app'
+  MAIN_FILE = 'streamlit_app.py'
+  QUERY_WAREHOUSE = my_warehouse;
+ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
+```
+
+## In-Place Upgrades
+
+Use in-place upgrades when changing dependencies or Streamlit version without switching runtimes.
+
+### Warehouse Runtime: Update Streamlit Version
+
+1. Update `environment.yml` with the new pinned version.
+2. Re-upload files to stage (`AUTO_COMPRESS=FALSE`).
+3. Recreate the Streamlit object (environment.yml is read at CREATE time):
+
+```sql
+DROP STREAMLIT IF EXISTS my_db.my_schema.my_app;
+CREATE STREAMLIT my_db.my_schema.my_app
+  FROM '@my_db.my_schema.my_stage/streamlit_app'
+  MAIN_FILE = 'streamlit_app.py'
+  QUERY_WAREHOUSE = my_warehouse;
+ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
+```
+
+### Container Runtime: Update Dependencies
+
+1. Update `pyproject.toml` with the new dependency versions.
+2. Re-upload files to stage.
+3. Recreate the Streamlit object (Container Runtime reads `pyproject.toml` at startup):
+
+```sql
+DROP STREAMLIT IF EXISTS my_db.my_schema.my_app;
+CREATE STREAMLIT my_db.my_schema.my_app
+  FROM '@my_db.my_schema.my_stage/streamlit_app'
+  MAIN_FILE = 'streamlit_app.py'
+  RUNTIME_NAME = 'SYSTEM$ST_CONTAINER_RUNTIME_PY3_11'
+  COMPUTE_POOL = streamlit_compute_pool
+  QUERY_WAREHOUSE = my_warehouse
+  EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration);
+ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
+```
 
 ## Anti-Patterns and Common Mistakes
 
@@ -256,6 +318,7 @@ CREATE STREAMLIT my_db.my_schema.my_app_v2
   COMPUTE_POOL = streamlit_compute_pool
   QUERY_WAREHOUSE = my_warehouse
   EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration);
+ALTER STREAMLIT my_db.my_schema.my_app_v2 ADD LIVE VERSION FROM LAST;
 
 -- 3. Verify my_app_v2 works, then swap
 DROP STREAMLIT my_db.my_schema.my_app;

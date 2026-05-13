@@ -31,7 +31,7 @@ review_date: 2026-03-27             # Required
 model: claude-sonnet-45             # Required
 output_root: quarterly-audit/       # Optional (default: reviews/) — custom output directory
 execution_mode: sequential          # Optional (default: parallel) — sequential is also valid for production
-timing_enabled: true                # Optional (default: false) — adds timing metadata
+timing_enabled: true                # Optional (default: true as of v2.5.0) — adds timing metadata
 overwrite: true                     # Optional (default: false) — replaces existing file
 ```
 
@@ -79,7 +79,7 @@ Do not combine `baseline_review` with COMPARISON or META-REVIEW modes.
 
 | Mode | Purpose | Required Inputs | Typical Use Case | Output Location |
 |------|---------|-----------------|------------------|-----------------|
-| **FULL** | Comprehensive single-plan review | `target_file`, `review_date`, `model` | Validate a plan before execution | `reviews/plan-reviews/<name>-<model>-<date>.md` |
+| **FULL** | Full single-plan review across 8 dimensions | `target_file`, `review_date`, `model` | Validate a plan before execution | `reviews/plan-reviews/<name>-<model>-<date>.md` |
 | **COMPARISON** | Rank multiple plans and declare a winner | `target_files`, `review_date`, `model` | Choose between alternate approaches | `reviews/summaries/_comparison-*.md` |
 | **META-REVIEW** | Analyze consistency across review outputs | `review_files`, `review_date`, `model` | Audit reviewer agreement or review quality | `reviews/summaries/_meta-*.md` |
 | **DELTA** | Measure improvement versus a prior review | `target_file`, `baseline_review`, `review_date`, `model` | Verify a revised plan fixed earlier issues | `reviews/plan-reviews/<name>-delta-*.md` |

@@ -129,6 +129,28 @@ For each rule:
 
 **CRITICAL:** Working memory must contain rule content BEFORE review generation.
 
+### Quality Gate 7: Per-Dimension Timing Presence (universal default)
+
+**As of v2.4.0, `timing_enabled: true` is the default.** The bulk orchestrator MUST enforce Gate 7
+on every rule-reviewer invocation. Explicit `timing_enabled: false` at the batch level is
+satisfied by each per-rule review emitting a single `not-requested` row — the `### Per-Dimension
+Timing` section itself must still be present.
+
+**Enforcement on every produced review (see `skills/rule-reviewer/workflows/review-verification.md`):**
+
+1. After `rule-reviewer` writes each review, verify the file contains `### Per-Dimension Timing`
+   with ≥6 rows, OR a single explicit `unavailable` row with a reason.
+2. Verify the `timing-end` stdout captured `PER_DIMENSION_STATUS=present` or
+   `PER_DIMENSION_STATUS=derived` (not `missing`).
+3. On Gate 7 failure, do NOT silently continue to the next rule. Either:
+   - Re-invoke `rule-reviewer` for that rule with the same parameters (checkpoints re-recorded,
+     `--auto-dimension-timings` passed on `timing-end`), OR
+   - Append a single `unavailable` row with the failure reason so the omission is visible.
+4. Aggregate Gate 7 pass/fail counts into the batch summary report.
+
+**Requires skill-timing v1.5.0+ and rule-reviewer v2.8.0+** (for
+`--auto-dimension-timings`, `PER_DIMENSION_STATUS` marker, and mandatory Step 6a checkpoints).
+
 ## Why This Works
 
 An agent attempting shortcuts cannot:
@@ -138,3 +160,60 @@ An agent attempting shortcuts cannot:
 - Know the helper function is called "ensure_python_datetime"
 
 **This evidence can ONLY come from reading the actual file.**
+
+
+---
+
+## Gate 8: Per-Rule Timing Presence (When `timing_enabled: true`)
+
+**Added v2.3.0.** Warning-only gate (non-blocking). Bulk runs MUST NOT abort on timing failures; a single missing timing block should not compromise a 100+ rule batch.
+
+### Gate Logic
+
+```python
+def gate_timing_presence(review_path, timing_enabled):
+    """Check that a review file contains the required timing sections.
+
+    Returns (passed: bool, warnings: list[str]).
+    """
+    if not timing_enabled:
+        return True, []
+
+    with open(review_path, "r") as f:
+        content = f.read()
+
+    warnings = []
+    if "## Timing Metadata" not in content:
+        warnings.append(f"{review_path}: missing '## Timing Metadata' section")
+    if "### Per-Dimension Timing" not in content:
+        warnings.append(f"{review_path}: missing '### Per-Dimension Timing' subsection")
+
+    # Non-blocking: warnings aggregate to summary Timing Breakdown 10.5
+    return len(warnings) == 0, warnings
+```
+
+### Master-Summary Check
+
+In addition to the per-file check, after the master summary is written:
+
+```python
+def gate_summary_timing_section(summary_path, timing_enabled):
+    if not timing_enabled:
+        return True, []
+    with open(summary_path, "r") as f:
+        content = f.read()
+    if "## 10. Timing Breakdown" not in content:
+        return False, [f"{summary_path}: summary missing '## 10. Timing Breakdown' section"]
+    return True, []
+```
+
+Unlike per-rule warnings, the summary-level check is **BLOCKING** when `timing_enabled: true` -- an enabled-timing run that produces no Timing Breakdown indicates a pipeline failure that MUST be surfaced.
+
+### Output Routing
+
+- Per-rule warnings -> aggregated into `timing_stats.warnings` -> rendered in summary Section 10.5.
+- Summary-level failure -> printed to STDERR and added to the master summary's "Failed Reviews" section with a synthetic entry `_timing_breakdown: FAILED`.
+
+### Rationale
+
+Bulk runs review 100+ rules; rejecting the entire batch because one review lacks a timing block would penalize successful rules. Use warning + report-in-summary pattern instead. Rejection remains at the rule-reviewer (Gate 7) level for that single rule, where it is appropriate.

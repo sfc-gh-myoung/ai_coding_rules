@@ -8,14 +8,14 @@
 **Parent Rule:** 109b-snowflake-app-deployment-core.md
 **Demonstrates:** Complete Streamlit in Snowflake (SiS) deployment workflow including environment.yml creation, recursive stage upload via Snowflake CLI, CREATE STREAMLIT, and validation
 **Use When:** Deploying a multi-page Streamlit application to Snowflake SiS with proper environment pinning
-**Version:** 1.0
+**Version:** 1.1
 **Last Validated:** 2026-02-19
 
 ## Prerequisites
 
 - [ ] Snowflake account with Streamlit enabled
 - [ ] Role with CREATE STAGE, CREATE STREAMLIT privileges
-- [ ] Snowflake CLI installed (`uvx --from=snowflake-cli==3.14 snow --version`)
+- [ ] Snowflake CLI installed (`uvx --from=snowflake-cli==3.16.0 snow --version`)
 - [ ] Snowflake connection configured in `~/.snowflake/connections.toml`
 - [ ] Streamlit app files in a local directory
 
@@ -75,12 +75,12 @@ GRANT USAGE ON STAGE MY_DB.MY_SCHEMA.STREAMLIT_STAGE
 
 ```bash
 # Remove old files first (clean slate)
-uvx --from=snowflake-cli==3.14 snow sql \
+uvx --from=snowflake-cli==3.16.0 snow sql \
   --connection default \
   -q "REMOVE @MY_DB.MY_SCHEMA.STREAMLIT_STAGE;"
 
 # Upload entire directory recursively
-uvx --from=snowflake-cli==3.14 snow stage copy \
+uvx --from=snowflake-cli==3.16.0 snow stage copy \
   --connection default \
   streamlit/ @MY_DB.MY_SCHEMA.STREAMLIT_STAGE \
   --recursive \
@@ -129,18 +129,22 @@ DROP STREAMLIT IF EXISTS MY_DB.MY_SCHEMA.MY_APP;
 
 -- Create Streamlit app from staged files
 CREATE STREAMLIT MY_DB.MY_SCHEMA.MY_APP
-    ROOT_LOCATION = '@MY_DB.MY_SCHEMA.STREAMLIT_STAGE'
+    FROM '@MY_DB.MY_SCHEMA.STREAMLIT_STAGE'
     MAIN_FILE = 'streamlit_app.py'
     QUERY_WAREHOUSE = MY_WH
     COMMENT = 'Multi-page Streamlit dashboard';
+
+-- Activate the live version so non-owner roles can access the app
+ALTER STREAMLIT MY_DB.MY_SCHEMA.MY_APP ADD LIVE VERSION FROM LAST;
 
 -- Grant usage to end users
 GRANT USAGE ON STREAMLIT MY_DB.MY_SCHEMA.MY_APP
     TO ROLE analyst_role;
 ```
 
-**Key:** `ROOT_LOCATION` must point to the stage root where files were uploaded. Do not
-append a subdirectory unless files were explicitly uploaded into one.
+**Key:** `FROM` source path must point to the stage root where files were uploaded. Do not
+append a subdirectory unless files were explicitly uploaded into one. `MAIN_FILE` must be
+a filename only (no leading slash) for warehouse runtime.
 
 ### Step 5: Full Deployment Script (One-Command)
 
@@ -149,7 +153,7 @@ append a subdirectory unless files were explicitly uploaded into one.
 # deploy_streamlit.sh - Full SiS deployment workflow
 set -euo pipefail
 
-CLI="uvx --from=snowflake-cli==3.14 snow"
+CLI="uvx --from=snowflake-cli==3.16.0 snow"
 CONN="--connection default"
 DB="MY_DB"
 SCHEMA="MY_SCHEMA"
@@ -172,9 +176,10 @@ $CLI stage copy $CONN \
 
 echo "4/4 Creating Streamlit object..."
 $CLI sql $CONN -q "CREATE STREAMLIT ${APP_NAME}
-    ROOT_LOCATION = '@${STAGE}'
+    FROM '@${STAGE}'
     MAIN_FILE = 'streamlit_app.py'
     QUERY_WAREHOUSE = ${WAREHOUSE};"
+$CLI sql $CONN -q "ALTER STREAMLIT ${APP_NAME} ADD LIVE VERSION FROM LAST;"
 
 echo "Deployment complete. Open in Snowsight: Streamlit > ${APP_NAME}"
 ```
@@ -183,7 +188,7 @@ echo "Deployment complete. Open in Snowsight: Streamlit > ${APP_NAME}"
 
 ```bash
 # List stage contents to verify upload
-uvx --from=snowflake-cli==3.14 snow sql \
+uvx --from=snowflake-cli==3.16.0 snow sql \
   -q "LIST @MY_DB.MY_SCHEMA.STREAMLIT_STAGE;"
 
 # Expected output (all files uncompressed, no .gz):
@@ -194,11 +199,11 @@ uvx --from=snowflake-cli==3.14 snow sql \
 # streamlit_stage/utils/data_loader.py  | 3072  | <hash> | ...
 
 # Verify Streamlit object exists
-uvx --from=snowflake-cli==3.14 snow sql \
+uvx --from=snowflake-cli==3.16.0 snow sql \
   -q "SHOW STREAMLITS LIKE 'MY_APP' IN SCHEMA MY_DB.MY_SCHEMA;"
 
-# Describe Streamlit object (check ROOT_LOCATION)
-uvx --from=snowflake-cli==3.14 snow sql \
+# Describe Streamlit object (check live_version_location_uri for FROM-based apps)
+uvx --from=snowflake-cli==3.16.0 snow sql \
   -q "DESCRIBE STREAMLIT MY_DB.MY_SCHEMA.MY_APP;"
 ```
 
@@ -206,21 +211,21 @@ uvx --from=snowflake-cli==3.14 snow sql \
 
 ```bash
 # 1. Verify all files are uncompressed (.py not .py.gz)
-uvx --from=snowflake-cli==3.14 snow sql \
+uvx --from=snowflake-cli==3.16.0 snow sql \
   -q "LIST @MY_DB.MY_SCHEMA.STREAMLIT_STAGE;" \
   | grep -E "\.py$|\.yml$"
 # Expected: All files end in .py or .yml (no .gz suffix)
 
 # 2. Verify environment.yml is present
-uvx --from=snowflake-cli==3.14 snow sql \
+uvx --from=snowflake-cli==3.16.0 snow sql \
   -q "LIST @MY_DB.MY_SCHEMA.STREAMLIT_STAGE;" \
   | grep environment.yml
 # Expected: environment.yml listed
 
-# 3. Verify ROOT_LOCATION matches stage
-uvx --from=snowflake-cli==3.14 snow sql \
+# 3. Verify live_version_location_uri via DESCRIBE (FROM-based apps)
+uvx --from=snowflake-cli==3.16.0 snow sql \
   -q "DESCRIBE STREAMLIT MY_DB.MY_SCHEMA.MY_APP;"
-# Expected: ROOT_LOCATION = @MY_DB.MY_SCHEMA.STREAMLIT_STAGE
+# Expected: live_version_location_uri shows the embedded stage path
 
 # 4. Open in Snowsight
 # Navigate to: Projects > Streamlit > MY_APP
@@ -230,7 +235,7 @@ uvx --from=snowflake-cli==3.14 snow sql \
 **Expected Results:**
 - Stage contains all app files without compression (.py, .yml, not .py.gz)
 - `environment.yml` present at stage root alongside `streamlit_app.py`
-- Streamlit object ROOT_LOCATION matches the stage path
+- `live_version_location_uri` is populated in DESCRIBE STREAMLIT output (confirms FROM-based app)
 - App loads in Snowsight without `TypeError` or `AttributeError`
 - Navigation, pages, and modern Streamlit APIs function correctly
 
@@ -240,7 +245,7 @@ uvx --from=snowflake-cli==3.14 snow sql \
 |---------|---------|-----|
 | Missing `environment.yml` | `AttributeError: module 'streamlit' has no attribute 'navigation'` | Add `environment.yml` with pinned `streamlit=1.51.0` |
 | Missing `--no-auto-compress` | `TypeError: bad argument type for built-in operation` | Add `--no-auto-compress` to `snow stage copy` or `AUTO_COMPRESS=FALSE` to PUT |
-| Files in subdirectory (`@STAGE/streamlit/`) | `TypeError` - ROOT_LOCATION mismatch | Upload to stage root: `@STAGE`, not `@STAGE/streamlit/` |
+| Files in subdirectory (`@STAGE/streamlit/`) | `TypeError` - FROM source path mismatch | Upload to stage root: `@STAGE`, not `@STAGE/streamlit/` |
 | Unpinned streamlit in environment.yml | Uses bundled 1.22.0, modern APIs missing | Pin: `streamlit=1.51.0` |
 | Skipping DROP + REMOVE before re-deploy | Stale cached content shown | Always run full workflow: drop, remove, upload, create |
 

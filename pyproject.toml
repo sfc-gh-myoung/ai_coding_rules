@@ -153,6 +153,16 @@ include = ["tests/**"]
 invalid-argument-type = "ignore"  # LiteralString vs str in test fixtures
 invalid-assignment = "ignore"  # list[LiteralString] vs list[str] in test fixtures
 
+[[tool.ty.overrides]]
+# Cortex Code Agent SDK is preview software with an evolving API. The
+# live-agent path imports it lazily and gracefully falls back when absent
+# or when the API doesn't match the pin. CI never touches this code path,
+# so silence type diagnostics here rather than churn against preview stubs.
+include = ["src/ai_rules/rule_loader_eval/agent_runner.py"]
+[tool.ty.overrides.rules]
+unresolved-import = "ignore"
+invalid-argument-type = "ignore"
+
 [tool.rule_deployer]
 exclude_skills = [
 ]

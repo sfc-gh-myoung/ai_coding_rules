@@ -15,7 +15,7 @@ def sample_rule_content() -> str:
     return """**Keywords:** test, example, validation
 **TokenBudget:** ~500
 **ContextTier:** High
-**Depends:** 000-global-core.md
+**Depends:** required:999-test-core.md
 
 # Sample Test Rule
 
@@ -75,7 +75,7 @@ pytest tests/
 
 ## References
 ### Related Rules
-- `000-global-core.md`
+- `999-test-core.md`
 """
 
 
@@ -84,7 +84,7 @@ def rule_without_token_budget() -> str:
     """Rule content missing TokenBudget metadata for testing."""
     return """**Keywords:** test, example
 **ContextTier:** High
-**Depends:** 000-global-core.md
+**Depends:** required:999-test-core.md
 
 # Rule Without Budget
 
@@ -134,7 +134,7 @@ test
 
 ## References
 ### Related Rules
-- `000-global-core.md`
+- `999-test-core.md`
 """
 
 
@@ -145,7 +145,7 @@ def mock_template_dir(tmp_path: Path) -> Path:
     rules_dir.mkdir()
 
     # Create rule with TokenBudget (000)
-    rule1 = rules_dir / "000-global-core.md"
+    rule1 = rules_dir / "999-test-core.md"
     rule1.write_text(
         """**Keywords:** test
 **TokenBudget:** ~300
@@ -162,7 +162,7 @@ Content here.
     rule2.write_text(
         """**Keywords:** test
 **ContextTier:** Low
-**Depends:** 000-global-core.md
+**Depends:** required:999-test-core.md
 
 # Test Rule 2
 More content.
@@ -175,7 +175,7 @@ More content.
         """**Keywords:** test
 **TokenBudget:** ~100
 **ContextTier:** High
-**Depends:** 000-global-core.md
+**Depends:** required:999-test-core.md
 
 # Test Rule 3
 """

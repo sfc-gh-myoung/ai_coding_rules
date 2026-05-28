@@ -21,7 +21,7 @@ def create_sample_rule(
     include_depends: bool = False,
     token_budget: int = 500,
     keywords: str = "test, sample",
-    depends: str = "000-global-core.md",
+    depends: str = "999-test-core.md",
 ) -> Path:
     """Create a sample rule file for testing.
 

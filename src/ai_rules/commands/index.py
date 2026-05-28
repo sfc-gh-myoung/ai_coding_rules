@@ -406,14 +406,19 @@ def generate_agent_guidance() -> str:
 def parse_load_triggers(
     rules: list[RuleMetadata],
 ) -> tuple[dict[str, str], dict[str, str], dict[str, str], dict[str, str]]:
-    """Parse LoadTrigger metadata from rules into categorized mappings.
+    """Parse typed Keywords entries (v3.3) into categorized mappings.
+
+    v3.3 folds the legacy ``LoadTrigger:`` field into ``Keywords:`` using
+    typed prefixes (``kw:``, ``ext:``, ``file:``, ``dir:``). This parser
+    walks each rule's ``keywords`` value, splits on commas, and bins
+    each typed entry by prefix.
 
     Args:
-        rules: List of RuleMetadata objects
+        rules: List of RuleMetadata objects (v3.3 typed Keywords).
 
     Returns:
-        Tuple of (dir_triggers, ext_triggers, file_triggers, kw_triggers)
-        Each dict maps trigger value to rule filename
+        Tuple of (dir_triggers, ext_triggers, file_triggers, kw_triggers).
+        Each dict maps trigger value (without prefix) to rule filename.
     """
     dir_triggers: dict[str, str] = {}  # dir:skills/ -> 002h-claude-code-skills.md
     ext_triggers: dict[str, str] = {}  # ext:.py -> 200-python-core.md
@@ -421,20 +426,29 @@ def parse_load_triggers(
     kw_triggers: dict[str, str] = {}  # kw:test -> 206-python-pytest.md
 
     for rule in rules:
-        if not rule.load_trigger:
-            continue
+        # v3.3: typed entries live in Keywords. Fall back to legacy LoadTrigger
+        # for any rule that has not yet been migrated.
+        sources: list[str] = []
+        if rule.keywords:
+            sources.append(rule.keywords)
+        if rule.load_trigger:
+            sources.append(rule.load_trigger)
 
-        # Parse comma-separated triggers
-        triggers = [t.strip() for t in rule.load_trigger.split(",")]
-        for trigger in triggers:
-            if trigger.startswith("dir:"):
-                dir_triggers[trigger[4:]] = rule.filename
-            elif trigger.startswith("ext:"):
-                ext_triggers[trigger[4:]] = rule.filename
-            elif trigger.startswith("file:"):
-                file_triggers[trigger[5:]] = rule.filename
-            elif trigger.startswith("kw:"):
-                kw_triggers[trigger[3:]] = rule.filename
+        seen: set[str] = set()
+        for source in sources:
+            for raw in source.split(","):
+                trigger = raw.strip()
+                if not trigger or trigger in seen:
+                    continue
+                seen.add(trigger)
+                if trigger.startswith("dir:"):
+                    dir_triggers[trigger[4:]] = rule.filename
+                elif trigger.startswith("ext:"):
+                    ext_triggers[trigger[4:]] = rule.filename
+                elif trigger.startswith("file:"):
+                    file_triggers[trigger[5:]] = rule.filename
+                elif trigger.startswith("kw:"):
+                    kw_triggers[trigger[3:]] = rule.filename
 
     return dir_triggers, ext_triggers, file_triggers, kw_triggers
 

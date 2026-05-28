@@ -885,6 +885,55 @@ class TestParseLoadTriggersEdgeCases:
         assert file_t == {}
         assert kw_t == {}
 
+    @pytest.mark.unit
+    def test_typed_keywords_v33(self):
+        """v3.3: typed entries live in Keywords; LoadTrigger is unused."""
+        rules = [
+            index_module.RuleMetadata(
+                filename="200-python-core.md",
+                filepath=Path("200-python-core.md"),
+                keywords="ext:.py, ext:.pyi, file:pyproject.toml, kw:python, kw:uv",
+                depends="—",
+                scope="Python core",
+                load_trigger=None,
+            ),
+        ]
+
+        dir_t, ext_t, file_t, kw_t = index_module.parse_load_triggers(rules)
+
+        assert dir_t == {}
+        assert ext_t == {".py": "200-python-core.md", ".pyi": "200-python-core.md"}
+        assert file_t == {"pyproject.toml": "200-python-core.md"}
+        assert kw_t == {"python": "200-python-core.md", "uv": "200-python-core.md"}
+
+    @pytest.mark.unit
+    def test_typed_keywords_alphabetical_overwrite(self):
+        """Last-rule-wins on alphabetical scan: more specific rules override."""
+        rules = [
+            index_module.RuleMetadata(
+                filename="002i-rule-loadtrigger.md",
+                filepath=Path("002i-rule-loadtrigger.md"),
+                keywords="ext:.py, kw:loadtrigger",
+                depends="—",
+                scope="LoadTrigger guidelines",
+                load_trigger=None,
+            ),
+            index_module.RuleMetadata(
+                filename="200-python-core.md",
+                filepath=Path("200-python-core.md"),
+                keywords="ext:.py, kw:python",
+                depends="—",
+                scope="Python core",
+                load_trigger=None,
+            ),
+        ]
+
+        _, ext_t, _, _ = index_module.parse_load_triggers(rules)
+
+        # 200-python-core wins for .py because rules are processed in order
+        # and the later assignment overwrites the earlier one.
+        assert ext_t[".py"] == "200-python-core.md"
+
 
 # ============================================================================
 # generate_loading_strategy edge cases (lines 460, 469, 480, 484-485)

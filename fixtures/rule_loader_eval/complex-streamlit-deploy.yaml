@@ -1,0 +1,38 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: complex-streamlit-deploy
+description: # TODO
+variant: complex
+prompt: |
+  I'm preparing a streamlit dashboard for an internal stakeholder review. The
+  app entry point is dashboards/insights.py and depends on a small set of
+  helper modules under dashboards/util/. The deployment target is Snowflake
+  and we want this to run inside the warehouse runtime. Please walk me
+  through warehouse sizing, authentication, and the deploy command. Note:
+  this is for production, not a quick demo, so please err on the side of
+  conservative defaults.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/119-snowflake-warehouse-management.md  # suggested: kw: warehouse
+    - rules/101-snowflake-streamlit-core.md  # migrated from dependencies (v3.15)
+  forbidden: []
+  optional:
+    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
+      # missing: ext=.sql
+    - rules/101c-snowflake-streamlit-security.md  # auto-demoted: no trigger evidence
+      # missing: rule has no file-context triggers (ext:/file:/dir:)
+    - rules/101l-snowflake-streamlit-deployment.md  # auto-demoted: no trigger evidence
+      # missing: rule has no file-context triggers (ext:/file:/dir:)
+    - rules/109b-snowflake-app-deployment-core.md  # triggered by kw:deploy in streamlit deploy context
+    - rules/112-snowflake-snowcli.md  # triggered: kw:deploy command matches "the deploy command" in prompt
+trigger_evidence:
+  kw: [dashboard, streamlit, warehouse]   # suggested
+    # n-gram (no rule): "helper modules under dashboards"
+    # n-gram (no rule): "an internal stakeholder review"
+    # n-gram (no rule): "app entry point is"
+    # n-gram (no rule): "deployment target is Snowflake"
+    # n-gram (no rule): "entry point is dashboards"
+  ext: []
+  file: []
+  dir: []

@@ -1,0 +1,23 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: simple-skill-dir
+description: # TODO
+variant: simple
+prompt: |
+  I want to author a new skill in skills/ for my repo.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/002h-claude-code-skills.md  # suggested: kw: skill; dir: skills/
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw: [skill]   # suggested
+    # n-gram (no rule): "author a new skill"
+    # n-gram (no rule): "new skill in skills"
+    # n-gram (no rule): "skill in skills"
+    # n-gram (no rule): "a new skill in"
+    # n-gram (no rule): "I want to author"
+  ext: []
+  file: []
+  dir: [skills/]   # suggested

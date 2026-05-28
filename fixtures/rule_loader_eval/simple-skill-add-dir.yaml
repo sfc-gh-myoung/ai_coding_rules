@@ -1,0 +1,23 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: simple-skill-add-dir
+description: # TODO
+variant: simple
+prompt: |
+  How do I add a skill manifest under skills/ that ships with our deployment bundle?
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/002h-claude-code-skills.md  # suggested: kw: skill; dir: skills/
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw: [skill]   # suggested
+    # n-gram (no rule): "skill manifest under skills"
+    # n-gram (no rule): "a skill manifest under"
+    # n-gram (no rule): "manifest under skills"
+    # n-gram (no rule): "skill manifest under"
+    # n-gram (no rule): "add a skill manifest"
+  ext: []
+  file: []
+  dir: [skills/]   # suggested

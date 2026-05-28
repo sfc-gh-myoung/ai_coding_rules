@@ -1,0 +1,29 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: complex-snowcli-config
+description: # TODO
+variant: complex
+prompt: |
+  Our snowflake.yml has gotten unwieldy as more teams contribute services.
+  I want a clean review of every block in snowflake.yml with concrete
+  suggestions for naming conventions, secret handling, and which fields
+  should live in environment specific overlays.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/112-snowflake-snowcli.md  # suggested: file: snowflake.yml
+  forbidden: []
+  optional:
+    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
+      # missing: ext=.sql
+    - rules/202-markup-config-validation.md  # triggered: ext:.yml matches snowflake.yml; loaded inconsistently
+trigger_evidence:
+  kw: []
+    # n-gram (no rule): "more teams contribute services"
+    # n-gram (no rule): "as more teams contribute"
+    # n-gram (no rule): "clean review of every"
+    # n-gram (no rule): "every block in snowflake"
+    # n-gram (no rule): "gotten unwieldy as more"
+  ext: []
+  file: [snowflake.yml]   # suggested
+  dir: []

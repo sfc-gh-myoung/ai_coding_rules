@@ -1,0 +1,25 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: simple-rules-dir
+description: # TODO
+variant: simple
+prompt: |
+  Update the metadata block of an existing entry in rules/ to bump RuleVersion.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/002-rule-governance.md  # migrated from dependencies (v3.15)
+  forbidden: []
+  optional:
+    - rules/002b-rule-update.md  # auto-demoted: no trigger evidence
+      # missing: rule has no file-context triggers (ext:/file:/dir:)
+trigger_evidence:
+  kw: []
+    # n-gram (no rule): "existing entry in rules"
+    # n-gram (no rule): "an existing entry in"
+    # n-gram (no rule): "block of an existing"
+    # n-gram (no rule): "metadata block of an"
+    # n-gram (no rule): "of an existing entry"
+  ext: []
+  file: []
+  dir: [rules/]   # suggested

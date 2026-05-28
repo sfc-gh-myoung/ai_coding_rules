@@ -1,0 +1,27 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: complex-skill-pipeline-dir
+description: # TODO
+variant: complex
+prompt: |
+  Our team uses several skills today and the directory layout under
+  skills/ is becoming hard to navigate. I want to add a per skill manifest
+  with description, triggers, and dependencies. Walk me through the
+  conventions and how the loader picks up updates from skills/.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/002h-claude-code-skills.md  # suggested: kw: skill; dir: skills/
+  forbidden: []
+  optional:
+    - rules/002l-skill-advanced-patterns.md  # triggered by kw:skill in composition context
+trigger_evidence:
+  kw: [skill]   # suggested
+    # n-gram (no rule): "team uses several skills"
+    # n-gram (no rule): "uses several skills today"
+    # n-gram (no rule): "becoming hard to navigate"
+    # n-gram (no rule): "loader picks up updates"
+    # n-gram (no rule): "Our team uses several"
+  ext: []
+  file: []
+  dir: [skills/]   # suggested

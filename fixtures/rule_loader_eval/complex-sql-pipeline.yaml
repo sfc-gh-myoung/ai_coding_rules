@@ -1,0 +1,32 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: complex-sql-pipeline
+description: Refactor a production nightly SQL pipeline — CTEs, bottleneck, promoting to production
+variant: complex
+prompt: |
+  We have a production data pipeline that lands raw events into a staging
+  schema and we want to refactor the transformation logic. The relevant entry
+  point is pipelines/transform.sql which executes nightly and currently has
+  a sql JOIN that we suspect is the bottleneck. Please walk me through best
+  practices for refactoring the file, including use of CTEs and how to
+  validate the change before promoting to production. Note: do not touch any
+  Python ETL scripts as those are owned by another team.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/102a-snowflake-sql-automation.md  # suggested: kw: data pipeline, promoting to production, refactor, transformation logic
+    - rules/103-snowflake-performance-tuning.md  # suggested: kw: bottleneck
+    - rules/102-snowflake-sql-core.md  # direct: ext:.sql (transforms/clean.sql implied by pipelines/transform.sql context)
+  forbidden: []
+  optional:
+    - rules/100-snowflake-core.md  # dep of 102 — enforced by global depends gate (R8)
+trigger_evidence:
+  kw: [bottleneck, data pipeline, promoting to production, refactor, sql, transformation logic]   # suggested
+    # n-gram (no rule): "sql which executes nightly"
+    # n-gram (no rule): "a production data pipeline"
+    # n-gram (no rule): "before promoting to production"
+    # n-gram (no rule): "change before promoting to"
+    # n-gram (no rule): "data pipeline that lands"
+  ext: [.sql]   # suggested
+  file: []
+  dir: []

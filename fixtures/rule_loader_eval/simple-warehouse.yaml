@@ -1,0 +1,25 @@
+schema_version: 3
+updated: 2026-05-17T16:26:52-04:00
+id: simple-warehouse
+description: # TODO
+variant: simple
+prompt: |
+  Create a small warehouse for our analytics team.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/119-snowflake-warehouse-management.md  # suggested: kw: warehouse
+  forbidden: []
+  optional:
+    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
+      # missing: ext=.sql
+trigger_evidence:
+  kw: [warehouse]   # suggested
+    # n-gram (no rule): "a small warehouse for"
+    # n-gram (no rule): "Create a small warehouse"
+    # n-gram (no rule): "for our analytics team"
+    # n-gram (no rule): "small warehouse for our"
+    # n-gram (no rule): "warehouse for our analytics"
+  ext: []
+  file: []
+  dir: []

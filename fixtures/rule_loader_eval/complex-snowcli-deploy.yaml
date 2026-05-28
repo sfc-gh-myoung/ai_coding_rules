@@ -1,0 +1,33 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: complex-snowcli-deploy
+description: # TODO
+variant: complex
+prompt: |
+  We're moving from manual deploy steps to a snowcli driven flow. Our
+  snowflake.yml currently lists three application objects but we now need to
+  split that into multi environment configurations and add a deploy step to
+  CI. Please review snowflake.yml, suggest the right partitioning, and walk
+  me through how to validate before promoting to prod.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/112-snowflake-snowcli.md  # suggested: kw: snowcli; file: snowflake.yml
+    - rules/102a-snowflake-sql-automation.md  # kw: promoting to prod, multi environment
+  forbidden: []
+  optional:
+    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
+      # missing: ext=.sql
+    - rules/102d-snowflake-sql-cicd.md  # demoted: kw entries don't substring-match prompt phrasing
+    - rules/109b-snowflake-app-deployment-core.md  # dep of 109i; loaded transitively when 109i fires
+    - rules/109i-snowflake-app-deployment-advanced.md  # Low-tier; kw:per environment + kw:promoting to prod
+trigger_evidence:
+  kw: [multi environment, promoting to prod, snowcli]   # suggested
+    # n-gram (no rule): "currently lists three application"
+    # n-gram (no rule): "lists three application objects"
+    # n-gram (no rule): "three application objects but"
+    # n-gram (no rule): "yml currently lists three"
+    # n-gram (no rule): "a snowcli driven flow"
+  ext: []
+  file: [snowflake.yml]   # suggested
+  dir: []

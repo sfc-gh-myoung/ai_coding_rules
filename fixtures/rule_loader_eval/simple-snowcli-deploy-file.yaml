@@ -1,0 +1,25 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: simple-snowcli-deploy-file
+description: # TODO
+variant: simple
+prompt: |
+  Validate the entrypoint declared in snowflake.yml before pushing.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/112-snowflake-snowcli.md  # suggested: file: snowflake.yml
+  forbidden: []
+  optional:
+    - rules/100-snowflake-core.md  # auto-demoted (was dep): no Keywords trigger evidence
+      # missing: ext=.sql
+trigger_evidence:
+  kw: []
+    # n-gram (no rule): "entrypoint declared in snowflake"
+    # n-gram (no rule): "Validate the entrypoint declared"
+    # n-gram (no rule): "yml before pushing"
+    # n-gram (no rule): "the entrypoint declared in"
+    # n-gram (no rule): "declared in snowflake"
+  ext: []
+  file: [snowflake.yml]   # suggested
+  dir: []

@@ -1,0 +1,28 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: simple-cost-governance
+description: # TODO
+variant: simple
+prompt: |
+  Help me with Snowflake cost optimization for a noisy finance budget.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/105-snowflake-cost-governance.md  # suggested: kw: budget, cost
+  forbidden: []
+  optional:
+    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
+      # missing: ext=.sql
+    - rules/103-snowflake-performance-tuning.md  # demoted: cost optimization is governance, not perf-tuning
+    - rules/119-snowflake-warehouse-management.md  # auto-demoted: no trigger evidence
+      # missing: kw=warehouse, compute
+trigger_evidence:
+  kw: [budget, cost, cost optimization, optimization]   # suggested
+    # n-gram (no rule): "a noisy finance budget"
+    # n-gram (no rule): "Snowflake cost optimization for"
+    # n-gram (no rule): "with Snowflake cost optimization"
+    # n-gram (no rule): "noisy finance budget"
+    # n-gram (no rule): "Snowflake cost optimization"
+  ext: []
+  file: []
+  dir: []

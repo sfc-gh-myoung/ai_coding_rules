@@ -1,0 +1,30 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: complex-snowcli-app-spec
+description: Wire a native app with stored procedures and Streamlit into snowflake.yml
+variant: complex
+prompt: |
+  I'm wiring a new native app entry into snowflake.yml. The native app has
+  a setup script, a streamlit page, and a few stored procedures. Walk me
+  through the right structure for snowflake.yml, including how versions
+  and patches are supposed to be expressed.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/102b-snowflake-sql-procedures.md  # suggested: kw: stored procedures
+    - rules/112-snowflake-snowcli.md  # suggested: file: snowflake.yml
+  forbidden: []
+  optional:
+    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
+      # missing: ext=.sql
+    - rules/101-snowflake-streamlit-core.md  # auto-demoted: secondary streamlit reference in native-app context
+trigger_evidence:
+  kw: [stored procedures, streamlit]   # suggested
+    # n-gram (no rule): "a few stored procedures"
+    # n-gram (no rule): "app entry into snowflake"
+    # n-gram (no rule): "native app entry into"
+    # n-gram (no rule): "new native app entry"
+    # n-gram (no rule): "right structure for snowflake"
+  ext: []
+  file: [snowflake.yml]   # suggested
+  dir: []

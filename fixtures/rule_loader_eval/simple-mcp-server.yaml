@@ -1,0 +1,28 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: simple-mcp-server
+description: # TODO
+variant: simple
+prompt: |
+  Configure a mcp server endpoint for the local agent.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/117-snowflake-mcp-server.md  # suggested: kw: mcp, mcp server
+  forbidden: []
+  optional:
+    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
+      # missing: ext=.sql
+    - rules/107-snowflake-security-governance.md  # over-read: kw:server/endpoint in security context
+    - rules/112-snowflake-snowcli.md  # over-read: kw:configure in snowcli context
+    - rules/126-snowflake-cortex-code-agent-sdk.md  # triggered: kw:mcp server in 126 Keywords; agent SDK relevant for MCP endpoint config
+trigger_evidence:
+  kw: [mcp, mcp server]   # suggested
+    # n-gram (no rule): "Configure a mcp server endpoint"
+    # n-gram (no rule): "a mcp server endpoint for"
+    # n-gram (no rule): "endpoint for the local"
+    # n-gram (no rule): "for the local agent"
+    # n-gram (no rule): "mcp server endpoint for the"
+  ext: []
+  file: []
+  dir: []

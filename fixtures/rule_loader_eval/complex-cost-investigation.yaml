@@ -1,0 +1,32 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: complex-cost-investigation
+description: # TODO
+variant: complex
+prompt: |
+  Leadership flagged a finance budget overage last quarter. Walk me through a
+  cost optimization investigation: identify the noisiest warehouse offenders,
+  look for slow queries, and suggest a remediation plan with concrete budget
+  guardrails. Note: we want sustainable performance, not a one-off fix.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/103-snowflake-performance-tuning.md  # suggested: kw: cost optimization, optimization, performance, slow
+    - rules/105-snowflake-cost-governance.md  # suggested: kw: budget, cost
+  forbidden: []
+  optional:
+    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
+      # missing: ext=.sql
+    - rules/119-snowflake-warehouse-management.md  # demoted: warehouse mention is incidental ("noisiest warehouse offenders"); not a deep warehouse-mgmt ask
+    - rules/120-snowflake-cost-optimization.md  # auto-demoted: no trigger evidence
+      # missing: rule has no file-context triggers (ext:/file:/dir:)
+trigger_evidence:
+  kw: [budget, cost, cost optimization, optimization, performance, slow, warehouse]   # suggested
+    # n-gram (no rule): "budget overage last quarter"
+    # n-gram (no rule): "finance budget overage last"
+    # n-gram (no rule): "a finance budget overage"
+    # n-gram (no rule): "flagged a finance budget"
+    # n-gram (no rule): "identify the noisiest warehouse"
+  ext: []
+  file: []
+  dir: []

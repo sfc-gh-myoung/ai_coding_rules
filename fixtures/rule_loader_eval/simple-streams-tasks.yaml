@@ -1,0 +1,25 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: simple-streams-tasks
+description: # TODO
+variant: simple
+prompt: |
+  Set up a stream and task to capture cdc events from the orders table.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/104-snowflake-streams-tasks.md  # suggested: kw: cdc, stream, task
+  forbidden: []
+  optional:
+    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
+      # missing: ext=.sql
+trigger_evidence:
+  kw: [cdc, stream, task]   # suggested
+    # n-gram (no rule): "capture cdc events from"
+    # n-gram (no rule): "task to capture cdc"
+    # n-gram (no rule): "to capture cdc events"
+    # n-gram (no rule): "capture cdc events"
+    # n-gram (no rule): "a stream and task"
+  ext: []
+  file: []
+  dir: []

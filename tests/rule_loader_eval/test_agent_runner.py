@@ -1,0 +1,303 @@
+"""Tests for the agent runner's section parsers.
+
+The ``parse_rules_loaded_section`` and ``parse_reads_performed_section``
+functions extract ``rules/<name>.md`` paths from the agent's final
+assistant text. Edge cases include:
+
+- Absolute paths that include the project directory name
+  ``ai_coding_rules`` must not produce ``rules/rules/<name>.md``.
+- Markdown link form ``[rules/X.md](rules/X.md)`` should dedupe.
+- Text outside the named section is ignored.
+- Citations of form ``<path> (<reason>) — N lines`` are extracted via
+  ``extract_citations``.
+"""
+
+from __future__ import annotations
+
+import pytest
+
+from ai_rules.rule_loader_eval.agent_runner import (
+    Citation,
+    extract_citations,
+    parse_bootstrap_line,
+    parse_reads_performed_section,
+    parse_rules_loaded_section,
+)
+
+
+@pytest.mark.unit
+def test_simple_list_extracted() -> None:
+    """A bullet list of rule paths under the bold marker is extracted."""
+    text = """
+**Rules Loaded**
+
+- rules/999-test-core.md
+- rules/100-snowflake-core.md
+"""
+    assert parse_rules_loaded_section(text) == (
+        "rules/100-snowflake-core.md",
+        "rules/999-test-core.md",
+    )
+
+
+@pytest.mark.unit
+def test_absolute_path_does_not_double_rules() -> None:
+    """Absolute paths inside ai_coding_rules/ must not produce rules/rules/...
+
+    Regression for the bug where an unanchored regex matched the ``rules``
+    substring inside ``ai_coding_rules`` and greedily consumed across
+    a path separator into ``rules/rules/999-test-core.md``.
+    """
+    text = """
+**Rules Loaded**
+
+- /Users/me/Development/ai_coding_rules/rules/999-test-core.md
+- /Users/me/Development/ai_coding_rules/rules/116-snowflake-cortex-search.md
+"""
+    out = parse_rules_loaded_section(text)
+    assert "rules/999-test-core.md" in out
+    assert "rules/116-snowflake-cortex-search.md" in out
+    for rule in out:
+        assert not rule.startswith("rules/rules/"), rule
+
+
+@pytest.mark.unit
+def test_markdown_link_form_dedupes() -> None:
+    """A markdown link to a rule should produce one entry, not two."""
+    text = """
+**Rules Loaded**
+
+- [rules/100-snowflake-core.md](rules/100-snowflake-core.md)
+"""
+    assert parse_rules_loaded_section(text) == ("rules/100-snowflake-core.md",)
+
+
+@pytest.mark.unit
+def test_text_outside_section_ignored() -> None:
+    """Rule paths outside a Rules Loaded heading are not picked up."""
+    text = """
+Some prelude that mentions rules/100-snowflake-core.md inline.
+
+## Other Heading
+
+- rules/200-python-core.md
+"""
+    assert parse_rules_loaded_section(text) == ()
+
+
+@pytest.mark.unit
+def test_section_terminates_at_task_switch() -> None:
+    """Content after Task Switch: is not part of the section (new format)."""
+    text = """
+**Bootstrap:** rule-loader [scanned: (python) — 1 rules loaded, 0 failed.
+**Rules Loaded**
+- rules/999-test-core.md
+
+Task Switch: FIRST
+
+Some response content mentioning rules/200-python-core.md.
+"""
+    assert parse_rules_loaded_section(text) == ("rules/999-test-core.md",)
+
+
+@pytest.mark.unit
+def test_section_terminates_at_next_heading_legacy() -> None:
+    """Legacy ## Rules Loaded heading: content after next heading not captured (backward compat)."""
+    text = """
+## Rules Loaded
+
+- rules/999-test-core.md
+
+## Notes
+
+- rules/200-python-core.md should not be captured.
+"""
+    assert parse_rules_loaded_section(text) == ("rules/999-test-core.md",)
+
+
+@pytest.mark.unit
+def test_empty_input() -> None:
+    """Empty text yields an empty tuple."""
+    assert parse_rules_loaded_section("") == ()
+    assert parse_rules_loaded_section(None) == ()  # type: ignore[arg-type]
+
+
+@pytest.mark.unit
+def test_parse_reads_performed_section() -> None:
+    """``## Reads Performed`` parser extracts paths same as Rules Loaded.
+
+    (Legacy backward-compat — ``## Reads Performed`` retired in v3.8.0.)
+    """
+    text = """
+## Reads Performed
+- read_file("rules/999-test-core.md") -> RuleVersion v3.7.0, LastUpdated 2026-05-14, lines 470
+- grep rules/*.md (Keywords discovery step)
+- read_file("rules/100-snowflake-core.md") -> RuleVersion v1.2.3, LastUpdated 2026-04-01, lines 200
+
+**Rules Loaded**
+- rules/999-test-core.md (foundation) — 470 lines
+"""
+    out = parse_reads_performed_section(text)
+    assert "rules/999-test-core.md" in out
+    assert "rules/100-snowflake-core.md" in out
+
+
+@pytest.mark.unit
+def test_extract_citations_basic() -> None:
+    """Line-count citations are extracted."""
+    text = """
+**Rules Loaded**
+- rules/999-test-core.md (foundation) — 470 lines
+- rules/100-snowflake-core.md (keyword: Snowflake) — 200 lines
+"""
+    out = extract_citations(text, "Rules Loaded")
+    assert out["rules/999-test-core.md"] == Citation(line_count=470)
+    assert out["rules/100-snowflake-core.md"] == Citation(line_count=200)
+
+
+@pytest.mark.unit
+def test_extract_citations_failed_marker() -> None:
+    """``FAILED: not found`` lines yield Citation(failed=True)."""
+    text = """
+## Reads Performed
+- read_file("rules/999-test-core.md") -> RuleVersion v3.7.0, LastUpdated 2026-05-14, lines 470
+- read_file("rules/200-python-core.md") -> FAILED: not found
+"""
+    out = extract_citations(text, "Reads Performed")
+    assert out["rules/200-python-core.md"].failed is True
+    assert out["rules/999-test-core.md"].failed is False
+
+
+@pytest.mark.unit
+def test_extract_citations_reads_performed_form() -> None:
+    """Reads Performed line form ``lines N`` works too.
+
+    (Legacy backward-compat — ``## Reads Performed`` retired in v3.8.0.)
+    """
+    text = """
+## Reads Performed
+- read_file("rules/999-test-core.md") -> lines 470
+"""
+    out = extract_citations(text, "Reads Performed")
+    c = out["rules/999-test-core.md"]
+    assert c.line_count == 470
+
+
+@pytest.mark.unit
+def test_extract_citations_failed_marker_rules_loaded() -> None:
+    """``FAILED: not found`` lines in ``## Rules Loaded`` yield Citation(failed=True)."""
+    text = (
+        "**Bootstrap:** rule-loader [scanned: (sql) — 1 rules loaded, 1 failed.\n\n"
+        "## Rules Loaded\n"
+        "- rules/999-test-core.md (foundation) — 601 lines\n"
+        "- rules/200-python-core.md — FAILED: not found\n"
+    )
+    out = extract_citations(text, "Rules Loaded")
+    assert out["rules/200-python-core.md"].failed is True
+    assert out["rules/999-test-core.md"].failed is False
+
+
+@pytest.mark.unit
+def test_format_timing_lines_renders_event_table() -> None:
+    """``format_timing_lines`` renders an ``AgentRun`` event list deterministically."""
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun, TurnEvent
+    from ai_rules.rule_loader_eval.diagnostics import format_timing_lines
+
+    run = AgentRun(
+        fixture_id="candidate",
+        loaded=(),
+        loaded_via_reads=(),
+        loaded_via_reads_performed=(),
+        loaded_via_section=(),
+        turns=3,
+        duration_ms=12_345,
+        model="auto",
+        events=(
+            TurnEvent(t_ms=120, kind="tool_use", detail="Skill skill_name=rule-loader"),
+            TurnEvent(t_ms=2_400, kind="tool_use", detail="Read file_path=rules/999-test-core.md"),
+            TurnEvent(
+                t_ms=11_900,
+                kind="assistant_text",
+                detail="len=512 head='**Bootstrap:** rule-loader [scanned: (python)'",
+            ),
+            TurnEvent(t_ms=12_345, kind="result", detail="stop_reason=end_turn turns=3"),
+        ),
+    )
+    lines = format_timing_lines(run, effort="low", model="auto")
+    assert lines[0] == "--- diagnostics timing ---"
+    assert lines[1] == "total: 12_345 ms across 3 turns (model=auto effort=low)"
+    assert lines[2].lstrip().startswith("0 ms")
+    assert "[start]" in lines[2]
+    assert "Skill skill_name=rule-loader" in lines[3]
+    assert "Read file_path=rules/999-test-core.md" in lines[4]
+    assert "assistant_text" in lines[5]
+    assert "result" in lines[6]
+    assert "stop_reason=end_turn" in lines[6]
+    assert lines[-1] == "--- end diagnostics timing ---"
+
+
+# ---------------------------------------------------------------------------
+# v3.8 contract compatibility (Phase 0)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_parse_bootstrap_line_counts_loaded_and_failed() -> None:
+    """``parse_bootstrap_line`` extracts n_loaded and n_failed from a v3.8 line."""
+    text = (
+        "**Bootstrap:** rule-loader [scanned: (plan, batch, python) "
+        "— 3 rules loaded, 0 failed.\n\n**Rules Loaded**\n"
+    )
+    result = parse_bootstrap_line(text)
+    assert result["found"] is True
+    assert result["n_loaded"] == 3
+    assert result["n_failed"] == 0
+
+
+@pytest.mark.unit
+def test_parse_bootstrap_line_with_failures() -> None:
+    """``parse_bootstrap_line`` captures failure count correctly."""
+    text = "**Bootstrap:** rule-loader [scanned: (sql) — 2 rules loaded, 1 failed.\n"
+    result = parse_bootstrap_line(text)
+    assert result["found"] is True
+    assert result["n_loaded"] == 2
+    assert result["n_failed"] == 1
+
+
+@pytest.mark.unit
+def test_parse_bootstrap_line_absent() -> None:
+    """When no ``**Bootstrap:**`` line is present, ``found`` is False."""
+    text = "**Rules Loaded**\n- rules/999-test-core.md\n"
+    result = parse_bootstrap_line(text)
+    assert result["found"] is False
+    assert result["n_loaded"] == 0
+    assert result["n_failed"] == 0
+
+
+@pytest.mark.unit
+def test_rules_loaded_remains_authoritative_without_reads_performed() -> None:
+    """v3.9 ## Rules Loaded heading format yields correct loaded set."""
+    text = (
+        "**Bootstrap:** rule-loader [scanned: (python, test) — 2 rules loaded, 0 failed.\n\n"
+        "## Rules Loaded\n"
+        "- rules/999-test-core.md (foundation) — 601 lines\n"
+        "- rules/200-python-core.md (keyword: python) — 454 lines\n\n"
+        "Task Switch: FIRST\n"
+    )
+    loaded = parse_rules_loaded_section(text)
+    assert loaded == ("rules/200-python-core.md", "rules/999-test-core.md")
+    reads_performed = parse_reads_performed_section(text)
+    assert reads_performed == ()
+
+
+@pytest.mark.unit
+def test_citation_drift_uses_rules_loaded_citations() -> None:
+    """Citations are extracted from ``**Rules Loaded**`` in v3.9-patch output."""
+    text = (
+        "**Bootstrap:** rule-loader [scanned: (python) — 1 rules loaded, 0 failed.\n\n"
+        "**Rules Loaded**\n"
+        "- rules/999-test-core.md (foundation) — 601 lines\n"
+    )
+    citations = extract_citations(text, "Rules Loaded")
+    c = citations["rules/999-test-core.md"]
+    assert c.line_count == 601

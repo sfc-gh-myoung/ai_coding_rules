@@ -4,13 +4,13 @@
 # Two modes:
 #
 # 1) Runner mode (RECOMMENDED) — pass args; they are forwarded to Python:
-#      bash skills/skill-timing/scripts/find_python.sh script.py --flag value
+#      bash skills/skill-timer/scripts/find_python.sh script.py --flag value
 #
 #    This works in both bash and zsh and correctly handles the
 #    multi-word `uv run python` case.
 #
 # 2) Print mode (legacy) — no args; prints an eval-safe command string:
-#      CMD=$(bash skills/skill-timing/scripts/find_python.sh)
+#      CMD=$(bash skills/skill-timer/scripts/find_python.sh)
 #      eval "$CMD script.py --flag value"
 #
 #    NOTE: Do NOT use `$CMD script.py` directly in zsh — zsh does not

@@ -22,10 +22,10 @@ Run this command and capture the `TIMING_RUN_ID` from output:
 
 ```bash
 # Discover Python interpreter (once per session):
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
 
 # Start timing:
-$PYTHON skills/skill-timing/scripts/skill_timing.py start \
+$PYTHON skills/skill-timer/scripts/skill_timer.py start \
     --skill '{{skill_name}}' \
     --target '{{target_file}}' \
     --model '{{model}}' \

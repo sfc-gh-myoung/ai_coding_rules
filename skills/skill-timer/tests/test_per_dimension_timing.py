@@ -13,6 +13,7 @@ Phase 1 Task 1.5:
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -22,7 +23,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-SCRIPT = REPO_ROOT / "skills" / "skill-timing" / "scripts" / "skill_timing.py"
+SCRIPT = REPO_ROOT / "skills" / "skill-timer" / "scripts" / "skill_timer.py"
 
 DIMENSIONS = [
     "actionability",
@@ -35,13 +36,18 @@ DIMENSIONS = [
 
 
 def run(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
-    """Invoke the skill_timing.py CLI with given args."""
+    """Invoke the skill_timer.py CLI with given args."""
+    # Tests use sub-second synthetic durations; bypass v2.0.0 distribution
+    # validators (floor/coverage/uniformity/post-review) that would otherwise
+    # escalate status to instrumentation_failed.
+    env = {**os.environ, "TIMING_TEST_MODE": "1"}
     return subprocess.run(
         [sys.executable, str(SCRIPT), *args],
         cwd=cwd,
         capture_output=True,
         text=True,
         check=False,
+        env=env,
     )
 
 
@@ -95,7 +101,7 @@ def end_run(
 
 def load_completed(tmp_path: Path, run_id: str) -> dict:
     """Load and return the completed timing JSON for a run."""
-    path = tmp_path / "reviews" / ".timing-data" / f"skill-timing-{run_id}-complete.json"
+    path = tmp_path / "reviews" / ".timing-data" / f"skill-timer-{run_id}-complete.json"
     assert path.exists(), f"completed file missing: {path}"
     return json.loads(path.read_text())
 

@@ -18,8 +18,8 @@ Integrate skill timing into automated CI/CD pipelines with machine-readable outp
 ### JSON Format (for parsing)
 
 ```bash
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
-$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
+$PYTHON skills/skill-timer/scripts/skill_timer.py end \
     --run-id a1b2c3d4e5f67890 \
     --output-file output.md \
     --skill rule-reviewer \
@@ -46,8 +46,8 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py end \
 ### CI Mode (JSON + exit codes)
 
 ```bash
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
-$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
+$PYTHON skills/skill-timer/scripts/skill_timer.py end \
     --run-id a1b2c3d4e5f67890 \
     --output-file output.md \
     --skill rule-reviewer \
@@ -59,7 +59,7 @@ echo "Exit code: $?"
 ### CSV Format (for analysis)
 
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py analyze \
+$PYTHON skills/skill-timer/scripts/skill_timer.py analyze \
     --skill rule-reviewer \
     --days 7 \
     --format csv
@@ -94,7 +94,7 @@ jobs:
         id: timing
         run: |
           # Start timing
-          TIMING_OUTPUT=$(python skills/skill-timing/scripts/skill_timing.py start \
+          TIMING_OUTPUT=$(python skills/skill-timer/scripts/skill_timer.py start \
             --skill my-skill \
             --target input.md \
             --model claude-sonnet-45)
@@ -107,7 +107,7 @@ jobs:
           touch output.md  # Placeholder
           
           # End timing with CI mode
-          python skills/skill-timing/scripts/skill_timing.py end \
+          python skills/skill-timer/scripts/skill_timer.py end \
             --run-id "$RUN_ID" \
             --output-file output.md \
             --skill my-skill \
@@ -153,7 +153,7 @@ timing-check:
   script:
     - |
       # Start timing
-      TIMING_OUTPUT=$(python skills/skill-timing/scripts/skill_timing.py start \
+      TIMING_OUTPUT=$(python skills/skill-timer/scripts/skill_timer.py start \
         --skill my-skill \
         --target input.md \
         --model claude-sonnet-45)
@@ -163,7 +163,7 @@ timing-check:
       touch output.md
       
       # End timing
-      python skills/skill-timing/scripts/skill_timing.py end \
+      python skills/skill-timer/scripts/skill_timer.py end \
         --run-id "$RUN_ID" \
         --output-file output.md \
         --skill my-skill \
@@ -197,9 +197,9 @@ run_with_timing() {
     
     # Start timing
     local timing_output
-    timing_output=$(bash skills/skill-timing/scripts/find_python.sh)
+    timing_output=$(bash skills/skill-timer/scripts/find_python.sh)
     PYTHON=$timing_output
-    timing_output=$($PYTHON skills/skill-timing/scripts/skill_timing.py start \
+    timing_output=$($PYTHON skills/skill-timer/scripts/skill_timer.py start \
         --skill "$skill" \
         --target "$target" \
         --model "$model")
@@ -211,7 +211,7 @@ run_with_timing() {
     # ...
     
     # End timing with JSON output
-    $PYTHON skills/skill-timing/scripts/skill_timing.py end \
+    $PYTHON skills/skill-timer/scripts/skill_timer.py end \
         --run-id "$run_id" \
         --output-file "$output" \
         --skill "$skill" \
@@ -239,12 +239,12 @@ For reporting across multiple runs:
 
 ```bash
 # Aggregate from review files
-$PYTHON skills/skill-timing/scripts/skill_timing.py aggregate \
+$PYTHON skills/skill-timer/scripts/skill_timer.py aggregate \
     reviews/*.md \
     --format json > aggregate.json
 
 # Or as CSV for spreadsheet import
-$PYTHON skills/skill-timing/scripts/skill_timing.py aggregate \
+$PYTHON skills/skill-timer/scripts/skill_timer.py aggregate \
     reviews/*.md \
     --format csv > aggregate.csv
 ```

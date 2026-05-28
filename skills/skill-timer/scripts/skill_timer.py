@@ -5,12 +5,12 @@ Provides timing instrumentation for Claude Code skills.
 Uses only standard library modules for maximum portability.
 
 Usage:
-    python skill_timing.py start --skill NAME --target FILE --model MODEL
-    python skill_timing.py checkpoint --run-id ID --name NAME
-    python skill_timing.py end --run-id ID --output-file FILE --skill NAME [--format human|json|markdown|quiet]
-    python skill_timing.py analyze --skill NAME --days 30 [--format human|json|csv]
-    python skill_timing.py baseline set --skill NAME --mode MODE --model MODEL
-    python skill_timing.py baseline compare --run-id ID
+    python skill_timer.py start --skill NAME --target FILE --model MODEL
+    python skill_timer.py checkpoint --run-id ID --name NAME
+    python skill_timer.py end --run-id ID --output-file FILE --skill NAME [--format human|json|markdown|quiet]
+    python skill_timer.py analyze --skill NAME --days 30 [--format human|json|csv]
+    python skill_timer.py baseline set --skill NAME --mode MODE --model MODEL
+    python skill_timer.py baseline compare --run-id ID
 
 Output Formats:
     human    - Human-readable terminal output (default)
@@ -78,15 +78,119 @@ COST_PER_1M_TOKENS = {
 TTL_DAYS = 7
 REGISTRY_STALE_HOURS = 24
 
-VERSION = "1.5.0"
+VERSION = "2.0.0-rc1"
 
 EXIT_SUCCESS = 0
 EXIT_ERROR = 1
 EXIT_SHORTCUT_DETECTED = 2
 EXIT_ABOVE_BASELINE = 3
+EXIT_INSTRUMENTATION_FAILED = 4
 
 PRICING_LAST_UPDATED = "2026-04-05"
 PRICING_REVIEW_INTERVAL_DAYS = 90
+
+# ============================================================================
+# v2.0.0 Mode + Status enums + threshold/expected-dimension config
+# ============================================================================
+
+# Mode enum (full 10-value set introduced in v2.0.0).
+# Each entry: counts_toward_total, allows_negative_duration, requires_positive_duration
+# Modes that count toward total: their duration_seconds is summed into per-dimension total.
+VALID_MODES: dict[str, dict[str, bool]] = {
+    "checkpoint": {"counts": True, "neg_ok": False, "pos_required": True},
+    "self-report": {"counts": True, "neg_ok": False, "pos_required": True},
+    "self-report-flagged": {"counts": True, "neg_ok": False, "pos_required": True},
+    "coordinator": {"counts": True, "neg_ok": False, "pos_required": True},
+    "inline": {"counts": True, "neg_ok": False, "pos_required": True},
+    "wrap": {"counts": True, "neg_ok": False, "pos_required": True},
+    "failed": {"counts": False, "neg_ok": True, "pos_required": False},
+    "validation-failed": {"counts": False, "neg_ok": True, "pos_required": False},
+    "unavailable": {"counts": False, "neg_ok": True, "pos_required": False},
+    "not-requested": {"counts": False, "neg_ok": True, "pos_required": False},
+}
+
+# Per-skill expected dimensions (warns if missing). Configurable via .timing-thresholds.json.
+EXPECTED_DIMENSIONS: dict[str, list[str]] = {
+    "plan-reviewer": [
+        "executability",
+        "completeness",
+        "success_criteria",
+        "scope",
+        "dependencies",
+        "decomposition",
+        "context",
+        "risk_awareness",
+    ],
+    "rule-reviewer": [
+        "actionability",
+        "rule_size",
+        "parsability",
+        "completeness",
+        "consistency",
+        "cross_agent",
+    ],
+    "doc-reviewer": [
+        "accuracy",
+        "clarity",
+        "structure",
+        "completeness",
+        "consistency",
+        "currency",
+    ],
+}
+
+# Distribution-validator thresholds. Configurable via reviews/.timing-thresholds.json
+# (loaded lazily in load_thresholds_config()).
+DEFAULT_THRESHOLDS: dict[str, Any] = {
+    "min_dim_seconds": {
+        "plan-reviewer": 5.0,
+        "rule-reviewer": 10.0,
+        "doc-reviewer": 8.0,
+        "_default": 5.0,
+    },
+    "uniformity_tolerance_pct": 0.05,  # ±5% across all dims triggers suspicion
+    "uniformity_max_mean_seconds": 5.0,  # only triggers when mean dim < 5s
+    "coverage_low_band": (0.10, 0.30),
+    "coverage_severe_threshold": 0.10,
+    "coverage_overrun_threshold": 1.20,
+    "dim_total_short_seconds": 5.0,
+    "dim_total_short_run_seconds": 60.0,
+    "checkpoint_burst_seconds": 0.25,
+    "post_review_gap_pct": 0.30,
+    "clock_skew_seconds": 2.0,
+    "min_evidence_bytes": 100,
+}
+
+_THRESHOLDS_CACHE: dict[str, Any] | None = None
+
+
+def load_thresholds_config() -> dict[str, Any]:
+    """Load distribution-validator thresholds.
+
+    Precedence: in-memory cache > reviews/.timing-thresholds.json > DEFAULT_THRESHOLDS.
+    """
+    global _THRESHOLDS_CACHE
+    if _THRESHOLDS_CACHE is not None:
+        return _THRESHOLDS_CACHE
+    cfg = json.loads(json.dumps(DEFAULT_THRESHOLDS))  # deep copy
+    cfg_path = Path("reviews/.timing-thresholds.json")
+    if cfg_path.exists():
+        try:
+            user = json.loads(cfg_path.read_text())
+            if isinstance(user, dict):
+                # Shallow merge top-level keys; nested dicts (min_dim_seconds) shallow-merge too.
+                for k, v in user.items():
+                    if isinstance(v, dict) and isinstance(cfg.get(k), dict):
+                        cfg[k].update(v)
+                    else:
+                        cfg[k] = v
+        except Exception as e:
+            print(
+                f"WARNING: Could not parse reviews/.timing-thresholds.json: {e}; using defaults.",
+                file=sys.stderr,
+            )
+    _THRESHOLDS_CACHE = cfg
+    return cfg
 
 
 # ============================================================================
@@ -105,17 +209,17 @@ def get_timing_data_dir() -> Path:
 
 def get_timing_file(run_id: str) -> Path:
     """Get path to in-progress timing file (project-local)."""
-    return get_timing_data_dir() / f"skill-timing-{run_id}.json"
+    return get_timing_data_dir() / f"skill-timer-{run_id}.json"
 
 
 def get_completed_file(run_id: str) -> Path:
     """Get path to completed timing file."""
-    return get_timing_data_dir() / f"skill-timing-{run_id}-complete.json"
+    return get_timing_data_dir() / f"skill-timer-{run_id}-complete.json"
 
 
 def get_registry_file() -> Path:
     """Get path to agent recovery registry (project-local)."""
-    return get_timing_data_dir() / "skill-timing-registry.json"
+    return get_timing_data_dir() / "skill-timer-registry.json"
 
 
 def get_baselines_file() -> Path:
@@ -310,11 +414,11 @@ def cleanup_stale_files():
     data_dir = get_timing_data_dir()
     cutoff = time.time() - (TTL_DAYS * 24 * 60 * 60)
 
-    for filepath in glob.glob(str(data_dir / "skill-timing-*.json")):
+    for filepath in glob.glob(str(data_dir / "skill-timer-*.json")):
         fp = Path(filepath)
         if fp.name.endswith("-complete.json"):
             continue
-        if fp.name == "skill-timing-registry.json":
+        if fp.name == "skill-timer-registry.json":
             continue
         try:
             if fp.stat().st_mtime < cutoff:
@@ -391,7 +495,14 @@ def validate_timing_data(data: dict[str, Any]) -> tuple[bool, list[str]]:
             errors.append(f"Missing required field: {field}")
     if "run_id" in data and not re.match(r"^[a-f0-9]{16}$", data["run_id"]):
         errors.append(f"Invalid run_id format: {data['run_id']}")
-    valid_statuses = ["completed", "warning", "error", "missing"]
+    valid_statuses = [
+        "completed",
+        "warning",
+        "error",
+        "missing",
+        "dimension_invalid",
+        "instrumentation_failed",
+    ]
     if data.get("status") not in valid_statuses:
         errors.append(f"Invalid status: {data.get('status')}")
     if "duration_seconds" in data and data["duration_seconds"] < 0:
@@ -417,10 +528,22 @@ def validate_timing_data(data: dict[str, Any]) -> tuple[bool, list[str]]:
                 elif not isinstance(entry["duration_seconds"], (int, float)):
                     errors.append(f"dimension_timings[{i}] duration_seconds must be numeric")
                 else:
+                    mode = entry["mode"]
                     dur = entry["duration_seconds"]
-                    if dur < -1:
+                    mode_rules = VALID_MODES.get(mode)
+                    if mode_rules is None:
+                        errors.append(
+                            f"dimension_timings[{i}] ({entry['dimension']}): "
+                            f"unknown mode '{mode}' (valid: {sorted(VALID_MODES)})"
+                        )
+                    elif dur < -1:
                         errors.append(f"dimension_timings[{i}] has invalid duration ({dur}s)")
-                    elif dur == 0:
+                    elif dur < 0 and not mode_rules["neg_ok"]:
+                        errors.append(
+                            f"dimension_timings[{i}] ({entry['dimension']}): "
+                            f"negative duration not allowed for mode='{mode}'"
+                        )
+                    elif dur == 0 and mode_rules["pos_required"]:
                         errors.append(
                             f"dimension_timings[{i}] ({entry['dimension']}): "
                             "0s duration — timestamps likely fabricated or not captured"
@@ -439,6 +562,395 @@ def validate_timing_data(data: dict[str, Any]) -> tuple[bool, list[str]]:
     return (len(errors) == 0, errors)
 
 
+# ============================================================================
+# v2.0.0 Distribution validator + work-window resolver
+# ============================================================================
+
+
+def _checkpoint_epoch(
+    checkpoints: list[dict], name: str, start_epoch: float | None = None
+) -> float | None:
+    """Return wall-clock epoch of the last checkpoint with the given name, or None.
+
+    Prefers explicit `epoch` field (v2.0.0+). Falls back to start_epoch +
+    elapsed_seconds for legacy v1.5.0 fixtures lacking per-checkpoint epoch.
+    """
+    for cp in reversed(checkpoints):
+        if cp.get("name") != name:
+            continue
+        if "epoch" in cp:
+            try:
+                return float(cp["epoch"])
+            except (TypeError, ValueError):
+                pass
+        if start_epoch is not None and "elapsed_seconds" in cp:
+            try:
+                return float(start_epoch) + float(cp["elapsed_seconds"])
+            except (TypeError, ValueError):
+                pass
+    return None
+
+
+def resolve_work_window(data: dict[str, Any]) -> tuple[float, str]:
+    """Compute the denominator for coverage / post-review-gap calculations.
+
+    Falls back through (per source plan section 4.5):
+      1. work_started -> work_complete
+      2. skill_loaded -> finalize.pre_write (preferred)
+      3. skill_loaded -> review_complete (legacy)
+      4. start -> finalize.pre_write
+      5. start -> review_complete
+      6. start -> end
+    Returns (seconds, source_label).
+    """
+    checkpoints = data.get("checkpoints", [])
+    start_epoch = data.get("start_epoch")
+    end_epoch = data.get("end_epoch")
+
+    ws = _checkpoint_epoch(checkpoints, "work_started", start_epoch)
+    wc = _checkpoint_epoch(checkpoints, "work_complete", start_epoch)
+    if ws is not None and wc is not None and wc > ws:
+        return (wc - ws, "work_started_to_work_complete")
+
+    sl = _checkpoint_epoch(checkpoints, "skill_loaded", start_epoch)
+    pre_write = data.get("finalize", {}).get("pre_write_epoch")
+    rc = _checkpoint_epoch(checkpoints, "review_complete", start_epoch)
+
+    if sl is not None and pre_write is not None and pre_write > sl:
+        return (pre_write - sl, "skill_loaded_to_finalize_pre_write")
+    if sl is not None and rc is not None and rc > sl:
+        return (rc - sl, "skill_loaded_to_review_complete")
+    if start_epoch is not None and pre_write is not None and pre_write > start_epoch:
+        return (pre_write - start_epoch, "start_to_finalize_pre_write")
+    if start_epoch is not None and rc is not None and rc > start_epoch:
+        return (rc - start_epoch, "start_to_review_complete")
+    if start_epoch is not None and end_epoch is not None and end_epoch > start_epoch:
+        return (end_epoch - start_epoch, "start_to_end")
+    return (0.0, "unavailable")
+
+
+def _alert(alert_type: str, severity: str, message: str, **details: Any) -> dict[str, Any]:
+    return {"type": alert_type, "severity": severity, "message": message, "details": details}
+
+
+def validate_dimension_distribution(
+    data: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Run the v2.0.0 distribution validator. Returns list of alert dicts.
+
+    Honors TIMING_TEST_MODE=1 (skips floor/coverage/total/post-review checks)
+    and TIMING_DISABLE_DISTRIBUTION_VALIDATOR=1 (returns []).
+    """
+    if os.environ.get("TIMING_DISABLE_DISTRIBUTION_VALIDATOR") == "1":
+        return []
+
+    test_mode = os.environ.get("TIMING_TEST_MODE") == "1"
+    cfg = load_thresholds_config()
+    alerts: list[dict[str, Any]] = []
+
+    skill_name = data.get("skill_name", "")
+    dim_timings = data.get("dimension_timings") or []
+    run_total = float(data.get("duration_seconds") or 0.0)
+    work_window, work_window_source = resolve_work_window(data)
+    data["work_window_seconds"] = round(work_window, 2)
+    data["work_window_source"] = work_window_source
+
+    # Counted vs not-counted modes
+    counted = [
+        dt for dt in dim_timings if VALID_MODES.get(dt.get("mode", ""), {}).get("counts") is True
+    ]
+    counted_durations = [
+        float(dt.get("duration_seconds", 0.0))
+        for dt in counted
+        if isinstance(dt.get("duration_seconds"), (int, float))
+        and float(dt.get("duration_seconds", 0.0)) >= 0
+    ]
+    dim_total = sum(counted_durations) if counted_durations else 0.0
+
+    # ---- duplicate_dim_checkpoints (always on) ----
+    checkpoints = data.get("checkpoints", [])
+    seen_dim_names: dict[str, int] = {}
+    for cp in checkpoints:
+        name = cp.get("name", "")
+        if re.match(r"^dim_[a-z_]+_(start|end)$", name):
+            seen_dim_names[name] = seen_dim_names.get(name, 0) + 1
+    dups = [n for n, c in seen_dim_names.items() if c >= 2]
+    if dups:
+        alerts.append(
+            _alert(
+                "duplicate_dim_checkpoints",
+                "warning",
+                f"Duplicate dim_* checkpoint names: {sorted(dups)}",
+                duplicates=sorted(dups),
+            )
+        )
+
+    # ---- checkpoint_burst (always on) ----
+    burst_threshold = float(cfg.get("checkpoint_burst_seconds", 0.25))
+    burst_pairs: list[tuple[str, str, float]] = []
+    last_dim_event: tuple[str, float] | None = None
+    start_epoch_for_burst = data.get("start_epoch")
+    for cp in checkpoints:
+        name = cp.get("name", "")
+        m = re.match(r"^dim_([a-z_]+)_(start|end)$", name)
+        if not m:
+            continue
+        epoch = cp.get("epoch")
+        if epoch is None and start_epoch_for_burst is not None and "elapsed_seconds" in cp:
+            try:
+                epoch = float(start_epoch_for_burst) + float(cp["elapsed_seconds"])
+            except (TypeError, ValueError):
+                epoch = None
+        if epoch is None:
+            continue
+        try:
+            ep = float(epoch)
+        except (TypeError, ValueError):
+            continue
+        if last_dim_event is not None:
+            prev_name, prev_epoch = last_dim_event
+            delta = ep - prev_epoch
+            if 0 <= delta < burst_threshold:
+                burst_pairs.append((prev_name, name, round(delta, 4)))
+        last_dim_event = (name, ep)
+    if burst_pairs:
+        alerts.append(
+            _alert(
+                "checkpoint_burst",
+                "warning",
+                f"{len(burst_pairs)} consecutive dim_* checkpoint(s) recorded "
+                f"<{burst_threshold}s apart",
+                burst_pairs=burst_pairs,
+            )
+        )
+
+    # ---- missing_expected_dimension (always on) ----
+    expected = (cfg.get("expected_dimensions") or {}).get(skill_name) or EXPECTED_DIMENSIONS.get(
+        skill_name
+    )
+    if expected:
+        present = {dt.get("dimension") for dt in dim_timings}
+        missing = [d for d in expected if d not in present]
+        if missing:
+            alerts.append(
+                _alert(
+                    "missing_expected_dimension",
+                    "warning",
+                    f"Skill '{skill_name}' expected dimensions missing: {missing}",
+                    missing=missing,
+                    expected=expected,
+                )
+            )
+
+    # ---- clock_skew (always on) ----
+    skew_threshold = float(cfg.get("clock_skew_seconds", 2.0))
+    if data.get("clock_source") == "monotonic":
+        # Compare wall-clock end-start delta against monotonic delta if available.
+        try:
+            wall_delta = float(data["end_epoch"]) - float(data["start_epoch"])
+            mono_delta = float(data.get("duration_seconds_monotonic", wall_delta))
+            if abs(wall_delta - mono_delta) > skew_threshold:
+                alerts.append(
+                    _alert(
+                        "clock_skew",
+                        "warning",
+                        f"Wall vs monotonic delta differ by "
+                        f"{abs(wall_delta - mono_delta):.2f}s (>{skew_threshold}s)",
+                        wall_delta=round(wall_delta, 4),
+                        monotonic_delta=round(mono_delta, 4),
+                    )
+                )
+        except (KeyError, TypeError, ValueError):
+            pass
+
+    # The remaining validators are silenced under TIMING_TEST_MODE=1.
+    if test_mode or not counted_durations:
+        return alerts
+
+    # ---- dim_uniformity_suspect ----
+    if len(counted_durations) >= 2:
+        mean_dim = dim_total / len(counted_durations)
+        if mean_dim > 0:
+            uniformity_pct = float(cfg.get("uniformity_tolerance_pct", 0.05))
+            uniformity_max_mean = float(cfg.get("uniformity_max_mean_seconds", 5.0))
+            within = all(abs(d - mean_dim) / mean_dim <= uniformity_pct for d in counted_durations)
+            if within and mean_dim < uniformity_max_mean:
+                alerts.append(
+                    _alert(
+                        "dim_uniformity_suspect",
+                        "warning",
+                        f"All {len(counted_durations)} per-dimension durations are "
+                        f"within \u00b1{uniformity_pct * 100:.0f}% of mean {mean_dim:.2f}s "
+                        f"(< {uniformity_max_mean}s); pattern suggests batched "
+                        f"checkpoint emission rather than real measurement.",
+                        mean_seconds=round(mean_dim, 4),
+                        tolerance_pct=uniformity_pct,
+                    )
+                )
+
+    # ---- dim_floor_violation ----
+    floor_map = cfg.get("min_dim_seconds", {})
+    floor_default = float(floor_map.get("_default", 5.0))
+    floor = float(floor_map.get(skill_name, floor_default))
+    below_floor = [
+        (dt.get("dimension"), float(dt.get("duration_seconds", 0.0)))
+        for dt in counted
+        if isinstance(dt.get("duration_seconds"), (int, float))
+        and 0 <= float(dt.get("duration_seconds", 0.0)) < floor
+    ]
+    if below_floor:
+        alerts.append(
+            _alert(
+                "dim_floor_violation",
+                "warning",
+                f"{len(below_floor)} dimension(s) below per-skill floor of "
+                f"{floor:.1f}s for '{skill_name}'",
+                below_floor=below_floor,
+                floor_seconds=floor,
+            )
+        )
+
+    # ---- coverage tiers + dim_total_short ----
+    if work_window > 0 and dim_total >= 0:
+        coverage = dim_total / work_window
+        low_lo, low_hi = cfg.get("coverage_low_band", (0.10, 0.30))
+        severe = float(cfg.get("coverage_severe_threshold", 0.10))
+        overrun = float(cfg.get("coverage_overrun_threshold", 1.20))
+        if coverage < severe:
+            alerts.append(
+                _alert(
+                    "dim_coverage_severe",
+                    "error",
+                    f"Per-dimension total ({dim_total:.2f}s) covers only "
+                    f"{coverage * 100:.1f}% of work window ({work_window:.2f}s) "
+                    f"— below severe threshold {severe * 100:.0f}%",
+                    coverage_ratio=round(coverage, 4),
+                    work_window_seconds=round(work_window, 2),
+                    dim_total_seconds=round(dim_total, 2),
+                    work_window_source=work_window_source,
+                )
+            )
+        elif low_lo <= coverage < low_hi:
+            alerts.append(
+                _alert(
+                    "dim_coverage_low",
+                    "warning",
+                    f"Per-dimension total covers only {coverage * 100:.1f}% of work "
+                    f"window ({work_window:.2f}s) — below recommended {low_hi * 100:.0f}%",
+                    coverage_ratio=round(coverage, 4),
+                    work_window_seconds=round(work_window, 2),
+                )
+            )
+        elif coverage > overrun:
+            alerts.append(
+                _alert(
+                    "dim_coverage_overrun",
+                    "error",
+                    f"Per-dimension total ({dim_total:.2f}s) exceeds work window "
+                    f"({work_window:.2f}s) by {(coverage - 1) * 100:.1f}%",
+                    coverage_ratio=round(coverage, 4),
+                    work_window_seconds=round(work_window, 2),
+                )
+            )
+
+    short_dim_total = float(cfg.get("dim_total_short_seconds", 5.0))
+    short_run_total = float(cfg.get("dim_total_short_run_seconds", 60.0))
+    if dim_total < short_dim_total and run_total > short_run_total:
+        alerts.append(
+            _alert(
+                "dim_total_short",
+                "warning",
+                f"Per-dimension total ({dim_total:.2f}s) is below {short_dim_total:.0f}s "
+                f"despite run_total={run_total:.2f}s",
+                dim_total_seconds=round(dim_total, 2),
+                run_total_seconds=round(run_total, 2),
+            )
+        )
+
+    # ---- post_review_gap ----
+    pre_write = data.get("finalize", {}).get("pre_write_epoch")
+    rc = _checkpoint_epoch(checkpoints, "review_complete", data.get("start_epoch"))
+    anchor = pre_write if pre_write is not None else rc
+    end_epoch = data.get("end_epoch")
+    if anchor is not None and end_epoch is not None and run_total > 0:
+        try:
+            gap = float(end_epoch) - float(anchor)
+            gap_pct = gap / run_total
+            limit = float(cfg.get("post_review_gap_pct", 0.30))
+            if gap_pct > limit:
+                alerts.append(
+                    _alert(
+                        "post_review_gap",
+                        "warning",
+                        f"{gap:.2f}s ({gap_pct * 100:.1f}% of run) elapsed after "
+                        f"work-complete anchor — above {limit * 100:.0f}% limit; "
+                        f"largest cost block is uninstrumented.",
+                        gap_seconds=round(gap, 2),
+                        gap_pct=round(gap_pct, 4),
+                        anchor_source="finalize.pre_write"
+                        if pre_write is not None
+                        else "review_complete",
+                    )
+                )
+        except (TypeError, ValueError):
+            pass
+
+    return alerts
+
+
+def annotate_validation_status(data: dict[str, Any], alerts: list[dict[str, Any]]) -> None:
+    """Stamp per-row validation_status onto each dimension_timings entry.
+
+    valid     - mode counts and no per-row error
+    warning   - mode counts but distribution alert references this dim, or self-report-flagged
+    failed    - mode is failed/validation-failed
+    not_requested - mode is not-requested
+    unavailable   - mode is unavailable
+    """
+    flagged_dims: set[str] = set()
+    for a in alerts:
+        details = a.get("details") or {}
+        for d in details.get("below_floor") or []:
+            if isinstance(d, (list, tuple)) and d:
+                flagged_dims.add(d[0])
+        for n in details.get("missing") or []:
+            flagged_dims.add(n)
+    for dt in data.get("dimension_timings") or []:
+        mode = dt.get("mode")
+        if mode == "failed" or mode == "validation-failed":
+            dt["validation_status"] = "failed"
+        elif mode == "not-requested":
+            dt["validation_status"] = "not_requested"
+        elif mode == "unavailable":
+            dt["validation_status"] = "unavailable"
+        elif mode == "self-report-flagged" or dt.get("dimension") in flagged_dims:
+            dt["validation_status"] = "warning"
+        else:
+            dt["validation_status"] = "valid"
+
+
+def escalate_status(data: dict[str, Any], alerts: list[dict[str, Any]]) -> str:
+    """Apply the v2.0.0 status-escalation matrix.
+
+    completed / warning / dimension_invalid / instrumentation_failed / error
+    """
+    # Already-set error stays as error.
+    if data.get("status") == "error":
+        return "error"
+    if data.get("validation_errors"):
+        # Per-row schema rejection took place upstream.
+        return "dimension_invalid"
+    error_alerts = [a for a in alerts if a.get("severity") == "error"]
+    warning_alerts = [a for a in alerts if a.get("severity") == "warning"]
+    if error_alerts:
+        return "instrumentation_failed"
+    if len(warning_alerts) >= 3:
+        return "instrumentation_failed"
+    if 1 <= len(warning_alerts) <= 2:
+        return "warning"
+    return "completed"
+
+
 def check_pricing_staleness():
     """Warn if token pricing data is stale."""
     try:
@@ -455,10 +967,16 @@ def check_pricing_staleness():
 
 def determine_exit_code(data: dict) -> int:
     """Determine appropriate exit code based on timing data."""
+    if data.get("status") == "instrumentation_failed":
+        return EXIT_INSTRUMENTATION_FAILED
+    if data.get("status") == "dimension_invalid":
+        return EXIT_INSTRUMENTATION_FAILED
     alerts = data.get("alerts", [])
     for alert in alerts:
         if alert.get("type") == "error_short_duration":
             return EXIT_SHORTCUT_DETECTED
+        if alert.get("severity") == "error":
+            return EXIT_INSTRUMENTATION_FAILED
     baseline = data.get("baseline_comparison")
     if (
         baseline
@@ -475,7 +993,7 @@ def print_stdout_summary(
     """Print timing summary to STDOUT in standardized human-readable format."""
     sep = "-" * 40
     print()
-    print(f"TIMING: skill-timing v{VERSION}")
+    print(f"TIMING: skill-timer v{VERSION}")
     print(sep)
     print(f"Run ID:      {data['run_id']}")
     print(f"Skill:       {data.get('skill_name', 'unknown')}")
@@ -661,6 +1179,7 @@ def cmd_start(args):
         "model": args.model,
         "review_mode": args.mode,
         "start_epoch": time.time(),
+        "start_monotonic": time.monotonic(),
         "start_iso": datetime.now(UTC).isoformat(),
         "pid": os.getpid(),
         "agent": agent_name,
@@ -685,12 +1204,24 @@ def cmd_checkpoint(args):
         return
 
     data = json.loads(timing_file.read_text())
-    elapsed = time.time() - data["start_epoch"]
+    now_epoch = time.time()
+    elapsed_wall = now_epoch - data["start_epoch"]
+    # Monotonic delta when start_monotonic was captured in same process. Falls
+    # back to wall-clock elapsed when not present (e.g., cross-process resumes).
+    if "start_monotonic" in data:
+        try:
+            elapsed_raw = time.monotonic() - float(data["start_monotonic"])
+        except (TypeError, ValueError):
+            elapsed_raw = elapsed_wall
+    else:
+        elapsed_raw = elapsed_wall
 
     data["checkpoints"].append(
         {
             "name": args.name,
-            "elapsed_seconds": round(elapsed, 2),
+            "elapsed_seconds": round(elapsed_raw, 2),
+            "elapsed_seconds_raw": elapsed_raw,
+            "epoch": now_epoch,
             "timestamp": datetime.now(UTC).isoformat(),
         }
     )
@@ -698,7 +1229,7 @@ def cmd_checkpoint(args):
     write_timing_file(timing_file, data)
 
     print(f"CHECKPOINT_NAME={args.name}")
-    print(f"CHECKPOINT_ELAPSED={elapsed:.2f}s")
+    print(f"CHECKPOINT_ELAPSED={elapsed_raw:.2f}s")
     print("CHECKPOINT_STATUS=recorded")
 
 
@@ -808,7 +1339,22 @@ def cmd_end(args):
 
     data = json.loads(timing_file.read_text())
     end_epoch = time.time()
-    duration_sec = end_epoch - data["start_epoch"]
+    end_monotonic = time.monotonic()
+    duration_sec_wall = end_epoch - data["start_epoch"]
+    # Prefer monotonic delta when both endpoints recorded in same process.
+    if "start_monotonic" in data:
+        try:
+            duration_sec_monotonic = end_monotonic - float(data["start_monotonic"])
+            duration_sec = duration_sec_monotonic
+            data["duration_seconds_monotonic"] = round(duration_sec_monotonic, 6)
+            data["end_monotonic"] = end_monotonic
+            data["clock_source"] = "monotonic"
+        except (TypeError, ValueError):
+            duration_sec = duration_sec_wall
+            data["clock_source"] = "wall"
+    else:
+        duration_sec = duration_sec_wall
+        data["clock_source"] = "wall"
 
     # Validate timing data
     if duration_sec < 0:
@@ -915,9 +1461,29 @@ def cmd_end(args):
         tokens = calculate_cost(args.input_tokens, args.output_tokens, data["model"])
         data["tokens"] = tokens
 
-    # Anomaly detection
+    # Anomaly detection (legacy threshold-based alerts)
     alerts = check_alerts(data["skill_name"], data["review_mode"], duration_sec)
+
+    # v2.0.0 distribution validator (additive). Fold into alerts list.
+    distribution_alerts = validate_dimension_distribution(data)
+    alerts.extend(distribution_alerts)
     data["alerts"] = alerts
+
+    # Per-row validation_status + run-level status escalation.
+    annotate_validation_status(data, distribution_alerts)
+    new_status = escalate_status(data, distribution_alerts)
+    if new_status != "completed" or data.get("status") not in ("warning",):
+        data["status"] = new_status
+    if data["status"] == "instrumentation_failed":
+        # Strip the per-dimension array per source plan section 4.7 and emit banner.
+        data["dimension_timings_rejected"] = data.pop("dimension_timings", [])
+        if output_format not in ("json", "quiet"):
+            triggered = sorted({a.get("type") for a in distribution_alerts})
+            print(
+                "INSTRUMENTATION_FAILED: per-dimension data rejected by skill-timer "
+                f"v{VERSION} due to alerts: {triggered}",
+                file=sys.stderr,
+            )
 
     # Baseline comparison
     baseline = compare_to_baseline(
@@ -975,6 +1541,205 @@ def cmd_end(args):
     sys.exit(exit_code)
 
 
+def cmd_wrap(args):
+    """v2.0.0 atomic per-dimension capture.
+
+    Agent invokes `wrap` AFTER per-dimension analysis is materialized as
+    --evidence (file path or stdin, >=100 bytes by default). skill-timer
+    assigns the end_epoch server-side. The agent cannot collapse the duration
+    by emitting two commands back-to-back.
+    """
+    timing_file = get_timing_file(args.run_id)
+    if not timing_file.exists():
+        print(f"ERROR: Timing file not found for run_id={args.run_id}", file=sys.stderr)
+        print("WRAP_STATUS=missing")
+        sys.exit(EXIT_ERROR)
+
+    data = json.loads(timing_file.read_text())
+
+    # --- Evidence ingestion + minimum-bytes gate ---
+    cfg = load_thresholds_config()
+    min_bytes = int(cfg.get("min_evidence_bytes", 100))
+    if args.evidence == "-":
+        evidence_bytes = sys.stdin.buffer.read()
+        evidence_source = "<stdin>"
+    else:
+        evidence_path = Path(args.evidence)
+        if not evidence_path.exists():
+            print(f"ERROR: --evidence path not found: {evidence_path}", file=sys.stderr)
+            sys.exit(EXIT_ERROR)
+        evidence_bytes = evidence_path.read_bytes()
+        evidence_source = str(evidence_path)
+
+    if len(evidence_bytes) < min_bytes:
+        print(
+            f"ERROR: --evidence too small ({len(evidence_bytes)}B < {min_bytes}B); "
+            f"refusing to wrap dimension '{args.dimension}'.",
+            file=sys.stderr,
+        )
+        print("WRAP_STATUS=evidence_too_small")
+        sys.exit(EXIT_INSTRUMENTATION_FAILED)
+
+    # --- Resolve start endpoint (explicit > previous wrap end > run start) ---
+    existing_dims = data.setdefault("dimension_timings", [])
+    prev_wrap_end_epoch = None
+    prev_wrap_end_monotonic = None
+    for dt in reversed(existing_dims):
+        if dt.get("mode") == "wrap":
+            prev_wrap_end_epoch = dt.get("end_epoch")
+            prev_wrap_end_monotonic = dt.get("end_monotonic")
+            break
+
+    if args.start_epoch is not None:
+        start_epoch = float(args.start_epoch)
+    elif prev_wrap_end_epoch is not None:
+        start_epoch = float(prev_wrap_end_epoch)
+    else:
+        start_epoch = float(data["start_epoch"])
+
+    if args.start_monotonic is not None:
+        start_monotonic: float | None = float(args.start_monotonic)
+    elif prev_wrap_end_monotonic is not None:
+        start_monotonic = float(prev_wrap_end_monotonic)
+    elif "start_monotonic" in data:
+        try:
+            start_monotonic = float(data["start_monotonic"])
+        except (TypeError, ValueError):
+            start_monotonic = None
+    else:
+        start_monotonic = None
+
+    # --- Server-side end timestamp ---
+    end_epoch = time.time()
+    end_monotonic = time.monotonic()
+
+    if start_monotonic is not None:
+        duration = end_monotonic - start_monotonic
+    else:
+        duration = end_epoch - start_epoch
+
+    if duration < 0:
+        print(
+            f"ERROR: Negative duration ({duration:.4f}s) for dimension "
+            f"'{args.dimension}'; clock skew suspected.",
+            file=sys.stderr,
+        )
+        sys.exit(EXIT_ERROR)
+
+    mode = args.mode or "wrap"
+    if mode not in ("wrap", "inline"):
+        print(f"ERROR: --mode must be 'wrap' or 'inline' (got: {mode})", file=sys.stderr)
+        sys.exit(EXIT_ERROR)
+
+    dim_entry: dict[str, Any] = {
+        "dimension": args.dimension,
+        "duration_seconds": round(duration, 6),
+        "mode": mode,
+        "start_epoch": round(start_epoch, 6),
+        "end_epoch": round(end_epoch, 6),
+        "evidence_bytes": len(evidence_bytes),
+        "evidence_source": evidence_source,
+    }
+    if start_monotonic is not None:
+        dim_entry["start_monotonic"] = start_monotonic
+        dim_entry["end_monotonic"] = end_monotonic
+        dim_entry["clock_source"] = "monotonic"
+    else:
+        dim_entry["clock_source"] = "wall"
+
+    existing_dims.append(dim_entry)
+    write_timing_file(timing_file, data)
+
+    print(f"WRAP_DIMENSION={args.dimension}")
+    print(f"WRAP_DURATION={duration:.4f}s")
+    print(f"WRAP_MODE={mode}")
+    print(f"WRAP_EVIDENCE_BYTES={len(evidence_bytes)}")
+    print("WRAP_STATUS=recorded")
+
+
+def cmd_finalize(args):
+    """v2.0.0 stage marker for work-complete semantics.
+
+    --stage pre_write requires --review-artifact; records the moment after
+    synthesized output exists but before file write.
+    --stage post_write records the moment after the on-disk write.
+    """
+    timing_file = get_timing_file(args.run_id)
+    if not timing_file.exists():
+        print(f"ERROR: Timing file not found for run_id={args.run_id}", file=sys.stderr)
+        sys.exit(EXIT_ERROR)
+
+    data = json.loads(timing_file.read_text())
+
+    if args.stage == "pre_write":
+        if not args.review_artifact:
+            print(
+                "ERROR: --stage pre_write requires --review-artifact <path>",
+                file=sys.stderr,
+            )
+            sys.exit(EXIT_ERROR)
+        artifact = Path(args.review_artifact)
+        # Artifact may not exist yet on disk if finalize is invoked just before
+        # write; we record the path declaration regardless.
+        finalize = data.setdefault("finalize", {})
+        finalize["pre_write_epoch"] = time.time()
+        finalize["pre_write_monotonic"] = time.monotonic()
+        finalize["review_artifact"] = str(artifact)
+    elif args.stage == "post_write":
+        finalize = data.setdefault("finalize", {})
+        finalize["post_write_epoch"] = time.time()
+        finalize["post_write_monotonic"] = time.monotonic()
+    else:
+        print(
+            f"ERROR: --stage must be 'pre_write' or 'post_write' (got: {args.stage})",
+            file=sys.stderr,
+        )
+        sys.exit(EXIT_ERROR)
+
+    write_timing_file(timing_file, data)
+
+    print(f"FINALIZE_STAGE={args.stage}")
+    print("FINALIZE_STATUS=recorded")
+
+
+def cmd_replay(args):
+    """Re-run the v2.0.0 distribution validator against a completed JSON.
+
+    Useful for post-hoc validation of historical runs and CI gating.
+    """
+    fixture = Path(args.fixture)
+    if not fixture.exists():
+        print(f"ERROR: --fixture not found: {fixture}", file=sys.stderr)
+        sys.exit(EXIT_ERROR)
+    try:
+        data = json.loads(fixture.read_text())
+    except json.JSONDecodeError as e:
+        print(f"ERROR: Could not parse fixture JSON: {e}", file=sys.stderr)
+        sys.exit(EXIT_ERROR)
+
+    alerts = validate_dimension_distribution(data)
+    annotate_validation_status(data, alerts)
+    new_status = escalate_status(data, alerts)
+    data["status"] = new_status
+    data["alerts"] = (data.get("alerts") or []) + alerts
+
+    output_format = getattr(args, "format", "human")
+    if output_format == "json":
+        print(json.dumps(data, indent=2))
+    else:
+        print(f"REPLAY: {fixture}")
+        print(f"  status:           {new_status}")
+        print(
+            f"  work_window:      {data.get('work_window_seconds'):>8} s "
+            f"({data.get('work_window_source')})"
+        )
+        print(f"  alerts ({len(alerts)}):")
+        for a in alerts:
+            print(f"    [{a['severity']:7s}] {a['type']}: {a['message'][:200]}")
+
+    sys.exit(determine_exit_code(data))
+
+
 def cmd_baseline_set(args):
     """Set baseline from recent timing data."""
     timing_data_dir = Path("reviews/.timing-data")
@@ -982,7 +1747,7 @@ def cmd_baseline_set(args):
 
     durations = []
     if timing_data_dir.exists():
-        for filepath in glob.glob(str(timing_data_dir / "skill-timing-*-complete.json")):
+        for filepath in glob.glob(str(timing_data_dir / "skill-timer-*-complete.json")):
             try:
                 data = json.loads(Path(filepath).read_text())
                 if (
@@ -1037,7 +1802,7 @@ def cmd_baseline_set(args):
         dim_data: dict[str, list[float]] = {}
         timing_data_dir_pd = Path("reviews/.timing-data")
         if timing_data_dir_pd.exists():
-            for filepath in glob.glob(str(timing_data_dir_pd / "skill-timing-*-complete.json")):
+            for filepath in glob.glob(str(timing_data_dir_pd / "skill-timer-*-complete.json")):
                 try:
                     data = json.loads(Path(filepath).read_text())
                     if (
@@ -1136,7 +1901,7 @@ def cmd_analyze(args):
 
     runs = []
     if timing_data_dir.exists():
-        for filepath in glob.glob(str(timing_data_dir / "skill-timing-*-complete.json")):
+        for filepath in glob.glob(str(timing_data_dir / "skill-timer-*-complete.json")):
             try:
                 data = json.loads(Path(filepath).read_text())
                 if data.get("end_epoch", 0) < cutoff:
@@ -1377,7 +2142,7 @@ Examples:
   # Analyze recent timing data
   %(prog)s analyze --skill rule-reviewer --days 7
 
-For detailed documentation, see docs/USING_SKILL_TIMING_SKILL.md
+For detailed documentation, see docs/USING_SKILL_TIMER_SKILL.md
         """,
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -1440,6 +2205,70 @@ For detailed documentation, see docs/USING_SKILL_TIMING_SKILL.md
         "Ignored (with WARNING) if --dimension-timings is also supplied.",
     )
     end_parser.set_defaults(func=cmd_end)
+
+    # wrap command (v2.0.0): atomic per-dimension capture
+    wrap_parser = subparsers.add_parser(
+        "wrap",
+        help="Atomically capture a per-dimension duration with server-side end timestamp (v2.0.0)",
+    )
+    wrap_parser.add_argument("--run-id", required=True, help="Run ID from timing start")
+    wrap_parser.add_argument(
+        "--dimension", required=True, help="Dimension name (e.g., executability)"
+    )
+    wrap_parser.add_argument(
+        "--evidence",
+        required=True,
+        help="Path to per-dimension worksheet draft, or '-' for stdin (>=100 bytes)",
+    )
+    wrap_parser.add_argument(
+        "--start-epoch", type=float, default=None, help="Optional explicit start (wall-clock epoch)"
+    )
+    wrap_parser.add_argument(
+        "--start-monotonic",
+        type=float,
+        default=None,
+        help="Optional explicit start (monotonic clock value)",
+    )
+    wrap_parser.add_argument(
+        "--mode",
+        choices=["wrap", "inline"],
+        default="wrap",
+        help="Capture mode (default: wrap)",
+    )
+    wrap_parser.set_defaults(func=cmd_wrap)
+
+    # finalize command (v2.0.0): record work-complete semantics server-side
+    finalize_parser = subparsers.add_parser(
+        "finalize",
+        help="Record work-complete stage (pre_write/post_write) for plausibility math (v2.0.0)",
+    )
+    finalize_parser.add_argument("--run-id", required=True, help="Run ID from timing start")
+    finalize_parser.add_argument(
+        "--stage",
+        choices=["pre_write", "post_write"],
+        required=True,
+        help="Lifecycle stage to record",
+    )
+    finalize_parser.add_argument(
+        "--review-artifact",
+        default=None,
+        help="Path to synthesized output (required when --stage pre_write)",
+    )
+    finalize_parser.set_defaults(func=cmd_finalize)
+
+    # replay command (v2.0.0): re-run distribution validator against fixture
+    replay_parser = subparsers.add_parser(
+        "replay",
+        help="Re-run distribution validator against a completed timing JSON (v2.0.0)",
+    )
+    replay_parser.add_argument("--fixture", required=True, help="Path to completed timing JSON")
+    replay_parser.add_argument(
+        "--format",
+        choices=["human", "json"],
+        default="human",
+        help="Output format",
+    )
+    replay_parser.set_defaults(func=cmd_replay)
 
     # baseline command group
     baseline_parser = subparsers.add_parser("baseline", help="Manage timing baselines")

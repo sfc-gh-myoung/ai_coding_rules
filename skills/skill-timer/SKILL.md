@@ -1,7 +1,7 @@
 ---
-name: skill-timing
+name: skill-timer
 description: Measures skill execution time and tracks performance. Use when timing a skill, measuring duration, comparing performance across models, analyzing execution speed, or detecting agent shortcuts.
-version: 1.5.0
+version: 2.0.0-rc1
 metadata:
   tags: [timing, performance, measurement, instrumentation, metrics, ci-cd]
 ---
@@ -14,7 +14,7 @@ Timing instrumentation for skill execution measurement with microsecond precisio
 
 ```bash
 # Measure a skill execution with checkpoints
-Use the skill-timing skill.
+Use the skill-timer skill.
 
 skill_name: rule-reviewer
 target_file: rules/200-python-core.md
@@ -24,6 +24,59 @@ timing_enabled: true
 ```
 
 **Output:** Timing metadata embedded in output file with duration, checkpoints, token costs, and baseline comparison.
+
+## v2.0.0 robustness redesign
+
+> **Status:** v2.0.0-rc1 — see `CHANGELOG.md` for the full v2.0.0 entry.
+
+The v2.0.0 redesign closes a class of failure modes where agent-emitted
+timing data is numerically self-consistent but semantically false. Highlights:
+
+- **Atomic per-dimension capture** via the new `wrap` subcommand
+  (server-side end timestamp; `--evidence` ≥100B mandatory). See
+  `workflows/timing-wrap.md`.
+- **Work-complete semantics** moved server-side via `finalize --stage
+  pre_write|post_write`. See `workflows/timing-finalize.md`.
+- **Distribution validator** with 11 alert types (uniformity, floor,
+  coverage tiers, post-review-gap, checkpoint-burst, clock-skew, missing
+  expected dimension, duplicate dim checkpoints).
+- **New exit code 4** (`EXIT_INSTRUMENTATION_FAILED`) when validator escalates.
+- **Replay subcommand** for post-hoc validation: `python skill_timer.py
+  replay --fixture <path>`.
+- **Monotonic clock** captured alongside wall-clock; `clock_source` annotation.
+
+### Environment overrides
+
+- `TIMING_TEST_MODE=1` — bypass distribution validators that don't make
+  sense for sub-second synthetic durations (floor, coverage, total-short,
+  post-review-gap, uniformity). All other validators stay live.
+- `TIMING_DISABLE_DISTRIBUTION_VALIDATOR=1` — full soft-rollback to v2.x
+  behavior (no distribution alerts, no escalation).
+
+### Configuration
+
+Per-skill thresholds and expected dimensions are loaded from
+`reviews/.timing-thresholds.json` (optional). Defaults live in
+`scripts/skill_timer.py:DEFAULT_THRESHOLDS` / `EXPECTED_DIMENSIONS`.
+
+### Known anti-patterns
+
+The reference failure case is preserved at
+`tests/fixtures/run_f92f9d72f408a356.json`:
+
+- 8 per-dimension durations of 1.08–1.12s (sum ≈ 8.78s)
+- Wall-clock total = 246.08s; ~178.83s elapsed *after* `review_complete`
+- Pre-v2.0.0: `alerts: []`, `status: completed` — published falsely.
+- Post-v2.0.0: `status: instrumentation_failed`, exit 4, table replaced
+  with banner pointing at the rejected JSON.
+
+Replay it yourself:
+
+```bash
+python skills/skill-timer/scripts/skill_timer.py replay \
+    --fixture skills/skill-timer/tests/fixtures/run_f92f9d72f408a356.json
+# exit 4
+```
 
 ## Purpose
 
@@ -94,7 +147,7 @@ Each element in the `dimension_timings` JSON array must conform to:
 
 ## Outputs
 
-**Timing data:** `reviews/.timing-data/skill-timing-{run_id}-complete.json`
+**Timing data:** `reviews/.timing-data/skill-timer-{run_id}-complete.json`
 
 **Metadata block (appended to output_file):** Markdown table with duration, checkpoints, token costs, baseline comparison.
 
@@ -106,7 +159,7 @@ Each element in the `dimension_timings` JSON array must conform to:
 
 Initialize timing for a skill execution.
 
-> **Universal default (as of 2026-04-21):** Reviewer skills (rule-reviewer ≥ v2.9.0, plan-reviewer ≥ v2.5.0, bulk-rule-reviewer ≥ v2.4.0) now treat `timing_enabled: true` as the default. When callers opt out with `timing_enabled: false`, reviewers are expected to emit a single `not-requested` row in their Per-Dimension Timing table rather than omitting the section. skill-timing itself is unchanged; it accepts `not-requested` as a valid mode value inside `dimension_timings` entries for downstream filtering. See `plans/per-dimension-timing-universal-MIGRATION.md`.
+> **Universal default (as of 2026-04-21):** Reviewer skills (rule-reviewer ≥ v2.9.0, plan-reviewer ≥ v2.5.0, bulk-rule-reviewer ≥ v2.4.0) now treat `timing_enabled: true` as the default. When callers opt out with `timing_enabled: false`, reviewers are expected to emit a single `not-requested` row in their Per-Dimension Timing table rather than omitting the section. skill-timer itself is unchanged; it accepts `not-requested` as a valid mode value inside `dimension_timings` entries for downstream filtering. See `plans/per-dimension-timing-universal-MIGRATION.md`.
 
 **Required inputs:**
 - `skill_name` - Name of the skill being timed
@@ -116,8 +169,8 @@ Initialize timing for a skill execution.
 
 **Command:**
 ```bash
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
-$PYTHON skills/skill-timing/scripts/skill_timing.py start \
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
+$PYTHON skills/skill-timer/scripts/skill_timer.py start \
     --skill rule-reviewer \
     --target rules/200-python-core.md \
     --model claude-sonnet-45 \
@@ -127,7 +180,7 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py start \
 **Output:**
 ```
 TIMING_RUN_ID=a1b2c3d4e5f67890
-TIMING_FILE=reviews/.timing-data/skill-timing-a1b2c3d4e5f67890.json
+TIMING_FILE=reviews/.timing-data/skill-timer-a1b2c3d4e5f67890.json
 TIMING_AGENT_ID=unknown-12345
 ```
 
@@ -145,7 +198,7 @@ Record an intermediate timing checkpoint (optional but recommended).
 
 **Command:**
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+$PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
     --run-id a1b2c3d4e5f67890 \
     --name skill_loaded
 ```
@@ -183,7 +236,7 @@ Finalize timing and compute duration.
 
 **Command:**
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+$PYTHON skills/skill-timer/scripts/skill_timer.py end \
     --run-id a1b2c3d4e5f67890 \
     --output-file reviews/output.md \
     --skill rule-reviewer \
@@ -220,7 +273,7 @@ When `timing_enabled: true`, validate after EACH command:
 2. **After `checkpoint`:** Verify output contains `CHECKPOINT_STATUS=recorded`. If `missing` → in-progress file lost, continue but note.
 3. **After `end`:** Check for `VALIDATION ERROR` in stderr. If present, per-dimension timing data was invalid and has been stripped — only aggregate timing remains. Check `PER_DIMENSION_STATUS=` marker in stdout — values: `present` (explicit data accepted), `derived` (auto-derived from checkpoints), `missing` (no data supplied/derivable). If `TIMING_STATUS=missing` or no output:
    - Re-run `end --format markdown` (may recover from completed file)
-   - Last resort: Read `reviews/.timing-data/skill-timing-{run_id}-complete.json` directly
+   - Last resort: Read `reviews/.timing-data/skill-timer-{run_id}-complete.json` directly
 4. **After file write:** Verify `## Timing Metadata` section exists in output file. If missing → append it.
 
 **If validation fails:** Never block the skill execution. Write output WITHOUT timing metadata and note: `**Timing data unavailable** - validation failed at step N`.
@@ -233,7 +286,7 @@ Set a performance baseline from recent timing data (requires 5+ runs).
 
 **Command:**
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py baseline set \
+$PYTHON skills/skill-timer/scripts/skill_timer.py baseline set \
     --skill rule-reviewer \
     --mode FULL \
     --model claude-sonnet-45 \
@@ -256,7 +309,7 @@ Compare a specific run against the baseline.
 
 **Command:**
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py baseline compare \
+$PYTHON skills/skill-timer/scripts/skill_timer.py baseline compare \
     --run-id a1b2c3d4e5f67890
 ```
 
@@ -266,7 +319,7 @@ Analyze timing data across multiple runs.
 
 **Command:**
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py analyze \
+$PYTHON skills/skill-timer/scripts/skill_timer.py analyze \
     --skill rule-reviewer \
     --model claude-sonnet-45 \
     --days 7 \
@@ -329,9 +382,9 @@ When the skill evaluates multiple dimensions (e.g., rule-reviewer):
 ## File Storage
 
 All timing data is stored in `reviews/.timing-data/`:
-- **In-progress files:** `skill-timing-{run_id}.json` (deleted after completion)
-- **Completed files:** `skill-timing-{run_id}-complete.json` (persisted)
-- **Registry:** `skill-timing-registry.json` (for agent recovery)
+- **In-progress files:** `skill-timer-{run_id}.json` (deleted after completion)
+- **Completed files:** `skill-timer-{run_id}-complete.json` (persisted)
+- **Registry:** `skill-timer-registry.json` (for agent recovery)
 
 Stale files (>7 days) are automatically cleaned up.
 
@@ -372,12 +425,12 @@ See [`examples/ci-integration.md`](examples/ci-integration.md)
 ## Files
 
 ```
-skill-timing/
+skill-timer/
 ├── SKILL.md                          # This file
 ├── schemas/
 │   └── timing-output.schema.json    # JSON schema for timing output
 ├── scripts/
-│   ├── skill_timing.py              # Core CLI (v1.5.0)
+│   ├── skill_timer.py              # Core CLI (v1.5.0)
 │   └── find_python.sh               # Python interpreter discovery
 ├── workflows/
 │   ├── timing-start.md              # Detailed start workflow
@@ -389,7 +442,7 @@ skill-timing/
 │   ├── baseline-workflow.md         # Baseline usage
 │   └── ci-integration.md            # CI/CD integration
 └── tests/
-    └── test_skill_timing.sh         # Test suite (23 tests)
+    └── test_skill_timer.sh         # Test suite (23 tests)
 ```
 
 ## Version History

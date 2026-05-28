@@ -5,8 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 TIMING_DATA_DIR="$PROJECT_ROOT/reviews/.timing-data"
 
-PYTHON=$(bash "$PROJECT_ROOT/skills/skill-timing/scripts/find_python.sh")
-TIMING_PY="$PROJECT_ROOT/skills/skill-timing/scripts/skill_timing.py"
+PYTHON=$(bash "$PROJECT_ROOT/skills/skill-timer/scripts/find_python.sh")
+TIMING_PY="$PROJECT_ROOT/skills/skill-timer/scripts/skill_timer.py"
 
 echo "========================================"
 echo "Skill Timing Test Suite"
@@ -15,7 +15,7 @@ echo ""
 
 # Test 1: find_python.sh is executable and returns a valid interpreter
 echo "TEST 1: find_python.sh permissions and output"
-if [[ ! -x "$PROJECT_ROOT/skills/skill-timing/scripts/find_python.sh" ]]; then
+if [[ ! -x "$PROJECT_ROOT/skills/skill-timer/scripts/find_python.sh" ]]; then
     echo "❌ FAIL: find_python.sh not executable"
     exit 1
 fi
@@ -28,7 +28,7 @@ echo ""
 
 # Test 2: Python module loads without errors
 echo "TEST 2: Python module syntax"
-if ! python3 -m py_compile "$PROJECT_ROOT/skills/skill-timing/scripts/skill_timing.py" 2>/dev/null; then
+if ! python3 -m py_compile "$PROJECT_ROOT/skills/skill-timer/scripts/skill_timer.py" 2>/dev/null; then
     echo "❌ FAIL: Python module has syntax errors"
     exit 1
 fi
@@ -108,7 +108,7 @@ echo ""
 # Test 7: Parallel execution safety (collision resistance)
 echo "TEST 7: Parallel execution (10 concurrent runs)"
 
-rm -f "$TIMING_DATA_DIR"/skill-timing-*.json 2>/dev/null
+rm -f "$TIMING_DATA_DIR"/skill-timer-*.json 2>/dev/null
 
 for i in {1..10}; do
     $PYTHON "$TIMING_PY" start \
@@ -118,17 +118,17 @@ for i in {1..10}; do
 done
 wait
 
-RUN_IDS=$(ls -1 "$TIMING_DATA_DIR"/skill-timing-*.json 2>/dev/null | grep -v "registry" | grep -v "\-complete" | wc -l | tr -d ' ')
+RUN_IDS=$(ls -1 "$TIMING_DATA_DIR"/skill-timer-*.json 2>/dev/null | grep -v "registry" | grep -v "\-complete" | wc -l | tr -d ' ')
 
 if [[ "$RUN_IDS" -ne 10 ]]; then
     echo "❌ FAIL: Expected 10 unique run IDs, got $RUN_IDS"
     echo "Timing files created:"
-    ls -1 "$TIMING_DATA_DIR"/skill-timing-*.json 2>/dev/null
-    rm -f "$TIMING_DATA_DIR"/skill-timing-*.json
+    ls -1 "$TIMING_DATA_DIR"/skill-timer-*.json 2>/dev/null
+    rm -f "$TIMING_DATA_DIR"/skill-timer-*.json
     exit 1
 fi
 
-rm -f "$TIMING_DATA_DIR"/skill-timing-*.json
+rm -f "$TIMING_DATA_DIR"/skill-timer-*.json
 
 echo "✓ PASS: Parallel execution safe (10 unique run IDs)"
 echo ""
@@ -329,9 +329,9 @@ echo "✓ PASS: Completed-file recovery works (idempotent end)"
 echo ""
 
 # Final cleanup
-rm -f "$TIMING_DATA_DIR"/skill-timing-*-complete.json
-rm -f "$TIMING_DATA_DIR"/skill-timing-registry.json
-rm -f "$TIMING_DATA_DIR"/skill-timing-*.json
+rm -f "$TIMING_DATA_DIR"/skill-timer-*-complete.json
+rm -f "$TIMING_DATA_DIR"/skill-timer-registry.json
+rm -f "$TIMING_DATA_DIR"/skill-timer-*.json
 
 # Test 16: Dimension timings passed via --dimension-timings
 echo "TEST 16: Dimension timings via --dimension-timings"
@@ -357,7 +357,7 @@ if ! echo "$DIM_MD_OUTPUT" | grep -q "### Per-Dimension Timing"; then
     exit 1
 fi
 
-COMPLETED_FILE="$TIMING_DATA_DIR/skill-timing-${TEST_RUN_ID}-complete.json"
+COMPLETED_FILE="$TIMING_DATA_DIR/skill-timer-${TEST_RUN_ID}-complete.json"
 if ! python3 -c "import json; d=json.load(open('$COMPLETED_FILE')); assert 'dimension_timings' in d, 'missing dimension_timings'" 2>/dev/null; then
     echo "❌ FAIL: Completed JSON missing dimension_timings array"
     rm -f "$PROJECT_ROOT/test-dim.md"
@@ -624,11 +624,11 @@ echo "✓ PASS: Mixed runs handled correctly (only 2 contribute to per-dimension
 echo ""
 
 # Test cleanup
-rm -f "$TIMING_DATA_DIR"/skill-timing-*-complete.json
-rm -f "$TIMING_DATA_DIR"/skill-timing-registry.json
-rm -f "$TIMING_DATA_DIR"/skill-timing-*.json
+rm -f "$TIMING_DATA_DIR"/skill-timer-*-complete.json
+rm -f "$TIMING_DATA_DIR"/skill-timer-registry.json
+rm -f "$TIMING_DATA_DIR"/skill-timer-*.json
 rm -f "$PROJECT_ROOT/reviews/.timing-baselines.json"
-rm -f /tmp/skill_timing_test_*
+rm -f /tmp/skill_timer_test_*
 
 echo "========================================"
 echo "All 23 tests passed!"

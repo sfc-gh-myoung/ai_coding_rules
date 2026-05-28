@@ -1,7 +1,13 @@
 # Changelog
 
-All notable changes to the `create-plan` skill are documented here.
+All notable changes to the `plan-creator` skill are documented here.
 Format: reverse-chronological order (newest version first).
+
+## 2.0.0 — 2026-05-14
+
+- **Breaking:** Renamed skill from `create-plan` to `plan-creator` to align with
+  the `<noun>-<agent-noun>` naming convention used across this skill collection.
+  Any caller pinning `name: create-plan` must update to `name: plan-creator`.
 
 ## 1.0.1 — 2026-04-25
 

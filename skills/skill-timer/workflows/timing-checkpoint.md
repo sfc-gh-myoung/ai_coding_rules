@@ -1,5 +1,12 @@
 # Workflow: Timing Checkpoint
 
+> **DEPRECATED for per-dimension capture (v2.0.0+).** The
+> `dim_<name>_start` / `dim_<name>_end` checkpoint pattern is superseded by
+> the `wrap` subcommand (`skills/skill-timer/workflows/timing-wrap.md`),
+> which atomically captures duration with a server-side end timestamp.
+> Callers using `dim_*` checkpoints will see a deprecation WARNING from
+> `cmd_end`. The pattern continues to work for backward compatibility.
+
 ## Purpose
 
 Record an intermediate timing checkpoint for detailed analysis.
@@ -18,10 +25,10 @@ Record an intermediate timing checkpoint for detailed analysis.
 
 ```bash
 # Discover Python interpreter (once per session):
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
 
 # Record checkpoint:
-$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+$PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
     --run-id '{{run_id}}' \
     --name '{{checkpoint_name}}'
 ```

@@ -14,8 +14,8 @@ Establish a performance baseline and compare future runs against it.
 Before setting a baseline, analyze your timing data:
 
 ```bash
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
-$PYTHON skills/skill-timing/scripts/skill_timing.py analyze \
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
+$PYTHON skills/skill-timer/scripts/skill_timer.py analyze \
     --skill rule-reviewer \
     --model claude-sonnet-45 \
     --days 30
@@ -44,7 +44,7 @@ P95:         5m 45s (345.00s)
 Once you have enough data points, set a baseline:
 
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py baseline set \
+$PYTHON skills/skill-timer/scripts/skill_timer.py baseline set \
     --skill rule-reviewer \
     --mode FULL \
     --model claude-sonnet-45 \
@@ -69,7 +69,7 @@ Future timing runs automatically compare against the baseline:
 
 ```bash
 # Start timing
-$PYTHON skills/skill-timing/scripts/skill_timing.py start \
+$PYTHON skills/skill-timer/scripts/skill_timer.py start \
     --skill rule-reviewer \
     --target rules/100-snowflake-core.md \
     --model claude-sonnet-45 \
@@ -78,7 +78,7 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py start \
 # [Execute skill...]
 
 # End timing
-$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+$PYTHON skills/skill-timer/scripts/skill_timer.py end \
     --run-id a1b2c3d4e5f67890 \
     --output-file reviews/100-snowflake-core-review.md \
     --skill rule-reviewer
@@ -86,7 +86,7 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py end \
 
 **Output with Baseline:**
 ```
-TIMING: skill-timing v1.3.0
+TIMING: skill-timer v1.3.0
 ----------------------------------------
 Run ID:      a1b2c3d4e5f67890
 ...
@@ -103,7 +103,7 @@ Baseline:    +6.4% vs avg (within normal)
 Compare a specific run against baseline:
 
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py baseline compare \
+$PYTHON skills/skill-timer/scripts/skill_timer.py baseline compare \
     --run-id a1b2c3d4e5f67890
 ```
 
@@ -151,7 +151,7 @@ Re-run baseline set periodically to account for model changes or skill updates:
 
 ```bash
 # Update baseline with recent data only
-$PYTHON skills/skill-timing/scripts/skill_timing.py baseline set \
+$PYTHON skills/skill-timer/scripts/skill_timer.py baseline set \
     --skill rule-reviewer \
     --mode FULL \
     --model claude-sonnet-45 \
@@ -163,7 +163,7 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py baseline set \
 For testing, use `--min-samples` to lower the threshold:
 
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py baseline set \
+$PYTHON skills/skill-timer/scripts/skill_timer.py baseline set \
     --skill rule-reviewer \
     --mode FULL \
     --model claude-sonnet-45 \

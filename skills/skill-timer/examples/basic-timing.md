@@ -15,8 +15,8 @@ Time a rule-reviewer skill execution on a single file with minimal configuration
 ### Step 1: Start Timing
 
 ```bash
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
-$PYTHON skills/skill-timing/scripts/skill_timing.py start \
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
+$PYTHON skills/skill-timer/scripts/skill_timer.py start \
     --skill rule-reviewer \
     --target rules/100-snowflake-core.md \
     --model claude-sonnet-45
@@ -25,7 +25,7 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py start \
 **Output:**
 ```
 TIMING_RUN_ID=a1b2c3d4e5f67890
-TIMING_FILE=reviews/.timing-data/skill-timing-a1b2c3d4e5f67890.json
+TIMING_FILE=reviews/.timing-data/skill-timer-a1b2c3d4e5f67890.json
 TIMING_AGENT_ID=cortex-code-12345
 ```
 
@@ -38,7 +38,7 @@ Run the target skill (rule-reviewer in this case). The skill execution happens b
 ### Step 3: End Timing
 
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+$PYTHON skills/skill-timer/scripts/skill_timer.py end \
     --run-id a1b2c3d4e5f67890 \
     --output-file reviews/100-snowflake-core-review.md \
     --skill rule-reviewer
@@ -51,7 +51,7 @@ TIMING_START=2026-01-06T10:30:00+00:00
 TIMING_END=2026-01-06T10:33:45+00:00
 TIMING_STATUS=completed
 
-TIMING: skill-timing v1.5.0
+TIMING: skill-timer v1.5.0
 ----------------------------------------
 Run ID:      a1b2c3d4e5f67890
 Skill:       rule-reviewer
@@ -107,7 +107,7 @@ grep -q "## Timing Metadata" reviews/100-snowflake-core-review.md && echo "Succe
 | Location | Description |
 |----------|-------------|
 | Output file | Contains `## Timing Metadata` section |
-| `reviews/.timing-data/skill-timing-{run_id}-complete.json` | Persistent timing data |
+| `reviews/.timing-data/skill-timer-{run_id}-complete.json` | Persistent timing data |
 
 ## Common Issues
 

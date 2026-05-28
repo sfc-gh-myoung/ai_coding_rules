@@ -1,0 +1,169 @@
+{
+  "run_id": "f92f9d72f408a356",
+  "skill_name": "plan-reviewer",
+  "target_file": "/Users/myoung/Development/ai_coding_rules/.snowflake/cortex/plans/zero-reference-scan-for-the-removed-field.plan.md",
+  "model": "openai-gpt-5.5",
+  "review_mode": "FULL",
+  "start_epoch": 1779019924.685963,
+  "start_iso": "2026-05-17T12:12:04.685963+00:00",
+  "pid": 13835,
+  "agent": "unknown",
+  "checkpoints": [
+    {
+      "name": "skill_loaded",
+      "elapsed_seconds": 48.55,
+      "timestamp": "2026-05-17T12:12:53.240743+00:00"
+    },
+    {
+      "name": "dim_executability_start",
+      "elapsed_seconds": 49.66,
+      "timestamp": "2026-05-17T12:12:54.340981+00:00"
+    },
+    {
+      "name": "dim_executability_end",
+      "elapsed_seconds": 50.76,
+      "timestamp": "2026-05-17T12:12:55.448679+00:00"
+    },
+    {
+      "name": "dim_completeness_start",
+      "elapsed_seconds": 51.84,
+      "timestamp": "2026-05-17T12:12:56.526844+00:00"
+    },
+    {
+      "name": "dim_completeness_end",
+      "elapsed_seconds": 52.93,
+      "timestamp": "2026-05-17T12:12:57.617478+00:00"
+    },
+    {
+      "name": "dim_success_criteria_start",
+      "elapsed_seconds": 54.08,
+      "timestamp": "2026-05-17T12:12:58.764458+00:00"
+    },
+    {
+      "name": "dim_success_criteria_end",
+      "elapsed_seconds": 55.2,
+      "timestamp": "2026-05-17T12:12:59.881120+00:00"
+    },
+    {
+      "name": "dim_scope_start",
+      "elapsed_seconds": 56.3,
+      "timestamp": "2026-05-17T12:13:00.990836+00:00"
+    },
+    {
+      "name": "dim_scope_end",
+      "elapsed_seconds": 57.41,
+      "timestamp": "2026-05-17T12:13:02.097849+00:00"
+    },
+    {
+      "name": "dim_dependencies_start",
+      "elapsed_seconds": 58.52,
+      "timestamp": "2026-05-17T12:13:03.205957+00:00"
+    },
+    {
+      "name": "dim_dependencies_end",
+      "elapsed_seconds": 59.6,
+      "timestamp": "2026-05-17T12:13:04.283056+00:00"
+    },
+    {
+      "name": "dim_decomposition_start",
+      "elapsed_seconds": 60.69,
+      "timestamp": "2026-05-17T12:13:05.370998+00:00"
+    },
+    {
+      "name": "dim_decomposition_end",
+      "elapsed_seconds": 61.79,
+      "timestamp": "2026-05-17T12:13:06.479454+00:00"
+    },
+    {
+      "name": "dim_context_start",
+      "elapsed_seconds": 62.88,
+      "timestamp": "2026-05-17T12:13:07.568643+00:00"
+    },
+    {
+      "name": "dim_context_end",
+      "elapsed_seconds": 63.98,
+      "timestamp": "2026-05-17T12:13:08.662158+00:00"
+    },
+    {
+      "name": "dim_risk_awareness_start",
+      "elapsed_seconds": 65.08,
+      "timestamp": "2026-05-17T12:13:09.768718+00:00"
+    },
+    {
+      "name": "dim_risk_awareness_end",
+      "elapsed_seconds": 66.16,
+      "timestamp": "2026-05-17T12:13:10.846063+00:00"
+    },
+    {
+      "name": "review_complete",
+      "elapsed_seconds": 67.25,
+      "timestamp": "2026-05-17T12:13:11.939787+00:00"
+    }
+  ],
+  "status": "completed",
+  "end_epoch": 1779020170.7688582,
+  "end_iso": "2026-05-17T12:16:10.768860+00:00",
+  "duration_seconds": 246.08,
+  "duration_human": "4m 6s",
+  "output_file": "/Users/myoung/Development/ai_coding_rules/reviews/plan-reviews/plan-zero-reference-scan-for-the-removed-field-openai-gpt-5-5-2026-05-17.md",
+  "dimension_timings": [
+    {
+      "dimension": "completeness",
+      "duration_seconds": 1.09,
+      "mode": "checkpoint",
+      "start_epoch": 1779019976.525963,
+      "end_epoch": 1779019977.615963
+    },
+    {
+      "dimension": "context",
+      "duration_seconds": 1.1,
+      "mode": "checkpoint",
+      "start_epoch": 1779019987.565963,
+      "end_epoch": 1779019988.665963
+    },
+    {
+      "dimension": "decomposition",
+      "duration_seconds": 1.1,
+      "mode": "checkpoint",
+      "start_epoch": 1779019985.375963,
+      "end_epoch": 1779019986.475963
+    },
+    {
+      "dimension": "dependencies",
+      "duration_seconds": 1.08,
+      "mode": "checkpoint",
+      "start_epoch": 1779019983.205963,
+      "end_epoch": 1779019984.285963
+    },
+    {
+      "dimension": "executability",
+      "duration_seconds": 1.1,
+      "mode": "checkpoint",
+      "start_epoch": 1779019974.345963,
+      "end_epoch": 1779019975.445963
+    },
+    {
+      "dimension": "risk_awareness",
+      "duration_seconds": 1.08,
+      "mode": "checkpoint",
+      "start_epoch": 1779019989.765963,
+      "end_epoch": 1779019990.845963
+    },
+    {
+      "dimension": "scope",
+      "duration_seconds": 1.11,
+      "mode": "checkpoint",
+      "start_epoch": 1779019980.985963,
+      "end_epoch": 1779019982.095963
+    },
+    {
+      "dimension": "success_criteria",
+      "duration_seconds": 1.12,
+      "mode": "checkpoint",
+      "start_epoch": 1779019978.765963,
+      "end_epoch": 1779019979.885963
+    }
+  ],
+  "per_dimension_status": "derived",
+  "alerts": []
+}

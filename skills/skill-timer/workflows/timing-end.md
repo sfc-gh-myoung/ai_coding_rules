@@ -43,8 +43,8 @@ If `run_id` is `none`, skip this workflow.
 Otherwise, execute:
 
 ```bash
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
-$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
+$PYTHON skills/skill-timer/scripts/skill_timer.py end \
     --run-id '{{run_id}}' \
     --output-file '{{output_file}}' \
     --skill '{{skill_name}}' \
@@ -100,7 +100,7 @@ If missing and `_timing_run_id` exists, re-run `end --format markdown` (the comp
 
 **Missing timing file:**
 1. Attempt agent memory recovery from registry
-2. If recovery fails, check for completed file (`reviews/.timing-data/skill-timing-{run_id}-complete.json`)
+2. If recovery fails, check for completed file (`reviews/.timing-data/skill-timer-{run_id}-complete.json`)
 3. If no completed file, log warning
 4. Do NOT add Timing Metadata section
 5. Consider skill execution successful

@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "timing-output.schema.json",
+  "$id": "timing-output.schema.json#v2.0.0",
   "title": "Skill Timing Output",
-  "description": "Schema for skill-timing output data. All timing data must conform to this schema.",
+  "description": "Schema for skill-timer output data. v2.0.0 robustness redesign: monotonic clock, expanded mode/status enums, distribution alerts, finalize stages, and per-row validation_status. All timing data must conform to this schema.",
   "type": "object",
   "required": ["run_id", "skill_name", "model", "start_iso", "end_iso", "duration_seconds", "status"],
   "additionalProperties": true,
@@ -41,7 +41,11 @@
     },
     "start_epoch": {
       "type": "number",
-      "description": "Unix timestamp of start time"
+      "description": "Unix wall-clock timestamp of start time"
+    },
+    "start_monotonic": {
+      "type": "number",
+      "description": "v2.0.0: time.monotonic() value at start (per-process only)"
     },
     "start_iso": {
       "type": "string",
@@ -50,7 +54,20 @@
     },
     "end_epoch": {
       "type": "number",
-      "description": "Unix timestamp of end time"
+      "description": "Unix wall-clock timestamp of end time"
+    },
+    "end_monotonic": {
+      "type": "number",
+      "description": "v2.0.0: time.monotonic() value at end"
+    },
+    "clock_source": {
+      "type": "string",
+      "enum": ["monotonic", "wall"],
+      "description": "v2.0.0: which clock supplied duration_seconds"
+    },
+    "duration_seconds_monotonic": {
+      "type": "number",
+      "description": "v2.0.0: full-precision monotonic delta (when clock_source=monotonic)"
     },
     "end_iso": {
       "type": "string",
@@ -69,8 +86,27 @@
     },
     "status": {
       "type": "string",
-      "enum": ["completed", "warning", "error", "missing"],
-      "description": "Final status of the timing run"
+      "enum": ["completed", "warning", "error", "missing", "dimension_invalid", "instrumentation_failed"],
+      "description": "Final status of the timing run (v2.0.0 adds dimension_invalid, instrumentation_failed)"
+    },
+    "work_window_seconds": {
+      "type": "number",
+      "description": "v2.0.0: denominator used for coverage / post-review-gap math"
+    },
+    "work_window_source": {
+      "type": "string",
+      "description": "v2.0.0: which fallback rule supplied the work_window"
+    },
+    "finalize": {
+      "type": "object",
+      "description": "v2.0.0: stage markers for work-complete semantics",
+      "properties": {
+        "pre_write_epoch": {"type": "number"},
+        "pre_write_monotonic": {"type": "number"},
+        "post_write_epoch": {"type": "number"},
+        "post_write_monotonic": {"type": "number"},
+        "review_artifact": {"type": "string"}
+      }
     },
     "output_file": {
       "type": "string",
@@ -91,6 +127,14 @@
             "type": "number",
             "minimum": 0,
             "description": "Seconds elapsed since start (2 decimal places)"
+          },
+          "elapsed_seconds_raw": {
+            "type": "number",
+            "description": "v2.0.0: full-precision monotonic elapsed (no rounding)"
+          },
+          "epoch": {
+            "type": "number",
+            "description": "v2.0.0: wall-clock epoch at which checkpoint was recorded"
           },
           "timestamp": {
             "type": "string",
@@ -128,27 +172,39 @@
     },
     "alerts": {
       "type": "array",
-      "description": "Anomaly alerts triggered during timing",
+      "description": "Anomaly alerts triggered during timing (legacy + v2.0.0 distribution validator)",
       "items": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": ["error_short_duration", "warning_short_duration", "warning_long_duration"],
-            "description": "Alert type"
+            "enum": [
+              "error_short_duration",
+              "warning_short_duration",
+              "warning_long_duration",
+              "dim_uniformity_suspect",
+              "dim_floor_violation",
+              "dim_coverage_low",
+              "dim_coverage_severe",
+              "dim_coverage_overrun",
+              "dim_total_short",
+              "checkpoint_burst",
+              "post_review_gap",
+              "clock_skew",
+              "missing_expected_dimension",
+              "duplicate_dim_checkpoints"
+            ],
+            "description": "Alert type (legacy + v2.0.0 distribution validator)"
           },
-          "threshold_seconds": {
-            "type": "number",
-            "description": "Threshold that was crossed"
-          },
-          "actual_seconds": {
-            "type": "number",
-            "description": "Actual duration"
-          },
-          "message": {
+          "severity": {
             "type": "string",
-            "description": "Human-readable alert message"
-          }
+            "enum": ["warning", "error"],
+            "description": "v2.0.0: alert severity"
+          },
+          "threshold_seconds": {"type": "number"},
+          "actual_seconds": {"type": "number"},
+          "message": {"type": "string"},
+          "details": {"type": "object", "additionalProperties": true}
         }
       }
     },
@@ -170,17 +226,47 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["checkpoint", "self-report", "self-report-flagged", "coordinator", "inline", "failed", "validation-failed"],
-            "description": "How timing was measured: checkpoint (sequential), self-report (parallel sub-agent), inline (deterministic), failed (error)"
+            "enum": [
+              "checkpoint",
+              "self-report",
+              "self-report-flagged",
+              "coordinator",
+              "inline",
+              "wrap",
+              "failed",
+              "validation-failed",
+              "unavailable",
+              "not-requested"
+            ],
+            "description": "How timing was measured. v2.0.0 adds wrap/unavailable/not-requested."
           },
+          "validation_status": {
+            "type": "string",
+            "enum": ["valid", "warning", "failed", "not_requested", "unavailable"],
+            "description": "v2.0.0: per-row validation outcome"
+          },
+          "validation_warning": {"type": "string"},
+          "validation_error": {"type": "string"},
           "start_epoch": {
             "type": "number",
-            "description": "Unix timestamp when dimension evaluation started (parallel mode)"
+            "description": "Unix timestamp when dimension evaluation started"
           },
           "end_epoch": {
             "type": "number",
-            "description": "Unix timestamp when dimension evaluation ended (parallel mode)"
-          }
+            "description": "Unix timestamp when dimension evaluation ended"
+          },
+          "start_monotonic": {"type": "number"},
+          "end_monotonic": {"type": "number"},
+          "clock_source": {
+            "type": "string",
+            "enum": ["monotonic", "wall"]
+          },
+          "evidence_bytes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "v2.0.0: bytes of --evidence supplied to wrap subcommand"
+          },
+          "evidence_source": {"type": "string"}
         }
       }
     },

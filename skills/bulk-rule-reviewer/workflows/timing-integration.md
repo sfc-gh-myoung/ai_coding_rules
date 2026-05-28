@@ -13,37 +13,37 @@ mode) report back via JSON.
 
 ```bash
 # --- Setup ---
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
-BULK_RUN_ID=$($PYTHON skills/skill-timing/scripts/skill_timing.py start \
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
+BULK_RUN_ID=$($PYTHON skills/skill-timer/scripts/skill_timer.py start \
     --skill bulk-rule-reviewer --target rules/ --model {{model}} --mode {{review_mode}})
 
 # --- Stage checkpoints ---
-$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+$PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
     --run-id $BULK_RUN_ID --name skill_loaded
-$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+$PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
     --run-id $BULK_RUN_ID --name discovery_complete
 
 # --- FOR EACH rule (MANDATORY when timing_enabled: true) ---
 for rule_file in "${rule_file_paths[@]}"; do
     RULE_SLUG=$(basename "$rule_file" .md)
-    $PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+    $PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
         --run-id $BULK_RUN_ID --name rule_${RULE_SLUG}_start
     # ... invoke rule-reviewer for $rule_file (child run_id captures
     #     per-dimension timings in its own Timing Metadata section) ...
-    $PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+    $PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
         --run-id $BULK_RUN_ID --name rule_${RULE_SLUG}_end
 done
 
 # --- Remaining stages ---
-$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+$PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
     --run-id $BULK_RUN_ID --name reviews_complete
-$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+$PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
     --run-id $BULK_RUN_ID --name aggregation_complete
-$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+$PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
     --run-id $BULK_RUN_ID --name summary_complete
 
 # --- End: auto-derive per-rule durations from rule_*_start/end pairs ---
-$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+$PYTHON skills/skill-timer/scripts/skill_timer.py end \
     --run-id $BULK_RUN_ID \
     --output-file {{output_root}}/summaries/_bulk-review-{{model}}-{{date}}.md \
     --skill bulk-rule-reviewer --format markdown \
@@ -54,7 +54,7 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py end \
 durations from `dim_*_start/end` pairs embedded in each review's child
 run_id. Bulk-level per-RULE durations are computed by
 `workflows/aggregation.md` parsing the `rule_*_start/end` checkpoints on
-`$BULK_RUN_ID` (no skill-timing change needed).
+`$BULK_RUN_ID` (no skill-timer change needed).
 
 ## Contract
 
@@ -75,7 +75,7 @@ run_id. Bulk-level per-RULE durations are computed by
 
 - **You (coordinator)** capture: bulk run_id, `rule_*_start/end` pairs,
   child run_ids from rule-reviewer.
-- **skill-timing** validates/formats and emits
+- **skill-timer** validates/formats and emits
   `PER_DIMENSION_STATUS={present|derived|missing}`.
 
 Silent omission produces a summary without the Timing Breakdown section
@@ -113,7 +113,7 @@ WRONG:
 [{"dimension": "actionability", "duration_seconds": 12.4}]
 ```
 
-(Missing `mode` field — skill-timing v1.5.0 strips entry with
+(Missing `mode` field — skill-timer v1.5.0 strips entry with
 `VALIDATION ERROR`.)
 
 Correct:
@@ -122,7 +122,7 @@ Correct:
 [{"dimension": "actionability", "duration_seconds": 12.4, "mode": "coordinator"}]
 ```
 
-### Pattern 3: Ignored `VALIDATION ERROR` from skill-timing
+### Pattern 3: Ignored `VALIDATION ERROR` from skill-timer
 
 WRONG: Agent sees "VALIDATION ERROR: missing `mode`" and proceeds, producing
 a summary with empty `dimension_timings` array and no Timing Breakdown

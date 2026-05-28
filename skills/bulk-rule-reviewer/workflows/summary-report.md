@@ -470,7 +470,7 @@ These rules are excluded from 10.2-10.4 statistics but remain in the score table
 ### Rendering Rules
 
 1. **Gate:** If `timing_stats is None`, emit nothing for Section 10 and continue. The rest of the summary is unchanged.
-2. **Ordering:** Section 10 appears AFTER the Appendix and BEFORE any timing metadata embedded by `skill_timing.py end --output-file` (if timing-end appends its own block, the Section 10 narrative precedes it).
+2. **Ordering:** Section 10 appears AFTER the Appendix and BEFORE any timing metadata embedded by `skill_timer.py end --output-file` (if timing-end appends its own block, the Section 10 narrative precedes it).
 3. **Warnings:** If `timing_stats.warnings` is empty, render "No warnings." Never omit 10.5.
 4. **Parallel mode:** Add a sub-section "10.6 Sub-Agent Timing" rendering per-worker stats from the sub-agent JSON contract (see `workflows/parallel-execution.md`).
 

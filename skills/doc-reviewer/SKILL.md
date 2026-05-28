@@ -164,7 +164,7 @@ Convert model name to lowercase-hyphenated slug for filenames.
 
 When enabled, follow the canonical command matrix, per-dimension checkpoint
 names, Quick Reference block, validation gates, and anti-pattern guide in
-`workflows/timing-integration.md`. Requires skill-timing ≥ v1.5.0.
+`workflows/timing-integration.md`. Requires skill-timer ≥ v1.5.0.
 
 Key rules (full details in `workflows/timing-integration.md`):
 
@@ -291,6 +291,26 @@ Tests external URLs for 200 status, identifies redirects and 404s, checks tool v
 - Test external links for 404s
 - If file write fails: Print `OUTPUT_FILE: <path>` then full review
 
+## Gate 8 — Per-Dimension Timing rejection (skill-timer v2.0.0+)
+
+After `skill_timer.py end` returns, check the run-level `status` field:
+
+- If `status ∈ {dimension_invalid, instrumentation_failed}`: **DO NOT
+  publish** the "Per-Dimension Timing" markdown table. Instead emit:
+
+  ```
+  > **Per-Dimension Timing rejected**
+  >
+  > Per-dimension timing data was rejected by skill-timer v2.0.0 due to
+  > alerts: <comma-separated alert types>. See
+  > `reviews/.timing-data/skill-timer-{run_id}-complete.json` for details.
+  ```
+
+- If `status ∈ {completed, warning}`: publish the table as before.
+
+This gate is mirrored in plan-reviewer, rule-reviewer, and bulk-rule-reviewer
+SKILL.md files.
+
 ## Examples
 
 - `examples/full-review.md` - Complete FULL mode README review
@@ -302,7 +322,7 @@ Tests external URLs for 200 status, identifies redirects and 404s, checks tool v
 
 - **rule-creator** - Create rules (documentation follows similar quality standards)
 - **plan-reviewer** - Review plans (complementary)
-- **skill-timing** (≥ v1.5.0) - Provides `--auto-dimension-timings` used by Step 4a and Gate 7.
+- **skill-timer** (≥ v1.5.0) - Provides `--auto-dimension-timings` used by Step 4a and Gate 7.
 
 ## References
 

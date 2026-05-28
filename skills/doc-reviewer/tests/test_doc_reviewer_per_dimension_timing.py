@@ -2,7 +2,7 @@
 
 Verifies that bracketing each of the 6 scored documentation dimensions with
 `dim_<name>_start` / `dim_<name>_end` checkpoint pairs and calling
-`skill_timing.py end --auto-dimension-timings` produces a completed JSON
+`skill_timer.py end --auto-dimension-timings` produces a completed JSON
 record with 6 derived dimension timings.
 
 Mirrors `skills/rule-reviewer/tests/test_gate7_integration.py` adapted for
@@ -21,7 +21,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-SCRIPT = REPO_ROOT / "skills" / "skill-timing" / "scripts" / "skill_timing.py"
+SCRIPT = REPO_ROOT / "skills" / "skill-timer" / "scripts" / "skill_timer.py"
 
 SCORED_DIMENSIONS = [
     "accuracy",
@@ -34,7 +34,7 @@ SCORED_DIMENSIONS = [
 
 
 def sh(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
-    """Run skill_timing.py with given args in specified directory."""
+    """Run skill_timer.py with given args in specified directory."""
     return subprocess.run(
         [sys.executable, str(SCRIPT), *args],
         cwd=cwd,
@@ -103,7 +103,7 @@ def test_per_dimension_timing_derived(tmp_path):
     )
     assert r.returncode in (0, 2, 3), r.stderr
 
-    completed = tmp_path / "reviews" / ".timing-data" / f"skill-timing-{run_id}-complete.json"
+    completed = tmp_path / "reviews" / ".timing-data" / f"skill-timer-{run_id}-complete.json"
     assert completed.exists(), "completed JSON not written"
     data = json.loads(completed.read_text())
 

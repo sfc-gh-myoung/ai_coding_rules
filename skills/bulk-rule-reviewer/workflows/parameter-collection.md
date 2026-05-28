@@ -385,7 +385,7 @@ Ask the user via `ask_user_question`:
   "header": "Timing",
   "question": "Enable per-rule and per-dimension timing capture? (default: Yes. Adds 1-3s overhead per rule; produces Section 10 Timing Breakdown in master summary)",
   "options": [
-    {"label": "Yes - enable timing (default)", "description": "Captures bulk-level, per-rule, and per-dimension durations. Requires skill-timing v1.5.0+."},
+    {"label": "Yes - enable timing (default)", "description": "Captures bulk-level, per-rule, and per-dimension durations. Requires skill-timer v1.5.0+."},
     {"label": "No - opt out", "description": "Master summary still includes Timing Breakdown section; per-rule rows marked `not-requested`."}
   ]
 }
@@ -403,4 +403,4 @@ If the caller passes `timing_enabled` as an explicit input parameter (programmat
 ### Validation
 
 - Must be boolean `true` or `false`; reject strings like `"true"` with `VALIDATION ERROR`.
-- If `true`, verify `skill-timing/scripts/find_python.sh` exists and is executable before proceeding. If missing, STOP with error guiding the user to install skill-timing v1.5.0+.
+- If `true`, verify `skill-timer/scripts/find_python.sh` exists and is executable before proceeding. If missing, STOP with error guiding the user to install skill-timer v1.5.0+.

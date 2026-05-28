@@ -2,6 +2,16 @@
 
 All notable changes to the `rule-reviewer` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## Unreleased — Gate 8 (skill-timer v2.0.0+)
+
+- Added **Gate 8** to SKILL.md: when `skill_timer.py end` returns
+  `status ∈ {dimension_invalid, instrumentation_failed}`, refuse to
+  publish the Per-Dimension Timing markdown table. Replace with a banner
+  pointing at the rejected JSON in `reviews/.timing-data/`.
+- No code changes in this skill; the gate is enforced at the markdown-emit
+  step. See `skills/skill-timer/CHANGELOG.md` v2.0.0 for the underlying
+  mechanism (new exit code 4, status enum extensions, distribution validator).
+
 ## v2.9.0 (2026-04-21) — Per-dimension timing is the universal default
 
 - `timing_enabled` default flipped from `false` to `true` across all invocation paths.

@@ -174,7 +174,7 @@ If parallel execution fails catastrophically:
 
 Each of the 8 dimension sub-agents MUST return a single `dimension_timings`
 entry for its dimension. The coordinator aggregates all 8 entries into a JSON
-array and passes them to `skill_timing.py end --dimension-timings`.
+array and passes them to `skill_timer.py end --dimension-timings`.
 
 ### Per-Sub-Agent Entry Schema
 
@@ -205,7 +205,7 @@ array and passes them to `skill_timing.py end --dimension-timings`.
 5. Pass to `end`:
 
    ```bash
-   $PYTHON skills/skill-timing/scripts/skill_timing.py end \
+   $PYTHON skills/skill-timer/scripts/skill_timer.py end \
        --run-id {{_timing_run_id}} \
        --output-file {{output_path}} \
        --skill plan-reviewer --format markdown \
@@ -230,5 +230,5 @@ array and passes them to `skill_timing.py end --dimension-timings`.
 ]
 ```
 
-This payload conforms to the schema in `skills/skill-timing/schemas/` and is
+This payload conforms to the schema in `skills/skill-timer/schemas/` and is
 directly accepted by `--dimension-timings`.

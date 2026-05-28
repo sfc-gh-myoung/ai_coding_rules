@@ -148,7 +148,7 @@ Timing` section itself must still be present.
    - Append a single `unavailable` row with the failure reason so the omission is visible.
 4. Aggregate Gate 7 pass/fail counts into the batch summary report.
 
-**Requires skill-timing v1.5.0+ and rule-reviewer v2.8.0+** (for
+**Requires skill-timer v1.5.0+ and rule-reviewer v2.8.0+** (for
 `--auto-dimension-timings`, `PER_DIMENSION_STATUS` marker, and mandatory Step 6a checkpoints).
 
 ## Why This Works

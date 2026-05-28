@@ -45,7 +45,7 @@
    success_criteria, scope, dependencies, decomposition, context, risk_awareness).
 2. **Pass timing data to `end`:** Use `--auto-dimension-timings` (preferred) or
    supply a validated `--dimension-timings` JSON array manually.
-3. **Verify `PER_DIMENSION_STATUS`:** Stdout from `skill_timing.py end` must
+3. **Verify `PER_DIMENSION_STATUS`:** Stdout from `skill_timer.py end` must
    print `PER_DIMENSION_STATUS=present` or `PER_DIMENSION_STATUS=derived`.
    A value of `missing` is a hard failure — re-run `end`.
 
@@ -53,7 +53,7 @@
 
 1. ❌ Omitting per-dimension timing when `timing_enabled: true` → Gate 7 rejects.
 2. ❌ Fabricating start/end epochs or duration values.
-3. ❌ Ignoring `VALIDATION ERROR` output from `skill_timing.py end`.
+3. ❌ Ignoring `VALIDATION ERROR` output from `skill_timer.py end`.
 
 ## Prohibited Behaviors (NEVER DO)
 

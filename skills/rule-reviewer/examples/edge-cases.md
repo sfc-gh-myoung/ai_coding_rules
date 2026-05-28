@@ -348,7 +348,7 @@ Cross-skill validation request detected.
 Workflow:
 1. Verify rule-creator completion:
    - Check ai-rules validate passed (exit code 0)
-   - Check RULES_INDEX.md entry exists
+   - Check rules/*.md Keywords entry exists
 
 2. Run rule-reviewer FULL review:
    - target_file: rules/425-nextjs-core.md
@@ -416,7 +416,7 @@ When reviewing rules created by rule-creator skill:
 
 2. **Check indexing:**
    ```bash
-   grep "<rule-name>" RULES_INDEX.md
+   grep "<rule-name>" rules/*.md Keywords
    # Must find entry
    ```
 

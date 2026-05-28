@@ -327,7 +327,7 @@ With `skip_existing=true` (default):
 1. Emit `rule_{slug}_start` / `rule_{slug}_end` checkpoints on `$BULK_RUN_ID` for every rule dispatched to a sub-agent (see SKILL.md Quick Reference). These are the canonical per-rule durations.
 2. Inject `timing_enabled: true` into every sub-agent prompt via `workflows/subagent-prompt-template.md`.
 3. Collect sub-agent JSON payloads (schema below) and merge with on-disk review file parsing in `workflows/aggregation.md`.
-4. At end, invoke `skill_timing.py end --run-id $BULK_RUN_ID --auto-dimension-timings`.
+4. At end, invoke `skill_timer.py end --run-id $BULK_RUN_ID --auto-dimension-timings`.
 
 ### Sub-Agent Responsibilities
 

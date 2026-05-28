@@ -160,7 +160,7 @@ ELSE:
 
    On `timing-end`, pass `--auto-dimension-timings` (**preferred**) to derive the `dimension_timings` array from the captured checkpoint pairs automatically. Only assemble `--dimension-timings` JSON manually if you are aggregating sub-agent output (parallel mode).
 
-   **FAILURE TO DO THIS:** The `### Per-Dimension Timing` subsection will be absent and the review will fail post-write Quality Gate 7 (see `workflows/review-verification.md`). Requires skill-timing v1.5.0+.
+   **FAILURE TO DO THIS:** The `### Per-Dimension Timing` subsection will be absent and the review will fail post-write Quality Gate 7 (see `workflows/review-verification.md`). Requires skill-timer v1.5.0+.
 
 7. **Mid-Review Canary (after dimension 3) (SILENT).** See Canary Checks below.
 
@@ -262,7 +262,7 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
 
 bulk-rule-reviewer invokes this skill once per rule file. **Never** implement review logic yourself when bulk-rule-reviewer calls you. Context-preservation safeguards (pre-write verification, post-write size check, periodic refresh): `workflows/bulk-coordination.md`.
 
-### With skill-timing
+### With skill-timer
 
 **Execute IF:** `timing_enabled: true` (default).
 **Skip IF:** `timing_enabled: false` (explicit opt-out) — satisfy Gate 7 with a single `not-requested` row.
@@ -271,21 +271,21 @@ When enabled, execute ALL steps below (not optional once enabled):
 
 | When | Action | Command | Track |
 |------|--------|---------|-------|
-| Before review | Start timing | `$PYTHON skill_timing.py start --skill rule-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
-| After schema validation | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
-| Before EACH dimension | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_start` | - |
-| After EACH dimension | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_end` | - |
-| After scoring complete | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
-| Before file write | End timing | `$PYTHON skill_timing.py end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer --format markdown --auto-dimension-timings` | Store `_timing_stdout` |
+| Before review | Start timing | `$PYTHON skill_timer.py start --skill rule-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
+| After schema validation | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
+| Before EACH dimension | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_start` | - |
+| After EACH dimension | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_end` | - |
+| After scoring complete | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
+| Before file write | End timing | `$PYTHON skill_timer.py end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer --format markdown --auto-dimension-timings` | Store `_timing_stdout` |
 | After file write | Embed | Append `_timing_stdout` to output file | - |
 
 **Working memory contract:** Retain `_timing_run_id`, `_timing_stdout`, and `_dimension_timings` from start through embed.
 
-**Per-dimension timing responsibility:** skill-timing **validates and formats** the timing data you pass in. **You are responsible for capturing** start/end markers (checkpoint pairs in sequential mode, or sub-agent self-reports in parallel mode) around each dimension. Use `--auto-dimension-timings` in sequential mode (preferred).
+**Per-dimension timing responsibility:** skill-timer **validates and formats** the timing data you pass in. **You are responsible for capturing** start/end markers (checkpoint pairs in sequential mode, or sub-agent self-reports in parallel mode) around each dimension. Use `--auto-dimension-timings` in sequential mode (preferred).
 
 **Copy-paste bash quick reference, 4 common anti-patterns, and per-command validation procedure:** `workflows/timing-integration.md`.
 
-**Schema + epoch capture reference:** `../skill-timing/SKILL.md`.
+**Schema + epoch capture reference:** `../skill-timer/SKILL.md`.
 
 ## Error Handling
 
@@ -360,6 +360,26 @@ Typical FULL mode review: 3000-8000 bytes.
 - If 2000-13500 bytes: Acceptable range
 - If >13500 bytes: STOP, consolidate redundant content before writing
 
+## Gate 8 — Per-Dimension Timing rejection (skill-timer v2.0.0+)
+
+After `skill_timer.py end` returns, check the run-level `status` field:
+
+- If `status ∈ {dimension_invalid, instrumentation_failed}`: **DO NOT
+  publish** the "Per-Dimension Timing" markdown table. Instead emit:
+
+  ```
+  > **Per-Dimension Timing rejected**
+  >
+  > Per-dimension timing data was rejected by skill-timer v2.0.0 due to
+  > alerts: <comma-separated alert types>. See
+  > `reviews/.timing-data/skill-timer-{run_id}-complete.json` for details.
+  ```
+
+- If `status ∈ {completed, warning}`: publish the table as before.
+
+This gate is mirrored in plan-reviewer, doc-reviewer, and bulk-rule-reviewer
+SKILL.md files.
+
 ## Examples
 
 Complete review samples in `examples/`: `full-review.md`, `focused-review.md`, `staleness-review.md`, `project-file-review.md`, `edge-cases.md`. Authoritative fill-in skeleton: `references/REVIEW-OUTPUT-TEMPLATE.md`.
@@ -368,7 +388,7 @@ Complete review samples in `examples/`: `full-review.md`, `focused-review.md`, `
 
 - **bulk-rule-reviewer:** Batch review orchestrator (uses this skill)
 - **rule-creator:** Rule authoring (validated with this skill)
-- **skill-timing:** Execution time measurement (optional integration)
+- **skill-timer:** Execution time measurement (optional integration)
 
 ## Determinism Requirements
 

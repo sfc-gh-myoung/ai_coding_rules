@@ -1,4 +1,4 @@
-"""Integration test for rule-reviewer → skill-timing per-dimension timing round-trip.
+"""Integration test for rule-reviewer → skill-timer per-dimension timing round-trip.
 
 Verifies that the Quick Reference from skills/rule-reviewer/SKILL.md produces a review-style
 output file containing:
@@ -22,7 +22,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-SCRIPT = REPO_ROOT / "skills" / "skill-timing" / "scripts" / "skill_timing.py"
+SCRIPT = REPO_ROOT / "skills" / "skill-timer" / "scripts" / "skill_timer.py"
 
 SCORED_DIMENSIONS = [
     "actionability",
@@ -35,7 +35,7 @@ SCORED_DIMENSIONS = [
 
 
 def sh(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
-    """Run skill_timing.py with given args in specified directory."""
+    """Run skill_timer.py with given args in specified directory."""
     return subprocess.run(
         [sys.executable, str(SCRIPT), *args],
         cwd=cwd,
@@ -129,7 +129,7 @@ def test_rule_reviewer_quick_reference_roundtrip(tmp_path):
     assert total_seconds > 0, f"Gate 7: total duration not positive ({total_seconds})"
 
     # Completed JSON should record derived status
-    completed = tmp_path / "reviews" / ".timing-data" / f"skill-timing-{run_id}-complete.json"
+    completed = tmp_path / "reviews" / ".timing-data" / f"skill-timer-{run_id}-complete.json"
     assert completed.exists()
     data = json.loads(completed.read_text())
     assert data["per_dimension_status"] == "derived"

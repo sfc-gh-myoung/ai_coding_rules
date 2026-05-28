@@ -166,9 +166,9 @@ execution_mode: parallel
 ### Quick Reference Execution (abbreviated)
 
 ```bash
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
 
-$PYTHON skills/skill-timing/scripts/skill_timing.py start \
+$PYTHON skills/skill-timer/scripts/skill_timer.py start \
     --skill plan-reviewer --target plans/IMPROVE_RULE_LOADING.md \
     --model claude-opus-47 --mode FULL
 # → run_id: 7a1c...
@@ -180,7 +180,7 @@ $PYTHON ... checkpoint --run-id 7a1c... --name dim_executability_end
 # (repeat for completeness, success_criteria, scope, dependencies,
 #  decomposition, context, risk_awareness)
 
-$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+$PYTHON skills/skill-timer/scripts/skill_timer.py end \
     --run-id 7a1c... \
     --output-file reviews/plan-reviews/plan-IMPROVE_RULE_LOADING-claude-opus-47-2026-04-21.md \
     --skill plan-reviewer --format markdown --auto-dimension-timings

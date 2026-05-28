@@ -648,7 +648,7 @@ Try: rules/*.md (all rules) or rules/100-*.md (Snowflake rules)
 
 **Setup:**
 ```bash
-# 188 rules exist
+# 194 rules exist
 ```
 
 **Input:**
@@ -811,7 +811,7 @@ Tests should be run:
 
 ## Timing Test Suite (v2.3.0)
 
-Added alongside the v2.3.0 timing propagation changes. All tests assume skill-timing v1.5.0+ and rule-reviewer v2.8.0+ are installed.
+Added alongside the v2.3.0 timing propagation changes. All tests assume skill-timer v1.5.0+ and rule-reviewer v2.8.0+ are installed.
 
 ### Test T1: Timing Disabled (Backwards Compat)
 
@@ -839,7 +839,7 @@ Added alongside the v2.3.0 timing propagation changes. All tests assume skill-ti
 **Expected:**
 - Equivalent aggregate stats to Test T2 (within +-5% for clock noise).
 - Section 10.6 Sub-Agent Timing renders 3 worker rows.
-- No concurrent-write errors in the skill-timing checkpoint log for `$BULK_RUN_ID`.
+- No concurrent-write errors in the skill-timer checkpoint log for `$BULK_RUN_ID`.
 
 ### Test T4: Gate 8 Per-Rule Warning Path
 
@@ -874,7 +874,7 @@ Added alongside the v2.3.0 timing propagation changes. All tests assume skill-ti
 **Inputs:** `timing_enabled: true`, coordinator emits `rule_X_start/end` pairs but never passes `--dimension-timings` to `end`.
 
 **Expected:**
-- `skill_timing.py end --auto-dimension-timings` derives per-rule durations from checkpoint pairs.
+- `skill_timer.py end --auto-dimension-timings` derives per-rule durations from checkpoint pairs.
 - `PER_DIMENSION_STATUS=derived` in each rule's Timing Metadata.
 - Section 10.2 populated correctly.
 
@@ -883,6 +883,6 @@ Added alongside the v2.3.0 timing propagation changes. All tests assume skill-ti
 **Inputs:** Coordinator passes a fabricated `dimension_timings` payload (`duration_seconds: 0`, `start_epoch: 0`, `end_epoch: 0`).
 
 **Expected:**
-- skill-timing v1.5.0 emits `VALIDATION ERROR`.
+- skill-timer v1.5.0 emits `VALIDATION ERROR`.
 - Bulk run continues; affected rule downgraded to `per_dimension_status: "validation-failed"`.
 - Warning in Section 10.5.

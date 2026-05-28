@@ -200,7 +200,7 @@ Require >= 8 dimension rows in the Per-Dimension Timing table,
     `unavailable (sub-agent timeout)`).
 IF missing:
     REJECT the review and take ONE of these remediation paths:
-    1. Re-run `skill_timing.py end` with `--auto-dimension-timings`
+    1. Re-run `skill_timer.py end` with `--auto-dimension-timings`
        (preferred when dim_*_start/end checkpoints exist).
     2. Read `.timing-data/{run_id}.json`, assemble
        `--dimension-timings` JSON, re-run `end` manually.
@@ -224,7 +224,7 @@ IF missing:
 ### Cross-References
 
 - Trigger for this gate: `SKILL.md` Step 4a requires per-dimension checkpoints.
-- Data source: `skills/skill-timing/` with `--auto-dimension-timings`.
+- Data source: `skills/skill-timer/` with `--auto-dimension-timings`.
 
 ## Success Output
 

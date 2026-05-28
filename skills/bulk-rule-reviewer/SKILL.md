@@ -107,7 +107,7 @@ Collect ALL parameters (required AND optional) using `ask_user_question` tool.
 **When:** Only if `timing_enabled: true` in inputs
 **MODE:** Safe in PLAN mode
 
-**See:** `../skill-timing/workflows/timing-start.md` and `workflows/timing-integration.md` for the canonical copy-paste Quick Reference block and anti-pattern guide.
+**See:** `../skill-timer/workflows/timing-start.md` and `workflows/timing-integration.md` for the canonical copy-paste Quick Reference block and anti-pattern guide.
 
 **Action:** Capture `run_id` in working memory as `BULK_RUN_ID` for later use.
 
@@ -222,9 +222,9 @@ Emit `summary_complete` on `$BULK_RUN_ID`.
 
 **MODE:** Safe in PLAN mode (outputs to STDOUT only)
 
-**See:** `../skill-timing/workflows/timing-end.md` (Step 1) and `workflows/timing-integration.md`.
+**See:** `../skill-timer/workflows/timing-end.md` (Step 1) and `workflows/timing-integration.md`.
 
-**Action:** Invoke `skill_timing.py end --auto-dimension-timings`. Capture STDOUT for metadata embedding. Check `PER_DIMENSION_STATUS=` marker — `missing` triggers warnings aggregated into the summary Timing Breakdown.
+**Action:** Invoke `skill_timer.py end --auto-dimension-timings`. Capture STDOUT for metadata embedding. Check `PER_DIMENSION_STATUS=` marker — `missing` triggers warnings aggregated into the summary Timing Breakdown.
 
 ### [MODE TRANSITION: PLAN → ACT]
 
@@ -234,7 +234,7 @@ Request user ACT authorization before file modifications.
 
 **MODE:** Requires ACT mode (appends metadata to file)
 
-**See:** `../skill-timing/workflows/timing-end.md` (Step 2) and `workflows/timing-integration.md`.
+**See:** `../skill-timer/workflows/timing-end.md` (Step 2) and `workflows/timing-integration.md`.
 
 **Action:** Parse STDOUT, append timing metadata section + **Timing Breakdown** section (see `workflows/summary-report.md`) to the master summary report file.
 
@@ -283,7 +283,7 @@ See `CHANGELOG.md`.
 ## Installation Requirements
 
 **Dependency:** rule-reviewer skill v2.9.0+ (required — per-dimension Gate 7 universal-default timing)
-**Dependency:** skill-timing v1.5.0+ (required when `timing_enabled: true` — `--auto-dimension-timings` flag, `PER_DIMENSION_STATUS` marker)
+**Dependency:** skill-timer v1.5.0+ (required when `timing_enabled: true` — `--auto-dimension-timings` flag, `PER_DIMENSION_STATUS` marker)
 
 Skill location resolution supports two patterns:
 
@@ -307,6 +307,26 @@ Auto-detection selects the available pattern. If neither found, execution stops 
 
 **Execution:** Validate inputs before Stage 1 (Discovery). Fail fast on errors.
 
+## Gate 8 — Per-Dimension Timing rejection (skill-timer v2.0.0+)
+
+After `skill_timer.py end` returns, check the run-level `status` field:
+
+- If `status ∈ {dimension_invalid, instrumentation_failed}`: **DO NOT
+  publish** the "Per-Dimension Timing" markdown table. Instead emit:
+
+  ```
+  > **Per-Dimension Timing rejected**
+  >
+  > Per-dimension timing data was rejected by skill-timer v2.0.0 due to
+  > alerts: <comma-separated alert types>. See
+  > `reviews/.timing-data/skill-timer-{run_id}-complete.json` for details.
+  ```
+
+- If `status ∈ {completed, warning}`: publish the table as before.
+
+This gate is mirrored in plan-reviewer, rule-reviewer, and doc-reviewer
+SKILL.md files.
+
 ## Examples
 
 - `examples/full-bulk-review.md` - Complete walkthrough example
@@ -316,7 +336,7 @@ Auto-detection selects the available pattern. If neither found, execution stops 
 
 - **rule-reviewer** — Single rule review (required dependency)
 - **rule-creator** — Create new rules (complementary)
-- **skill-timing** — Timing instrumentation (required when `timing_enabled: true`)
+- **skill-timer** — Timing instrumentation (required when `timing_enabled: true`)
 
 ## References
 

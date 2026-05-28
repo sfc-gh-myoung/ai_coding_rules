@@ -5,8 +5,8 @@ Detailed timing-integration procedures for the `rule-reviewer` skill. SKILL.md c
 ## Quick Reference — Sequential Mode (copy-paste verbatim)
 
 ```bash
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
-SCRIPT=skills/skill-timing/scripts/skill_timing.py
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
+SCRIPT=skills/skill-timer/scripts/skill_timer.py
 
 # 1. Start
 $PYTHON $SCRIPT start --skill rule-reviewer \
@@ -47,7 +47,7 @@ Sub-agents self-report `start_epoch`/`end_epoch` in JSON. Coordinator assembles 
    - `present` — explicit `--dimension-timings` accepted (parallel mode)
    - `derived` — auto-derived from checkpoint pairs (sequential mode, expected)
    - `missing` — FAIL: re-run with `--auto-dimension-timings` or document unavailability.
-   If `VALIDATION ERROR` present → per-dimension data was auto-stripped, note "Per-dimension timing unavailable" in review. If `end` fails entirely → re-run or read `reviews/.timing-data/skill-timing-{run_id}-complete.json` directly.
+   If `VALIDATION ERROR` present → per-dimension data was auto-stripped, note "Per-dimension timing unavailable" in review. If `end` fails entirely → re-run or read `reviews/.timing-data/skill-timer-{run_id}-complete.json` directly.
 4. **After file write:** Verify `## Timing Metadata` section exists in output file. If missing → append from `_timing_stdout`.
 
 **If ALL timing validation fails:** Write the review WITHOUT timing metadata and note `**Timing data unavailable** - validation failed at step N`. Never block the review on timing failures.
@@ -78,7 +78,7 @@ dimension_timings='[{"dimension":"actionability","duration_seconds":'$duration',
 ```bash
 # WRONG — Only has start/end epochs, no duration_seconds or mode
 dimension_timings='[{"dimension":"actionability","start_epoch":100,"end_epoch":120}]'
-# Result: skill_timing.py rejects with "missing required fields"
+# Result: skill_timer.py rejects with "missing required fields"
 ```
 
 **Correct:** Include all required fields (`dimension`, `duration_seconds`, `mode`):
@@ -91,7 +91,7 @@ dimension_timings='[{"dimension":"actionability","duration_seconds":20,"mode":"s
 
 ```bash
 # WRONG — Agent sees VALIDATION ERROR but proceeds without noting it
-output=$($PYTHON skill_timing.py end --dimension-timings "$dimension_timings" 2>&1)
+output=$($PYTHON skill_timer.py end --dimension-timings "$dimension_timings" 2>&1)
 # Output contains: "VALIDATION ERROR: dimension_timings[0] missing required fields"
 # Agent ignores error and doesn't note timing failure in review
 ```
@@ -99,7 +99,7 @@ output=$($PYTHON skill_timing.py end --dimension-timings "$dimension_timings" 2>
 **Correct:** Check for errors and note in review:
 
 ```bash
-output=$($PYTHON skill_timing.py end --dimension-timings "$dimension_timings" 2>&1)
+output=$($PYTHON skill_timer.py end --dimension-timings "$dimension_timings" 2>&1)
 
 if echo "$output" | grep -q "VALIDATION ERROR"; then
     echo "Per-dimension timing validation failed — aggregate timing only"
@@ -111,7 +111,7 @@ fi
 
 ```bash
 # WRONG — dim_* checkpoints were recorded but neither flag is passed
-$PYTHON skill_timing.py end --run-id X --output-file Y --skill rule-reviewer
+$PYTHON skill_timer.py end --run-id X --output-file Y --skill rule-reviewer
 # Result: Per-Dimension Timing section silently omitted. Stderr WARNING is easy to miss.
 #         Stdout shows PER_DIMENSION_STATUS=missing. Review fails Quality Gate 7.
 ```
@@ -120,14 +120,14 @@ $PYTHON skill_timing.py end --run-id X --output-file Y --skill rule-reviewer
 
 ```bash
 # Sequential (auto-derive from dim_*_start / dim_*_end checkpoints)
-$PYTHON skill_timing.py end --run-id X --output-file Y --skill rule-reviewer \
+$PYTHON skill_timer.py end --run-id X --output-file Y --skill rule-reviewer \
     --auto-dimension-timings
 
 # Parallel (explicit JSON from sub-agent self-reports)
-$PYTHON skill_timing.py end --run-id X --output-file Y --skill rule-reviewer \
+$PYTHON skill_timer.py end --run-id X --output-file Y --skill rule-reviewer \
     --dimension-timings "$dimension_timings_json"
 ```
 
 ## Schema Reference
 
-`dimension_timings` schema (required/optional fields, validation gates, epoch capture): see `../../skill-timing/SKILL.md`.
+`dimension_timings` schema (required/optional fields, validation gates, epoch capture): see `../../skill-timer/SKILL.md`.

@@ -278,8 +278,8 @@ JSON string and pass it explicitly via `--dimension-timings`. Do **not** use
 wall-clock time (dimensions run concurrently, not sequentially).
 
 ```bash
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
-$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
+$PYTHON skills/skill-timer/scripts/skill_timer.py end \
     --run-id {{_timing_run_id}} \
     --output-file {{output_file}} \
     --skill rule-reviewer \

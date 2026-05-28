@@ -1,4 +1,4 @@
-"""Gate 7 integration test for doc-reviewer → skill-timing round-trip.
+"""Gate 7 integration test for doc-reviewer → skill-timer round-trip.
 
 Verifies that the Quick Reference from `skills/doc-reviewer/SKILL.md` produces
 a review-style output file containing:
@@ -23,7 +23,7 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-SCRIPT = REPO_ROOT / "skills" / "skill-timing" / "scripts" / "skill_timing.py"
+SCRIPT = REPO_ROOT / "skills" / "skill-timer" / "scripts" / "skill_timer.py"
 
 SCORED_DIMENSIONS = [
     "accuracy",
@@ -36,7 +36,7 @@ SCORED_DIMENSIONS = [
 
 
 def sh(args: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
-    """Run skill_timing.py with given args in specified directory."""
+    """Run skill_timer.py with given args in specified directory."""
     return subprocess.run(
         [sys.executable, str(SCRIPT), *args],
         cwd=cwd,
@@ -120,7 +120,7 @@ def test_doc_reviewer_quick_reference_roundtrip(tmp_path):
     total_seconds = float(total_match.group(1))
     assert total_seconds > 0, f"Gate 7: total duration not positive ({total_seconds})"
 
-    completed = tmp_path / "reviews" / ".timing-data" / f"skill-timing-{run_id}-complete.json"
+    completed = tmp_path / "reviews" / ".timing-data" / f"skill-timer-{run_id}-complete.json"
     assert completed.exists()
     data = json.loads(completed.read_text())
     assert data["per_dimension_status"] == "derived"

@@ -2,6 +2,16 @@
 
 All notable changes to the `doc-reviewer` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## Unreleased — Gate 8 (skill-timer v2.0.0+)
+
+- Added **Gate 8** to SKILL.md: when `skill_timer.py end` returns
+  `status ∈ {dimension_invalid, instrumentation_failed}`, refuse to
+  publish the Per-Dimension Timing markdown table. Replace with a banner
+  pointing at the rejected JSON in `reviews/.timing-data/`.
+- No code changes in this skill; the gate is enforced at the markdown-emit
+  step. See `skills/skill-timer/CHANGELOG.md` v2.0.0 for the underlying
+  mechanism (new exit code 4, status enum extensions, distribution validator).
+
 ## v2.2.0 (2026-04-21) — Per-dimension timing as a first-class workflow step
 
 - New Step 4a mandates `dim_<name>_start` / `dim_<name>_end` checkpoint pairs around every scored dimension (accuracy, completeness, clarity, structure, staleness, consistency).

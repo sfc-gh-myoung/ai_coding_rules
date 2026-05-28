@@ -113,37 +113,37 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 
 ## Timing (When `timing_enabled: true`)
 
-**You capture, skill-timing validates and formats.** Passing no dimension data
+**You capture, skill-timer validates and formats.** Passing no dimension data
 results in a silently-omitted Per-Dimension Timing section unless Gate 7
-catches it. Do not rely on skill-timing to "handle all" capture — it only
+catches it. Do not rely on skill-timer to "handle all" capture — it only
 validates and formats what you provide.
 
 ### Quick Reference (copy-paste)
 
 ```bash
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
 
 # Start
-$PYTHON skills/skill-timing/scripts/skill_timing.py start \
+$PYTHON skills/skill-timer/scripts/skill_timer.py start \
     --skill plan-reviewer --target plans/my-plan.md --model {{model}} --mode FULL
 # → capture run_id from stdout as {{_timing_run_id}}
 
-$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+$PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
     --run-id {{_timing_run_id}} --name skill_loaded
 
 # For EACH of the 8 dimensions (executability, completeness, success_criteria,
 # scope, dependencies, decomposition, context, risk_awareness):
-$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+$PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
     --run-id {{_timing_run_id}} --name dim_{name}_start
 # ... score the dimension ...
-$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+$PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
     --run-id {{_timing_run_id}} --name dim_{name}_end
 
-$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
+$PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
     --run-id {{_timing_run_id}} --name review_complete
 
 # End — --auto-dimension-timings derives dimension_timings from dim_*_start/end pairs
-$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+$PYTHON skills/skill-timer/scripts/skill_timer.py end \
     --run-id {{_timing_run_id}} \
     --output-file reviews/plan-reviews/{{plan}}-{{model}}-{{date}}.md \
     --skill plan-reviewer --format markdown --auto-dimension-timings
@@ -160,9 +160,9 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py end \
 
 2. **Missing required fields in manual `--dimension-timings`.**
    - WRONG: `[{"dimension":"scope","duration_seconds":1.2}]` (no epochs, no mode).
-   - Correct: See `skills/skill-timing/schemas/` for required fields (`dimension`, `start_epoch`, `end_epoch`, `duration_seconds`, `mode`).
+   - Correct: See `skills/skill-timer/schemas/` for required fields (`dimension`, `start_epoch`, `end_epoch`, `duration_seconds`, `mode`).
 
-3. **Ignoring `VALIDATION ERROR` from skill-timing.**
+3. **Ignoring `VALIDATION ERROR` from skill-timer.**
    - WRONG: Seeing `VALIDATION ERROR: dimension_timings rejected` and proceeding anyway.
    - Correct: Treat as a hard failure; re-run `end` with corrected data.
 
@@ -193,6 +193,26 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py end \
 - Apply weighted scoring formula correctly
 - If file write fails: Print `OUTPUT_FILE: <path>` then full review
 
+## Gate 8 — Per-Dimension Timing rejection (skill-timer v2.0.0+)
+
+After `skill_timer.py end` returns, check the run-level `status` field:
+
+- If `status ∈ {dimension_invalid, instrumentation_failed}`: **DO NOT
+  publish** the "Per-Dimension Timing" markdown table. Instead emit:
+
+  ```
+  > **Per-Dimension Timing rejected**
+  >
+  > Per-dimension timing data was rejected by skill-timer v2.0.0 due to
+  > alerts: <comma-separated alert types>. See
+  > `reviews/.timing-data/skill-timer-{run_id}-complete.json` for details.
+  ```
+
+- If `status ∈ {completed, warning}`: publish the table as before.
+
+This gate is mirrored in rule-reviewer, doc-reviewer, and bulk-rule-reviewer
+SKILL.md files.
+
 ## Examples
 
 - `examples/full-review.md` - FULL mode walkthrough
@@ -204,7 +224,7 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py end \
 
 - **rule-creator** - Create rules (similar executability criteria)
 - **doc-reviewer** - Review documentation (complementary)
-- **skill-timing** (≥ v1.5.0) - Provides `--auto-dimension-timings` used by Step 4a and Gate 7.
+- **skill-timer** (≥ v1.5.0) - Provides `--auto-dimension-timings` used by Step 4a and Gate 7.
 
 ## References
 

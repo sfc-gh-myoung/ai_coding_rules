@@ -3,7 +3,7 @@
 ## Purpose
 
 Canonical timing pipeline and anti-pattern guide for doc-reviewer when
-`timing_enabled: true`. Requires skill-timing ≥ v1.5.0.
+`timing_enabled: true`. Requires skill-timer ≥ v1.5.0.
 
 ## When to Use
 
@@ -14,12 +14,12 @@ Execute this entire pipeline if `timing_enabled: true`. Skip entirely when
 
 | When | Action | Command | Track |
 |------|--------|---------|-------|
-| Before review | Start timing | `$PYTHON skill_timing.py start --skill doc-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
-| After rubrics loaded | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | — |
-| Before EACH dimension | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_start` | — |
-| After EACH dimension | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_end` | — |
-| After scoring complete | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name review_complete` | — |
-| Before file write | Compute | `$PYTHON skill_timing.py end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill doc-reviewer --format markdown --auto-dimension-timings` | Store `_timing_stdout` |
+| Before review | Start timing | `$PYTHON skill_timer.py start --skill doc-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
+| After rubrics loaded | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | — |
+| Before EACH dimension | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_start` | — |
+| After EACH dimension | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_end` | — |
+| After scoring complete | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name review_complete` | — |
+| Before file write | Compute | `$PYTHON skill_timer.py end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill doc-reviewer --format markdown --auto-dimension-timings` | Store `_timing_stdout` |
 | After file write (ACT) | Embed | Parse `_timing_stdout`, append timing metadata + Per-Dimension Timing table to output file | — |
 
 **Working memory contract:** Retain `_timing_run_id`, `_timing_stdout`,
@@ -47,8 +47,8 @@ subsection is absent and the review fails post-write Quality Gate 7
 ## Quick Reference (sequential mode — copy-paste verbatim)
 
 ```bash
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
-SCRIPT=skills/skill-timing/scripts/skill_timing.py
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
+SCRIPT=skills/skill-timer/scripts/skill_timer.py
 
 # 1. Start
 $PYTHON $SCRIPT start --skill doc-reviewer \
@@ -127,7 +127,7 @@ dimension_timings='[{"dimension":"accuracy","duration_seconds":'$duration',"mode
 ```bash
 # WRONG — Only has start/end epochs, no duration_seconds or mode
 dimension_timings='[{"dimension":"accuracy","start_epoch":100,"end_epoch":120}]'
-# Result: skill_timing.py rejects with "missing required fields"
+# Result: skill_timer.py rejects with "missing required fields"
 ```
 
 Correct: Include all required fields (`dimension`, `duration_seconds`, `mode`):
@@ -141,7 +141,7 @@ dimension_timings='[{"dimension":"accuracy","duration_seconds":20,"mode":"self-r
 Correct: Check for errors and note in review:
 
 ```bash
-output=$($PYTHON skill_timing.py end --dimension-timings "$dimension_timings" 2>&1)
+output=$($PYTHON skill_timer.py end --dimension-timings "$dimension_timings" 2>&1)
 if echo "$output" | grep -q "VALIDATION ERROR"; then
     echo "Per-dimension timing validation failed — aggregate timing only"
 fi
@@ -151,7 +151,7 @@ fi
 
 ```bash
 # WRONG — dim_* checkpoints were recorded but neither flag is passed
-$PYTHON skill_timing.py end --run-id X --output-file Y --skill doc-reviewer
+$PYTHON skill_timer.py end --run-id X --output-file Y --skill doc-reviewer
 # Result: Per-Dimension Timing section silently omitted. Review fails Quality Gate 7.
 ```
 
@@ -159,5 +159,5 @@ Correct: Always pass `--auto-dimension-timings` in sequential mode
 (preferred), or assemble an explicit `--dimension-timings` JSON array in
 parallel mode.
 
-**Schema reference:** See `../skill-timing/SKILL.md` for complete
+**Schema reference:** See `../skill-timer/SKILL.md` for complete
 `dimension_timings` schema (required/optional fields).

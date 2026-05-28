@@ -125,14 +125,14 @@ Input:
   timing_enabled: true
 
 Procedure:
-  1. `skill_timing.py start` → capture run_id
+  1. `skill_timer.py start` → capture run_id
   2. Emit dim_<name>_start/end checkpoint pairs for all 8 dimensions
-  3. `skill_timing.py end --auto-dimension-timings`
+  3. `skill_timer.py end --auto-dimension-timings`
 
 Expected:
   - stdout includes `### Per-Dimension Timing` with 8 rows
   - `PER_DIMENSION_STATUS=derived` (or `present`) in stdout
-  - Output review file, after skill-timing embedding, contains the heading
+  - Output review file, after skill-timer embedding, contains the heading
     `### Per-Dimension Timing` with 8 dimension rows
   - Gate 7 PASSES
 ```

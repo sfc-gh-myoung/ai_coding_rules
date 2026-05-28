@@ -121,7 +121,7 @@ $PYTHON $SCRIPT end --run-id {{_timing_run_id}} \
 # Verify: stdout contains PER_DIMENSION_STATUS=derived
 ```
 
-No manual JSON assembly is required in sequential mode. `skill_timing.py` v1.5.0+ pairs the
+No manual JSON assembly is required in sequential mode. `skill_timer.py` v1.5.0+ pairs the
 `dim_<name>_start` / `dim_<name>_end` checkpoints automatically and populates
 `dimension_timings` with `mode: "checkpoint"`.
 

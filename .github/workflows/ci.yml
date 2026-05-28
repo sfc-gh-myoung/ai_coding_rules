@@ -110,3 +110,6 @@ jobs:
 
       - name: Check RULES_INDEX.md is current
         run: uv run ai-rules index check
+
+      - name: Validate rule loader fixtures
+        run: uv run ai-rules rule-loader validate

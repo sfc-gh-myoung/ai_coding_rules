@@ -11,10 +11,10 @@ prompt: |
 expected:
   required:
     - rules/000-global-core.md  # foundation (always loaded)
-    - rules/102b-snowflake-sql-procedures.md  # suggested: kw: stored procedures
     - rules/112-snowflake-snowcli.md  # suggested: file: snowflake.yml
   forbidden: []
   optional:
+    - rules/102b-snowflake-sql-procedures.md  # suggested: kw: stored procedures  # legacy v3.2 keywords do not match prompt  # legacy v3.2 keywords do not match prompt
     - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
       # missing: ext=.sql
     - rules/101-snowflake-streamlit-core.md  # auto-demoted: secondary streamlit reference in native-app context

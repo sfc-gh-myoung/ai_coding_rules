@@ -14,6 +14,7 @@ from ai_rules.commands.index import index_app
 from ai_rules.commands.keywords import keywords
 from ai_rules.commands.new import new as new_command
 from ai_rules.commands.refs import refs_app
+from ai_rules.commands.rule_loader import rule_loader_app
 from ai_rules.commands.tokens import tokens
 from ai_rules.commands.validate import validate
 
@@ -34,6 +35,7 @@ app.command(name="deploy")(deploy)
 app.add_typer(index_app, name="index")
 app.command(name="keywords")(keywords)
 app.command(name="validate")(validate)
+app.add_typer(rule_loader_app, name="rule-loader")
 
 
 def version_callback(value: bool) -> None:

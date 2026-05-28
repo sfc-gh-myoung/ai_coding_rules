@@ -13,9 +13,9 @@ expected:
   required:
     - rules/000-global-core.md  # foundation (always loaded)
     - rules/112-snowflake-snowcli.md  # suggested: kw: snowcli; file: snowflake.yml
-    - rules/102a-snowflake-sql-automation.md  # kw: promoting to prod, multi environment
   forbidden: []
   optional:
+    - rules/102a-snowflake-sql-automation.md  # kw: promoting to prod, multi environment  # legacy v3.2 keywords do not match prompt  # legacy v3.2 keywords do not match prompt
     - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
       # missing: ext=.sql
     - rules/102d-snowflake-sql-cicd.md  # demoted: kw entries don't substring-match prompt phrasing

@@ -12,11 +12,11 @@ prompt: |
 expected:
   required:
     - rules/000-global-core.md  # foundation (always loaded)
-    - rules/106c-snowflake-semantic-views-integration.md  # suggested: kw: semantic model, semantic view
     - rules/116-snowflake-cortex-search.md  # suggested: kw: cortex search, search
     - rules/106-snowflake-semantic-views-core.md  # migrated from dependencies (v3.15)
   forbidden: []
   optional:
+    - rules/106c-snowflake-semantic-views-integration.md  # suggested: kw: semantic model, semantic view  # legacy v3.2 keywords do not match prompt  # legacy v3.2 keywords do not match prompt
     - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
       # missing: ext=.sql
 trigger_evidence:

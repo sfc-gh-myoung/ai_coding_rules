@@ -52,6 +52,12 @@ dev = [
     "pre-commit>=4.0",
     "pymarkdownlnt>=0.9.0",
 ]
+# Optional group: live-agent path for the Rule Loading Evaluator.
+# CI does not install this group; only `ai-rules rule-loader doctor`,
+# `eval`, and `refresh` need the SDK at runtime.
+live-agent = [
+    "cortex-code-agent-sdk>=1.0.2",
+]
 
 [project.scripts]
 ai-rules = "ai_rules.cli:app"
@@ -113,6 +119,7 @@ markers = [
     "unit: fast, hermetic unit tests",
     "integration: tests requiring multiple components or file I/O",
     "slow: long-running tests involving subprocesses or network",
+    "live: tests requiring live Cortex Code Agent SDK (gated by RUN_LIVE_AGENT=1)",
 ]
 addopts = [
     "--strict-markers",

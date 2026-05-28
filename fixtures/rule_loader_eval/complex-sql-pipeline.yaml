@@ -14,11 +14,11 @@ prompt: |
 expected:
   required:
     - rules/000-global-core.md  # foundation (always loaded)
-    - rules/102a-snowflake-sql-automation.md  # suggested: kw: data pipeline, promoting to production, refactor, transformation logic
-    - rules/103-snowflake-performance-tuning.md  # suggested: kw: bottleneck
     - rules/102-snowflake-sql-core.md  # direct: ext:.sql (transforms/clean.sql implied by pipelines/transform.sql context)
   forbidden: []
   optional:
+    - rules/103-snowflake-performance-tuning.md  # suggested: kw: bottleneck  # legacy v3.2 keywords do not match prompt  # legacy v3.2 keywords do not match prompt
+    - rules/102a-snowflake-sql-automation.md  # suggested: kw: data pipeline, promoting to production, refactor, transformation logic  # legacy v3.2 keywords do not match prompt  # legacy v3.2 keywords do not match prompt
     - rules/100-snowflake-core.md  # dep of 102 — enforced by global depends gate (R8)
 trigger_evidence:
   kw: [bottleneck, data pipeline, promoting to production, refactor, sql, transformation logic]   # suggested

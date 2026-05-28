@@ -7,13 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
-**Keywords:** system prompt altitude, investigation-first, anti-patterns, multi-session workflows, parallel execution, advanced patterns, heuristics, goldilocks zone, context management, state management
+**Keywords:** kw:system prompt altitude, kw:investigation-first, kw:anti-patterns, kw:multi-session workflows, kw:parallel execution, kw:advanced patterns, kw:heuristics, kw:goldilocks zone, kw:context management, kw:state management
 **TokenBudget:** ~4000
 **ContextTier:** Medium
-**Depends:** 002-rule-governance.md, 000-global-core.md
+**Depends:** required:002-rule-governance.md, required:000-global-core.md
 
 ## Scope
 

@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** validation, type checking, linting, formatting, pytest, ruff, ty, mypy, pre-task, gate, syntax
+**Keywords:** kw:validate, kw:type-check, kw:lint, kw:validation, kw:type checking, kw:linting, kw:formatting, kw:pytest, kw:ruff, kw:ty, kw:mypy, kw:pre-task, kw:gate, kw:syntax
 **TokenBudget:** ~3050
 **ContextTier:** High
-**Depends:** 200-python-core.md
-**LoadTrigger:** kw:validate, kw:type-check, kw:lint
+**Depends:** required:200-python-core.md
 
 ## Scope
 

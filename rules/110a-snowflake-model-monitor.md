@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:model-monitor, kw:ml-observability
-**Keywords:** model monitor, drift detection, baseline data, scoring data, ML observability, model performance monitoring, prediction drift, schema alignment, enable_monitoring
+**Keywords:** kw:model-monitor, kw:ml-observability, kw:model monitor, kw:drift detection, kw:baseline data, kw:scoring data, kw:ml observability, kw:model performance monitoring, kw:prediction drift, kw:schema alignment, kw:enable_monitoring
 **TokenBudget:** ~3300
 **ContextTier:** Medium
-**Depends:** 100-snowflake-core.md, 110-snowflake-model-registry.md
+**Depends:** required:100-snowflake-core.md, required:110-snowflake-model-registry.md
 
 ## Scope
 

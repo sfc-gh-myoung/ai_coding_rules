@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:two-approach, kw:notebook-approach, kw:tutorial-approach, kw:approach-comparison
-**Keywords:** two-approach pattern, feature store approach, simplified approach, production vs learning, approach clarification, tutorial approach selection
+**Keywords:** kw:two-approach, kw:notebook-approach, kw:tutorial-approach, kw:approach-comparison, kw:two-approach pattern, kw:feature store approach, kw:simplified approach, kw:production vs learning, kw:approach clarification, kw:tutorial approach selection
 **TokenBudget:** ~2600
 **ContextTier:** Low
-**Depends:** 109a-snowflake-notebooks-tutorials.md
+**Depends:** required:109a-snowflake-notebooks-tutorials.md
 
 ## Scope
 

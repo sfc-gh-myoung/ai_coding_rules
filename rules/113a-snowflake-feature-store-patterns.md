@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:feature-store-patterns
-**Keywords:** feature store anti-patterns, data leakage, point-in-time correctness, feature versioning mistakes, non-deterministic features, feature view costs, feature store governance
+**Keywords:** kw:feature-store-patterns, kw:feature store anti-patterns, kw:data leakage, kw:point-in-time correctness, kw:feature versioning mistakes, kw:non-deterministic features, kw:feature view costs, kw:feature store governance
 **TokenBudget:** ~2300
 **ContextTier:** Low
-**Depends:** 100-snowflake-core.md, 113-snowflake-feature-store.md
+**Depends:** required:100-snowflake-core.md, required:113-snowflake-feature-store.md
 
 ## Scope
 

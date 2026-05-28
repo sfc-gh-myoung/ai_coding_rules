@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** token efficiency, tool outputs, minimal output, structured output, progressive output, context budget, verbose output
+**Keywords:** kw:token efficiency, kw:tool outputs, kw:minimal output, kw:structured output, kw:progressive output, kw:context budget, kw:verbose output
 **TokenBudget:** ~2600
 **ContextTier:** Medium
-**Depends:** 004-tool-design-for-agents.md, 000-global-core.md
+**Depends:** required:004-tool-design-for-agents.md, required:000-global-core.md
 
 ## Scope
 

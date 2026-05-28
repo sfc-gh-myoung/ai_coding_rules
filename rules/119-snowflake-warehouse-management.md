@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.3.0
 **LastUpdated:** 2026-05-12
-**LoadTrigger:** kw:warehouse, kw:compute
-**Keywords:** high-memory warehouse, warehouse tagging, auto-suspend, auto-resume, GEN 2, Snowpark-Optimized, warehouse edition, resource monitors, create warehouse, warehouse configuration, warehouse types, warehouse cost, size warehouse, adaptive warehouse, MAX_QUERY_PERFORMANCE_LEVEL, QUERY_THROUGHPUT_MULTIPLIER, SYSTEM$BULK_UPDATE_WH, CREATE ADAPTIVE WAREHOUSE
+**Keywords:** kw:warehouse, kw:compute, kw:high-memory warehouse, kw:warehouse tagging, kw:auto-suspend, kw:auto-resume, kw:gen 2, kw:snowpark-optimized, kw:warehouse edition, kw:resource monitors, kw:create warehouse, kw:warehouse configuration, kw:warehouse types, kw:warehouse cost, kw:size warehouse, kw:adaptive warehouse, kw:max_query_performance_level, kw:query_throughput_multiplier, kw:system$bulk_update_wh, kw:create adaptive warehouse
 **TokenBudget:** ~6500
 **ContextTier:** High
-**Depends:** 100-snowflake-core.md, 103-snowflake-performance-tuning.md, 105-snowflake-cost-governance.md
+**Depends:** required:100-snowflake-core.md, required:103-snowflake-performance-tuning.md, required:105-snowflake-cost-governance.md
 
 ## Scope
 

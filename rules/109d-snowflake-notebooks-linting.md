@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.3
 **LastUpdated:** 2026-03-26
-**LoadTrigger:** kw:nbqa, kw:notebook-linting
-**Keywords:** nbqa, ruff, notebook linting, code quality, Jupyter, notebook formatting, lint notebooks, notebook validation
+**Keywords:** kw:nbqa, kw:notebook-linting, kw:ruff, kw:notebook linting, kw:code quality, kw:jupyter, kw:notebook formatting, kw:lint notebooks, kw:notebook validation
 **TokenBudget:** ~3500
 **ContextTier:** Low
-**Depends:** 109-snowflake-notebooks.md, 201-python-lint-format.md
+**Depends:** required:109-snowflake-notebooks.md, required:201-python-lint-format.md
 
 ## Scope
 

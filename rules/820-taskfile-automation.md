@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** Taskfile, Taskfile.yml, task automation, build automation, task runner, Task, portable tasks, error handling, command detection, auto-detection, cross-platform, uvx
+**Keywords:** file:Taskfile.yml, kw:deploy, kw:automation, kw:ci, kw:taskfile, kw:taskfile.yml, kw:task automation, kw:build automation, kw:task runner, kw:task, kw:portable tasks, kw:error handling, kw:command detection, kw:auto-detection, kw:cross-platform, kw:uvx
 **TokenBudget:** ~3400
 **ContextTier:** Medium
-**Depends:** 202-markup-config-validation.md
-**LoadTrigger:** file:Taskfile.yml, kw:deploy, kw:automation, kw:ci
+**Depends:** required:202-markup-config-validation.md
 
 ## Scope
 

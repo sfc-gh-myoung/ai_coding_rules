@@ -6,13 +6,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** loadtrigger, dynamic rule loading, rule discovery, file extension trigger, keyword trigger, directory trigger, filename trigger, RULES_INDEX
+**Keywords:** ext:.py, kw:python, kw:testing, kw:loadtrigger, kw:dynamic rule loading, kw:rule discovery, kw:file extension trigger, kw:keyword trigger, kw:directory trigger, kw:filename trigger, kw:rules_index
 **TokenBudget:** ~2400
 **ContextTier:** Medium
-**Depends:** 002-rule-governance.md
+**Depends:** required:002-rule-governance.md
 
 ## Scope
 
@@ -65,7 +65,6 @@ LoadTrigger metadata field specification for dynamic rule discovery based on fil
 
 LoadTrigger metadata field in rule file:
 ```markdown
-**LoadTrigger:** ext:.py, kw:python, kw:testing
 ```
 
 ### Validation
@@ -126,7 +125,6 @@ LoadTrigger metadata field in rule file:
 LoadTrigger uses four trigger types:
 
 ```markdown
-**LoadTrigger:** ext:.py, kw:python, kw:testing
 ```
 
 **Trigger Types:**
@@ -154,22 +152,18 @@ LoadTrigger uses four trigger types:
 
 **Language Rules:**
 ```markdown
-**LoadTrigger:** ext:.py, kw:python
 ```
 
 **Framework Rules:**
 ```markdown
-**LoadTrigger:** kw:fastapi, kw:api, file:main.py
 ```
 
 **Activity Rules:**
 ```markdown
-**LoadTrigger:** kw:testing, kw:unit-test, kw:pytest
 ```
 
 **Multi-Context Rules:**
 ```markdown
-**LoadTrigger:** ext:.tsx, kw:react, kw:frontend
 ```
 
 ## LoadTrigger Best Practices
@@ -198,25 +192,21 @@ LoadTrigger uses four trigger types:
 
 **Example 1: Python Core Rule**
 ```markdown
-**LoadTrigger:** ext:.py, ext:.pyi, kw:python
 ```
 Triggers on: Python files OR "python" keyword
 
 **Example 2: FastAPI Testing Rule**
 ```markdown
-**LoadTrigger:** kw:fastapi-testing, kw:test
 ```
 Triggers on: FastAPI testing activities
 
 **Example 3: Multi-Extension React Rule**
 ```markdown
-**LoadTrigger:** ext:.jsx, ext:.tsx, kw:react
 ```
 Triggers on: JSX/TSX files OR "react" keyword
 
 **Example 4: Config File Rule**
 ```markdown
-**LoadTrigger:** file:pyproject.toml, kw:python-project
 ```
 Triggers on: pyproject.toml file OR "python-project" keyword
 
@@ -226,7 +216,6 @@ Triggers on: pyproject.toml file OR "python-project" keyword
 
 **[BAD]:**
 ```markdown
-**LoadTrigger:** kw:code, kw:file
 ```
 **Problem:** Matches almost everything, no specificity.
 
@@ -236,7 +225,6 @@ Triggers on: pyproject.toml file OR "python-project" keyword
 
 **[BAD]:**
 ```markdown
-**LoadTrigger:** kw:python, kw:py, kw:python-lang, kw:python-code
 ```
 **Problem:** All synonyms, no additional value.
 
@@ -247,7 +235,6 @@ Triggers on: pyproject.toml file OR "python-project" keyword
 **[BAD]:**
 ```markdown
 # In 000-global-core.md
-**LoadTrigger:** kw:core
 ```
 **Problem:** Foundation rules should NOT have LoadTriggers.
 

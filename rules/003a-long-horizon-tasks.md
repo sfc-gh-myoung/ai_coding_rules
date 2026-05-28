@@ -7,13 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** long-horizon tasks, compaction, checkpointing, sub-agents, structured notes, multi-session, context compression, persistent memory, agent coordination
+**Keywords:** kw:long-horizon tasks, kw:compaction, kw:checkpointing, kw:sub-agents, kw:structured notes, kw:multi-session, kw:context compression, kw:persistent memory, kw:agent coordination
 **TokenBudget:** ~2950
 **ContextTier:** Medium
-**Depends:** 003-context-engineering.md, 000-global-core.md
+**Depends:** required:003-context-engineering.md, required:000-global-core.md
 
 ## Scope
 

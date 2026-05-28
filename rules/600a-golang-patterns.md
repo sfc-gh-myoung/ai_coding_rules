@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.1
 **LastUpdated:** 2026-03-26
-**Keywords:** Go, Golang, HTTP server, middleware, graceful shutdown, timeouts, database patterns, production, server configuration
+**Keywords:** kw:go-http, kw:go-server, kw:go-middleware, kw:go, kw:golang, kw:http server, kw:middleware, kw:graceful shutdown, kw:timeouts, kw:database patterns, kw:production, kw:server configuration
 **TokenBudget:** ~2250
 **ContextTier:** Low
-**Depends:** 600-golang-core.md
-**LoadTrigger:** kw:go-http, kw:go-server, kw:go-middleware
+**Depends:** required:600-golang-core.md
 
 ## Scope
 

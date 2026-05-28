@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:timedelta, kw:dateoffset, kw:date-arithmetic, kw:time-series
-**Keywords:** datetime arithmetic, Timedelta, DateOffset, business days, calendar math, relativedelta, performance, downsampling, resample
+**Keywords:** kw:timedelta, kw:dateoffset, kw:date-arithmetic, kw:time-series, kw:datetime arithmetic, kw:business days, kw:calendar math, kw:relativedelta, kw:performance, kw:downsampling, kw:resample
 **TokenBudget:** ~2600
 **ContextTier:** Medium
-**Depends:** 251-python-datetime-core.md
+**Depends:** required:251-python-datetime-core.md
 
 ## Scope
 

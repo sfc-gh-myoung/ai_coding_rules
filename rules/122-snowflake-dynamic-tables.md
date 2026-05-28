@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:dynamic-table, kw:incremental
-**Keywords:** automatic pipelines, DOWNSTREAM, FULL, warehouse sizing, data freshness, dynamic table lag, refresh frequency, pipeline automation
+**Keywords:** kw:dynamic-table, kw:incremental, kw:automatic pipelines, kw:downstream, kw:full, kw:warehouse sizing, kw:data freshness, kw:dynamic table lag, kw:refresh frequency, kw:pipeline automation
 **TokenBudget:** ~3400
 **ContextTier:** High
-**Depends:** 100-snowflake-core.md, 104-snowflake-streams-tasks.md, 119-snowflake-warehouse-management.md
+**Depends:** required:100-snowflake-core.md, required:104-snowflake-streams-tasks.md, required:119-snowflake-warehouse-management.md
 
 ## Scope
 

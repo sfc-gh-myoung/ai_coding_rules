@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-04-21
-**LoadTrigger:** kw:changelog, file:CHANGELOG.md
-**Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns, project governance, git workflow, version control
+**Keywords:** kw:changelog, file:CHANGELOG.md, kw:changelog format, kw:semantic versioning, kw:release notes, kw:conventional commits, kw:unreleased section, kw:scope patterns, kw:project governance, kw:git workflow, kw:version control
 **TokenBudget:** ~5200
 **ContextTier:** Medium
-**Depends:** 000-global-core.md
+**Depends:** required:000-global-core.md
 
 ## Scope
 

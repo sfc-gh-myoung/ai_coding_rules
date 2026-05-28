@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:connection-error, kw:timeout
-**Keywords:** connection errors, error classification, network policy, authentication, VPN, error codes, 08001, 390114, error handling, snowflake.connector, DatabaseError, message analysis, error detection
+**Keywords:** kw:connection-error, kw:timeout, kw:connection errors, kw:error classification, kw:network policy, kw:authentication, kw:vpn, kw:error codes, kw:08001, kw:390114, kw:error handling, kw:snowflake.connector, kw:databaseerror, kw:message analysis, kw:error detection
 **TokenBudget:** ~3900
 **ContextTier:** High
-**Depends:** 100-snowflake-core.md
+**Depends:** required:100-snowflake-core.md
 
 ## Scope
 

@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** pydeck, st.pydeck_chart, deck.gl, 3D visualization, hexagon layer, scatterplot layer, geojson layer, arc layer, heatmap layer, terrain, point cloud, WebGL, geospatial
+**Keywords:** kw:pydeck, kw:st.pydeck_chart, kw:deck.gl, kw:3d visualization, kw:hexagon layer, kw:scatterplot layer, kw:geojson layer, kw:arc layer, kw:heatmap layer, kw:terrain, kw:point cloud, kw:webgl, kw:geospatial
 **TokenBudget:** ~2950
 **ContextTier:** Medium
-**Depends:** 000-global-core.md, 101a-snowflake-streamlit-visualization.md
+**Depends:** required:000-global-core.md, required:101a-snowflake-streamlit-visualization.md
 
 ## Scope
 

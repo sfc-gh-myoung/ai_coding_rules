@@ -8,7 +8,7 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.2
 **LastUpdated:** 2026-05-18
 **Keywords:** kw:agent sdk, kw:mcp server, kw:mcp servers, kw:cortex-code, kw:agent hooks, kw:structured output, kw:streaming output, kw:streaming input, kw:system prompts, kw:agent typescript, kw:agent python

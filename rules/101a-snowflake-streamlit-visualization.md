@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v4.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** st.plotly_chart, st.pydeck_chart, st.altair_chart, dashboard, interactive charts, map visualization, chart types, visualization selection, streamlit plotting
+**Keywords:** kw:st.plotly_chart, kw:st.pydeck_chart, kw:st.altair_chart, kw:dashboard, kw:interactive charts, kw:map visualization, kw:chart types, kw:visualization selection, kw:streamlit plotting
 **TokenBudget:** ~2250
 **ContextTier:** High
-**Depends:** 000-global-core.md, 101-snowflake-streamlit-core.md
+**Depends:** required:000-global-core.md, required:101-snowflake-streamlit-core.md
 
 ## Scope
 

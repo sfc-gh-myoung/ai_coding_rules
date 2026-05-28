@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** Typer, Rich, console output, progress bars, Live display, color detection, stderr, dual console
+**Keywords:** kw:rich, kw:console, kw:progress-bar, kw:typer, kw:console output, kw:progress bars, kw:live display, kw:color detection, kw:stderr, kw:dual console
 **TokenBudget:** ~3450
 **ContextTier:** Medium
-**Depends:** 220-python-typer-cli.md
-**LoadTrigger:** kw:rich, kw:console, kw:progress-bar
+**Depends:** required:220-python-typer-cli.md
 
 ## Scope
 

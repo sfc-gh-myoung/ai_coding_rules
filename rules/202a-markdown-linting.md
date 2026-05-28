@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.1
 **LastUpdated:** 2026-03-26
-**Keywords:** Markdown, markdown linting, pymarkdownlnt, documentation, markup validation
+**Keywords:** ext:.md, kw:markdown, kw:pymarkdownlnt, kw:markdown linting, kw:documentation, kw:markup validation
 **TokenBudget:** ~2800
 **ContextTier:** Low
-**Depends:** 202-markup-config-validation.md
-**LoadTrigger:** ext:.md, kw:markdown, kw:pymarkdownlnt
+**Depends:** required:202-markup-config-validation.md
 
 ## Scope
 

@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.1
 **LastUpdated:** 2026-03-26
-**Keywords:** Ruff, linting, formatting, code quality, style checking, lint errors, ruff check, ruff format, pyproject.toml configuration, black, flake8
+**Keywords:** kw:lint, kw:format, kw:ruff, kw:linting, kw:formatting, kw:code quality, kw:style checking, kw:lint errors, kw:ruff check, kw:ruff format, kw:pyproject.toml configuration, kw:black, kw:flake8
 **TokenBudget:** ~3700
 **ContextTier:** High
-**Depends:** 000-global-core.md, 200-python-core.md
-**LoadTrigger:** kw:lint, kw:format, kw:ruff
+**Depends:** required:000-global-core.md, required:200-python-core.md
 
 ## Scope
 

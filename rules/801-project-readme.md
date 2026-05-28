@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing, author contact, maintainer
+**Keywords:** kw:readme, kw:documentation, file:README.md, kw:project documentation, kw:getting started, kw:setup instructions, kw:badges, kw:quick start, kw:contributing, kw:license, kw:project structure, kw:technical writing, kw:author contact, kw:maintainer
 **TokenBudget:** ~5100
 **ContextTier:** Medium
-**Depends:** 000-global-core.md
-**LoadTrigger:** kw:readme, kw:documentation, file:README.md
+**Depends:** required:000-global-core.md
 
 ## Scope
 

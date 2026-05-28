@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.3.1
 **LastUpdated:** 2026-05-13
-**LoadTrigger:** kw:snowcli, file:snowflake.yml
-**Keywords:** SnowCLI, Snowflake CLI, uvx, automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, config.toml, PAT authentication, WIF authentication, project definition, connection management, stage-to-stage copy, streamlit deploy, FROM deployment, live version
+**Keywords:** kw:snowcli, file:snowflake.yml, kw:snowflake cli, kw:uvx, kw:automation, kw:deployment automation, kw:snowflake.yml, kw:profiles, kw:ci/cd, kw:json output, kw:authentication, kw:config.toml, kw:pat authentication, kw:wif authentication, kw:project definition, kw:connection management, kw:stage-to-stage copy, kw:streamlit deploy, kw:from deployment, kw:live version
 **TokenBudget:** ~4900
 **ContextTier:** Medium
-**Depends:** 100-snowflake-core.md
+**Depends:** required:100-snowflake-core.md
 
 ## Scope
 

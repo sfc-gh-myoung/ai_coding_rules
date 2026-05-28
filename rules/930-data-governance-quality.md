@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** Data governance, data quality, lineage, metadata management, compliance, data catalog, Great Expectations, schema evolution, data observability, incident response
+**Keywords:** kw:data governance, kw:data quality, kw:lineage, kw:metadata management, kw:compliance, kw:data catalog, kw:great expectations, kw:schema evolution, kw:data observability, kw:incident response
 **TokenBudget:** ~4300
 **ContextTier:** Medium
-**Depends:** 000-global-core.md
+**Depends:** required:000-global-core.md
 
 ## Scope
 

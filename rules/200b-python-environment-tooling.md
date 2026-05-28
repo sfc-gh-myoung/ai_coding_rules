@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.2
 **LastUpdated:** 2026-03-26
-**Keywords:** virtual environment, venv, uv, poetry, pip, pipenv, uvx, tool isolation, ModuleNotFoundError, environment setup, dependency management
+**Keywords:** kw:venv, kw:virtual-environment, kw:uv, kw:poetry, kw:virtual environment, kw:pip, kw:pipenv, kw:uvx, kw:tool isolation, kw:modulenotfounderror, kw:environment setup, kw:dependency management
 **TokenBudget:** ~3000
 **ContextTier:** High
-**Depends:** 200-python-core.md
-**LoadTrigger:** kw:venv, kw:virtual-environment, kw:uv, kw:poetry
+**Depends:** required:200-python-core.md
 
 ## Scope
 

@@ -7,14 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.3.1
 **LastUpdated:** 2026-03-09
-**Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings, design priorities, agent optimization
+**Keywords:** dir:rules/, kw:rule governance, kw:schema, kw:metadata requirements, kw:validation, kw:schema compliance, kw:rule structure, kw:semantic discovery, kw:rules_index, kw:descriptive headings, kw:design priorities, kw:agent optimization
 **TokenBudget:** ~4550
 **ContextTier:** Critical
-**Depends:** 000-global-core.md
-**LoadTrigger:** dir:rules/
+**Depends:** required:000-global-core.md
 
 ## Scope
 

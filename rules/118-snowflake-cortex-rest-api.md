@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:cortex-api, kw:rest-api
-**Keywords:** idempotency, rate limits, Complete endpoint, Embed endpoint, exponential backoff, REST API, Cortex API, response format, retry logic, cost controls, batch vs interactive
+**Keywords:** kw:cortex-api, kw:rest-api, kw:idempotency, kw:rate limits, kw:complete endpoint, kw:embed endpoint, kw:exponential backoff, kw:rest api, kw:cortex api, kw:response format, kw:retry logic, kw:cost controls, kw:batch vs interactive
 **TokenBudget:** ~4250
 **ContextTier:** High
-**Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 111-snowflake-observability-core.md
+**Depends:** required:100-snowflake-core.md, required:105-snowflake-cost-governance.md, required:111-snowflake-observability-core.md
 **Companions:** 118a-snowflake-cortex-rest-api-streaming.md
 
 ## Scope

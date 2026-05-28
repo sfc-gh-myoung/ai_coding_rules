@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.2.1
 **LastUpdated:** 2026-05-13
-**LoadTrigger:** kw:deployment-sql, kw:put-script
-**Keywords:** PUT command, REMOVE command, CREATE NOTEBOOK, CREATE STREAMLIT, deployment scripts, upload script, stage upload, SQL deployment templates, snow stage copy, recursive upload
+**Keywords:** kw:deployment-sql, kw:put-script, kw:put command, kw:remove command, kw:create notebook, kw:create streamlit, kw:deployment scripts, kw:upload script, kw:stage upload, kw:sql deployment templates, kw:snow stage copy, kw:recursive upload
 **TokenBudget:** ~3700
 **ContextTier:** Low
-**Depends:** 109b-snowflake-app-deployment-core.md
+**Depends:** required:109b-snowflake-app-deployment-core.md
 
 ## Scope
 

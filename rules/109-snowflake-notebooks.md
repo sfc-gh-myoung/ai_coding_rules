@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.2
 **LastUpdated:** 2026-03-26
-**LoadTrigger:** kw:notebook, kw:jupyter
-**Keywords:** ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, create notebook, debug notebook, notebook execution, notebook testing, notebook deployment, kernel management, cell execution
+**Keywords:** kw:notebook, kw:jupyter, kw:ml, kw:reproducible notebooks, kw:nbqa, kw:notebook linting, kw:code quality, kw:python, kw:create notebook, kw:debug notebook, kw:notebook execution, kw:notebook testing, kw:notebook deployment, kw:kernel management, kw:cell execution
 **TokenBudget:** ~4450
 **ContextTier:** Medium
-**Depends:** 100-snowflake-core.md, 201-python-lint-format.md
+**Depends:** required:100-snowflake-core.md, required:201-python-lint-format.md
 
 ## Scope
 

@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** browser globals, javascript globals, window.history, HTMX history, Alpine.js, name collisions, reserved identifiers, implicit globals, historyRestore, hx-push-url, popstate, best practices, anti-patterns
+**Keywords:** kw:browser-globals, kw:window-history, kw:htmx-history, kw:browser globals, kw:javascript globals, kw:window.history, kw:htmx history, kw:alpine.js, kw:name collisions, kw:reserved identifiers, kw:implicit globals, kw:historyrestore, kw:hx-push-url, kw:popstate, kw:best practices, kw:anti-patterns
 **TokenBudget:** ~1950
 **ContextTier:** High
-**LoadTrigger:** kw:browser-globals, kw:window-history, kw:htmx-history
-**Depends:** 500-frontend-htmx-core.md
+**Depends:** required:500-frontend-htmx-core.md
 
 ## Scope
 

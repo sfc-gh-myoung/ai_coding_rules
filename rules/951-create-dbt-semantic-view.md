@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
-**Keywords:** dbt, semantic view, Snowflake, dbt_semantic_view, materialization, Cortex Analyst, YAML, semantic model, dbt models, analytics, business intelligence, data modeling
+**Keywords:** kw:dbt, kw:semantic view, kw:snowflake, kw:dbt_semantic_view, kw:materialization, kw:cortex analyst, kw:yaml, kw:semantic model, kw:dbt models, kw:analytics, kw:business intelligence, kw:data modeling
 **TokenBudget:** ~5100
 **ContextTier:** High
-**Depends:** 950-dbt-core.md, 200-python-core.md
+**Depends:** required:950-dbt-core.md, required:200-python-core.md
 
 ## Purpose
 

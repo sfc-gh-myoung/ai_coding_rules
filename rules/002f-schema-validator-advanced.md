@@ -7,13 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** schema validator, CI/CD integration, automation workflow, JSON parsing, programmatic validation, pre-commit hooks, GitHub Actions, batch validation, error automation, validation scripts
+**Keywords:** kw:schema validator, kw:ci/cd integration, kw:automation workflow, kw:json parsing, kw:programmatic validation, kw:pre-commit hooks, kw:github actions, kw:batch validation, kw:error automation, kw:validation scripts
 **TokenBudget:** ~3350
 **ContextTier:** Medium
-**Depends:** 002e-schema-validator-usage.md, 002-rule-governance.md, 000-global-core.md
+**Depends:** required:002e-schema-validator-usage.md, required:002-rule-governance.md, required:000-global-core.md
 
 ## Scope
 

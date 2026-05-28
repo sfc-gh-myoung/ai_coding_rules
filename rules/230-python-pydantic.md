@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v4.0.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:pydantic, kw:validation, kw:basemodel
-**Keywords:** Pydantic, data validation, models, BaseModel, field validation, Field, validator, model_validator, EmailStr
+**Keywords:** kw:pydantic, kw:validation, kw:basemodel, kw:data validation, kw:models, kw:field validation, kw:field, kw:validator, kw:model_validator, kw:emailstr
 **TokenBudget:** ~3800
 **ContextTier:** High
-**Depends:** 200-python-core.md
+**Depends:** required:200-python-core.md
 
 ## Scope
 

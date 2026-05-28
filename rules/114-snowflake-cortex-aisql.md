@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:aisql, kw:cortex-aisql
-**Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, embeddings, LLM functions, batching, token costs, text generation, classification, sentiment analysis, summarization, AI function error
+**Keywords:** kw:aisql, kw:cortex-aisql, kw:cortex aisql, kw:ai_complete, kw:ai_classify, kw:ai_extract, kw:ai_sentiment, kw:ai_summarize, kw:embeddings, kw:llm functions, kw:batching, kw:token costs, kw:text generation, kw:classification, kw:sentiment analysis, kw:summarization, kw:ai function error
 **TokenBudget:** ~4900
 **ContextTier:** High
-**Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md
+**Depends:** required:100-snowflake-core.md, required:105-snowflake-cost-governance.md
 
 ## Scope
 

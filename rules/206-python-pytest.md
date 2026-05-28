@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-25
-**Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, AAA pattern, test markers, uv run pytest, unit test, unit tests
+**Keywords:** kw:test, kw:pytest, kw:coverage, kw:testing, kw:fixtures, kw:parametrization, kw:test isolation, kw:mocking, kw:test organization, kw:aaa pattern, kw:test markers, kw:uv run pytest, kw:unit test, kw:unit tests
 **TokenBudget:** ~4950
 **ContextTier:** High
-**Depends:** 000-global-core.md, 200-python-core.md, 201-python-lint-format.md, 203-python-project-setup.md
-**LoadTrigger:** kw:test, kw:pytest, kw:coverage
+**Depends:** required:000-global-core.md, required:200-python-core.md, required:201-python-lint-format.md, required:203-python-project-setup.md
 
 ## Scope
 

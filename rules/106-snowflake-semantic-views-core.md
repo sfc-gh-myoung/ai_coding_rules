@@ -4,14 +4,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, semantic view, create semantic view, SQL, YAML, NLQ, mapping syntax
+**Keywords:** kw:semantic-view, kw:semantic-model, kw:tables, kw:relationships, kw:primary key, kw:semantic view, kw:create semantic view, kw:sql, kw:yaml, kw:nlq, kw:mapping syntax
 **TokenBudget:** ~2550
 **ContextTier:** High
-**Depends:** 100-snowflake-core.md
-**LoadTrigger:** kw:semantic-view, kw:semantic-model
+**Depends:** required:100-snowflake-core.md
 
 ## Scope
 

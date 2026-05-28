@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-26
-**Keywords:** dbt, dbt Core, Snowflake, dbt project object, EXECUTE DBT PROJECT, CREATE DBT PROJECT, profiles.yml, Workspaces, snow dbt, dbt deploy, task scheduling, dbt monitoring, dbt access control, data transformation, schema customization, generate_schema_name, dbt versioning, snow://dbt
+**Keywords:** kw:dbt, kw:dbt core, kw:snowflake, kw:dbt project object, kw:execute dbt project, kw:create dbt project, kw:profiles.yml, kw:workspaces, kw:snow dbt, kw:dbt deploy, kw:task scheduling, kw:dbt monitoring, kw:dbt access control, kw:data transformation, kw:schema customization, kw:generate_schema_name, kw:dbt versioning, kw:snow://dbt
 **TokenBudget:** ~5200
 **ContextTier:** High
-**Depends:** 100-snowflake-core.md, 200-python-core.md
+**Depends:** required:100-snowflake-core.md, required:200-python-core.md
 
 ## Scope
 

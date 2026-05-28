@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** crud, forms, validation, progressive enhancement, search, autocomplete, inline editing
+**Keywords:** kw:crud, kw:forms, kw:validation, kw:progressive enhancement, kw:search, kw:autocomplete, kw:inline editing
 **TokenBudget:** ~3400
 **ContextTier:** Medium
-**Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
+**Depends:** required:221-python-htmx-core.md, required:221a-python-htmx-templates.md
 
 ## Scope
 

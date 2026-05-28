@@ -6,13 +6,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** rule examples, example files, example schema, reference implementations, example discovery, example validation
+**Keywords:** kw:rule examples, kw:example files, kw:example schema, kw:reference implementations, kw:example discovery, kw:example validation
 **TokenBudget:** ~1550
 **ContextTier:** Medium
-**Depends:** 002-rule-governance.md
+**Depends:** required:002-rule-governance.md
 
 ## Scope
 

@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-04-22
-**LoadTrigger:** kw:documentation, kw:docs folder, file:docs/, file:ARCHITECTURE.md
-**Keywords:** documentation, docs folder, project structure, ARCHITECTURE.md, DEPLOYMENT.md, ADR, GitHub Pages, community health files, cross-references, link maintenance, documentation organization
+**Keywords:** kw:documentation, kw:docs folder, file:docs/, file:ARCHITECTURE.md, kw:project structure, kw:architecture.md, kw:deployment.md, kw:adr, kw:github pages, kw:community health files, kw:cross-references, kw:link maintenance, kw:documentation organization
 **TokenBudget:** ~3200
 **ContextTier:** Medium
-**Depends:** 000-global-core.md
+**Depends:** required:000-global-core.md
 
 ## Scope
 

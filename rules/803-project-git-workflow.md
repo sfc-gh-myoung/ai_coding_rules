@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.5.1
 **LastUpdated:** 2026-03-26
-**LoadTrigger:** kw:git, kw:commit, kw:workflow
-**Keywords:** git, commit, commit message, workflow, branching, GitHub, pull requests, feature branches, Conventional Commits, branch naming
+**Keywords:** kw:git, kw:commit, kw:workflow, kw:commit message, kw:branching, kw:github, kw:pull requests, kw:feature branches, kw:conventional commits, kw:branch naming
 **TokenBudget:** ~3100
 **ContextTier:** Medium
-**Depends:** 800-project-changelog.md, 802-project-contributing.md
+**Depends:** required:800-project-changelog.md, required:802-project-contributing.md
 
 ## Scope
 

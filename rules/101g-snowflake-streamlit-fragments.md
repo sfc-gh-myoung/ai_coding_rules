@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** st.fragment, run_every, real-time progress, polling, live updates, fragment pattern, auto-refresh, streaming, monitoring dashboard
+**Keywords:** kw:st.fragment, kw:run_every, kw:real-time progress, kw:polling, kw:live updates, kw:fragment pattern, kw:auto-refresh, kw:streaming, kw:monitoring dashboard
 **TokenBudget:** ~2850
 **ContextTier:** Medium
-**Depends:** 000-global-core.md, 101-snowflake-streamlit-core.md, 101b-snowflake-streamlit-performance.md
+**Depends:** required:000-global-core.md, required:101-snowflake-streamlit-core.md, required:101b-snowflake-streamlit-performance.md
 
 ## Scope
 

@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:fastapi-testing
-**Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking, test fixtures, AAA pattern, async testing, Python
+**Keywords:** kw:fastapi-testing, kw:fastapi testing, kw:testclient, kw:pytest-asyncio, kw:api tests, kw:integration testing, kw:mocking, kw:test fixtures, kw:aaa pattern, kw:async testing, kw:python
 **TokenBudget:** ~3950
 **ContextTier:** High
-**Depends:** 210-python-fastapi-core.md
+**Depends:** required:210-python-fastapi-core.md
 
 ## Scope
 

@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** tool set curation, minimal viable tool set, tool splitting, tool merging, tool overlap, tool bloat, tool boundaries
+**Keywords:** kw:tool set curation, kw:minimal viable tool set, kw:tool splitting, kw:tool merging, kw:tool overlap, kw:tool bloat, kw:tool boundaries
 **TokenBudget:** ~2200
 **ContextTier:** Medium
-**Depends:** 004-tool-design-for-agents.md, 000-global-core.md
+**Depends:** required:004-tool-design-for-agents.md, required:000-global-core.md
 
 ## Scope
 

@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** Typer, CLI testing, CliRunner, ANSI escape codes, NO_COLOR, pytest, CLI integration testing, mock
+**Keywords:** kw:cli-testing, kw:clirunner, kw:typer, kw:cli testing, kw:ansi escape codes, kw:no_color, kw:pytest, kw:cli integration testing, kw:mock
 **TokenBudget:** ~2300
 **ContextTier:** Medium
-**Depends:** 220-python-typer-cli.md, 206-python-pytest.md
-**LoadTrigger:** kw:cli-testing, kw:clirunner
+**Depends:** required:220-python-typer-cli.md, required:206-python-pytest.md
 
 ## Scope
 

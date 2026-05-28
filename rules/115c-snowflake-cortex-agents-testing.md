@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:agent-testing, kw:agent-rbac
-**Keywords:** agent testing, component testing, integration testing, agent RBAC, agent permissions, agent grants, cortex agent security, test agent, agent validation, agent role, agent access control
+**Keywords:** kw:agent-testing, kw:agent-rbac, kw:agent testing, kw:component testing, kw:integration testing, kw:agent rbac, kw:agent permissions, kw:agent grants, kw:cortex agent security, kw:test agent, kw:agent validation, kw:agent role, kw:agent access control
 **TokenBudget:** ~3300
 **ContextTier:** Low
-**Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md, 115b-snowflake-cortex-agents-operations.md
+**Depends:** required:100-snowflake-core.md, required:115-snowflake-cortex-agents-core.md, required:115b-snowflake-cortex-agents-operations.md
 
 ## Scope
 

@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** SnowparkSQLException, error messages, Streamlit errors, Snowflake errors, debug SQL error, fix query error, SQL exception, error troubleshooting, query failed, database error, SQL debugging patterns, exception handling, error recovery, common SQL errors, streamlit error, app error, fix error, error handling
+**Keywords:** kw:snowparksqlexception, kw:error messages, kw:streamlit errors, kw:snowflake errors, kw:debug sql error, kw:fix query error, kw:sql exception, kw:error troubleshooting, kw:query failed, kw:database error, kw:sql debugging patterns, kw:exception handling, kw:error recovery, kw:common sql errors, kw:streamlit error, kw:app error, kw:fix error, kw:error handling
 **TokenBudget:** ~3950
 **ContextTier:** Low
-**Depends:** 100-snowflake-core.md, 101-snowflake-streamlit-core.md, 101b-snowflake-streamlit-performance.md
+**Depends:** required:100-snowflake-core.md, required:101-snowflake-streamlit-core.md, required:101b-snowflake-streamlit-performance.md
 
 ## Scope
 

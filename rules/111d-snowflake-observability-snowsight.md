@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:snowsight-monitoring, kw:ai-observability
-**Keywords:** Snowsight monitoring, Traces and Logs, Query History UI, Copy History, Task History, Dynamic Tables monitoring, AI observability, Cortex AI monitoring, token tracking, AI cost attribution, LLM evaluation, generative AI tracing
+**Keywords:** kw:snowsight-monitoring, kw:ai-observability, kw:snowsight monitoring, kw:traces and logs, kw:query history ui, kw:copy history, kw:task history, kw:dynamic tables monitoring, kw:ai observability, kw:cortex ai monitoring, kw:token tracking, kw:ai cost attribution, kw:llm evaluation, kw:generative ai tracing
 **TokenBudget:** ~3900
 **ContextTier:** Low
-**Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md, 111c-snowflake-observability-monitoring.md
+**Depends:** required:100-snowflake-core.md, required:111-snowflake-observability-core.md, required:111c-snowflake-observability-monitoring.md
 
 ## Scope
 

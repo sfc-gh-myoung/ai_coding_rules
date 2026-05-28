@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:snowpipe, kw:streaming
-**Keywords:** snowpipe, auto-ingest, REST API, file-based ingestion, event notifications, COPY INTO, pipe management, serverless ingestion
+**Keywords:** kw:snowpipe, kw:streaming, kw:auto-ingest, kw:rest api, kw:file-based ingestion, kw:event notifications, kw:copy into, kw:pipe management, kw:serverless ingestion
 **TokenBudget:** ~3100
 **ContextTier:** High
-**Depends:** 100-snowflake-core.md, 108-snowflake-data-loading.md
+**Depends:** required:100-snowflake-core.md, required:108-snowflake-data-loading.md
 
 ## Scope
 

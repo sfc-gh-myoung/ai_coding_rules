@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** Zsh, completion system, compinit, zstyle, hooks, precmd, preexec, prompt, PROMPT_SUBST, vcs_info, async prompt
+**Keywords:** ext:.zsh, kw:zsh-completion, kw:zsh-prompt, kw:zsh, kw:completion system, kw:compinit, kw:zstyle, kw:hooks, kw:precmd, kw:preexec, kw:prompt, kw:prompt_subst, kw:vcs_info, kw:async prompt
 **TokenBudget:** ~2450
 **ContextTier:** Low
-**Depends:** 310-zsh-scripting-core.md, 310a-zsh-advanced-features.md
-**LoadTrigger:** ext:.zsh, kw:zsh-completion, kw:zsh-prompt
+**Depends:** required:310-zsh-scripting-core.md, required:310a-zsh-advanced-features.md
 
 ## Scope
 

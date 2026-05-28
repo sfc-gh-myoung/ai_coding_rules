@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** Typer, CLI configuration, Pydantic Settings, environment variables, config precedence, CLI options
+**Keywords:** kw:cli-config, kw:pydantic-settings, kw:typer, kw:cli configuration, kw:pydantic settings, kw:environment variables, kw:config precedence, kw:cli options
 **TokenBudget:** ~2550
 **ContextTier:** Medium
-**Depends:** 220-python-typer-cli.md
-**LoadTrigger:** kw:cli-config, kw:pydantic-settings
+**Depends:** required:220-python-typer-cli.md
 
 ## Scope
 

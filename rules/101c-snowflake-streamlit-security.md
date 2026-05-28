@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v4.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** st.secrets, SQL injection, authentication, secure streamlit, protect app, credentials management, API keys, environment variables, secure deployment, input sanitization, RBAC streamlit, access control, security patterns, Container Runtime, Warehouse Runtime
+**Keywords:** kw:st.secrets, kw:sql injection, kw:authentication, kw:secure streamlit, kw:protect app, kw:credentials management, kw:api keys, kw:environment variables, kw:secure deployment, kw:input sanitization, kw:rbac streamlit, kw:access control, kw:security patterns, kw:container runtime, kw:warehouse runtime
 **TokenBudget:** ~4050
 **ContextTier:** High
-**Depends:** 101-snowflake-streamlit-core.md, 107-snowflake-security-governance.md
+**Depends:** required:101-snowflake-streamlit-core.md, required:107-snowflake-security-governance.md
 
 ## Scope
 

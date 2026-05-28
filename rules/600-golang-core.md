@@ -7,14 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.1
 **LastUpdated:** 2026-03-26
-**Keywords:** Go, Golang, go.mod, modules, error handling, interfaces, goroutines, channels, testing, go fmt, golangci-lint, concurrency, context, defer
+**Keywords:** ext:.go, file:go.mod, kw:go, kw:golang, kw:go.mod, kw:modules, kw:error handling, kw:interfaces, kw:goroutines, kw:channels, kw:testing, kw:go fmt, kw:golangci-lint, kw:concurrency, kw:context, kw:defer
 **TokenBudget:** ~3900
 **ContextTier:** High
-**Depends:** 000-global-core.md
-**LoadTrigger:** ext:.go, file:go.mod
+**Depends:** required:000-global-core.md
 
 ## Scope
 

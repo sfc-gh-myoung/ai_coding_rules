@@ -7,14 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v4.1.1
 **LastUpdated:** 2026-03-26
-**Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, pytest, validation, uv run, uvx, ty, type checking, mypy, type hints
+**Keywords:** ext:.py, ext:.pyi, file:pyproject.toml, kw:python, kw:uv, kw:ruff, kw:pyproject.toml, kw:dependency management, kw:virtual environments, kw:pytest, kw:validation, kw:uv run, kw:uvx, kw:ty, kw:type checking, kw:mypy, kw:type hints
 **TokenBudget:** ~3600
 **ContextTier:** Critical
-**Depends:** 000-global-core.md
-**LoadTrigger:** ext:.py, ext:.pyi, file:pyproject.toml
+**Depends:** required:000-global-core.md
 
 ## Scope
 

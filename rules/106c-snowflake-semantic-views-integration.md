@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.1
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:semantic-integration
-**Keywords:** RBAC, masking policy, row access policy, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst, synonyms, natural language queries
+**Keywords:** kw:semantic-integration, kw:rbac, kw:masking policy, kw:row access policy, kw:cortex analyst, kw:agent integration, kw:semantic view security, kw:analyst troubleshooting, kw:fix analyst, kw:debug analyst, kw:synonyms, kw:natural language queries
 **TokenBudget:** ~3150
 **ContextTier:** Medium
-**Depends:** 106-snowflake-semantic-views-core.md, 106b-snowflake-semantic-views-querying.md
+**Depends:** required:106-snowflake-semantic-views-core.md, required:106b-snowflake-semantic-views-querying.md
 
 ## Scope
 

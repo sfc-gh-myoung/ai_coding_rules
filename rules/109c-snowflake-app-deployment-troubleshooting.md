@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.1
 **LastUpdated:** 2026-05-13
-**LoadTrigger:** kw:deployment-error
-**Keywords:** Snowflake deployment troubleshooting, Streamlit debugging, SiS TypeError, notebook deployment issues, deployment errors, stage file debugging, AUTO_COMPRESS debugging, FROM deployment, live_version_location_uri, ROOT_LOCATION errors (legacy), deployment anti-patterns, diagnostic commands, deployment validation, cache issues
+**Keywords:** kw:deployment-error, kw:snowflake deployment troubleshooting, kw:streamlit debugging, kw:sis typeerror, kw:notebook deployment issues, kw:deployment errors, kw:stage file debugging, kw:auto_compress debugging, kw:from deployment, kw:live_version_location_uri, kw:root_location errors (legacy), kw:deployment anti-patterns, kw:diagnostic commands, kw:deployment validation, kw:cache issues
 **TokenBudget:** ~3900
 **ContextTier:** Medium
-**Depends:** 100-snowflake-core.md, 109-snowflake-notebooks.md, 101-snowflake-streamlit-core.md, 109b-snowflake-app-deployment-core.md
+**Depends:** required:100-snowflake-core.md, required:109-snowflake-notebooks.md, required:101-snowflake-streamlit-core.md, required:109b-snowflake-app-deployment-core.md
 
 ## Scope
 

@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** Alpine.js, stores, plugins, transitions, x-teleport, $dispatch, custom directives, advanced patterns, SSE, lifecycle, error recovery
+**Keywords:** kw:alpinejs-advanced, kw:alpine-stores, kw:alpine-plugins, kw:alpine.js, kw:stores, kw:plugins, kw:transitions, kw:x-teleport, kw:$dispatch, kw:custom directives, kw:advanced patterns, kw:sse, kw:lifecycle, kw:error recovery
 **TokenBudget:** ~2700
 **ContextTier:** Low
-**Depends:** 421-javascript-alpinejs-core.md
-**LoadTrigger:** kw:alpinejs-advanced, kw:alpine-stores, kw:alpine-plugins
+**Depends:** required:421-javascript-alpinejs-core.md
 
 ## Scope
 

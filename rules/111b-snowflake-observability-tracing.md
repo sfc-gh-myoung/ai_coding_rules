@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:tracing, kw:distributed-tracing
-**Keywords:** span attributes, trace_id, performance analysis, metrics collection, cpu_usage, memory_usage, telemetry.create_span, OpenTelemetry, nested spans, tracing patterns, span creation, trace analysis, distributed traces
+**Keywords:** kw:tracing, kw:distributed-tracing, kw:span attributes, kw:trace_id, kw:performance analysis, kw:metrics collection, kw:cpu_usage, kw:memory_usage, kw:telemetry.create_span, kw:opentelemetry, kw:nested spans, kw:tracing patterns, kw:span creation, kw:trace analysis, kw:distributed traces
 **TokenBudget:** ~4600
 **ContextTier:** High
-**Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
+**Depends:** required:100-snowflake-core.md, required:111-snowflake-observability-core.md
 
 ## Scope
 

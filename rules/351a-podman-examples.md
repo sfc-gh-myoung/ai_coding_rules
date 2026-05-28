@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-25
-**Keywords:** Podman examples, Containerfile example, buildah example, quadlet example, podman build script
+**Keywords:** kw:podman examples, kw:containerfile example, kw:buildah example, kw:quadlet example, kw:podman build script
 **TokenBudget:** ~1750
 **ContextTier:** Low
-**Depends:** 351-podman-core.md
+**Depends:** required:351-podman-core.md
 
 ## Scope
 

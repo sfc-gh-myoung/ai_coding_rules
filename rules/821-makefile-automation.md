@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** file:Makefile, kw:makefile, kw:make
-**Keywords:** Makefile, GNU Make, make, build automation, make target, phony, make help, portable make, make variables, uv, uvx, make dependencies, make error handling, make cleanup
+**Keywords:** file:Makefile, kw:makefile, kw:make, kw:gnu make, kw:build automation, kw:make target, kw:phony, kw:make help, kw:portable make, kw:make variables, kw:uv, kw:uvx, kw:make dependencies, kw:make error handling, kw:make cleanup
 **TokenBudget:** ~3700
 **ContextTier:** Medium
-**Depends:** 000-global-core.md
+**Depends:** required:000-global-core.md
 
 ## Scope
 

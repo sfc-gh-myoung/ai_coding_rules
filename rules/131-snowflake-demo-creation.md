@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-13
-**Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure, Streamlit, data visualization
-**LoadTrigger:** kw:demo-creation, kw:synthetic-data
+**Keywords:** kw:demo-creation, kw:synthetic-data, kw:demo creation, kw:synthetic data, kw:realistic demos, kw:data generation, kw:demo applications, kw:narrative design, kw:reproducible data, kw:progressive disclosure, kw:streamlit, kw:data visualization
 **TokenBudget:** ~3100
 **ContextTier:** Low
-**Depends:** 130-snowflake-demo-sql.md
+**Depends:** required:130-snowflake-demo-sql.md
 
 ## Scope
 

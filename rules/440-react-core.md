@@ -7,14 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.3.0
 **LastUpdated:** 2026-03-25
-**Keywords:** React, Next.js, RSC, Hooks, Tailwind, Zustand, TanStack Query, Shadcn, Feature-based, TypeScript, Vitest, Testing Library, debug hooks, fix React error, component rendering
+**Keywords:** ext:.jsx, ext:.tsx, kw:react, kw:next.js, kw:rsc, kw:hooks, kw:tailwind, kw:zustand, kw:tanstack query, kw:shadcn, kw:feature-based, kw:typescript, kw:vitest, kw:testing library, kw:debug hooks, kw:fix react error, kw:component rendering
 **TokenBudget:** ~3200
 **ContextTier:** High
-**Depends:** 000-global-core.md, 420-javascript-core.md, 430-typescript-core.md
-**LoadTrigger:** ext:.jsx, ext:.tsx, kw:react
+**Depends:** required:000-global-core.md, required:420-javascript-core.md, required:430-typescript-core.md
 
 ## Scope
 

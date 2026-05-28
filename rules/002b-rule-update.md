@@ -7,13 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.2.2
 **LastUpdated:** 2026-03-26
-**Keywords:** rule update, rule maintenance, versioning, RuleVersion, LastUpdated, semantic versioning, MAJOR, MINOR, PATCH, rule modification, keyword expansion, scope updates, metadata updates, CHANGELOG updates
+**Keywords:** kw:rule update, kw:rule maintenance, kw:versioning, kw:ruleversion, kw:lastupdated, kw:semantic versioning, kw:major, kw:minor, kw:patch, kw:rule modification, kw:keyword expansion, kw:scope updates, kw:metadata updates, kw:changelog updates
 **TokenBudget:** ~3950
 **ContextTier:** High
-**Depends:** 002-rule-governance.md, 000-global-core.md
+**Depends:** required:002-rule-governance.md, required:000-global-core.md
 
 ## Scope
 

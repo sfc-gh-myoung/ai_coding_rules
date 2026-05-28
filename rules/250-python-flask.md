@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:flask, kw:web
-**Keywords:** Flask, web, blueprints, Flask-SQLAlchemy, templates, routing, application factory
+**Keywords:** kw:flask, kw:web, kw:blueprints, kw:flask-sqlalchemy, kw:templates, kw:routing, kw:application factory
 **TokenBudget:** ~2150
 **ContextTier:** High
-**Depends:** 200-python-core.md
+**Depends:** required:200-python-core.md
 
 ## Scope
 

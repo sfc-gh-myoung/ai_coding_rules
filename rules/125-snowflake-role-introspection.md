@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:role, kw:introspection, kw:access
-**Keywords:** account roles, database roles, SHOW GRANTS, role introspection, RBAC, Python automation, error 000906, too many qualifiers, grants inspection, programmatic RBAC
+**Keywords:** kw:role, kw:introspection, kw:access, kw:account roles, kw:database roles, kw:show grants, kw:role introspection, kw:rbac, kw:python automation, kw:error 000906, kw:too many qualifiers, kw:grants inspection, kw:programmatic rbac
 **TokenBudget:** ~2350
 **ContextTier:** Medium
-**Depends:** 000-global-core.md, 100-snowflake-core.md
+**Depends:** required:000-global-core.md, required:100-snowflake-core.md
 
 ## Scope
 

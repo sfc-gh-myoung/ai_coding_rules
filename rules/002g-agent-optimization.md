@@ -4,13 +4,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** agent, LLM, optimization, format, token, efficiency, understanding, execution, comprehension, design, patterns, priority, agent-first
+**Keywords:** kw:agent, kw:llm, kw:optimization, kw:format, kw:token, kw:efficiency, kw:understanding, kw:execution, kw:comprehension, kw:design, kw:patterns, kw:priority, kw:agent-first
 **TokenBudget:** ~3000
 **ContextTier:** High
-**Depends:** 000-global-core.md, 002-rule-governance.md
+**Depends:** required:000-global-core.md, required:002-rule-governance.md
 
 ## Scope
 

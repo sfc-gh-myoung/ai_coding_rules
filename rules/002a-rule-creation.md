@@ -7,13 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.3.1
 **LastUpdated:** 2026-03-09
-**Keywords:** rule creation, workflow, step-by-step guide, naming conventions, metadata setup, v3.2 schema, validation, rule numbering, from scratch, new rule
+**Keywords:** kw:rule creation, kw:workflow, kw:step-by-step guide, kw:naming conventions, kw:metadata setup, kw:v3.2 schema, kw:validation, kw:rule numbering, kw:from scratch, kw:new rule
 **TokenBudget:** ~3900
 **ContextTier:** High
-**Depends:** 002-rule-governance.md, 000-global-core.md
+**Depends:** required:002-rule-governance.md, required:000-global-core.md
 
 ## Scope
 

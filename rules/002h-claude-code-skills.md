@@ -7,14 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.6.0
 **LastUpdated:** 2026-04-04
-**Keywords:** Claude Code, skills, SKILL.md, skill structure, progressive disclosure, workflows, trigger keywords, skill authoring, skill testing, skill validation, input contracts, output contracts, skill examples, YAML frontmatter, description writing, MCP tools, degrees of freedom, context window, third person, naming conventions
+**Keywords:** dir:skills/, kw:skill, kw:claude code, kw:skills, kw:skill.md, kw:skill structure, kw:progressive disclosure, kw:workflows, kw:trigger keywords, kw:skill authoring, kw:skill testing, kw:skill validation, kw:input contracts, kw:output contracts, kw:skill examples, kw:yaml frontmatter, kw:description writing, kw:mcp tools, kw:degrees of freedom, kw:context window, kw:third person, kw:naming conventions
 **TokenBudget:** ~5100
 **ContextTier:** High
-**Depends:** 000-global-core.md, 002-rule-governance.md
-**LoadTrigger:** dir:skills/, kw:skill
+**Depends:** required:000-global-core.md, required:002-rule-governance.md
 
 ## Scope
 

@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:ai_transcribe, kw:transcribe, kw:audio, kw:diarization
-**Keywords:** AI_TRANSCRIBE, audio transcription, TO_FILE, speaker diarization, timestamp_granularity, FLAC, MP3, OGG, WAV, WebM
+**Keywords:** kw:ai_transcribe, kw:transcribe, kw:audio, kw:diarization, kw:audio transcription, kw:to_file, kw:speaker diarization, kw:timestamp_granularity, kw:flac, kw:mp3, kw:ogg, kw:wav, kw:webm
 **TokenBudget:** ~3500
 **ContextTier:** Medium
-**Depends:** 114-snowflake-cortex-aisql.md, 100-snowflake-core.md
+**Depends:** required:114-snowflake-cortex-aisql.md, required:100-snowflake-core.md
 
 ## Scope
 

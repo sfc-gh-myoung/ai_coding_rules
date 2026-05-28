@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** testing, pytest, unit tests, integration tests, fixtures, mocking, header validation, html assertions, test client, htmx testing
+**Keywords:** kw:testing, kw:pytest, kw:unit tests, kw:integration tests, kw:fixtures, kw:mocking, kw:header validation, kw:html assertions, kw:test client, kw:htmx testing
 **TokenBudget:** ~4600
 **ContextTier:** High
-**Depends:** 221-python-htmx-core.md, 206-python-pytest.md
+**Depends:** required:221-python-htmx-core.md, required:206-python-pytest.md
 
 ## Scope
 

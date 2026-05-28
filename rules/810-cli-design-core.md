@@ -2,7 +2,7 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.1
 **LastUpdated:** 2026-05-18
 **Keywords:** kw:cli, kw:command line, kw:command line interface, kw:clig, kw:clig dev, kw:cli design, kw:cli ux, kw:flags, kw:exit codes, kw:stdout, kw:stderr, kw:no_color, kw:isatty, kw:tty, kw:subcommands, kw:cli help, kw:cli config, kw:xdg, kw:dry-run, kw:machine readable

@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:htmx-templates
-**Keywords:** jinja2, templates, partials, fragments, template composition, conditional rendering, htmx templates, template organization, reusable components, template context
+**Keywords:** kw:htmx-templates, kw:jinja2, kw:templates, kw:partials, kw:fragments, kw:template composition, kw:conditional rendering, kw:htmx templates, kw:template organization, kw:reusable components, kw:template context
 **TokenBudget:** ~4500
 **ContextTier:** High
-**Depends:** 221-python-htmx-core.md
+**Depends:** required:221-python-htmx-core.md
 
 ## Scope
 

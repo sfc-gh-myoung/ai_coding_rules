@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:observability-logging
-**Keywords:** DEBUG, INFO, WARN, ERROR, FATAL, conditional logging, sampling, tight loop logging, standard logging libraries, log volume control, cost management, log configuration, log handlers
+**Keywords:** kw:observability-logging, kw:debug, kw:info, kw:warn, kw:error, kw:fatal, kw:conditional logging, kw:sampling, kw:tight loop logging, kw:standard logging libraries, kw:log volume control, kw:cost management, kw:log configuration, kw:log handlers
 **TokenBudget:** ~4000
 **ContextTier:** High
-**Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
+**Depends:** required:100-snowflake-core.md, required:111-snowflake-observability-core.md
 
 ## Scope
 

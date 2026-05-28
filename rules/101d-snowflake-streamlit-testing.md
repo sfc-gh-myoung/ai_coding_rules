@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** test Streamlit app, pytest, test framework, test patterns, app testing, UI testing, test automation, streamlit test suite, integration testing, test coverage, debug tests, test fixtures, testing strategies
+**Keywords:** kw:test streamlit app, kw:pytest, kw:test framework, kw:test patterns, kw:app testing, kw:ui testing, kw:test automation, kw:streamlit test suite, kw:integration testing, kw:test coverage, kw:debug tests, kw:test fixtures, kw:testing strategies
 **TokenBudget:** ~3950
 **ContextTier:** High
-**Depends:** 101-snowflake-streamlit-core.md, 206-python-pytest.md
+**Depends:** required:101-snowflake-streamlit-core.md, required:206-python-pytest.md
 
 ## Scope
 

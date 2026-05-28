@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:pydantic-settings, kw:env-file, kw:app-config
-**Keywords:** Pydantic Settings, BaseSettings, environment variables, configuration, env_file, nested settings, config precedence
+**Keywords:** kw:pydantic-settings, kw:env-file, kw:app-config, kw:pydantic settings, kw:basesettings, kw:environment variables, kw:configuration, kw:env_file, kw:nested settings, kw:config precedence
 **TokenBudget:** ~1800
 **ContextTier:** Medium
-**Depends:** 230-python-pydantic.md
+**Depends:** required:230-python-pydantic.md
 
 ## Scope
 

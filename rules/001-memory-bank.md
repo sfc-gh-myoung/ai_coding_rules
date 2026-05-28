@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
-**Keywords:** memory bank, context, session recovery, progress tracking, compaction, rapid recovery
+**Keywords:** kw:memory bank, kw:context, kw:session recovery, kw:progress tracking, kw:compaction, kw:rapid recovery
 **TokenBudget:** ~1400
 **ContextTier:** Critical
-**Depends:** 000-global-core.md
+**Depends:** required:000-global-core.md
 
 ## Scope
 

@@ -7,14 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.3.0
 **LastUpdated:** 2026-03-25
-**Keywords:** JavaScript, ES2024, ESM, Node.js, JSDoc, Biome, node:test, Immutability, Async/Await, Functional Programming
+**Keywords:** ext:.js, ext:.jsx, ext:.mjs, ext:.cjs, kw:javascript, kw:es2024, kw:esm, kw:node.js, kw:jsdoc, kw:biome, kw:node:test, kw:immutability, kw:async/await, kw:functional programming
 **TokenBudget:** ~4450
 **ContextTier:** High
-**Depends:** 000-global-core.md
-**LoadTrigger:** ext:.js, ext:.jsx, ext:.mjs, ext:.cjs
+**Depends:** required:000-global-core.md
 
 ## Scope
 

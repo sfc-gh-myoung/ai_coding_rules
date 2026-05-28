@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v4.0.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:fastapi-security, kw:oauth, kw:jwt, kw:rbac
-**Keywords:** FastAPI security, authentication, OAuth2, JWT, API keys, bcrypt, HTTPBearer, role-based access control, RBAC, token refresh, password hashing
+**Keywords:** kw:fastapi-security, kw:oauth, kw:jwt, kw:rbac, kw:fastapi security, kw:authentication, kw:oauth2, kw:api keys, kw:bcrypt, kw:httpbearer, kw:role-based access control, kw:token refresh, kw:password hashing
 **TokenBudget:** ~3800
 **ContextTier:** High
-**Depends:** 210-python-fastapi-core.md
+**Depends:** required:210-python-fastapi-core.md
 
 ## Scope
 

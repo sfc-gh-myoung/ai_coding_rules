@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** fastapi, async, dependency injection, background tasks, fastapi templates, starlette, pydantic, async routes
+**Keywords:** kw:htmx-fastapi, kw:fastapi, kw:async, kw:dependency injection, kw:background tasks, kw:fastapi templates, kw:starlette, kw:pydantic, kw:async routes
 **TokenBudget:** ~3450
 **ContextTier:** Medium
-**Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
-**LoadTrigger:** kw:htmx-fastapi
+**Depends:** required:221-python-htmx-core.md, required:221a-python-htmx-templates.md
 
 ## Scope
 

@@ -7,14 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:htmx, kw:hypermedia
-**Keywords:** htmx, hypermedia, hateoas, hx-request, hx-trigger, partial rendering, sse, websockets, csrf, xss, http headers, swap strategies, oob swaps, response patterns
+**Keywords:** kw:htmx, kw:hypermedia, kw:hateoas, kw:hx-request, kw:hx-trigger, kw:partial rendering, kw:sse, kw:websockets, kw:csrf, kw:xss, kw:http headers, kw:swap strategies, kw:oob swaps, kw:response patterns
 **TokenBudget:** ~4800
 **ContextTier:** High
-**Depends:** 200-python-core.md
+**Depends:** required:200-python-core.md
 
 ## Scope
 

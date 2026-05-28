@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:react-backend
-**Keywords:** React backend, FastAPI, Flask, Python API, CORS, JWT, authentication, API integration, full-stack, Express alternative, fetch, axios, TanStack Query backend, Next.js API routes, httpOnly cookies
+**Keywords:** kw:react-backend, kw:react backend, kw:fastapi, kw:flask, kw:python api, kw:cors, kw:jwt, kw:authentication, kw:api integration, kw:full-stack, kw:express alternative, kw:fetch, kw:axios, kw:tanstack query backend, kw:next.js api routes, kw:httponly cookies
 **TokenBudget:** ~4350
 **ContextTier:** High
-**Depends:** 440-react-core.md, 200-python-core.md
+**Depends:** required:440-react-core.md, required:200-python-core.md
 
 ## Scope
 

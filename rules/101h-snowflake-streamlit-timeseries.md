@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** time series smoothing, data aggregation, resample, SCADA data, high-frequency data, trend analysis, rolling average, EWMA, exponential smoothing
+**Keywords:** kw:time series smoothing, kw:data aggregation, kw:resample, kw:scada data, kw:high-frequency data, kw:trend analysis, kw:rolling average, kw:ewma, kw:exponential smoothing
 **TokenBudget:** ~2550
 **ContextTier:** Low
-**Depends:** 101a-snowflake-streamlit-visualization.md
+**Depends:** required:101a-snowflake-streamlit-visualization.md
 
 ## Scope
 

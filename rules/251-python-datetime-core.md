@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v4.0.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:datetime, kw:timezone
-**Keywords:** datetime, timezone, UTC, timedelta, tz_localize, tz_convert, datetime.now(UTC), pd.Timestamp, type conversion, zoneinfo
+**Keywords:** kw:datetime, kw:timezone, kw:utc, kw:timedelta, kw:tz_localize, kw:tz_convert, kw:datetime.now(utc), kw:pd.timestamp, kw:type conversion, kw:zoneinfo
 **TokenBudget:** ~3000
 **ContextTier:** High
-**Depends:** 200-python-core.md
+**Depends:** required:200-python-core.md
 
 ## Scope
 

@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-04-01
-**Keywords:** Reveal.js, revealjs, presentation, slides, HTML presentation, slide deck, code highlighting, speaker notes, Markdown slides, fragments, vertical slides, reveal themes, presentation framework, auto-animate
+**Keywords:** kw:reveal.js, kw:revealjs, kw:presentation, kw:slides, kw:html presentation, kw:slide deck, kw:code highlighting, kw:speaker notes, kw:markdown slides, kw:fragments, kw:vertical slides, kw:reveal themes, kw:presentation framework, kw:auto-animate
 **TokenBudget:** ~4400
 **ContextTier:** Medium
-**Depends:** 000-global-core.md
+**Depends:** required:000-global-core.md
 
 ## Scope
 

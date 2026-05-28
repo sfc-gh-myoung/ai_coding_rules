@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-25
-**Keywords:** Podman, Containerfile, containers, rootless containers, buildah, podman-compose, pods, daemonless, systemd, quadlet, image optimization, non-root, healthcheck, security scanning, SBOM
+**Keywords:** file:Containerfile, file:podman-compose.yml, file:podman-compose.yaml, kw:podman, kw:buildah, kw:containerfile, kw:containers, kw:rootless containers, kw:podman-compose, kw:pods, kw:daemonless, kw:systemd, kw:quadlet, kw:image optimization, kw:non-root, kw:healthcheck, kw:security scanning, kw:sbom
 **TokenBudget:** ~4350
 **ContextTier:** Medium
-**Depends:** 000-global-core.md, 202-markup-config-validation.md
-**LoadTrigger:** file:Containerfile, file:podman-compose.yml, file:podman-compose.yaml, kw:podman, kw:buildah
+**Depends:** required:000-global-core.md, required:202-markup-config-validation.md
 
 ## Scope
 

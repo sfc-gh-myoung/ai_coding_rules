@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:serialization, kw:model-dump, kw:type-adapter
-**Keywords:** Pydantic, serialization, JSON schema, FastAPI integration, database ORM, TypeAdapter, performance, testing, model_dump, SecretStr
+**Keywords:** kw:serialization, kw:model-dump, kw:type-adapter, kw:pydantic, kw:json schema, kw:fastapi integration, kw:database orm, kw:typeadapter, kw:performance, kw:testing, kw:model_dump, kw:secretstr
 **TokenBudget:** ~3450
 **ContextTier:** Medium
-**Depends:** 230-python-pydantic.md
+**Depends:** required:230-python-pydantic.md
 
 ## Scope
 

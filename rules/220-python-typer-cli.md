@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v4.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** Typer, CLI development, command-line interface, click, argument parsing, typer.Argument, typer.Option, rich console, exit codes
+**Keywords:** kw:typer, kw:cli, kw:cli development, kw:command-line interface, kw:click, kw:argument parsing, kw:typer.argument, kw:typer.option, kw:rich console, kw:exit codes
 **TokenBudget:** ~4300
 **ContextTier:** High
-**Depends:** 200-python-core.md
-**LoadTrigger:** kw:typer, kw:cli
+**Depends:** required:200-python-core.md
 
 ## Scope
 

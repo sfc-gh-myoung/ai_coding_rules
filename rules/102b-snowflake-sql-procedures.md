@@ -7,14 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** stored procedure, CREATE PROCEDURE, UDF, CREATE FUNCTION, dollar quoting, nested quotes, EXECUTE AS, EXECUTE IMMEDIATE, dynamic SQL, bind variables, OWNER, CALLER, RESTRICTED CALLER, SQL scripting, procedure body
+**Keywords:** kw:stored-procedure, kw:create-procedure, kw:udf, kw:create-function, kw:stored procedure, kw:create procedure, kw:create function, kw:dollar quoting, kw:nested quotes, kw:execute as, kw:execute immediate, kw:dynamic sql, kw:bind variables, kw:owner, kw:caller, kw:restricted caller, kw:sql scripting, kw:procedure body
 **TokenBudget:** ~5700
 **ContextTier:** High
-**Depends:** 102-snowflake-sql-core.md
-**LoadTrigger:** kw:stored-procedure, kw:create-procedure, kw:udf, kw:create-function
+**Depends:** required:102-snowflake-sql-core.md
 
 ## Scope
 

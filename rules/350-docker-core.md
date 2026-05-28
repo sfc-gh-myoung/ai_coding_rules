@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.3.0
 **LastUpdated:** 2026-03-25
-**Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose, BuildKit, distroless, security scanning, SBOM, non-root, healthcheck
+**Keywords:** file:Dockerfile, file:docker-compose.yml, file:docker-compose.yaml, kw:docker, kw:container, kw:dockerfile, kw:containers, kw:multi-stage builds, kw:layer caching, kw:image optimization, kw:docker-compose, kw:buildkit, kw:distroless, kw:security scanning, kw:sbom, kw:non-root, kw:healthcheck
 **TokenBudget:** ~4550
 **ContextTier:** Medium
-**Depends:** 000-global-core.md, 202-markup-config-validation.md
-**LoadTrigger:** file:Dockerfile, file:docker-compose.yml, file:docker-compose.yaml, kw:docker, kw:container
+**Depends:** required:000-global-core.md, required:202-markup-config-validation.md
 
 ## Scope
 

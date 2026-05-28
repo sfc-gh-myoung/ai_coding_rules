@@ -7,13 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.1
 **LastUpdated:** 2026-03-09
-**Keywords:** token budget, optimization, performance, rule sizing, progressive loading, context window, model limits, cost efficiency, caching, batch loading
+**Keywords:** kw:token budget, kw:optimization, kw:performance, kw:rule sizing, kw:progressive loading, kw:context window, kw:model limits, kw:cost efficiency, kw:caching, kw:batch loading
 **TokenBudget:** ~4350
 **ContextTier:** High
-**Depends:** 002-rule-governance.md, 000-global-core.md, 002k-model-optimization.md
+**Depends:** required:002-rule-governance.md, required:000-global-core.md, required:002k-model-optimization.md
 
 ## Scope
 

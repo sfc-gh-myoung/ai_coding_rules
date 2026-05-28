@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:semantic-generator, kw:vqr
-**Keywords:** VQR, verified queries, Generator workflow, iterative development, YAML semantic model, semantic model file, onboarding questions, development workflow, verified query repository, semantic view generator
+**Keywords:** kw:semantic-generator, kw:vqr, kw:verified queries, kw:generator workflow, kw:iterative development, kw:yaml semantic model, kw:semantic model file, kw:onboarding questions, kw:development workflow, kw:verified query repository, kw:semantic view generator
 **TokenBudget:** ~3500
 **ContextTier:** Medium
-**Depends:** 106-snowflake-semantic-views-core.md
+**Depends:** required:106-snowflake-semantic-views-core.md
 
 ## Scope
 

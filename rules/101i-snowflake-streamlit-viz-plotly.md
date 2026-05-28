@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** plotly, plotly express, graph objects, st.plotly_chart, interactive charts, scatter, line, bar, histogram, heatmap, box plot, violin, sunburst, treemap, animations, faceting, subplots
+**Keywords:** kw:plotly, kw:plotly express, kw:graph objects, kw:st.plotly_chart, kw:interactive charts, kw:scatter, kw:line, kw:bar, kw:histogram, kw:heatmap, kw:box plot, kw:violin, kw:sunburst, kw:treemap, kw:animations, kw:faceting, kw:subplots
 **TokenBudget:** ~3450
 **ContextTier:** Medium
-**Depends:** 000-global-core.md, 101a-snowflake-streamlit-visualization.md
+**Depends:** required:000-global-core.md, required:101a-snowflake-streamlit-visualization.md
 
 ## Scope
 

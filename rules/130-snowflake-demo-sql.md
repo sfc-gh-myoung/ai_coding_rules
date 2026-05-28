@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.1
 **LastUpdated:** 2026-03-26
-**Keywords:** demo SQL, workshop, teardown, progress indicators, rerunnable demos, CREATE OR REPLACE, educational SQL, demo patterns, setup scripts, customer learning, per-schema isolation, inline documentation, dynamic grant, CURRENT_USER, IDENTIFIER
-**LoadTrigger:** kw:demo, kw:workshop, kw:quickstart
+**Keywords:** kw:demo, kw:workshop, kw:quickstart, kw:demo sql, kw:teardown, kw:progress indicators, kw:rerunnable demos, kw:create or replace, kw:educational sql, kw:demo patterns, kw:setup scripts, kw:customer learning, kw:per-schema isolation, kw:inline documentation, kw:dynamic grant, kw:current_user, kw:identifier
 **TokenBudget:** ~4600
 **ContextTier:** High
-**Depends:** 102-snowflake-sql-core.md
+**Depends:** required:102-snowflake-sql-core.md
 
 ## Scope
 

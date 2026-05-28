@@ -7,14 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.3.0
 **LastUpdated:** 2026-03-25
-**Keywords:** SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks, warehouse creation
+**Keywords:** ext:.sql, kw:sql, kw:cte, kw:performance, kw:cost optimization, kw:query profile, kw:warehouse, kw:security, kw:governance, kw:stages, kw:copy into, kw:streams, kw:tasks, kw:warehouse creation
 **TokenBudget:** ~5050
 **ContextTier:** High
-**Depends:** 000-global-core.md
-**LoadTrigger:** ext:.sql
+**Depends:** required:000-global-core.md
 
 ## Scope
 

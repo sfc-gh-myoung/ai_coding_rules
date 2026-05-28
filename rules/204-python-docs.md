@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, Google style, NumPy style, PEP 257, semantic depth, side effects
+**Keywords:** kw:docstring, kw:documentation, kw:comments, kw:python docstrings, kw:pydocstyle, kw:ruff doc rules, kw:google style, kw:numpy style, kw:pep 257, kw:semantic depth, kw:side effects
 **TokenBudget:** ~3800
 **ContextTier:** High
-**Depends:** 200-python-core.md, 201-python-lint-format.md
-**LoadTrigger:** kw:docstring, kw:documentation, kw:comments
+**Depends:** required:200-python-core.md, required:201-python-lint-format.md
 
 ## Scope
 

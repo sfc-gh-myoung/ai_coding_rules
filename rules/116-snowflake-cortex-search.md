@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:search, kw:cortex-search
-**Keywords:** embeddings, search index, RAG, agent tools, retrieval, AI_EMBED, search service, document retrieval, hybrid search, vector similarity
+**Keywords:** kw:search, kw:cortex-search, kw:embeddings, kw:search index, kw:rag, kw:agent tools, kw:retrieval, kw:ai_embed, kw:search service, kw:document retrieval, kw:hybrid search, kw:vector similarity
 **TokenBudget:** ~3100
 **ContextTier:** Medium
-**Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 114-snowflake-cortex-aisql.md
+**Depends:** required:100-snowflake-core.md, required:105-snowflake-cost-governance.md, required:114-snowflake-cortex-aisql.md
 
 ## Scope
 

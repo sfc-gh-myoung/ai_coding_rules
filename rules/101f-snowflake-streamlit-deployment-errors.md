@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v2.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** deployment error, Container Runtime, Warehouse Runtime, EAI error, compute pool, stage upload, service startup, troubleshooting, runtime error
+**Keywords:** kw:deployment error, kw:container runtime, kw:warehouse runtime, kw:eai error, kw:compute pool, kw:stage upload, kw:service startup, kw:troubleshooting, kw:runtime error
 **TokenBudget:** ~2800
 **ContextTier:** Low
-**Depends:** 101-snowflake-streamlit-core.md, 101l-snowflake-streamlit-deployment.md
+**Depends:** required:101-snowflake-streamlit-core.md, required:101l-snowflake-streamlit-deployment.md
 
 ## Scope
 

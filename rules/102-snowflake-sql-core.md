@@ -7,14 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.3.0
 **LastUpdated:** 2026-03-09
-**Keywords:** SQL files, file headers, COPY INTO, FILE_FORMAT, CREATE VIEW, fully qualified names, idempotent, reserved characters, CLI compatibility, ON_ERROR, JOIN, ambiguous column, table alias
+**Keywords:** ext:.sql, kw:sql, kw:sql files, kw:file headers, kw:copy into, kw:file_format, kw:create view, kw:fully qualified names, kw:idempotent, kw:reserved characters, kw:cli compatibility, kw:on_error, kw:join, kw:ambiguous column, kw:table alias
 **TokenBudget:** ~4100
 **ContextTier:** High
-**Depends:** 100-snowflake-core.md
-**LoadTrigger:** ext:.sql, kw:sql
+**Depends:** required:100-snowflake-core.md
 
 ## Scope
 

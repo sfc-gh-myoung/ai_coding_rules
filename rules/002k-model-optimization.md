@@ -7,13 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** model optimization, context window, loading budget, GPT, Claude, Gemini, token limits, cost efficiency, prompt caching
+**Keywords:** kw:model optimization, kw:context window, kw:loading budget, kw:gpt, kw:claude, kw:gemini, kw:token limits, kw:cost efficiency, kw:prompt caching
 **TokenBudget:** ~2550
 **ContextTier:** Low
-**Depends:** 002c-rule-optimization.md
+**Depends:** required:002c-rule-optimization.md
 
 ## Scope
 

@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:snowpipe-streaming-sdk
-**Keywords:** snowpipe streaming SDK, Java SDK, Python SDK, streaming client, channel management, offset tracking, schema evolution, streaming ingestion code, SnowflakeStreamingIngestClient
+**Keywords:** kw:snowpipe-streaming-sdk, kw:snowpipe streaming sdk, kw:java sdk, kw:python sdk, kw:streaming client, kw:channel management, kw:offset tracking, kw:schema evolution, kw:streaming ingestion code, kw:snowflakestreamingingestclient
 **TokenBudget:** ~3850
 **ContextTier:** High
-**Depends:** 100-snowflake-core.md, 121a-snowflake-snowpipe-streaming.md
+**Depends:** required:100-snowflake-core.md, required:121a-snowflake-snowpipe-streaming.md
 
 ## Scope
 

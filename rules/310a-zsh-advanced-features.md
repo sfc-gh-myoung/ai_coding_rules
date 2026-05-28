@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** Zsh, modules, advanced features, performance optimization, parameter expansion, globbing, autoload, scripting, caching, memoization
+**Keywords:** ext:.zsh, kw:zsh-advanced, kw:zsh, kw:modules, kw:advanced features, kw:performance optimization, kw:parameter expansion, kw:globbing, kw:autoload, kw:scripting, kw:caching, kw:memoization
 **TokenBudget:** ~3800
 **ContextTier:** Low
-**Depends:** 310-zsh-scripting-core.md
-**LoadTrigger:** ext:.zsh, kw:zsh-advanced
+**Depends:** required:310-zsh-scripting-core.md
 
 ## Scope
 

@@ -7,14 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:htmx, kw:frontend
-**Keywords:** htmx attributes, client-side, events, css transitions, debugging, browser compatibility, hx-get, hx-post, hx-swap, hx-trigger, hx-target
+**Keywords:** kw:htmx, kw:frontend, kw:htmx attributes, kw:client-side, kw:events, kw:css transitions, kw:debugging, kw:browser compatibility, kw:hx-get, kw:hx-post, kw:hx-swap, kw:hx-trigger, kw:hx-target
 **TokenBudget:** ~3800
 **ContextTier:** Low
-**Depends:** 000-global-core.md
+**Depends:** required:000-global-core.md
 
 ## Scope
 

@@ -7,14 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.1
 **LastUpdated:** 2026-03-26
-**Keywords:** Bash, shell scripting, set -euo pipefail, error handling, strict mode, functions, variables, script structure, trap, exit codes, shellcheck, input validation
+**Keywords:** ext:.sh, ext:.bash, ext:.zsh, kw:bash, kw:shell scripting, kw:set -euo pipefail, kw:error handling, kw:strict mode, kw:functions, kw:variables, kw:script structure, kw:trap, kw:exit codes, kw:shellcheck, kw:input validation
 **TokenBudget:** ~3700
 **ContextTier:** High
-**Depends:** 000-global-core.md
-**LoadTrigger:** ext:.sh, ext:.bash, ext:.zsh
+**Depends:** required:000-global-core.md
 
 ## Scope
 

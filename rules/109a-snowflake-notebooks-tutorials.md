@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:notebook-tutorial
-**Keywords:** checkpoints, learning objectives, pedagogical design, educational content, progressive learning, Snowflake notebooks, teaching point callouts, validation gates, tutorial structure, learning design, educational notebooks, teaching methodology, notebook education
+**Keywords:** kw:notebook-tutorial, kw:checkpoints, kw:learning objectives, kw:pedagogical design, kw:educational content, kw:progressive learning, kw:snowflake notebooks, kw:teaching point callouts, kw:validation gates, kw:tutorial structure, kw:learning design, kw:educational notebooks, kw:teaching methodology, kw:notebook education
 **TokenBudget:** ~3600
 **ContextTier:** High
-**Depends:** 109-snowflake-notebooks.md, 920-data-science-analytics.md
+**Depends:** required:109-snowflake-notebooks.md, required:920-data-science-analytics.md
 
 ## Scope
 

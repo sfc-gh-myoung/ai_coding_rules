@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** Data science, Snowflake, pandas, Snowpark, ML, model lifecycle, feature engineering, NaN handling, model versioning, Jupyter
+**Keywords:** kw:data science, kw:snowflake, kw:pandas, kw:snowpark, kw:ml, kw:model lifecycle, kw:feature engineering, kw:nan handling, kw:model versioning, kw:jupyter
 **TokenBudget:** ~3750
 **ContextTier:** High
-**Depends:** 200-python-core.md, 000-global-core.md
+**Depends:** required:200-python-core.md, required:000-global-core.md
 
 ## Scope
 

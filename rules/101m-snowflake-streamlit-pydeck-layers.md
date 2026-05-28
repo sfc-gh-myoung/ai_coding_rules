@@ -2,13 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** pydeck layers, HexagonLayer, ScatterplotLayer, GeoJsonLayer, ArcLayer, ColumnLayer, HeatmapLayer, PathLayer, TerrainLayer, PointCloudLayer, multi-layer
+**Keywords:** kw:pydeck layers, kw:hexagonlayer, kw:scatterplotlayer, kw:geojsonlayer, kw:arclayer, kw:columnlayer, kw:heatmaplayer, kw:pathlayer, kw:terrainlayer, kw:pointcloudlayer, kw:multi-layer
 **TokenBudget:** ~2950
 **ContextTier:** Low
-**Depends:** 101j-snowflake-streamlit-viz-pydeck.md
+**Depends:** required:101j-snowflake-streamlit-viz-pydeck.md
 
 ## Scope
 

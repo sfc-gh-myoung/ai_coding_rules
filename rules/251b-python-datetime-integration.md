@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:datetime-sql, kw:streamlit-datetime, kw:plotly-datetime
-**Keywords:** datetime SQL, parameterized queries, Streamlit date input, Plotly datetime, datetime display, date formatting, SQL injection
+**Keywords:** kw:datetime-sql, kw:streamlit-datetime, kw:plotly-datetime, kw:datetime sql, kw:parameterized queries, kw:streamlit date input, kw:plotly datetime, kw:datetime display, kw:date formatting, kw:sql injection
 **TokenBudget:** ~2500
 **ContextTier:** Medium
-**Depends:** 251-python-datetime-core.md
+**Depends:** required:251-python-datetime-core.md
 
 ## Scope
 

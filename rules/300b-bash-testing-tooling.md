@@ -2,14 +2,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:bash-testing, kw:bats
-**Keywords:** Bash, testing, ShellCheck, bats, shell script testing, CI/CD, debugging, static analysis, linting, test automation
+**Keywords:** kw:bash-testing, kw:bats, kw:bash, kw:testing, kw:shellcheck, kw:shell script testing, kw:ci/cd, kw:debugging, kw:static analysis, kw:linting, kw:test automation
 **TokenBudget:** ~3600
 **ContextTier:** Medium
-**Depends:** 300-bash-scripting-core.md
+**Depends:** required:300-bash-scripting-core.md
 
 ## Scope
 

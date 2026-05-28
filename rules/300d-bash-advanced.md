@@ -7,14 +7,13 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** Bash, advanced patterns, associative arrays, performance, code style, ShellCheck, debugging, documentation, security, parameter expansion
+**Keywords:** ext:.sh, ext:.bash, kw:bash, kw:advanced patterns, kw:associative arrays, kw:performance, kw:code style, kw:shellcheck, kw:debugging, kw:documentation, kw:security, kw:parameter expansion
 **TokenBudget:** ~2700
 **ContextTier:** Medium
-**Depends:** 300-bash-scripting-core.md
-**LoadTrigger:** ext:.sh, ext:.bash
+**Depends:** required:300-bash-scripting-core.md
 
 ## Scope
 

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/agent_eval", "src/ai_rules"]
+packages = ["src/ai_rules"]
 
 [project]
 name = "ai_coding_rules"
@@ -39,24 +39,22 @@ dependencies = [
     "typer>=0.17.0",
     "rich>=14.0.0",
     "tiktoken>=0.12.0",  # Token counting for GPT models
-    "requests>=2.32.0",  # HTTP client for Cortex REST API
+    "requests>=2.32.0",  # HTTP client for Cortex REST API fallback transport
+    "snowflake-connector-python>=3.12.0",  # AI_COMPLETE transport + connections.toml resolution
 ]
 
-[project.optional-dependencies]
-agent-eval = [
-    "requests>=2.32.5",
-]
 [dependency-groups]
 dev = [
     "ruff>=0.15.1",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
-    "ty>=0.0.17",
+    "ty==0.0.35",
+    "pre-commit>=4.0",
+    "pymarkdownlnt>=0.9.0",
 ]
 
 [project.scripts]
 ai-rules = "ai_rules.cli:app"
-agent-eval = "agent_eval.cli:app"
 
 [project.urls]
 Homepage = "https://github.com/sfc-gh-myoung/ai_coding_rules"
@@ -70,6 +68,7 @@ package = true
 [tool.ruff]
 target-version = "py311"
 line-length = 100
+extend-exclude = ["out/"]
 
 [tool.ruff.lint]
 select = [
@@ -95,6 +94,12 @@ ignore = [
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417", "SIM117", "F841", "RUF043"]
+"scripts/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
+"skills/**/tests/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
+"skills/**/scripts/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
@@ -119,7 +124,7 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
-source = ["src/agent_eval", "src/ai_rules"]
+source = ["src/ai_rules"]
 omit = [
     "tests/*",
     ".venv/*",
@@ -150,4 +155,25 @@ invalid-assignment = "ignore"  # list[LiteralString] vs list[str] in test fixtur
 
 [tool.rule_deployer]
 exclude_skills = [
+]
+
+[tool.ai_rules.dev]
+markdown_rules_targets = [
+    "rules/",
+]
+markdown_docs_targets = [
+    "docs/",
+    "README.md",
+    "CONTRIBUTING.md",
+    "CHANGELOG.md",
+]
+coverage_html_dir = "htmlcov"
+clean_globs = [
+    "**/__pycache__",
+    "**/*.pyc",
+    "**/.pytest_cache",
+    "**/.mypy_cache",
+    ".ruff_cache",
+    "htmlcov",
+    ".coverage",
 ]

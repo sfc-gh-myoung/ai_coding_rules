@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   # Job 1: Code Quality (parallel)
   quality:
@@ -15,21 +19,25 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.0.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          cache-suffix: ${{ github.job }}
 
       - name: Set up Python
-        run: uv python install 3.11
+        run: uv python install 3.12
 
       - name: Install dependencies
         run: uv sync --all-groups
 
-      - name: Run ruff check
-        run: uv run ruff check .
+      - name: Run lint
+        run: uv run ai-rules dev quality lint
 
-      - name: Run ruff format check
-        run: uv run ruff format --check .
+      - name: Run format check
+        run: uv run ai-rules dev quality format
 
-      - name: Run ty type check
-        run: uv run ty check .
+      - name: Run type check
+        run: uv run ai-rules dev quality typecheck
 
   # Job 2: Markdown Linting (parallel)
   markdown:
@@ -39,24 +47,35 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.0.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          cache-suffix: ${{ github.job }}
 
-      - name: Lint rules and templates
-        run: uvx pymarkdownlnt --config pymarkdown.rules.json scan rules/ templates/AGENTS_MODE.md.template templates/AGENTS_NO_MODE.md.template
+      - name: Set up Python
+        run: uv python install 3.12
 
-      - name: Lint documentation
-        run: uvx pymarkdownlnt --config pymarkdown.docs.json scan docs/ README.md CONTRIBUTING.md CHANGELOG.md
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Lint markdown
+        run: uv run ai-rules dev quality markdown
 
   # Job 3: Tests with Python Matrix (parallel)
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.11', '3.12', '3.13']
+        python-version: ['3.12', '3.13']
     steps:
       - uses: actions/checkout@v5
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.0.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          cache-suffix: ${{ matrix.python-version }}
 
       - name: Set up Python ${{ matrix.python-version }}
         run: uv python install ${{ matrix.python-version }}
@@ -65,7 +84,7 @@ jobs:
         run: uv sync --all-groups
 
       - name: Run tests
-        run: uv run pytest tests/ -v
+        run: uv run ai-rules dev test run
 
   # Job 4: Rules Validation (parallel)
   validate:
@@ -75,9 +94,13 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v8.0.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+          cache-suffix: ${{ github.job }}
 
       - name: Set up Python
-        run: uv python install 3.11
+        run: uv python install 3.12
 
       - name: Install dependencies
         run: uv sync --all-groups

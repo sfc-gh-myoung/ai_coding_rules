@@ -777,7 +777,7 @@ Rule file content:
                     f"[dim][DEBUG] Cortex API attempt {attempt + 1}/{max_retries}[/dim]"
                 )
 
-            resp = requests.post(url, headers=headers, json=payload, timeout=30)
+            resp = requests.post(url, headers=headers, json=payload, timeout=30)  # ty: ignore[invalid-argument-type]
 
             if resp.status_code == 200:
                 text = _parse_cortex_sse_response(resp.text)

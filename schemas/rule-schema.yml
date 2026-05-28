@@ -1,12 +1,12 @@
-# YAML Schema for AI Coding Rules v3.2
+# YAML Schema for AI Coding Rules v3.3
 # ==============================================================================
 # Purpose: Validation schema for rule files per 002-rule-governance.md v3.2
 # Usage: ai-rules validate rules/NNN-rule.md
 # ==============================================================================
 
 $schema: "http://json-schema.org/draft-07/schema#"
-version: "3.2"
-description: "Validation schema for AI coding rules v3.2 (eliminated Purpose/Quick Start, added Scope, early References, Markdown-only Contract)"
+version: "3.3"
+description: "Validation schema for AI coding rules v3.3 (typed Keywords kw:/ext:/file:/dir:, typed Depends required:/optional:, LoadTrigger merged into Keywords)"
 last_updated: "2025-12-22"
 
 # ==============================================================================
@@ -48,11 +48,13 @@ metadata:
       format: "**Keywords:**"
       type: "array"
       min_items: 5
-      max_items: 20
+      max_items: 25
       item_type: "string"
       separator: ", "
-      error_message: "Keywords must contain 5-20 comma-separated terms"
-      fix_suggestion: "Add {needed} more semantic keywords for better discovery"
+      pattern: "^(kw:[a-z0-9][a-z0-9 _.-]*|ext:\\.[a-z0-9]+|file:[A-Za-z0-9_.+-]+|dir:[A-Za-z0-9_/-]+/?)$"
+      description: "Typed-prefix keywords for rule discovery (schema v3.3). Four prefixes: kw: (semantic keyword, lowercase), ext: (file extension, e.g. ext:.py), file: (specific filename, e.g. file:Dockerfile), dir: (directory path, e.g. dir:tests/). All entries count toward the 5-25 minimum/maximum. Foundation rules use kw: prefixes only (no ext:/file:/dir:)."
+      error_message: "Keywords entries must use a typed prefix (kw:, ext:, file:, dir:) and total 5-25 entries."
+      fix_suggestion: "Use typed prefixes on every entry. Example: kw:python, ext:.py, file:pyproject.toml. Currently {actual} entries (need {min}-{max})."
       severity: "HIGH"
       docs_reference: "002-rule-governance.md Section 11.1"
     
@@ -79,35 +81,24 @@ metadata:
     - name: "Depends"
       format: "**Depends:**"
       type: "array"
-      min_items: 1
+      min_items: 0
       item_type: "string"
-      pattern: "rules/[a-zA-Z0-9_-]+\\.md"
+      pattern: "^(required|optional):[a-zA-Z0-9_-]+\\.md$"
       check_file_exists: true
-      allow_placeholders: ["000-global-core"]
-      error_message: "Depends must list at least one prerequisite rule"
-      fix_suggestion: "Add rules/000-global-core or other dependencies"
+      allow_placeholders: ["None", "-", "-"]
+      error_message: "Depends entries must use 'required:FILENAME.md' or 'optional:FILENAME.md' (or 'None' for foundation rules)"
+      fix_suggestion: "Prefix each entry with required: or optional:. Example: required:000-global-core.md, optional:200-python-core.md"
       severity: "HIGH"
       docs_reference: "002-rule-governance.md Section 11.1"
   
-  # Optional metadata fields (used by index generator but not required for all rules)
-  optional_fields:
-    - name: "LoadTrigger"
-      format: "**LoadTrigger:**"
-      type: "array"
-      item_type: "string"
-      separator: ", "
-      pattern: "^(ext:\\.[a-z0-9]+|file:[a-zA-Z0-9_.-]+|dir:[a-zA-Z0-9_/-]+|kw:[a-z0-9_-]+)$"
-      description: "Triggers for automatic rule loading. Prefixes: ext: (file extension), file: (specific filename), dir: (directory), kw: (keyword)"
-      example: "ext:.py, ext:.pyi, file:pyproject.toml"
-      error_message: "LoadTrigger items must use prefix format: ext:.py, file:Dockerfile, dir:skills/, kw:test"
-      severity: "MEDIUM"
-      docs_reference: "002-rule-governance.md Section 11.1"
-  
+  # Optional metadata fields (deprecated in v3.3 — LoadTrigger merged into Keywords)
+  optional_fields: []
+
   field_order:
     required: true
     order: ["SchemaVersion", "RuleVersion", "LastUpdated", "Keywords", "TokenBudget", "ContextTier", "Depends"]
-    optional_after: ["LoadTrigger"]  # Optional fields allowed after required fields
-    error_message: "Metadata fields must appear in order: SchemaVersion, RuleVersion, LastUpdated, Keywords, TokenBudget, ContextTier, Depends (LoadTrigger optional after Depends)"
+    optional_after: []
+    error_message: "Metadata fields must appear in order: SchemaVersion, RuleVersion, LastUpdated, Keywords, TokenBudget, ContextTier, Depends"
     fix_suggestion: "Reorder metadata fields per Section 11.1 of 002-rule-governance.md"
     severity: "HIGH"
     docs_reference: "002-rule-governance.md Section 11.1"

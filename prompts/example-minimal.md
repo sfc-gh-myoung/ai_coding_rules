@@ -1,4 +1,4 @@
-# Example Prompt 03: Minimal but Effective
+# Example Prompt: Minimal but Effective
 
 ## The Prompt
 

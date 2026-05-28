@@ -1,4 +1,4 @@
-# Example Prompt 01: Clear and Complete
+# Example Prompt: Clear and Complete
 
 ## The Prompt
 

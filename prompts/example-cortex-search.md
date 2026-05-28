@@ -1,4 +1,4 @@
-# Example Prompt 05: Snowflake Cortex Search Service
+# Example Prompt: Snowflake Cortex Search Service
 
 ## The Prompt
 

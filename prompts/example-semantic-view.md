@@ -1,4 +1,4 @@
-# Example Prompt 04: Snowflake Semantic View for Cortex Analyst
+# Example Prompt: Snowflake Semantic View for Cortex Analyst
 
 ## The Prompt
 

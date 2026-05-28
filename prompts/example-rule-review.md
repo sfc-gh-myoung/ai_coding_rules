@@ -1,3 +1,5 @@
+# Example Prompt: Rule Design-Priority Audit
+
 **Task:** Review all `*.md` rules in the `rules/` directory.  Ensure the rules are conformant with the following design criteria. Provide recommendations for improving each rule.
 
 **Design Priorities (Strictly Enforced):**

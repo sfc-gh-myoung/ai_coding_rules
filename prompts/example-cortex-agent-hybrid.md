@@ -1,4 +1,4 @@
-# Example Prompt 06: Snowflake Cortex Agent (Hybrid)
+# Example Prompt: Snowflake Cortex Agent (Hybrid)
 
 ## The Prompt
 

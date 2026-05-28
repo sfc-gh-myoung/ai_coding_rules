@@ -1,4 +1,4 @@
-# Example Prompt 07: Snowflake Cortex AI Stack (End-to-End)
+# Example Prompt: Snowflake Cortex AI Stack (End-to-End)
 
 ## The Prompt
 

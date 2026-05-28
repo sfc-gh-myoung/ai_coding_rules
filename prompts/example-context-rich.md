@@ -1,4 +1,4 @@
-# Example Prompt 02: Context-Rich
+# Example Prompt: Context-Rich
 
 ## The Prompt
 

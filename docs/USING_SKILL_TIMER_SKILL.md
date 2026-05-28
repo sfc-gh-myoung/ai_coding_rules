@@ -1,8 +1,8 @@
-# Using the Skill Timing Skill
+# Using the Skill Timer Skill
 
-**Last Updated:** 2026-04-11
+**Last Updated:** 2026-05-14
 
-The Skill Timing Skill provides execution timing instrumentation for measuring and analyzing skill performance. It tracks wall-clock duration, records checkpoints, estimates token costs, detects anomalies, and compares against historical baselines.
+The Skill Timer Skill provides execution timing instrumentation for measuring and analyzing skill performance. It tracks wall-clock duration, records checkpoints, estimates token costs, detects anomalies, and compares against historical baselines.
 
 **Features:**
 - Wall-clock timing with checkpoint support
@@ -25,48 +25,48 @@ Use the doc-reviewer skill.
 
 target_files: README.md              # Required (by parent skill)
 review_mode: FULL                    # Required (by parent skill)
-timing_enabled: true                 # Required — enables timing
+timing_enabled: true                 # Required: enables timing
 ```
 
 ### Manual Use With All Options
 
 ```bash
 # 1. Start timing
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
-$PYTHON skills/skill-timing/scripts/skill_timing.py start \
-    --skill rule-reviewer \           # Required — skill being timed
-    --target rules/100-snowflake-core.md \  # Required — target file
-    --model claude-sonnet-45 \        # Required — model slug
-    --mode FULL \                     # Optional (default: FULL) — review mode
-    --agent cortex-code               # Optional (default: auto-detected) — agent name
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
+$PYTHON skills/skill-timer/scripts/skill_timer.py start \
+    --skill rule-reviewer \           # Required: skill being timed
+    --target rules/100-snowflake-core.md \  # Required: target file
+    --model claude-sonnet-45 \        # Required: model slug
+    --mode FULL \                     # Optional (default: FULL): review mode
+    --agent cortex-code               # Optional (default: auto-detected): agent name
 
 # Output: TIMING_RUN_ID=a1b2c3d4e5f67890
 
 # 2. Record checkpoints
-$PYTHON skills/skill-timing/scripts/skill_timing.py checkpoint \
-    --run-id a1b2c3d4e5f67890 \       # Required — from start output
-    --name rules_loaded                # Required — checkpoint name
+$PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
+    --run-id a1b2c3d4e5f67890 \       # Required: from start output
+    --name rules_loaded                # Required: checkpoint name
 
 # 3. End timing with all options
-$PYTHON skills/skill-timing/scripts/skill_timing.py end \
-    --run-id a1b2c3d4e5f67890 \       # Required — from start output
-    --output-file reviews/rule-review.md \  # Required — output path
-    --skill rule-reviewer \           # Required — for recovery
-    --input-tokens 12500 \            # Optional — token count
-    --output-tokens 4200 \            # Optional — token count
-    --format json \                   # Optional (default: human) — output format
-    --ci                              # Optional — CI mode with exit codes
+$PYTHON skills/skill-timer/scripts/skill_timer.py end \
+    --run-id a1b2c3d4e5f67890 \       # Required: from start output
+    --output-file reviews/rule-review.md \  # Required: output path
+    --skill rule-reviewer \           # Required: for recovery
+    --input-tokens 12500 \            # Optional: token count
+    --output-tokens 4200 \            # Optional: token count
+    --format json \                   # Optional (default: human): output format
+    --ci                              # Optional: CI mode with exit codes
 ```
 
 ### Baseline Set Example
 
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py baseline set \
-    --skill rule-reviewer \           # Required — skill name
-    --mode FULL \                     # Required — review mode
-    --model claude-sonnet-45 \        # Required — model slug
-    --days 30 \                       # Optional (default: 30) — days of history
-    --min-samples 5                   # Optional (default: 5) — minimum data points
+$PYTHON skills/skill-timer/scripts/skill_timer.py baseline set \
+    --skill rule-reviewer \           # Required: skill name
+    --mode FULL \                     # Required: review mode
+    --model claude-sonnet-45 \        # Required: model slug
+    --days 30 \                       # Optional (default: 30): days of history
+    --min-samples 5                   # Optional (default: 5): minimum data points
 ```
 
 ## Commands
@@ -86,7 +86,7 @@ Initialize a timing session.
 **Output:**
 ```
 TIMING_RUN_ID=a1b2c3d4e5f67890
-TIMING_FILE=/tmp/skill-timing-a1b2c3d4e5f67890.json
+TIMING_FILE=/tmp/skill-timer-a1b2c3d4e5f67890.json
 TIMING_AGENT_ID=cortex-code-12345
 ```
 
@@ -136,7 +136,7 @@ Analyze timing data across multiple runs.
 | `--format` | No | Output format (human/json/csv) |
 
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py analyze \
+$PYTHON skills/skill-timer/scripts/skill_timer.py analyze \
     --skill rule-reviewer \
     --days 30 \
     --format json
@@ -153,7 +153,7 @@ Aggregate timing data from review files (parses timing metadata tables).
 | `--format` | No | Output format (json/csv) |
 
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py aggregate \
+$PYTHON skills/skill-timer/scripts/skill_timer.py aggregate \
     reviews/*.md \
     --format csv
 ```
@@ -175,7 +175,7 @@ Set a performance baseline from recent timing data.
 Compare a specific run against baseline.
 
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py baseline compare \
+$PYTHON skills/skill-timer/scripts/skill_timer.py baseline compare \
     --run-id a1b2c3d4e5f67890
 ```
 
@@ -195,7 +195,7 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py baseline compare \
 ### Human Format Output
 
 ```
-TIMING: skill-timing v1.5.0
+TIMING: skill-timer v1.5.0
 ----------------------------------------
 Run ID:      a1b2c3d4e5f67890
 Skill:       rule-reviewer
@@ -300,7 +300,7 @@ Use `--ci` flag for JSON output with exit codes:
 | 3 | Duration significantly above baseline | Warning/Fail |
 
 ```bash
-$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+$PYTHON skills/skill-timer/scripts/skill_timer.py end \
     --run-id a1b2c3d4e5f67890 \
     --output-file output.md \
     --skill my-skill \
@@ -311,7 +311,7 @@ echo "Exit code: $?"
 
 ### Custom Alert Thresholds
 
-Edit `ALERT_THRESHOLDS` in `skills/skill-timing/scripts/skill_timing.py`:
+Edit `ALERT_THRESHOLDS` in `skills/skill-timer/scripts/skill_timer.py`:
 
 ```python
 ALERT_THRESHOLDS = {
@@ -328,7 +328,7 @@ ALERT_THRESHOLDS = {
 
 ### Token Pricing Configuration
 
-Edit `COST_PER_1M_TOKENS` in `scripts/skill_timing.py`:
+Edit `COST_PER_1M_TOKENS` in `scripts/skill_timer.py`:
 
 ```python
 COST_PER_1M_TOKENS = {
@@ -373,7 +373,7 @@ Sets timing files to `0600` (owner read/write only) instead of default `0644`.
 
 **Solutions:**
 - Use `--run-id none` to trigger automatic registry recovery
-- Check temp: `ls $(python3 -c "import tempfile; print(tempfile.gettempdir())")/skill-timing-*.json`
+- Check temp: `ls $(python3 -c "import tempfile; print(tempfile.gettempdir())")/skill-timer-*.json`
 
 ### Why does the agent forget run_id between steps?
 
@@ -392,7 +392,7 @@ Use `--run-id none` for automatic recovery from the agent registry.
 **Causes:** Outdated pricing in `COST_PER_1M_TOKENS`, or different model variant.
 
 **Solutions:**
-- Update pricing in `skill_timing.py`
+- Update pricing in `skill_timer.py`
 - Use `--input-tokens 0 --output-tokens 0` to skip cost estimation
 
 
@@ -401,7 +401,7 @@ Use `--run-id none` for automatic recovery from the agent registry.
 ### Architecture
 
 ```text
-Timing Module (skill_timing.py)
+Timing Module (skill_timer.py)
 │
 ├── start
 │   ├── Generate run_id (PID + random suffix)
@@ -436,10 +436,10 @@ Timing Module (skill_timing.py)
 ### File Structure
 
 ```text
-skills/skill-timing/
+skills/skill-timer/
 ├── SKILL.md               # Skill definition (entrypoint)
 ├── scripts/
-│   ├── skill_timing.py    # Python module
+│   ├── skill_timer.py    # Python module
 │   └── find_python.sh    # Python interpreter discovery
 ├── examples/              # Workflow examples
 │   ├── basic-timing.md
@@ -456,10 +456,10 @@ skills/skill-timing/
 
 | Location | Contents | Retention |
 |----------|----------|-----------|
-| `{temp}/skill-timing-{id}.json` | Active runs | Until end |
+| `{temp}/skill-timer-{id}.json` | Active runs | Until end |
 | `reviews/.timing-data/` | Completed timing records | Indefinite |
 | `reviews/.timing-baselines.json` | Performance baselines | Indefinite |
-| `{temp}/skill-timing-registry.json` | Agent recovery registry | Auto-cleaned |
+| `{temp}/skill-timer-registry.json` | Agent recovery registry | Auto-cleaned |
 
 ### Cross-Platform Support
 
@@ -494,8 +494,8 @@ This skill is **deployable** (included in `task deploy`). After deployment, user
 
 ### Support
 
-- **Skill entrypoint:** `skills/skill-timing/SKILL.md`
-- **Workflow guides:** `skills/skill-timing/workflows/*.md`
-- **Examples:** `skills/skill-timing/examples/*.md`
-- **Python module:** `skills/skill-timing/scripts/skill_timing.py`
-- **Python interpreter discovery:** `skills/skill-timing/scripts/find_python.sh`
+- **Skill entrypoint:** `skills/skill-timer/SKILL.md`
+- **Workflow guides:** `skills/skill-timer/workflows/*.md`
+- **Examples:** `skills/skill-timer/examples/*.md`
+- **Python module:** `skills/skill-timer/scripts/skill_timer.py`
+- **Python interpreter discovery:** `skills/skill-timer/scripts/find_python.sh`

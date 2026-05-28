@@ -34,7 +34,7 @@ Thank you for your interest in contributing to AI Coding Rules! This project pro
 | Improve an existing rule | [Development Workflow](#development-workflow) |
 | Create a new rule | [Rule Authoring Guidelines](#rule-authoring-guidelines) |
 | Understand the architecture | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| Find available commands | Run `make help` or see [Development Commands](#development-commands) |
+| Find available commands | Run `uv run ai-rules --help` or see [Development Commands](#development-commands) |
 
 ## Types of Contributions
 
@@ -93,9 +93,9 @@ Use our issue templates:
 ### Before Submitting
 
 - [ ] **Test** your changes locally
-- [ ] **Run** `make quality-fix` to fix any quality issues
-- [ ] **Test** rule deployment with `make deploy-dry DEST=/tmp/test`
-- [ ] **Run** `make validate` to run all CI/CD checks
+- [ ] **Run** `uv run ai-rules dev quality all --fix` to fix any quality issues
+- [ ] **Test** rule deployment with `uv run ai-rules deploy /tmp/test --dry-run`
+- [ ] **Run** `uv run ai-rules dev validate` to run all CI/CD checks
 - [ ] **Update** documentation if needed
 - [ ] **Add** yourself to contributors if first contribution
 
@@ -108,7 +108,7 @@ The GitHub Actions CI workflow runs automatically on pushes and PRs to `main`:
 | `quality` | Code quality | ruff lint, ruff format, ty type check |
 | `markdown` | Markdown linting | pymarkdownlnt for rules/ and docs/ |
 | `test` | Unit tests | pytest with Python 3.11, 3.12, 3.13 matrix |
-| `validate` | Rules validation | schema validation, RULES_INDEX.md check |
+| `validate` | Rules validation | schema validation, rule Keywords metadata check, `rule-loader-validate` (trigger-evidence invariant; pure-Python) |
 
 All jobs run in parallel for fast feedback. Ensure all checks pass before requesting review.
 
@@ -186,7 +186,7 @@ The project uses a production-ready rules architecture. For complete details, se
 **Key files:**
 
 - `AGENTS.md` - AI agent bootstrap protocol
-- `RULES_INDEX.md` - Searchable rule catalog
+- `rule Keywords metadata` - Searchable rule catalog
 
 **Key Principle:** All rules in `rules/` are production-ready and deploy directly - no generation step required.
 
@@ -214,47 +214,59 @@ pip install -e ".[dev]"
 
 ### Development Commands
 
-The project uses a Makefile for task automation. Run `make help` for a categorized command list.
+The project uses the unified `ai-rules` CLI for task automation. Run `uv run ai-rules --help` for the top-level command list, or `uv run ai-rules dev --help` for development commands.
 
 **Common commands:**
 
 ```bash
-make quality-fix    # Fix all code quality issues
-make test           # Run all pytest tests
-make validate       # Run all CI/CD checks
-make rules-validate # Validate rules against schema
-make index-generate # Regenerate RULES_INDEX.md
-make deploy DEST=~  # Deploy rules to project
+uv run ai-rules dev quality all --fix    # Fix all code quality issues
+uv run ai-rules dev test run             # Run all pytest tests
+uv run ai-rules dev validate             # Run all CI/CD checks
+uv run ai-rules validate rules/          # Validate rules against schema
+uv run uv run ai-rules validate rules/           # Regenerate rule Keywords metadata
+uv run ai-rules deploy ~                 # Deploy rules to project
 ```
 
-**See [docs/ARCHITECTURE.md#makefile-architecture](docs/ARCHITECTURE.md#makefile-architecture) for complete command reference.**
+**See [docs/USING_DEV_CLI.md](docs/USING_DEV_CLI.md) for the complete `ai-rules dev` reference.**
 
 ### Code Quality and Linting
 
 ```bash
-# Quality tasks (recommended)
-make quality-fix      # Fix all quality issues (lint, format)
-make lint             # Run ruff linter (check only)
-make format           # Run ruff formatter (check only)
-make typecheck        # Run ty type checker
+# Run all quality checks at once
+uv run ai-rules dev quality all          # check only
+uv run ai-rules dev quality all --fix    # fix all auto-fixable issues
 
-# Manual commands (if make unavailable)
-uv run ruff check .          # Check linting
-uv run ruff format --check . # Check formatting
-uv run ruff format .         # Apply formatting
-uv run ty check .            # Type check
+# Or run individual checks
+uv run ai-rules dev quality lint         # ruff linter (check only)
+uv run ai-rules dev quality lint --fix   # apply lint fixes
+uv run ai-rules dev quality format       # ruff formatter (check only)
+uv run ai-rules dev quality format --fix # apply formatting
+uv run ai-rules dev quality typecheck    # ty type checker
+uv run ai-rules dev quality markdown     # pymarkdownlnt
 ```
+
+### Pre-commit hooks
+
+After cloning, install the hooks once:
+
+```bash
+uv run pre-commit install
+```
+
+This runs `ruff`, `ruff-format`, and `ty check` before each commit, matching CI.
+The existing Entro secret-scan hook must also pass unless the team-approved skip
+configuration (`git config entro.skipSecretScan true`) is set.
 
 ### Rule Validation
 
 ```bash
 # Validate rules
-make rules-validate                                    # Validate all rules
+uv run ai-rules validate rules/                       # Validate all rules
 uv run ai-rules validate rules/100-snowflake-core.md  # Validate single rule
 uv run ai-rules validate rules/ --verbose             # Verbose output
 
 # Regenerate index
-make index-generate                                    # Regenerate RULES_INDEX.md
+uv run uv run ai-rules validate rules/                        # Regenerate rule Keywords metadata
 ```
 
 ### Testing Your Changes
@@ -263,29 +275,29 @@ Before submitting a PR, ensure your changes work correctly:
 
 ```bash
 # 1. Validate all rules
-make rules-validate
+uv run ai-rules validate rules/
 
 # 2. Validate specific rule you modified
 uv run ai-rules validate rules/XXX-rule-name.md --verbose
 
-# 3. Regenerate RULES_INDEX.md if metadata changed
-make index-generate
+# 3. Regenerate rule Keywords metadata if metadata changed
+uv run uv run ai-rules validate rules/
 
 # 4. Test deployment
-make deploy-dry DEST=/tmp/test
+uv run ai-rules deploy /tmp/test --dry-run
 
 # 5. Run test suite
-make test
+uv run ai-rules dev test run
 
 # 6. Run all quality checks
-make quality-fix
+uv run ai-rules dev quality all --fix
 ```
 
 **Commit your changes:**
 
 ```bash
 git add rules/XXX-rule-name.md
-git add RULES_INDEX.md  # If you regenerated it
+git add rule Keywords metadata  # If you regenerated it
 git commit -m "feat: update XXX rule"
 ```
 
@@ -322,20 +334,17 @@ Use the template generator to create schema-compliant rule files:
 
 ```bash
 # Generate new rule template
-make rule-new FILENAME=300-example-rule TIER=High
-
-# Or use CLI directly
 uv run ai-rules new 300-example-rule --context-tier High
 
 # Overwrite existing file (use with caution)
-make rule-new-force FILENAME=300-example-rule
+uv run ai-rules new 300-example-rule --force
 ```
 
 **After generation:**
 
 1. Edit the generated file and replace placeholders with actual content
-2. Validate: `make rules-validate`
-3. Update index: `make index-generate`
+2. Validate: `uv run ai-rules validate rules/`
+3. Update index: `uv run uv run ai-rules validate rules/`
 
 ### Rule Structure
 
@@ -343,7 +352,7 @@ All rules must follow the v3.2 schema defined in [rules/002-rule-governance.md](
 
 **Quick reference:**
 
-- **Required metadata:** SchemaVersion, RuleVersion, LastUpdated, Keywords (5-20), TokenBudget, ContextTier, Depends
+- **Required metadata:** SchemaVersion, RuleVersion, LastUpdated, Keywords (5-20), TokenBudget, ContextTier, Depends (each entry uses `required:`/`optional:` bucket prefix; see `rules/002-rule-governance.md` "Depends Bucket Semantics")
 - **Required sections:** Scope, References, Contract, Anti-Patterns, Post-Execution Checklist
 - **Contract must appear before line 200**
 
@@ -366,7 +375,7 @@ Rule files use [Semantic Versioning](https://semver.org) for the `RuleVersion` f
 1. **RuleVersion**: Increment per semantic versioning criteria above
 2. **LastUpdated**: Set to current date in `YYYY-MM-DD` format
 
-For comprehensive versioning policy and edge cases, see [002b-rule-update.md](rules/002b-rule-update.md).
+For the full versioning policy and edge cases, see [002b-rule-update.md](rules/002b-rule-update.md).
 
 ### Directive Language
 
@@ -395,22 +404,22 @@ Use explicit, actionable language:
 git checkout -b feature/add-terraform-rules
 
 # 2. Generate template
-make rule-new FILENAME=450-terraform-best-practices TIER=High
+uv run ai-rules new 450-terraform-best-practices --context-tier High
 
 # 3. Edit the generated file and fill in content
 vim rules/450-terraform-best-practices.md
 
 # 4. Validate the rule
-make rules-validate
+uv run ai-rules validate rules/
 
-# 5. Regenerate RULES_INDEX.md
-make index-generate
+# 5. Regenerate rule Keywords metadata
+uv run uv run ai-rules validate rules/
 
 # 6. Run quality checks
-make quality-fix
+uv run ai-rules dev quality all --fix
 
 # 7. Commit the new rule and updated index
-git add rules/450-terraform-best-practices.md RULES_INDEX.md
+git add rules/450-terraform-best-practices.md rule Keywords metadata
 git commit -m "feat(rules): add Terraform best practices rule
 
 - Comprehensive Terraform IaC guidelines
@@ -434,13 +443,13 @@ vim rules/200-python-core.md
 uv run ai-rules validate rules/200-python-core.md --verbose
 
 # 4. Update index if metadata changed
-make index-generate
+uv run uv run ai-rules validate rules/
 
 # 5. Run quality checks
-make quality-fix
+uv run ai-rules dev quality all --fix
 
 # 6. Commit changes
-git add rules/200-python-core.md RULES_INDEX.md
+git add rules/200-python-core.md rule Keywords metadata
 git commit -m "fix(python): update core rule with type hints guidance"
 
 # 7. Push and create PR
@@ -458,8 +467,8 @@ vim rules/450-new-rule.md  # WRONG - manual creation error-prone
 **Always use template generator:**
 
 ```bash
-make rule-new FILENAME=450-new-rule  # CORRECT
-vim rules/450-new-rule.md            # Then edit generated template
+uv run ai-rules new 450-new-rule  # CORRECT
+vim rules/450-new-rule.md         # Then edit generated template
 ```
 
 **Don't skip validation:**
@@ -472,7 +481,7 @@ git commit  # WRONG - may have validation errors
 **Always validate before committing:**
 
 ```bash
-make rules-validate
+uv run ai-rules validate rules/
 git add rules/450-new-rule.md
 git commit  # CORRECT
 ```
@@ -482,15 +491,15 @@ git commit  # CORRECT
 ```bash
 vim rules/450-new-rule.md
 git add rules/450-new-rule.md
-git commit  # WRONG - RULES_INDEX.md not updated
+git commit  # WRONG - rule Keywords metadata not updated
 ```
 
 **Always regenerate index after rule changes:**
 
 ```bash
 vim rules/450-new-rule.md
-make index-generate
-git add rules/450-new-rule.md RULES_INDEX.md
+uv run uv run ai-rules validate rules/
+git add rules/450-new-rule.md rule Keywords metadata
 git commit  # CORRECT
 ```
 
@@ -534,7 +543,7 @@ Review Mode: STALENESS
 This provides:
 
 - **6-point scoring** - Actionability, Completeness, Consistency, Parsability, Token Efficiency, Staleness
-- **Three review modes** - FULL (comprehensive), FOCUSED (targeted), STALENESS (periodic maintenance)
+- **Three review modes** - FULL, FOCUSED (targeted), STALENESS (periodic maintenance)
 - **Staleness detection** - Identifies outdated tool versions, deprecated patterns, API changes
 - **Cross-model compatibility** - Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
 
@@ -553,7 +562,7 @@ We are committed to fostering an open and welcoming environment. Please:
 ### Self-Service Resources
 
 - **README.md** - Project overview, setup, troubleshooting
-- **RULES_INDEX.md** - Find rules by keyword or category
+- **rule Keywords metadata** - Find rules by keyword or category
 - **AGENTS.md** - Rule loading protocol details
 - **docs/ARCHITECTURE.md** - System architecture and design decisions
 
@@ -578,8 +587,8 @@ All rules follow **Section 11: Universal Compatibility Standards** from `002-rul
 
 **For Contributors:**
 
-- **Validate rules:** `make rules-validate`
-- **Run all CI checks:** `make validate`
+- **Validate rules:** `uv run ai-rules validate rules/`
+- **Run all CI checks:** `uv run ai-rules dev validate`
 - **Complete standards:** See `rules/002-rule-governance.md` Section 11
 
 ## Recognition
@@ -592,3 +601,125 @@ Contributors are recognized in several ways:
 - **Community spotlights** in discussions
 
 Thank you for helping make AI Coding Rules better for everyone!
+
+## Rule Loading Evaluator: authoring fixtures
+
+The Rule Loading Evaluator is a live-agent sanity check that the
+Cortex Code Agent SDK, given AGENTS.md and `rules/000-global-core.md`
+plus a fixture prompt, loads the rules each fixture declares. See
+[`docs/EVALUATING_RULE_LOADER.md`](docs/EVALUATING_RULE_LOADER.md) for
+the full reference.
+
+**Pre-commit hook.** A local hook (`rule-loader-eval`) runs five
+representative fixtures through the live SDK
+(`uv run ai-rules rule-loader eval --fixture <id>`). Commits without
+Snowflake credentials should bypass it explicitly:
+
+```bash
+SKIP=rule-loader-eval git commit -m "..."
+```
+
+CI does not run the live agent; it only runs the trigger-evidence
+invariant via `uv run ai-rules rule-loader validate` (called
+from `uv run ai-rules dev validate`).
+
+**The trigger-evidence invariant** (enforced via
+`uv run ai-rules rule-loader validate`) requires every fixture's
+`prompt` to contain a literal token for each `ext:` / `file:` /
+`dir:` trigger declared by a required rule:
+
+- `ext:.py` -> prompt MUST contain a filename ending in `.py`
+  (e.g., `analytics/etl_pipeline.py`).
+- `ext:.sh` -> prompt MUST contain a filename ending in `.sh`
+  (e.g., `scripts/deploy.sh`).
+- `file:snowflake.yml` -> prompt MUST contain `snowflake.yml`.
+- `dir:skills/` -> prompt MUST contain `skills/`.
+
+A fixture that declares `ext:.py` but lacks any `.py` filename in the
+prompt is rejected at fixture-load time (exit 4).
+
+**Required vs dependencies.** Each fixture's `expected` block has two
+lists. `expected.required` lists rules the prompt directly should
+match (these are also the rules the trigger-evidence invariant
+checks). `expected.dependencies` lists rules that should be loaded
+because a required rule declares them (`Depends:` /
+`## References → Must Load First`). The matcher checks the agent's
+loaded set against the union and reports gaps separately for each
+list. The evaluator does not parse rule-file dependency metadata;
+rules own that information and the agent loads + reports it in
+its `**Bootstrap:**` line and `**Rules Loaded**` section per the
+Rule Loading Contract (R1-R8 in `rules/000-global-core.md`).
+
+**Authoring a new fixture.** Use `create` to capture the live agent's loaded set
+for your prompt. The default `--effort low --max-turns 15` gives the live agent
+enough budget to complete the bootstrap protocol, run the citation gate, and emit
+structured output reliably for most fixtures. For difficult fixtures, use the
+exhaustive fallback:
+
+```bash
+uv sync --group live-agent
+ai-rules rule-loader create \
+    --prompt 'How do I build a streamlit dashboard?' \
+    --id new-fixture --variant simple \
+    --write fixtures/rule_loader_eval/new-fixture.yaml
+
+# Exhaustive fallback for difficult fixtures:
+ai-rules rule-loader create \
+    --prompt 'How do I build a streamlit dashboard?' \
+    --id new-fixture --variant simple \
+    --effort high --max-turns 50 \
+    --write fixtures/rule_loader_eval/new-fixture.yaml
+```
+
+**Batch-refreshing.** When authoring or refreshing multiple fixtures at once,
+use `refresh-all`. It runs all matched fixtures concurrently and writes
+candidate YAMLs to an output directory:
+
+```bash
+# Refresh all fixtures at once:
+uv run ai-rules rule-loader refresh-all --all \
+    --concurrency 4 \
+    --out-dir out/seeds/
+
+# Exhaustive fallback (difficult fixtures or reliability investigations):
+ai-rules rule-loader refresh-all --all --max-turns 50 --effort high
+
+# Lower concurrency if you hit rate limits:
+ai-rules rule-loader refresh-all --all --concurrency 1
+```
+
+See `docs/EVALUATING_RULE_LOADER.md` for full batch documentation.
+
+**Refreshing or iterating on an existing fixture.** Use `refresh` to
+re-run a fixture's prompt through the live SDK and detect drift:
+
+```bash
+# Refresh: re-run and diff against the on-disk YAML.
+ai-rules rule-loader refresh \
+    fixtures/rule_loader_eval/simple-cortex-search.yaml
+
+# Accept the regenerated skeleton (snapshot-style write-back):
+ai-rules rule-loader refresh \
+    fixtures/rule_loader_eval/simple-cortex-search.yaml --write
+```
+
+The `create` and `refresh` commands compare two primary signals of which rules the agent loaded (per Rule Loading Contract R1-R8), with an optional legacy 3rd signal:
+
+1. **Tool reads** - `read_file` calls captured via PreToolUse hook (ground truth).
+2. **`**Rules Loaded**`** - the agent's declared loaded section (R1).
+3. **`## Reads Performed`** - (legacy) only checked when present; v3.9+ agents do not emit it.
+
+When the primary signals agree, the captured loaded set is trustworthy. When they disagree, a structured warning explains which signals diverge and points at likely causes (especially Anti-Pattern 3: fabricated gate compliance). A separate warning surfaces citation drift — declared line counts that don't match actual rule file line counts (R3/R5 fabrication signal).
+
+When trusting the generated `expected.required`:
+- If signals agree -> trust the captured set; split into `required` and `dependencies` as before.
+- If `**Rules Loaded**` lists rules not in tool reads -> treat as fabrication; verify each rule was actually needed for the prompt before including it.
+- If tool reads contain rules not in the declared section -> the agent read but did not declare; usually safe to include but worth investigating.
+- If citation drift is reported -> the agent likely cited values from pretraining; re-run the seeder until citations match.
+
+Then split the captured `expected.required` list manually between
+`required` (direct matches) and `dependencies` (transitively pulled
+in), fill in `trigger_evidence`, and commit.
+
+**Forbidden-rule violations are warn-only by default.** Use
+`--strict-forbidden` to opt into hard-fail.

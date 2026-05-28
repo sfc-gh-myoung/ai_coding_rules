@@ -1,6 +1,6 @@
 # Using the Rule Reviewer Skill
 
-**Last Updated:** 2026-04-11
+**Last Updated:** 2026-05-14
 
 The Rule Reviewer Skill evaluates rule files to ensure autonomous agents can execute them successfully. It scores rules across 6 dimensions using a weighted scoring system optimized for agent executability.
 
@@ -11,10 +11,10 @@ The Rule Reviewer Skill evaluates rule files to ensure autonomous agents can exe
 ```text
 Use the rule-reviewer skill.
 
-target_file: rules/200-python-core.md  # Required — rule to evaluate
-review_date: 2026-03-27              # Required — date stamp for output
-review_mode: FULL                    # Required — review depth
-model: claude-sonnet-45              # Required — model slug for naming
+target_file: rules/200-python-core.md  # Required: rule to evaluate
+review_date: 2026-03-27              # Required: date stamp for output
+review_mode: FULL                    # Required: review depth
+model: claude-sonnet-45              # Required: model slug for naming
 ```
 
 ### FULL With All Optional Settings
@@ -26,10 +26,10 @@ target_file: rules/200-python-core.md  # Required
 review_date: 2026-03-27              # Required
 review_mode: FULL                    # Required
 model: claude-sonnet-45              # Required
-output_root: quarterly-audit/        # Optional (default: reviews/) — custom output directory
-execution_mode: sequential           # Optional (default: parallel) — sequential is also valid for production
-timing_enabled: true                 # Optional (default: true as of v2.9.0) — adds timing metadata
-overwrite: true                      # Optional (default: false) — replaces existing file
+output_root: quarterly-audit/        # Optional (default: reviews/): custom output directory
+execution_mode: sequential           # Optional (default: parallel): sequential is also valid for production
+timing_enabled: true                 # Optional (default: true as of v2.9.0): adds timing metadata
+overwrite: true                      # Optional (default: false): replaces existing file
 ```
 
 ### FOCUSED Mode Example
@@ -38,7 +38,7 @@ overwrite: true                      # Optional (default: false) — replaces ex
 Use the rule-reviewer skill.
 
 target_file: rules/200-python-core.md  # Required
-review_mode: FOCUSED                 # Required — Actionability + Completeness only
+review_mode: FOCUSED                 # Required: Actionability + Completeness only
 review_date: 2026-03-27              # Required
 model: claude-sonnet-45              # Required
 ```
@@ -49,7 +49,7 @@ model: claude-sonnet-45              # Required
 Use the rule-reviewer skill.
 
 target_file: rules/200-python-core.md  # Required
-review_mode: STALENESS               # Required — Staleness dimension only
+review_mode: STALENESS               # Required: Staleness dimension only
 review_date: 2026-03-27              # Required
 model: claude-sonnet-45              # Required
 ```
@@ -118,8 +118,8 @@ Rules are scored across 6 dimensions with weighted points:
 | Cross-Agent Consistency | 0.5 | 5 | Works across all agents? |
 
 **Informational Only (Not Scored):**
-- **Token Efficiency** — Merged into Rule Size; findings in recommendations
-- **Staleness** — Flagged in recommendations; not scored
+- **Token Efficiency**: Merged into Rule Size; findings in recommendations
+- **Staleness**: Flagged in recommendations; not scored
 
 **Scoring Formula:** `Raw (0-10) × Weight = Points`
 
@@ -134,7 +134,7 @@ The Rule Size dimension includes deployment flags:
 
 | Line Count | Flag | Action |
 |------------|------|--------|
-| ≤500 | — | Optimal |
+| ≤500 |: | Optimal |
 | 501-600 | `OPTIMIZATION_RECOMMENDED` | Suggest consolidation |
 | 601-800 | `SPLITTING_REQUIRED` | Block deployment, require split plan |
 | >800 | `NOT_DEPLOYABLE` | Fail review, mandatory remediation |
@@ -272,7 +272,7 @@ Coordinator (Main Agent)
 │
 ├── Phase 2: Dimension Evaluation (parallel: 5 sub-agents, or sequential)
 │   ├── Actionability (30pts)
-│   ├── Rule Size (25pts) — computed inline
+│   ├── Rule Size (25pts): computed inline
 │   ├── Parsability (15pts)
 │   ├── Completeness (15pts)
 │   ├── Consistency (10pts)
@@ -331,7 +331,7 @@ skills/rule-reviewer/
 2. Run FULL review on the created rule
 3. Verify: score ≥75/100, no CRITICAL issues
 
-**With skill-timing:** Adds execution timing when `timing_enabled: true`.
+**With skill-timer:** Adds execution timing when `timing_enabled: true`.
 
 ### Output Paths
 
@@ -347,4 +347,4 @@ skills/rule-reviewer/
 - **Examples:** `skills/rule-reviewer/examples/*.md`
 - **Tests:** `skills/rule-reviewer/tests/*.md`
 - **Troubleshooting:** `workflows/error-handling.md`
-- **Timing system:** `docs/USING_SKILL_TIMING_SKILL.md`
+- **Timing system:** `docs/USING_SKILL_TIMER_SKILL.md`

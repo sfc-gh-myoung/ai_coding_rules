@@ -1,6 +1,6 @@
 # Architecture: AI Coding Rules
 
-**Last Updated:** 2026-05-12
+**Last Updated:** 2026-05-14
 
 > **What this document is**
 > Design and rationale of the AI Coding Rules system: how it's shaped, why, and what extension points exist.
@@ -26,11 +26,13 @@
 
 ## 1. Overview
 
+> **Architecture update (2026-05-17, v4.0.0):** AGENTS.md is now a thin bootstrap pointer (~70 lines) that invokes the `rule-loader` skill and references `rules/000-global-core.md` for the canonical Rule Loading Contract (R1-R8, with R8 binding the `**Depends:**` `required:`/`optional:` bucket grammar). Workflow content (foundation loading, domain matching, activity matching, dependency resolution, token budget, task switch detection, anti-patterns, failure modes, project tool discovery) lives in the skill at `skills/rule-loader/`. Sections 4 and 5 of this document describe the previous flow; the same logical workflow now lives in skill files instead of inline in AGENTS.md.
+
 ### 1.1 The Problem
 
 AI assistants need consistent, high-signal guidance to produce reliable code across many domains. The default options are poor: stuffing every rule into a single system prompt wastes context, and IDE-specific formats fragment the same information across tools that don't share a standard.
 
-AI Coding Rules solves this by storing rules as production-ready Markdown files with embedded metadata. An AI assistant loads a foundation rule, searches an index for task-relevant rules, and pulls only what it needs — keeping context small while preserving depth.
+AI Coding Rules solves this by storing rules as Markdown files with embedded metadata. An AI assistant loads a foundation rule, searches an index for task-relevant rules, and pulls only what it needs. This keeps context small while preserving depth.
 
 ### 1.2 Core Architecture Principles
 
@@ -46,8 +48,8 @@ AI Coding Rules solves this by storing rules as production-ready Markdown files 
 ┌──────────────────────────────────────────────────────────────────┐
 │                    AI CODING RULES                                │
 │                                                                   │
-│   rules/ ─────────► RULES_INDEX.md ─────────► AGENTS.md           │
-│   (188 files)       (searchable                (bootstrap         │
+│   rules/ ─────────► rule Keywords metadata ─────────► AGENTS.md           │
+│   (194 files)       (searchable                (bootstrap         │
 │                      catalog)                    protocol)        │
 │         │                                          │              │
 │         ▼                                          ▼              │
@@ -81,7 +83,7 @@ Rules use letter suffixes to split large topics into focused, independently-load
 
 **Naming Convention:** `<NNN><letter>-<technology>-<aspect>.md`
 
-- Core rule: `NNN-technology-core.md` (no suffix) — foundation, always loaded first.
+- Core rule: `NNN-technology-core.md` (no suffix). Foundation, always loaded first.
 - Companions: `NNNa-technology-aspect.md`, `NNNb-…`, `NNNc-…`, etc.
 - Letter suffixes must be single lowercase letters (a-z); multi-character suffixes are not permitted.
 
@@ -90,7 +92,7 @@ Rules use letter suffixes to split large topics into focused, independently-load
 1. The core rule provides foundational concepts and is the dependency target.
 2. Companion rules extend the core with specialized subtopics.
 3. Only the companions relevant to the current task are loaded.
-4. All companions declare the core rule in their `Depends` field.
+4. All companions declare the core rule in their `Depends` field with the `required:` bucket prefix (see `rules/000-global-core.md` R8 and `rules/002-rule-governance.md` "Depends Bucket Semantics").
 
 **Token budget benefits:**
 
@@ -117,13 +119,13 @@ Rules use letter suffixes to split large topics into focused, independently-load
 
 The repository uses a dual-layer approach for context preservation:
 
-**Primary layer — Natural language instructions (universal):**
+**Primary layer: natural language instructions (universal):**
 - CRITICAL warnings in `AGENTS.md` and `000-global-core.md`.
 - CORE RULE / FOUNDATION RULE markers in all `-core.md` and `002-series` files.
 - Context Management Protocol in `000-global-core.md` teaching explicit preservation hierarchy.
 - Works across all LLMs: Claude, GPT, Gemini, Llama, etc.
 
-**Secondary layer — `ContextTier` metadata (project-specific):**
+**Secondary layer: `ContextTier` metadata (project-specific):**
 - Critical / High / Medium / Low values in rule metadata.
 - Provides fine-grained prioritization within natural-language tiers.
 - Validated by schema but not universally recognized by LLMs.
@@ -135,7 +137,7 @@ See `000-global-core.md` → "Context Window Management Protocol" for implementa
 
 ### 2.4 Schema-First Design
 
-Rule structure is declared in [`schemas/rule-schema.yml`](../schemas/rule-schema.yml) rather than hard-coded in validator logic. The schema is the specification — validator code interprets it, contributors read it to understand requirements, and external tools can parse it without coupling to the validator implementation.
+Rule structure is declared in [`schemas/rule-schema.yml`](../schemas/rule-schema.yml) rather than hard-coded in validator logic. The schema is the specification: validator code interprets it, contributors read it to understand requirements, and external tools can parse it without coupling to the validator implementation.
 
 Adding a new validation requirement is typically a schema-only change. See §5.3 for the full rationale.
 
@@ -170,14 +172,14 @@ rules/
 ├── 101-snowflake-streamlit-core.md (+101a-101n)
 ├── 200-python-core.md (+200a-200b)
 ├── 600-golang-core.md
-├── ...                            # 188 rules covering all domains
+├── ...                            # 194 rules covering all domains
 └── examples/                      # Validated implementation examples
 ```
 
 **Design decisions:**
 
 - Files are loaded by AI assistants verbatim. Anything that should not appear in an LLM's context window does not belong in this directory.
-- `RULES_INDEX.md` is regenerated by `ai-rules index` from rule metadata; never hand-edit it.
+- `rule Keywords metadata` is regenerated by `uv run ai-rules validate (index removed)` from rule metadata; never hand-edit it.
 - `examples/` holds runnable reference implementations validated against `schemas/example-schema.yml` rather than the rule schema.
 
 For the file naming convention, rule lifecycle, and contribution flow, see [CONTRIBUTING.md](../CONTRIBUTING.md).
@@ -229,7 +231,7 @@ For the full command reference, see [README.md → CLI Commands](../README.md#cl
 
 ### 3.4 The Deployer
 
-The deployer copies rules, the bootstrap protocol (`AGENTS.md`), and `RULES_INDEX.md` into a target project. It supports unified deployment (everything goes to one directory) and split deployment (AGENTS.md, rules/, and skills/ go to separate paths) so it can adapt to any project layout.
+The deployer copies rules, the bootstrap protocol (`AGENTS.md`), and `rule Keywords metadata` into a target project. It supports unified deployment (everything goes to one directory) and split deployment (AGENTS.md, rules/, and skills/ go to separate paths) so it can adapt to any project layout.
 
 **Architecture:**
 
@@ -245,7 +247,7 @@ ai-rules deploy
 
 **Key design decisions:**
 
-1. **Templates as source of truth.** `templates/AGENTS_MODE.md.template` and `templates/AGENTS_NO_MODE.md.template` are the canonical AGENTS.md content; deployment substitutes paths into the template.
+1. **Templates as source of truth.** `templates/AGENTS_NO_MODE.md.template` (default) and `templates/AGENTS_MODE.md.template` (opt-in via `--with-mode`) are the canonical AGENTS.md content; deployment substitutes paths into the template.
 2. **Skill exclusions are config-driven.** `pyproject.toml` `[tool.rule_deployer].exclude_skills` keeps internal-only skills out of deployments.
 3. **No write-by-default.** `--dry-run` previews exactly what will be copied, including paths and substitutions.
 
@@ -316,8 +318,9 @@ AI assistants follow a two-phase loading process: auto-loading by the IDE/tool, 
 │   └─────────────┘              └─────────────┘                          │
 │         │                            │                                  │
 │         │ Defines rule loading       │ Defines project-specific         │
-│         │ sequence and MODE/ACT      │ tooling requirements and         │
-│         │ framework                  │ validation gates                 │
+│         │ sequence (and optional      │ tooling requirements and         │
+│         │ MODE/ACT framework via      │ validation gates                 │
+│         │ --with-mode)                │                                  │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
@@ -333,7 +336,7 @@ AI assistants follow a two-phase loading process: auto-loading by the IDE/tool, 
 │              ▼                                                          │
 │   Step 2: Search for Domain Rules                                       │
 │   ┌────────────────────────┐                                            │
-│   │    RULES_INDEX.md      │  Search Keywords field for task matches    │
+│   │    rule Keywords metadata      │  Search Keywords field for task matches    │
 │   │    (Rule Catalog)      │  Check Depends field for prerequisites     │
 │   └────────────────────────┘                                            │
 │              │                                                          │
@@ -355,9 +358,9 @@ AI assistants follow a two-phase loading process: auto-loading by the IDE/tool, 
 
 | File | Loading | Purpose |
 |------|---------|---------|
-| **AGENTS.md** | Auto-loaded by IDE | Bootstrap protocol, MODE/ACT framework, rule discovery instructions |
+| **AGENTS.md** | Auto-loaded by IDE | Bootstrap protocol, rule discovery instructions (MODE/ACT framework included only when deployed with `--with-mode`) |
 | **PROJECT.md** | Auto-loaded by IDE | Project-specific tooling, validation requirements, critical violations |
-| **RULES_INDEX.md** | Referenced by AGENTS.md | Searchable catalog of all rules with keywords and dependencies |
+| **rule Keywords metadata** | Referenced by AGENTS.md | Searchable catalog of all rules with keywords and dependencies |
 | **rules/000-global-core.md** | First rule loaded | Foundation patterns, MODE transitions, validation gates |
 | **rules/XXX-*.md** | Loaded on demand | Domain and activity-specific rules based on task requirements |
 
@@ -373,16 +376,16 @@ AI assistants follow a two-phase loading process: auto-loading by the IDE/tool, 
 ```mermaid
 flowchart TD
     Start([User: Create New Rule]) --> Generate
-    Generate[make rule-new FILENAME=XXX] --> Template
+    Generate["ai-rules new XXX"] --> Template
     Template[ai-rules new] --> Create[Create rules/XXX.md<br/>with v3.2 structure]
     Create --> Edit[User: Edit Content]
     Edit --> Validate{Validate?}
-    Validate -->|make rules-validate| SchemaVal[ai-rules validate]
+    Validate -->|"ai-rules validate rules/"| SchemaVal[ai-rules validate]
     SchemaVal --> Pass{Passed?}
     Pass -->|No| Fix[Fix Errors]
     Fix --> Edit
-    Pass -->|Yes| Index[make index-generate]
-    Index --> UpdateIndex[Update RULES_INDEX.md]
+    Pass -->|Yes| Index["uv run ai-rules validate rules/ (index removed)"]
+    Index --> UpdateIndex[Update rule Keywords metadata]
     UpdateIndex --> Commit[git commit]
     Commit --> End([Rule Ready])
 ```
@@ -392,7 +395,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([User: Deploy Rules]) --> Command
-    Command[make deploy DEST=PATH] --> Deployer
+    Command["ai-rules deploy DEST"] --> Deployer
     Deployer[ai-rules deploy] --> Validate{Validate Source}
     Validate -->|Fail| Error[Error: Missing Files]
     Validate -->|Pass| CheckDest{Check Destination}
@@ -400,7 +403,7 @@ flowchart TD
     CheckDest -->|Writable| Copy
     Copy[Copy Operations] --> CopyRules[Copy rules/ → DEST/rules/]
     CopyRules --> CopyAgents[Copy AGENTS.md → DEST/]
-    CopyAgents --> CopyIndex[Copy RULES_INDEX.md → DEST/]
+    CopyAgents --> CopyIndex[Copy rule Keywords metadata → DEST/]
     CopyIndex --> Report[Deployment Report]
     Report --> Success([Deployment Complete])
 
@@ -559,7 +562,7 @@ The system is designed to be extended without forking. The four most common exte
 
 ### 6.1 Adding New Rules
 
-Rule authoring is the most frequent extension. Use `make rule-new FILENAME=NNN-description` to scaffold a new rule, then fill in content per the schema. Validate with `make rules-validate` and regenerate the index with `make index-generate`.
+Rule authoring is the most frequent extension. Use `uv run ai-rules new NNN-description` to scaffold a new rule, then fill in content per the schema. Validate with `uv run ai-rules validate rules/` and regenerate the index with `uv run uv run ai-rules validate rules/ (index removed)`.
 
 For the full rule-creation workflow, see [CONTRIBUTING.md → Adding a New Rule](../CONTRIBUTING.md#adding-a-new-rule).
 
@@ -575,7 +578,7 @@ Organizations that need additional validation (e.g., requiring an `Author` field
 
 ### 6.3 Adding Custom Automation
 
-To add organization-specific commands, drop a new module under `src/ai_rules/commands/`, register it in `src/ai_rules/cli.py`, and (optionally) add a Makefile target that delegates to the new command. Existing commands (`validate.py`, `index.py`) work as templates. Tests follow the patterns in `tests/cli/`.
+To add organization-specific commands, drop a new module under `src/ai_rules/commands/`, register it in `src/ai_rules/cli.py`. Existing commands (`validate.py`, `index.py`) work as templates. Tests follow the patterns in `tests/cli/`.
 
 ### 6.4 IDE-Specific Enhancements
 
@@ -600,34 +603,35 @@ For review modes, scoring rubrics, and invocation, see [USING_RULE_REVIEWER_SKIL
 
 ### 7.1 Core Documentation
 
-- **[README.md](../README.md)** — Quick start, deployment, and CLI reference.
-- **[CONTRIBUTING.md](../CONTRIBUTING.md)** — Development guidelines, rule authoring, and PR workflow.
-- **[CHANGELOG.md](../CHANGELOG.md)** — Version history.
+- **[README.md](../README.md)**: quick start, deployment, and CLI reference.
+- **[CONTRIBUTING.md](../CONTRIBUTING.md)**: development guidelines, rule authoring, and PR workflow.
+- **[CHANGELOG.md](../CHANGELOG.md)**: version history.
 
 ### 7.2 Per-Skill Guides
 
 | Skill | Guide |
 |-------|-------|
 | `bulk-rule-reviewer` | [USING_BULK_RULE_REVIEWER_SKILL.md](USING_BULK_RULE_REVIEWER_SKILL.md) |
-| `create-plan` | [USING_CREATE_PLAN_SKILL.md](USING_CREATE_PLAN_SKILL.md) |
+| `plan-creator` | [USING_PLAN_CREATOR_SKILL.md](USING_PLAN_CREATOR_SKILL.md) |
 | `doc-reviewer` | [USING_DOC_REVIEWER_SKILL.md](USING_DOC_REVIEWER_SKILL.md) |
 | `plan-reviewer` | [USING_PLAN_REVIEWER_SKILL.md](USING_PLAN_REVIEWER_SKILL.md) |
 | `rule-creator` | [USING_RULE_CREATOR_SKILL.md](USING_RULE_CREATOR_SKILL.md) |
 | `rule-loader` | [USING_RULE_LOADER_SKILL.md](USING_RULE_LOADER_SKILL.md) |
 | `rule-reviewer` | [USING_RULE_REVIEWER_SKILL.md](USING_RULE_REVIEWER_SKILL.md) |
-| `skill-timing` | [USING_SKILL_TIMING_SKILL.md](USING_SKILL_TIMING_SKILL.md) |
+| `skill-timer` | [USING_SKILL_TIMER_SKILL.md](USING_SKILL_TIMER_SKILL.md) |
 
 ### 7.3 Tooling and Optional Features
 
-- **[TOKEN_BUDGETS.md](TOKEN_BUDGETS.md)** — Token-budget validation tool reference.
-- **[MEMORY_BANK.md](MEMORY_BANK.md)** — Optional Memory Bank system for long-running projects.
+- **[TOKEN_BUDGETS.md](TOKEN_BUDGETS.md)**: token-budget validation tool reference.
+- **[MEMORY_BANK.md](MEMORY_BANK.md)**: optional Memory Bank system for long-running projects.
+- **[EVALUATING_RULE_LOADER.md](EVALUATING_RULE_LOADER.md)**: Rule Loading Evaluator. Pre-commit live-agent sanity check that the agent loads the expected rules (including dependency rules) for each fixture. CI runs only the trigger-evidence invariant; the live SDK runs locally.
 
 ### 7.4 Schema and Validation
 
-- **[Schema Documentation](../schemas/README.md)** — Current schema specification and field reference.
-- **[`schemas/rule-schema.yml`](../schemas/rule-schema.yml)** — Authoritative declarative validation schema.
+- **[Schema Documentation](../schemas/README.md)**: current schema specification and field reference.
+- **[`schemas/rule-schema.yml`](../schemas/rule-schema.yml)**: authoritative declarative validation schema.
 
 ### 7.5 External References
 
-- **[Anthropic Agent Skills best practices](https://claude.com/blog/equipping-agents-for-the-real-world-with-agent-skills)** — Background on the Agent Skills model used in §3.5.
-- **[CommonMark Spec](https://spec.commonmark.org/)** — All rule files comply with CommonMark Markdown.
+- **[Anthropic Agent Skills best practices](https://claude.com/blog/equipping-agents-for-the-real-world-with-agent-skills)**: background on the Agent Skills model used in section 3.5.
+- **[CommonMark Spec](https://spec.commonmark.org/)**: all rule files comply with CommonMark Markdown.

@@ -1,6 +1,6 @@
 # Using the Plan Reviewer Skill
 
-**Last Updated:** 2026-03-27
+**Last Updated:** 2026-05-14
 
 The Plan Reviewer Skill evaluates LLM-generated plans for autonomous agent
 executability. Use it to score a single plan, compare competing plans,
@@ -29,10 +29,10 @@ review_mode: FULL                    # Required
 target_file: plans/my-plan.md       # Required
 review_date: 2026-03-27             # Required
 model: claude-sonnet-45             # Required
-output_root: quarterly-audit/       # Optional (default: reviews/) — custom output directory
-execution_mode: sequential          # Optional (default: parallel) — sequential is also valid for production
-timing_enabled: true                # Optional (default: true as of v2.5.0) — adds timing metadata
-overwrite: true                     # Optional (default: false) — replaces existing file
+output_root: quarterly-audit/       # Optional (default: reviews/): custom output directory
+execution_mode: sequential          # Optional (default: parallel): sequential is also valid for production
+timing_enabled: true                # Optional (default: true as of v2.5.0): adds timing metadata
+overwrite: true                     # Optional (default: false): replaces existing file
 ```
 
 ### COMPARISON Example
@@ -46,7 +46,7 @@ review_date: 2026-03-27             # Required
 model: claude-sonnet-45             # Required
 ```
 
-Do not combine `target_file` with `target_files` — use `target_file` for FULL/DELTA, `target_files` for COMPARISON.
+Do not combine `target_file` with `target_files`: use `target_file` for FULL/DELTA, `target_files` for COMPARISON.
 
 ### META-REVIEW Example
 
@@ -59,7 +59,7 @@ review_date: 2026-03-27             # Required
 model: claude-sonnet-45             # Required
 ```
 
-Do not combine `review_files` with `target_file` or `target_files` — `review_files` is META-REVIEW only.
+Do not combine `review_files` with `target_file` or `target_files`: `review_files` is META-REVIEW only.
 
 ### DELTA Example
 
@@ -346,7 +346,7 @@ skills/plan-reviewer/
 |-------|--------------|
 | `doc-reviewer` | Reviews human-facing documentation rather than executable plans |
 | `rule-reviewer` | Reviews rule files for agent executability and compliance |
-| `skill-timing` | Provides the optional timing workflow used when timing is enabled |
+| `skill-timer` | Provides the optional timing workflow used when timing is enabled |
 
 ### Output Path Summary
 

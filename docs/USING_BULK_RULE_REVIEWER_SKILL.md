@@ -1,6 +1,6 @@
 # Using the Bulk Rule Reviewer Skill
 
-**Last Updated:** 2026-03-27
+**Last Updated:** 2026-05-14
 
 The Bulk Rule Reviewer Skill runs agent-centric reviews on every rule file in the `rules/` directory and generates a consolidated priority report showing which rules need attention. It orchestrates the rule-reviewer skill for each rule, holding to the same quality standards as individual reviews.
 
@@ -17,9 +17,9 @@ The Bulk Rule Reviewer Skill runs agent-centric reviews on every rule file in th
 ```text
 Use the bulk-rule-reviewer skill.
 
-review_date: 2026-03-27              # Required — date stamp for output files
-review_mode: FULL                    # Required — review depth
-model: claude-sonnet-45              # Required — model slug for naming
+review_date: 2026-03-27              # Required: date stamp for output files
+review_mode: FULL                    # Required: review depth
+model: claude-sonnet-45              # Required: model slug for naming
 ```
 
 ### With All Optional Settings
@@ -30,24 +30,24 @@ model: claude-sonnet-45              # Required — model slug for naming
 review_date: 2026-03-27              # Required
 review_mode: FULL                    # Required
 model: claude-sonnet-45              # Required
-output_root: quarterly-audit/        # Optional (default: reviews/) — custom output directory
-filter_pattern: rules/200-*.md       # Optional (default: rules/*.md) — filter by domain
-skip_existing: false                 # Optional (default: true) — force re-review of all rules
-max_parallel: 3                      # Optional (default: 5) — concurrent sub-agents (1-10)
-timing_enabled: true                 # Optional (default: true as of v2.4.0) — adds timing metadata
+output_root: quarterly-audit/        # Optional (default: reviews/): custom output directory
+filter_pattern: rules/200-*.md       # Optional (default: rules/*.md): filter by domain
+skip_existing: false                 # Optional (default: true): force re-review of all rules
+max_parallel: 3                      # Optional (default: 5): concurrent sub-agents (1-10)
+timing_enabled: true                 # Optional (default: true as of v2.4.0): adds timing metadata
 ```
 
-Do not combine `skip_existing: false` with `max_parallel: 10` on large rule sets — this produces maximum load. Use lower parallelism when forcing re-reviews.
+Do not combine `skip_existing: false` with `max_parallel: 10` on large rule sets: this produces maximum load. Use lower parallelism when forcing re-reviews.
 
 ### Resume After Interruption
 
 ```text
 Use the bulk-rule-reviewer skill.
 
-review_date: 2026-03-27              # Required — same date as interrupted run
+review_date: 2026-03-27              # Required: same date as interrupted run
 review_mode: FULL                    # Required
 model: claude-sonnet-45              # Required
-skip_existing: true                  # Optional (default: true) — skips already-reviewed rules
+skip_existing: true                  # Optional (default: true): skips already-reviewed rules
 ```
 
 ### Sequential Mode (Debugging)
@@ -56,9 +56,9 @@ skip_existing: true                  # Optional (default: true) — skips alread
 Use the bulk-rule-reviewer skill.
 
 review_date: 2026-03-27              # Required
-review_mode: FOCUSED                 # Required — Actionability + Completeness only
+review_mode: FOCUSED                 # Required: Actionability + Completeness only
 model: claude-sonnet-45              # Required
-max_parallel: 1                      # Optional — sequential execution (one rule at a time)
+max_parallel: 1                      # Optional: sequential execution (one rule at a time)
 ```
 
 
@@ -104,10 +104,10 @@ The master summary (`reviews/summaries/_bulk-review-<model>-<date>.md`) includes
 | Section | Contents |
 |---------|----------|
 | **Executive Summary** | Score distribution, dimension analysis, critical issues |
-| **Priority 1: Urgent** | Score <60, NOT_EXECUTABLE — requires immediate attention |
-| **Priority 2: High** | Score 60-79, NEEDS_REFINEMENT — significant work needed |
-| **Priority 3: Medium** | Score 80-89, EXECUTABLE_WITH_REFINEMENTS — minor fixes |
-| **Priority 4: Excellent** | Score 90-100, EXECUTABLE — production-ready |
+| **Priority 1: Urgent** | Score <60, NOT_EXECUTABLE: requires immediate attention |
+| **Priority 2: High** | Score 60-79, NEEDS_REFINEMENT: significant work needed |
+| **Priority 3: Medium** | Score 80-89, EXECUTABLE_WITH_REFINEMENTS: minor fixes |
+| **Priority 4: Excellent** | Score 90-100, EXECUTABLE: production-ready |
 | **Failed Reviews** | Execution errors requiring manual review |
 | **Top 10 Recommendations** | Prioritized by impact × effort ratio |
 | **Next Steps** | Immediate/short-term/long-term actions |
@@ -181,10 +181,10 @@ Adds timing metadata to the master summary:
 
 | Mode | Setting | Characteristics | When to Use |
 |------|---------|-----------------|-------------|
-| **Parallel** (default) | `max_parallel: 5` | N concurrent sub-agents, each with fresh context per rule | Recommended — context isolation prevents cross-rule drift |
+| **Parallel** (default) | `max_parallel: 5` | N concurrent sub-agents, each with fresh context per rule | Recommended: context isolation prevents cross-rule drift |
 | **Sequential** | `max_parallel: 1` | One rule at a time | Debugging, low-resource, or when observing individual rule progress |
 
-Parallel execution's primary benefit is **context isolation**: each sub-agent receives a fresh context for its assigned rules, preventing accumulated drift from one rule's review contaminating the next. Duration depends on rule count, model, and sub-agent variability — it is not guaranteed to be proportionally faster than sequential.
+Parallel execution's primary benefit is **context isolation**: each sub-agent receives a fresh context for its assigned rules, preventing accumulated drift from one rule's review contaminating the next. Duration depends on rule count, model, and sub-agent variability: it is not guaranteed to be proportionally faster than sequential.
 
 ### Resume Capability
 
@@ -345,7 +345,7 @@ skills/bulk-rule-reviewer/
 | Skill | Relationship |
 |-------|--------------|
 | **rule-reviewer** | Invoked for each individual rule review |
-| **skill-timing** | Provides execution timing when enabled |
+| **skill-timer** | Provides execution timing when enabled |
 
 ### Deployment
 
@@ -357,4 +357,4 @@ This skill is **internal-only** and is not deployed to team projects. It remains
 - **Workflow guides:** `skills/bulk-rule-reviewer/workflows/*.md`
 - **Examples:** `skills/bulk-rule-reviewer/examples/full-bulk-review.md`
 - **Tests:** `skills/bulk-rule-reviewer/tests/validation-tests.md`
-- **Timing system:** `docs/USING_SKILL_TIMING_SKILL.md`
+- **Timing system:** `docs/USING_SKILL_TIMER_SKILL.md`

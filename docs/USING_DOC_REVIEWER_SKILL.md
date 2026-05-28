@@ -1,6 +1,6 @@
 # Using the Doc Reviewer Skill
 
-**Last Updated:** 2026-03-27
+**Last Updated:** 2026-05-14
 
 The Doc Reviewer Skill reviews project documentation for user-facing quality and
 accuracy. Use it to audit README and CONTRIBUTING files, review `docs/*.md`,
@@ -29,11 +29,11 @@ review_mode: FULL                    # Required
 target_files: README.md, docs/SETUP.md  # Optional (default: project docs)
 review_date: 2026-03-27              # Required
 model: claude-sonnet-45              # Required
-review_scope: collection             # Optional (default: single) — one consolidated review
-output_root: quarterly-audit/        # Optional (default: reviews/) — custom output directory
-execution_mode: sequential           # Optional (default: parallel) — sequential is also valid for production
-timing_enabled: true                 # Optional (default: false) — adds timing metadata
-overwrite: true                      # Optional (default: false) — replaces existing file
+review_scope: collection             # Optional (default: single): one consolidated review
+output_root: quarterly-audit/        # Optional (default: reviews/): custom output directory
+execution_mode: sequential           # Optional (default: parallel): sequential is also valid for production
+timing_enabled: true                 # Optional (default: false): adds timing metadata
+overwrite: true                      # Optional (default: false): replaces existing file
 ```
 
 ### FOCUSED Example
@@ -48,7 +48,7 @@ review_date: 2026-03-27              # Required
 model: claude-sonnet-45              # Required
 ```
 
-Do not combine `focus_area` with FULL or STALENESS modes — it is FOCUSED-mode only.
+Do not combine `focus_area` with FULL or STALENESS modes: it is FOCUSED-mode only.
 
 ### STALENESS Example
 
@@ -68,12 +68,12 @@ Use the doc-reviewer skill.
 
 review_mode: FULL                    # Required
 target_files: README.md, CONTRIBUTING.md, docs/SETUP.md  # Optional
-review_scope: collection             # Optional (default: single) — produces one consolidated review
+review_scope: collection             # Optional (default: single): produces one consolidated review
 review_date: 2026-03-27              # Required
 model: claude-sonnet-45              # Required
 ```
 
-Do not combine `review_scope: collection` with FOCUSED mode when reviewing a single file — use `single` scope instead.
+Do not combine `review_scope: collection` with FOCUSED mode when reviewing a single file: use `single` scope instead.
 
 ## Review Modes
 
@@ -352,7 +352,7 @@ skills/doc-reviewer/
 |-------|--------------|
 | `plan-reviewer` | Reviews agent-executable plans rather than user documentation |
 | `rule-reviewer` | Reviews rule files instead of project documentation |
-| `skill-timing` | Provides the optional timing workflow |
+| `skill-timer` | Provides the optional timing workflow |
 
 ### Output Path Summary
 

@@ -1,8 +1,8 @@
-# Using the Create Plan Skill
+# Using the Plan Creator Skill
 
-**Last Updated:** 2026-05-11
+**Last Updated:** 2026-05-14
 
-The Create Plan Skill produces architecturally rigorous, tactically concrete,
+The Plan Creator Skill produces architecturally rigorous, tactically concrete,
 safe-to-execute, and independently auditable implementation plans. Use it to
 author migration plans, feature designs, refactor plans, or any non-trivial
 implementation document. The skill enforces a fixed 15-section structure so plan
@@ -13,7 +13,7 @@ quality does not vary with the underlying model.
 ### Minimal Required Example
 
 ```text
-Use the create-plan skill.
+Use the plan-creator skill.
 
 task: Migrate the warehouse runtime configuration from environment.yml to pyproject.toml across all Streamlit apps.
 ```
@@ -21,19 +21,19 @@ task: Migrate the warehouse runtime configuration from environment.yml to pyproj
 ### With All Optional Settings
 
 ```text
-Use the create-plan skill.
+Use the plan-creator skill.
 
 task: Replace the Makefile and scripts/run-sql.sh with npm scripts and TypeScript.
-codebase_root: /Users/me/projects/sql-runner    # Optional (default: cwd) — directory to inventory before writing
-runtime_targets: Node.js 24 LTS, npm 11         # Optional (default: inferred) — hard runtime constraints
-reference_plans: .snowflake/cortex/plans/old-plan-A.md, .snowflake/cortex/plans/old-plan-B.md  # Optional — synthesize from prior plans
-out_of_scope: Next.js version changes, CI provider migration  # Optional — pre-declared non-goals
+codebase_root: /Users/me/projects/sql-runner    # Optional (default: cwd): directory to inventory before writing
+runtime_targets: Node.js 24 LTS, npm 11         # Optional (default: inferred): hard runtime constraints
+reference_plans: .snowflake/cortex/plans/old-plan-A.md, .snowflake/cortex/plans/old-plan-B.md  # Optional: synthesize from prior plans
+out_of_scope: Next.js version changes, CI provider migration  # Optional: pre-declared non-goals
 ```
 
 ### Synthesizing From Prior Plans
 
 ```text
-Use the create-plan skill.
+Use the plan-creator skill.
 
 task: Consolidate three competing migration proposals into one executable plan for the dbt-on-Snowflake rollout.
 reference_plans: plans/migration-claude.md, plans/migration-gpt.md, plans/migration-gemini.md
@@ -45,7 +45,7 @@ deliberate divergences.
 
 ## When to Use This Skill
 
-| Scenario | Use create-plan? |
+| Scenario | Use plan-creator? |
 |----------|------------------|
 | Multi-file refactor with real tradeoffs | Yes |
 | Migration between runtimes, tools, or syntaxes | Yes |
@@ -100,7 +100,7 @@ Every plan contains these top-level numbered sections in this exact order.
 | 2 | Hard Constraints | Numbered list (C1, C2, …) of non-negotiable requirements |
 | 3 | Target Architecture | Directory layout, key API signatures, error-handling contract |
 | 4 | Dependency Changes | Four tables: Add / Remove / Update / Keep with reason column |
-| 5 | Final-State Artifact(s) | Complete final form of every config file being rewritten — no excerpts |
+| 5 | Final-State Artifact(s) | Complete final form of every config file being rewritten: no excerpts |
 | 6 | 1:1 Parity / Mapping Table | One row per old→new entrypoint to prove zero coverage regression |
 | 7 | Documentation Updates | New / modified / deleted files with paths and exact sections changed |
 | 8 | Test Strategy | Unit tests, integration tests, CI matrix (OS × runtime grid), fixtures |
@@ -129,7 +129,7 @@ Before the plan is written to disk, the skill answers every question below. If a
 - [ ] Could a new engineer execute this plan without asking the author a single clarifying question?
 - [ ] Does Section 1 contain ≥3 rejected alternatives with explicit rejection reasons?
 - [ ] Does Section 5 show complete final-state artifacts (not excerpts)?
-- [ ] Does Section 6 prove 1:1 parity (or note explicitly "not a migration — parity table omitted")?
+- [ ] Does Section 6 prove 1:1 parity (or note explicitly "not a migration: parity table omitted")?
 - [ ] Is every dependency change in Section 4 justified?
 - [ ] Does Section 8 include a CI matrix (not just unit-test list)?
 - [ ] Does Section 9 contain ≥8 risks with concrete mitigations?
@@ -174,12 +174,12 @@ skill never silently overwrites a prior plan.
 
 | Aspect | Freedom |
 |--------|---------|
-| Section count and order | Low — 15 sections are mandatory |
-| Section headings | Low — fixed, numbered |
-| Self-audit checklist | Low — non-negotiable |
-| Choice of alternatives in Section 1 | High — judgment-driven |
-| Which 8+ risks to surface | High — judgment-driven |
-| Test prioritization | High — judgment-driven |
+| Section count and order | Low: 15 sections are mandatory |
+| Section headings | Low: fixed, numbered |
+| Self-audit checklist | Low: non-negotiable |
+| Choice of alternatives in Section 1 | High: judgment-driven |
+| Which 8+ risks to surface | High: judgment-driven |
+| Test prioritization | High: judgment-driven |
 
 ### Output Format Rules
 
@@ -188,7 +188,7 @@ skill never silently overwrites a prior plan.
 - Code blocks for file layouts, signatures, and final-state artifacts.
 - Pipe-syntax tables for any list of ≥3 rows with ≥2 attributes.
 - No emojis. No marketing language. Engineer-to-engineer tone.
-- The skill produces only the plan document — no code is written, and no project files outside the output plan are modified.
+- The skill produces only the plan document: no code is written, and no project files outside the output plan are modified.
 
 ## FAQ
 
@@ -200,7 +200,7 @@ self-audit exist to enforce that bar.
 
 ### What should I pass for `task`?
 
-A specific, scoped sentence — not a topic. Compare:
+A specific, scoped sentence: not a topic. Compare:
 
 - Bad: "Improve our deployment process."
 - Good: "Replace the Makefile and scripts/run-sql.sh with npm scripts and TypeScript, targeting Node.js 24 LTS."
@@ -208,12 +208,12 @@ A specific, scoped sentence — not a topic. Compare:
 The skill fills in scope hints during Phase 1 research; clearer `task` input
 yields a tighter plan.
 
-### When should I use create-plan instead of plan-reviewer?
+### When should I use plan-creator instead of plan-reviewer?
 
 | Need | Skill |
 |------|-------|
-| Author a new plan from scratch | `create-plan` |
-| Synthesize competing plans into one | `create-plan` (with `reference_plans`) |
+| Author a new plan from scratch | `plan-creator` |
+| Synthesize competing plans into one | `plan-creator` (with `reference_plans`) |
 | Score an existing plan's quality | `plan-reviewer` |
 | Compare multiple plans side-by-side | `plan-reviewer` (COMPARISON mode) |
 | Check whether a revision resolved earlier issues | `plan-reviewer` (DELTA mode) |
@@ -234,7 +234,7 @@ plans to fail late.
 
 ### What if my task does not need a parity table?
 
-Section 6 may be marked explicitly: `not a migration — parity table omitted`.
+Section 6 may be marked explicitly: `not a migration: parity table omitted`.
 The section header still appears so reviewers can confirm the omission was
 deliberate.
 
@@ -259,7 +259,7 @@ Coordinator
 ### File Structure
 
 ```text
-skills/create-plan/
+skills/plan-creator/
 ├── SKILL.md
 └── CHANGELOG.md
 ```
@@ -288,5 +288,5 @@ skills/create-plan/
 
 For behavior details, prefer these files over older examples or copied notes:
 
-- `skills/create-plan/SKILL.md`
-- `skills/create-plan/CHANGELOG.md`
+- `skills/plan-creator/SKILL.md`
+- `skills/plan-creator/CHANGELOG.md`

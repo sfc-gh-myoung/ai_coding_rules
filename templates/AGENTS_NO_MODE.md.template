@@ -263,6 +263,13 @@ Loading = Read file + Apply guidance + Declare in `## Rules Loaded` section. All
 A rule is NOT loaded if any step is skipped.
 NEVER declare a rule in `## Rules Loaded` unless `read_file` returned successfully.
 
+**Citation format (for eval compatibility):**
+When listing rules in `## Rules Loaded`, prefer the form
+`<path> (<reason>) — N lines` where `N` is the `wc -l` output for the file.
+Example: `- {{rules_path}}/000-global-core.md (foundation) — 350 lines`.
+The `— N lines` suffix is optional but enables citation-drift detection
+by the rule-loader evaluator.
+
 **VIOLATION = INVALID RESPONSE**: Proceeding without completing all steps invalidates the response.
 
 ## REFERENCE (Do Not Execute Sequentially)

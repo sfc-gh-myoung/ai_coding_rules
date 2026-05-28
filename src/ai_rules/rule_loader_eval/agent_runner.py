@@ -274,18 +274,19 @@ def parse_bootstrap_line(text: str) -> dict[str, int | bool]:
 
 
 def extract_contract_text(text: str) -> str:
-    """Return the contract block from the first ``**Rules Loaded**`` marker onward.
+    """Return the contract block from the first Rules Loaded marker onward.
 
-    Legacy AGENTS.md contract: the agent is required to emit a final
-    ``**Rules Loaded**`` trailer listing every rule it read this turn.
-    Older v3.9-style output started with ``**Bootstrap:**`` instead;
-    that prefix is still recognised for backward compat.
+    Legacy AGENTS.md contract: the agent emits `## Rules Loaded` (or
+    `**Rules Loaded**`) with one bullet per loaded rule. The retired
+    v3.9 prefix `**Bootstrap:**` is also recognised for backward compat.
     """
-    for marker in ("**Rules Loaded**", "**Bootstrap:**"):
+    candidates = ["## Rules Loaded", "**Rules Loaded**", "**Bootstrap:**"]
+    earliest = -1
+    for marker in candidates:
         idx = text.find(marker)
-        if idx >= 0:
-            return text[idx:]
-    return text
+        if idx >= 0 and (earliest == -1 or idx < earliest):
+            earliest = idx
+    return text[earliest:] if earliest >= 0 else text
 
 
 def validate_output_shape(text: str, *, loaded_count: int) -> tuple[str, ...]:
@@ -299,7 +300,10 @@ def validate_output_shape(text: str, *, loaded_count: int) -> tuple[str, ...]:
     violations: list[str] = []
     if not text:
         return ("final assistant text is empty",)
-    if "**Rules Loaded**" not in text:
+    has_rules_loaded = "**Rules Loaded**" in text or re.search(
+        r"(?m)^#{1,6}\s+Rules Loaded\b", text
+    )
+    if not has_rules_loaded:
         violations.append("missing **Rules Loaded** section")
     if loaded_count == 0 and not _NO_RULES_RE.search(text):
         violations.append("zero loaded rules must use explicit no-match Rules Loaded body")

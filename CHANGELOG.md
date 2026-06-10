@@ -7,157 +7,96 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### CLI error handling
+## [3.8.0] - 2026-06-10
 
-- Added friendly subprocess failure messages for `ai-rules` CLI commands, including concise failed-command summaries and next-step remediation for lint, format, typecheck, tests, environment setup, release, and mirror flows.
-- Added top-level `--debug` support so maintainers can request raw Python tracebacks for command failures while default CLI output stays actionable for users.
+Major release consolidating four branches. Three themes: (1) flat RULES_INDEX, slim AGENTS templates, and a contract-grade rule-loader evaluation framework; (2) the `ai-rules dev` CLI replacing the project Makefile; (3) a refactored `ai-rules deploy` surface with split-only mode, NO_MODE default, and hardened path rendering.
 
-### Validation blocker cleanup
+### Breaking
 
-- Restored `--progress=json` per-fixture `start` events by leaving JSON progress output visible while SDK chatter capture is disabled for JSON mode.
-- Reduced `rules/102-snowflake-sql-core.md` Keywords metadata to 20 typed entries, converted `queries.sql` to `file:queries.sql`, and updated `simple-sql-edit` fixture evidence accordingly.
-- Confirmed Ruff no longer needs migration-script exclusions in the current tree because only `scripts/run-eval.sh` remains under `scripts/`.
-
-### Rule-loader authority cleanup
-
-- Moved rule-loading authority fully into `skills/rule-loader/SKILL.md` and workflows: `AGENTS.md` stays bootstrap-only, and `rules/000-global-core.md` now owns only output/citation contract mechanics.
-- Removed emitted manifest behavior from the rule-loader/evaluator surface: deleted the manifest parser/test path and stopped snapshots/comparisons from tracking manifest emission.
-- Removed legacy `LoadTrigger` parser compatibility from evaluator metadata loading and updated tests to use typed `Keywords` evidence only.
-- Updated live examples/docs/tests to line-count-only rule citations (`<path> (<reason>) — N lines`) and removed version/date citation expectations.
-- Fixed CI validation drift by replacing the removed-index placeholder command with `uv run ai-rules rule-loader validate` and aligning CI Python versions with `requires-python >=3.12`.
-
-### RULES_INDEX removal finish-up (v3.3 Phase A)
-
-- Cleared remaining `RULES_INDEX.md` references missed in the original Phase A landing:
-  - `rules/000-global-core.md` R10 discovery-artifact list — removed `rules/RULES_INDEX.md` bullet; updated prose to singular.
-  - `skills/rule-loader/workflows/foundation-loading.md` — replaced two-item Discovery Artifacts list with `AGENTS.md` only; added keyword-discovery note directing agents to `grep rules/*.md **Keywords:**`.
-  - `skills/rule-loader/workflows/dependency-resolution.md` — removed `rules/RULES_INDEX.md` from the R10 subtraction set in Step 7.
-  - `src/ai_rules/rule_loader_eval/diagnostics.py` and `agent_runner.py` — `_DISCOVERY_ARTIFACTS` frozenset reduced to `{"AGENTS.md"}`.
-  - `fixtures/rule_loader_eval/complex-snowcli-app-spec.yaml` and `complex-snowcli-deploy.yaml` — stripped trailing `without RULES_INDEX` clause from inline comments.
-  - `docs/EVALUATING_RULE_LOADER.md` — removed `removing RULES_INDEX.md` from the A/B comparison example list.
-- Phase A validation grep (`grep -RInE 'RULES_INDEX|ai-rules index|commands.index|index_app' src tests docs README.md CONTRIBUTING.md skills templates AGENTS.md fixtures rules`) now returns empty (allow-list: `CHANGELOG.md`, `plans/`, `.snowflake/cortex/plans/`, `reviews/`).
-
-## [3.4.0] — 2026-05-18
-
-**Actionability + determinism + structured manifest.**
-
-### Added
-
-- `ai-rules rule-loader suggest-kw` — fixture-aware kw: suggestion command. Given a
-  fixture id or `--from-snapshot`, mines the prompt for IDF-scored n-gram candidates
-  and shows exactly which `kw:` to add (`missing-required`) or narrow (`spurious`).
-  Heuristic-only; LLM path gated behind future `--llm` flag. (`src/ai_rules/rule_loader_eval/kw_suggester.py`)
-- **Flake/variance separation**: `FixtureSnapshot.flake_score` + `n_runs` fields; `_compute_flake_score`
-  Jaccard-based scorer in `merge_snapshots`; `FLAKY (K):` bucket in `compare` output; `--ignore-flaky`
-  and `--flake-threshold` flags on `ai-rules rule-loader compare`.
-- **Skill invocation tracking**: `AgentRun.skill_invocations` captures skill names from
-  notes; `FixtureSnapshot.skill_invocations`; new compare aggregate line `skill: rule-loader invoked K/N`;
-  `SKILL_NOT_INVOKED` verdict (highest priority, only fires when invocation data present).
-- **Depends propagation validator** (`src/ai_rules/rule_loader_eval/depends_validator.py`):
-  `validate_depends_propagation(loaded, rules_meta)` surfaces R8 violations; wired into
-  `RunResult.depends_violations`, `FixtureSnapshot.depends_violations`, and `compare` regression
-  hint blocks as `→ fix: R8 violation — …`. Skill workflow `dependency-resolution.md` gains
-  mandatory Step 6 (pre-output R8 verification).
-- **Determinism tests** (`tests/rule_loader_eval/test_determinism.py`): 3 tests verifying
-  `match_loaded_rules` and `build_suggestions` are byte-identical across 50–100 repeated calls.
-- **Compare deep-links**: `_render_delta_block` gains `rules_meta` + `fixture_prompt` params;
-  `[spurious]` entries show `fired-on: kw:…`; `[missing-required]` entries show `current-kw:` and
-  `(no kw: matched prompt — check …)`. New `_kw_evidence_for_rule` helper.
-- **Structured manifest** (`src/ai_rules/rule_loader_eval/manifest.py`): `Manifest`/`ManifestEntry`/
-  `ManifestTaskSwitch` dataclasses + `parse_manifest_block` regex parser + `validate_manifest`.
-  `AgentRun.manifest` field populated by `_parse_manifest_safe`. When a manifest is present, its
-  `loaded_paths` replaces the text-parsed union as the authoritative loaded set.
-- `FixtureSnapshot.manifest_present` — tracked in snapshots; compare aggregate `manifest: emitted K/N`.
-- `scripts/migrate_to_manifest.py` — back-fills new snapshot fields into existing eval JSON files.
-- **Decoupling enforcement tests** (`tests/rule_loader_eval/test_decoupling.py`): 17 tests
-  verifying AGENTS.md, 000-global-core.md, and SKILL.md each own only their designated content.
-
-### Changed
-
-- `skills/rule-loader/SKILL.md` bumped to **v1.7.0**: adds structured manifest output (Phases 6/7),
-  absorbs the "Skill Integration Directive" and "Conditional Skill Workflow Loading" content
-  previously in `rules/000-global-core.md`.
-- `rules/000-global-core.md` bumped to **v3.11.0**: adds **R9** (mandatory manifest emission);
-  removes the now-migrated "Skill Integration Directive" and "Conditional Skill Workflow Loading"
-  sections; adds a brief `> Skill integration:` note pointing to SKILL.md.
-- `compare_snapshots` gains `flake_threshold` and `ignore_flaky` parameters.
-- `render_table` and `render_markdown` gain `rules_meta` and `fixture_prompt` pass-through for
-  deep-link rendering (passed from CLI).
-
-## [3.3.0] — 2026-05-18
-
-**Breaking — schema v3.3.** Two consolidations shipped under a single schema bump.
-
-### Keywords/LoadTrigger consolidation
-
-- `**LoadTrigger:**` metadata field **removed** from all 147 rule files. All prior `LoadTrigger` entries merged into `**Keywords:**` using typed prefixes (`kw:`, `ext:`, `file:`, `dir:`).
-- `**Keywords:**` now requires every entry to carry one of four typed prefixes. Schema v3.3 hard-rejects bare terms.
-- All prefixed entries count toward the 5-20 minimum (no separate count).
-- Foundation rules use `kw:` prefixes only (no file-context triggers).
-- Migration: `scripts/migrate_v3.3.py --apply` (atomic, idempotent). Rollback via `out/keywords-v3.3-migration/rollback_manifest.json` — no git activity required.
-- `002i-rule-loadtrigger.md` deleted (D1); content merged into `rules/002-rule-governance.md` as `### Typed \`Keywords\` field` section.
-
-### Depends bucket prefix grammar
-
-- `**Depends:**` entries **require** a `required:` or `optional:` bucket prefix. Schema v3.3 issues a **HIGH error** for unprefixed entries — transitional grace period ended.
-- `transitional_warn_unprefixed: false` set in `schemas/rule-schema.yml` (D7).
-- Guidance: see `rules/002-rule-governance.md` `### Depends Bucket Semantics` section.
-- Legacy `scripts/migrate_depends_buckets.py` retained for retrospective audit (D9).
-
-### RULES_INDEX removal
-
-- `rules/RULES_INDEX.md` and `src/ai_rules/commands/index.py` deleted. The `ai-rules index` and `ai-rules refs` CLI commands removed. Rule discovery now uses direct typed `Keywords` grep.
-- `split_depends_buckets` relocated from `commands/index.py` to `rule_loader_eval/rules_meta.py`.
-
-### Rule Loading Contract
-
-- `rules/000-global-core.md`: contract anchors `<!-- contract:start -->` / `<!-- contract:end -->` added, enclosing R1–R8 (D8). SHA-256 guard recorded at `out/keywords-v3.3-migration/contract_before.sha256`.
-- Bootstrap format examples updated from `RULES_INDEX scanned` to `rule Keywords scanned`.
-
-## [4.0.0] - 2026-05-17
-
-Major release. Three big themes: (1) a contract-grade Depends bucket schema and an end-to-end rule-loader evaluation framework; (2) a refreshed `ai-rules` CLI surface plus a packaged `ai-rules dev` workflow that retires the project Makefile; (3) an `ai_rules.cortex` subpackage that moves keyword generation onto Snowflake AI_COMPLETE.
-
-### Added
-
-- **feat(ai-rules dev):** new `ai-rules dev` Typer sub-app - `quality`, `test`, `validate`, `orchestrate`, `clean`, `env`, `mirror`, `release`, `status`. Replaces the deleted root Makefile end-to-end. See [`docs/USING_DEV_CLI.md`](docs/USING_DEV_CLI.md).
-- **feat(rule-loader-eval):** new `src/ai_rules/rule_loader_eval/` framework - fixtures, matcher, suggestions, snapshot, snippet, batch driver, agent runner, SDK capture, diagnostics. 28 committed fixtures under `fixtures/rule_loader_eval/`. New `ai-rules rule-loader` CLI subcommands: `validate`, `list`, `eval`, `create`, `refresh`, `refresh-all`, `compare`. Live-progress UI (`--progress=auto|rich|plain|json|screen|none`) with alternate-screen Rich dashboard for `refresh-all`, worker-slot pool, ISO timestamps, JSON event stream on stderr, SIGINT exit 130. See [`docs/EVALUATING_RULE_LOADER.md`](docs/EVALUATING_RULE_LOADER.md) and [`docs/RUNNING_RULE_LOADING_AB_TESTS.md`](docs/RUNNING_RULE_LOADING_AB_TESTS.md).
-- **feat(ai_rules.cortex):** new functional Cortex client subpackage - `complete`, `complete_batch`, `verify_connection`, `list_models`, `CortexResponse`, `KEYWORDS_SCHEMA`. AI_COMPLETE is the primary transport (via `snowflake-connector-python`); the REST `/api/v2/cortex/inference:complete` endpoint is retained as an opt-in fallback. `ai-rules keywords` gains `--model`/`-m` (env `AI_RULES_MODEL`, default `claude-sonnet-4-5`) and `--transport`/`-t` (`aisql`|`rest`) flags; structured-output JSON schema replaces fragile regex parsing on the AISQL transport.
-- **feat(rules):** add `rules/126-snowflake-cortex-code-agent-sdk.md` and `rules/810-cli-design-core.md`. Rule count: 188 -> 194.
-- **feat(skills):** new `skills/plan-creator/` (renamed from `create-plan`, v2.0.0); new workflows under `skills/rule-loader/` (`anti-patterns`, `failure-modes`, `project-tool-discovery`, `task-switch-detection`); new `skills/skill-timer/scripts/validate_timing.py`; rule-loader skill bumped to v1.6.0 to reflect R8 conformance.
-- **deps:** add `snowflake-connector-python>=3.12.0` runtime dependency.
-
-### Changed
-
-- **breaking(rule schema):** every `**Depends:**` entry now carries a `required:` or `optional:` bucket prefix (e.g., `required:000-global-core.md, optional:105-snowflake-cost-governance.md`). `required:` deps MUST co-load when the parent rule is loaded; `optional:` deps SHOULD load when prompt context plausibly benefits and skipping them is permitted (informational only). All 194 existing rules migrated to the new grammar. The schema validator enforces the bucket grammar; `RULES_INDEX.md` and the suggestions/refresh-all dep-DAG classifier route the buckets accordingly.
-- **breaking(contract):** Rule Loading Contract bumped to v3.10.0 - `**Rules Loaded**` (bold inline) replaces `## Rules Loaded` (H2); `R7` enforces literal markdown markers; new `R8` binds the Depends bucket grammar; PRE-FLIGHT gates retired; `## Reads Performed` + `CITATION_TRUTH` retired in favor of a single `**Bootstrap:**` line; `R5` tightened with per-row provenance and explicit cross-row metadata-copy as the canonical fabrication failure mode.
-- **breaking(ai-rules deploy):** NO_MODE bootstrap is now the default; the `--no-mode` flag has been removed; `--with-mode` is the opt-in flag for the PLAN/ACT framework. Templates rebased to mirror the current root `AGENTS.md`.
-- **breaking(ai-rules rule-loader CLI):** `--progress` is value-bearing (`auto|rich|plain|json|screen|none`), no longer boolean; default concurrency lowered 4 -> 2; `seed-fixture(s)` renamed to `create`/`refresh`/`refresh-all`; `validate-fixtures`/`list-fixtures` renamed to `validate`/`list`; `on_start`/`on_outcome` callbacks gain a `worker_slot` argument. Live-agent defaults standardized to `--effort low --max-turns 15` across CLI, library, and tests.
-- **breaking(skills):** `skill-timing` renamed to `skill-timer`; `create-plan` renamed to `plan-creator`. Skill `name:` frontmatter, directories, package names, and runtime data file prefixes (`skill-timing-*.json` -> `skill-timer-*.json`) all changed; both bumped to v2.0.0. Callers pinning the old `name:` values must update.
-- **breaking(fixtures):** every fixture YAML under `fixtures/rule_loader_eval/` requires an `updated:` ISO 8601 field with explicit timezone offset, immediately after `schema_version:`. The validator rejects fixtures missing or malformed `updated:` values.
-- **enhance(rule-loader skill):** v1.5.x -> v1.6.0 - Phase 6 Citation Refresh gate, anti-pattern catalog (incl. cross-row metadata copy), explicit failure-modes workflow, R8 conformance documented end-to-end.
-- **docs:** `README.md` rule counts and category table refreshed (194 rules; recounted per bucket); `CONTRIBUTING.md`, `AGENTS.md`, `docs/ARCHITECTURE.md`, and the `docs/USING_*_SKILL.md` guides updated for the v3.10.0 contract (R1-R8), NO_MODE deploy default, dev CLI, and renamed skills.
-- **chore(deps):** pin `ty==0.0.35`; add `pre-commit` to the dev toolchain; add Ruff and `ty` pre-commit hooks alongside Entro secret scanning.
-- **ci:** add pull-request concurrency, uv cache configuration, and Node.js 24 / setup-uv v8 to reduce duplicate runs and resolve `ty` typecheck failures blocking CI.
-
-### Removed
-
+- **breaking(ai-rules deploy):** split-only mode — the unified positional-destination (mass-copy) mode is removed. Use `--agents-dest`, `--rules-dest`, and/or `--skills-dest` individually. The `--split` flag is removed (split is the only model); passing a positional argument exits with a migration hint. `--only-skills` no longer requires `--agents-dest`.
+- **breaking(ai-rules deploy):** `NO_MODE` is now the default; `--no-mode` flag removed. Pass `--with-mode` to render the PLAN/ACT (MODE) variant.
+- **breaking(RULES_INDEX):** `rules/RULES_INDEX.md` replaced with a flat one-line-per-rule table (`filename | tier | ~tokens | ext | file | dir | kw`), generated from `templates/RULES_INDEX.md.template` — 250 lines down from ~1,125. `ai-rules index generate/check` now renders via `render_rules_index()`; dead catalog/narrative functions (`generate_rule_entry`, `group_rules_by_domain`, `generate_loading_strategy`, etc.) removed. The relative `rules/` path prefix is baked into the template; `--rules-dest` rewrites it to absolute only when explicitly given.
+- **breaking(rule-schema):** every `**Depends:**` entry now requires a `required:` or `optional:` bucket prefix (e.g., `required:000-global-core.md, optional:105-snowflake-cost-governance.md`). `required:` deps MUST co-load when the parent rule is loaded; `optional:` deps SHOULD load when context plausibly benefits. All rule files and fixtures migrated; schema validator enforces this with a HIGH error; `transitional_warn_unprefixed: false` in `schemas/rule-schema.yml`.
+- **breaking(contract):** Rule Loading Contract bumped to v3.10.0 — `**Rules Loaded**` (bold inline) replaces `## Rules Loaded` (H2); new `R8` binds Depends bucket grammar; new `R9` mandates manifest emission; `R7` enforces literal markdown markers; PRE-FLIGHT gates retired; `## Reads Performed` + `CITATION_TRUTH` retired in favour of `**Bootstrap:**`; `R5` tightened with per-row provenance. Contract anchors `<!-- contract:start -->` / `<!-- contract:end -->` enclosing R1–R8 added; bootstrap format examples updated from `RULES_INDEX scanned` → `rule Keywords scanned`.
+- **breaking(keywords):** `**LoadTrigger:**` metadata field removed from all 147 rule files; prior entries merged into `**Keywords:**` with typed prefixes (`kw:`, `ext:`, `file:`, `dir:`). Schema v3.3 hard-rejects bare terms. `002i-rule-loadtrigger.md` deleted; content merged into `rules/002-rule-governance.md` as `### Typed \`Keywords\` field`.
+- **breaking(ai-rules rule-loader CLI):** `--progress` is value-bearing (`auto|rich|plain|json|screen|none`), no longer boolean; default concurrency lowered 4→2; `seed-fixture`/`seed-fixtures` renamed to `create`/`refresh`/`refresh-all`; `validate-fixtures`/`list-fixtures` renamed to `validate`/`list`; `on_start`/`on_outcome` callbacks gain a `worker_slot` argument. Live-agent defaults standardized to `--effort low --max-turns 15`.
+- **breaking(skills):** `skill-timing` renamed to `skill-timer`; `create-plan` renamed to `plan-creator`. Skill `name:` frontmatter, directories, package names, and runtime data file prefixes (`skill-timing-*.json` → `skill-timer-*.json`) all changed; both bumped to v2.0.0. Callers pinning old `name:` values must update.
 - **breaking(makefile):** project root `Makefile` deleted. All targets reachable via `uv run ai-rules` or `uv run ai-rules dev`. See [`docs/USING_DEV_CLI.md`](docs/USING_DEV_CLI.md) for the migration map.
-- **breaking(agent_eval):** the `agent_eval` package and `agent-eval` CLI script removed. Snowflake-side evaluation workflows have superseded the in-repo evaluator.
-- **chore(ai-rules keywords):** drop `load_snowflake_config()`, `_call_cortex_complete()`, and `_parse_cortex_sse_response()` - replaced by `ai_rules.cortex`. Drop `--corpus` flag from `keywords-suggest`, `keywords-diff`, `keywords-update`, and `keywords-all`.
+- **breaking(agent_eval):** the `agent_eval` package and `agent-eval` CLI script removed. Snowflake-side evaluation workflows superseded the in-repo evaluator.
+- **breaking(fixtures):** every fixture YAML under `fixtures/rule_loader_eval/` now requires an `updated:` ISO 8601 field with explicit timezone offset, immediately after `schema_version:`. Validator rejects missing or malformed `updated:` values.
+
+### Added
+
+- **feat(ai-rules dev):** new `ai-rules dev` Typer sub-app — `quality`, `test`, `validate`, `orchestrate`, `clean`, `env`, `mirror`, `release`, `status`. Replaces the deleted root Makefile end-to-end. See [`docs/USING_DEV_CLI.md`](docs/USING_DEV_CLI.md).
+- **feat(rule-loader-eval):** new `src/ai_rules/rule_loader_eval/` framework — fixtures, matcher, suggestions, snapshot, snippet, batch driver, agent runner, SDK capture, diagnostics. 28 committed fixtures under `fixtures/rule_loader_eval/`. New `ai-rules rule-loader` subcommands: `validate`, `list`, `eval`, `create`, `refresh`, `refresh-all`, `compare`. Live-progress UI (`--progress=auto|rich|plain|json|screen|none`) with Rich dashboard for `refresh-all`, worker-slot pool, ISO timestamps, JSON event stream on stderr, SIGINT exit 130. See [`docs/EVALUATING_RULE_LOADER.md`](docs/EVALUATING_RULE_LOADER.md) and [`docs/RUNNING_RULE_LOADING_AB_TESTS.md`](docs/RUNNING_RULE_LOADING_AB_TESTS.md).
+- **feat(ai_rules.cortex):** new functional Cortex client subpackage — `complete`, `complete_batch`, `verify_connection`, `list_models`, `CortexResponse`, `KEYWORDS_SCHEMA`. AI_COMPLETE is the primary transport (`snowflake-connector-python`); REST `/api/v2/cortex/inference:complete` retained as opt-in fallback. `ai-rules keywords` gains `--model`/`-m` (env `AI_RULES_MODEL`, default `claude-sonnet-4-5`) and `--transport`/`-t` (`aisql`|`rest`) flags; structured-output JSON schema replaces fragile regex parsing.
+- **feat(rule-loader suggest-kw):** new `ai-rules rule-loader suggest-kw` — fixture-aware keyword suggestion; mines the prompt for IDF-scored n-gram candidates and shows which `kw:` to add (`missing-required`) or narrow (`spurious`). Heuristic-only; LLM path gated behind `--llm`. (`src/ai_rules/rule_loader_eval/kw_suggester.py`)
+- **feat(rule-loader eval):** flake/variance separation — `FixtureSnapshot.flake_score` + `n_runs` fields; `_compute_flake_score` Jaccard-based scorer in `merge_snapshots`; `FLAKY (K):` bucket in `compare` output; `--ignore-flaky` and `--flake-threshold` flags on `ai-rules rule-loader compare`.
+- **feat(rule-loader eval):** skill invocation tracking — `AgentRun.skill_invocations` captures skill names from notes; `FixtureSnapshot.skill_invocations`; `skill: rule-loader invoked K/N` in compare aggregate; `SKILL_NOT_INVOKED` verdict (highest priority, only fires when invocation data present).
+- **feat(rule-loader eval):** depends propagation validator (`src/ai_rules/rule_loader_eval/depends_validator.py`) — `validate_depends_propagation(loaded, rules_meta)` surfaces R8 violations; wired into `RunResult.depends_violations`, `FixtureSnapshot.depends_violations`, and `compare` regression hint blocks as `→ fix: R8 violation — …`. Skill workflow `dependency-resolution.md` gains mandatory Step 6 (pre-output R8 verification).
+- **feat(rule-loader eval):** structured manifest (`src/ai_rules/rule_loader_eval/manifest.py`) — `Manifest`/`ManifestEntry`/`ManifestTaskSwitch` dataclasses + `parse_manifest_block` regex parser + `validate_manifest`. `AgentRun.manifest` populated by `_parse_manifest_safe`; when present its `loaded_paths` is the authoritative loaded set. `FixtureSnapshot.manifest_present` tracked; `manifest: emitted K/N` in compare aggregate.
+- **feat(rule-loader eval):** determinism tests (`tests/rule_loader_eval/test_determinism.py`) — 3 tests verifying `match_loaded_rules` and `build_suggestions` are byte-identical across 50–100 repeated calls.
+- **feat(rule-loader eval):** decoupling enforcement tests (`tests/rule_loader_eval/test_decoupling.py`) — 17 tests verifying `AGENTS.md`, `000-global-core.md`, and `SKILL.md` each own only their designated content.
+- **feat(rule-loader eval):** compare deep-links — `_render_delta_block` gains `rules_meta` + `fixture_prompt` params; `[spurious]` entries show `fired-on: kw:…`; `[missing-required]` entries show `current-kw:` and `(no kw: matched prompt — check …)`. New `_kw_evidence_for_rule` helper.
+- **feat(rules):** add `rules/126-snowflake-cortex-code-agent-sdk.md` and `rules/810-cli-design-core.md`. Rule count: 188→194.
+- **feat(rules):** add `002n-agent-protocol-reference.md` — on-demand reference for anti-patterns, quality gates, task-switch examples, failure modes, project tool discovery, and term definitions.
+- **feat(skills):** new `skills/plan-creator/` (renamed from `create-plan`, v2.0.0); new workflows under `skills/rule-loader/` (`anti-patterns`, `failure-modes`, `project-tool-discovery`, `task-switch-detection`); new `skills/skill-timer/scripts/validate_timing.py`.
+- **feat(eval):** `scripts/migrate_to_manifest.py` — back-fills new snapshot fields into existing eval JSON files.
+- **feat(deploy):** `tests/templates/test_agents_parity.py` — fails CI on any drift between `AGENTS_MODE` and `AGENTS_NO_MODE` templates in shared protocol regions.
+- **feat(prompts):** add `prompts/surgical-edits.md` prompt template.
+- **deps:** add `snowflake-connector-python>=3.12.0` runtime dependency.
+- **test:** update `tests/fixtures/RULES_INDEX_baseline.md` fixture to flat format.
+
+### Changed
+
+- **feat(deploy):** `AGENTS.md` rendering hardened — always renders from the active template; strips template/`MODE-ONLY`/`NO-MODE-ONLY` marker comments from output. `AGENTS_MODE` and `AGENTS_NO_MODE` templates kept byte-identical outside sentinel regions.
+- **feat(deploy):** fixed AGENTS-only path substitution — when `--rules-dest`/`--skills-dest` are omitted, `{{rules_path}}`/`{{skills_path}}` fall back to relative paths `rules`/`skills` (from project root) instead of incorrect absolute paths.
+- **feat(RULES_INDEX):** template header aligned with AGENTS — replaced ASCII "AUTO-GENERATED" box with AGENTS-style visible header (`# RULES_INDEX` + `**Last Updated:**` + `> **CRITICAL: DO NOT EDIT THIS FILE**`) carrying `ai-rules index generate`/`check` instructions.
+- **feat(rules):** `000-global-core.md` slimmed 435→263 lines; removed elaborate validation examples, Investigation Required section, full Context Window decision tree, Relationship to ContextTier section, and Task Definition Structure. Points to `003-context-engineering.md` for elaboration. Bumped to **v3.11.0**: adds R9 (mandatory manifest emission); removes now-migrated Skill Integration Directive and Conditional Skill Workflow Loading; adds `> Skill integration:` note pointing to SKILL.md.
+- **feat(AGENTS templates):** removed ~218-line `## REFERENCE` block from `templates/AGENTS_NO_MODE.md.template`; replaced with pointer to `rules/002n-agent-protocol-reference.md`. MODE template similarly trimmed. Updated stale RULES_INDEX sanity stats (750+ lines → ~250 lines).
+- **feat(eval):** `agent_runner.py` HARD STOP directive moved to top of system prompt; explicit FORBIDDEN block prevents task execution and SQL calls after `**Rules Loaded**`; grep recipe updated for flat RULES_INDEX self-contained line format. Fast eval profile documented (`--effort low --runs 1 --debug`).
+- **feat(rule-loading):** rule-loading authority moved fully into `skills/rule-loader/SKILL.md` and workflows. `AGENTS.md` stays bootstrap-only; `rules/000-global-core.md` owns only output/citation contract mechanics.
+- **feat(rule-loading):** `skills/rule-loader/SKILL.md` bumped to **v1.7.0** — adds structured manifest output (Phases 6/7); absorbs "Skill Integration Directive" and "Conditional Skill Workflow Loading" from `rules/000-global-core.md`. Prior milestone v1.6.0: Phase 6 Citation Refresh gate, anti-pattern catalog, R8 conformance documented end-to-end.
+- **feat(rule-loading):** legacy `LoadTrigger` parser compatibility removed from evaluator metadata loading; `_DISCOVERY_ARTIFACTS` frozenset reduced to `{"AGENTS.md"}` in `diagnostics.py` and `agent_runner.py`. Tests updated to typed `Keywords` evidence only.
+- **feat(rule-loading):** live examples, docs, and tests updated to line-count-only rule citations (`<path> (<reason>) — N lines`); version/date citation expectations removed.
+- **feat(rule-loading):** RULES_INDEX removal finish-up — cleared stale `RULES_INDEX.md` references in `rules/000-global-core.md` R10 list, `skills/rule-loader/workflows/foundation-loading.md` and `dependency-resolution.md`, `src/ai_rules/rule_loader_eval/diagnostics.py` and `agent_runner.py`, fixture inline comments, and `docs/EVALUATING_RULE_LOADER.md`. Phase A validation grep now returns empty (allow-list: `CHANGELOG.md`, `plans/`, `.snowflake/cortex/plans/`, `reviews/`).
+- **feat(rule-loader eval):** `compare_snapshots` gains `flake_threshold` and `ignore_flaky` parameters; `render_table`/`render_markdown` gain `rules_meta` and `fixture_prompt` pass-through for deep-link rendering.
+- **feat(cli):** friendly subprocess failure messages for all `ai-rules` CLI commands — concise failed-command summaries and next-step remediation for lint, format, typecheck, tests, env setup, release, and mirror flows. Top-level `--debug` support for raw Python tracebacks.
+- **chore(deps):** pin `ty==0.0.35`; add `pre-commit` to dev toolchain; add Ruff and `ty` pre-commit hooks alongside Entro secret scanning.
+- **ci:** add pull-request concurrency, uv cache configuration, and Node.js 24/setup-uv v8 to reduce duplicate runs and resolve `ty` typecheck failures blocking CI. Aligned CI Python versions with `requires-python >=3.12`.
 
 ### Fixed
 
+- **fix(eval):** restored `--progress=json` per-fixture `start` events by leaving JSON progress output visible while SDK chatter capture is disabled for JSON mode.
+- **fix(rules):** reduced `rules/102-snowflake-sql-core.md` Keywords metadata to 20 typed entries; converted `queries.sql` to `file:queries.sql`; updated `simple-sql-edit` fixture evidence accordingly.
 - **fix(rule-loader-eval suggestions):** n-gram phrase extraction no longer spans newlines; multi-line prompts now produce single-line `kw:` values. Regression test added.
 - **fix(_shared/console.py):** `log_*` helpers escape Rich markup so `[fixture-id]` prefixes render literally instead of being interpreted as style tags.
 - **fix(ai-rules cortex):** annotate `_complete_via_rest` headers as `dict[str, str | bytes]` so `urllib.request.Request` accepts both string and bytes values without type-checker complaints.
-- **fix(ci):** type Rich `TaskID` correctly; resolve `ty` typecheck failures; harden CI toolchain.
+- **fix(ci):** type Rich `TaskID` correctly; resolve `ty` typecheck failures blocking CI; harden CI toolchain.
+- **fix(ci):** replace removed-index placeholder command with `uv run ai-rules rule-loader validate`; align CI Python versions with `requires-python >=3.12`.
+
+### Removed
+
+- **refactor(rules):** `002i-rule-loadtrigger.md` deleted; content merged into `rules/002-rule-governance.md`.
+- **refactor(rule-loader eval):** manifest parser/test path removed; snapshots/comparisons no longer track manifest emission from agent output.
+- **chore(ai-rules keywords):** drop `load_snowflake_config()`, `_call_cortex_complete()`, and `_parse_cortex_sse_response()` — replaced by `ai_rules.cortex`. Drop `--corpus` flag from `keywords-suggest`, `keywords-diff`, `keywords-update`, and `keywords-all`.
+
+### Documentation
+
+- **docs:** created `docs/EVALUATING_RULE_LOADER.md` — comprehensive rule-loader eval reference covering trigger-evidence invariant, fixture schema (v3), all `ai-rules rule-loader` subcommands with full flag reference, pre-commit hook configuration + `SKIP=` bypass, CI behavior, and batch refresh/compare workflow. Resolves four broken links in `CONTRIBUTING.md` (lines 610, 691), `docs/ARCHITECTURE.md` (line 627), and `README.md` (line 190).
+- **docs:** corruption repair — fixed 44+ broken `{{rules_path}}`/`{{skills_path}}` tokens, stale `rule Keywords metadata` references, garbled `uv run uv run` commands, `validate (index removed)` rows, and `--no-mode` references across `README.md`, `CONTRIBUTING.md`, `docs/ARCHITECTURE.md`, `docs/USING_DEV_CLI.md`, and `docs/TOKEN_BUDGETS.md`.
+- **docs(architecture):** `docs/ARCHITECTURE.md` §3.4 now covers `MODE-ONLY`/`NO-MODE-ONLY` sentinel regions, `strip_template_markers`, parity test, `--only-skills` flag, and RULES_INDEX relative-path baking.
+- **docs:** go-task automation references replaced — `task validate`/`task deploy DEST=...` in `.github/ISSUE_TEMPLATE/bug_report.yml` and docs replaced with `uv run ai-rules dev validate`/`uv run ai-rules deploy --agents-dest <DIR>`.
+- **docs:** corrected stale stats and links — `schemas/README.md` rule count updated; `docs/USING_RULE_LOADER_SKILL.md` token estimates updated; stale go-task and `USING_RULE_REVIEW_SKILL.md` link fixed.
+- **docs:** AGENTS template line-1 comment updated in both `templates/AGENTS_MODE.md.template` and `templates/AGENTS_NO_MODE.md.template` from stale `task templates:sync` to `uv run ai-rules deploy`.
+- **docs(USING_SKILL_TIMER_SKILL.md):** fix stale `task deploy` reference → `ai-rules deploy`.
+- **docs:** `README.md` rule counts and category table refreshed (194 rules); `CONTRIBUTING.md`, `AGENTS.md`, `docs/ARCHITECTURE.md`, and `docs/USING_*_SKILL.md` guides updated for v3.10.0 contract (R1–R8), NO_MODE deploy default, dev CLI, and renamed skills.
 
 ### Migration
 
-- **Depends bucket prefixes:** rules and fixtures must use `required:` / `optional:` prefixes on every `**Depends:**` entry. Out-of-tree rules need to be hand-migrated; the schema validator will flag any unprefixed entry with a MEDIUM-severity warning during the v3.3 cutover.
-- **CLI renames:** replace `seed-fixture`, `seed-fixtures`, `validate-fixtures`, `list-fixtures` with `create`, `refresh-all`, `validate`, `list`. Replace `--no-mode` with the new default (no flag) and `--with-mode` to opt back into the PLAN/ACT framework.
-- **Skill renames:** update `name: skill-timing` -> `name: skill-timer` and `name: create-plan` -> `name: plan-creator` in any callers. Existing `skill-timing-*.json` runtime files are intentionally invisible to the renamed code.
+- **Depends bucket prefixes:** rules and fixtures must use `required:` / `optional:` prefixes on every `**Depends:**` entry. Out-of-tree rules need hand-migration; schema validator flags unprefixed entries with a HIGH error. Migration script: `scripts/migrate_v3.3.py --apply` (atomic, idempotent). Rollback via `out/keywords-v3.3-migration/rollback_manifest.json`.
+- **CLI renames:** replace `seed-fixture`, `seed-fixtures`, `validate-fixtures`, `list-fixtures` with `create`, `refresh-all`, `validate`, `list`. Replace `--no-mode` with the new default (no flag) and `--with-mode` to opt into PLAN/ACT.
+- **Skill renames:** update `name: skill-timing` → `name: skill-timer` and `name: create-plan` → `name: plan-creator` in any callers. Existing `skill-timing-*.json` runtime files are intentionally invisible to the renamed code.
 - **Makefile:** swap `make <target>` for `uv run ai-rules dev <command>`. See [`docs/USING_DEV_CLI.md`](docs/USING_DEV_CLI.md).
 - **Response contract:** agents must emit `**Bootstrap:**` first, then `**Rules Loaded**` (bold inline, not `## Rules Loaded`), then `Task Switch:`. PRE-FLIGHT gates and `## Reads Performed` are removed.
 
@@ -2356,31 +2295,3 @@ Processed 2 retrospective findings from Cortex Agent testing project:
 - Initial release with 25 core rules
 - Basic validation scripts
 - Documentation templates
-
-[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.4...HEAD
-[3.4.4]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.3...v3.4.4
-[3.4.3]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.2...v3.4.3
-[3.4.2]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.0...v3.4.2
-[3.4.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.3.0...v3.4.0
-[3.3.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.1...v3.3.0
-[3.2.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.0...v3.2.1
-[3.2.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.1.0...v3.2.0
-[3.1.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.0.0...v3.1.0
-[3.0.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.6.1...v3.0.0
-[2.6.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.6.0...v2.6.1
-[2.6.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.5.1...v2.6.0
-[2.5.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.5.0...v2.5.1
-[2.5.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.4.2...v2.5.0
-[2.4.2]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.4.1...v2.4.2
-[2.4.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.4.0...v2.4.1
-[2.4.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.3.2...v2.4.0
-[2.3.2]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.3.1...v2.3.2
-[2.3.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.3.0...v2.3.1
-[2.3.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.2.2...v2.3.0
-[2.2.2]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.2.1...v2.2.2
-[2.2.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.2.0...v2.2.1
-[2.2.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.1.0...v2.2.0
-[2.1.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.0.0...v2.1.0
-[2.0.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v1.5.0...v2.0.0
-[1.5.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v1.0.0...v1.5.0
-[1.0.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/releases/tag/v1.0.0

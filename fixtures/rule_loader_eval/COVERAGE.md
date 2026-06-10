@@ -20,14 +20,14 @@ Target: ≥3 simple AND ≥3 complex fixtures per kind (`kw`, `ext`, `file`,
 
 | Kind | Simple count | Complex count |
 |------|--------------|---------------|
-| `kw`   | 11 | 8 |
+| `kw`   | 11 | 12 |
 | `ext`  | 3  | 4 |
 | `file` | 3  | 3 |
 | `dir`  | 3  | 3 |
 
 ## Fixtures
 
-### Simple (15)
+### Simple (16)
 
 | ID | Kinds |
 |----|-------|
@@ -46,13 +46,14 @@ Target: ≥3 simple AND ≥3 complex fixtures per kind (`kw`, `ext`, `file`,
 | `simple-rules-dir` | dir |
 | `simple-cortex-search` | kw |
 | `simple-mcp-server` | kw |
+| `simple-cortex-agent-build` | kw |
 
-### Complex (13)
+### Complex (14)
 
 | ID | Kinds |
 |----|-------|
 | `complex-sql-pipeline` | kw, ext |
-| `complex-python-etl` | ext |
+| `complex-python-etl` | kw, ext |
 | `complex-mixed-sql-py` | kw, ext |
 | `complex-streamlit-deploy` | kw, ext |
 | `complex-cost-investigation` | kw |
@@ -60,10 +61,11 @@ Target: ≥3 simple AND ≥3 complex fixtures per kind (`kw`, `ext`, `file`,
 | `complex-spcs-app` | kw |
 | `complex-snowcli-deploy` | kw, file |
 | `complex-snowcli-config` | file |
-| `complex-snowcli-app-spec` | file |
+| `complex-snowcli-app-spec` | kw, file |
 | `complex-skill-author` | kw, dir |
 | `complex-rule-governance` | dir |
 | `complex-skill-pipeline-dir` | kw, dir |
+| `complex-cortex-agent-design` | kw |
 
 ## Authoring rules
 

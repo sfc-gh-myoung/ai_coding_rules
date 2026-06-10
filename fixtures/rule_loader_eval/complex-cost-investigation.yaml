@@ -18,8 +18,6 @@ expected:
     - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
       # missing: ext=.sql
     - rules/119-snowflake-warehouse-management.md  # demoted: warehouse mention is incidental ("noisiest warehouse offenders"); not a deep warehouse-mgmt ask
-    - rules/120-snowflake-cost-optimization.md  # auto-demoted: no trigger evidence
-      # missing: rule has no file-context triggers (ext:/file:/dir:)
 trigger_evidence:
   kw: [budget, cost, cost optimization, optimization, performance, slow, warehouse]   # suggested
     # n-gram (no rule): "budget overage last quarter"

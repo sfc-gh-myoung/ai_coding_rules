@@ -1054,7 +1054,7 @@ def eval_cmd(
         typer.Option("--no-progress", help="Alias for ``--progress=none``."),
     ] = False,
 ) -> None:
-    """Run fixtures through the live Cortex Code Agent SDK.
+    r"""Run fixtures through the live Cortex Code Agent SDK.
 
     Executes --runs passes (default 3) to account for LLM variance.
     Each run writes a snapshot to <out-dir>-run-N (auto-generated when
@@ -1073,6 +1073,18 @@ def eval_cmd(
 
     Infra errors (SDK/model/connection down) abort remaining runs
     immediately (fail-fast).
+
+    **Fast profile** (development iteration)::
+
+        uv run ai-rules rule-loader eval \\
+            --fixture <id> \\
+            --effort low \\
+            --runs 1 \\
+            --debug
+
+    This runs a single fixture with low-effort (faster SDK responses) and
+    no multi-run aggregation. Useful for rapid iteration during rule edits.
+    Expect higher variance — use ``--runs 3`` (default) for definitive results.
     """
     if runs < 1:
         log_error("--runs must be >= 1")

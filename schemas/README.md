@@ -142,7 +142,7 @@ All rule files must have 7 metadata fields in this exact order:
 
 All rules must have these 4 sections in order:
 
-1. **Metadata** - All 6 required fields in correct order
+1. **Metadata** - All 7 required fields in correct order
 2. **Scope** - What the rule covers + when to load it
 3. **References** - Dependencies and external documentation (moved early for discovery)
 4. **Contract** - Structured contract with Markdown subsections (###)
@@ -610,7 +610,7 @@ RESULT: ❌ FAILED (1 CRITICAL, 2 HIGH, 3 MEDIUM issues)
 
 **Expected Performance:**
 - Single file: ~10-20ms
-- All 188 rules: ~1-2 seconds
+- All 194 rules: ~1-2 seconds
 - Parallel mode: ~0.5-1 second
 
 **Optimization:**

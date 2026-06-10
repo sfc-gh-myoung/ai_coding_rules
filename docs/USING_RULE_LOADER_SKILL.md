@@ -114,7 +114,7 @@ The skill executes 5 phases in order:
 
 | Phase | Name | What Happens |
 |-------|------|--------------|
-| 1 | **Foundation Loading** | Always loads `000-global-core.md` (~4,050 tokens) |
+| 1 | **Foundation Loading** | Always loads `000-global-core.md` (~2,400 tokens) |
 | 2 | **Domain Matching** | Matches file extensions and directories to domain rules |
 | 3 | **Activity Matching** | Searches RULES_INDEX.md for keyword matches |
 | 4 | **Dependency Resolution** | Loads prerequisites before dependent rules |
@@ -181,13 +181,13 @@ AGENTS.md contains the bootstrap protocol that invokes rule-loading logic inline
 Check these causes in order:
 
 1. **No keyword match:** The keyword may not exist in RULES_INDEX.md
-2. **No extension match:** Verify the extension mapping in RULES_INDEX.md Section 2
+2. **No extension match:** Use `grep -iE "ext:\.<ext>" rules/RULES_INDEX.md` to find the authoritative rule for that extension
 3. **Dependency missing:** A missing prerequisite skips the dependent rule
 4. **Deferred for budget:** Check if it was listed in the Deferred section
 
 ### What happens if RULES_INDEX.md is not found?
 
-The skill falls back to foundation + file-extension matching only. Keyword-based activity matching is skipped. Regenerate the index with `make index-generate`.
+The skill falls back to foundation + file-extension matching only. Keyword-based activity matching is skipped. Regenerate the index with `uv run ai-rules index generate`.
 
 ### What if a rule file is not found?
 
@@ -213,7 +213,7 @@ Each rule declares a `TokenBudget` value in its metadata (e.g., `~3,500`). The s
 User Request
 │
 ├── Phase 1: Foundation Loading
-│   └── Load 000-global-core.md (always, ~4,050 tokens)
+│   └── Load 000-global-core.md (always, ~2,400 tokens)
 │
 ├── Phase 2: Domain Matching
 │   ├── Check directory paths (skills/, rules/)

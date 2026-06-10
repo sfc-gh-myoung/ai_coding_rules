@@ -490,7 +490,7 @@ All support `timing_enabled: true` parameter.
 
 ### Deployment
 
-This skill is **deployable** (included in `task deploy`). After deployment, users can time skill executions, measure performance, and track improvements.
+This skill is **deployable** (included in `ai-rules deploy`). After deployment, users can time skill executions, measure performance, and track improvements.
 
 ### Support
 

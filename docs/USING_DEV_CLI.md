@@ -117,13 +117,14 @@ Maintainer-only commands for syncing GitHub `main` to the GitLab mirror via orph
 | Command | Description |
 |---|---|
 | `ai-rules validate <PATH>` | Validate rule schema |
-| `ai-rules deploy <DEST>` | Deploy rules to project / shared directory |
+| `ai-rules deploy --agents-dest <DIR>` | Deploy rules to project / shared directory |
 | `ai-rules new <FILENAME>` | Generate a new rule template |
 | `ai-rules tokens <PATH>` | Update token budget metadata |
 | `ai-rules keywords <PATH>` | Suggest keywords for a rule |
 | `ai-rules badges` | Update README badges |
 | `ai-rules refs` | Validate rule references |
-| `uv run ai-rules validate (index removed)` | Generate / check `rule Keywords metadata` |
+| `ai-rules index generate` | Generate `rules/RULES_INDEX.md` |
+| `ai-rules index check` | Check `rules/RULES_INDEX.md` is up-to-date |
 | `ai-rules rule-loader` | Live-agent rule loading evaluator |
 
 ## Configuration

@@ -94,7 +94,7 @@ Use our issue templates:
 
 - [ ] **Test** your changes locally
 - [ ] **Run** `uv run ai-rules dev quality all --fix` to fix any quality issues
-- [ ] **Test** rule deployment with `uv run ai-rules deploy /tmp/test --dry-run`
+- [ ] **Test** rule deployment with `uv run ai-rules deploy --agents-dest /tmp/test --rules-dest /tmp/test/rules --dry-run`
 - [ ] **Run** `uv run ai-rules dev validate` to run all CI/CD checks
 - [ ] **Update** documentation if needed
 - [ ] **Add** yourself to contributors if first contribution
@@ -108,7 +108,7 @@ The GitHub Actions CI workflow runs automatically on pushes and PRs to `main`:
 | `quality` | Code quality | ruff lint, ruff format, ty type check |
 | `markdown` | Markdown linting | pymarkdownlnt for rules/ and docs/ |
 | `test` | Unit tests | pytest with Python 3.11, 3.12, 3.13 matrix |
-| `validate` | Rules validation | schema validation, rule Keywords metadata check, `rule-loader-validate` (trigger-evidence invariant; pure-Python) |
+| `validate` | Rules validation | schema validation, `rules/RULES_INDEX.md` check, `rule-loader-validate` (trigger-evidence invariant; pure-Python) |
 
 All jobs run in parallel for fast feedback. Ensure all checks pass before requesting review.
 
@@ -186,7 +186,7 @@ The project uses a production-ready rules architecture. For complete details, se
 **Key files:**
 
 - `AGENTS.md` - AI agent bootstrap protocol
-- `rule Keywords metadata` - Searchable rule catalog
+- `rules/RULES_INDEX.md` - Searchable rule catalog
 
 **Key Principle:** All rules in `rules/` are production-ready and deploy directly - no generation step required.
 
@@ -223,8 +223,8 @@ uv run ai-rules dev quality all --fix    # Fix all code quality issues
 uv run ai-rules dev test run             # Run all pytest tests
 uv run ai-rules dev validate             # Run all CI/CD checks
 uv run ai-rules validate rules/          # Validate rules against schema
-uv run uv run ai-rules validate rules/           # Regenerate rule Keywords metadata
-uv run ai-rules deploy ~                 # Deploy rules to project
+uv run ai-rules index generate           # Regenerate rules/RULES_INDEX.md
+uv run ai-rules deploy --agents-dest ~ --rules-dest ~/rules    # Deploy rules to project
 ```
 
 **See [docs/USING_DEV_CLI.md](docs/USING_DEV_CLI.md) for the complete `ai-rules dev` reference.**
@@ -266,7 +266,7 @@ uv run ai-rules validate rules/100-snowflake-core.md  # Validate single rule
 uv run ai-rules validate rules/ --verbose             # Verbose output
 
 # Regenerate index
-uv run uv run ai-rules validate rules/                        # Regenerate rule Keywords metadata
+uv run ai-rules index generate                        # Regenerate rules/RULES_INDEX.md
 ```
 
 ### Testing Your Changes
@@ -280,11 +280,11 @@ uv run ai-rules validate rules/
 # 2. Validate specific rule you modified
 uv run ai-rules validate rules/XXX-rule-name.md --verbose
 
-# 3. Regenerate rule Keywords metadata if metadata changed
-uv run uv run ai-rules validate rules/
+# 3. Regenerate rules/RULES_INDEX.md if metadata changed
+uv run ai-rules index generate
 
 # 4. Test deployment
-uv run ai-rules deploy /tmp/test --dry-run
+uv run ai-rules deploy --agents-dest /tmp/test --rules-dest /tmp/test/rules --dry-run
 
 # 5. Run test suite
 uv run ai-rules dev test run
@@ -297,7 +297,7 @@ uv run ai-rules dev quality all --fix
 
 ```bash
 git add rules/XXX-rule-name.md
-git add rule Keywords metadata  # If you regenerated it
+git add rules/RULES_INDEX.md  # If you regenerated it
 git commit -m "feat: update XXX rule"
 ```
 
@@ -344,7 +344,7 @@ uv run ai-rules new 300-example-rule --force
 
 1. Edit the generated file and replace placeholders with actual content
 2. Validate: `uv run ai-rules validate rules/`
-3. Update index: `uv run uv run ai-rules validate rules/`
+3. Update index: `uv run ai-rules index generate`
 
 ### Rule Structure
 
@@ -412,14 +412,14 @@ vim rules/450-terraform-best-practices.md
 # 4. Validate the rule
 uv run ai-rules validate rules/
 
-# 5. Regenerate rule Keywords metadata
-uv run uv run ai-rules validate rules/
+# 5. Regenerate rules/RULES_INDEX.md
+uv run ai-rules index generate
 
 # 6. Run quality checks
 uv run ai-rules dev quality all --fix
 
 # 7. Commit the new rule and updated index
-git add rules/450-terraform-best-practices.md rule Keywords metadata
+git add rules/450-terraform-best-practices.md rules/RULES_INDEX.md
 git commit -m "feat(rules): add Terraform best practices rule
 
 - Comprehensive Terraform IaC guidelines
@@ -443,13 +443,13 @@ vim rules/200-python-core.md
 uv run ai-rules validate rules/200-python-core.md --verbose
 
 # 4. Update index if metadata changed
-uv run uv run ai-rules validate rules/
+uv run ai-rules index generate
 
 # 5. Run quality checks
 uv run ai-rules dev quality all --fix
 
 # 6. Commit changes
-git add rules/200-python-core.md rule Keywords metadata
+git add rules/200-python-core.md rules/RULES_INDEX.md
 git commit -m "fix(python): update core rule with type hints guidance"
 
 # 7. Push and create PR
@@ -491,15 +491,15 @@ git commit  # CORRECT
 ```bash
 vim rules/450-new-rule.md
 git add rules/450-new-rule.md
-git commit  # WRONG - rule Keywords metadata not updated
+git commit  # WRONG - rules/RULES_INDEX.md not updated
 ```
 
 **Always regenerate index after rule changes:**
 
 ```bash
 vim rules/450-new-rule.md
-uv run uv run ai-rules validate rules/
-git add rules/450-new-rule.md rule Keywords metadata
+uv run ai-rules index generate
+git add rules/450-new-rule.md rules/RULES_INDEX.md
 git commit  # CORRECT
 ```
 
@@ -532,7 +532,7 @@ this does not happen again.
 
 For systematic, cross-model compatible reviews, use the skill at [skills/rule-reviewer/SKILL.md](skills/rule-reviewer/SKILL.md).
 
-For usage guide, see [docs/USING_RULE_REVIEW_SKILL.md](docs/USING_RULE_REVIEW_SKILL.md).
+For usage guide, see [docs/USING_RULE_REVIEWER_SKILL.md](docs/USING_RULE_REVIEWER_SKILL.md).
 
 ```text
 Review rules/XXX-rule-name.md using the Agent-Centric Rule Review criteria.
@@ -562,7 +562,7 @@ We are committed to fostering an open and welcoming environment. Please:
 ### Self-Service Resources
 
 - **README.md** - Project overview, setup, troubleshooting
-- **rule Keywords metadata** - Find rules by keyword or category
+- **`rules/RULES_INDEX.md`** - Find rules by keyword or category
 - **AGENTS.md** - Rule loading protocol details
 - **docs/ARCHITECTURE.md** - System architecture and design decisions
 
@@ -577,7 +577,6 @@ All rules follow **Section 11: Universal Compatibility Standards** from `002-rul
 
 **Key Standards:**
 
-- Quick Start TL;DR sections - Essential patterns in 30 seconds
 - Standardized metadata order - Consistent parsing across agents
 - Investigation-First protocols - Prevents hallucinations
 - Complete response templates - Working code examples

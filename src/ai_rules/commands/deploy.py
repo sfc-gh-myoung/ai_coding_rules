@@ -80,25 +80,26 @@ def resolve_paths(
     )
 
 
-def substitute_template(template_content: str, paths: DeploymentPaths) -> str:
+def substitute_template(template_content: str, paths: DeploymentPaths, project_root: Path) -> str:
     """Replace placeholders with resolved paths.
 
     When a rules/skills destination is provided, its absolute path is used so the
     deployed AGENTS.md points at the exact location. When no destination is
-    provided (for example, AGENTS-only deployment that reuses a project's existing
-    rules/ directory), the placeholder falls back to the relative path ``rules`` /
-    ``skills`` -- the agent reading AGENTS.md resolves it from the project root.
+    provided (agents-only deployment), the placeholder falls back to the absolute
+    path of the ai_coding_rules project's own ``rules`` / ``skills`` directory so
+    the deployed AGENTS.md always references a concrete, readable location.
 
     Args:
         template_content: Template content with {{rules_path}} and {{skills_path}}
         paths: Resolved deployment paths
+        project_root: Root of the ai_coding_rules project (used as fallback)
 
     Returns:
         Content with placeholders replaced
     """
     result = template_content
-    rules_value = str(paths.rules) if paths.rules else "rules"
-    skills_value = str(paths.skills) if paths.skills else "skills"
+    rules_value = str(paths.rules) if paths.rules else str(project_root / "rules")
+    skills_value = str(paths.skills) if paths.skills else str(project_root / "skills")
     result = result.replace("{{rules_path}}", rules_value)
     result = result.replace("{{skills_path}}", skills_value)
     return result
@@ -365,7 +366,7 @@ def copy_root_files(
                 raise FileNotFoundError(
                     f"AGENTS template not found in {project_root / 'templates'}"
                 )
-            content = substitute_template(template_content, paths)
+            content = substitute_template(template_content, paths, project_root)
             content = strip_template_markers(content)
             dest_file = paths.agents / "AGENTS.md"
             if not dry_run:
@@ -543,6 +544,7 @@ def build_deployment_tree(
     root_copied: int,
     skills_count: int,
     skills_files_copied: int,
+    project_root: Path,
 ) -> Tree:
     """Build a Rich Tree showing the deployment structure.
 
@@ -553,6 +555,7 @@ def build_deployment_tree(
         root_copied: Number of root files written
         skills_count: Number of skills copied
         skills_files_copied: Number of skill files copied
+        project_root: Root of the ai_coding_rules project (used for fallback display)
 
     Returns:
         Rich Tree object for display
@@ -570,11 +573,11 @@ def build_deployment_tree(
     if paths.rules:
         tree.add(f"[cyan]rules/[/cyan] -> {paths.rules}/ ({rules_copied} files)")
     else:
-        tree.add("[dim]rules/ (not deployed; AGENTS.md uses relative 'rules')[/dim]")
+        tree.add(f"[dim]rules/ (not copied; AGENTS.md references {project_root / 'rules'})[/dim]")
     if paths.skills:
         tree.add(f"[cyan]skills/[/cyan] -> {paths.skills}/ ({skills_count} skills)")
     else:
-        tree.add("[dim]skills/ (not deployed; AGENTS.md uses relative 'skills')[/dim]")
+        tree.add(f"[dim]skills/ (not copied; AGENTS.md references {project_root / 'skills'})[/dim]")
     return tree
 
 
@@ -732,6 +735,7 @@ def deploy_rules(
         root_copied,
         skills_count,
         skills_files_copied,
+        project_root,
     )
     console.print(tree)
     console.print()
@@ -859,7 +863,7 @@ def deploy(
     need.
 
     Examples:
-        # Deploy AGENTS.md only (reuses the project's existing rules/ directory)
+        # Deploy AGENTS.md only (AGENTS.md references the ai_coding_rules project's absolute rules/ and skills/)
 
         ai-rules deploy --agents-dest ~/my-project
 

@@ -116,7 +116,7 @@ NO_MODE auto-execute is the default. For a PLAN/ACT workflow with review gates, 
 uv run ai-rules deploy --agents-dest ~/my-project --with-mode
 ```
 
-> **Rule path resolution:** `RULES_INDEX.md` bakes relative `rules/` paths by default. Pass `--rules-dest <PATH>` to rewrite them to an absolute path (useful for shared/common rule directories).
+> **Rule path resolution:** When only `--agents-dest` is provided (no `--rules-dest`/`--skills-dest`), the generated `AGENTS.md` references the ai\_coding\_rules project's own `rules/` and `skills/` directories as **absolute paths**. No rules or skills are copied to the target project, but the target's `AGENTS.md` depends on this repository remaining at its current location. Pass `--rules-dest <PATH>` (and/or `--skills-dest <PATH>`) to copy rules/skills to a chosen absolute location and point `AGENTS.md` there — useful for shared or common rule directories.
 
 #### Deploy rules to your project directory
 

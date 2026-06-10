@@ -231,7 +231,7 @@ For the full command reference, see [README.md → CLI Commands](../README.md#cl
 
 ### 3.4 The Deployer
 
-The deployer copies rules, the bootstrap protocol (`AGENTS.md`), and `RULES_INDEX.md` into a target project. Deployment is split by artifact: `AGENTS.md`, `rules/`, and `skills/` each go to their own destination (`--agents-dest`, `--rules-dest`, `--skills-dest`), so it can adapt to any project layout.
+The deployer writes the bootstrap protocol (`AGENTS.md`) to `--agents-dest` and optionally copies `rules/` and `skills/` to `--rules-dest` and `--skills-dest` respectively. When only `--agents-dest` is given (agents-only deploy), no rules or skills are copied; instead the generated `AGENTS.md` references the ai\_coding\_rules project's own `rules/` and `skills/` directories as absolute paths. Deployment is split by artifact so it can adapt to any project layout.
 
 **Architecture:**
 
@@ -253,7 +253,7 @@ ai-rules deploy
 4. **Sentinel-gated template sections.** Both templates use `<!-- MODE-ONLY:start/end -->` and `<!-- NO-MODE-ONLY:start/end -->` sentinel comments to bracket variant-specific content. `strip_template_markers()` removes these sentinels (plus the `<!-- Template: ... -->` header) from the deployed file so no bookkeeping comments reach the AI assistant. The `tests/templates/` parity test validates that both templates share the same non-conditional structure.
 5. **NO_MODE is the default.** `ai-rules deploy --agents-dest X` produces the auto-execute (NO_MODE) variant. Pass `--with-mode` to deploy the PLAN/ACT (MODE) variant. Internally the CLI computes `no_mode = not with_mode`; the internal `no_mode` parameter throughout `deploy_rules` and helpers is unchanged.
 6. **Skills-only deployment.** `--only-skills` deploys only `skills/` to `--skills-dest`, skipping AGENTS.md and rules entirely. The `--skills-dest` requires `--agents-dest` constraint is relaxed when `--only-skills` is active.
-7. **Rule-path resolution.** `{{rules_path}}` / `{{skills_path}}` in AGENTS.md templates are replaced with the absolute `--rules-dest` / `--skills-dest` paths; when a destination is absent the placeholder falls back to the relative literal `rules` / `skills` (resolved from the project root by the AI assistant). RULES_INDEX.md is stored with relative `rules/` prefixes; `copy_root_files()` rewrites them to the absolute deployed path when `--rules-dest` is given.
+7. **Rule-path resolution.** `{{rules_path}}` / `{{skills_path}}` in AGENTS.md templates are replaced with the absolute `--rules-dest` / `--skills-dest` paths when those flags are given (files are also copied there). When a destination is absent (agents-only deploy), the placeholder is set to the ai\_coding\_rules project's own absolute `rules/` or `skills/` directory — no files are copied to the target project. This means the target's `AGENTS.md` points at the live ai\_coding\_rules repository, so that repository must remain in place. `RULES_INDEX.md` is only copied when `--rules-dest` is given; `copy_root_files()` rewrites its relative `rules/` prefixes to the absolute deployed path at that time.
 
 For deployment commands and destination configuration, see [README.md → Quick Start](../README.md#quick-start).
 

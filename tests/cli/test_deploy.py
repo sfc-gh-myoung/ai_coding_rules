@@ -227,23 +227,25 @@ class TestSubstituteTemplate:
         paths = deploy_module.resolve_paths(
             agents_dest=tmp_path / "a", rules_dest=tmp_path / "r", skills_dest=tmp_path / "s"
         )
-        out = deploy_module.substitute_template("R={{rules_path}} S={{skills_path}}", paths)
+        out = deploy_module.substitute_template(
+            "R={{rules_path}} S={{skills_path}}", paths, tmp_path
+        )
         assert str((tmp_path / "r").resolve()) in out
         assert str((tmp_path / "s").resolve()) in out
 
     @pytest.mark.unit
-    def test_relative_fallback_when_rules_omitted(self, tmp_path: Path):
-        """AGENTS-only deploy must use relative 'rules', not an absolute CWD path."""
+    def test_absolute_project_fallback_when_rules_omitted(self, tmp_path: Path):
+        """Agents-only deploy must use the project's absolute rules/ path, not a relative string."""
         paths = deploy_module.resolve_paths(agents_dest=tmp_path / "a")
-        out = deploy_module.substitute_template("read_file({{rules_path}}/x.md)", paths)
-        assert "read_file(rules/x.md)" in out
-        assert str(tmp_path) not in out  # no absolute path leaked
+        out = deploy_module.substitute_template("read_file({{rules_path}}/x.md)", paths, tmp_path)
+        assert f"read_file({tmp_path / 'rules'}/x.md)" in out
+        assert "read_file(rules/x.md)" not in out
 
     @pytest.mark.unit
-    def test_relative_fallback_for_both(self, tmp_path: Path):
+    def test_absolute_project_fallback_for_both(self, tmp_path: Path):
         paths = deploy_module.resolve_paths(agents_dest=tmp_path / "a")
-        out = deploy_module.substitute_template("{{rules_path}}|{{skills_path}}", paths)
-        assert out == "rules|skills"
+        out = deploy_module.substitute_template("{{rules_path}}|{{skills_path}}", paths, tmp_path)
+        assert out == f"{tmp_path / 'rules'}|{tmp_path / 'skills'}"
 
 
 class TestStripTemplateMarkers:
@@ -428,8 +430,8 @@ class TestCopyRootFiles:
         assert failed == 0
         assert written == 1
         agents = (agents_dest / "AGENTS.md").read_text()
-        # Relative fallback used
-        assert 'read_file("rules/000-global-core.md")' in agents
+        # Absolute project-root fallback used, not relative string
+        assert f'read_file("{source_project}/rules/000-global-core.md")' in agents
 
     @pytest.mark.unit
     def test_no_mode_template_selected(self, source_project: Path, agents_dest: Path):
@@ -480,6 +482,7 @@ class TestBuildDeploymentTree:
             root_copied=0,
             skills_count=3,
             skills_files_copied=9,
+            project_root=tmp_path,
         )
         assert tree is not None
 
@@ -493,6 +496,7 @@ class TestBuildDeploymentTree:
             root_copied=1,
             skills_count=0,
             skills_files_copied=0,
+            project_root=tmp_path,
         )
         assert tree is not None
 
@@ -668,11 +672,22 @@ class TestDeployCLI:
         assert str(rules_dest) in (agents_dest / "AGENTS.md").read_text()
 
     @pytest.mark.integration
-    def test_agents_only_uses_relative_rules(self, patched_root: Path, agents_dest: Path):
+    def test_agents_only_uses_absolute_project_rules(self, patched_root: Path, agents_dest: Path):
         result = runner.invoke(app, ["deploy", "--agents-dest", str(agents_dest), "--quiet"])
         assert result.exit_code == 0, result.output
         agents = (agents_dest / "AGENTS.md").read_text()
-        assert 'read_file("rules/000-global-core.md")' in agents
+        assert f'read_file("{patched_root}/rules/000-global-core.md")' in agents
+        assert 'read_file("rules/000-global-core.md")' not in agents
+
+    @pytest.mark.integration
+    def test_agents_only_no_local_rules_dir(self, patched_root: Path, agents_dest: Path):
+        """Agents-only deploy must not create a local rules/ dir or RULES_INDEX.md."""
+        result = runner.invoke(app, ["deploy", "--agents-dest", str(agents_dest), "--quiet"])
+        assert result.exit_code == 0, result.output
+        assert not (agents_dest / "rules").exists()
+        assert not (agents_dest / "RULES_INDEX.md").exists()
+        agents_text = (agents_dest / "AGENTS.md").read_text()
+        assert str(patched_root / "rules") in agents_text
 
     @pytest.mark.integration
     def test_only_skills_requires_skills_dest(self, patched_root: Path, agents_dest: Path):

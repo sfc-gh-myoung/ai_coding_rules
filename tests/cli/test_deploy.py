@@ -1,10 +1,11 @@
-"""Tests for ai-rules deploy CLI command.
+"""Tests for ai-rules deploy CLI command (split-only deployment).
+
+Deployment places each artifact (AGENTS.md, rules/, skills/) at its own
+destination. Unified positional-destination deployment was removed.
 
 Tests follow pytest best practices:
 - AAA pattern (Arrange-Act-Assert)
 - Function-scoped fixtures
-- Parametrized tests for input matrices
-- Test markers for selective execution
 - Isolation with tmp_path
 """
 
@@ -22,7 +23,43 @@ from ai_rules.commands import deploy as deploy_module
 runner = CliRunner(env={"NO_COLOR": "1", "CI": "true", "TERM": "dumb"})
 
 
-# Fixtures for setting up test directories
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
+MODE_TEMPLATE = dedent(
+    """\
+    <!-- Template: Do not edit directly. -->
+
+    # AI Agent Bootstrap Protocol
+
+    Foundation: read_file("{{rules_path}}/000-global-core.md")
+    Skills live at {{skills_path}}/
+
+    <!-- MODE-ONLY:start -->
+    MODE: [PLAN|ACT]
+    <!-- MODE-ONLY:end -->
+
+    End of protocol.
+    """
+)
+
+NO_MODE_TEMPLATE = dedent(
+    """\
+    <!-- Template: Do not edit directly. -->
+
+    # AI Agent Bootstrap Protocol
+
+    Foundation: read_file("{{rules_path}}/000-global-core.md")
+    Skills live at {{skills_path}}/
+
+    <!-- NO-MODE-ONLY:start -->
+    Auto-execute: proceed after task list.
+    <!-- NO-MODE-ONLY:end -->
+
+    End of protocol.
+    """
+)
 
 
 @pytest.fixture
@@ -31,7 +68,6 @@ def source_project(tmp_path: Path) -> Path:
     project = tmp_path / "source_project"
     project.mkdir()
 
-    # Create pyproject.toml
     (project / "pyproject.toml").write_text(
         dedent("""
         [project]
@@ -43,34 +79,34 @@ def source_project(tmp_path: Path) -> Path:
         """)
     )
 
-    # Create AGENTS.md
-    (project / "AGENTS.md").write_text("# AGENTS\n\nTest agents file.")
+    # AGENTS source templates
+    templates_dir = project / "templates"
+    templates_dir.mkdir()
+    (templates_dir / "AGENTS_MODE.md.template").write_text(MODE_TEMPLATE)
+    (templates_dir / "AGENTS_NO_MODE.md.template").write_text(NO_MODE_TEMPLATE)
 
-    # Create rules directory
+    # A root AGENTS.md so validate_source_structure passes
+    (project / "AGENTS.md").write_text("# AGENTS\n\nDeployed artifact.")
+
+    # rules directory (RULES_INDEX uses placeholders to exercise substitution)
     rules_dir = project / "rules"
     rules_dir.mkdir()
     (rules_dir / "000-global-core.md").write_text("# Global Core Rule\n\nTest rule.")
     (rules_dir / "100-test-rule.md").write_text("# Test Rule\n\nAnother test rule.")
     (rules_dir / "RULES_INDEX.md").write_text(
-        "# Rules Index\n\n- 000-global-core.md\n- 100-test-rule.md"
+        "# Rules Index\n\nRead rules/000-global-core.md\ngrep ... rules/RULES_INDEX.md\n"
     )
 
-    # Create skills directory
+    # skills directory
     skills_dir = project / "skills"
     skills_dir.mkdir()
-
-    # Create a skill directory with files
     skill1 = skills_dir / "skill1"
     skill1.mkdir()
     (skill1 / "prompt.md").write_text("# Skill 1\n\nTest skill.")
     (skill1 / "config.yaml").write_text("name: skill1\n")
-
-    # Create another skill directory
     skill2 = skills_dir / "skill2"
     skill2.mkdir()
     (skill2 / "prompt.md").write_text("# Skill 2\n\nAnother skill.")
-
-    # Create excluded skill
     excluded = skills_dir / "excluded-skill"
     excluded.mkdir()
     (excluded / "prompt.md").write_text("# Excluded\n\nThis should be excluded.")
@@ -79,1626 +115,702 @@ def source_project(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def dest_dir(tmp_path: Path) -> Path:
-    """Create a destination directory for deployment."""
-    dest = tmp_path / "dest"
-    dest.mkdir()
-    return dest
+def patched_root(source_project: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """Point deploy.find_project_root at the source project (for CLI tests)."""
+    monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
+    return source_project
+
+
+@pytest.fixture
+def agents_dest(tmp_path: Path) -> Path:
+    d = tmp_path / "out_agents"
+    d.mkdir()
+    return d
+
+
+@pytest.fixture
+def rules_dest(tmp_path: Path) -> Path:
+    d = tmp_path / "out_rules"
+    d.mkdir()
+    return d
+
+
+@pytest.fixture
+def skills_dest(tmp_path: Path) -> Path:
+    d = tmp_path / "out_skills"
+    d.mkdir()
+    return d
+
+
+# ---------------------------------------------------------------------------
+# Help output
+# ---------------------------------------------------------------------------
 
 
 class TestDeployHelpOutput:
-    """Test --help output for deploy command."""
-
     @pytest.mark.unit
-    def test_deploy_help_shows_command_description(self):
-        """Test that --help shows command description."""
+    def test_help_shows_split_destination_options(self):
         result = runner.invoke(app, ["deploy", "--help"])
-
         assert result.exit_code == 0
-        assert "Deploy production-ready AI coding rules" in result.output
-
-    @pytest.mark.unit
-    def test_deploy_help_shows_all_options(self):
-        """Test that --help shows all expected options."""
-        result = runner.invoke(app, ["deploy", "--help"])
-
-        assert result.exit_code == 0
-        assert "--dry-run" in result.output
-        assert "--verbose" in result.output
-        assert "--quiet" in result.output
-        assert "--skip-skills" in result.output
-        assert "--only-skills" in result.output
-        assert "--force" in result.output
-        assert "--no-mode" in result.output
-        assert "--split" in result.output
         assert "--agents-dest" in result.output
         assert "--rules-dest" in result.output
         assert "--skills-dest" in result.output
 
     @pytest.mark.unit
-    def test_deploy_help_shows_examples(self):
-        """Test that --help shows usage examples."""
+    def test_help_does_not_advertise_split_flag(self):
+        """The --split flag was removed (split is the only model)."""
         result = runner.invoke(app, ["deploy", "--help"])
-
-        assert result.exit_code == 0
-        assert "Examples" in result.output
-
-
-class TestDeployBasicDeployment:
-    """Test basic unified deployment scenarios."""
+        assert "--split" not in result.output
 
     @pytest.mark.unit
-    def test_deploy_to_directory(
-        self, source_project: Path, dest_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test basic deployment to a directory."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
+    def test_help_uses_with_mode_not_no_mode(self):
+        """NO_MODE is the default; --with-mode opts into PLAN/ACT. --no-mode is gone."""
+        result = runner.invoke(app, ["deploy", "--help"])
+        assert "--with-mode" in result.output
+        assert "--no-mode" not in result.output
 
-        result = runner.invoke(app, ["deploy", str(dest_dir)])
 
-        assert result.exit_code == 0
-        assert "Deployment completed successfully" in result.output
+# ---------------------------------------------------------------------------
+# Removed unified mode / migration
+# ---------------------------------------------------------------------------
 
-        # Verify files were copied
-        assert (dest_dir / "AGENTS.md").exists()
-        assert (dest_dir / "rules" / "000-global-core.md").exists()
-        assert (dest_dir / "rules" / "100-test-rule.md").exists()
-        assert (dest_dir / "rules" / "RULES_INDEX.md").exists()
-        assert (dest_dir / "skills" / "skill1" / "prompt.md").exists()
-        assert (dest_dir / "skills" / "skill2" / "prompt.md").exists()
+
+class TestUnifiedRemoved:
+    @pytest.mark.unit
+    def test_positional_destination_errors_with_hint(self, patched_root: Path, tmp_path: Path):
+        result = runner.invoke(app, ["deploy", str(tmp_path / "legacy")])
+        assert result.exit_code == 2
+        assert "Unified deployment" in result.output
+        assert "--agents-dest" in result.output
 
     @pytest.mark.unit
-    def test_deploy_excludes_configured_skills(
-        self, source_project: Path, dest_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test that skills in exclude_skills are not deployed."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
-
-        result = runner.invoke(app, ["deploy", str(dest_dir)])
-
+    def test_no_destination_shows_help(self, patched_root: Path):
+        result = runner.invoke(app, ["deploy"])
         assert result.exit_code == 0
-        # Excluded skill should not be copied
-        assert not (dest_dir / "skills" / "excluded-skill").exists()
-        # Other skills should be copied
-        assert (dest_dir / "skills" / "skill1").exists()
-        assert (dest_dir / "skills" / "skill2").exists()
+        # Help text is printed
+        assert "--agents-dest" in result.output
 
 
-class TestDeployDryRun:
-    """Test --dry-run flag behavior."""
+# ---------------------------------------------------------------------------
+# resolve_paths
+# ---------------------------------------------------------------------------
+
+
+class TestResolvePaths:
+    @pytest.mark.unit
+    def test_all_destinations(self, tmp_path: Path):
+        paths = deploy_module.resolve_paths(
+            agents_dest=tmp_path / "a",
+            rules_dest=tmp_path / "r",
+            skills_dest=tmp_path / "s",
+        )
+        assert paths.agents == (tmp_path / "a").resolve()
+        assert paths.rules == (tmp_path / "r").resolve()
+        assert paths.skills == (tmp_path / "s").resolve()
 
     @pytest.mark.unit
-    def test_dry_run_does_not_copy_files(
-        self, source_project: Path, dest_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test that --dry-run does not actually copy files."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
+    def test_omitted_destinations_are_none(self, tmp_path: Path):
+        paths = deploy_module.resolve_paths(agents_dest=tmp_path / "a")
+        assert paths.agents == (tmp_path / "a").resolve()
+        assert paths.rules is None
+        assert paths.skills is None
 
-        result = runner.invoke(app, ["deploy", str(dest_dir), "--dry-run"])
 
-        assert result.exit_code == 0
-        assert "DRY RUN" in result.output
+# ---------------------------------------------------------------------------
+# substitute_template / strip_template_markers
+# ---------------------------------------------------------------------------
 
-        # Verify no files were copied
-        assert not (dest_dir / "AGENTS.md").exists()
-        assert not (dest_dir / "rules").exists()
-        assert not (dest_dir / "skills").exists()
+
+class TestSubstituteTemplate:
+    @pytest.mark.unit
+    def test_absolute_when_dest_provided(self, tmp_path: Path):
+        paths = deploy_module.resolve_paths(
+            agents_dest=tmp_path / "a", rules_dest=tmp_path / "r", skills_dest=tmp_path / "s"
+        )
+        out = deploy_module.substitute_template("R={{rules_path}} S={{skills_path}}", paths)
+        assert str((tmp_path / "r").resolve()) in out
+        assert str((tmp_path / "s").resolve()) in out
 
     @pytest.mark.unit
-    def test_dry_run_shows_what_would_be_copied(
-        self, source_project: Path, dest_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test that --dry-run shows what would happen."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
-
-        result = runner.invoke(app, ["deploy", str(dest_dir), "--dry-run", "-v"])
-
-        assert result.exit_code == 0
-        # Check for "Would copy" which indicates dry-run behavior
-        assert "would copy" in result.output.lower()
-
-
-class TestDeploySplitMode:
-    """Test split deployment mode with separate destinations."""
+    def test_relative_fallback_when_rules_omitted(self, tmp_path: Path):
+        """AGENTS-only deploy must use relative 'rules', not an absolute CWD path."""
+        paths = deploy_module.resolve_paths(agents_dest=tmp_path / "a")
+        out = deploy_module.substitute_template("read_file({{rules_path}}/x.md)", paths)
+        assert "read_file(rules/x.md)" in out
+        assert str(tmp_path) not in out  # no absolute path leaked
 
     @pytest.mark.unit
-    def test_split_mode_with_all_destinations(
-        self, source_project: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    def test_relative_fallback_for_both(self, tmp_path: Path):
+        paths = deploy_module.resolve_paths(agents_dest=tmp_path / "a")
+        out = deploy_module.substitute_template("{{rules_path}}|{{skills_path}}", paths)
+        assert out == "rules|skills"
+
+
+class TestStripTemplateMarkers:
+    @pytest.mark.unit
+    def test_removes_marker_and_sentinels(self):
+        content = (
+            "<!-- Template: x -->\n"
+            "\n"
+            "# Title\n"
+            "<!-- MODE-ONLY:start -->\n"
+            "keep me\n"
+            "<!-- MODE-ONLY:end -->\n"
+            "<!-- NO-MODE-ONLY:start -->\n"
+            "also kept\n"
+            "<!-- NO-MODE-ONLY:end -->\n"
+        )
+        out = deploy_module.strip_template_markers(content)
+        assert "<!-- Template:" not in out
+        assert "MODE-ONLY" not in out
+        assert "NO-MODE-ONLY" not in out
+        # Content between sentinels is preserved
+        assert "keep me" in out
+        assert "also kept" in out
+        assert "# Title" in out
+
+
+# ---------------------------------------------------------------------------
+# copy_rules
+# ---------------------------------------------------------------------------
+
+
+class TestCopyRules:
+    @pytest.mark.unit
+    def test_copies_md_except_index(self, source_project: Path, tmp_path: Path):
+        dest = tmp_path / "rdest"
+        copied, failed = deploy_module.copy_rules(
+            source_project / "rules", dest, dry_run=False, verbose=False
+        )
+        assert failed == 0
+        assert copied == 2  # RULES_INDEX.md excluded
+        assert (dest / "000-global-core.md").exists()
+        assert (dest / "100-test-rule.md").exists()
+        assert not (dest / "RULES_INDEX.md").exists()
+
+    @pytest.mark.unit
+    def test_dry_run_copies_nothing(self, source_project: Path, tmp_path: Path):
+        dest = tmp_path / "rdest"
+        copied, failed = deploy_module.copy_rules(
+            source_project / "rules", dest, dry_run=True, verbose=False
+        )
+        assert copied == 2
+        assert failed == 0
+        assert not (dest / "000-global-core.md").exists()
+
+    @pytest.mark.unit
+    def test_no_md_files(self, tmp_path: Path):
+        source = tmp_path / "empty"
+        source.mkdir()
+        copied, failed = deploy_module.copy_rules(source, tmp_path / "d", verbose=False)
+        assert (copied, failed) == (0, 0)
+
+    @pytest.mark.unit
+    def test_exception_during_copy(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        source = tmp_path / "rules"
+        source.mkdir()
+        (source / "000-x.md").write_text("x")
+
+        def boom(*_a, **_k):
+            raise OSError("disk full")
+
+        monkeypatch.setattr(deploy_module.shutil, "copy2", boom)
+        _copied, failed = deploy_module.copy_rules(
+            source, tmp_path / "d", dry_run=False, verbose=False
+        )
+        assert failed == 1
+
+
+# ---------------------------------------------------------------------------
+# copy_skills
+# ---------------------------------------------------------------------------
+
+
+class TestCopySkills:
+    @pytest.mark.unit
+    def test_copies_and_excludes(self, source_project: Path, tmp_path: Path):
+        dest = tmp_path / "sdest"
+        skills_count, files_copied, failed = deploy_module.copy_skills(
+            source_project, dest, dry_run=False, verbose=False
+        )
+        assert failed == 0
+        assert skills_count == 2  # excluded-skill skipped
+        assert files_copied == 3  # skill1 (2) + skill2 (1)
+        assert (dest / "skill1" / "prompt.md").exists()
+        assert not (dest / "excluded-skill").exists()
+
+    @pytest.mark.unit
+    def test_no_skills_dir(self, tmp_path: Path):
+        project = tmp_path / "proj"
+        project.mkdir()
+        skills_count, files_copied, failed = deploy_module.copy_skills(
+            project, tmp_path / "d", verbose=False
+        )
+        assert (skills_count, files_copied, failed) == (0, 0, 0)
+
+    @pytest.mark.unit
+    def test_hidden_dir_skipped(self, tmp_path: Path):
+        project = tmp_path / "proj"
+        (project / "skills" / ".hidden").mkdir(parents=True)
+        (project / "skills" / ".hidden" / "x.md").write_text("x")
+        (project / "skills" / "real").mkdir()
+        (project / "skills" / "real" / "y.md").write_text("y")
+        skills_count, _files, _failed = deploy_module.copy_skills(
+            project, tmp_path / "d", dry_run=False, verbose=False
+        )
+        assert skills_count == 1
+
+    @pytest.mark.unit
+    def test_individual_file_skill(self, tmp_path: Path):
+        project = tmp_path / "proj"
+        (project / "skills").mkdir(parents=True)
+        (project / "skills" / "loose.md").write_text("loose")
+        dest = tmp_path / "d"
+        skills_count, files_copied, _failed = deploy_module.copy_skills(
+            project, dest, dry_run=False, verbose=False
+        )
+        assert skills_count == 1
+        assert files_copied == 1
+        assert (dest / "loose.md").exists()
+
+    @pytest.mark.unit
+    def test_exception_during_copy(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        project = tmp_path / "proj"
+        (project / "skills" / "s1").mkdir(parents=True)
+        (project / "skills" / "s1" / "p.md").write_text("p")
+
+        def boom(*_a, **_k):
+            raise OSError("nope")
+
+        monkeypatch.setattr(deploy_module.shutil, "copytree", boom)
+        _count, _files, failed = deploy_module.copy_skills(
+            project, tmp_path / "d", dry_run=False, verbose=False
+        )
+        assert failed == 1
+
+
+# ---------------------------------------------------------------------------
+# copy_root_files
+# ---------------------------------------------------------------------------
+
+
+class TestCopyRootFiles:
+    @pytest.mark.unit
+    def test_writes_agents_and_index_with_substitution(
+        self, source_project: Path, agents_dest: Path, rules_dest: Path
     ):
-        """Test split deployment with all three destinations."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
+        paths = deploy_module.resolve_paths(agents_dest=agents_dest, rules_dest=rules_dest)
+        written, failed = deploy_module.copy_root_files(
+            source_project, paths, dry_run=False, verbose=False
+        )
+        assert failed == 0
+        assert written == 2
+        agents = (agents_dest / "AGENTS.md").read_text()
+        index = (rules_dest / "RULES_INDEX.md").read_text()
+        # Absolute rules path substituted
+        assert str(rules_dest) in agents
+        assert str(rules_dest) in index
+        # RULES_INDEX relative `rules/` references rewritten to the absolute dest
+        assert f"{rules_dest}/000-global-core.md" in index
+        assert f"{rules_dest}/RULES_INDEX.md" in index
+        # Markers and sentinels stripped from AGENTS.md
+        assert "<!-- Template:" not in agents
+        assert "MODE-ONLY" not in agents
+        # MODE content preserved
+        assert "MODE: [PLAN|ACT]" in agents
 
-        agents_dest = tmp_path / "agents"
-        rules_dest = tmp_path / "rules"
-        skills_dest = tmp_path / "skills"
-        agents_dest.mkdir()
-        rules_dest.mkdir()
-        skills_dest.mkdir()
+    @pytest.mark.unit
+    def test_agents_only_skips_index(self, source_project: Path, agents_dest: Path):
+        paths = deploy_module.resolve_paths(agents_dest=agents_dest)
+        written, failed = deploy_module.copy_root_files(
+            source_project, paths, dry_run=False, verbose=False
+        )
+        assert failed == 0
+        assert written == 1
+        agents = (agents_dest / "AGENTS.md").read_text()
+        # Relative fallback used
+        assert 'read_file("rules/000-global-core.md")' in agents
 
+    @pytest.mark.unit
+    def test_no_mode_template_selected(self, source_project: Path, agents_dest: Path):
+        paths = deploy_module.resolve_paths(agents_dest=agents_dest)
+        deploy_module.copy_root_files(
+            source_project, paths, dry_run=False, verbose=False, no_mode=True
+        )
+        agents = (agents_dest / "AGENTS.md").read_text()
+        assert "Auto-execute" in agents
+        assert "MODE: [PLAN|ACT]" not in agents
+        assert "NO-MODE-ONLY" not in agents
+
+    @pytest.mark.unit
+    def test_dry_run_writes_nothing(self, source_project: Path, agents_dest: Path):
+        paths = deploy_module.resolve_paths(agents_dest=agents_dest)
+        written, failed = deploy_module.copy_root_files(
+            source_project, paths, dry_run=True, verbose=False
+        )
+        assert (written, failed) == (1, 0)
+        assert not (agents_dest / "AGENTS.md").exists()
+
+    @pytest.mark.unit
+    def test_missing_template_records_failure(self, tmp_path: Path, agents_dest: Path):
+        project = tmp_path / "proj"
+        (project / "rules").mkdir(parents=True)
+        (project / "rules" / "RULES_INDEX.md").write_text("idx")
+        # No templates/ dir -> AGENTS generation fails
+        paths = deploy_module.resolve_paths(agents_dest=agents_dest)
+        _written, failed = deploy_module.copy_root_files(
+            project, paths, dry_run=False, verbose=False
+        )
+        assert failed == 1
+
+
+# ---------------------------------------------------------------------------
+# build_deployment_tree
+# ---------------------------------------------------------------------------
+
+
+class TestBuildDeploymentTree:
+    @pytest.mark.unit
+    def test_only_skills_tree(self, tmp_path: Path):
+        paths = deploy_module.resolve_paths(skills_dest=tmp_path / "s")
+        tree = deploy_module.build_deployment_tree(
+            paths,
+            only_skills=True,
+            rules_copied=0,
+            root_copied=0,
+            skills_count=3,
+            skills_files_copied=9,
+        )
+        assert tree is not None
+
+    @pytest.mark.unit
+    def test_partial_tree_omitted_dests(self, tmp_path: Path):
+        paths = deploy_module.resolve_paths(agents_dest=tmp_path / "a")
+        tree = deploy_module.build_deployment_tree(
+            paths,
+            only_skills=False,
+            rules_copied=0,
+            root_copied=1,
+            skills_count=0,
+            skills_files_copied=0,
+        )
+        assert tree is not None
+
+
+# ---------------------------------------------------------------------------
+# validate_destinations
+# ---------------------------------------------------------------------------
+
+
+class TestValidateDestinations:
+    @pytest.mark.unit
+    def test_skills_requires_agents(self, tmp_path: Path):
+        is_valid, errors = deploy_module.validate_destinations(
+            agents_dest=None, rules_dest=None, skills_dest=tmp_path / "s", force=True
+        )
+        assert not is_valid
+        assert any("--skills-dest requires --agents-dest" in e for e in errors)
+
+    @pytest.mark.unit
+    def test_force_creates_missing(self, tmp_path: Path):
+        missing = tmp_path / "nope"
+        is_valid, errors = deploy_module.validate_destinations(
+            agents_dest=missing, rules_dest=None, skills_dest=None, force=True
+        )
+        assert is_valid
+        assert errors == []
+        assert missing.exists()
+
+    @pytest.mark.unit
+    def test_prompt_decline_records_error(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        missing = tmp_path / "nope"
+        monkeypatch.setattr(deploy_module.console, "input", lambda *_a, **_k: "n")
+        is_valid, errors = deploy_module.validate_destinations(
+            agents_dest=missing, rules_dest=None, skills_dest=None, force=False
+        )
+        assert not is_valid
+        assert any("does not exist" in e for e in errors)
+
+
+# ---------------------------------------------------------------------------
+# validate_source_structure
+# ---------------------------------------------------------------------------
+
+
+class TestValidateSourceStructure:
+    @pytest.mark.unit
+    def test_valid(self, source_project: Path):
+        is_valid, errors = deploy_module.validate_source_structure(source_project)
+        assert is_valid
+        assert errors == []
+
+    @pytest.mark.unit
+    def test_missing_rules(self, tmp_path: Path):
+        is_valid, errors = deploy_module.validate_source_structure(tmp_path)
+        assert not is_valid
+        assert errors
+
+    @pytest.mark.unit
+    def test_no_mode_template_fallback(self, tmp_path: Path):
+        """AGENTS.md absent but NO_MODE template present -> valid."""
+        project = tmp_path / "proj"
+        (project / "rules").mkdir(parents=True)
+        (project / "rules" / "000-x.md").write_text("x")
+        (project / "rules" / "RULES_INDEX.md").write_text("idx")
+        (project / "templates").mkdir()
+        (project / "templates" / "AGENTS_NO_MODE.md.template").write_text("t")
+        is_valid, errors = deploy_module.validate_source_structure(project, no_mode=True)
+        assert is_valid, errors
+
+    @pytest.mark.unit
+    def test_only_skills_valid(self, source_project: Path):
+        is_valid, errors = deploy_module.validate_source_structure(source_project, only_skills=True)
+        assert is_valid, errors
+
+    @pytest.mark.unit
+    def test_only_skills_no_dir(self, tmp_path: Path):
+        is_valid, _errors = deploy_module.validate_source_structure(tmp_path, only_skills=True)
+        assert not is_valid
+
+
+# ---------------------------------------------------------------------------
+# load_template
+# ---------------------------------------------------------------------------
+
+
+class TestLoadTemplate:
+    @pytest.mark.unit
+    def test_exists(self, source_project: Path):
+        content = deploy_module.load_template(source_project, no_mode=False)
+        assert content is not None
+        assert "MODE-ONLY" in content
+
+    @pytest.mark.unit
+    def test_no_mode(self, source_project: Path):
+        content = deploy_module.load_template(source_project, no_mode=True)
+        assert content is not None
+        assert "NO-MODE-ONLY" in content
+
+    @pytest.mark.unit
+    def test_not_found(self, tmp_path: Path):
+        assert deploy_module.load_template(tmp_path) is None
+
+
+# ---------------------------------------------------------------------------
+# _prompt_create_directory
+# ---------------------------------------------------------------------------
+
+
+class TestPromptCreateDirectory:
+    @pytest.mark.unit
+    def test_accepts(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        target = tmp_path / "new"
+        monkeypatch.setattr(deploy_module.console, "input", lambda *_a, **_k: "y")
+        assert deploy_module._prompt_create_directory(target, "--agents-dest") is True
+        assert target.exists()
+
+    @pytest.mark.unit
+    def test_declines(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        target = tmp_path / "new"
+        monkeypatch.setattr(deploy_module.console, "input", lambda *_a, **_k: "n")
+        assert deploy_module._prompt_create_directory(target, "--agents-dest") is False
+        assert not target.exists()
+
+    @pytest.mark.unit
+    def test_eof(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        def raise_eof(*_a, **_k):
+            raise EOFError
+
+        monkeypatch.setattr(deploy_module.console, "input", raise_eof)
+        assert deploy_module._prompt_create_directory(tmp_path / "x", "--rules-dest") is False
+
+    @pytest.mark.unit
+    def test_empty_response_accepts(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        target = tmp_path / "new"
+        monkeypatch.setattr(deploy_module.console, "input", lambda *_a, **_k: "")
+        assert deploy_module._prompt_create_directory(target, "--agents-dest") is True
+
+
+# ---------------------------------------------------------------------------
+# CLI integration
+# ---------------------------------------------------------------------------
+
+
+class TestDeployCLI:
+    @pytest.mark.integration
+    def test_full_split_deploy(
+        self,
+        patched_root: Path,
+        agents_dest: Path,
+        rules_dest: Path,
+        skills_dest: Path,
+    ):
         result = runner.invoke(
             app,
             [
                 "deploy",
-                "--split",
                 "--agents-dest",
                 str(agents_dest),
                 "--rules-dest",
                 str(rules_dest),
                 "--skills-dest",
                 str(skills_dest),
+                "--quiet",
             ],
         )
-
-        assert result.exit_code == 0
-
-        # Verify files are in correct locations
+        assert result.exit_code == 0, result.output
         assert (agents_dest / "AGENTS.md").exists()
         assert (rules_dest / "000-global-core.md").exists()
         assert (rules_dest / "RULES_INDEX.md").exists()
         assert (skills_dest / "skill1" / "prompt.md").exists()
+        assert not (skills_dest / "excluded-skill").exists()
+        # AGENTS.md references the absolute rules destination
+        assert str(rules_dest) in (agents_dest / "AGENTS.md").read_text()
 
-    @pytest.mark.unit
-    def test_split_mode_agents_only(
-        self, source_project: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test split deployment with only AGENTS.md destination."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
+    @pytest.mark.integration
+    def test_agents_only_uses_relative_rules(self, patched_root: Path, agents_dest: Path):
+        result = runner.invoke(app, ["deploy", "--agents-dest", str(agents_dest), "--quiet"])
+        assert result.exit_code == 0, result.output
+        agents = (agents_dest / "AGENTS.md").read_text()
+        assert 'read_file("rules/000-global-core.md")' in agents
 
-        agents_dest = tmp_path / "agents"
-        agents_dest.mkdir()
-
+    @pytest.mark.integration
+    def test_only_skills_requires_skills_dest(self, patched_root: Path, agents_dest: Path):
         result = runner.invoke(
-            app,
-            ["deploy", "--split", "--agents-dest", str(agents_dest)],
+            app, ["deploy", "--agents-dest", str(agents_dest), "--only-skills", "--quiet"]
         )
-
-        assert result.exit_code == 0
-        assert (agents_dest / "AGENTS.md").exists()
-
-    @pytest.mark.unit
-    def test_split_mode_requires_split_flag_or_args(
-        self, source_project: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test that split args without --split flag still works (auto-detect)."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
-
-        agents_dest = tmp_path / "agents"
-        agents_dest.mkdir()
-
-        # Should auto-detect split mode when split args are provided
-        result = runner.invoke(
-            app,
-            ["deploy", "--agents-dest", str(agents_dest)],
-        )
-
-        assert result.exit_code == 0
-
-    @pytest.mark.unit
-    def test_split_mode_skills_dest_requires_agents_dest(
-        self, source_project: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test that --skills-dest requires --agents-dest."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
-
-        skills_dest = tmp_path / "skills"
-        skills_dest.mkdir()
-
-        result = runner.invoke(
-            app,
-            ["deploy", "--split", "--skills-dest", str(skills_dest)],
-        )
-
         assert result.exit_code == 1
-        assert "--skills-dest requires --agents-dest" in result.output
+        assert "No destination specified for skills" in result.output
 
+    @pytest.mark.integration
+    def test_only_skills_with_skills_dest(self, patched_root: Path, skills_dest: Path):
+        result = runner.invoke(
+            app, ["deploy", "--skills-dest", str(skills_dest), "--only-skills", "--quiet"]
+        )
+        assert result.exit_code == 0, result.output
+        assert (skills_dest / "skill1").exists()
 
-class TestDeploySkipSkills:
-    """Test --skip-skills flag behavior."""
-
-    @pytest.mark.unit
-    def test_skip_skills_excludes_skills_directory(
-        self, source_project: Path, dest_dir: Path, monkeypatch: pytest.MonkeyPatch
+    @pytest.mark.integration
+    def test_only_skills_and_skip_skills_conflict(
+        self, patched_root: Path, agents_dest: Path, skills_dest: Path
     ):
-        """Test that --skip-skills excludes the skills directory."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
-
-        result = runner.invoke(app, ["deploy", str(dest_dir), "--skip-skills"])
-
-        assert result.exit_code == 0
-
-        # Verify rules were copied but skills were not
-        assert (dest_dir / "AGENTS.md").exists()
-        assert (dest_dir / "rules" / "000-global-core.md").exists()
-        assert not (dest_dir / "skills").exists()
-
-
-class TestDeployOnlySkills:
-    """Test --only-skills flag behavior."""
-
-    @pytest.mark.unit
-    def test_only_skills_deploys_only_skills(
-        self, source_project: Path, dest_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test that --only-skills deploys only the skills directory."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
-
-        result = runner.invoke(app, ["deploy", str(dest_dir), "--only-skills"])
-
-        assert result.exit_code == 0
-
-        # Verify only skills were copied
-        assert (dest_dir / "skills" / "skill1" / "prompt.md").exists()
-        assert not (dest_dir / "AGENTS.md").exists()
-        assert not (dest_dir / "rules").exists()
-
-    @pytest.mark.unit
-    def test_only_skills_and_skip_skills_are_mutually_exclusive(
-        self, source_project: Path, dest_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test that --only-skills and --skip-skills cannot be used together."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
-
-        result = runner.invoke(app, ["deploy", str(dest_dir), "--only-skills", "--skip-skills"])
-
+        result = runner.invoke(
+            app,
+            [
+                "deploy",
+                "--agents-dest",
+                str(agents_dest),
+                "--skills-dest",
+                str(skills_dest),
+                "--only-skills",
+                "--skip-skills",
+            ],
+        )
         assert result.exit_code == 1
         assert "Cannot use both" in result.output
 
-
-class TestDeployErrorCases:
-    """Test error handling scenarios."""
-
-    @pytest.mark.unit
-    def test_missing_destination_argument(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
-        """Test help text shown when no destination is provided."""
-        project = tmp_path / "project"
-        project.mkdir()
-        (project / "pyproject.toml").write_text('[project]\nname = "test"\n')
-
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: project)
-
-        result = runner.invoke(app, ["deploy"])
-
-        assert result.exit_code == 0
-        assert "Usage" in result.output or "deploy" in result.output
-
-    @pytest.mark.unit
-    def test_invalid_source_structure(
-        self, tmp_path: Path, dest_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test error when source structure is invalid."""
-        # Create minimal project without rules
-        project = tmp_path / "invalid_project"
-        project.mkdir()
-        (project / "pyproject.toml").write_text('[project]\nname = "test"\n')
-
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: project)
-
-        result = runner.invoke(app, ["deploy", str(dest_dir)])
-
-        assert result.exit_code == 1
-        assert "Source structure validation failed" in result.output
-
-    @pytest.mark.unit
-    def test_conflicting_dest_and_split_args(
-        self, source_project: Path, dest_dir: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test error when both dest and split args are provided."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
-
-        agents_dest = tmp_path / "agents"
-        agents_dest.mkdir()
-
+    @pytest.mark.integration
+    def test_skip_skills(self, patched_root: Path, agents_dest: Path, skills_dest: Path):
         result = runner.invoke(
             app,
-            ["deploy", str(dest_dir), "--agents-dest", str(agents_dest)],
+            [
+                "deploy",
+                "--agents-dest",
+                str(agents_dest),
+                "--skills-dest",
+                str(skills_dest),
+                "--skip-skills",
+                "--quiet",
+            ],
         )
+        assert result.exit_code == 0, result.output
+        assert not (skills_dest / "skill1").exists()
 
+    @pytest.mark.integration
+    def test_default_renders_no_mode_template(self, patched_root: Path, agents_dest: Path):
+        """Default (no flag) deploys the simplified NO_MODE bootstrap."""
+        result = runner.invoke(app, ["deploy", "--agents-dest", str(agents_dest), "--quiet"])
+        assert result.exit_code == 0, result.output
+        agents = (agents_dest / "AGENTS.md").read_text()
+        assert "Auto-execute" in agents
+        assert "MODE: [PLAN|ACT]" not in agents
+
+    @pytest.mark.integration
+    def test_with_mode_renders_mode_template(self, patched_root: Path, agents_dest: Path):
+        """--with-mode deploys the PLAN/ACT (MODE) bootstrap."""
+        result = runner.invoke(
+            app, ["deploy", "--agents-dest", str(agents_dest), "--with-mode", "--quiet"]
+        )
+        assert result.exit_code == 0, result.output
+        agents = (agents_dest / "AGENTS.md").read_text()
+        assert "MODE: [PLAN|ACT]" in agents
+        assert "Auto-execute" not in agents
+
+    @pytest.mark.integration
+    def test_dry_run_creates_no_files(self, patched_root: Path, agents_dest: Path):
+        result = runner.invoke(
+            app, ["deploy", "--agents-dest", str(agents_dest), "--dry-run", "-v"]
+        )
+        assert result.exit_code == 0, result.output
+        assert not (agents_dest / "AGENTS.md").exists()
+
+    @pytest.mark.integration
+    def test_force_creates_missing_dirs(self, patched_root: Path, tmp_path: Path):
+        missing = tmp_path / "made_by_force"
+        result = runner.invoke(app, ["deploy", "--agents-dest", str(missing), "--force", "--quiet"])
+        assert result.exit_code == 0, result.output
+        assert (missing / "AGENTS.md").exists()
+
+    @pytest.mark.integration
+    def test_skills_dest_without_agents_dest_errors(self, patched_root: Path, skills_dest: Path):
+        result = runner.invoke(app, ["deploy", "--skills-dest", str(skills_dest), "--force"])
         assert result.exit_code == 1
-        assert "Cannot use positional destination with split" in result.output
+        assert "--skills-dest requires --agents-dest" in result.output
 
-    @pytest.mark.unit
-    def test_missing_project_root(self, dest_dir: Path, monkeypatch: pytest.MonkeyPatch):
-        """Test error when project root cannot be found."""
-
+    @pytest.mark.integration
+    def test_missing_project_root(self, agents_dest: Path, monkeypatch: pytest.MonkeyPatch):
         def raise_not_found():
-            raise FileNotFoundError("Could not find project root")
+            raise FileNotFoundError
 
         monkeypatch.setattr(deploy_module, "find_project_root", raise_not_found)
-
-        result = runner.invoke(app, ["deploy", str(dest_dir)])
-
+        result = runner.invoke(app, ["deploy", "--agents-dest", str(agents_dest)])
         assert result.exit_code == 1
-        assert "project root" in result.output.lower()
+        assert "Could not find project root" in result.output
 
-
-class TestDeployForceFlag:
-    """Test --force flag behavior."""
-
-    @pytest.mark.unit
-    def test_force_creates_missing_directories(
-        self, source_project: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    @pytest.mark.integration
+    def test_rules_index_rewrite_preserves_dir_keyword_token(
+        self, source_project: Path, monkeypatch: pytest.MonkeyPatch, rules_dest: Path
     ):
-        """Test that --force creates missing split destination directories."""
+        """Deploying RULES_INDEX rewrites path-prefix `rules/` to absolute but
+        preserves the `dir:rules/` keyword trigger token verbatim.
+        """
         monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
-
-        agents_dest = tmp_path / "nonexistent" / "agents"
-        # Directory does not exist
+        # Override fixture RULES_INDEX to include a dir:rules/ keyword token
+        rules_index = source_project / "rules" / "RULES_INDEX.md"
+        rules_index.write_text(
+            "Read rules/000-global-core.md\n"
+            "grep rules/RULES_INDEX.md\n"
+            "| dir:rules/ | kw:rule governance |\n"
+        )
 
         result = runner.invoke(
             app,
-            ["deploy", "--split", "--agents-dest", str(agents_dest), "--force"],
+            [
+                "deploy",
+                "--rules-dest",
+                str(rules_dest),
+                "--agents-dest",
+                str(rules_dest),
+                "--quiet",
+            ],
         )
-
-        assert result.exit_code == 0
-        assert agents_dest.exists()
-        assert (agents_dest / "AGENTS.md").exists()
-
-
-class TestDeployFunctions:
-    """Test individual deploy module functions directly."""
-
-    @pytest.mark.unit
-    def test_resolve_paths_unified_mode(self, tmp_path: Path):
-        """Test resolve_paths in unified mode."""
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        paths = deploy_module.resolve_paths(dest=dest)
-
-        assert paths.agents == dest
-        assert paths.rules == dest / "rules"
-        assert paths.skills == dest / "skills"
-
-    @pytest.mark.unit
-    def test_resolve_paths_split_mode(self, tmp_path: Path):
-        """Test resolve_paths in split mode."""
-        agents = tmp_path / "agents"
-        rules = tmp_path / "rules"
-        skills = tmp_path / "skills"
-
-        paths = deploy_module.resolve_paths(
-            agents_dest=agents, rules_dest=rules, skills_dest=skills
-        )
-
-        assert paths.agents == agents.resolve()
-        assert paths.rules == rules.resolve()
-        assert paths.skills == skills.resolve()
-
-    @pytest.mark.unit
-    def test_validate_source_structure_valid(self, source_project: Path):
-        """Test validate_source_structure with valid project."""
-        is_valid, errors = deploy_module.validate_source_structure(source_project)
-
-        assert is_valid is True
-        assert len(errors) == 0
-
-    @pytest.mark.unit
-    def test_validate_source_structure_invalid(self, tmp_path: Path):
-        """Test validate_source_structure with invalid project."""
-        project = tmp_path / "invalid"
-        project.mkdir()
-
-        is_valid, errors = deploy_module.validate_source_structure(project)
-
-        assert is_valid is False
-        assert len(errors) > 0
-
-    @pytest.mark.unit
-    def test_load_skill_exclusions_with_config(self, source_project: Path):
-        """Test loading skill exclusions from pyproject.toml."""
-        exclusions = deploy_module.load_skill_exclusions(source_project, verbose=False)
-
-        assert "excluded-skill" in exclusions
-
-    @pytest.mark.unit
-    def test_load_skill_exclusions_no_config(self, tmp_path: Path):
-        """Test loading exclusions when pyproject.toml is missing."""
-        exclusions = deploy_module.load_skill_exclusions(tmp_path, verbose=False)
-
-        assert len(exclusions) == 0
-
-    @pytest.mark.unit
-    def test_substitute_template(self, tmp_path: Path):
-        """Test template substitution."""
-        paths = deploy_module.DeploymentPaths(
-            agents=tmp_path / "agents",
-            rules=tmp_path / "rules",
-            skills=tmp_path / "skills",
-        )
-        template = "Rules at {{rules_path}}, Skills at {{skills_path}}"
-
-        result = deploy_module.substitute_template(template, paths)
-
-        assert str(tmp_path / "rules") in result
-        assert str(tmp_path / "skills") in result
-
-
-class TestDeployVerboseQuiet:
-    """Test --verbose and --quiet flag behavior."""
-
-    @pytest.mark.unit
-    def test_quiet_suppresses_detailed_output(
-        self, source_project: Path, dest_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test that --quiet suppresses detailed output."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
-
-        result = runner.invoke(app, ["deploy", str(dest_dir), "--quiet"])
-
-        assert result.exit_code == 0
-        # Should still show summary
-        assert "Deployment" in result.output
-        # But fewer info messages
-        # (checking that quiet mode affects output)
-
-    @pytest.mark.unit
-    def test_verbose_shows_detailed_output(
-        self, source_project: Path, dest_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test that --verbose shows detailed output."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
-
-        result = runner.invoke(app, ["deploy", str(dest_dir), "--verbose"])
-
-        assert result.exit_code == 0
-        assert "Copied" in result.output or "Project root" in result.output
-
-
-class TestDeployCopyFunctions:
-    """Test individual copy functions."""
-
-    @pytest.mark.unit
-    def test_copy_rules(self, source_project: Path, dest_dir: Path):
-        """Test copy_rules function."""
-        rules_source = source_project / "rules"
-
-        copied, failed = deploy_module.copy_rules(
-            rules_source, dest_dir, dry_run=False, verbose=False
-        )
-
-        # Should copy rules (excluding RULES_INDEX.md which is handled by copy_root_files)
-        assert copied == 2
-        assert failed == 0
-        assert (dest_dir / "rules" / "000-global-core.md").exists()
-        assert (dest_dir / "rules" / "100-test-rule.md").exists()
-
-    @pytest.mark.unit
-    def test_copy_rules_dry_run(self, source_project: Path, dest_dir: Path):
-        """Test copy_rules in dry run mode."""
-        rules_source = source_project / "rules"
-
-        copied, failed = deploy_module.copy_rules(
-            rules_source, dest_dir, dry_run=True, verbose=False
-        )
-
-        assert copied == 2
-        assert failed == 0
-        # Files should not actually exist
-        assert not (dest_dir / "rules").exists()
-
-    @pytest.mark.unit
-    def test_copy_skills(self, source_project: Path, dest_dir: Path):
-        """Test copy_skills function."""
-        skills_count, _files_copied, failed = deploy_module.copy_skills(
-            source_project, dest_dir, dry_run=False, verbose=False
-        )
-
-        # Should copy 2 skills (excluding "excluded-skill")
-        assert skills_count == 2
-        assert failed == 0
-        assert (dest_dir / "skills" / "skill1" / "prompt.md").exists()
-        assert (dest_dir / "skills" / "skill2" / "prompt.md").exists()
-        assert not (dest_dir / "skills" / "excluded-skill").exists()
-
-    @pytest.mark.unit
-    def test_copy_root_files(self, source_project: Path, dest_dir: Path):
-        """Test copy_root_files function."""
-        copied, failed = deploy_module.copy_root_files(
-            source_project, dest_dir, dry_run=False, verbose=False
-        )
-
-        assert copied == 2  # AGENTS.md and RULES_INDEX.md
-        assert failed == 0
-        assert (dest_dir / "AGENTS.md").exists()
-        assert (dest_dir / "rules" / "RULES_INDEX.md").exists()
-
-
-class TestDeployNoMode:
-    """Test --no-mode flag behavior."""
-
-    @pytest.mark.unit
-    def test_no_mode_with_agents_no_mode_file(
-        self, tmp_path: Path, dest_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test --no-mode uses AGENTS_NO_MODE.md as source."""
-        # Create project with AGENTS_NO_MODE.md
-        project = tmp_path / "project"
-        project.mkdir()
-        (project / "pyproject.toml").write_text('[project]\nname = "test"\n')
-        (project / "AGENTS_NO_MODE.md").write_text("# NO MODE AGENTS\n\nSimplified.")
-
-        rules_dir = project / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "000-test.md").write_text("# Test\n")
-        (rules_dir / "RULES_INDEX.md").write_text("# Index\n")
-
-        skills_dir = project / "skills"
-        skills_dir.mkdir()
-        (skills_dir / "skill1").mkdir()
-        (skills_dir / "skill1" / "prompt.md").write_text("# Skill\n")
-
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: project)
-
-        result = runner.invoke(app, ["deploy", str(dest_dir), "--no-mode"])
-
-        assert result.exit_code == 0
-        # AGENTS.md should be created from AGENTS_NO_MODE.md
-        assert (dest_dir / "AGENTS.md").exists()
-        content = (dest_dir / "AGENTS.md").read_text()
-        assert "NO MODE" in content
-
-
-# ============================================================================
-# substitute_template edge cases (lines 86, 91)
-# ============================================================================
-
-
-class TestSubstituteTemplateEdgeCases:
-    """Test substitute_template when paths.rules or paths.skills is None."""
-
-    @pytest.mark.unit
-    def test_substitute_template_no_rules_path(self, tmp_path: Path):
-        """Test substitute_template falls back to CWD/rules when rules is None."""
-        paths = deploy_module.DeploymentPaths(
-            agents=tmp_path / "agents",
-            rules=None,
-            skills=tmp_path / "skills",
-        )
-        template = "Rules at {{rules_path}}, Skills at {{skills_path}}"
-
-        result = deploy_module.substitute_template(template, paths)
-
-        assert "rules" in result
-        assert str(tmp_path / "skills") in result
-
-    @pytest.mark.unit
-    def test_substitute_template_no_skills_path(self, tmp_path: Path):
-        """Test substitute_template falls back to CWD/skills when skills is None."""
-        paths = deploy_module.DeploymentPaths(
-            agents=tmp_path / "agents",
-            rules=tmp_path / "rules",
-            skills=None,
-        )
-        template = "Rules at {{rules_path}}, Skills at {{skills_path}}"
-
-        result = deploy_module.substitute_template(template, paths)
-
-        assert str(tmp_path / "rules") in result
-        assert "skills" in result
-
-    @pytest.mark.unit
-    def test_substitute_template_both_none(self, tmp_path: Path):
-        """Test substitute_template when both rules and skills are None."""
-        paths = deploy_module.DeploymentPaths(
-            agents=tmp_path / "agents",
-            rules=None,
-            skills=None,
-        )
-        template = "Rules at {{rules_path}}, Skills at {{skills_path}}"
-
-        result = deploy_module.substitute_template(template, paths)
-
-        # Should contain CWD-based paths
-        assert "rules" in result
-        assert "skills" in result
-
-
-# ============================================================================
-# load_template (line 108)
-# ============================================================================
-
-
-class TestLoadTemplate:
-    """Test load_template function."""
-
-    @pytest.mark.unit
-    def test_load_template_exists(self, tmp_path: Path):
-        """Test load_template when template file exists."""
-        templates_dir = tmp_path / "templates"
-        templates_dir.mkdir()
-        (templates_dir / "AGENTS_MODE.md.template").write_text(
-            "<!-- Template: mode -->\n\n# AGENTS\nContent with {{rules_path}}"
-        )
-
-        result = deploy_module.load_template(tmp_path, no_mode=False)
-
-        assert result is not None
-        assert "{{rules_path}}" in result
-
-    @pytest.mark.unit
-    def test_load_template_no_mode(self, tmp_path: Path):
-        """Test load_template with no_mode=True."""
-        templates_dir = tmp_path / "templates"
-        templates_dir.mkdir()
-        (templates_dir / "AGENTS_NO_MODE.md.template").write_text(
-            "<!-- Template: no-mode -->\n\n# NO MODE\nSimplified."
-        )
-
-        result = deploy_module.load_template(tmp_path, no_mode=True)
-
-        assert result is not None
-        assert "NO MODE" in result
-
-    @pytest.mark.unit
-    def test_load_template_not_found(self, tmp_path: Path):
-        """Test load_template returns None when template missing."""
-        result = deploy_module.load_template(tmp_path, no_mode=False)
-
-        assert result is None
-
-
-# ============================================================================
-# _prompt_create_directory (lines 122-133)
-# ============================================================================
-
-
-class TestPromptCreateDirectory:
-    """Test _prompt_create_directory function."""
-
-    @pytest.mark.unit
-    def test_prompt_create_directory_user_accepts(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test user accepting directory creation."""
-        target = tmp_path / "new_dir"
-        monkeypatch.setattr(deploy_module.console, "input", lambda _: "y")
-
-        result = deploy_module._prompt_create_directory(target, "--agents-dest")
-
-        assert result is True
-        assert target.exists()
-
-    @pytest.mark.unit
-    def test_prompt_create_directory_user_declines(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test user declining directory creation."""
-        target = tmp_path / "new_dir"
-        monkeypatch.setattr(deploy_module.console, "input", lambda _: "n")
-
-        result = deploy_module._prompt_create_directory(target, "--agents-dest")
-
-        assert result is False
-        assert not target.exists()
-
-    @pytest.mark.unit
-    def test_prompt_create_directory_eof_error(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test non-interactive environment (EOFError)."""
-        target = tmp_path / "new_dir"
-
-        def raise_eof(_):
-            raise EOFError
-
-        monkeypatch.setattr(deploy_module.console, "input", raise_eof)
-
-        result = deploy_module._prompt_create_directory(target, "--agents-dest")
-
-        assert result is False
-
-    @pytest.mark.unit
-    def test_prompt_create_directory_empty_response(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test empty response (defaults to yes)."""
-        target = tmp_path / "new_dir"
-        monkeypatch.setattr(deploy_module.console, "input", lambda _: "")
-
-        result = deploy_module._prompt_create_directory(target, "--agents-dest")
-
-        assert result is True
-        assert target.exists()
-
-
-# ============================================================================
-# validate_split_destinations prompt path (lines 174-175)
-# ============================================================================
-
-
-class TestValidateSplitDestinationsPrompt:
-    """Test validate_split_destinations with directory prompting."""
-
-    @pytest.mark.unit
-    def test_validate_split_prompt_decline(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-        """Test validation fails when user declines dir creation."""
-        nonexistent = tmp_path / "missing"
-        monkeypatch.setattr(deploy_module.console, "input", lambda _: "n")
-
-        is_valid, errors = deploy_module.validate_split_destinations(
-            agents_dest=nonexistent, rules_dest=None, skills_dest=None, force=False
-        )
-
-        assert is_valid is False
-        assert any("does not exist" in e for e in errors)
-
-
-# ============================================================================
-# validate_source_structure only_skills branches (lines 205, 207, 213, 221, 226)
-# ============================================================================
-
-
-class TestValidateSourceStructureOnlySkills:
-    """Test validate_source_structure with only_skills=True."""
-
-    @pytest.mark.unit
-    def test_only_skills_no_skills_dir(self, tmp_path: Path):
-        """Test only_skills when skills directory does not exist."""
-        is_valid, errors = deploy_module.validate_source_structure(tmp_path, only_skills=True)
-
-        assert is_valid is False
-        assert any("not found" in e for e in errors)
-
-    @pytest.mark.unit
-    def test_only_skills_not_a_directory(self, tmp_path: Path):
-        """Test only_skills when skills path is a file, not directory."""
-        (tmp_path / "skills").write_text("not a directory")
-
-        is_valid, errors = deploy_module.validate_source_structure(tmp_path, only_skills=True)
-
-        assert is_valid is False
-        assert any("not a directory" in e for e in errors)
-
-    @pytest.mark.unit
-    def test_only_skills_empty_directory(self, tmp_path: Path):
-        """Test only_skills with empty skills directory."""
-        (tmp_path / "skills").mkdir()
-
-        is_valid, errors = deploy_module.validate_source_structure(tmp_path, only_skills=True)
-
-        assert is_valid is False
-        assert any("No skill directories" in e for e in errors)
-
-    @pytest.mark.unit
-    def test_only_skills_valid(self, tmp_path: Path):
-        """Test only_skills with valid skills directory."""
-        skills_dir = tmp_path / "skills"
-        skills_dir.mkdir()
-        (skills_dir / "my-skill").mkdir()
-        (skills_dir / "my-skill" / "prompt.md").write_text("# Skill\n")
-
-        is_valid, errors = deploy_module.validate_source_structure(tmp_path, only_skills=True)
-
-        assert is_valid is True
-        assert len(errors) == 0
-
-    @pytest.mark.unit
-    def test_no_mode_template_fallback(self, tmp_path: Path):
-        """Test no_mode falls back to template when AGENTS_NO_MODE.md missing."""
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "100-test.md").write_text("# Test\n")
-        (rules_dir / "RULES_INDEX.md").write_text("# Index\n")
-
-        is_valid, errors = deploy_module.validate_source_structure(tmp_path, no_mode=True)
-
-        # Should fail because neither AGENTS_NO_MODE.md nor template exists
-        assert is_valid is False
-        assert any("AGENTS_NO_MODE.md" in e for e in errors)
-
-    @pytest.mark.unit
-    def test_rules_dir_not_a_directory(self, tmp_path: Path):
-        """Test when rules path exists but is a file."""
-        (tmp_path / "rules").write_text("not a directory")
-        (tmp_path / "AGENTS.md").write_text("# Agents\n")
-
-        is_valid, errors = deploy_module.validate_source_structure(tmp_path)
-
-        assert is_valid is False
-        assert any("not a directory" in e for e in errors)
-
-    @pytest.mark.unit
-    def test_rules_dir_empty(self, tmp_path: Path):
-        """Test when rules directory has no .md files."""
-        (tmp_path / "rules").mkdir()
-        (tmp_path / "AGENTS.md").write_text("# Agents\n")
-
-        is_valid, errors = deploy_module.validate_source_structure(tmp_path)
-
-        assert is_valid is False
-        assert any("No .md files" in e for e in errors)
-
-
-# ============================================================================
-# copy_rules edge cases (lines 272-273, 300-302)
-# ============================================================================
-
-
-class TestCopyRulesEdgeCases:
-    """Test copy_rules edge cases."""
-
-    @pytest.mark.unit
-    def test_copy_rules_no_md_files(self, tmp_path: Path):
-        """Test copy_rules when no .md files exist."""
-        source = tmp_path / "rules"
-        source.mkdir()
-        (source / "readme.txt").write_text("not markdown")
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        copied, failed = deploy_module.copy_rules(source, dest, dry_run=False, verbose=False)
-
-        assert copied == 0
-        assert failed == 0
-
-    @pytest.mark.unit
-    def test_copy_rules_exception_during_copy(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test copy_rules handles exception during file copy."""
-        source = tmp_path / "rules"
-        source.mkdir()
-        (source / "100-test.md").write_text("# Test\n")
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        # Make shutil.copy2 raise an exception
-        import shutil
-
-        def failing_copy2(src, dst, **kwargs):
-            raise PermissionError("Permission denied")
-
-        monkeypatch.setattr(shutil, "copy2", failing_copy2)
-
-        _copied, failed = deploy_module.copy_rules(source, dest, dry_run=False, verbose=False)
-
-        assert failed == 1
-
-    @pytest.mark.unit
-    def test_copy_rules_direct_copy_mode(self, tmp_path: Path):
-        """Test copy_rules with direct_copy=True (split mode)."""
-        source = tmp_path / "rules"
-        source.mkdir()
-        (source / "100-test.md").write_text("# Test Rule\n")
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        copied, failed = deploy_module.copy_rules(
-            source, dest, dry_run=False, verbose=True, direct_copy=True
-        )
-
-        assert copied == 1
-        assert failed == 0
-        # In direct_copy mode, files go directly to dest, not dest/rules
-        assert (dest / "100-test.md").exists()
-
-
-# ============================================================================
-# copy_root_files template paths (lines 345-358, 367-375, 383-385, 414-415, 428-430)
-# ============================================================================
-
-
-class TestCopyRootFilesTemplates:
-    """Test copy_root_files template substitution and fallback paths."""
-
-    @pytest.mark.unit
-    def test_split_mode_with_template(self, tmp_path: Path):
-        """Test copy_root_files in split mode with template substitution."""
-        project = tmp_path / "project"
-        project.mkdir()
-        templates_dir = project / "templates"
-        templates_dir.mkdir()
-        (templates_dir / "AGENTS_MODE.md.template").write_text(
-            "<!-- Template: mode -->\n\n# AGENTS\nRules: {{rules_path}}\nSkills: {{skills_path}}"
-        )
-        rules_dir = project / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "RULES_INDEX.md").write_text("# Index\n- rules/100-test.md\n")
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-        paths = deploy_module.DeploymentPaths(
-            agents=dest,
-            rules=tmp_path / "rules_out",
-            skills=tmp_path / "skills_out",
-        )
-
-        copied, failed = deploy_module.copy_root_files(
-            project, dest, dry_run=False, verbose=True, paths=paths
-        )
-
-        assert copied == 2
-        assert failed == 0
-        content = (dest / "AGENTS.md").read_text()
-        assert str(tmp_path / "rules_out") in content
-
-    @pytest.mark.unit
-    def test_split_mode_template_dry_run(self, tmp_path: Path):
-        """Test copy_root_files split mode template in dry_run."""
-        project = tmp_path / "project"
-        project.mkdir()
-        templates_dir = project / "templates"
-        templates_dir.mkdir()
-        (templates_dir / "AGENTS_MODE.md.template").write_text(
-            "<!-- Template: mode -->\n\n# AGENTS\nRules: {{rules_path}}"
-        )
-        rules_dir = project / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "RULES_INDEX.md").write_text("# Index\n")
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-        paths = deploy_module.DeploymentPaths(
-            agents=dest,
-            rules=tmp_path / "rules_out",
-            skills=None,
-        )
-
-        copied, failed = deploy_module.copy_root_files(
-            project, dest, dry_run=True, verbose=True, paths=paths
-        )
-
-        assert copied == 2
-        assert failed == 0
-        # File should NOT be written in dry_run
-        assert not (dest / "AGENTS.md").exists()
-
-    @pytest.mark.unit
-    def test_unified_mode_template_fallback(self, tmp_path: Path):
-        """Test copy_root_files unified mode template fallback when AGENTS.md missing."""
-        project = tmp_path / "project"
-        project.mkdir()
-        templates_dir = project / "templates"
-        templates_dir.mkdir()
-        (templates_dir / "AGENTS_MODE.md.template").write_text(
-            "<!-- Template: mode -->\n\n# AGENTS\nGenerated from template."
-        )
-        rules_dir = project / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "RULES_INDEX.md").write_text("# Index\n")
-        # No AGENTS.md file — will fallback to template
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        copied, failed = deploy_module.copy_root_files(project, dest, dry_run=False, verbose=True)
-
-        assert copied == 2
-        assert failed == 0
-        content = (dest / "AGENTS.md").read_text()
-        assert "Generated from template" in content
-
-    @pytest.mark.unit
-    def test_unified_mode_template_fallback_dry_run(self, tmp_path: Path):
-        """Test template fallback in dry_run mode."""
-        project = tmp_path / "project"
-        project.mkdir()
-        templates_dir = project / "templates"
-        templates_dir.mkdir()
-        (templates_dir / "AGENTS_MODE.md.template").write_text(
-            "<!-- Template: mode -->\n\n# AGENTS\nTemplate content."
-        )
-        rules_dir = project / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "RULES_INDEX.md").write_text("# Index\n")
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        copied, _failed = deploy_module.copy_root_files(project, dest, dry_run=True, verbose=True)
-
-        assert copied == 2
-        assert not (dest / "AGENTS.md").exists()
-
-    @pytest.mark.unit
-    def test_direct_copy_dry_run_verbose(self, tmp_path: Path):
-        """Test copy_root_files direct copy in dry_run verbose mode."""
-        project = tmp_path / "project"
-        project.mkdir()
-        (project / "AGENTS.md").write_text("# Agents\n")
-        rules_dir = project / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "RULES_INDEX.md").write_text("# Index\n")
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        copied, failed = deploy_module.copy_root_files(project, dest, dry_run=True, verbose=True)
-
-        assert copied == 2
-        assert failed == 0
-
-    @pytest.mark.unit
-    def test_split_mode_rules_index_verbose(self, tmp_path: Path):
-        """Test split mode RULES_INDEX.md with path substitution and verbose."""
-        project = tmp_path / "project"
-        project.mkdir()
-        (project / "AGENTS.md").write_text("# Agents\n")
-        rules_dir = project / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "RULES_INDEX.md").write_text(
-            "# Index\n- rules/100-test.md\n- skills/my-skill\n"
-        )
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-        rules_out = tmp_path / "rules_out"
-        rules_out.mkdir()
-        skills_out = tmp_path / "skills_out"
-
-        paths = deploy_module.DeploymentPaths(
-            agents=dest,
-            rules=rules_out,
-            skills=skills_out,
-        )
-
-        copied, failed = deploy_module.copy_root_files(
-            project, dest, dry_run=False, verbose=True, paths=paths
-        )
-
-        assert copied == 2
-        assert failed == 0
-        content = (rules_out / "RULES_INDEX.md").read_text()
-        assert str(rules_out) in content
-
-    @pytest.mark.unit
-    def test_copy_root_files_rules_index_exception(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test copy_root_files when RULES_INDEX.md copy fails."""
-        project = tmp_path / "project"
-        project.mkdir()
-        (project / "AGENTS.md").write_text("# Agents\n")
-        rules_dir = project / "rules"
-        rules_dir.mkdir()
-        # No RULES_INDEX.md — reading it will fail
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        copied, failed = deploy_module.copy_root_files(project, dest, dry_run=False, verbose=False)
-
-        # AGENTS.md copies ok, RULES_INDEX.md fails
-        assert copied == 1
-        assert failed == 1
-
-    @pytest.mark.unit
-    def test_split_mode_agents_only_skips_rules_index(self, tmp_path: Path):
-        """Test split mode with rules=None skips RULES_INDEX.md."""
-        project = tmp_path / "project"
-        project.mkdir()
-        (project / "AGENTS.md").write_text("# Agents\n")
-        rules_dir = project / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "RULES_INDEX.md").write_text("# Index\n")
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-        paths = deploy_module.DeploymentPaths(agents=dest, rules=None, skills=None)
-
-        copied, failed = deploy_module.copy_root_files(
-            project, dest, dry_run=False, verbose=False, paths=paths
-        )
-
-        # Only AGENTS.md copied, rules_index skipped
-        assert copied == 1
-        assert failed == 0
-
-
-# ============================================================================
-# load_skill_exclusions exception (lines 468-471)
-# ============================================================================
-
-
-class TestLoadSkillExclusionsEdgeCases:
-    """Test load_skill_exclusions error paths."""
-
-    @pytest.mark.unit
-    def test_load_skill_exclusions_invalid_toml(self, tmp_path: Path):
-        """Test load_skill_exclusions with invalid TOML file."""
-        (tmp_path / "pyproject.toml").write_text("this is [[[invalid toml")
-
-        result = deploy_module.load_skill_exclusions(tmp_path, verbose=False)
-
-        assert result == set()
-
-    @pytest.mark.unit
-    def test_load_skill_exclusions_empty_list(self, tmp_path: Path):
-        """Test load_skill_exclusions with empty exclude_skills list."""
-        (tmp_path / "pyproject.toml").write_text(
-            '[project]\nname = "test"\n\n[tool.rule_deployer]\nexclude_skills = []\n'
-        )
-
-        result = deploy_module.load_skill_exclusions(tmp_path, verbose=False)
-
-        assert result == set()
-
-
-# ============================================================================
-# copy_skills edge cases (lines 505-506, 529, 542-549, 574-576)
-# ============================================================================
-
-
-class TestCopySkillsEdgeCases:
-    """Test copy_skills edge cases."""
-
-    @pytest.mark.unit
-    def test_copy_skills_no_skills_dir(self, tmp_path: Path):
-        """Test copy_skills when skills directory does not exist."""
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        skills_count, files_copied, failed = deploy_module.copy_skills(
-            tmp_path, dest, dry_run=False, verbose=False
-        )
-
-        assert skills_count == 0
-        assert files_copied == 0
-        assert failed == 0
-
-    @pytest.mark.unit
-    def test_copy_skills_trailing_slash_exclusion(self, tmp_path: Path):
-        """Test copy_skills excludes with trailing slash in exclusions."""
-        project = tmp_path / "project"
-        project.mkdir()
-        (project / "pyproject.toml").write_text(
-            '[project]\nname = "test"\n\n[tool.rule_deployer]\nexclude_skills = ["excluded/"]\n'
-        )
-        skills_dir = project / "skills"
-        skills_dir.mkdir()
-        excluded = skills_dir / "excluded"
-        excluded.mkdir()
-        (excluded / "prompt.md").write_text("# Excluded\n")
-        included = skills_dir / "included"
-        included.mkdir()
-        (included / "prompt.md").write_text("# Included\n")
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        _skills_count, _files_copied, _failed = deploy_module.copy_skills(
-            project, dest, dry_run=False, verbose=True
-        )
-
-        assert (dest / "skills" / "included" / "prompt.md").exists()
-        assert not (dest / "skills" / "excluded").exists()
-
-    @pytest.mark.unit
-    def test_copy_skills_individual_file(self, tmp_path: Path):
-        """Test copy_skills with an individual file in skills directory."""
-        project = tmp_path / "project"
-        project.mkdir()
-        (project / "pyproject.toml").write_text('[project]\nname = "test"\n')
-        skills_dir = project / "skills"
-        skills_dir.mkdir()
-        # Individual file (not a subdirectory)
-        (skills_dir / "standalone.md").write_text("# Standalone Skill\n")
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        skills_count, files_copied, _failed = deploy_module.copy_skills(
-            project, dest, dry_run=False, verbose=True
-        )
-
-        assert skills_count == 1
-        assert files_copied == 1
-        assert (dest / "skills" / "standalone.md").exists()
-
-    @pytest.mark.unit
-    def test_copy_skills_individual_file_dry_run(self, tmp_path: Path):
-        """Test copy_skills file in dry_run verbose mode."""
-        project = tmp_path / "project"
-        project.mkdir()
-        (project / "pyproject.toml").write_text('[project]\nname = "test"\n')
-        skills_dir = project / "skills"
-        skills_dir.mkdir()
-        (skills_dir / "standalone.md").write_text("# Standalone\n")
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        skills_count, _files_copied, _failed = deploy_module.copy_skills(
-            project, dest, dry_run=True, verbose=True
-        )
-
-        assert skills_count == 1
-        assert not (dest / "skills" / "standalone.md").exists()
-
-    @pytest.mark.unit
-    def test_copy_skills_exception_during_copy(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test copy_skills handles exception during copytree."""
-        project = tmp_path / "project"
-        project.mkdir()
-        (project / "pyproject.toml").write_text('[project]\nname = "test"\n')
-        skills_dir = project / "skills"
-        skills_dir.mkdir()
-        skill = skills_dir / "broken-skill"
-        skill.mkdir()
-        (skill / "prompt.md").write_text("# Broken\n")
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        import shutil
-
-        def failing_copytree(src, dst, **kwargs):
-            raise PermissionError("Permission denied")
-
-        monkeypatch.setattr(shutil, "copytree", failing_copytree)
-
-        _skills_count, _files_copied, failed = deploy_module.copy_skills(
-            project, dest, dry_run=False, verbose=False
-        )
-
-        assert failed == 1
-
-    @pytest.mark.unit
-    def test_copy_skills_hidden_dir_skipped(self, tmp_path: Path):
-        """Test copy_skills skips hidden directories."""
-        project = tmp_path / "project"
-        project.mkdir()
-        (project / "pyproject.toml").write_text('[project]\nname = "test"\n')
-        skills_dir = project / "skills"
-        skills_dir.mkdir()
-        (skills_dir / ".hidden").mkdir()
-        (skills_dir / ".hidden" / "prompt.md").write_text("# Hidden\n")
-        visible = skills_dir / "visible"
-        visible.mkdir()
-        (visible / "prompt.md").write_text("# Visible\n")
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        _skills_count, _files_copied, _failed = deploy_module.copy_skills(
-            project, dest, dry_run=False, verbose=False
-        )
-
-        assert not (dest / "skills" / ".hidden").exists()
-        assert (dest / "skills" / "visible" / "prompt.md").exists()
-
-
-# ============================================================================
-# deploy_rules edge cases (lines 739-740, 777-800, 856-857)
-# ============================================================================
-
-
-class TestDeployRulesEdgeCases:
-    """Test deploy_rules function edge cases."""
-
-    @pytest.mark.unit
-    def test_only_skills_no_destination(self, tmp_path: Path):
-        """Test only_skills with no destination specified."""
-        project = tmp_path / "project"
-        project.mkdir()
-        skills_dir = project / "skills"
-        skills_dir.mkdir()
-        (skills_dir / "my-skill").mkdir()
-        (skills_dir / "my-skill" / "prompt.md").write_text("# Skill\n")
-
-        result = deploy_module.deploy_rules(
-            project_root=project,
-            dest=None,
-            only_skills=True,
-            verbose=False,
-        )
-
-        assert result is False
-
-    @pytest.mark.unit
-    def test_deploy_with_examples_directory(self, source_project: Path, dest_dir: Path):
-        """Test deploy copies examples/ subdirectory."""
-        # Create examples directory
-        examples_dir = source_project / "rules" / "examples"
-        examples_dir.mkdir()
-        (examples_dir / "example-1.md").write_text("# Example 1\n")
-        (examples_dir / "example-2.md").write_text("# Example 2\n")
-
-        result = deploy_module.deploy_rules(
-            project_root=source_project,
-            dest=dest_dir,
-            verbose=True,
-        )
-
-        assert result is True
-        assert (dest_dir / "rules" / "examples" / "example-1.md").exists()
-        assert (dest_dir / "rules" / "examples" / "example-2.md").exists()
-
-    @pytest.mark.unit
-    def test_deploy_with_examples_dry_run(self, source_project: Path, dest_dir: Path):
-        """Test deploy examples in dry_run mode."""
-        examples_dir = source_project / "rules" / "examples"
-        examples_dir.mkdir()
-        (examples_dir / "example-1.md").write_text("# Example 1\n")
-
-        result = deploy_module.deploy_rules(
-            project_root=source_project,
-            dest=dest_dir,
-            dry_run=True,
-            verbose=True,
-        )
-
-        assert result is True
-        assert not (dest_dir / "rules" / "examples").exists()
-
-    @pytest.mark.unit
-    def test_deploy_with_examples_overwrite(self, source_project: Path, dest_dir: Path):
-        """Test deploy overwrites existing examples directory."""
-        # Pre-existing examples
-        existing = dest_dir / "rules" / "examples"
-        existing.mkdir(parents=True)
-        (existing / "old.md").write_text("# Old\n")
-
-        # Source examples
-        examples_dir = source_project / "rules" / "examples"
-        examples_dir.mkdir()
-        (examples_dir / "new.md").write_text("# New\n")
-
-        result = deploy_module.deploy_rules(
-            project_root=source_project,
-            dest=dest_dir,
-            verbose=False,
-        )
-
-        assert result is True
-        assert (dest_dir / "rules" / "examples" / "new.md").exists()
-        # Old file should be gone (rmtree + copytree)
-        assert not (dest_dir / "rules" / "examples" / "old.md").exists()
-
-    @pytest.mark.unit
-    def test_deploy_with_failures(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-        """Test deploy_rules returns False when there are copy failures."""
-        project = tmp_path / "project"
-        project.mkdir()
-        (project / "pyproject.toml").write_text('[project]\nname = "test"\n')
-        (project / "AGENTS.md").write_text("# Agents\n")
-        rules_dir = project / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "100-test.md").write_text("# Test\n")
-        (rules_dir / "RULES_INDEX.md").write_text("# Index\n")
-        skills_dir = project / "skills"
-        skills_dir.mkdir()
-        (skills_dir / "skill1").mkdir()
-        (skills_dir / "skill1" / "prompt.md").write_text("# Skill\n")
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        # Patch copy_rules to return failures
-        monkeypatch.setattr(deploy_module, "copy_rules", lambda *args, **kwargs: (0, 5))
-
-        result = deploy_module.deploy_rules(
-            project_root=project,
-            dest=dest,
-            verbose=False,
-        )
-
-        assert result is False
-
-
-# ============================================================================
-# deploy CLI --split without args (lines 1014-1015)
-# ============================================================================
-
-
-class TestDeployCLISplitEdge:
-    """Test deploy CLI --split flag edge cases."""
-
-    @pytest.mark.unit
-    def test_split_flag_without_split_args(
-        self, source_project: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test --split flag without any split destination args."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
-
-        result = runner.invoke(app, ["deploy", "--split"])
-
-        assert result.exit_code == 1
-        assert "--split requires at least one" in result.output
-
-    @pytest.mark.unit
-    def test_split_mode_rules_only(
-        self, source_project: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test split deployment with only rules destination."""
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: source_project)
-
-        rules_dest = tmp_path / "rules_out"
-        rules_dest.mkdir()
-
-        result = runner.invoke(
-            app,
-            ["deploy", "--split", "--rules-dest", str(rules_dest)],
-        )
-
-        assert result.exit_code == 0
-
-    @pytest.mark.unit
-    def test_no_mode_verbose_info(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-        """Test --no-mode with --verbose shows info message."""
-        project = tmp_path / "project"
-        project.mkdir()
-        (project / "pyproject.toml").write_text('[project]\nname = "test"\n')
-        (project / "AGENTS_NO_MODE.md").write_text("# NO MODE\nSimplified.")
-        rules_dir = project / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "100-test.md").write_text("# Test\n")
-        (rules_dir / "RULES_INDEX.md").write_text("# Index\n")
-        skills_dir = project / "skills"
-        skills_dir.mkdir()
-        (skills_dir / "skill1").mkdir()
-        (skills_dir / "skill1" / "prompt.md").write_text("# Skill\n")
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        monkeypatch.setattr(deploy_module, "find_project_root", lambda: project)
-
-        result = runner.invoke(app, ["deploy", str(dest), "--no-mode", "--verbose"])
-
-        assert result.exit_code == 0
-        assert "NO-MODE" in result.output
-
-
-# ============================================================================
-# build_deployment_tree (ensure all branches covered)
-# ============================================================================
-
-
-class TestBuildDeploymentTree:
-    """Test build_deployment_tree function."""
-
-    @pytest.mark.unit
-    def test_only_skills_tree(self, tmp_path: Path):
-        """Test tree for only_skills deployment."""
-        paths = deploy_module.DeploymentPaths(agents=None, rules=None, skills=tmp_path / "skills")
-
-        tree = deploy_module.build_deployment_tree(
-            paths=paths,
-            dest=None,
-            is_split_mode=True,
-            skip_skills=False,
-            only_skills=True,
-            rules_copied=0,
-            root_copied=0,
-            skills_count=3,
-            skills_files_copied=10,
-        )
-
-        assert tree is not None
-
-    @pytest.mark.unit
-    def test_split_mode_tree_partial(self, tmp_path: Path):
-        """Test tree for split mode with only agents."""
-        paths = deploy_module.DeploymentPaths(agents=tmp_path / "agents", rules=None, skills=None)
-
-        tree = deploy_module.build_deployment_tree(
-            paths=paths,
-            dest=None,
-            is_split_mode=True,
-            skip_skills=False,
-            only_skills=False,
-            rules_copied=5,
-            root_copied=2,
-            skills_count=0,
-            skills_files_copied=0,
-        )
-
-        assert tree is not None
-
-    @pytest.mark.unit
-    def test_unified_tree_skip_skills(self, tmp_path: Path):
-        """Test tree for unified mode with skip_skills."""
-        paths = deploy_module.DeploymentPaths(
-            agents=tmp_path, rules=tmp_path / "rules", skills=None
-        )
-
-        tree = deploy_module.build_deployment_tree(
-            paths=paths,
-            dest=tmp_path,
-            is_split_mode=False,
-            skip_skills=True,
-            only_skills=False,
-            rules_copied=5,
-            root_copied=2,
-            skills_count=0,
-            skills_files_copied=0,
-        )
-
-        assert tree is not None
-
-
-# ============================================================================
-# Remaining uncovered lines (383-385, 778, 783, 798-800)
-# ============================================================================
-
-
-class TestCopyRootFilesAgentsException:
-    """Test copy_root_files AGENTS.md copy exception (lines 383-385)."""
-
-    @pytest.mark.unit
-    def test_agents_md_copy_exception(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-        """Test copy_root_files when AGENTS.md source is missing and no template."""
-        project = tmp_path / "project"
-        project.mkdir()
-        # No AGENTS.md and no template — will raise FileNotFoundError on copy2
-        rules_dir = project / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "RULES_INDEX.md").write_text("# Index\n")
-
-        dest = tmp_path / "dest"
-        dest.mkdir()
-
-        _copied, failed = deploy_module.copy_root_files(project, dest, dry_run=False, verbose=False)
-
-        # AGENTS.md copy fails, RULES_INDEX.md succeeds
-        assert failed == 1
-
-
-class TestDeployExamplesSplitMode:
-    """Test examples copy in split mode (line 778) and exception (lines 798-800)."""
-
-    @pytest.mark.unit
-    def test_examples_copy_split_mode(self, tmp_path: Path):
-        """Test deploy copies examples in split mode."""
-        project = tmp_path / "project"
-        project.mkdir()
-        (project / "pyproject.toml").write_text('[project]\nname = "test"\n')
-        (project / "AGENTS.md").write_text("# Agents\n")
-        rules_dir = project / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "100-test.md").write_text("# Test\n")
-        (rules_dir / "RULES_INDEX.md").write_text("# Index\n")
-        examples_dir = rules_dir / "examples"
-        examples_dir.mkdir()
-        (examples_dir / "example.md").write_text("# Example\n")
-        skills_dir = project / "skills"
-        skills_dir.mkdir()
-        (skills_dir / "skill1").mkdir()
-        (skills_dir / "skill1" / "prompt.md").write_text("# Skill\n")
-
-        agents_out = tmp_path / "agents_out"
-        agents_out.mkdir()
-        rules_out = tmp_path / "rules_out"
-        rules_out.mkdir()
-
-        result = deploy_module.deploy_rules(
-            project_root=project,
-            agents_dest=agents_out,
-            rules_dest=rules_out,
-            verbose=True,
-        )
-
-        assert result is True
-        assert (rules_out / "examples" / "example.md").exists()
-
-    @pytest.mark.unit
-    def test_examples_copy_exception(
-        self, source_project: Path, dest_dir: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test deploy handles examples copy exception."""
-        examples_dir = source_project / "rules" / "examples"
-        examples_dir.mkdir()
-        (examples_dir / "example.md").write_text("# Example\n")
-
-        import shutil
-
-        original_copytree = shutil.copytree
-
-        def failing_copytree(src, dst, **kwargs):
-            if "examples" in str(src):
-                raise PermissionError("Permission denied")
-            return original_copytree(src, dst, **kwargs)
-
-        monkeypatch.setattr(shutil, "copytree", failing_copytree)
-
-        result = deploy_module.deploy_rules(
-            project_root=source_project,
-            dest=dest_dir,
-            verbose=False,
-        )
-
-        # Deployment fails because of the examples copy failure
-        assert result is False
+        assert result.exit_code == 0, result.output
+
+        deployed = (rules_dest / "RULES_INDEX.md").read_text()
+        abs_prefix = str(rules_dest)
+        # Path-prefix references must be rewritten to absolute
+        assert f"{abs_prefix}/000-global-core.md" in deployed
+        assert f"{abs_prefix}/RULES_INDEX.md" in deployed
+        # dir:rules/ keyword trigger token must NOT be prefixed with the absolute path
+        assert "dir:rules/" in deployed
+        assert f"dir:{abs_prefix}" not in deployed

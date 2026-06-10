@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v4.0.0
+**RuleVersion:** v3.8.0
 **LastUpdated:** 2026-03-09
 **Keywords:** kw:fastapi-security, kw:oauth, kw:jwt, kw:rbac, kw:fastapi security, kw:authentication, kw:oauth2, kw:api keys, kw:bcrypt, kw:httpbearer, kw:role-based access control, kw:token refresh, kw:password hashing
 **TokenBudget:** ~3800

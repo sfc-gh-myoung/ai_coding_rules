@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v4.0.0
+**RuleVersion:** v3.8.0
 **LastUpdated:** 2026-03-09
 **Keywords:** kw:datetime, kw:timezone, kw:utc, kw:timedelta, kw:tz_localize, kw:tz_convert, kw:datetime.now(utc), kw:pd.timestamp, kw:type conversion, kw:zoneinfo
 **TokenBudget:** ~3000

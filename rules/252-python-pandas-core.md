@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v4.0.0
+**RuleVersion:** v3.8.0
 **LastUpdated:** 2026-03-09
 **Keywords:** kw:pandas, kw:dataframe, kw:vectorization, kw:settingwithcopywarning, kw:method chaining, kw:loc, kw:iloc, kw:np.where, kw:np.select, kw:apply, kw:iterrows
 **TokenBudget:** ~2550

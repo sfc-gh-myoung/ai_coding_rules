@@ -12,7 +12,7 @@
 **RuleVersion:** v3.5.1
 **LastUpdated:** 2026-03-26
 **Keywords:** kw:workflow, kw:safety, kw:confirmation, kw:validation, kw:surgical edits, kw:minimal changes, kw:prompt engineering, kw:task list, kw:context window, kw:professional communication
-**TokenBudget:** ~4050
+**TokenBudget:** ~2400
 **ContextTier:** Critical
 **Depends:** None
 
@@ -110,113 +110,28 @@ See AGENTS.md for complete response header format (PRE-FLIGHT gates).
 
 **Pre-Task-Completion Validation Gate (CRITICAL):**
 
-Reference: Validation gates are defined below. AGENTS.md defines the bootstrap sequence.
-
 **Rules Validation:**
 - **CRITICAL:** Rules loaded section present with all loaded rules
 - **CRITICAL:** Never declare rule as loaded when `read_file` failed
 
-**Task Confirmation:**
-- **CRITICAL:** Task list presented before modifications
-- **CRITICAL:** Task list presented before changes
-
 **Code Quality:**
 - **CRITICAL:** Surgical edits only (minimal changes)
-- **CRITICAL:** Validation executed (lint, format, test)
+- **CRITICAL:** Validation executed (lint, format, test) before marking complete
 - **CRITICAL:** Language-specific rules loaded for domain work
 
-**Success Criteria:**
-- Minimal edits applied
-- Validation passes
-- Documentation updated for changed behavior or APIs
-
-**Validation Protocol:**
-- **Rule:** Run validation immediately after modifications
-- **Rule:** Do not mark tasks complete if ANY check fails
-
-**Validation Error Message Format:**
-
-When validation fails, agents must report errors using this format:
-
+**Validation error format (on failure):**
 ```
-Validation Failed: [Tool Name]
-
-Severity: [CRITICAL|HIGH|MEDIUM|LOW]
-Location: [file:line or component name]
-Error: [exact error message from tool]
-Fix: [specific action to resolve]
-
-[full tool output if helpful for debugging]
+Validation Failed: [Tool] | Severity: [CRITICAL|HIGH|MEDIUM|LOW] | Location: [file:line]
+Error: [exact message] | Fix: [specific action]
 ```
-
-**Examples:**
-
-```
-Validation Failed: ruff
-
-Severity: HIGH
-Location: src/auth.py:42
-Error: F401 'os' imported but unused
-Fix: Remove unused import or use os module
-
-src/auth.py:42:1: F401 'os' imported but unused
-```
-
-```
-Validation Failed: pytest
-
-Severity: CRITICAL
-Location: tests/test_api.py::test_login
-Error: AssertionError: expected 200, got 401
-Fix: Update authentication test credentials or fix auth logic
-
-=== FAILURES ===
-tests/test_api.py::test_login - AssertionError: assert 401 == 200
-```
-
-**Rule:** Always include Severity, Location, Error, and Fix fields.
-
-**Investigation Required:**
-1. **Search rules/RULES_INDEX.md for task keywords** - Extract keywords from user request, search Keywords field for matching rules
-2. **Read project files BEFORE making recommendations** - Check existing structure, patterns, conventions
-3. **List loaded rules explicitly** - Always state which rules informed analysis
-4. **Never speculate about project organization** - Use list_dir, read_file to understand actual structure
-5. **Verify tool availability** - Check what tools are accessible before proposing solutions
-6. **Make recommendations verified by reading project files before suggesting** - Don't assume standard patterns without verification
-
-**Anti-Pattern Examples:**
-- "Based on typical projects, you probably have this file structure..."
-- "Let me modify this file - it should work..."
-- File edits without presenting task list
-
-**Correct Pattern:**
-- "Let me check your project structure first."
-- [reads directory structure, examines key files]
-- "I see you're using [specific pattern]. Here's my task list..."
-- [presents task list, then proceeds per AGENTS.md task execution model]
-
-### Design Principles
-
-- **Task Confirmation:** Always present task list before modifications
-- **Surgical Editing:** Make minimal, targeted changes - preserve existing patterns
-- **Professional Communication:** Concise, code-first solutions with technical tone
-- **Validation First:** Test, lint, and verify all changes before completion
 
 ### Post-Execution Checklist
 
-**Before Starting:**
-- [ ] Foundation rule loaded (000-global-core.md)
-- [ ] AGENTS.md bootstrap protocol completed
-- [ ] Awareness of validation requirements
-
-**After Completion:**
-- [ ] **CRITICAL:** Listed loaded rules explicitly (## Rules Loaded format)
-- [ ] **CRITICAL:** Presented clear task list
-- [ ] **CRITICAL:** Disclosed loaded rule filenames
-- [ ] Made minimal, surgical edits
-- [ ] Validated changes work correctly
-- [ ] Updated relevant documentation
-- [ ] No modifications made without task list presentation
+- [ ] Rules listed explicitly (## Rules Loaded format)
+- [ ] Task list presented before modifications
+- [ ] Surgical edits only
+- [ ] Validation executed (lint, test, format)
+- [ ] Documentation updated for changed APIs or behavior
 
 ## Key Principles
 
@@ -250,43 +165,19 @@ tests/test_api.py::test_login - AssertionError: assert 401 == 200
 ### Validation First
 
 - Validate all changes before marking tasks complete
-- Run appropriate tests and lints for the technology
-- Update documentation when changes modify public APIs, configuration schemas, CLI interfaces, or documented behavior
-- Verify no regressions by running validation sequence (Syntax, Linting, Formatting, Type Checking, Tests) — "no regressions" means: all previously passing tests still pass, no new linting errors introduced, and no formatting violations added
-- **Automation-first (project standards):** Detect and use the project's automation entrypoint:
-  1. Check for `Makefile` at project root -> use `make <target>`
-  2. Check for `Taskfile.yml` at project root -> use `task <target>`
-  3. Check for `package.json` scripts -> use `npm run <target>`
-  4. If none found -> fall back to direct tool commands (see Validation Command Reference below)
-  - **If automation command exits 0:** Success, continue to next validation step
-  - **If automation command exits non-zero:** Report failure with output, STOP
-  - **Common target names:** `validate`, `check`, `ci`, `lint`, `test`
-
-**Validation Strategies:**
-- **Fast-fail:** Chain with `&&` for final checks (stops at first failure)
-- **Diagnostic:** Run separately with `|| echo` for debugging (collects all errors)
+- Run syntax, linting, formatting, type checking, and unit tests in sequence
+- **Automation-first:** Detect project entrypoint: `Makefile` then `Taskfile.yml` then `package.json` scripts then direct commands
 
 ### Validation Command Reference
 
-**Preferred:** Use project-defined automation targets (`validate`, `check`, `ci`, `lint`, `test`) via detected entrypoint (Makefile, Taskfile.yml, or package.json).
+**Preferred:** Use project automation (`validate`, `check`, `ci`, `lint`, `test`) via Makefile/Taskfile.yml/package.json.
 
-**Fallback:** Load language-specific rule for technology commands:
-- **Python:** Load 200-python-core.md (ruff, pytest)
-- **SQL:** Load 100-snowflake-core.md (compile checks)
-- **Shell:** Load 300-bash-scripting-core.md (shellcheck)
-- **JS/TS:** Load 420-javascript-core.md / 430-typescript-core.md (tsc, biome)
-- **Go:** Load 600-golang-core.md (go fmt, vet, test)
-
-**Rule Discovery:** See rules/RULES_INDEX.md Rule Catalog for complete domain mappings.
-
-**Validation Sequence:**
-
-1. **Syntax** — Ensure code parses correctly
-2. **Linting** — Check for code quality issues
-3. **Formatting** — Verify code style compliance
-4. **Type Checking** — Validate type correctness (when language has static types; otherwise skip)
-5. **Unit Tests** — Run automated test suite
-6. **Integration Tests** — Test component interactions (when integration test suite exists and changes cross component boundaries; otherwise skip)
+**Fallback:** Load language-specific rule:
+- **Python:** Load 200-python-core.md
+- **SQL:** Load 100-snowflake-core.md
+- **Shell:** Load 300-bash-scripting-core.md
+- **JS/TS:** Load 420-javascript-core.md / 430-typescript-core.md
+- **Go:** Load 600-golang-core.md
 
 ## Anti-Patterns and Common Mistakes
 
@@ -351,85 +242,22 @@ Memory/Disk Full:
 
 ## Context Window Management Protocol
 
-When approaching context limits, agents must preserve rules in priority order to
-maintain consistent behavior. This protocol works across all LLM providers.
+When approaching context limits, preserve rules in this priority order:
 
-**Detecting context pressure:** If your runtime exposes remaining context budget, monitor it directly. Otherwise, use heuristic indicators: conversation exceeding ~50 turns, tool responses being truncated, or repeated context-related errors.
+**ALWAYS PRESERVE (never summarize):**
+1. **AGENTS.md** — Bootstrap protocol
+2. **000-global-core.md** — This file (foundation)
+3. **Active domain -core.md** — Primary domain rule for current task
 
-### Preservation Priority Order
+**PRESERVE WHEN RELEVANT:** Specialized rules for current task; dependency rules.
 
-**ALWAYS PRESERVE (Never Summarize):**
+**SUMMARIZE FIRST (when context pressure occurs):**
+1. Task history (old conversation turns)
+2. File contents already analyzed and finished
+3. Reference rules (>4000 tokens, lookup-only)
+4. Specialized rules not relevant to active task
 
-1. **AGENTS.md** - Bootstrap protocol and task authorization model
-2. **000-global-core.md** - This file (foundation patterns)
-3. **Active domain -core.md file** - The primary domain rule for current task
-   - Examples: 200-python-core.md (Python tasks), 100-snowflake-core.md (Snowflake tasks),
-     420-javascript-core.md (JavaScript tasks)
+**NEVER:** Summarize AGENTS.md or 000-global-core.md. Drop active domain -core.md while working in that domain.
 
-**PRESERVE WHEN RELEVANT:**
+For decision tree, -core.md recognition patterns, and ContextTier relationship, see `rules/003-context-engineering.md`.
 
-4. **Specialized rules for current task** - Task-specific patterns you're actively using
-   - Examples: 206-python-pytest.md (if writing tests), 115-snowflake-cortex-agents-core.md (if building Cortex agents)
-5. **Dependency rules** - Rules listed in "Depends" metadata of currently loaded rules
-
-**SUMMARIZE IN THIS ORDER (When Context Pressure Occurs):**
-
-1. **Task history** - Previous conversation turns that are no longer relevant
-2. **File contents** - Code/files you've already fully analyzed and finished modifying
-3. **Reference rules** - Large guides (>4000 tokens) used for lookup, not active application
-4. **Specialized rules** - Not currently relevant to the active task
-5. **Example sections** - Keep patterns/requirements, condense examples exceeding 20 lines
-
-**NEVER:**
-
-- Summarize or compact AGENTS.md (breaks bootstrap protocol)
-- Summarize or compact 000-global-core.md (breaks foundation patterns)
-- Drop the active domain -core.md file while working in that domain
-- Forget the rule loading protocol
-
-### Context Management Decision Tree
-
-**When context limit is approaching:**
-
-1. **Are you in middle of a task?**
-   - If YES: Preserve AGENTS.md, 000-global-core.md, domain-core, specialized rules for task. Summarize completed file analysis and old conversation turns.
-   - If NO: Preserve AGENTS.md, 000-global-core.md. Summarize everything else, reload rules as needed for next task.
-
-2. **What if you must drop rules?**
-   - Drop in reverse priority order: specialized first, then reference, then secondary domain cores
-   - Keep at minimum: AGENTS.md + 000-global-core.md + primary domain-core
-
-### Recognition of -core.md Files
-
-All rules following the naming pattern `NNN-*-core.md` are domain foundation rules and
-should be preserved in context while working in that domain. Examples:
-
-- `100-snowflake-core.md` - Snowflake domain
-- `200-python-core.md` - Python domain
-- `300-bash-scripting-core.md` - Shell scripting domain
-- `420-javascript-core.md` - JavaScript domain
-- `430-typescript-core.md` - TypeScript domain
-- `600-golang-core.md` - Go domain
-
-See rules/RULES_INDEX.md for the complete list of domain cores and their specializations.
-
-### Relationship to ContextTier Metadata
-
-The `ContextTier` metadata field (Critical/High/Medium/Low) provides a **secondary signal**
-for context priority but is NOT the primary mechanism. The natural language instructions
-in this protocol take precedence because they work universally across all LLM providers.
-
-**Usage:**
-- **ContextTier metadata:** Helps agents make fine-grained decisions within priority tiers
-- **Natural language protocol:** Provides explicit preservation hierarchy that any LLM can follow
-- **Together:** Belt-and-suspenders approach ensures consistent behavior
-
-## Task Definition Structure
-
-Every task should define:
-1. **Inputs/Prerequisites** - What must exist before starting
-2. **Allowed Tools** - Tools permitted for this task
-3. **Forbidden Tools** - Tools that must not be used
-4. **Required Steps** - Sequential steps to complete task
-5. **Output Format** - Expected format of results
-6. **Validation Steps** - How to verify success

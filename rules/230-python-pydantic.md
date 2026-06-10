@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v4.0.0
+**RuleVersion:** v3.8.0
 **LastUpdated:** 2026-03-09
 **Keywords:** kw:pydantic, kw:validation, kw:basemodel, kw:data validation, kw:models, kw:field validation, kw:field, kw:validator, kw:model_validator, kw:emailstr
 **TokenBudget:** ~3800

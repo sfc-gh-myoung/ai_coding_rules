@@ -246,6 +246,9 @@ class ProgressTracker:
         self._failed: int = 0
         self._concurrency: int = 0
         self._pid: int = 0
+        self._total_input_tokens: int = 0
+        self._total_output_tokens: int = 0
+        self._total_cost_usd: float = 0.0
         import time as _time
 
         self._run_start_perf: float = _time.perf_counter()
@@ -345,7 +348,16 @@ class ProgressTracker:
                 total=self._total,
             )
 
-    def finish_item(self, fixture_id: str, *, ok: bool = True, slot: int | None = None) -> None:
+    def finish_item(
+        self,
+        fixture_id: str,
+        *,
+        ok: bool = True,
+        slot: int | None = None,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
+        total_cost_usd: float = 0.0,
+    ) -> None:
         """Mark a fixture as done (advances the parent bar / emits a log line)."""
         import time
 
@@ -354,6 +366,9 @@ class ProgressTracker:
             self._completed += 1
         else:
             self._failed += 1
+        self._total_input_tokens += input_tokens
+        self._total_output_tokens += output_tokens
+        self._total_cost_usd += total_cost_usd
         ts = _utc_now_iso()
         label = self._format_label(fixture_id, slot)
 
@@ -366,6 +381,9 @@ class ProgressTracker:
                     "label": label,
                     "fixture_id": fixture_id,
                     "elapsed": elapsed,
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                    "total_cost_usd": total_cost_usd,
                 }
             )
             if self._parent_progress is not None and self._parent_task is not None:
@@ -373,7 +391,13 @@ class ProgressTracker:
             self._refresh()
         elif self._mode is ProgressMode.PLAIN:
             status = "ok" if ok else "FAIL"
-            err_console.out(f"[{ts}] done   {label}  {status}  {elapsed:.1f}s")
+            tok_str = (
+                f"  in={input_tokens:,} out={output_tokens:,}"
+                if (input_tokens or output_tokens)
+                else ""
+            )
+            cost_str = f"  ${total_cost_usd:.4f}" if total_cost_usd else ""
+            err_console.out(f"[{ts}] done   {label}  {status}  {elapsed:.1f}s{tok_str}{cost_str}")
         elif self._mode is ProgressMode.JSON:
             self._emit_json(
                 event="done",
@@ -384,6 +408,9 @@ class ProgressTracker:
                 elapsed_seconds=round(elapsed, 3),
                 total=self._total,
                 completed=self._completed + self._failed,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                total_cost_usd=total_cost_usd,
             )
 
     # ------------------------------------------------------------------
@@ -429,6 +456,11 @@ class ProgressTracker:
             f"concurrency: {self._concurrency}  "
             f"elapsed: {self._fmt_seconds(elapsed)}"
         )
+        if self._total_input_tokens or self._total_output_tokens or self._total_cost_usd:
+            meta += (
+                f"  tokens: {self._total_input_tokens:,}/{self._total_output_tokens:,}"
+                f"  cost: ${self._total_cost_usd:.4f}"
+            )
         title_table.add_row(f"[bold]{self._description}[/bold]", meta)
 
         active_table = Table(
@@ -461,18 +493,27 @@ class ProgressTracker:
         recent_table.add_column("", width=2)
         recent_table.add_column("fixture")
         recent_table.add_column("elapsed", justify="right")
+        recent_table.add_column("tokens", justify="right")
+        recent_table.add_column("cost", justify="right")
         if self._recent:
             for entry in self._recent:
                 ok = bool(entry.get("ok", True))
                 marker = "[green]✓[/green]" if ok else "[red]✗[/red]"
+                in_tok = int(entry.get("input_tokens", 0))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+                out_tok = int(entry.get("output_tokens", 0))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+                cost_val = float(entry.get("total_cost_usd", 0.0))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+                tok_cell = f"{in_tok:,}+{out_tok:,}" if (in_tok or out_tok) else "—"
+                cost_cell = f"${cost_val:.4f}" if cost_val else "—"
                 recent_table.add_row(
                     str(entry.get("ts", "")),
                     marker,
                     str(entry.get("fixture_id", "")),
                     self._fmt_seconds(float(entry.get("elapsed", 0.0))),  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+                    tok_cell,
+                    cost_cell,
                 )
         else:
-            recent_table.add_row("—", "—", "(none yet)", "—")
+            recent_table.add_row("—", "—", "(none yet)", "—", "—", "—")
 
         footer = "[dim]Ctrl-C cancels. Use --debug to replay captured SDK output on failure.[/dim]"
 
@@ -1400,7 +1441,13 @@ def refresh_cmd(
                     model=model,
                     connection=connection,
                 )
-                tracker.finish_item(fid_for_progress, ok=True)
+                tracker.finish_item(
+                    fid_for_progress,
+                    ok=True,
+                    input_tokens=run.input_tokens,
+                    output_tokens=run.output_tokens,
+                    total_cost_usd=run.total_cost_usd,
+                )
             except Exception:
                 tracker.finish_item(fid_for_progress, ok=False)
                 raise
@@ -1704,7 +1751,14 @@ def refresh_all_cmd(
                     log_warning(f"  - {err}")
                 # Mark the outcome as failed for tracker reporting so the
                 # progress UI reflects the refusal-to-overwrite.
-                tracker.finish_item(outcome.item.id, ok=False, slot=slot)
+                tracker.finish_item(
+                    outcome.item.id,
+                    ok=False,
+                    slot=slot,
+                    input_tokens=outcome.run.input_tokens,
+                    output_tokens=outcome.run.output_tokens,
+                    total_cost_usd=outcome.run.total_cost_usd,
+                )
                 finish_called = True
                 return
             # Tally auto-demote count for the run summary.
@@ -1732,7 +1786,15 @@ def refresh_all_cmd(
                 _emit_diagnostics(outcome.run, debug=True, effort=effort, model=model)
         finally:
             if not finish_called:
-                tracker.finish_item(outcome.item.id, ok=outcome.succeeded, slot=slot)
+                _run = outcome.run
+                tracker.finish_item(
+                    outcome.item.id,
+                    ok=outcome.succeeded,
+                    slot=slot,
+                    input_tokens=_run.input_tokens if _run else 0,
+                    output_tokens=_run.output_tokens if _run else 0,
+                    total_cost_usd=_run.total_cost_usd if _run else 0.0,
+                )
 
     # R2: suppress SDK chatter while progress UI is active. quiet_sdk is a
     # no-op when capture=False. Top-level try/except handles SIGINT

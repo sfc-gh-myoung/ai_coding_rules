@@ -45,6 +45,7 @@ Major release consolidating four branches. Three themes: (1) flat RULES_INDEX, s
 - **deps:** add `snowflake-connector-python>=3.12.0` runtime dependency.
 - **test:** update `tests/fixtures/RULES_INDEX_baseline.md` fixture to flat format.
 - **test:** Add extensive unit coverage across CLI handlers, `rule_loader_eval` framework, and `dev` commands — raising project coverage to ~92%.
+- **test:** Add `ProgressTracker` token/cost dashboard tests plus `FixtureSnapshot`/`compare` token round-trip, aggregation, and delta tests; coverage held at ≥92%.
 
 ### Changed
 
@@ -68,6 +69,8 @@ Major release consolidating four branches. Three themes: (1) flat RULES_INDEX, s
 - **chore(skills):** Refresh default model slug `claude-sonnet-45`→`claude-sonnet-4-6` across bulk-rule-reviewer, doc-reviewer, rule-creator, rule-reviewer, and skill-timer; expand rule-creator domain list to include TypeScript, React, Frontend, Zsh, Podman, Data/dbt, and project-governance domains; document rule-loader multi-phase loading algorithm in `skills/rule-loader/CHANGELOG.md`.
 - **build:** Bump Development Status classifier Alpha→Beta; drop Python 3.11, add Python 3.13 targets; set ruff `target-version = py312`; enforce `fail_under = 92` in coverage config; pin `live` pytest marker to opt-in only (`-m not live`).
 - **docs:** Update Python 3.11→3.12 references in README and CONTRIBUTING; document `rule-loader eval` as explicit opt-in (never auto-runs in CI, pre-commit, or default pytest) in `docs/EVALUATING_RULE_LOADER.md`.
+- **feat(rule-loader eval):** capture and persist per-fixture token usage (`input_tokens`/`output_tokens`/`total_tokens`) and `total_cost_usd` in `FixtureSnapshot`/`SnapshotSummary` (from the live SDK `ResultMessage.usage`); aggregate across runs and surface token/cost deltas (alongside elapsed) in `compare` output, so changes to AGENTS.md, rules, and fixtures can be assessed for token/cost/performance impact. Old snapshots without the fields load with safe defaults.
+- **feat(rule-loader eval):** live progress dashboard surfaces usage during the run — cumulative `tokens: in/out  cost: $…` in the header and per-fixture `tokens`/`cost` columns in Recent completions (shown only on live runs); JSON and PLAIN progress events carry the new fields.
 
 ### Fixed
 

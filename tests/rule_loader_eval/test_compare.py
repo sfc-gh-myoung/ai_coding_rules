@@ -18,6 +18,7 @@ from ai_rules.rule_loader_eval.compare import (
     parse_alias_map,
     render_json,
     render_markdown,
+    render_merge_summary,
     render_table,
 )
 from ai_rules.rule_loader_eval.snapshot import (
@@ -42,6 +43,10 @@ def _row(
     expected_optional: tuple[str, ...] = (),
     missing_required: tuple[str, ...] = (),
     missing_dependencies: tuple[str, ...] = (),
+    input_tokens: int = 0,
+    output_tokens: int = 0,
+    total_tokens: int = 0,
+    total_cost_usd: float = 0.0,
 ) -> FixtureSnapshot:
     return FixtureSnapshot(
         fixture_id=fixture_id,
@@ -58,6 +63,10 @@ def _row(
         citation_drifts=citation,
         turns=turns,
         duration_ms=duration_ms,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        total_tokens=total_tokens,
+        total_cost_usd=total_cost_usd,
     )
 
 
@@ -449,3 +458,100 @@ def test_drift_only_expanded_verbose() -> None:
     joined = "\n".join(lines)
     assert "load-drift only" in joined
     assert "d  [pass->pass]" in joined
+
+
+# ---------------------------------------------------------------------------
+# Token / cost delta tests
+# ---------------------------------------------------------------------------
+
+
+def test_token_delta_computed_in_compute_delta() -> None:
+    """_compute_delta produces correct token and cost deltas."""
+    from ai_rules.rule_loader_eval.compare import _compute_delta
+
+    base = _row("fx", input_tokens=1000, output_tokens=200, total_tokens=1200, total_cost_usd=0.010)
+    post_row = _row(
+        "fx", input_tokens=1500, output_tokens=300, total_tokens=1800, total_cost_usd=0.015
+    )
+    delta = _compute_delta(base, post_row, {})
+    assert delta.input_tokens_delta == 500
+    assert delta.output_tokens_delta == 100
+    assert delta.total_tokens_delta == 600
+    assert abs(delta.total_cost_usd_delta - 0.005) < 1e-9
+
+
+def test_merge_fixture_rows_includes_token_fields() -> None:
+    """_merge_fixture_rows aggregates token/cost fields (not silently zeroed)."""
+    from ai_rules.rule_loader_eval.compare import _merge_fixture_rows
+
+    rows = [
+        _row("fx", input_tokens=1000, output_tokens=200, total_tokens=1200, total_cost_usd=0.010),
+        _row("fx", input_tokens=1200, output_tokens=250, total_tokens=1450, total_cost_usd=0.012),
+        _row("fx", input_tokens=1100, output_tokens=220, total_tokens=1320, total_cost_usd=0.011),
+    ]
+    merged = _merge_fixture_rows("fx", rows)
+    # Median of [1000, 1100, 1200] = 1100
+    assert merged.input_tokens == 1100
+    # Median of [200, 220, 250] = 220
+    assert merged.output_tokens == 220
+    # total_tokens median of [1200, 1320, 1450] = 1320
+    assert merged.total_tokens == 1320
+    # cost median of [0.010, 0.011, 0.012] = 0.011
+    assert abs(merged.total_cost_usd - 0.011) < 1e-9
+
+
+def test_compare_snapshots_token_deltas_end_to_end() -> None:
+    """compare_snapshots propagates token deltas and render_table shows tokens: line."""
+    base = _snapshot(
+        "base",
+        [
+            _row("a", input_tokens=1000, output_tokens=200, total_tokens=1200),
+            _row("b", input_tokens=800, output_tokens=150, total_tokens=950),
+        ],
+    )
+    post = _snapshot(
+        "post",
+        [
+            _row("a", input_tokens=1200, output_tokens=250, total_tokens=1450),
+            _row("b", input_tokens=900, output_tokens=180, total_tokens=1080),
+        ],
+    )
+    report = compare_snapshots(base, post)
+    assert report.mean_input_tokens_delta == 150.0
+    assert report.mean_output_tokens_delta == 40.0
+    assert report.mean_total_tokens_delta == 190.0
+
+    lines = render_table(report)
+    joined = "\n".join(lines)
+    assert "tokens:" in joined
+
+
+def test_render_table_suppresses_token_line_when_no_data() -> None:
+    """render_table omits the tokens: line when all token counts are zero."""
+    rows = [_row("a"), _row("b")]
+    report = compare_snapshots(_snapshot("base", rows), _snapshot("post", rows))
+    lines = render_table(report)
+    joined = "\n".join(lines)
+    assert "tokens:" not in joined
+
+
+def test_render_merge_summary_shows_token_lines_when_data_present() -> None:
+    """render_merge_summary includes median token lines when tokens are non-zero."""
+    rows = [
+        _row("a", input_tokens=1000, output_tokens=200, total_tokens=1200),
+        _row("b", input_tokens=800, output_tokens=150, total_tokens=950),
+    ]
+    snap = _snapshot("merged", rows)
+    lines = render_merge_summary(snap, n_inputs=2)
+    joined = "\n".join(lines)
+    assert "median input tokens" in joined
+    assert "median output tokens" in joined
+
+
+def test_render_merge_summary_suppresses_token_lines_when_zero() -> None:
+    """render_merge_summary omits token lines when all tokens are zero."""
+    rows = [_row("a"), _row("b")]
+    snap = _snapshot("merged", rows)
+    lines = render_merge_summary(snap, n_inputs=2)
+    joined = "\n".join(lines)
+    assert "median input tokens" not in joined

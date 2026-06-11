@@ -46,6 +46,10 @@ class FixtureDelta:
     citation_drifts_delta: int
     turns_delta: int
     duration_ms_delta: int
+    input_tokens_delta: int = 0
+    output_tokens_delta: int = 0
+    total_tokens_delta: int = 0
+    total_cost_usd_delta: float = 0.0
 
     @property
     def has_load_drift(self) -> bool:
@@ -96,6 +100,10 @@ class CompareReport:
     total_citation_drifts_delta: int
     mean_turns_delta: float
     mean_duration_ms_delta: float
+    mean_input_tokens_delta: float = 0.0
+    mean_output_tokens_delta: float = 0.0
+    mean_total_tokens_delta: float = 0.0
+    mean_total_cost_usd_delta: float = 0.0
     regressions: tuple[FixtureDelta, ...] = field(default_factory=tuple)
     improvements: tuple[FixtureDelta, ...] = field(default_factory=tuple)
     drift_only: tuple[FixtureDelta, ...] = field(default_factory=tuple)
@@ -136,6 +144,10 @@ class CompareReport:
             "total_citation_drifts_delta": self.total_citation_drifts_delta,
             "mean_turns_delta": self.mean_turns_delta,
             "mean_duration_ms_delta": self.mean_duration_ms_delta,
+            "mean_input_tokens_delta": self.mean_input_tokens_delta,
+            "mean_output_tokens_delta": self.mean_output_tokens_delta,
+            "mean_total_tokens_delta": self.mean_total_tokens_delta,
+            "mean_total_cost_usd_delta": self.mean_total_cost_usd_delta,
             "regressions": [_delta_to_dict(d) for d in self.regressions],
             "improvements": [_delta_to_dict(d) for d in self.improvements],
             "drift_only": [_delta_to_dict(d) for d in self.drift_only],
@@ -153,6 +165,10 @@ def _delta_to_dict(d: FixtureDelta) -> dict:
         "citation_drifts_delta": d.citation_drifts_delta,
         "turns_delta": d.turns_delta,
         "duration_ms_delta": d.duration_ms_delta,
+        "input_tokens_delta": d.input_tokens_delta,
+        "output_tokens_delta": d.output_tokens_delta,
+        "total_tokens_delta": d.total_tokens_delta,
+        "total_cost_usd_delta": d.total_cost_usd_delta,
         "baseline_passed": d.baseline.passed,
         "post_passed": d.post.passed,
     }
@@ -234,6 +250,10 @@ def compare_snapshots(
     n = len(deltas) or 1
     mean_turns = round(sum(d.turns_delta for d in deltas) / n, 2)
     mean_dur = round(sum(d.duration_ms_delta for d in deltas) / n, 2)
+    mean_input_tk = round(sum(d.input_tokens_delta for d in deltas) / n, 2)
+    mean_output_tk = round(sum(d.output_tokens_delta for d in deltas) / n, 2)
+    mean_total_tk = round(sum(d.total_tokens_delta for d in deltas) / n, 2)
+    mean_cost = round(sum(d.total_cost_usd_delta for d in deltas) / n, 6)
 
     return CompareReport(
         baseline_label=baseline.meta.label or baseline.meta.git_commit or "baseline",
@@ -249,6 +269,10 @@ def compare_snapshots(
         total_citation_drifts_delta=total_cit,
         mean_turns_delta=mean_turns,
         mean_duration_ms_delta=mean_dur,
+        mean_input_tokens_delta=mean_input_tk,
+        mean_output_tokens_delta=mean_output_tk,
+        mean_total_tokens_delta=mean_total_tk,
+        mean_total_cost_usd_delta=mean_cost,
         regressions=regressions,
         improvements=improvements,
         drift_only=drift_only,
@@ -293,6 +317,10 @@ def _compute_delta(
         citation_drifts_delta=post.citation_drifts - baseline.citation_drifts,
         turns_delta=post.turns - baseline.turns,
         duration_ms_delta=post.duration_ms - baseline.duration_ms,
+        input_tokens_delta=post.input_tokens - baseline.input_tokens,
+        output_tokens_delta=post.output_tokens - baseline.output_tokens,
+        total_tokens_delta=post.total_tokens - baseline.total_tokens,
+        total_cost_usd_delta=post.total_cost_usd - baseline.total_cost_usd,
     )
 
 
@@ -358,6 +386,12 @@ def render_table(report: CompareReport, *, verbose: bool = False) -> list[str]:
         f"timing:     turns {report.mean_turns_delta:+.2f}; "
         f"duration {report.mean_duration_ms_delta:+.2f} ms (means)"
     )
+    has_token_data = any(d.post.total_tokens for d in report.deltas)
+    if has_token_data:
+        lines.append(
+            f"tokens:     input {report.mean_input_tokens_delta:+,.0f}; "
+            f"output {report.mean_output_tokens_delta:+,.0f} (means)"
+        )
     n_total = len(report.deltas)
     has_invocation_data = any(d.post.skill_invocations for d in report.deltas)
     if has_invocation_data:
@@ -856,6 +890,9 @@ def _merge_fixture_rows(fixture_id: str, rows: list[FixtureSnapshot]) -> Fixture
     def _median_int(field: str) -> int:
         return int(statistics.median(getattr(r, field) for r in rows))
 
+    def _median_float(field: str) -> float:
+        return float(statistics.median(getattr(r, field) for r in rows))
+
     # Signal-investigation fields: reads/section follow same strict-majority
     # policy as ``loaded``; disagreement_details are unioned across runs so
     # any disagreement in any run remains visible for post-hoc inspection.
@@ -894,6 +931,13 @@ def _merge_fixture_rows(fixture_id: str, rows: list[FixtureSnapshot]) -> Fixture
         disagreement_details=_union_strings("disagreement_details"),
         flake_score=_compute_flake_score(rows),
         n_runs=n,
+        # NOTE: token/cost fields must be listed explicitly here — FixtureSnapshot
+        # uses dataclass defaults for fields omitted from this return, which silently
+        # zeroes them after any merge. Add new FixtureSnapshot fields here too.
+        input_tokens=_median_int("input_tokens"),
+        output_tokens=_median_int("output_tokens"),
+        total_tokens=_median_int("total_tokens"),
+        total_cost_usd=_median_float("total_cost_usd"),
     )
 
 
@@ -916,7 +960,7 @@ def render_merge_summary(merged: Snapshot, n_inputs: int) -> list[str]:
     s = merged.summary
     if s is None:
         return [f"merged {n_inputs} run(s) -> 0 fixtures"]
-    return [
+    lines = [
         f"merged {n_inputs} run(s) -> {s.total} fixture(s)",
         f"  pass:    {s.passed}/{s.total}",
         f"  median turns:    {s.mean_turns}  (across merged rows)",
@@ -924,3 +968,7 @@ def render_merge_summary(merged: Snapshot, n_inputs: int) -> list[str]:
         f"  signal disagreements: {s.total_signal_disagreements}",
         f"  citation drifts:      {s.total_citation_drifts}",
     ]
+    if s.mean_input_tokens:
+        lines.append(f"  median input tokens:  {s.mean_input_tokens:.0f}")
+        lines.append(f"  median output tokens: {s.mean_output_tokens:.0f}")
+    return lines

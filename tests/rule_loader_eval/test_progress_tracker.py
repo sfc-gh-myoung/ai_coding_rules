@@ -379,6 +379,207 @@ def test_tracker_json_emits_run_header_and_footer(
 
 
 # ---------------------------------------------------------------------------
+# Token / cost accumulation (new in s279c)
+# ---------------------------------------------------------------------------
+
+
+class FakeLive:
+    """Minimal Live stub shared by token/cost tests."""
+
+    def __init__(self, *_: object, **__: object) -> None: ...
+    def __enter__(self) -> FakeLive:
+        return self
+
+    def __exit__(self, *_: object) -> None: ...
+    def update(self, *_: object, **__: object) -> None: ...
+
+
+@pytest.mark.unit
+def test_finish_item_accumulates_token_and_cost_totals() -> None:
+    """finish_item adds input/output tokens and cost to running totals."""
+    from ai_rules.commands import rule_loader as rl
+
+    with patch.object(rl, "Live", FakeLive):
+        with ProgressTracker(total=3, mode=ProgressMode.SCREEN) as tracker:
+            tracker.start_item("a")
+            tracker.finish_item(
+                "a", ok=True, input_tokens=100, output_tokens=50, total_cost_usd=0.001
+            )
+            tracker.start_item("b")
+            tracker.finish_item(
+                "b", ok=True, input_tokens=200, output_tokens=80, total_cost_usd=0.002
+            )
+            tracker.start_item("c")
+            tracker.finish_item("c", ok=False, input_tokens=0, output_tokens=0, total_cost_usd=0.0)
+
+    assert tracker._total_input_tokens == 300  # type: ignore[attr-defined]
+    assert tracker._total_output_tokens == 130  # type: ignore[attr-defined]
+    assert abs(tracker._total_cost_usd - 0.003) < 1e-9  # type: ignore[attr-defined]
+
+
+@pytest.mark.unit
+def test_finish_item_stores_tokens_in_recent_ledger() -> None:
+    """finish_item stores per-item token data in the _recent ledger dict."""
+    from ai_rules.commands import rule_loader as rl
+
+    with patch.object(rl, "Live", FakeLive):
+        with ProgressTracker(total=1, mode=ProgressMode.SCREEN) as tracker:
+            tracker.start_item("alpha")
+            tracker.finish_item(
+                "alpha", ok=True, input_tokens=500, output_tokens=200, total_cost_usd=0.0042
+            )
+
+    entry = tracker._recent[-1]  # type: ignore[attr-defined]
+    assert entry["input_tokens"] == 500
+    assert entry["output_tokens"] == 200
+    assert abs(float(entry["total_cost_usd"]) - 0.0042) < 1e-9  # type: ignore[arg-type]
+
+
+@pytest.mark.unit
+def test_build_screen_renderable_shows_token_segment_when_nonzero() -> None:
+    """Dashboard header includes tokens/cost segment when totals > 0."""
+    import io
+
+    from rich.console import Console
+
+    from ai_rules.commands import rule_loader as rl
+
+    with patch.object(rl, "Live", FakeLive):
+        with ProgressTracker(total=1, mode=ProgressMode.SCREEN) as tracker:
+            tracker.start_item("alpha")
+            tracker.finish_item(
+                "alpha", ok=True, input_tokens=1234, output_tokens=567, total_cost_usd=0.0099
+            )
+            renderable = tracker._build_screen_renderable()  # type: ignore[attr-defined]
+
+    buf = io.StringIO()
+    console = Console(file=buf, width=200, no_color=True)
+    console.print(renderable)
+    rendered = buf.getvalue()
+    assert "1,234/567" in rendered
+    assert "$0.0099" in rendered
+
+
+@pytest.mark.unit
+def test_build_screen_renderable_omits_token_segment_when_zero() -> None:
+    """Dashboard header omits tokens/cost when all totals are 0."""
+    import io
+
+    from rich.console import Console
+
+    from ai_rules.commands import rule_loader as rl
+
+    with patch.object(rl, "Live", FakeLive):
+        with ProgressTracker(total=1, mode=ProgressMode.SCREEN) as tracker:
+            tracker.start_item("alpha")
+            tracker.finish_item("alpha", ok=True)  # no token args
+            renderable = tracker._build_screen_renderable()  # type: ignore[attr-defined]
+
+    buf = io.StringIO()
+    console = Console(file=buf, width=200, no_color=True)
+    console.print(renderable)
+    rendered = buf.getvalue()
+    assert "tokens:" not in rendered
+    assert "cost:" not in rendered
+
+
+@pytest.mark.unit
+def test_build_screen_renderable_recent_table_shows_token_cost_cells() -> None:
+    """Recent completions table shows in+out and $cost when non-zero."""
+    import io
+
+    from rich.console import Console
+
+    from ai_rules.commands import rule_loader as rl
+
+    with patch.object(rl, "Live", FakeLive):
+        with ProgressTracker(total=1, mode=ProgressMode.SCREEN) as tracker:
+            tracker.start_item("alpha")
+            tracker.finish_item(
+                "alpha", ok=True, input_tokens=1000, output_tokens=200, total_cost_usd=0.0050
+            )
+            renderable = tracker._build_screen_renderable()  # type: ignore[attr-defined]
+
+    buf = io.StringIO()
+    console = Console(file=buf, width=240, no_color=True)
+    console.print(renderable)
+    rendered = buf.getvalue()
+    assert "1,000+200" in rendered
+    assert "$0.0050" in rendered
+
+
+@pytest.mark.unit
+def test_build_screen_renderable_recent_table_shows_dashes_when_zero() -> None:
+    """Recent completions table shows '—' in tokens/cost columns when zero."""
+    import io
+
+    from rich.console import Console
+
+    from ai_rules.commands import rule_loader as rl
+
+    with patch.object(rl, "Live", FakeLive):
+        with ProgressTracker(total=1, mode=ProgressMode.SCREEN) as tracker:
+            tracker.start_item("alpha")
+            tracker.finish_item("alpha", ok=True)  # zero tokens
+            renderable = tracker._build_screen_renderable()  # type: ignore[attr-defined]
+
+    buf = io.StringIO()
+    console = Console(file=buf, width=200, no_color=True)
+    console.print(renderable)
+    rendered = buf.getvalue()
+    # The "—" dash should appear for both tokens and cost columns
+    assert rendered.count("—") >= 2
+
+
+@pytest.mark.unit
+def test_tracker_json_done_event_includes_token_fields(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """JSON done event carries input_tokens, output_tokens, total_cost_usd."""
+    import json
+
+    with ProgressTracker(total=1, mode=ProgressMode.JSON) as tracker:
+        tracker.start_item("alpha", slot=1)
+        tracker.finish_item(
+            "alpha", ok=True, slot=1, input_tokens=800, output_tokens=300, total_cost_usd=0.0075
+        )
+    lines = capsys.readouterr().err.strip().splitlines()
+    done = json.loads(lines[-1])
+    assert done["event"] == "done"
+    assert done["input_tokens"] == 800
+    assert done["output_tokens"] == 300
+    assert abs(float(done["total_cost_usd"]) - 0.0075) < 1e-9  # type: ignore[arg-type]
+
+
+@pytest.mark.unit
+def test_tracker_plain_done_includes_tokens_when_nonzero(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """PLAIN done line includes in/out token counts when non-zero."""
+    with ProgressTracker(total=1, mode=ProgressMode.PLAIN) as tracker:
+        tracker.start_item("alpha")
+        tracker.finish_item(
+            "alpha", ok=True, input_tokens=1500, output_tokens=400, total_cost_usd=0.012
+        )
+    err = capsys.readouterr().err
+    assert "in=1,500 out=400" in err
+    assert "$0.0120" in err
+
+
+@pytest.mark.unit
+def test_tracker_plain_done_omits_tokens_when_zero(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """PLAIN done line has no token/cost segment when values are 0."""
+    with ProgressTracker(total=1, mode=ProgressMode.PLAIN) as tracker:
+        tracker.start_item("alpha")
+        tracker.finish_item("alpha", ok=True)
+    err = capsys.readouterr().err
+    assert "in=" not in err
+    assert "$" not in err
+
+
+# ---------------------------------------------------------------------------
 # Worker-slot pool (asyncio.Queue) invariants
 # ---------------------------------------------------------------------------
 

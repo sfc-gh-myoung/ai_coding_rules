@@ -86,6 +86,15 @@ class FixtureSnapshot:
     """
     output_violations: tuple[str, ...] = ()
     """Bootstrap/no-match output-shape violations from the final assistant text."""
+    # Token / cost fields (added for eval cost tracking). Zero for non-live runs.
+    input_tokens: int = 0
+    """Total input tokens for this fixture (0 when SDK unavailable or non-live run)."""
+    output_tokens: int = 0
+    """Total output tokens for this fixture."""
+    total_tokens: int = 0
+    """input_tokens + output_tokens (computed at serialize time)."""
+    total_cost_usd: float = 0.0
+    """Total cost in USD for this fixture run (0 when SDK unavailable)."""
 
     def to_dict(self) -> dict:
         """Serialize to a JSON-compatible dict (tuples become lists)."""
@@ -116,6 +125,10 @@ class FixtureSnapshot:
             "skill_invocations": list(self.skill_invocations),
             "depends_violations": list(self.depends_violations),
             "output_violations": list(self.output_violations),
+            "input_tokens": self.input_tokens,
+            "output_tokens": self.output_tokens,
+            "total_tokens": self.total_tokens,
+            "total_cost_usd": self.total_cost_usd,
         }
 
     @classmethod
@@ -148,6 +161,10 @@ class FixtureSnapshot:
             skill_invocations=tuple(data.get("skill_invocations") or ()),
             depends_violations=tuple(data.get("depends_violations") or ()),
             output_violations=tuple(data.get("output_violations") or ()),
+            input_tokens=int(data.get("input_tokens") or 0),
+            output_tokens=int(data.get("output_tokens") or 0),
+            total_tokens=int(data.get("total_tokens") or 0),
+            total_cost_usd=float(data.get("total_cost_usd") or 0.0),
         )
 
 
@@ -198,6 +215,10 @@ class SnapshotSummary:
     mean_duration_ms: float
     total_signal_disagreements: int
     total_citation_drifts: int
+    mean_input_tokens: float = 0.0
+    mean_output_tokens: float = 0.0
+    mean_total_tokens: float = 0.0
+    mean_total_cost_usd: float = 0.0
 
     def to_dict(self) -> dict:  # noqa: D102
         return asdict(self)
@@ -244,6 +265,11 @@ def serialize_run_result(result: RunResult, fixture: Fixture) -> FixtureSnapshot
         skill_invocations=tuple(result.run.skill_invocations),
         depends_violations=tuple(str(v) for v in result.depends_violations),
         output_violations=tuple(result.run.output_violations),
+        input_tokens=getattr(result.run, "input_tokens", 0),
+        output_tokens=getattr(result.run, "output_tokens", 0),
+        total_tokens=getattr(result.run, "input_tokens", 0)
+        + getattr(result.run, "output_tokens", 0),
+        total_cost_usd=float(getattr(result.run, "total_cost_usd", 0.0) or 0.0),
     )
 
 
@@ -261,6 +287,10 @@ def compute_summary(fixtures: list[FixtureSnapshot]) -> SnapshotSummary:
         mean_duration_ms=round(sum(f.duration_ms for f in fixtures) / total, 2),
         total_signal_disagreements=sum(f.signal_disagreements for f in fixtures),
         total_citation_drifts=sum(f.citation_drifts for f in fixtures),
+        mean_input_tokens=round(sum(f.input_tokens for f in fixtures) / total, 2),
+        mean_output_tokens=round(sum(f.output_tokens for f in fixtures) / total, 2),
+        mean_total_tokens=round(sum(f.total_tokens for f in fixtures) / total, 2),
+        mean_total_cost_usd=round(sum(f.total_cost_usd for f in fixtures) / total, 6),
     )
 
 
@@ -336,6 +366,10 @@ def read_eval_snapshot(snapshot_dir: Path) -> Snapshot:
                 mean_duration_ms=float(sdata.get("mean_duration_ms") or 0.0),
                 total_signal_disagreements=int(sdata.get("total_signal_disagreements") or 0),
                 total_citation_drifts=int(sdata.get("total_citation_drifts") or 0),
+                mean_input_tokens=float(sdata.get("mean_input_tokens") or 0.0),
+                mean_output_tokens=float(sdata.get("mean_output_tokens") or 0.0),
+                mean_total_tokens=float(sdata.get("mean_total_tokens") or 0.0),
+                mean_total_cost_usd=float(sdata.get("mean_total_cost_usd") or 0.0),
             )
 
     return Snapshot(meta=meta, fixtures=tuple(fixtures), summary=summary)

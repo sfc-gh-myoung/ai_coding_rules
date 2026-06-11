@@ -14,6 +14,7 @@ from ai_rules.rule_loader_eval.snapshot import (
     capture_meta,
     compute_summary,
     read_eval_snapshot,
+    serialize_run_result,
     write_eval_snapshot,
 )
 
@@ -27,6 +28,10 @@ def _row(
     duration_ms: int = 500,
     signal: int = 0,
     citation: int = 0,
+    input_tokens: int = 0,
+    output_tokens: int = 0,
+    total_tokens: int = 0,
+    total_cost_usd: float = 0.0,
 ) -> FixtureSnapshot:
     return FixtureSnapshot(
         fixture_id=fixture_id,
@@ -45,6 +50,10 @@ def _row(
         duration_ms=duration_ms,
         model="auto",
         stop_reason="end_turn",
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        total_tokens=total_tokens,
+        total_cost_usd=total_cost_usd,
     )
 
 
@@ -208,3 +217,88 @@ def test_old_snapshot_without_signal_fields_parses(tmp_path: Path) -> None:
     assert parsed.loaded_via_reads == ()
     assert parsed.loaded_via_section == ()
     assert parsed.disagreement_details == ()
+
+
+def test_token_fields_serialize_and_deserialize() -> None:
+    """Round-trip preserves non-zero token and cost values."""
+    row = _row(
+        "tok-fx",
+        input_tokens=1000,
+        output_tokens=200,
+        total_tokens=1200,
+        total_cost_usd=0.005,
+    )
+    parsed = FixtureSnapshot.from_dict(row.to_dict())
+    assert parsed.input_tokens == 1000
+    assert parsed.output_tokens == 200
+    assert parsed.total_tokens == 1200
+    assert parsed.total_cost_usd == 0.005
+    assert parsed == row
+
+
+def test_old_snapshot_missing_token_fields_defaults_to_zero() -> None:
+    """Legacy JSON without token fields loads with zero defaults (backward compat)."""
+    legacy_json = {
+        "fixture_id": "x",
+        "passed": True,
+        "loaded": [],
+        "expected_required": [],
+        "expected_dependencies": [],
+        "expected_optional": [],
+        "expected_forbidden": [],
+        "missing_required": [],
+        "missing_dependencies": [],
+        "forbidden_present": [],
+        "signal_disagreements": 0,
+        "citation_drifts": 0,
+        "turns": 2,
+        "duration_ms": 400,
+    }
+    fx = FixtureSnapshot.from_dict(legacy_json)
+    assert fx.input_tokens == 0
+    assert fx.output_tokens == 0
+    assert fx.total_tokens == 0
+    assert fx.total_cost_usd == 0.0
+
+
+def test_serialize_run_result_maps_tokens() -> None:
+    """serialize_run_result maps input/output/cost from result.run."""
+    from unittest.mock import MagicMock
+
+    fixture = MagicMock()
+    fixture.required = ["rules/999-test-core.md"]
+    fixture.dependencies = []
+    fixture.optional = []
+    fixture.forbidden = []
+
+    run = MagicMock()
+    run.loaded = ["rules/999-test-core.md"]
+    run.loaded_via_reads = []
+    run.loaded_via_section = []
+    run.disagreements = []
+    run.skill_invocations = []
+    run.output_violations = []
+    run.turns = 3
+    run.duration_ms = 500
+    run.model = "auto"
+    run.stop_reason = "end_turn"
+    run.input_tokens = 1500
+    run.output_tokens = 300
+    run.total_cost_usd = 0.012
+
+    result = MagicMock()
+    result.fixture_id = "fx"
+    result.passed = True
+    result.run = run
+    result.match.missing_required = []
+    result.match.missing_dependencies = []
+    result.match.forbidden_present = []
+    result.signal_report.disagreements = []
+    result.citation_drifts = []
+    result.depends_violations = []
+
+    snap = serialize_run_result(result, fixture)
+    assert snap.input_tokens == 1500
+    assert snap.output_tokens == 300
+    assert snap.total_tokens == 1800
+    assert snap.total_cost_usd == 0.012

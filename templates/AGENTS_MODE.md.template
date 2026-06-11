@@ -384,10 +384,10 @@ by the rule-loader evaluator.
 
 ### MODE Transitions
 
-**PLAN to ACT:** User types "ACT" → "MODE: ACT" at start of next response.
-**ACT to ACT (Validation Loop):** Validation failure → retry (max 3 attempts, then escalate to PLAN).
-**ACT to PLAN:** Successful validation → declare "MODE: PLAN" at end of response.
-**PLAN to PLAN:** Any non-"ACT" input → stay in PLAN.
+**PLAN to ACT:** User types "ACT", then sets "MODE: ACT" at the start of the next response.
+**ACT to ACT (Validation Loop):** Validation failure: retry (max 3 attempts, then escalate to PLAN).
+**ACT to PLAN:** Successful validation: declare "MODE: PLAN" at end of response.
+**PLAN to PLAN:** Any non-"ACT" input: stay in PLAN.
 
 ### ACT Mode Anti-Pattern: Starting work without PLAN
 

@@ -300,7 +300,7 @@ def generate_review_document(aggregated: dict, params: dict, context: dict) -> s
 **Review Date:** {params['review_date']}
 **Review Mode:** {params.get('review_mode', 'FULL')}
 **Model:** {params.get('model', 'unknown')}
-**Reviewer Skill:** rule-reviewer v{params.get('skill_version', '2.7.0')}
+**Reviewer Skill:** rule-reviewer v{params.get('skill_version', '2.9.0')}
 **Schema Validator:** ai-rules validate
 
 ## Executive Summary

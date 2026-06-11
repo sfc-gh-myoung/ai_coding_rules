@@ -5,7 +5,7 @@ description: # TODO
 variant: complex
 prompt: |
   I'm authoring a new skill that ships under skills/ and surfaces a guided
-  workflow for cost optimization. Walk me through the front-matter
+  workflow for documentation quality and maintainability. Walk me through the front-matter
   conventions, the canonical example layout, and how to test the skill
   against real prompts before submitting.
 expected:

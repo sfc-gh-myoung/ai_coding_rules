@@ -19,8 +19,6 @@ expected:
     - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
       # missing: ext=.sql
     - rules/102d-snowflake-sql-cicd.md  # demoted: kw entries don't substring-match prompt phrasing
-    - rules/109b-snowflake-app-deployment-core.md  # dep of 109i; loaded transitively when 109i fires
-    - rules/109i-snowflake-app-deployment-advanced.md  # Low-tier; kw:per environment + kw:promoting to prod
 trigger_evidence:
   kw: [multi environment, promoting to prod, snowcli]   # suggested
     # n-gram (no rule): "currently lists three application"

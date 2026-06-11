@@ -233,7 +233,7 @@ Expected: Claude model slug
 Valid Claude slugs:
 - claude-opus-4
 - claude-sonnet-4
-- claude-sonnet-45
+- claude-sonnet-4-6
 - claude-haiku
 
 For output filename, will normalize to provided slug:
@@ -243,7 +243,7 @@ Note: The review will be performed by the current Claude model,
 regardless of the slug provided. The slug is for filename 
 identification only.
 
-Proceed with slug "gpt-4-turbo"? (yes/no/use claude-sonnet-45)
+Proceed with slug "gpt-4-turbo"? (yes/no/use claude-sonnet-4-6)
 ```
 
 ---

@@ -18,7 +18,7 @@ expected:
       # missing: ext=.sql
     - rules/202-markup-config-validation.md  # triggered: ext:.yml matches snowflake.yml; loaded inconsistently
 trigger_evidence:
-  kw: []
+  kw: [snowflake.yml]
     # n-gram (no rule): "more teams contribute services"
     # n-gram (no rule): "as more teams contribute"
     # n-gram (no rule): "clean review of every"

@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.3.1
-**LastUpdated:** 2026-03-09
-**Keywords:** dir:rules/, kw:rule governance, kw:schema, kw:metadata requirements, kw:validation, kw:schema compliance, kw:rule structure, kw:semantic discovery, kw:rules_index, kw:descriptive headings, kw:design priorities, kw:agent optimization
+**RuleVersion:** v3.4.0
+**LastUpdated:** 2026-06-10
+**Keywords:** dir:rules/, kw:rule governance, kw:schema, kw:metadata requirements, kw:validation, kw:schema compliance, kw:rule structure, kw:semantic discovery, kw:rules_index, kw:descriptive headings, kw:design priorities, kw:agent optimization, kw:skill governance
 **TokenBudget:** ~4550
 **ContextTier:** Critical
 **Depends:** required:000-global-core.md
@@ -18,7 +18,7 @@
 ## Scope
 
 **What This Rule Covers:**
-Schema standards (v3.2) for AI coding rule files. Defines required sections, metadata fields, Contract structure, and validation requirements. All rules must comply with `schemas/rule-schema.yml` v3.2 specifications.
+Schema standards (v3.3) for AI coding rule files. Defines required sections, metadata fields, Contract structure, and validation requirements. All rules must comply with `schemas/rule-schema.yml` v3.3 specifications.
 
 **When to Load This Rule:**
 - Creating new rule files (also load 002a-rule-creation.md)
@@ -43,7 +43,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 
 ### External Documentation
 
-- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema with validation rules
+- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.3 schema with validation rules
 - **Rules Index:** `RULES_INDEX.md` - Master index of all rules with keywords
 - **[CommonMark Spec](https://spec.commonmark.org/)** - Authoritative Markdown specification (all rule files MUST comply)
 
@@ -52,7 +52,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 ### Inputs and Prerequisites
 
 - Rule creation or maintenance task
-- Schema understanding (v3.2)
+- Schema understanding (v3.3)
 - Access to `schemas/rule-schema.yml`
 - Understanding of required sections and metadata fields
 
@@ -61,7 +61,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 - Text editor
 - `ai-rules validate` CLI command
 - Access to existing `rules/` directory
-- `schemas/rule-schema.yml` file (v3.2)
+- `schemas/rule-schema.yml` file (v3.3)
 
 ### Forbidden
 
@@ -69,16 +69,16 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 - Skipping validation
 - Using outdated schema (v3.0 or v3.1)
 - Using emojis in rule files
-- Using XML tags in Contract section (v3.2 uses Markdown headers)
-- Using numbered section headings (v3.2 uses descriptive names)
+- Using XML tags in Contract section (v3.3 uses Markdown headers)
+- Using numbered section headings (v3.3 uses descriptive names)
 - Non-compliant Markdown (must follow CommonMark spec)
 
 ### Execution Steps
 
-1. Review v3.2 schema requirements (metadata, required sections, Markdown headers)
+1. Review v3.3 schema requirements (metadata, required sections, Markdown headers)
 2. For creating new rules: use 002a-rule-creation.md workflow
 3. For updating existing rules: use 002b-rule-update.md workflow
-4. Fill required metadata fields correctly (SchemaVersion: v3.2, RuleVersion, Keywords: 5-20 terms, TokenBudget, ContextTier, Depends)
+4. Fill required metadata fields correctly (SchemaVersion: v3.3, RuleVersion, Keywords: 5-20 terms, TokenBudget, ContextTier, Depends)
 5. Write required sections in order: Scope, References, Contract, Anti-Patterns (optional)
 6. Add Contract section with Markdown subsections (###): Inputs and Prerequisites, Mandatory, Forbidden, Execution Steps, Output Format, Validation, Design Principles, Post-Execution Checklist
 7. Use descriptive section names (not numbered: "## Environment Setup" not "## 1. Environment Setup")
@@ -87,7 +87,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 ### Output Format
 
 Markdown file (.md) with:
-- v3.2 schema metadata
+- v3.3 schema metadata
 - Required sections in correct order
 - Contract with Markdown headers (###) (see Forbidden section)
 - Descriptive section names (not numbered)
@@ -97,7 +97,7 @@ Markdown file (.md) with:
 
 **Pre-Task-Completion Checks:**
 - All metadata fields present and correctly formatted
-- Required sections present in v3.2 order (Scope, References, Contract)
+- Required sections present in v3.3 order (Scope, References, Contract)
 - Contract has Markdown subsections (###), not XML tags
 - No numbered section headings
 - Keywords count is 5-20 terms (semantic and discoverable)
@@ -128,8 +128,8 @@ Markdown file (.md) with:
 ### Post-Execution Checklist
 
 - [ ] New/updated rule has all required metadata fields correctly formatted
-- [ ] SchemaVersion is v3.2
-- [ ] All required sections present in v3.2 order
+- [ ] SchemaVersion is v3.3
+- [ ] All required sections present in v3.3 order
 - [ ] Contract section uses Markdown headers (###), not XML tags
 - [ ] No numbered section headings (## 1., ## 2., etc.)
 - [ ] Keywords count is 5-20 terms (semantic and discoverable)
@@ -140,7 +140,7 @@ Markdown file (.md) with:
 - [ ] Dependencies declared in Depends metadata
 - [ ] No emojis in rule file content
 
-## Schema Requirements (v3.2)
+## Schema Requirements (v3.3)
 
 ### Rule Filename Convention (MANDATORY)
 
@@ -167,7 +167,7 @@ Where:
 ### Metadata Fields (6 Required + 1 Optional)
 
 **Required Fields:**
-- **SchemaVersion:** `v3.2` - CRITICAL (must be v3.2 for new/updated rules)
+- **SchemaVersion:** `v3.3` - CRITICAL (must be v3.3 for new/updated rules)
 - **RuleVersion:** Semantic version `vX.Y.Z` (e.g., v1.0.0, v2.0.0)
 - **Keywords:** 5-20 comma-separated terms for semantic discovery
 - **TokenBudget:** `~NUMBER` format (e.g., ~1200)
@@ -179,7 +179,7 @@ Where:
 
 **Note on Versioning:** For guidance on when and how to increment RuleVersion and update LastUpdated fields, see `002b-rule-update.md`.
 
-### Required Sections (v3.2)
+### Required Sections (v3.3)
 
 **Required Sections (in order):**
 1. **Metadata** - All 6 required fields in correct order
@@ -204,7 +204,7 @@ See `000-global-core.md` §Context Window Management Protocol for canonical mark
 
 **ContextTier Metadata:** Provides fine-grained prioritization within tiers. See 000-global-core.md for details.
 
-### Contract Structure (v3.2 - Markdown Headers)
+### Contract Structure (v3.3 - Markdown Headers)
 
 The Contract section must use Markdown subsections (###), NOT XML tags:
 
@@ -275,9 +275,9 @@ uv run ai-rules validate rules/
 - **TokenBudget format** - Use `~NUMBER` format (e.g., ~500, ~1200)
 
 **Structure Errors:**
-- **Missing required section** - Add missing section per v3.2 order (Scope, References, Contract)
+- **Missing required section** - Add missing section per v3.3 order (Scope, References, Contract)
 - **Contract missing Markdown subsection** - Add missing ### header (e.g., `### Inputs and Prerequisites`)
-- **Section order wrong** - Reorder sections per v3.2: Metadata, Scope, References, Contract
+- **Section order wrong** - Reorder sections per v3.3: Metadata, Scope, References, Contract
 
 **For detailed error resolution:** See `002e-schema-validator-usage.md`
 
@@ -304,10 +304,10 @@ If validator installation fails:
 If both options fail, note the validation gap in commit message and request review.
 
 **Schema Version Mismatch:**
-- **Error:** "Expected v3.2, found v3.1" or "SchemaVersion field missing"
+- **Error:** "Expected v3.3, found older version" or "SchemaVersion field missing"
 - **Fix:**
-  1. Update SchemaVersion field to `v3.2`
-  2. Verify section order matches v3.2 requirements:
+  1. Update SchemaVersion field to `v3.3`
+  2. Verify section order matches v3.3 requirements:
      - Metadata at top
      - Scope section
      - References section
@@ -315,13 +315,12 @@ If both options fail, note the validation gap in commit message and request revi
   3. Remove deprecated sections (Preconditions, Setup, Validation if separate)
   4. Merge validation steps into Contract, Execution Workflow
 - **Bulk migration:** If updating multiple rules, see `002a-rule-creation.md` for batch update workflow
-- **Example:**
+- **Example (from v3.2 to v3.3):**
   ```markdown
-  <!-- Change from v3.1: -->
-  **SchemaVersion:** v3.1
-  
-  <!-- To v3.2: -->
-  **SchemaVersion:** v3.2
+  <!-- Change from v3.2 to v3.3: update the SchemaVersion field -->
+
+  <!-- To v3.3: -->
+  **SchemaVersion:** v3.3
   ```
 
 ## Key Principles

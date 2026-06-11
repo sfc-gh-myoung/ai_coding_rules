@@ -213,7 +213,7 @@ When all assigned rules are complete, return this JSON summary:
       "rule_name": "000-global-core",
       "score": 95,
       "verdict": "EXECUTABLE",
-      "review_path": "reviews/rule-reviews/000-global-core-claude-sonnet-45-2026-01-15.md",
+      "review_path": "reviews/rule-reviews/000-global-core-claude-sonnet-4-6-2026-01-15.md",
       "status": "SUCCESS"
     }
   ],
@@ -230,7 +230,7 @@ When all assigned rules are complete, return this JSON summary:
   "skipped": [
     {
       "rule_name": "002-rule-governance",
-      "review_path": "reviews/rule-reviews/002-rule-governance-claude-sonnet-45-2026-01-15.md",
+      "review_path": "reviews/rule-reviews/002-rule-governance-claude-sonnet-4-6-2026-01-15.md",
       "status": "SKIPPED",
       "reason": "Review already exists"
     }
@@ -293,7 +293,7 @@ When all assigned rules are complete, return this JSON summary:
 | `{rules_list}` | Markdown list of rule paths | `- rules/100-snowflake-core.md` |
 | `{review_date}` | ISO date | `2026-01-15` |
 | `{review_mode}` | Review mode | `FULL` |
-| `{model}` | Model slug | `claude-sonnet-45` |
+| `{model}` | Model slug | `claude-sonnet-4-6` |
 | `{output_root}` | Output directory | `reviews/` |
 | `{skip_existing}` | Skip existing reviews | `true` |
 

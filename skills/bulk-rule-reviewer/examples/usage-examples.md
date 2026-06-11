@@ -7,7 +7,7 @@ Use the bulk-rule-reviewer skill.
 
 review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet-45
+model: claude-sonnet-4-6
 ```
 
 ## Filtered Review (Snowflake Rules Only)
@@ -17,7 +17,7 @@ Use the bulk-rule-reviewer skill.
 
 review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet-45
+model: claude-sonnet-4-6
 filter_pattern: rules/100-*.md
 ```
 
@@ -28,7 +28,7 @@ Use the bulk-rule-reviewer skill.
 
 review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet-45
+model: claude-sonnet-4-6
 overwrite: true
 ```
 
@@ -43,7 +43,7 @@ Use the bulk-rule-reviewer skill.
 
 review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet-45
+model: claude-sonnet-4-6
 skip_existing: false
 overwrite: false
 ```
@@ -57,5 +57,5 @@ Use the bulk-rule-reviewer skill.
 
 review_date: 2026-01-06
 review_mode: STALENESS
-model: claude-sonnet-45
+model: claude-sonnet-4-6
 ```

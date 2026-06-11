@@ -22,7 +22,7 @@ Review project documentation for accuracy with codebase, completeness of coverag
 **Required:**
 - **review_date**: `YYYY-MM-DD`
 - **review_mode**: `FULL` | `FOCUSED` | `STALENESS`
-- **model**: Model slug (e.g., `claude-sonnet-45`)
+- **model**: Model slug (e.g., `claude-sonnet-4-6`)
 
 **Optional:**
 - **target_files**: List of file paths (defaults to project docs if not specified)

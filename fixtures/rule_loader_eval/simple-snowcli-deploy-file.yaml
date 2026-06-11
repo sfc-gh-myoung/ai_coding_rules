@@ -14,7 +14,7 @@ expected:
     - rules/100-snowflake-core.md  # auto-demoted (was dep): no Keywords trigger evidence
       # missing: ext=.sql
 trigger_evidence:
-  kw: []
+  kw: [snowflake.yml]
     # n-gram (no rule): "entrypoint declared in snowflake"
     # n-gram (no rule): "Validate the entrypoint declared"
     # n-gram (no rule): "yml before pushing"

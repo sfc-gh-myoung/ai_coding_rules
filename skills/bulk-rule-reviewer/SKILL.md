@@ -22,7 +22,7 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 **Required:**
 - **review_date**: `YYYY-MM-DD` (default: today)
 - **review_mode**: `FULL` | `FOCUSED` | `STALENESS` (default: FULL)
-- **model**: Lowercase-hyphenated slug (default: `claude-sonnet-45`)
+- **model**: Lowercase-hyphenated slug (default: `claude-sonnet-4-6`)
 
 **Optional:**
 - **filter_pattern**: Glob pattern (default: `rules/*.md`)
@@ -299,7 +299,7 @@ Auto-detection selects the available pattern. If neither found, execution stops 
 **Key Requirements:**
 - `review_date`: YYYY-MM-DD format (valid calendar date)
 - `review_mode`: FULL | FOCUSED | STALENESS (uppercase)
-- `model`: lowercase-hyphenated (e.g., claude-sonnet-45)
+- `model`: lowercase-hyphenated (e.g., claude-sonnet-4-6)
 - `filter_pattern`: rules/*.md glob (optional, must match ≥1 file)
 - `skip_existing`: boolean true/false (optional, default: true)
 - `max_parallel`: integer 1-10 (optional, default: 1)

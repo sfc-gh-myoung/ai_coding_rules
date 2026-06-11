@@ -18,7 +18,17 @@ fixture declares:
 | Layer | Command | Requires live SDK? | Runs in CI? |
 |---|---|---|---|
 | Trigger-evidence invariant | `rule-loader validate` | No | Yes |
-| Behavioral (live agent) | `rule-loader eval` | Yes | No (pre-commit only) |
+| Behavioral (live agent) | `rule-loader eval` | Yes | **No — manual only** |
+
+> **`rule-loader eval` is an explicit, opt-in command.** It never runs
+> automatically — not in CI, not in pre-commit, not in `dev test run`, and not
+> in the default pytest suite. The `live` pytest marker is deselected by
+> default (`addopts = ["-m", "not live"]` in `pyproject.toml`). To run the live
+> behavioral evaluation, invoke it directly:
+>
+> ```bash
+> uv run ai-rules rule-loader eval
+> ```
 
 **Trigger-evidence invariant** (`validate`): a deterministic, millisecond-fast
 check that every fixture's `prompt` contains a literal token that would fire

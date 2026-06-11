@@ -260,8 +260,8 @@ See `workflows/subagent-prompt-template.md` for the complete prompt template tha
 3. Different rules = different filenames = no conflicts
 
 ```
-Sub-Agent 1 writes: 000-global-core-claude-sonnet-45-2026-01-15.md
-Sub-Agent 2 writes: 100-snowflake-core-claude-sonnet-45-2026-01-15.md
+Sub-Agent 1 writes: 000-global-core-claude-sonnet-4-6-2026-01-15.md
+Sub-Agent 2 writes: 100-snowflake-core-claude-sonnet-4-6-2026-01-15.md
                     ↑ Different rules, different files
 ```
 
@@ -349,7 +349,7 @@ Each sub-agent MUST:
       "score": 94,
       "verdict": "EXECUTABLE",
       "critical_issues": 0,
-      "review_path": "reviews/rule-reviews/100-snowflake-core-claude-sonnet-45-2026-04-21.md",
+      "review_path": "reviews/rule-reviews/100-snowflake-core-claude-sonnet-4-6-2026-04-21.md",
       "timing": {
         "run_id": "rr-20260421-001234-abc",
         "duration_s": 11.42,

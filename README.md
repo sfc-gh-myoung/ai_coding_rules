@@ -5,7 +5,7 @@
 [![CI](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml/badge.svg)](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-92%25-brightgreen)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/sfc-gh-myoung/ai_coding_rules)
 
 > **One universal AI coding rule set for all AI assistants, IDEs, and agents. Portable, IDE-agnostic, built with Snowflake Cortex Code.**
@@ -72,14 +72,14 @@ This project was inspired, in part, by:
 
 Before getting started, ensure you have:
 
-- **Python 3.11+**: [Download Python](https://www.python.org/downloads/)
+- **Python 3.12+**: [Download Python](https://www.python.org/downloads/)
 - **Git** (for cloning): [Install Git](https://git-scm.com/downloads)
 - **uv** (Python package manager): [Install uv](https://docs.astral.sh/uv/)
 
 **Quick check:**
 
 ```bash
-python --version  # Should show 3.11 or higher
+python --version  # Should show 3.12 or higher
 git --version     # Should show Git version
 ```
 
@@ -718,7 +718,7 @@ The Memory Bank is a structured documentation system that helps AI assistants ma
 
 ```bash
 python --version
-# Must be 3.11 or higher
+# Must be 3.12 or higher
 ```
 
 2. **Install Dependencies**
@@ -759,14 +759,14 @@ ls src/ai_rules/cli.py rules/
 ```bash
 python --version
 python3 --version
-# Need 3.11 or higher
+# Need 3.12 or higher
 ```
 
 2. **Use uv to Pin Version**
 
 ```bash
 uv run ai-rules dev env setup
-# Creates .python-version file pinning to 3.11
+# Creates .python-version file pinning to 3.12
 ```
 
 3. **Clean and Reinstall**
@@ -779,7 +779,7 @@ uv run ai-rules dev env sync               # Reinstall dependencies
 4. **Manual venv Setup (fallback)**
 
 ```bash
-python3.11 -m venv .venv
+python3.12 -m venv .venv
 source .venv/bin/activate  # Linux/macOS
 # OR
 .venv\Scripts\activate     # Windows

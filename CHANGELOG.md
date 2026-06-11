@@ -5,8 +5,6 @@ All notable changes to the AI Coding Rules project will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
 ## [3.8.0] - 2026-06-10
 
 Major release consolidating four branches. Three themes: (1) flat RULES_INDEX, slim AGENTS templates, and a contract-grade rule-loader evaluation framework; (2) the `ai-rules dev` CLI replacing the project Makefile; (3) a refactored `ai-rules deploy` surface with split-only mode, NO_MODE default, and hardened path rendering.
@@ -46,6 +44,7 @@ Major release consolidating four branches. Three themes: (1) flat RULES_INDEX, s
 - **feat(prompts):** add `prompts/surgical-edits.md` prompt template.
 - **deps:** add `snowflake-connector-python>=3.12.0` runtime dependency.
 - **test:** update `tests/fixtures/RULES_INDEX_baseline.md` fixture to flat format.
+- **test:** Add extensive unit coverage across CLI handlers, `rule_loader_eval` framework, and `dev` commands — raising project coverage to ~92%.
 
 ### Changed
 
@@ -62,8 +61,13 @@ Major release consolidating four branches. Three themes: (1) flat RULES_INDEX, s
 - **feat(rule-loading):** RULES_INDEX removal finish-up — cleared stale `RULES_INDEX.md` references in `rules/000-global-core.md` R10 list, `skills/rule-loader/workflows/foundation-loading.md` and `dependency-resolution.md`, `src/ai_rules/rule_loader_eval/diagnostics.py` and `agent_runner.py`, fixture inline comments, and `docs/EVALUATING_RULE_LOADER.md`. Phase A validation grep now returns empty (allow-list: `CHANGELOG.md`, `plans/`, `.snowflake/cortex/plans/`, `reviews/`).
 - **feat(rule-loader eval):** `compare_snapshots` gains `flake_threshold` and `ignore_flaky` parameters; `render_table`/`render_markdown` gain `rules_meta` and `fixture_prompt` pass-through for deep-link rendering.
 - **feat(cli):** friendly subprocess failure messages for all `ai-rules` CLI commands — concise failed-command summaries and next-step remediation for lint, format, typecheck, tests, env setup, release, and mirror flows. Top-level `--debug` support for raw Python tracebacks.
-- **chore(deps):** pin `ty==0.0.35`; add `pre-commit` to dev toolchain; add Ruff and `ty` pre-commit hooks alongside Entro secret scanning.
+- **chore(deps):** pin `ty==0.0.35`; add `pre-commit` to dev toolchain; add Ruff and `ty` pre-commit hooks alongside Entro secret scanning; extract inline Entro hook bash to `scripts/entro_secret_scan.sh`, switching hook `language` from `system` to `script`.
 - **ci:** add pull-request concurrency, uv cache configuration, and Node.js 24/setup-uv v8 to reduce duplicate runs and resolve `ty` typecheck failures blocking CI. Aligned CI Python versions with `requires-python >=3.12`.
+- **feat(validate):** `--examples` resolves to `<PATH>/examples/` (or `rules/examples/` when PATH is omitted); `--templates` always resolves to the repo-root `templates/` directory; both flags now run in a single combined pass.
+- **chore(governance):** Update all prescriptive v3.2 schema references to v3.3 across `002-rule-governance.md`, `002a-rule-creation.md`, and `002b-rule-update.md`; add v3.2→v3.3 migration checklist to `002b-rule-update.md`.
+- **chore(skills):** Refresh default model slug `claude-sonnet-45`→`claude-sonnet-4-6` across bulk-rule-reviewer, doc-reviewer, rule-creator, rule-reviewer, and skill-timer; expand rule-creator domain list to include TypeScript, React, Frontend, Zsh, Podman, Data/dbt, and project-governance domains; document rule-loader multi-phase loading algorithm in `skills/rule-loader/CHANGELOG.md`.
+- **build:** Bump Development Status classifier Alpha→Beta; drop Python 3.11, add Python 3.13 targets; set ruff `target-version = py312`; enforce `fail_under = 92` in coverage config; pin `live` pytest marker to opt-in only (`-m not live`).
+- **docs:** Update Python 3.11→3.12 references in README and CONTRIBUTING; document `rule-loader eval` as explicit opt-in (never auto-runs in CI, pre-commit, or default pytest) in `docs/EVALUATING_RULE_LOADER.md`.
 
 ### Fixed
 
@@ -74,6 +78,10 @@ Major release consolidating four branches. Three themes: (1) flat RULES_INDEX, s
 - **fix(ai-rules cortex):** annotate `_complete_via_rest` headers as `dict[str, str | bytes]` so `urllib.request.Request` accepts both string and bytes values without type-checker complaints.
 - **fix(ci):** type Rich `TaskID` correctly; resolve `ty` typecheck failures blocking CI; harden CI toolchain.
 - **fix(ci):** replace removed-index placeholder command with `uv run ai-rules rule-loader validate`; align CI Python versions with `requires-python >=3.12`.
+- **fix(validate):** Exempt `RULES_INDEX.md` and `RULES_INDEX.md.template` from the ASCII-table (`|---|`) template check; these files are intentionally pipe-delimited grep-metadata.
+- **fix(templates):** Replace prose arrow characters (`→`) with plain-text equivalents in the `AGENTS_MODE` MODE-transition table for agent-parseable formatting.
+- **fix(rules):** Demote `116-snowflake-cortex-search.md` Depends entries `105-snowflake-cost-governance.md` and `114-snowflake-cortex-aisql.md` from `required:` to `optional:`; demote `119-snowflake-warehouse-management.md` Depends entries `103-snowflake-performance-tuning.md` and `105-snowflake-cost-governance.md` from `required:` to `optional:`; add `kw:cortex agent` to 115; add `kw:skill governance` to 002.
+- **fix(eval):** Reword `complex-skill-author` fixture prompt from cost-optimization to documentation-quality context to reduce spurious rule loads; prune over-eager `109b`/`109i` dep-trap expectations from `complex-snowcli-deploy` and `complex-streamlit-deploy`; add `snowflake.yml` trigger evidence to `complex-snowcli-config` and `simple-snowcli-deploy-file`.
 
 ### Removed
 

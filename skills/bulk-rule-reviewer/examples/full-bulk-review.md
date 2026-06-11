@@ -7,7 +7,7 @@ This example demonstrates a complete bulk review of the full current rule set in
 **Scenario:** Quarterly quality audit (2026-Q1)  
 **Date:** 2026-01-06  
 **Mode:** FULL (all 6 dimensions)  
-**Model:** claude-sonnet-45
+**Model:** claude-sonnet-4-6
 
 ---
 
@@ -20,7 +20,7 @@ Use the bulk-rule-reviewer skill.
 
 review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet-45
+model: claude-sonnet-4-6
 ```
 
 **Output:** `reviews/rule-reviews/...` and `reviews/summaries/...`
@@ -32,7 +32,7 @@ Use the bulk-rule-reviewer skill.
 
 review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet-45
+model: claude-sonnet-4-6
 output_root: quarterly-audit/
 ```
 
@@ -52,7 +52,7 @@ Starting bulk review...
 Parameters:
   review_date: 2026-01-06
   review_mode: FULL
-  model: claude-sonnet-45
+  model: claude-sonnet-4-6
   filter_pattern: rules/*.md
   skip_existing: true
   max_parallel: 1
@@ -87,7 +87,7 @@ rules/003-context-engineering.md
 [Stage 2: Review Execution]
 
 Starting bulk review: 187 rules
-Review mode: FULL | Model: claude-sonnet-45 | Date: 2026-01-06
+Review mode: FULL | Model: claude-sonnet-4-6 | Date: 2026-01-06
 Skip existing: true
 
 [1/187] Reviewing: rules/000-global-core.md
@@ -97,7 +97,7 @@ Skip existing: true
               Consistency (15/15), Parsability (15/15), 
               Token Efficiency (10/10), Staleness (10/10)
    Complete: 100/100 (EXECUTABLE)
-  Review written to: reviews/rule-reviews/000-global-core-claude-sonnet-45-2026-01-06.md
+  Review written to: reviews/rule-reviews/000-global-core-claude-sonnet-4-6-2026-01-06.md
 
 [2/187] Reviewing: rules/001-memory-bank.md
   Invoking rule-reviewer skill...
@@ -106,7 +106,7 @@ Skip existing: true
               Consistency (14/15), Parsability (15/15),
               Token Efficiency (9/10), Staleness (10/10)
    Complete: 94/100 (EXECUTABLE)
-  Review written to: reviews/rule-reviews/001-memory-bank-claude-sonnet-45-2026-01-06.md
+  Review written to: reviews/rule-reviews/001-memory-bank-claude-sonnet-4-6-2026-01-06.md
 
 [3/187] Reviewing: rules/002-rule-governance.md
   Invoking rule-reviewer skill...
@@ -115,7 +115,7 @@ Skip existing: true
               Consistency (13/15), Parsability (14/15),
               Token Efficiency (9/10), Staleness (8/10)
    Complete: 88/100 (EXECUTABLE_WITH_REFINEMENTS)
-  Review written to: reviews/rule-reviews/002-rule-governance-claude-sonnet-45-2026-01-06.md
+  Review written to: reviews/rule-reviews/002-rule-governance-claude-sonnet-4-6-2026-01-06.md
 
 [4/187] Reviewing: rules/002a-rule-creation.md
   Invoking rule-reviewer skill...
@@ -124,7 +124,7 @@ Skip existing: true
               Consistency (14/15), Parsability (15/15),
               Token Efficiency (9/10), Staleness (10/10)
    Complete: 96/100 (EXECUTABLE)
-  Review written to: reviews/rule-reviews/002a-rule-creation-guide-claude-sonnet-45-2026-01-06.md
+  Review written to: reviews/rule-reviews/002a-rule-creation-guide-claude-sonnet-4-6-2026-01-06.md
 
 [5/187] Reviewing: rules/002b-rule-maintenance.md
   Invoking rule-reviewer skill...
@@ -133,7 +133,7 @@ Skip existing: true
               Consistency (13/15), Parsability (14/15),
               Token Efficiency (8/10), Staleness (9/10)
    Complete: 89/100 (EXECUTABLE_WITH_REFINEMENTS)
-  Review written to: reviews/rule-reviews/002b-rule-maintenance-claude-sonnet-45-2026-01-06.md
+  Review written to: reviews/rule-reviews/002b-rule-maintenance-claude-sonnet-4-6-2026-01-06.md
 
 ...
 ```
@@ -245,7 +245,7 @@ Generating master summary report...
 
 ============================================================
 Master summary report written to:
-  reviews/summaries/_bulk-review-claude-sonnet-45-2026-01-06.md
+  reviews/summaries/_bulk-review-claude-sonnet-4-6-2026-01-06.md
 ============================================================
 
 Bulk rule review complete!
@@ -324,7 +324,7 @@ Focus on quantifying all thresholds and adding explicit error recovery.
 
 **Estimated Effort:** 4-6 hours
 
-**Review:** reviews/deprecated-legacy-rule-claude-sonnet-45-2026-01-06.md
+**Review:** reviews/deprecated-legacy-rule-claude-sonnet-4-6-2026-01-06.md
 
 ---
 
@@ -342,7 +342,7 @@ Focus on quantifying all thresholds and adding explicit error recovery.
 
 **Estimated Effort:** 2-3 hours
 
-**Review:** reviews/incomplete-experimental-claude-sonnet-45-2026-01-06.md
+**Review:** reviews/incomplete-experimental-claude-sonnet-4-6-2026-01-06.md
 ```
 
 ---
@@ -408,14 +408,14 @@ Focus on quantifying all thresholds and adding explicit error recovery.
 
 ```
 reviews/
-├── 000-global-core-claude-sonnet-45-2026-01-06.md (100/100)
-├── 001-memory-bank-claude-sonnet-45-2026-01-06.md (94/100)
-├── 002-rule-governance-claude-sonnet-45-2026-01-06.md (88/100)
-├── 002a-rule-creation-guide-claude-sonnet-45-2026-01-06.md (96/100)
-├── 002b-rule-maintenance-claude-sonnet-45-2026-01-06.md (89/100)
+├── 000-global-core-claude-sonnet-4-6-2026-01-06.md (100/100)
+├── 001-memory-bank-claude-sonnet-4-6-2026-01-06.md (94/100)
+├── 002-rule-governance-claude-sonnet-4-6-2026-01-06.md (88/100)
+├── 002a-rule-creation-guide-claude-sonnet-4-6-2026-01-06.md (96/100)
+├── 002b-rule-maintenance-claude-sonnet-4-6-2026-01-06.md (89/100)
 ...
-├── 950-create-dbt-semantic-view-claude-sonnet-45-2026-01-06.md (91/100)
-└── _bulk-review-claude-sonnet-45-2026-01-06.md (master summary)
+├── 950-create-dbt-semantic-view-claude-sonnet-4-6-2026-01-06.md (91/100)
+└── _bulk-review-claude-sonnet-4-6-2026-01-06.md (master summary)
 ```
 
 ---
@@ -484,7 +484,7 @@ This walkthrough mirrors the run above but with `timing_enabled: true`. The prod
 ```
 review_date: 2026-04-21
 review_mode: FULL
-model: claude-sonnet-45
+model: claude-sonnet-4-6
 filter_pattern: rules/100-*.md
 max_parallel: 5
 timing_enabled: true

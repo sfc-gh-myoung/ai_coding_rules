@@ -21,7 +21,7 @@ This is how skill composition works in Claude Code - orchestrator skills load an
 - List of rule file paths (from discovery.md)
 - `review_date`: Date stamp for reviews (YYYY-MM-DD)
 - `review_mode`: FULL | FOCUSED | STALENESS
-- `model`: Model identifier (e.g., claude-sonnet-45)
+- `model`: Model identifier (e.g., claude-sonnet-4-6)
 - `skip_existing`: Boolean (default: true)
 - `max_parallel`: Integer 1-10 (default: 5) - Number of concurrent sub-agents
 - `output_root`: Root directory for output files (default: `reviews/`)
@@ -414,7 +414,7 @@ def extract_metadata_from_review(review_path):
 def parse_review_path(review_result_text):
     """Parse review file path from rule-reviewer output.
     
-    Expected format: "Review written to: reviews/100-snowflake-core-claude-sonnet-45-2026-01-06.md"
+    Expected format: "Review written to: reviews/100-snowflake-core-claude-sonnet-4-6-2026-01-06.md"
     """
     import re
     
@@ -481,7 +481,7 @@ def execute_rule_review_workflow(target_file, review_date, review_mode, model):
         target_file: Path to rule file (e.g., rules/100-snowflake-core.md)
         review_date: Date stamp (YYYY-MM-DD)
         review_mode: FULL | FOCUSED | STALENESS
-        model: Model identifier (e.g., claude-sonnet-45)
+        model: Model identifier (e.g., claude-sonnet-4-6)
     
     Returns:
         dict with keys: review_path, score, verdict, critical_issues
@@ -616,7 +616,7 @@ Only show the minimal progress output below. Do NOT display:
 
 ```
 Starting bulk review: 187 rules
-Review mode: FULL | Model: claude-sonnet-45 | Date: 2026-01-06
+Review mode: FULL | Model: claude-sonnet-4-6 | Date: 2026-01-06
 Skip existing: true
 
 [1/187] Starting: 000-global-core.md

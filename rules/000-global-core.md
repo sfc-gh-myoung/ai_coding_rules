@@ -260,4 +260,3 @@ When approaching context limits, preserve rules in this priority order:
 **NEVER:** Summarize AGENTS.md or 000-global-core.md. Drop active domain -core.md while working in that domain.
 
 For decision tree, -core.md recognition patterns, and ContextTier relationship, see `rules/003-context-engineering.md`.
-

@@ -21,7 +21,7 @@ Execute validation before Stage 1 (Discovery). Fail fast on invalid inputs.
 - Case-sensitive (uppercase only)
 
 ### model
-- Format: lowercase-hyphenated (e.g., `claude-sonnet-45`, `gpt-4`)
+- Format: lowercase-hyphenated (e.g., `claude-sonnet-4-6`, `gpt-4`)
 - Regex: `^[a-z0-9]+(-[a-z0-9]+)*$`
 - Length: 3-50 characters
 
@@ -90,7 +90,7 @@ def validate_inputs(review_date, review_mode, model, filter_pattern=None,
     
     # Validate model
     if not re.match(r'^[a-z0-9]+(-[a-z0-9]+)*$', model):
-        errors.append(f"Invalid model: '{model}' - Expected: lowercase-hyphenated (e.g., claude-sonnet-45)")
+        errors.append(f"Invalid model: '{model}' - Expected: lowercase-hyphenated (e.g., claude-sonnet-4-6)")
     
     # Validate filter_pattern (if provided)
     if filter_pattern is not None:

@@ -274,12 +274,10 @@ class SchemaValidator:
             column = pos - line_start + 1
 
             # Get line preview (handle line containing null byte)
-            if line_num <= len(lines):
-                preview = lines[line_num - 1][:60].replace("\x00", "<NUL>")
-                if len(lines[line_num - 1]) > 60:
-                    preview += "..."
-            else:
-                preview = "<unable to extract>"
+            # line_num is always <= len(lines) for any valid pos in content
+            preview = lines[line_num - 1][:60].replace("\x00", "<NUL>")
+            if len(lines[line_num - 1]) > 60:
+                preview += "..."
 
             locations.append(
                 {
@@ -1200,7 +1198,10 @@ class SchemaValidator:
                 )
 
             # Check for ASCII tables (Priority 1 violation)
-            if table_pattern.search(line_without_inline_code):
+            # RULES_INDEX.md and its template are intentionally tabular grep-metadata —
+            # the rule-loader depends on the pipe-delimited format, so exempt them here.
+            is_rules_index = result.file_path.name in {"RULES_INDEX.md", "RULES_INDEX.md.template"}
+            if not is_rules_index and table_pattern.search(line_without_inline_code):
                 result.errors.append(
                     ValidationError(
                         severity="HIGH",
@@ -1557,12 +1558,10 @@ class ExampleValidator:
             column = pos - line_start + 1
 
             # Get line preview (handle line containing null byte)
-            if line_num <= len(lines):
-                preview = lines[line_num - 1][:60].replace("\x00", "<NUL>")
-                if len(lines[line_num - 1]) > 60:
-                    preview += "..."
-            else:
-                preview = "<unable to extract>"
+            # line_num is always <= len(lines) for any valid pos in content
+            preview = lines[line_num - 1][:60].replace("\x00", "<NUL>")
+            if len(lines[line_num - 1]) > 60:
+                preview += "..."
 
             locations.append(
                 {
@@ -1827,14 +1826,14 @@ def validate(
         bool,
         typer.Option(
             "--examples",
-            help="Validate example files in rules/examples/ against example-schema.yml.",
+            help="Validate example files in <PATH>/examples/ against example-schema.yml. If PATH already ends in 'examples', it is used directly. Defaults to rules/examples/ when PATH is omitted.",
         ),
     ] = False,
     templates: Annotated[
         bool,
         typer.Option(
             "--templates",
-            help="Validate AGENTS template files against ASCII pattern rules.",
+            help="Always validates the repo-root templates/ directory. If PATH already ends in 'templates', that directory is used directly; PATH is otherwise ignored for template resolution.",
         ),
     ] = False,
 ) -> None:
@@ -1859,7 +1858,7 @@ def validate(
         # Validate example files
         ai-rules validate rules/examples/ --examples
     """
-    if path is None:
+    if path is None and not examples and not templates:
         console.print(ctx.get_help())
         raise typer.Exit(0)
 
@@ -1870,132 +1869,136 @@ def validate(
         log_error("Could not find project root (no pyproject.toml found)")
         raise typer.Exit(1) from None
 
-    # Handle --examples mode separately
-    if examples:
-        try:
-            example_validator = ExampleValidator(debug=debug, project_root=project_root)
-        except Exception as e:
-            log_error(f"Error loading example schema: {e}")
-            raise typer.Exit(1) from None
+    # Handle --examples and/or --templates mode.
+    # Both flags may be active simultaneously; run each and report combined results.
+    if examples or templates:
+        overall_failed = False
 
-        # Determine examples directory
-        if path.is_dir():
-            examples_dir = path
-        else:
-            # Assume rules/examples/ if a file is specified
-            examples_dir = (
-                path.parent if "examples" in str(path) else project_root / "rules" / "examples"
-            )
+        if examples:
+            try:
+                example_validator = ExampleValidator(debug=debug, project_root=project_root)
+            except Exception as e:
+                log_error(f"Error loading example schema: {e}")
+                raise typer.Exit(1) from None
 
-        if not examples_dir.exists():
-            log_info(f"Examples directory not found: {examples_dir}")
-            raise typer.Exit(0)  # Not an error if no examples exist yet
+            # Derive examples directory from PATH.
+            # Direct-leaf form: if PATH already IS an "examples" dir, use it directly.
+            # Otherwise: append /examples to avoid scanning all files under PATH.
+            if path is None:
+                examples_dir = project_root / "rules" / "examples"
+            else:
+                base = path.parent if path.is_file() else path
+                examples_dir = base if base.name == "examples" else base / "examples"
 
-        results = example_validator.validate_directory(examples_dir, verbose=verbose)
+            if not examples_dir.exists():
+                log_info(f"No examples directory found at {examples_dir}")
+            else:
+                results_ex = example_validator.validate_directory(examples_dir, verbose=verbose)
 
-        if not results:
-            log_info(f"No example files found in {examples_dir}")
-            raise typer.Exit(0)
+                if not results_ex:
+                    log_info(f"No example files found in {examples_dir}")
+                else:
+                    if verbose:
+                        for result in results_ex:
+                            example_validator.format_result(result, detailed=True)
+                            console.print()
 
-        if verbose:
-            for result in results:
-                example_validator.format_result(result, detailed=True)
-                console.print()
+                    total_files = len(results_ex)
+                    ex_failed = sum(1 for r in results_ex if r.has_critical_or_high)
+                    ex_clean = sum(1 for r in results_ex if r.is_clean)
 
-        # Print summary
-        total_files = len(results)
-        failed = sum(1 for r in results if r.has_critical_or_high)
-        clean = sum(1 for r in results if r.is_clean)
+                    if ex_failed > 0 and not verbose:
+                        console.print("\n[bold red]FAILED EXAMPLES:[/bold red]")
+                        for result in results_ex:
+                            if result.has_critical_or_high:
+                                console.print(f"  • {result.file_path.name}")
+                                for error in result.errors:
+                                    if error.severity in ("CRITICAL", "HIGH"):
+                                        console.print(f"    [dim]{error.message}[/dim]")
+                                        break
+                        console.print()
 
-        # List failed examples (even without verbose mode)
-        if failed > 0 and not verbose:
-            console.print("\n[bold red]FAILED EXAMPLES:[/bold red]")
-            for result in results:
-                if result.has_critical_or_high:
-                    console.print(f"  • {result.file_path.name}")
-                    # Show first error for context
-                    for error in result.errors:
-                        if error.severity in ("CRITICAL", "HIGH"):
-                            console.print(f"    [dim]{error.message}[/dim]")
-                            break
-            console.print()
+                    summary_table = Table(title="Example Validation Summary")
+                    summary_table.add_column("Metric", style="bold")
+                    summary_table.add_column("Count", justify="right")
+                    summary_table.add_row("Total examples", str(total_files))
+                    summary_table.add_row("[green]Valid[/green]", str(ex_clean))
+                    summary_table.add_row("[red]Invalid[/red]", str(ex_failed))
+                    console.print(summary_table)
 
-        summary_table = Table(title="Example Validation Summary")
-        summary_table.add_column("Metric", style="bold")
-        summary_table.add_column("Count", justify="right")
-        summary_table.add_row("Total examples", str(total_files))
-        summary_table.add_row("[green]Valid[/green]", str(clean))
-        summary_table.add_row("[red]Invalid[/red]", str(failed))
-        console.print(summary_table)
+                    if ex_failed > 0:
+                        overall_failed = True
 
-        if failed > 0:
-            raise typer.Exit(1) from None
-        raise typer.Exit(0)
+        if templates:
+            try:
+                validator = SchemaValidator(
+                    schema_path=schema, debug=debug, project_root=project_root
+                )
+            except Exception as e:
+                log_error(f"Error loading schema: {e}")
+                raise typer.Exit(1) from None
 
-    # Handle --templates mode separately
-    if templates:
-        try:
-            validator = SchemaValidator(schema_path=schema, debug=debug, project_root=project_root)
-        except Exception as e:
-            log_error(f"Error loading schema: {e}")
-            raise typer.Exit(1) from None
+            # Templates directory is always <project_root>/templates/.
+            # Direct-leaf exception: if PATH itself is named "templates", use it directly.
+            # PATH is otherwise ignored for template resolution.
+            if path is None:
+                templates_dir = project_root / "templates"
+            else:
+                base = path.parent if path.is_file() else path
+                templates_dir = base if base.name == "templates" else project_root / "templates"
 
-        # Determine templates directory
-        if path.is_dir():
-            templates_dir = path
-        else:
-            templates_dir = path.parent if "templates" in str(path) else project_root / "templates"
+            if not templates_dir.exists():
+                log_info(f"No templates directory found at {templates_dir}")
+            else:
+                template_files = sorted(templates_dir.glob("*.md.template"))
 
-        if not templates_dir.exists():
-            log_info(f"Templates directory not found: {templates_dir}")
-            raise typer.Exit(0)
+                if not template_files:
+                    log_info(f"No template files found in {templates_dir}")
+                else:
+                    results_t: list[ValidationResult] = []
+                    for template_path in template_files:
+                        result = validator.validate_agents_md(template_path)
+                        results_t.append(result)
 
-        template_files = sorted(templates_dir.glob("*.md.template"))
+                    if verbose:
+                        for result in results_t:
+                            validator.format_result(result, detailed=True)
+                            console.print()
 
-        if not template_files:
-            log_info(f"No template files found in {templates_dir}")
-            raise typer.Exit(0)
+                    total_files_t = len(results_t)
+                    t_failed = sum(1 for r in results_t if r.has_critical_or_high)
+                    t_clean = sum(1 for r in results_t if r.is_clean)
 
-        results: list[ValidationResult] = []
-        for template_path in template_files:
-            result = validator.validate_agents_md(template_path)
-            results.append(result)
+                    if t_failed > 0 and not verbose:
+                        console.print("\n[bold red]FAILED TEMPLATES:[/bold red]")
+                        for result in results_t:
+                            if result.has_critical_or_high:
+                                console.print(f"  • {result.file_path.name}")
+                                for error in result.errors:
+                                    if error.severity in ("CRITICAL", "HIGH"):
+                                        console.print(f"    [dim]{error.message}[/dim]")
+                                        break
+                        console.print()
 
-        if verbose:
-            for result in results:
-                validator.format_result(result, detailed=True)
-                console.print()
+                    summary_table_t = Table(title="Template Validation Summary")
+                    summary_table_t.add_column("Metric", style="bold")
+                    summary_table_t.add_column("Count", justify="right")
+                    summary_table_t.add_row("Total templates", str(total_files_t))
+                    summary_table_t.add_row("[green]Valid[/green]", str(t_clean))
+                    summary_table_t.add_row("[red]Invalid[/red]", str(t_failed))
+                    console.print(summary_table_t)
 
-        # Print summary
-        total_files = len(results)
-        failed = sum(1 for r in results if r.has_critical_or_high)
-        clean = sum(1 for r in results if r.is_clean)
+                    if t_failed > 0:
+                        overall_failed = True
 
-        # List failed templates (even without verbose mode)
-        if failed > 0 and not verbose:
-            console.print("\n[bold red]FAILED TEMPLATES:[/bold red]")
-            for result in results:
-                if result.has_critical_or_high:
-                    console.print(f"  • {result.file_path.name}")
-                    for error in result.errors:
-                        if error.severity in ("CRITICAL", "HIGH"):
-                            console.print(f"    [dim]{error.message}[/dim]")
-                            break
-            console.print()
-
-        summary_table = Table(title="Template Validation Summary")
-        summary_table.add_column("Metric", style="bold")
-        summary_table.add_column("Count", justify="right")
-        summary_table.add_row("Total templates", str(total_files))
-        summary_table.add_row("[green]Valid[/green]", str(clean))
-        summary_table.add_row("[red]Invalid[/red]", str(failed))
-        console.print(summary_table)
-
-        if failed > 0:
+        if overall_failed:
             raise typer.Exit(1) from None
         raise typer.Exit(0)
 
     # Initialize validator for rule files
+    # path is non-None here: flags branches always exit; no-path/no-flags exits above.
+    if path is None:  # pragma: no cover
+        raise typer.Exit(0)
     try:
         validator = SchemaValidator(schema_path=schema, debug=debug, project_root=project_root)
     except Exception as e:

@@ -10,7 +10,7 @@ SCRIPT=skills/skill-timer/scripts/skill_timer.py
 
 # 1. Start
 $PYTHON $SCRIPT start --skill rule-reviewer \
-    --target rules/200-python-core.md --model claude-sonnet-45 --mode FULL
+    --target rules/200-python-core.md --model claude-sonnet-4-6 --mode FULL
 # -> capture TIMING_RUN_ID into _timing_run_id
 
 # 2. Bootstrap checkpoint (after setup complete)
@@ -29,7 +29,7 @@ $PYTHON $SCRIPT checkpoint --run-id {{_timing_run_id}} --name review_complete
 
 # 5. End — --auto-dimension-timings derives dimension_timings from checkpoint pairs
 $PYTHON $SCRIPT end --run-id {{_timing_run_id}} \
-    --output-file reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-08.md \
+    --output-file reviews/rule-reviews/200-python-core-claude-sonnet-4-6-2026-01-08.md \
     --skill rule-reviewer --format markdown \
     --auto-dimension-timings
 # Verify: stdout contains PER_DIMENSION_STATUS=derived

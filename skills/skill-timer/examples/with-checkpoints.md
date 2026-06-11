@@ -8,7 +8,7 @@ Time a skill execution with intermediate checkpoints to identify bottlenecks.
 
 - skill_name: `rule-reviewer`
 - target_file: `rules/200-python-core.md`
-- model: `claude-sonnet-45`
+- model: `claude-sonnet-4-6`
 - mode: `FULL`
 
 ## Workflow
@@ -20,7 +20,7 @@ PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
 $PYTHON skills/skill-timer/scripts/skill_timer.py start \
     --skill rule-reviewer \
     --target rules/200-python-core.md \
-    --model claude-sonnet-45 \
+    --model claude-sonnet-4-6 \
     --mode FULL
 ```
 
@@ -82,7 +82,7 @@ TIMING: skill-timer v1.3.0
 Run ID:      a1b2c3d4e5f67890
 Skill:       rule-reviewer
 Target:      rules/200-python-core.md
-Model:       claude-sonnet-45
+Model:       claude-sonnet-4-6
 Agent:       cortex-code
 ----------------------------------------
 Start:       2026-01-06T10:30:00+00:00
@@ -139,7 +139,7 @@ The checkpoints reveal where time is spent:
 |-------|-------|
 | Run ID | `a1b2c3d4e5f67890` |
 | Skill | rule-reviewer |
-| Model | claude-sonnet-45 |
+| Model | claude-sonnet-4-6 |
 | Agent | cortex-code |
 | Start (UTC) | 2026-01-06T10:30:00+00:00 |
 | End (UTC) | 2026-01-06T10:34:30+00:00 |

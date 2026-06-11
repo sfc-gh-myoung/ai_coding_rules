@@ -107,7 +107,7 @@ The GitHub Actions CI workflow runs automatically on pushes and PRs to `main`:
 |-----|---------|---------|
 | `quality` | Code quality | ruff lint, ruff format, ty type check |
 | `markdown` | Markdown linting | pymarkdownlnt for rules/ and docs/ |
-| `test` | Unit tests | pytest with Python 3.11, 3.12, 3.13 matrix |
+| `test` | Unit tests | pytest with Python 3.12, 3.13 matrix |
 | `validate` | Rules validation | schema validation, `rules/RULES_INDEX.md` check, `rule-loader-validate` (trigger-evidence invariant; pure-Python) |
 
 All jobs run in parallel for fast feedback. Ensure all checks pass before requesting review.
@@ -196,7 +196,7 @@ The project uses a production-ready rules architecture. For complete details, se
 
 We use modern Python tooling for consistent development:
 
-- **Python 3.11+** - Language runtime
+- **Python 3.12+** - Language runtime
 - **uv** - Fast Python package installer and resolver
 - **Ruff** - Lightning-fast linting and formatting
 - **ty** - Fast type checker (Astral toolchain)

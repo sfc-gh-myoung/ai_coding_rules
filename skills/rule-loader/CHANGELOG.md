@@ -4,4 +4,15 @@ All notable changes to the `rule-loader` skill. Current version is tracked in `S
 
 ## v1.2.0 — Current
 
-Rule loading skill. No prior version history was documented inside SKILL.md. Record future changes here going forward.
+### Added
+
+- **Multi-phase loading algorithm** — foundation (000-global-core.md) always loaded first,
+  then domain rules matched by file extension, then activity rules matched by request keywords
+- **Token budget management** — respects context window limits; lower-priority rules deferred
+  when budget exceeded
+- **Dependency resolution** — loads rule dependencies declared in `Depends:` metadata field
+- **Directory-based rule override** — requests targeting `rules/` load 002-rule-governance.md;
+  requests targeting `skills/` load 002h-claude-code-skills.md
+- **RULES_INDEX.md grep fallback** — when grep is unavailable, falls back to read_file +
+  manual scan rather than failing the gate
+- **Periodic refresh** — forces full Step 1-4 reload on every 5th response or after errors

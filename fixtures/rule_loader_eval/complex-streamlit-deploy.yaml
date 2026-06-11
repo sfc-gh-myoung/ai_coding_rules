@@ -24,7 +24,6 @@ expected:
       # missing: rule has no file-context triggers (ext:/file:/dir:)
     - rules/101l-snowflake-streamlit-deployment.md  # auto-demoted: no trigger evidence
       # missing: rule has no file-context triggers (ext:/file:/dir:)
-    - rules/109b-snowflake-app-deployment-core.md  # triggered by kw:deploy in streamlit deploy context
     - rules/112-snowflake-snowcli.md  # triggered: kw:deploy command matches "the deploy command" in prompt
 trigger_evidence:
   kw: [dashboard, streamlit, warehouse]   # suggested

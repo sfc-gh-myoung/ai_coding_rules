@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.2.2
-**LastUpdated:** 2026-03-26
+**RuleVersion:** v1.2.3
+**LastUpdated:** 2026-06-10
 **Keywords:** kw:rule update, kw:rule maintenance, kw:versioning, kw:ruleversion, kw:lastupdated, kw:semantic versioning, kw:major, kw:minor, kw:patch, kw:rule modification, kw:keyword expansion, kw:scope updates, kw:metadata updates, kw:changelog updates
 **TokenBudget:** ~3950
 **ContextTier:** High
@@ -44,7 +44,7 @@ Workflow and best practices for updating and maintaining existing rule files. Co
 
 ### External Documentation
 
-- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema with validation rules
+- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.3 schema with validation rules
 - **Semantic Versioning:** https://semver.org/spec/v2.0.0.html - Versioning specification
 
 ## Contract
@@ -136,7 +136,7 @@ Updated rule file with:
 - Changing Contract structure fundamentally (e.g., XML to Markdown migration)
 - Removing mandatory tools, commands, or dependencies
 - Changing execution workflow in incompatible ways
-- Schema version upgrades (v3.1 to v3.2)
+- Schema version upgrades (v3.2 to v3.3)
 - Removing keywords that agents rely on for discovery
 
 **MINOR (vX.Y.0)** - Additive changes enhancing functionality:
@@ -214,10 +214,20 @@ Before:
 **LastUpdated:** 2026-03-09
 
 After:
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-03-09
 ```
+
+### v3.2 to v3.3 Migration Checklist
+
+When updating a rule file from schema v3.2 to v3.3:
+
+1. Update `SchemaVersion:` field from `v3.2` to `v3.3` if not already v3.3
+2. Verify all `ext:` entries in RULES_INDEX.md use the current format
+3. Confirm `ContextTier` field is present (added in v3.3)
+4. Run `uv run ai-rules validate rules/` to confirm schema compliance
+5. Update `RuleVersion` per semantic versioning and set `LastUpdated` to today
 
 ## When to Update Rules
 

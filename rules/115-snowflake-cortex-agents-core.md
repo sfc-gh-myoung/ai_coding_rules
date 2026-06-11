@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** kw:agent, kw:cortex-agent, kw:multi-tool agents, kw:planning instructions, kw:testing, kw:troubleshooting, kw:semantic views, kw:create agent, kw:debug agent, kw:agent not working, kw:tool execution failed, kw:agent error, kw:fix agent
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-06-10
+**Keywords:** kw:agent, kw:cortex-agent, kw:cortex agent, kw:multi-tool agents, kw:planning instructions, kw:testing, kw:troubleshooting, kw:semantic views, kw:create agent, kw:debug agent, kw:agent not working, kw:tool execution failed, kw:agent error, kw:fix agent
 **TokenBudget:** ~3100
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md, required:106-snowflake-semantic-views-core.md

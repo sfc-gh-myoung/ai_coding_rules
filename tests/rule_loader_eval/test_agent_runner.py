@@ -301,3 +301,137 @@ def test_citation_drift_uses_rules_loaded_citations() -> None:
     citations = extract_citations(text, "Rules Loaded")
     c = citations["rules/999-test-core.md"]
     assert c.line_count == 601
+
+
+# ---------------------------------------------------------------------------
+# Additional branch coverage for agent_runner.py non-live functions
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_parse_reads_performed_section_with_heading_in_section() -> None:
+    """parse_reads_performed_section stops at the next heading inside the section."""
+    text = (
+        "## Reads Performed\n"
+        "- rules/100-snowflake-core.md (loaded)\n"
+        "## Next Section\n"
+        "- rules/200-python-core.md (should be ignored)\n"
+    )
+    result = parse_reads_performed_section(text)
+    assert "rules/100-snowflake-core.md" in result
+    assert "rules/200-python-core.md" not in result
+
+
+@pytest.mark.unit
+def test_parse_reads_performed_section_nonempty_text() -> None:
+    """parse_reads_performed_section with non-empty text containing section returns paths."""
+    text = "Some preamble.\n## Reads Performed\n- rules/999-test-core.md (loaded)\n"
+    result = parse_reads_performed_section(text)
+    assert "rules/999-test-core.md" in result
+
+
+@pytest.mark.unit
+def test_parse_bootstrap_line_found_returns_counts() -> None:
+    """parse_bootstrap_line extracts n_loaded and n_failed from the Bootstrap line."""
+    text = "**Bootstrap:** 3 rules loaded, 1 failed\n"
+    result = parse_bootstrap_line(text)
+    assert result["found"] is True
+    assert result["n_loaded"] == 3
+    assert result["n_failed"] == 1
+
+
+@pytest.mark.unit
+def test_validate_output_shape_empty_text() -> None:
+    """validate_output_shape returns a single 'empty' violation for empty text."""
+    from ai_rules.rule_loader_eval.agent_runner import validate_output_shape
+
+    result = validate_output_shape("", loaded_count=0)
+    assert len(result) == 1
+    assert "empty" in result[0]
+
+
+@pytest.mark.unit
+def test_extract_citations_empty_text_returns_empty() -> None:
+    """extract_citations returns {} when text is empty."""
+    result = extract_citations("", "Rules Loaded")
+    assert result == {}
+
+
+@pytest.mark.unit
+def test_extract_citations_section_broken_by_heading() -> None:
+    """extract_citations stops collecting when it hits a heading inside the section."""
+    text = (
+        "**Rules Loaded**\n"
+        "- rules/100-snowflake-core.md (loaded)\n"
+        "## Another Heading\n"
+        "- rules/200-python-core.md (should be ignored)\n"
+    )
+    result = extract_citations(text, "Rules Loaded")
+    assert "rules/100-snowflake-core.md" in result
+    assert "rules/200-python-core.md" not in result
+
+
+@pytest.mark.unit
+def test_extract_citations_line_without_rule_path_skipped() -> None:
+    """Lines in the section with no rule paths are skipped gracefully."""
+    text = "**Rules Loaded**\n- (no rule path here)\n- rules/100-snowflake-core.md (loaded)\n"
+    result = extract_citations(text, "Rules Loaded")
+    # Only the actual rule path should appear
+    assert "rules/100-snowflake-core.md" in result
+
+
+@pytest.mark.unit
+def test_extract_citations_path_without_line_count() -> None:
+    """A rule path with no line count creates a Citation with line_count=None."""
+    text = "**Rules Loaded**\n- rules/100-snowflake-core.md (loaded)\n"
+    result = extract_citations(text, "Rules Loaded")
+    c = result["rules/100-snowflake-core.md"]
+    assert c.line_count is None
+    assert not c.failed
+
+
+@pytest.mark.unit
+def test_extract_citations_non_rules_loaded_heading() -> None:
+    """extract_citations works with a custom (non-Rules-Loaded) heading."""
+    text = "## Reads Performed\n- rules/100-snowflake-core.md (loaded)\n"
+    result = extract_citations(text, "Reads Performed")
+    assert "rules/100-snowflake-core.md" in result
+
+
+@pytest.mark.unit
+def test_normalize_to_repo_rule_non_relative_path_returns_none() -> None:
+    """_normalize_to_repo_rule returns None when path is outside project_root."""
+    from pathlib import Path
+
+    from ai_rules.rule_loader_eval.agent_runner import _normalize_to_repo_rule
+
+    result = _normalize_to_repo_rule(
+        "/some/completely/other/path/rules/test.md", Path("/my/project")
+    )
+    assert result is None
+
+
+@pytest.mark.unit
+def test_normalize_to_repo_rule_non_rules_path_returns_none(tmp_path) -> None:
+    """_normalize_to_repo_rule returns None for paths not in rules/*.md."""
+    from ai_rules.rule_loader_eval.agent_runner import _normalize_to_repo_rule
+
+    # Path is under project_root but not in rules/
+    non_rules = tmp_path / "src" / "something.py"
+    non_rules.parent.mkdir(parents=True)
+    non_rules.touch()
+    result = _normalize_to_repo_rule(str(non_rules), tmp_path)
+    assert result is None
+
+
+@pytest.mark.unit
+def test_normalize_to_repo_rule_valid_rules_path(tmp_path) -> None:
+    """_normalize_to_repo_rule returns relative path for a rules/*.md file."""
+    from ai_rules.rule_loader_eval.agent_runner import _normalize_to_repo_rule
+
+    rules_dir = tmp_path / "rules"
+    rules_dir.mkdir()
+    rule_file = rules_dir / "100-snowflake-core.md"
+    rule_file.touch()
+    result = _normalize_to_repo_rule(str(rule_file), tmp_path)
+    assert result == "rules/100-snowflake-core.md"

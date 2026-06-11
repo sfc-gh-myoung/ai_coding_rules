@@ -26,12 +26,12 @@ Use the rule-reviewer skill.
 target_file: rules/200-python-core.md
 review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet-45
+model: claude-sonnet-4-6
 ```
 
-Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
+Output: `reviews/rule-reviews/200-python-core-claude-sonnet-4-6-2026-01-06.md`
 
-(With `output_root: mytest/` → `mytest/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`)
+(With `output_root: mytest/` → `mytest/rule-reviews/200-python-core-claude-sonnet-4-6-2026-01-06.md`)
 
 ## Scoring System (100 points)
 
@@ -248,7 +248,7 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
 - **target_file:** Path to file (e.g., `rules/200-python-core.md`, `AGENTS.md`, `PROJECT.md`)
 - **review_date:** ISO 8601 format (YYYY-MM-DD)
 - **review_mode:** FULL | FOCUSED | STALENESS
-- **model:** Lowercase-hyphenated slug (e.g., `claude-sonnet-45`)
+- **model:** Lowercase-hyphenated slug (e.g., `claude-sonnet-4-6`)
 - **output_root:** (optional) Root directory for output files (default: `reviews/`). Subdirectory `rule-reviews/` is appended automatically. Supports relative paths including `../`.
 - **overwrite:** (optional) true | false (default: false) — If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
 - **timing_enabled:** (optional) true | false (default: true) — set to `false` to explicitly opt out; the Per-Dimension Timing section is then satisfied by a single `not-requested` row.

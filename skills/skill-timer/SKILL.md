@@ -18,7 +18,7 @@ Use the skill-timer skill.
 
 skill_name: rule-reviewer
 target_file: rules/200-python-core.md
-model: claude-sonnet-45
+model: claude-sonnet-4-6
 review_mode: FULL
 timing_enabled: true
 ```
@@ -109,7 +109,7 @@ Enable comprehensive performance measurement and analysis:
 ### Required (timing-start)
 - `skill_name`: `string` — Name of the skill being timed
 - `target_file`: `path` — Target file path
-- `model`: `string` — Model slug (e.g., claude-sonnet-45)
+- `model`: `string` — Model slug (e.g., claude-sonnet-4-6)
 
 ### Required (timing-end)
 - `run_id`: `hex string (16 chars)` — From timing-start output
@@ -164,7 +164,7 @@ Initialize timing for a skill execution.
 **Required inputs:**
 - `skill_name` - Name of the skill being timed
 - `target_file` - Target file path
-- `model` - Model slug (e.g., claude-sonnet-45)
+- `model` - Model slug (e.g., claude-sonnet-4-6)
 - `review_mode` - Review mode if applicable (default: FULL)
 
 **Command:**
@@ -173,7 +173,7 @@ PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
 $PYTHON skills/skill-timer/scripts/skill_timer.py start \
     --skill rule-reviewer \
     --target rules/200-python-core.md \
-    --model claude-sonnet-45 \
+    --model claude-sonnet-4-6 \
     --mode FULL
 ```
 
@@ -289,13 +289,13 @@ Set a performance baseline from recent timing data (requires 5+ runs).
 $PYTHON skills/skill-timer/scripts/skill_timer.py baseline set \
     --skill rule-reviewer \
     --mode FULL \
-    --model claude-sonnet-45 \
+    --model claude-sonnet-4-6 \
     --days 30
 ```
 
 **Output:**
 ```
-Baseline set for rule-reviewer/FULL/claude-sonnet-45:
+Baseline set for rule-reviewer/FULL/claude-sonnet-4-6:
   Sample size: 12
   Average: 6m 24s (384.1s)
   Median: 6m 18s (378.0s)
@@ -321,7 +321,7 @@ Analyze timing data across multiple runs.
 ```bash
 $PYTHON skills/skill-timer/scripts/skill_timer.py analyze \
     --skill rule-reviewer \
-    --model claude-sonnet-45 \
+    --model claude-sonnet-4-6 \
     --days 7 \
     --format json \
     --per-dimension
@@ -340,7 +340,7 @@ $PYTHON skills/skill-timer/scripts/skill_timer.py analyze \
 ### [CONDITIONAL] Timing Instrumentation
 
 **Execute IF:** `timing_enabled: true`
-**Skip IF:** `timing_enabled: false` (default)
+**Skip IF:** `timing_enabled: false`
 
 **When enabled, execute ALL steps:**
 

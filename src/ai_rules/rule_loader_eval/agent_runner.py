@@ -45,6 +45,13 @@ from ai_rules.rule_loader_eval.defaults import DEFAULT_EFFORT, DEFAULT_MAX_TURNS
 RULE_PATH_RE = re.compile(r"(?<![A-Za-z0-9_])rules/[A-Za-z0-9_.-]+\.md")
 
 
+def _usage_get(usage: object, key: str, default: int = 0) -> int:
+    """Return a token count from a usage object that may be dict or attrs."""
+    if isinstance(usage, dict):
+        return usage.get(key, default) or default  # type: ignore
+    return getattr(usage, key, default) or default
+
+
 @dataclass(frozen=True)
 class TurnEvent:
     """One event captured from the live SDK message loop, with timestamp.
@@ -601,11 +608,11 @@ async def run_live_async(
             )
             usage = getattr(message, "usage", None) or {}
             input_tokens = (
-                (usage.get("input_tokens") or 0)
-                + (usage.get("cache_creation_input_tokens") or 0)
-                + (usage.get("cache_read_input_tokens") or 0)
+                _usage_get(usage, "input_tokens")
+                + _usage_get(usage, "cache_creation_input_tokens")
+                + _usage_get(usage, "cache_read_input_tokens")
             )
-            output_tokens = usage.get("output_tokens") or 0
+            output_tokens = _usage_get(usage, "output_tokens")
             total_cost_usd = getattr(message, "total_cost_usd", None) or 0.0
             events.append(
                 TurnEvent(

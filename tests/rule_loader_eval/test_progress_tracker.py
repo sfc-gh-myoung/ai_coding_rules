@@ -456,7 +456,7 @@ def test_build_screen_renderable_shows_token_segment_when_nonzero() -> None:
     console = Console(file=buf, width=200, no_color=True)
     console.print(renderable)
     rendered = buf.getvalue()
-    assert "1,234/567" in rendered
+    assert "1.2k in / 567 out" in rendered
     assert "$0.0099" in rendered
 
 
@@ -504,7 +504,7 @@ def test_build_screen_renderable_recent_table_shows_token_cost_cells() -> None:
     console = Console(file=buf, width=240, no_color=True)
     console.print(renderable)
     rendered = buf.getvalue()
-    assert "1,000+200" in rendered
+    assert "1.0k+200" in rendered
     assert "$0.0050" in rendered
 
 
@@ -690,3 +690,276 @@ def test_slot_released_after_sdk_exception() -> None:
     # Every slot was released, every fixture has a synthetic failure outcome.
     assert held == set()
     assert all(o.error_type == "RuntimeError" for o in summary.outcomes)
+
+
+# ---------------------------------------------------------------------------
+# Eval-loop token pass-through
+# ---------------------------------------------------------------------------
+
+_FAKE_LIVE_CLS = FakeLive  # re-use module-level stub
+
+
+def _make_minimal_fixture(fixture_id: str = "test-fx") -> object:
+    """Return a minimal Fixture dataclass for use in eval-loop tests."""
+    from pathlib import Path
+
+    from ai_rules.rule_loader_eval.fixtures import Fixture, TriggerEvidence
+
+    return Fixture(
+        path=Path(f"{fixture_id}.yaml"),
+        schema_version=1,
+        updated="2026-01-01",
+        id=fixture_id,
+        description="test fixture",
+        variant="basic",
+        prompt="test",
+        required=(),
+        dependencies=(),
+        forbidden=(),
+        optional=(),
+        trigger_evidence=TriggerEvidence(),
+    )
+
+
+def _make_run_result(
+    fixture_id: str, *, input_tokens: int, output_tokens: int, cost: float
+) -> object:
+    """Return a RunResult carrying the given token/cost values."""
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import SignalReport
+    from ai_rules.rule_loader_eval.engine import RunResult
+    from ai_rules.rule_loader_eval.matcher import MatchResult
+
+    run = AgentRun(
+        fixture_id=fixture_id,
+        loaded=(),
+        loaded_via_reads=(),
+        loaded_via_reads_performed=(),
+        loaded_via_section=(),
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        total_cost_usd=cost,
+    )
+    return RunResult(
+        fixture_id=fixture_id,
+        run=run,
+        match=MatchResult(
+            missing_required=(),
+            missing_dependencies=(),
+            forbidden_present=(),
+            optional_loaded=(),
+            passed=True,
+        ),
+        signal_report=SignalReport(ok=True, disagreements=()),
+        citation_drifts=(),
+    )
+
+
+@pytest.mark.unit
+def test_eval_loop_passes_tokens() -> None:
+    """_run_single_eval passes RunResult.run token/cost fields to ProgressTracker finish_item."""
+    from pathlib import Path
+
+    from ai_rules.commands import rule_loader as rl
+    from ai_rules.commands.rule_loader import ProgressTracker, _run_single_eval
+
+    fx = _make_minimal_fixture("tok-fx")
+    rr = _make_run_result("tok-fx", input_tokens=1234, output_tokens=567, cost=0.0099)
+
+    captured: dict[str, object] = {}
+    real_tracker_cls = ProgressTracker
+
+    class CapturingTracker(real_tracker_cls):  # type: ignore[misc]
+        def __enter__(self) -> CapturingTracker:
+            captured["tracker"] = self
+            return super().__enter__()  # type: ignore[return-value]  # ty: ignore[invalid-return-type]
+
+    with (
+        patch.object(rl, "Live", FakeLive),
+        patch.object(rl, "run_fixture", return_value=rr),
+        patch.object(rl, "load_rules_metadata", return_value={}),
+        patch.object(rl, "ProgressTracker", CapturingTracker),
+    ):
+        _results, _ = _run_single_eval(
+            fixtures=[fx],
+            root=Path("/tmp"),
+            resolved_connection="test-conn",
+            strict_forbidden=False,
+            max_turns=3,
+            effort="low",
+            model="auto",
+            mode=ProgressMode.SCREEN,
+            debug=False,
+            out_dir=None,
+            label="test",
+        )
+
+    tracker: ProgressTracker = captured["tracker"]  # type: ignore[assignment]
+    # Run-level totals must be populated (not zero)
+    assert tracker._total_input_tokens == 1234  # type: ignore[attr-defined]
+    assert tracker._total_output_tokens == 567  # type: ignore[attr-defined]
+    assert abs(tracker._total_cost_usd - 0.0099) < 1e-9  # type: ignore[attr-defined]
+    # Recent ledger entry must carry per-item token data
+    entry = tracker._recent[-1]  # type: ignore[attr-defined]
+    assert entry["input_tokens"] == 1234
+    assert entry["output_tokens"] == 567
+    assert abs(float(entry["total_cost_usd"]) - 0.0099) < 1e-9  # type: ignore[arg-type]
+
+
+@pytest.mark.unit
+def test_eval_loop_synthetic_failure_renders() -> None:
+    """When run_fixture raises a non-RuntimeError, loop records 0-token failure and renders."""
+    import io
+    from pathlib import Path
+
+    from rich.console import Console
+
+    from ai_rules.commands import rule_loader as rl
+    from ai_rules.commands.rule_loader import ProgressTracker, _run_single_eval
+
+    fx = _make_minimal_fixture("fail-fx")
+
+    captured: dict[str, object] = {}
+    real_tracker_cls = ProgressTracker
+
+    class CapturingTracker(real_tracker_cls):  # type: ignore[misc]
+        def __enter__(self) -> CapturingTracker:
+            captured["tracker"] = self
+            return super().__enter__()  # type: ignore[return-value]  # ty: ignore[invalid-return-type]
+
+    with (
+        patch.object(rl, "Live", FakeLive),
+        patch.object(rl, "run_fixture", side_effect=ValueError("simulated failure")),
+        patch.object(rl, "load_rules_metadata", return_value={}),
+        patch.object(rl, "ProgressTracker", CapturingTracker),
+    ):
+        _run_single_eval(
+            fixtures=[fx],
+            root=Path("/tmp"),
+            resolved_connection="test-conn",
+            strict_forbidden=False,
+            max_turns=3,
+            effort="low",
+            model="auto",
+            mode=ProgressMode.SCREEN,
+            debug=False,
+            out_dir=None,
+            label="test",
+        )
+
+    tracker: ProgressTracker = captured["tracker"]  # type: ignore[assignment]
+    assert tracker._failed == 1  # type: ignore[attr-defined]
+    assert tracker._total_input_tokens == 0  # type: ignore[attr-defined]
+
+    # Dashboard must render without crashing
+    renderable = tracker._build_screen_renderable(width=120)  # type: ignore[attr-defined]
+    buf = io.StringIO()
+    Console(file=buf, width=120, no_color=True).print(renderable)
+    assert "fail-fx" in buf.getvalue()
+
+
+# ---------------------------------------------------------------------------
+# Responsive layout breakpoints
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_render_wide() -> None:
+    """Width >= 120: full layout — time, in+out, and cost columns present in Recent."""
+    import io
+
+    from rich.console import Console
+
+    from ai_rules.commands import rule_loader as rl
+
+    with patch.object(rl, "Live", FakeLive):
+        with ProgressTracker(total=1, mode=ProgressMode.SCREEN) as tracker:
+            tracker.start_item("alpha")
+            tracker.finish_item(
+                "alpha", ok=True, input_tokens=1000, output_tokens=200, total_cost_usd=0.005
+            )
+            renderable = tracker._build_screen_renderable(width=140)  # type: ignore[attr-defined]
+
+    buf = io.StringIO()
+    Console(file=buf, width=140, no_color=True).print(renderable)
+    rendered = buf.getvalue()
+    assert "in+out" in rendered
+    assert "cost" in rendered
+    assert "time" in rendered
+
+
+@pytest.mark.unit
+def test_render_narrow() -> None:
+    """Width < 100: time column dropped, tokens collapsed to combined count."""
+    import io
+
+    from rich.console import Console
+
+    from ai_rules.commands import rule_loader as rl
+
+    with patch.object(rl, "Live", FakeLive):
+        with ProgressTracker(total=1, mode=ProgressMode.SCREEN) as tracker:
+            tracker.start_item("alpha")
+            tracker.finish_item(
+                "alpha", ok=True, input_tokens=1000, output_tokens=200, total_cost_usd=0.005
+            )
+            renderable = tracker._build_screen_renderable(width=95)  # type: ignore[attr-defined]
+
+    buf = io.StringIO()
+    Console(file=buf, width=95, no_color=True).print(renderable)
+    rendered = buf.getvalue()
+    # time col absent at width < 100
+    assert "time" not in rendered
+    # token column collapses to "tokens" (not "in+out")
+    assert "tokens" in rendered
+    assert "in+out" not in rendered
+
+
+@pytest.mark.unit
+def test_render_compact() -> None:
+    """Width < 80: compact Table.grid form — no verbose column headers."""
+    import io
+
+    from rich.console import Console
+
+    from ai_rules.commands import rule_loader as rl
+
+    with patch.object(rl, "Live", FakeLive):
+        with ProgressTracker(total=1, mode=ProgressMode.SCREEN) as tracker:
+            tracker.start_item("alpha")
+            tracker.finish_item(
+                "alpha", ok=True, input_tokens=1000, output_tokens=200, total_cost_usd=0.005
+            )
+            renderable = tracker._build_screen_renderable(width=70)  # type: ignore[attr-defined]
+
+    buf = io.StringIO()
+    Console(file=buf, width=70, no_color=True).print(renderable)
+    rendered = buf.getvalue()
+    # compact uses Table.grid — no token/cost column headers
+    assert "in+out" not in rendered
+    assert "cost" not in rendered
+    # fixture content still visible
+    assert "alpha" in rendered
+
+
+@pytest.mark.unit
+def test_no_color_no_ansi() -> None:
+    """Rendering with no_color=True produces no ANSI escape sequences."""
+    import io
+
+    from rich.console import Console
+
+    from ai_rules.commands import rule_loader as rl
+
+    with patch.object(rl, "Live", FakeLive):
+        with ProgressTracker(total=1, mode=ProgressMode.SCREEN) as tracker:
+            tracker.start_item("alpha")
+            tracker.finish_item(
+                "alpha", ok=True, input_tokens=1000, output_tokens=200, total_cost_usd=0.005
+            )
+            renderable = tracker._build_screen_renderable(width=120)  # type: ignore[attr-defined]
+
+    buf = io.StringIO()
+    Console(file=buf, width=120, no_color=True).print(renderable)
+    rendered = buf.getvalue()
+    assert "\x1b[" not in rendered

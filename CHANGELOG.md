@@ -5,6 +5,21 @@ All notable changes to the AI Coding Rules project will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **fix(rule-loader eval):** the live progress dashboard now shows per-fixture tokens and cost during `ai-rules rule-loader eval` runs. The eval-run loop called `ProgressTracker.finish_item` without token/cost arguments, so the Recent-completions table rendered `—` and the run-level `tokens:`/`cost:` summary never appeared. The loop now binds the run result on both the success and synthetic-failure paths and forwards `input_tokens`/`output_tokens`/`total_cost_usd`. (`src/ai_rules/commands/rule_loader.py`)
+- **fix(rule-loader eval):** harden SDK usage capture in `agent_runner.py` with a dict/attribute-tolerant `_usage_get` accessor so token capture no longer breaks if the SDK returns a non-dict `usage` object.
+
+### Changed
+
+- **feat(rule-loader eval):** redesign the eval live dashboard for symmetry and responsiveness — a structured two-row summary grid (Progress / Outcomes / Throughput / Time with ETA), de-duplicated panel title, Active and Recent tables sharing aligned `status | worker | fixture | elapsed` columns, human-abbreviated token cells (`11.2k+1.0k`), compact `HH:MM:SS` timestamps, red failed-count only when non-zero, and width-aware breakpoints (full ≥120, narrow <100, compact <80). PLAIN and JSON progress output retain their exact-integer token contracts. (`src/ai_rules/commands/rule_loader.py`)
+
+### Added
+
+- **test(rule-loader eval):** add `ProgressTracker` tests covering eval-loop token pass-through, synthetic-failure rendering, and responsive dashboard breakpoints (wide/narrow/compact, NO_COLOR).
+
 ## [3.8.0] - 2026-06-10
 
 Major release consolidating four branches. Three themes: (1) flat RULES_INDEX, slim AGENTS templates, and a contract-grade rule-loader evaluation framework; (2) the `ai-rules dev` CLI replacing the project Makefile; (3) a refactored `ai-rules deploy` surface with split-only mode, NO_MODE default, and hardened path rendering.

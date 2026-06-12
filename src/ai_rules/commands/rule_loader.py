@@ -378,6 +378,7 @@ class ProgressTracker:
                 {
                     "ts": ts,
                     "ok": ok,
+                    "slot": slot,
                     "label": label,
                     "fixture_id": fixture_id,
                     "elapsed": elapsed,
@@ -439,91 +440,177 @@ class ProgressTracker:
         with contextlib.suppress(Exception):
             self._live.update(self._build_screen_renderable())  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
-    def _build_screen_renderable(self) -> object:
+    def _build_screen_renderable(self, width: int | None = None) -> object:
         """Return the dashboard renderable for screen-backed Live."""
         import time as _time
 
         from rich.panel import Panel
+        from rich.rule import Rule
+        from rich.text import Text
+
+        # Detect terminal width for responsive layout
+        if width is None:
+            if self._live is not None:
+                with contextlib.suppress(Exception):
+                    width = self._live.console.size.width
+            if width is None:
+                width = err_console.width or 120
 
         elapsed = _time.perf_counter() - self._run_start_perf
-        title_table = Table.grid(padding=(0, 2), expand=True)
-        title_table.add_column(justify="left", ratio=1)
-        title_table.add_column(justify="right")
-        meta = (
-            f"total: {self._total}  "
-            f"completed: {self._completed}  "
-            f"failed: {self._failed}  "
-            f"concurrency: {self._concurrency}  "
-            f"elapsed: {self._fmt_seconds(elapsed)}"
-        )
-        if self._total_input_tokens or self._total_output_tokens or self._total_cost_usd:
-            meta += (
-                f"  tokens: {self._total_input_tokens:,}/{self._total_output_tokens:,}"
-                f"  cost: ${self._total_cost_usd:.4f}"
-            )
-        title_table.add_row(f"[bold]{self._description}[/bold]", meta)
+        done = self._completed + self._failed
 
-        active_table = Table(
-            title="Active",
-            title_style="bold cyan",
-            expand=True,
-            show_edge=False,
+        # §4-A Structured summary bar (Table.grid, grouped key/value pairs)
+        pct = f"{100 * done // self._total}%" if self._total else "—"
+        ok_part = Text(f"✓ {self._completed}", style="green")
+        fail_text = f"✗ {self._failed}"
+        fail_part = Text(fail_text, style="red") if self._failed > 0 else Text(fail_text)
+        outcomes_val = Text.assemble(ok_part, "  ", fail_part)
+
+        throughput_k: str = ""
+        throughput_v: str = ""
+        if self._total_input_tokens or self._total_output_tokens or self._total_cost_usd:
+            tok_in = self._fmt_tokens_human(self._total_input_tokens)
+            tok_out = self._fmt_tokens_human(self._total_output_tokens)
+            throughput_k = "Throughput"
+            throughput_v = f"{tok_in} in / {tok_out} out  ${self._total_cost_usd:.4f}"
+
+        summary = Table.grid(padding=(0, 2))
+        for _ in range(6):
+            summary.add_column(no_wrap=True)
+        summary.add_row(
+            "[bold cyan]Progress[/bold cyan]",
+            f"{done}/{self._total} ({pct})",
+            "[bold cyan]Outcomes[/bold cyan]",
+            outcomes_val,
+            f"[bold cyan]{throughput_k}[/bold cyan]" if throughput_k else "",
+            throughput_v,
         )
-        active_table.add_column("worker")
-        active_table.add_column("fixture")
-        active_table.add_column("elapsed", justify="right")
+        summary.add_row(
+            "[bold cyan]Elapsed[/bold cyan]",
+            self._fmt_seconds(elapsed),
+            "[bold cyan]ETA[/bold cyan]",
+            self._calc_eta(elapsed),
+            "[bold cyan]Concurrency[/bold cyan]",
+            str(self._concurrency),
+        )
+
+        # §4-B §4-C §4-D §4-J: aligned leading columns, responsive breakpoints
+        now = _time.perf_counter()
+        compact = width < 80  # §4-J: compact single-line form
+        include_time = width >= 100  # §4-J: drop time col when < 100
+        collapse_tokens = width < 100  # §4-J: collapse in+out sum when < 100
+        include_cost = width >= 120  # §4-J: cost col only in full layout
+
+        # -- Active table: status | worker | fixture | elapsed --
+        if compact:
+            active_tbl = Table.grid(padding=(0, 1))
+            active_tbl.add_column(width=1)
+            active_tbl.add_column(width=4)
+            active_tbl.add_column(no_wrap=True, overflow="ellipsis", max_width=max(width - 15, 10))
+            active_tbl.add_column(justify="right", width=7)
+        else:
+            active_tbl = Table(
+                title="Active", title_style="bold cyan", expand=True, show_edge=False
+            )
+            active_tbl.add_column("", width=1)
+            active_tbl.add_column("worker", width=6)
+            active_tbl.add_column("fixture", no_wrap=True, overflow="ellipsis", ratio=1)
+            active_tbl.add_column("elapsed", justify="right", width=8)
+
         if self._active:
-            now = _time.perf_counter()
             for state in self._active.values():
-                slot = state.get("slot")
-                slot_str = f"w{slot}" if slot is not None else "—"
+                a_slot = state.get("slot")
+                wstr = f"w{a_slot}" if a_slot is not None else "—"
                 fid = str(state.get("fixture_id", ""))
                 start = float(state.get("start", now))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-                active_table.add_row(slot_str, fid, self._fmt_seconds(now - start))
+                active_tbl.add_row("●", wstr, fid, self._fmt_seconds(now - start))
         else:
-            active_table.add_row("—", "(idle)", "—")
+            active_tbl.add_row("", "—", "(idle)", "—")
 
-        recent_table = Table(
-            title=f"Recent completions (last {self._RECENT_LEDGER_MAX})",
-            title_style="bold cyan",
-            expand=True,
-            show_edge=False,
-        )
-        recent_table.add_column("ts")
-        recent_table.add_column("", width=2)
-        recent_table.add_column("fixture")
-        recent_table.add_column("elapsed", justify="right")
-        recent_table.add_column("tokens", justify="right")
-        recent_table.add_column("cost", justify="right")
+        # -- Recent table: status | worker | fixture | elapsed [| time] [| in+out|tokens] [| cost] --
+        if compact:
+            recent_tbl = Table.grid(padding=(0, 1))
+            recent_tbl.add_column(width=1)
+            recent_tbl.add_column(width=4)
+            recent_tbl.add_column(no_wrap=True, overflow="ellipsis", max_width=max(width - 15, 10))
+            recent_tbl.add_column(justify="right", width=7)
+        else:
+            recent_tbl = Table(
+                title=f"Recent completions (last {self._RECENT_LEDGER_MAX})",
+                title_style="bold cyan",
+                expand=True,
+                show_edge=False,
+            )
+            recent_tbl.add_column("", width=1)
+            recent_tbl.add_column("worker", width=6)
+            recent_tbl.add_column("fixture", no_wrap=True, overflow="ellipsis", ratio=1)
+            recent_tbl.add_column("elapsed", justify="right", width=8)
+            if include_time:
+                recent_tbl.add_column("time", justify="right", width=8)
+            recent_tbl.add_column(
+                "tokens" if collapse_tokens else "in+out",
+                justify="right",
+                width=10 if collapse_tokens else 14,
+            )
+            if include_cost:
+                recent_tbl.add_column("cost", justify="right", width=9)
+
         if self._recent:
             for entry in self._recent:
                 ok = bool(entry.get("ok", True))
-                marker = "[green]✓[/green]" if ok else "[red]✗[/red]"
-                in_tok = int(entry.get("input_tokens", 0))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-                out_tok = int(entry.get("output_tokens", 0))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-                cost_val = float(entry.get("total_cost_usd", 0.0))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-                tok_cell = f"{in_tok:,}+{out_tok:,}" if (in_tok or out_tok) else "—"
-                cost_cell = f"${cost_val:.4f}" if cost_val else "—"
-                recent_table.add_row(
-                    str(entry.get("ts", "")),
-                    marker,
-                    str(entry.get("fixture_id", "")),
-                    self._fmt_seconds(float(entry.get("elapsed", 0.0))),  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-                    tok_cell,
-                    cost_cell,
-                )
+                marker = Text("✓", style="green") if ok else Text("✗", style="red")
+                r_slot = entry.get("slot")
+                wstr = f"w{r_slot}" if r_slot is not None else "—"
+                fid = str(entry.get("fixture_id", ""))
+                elapsed_e = float(entry.get("elapsed", 0.0))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+                if compact:
+                    recent_tbl.add_row(marker, wstr, fid, self._fmt_seconds(elapsed_e))
+                else:
+                    in_tok = int(entry.get("input_tokens", 0))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+                    out_tok = int(entry.get("output_tokens", 0))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+                    cost_val = float(entry.get("total_cost_usd", 0.0))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
+                    ts = str(entry.get("ts", ""))
+                    row: list[object] = [marker, wstr, fid, self._fmt_seconds(elapsed_e)]
+                    if include_time:
+                        row.append(self._fmt_ts_compact(ts))
+                    if collapse_tokens:
+                        combined = in_tok + out_tok
+                        row.append(self._fmt_tokens_human(combined) if combined else "—")
+                    else:
+                        row.append(
+                            f"{self._fmt_tokens_human(in_tok)}+{self._fmt_tokens_human(out_tok)}"
+                            if (in_tok or out_tok)
+                            else "—"
+                        )
+                    if include_cost:
+                        row.append(f"${cost_val:.4f}" if cost_val else "—")
+                    recent_tbl.add_row(*row)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
         else:
-            recent_table.add_row("—", "—", "(none yet)", "—", "—", "—")
+            if compact:
+                recent_tbl.add_row("", "—", "(none yet)", "—")
+            else:
+                empty: list[object] = ["", "—", "(none yet)", "—"]
+                if include_time:
+                    empty.append("—")
+                empty.append("—")
+                if include_cost:
+                    empty.append("—")
+                recent_tbl.add_row(*empty)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
 
         footer = "[dim]Ctrl-C cancels. Use --debug to replay captured SDK output on failure.[/dim]"
 
+        # §4-H section separators between summary, active, recent
         body = Group(
-            title_table,
+            summary,
             self._parent_progress if self._parent_progress is not None else Table.grid(),
-            active_table,
-            recent_table,
+            Rule(style="blue dim"),
+            active_tbl,
+            Rule(style="blue dim"),
+            recent_tbl,
+            Rule(style="blue dim"),
             footer,
         )
+        # §4-F: Panel title is the single source of the description
         return Panel(body, title=self._description, border_style="blue")
 
     @staticmethod
@@ -537,6 +624,33 @@ class ProgressTracker:
         if h:
             return f"{h}:{m:02d}:{s:02d}"
         return f"{m}:{s:02d}"
+
+    def _calc_eta(self, elapsed: float) -> str:
+        """Compute ETA string from completed-rate x remaining items."""
+        done = self._completed + self._failed
+        if done == 0 or self._total == 0:
+            return "—"
+        remaining = self._total - done
+        if remaining <= 0:
+            return "done"
+        eta_s = (elapsed / done) * remaining
+        return "~" + self._fmt_seconds(eta_s)
+
+    @staticmethod
+    def _fmt_tokens_human(n: int) -> str:
+        """Format token count as e.g. '11.2k', '1.4M'."""
+        if n >= 1_000_000:
+            return f"{n / 1_000_000:.1f}M"
+        if n >= 1_000:
+            return f"{n / 1_000:.1f}k"
+        return str(n)
+
+    @staticmethod
+    def _fmt_ts_compact(ts_iso: str) -> str:
+        """Extract HH:MM:SS from ISO UTC timestamp (e.g. '2026-06-11T20:48:49Z')."""
+        if len(ts_iso) >= 19 and ts_iso[10] == "T":
+            return ts_iso[11:19]
+        return ts_iso
 
 
 # ---------------------------------------------------------------------------
@@ -848,8 +962,9 @@ def _run_single_eval(
                 for f in fixtures:
                     tracker.start_item(f.id)
                     ok = False
+                    rr = None
                     try:
-                        result = run_fixture(
+                        rr = run_fixture(
                             f,
                             project_root=root,
                             rules_meta=rules_meta,
@@ -859,15 +974,23 @@ def _run_single_eval(
                             model=model,
                             connection=resolved_connection,
                         )
-                        results.append(result)
-                        ok = result.passed
+                        results.append(rr)
+                        ok = rr.passed
                     except RuntimeError:
                         raise
                     except Exception as exc:
-                        results.append(_synth(f, exc))
+                        rr = _synth(f, exc)
+                        results.append(rr)
                         ok = False
                     finally:
-                        tracker.finish_item(f.id, ok=ok)
+                        run = getattr(rr, "run", None)
+                        tracker.finish_item(
+                            f.id,
+                            ok=ok,
+                            input_tokens=run.input_tokens if run else 0,
+                            output_tokens=run.output_tokens if run else 0,
+                            total_cost_usd=run.total_cost_usd if run else 0.0,
+                        )
         except RuntimeError as exc:
             log_error(str(exc))
             raise typer.Exit(EXIT_SDK_OR_CONN) from exc

@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **docs(rules/002h):** standardize on `## Outputs` (plural) as the canonical top-level Outputs section; deprecate singular `## Output` and decorative heading suffixes (`(required)`, `(recommended)`, `(progressive disclosure)`). Update the Output Contract Pattern example and add Anti-Pattern 8. Clarify that the Outputs section is a project-local convention, not an upstream Anthropic mandate. Applied corresponding heading normalization across `plan-reviewer`, `prep-customer-meeting`, `rule-loader`, `rule-reviewer`, `rule-creator`, `plan-creator` SKILL.md files; added missing top-level `# Plan Creator` H1 to `plan-creator`. Resolves audit P3 findings.
 - **feat(rule-loader eval):** redesign the eval live dashboard for symmetry and responsiveness — a structured two-row summary grid (Progress / Outcomes / Throughput / Time with ETA), de-duplicated panel title, Active and Recent tables sharing aligned `status | worker | fixture | elapsed` columns, human-abbreviated token cells (`11.2k+1.0k`), compact `HH:MM:SS` timestamps, red failed-count only when non-zero, and width-aware breakpoints (full ≥120, narrow <100, compact <80). PLAIN and JSON progress output retain their exact-integer token contracts. (`src/ai_rules/commands/rule_loader.py`)
 
 ### Added

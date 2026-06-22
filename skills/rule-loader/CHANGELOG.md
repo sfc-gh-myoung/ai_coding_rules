@@ -2,7 +2,11 @@
 
 All notable changes to the `rule-loader` skill. Current version is tracked in `SKILL.md` frontmatter.
 
-## v1.2.0 — Current
+## v1.2.0 (2026-06-21)
+
+### Changed
+
+- docs: remove decorative heading suffixes — `## Output (required)` → `## Outputs`; `## Workflow (progressive disclosure)` → `## Workflow`. The progressive-disclosure note moved into the section body.
 
 ### Added
 

@@ -39,7 +39,7 @@ Before executing Phase 1:
 2. `token_budget_limit` must be a positive integer >= 5000. If below 5000: WARN "Token budget too low for foundation + any domain rule. Minimum recommended: 5000."
 3. `context_tier_filter` must be one of: `all`, `critical`, `critical+high`, `critical+high+medium`. If invalid: WARN and default to `all`.
 
-## Output (required)
+## Outputs
 
 A `## Rules Loaded` section listing all selected rules with loading reasons, formatted per AGENTS.md Step 4.
 
@@ -54,9 +54,9 @@ A `## Rules Loaded` section listing all selected rules with loading reasons, for
 - [Deferred: 204-python-docs.md - Low tier, not required for task]
 ```
 
-## Workflow (progressive disclosure)
+## Workflow
 
-Execute phases in order. Load workflow files only as needed.
+Detailed phase content is loaded on demand from `workflows/` (progressive disclosure). Execute phases in order. Load workflow files only as needed.
 
 ### Phase 1: Foundation Loading
 Always load `000-global-core.md`. Non-negotiable.

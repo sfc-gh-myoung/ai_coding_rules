@@ -1,18 +1,10 @@
 ---
 name: plan-reviewer
-description: Review LLM-generated plans for autonomous agent executability using 8-dimension rubric. Triggers: "review plan", "compare plans", "plan quality", "meta-review".
-version: 2.5.0
+description: Reviews LLM-generated plans for autonomous agent executability using an 8-dimension rubric optimized for Priority 1 compliance (Agent Understanding). Use when validating a plan before execution, comparing multiple plans, or running meta-reviews across plans. Triggers on "review plan", "compare plans", "plan quality", "meta-review", "validate plan". Do not use for authoring plans (use plan-creator) or executing plans (use execute-plan).
+version: 2.5.1
 ---
 
 # Plan Reviewer
-
-## Quick Start
-
-```text
-target_file: plans/my-plan.md
-review_mode: FULL
-```
-Output: `reviews/plan-reviews/<plan-name>-<model>-<date>.md`
 
 ## Purpose
 
@@ -34,6 +26,14 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 - **Code review** → Use standard code review tools
 - **Task execution** → This skill evaluates plans, it doesn't execute them
 
+## Quick Start
+
+```text
+target_file: plans/my-plan.md
+review_mode: FULL
+```
+Output: `reviews/plan-reviews/<plan-name>-<model>-<date>.md`
+
 ## Inputs
 
 **Required:**
@@ -53,6 +53,23 @@ Plans are scored on whether autonomous agents can execute them without judgment 
 - `execution_mode`: `parallel` (default, 8 sub-agents) or `sequential`
 - `timing_enabled`: Enable execution timing (default: `true` — v2.5.0 universal default; set `false` to opt out with `not-requested` row)
 - `overwrite`: Overwrite existing files (default: `false`)
+
+## Outputs
+
+Write to: `{output_root}/plan-reviews/<plan-name>-<model>-<date>.md` (default `output_root` is `reviews/`).
+
+**No overwrites:** If file exists and `overwrite: false` (default), append `-01.md`, `-02.md`, etc. Set `overwrite: true` to replace.
+
+Mode-specific paths:
+
+| Mode | Output Location |
+|------|-----------------|
+| FULL | `{output_root}/plan-reviews/<name>-<model>-<date>.md` |
+| COMPARISON | `{output_root}/summaries/_comparison-*.md` |
+| META-REVIEW | `{output_root}/summaries/_meta-*.md` |
+| DELTA | `{output_root}/plan-reviews/<name>-delta-*.md` |
+
+See `### Output Format` under **Hard Requirements** below for required review structure.
 
 ## Review Modes
 

@@ -49,17 +49,21 @@ The example files below show different shapes of well-formed prompts so you can 
 
 ---
 
-## Operational prompts
+## Operational prompts → skills
 
-These are not tutorials — they are the prompts to run for recurring workflows in this repo.
+The operational prompts have been converted into self-contained, portable skills under `../skills/`. The original prompt files are preserved under [`./archive/`](./archive/) for reference.
 
-| File | Purpose |
-|------|---------|
-| [`analyze-plan.md`](./analyze-plan.md) | Produce a `MODE: PLAN` task list before any code changes |
-| [`execute-plan.md`](./execute-plan.md) | Execute an approved plan in `MODE: ACT` |
-| [`commit-changes.md`](./commit-changes.md) | Stage, group, and commit work with conventional commit messages |
-| [`update-changelog.md`](./update-changelog.md) | Update `CHANGELOG.md` based on recent commits |
-| [`update-project-docs.md`](./update-project-docs.md) | Refresh project documentation (README, AGENTS, rule indexes) when state has drifted |
+| Original prompt | Replacement skill | Notes |
+|---|---|---|
+| `analyze-plan.md` | [`skills/analyze-plan/`](../skills/analyze-plan/SKILL.md) | Discovery-based plan selection; P0–P3 remediation report |
+| `execute-plan.md` | [`skills/execute-plan/`](../skills/execute-plan/SKILL.md) | Progress-marker convention for cross-session resumability |
+| `commit-changes.md` | [`skills/commit-changes/`](../skills/commit-changes/SKILL.md) | Conventional Commits 1.0.0 with dry-run gate |
+| `update-changelog.md` | [`skills/update-changelog/`](../skills/update-changelog/SKILL.md) | Keep-a-Changelog 1.1.0 with dry-run gate |
+| `update-project-docs.md` | [`skills/update-project-docs/`](../skills/update-project-docs/SKILL.md) | Discovery-based doc audit; remediation opt-in |
+| _(new)_ | [`skills/stage-changes/`](../skills/stage-changes/SKILL.md) | Grouped multi-select staging with two-gate flow |
+| _(new orchestrator)_ | [`skills/release-commit/`](../skills/release-commit/SKILL.md) | Combines `stage-changes` + `update-changelog` + `commit-changes` with atomic apply |
+
+Decisions captured in [`docs/adr/`](../docs/adr/) (ADRs 0001–0006). Shared vocabulary in [`docs/GLOSSARY.md`](../docs/GLOSSARY.md).
 
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: doc-reviewer
 description: Review project documentation for accuracy, completeness, clarity, and structure. Verifies file references, tests commands, validates links. Use for documentation audits, README reviews, or staleness checks. Triggers on "review docs", "audit documentation", "check README".
-version: 2.2.0
+version: 2.3.0
 ---
 
 # Documentation Reviewer
@@ -119,17 +119,7 @@ When `target_files` not specified, reviews:
 
 ### Verdict Thresholds
 
-**Score Ranges:**
-- **90-100** - EXCELLENT - High-quality documentation
-- **80-89** - GOOD - Minor improvements needed
-- **60-79** - NEEDS_IMPROVEMENT - Significant updates required
-- **40-59** - POOR - Major revision needed
-- **<40** - INADEQUATE - Rewrite from scratch
-
-**Critical dimension overrides:**
-- Accuracy ≤4/10 → Minimum NEEDS_IMPROVEMENT
-- Completeness ≤4/10 → Minimum NEEDS_IMPROVEMENT
-- Both ≤4/10 → POOR
+See [`references/verdict-thresholds.md`](references/verdict-thresholds.md) for score ranges (EXCELLENT/GOOD/NEEDS_IMPROVEMENT/POOR/INADEQUATE) and critical-dimension overrides.
 
 ## Workflow
 
@@ -231,15 +221,7 @@ Handle validation failures, file write errors, broken links, missing files.
 
 **See:** `workflows/parallel-specs.md` for timeout handling, aggregation schema, edge cases, and rollback procedures.
 
-**Performance Targets:**
-| Metric | Sequential | Parallel | Improvement |
-|--------|------------|----------|-------------|
-| Execution time | ~12-15 min | ~3-4 min | 3-4× faster |
-| Token cost | ~12K | ~72K | 6× higher |
-| Context freshness | Degraded after dim 3 | Fresh for all | Better accuracy |
-| Fault tolerance | Restart from beginning | Retry single dimension | Improved |
-
-**Fallback:** If 3+ sub-agents fail, automatically falls back to sequential execution.
+Quick performance comparison (sequential vs parallel) and fallback behavior: [`references/performance.md`](references/performance.md). Headline: ~3–4× faster at ~6× token cost; falls back to sequential if 3+ sub-agents fail.
 
 ## Review Modes
 
@@ -293,23 +275,7 @@ Tests external URLs for 200 status, identifies redirects and 404s, checks tool v
 
 ## Gate 8 — Per-Dimension Timing rejection (skill-timer v2.0.0+)
 
-After `skill_timer.py end` returns, check the run-level `status` field:
-
-- If `status ∈ {dimension_invalid, instrumentation_failed}`: **DO NOT
-  publish** the "Per-Dimension Timing" markdown table. Instead emit:
-
-  ```
-  > **Per-Dimension Timing rejected**
-  >
-  > Per-dimension timing data was rejected by skill-timer v2.0.0 due to
-  > alerts: <comma-separated alert types>. See
-  > `reviews/.timing-data/skill-timer-{run_id}-complete.json` for details.
-  ```
-
-- If `status ∈ {completed, warning}`: publish the table as before.
-
-This gate is mirrored in plan-reviewer, rule-reviewer, and bulk-rule-reviewer
-SKILL.md files.
+When `skill_timer.py end` returns `status ∈ {dimension_invalid, instrumentation_failed}`: do not publish the Per-Dimension Timing table; emit a banner pointing at the rejected JSON instead. Full verbatim contract (mirrored across reviewer skills): [`references/gate-8.md`](references/gate-8.md).
 
 ## Examples
 

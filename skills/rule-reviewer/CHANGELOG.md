@@ -2,15 +2,23 @@
 
 All notable changes to the `rule-reviewer` skill. Current version is tracked in `SKILL.md` frontmatter.
 
-## Unreleased — Gate 8 (skill-timer v2.0.0+)
+## v2.10.0 (2026-06-21) — Audit remediation (progressive disclosure)
 
-- Added **Gate 8** to SKILL.md: when `skill_timer.py end` returns
-  `status ∈ {dimension_invalid, instrumentation_failed}`, refuse to
-  publish the Per-Dimension Timing markdown table. Replace with a banner
-  pointing at the rejected JSON in `reviews/.timing-data/`.
-- No code changes in this skill; the gate is enforced at the markdown-emit
-  step. See `skills/skill-timer/CHANGELOG.md` v2.0.0 for the underlying
-  mechanism (new exit code 4, status enum extensions, distribution validator).
+Per [skills audit 2026-06-21](../../docs/audits/skills-audit-2026-06-21.md) findings RR-1 through RR-6, plus Audit P3 follow-up and Gate 8 integration:
+
+### Added
+
+- `rubrics/scoring.md` — extracted scoring system (formula, weights, hard caps, example calculation). Finding RR-2.
+- `workflows/execution-discipline.md` — extracted forbidden/required behaviors, self-correction triggers, pre-execution commitment. Finding RR-3.
+- `workflows/validation-checklists.md` — extracted pre/during/post checks plus expected review size validation. Finding RR-4.
+- `references/gate-8.md` — extracted Gate 8 verbatim contract (mirrored across reviewer skills per [ADR 0007](../../docs/adr/0007-skill-style-guide.md)). Cross-cutting finding C-GATE8.
+
+### Changed
+
+- SKILL.md body trimmed from 407 to ≤310 lines via progressive-disclosure extraction; cross-references replace full content. Finding RR-1.
+- Quick reference scoring table retained inline in SKILL.md for at-a-glance lookup; full table and example calculation live in `rubrics/scoring.md`.
+- docs: add `## Outputs` section per 002h required-sections contract. Consolidates the existing file-write path (`{output_root}/rule-reviews/[rule-name]-[model]-[date].md`) and no-overwrite behavior into a canonical Outputs block after `## Inputs`. Audit P3 follow-up.
+- Added **Gate 8** to SKILL.md: when `skill_timer.py end` returns `status ∈ {dimension_invalid, instrumentation_failed}`, refuse to publish the Per-Dimension Timing markdown table. Replace with a banner pointing at the rejected JSON in `reviews/.timing-data/`. No code changes in this skill; the gate is enforced at the markdown-emit step. See `skills/skill-timer/CHANGELOG.md` v2.0.0 for the underlying mechanism (new exit code 4, status enum extensions, distribution validator).
 
 ## v2.9.0 (2026-04-21) — Per-dimension timing is the universal default
 

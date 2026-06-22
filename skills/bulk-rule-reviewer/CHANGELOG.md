@@ -2,7 +2,11 @@
 
 All notable changes to the `bulk-rule-reviewer` skill. Current version is tracked in `SKILL.md` frontmatter.
 
-## Unreleased — Gate 8 (skill-timer v2.0.0+)
+## [2.4.1] - 2026-06-21
+
+### Changed
+
+- Rewrote frontmatter description (78c → ~360c) per audit finding BRR-1: now includes verb + noun + context + 5 trigger phrases per 002h §5 discoverability criteria.
 
 - Added **Gate 8** to SKILL.md: when `skill_timer.py end` returns
   `status ∈ {dimension_invalid, instrumentation_failed}`, refuse to

@@ -1,8 +1,10 @@
 ---
 name: plan-creator
 description: Produces best-in-class implementation plans with 15 mandatory sections covering architecture, final-state artifacts, dependency deltas, parity tables, test strategy, CI matrix, risk register, phased tasks with time estimates, rollback, acceptance criteria, and open questions. Use when authoring a migration plan, feature design, refactor plan, or any non-trivial implementation document. Triggers on "create a plan", "write a plan", "migration plan", "implementation plan", "design doc", "refactor plan", "propose a design", "feature plan", "architecture plan". Do NOT use for small fixes, one-line changes, or pure research questions.
-version: 2.0.0
+version: 2.0.1
 ---
+
+# Plan Creator
 
 ## Purpose
 
@@ -101,7 +103,7 @@ Before writing the plan to disk, answer every question below. If any answer is "
 - [ ] Does Section 14 exist even if brief?
 - [ ] Does the document end with `**End of plan.**`?
 
-## Output Format
+### Output Format
 
 - Markdown.
 - Use the exact 15 section headings above, numbered.

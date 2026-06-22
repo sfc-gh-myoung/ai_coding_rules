@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/rule-reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 2.9.0
+version: 2.10.0
 ---
 
 # Rule Reviewer
@@ -35,41 +35,20 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-4-6-2026-01-06.md`
 
 ## Scoring System (100 points)
 
-> **Scoring Rubric v2.0** - 6 scored dimensions, 100 points total
+6 scored dimensions, 100 points total. Hard caps apply for size (> 600 lines / > 700 lines) and blocking issues (≥ 6 / ≥ 10).
 
-**Raw Score Range:** 0-10 per dimension
-**Formula:** Raw (0-10) × Weight = Points
+**Quick reference:**
 
-**Scored Dimensions:**
+| Dimension | Weight | Max |
+|---|---|---|
+| Actionability | 3.0 | 30 |
+| Rule Size | 2.5 | 25 |
+| Parsability | 1.5 | 15 |
+| Completeness | 1.5 | 15 |
+| Consistency | 1.0 | 10 |
+| Cross-Agent Consistency | 0.5 | 5 |
 
-| Dimension | Weight | Max Points | Focus |
-|-----------|--------|------------|-------|
-| Actionability | 3.0 | 30 | Can agents execute without judgment? |
-| Rule Size | 2.5 | 25 | Within 500-line target? (deterministic) |
-| Parsability | 1.5 | 15 | Schema valid? |
-| Completeness | 1.5 | 15 | All scenarios covered? |
-| Consistency | 1.0 | 10 | Internal alignment correct? |
-| Cross-Agent Consistency | 0.5 | 5 | Works across all agents? |
-
-**Informational Only (Not Scored):**
-- **Token Efficiency** - Merged into Rule Size; findings in recommendations
-- **Staleness** - Flagged in recommendations; not scored
-
-**Hard Caps:**
-
-| Condition | Effect |
-|-----------|--------|
-| >600 lines | Total score capped at 70/100 |
-| >700 lines | Total score capped at 50/100 |
-| ≥6 blocking issues | Total score capped at 80/100 |
-| ≥10 blocking issues | Verdict forced to NOT_EXECUTABLE |
-
-**Detailed rubrics:** `rubrics/[dimension].md`
-
-**Example Calculation (Actionability):**
-- Raw score: 8/10
-- Weight: 3.0
-- Points: 8 × 3.0 = 24 points
+Full scoring formula, hard-cap thresholds, per-dimension rubric file references, and example calculations: [`rubrics/scoring.md`](rubrics/scoring.md).
 
 ## Review Modes
 
@@ -79,34 +58,9 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-4-6-2026-01-06.md`
 
 ## Execution Discipline
 
-**FOUNDATIONAL PRINCIPLE:** This skill prioritizes ACCURACY over efficiency. The user authorized this review knowing the scope. Proceed with the full process.
+**FOUNDATIONAL PRINCIPLE:** This skill prioritizes ACCURACY over efficiency. Proceed with the full process; do not propose streamlined alternatives or estimate completion time.
 
-**Forbidden Behaviors:**
-- Calculating or mentioning projected completion time
-- Asking about time constraints mid-execution
-- Proposing "faster" or "streamlined" alternatives
-- Creating template-based reviews without analysis
-- Estimating scores without consulting rubrics
-- Skipping dimensions, schema validation, or Agent Execution Test
-- Expressing concern about token costs or scope
-- Abbreviating reviews to save tokens
-
-**Required Behaviors:**
-- Read the complete rule file (line 1 to END)
-- Run schema validator (`uv run ai-rules validate`)
-- Measure line count (`wc -l`)
-- Consult rubrics for each scored dimension
-- Generate specific recommendations with line numbers
-- Write complete review (3000-8000 bytes for FULL mode)
-
-**Skills vs Rules Distinction:**
-- **Rules** are loaded 100s-1000s of times → token efficiency CRITICAL
-- **Skills** are used occasionally → quality over efficiency, tokens IRRELEVANT
-- Do NOT apply token-efficiency principles from rules to this skill's execution
-
-**Self-Correction Triggers:** If you think or write "to save time", "for efficiency", "should I continue with", "would you prefer", or "let me create a streamlined" → STOP, re-read this section, resume comprehensive process silently.
-
-**Pre-Execution Commitment:** Before starting ANY review, confirm you will NOT calculate projected time, NOT ask about time constraints, NOT create template-based reviews, NOT propose faster alternatives, and WILL read the file completely, consult rubrics, and write specific analysis.
+Full discipline contract (forbidden behaviors, required behaviors, self-correction triggers, pre-execution commitment): [`workflows/execution-discipline.md`](workflows/execution-discipline.md).
 
 ## Workflow
 
@@ -256,6 +210,14 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
   - `parallel`: Uses 5 sub-agents for scored dimension evaluation (faster, recommended for 8GB+ RAM)
   - `sequential`: Legacy single-agent behavior (for debugging or low-resource environments)
 
+## Outputs
+
+Write to: `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` (default `output_root` is `reviews/`).
+
+**No overwrites:** If file exists and `overwrite: false` (default), append `-01.md`, `-02.md`, etc. Set `overwrite: true` to replace. See **No-Overwrite Safety** section below for full behavior.
+
+**Format:** Reviews follow the structure defined in `references/REVIEW-OUTPUT-TEMPLATE.md`. See **Required Sections in Review** above for the section checklist.
+
 ## Integration with Other Skills
 
 ### With bulk-rule-reviewer
@@ -327,58 +289,15 @@ The existing file at `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` 
 
 ## Validation Checklists
 
-Consolidated pre/during/post checks for every review. Also see `workflows/review-verification.md`.
-
-**Pre-execution:**
-- [ ] target_file exists
-- [ ] review_date matches YYYY-MM-DD format
-- [ ] review_mode is valid enum
-- [ ] model slug is lowercase-hyphenated
-
-**During execution:**
-- [ ] Schema validation attempted (or skipped with reason for project files)
-- [ ] Agent Execution Test completed
-- [ ] Line count measured (`wc -l`)
-- [ ] All dimensions scored (FULL mode — 6 dimensions)
-- [ ] Each score has rationale
-- [ ] Critical issues identified
-- [ ] Rule Size flags applied if applicable
-- [ ] Recommendations include line numbers and are prioritized
-
-**Post-execution:**
-- [ ] Review file written to `{output_root}/rule-reviews/`
-- [ ] Path confirmed
-- [ ] No overwrites occurred
-- [ ] **Review file ≥2500 bytes (drift check)**
+Pre/during/post execution checks: [`workflows/validation-checklists.md`](workflows/validation-checklists.md). Quick reminder — every review must verify schema validation, Agent Execution Test completion, all dimensions scored, recommendations include line numbers, and final review file ≥ 2500 bytes.
 
 ## Expected Review Size
 
-Typical FULL mode review: 3000-8000 bytes.
-
-**Size validation:**
-- If <2000 bytes: STOP, expand analysis with more specific findings
-- If 2000-13500 bytes: Acceptable range
-- If >13500 bytes: STOP, consolidate redundant content before writing
+Typical FULL mode review: 3000–8000 bytes. Detailed size validation thresholds: [`workflows/validation-checklists.md`](workflows/validation-checklists.md).
 
 ## Gate 8 — Per-Dimension Timing rejection (skill-timer v2.0.0+)
 
-After `skill_timer.py end` returns, check the run-level `status` field:
-
-- If `status ∈ {dimension_invalid, instrumentation_failed}`: **DO NOT
-  publish** the "Per-Dimension Timing" markdown table. Instead emit:
-
-  ```
-  > **Per-Dimension Timing rejected**
-  >
-  > Per-dimension timing data was rejected by skill-timer v2.0.0 due to
-  > alerts: <comma-separated alert types>. See
-  > `reviews/.timing-data/skill-timer-{run_id}-complete.json` for details.
-  ```
-
-- If `status ∈ {completed, warning}`: publish the table as before.
-
-This gate is mirrored in plan-reviewer, doc-reviewer, and bulk-rule-reviewer
-SKILL.md files.
+When `skill_timer.py end` returns `status ∈ {dimension_invalid, instrumentation_failed}`: do not publish the Per-Dimension Timing table; emit a banner pointing at the rejected JSON instead. Full verbatim contract (mirrored across reviewer skills): [`references/gate-8.md`](references/gate-8.md).
 
 ## Examples
 
@@ -392,15 +311,7 @@ Complete review samples in `examples/`: `full-review.md`, `focused-review.md`, `
 
 ## Determinism Requirements
 
-**Goal:** Reduce score variance from ±5-8 points to <±2 points across runs.
-
-**Mandatory (always do):** batch-load all rubrics BEFORE reading target; create all 8 inventories BEFORE reading target; read target line 1 to END; fill inventories systematically; check Non-Issues list for every flagged item; apply overlap resolution (each issue to ONE dimension only); use Score Decision Matrix for every score; include completed inventories in review output.
-
-**Prohibited (never do):** read target rule before loading rubrics; skip inventory creation; estimate scores without counting; double-count issues across dimensions; flag items without checking Non-Issues list; omit inventories from review output; score on "feel"; start scoring before completing all inventories.
-
-**Variance tolerance:** dimension scores ±1 point, overall score ±2 points.
-
-**Full contract (variance table, self-verification checklist):** `workflows/determinism.md`.
+Goal: reduce score variance from ±5–8 points to < ±2 points across runs. Full contract (mandatory/prohibited behaviors, variance tolerance, self-verification checklist): `workflows/determinism.md`.
 
 ## Version History
 

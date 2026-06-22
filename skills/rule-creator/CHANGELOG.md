@@ -2,6 +2,12 @@
 
 All notable changes to the `rule-creator` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## v1.1.1 (2026-06-21) — Audit P3 remediation
+
+### Changed
+
+- docs: remove decorative heading suffixes — `## Inputs (recommended)` → `## Inputs`; `## Workflow (progressive disclosure)` → `## Workflow`. The qualifiers moved into the section body.
+
 ## v1.1.0 (2025-12-15) — Enhanced skill structure
 
 - Added `version`, `author`, `tags`, `dependencies` to frontmatter.

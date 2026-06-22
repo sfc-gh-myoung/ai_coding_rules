@@ -289,12 +289,14 @@ version: 2.0.0
 **Output Contract Pattern:**
 
 ```markdown
-## Output (required)
+## Outputs
 
 Write to: `path/to/<name>-<date>.md`
 
 **No overwrites:** If file exists, append `-01.md`, `-02.md`, etc.
 ```
+
+Use `## Outputs` (plural) as the top-level heading regardless of how many artifacts are produced. `### Output Format` is permitted as a subsection. This is a project-local convention; Anthropic's upstream Agent Skills spec does not mandate a structural Outputs section.
 
 ### 5. Trigger Keywords
 
@@ -559,6 +561,26 @@ For scanned PDFs requiring OCR, use pdf2image with pytesseract instead."
 ```
 
 Provide a single recommended approach. Only mention alternatives when a specific condition requires them.
+
+### Anti-Pattern 8: Singular `## Output` or Decorative Heading Suffixes
+
+**Problem:**
+```markdown
+# BAD: Heading carries commentary
+## Output (required)
+## Inputs (recommended)
+## Workflow (progressive disclosure)
+```
+
+**Correct Pattern:**
+```markdown
+# GOOD: Heading is the canonical noun only
+## Outputs
+## Inputs
+## Workflow
+```
+
+Section names must be the canonical noun only; commentary belongs in body prose. Use `## Outputs` (plural) for parallelism with `## Inputs`. Aligns with Google Developer Documentation Style Guide and Microsoft Writing Style Guide conventions for technical-documentation headings.
 
 ### Testing Skill Discovery
 

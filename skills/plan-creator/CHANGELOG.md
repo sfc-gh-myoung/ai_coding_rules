@@ -3,6 +3,13 @@
 All notable changes to the `plan-creator` skill are documented here.
 Format: reverse-chronological order (newest version first).
 
+## 2.0.1 — 2026-06-21
+
+### Changed
+
+- docs: add missing top-level `# Plan Creator` H1 after frontmatter.
+- docs: demote `## Output Format` → `### Output Format` so the existing `## Outputs` section remains the sole top-level output heading.
+
 ## 2.0.0 — 2026-05-14
 
 - **Breaking:** Renamed skill from `create-plan` to `plan-creator` to align with

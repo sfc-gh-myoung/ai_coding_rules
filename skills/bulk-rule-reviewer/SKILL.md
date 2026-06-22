@@ -1,7 +1,7 @@
 ---
 name: bulk-rule-reviewer
-description: Execute agent-centric reviews on all rules in rules/ directory and generate prioritized improvement report
-version: 2.4.0
+description: Reviews every rule file under rules/ using the rule-reviewer 6-dimension rubric, aggregates per-file scores into a single weighted backlog, and emits a prioritized improvement report. Use for periodic rule-system audits, before major rule-set releases, or to surface drift across the catalog. Triggers on "audit all rules", "bulk rule review", "rule system audit", "review rules directory", "score every rule".
+version: 2.4.1
 ---
 
 # Bulk Rule Reviewer

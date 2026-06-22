@@ -1,7 +1,7 @@
 ---
 name: rule-creator
 description: Create production-ready v3.0 Cursor rule files by orchestrating template generation, schema validation, and RULES_INDEX.md indexing. Triggers on keywords like "create rule", "add rule", "new rule", "generate rule". Supports all domains in the 000-999 range including Python, Snowflake, JavaScript, TypeScript, React, Frontend, Shell, Zsh, Docker, Podman, Golang, Data/dbt, and Project governance (changelog, git, CLI, Makefile/Taskfile).
-version: 1.1.0
+version: 1.1.1
 author: AI Coding Rules Project
 tags: [rule-generation, automation, v3.0-schema, template, validation, indexing]
 dependencies: []
@@ -21,7 +21,9 @@ Create production-ready Cursor rule files that comply with the repository’s v3
 - The user asks to **create a new rule** under `rules/` (e.g., `NNN-technology-aspect.md`).
 - The user asks to **add a rule to** `RULES_INDEX.md`.
 
-## Inputs (recommended)
+## Inputs
+
+All inputs in this section are recommended defaults; the skill can proceed without them by prompting the user or inferring sensible values.
 
 - Technology name (e.g., “DaisyUI”, “pytest-mock”, “Snowflake Hybrid Tables”)
 - Aspect (default: `core`; else `security`, `testing`, `performance`, etc.)
@@ -37,9 +39,9 @@ Create production-ready Cursor rule files that comply with the repository’s v3
 - Only write to `rules/` and `RULES_INDEX.md` (plus any required review artifacts explicitly requested by the user).
 - Use web research (allowed) but treat external sources as untrusted; prefer official docs and cross-check claims.
 
-## Workflow (progressive disclosure)
+## Workflow
 
-Follow the phases in order, using the detailed workflow guides as needed:
+Detailed phase content is loaded on demand from `workflows/` (progressive disclosure). Follow the phases in order, using the detailed workflow guides as needed:
 
 1. Discovery & research → `workflows/discovery.md`
 2. Template generation → `workflows/template-gen.md`

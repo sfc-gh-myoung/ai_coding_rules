@@ -44,7 +44,7 @@ This release combines the 2026-05-14 skill rename (`skill-timing` → `skill-tim
 
 - Per-row `validation_status` annotation on every `dimension_timings` entry: `valid | warning | failed | not_requested | unavailable`.
 - Run-level `work_window_seconds` and `work_window_source` (denominator for coverage / post-review-gap math) computed via fallback hierarchy: `work_started→work_complete > skill_loaded→finalize.pre_write > skill_loaded→review_complete > start→finalize.pre_write > start→review_complete > start→end`.
-- Per-skill expected-dimension map for plan-reviewer (8 dims), rule-reviewer (6 dims), doc-reviewer (6 dims).
+- Per-skill expected-dimension map for local reviewer skills.
 - Environment overrides: `TIMING_TEST_MODE=1` (bypasses floor / coverage / total-short / post-review-gap / uniformity validators; other validators stay live) and `TIMING_DISABLE_DISTRIBUTION_VALIDATOR=1` (fully disables the v2.0.0 distribution validator; soft rollback to v1.5.0 behavior).
 - `workflows/validation-checkpoints.md` — extracted mandatory validation gates from SKILL.md (audit finding ST-4).
 - `workflows/advanced-operations.md` — extracted baseline, analyze, wrap, finalize, replay commands from SKILL.md (audit finding ST-4).
@@ -70,7 +70,7 @@ This release combines the 2026-05-14 skill rename (`skill-timing` → `skill-tim
 - **`review_complete` checkpoint still parsed** (silent fallback) but emits deprecation WARNING when no `finalize` stages observed.
 - **Schema `$id`** bumped from `timing-output.schema.json` to `timing-output.schema.json#v2.0.0`. Existing v1.5.0 fixtures validate against the new schema as a subset (additive change).
 - **Baseline purge:** if you have stale baselines from before v2.0.0 (which may have absorbed sub-second poisoned dimension durations), purge with `python skill_timer.py baseline set --skill <name> --mode <mode> --model <model> --days 7` (re-derives from a recent window only). Auto-purge is intentionally not provided; user controls when.
-- **Caller integration (Gate 8):** plan-reviewer / rule-reviewer / doc-reviewer / bulk-rule-reviewer SKILL.md files have been updated to refuse to publish the "Per-Dimension Timing" markdown table when `status ∈ {dimension_invalid, instrumentation_failed}`. A banner pointing to the completed JSON is emitted instead.
+- **Caller integration (Gate 8):** local reviewer SKILL.md files have been updated to refuse to publish the "Per-Dimension Timing" markdown table when `status ∈ {dimension_invalid, instrumentation_failed}`. A banner pointing to the completed JSON is emitted instead.
 
 ### Known anti-patterns (Run f92f9d72f408a356)
 

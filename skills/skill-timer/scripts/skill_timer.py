@@ -51,14 +51,13 @@ ALERT_THRESHOLDS = {
         "FOCUSED": {"short": 60, "long": 360, "error": 30},
         "STALENESS": {"short": 30, "long": 240, "error": 15},
     },
-    "plan-reviewer": {
-        "FULL": {"short": 30, "long": 720, "error": 15},
-    },
-    "doc-reviewer": {
-        "FULL": {"short": 90, "long": 480, "error": 45},
-    },
     "rule-creator": {
         "default": {"short": 180, "long": 900, "error": 90},
+    },
+    "bulk-rule-reviewer": {
+        "FULL": {"short": 1200, "long": 21600, "error": 600},
+        "FOCUSED": {"short": 600, "long": 14400, "error": 300},
+        "STALENESS": {"short": 300, "long": 7200, "error": 120},
     },
 }
 
@@ -111,16 +110,6 @@ VALID_MODES: dict[str, dict[str, bool]] = {
 
 # Per-skill expected dimensions (warns if missing). Configurable via .timing-thresholds.json.
 EXPECTED_DIMENSIONS: dict[str, list[str]] = {
-    "plan-reviewer": [
-        "executability",
-        "completeness",
-        "success_criteria",
-        "scope",
-        "dependencies",
-        "decomposition",
-        "context",
-        "risk_awareness",
-    ],
     "rule-reviewer": [
         "actionability",
         "rule_size",
@@ -129,23 +118,13 @@ EXPECTED_DIMENSIONS: dict[str, list[str]] = {
         "consistency",
         "cross_agent",
     ],
-    "doc-reviewer": [
-        "accuracy",
-        "clarity",
-        "structure",
-        "completeness",
-        "consistency",
-        "currency",
-    ],
 }
 
 # Distribution-validator thresholds. Configurable via reviews/.timing-thresholds.json
 # (loaded lazily in load_thresholds_config()).
 DEFAULT_THRESHOLDS: dict[str, Any] = {
     "min_dim_seconds": {
-        "plan-reviewer": 5.0,
         "rule-reviewer": 10.0,
-        "doc-reviewer": 8.0,
         "_default": 5.0,
     },
     "uniformity_tolerance_pct": 0.05,  # ±5% across all dims triggers suspicion

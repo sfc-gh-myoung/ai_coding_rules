@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-03
 **Keywords:** kw:readme, kw:documentation, file:README.md, kw:project documentation, kw:getting started, kw:setup instructions, kw:badges, kw:quick start, kw:contributing, kw:license, kw:project structure, kw:technical writing, kw:author contact, kw:maintainer
 **TokenBudget:** ~5100
 **ContextTier:** Medium
@@ -33,6 +33,7 @@ Comprehensive standards for README.md files following widely accepted industry b
 - **800-project-changelog.md** - Changelog management standards
 - **802-project-contributing.md** - Contributing guidelines
 - **803-project-git-workflow.md** - Git workflow management
+- **805-technical-writing-style.md** - Writing standards (voice, tone, sentence case, inclusive language, accessibility) that apply to README prose
 
 ### External Documentation
 - [GitHub README Guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) - Official GitHub documentation standards
@@ -90,10 +91,7 @@ Markdown file (README.md) with:
 - All code examples syntactically correct and tested
 - All links working and pointing to current resources
 - Badges reflect current project status
-- Language passes readability check: Flesch-Kincaid grade level ≤12
-- No jargon used without definition on first occurrence
-- No gendered pronouns (use "they/them" or rephrase)
-- No slang, colloquialisms, or culture-specific idioms
+- Prose complies with `rules/805-technical-writing-style.md` (voice, sentence case, inclusive language, accessibility)
 
 **Success Criteria:**
 - README.md validates with markdown linter
@@ -469,9 +467,9 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 ## Quality and Formatting
 
-- **Requirement:** Use consistent heading hierarchy (H1 > H2 > H3), fenced code blocks with language identifiers
+**Writing style:** All README prose must follow `rules/805-technical-writing-style.md` for voice, tone, capitalization (sentence case headings), punctuation (serial commas), inclusive language, list conventions, code sample presentation, link text, and accessibility. Items called out below are README-specific extensions.
+
 - **Requirement:** All code examples must be syntactically correct and tested
-- **Rule:** Use descriptive link text — avoid "click here"
 - **Always:** Keep line length ≤100 characters
 - **Rule:** Include table of contents for long READMEs (>500 lines)
 - **Avoid:** Horizontal rule markers (`---`) for content separation — use text-based boundary statements instead
@@ -526,11 +524,10 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 ## Accessibility in README Content
 
-- MUST include alt text for all images and badges in README
-- SHOULD use text labels alongside color-coded badges so meaning is not color-dependent
-- Avoid relying solely on images or screenshots to convey critical setup information
-- Use semantic heading hierarchy for screen reader navigation
-- Ensure code blocks have language identifiers for syntax highlighting tools
+See `rules/805-technical-writing-style.md` §Accessibility for the full accessibility checklist (alt text, color independence, semantic heading hierarchy, code-block language identifiers). README-specific extensions:
+
+- All images and badges must have alt text describing the badge's purpose (for example, "Build status: passing") — not just the service name.
+- Do not rely solely on screenshots to convey critical setup information; pair every screenshot with a text alternative.
 
 ## Author / Contact Section
 

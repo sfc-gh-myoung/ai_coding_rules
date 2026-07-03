@@ -44,7 +44,7 @@ from skill_timer import (  # type: ignore[import-not-found]  # noqa: E402  # ty:
 )
 
 
-def _base_run(skill: str = "plan-reviewer", run_total: float = 100.0) -> dict:
+def _base_run(skill: str = "rule-reviewer", run_total: float = 100.0) -> dict:
     return {
         "run_id": "0123456789abcdef",
         "skill_name": skill,
@@ -94,8 +94,8 @@ def test_dim_uniformity_does_not_fire_when_above_max_mean():
 
 
 def test_dim_floor_violation_fires_per_skill_floor():
-    data = _base_run("plan-reviewer")
-    data["dimension_timings"] = [_wrap_dim("executability", 2.0)]  # floor 5s
+    data = _base_run("rule-reviewer")
+    data["dimension_timings"] = [_wrap_dim("actionability", 2.0)]  # floor 10s
     alerts = validate_dimension_distribution(data)
     assert "dim_floor_violation" in {a["type"] for a in alerts}
 
@@ -234,7 +234,7 @@ def _run(
     )
 
 
-def _start_run(tmp: Path, skill: str = "plan-reviewer") -> str:
+def _start_run(tmp: Path, skill: str = "rule-reviewer") -> str:
     res = _run(
         [
             "start",
@@ -333,14 +333,12 @@ def test_replay_against_good_fixture_exits_0(tmp_path: Path):
     payload["dimension_timings"] = [
         _wrap_dim(name, dur, mode="wrap")
         for name, dur in [
-            ("executability", 18.0),
-            ("completeness", 22.0),
-            ("success_criteria", 17.0),
-            ("scope", 16.0),
-            ("dependencies", 19.0),
-            ("decomposition", 24.0),
-            ("context", 21.0),
-            ("risk_awareness", 20.0),
+            ("actionability", 18.0),
+            ("rule_size", 22.0),
+            ("parsability", 17.0),
+            ("completeness", 16.0),
+            ("consistency", 19.0),
+            ("cross_agent", 24.0),
         ]
     ]
     good.write_text(json.dumps(payload))

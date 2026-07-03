@@ -1,6 +1,6 @@
 # Gate 8 — Per-Dimension Timing rejection (skill-timer v2.0.0+)
 
-**Verbatim contract.** This block is mirrored across `rule-reviewer`, `plan-reviewer`, `doc-reviewer`, and `bulk-rule-reviewer`. Do not edit per-skill copies independently; coordinate changes via [ADR 0007](../../../docs/adr/0007-skill-style-guide.md).
+**Verbatim contract.** This block is mirrored across local reviewer skills `rule-reviewer` and `bulk-rule-reviewer`. Do not edit per-skill copies independently; coordinate changes via [ADR 0007](../../../docs/adr/0007-skill-style-guide.md).
 
 ## Rule
 

@@ -1,6 +1,6 @@
 {
   "run_id": "f92f9d72f408a356",
-  "skill_name": "plan-reviewer",
+  "skill_name": "rule-reviewer",
   "target_file": "/Users/myoung/Development/ai_coding_rules/.snowflake/cortex/plans/zero-reference-scan-for-the-removed-field.plan.md",
   "model": "openai-gpt-5.5",
   "review_mode": "FULL",

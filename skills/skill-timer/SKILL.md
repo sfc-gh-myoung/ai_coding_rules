@@ -103,7 +103,7 @@ Validation gates applied automatically by `timing-end`:
 
 Initialize timing for a skill execution.
 
-> **Universal default (as of 2026-04-21):** reviewer skills (rule-reviewer ≥ v2.9.0, plan-reviewer ≥ v2.5.0, bulk-rule-reviewer ≥ v2.4.0) treat `timing_enabled: true` as the default. When callers opt out, reviewers emit a `not-requested` row in their Per-Dimension Timing table rather than omitting the section.
+> **Universal default (as of 2026-04-21):** local reviewer skills (rule-reviewer ≥ v2.9.0, bulk-rule-reviewer ≥ v2.4.0) treat `timing_enabled: true` as the default. When callers opt out, reviewers emit a `not-requested` row in their Per-Dimension Timing table rather than omitting the section.
 
 ```bash
 PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)

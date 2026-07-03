@@ -35,7 +35,7 @@ def status_show() -> None:
 
     rules_count = _count_glob(root, "rules/*.md")
     examples_count = _count_glob(root, "rules/examples/*.md")
-    skills_count = _count_glob(root, "skills/*.md")
+    skills_count = _count_glob(root, "skills/*/SKILL.md")
     test_count = len(list(root.rglob("test_*.py")))
 
     python_ver = _run_version(["python", "--version"])

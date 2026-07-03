@@ -67,7 +67,18 @@ Execute: `read_file("{{rules_path}}/000-global-core.md")`
 - If file_not_found OR empty_content: OUTPUT "CRITICAL ERROR: Cannot proceed - {{rules_path}}/000-global-core.md not accessible" then STOP
 - If success: Continue to Step 2
 
-**Step 2: Search RULES_INDEX.md**
+**Step 2: Load rule-selection skill (PRIMARY)**
+
+Execute: `read_file("{{skills_path}}/rule-loader/SKILL.md")`
+
+The `rule-loader/SKILL.md` skill is the PRIMARY discovery mechanism. It defines the authoritative workflow for foundation loading, domain matching, activity matching, dependency resolution, and token-budget management, and it executes RULES_INDEX.md discovery internally.
+
+- If success: Follow the skill's Phase 2-5 workflow (Domain -> Activity -> Dependencies -> Token Budget). The skill returns the selected rule set. Record which keywords it searched for use in Gate 2 of the response header. Continue to Step 3 with that selected set.
+- If file_not_found OR unreadable OR the skill cannot be invoked in this environment: Fall back to **Step 2B**. Do not stop — the fallback is a supported path.
+
+**Step 2B (FALLBACK): Search RULES_INDEX.md directly**
+
+Execute this path ONLY when Step 2 (skill invocation) failed. This preserves discovery when the rule-loader skill is unavailable (missing, unreadable, or the runtime does not support skill invocation).
 
 A. Extract keywords from user request:
    1. Identify the PRIMARY VERB (test, deploy, lint, commit, help, fix, create, etc.)
@@ -103,7 +114,7 @@ C. Grep sanity check (MANDATORY):
    - Zero lines for reasonable keywords = ANOMALY requiring fallback
 
 D. Gate 2 verification (MANDATORY):
-   - Gate 2 is ONLY considered passed if the agent executed grep (or the read_file fallback) AND can cite specific matched lines or rule names from the output.
+   - Gate 2 is ONLY considered passed if the agent invoked the rule-loader skill (Step 2) OR executed grep / the read_file fallback (Step 2B) AND can cite specific matched lines or rule names from the output.
    - A Gate 2 claim without corresponding tool execution in the same response is INVALID — equivalent to an unchecked gate.
    - **Anti-pattern:** Claiming Gate 2 passed based on prior session context, conversation summaries, or memory. Gate 2 must be re-executed per the Step 0 decision tree. Summaries are not evidence of execution.
    - **Consistency check:** If Gate 2 lists keywords searched, Gate 3 MUST list specific rule filenames OR explicitly state "no rules found for [keyword]". Gate 2 "searched for: X, Y, Z" combined with Gate 3 showing zero rules is a contradiction requiring investigation.

@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.4.0
-**LastUpdated:** 2026-06-10
+**RuleVersion:** v3.5.0
+**LastUpdated:** 2026-07-03
 **Keywords:** dir:rules/, kw:rule governance, kw:schema, kw:metadata requirements, kw:validation, kw:schema compliance, kw:rule structure, kw:semantic discovery, kw:rules_index, kw:descriptive headings, kw:design priorities, kw:agent optimization, kw:skill governance
 **TokenBudget:** ~4550
 **ContextTier:** Critical
@@ -387,12 +387,15 @@ If both options fail, note the validation gap in commit message and request revi
 ## CommonMark Compliance
 
 Rules are parsed as CommonMark-compliant Markdown. See `002e-schema-validator-usage.md`
-for full CommonMark compliance requirements. Key rules:
+for full CommonMark compliance requirements. Concrete constraints for rule files:
 
-- ATX-style headings with strict hierarchy (H1 to H2 to H3)
-- Dash (`-`) for unordered lists, 2-space nesting
-- Triple backticks with language identifier; quad backticks for nesting
-- Prefer structured lists over tables (see 002g-agent-optimization.md)
+- ATX-style headings with strict hierarchy (H1 to H2 to H3). Setext-style headings (`===` or `---` underlines) are FORBIDDEN — they conflict with the ban on thematic-break `---` separators and cause ambiguous parsing.
+- Fenced code blocks MUST include a language identifier (info string). A bare ` ``` ` fence is not permitted. Use `text` or `plaintext` when the block has no specific language.
+- Indented code blocks (4-space indentation) are FORBIDDEN. Use fenced code blocks so the language identifier is explicit.
+- Use a single, consistent list marker within each list. Use `-` for unordered lists across the codebase; do NOT mix `-`, `*`, and `+` within the same list.
+- 2-space nesting for sub-items in unordered lists.
+- Nested fences require MORE backticks than the outer fence: use quad backticks (` ```` `) for a fence that contains a triple-backtick block.
+- Prefer structured lists over tables (see 002g-agent-optimization.md).
 
 ## Anti-Patterns and Common Mistakes
 

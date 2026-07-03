@@ -324,8 +324,8 @@ After `skill_timer.py end` returns, check the run-level `status` field:
 
 - If `status ∈ {completed, warning}`: publish the table as before.
 
-This gate is mirrored in plan-reviewer, rule-reviewer, and doc-reviewer
-SKILL.md files.
+This gate is mirrored in local reviewer skills `rule-reviewer` and
+`bulk-rule-reviewer`.
 
 ## Examples
 

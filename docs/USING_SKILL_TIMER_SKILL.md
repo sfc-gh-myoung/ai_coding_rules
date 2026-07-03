@@ -21,9 +21,9 @@ The Skill Timer Skill provides execution timing instrumentation for measuring an
 ### Minimal Integrated Example
 
 ```text
-Use the doc-reviewer skill.
+Use the rule-reviewer skill.
 
-target_files: README.md              # Required (by parent skill)
+target_file: rules/000-global-core.md # Required (by parent skill)
 review_mode: FULL                    # Required (by parent skill)
 timing_enabled: true                 # Required: enables timing
 ```
@@ -281,8 +281,6 @@ The tool automatically detects suspicious timing patterns:
 | rule-reviewer | FULL | 60s | 120s | 600s |
 | rule-reviewer | FOCUSED | 30s | 60s | 360s |
 | rule-reviewer | STALENESS | 15s | 30s | 240s |
-| plan-reviewer | FULL | 15s | 30s | 720s |
-| doc-reviewer | FULL | 45s | 90s | 480s |
 | rule-creator | default | 90s | 180s | 900s |
 
 
@@ -480,8 +478,6 @@ Multiple agents can run timing sessions simultaneously without collisions:
 
 | Skill | What's Timed |
 |-------|--------------|
-| doc-reviewer | Documentation review |
-| plan-reviewer | Plan review |
 | rule-reviewer | Rule review |
 | rule-creator | Rule creation |
 | bulk-rule-reviewer | Bulk review process |

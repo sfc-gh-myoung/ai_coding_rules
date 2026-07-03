@@ -7,14 +7,14 @@ legacy `dim_<name>_start` / `dim_<name>_end` checkpoint pattern.
 SCRIPT=skills/skill-timer/scripts/skill_timer.py
 
 # Start
-RUN_ID=$(python $SCRIPT start --skill plan-reviewer \
-    --target plans/example.plan.md --model claude-opus-4 --mode FULL \
+RUN_ID=$(python $SCRIPT start --skill rule-reviewer \
+    --target rules/example-rule.md --model claude-opus-4 --mode FULL \
     | grep -oE 'TIMING_RUN_ID=[a-f0-9]+' | cut -d= -f2)
 
 python $SCRIPT checkpoint --run-id $RUN_ID --name skill_loaded
 
 # Per-dimension wraps (each requires evidence >=100B by default)
-for DIM in executability completeness success_criteria scope dependencies decomposition context risk_awareness; do
+for DIM in actionability rule_size parsability completeness consistency cross_agent; do
     # ... do real analysis, materialize worksheet at /tmp/${DIM}.md ...
     python $SCRIPT wrap --run-id $RUN_ID --dimension $DIM --evidence /tmp/${DIM}.md
 done
@@ -29,7 +29,7 @@ python $SCRIPT finalize --run-id $RUN_ID --stage post_write
 
 # End
 python $SCRIPT end --run-id $RUN_ID --output-file reviews/example-review.md \
-    --skill plan-reviewer --format json
+    --skill rule-reviewer --format json
 ```
 
 ## Expected output shape (excerpt)

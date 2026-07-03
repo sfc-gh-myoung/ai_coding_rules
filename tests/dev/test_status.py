@@ -61,6 +61,24 @@ class TestStatusShow:
         assert result.exit_code == 0
         assert "2" in result.output
 
+    @pytest.mark.unit
+    def test_show_counts_directory_based_skills(self, tmp_path: Path):
+        """Status show counts skills as directories containing SKILL.md."""
+        _write_pyproject(tmp_path)
+        skills = tmp_path / "skills"
+        (skills / "rule-reviewer").mkdir(parents=True)
+        (skills / "rule-reviewer" / "SKILL.md").write_text("---\nname: rule-reviewer\n---\n")
+        (skills / "skill-timer").mkdir()
+        (skills / "skill-timer" / "SKILL.md").write_text("---\nname: skill-timer\n---\n")
+        (skills / "README.md").write_text("# Not a skill")
+
+        with pytest.MonkeyPatch.context() as mp:
+            mp.chdir(tmp_path)
+            result = runner.invoke(status_app, ["show"])
+
+        assert result.exit_code == 0
+        assert "Skills:   2 files in skills/" in result.output
+
 
 class TestStatusPreflight:
     """Tests for status preflight command."""

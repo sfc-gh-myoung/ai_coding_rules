@@ -296,7 +296,7 @@ The frontmatter is parsed by the agent at skill discovery time. The `description
 
 **User-facing documentation:**
 
-Each deployed skill ships with a `docs/USING_<SKILL_NAME>_SKILL.md` user guide containing examples, mode tables, FAQ, and reference material. Architectural details about how a specific skill works belong in that skill's own documentation, not in this file.
+Larger project-maintenance skills ship with a `docs/USING_<SKILL_NAME>_SKILL.md` user guide containing examples, mode tables, FAQ, and reference material. Smaller workflow skills are documented primarily in their own `SKILL.md` files. Architectural details about how a specific skill works belong in that skill's own documentation, not in this file.
 
 ---
 
@@ -619,9 +619,6 @@ For review modes, scoring rubrics, and invocation, see [USING_RULE_REVIEWER_SKIL
 | Skill | Guide |
 |-------|-------|
 | `bulk-rule-reviewer` | [USING_BULK_RULE_REVIEWER_SKILL.md](USING_BULK_RULE_REVIEWER_SKILL.md) |
-| `plan-creator` | [USING_PLAN_CREATOR_SKILL.md](USING_PLAN_CREATOR_SKILL.md) |
-| `doc-reviewer` | [USING_DOC_REVIEWER_SKILL.md](USING_DOC_REVIEWER_SKILL.md) |
-| `plan-reviewer` | [USING_PLAN_REVIEWER_SKILL.md](USING_PLAN_REVIEWER_SKILL.md) |
 | `rule-creator` | [USING_RULE_CREATOR_SKILL.md](USING_RULE_CREATOR_SKILL.md) |
 | `rule-loader` | [USING_RULE_LOADER_SKILL.md](USING_RULE_LOADER_SKILL.md) |
 | `rule-reviewer` | [USING_RULE_REVIEWER_SKILL.md](USING_RULE_REVIEWER_SKILL.md) |

@@ -236,12 +236,9 @@ An executable rule has:
 
 Use a lowercase-hyphenated slug like `claude-sonnet-45`. Raw model names are normalized automatically.
 
-### What's the difference between rule-reviewer and plan-reviewer?
+### What should I use for implementation plan review?
 
-- **rule-reviewer**: Validates rule files for agent executability, schema compliance, token efficiency
-- **plan-reviewer**: Validates implementation plans for task completeness, success criteria, scope clarity
-
-Use rule-reviewer for rule files agents will load. Use plan-reviewer for plans agents will execute.
+Use `rule-reviewer` for rule files agents will load. Implementation plan review is handled by the external portable-skills repository, not by a local skill in this project.
 
 ### Why does my review take 90-120 seconds?
 

@@ -6,8 +6,8 @@ emits two checkpoint commands back-to-back and collapses the measured duration.
 
 ## When to use
 
-For every per-dimension analysis in a multi-dimension reviewer skill
-(plan-reviewer, rule-reviewer, doc-reviewer, bulk-rule-reviewer). Replaces
+For every per-dimension analysis in a multi-dimension local reviewer skill
+(`rule-reviewer` or `bulk-rule-reviewer`). Replaces
 the legacy `dim_<name>_start` / `dim_<name>_end` checkpoint pattern.
 
 ## Contract
@@ -37,7 +37,7 @@ python skills/skill-timer/scripts/skill_timer.py wrap \
 ## Example
 
 ```bash
-RUN_ID=$(python skill_timer.py start --skill plan-reviewer --target plans/x.plan.md \
+RUN_ID=$(python skill_timer.py start --skill rule-reviewer --target rules/x.md \
     --model claude-opus-4 --mode FULL | grep -oE 'TIMING_RUN_ID=[a-f0-9]+' | cut -d= -f2)
 
 # ... do executability analysis, write worksheet to disk ...

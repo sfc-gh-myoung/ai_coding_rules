@@ -488,9 +488,9 @@ For questions or discussions, file an issue on the repository.
 
 ## Claude Agent Skills
 
-**This section is for developers working on the ai_coding_rules project or using skills in their own projects.**
+**This section is for developers working on the ai_coding_rules project or using project-maintenance skills in their own workflows.**
 
-The `skills/` directory contains structured Claude Agent Skills following [Anthropic's Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills). All skills feature:
+The `skills/` directory contains structured Claude Agent Skills following [Anthropic's Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills). The skills that remain in this repository are specific to maintaining AI Coding Rules, validating rule quality, managing staged changes and release notes, and operating the repository's development workflow. Broadly reusable skills have moved to the external portable-skills repository.
 
 - Enhanced YAML frontmatter (version, author, tags, dependencies)
 - Progressive disclosure (showing details only when needed: workflows/, examples/, tests/)
@@ -517,64 +517,17 @@ You can use these skills in Cortex Code CLI by running the skill add command.
 You can also use these skills by telling Cortex Code CLI to explicitly load the skill in your prompt.
 - Prompt: `Load skills/<skill_name>/SKILL.md`
 
-#### Deployed Skills
+#### Local Project Skills
 
-These skills are deployed by default when running `uv run ai-rules deploy`:
+These skills are intended for the ai_coding_rules project maintenance workflow:
 
-**doc-reviewer**: documentation quality reviews
-- **Purpose:** Review documentation files for quality, completeness, and staleness
-- **Modes:** FULL, FOCUSED, STALENESS
-- **Scoring:** 100-point system across 6 dimensions (Clarity, Completeness, Accuracy, Structure, Consistency, Staleness)
-- **Trigger keywords:** "review docs", "audit documentation", "check doc quality"
-- **Usage guide:** [docs/USING_DOC_REVIEWER_SKILL.md](docs/USING_DOC_REVIEWER_SKILL.md)
-- **Skill file:** [skills/doc-reviewer/SKILL.md](skills/doc-reviewer/SKILL.md)
-
-**plan-reviewer**: review implementation plans for agent executability
-- **Purpose:** Evaluate LLM-generated plans across 8 dimensions for autonomous agent execution
-- **Modes:** FULL (single plan), COMPARISON (rank multiple), META-REVIEW (consistency), DELTA (track fixes)
-- **Scoring:** 100-point system with weighted dimensions (Executability 20, Completeness 20, Success Criteria 20, Scope 15, Dependencies 10, Decomposition 5, Context 5, Risk Awareness 5)
-- **Verdicts:** EXCELLENT_PLAN (90-100), GOOD_PLAN (80-89), NEEDS_WORK (60-79), POOR_PLAN (40-59), INADEQUATE_PLAN (<40)
-- **Trigger keywords:** "review plan", "compare plans", "plan quality", "meta-review", "plan executability"
-- **Usage guide:** [docs/USING_PLAN_REVIEWER_SKILL.md](docs/USING_PLAN_REVIEWER_SKILL.md)
-- **Skill file:** [skills/plan-reviewer/SKILL.md](skills/plan-reviewer/SKILL.md)
-
-**skill-timer**: performance measurement and timing instrumentation
-- **Purpose:** Measure skill execution duration, track tokens, detect anomalies, compare against baselines
-- **Features:** Wall-clock timing, checkpoints, token tracking, anomaly detection, baseline comparison
-- **Output:** STDOUT summary and timing metadata appended to output files
-- **Usage guide:** [docs/USING_SKILL_TIMER_SKILL.md](docs/USING_SKILL_TIMER_SKILL.md)
-- **Skill file:** [skills/skill-timer/SKILL.md](skills/skill-timer/SKILL.md)
-
-#### Internal Skills
-
-These skills are intended to be used specifically for the ai_coding_rules project maintenance:
-
-**rule-creator**: create new rules with template generation
-- **Purpose:** Generate new rule files from templates with schema validation
-- **Workflow:** 5-phase process (input validation, template generation, metadata setup, validation, file write)
-- **Trigger keywords:** "create rule", "add rule", "new rule", "generate rule"
-- **Usage guide:** [docs/USING_RULE_CREATOR_SKILL.md](docs/USING_RULE_CREATOR_SKILL.md)
-- **Skill file:** [skills/rule-creator/SKILL.md](skills/rule-creator/SKILL.md)
-
-**rule-reviewer**: automate rule quality reviews
-- **Purpose:** Review rule files for agent executability and quality
-- **Modes:** FULL, FOCUSED, STALENESS
-- **Scoring:** 100-point system across 6 dimensions (Actionability 30, Rule Size 25, Parsability 15, Completeness 15, Consistency 10, Cross-Agent 5)
-- **Priority Compliance Gate:** Agent Execution Test as first gate; Priority 1 violations cap scores
-- **Cross-model compatibility:** Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
-- **Trigger keywords:** "review rule", "audit rule", "check rule quality", "rule staleness"
-- **Usage guide:** [docs/USING_RULE_REVIEWER_SKILL.md](docs/USING_RULE_REVIEWER_SKILL.md)
-- **Skill file:** [skills/rule-reviewer/SKILL.md](skills/rule-reviewer/SKILL.md)
-
-**bulk-rule-reviewer**: orchestrate bulk rule reviews
-- **Purpose:** Run reviews on every rule in `rules/` and consolidate the results into a priority report.
-- **Expected duration:** ~50 minutes with parallel sub-agents (default), 4-6 hours sequential
-- **Parallel execution:** Launches 5 sub-agents by default, each with fresh context (eliminates drift)
-- **Resume capability:** Skip existing reviews to resume after interruption
-- **Output:** Individual review files + master summary report with priority tiers
-- **Trigger keywords:** "bulk review rules", "review all rules", "audit rule repository"
-- **Usage guide:** [docs/USING_BULK_RULE_REVIEWER_SKILL.md](docs/USING_BULK_RULE_REVIEWER_SKILL.md)
-- **Skill file:** [skills/bulk-rule-reviewer/SKILL.md](skills/bulk-rule-reviewer/SKILL.md)
+| Skill | Purpose | Guide | Skill file |
+|---|---|---|---|
+| `bulk-rule-reviewer` | Review every rule under `rules/` and consolidate prioritized findings. | [docs/USING_BULK_RULE_REVIEWER_SKILL.md](docs/USING_BULK_RULE_REVIEWER_SKILL.md) | [skills/bulk-rule-reviewer/SKILL.md](skills/bulk-rule-reviewer/SKILL.md) |
+| `rule-creator` | Create new rule files from templates with schema validation. | [docs/USING_RULE_CREATOR_SKILL.md](docs/USING_RULE_CREATOR_SKILL.md) | [skills/rule-creator/SKILL.md](skills/rule-creator/SKILL.md) |
+| `rule-loader` | Select, load, and troubleshoot rules for agent tasks. | [docs/USING_RULE_LOADER_SKILL.md](docs/USING_RULE_LOADER_SKILL.md) | [skills/rule-loader/SKILL.md](skills/rule-loader/SKILL.md) |
+| `rule-reviewer` | Review rule files for agent executability and schema quality. | [docs/USING_RULE_REVIEWER_SKILL.md](docs/USING_RULE_REVIEWER_SKILL.md) | [skills/rule-reviewer/SKILL.md](skills/rule-reviewer/SKILL.md) |
+| `skill-timer` | Measure skill execution time and maintain timing baselines. | [docs/USING_SKILL_TIMER_SKILL.md](docs/USING_SKILL_TIMER_SKILL.md) | [skills/skill-timer/SKILL.md](skills/skill-timer/SKILL.md) |
 
 ## CLI Commands
 

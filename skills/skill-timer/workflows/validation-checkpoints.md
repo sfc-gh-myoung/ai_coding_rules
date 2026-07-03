@@ -27,7 +27,7 @@ Verify `## Timing Metadata` section exists in output file. If missing: append it
 
 ## Gate 8 — Per-Dimension Timing rejection (v2.0.0+)
 
-When `skill_timer.py end` returns `status ∈ {dimension_invalid, instrumentation_failed}`: **do not publish** the "Per-Dimension Timing" markdown table. Emit a banner pointing at `reviews/.timing-data/skill-timer-{run_id}-complete.json` instead. This contract is mirrored verbatim in plan-reviewer, rule-reviewer, doc-reviewer, and bulk-rule-reviewer.
+When `skill_timer.py end` returns `status ∈ {dimension_invalid, instrumentation_failed}`: **do not publish** the "Per-Dimension Timing" markdown table. Emit a banner pointing at `reviews/.timing-data/skill-timer-{run_id}-complete.json` instead. This contract is mirrored verbatim in local reviewer skills `rule-reviewer` and `bulk-rule-reviewer`.
 
 ## Failure handling
 

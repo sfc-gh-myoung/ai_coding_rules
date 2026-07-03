@@ -3,17 +3,17 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.5.1
-**LastUpdated:** 2026-03-26
-**Keywords:** kw:git, kw:commit, kw:workflow, kw:commit message, kw:branching, kw:github, kw:pull requests, kw:feature branches, kw:conventional commits, kw:branch naming
-**TokenBudget:** ~3100
+**RuleVersion:** v3.6.0
+**LastUpdated:** 2026-07-01
+**Keywords:** kw:git, kw:commit, kw:workflow, kw:commit message, kw:feature-focused commits, kw:branching, kw:github, kw:pull requests, kw:feature branches, kw:conventional commits, kw:branch naming
+**TokenBudget:** ~3700
 **ContextTier:** Medium
 **Depends:** required:800-project-changelog.md, required:802-project-contributing.md
 
 ## Scope
 
 **What This Rule Covers:**
-Git workflow best practices including commit formatting, branching strategies, PR workflows, and validation.
+Git workflow best practices including feature-focused Conventional Commit formatting, branching strategies, PR workflows, and validation.
 
 **When to Load:**
 - Writing/formatting git commits
@@ -48,7 +48,8 @@ Git workflow best practices including commit formatting, branching strategies, P
 - MUST create feature branches from main/develop — never commit directly to protected branches
 - Each commit MUST be atomic — one logical change per commit
 - Branch names MUST follow `type/description` format (e.g., `feature/add-login`, `fix/null-pointer`)
-- MUST use Conventional Commits format for all commit messages
+- MUST use feature-focused Conventional Commits format for all commit messages
+- Commit bodies SHOULD contain terse developer-facing bullets for why, impact, and validation when the subject alone is insufficient
 - MUST update CHANGELOG.md under `## [Unreleased]` for user-facing changes
 - MUST run Pre-Task-Completion Validation Gate checks before pushing
 
@@ -56,13 +57,15 @@ Git workflow best practices including commit formatting, branching strategies, P
 - Direct commits to protected branches without PR
 - Force push to `main`/`master` without override
 - Git commands that bypass validation
+- File lists in commit message bodies; changed files are discoverable via `git show --stat`
+- Copying the CHANGELOG.md entry verbatim when a commit body needs developer-facing context
 
 ### Execution Steps
 1. Create feature branch from `main` with proper naming
 2. Make changes following project standards
 3. Run Pre-Task-Completion Validation Gate checks
 4. Update CHANGELOG.md under `## [Unreleased]`
-5. Commit with Conventional Commits format
+5. Commit with feature-focused Conventional Commits format
 6. Validate git state (clean directory, proper branch)
 7. Push and create PR on GitHub
 
@@ -82,7 +85,7 @@ Clean git history with semantic commits; properly named branches; complete PR de
 - [ ] Git state is clean: `git status --porcelain` returns empty
 - [ ] Branch follows `type/description` convention: `git branch --show-current | grep -E "^(feature|feat|fix|bugfix|hotfix|release|chore|docs|refactor)/"`
 - [ ] CHANGELOG.md updated under `## [Unreleased]`: `grep -A 5 "## \[Unreleased\]" CHANGELOG.md | grep -q .`
-- [ ] All commits use Conventional Commits format: `git log --oneline -5`
+- [ ] All commits use feature-focused Conventional Commits format: `git log --oneline -5`
 - [ ] Status checks pass: project validation command exits with code 0
 - [ ] No merge conflicts: `git diff --check` returns empty
 
@@ -96,7 +99,7 @@ Clean git history with semantic commits; properly named branches; complete PR de
 - [ ] Branch created with proper naming (feature/, fix/, docs/, refactor/, chore/)
 - [ ] All Pre-Task-Completion Validation Gate checks pass
 - [ ] CHANGELOG.md updated under `## [Unreleased]`
-- [ ] Commits follow Conventional Commits format
+- [ ] Commits follow feature-focused Conventional Commits format
 - [ ] Pre-commit hooks pass (or elevated permissions granted)
 - [ ] Git state validated: `git status --porcelain` returns empty
 - [ ] PR created with clear title and description
@@ -190,6 +193,48 @@ git commit --no-verify -m "feat: new feature"  # WRONG: blindly bypasses
 
 **Correct Pattern:** Request elevated permissions or run the project's validation command first, then use `--no-verify` only after manual verification.
 
+### Anti-Pattern 6: File Lists in Commit Bodies
+
+```text
+feat(report): improve benchmark report
+
+- Modified src/harness_eval_bench/analysis_render_html.py
+- Modified tests/test_html_report.py
+- Modified CHANGELOG.md
+```
+
+**Problem:** File lists duplicate `git show --stat` and obscure the feature narrative.
+
+**Correct Pattern:** Use terse bullets for intent, impact, and validation:
+
+```text
+feat(report): standardize benchmark report labels
+
+- Align visible labels across tables, charts, controls, and methodology tabs.
+- Preserve full metric definitions in accessible tooltips.
+- Validate with focused report rendering tests and markdown checks.
+```
+
+### Anti-Pattern 7: Treating Changelog and Commit Messages as Interchangeable
+
+**Problem:** CHANGELOG.md and commit messages serve different audiences. Changelogs are release notes for users; commit messages are engineering history for maintainers.
+
+**Correct Pattern:** Keep both Conventional Commit-shaped, but tune detail level:
+
+```markdown
+# CHANGELOG.md: product-facing, concise
+- **feat(report):** standardize compact metric labels with accessible definitions.
+```
+
+```text
+# Git commit: developer-facing body can explain why and validation
+feat(report): standardize benchmark report labels
+
+- Align visible labels across tables, charts, controls, and methodology tabs.
+- Preserve full metric definitions in tooltips for readability.
+- Validate with focused report rendering tests and markdown checks.
+```
+
 ## Conventional Commits Specification
 
 **Required Format:**
@@ -225,6 +270,24 @@ git commit -m "feat(snowflake): add clustering optimization patterns"
 git commit -m "fix(validation): resolve schema parsing error"
 git commit -m "feat(python)!: require Python 3.11+ for type hints"
 ```
+
+### Message Detail Guidelines
+
+**Subject line:**
+- Conventional Commit format: `<type>[optional scope]: <feature-focused summary>`
+- Use imperative, feature-focused wording
+- Avoid file names unless the file itself is the product surface (for example, `README.md`)
+
+**Body:**
+- Optional for small atomic changes
+- Prefer 2-4 terse bullets for multi-theme or non-obvious changes
+- Explain why, behavior/impact, and validation
+- Do not include file lists or implementation inventories
+
+**CHANGELOG relationship:**
+- CHANGELOG.md should be more product/user-facing and shorter
+- Git commit bodies may be more developer-facing and diagnostic
+- If only one artifact gets more detail, put that detail in the commit body, not the changelog
 
 ### AI Attribution Footer Protocol
 

@@ -6,7 +6,7 @@
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
 **Keywords:** kw:data-loading, kw:copy-into, kw:import, kw:bulk loading, kw:on_error, kw:file_format, kw:load data, kw:external stage, kw:internal stage, kw:data ingestion, kw:file upload, kw:copy error, kw:loading patterns, kw:stage files, kw:put command, kw:get command
-**TokenBudget:** ~3750
+**TokenBudget:** ~3950
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md
 

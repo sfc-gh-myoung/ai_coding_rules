@@ -26,7 +26,7 @@ When the user request contains multiple technologies joined by delimiters (`+`, 
 
 **Example:** `"FastAPI + HTMX + SSE in SPCS"` becomes:
 ```bash
-grep -iE "fastapi|htmx|sse|spcs" {rules_path}/RULES_INDEX.md
+grep -iE "fastapi|htmx|sse|spcs" rules/RULES_INDEX.md
 ```
 
 ### Step 2: Search RULES_INDEX.md
@@ -34,7 +34,7 @@ grep -iE "fastapi|htmx|sse|spcs" {rules_path}/RULES_INDEX.md
 Execute a single compound grep combining all keywords:
 
 ```bash
-grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" {rules_path}/RULES_INDEX.md
+grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" rules/RULES_INDEX.md
 ```
 
 **Expected outcome for typical requests:**
@@ -48,7 +48,7 @@ grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" {rules_path}/RULES_INDEX.md
 
 ### Step 2.5: Sanity Check (MANDATORY)
 
-Zero results is almost always an anomaly. RULES_INDEX.md contains 750+ lines with 159 keyword entries across 100+ rules.
+Zero results is almost always an anomaly. Expected corpus size and keyword volume are defined in `rules/.index-stats.json` (see `counts.rules`, `counts.keyword_entries`, and `sanity_thresholds`). If measured results are near zero for a common keyword, either the corpus shrank materially or the query is malformed.
 
 **On zero results for any common keyword (python, sql, docker, deploy, test, snowflake, fastapi, streamlit):**
 

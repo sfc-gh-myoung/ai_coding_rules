@@ -9,10 +9,13 @@ preserved at generate time and substituted at deploy time.
 
 from __future__ import annotations
 
+import json
 import re
+import subprocess
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 from rich.panel import Panel
@@ -34,6 +37,22 @@ RULE_TABLE_MARKER = "<!-- RULE_TABLE -->"
 
 # Default template path relative to project root
 TEMPLATE_RELATIVE = Path("templates") / "RULES_INDEX.md.template"
+
+# .index-stats.json — B5 sanity-threshold facts + counts consumed by rule-loader
+# skill workflows. Schema documented in the "Rule-Loading Improvements
+# Implementation Plan (Track B + Track C)" §5.3.
+STATS_FILENAME = ".index-stats.json"
+STATS_SCHEMA_VERSION = "1"
+# Volatile fields that must be ignored when comparing an on-disk stats file
+# against a freshly regenerated one (they legitimately change every run).
+STATS_VOLATILE_KEYS = ("generated_at", "git_sha")
+# Sanity thresholds published for consumption by the rule-loader skill's
+# activity-matching workflow. Values are constants at this schema version.
+_SANITY_THRESHOLDS: dict[str, Any] = {
+    "min_matches_common_keyword": 1,
+    "max_matches_broad_query": 50,
+    "zero_result_is_anomaly": True,
+}
 
 # Files to skip during scanning
 SKIP_FILES = {
@@ -358,6 +377,121 @@ index_app = typer.Typer(
 )
 
 
+def _resolve_git_sha(project_root: Path) -> str:
+    """Return the current git HEAD SHA for ``project_root`` or ``"unknown"``.
+
+    Best-effort: any failure (missing git binary, not a repo, timeout) yields
+    ``"unknown"``. The value is a volatile stats field (see
+    ``STATS_VOLATILE_KEYS``) so it never contributes to ``check`` equality.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(project_root), "rev-parse", "HEAD"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=2,
+        )
+    except Exception:
+        return "unknown"
+    if result.returncode != 0:
+        return "unknown"
+    return result.stdout.strip() or "unknown"
+
+
+def _count_keyword_entries(rules: list[RuleMetadata]) -> int:
+    """Total number of ``kw:`` typed tokens across all rules."""
+    return sum(len(_split_typed_tokens(r.keywords)["kw"]) for r in rules)
+
+
+def _tier_counts(rules: list[RuleMetadata]) -> dict[str, int]:
+    """Return lowercased-tier -> count mapping across the four canonical tiers.
+
+    Rules with no ``ContextTier`` metadata contribute to none of the four
+    buckets; unrecognised tier names are still counted so schema drift is
+    visible rather than silently dropped.
+    """
+    counts: dict[str, int] = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+    for rule in rules:
+        if not rule.context_tier:
+            continue
+        tier = rule.context_tier.strip().lower()
+        counts[tier] = counts.get(tier, 0) + 1
+    return counts
+
+
+def render_index_stats(
+    rules: list[RuleMetadata],
+    rendered_index: str,
+    project_root: Path,
+) -> dict[str, Any]:
+    """Render the ``.index-stats.json`` body (B5 slice; B2/B3 extend the schema).
+
+    See the "Rule-Loading Improvements Implementation Plan (Track B + Track C)"
+    §5.3 for the target schema. Batch 1 populates ``schema_version``,
+    ``generated_at``, ``git_sha``, ``counts.rules``, ``counts.index_lines``,
+    ``counts.keyword_entries``, ``counts.rules_with_deps``, ``tiers``, and
+    ``sanity_thresholds``. Batches 2 and 3 add ``compact_index_lines`` and
+    ``max_deps_depth`` respectively (not emitted here).
+
+    Args:
+        rules: Sorted list of RuleMetadata objects (as returned by
+            :func:`scan_rules`).
+        rendered_index: Full rendered ``RULES_INDEX.md`` content; used to
+            count total index lines.
+        project_root: Project root path; used to look up the current git SHA
+            for the ``git_sha`` field.
+
+    Returns:
+        A JSON-serialisable dict matching the plan §5.3 Batch 1 slice.
+    """
+    rules_with_deps = sum(1 for r in rules if r.depends and r.depends != "—")
+    return {
+        "schema_version": STATS_SCHEMA_VERSION,
+        "generated_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "git_sha": _resolve_git_sha(project_root),
+        "counts": {
+            "rules": len(rules),
+            "index_lines": len(rendered_index.splitlines()),
+            "keyword_entries": _count_keyword_entries(rules),
+            "rules_with_deps": rules_with_deps,
+        },
+        "tiers": _tier_counts(rules),
+        "sanity_thresholds": dict(_SANITY_THRESHOLDS),
+    }
+
+
+def _stats_output_path(rules_dir: Path) -> Path:
+    """Return the target path for ``.index-stats.json`` inside ``rules_dir``."""
+    return rules_dir / STATS_FILENAME
+
+
+def _serialize_stats(stats: dict[str, Any]) -> str:
+    """Serialise ``stats`` to canonical JSON (sorted keys, 2-space indent, trailing newline)."""
+    return json.dumps(stats, indent=2, sort_keys=True) + "\n"
+
+
+def _write_index_stats(stats: dict[str, Any], rules_dir: Path) -> Path:
+    """Write ``stats`` to ``.index-stats.json`` under ``rules_dir`` and return the path."""
+    output_path = _stats_output_path(rules_dir)
+    output_path.write_text(_serialize_stats(stats), encoding="utf-8")
+    return output_path
+
+
+def _normalize_stats_for_check(stats: dict[str, Any]) -> dict[str, Any]:
+    """Return a copy of ``stats`` with volatile fields blanked for equality checks.
+
+    ``generated_at`` and ``git_sha`` are stripped to empty strings so that
+    ``check`` mode doesn't spuriously fail when only the timestamp or the
+    working-tree commit has changed.
+    """
+    normalized = dict(stats)
+    for key in STATS_VOLATILE_KEYS:
+        if key in normalized:
+            normalized[key] = ""
+    return normalized
+
+
 def _resolve_template(project_root: Path) -> Path:
     """Return the RULES_INDEX template path, with a helpful error if missing."""
     template_path = project_root / TEMPLATE_RELATIVE
@@ -483,6 +617,17 @@ def generate(
         log_error(f"Error writing {output_path}: {exc}")
         raise typer.Exit(code=1) from None
 
+    # B5: emit .index-stats.json alongside RULES_INDEX.md so the rule-loader
+    # skill's sanity thresholds and expected-volume counts have an
+    # authoritative, regenerated source of truth (plan §5.3).
+    stats = render_index_stats(rules, content, rules_dir.parent)
+    try:
+        stats_path = _write_index_stats(stats, rules_dir)
+    except Exception as exc:
+        log_error(f"Error writing {_stats_output_path(rules_dir)}: {exc}")
+        raise typer.Exit(code=1) from None
+    log_success(f"Generated {stats_path}")
+
 
 @index_app.command(name="check")
 def check(
@@ -520,7 +665,6 @@ def check(
 
     if _normalize_for_check(current_content) == _normalize_for_check(content):
         log_success("RULES_INDEX.md is up-to-date")
-        return
     else:
         log_error("RULES_INDEX.md is out of date")
         console.print()
@@ -529,3 +673,30 @@ def check(
         console.print("[yellow]Run to update:[/yellow]")
         console.print("  ai-rules index generate")
         raise typer.Exit(code=1) from None
+
+    # B5: .index-stats.json must also be current. Volatile fields
+    # (generated_at, git_sha) are normalised out before comparison so only a
+    # real content drift (count/tier/schema change) fails the check.
+    stats_path = _stats_output_path(rules_dir)
+    if not stats_path.exists():
+        log_error(f"{stats_path} does not exist")
+        console.print("\n[yellow]Run:[/yellow] ai-rules index generate")
+        raise typer.Exit(code=1) from None
+
+    try:
+        current_stats_text = stats_path.read_text(encoding="utf-8")
+        current_stats = json.loads(current_stats_text)
+    except Exception as exc:
+        log_error(f"Error reading {stats_path}: {exc}")
+        raise typer.Exit(code=1) from None
+
+    generated_stats = render_index_stats(_rules, content, rules_dir.parent)
+
+    if _normalize_stats_for_check(current_stats) != _normalize_stats_for_check(generated_stats):
+        log_error(f"{stats_path.name} is out of date")
+        console.print()
+        console.print("[yellow]Run to update:[/yellow]")
+        console.print("  ai-rules index generate")
+        raise typer.Exit(code=1) from None
+
+    log_success(".index-stats.json is up-to-date")

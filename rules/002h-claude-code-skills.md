@@ -11,7 +11,7 @@
 **RuleVersion:** v3.6.0
 **LastUpdated:** 2026-04-04
 **Keywords:** dir:skills/, kw:skill, kw:claude code, kw:skills, kw:skill.md, kw:skill structure, kw:progressive disclosure, kw:workflows, kw:trigger keywords, kw:skill authoring, kw:skill testing, kw:skill validation, kw:input contracts, kw:output contracts, kw:skill examples, kw:yaml frontmatter, kw:description writing, kw:mcp tools, kw:degrees of freedom, kw:context window, kw:third person, kw:naming conventions
-**TokenBudget:** ~5100
+**TokenBudget:** ~5650
 **ContextTier:** High
 **Depends:** required:000-global-core.md, required:002-rule-governance.md
 

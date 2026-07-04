@@ -1,7 +1,7 @@
 ---
 name: rule-loader
 description: Determines which rule files to load for a given user request by matching file extensions, directory paths, and keywords against RULES_INDEX.md. Handles foundation loading, domain matching, activity matching, dependency resolution, and token budget management. Use when loading rules, selecting rules for a task, resolving rule dependencies, or managing token budgets during rule loading.
-version: 1.2.0
+version: 1.3.0
 ---
 
 # Rule Loader
@@ -27,9 +27,15 @@ Given a user request, determine which rules to load, in what order, respecting d
 - `user_request`: `string` - The user's message text to analyze for keywords, extensions, and technologies
 
 ### Optional
-- `rules_path`: `string` (default: `rules/`) - Path to the rules directory
 - `token_budget_limit`: `number` (default: `20000`) - Hard maximum token budget for loaded rules. A soft warning triggers at 75% of this value (default: 15,000) to begin evaluating Low-tier deferrals.
 - `context_tier_filter`: `string` (default: `all`) - Filter by ContextTier: `all`, `critical`, `critical+high`, `critical+high+medium`
+
+### Preconditions
+
+- Working directory must be the **project root** (the directory that contains the `rules/` folder).
+  All rule paths in this skill are resolved relative to `rules/` from the working directory.
+  The skill does not perform root discovery; if the working directory is incorrect, foundation
+  loading will fail with a "file not found" CRITICAL error.
 
 ### Input Validation
 

@@ -79,7 +79,7 @@ Deferred rules must be declared in the Rules Loaded section:
 
 | Rule | TokenBudget | ContextTier |
 |------|------------|-------------|
-| 000-global-core.md | ~4,050 | Critical |
+| 000-global-core.md | ~2,400 | Critical |
 | 200-python-core.md | ~1,800 | High |
 | 206-python-pytest.md | ~3,500 | Medium |
 | 100-snowflake-core.md | ~1,800 | High |

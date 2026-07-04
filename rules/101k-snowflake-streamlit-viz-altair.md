@@ -6,7 +6,7 @@
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** kw:altair, kw:vega-lite, kw:st.altair_chart, kw:declarative visualization, kw:grammar of graphics, kw:mark_point, kw:mark_line, kw:mark_bar, kw:encoding, kw:selection, kw:interactive, kw:layered charts
-**TokenBudget:** ~3400
+**TokenBudget:** ~3600
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md, required:101a-snowflake-streamlit-visualization.md
 

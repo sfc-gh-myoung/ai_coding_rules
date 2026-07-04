@@ -1228,3 +1228,161 @@ class TestIndexCLIEdgeCases:
 
         assert result.exit_code == 1
         assert "Error writing" in result.output
+
+
+# ============================================================================
+# TestIndexStats (B5 — .index-stats.json)
+# ============================================================================
+
+
+class TestIndexStats:
+    """Tests for the .index-stats.json artefact (B5 slice of plan §5.3)."""
+
+    @pytest.mark.unit
+    def test_render_index_stats_schema(self, tmp_path: Path):
+        """render_index_stats emits the Batch 1 schema slice with expected counts."""
+        # Arrange
+        rendered_index = "line one\nline two\nline three\n"
+        rule_critical = index_module.RuleMetadata(
+            filename="000-global-core.md",
+            filepath=Path("000-global-core.md"),
+            keywords="kw:workflow, kw:safety",
+            depends="—",
+            scope="",
+            context_tier="Critical",
+            token_budget="~2400",
+        )
+        rule_high = index_module.RuleMetadata(
+            filename="200-python-core.md",
+            filepath=Path("200-python-core.md"),
+            keywords="kw:python, kw:uv, ext:.py",
+            depends="000-global-core.md",
+            scope="",
+            context_tier="High",
+            token_budget="~1800",
+        )
+
+        # Act
+        stats = index_module.render_index_stats(
+            [rule_critical, rule_high], rendered_index, tmp_path
+        )
+
+        # Assert — top-level schema
+        assert stats["schema_version"] == index_module.STATS_SCHEMA_VERSION
+        assert isinstance(stats["generated_at"], str)
+        assert stats["generated_at"].endswith("Z")
+        assert isinstance(stats["git_sha"], str)  # value depends on env; existence is contractual
+        # Counts
+        counts = stats["counts"]
+        assert counts["rules"] == 2
+        assert counts["index_lines"] == 3
+        # 4 kw: tokens across the two rules (workflow, safety, python, uv)
+        assert counts["keyword_entries"] == 4
+        # Only rule_high has a non-"—" depends
+        assert counts["rules_with_deps"] == 1
+        # Tier bucketing
+        assert stats["tiers"] == {"critical": 1, "high": 1, "medium": 0, "low": 0}
+        # Sanity thresholds are constants at v1
+        assert stats["sanity_thresholds"] == {
+            "min_matches_common_keyword": 1,
+            "max_matches_broad_query": 50,
+            "zero_result_is_anomaly": True,
+        }
+
+    @pytest.mark.unit
+    def test_generate_writes_index_stats_file(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """`ai-rules index generate` writes rules/.index-stats.json alongside RULES_INDEX.md."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
+        (rules_dir / "200-python-core.md").write_text(SAMPLE_RULE_200)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+
+        assert result.exit_code == 0
+        stats_path = rules_dir / index_module.STATS_FILENAME
+        assert stats_path.exists()
+        import json as _json
+
+        payload = _json.loads(stats_path.read_text())
+        assert payload["counts"]["rules"] == 2
+        assert payload["schema_version"] == index_module.STATS_SCHEMA_VERSION
+
+    @pytest.mark.unit
+    def test_index_check_fails_on_stale_stats(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """`ai-rules index check` fails when .index-stats.json content is stale."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+
+        # Generate a clean baseline so RULES_INDEX.md itself is up-to-date;
+        # then corrupt only the stats file so we isolate the stats-check path.
+        runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+
+        stats_path = rules_dir / index_module.STATS_FILENAME
+        assert stats_path.exists()
+        import json as _json
+
+        stale = _json.loads(stats_path.read_text())
+        stale["counts"]["rules"] = 999  # non-volatile drift
+        stats_path.write_text(_json.dumps(stale, indent=2, sort_keys=True) + "\n")
+
+        result = runner.invoke(app, ["index", "check", "--rules-dir", str(rules_dir)])
+
+        assert result.exit_code == 1
+        assert "out of date" in result.output
+
+    @pytest.mark.unit
+    def test_index_check_ignores_volatile_stats_fields(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """`check` treats generated_at and git_sha as volatile and does not fail on their drift."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+
+        runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+
+        stats_path = rules_dir / index_module.STATS_FILENAME
+        import json as _json
+
+        payload = _json.loads(stats_path.read_text())
+        # Rewrite only the volatile fields — check must still pass.
+        payload["generated_at"] = "1999-01-01T00:00:00Z"
+        payload["git_sha"] = "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef"
+        stats_path.write_text(_json.dumps(payload, indent=2, sort_keys=True) + "\n")
+
+        result = runner.invoke(app, ["index", "check", "--rules-dir", str(rules_dir)])
+
+        assert result.exit_code == 0
+        assert "up-to-date" in result.output
+
+    @pytest.mark.unit
+    def test_index_check_fails_when_stats_missing(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """`check` fails when RULES_INDEX.md is current but .index-stats.json is missing."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+
+        runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+
+        (rules_dir / index_module.STATS_FILENAME).unlink()
+
+        result = runner.invoke(app, ["index", "check", "--rules-dir", str(rules_dir)])
+
+        assert result.exit_code == 1
+        assert "does not exist" in result.output

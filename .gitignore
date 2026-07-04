@@ -194,6 +194,9 @@ output/
 temp/
 tmp/
 
+# Workbench (short-life project assets; see rules/806-workbench-folder-policy.md)
+.workbench/
+
 # Task automation
 .task/
 

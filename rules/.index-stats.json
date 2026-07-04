@@ -1,0 +1,22 @@
+{
+  "counts": {
+    "index_lines": 243,
+    "keyword_entries": 2373,
+    "rules": 196,
+    "rules_with_deps": 194
+  },
+  "generated_at": "2026-07-04T04:18:40Z",
+  "git_sha": "bc4735cc3c49d6513b10c6f333dcc08f02fc83ef",
+  "sanity_thresholds": {
+    "max_matches_broad_query": 50,
+    "min_matches_common_keyword": 1,
+    "zero_result_is_anomaly": true
+  },
+  "schema_version": "1",
+  "tiers": {
+    "critical": 5,
+    "high": 84,
+    "low": 40,
+    "medium": 67
+  }
+}

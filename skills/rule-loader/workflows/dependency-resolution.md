@@ -64,7 +64,7 @@ Consult RULES_INDEX.md for the authoritative dependency list for each rule.
 
 If any loaded rule involves Cortex Agent, Cortex Search, or Semantic View:
 
-1. Check for companion example: `{rules_path}/examples/{rule-number}-*-example.md`
+1. Check for companion example: `rules/examples/{rule-number}-*-example.md`
 2. If example exists: Load for reference implementation
 3. Record with reason: `"(companion example for NNN-rule-name.md)"`
 

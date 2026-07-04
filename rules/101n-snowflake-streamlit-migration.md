@@ -6,7 +6,7 @@
 **RuleVersion:** v1.2.0
 **LastUpdated:** 2026-05-11
 **Keywords:** kw:migration, kw:warehouse runtime, kw:container runtime, kw:in-place upgrade, kw:live version, kw:environment.yml, kw:pyproject.toml, kw:get_active_session, kw:st.connection, kw:runtime migration, kw:bidirectional migration
-**TokenBudget:** ~2100
+**TokenBudget:** ~2800
 **ContextTier:** Low
 **Depends:** required:101l-snowflake-streamlit-deployment.md
 

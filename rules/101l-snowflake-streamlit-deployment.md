@@ -6,7 +6,7 @@
 **RuleVersion:** v1.3.0
 **LastUpdated:** 2026-05-12
 **Keywords:** kw:container runtime, kw:warehouse runtime, kw:deployment, kw:pyproject.toml, kw:environment.yml, kw:compute pool, kw:eai, kw:external access integration, kw:create streamlit, kw:migration
-**TokenBudget:** ~3850
+**TokenBudget:** ~4150
 **ContextTier:** High
 **Depends:** required:000-global-core.md, required:101-snowflake-streamlit-core.md
 

@@ -6,7 +6,7 @@
 **RuleVersion:** v1.1.1
 **LastUpdated:** 2026-07-03
 **Keywords:** kw:documentation, kw:docs folder, file:docs/, file:ARCHITECTURE.md, kw:project structure, kw:architecture.md, kw:deployment.md, kw:adr, kw:github pages, kw:community health files, kw:cross-references, kw:link maintenance, kw:documentation organization
-**TokenBudget:** ~3200
+**TokenBudget:** ~2850
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md
 

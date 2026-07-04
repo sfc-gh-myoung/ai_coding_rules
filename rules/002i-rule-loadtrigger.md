@@ -10,7 +10,7 @@
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
 **Keywords:** ext:.py, kw:python, kw:testing, kw:loadtrigger, kw:dynamic rule loading, kw:rule discovery, kw:file extension trigger, kw:keyword trigger, kw:directory trigger, kw:filename trigger, kw:rules_index
-**TokenBudget:** ~2400
+**TokenBudget:** ~2200
 **ContextTier:** Medium
 **Depends:** required:002-rule-governance.md
 

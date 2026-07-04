@@ -2,6 +2,17 @@
 
 All notable changes to the `rule-loader` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## [1.3.0] - 2026-07-03
+
+### Fixed
+
+- `{rules_path}` placeholder in workflow files is now resolved to the literal `rules/` prefix. Removes the runtime substitution ambiguity that could cause foundation loading to fail silently when the placeholder was never expanded.
+
+### Changed
+
+- `rules_path` optional input removed from `SKILL.md` `## Inputs`. Callers no longer configure the rules directory — the skill resolves paths relative to `rules/` from the working directory.
+- Added a `### Preconditions` block to `## Inputs` declaring that the working directory must be the project root (the directory containing `rules/`). Foundation loading fails with a CRITICAL "file not found" error otherwise.
+
 ## v1.2.0 (2026-06-21)
 
 ### Changed

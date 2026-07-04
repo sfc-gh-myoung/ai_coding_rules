@@ -13,14 +13,14 @@
 ## Scope
 
 **What This Rule Covers:**
-Where short-life, in-progress, or scratch project assets live in the repository. Establishes `.workbench/` at the repo root as the single canonical home for workbench artefacts so long-lived directories (`docs/`, `scripts/`, `rules/`, `skills/`, `src/`, `tests/`, `templates/`) stay a pure signal of committed deliverables.
+Where short-life, in-progress, or scratch project assets live in the repository. Establishes `.workbench/` at the repo root as the single canonical home for workbench artifacts so long-lived directories (`docs/`, `scripts/`, `rules/`, `skills/`, `src/`, `tests/`, `templates/`) stay a pure signal of committed deliverables.
 
 **Applies To:**
 
 - Baseline scripts scoped to a specific plan (e.g. token-count snapshotters, one-off measurement runners)
 - Plan-analyzer, plan-reviewer, or research outputs whose findings have already been folded into a plan or ADR
 - In-flight plan files that are not yet ready to land
-- Spike-branch measurements and other exploratory artefacts
+- Spike-branch measurements and other exploratory artifacts
 - Any file whose lifetime is bounded by a single plan or investigation
 
 **Does NOT Apply To:**
@@ -69,7 +69,7 @@ Where short-life, in-progress, or scratch project assets live in the repository.
 ### Forbidden
 
 - **Mixed homes:** Do not gitignore workbench-shaped subdirectories inside long-lived dirs (e.g. `docs/analysis/`, `docs/plans/`, `docs/benchmarks/`) as a substitute for `.workbench/`. Long-lived dirs must read as long-lived at the filesystem level, not only at the git-tracking level.
-- **Cross-references from tracked code to `.workbench/` paths in production runtime paths.** Documentation citations from tracked code (docstrings, comments) MAY reference a workbench artefact by title, but MUST NOT hardcode a `.workbench/...` path since that path is ephemeral until the asset is promoted.
+- **Cross-references from tracked code to `.workbench/` paths in production runtime paths.** Documentation citations from tracked code (docstrings, comments) MAY reference a workbench artifact by title, but MUST NOT hardcode a `.workbench/...` path since that path is ephemeral until the asset is promoted.
 - **Silent promotion:** Do not move an asset out of `.workbench/` without a matching Conventional Commit entry naming it.
 
 ### Execution Steps
@@ -109,7 +109,7 @@ Workbench layout mirror:
 
 ### Filesystem shape as signal
 
-The filesystem tree is a first-class communication channel. When `docs/` contains only committed content, contributors know at a glance that anything under it is a project deliverable. When workbench artefacts are sprinkled into long-lived dirs — even if gitignored — the visual signal is polluted and the ignore rules become a hidden second contract that must be memorised.
+The filesystem tree is a first-class communication channel. When `docs/` contains only committed content, contributors know at a glance that anything under it is a project deliverable. When workbench artifacts are sprinkled into long-lived dirs — even if gitignored — the visual signal is polluted and the ignore rules become a hidden second contract that must be memorised.
 
 ### Promotion is intentional
 

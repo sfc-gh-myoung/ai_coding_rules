@@ -193,7 +193,10 @@ class TokenBudgetUpdater:
             List of TokenBudgetAnalysis results
         """
         results = []
-        md_files = sorted(f for f in directory.glob("*.md") if f.name != "RULES_INDEX.md")
+        # Skip generated index artifacts — they are projections of the corpus,
+        # not source rule files, and do not carry TokenBudget frontmatter.
+        _skip = {"RULES_INDEX.md", "RULES_INDEX_COMPACT.md"}
+        md_files = sorted(f for f in directory.glob("*.md") if f.name not in _skip)
 
         with Progress(
             SpinnerColumn(),

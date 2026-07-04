@@ -20,8 +20,11 @@ from ai_rules.commands import index as index_module
 
 runner = CliRunner(env={"NO_COLOR": "1", "CI": "true", "TERM": "dumb"})
 
-# Real template used to render RULES_INDEX in tests
+# Real templates used to render RULES_INDEX(_COMPACT) in tests
 REAL_TEMPLATE = Path(__file__).parent.parent.parent / "templates" / "RULES_INDEX.md.template"
+REAL_COMPACT_TEMPLATE = (
+    Path(__file__).parent.parent.parent / "templates" / "RULES_INDEX_COMPACT.md.template"
+)
 
 
 def _row_cells(line: str) -> list[str]:
@@ -41,11 +44,14 @@ def _data_row(content: str, filename: str) -> str:
 
 @pytest.fixture(autouse=True)
 def _inject_template(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Make _resolve_template return the real project template in all tests.
+    """Make _resolve_template return the real project templates in all tests.
 
     This avoids every test having to create templates/ in tmp_path.
     """
     monkeypatch.setattr(index_module, "_resolve_template", lambda _root: REAL_TEMPLATE)
+    monkeypatch.setattr(
+        index_module, "_resolve_compact_template", lambda _root: REAL_COMPACT_TEMPLATE
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1236,11 +1242,11 @@ class TestIndexCLIEdgeCases:
 
 
 class TestIndexStats:
-    """Tests for the .index-stats.json artefact (B5 slice of plan §5.3)."""
+    """Tests for the .index-stats.json artifact (B5 slice of plan §5.3)."""
 
     @pytest.mark.unit
     def test_render_index_stats_schema(self, tmp_path: Path):
-        """render_index_stats emits the Batch 1 schema slice with expected counts."""
+        """render_index_stats emits the F4 schema slice with expected counts."""
         # Arrange
         rendered_index = "line one\nline two\nline three\n"
         rule_critical = index_module.RuleMetadata(
@@ -1269,6 +1275,9 @@ class TestIndexStats:
 
         # Assert — top-level schema
         assert stats["schema_version"] == index_module.STATS_SCHEMA_VERSION
+        assert stats["schema_version"] == "2"
+        assert stats["format_version"] == index_module.COMPACT_FORMAT_VERSION
+        assert stats["format_version"] == "F4"
         assert isinstance(stats["generated_at"], str)
         assert stats["generated_at"].endswith("Z")
         assert isinstance(stats["git_sha"], str)  # value depends on env; existence is contractual
@@ -1386,3 +1395,345 @@ class TestIndexStats:
 
         assert result.exit_code == 1
         assert "does not exist" in result.output
+
+
+# ============================================================================
+# TestCompactIndex (B3 — RULES_INDEX_COMPACT.md)
+# ============================================================================
+
+
+class TestCompactIndex:
+    """Tests for the compact keyword-only manifest (B3 slice of plan §3.2, §5.2)."""
+
+    @pytest.mark.unit
+    def test_render_compact_line_shape(self):
+        """render_compact_line emits F4-format space-delimited fields."""
+        rule = index_module.RuleMetadata(
+            filename="200-python-core.md",
+            filepath=Path("200-python-core.md"),
+            keywords="kw:python, kw:pytest, ext:.py, ext:.pyi, file:pyproject.toml",
+            depends="required:000-global-core.md",
+            scope="",
+            context_tier="High",
+            token_budget="~1800",
+        )
+
+        line = index_module.render_compact_line(rule)
+
+        # F4 grammar: no leading/trailing separator, no trailing newline
+        assert not line.startswith(" ")
+        assert not line.endswith(" ")
+        assert not line.endswith("\n")
+        # F4 uses space-delimited fields, not pipes
+        assert " | " not in line
+        assert "tier=High" in line
+        assert "ext=.py,.pyi" in line
+        assert "file=pyproject.toml" in line
+        # dir= is omitted entirely when no dir triggers exist (not emitted as dir=-)
+        assert "dir=" not in line
+        assert "kw=python pytest" in line
+        # Filename is the first token
+        assert line.split(" ", 1)[0] == "200-python-core.md"
+
+    @pytest.mark.unit
+    def test_render_compact_line_all_empty_triggers_omit_fields(self):
+        """A rule with only kw: tokens omits ext=, file=, dir= entirely."""
+        rule = index_module.RuleMetadata(
+            filename="000-test.md",
+            filepath=Path("000-test.md"),
+            keywords="kw:test",
+            depends="—",
+            scope="",
+            context_tier="Critical",
+            token_budget="~100",
+        )
+
+        line = index_module.render_compact_line(rule)
+
+        assert "tier=Critical" in line
+        # Empty ext/file/dir fields are omitted — do NOT render as `foo=-`.
+        assert "ext=" not in line
+        assert "file=" not in line
+        assert "dir=" not in line
+        assert "kw=test" in line
+        # Exactly 3 space-delimited parts: filename, tier=..., kw=...
+        assert len(line.split(" ")) == 3
+
+    @pytest.mark.unit
+    def test_render_compact_line_missing_tier_renders_dash(self):
+        """A rule without ContextTier renders `tier=-` (tier is always present)."""
+        rule = index_module.RuleMetadata(
+            filename="000-notier.md",
+            filepath=Path("000-notier.md"),
+            keywords="kw:test",
+            depends="—",
+            scope="",
+            context_tier=None,
+            token_budget=None,
+        )
+
+        line = index_module.render_compact_line(rule)
+
+        assert "tier=-" in line
+        assert "tier=None" not in line
+
+    @pytest.mark.unit
+    def test_generate_writes_compact_index_file(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """`ai-rules index generate` writes RULES_INDEX_COMPACT.md alongside RULES_INDEX.md."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
+        (rules_dir / "200-python-core.md").write_text(SAMPLE_RULE_200)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+
+        result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+
+        assert result.exit_code == 0
+        compact_path = rules_dir / index_module.COMPACT_INDEX_FILENAME
+        assert compact_path.exists()
+
+        body = compact_path.read_text()
+        assert index_module.COMPACT_TABLE_MARKER not in body
+        # Both rules appear as F4-format compact rows
+        assert "000-global-core.md tier=Critical" in body
+        assert "200-python-core.md tier=High" in body
+
+    @pytest.mark.unit
+    def test_index_check_fails_on_stale_compact(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """`ai-rules index check` fails when RULES_INDEX_COMPACT.md is out of date."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+
+        # Generate a clean baseline, then corrupt only the compact file.
+        runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+
+        compact_path = rules_dir / index_module.COMPACT_INDEX_FILENAME
+        assert compact_path.exists()
+        compact_path.write_text("# Stale compact index — content drift\n")
+
+        result = runner.invoke(app, ["index", "check", "--rules-dir", str(rules_dir)])
+
+        assert result.exit_code == 1
+        assert "out of date" in result.output
+
+    @pytest.mark.unit
+    def test_index_check_fails_when_compact_missing(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """`check` fails when RULES_INDEX_COMPACT.md is missing entirely."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+
+        runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+
+        (rules_dir / index_module.COMPACT_INDEX_FILENAME).unlink()
+
+        result = runner.invoke(app, ["index", "check", "--rules-dir", str(rules_dir)])
+
+        assert result.exit_code == 1
+        assert "does not exist" in result.output
+
+    @pytest.mark.unit
+    def test_compact_index_grep_parity(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Every rule filename that matches a keyword in the full index also matches in the compact index.
+
+        Guards Risk #3 in the plan: the compact projection must not silently
+        drop keyword coverage.
+        """
+        import re
+
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
+        (rules_dir / "200-python-core.md").write_text(SAMPLE_RULE_200)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+        runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+
+        full = (rules_dir / "RULES_INDEX.md").read_text()
+        compact = (rules_dir / index_module.COMPACT_INDEX_FILENAME).read_text()
+
+        # F4 word-boundary grep parity: for each bare keyword, the set of
+        # rules matching in the compact index (word-boundary) must be a
+        # superset of the set matching in the full index. Full-index rows
+        # still use F1 typed-prefix format (`kw:foo`), so we scan the full
+        # index with the typed prefix and the compact with a word-boundary
+        # regex targeting the space-separated F4 kw block.
+        for keyword in ("core", "foundation", "python"):
+            typed_full = re.compile(re.escape(f"kw:{keyword}"), re.IGNORECASE)
+            # Word-boundary match on the bare word for the compact side.
+            wb_compact = re.compile(rf"(?i)\b{re.escape(keyword)}\b")
+            full_matches = {
+                row.split("|", 2)[1].strip()
+                for row in full.splitlines()
+                if row.startswith("| ") and typed_full.search(row) and "----" not in row
+            }
+            compact_matches = {
+                row.split(" ", 1)[0].strip()
+                for row in compact.splitlines()
+                if wb_compact.search(row) and " tier=" in row
+            }
+            assert full_matches, f"expected {keyword!r} to match in the full index"
+            missing = full_matches - compact_matches
+            assert not missing, f"compact index dropped rules for {keyword!r}: {missing}"
+
+        # Field-prefix matching still works for ext=/file=/dir= searches.
+        for field_pattern in ("ext=.*\\.py", "ext=.*\\.pyi"):
+            fp = re.compile(field_pattern, re.IGNORECASE)
+            compact_matches = {
+                row.split(" ", 1)[0].strip()
+                for row in compact.splitlines()
+                if fp.search(row) and " tier=" in row
+            }
+            assert compact_matches, (
+                f"expected field pattern {field_pattern!r} to match in the compact index"
+            )
+
+    @pytest.mark.unit
+    def test_index_stats_includes_compact_index_lines(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """`.index-stats.json` counts include `compact_index_lines` after Batch 2."""
+        import json as _json
+
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
+        (rules_dir / "200-python-core.md").write_text(SAMPLE_RULE_200)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+        runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+
+        stats_path = rules_dir / index_module.STATS_FILENAME
+        payload = _json.loads(stats_path.read_text())
+        counts = payload["counts"]
+
+        assert "compact_index_lines" in counts
+        compact_body = (rules_dir / index_module.COMPACT_INDEX_FILENAME).read_text()
+        assert counts["compact_index_lines"] == len(compact_body.splitlines())
+
+    @pytest.mark.unit
+    def test_render_compact_index_raises_on_missing_template(self, tmp_path: Path):
+        """render_compact_index raises ValueError when the template file is absent."""
+        missing = tmp_path / "missing.template"
+        with pytest.raises(ValueError, match="Template not found"):
+            index_module.render_compact_index([], missing)
+
+    @pytest.mark.unit
+    def test_render_compact_index_raises_when_marker_absent(self, tmp_path: Path):
+        """render_compact_index raises ValueError when COMPACT_TABLE marker is absent."""
+        bad = tmp_path / "bad.template"
+        bad.write_text("# No compact marker here\n")
+        with pytest.raises(ValueError, match="does not contain the"):
+            index_module.render_compact_index([], bad)
+
+    @pytest.mark.unit
+    def test_f4_hyphenation(self):
+        """Multi-word keywords with internal whitespace are hyphenated in `kw=`."""
+        rule = index_module.RuleMetadata(
+            filename="000-global-core.md",
+            filepath=Path("000-global-core.md"),
+            # "surgical edits" and "prompt engineering" contain internal spaces
+            keywords="kw:workflow, kw:surgical edits, kw:prompt engineering",
+            depends="—",
+            scope="",
+            context_tier="Critical",
+        )
+
+        line = index_module.render_compact_line(rule)
+
+        # Whitespace inside keywords is hyphenated so the kw= block stays
+        # space-tokenised (see plan §3.2, F4 canonicalisation rule).
+        assert "surgical-edits" in line
+        assert "prompt-engineering" in line
+        assert "surgical edits" not in line
+        assert "prompt engineering" not in line
+
+    @pytest.mark.unit
+    def test_f4_hyphenate_keyword_helper(self):
+        """_hyphenate_keyword collapses internal whitespace to hyphens."""
+        assert index_module._hyphenate_keyword("simple") == "simple"
+        assert index_module._hyphenate_keyword("two words") == "two-words"
+        assert index_module._hyphenate_keyword("multi  word  gap") == "multi-word-gap"
+        assert index_module._hyphenate_keyword("already-hyphenated") == "already-hyphenated"
+        assert index_module._hyphenate_keyword("  padded  ") == "padded"
+        assert index_module._hyphenate_keyword("") == ""
+
+    @pytest.mark.unit
+    def test_f4_deterministic_generation(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Two consecutive render_compact_index calls produce byte-identical output."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
+        (rules_dir / "200-python-core.md").write_text(SAMPLE_RULE_200)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+
+        rules = index_module.scan_rules(rules_dir)
+        template_path = tmp_path / index_module.COMPACT_TEMPLATE_RELATIVE
+        template_path.parent.mkdir(parents=True, exist_ok=True)
+        template_path.write_text("# Compact\n\n" + index_module.COMPACT_TABLE_MARKER + "\n")
+
+        first = index_module.render_compact_index(rules, template_path)
+        second = index_module.render_compact_index(rules, template_path)
+
+        assert first == second
+        # Byte-identical
+        assert first.encode("utf-8") == second.encode("utf-8")
+
+    @pytest.mark.unit
+    def test_index_check_detects_f1_stale_format(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """`check` fails with an F1-format migration message on legacy pipe-separated rows."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+
+        # Generate a clean F4 baseline, then overwrite the compact file with
+        # an F1-format row (pipe-separated ` | kw:foo`). The stale sentinel
+        # should fire before the diff pathway.
+        runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+
+        compact_path = rules_dir / index_module.COMPACT_INDEX_FILENAME
+        compact_path.write_text(
+            "# stale F1 index\n"
+            "000-global-core.md | tier:Critical | - | - | - | kw:workflow,kw:safety\n"
+        )
+
+        result = runner.invoke(app, ["index", "check", "--rules-dir", str(rules_dir)])
+
+        assert result.exit_code == 1
+        # Message should reference F1 migration guidance
+        assert "F1" in result.output or "legacy" in result.output.lower()
+
+    @pytest.mark.unit
+    def test_index_stats_format_version(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """`.index-stats.json` contains format_version=F4 and schema_version=2."""
+        import json as _json
+
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+        runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+
+        stats_path = rules_dir / index_module.STATS_FILENAME
+        payload = _json.loads(stats_path.read_text())
+
+        assert payload["schema_version"] == "2"
+        assert payload["format_version"] == "F4"

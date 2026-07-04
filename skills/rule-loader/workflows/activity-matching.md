@@ -26,23 +26,34 @@ When the user request contains multiple technologies joined by delimiters (`+`, 
 
 **Example:** `"FastAPI + HTMX + SSE in SPCS"` becomes:
 ```bash
-grep -iE "fastapi|htmx|sse|spcs" rules/RULES_INDEX.md
+grep -iE "fastapi|htmx|sse|spcs" rules/RULES_INDEX_COMPACT.md
 ```
 
-### Step 2: Search RULES_INDEX.md
+### Step 2: Search RULES_INDEX_COMPACT.md (grep against the compact index)
 
-Execute a single compound grep combining all keywords:
+Execute a single compound grep combining all keywords. Target the compact
+index (`rules/RULES_INDEX_COMPACT.md`) — it is a pipe-separated,
+keyword-only projection of `RULES_INDEX.md` designed to minimise tokens
+consumed by grep-fallback discovery.
 
 ```bash
-grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" rules/RULES_INDEX.md
+grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" rules/RULES_INDEX_COMPACT.md
 ```
+
+Each hit is a self-contained row of the form
+`<filename> | tier:X | ext:... | file:... | dir:... | kw:...` — the
+rule filename is the first field.
+
+**Fallback to the full index** (`rules/RULES_INDEX.md`) only when the
+compact index is missing, or when a hit's context is needed. Every row in
+the compact index has a corresponding row in the full index.
 
 **Expected outcome for typical requests:**
 - 5-50 matching lines for multi-technology requests
 - 1-10 matching lines for single-technology requests
 - 0 lines = ANOMALY (re-execute grep once, then use fallback immediately)
 
-**If grep unavailable:** Read RULES_INDEX.md via `read_file` and manually scan for keywords. This is the required fallback.
+**If grep unavailable:** Read `rules/RULES_INDEX_COMPACT.md` via `read_file` and manually scan for keywords. This is the required fallback.
 
 **FORBIDDEN:** Substituting glob, find, ls, or any file-discovery tool for grep.
 

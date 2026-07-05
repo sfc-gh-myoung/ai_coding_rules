@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-05-12
-**Keywords:** kw:spcs, kw:container, kw:compute pools, kw:oci images, kw:service spec, kw:container deployment, kw:service logs, kw:platform events, kw:instance family, kw:gen_x64_g2, kw:mem_x64_g2, kw:current generation, kw:gpu l40s, kw:gpu rtx pro 6000
+**Keywords:** kw:spcs, kw:compute pools, kw:oci images, kw:service spec, kw:container deployment, kw:service logs, kw:platform events, kw:instance family, kw:gen_x64_g2, kw:mem_x64_g2, kw:current generation, kw:gpu l40s, kw:gpu rtx pro 6000
 **TokenBudget:** ~3550
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md

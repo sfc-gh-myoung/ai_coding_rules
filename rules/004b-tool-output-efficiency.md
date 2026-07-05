@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:token efficiency, kw:tool outputs, kw:minimal output, kw:structured output, kw:progressive output, kw:context budget, kw:verbose output
+**Keywords:** kw:tool outputs, kw:minimal output, kw:progressive output, kw:context budget, kw:verbose output
 **TokenBudget:** ~2600
 **ContextTier:** Medium
 **Depends:** required:004-tool-design-for-agents.md, required:000-global-core.md

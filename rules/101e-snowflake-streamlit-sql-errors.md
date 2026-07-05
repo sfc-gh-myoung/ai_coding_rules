@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:snowparksqlexception, kw:error messages, kw:streamlit errors, kw:snowflake errors, kw:debug sql error, kw:fix query error, kw:sql exception, kw:error troubleshooting, kw:query failed, kw:database error, kw:sql debugging patterns, kw:exception handling, kw:error recovery, kw:common sql errors, kw:streamlit error, kw:app error, kw:fix error, kw:error handling
+**Keywords:** kw:snowparksqlexception, kw:error messages, kw:streamlit errors, kw:snowflake errors, kw:debug sql error, kw:fix query error, kw:sql exception, kw:error troubleshooting, kw:query failed, kw:database error, kw:sql debugging patterns, kw:exception handling, kw:common sql errors, kw:streamlit error, kw:app error, kw:fix error
 **TokenBudget:** ~3950
 **ContextTier:** Low
 **Depends:** required:100-snowflake-core.md, required:101-snowflake-streamlit-core.md, required:101b-snowflake-streamlit-performance.md

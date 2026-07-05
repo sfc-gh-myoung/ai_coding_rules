@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.1.2
 **LastUpdated:** 2026-05-11
-**Keywords:** kw:multi-env-deploy, kw:deployment-rollback, kw:multi-environment deployment, kw:deployment rollback, kw:deployment recovery, kw:deployment validation, kw:environment-specific deployment, kw:dev qa prod deployment, kw:rollback strategy
+**Keywords:** kw:multi-env-deploy, kw:deployment-rollback, kw:multi-environment deployment, kw:deployment rollback, kw:deployment recovery, kw:environment-specific deployment, kw:dev qa prod deployment, kw:rollback strategy
 **TokenBudget:** ~2700
 **ContextTier:** Low
 **Depends:** required:109b-snowflake-app-deployment-core.md, required:109h-snowflake-app-deployment-taskfile.md

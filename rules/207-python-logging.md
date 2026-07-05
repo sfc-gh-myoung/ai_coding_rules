@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:logging, kw:log, kw:logger, kw:python logging, kw:handlers, kw:formatters, kw:log levels, kw:webloghandler, kw:rich console, kw:sse streaming, kw:structured logging, kw:operation id, kw:thread safety, kw:log hierarchy, kw:log propagation
+**Keywords:** kw:log, kw:logger, kw:python logging, kw:handlers, kw:formatters, kw:log levels, kw:webloghandler, kw:rich console, kw:sse streaming, kw:operation id, kw:thread safety, kw:log hierarchy, kw:log propagation
 **TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** required:200-python-core.md

@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** ext:.zsh, kw:zsh-compatibility, kw:zsh, kw:shell compatibility, kw:bash vs zsh, kw:portable scripts, kw:cross-shell, kw:migration, kw:emulate, kw:posix compliance, kw:shell detection
+**Keywords:** ext:.zsh, kw:zsh-compatibility, kw:shell compatibility, kw:bash vs zsh, kw:portable scripts, kw:cross-shell, kw:migration, kw:emulate, kw:posix compliance, kw:shell detection
 **TokenBudget:** ~4150
 **ContextTier:** Low
 **Depends:** required:300-bash-scripting-core.md

@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:stored procedure anti-patterns, kw:dollar quoting, kw:execute as, kw:bind variables, kw:sql injection, kw:dynamic sql, kw:unqualified names
+**Keywords:** kw:stored procedure anti-patterns, kw:dollar quoting, kw:execute as, kw:bind variables, kw:unqualified names
 **TokenBudget:** ~1700
 **ContextTier:** Low
 **Depends:** required:102b-snowflake-sql-procedures.md

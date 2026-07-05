@@ -10,7 +10,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-05-11
-**Keywords:** kw:app-deployment, kw:deploy, kw:create notebook, kw:stages, kw:deployment automation, kw:sis, kw:deploy app, kw:deployment pipeline, kw:app publishing, kw:deployment patterns, kw:deploy to snowflake, kw:stage deployment, kw:production deployment, kw:app versioning, kw:automated deployment
+**Keywords:** kw:app-deployment, kw:create notebook, kw:stages, kw:sis, kw:deploy app, kw:deployment pipeline, kw:app publishing, kw:deployment patterns, kw:deploy to snowflake, kw:stage deployment, kw:app versioning, kw:automated deployment
 **TokenBudget:** ~4100
 **ContextTier:** Medium
 **Depends:** required:100-snowflake-core.md, required:109-snowflake-notebooks.md, required:101-snowflake-streamlit-core.md, required:820-taskfile-automation.md

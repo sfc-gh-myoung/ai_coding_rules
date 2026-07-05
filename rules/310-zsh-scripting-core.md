@@ -10,7 +10,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-25
-**Keywords:** ext:.zsh, kw:zsh, kw:z shell, kw:zsh features, kw:arrays, kw:functions, kw:oh-my-zsh, kw:emulate, kw:setopt, kw:parameter expansion, kw:globbing
+**Keywords:** ext:.zsh, kw:z shell, kw:zsh features, kw:arrays, kw:functions, kw:oh-my-zsh, kw:emulate, kw:setopt, kw:parameter expansion, kw:globbing
 **TokenBudget:** ~4300
 **ContextTier:** Medium
 **Depends:** required:300-bash-scripting-core.md

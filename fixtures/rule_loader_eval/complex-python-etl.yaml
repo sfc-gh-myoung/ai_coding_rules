@@ -1,5 +1,5 @@
 schema_version: 3
-updated: 2026-05-17T16:26:51-04:00
+updated: 2026-07-04T00:00:00Z
 id: complex-python-etl
 description: # TODO
 variant: complex
@@ -7,23 +7,20 @@ prompt: |
   Our nightly ETL is implemented in jobs/extract_load.py. It currently uses a
   fragile retry loop and we have observed intermittent timeouts when the source
   database is under load. Please review the file and suggest a more resilient
-  retry policy with jittered backoff, and add structured logging so we can
-  trace each attempt. Do not change the public function signature; downstream
-  orchestration depends on it.
+  retry policy with jittered backoff, and add python logging with structured
+  handlers so we can trace each attempt. Do not change the public function
+  signature; downstream orchestration depends on it.
 expected:
   required:
     - rules/000-global-core.md  # foundation (always loaded)
-    - rules/207-python-logging.md  # suggested: kw: logging
+    - rules/207-python-logging.md  # matches: kw:python logging, kw:handlers
     - rules/200-python-core.md  # migrated from dependencies (v3.15)
   forbidden: []
   optional: []
 trigger_evidence:
-  kw: [logging]   # suggested
-    # n-gram (no rule): "change the public function"
-    # n-gram (no rule): "database is under load"
-    # n-gram (no rule): "fragile retry loop and"
-    # n-gram (no rule): "have observed intermittent timeouts"
-    # n-gram (no rule): "nightly ETL is implemented"
-  ext: [.py]   # suggested
+  kw: [python logging, handlers]
+    # python logging matches rule 207 kw:python logging
+    # handlers matches rule 207 kw:handlers
+  ext: [.py]   # matches rule 200 ext:.py via jobs/extract_load.py
   file: []
   dir: []

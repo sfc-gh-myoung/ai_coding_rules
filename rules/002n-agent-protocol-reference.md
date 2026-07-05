@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-06-09
-**Keywords:** kw:anti-patterns, kw:quality gates, kw:task switch, kw:rule loading, kw:failure modes, kw:protocol reference, kw:term definitions, kw:agent optimization, kw:gate compliance
+**Keywords:** kw:anti-patterns, kw:quality gates, kw:task switch, kw:rule loading, kw:failure modes, kw:protocol reference, kw:term definitions, kw:gate compliance
 **TokenBudget:** ~2800
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md

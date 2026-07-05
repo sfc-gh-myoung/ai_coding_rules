@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:reserved characters, kw:cli compatibility, kw:snow sql, kw:snowsql, kw:template expansion, kw:ampersand, kw:enable-templating, kw:single-quote escaping, kw:jinja2, kw:dbt
+**Keywords:** kw:cli compatibility, kw:snow sql, kw:snowsql, kw:template expansion, kw:ampersand, kw:enable-templating, kw:single-quote escaping, kw:jinja2, kw:dbt
 **TokenBudget:** ~1550
 **ContextTier:** Low
 **Depends:** required:102-snowflake-sql-core.md

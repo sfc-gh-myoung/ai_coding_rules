@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:fastapi-testing, kw:fastapi testing, kw:testclient, kw:pytest-asyncio, kw:api tests, kw:integration testing, kw:mocking, kw:test fixtures, kw:aaa pattern, kw:async testing, kw:python
+**Keywords:** kw:fastapi-testing, kw:fastapi testing, kw:testclient, kw:pytest-asyncio, kw:api tests, kw:mocking, kw:aaa pattern, kw:async testing
 **TokenBudget:** ~3950
 **ContextTier:** High
 **Depends:** required:210-python-fastapi-core.md

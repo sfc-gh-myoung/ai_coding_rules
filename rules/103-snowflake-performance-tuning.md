@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:performance, kw:optimization, kw:slow, kw:search optimization, kw:pruning, kw:spillage, kw:sql optimization, kw:snowflake, kw:partition pruning, kw:query_history, kw:optimize query, kw:fix slow query, kw:query bottleneck, kw:warehouse performance, kw:micro-partitions, kw:clustering, kw:performance analysis
+**Keywords:** kw:optimization, kw:slow, kw:search optimization, kw:pruning, kw:spillage, kw:sql optimization, kw:partition pruning, kw:query_history, kw:optimize query, kw:fix slow query, kw:query bottleneck, kw:warehouse performance, kw:micro-partitions, kw:clustering
 **TokenBudget:** ~3200
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md

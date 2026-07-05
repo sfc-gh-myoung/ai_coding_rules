@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:htmx-fastapi-auth, kw:htmx-jwt, kw:htmx-sse-fastapi, kw:htmx-csrf-fastapi, kw:fastapi, kw:htmx, kw:jwt, kw:authentication, kw:sse, kw:csrf, kw:starlette-wtf, kw:oauth2, kw:server-sent-events
+**Keywords:** kw:htmx-fastapi-auth, kw:htmx-jwt, kw:htmx-sse-fastapi, kw:htmx-csrf-fastapi, kw:jwt, kw:sse, kw:csrf, kw:starlette-wtf, kw:oauth2, kw:server-sent-events
 **TokenBudget:** ~2400
 **ContextTier:** Medium
 **Depends:** required:221c-python-htmx-fastapi.md, required:221-python-htmx-core.md

@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:connection-error, kw:timeout, kw:connection errors, kw:error classification, kw:network policy, kw:authentication, kw:vpn, kw:error codes, kw:08001, kw:390114, kw:error handling, kw:snowflake.connector, kw:databaseerror, kw:message analysis, kw:error detection
+**Keywords:** kw:connection-error, kw:timeout, kw:connection errors, kw:error classification, kw:network policy, kw:authentication, kw:vpn, kw:error codes, kw:08001, kw:390114, kw:snowflake.connector, kw:databaseerror, kw:message analysis, kw:error detection
 **TokenBudget:** ~3900
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md

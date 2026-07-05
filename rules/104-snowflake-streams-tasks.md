@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:stream, kw:task, kw:cdc, kw:scheduled tasks, kw:pipeline automation, kw:merge patterns, kw:sql, kw:snowflake, kw:task dag, kw:after dependencies, kw:task history, kw:create stream, kw:create task, kw:debug stream, kw:task troubleshooting, kw:stream consumption, kw:task execution error, kw:stream lag
+**Keywords:** kw:stream, kw:task, kw:cdc, kw:scheduled tasks, kw:pipeline automation, kw:merge patterns, kw:sql, kw:task dag, kw:after dependencies, kw:task history, kw:create stream, kw:create task, kw:debug stream, kw:task troubleshooting, kw:stream consumption, kw:task execution error, kw:stream lag
 **TokenBudget:** ~3100
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md

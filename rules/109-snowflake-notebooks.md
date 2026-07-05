@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.2
 **LastUpdated:** 2026-03-26
-**Keywords:** kw:notebook, kw:jupyter, kw:ml, kw:reproducible notebooks, kw:nbqa, kw:notebook linting, kw:code quality, kw:python, kw:create notebook, kw:debug notebook, kw:notebook execution, kw:notebook testing, kw:notebook deployment, kw:kernel management, kw:cell execution
+**Keywords:** kw:notebook, kw:ml, kw:reproducible notebooks, kw:nbqa, kw:code quality, kw:python, kw:debug notebook, kw:notebook execution, kw:notebook testing, kw:notebook deployment, kw:kernel management, kw:cell execution
 **TokenBudget:** ~4450
 **ContextTier:** Medium
 **Depends:** required:100-snowflake-core.md, required:201-python-lint-format.md

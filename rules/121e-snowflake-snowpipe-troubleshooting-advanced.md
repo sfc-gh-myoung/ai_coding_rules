@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:snowpipe-offset, kw:snowpipe-streaming-debug, kw:snowpipe-checklist, kw:snowpipe streaming, kw:offset tracking, kw:batch performance, kw:data validation, kw:debugging checklists, kw:channel troubleshooting, kw:exactly-once semantics
+**Keywords:** kw:snowpipe-offset, kw:snowpipe-streaming-debug, kw:snowpipe-checklist, kw:offset tracking, kw:batch performance, kw:data validation, kw:debugging checklists, kw:channel troubleshooting, kw:exactly-once semantics
 **TokenBudget:** ~2700
 **ContextTier:** Low
 **Depends:** required:121c-snowflake-snowpipe-troubleshooting.md, required:121a-snowflake-snowpipe-streaming.md

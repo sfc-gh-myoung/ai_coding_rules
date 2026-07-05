@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:htmx-fastapi, kw:fastapi, kw:async, kw:dependency injection, kw:background tasks, kw:fastapi templates, kw:starlette, kw:pydantic, kw:async routes
+**Keywords:** kw:htmx-fastapi, kw:async, kw:dependency injection, kw:background tasks, kw:fastapi templates, kw:starlette, kw:pydantic, kw:async routes
 **TokenBudget:** ~3450
 **ContextTier:** Medium
 **Depends:** required:221-python-htmx-core.md, required:221a-python-htmx-templates.md

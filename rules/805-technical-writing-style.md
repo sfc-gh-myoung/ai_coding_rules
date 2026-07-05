@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-07-03
-**Keywords:** ext:.md, file:README.md, file:CONTRIBUTING.md, dir:docs/, kw:technical writing, kw:writing style, kw:voice, kw:active voice, kw:sentence case, kw:inclusive language, kw:bias-free, kw:serial comma, kw:accessibility, kw:google style, kw:microsoft style
+**Keywords:** ext:.md, file:README.md, file:CONTRIBUTING.md, dir:docs/, kw:writing style, kw:voice, kw:active voice, kw:sentence case, kw:inclusive language, kw:bias-free, kw:serial comma, kw:accessibility, kw:microsoft style
 **TokenBudget:** ~3350
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md

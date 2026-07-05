@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:fastapi-deployment, kw:fastapi deployment, kw:uvicorn, kw:gunicorn, kw:asgi, kw:docker, kw:production deployment, kw:health checks, kw:multi-stage build, kw:openapi, kw:api documentation
+**Keywords:** kw:fastapi-deployment, kw:fastapi deployment, kw:uvicorn, kw:gunicorn, kw:asgi, kw:docker, kw:health checks, kw:multi-stage build, kw:openapi, kw:api documentation
 **TokenBudget:** ~4250
 **ContextTier:** High
 **Depends:** required:210-python-fastapi-core.md

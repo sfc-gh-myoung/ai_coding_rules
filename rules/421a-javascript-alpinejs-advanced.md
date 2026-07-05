@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:alpinejs-advanced, kw:alpine-stores, kw:alpine-plugins, kw:alpine.js, kw:stores, kw:plugins, kw:transitions, kw:x-teleport, kw:$dispatch, kw:custom directives, kw:advanced patterns, kw:sse, kw:lifecycle, kw:error recovery
+**Keywords:** kw:alpinejs-advanced, kw:alpine-stores, kw:alpine-plugins, kw:alpine.js, kw:stores, kw:plugins, kw:transitions, kw:x-teleport, kw:$dispatch, kw:custom directives, kw:sse, kw:lifecycle, kw:error recovery
 **TokenBudget:** ~2700
 **ContextTier:** Low
 **Depends:** required:421-javascript-alpinejs-core.md

@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.6.0
 **LastUpdated:** 2026-07-01
-**Keywords:** kw:git, kw:commit, kw:workflow, kw:commit message, kw:feature-focused commits, kw:branching, kw:github, kw:pull requests, kw:feature branches, kw:conventional commits, kw:branch naming
+**Keywords:** kw:git, kw:commit, kw:commit message, kw:feature-focused commits, kw:branching, kw:github, kw:pull requests, kw:feature branches, kw:conventional commits, kw:branch naming
 **TokenBudget:** ~3700
 **ContextTier:** Medium
 **Depends:** required:800-project-changelog.md, required:802-project-contributing.md

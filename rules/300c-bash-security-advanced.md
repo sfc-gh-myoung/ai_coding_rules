@@ -10,7 +10,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:bash-security-advanced, kw:privilege-management, kw:audit-logging, kw:bash, kw:security, kw:privilege management, kw:network security, kw:audit logging, kw:resource limits, kw:url validation, kw:security testing, kw:parameter expansion, kw:file permissions
+**Keywords:** kw:bash-security-advanced, kw:privilege-management, kw:audit-logging, kw:bash, kw:privilege management, kw:network security, kw:audit logging, kw:resource limits, kw:url validation, kw:security testing, kw:parameter expansion, kw:file permissions
 **TokenBudget:** ~2200
 **ContextTier:** Medium
 **Depends:** required:300a-bash-security.md

@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.0.1
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:fastapi-monitoring, kw:fastapi monitoring, kw:health checks, kw:logging, kw:metrics, kw:caching, kw:redis, kw:observability, kw:structured logging, kw:health endpoints, kw:correlation ids
+**Keywords:** kw:fastapi-monitoring, kw:fastapi monitoring, kw:health checks, kw:logging, kw:metrics, kw:caching, kw:redis, kw:structured logging, kw:health endpoints, kw:correlation ids
 **TokenBudget:** ~4300
 **ContextTier:** Medium
 **Depends:** required:210-python-fastapi-core.md

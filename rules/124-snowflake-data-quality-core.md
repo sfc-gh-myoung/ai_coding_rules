@@ -10,7 +10,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:data-quality, kw:validation, kw:data profiling, kw:expectations, kw:quality checks, kw:data validation, kw:null detection, kw:uniqueness validation, kw:freshness monitoring, kw:anomaly detection, kw:automated monitoring, kw:event tables, kw:create dmf, kw:quality monitoring, kw:data expectations, kw:quality rules
+**Keywords:** kw:data-quality, kw:validation, kw:data profiling, kw:expectations, kw:quality checks, kw:null detection, kw:uniqueness validation, kw:freshness monitoring, kw:anomaly detection, kw:automated monitoring, kw:event tables, kw:create dmf, kw:quality monitoring, kw:data expectations
 **TokenBudget:** ~4900
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md, required:105-snowflake-cost-governance.md, required:107-snowflake-security-governance.md, required:930-data-governance-quality.md

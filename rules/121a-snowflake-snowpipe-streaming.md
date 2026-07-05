@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:snowpipe-streaming, kw:snowpipe streaming, kw:high-performance streaming, kw:classic streaming, kw:row-level ingestion, kw:low-latency ingestion, kw:sub-second latency, kw:real-time ingestion, kw:streaming architecture, kw:streaming channels
+**Keywords:** kw:snowpipe-streaming, kw:high-performance streaming, kw:classic streaming, kw:row-level ingestion, kw:low-latency ingestion, kw:sub-second latency, kw:real-time ingestion, kw:streaming architecture, kw:streaming channels
 **TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md, required:108-snowflake-data-loading.md

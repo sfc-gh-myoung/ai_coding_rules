@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-04-11
-**Keywords:** kw:jsdoc, kw:documentation, kw:comments, ext:.js, ext:.mjs, kw:javascript, kw:eslint-plugin-jsdoc, kw:api docs, kw:type annotations
+**Keywords:** kw:jsdoc, kw:comments, ext:.js, ext:.mjs, kw:eslint-plugin-jsdoc, kw:type annotations
 **TokenBudget:** ~4300
 **ContextTier:** High
 **Depends:** required:420-javascript-core.md

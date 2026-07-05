@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:security, kw:rbac, kw:grant, kw:roles, kw:grants, kw:secure views, kw:security policies, kw:access control, kw:data security, kw:policy troubleshooting, kw:grant management, kw:data metric functions, kw:dmf, kw:least privilege, kw:create masking policy, kw:tagging, kw:sql, kw:dynamic grant, kw:identifier
+**Keywords:** kw:rbac, kw:grant, kw:roles, kw:grants, kw:secure views, kw:security policies, kw:access control, kw:data security, kw:policy troubleshooting, kw:grant management, kw:data metric functions, kw:dmf, kw:least privilege, kw:create masking policy, kw:tagging, kw:sql, kw:dynamic grant, kw:identifier
 **TokenBudget:** ~4000
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md

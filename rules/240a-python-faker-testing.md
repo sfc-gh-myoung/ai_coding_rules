@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:faker-fixtures, kw:factory-boy, kw:seeded-data, kw:faker, kw:pytest fixtures, kw:factory boy, kw:seeded testing, kw:deterministic data, kw:pytest-xdist, kw:test isolation, kw:subfactory
+**Keywords:** kw:faker-fixtures, kw:factory-boy, kw:seeded-data, kw:pytest fixtures, kw:factory boy, kw:seeded testing, kw:deterministic data, kw:pytest-xdist, kw:subfactory
 **TokenBudget:** ~3150
 **ContextTier:** Low
 **Depends:** required:240-python-faker.md, required:206-python-pytest.md

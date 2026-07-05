@@ -10,7 +10,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:observability, kw:monitoring, kw:log_level, kw:trace_level, kw:metric_level, kw:show parameters, kw:opentelemetry, kw:system views vs telemetry, kw:logging, kw:tracing, kw:debug observability, kw:event table queries, kw:observability patterns, kw:configure telemetry
+**Keywords:** kw:log_level, kw:trace_level, kw:metric_level, kw:show parameters, kw:opentelemetry, kw:system views vs telemetry, kw:logging, kw:tracing, kw:debug observability, kw:event table queries, kw:observability patterns, kw:configure telemetry
 **TokenBudget:** ~4650
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md

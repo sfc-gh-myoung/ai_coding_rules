@@ -10,7 +10,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.3.0
 **LastUpdated:** 2026-03-25
-**Keywords:** kw:anti-pattern, kw:error boundary, kw:hydration, kw:react, kw:anti-patterns, kw:error recovery, kw:suspense, kw:errorboundary, kw:useeffect, kw:use client, kw:resource exhaustion, kw:cleanup, kw:unmount, kw:abortcontroller
+**Keywords:** kw:error boundary, kw:hydration, kw:error recovery, kw:suspense, kw:errorboundary, kw:useeffect, kw:use client, kw:resource exhaustion, kw:cleanup, kw:unmount, kw:abortcontroller
 **TokenBudget:** ~2450
 **ContextTier:** Medium
 **Depends:** required:440-react-core.md, required:430-typescript-core.md

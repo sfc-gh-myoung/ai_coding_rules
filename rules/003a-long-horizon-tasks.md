@@ -10,7 +10,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:long-horizon tasks, kw:compaction, kw:checkpointing, kw:sub-agents, kw:structured notes, kw:multi-session, kw:context compression, kw:persistent memory, kw:agent coordination
+**Keywords:** kw:compaction, kw:checkpointing, kw:sub-agents, kw:structured notes, kw:multi-session, kw:context compression, kw:persistent memory, kw:agent coordination
 **TokenBudget:** ~2950
 **ContextTier:** Medium
 **Depends:** required:003-context-engineering.md, required:000-global-core.md

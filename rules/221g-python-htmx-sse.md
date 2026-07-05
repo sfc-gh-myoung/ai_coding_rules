@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:sse, kw:server-sent events, kw:htmx, kw:alpine.js, kw:eventsource, kw:real-time, kw:streaming, kw:live updates, kw:push notifications, kw:event types, kw:sse-manager
+**Keywords:** kw:server-sent events, kw:alpine.js, kw:eventsource, kw:real-time, kw:streaming, kw:live updates, kw:push notifications, kw:event types, kw:sse-manager
 **TokenBudget:** ~4150
 **ContextTier:** High
 **Depends:** required:221-python-htmx-core.md, required:221f-python-htmx-integrations.md

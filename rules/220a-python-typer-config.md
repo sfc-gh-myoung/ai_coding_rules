@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:cli-config, kw:pydantic-settings, kw:typer, kw:cli configuration, kw:pydantic settings, kw:environment variables, kw:config precedence, kw:cli options
+**Keywords:** kw:cli-config, kw:pydantic-settings, kw:cli configuration, kw:pydantic settings, kw:environment variables, kw:cli options
 **TokenBudget:** ~2550
 **ContextTier:** Medium
 **Depends:** required:220-python-typer-cli.md

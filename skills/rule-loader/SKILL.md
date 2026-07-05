@@ -1,7 +1,7 @@
 ---
 name: rule-loader
 description: Determines which rule files to load for a given user request by matching file extensions, directory paths, and keywords against RULES_INDEX.md. Handles foundation loading, domain matching, activity matching, dependency resolution, and token budget management. Use when loading rules, selecting rules for a task, resolving rule dependencies, or managing token budgets during rule loading.
-version: 1.3.0
+version: 1.4.0
 ---
 
 # Rule Loader

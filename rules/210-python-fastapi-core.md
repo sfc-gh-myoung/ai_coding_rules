@@ -10,7 +10,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:fastapi, kw:api, kw:rest, kw:async, kw:rest api, kw:pydantic, kw:dependency injection, kw:routing, kw:request validation, kw:response models, kw:apirouter, kw:uvicorn, kw:async def, kw:application factory
+**Keywords:** kw:api, kw:rest, kw:async, kw:rest api, kw:pydantic, kw:dependency injection, kw:routing, kw:request validation, kw:response models, kw:apirouter, kw:uvicorn, kw:async def, kw:application factory
 **TokenBudget:** ~4600
 **ContextTier:** High
 **Depends:** required:200-python-core.md

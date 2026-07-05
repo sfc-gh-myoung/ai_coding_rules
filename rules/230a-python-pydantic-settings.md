@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:pydantic-settings, kw:env-file, kw:app-config, kw:pydantic settings, kw:basesettings, kw:environment variables, kw:configuration, kw:env_file, kw:nested settings, kw:config precedence
+**Keywords:** kw:env-file, kw:app-config, kw:basesettings, kw:environment variables, kw:configuration, kw:env_file, kw:nested settings, kw:config precedence
 **TokenBudget:** ~1800
 **ContextTier:** Medium
 **Depends:** required:230-python-pydantic.md

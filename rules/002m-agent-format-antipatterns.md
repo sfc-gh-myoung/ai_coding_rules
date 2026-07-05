@@ -10,7 +10,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:anti-pattern, kw:format, kw:ascii table, kw:arrow character, kw:decision tree, kw:passive voice, kw:terminology, kw:mermaid, kw:horizontal rule, kw:agent optimization
+**Keywords:** kw:anti-pattern, kw:ascii table, kw:arrow character, kw:decision tree, kw:passive voice, kw:terminology, kw:mermaid, kw:horizontal rule
 **TokenBudget:** ~1650
 **ContextTier:** Medium
 **Depends:** required:002g-agent-optimization.md, required:000-global-core.md

@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.0.1
 **LastUpdated:** 2026-03-26
-**Keywords:** ext:.md, kw:markdown, kw:pymarkdownlnt, kw:markdown linting, kw:documentation, kw:markup validation
+**Keywords:** ext:.md, kw:markdown, kw:pymarkdownlnt, kw:documentation, kw:markup validation
 **TokenBudget:** ~2800
 **ContextTier:** Low
 **Depends:** required:202-markup-config-validation.md

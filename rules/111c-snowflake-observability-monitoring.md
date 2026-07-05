@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:monitoring, kw:metrics, kw:copy history, kw:task history, kw:dynamic tables, kw:cost management, kw:troubleshooting, kw:performance analysis, kw:monitor queries, kw:monitoring dashboard, kw:telemetry volume, kw:sql
+**Keywords:** kw:metrics, kw:copy history, kw:task history, kw:dynamic tables, kw:cost management, kw:troubleshooting, kw:performance analysis, kw:monitor queries, kw:telemetry volume, kw:sql
 **TokenBudget:** ~4100
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md, required:111-snowflake-observability-core.md

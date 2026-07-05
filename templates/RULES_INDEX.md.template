@@ -20,6 +20,25 @@ Each rule is one row in the table below:
 
 ## Grep recipe
 
+**Preferred fast-scan target: `rules/RULES_INDEX_COMPACT.md`** — a
+grep-optimised F4 projection of this file (space-delimited fields,
+keyword-only rows) that tokenises ~4× more compactly. Use it for
+keyword discovery and fall back to this full index only for cell
+context. F4 recipes:
+
+```bash
+# Keyword search (word-boundary):
+grep -iwE "python|pytest" rules/RULES_INDEX_COMPACT.md
+
+# Extension search (field-prefix):
+grep -iE "ext=.*\.py" rules/RULES_INDEX_COMPACT.md
+
+# Combined keyword + extension (two-pass; pipe into grep):
+grep -iwE "streamlit" rules/RULES_INDEX_COMPACT.md | grep -iE "ext=.*\.py"
+```
+
+**Full-index recipes (F1 typed-prefix, retained for context lookups):**
+
 ```bash
 # Match by file extension:
 grep -iE -m 20 "ext:\.py" rules/RULES_INDEX.md

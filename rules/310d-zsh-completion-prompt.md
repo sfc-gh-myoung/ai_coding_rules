@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v1.0.0
 **LastUpdated:** 2026-03-09
-**Keywords:** ext:.zsh, kw:zsh-completion, kw:zsh-prompt, kw:zsh, kw:completion system, kw:compinit, kw:zstyle, kw:hooks, kw:precmd, kw:preexec, kw:prompt, kw:prompt_subst, kw:vcs_info, kw:async prompt
+**Keywords:** ext:.zsh, kw:zsh-completion, kw:zsh-prompt, kw:completion system, kw:compinit, kw:zstyle, kw:hooks, kw:precmd, kw:preexec, kw:prompt, kw:prompt_subst, kw:vcs_info, kw:async prompt
 **TokenBudget:** ~2450
 **ContextTier:** Low
 **Depends:** required:310-zsh-scripting-core.md, required:310a-zsh-advanced-features.md

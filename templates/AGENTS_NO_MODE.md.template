@@ -92,7 +92,7 @@ A. Extract keywords from user request:
    **DO NOT fail Gate 2** for vague requests - always extract at least the verb or noun.
 
 B. Execute search:
-   - If bash tool available: Execute `grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" {{rules_path}}/RULES_INDEX.md` (combine keywords with OR)
+   - If bash tool available: Execute `grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" {{rules_path}}/RULES_INDEX.md` (combine keywords with OR). For faster keyword-only scans (~4× smaller footprint) prefer `grep -iwE "KEYWORD1|KEYWORD2" {{rules_path}}/RULES_INDEX_COMPACT.md`, then fall back to the full index for cell context if needed.
    - **Table format:** Each matching line is a self-contained Markdown table row — the rule filename is the first column, followed by `tier:` and `~tokens`. No context lookup needed beyond the row itself.
    - **If grep unavailable: AUTOMATICALLY read {{rules_path}}/RULES_INDEX.md and manually scan for keywords (do NOT stop).** Mark Gate 2 as PASSED if manual scan succeeds. This is the REQUIRED fallback - do not offer recovery options, just execute the fallback.
    - If grep returns matches (exit 0): Record matched rules for Step 3

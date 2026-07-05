@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.8.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:typer, kw:cli, kw:cli development, kw:command-line interface, kw:click, kw:argument parsing, kw:typer.argument, kw:typer.option, kw:rich console, kw:exit codes
+**Keywords:** kw:cli development, kw:command-line interface, kw:click, kw:argument parsing, kw:typer.argument, kw:typer.option, kw:rich console, kw:exit codes
 **TokenBudget:** ~4300
 **ContextTier:** High
 **Depends:** required:200-python-core.md

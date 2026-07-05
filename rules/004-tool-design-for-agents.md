@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:tool design, kw:agent tools, kw:token efficiency, kw:tool parameters, kw:function calling, kw:tool overlap, kw:tool contracts, kw:error handling, kw:minimal tool set, kw:self-contained tools, kw:llm-friendly parameters, kw:single responsibility
+**Keywords:** kw:tool design, kw:agent tools, kw:token efficiency, kw:tool parameters, kw:function calling, kw:tool contracts, kw:error handling, kw:minimal tool set, kw:self-contained tools, kw:llm-friendly parameters, kw:single responsibility
 **TokenBudget:** ~4500
 **ContextTier:** High
 **Depends:** required:000-global-core.md, required:003-context-engineering.md

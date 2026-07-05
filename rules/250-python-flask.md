@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:flask, kw:web, kw:blueprints, kw:flask-sqlalchemy, kw:templates, kw:routing, kw:application factory
+**Keywords:** kw:web, kw:blueprints, kw:flask-sqlalchemy, kw:templates, kw:routing, kw:application factory
 **TokenBudget:** ~2150
 **ContextTier:** High
 **Depends:** required:200-python-core.md

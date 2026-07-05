@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:business intelligence, kw:dashboards, kw:kpis, kw:reporting, kw:visualization, kw:stakeholder reports, kw:metrics, kw:snowsight, kw:executive dashboards, kw:data storytelling, kw:wcag accessibility
+**Keywords:** kw:dashboards, kw:kpis, kw:reporting, kw:visualization, kw:stakeholder reports, kw:metrics, kw:snowsight, kw:executive dashboards, kw:data storytelling, kw:wcag accessibility
 **TokenBudget:** ~4150
 **ContextTier:** High
 **Depends:** required:000-global-core.md, required:100-snowflake-core.md

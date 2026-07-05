@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-26
-**Keywords:** ext:.yml, ext:.yaml, ext:.toml, file:Taskfile.yml, kw:yaml, kw:configuration files, kw:yaml syntax, kw:parsing errors, kw:indentation, kw:anchors, kw:aliases, kw:markdown, kw:markdown linting, kw:pymarkdownlnt, kw:markup validation, kw:toml, kw:environment files
+**Keywords:** ext:.yml, ext:.yaml, ext:.toml, file:Taskfile.yml, kw:yaml, kw:configuration files, kw:yaml syntax, kw:parsing errors, kw:indentation, kw:anchors, kw:aliases, kw:markdown, kw:markdown linting, kw:pymarkdownlnt, kw:toml, kw:environment files
 **TokenBudget:** ~3950
 **ContextTier:** Medium
 **Depends:** None

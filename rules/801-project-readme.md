@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-07-03
-**Keywords:** kw:readme, kw:documentation, file:README.md, kw:project documentation, kw:getting started, kw:setup instructions, kw:badges, kw:quick start, kw:contributing, kw:license, kw:project structure, kw:technical writing, kw:author contact, kw:maintainer
+**Keywords:** kw:readme, kw:documentation, file:README.md, kw:project documentation, kw:getting started, kw:setup instructions, kw:badges, kw:quick start, kw:contributing, kw:license, kw:technical writing, kw:author contact, kw:maintainer
 **TokenBudget:** ~4800
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md

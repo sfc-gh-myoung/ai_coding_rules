@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:bash-testing, kw:bats, kw:bash, kw:testing, kw:shellcheck, kw:shell script testing, kw:ci/cd, kw:debugging, kw:static analysis, kw:linting, kw:test automation
+**Keywords:** kw:bash-testing, kw:bats, kw:shellcheck, kw:shell script testing, kw:ci/cd, kw:debugging, kw:static analysis, kw:linting
 **TokenBudget:** ~3600
 **ContextTier:** Medium
 **Depends:** required:300-bash-scripting-core.md

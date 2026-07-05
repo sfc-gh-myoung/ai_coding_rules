@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.2
 **LastUpdated:** 2026-03-26
-**Keywords:** kw:contributing, file:CONTRIBUTING.md, kw:pull requests, kw:code review, kw:contribution guidelines, kw:branching strategy, kw:conventional commits, kw:rule authoring, kw:pr templates, kw:project governance, kw:git workflow
+**Keywords:** file:CONTRIBUTING.md, kw:pull requests, kw:code review, kw:contribution guidelines, kw:branching strategy, kw:conventional commits, kw:rule authoring, kw:pr templates, kw:git workflow
 **TokenBudget:** ~2600
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md

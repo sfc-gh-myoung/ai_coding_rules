@@ -10,7 +10,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.1
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:system prompt altitude, kw:investigation-first, kw:anti-patterns, kw:multi-session workflows, kw:parallel execution, kw:advanced patterns, kw:heuristics, kw:goldilocks zone, kw:context management, kw:state management
+**Keywords:** kw:system prompt altitude, kw:investigation-first, kw:multi-session workflows, kw:parallel execution, kw:heuristics, kw:goldilocks zone, kw:context management, kw:state management
 **TokenBudget:** ~4000
 **ContextTier:** Medium
 **Depends:** required:002-rule-governance.md, required:000-global-core.md

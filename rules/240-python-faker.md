@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.8.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:faker, kw:test-data, kw:mock, kw:test data generation, kw:fake data, kw:providers, kw:synthetic data, kw:seeding, kw:deterministic testing, kw:python testing
+**Keywords:** kw:test-data, kw:mock, kw:test data generation, kw:fake data, kw:providers, kw:synthetic data, kw:seeding, kw:deterministic testing, kw:python testing
 **TokenBudget:** ~3300
 **ContextTier:** Low
 **Depends:** required:200-python-core.md

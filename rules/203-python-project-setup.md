@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.1.0
 **LastUpdated:** 2026-03-09
-**Keywords:** kw:setup, kw:bootstrap, file:pyproject.toml, kw:python packaging, kw:project structure, kw:setup.py, kw:pyproject.toml, kw:dependencies, kw:package distribution, kw:__init__.py, kw:hatchling, kw:uv, kw:flat layout, kw:src layout
+**Keywords:** kw:setup, kw:bootstrap, file:pyproject.toml, kw:python packaging, kw:setup.py, kw:pyproject.toml, kw:dependencies, kw:package distribution, kw:__init__.py, kw:hatchling, kw:uv, kw:flat layout, kw:src layout
 **TokenBudget:** ~4350
 **ContextTier:** High
 **Depends:** required:200-python-core.md

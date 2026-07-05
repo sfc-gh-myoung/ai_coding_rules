@@ -5,7 +5,7 @@
 **SchemaVersion:** v3.3
 **RuleVersion:** v3.2.0
 **LastUpdated:** 2026-04-11
-**Keywords:** kw:tsdoc, kw:documentation, kw:comments, ext:.ts, ext:.tsx, kw:typescript, kw:eslint-plugin-jsdoc, kw:api docs, kw:type documentation
+**Keywords:** kw:tsdoc, kw:comments, ext:.ts, ext:.tsx, kw:eslint-plugin-jsdoc, kw:type documentation
 **TokenBudget:** ~3150
 **ContextTier:** High
 **Depends:** required:430-typescript-core.md

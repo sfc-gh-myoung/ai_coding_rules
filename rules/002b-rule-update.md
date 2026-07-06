@@ -7,9 +7,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.2.3
-**LastUpdated:** 2026-06-10
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.2.4
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:rule update, kw:rule maintenance, kw:versioning, kw:ruleversion, kw:lastupdated, kw:semantic versioning, kw:major, kw:minor, kw:patch, kw:rule modification, kw:keyword expansion, kw:scope updates, kw:metadata updates, kw:changelog updates
 **TokenBudget:** ~3950
 **ContextTier:** High
@@ -155,6 +155,7 @@ Updated rule file with:
 - Formatting improvements (whitespace, markdown)
 - TokenBudget adjustments to reflect actual size
 - Updating examples without changing patterns
+- **Schema-conformance backfill:** inserting missing required body sections (`### Dependencies`, `### External Documentation`) or inline labels (`**What This Rule Covers:**`, `**When to Load This Rule:**`) that the rule already logically had. Bump PATCH and stamp `LastUpdated`; do NOT bump MINOR since the semantic guidance is unchanged.
 
 ### LastUpdated Field
 

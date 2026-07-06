@@ -7,10 +7,11 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.2
-**LastUpdated:** 2026-06-10
-**Keywords:** kw:rule creation, kw:workflow, kw:step-by-step guide, kw:naming conventions, kw:metadata setup, kw:v3.3 schema, kw:validation, kw:rule numbering, kw:from scratch, kw:new rule
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.3.3
+**LastUpdated:** 2026-07-04
+**LastUpdated:** 2026-07-04
+**Keywords:** kw:rule creation, kw:workflow, kw:step-by-step guide, kw:naming conventions, kw:metadata setup, kw:v3.4 schema, kw:validation, kw:rule numbering, kw:from scratch, kw:new rule
 **TokenBudget:** ~3900
 **ContextTier:** High
 **Depends:** required:002-rule-governance.md, required:000-global-core.md
@@ -18,13 +19,13 @@
 ## Scope
 
 **What This Rule Covers:**
-Step-by-step workflow for creating new rules from scratch. Covers rule numbering, naming conventions, metadata setup, v3.3 section structure, Contract with Markdown headers, and validation. For updating existing rules, see 002b-rule-update.md.
+Step-by-step workflow for creating new rules from scratch. Covers rule numbering, naming conventions, metadata setup, v3.4 section structure, Contract with Markdown headers, and validation. For updating existing rules, see 002b-rule-update.md.
 
 **When to Load This Rule:**
 - Creating a new rule file from scratch
 - Understanding rule creation workflow
 - Setting up rule metadata correctly for new rules
-- Structuring rule sections per v3.3 schema
+- Structuring rule sections per v3.4 schema
 
 ## References
 
@@ -41,7 +42,7 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 
 ### External Documentation
 
-- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.3 schema definition
+- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.4 schema definition
 - **Rules Index:** `RULES_INDEX.md` - Master index of all rules
 - **[CommonMark Spec](https://spec.commonmark.org/)** - Authoritative Markdown specification (all rule files MUST comply)
 
@@ -50,7 +51,7 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 ### Inputs and Prerequisites
 
 - Rule creation task
-- v3.3 schema understanding
+- v3.4 schema understanding
 - Rule number assignment
 - Technology/domain scope
 
@@ -67,7 +68,7 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 - Using emojis in rule content
 - Omitting required metadata
 - Creating rules without dependencies
-- Using XML tags in Contract (v3.3 uses Markdown headers)
+- Using XML tags in Contract (v3.4 uses Markdown headers)
 - Using numbered section headings
 - Non-compliant Markdown (must follow CommonMark spec - see 002-rule-governance.md)
 
@@ -76,8 +77,8 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 1. Choose rule number from appropriate range (000-099 core, 100-199 Snowflake, etc.)
 2. Review 2-3 existing rules in same number range for: metadata format, section ordering, keyword style, and anti-pattern structure (see lines 274-278 for specific patterns checklist)
 3. Create new file `rules/<NNN>[<letter>]-<technology>-<aspect>.md` with H1 title and `## Metadata` header
-4. Fill required metadata fields (SchemaVersion: v3.3, RuleVersion, Keywords: 5-20 terms, TokenBudget, ContextTier, Depends)
-5. Write required sections in v3.3 order: Scope, References, Contract, Anti-Patterns (optional)
+4. Fill required metadata fields (SchemaVersion: v3.4, RuleVersion, Keywords: 5-20 terms, TokenBudget, ContextTier, Depends)
+5. Write required sections in v3.4 order: Scope, References, Contract, Anti-Patterns (optional)
 6. Add Contract section with Contract subsections (### headers), NOT XML tags
 7. Use descriptive section names (not numbered: "Environment Setup" not "1. Environment Setup")
 8. Validate with `ai-rules validate` (must pass with 0 CRITICAL errors)
@@ -86,8 +87,8 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 ### Output Format
 
 Markdown file named `<NNN>[<letter>]-<technology>-<aspect>.md` with:
-- v3.3-compliant structure
-- Metadata with SchemaVersion: v3.3
+- v3.4-compliant structure
+- Metadata with SchemaVersion: v3.4
 - Contract with Contract subsections (### headers), not XML tags
 - Descriptive section names (not numbered)
 - 5-20 keywords
@@ -98,7 +99,7 @@ Markdown file named `<NNN>[<letter>]-<technology>-<aspect>.md` with:
 - Rule number chosen from correct range
 - File naming follows convention: `<NNN>[<letter>]-<technology>-<aspect>.md` (single-letter suffix only, no multi-char suffixes)
 - Metadata fields all present
-- Required sections in v3.3 order
+- Required sections in v3.4 order
 - Contract uses Markdown headers, not XML tags
 - No numbered section headings
 - Keywords count is 5-20 terms
@@ -107,7 +108,7 @@ Markdown file named `<NNN>[<letter>]-<technology>-<aspect>.md` with:
 - `ai-rules validate` returns 0 CRITICAL errors
 - File named correctly (`<NNN>[<letter>]-<technology>-<aspect>.md`, single-letter suffix only)
 - All required metadata fields present and formatted correctly
-- All required sections present in v3.3 order
+- All required sections present in v3.4 order
 - Rule added to `RULES_INDEX.md`
 
 **Negative Tests:**
@@ -144,8 +145,8 @@ Markdown file named `<NNN>[<letter>]-<technology>-<aspect>.md` with:
 - [ ] Rule number chosen from correct range for domain
 - [ ] File named with kebab-case convention (`<NNN>[<letter>]-<technology>-<aspect>.md`, single-letter suffix only)
 - [ ] Existing rules reviewed for similar patterns
-- [ ] All 6 metadata fields filled: SchemaVersion (v3.3), RuleVersion, Keywords (5-20), TokenBudget, ContextTier, Depends
-- [ ] All required sections present in v3.3 order (Scope, References, Contract, Anti-Patterns)
+- [ ] All 6 metadata fields filled: SchemaVersion (v3.4), RuleVersion, Keywords (5-20), TokenBudget, ContextTier, Depends
+- [ ] All required sections present in v3.4 order (Scope, References, Contract, Anti-Patterns)
 - [ ] Contract section has all Markdown subsections (###) before line 160
 - [ ] Post-Execution Checklist inside Contract section
 - [ ] No numbered section headings in file
@@ -273,7 +274,7 @@ grep -l "your-technology" rules/*.md
 
 Review 2-3 existing rules to understand:
 - Metadata format and keyword selection (5-20 keywords)
-- Section structure and v3.3 ordering (Scope, References, Contract)
+- Section structure and v3.4 ordering (Scope, References, Contract)
 - Contract subsections (### headers) usage (NOT XML tags)
 - Anti-Patterns section examples
 - Output Format Examples style
@@ -282,14 +283,14 @@ Review 2-3 existing rules to understand:
 
 ## Create New Rule File (Overview)
 
-For the complete v3.3 rule template with importance markers and Contract structure, see `rules/examples/002a-rule-template.md`.
+For the complete v3.4 rule template with importance markers and Contract structure, see `rules/examples/002a-rule-template.md`.
 
 ## Fill Required Metadata
 
 For detailed metadata field guidance, see `002-rule-governance.md` §Metadata Fields.
 
 **Quick Reference - Required Fields (in order):**
-- **SchemaVersion:** `v3.3`
+- **SchemaVersion:** `v3.4`
 - **RuleVersion:** `v1.0.0` for new rules (see `002b-rule-update.md` for versioning policy)
 - **LastUpdated:** Creation date in `YYYY-MM-DD` format
 - **Keywords:** 5-20 comma-separated terms that appear in task descriptions agents typically receive
@@ -297,9 +298,9 @@ For detailed metadata field guidance, see `002-rule-governance.md` §Metadata Fi
 - **ContextTier:** Critical / High / Medium / Low (see `002c-rule-optimization.md` for selection guidance)
 - **Depends:** At least one rule dependency (e.g., `000-global-core.md`)
 
-## Write Required Sections (v3.3)
+## Write Required Sections (v3.4)
 
-For complete v3.3 section requirements and ordering, see `002-rule-governance.md` §Required Sections.
+For complete v3.4 section requirements and ordering, see `002-rule-governance.md` §Required Sections.
 
 **Required sections (in order):**
 1. **Metadata** - All 6 required fields
@@ -314,7 +315,7 @@ For complete v3.3 section requirements and ordering, see `002-rule-governance.md
 - Post-Execution Checklist moved inside Contract
 - Validation moved inside Contract
 
-## Add Contract Section (v3.3 - Markdown Headers)
+## Add Contract Section (v3.4 - Markdown Headers)
 
 ### Contract Structure (MANDATORY)
 
@@ -417,7 +418,7 @@ uv run ai-rules validate rules/<your-new-rule>.md --verbose
 - **TokenBudget format:** See `002-rule-governance.md` for format requirements
 
 **Structure Errors:**
-- **Missing required section:** Add missing section per v3.3 order
+- **Missing required section:** Add missing section per v3.4 order
 - **Contract missing Markdown subsection:** Add subsection with ### header
 - **Contract after line 160:** Move Contract section earlier in file
 

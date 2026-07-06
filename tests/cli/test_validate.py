@@ -3769,3 +3769,186 @@ link_validation: {}
         assert result.exit_code == 1
         # Should suggest sed command to fix
         assert "sed" in result.output.lower() or "--verbose" in result.output
+
+
+# ============================================================================
+# TestBodySections (v3.4 body-schema enforcement)
+# ============================================================================
+
+
+@pytest.fixture
+def body_schema(tmp_path: Path) -> Path:
+    """Schema that exercises the v3.4 body-section enforcement (Scope + References)."""
+    schema_content = """version: "3.4"
+metadata:
+  header:
+    required: true
+    severity: HIGH
+    error_message: "Missing ## Metadata header"
+  required_fields: []
+  field_order:
+    required: false
+    order: []
+    severity: INFO
+    error_message: "Field order incorrect"
+
+structure:
+  title:
+    count: 1
+    severity: CRITICAL
+  required_sections:
+    - name: "Scope"
+      level: 2
+      order: 1
+      required: true
+      content_validation:
+        required_keywords: ["What This Rule Covers", "When to Load This Rule"]
+      error_message: "Scope required"
+      error_group: "Structure"
+      severity: "HIGH"
+    - name: "References"
+      level: 2
+      order: 2
+      required: true
+      content_validation:
+        required_subsections: ["Dependencies", "External Documentation"]
+      error_message: "References required"
+      error_group: "Structure"
+      severity: "HIGH"
+  section_order:
+    validate_sequence: false
+    severity: MEDIUM
+    error_message: "Section order incorrect"
+
+content_rules: {}
+restrictions: {}
+link_validation: {}
+"""
+    schema_path = tmp_path / "body-schema.yml"
+    schema_path.write_text(schema_content)
+    return schema_path
+
+
+def _synth_rule(
+    title: str = "# 100-body-test: Test rule",
+    metadata: str = "## Metadata\n\n**SchemaVersion:** v3.4\n",
+    scope_body: str = (
+        "## Scope\n\n"
+        "**What This Rule Covers:**\nSummary of the rule.\n\n"
+        "**When to Load This Rule:**\n- primary trigger\n"
+    ),
+    references_body: str = (
+        "## References\n\n### Dependencies\n\n_None._\n\n### External Documentation\n\n_None._\n"
+    ),
+) -> str:
+    """Compose a minimal synthetic rule file with the given section bodies."""
+    return f"{title}\n\n{metadata}\n{scope_body}\n{references_body}\n"
+
+
+class TestBodySections:
+    """Unit tests for `_validate_body_sections` (v3.4 schema tightening)."""
+
+    def _errs_by_msg(self, result: validate_module.ValidationResult) -> list[str]:
+        return [e.message for e in result.errors]
+
+    @pytest.mark.unit
+    def test_conformant_rule_passes(self, tmp_path: Path, body_schema: Path):
+        """Fully conformant rule emits 0 body-section errors."""
+        rule = tmp_path / "100-conformant.md"
+        rule.write_text(_synth_rule())
+        v = validate_module.SchemaValidator(schema_path=body_schema, project_root=tmp_path)
+        result = v.validate_file(rule)
+        body_errs = [e for e in result.errors if "section missing" in e.message]
+        assert body_errs == [], f"unexpected body-section errors: {body_errs}"
+
+    @pytest.mark.unit
+    def test_missing_what_covers_label_fails_HIGH(self, tmp_path: Path, body_schema: Path):
+        """`**What This Rule Covers:**` absence fires HIGH."""
+        scope = "## Scope\n\n**When to Load This Rule:**\n- primary trigger\n"
+        rule = tmp_path / "100-nowhat.md"
+        rule.write_text(_synth_rule(scope_body=scope))
+        v = validate_module.SchemaValidator(schema_path=body_schema, project_root=tmp_path)
+        result = v.validate_file(rule)
+        msgs = self._errs_by_msg(result)
+        assert any(
+            "'Scope' section missing required inline label '**What This Rule Covers:**'" in m
+            for m in msgs
+        ), msgs
+        assert any(e.severity == "HIGH" for e in result.errors)
+
+    @pytest.mark.unit
+    def test_missing_when_to_load_label_fails_HIGH(self, tmp_path: Path, body_schema: Path):
+        """`**When to Load This Rule:**` absence fires HIGH."""
+        scope = "## Scope\n\n**What This Rule Covers:**\nSummary.\n"
+        rule = tmp_path / "100-nowhen.md"
+        rule.write_text(_synth_rule(scope_body=scope))
+        v = validate_module.SchemaValidator(schema_path=body_schema, project_root=tmp_path)
+        result = v.validate_file(rule)
+        msgs = self._errs_by_msg(result)
+        assert any(
+            "'Scope' section missing required inline label '**When to Load This Rule:**'" in m
+            for m in msgs
+        ), msgs
+
+    @pytest.mark.unit
+    def test_missing_external_docs_fails_HIGH(self, tmp_path: Path, body_schema: Path):
+        """`### External Documentation` absence inside References fires HIGH."""
+        refs = "## References\n\n### Dependencies\n\n_None._\n"
+        rule = tmp_path / "100-noext.md"
+        rule.write_text(_synth_rule(references_body=refs))
+        v = validate_module.SchemaValidator(schema_path=body_schema, project_root=tmp_path)
+        result = v.validate_file(rule)
+        msgs = self._errs_by_msg(result)
+        assert any(
+            "'References' section missing required subheading '### External Documentation'" in m
+            for m in msgs
+        ), msgs
+
+    @pytest.mark.unit
+    def test_missing_dependencies_fails_HIGH(self, tmp_path: Path, body_schema: Path):
+        """`### Dependencies` absence inside References fires HIGH."""
+        refs = "## References\n\n### External Documentation\n\n_None._\n"
+        rule = tmp_path / "100-nodeps.md"
+        rule.write_text(_synth_rule(references_body=refs))
+        v = validate_module.SchemaValidator(schema_path=body_schema, project_root=tmp_path)
+        result = v.validate_file(rule)
+        msgs = self._errs_by_msg(result)
+        assert any(
+            "'References' section missing required subheading '### Dependencies'" in m for m in msgs
+        ), msgs
+
+    @pytest.mark.unit
+    def test_none_placeholder_body_passes(self, tmp_path: Path, body_schema: Path):
+        """`_None._` under required subheadings satisfies presence check."""
+        # This is essentially the default fixture — assert no errors specifically
+        # about External Documentation or Dependencies subheadings.
+        rule = tmp_path / "100-none.md"
+        rule.write_text(_synth_rule())
+        v = validate_module.SchemaValidator(schema_path=body_schema, project_root=tmp_path)
+        result = v.validate_file(rule)
+        msgs = self._errs_by_msg(result)
+        assert not any("External Documentation" in m or "Dependencies" in m for m in msgs), msgs
+
+    @pytest.mark.unit
+    def test_label_outside_parent_section_fails(self, tmp_path: Path, body_schema: Path):
+        """Inline labels placed OUTSIDE `## Scope` still count as missing."""
+        # `**What This Rule Covers:**` appears — but inside References, not Scope.
+        rule_text = (
+            "# 100-out: Test rule\n\n"
+            "## Metadata\n\n**SchemaVersion:** v3.4\n\n"
+            "## Scope\n\n"
+            "**When to Load This Rule:**\n- primary trigger\n\n"
+            "## References\n\n"
+            "**What This Rule Covers:**\nMisplaced label.\n\n"
+            "### Dependencies\n\n_None._\n\n"
+            "### External Documentation\n\n_None._\n"
+        )
+        rule = tmp_path / "100-mislabel.md"
+        rule.write_text(rule_text)
+        v = validate_module.SchemaValidator(schema_path=body_schema, project_root=tmp_path)
+        result = v.validate_file(rule)
+        msgs = self._errs_by_msg(result)
+        assert any(
+            "'Scope' section missing required inline label '**What This Rule Covers:**'" in m
+            for m in msgs
+        ), msgs

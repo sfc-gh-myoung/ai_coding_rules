@@ -45,8 +45,15 @@ class TestNewCommandHappyPath:
         content = output_path.read_text()
         assert "# 100-test-rule" in content
         assert "## Metadata" in content
-        assert "**SchemaVersion:** v3.2" in content
+        assert "**SchemaVersion:** v3.4" in content
         assert "**ContextTier:** Medium" in content  # Default tier
+        # v3.4 body-schema required sections + inline labels + subheadings
+        assert "## Scope" in content
+        assert "**What This Rule Covers:**" in content
+        assert "**When to Load This Rule:**" in content
+        assert "## References" in content
+        assert "### Dependencies" in content
+        assert "### External Documentation" in content
 
     def test_create_rule_with_letter_suffix(self, tmp_path: Path):
         """Test creating a rule file with letter suffix (e.g., 111a-example)."""

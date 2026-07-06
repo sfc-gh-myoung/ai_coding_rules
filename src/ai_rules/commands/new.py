@@ -1,4 +1,4 @@
-"""Generate rule file templates compliant with v3.2 schema.
+"""Generate rule file templates compliant with v3.4 schema.
 
 This module provides the `ai-rules new` command to create new rule files
 with all required sections and placeholders, making it easier for users
@@ -19,13 +19,13 @@ app = typer.Typer(help="Create new rule file templates.")
 
 
 class TemplateGenerator:
-    """Generate v3.2 compliant rule file templates."""
+    """Generate v3.4 compliant rule file templates."""
 
     TEMPLATE = """# {title}
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.4
 **RuleVersion:** v1.0.0
 **LastUpdated:** {last_updated}
 **Keywords:** {keywords}
@@ -472,7 +472,7 @@ def new(
         ),
     ] = False,
 ) -> None:
-    """Create a new rule file from a v3.2 compliant template.
+    """Create a new rule file from a v3.4 compliant template.
 
     Examples:
         # Create a Snowflake rule

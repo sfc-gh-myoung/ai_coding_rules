@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:semantic-generator, kw:vqr, kw:verified queries, kw:generator workflow, kw:iterative development, kw:yaml semantic model, kw:semantic model file, kw:onboarding questions, kw:development workflow, kw:verified query repository, kw:semantic view generator
 **TokenBudget:** ~3500
 **ContextTier:** Medium
@@ -36,9 +36,6 @@ Development workflows for Semantic Views including the Semantic View Generator t
 - [Semantic View Generator](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-generator) - Automated view creation
 - [Verified Query Repository](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/verified-query-repository) - VQR documentation
 - [Verified Query Suggestions](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/verified-query-suggestions) - AI-suggested queries
-
-### Related Rules
-- **106c-snowflake-semantic-views-integration.md** - Cortex Analyst integration, governance
 
 ## Contract
 

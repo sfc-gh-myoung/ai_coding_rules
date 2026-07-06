@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.3
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:rbac, kw:grant, kw:roles, kw:grants, kw:secure views, kw:security policies, kw:access control, kw:data security, kw:policy troubleshooting, kw:grant management, kw:data metric functions, kw:dmf, kw:least privilege, kw:create masking policy, kw:tagging, kw:sql, kw:dynamic grant, kw:identifier
 **TokenBudget:** ~4000
 **ContextTier:** High
@@ -41,19 +41,11 @@ Comprehensive data security and access control practices using Snowflake's gover
 - [Data Profile](https://docs.snowflake.com/en/user-guide/data-quality-profile) - Profiling datasets to baseline and discover issues
 - [Working with data quality](https://docs.snowflake.com/en/user-guide/data-quality-working) - Associate, schedule, monitor, and manage DMFs
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **100-snowflake-core.md** - fundamental DDL patterns and object creation
-- **105-snowflake-cost-governance.md** - RBAC on resource monitors and cost controls
+### Dependencies
 
-**Sometimes Related** (load if specific scenario):
-- **106-snowflake-semantic-views-core.md** - applying masking policies and row access to semantic views
-- **119-snowflake-warehouse-management.md** - configuring warehouse access control and RBAC
-- **115b-snowflake-cortex-agents-operations.md** - implementing agent RBAC and security
+**Must Load First:**
+- [100-snowflake-core.md](100-snowflake-core.md)
 
-**Complementary** (different aspects of same domain):
-- **111-snowflake-observability-core.md** - security event monitoring and audit logs
-- **108-snowflake-data-loading.md** - stage encryption and secure data loading
 
 ## Contract
 

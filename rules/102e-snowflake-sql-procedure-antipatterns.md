@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:stored procedure anti-patterns, kw:dollar quoting, kw:execute as, kw:bind variables, kw:unqualified names
 **TokenBudget:** ~1700
 **ContextTier:** Low
@@ -27,6 +27,11 @@ Common anti-patterns in Snowflake SQL stored procedures and UDFs: incorrect deli
 
 **Must Load First:**
 - **102b-snowflake-sql-procedures.md** - Procedure creation patterns and templates
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

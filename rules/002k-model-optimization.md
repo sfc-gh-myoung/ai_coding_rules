@@ -7,9 +7,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:model optimization, kw:context window, kw:loading budget, kw:gpt, kw:claude, kw:gemini, kw:token limits, kw:cost efficiency, kw:prompt caching
 **TokenBudget:** ~2550
 **ContextTier:** Low
@@ -32,6 +32,11 @@ Model-specific context windows, loading budget formulas, and optimization strate
 
 **Must Load First:**
 - **002c-rule-optimization.md** - Token budget tiers, progressive loading, and sizing guidelines
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

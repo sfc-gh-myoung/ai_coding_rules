@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.3
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:observability-logging, kw:debug, kw:info, kw:warn, kw:error, kw:fatal, kw:conditional logging, kw:sampling, kw:tight loop logging, kw:standard logging libraries, kw:log volume control, kw:cost management, kw:log configuration, kw:log handlers
 **TokenBudget:** ~4000
 **ContextTier:** High
@@ -37,11 +37,12 @@ Comprehensive logging best practices for Snowflake handler code, covering standa
 - [Python Logging Library](https://docs.python.org/3/library/logging.html) - Standard Python logging library documentation
 - [SLF4J (Java)](https://www.slf4j.org/) - Standard Java logging facade
 
-### Related Rules
-- **Observability Core**: `111-snowflake-observability-core.md` - Foundation observability patterns and telemetry configuration
-- **Observability Tracing**: `111b-snowflake-observability-tracing.md` - Distributed tracing patterns
-- **Observability Monitoring**: `111c-snowflake-observability-monitoring.md` - Monitoring and analysis patterns
-- **Snowflake Core**: `100-snowflake-core.md` - Foundation Snowflake practices
+### Dependencies
+
+**Must Load First:**
+- [100-snowflake-core.md](100-snowflake-core.md)
+- [111-snowflake-observability-core.md](111-snowflake-observability-core.md)
+
 
 ## Contract
 

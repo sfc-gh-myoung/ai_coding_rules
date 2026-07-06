@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.6.0
-**LastUpdated:** 2026-07-01
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.6.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:git, kw:commit, kw:commit message, kw:feature-focused commits, kw:branching, kw:github, kw:pull requests, kw:feature branches, kw:conventional commits, kw:branch naming
 **TokenBudget:** ~3700
 **ContextTier:** Medium
@@ -15,10 +15,11 @@
 **What This Rule Covers:**
 Git workflow best practices including feature-focused Conventional Commit formatting, branching strategies, PR workflows, and validation.
 
-**When to Load:**
+**When to Load This Rule:**
 - Writing/formatting git commits
 - Using Conventional Commits format
 - Setting up branching strategies or PR processes
+
 
 ## References
 

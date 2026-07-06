@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:time series smoothing, kw:data aggregation, kw:resample, kw:scada data, kw:high-frequency data, kw:trend analysis, kw:rolling average, kw:ewma, kw:exponential smoothing
 **TokenBudget:** ~2550
 **ContextTier:** Low
@@ -29,9 +29,10 @@ Time-based aggregation and smoothing patterns for high-frequency data visualizat
 **Must Load First:**
 - **101a-snowflake-streamlit-visualization.md** - Core visualization patterns
 
-### Related
+### External Documentation
 
-- **251-python-datetime-core.md** - Datetime optimization for time series
+_None._
+
 
 ## Contract
 

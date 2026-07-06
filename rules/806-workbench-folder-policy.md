@@ -2,8 +2,8 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
 **LastUpdated:** 2026-07-04
 **Keywords:** dir:.workbench/, kw:workbench, kw:temp, kw:scratch, kw:file-organization, kw:workflow-hygiene, kw:project-hygiene, kw:short-life, kw:in-progress, kw:baseline-scripts, kw:analyzer-output, kw:spike, kw:promotion
 **TokenBudget:** ~1800
@@ -50,6 +50,11 @@ Where short-life, in-progress, or scratch project assets live in the repository.
 - **800-project-changelog.md** - Changelog format for landed workbench work
 - **803-project-git-workflow.md** - Commit conventions when promoting assets out of `.workbench/`
 - **804-project-documentation.md** - `docs/` folder organization (long-lived docs)
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

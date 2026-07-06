@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:faker-fixtures, kw:factory-boy, kw:seeded-data, kw:pytest fixtures, kw:factory boy, kw:seeded testing, kw:deterministic data, kw:pytest-xdist, kw:subfactory
 **TokenBudget:** ~3150
 **ContextTier:** Low
@@ -31,6 +31,11 @@ Pytest integration with Faker including fixture patterns, Factory Boy for comple
 
 **Related:**
 - **240b-python-faker-advanced.md** - Custom providers and performance
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

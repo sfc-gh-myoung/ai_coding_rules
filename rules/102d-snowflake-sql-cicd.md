@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-03-26
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:ci/cd, kw:github actions, kw:makefile, kw:deployment automation, kw:environment variables, kw:multi-environment, kw:pipeline, kw:secrets management
 **TokenBudget:** ~1300
 **ContextTier:** Low
@@ -27,6 +27,11 @@ CI/CD pipeline patterns for automated Snowflake SQL deployments: Makefile integr
 
 **Must Load First:**
 - **102a-snowflake-sql-automation.md** - SQL automation patterns and templates
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

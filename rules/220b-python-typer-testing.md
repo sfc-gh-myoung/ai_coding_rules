@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:cli-testing, kw:clirunner, kw:cli testing, kw:ansi escape codes, kw:no_color, kw:cli integration testing, kw:mock
 **TokenBudget:** ~2300
 **ContextTier:** Medium
@@ -31,6 +31,11 @@ Testing strategies for Typer CLI applications including CliRunner setup, ANSI es
 
 **Related:**
 - **220c-python-typer-rich.md** - Rich integration (affects test output)
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

@@ -7,9 +7,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-05-11
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.2.2
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:app-deployment, kw:create notebook, kw:stages, kw:sis, kw:deploy app, kw:deployment pipeline, kw:app publishing, kw:deployment patterns, kw:deploy to snowflake, kw:stage deployment, kw:app versioning, kw:automated deployment
 **TokenBudget:** ~4100
 **ContextTier:** Medium
@@ -34,11 +34,14 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 - [PUT Command](https://docs.snowflake.com/en/sql-reference/sql/put) - Stage file upload reference
 - [Internal Stages](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Stage management guide
 
-### Related Rules
-- **Snowflake Notebooks**: `109-snowflake-notebooks.md` - Core notebook patterns
-- **Streamlit Core**: `101-snowflake-streamlit-core.md` - Streamlit app development
-- **Build Automation**: `820-taskfile-automation.md` / `821-makefile-automation.md` - Automation patterns
-- **Troubleshooting**: `109c-snowflake-app-deployment-troubleshooting.md` - Deployment debugging
+### Dependencies
+
+**Must Load First:**
+- [100-snowflake-core.md](100-snowflake-core.md)
+- [109-snowflake-notebooks.md](109-snowflake-notebooks.md)
+- [101-snowflake-streamlit-core.md](101-snowflake-streamlit-core.md)
+- [820-taskfile-automation.md](820-taskfile-automation.md)
+
 
 ## Contract
 

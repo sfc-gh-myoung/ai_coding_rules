@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-03-26
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.3
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:venv, kw:virtual-environment, kw:uv, kw:poetry, kw:virtual environment, kw:pip, kw:pipenv, kw:uvx, kw:tool isolation, kw:modulenotfounderror, kw:environment setup, kw:dependency management
 **TokenBudget:** ~3000
 **ContextTier:** High
@@ -32,6 +32,11 @@ Virtual environment management, tool isolation patterns (uvx vs uv run), detaile
 **Related:**
 - **200a-python-validation-gate.md** - Validation gate commands per toolchain
 - **203-python-project-setup.md** - Project structure and initialization
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

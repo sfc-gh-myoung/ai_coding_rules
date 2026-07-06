@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-06-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:anti-patterns, kw:quality gates, kw:task switch, kw:rule loading, kw:failure modes, kw:protocol reference, kw:term definitions, kw:gate compliance
 **TokenBudget:** ~2800
 **ContextTier:** Medium
@@ -20,11 +20,26 @@ Agent protocol reference: anti-patterns, quality gates, task-switch examples, fa
 - When uncertain about quality gate requirements or term definitions
 - When facing rule loading failures beyond standard handling
 
+**What This Rule Covers:**
+Reference material for the AGENTS.md agent bootstrap protocol — anti-patterns, quality gates, task-switch examples, failure modes, project tool discovery, and term definitions.
+
+
 ## References
 
 - AGENTS.md: The main bootstrap protocol that this rule supplements
 - rules/000-global-core.md: Foundation rule loaded before this reference rule
 - rules/RULES_INDEX.md: Flat discovery table (grep-based rule lookup)
+
+### External Documentation
+
+_None._
+
+### Dependencies
+
+**Must Load First:**
+- [000-global-core.md](000-global-core.md)
+
+
 
 ## Contract
 

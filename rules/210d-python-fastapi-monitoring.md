@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.0.3
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:fastapi-monitoring, kw:fastapi monitoring, kw:health checks, kw:logging, kw:metrics, kw:caching, kw:redis, kw:structured logging, kw:health endpoints, kw:correlation ids
 **TokenBudget:** ~4300
 **ContextTier:** Medium
@@ -25,10 +25,11 @@ Establish monitoring, logging, and performance optimization patterns for FastAPI
 - [Python Logging Documentation](https://docs.python.org/3/library/logging.html) - Structured logging, handlers, and formatters
 - [Redis Python Async](https://redis-py.readthedocs.io/en/stable/) - Async Redis operations and connection pooling
 
-### Related Rules
-- **FastAPI Core**: `210-python-fastapi-core.md`
-- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
-- **Python Core**: `200-python-core.md`
+### Dependencies
+
+**Must Load First:**
+- [210-python-fastapi-core.md](210-python-fastapi-core.md)
+
 
 ## Contract
 

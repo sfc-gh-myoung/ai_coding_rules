@@ -4,9 +4,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v4.2.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v4.2.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:dashboard, kw:container runtime, kw:warehouse runtime, kw:navigation, kw:multipage, kw:session state, kw:config.toml, kw:theming, kw:st.connection
 **TokenBudget:** ~2350
 **ContextTier:** High
@@ -17,11 +17,12 @@
 **What This Rule Covers:**
 Foundational Streamlit setup: navigation, state management, runtime selection (Container vs Warehouse), theming via config.toml.
 
-**When to Load:**
+**When to Load This Rule:**
 - Building Streamlit applications on Snowflake
 - Implementing multipage apps
 - Configuring navigation and themes
 - Selecting between Container Runtime and Warehouse Runtime
+
 
 ## References
 

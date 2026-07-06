@@ -507,6 +507,7 @@ class SchemaValidator:
         # Run validation phases
         self._validate_metadata(content, lines, result)
         self._validate_structure(content, lines, result)
+        self._validate_body_sections(content, lines, result)
         self._validate_content(content, lines, result)
         self._validate_restrictions(content, lines, result)
         self._validate_links(content, lines, result)
@@ -870,6 +871,97 @@ class SchemaValidator:
 
         return "\n".join(output)
 
+    def _validate_body_sections(
+        self, content: str, lines: list[str], result: ValidationResult
+    ) -> None:
+        """Validate per-section content_validation entries (v3.4 schema tightening).
+
+        For each H2 in `structure.required_sections`, this checks:
+        - `content_validation.required_subsections`: every named entry must appear
+          as an H3 heading INSIDE the parent H2 (i.e., before the next H2). Case-
+          insensitive; code-block aware.
+        - `content_validation.required_keywords`: every named entry must appear as
+          a bolded inline label (`**<text>:**`) inside the parent H2. This is
+          stricter than substring matching and catches drift like `**When to
+          Load:**` (missing "This Rule" suffix) or plain-text prose mentions.
+        """
+        structure_config = self.schema.get("structure", {})
+        for section_config in structure_config.get("required_sections", []):
+            content_val = section_config.get("content_validation", {})
+            if not content_val:
+                continue
+            section_name = section_config["name"]
+            severity = section_config.get("severity", "HIGH")
+            docs_ref = section_config.get("docs_reference")
+            # Extract the H2 body (start..next H2).
+            section_start, section_end, section_body = self._extract_section(
+                lines, section_name, track_code_blocks=True
+            )
+            if section_start is None:
+                # Missing H2 is reported by _validate_structure; skip here.
+                continue
+
+            # Check required subheadings (H3 inside the H2).
+            subheadings_seen: set[str] = set()
+            in_code = False
+            for i in range(section_start + 1, section_end or len(lines)):
+                line = lines[i].rstrip()
+                if line.startswith("```"):
+                    in_code = not in_code
+                    continue
+                if in_code:
+                    continue
+                m = re.match(r"^### +(?!#)(.+?)\s*$", line)
+                if m:
+                    # Normalise (strip parentheticals like "(Universal Requirements)")
+                    subheadings_seen.add(self._normalize_section_name(m.group(1)))
+
+            for sub in content_val.get("required_subsections", []):
+                if self._normalize_section_name(sub) not in subheadings_seen:
+                    result.errors.append(
+                        ValidationError(
+                            severity=severity,
+                            message=(
+                                f"'{section_name}' section missing required subheading '### {sub}'"
+                            ),
+                            error_group="Structure",
+                            line_num=section_start + 1,
+                            fix_suggestion=(
+                                f"Add '### {sub}' inside '## {section_name}' "
+                                "(use '_None._' as the body if no content applies)."
+                            ),
+                            docs_reference=docs_ref,
+                        )
+                    )
+                else:
+                    result.passed_checks += 1
+
+            # Check required bolded inline labels inside the H2.
+            for keyword in content_val.get("required_keywords", []):
+                # Normalise: strip a trailing ':' so both `"What This Rule Covers"`
+                # and `"Problem:"` styles render the same `**<text>:**` pattern.
+                normalised = keyword.rstrip(":")
+                label_pattern = re.compile(rf"^\s*\*\*{re.escape(normalised)}:\*\*", re.MULTILINE)
+                if not label_pattern.search(section_body):
+                    result.errors.append(
+                        ValidationError(
+                            severity=severity,
+                            message=(
+                                f"'{section_name}' section missing required inline "
+                                f"label '**{normalised}:**'"
+                            ),
+                            error_group="Structure",
+                            line_num=section_start + 1,
+                            fix_suggestion=(
+                                f"Add '**{normalised}:**' as a bolded line inside "
+                                f"'## {section_name}'."
+                            ),
+                            docs_reference=docs_ref,
+                        )
+                    )
+                else:
+                    result.passed_checks += 1
+
     def _validate_content(self, content: str, lines: list[str], result: ValidationResult) -> None:
         """Validate section content per schema."""
         content_rules = self.schema.get("content_rules", {})
@@ -1200,7 +1292,12 @@ class SchemaValidator:
             # Check for ASCII tables (Priority 1 violation)
             # RULES_INDEX.md and its template are intentionally tabular grep-metadata —
             # the rule-loader depends on the pipe-delimited format, so exempt them here.
-            is_rules_index = result.file_path.name in {"RULES_INDEX.md", "RULES_INDEX.md.template"}
+            is_rules_index = result.file_path.name in {
+                "RULES_INDEX.md",
+                "RULES_INDEX.md.template",
+                "RULES_INDEX_COMPACT.md",
+                "RULES_INDEX_COMPACT.md.template",
+            }
             if not is_rules_index and table_pattern.search(line_without_inline_code):
                 result.errors.append(
                     ValidationError(

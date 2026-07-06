@@ -7,9 +7,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-03-25
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.3.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:error boundary, kw:hydration, kw:error recovery, kw:suspense, kw:errorboundary, kw:useeffect, kw:use client, kw:resource exhaustion, kw:cleanup, kw:unmount, kw:abortcontroller
 **TokenBudget:** ~2450
 **ContextTier:** Medium
@@ -37,6 +37,11 @@ Common React anti-patterns, error recovery strategies (hydration, Suspense, TanS
 
 **Related:**
 - **420-javascript-core.md** - JavaScript foundation
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

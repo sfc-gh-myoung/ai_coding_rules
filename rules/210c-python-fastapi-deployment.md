@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.0.3
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:fastapi-deployment, kw:fastapi deployment, kw:uvicorn, kw:gunicorn, kw:asgi, kw:docker, kw:health checks, kw:multi-stage build, kw:openapi, kw:api documentation
 **TokenBudget:** ~4250
 **ContextTier:** High
@@ -25,11 +25,11 @@ Establish production deployment patterns and API documentation practices for Fas
 - [Uvicorn Deployment](https://www.uvicorn.org/deployment/) - ASGI server deployment and process management
 - [Gunicorn Configuration](https://docs.gunicorn.org/en/stable/configure.html) - Worker processes, timeouts, and production settings
 
-### Related Rules
-- **FastAPI Core**: `210-python-fastapi-core.md`
-- **FastAPI Security**: `210a-python-fastapi-security.md`
-- **FastAPI Monitoring**: `210d-python-fastapi-monitoring.md`
-- **Python Core**: `200-python-core.md`
+### Dependencies
+
+**Must Load First:**
+- [210-python-fastapi-core.md](210-python-fastapi-core.md)
+
 
 ## Contract
 

@@ -4,9 +4,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:semantic-view, kw:semantic-model, kw:tables, kw:relationships, kw:primary key, kw:create semantic view, kw:sql, kw:yaml, kw:nlq, kw:mapping syntax
 **TokenBudget:** ~2550
 **ContextTier:** High
@@ -17,7 +17,7 @@
 **What This Rule Covers:**
 Creating Snowflake Native Semantic Views using `CREATE SEMANTIC VIEW` DDL: structure, components, and validation.
 
-**When to Load:**
+**When to Load This Rule:**
 - Creating semantic views with DDL
 - Defining TABLES, RELATIONSHIPS, PRIMARY KEY
 - Debugging semantic view creation errors
@@ -27,17 +27,12 @@ Creating Snowflake Native Semantic Views using `CREATE SEMANTIC VIEW` DDL: struc
 - **106b** - Query patterns, SEMANTIC_VIEW() function
 - **106c** - Cortex Analyst/Agent integration
 
+
 ## References
 
 ### Dependencies
 **Must Load First:**
 - **100-snowflake-core.md** - Snowflake SQL patterns
-
-### Related Examples
-
-- **examples/106-semantic-view-ddl-example.md** - Complete DDL creation workflow
-- **examples/106-semantic-view-yaml-vqr-example.md** - YAML with verified queries
-- **examples/106-semantic-view-workarounds-example.md** - Dimension transformation workarounds
 
 ### External Documentation
 - [Snowflake Semantic Views](https://docs.snowflake.com/en/user-guide/semantic-views)

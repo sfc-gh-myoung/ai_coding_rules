@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.1.2
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:two-approach, kw:notebook-approach, kw:tutorial-approach, kw:approach-comparison, kw:two-approach pattern, kw:feature store approach, kw:simplified approach, kw:production vs learning, kw:approach clarification, kw:tutorial approach selection
 **TokenBudget:** ~2600
 **ContextTier:** Low
@@ -22,10 +22,16 @@ Pattern for clarifying when a tutorial notebook demonstrates a feature but uses 
 
 ## References
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **109a-snowflake-notebooks-tutorials.md** - Parent rule for tutorial design patterns
-- **109e-snowflake-notebook-checkpoints.md** - Checkpoint validations for tutorials
+### External Documentation
+
+_None._
+
+### Dependencies
+
+**Must Load First:**
+- [109a-snowflake-notebooks-tutorials.md](109a-snowflake-notebooks-tutorials.md)
+
+
 
 ## Contract
 

@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-05-12
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:spcs, kw:compute pools, kw:oci images, kw:service spec, kw:container deployment, kw:service logs, kw:platform events, kw:instance family, kw:gen_x64_g2, kw:mem_x64_g2, kw:current generation, kw:gpu l40s, kw:gpu rtx pro 6000
 **TokenBudget:** ~3550
 **ContextTier:** High
@@ -15,11 +15,12 @@
 **What This Rule Covers:**
 Deploying and managing containerized apps on SPCS: compute pools, service specs, monitoring, and troubleshooting.
 
-**When to Load:**
+**When to Load This Rule:**
 - Deploying containers on Snowflake SPCS
 - Creating/configuring compute pools
 - Troubleshooting SPCS services
 - GPU-enabled ML/AI workloads
+
 
 ## References
 
@@ -27,10 +28,6 @@ Deploying and managing containerized apps on SPCS: compute pools, service specs,
 **Must Load First:** 100-snowflake-core.md
 
 **Related:** 105 (cost), 107 (security), 111 (observability), 119 (warehouse mgmt)
-
-### Related Examples
-
-- **examples/120-spcs-service-spec-example.md** - Production SPCS YAML spec with security, logging, RBAC
 
 ### External Documentation
 - [SPCS Overview](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview)

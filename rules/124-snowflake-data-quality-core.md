@@ -7,9 +7,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:data-quality, kw:validation, kw:data profiling, kw:expectations, kw:quality checks, kw:null detection, kw:uniqueness validation, kw:freshness monitoring, kw:anomaly detection, kw:automated monitoring, kw:event tables, kw:create dmf, kw:quality monitoring, kw:data expectations
 **TokenBudget:** ~4900
 **ContextTier:** High
@@ -49,21 +49,6 @@ Comprehensive best practices for Snowflake Data Quality Monitoring using Data Me
 - [Data Metric Functions](https://docs.snowflake.com/en/user-guide/data-metric-functions) - DMF creation and usage
 - [System DMFs](https://docs.snowflake.com/en/sql-reference/data-metric-functions) - Built-in quality metrics
 - [Data Quality Monitoring](https://docs.snowflake.com/en/user-guide/ui-snowsight-data-quality-monitoring) - Snowsight monitoring
-
-### Related Rules
-
-**Closely Related** (consider loading together):
-- **124a-snowflake-data-quality-custom.md** - creating custom DMFs with SQL or Python UDFs
-- **124b-snowflake-data-quality-operations.md** - scheduling, monitoring, and alerting on DMF results
-
-**Sometimes Related** (load if specific scenario):
-- **122-snowflake-dynamic-tables.md** - adding quality checks to dynamic table pipelines
-- **104-snowflake-streams-tasks.md** - triggering tasks based on data quality events
-- **111-snowflake-observability-core.md** - logging data quality metrics to event tables
-
-**Complementary** (different aspects of same domain):
-- **107-snowflake-security-governance.md** - access control on DMFs and quality monitoring
-- **100-snowflake-core.md** - DDL fundamentals and object creation patterns
 
 ## Contract
 

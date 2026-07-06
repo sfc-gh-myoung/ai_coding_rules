@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-25
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:podman examples, kw:containerfile example, kw:buildah example, kw:quadlet example, kw:podman build script
 **TokenBudget:** ~1750
 **ContextTier:** Low
@@ -27,6 +27,11 @@ Complete, production-ready output examples for Podman container workflows includ
 
 **Must Load First:**
 - **351-podman-core.md** - Parent rule with patterns and requirements
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

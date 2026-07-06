@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.3
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:data-loading, kw:copy-into, kw:import, kw:bulk loading, kw:on_error, kw:file_format, kw:load data, kw:external stage, kw:internal stage, kw:data ingestion, kw:file upload, kw:copy error, kw:loading patterns, kw:stage files, kw:put command, kw:get command
 **TokenBudget:** ~3950
 **ContextTier:** High
@@ -40,19 +40,11 @@ Comprehensive best practices for efficiently staging and bulk loading data into 
 - [Data Loading Stages](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Internal and external stage management
 - [Data Loading Best Practices](https://docs.snowflake.com/en/user-guide/data-load-considerations) - File sizing and optimization guidance
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **100-snowflake-core.md** - stage creation, COPY INTO fundamentals, and object naming
-- **103-snowflake-performance-tuning.md** - optimizing COPY INTO performance and file sizing
+### Dependencies
 
-**Sometimes Related** (load if specific scenario):
-- **104-snowflake-streams-tasks.md** - setting up automated loading pipelines with tasks
-- **116-snowflake-cortex-search.md** - loading documents for indexing and search
-- **119-snowflake-warehouse-management.md** - warehouse sizing for data loading workloads
+**Must Load First:**
+- [100-snowflake-core.md](100-snowflake-core.md)
 
-**Complementary** (different aspects of same domain):
-- **107-snowflake-security-governance.md** - encryption, masking during loading, stage access
-- **111-snowflake-observability-core.md** - monitoring COPY INTO performance and errors
 
 ## Contract
 

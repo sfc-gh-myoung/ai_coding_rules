@@ -7,9 +7,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-03-25
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.2.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:skill composition, kw:plan-validate-execute, kw:orchestrator skill, kw:batch skill, kw:visual analysis pattern, kw:skill advanced patterns, kw:visual analysis, kw:orchestrator worker, kw:batch skills, kw:verifiable outputs, kw:intermediate validation, kw:claude a/b iteration, kw:skill development, kw:toc guidance, kw:solve dont punt, kw:error handling, kw:size heuristic
 **TokenBudget:** ~3200
 **ContextTier:** Low
@@ -35,6 +35,11 @@ Advanced patterns for Claude Code skill authoring: the plan-validate-execute pat
 
 **Related:**
 - **002d-advanced-rule-patterns.md** - Advanced rule patterns (parallel to skill patterns)
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

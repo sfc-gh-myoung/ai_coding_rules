@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:streamlit-pandas, kw:plotly-pandas, kw:pandas-io, kw:cache-data, kw:pandas streamlit, kw:pandas plotly, kw:cache_data, kw:dataframe caching, kw:interactive filtering, kw:csv download, kw:aggregate visualization, kw:data loading
 **TokenBudget:** ~1800
 **ContextTier:** Medium
@@ -32,6 +32,11 @@ Pandas integration with Streamlit (caching, filtering, download) and Plotly (agg
 - **252a-python-pandas-performance.md** - Memory optimization and groupby
 - **101a-snowflake-streamlit-visualization.md** - Plotly chart patterns
 - **101b-snowflake-streamlit-performance.md** - Caching strategies
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

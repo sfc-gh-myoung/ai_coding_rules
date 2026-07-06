@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:validate, kw:type-check, kw:lint, kw:type checking, kw:linting, kw:formatting, kw:pytest, kw:ruff, kw:ty, kw:mypy, kw:pre-task, kw:gate, kw:syntax
 **TokenBudget:** ~3050
 **ContextTier:** High
@@ -31,6 +31,11 @@ The mandatory Pre-Task-Completion Validation Gate for all Python tasks: linting,
 **Related:**
 - **201-python-lint-format.md** - Detailed Ruff linting and formatting
 - **206-python-pytest.md** - Comprehensive testing patterns
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

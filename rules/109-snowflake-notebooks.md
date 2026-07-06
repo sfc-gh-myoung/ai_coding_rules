@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-03-26
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.4
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:notebook, kw:ml, kw:reproducible notebooks, kw:nbqa, kw:code quality, kw:python, kw:debug notebook, kw:notebook execution, kw:notebook testing, kw:notebook deployment, kw:kernel management, kw:cell execution
 **TokenBudget:** ~4450
 **ContextTier:** Medium
@@ -42,19 +42,12 @@ Best practices for building reproducible, secure, and maintainable Jupyter Noteb
 - [nbqa](https://nbqa.readthedocs.io/) - Code quality tools for Jupyter notebooks
 - [Jupyter Best Practices](https://jupyter-notebook.readthedocs.io/en/stable/notebook.html) - Notebook usage guidelines
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **100-snowflake-core.md** - Snowflake fundamentals, connection patterns, DDL syntax
-- **111-snowflake-observability-core.md** - adding telemetry and monitoring to notebook executions
+### Dependencies
 
-**Sometimes Related** (load if specific scenario):
-- **101-snowflake-streamlit-core.md** - combining notebook development with Streamlit deployment
-- **114-snowflake-cortex-aisql.md** - using Cortex AI functions in notebook workflows
-- **124-snowflake-data-quality-core.md** - running data quality checks in notebooks
+**Must Load First:**
+- [100-snowflake-core.md](100-snowflake-core.md)
+- [201-python-lint-format.md](201-python-lint-format.md)
 
-**Complementary** (different aspects of same domain):
-- **103-snowflake-performance-tuning.md** - optimizing queries in notebook cells
-- **107-snowflake-security-governance.md** - secrets management and RBAC in notebooks
 
 ## Contract
 

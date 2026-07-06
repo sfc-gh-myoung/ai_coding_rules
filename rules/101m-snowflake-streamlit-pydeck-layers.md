@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:pydeck layers, kw:hexagonlayer, kw:scatterplotlayer, kw:geojsonlayer, kw:arclayer, kw:columnlayer, kw:heatmaplayer, kw:pathlayer, kw:terrainlayer, kw:pointcloudlayer, kw:multi-layer
 **TokenBudget:** ~2950
 **ContextTier:** Low
@@ -26,6 +26,11 @@ Complete layer pattern reference for PyDeck visualization, including 8 layer typ
 
 **Must Load First:**
 - **101j-snowflake-streamlit-viz-pydeck.md** - Core PyDeck patterns, ViewState, coordinate validation
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

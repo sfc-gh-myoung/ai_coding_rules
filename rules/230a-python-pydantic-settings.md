@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:env-file, kw:app-config, kw:basesettings, kw:environment variables, kw:configuration, kw:env_file, kw:nested settings, kw:config precedence
 **TokenBudget:** ~1800
 **ContextTier:** Medium
@@ -31,6 +31,11 @@ Application configuration management using pydantic-settings, including BaseSett
 **Related:**
 - **220a-python-typer-config.md** - CLI configuration integration
 - **210-python-fastapi-core.md** - FastAPI settings injection
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

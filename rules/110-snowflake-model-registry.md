@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.2.3
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:model-registry, kw:ml-model, kw:model governance, kw:model logging, kw:model inference, kw:rbac, kw:model privileges, kw:register model, kw:log model, kw:model management, kw:ml registry, kw:model tracking, kw:model metadata, kw:deploy model, kw:model lineage
 **TokenBudget:** ~3900
 **ContextTier:** Medium
@@ -31,13 +31,11 @@ Comprehensive best practices for using Snowflake Model Registry to manage machin
 - [MODEL MONITOR Overview](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/model-observability) - ML Observability and drift detection
 - [CREATE MODEL MONITOR Syntax](https://docs.snowflake.com/en/sql-reference/sql/create-model-monitor) - SQL reference for MODEL MONITOR creation
 
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Data Science Analytics**: `920-data-science-analytics.md`
-- **Snowflake Security**: `107-snowflake-security-governance.md`
-- **Cost Governance**: `105-snowflake-cost-governance.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-- **Snowflake Notebooks**: `109-snowflake-notebooks.md`
+### Dependencies
+
+**Must Load First:**
+- [100-snowflake-core.md](100-snowflake-core.md)
+
 
 ## Contract
 

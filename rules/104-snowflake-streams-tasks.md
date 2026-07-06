@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:stream, kw:task, kw:cdc, kw:scheduled tasks, kw:pipeline automation, kw:merge patterns, kw:sql, kw:task dag, kw:after dependencies, kw:task history, kw:create stream, kw:create task, kw:debug stream, kw:task troubleshooting, kw:stream consumption, kw:task execution error, kw:stream lag
 **TokenBudget:** ~3100
 **ContextTier:** High
@@ -34,24 +34,6 @@ Patterns for building robust, incremental data pipelines using Snowflake Streams
 - [Streams Management](https://docs.snowflake.com/en/user-guide/streams-manage) - Change data capture with streams for incremental processing
 - [Tasks Introduction](https://docs.snowflake.com/en/user-guide/tasks-intro) - Scheduled task execution and workflow automation
 - [Idempotent DDL](https://docs.snowflake.com/en/sql-reference/sql-ddl-idempotent) - CREATE OR REPLACE patterns for reliable automation
-
-### Related Rules
-
-**Closely Related** (consider loading together):
-- **122-snowflake-dynamic-tables.md** - Alternative declarative approach to CDC pipelines
-- **119-snowflake-warehouse-management.md** - Warehouse sizing and configuration for task execution
-
-**Sometimes Related** (load if specific scenario):
-- **103-snowflake-performance-tuning.md** - Optimizing task SQL statements
-- **124-snowflake-data-quality-core.md** - Triggering tasks based on data quality events
-- **111-snowflake-observability-core.md** - Monitoring task execution and stream consumption
-
-**Complementary** (different aspects of same domain):
-- **100-snowflake-core.md** - Naming conventions and DDL fundamentals
-- **102-snowflake-sql-core.md** - General SQL file patterns
-- **107-snowflake-security-governance.md** - RBAC on tasks and streams
-- **105-snowflake-cost-governance.md** - Monitoring task compute costs
-- **108-snowflake-data-loading.md** - Data loading patterns
 
 ## Contract
 

@@ -7,9 +7,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:compaction, kw:checkpointing, kw:sub-agents, kw:structured notes, kw:multi-session, kw:context compression, kw:persistent memory, kw:agent coordination
 **TokenBudget:** ~2950
 **ContextTier:** Medium
@@ -38,10 +38,10 @@ Covers compaction protocols, structured note-taking for persistent memory, and s
 - `003-context-engineering.md` - Core context engineering principles (attention budget, progressive disclosure)
 - `000-global-core.md` - Foundation for all rules
 
-### Related Rules
+### External Documentation
 
-- `001-memory-bank.md` - Structured documentation and context preservation
-- `004-tool-design-for-agents.md` - Token-efficient tool development patterns
+_None._
+
 
 ## Contract
 

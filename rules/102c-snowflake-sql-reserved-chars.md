@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:cli compatibility, kw:snow sql, kw:snowsql, kw:template expansion, kw:ampersand, kw:enable-templating, kw:single-quote escaping, kw:jinja2, kw:dbt
 **TokenBudget:** ~1550
 **ContextTier:** Low
@@ -27,6 +27,11 @@ Reserved character handling for Snowflake CLI tools including `snow sql`, `snows
 
 **Must Load First:**
 - **102-snowflake-sql-core.md** - SQL file patterns
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

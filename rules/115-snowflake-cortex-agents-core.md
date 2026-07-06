@@ -7,9 +7,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-06-10
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.3.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:agent, kw:cortex-agent, kw:cortex agent, kw:multi-tool agents, kw:planning instructions, kw:testing, kw:troubleshooting, kw:semantic views, kw:create agent, kw:debug agent, kw:agent not working, kw:tool execution failed, kw:agent error, kw:fix agent
 **TokenBudget:** ~3100
 **ContextTier:** High
@@ -48,12 +48,6 @@ Core patterns to design, configure, and deploy Cortex Agents including agent arc
 - **115a-snowflake-cortex-agents-instructions.md** - Planning and response instructions
 - **115b-snowflake-cortex-agents-operations.md** - Testing, RBAC, observability
 - **116-snowflake-cortex-search.md** - Cortex Search for document retrieval
-
-### Related Examples
-
-- **examples/115-cortex-agent-prerequisites-example.md** - Pre-flight validation workflow
-- **examples/115-cortex-agent-hybrid-sql-example.md** - Multi-tool agent (SQL DDL)
-- **examples/115-cortex-agent-hybrid-python-example.md** - Multi-tool agent (Python SDK)
 
 ### External Documentation
 - [Cortex Agents Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents)

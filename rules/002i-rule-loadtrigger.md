@@ -6,9 +6,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** ext:.py, kw:python, kw:testing, kw:loadtrigger, kw:dynamic rule loading, kw:rule discovery, kw:file extension trigger, kw:keyword trigger, kw:directory trigger, kw:filename trigger, kw:rules_index
 **TokenBudget:** ~2200
 **ContextTier:** Medium
@@ -33,6 +33,11 @@ LoadTrigger metadata field specification for dynamic rule discovery based on fil
 
 **Related:**
 - **002a-rule-creation.md** - Rule creation workflow (includes LoadTrigger step)
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

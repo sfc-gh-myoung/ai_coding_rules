@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.2.2
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:semantic-integration, kw:rbac, kw:masking policy, kw:row access policy, kw:cortex analyst, kw:agent integration, kw:semantic view security, kw:analyst troubleshooting, kw:fix analyst, kw:debug analyst, kw:synonyms, kw:natural language queries
 **TokenBudget:** ~3150
 **ContextTier:** Medium
@@ -37,11 +37,6 @@ Integrating Snowflake Semantic Views with Cortex Analyst and Cortex Agent, apply
 - [Cortex Agent Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents)
 - [Masking Policies](https://docs.snowflake.com/en/user-guide/security-column-ddm)
 - [Row Access Policies](https://docs.snowflake.com/en/user-guide/security-row)
-
-### Related Rules
-- **106d-snowflake-semantic-views-development.md** - VQR, Generator workflow
-- **115-snowflake-cortex-agents-core.md** - Agent design and configuration
-- **107-snowflake-security-governance.md** - Security policies
 
 ## Contract
 

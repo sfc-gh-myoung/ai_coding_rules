@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:server-sent events, kw:alpine.js, kw:eventsource, kw:real-time, kw:streaming, kw:live updates, kw:push notifications, kw:event types, kw:sse-manager
 **TokenBudget:** ~4150
 **ContextTier:** High
@@ -36,6 +36,11 @@ Patterns for implementing Server-Sent Events (SSE) in HTMX applications, coverin
 ### Project Documentation
 
 - **SSE Events Reference**: `docs/SSE_EVENTS.md` - Channel and event type documentation
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

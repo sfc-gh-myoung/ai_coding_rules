@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:snowpipe, kw:streaming, kw:auto-ingest, kw:rest api, kw:file-based ingestion, kw:event notifications, kw:copy into, kw:pipe management, kw:serverless ingestion
 **TokenBudget:** ~3100
 **ContextTier:** High
@@ -35,10 +35,6 @@ Comprehensive best practices for continuous file-based data ingestion using Snow
 - **121a-snowflake-snowpipe-streaming.md** - SDK-based streaming ingestion
 - **121b-snowflake-snowpipe-monitoring.md** - Monitoring and cost tracking
 - **104-snowflake-streams-tasks.md** - Incremental pipelines and CDC
-
-### Related Examples
-
-- **examples/121-snowpipe-auto-ingest-example.md** - Complete AWS S3 auto-ingest setup with SNS
 
 ### External Documentation
 

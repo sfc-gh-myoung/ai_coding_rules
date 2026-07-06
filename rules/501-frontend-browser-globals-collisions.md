@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.2.2
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:browser-globals, kw:window-history, kw:htmx-history, kw:browser globals, kw:javascript globals, kw:window.history, kw:htmx history, kw:alpine.js, kw:name collisions, kw:reserved identifiers, kw:implicit globals, kw:historyrestore, kw:hx-push-url, kw:popstate, kw:best practices, kw:anti-patterns
 **TokenBudget:** ~1950
 **ContextTier:** High
@@ -22,13 +22,15 @@ Prevent accidental collisions with built-in browser globals (e.g., `window.histo
 
 ## References
 
-### Related Rules
-- `rules/500-frontend-htmx-core.md` - HTMX frontend usage and lifecycle events
-- `rules/221f-python-htmx-integrations.md` - Alpine.js + HTMX integration patterns
-
 ### External Documentation
 - [MDN: `Window.history`](https://developer.mozilla.org/en-US/docs/Web/API/Window/history) - Browser history object
 - [HTMX Events](https://htmx.org/events/) - `htmx:afterSwap` and `htmx:historyRestore` lifecycle hooks
+
+### Dependencies
+
+**Must Load First:**
+- [500-frontend-htmx-core.md](500-frontend-htmx-core.md)
+
 
 ## Contract
 

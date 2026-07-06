@@ -5,8 +5,8 @@
 # ==============================================================================
 
 $schema: "http://json-schema.org/draft-07/schema#"
-version: "3.3"
-description: "Validation schema for AI coding rules v3.3 (typed Keywords kw:/ext:/file:/dir:, typed Depends required:/optional:, LoadTrigger merged into Keywords)"
+version: "3.4"
+description: "Validation schema for AI coding rules v3.4 (adds enforced Scope inline labels and External Documentation subsection; keeps typed Keywords kw:/ext:/file:/dir: and typed Depends required:/optional: from v3.3)"
 last_updated: "2025-12-22"
 
 # ==============================================================================

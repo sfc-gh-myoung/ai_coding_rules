@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-05-13
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.2.3
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:deployment-error, kw:snowflake deployment troubleshooting, kw:streamlit debugging, kw:sis typeerror, kw:notebook deployment issues, kw:deployment errors, kw:stage file debugging, kw:auto_compress debugging, kw:live_version_location_uri, kw:root_location errors (legacy), kw:deployment anti-patterns, kw:diagnostic commands, kw:cache issues
 **TokenBudget:** ~4450
 **ContextTier:** Medium
@@ -30,12 +30,14 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 - [Stage Management](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Stage operations reference
 - [Python Imports in Snowflake](https://docs.snowflake.com/en/developer-guide/udf/python/udf-python-packages) - Package and import handling
 
-### Related Rules
-- **Core Deployment**: `109b-snowflake-app-deployment-core.md` - Base deployment patterns
-- **SiS TypeError/AttributeError Debugging**: `109j-snowflake-sis-typeerror-debugging.md` - Detailed diagnostic workflows for TypeError and AttributeError
-- **Streamlit Core**: `101-snowflake-streamlit-core.md` - Streamlit development
-- **Snowflake Notebooks**: `109-snowflake-notebooks.md` - Notebook best practices
-- **Snowflake Core**: `100-snowflake-core.md` - Foundational practices
+### Dependencies
+
+**Must Load First:**
+- [100-snowflake-core.md](100-snowflake-core.md)
+- [109-snowflake-notebooks.md](109-snowflake-notebooks.md)
+- [101-snowflake-streamlit-core.md](101-snowflake-streamlit-core.md)
+- [109b-snowflake-app-deployment-core.md](109b-snowflake-app-deployment-core.md)
+
 
 ## Contract
 

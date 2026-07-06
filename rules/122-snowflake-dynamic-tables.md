@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:dynamic-table, kw:incremental, kw:automatic pipelines, kw:downstream, kw:full, kw:warehouse sizing, kw:data freshness, kw:dynamic table lag, kw:refresh frequency, kw:pipeline automation
 **TokenBudget:** ~3400
 **ContextTier:** High
@@ -15,11 +15,12 @@
 **What This Rule Covers:**
 Dynamic Tables best practices: refresh modes, lag configuration, warehouse sizing, modular pipelines, monitoring, cost optimization.
 
-**When to Load:**
+**When to Load This Rule:**
 - Creating/configuring Dynamic Tables
 - Troubleshooting refresh issues
 - Designing modular data pipelines
 - Choosing between Dynamic Tables, materialized views, and Streams/Tasks
+
 
 ## References
 

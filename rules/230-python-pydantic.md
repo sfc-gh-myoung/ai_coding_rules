@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.8.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.8.2
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:validation, kw:basemodel, kw:data validation, kw:models, kw:field validation, kw:field, kw:validator, kw:model_validator, kw:emailstr
 **TokenBudget:** ~3800
 **ContextTier:** High
@@ -26,11 +26,11 @@ Model definition and field validation patterns using Pydantic v2, covering BaseM
 - [Pydantic Documentation](https://docs.pydantic.dev/latest/) - Complete guide to data validation and serialization
 - [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Configuration management
 
-### Related Rules
-- **200-python-core.md** - Core Python patterns and uv usage
-- **201-python-lint-format.md** - Ruff linting and formatting standards
-- **230a-python-pydantic-settings.md** - Settings management with pydantic-settings
-- **230b-python-pydantic-integration.md** - Serialization, FastAPI, database, performance, testing
+### Dependencies
+
+**Must Load First:**
+- [200-python-core.md](200-python-core.md)
+
 
 ## Contract
 

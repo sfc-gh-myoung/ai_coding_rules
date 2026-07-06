@@ -7,9 +7,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:anti-pattern, kw:ascii table, kw:arrow character, kw:decision tree, kw:passive voice, kw:terminology, kw:mermaid, kw:horizontal rule
 **TokenBudget:** ~1650
 **ContextTier:** Medium
@@ -35,6 +35,18 @@ The 9 formatting anti-patterns that prevent reliable agent execution, extracted 
 
 **Related:**
 - **002-rule-governance.md** - v3.2 schema standards
+
+### External Documentation
+
+_None._
+
+### Dependencies
+
+**Must Load First:**
+- [002g-agent-optimization.md](002g-agent-optimization.md)
+- [000-global-core.md](000-global-core.md)
+
+
 
 ## Contract
 

@@ -6,9 +6,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:rule examples, kw:example files, kw:example schema, kw:reference implementations, kw:example discovery, kw:example validation
 **TokenBudget:** ~1550
 **ContextTier:** Medium
@@ -33,6 +33,11 @@ Guidelines for creating and maintaining validated example files that accompany c
 
 **Related:**
 - **002a-rule-creation.md** - Rule creation workflow
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

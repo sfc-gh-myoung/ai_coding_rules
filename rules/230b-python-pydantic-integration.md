@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:serialization, kw:model-dump, kw:type-adapter, kw:json schema, kw:fastapi integration, kw:database orm, kw:typeadapter, kw:performance, kw:testing, kw:model_dump, kw:secretstr
 **TokenBudget:** ~3450
 **ContextTier:** Medium
@@ -33,6 +33,11 @@ Pydantic v2 serialization, JSON schema generation, FastAPI integration, database
 - **210-python-fastapi-core.md** - FastAPI endpoint patterns
 - **206-python-pytest.md** - Pytest patterns
 - **230a-python-pydantic-settings.md** - Settings management
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

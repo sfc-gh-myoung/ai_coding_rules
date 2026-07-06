@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:datetime-sql, kw:streamlit-datetime, kw:plotly-datetime, kw:datetime sql, kw:parameterized queries, kw:streamlit date input, kw:plotly datetime, kw:datetime display, kw:date formatting, kw:sql injection
 **TokenBudget:** ~2500
 **ContextTier:** Medium
@@ -31,6 +31,11 @@ Datetime integration with SQL databases, Streamlit, and Plotly including SQL saf
 **Related:**
 - **251a-python-datetime-advanced.md** - Date arithmetic and performance
 - **101a-snowflake-streamlit-visualization.md** - Plotly visualization patterns
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

@@ -7,9 +7,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:bash-security-advanced, kw:privilege-management, kw:audit-logging, kw:bash, kw:privilege management, kw:network security, kw:audit logging, kw:resource limits, kw:url validation, kw:security testing, kw:parameter expansion, kw:file permissions
 **TokenBudget:** ~2200
 **ContextTier:** Medium
@@ -37,6 +37,11 @@ Advanced bash security patterns covering privilege management, resource limits, 
 **Related:**
 - **300-bash-scripting-core.md** - Foundation bash scripting patterns
 - **300b-bash-testing-tooling.md** - Testing frameworks and CI/CD tooling
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

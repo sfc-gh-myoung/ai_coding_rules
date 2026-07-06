@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.2
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:memory bank, kw:context, kw:session recovery, kw:progress tracking, kw:compaction, kw:rapid recovery
 **TokenBudget:** ~1400
 **ContextTier:** Critical
@@ -15,12 +15,13 @@
 **What This Rule Covers:**
 Memory bank patterns for AI context preservation across sessions. All writes scoped to `memory-bank/` only.
 
-**When to Load:**
+**When to Load This Rule:**
 - Implementing/maintaining memory bank systems
 - Managing project context across session resets
 - Setting up context preservation for AI agents
 
 **Scope Boundary:** Write operations to `memory-bank/` directory ONLY.
+
 
 ## References
 
@@ -28,10 +29,6 @@ Memory bank patterns for AI context preservation across sessions. All writes sco
 **Must Load First:** 000-global-core.md
 
 **Related:** 002-rule-governance.md, 003-context-engineering.md
-
-### Related Examples
-
-- **examples/001-memory-bank-templates-example.md** - Complete file templates with size budgets
 
 ### External Documentation
 - [Effective Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)

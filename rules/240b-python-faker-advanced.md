@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:locale, kw:custom-provider, kw:faker-performance, kw:localization, kw:custom providers, kw:baseprovider, kw:performance optimization, kw:batch generation, kw:caching, kw:multi-language
 **TokenBudget:** ~3300
 **ContextTier:** Low
@@ -30,6 +30,11 @@ Advanced Faker patterns including localization for international testing, creati
 
 **Related:**
 - **240a-python-faker-testing.md** - Pytest integration and seeding
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

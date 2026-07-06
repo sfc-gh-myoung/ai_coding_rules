@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.2
-**LastUpdated:** 2026-05-11
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.1.4
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:multi-env-deploy, kw:deployment-rollback, kw:multi-environment deployment, kw:deployment rollback, kw:deployment recovery, kw:environment-specific deployment, kw:dev qa prod deployment, kw:rollback strategy
 **TokenBudget:** ~2700
 **ContextTier:** Low
@@ -23,11 +23,17 @@ Advanced deployment patterns for Snowflake applications including multi-environm
 
 ## References
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **109b-snowflake-app-deployment-core.md** - Parent rule with core deployment patterns
-- **109h-snowflake-app-deployment-taskfile.md** - Taskfile implementation patterns (Makefile alternative: see 821)
-- **109c-snowflake-app-deployment-troubleshooting.md** - Deployment debugging
+### External Documentation
+
+_None._
+
+### Dependencies
+
+**Must Load First:**
+- [109b-snowflake-app-deployment-core.md](109b-snowflake-app-deployment-core.md)
+- [109h-snowflake-app-deployment-taskfile.md](109h-snowflake-app-deployment-taskfile.md)
+
+
 
 ## Contract
 

@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.1.2
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:deployment-taskfile, kw:deploy-task, kw:taskfile deployment, kw:task automation, kw:deployment tasks, kw:task structure, kw:deploy task, kw:upload task, kw:create task, kw:drop task, kw:remove task, kw:deployment workflow
 **TokenBudget:** ~3100
 **ContextTier:** Low
@@ -23,10 +23,17 @@ Taskfile implementation patterns for Snowflake application deployment automation
 
 ## References
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **109b-snowflake-app-deployment-core.md** - Parent rule with core deployment patterns
-- **820-taskfile-automation.md** - General Taskfile patterns
+### External Documentation
+
+_None._
+
+### Dependencies
+
+**Must Load First:**
+- [109b-snowflake-app-deployment-core.md](109b-snowflake-app-deployment-core.md)
+- [820-taskfile-automation.md](820-taskfile-automation.md)
+
+
 
 ## Contract
 

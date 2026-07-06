@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:cli-config, kw:pydantic-settings, kw:cli configuration, kw:pydantic settings, kw:environment variables, kw:cli options
 **TokenBudget:** ~2550
 **ContextTier:** Medium
@@ -31,6 +31,11 @@ Configuration and environment management for Typer CLI applications using Pydant
 **Related:**
 - **230-python-pydantic.md** - Pydantic model patterns
 - **230a-python-pydantic-settings.md** - Pydantic Settings details
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

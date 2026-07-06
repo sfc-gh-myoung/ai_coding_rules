@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:snowpipe-offset, kw:snowpipe-streaming-debug, kw:snowpipe-checklist, kw:offset tracking, kw:batch performance, kw:data validation, kw:debugging checklists, kw:channel troubleshooting, kw:exactly-once semantics
 **TokenBudget:** ~2700
 **ContextTier:** Low
@@ -34,6 +34,11 @@ Advanced Snowpipe Streaming troubleshooting patterns including offset tracking f
 **Related:**
 - **121b-snowflake-snowpipe-monitoring.md** - Monitoring and alerting
 - **121f-snowflake-snowpipe-monitoring-alerts.md** - Alert configuration
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

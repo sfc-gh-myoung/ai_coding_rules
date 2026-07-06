@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:semantic-view-advanced, kw:validation rules, kw:semantic model quality, kw:semantic view pitfalls, kw:debug semantic view, kw:validation failures, kw:relationship errors
 **TokenBudget:** ~1900
 **ContextTier:** High
@@ -15,10 +15,11 @@
 **What This Rule Covers:**
 Advanced semantic view patterns: anti-patterns, validation rules, quality checks, compliance.
 
-**When to Load:**
+**When to Load This Rule:**
 - Avoiding common semantic view mistakes
 - Implementing validation rules
 - Debugging semantic view errors
+
 
 ## References
 

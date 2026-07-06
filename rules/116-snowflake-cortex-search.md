@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-06-11
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.3.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:cortex-search, kw:embeddings, kw:search index, kw:rag, kw:agent tools, kw:retrieval, kw:ai_embed, kw:search service, kw:document retrieval, kw:hybrid search, kw:vector similarity
 **TokenBudget:** ~3100
 **ContextTier:** Medium
@@ -15,7 +15,7 @@
 **What This Rule Covers:**
 Patterns for building and querying Cortex Search indices: data preparation, embedding hygiene, metadata filters, agent tool configuration, and cost/latency optimization.
 
-**When to Load:**
+**When to Load This Rule:**
 - Creating Cortex Search indices
 - Querying search services with metadata filters
 - Integrating Cortex Search as agent tools
@@ -30,6 +30,7 @@ Patterns for building and querying Cortex Search indices: data preparation, embe
 > - [ ] Warehouse is sized appropriately (MEDIUM+ for large indices)
 >
 > IF ANY condition fails, STOP and report to user.
+
 
 ## References
 

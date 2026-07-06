@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.3
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:notebook-tutorial, kw:checkpoints, kw:learning objectives, kw:pedagogical design, kw:educational content, kw:progressive learning, kw:snowflake notebooks, kw:teaching point callouts, kw:validation gates, kw:tutorial structure, kw:learning design, kw:educational notebooks, kw:teaching methodology, kw:notebook education
 **TokenBudget:** ~3600
 **ContextTier:** High
@@ -29,10 +29,12 @@ Comprehensive patterns for designing educational Snowflake notebooks that effect
 - [Snowpark for Python Tutorials](https://quickstarts.snowflake.com/guide/getting_started_with_snowpark_python/index.html) - Hands-on learning
 - [Jupyter Best Practices](https://jupyter-notebook.readthedocs.io/en/stable/notebook.html) - General notebook guidelines
 
-### Related Rules
-- **Notebook Core**: `109-snowflake-notebooks.md` - Core notebook patterns
-- **App Deployment**: `109b-snowflake-app-deployment-core.md` - Production deployment
-- **Snowflake Core**: `100-snowflake-core.md` - Foundational practices
+### Dependencies
+
+**Must Load First:**
+- [109-snowflake-notebooks.md](109-snowflake-notebooks.md)
+- [920-data-science-analytics.md](920-data-science-analytics.md)
+
 
 ## Contract
 

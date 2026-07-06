@@ -7,9 +7,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-04
 **Keywords:** ext:.sh, ext:.bash, kw:bash, kw:associative arrays, kw:performance, kw:code style, kw:shellcheck, kw:debugging, kw:documentation, kw:security, kw:parameter expansion
 **TokenBudget:** ~2700
 **ContextTier:** Medium
@@ -38,6 +38,11 @@ Advanced bash scripting patterns including associative arrays, performance optim
 **Related:**
 - **300a-bash-security.md** - Comprehensive security patterns for Bash scripts
 - **300b-bash-testing-tooling.md** - Testing frameworks and CI/CD tooling
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

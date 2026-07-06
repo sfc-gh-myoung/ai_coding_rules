@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.3
-**LastUpdated:** 2026-03-26
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.1.5
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:nbqa, kw:notebook-linting, kw:ruff, kw:code quality, kw:notebook formatting, kw:lint notebooks, kw:notebook validation
 **TokenBudget:** ~3500
 **ContextTier:** Low
@@ -28,10 +28,12 @@ Code quality tooling and linting configuration for Jupyter Notebooks using nbqa 
 - [nbqa](https://nbqa.readthedocs.io/) - Code quality tools for Jupyter notebooks
 - [Ruff](https://docs.astral.sh/ruff/) - Fast Python linter and formatter
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **109-snowflake-notebooks.md** - Parent rule for notebook best practices
-- **201-python-lint-format.md** - Python linting and formatting standards
+### Dependencies
+
+**Must Load First:**
+- [109-snowflake-notebooks.md](109-snowflake-notebooks.md)
+- [201-python-lint-format.md](201-python-lint-format.md)
+
 
 ## Contract
 

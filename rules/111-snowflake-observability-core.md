@@ -7,9 +7,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.2
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:log_level, kw:trace_level, kw:metric_level, kw:show parameters, kw:opentelemetry, kw:system views vs telemetry, kw:logging, kw:tracing, kw:debug observability, kw:event table queries, kw:observability patterns, kw:configure telemetry
 **TokenBudget:** ~4650
 **ContextTier:** High
@@ -48,20 +48,16 @@ Foundational observability practices for Snowflake environments through telemetr
 - [Event Table Setup Guide](https://docs.snowflake.com/en/developer-guide/logging-tracing/event-table-setting-up) - Step-by-step guide for setting up and managing event tables
 - [Snowflake Telemetry Levels](https://docs.snowflake.com/en/developer-guide/logging-tracing/telemetry-levels) - Complete guide to configuring telemetry levels and hierarchy
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **111a-snowflake-observability-logging.md** - logging best practices and standard library integration
-- **111b-snowflake-observability-tracing.md** - distributed tracing patterns with custom spans
-- **111c-snowflake-observability-monitoring.md** - monitoring queries and Snowsight interfaces
+### External Documentation
 
-**Sometimes Related** (load if specific scenario):
-- **103-snowflake-performance-tuning.md** - using telemetry data for performance optimization
-- **115b-snowflake-cortex-agents-operations.md** - implementing agent observability and evaluation
-- **109-snowflake-notebooks.md** - adding telemetry to notebook executions
+_None._
 
-**Complementary** (different aspects of same domain):
-- **105-snowflake-cost-governance.md** - monitoring costs using telemetry data
-- **107-snowflake-security-governance.md** - security event monitoring and audit logs
+### Dependencies
+
+**Must Load First:**
+- [100-snowflake-core.md](100-snowflake-core.md)
+
+
 
 ## Contract
 

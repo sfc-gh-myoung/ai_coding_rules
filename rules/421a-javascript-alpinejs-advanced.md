@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:alpinejs-advanced, kw:alpine-stores, kw:alpine-plugins, kw:alpine.js, kw:stores, kw:plugins, kw:transitions, kw:x-teleport, kw:$dispatch, kw:custom directives, kw:sse, kw:lifecycle, kw:error recovery
 **TokenBudget:** ~2700
 **ContextTier:** Low
@@ -33,6 +33,11 @@ Advanced Alpine.js patterns including global stores, cross-component communicati
 **Related:**
 - **420-javascript-core.md** - JavaScript patterns and best practices
 - **500-frontend-htmx-core.md** - HTMX patterns for server-driven interactivity
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

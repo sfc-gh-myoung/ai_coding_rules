@@ -7,9 +7,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:context engineering, kw:attention budget, kw:context rot, kw:token efficiency, kw:compaction, kw:progressive disclosure, kw:sub-agents, kw:agentic search, kw:system prompts, kw:right altitude, kw:long-horizon tasks, kw:memory management, kw:state tracking
 **TokenBudget:** ~4300
 **ContextTier:** Critical
@@ -35,14 +35,6 @@ Comprehensive context engineering practices that treat context as a finite resou
 
 **Must Load First:**
 - `000-global-core.md` - Foundation for all rules, Context Window Management Protocol
-
-### Related Rules
-
-- `001-memory-bank.md` - Structured documentation and context preservation
-- `002d-advanced-rule-patterns.md` - System prompt altitude and investigation-first
-- `002c-rule-optimization.md` - Token budgets and optimization
-- `003a-long-horizon-tasks.md` - Compaction, structured notes, sub-agent architectures
-- `004-tool-design-for-agents.md` - Token-efficient tool development patterns
 
 ### External Documentation
 

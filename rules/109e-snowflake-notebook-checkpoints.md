@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.1.2
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:notebook-checkpoint, kw:teaching-point, kw:checkpoint validation, kw:teaching point callouts, kw:notebook validation gates, kw:progress verification, kw:learning checkpoints, kw:note prefix, kw:tutorial checkpoints
 **TokenBudget:** ~2650
 **ContextTier:** Low
@@ -23,10 +23,16 @@ Patterns for implementing checkpoint validation cells and teaching point callout
 
 ## References
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **109a-snowflake-notebooks-tutorials.md** - Parent rule for tutorial design patterns
-- **109-snowflake-notebooks.md** - Core notebook best practices
+### External Documentation
+
+_None._
+
+### Dependencies
+
+**Must Load First:**
+- [109a-snowflake-notebooks-tutorials.md](109a-snowflake-notebooks-tutorials.md)
+
+
 
 ## Contract
 

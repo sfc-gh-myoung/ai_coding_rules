@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.5.0
-**LastUpdated:** 2026-06-11
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.5.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:compute, kw:high-memory warehouse, kw:warehouse tagging, kw:auto-suspend, kw:auto-resume, kw:gen 2, kw:snowpark-optimized, kw:warehouse edition, kw:resource monitors, kw:create warehouse, kw:warehouse configuration, kw:warehouse types, kw:warehouse cost, kw:size warehouse, kw:adaptive warehouse, kw:max_query_performance_level, kw:query_throughput_multiplier, kw:system$bulk_update_wh, kw:create adaptive warehouse
 **TokenBudget:** ~8900
 **ContextTier:** High
@@ -72,21 +72,6 @@ Comprehensive best practices for creating, configuring, and managing Snowflake v
 - [Warehouse Overview](https://docs.snowflake.com/en/user-guide/warehouses-overview) - Virtual warehouse concepts
 - [CREATE WAREHOUSE](https://docs.snowflake.com/en/sql-reference/sql/create-warehouse) - DDL syntax
 - [Warehouse Types](https://docs.snowflake.com/en/user-guide/warehouse-considerations) - Type selection guidance
-
-### Related Rules
-
-**Closely Related** (consider loading together):
-- **105-snowflake-cost-governance.md** - resource monitors, credit quotas, cost alerts
-- **103-snowflake-performance-tuning.md** - warehouse sizing decisions based on query performance
-
-**Sometimes Related** (load if specific scenario):
-- **120-snowflake-spcs.md** - creating compute pools for Snowpark Container Services
-- **122-snowflake-dynamic-tables.md** - assigning warehouses to dynamic table refreshes
-- **104-snowflake-streams-tasks.md** - assigning warehouses to task executions
-
-**Complementary** (different aspects of same domain):
-- **100-snowflake-core.md** - warehouse naming conventions
-- **107-snowflake-security-governance.md** - warehouse access control and RBAC
 
 ## Contract
 

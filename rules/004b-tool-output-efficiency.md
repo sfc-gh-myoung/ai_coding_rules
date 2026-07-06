@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:tool outputs, kw:minimal output, kw:progressive output, kw:context budget, kw:verbose output
 **TokenBudget:** ~2600
 **ContextTier:** Medium
@@ -32,6 +32,11 @@ Designing token-efficient tool outputs for AI agents. Covers returning only nece
 **Related:**
 - **003-context-engineering.md** - Context management and attention budgets
 - **004a-tool-set-curation.md** - Minimal viable tool sets
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

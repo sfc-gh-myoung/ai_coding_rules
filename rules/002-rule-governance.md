@@ -7,7 +7,7 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
+**SchemaVersion:** v3.4
 **RuleVersion:** v3.5.0
 **LastUpdated:** 2026-07-03
 **Keywords:** dir:rules/, kw:rule governance, kw:schema, kw:metadata requirements, kw:validation, kw:schema compliance, kw:rule structure, kw:semantic discovery, kw:rules_index, kw:descriptive headings, kw:design priorities, kw:agent optimization, kw:skill governance
@@ -179,14 +179,20 @@ Where:
 
 **Note on Versioning:** For guidance on when and how to increment RuleVersion and update LastUpdated fields, see `002b-rule-update.md`.
 
-### Required Sections (v3.3)
+### Required Sections (v3.4)
 
 **Required Sections (in order):**
-1. **Metadata** - All 6 required fields in correct order
-2. **Scope** - What the rule covers + when to load it (replaces Purpose and Rule Scope from v3.1)
-3. **References** - Dependencies and external documentation (moved early for discovery)
-4. **Contract** - Structured contract with Markdown subsections (###), NOT XML tags
-5. **Anti-Patterns and Common Mistakes** - Optional but strongly recommended
+1. **Metadata** — All 6 required fields in correct order.
+2. **Scope** — MUST contain the following bolded inline labels (enforced by validator):
+   - `**What This Rule Covers:**` — one-paragraph plain-English summary.
+   - `**When to Load This Rule:**` — bulleted list of trigger conditions.
+3. **References** — MUST contain the H3 subheadings (enforced by validator):
+   - `### Dependencies` — required; use `_None._` when the rule has no dependencies.
+   - `### External Documentation` — required; use `_None._` when no external references apply.
+4. **Contract** — Structured contract with Markdown subsections (`###`), NOT XML tags. See §Contract Structure.
+5. **Anti-Patterns and Common Mistakes** — Optional but strongly recommended.
+
+**Enforcement:** `ai-rules validate rules/` fires HIGH-severity errors on missing Scope inline labels or missing References subheadings. The v3.4 schema retires the transient `### Related Rules` subsection (added and dropped mid-session 2026-07-04 due to token bloat with minimal value).
 
 **Numbering:**
 - **FORBIDDEN:** Do NOT use numbered section headings (e.g., `## 1. Environment Setup`)

@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:optimization, kw:slow, kw:search optimization, kw:pruning, kw:spillage, kw:sql optimization, kw:partition pruning, kw:query_history, kw:optimize query, kw:fix slow query, kw:query bottleneck, kw:warehouse performance, kw:micro-partitions, kw:clustering
 **TokenBudget:** ~3200
 **ContextTier:** High
@@ -42,22 +42,6 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 - [Query Profile Guide](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Query execution analysis and performance diagnostics
 - [Virtual Warehouse Management](https://docs.snowflake.com/en/user-guide/warehouses) - Warehouse sizing, scaling, and cost optimization
 - [Clustering Keys](https://docs.snowflake.com/en/user-guide/tables-clustering-keys) - Table clustering for query performance optimization
-
-### Related Rules
-
-**Closely Related** (consider loading together):
-- **119-snowflake-warehouse-management.md** - Warehouse sizing, type selection (CPU/GPU/High-Memory), auto-suspend config
-- **105-snowflake-cost-governance.md** - Cost monitoring, resource monitors, budget alerts during optimization
-
-**Sometimes Related** (load if specific scenario):
-- **100-snowflake-core.md** - CTE usage patterns and query structure fundamentals
-- **102-snowflake-sql-core.md** - General SQL file patterns
-- **122-snowflake-dynamic-tables.md** - Optimizing dynamic table refresh performance
-- **104-snowflake-streams-tasks.md** - Optimizing stream/task pipeline performance
-
-**Complementary** (different aspects of same domain):
-- **108-snowflake-data-loading.md** - Optimizing COPY INTO and data loading performance
-- **111-snowflake-observability-core.md** - Query profiling and performance monitoring
 
 ## Contract
 

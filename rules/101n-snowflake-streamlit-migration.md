@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-05-11
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.2.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:warehouse runtime, kw:container runtime, kw:in-place upgrade, kw:live version, kw:environment.yml, kw:pyproject.toml, kw:get_active_session, kw:st.connection, kw:runtime migration, kw:bidirectional migration
 **TokenBudget:** ~2800
 **ContextTier:** Low
@@ -31,6 +31,11 @@ Streamlit deployment migration patterns: Warehouse ↔ Container Runtime migrati
 
 **Related:**
 - **101c-snowflake-streamlit-security.md** - Secrets migration patterns
+
+### External Documentation
+
+_None._
+
 
 ## Contract
 

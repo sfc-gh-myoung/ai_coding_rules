@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:web, kw:blueprints, kw:flask-sqlalchemy, kw:templates, kw:routing, kw:application factory
 **TokenBudget:** ~2150
 **ContextTier:** High
@@ -15,11 +15,12 @@
 **What This Rule Covers:**
 Flask application development: factory pattern, blueprints, security, SQLAlchemy, templates, deployment.
 
-**When to Load:**
+**When to Load This Rule:**
 - Building Flask applications
 - Implementing factory pattern and blueprints
 - Securing Flask apps (CSRF, auth)
 - Deploying to production
+
 
 ## References
 

@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.2.1
-**LastUpdated:** 2026-05-13
+**SchemaVersion:** v3.4
+**RuleVersion:** v1.2.3
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:deployment-sql, kw:put-script, kw:put command, kw:remove command, kw:create notebook, kw:create streamlit, kw:upload script, kw:stage upload, kw:sql deployment templates, kw:snow stage copy, kw:recursive upload
 **TokenBudget:** ~4600
 **ContextTier:** Low
@@ -23,10 +23,16 @@ Standardized SQL script templates for Snowflake application deployment operation
 
 ## References
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **109b-snowflake-app-deployment-core.md** - Parent rule with core deployment patterns
-- **109c-snowflake-app-deployment-troubleshooting.md** - Deployment debugging
+### External Documentation
+
+_None._
+
+### Dependencies
+
+**Must Load First:**
+- [109b-snowflake-app-deployment-core.md](109b-snowflake-app-deployment-core.md)
+
+
 
 ## Contract
 

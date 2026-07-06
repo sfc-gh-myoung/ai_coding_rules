@@ -2,9 +2,9 @@
 
 ## Metadata
 
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**SchemaVersion:** v3.4
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-04
 **Keywords:** kw:cost, kw:budget, kw:billing, kw:budget alerts, kw:spend tracking, kw:sql, kw:credit_quota, kw:warehouse_metering_history, kw:object tagging, kw:monitor credits, kw:warehouse spending, kw:cost alerts, kw:credit limits, kw:budget management, kw:resource monitor, kw:tag enforcement
 **TokenBudget:** ~3300
 **ContextTier:** High
@@ -33,22 +33,6 @@ Comprehensive cost management and optimization strategies for Snowflake environm
 ### External Documentation
 - [Cost Management Guide](https://docs.snowflake.com/en/guides-overview-cost) - Comprehensive cost optimization strategies and monitoring
 - [Resource Monitors](https://docs.snowflake.com/en/user-guide/resource-monitors) - Credit usage tracking, quotas, and automated controls
-
-### Related Rules
-
-**Closely Related** (consider loading together):
-- **119-snowflake-warehouse-management.md** - Warehouse sizing, auto-suspend config affecting costs
-- **103-snowflake-performance-tuning.md** - Optimizing queries to reduce compute costs
-
-**Sometimes Related** (load if specific scenario):
-- **111-snowflake-observability-core.md** - Monitoring warehouse usage and query costs via telemetry
-- **106c-snowflake-semantic-views-integration.md** - Monitoring Cortex Analyst API costs
-- **115-snowflake-cortex-agents-core.md** - Monitoring agent execution costs
-
-**Complementary** (different aspects of same domain):
-- **100-snowflake-core.md** - Tagging conventions (COST_CENTER, WORKLOAD_TYPE, OWNER_TEAM)
-- **107-snowflake-security-governance.md** - RBAC on resource monitors and cost controls
-- **123-snowflake-object-tagging.md** - Object tagging for cost tracking
 
 ## Contract
 

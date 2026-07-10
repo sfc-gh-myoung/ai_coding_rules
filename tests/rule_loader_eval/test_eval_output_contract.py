@@ -208,3 +208,39 @@ SEED_FIXTURE_COMPLETE
     # The checkbox prefix must survive so validate_output_shape recognises Gate 3.
     assert extracted.startswith("- [x] Gate 3:")
     assert validate_output_shape(extracted, loaded_count=2) == ()
+
+
+# ---------------------------------------------------------------------------
+# New Gate-1-only shape tests (added 2026-07-10)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_validate_output_shape_accepts_gate3_none_matched() -> None:
+    """New sentinel '- [x] Gate 3: none matched' is accepted by validate_output_shape."""
+    text = """\
+PRE-FLIGHT:
+- [x] Gate 1: Foundation rules/000-global-core.md — 268 lines
+- [x] Gate 2: Searched: python
+- [x] Gate 3: none matched
+
+Task Switch: FIRST
+"""
+    violations = validate_output_shape(text, loaded_count=0)
+    assert violations == ()
+
+
+@pytest.mark.unit
+def test_validate_output_shape_gate1_only_foundation() -> None:
+    """Gate-1-only shape (foundation on Gate 1, domain rules in Gate 3) passes shape check."""
+    text = """\
+PRE-FLIGHT:
+- [x] Gate 1: Foundation rules/000-global-core.md — 268 lines
+- [x] Gate 2: Searched: python
+- [x] Gate 3: +1 domain rule:
+  - rules/200-python-core.md (file extension: .py) — 453 lines
+
+Task Switch: FIRST
+"""
+    violations = validate_output_shape(text, loaded_count=1)
+    assert violations == ()

@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.0.3
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:anti-patterns, kw:quality gates, kw:task switch, kw:rule loading, kw:failure modes, kw:protocol reference, kw:term definitions, kw:gate compliance
 **TokenBudget:** ~2800
 **ContextTier:** Medium
@@ -52,7 +52,7 @@ _None._
 
 - Load `rules/000-global-core.md` (foundation) before consulting this reference rule
 - Use `read_file` to read any rule file; never assume file contents
-- Declare all loaded rules under PRE-FLIGHT Gate 3 in the response
+- Cite foundation on Gate 1 (`— N lines`); list domain/activity rules as Gate 3 sub-bullets (or `none matched`) in the response
 - Execute actual grep or read_file for Gate 2; never fabricate gate compliance
 
 ### Forbidden
@@ -71,7 +71,7 @@ _None._
 
 ### Output Format
 
-No special output format required. Apply guidance inline within the current response structure (PRE-FLIGHT Gate 3, task execution).
+No special output format required. Apply guidance inline within the current response structure (PRE-FLIGHT Gate 1 foundation citation + Gate 3 domain sub-bullets, task execution).
 
 ### Validation
 
@@ -83,7 +83,7 @@ Before considering guidance applied, confirm:
 ### Post-Execution Checklist
 
 - [ ] PRE-FLIGHT section present with all three gates
-- [ ] 002n-agent-protocol-reference.md listed under PRE-FLIGHT Gate 3
+- [ ] 002n-agent-protocol-reference.md listed as a Gate 3 sub-bullet
 - [ ] Guidance applied to the specific edge case
 - [ ] No gate claims inherited from session summaries
 
@@ -147,7 +147,7 @@ Task complete.
 **Detection Signals:**
 - Gate 2 marked `[x]` but no grep or read_file call to RULES_INDEX.md visible
 - Keywords in Gate 2 match previous session summary rather than current tool output
-- Rules in Gate 3 were not read via read_file in the current response cycle
+- Rules in Gate 3 were not read via read_file in the current response cycle (foundation should not appear in Gate 3; it belongs on Gate 1)
 
 **Correct Pattern:**
 ```markdown
@@ -155,10 +155,10 @@ Task complete.
 [Actual grep output: 102-snowflake-sql-core.md | tier:High | ~1400 | ...]
 
 PRE-FLIGHT:
-- [x] Gate 1: Foundation loaded
+- [x] Gate 1: Foundation rules/000-global-core.md — N lines
 - [x] Gate 2: RULES_INDEX.md searched for: sql, streamlit
   (grep matched: 102-snowflake-sql-core.md, 101-snowflake-streamlit-core.md)
-- [x] Gate 3: Rules loaded:
+- [x] Gate 3: +2 domain rules:
   - rules/102-snowflake-sql-core.md (sql match) — N lines
   - rules/101-snowflake-streamlit-core.md (streamlit match) — N lines
 ```
@@ -192,7 +192,7 @@ PRE-FLIGHT:
 2. Extract new keywords from current request
 3. Search `rules/RULES_INDEX.md`
 4. Load matching rules before acting
-5. List loaded rules under Gate 3 in response
+5. Cite foundation on Gate 1 with `— N lines`; list domain/activity rules as Gate 3 sub-bullets (or `none matched`) in response
 
 ## Rule Loading Failures
 
@@ -262,7 +262,8 @@ grep -iE -m 20 "kw:python|ext:\.py" rules/RULES_INDEX.md
 
 ## Term Definitions
 
-- **"Load a rule"**: Execute `read_file()` + Apply guidance + Declare under PRE-FLIGHT Gate 3. All three required.
+- **"Load a rule"**: Execute `read_file()` + Apply guidance + Declare as Gate 3 sub-bullet.
+  Domain/activity rules only; foundation belongs on Gate 1. All three steps required.
 - **"Foundation"**: `rules/000-global-core.md` specifically. No other rule is the foundation.
 - **"Domain core"**: Any rule matching `NNN-*-core.md` (e.g., 200-python-core.md). Technology-specific baseline.
 - **"Activity rule"**: Task-specific rule loaded via keyword search (e.g., 206-python-pytest.md for testing).
@@ -281,9 +282,9 @@ grep -iE -m 20 "kw:python|ext:\.py" rules/RULES_INDEX.md
 [Actual grep output received and read]
 
 PRE-FLIGHT:
-- [x] Gate 1: Foundation loaded
+- [x] Gate 1: Foundation rules/000-global-core.md — N lines
 - [x] Gate 2: RULES_INDEX.md searched for: sql, streamlit
-- [x] Gate 3: Rules loaded:
+- [x] Gate 3: +1 domain rule:
   - rules/102-snowflake-sql-core.md (sql match) — N lines
 ```
 

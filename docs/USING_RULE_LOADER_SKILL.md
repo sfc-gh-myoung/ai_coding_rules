@@ -85,14 +85,13 @@ context_tier_filter: all
 
 ### Output Format
 
-The skill produces Gate 3 inline citations inside the PRE-FLIGHT block, listing all selected rules with loading reasons:
+The skill produces Gate 1 and Gate 3 inline citations inside the PRE-FLIGHT block — Gate 1 carries the foundation citation, Gate 3 lists all selected domain/activity rules with loading reasons:
 
 ```markdown
 PRE-FLIGHT:
 - [x] Gate 1: Foundation rules/000-global-core.md — N lines
 - [x] Gate 2: Searched: python, streamlit, test
-- [x] Gate 3: Rules loaded:
-  - rules/000-global-core.md (foundation) — N lines
+- [x] Gate 3: +4 domain rules:
   - rules/200-python-core.md (file extension: .py) — N lines
   - rules/100-snowflake-core.md (dependency of 101) — N lines
   - rules/101-snowflake-streamlit-core.md (keyword: Streamlit) — N lines
@@ -106,7 +105,7 @@ Task Switch: FIRST
 
 | Reason | Meaning |
 |--------|---------|
-| `(foundation)` | Always-loaded base rule (000-global-core.md) |
+| `(foundation)` | Foundation rule (000-global-core.md) — cited on Gate 1, not as a Gate 3 row |
 | `(file extension: .py)` | Matched from file extension in request |
 | `(directory: skills/)` | Matched from directory path in request |
 | `(keyword: test)` | Matched keyword in RULES_INDEX.md |

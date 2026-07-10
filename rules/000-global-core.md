@@ -9,7 +9,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.6.0
+**RuleVersion:** v3.7.0
 **LastUpdated:** 2026-07-10
 **Keywords:** kw:workflow, kw:safety, kw:confirmation, kw:validation, kw:surgical edits, kw:minimal changes, kw:prompt engineering, kw:task list, kw:context window, kw:professional communication
 **TokenBudget:** ~2400
@@ -85,7 +85,7 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 
 ### Execution Steps
 
-1. List all loaded rules under PRE-FLIGHT Gate 3
+1. Cite foundation on Gate 1 (`— N lines`); list domain/activity rules as Gate 3 sub-bullets (or `none matched`)
 2. Present clear task list for user confirmation
 3. Perform surgical edits (see Mandatory section above)
 4. Validate changes immediately (lint, test, format)
@@ -101,10 +101,10 @@ See AGENTS.md for complete response header format (PRE-FLIGHT gates).
 PRE-FLIGHT:
 - [x] Gate 1: Foundation rules/000-global-core.md — N lines
 - [x] Gate 2: Searched: [keywords]
-- [x] Gate 3: Rules loaded:
-  - rules/000-global-core.md (foundation) — N lines
+- [x] Gate 3: +N domain rule(s):
   - rules/[domain-core].md (technology domain) — N lines
   - rules/[specialized].md (activity-specific) — N lines
+  (or: `- [x] Gate 3: none matched`)
 
 Task Switch: [FIRST | NO | YES (reason)]
 
@@ -116,7 +116,7 @@ Task Switch: [FIRST | NO | YES (reason)]
 **Pre-Task-Completion Validation Gate (CRITICAL):**
 
 **Rules Validation:**
-- **CRITICAL:** Rules loaded section present with all loaded rules
+- **CRITICAL:** Gate 1 foundation citation present with `— N lines`; domain/activity rules listed as Gate 3 sub-bullets (or `none matched`)
 - **CRITICAL:** Never declare rule as loaded when `read_file` failed
 
 **Code Quality:**

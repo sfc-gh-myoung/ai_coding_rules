@@ -184,18 +184,16 @@ Output this exact structure at the start of **EVERY** response (including clarif
 
 ```markdown
 PRE-FLIGHT:
-- [x] Gate 1: Foundation {{rules_path}}/000-global-core.md loaded
+- [x] Gate 1: Foundation {{rules_path}}/000-global-core.md — N lines
 - [x] Gate 2: RULES_INDEX.md searched for: [list keywords searched]
-- [x] Gate 3: Matching rules loaded: [list rules or "none found"]
+- [x] Gate 3: +N domain rule(s):
+  - {{rules_path}}/[domain-or-activity-rule].md ([reason]) — N lines
+(or, when nothing matches: `- [x] Gate 3: none matched`)
 
 <!-- MODE-ONLY:start -->
 MODE: [PLAN|ACT]
 <!-- MODE-ONLY:end -->
 Task Switch: [FIRST | NO | YES (reason)]
-
-## Rules Loaded
-- {{rules_path}}/000-global-core.md (foundation)
-- [additional rules with loading reason]
 
 [Response content...]
 
@@ -213,7 +211,7 @@ Task complete.
 - Use `[x]` only for completed gates (read_file succeeded)
 - Use `[ ]` for incomplete gates (triggers INVALID response)
 - List actual keywords searched in Gate 2
-- List actual rules loaded (or "none found") in Gate 3
+- List domain/activity rules (beyond the foundation) as Gate 3 sub-bullets, or `none matched`; the foundation is cited only on Gate 1.
 
 <!-- MODE-ONLY:start -->
 **PLAN Mode Response Rules (CRITICAL):**
@@ -272,21 +270,18 @@ Gate 3 failures:
 **Partial Rule Loading (CRITICAL - READ CAREFULLY):**
 - If SOME rules load and SOME fail: Gate 3 = PASS (mark `[x]`) and CONTINUE with task
 - **DO NOT STOP** when partial failure occurs - proceed with successfully loaded rules
-- List loaded rules + note failures in Rules Loaded section
+- List loaded rules + note failures as Gate 3 sub-bullets
 - Only mark Gate 3 as FAILED (`[ ]`) when **ALL** matched rules fail to load
 - "Partial failure" means CONTINUE, not STOP
 
 **Example - Partial Success:**
 ```markdown
 PRE-FLIGHT:
-- [x] Gate 1: Foundation {{rules_path}}/000-global-core.md loaded
+- [x] Gate 1: Foundation {{rules_path}}/000-global-core.md — N lines
 - [x] Gate 2: RULES_INDEX.md searched for: python, sql
-- [x] Gate 3: Matching rules loaded: 102-snowflake-sql-core.md (200-python-core.md failed)
-
-## Rules Loaded
-- {{rules_path}}/000-global-core.md (foundation)
-- {{rules_path}}/102-snowflake-sql-core.md (for .sql extension)
-- ⚠️ Rule load failed: 200-python-core.md not found
+- [x] Gate 3: +1 domain rule:
+  - {{rules_path}}/102-snowflake-sql-core.md (for .sql extension) — N lines
+  - ⚠️ Rule load failed: 200-python-core.md not found
 ```
 Note: Gate 3 shows `[x]` because SQL rule loaded successfully. Continue with available rules.
 
@@ -328,15 +323,12 @@ Step 4: NOW check if result equals "ACT" (case-insensitive) or starts with "ACT 
 - Example:
   ```
   PRE-FLIGHT:
-  - [x] Gate 1: Foundation {{rules_path}}/000-global-core.md loaded
+  - [x] Gate 1: Foundation {{rules_path}}/000-global-core.md — N lines
   - [x] Gate 2: RULES_INDEX.md searched for: [keywords]
-  - [x] Gate 3: Matching rules loaded: [rules]
+  - [x] Gate 3: none matched
   
   MODE: PLAN
   Task Switch: NO
-  
-  ## Rules Loaded
-  - {{rules_path}}/000-global-core.md (foundation)
   
   Did you mean "ACT"? Please reply with `ACT` to proceed.
   ```
@@ -353,14 +345,14 @@ Step 4: NOW check if result equals "ACT" (case-insensitive) or starts with "ACT 
 <!-- MODE-ONLY:end -->
 
 **Rule Loading Definition:**
-Loading = Read file + Apply guidance + Declare in `## Rules Loaded` section. All three required.
+Loading = Read file + Apply guidance + Declare as Gate 3 sub-bullets. All three required.
 A rule is NOT loaded if any step is skipped.
-NEVER declare a rule in `## Rules Loaded` unless `read_file` returned successfully.
+NEVER declare a rule as a Gate 3 sub-bullet unless `read_file` returned successfully.
 
 **Citation format (for eval compatibility):**
-When listing rules in `## Rules Loaded`, prefer the form
+When listing rules as Gate 3 sub-bullets, prefer the form
 `<path> (<reason>) — N lines` where `N` is the `wc -l` output for the file.
-Example: `- {{rules_path}}/000-global-core.md (foundation) — 350 lines`.
+Example: `- [x] Gate 1: Foundation {{rules_path}}/000-global-core.md — 267 lines`.
 The `— N lines` suffix is optional but enables citation-drift detection
 by the rule-loader evaluator.
 
@@ -406,8 +398,10 @@ Problem: Modifying files without presenting a task list or awaiting authorizatio
 
 ```markdown
 AI: MODE: PLAN
-## Rules Loaded
-- {{rules_path}}/000-global-core.md (foundation)
+PRE-FLIGHT:
+- [x] Gate 1: Foundation {{rules_path}}/000-global-core.md — N lines
+- [x] Gate 2: RULES_INDEX.md searched for: config
+- [x] Gate 3: none matched
 
 Task List:
 1. Read current config file

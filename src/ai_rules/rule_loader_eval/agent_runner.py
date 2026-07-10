@@ -267,7 +267,17 @@ _BOOTSTRAP_RE = re.compile(
     re.IGNORECASE,
 )
 
-_NO_RULES_RE = re.compile(r"\(none\s+[—-]\s+no\s+domain\s+rules\s+matched\)", re.IGNORECASE)
+_NO_RULES_RE = re.compile(
+    r"\(none\s+[—-]\s+no\s+domain\s+rules\s+matched\)"  # legacy
+    r"|Gate 3:\s*none\s+matched",  # new sentinel
+    re.IGNORECASE,
+)
+
+# Gate 1 foundation-citation anchor (new shape: foundation on Gate 1 only)
+_GATE1_FOUNDATION_RE = re.compile(
+    r"^[-*]?\s*\[[ xX]\]\s*Gate 1\b.*?Foundation\b",
+    re.IGNORECASE,
+)
 
 
 def parse_bootstrap_line(text: str) -> dict[str, int | bool]:
@@ -349,7 +359,9 @@ def extract_citations(text: str, section_heading: str) -> dict[str, Citation]:
     For ``section_heading == "Rules Loaded"``, accepts the current Gate 3
     anchor (``- [x] Gate 3:``) and the legacy bold-inline
     (``**Rules Loaded**``) / heading (``## Rules Loaded``) formats for
-    backward compatibility.
+    backward compatibility. Additionally scans the Gate 1 line for a
+    foundation citation (new Gate-1-only shape) so citation-drift detection
+    is preserved after the foundation row moved from Gate 3 to Gate 1.
     """
     if not text:
         return {}
@@ -358,6 +370,20 @@ def extract_citations(text: str, section_heading: str) -> dict[str, Citation]:
     in_section = False
     if section_heading == "Rules Loaded":
         use_rules_anchor = True
+        # Scan Gate 1 foundation citation (new shape: foundation on Gate 1 only)
+        for line in lines:
+            stripped = line.strip()
+            if _GATE1_FOUNDATION_RE.match(stripped):
+                paths = RULE_PATH_RE.findall(line)
+                if paths:
+                    path = paths[0]
+                    m2 = CITATION_RE_LINES_ONLY.search(line)
+                    if m2:
+                        line_count = int(m2.group("suffix") or m2.group("prefix"))
+                        citations[path] = Citation(line_count=line_count)
+                    elif path not in citations:
+                        citations[path] = Citation()
+                break
     else:
         use_rules_anchor = False
         heading_re = re.compile(rf"^#{{1,6}}\s+{re.escape(section_heading)}\b", re.IGNORECASE)
@@ -409,7 +435,8 @@ def run_live(
 
     Allowed tools restricted to ``Read``/``Glob``/``Grep``. Records every
     rule-file ``Read`` call via a ``PreToolUse`` hook and parses the
-    final ``**Rules Loaded**`` section (or Gate 3 rule list) from the assistant output.
+    Gate 1 foundation citation and Gate 3 domain rule list (or legacy
+    ``**Rules Loaded**`` section) from the assistant output.
     Contract: AGENTS.md bootstrap contract.
     """
     return asyncio.run(
@@ -479,7 +506,8 @@ async def run_live_async(
         allowed_tools=["Read", "Glob", "Grep", "Bash"],
         system_prompt=(
             "HARD STOP: This is a rule-discovery probe. You MUST stop after "
-            "emitting the PRE-FLIGHT Gate 3 rule list. You MUST NOT execute the user's task, "
+            "emitting the PRE-FLIGHT Gate 1 foundation citation and Gate 3 domain "
+            "rule list. You MUST NOT execute the user's task, "
             "write code, read or search the user's task/project files "
             "(e.g. etl_pipeline.py, via Read/Glob/find/ls/list_dir), call SQL "
             "tools, call ask_user_question, or perform ANY action beyond rule "
@@ -508,19 +536,18 @@ async def run_live_async(
             "(Glob/find/ls only to locate rule files, never the user's task "
             "files) - do not answer from memory.\n\n"
             "Your FINAL assistant message MUST include a PRE-FLIGHT block with "
-            "Gate 3 inline citations formatted as:\n\n"
+            "Gate 1 foundation citation and Gate 3 domain rules formatted as:\n\n"
             "  PRE-FLIGHT:\n"
             "  - [x] Gate 1: Foundation rules/000-global-core.md — N lines\n"
             "  - [x] Gate 2: Searched: keyword1, keyword2\n"
-            "  - [x] Gate 3: Rules loaded:\n"
-            "    - rules/000-global-core.md (foundation) — N lines\n"
+            "  - [x] Gate 3: +N domain rule(s):\n"
             "    - rules/<matched-rule>.md (<reason>) — N lines\n"
             "    - rules/<required-dep>.md (required dep of <matched-rule>) — N lines\n\n"
             "Citation rules: `N lines` MUST be the `wc -l` output for the "
             "file (number of newline characters, not visual line count). "
             "Do not include `RuleVersion` or `LastUpdated` in citations.\n\n"
             "If no domain rule matches the prompt, emit:\n\n"
-            "  - [x] Gate 3: (none — no domain rules matched)\n\n"
+            "  - [x] Gate 3: none matched\n\n"
             "Do NOT emit a standalone `## Rules Loaded` / `**Rules Loaded**` section "
             "(the old format is retired; citations now live inside PRE-FLIGHT Gate 3).\n\n"
             "If you cannot read AGENTS.md, output the single token "

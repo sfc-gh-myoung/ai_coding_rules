@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **feat(contract):** Cite the foundation rule exactly once on Gate 1 with `— N lines`; retire the duplicate foundation row and standalone `## Rules Loaded` block from both AGENTS.md templates. Gate 3 now lists domain/activity rules only (as `+N domain rule(s):` sub-bullets) or emits `none matched` when nothing matches. Regenerated `AGENTS.md` from the updated NO_MODE template; updated `rules/000-global-core.md` (v3.7.0), `rules/002n-agent-protocol-reference.md`, and `docs/USING_RULE_LOADER_SKILL.md` to the Gate-1-only shape.
+- **feat(rule-loader eval):** Add `_GATE1_FOUNDATION_RE` to capture the foundation citation from Gate 1; extend `_NO_RULES_RE` to accept `Gate 3: none matched` as the zero-load sentinel; extend `extract_citations` so foundation citation-drift detection is preserved after the foundation row moved off Gate 3. Update the eval system prompt to the Gate-1-only shape; add 8 new parser unit tests covering the new and legacy shapes.
+
 ### Removed
 
 - **refactor(skills):** remove broadly reusable skills from this repository after moving ownership to an external portable-skills repository. Removed local source and guides for `analyze-plan`, `doc-reviewer`, `plan-creator`, and `plan-reviewer`; removed local source for `commit-changes`, `create-html-architecture-diagram`, `execute-plan`, `prep-customer-meeting`, `release-commit`, `stage-changes`, `team-workflow`, `update-changelog`, and `update-project-docs`. Remaining local skill documentation now reflects project-specific maintenance skills only.

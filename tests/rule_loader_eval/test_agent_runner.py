@@ -529,3 +529,107 @@ Step Gate 3: Compare against current production version
     result = parse_rules_loaded_section(text)
     assert "rules/999-should-not-appear.md" not in result
     assert "rules/000-global-core.md" in result
+
+
+# ---------------------------------------------------------------------------
+# New Gate-1-only shape tests (added 2026-07-10)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_extract_citations_reads_gate1_foundation() -> None:
+    """Gate 1 foundation citation is captured when foundation is NOT in Gate 3."""
+    text = """\
+PRE-FLIGHT:
+- [x] Gate 1: Foundation rules/000-global-core.md — 268 lines
+- [x] Gate 2: Searched: python
+- [x] Gate 3: +1 domain rule:
+  - rules/200-python-core.md (file extension: .py) — 453 lines
+
+Task Switch: FIRST
+"""
+    out = extract_citations(text, "Rules Loaded")
+    assert out["rules/000-global-core.md"] == Citation(line_count=268)
+    assert out["rules/200-python-core.md"] == Citation(line_count=453)
+
+
+@pytest.mark.unit
+def test_extract_citations_reads_gate1_foundation_no_line_count() -> None:
+    """Gate 1 foundation citation without line count yields Citation() with line_count=None."""
+    text = """\
+- [x] Gate 1: Foundation rules/000-global-core.md loaded
+- [x] Gate 3: none matched
+
+Task Switch: FIRST
+"""
+    out = extract_citations(text, "Rules Loaded")
+    assert "rules/000-global-core.md" in out
+    assert out["rules/000-global-core.md"].line_count is None
+
+
+@pytest.mark.unit
+def test_extract_citations_gate1_prose_not_matched() -> None:
+    """Prose line mentioning Gate 1 without checkbox prefix does not mis-capture a citation."""
+    text = """\
+Step Gate 1: Foundation rules/999-test-core.md should not appear
+- [x] Gate 3: none matched
+
+Task Switch: FIRST
+"""
+    out = extract_citations(text, "Rules Loaded")
+    assert "rules/999-test-core.md" not in out
+
+
+@pytest.mark.unit
+def test_parse_rules_loaded_section_gate1_only_returns_domain_only() -> None:
+    """New Gate-1-only shape: Gate 3 sub-bullets include domain rules but NOT the foundation."""
+    text = """\
+- [x] Gate 1: Foundation rules/000-global-core.md — 268 lines
+- [x] Gate 3: +1 domain rule:
+  - rules/200-python-core.md (file extension: .py) — 453 lines
+
+Task Switch: FIRST
+"""
+    result = parse_rules_loaded_section(text)
+    assert "rules/200-python-core.md" in result
+    # Foundation is on Gate 1, not in Gate 3 sub-bullets, so parse_rules_loaded returns domain only
+    assert "rules/000-global-core.md" not in result
+
+
+@pytest.mark.unit
+def test_no_rules_re_accepts_gate3_none_matched() -> None:
+    """New sentinel 'Gate 3: none matched' is matched by _NO_RULES_RE."""
+    from ai_rules.rule_loader_eval.agent_runner import _NO_RULES_RE
+
+    assert _NO_RULES_RE.search("- [x] Gate 3: none matched")
+    assert _NO_RULES_RE.search("- [x] Gate 3: none matched\n")
+    # Legacy form still accepted
+    assert _NO_RULES_RE.search("(none — no domain rules matched)")
+    assert _NO_RULES_RE.search("(none - no domain rules matched)")
+    # Must NOT match unrelated text
+    assert not _NO_RULES_RE.search("Gate 3: +1 domain rule:")
+    assert not _NO_RULES_RE.search("rules/200-python-core.md")
+
+
+@pytest.mark.unit
+def test_no_ln_shorthand_not_present_in_canonical_artifacts() -> None:
+    """Negative guard: templates, rules, docs, and AGENTS.md must not use the shorthand
+    '— N ln' (only '— N lines' is accepted by the citation-drift checker).
+    """
+    import pathlib
+    import re as _re
+
+    root = pathlib.Path(__file__).parents[3]
+    patterns = _re.compile(r"—\s*\d+\s+ln\b|—\s*N\s+ln\b")
+    hits: list[str] = []
+    for glob in [
+        "templates/*.template",
+        "rules/*.md",
+        "docs/*.md",
+        "AGENTS.md",
+    ]:
+        for path in root.glob(glob):
+            for lineno, line in enumerate(path.read_text().splitlines(), 1):
+                if patterns.search(line):
+                    hits.append(f"{path.relative_to(root)}:{lineno}: {line.strip()}")
+    assert hits == [], "Found '— N ln' shorthand in canonical artifacts:\n" + "\n".join(hits)

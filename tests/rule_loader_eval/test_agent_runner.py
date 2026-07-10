@@ -435,3 +435,97 @@ def test_normalize_to_repo_rule_valid_rules_path(tmp_path) -> None:
     rule_file.touch()
     result = _normalize_to_repo_rule(str(rule_file), tmp_path)
     assert result == "rules/100-snowflake-core.md"
+
+
+# --- Gate 3 tests ---
+
+
+@pytest.mark.unit
+def test_parse_rules_loaded_section_reads_gate3_subbullets() -> None:
+    """Gate 3 sub-bullets are parsed into sorted unique rule paths."""
+    text = """\
+PRE-FLIGHT:
+- [x] Gate 1: Foundation rules/000-global-core.md — 263 lines
+- [x] Gate 2: Searched: python
+- [x] Gate 3: Rules loaded:
+  - rules/000-global-core.md (foundation) — 263 lines
+  - rules/200-python-core.md (ext: .py) — 453 lines
+
+Task Switch: FIRST
+"""
+    result = parse_rules_loaded_section(text)
+    assert result == ("rules/000-global-core.md", "rules/200-python-core.md")
+
+
+@pytest.mark.unit
+def test_parse_rules_loaded_section_gate3_terminates_on_task_switch() -> None:
+    """Rule paths after Task Switch: are not included."""
+    text = """\
+- [x] Gate 3: Rules loaded:
+  - rules/000-global-core.md (foundation) — 263 lines
+
+Task Switch: FIRST
+- rules/999-should-not-appear.md
+"""
+    result = parse_rules_loaded_section(text)
+    assert "rules/999-should-not-appear.md" not in result
+    assert "rules/000-global-core.md" in result
+
+
+@pytest.mark.unit
+def test_extract_citations_gate3_line_counts() -> None:
+    """— N lines values are parsed from Gate 3 sub-bullets."""
+    text = """\
+- [x] Gate 3: Rules loaded:
+  - rules/000-global-core.md (foundation) — 263 lines
+  - rules/200-python-core.md (ext: .py) — 453 lines
+
+Task Switch: FIRST
+"""
+    out = extract_citations(text, "Rules Loaded")
+    assert out["rules/000-global-core.md"] == Citation(line_count=263)
+    assert out["rules/200-python-core.md"] == Citation(line_count=453)
+
+
+@pytest.mark.unit
+def test_extract_citations_gate3_failed_line() -> None:
+    """FAILED: not found sub-bullet yields Citation(failed=True)."""
+    text = """\
+- [x] Gate 3: Rules loaded:
+  - rules/000-global-core.md (foundation) — 263 lines
+  - rules/999-missing.md FAILED: not found
+
+Task Switch: FIRST
+"""
+    out = extract_citations(text, "Rules Loaded")
+    assert out["rules/999-missing.md"] == Citation(failed=True)
+    assert out["rules/000-global-core.md"] == Citation(line_count=263)
+
+
+@pytest.mark.unit
+def test_parse_rules_loaded_section_still_reads_legacy_heading() -> None:
+    """Legacy ## Rules Loaded heading remains accepted (C1 regression guard)."""
+    text = """\
+## Rules Loaded
+- rules/000-global-core.md (foundation) — 263 lines
+- rules/200-python-core.md (ext: .py) — 453 lines
+
+Task Switch: FIRST
+"""
+    result = parse_rules_loaded_section(text)
+    assert result == ("rules/000-global-core.md", "rules/200-python-core.md")
+
+
+@pytest.mark.unit
+def test_gate3_anchor_rejects_incidental_prose_without_checkbox() -> None:
+    """A prose line containing 'Gate 3:' without checkbox anchor does not start the rules section."""
+    text = """\
+Step Gate 3: Compare against current production version
+- rules/999-should-not-appear.md
+
+## Rules Loaded
+- rules/000-global-core.md (foundation) — 263 lines
+"""
+    result = parse_rules_loaded_section(text)
+    assert "rules/999-should-not-appear.md" not in result
+    assert "rules/000-global-core.md" in result

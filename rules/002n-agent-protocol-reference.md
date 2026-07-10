@@ -52,7 +52,7 @@ _None._
 
 - Load `rules/000-global-core.md` (foundation) before consulting this reference rule
 - Use `read_file` to read any rule file; never assume file contents
-- Declare all loaded rules in `## Rules Loaded` section of response
+- Declare all loaded rules under PRE-FLIGHT Gate 3 in the response
 - Execute actual grep or read_file for Gate 2; never fabricate gate compliance
 
 ### Forbidden
@@ -71,7 +71,7 @@ _None._
 
 ### Output Format
 
-No special output format required. Apply guidance inline within the current response structure (PRE-FLIGHT, Rules Loaded, task execution).
+No special output format required. Apply guidance inline within the current response structure (PRE-FLIGHT Gate 3, task execution).
 
 ### Validation
 
@@ -83,7 +83,7 @@ Before considering guidance applied, confirm:
 ### Post-Execution Checklist
 
 - [ ] PRE-FLIGHT section present with all three gates
-- [ ] 002n-agent-protocol-reference.md listed in `## Rules Loaded`
+- [ ] 002n-agent-protocol-reference.md listed under PRE-FLIGHT Gate 3
 - [ ] Guidance applied to the specific edge case
 - [ ] No gate claims inherited from session summaries
 
@@ -158,7 +158,9 @@ PRE-FLIGHT:
 - [x] Gate 1: Foundation loaded
 - [x] Gate 2: RULES_INDEX.md searched for: sql, streamlit
   (grep matched: 102-snowflake-sql-core.md, 101-snowflake-streamlit-core.md)
-- [x] Gate 3: Matching rules loaded: 102-snowflake-sql-core.md, 101-snowflake-streamlit-core.md
+- [x] Gate 3: Rules loaded:
+  - rules/102-snowflake-sql-core.md (sql match) — N lines
+  - rules/101-snowflake-streamlit-core.md (streamlit match) — N lines
 ```
 
 ## Anti-Pattern: Symptom-Only Rule Loading
@@ -190,7 +192,7 @@ PRE-FLIGHT:
 2. Extract new keywords from current request
 3. Search `rules/RULES_INDEX.md`
 4. Load matching rules before acting
-5. Update `## Rules Loaded` section in response
+5. List loaded rules under Gate 3 in response
 
 ## Rule Loading Failures
 
@@ -260,7 +262,7 @@ grep -iE -m 20 "kw:python|ext:\.py" rules/RULES_INDEX.md
 
 ## Term Definitions
 
-- **"Load a rule"**: Execute `read_file()` + Apply guidance + Declare in `## Rules Loaded`. All three required.
+- **"Load a rule"**: Execute `read_file()` + Apply guidance + Declare under PRE-FLIGHT Gate 3. All three required.
 - **"Foundation"**: `rules/000-global-core.md` specifically. No other rule is the foundation.
 - **"Domain core"**: Any rule matching `NNN-*-core.md` (e.g., 200-python-core.md). Technology-specific baseline.
 - **"Activity rule"**: Task-specific rule loaded via keyword search (e.g., 206-python-pytest.md for testing).
@@ -281,7 +283,8 @@ grep -iE -m 20 "kw:python|ext:\.py" rules/RULES_INDEX.md
 PRE-FLIGHT:
 - [x] Gate 1: Foundation loaded
 - [x] Gate 2: RULES_INDEX.md searched for: sql, streamlit
-- [x] Gate 3: Matching rules loaded: 102-snowflake-sql-core.md
+- [x] Gate 3: Rules loaded:
+  - rules/102-snowflake-sql-core.md (sql match) — N lines
 ```
 
 ### Anti-Pattern: Skipping Validation Before Task Completion

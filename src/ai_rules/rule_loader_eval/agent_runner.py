@@ -196,15 +196,25 @@ _RULES_LOADED_HEADING_RE = re.compile(
     re.IGNORECASE,
 )
 
+# NEW - Gate 3 anchor (matches "- [x] Gate 3: ..." or "[ ] Gate 3: ...")
+_GATE3_HEADING_RE = re.compile(
+    r"^[-*]?\s*\[[ xX]\]\s*Gate 3\b",
+    re.IGNORECASE,
+)
+
+
+def _is_rules_section_start(stripped: str) -> bool:
+    return bool(_RULES_LOADED_HEADING_RE.match(stripped) or _GATE3_HEADING_RE.match(stripped))
+
 
 def parse_rules_loaded_section(text: str) -> tuple[str, ...]:
     """Extract rule paths from a ``**Rules Loaded**`` (or legacy ``## Rules Loaded``) section.
 
     Permissive parser: scans every ``rules/*.md`` token under the
     Rules Loaded marker until the next heading or ``Task Switch:`` line.
-    Accepts both the current bold-inline format (``**Rules Loaded**``) and
-    the legacy heading format (``## Rules Loaded``) for backward compatibility
-    with pre-v3.9-patch fixtures and historical CI artifacts.
+    Accepts the current Gate 3 anchor (``- [x] Gate 3:``) and the legacy
+    ``**Rules Loaded**`` / ``## Rules Loaded`` formats for backward
+    compatibility with pre-v3.9-patch fixtures and historical CI artifacts.
     Returns sorted unique paths.
     """
     if not text:
@@ -214,7 +224,7 @@ def parse_rules_loaded_section(text: str) -> tuple[str, ...]:
     in_section = False
     for line in lines:
         stripped = line.strip()
-        if _RULES_LOADED_HEADING_RE.match(stripped):
+        if _is_rules_section_start(stripped):
             in_section = True
             continue
         if in_section and (stripped.startswith("#") or re.match(r"^Task Switch:", stripped)):
@@ -283,35 +293,39 @@ def parse_bootstrap_line(text: str) -> dict[str, int | bool]:
 def extract_contract_text(text: str) -> str:
     """Return the contract block from the first Rules Loaded marker onward.
 
-    Legacy AGENTS.md contract: the agent emits `## Rules Loaded` (or
-    `**Rules Loaded**`) with one bullet per loaded rule. The retired
-    v3.9 prefix `**Bootstrap:**` is also recognised for backward compat.
+    The current AGENTS.md contract emits a PRE-FLIGHT ``- [x] Gate 3:`` rule
+    list. Legacy responses emit ``## Rules Loaded`` / ``**Rules Loaded**`` (or
+    the retired ``**Bootstrap:**`` prefix). Anchoring backs up to the start of
+    the line containing the earliest marker so a bullet/checkbox prefix (e.g.
+    ``- [x] Gate 3:``) is preserved for downstream anchor-regex matching.
     """
-    candidates = ["## Rules Loaded", "**Rules Loaded**", "**Bootstrap:**"]
+    candidates = ["Gate 3:", "## Rules Loaded", "**Rules Loaded**", "**Bootstrap:**"]
     earliest = -1
     for marker in candidates:
         idx = text.find(marker)
         if idx >= 0 and (earliest == -1 or idx < earliest):
             earliest = idx
-    return text[earliest:] if earliest >= 0 else text
+    if earliest < 0:
+        return text
+    line_start = text.rfind("\n", 0, earliest) + 1
+    return text[line_start:]
 
 
 def validate_output_shape(text: str, *, loaded_count: int) -> tuple[str, ...]:
-    """Return output-shape violations for the legacy AGENTS.md bootstrap contract.
+    """Return output-shape violations for the AGENTS.md bootstrap contract.
 
-    Required: a ``**Rules Loaded**`` section in the final response.
-    No-match runs must use the explicit ``(none - no domain rules matched)``
-    body. The v3.9-only ``**Bootstrap:**`` and ``Task Switch:`` requirements
-    are NOT enforced.
+    Required: a PRE-FLIGHT Gate 3 rule list or legacy ``**Rules Loaded**``
+    section in the final response. No-match runs must use the explicit
+    ``(none - no domain rules matched)`` body.
     """
     violations: list[str] = []
     if not text:
         return ("final assistant text is empty",)
-    has_rules_loaded = "**Rules Loaded**" in text or re.search(
-        r"(?m)^#{1,6}\s+Rules Loaded\b", text
-    )
+    has_legacy = "**Rules Loaded**" in text or re.search(r"(?m)^#{1,6}\s+Rules Loaded\b", text)
+    has_gate3 = bool(re.search(r"(?m)^[-*]?\s*\[[ xX]\]\s*Gate 3\b", text, re.IGNORECASE))
+    has_rules_loaded = has_legacy or has_gate3
     if not has_rules_loaded:
-        violations.append("missing **Rules Loaded** section")
+        violations.append("missing Rules Loaded (Gate 3 or **Rules Loaded**) section")
     if loaded_count == 0 and not _NO_RULES_RE.search(text):
         violations.append("zero loaded rules must use explicit no-match Rules Loaded body")
     return tuple(violations)
@@ -332,9 +346,10 @@ def extract_citations(text: str, section_heading: str) -> dict[str, Citation]:
     ``FAILED: not found`` lines yield a ``Citation(failed=True)``. Returns
     ``{rule_path: Citation}``.
 
-    For ``section_heading == "Rules Loaded"``, accepts both the current
-    bold-inline format (``**Rules Loaded**``) and the legacy heading format
-    (``## Rules Loaded``) for backward compatibility.
+    For ``section_heading == "Rules Loaded"``, accepts the current Gate 3
+    anchor (``- [x] Gate 3:``) and the legacy bold-inline
+    (``**Rules Loaded**``) / heading (``## Rules Loaded``) formats for
+    backward compatibility.
     """
     if not text:
         return {}
@@ -342,12 +357,17 @@ def extract_citations(text: str, section_heading: str) -> dict[str, Citation]:
     citations: dict[str, Citation] = {}
     in_section = False
     if section_heading == "Rules Loaded":
-        heading_re = _RULES_LOADED_HEADING_RE
+        use_rules_anchor = True
     else:
+        use_rules_anchor = False
         heading_re = re.compile(rf"^#{{1,6}}\s+{re.escape(section_heading)}\b", re.IGNORECASE)
     for line in lines:
         stripped = line.strip()
-        if heading_re.match(stripped):
+        if use_rules_anchor:
+            if _is_rules_section_start(stripped):
+                in_section = True
+                continue
+        elif heading_re.match(stripped):
             in_section = True
             continue
         if in_section and (stripped.startswith("#") or re.match(r"^Task Switch:", stripped)):
@@ -389,7 +409,7 @@ def run_live(
 
     Allowed tools restricted to ``Read``/``Glob``/``Grep``. Records every
     rule-file ``Read`` call via a ``PreToolUse`` hook and parses the
-    final ``**Rules Loaded**`` section from the assistant output.
+    final ``**Rules Loaded**`` section (or Gate 3 rule list) from the assistant output.
     Contract: AGENTS.md bootstrap contract.
     """
     return asyncio.run(
@@ -459,13 +479,13 @@ async def run_live_async(
         allowed_tools=["Read", "Glob", "Grep", "Bash"],
         system_prompt=(
             "HARD STOP: This is a rule-discovery probe. You MUST stop after "
-            "emitting `**Rules Loaded**`. You MUST NOT execute the user's task, "
+            "emitting the PRE-FLIGHT Gate 3 rule list. You MUST NOT execute the user's task, "
             "write code, read or search the user's task/project files "
             "(e.g. etl_pipeline.py, via Read/Glob/find/ls/list_dir), call SQL "
             "tools, call ask_user_question, or perform ANY action beyond rule "
-            "discovery. After `**Rules Loaded**`, "
+            "discovery. After the Gate 3 rule list, "
             "output `SEED_FIXTURE_COMPLETE` and immediately stop. "
-            "This stop boundary applies AFTER rule discovery: it forbids executing the user's underlying task, but it does NOT override the AGENTS.md bootstrap reading steps — you MUST still read rules/000-global-core.md, read_file every matched rule, AND read_file each matched rule's `required:` Depends (transitively) before emitting **Rules Loaded**.\n\n"
+            "This stop boundary applies AFTER rule discovery: it forbids executing the user's underlying task, but it does NOT override the AGENTS.md bootstrap reading steps — you MUST still read rules/000-global-core.md, read_file every matched rule, AND read_file each matched rule's `required:` Depends (transitively) before emitting the Gate 3 block.\n\n"
             "You are evaluating rule discovery for the ai_coding_rules repo. "
             "Before answering ANY user request, you MUST follow the AGENTS.md "
             "bootstrap protocol exactly:\n\n"
@@ -487,33 +507,33 @@ async def run_live_async(
             "  5. Use the `Read`, `Grep`, and `Bash` tools for rule discovery "
             "(Glob/find/ls only to locate rule files, never the user's task "
             "files) - do not answer from memory.\n\n"
-            "Your FINAL assistant message MUST end with a `**Rules Loaded**` "
-            "section listing every rule path you read this turn, formatted as:\n\n"
-            "  **Rules Loaded**\n"
-            "  - rules/000-global-core.md (foundation) — N lines\n"
-            "  - rules/<matched-rule>.md (<reason>) — N lines\n"
-            "  - rules/<required-dep>.md (required dep of <matched-rule>) — N lines\n\n"
+            "Your FINAL assistant message MUST include a PRE-FLIGHT block with "
+            "Gate 3 inline citations formatted as:\n\n"
+            "  PRE-FLIGHT:\n"
+            "  - [x] Gate 1: Foundation rules/000-global-core.md — N lines\n"
+            "  - [x] Gate 2: Searched: keyword1, keyword2\n"
+            "  - [x] Gate 3: Rules loaded:\n"
+            "    - rules/000-global-core.md (foundation) — N lines\n"
+            "    - rules/<matched-rule>.md (<reason>) — N lines\n"
+            "    - rules/<required-dep>.md (required dep of <matched-rule>) — N lines\n\n"
             "Citation rules: `N lines` MUST be the `wc -l` output for the "
             "file (number of newline characters, not visual line count). "
             "Do not include `RuleVersion` or `LastUpdated` in citations.\n\n"
             "If no domain rule matches the prompt, emit:\n\n"
-            "  **Rules Loaded**\n"
-            "  (none — no domain rules matched)\n\n"
-            "Do NOT emit `**Bootstrap:**` headers (that was the retired v3.8 compact "
-            "summary line) or `Task Switch:` lines (those are part of the full AGENTS.md "
-            "PRE-FLIGHT block, which is out of scope for this simplified eval output "
-            "contract).\n\n"
+            "  - [x] Gate 3: (none — no domain rules matched)\n\n"
+            "Do NOT emit a standalone `## Rules Loaded` / `**Rules Loaded**` section "
+            "(the old format is retired; citations now live inside PRE-FLIGHT Gate 3).\n\n"
             "If you cannot read AGENTS.md, output the single token "
             "`BOOTSTRAP_FAILED` and stop. Do NOT generate any answer that "
-            "lacks the `**Rules Loaded**` section - an answer without it is "
+            "lacks the Gate 3 rule list - an answer without it is "
             "non-compliant.\n\n"
             "STOP CONDITION (seed-fixture scope only): Your task is finished "
-            "as soon as you have emitted the `**Rules Loaded**` section. "
+            "as soon as you have emitted the Gate 3 rule list. "
             "After it, output the literal token `SEED_FIXTURE_COMPLETE` on "
             "its own line and IMMEDIATELY STOP. Do NOT attempt to answer the "
             "user's underlying request, do NOT invoke domain skills, do NOT "
             "call ask_user_question, and do NOT call SQL or any other tool "
-            "after `**Rules Loaded**` is written. Do NOT use Glob/find/ls to "
+            "after Gate 3 is written. Do NOT use Glob/find/ls to "
             "locate the user's task files, and do NOT read etl_pipeline.py, "
             "test files, or any project source file. Rule discovery only — "
             "task execution is FORBIDDEN."

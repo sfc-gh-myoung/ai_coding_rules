@@ -9,8 +9,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.5.1
-**LastUpdated:** 2026-03-26
+**RuleVersion:** v3.6.0
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:workflow, kw:safety, kw:confirmation, kw:validation, kw:surgical edits, kw:minimal changes, kw:prompt engineering, kw:task list, kw:context window, kw:professional communication
 **TokenBudget:** ~2400
 **ContextTier:** Critical
@@ -67,9 +67,9 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 
 **Edge Cases:**
 - If user request is empty or unclear: Ask for clarification before proceeding
-- If no rules match keywords in RULES_INDEX.md: Proceed with foundation rule only, note "No domain rules matched" in Rules Loaded
+- If no rules match keywords in RULES_INDEX.md: Proceed with foundation rule only, note "No domain rules matched" under Gate 3
 - If no files require validation (e.g., documentation-only change): Skip validation sequence, note "No code changes to validate"
-- If a rule has already been loaded in this session: Skip re-loading, note "already loaded" in Rules Loaded section
+- If a rule has already been loaded in this session: Skip re-loading, note "already loaded" under Gate 3
 
 ### Mandatory
 
@@ -85,7 +85,7 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 
 ### Execution Steps
 
-1. List all loaded rules in `## Rules Loaded` section
+1. List all loaded rules under PRE-FLIGHT Gate 3
 2. Present clear task list for user confirmation
 3. Perform surgical edits (see Mandatory section above)
 4. Validate changes immediately (lint, test, format)
@@ -98,10 +98,15 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 See AGENTS.md for complete response header format (PRE-FLIGHT gates).
 
 ```markdown
-## Rules Loaded
-- rules/000-global-core.md (foundation)
-- rules/[domain-core].md (technology domain)
-- rules/[specialized].md (activity-specific)
+PRE-FLIGHT:
+- [x] Gate 1: Foundation rules/000-global-core.md — N lines
+- [x] Gate 2: Searched: [keywords]
+- [x] Gate 3: Rules loaded:
+  - rules/000-global-core.md (foundation) — N lines
+  - rules/[domain-core].md (technology domain) — N lines
+  - rules/[specialized].md (activity-specific) — N lines
+
+Task Switch: [FIRST | NO | YES (reason)]
 
 [Response content: analysis, task list, implementation, or code]
 ```
@@ -127,7 +132,7 @@ Error: [exact message] | Fix: [specific action]
 
 ### Post-Execution Checklist
 
-- [ ] Rules listed explicitly (## Rules Loaded format)
+- [ ] Rules listed explicitly under PRE-FLIGHT Gate 3
 - [ ] Task list presented before modifications
 - [ ] Surgical edits only
 - [ ] Validation executed (lint, test, format)
@@ -184,7 +189,7 @@ Error: [exact message] | Fix: [specific action]
 ### Critical Violations
 
 **Critical Violations:**
-- **Rules not listed:** Missing `## Rules Loaded` section - Add section listing all loaded rules
+- **Rules not listed:** Missing PRE-FLIGHT Gate 3 rule list - Add Gate 3 sub-bullets listing all loaded rules
 - **False rule declaration:** Declared rule as loaded when `read_file` failed - STOP, remove false declaration, report failure to user with options (A) Provide correct path, (B) Proceed without rule, (C) Cancel task
 
 **High Priority Violations:**

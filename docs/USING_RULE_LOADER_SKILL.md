@@ -85,16 +85,21 @@ context_tier_filter: all
 
 ### Output Format
 
-The skill produces a `## Rules Loaded` section listing all selected rules with loading reasons:
+The skill produces Gate 3 inline citations inside the PRE-FLIGHT block, listing all selected rules with loading reasons:
 
 ```markdown
-## Rules Loaded
-- rules/000-global-core.md (foundation)
-- rules/200-python-core.md (file extension: .py)
-- rules/100-snowflake-core.md (dependency of 101)
-- rules/101-snowflake-streamlit-core.md (keyword: Streamlit)
-- rules/206-python-pytest.md (keyword: test)
-- [Deferred: 204-python-docs.md - Low tier, not required for task]
+PRE-FLIGHT:
+- [x] Gate 1: Foundation rules/000-global-core.md — N lines
+- [x] Gate 2: Searched: python, streamlit, test
+- [x] Gate 3: Rules loaded:
+  - rules/000-global-core.md (foundation) — N lines
+  - rules/200-python-core.md (file extension: .py) — N lines
+  - rules/100-snowflake-core.md (dependency of 101) — N lines
+  - rules/101-snowflake-streamlit-core.md (keyword: Streamlit) — N lines
+  - rules/206-python-pytest.md (keyword: test) — N lines
+  - [Deferred: 204-python-docs.md - Low tier, not required for task]
+
+Task Switch: FIRST
 ```
 
 ### Loading Reasons

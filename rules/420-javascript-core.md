@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-03-25
+**RuleVersion:** v3.3.1
+**LastUpdated:** 2026-07-10
 **Keywords:** ext:.js, ext:.jsx, ext:.mjs, ext:.cjs, kw:javascript, kw:es2024, kw:esm, kw:node.js, kw:jsdoc, kw:biome, kw:node:test, kw:immutability, kw:async/await, kw:functional programming
 **TokenBudget:** ~4450
 **ContextTier:** High
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:424-javascript-docs.md, optional:440-react-core.md
 
 ## Scope
 

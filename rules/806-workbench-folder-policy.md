@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-07-10
 **Keywords:** dir:.workbench/, kw:workbench, kw:temp, kw:scratch, kw:file-organization, kw:workflow-hygiene, kw:project-hygiene, kw:short-life, kw:in-progress, kw:baseline-scripts, kw:analyzer-output, kw:spike, kw:promotion
-**TokenBudget:** ~1800
+**TokenBudget:** ~1950
 **ContextTier:** Low
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:800-project-changelog.md, optional:803-project-git-workflow.md, optional:804-project-documentation.md
 
 ## Scope
 

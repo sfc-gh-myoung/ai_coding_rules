@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.0.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:model-registry-operations, kw:model cost governance, kw:model queries, kw:model administration, kw:model compliance, kw:model audit, kw:model maintenance, kw:resource monitor ml, kw:model integration, kw:ci/cd models, kw:notebook models
 **TokenBudget:** ~3100
 **ContextTier:** Low
-**Depends:** required:100-snowflake-core.md, required:110-snowflake-model-registry.md
+**Depends:** required:100-snowflake-core.md, required:110-snowflake-model-registry.md, optional:105-snowflake-cost-governance.md, optional:119-snowflake-warehouse-management.md
 
 ## Scope
 

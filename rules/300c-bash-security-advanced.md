@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:bash-security-advanced, kw:privilege-management, kw:audit-logging, kw:bash, kw:privilege management, kw:network security, kw:audit logging, kw:resource limits, kw:url validation, kw:security testing, kw:parameter expansion, kw:file permissions
 **TokenBudget:** ~2200
 **ContextTier:** Medium
-**Depends:** required:300a-bash-security.md
+**Depends:** required:300a-bash-security.md, optional:300-bash-scripting-core.md, optional:300b-bash-testing-tooling.md
 
 ## Scope
 

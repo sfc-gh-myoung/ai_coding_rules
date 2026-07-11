@@ -4,11 +4,11 @@
     "index_lines": 262,
     "keyword_entries": 2208,
     "rules": 196,
-    "rules_with_deps": 194
+    "rules_with_deps": 196
   },
   "format_version": "F4",
-  "generated_at": "2026-07-06T00:30:26Z",
-  "git_sha": "c29a381e16031ee18a3cf148cbd8cd2e241e2e60",
+  "generated_at": "2026-07-10T23:27:51Z",
+  "git_sha": "1dece735896701e1a6d033f4c867c95910d57f44",
   "sanity_thresholds": {
     "max_matches_broad_query": 50,
     "min_matches_common_keyword": 1,

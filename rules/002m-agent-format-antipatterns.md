@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.0.4
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:anti-pattern, kw:ascii table, kw:arrow character, kw:decision tree, kw:passive voice, kw:terminology, kw:mermaid, kw:horizontal rule
 **TokenBudget:** ~1650
 **ContextTier:** Medium

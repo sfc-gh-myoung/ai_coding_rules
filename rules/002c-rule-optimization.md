@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:token budget, kw:performance, kw:rule sizing, kw:progressive loading, kw:context window, kw:model limits, kw:cost efficiency, kw:caching, kw:batch loading
 **TokenBudget:** ~4350
 **ContextTier:** High
-**Depends:** required:002-rule-governance.md, required:000-global-core.md, required:002k-model-optimization.md
+**Depends:** required:002-rule-governance.md, required:000-global-core.md, optional:002a-rule-creation.md
 
 ## Scope
 
@@ -39,7 +39,6 @@ is Standard tier. A rule at exactly 3500 tokens is Large tier.
 
 **Related:**
 - **002a-rule-creation.md** - Step-by-step rule creation workflow
-- **002k-model-optimization.md** - Model-specific context windows and loading budgets
 
 ### External Documentation
 

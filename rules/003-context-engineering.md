@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.2.3
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:context engineering, kw:attention budget, kw:context rot, kw:token efficiency, kw:compaction, kw:progressive disclosure, kw:sub-agents, kw:agentic search, kw:system prompts, kw:right altitude, kw:long-horizon tasks, kw:memory management, kw:state tracking
 **TokenBudget:** ~4300
 **ContextTier:** Critical

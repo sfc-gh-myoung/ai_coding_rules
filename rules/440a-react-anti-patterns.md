@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.3.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.3.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:error boundary, kw:hydration, kw:error recovery, kw:suspense, kw:errorboundary, kw:useeffect, kw:use client, kw:resource exhaustion, kw:cleanup, kw:unmount, kw:abortcontroller
 **TokenBudget:** ~2450
 **ContextTier:** Medium
-**Depends:** required:440-react-core.md, required:430-typescript-core.md
+**Depends:** required:440-react-core.md, required:430-typescript-core.md, optional:420-javascript-core.md
 
 ## Scope
 

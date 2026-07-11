@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:snowpipe-streaming, kw:high-performance streaming, kw:classic streaming, kw:row-level ingestion, kw:low-latency ingestion, kw:sub-second latency, kw:real-time ingestion, kw:streaming architecture, kw:streaming channels
 **TokenBudget:** ~3700
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:108-snowflake-data-loading.md
+**Depends:** required:100-snowflake-core.md, required:108-snowflake-data-loading.md, optional:121-snowflake-snowpipe.md, optional:121b-snowflake-snowpipe-monitoring.md, optional:121c-snowflake-snowpipe-troubleshooting.md
 **Companions:** 121d-snowflake-snowpipe-streaming-sdk.md
 
 ## Scope
@@ -36,9 +36,6 @@ Architecture selection and core concepts for Snowpipe Streaming: high-performanc
 - **121-snowflake-snowpipe.md** - File-based Snowpipe for comparison (when to use files vs streaming)
 - **121b-snowflake-snowpipe-monitoring.md** - Monitoring, cost tracking, and performance analysis
 - **121c-snowflake-snowpipe-troubleshooting.md** - Troubleshooting and debugging patterns
-- **104-snowflake-streams-tasks.md** - Incremental pipelines and change data capture
-- **111-snowflake-observability-core.md** - Logging, tracing, and monitoring patterns
-- **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
 
 ### External Documentation
 

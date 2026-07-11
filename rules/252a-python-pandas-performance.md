@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:pandas-performance, kw:groupby, kw:merge, kw:memory-optimization, kw:pandas performance, kw:memory optimization, kw:dtype, kw:categorical, kw:join, kw:eval, kw:query, kw:chunking, kw:sparse, kw:thread-safety, kw:multiprocessing
 **TokenBudget:** ~2550
 **ContextTier:** Medium
-**Depends:** required:252-python-pandas-core.md
+**Depends:** required:252-python-pandas-core.md, optional:252b-python-pandas-io-integration.md, optional:251-python-datetime-core.md
 
 ## Scope
 

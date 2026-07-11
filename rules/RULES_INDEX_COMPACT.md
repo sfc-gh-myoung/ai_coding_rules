@@ -32,7 +32,7 @@ metadata; this file intentionally omits volatile timestamps so
 000-global-core.md tier=Critical kw=workflow safety confirmation validation surgical-edits minimal-changes prompt-engineering task-list context-window professional-communication
 001-memory-bank.md tier=Critical kw=memory-bank context session-recovery progress-tracking compaction rapid-recovery
 002-rule-governance.md tier=Critical dir=rules/ kw=rule-governance schema metadata-requirements validation schema-compliance rule-structure semantic-discovery rules_index descriptive-headings design-priorities agent-optimization skill-governance
-002a-rule-creation.md tier=High kw=rule-creation workflow step-by-step-guide naming-conventions metadata-setup v3.3-schema validation rule-numbering from-scratch new-rule
+002a-rule-creation.md tier=High kw=rule-creation workflow step-by-step-guide naming-conventions metadata-setup v3.4-schema validation rule-numbering from-scratch new-rule
 002b-rule-update.md tier=High kw=rule-update rule-maintenance versioning ruleversion lastupdated semantic-versioning major minor patch rule-modification keyword-expansion scope-updates metadata-updates changelog-updates
 002c-rule-optimization.md tier=High kw=token-budget performance rule-sizing progressive-loading context-window model-limits cost-efficiency caching batch-loading
 002d-advanced-rule-patterns.md tier=Medium kw=system-prompt-altitude investigation-first multi-session-workflows parallel-execution heuristics goldilocks-zone context-management state-management

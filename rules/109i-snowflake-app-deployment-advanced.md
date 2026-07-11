@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.4
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.1.6
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:multi-env-deploy, kw:deployment-rollback, kw:multi-environment deployment, kw:deployment rollback, kw:deployment recovery, kw:environment-specific deployment, kw:dev qa prod deployment, kw:rollback strategy
 **TokenBudget:** ~2700
 **ContextTier:** Low

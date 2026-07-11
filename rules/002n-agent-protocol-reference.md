@@ -3,10 +3,10 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.3
+**RuleVersion:** v1.0.5
 **LastUpdated:** 2026-07-10
 **Keywords:** kw:anti-patterns, kw:quality gates, kw:task switch, kw:rule loading, kw:failure modes, kw:protocol reference, kw:term definitions, kw:gate compliance
-**TokenBudget:** ~2800
+**TokenBudget:** ~3000
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md
 

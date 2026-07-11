@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:data governance, kw:data quality, kw:lineage, kw:metadata management, kw:compliance, kw:data catalog, kw:great expectations, kw:schema evolution, kw:data observability, kw:incident response
 **TokenBudget:** ~4300
 **ContextTier:** Medium
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:100-snowflake-core.md, optional:124-snowflake-data-quality-core.md, optional:132-snowflake-demo-modeling.md
 
 ## Scope
 

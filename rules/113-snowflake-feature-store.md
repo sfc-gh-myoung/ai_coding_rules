@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:feature-store, kw:ml-features, kw:feature views, kw:entity modeling, kw:ml pipeline, kw:asof join, kw:point-in-time correctness, kw:dynamic tables, kw:feature versioning, kw:create features, kw:feature catalog, kw:feature pipeline, kw:feature discovery, kw:feature registry, kw:feature lineage
 **TokenBudget:** ~4300
 **ContextTier:** Medium
-**Depends:** required:100-snowflake-core.md, required:110-snowflake-model-registry.md
+**Depends:** required:100-snowflake-core.md, required:110-snowflake-model-registry.md, optional:122-snowflake-dynamic-tables.md
 **Companions:** 113a-snowflake-feature-store-patterns.md, 113b-snowflake-feature-store-engineering.md
 
 ## Scope

@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.3
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.1.5
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:observability-logging, kw:debug, kw:info, kw:warn, kw:error, kw:fatal, kw:conditional logging, kw:sampling, kw:tight loop logging, kw:standard logging libraries, kw:log volume control, kw:cost management, kw:log configuration, kw:log handlers
 **TokenBudget:** ~4000
 **ContextTier:** High

@@ -9,12 +9,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.7.0
+**RuleVersion:** v3.7.1
 **LastUpdated:** 2026-07-10
 **Keywords:** kw:workflow, kw:safety, kw:confirmation, kw:validation, kw:surgical edits, kw:minimal changes, kw:prompt engineering, kw:task list, kw:context window, kw:professional communication
 **TokenBudget:** ~2400
 **ContextTier:** Critical
-**Depends:** None
+**Depends:** optional:001-memory-bank.md, optional:002-rule-governance.md, optional:003-context-engineering.md
 
 ## Scope
 
@@ -41,11 +41,8 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 - None (this IS the foundation)
 
 **Related:**
-- **AGENTS.md** - Bootstrap protocol, task authorization model, and rule discovery
 - **001-memory-bank.md** - Context continuity across sessions
 - **002-rule-governance.md** - Rule authoring standards
-- **002a-rule-creation.md** - Creating new rules
-- **002b-rule-update.md** - Updating existing rules
 - **003-context-engineering.md** - Attention budget management
 
 ### External Documentation

@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:crud, kw:forms, kw:validation, kw:progressive enhancement, kw:search, kw:autocomplete, kw:inline editing
 **TokenBudget:** ~3400
 **ContextTier:** Medium
-**Depends:** required:221-python-htmx-core.md, required:221a-python-htmx-templates.md
+**Depends:** required:221-python-htmx-core.md, required:221a-python-htmx-templates.md, optional:221i-python-htmx-patterns-advanced.md, optional:221b-python-htmx-flask.md, optional:221c-python-htmx-fastapi.md
 
 ## Scope
 
@@ -33,8 +33,6 @@ Core HTMX implementation patterns: CRUD operations, form validation, search/auto
 - **221i-python-htmx-patterns-advanced.md** - Advanced patterns (scroll, modals, wizards, real-time)
 - **221b-python-htmx-flask.md** - Flask-specific patterns
 - **221c-python-htmx-fastapi.md** - FastAPI patterns
-- **221d-python-htmx-testing.md** - Testing these patterns
-- **221f-python-htmx-integrations.md** - Frontend library integrations
 
 ### External Documentation
 

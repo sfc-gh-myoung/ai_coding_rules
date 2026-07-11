@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-04-11
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:jsdoc, kw:comments, ext:.js, ext:.mjs, kw:eslint-plugin-jsdoc, kw:type annotations
 **TokenBudget:** ~4300
 **ContextTier:** High
-**Depends:** required:420-javascript-core.md
+**Depends:** required:420-javascript-core.md, optional:434-typescript-docs.md
 
 ## Scope
 

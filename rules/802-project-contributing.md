@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-03-26
+**RuleVersion:** v3.1.3
+**LastUpdated:** 2026-07-10
 **Keywords:** file:CONTRIBUTING.md, kw:pull requests, kw:code review, kw:contribution guidelines, kw:branching strategy, kw:conventional commits, kw:rule authoring, kw:pr templates, kw:git workflow
 **TokenBudget:** ~2600
 **ContextTier:** Medium
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:801-project-readme.md, optional:803-project-git-workflow.md, optional:002-rule-governance.md
 
 ## Scope
 
@@ -30,7 +30,6 @@ Professional contribution workflow directives covering commits, pull requests, c
 - **000-global-core.md** - Foundation for all rules
 
 **Related:**
-- **800-project-changelog.md** - Changelog management standards
 - **801-project-readme.md** - README best practices
 - **803-project-git-workflow.md** - Git workflow management
 - **002-rule-governance.md** - Rule authoring standards

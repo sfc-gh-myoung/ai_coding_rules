@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.1.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:semantic-view-advanced, kw:validation rules, kw:semantic model quality, kw:semantic view pitfalls, kw:debug semantic view, kw:validation failures, kw:relationship errors
 **TokenBudget:** ~1900
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:106-snowflake-semantic-views-core.md
+**Depends:** required:100-snowflake-core.md, required:106-snowflake-semantic-views-core.md, optional:106b-snowflake-semantic-views-querying.md, optional:106c-snowflake-semantic-views-integration.md
 
 ## Scope
 

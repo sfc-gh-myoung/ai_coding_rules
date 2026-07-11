@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:cli-testing, kw:clirunner, kw:cli testing, kw:ansi escape codes, kw:no_color, kw:cli integration testing, kw:mock
 **TokenBudget:** ~2300
 **ContextTier:** Medium
-**Depends:** required:220-python-typer-cli.md, required:206-python-pytest.md
+**Depends:** required:220-python-typer-cli.md, required:206-python-pytest.md, optional:220c-python-typer-rich.md
 
 ## Scope
 

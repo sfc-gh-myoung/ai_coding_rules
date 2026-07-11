@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:snowparksqlexception, kw:error messages, kw:streamlit errors, kw:snowflake errors, kw:debug sql error, kw:fix query error, kw:sql exception, kw:error troubleshooting, kw:query failed, kw:database error, kw:sql debugging patterns, kw:exception handling, kw:common sql errors, kw:streamlit error, kw:app error, kw:fix error
 **TokenBudget:** ~3950
 **ContextTier:** Low
-**Depends:** required:100-snowflake-core.md, required:101-snowflake-streamlit-core.md, required:101b-snowflake-streamlit-performance.md
+**Depends:** required:000-global-core.md, required:100-snowflake-core.md, required:101-snowflake-streamlit-core.md, optional:100f-snowflake-connection-errors.md, optional:101c-snowflake-streamlit-security.md
 
 ## Scope
 
@@ -29,14 +29,13 @@ Comprehensive SQL error handling patterns for Streamlit applications using Snowp
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
-- **100-snowflake-core.md** - Snowflake fundamentals `[Available]`
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
-- **101b-snowflake-streamlit-performance.md** - Performance and caching patterns `[Available]`
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **100-snowflake-core.md** - Snowflake fundamentals
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
 
 **Related:**
-- **100f-snowflake-connection-errors.md** - Connection error classification and handling `[Available]`
-- **101c-snowflake-streamlit-security.md** - Input validation for SQL injection prevention `[Available]`
+- **100f-snowflake-connection-errors.md** - Connection error classification and handling
+- **101c-snowflake-streamlit-security.md** - Input validation for SQL injection prevention
 
 ### External Documentation
 

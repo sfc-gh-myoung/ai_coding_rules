@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-03-25
+**RuleVersion:** v3.3.1
+**LastUpdated:** 2026-07-10
 **Keywords:** ext:.sql, kw:sql, kw:cte, kw:performance, kw:cost optimization, kw:query profile, kw:warehouse, kw:security, kw:governance, kw:stages, kw:copy into, kw:streams, kw:tasks, kw:warehouse creation
 **TokenBudget:** ~5050
 **ContextTier:** High
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:119-snowflake-warehouse-management.md, optional:103-snowflake-performance-tuning.md, optional:105-snowflake-cost-governance.md
 
 ## Scope
 
@@ -43,20 +43,10 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 **Must Load First:**
 - **000-global-core.md** - Foundation rule with core patterns and validation gates
 
-**Recommended:**
-- **103-snowflake-performance-tuning.md** - Detailed query profiling and optimization
-- **105-snowflake-cost-governance.md** - Cost monitoring and resource management
-- **119-snowflake-warehouse-management.md** - Warehouse sizing, types, and configuration
-
 **Related:**
-- **101-snowflake-streamlit-core.md** `[Available]` - Streamlit UI development on Snowflake
-- **102-snowflake-sql-core.md** `[Available]` - General SQL file patterns
-- **104-snowflake-streams-tasks.md** `[Available]` - Incremental pipelines with Streams + Tasks
-- **106-snowflake-semantic-views-core.md** `[Available]` - View layering and naming conventions
-- **107-snowflake-security-governance.md** `[Available]` - Security policies and governance
-- **108-snowflake-data-loading.md** `[Available]` - Data loading patterns (COPY INTO)
-- **121-snowflake-snowpipe.md** `[Available]` - Continuous ingestion with Snowpipe
-- **123-snowflake-object-tagging.md** `[Available]` - Object tagging for governance
+- **119-snowflake-warehouse-management.md** - Warehouse config referenced throughout core patterns
+- **103-snowflake-performance-tuning.md** - Query profiling and optimization
+- **105-snowflake-cost-governance.md** - Cost monitoring and resource management
 
 ### External Documentation
 

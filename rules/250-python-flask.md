@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.1.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:web, kw:blueprints, kw:flask-sqlalchemy, kw:templates, kw:routing, kw:application factory
 **TokenBudget:** ~2150
 **ContextTier:** High
-**Depends:** required:200-python-core.md
+**Depends:** required:200-python-core.md, optional:203-python-project-setup.md, optional:201-python-lint-format.md
 
 ## Scope
 
@@ -25,9 +25,12 @@ Flask application development: factory pattern, blueprints, security, SQLAlchemy
 ## References
 
 ### Dependencies
-**Must Load First:** 200-python-core.md
+**Must Load First:**
+- **200-python-core.md** - Python foundation patterns
 
-**Related:** 203-python-project-setup.md, 201-python-lint-format.md
+**Related:**
+- **203-python-project-setup.md** - Python project structure and packaging
+- **201-python-lint-format.md** - Code quality and formatting standards
 
 ### External Documentation
 - [Flask Documentation](https://flask.palletsprojects.com/en/stable/)

@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-04-01
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:reveal.js, kw:revealjs, kw:presentation, kw:slides, kw:html presentation, kw:slide deck, kw:code highlighting, kw:speaker notes, kw:markdown slides, kw:fragments, kw:vertical slides, kw:reveal themes, kw:presentation framework, kw:auto-animate
 **TokenBudget:** ~4400
 **ContextTier:** Medium
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:420-javascript-core.md, optional:501-frontend-browser-globals-collisions.md
 
 ## Scope
 

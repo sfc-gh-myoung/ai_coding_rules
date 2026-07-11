@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.1.3
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:data-quality, kw:validation, kw:data profiling, kw:expectations, kw:quality checks, kw:null detection, kw:uniqueness validation, kw:freshness monitoring, kw:anomaly detection, kw:automated monitoring, kw:event tables, kw:create dmf, kw:quality monitoring, kw:data expectations
 **TokenBudget:** ~4900
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:105-snowflake-cost-governance.md, required:107-snowflake-security-governance.md, required:930-data-governance-quality.md
+**Depends:** required:100-snowflake-core.md, required:105-snowflake-cost-governance.md, required:107-snowflake-security-governance.md, optional:124a-snowflake-data-quality-custom.md, optional:124b-snowflake-data-quality-operations.md
 
 ## Scope
 
@@ -37,7 +37,6 @@ Comprehensive best practices for Snowflake Data Quality Monitoring using Data Me
 - **100-snowflake-core.md** - Snowflake foundation patterns
 - **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
 - **107-snowflake-security-governance.md** - Access control and security policies
-- **930-data-governance-quality.md** - Data governance framework
 
 **Related:**
 - **124a-snowflake-data-quality-custom.md** - Custom DMF creation patterns

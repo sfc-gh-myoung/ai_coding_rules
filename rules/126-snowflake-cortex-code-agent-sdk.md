@@ -9,12 +9,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-05-18
+**RuleVersion:** v1.0.3
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:agent sdk, kw:mcp server, kw:mcp servers, kw:cortex-code, kw:agent hooks, kw:structured output, kw:streaming output, kw:streaming input, kw:system prompts, kw:agent typescript, kw:agent python
 **TokenBudget:** ~5050
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md, optional:115-snowflake-cortex-agents-core.md, optional:117-snowflake-mcp-server.md, optional:118-snowflake-cortex-rest-api.md, optional:118a-snowflake-cortex-rest-api-streaming.md, optional:107-snowflake-security-governance.md
+**Depends:** required:100-snowflake-core.md, optional:115-snowflake-cortex-agents-core.md, optional:117-snowflake-mcp-server.md, optional:118-snowflake-cortex-rest-api.md
 
 ## Scope
 
@@ -53,8 +53,6 @@ and structured output. Status: PREVIEW.
 - **115-snowflake-cortex-agents-core.md** - Server-side `CREATE CORTEX AGENT` DDL agents
 - **117-snowflake-mcp-server.md** - Snowflake-managed MCP server (different scope)
 - **118-snowflake-cortex-rest-api.md** - REST clients without the SDK
-- **118a-snowflake-cortex-rest-api-streaming.md** - SSE without the SDK
-- **107-snowflake-security-governance.md** - RBAC and least privilege
 
 ### External Documentation
 

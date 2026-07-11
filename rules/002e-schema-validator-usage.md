@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:validation errors, kw:error resolution, kw:exit codes, kw:command options, kw:output parsing, kw:error severity, kw:critical errors, kw:high warnings, kw:medium info
 **TokenBudget:** ~2600
 **ContextTier:** High
-**Depends:** required:002-rule-governance.md, required:000-global-core.md
+**Depends:** required:002-rule-governance.md, required:000-global-core.md, optional:002f-schema-validator-advanced.md, optional:002a-rule-creation.md, optional:002c-rule-optimization.md
 
 ## Scope
 

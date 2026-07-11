@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:log, kw:logger, kw:python logging, kw:handlers, kw:formatters, kw:log levels, kw:webloghandler, kw:rich console, kw:sse streaming, kw:operation id, kw:thread safety, kw:log hierarchy, kw:log propagation
 **TokenBudget:** ~3700
 **ContextTier:** High
-**Depends:** required:200-python-core.md
+**Depends:** required:200-python-core.md, optional:201-python-lint-format.md, optional:210-python-fastapi-core.md
 
 ## Scope
 

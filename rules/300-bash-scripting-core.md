@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-03-26
+**RuleVersion:** v3.2.2
+**LastUpdated:** 2026-07-10
 **Keywords:** ext:.sh, ext:.bash, ext:.zsh, kw:shell scripting, kw:set -euo pipefail, kw:error handling, kw:strict mode, kw:functions, kw:variables, kw:script structure, kw:trap, kw:exit codes, kw:shellcheck, kw:input validation
 **TokenBudget:** ~3700
 **ContextTier:** High
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:300a-bash-security.md, optional:300d-bash-advanced.md, optional:820-taskfile-automation.md
 
 ## Scope
 
@@ -38,9 +38,8 @@ Foundational bash scripting patterns covering script structure, variables, funct
 
 **Related:**
 - **300a-bash-security.md** - Security patterns for Bash scripts
-- **300b-bash-testing-tooling.md** - Testing and tooling for Bash
 - **300d-bash-advanced.md** - Advanced patterns, performance, code style, debugging
-- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
+- **820-taskfile-automation.md** - Build automation patterns
 
 ### External Documentation
 

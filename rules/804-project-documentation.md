@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.1.1
-**LastUpdated:** 2026-07-03
+**RuleVersion:** v1.1.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:docs folder, file:docs/, file:ARCHITECTURE.md, kw:architecture.md, kw:deployment.md, kw:adr, kw:github pages, kw:community health files, kw:cross-references, kw:link maintenance, kw:documentation organization
 **TokenBudget:** ~2850
 **ContextTier:** Medium
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:800-project-changelog.md, optional:801-project-readme.md, optional:802-project-contributing.md
 
 ## Scope
 
@@ -33,8 +33,6 @@ Universal best practices for organizing project documentation files, including f
 - **800-project-changelog.md** - Changelog management standards
 - **801-project-readme.md** - README best practices
 - **802-project-contributing.md** - Contributing guidelines
-- **803-project-git-workflow.md** - Git workflow management
-- **805-technical-writing-style.md** - Writing standards (voice, tone, inclusive language, accessibility) for all files in docs/
 
 ### External Documentation
 - [GitHub Community Health Files](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file) - Standard community health file conventions

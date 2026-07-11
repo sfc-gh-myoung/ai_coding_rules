@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.2.3
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.2.5
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:deployment-sql, kw:put-script, kw:put command, kw:remove command, kw:create notebook, kw:create streamlit, kw:upload script, kw:stage upload, kw:sql deployment templates, kw:snow stage copy, kw:recursive upload
 **TokenBudget:** ~4600
 **ContextTier:** Low

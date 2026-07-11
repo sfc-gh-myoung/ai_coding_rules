@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:tool design, kw:agent tools, kw:token efficiency, kw:tool parameters, kw:function calling, kw:tool contracts, kw:error handling, kw:minimal tool set, kw:self-contained tools, kw:llm-friendly parameters, kw:single responsibility
 **TokenBudget:** ~4500
 **ContextTier:** High
-**Depends:** required:000-global-core.md, required:003-context-engineering.md
+**Depends:** required:000-global-core.md, required:003-context-engineering.md, optional:002g-agent-optimization.md, optional:004a-tool-set-curation.md, optional:004b-tool-output-efficiency.md
 
 ## Scope
 
@@ -33,7 +33,6 @@ Comprehensive tool design practices that maximize agent effectiveness. Covers si
 
 **Related:**
 - **002g-agent-optimization.md** - Agent-first design principles
-- **002c-rule-optimization.md** - Token budgets and optimization
 - **004a-tool-set-curation.md** - Minimal viable tool sets, when to split/merge tools
 - **004b-tool-output-efficiency.md** - Token-efficient tool output design
 

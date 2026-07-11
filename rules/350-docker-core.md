@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-03-25
+**RuleVersion:** v3.3.1
+**LastUpdated:** 2026-07-10
 **Keywords:** file:Dockerfile, file:docker-compose.yml, file:docker-compose.yaml, kw:docker, kw:container, kw:dockerfile, kw:containers, kw:multi-stage builds, kw:layer caching, kw:image optimization, kw:docker-compose, kw:buildkit, kw:distroless, kw:security scanning, kw:sbom, kw:non-root, kw:healthcheck
 **TokenBudget:** ~4550
 **ContextTier:** Medium
-**Depends:** required:000-global-core.md, required:202-markup-config-validation.md
+**Depends:** required:000-global-core.md, required:202-markup-config-validation.md, optional:200-python-core.md, optional:203-python-project-setup.md
 
 ## Scope
 

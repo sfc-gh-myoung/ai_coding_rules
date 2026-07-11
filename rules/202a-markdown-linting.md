@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-03-26
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-07-10
 **Keywords:** ext:.md, kw:markdown, kw:pymarkdownlnt, kw:documentation, kw:markup validation
 **TokenBudget:** ~2800
 **ContextTier:** Low
-**Depends:** required:202-markup-config-validation.md
+**Depends:** required:202-markup-config-validation.md, optional:820-taskfile-automation.md
 
 ## Scope
 

@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.2.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:spcs, kw:compute pools, kw:oci images, kw:service spec, kw:container deployment, kw:service logs, kw:platform events, kw:instance family, kw:gen_x64_g2, kw:mem_x64_g2, kw:current generation, kw:gpu l40s, kw:gpu rtx pro 6000
 **TokenBudget:** ~3550
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md
+**Depends:** required:100-snowflake-core.md, optional:105-snowflake-cost-governance.md, optional:111-snowflake-observability-core.md, optional:119-snowflake-warehouse-management.md
 
 ## Scope
 
@@ -25,9 +25,13 @@ Deploying and managing containerized apps on SPCS: compute pools, service specs,
 ## References
 
 ### Dependencies
-**Must Load First:** 100-snowflake-core.md
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake foundation patterns
 
-**Related:** 105 (cost), 107 (security), 111 (observability), 119 (warehouse mgmt)
+**Related:**
+- **105-snowflake-cost-governance.md** - Cost optimization for compute pools
+- **111-snowflake-observability-core.md** - Logging, tracing, and monitoring patterns
+- **119-snowflake-warehouse-management.md** - Warehouse sizing and configuration
 
 ### External Documentation
 - [SPCS Overview](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview)

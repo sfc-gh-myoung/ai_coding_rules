@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v4.1.1
-**LastUpdated:** 2026-03-26
+**RuleVersion:** v4.1.2
+**LastUpdated:** 2026-07-10
 **Keywords:** ext:.py, ext:.pyi, file:pyproject.toml, kw:python, kw:uv, kw:ruff, kw:pyproject.toml, kw:dependency management, kw:virtual environments, kw:pytest, kw:validation, kw:uv run, kw:uvx, kw:ty, kw:type checking, kw:mypy, kw:type hints
 **TokenBudget:** ~3800
 **ContextTier:** Critical
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:200a-python-validation-gate.md, optional:206-python-pytest.md, optional:201-python-lint-format.md
 
 ## Scope
 
@@ -36,16 +36,10 @@ Foundational Python development practices: investigation-first toolchain detecti
 **Must Load First:**
 - **000-global-core.md** - Foundation rule with core patterns and validation gates
 
-**Recommended:**
-- **200a-python-validation-gate.md** - Pre-Task-Completion Validation Gate and type checking
-- **200b-python-environment-tooling.md** - Virtual environments, tool isolation, troubleshooting
-- **201-python-lint-format.md** - Detailed Ruff linting and formatting patterns
-- **203-python-project-setup.md** - Project structure and initialization patterns
-
 **Related:**
-- **202-markup-config-validation.md** - YAML and configuration file validation
-- **204-python-docs.md** - Documentation and docstring standards
+- **200a-python-validation-gate.md** - Pre-Task-Completion Validation Gate and type checking
 - **206-python-pytest.md** - Comprehensive testing patterns with pytest
+- **201-python-lint-format.md** - Detailed Ruff linting and formatting patterns
 
 ### External Documentation
 

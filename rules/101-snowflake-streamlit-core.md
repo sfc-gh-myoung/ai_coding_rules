@@ -5,12 +5,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v4.2.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v4.2.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:dashboard, kw:container runtime, kw:warehouse runtime, kw:navigation, kw:multipage, kw:session state, kw:config.toml, kw:theming, kw:st.connection
 **TokenBudget:** ~2350
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md
+**Depends:** required:100-snowflake-core.md, optional:101b-snowflake-streamlit-performance.md, optional:101c-snowflake-streamlit-security.md, optional:101l-snowflake-streamlit-deployment.md
 
 ## Scope
 
@@ -27,9 +27,14 @@ Foundational Streamlit setup: navigation, state management, runtime selection (C
 ## References
 
 ### Dependencies
-**Must Load First:** 100-snowflake-core.md
 
-**Related:** 101a-snowflake-streamlit-visualization.md, 101b-snowflake-streamlit-performance.md, 101c-snowflake-streamlit-security.md, 101l-snowflake-streamlit-deployment.md
+**Must Load First:**
+- **100-snowflake-core.md** - Snowflake connection and query execution fundamentals
+
+**Related:**
+- **101b-snowflake-streamlit-performance.md** - Caching and query optimization patterns
+- **101c-snowflake-streamlit-security.md** - Input validation and secrets management
+- **101l-snowflake-streamlit-deployment.md** - Container and Warehouse Runtime deployment
 
 ### External Documentation
 - [Streamlit Documentation](https://docs.streamlit.io/)

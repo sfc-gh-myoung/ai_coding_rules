@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.2.4
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.2.5
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:rule update, kw:rule maintenance, kw:versioning, kw:ruleversion, kw:lastupdated, kw:semantic versioning, kw:major, kw:minor, kw:patch, kw:rule modification, kw:keyword expansion, kw:scope updates, kw:metadata updates, kw:changelog updates
-**TokenBudget:** ~3950
+**TokenBudget:** ~4150
 **ContextTier:** High
-**Depends:** required:002-rule-governance.md, required:000-global-core.md
+**Depends:** required:002-rule-governance.md, required:000-global-core.md, optional:002a-rule-creation.md, optional:002e-schema-validator-usage.md, optional:002c-rule-optimization.md
 
 ## Scope
 
@@ -40,7 +40,6 @@ Workflow and best practices for updating and maintaining existing rule files. Co
 - **002a-rule-creation.md** - Creating new rules from scratch
 - **002e-schema-validator-usage.md** - Validation commands and error resolution
 - **002c-rule-optimization.md** - Token budget optimization
-- **800-project-changelog.md** - CHANGELOG.md format and requirements
 
 ### External Documentation
 

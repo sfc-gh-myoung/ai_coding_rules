@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:st.fragment, kw:run_every, kw:real-time progress, kw:polling, kw:live updates, kw:fragment pattern, kw:auto-refresh, kw:streaming, kw:monitoring dashboard
 **TokenBudget:** ~2850
 **ContextTier:** Medium
@@ -27,9 +27,9 @@ Advanced Streamlit fragment patterns for real-time progress tracking, live polli
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation patterns and conventions `[Available]`
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
-- **101b-snowflake-streamlit-performance.md** - Caching and performance basics `[Available]`
+- **000-global-core.md** - Foundation patterns and conventions
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
+- **101b-snowflake-streamlit-performance.md** - Caching and performance basics
 
 ### External Documentation
 

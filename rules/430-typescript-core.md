@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** ext:.ts, ext:.tsx, kw:typescript, kw:zod, kw:strict mode, kw:type inference, kw:union types, kw:satisfies, kw:generics, kw:utility types, kw:matt pocock, kw:total typescript
 **TokenBudget:** ~3950
 **ContextTier:** High
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:434-typescript-docs.md, optional:440-react-core.md, optional:420-javascript-core.md
 
 ## Scope
 

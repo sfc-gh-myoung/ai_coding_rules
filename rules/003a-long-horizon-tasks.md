@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.1.3
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:compaction, kw:checkpointing, kw:sub-agents, kw:structured notes, kw:multi-session, kw:context compression, kw:persistent memory, kw:agent coordination
 **TokenBudget:** ~2950
 **ContextTier:** Medium

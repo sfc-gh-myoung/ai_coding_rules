@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.8.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.8.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:test-data, kw:mock, kw:test data generation, kw:fake data, kw:providers, kw:synthetic data, kw:seeding, kw:deterministic testing, kw:python testing
 **TokenBudget:** ~3300
 **ContextTier:** Low
-**Depends:** required:200-python-core.md
+**Depends:** required:200-python-core.md, optional:201-python-lint-format.md, optional:230-python-pydantic.md, optional:240a-python-faker-testing.md
 
 ## Scope
 
@@ -31,7 +31,6 @@ Core patterns for generating realistic test data using Python's Faker library, c
 - **201-python-lint-format.md** - Ruff linting and formatting standards
 - **230-python-pydantic.md** - Pydantic integration for data validation
 - **240a-python-faker-testing.md** - Pytest fixtures, Factory Boy, seeding strategies
-- **240b-python-faker-advanced.md** - Localization, custom providers, performance
 
 ### External Documentation
 - [Faker Documentation](https://faker.readthedocs.io/en/stable/) - Comprehensive guide to fake data generation

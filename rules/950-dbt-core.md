@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-26
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:dbt, kw:dbt core, kw:snowflake, kw:dbt project object, kw:execute dbt project, kw:create dbt project, kw:profiles.yml, kw:workspaces, kw:snow dbt, kw:dbt deploy, kw:task scheduling, kw:dbt monitoring, kw:dbt access control, kw:data transformation, kw:schema customization, kw:generate_schema_name, kw:dbt versioning, kw:snow://dbt
 **TokenBudget:** ~5200
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:200-python-core.md
+**Depends:** required:100-snowflake-core.md, required:200-python-core.md, optional:951-create-dbt-semantic-view.md, optional:104-snowflake-streams-tasks.md, optional:111-snowflake-observability-core.md
 
 ## Scope
 
@@ -31,13 +31,10 @@ Best practices for using dbt Projects on Snowflake, Snowflake's native integrati
 - **100-snowflake-core.md** - Snowflake SQL patterns, object naming, security
 - **200-python-core.md** - Python development standards (dbt uses Python)
 
-**Recommended:**
-- **104-snowflake-streams-tasks.md** - Task scheduling patterns for orchestrating dbt runs
-- **111-snowflake-observability-core.md** - Telemetry setup for dbt monitoring
-- **112-snowflake-snowcli.md** - Snowflake CLI patterns for `snow dbt` commands
-
 **Related:**
 - **951-create-dbt-semantic-view.md** - Building Snowflake semantic views as dbt materializations
+- **104-snowflake-streams-tasks.md** - Task scheduling patterns for orchestrating dbt runs
+- **111-snowflake-observability-core.md** - Telemetry setup for dbt monitoring
 
 ### External Documentation
 

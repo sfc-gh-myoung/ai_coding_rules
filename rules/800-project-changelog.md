@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-01
+**RuleVersion:** v3.3.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:changelog, file:CHANGELOG.md, kw:changelog format, kw:semantic versioning, kw:release notes, kw:conventional commits, kw:feature-focused entries, kw:unreleased section, kw:scope patterns, kw:git workflow, kw:version control
 **TokenBudget:** ~5350
 **ContextTier:** Medium
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:801-project-readme.md, optional:802-project-contributing.md, optional:803-project-git-workflow.md
 
 ## Scope
 

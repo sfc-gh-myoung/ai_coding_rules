@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:@st.cache_data, kw:@st.cache_resource, kw:st.fragment, kw:null handling, kw:slow streamlit, kw:streamlit caching, kw:optimize streamlit, kw:fix slow queries, kw:fragment batch processing, kw:streamlit performance, kw:app slow, kw:loading data, kw:caching pattern
 **TokenBudget:** ~4950
 **ContextTier:** High
-**Depends:** required:101-snowflake-streamlit-core.md, required:103-snowflake-performance-tuning.md
+**Depends:** required:000-global-core.md, required:101-snowflake-streamlit-core.md, required:103-snowflake-performance-tuning.md, optional:101e-snowflake-streamlit-sql-errors.md, optional:105-snowflake-cost-governance.md, optional:119-snowflake-warehouse-management.md
 
 ## Scope
 
@@ -28,19 +28,14 @@ Comprehensive guidance for optimizing Streamlit application performance through 
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns and session management `[Available]`
-- **103-snowflake-performance-tuning.md** - Snowflake query optimization `[Available]`
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns and session management
+- **103-snowflake-performance-tuning.md** - Snowflake query optimization
 
 **Related:**
-- **101e-snowflake-streamlit-sql-errors.md** - Comprehensive SQL error handling patterns
-- **101a-snowflake-streamlit-visualization.md** - Chart/visualization performance
-- **101c-snowflake-streamlit-security.md** - Secure caching patterns
+- **101e-snowflake-streamlit-sql-errors.md** - SQL error handling for query failures
 - **105-snowflake-cost-governance.md** - Cost monitoring for cached queries
-- **111-snowflake-observability-core.md** - Query profiling and monitoring
 - **119-snowflake-warehouse-management.md** - Warehouse sizing for query performance
-- **251-python-datetime-core.md** - Datetime optimization for time series
-- **252-python-pandas-core.md** - DataFrame optimization and caching
 
 ### External Documentation
 

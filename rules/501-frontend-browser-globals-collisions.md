@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.2.4
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:browser-globals, kw:window-history, kw:htmx-history, kw:browser globals, kw:javascript globals, kw:window.history, kw:htmx history, kw:alpine.js, kw:name collisions, kw:reserved identifiers, kw:implicit globals, kw:historyrestore, kw:hx-push-url, kw:popstate, kw:best practices, kw:anti-patterns
 **TokenBudget:** ~1950
 **ContextTier:** High

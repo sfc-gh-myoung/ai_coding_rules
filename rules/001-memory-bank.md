@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.1.3
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:memory bank, kw:context, kw:session recovery, kw:progress tracking, kw:compaction, kw:rapid recovery
-**TokenBudget:** ~1400
+**TokenBudget:** ~1500
 **ContextTier:** Critical
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:002-rule-governance.md, optional:003-context-engineering.md
 
 ## Scope
 
@@ -26,9 +26,13 @@ Memory bank patterns for AI context preservation across sessions. All writes sco
 ## References
 
 ### Dependencies
-**Must Load First:** 000-global-core.md
 
-**Related:** 002-rule-governance.md, 003-context-engineering.md
+**Must Load First:**
+- **000-global-core.md** - Foundation rule
+
+**Related:**
+- **002-rule-governance.md** - Rule authoring standards
+- **003-context-engineering.md** - Attention budget principles
 
 ### External Documentation
 - [Effective Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)

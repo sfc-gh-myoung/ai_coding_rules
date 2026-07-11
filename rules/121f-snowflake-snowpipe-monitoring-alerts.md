@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:snowpipe-alerts, kw:pipe-alerts, kw:pipe-cost-optimization, kw:snowpipe alerts, kw:pipe error alerts, kw:channel stall alerts, kw:cost optimization, kw:file size optimization, kw:streaming optimization, kw:alert thresholds, kw:system$send_email, kw:monitoring tasks, kw:performance metrics
 **TokenBudget:** ~3100
 **ContextTier:** Medium
-**Depends:** required:121b-snowflake-snowpipe-monitoring.md, required:121-snowflake-snowpipe.md
+**Depends:** required:121b-snowflake-snowpipe-monitoring.md, required:121-snowflake-snowpipe.md, optional:121a-snowflake-snowpipe-streaming.md, optional:105-snowflake-cost-governance.md, optional:111-snowflake-observability-core.md
 
 ## Scope
 

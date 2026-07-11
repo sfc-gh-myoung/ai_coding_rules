@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.0.3
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.0.5
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:fastapi-monitoring, kw:fastapi monitoring, kw:health checks, kw:logging, kw:metrics, kw:caching, kw:redis, kw:structured logging, kw:health endpoints, kw:correlation ids
 **TokenBudget:** ~4300
 **ContextTier:** Medium

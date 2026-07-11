@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-25
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-07-10
 **Keywords:** file:Containerfile, file:podman-compose.yml, file:podman-compose.yaml, kw:podman, kw:buildah, kw:containerfile, kw:containers, kw:rootless containers, kw:podman-compose, kw:pods, kw:daemonless, kw:systemd, kw:quadlet, kw:image optimization, kw:non-root, kw:healthcheck, kw:security scanning, kw:sbom
 **TokenBudget:** ~4350
 **ContextTier:** Medium
-**Depends:** required:000-global-core.md, required:202-markup-config-validation.md
+**Depends:** required:000-global-core.md, required:202-markup-config-validation.md, optional:351a-podman-examples.md, optional:350-docker-core.md, optional:200-python-core.md
 
 ## Scope
 
@@ -35,7 +35,6 @@ Provides practical, production-ready guidance for authoring Containerfiles, buil
 - **351a-podman-examples.md** - Complete output format examples
 - **350-docker-core.md** - Docker-specific patterns (Podman is largely compatible)
 - **200-python-core.md** - Python-specific container patterns
-- **203-python-project-setup.md** - Python project structure for containers
 
 ### External Documentation
 

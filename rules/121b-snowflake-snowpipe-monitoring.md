@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:snowpipe-monitoring, kw:pipe-costs, kw:snowpipe monitoring, kw:cost management, kw:load history, kw:pipe usage, kw:streaming monitoring, kw:channel status, kw:credits tracking, kw:performance metrics, kw:cost optimization, kw:metering history, kw:monitoring queries
 **TokenBudget:** ~4000
 **ContextTier:** Medium
-**Depends:** required:100-snowflake-core.md, required:121-snowflake-snowpipe.md, required:121a-snowflake-snowpipe-streaming.md
+**Depends:** required:100-snowflake-core.md, required:121-snowflake-snowpipe.md, required:121a-snowflake-snowpipe-streaming.md, optional:121f-snowflake-snowpipe-monitoring-alerts.md, optional:121c-snowflake-snowpipe-troubleshooting.md, optional:105-snowflake-cost-governance.md
 
 ## Scope
 
@@ -39,7 +39,6 @@ Monitoring, cost tracking, and performance analysis for both file-based Snowpipe
 - **121f-snowflake-snowpipe-monitoring-alerts.md** - Alert configuration and cost optimization
 - **121c-snowflake-snowpipe-troubleshooting.md** - Troubleshooting and debugging patterns
 - **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
-- **111-snowflake-observability-core.md** - Logging, tracing, and monitoring patterns
 
 ### External Documentation
 

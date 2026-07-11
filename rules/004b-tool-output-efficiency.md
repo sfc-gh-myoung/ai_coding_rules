@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.1.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:tool outputs, kw:minimal output, kw:progressive output, kw:context budget, kw:verbose output
 **TokenBudget:** ~2600
 **ContextTier:** Medium
-**Depends:** required:004-tool-design-for-agents.md, required:000-global-core.md
+**Depends:** required:004-tool-design-for-agents.md, required:000-global-core.md, optional:003-context-engineering.md, optional:004a-tool-set-curation.md
 
 ## Scope
 

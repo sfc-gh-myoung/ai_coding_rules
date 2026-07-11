@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.0.3
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.0.5
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:fastapi-deployment, kw:fastapi deployment, kw:uvicorn, kw:gunicorn, kw:asgi, kw:docker, kw:health checks, kw:multi-stage build, kw:openapi, kw:api documentation
 **TokenBudget:** ~4250
 **ContextTier:** High

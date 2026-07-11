@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-25
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** ext:.zsh, kw:z shell, kw:zsh features, kw:arrays, kw:functions, kw:oh-my-zsh, kw:emulate, kw:setopt, kw:parameter expansion, kw:globbing
 **TokenBudget:** ~4300
 **ContextTier:** Medium
-**Depends:** required:300-bash-scripting-core.md
+**Depends:** required:300-bash-scripting-core.md, optional:310a-zsh-advanced-features.md, optional:310b-zsh-compatibility.md
 
 ## Scope
 

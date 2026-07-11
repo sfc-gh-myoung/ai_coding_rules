@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v2.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v2.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:deployment error, kw:container runtime, kw:warehouse runtime, kw:eai error, kw:compute pool, kw:stage upload, kw:service startup, kw:troubleshooting, kw:runtime error
 **TokenBudget:** ~2800
 **ContextTier:** Low
-**Depends:** required:101-snowflake-streamlit-core.md, required:101l-snowflake-streamlit-deployment.md
+**Depends:** required:000-global-core.md, required:101-snowflake-streamlit-core.md, required:101l-snowflake-streamlit-deployment.md, optional:101c-snowflake-streamlit-security.md
 
 ## Scope
 
@@ -27,12 +27,12 @@ Deployment error scenarios and resolution steps for Streamlit applications in bo
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
-- **101l-snowflake-streamlit-deployment.md** - Deployment guidance `[Available]`
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
+- **101l-snowflake-streamlit-deployment.md** - Deployment guidance
 
 **Related:**
-- **101c-snowflake-streamlit-security.md** - Security patterns `[Available]`
+- **101c-snowflake-streamlit-security.md** - Security patterns
 
 ### External Documentation
 

@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.2
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.1.4
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:deployment-taskfile, kw:deploy-task, kw:taskfile deployment, kw:task automation, kw:deployment tasks, kw:task structure, kw:deploy task, kw:upload task, kw:create task, kw:drop task, kw:remove task, kw:deployment workflow
 **TokenBudget:** ~3100
 **ContextTier:** Low

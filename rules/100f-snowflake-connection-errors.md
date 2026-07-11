@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:connection-error, kw:timeout, kw:connection errors, kw:error classification, kw:network policy, kw:authentication, kw:vpn, kw:error codes, kw:08001, kw:390114, kw:snowflake.connector, kw:databaseerror, kw:message analysis, kw:error detection
 **TokenBudget:** ~3900
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md
+**Depends:** required:100-snowflake-core.md, optional:101e-snowflake-streamlit-sql-errors.md, optional:101b-snowflake-streamlit-performance.md
 
 ## Scope
 

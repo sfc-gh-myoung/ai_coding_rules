@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.8.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.8.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:datetime, kw:timezone, kw:utc, kw:timedelta, kw:tz_localize, kw:tz_convert, kw:datetime.now(utc), kw:pd.timestamp, kw:type conversion, kw:zoneinfo
 **TokenBudget:** ~3000
 **ContextTier:** High
-**Depends:** required:200-python-core.md
+**Depends:** required:200-python-core.md, optional:251a-python-datetime-advanced.md, optional:251b-python-datetime-integration.md, optional:252-python-pandas-core.md
 
 ## Scope
 

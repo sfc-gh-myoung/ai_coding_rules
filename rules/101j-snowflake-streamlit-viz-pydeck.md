@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:pydeck, kw:st.pydeck_chart, kw:deck.gl, kw:3d visualization, kw:hexagon layer, kw:scatterplot layer, kw:geojson layer, kw:arc layer, kw:heatmap layer, kw:terrain, kw:point cloud, kw:webgl, kw:geospatial
 **TokenBudget:** ~2950
 **ContextTier:** Medium
-**Depends:** required:000-global-core.md, required:101a-snowflake-streamlit-visualization.md
+**Depends:** required:000-global-core.md, required:101a-snowflake-streamlit-visualization.md, optional:101i-snowflake-streamlit-viz-plotly.md
 
 ## Scope
 
@@ -28,8 +28,8 @@ PyDeck (deck.gl) visualization patterns for Streamlit, including 3D visualizatio
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation patterns and conventions `[Available]`
-- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection `[Available]`
+- **000-global-core.md** - Foundation patterns and conventions
+- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection
 
 **Related:**
 - **101i-snowflake-streamlit-viz-plotly.md** - Plotly for 2D charts and maps
@@ -148,7 +148,7 @@ st.pydeck_chart(deck, width="stretch")
 
 ## Common Layer Patterns
 
-See **101m-snowflake-streamlit-pydeck-layers.md** `[Available]` for complete layer patterns: ScatterplotLayer, HexagonLayer, GeoJsonLayer, ArcLayer, ColumnLayer, HeatmapLayer, PathLayer, TerrainLayer, PointCloudLayer, and multi-layer composition.
+See **101m-snowflake-streamlit-pydeck-layers.md** for complete layer patterns: ScatterplotLayer, HexagonLayer, GeoJsonLayer, ArcLayer, ColumnLayer, HeatmapLayer, PathLayer, TerrainLayer, PointCloudLayer, and multi-layer composition.
 
 ## ViewState Configuration
 

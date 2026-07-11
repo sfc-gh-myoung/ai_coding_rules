@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-03
+**RuleVersion:** v3.1.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:readme, kw:documentation, file:README.md, kw:project documentation, kw:getting started, kw:setup instructions, kw:badges, kw:quick start, kw:contributing, kw:license, kw:technical writing, kw:author contact, kw:maintainer
 **TokenBudget:** ~4800
 **ContextTier:** Medium
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:802-project-contributing.md, optional:805-technical-writing-style.md
 
 ## Scope
 
@@ -30,9 +30,7 @@ Comprehensive standards for README.md files following widely accepted industry b
 - **000-global-core.md** - Foundation for all rules
 
 **Related:**
-- **800-project-changelog.md** - Changelog management standards
 - **802-project-contributing.md** - Contributing guidelines
-- **803-project-git-workflow.md** - Git workflow management
 - **805-technical-writing-style.md** - Writing standards (voice, tone, sentence case, inclusive language, accessibility) that apply to README prose
 
 ### External Documentation

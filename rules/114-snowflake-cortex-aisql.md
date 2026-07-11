@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:aisql, kw:cortex-aisql, kw:cortex aisql, kw:ai_complete, kw:ai_classify, kw:ai_extract, kw:ai_sentiment, kw:ai_summarize, kw:embeddings, kw:llm functions, kw:batching, kw:token costs, kw:text generation, kw:classification, kw:sentiment analysis, kw:summarization, kw:ai function error
 **TokenBudget:** ~4900
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:105-snowflake-cost-governance.md
+**Depends:** required:100-snowflake-core.md, required:105-snowflake-cost-governance.md, optional:114a-snowflake-cortex-ai-transcribe.md, optional:102-snowflake-sql-core.md, optional:119-snowflake-warehouse-management.md
 
 ## Scope
 
@@ -58,9 +58,6 @@ Pragmatic, production-focused patterns for using Snowflake Cortex AISQL function
 **Related:**
 - **114a-snowflake-cortex-ai-transcribe.md** - AI_TRANSCRIBE audio transcription patterns
 - **102-snowflake-sql-core.md** - General SQL file patterns
-- **106-snowflake-semantic-views-core.md** - Semantic views for Cortex Analyst
-- **111-snowflake-observability-core.md** - Observability and tracing
-- **112-snowflake-snowcli.md** - Snowflake CLI patterns
 - **119-snowflake-warehouse-management.md** - Warehouse sizing and management
 
 ### External Documentation

@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:dashboards, kw:kpis, kw:reporting, kw:visualization, kw:stakeholder reports, kw:metrics, kw:snowsight, kw:executive dashboards, kw:data storytelling, kw:wcag accessibility
 **TokenBudget:** ~4150
 **ContextTier:** High
-**Depends:** required:000-global-core.md, required:100-snowflake-core.md
+**Depends:** required:000-global-core.md, required:100-snowflake-core.md, optional:101-snowflake-streamlit-core.md, optional:920-data-science-analytics.md, optional:132-snowflake-demo-modeling.md
 
 ## Scope
 

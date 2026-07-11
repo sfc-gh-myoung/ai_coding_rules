@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:alpine, kw:alpine.js, kw:reactivity, kw:x-data, kw:x-bind, kw:x-on, kw:x-model, kw:x-show, kw:x-if, kw:magic properties, kw:$el, kw:$refs, kw:declarative, kw:progressive enhancement, kw:lightweight
 **TokenBudget:** ~4250
 **ContextTier:** Medium
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:421a-javascript-alpinejs-advanced.md, optional:420-javascript-core.md, optional:500-frontend-htmx-core.md
 
 ## Scope
 

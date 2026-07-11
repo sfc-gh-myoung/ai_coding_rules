@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.0.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:htmx-flask, kw:flask-htmx, kw:blueprints, kw:flask-login, kw:session management, kw:flask routes, kw:flask templates, kw:flask csrf, kw:flask extensions, kw:request context
 **TokenBudget:** ~4450
 **ContextTier:** Medium
-**Depends:** required:221-python-htmx-core.md, required:221a-python-htmx-templates.md
+**Depends:** required:221-python-htmx-core.md, required:221a-python-htmx-templates.md, optional:221d-python-htmx-testing.md, optional:221e-python-htmx-patterns.md, optional:200-python-core.md
 
 ## Scope
 

@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.1.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:cost, kw:budget, kw:billing, kw:budget alerts, kw:spend tracking, kw:sql, kw:credit_quota, kw:warehouse_metering_history, kw:object tagging, kw:monitor credits, kw:warehouse spending, kw:cost alerts, kw:credit limits, kw:budget management, kw:resource monitor, kw:tag enforcement
 **TokenBudget:** ~3300
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md
+**Depends:** required:000-global-core.md, required:100-snowflake-core.md
 
 ## Scope
 

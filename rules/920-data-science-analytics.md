@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:data science, kw:snowflake, kw:pandas, kw:snowpark, kw:ml, kw:model lifecycle, kw:feature engineering, kw:nan handling, kw:model versioning, kw:jupyter
 **TokenBudget:** ~3750
 **ContextTier:** High
-**Depends:** required:200-python-core.md, required:000-global-core.md
+**Depends:** required:000-global-core.md, required:200-python-core.md, optional:100-snowflake-core.md, optional:101-snowflake-streamlit-core.md, optional:252-python-pandas-core.md
 
 ## Scope
 
@@ -34,7 +34,6 @@ Comprehensive rules for data science and analytics on Snowflake. Covers model li
 **Related:**
 - **100-snowflake-core.md** - Snowflake SQL patterns
 - **101-snowflake-streamlit-core.md** - Streamlit dashboard patterns
-- **110-snowflake-model-registry.md** - Model versioning and registry
 - **252-python-pandas-core.md** - Pandas best practices
 
 ### External Documentation

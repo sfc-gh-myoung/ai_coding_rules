@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.1.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:tool set curation, kw:minimal viable tool set, kw:tool splitting, kw:tool merging, kw:tool bloat, kw:tool boundaries
 **TokenBudget:** ~2200
 **ContextTier:** Medium
-**Depends:** required:004-tool-design-for-agents.md, required:000-global-core.md
+**Depends:** required:004-tool-design-for-agents.md, required:000-global-core.md, optional:004b-tool-output-efficiency.md
 
 ## Scope
 

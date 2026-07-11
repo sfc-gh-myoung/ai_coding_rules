@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-13
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:demo-creation, kw:synthetic-data, kw:demo creation, kw:synthetic data, kw:realistic demos, kw:data generation, kw:demo applications, kw:narrative design, kw:reproducible data, kw:progressive disclosure, kw:streamlit, kw:data visualization
 **TokenBudget:** ~3100
 **ContextTier:** Low
-**Depends:** required:130-snowflake-demo-sql.md
+**Depends:** required:130-snowflake-demo-sql.md, optional:132-snowflake-demo-modeling.md, optional:101-snowflake-streamlit-core.md
 
 ## Scope
 
@@ -32,8 +32,6 @@ Directives for creating realistic, deterministic, and effective demo application
 **Related:**
 - **132-snowflake-demo-modeling.md** - Data modeling for demos
 - **101-snowflake-streamlit-core.md** - Streamlit UI patterns
-- **240-python-faker.md** - Synthetic data generation with Faker
-- **920-data-science-analytics.md** - Data science and analytics patterns
 
 ### External Documentation
 

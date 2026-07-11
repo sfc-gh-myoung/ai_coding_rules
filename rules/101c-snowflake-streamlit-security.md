@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v4.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v4.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:st.secrets, kw:sql injection, kw:authentication, kw:secure streamlit, kw:protect app, kw:credentials management, kw:api keys, kw:environment variables, kw:secure deployment, kw:input sanitization, kw:rbac streamlit, kw:access control, kw:security patterns, kw:container runtime, kw:warehouse runtime
 **TokenBudget:** ~4050
 **ContextTier:** High
-**Depends:** required:101-snowflake-streamlit-core.md, required:107-snowflake-security-governance.md
+**Depends:** required:000-global-core.md, required:101-snowflake-streamlit-core.md, required:107-snowflake-security-governance.md, optional:100-snowflake-core.md, optional:200-python-core.md
 
 ## Scope
 
@@ -29,13 +29,13 @@ Comprehensive security guidance for Streamlit applications including input valid
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
-- **107-snowflake-security-governance.md** - Snowflake security and RBAC `[Available]`
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
+- **107-snowflake-security-governance.md** - Snowflake security and RBAC
 
 **Related:**
-- **100-snowflake-core.md** - Base Snowflake connection and credential patterns `[Available]`
-- **200-python-core.md** - Python security patterns `[Available]`
+- **100-snowflake-core.md** - Base Snowflake connection and credential patterns
+- **200-python-core.md** - Python security patterns
 
 ### External Documentation
 

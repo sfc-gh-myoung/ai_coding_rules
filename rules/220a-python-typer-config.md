@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:cli-config, kw:pydantic-settings, kw:cli configuration, kw:pydantic settings, kw:environment variables, kw:cli options
 **TokenBudget:** ~2550
 **ContextTier:** Medium
-**Depends:** required:220-python-typer-cli.md
+**Depends:** required:220-python-typer-cli.md, optional:230-python-pydantic.md, optional:230a-python-pydantic-settings.md
 
 ## Scope
 

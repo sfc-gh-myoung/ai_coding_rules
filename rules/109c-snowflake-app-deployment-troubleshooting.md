@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.2.3
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.2.4
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:deployment-error, kw:snowflake deployment troubleshooting, kw:streamlit debugging, kw:sis typeerror, kw:notebook deployment issues, kw:deployment errors, kw:stage file debugging, kw:auto_compress debugging, kw:live_version_location_uri, kw:root_location errors (legacy), kw:deployment anti-patterns, kw:diagnostic commands, kw:cache issues
 **TokenBudget:** ~4450
 **ContextTier:** Medium
-**Depends:** required:100-snowflake-core.md, required:109-snowflake-notebooks.md, required:101-snowflake-streamlit-core.md, required:109b-snowflake-app-deployment-core.md
+**Depends:** required:000-global-core.md, required:100-snowflake-core.md, required:101-snowflake-streamlit-core.md
 
 ## Scope
 
@@ -33,10 +33,9 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 ### Dependencies
 
 **Must Load First:**
-- [100-snowflake-core.md](100-snowflake-core.md)
-- [109-snowflake-notebooks.md](109-snowflake-notebooks.md)
-- [101-snowflake-streamlit-core.md](101-snowflake-streamlit-core.md)
-- [109b-snowflake-app-deployment-core.md](109b-snowflake-app-deployment-core.md)
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **100-snowflake-core.md** - Snowflake SQL, stage operations, and diagnostic commands
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns for deployment context
 
 
 ## Contract

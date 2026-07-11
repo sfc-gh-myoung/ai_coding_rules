@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.8.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.8.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:cli development, kw:command-line interface, kw:click, kw:argument parsing, kw:typer.argument, kw:typer.option, kw:rich console, kw:exit codes
 **TokenBudget:** ~4300
 **ContextTier:** High
-**Depends:** required:200-python-core.md
+**Depends:** required:200-python-core.md, optional:201-python-lint-format.md, optional:203-python-project-setup.md, optional:230-python-pydantic.md
 
 ## Scope
 
@@ -29,13 +29,9 @@ Core guidance for building robust command-line applications using Typer, coverin
 - **200-python-core.md** - Core Python patterns and uv usage
 
 **Related:**
-- **220a-python-typer-config.md** - Configuration and environment management (Recommended)
-- **220b-python-typer-testing.md** - CLI testing strategies (Recommended)
-- **220c-python-typer-rich.md** - Rich integration and console patterns (Recommended)
 - **201-python-lint-format.md** - Ruff linting and formatting standards
 - **203-python-project-setup.md** - Python project structure and packaging
 - **230-python-pydantic.md** - Pydantic integration with Typer
-- **207-python-logging.md** - CLI apps needing Rich console + Python logger bridge
 
 ### External Documentation
 

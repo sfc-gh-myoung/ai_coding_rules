@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** file:Taskfile.yml, kw:deploy, kw:ci, kw:taskfile, kw:taskfile.yml, kw:task runner, kw:task, kw:portable tasks, kw:error handling, kw:command detection, kw:auto-detection, kw:cross-platform, kw:uvx
 **TokenBudget:** ~3400
 **ContextTier:** Medium
-**Depends:** required:202-markup-config-validation.md
+**Depends:** required:202-markup-config-validation.md, optional:820a-taskfile-advanced-patterns.md, optional:200-python-core.md, optional:300-bash-scripting-core.md
 
 ## Scope
 

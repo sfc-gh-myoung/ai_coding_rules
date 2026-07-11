@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-25
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:test, kw:coverage, kw:fixtures, kw:parametrization, kw:mocking, kw:test organization, kw:aaa pattern, kw:test markers, kw:uv run pytest, kw:unit test
 **TokenBudget:** ~4950
 **ContextTier:** High
-**Depends:** required:000-global-core.md, required:200-python-core.md, required:201-python-lint-format.md, required:203-python-project-setup.md
+**Depends:** required:000-global-core.md, required:200-python-core.md, optional:201-python-lint-format.md, optional:204-python-docs.md, optional:205-python-classes.md
 
 ## Scope
 
@@ -32,11 +32,8 @@ Pragmatic, industry-standard testing practices with pytest to produce fast, reli
 - **000-global-core.md** - Foundation rule with core patterns and validation gates
 - **200-python-core.md** - Python core patterns (uv, pytest execution)
 
-**Recommended:**
-- **201-python-lint-format.md** - Ruff linting and formatting for test code
-- **203-python-project-setup.md** - Project structure and pytest configuration
-
 **Related:**
+- **201-python-lint-format.md** - Ruff linting and formatting for test code
 - **204-python-docs.md** - Documentation standards for test docstrings
 - **205-python-classes.md** - Class patterns for test organization
 

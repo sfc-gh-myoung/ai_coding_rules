@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-05-12
+**RuleVersion:** v3.0.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:agent-observability, kw:agent-costs, kw:agent observability, kw:agent evaluation, kw:agent cost management, kw:agent latency, kw:agent health, kw:agent errors, kw:debug agent, kw:agent logs, kw:agent trace, kw:cortex agent troubleshooting, kw:agent cost tracking
 **TokenBudget:** ~3850
 **ContextTier:** Low
-**Depends:** required:100-snowflake-core.md, required:115-snowflake-cortex-agents-core.md, required:115b-snowflake-cortex-agents-operations.md, required:111-snowflake-observability-core.md
+**Depends:** required:100-snowflake-core.md, required:115-snowflake-cortex-agents-core.md, required:111-snowflake-observability-core.md, optional:105-snowflake-cost-governance.md
 
 ## Scope
 
@@ -28,7 +28,6 @@ Observability, evaluation, cost management, dedicated warehouse patterns, and er
 **Must Load First:**
 - **100-snowflake-core.md** - Snowflake foundation patterns
 - **115-snowflake-cortex-agents-core.md** - Core agent creation
-- **115b-snowflake-cortex-agents-operations.md** - Operations overview
 - **111-snowflake-observability-core.md** - Observability patterns
 
 **Related:**

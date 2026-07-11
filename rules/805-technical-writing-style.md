@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-07-03
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-10
 **Keywords:** ext:.md, file:README.md, file:CONTRIBUTING.md, dir:docs/, kw:writing style, kw:voice, kw:active voice, kw:sentence case, kw:inclusive language, kw:bias-free, kw:serial comma, kw:accessibility, kw:microsoft style
 **TokenBudget:** ~3350
 **ContextTier:** Medium
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:801-project-readme.md, optional:804-project-documentation.md, optional:002g-agent-optimization.md
 
 ## Scope
 
@@ -43,10 +43,9 @@ Writing standards for human-facing project documentation — voice, tone, senten
 
 **Related:**
 
-- **002g-agent-optimization.md** - Contrasting audience: rule files for agents
 - **801-project-readme.md** - README-specific structure and required sections
 - **804-project-documentation.md** - docs/ folder organization
-- **202a-markdown-linting.md** - Markdown linting tooling (pymarkdownlnt)
+- **002g-agent-optimization.md** - Contrasting audience: rule files for agents
 
 ### External Documentation
 

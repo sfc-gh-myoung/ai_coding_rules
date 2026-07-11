@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.0.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:htmx-scroll, kw:htmx-modal, kw:htmx-wizard, kw:htmx-polling, kw:infinite scroll, kw:sse, kw:polling, kw:modals, kw:drawers, kw:wizard, kw:multi-step, kw:real-time, kw:lazy loading
 **TokenBudget:** ~2500
 **ContextTier:** Medium
-**Depends:** required:221e-python-htmx-patterns.md, required:221-python-htmx-core.md
+**Depends:** required:221e-python-htmx-patterns.md, required:221-python-htmx-core.md, optional:221g-python-htmx-sse.md, optional:221d-python-htmx-testing.md, optional:221f-python-htmx-integrations.md
 
 ## Scope
 

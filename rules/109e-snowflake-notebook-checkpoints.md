@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.2
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.1.4
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:notebook-checkpoint, kw:teaching-point, kw:checkpoint validation, kw:teaching point callouts, kw:notebook validation gates, kw:progress verification, kw:learning checkpoints, kw:note prefix, kw:tutorial checkpoints
 **TokenBudget:** ~2650
 **ContextTier:** Low

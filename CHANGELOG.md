@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **chore(rules):** tighten dependency declarations across all rules (Must Load First ≤3, Related ≤3, drop Recommended tier, drop [Available] markers, normalize to bullet-list, sync **Depends:** metadata). 180 rule files updated: 48 over-limit rules edited editorially, 132 non-overlimit rules had Depends metadata synced from prose (C11). Pre-existing cycle in `002c-rule-optimization.md` resolved. Policy codified in `002-rule-governance.md § Dependency Declaration Limits`. Custom gap-check scripts written to `.workbench/rule-dep-audit/`.
+
 - **feat(contract):** Cite the foundation rule exactly once on Gate 1 with `— N lines`; retire the duplicate foundation row and standalone `## Rules Loaded` block from both AGENTS.md templates. Gate 3 now lists domain/activity rules only (as `+N domain rule(s):` sub-bullets) or emits `none matched` when nothing matches. Regenerated `AGENTS.md` from the updated NO_MODE template; updated `rules/000-global-core.md` (v3.7.0), `rules/002n-agent-protocol-reference.md`, and `docs/USING_RULE_LOADER_SKILL.md` to the Gate-1-only shape.
 - **feat(rule-loader eval):** Add `_GATE1_FOUNDATION_RE` to capture the foundation citation from Gate 1; extend `_NO_RULES_RE` to accept `Gate 3: none matched` as the zero-load sentinel; extend `extract_citations` so foundation citation-drift detection is preserved after the foundation row moved off Gate 3. Update the eval system prompt to the Gate-1-only shape; add 8 new parser unit tests covering the new and legacy shapes.
 

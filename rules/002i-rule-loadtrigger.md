@@ -7,12 +7,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.1.2
+**LastUpdated:** 2026-07-10
 **Keywords:** ext:.py, kw:python, kw:testing, kw:loadtrigger, kw:dynamic rule loading, kw:rule discovery, kw:file extension trigger, kw:keyword trigger, kw:directory trigger, kw:filename trigger, kw:rules_index
 **TokenBudget:** ~2200
 **ContextTier:** Medium
-**Depends:** required:002-rule-governance.md
+**Depends:** required:002-rule-governance.md, optional:002a-rule-creation.md
 
 ## Scope
 

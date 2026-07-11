@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.0.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:htmx-templates, kw:jinja2, kw:partials, kw:fragments, kw:template composition, kw:conditional rendering, kw:htmx templates, kw:template organization, kw:reusable components, kw:template context
 **TokenBudget:** ~4500
 **ContextTier:** High
-**Depends:** required:221-python-htmx-core.md
+**Depends:** required:221-python-htmx-core.md, optional:221c-python-htmx-fastapi.md, optional:221e-python-htmx-patterns.md, optional:221b-python-htmx-flask.md
 
 ## Scope
 
@@ -33,7 +33,6 @@ Jinja2 template organization patterns for HTMX applications, covering partial re
 - **221b-python-htmx-flask.md** - Flask-specific template patterns
 - **221c-python-htmx-fastapi.md** - FastAPI template setup
 - **221e-python-htmx-patterns.md** - Template patterns for CRUD, forms, etc.
-- **200-python-core.md** - Python coding standards
 
 ### External Documentation
 

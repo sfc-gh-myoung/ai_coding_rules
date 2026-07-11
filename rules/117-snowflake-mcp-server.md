@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:mcp, kw:mcp-server, kw:model context protocol, kw:snowflake-managed mcp server, kw:create mcp server, kw:system_execute_sql, kw:cortex_analyst_message, kw:cortex_search_service_query, kw:cortex_agent_run, kw:tools/list, kw:tools/call, kw:initialize, kw:oauth, kw:security integration, kw:rbac, kw:pat
 **TokenBudget:** ~3400
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:107-snowflake-security-governance.md, required:112-snowflake-snowcli.md
+**Depends:** required:100-snowflake-core.md, required:107-snowflake-security-governance.md, required:112-snowflake-snowcli.md, optional:106-snowflake-semantic-views-core.md, optional:115-snowflake-cortex-agents-core.md, optional:116-snowflake-cortex-search.md
 
 ## Scope
 

@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:rich, kw:console, kw:progress-bar, kw:console output, kw:progress bars, kw:live display, kw:color detection, kw:stderr, kw:dual console
 **TokenBudget:** ~3450
 **ContextTier:** Medium
-**Depends:** required:220-python-typer-cli.md
+**Depends:** required:220-python-typer-cli.md, optional:220b-python-typer-testing.md
 
 ## Scope
 

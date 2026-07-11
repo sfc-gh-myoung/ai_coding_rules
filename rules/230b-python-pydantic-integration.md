@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:serialization, kw:model-dump, kw:type-adapter, kw:json schema, kw:fastapi integration, kw:database orm, kw:typeadapter, kw:performance, kw:testing, kw:model_dump, kw:secretstr
 **TokenBudget:** ~3450
 **ContextTier:** Medium
-**Depends:** required:230-python-pydantic.md
+**Depends:** required:230-python-pydantic.md, optional:210-python-fastapi-core.md, optional:206-python-pytest.md, optional:230a-python-pydantic-settings.md
 
 ## Scope
 

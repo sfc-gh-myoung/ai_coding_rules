@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-05-18
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:command line, kw:command line interface, kw:clig, kw:clig dev, kw:cli design, kw:cli ux, kw:flags, kw:exit codes, kw:stdout, kw:stderr, kw:no_color, kw:isatty, kw:tty, kw:subcommands, kw:cli help, kw:cli config, kw:xdg, kw:dry-run, kw:machine readable
 **TokenBudget:** ~4700
 **ContextTier:** Medium
-**Depends:** optional:220-python-typer-cli.md, optional:220c-python-typer-rich.md, optional:300-bash-scripting-core.md, optional:600-golang-core.md
+**Depends:** optional:220-python-typer-cli.md, optional:220c-python-typer-rich.md, optional:300-bash-scripting-core.md
 
 ## Scope
 
@@ -32,7 +32,6 @@ Language-agnostic design principles for building command-line applications, synt
 - **220-python-typer-cli.md** - Typer-specific patterns (Python)
 - **220c-python-typer-rich.md** - Rich console patterns (Python)
 - **300-bash-scripting-core.md** - Bash CLI patterns
-- **600-golang-core.md** - Go CLI patterns
 
 ### External Documentation
 

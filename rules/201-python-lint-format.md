@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-03-26
+**RuleVersion:** v3.2.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:ruff, kw:formatting, kw:code quality, kw:style checking, kw:lint errors, kw:ruff check, kw:ruff format, kw:pyproject.toml configuration, kw:black, kw:flake8
 **TokenBudget:** ~3700
 **ContextTier:** High
-**Depends:** required:000-global-core.md, required:200-python-core.md
+**Depends:** required:200-python-core.md, optional:203-python-project-setup.md, optional:204-python-docs.md
 
 ## Scope
 

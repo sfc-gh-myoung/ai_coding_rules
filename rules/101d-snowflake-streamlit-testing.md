@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:test streamlit app, kw:test framework, kw:test patterns, kw:app testing, kw:ui testing, kw:streamlit test suite, kw:test coverage, kw:debug tests, kw:testing strategies
 **TokenBudget:** ~3950
 **ContextTier:** High
-**Depends:** required:101-snowflake-streamlit-core.md, required:206-python-pytest.md
+**Depends:** required:000-global-core.md, required:101-snowflake-streamlit-core.md, required:206-python-pytest.md, optional:101b-snowflake-streamlit-performance.md, optional:200-python-core.md
 
 ## Scope
 
@@ -30,13 +30,13 @@ Comprehensive testing and debugging guidance for Streamlit applications using Ap
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
-- **206-python-pytest.md** - Python testing with pytest `[Available]`
+- **000-global-core.md** - Foundation rule with core patterns and validation gates
+- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
+- **206-python-pytest.md** - Python testing with pytest
 
 **Related:**
-- **101b-snowflake-streamlit-performance.md** - Cache behavior testing `[Available]`
-- **200-python-core.md** - Python testing fundamentals `[Available]`
+- **101b-snowflake-streamlit-performance.md** - Cache behavior testing
+- **200-python-core.md** - Python testing fundamentals
 
 ### External Documentation
 

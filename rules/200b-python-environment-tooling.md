@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.3
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.0.4
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:venv, kw:virtual-environment, kw:uv, kw:poetry, kw:virtual environment, kw:pip, kw:pipenv, kw:uvx, kw:tool isolation, kw:modulenotfounderror, kw:environment setup, kw:dependency management
 **TokenBudget:** ~3000
 **ContextTier:** High
-**Depends:** required:200-python-core.md
+**Depends:** required:200-python-core.md, optional:200a-python-validation-gate.md, optional:203-python-project-setup.md
 
 ## Scope
 

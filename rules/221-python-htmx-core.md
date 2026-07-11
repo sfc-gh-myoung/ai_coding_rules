@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:hypermedia, kw:hateoas, kw:hx-request, kw:hx-trigger, kw:partial rendering, kw:sse, kw:websockets, kw:csrf, kw:xss, kw:http headers, kw:swap strategies, kw:oob swaps, kw:response patterns
 **TokenBudget:** ~4800
 **ContextTier:** High
-**Depends:** required:200-python-core.md
+**Depends:** required:200-python-core.md, optional:221c-python-htmx-fastapi.md, optional:221e-python-htmx-patterns.md, optional:221g-python-htmx-sse.md
 
 ## Scope
 
@@ -35,12 +35,8 @@ Foundational HTMX patterns for Python web applications, covering request/respons
 - **200-python-core.md** - Python coding standards
 
 **Related:**
-- **221a-python-htmx-templates.md** - Jinja2 patterns for HTMX
-- **221b-python-htmx-flask.md** - Flask-specific HTMX patterns
 - **221c-python-htmx-fastapi.md** - FastAPI-specific HTMX patterns
-- **221d-python-htmx-testing.md** - Testing HTMX endpoints
 - **221e-python-htmx-patterns.md** - CRUD, forms, infinite scroll
-- **221f-python-htmx-integrations.md** - Alpine.js, Tailwind, etc.
 - **221g-python-htmx-sse.md** - Server-Sent Events patterns
 
 ### External Documentation

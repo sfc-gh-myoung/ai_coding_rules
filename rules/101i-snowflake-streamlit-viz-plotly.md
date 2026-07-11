@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v1.1.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:plotly, kw:plotly express, kw:graph objects, kw:st.plotly_chart, kw:interactive charts, kw:scatter, kw:line, kw:bar, kw:histogram, kw:heatmap, kw:box plot, kw:violin, kw:sunburst, kw:treemap, kw:animations, kw:faceting, kw:subplots
 **TokenBudget:** ~3450
 **ContextTier:** Medium
-**Depends:** required:000-global-core.md, required:101a-snowflake-streamlit-visualization.md
+**Depends:** required:000-global-core.md, required:101a-snowflake-streamlit-visualization.md, optional:101j-snowflake-streamlit-viz-pydeck.md, optional:940-business-analytics.md
 
 ## Scope
 
@@ -27,8 +27,8 @@ Deep patterns for Plotly visualization in Streamlit, including Plotly Express fo
 ### Dependencies
 
 **Must Load First:**
-- **000-global-core.md** - Foundation patterns and conventions `[Available]`
-- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection `[Available]`
+- **000-global-core.md** - Foundation patterns and conventions
+- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection
 
 **Related:**
 - **101j-snowflake-streamlit-viz-pydeck.md** - PyDeck for 3D/geospatial

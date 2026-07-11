@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:locale, kw:custom-provider, kw:faker-performance, kw:localization, kw:custom providers, kw:baseprovider, kw:performance optimization, kw:batch generation, kw:caching, kw:multi-language
 **TokenBudget:** ~3300
 **ContextTier:** Low
-**Depends:** required:240-python-faker.md
+**Depends:** required:240-python-faker.md, optional:240a-python-faker-testing.md
 
 ## Scope
 

@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-03-25
+**RuleVersion:** v3.3.1
+**LastUpdated:** 2026-07-10
 **Keywords:** ext:.jsx, ext:.tsx, kw:react, kw:next.js, kw:rsc, kw:hooks, kw:tailwind, kw:zustand, kw:tanstack query, kw:shadcn, kw:feature-based, kw:typescript, kw:vitest, kw:testing library, kw:debug hooks, kw:fix react error, kw:component rendering
 **TokenBudget:** ~3200
 **ContextTier:** High
-**Depends:** required:000-global-core.md, required:420-javascript-core.md, required:430-typescript-core.md
+**Depends:** required:000-global-core.md, required:420-javascript-core.md, required:430-typescript-core.md, optional:440a-react-anti-patterns.md, optional:441-react-backend.md
 
 ## Scope
 

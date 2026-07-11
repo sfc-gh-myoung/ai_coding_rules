@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.1.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:agent-operations, kw:agent operations, kw:agent security, kw:agent monitoring, kw:agent evaluation, kw:agent costs, kw:debug agent, kw:agent troubleshooting, kw:agent security policies
 **TokenBudget:** ~2800
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:115-snowflake-cortex-agents-core.md, required:111-snowflake-observability-core.md
+**Depends:** required:100-snowflake-core.md, required:115-snowflake-cortex-agents-core.md, required:111-snowflake-observability-core.md, optional:106c-snowflake-semantic-views-integration.md, optional:116-snowflake-cortex-search.md, optional:106-snowflake-semantic-views-core.md
 **Companions:** 115c-snowflake-cortex-agents-testing.md, 115d-snowflake-cortex-agents-observability.md
 
 ## Scope
@@ -53,8 +53,6 @@ Operational patterns for Cortex Agents: investigation protocol, output format ex
 - **106c-snowflake-semantic-views-integration.md** - Semantic view design and Analyst tool configuration
 - **116-snowflake-cortex-search.md** - Search service setup and tool integration
 - **106-snowflake-semantic-views-core.md** - Semantic views foundation
-- **105-snowflake-cost-governance.md** - Cost monitoring and governance
-- **119-snowflake-warehouse-management.md** - Warehouse sizing
 
 ### External Documentation
 

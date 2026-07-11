@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.5.0
-**LastUpdated:** 2026-07-03
+**RuleVersion:** v3.5.1
+**LastUpdated:** 2026-07-10
 **Keywords:** dir:rules/, kw:rule governance, kw:schema, kw:metadata requirements, kw:validation, kw:schema compliance, kw:rule structure, kw:semantic discovery, kw:rules_index, kw:descriptive headings, kw:design priorities, kw:agent optimization, kw:skill governance
-**TokenBudget:** ~4550
+**TokenBudget:** ~4900
 **ContextTier:** Critical
-**Depends:** required:000-global-core.md
+**Depends:** required:000-global-core.md, optional:002a-rule-creation.md, optional:002b-rule-update.md, optional:002e-schema-validator-usage.md
 
 ## Scope
 
@@ -37,8 +37,6 @@ Schema standards (v3.3) for AI coding rule files. Defines required sections, met
 **Related:**
 - **002a-rule-creation.md** - Step-by-step guide for creating new rules
 - **002b-rule-update.md** - Updating and maintaining existing rules, versioning policy
-- **002c-rule-optimization.md** - Token budgets, performance tuning, model-specific tips
-- **002d-advanced-rule-patterns.md** - System prompt altitude, investigation-first, multi-session workflows
 - **002e-schema-validator-usage.md** - Detailed validator commands, error interpretation, CI/CD integration
 
 ### External Documentation
@@ -389,6 +387,19 @@ If both options fail, note the validation gap in commit message and request revi
 - **Validation-First:** Always run `ai-rules validate` before committing rule changes
 - **Text-Only Format:** No emojis in rule files (schema requirement for universal compatibility)
 - **Agent-First Formatting:** See `002g-agent-optimization.md` for required formatting patterns
+
+### Dependency Declaration Limits
+
+Every rule's `### Dependencies` section must conform to these limits (enforced by `check_limits.py`):
+
+- **Must Load First:** ≤3 entries, each with a one-line justification after `-`. If 0, write `- None (this IS the foundation)` (foundation rule only).
+- **Related:** ≤3 entries, each with a one-line justification after `-`. If 0, omit the block entirely.
+- **Recommended tier:** RETIRED. No rule may contain a `**Recommended:**` subsection. Any existing Recommended links must be promoted to Must Load First, demoted to Related (within the ≤3 cap), or dropped with a written reason.
+- **Available markers:** FORBIDDEN on all bullets. Strip any trailing availability-status suffix (the bracketed word "Available" wrapped in backticks) from Related or Must Load First bullets.
+- **Inline style:** FORBIDDEN. Every entry must be a bullet (`- **filename.md** - justification`), not a comma-separated inline list.
+- **`**Depends:**` sync:** Every Must Load First entry must appear as `required:filename.md` in the `**Depends:**` metadata field. Every Related entry must appear as `optional:filename.md`. Order: all `required:` before all `optional:`.
+
+These limits are enforced by the custom gap-check scripts in `.workbench/rule-dep-audit/` and must pass before any rule PR is merged.
 
 ## CommonMark Compliance
 

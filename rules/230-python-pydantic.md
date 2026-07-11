@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.8.2
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.8.4
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:validation, kw:basemodel, kw:data validation, kw:models, kw:field validation, kw:field, kw:validator, kw:model_validator, kw:emailstr
 **TokenBudget:** ~3800
 **ContextTier:** High

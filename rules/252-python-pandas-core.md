@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.8.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.8.1
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:dataframe, kw:vectorization, kw:settingwithcopywarning, kw:method chaining, kw:loc, kw:iloc, kw:np.where, kw:np.select, kw:apply, kw:iterrows
 **TokenBudget:** ~2550
 **ContextTier:** High
-**Depends:** required:200-python-core.md
+**Depends:** required:200-python-core.md, optional:251-python-datetime-core.md, optional:252a-python-pandas-performance.md, optional:252b-python-pandas-io-integration.md
 
 ## Scope
 

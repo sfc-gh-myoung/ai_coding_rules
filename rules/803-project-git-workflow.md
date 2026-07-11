@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.6.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v3.6.2
+**LastUpdated:** 2026-07-10
 **Keywords:** kw:git, kw:commit, kw:commit message, kw:feature-focused commits, kw:branching, kw:github, kw:pull requests, kw:feature branches, kw:conventional commits, kw:branch naming
 **TokenBudget:** ~3700
 **ContextTier:** Medium
-**Depends:** required:800-project-changelog.md, required:802-project-contributing.md
+**Depends:** required:800-project-changelog.md, required:802-project-contributing.md, optional:000-global-core.md, optional:AGENTS.md
 
 ## Scope
 

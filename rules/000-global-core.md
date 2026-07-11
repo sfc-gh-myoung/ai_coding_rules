@@ -12,7 +12,7 @@
 **RuleVersion:** v3.7.1
 **LastUpdated:** 2026-07-10
 **Keywords:** kw:workflow, kw:safety, kw:confirmation, kw:validation, kw:surgical edits, kw:minimal changes, kw:prompt engineering, kw:task list, kw:context window, kw:professional communication
-**TokenBudget:** ~2400
+**TokenBudget:** ~2550
 **ContextTier:** Critical
 **Depends:** optional:001-memory-bank.md, optional:002-rule-governance.md, optional:003-context-engineering.md
 
@@ -196,6 +196,7 @@ Error: [exact message] | Fix: [specific action]
 **Language Rule Loading Requirements:**
 - **MUST load:** Modifying files, running language-specific tools (pytest, ruff, shellcheck), or making code recommendations
 - **MAY skip:** Reading files for context only, listing directories, language-agnostic operations (git, file moves)
+- **Cap:** Load at most 3 domain/activity rules per response (ContextTier-priority deferral). See the rule-loader skill's `workflows/token-budget.md`.
 
 **Examples:**
 - Requires rules: "Run pytest", "Lint this file", "Fix the bug in auth.py"

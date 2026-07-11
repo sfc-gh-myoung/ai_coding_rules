@@ -4,6 +4,10 @@
 
 **Last Updated:** 2026-03-26
 
+> **Agent note:** This full index is a **human reference only**. AI agents MUST
+> perform discovery against `RULES_INDEX_COMPACT.md` (see AGENTS.md Step 2B).
+> Reading this file into agent context is a token-bloat anti-pattern.
+
 ## Format
 
 Each rule is one row in the table below:
@@ -64,7 +68,7 @@ Each matching line is a self-contained table row: the **rule filename is the fir
 
 | Rule | Tier | Tokens | Ext triggers | File triggers | Dir triggers | Keywords |
 |------|------|--------|--------------|---------------|--------------|----------|
-| 000-global-core.md | tier:Critical | ~2400 | - | - | - | kw:workflow, kw:safety, kw:confirmation, kw:validation, kw:surgical edits, kw:minimal changes, kw:prompt engineering, kw:task list, kw:context window, kw:professional communication |
+| 000-global-core.md | tier:Critical | ~2550 | - | - | - | kw:workflow, kw:safety, kw:confirmation, kw:validation, kw:surgical edits, kw:minimal changes, kw:prompt engineering, kw:task list, kw:context window, kw:professional communication |
 | 001-memory-bank.md | tier:Critical | ~1500 | - | - | - | kw:memory bank, kw:context, kw:session recovery, kw:progress tracking, kw:compaction, kw:rapid recovery |
 | 002-rule-governance.md | tier:Critical | ~4900 | - | - | dir:rules/ | kw:rule governance, kw:schema, kw:metadata requirements, kw:validation, kw:schema compliance, kw:rule structure, kw:semantic discovery, kw:rules_index, kw:descriptive headings, kw:design priorities, kw:agent optimization, kw:skill governance |
 | 002a-rule-creation.md | tier:High | ~3900 | - | - | - | kw:rule creation, kw:workflow, kw:step-by-step guide, kw:naming conventions, kw:metadata setup, kw:v3.4 schema, kw:validation, kw:rule numbering, kw:from scratch, kw:new rule |
@@ -80,7 +84,7 @@ Each matching line is a self-contained table row: the **rule filename is the fir
 | 002k-model-optimization.md | tier:Low | ~2550 | - | - | - | kw:model optimization, kw:context window, kw:loading budget, kw:gpt, kw:claude, kw:gemini, kw:token limits, kw:cost efficiency, kw:prompt caching |
 | 002l-skill-advanced-patterns.md | tier:Low | ~3200 | - | - | - | kw:skill composition, kw:plan-validate-execute, kw:orchestrator skill, kw:batch skill, kw:visual analysis pattern, kw:skill advanced patterns, kw:visual analysis, kw:orchestrator worker, kw:batch skills, kw:verifiable outputs, kw:intermediate validation, kw:claude a/b iteration, kw:skill development, kw:toc guidance, kw:solve dont punt, kw:error handling, kw:size heuristic |
 | 002m-agent-format-antipatterns.md | tier:Medium | ~1650 | - | - | - | kw:anti-pattern, kw:ascii table, kw:arrow character, kw:decision tree, kw:passive voice, kw:terminology, kw:mermaid, kw:horizontal rule |
-| 002n-agent-protocol-reference.md | tier:Medium | ~3000 | - | - | - | kw:anti-patterns, kw:quality gates, kw:task switch, kw:rule loading, kw:failure modes, kw:protocol reference, kw:term definitions, kw:gate compliance |
+| 002n-agent-protocol-reference.md | tier:Medium | ~4900 | - | - | - | kw:anti-patterns, kw:quality gates, kw:task switch, kw:rule loading, kw:failure modes, kw:protocol reference, kw:term definitions, kw:gate compliance |
 | 003-context-engineering.md | tier:Critical | ~4300 | - | - | - | kw:context engineering, kw:attention budget, kw:context rot, kw:token efficiency, kw:compaction, kw:progressive disclosure, kw:sub-agents, kw:agentic search, kw:system prompts, kw:right altitude, kw:long-horizon tasks, kw:memory management, kw:state tracking |
 | 003a-long-horizon-tasks.md | tier:Medium | ~2950 | - | - | - | kw:compaction, kw:checkpointing, kw:sub-agents, kw:structured notes, kw:multi-session, kw:context compression, kw:persistent memory, kw:agent coordination |
 | 004-tool-design-for-agents.md | tier:High | ~4500 | - | - | - | kw:tool design, kw:agent tools, kw:token efficiency, kw:tool parameters, kw:function calling, kw:tool contracts, kw:error handling, kw:minimal tool set, kw:self-contained tools, kw:llm-friendly parameters, kw:single responsibility |

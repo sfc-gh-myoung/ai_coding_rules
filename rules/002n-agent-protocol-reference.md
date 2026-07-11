@@ -6,7 +6,7 @@
 **RuleVersion:** v1.0.5
 **LastUpdated:** 2026-07-10
 **Keywords:** kw:anti-patterns, kw:quality gates, kw:task switch, kw:rule loading, kw:failure modes, kw:protocol reference, kw:term definitions, kw:gate compliance
-**TokenBudget:** ~3000
+**TokenBudget:** ~4900
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md
 
@@ -59,7 +59,7 @@ _None._
 
 - Fabricating gate compliance based on session summaries
 - Skipping validation gates before marking tasks complete
-- Guessing rule filenames; always use RULES_INDEX.md grep to find authoritative names
+- Guessing rule filenames; always use RULES_INDEX_COMPACT.md grep to find authoritative names
 - Loading this rule to bypass the EXECUTION SEQUENCE; it supplements, not replaces
 
 ### Execution Steps
@@ -151,7 +151,7 @@ Task complete.
 
 **Correct Pattern:**
 ```markdown
-[Agent executes: grep -iE -m 20 "sql|streamlit" rules/RULES_INDEX.md]
+[Agent executes: grep -iwE "sql|streamlit" rules/RULES_INDEX_COMPACT.md]
 [Actual grep output: 102-snowflake-sql-core.md | tier:High | ~1400 | ...]
 
 PRE-FLIGHT:
@@ -171,7 +171,7 @@ PRE-FLIGHT:
 
 ## Search Triggers
 
-**ALWAYS search RULES_INDEX.md when user request contains ANY of:**
+**ALWAYS search RULES_INDEX_COMPACT.md when user request contains ANY of:**
 
 - **Error messages** (stack traces, exceptions, "error", "failed"): Error-specific rules exist
 - **Screenshots/images** (any visual input): Visual salience overrides protocol — compensate
@@ -190,7 +190,7 @@ PRE-FLIGHT:
 **On Task Switch — STOP and Re-evaluate:**
 1. STOP — Do not proceed with previous rule context
 2. Extract new keywords from current request
-3. Search `rules/RULES_INDEX.md`
+3. Search `rules/RULES_INDEX_COMPACT.md`
 4. Load matching rules before acting
 5. Cite foundation on Gate 1 with `— N lines`; list domain/activity rules as Gate 3 sub-bullets (or `none matched`) in response
 
@@ -201,7 +201,7 @@ PRE-FLIGHT:
 - **Explicit rule read fails:** STOP and report with options (A) Provide correct path, (B) Proceed without this rule, (C) Cancel task
 
 **WARNING (Can proceed with limitations):**
-- **RULES_INDEX.md missing:** WARN, load 000 + grep by extension. Proceed (degraded).
+- **RULES_INDEX_COMPACT.md missing:** WARN, load 000 + grep by extension. Proceed (degraded).
 - **No matching rule found:** Note "No rule found for [keyword]". Proceed with foundation only.
 - **Dependency missing:** Skip dependent rule, log warning. Proceed.
 
@@ -233,18 +233,27 @@ PRE-FLIGHT:
 
 ## RULES_INDEX Format Reference
 
-**Authoritative Source:** `rules/RULES_INDEX.md`
+**Primary agent discovery index:** `rules/RULES_INDEX_COMPACT.md`. This is the ONLY
+index agents grep for discovery. The full `rules/RULES_INDEX.md` is a human-only
+reference (~4x larger); reading it into agent context is a token-bloat anti-pattern.
 
-**Format:** Each rule is one Markdown table row:
+**COMPACT format:** one space-separated row per rule:
 ```
-| Rule | Tier | Tokens | Ext triggers | File triggers | Dir triggers | Keywords |
-| <filename> | tier:<Critical|High|Medium|Low> | ~<tokens> | ext:<csv|-> | file:<csv|-> | dir:<csv|-> | kw:<csv> |
+<filename> tier=<Critical|High|Medium|Low> [ext=<csv>] [file=<csv>] [dir=<csv>] kw=<w1> <w2> ...
 ```
 
 **Grep recipe:**
 ```bash
-grep -iE -m 20 "kw:python|ext:\.py" rules/RULES_INDEX.md
+grep -iwE "python|streamlit|ext=\.py" rules/RULES_INDEX_COMPACT.md
 ```
+
+**Full-index format (human reference only):** one Markdown table row per rule:
+```
+| Rule | Tier | Tokens | Ext triggers | File triggers | Dir triggers | Keywords |
+| <filename> | tier:<...> | ~<tokens> | ext:<csv|-> | file:<csv|-> | dir:<csv|-> | kw:<csv> |
+```
+The COMPACT index carries every discovery trigger the full index has (verified 1:1),
+so COMPACT is sufficient for all agent discovery.
 
 **Essential Rule Metadata fields:**
 - **tier** — loading priority (Critical > High > Medium > Low)
@@ -278,7 +287,7 @@ grep -iE -m 20 "kw:python|ext:\.py" rules/RULES_INDEX.md
 
 **Correct Pattern:**
 ```markdown
-[Agent executes: grep -iE -m 20 "sql|streamlit" rules/RULES_INDEX.md]
+[Agent executes: grep -iwE "sql|streamlit" rules/RULES_INDEX_COMPACT.md]
 [Actual grep output received and read]
 
 PRE-FLIGHT:
@@ -301,3 +310,123 @@ AI: Changes made. Validating:
 Result: Linting clean, Tests passing (15/15)
 Task complete.
 ```
+
+## High-Risk Action Rule Map
+
+High-risk actions require an additional targeted search beyond the normal keyword grep. Load the mapped rule when the request involves:
+
+- git/commit/push/merge: Search "git", expect 803-project-git-workflow.md
+- deploy/deployment: Search "deploy", expect 821-makefile-automation.md
+- test/pytest: Search "test", expect 206-python-pytest.md
+- README/documentation: Search "readme", expect 801-project-readme.md
+- CHANGELOG: Search "changelog", expect 800-project-changelog.md
+- Modifying files in rules/: Load 002-rule-governance.md
+
+## Keyword Extraction Heuristic
+
+When a user request contains multiple technologies (joined by `+`, `and`, `with`, `,`, or `using`):
+
+1. Split request on delimiters to identify individual technologies
+2. Technical terms (capitalized, hyphenated, acronyms like SSE/API/SPCS) are almost always keywords
+3. Each technology should be included in the grep OR pattern
+
+**Example:** "FastAPI + HTMX + SSE in SPCS" produces `grep -iwE "fastapi|htmx|sse|spcs" rules/RULES_INDEX_COMPACT.md` (4 keywords)
+
+## Gate Failure Message Catalog
+
+Exact per-gate failure messages used by the bootstrap PRE-FLIGHT header (AGENTS.md Step 4).
+
+Gate 1 failures:
+- "rules/000-global-core.md not found"
+- "rules/000-global-core.md returned empty content"
+- "read_file tool not available"
+
+Gate 2 failures:
+- "rules/RULES_INDEX_COMPACT.md not found"
+- "grep tool unavailable" -> **AUTO-FALLBACK:** Read RULES_INDEX_COMPACT.md directly and scan manually. Do NOT mark as FAILED if fallback succeeds.
+- "No keywords extracted from user request"
+
+Gate 3 failures:
+- "Rule file [name] not found"
+- "Dependency [name] could not be loaded"
+- "All matched rules failed to load"
+
+## Partial Rule Loading
+
+**CRITICAL - READ CAREFULLY:**
+- If SOME rules load and SOME fail: Gate 3 = PASS (mark `[x]`) and CONTINUE with task
+- **DO NOT STOP** when partial failure occurs - proceed with successfully loaded rules
+- List loaded rules + note failures as Gate 3 sub-bullets
+- Only mark Gate 3 as FAILED (`[ ]`) when **ALL** matched rules fail to load
+- "Partial failure" means CONTINUE, not STOP
+
+**Example - Partial Success:**
+```markdown
+PRE-FLIGHT:
+- [x] Gate 1: Foundation rules/000-global-core.md — N lines
+- [x] Gate 2: RULES_INDEX_COMPACT.md searched for: python, sql
+- [x] Gate 3: +1 domain rule:
+  - rules/102-snowflake-sql-core.md (for .sql extension) — N lines
+  - ⚠️ Rule load failed: 200-python-core.md not found
+```
+Note: Gate 3 shows `[x]` because SQL rule loaded successfully. Continue with available rules.
+
+## ACT Authorization Recognition (MODE)
+
+Applies only in MODE-enabled deployments.
+
+**MANDATORY PRE-PROCESSING (execute BEFORE checking for ACT):**
+```
+Step 1: Get user message
+Step 2: Strip leading/trailing whitespace
+Step 3: Strip trailing punctuation: remove any `.`, `!`, `?` from END of string
+Step 4: NOW check if result equals "ACT" (case-insensitive) or starts with "ACT on"
+```
+
+**Examples of VALID ACT authorization (all MUST trigger MODE: ACT):**
+
+- `ACT` / `act` / `Act` (after strip) -> VALID, MODE: ACT
+- `ACT.` / `ACT!` / `ACT?` / `act.` (after strip: `ACT`/`act`) -> VALID, MODE: ACT
+- `ACT on items 1-2` (after strip) -> VALID, MODE: ACT (scoped)
+
+**Examples of INVALID (must NOT trigger MODE: ACT):**
+
+- `proceed`, `go ahead`, `yes`, `okay`, `do it`, `make the changes`, `sounds good` - Not "ACT"
+- `Yes I want you to ACT` - "ACT" embedded in sentence
+- `ATC`, `AC`, `ACTT` - Typos
+
+**When the user sends a typo (e.g., "ATC", "AC", "ACTT"):**
+- You MUST still include the full PRE-FLIGHT header with MODE: PLAN
+- You MUST NOT skip the response structure even when correcting user input
+- Respond helpfully but maintain protocol compliance, then ask: `Did you mean "ACT"? Please reply with \`ACT\` to proceed.`
+
+**Recognition rules:**
+- **Exact match required:** ACT must be the ENTIRE message (after stripping punctuation) OR start with "ACT on"
+- **Embedded ACT is NOT valid:** "I think you should act on this" contains "act" but is NOT authorization
+- **Partial authorization:** "ACT on items 1-N" MUST trigger MODE: ACT (scoped to specified items)
+- **Authorization prompt REQUIRED for file modifications:** Even when asking clarifying questions, include "Authorization (required): Reply with `ACT` once clarification is provided"
+
+## Step 2B Fallback Details
+
+The bootstrap's Step 2B runs ONLY when the rule-loader skill (Step 2) is unavailable. The condensed grep command lives inline in AGENTS.md; the supporting detail is here.
+
+**A. Keyword extraction:**
+1. Identify the PRIMARY VERB (test, deploy, lint, commit, help, fix, create, etc.)
+2. Identify the PRIMARY TECHNOLOGY (Python, Docker, Snowflake, etc.)
+3. Identify any FILE EXTENSIONS mentioned (.py, .sql, .tsx, etc.)
+
+**CRITICAL:** If ANY word in the request could be a keyword, extract it. Gate 2 should ONLY fail if the grep tool is unavailable OR the request is truly empty. **DO NOT fail Gate 2** for vague requests — always extract at least the verb or noun.
+
+**C. Grep sanity check:** Zero results is almost always an anomaly. RULES_INDEX_COMPACT.md has one row per rule (~200 rules); common keywords (python, sql, docker, deploy, test, streamlit, fastapi, snowflake) should ALWAYS match. On zero results for a common keyword: (1) re-execute grep once, (2) if still zero, use the read_file fallback immediately, (3) note "Grep returned unexpectedly empty — used fallback". Expected volume: 2–15 lines (multi-tech), 1–5 (single-tech); zero for reasonable keywords = ANOMALY.
+
+**D. Gate 2 verification:** Gate 2 passes ONLY if the agent invoked the rule-loader skill (Step 2) OR executed grep / the read_file fallback (Step 2B) AND can cite specific matched lines or rule names. A Gate 2 claim without a corresponding tool call in the same response is INVALID. Claiming Gate 2 from prior session context or summaries is an anti-pattern — re-execute per the Step 0 decision tree. Consistency: if Gate 2 lists keywords, Gate 3 MUST list specific rule filenames OR state "no rules found for [keyword]".
+
+## PRE-FLIGHT Gate Checklist Rules
+
+- Use `[x]` only for completed gates (read_file succeeded); `[ ]` for incomplete (triggers INVALID response).
+- List actual keywords searched in Gate 2.
+- List domain/activity rules as Gate 3 sub-bullets, or `none matched`; the foundation is cited only on Gate 1.
+
+**Rule Loading Definition:** Loading = Read file + Apply guidance + Declare as Gate 3 sub-bullet. All three required. NEVER declare a rule loaded unless `read_file` returned successfully.
+
+**Citation format (for eval compatibility):** When listing rules as Gate 3 sub-bullets, prefer `<path> (<reason>) — N lines` where `N` is the `wc -l` output. Example: `- [x] Gate 1: Foundation rules/000-global-core.md — 267 lines`. The `— N lines` suffix enables citation-drift detection by the rule-loader evaluator.

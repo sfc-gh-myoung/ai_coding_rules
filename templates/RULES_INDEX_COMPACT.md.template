@@ -1,6 +1,9 @@
 <!-- Template: Do not edit directly. Run `ai-rules index generate` to regenerate. -->
 # RULES_INDEX_COMPACT
 
+> **Agent note:** This COMPACT index is the **primary and only** discovery index
+> for AI agents. Grep here for keywords, extensions, and directories.
+
 Grep-optimised, keyword-only projection of `RULES_INDEX.md`. One line per rule.
 
 Format: `<filename> tier=<T> [ext=<...>] [file=<...>] [dir=<...>] kw=<word1> <word2> ...`

@@ -29,7 +29,9 @@ IF neither directory mentioned:
 
 ### Step 2: File Extension Matching
 
-Extract all file extensions from the user request, then look up each in RULES_INDEX.md Section 2.
+Extract all file extensions from the user request, then look up each via
+`grep -iwE "ext=\.<ext>" rules/RULES_INDEX_COMPACT.md` (the compact index is the
+only index agents grep). The static table below mirrors that index for quick reference.
 
 **Authoritative Extension Mapping:**
 
@@ -86,9 +88,9 @@ If no extensions found and no directory matches, skip to Phase 3.
 
 ## Rules
 
-- **MANDATORY:** Use only rule names from RULES_INDEX.md. Never invent rule names.
+- **MANDATORY:** Use only rule names from RULES_INDEX_COMPACT.md. Never invent rule names.
 - **FORBIDDEN:** Guessing `300-sql-core.md` when the index says `102-snowflake-sql-core.md`.
-- If an extension has no mapping in RULES_INDEX.md, note: "No domain rule for [extension]"
+- If an extension has no mapping in RULES_INDEX_COMPACT.md, note: "No domain rule for [extension]"
 - Multiple extensions can match (e.g., `.py` + `.sql` loads both domain rules)
 
 ## Deduplication

@@ -544,7 +544,7 @@ uv run ai-rules --help
 | `ai-rules index` | Generate and check `rules/RULES_INDEX.md` from rule metadata |
 | `ai-rules keywords` | Suggest/update keywords via Snowflake Cortex (AI_COMPLETE) |
 | `ai-rules deploy` | Deploy rules and skills to target projects |
-| `ai-rules tokens` | Validate and update TokenBudget metadata |
+| `ai-rules tokens` | Validate/update TokenBudget metadata; `--context-estimate` reports total per-response context |
 | `ai-rules new` | Generate new rule file from v3.2 template |
 | `ai-rules badges` | Update README badges (version, tests, coverage) |
 | `ai-rules refs` | Validate rule references in `rules/RULES_INDEX.md` |

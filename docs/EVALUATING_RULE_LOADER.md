@@ -554,3 +554,13 @@ When adding or editing a fixture:
 
 See [`fixtures/rule_loader_eval/AUTHORING_GUIDE.md`](../fixtures/rule_loader_eval/AUTHORING_GUIDE.md)
 for prompt-writing guidance, pass/fail semantics, and common pitfalls.
+
+## Token-efficiency baseline / before-after comparison
+
+When a change targets rule-loading token cost (e.g. COMPACT-only discovery, bootstrap trimming), gate it on a before/after eval in addition to the per-fixture checks:
+
+1. Baseline (pre-change tree): `git stash` the change, then `uv run ai-rules rule-loader eval --runs 3` and keep the snapshot dir.
+2. Post-change: restore the change, re-run `uv run ai-rules rule-loader eval --runs 3`.
+3. Compare: `uv run ai-rules rule-loader compare <baseline-snapshot> <post-snapshot>`.
+
+Acceptance = **zero discovery regressions** (same rule sets matched per fixture) AND a measurable reduction in mean input tokens/fixture. Use `ai-rules tokens --context-estimate --selected <rule> ...` for a fast static estimate of per-response context (fixed floor + COMPACT index match + selected rules) without a live run.

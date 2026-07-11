@@ -65,6 +65,22 @@ Deferred rules must be declared in the Rules Loaded section:
 | **Standard** | + 1-2 activity rules | ~8,000-12,000 |
 | **Complete** | + specialized rules | ~15,000-20,000 |
 
+## Domain-rule cap (R3)
+
+- Load at most **3** domain/activity rules per response by default (`max_domain_rules = 3`).
+- When >3 candidates match, keep by ContextTier priority: Critical > High > Medium > Low.
+- Break ties by descending keyword-match count, then ascending TokenBudget.
+- Declare every deferral: `[Deferred: <rule> - <tier> tier, over rule cap]`.
+
+## Total-context accounting (R4)
+
+- The budget ceiling (default 20,000) applies to the WHOLE per-response context,
+  not just selected rules:
+  `total = fixed_floor + index_match + sum(selected rules)`.
+- `fixed_floor` = AGENTS.md + 000-global-core.md + rule-loader/SKILL.md (always injected).
+- Verify with: `ai-rules tokens --context-estimate --selected <rule> [--selected <rule> ...]`.
+- If `total > ceiling`: defer Low, then Medium, then apply the rule cap before deferring any High/Critical rule.
+
 ## Rules
 
 - Agent self-regulates token budget (no external enforcement)

@@ -70,12 +70,12 @@ Always load `000-global-core.md`. Non-negotiable.
 **Details:** `workflows/foundation-loading.md`
 
 ### Phase 2: Domain Matching
-Match file extensions and directory paths to domain rules using RULES_INDEX.md Section 2.
+Match file extensions and directory paths to domain rules using RULES_INDEX_COMPACT.md.
 
 **Details:** `workflows/domain-matching.md`
 
 ### Phase 3: Activity Matching
-Search RULES_INDEX.md for keyword matches from the user request.
+Search RULES_INDEX_COMPACT.md for keyword matches from the user request.
 
 **Details:** `workflows/activity-matching.md`
 
@@ -85,7 +85,10 @@ For each selected rule, check `Depends` metadata and load prerequisites first.
 **Details:** `workflows/dependency-resolution.md`
 
 ### Phase 5: Token Budget Management
-Sum TokenBudget values, defer low-priority rules if over budget.
+Sum TokenBudget values, defer low-priority rules if over budget. Cap domain/activity
+rules at 3 per response (ContextTier-priority deferral). The budget ceiling applies to
+TOTAL per-response context (fixed floor + index match + selected rules), not just the
+selected rules — verify with `ai-rules tokens --context-estimate`.
 
 **Details:** `workflows/token-budget.md`
 
@@ -96,12 +99,13 @@ After rule selection, verify:
 1. Foundation (000-global-core.md) is always present
 2. Every loaded rule was actually read via `read_file` (not assumed)
 3. Dependencies loaded before dependents
-4. Total token budget does not exceed limit (default 20,000)
-5. Deferred rules are declared with reason
+4. Total per-response context (fixed floor + index match + selected rules) does not exceed limit (default 20,000)
+5. No more than 3 domain/activity rules loaded (ContextTier-priority cap)
+6. Deferred rules are declared with reason
 
 ## Error Handling
 
-**RULES_INDEX.md not found:**
+**RULES_INDEX_COMPACT.md not found:**
 - Warn, fall back to foundation + file-extension matching only
 - Proceed in degraded mode
 

@@ -71,69 +71,42 @@ Execute: `read_file("{{rules_path}}/000-global-core.md")`
 
 Execute: `read_file("{{skills_path}}/rule-loader/SKILL.md")`
 
-The `rule-loader/SKILL.md` skill is the PRIMARY discovery mechanism. It defines the authoritative workflow for foundation loading, domain matching, activity matching, dependency resolution, and token-budget management, and it executes RULES_INDEX.md discovery internally.
+The `rule-loader/SKILL.md` skill is the PRIMARY discovery mechanism. It defines the authoritative workflow for foundation loading, domain matching, activity matching, dependency resolution, and token-budget management, and it executes RULES_INDEX_COMPACT.md discovery internally.
 
 - If success: Follow the skill's Phase 2-5 workflow (Domain -> Activity -> Dependencies -> Token Budget). The skill returns the selected rule set. Record which keywords it searched for use in Gate 2 of the response header. Continue to Step 3 with that selected set.
 - If file_not_found OR unreadable OR the skill cannot be invoked in this environment: Fall back to **Step 2B**. Do not stop — the fallback is a supported path.
 
-**Step 2B (FALLBACK): Search RULES_INDEX.md directly**
+**Step 2B (FALLBACK): Search RULES_INDEX_COMPACT.md directly**
 
 Execute this path ONLY when Step 2 (skill invocation) failed. This preserves discovery when the rule-loader skill is unavailable (missing, unreadable, or the runtime does not support skill invocation).
 
-A. Extract keywords from user request:
-   1. Identify the PRIMARY VERB (test, deploy, lint, commit, help, fix, create, etc.)
-   2. Identify the PRIMARY TECHNOLOGY (Python, Docker, Snowflake, etc.)
-   3. Identify any FILE EXTENSIONS mentioned (.py, .sql, .tsx, .xyz, etc.)
+A. Extract keywords: PRIMARY VERB + PRIMARY TECHNOLOGY + any FILE EXTENSIONS.
+   Extract at least the verb or noun; never fail Gate 2 for vague requests.
+   (Full rule: "Step 2B Fallback Details" in {{rules_path}}/002n-agent-protocol-reference.md.)
 
-   **CRITICAL:** If ANY word in the request could be a keyword, extract it. Gate 2 should ONLY fail if:
-   - The grep tool is unavailable, OR
-   - The request is truly empty (e.g., just "?" or whitespace)
+B. Execute search (COMPACT index is the ONLY agent discovery index):
+   - If bash tool available: Execute `grep -iwE "KEYWORD1|KEYWORD2|KEYWORD3" {{rules_path}}/RULES_INDEX_COMPACT.md` (combine keywords with OR).
+   - **Format:** Each matching line is a self-contained row — `<filename> tier=<T> [ext=..] [file=..] [dir=..] kw=<w1> <w2> ...`. The rule filename is the first field. No further lookup is needed.
+   - **If grep unavailable: AUTOMATICALLY read {{rules_path}}/RULES_INDEX_COMPACT.md and scan manually (do NOT stop).** Mark Gate 2 PASSED if the manual scan succeeds. This is the REQUIRED fallback — do not offer recovery options.
+   - If grep returns matches (exit 0): Record matched rules for Step 3.
+   - If grep returns no matches (exit 1): Note "No rules found for [keyword]".
+   - If grep returns error (exit 2): Read {{rules_path}}/RULES_INDEX_COMPACT.md and scan manually.
+   - **Do NOT read {{rules_path}}/RULES_INDEX.md.** The full index is a human-only reference and is ~4x larger; reading it into context is a token-bloat anti-pattern. All agent discovery uses COMPACT.
+   - **FORBIDDEN:** Substituting glob, find, or ls for the grep command above.
 
-   **DO NOT fail Gate 2** for vague requests - always extract at least the verb or noun.
+C. Sanity + Gate-2 verification: zero results for a common keyword is an anomaly
+   (re-grep once, then read_file fallback). Gate 2 passes ONLY with a real grep or
+   read_file call you can cite — never from prior session context or a summary.
+   Details: "Step 2B Fallback Details" in {{rules_path}}/002n-agent-protocol-reference.md.
 
-B. Execute search:
-   - If bash tool available: Execute `grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" {{rules_path}}/RULES_INDEX.md` (combine keywords with OR). For faster keyword-only scans (~4× smaller footprint) prefer `grep -iwE "KEYWORD1|KEYWORD2" {{rules_path}}/RULES_INDEX_COMPACT.md`, then fall back to the full index for cell context if needed.
-   - **Table format:** Each matching line is a self-contained Markdown table row — the rule filename is the first column, followed by `tier:` and `~tokens`. No context lookup needed beyond the row itself.
-   - **If grep unavailable: AUTOMATICALLY read {{rules_path}}/RULES_INDEX.md and manually scan for keywords (do NOT stop).** Mark Gate 2 as PASSED if manual scan succeeds. This is the REQUIRED fallback - do not offer recovery options, just execute the fallback.
-   - If grep returns matches (exit 0): Record matched rules for Step 3
-   - If grep returns no matches (exit 1): Note "No rules found for [keyword]"
-   - If grep returns error (exit 2): Fall back to reading {{rules_path}}/RULES_INDEX.md and manually scanning
-   - **FORBIDDEN:** Substituting glob, find, ls, or any file-discovery tool for the grep command specified above. The path is absolute and hardcoded — there is nothing to discover. Execute the exact command as written. If grep is unavailable, use ONLY the specified fallback (read_file + manual scan).
+E. High-risk actions require an additional targeted search. See
+   "High-Risk Action Rule Map" in {{rules_path}}/002n-agent-protocol-reference.md.
+   (Load 002n now if the request involves git, deploy, test, README, CHANGELOG,
+   or edits under {{rules_path}}/.)
 
-C. Grep sanity check (MANDATORY):
-   **Zero results is almost always an anomaly.** RULES_INDEX.md has ~250 lines with one Markdown table row per rule. Common technology keywords (python, sql, docker, deploy, test, streamlit, fastapi, snowflake) should ALWAYS return matches.
-   
-   **On zero results for any common keyword:**
-   1. Re-execute grep once (transient failure recovery)
-   2. If still zero: Execute read_file fallback immediately
-   3. Document anomaly in response: "Grep returned unexpectedly empty - used fallback"
-   
-   **Expected output volume:**
-   - Multi-technology requests: 2-15 matching lines
-   - Single-technology requests: 1-5 matching lines
-   - Zero lines for reasonable keywords = ANOMALY requiring fallback
-
-D. Gate 2 verification (MANDATORY):
-   - Gate 2 is ONLY considered passed if the agent invoked the rule-loader skill (Step 2) OR executed grep / the read_file fallback (Step 2B) AND can cite specific matched lines or rule names from the output.
-   - A Gate 2 claim without corresponding tool execution in the same response is INVALID — equivalent to an unchecked gate.
-   - **Anti-pattern:** Claiming Gate 2 passed based on prior session context, conversation summaries, or memory. Gate 2 must be re-executed per the Step 0 decision tree. Summaries are not evidence of execution.
-   - **Consistency check:** If Gate 2 lists keywords searched, Gate 3 MUST list specific rule filenames OR explicitly state "no rules found for [keyword]". Gate 2 "searched for: X, Y, Z" combined with Gate 3 showing zero rules is a contradiction requiring investigation.
-
-E. High-risk actions (MANDATORY additional search):
-   - git/commit/push/merge: Search "git", expect 803-project-git-workflow.md
-   - deploy/deployment: Search "deploy", expect 821-makefile-automation.md
-   - test/pytest: Search "test", expect 206-python-pytest.md
-   - README/documentation: Search "readme", expect 801-project-readme.md
-   - CHANGELOG: Search "changelog", expect 800-project-changelog.md
-   - Modifying files in {{rules_path}}/: Load 002-rule-governance.md
-
-F. Keyword extraction heuristic:
-   When user request contains multiple technologies (joined by `+`, `and`, `with`, `,`, or `using`):
-   1. Split request on delimiters to identify individual technologies
-   2. Technical terms (capitalized, hyphenated, acronyms like SSE/API/SPCS) are almost always keywords
-   3. Each technology should be included in the grep OR pattern
-   
-   **Example:** "FastAPI + HTMX + SSE in SPCS" produces `grep -iE "fastapi|htmx|sse|spcs"` (4 keywords)
+F. For multi-technology requests, split on `+`, `and`, `with`, `,`, `using` and
+   include each technology in the grep OR pattern. Full heuristic + examples:
+   "Keyword Extraction Heuristic" in {{rules_path}}/002n-agent-protocol-reference.md.
 
 **Step 3: Load Matching Rules**
 
@@ -152,14 +125,14 @@ B. Check directory-based rules:
 C. Load domain rules for file extensions:
    1. Extract all file extensions from user request (e.g., ".py", ".sql", ".tsx")
    2. For EACH extension found:
-      - **MANDATORY:** Look up exact rule name in {{rules_path}}/RULES_INDEX.md table (grep: `grep -iE "ext:\.<ext>" {{rules_path}}/RULES_INDEX.md`; the rule filename is the first table column)
-      - Use ONLY the rule name specified in RULES_INDEX.md (e.g., `.sql` -> `102-snowflake-sql-core.md`)
-      - **FORBIDDEN:** Inventing rule names not in RULES_INDEX.md (e.g., `300-sql-core.md` does not exist)
+      - **MANDATORY:** Look up the exact rule name via `grep -iwE "ext=\.<ext>" {{rules_path}}/RULES_INDEX_COMPACT.md`; the rule filename is the first field.
+      - Use ONLY the rule name found in RULES_INDEX_COMPACT.md (e.g., `.sql` -> `102-snowflake-sql-core.md`)
+      - **FORBIDDEN:** Inventing rule names not in RULES_INDEX_COMPACT.md (e.g., `300-sql-core.md` does not exist)
       - If mapping found: Load the specified rule file using exact name
       - If mapping NOT found: Note in Rules Loaded: "No domain rule for [extension]"
    3. If NO extensions found in request: Skip to Step 3D
 
-   **Do not guess rule names.** Use `grep -iE "ext:\.<ext>" {{rules_path}}/RULES_INDEX.md` to find the authoritative filename for any extension.
+   **Do not guess rule names.** Use `grep -iwE "ext=\.<ext>" {{rules_path}}/RULES_INDEX_COMPACT.md` to find the authoritative filename for any extension.
 
 D. Load activity rules from Step 2 matches:
    - For EACH rule matched in Step 2: Execute `read_file("{{rules_path}}/[rule-name].md")`
@@ -185,7 +158,7 @@ Output this exact structure at the start of **EVERY** response (including clarif
 ```markdown
 PRE-FLIGHT:
 - [x] Gate 1: Foundation {{rules_path}}/000-global-core.md — N lines
-- [x] Gate 2: RULES_INDEX.md searched for: [list keywords searched]
+- [x] Gate 2: RULES_INDEX_COMPACT.md searched for: [list keywords searched]
 - [x] Gate 3: +N domain rule(s):
   - {{rules_path}}/[domain-or-activity-rule].md ([reason]) — N lines
 (or, when nothing matches: `- [x] Gate 3: none matched`)
@@ -230,40 +203,13 @@ Recovery options:
 [Do NOT proceed with response content until user selects recovery option]
 ```
 
-**Gate Failure Messages:**
+**Gate Failure Messages:** See "Gate Failure Message Catalog" in
+{{rules_path}}/002n-agent-protocol-reference.md for the exact per-gate messages
+and the grep-unavailable AUTO-FALLBACK rule.
 
-Gate 1 failures:
-- "{{rules_path}}/000-global-core.md not found"
-- "{{rules_path}}/000-global-core.md returned empty content"
-- "read_file tool not available"
-
-Gate 2 failures:
-- "{{rules_path}}/RULES_INDEX.md not found"
-- "grep tool unavailable" -> **AUTO-FALLBACK:** Read RULES_INDEX.md directly and scan manually. Do NOT mark as FAILED if fallback succeeds.
-- "No keywords extracted from user request"
-
-Gate 3 failures:
-- "Rule file [name] not found"
-- "Dependency [name] could not be loaded"
-- "All matched rules failed to load"
-
-**Partial Rule Loading (CRITICAL - READ CAREFULLY):**
-- If SOME rules load and SOME fail: Gate 3 = PASS (mark `[x]`) and CONTINUE with task
-- **DO NOT STOP** when partial failure occurs - proceed with successfully loaded rules
-- List loaded rules + note failures as Gate 3 sub-bullets
-- Only mark Gate 3 as FAILED (`[ ]`) when **ALL** matched rules fail to load
-- "Partial failure" means CONTINUE, not STOP
-
-**Example - Partial Success:**
-```markdown
-PRE-FLIGHT:
-- [x] Gate 1: Foundation {{rules_path}}/000-global-core.md — N lines
-- [x] Gate 2: RULES_INDEX.md searched for: python, sql
-- [x] Gate 3: +1 domain rule:
-  - {{rules_path}}/102-snowflake-sql-core.md (for .sql extension) — N lines
-  - ⚠️ Rule load failed: 200-python-core.md not found
-```
-Note: Gate 3 shows `[x]` because SQL rule loaded successfully. Continue with available rules.
+**Partial Rule Loading:** If SOME rules load and SOME fail, Gate 3 = PASS (`[x]`)
+and CONTINUE. Only mark Gate 3 FAILED when ALL matched rules fail. Full rule +
+worked example: "Partial Rule Loading" in {{rules_path}}/002n-agent-protocol-reference.md.
 
 **Rule Loading Definition:**
 Loading = Read file + Apply guidance + Declare as Gate 3 sub-bullets. All three required.

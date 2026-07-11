@@ -2,7 +2,7 @@
 
 These tests assert the INTENDED STATE after plan-task-0f26caf9 Step 2 implementation:
   - Both AGENTS templates make rule-loader skill the PRIMARY Step 2 mechanism.
-  - grep against RULES_INDEX.md is explicitly a FALLBACK (Step 2B), labelled as such.
+  - grep against RULES_INDEX_COMPACT.md is explicitly a FALLBACK (Step 2B), labelled as such.
   - Both templates are parity-consistent in their Step 2 regions.
 
 Tests referencing `rule-loader/SKILL.md` or a FALLBACK marker are expected to FAIL
@@ -24,10 +24,12 @@ NO_MODE_TEMPLATE = TEMPLATES_DIR / "AGENTS_NO_MODE.md.template"
 _START_MARKERS = {"<!-- MODE-ONLY:start -->", "<!-- NO-MODE-ONLY:start -->"}
 _END_MARKERS = {"<!-- MODE-ONLY:end -->", "<!-- NO-MODE-ONLY:end -->"}
 
-# Stable tokens required by the plan in the new Step 2 block
+# Stable tokens required by the plan in the new Step 2 block.
+# GREP_TOKEN is intentionally the flag-agnostic prefix `grep -i` so it matches both
+# the legacy `grep -iE` and the COMPACT-era `grep -iwE` (word-boundary) fallback.
 SKILL_PATH_TOKEN = "rule-loader/SKILL.md"
 FALLBACK_RE = re.compile(r"(FALLBACK|Step 2B\b|2B\.)", re.IGNORECASE)
-GREP_TOKEN = "grep -iE"
+GREP_TOKEN = "grep -i"
 RULES_INDEX_TOKEN = "RULES_INDEX.md"
 
 

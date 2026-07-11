@@ -4,6 +4,10 @@
 
 **Last Updated:** 2026-03-26
 
+> **Agent note:** This full index is a **human reference only**. AI agents MUST
+> perform discovery against `RULES_INDEX_COMPACT.md` (see AGENTS.md Step 2B).
+> Reading this file into agent context is a token-bloat anti-pattern.
+
 ## Format
 
 Each rule is one row in the table below:

@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **feat(tokens):** add `ai-rules tokens --context-estimate` — a read-only estimator of total per-response rule-loading context (fixed floor of AGENTS.md + 000-global-core.md + rule-loader/SKILL.md, plus COMPACT index-match cost, plus `--selected` rule token counts). Supports `--selected` (repeatable) and `--ceiling` (default 20000); exits 0 under ceiling, 1 over, 2 on a missing selected/floor file. Never writes files. (`src/ai_rules/commands/tokens.py`, tests in `tests/cli/test_tokens.py`)
+
 ### Changed
+
+- **feat(token-efficiency):** route all agent rule discovery to `RULES_INDEX_COMPACT.md` and demote the full `RULES_INDEX.md` to a human-only reference (banner added; agents are instructed not to read it). Updated both AGENTS templates (Step 2B/3C), the rule-loader skill + `workflows/`, and `rules/002n-agent-protocol-reference.md`. Gate-2 labels now cite `RULES_INDEX_COMPACT.md` (retains the `RULES_INDEX` substring for citation-drift detection).
+- **feat(token-efficiency):** aggressively trim the always-injected bootstrap — moved the high-risk action map, keyword-extraction heuristic, gate-failure catalog, partial-loading rule, ACT-recognition examples, Step 2B fallback internals, and gate-checklist/citation reference from the AGENTS templates into load-on-demand `rules/002n-agent-protocol-reference.md`. Deployed `AGENTS.md` 280 → 226 lines (−19%); `TokenBudget` re-derived (002n ~3000 → ~4900, 000-global-core ~2400 → ~2550).
+- **feat(token-efficiency):** cap domain/activity rule loading at 3 per response (ContextTier-priority deferral) and redefine the token-budget ceiling to cover TOTAL per-response context (fixed floor + index match + selected rules), verifiable via `ai-rules tokens --context-estimate`. Codified in `skills/rule-loader/workflows/token-budget.md`, `SKILL.md`, and `rules/000-global-core.md`.
 
 - **chore(rules):** tighten dependency declarations across all rules (Must Load First ≤3, Related ≤3, drop Recommended tier, drop [Available] markers, normalize to bullet-list, sync **Depends:** metadata). 180 rule files updated: 48 over-limit rules edited editorially, 132 non-overlimit rules had Depends metadata synced from prose (C11). Pre-existing cycle in `002c-rule-optimization.md` resolved. Policy codified in `002-rule-governance.md § Dependency Declaration Limits`. Custom gap-check scripts written to `.workbench/rule-dep-audit/`.
 

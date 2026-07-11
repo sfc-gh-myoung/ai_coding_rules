@@ -988,3 +988,124 @@ class TestTokensCLIBranches:
             result = runner.invoke(app, ["tokens", str(weird_path)])
 
         assert result.exit_code == 1
+
+
+@pytest.fixture
+def estimate_repo(tmp_path: Path) -> Path:
+    """Build a minimal repo skeleton for --context-estimate tests."""
+    (tmp_path / "templates").mkdir()
+    (tmp_path / "templates" / "AGENTS_MODE.md.template").write_text("template\n")
+    rules = tmp_path / "rules"
+    rules.mkdir()
+    (tmp_path / "AGENTS.md").write_text("# AGENTS\n" + ("floor body line\n" * 20))
+    (rules / "000-global-core.md").write_text("# core\n" + ("core line\n" * 15))
+    skills = tmp_path / "skills" / "rule-loader"
+    skills.mkdir(parents=True)
+    (skills / "SKILL.md").write_text("# skill\n" + ("skill line\n" * 10))
+    (rules / "RULES_INDEX_COMPACT.md").write_text(
+        "100-snowflake-core.md tier=High ext=.sql kw=sql cte performance\n"
+        "200-python-core.md tier=High ext=.py kw=python testing\n"
+    )
+    (rules / "100-snowflake-core.md").write_text("# sql\n" + ("sql line\n" * 30))
+    return tmp_path
+
+
+class TestContextEstimate:
+    """Tests for `ai-rules tokens --context-estimate` (R4)."""
+
+    @pytest.mark.unit
+    def test_help_shows_context_estimate_option(self):
+        """--help lists the new --context-estimate option."""
+        result = runner.invoke(app, ["tokens", "--help"])
+
+        assert result.exit_code == 0
+        assert "--context-estimate" in result.output
+
+    @pytest.mark.unit
+    def test_under_ceiling_exits_zero_and_prints_total(self, estimate_repo: Path):
+        """A selected rule under the ceiling prints a TOTAL and exits 0."""
+        result = runner.invoke(
+            app,
+            [
+                "tokens",
+                str(estimate_repo),
+                "--context-estimate",
+                "--selected",
+                "100-snowflake-core.md",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "TOTAL" in result.output
+        assert "within budget" in result.output
+
+    @pytest.mark.unit
+    def test_over_ceiling_exits_one(self, estimate_repo: Path):
+        """Exceeding a tiny ceiling exits 1."""
+        result = runner.invoke(
+            app,
+            [
+                "tokens",
+                str(estimate_repo),
+                "--context-estimate",
+                "--selected",
+                "100-snowflake-core.md",
+                "--ceiling",
+                "100",
+            ],
+        )
+
+        assert result.exit_code == 1
+        assert "OVER BUDGET" in result.output
+
+    @pytest.mark.unit
+    def test_missing_selected_rule_exits_two(self, estimate_repo: Path):
+        """A selected rule that does not exist exits 2."""
+        result = runner.invoke(
+            app,
+            [
+                "tokens",
+                str(estimate_repo),
+                "--context-estimate",
+                "--selected",
+                "does-not-exist.md",
+            ],
+        )
+
+        assert result.exit_code == 2
+
+    @pytest.mark.unit
+    def test_estimate_never_writes_files(self, estimate_repo: Path):
+        """Estimate mode is read-only: no floor/rule file is modified."""
+        watched = [
+            estimate_repo / "AGENTS.md",
+            estimate_repo / "rules" / "000-global-core.md",
+            estimate_repo / "rules" / "100-snowflake-core.md",
+        ]
+        before = {p: p.stat().st_mtime_ns for p in watched}
+
+        result = runner.invoke(
+            app,
+            [
+                "tokens",
+                str(estimate_repo),
+                "--context-estimate",
+                "--selected",
+                "100-snowflake-core.md",
+            ],
+        )
+
+        assert result.exit_code == 0
+        after = {p: p.stat().st_mtime_ns for p in watched}
+        assert before == after
+
+    @pytest.mark.unit
+    def test_no_selected_uses_default_index_cost(self, estimate_repo: Path):
+        """With no --selected, floor + default index cost still totals and exits 0."""
+        result = runner.invoke(
+            app,
+            ["tokens", str(estimate_repo), "--context-estimate"],
+        )
+
+        assert result.exit_code == 0
+        assert "TOTAL" in result.output

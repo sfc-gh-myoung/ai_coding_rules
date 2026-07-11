@@ -32,21 +32,22 @@ grep -iE "fastapi|htmx|sse|spcs" rules/RULES_INDEX_COMPACT.md
 ### Step 2: Search RULES_INDEX_COMPACT.md (grep against the compact index)
 
 Execute a single compound grep combining all keywords. Target the compact
-index (`rules/RULES_INDEX_COMPACT.md`) — it is a pipe-separated,
-keyword-only projection of `RULES_INDEX.md` designed to minimise tokens
-consumed by grep-fallback discovery.
+index (`rules/RULES_INDEX_COMPACT.md`) — a space-separated, keyword-only
+projection of `RULES_INDEX.md` designed to minimise tokens consumed by
+discovery. It is the ONLY index agents should grep.
 
 ```bash
 grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" rules/RULES_INDEX_COMPACT.md
 ```
 
 Each hit is a self-contained row of the form
-`<filename> | tier:X | ext:... | file:... | dir:... | kw:...` — the
+`<filename> tier=<T> [ext=..] [file=..] [dir=..] kw=<w1> <w2> ...` — the
 rule filename is the first field.
 
-**Fallback to the full index** (`rules/RULES_INDEX.md`) only when the
-compact index is missing, or when a hit's context is needed. Every row in
-the compact index has a corresponding row in the full index.
+**Do NOT read the full `rules/RULES_INDEX.md`.** It is a human-only reference
+~4x larger than COMPACT; reading it into agent context is a token-bloat
+anti-pattern. The compact index carries every discovery trigger the full index
+has, so COMPACT is sufficient for all agent discovery.
 
 **Expected outcome for typical requests:**
 - 5-50 matching lines for multi-technology requests

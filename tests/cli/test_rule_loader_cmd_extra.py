@@ -227,8 +227,8 @@ def test_eval_cmd_single_run_with_mocked_sdk(monkeypatch: pytest.MonkeyPatch) ->
     )
     passing = _make_passing_run_result()
     monkeypatch.setattr(
-        "ai_rules.commands.rule_loader.run_fixtures",
-        lambda *a, **kw: [passing],
+        "ai_rules.commands.rule_loader._run_single_eval",
+        lambda *a, **kw: ([passing], False),
     )
     result = runner.invoke(
         app,
@@ -248,8 +248,8 @@ def test_eval_cmd_multi_run_with_mocked_sdk(monkeypatch: pytest.MonkeyPatch) -> 
     )
     passing = _make_passing_run_result()
     monkeypatch.setattr(
-        "ai_rules.commands.rule_loader.run_fixtures",
-        lambda *a, **kw: [passing],
+        "ai_rules.commands.rule_loader._run_single_eval",
+        lambda *a, **kw: ([passing], False),
     )
     result = runner.invoke(
         app,
@@ -268,8 +268,8 @@ def test_eval_cmd_fixture_filter_with_mocked_sdk(monkeypatch: pytest.MonkeyPatch
     )
     passing = _make_passing_run_result("simple-sql-procedure")
     monkeypatch.setattr(
-        "ai_rules.commands.rule_loader.run_fixtures",
-        lambda *a, **kw: [passing],
+        "ai_rules.commands.rule_loader._run_single_eval",
+        lambda *a, **kw: ([passing], False),
     )
     result = runner.invoke(
         app,

@@ -604,7 +604,7 @@ def test_eval_fixture_id_isolates_from_broken_sibling(tmp_path: Path) -> None:
         patch("ai_rules.commands.rule_loader._fixtures_dir", return_value=tmp_path),
         patch("ai_rules.commands.rule_loader.load_rules_metadata", return_value={}),
         patch("ai_rules.commands.rule_loader._ensure_sdk_and_connection"),
-        patch("ai_rules.commands.rule_loader.run_fixtures", return_value=[]),
+        patch("ai_rules.commands.rule_loader._run_single_eval", return_value=([], False)),
         patch.dict("os.environ", {"SNOWFLAKE_CONNECTION_NAME": "test_conn"}, clear=False),
     ):
         result = runner.invoke(app, ["rule-loader", "eval", "--fixture", "target-fixture"])

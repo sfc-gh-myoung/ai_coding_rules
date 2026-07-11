@@ -106,3 +106,53 @@ def test_run_batch_synchronous_wrapper_calls_async(tmp_path: Path) -> None:
 
     assert isinstance(summary, BatchSummary)
     assert summary.total == 1
+
+
+@pytest.mark.unit
+def test_run_batch_behavior_unchanged_after_driver_delegation(tmp_path: Path) -> None:
+    """Regression guard: after delegating to concurrency.run_concurrent_async,
+    run_batch still returns a BatchSummary with input-order outcomes, correct
+    ``concurrency``, populated ``wall_seconds``, and slot values via callbacks.
+    """
+    from ai_rules.rule_loader_eval.batch import BatchSummary
+
+    items = [
+        BatchItem(id=f"fx-{n}", safe_id=f"fx-{n}", path=tmp_path / f"{n}.yaml", prompt=f"p{n}")
+        for n in range(4)
+    ]
+
+    def fake_run_live_async(fixture_id, prompt, **kwargs):
+        async def _inner():
+            return AgentRun(
+                fixture_id=fixture_id,
+                loaded=("rules/000-global-core.md",),
+                loaded_via_reads=(),
+                loaded_via_reads_performed=(),
+                loaded_via_section=(),
+            )
+
+        return _inner()
+
+    start_slots: list[int] = []
+    outcome_slots: list[int] = []
+
+    with patch(
+        "ai_rules.rule_loader_eval.agent_runner.run_live_async",
+        side_effect=fake_run_live_async,
+    ):
+        summary = run_batch(
+            items,
+            concurrency=2,
+            on_start=lambda item, slot: start_slots.append(slot),
+            on_outcome=lambda outcome, slot: outcome_slots.append(slot),
+        )
+
+    assert isinstance(summary, BatchSummary)
+    assert summary.concurrency == 2
+    assert summary.wall_seconds >= 0.0
+    # Outcomes are in INPUT order regardless of completion order.
+    assert [o.item.id for o in summary.outcomes] == ["fx-0", "fx-1", "fx-2", "fx-3"]
+    assert all(o.succeeded for o in summary.outcomes)
+    # Slots stay within [1..concurrency] for both callbacks.
+    assert start_slots and all(1 <= s <= 2 for s in start_slots)
+    assert outcome_slots and all(1 <= s <= 2 for s in outcome_slots)

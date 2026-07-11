@@ -1,11 +1,15 @@
 """Batch orchestration for ``seed-fixtures`` command.
 
 Drives multiple fixture YAML files concurrently through the live Cortex Code
-Agent SDK using ``asyncio.Semaphore`` to cap in-flight sessions.
+Agent SDK. Concurrency mechanics (``asyncio.Semaphore`` cap, ``[1..N]`` slot
+pool, ``gather``, ``CancelledError`` re-raise) are delegated to the shared
+``concurrency.run_concurrent_async`` driver; this module supplies the
+refresh-specific per-item ``work`` and ``exception_to_result`` (capture-and-
+continue) and adapts the generic ``ConcurrentSummary`` back to ``BatchSummary``.
 
 Public API:
 - ``BatchItem`` / ``BatchOutcome`` / ``BatchSummary`` — result shapes.
-- ``run_batch_async`` — async entry point (single event loop, N semaphore slots).
+- ``run_batch_async`` — async entry point; delegates to ``run_concurrent_async``.
 - ``run_batch`` — sync wrapper via ``asyncio.run``.
 - ``expand_glob`` — resolve ``--glob`` / ``--all`` patterns to sorted Path lists.
 - ``extract_prompt_from_fixture`` — read ``prompt:`` field from YAML tolerantly.
@@ -18,7 +22,6 @@ from __future__ import annotations
 
 import asyncio
 import re
-import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -212,59 +215,52 @@ async def run_batch_async(
     in memory. The final ``BatchSummary`` still carries all outcomes
     (for ``summary.json``); output order in the summary matches sorted
     source-path input order.
+
+    Concurrency mechanics (semaphore, slot pool, gather, ``CancelledError``
+    re-raise) are delegated to the shared ``concurrency.run_concurrent_async``
+    driver. Refresh-all uses the capture-and-continue policy: per-item
+    exceptions are converted to failed ``BatchOutcome`` values via
+    ``exception_to_result`` and no abort predicate is wired, so the batch
+    never short-circuits.
     """
     from ai_rules.rule_loader_eval.agent_runner import run_live_async
+    from ai_rules.rule_loader_eval.concurrency import run_concurrent_async
 
-    sem = asyncio.Semaphore(concurrency)
-    # Worker-slot pool: one stable [1..concurrency] integer per concurrent
-    # task. Acquired when the semaphore admits the task, released on exit.
-    # ``asyncio.Queue`` is the idiomatic asyncio worker-pool primitive
-    # (FIFO; no manual locking needed).
-    slot_pool: asyncio.Queue[int] = asyncio.Queue(maxsize=concurrency)
-    for _slot in range(1, concurrency + 1):
-        slot_pool.put_nowait(_slot)
+    async def _one_batch(item: BatchItem, slot: int) -> BatchOutcome:
+        run = await run_live_async(
+            item.id,
+            item.prompt,
+            project_root=project_root,
+            max_turns=max_turns,
+            effort=effort,
+            model=model,
+            connection=connection,
+        )
+        return BatchOutcome(item=item, run=run, error_type=None, error_message=None)
 
-    start = time.perf_counter()
+    def _exc_to_outcome(item: BatchItem, exc: Exception) -> BatchOutcome:
+        return BatchOutcome(
+            item=item,
+            run=None,
+            error_type=type(exc).__name__,
+            error_message=str(exc),
+        )
 
-    async def _one(item: BatchItem) -> BatchOutcome:
-        async with sem:
-            slot = await slot_pool.get()
-            try:
-                if on_start is not None:
-                    on_start(item, slot)
-                try:
-                    run = await run_live_async(
-                        item.id,
-                        item.prompt,
-                        project_root=project_root,
-                        max_turns=max_turns,
-                        effort=effort,
-                        model=model,
-                        connection=connection,
-                    )
-                    outcome = BatchOutcome(item=item, run=run, error_type=None, error_message=None)
-                except asyncio.CancelledError:
-                    # Propagate so ``asyncio.gather`` cancels its peers.
-                    raise
-                except Exception as exc:
-                    outcome = BatchOutcome(
-                        item=item,
-                        run=None,
-                        error_type=type(exc).__name__,
-                        error_message=str(exc),
-                    )
-            finally:
-                slot_pool.put_nowait(slot)
-        if on_outcome is not None:
-            on_outcome(outcome, slot)
-        return outcome
-
-    outcomes = await asyncio.gather(*[_one(item) for item in items])
-    wall = time.perf_counter() - start
+    summary = await run_concurrent_async(
+        items,
+        concurrency=concurrency,
+        work=_one_batch,
+        exception_to_result=_exc_to_outcome,
+        on_start=on_start,
+        on_outcome=on_outcome,
+    )
+    # Refresh-all never aborts and never skips items (capture-and-continue).
+    assert summary.aborted is None
+    assert summary.not_run == ()
     return BatchSummary(
         concurrency=concurrency,
-        outcomes=tuple(outcomes),
-        wall_seconds=round(wall, 3),
+        outcomes=summary.results,
+        wall_seconds=summary.wall_seconds,
     )
 
 

@@ -774,9 +774,15 @@ def test_eval_loop_passes_tokens() -> None:
             captured["tracker"] = self
             return super().__enter__()  # type: ignore[return-value]  # ty: ignore[invalid-return-type]
 
+    async def _fake_run_fixture_async(*_a: object, **_k: object) -> object:
+        return rr
+
     with (
         patch.object(rl, "Live", FakeLive),
-        patch.object(rl, "run_fixture", return_value=rr),
+        patch(
+            "ai_rules.rule_loader_eval.engine.run_fixture_async",
+            new=_fake_run_fixture_async,
+        ),
         patch.object(rl, "load_rules_metadata", return_value={}),
         patch.object(rl, "ProgressTracker", CapturingTracker),
     ):
@@ -827,9 +833,15 @@ def test_eval_loop_synthetic_failure_renders() -> None:
             captured["tracker"] = self
             return super().__enter__()  # type: ignore[return-value]  # ty: ignore[invalid-return-type]
 
+    async def _boom_run_fixture_async(*_a: object, **_k: object) -> object:
+        raise ValueError("simulated failure")
+
     with (
         patch.object(rl, "Live", FakeLive),
-        patch.object(rl, "run_fixture", side_effect=ValueError("simulated failure")),
+        patch(
+            "ai_rules.rule_loader_eval.engine.run_fixture_async",
+            new=_boom_run_fixture_async,
+        ),
         patch.object(rl, "load_rules_metadata", return_value={}),
         patch.object(rl, "ProgressTracker", CapturingTracker),
     ):

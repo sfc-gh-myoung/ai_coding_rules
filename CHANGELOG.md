@@ -9,9 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **feat(rule-loader eval):** add `--concurrency N` to `eval` — run up to N fixtures per pass in parallel (default `1` = sequential; `--runs` stays serial), with results re-sorted to input order for deterministic tables/snapshots and infra-error fail-fast. Extracts a shared `concurrency.py` driver now also used by `refresh-all`; adds `engine.run_fixture_async`. (`concurrency.py`, `engine.py`, `batch.py`, `rule_loader.py`; tests `test_concurrency.py`, `test_eval_concurrency.py`, `test_batch_extra.py`)
+
 - **feat(tokens):** add `ai-rules tokens --context-estimate` — a read-only estimator of total per-response rule-loading context (fixed floor of AGENTS.md + 000-global-core.md + rule-loader/SKILL.md, plus COMPACT index-match cost, plus `--selected` rule token counts). Supports `--selected` (repeatable) and `--ceiling` (default 20000); exits 0 under ceiling, 1 over, 2 on a missing selected/floor file. Never writes files. (`src/ai_rules/commands/tokens.py`, tests in `tests/cli/test_tokens.py`)
 
 ### Changed
+
+- **feat(rule-loader eval):** the eval progress dashboard is now driven uniformly in all modes — `_run_single_eval` always calls `ProgressTracker.start_run(...)` and passes a per-fixture worker `slot`, including at `--concurrency 1`. As a result, sequential runs now render with a `[w1]` worker tag and `Concurrency: 1` in the dashboard/plain/json output (cosmetic change to stderr telemetry only; printed result tables, snapshot rows, and exit codes are unchanged).
 
 - **feat(token-efficiency):** route all agent rule discovery to `RULES_INDEX_COMPACT.md` and demote the full `RULES_INDEX.md` to a human-only reference (banner added; agents are instructed not to read it). Updated both AGENTS templates (Step 2B/3C), the rule-loader skill + `workflows/`, and `rules/002n-agent-protocol-reference.md`. Gate-2 labels now cite `RULES_INDEX_COMPACT.md` (retains the `RULES_INDEX` substring for citation-drift detection).
 - **feat(token-efficiency):** aggressively trim the always-injected bootstrap — moved the high-risk action map, keyword-extraction heuristic, gate-failure catalog, partial-loading rule, ACT-recognition examples, Step 2B fallback internals, and gate-checklist/citation reference from the AGENTS templates into load-on-demand `rules/002n-agent-protocol-reference.md`. Deployed `AGENTS.md` 280 → 226 lines (−19%); `TokenBudget` re-derived (002n ~3000 → ~4900, 000-global-core ~2400 → ~2550).

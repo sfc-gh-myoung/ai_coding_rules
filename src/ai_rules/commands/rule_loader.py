@@ -59,8 +59,9 @@ from ai_rules.rule_loader_eval.diagnostics import (
     format_disagreement_warning,
     format_timing_lines,
 )
-from ai_rules.rule_loader_eval.engine import RunResult, run_fixture, run_fixtures
+from ai_rules.rule_loader_eval.engine import RunResult
 from ai_rules.rule_loader_eval.fixtures import (
+    Fixture,
     FixtureValidationError,
     current_updated_timestamp,
     load_fixture,
@@ -933,7 +934,7 @@ def doctor_cmd(
 
 def _run_single_eval(
     *,
-    fixtures: list,
+    fixtures: list[Fixture],
     root: Path,
     resolved_connection: str,
     strict_forbidden: bool,
@@ -945,69 +946,96 @@ def _run_single_eval(
     out_dir: Path | None,
     label: str,
     run_number: int | None = None,
+    concurrency: int = 1,
 ) -> tuple[list[RunResult], bool]:
     """Execute a single eval pass. Returns (results, is_infra_error).
 
+    Fixtures are evaluated through the shared concurrent driver capped at
+    ``concurrency`` in-flight (``1`` = sequential). Results are re-sorted to input
+    fixture order before printing/snapshot so output is deterministic regardless
+    of completion order. The unified ``ProgressTracker`` is driven with
+    ``start_run`` + per-fixture ``slot`` in every mode (including ``concurrency==1``).
+
+    Fail-fast: the first ``InfraError`` aborts the pass (in-flight fixtures are
+    cancelled, queued fixtures are skipped), the aborting fixture is recorded as a
+    synthetic INFRA row, cancelled/queued fixtures are surfaced as diagnostics only
+    (never as fixture failures or snapshot rows), and ``(results, True)`` is
+    returned so the caller skips the snapshot and aborts remaining runs.
+
     When ``run_number`` is set, it is displayed in the progress description.
     """
+    from ai_rules.rule_loader_eval.concurrency import run_concurrent
+    from ai_rules.rule_loader_eval.engine import InfraError, run_fixture_async
     from ai_rules.rule_loader_eval.engine import _synthetic_failure as _synth
 
     desc = f"eval run {run_number}" if run_number is not None else "eval"
+    rules_meta = load_rules_metadata(_rules_dir(root))
+    index_by_id = {f.id: i for i, f in enumerate(fixtures)}
+    id_pad = max((len(f.id) for f in fixtures), default=0)
 
-    if mode is not ProgressMode.NONE:
-        results: list[RunResult] = []
-        rules_meta = load_rules_metadata(_rules_dir(root))
-        try:
-            with ProgressTracker(total=len(fixtures), mode=mode, description=desc) as tracker:
-                for f in fixtures:
-                    tracker.start_item(f.id)
-                    ok = False
-                    rr = None
-                    try:
-                        rr = run_fixture(
-                            f,
-                            project_root=root,
-                            rules_meta=rules_meta,
-                            strict_forbidden=strict_forbidden,
-                            max_turns=max_turns,
-                            effort=effort,
-                            model=model,
-                            connection=resolved_connection,
-                        )
-                        results.append(rr)
-                        ok = rr.passed
-                    except RuntimeError:
-                        raise
-                    except Exception as exc:
-                        rr = _synth(f, exc)
-                        results.append(rr)
-                        ok = False
-                    finally:
-                        run = getattr(rr, "run", None)
-                        tracker.finish_item(
-                            f.id,
-                            ok=ok,
-                            input_tokens=run.input_tokens if run else 0,
-                            output_tokens=run.output_tokens if run else 0,
-                            total_cost_usd=run.total_cost_usd if run else 0.0,
-                        )
-        except RuntimeError as exc:
-            log_error(str(exc))
-            raise typer.Exit(EXIT_SDK_OR_CONN) from exc
-    else:
-        try:
-            results = run_fixtures(
-                fixtures,
-                project_root=root,
-                strict_forbidden=strict_forbidden,
-                max_turns=max_turns,
-                effort=effort,
-                model=model,
-                connection=resolved_connection,
+    async def _work(fixture: Fixture, slot: int) -> RunResult:
+        return await run_fixture_async(
+            fixture,
+            project_root=root,
+            rules_meta=rules_meta,
+            strict_forbidden=strict_forbidden,
+            max_turns=max_turns,
+            effort=effort,
+            model=model,
+            connection=resolved_connection,
+        )
+
+    def _exc_to_result(fixture: Fixture, exc: Exception) -> RunResult:
+        # Non-aborting (non-Infra) per-fixture error -> synthetic FAIL row.
+        return _synth(fixture, exc)
+
+    try:
+        with ProgressTracker(
+            total=len(fixtures), mode=mode, description=desc, id_pad=id_pad
+        ) as tracker:
+            tracker.start_run(pid=os.getpid(), concurrency=concurrency)
+
+            def _on_start(fixture: Fixture, slot: int) -> None:
+                tracker.start_item(fixture.id, slot=slot)
+
+            def _on_outcome(result: RunResult, slot: int) -> None:
+                run = result.run
+                tracker.finish_item(
+                    result.fixture_id,
+                    ok=result.passed,
+                    slot=slot,
+                    input_tokens=run.input_tokens if run else 0,
+                    output_tokens=run.output_tokens if run else 0,
+                    total_cost_usd=run.total_cost_usd if run else 0.0,
+                )
+
+            summary = run_concurrent(
+                list(fixtures),
+                concurrency=concurrency,
+                work=_work,
+                exception_to_result=_exc_to_result,
+                should_abort_exception=lambda fixture, exc: isinstance(exc, InfraError),
+                on_start=_on_start,
+                on_outcome=_on_outcome,
             )
-        except RuntimeError as exc:
-            log_error(str(exc))
-            raise typer.Exit(EXIT_SDK_OR_CONN) from exc
+    except RuntimeError as exc:
+        log_error(str(exc))
+        raise typer.Exit(EXIT_SDK_OR_CONN) from exc
+
+    # Determinism: re-sort completed results to input fixture order.
+    results: list[RunResult] = sorted(
+        summary.results, key=lambda r: index_by_id.get(r.fixture_id, len(fixtures))
+    )
+
+    # Fail-fast: fold the aborting fixture in as a synthetic INFRA row so the
+    # detection block below returns (results, True). Cancelled/queued fixtures
+    # (summary.not_run) are diagnostics only — never added as fixture rows.
+    if summary.aborted is not None and isinstance(summary.aborted.exception, InfraError):
+        results.append(_synth(summary.aborted.item, summary.aborted.exception, infra=True))
+        results.sort(key=lambda r: index_by_id.get(r.fixture_id, len(fixtures)))
+        if summary.not_run:
+            skipped = ", ".join(nr.item.id for nr in summary.not_run)
+            log_info(f"not run due to infra fail-fast ({len(summary.not_run)}): {skipped}")
 
     _print_results(results)
     _print_failure_details(results, debug=debug, effort=effort, model=model)
@@ -1193,6 +1221,18 @@ def eval_cmd(
             help="Number of eval passes to execute (default 3). Accounts for LLM variance.",
         ),
     ] = 3,
+    concurrency: Annotated[
+        int,
+        typer.Option(
+            "--concurrency",
+            help=(
+                "Max fixtures evaluated in parallel WITHIN each run (default 1 = "
+                "sequential). Runs (--runs) still execute one at a time. Unlike "
+                "'refresh-all' (default 2), eval defaults to 1 to preserve "
+                "deterministic sequential behavior; N>1 raises live SDK load."
+            ),
+        ),
+    ] = 1,
     debug: Annotated[
         bool,
         typer.Option(
@@ -1225,6 +1265,15 @@ def eval_cmd(
     --out-dir is omitted). An aggregate summary table is printed after
     all runs complete showing per-fixture pass rates.
 
+    Use ``--concurrency N`` to evaluate up to N fixtures in parallel WITHIN
+    each run (default 1 = sequential; --runs still executes one pass at a
+    time). Output is deterministic regardless of completion order: results
+    are re-sorted to input-fixture order before tables/snapshots. Unlike
+    ``refresh-all`` (default 2), eval defaults to 1 to preserve the
+    sequential baseline; N>1 raises live SDK load. The first infra error
+    cancels in-flight fixtures, skips queued ones, skips the snapshot, and
+    aborts remaining runs.
+
     Three checks are unconditional per fixture:
     1. Required + dependencies must all be present in the loaded set.
     2. The 2-signal agreement check (tool reads vs ``## Rules Loaded``;
@@ -1252,6 +1301,10 @@ def eval_cmd(
     """
     if runs < 1:
         log_error("--runs must be >= 1")
+        raise typer.Exit(EXIT_FIXTURE_INVALID)
+
+    if concurrency < 1:
+        log_error("--concurrency must be >= 1")
         raise typer.Exit(EXIT_FIXTURE_INVALID)
 
     if no_progress:
@@ -1308,6 +1361,7 @@ def eval_cmd(
             out_dir=run_out_dir,
             label=run_label,
             run_number=run_idx if runs > 1 else None,
+            concurrency=concurrency,
         )
         all_run_results.append(results)
 

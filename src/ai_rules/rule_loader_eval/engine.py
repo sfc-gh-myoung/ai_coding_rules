@@ -13,7 +13,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ai_rules.rule_loader_eval.agent_runner import AgentRun, run_live
+from ai_rules.rule_loader_eval.agent_runner import AgentRun, run_live, run_live_async
 from ai_rules.rule_loader_eval.defaults import DEFAULT_EFFORT, DEFAULT_MAX_TURNS
 from ai_rules.rule_loader_eval.depends_validator import (
     DependsViolation,
@@ -67,6 +67,41 @@ class RunResult:
         )
 
 
+def _build_run_result(
+    fixture: Fixture,
+    run: AgentRun,
+    rules_meta: dict[str, RuleMetadata],
+    *,
+    strict_forbidden: bool,
+) -> RunResult:
+    """Match a completed ``AgentRun`` against a fixture and build a ``RunResult``.
+
+    Shared by the sync (:func:`run_fixture`) and async
+    (:func:`run_fixture_async`) paths so their diagnostics are identical.
+
+    Raises:
+        InfraError: When ``run`` is flagged as an infra error.
+    """
+    if getattr(run, "is_infra_error", False):
+        raise InfraError(run.infra_error_detail or "agent SDK reported infra error")
+    match = match_loaded_rules(
+        loaded=run.loaded,
+        required=fixture.required,
+        dependencies=fixture.dependencies,
+        forbidden=fixture.forbidden,
+        optional=fixture.optional,
+        strict_forbidden=strict_forbidden,
+    )
+    return RunResult(
+        fixture_id=fixture.id,
+        run=run,
+        match=match,
+        signal_report=signal_disagreement(run, fixture_optional=fixture.optional),
+        citation_drifts=citation_drift(run, rules_meta),
+        depends_violations=tuple(validate_depends_propagation(run.loaded, rules_meta)),
+    )
+
+
 def run_fixture(
     fixture: Fixture,
     *,
@@ -90,24 +125,39 @@ def run_fixture(
         model=model,
         connection=connection,
     )
-    if getattr(run, "is_infra_error", False):
-        raise InfraError(run.infra_error_detail or "agent SDK reported infra error")
-    match = match_loaded_rules(
-        loaded=run.loaded,
-        required=fixture.required,
-        dependencies=fixture.dependencies,
-        forbidden=fixture.forbidden,
-        optional=fixture.optional,
-        strict_forbidden=strict_forbidden,
+    return _build_run_result(fixture, run, rules_meta, strict_forbidden=strict_forbidden)
+
+
+async def run_fixture_async(
+    fixture: Fixture,
+    *,
+    project_root: Path,
+    rules_meta: dict[str, RuleMetadata] | None = None,
+    strict_forbidden: bool = False,
+    max_turns: int = DEFAULT_MAX_TURNS,
+    effort: str = DEFAULT_EFFORT,
+    model: str = "auto",
+    connection: str | None = None,
+) -> RunResult:
+    """Async twin of :func:`run_fixture`.
+
+    Awaits ``run_live_async`` instead of the sync ``run_live`` so many fixtures
+    can share one event loop under the concurrent driver, then applies the SAME
+    matching/diagnostics block as the sync path via :func:`_build_run_result`.
+    Raises :class:`InfraError` on an infra-flagged run (before any match exists).
+    """
+    if rules_meta is None:
+        rules_meta = load_rules_metadata(project_root / "rules")
+    run = await run_live_async(
+        fixture.id,
+        fixture.prompt,
+        project_root=project_root,
+        max_turns=max_turns,
+        effort=effort,
+        model=model,
+        connection=connection,
     )
-    return RunResult(
-        fixture_id=fixture.id,
-        run=run,
-        match=match,
-        signal_report=signal_disagreement(run, fixture_optional=fixture.optional),
-        citation_drifts=citation_drift(run, rules_meta),
-        depends_violations=tuple(validate_depends_propagation(run.loaded, rules_meta)),
-    )
+    return _build_run_result(fixture, run, rules_meta, strict_forbidden=strict_forbidden)
 
 
 class InfraError(RuntimeError):

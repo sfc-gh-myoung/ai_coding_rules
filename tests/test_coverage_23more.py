@@ -147,7 +147,10 @@ def test_eval_cmd_multi_run_with_mocked_sdk() -> None:
 
     with patch("ai_rules.commands.rule_loader._require_connection_or_exit", return_value="test"):
         with patch("ai_rules.commands.rule_loader._ensure_sdk_and_connection"):
-            with patch("ai_rules.commands.rule_loader.run_fixtures", return_value=[mock_result]):
+            with patch(
+                "ai_rules.commands.rule_loader._run_single_eval",
+                return_value=([mock_result], False),
+            ):
                 result = runner.invoke(
                     app,
                     [

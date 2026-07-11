@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Add the newly created and validated rule to `RULES_INDEX.md` in the correct numeric position to enable semantic discovery and maintain the organized rule catalog.
+Add the newly created and validated rule to the human-only `RULES_INDEX.md` in the correct numeric position to enable semantic discovery and maintain the organized rule catalog.
 
 ## Inputs
 
@@ -13,7 +13,7 @@ From Phase 4:
 
 ## Outputs
 
-- Entry added to `RULES_INDEX.md`
+- Entry added to the human-only `RULES_INDEX.md`
 - Correct numeric ordering maintained
 - Table formatting intact
 - Rule discoverable via RULES_INDEX search
@@ -41,7 +41,7 @@ DEPENDS="rules/420-javascript-core.md"
 
 ### Step 5.2: Format Index Entry
 
-**RULES_INDEX.md format:**
+**human-only RULES_INDEX.md format:**
 ```markdown
 | Rule File | Scope | Keywords/Hints | Depends On |
 ```
@@ -62,8 +62,8 @@ Rules must be in numeric order. Find correct position:
 
 **Search strategy:**
 ```bash
-# Find rules before and after target number
-grep "^| 42[0-9]-" RULES_INDEX.md
+    # human-only index - find rules before and after target number
+    grep "^| 42[0-9]-" RULES_INDEX.md
 
 # Output shows:
 | 420-javascript-core |
@@ -77,7 +77,7 @@ grep "^| 42[0-9]-" RULES_INDEX.md
 - Insert new entry on next line
 - Verify next rule has number > target (440 in example)
 
-### Step 5.4: Read Current RULES_INDEX.md
+### Step 5.4: Read Current human-only RULES_INDEX.md
 
 ```bash
 # Open file to find insertion point
@@ -127,19 +127,19 @@ Check that:
 
 **Validation:**
 ```bash
-# Check line count increased by 1
+# human-only index - check line count increased by 1
 BEFORE=$(grep -c "^||" RULES_INDEX.md_backup)
 AFTER=$(grep -c "^||" RULES_INDEX.md)
 echo "Added: $((AFTER - BEFORE)) row(s)"  # Should be 1
 
-# Verify new entry exists
+# human-only index - verify new entry exists
 grep "422-daisyui-core" RULES_INDEX.md
 ```
 
 ### Step 5.7: Verify Numeric Ordering
 
 ```bash
-# Extract all rule numbers from index
+# human-only index - extract all rule numbers
 grep "^||" RULES_INDEX.md | sed 's/.*`\([0-9]*\)-.*/\1/' | sort -n
 
 # Check that numbers are in sequence
@@ -152,7 +152,7 @@ grep "^||" RULES_INDEX.md | sed 's/.*`\([0-9]*\)-.*/\1/' | sort -n
 
 Compare keywords in index entry with rule metadata:
 
-**From RULES_INDEX.md:**
+**From human-only RULES_INDEX.md:**
 ```markdown
 | 422-daisyui-core | ... | daisyui, tailwind, components, ... | ... |
 ```
@@ -199,7 +199,7 @@ Compare keywords in index entry with rule metadata:
 || `430-typescript-core.md` | TypeScript files in frontend and backend | TypeScript, Zod, Strict Mode, Type Inference | rules/000-global-core.md |
 ```
 
-**Verification:**
+**Verification:** (human-only RULES_INDEX.md)
 ```bash
 $ grep "422-daisyui-core" RULES_INDEX.md
 || `422-daisyui-core.md` | DaisyUI component library patterns and best practices | daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization | rules/420-javascript-core.md |
@@ -217,7 +217,7 @@ $ grep "422-daisyui-core" RULES_INDEX.md
 
 **Check:**
 ```bash
-# Count pipes per line - should be consistent
+# human-only index - count pipes per line - should be consistent
 grep "^||" RULES_INDEX.md | awk '{print gsub(/\|/,"")}'
 ```
 
@@ -232,7 +232,7 @@ grep "^||" RULES_INDEX.md | awk '{print gsub(/\|/,"")}'
 
 **Check:**
 ```bash
-grep "^|| \`422-" RULES_INDEX.md | wc -l
+grep "^|| \`422-" RULES_INDEX.md | wc -l  # human-only index
 # Should be 1 (only one entry for 422)
 ```
 
@@ -247,7 +247,7 @@ grep "^|| \`422-" RULES_INDEX.md | wc -l
 
 **Check:**
 ```bash
-# Extract numbers, check sorting
+# human-only index - extract numbers, check sorting
 grep "^||" RULES_INDEX.md | sed 's/.*`\([0-9]*\)-.*/\1/' > /tmp/numbers.txt
 sort -n /tmp/numbers.txt > /tmp/sorted.txt
 diff /tmp/numbers.txt /tmp/sorted.txt
@@ -278,14 +278,14 @@ Before marking Phase 5 complete:
 Verify rule can be found via index search:
 
 ```bash
-# Test keyword search
+# human-only index - test keyword search
 grep -i "daisyui" RULES_INDEX.md
-# Should return the new 422 entry
+# Should return the new 422 entry [human-only index]
 
 grep -i "tailwind\|components" RULES_INDEX.md
 # Should include 422 among results
 
-# Test numeric search
+# human-only index - test numeric search
 grep "^|| \`422-" RULES_INDEX.md
 # Should return exactly one entry
 ```
@@ -293,7 +293,7 @@ grep "^|| \`422-" RULES_INDEX.md
 ## Success Criteria
 
 Indexing complete when:
--  Entry added to RULES_INDEX.md
+-  Entry added to the human-only RULES_INDEX.md
 -  Correct numeric position (between NNN-1 and NNN+1)
 -  Table formatting intact and renders correctly
 -  Keywords enable semantic discovery
@@ -309,14 +309,14 @@ Indexing complete when:
  Phase 2: Template Generation - ai-rules new created structure
  Phase 3: Content Population - All sections filled with quality content
  Phase 4: Validation Loop - ai-rules validate returned exit code 0
- Phase 5: Indexing - Rule added to RULES_INDEX.md
+ Phase 5: Indexing - Rule added to human-only RULES_INDEX.md
 
 🎉 Production-ready rule created: rules/422-daisyui-core.md
 ```
 
 **Rule is now:**
 - Validated (0 CRITICAL errors)
-- Indexed (discoverable via RULES_INDEX.md)
+- Indexed (discoverable via the human-only RULES_INDEX.md)
 - Ready for immediate use (rule file exists at `rules/422-daisyui-core.md`)
 - Compliant with schema standards
 

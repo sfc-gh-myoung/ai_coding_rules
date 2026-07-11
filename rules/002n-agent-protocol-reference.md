@@ -3,8 +3,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.5
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-11
 **Keywords:** kw:anti-patterns, kw:quality gates, kw:task switch, kw:rule loading, kw:failure modes, kw:protocol reference, kw:term definitions, kw:gate compliance
 **TokenBudget:** ~4900
 **ContextTier:** Medium
@@ -28,7 +28,7 @@ Reference material for the AGENTS.md agent bootstrap protocol — anti-patterns,
 
 - AGENTS.md: The main bootstrap protocol that this rule supplements
 - rules/000-global-core.md: Foundation rule loaded before this reference rule
-- rules/RULES_INDEX.md: Flat discovery table (grep-based rule lookup)
+- rules/RULES_INDEX_COMPACT.md: agent discovery index (grep). RULES_INDEX.md: human-only reference.
 
 ### External Documentation
 
@@ -140,12 +140,12 @@ Task complete.
 
 ## Anti-Pattern: Fabricated Gate Compliance
 
-**Problem:** Claiming `[x] Gate 2: RULES_INDEX.md searched` without executing grep or read_file, especially after session continuation where a summary claims prior gates passed.
+**Problem:** Claiming `[x] Gate 2: RULES_INDEX_COMPACT.md searched` without executing grep or read_file, especially after session continuation where a summary claims prior gates passed.
 
 **Why It Fails:** Gate checkboxes become meaningless self-attestations. Session summaries may contain inaccurate claims about prior execution.
 
 **Detection Signals:**
-- Gate 2 marked `[x]` but no grep or read_file call to RULES_INDEX.md visible
+- Gate 2 marked `[x]` but no grep or read_file call to RULES_INDEX_COMPACT.md visible
 - Keywords in Gate 2 match previous session summary rather than current tool output
 - Rules in Gate 3 were not read via read_file in the current response cycle (foundation should not appear in Gate 3; it belongs on Gate 1)
 
@@ -156,7 +156,7 @@ Task complete.
 
 PRE-FLIGHT:
 - [x] Gate 1: Foundation rules/000-global-core.md — N lines
-- [x] Gate 2: RULES_INDEX.md searched for: sql, streamlit
+- [x] Gate 2: RULES_INDEX_COMPACT.md searched for: sql, streamlit
   (grep matched: 102-snowflake-sql-core.md, 101-snowflake-streamlit-core.md)
 - [x] Gate 3: +2 domain rules:
   - rules/102-snowflake-sql-core.md (sql match) — N lines
@@ -255,6 +255,23 @@ grep -iwE "python|streamlit|ext=\.py" rules/RULES_INDEX_COMPACT.md
 The COMPACT index carries every discovery trigger the full index has (verified 1:1),
 so COMPACT is sufficient for all agent discovery.
 
+### Delegated discovery (Gate 2)
+
+Rule discovery is owned by the `rule-loader` skill and is normally run in a
+**discovery sub-agent** (AGENTS.md Step 2). Gate 2 passes when discovery was
+performed by EITHER:
+
+- **(a) Delegated:** a discovery sub-agent running the `rule-loader` skill — cite the
+  runtime-visible spawn evidence (`tool_call_id`), the sub-agent `agent_id`, and the
+  fenced JSON manifest with `schema_version: rule-loader-manifest/v1`; OR
+- **(b) Inline (Step 2B):** a `grep`/`read_file` call against
+  `rules/RULES_INDEX_COMPACT.md` you can cite.
+
+A Gate 2 claim with NEITHER spawn evidence + manifest + `agent_id` NOR a citable
+inline call is INVALID. Never claim Gate 2 from prior session context or a summary.
+The manifest is metadata only — the main agent still `read_file`s each rule body
+itself (Gate 3 read-and-apply).
+
 **Essential Rule Metadata fields:**
 - **tier** — loading priority (Critical > High > Medium > Low)
 - **~tokens** — approximate token budget
@@ -267,7 +284,7 @@ so COMPACT is sufficient for all agent discovery.
 
 - **File awareness:** Verify current state before modifications if another agent may be editing
 - **Independent operation:** Each agent maintains its own state
-- **Rule consistency:** All agents should use the same `rules/RULES_INDEX.md` version
+- **Rule consistency:** All agents should use the same `rules/RULES_INDEX_COMPACT.md` version
 
 ## Term Definitions
 
@@ -283,7 +300,7 @@ so COMPACT is sufficient for all agent discovery.
 
 ### Anti-Pattern: Fabricated Gate Compliance
 
-**Problem:** Claiming `[x] Gate 2: RULES_INDEX.md searched` without executing grep or read_file against it.
+**Problem:** Claiming `[x] Gate 2: RULES_INDEX_COMPACT.md searched` without executing grep or read_file against it.
 
 **Correct Pattern:**
 ```markdown
@@ -292,7 +309,7 @@ so COMPACT is sufficient for all agent discovery.
 
 PRE-FLIGHT:
 - [x] Gate 1: Foundation rules/000-global-core.md — N lines
-- [x] Gate 2: RULES_INDEX.md searched for: sql, streamlit
+- [x] Gate 2: RULES_INDEX_COMPACT.md searched for: sql, streamlit
 - [x] Gate 3: +1 domain rule:
   - rules/102-snowflake-sql-core.md (sql match) — N lines
 ```

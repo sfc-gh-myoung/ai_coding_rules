@@ -1,0 +1,56 @@
+{
+  "schema_version": "rule-loader-manifest/v1",
+  "runtime": {
+    "primitive": "Task",
+    "spawn_evidence": "toolu_01ABcDef...",
+    "agent_id": "agent-7f3d2a1c"
+  },
+  "keywords_searched": [".py", "fix"],
+  "index_evidence": [
+    {
+      "kind": "grep",
+      "target": "rules/RULES_INDEX_COMPACT.md",
+      "query": "grep -iwE \"ext=\\.py\" rules/RULES_INDEX_COMPACT.md",
+      "result_summary": "200-python-core.md"
+    }
+  ],
+  "candidate_rules": [
+    {
+      "rule_path": "rules/200-python-core.md",
+      "rule_name": "200-python-core.md",
+      "reason_type": "extension",
+      "reason": "ext=.py HARD match",
+      "context_tier": "High",
+      "token_estimate": 2600,
+      "layer": "HARD",
+      "required": true,
+      "content": "# Python Core Rule\n\nThis rule defines core Python conventions..."
+    }
+  ],
+  "candidate_count": 1,
+  "load_sequence": [
+    {
+      "order": 1,
+      "rule_path": "rules/000-global-core.md",
+      "rule_name": "000-global-core.md",
+      "reason_type": "foundation",
+      "reason": "foundation",
+      "context_tier": "Critical",
+      "token_estimate": 2550,
+      "layer": "FOUNDATION",
+      "required": true
+    },
+    {
+      "order": 2,
+      "rule_path": "rules/200-python-core.md",
+      "rule_name": "200-python-core.md",
+      "reason_type": "extension",
+      "reason": "ext=.py HARD match",
+      "context_tier": "High",
+      "token_estimate": 2600,
+      "layer": "HARD",
+      "required": true
+    }
+  ],
+  "deferred_rules": []
+}

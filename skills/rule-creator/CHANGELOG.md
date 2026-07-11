@@ -2,6 +2,12 @@
 
 All notable changes to the `rule-creator` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## v1.1.2 (2026-07-11) — Audit human-only RULES_INDEX.md labeling
+
+### Changed
+
+- docs: label all `RULES_INDEX.md` references throughout skill, workflows, examples, and tests as `human-only` to distinguish the generated full index from the agent-discovery `RULES_INDEX_COMPACT.md`. No behavioral changes; documentation and comments only.
+
 ## v1.1.1 (2026-06-21) — Audit P3 remediation
 
 ### Changed

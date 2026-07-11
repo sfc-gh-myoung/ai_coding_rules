@@ -28,11 +28,11 @@ Match: "Snowflake" keyword -> 100-snowflake-core.md
 - Domain nouns: `CSV`, `COPY INTO`, `data loading`
 
 ```bash
-grep -i "COPY INTO" rules/RULES_INDEX.md
+grep -i "COPY INTO" rules/RULES_INDEX_COMPACT.md
 # Matches: 102-snowflake-sql-core.md (keyword: COPY INTO)
 #          108-snowflake-data-loading.md (keyword: copy-into, data-loading)
 
-grep -i "data-loading" rules/RULES_INDEX.md
+grep -i "data-loading" rules/RULES_INDEX_COMPACT.md
 # Matches: 108-snowflake-data-loading.md
 ```
 

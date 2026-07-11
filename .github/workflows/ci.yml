@@ -111,5 +111,14 @@ jobs:
       - name: Check RULES_INDEX.md is current
         run: uv run ai-rules index check
 
+      - name: Check rule references resolve
+        run: uv run ai-rules refs check
+
+      - name: Verify AGENTS.md is rendered from templates (no drift)
+        run: |
+          rm -rf /tmp/agents-render && mkdir -p /tmp/agents-render
+          uv run ai-rules deploy --agents-dest /tmp/agents-render
+          diff -u AGENTS.md /tmp/agents-render/AGENTS.md
+
       - name: Validate rule loader fixtures
         run: uv run ai-rules rule-loader validate

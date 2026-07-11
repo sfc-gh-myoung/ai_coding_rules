@@ -29,7 +29,7 @@ Match: implied .py -> 200-python-core.md
 - Domain nouns: `dashboard`, `tests`, `docstrings`
 
 ```bash
-grep -iE "test|docstring|dashboard" rules/RULES_INDEX.md
+grep -iE "test|docstring|dashboard" rules/RULES_INDEX_COMPACT.md
 # Matches: 206-python-pytest.md (keyword: test)
 #          204-python-docs.md (keyword: docstring)
 ```

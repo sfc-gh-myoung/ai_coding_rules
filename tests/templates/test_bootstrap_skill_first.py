@@ -24,10 +24,15 @@ NO_MODE_TEMPLATE = TEMPLATES_DIR / "AGENTS_NO_MODE.md.template"
 _START_MARKERS = {"<!-- MODE-ONLY:start -->", "<!-- NO-MODE-ONLY:start -->"}
 _END_MARKERS = {"<!-- MODE-ONLY:end -->", "<!-- NO-MODE-ONLY:end -->"}
 
-# Stable tokens required by the plan in the new Step 2 block.
-# GREP_TOKEN is intentionally the flag-agnostic prefix `grep -i` so it matches both
-# the legacy `grep -iE` and the COMPACT-era `grep -iwE` (word-boundary) fallback.
-SKILL_PATH_TOKEN = "rule-loader/SKILL.md"
+# Stable tokens required in the Step 2 block.
+# After the delegated-discovery refactor (rule-loader-single-source), Step 2's PRIMARY
+# path delegates rule discovery to the rule-loader skill (run in a discovery sub-agent).
+# The skill lives under `{{skills_path}}/rule-loader/`; the literal per-response
+# `read_file(...SKILL.md)` call was removed in favour of delegation.
+# GREP_TOKEN is the flag-agnostic prefix `grep -i` so it matches both the legacy
+# `grep -iE` and the COMPACT-era `grep -iwE` (word-boundary) Step 2B fallback.
+SKILL_PATH_TOKEN = "rule-loader/"
+DELEGATION_TOKEN = "discovery sub-agent"
 FALLBACK_RE = re.compile(r"(FALLBACK|Step 2B\b|2B\.)", re.IGNORECASE)
 GREP_TOKEN = "grep -i"
 RULES_INDEX_TOKEN = "RULES_INDEX.md"
@@ -91,70 +96,70 @@ def no_mode_step2() -> str:
 
 @pytest.mark.unit
 def test_step2_skill_path_present_in_mode_template(mode_step2: str) -> None:
-    """Step 2 in AGENTS_MODE must contain a read_file call targeting rule-loader/SKILL.md.
+    """Step 2 in AGENTS_MODE must delegate discovery to the rule-loader skill.
 
-    Acceptance test for plan-task-0f26caf9 sd0b2 — skill-first bootstrap.
-    Fails until templates are updated per the plan.
+    After the delegated-discovery refactor, Step 2's PRIMARY path references the
+    `{{skills_path}}/rule-loader/` skill and spawns a discovery sub-agent.
     """
     assert SKILL_PATH_TOKEN in mode_step2, (
         f"Expected '{SKILL_PATH_TOKEN}' in Step 2 of AGENTS_MODE.md.template "
-        f"(plan: skill is the PRIMARY discovery mechanism). "
+        f"(rule-loader skill is the PRIMARY discovery mechanism). "
         f"Step 2 region (first 400 chars):\n{mode_step2[:400]}"
+    )
+    assert DELEGATION_TOKEN in mode_step2, (
+        f"Expected '{DELEGATION_TOKEN}' in Step 2 of AGENTS_MODE.md.template "
+        f"(discovery is delegated to a sub-agent running the rule-loader skill)."
     )
 
 
 @pytest.mark.unit
 def test_step2_skill_path_present_in_no_mode_template(no_mode_step2: str) -> None:
-    """Step 2 in AGENTS_NO_MODE must contain a read_file call targeting rule-loader/SKILL.md.
+    """Step 2 in AGENTS_NO_MODE must delegate discovery to the rule-loader skill.
 
-    Acceptance test for plan-task-0f26caf9 sd0b2 — skill-first bootstrap.
-    Fails until templates are updated per the plan.
+    After the delegated-discovery refactor, Step 2's PRIMARY path references the
+    `{{skills_path}}/rule-loader/` skill and spawns a discovery sub-agent.
     """
     assert SKILL_PATH_TOKEN in no_mode_step2, (
         f"Expected '{SKILL_PATH_TOKEN}' in Step 2 of AGENTS_NO_MODE.md.template "
-        f"(plan: skill is the PRIMARY discovery mechanism). "
+        f"(rule-loader skill is the PRIMARY discovery mechanism). "
         f"Step 2 region (first 400 chars):\n{no_mode_step2[:400]}"
+    )
+    assert DELEGATION_TOKEN in no_mode_step2, (
+        f"Expected '{DELEGATION_TOKEN}' in Step 2 of AGENTS_NO_MODE.md.template "
+        f"(discovery is delegated to a sub-agent running the rule-loader skill)."
     )
 
 
 @pytest.mark.unit
 def test_step2_skill_appears_before_grep_in_mode_template(mode_step2: str) -> None:
-    """rule-loader/SKILL.md must appear BEFORE grep in AGENTS_MODE Step 2 (primary before fallback).
-
-    Acceptance test for plan-task-0f26caf9 sd0b2 — skill-first bootstrap.
-    Fails until templates are updated per the plan.
-    """
+    """The rule-loader delegation must appear BEFORE the Step 2B grep in AGENTS_MODE (primary before fallback)."""
     assert SKILL_PATH_TOKEN in mode_step2, (
         f"'{SKILL_PATH_TOKEN}' missing from AGENTS_MODE Step 2 — cannot verify ordering"
     )
     assert GREP_TOKEN in mode_step2, (
-        f"'{GREP_TOKEN}' missing from AGENTS_MODE Step 2 (expected as fallback)"
+        f"'{GREP_TOKEN}' missing from AGENTS_MODE Step 2 (expected as Step 2B fallback)"
     )
     skill_pos = mode_step2.index(SKILL_PATH_TOKEN)
     grep_pos = mode_step2.index(GREP_TOKEN)
     assert skill_pos < grep_pos, (
-        f"rule-loader/SKILL.md (char {skill_pos}) must appear BEFORE 'grep -iE' "
+        f"rule-loader delegation (char {skill_pos}) must appear BEFORE the Step 2B grep "
         f"(char {grep_pos}) in AGENTS_MODE Step 2"
     )
 
 
 @pytest.mark.unit
 def test_step2_skill_appears_before_grep_in_no_mode_template(no_mode_step2: str) -> None:
-    """rule-loader/SKILL.md must appear BEFORE grep in AGENTS_NO_MODE Step 2.
-
-    Acceptance test for plan-task-0f26caf9 sd0b2 — skill-first bootstrap.
-    Fails until templates are updated per the plan.
-    """
+    """The rule-loader delegation must appear BEFORE the Step 2B grep in AGENTS_NO_MODE."""
     assert SKILL_PATH_TOKEN in no_mode_step2, (
         f"'{SKILL_PATH_TOKEN}' missing from AGENTS_NO_MODE Step 2 — cannot verify ordering"
     )
     assert GREP_TOKEN in no_mode_step2, (
-        f"'{GREP_TOKEN}' missing from AGENTS_NO_MODE Step 2 (expected as fallback)"
+        f"'{GREP_TOKEN}' missing from AGENTS_NO_MODE Step 2 (expected as Step 2B fallback)"
     )
     skill_pos = no_mode_step2.index(SKILL_PATH_TOKEN)
     grep_pos = no_mode_step2.index(GREP_TOKEN)
     assert skill_pos < grep_pos, (
-        f"rule-loader/SKILL.md (char {skill_pos}) must appear BEFORE 'grep -iE' "
+        f"rule-loader delegation (char {skill_pos}) must appear BEFORE the Step 2B grep "
         f"(char {grep_pos}) in AGENTS_NO_MODE Step 2"
     )
 

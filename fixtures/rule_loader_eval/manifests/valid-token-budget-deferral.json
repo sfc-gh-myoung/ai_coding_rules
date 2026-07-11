@@ -1,0 +1,97 @@
+{
+  "schema_version": "rule-loader-manifest/v1",
+  "runtime": {
+    "primitive": "Task",
+    "spawn_evidence": "toolu_02XyZ...",
+    "agent_id": "agent-1a2b3c4d"
+  },
+  "keywords_searched": ["streamlit", "test", "document", "dashboard"],
+  "index_evidence": [
+    {
+      "kind": "grep",
+      "target": "rules/RULES_INDEX_COMPACT.md",
+      "query": "grep -iE \"streamlit|test|docs\" rules/RULES_INDEX_COMPACT.md",
+      "result_summary": "101-snowflake-streamlit-core.md, 206-python-pytest.md, 204-python-docs.md"
+    }
+  ],
+  "candidate_rules": [
+    {
+      "rule_path": "rules/101-snowflake-streamlit-core.md",
+      "rule_name": "101-snowflake-streamlit-core.md",
+      "reason_type": "activity_keyword",
+      "reason": "keyword: Streamlit",
+      "context_tier": "High",
+      "token_estimate": 3000,
+      "layer": "SOFT",
+      "required": false
+    },
+    {
+      "rule_path": "rules/206-python-pytest.md",
+      "rule_name": "206-python-pytest.md",
+      "reason_type": "activity_keyword",
+      "reason": "keyword: test",
+      "context_tier": "Medium",
+      "token_estimate": 2400,
+      "layer": "SOFT",
+      "required": false
+    },
+    {
+      "rule_path": "rules/204-python-docs.md",
+      "rule_name": "204-python-docs.md",
+      "reason_type": "activity_keyword",
+      "reason": "keyword: document",
+      "context_tier": "Low",
+      "token_estimate": 2800,
+      "layer": "SOFT",
+      "required": false
+    }
+  ],
+  "candidate_count": 3,
+  "load_sequence": [
+    {
+      "order": 1,
+      "rule_path": "rules/000-global-core.md",
+      "rule_name": "000-global-core.md",
+      "reason_type": "foundation",
+      "reason": "foundation",
+      "context_tier": "Critical",
+      "token_estimate": 2550,
+      "layer": "FOUNDATION",
+      "required": true
+    },
+    {
+      "order": 2,
+      "rule_path": "rules/101-snowflake-streamlit-core.md",
+      "rule_name": "101-snowflake-streamlit-core.md",
+      "reason_type": "activity_keyword",
+      "reason": "keyword: Streamlit",
+      "context_tier": "High",
+      "token_estimate": 3000,
+      "layer": "SOFT",
+      "required": false
+    },
+    {
+      "order": 3,
+      "rule_path": "rules/206-python-pytest.md",
+      "rule_name": "206-python-pytest.md",
+      "reason_type": "activity_keyword",
+      "reason": "keyword: test",
+      "context_tier": "Medium",
+      "token_estimate": 2400,
+      "layer": "SOFT",
+      "required": false
+    }
+  ],
+  "deferred_rules": [
+    {
+      "rule_path": "rules/204-python-docs.md",
+      "rule_name": "204-python-docs.md",
+      "reason_type": "context_tier_cap",
+      "reason": "Deferred by token-budget management after the 3-rule domain/activity cap",
+      "context_tier": "Low",
+      "token_estimate": 2800,
+      "layer": "SOFT",
+      "deferred_because": "ContextTier Low and the domain/activity cap (3) was reached by higher-tier rules; total estimated context would exceed the configured token-budget ceiling"
+    }
+  ]
+}

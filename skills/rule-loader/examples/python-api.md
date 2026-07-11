@@ -26,10 +26,10 @@ Match: implied .py -> 200-python-core.md
 - Domain nouns: `endpoint`, `authentication`
 
 ```bash
-grep -i "fastapi" rules/RULES_INDEX.md
+grep -i "fastapi" rules/RULES_INDEX_COMPACT.md
 # Matches: 210-python-fastapi-core.md (keyword: fastapi)
 
-grep -i "security" rules/RULES_INDEX.md
+grep -i "security" rules/RULES_INDEX_COMPACT.md
 # Matches: 210a-python-fastapi-security.md (keyword: fastapi-security)
 #          107-snowflake-security-governance.md (keyword: security)
 ```

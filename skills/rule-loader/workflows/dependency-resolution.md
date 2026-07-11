@@ -58,7 +58,7 @@ Dependencies loaded via this phase use the reason format:
 | `115a-snowflake-cortex-agents-instructions.md` | `100-snowflake-core.md`, `115-snowflake-cortex-agents-core.md` |
 | `002a-rule-creation.md` | `002-rule-governance.md`, `000-global-core.md` |
 
-Consult RULES_INDEX.md for the authoritative dependency list for each rule.
+Consult `rules/RULES_INDEX_COMPACT.md` (the agent discovery index) for the authoritative dependency list for each rule. `RULES_INDEX.md` is a human-only reference and is not an agent discovery target.
 
 ### Step 5: Check for Companion Examples (complex configurations only)
 

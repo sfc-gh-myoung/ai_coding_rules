@@ -123,8 +123,8 @@ Maintainer-only commands for syncing GitHub `main` to the GitLab mirror via orph
 | `ai-rules keywords <PATH>` | Suggest keywords for a rule |
 | `ai-rules badges` | Update README badges |
 | `ai-rules refs` | Validate rule references |
-| `ai-rules index generate` | Generate `rules/RULES_INDEX.md` |
-| `ai-rules index check` | Check `rules/RULES_INDEX.md` is up-to-date |
+| `ai-rules index generate` | Generate the human-only `rules/RULES_INDEX.md` |
+| `ai-rules index check` | Check human-only `rules/RULES_INDEX.md` is up-to-date |
 | `ai-rules rule-loader` | Live-agent rule loading evaluator |
 
 ## Configuration

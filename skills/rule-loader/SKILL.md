@@ -1,7 +1,7 @@
 ---
 name: rule-loader
-description: Determines which rule files to load for a given user request by matching file extensions, directory paths, and keywords against RULES_INDEX.md. Handles foundation loading, domain matching, activity matching, dependency resolution, and token budget management. Use when loading rules, selecting rules for a task, resolving rule dependencies, or managing token budgets during rule loading.
-version: 1.4.0
+description: Determines which rule files to load for a given user request by matching file extensions, directory paths, and keywords against RULES_INDEX_COMPACT.md. Handles foundation loading, domain matching (HARD layer), activity matching (SOFT layer), dependency resolution, and token budget management. Runs as the single source of truth for rule discovery — typically inside a discovery sub-agent that returns a metadata-only JSON manifest (never rule file contents). Use when loading rules, selecting rules for a task, resolving rule dependencies, or managing token budgets during rule loading.
+version: 1.5.0
 ---
 
 # Rule Loader
@@ -60,6 +60,96 @@ A `## Rules Loaded` section listing all selected rules with loading reasons, for
 - [Deferred: 204-python-docs.md - Low tier, not required for task]
 ```
 
+## Manifest Output
+
+When this skill runs inside a **discovery sub-agent**, its authoritative return
+value is the fenced JSON manifest below (`rule-loader-manifest/v1`). It contains
+**PATHS + METADATA ONLY — never rule file contents**. The `## Rules Loaded` prose
+above is retained only for the inline-render (Step 2B) case; any Markdown table is
+display-only and cannot satisfy Gate 2.
+
+```json
+{
+  "schema_version": "rule-loader-manifest/v1",
+  "request_fingerprint": "sha256:<hex of normalized user request>",
+  "runtime": {
+    "primitive": "Task|runtime-specific-direct-worker",
+    "spawn_evidence": "<tool_call_id or runtime-visible spawn record>",
+    "agent_id": "<worker agent id from the runtime result>"
+  },
+  "keywords_searched": ["<keyword-or-extension>"],
+  "index_evidence": [
+    {
+      "kind": "grep|read_file_fallback",
+      "target": "rules/RULES_INDEX_COMPACT.md",
+      "query": "<exact grep/read expression>",
+      "result_summary": "<matched filenames or none>"
+    }
+  ],
+  "candidate_rules": [
+    {
+      "rule_path": "rules/202a-markdown-linting.md",
+      "rule_name": "202a-markdown-linting.md",
+      "reason_type": "extension|file|directory|activity_keyword|high_risk|dependency|optional_dependency",
+      "reason": "candidate discovered before token-budget / ContextTier capping",
+      "context_tier": "Low",
+      "token_estimate": 2800,
+      "layer": "SOFT",
+      "required": false
+    }
+  ],
+  "candidate_count": 1,
+  "degraded": false,
+  "failures": [
+    {
+      "stage": "domain_matching|activity_matching|dependency_resolution|token_budget",
+      "message": "<failure text>",
+      "fallback_used": "<fallback name or null>"
+    }
+  ],
+  "load_sequence": [
+    {
+      "order": 1,
+      "rule_path": "rules/000-global-core.md",
+      "rule_name": "000-global-core.md",
+      "reason_type": "foundation|extension|file|directory|activity_keyword|high_risk|dependency|project_context",
+      "reason": "foundation",
+      "context_tier": "Critical|High|Medium|Low",
+      "token_estimate": 2550,
+      "layer": "FOUNDATION|HARD|SOFT",
+      "required": true
+    }
+  ],
+  "deferred_rules": [
+    {
+      "rule_path": "rules/202a-markdown-linting.md",
+      "rule_name": "202a-markdown-linting.md",
+      "reason_type": "token_budget|context_tier_cap|duplicate|superseded|optional_dependency",
+      "reason": "Deferred by token-budget management after dependency resolution",
+      "context_tier": "Low",
+      "token_estimate": 2800,
+      "layer": "SOFT",
+      "deferred_because": "ContextTier Low and total estimated context exceeded the configured token-budget cap"
+    }
+  ]
+}
+```
+
+Schema rules:
+
+- The fenced JSON block is the only authoritative manifest format. Markdown tables are display-only and cannot satisfy Gate 2.
+- `load_sequence[*].rule_path` is repository-relative and must start with `rules/`; absolute paths are rendered by the main agent.
+- `candidate_rules` is required, even when empty — the complete candidate universe after domain/activity/dependency discovery and before token-budget / ContextTier capping.
+- `candidate_count` must equal `len(candidate_rules)`.
+- `load_sequence` is dependency-resolved first, then token-budget-capped; duplicate `rule_path` entries are removed before ordering.
+- `deferred_rules` is required, even when empty — every candidate removed by token-budget / ContextTier-cap, optional-dependency deferral, duplicate suppression, or supersession.
+- **Completeness invariant:** every unique `candidate_rules[*].rule_path` must appear in exactly one of `load_sequence[*].rule_path` or `deferred_rules[*].rule_path`.
+- `deferred_rules[*]` `reason`, `reason_type`, and `deferred_because` must be specific enough for the main agent to preserve the deferral reason in Gate 3 output.
+- The manifest contains PATHS + METADATA ONLY. Rule file bodies never cross back.
+- A malformed manifest, missing `runtime.agent_id` / `runtime.spawn_evidence` / `index_evidence` / `candidate_rules` / `candidate_count` / `deferred_rules`, invalid JSON, failed candidate-completeness validation, or any rule body content triggers Step 2B fallback.
+
+See `examples/manifest-output.md` for a minimal valid example.
+
 ## Workflow
 
 Detailed phase content is loaded on demand from `workflows/` (progressive disclosure). Execute phases in order. Load workflow files only as needed.
@@ -91,6 +181,17 @@ TOTAL per-response context (fixed floor + index match + selected rules), not jus
 selected rules — verify with `ai-rules tokens --context-estimate`.
 
 **Details:** `workflows/token-budget.md`
+
+## Matching Layers (HARD vs SOFT)
+
+**HARD layer (mechanical, reproducible):** file extension (`ext=`), explicit file
+(`file=`), directory (`dir=`), and the high-risk-action map. Resolved by
+exact-string lookup against `rules/RULES_INDEX_COMPACT.md`. Same request → same
+HARD rule set on every run. Covers safety-critical loads (.py, .sql, git, deploy, …).
+
+**SOFT layer (best-effort, non-deterministic):** activity keywords extracted via
+the fixed procedure in `workflows/activity-matching.md`, matched against per-rule
+`kw:` frontmatter tokens. Results MAY vary run-to-run. Explicitly best-effort.
 
 ## Quick Validation
 
@@ -133,7 +234,8 @@ See `examples/` for complete walkthroughs:
 ## Related
 
 - **AGENTS.md** - Bootstrap protocol that invokes this loading logic (Steps 1-3)
-- **RULES_INDEX.md** - Authoritative source for rule discovery mappings
+- **RULES_INDEX_COMPACT.md** - The agent discovery index (grep target). Generated from rule frontmatter.
+- **RULES_INDEX.md** - Human-only reference; agents discover via `RULES_INDEX_COMPACT.md`, never this file.
 - **002h-claude-code-skills.md** - Skill authoring standards this skill follows
 - **003-context-engineering.md** - Token budget and attention management principles
 

@@ -94,7 +94,7 @@ python scripts/template_generator.py 231-python-msgspec \
 Next steps:
 1. Edit rules/422-daisyui-core.md and replace all placeholders with actual content
 2. Validate: python scripts/schema_validator.py rules/422-daisyui-core.md
-3. Add to RULES_INDEX.md
+3. Add to human-only RULES_INDEX.md
 ```
 
 **Check exit code:**
@@ -350,7 +350,7 @@ $ python scripts/template_generator.py 422-daisyui-core \
 Next steps:
 1. Edit rules/422-daisyui-core.md and replace all placeholders
 2. Validate: python scripts/schema_validator.py rules/422-daisyui-core.md
-3. Add to RULES_INDEX.md
+3. Add to human-only RULES_INDEX.md
 ```
 
 **Verification:**

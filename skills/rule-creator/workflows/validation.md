@@ -508,5 +508,5 @@ Proceed to **Phase 5: Indexing** (`workflows/indexing.md`)
 **Preparation:**
 - Rule file validated and ready
 - No more modifications needed
-- Ready to add to RULES_INDEX.md
+- Ready to add to the human-only RULES_INDEX.md
 

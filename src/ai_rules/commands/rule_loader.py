@@ -770,6 +770,66 @@ def validate_fixtures_cmd(
 
     log_success(f"validated {passed} fixture(s)")
 
+    # ── manifest validation (valid-*.json fixtures) ──────────────────────────
+    # Validate every fixtures/rule_loader_eval/manifests/valid-*.json file.
+    # These must pass validate_manifest; invalid-* files are for unit tests only.
+    import json as _json
+
+    from ai_rules.rule_loader_eval.manifest import load_and_validate_manifest
+
+    manifests_dir = fixtures_dir / "manifests"
+    if manifests_dir.is_dir():
+        valid_manifest_paths = sorted(p for p in manifests_dir.glob("valid-*.json") if p.is_file())
+        manifest_failures: list[tuple[Path, list[str]]] = []
+        for mp in valid_manifest_paths:
+            mrel = mp.relative_to(root) if mp.is_relative_to(root) else mp
+            issues = load_and_validate_manifest(mp)
+            if issues:
+                manifest_failures.append((mrel, issues))
+                if debug:
+                    for iss in issues:
+                        err_console.print(f"  {iss}")
+            else:
+                # Extra shape assertion for the token-budget deferral fixture.
+                if mp.stem == "valid-token-budget-deferral":
+                    try:
+                        data = _json.loads(mp.read_text(encoding="utf-8"))
+                        non_foundation = [
+                            e
+                            for e in data.get("load_sequence", [])
+                            if e.get("reason_type") != "foundation"
+                        ]
+                        deferred = data.get("deferred_rules", [])
+                        if len(non_foundation) < 1:
+                            manifest_failures.append(
+                                (
+                                    mrel,
+                                    [
+                                        "token-budget fixture must have >=1 non-foundation "
+                                        "entry in load_sequence"
+                                    ],
+                                )
+                            )
+                        if len(deferred) < 1:
+                            manifest_failures.append(
+                                (
+                                    mrel,
+                                    ["token-budget fixture must have >=1 entry in deferred_rules"],
+                                )
+                            )
+                    except Exception as exc:
+                        manifest_failures.append((mrel, [f"shape assertion error: {exc!r}"]))
+
+        if manifest_failures:
+            for mrel, missues in manifest_failures:
+                for iss in missues:
+                    log_error(f"{mrel}: {iss}")
+            log_error(f"{len(manifest_failures)} valid manifest fixture(s) failed validation")
+            raise typer.Exit(EXIT_FIXTURE_INVALID)
+
+        if valid_manifest_paths:
+            log_success(f"validated {len(valid_manifest_paths)} manifest fixture(s)")
+
 
 # ---------------------------------------------------------------------------
 # list

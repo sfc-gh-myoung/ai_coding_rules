@@ -4,7 +4,7 @@
 > **Agent note:** This COMPACT index is the **primary and only** discovery index
 > for AI agents. Grep here for keywords, extensions, and directories.
 
-Grep-optimised, keyword-only projection of `RULES_INDEX.md`. One line per rule.
+Grep-optimised, keyword-only projection of the human-only `RULES_INDEX.md` full catalog. One line per rule.
 
 Format: `<filename> tier=<T> [ext=<...>] [file=<...>] [dir=<...>] kw=<word1> <word2> ...`
 

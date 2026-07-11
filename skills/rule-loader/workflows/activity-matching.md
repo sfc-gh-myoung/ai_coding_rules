@@ -1,8 +1,12 @@
 # Phase 3: Activity Matching
 
+> **Layer: SOFT (best-effort, non-deterministic).** Keyword extraction and matching
+> are LLM-mediated. The **high-risk-action check (Step 4)** is the exception — it is
+> HARD (mandatory fixed lookups regardless of keyword judgment).
+
 ## Purpose
 
-Discover activity-specific rules by searching RULES_INDEX.md for keywords extracted from the user request.
+Discover activity-specific rules by searching RULES_INDEX_COMPACT.md for keywords extracted from the user request.
 
 ## Algorithm
 

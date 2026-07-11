@@ -1,5 +1,8 @@
 # Phase 2: Domain Matching
 
+> **Layer: HARD (mechanical, reproducible).** Extension / file / directory matches
+> are exact-string lookups against `rules/RULES_INDEX_COMPACT.md`. No LLM judgment.
+
 ## Purpose
 
 Select domain rules based on file extensions and directory paths mentioned in the user request.

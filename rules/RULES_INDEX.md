@@ -44,13 +44,13 @@ grep -iwE "streamlit" rules/RULES_INDEX_COMPACT.md | grep -iE "ext=.*\.py"
 **Full-index recipes (F1 typed-prefix, retained for context lookups):**
 
 ```bash
-# Match by file extension:
+# human-only: Match by file extension:
 grep -iE -m 20 "ext:\.py" rules/RULES_INDEX.md
 
-# Match by keyword(s):
+# human-only: Match by keyword(s):
 grep -iE -m 20 "kw:python|kw:pytest" rules/RULES_INDEX.md
 
-# Combined:
+# human-only: Combined:
 grep -iE -m 20 "kw:streamlit|ext:\.py" rules/RULES_INDEX.md
 ```
 
@@ -61,7 +61,7 @@ Each matching line is a self-contained table row: the **rule filename is the fir
 - All rule files are located in the `rules/` directory.
 - When a rule lists `Depends:`, load its `required:` dependencies first (order matters).
 - `000-global-core.md` is the foundation rule — always loaded before any domain rule.
-- This file is **READ-ONLY** for rule discovery. Regenerate via `ai-rules index generate`.
+- This file is the **human-only** full catalog; it is **READ-ONLY** for discovery. Regenerate via `ai-rules index generate`.
 - To suggest improvements, modify the source rule files or `templates/RULES_INDEX.md.template`.
 
 ## Rule table

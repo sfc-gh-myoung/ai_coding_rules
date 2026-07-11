@@ -67,18 +67,37 @@ Execute: `read_file("{{rules_path}}/000-global-core.md")`
 - If file_not_found OR empty_content: OUTPUT "CRITICAL ERROR: Cannot proceed - {{rules_path}}/000-global-core.md not accessible" then STOP
 - If success: Continue to Step 2
 
-**Step 2: Load rule-selection skill (PRIMARY)**
+**Step 2: Rule discovery via the rule-loader skill (PRIMARY)**
 
-Execute: `read_file("{{skills_path}}/rule-loader/SKILL.md")`
+Rule discovery is DELEGATED. Do not re-implement the matching algorithm here —
+it lives in `{{skills_path}}/rule-loader/` (SKILL.md + workflows/). Execute:
 
-The `rule-loader/SKILL.md` skill is the PRIMARY discovery mechanism. It defines the authoritative workflow for foundation loading, domain matching, activity matching, dependency resolution, and token-budget management, and it executes RULES_INDEX_COMPACT.md discovery internally.
+1. If the runtime exposes a citable delegated-worker primitive, spawn a
+   **discovery sub-agent** whose task is to run the `rule-loader` skill with input =
+   the current user request (plus any token budget / tier filter). In Claude
+   Code-compatible runtimes, use the `Task` tool with
+   `subagent_type=general-purpose` and `description="rule-loader discovery"`.
+   In Cortex Code, use delegated discovery only when the current session exposes
+   a direct citable worker result; otherwise immediately use Step 2B.
+2. The sub-agent returns the authoritative fenced JSON manifest defined by the
+   `rule-loader` skill. It returns METADATA ONLY — never rule file contents.
+3. Record `keywords_searched`, `runtime.agent_id`, `runtime.spawn_evidence`, and
+   the manifest block for Gate 2.
+4. Proceed to Step 3 with `load_sequence` from the manifest.
 
-- If success: Follow the skill's Phase 2-5 workflow (Domain -> Activity -> Dependencies -> Token Budget). The skill returns the selected rule set. Record which keywords it searched for use in Gate 2 of the response header. Continue to Step 3 with that selected set.
-- If file_not_found OR unreadable OR the skill cannot be invoked in this environment: Fall back to **Step 2B**. Do not stop — the fallback is a supported path.
+- If the discovery sub-agent cannot be spawned, the skill cannot be invoked, the
+  runtime lacks visible spawn/result evidence, or the manifest is malformed
+  (invalid JSON, missing required keys, or contains rule bodies): fall back to
+  **Step 2B**. Do not stop — the fallback is supported.
+
+The `rule-loader` skill is the SINGLE SOURCE OF TRUTH for foundation loading,
+domain matching (HARD layer), activity matching (SOFT layer), dependency
+resolution, and token-budget management. It performs all discovery against
+`{{rules_path}}/RULES_INDEX_COMPACT.md` internally.
 
 **Step 2B (FALLBACK): Search RULES_INDEX_COMPACT.md directly**
 
-Execute this path ONLY when Step 2 (skill invocation) failed. This preserves discovery when the rule-loader skill is unavailable (missing, unreadable, or the runtime does not support skill invocation).
+Execute this path ONLY when Step 2 (discovery sub-agent OR skill invocation) failed. This preserves discovery when delegation is unavailable (sub-agent cannot be spawned, skill missing/unreadable, or the runtime does not support skills).
 
 A. Extract keywords: PRIMARY VERB + PRIMARY TECHNOLOGY + any FILE EXTENSIONS.
    Extract at least the verb or noun; never fail Gate 2 for vague requests.
@@ -108,46 +127,27 @@ F. For multi-technology requests, split on `+`, `and`, `with`, `,`, `using` and
    include each technology in the grep OR pattern. Full heuristic + examples:
    "Keyword Extraction Heuristic" in {{rules_path}}/002n-agent-protocol-reference.md.
 
-**Step 3: Load Matching Rules**
+**Step 3: Load Matching Rules (apply the manifest)**
 
-> For detailed rule selection workflows, dependency resolution, and token budget management, use the `rule-loader` skill.
+The rule set was determined in Step 2 (manifest) or Step 2B (inline fallback).
+Do not re-run matching here.
 
-A. Check for PROJECT.md:
-   - Execute: Check if PROJECT.md exists in workspace root
-   - If exists: Load via read_file, extract project context
-   - If NOT exists: Skip to Step 3B (no error, PROJECT.md is optional)
+A. Check for PROJECT.md: if it exists in workspace root, load via read_file and
+   apply project context. If not, skip (PROJECT.md is optional).
 
-B. Check directory-based rules:
-   - If request mentions files in `{{skills_path}}/` directory: Load {{rules_path}}/002h-claude-code-skills.md
-   - If request mentions files in `{{rules_path}}/` directory: Load {{rules_path}}/002-rule-governance.md
-   - If request mentions NEITHER directory: Proceed to Step 3C
+B. For EACH rule in the manifest's dependency-ordered load sequence
+   (or the Step 2B match list): Execute `read_file("{{rules_path}}/[rule-name].md")`.
+   Preserve every manifest `deferred_rules[*]` entry as a Gate 3 deferral note with
+   its `reason` / `deferred_because`; do not silently drop token-budget deferrals.
+   - Read success = rule loaded.
+   - Read fails AND it is the ONLY matched rule: offer options (A) correct path,
+     (B) proceed without, (C) cancel.
+   - Read fails AND other rules loaded: note failure, mark Gate 3 PASSED `[x]`, CONTINUE.
 
-C. Load domain rules for file extensions:
-   1. Extract all file extensions from user request (e.g., ".py", ".sql", ".tsx")
-   2. For EACH extension found:
-      - **MANDATORY:** Look up the exact rule name via `grep -iwE "ext=\.<ext>" {{rules_path}}/RULES_INDEX_COMPACT.md`; the rule filename is the first field.
-      - Use ONLY the rule name found in RULES_INDEX_COMPACT.md (e.g., `.sql` -> `102-snowflake-sql-core.md`)
-      - **FORBIDDEN:** Inventing rule names not in RULES_INDEX_COMPACT.md (e.g., `300-sql-core.md` does not exist)
-      - If mapping found: Load the specified rule file using exact name
-      - If mapping NOT found: Note in Rules Loaded: "No domain rule for [extension]"
-   3. If NO extensions found in request: Skip to Step 3D
+C. Companion examples (complex configs only): if a loaded rule involves Cortex
+   Agent, Cortex Search, or Semantic View, load `{{rules_path}}/examples/{rule-number}-*-example.md` if present.
 
-   **Do not guess rule names.** Use `grep -iwE "ext=\.<ext>" {{rules_path}}/RULES_INDEX_COMPACT.md` to find the authoritative filename for any extension.
-
-D. Load activity rules from Step 2 matches:
-   - For EACH rule matched in Step 2: Execute `read_file("{{rules_path}}/[rule-name].md")`
-   - If read succeeds: Rule is loaded
-   - If read fails AND this is the ONLY matched rule: Note "Rule load failed: [filename] not found" and offer options: (A) Provide correct path, (B) Proceed without this rule, (C) Cancel task
-   - If read fails AND other rules loaded successfully:
-     1. Note "Rule load failed: [filename]" in Rules Loaded section
-     2. Mark Gate 3 as PASSED (`[x]`) - partial success counts as success
-     3. **CONTINUE WITH TASK** - do NOT stop, do NOT offer recovery options
-     4. Proceed using foundation + successfully loaded rules
-
-E. Check for rule examples (complex configurations only):
-   - If loaded rule involves Cortex Agent, Cortex Search, or Semantic View:
-     - Check for companion example: `{{rules_path}}/examples/{rule-number}-*-example.md`
-     - If example exists: Load example for reference implementation
+Loading = read_file + apply guidance + declare as Gate 3 sub-bullet. All three required.
 
 **Step 4: Generate Response Header**
 
@@ -158,7 +158,9 @@ Output this exact structure at the start of **EVERY** response (including clarif
 ```markdown
 PRE-FLIGHT:
 - [x] Gate 1: Foundation {{rules_path}}/000-global-core.md — N lines
-- [x] Gate 2: RULES_INDEX_COMPACT.md searched for: [list keywords searched]
+- [x] Gate 2: Rule discovery via rule-loader skill (discovery sub-agent <agent_id>, spawn_evidence <tool_call_id>) —
+      manifest schema rule-loader-manifest/v1; keywords: [list]
+      OR (fallback): RULES_INDEX_COMPACT.md grep/read_file for: [keywords]
 - [x] Gate 3: +N domain rule(s):
   - {{rules_path}}/[domain-or-activity-rule].md ([reason]) — N lines
 (or, when nothing matches: `- [x] Gate 3: none matched`)

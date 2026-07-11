@@ -9,8 +9,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.7.1
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v3.8.0
+**LastUpdated:** 2026-07-11
 **Keywords:** kw:workflow, kw:safety, kw:confirmation, kw:validation, kw:surgical edits, kw:minimal changes, kw:prompt engineering, kw:task list, kw:context window, kw:professional communication
 **TokenBudget:** ~2550
 **ContextTier:** Critical
@@ -64,7 +64,7 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 
 **Edge Cases:**
 - If user request is empty or unclear: Ask for clarification before proceeding
-- If no rules match keywords in RULES_INDEX.md: Proceed with foundation rule only, note "No domain rules matched" under Gate 3
+- If no rules match keywords in RULES_INDEX_COMPACT.md (or the discovery manifest is empty): Proceed with foundation rule only, note "No domain rules matched" under Gate 3
 - If no files require validation (e.g., documentation-only change): Skip validation sequence, note "No code changes to validate"
 - If a rule has already been loaded in this session: Skip re-loading, note "already loaded" under Gate 3
 
@@ -115,6 +115,14 @@ Task Switch: [FIRST | NO | YES (reason)]
 **Rules Validation:**
 - **CRITICAL:** Gate 1 foundation citation present with `— N lines`; domain/activity rules listed as Gate 3 sub-bullets (or `none matched`)
 - **CRITICAL:** Never declare rule as loaded when `read_file` failed
+
+**Gate 2 attestation (delegated or inline):** Gate 2 passes when discovery was
+performed by EITHER (a) a discovery sub-agent running the rule-loader skill — cite
+the runtime-visible spawn evidence, sub-agent `agent_id`, and fenced JSON manifest
+with `schema_version: rule-loader-manifest/v1`; OR (b) an inline `grep`/`read_file`
+call against `RULES_INDEX_COMPACT.md` you can cite (Step 2B). A Gate 2 claim with
+NEITHER spawn evidence + manifest + agent_id NOR a citable inline call is INVALID.
+Never claim Gate 2 from prior session context or a summary.
 
 **Code Quality:**
 - **CRITICAL:** Surgical edits only (minimal changes)

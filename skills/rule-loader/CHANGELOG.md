@@ -2,6 +2,20 @@
 
 All notable changes to the `rule-loader` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## [1.5.0] - 2026-07-11
+
+### Added
+
+- `## Matching Layers (HARD vs SOFT)` section: HARD layer (ext/file/dir + high-risk map) is mechanical and reproducible against `RULES_INDEX_COMPACT.md`; SOFT layer (activity keywords) is explicitly best-effort / non-deterministic.
+- `## Manifest Output` section defining the authoritative `rule-loader-manifest/v1` fenced JSON schema returned when the skill runs inside a discovery sub-agent. Metadata only — rule bodies never cross back. Requires `candidate_rules`, `candidate_count`, and `deferred_rules` with a candidate-completeness invariant.
+- `examples/manifest-output.md` with a minimal valid manifest and a token-budget deferral example.
+
+### Changed
+
+- `description` frontmatter now states the skill is the single source of truth for rule discovery, runs in a discovery sub-agent, matches against `RULES_INDEX_COMPACT.md`, and returns a metadata-only manifest.
+- Agent-facing `RULES_INDEX.md` references in `workflows/activity-matching.md` and `workflows/dependency-resolution.md` repointed to `RULES_INDEX_COMPACT.md`; `RULES_INDEX.md` labeled human-only in `## Related`.
+- `workflows/domain-matching.md` and `workflows/activity-matching.md` gained HARD / SOFT layer header notes (with the high-risk-action check marked HARD).
+
 ## [1.3.0] - 2026-07-03
 
 ### Fixed

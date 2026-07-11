@@ -170,7 +170,7 @@ All rules must have these 4 sections in order:
 ```
 
 **Agent Impact:**
-- **Discovery:** Agents use "What This Rule Covers" for semantic search in RULES_INDEX.md
+- **Discovery:** Agents use "What This Rule Covers" for semantic search in RULES_INDEX_COMPACT.md
 - **Loading Decision:** "When to Load This Rule" helps agents decide if rule is relevant
 - **Token Efficiency:** Clear scope prevents loading irrelevant rules
 - **Task Matching:** Bullet points map directly to user task descriptions
@@ -659,7 +659,7 @@ python scripts/schema_validator.py rules/ --fail-fast
 
 **Validator:**
 - `scripts/schema_validator.py` - Validation engine
-- `scripts/index_generator.py` - RULES_INDEX.md generator
+- `scripts/index_generator.py` - human-only RULES_INDEX.md generator
 
 **Tools:**
 - `scripts/count_tokens.py` - Token counting for TokenBudget validation

@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v3.2.3
+**LastUpdated:** 2026-07-11
 **Keywords:** kw:token budget, kw:performance, kw:rule sizing, kw:progressive loading, kw:context window, kw:model limits, kw:cost efficiency, kw:caching, kw:batch loading
 **TokenBudget:** ~4350
 **ContextTier:** High
@@ -43,7 +43,7 @@ is Standard tier. A rule at exactly 3500 tokens is Large tier.
 ### External Documentation
 
 - **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema
-- **Rules Index:** `RULES_INDEX.md` - Master index with current token budgets
+- **Rules Index:** the human-only `RULES_INDEX.md` - Master index with current token budgets
 - **Token Validator:** `ai-rules tokens` - CLI command for measuring actual token counts
 
 ## Contract
@@ -192,7 +192,7 @@ Note: Line-based estimation is unreliable (actual tokens per line varies from 3 
 depending on content density). Do not use "tokens per line" for estimation.
 
 > **IMPORTANT:** Token budget examples are point-in-time snapshots. Before relying on specific values for budget calculations:
-> 1. Check **RULES_INDEX.md** (auto-generated, always current)
+> 1. Check the human-only **RULES_INDEX.md** (auto-generated, always current)
 > 2. Or run: `uv run ai-rules tokens rules/002-rule-governance.md --detailed`
 > 3. Trust declared metadata over narrative examples
 

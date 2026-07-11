@@ -10,11 +10,11 @@ technology: FastAPI
 ```
 
 **Expected:**
-- Search RULES_INDEX.md for "fastapi", "python", "api"
+- Search human-only RULES_INDEX.md for "fastapi", "python", "api"
 - Find Python domain (200-299)
 - Identify next available number
 
-**Verification:**
+**Verification:** (human-only RULES_INDEX.md)
 ```bash
 grep -i "fastapi\|python" RULES_INDEX.md
 ```
@@ -295,13 +295,13 @@ Rule: rules/210-python-pydantic-core.md
 | 210-python-pydantic-core | Pydantic validation and data modeling | pydantic, validation, data models, type hints, ... | rules/200-python-core.md |
 ```
 
-**Verification:**
+**Verification:** (human-only RULES_INDEX.md)
 ```bash
 grep "210-python-pydantic" RULES_INDEX.md
 ```
 
 **Pass Criteria:**
-- [ ] Entry added to RULES_INDEX.md
+- [ ] Entry added to human-only RULES_INDEX.md
 - [ ] Correct numeric position (after 209, before 211)
 - [ ] All columns populated
 - [ ] Table formatting preserved
@@ -344,7 +344,7 @@ Create a new rule for httpx best practices following schema
 **Pass Criteria:**
 - [ ] File exists: rules/2XX-python-httpx-core.md
 - [ ] Validation: exit code 0
-- [ ] Indexed in RULES_INDEX.md
+- [ ] Indexed in human-only RULES_INDEX.md
 - [ ] Total time < 30 min
 
 ---

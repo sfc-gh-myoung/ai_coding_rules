@@ -10,9 +10,9 @@ Create a new Cursor rule documenting pytest-mock best practices following schema
 
 ### Phase 1: Discovery (5 min)
 
-**Search RULES_INDEX.md:**
+**Search human-only RULES_INDEX.md:**
 ```bash
-$ grep -i "pytest\|mock\|python.*test" RULES_INDEX.md
+$ grep -i "pytest\|mock\|python.*test" RULES_INDEX.md  # human-only index
 || `200-python-core.md` | Python foundations | ...
 || `206-python-pytest.md` | pytest usage | ...
 

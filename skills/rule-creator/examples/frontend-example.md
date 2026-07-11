@@ -15,10 +15,10 @@ Create a new Cursor rule documenting DaisyUI best practices following schema
 - Aspect: core (default for foundational rule)
 - Related: Tailwind CSS, components, UI library
 
-**Step 1.2: Search RULES_INDEX.md**
+**Step 1.2: Search human-only RULES_INDEX.md**
 ```bash
 $ grep -i "daisyui" RULES_INDEX.md
-# No results - new technology
+# No results - new technology [human-only index]
 
 $ grep -i "javascript\|tailwind\|frontend" RULES_INDEX.md
 || `420-javascript-core.md` | JavaScript and frontend foundations | ...
@@ -96,7 +96,7 @@ $ uv run ai-rules new 422-daisyui-core \
 Next steps:
 1. Edit rules/422-daisyui-core.md and replace all placeholders
 2. Validate: uv run ai-rules validate rules/422-daisyui-core.md
-3. Add to RULES_INDEX.md
+3. Add to human-only RULES_INDEX.md
 ```
 
 **Step 2.3: Verify Template**
@@ -234,7 +234,7 @@ RESULT:   WARNINGS ONLY (exit code 0)
 | 422-daisyui-core | DaisyUI component library patterns and best practices | daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization | rules/420-javascript-core.md |
 ```
 
-**Step 5.2: Determine Insertion Position**
+**Step 5.2: Determine Insertion Position in human-only RULES_INDEX.md**
 ```bash
 $ grep "^|| \`42[0-9]-\|^|| \`43[0-9]-" RULES_INDEX.md
 || `420-javascript-core.md` | ...
@@ -245,9 +245,9 @@ $ grep "^|| \`42[0-9]-\|^|| \`43[0-9]-" RULES_INDEX.md
 ```
 
 **Step 5.3: Insert Entry**
-*Entry added to RULES_INDEX.md between lines for 421 and 430*
+*Entry added to human-only RULES_INDEX.md between lines for 421 and 430*
 
-**Step 5.4: Verify**
+**Step 5.4: Verify** (human-only RULES_INDEX.md)
 ```bash
 $ grep "422-daisyui-core" RULES_INDEX.md
 || `422-daisyui-core.md` | DaisyUI component library patterns and best practices | daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization | rules/420-javascript-core.md |
@@ -271,7 +271,7 @@ File Details:
 - Size: ~18KB (approximately 450 lines)
 - TokenBudget: ~1200 tokens
 - Validation: 0 CRITICAL errors, 0 HIGH errors
-- Indexed: Yes (RULES_INDEX.md updated)
+- Indexed: Yes (human-only RULES_INDEX.md updated)
 
 Ready for use: rules/422-daisyui-core.md
 ```

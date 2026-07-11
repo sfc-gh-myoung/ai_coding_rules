@@ -8,8 +8,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.2.5
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v1.2.6
+**LastUpdated:** 2026-07-11
 **Keywords:** kw:rule update, kw:rule maintenance, kw:versioning, kw:ruleversion, kw:lastupdated, kw:semantic versioning, kw:major, kw:minor, kw:patch, kw:rule modification, kw:keyword expansion, kw:scope updates, kw:metadata updates, kw:changelog updates
 **TokenBudget:** ~4150
 **ContextTier:** High
@@ -81,7 +81,7 @@ Workflow and best practices for updating and maintaining existing rule files. Co
 7. Update TokenBudget if file size changed by >50 lines or >10%
 8. Validate with `ai-rules validate` (must pass with 0 CRITICAL errors)
 9. Update CHANGELOG.md with change details
-10. Regenerate RULES_INDEX.md with `make index-generate`
+10. Regenerate the human-only RULES_INDEX.md with `make index-generate`
 
 ### Output Format
 
@@ -107,7 +107,7 @@ Updated rule file with:
 - RuleVersion follows semantic versioning (vX.Y.Z)
 - LastUpdated is current date (YYYY-MM-DD)
 - CHANGELOG.md has entry for this update
-- RULES_INDEX.md regenerated with updated metadata
+- human-only RULES_INDEX.md regenerated with updated metadata
 
 ### Post-Execution Checklist
 
@@ -119,7 +119,7 @@ Updated rule file with:
 - [ ] TokenBudget updated if file size changed
 - [ ] Schema validation passes (0 CRITICAL errors)
 - [ ] CHANGELOG.md updated with change details
-- [ ] RULES_INDEX.md regenerated
+- [ ] RULES_INDEX.md (human-only) regenerated
 - [ ] Git commit with conventional commit message
 
 ## Rule Versioning Policy
@@ -224,7 +224,7 @@ After:
 When updating a rule file from schema v3.2 to v3.3:
 
 1. Update `SchemaVersion:` field from `v3.2` to `v3.3` if not already v3.3
-2. Verify all `ext:` entries in RULES_INDEX.md use the current format
+2. Verify all `ext:` entries in the human-only RULES_INDEX.md use the current format
 3. Confirm `ContextTier` field is present (added in v3.3)
 4. Run `uv run ai-rules validate rules/` to confirm schema compliance
 5. Update `RuleVersion` per semantic versioning and set `LastUpdated` to today
@@ -393,7 +393,7 @@ Add entry under `## [Unreleased]` section:
   - Impact: Improves rule discovery for [use case]
 ```
 
-### Step 7: Regenerate RULES_INDEX.md
+### Step 7: Regenerate RULES_INDEX.md (human-only catalog)
 
 ```bash
 # Regenerate index with updated metadata
@@ -414,7 +414,7 @@ All update scenarios follow the same core workflow:
 3. Update LastUpdated to current date
 4. Update TokenBudget if file size changed by >50 lines or >10%
 5. Run `ai-rules validate` (must pass with 0 CRITICAL errors)
-6. Add CHANGELOG.md entry, then regenerate RULES_INDEX.md
+6. Add CHANGELOG.md entry, then regenerate the human-only RULES_INDEX.md
 
 ### Scenario Comparison
 

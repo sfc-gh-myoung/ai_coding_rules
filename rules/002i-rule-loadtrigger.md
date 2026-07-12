@@ -7,7 +7,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.3
+**RuleVersion:** v1.1.4
 **LastUpdated:** 2026-07-11
 **Keywords:** ext:.py, kw:python, kw:testing, kw:loadtrigger, kw:dynamic rule loading, kw:rule discovery, kw:file extension trigger, kw:keyword trigger, kw:directory trigger, kw:filename trigger, kw:rules_index
 **TokenBudget:** ~2200
@@ -245,7 +245,7 @@ Triggers on: pyproject.toml file OR "python-project" keyword
 
 **Correct Pattern:** Foundation rules are always loaded automatically.
 
-## LoadTrigger Impact on RULES_INDEX.md (human-only catalog)
+## LoadTrigger Impact on RULES_INDEX.md
 
 When you add LoadTrigger to a rule, it automatically appears in `RULES_INDEX.md` after running:
 

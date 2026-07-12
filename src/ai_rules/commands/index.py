@@ -32,34 +32,21 @@ RE_TOKEN_BUDGET = re.compile(r"^\*\*TokenBudget:\*\*\s*(.*)$", re.IGNORECASE)
 RE_CONTEXT_TIER = re.compile(r"^\*\*ContextTier:\*\*\s*(.*)$", re.IGNORECASE)
 RE_LOAD_TRIGGER = re.compile(r"^\*\*LoadTrigger:\*\*\s*(.*)$", re.IGNORECASE)
 
-# Marker in the template where the generated flat table is injected
+# Marker in the template where the generated index rows are injected
 RULE_TABLE_MARKER = "<!-- RULE_TABLE -->"
 
 # Default template path relative to project root
 TEMPLATE_RELATIVE = Path("templates") / "RULES_INDEX.md.template"
 
-# B3 — Compact keyword-only manifest companion to RULES_INDEX.md. Format is a
-# pipe-separated projection of the full index (no Markdown table syntax) so
-# grep and awk consume it without header/separator noise. See plan §3.2, §5.2.
-COMPACT_INDEX_FILENAME = "RULES_INDEX_COMPACT.md"
-COMPACT_TEMPLATE_RELATIVE = Path("templates") / "RULES_INDEX_COMPACT.md.template"
-COMPACT_TABLE_MARKER = "<!-- COMPACT_TABLE -->"
-
 # .index-stats.json — B5 sanity-threshold facts + counts consumed by rule-loader
 # skill workflows. Schema documented in the "Rule-Loading Improvements
 # Implementation Plan (Track B + Track C)" §5.3.
 STATS_FILENAME = ".index-stats.json"
-# schema_version bumped from "1" to "2" in Phase 1 of the F4 keyword-matching
-# design (see .workbench/plans/keyword-matching-design-2026-07-04.plan.md).
-# format_version is emitted alongside so consumers can distinguish F1 (legacy
-# pipe-separated) from F4 (space-separated bare word list) compact indexes.
-STATS_SCHEMA_VERSION = "2"
-COMPACT_FORMAT_VERSION = "F4"
+# schema_version bumped from "2" to "3" when collapsing dual-index to single
+# compact RULES_INDEX.md (COMPACT format F4 is now the only generated index).
+STATS_SCHEMA_VERSION = "3"
+INDEX_FORMAT_VERSION = "F4"
 
-# Sentinel substring that only appears in F1-format compact rows. When present
-# in an on-disk RULES_INDEX_COMPACT.md, `check` treats the file as stale even
-# if content hashes would otherwise match — F1 must be regenerated to F4.
-_F1_STALE_SENTINEL = " | kw:"
 # Volatile fields that must be ignored when comparing an on-disk stats file
 # against a freshly regenerated one (they legitimately change every run).
 STATS_VOLATILE_KEYS = ("generated_at", "git_sha")
@@ -79,7 +66,6 @@ SKIP_FILES = {
     "AGENTS.md",
     "AGENTS_V2.md",
     "RULES_INDEX.md",
-    "RULES_INDEX_COMPACT.md",
 }
 
 
@@ -271,43 +257,11 @@ def _split_typed_tokens(keywords_str: str) -> dict[str, list[str]]:
     return result
 
 
-def generate_flat_line(rule: RuleMetadata) -> str:
-    """Render one self-contained Markdown table row for a rule.
-
-    Format: ``| filename | tier | ~tokens | ext | file | dir | kw |``
-
-    Every cell is always present (empty typed groups render as ``-``), so a
-    grep hit on any row is self-contained: the filename is the first column
-    and tier/tokens follow. Typed prefixes (``tier:``, ``ext:``, ``file:``,
-    ``dir:``, ``kw:``) are retained inside cells for grep matching.
-
-    Args:
-        rule: RuleMetadata for the rule to render.
-
-    Returns:
-        A single Markdown table row string without a trailing newline.
-    """
-    tokens = _split_typed_tokens(rule.keywords)
-
-    ext = ", ".join(f"ext:{v}" for v in tokens["ext"]) if tokens["ext"] else "-"
-    file_ = ", ".join(f"file:{v}" for v in tokens["file"]) if tokens["file"] else "-"
-    dir_ = ", ".join(f"dir:{v}" for v in tokens["dir"]) if tokens["dir"] else "-"
-    kw = ", ".join(f"kw:{v}" for v in tokens["kw"]) if tokens["kw"] else "-"
-
-    tier = f"tier:{rule.context_tier}" if rule.context_tier else "tier:-"
-    budget = rule.token_budget if rule.token_budget else "~-"
-
-    cells = [rule.filename, tier, budget, ext, file_, dir_, kw]
-    # Escape any literal pipes so they don't break the Markdown table
-    cells = [c.replace("|", "\\|") for c in cells]
-    return "| " + " | ".join(cells) + " |"
-
-
 def render_rules_index(rules: list[RuleMetadata], template_path: Path) -> str:
-    """Render RULES_INDEX.md by injecting the flat rule table into the template.
+    """Render RULES_INDEX.md by injecting compact index rows into the template.
 
     Replaces the ``<!-- RULE_TABLE -->`` marker in the template with one
-    flat line per rule (sorted by filename).
+    :func:`render_index_line` row per rule (sorted by filename).
 
     Args:
         rules: Sorted list of RuleMetadata objects.
@@ -329,7 +283,7 @@ def render_rules_index(rules: list[RuleMetadata], template_path: Path) -> str:
             f"Template {template_path} does not contain the '{RULE_TABLE_MARKER}' marker."
         )
 
-    rows = "\n".join(generate_flat_line(r) for r in rules)
+    rows = "\n".join(render_index_line(r) for r in rules)
     return template.replace(RULE_TABLE_MARKER, rows)
 
 
@@ -355,10 +309,10 @@ def _hyphenate_keyword(kw: str) -> str:
     return re.sub(r"\s+", "-", stripped)
 
 
-def render_compact_line(rule: RuleMetadata) -> str:
-    """Render one F4-format row of the compact keyword-only manifest.
+def render_index_line(rule: RuleMetadata) -> str:
+    """Render one F4-format row of the index.
 
-    Format (F4, plan §3.2 — replaces the F1 pipe-separated legacy):
+    Format (F4):
 
         ``<filename> tier=<T> [ext=<e1>,<e2>] [file=<f1>] [dir=<d1>] kw=<w1> <w2> ...``
 
@@ -369,8 +323,7 @@ def render_compact_line(rule: RuleMetadata) -> str:
     inside the ``kw=`` block are space-separated with any internal
     whitespace hyphenated (``surgical edits`` → ``surgical-edits``). Rules
     with no keywords render ``kw=-``. This grammar is optimised for
-    ``grep -iwE <word>`` recall against the compact index and BPE-tokenises
-    more efficiently than the F1 comma-separated form (see plan §1).
+    ``grep -iwE <word>`` recall and BPE-tokenises efficiently.
 
     Args:
         rule: RuleMetadata for the rule to render.
@@ -398,36 +351,6 @@ def render_compact_line(rule: RuleMetadata) -> str:
         parts.append("kw=-")
 
     return " ".join(parts)
-
-
-def render_compact_index(rules: list[RuleMetadata], template_path: Path) -> str:
-    """Render RULES_INDEX_COMPACT.md by injecting compact rows into the template.
-
-    Replaces the ``<!-- COMPACT_TABLE -->`` marker in the compact template
-    with one :func:`render_compact_line` row per rule (sorted by filename).
-
-    Args:
-        rules: Sorted list of RuleMetadata objects.
-        template_path: Path to ``templates/RULES_INDEX_COMPACT.md.template``.
-
-    Returns:
-        Complete RULES_INDEX_COMPACT.md content as a string.
-
-    Raises:
-        ValueError: If the template does not exist or lacks the marker.
-    """
-    if not template_path.exists():
-        raise ValueError(f"Template not found: {template_path}")
-
-    template = template_path.read_text(encoding="utf-8")
-
-    if COMPACT_TABLE_MARKER not in template:
-        raise ValueError(
-            f"Template {template_path} does not contain the '{COMPACT_TABLE_MARKER}' marker."
-        )
-
-    rows = "\n".join(render_compact_line(r) for r in rules)
-    return template.replace(COMPACT_TABLE_MARKER, rows)
 
 
 def _normalize_for_check(text: str) -> str:
@@ -539,17 +462,8 @@ def render_index_stats(
     rules: list[RuleMetadata],
     rendered_index: str,
     project_root: Path,
-    rendered_compact_index: str | None = None,
 ) -> dict[str, Any]:
-    """Render the ``.index-stats.json`` body (B5 slice; B2/B3 extend the schema).
-
-    See the "Rule-Loading Improvements Implementation Plan (Track B + Track C)"
-    §5.3 for the target schema. Batch 1 populates ``schema_version``,
-    ``generated_at``, ``git_sha``, ``counts.rules``, ``counts.index_lines``,
-    ``counts.keyword_entries``, ``counts.rules_with_deps``, ``tiers``, and
-    ``sanity_thresholds``. Batch 2 additionally populates
-    ``counts.compact_index_lines`` when ``rendered_compact_index`` is
-    supplied. Batch 3 will add ``counts.max_deps_depth`` (not emitted here).
+    """Render the ``.index-stats.json`` body.
 
     Args:
         rules: Sorted list of RuleMetadata objects (as returned by
@@ -558,14 +472,10 @@ def render_index_stats(
             count total index lines.
         project_root: Project root path; used to look up the current git SHA
             for the ``git_sha`` field.
-        rendered_compact_index: Optional rendered ``RULES_INDEX_COMPACT.md``
-            content. When present, its line count is emitted as
-            ``counts.compact_index_lines``. Kept optional so callers that only
-            need the Batch 1 slice (older tests, external consumers) still
-            work.
 
     Returns:
-        A JSON-serialisable dict matching the plan §5.3 Batch 1+2 slice.
+        A JSON-serialisable dict with schema_version, format_version,
+        generated_at, git_sha, counts, tiers, and sanity_thresholds.
     """
     rules_with_deps = sum(1 for r in rules if r.depends and r.depends != "—")
     counts: dict[str, int] = {
@@ -574,11 +484,9 @@ def render_index_stats(
         "keyword_entries": _count_keyword_entries(rules),
         "rules_with_deps": rules_with_deps,
     }
-    if rendered_compact_index is not None:
-        counts["compact_index_lines"] = len(rendered_compact_index.splitlines())
     return {
         "schema_version": STATS_SCHEMA_VERSION,
-        "format_version": COMPACT_FORMAT_VERSION,
+        "format_version": INDEX_FORMAT_VERSION,
         "generated_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "git_sha": _resolve_git_sha(project_root),
         "counts": counts,
@@ -628,27 +536,16 @@ def _resolve_template(project_root: Path) -> Path:
     return template_path
 
 
-def _resolve_compact_template(project_root: Path) -> Path:
-    """Return the RULES_INDEX_COMPACT template path with a helpful error if missing."""
-    template_path = project_root / COMPACT_TEMPLATE_RELATIVE
-    if not template_path.exists():
-        log_error(f"RULES_INDEX_COMPACT template not found: {template_path}")
-        log_error(f"Expected: {COMPACT_TEMPLATE_RELATIVE}")
-        raise typer.Exit(code=1) from None
-    return template_path
-
-
 def _scan_and_generate(
     rules_dir: Path | None,
-) -> tuple[list[RuleMetadata], str, str, Path]:
-    """Resolve rules dir, scan, load templates, and render both index files.
+) -> tuple[list[RuleMetadata], str, Path]:
+    """Resolve rules dir, scan, load template, and render the index.
 
     Args:
         rules_dir: Optional explicit rules directory path.
 
     Returns:
-        Tuple of (rules list, rendered full index, rendered compact index,
-        resolved rules_dir).
+        Tuple of (rules list, rendered index content, resolved rules_dir).
 
     Raises:
         typer.Exit: On any failure.
@@ -688,7 +585,6 @@ def _scan_and_generate(
     log_success(f"Found {len(rules)} rule files")
 
     template_path = _resolve_template(project_root)
-    compact_template_path = _resolve_compact_template(project_root)
 
     try:
         content = render_rules_index(rules, template_path)
@@ -696,13 +592,7 @@ def _scan_and_generate(
         log_error(f"Error rendering RULES_INDEX.md: {exc}")
         raise typer.Exit(code=1) from None
 
-    try:
-        compact_content = render_compact_index(rules, compact_template_path)
-    except Exception as exc:
-        log_error(f"Error rendering {COMPACT_INDEX_FILENAME}: {exc}")
-        raise typer.Exit(code=1) from None
-
-    return rules, content, compact_content, rules_dir
+    return rules, content, rules_dir
 
 
 @index_app.command(name="generate")
@@ -725,9 +615,8 @@ def generate(
 ) -> None:
     """Generate RULES_INDEX.md from rule metadata using the template.
 
-    Renders ``templates/RULES_INDEX.md.template`` with a flat one-line-per-rule
-    table (format: filename | tier | ~tokens | ext | file | dir | kw) for
-    self-contained grep-based discovery.
+    Renders ``templates/RULES_INDEX.md.template`` with one F4 compact row per
+    rule for grep-based discovery.
 
     Examples:
         # Generate RULES_INDEX.md
@@ -739,7 +628,7 @@ def generate(
         # Use custom rules directory
         ai-rules index generate --rules-dir custom/rules
     """
-    rules, content, compact_content, rules_dir = _scan_and_generate(rules_dir)
+    rules, content, rules_dir = _scan_and_generate(rules_dir)
 
     if dry_run:
         console.print()
@@ -761,22 +650,10 @@ def generate(
         log_error(f"Error writing {output_path}: {exc}")
         raise typer.Exit(code=1) from None
 
-    # B3: emit rules/RULES_INDEX_COMPACT.md — a grep-optimised keyword-only
-    # projection of the full index. Referenced by the rule-loader skill's
-    # activity-matching workflow as the primary discovery target (plan §3.2,
-    # §5.2).
-    compact_output_path = rules_dir / COMPACT_INDEX_FILENAME
-    try:
-        compact_output_path.write_text(compact_content, encoding="utf-8")
-        log_success(f"Generated {compact_output_path}")
-    except Exception as exc:
-        log_error(f"Error writing {compact_output_path}: {exc}")
-        raise typer.Exit(code=1) from None
-
-    # B5: emit .index-stats.json alongside RULES_INDEX.md so the rule-loader
+    # Emit .index-stats.json alongside RULES_INDEX.md so the rule-loader
     # skill's sanity thresholds and expected-volume counts have an
-    # authoritative, regenerated source of truth (plan §5.3).
-    stats = render_index_stats(rules, content, rules_dir.parent, compact_content)
+    # authoritative, regenerated source of truth.
+    stats = render_index_stats(rules, content, rules_dir.parent)
     try:
         stats_path = _write_index_stats(stats, rules_dir)
     except Exception as exc:
@@ -804,7 +681,7 @@ def check(
         # Check with custom rules directory
         ai-rules index check --rules-dir custom/rules
     """
-    _rules, content, compact_content, rules_dir = _scan_and_generate(rules_dir)
+    _rules, content, rules_dir = _scan_and_generate(rules_dir)
 
     output_path = rules_dir / "RULES_INDEX.md"
 
@@ -830,45 +707,7 @@ def check(
         console.print("  ai-rules index generate")
         raise typer.Exit(code=1) from None
 
-    # B3: RULES_INDEX_COMPACT.md must also be current. This is a plain
-    # projection of the same rules corpus, so any drift signals that
-    # `ai-rules index generate` was not re-run after a rule change.
-    compact_output_path = rules_dir / COMPACT_INDEX_FILENAME
-    if not compact_output_path.exists():
-        log_error(f"{compact_output_path} does not exist")
-        console.print("\n[yellow]Run:[/yellow] ai-rules index generate")
-        raise typer.Exit(code=1) from None
-
-    try:
-        current_compact = compact_output_path.read_text(encoding="utf-8")
-    except Exception as exc:
-        log_error(f"Error reading {compact_output_path}: {exc}")
-        raise typer.Exit(code=1) from None
-
-    # F4 stale detection: if the on-disk compact index contains F1 pipe-
-    # separated rows (sentinel: ` | kw:`), fail fast with a clear migration
-    # message even before content diffing. This catches the case where the
-    # index was generated on an old F1-format branch and the current branch
-    # ships F4.
-    if _F1_STALE_SENTINEL in current_compact:
-        log_error(
-            f"{compact_output_path.name} uses legacy F1 (pipe-separated) format. "
-            "Regenerate with 'ai-rules index generate' to emit F4."
-        )
-        raise typer.Exit(code=1) from None
-
-    if _normalize_for_check(current_compact) != _normalize_for_check(compact_content):
-        log_error(f"{compact_output_path.name} is out of date")
-        console.print()
-        _show_diff(current_compact, compact_content)
-        console.print()
-        console.print("[yellow]Run to update:[/yellow]")
-        console.print("  ai-rules index generate")
-        raise typer.Exit(code=1) from None
-
-    log_success(f"{COMPACT_INDEX_FILENAME} is up-to-date")
-
-    # B5: .index-stats.json must also be current. Volatile fields
+    # .index-stats.json must also be current. Volatile fields
     # (generated_at, git_sha) are normalised out before comparison so only a
     # real content drift (count/tier/schema change) fails the check.
     stats_path = _stats_output_path(rules_dir)
@@ -884,7 +723,7 @@ def check(
         log_error(f"Error reading {stats_path}: {exc}")
         raise typer.Exit(code=1) from None
 
-    generated_stats = render_index_stats(_rules, content, rules_dir.parent, compact_content)
+    generated_stats = render_index_stats(_rules, content, rules_dir.parent)
 
     if _normalize_stats_for_check(current_stats) != _normalize_stats_for_check(generated_stats):
         log_error(f"{stats_path.name} is out of date")

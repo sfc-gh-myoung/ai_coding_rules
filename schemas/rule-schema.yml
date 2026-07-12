@@ -448,7 +448,7 @@ link_validation:
           - "CHANGELOG.md"
           - "CONTRIBUTING.md"
           - "README.md"
-          - "RULES_INDEX.md"  # human-only generated catalog
+          - "RULES_INDEX.md"  # generated index (not a rule; skip rule-schema validation)
         severity: "INFO"
         docs_reference: "002-rule-governance.md Section 11"
 
@@ -529,8 +529,7 @@ excluded_files:
     - "README.md"
     - "CHANGELOG.md"
     - "CONTRIBUTING.md"
-    - "RULES_INDEX.md"  # human-only generated index (not an agent discovery target)
-    - "RULES_INDEX_COMPACT.md"  # generated agent discovery index; not a rule, skip rule-schema validation
+    - "RULES_INDEX.md"  # generated index (not a rule; skip rule-schema validation)
     - "UNIVERSAL_PROMPT.md"
     - "AGENTS.md"
     - "002a-rule-boilerplate.md"  # Boilerplate is reference, not validated

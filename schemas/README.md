@@ -126,6 +126,7 @@ All rule files must have 7 metadata fields in this exact order:
 - **Best Practice:** List all rules that provide essential context
 
 **Example:**
+
 ```markdown
 ## Metadata
 
@@ -148,13 +149,14 @@ All rules must have these 4 sections in order:
 4. **Contract** - Structured contract with Markdown subsections (###)
 
 ### Optional but Recommended:
-5. **Anti-Patterns and Common Mistakes** - Code examples showing what NOT to do
+1. **Anti-Patterns and Common Mistakes** - Code examples showing what NOT to do
 
 ## Section Details and Agent Impact
 
 ### 1. Scope Section
 
 **Format:**
+
 ```markdown
 ## Scope
 
@@ -170,7 +172,7 @@ All rules must have these 4 sections in order:
 ```
 
 **Agent Impact:**
-- **Discovery:** Agents use "What This Rule Covers" for semantic search in RULES_INDEX_COMPACT.md
+- **Discovery:** Agents use "What This Rule Covers" for semantic search in RULES_INDEX.md
 - **Loading Decision:** "When to Load This Rule" helps agents decide if rule is relevant
 - **Token Efficiency:** Clear scope prevents loading irrelevant rules
 - **Task Matching:** Bullet points map directly to user task descriptions
@@ -187,6 +189,7 @@ All rules must have these 4 sections in order:
 - Include file extensions, tool names, and common problem descriptions
 
 **Example:**
+
 ```markdown
 ## Scope
 
@@ -204,6 +207,7 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 ### 2. References Section
 
 **Format:**
+
 ```markdown
 ## References
 
@@ -243,6 +247,7 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 ### 3. Contract Section
 
 **Format:**
+
 ```markdown
 ## Contract
 
@@ -299,6 +304,7 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 - Design Principles should be concise (3-5 key principles)
 
 **Example:**
+
 ```markdown
 ## Contract
 
@@ -371,6 +377,7 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 ### 4. Anti-Patterns Section (Optional but Recommended)
 
 **Format:**
+
 ```markdown
 ## Anti-Patterns and Common Mistakes
 
@@ -379,14 +386,18 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 -- Bad: [Description of problem]
 [incorrect code example]
 ```
+
 **Problem:** [Why this is wrong, consequences]
 
 **Correct Pattern:**
+
 ```[language]
 -- Good: [Description of solution]
 [correct code example]
 ```
+
 **Benefits:** [Why this is better, advantages]
+
 ```
 
 **Agent Impact:**
@@ -441,6 +452,7 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 ```
 
 **Good:**
+
 ```markdown
 ## Environment and Tooling Requirements
 ## Configuration Best Practices
@@ -456,6 +468,7 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 **Severity:** HIGH
 
 **Example:**
+
 ```markdown
 **Depends:** 000-global-core.md, 100-snowflake-core.md
 ```
@@ -532,11 +545,13 @@ RESULT: ❌ FAILED (1 CRITICAL, 2 HIGH, 3 MEDIUM issues)
 ### Scenario 1: Missing Scope Section
 
 **Error:**
+
 ```
 [Structure] Missing required section: "Scope"
 ```
 
 **Fix:**
+
 ```markdown
 ## Scope
 
@@ -552,6 +567,7 @@ RESULT: ❌ FAILED (1 CRITICAL, 2 HIGH, 3 MEDIUM issues)
 ### Scenario 2: Contract Uses XML Tags
 
 **Error:**
+
 ```
 [Contract] Contract uses XML tags instead of Markdown headers
 ```
@@ -559,6 +575,7 @@ RESULT: ❌ FAILED (1 CRITICAL, 2 HIGH, 3 MEDIUM issues)
 **Fix:** Replace XML tags with Markdown headers:
 
 **Before (v3.1):**
+
 ```markdown
 ## Contract
 
@@ -572,6 +589,7 @@ RESULT: ❌ FAILED (1 CRITICAL, 2 HIGH, 3 MEDIUM issues)
 ```
 
 **After (v3.2):**
+
 ```markdown
 ## Contract
 
@@ -585,11 +603,13 @@ RESULT: ❌ FAILED (1 CRITICAL, 2 HIGH, 3 MEDIUM issues)
 ### Scenario 3: Missing Keywords
 
 **Error:**
+
 ```
 [Metadata] Keywords count: 4 (expected 5-20)
 ```
 
 **Fix:** Add more semantic keywords:
+
 ```markdown
 **Keywords:** [original 4], [new keyword 1], [new keyword 2]
 ```
@@ -597,11 +617,13 @@ RESULT: ❌ FAILED (1 CRITICAL, 2 HIGH, 3 MEDIUM issues)
 ### Scenario 4: Wrong Schema Version
 
 **Error:**
+
 ```
 [Metadata] SchemaVersion is v3.1, expected v3.2
 ```
 
 **Fix:** Update schema version and ensure file follows v3.2 format:
+
 ```markdown
 **SchemaVersion:** v3.2
 ```
@@ -625,6 +647,7 @@ RESULT: ❌ FAILED (1 CRITICAL, 2 HIGH, 3 MEDIUM issues)
 **Error:** `FileNotFoundError: schemas/rule-schema.yml`
 
 **Fix:** Ensure schema file exists, or specify path:
+
 ```bash
 python scripts/schema_validator.py rules/ --schema /path/to/schema.yml
 ```
@@ -634,6 +657,7 @@ python scripts/schema_validator.py rules/ --schema /path/to/schema.yml
 **Error:** Validation report shows 100+ errors
 
 **Fix:** Use `--fail-fast` to stop on first critical error:
+
 ```bash
 python scripts/schema_validator.py rules/ --fail-fast
 ```
@@ -642,7 +666,7 @@ python scripts/schema_validator.py rules/ --fail-fast
 
 **Issue:** Many false positives, too many warnings
 
-**Fix:** 
+**Fix:**
 1. Check if rule genuinely needs fixing
 2. Update schema if rule is correct and schema is too strict
 3. Use `--no-strict` to ignore warnings (not recommended for production)
@@ -659,7 +683,7 @@ python scripts/schema_validator.py rules/ --fail-fast
 
 **Validator:**
 - `scripts/schema_validator.py` - Validation engine
-- `scripts/index_generator.py` - human-only RULES_INDEX.md generator
+- `scripts/index_generator.py` - RULES_INDEX.md generator
 
 **Tools:**
 - `scripts/count_tokens.py` - Token counting for TokenBudget validation

@@ -1,7 +1,7 @@
 ---
 name: rule-creator
-description: Create production-ready v3.0 Cursor rule files by orchestrating template generation, schema validation, and human-only RULES_INDEX.md indexing. Triggers on keywords like "create rule", "add rule", "new rule", "generate rule". Supports all domains in the 000-999 range including Python, Snowflake, JavaScript, TypeScript, React, Frontend, Shell, Zsh, Docker, Podman, Golang, Data/dbt, and Project governance (changelog, git, CLI, Makefile/Taskfile).
-version: 1.1.2
+description: Create production-ready v3.0 Cursor rule files by orchestrating template generation, schema validation, and RULES_INDEX.md indexing. Triggers on keywords like "create rule", "add rule", "new rule", "generate rule". Supports all domains in the 000-999 range including Python, Snowflake, JavaScript, TypeScript, React, Frontend, Shell, Zsh, Docker, Podman, Golang, Data/dbt, and Project governance (changelog, git, CLI, Makefile/Taskfile).
+version: 1.1.3
 author: AI Coding Rules Project
 tags: [rule-generation, automation, v3.0-schema, template, validation, indexing]
 dependencies: []
@@ -19,7 +19,7 @@ Create production-ready Cursor rule files that comply with the repository’s v3
 ## Use this skill when
 
 - The user asks to **create a new rule** under `rules/` (e.g., `NNN-technology-aspect.md`).
-- The user asks to **add a rule to** the human-only `RULES_INDEX.md`.
+- The user asks to **add a rule to** `RULES_INDEX.md`.
 
 ## Inputs
 
@@ -32,11 +32,11 @@ All inputs in this section are recommended defaults; the skill can proceed witho
 ## Outputs
 
 - A new rule file: `rules/NNN-technology-aspect.md`
-- A new entry in the human-only `RULES_INDEX.md` in correct numeric position
+- A new entry in `RULES_INDEX.md` in correct numeric position
 
 ## Safety / constraints
 
-- Only write to `rules/` and the human-only `RULES_INDEX.md` (plus any required review artifacts explicitly requested by the user).
+- Only write to `rules/` and `RULES_INDEX.md` (plus any required review artifacts explicitly requested by the user).
 - Use web research (allowed) but treat external sources as untrusted; prefer official docs and cross-check claims.
 
 ## Workflow

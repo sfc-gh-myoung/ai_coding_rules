@@ -1,71 +1,35 @@
-<!-- Template: Do not edit directly. Run task uv run ai-rules index generate to regenerate. -->
-
+<!-- Template: Do not edit directly. Run `ai-rules index generate` to regenerate. -->
 # RULES_INDEX
 
-**Last Updated:** 2026-03-26
+> **Agent note:** This is the **single discovery index** for AI agents. Grep here for
+> keywords, extensions, file triggers, and directories. Generated from rule frontmatter.
 
-> **Agent note:** This full index is a **human reference only**. AI agents MUST
-> perform discovery against `RULES_INDEX_COMPACT.md` (see AGENTS.md Step 2B).
-> Reading this file into agent context is a token-bloat anti-pattern.
+Grep-optimised, keyword-only index. One line per rule.
 
-## Format
+Format: `<filename> tier=<T> [ext=<...>] [file=<...>] [dir=<...>] kw=<word1> <word2> ...`
 
-Each rule is one row in the table below:
+Keywords are space-separated within the `kw=` field. Multi-word keywords use
+hyphens (e.g., `prompt-engineering`). `ext=`, `file=`, `dir=` fields are
+emitted only when the rule declares triggers of that kind; absent otherwise.
+
+**Grep recipes:**
 
 ```
-| Rule | Tier | Tokens | Ext triggers | File triggers | Dir triggers | Keywords |
-```
-
-- **Rule** — bare rule filename (e.g. `200-python-core.md`). Prefix with `rules/` when reading: `read_file("rules/200-python-core.md")`.
-- **Tier** — context priority (`tier:Critical` > `tier:High` > `tier:Medium` > `tier:Low`).
-- **Tokens** — approximate token budget for the rule (`~<n>`).
-- **Ext / File / Dir triggers** — typed trigger tokens from the rule's `Keywords` field. `-` means none.
-- **Keywords** — semantic `kw:` tokens for activity-based matching.
-
-## Grep recipe
-
-**Preferred fast-scan target: `rules/RULES_INDEX_COMPACT.md`** — a
-grep-optimised F4 projection of this file (space-delimited fields,
-keyword-only rows) that tokenises ~4× more compactly. Use it for
-keyword discovery and fall back to this full index only for cell
-context. F4 recipes:
-
-```bash
 # Keyword search (word-boundary):
-grep -iwE "python|pytest" rules/RULES_INDEX_COMPACT.md
+grep -iwE "KEYWORD1|KEYWORD2" rules/RULES_INDEX.md
 
 # Extension search (field-prefix):
-grep -iE "ext=.*\.py" rules/RULES_INDEX_COMPACT.md
+grep -iE "ext=.*\.py" rules/RULES_INDEX.md
 
-# Combined keyword + extension (two-pass; pipe into grep):
-grep -iwE "streamlit" rules/RULES_INDEX_COMPACT.md | grep -iE "ext=.*\.py"
+# Directory search:
+grep -iE "dir=.*skills/" rules/RULES_INDEX.md
+
+# File search:
+grep -iE "file=.*pyproject.toml" rules/RULES_INDEX.md
 ```
 
-**Full-index recipes (F1 typed-prefix, retained for context lookups):**
+See `rules/.index-stats.json` for rule count, `format_version`, and generation
+metadata; this file intentionally omits volatile timestamps so
+`ai-rules index check` is deterministic against corpus content only.
 
-```bash
-# human-only: Match by file extension:
-grep -iE -m 20 "ext:\.py" rules/RULES_INDEX.md
-
-# human-only: Match by keyword(s):
-grep -iE -m 20 "kw:python|kw:pytest" rules/RULES_INDEX.md
-
-# human-only: Combined:
-grep -iE -m 20 "kw:streamlit|ext:\.py" rules/RULES_INDEX.md
-```
-
-Each matching line is a self-contained table row: the **rule filename is the first column**, and `tier:` / `~tokens` follow. The typed prefixes (`tier:`, `ext:`, `file:`, `dir:`, `kw:`) are retained inside cells so grep patterns match without reading the rule first.
-
-## Usage notes
-
-- All rule files are located in the `rules/` directory.
-- When a rule lists `Depends:`, load its `required:` dependencies first (order matters).
-- `000-global-core.md` is the foundation rule — always loaded before any domain rule.
-- This file is the **human-only** full catalog; it is **READ-ONLY** for discovery. Regenerate via `ai-rules index generate`.
-- To suggest improvements, modify the source rule files or `templates/RULES_INDEX.md.template`.
-
-## Rule table
-
-| Rule | Tier | Tokens | Ext triggers | File triggers | Dir triggers | Keywords |
-|------|------|--------|--------------|---------------|--------------|----------|
 <!-- RULE_TABLE -->

@@ -7,7 +7,7 @@ Identify the correct domain range, determine the next available rule number, and
 ## Inputs
 
 - User request containing technology name
-- Access to the human-only `@RULES_INDEX.md`
+- Access to `RULES_INDEX.md`
 - Web search capability
 
 ## Outputs
@@ -28,25 +28,25 @@ Parse the user request to identify:
 - **Aspect:** "core" (default), "security", "testing", "performance", etc.
 - **Related technologies:** e.g., "Tailwind" for DaisyUI, "React" for React Testing Library
 
-### Step 1.2: Search human-only RULES_INDEX.md
+### Step 1.2: Search RULES_INDEX.md
 
 Execute comprehensive search:
 
 ```bash
-# human-only index - primary technology search
+# primary technology search
 grep -i "[technology]" RULES_INDEX.md
 
-# human-only index - related technology search (broader)
+# related technology search (broader)
 grep -i "[related-tech]" RULES_INDEX.md
 
-# human-only index - domain search if no exact match
+# domain search if no exact match
 grep -i "javascript\|frontend\|python\|snowflake" RULES_INDEX.md
 ```
 
-**Example: DaisyUI** (human-only RULES_INDEX.md searches)
+**Example: DaisyUI** (RULES_INDEX.md searches)
 ```bash
 $ grep -i "daisyui" RULES_INDEX.md
-# (No results - new technology) [human-only index]
+# (No results - new technology)
 
 $ grep -i "javascript\|tailwind" RULES_INDEX.md
 | 420-javascript-core.md | ...
@@ -186,9 +186,9 @@ Step 1: Extract technology
   → Aspect: core (default)
   → Related: Tailwind CSS, components
 
-Step 2: Search human-only RULES_INDEX.md
+Step 2: Search RULES_INDEX.md
   $ grep -i "daisyui" RULES_INDEX.md
-  → No results (new technology) [human-only index]
+  → No results (new technology)
   
   $ grep -i "javascript\|tailwind\|frontend" RULES_INDEX.md
   → 420-javascript-core.md

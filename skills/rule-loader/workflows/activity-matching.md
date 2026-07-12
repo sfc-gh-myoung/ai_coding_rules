@@ -6,7 +6,7 @@
 
 ## Purpose
 
-Discover activity-specific rules by searching RULES_INDEX_COMPACT.md for keywords extracted from the user request.
+Discover activity-specific rules by searching RULES_INDEX.md for keywords extracted from the user request.
 
 ## Algorithm
 
@@ -30,35 +30,25 @@ When the user request contains multiple technologies joined by delimiters (`+`, 
 
 **Example:** `"FastAPI + HTMX + SSE in SPCS"` becomes:
 ```bash
-grep -iE "fastapi|htmx|sse|spcs" rules/RULES_INDEX_COMPACT.md
+grep -iE "fastapi|htmx|sse|spcs" rules/RULES_INDEX.md
 ```
 
-### Step 2: Search RULES_INDEX_COMPACT.md (grep against the compact index)
+### Step 2: Search RULES_INDEX.md (grep against the index)
 
-Execute a single compound grep combining all keywords. Target the compact
-index (`rules/RULES_INDEX_COMPACT.md`) — a space-separated, keyword-only
-projection of `RULES_INDEX.md` designed to minimise tokens consumed by
+Execute a single compound grep combining all keywords. Target
+`rules/RULES_INDEX.md` — a space-separated, keyword-only
+projection of rule frontmatter designed to minimise tokens consumed by
 discovery. It is the ONLY index agents should grep.
 
 ```bash
-grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" rules/RULES_INDEX_COMPACT.md
+grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" rules/RULES_INDEX.md
 ```
 
 Each hit is a self-contained row of the form
 `<filename> tier=<T> [ext=..] [file=..] [dir=..] kw=<w1> <w2> ...` — the
 rule filename is the first field.
 
-**Do NOT read the full `rules/RULES_INDEX.md`.** It is a human-only reference
-~4x larger than COMPACT; reading it into agent context is a token-bloat
-anti-pattern. The compact index carries every discovery trigger the full index
-has, so COMPACT is sufficient for all agent discovery.
-
-**Expected outcome for typical requests:**
-- 5-50 matching lines for multi-technology requests
-- 1-10 matching lines for single-technology requests
-- 0 lines = ANOMALY (re-execute grep once, then use fallback immediately)
-
-**If grep unavailable:** Read `rules/RULES_INDEX_COMPACT.md` via `read_file` and manually scan for keywords. This is the required fallback.
+**If grep unavailable:** Read `rules/RULES_INDEX.md` via `read_file` and manually scan for keywords. This is the required fallback.
 
 **FORBIDDEN:** Substituting glob, find, ls, or any file-discovery tool for grep.
 
@@ -103,4 +93,3 @@ If any high-risk keyword is present, the corresponding search is mandatory even 
 - Never claim Gate 2 passed based on memory or prior session context
 - If grep returns no matches for a keyword: note "No rules found for [keyword]"
 - **Zero results for common keywords (python, docker, deploy, test, snowflake, fastapi) is an ANOMALY** — re-execute grep once, then use read_file fallback
-- **Consistency check:** Keywords searched in Gate 2 must produce rules in Gate 3, or explicitly state "no rules found"

@@ -108,7 +108,7 @@ The GitHub Actions CI workflow runs automatically on pushes and PRs to `main`:
 | `quality` | Code quality | ruff lint, ruff format, ty type check |
 | `markdown` | Markdown linting | pymarkdownlnt for rules/ and docs/ |
 | `test` | Unit tests | pytest with Python 3.12, 3.13 matrix |
-| `validate` | Rules validation | schema validation, `rules/RULES_INDEX.md` (human-only) check, `rule-loader-validate` (trigger-evidence invariant; pure-Python) |
+| `validate` | Rules validation | schema validation, `rules/RULES_INDEX.md` check, `rule-loader-validate` (trigger-evidence invariant; pure-Python) |
 
 All jobs run in parallel for fast feedback. Ensure all checks pass before requesting review.
 
@@ -186,7 +186,7 @@ The project uses a production-ready rules architecture. For complete details, se
 **Key files:**
 
 - `AGENTS.md` - AI agent bootstrap protocol
-- `rules/RULES_INDEX.md` - human-only searchable rule catalog
+- `rules/RULES_INDEX.md` - generated rule catalog
 
 **Key Principle:** All rules in `rules/` are production-ready and deploy directly - no generation step required.
 
@@ -223,7 +223,7 @@ uv run ai-rules dev quality all --fix    # Fix all code quality issues
 uv run ai-rules dev test run             # Run all pytest tests
 uv run ai-rules dev validate             # Run all CI/CD checks
 uv run ai-rules validate rules/          # Validate rules against schema
-uv run ai-rules index generate           # Regenerate the human-only rules/RULES_INDEX.md
+uv run ai-rules index generate           # Regenerate rules/RULES_INDEX.md
 uv run ai-rules deploy --agents-dest ~ --rules-dest ~/rules    # Deploy rules to project
 ```
 
@@ -266,7 +266,7 @@ uv run ai-rules validate rules/100-snowflake-core.md  # Validate single rule
 uv run ai-rules validate rules/ --verbose             # Verbose output
 
 # Regenerate index
-uv run ai-rules index generate                        # Regenerate the human-only rules/RULES_INDEX.md
+uv run ai-rules index generate                        # Regenerate rules/RULES_INDEX.md
 ```
 
 ### Testing Your Changes
@@ -280,7 +280,7 @@ uv run ai-rules validate rules/
 # 2. Validate specific rule you modified
 uv run ai-rules validate rules/XXX-rule-name.md --verbose
 
-# 3. Regenerate the human-only rules/RULES_INDEX.md if metadata changed
+# 3. Regenerate rules/RULES_INDEX.md if metadata changed
 uv run ai-rules index generate
 
 # 4. Test deployment
@@ -297,7 +297,7 @@ uv run ai-rules dev quality all --fix
 
 ```bash
 git add rules/XXX-rule-name.md
-git add rules/RULES_INDEX.md  # human-only index; if you regenerated it
+git add rules/RULES_INDEX.md  # if you regenerated it
 git commit -m "feat: update XXX rule"
 ```
 
@@ -412,14 +412,14 @@ vim rules/450-terraform-best-practices.md
 # 4. Validate the rule
 uv run ai-rules validate rules/
 
-# 5. Regenerate the human-only rules/RULES_INDEX.md
+# 5. Regenerate rules/RULES_INDEX.md
 uv run ai-rules index generate
 
 # 6. Run quality checks
 uv run ai-rules dev quality all --fix
 
 # 7. Commit the new rule and updated index
-git add rules/450-terraform-best-practices.md rules/RULES_INDEX.md  # human-only index
+git add rules/450-terraform-best-practices.md rules/RULES_INDEX.md
 git commit -m "feat(rules): add Terraform best practices rule
 
 - Comprehensive Terraform IaC guidelines
@@ -449,7 +449,7 @@ uv run ai-rules index generate
 uv run ai-rules dev quality all --fix
 
 # 6. Commit changes
-git add rules/200-python-core.md rules/RULES_INDEX.md  # human-only index
+git add rules/200-python-core.md rules/RULES_INDEX.md
 git commit -m "fix(python): update core rule with type hints guidance"
 
 # 7. Push and create PR
@@ -491,7 +491,7 @@ git commit  # CORRECT
 ```bash
 vim rules/450-new-rule.md
 git add rules/450-new-rule.md
-git commit  # WRONG - human-only rules/RULES_INDEX.md not updated
+git commit  # WRONG - rules/RULES_INDEX.md not updated
 ```
 
 **Always regenerate index after rule changes:**
@@ -499,7 +499,7 @@ git commit  # WRONG - human-only rules/RULES_INDEX.md not updated
 ```bash
 vim rules/450-new-rule.md
 uv run ai-rules index generate
-git add rules/450-new-rule.md rules/RULES_INDEX.md  # human-only index
+git add rules/450-new-rule.md rules/RULES_INDEX.md
 git commit  # CORRECT
 ```
 
@@ -562,7 +562,7 @@ We are committed to fostering an open and welcoming environment. Please:
 ### Self-Service Resources
 
 - **README.md** - Project overview, setup, troubleshooting
-- **`rules/RULES_INDEX.md`** (human-only) - Find rules by keyword or category
+- **`rules/RULES_INDEX.md`** - Find rules by keyword or category
 - **AGENTS.md** - Rule loading protocol details
 - **docs/ARCHITECTURE.md** - System architecture and design decisions
 

@@ -93,9 +93,9 @@ it lives in `{{skills_path}}/rule-loader/` (SKILL.md + workflows/). Execute:
 The `rule-loader` skill is the SINGLE SOURCE OF TRUTH for foundation loading,
 domain matching (HARD layer), activity matching (SOFT layer), dependency
 resolution, and token-budget management. It performs all discovery against
-`{{rules_path}}/RULES_INDEX_COMPACT.md` internally.
+`{{rules_path}}/RULES_INDEX.md` internally.
 
-**Step 2B (FALLBACK): Search RULES_INDEX_COMPACT.md directly**
+**Step 2B (FALLBACK): Search RULES_INDEX.md directly**
 
 Execute this path ONLY when Step 2 (discovery sub-agent OR skill invocation) failed. This preserves discovery when delegation is unavailable (sub-agent cannot be spawned, skill missing/unreadable, or the runtime does not support skills).
 
@@ -104,13 +104,12 @@ A. Extract keywords: PRIMARY VERB + PRIMARY TECHNOLOGY + any FILE EXTENSIONS.
    (Full rule: "Step 2B Fallback Details" in {{rules_path}}/002n-agent-protocol-reference.md.)
 
 B. Execute search (COMPACT index is the ONLY agent discovery index):
-   - If bash tool available: Execute `grep -iwE "KEYWORD1|KEYWORD2|KEYWORD3" {{rules_path}}/RULES_INDEX_COMPACT.md` (combine keywords with OR).
+   - If bash tool available: Execute `grep -iwE "KEYWORD1|KEYWORD2|KEYWORD3" {{rules_path}}/RULES_INDEX.md` (combine keywords with OR).
    - **Format:** Each matching line is a self-contained row — `<filename> tier=<T> [ext=..] [file=..] [dir=..] kw=<w1> <w2> ...`. The rule filename is the first field. No further lookup is needed.
-   - **If grep unavailable: AUTOMATICALLY read {{rules_path}}/RULES_INDEX_COMPACT.md and scan manually (do NOT stop).** Mark Gate 2 PASSED if the manual scan succeeds. This is the REQUIRED fallback — do not offer recovery options.
+   - **If grep unavailable: AUTOMATICALLY read {{rules_path}}/RULES_INDEX.md and scan manually (do NOT stop).** Mark Gate 2 PASSED if the manual scan succeeds. This is the REQUIRED fallback — do not offer recovery options.
    - If grep returns matches (exit 0): Record matched rules for Step 3.
    - If grep returns no matches (exit 1): Note "No rules found for [keyword]".
-   - If grep returns error (exit 2): Read {{rules_path}}/RULES_INDEX_COMPACT.md and scan manually.
-   - **Do NOT read {{rules_path}}/RULES_INDEX.md.** The full index is a human-only reference and is ~4x larger; reading it into context is a token-bloat anti-pattern. All agent discovery uses COMPACT.
+   - If grep returns error (exit 2): Read {{rules_path}}/RULES_INDEX.md and scan manually.
    - **FORBIDDEN:** Substituting glob, find, or ls for the grep command above.
 
 C. Sanity + Gate-2 verification: zero results for a common keyword is an anomaly
@@ -160,7 +159,7 @@ PRE-FLIGHT:
 - [x] Gate 1: Foundation {{rules_path}}/000-global-core.md — N lines
 - [x] Gate 2: Rule discovery via rule-loader skill (discovery sub-agent <agent_id>, spawn_evidence <tool_call_id>) —
       manifest schema rule-loader-manifest/v1; keywords: [list]
-      OR (fallback): RULES_INDEX_COMPACT.md grep/read_file for: [keywords]
+      OR (fallback): RULES_INDEX.md grep/read_file for: [keywords]
 - [x] Gate 3: +N domain rule(s):
   - {{rules_path}}/[domain-or-activity-rule].md ([reason]) — N lines
 (or, when nothing matches: `- [x] Gate 3: none matched`)
@@ -312,7 +311,7 @@ Problem: Modifying files without presenting a task list or awaiting authorizatio
 AI: MODE: PLAN
 PRE-FLIGHT:
 - [x] Gate 1: Foundation {{rules_path}}/000-global-core.md — N lines
-- [x] Gate 2: RULES_INDEX_COMPACT.md searched for: config
+- [x] Gate 2: RULES_INDEX.md searched for: config
 - [x] Gate 3: none matched
 
 Task List:

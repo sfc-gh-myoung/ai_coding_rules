@@ -155,7 +155,7 @@ automatically loaded by most agentic tools and IDEs. If you are having issues wi
 not loading AGENTS.md, then you can add the following to your prompt:
 
 ```text
-Load AGENTS.md and follow guidance for rule loading via rules/RULES_INDEX_COMPACT.md.
+Load AGENTS.md and follow guidance for rule loading via rules/RULES_INDEX.md.
 ```
 
 **That's it!** Your project has rules ready to use.
@@ -164,7 +164,7 @@ Load AGENTS.md and follow guidance for rule loading via rules/RULES_INDEX_COMPAC
 
 | Approach | What gets copied |
 |----------|------------------|
-| **Project directory** | `rules/`, `skills/`, `AGENTS.md`, `rules/RULES_INDEX.md` to your project | <!-- human-only -->
+| **Project directory** | `rules/`, `skills/`, `AGENTS.md`, `rules/RULES_INDEX.md` to your project |
 | **Shared directory** | Rules/skills to `~/.ai-rules`; only `AGENTS.md` to each project (with paths pointing to shared location) |
 
 Ready to use immediately with any AI assistant or IDE.
@@ -273,7 +273,7 @@ AI assistants automatically discover and load relevant rules based on your task 
                                        │
                               ┌────────▼─────────┐
                                │ 2. Search        │
-                                │   rules/RULES_INDEX_COMPACT.md   │◄─── Keyword Match
+                                │   rules/RULES_INDEX.md   │◄─── Keyword Match
                               │                  │     ("Streamlit")
                               └────────┬─────────┘
                                        │
@@ -302,7 +302,7 @@ Example Loading Sequence:
 
 1. **You provide a task** → "Build a Snowflake Streamlit dashboard"
 2. **AI reads AGENTS.md** → Understands loading protocol (MODE, validation gates)
-3. **AI searches `rules/RULES_INDEX_COMPACT.md`** → Finds rules with "Streamlit" keyword
+3. **AI searches `rules/RULES_INDEX.md`** → Finds rules with "Streamlit" keyword
 4. **AI loads dependencies** → Follows dependency chain (000 → 100 → 101)
 5. **AI applies rules** → Generates code following loaded patterns
 
@@ -314,7 +314,7 @@ Example Loading Sequence:
 > **💡 Pro Tip: Keywords Drive Discovery**
 >
 > The `Keywords` metadata in each rule enables semantic search. When you say "optimize Streamlit performance,"
-> the AI searches `rules/RULES_INDEX_COMPACT.md` for rules with keywords: "performance", "streamlit", "caching", "optimization".
+> the AI searches `rules/RULES_INDEX.md` for rules with keywords: "performance", "streamlit", "caching", "optimization".
 >
 > **This is why well-crafted prompts matter** - specific keywords help the AI load the most relevant rules.
 > See [prompts/README.md](prompts/README.md) for effective prompt patterns.
@@ -427,7 +427,7 @@ Loading Order (Follow Dependencies):
 
 **Step 4: Add specialized rules as needed**
 
-Use `rules/RULES_INDEX_COMPACT.md` to search for additional rules by keyword (testing, security, performance, etc.)
+Use `rules/RULES_INDEX.md` to search for additional rules by keyword (testing, security, performance, etc.)
 
 ### Example Loading Sequences
 
@@ -541,13 +541,13 @@ uv run ai-rules --help
 | Command | Description |
 |---------|-------------|
 | `ai-rules validate` | Validate rule files against v3.2 schema |
-| `ai-rules index` | Generate and check `rules/RULES_INDEX.md` from rule metadata | <!-- human-only -->
+| `ai-rules index` | Generate and check `rules/RULES_INDEX.md` from rule metadata |
 | `ai-rules keywords` | Suggest/update keywords via Snowflake Cortex (AI_COMPLETE) |
 | `ai-rules deploy` | Deploy rules and skills to target projects |
 | `ai-rules tokens` | Validate/update TokenBudget metadata; `--context-estimate` reports total per-response context |
 | `ai-rules new` | Generate new rule file from v3.2 template |
 | `ai-rules badges` | Update README badges (version, tests, coverage) |
-| `ai-rules refs` | Validate rule references in `rules/RULES_INDEX.md` | <!-- human-only -->
+| `ai-rules refs` | Validate rule references in `rules/RULES_INDEX.md` |
 | `ai-rules dev` | Development orchestration (replaces former Makefile) |
 | `ai-rules rule-loader` | Rule Loading Evaluator: live-agent sanity check |
 
@@ -582,7 +582,7 @@ The rules are organized by domain using a three-digit numbering system. Each cat
 | **Project Management** | 800-899 | 10 | Workflows | Git, changelog, README, contributing, CLI design, Taskfile, Makefile-rule-authoring |
 | **Analytics & Governance** | 900-999 | 5 | Business intelligence | Data science, data governance, business analytics, semantic views, dbt |
 
-**Searchable index:** See [rules/RULES_INDEX.md](rules/RULES_INDEX.md) for complete rule list with keywords, dependencies, and semantic search. <!-- human-only -->
+**Searchable index:** See [rules/RULES_INDEX.md](rules/RULES_INDEX.md) for complete rule list with keywords, dependencies, and semantic search.
 
 ## Directive Language Hierarchy
 
@@ -595,6 +595,7 @@ The rules use a structured directive language (Critical, Mandatory, Always, Requ
 After deploying rules to your project, AI assistants automatically discover and load relevant rules based on your tasks. For complete details on the discovery protocol, see [docs/ARCHITECTURE.md#discovery-system](docs/ARCHITECTURE.md#discovery-system).
 
 **Quick example:**
+
 ```
 User: "Build a Snowflake Streamlit dashboard"
 AI loads: 000-global-core → 100-snowflake-core → 101-snowflake-streamlit-core
@@ -605,15 +606,17 @@ AI loads: 000-global-core → 100-snowflake-core → 101-snowflake-streamlit-cor
 **Search for rules by keyword:**
 
 ```bash
-grep -i "performance" rules/RULES_INDEX_COMPACT.md
+grep -i "performance" rules/RULES_INDEX.md
 ```
 
 **Check rule dependencies:**
+
 ```bash
 grep "**Depends:**" rules/101-snowflake-streamlit-core.md
 ```
 
 **Calculate total token budget:**
+
 ```bash
 grep "**TokenBudget:**" rules/*.md | awk -F: '{sum+=$3} END {print sum}'
 ```
@@ -674,7 +677,7 @@ python --version
 # Must be 3.12 or higher
 ```
 
-2. **Install Dependencies**
+1. **Install Dependencies**
 
 ```bash
 uv run ai-rules dev env sync
@@ -682,19 +685,19 @@ uv run ai-rules dev env sync
 uv sync --all-groups
 ```
 
-3. **Check for Errors**
+1. **Check for Errors**
 
    - Review terminal output for error messages
    - Look for permission issues or missing dependencies
 
-4. **Try Direct CLI**
+2. **Try Direct CLI**
 
 ```bash
 # For deployment
 uv run ai-rules deploy --agents-dest ~/my-project --rules-dest ~/my-project/rules
 ```
 
-5. **Verify Project Structure**
+1. **Verify Project Structure**
 
 ```bash
 # Check required files exist
@@ -715,21 +718,21 @@ python3 --version
 # Need 3.12 or higher
 ```
 
-2. **Use uv to Pin Version**
+1. **Use uv to Pin Version**
 
 ```bash
 uv run ai-rules dev env setup
 # Creates .python-version file pinning to 3.12
 ```
 
-3. **Clean and Reinstall**
+1. **Clean and Reinstall**
 
 ```bash
 uv run ai-rules dev clean venv --force    # Remove virtual environment
 uv run ai-rules dev env sync               # Reinstall dependencies
 ```
 
-4. **Manual venv Setup (fallback)**
+1. **Manual venv Setup (fallback)**
 
 ```bash
 python3.12 -m venv .venv
@@ -747,59 +750,64 @@ pip install -e ".[dev]"
 You can force the AI assistant to load rules with simple additions to your prompt.
 
 ```
-Load AGENTS.md into the context.  Review rules/RULES_INDEX_COMPACT.md based on the keywords in my prompt and load appropriate rules.
+Load AGENTS.md into the context.  Review rules/RULES_INDEX.md based on the keywords in my prompt and load appropriate rules.
 ```
 
 **For Universal Format (Claude, ChatGPT, Cursor, etc.):**
 
 1. **Verify Files Deployed**
+
 ```bash
 ls rules/*.md | wc -l
 ```
 
-2. **Add to AI Context**
-   - **Claude Projects:** Upload `AGENTS.md`, `rules/RULES_INDEX.md`, and relevant `rules/*.md` files to project knowledge <!-- human-only -->
+1. **Add to AI Context**
+   - **Claude Projects:** Upload `AGENTS.md`, `rules/RULES_INDEX.md`, and relevant `rules/*.md` files to project knowledge
    - **ChatGPT:** Add files to custom instructions or upload via file attachment
    - **Cursor:** Rules automatically discovered from project root
    - **Other LLMs:** Refer to specific tool documentation for context management
 
-3. **Test Rule Loading**
+2. **Test Rule Loading**
    - Ask: "What rules are available for Snowflake development?"
-   - AI should reference `rules/RULES_INDEX_COMPACT.md` and list rules
-   - If not working, verify `rules/RULES_INDEX_COMPACT.md` is in context
+   - AI should reference `rules/RULES_INDEX.md` and list rules
+   - If not working, verify `rules/RULES_INDEX.md` is in context
 
 ### How to Verify Rules Are Working
 
 **Test 1: Rule Discovery**
+
 ```
 Prompt: "What rules are available for Snowflake development?"
-Expected: AI references `rules/RULES_INDEX_COMPACT.md` and lists 100-series rules
+Expected: AI references `rules/RULES_INDEX.md` and lists 100-series rules
 ```
 
 **Test 2: Rule Application**
+
 ```
 Prompt: "Build a simple FastAPI endpoint following project rules"
 Expected: AI follows patterns from 210-python-fastapi-core.md
 ```
 
 **Test 3: Dependency Loading**
+
 ```
 Prompt: "Create a Snowflake Streamlit app"
 Expected: AI loads 000-global-core, 100-snowflake-core, 101-snowflake-streamlit-core
 ```
 
 **Manual Verification:**
+
 ```bash
 # Verify files exist
 ls rules/*.md | wc -l
 
 # Check files in project root
 cat AGENTS.md | head -20
-cat rules/RULES_INDEX_COMPACT.md | head -20
+cat rules/RULES_INDEX.md | head -20
 
 # Test keyword search
-grep -i "fastapi" rules/RULES_INDEX_COMPACT.md
-grep -i "snowflake" rules/RULES_INDEX_COMPACT.md
+grep -i "fastapi" rules/RULES_INDEX.md
+grep -i "snowflake" rules/RULES_INDEX.md
 ```
 
 ### Permission Errors During Deployment
@@ -809,12 +817,14 @@ grep -i "snowflake" rules/RULES_INDEX_COMPACT.md
 **Solutions:**
 
 1. **Check Current Directory Permissions**
+
 ```bash
 # Verify you can write to current directory
 touch test.txt && rm test.txt
 ```
 
-2. **Use Custom Destination**
+1. **Use Custom Destination**
+
 ```bash
 # Deploy to home directory
 uv run ai-rules deploy --agents-dest ~/ai-coding-rules-output --rules-dest ~/ai-coding-rules-output/rules
@@ -823,7 +833,8 @@ uv run ai-rules deploy --agents-dest ~/ai-coding-rules-output --rules-dest ~/ai-
 uv run ai-rules deploy --agents-dest /tmp/rules-output --rules-dest /tmp/rules-output/rules
 ```
 
-3. **Fix Repository Permissions**
+1. **Fix Repository Permissions**
+
 ```bash
 # If cloned repository has wrong permissions
 chmod -R u+w .

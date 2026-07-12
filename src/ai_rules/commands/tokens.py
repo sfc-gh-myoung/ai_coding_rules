@@ -195,7 +195,7 @@ class TokenBudgetUpdater:
         results = []
         # Skip generated index artifacts — they are projections of the corpus,
         # not source rule files, and do not carry TokenBudget frontmatter.
-        _skip = {"RULES_INDEX.md", "RULES_INDEX_COMPACT.md"}
+        _skip = {"RULES_INDEX.md"}
         md_files = sorted(f for f in directory.glob("*.md") if f.name not in _skip)
 
         with Progress(
@@ -351,15 +351,15 @@ def _find_repo_root(start: Path) -> Path:
 
 
 def _estimate_index_match(root: Path, selected: list[str]) -> int:
-    """Sum COMPACT-index tokens for rows matching selected rule filenames."""
-    compact = root / "rules" / "RULES_INDEX_COMPACT.md"
-    if not compact.exists() or not selected:
+    """Sum index tokens for rows matching selected rule filenames."""
+    index = root / "rules" / "RULES_INDEX.md"
+    if not index.exists() or not selected:
         return 0
     updater = TokenBudgetUpdater(UpdateConfig(dry_run=True))
     wanted = {s.strip() for s in selected}
     matched = [
         line
-        for line in compact.read_text(encoding="utf-8").splitlines()
+        for line in index.read_text(encoding="utf-8").splitlines()
         if any(line.strip().startswith(w) for w in wanted)
     ]
     return updater.estimate_tokens("\n".join(matched)) if matched else 0
@@ -378,7 +378,7 @@ def _print_context_estimate(
     table.add_column("Tokens", justify="right")
     for rel, n in floor_rows:
         table.add_row(f"floor: {rel}", str(n))
-    table.add_row("index match (COMPACT)", str(index_cost))
+    table.add_row("index match", str(index_cost))
     for name, n in rule_rows:
         table.add_row(f"rule: {name}", str(n))
     table.add_row("[bold]TOTAL[/bold]", f"[bold]{total}[/bold]")
@@ -394,7 +394,7 @@ def _run_context_estimate(start: Path, selected: list[str], ceiling: int) -> Non
     """Estimate total per-response rule-loading context. Read-only.
 
     total = fixed_floor(always-injected files)
-          + index_match(COMPACT rows for selected rules, else default)
+          + index_match(RULES_INDEX.md rows for selected rules, else default)
           + sum(selected rule token counts)
     Exits 0 if total <= ceiling, 1 if over, 2 if a selected/floor file is missing.
     """

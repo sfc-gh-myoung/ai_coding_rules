@@ -2,6 +2,12 @@
 
 All notable changes to the `rule-creator` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## v1.1.3 (2026-07-11) — Remove obsolete human-only framing
+
+### Changed
+
+- docs: remove all `human-only` qualifiers from SKILL.md, workflows, examples, and tests now that `RULES_INDEX.md` is the single agent-discovery index (dual-index collapse). References to `RULES_INDEX.md` are now unqualified. `RULES_INDEX_COMPACT.md` was deleted; all occurrences updated to `RULES_INDEX.md`.
+
 ## v1.1.2 (2026-07-11) — Audit human-only RULES_INDEX.md labeling
 
 ### Changed

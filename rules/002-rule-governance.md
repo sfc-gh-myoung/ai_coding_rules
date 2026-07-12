@@ -8,7 +8,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.5.2
+**RuleVersion:** v3.5.3
 **LastUpdated:** 2026-07-11
 **Keywords:** dir:rules/, kw:rule governance, kw:schema, kw:metadata requirements, kw:validation, kw:schema compliance, kw:rule structure, kw:semantic discovery, kw:rules_index, kw:descriptive headings, kw:design priorities, kw:agent optimization, kw:skill governance
 **TokenBudget:** ~4900
@@ -42,7 +42,7 @@ Schema standards (v3.3) for AI coding rule files. Defines required sections, met
 ### External Documentation
 
 - **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.3 schema with validation rules
-- **Rules Index:** the human-only `RULES_INDEX.md` - Master index of all rules with keywords
+- **Rules Index:** `RULES_INDEX.md` - Master index of all rules with keywords
 - **[CommonMark Spec](https://spec.commonmark.org/)** - Authoritative Markdown specification (all rule files MUST comply)
 
 ## Contract
@@ -134,7 +134,7 @@ Markdown file (.md) with:
 - [ ] `uv run ai-rules validate` runs with 0 CRITICAL errors
 - [ ] TokenBudget reflects actual file size (±10% acceptable)
 - [ ] Filename matches pattern `<NNN>[<letter>]-<technology>-<aspect>.md` (single-letter suffix only)
-- [ ] File added to RULES_INDEX.md (human-only) with keywords
+- [ ] File added to RULES_INDEX.md (run `uv run ai-rules index generate`) with keywords
 - [ ] Dependencies declared in Depends metadata
 - [ ] No emojis in rule file content
 
@@ -343,7 +343,7 @@ If both options fail, note the validation gap in commit message and request revi
   - Keywords must enable reliable semantic discovery
   - Rule loading must be deterministic (same input produces same rules loaded)
   - Dependencies must be explicit and acyclic
-  - the human-only rules/RULES_INDEX.md must be accurate and current
+  - `rules/RULES_INDEX.md` must be accurate and current
 
   **Priority 3 (HIGH): Context Window and Token Utilization Efficiency**
   - Minimize tokens without sacrificing Priority 1 or Priority 2
@@ -420,7 +420,7 @@ for full CommonMark compliance requirements. Concrete constraints for rule files
 
 **Problem:** Adding irrelevant or duplicate keywords to meet the 5-20 requirement, or using overly generic terms that don't aid semantic discovery.
 
-**Why It Fails:** Pollutes the human-only RULES_INDEX.md with false matches, causes wrong rules to load, wastes agent context budget on irrelevant rules, and degrades rule discovery accuracy.
+**Why It Fails:** Pollutes RULES_INDEX.md with false matches, causes wrong rules to load, wastes agent context budget on irrelevant rules, and degrades rule discovery accuracy.
 
 **Correct Pattern:**
 ```markdown

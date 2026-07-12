@@ -1,7 +1,7 @@
 ---
 name: rule-loader
-description: Determines which rule files to load for a given user request by matching file extensions, directory paths, and keywords against RULES_INDEX_COMPACT.md. Handles foundation loading, domain matching (HARD layer), activity matching (SOFT layer), dependency resolution, and token budget management. Runs as the single source of truth for rule discovery — typically inside a discovery sub-agent that returns a metadata-only JSON manifest (never rule file contents). Use when loading rules, selecting rules for a task, resolving rule dependencies, or managing token budgets during rule loading.
-version: 1.5.0
+description: Determines which rule files to load for a given user request by matching file extensions, directory paths, and keywords against RULES_INDEX.md. Handles foundation loading, domain matching (HARD layer), activity matching (SOFT layer), dependency resolution, and token budget management. Runs as the single source of truth for rule discovery — typically inside a discovery sub-agent that returns a metadata-only JSON manifest (never rule file contents). Use when loading rules, selecting rules for a task, resolving rule dependencies, or managing token budgets during rule loading.
+version: 1.5.1
 ---
 
 # Rule Loader
@@ -81,7 +81,7 @@ display-only and cannot satisfy Gate 2.
   "index_evidence": [
     {
       "kind": "grep|read_file_fallback",
-      "target": "rules/RULES_INDEX_COMPACT.md",
+      "target": "rules/RULES_INDEX.md",
       "query": "<exact grep/read expression>",
       "result_summary": "<matched filenames or none>"
     }
@@ -160,12 +160,12 @@ Always load `000-global-core.md`. Non-negotiable.
 **Details:** `workflows/foundation-loading.md`
 
 ### Phase 2: Domain Matching
-Match file extensions and directory paths to domain rules using RULES_INDEX_COMPACT.md.
+Match file extensions and directory paths to domain rules using RULES_INDEX.md.
 
 **Details:** `workflows/domain-matching.md`
 
 ### Phase 3: Activity Matching
-Search RULES_INDEX_COMPACT.md for keyword matches from the user request.
+Search RULES_INDEX.md for keyword matches from the user request.
 
 **Details:** `workflows/activity-matching.md`
 
@@ -186,7 +186,7 @@ selected rules — verify with `ai-rules tokens --context-estimate`.
 
 **HARD layer (mechanical, reproducible):** file extension (`ext=`), explicit file
 (`file=`), directory (`dir=`), and the high-risk-action map. Resolved by
-exact-string lookup against `rules/RULES_INDEX_COMPACT.md`. Same request → same
+exact-string lookup against `rules/RULES_INDEX.md`. Same request → same
 HARD rule set on every run. Covers safety-critical loads (.py, .sql, git, deploy, …).
 
 **SOFT layer (best-effort, non-deterministic):** activity keywords extracted via
@@ -206,7 +206,7 @@ After rule selection, verify:
 
 ## Error Handling
 
-**RULES_INDEX_COMPACT.md not found:**
+**RULES_INDEX.md not found:**
 - Warn, fall back to foundation + file-extension matching only
 - Proceed in degraded mode
 
@@ -234,8 +234,7 @@ See `examples/` for complete walkthroughs:
 ## Related
 
 - **AGENTS.md** - Bootstrap protocol that invokes this loading logic (Steps 1-3)
-- **RULES_INDEX_COMPACT.md** - The agent discovery index (grep target). Generated from rule frontmatter.
-- **RULES_INDEX.md** - Human-only reference; agents discover via `RULES_INDEX_COMPACT.md`, never this file.
+- **RULES_INDEX.md** - The agent discovery index (grep target). Generated from rule frontmatter.
 - **002h-claude-code-skills.md** - Skill authoring standards this skill follows
 - **003-context-engineering.md** - Token budget and attention management principles
 

@@ -54,7 +54,7 @@ def _minimal_valid() -> dict:
             "agent_id": "agent-test",
         },
         "keywords_searched": ["test"],
-        "index_evidence": [{"kind": "grep", "target": "rules/RULES_INDEX_COMPACT.md"}],
+        "index_evidence": [{"kind": "grep", "target": "rules/RULES_INDEX.md"}],
         "candidate_rules": [
             {
                 "rule_path": "rules/200-python-core.md",

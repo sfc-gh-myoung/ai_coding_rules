@@ -20,11 +20,8 @@ from ai_rules.commands import index as index_module
 
 runner = CliRunner(env={"NO_COLOR": "1", "CI": "true", "TERM": "dumb"})
 
-# Real templates used to render RULES_INDEX(_COMPACT) in tests
+# Real template used to render RULES_INDEX in tests
 REAL_TEMPLATE = Path(__file__).parent.parent.parent / "templates" / "RULES_INDEX.md.template"
-REAL_COMPACT_TEMPLATE = (
-    Path(__file__).parent.parent.parent / "templates" / "RULES_INDEX_COMPACT.md.template"
-)
 
 
 def _row_cells(line: str) -> list[str]:
@@ -44,14 +41,11 @@ def _data_row(content: str, filename: str) -> str:
 
 @pytest.fixture(autouse=True)
 def _inject_template(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Make _resolve_template return the real project templates in all tests.
+    """Make _resolve_template return the real project template in all tests.
 
     This avoids every test having to create templates/ in tmp_path.
     """
     monkeypatch.setattr(index_module, "_resolve_template", lambda _root: REAL_TEMPLATE)
-    monkeypatch.setattr(
-        index_module, "_resolve_compact_template", lambda _root: REAL_COMPACT_TEMPLATE
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -146,12 +140,12 @@ class TestIndexHappyPath:
 
         content = index_file.read_text()
         assert "Do not edit directly" in content
-        # Both rule filenames appear in flat table
+        # Both rule filenames appear in F4 compact rows
         assert "000-global-core.md" in content
         assert "200-python-core.md" in content
-        # Flat format fields present
-        assert "tier:" in content
-        assert "kw:" in content
+        # F4 format fields present
+        assert "tier=" in content
+        assert "kw=" in content
 
     @pytest.mark.unit
     def test_generates_with_metadata(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -166,12 +160,11 @@ class TestIndexHappyPath:
 
         assert result.exit_code == 0
         content = (rules_dir / "RULES_INDEX.md").read_text()
-        # Typed kw: tokens appear in the flat line
-        assert "kw:core" in content
-        assert "kw:foundation" in content
-        # tier and token budget appear
-        assert "tier:Critical" in content
-        assert "~3300" in content
+        # F4 bare-word keywords appear in kw= block
+        assert "core" in content
+        assert "foundation" in content
+        # F4 tier field (no token budget in index)
+        assert "tier=Critical" in content
 
     @pytest.mark.unit
     def test_overwrites_existing_index(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -430,8 +423,9 @@ class TestIndexMetadataExtraction:
 
         assert result.exit_code == 0
         content = (rules_dir / "RULES_INDEX.md").read_text()
-        assert "kw:core" in content
-        assert "kw:standards" in content
+        # F4 bare-word keywords appear in kw= field (kw: prefix stripped)
+        assert "core" in content
+        assert "standards" in content
 
     @pytest.mark.unit
     def test_extracts_tier_and_budget(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -447,10 +441,9 @@ class TestIndexMetadataExtraction:
 
         assert result.exit_code == 0
         content = (rules_dir / "RULES_INDEX.md").read_text()
-        assert "tier:Critical" in content
-        assert "~3300" in content
-        assert "tier:High" in content
-        assert "~1800" in content
+        # F4 format uses tier=<value> (no token budget in index rows)
+        assert "tier=Critical" in content
+        assert "tier=High" in content
 
     @pytest.mark.unit
     def test_handles_missing_keywords(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -482,11 +475,11 @@ class TestIndexMetadataExtraction:
 
 
 class TestFlatTableFormat:
-    """Test that the generated RULES_INDEX.md uses the flat self-contained format."""
+    """Test that the generated RULES_INDEX.md uses the F4 compact format."""
 
     @pytest.mark.unit
     def test_flat_line_contains_all_fields(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-        """Each rule line has filename | tier | ~tokens | ext | file | dir | kw."""
+        """Each rule line has filename tier= [ext=] [file=] [dir=] kw= in F4 format."""
         rules_dir = tmp_path / "rules"
         rules_dir.mkdir()
         (rules_dir / "200-python-core.md").write_text(SAMPLE_RULE_200)
@@ -495,23 +488,20 @@ class TestFlatTableFormat:
         runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         content = (rules_dir / "RULES_INDEX.md").read_text()
-        # Find the actual data row (Markdown table row beginning with | filename)
-        line = _data_row(content, "200-python-core.md")
-        parts = _row_cells(line)
-        # 7 columns: filename | tier | ~tokens | ext | file | dir | kw
-        assert len(parts) == 7
-        assert parts[0] == "200-python-core.md"
-        assert parts[1].startswith("tier:")
-        assert parts[2].startswith("~")
-        # ext field has ext:.py and ext:.pyi
-        assert "ext:.py" in parts[3]
-        assert "ext:.pyi" in parts[3]
+        # Find the F4 compact row for this rule
+        line = next(row for row in content.splitlines() if row.startswith("200-python-core.md"))
+        assert "tier=High" in line
+        assert "ext=.py" in line
+        assert ".pyi" in line
+        assert "kw=" in line
+        # F4 format: no pipe separators
+        assert " | " not in line
 
     @pytest.mark.unit
     def test_flat_line_missing_tier_uses_dash(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ):
-        """A rule without ContextTier renders tier:-."""
+        """A rule without ContextTier renders tier=-."""
         rules_dir = tmp_path / "rules"
         rules_dir.mkdir()
         rule_no_tier = dedent("""\
@@ -530,8 +520,8 @@ class TestFlatTableFormat:
         runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         content = (rules_dir / "RULES_INDEX.md").read_text()
-        line = _data_row(content, "999-notier.md")
-        assert "tier:-" in line
+        line = next(row for row in content.splitlines() if row.startswith("999-notier.md"))
+        assert "tier=-" in line
 
     @pytest.mark.unit
     def test_rules_are_sorted_by_filename(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
@@ -597,7 +587,7 @@ class TestFlatTableFormat:
 
     @pytest.mark.unit
     def test_markdown_table_header_present(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-        """Generated file includes a Markdown table header + separator row."""
+        """Generated file includes the F4 format description and grep recipes."""
         rules_dir = tmp_path / "rules"
         rules_dir.mkdir()
         (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
@@ -606,10 +596,13 @@ class TestFlatTableFormat:
         runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         content = (rules_dir / "RULES_INDEX.md").read_text()
-        assert "| Rule | Tier |" in content
-        assert "|------|------|" in content
-        # Data row is a valid Markdown table row
-        assert _data_row(content, "000-global-core.md").endswith(" |")
+        # F4 format: compact rows, no pipe-table header
+        assert "tier=" in content
+        assert "kw=" in content
+        assert " | " not in content.split("grep")[0]  # no pipe separators in data rows
+        # F4 data row starts with the filename directly
+        data_row = next(row for row in content.splitlines() if row.startswith("000-global-core.md"))
+        assert data_row.startswith("000-global-core.md tier=")
 
 
 # ============================================================================
@@ -633,9 +626,10 @@ class TestIndexLoadTriggers:
 
         assert result.exit_code == 0
         content = (rules_dir / "RULES_INDEX.md").read_text()
-        line = _data_row(content, "200-python-core.md")
-        assert "ext:.py" in line
-        assert "ext:.pyi" in line
+        line = next(row for row in content.splitlines() if row.startswith("200-python-core.md"))
+        # F4 ext= field: comma-separated extension triggers
+        assert "ext=.py" in line
+        assert ".pyi" in line
 
 
 # ============================================================================
@@ -912,12 +906,12 @@ class TestSplitTypedTokens:
 
 
 # ============================================================================
-# TestGenerateFlatLine (new in v3.3)
+# TestGenerateFlatLine (now tests render_index_line F4 format)
 # ============================================================================
 
 
 class TestGenerateFlatLine:
-    """Test generate_flat_line rendering."""
+    """Test render_index_line F4 rendering (previously generate_flat_line pipe-table)."""
 
     def _make_rule(
         self,
@@ -940,75 +934,62 @@ class TestGenerateFlatLine:
 
     @pytest.mark.unit
     def test_field_order(self):
-        """Markdown row: | filename | tier | ~tokens | ext | file | dir | kw |."""
+        """F4 row: filename tier=<T> [ext=..] kw=<words>."""
         rule = self._make_rule()
-        line = index_module.generate_flat_line(rule)
+        line = index_module.render_index_line(rule)
 
-        # Valid Markdown table row: starts and ends with a pipe
-        assert line.startswith("| ")
-        assert line.endswith(" |")
-
-        parts = _row_cells(line)
-        assert len(parts) == 7
-        assert parts[0] == "200-python-core.md"
-        assert parts[1] == "tier:High"
-        assert parts[2] == "~1800"
-        assert parts[3] == "ext:.py"
-        assert parts[4] == "-"  # no file: triggers
-        assert parts[5] == "-"  # no dir: triggers
-        assert parts[6] == "kw:python"
+        # F4 format: space-delimited, no leading/trailing pipes
+        assert not line.startswith("|")
+        assert not line.endswith("|")
+        assert line.split(" ", 1)[0] == "200-python-core.md"
+        assert "tier=High" in line
+        assert "ext=.py" in line
+        assert "kw=python" in line
 
     @pytest.mark.unit
     def test_missing_tier_renders_dash(self):
-        """A rule without ContextTier renders tier:-."""
+        """A rule without ContextTier renders tier=-."""
         rule = self._make_rule(tier=None)
-        line = index_module.generate_flat_line(rule)
-        parts = _row_cells(line)
-
-        assert parts[1] == "tier:-"
+        line = index_module.render_index_line(rule)
+        assert "tier=-" in line
 
     @pytest.mark.unit
     def test_missing_budget_renders_dash(self):
-        """A rule without TokenBudget renders ~-."""
+        """Token budget is not emitted in F4 rows (field removed)."""
         rule = self._make_rule(budget=None)
-        line = index_module.generate_flat_line(rule)
-        parts = _row_cells(line)
-
-        assert parts[2] == "~-"
+        line = index_module.render_index_line(rule)
+        # F4 has no ~tokens field; budget does not appear
+        assert "~-" not in line
+        assert "~1800" not in line
 
     @pytest.mark.unit
     def test_all_empty_typed_fields_render_dash(self):
-        """A rule with no typed tokens renders - for ext/file/dir/kw."""
+        """A rule with no typed kw: tokens renders kw=-."""
         rule = self._make_rule(keywords="untyped-legacy-term")
-        line = index_module.generate_flat_line(rule)
-        parts = _row_cells(line)
-
-        assert parts[3] == "-"  # ext
-        assert parts[4] == "-"  # file
-        assert parts[5] == "-"  # dir
-        assert parts[6] == "-"  # kw
+        line = index_module.render_index_line(rule)
+        assert "kw=-" in line
+        assert "ext=" not in line
+        assert "file=" not in line
+        assert "dir=" not in line
 
     @pytest.mark.unit
     def test_multiple_ext_and_kw(self):
-        """Multiple ext: and kw: tokens are comma-separated."""
+        """Multiple ext: and kw: tokens appear in ext= and kw= fields."""
         rule = self._make_rule(
             keywords="kw:python, kw:pytest, ext:.py, ext:.pyi, file:pyproject.toml"
         )
-        line = index_module.generate_flat_line(rule)
-        parts = _row_cells(line)
-
-        assert "ext:.py" in parts[3]
-        assert "ext:.pyi" in parts[3]
-        assert parts[4] == "file:pyproject.toml"
-        assert "kw:python" in parts[6]
-        assert "kw:pytest" in parts[6]
+        line = index_module.render_index_line(rule)
+        assert "ext=.py" in line
+        assert ".pyi" in line
+        assert "file=pyproject.toml" in line
+        assert "python" in line
+        assert "pytest" in line
 
     @pytest.mark.unit
     def test_no_trailing_newline(self):
-        """generate_flat_line does not add a trailing newline."""
+        """render_index_line does not add a trailing newline."""
         rule = self._make_rule()
-        line = index_module.generate_flat_line(rule)
-
+        line = index_module.render_index_line(rule)
         assert not line.endswith("\n")
 
 
@@ -1042,8 +1023,7 @@ class TestRenderRulesIndex:
 
         assert "<!-- RULE_TABLE -->" not in result
         assert "000-test.md" in result
-        assert "tier:Critical" in result
-        assert "~100" in result
+        assert "tier=Critical" in result
 
     @pytest.mark.unit
     def test_raises_on_missing_template(self, tmp_path: Path):
@@ -1082,8 +1062,7 @@ class TestRenderRulesIndex:
         result = index_module.render_rules_index(rules, REAL_TEMPLATE)
 
         assert "000-global-core.md" in result
-        assert "tier:Critical" in result
-        assert "~4050" in result
+        assert "tier=Critical" in result
         assert "Grep recipe" in result
 
 
@@ -1275,8 +1254,8 @@ class TestIndexStats:
 
         # Assert — top-level schema
         assert stats["schema_version"] == index_module.STATS_SCHEMA_VERSION
-        assert stats["schema_version"] == "2"
-        assert stats["format_version"] == index_module.COMPACT_FORMAT_VERSION
+        assert stats["schema_version"] == "3"
+        assert stats["format_version"] == index_module.INDEX_FORMAT_VERSION
         assert stats["format_version"] == "F4"
         assert isinstance(stats["generated_at"], str)
         assert stats["generated_at"].endswith("Z")
@@ -1398,16 +1377,16 @@ class TestIndexStats:
 
 
 # ============================================================================
-# TestCompactIndex (B3 — RULES_INDEX_COMPACT.md)
+# TestIndexFormat (F4 compact RULES_INDEX.md)
 # ============================================================================
 
 
-class TestCompactIndex:
-    """Tests for the compact keyword-only manifest (B3 slice of plan §3.2, §5.2)."""
+class TestIndexFormat:
+    """Tests for the F4-format RULES_INDEX.md (single compact discovery index)."""
 
     @pytest.mark.unit
     def test_render_compact_line_shape(self):
-        """render_compact_line emits F4-format space-delimited fields."""
+        """render_index_line emits F4-format space-delimited fields."""
         rule = index_module.RuleMetadata(
             filename="200-python-core.md",
             filepath=Path("200-python-core.md"),
@@ -1418,7 +1397,7 @@ class TestCompactIndex:
             token_budget="~1800",
         )
 
-        line = index_module.render_compact_line(rule)
+        line = index_module.render_index_line(rule)
 
         # F4 grammar: no leading/trailing separator, no trailing newline
         assert not line.startswith(" ")
@@ -1448,7 +1427,7 @@ class TestCompactIndex:
             token_budget="~100",
         )
 
-        line = index_module.render_compact_line(rule)
+        line = index_module.render_index_line(rule)
 
         assert "tier=Critical" in line
         # Empty ext/file/dir fields are omitted — do NOT render as `foo=-`.
@@ -1472,7 +1451,7 @@ class TestCompactIndex:
             token_budget=None,
         )
 
-        line = index_module.render_compact_line(rule)
+        line = index_module.render_index_line(rule)
 
         assert "tier=-" in line
         assert "tier=None" not in line
@@ -1481,7 +1460,7 @@ class TestCompactIndex:
     def test_generate_writes_compact_index_file(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ):
-        """`ai-rules index generate` writes RULES_INDEX_COMPACT.md alongside RULES_INDEX.md."""
+        """`ai-rules index generate` writes RULES_INDEX.md in F4 compact format."""
         rules_dir = tmp_path / "rules"
         rules_dir.mkdir()
         (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
@@ -1492,11 +1471,11 @@ class TestCompactIndex:
         result = runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
         assert result.exit_code == 0
-        compact_path = rules_dir / index_module.COMPACT_INDEX_FILENAME
-        assert compact_path.exists()
+        index_path = rules_dir / "RULES_INDEX.md"
+        assert index_path.exists()
 
-        body = compact_path.read_text()
-        assert index_module.COMPACT_TABLE_MARKER not in body
+        body = index_path.read_text()
+        assert index_module.RULE_TABLE_MARKER not in body
         # Both rules appear as F4-format compact rows
         assert "000-global-core.md tier=Critical" in body
         assert "200-python-core.md tier=High" in body
@@ -1505,19 +1484,19 @@ class TestCompactIndex:
     def test_index_check_fails_on_stale_compact(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ):
-        """`ai-rules index check` fails when RULES_INDEX_COMPACT.md is out of date."""
+        """`ai-rules index check` fails when RULES_INDEX.md is out of date."""
         rules_dir = tmp_path / "rules"
         rules_dir.mkdir()
         (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
 
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
-        # Generate a clean baseline, then corrupt only the compact file.
+        # Generate a clean baseline, then corrupt only the index file.
         runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
-        compact_path = rules_dir / index_module.COMPACT_INDEX_FILENAME
-        assert compact_path.exists()
-        compact_path.write_text("# Stale compact index — content drift\n")
+        index_path = rules_dir / "RULES_INDEX.md"
+        assert index_path.exists()
+        index_path.write_text("# Stale index — content drift\n")
 
         result = runner.invoke(app, ["index", "check", "--rules-dir", str(rules_dir)])
 
@@ -1528,7 +1507,7 @@ class TestCompactIndex:
     def test_index_check_fails_when_compact_missing(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ):
-        """`check` fails when RULES_INDEX_COMPACT.md is missing entirely."""
+        """`check` fails when RULES_INDEX.md is missing entirely."""
         rules_dir = tmp_path / "rules"
         rules_dir.mkdir()
         (rules_dir / "000-global-core.md").write_text(SAMPLE_RULE_CONTENT)
@@ -1537,7 +1516,7 @@ class TestCompactIndex:
 
         runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
-        (rules_dir / index_module.COMPACT_INDEX_FILENAME).unlink()
+        (rules_dir / "RULES_INDEX.md").unlink()
 
         result = runner.invoke(app, ["index", "check", "--rules-dir", str(rules_dir)])
 
@@ -1546,10 +1525,10 @@ class TestCompactIndex:
 
     @pytest.mark.unit
     def test_compact_index_grep_parity(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-        """Every rule filename that matches a keyword in the full index also matches in the compact index.
+        """RULES_INDEX.md F4 rows must be searchable via word-boundary grep for each keyword.
 
-        Guards Risk #3 in the plan: the compact projection must not silently
-        drop keyword coverage.
+        Guards against keyword coverage regression: every typed kw: token must
+        appear as a bare word in the kw= block, discoverable with -iwE word-boundary grep.
         """
         import re
 
@@ -1561,50 +1540,37 @@ class TestCompactIndex:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
         runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
-        full = (rules_dir / "RULES_INDEX.md").read_text()
-        compact = (rules_dir / index_module.COMPACT_INDEX_FILENAME).read_text()
+        content = (rules_dir / "RULES_INDEX.md").read_text()
 
-        # F4 word-boundary grep parity: for each bare keyword, the set of
-        # rules matching in the compact index (word-boundary) must be a
-        # superset of the set matching in the full index. Full-index rows
-        # still use F1 typed-prefix format (`kw:foo`), so we scan the full
-        # index with the typed prefix and the compact with a word-boundary
-        # regex targeting the space-separated F4 kw block.
+        # Word-boundary match on bare keywords in the F4 kw= block
         for keyword in ("core", "foundation", "python"):
-            typed_full = re.compile(re.escape(f"kw:{keyword}"), re.IGNORECASE)
-            # Word-boundary match on the bare word for the compact side.
-            wb_compact = re.compile(rf"(?i)\b{re.escape(keyword)}\b")
-            full_matches = {
-                row.split("|", 2)[1].strip()
-                for row in full.splitlines()
-                if row.startswith("| ") and typed_full.search(row) and "----" not in row
-            }
-            compact_matches = {
+            wb = re.compile(rf"(?i)\b{re.escape(keyword)}\b")
+            matches = {
                 row.split(" ", 1)[0].strip()
-                for row in compact.splitlines()
-                if wb_compact.search(row) and " tier=" in row
+                for row in content.splitlines()
+                if wb.search(row) and " tier=" in row
             }
-            assert full_matches, f"expected {keyword!r} to match in the full index"
-            missing = full_matches - compact_matches
-            assert not missing, f"compact index dropped rules for {keyword!r}: {missing}"
+            assert matches, (
+                f"expected word-boundary grep for {keyword!r} to match rows in RULES_INDEX.md"
+            )
 
         # Field-prefix matching still works for ext=/file=/dir= searches.
         for field_pattern in ("ext=.*\\.py", "ext=.*\\.pyi"):
             fp = re.compile(field_pattern, re.IGNORECASE)
             compact_matches = {
                 row.split(" ", 1)[0].strip()
-                for row in compact.splitlines()
+                for row in content.splitlines()
                 if fp.search(row) and " tier=" in row
             }
             assert compact_matches, (
-                f"expected field pattern {field_pattern!r} to match in the compact index"
+                f"expected field pattern {field_pattern!r} to match in RULES_INDEX.md"
             )
 
     @pytest.mark.unit
     def test_index_stats_includes_compact_index_lines(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ):
-        """`.index-stats.json` counts include `compact_index_lines` after Batch 2."""
+        """`.index-stats.json` counts include `index_lines` for the single RULES_INDEX.md."""
         import json as _json
 
         rules_dir = tmp_path / "rules"
@@ -1619,24 +1585,25 @@ class TestCompactIndex:
         payload = _json.loads(stats_path.read_text())
         counts = payload["counts"]
 
-        assert "compact_index_lines" in counts
-        compact_body = (rules_dir / index_module.COMPACT_INDEX_FILENAME).read_text()
-        assert counts["compact_index_lines"] == len(compact_body.splitlines())
+        assert "index_lines" in counts
+        assert "compact_index_lines" not in counts
+        index_body = (rules_dir / "RULES_INDEX.md").read_text()
+        assert counts["index_lines"] == len(index_body.splitlines())
 
     @pytest.mark.unit
     def test_render_compact_index_raises_on_missing_template(self, tmp_path: Path):
-        """render_compact_index raises ValueError when the template file is absent."""
+        """render_rules_index raises ValueError when the template file is absent."""
         missing = tmp_path / "missing.template"
         with pytest.raises(ValueError, match="Template not found"):
-            index_module.render_compact_index([], missing)
+            index_module.render_rules_index([], missing)
 
     @pytest.mark.unit
     def test_render_compact_index_raises_when_marker_absent(self, tmp_path: Path):
-        """render_compact_index raises ValueError when COMPACT_TABLE marker is absent."""
+        """render_rules_index raises ValueError when RULE_TABLE_MARKER is absent."""
         bad = tmp_path / "bad.template"
-        bad.write_text("# No compact marker here\n")
+        bad.write_text("# No marker here\n")
         with pytest.raises(ValueError, match="does not contain the"):
-            index_module.render_compact_index([], bad)
+            index_module.render_rules_index([], bad)
 
     @pytest.mark.unit
     def test_f4_hyphenation(self):
@@ -1651,7 +1618,7 @@ class TestCompactIndex:
             context_tier="Critical",
         )
 
-        line = index_module.render_compact_line(rule)
+        line = index_module.render_index_line(rule)
 
         # Whitespace inside keywords is hyphenated so the kw= block stays
         # space-tokenised (see plan §3.2, F4 canonicalisation rule).
@@ -1681,12 +1648,12 @@ class TestCompactIndex:
         monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
 
         rules = index_module.scan_rules(rules_dir)
-        template_path = tmp_path / index_module.COMPACT_TEMPLATE_RELATIVE
+        template_path = tmp_path / index_module.TEMPLATE_RELATIVE
         template_path.parent.mkdir(parents=True, exist_ok=True)
-        template_path.write_text("# Compact\n\n" + index_module.COMPACT_TABLE_MARKER + "\n")
+        template_path.write_text("# Index\n\n" + index_module.RULE_TABLE_MARKER + "\n")
 
-        first = index_module.render_compact_index(rules, template_path)
-        second = index_module.render_compact_index(rules, template_path)
+        first = index_module.render_rules_index(rules, template_path)
+        second = index_module.render_rules_index(rules, template_path)
 
         assert first == second
         # Byte-identical
@@ -1708,7 +1675,7 @@ class TestCompactIndex:
         # should fire before the diff pathway.
         runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
 
-        compact_path = rules_dir / index_module.COMPACT_INDEX_FILENAME
+        compact_path = rules_dir / "RULES_INDEX.md"
         compact_path.write_text(
             "# stale F1 index\n"
             "000-global-core.md | tier:Critical | - | - | - | kw:workflow,kw:safety\n"
@@ -1735,5 +1702,5 @@ class TestCompactIndex:
         stats_path = rules_dir / index_module.STATS_FILENAME
         payload = _json.loads(stats_path.read_text())
 
-        assert payload["schema_version"] == "2"
+        assert payload["schema_version"] == "3"
         assert payload["format_version"] == "F4"

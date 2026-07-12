@@ -2,7 +2,7 @@
 
 These tests assert the INTENDED STATE after plan-task-0f26caf9 Step 2 implementation:
   - Both AGENTS templates make rule-loader skill the PRIMARY Step 2 mechanism.
-  - grep against RULES_INDEX_COMPACT.md is explicitly a FALLBACK (Step 2B), labelled as such.
+  - grep against RULES_INDEX.md is explicitly a FALLBACK (Step 2B), labelled as such.
   - Both templates are parity-consistent in their Step 2 regions.
 
 Tests referencing `rule-loader/SKILL.md` or a FALLBACK marker are expected to FAIL

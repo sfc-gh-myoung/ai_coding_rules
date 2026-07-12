@@ -20,8 +20,8 @@ itself via `read_file` (preserving the Gate 3 read-and-apply contract).
   "index_evidence": [
     {
       "kind": "grep",
-      "target": "rules/RULES_INDEX_COMPACT.md",
-      "query": "grep -iwE \"ext=\\.py\" rules/RULES_INDEX_COMPACT.md",
+      "target": "rules/RULES_INDEX.md",
+      "query": "grep -iwE \"ext=\\.py\" rules/RULES_INDEX.md",
       "result_summary": "200-python-core.md"
     }
   ],
@@ -88,8 +88,8 @@ token-budget / ContextTier cap. Note the completeness invariant: every
   "index_evidence": [
     {
       "kind": "grep",
-      "target": "rules/RULES_INDEX_COMPACT.md",
-      "query": "grep -iE \"streamlit|test|docs\" rules/RULES_INDEX_COMPACT.md",
+      "target": "rules/RULES_INDEX.md",
+      "query": "grep -iE \"streamlit|test|docs\" rules/RULES_INDEX.md",
       "result_summary": "101-snowflake-streamlit-core.md, 206-python-pytest.md, 204-python-docs.md"
     }
   ],

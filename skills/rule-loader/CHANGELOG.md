@@ -2,6 +2,12 @@
 
 All notable changes to the `rule-loader` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## [1.5.1] - 2026-07-11
+
+### Changed
+
+- Dual rule index collapsed into a single generated `rules/RULES_INDEX.md` (compact F4 format). All skill references to `RULES_INDEX_COMPACT.md` (SKILL.md `## Manifest Output` `index_evidence.target`, `## Related` bullets, and the `workflows/` grep targets) now point at `rules/RULES_INDEX.md`. Removed the obsolete "human-only RULES_INDEX.md" framing introduced in 1.5.0 — `RULES_INDEX.md` is once again the single agent discovery index.
+
 ## [1.5.0] - 2026-07-11
 
 ### Added

@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
+**RuleVersion:** v1.1.1
 **LastUpdated:** 2026-07-11
 **Keywords:** kw:anti-patterns, kw:quality gates, kw:task switch, kw:rule loading, kw:failure modes, kw:protocol reference, kw:term definitions, kw:gate compliance
 **TokenBudget:** ~4900
@@ -28,7 +28,7 @@ Reference material for the AGENTS.md agent bootstrap protocol — anti-patterns,
 
 - AGENTS.md: The main bootstrap protocol that this rule supplements
 - rules/000-global-core.md: Foundation rule loaded before this reference rule
-- rules/RULES_INDEX_COMPACT.md: agent discovery index (grep). RULES_INDEX.md: human-only reference.
+- rules/RULES_INDEX.md: agent discovery index (grep target).
 
 ### External Documentation
 
@@ -59,7 +59,7 @@ _None._
 
 - Fabricating gate compliance based on session summaries
 - Skipping validation gates before marking tasks complete
-- Guessing rule filenames; always use RULES_INDEX_COMPACT.md grep to find authoritative names
+- Guessing rule filenames; always use RULES_INDEX.md grep to find authoritative names
 - Loading this rule to bypass the EXECUTION SEQUENCE; it supplements, not replaces
 
 ### Execution Steps
@@ -140,23 +140,23 @@ Task complete.
 
 ## Anti-Pattern: Fabricated Gate Compliance
 
-**Problem:** Claiming `[x] Gate 2: RULES_INDEX_COMPACT.md searched` without executing grep or read_file, especially after session continuation where a summary claims prior gates passed.
+**Problem:** Claiming `[x] Gate 2: RULES_INDEX.md searched` without executing grep or read_file, especially after session continuation where a summary claims prior gates passed.
 
 **Why It Fails:** Gate checkboxes become meaningless self-attestations. Session summaries may contain inaccurate claims about prior execution.
 
 **Detection Signals:**
-- Gate 2 marked `[x]` but no grep or read_file call to RULES_INDEX_COMPACT.md visible
+- Gate 2 marked `[x]` but no grep or read_file call to RULES_INDEX.md visible
 - Keywords in Gate 2 match previous session summary rather than current tool output
 - Rules in Gate 3 were not read via read_file in the current response cycle (foundation should not appear in Gate 3; it belongs on Gate 1)
 
 **Correct Pattern:**
 ```markdown
-[Agent executes: grep -iwE "sql|streamlit" rules/RULES_INDEX_COMPACT.md]
+[Agent executes: grep -iwE "sql|streamlit" rules/RULES_INDEX.md]
 [Actual grep output: 102-snowflake-sql-core.md | tier:High | ~1400 | ...]
 
 PRE-FLIGHT:
 - [x] Gate 1: Foundation rules/000-global-core.md — N lines
-- [x] Gate 2: RULES_INDEX_COMPACT.md searched for: sql, streamlit
+- [x] Gate 2: RULES_INDEX.md searched for: sql, streamlit
   (grep matched: 102-snowflake-sql-core.md, 101-snowflake-streamlit-core.md)
 - [x] Gate 3: +2 domain rules:
   - rules/102-snowflake-sql-core.md (sql match) — N lines
@@ -171,7 +171,7 @@ PRE-FLIGHT:
 
 ## Search Triggers
 
-**ALWAYS search RULES_INDEX_COMPACT.md when user request contains ANY of:**
+**ALWAYS search RULES_INDEX.md when user request contains ANY of:**
 
 - **Error messages** (stack traces, exceptions, "error", "failed"): Error-specific rules exist
 - **Screenshots/images** (any visual input): Visual salience overrides protocol — compensate
@@ -190,7 +190,7 @@ PRE-FLIGHT:
 **On Task Switch — STOP and Re-evaluate:**
 1. STOP — Do not proceed with previous rule context
 2. Extract new keywords from current request
-3. Search `rules/RULES_INDEX_COMPACT.md`
+3. Search `rules/RULES_INDEX.md`
 4. Load matching rules before acting
 5. Cite foundation on Gate 1 with `— N lines`; list domain/activity rules as Gate 3 sub-bullets (or `none matched`) in response
 
@@ -201,7 +201,7 @@ PRE-FLIGHT:
 - **Explicit rule read fails:** STOP and report with options (A) Provide correct path, (B) Proceed without this rule, (C) Cancel task
 
 **WARNING (Can proceed with limitations):**
-- **RULES_INDEX_COMPACT.md missing:** WARN, load 000 + grep by extension. Proceed (degraded).
+- **RULES_INDEX.md missing:** WARN, load 000 + grep by extension. Proceed (degraded).
 - **No matching rule found:** Note "No rule found for [keyword]". Proceed with foundation only.
 - **Dependency missing:** Skip dependent rule, log warning. Proceed.
 
@@ -233,27 +233,17 @@ PRE-FLIGHT:
 
 ## RULES_INDEX Format Reference
 
-**Primary agent discovery index:** `rules/RULES_INDEX_COMPACT.md`. This is the ONLY
-index agents grep for discovery. The full `rules/RULES_INDEX.md` is a human-only
-reference (~4x larger); reading it into agent context is a token-bloat anti-pattern.
+**Agent discovery index:** `rules/RULES_INDEX.md`. This is the index agents grep for discovery.
 
-**COMPACT format:** one space-separated row per rule:
-```
+**Format:** one space-separated row per rule:
+```text
 <filename> tier=<Critical|High|Medium|Low> [ext=<csv>] [file=<csv>] [dir=<csv>] kw=<w1> <w2> ...
 ```
 
 **Grep recipe:**
 ```bash
-grep -iwE "python|streamlit|ext=\.py" rules/RULES_INDEX_COMPACT.md
+grep -iwE "python|streamlit|ext=\.py" rules/RULES_INDEX.md
 ```
-
-**Full-index format (human reference only):** one Markdown table row per rule:
-```
-| Rule | Tier | Tokens | Ext triggers | File triggers | Dir triggers | Keywords |
-| <filename> | tier:<...> | ~<tokens> | ext:<csv|-> | file:<csv|-> | dir:<csv|-> | kw:<csv> |
-```
-The COMPACT index carries every discovery trigger the full index has (verified 1:1),
-so COMPACT is sufficient for all agent discovery.
 
 ### Delegated discovery (Gate 2)
 
@@ -265,7 +255,7 @@ performed by EITHER:
   runtime-visible spawn evidence (`tool_call_id`), the sub-agent `agent_id`, and the
   fenced JSON manifest with `schema_version: rule-loader-manifest/v1`; OR
 - **(b) Inline (Step 2B):** a `grep`/`read_file` call against
-  `rules/RULES_INDEX_COMPACT.md` you can cite.
+  `rules/RULES_INDEX.md` you can cite.
 
 A Gate 2 claim with NEITHER spawn evidence + manifest + `agent_id` NOR a citable
 inline call is INVALID. Never claim Gate 2 from prior session context or a summary.
@@ -284,7 +274,7 @@ itself (Gate 3 read-and-apply).
 
 - **File awareness:** Verify current state before modifications if another agent may be editing
 - **Independent operation:** Each agent maintains its own state
-- **Rule consistency:** All agents should use the same `rules/RULES_INDEX_COMPACT.md` version
+- **Rule consistency:** All agents should use the same `rules/RULES_INDEX.md` version
 
 ## Term Definitions
 
@@ -300,16 +290,16 @@ itself (Gate 3 read-and-apply).
 
 ### Anti-Pattern: Fabricated Gate Compliance
 
-**Problem:** Claiming `[x] Gate 2: RULES_INDEX_COMPACT.md searched` without executing grep or read_file against it.
+**Problem:** Claiming `[x] Gate 2: RULES_INDEX.md searched` without executing grep or read_file against it.
 
 **Correct Pattern:**
 ```markdown
-[Agent executes: grep -iwE "sql|streamlit" rules/RULES_INDEX_COMPACT.md]
+[Agent executes: grep -iwE "sql|streamlit" rules/RULES_INDEX.md]
 [Actual grep output received and read]
 
 PRE-FLIGHT:
 - [x] Gate 1: Foundation rules/000-global-core.md — N lines
-- [x] Gate 2: RULES_INDEX_COMPACT.md searched for: sql, streamlit
+- [x] Gate 2: RULES_INDEX.md searched for: sql, streamlit
 - [x] Gate 3: +1 domain rule:
   - rules/102-snowflake-sql-core.md (sql match) — N lines
 ```
@@ -347,7 +337,7 @@ When a user request contains multiple technologies (joined by `+`, `and`, `with`
 2. Technical terms (capitalized, hyphenated, acronyms like SSE/API/SPCS) are almost always keywords
 3. Each technology should be included in the grep OR pattern
 
-**Example:** "FastAPI + HTMX + SSE in SPCS" produces `grep -iwE "fastapi|htmx|sse|spcs" rules/RULES_INDEX_COMPACT.md` (4 keywords)
+**Example:** "FastAPI + HTMX + SSE in SPCS" produces `grep -iwE "fastapi|htmx|sse|spcs" rules/RULES_INDEX.md` (4 keywords)
 
 ## Gate Failure Message Catalog
 
@@ -359,8 +349,8 @@ Gate 1 failures:
 - "read_file tool not available"
 
 Gate 2 failures:
-- "rules/RULES_INDEX_COMPACT.md not found"
-- "grep tool unavailable" -> **AUTO-FALLBACK:** Read RULES_INDEX_COMPACT.md directly and scan manually. Do NOT mark as FAILED if fallback succeeds.
+- "rules/RULES_INDEX.md not found"
+- "grep tool unavailable" -> **AUTO-FALLBACK:** Read RULES_INDEX.md directly and scan manually. Do NOT mark as FAILED if fallback succeeds.
 - "No keywords extracted from user request"
 
 Gate 3 failures:
@@ -381,7 +371,7 @@ Gate 3 failures:
 ```markdown
 PRE-FLIGHT:
 - [x] Gate 1: Foundation rules/000-global-core.md — N lines
-- [x] Gate 2: RULES_INDEX_COMPACT.md searched for: python, sql
+- [x] Gate 2: RULES_INDEX.md searched for: python, sql
 - [x] Gate 3: +1 domain rule:
   - rules/102-snowflake-sql-core.md (for .sql extension) — N lines
   - ⚠️ Rule load failed: 200-python-core.md not found
@@ -434,7 +424,7 @@ The bootstrap's Step 2B runs ONLY when the rule-loader skill (Step 2) is unavail
 
 **CRITICAL:** If ANY word in the request could be a keyword, extract it. Gate 2 should ONLY fail if the grep tool is unavailable OR the request is truly empty. **DO NOT fail Gate 2** for vague requests — always extract at least the verb or noun.
 
-**C. Grep sanity check:** Zero results is almost always an anomaly. RULES_INDEX_COMPACT.md has one row per rule (~200 rules); common keywords (python, sql, docker, deploy, test, streamlit, fastapi, snowflake) should ALWAYS match. On zero results for a common keyword: (1) re-execute grep once, (2) if still zero, use the read_file fallback immediately, (3) note "Grep returned unexpectedly empty — used fallback". Expected volume: 2–15 lines (multi-tech), 1–5 (single-tech); zero for reasonable keywords = ANOMALY.
+**C. Grep sanity check:** Zero results is almost always an anomaly. RULES_INDEX.md has one row per rule (~200 rules); common keywords (python, sql, docker, deploy, test, streamlit, fastapi, snowflake) should ALWAYS match. On zero results for a common keyword: (1) re-execute grep once, (2) if still zero, use the read_file fallback immediately, (3) note "Grep returned unexpectedly empty — used fallback". Expected volume: 2–15 lines (multi-tech), 1–5 (single-tech); zero for reasonable keywords = ANOMALY.
 
 **D. Gate 2 verification:** Gate 2 passes ONLY if the agent invoked the rule-loader skill (Step 2) OR executed grep / the read_file fallback (Step 2B) AND can cite specific matched lines or rule names. A Gate 2 claim without a corresponding tool call in the same response is INVALID. Claiming Gate 2 from prior session context or summaries is an anti-pattern — re-execute per the Step 0 decision tree. Consistency: if Gate 2 lists keywords, Gate 3 MUST list specific rule filenames OR state "no rules found for [keyword]".
 

@@ -27,10 +27,10 @@ Match: implied .py -> 200-python-core.md
 - Primary technology: `Streamlit`
 
 ```bash
-grep -i "test" rules/RULES_INDEX_COMPACT.md
+grep -i "test" rules/RULES_INDEX.md
 # Matches: 206-python-pytest.md (keyword: test)
 
-grep -i "streamlit" rules/RULES_INDEX_COMPACT.md
+grep -i "streamlit" rules/RULES_INDEX.md
 # Matches: 101-snowflake-streamlit-core.md (already selected in Phase 2)
 ```
 

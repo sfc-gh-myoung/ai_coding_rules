@@ -1295,8 +1295,6 @@ class SchemaValidator:
             is_rules_index = result.file_path.name in {
                 "RULES_INDEX.md",
                 "RULES_INDEX.md.template",
-                "RULES_INDEX_COMPACT.md",
-                "RULES_INDEX_COMPACT.md.template",
             }
             if not is_rules_index and table_pattern.search(line_without_inline_code):
                 result.errors.append(

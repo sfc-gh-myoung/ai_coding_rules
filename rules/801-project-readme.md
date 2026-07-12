@@ -3,7 +3,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.3
+**RuleVersion:** v3.1.4
 **LastUpdated:** 2026-07-11
 **Keywords:** kw:readme, kw:documentation, file:README.md, kw:project documentation, kw:getting started, kw:setup instructions, kw:badges, kw:quick start, kw:contributing, kw:license, kw:technical writing, kw:author contact, kw:maintainer
 **TokenBudget:** ~4800
@@ -404,7 +404,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 **For AI projects,** document the following:
 - Document token budgets or context limitations
 - Explain modular loading strategies
-- Include searchable indexes (e.g., the human-only RULES_INDEX.md pattern)
+- Include searchable indexes (e.g., the `RULES_INDEX.md` pattern)
 
 **Example:**
 ```markdown

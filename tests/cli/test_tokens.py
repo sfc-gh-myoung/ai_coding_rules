@@ -1002,7 +1002,7 @@ def estimate_repo(tmp_path: Path) -> Path:
     skills = tmp_path / "skills" / "rule-loader"
     skills.mkdir(parents=True)
     (skills / "SKILL.md").write_text("# skill\n" + ("skill line\n" * 10))
-    (rules / "RULES_INDEX_COMPACT.md").write_text(
+    (rules / "RULES_INDEX.md").write_text(
         "100-snowflake-core.md tier=High ext=.sql kw=sql cte performance\n"
         "200-python-core.md tier=High ext=.py kw=python testing\n"
     )

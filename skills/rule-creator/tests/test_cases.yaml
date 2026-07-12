@@ -103,12 +103,12 @@ test_cases:
       detects_existing: true
       aborts_creation: true
     evaluation_criteria:
-      - "Skill searches human-only RULES_INDEX.md for existing rule"
+      - "Skill searches RULES_INDEX.md for existing rule"
       - "Skill reports that rule already exists"
       - "Skill does NOT create duplicate rule"
 
   - id: "index-entry-creation"
-    description: "Test human-only RULES_INDEX.md entry creation"
+    description: "Test RULES_INDEX.md entry creation"
     input:
       domain: "shell"
       technology: "zsh-completions"
@@ -120,7 +120,7 @@ test_cases:
       index_position_correct: true
     evaluation_criteria:
       - "Rule created in shell domain (300-399)"
-      - "Entry added to human-only RULES_INDEX.md"
+      - "Entry added to RULES_INDEX.md"
       - "Entry in correct numeric order"
       - "Keywords in index match rule keywords"
 
@@ -144,4 +144,4 @@ scoring:
   
   index_integration:
     weight: 15
-    description: "human-only RULES_INDEX.md entry correct and in proper position"
+    description: "RULES_INDEX.md entry correct and in proper position"

@@ -19,7 +19,7 @@ ls skills/rule-creator/examples/*.md
 uv run ai-rules new --help
 uv run ai-rules validate --help
 
-# 3. Verify human-only RULES_INDEX.md is accessible
+# 3. Verify RULES_INDEX.md is accessible
 head -20 RULES_INDEX.md
 ```
 
@@ -43,7 +43,7 @@ Create a new rule for TestTechnology best practices following schema
 
 **Verify:**
 ```bash
-# Agent should search human-only RULES_INDEX.md
+# Agent should search RULES_INDEX.md
 grep -i "testtechnology" RULES_INDEX.md
 ```
 
@@ -80,7 +80,7 @@ echo $?
 
 ### Test 5: Indexing
 
-**Verify:** (human-only RULES_INDEX.md)
+**Verify:** (RULES_INDEX.md)
 ```bash
 grep "NNN-testtechnology" RULES_INDEX.md
 ```
@@ -273,12 +273,12 @@ def validate_schema_clean(rule_path):
 **Check 5: RULES_INDEX Entry Present**
 ```python
 def validate_indexed(rule_name):
-    """Verify rule is indexed in the human-only RULES_INDEX.md."""
+    """Verify rule is indexed in RULES_INDEX.md."""
     
     with open("RULES_INDEX.md", 'r') as f:
         content = f.read()
     
-    if f"rules/{rule_name}.md" not in content:  # human-only RULES_INDEX.md
+    if f"rules/{rule_name}.md" not in content:  # RULES_INDEX.md
         return False, f"Rule not found in RULES_INDEX.md"
     
     return True, "Rule properly indexed"

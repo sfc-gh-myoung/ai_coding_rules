@@ -1,20 +1,19 @@
 {
   "counts": {
-    "compact_index_lines": 230,
-    "index_lines": 266,
+    "index_lines": 230,
     "keyword_entries": 2208,
     "rules": 196,
     "rules_with_deps": 196
   },
   "format_version": "F4",
-  "generated_at": "2026-07-11T16:56:12Z",
-  "git_sha": "526ca39abd4f5abeb5f2e25a3801f1e22335600b",
+  "generated_at": "2026-07-11T20:24:46Z",
+  "git_sha": "e907c6b46c5efa8a6ff127b7c342caed8bfb2b2f",
   "sanity_thresholds": {
     "max_matches_broad_query": 50,
     "min_matches_common_keyword": 1,
     "zero_result_is_anomaly": true
   },
-  "schema_version": "2",
+  "schema_version": "3",
   "tiers": {
     "critical": 5,
     "high": 84,

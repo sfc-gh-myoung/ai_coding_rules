@@ -8,7 +8,7 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.3.5
+**RuleVersion:** v3.3.6
 **LastUpdated:** 2026-07-11
 **Keywords:** kw:rule creation, kw:workflow, kw:step-by-step guide, kw:naming conventions, kw:metadata setup, kw:v3.4 schema, kw:validation, kw:rule numbering, kw:from scratch, kw:new rule
 **TokenBudget:** ~3900
@@ -42,7 +42,7 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 ### External Documentation
 
 - **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.4 schema definition
-- **Rules Index:** the human-only `RULES_INDEX.md` - Master index of all rules
+- **Rules Index:** `RULES_INDEX.md` - Master index of all rules
 - **[CommonMark Spec](https://spec.commonmark.org/)** - Authoritative Markdown specification (all rule files MUST comply)
 
 ## Contract
@@ -58,7 +58,7 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 
 - Text editor
 - `ai-rules validate` CLI command
-- human-only `RULES_INDEX.md` access
+- `RULES_INDEX.md` access
 - Access to existing rules/ directory for reference
 
 ### Forbidden
@@ -81,7 +81,7 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 6. Add Contract section with Contract subsections (### headers), NOT XML tags
 7. Use descriptive section names (not numbered: "Environment Setup" not "1. Environment Setup")
 8. Validate with `ai-rules validate` (must pass with 0 CRITICAL errors)
-9. Add rule to the human-only `RULES_INDEX.md` with keywords
+9. Add rule to `RULES_INDEX.md` by running `uv run ai-rules index generate`
 
 ### Output Format
 
@@ -108,7 +108,7 @@ Markdown file named `<NNN>[<letter>]-<technology>-<aspect>.md` with:
 - File named correctly (`<NNN>[<letter>]-<technology>-<aspect>.md`, single-letter suffix only)
 - All required metadata fields present and formatted correctly
 - All required sections present in v3.4 order
-- Rule added to the human-only `RULES_INDEX.md`
+- Rule added to `RULES_INDEX.md` (run `uv run ai-rules index generate`)
 
 **Negative Tests:**
 - File named with spaces triggers error
@@ -120,7 +120,7 @@ Markdown file named `<NNN>[<letter>]-<technology>-<aspect>.md` with:
 **Error Recovery:**
 - **Permission denied writing rule file:** Report error with path, suggest checking directory permissions
 - **Validator returns CRITICAL errors:** Fix each error per 002e guidance before proceeding
-- **human-only RULES_INDEX.md not writable:** Report error, provide index entry for manual addition
+- **RULES_INDEX.md not writable:** Report error, provide index entry for manual addition
 
 ### Post-Execution Checklist
 
@@ -153,7 +153,7 @@ Markdown file named `<NNN>[<letter>]-<technology>-<aspect>.md` with:
 
 **Final Validation:**
 - [ ] `uv run ai-rules validate rules/<your-rule>.md` returns 0 CRITICAL errors
-- [ ] Rule added to RULES_INDEX.md (human-only) with keywords
+- [ ] Run `uv run ai-rules index generate` to update RULES_INDEX.md
 
 ## Anti-Patterns and Common Mistakes
 
@@ -191,7 +191,7 @@ uv run ai-rules validate rules/<your-new-rule>.md
 
 **Problem:** Adding only 3-4 keywords in metadata instead of the required 5-20.
 
-**Why It Fails:** Reduces discoverability in the human-only RULES_INDEX.md; makes semantic search less effective; triggers HIGH severity errors.
+**Why It Fails:** Reduces discoverability in RULES_INDEX.md; makes semantic search less effective; triggers HIGH severity errors.
 
 **Correct Pattern:**
 ```markdown
@@ -423,25 +423,16 @@ uv run ai-rules validate rules/<your-new-rule>.md --verbose
 
 **For detailed error resolution:** See `002e-schema-validator-usage.md`
 
-## Add to RULES_INDEX.md (human-only catalog)
+## Add to RULES_INDEX.md
 
-### Index Entry Format
-
-```markdown
-- **NNN-new-rule:** Brief description (Keywords: keyword1, keyword2, keyword3)
-```
-
-### Example
+After creating and validating the rule, regenerate the index so the new rule is discoverable:
 
 ```bash
-# Edit RULES_INDEX.md  # human-only catalog
-vim RULES_INDEX.md
-
-# Add entry:
-# | 321-streamlit-validation | Streamlit form validation patterns | Streamlit, validation, forms, widgets, error handling |
+uv run ai-rules index generate
+uv run ai-rules index check
 ```
 
-**Note:** Use the same keywords as the rule's Keywords metadata for consistency.
+The generator reads each rule's frontmatter (Keywords, LoadTrigger, etc.) and emits one compact row per rule in `rules/RULES_INDEX.md`. Verify the new rule's row appears with the correct keywords.
 
 ## Multi-File Task Patterns
 

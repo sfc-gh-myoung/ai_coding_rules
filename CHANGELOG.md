@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **refactor(index):** unify dual-index into single compact `rules/RULES_INDEX.md` — the separate `RULES_INDEX_COMPACT.md` and its template are deleted; `RULES_INDEX.md` now uses the F4 compact grammar (space-separated `<filename> tier=<T> [ext=..] [file=..] [dir=..] kw=<w1> <w2>...` rows) and is the single discovery index for both agents and humans. The earlier "Do NOT read RULES_INDEX.md (human-only, ~4x larger)" guidance is removed; agents grep `RULES_INDEX.md` directly. Stats `schema_version` bumped to `"3"` (no `compact_index_lines`).
+
 ### Added
 
 - **feat(rule-loader eval):** add `--concurrency N` to `eval` — run up to N fixtures per pass in parallel (default `1` = sequential; `--runs` stays serial), with results re-sorted to input order for deterministic tables/snapshots and infra-error fail-fast. Extracts a shared `concurrency.py` driver now also used by `refresh-all`; adds `engine.run_fixture_async`. (`concurrency.py`, `engine.py`, `batch.py`, `rule_loader.py`; tests `test_concurrency.py`, `test_eval_concurrency.py`, `test_batch_extra.py`)

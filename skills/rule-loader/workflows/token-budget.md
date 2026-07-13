@@ -68,6 +68,7 @@ Deferred rules must be declared in the Rules Loaded section:
 ## Domain-rule cap (R3)
 
 - Load at most **3** domain/activity rules per response by default (`max_domain_rules = 3`).
+- **This cap counts only the agent's LEAF/domain SELECTIONS — rules chosen in Phases 2–3 of the skill.** Rules loaded via `required:` dependency closure are exempt from this count.
 - When >3 candidates match, keep by ContextTier priority: Critical > High > Medium > Low.
 - Break ties by descending keyword-match count, then ascending TokenBudget.
 - Declare every deferral: `[Deferred: <rule> - <tier> tier, over rule cap]`.
@@ -79,7 +80,9 @@ Deferred rules must be declared in the Rules Loaded section:
   `total = fixed_floor + index_match + sum(selected rules)`.
 - `fixed_floor` = AGENTS.md + 000-global-core.md + rule-loader/SKILL.md (always injected).
 - Verify with: `ai-rules tokens --context-estimate --selected <rule> [--selected <rule> ...]`.
+- `required:` dependency closure is loaded in addition to — and does not count against — the 3 domain/activity-selection cap, and a `required:` parent is never deferred for token pressure. If loading a mandatory closure would exceed the 20,000-token R4 ceiling, defer LEAF/optional selections first; a still-over-budget mandatory closure is escalated (see Q3-resolution below), never silently trimmed.
 - If `total > ceiling`: defer Low, then Medium, then apply the rule cap before deferring any High/Critical rule.
+  **Exception: rules loaded via `required:` closure are exempt from this deferral path — they are NEVER deferred regardless of ContextTier or total token count. Apply the deferral sequence only to LEAF/optional selections. If total still exceeds the 20,000-token ceiling after deferring all non-required selections, escalate per Q3-resolution below; do not silently trim a `required:` parent.**
 
 ## Rules
 
@@ -104,3 +107,7 @@ Deferred rules must be declared in the Rules Loaded section:
 **Total:** ~14,850 tokens (under warning threshold, load all)
 
 If a 6th rule with ~4,000 tokens were needed, total would hit ~18,850. At that point, evaluate whether any Medium/Low tier rules can be deferred.
+
+## Q3-resolution: UNSATISFIABLE mandatory closure
+
+If total token cost still exceeds the 20,000-token ceiling after deferring ALL non-`required:` selections, the closure is UNSATISFIABLE. Default remediation: demote the highest-TokenBudget `required:` edge in that closure to `optional:` in that rule's `Depends` metadata. Document the specific edge (source → target), its TokenBudget, and rationale. After demotion, run `ai-rules rule-loader validate` to confirm no R8 regressions. If validate fails after demotion, escalate with evidence — do not proceed silently.

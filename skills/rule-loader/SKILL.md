@@ -1,7 +1,7 @@
 ---
 name: rule-loader
 description: Determines which rule files to load for a given user request by matching file extensions, directory paths, and keywords against RULES_INDEX.md. Handles foundation loading, domain matching (HARD layer), activity matching (SOFT layer), dependency resolution, and token budget management. Runs as the single source of truth for rule discovery — typically inside a discovery sub-agent that returns a metadata-only JSON manifest (never rule file contents). Use when loading rules, selecting rules for a task, resolving rule dependencies, or managing token budgets during rule loading.
-version: 1.5.1
+version: 1.6.0
 ---
 
 # Rule Loader
@@ -171,14 +171,12 @@ Search RULES_INDEX.md for keyword matches from the user request.
 
 ### Phase 4: Dependency Resolution
 For each selected rule, check `Depends` metadata and load prerequisites first.
+**Closure loading is MANDATORY — recurse to fixpoint; do not return until all `required:` parents are included.**
 
 **Details:** `workflows/dependency-resolution.md`
 
 ### Phase 5: Token Budget Management
-Sum TokenBudget values, defer low-priority rules if over budget. Cap domain/activity
-rules at 3 per response (ContextTier-priority deferral). The budget ceiling applies to
-TOTAL per-response context (fixed floor + index match + selected rules), not just the
-selected rules — verify with `ai-rules tokens --context-estimate`.
+Sum TokenBudget values, defer low-priority rules if over budget. `required:` dependency closure is loaded in addition to — and does not count against — the 3 domain/activity-selection cap, and a `required:` parent is never deferred for token pressure. If loading a mandatory closure would exceed the 20,000-token R4 ceiling, defer LEAF/optional selections first; a still-over-budget mandatory closure is escalated (see `workflows/token-budget.md` Q3-resolution), never silently trimmed. The budget ceiling applies to TOTAL per-response context (fixed floor + index match + selected rules), not just the selected rules — verify with `ai-rules tokens --context-estimate`.
 
 **Details:** `workflows/token-budget.md`
 
@@ -201,7 +199,7 @@ After rule selection, verify:
 2. Every loaded rule was actually read via `read_file` (not assumed)
 3. Dependencies loaded before dependents
 4. Total per-response context (fixed floor + index match + selected rules) does not exceed limit (default 20,000)
-5. No more than 3 domain/activity rules loaded (ContextTier-priority cap)
+5. `required:` dependency closure is loaded in addition to — and does not count against — the 3 domain/activity-selection cap (cap counts LEAF/domain selections only); a `required:` parent is never deferred
 6. Deferred rules are declared with reason
 
 ## Error Handling

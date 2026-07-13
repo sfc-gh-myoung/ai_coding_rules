@@ -2,6 +2,17 @@
 
 All notable changes to the `rule-loader` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## [1.6.0] - 2026-07-12
+
+### Changed
+
+- **Dependency co-loading (behavioral fix):** `required:` dependency closure is now explicitly exempt from the R3 domain-rule cap (cap counts only LEAF/domain selections) and from the R4 `total > ceiling` deferral path. A `required:` parent is never silently deferred or trimmed.
+- `SKILL.md` Phase 4: added mandatory-closure one-liner ("Closure loading is MANDATORY — recurse to fixpoint").
+- `SKILL.md` Phase 5: replaced old cap wording with canonical cap-exemption sentence covering both R3 (count) and R4 (token) exemptions.
+- `SKILL.md` Quick-Validation #5: replaced "No more than 3 domain/activity rules loaded" with canonical cap-exemption statement clarifying LEAF-only counting.
+- `workflows/dependency-resolution.md`: added explicit rule that `required:` closure does not count against the cap; added worked closure example (119→{100,103,105}).
+- `workflows/token-budget.md`: R3 section clarified — cap counts LEAF/domain selections only; R4 section adds canonical exemption sentence; line-82 deferral path adds explicit `required:` closure exemption; added Q3-resolution section for UNSATISFIABLE mandatory closures.
+
 ## [1.5.1] - 2026-07-11
 
 ### Changed

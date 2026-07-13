@@ -47,6 +47,7 @@ Dependencies loaded via this phase use the reason format:
 - A missing dependency causes its dependent to be skipped (not a full stop)
 - Circular dependencies should not exist; if detected, log warning and break the cycle
 - Foundation (000-global-core.md) is never listed as a dependency to resolve since it is always loaded in Phase 1
+- **Dependencies loaded via `required:` closure do NOT count against the R3 domain-rule cap.** The cap counts only the agent's LEAF/domain SELECTIONS. `required:` dependency closure is loaded in addition to — and does not count against — the 3 domain/activity-selection cap, and a `required:` parent is never deferred for token pressure. If loading a mandatory closure would exceed the 20,000-token R4 ceiling, defer LEAF/optional selections first; a still-over-budget mandatory closure is escalated (see `token-budget.md` Q3-resolution), never silently trimmed.
 
 ## Common Dependency Chains
 
@@ -59,6 +60,9 @@ Dependencies loaded via this phase use the reason format:
 | `002a-rule-creation.md` | `002-rule-governance.md`, `000-global-core.md` |
 
 Consult `rules/RULES_INDEX.md` (the agent discovery index) for the authoritative dependency list for each rule.
+
+**Worked closure example:** Agent selects `119-snowflake-warehouse-core.md` (1 LEAF selection, counts as 1 against the 3-rule cap). `119` declares `required: 100-snowflake-core.md, 103-snowflake-sql-performance.md, 105-snowflake-query-patterns.md`. Transitive walk adds those 3 rules — closure = {100, 103, 105}. All three are loaded in addition to the cap, not counted against it. Cap usage = 1/3 (only the original leaf selection 119).
+
 
 ### Step 5: Check for Companion Examples (complex configurations only)
 

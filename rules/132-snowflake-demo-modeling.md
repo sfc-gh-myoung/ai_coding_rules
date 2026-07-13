@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v3.2.2
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:data-modeling, kw:dimensional-model, kw:kimball, kw:naming conventions, kw:dimensional modeling, kw:fact tables, kw:dimension tables, kw:foreign keys, kw:view taxonomy, kw:data generation, kw:backward compatibility, kw:surrogate keys
 **TokenBudget:** ~4350
 **ContextTier:** High
-**Depends:** required:130-snowflake-demo-sql.md, required:131-snowflake-demo-creation.md, optional:930-data-governance-quality.md, optional:940-business-analytics.md, optional:100-snowflake-core.md
+**Depends:** required:130-snowflake-demo-sql.md, required:131-snowflake-demo-creation.md, optional:930-data-governance-quality.md, optional:940-business-analytics.md
 
 ## Scope
 

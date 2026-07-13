@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.0.2
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:stored procedure anti-patterns, kw:dollar quoting, kw:execute as, kw:bind variables, kw:unqualified names
 **TokenBudget:** ~1700
 **ContextTier:** Low
-**Depends:** required:102b-snowflake-sql-procedures.md
+**Depends:** optional:102b-snowflake-sql-procedures.md
 
 ## Scope
 

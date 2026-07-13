@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v3.2.2
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:test streamlit app, kw:test framework, kw:test patterns, kw:app testing, kw:ui testing, kw:streamlit test suite, kw:test coverage, kw:debug tests, kw:testing strategies
 **TokenBudget:** ~3950
 **ContextTier:** High
-**Depends:** required:000-global-core.md, required:101-snowflake-streamlit-core.md, required:206-python-pytest.md, optional:101b-snowflake-streamlit-performance.md, optional:200-python-core.md
+**Depends:** required:206-python-pytest.md, optional:101b-snowflake-streamlit-performance.md
 
 ## Scope
 

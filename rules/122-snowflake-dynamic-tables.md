@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v3.1.3
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:dynamic-table, kw:incremental, kw:automatic pipelines, kw:downstream, kw:full, kw:warehouse sizing, kw:data freshness, kw:dynamic table lag, kw:refresh frequency, kw:pipeline automation
 **TokenBudget:** ~3400
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:104-snowflake-streams-tasks.md, required:119-snowflake-warehouse-management.md, optional:105-snowflake-cost-governance.md, optional:103-snowflake-performance-tuning.md
+**Depends:** required:100-snowflake-core.md, required:104-snowflake-streams-tasks.md, optional:105-snowflake-cost-governance.md, optional:103-snowflake-performance-tuning.md
 
 ## Scope
 

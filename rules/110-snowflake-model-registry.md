@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.2.5
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:model-registry, kw:ml-model, kw:model governance, kw:model logging, kw:model inference, kw:rbac, kw:model privileges, kw:register model, kw:log model, kw:model management, kw:ml registry, kw:model tracking, kw:model metadata, kw:deploy model, kw:model lineage
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-12
+**Keywords:** kw:model-registry, kw:ml-model, kw:model governance, kw:model logging, kw:model inference, kw:model permissions, kw:model privileges, kw:register model, kw:log model, kw:model management, kw:ml registry, kw:model tracking, kw:model metadata, kw:deploy model, kw:model lineage
 **TokenBudget:** ~3900
 **ContextTier:** Medium
 **Depends:** required:100-snowflake-core.md

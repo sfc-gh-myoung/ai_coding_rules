@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v3.0.3
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:cortex-api-streaming, kw:cortex-auth, kw:sse, kw:server-sent events, kw:streaming response, kw:event stream, kw:pat, kw:oauth, kw:jwt, kw:authentication token, kw:token type, kw:response format, kw:sseclient, kw:cortex agent sse, kw:streaming parsing
 **TokenBudget:** ~4650
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:118-snowflake-cortex-rest-api.md, optional:107-snowflake-security-governance.md, optional:115-snowflake-cortex-agents-core.md
+**Depends:** required:118-snowflake-cortex-rest-api.md, optional:115-snowflake-cortex-agents-core.md
 
 ## Scope
 

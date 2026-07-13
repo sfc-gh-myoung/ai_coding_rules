@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.2.2
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v1.2.3
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:warehouse runtime, kw:container runtime, kw:in-place upgrade, kw:live version, kw:environment.yml, kw:pyproject.toml, kw:get_active_session, kw:st.connection, kw:runtime migration, kw:bidirectional migration
 **TokenBudget:** ~2800
 **ContextTier:** Low
-**Depends:** required:101l-snowflake-streamlit-deployment.md, optional:101c-snowflake-streamlit-security.md
+**Depends:** optional:101l-snowflake-streamlit-deployment.md
 
 ## Scope
 

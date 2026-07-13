@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v3.1.2
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:agent-operations, kw:agent operations, kw:agent security, kw:agent monitoring, kw:agent evaluation, kw:agent costs, kw:debug agent, kw:agent troubleshooting, kw:agent security policies
 **TokenBudget:** ~2800
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:115-snowflake-cortex-agents-core.md, required:111-snowflake-observability-core.md, optional:106c-snowflake-semantic-views-integration.md, optional:116-snowflake-cortex-search.md, optional:106-snowflake-semantic-views-core.md
+**Depends:** required:115-snowflake-cortex-agents-core.md, optional:106c-snowflake-semantic-views-integration.md
 **Companions:** 115c-snowflake-cortex-agents-testing.md, 115d-snowflake-cortex-agents-observability.md
 
 ## Scope

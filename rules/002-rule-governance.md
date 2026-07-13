@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.5.3
-**LastUpdated:** 2026-07-11
-**Keywords:** dir:rules/, kw:rule governance, kw:schema, kw:metadata requirements, kw:validation, kw:schema compliance, kw:rule structure, kw:semantic discovery, kw:rules_index, kw:descriptive headings, kw:design priorities, kw:agent optimization, kw:skill governance
+**RuleVersion:** v3.7.0
+**LastUpdated:** 2026-07-12
+**Keywords:** dir:rules/, kw:rule governance, kw:schema, kw:metadata requirements, kw:rule quality, kw:schema compliance, kw:rule structure, kw:semantic discovery, kw:rules_index, kw:descriptive headings, kw:design priorities, kw:agent optimization, kw:skill governance
 **TokenBudget:** ~4900
 **ContextTier:** Critical
 **Depends:** required:000-global-core.md, optional:002a-rule-creation.md, optional:002b-rule-update.md, optional:002e-schema-validator-usage.md
@@ -471,7 +471,36 @@ Example:
 
 ## LoadTrigger Guidelines
 
-**See:** `002i-rule-loadtrigger.md` for complete LoadTrigger specification, syntax, patterns, best practices, and examples.
+LoadTrigger guidance governs how rules declare their dynamic discovery triggers via the
+**Keywords:** metadata field. These typed-prefix entries drive agent lookup in `RULES_INDEX.md`.
+
+**When to add typed triggers:**
+- Rule applies to specific file extensions → `ext:.py`, `ext:.sql`, `ext:.tsx`
+- Rule applies to specific filenames → `file:pyproject.toml`, `file:Dockerfile`
+- Rule applies to specific directories → `dir:rules/`, `dir:tests/`
+- Rule provides keyword/activity guidance → `kw:testing`, `kw:performance`
+
+**When to skip:** Foundation/infrastructure rules (always loaded); sub-rules with explicit
+`Depends:` relationships loaded via parent; highly specialized on-demand-only rules.
+
+**Trigger types** (combine in **Keywords:** field, comma-separated):
+- `ext:<extension>` — matches file extension (e.g. `ext:.py`)
+- `file:<name>` — matches exact filename (e.g. `file:Dockerfile`)
+- `dir:<path>` — matches directory prefix (e.g. `dir:tests/`)
+- `kw:<term>` — matches keyword/activity (e.g. `kw:testing`)
+
+**Best practices:**
+- Use 2–4 triggers per rule (combine `ext:` + `kw:` for language rules)
+- Use specific, descriptive keywords — avoid overly generic terms matching 5+ rules across different domain families
+- Distinguish useful synonyms (different search terms, e.g. `kw:mock, kw:faker`) from redundant variants (abbreviations of the same term — keep only one)
+- Regenerate the discovery index after any trigger change: `uv run ai-rules index generate`
+
+**Anti-patterns:**
+- Generic keywords (`kw:code`, `kw:file`) with 5+ matches across unrelated domains
+- Redundant variants (`kw:python, kw:py`) — pick one canonical term
+- Adding triggers to foundation rules (000-series) or to sub-rules loaded exclusively via `Depends:`
+
+**Decision process:** (1) Foundation rule? → no trigger. (2) Has parent via `Depends:` only? → no trigger. (3) Specific file types? → add `ext:`/`file:`. (4) Specific activity? → add `kw:`. (5) Combined parent + standalone? → use both `Depends:` and triggers.
 
 ## Rule Examples
 

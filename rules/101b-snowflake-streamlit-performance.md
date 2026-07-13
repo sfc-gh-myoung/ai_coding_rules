@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v3.2.2
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:@st.cache_data, kw:@st.cache_resource, kw:st.fragment, kw:null handling, kw:slow streamlit, kw:streamlit caching, kw:optimize streamlit, kw:fix slow queries, kw:fragment batch processing, kw:streamlit performance, kw:app slow, kw:loading data, kw:caching pattern
 **TokenBudget:** ~4950
 **ContextTier:** High
-**Depends:** required:000-global-core.md, required:101-snowflake-streamlit-core.md, required:103-snowflake-performance-tuning.md, optional:101e-snowflake-streamlit-sql-errors.md, optional:105-snowflake-cost-governance.md, optional:119-snowflake-warehouse-management.md
+**Depends:** required:103-snowflake-performance-tuning.md
 
 ## Scope
 

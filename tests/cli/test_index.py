@@ -841,11 +841,11 @@ class TestParseLoadTriggersEdgeCases:
         """Last-rule-wins on alphabetical scan: more specific rules override."""
         rules = [
             index_module.RuleMetadata(
-                filename="002i-rule-loadtrigger.md",
-                filepath=Path("002i-rule-loadtrigger.md"),
+                filename="002z-test-placeholder-a.md",
+                filepath=Path("002z-test-placeholder-a.md"),
                 keywords="ext:.py, kw:loadtrigger",
                 depends="—",
-                scope="LoadTrigger guidelines",
+                scope="Test placeholder rule A",
                 load_trigger=None,
             ),
             index_module.RuleMetadata(

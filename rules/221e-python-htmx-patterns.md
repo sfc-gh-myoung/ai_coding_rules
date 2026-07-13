@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:crud, kw:forms, kw:validation, kw:progressive enhancement, kw:search, kw:autocomplete, kw:inline editing
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-07-12
+**Keywords:** kw:crud, kw:forms, kw:htmx patterns, kw:progressive enhancement, kw:search, kw:autocomplete, kw:inline editing
 **TokenBudget:** ~3400
 **ContextTier:** Medium
-**Depends:** required:221-python-htmx-core.md, required:221a-python-htmx-templates.md, optional:221i-python-htmx-patterns-advanced.md, optional:221b-python-htmx-flask.md, optional:221c-python-htmx-fastapi.md
+**Depends:** optional:221i-python-htmx-patterns-advanced.md, optional:221b-python-htmx-flask.md, optional:221c-python-htmx-fastapi.md
 
 ## Scope
 

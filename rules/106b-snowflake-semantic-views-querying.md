@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** kw:semantic-query, kw:analyst, kw:window functions, kw:dimension compatibility, kw:testing, kw:validation, kw:tpc-ds, kw:semantic_view function, kw:query patterns
+**RuleVersion:** v3.4.0
+**LastUpdated:** 2026-07-12
+**Keywords:** kw:semantic-query, kw:analyst, kw:window functions, kw:dimension compatibility, kw:verified queries, kw:sql generation, kw:tpc-ds, kw:semantic_view function, kw:query patterns
 **TokenBudget:** ~2550
 **ContextTier:** High
 **Depends:** required:106-snowflake-semantic-views-core.md

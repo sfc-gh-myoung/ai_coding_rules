@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.0.1
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:feature-engineering, kw:aggregation features, kw:time-based features, kw:recency features, kw:frequency features, kw:monetary features, kw:velocity features, kw:rfm features, kw:windowed aggregations, kw:derived features
 **TokenBudget:** ~2550
 **ContextTier:** Low
-**Depends:** required:100-snowflake-core.md, required:113-snowflake-feature-store.md
+**Depends:** required:113-snowflake-feature-store.md
 
 ## Scope
 

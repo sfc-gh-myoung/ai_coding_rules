@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.6
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v3.1.7
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:notebook, kw:ml, kw:reproducible notebooks, kw:nbqa, kw:code quality, kw:python, kw:debug notebook, kw:notebook execution, kw:notebook testing, kw:notebook deployment, kw:kernel management, kw:cell execution
 **TokenBudget:** ~4450
 **ContextTier:** Medium
-**Depends:** required:100-snowflake-core.md, required:201-python-lint-format.md
+**Depends:** none
 
 ## Scope
 

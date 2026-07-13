@@ -9,8 +9,8 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.8.1
-**LastUpdated:** 2026-07-11
+**RuleVersion:** v3.9.0
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:workflow, kw:safety, kw:confirmation, kw:validation, kw:surgical edits, kw:minimal changes, kw:prompt engineering, kw:task list, kw:context window, kw:professional communication
 **TokenBudget:** ~2550
 **ContextTier:** Critical
@@ -204,7 +204,7 @@ Error: [exact message] | Fix: [specific action]
 **Language Rule Loading Requirements:**
 - **MUST load:** Modifying files, running language-specific tools (pytest, ruff, shellcheck), or making code recommendations
 - **MAY skip:** Reading files for context only, listing directories, language-agnostic operations (git, file moves)
-- **Cap:** Load at most 3 domain/activity rules per response (ContextTier-priority deferral). See the rule-loader skill's `workflows/token-budget.md`.
+- **Cap:** Load at most 3 domain/activity rules per response (ContextTier-priority deferral). `required:` dependency closure is loaded in addition to — and does not count against — the 3 domain/activity-selection cap (this cap counts only LEAF/domain selections), and a `required:` parent is never deferred for token pressure. If loading a mandatory closure would exceed the 20,000-token R4 ceiling, defer LEAF/optional selections first; a still-over-budget mandatory closure is escalated (see Q3-resolution in the rule-loader skill's `workflows/token-budget.md`), never silently trimmed. See the rule-loader skill's `workflows/token-budget.md`.
 
 **Examples:**
 - Requires rules: "Run pytest", "Lint this file", "Fix the bug in auth.py"

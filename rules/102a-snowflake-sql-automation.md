@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:sql-automation, kw:procedure, kw:idempotent, kw:merge, kw:operations, kw:multi-environment, kw:infrastructure as code, kw:snowflake variables, kw:production-safe, kw:upsert, kw:sql automation, kw:deployment scripts, kw:sql pipeline, kw:config management, kw:environment variables
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-12
+**Keywords:** kw:sql-automation, kw:procedure, kw:idempotent, kw:merge, kw:operations, kw:multi-environment, kw:infrastructure as code, kw:snowflake variables, kw:production-safe, kw:upsert, kw:sql automation, kw:deployment scripts, kw:sql pipeline, kw:config management, kw:automation scripts
 **TokenBudget:** ~5150
 **ContextTier:** High
 **Depends:** required:102-snowflake-sql-core.md, optional:117-snowflake-mcp-server.md, optional:130-snowflake-demo-sql.md

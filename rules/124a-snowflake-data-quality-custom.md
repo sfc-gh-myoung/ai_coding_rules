@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v3.1.2
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:custom-quality-check, kw:quality assertions, kw:custom metrics, kw:validation functions, kw:create custom dmf, kw:custom quality checks, kw:business rule validation, kw:custom expectations, kw:quality functions, kw:udf for quality, kw:validation logic, kw:custom quality metrics, kw:custom validation
 **TokenBudget:** ~3600
 **ContextTier:** Medium
-**Depends:** required:100-snowflake-core.md, required:124-snowflake-data-quality-core.md, optional:124b-snowflake-data-quality-operations.md
+**Depends:** required:124-snowflake-data-quality-core.md, optional:124b-snowflake-data-quality-operations.md
 
 ## Scope
 

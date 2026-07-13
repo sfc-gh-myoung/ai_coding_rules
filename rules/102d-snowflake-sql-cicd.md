@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-04
+**RuleVersion:** v1.0.3
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:ci/cd, kw:github actions, kw:makefile, kw:deployment automation, kw:environment variables, kw:multi-environment, kw:pipeline, kw:secrets management
 **TokenBudget:** ~1300
 **ContextTier:** Low
-**Depends:** required:102a-snowflake-sql-automation.md
+**Depends:** optional:102a-snowflake-sql-automation.md
 
 ## Scope
 

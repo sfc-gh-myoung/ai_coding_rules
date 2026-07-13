@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.8.4
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:validation, kw:basemodel, kw:data validation, kw:models, kw:field validation, kw:field, kw:validator, kw:model_validator, kw:emailstr
+**RuleVersion:** v3.9.0
+**LastUpdated:** 2026-07-12
+**Keywords:** kw:pydantic models, kw:basemodel, kw:data validation, kw:models, kw:field validation, kw:field, kw:validator, kw:model_validator, kw:emailstr
 **TokenBudget:** ~3800
 **ContextTier:** High
 **Depends:** required:200-python-core.md

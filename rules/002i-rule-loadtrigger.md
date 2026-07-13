@@ -1,292 +1,33 @@
-# LoadTrigger Guidelines
+# LoadTrigger Guidelines — DEPRECATED TOMBSTONE
 
-> **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
->
-> Extracted from 002-rule-governance.md for token efficiency.
+> **TOMBSTONE:** This rule has been deprecated and merged into `002-rule-governance.md`.
+> It is retained for one release cycle to preserve inbound `Depends:` links.
+> Do NOT load this rule. Load `002-rule-governance.md` instead.
 
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.4
-**LastUpdated:** 2026-07-11
-**Keywords:** ext:.py, kw:python, kw:testing, kw:loadtrigger, kw:dynamic rule loading, kw:rule discovery, kw:file extension trigger, kw:keyword trigger, kw:directory trigger, kw:filename trigger, kw:rules_index
-**TokenBudget:** ~2200
-**ContextTier:** Medium
-**Depends:** required:002-rule-governance.md, optional:002a-rule-creation.md
+**RuleVersion:** v2.0.0
+**LastUpdated:** 2026-07-12
+**Keywords:**
+**TokenBudget:** ~50
+**ContextTier:** Low
+**Depends:**
 
 ## Scope
 
 **What This Rule Covers:**
-LoadTrigger metadata field specification for dynamic rule discovery based on file context, keywords, or activities.
+DEPRECATED. Active load-trigger guidance has been merged into `002-rule-governance.md`
+(§ LoadTrigger Guidelines). This tombstone file will be removed in the next release cycle.
 
 **When to Load This Rule:**
-- Adding or modifying LoadTrigger fields on rules
-- Understanding dynamic rule discovery mechanisms
-- Debugging rule loading behavior
+- Never. Use `002-rule-governance.md` for LoadTrigger / keyword-trigger guidance.
 
-## References
+## Migration
 
-### Dependencies
+All LoadTrigger guidance — trigger types (`ext:`, `file:`, `dir:`, `kw:`), best practices,
+anti-patterns, and the decision process — is now in **`002-rule-governance.md`**,
+§ LoadTrigger Guidelines.
 
-**Must Load First:**
-- **002-rule-governance.md** - Parent rule for schema standards
-
-**Related:**
-- **002a-rule-creation.md** - Rule creation workflow (includes LoadTrigger step)
-
-### External Documentation
-
-_None._
-
-
-## Contract
-
-### Inputs and Prerequisites
-
-- A rule file that needs dynamic loading triggers
-- Understanding of trigger types (ext, file, dir, kw)
-
-### Mandatory
-
-- Use 2-4 triggers per rule
-- Combine extension + keyword triggers for language rules
-- Regenerate index after adding triggers: `uv run ai-rules index generate`
-
-### Forbidden
-
-- Adding LoadTriggers to foundation rules (000-series, 001-core, 002-governance)
-- Using LoadTriggers for sub-rules that should be loaded via Depends
-- Using overly generic keywords that match 5+ rules across different domain families
-
-### Execution Steps
-
-1. Determine if rule needs LoadTrigger (see decision process below)
-2. Select appropriate trigger types
-3. Add LoadTrigger field to metadata
-4. Regenerate index: `uv run ai-rules index generate`
-5. Validate: `uv run ai-rules validate rules/<rule>.md`
-
-### Output Format
-
-LoadTrigger metadata field in rule file:
-```markdown
-```
-
-### Validation
-
-**After adding LoadTrigger:**
-1. Regenerate index: `uv run ai-rules index generate`
-2. Validate references: `uv run ai-rules refs check`
-3. Run tests: `uv run pytest --tb=short -q`
-4. Check formatting: `uvx ruff check .` (validates Python scripts that process LoadTrigger values)
-
-**Pre-Task-Completion Checks:**
-1. Target rule file exists and passes `uv run ai-rules validate`
-2. Rule is not a foundation rule (000-series, 001-core, 002-governance)
-3. Rule has no unresolved Depends chain
-
-**Success Criteria:**
-- LoadTrigger uses valid trigger types (ext, file, dir, kw)
-- 2-4 triggers per rule
-- No overly generic keywords
-
-**Negative Tests:**
-- LoadTrigger with invalid prefix (e.g., `type:.py`) should fail validation
-- More than 4 triggers per rule should generate a warning
-- Foundation rule (000-series) with LoadTrigger should be flagged
-
-### Error Recovery
-
-- **`uv run ai-rules index generate` fails:** Verify Python environment, check for syntax errors in rule file metadata, try regenerating with `--verbose`
-- **LoadTrigger format errors:** Check trigger prefix (ext:/file:/dir:/kw:), verify no trailing whitespace, ensure comma separation between triggers
-- **Conflicting triggers with existing rules:** Some overlap is intentional (see Best Practices). If >3 rules share identical triggers, consolidate trigger coverage or make keywords more specific.
-
-### Post-Execution Checklist
-
-- [ ] LoadTrigger uses valid trigger types
-- [ ] 2-4 triggers defined
-- [ ] Index regenerated
-- [ ] Validation passes
-
-## What is LoadTrigger?
-
-**LoadTrigger** is an optional metadata field that enables dynamic rule discovery based on file context, keywords, or activities. It allows the system to automatically suggest relevant rules when specific conditions are met.
-
-## When to Use LoadTrigger
-
-**Add LoadTrigger when:**
-- Rule applies to specific file extensions (e.g., `.py`, `.sql`, `.tsx`)
-- Rule applies to specific filenames (e.g., `pyproject.toml`, `Dockerfile`)
-- Rule applies to specific directories (e.g., `rules/`, `tests/`)
-- Rule provides guidance for specific activities or keywords (e.g., `kw:testing`, `kw:performance`)
-
-**Skip LoadTrigger for:**
-- Foundation/infrastructure rules (always loaded automatically)
-- Sub-rules with explicit Depends relationships (loaded via parent rule)
-- Highly specialized rules (loaded only when explicitly requested)
-
-## LoadTrigger Syntax
-
-LoadTrigger uses four trigger types:
-
-```markdown
-```
-
-**Trigger Types:**
-
-1. **ext:** - File extension triggers
-   - `ext:.py` - Python files
-   - `ext:.sql` - SQL files
-   - `ext:.tsx` - TypeScript React files
-
-2. **file:** - Specific filename triggers
-   - `file:pyproject.toml` - Python project config
-   - `file:Dockerfile` - Docker configuration
-   - `file:CHANGELOG.md` - Changelog file
-
-3. **dir:** - Directory-based triggers
-   - `dir:rules/` - Rules directory
-   - `dir:tests/` - Test directory
-
-4. **kw:** - Keyword/activity triggers
-   - `kw:testing` - Testing activities
-   - `kw:performance` - Performance optimization
-   - `kw:security` - Security-related work
-
-## LoadTrigger Patterns
-
-**Language Rules:**
-```markdown
-```
-
-**Framework Rules:**
-```markdown
-```
-
-**Activity Rules:**
-```markdown
-```
-
-**Multi-Context Rules:**
-```markdown
-```
-
-## LoadTrigger Best Practices
-
-**DO:**
-- Use 2-4 triggers per rule (average: 2.1 based on current data)
-- Combine extension + keyword triggers for language rules
-- Use specific, descriptive keywords
-- Include synonyms when they represent different search terms users might use.
-  **Useful synonyms:** different words for the same concept (kw:mock, kw:faker — different tools).
-  **Redundant synonyms:** lexical variants of the same word (kw:python, kw:py — same word, shortened).
-  Test: Would a user search for each synonym independently? If yes, keep it. If one synonym
-  is just an abbreviation or variation of another, remove it.
-- Check existing rules for similar triggers to maintain consistency
-
-**DON'T:**
-- Use overly generic keywords that match 5+ rules across different domain families.
-  A keyword is overly generic if it matches 5+ rules across 3+ domain families
-  (e.g., `kw:code` matches Python, SQL, and JavaScript families). Overlap within
-  the same domain family (e.g., `kw:testing` matching pytest and unit-testing rules)
-  is intentional and acceptable.
-- Add LoadTriggers to foundation rules (000-series, 001-core, 002-governance)
-- Use LoadTriggers for sub-rules that should be loaded via Depends
-
-## LoadTrigger Examples
-
-**Example 1: Python Core Rule**
-```markdown
-```
-Triggers on: Python files OR "python" keyword
-
-**Example 2: FastAPI Testing Rule**
-```markdown
-```
-Triggers on: FastAPI testing activities
-
-**Example 3: Multi-Extension React Rule**
-```markdown
-```
-Triggers on: JSX/TSX files OR "react" keyword
-
-**Example 4: Config File Rule**
-```markdown
-```
-Triggers on: pyproject.toml file OR "python-project" keyword
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Too Generic Triggers
-
-**[BAD]:**
-```markdown
-```
-**Problem:** Matches almost everything, no specificity.
-
-**Correct Pattern:** Use domain-specific keywords.
-
-### Anti-Pattern 2: Redundant Keywords
-
-**[BAD]:**
-```markdown
-```
-**Problem:** All synonyms, no additional value.
-
-**Correct Pattern:** Pick 1-2 canonical terms.
-
-### Anti-Pattern 3: Wrong Context
-
-**[BAD]:**
-```markdown
-# In 000-global-core.md
-```
-**Problem:** Foundation rules should NOT have LoadTriggers.
-
-**Correct Pattern:** Foundation rules are always loaded automatically.
-
-## LoadTrigger Impact on RULES_INDEX.md
-
-When you add LoadTrigger to a rule, it automatically appears in `RULES_INDEX.md` after running:
-
-```bash
-uv run ai-rules index generate
-```
-
-The index organizes rules by trigger type:
-- **Section 2:** Directory and file extension rules
-- **Section 3:** Activity rules (keyword-based)
-
-## LoadTrigger Decision Process
-
-When creating or updating a rule, ask:
-
-1. **Is this a foundation rule?** No LoadTrigger (always loaded)
-2. **Does it have a parent rule via Depends?** No LoadTrigger (loaded by parent)
-3. **Does it apply to specific file types?** Add ext:/file: triggers
-4. **Does it guide specific activities?** Add kw: triggers
-5. **Is it highly specialized?** Skip LoadTrigger (on-demand only)
-
-### Combined Depends + LoadTrigger
-
-Some sub-rules need both a Depends relationship (for ordered loading when parent is loaded)
-AND independent discoverability via LoadTrigger (for direct access without parent).
-
-**When to use both:**
-- The rule has a parent (Depends) but is also useful standalone
-- Example: `002j-rule-examples.md` depends on `002-rule-governance.md` but should also
-  load when a user mentions "example" or "examples" directly
-
-**Configuration:** Set both fields. The AGENTS.md bootstrap loads via LoadTrigger first;
-if the parent is already loaded, Depends ensures correct ordering.
-
-**Refer to:** LoadTrigger choices should be documented in git commit messages or
-in the rule's own metadata comments.
-
-**Coverage Statistics:**
-Run `uv run ai-rules index stats` for current numbers. As of last check:
-- Total rules: ~130+
-- Rules with LoadTrigger: ~85+ (~65-70%)
-- Average triggers per rule: ~2.1
-
-Note: These numbers drift as rules are added. Regenerate before citing.
+If you have `required:002i-rule-loadtrigger.md` in a rule's `**Depends:**`, update it to
+`optional:002-rule-governance.md` (or remove it if the governance rule is already listed).

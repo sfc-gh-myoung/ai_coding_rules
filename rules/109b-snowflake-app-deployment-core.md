@@ -8,12 +8,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.2.3
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v3.2.4
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:app-deployment, kw:create notebook, kw:stages, kw:sis, kw:deploy app, kw:deployment pipeline, kw:app publishing, kw:deployment patterns, kw:deploy to snowflake, kw:stage deployment, kw:app versioning, kw:automated deployment
 **TokenBudget:** ~4100
 **ContextTier:** Medium
-**Depends:** required:000-global-core.md, required:100-snowflake-core.md, required:109-snowflake-notebooks.md
+**Depends:** required:109-snowflake-notebooks.md
 
 ## Scope
 

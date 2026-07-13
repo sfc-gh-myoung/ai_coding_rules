@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.4
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v1.1.5
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:deployment-taskfile, kw:deploy-task, kw:taskfile deployment, kw:task automation, kw:deployment tasks, kw:task structure, kw:deploy task, kw:upload task, kw:create task, kw:drop task, kw:remove task, kw:deployment workflow
 **TokenBudget:** ~3100
 **ContextTier:** Low
-**Depends:** required:109b-snowflake-app-deployment-core.md, required:820-taskfile-automation.md
+**Depends:** required:820-taskfile-automation.md
 
 ## Scope
 

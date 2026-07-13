@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v3.1.2
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:dmf-operations, kw:quality-monitoring, kw:remediation, kw:rbac, kw:privilege requirements, kw:automated monitoring, kw:quality alerts, kw:schedule dmf, kw:quality event tables, kw:quality alerting, kw:dmf results, kw:quality workflows, kw:dmf rbac, kw:quality notifications, kw:remediation workflows
 **TokenBudget:** ~4400
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:124-snowflake-data-quality-core.md, required:111-snowflake-observability-core.md, optional:124a-snowflake-data-quality-custom.md, optional:104-snowflake-streams-tasks.md
+**Depends:** optional:124a-snowflake-data-quality-custom.md, optional:104-snowflake-streams-tasks.md
 
 ## Scope
 

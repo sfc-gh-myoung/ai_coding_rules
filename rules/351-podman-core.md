@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.1.1
-**LastUpdated:** 2026-07-10
-**Keywords:** file:Containerfile, file:podman-compose.yml, file:podman-compose.yaml, kw:podman, kw:buildah, kw:containerfile, kw:containers, kw:rootless containers, kw:podman-compose, kw:pods, kw:daemonless, kw:systemd, kw:quadlet, kw:image optimization, kw:non-root, kw:healthcheck, kw:security scanning, kw:sbom
+**RuleVersion:** v1.1.2
+**LastUpdated:** 2026-07-12
+**Keywords:** file:Containerfile, file:podman-compose.yml, file:podman-compose.yaml, kw:podman, kw:buildah, kw:containerfile, kw:containers, kw:rootless containers, kw:podman-compose, kw:pods, kw:daemonless, kw:systemd, kw:quadlet, kw:non-root, kw:security scanning, kw:sbom
 **TokenBudget:** ~4350
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md, required:202-markup-config-validation.md, optional:351a-podman-examples.md, optional:350-docker-core.md, optional:200-python-core.md

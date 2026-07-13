@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:aisql, kw:cortex-aisql, kw:cortex aisql, kw:ai_complete, kw:ai_classify, kw:ai_extract, kw:ai_sentiment, kw:ai_summarize, kw:embeddings, kw:llm functions, kw:batching, kw:token costs, kw:text generation, kw:classification, kw:sentiment analysis, kw:summarization, kw:ai function error
+**RuleVersion:** v3.1.2
+**LastUpdated:** 2026-07-12
+**Keywords:** kw:aisql, kw:cortex-aisql, kw:cortex aisql, kw:ai_complete, kw:ai_classify, kw:ai_extract, kw:ai_sentiment, kw:ai_summarize, kw:embeddings, kw:llm functions, kw:batching, kw:token costs, kw:text generation, kw:classification, kw:sentiment analysis, kw:summarization
 **TokenBudget:** ~4900
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md, required:105-snowflake-cost-governance.md, optional:114a-snowflake-cortex-ai-transcribe.md, optional:102-snowflake-sql-core.md, optional:119-snowflake-warehouse-management.md

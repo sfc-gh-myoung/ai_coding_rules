@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v3.1.3
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:sis-typeerror, kw:typeerror bad argument, kw:attributeerror streamlit, kw:sis debugging, kw:auto_compress, kw:from source path, kw:live_version_location_uri, kw:root_location mismatch (legacy), kw:environment.yml, kw:streamlit version, kw:compression debugging, kw:stage path mismatch
 **TokenBudget:** ~5250
 **ContextTier:** Medium
-**Depends:** required:109c-snowflake-app-deployment-troubleshooting.md, optional:101-snowflake-streamlit-core.md, optional:109b-snowflake-app-deployment-core.md
+**Depends:** optional:109c-snowflake-app-deployment-troubleshooting.md
 
 ## Scope
 

@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-07-10
+**RuleVersion:** v3.0.3
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:server-sent events, kw:alpine.js, kw:eventsource, kw:real-time, kw:streaming, kw:live updates, kw:push notifications, kw:event types, kw:sse-manager
 **TokenBudget:** ~4150
 **ContextTier:** High
-**Depends:** required:221-python-htmx-core.md, required:221f-python-htmx-integrations.md, optional:207-python-logging.md
+**Depends:** optional:221f-python-htmx-integrations.md
 
 ## Scope
 

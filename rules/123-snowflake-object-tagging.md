@@ -3,12 +3,12 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
+**RuleVersion:** v3.2.1
+**LastUpdated:** 2026-07-12
 **Keywords:** kw:tag, kw:metadata, kw:cost attribution, kw:resource tagging, kw:governance tags, kw:masking policies, kw:row access policies, kw:tag lineage, kw:tag management
 **TokenBudget:** ~3450
 **ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:105-snowflake-cost-governance.md, required:107-snowflake-security-governance.md
+**Depends:** required:105-snowflake-cost-governance.md, required:107-snowflake-security-governance.md
 
 ## Scope
 

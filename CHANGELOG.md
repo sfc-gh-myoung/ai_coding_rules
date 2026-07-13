@@ -7,7 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+### Changed (2026-07-12 — rule-loader eval: gitignored `results/` layout + TUI removal)
+
+**Streaming eval results directory:**
+- `ai-rules rule-loader eval` now writes to a fresh `results/<model>_<runs>x_<timestamp>/` directory per invocation, streaming per-fixture `<id>.json` + `<id>.transcript.jsonl` as each fixture finishes and updating `manifest.json` / `run_meta.json` incrementally — a killed run leaves a fully inspectable partial state.
+- `--out-dir` on `eval` is repurposed to override the results root (default `results/`); `AI_RULES_RESULTS_DIR` env var is a secondary override with CLI > env > default precedence.
+- New modules `src/ai_rules/rule_loader_eval/results_writer.py` + `results_schemas.py` own the `results/<run_dir>/` layout and JSON schemas (`ai-rules-eval-{manifest,run-meta,summary,aggregate,fixture}/v1`). Concurrency-safe via asyncio single-loop cooperative scheduling — synchronous writer methods are atomic; no explicit lock primitive.
+- `snapshot.py` migrated: `write_eval_snapshot` / `read_eval_snapshot` now use the new results/ layout on disk. `compare` and `merge-snapshots` operate against the new layout with unchanged in-memory dataclasses. Reading legacy `out/<label>/` snapshots is no longer supported — users re-run under the new layout.
+- **Deferred:** `refresh-all` snapshot output remains at `out/refresh-all/…`; migration to `results/` is a follow-on task.
+- `results/` is gitignored.
+
+**TUI removed from all four rule-loader commands:**
+- Deleted `ProgressMode` enum, `resolve_progress_mode`, and the entire `ProgressTracker` class (~515 lines). Removed `--progress`/`-P`/`--no-progress` options from `validate`, `eval`, `refresh`, and `refresh-all`. Removed `is_progress_capable()` from `ai_rules._shared.console`.
+- All four commands now emit plain per-fixture start/finish lines and per-run banners/summaries on stderr (harness-eval-bench style) via new `_log_item_start` / `_log_item_finish` / `_log_run_banner` / `_log_run_summary` helpers. Static Rich summary tables (`_print_results`, `_print_aggregate_summary`, `_print_resource_summary`) are unchanged.
+- `sdk_capture.py` updated: SDK output is now captured only when `--out-dir` is set (`capture_sdk = out_dir is not None`), not gated on a progress-display enum.
+
+**Test surface:**
+- Deleted `tests/rule_loader_eval/test_progress_tracker.py`; updated `test_cli.py`, `test_eval_concurrency.py`, `test_snapshot.py`, `test_merge_snapshots.py`, `test_console.py`, `test_coverage_gaps.py`, `test_rule_loader_cmd_extra.py`, and `test_eval_output_contract.py` for the new layout and removed symbols. Added 6 on-disk contract tests + 32 writer tests covering run-dir naming, atomic writes, incremental manifest updates, and transcript JSONL round-trips.
+
+### Changed (2026-07-12 — rule-loader eval: recall + depends co-loading)
+
+**Workstream B — Required dependency co-loading:**
+- `AGENTS.md` Step 3.B: added mandatory transitive-closure loading — when loading rule X, all `required:` parents must be loaded recursively to fixpoint before returning. Canonical cap-exemption sentence added: `required:` closure is exempt from the 3-rule cap and never deferred for token pressure.
+- `rules/000-global-core.md:207`: cap line reworded — cap counts only LEAF/domain selections; `required:` closure exempt from count and from R4 deferral path. RuleVersion bumped MINOR (v3.8.1→v3.9.0).
+- `skills/rule-loader/SKILL.md` (v1.5.1→v1.6.0): Phase 4 mandatory-closure one-liner; Phase 5 description + Quick-Validation #5 updated with canonical cap-exemption sentence (counts only LEAF selections; `required:` parents never deferred).
+- `skills/rule-loader/workflows/dependency-resolution.md`: added explicit rule that `required:` closure does not count against the cap; worked closure example 119→{100,103,105}.
+- `skills/rule-loader/workflows/token-budget.md`: R3 clarified (cap counts LEAF/domain selections only); R4 exemption sentence added; line-82 deferral path adds explicit `required:` closure exemption; Q3-resolution section added for UNSATISFIABLE mandatory closures.
+
+**Workstream A — Keyword recall:**
+- `rules/112-snowflake-snowcli.md` (v3.3.3→v3.4.0): swap `kw:live version` → `kw:entrypoint` (targets `simple-snowcli-deploy-file` recall failure).
+- `rules/102-snowflake-sql-core.md` (v1.4.1→v1.5.0): swap `kw:join` → `kw:transformation` (targets `complex-mixed-sql-py` recall failure).
+- 12 additional keyword swaps across 002-rule-governance, 002a-rule-creation, 106b-semantic-views-querying, 107-security-governance, 110-model-registry, 115-cortex-agents-core, 124-data-quality-core, 125-role-introspection, 221e-python-htmx-patterns, 230-python-pydantic: replacing high-collision generic terms (validation/rbac/testing) with discriminating domain-specific terms (MINOR version bumps).
+- All 196 rules confirmed ≤16 keywords; index regenerated.
+
+**Artifacts:**
+- `out/eval-recall-depends/before-merged/`: baseline merged snapshot (3 runs, 24/31 pass = 77.4%, openai-gpt-5.2, HEAD 1cb7053)
+- `out/metadata-audit/closure-satisfiability.md`: 64 closure>3 rules audited — 32 OK, 21 WARNING (tight margin), 11 optional-overflow-only (required-only closure all SATISFIABLE, no demotions needed)
+- `out/metadata-audit/load-bearing-kw.txt`: 178 load-bearing entries from 30 fixture `trigger_evidence` fields
+
+
+
+- **refactor(rule-governance):** deprecate `002i-rule-loadtrigger.md` — migrate active load-trigger guidance (trigger types, best practices, anti-patterns, decision process) into `002-rule-governance.md` §LoadTrigger Guidelines; replace `002i` with a one-release-cycle tombstone stub. Active `002i` references removed from `RULES_INDEX.md`, code expectations, and test fixtures. `002-rule-governance.md` bumped MINOR (v3.5.3→v3.6.0).
 
 - **refactor(index):** unify dual-index into single compact `rules/RULES_INDEX.md` — the separate `RULES_INDEX_COMPACT.md` and its template are deleted; `RULES_INDEX.md` now uses the F4 compact grammar (space-separated `<filename> tier=<T> [ext=..] [file=..] [dir=..] kw=<w1> <w2>...` rows) and is the single discovery index for both agents and humans. The earlier "Do NOT read RULES_INDEX.md (human-only, ~4x larger)" guidance is removed; agents grep `RULES_INDEX.md` directly. Stats `schema_version` bumped to `"3"` (no `compact_index_lines`).
 

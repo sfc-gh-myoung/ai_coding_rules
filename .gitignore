@@ -214,6 +214,8 @@ reviews/*
 .cortex/
 .snowflake/
 out/
+# Eval results (see rule_loader_eval/results_writer.py)
+results/
 
 # Lock files
 uv.lock

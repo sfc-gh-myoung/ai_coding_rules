@@ -16,6 +16,7 @@ import re
 import time
 import tomllib
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -492,6 +493,268 @@ STOP_TERMS = {
 CACHE_FILENAME = ".keywords-cache.json"
 
 
+# T4: Module-level map populated by ``_parse_keyword_response`` on every LLM
+# response. Keys are keyword strings, values are the LLM-emitted one-sentence
+# rationale (empty string when the LLM returned the legacy plain-string shape).
+# Consumers must snapshot immediately after a parse call; the map is reset at
+# the start of each ``_parse_keyword_response`` invocation.
+_LAST_RATIONALE_MAP: dict[str, str] = {}
+
+
+def get_last_rationale_map() -> dict[str, str]:
+    """Return a snapshot of the rationale map captured by the last parse call.
+
+    See ``_LAST_RATIONALE_MAP`` module attribute.
+    """
+    return dict(_LAST_RATIONALE_MAP)
+
+
+# ---------------------------------------------------------------------------
+# T5 — Stoplist and per-rule overrides for the heuristic supplement path
+# ---------------------------------------------------------------------------
+
+# Repo root discovered relative to this file: src/ai_rules/commands/keywords.py
+# → parents[3] is the repo root.
+_REPO_ROOT: Path = Path(__file__).resolve().parents[3]
+_DEFAULT_STOPLIST_PATH: Path = _REPO_ROOT / ".workbench" / "config" / "keyword_stoplist.txt"
+_DEFAULT_STOPLIST_OVERRIDES_PATH: Path = (
+    _REPO_ROOT / ".workbench" / "config" / "keyword_stoplist_overrides.yml"
+)
+
+_STOPLIST_CACHE: set[str] | None = None
+_STOPLIST_OVERRIDES_CACHE: dict[str, set[str]] | None = None
+
+
+def load_keyword_stoplist(path: Path | None = None, *, refresh: bool = False) -> set[str]:
+    """Load the newline-delimited keyword stop-list.
+
+    Args:
+        path: Optional override path (used in tests). When ``None`` the
+            default workbench path is used and the result is cached.
+        refresh: When True, bypass the cache and re-read from disk.
+
+    Returns:
+        Lower-cased set of tokens the heuristic supplement path must never
+        emit unless a per-rule override permits it. Empty set when the file
+        does not exist (soft-fail: T4 landed the parser but the file may be
+        absent in some checkouts).
+    """
+    global _STOPLIST_CACHE
+    if path is None and _STOPLIST_CACHE is not None and not refresh:
+        return _STOPLIST_CACHE
+
+    resolved = path or _DEFAULT_STOPLIST_PATH
+    tokens: set[str] = set()
+    if resolved.exists():
+        for line in resolved.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#"):
+                tokens.add(stripped.lower())
+
+    if path is None:
+        _STOPLIST_CACHE = tokens
+    return tokens
+
+
+def load_keyword_stoplist_overrides(
+    path: Path | None = None, *, refresh: bool = False
+) -> dict[str, set[str]]:
+    """Load per-rule stop-list overrides from YAML.
+
+    The YAML schema is::
+
+        overrides:
+          <rule filename>.md:
+            override: [<token>, ...]
+            justification: <text>
+            co_occurring_discriminators: [<token>, ...]
+
+    Args:
+        path: Optional override path (used in tests). When ``None`` the
+            default workbench path is used and the result is cached.
+        refresh: When True, bypass the cache and re-read from disk.
+
+    Returns:
+        Mapping of rule filename → lower-cased set of override tokens
+        that ARE permitted for that rule despite being on the stoplist.
+        Empty dict when the file is absent.
+    """
+    global _STOPLIST_OVERRIDES_CACHE
+    if path is None and _STOPLIST_OVERRIDES_CACHE is not None and not refresh:
+        return _STOPLIST_OVERRIDES_CACHE
+
+    resolved = path or _DEFAULT_STOPLIST_OVERRIDES_PATH
+    result: dict[str, set[str]] = {}
+    if resolved.exists():
+        import yaml
+
+        try:
+            parsed = yaml.safe_load(resolved.read_text(encoding="utf-8")) or {}
+        except yaml.YAMLError:
+            parsed = {}
+        overrides_section = parsed.get("overrides", {}) if isinstance(parsed, dict) else {}
+        if isinstance(overrides_section, dict):
+            for rule_filename, entry in overrides_section.items():
+                if not isinstance(entry, dict):
+                    continue
+                tokens_raw = entry.get("override", [])
+                if isinstance(tokens_raw, list):
+                    result[str(rule_filename)] = {
+                        str(t).lower() for t in tokens_raw if isinstance(t, str)
+                    }
+
+    if path is None:
+        _STOPLIST_OVERRIDES_CACHE = result
+    return result
+
+
+def _reset_stoplist_caches() -> None:
+    """Clear cached stoplist state — test helper only."""
+    global _STOPLIST_CACHE, _STOPLIST_OVERRIDES_CACHE
+    _STOPLIST_CACHE = None
+    _STOPLIST_OVERRIDES_CACHE = None
+
+
+# ---------------------------------------------------------------------------
+# T6 — Corpus-wide keyword collision map + post-filter
+# ---------------------------------------------------------------------------
+
+_DEFAULT_RULES_INDEX_PATH: Path = _REPO_ROOT / "rules" / "RULES_INDEX.md"
+_DEFAULT_EXCLUDE_LIST_PATH: Path = _REPO_ROOT / ".workbench" / "config" / "exclude_list.txt"
+
+# Line schema in RULES_INDEX.md (per its header comment):
+#   <filename> tier=<T> [ext=..] [file=..] [dir=..] kw=<w1> <w2> ...
+_RULES_INDEX_LINE = re.compile(r"^(?P<filename>\S+\.md)\s+tier=\S+.*?\bkw=(?P<kws>[^\r\n]+)$")
+
+
+def _load_exclude_list(path: Path | None = None) -> set[str]:
+    """Return the set of rule filenames to exclude from collision counts."""
+    resolved = path or _DEFAULT_EXCLUDE_LIST_PATH
+    excluded: set[str] = set()
+    if resolved.exists():
+        for line in resolved.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#"):
+                excluded.add(stripped)
+    return excluded
+
+
+def build_keyword_collision_map(
+    rules_index_path: Path | None = None,
+    exclude_list_path: Path | None = None,
+) -> dict[str, list[str]]:
+    """Build an inverted index from RULES_INDEX.md: keyword → list of rule filenames.
+
+    Args:
+        rules_index_path: Path to RULES_INDEX.md (defaults to repo copy).
+        exclude_list_path: Path to the exclude list (defaults to workbench copy).
+            Filenames on the exclude list are dropped from the counts.
+
+    Returns:
+        Mapping from lower-cased keyword token to the sorted list of production
+        rule filenames that declare it in their ``kw=`` field.
+    """
+    index_path = rules_index_path or _DEFAULT_RULES_INDEX_PATH
+    excluded = _load_exclude_list(exclude_list_path)
+
+    inverted: dict[str, set[str]] = {}
+    if not index_path.exists():
+        return {}
+
+    for raw_line in index_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.rstrip()
+        if not line or line.startswith("#") or line.startswith(">"):
+            continue
+        m = _RULES_INDEX_LINE.match(line)
+        if not m:
+            continue
+        filename = m.group("filename")
+        if filename in excluded:
+            continue
+        kws_str = m.group("kws").strip()
+        # Split on whitespace; keywords are single tokens using `-` for compounds
+        for kw in kws_str.split():
+            key = kw.lower()
+            if not key:
+                continue
+            inverted.setdefault(key, set()).add(filename)
+
+    return {kw: sorted(rules) for kw, rules in inverted.items()}
+
+
+def find_collision_violations(
+    collision_map: dict[str, list[str]],
+    max_collision: int,
+) -> dict[str, list[str]]:
+    """Return the subset of the collision map that exceeds the threshold."""
+    return {kw: rules for kw, rules in collision_map.items() if len(rules) > max_collision}
+
+
+def apply_collision_postfilter(
+    keywords: list[str],
+    rationale_candidates: list[str],
+    collision_map: dict[str, list[str]],
+    max_collision: int,
+    *,
+    current_rule_filename: str | None = None,
+) -> list[str]:
+    """Reject over-threshold keywords, substituting next-best rationale candidates.
+
+    Args:
+        keywords: Post-merge candidate list, in preference order.
+        rationale_candidates: Additional keywords the LLM ranked but the merge
+            step did not select (typically ``get_last_rationale_map().keys()``).
+        collision_map: Output of :func:`build_keyword_collision_map`.
+        max_collision: Reject a keyword when it appears in strictly more than
+            ``max_collision`` rules in the corpus.
+        current_rule_filename: When set, the current rule is excluded from the
+            collision count (so a keyword the current rule ALREADY carries does
+            not falsely inflate its own count).
+
+    Returns:
+        Filtered keyword list with rejects replaced (in order) by the next
+        eligible entry from ``rationale_candidates``. Length is bounded by the
+        input length.
+    """
+
+    def _count_for(kw: str) -> int:
+        rules = collision_map.get(kw.lower(), [])
+        if current_rule_filename and current_rule_filename in rules:
+            return len(rules) - 1
+        return len(rules)
+
+    accepted: list[str] = []
+    seen_lower: set[str] = set()
+    pool = list(rationale_candidates)
+
+    def _try_add(candidate: str) -> bool:
+        key = candidate.lower()
+        if key in seen_lower:
+            return False
+        if _count_for(candidate) > max_collision:
+            return False
+        accepted.append(candidate)
+        seen_lower.add(key)
+        return True
+
+    for kw in keywords:
+        if _try_add(kw):
+            continue
+        # Rejected — try to substitute from the rationale pool
+        substituted = False
+        while pool:
+            candidate = pool.pop(0)
+            if _try_add(candidate):
+                substituted = True
+                break
+        if not substituted:
+            # No eligible substitute: keep the original slot empty by NOT
+            # appending. Caller trims to `count`, so this is safe.
+            continue
+
+    return accepted
+
+
 def load_snowflake_config(connection_name: str) -> dict[str, Any]:
     """Load connection config from ~/.snowflake/connections.toml or config.toml.
 
@@ -559,6 +822,9 @@ class ExtractionResult:
     current_keywords: list[str] = field(default_factory=list)
     suggested_keywords: list[str] = field(default_factory=list)
     candidates: list[KeywordCandidate] = field(default_factory=list)
+    # T7: Per-keyword rationale captured from the LLM response (empty when
+    # heuristic fallback was used or the LLM returned the legacy string shape).
+    rationale_map: dict[str, str] = field(default_factory=dict)
 
     @property
     def added(self) -> set[str]:
@@ -715,9 +981,14 @@ def _call_cortex_complete(
 
     stop_terms_list = ", ".join(sorted(STOP_TERMS))
 
+    # T4: Enforce absolute 5-7 count regardless of `count` argument. The `count`
+    # parameter now caps the upper bound but the LLM must never emit fewer than 5
+    # nor more than 7. This aligns with §5.5 Improvement Design of the v5 plan.
+    max_count = min(max(count, 5), 7)
+
     prompt = f"""You are a senior technical writer summarizing AI coding rule files into discovery keywords.
 
-Your task: Read the rule file below, understand its core purpose and distinguishing concepts, then distill that understanding into 5 to {count} keywords or short phrases.
+Your task: Read the rule file below, understand its core purpose and distinguishing concepts, then distill that understanding into EXACTLY 5 to {max_count} keywords or short phrases. Never return fewer than 5 or more than {max_count}.
 
 These keywords populate the **Keywords:** metadata field used by AI agents to discover which rules to load via grep/search against a RULES_INDEX.md file.
 
@@ -725,10 +996,12 @@ Step 1 — Understand the rule:
 - What specific technology, framework, or tool does this rule govern?
 - What actions, patterns, or workflows does it prescribe?
 - What distinguishes this rule from other rules in the same domain?
+- Is this a sub-domain rule (e.g. a rule about pytest fixtures WITHIN the Python ecosystem, or a rule about masking policies WITHIN Snowflake)? If so, the bare parent technology name is FORBIDDEN as a keyword.
 
 Step 2 — Generate keywords that:
 - Capture the core concepts, technologies, and actionable patterns in this rule
-- Include proper nouns with correct casing (e.g., "Snowflake", "FastAPI", "RBAC")
+- Prefer COMPOUND phrases (2+ tokens) over single tokens. At least 60% of keywords must be compound phrases.
+- Include proper nouns with correct casing (e.g., "Snowflake", "FastAPI", "RBAC") ONLY when the rule is the top-level rule for that technology; sub-domain rules must use compound qualifications instead.
 - Include compound phrases where meaningful (e.g., "cortex agent", "masking policy", "session state")
 - Use lowercase for multi-word descriptive terms (e.g., "error handling", "dynamic table")
 - Would help an AI agent searching for rules relevant to a specific task
@@ -738,11 +1011,17 @@ Do NOT include any of these generic terms (they appear in every rule and have no
 {stop_terms_list}
 
 CRITICAL — Never use bare single-word domain terms. Always qualify with the specific aspect this rule covers:
-- BAD:  "SQL", "testing", "performance", "validation", "security"
+- BAD:  "SQL", "testing", "performance", "validation", "security", "python", "snowflake", "docker", "react", "yaml", "json"
 - GOOD: "SQL file formatting", "pytest fixtures", "query partition pruning", "schema compliance validation", "RBAC role grants"
 Each keyword must be specific enough that an agent could identify THIS rule from the keyword alone, without needing the rule filename.
 
-Return ONLY a JSON array of 5 to {count} strings. No explanation, no markdown, no other text.
+CRITICAL — Sub-domain rule prohibition: If this rule is a specialization within a broader technology domain (e.g. `206-python-pytest.md` within Python; `106a-snowflake-semantic-views-advanced.md` within Snowflake), you MUST NOT emit the bare parent technology token (`python`, `snowflake`, etc.) as a keyword. Emit qualified compounds instead.
+
+CRITICAL — Rationale required: For EACH keyword, emit a one-sentence rationale explaining WHY this token uniquely identifies the rule (what distinguishes it from sibling rules in the same domain). Rationale must be non-empty.
+
+Return ONLY a JSON array of 5 to {max_count} objects. Each object has this exact shape:
+  {{"keyword": "<kw string>", "rationale": "<one-sentence justification>"}}
+No explanation, no markdown, no other text outside the JSON array.
 
 Rule file content:
 ---
@@ -811,20 +1090,56 @@ Rule file content:
 
 
 def _parse_keyword_response(text: str, count: int) -> list[str]:
-    """Parse LLM response text into a list of keywords.
+    """Parse LLM response text into a list of keyword strings.
 
-    Handles JSON arrays, comma-separated lists, and newline-separated lists.
+    Accepts two LLM output shapes:
+
+    1. NEW (T4): a JSON array of objects: ``[{"keyword": "...", "rationale": "..."}, ...]``
+    2. LEGACY (backward compat): a JSON array of strings, comma-separated list,
+       or newline-separated list.
+
+    When the new object shape is detected, the per-keyword rationale is captured
+    into the module-level ``_LAST_RATIONALE_MAP`` for downstream consumers
+    (e.g. the ``--rationale`` flag added in Phase 0.5 Task 7). Legacy shapes
+    populate an empty rationale for each keyword to keep the map complete.
+
+    Args:
+        text: Raw LLM response text.
+        count: Upper bound on returned keywords.
+
+    Returns:
+        List of keyword strings (rationale metadata is written to
+        ``_LAST_RATIONALE_MAP`` as a side effect).
     """
     text = text.strip()
 
-    # Try JSON array first
+    global _LAST_RATIONALE_MAP
+    _LAST_RATIONALE_MAP = {}
+
+    # Try JSON array first (both object shape and string shape live here)
     try:
-        # Find JSON array in response (may be wrapped in markdown code block)
-        json_match = re.search(r"\[.*?\]", text, re.DOTALL)
+        # Match the outer-most array. Use greedy match with DOTALL so nested
+        # object braces do not truncate the capture.
+        json_match = re.search(r"\[.*\]", text, re.DOTALL)
         if json_match:
             parsed = json.loads(json_match.group())
-            if isinstance(parsed, list) and all(isinstance(k, str) for k in parsed):
-                return [k.strip() for k in parsed if k.strip()][:count]
+            if isinstance(parsed, list) and parsed:
+                # NEW shape: list of dicts with keyword+rationale
+                if all(isinstance(item, dict) and "keyword" in item for item in parsed):
+                    keywords: list[str] = []
+                    for item in parsed:
+                        kw = str(item.get("keyword", "")).strip()
+                        rationale = str(item.get("rationale", "")).strip()
+                        if kw:
+                            keywords.append(kw)
+                            _LAST_RATIONALE_MAP[kw] = rationale
+                    return keywords[:count]
+                # LEGACY shape: list of strings
+                if all(isinstance(k, str) for k in parsed):
+                    keywords = [k.strip() for k in parsed if k.strip()][:count]
+                    for kw in keywords:
+                        _LAST_RATIONALE_MAP[kw] = ""
+                    return keywords
     except (json.JSONDecodeError, TypeError):
         pass
 
@@ -833,7 +1148,10 @@ def _parse_keyword_response(text: str, count: int) -> list[str]:
         keywords = [k.strip().strip('"').strip("'") for k in text.split(",")]
         keywords = [k for k in keywords if k and k.lower() not in STOP_TERMS]
         if keywords:
-            return keywords[:count]
+            keywords = keywords[:count]
+            for kw in keywords:
+                _LAST_RATIONALE_MAP[kw] = ""
+            return keywords
 
     # Fallback: newline-separated (strip bullet markers)
     lines = text.strip().splitlines()
@@ -842,7 +1160,10 @@ def _parse_keyword_response(text: str, count: int) -> list[str]:
         line = re.sub(r"^[\s\-*\d.]+", "", line).strip().strip('"').strip("'")
         if line and line.lower() not in STOP_TERMS:
             keywords.append(line)
-    return keywords[:count]
+    keywords = keywords[:count]
+    for kw in keywords:
+        _LAST_RATIONALE_MAP[kw] = ""
+    return keywords
 
 
 class KeywordExtractor:
@@ -1124,6 +1445,7 @@ class KeywordExtractor:
         llm_keywords: list[str],
         heuristic_candidates: list[KeywordCandidate],
         count: int,
+        rule_filename: str | None = None,
     ) -> list[str]:
         """Merge LLM keywords with high-confidence heuristic candidates.
 
@@ -1131,10 +1453,18 @@ class KeywordExtractor:
         (technology matches, code languages) that the LLM missed are appended
         up to the count limit.
 
+        T5: Heuristic supplements are additionally filtered against the
+        workbench keyword stop-list. Tokens on the stop-list are dropped
+        unless the rule's filename appears in the per-rule overrides file
+        (``.workbench/config/keyword_stoplist_overrides.yml``).
+
         Args:
             llm_keywords: Keywords from the LLM.
             heuristic_candidates: Pre-extracted heuristic candidates.
             count: Maximum number of keywords.
+            rule_filename: Optional rule filename (``file_path.name``) used
+                to consult per-rule stop-list overrides. When ``None``, no
+                overrides apply and every stop-list token is dropped.
 
         Returns:
             Merged keyword list, LLM terms first.
@@ -1142,13 +1472,22 @@ class KeywordExtractor:
         result = list(llm_keywords)
         result_lower = {k.lower() for k in result}
 
+        stoplist = load_keyword_stoplist()
+        overrides_map = load_keyword_stoplist_overrides()
+        permitted_overrides = overrides_map.get(rule_filename or "", set())
+
         # Only supplement with high-confidence signals the LLM missed
         high_confidence_sources = {"technology", "code_lang"}
         supplements = {}
         for c in heuristic_candidates:
             if c.source in high_confidence_sources and c.term.lower() not in result_lower:
                 key = c.term.lower()
-                if key not in STOP_TERMS and key not in supplements:
+                if key in STOP_TERMS:
+                    continue
+                # T5: workbench stop-list filter (with per-rule override escape)
+                if key in stoplist and key not in permitted_overrides:
+                    continue
+                if key not in supplements:
                     supplements[key] = c.term
 
         # Sort supplements by term for deterministic output
@@ -1167,6 +1506,8 @@ class KeywordExtractor:
         use_api: bool = True,
         cache: dict | None = None,
         force: bool = False,
+        max_collision: int | None = None,
+        collision_map: dict[str, list[str]] | None = None,
     ) -> ExtractionResult:
         """Analyze a rule file and suggest keywords.
 
@@ -1176,6 +1517,13 @@ class KeywordExtractor:
             use_api: Whether to use Cortex API (False = heuristic-only fallback)
             cache: Optional keyword cache dict
             force: Bypass cache even if hash matches
+            max_collision: When set, apply the T6 collision post-filter with
+                this threshold. Keywords appearing in strictly more than
+                ``max_collision`` corpus rules are dropped and substituted
+                from the LLM rationale pool where possible.
+            collision_map: Pre-computed collision map. When ``None`` and
+                ``max_collision`` is set, the map is built lazily from the
+                default RULES_INDEX.md path.
 
         Returns:
             ExtractionResult with current and suggested keywords
@@ -1209,15 +1557,38 @@ class KeywordExtractor:
                 self._debug(f"Cortex API failed, falling back to heuristic: {e}")
                 log_warning(f"Cortex API unavailable, using heuristic fallback: {e}")
 
+        # Snapshot the LLM rationale pool BEFORE merge/postfilter — the merge
+        # step never mutates the module-level rationale map but subsequent
+        # extractor calls would clear it. Preserved for T6 substitution and
+        # T7 rationale emission.
+        rationale_pool = list(get_last_rationale_map().keys())
+
         # Fallback to heuristic ranking if API didn't produce results
         if not suggested:
             suggested = self._rank_heuristic_keywords(heuristic_candidates, count)
         else:
             # Merge LLM output with high-confidence heuristic terms
-            suggested = self._merge_llm_with_heuristics(suggested, heuristic_candidates, count)
+            suggested = self._merge_llm_with_heuristics(
+                suggested, heuristic_candidates, count, rule_filename=file_path.name
+            )
 
         # Filter stop terms from LLM output as post-processing
         suggested = [k for k in suggested if k.lower() not in STOP_TERMS][:count]
+
+        # T6 collision post-filter: reject keywords that already collide in
+        # >max_collision production rules, substituting from the LLM rationale
+        # pool (LLM emitted this rule's "next-best" candidates in a single call).
+        if max_collision is not None:
+            resolved_map = (
+                collision_map if collision_map is not None else build_keyword_collision_map()
+            )
+            suggested = apply_collision_postfilter(
+                suggested,
+                rationale_pool,
+                resolved_map,
+                max_collision,
+                current_rule_filename=file_path.name,
+            )[:count]
 
         # Update cache
         if cache is not None:
@@ -1230,6 +1601,7 @@ class KeywordExtractor:
             current_keywords=current,
             suggested_keywords=suggested,
             candidates=heuristic_candidates,
+            rationale_map={kw: get_last_rationale_map().get(kw, "") for kw in suggested},
         )
 
 
@@ -1337,6 +1709,42 @@ def print_suggestions_table(results: list[ExtractionResult]) -> None:
     console.print(table)
 
 
+def _emit_rationale_jsonl(results: list[ExtractionResult], output_path: Path) -> int:
+    """Append per-keyword rationale JSONL entries to ``output_path``.
+
+    T7: one JSON line per (rule, keyword) pair. Schema:
+    ``{rule_path, keyword, rationale, timestamp}``. Rationale is the string
+    captured by the T4 LLM parser; when the parser produced no rationale
+    (heuristic fallback, cache hit, or legacy string-shape LLM output) the
+    entry is skipped so the ``rationale`` field is guaranteed non-empty.
+
+    Args:
+        results: Extraction results in the order they were produced.
+        output_path: Destination JSONL file (created with parent dirs).
+
+    Returns:
+        Number of JSONL lines actually appended.
+    """
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now(UTC).isoformat()
+    emitted = 0
+    with output_path.open("a", encoding="utf-8") as fh:
+        for result in results:
+            for kw in result.suggested_keywords:
+                rationale_text = (result.rationale_map or {}).get(kw, "")
+                if not rationale_text:
+                    continue
+                entry = {
+                    "rule_path": str(result.file_path),
+                    "keyword": kw,
+                    "rationale": rationale_text,
+                    "timestamp": timestamp,
+                }
+                fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+                emitted += 1
+    return emitted
+
+
 def keywords(
     ctx: typer.Context,
     path: Annotated[
@@ -1401,6 +1809,21 @@ def keywords(
             help="Enable debug output.",
         ),
     ] = False,
+    rationale: Annotated[
+        bool,
+        typer.Option(
+            "--rationale",
+            help="Append per-keyword rationale to .workbench/audit/keyword_rationale.jsonl.",
+        ),
+    ] = False,
+    rationale_output: Annotated[
+        Path | None,
+        typer.Option(
+            "--rationale-output",
+            help="Override the rationale JSONL destination (default: "
+            ".workbench/audit/keyword_rationale.jsonl).",
+        ),
+    ] = None,
 ) -> None:
     """Generate semantically relevant keywords for AI coding rule files.
 
@@ -1514,6 +1937,14 @@ def keywords(
     # Save cache after processing
     _save_cache(cache_path, cache)
 
+    # T7: emit per-keyword rationale JSONL for downstream audit tooling.
+    if rationale:
+        target = rationale_output or (
+            _REPO_ROOT / ".workbench" / "audit" / "keyword_rationale.jsonl"
+        )
+        emitted = _emit_rationale_jsonl(results, target)
+        log_success(f"Appended {emitted} rationale entries to {target} (rules={len(results)})")
+
     # Print summary for non-diff, non-update mode
     if not diff and not update:
         print_suggestions_table(results)
@@ -1525,3 +1956,89 @@ def keywords(
             log_success(f"Updated {updated_count} file(s)")
         if unchanged_count > 0:
             log_info(f"Unchanged: {unchanged_count} file(s)")
+
+
+# ---------------------------------------------------------------------------
+# T6 — Corpus collision reporter CLI command
+# ---------------------------------------------------------------------------
+#
+# The plan's contract is ``ai-rules keywords collisions``. Click's group +
+# callback + positional-argument routing forces callers to put options BEFORE
+# the positional arg, which breaks the 24 existing tests + the T7 success
+# signal ``ai-rules keywords rules/000-global-core.md --count 7 --rationale``.
+#
+# We therefore ship the reporter as a sibling top-level command
+# ``ai-rules keywords-collisions`` and keep the historical ``keywords``
+# command shape unchanged. The internal library entry points
+# (:func:`build_keyword_collision_map`, :func:`find_collision_violations`,
+# :func:`apply_collision_postfilter`) are the primary integration surface;
+# the CLI wraps them.
+
+
+def collisions_command(
+    rules_dir: Annotated[
+        Path,
+        typer.Option(
+            "--rules-dir",
+            help="Directory containing RULES_INDEX.md.",
+        ),
+    ] = Path("rules"),
+    max_collision: Annotated[
+        int,
+        typer.Option(
+            "--max-collision",
+            help="Report tokens appearing in strictly more than this many production rules.",
+        ),
+    ] = 3,
+    exclude_list: Annotated[
+        Path | None,
+        typer.Option(
+            "--exclude-list",
+            help="Path to the exclude list of rule filenames to omit from counts.",
+        ),
+    ] = None,
+    output: Annotated[
+        Path | None,
+        typer.Option(
+            "--output",
+            help="Write JSON collision report to this path (stdout when omitted).",
+        ),
+    ] = None,
+) -> None:
+    """Emit a JSON collision map for keywords across production rules.
+
+    Reads ``RULES_INDEX.md`` from ``<rules_dir>`` and produces the map
+    ``{keyword: [<rule filenames>...]}``. ``--max-collision`` also surfaces
+    the violating subset in the JSON payload.
+    """
+    index_path = rules_dir / "RULES_INDEX.md"
+    if not index_path.exists():
+        log_error(f"RULES_INDEX.md not found at {index_path}")
+        raise typer.Exit(1)
+
+    collision_map = build_keyword_collision_map(
+        rules_index_path=index_path,
+        exclude_list_path=exclude_list,
+    )
+    violations = find_collision_violations(collision_map, max_collision)
+
+    report = {
+        "rules_index_path": str(index_path),
+        "max_collision": max_collision,
+        "total_keywords": len(collision_map),
+        "violation_count": len(violations),
+        "collision_map": collision_map,
+        "violations": violations,
+    }
+
+    payload = json.dumps(report, indent=2, sort_keys=True)
+
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(payload + "\n", encoding="utf-8")
+        log_success(
+            f"Wrote collision report to {output} "
+            f"(keywords={len(collision_map)}, violations={len(violations)})"
+        )
+    else:
+        console.print(payload)

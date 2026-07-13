@@ -10,6 +10,7 @@ Tests follow pytest best practices:
 
 from __future__ import annotations
 
+import json
 import time
 from pathlib import Path
 from textwrap import dedent
@@ -623,6 +624,26 @@ class TestRankKeywordsEdgeCases:
 
 class TestMergeLlmWithHeuristics:
     """Test _merge_llm_with_heuristics method."""
+
+    @pytest.fixture(autouse=True)
+    def _isolate_stoplist(self, tmp_path, monkeypatch):
+        """Isolate merge tests from the on-disk workbench stop-list.
+
+        The pre-T5 tests in this class assert bare tokens like ``python`` and
+        ``snowflake`` pass through the merge. T5 introduced a stop-list filter
+        that removes such tokens by default. Point the default stop-list path
+        at an empty temporary file so these merge-logic tests continue to test
+        merge behavior in isolation.
+        """
+        empty_stoplist = tmp_path / "empty_stoplist.txt"
+        empty_stoplist.write_text("", encoding="utf-8")
+        empty_overrides = tmp_path / "empty_overrides.yml"
+        empty_overrides.write_text("overrides: {}\n", encoding="utf-8")
+        monkeypatch.setattr(keywords_module, "_DEFAULT_STOPLIST_PATH", empty_stoplist)
+        monkeypatch.setattr(keywords_module, "_DEFAULT_STOPLIST_OVERRIDES_PATH", empty_overrides)
+        keywords_module._reset_stoplist_caches()
+        yield
+        keywords_module._reset_stoplist_caches()
 
     @pytest.mark.unit
     def test_merge_appends_missing_technology_terms(self):
@@ -1326,3 +1347,690 @@ class TestKeywordsCLIMissingCredentials:
         assert result.exit_code == 0
         # Should still produce output using heuristic fallback
         assert "100-test.md" in result.output
+
+
+# ---------------------------------------------------------------------------
+# Phase 0.5 Task 4 — LLM prompt + parser refinements
+# ---------------------------------------------------------------------------
+
+
+class TestKeywordsPromptT4:
+    """Phase 0.5 Task 4 — prompt content + parser behavior.
+
+    Pytest keyword marker: ``keywords_prompt`` (matches
+    ``uv run pytest tests/cli/test_keywords.py -k "keywords_prompt"``).
+    """
+
+    def _build_prompt(self, monkeypatch: pytest.MonkeyPatch, count: int = 7) -> str:
+        """Invoke _call_cortex_complete just far enough to capture the prompt."""
+        import requests
+
+        # Provide a minimal fake connection so we bypass the config check.
+        monkeypatch.setattr(
+            keywords_module,
+            "load_snowflake_config",
+            lambda _conn: {"account": "acct.snowflakecomputing.com", "token": "TKN"},
+        )
+
+        captured: dict[str, str] = {}
+
+        class _FakeResp:
+            status_code = 200
+            # Minimal SSE envelope the parser accepts. Returns one object-shape
+            # keyword so _parse_keyword_response returns immediately.
+            text = (
+                'data: {"choices":[{"delta":{"content":"'
+                '[{\\"keyword\\": \\"pytest fixtures\\", '
+                '\\"rationale\\": \\"marks pytest scope\\"}]"}}]}\n'
+            )
+
+        def fake_post(url, headers=None, json=None, timeout=None):
+            payload: dict = json  # type: ignore[assignment]
+            captured["prompt"] = payload["messages"][0]["content"]
+            return _FakeResp()
+
+        monkeypatch.setattr(requests, "post", fake_post)
+
+        keywords_module._call_cortex_complete("RULE BODY", count=count)
+        return captured["prompt"]
+
+    @pytest.mark.unit
+    def test_keywords_prompt_enforces_5_to_7_absolute(self, monkeypatch):
+        prompt = self._build_prompt(monkeypatch, count=15)  # count > 7 clamps to 7
+        assert "EXACTLY 5 to 7 keywords" in prompt
+        assert "Never return fewer than 5 or more than 7" in prompt
+
+    @pytest.mark.unit
+    def test_keywords_prompt_forbids_bare_technology_names(self, monkeypatch):
+        prompt = self._build_prompt(monkeypatch)
+        # Sub-domain prohibition CRITICAL block
+        assert "Sub-domain rule prohibition" in prompt
+        assert "MUST NOT emit the bare parent technology token" in prompt
+        # BAD examples must include the sub-domain tokens introduced in T4
+        assert '"python"' in prompt
+        assert '"snowflake"' in prompt
+
+    @pytest.mark.unit
+    def test_keywords_prompt_requires_compound_preference(self, monkeypatch):
+        prompt = self._build_prompt(monkeypatch)
+        assert "60% of keywords must be compound phrases" in prompt
+
+    @pytest.mark.unit
+    def test_keywords_prompt_requires_rationale_object_shape(self, monkeypatch):
+        prompt = self._build_prompt(monkeypatch)
+        assert "Rationale required" in prompt
+        assert '"keyword"' in prompt
+        assert '"rationale"' in prompt
+        assert "Return ONLY a JSON array of 5 to 7 objects" in prompt
+
+    @pytest.mark.unit
+    def test_parse_keyword_response_accepts_object_shape(self):
+        text = (
+            '[{"keyword": "pytest fixtures", "rationale": "scoping test setup"},'
+            ' {"keyword": "parametrize markers", "rationale": "matrix expansion"}]'
+        )
+
+        result = keywords_module._parse_keyword_response(text, count=10)
+
+        assert result == ["pytest fixtures", "parametrize markers"]
+        rmap = keywords_module.get_last_rationale_map()
+        assert rmap["pytest fixtures"] == "scoping test setup"
+        assert rmap["parametrize markers"] == "matrix expansion"
+
+    @pytest.mark.unit
+    def test_parse_keyword_response_object_shape_respects_count(self):
+        text = (
+            '[{"keyword": "a", "rationale": "x"},'
+            ' {"keyword": "b", "rationale": "y"},'
+            ' {"keyword": "c", "rationale": "z"}]'
+        )
+
+        result = keywords_module._parse_keyword_response(text, count=2)
+
+        assert result == ["a", "b"]
+
+    @pytest.mark.unit
+    def test_parse_keyword_response_legacy_string_shape_still_works(self):
+        text = '["snowflake stage", "masking policy"]'
+
+        result = keywords_module._parse_keyword_response(text, count=10)
+
+        assert result == ["snowflake stage", "masking policy"]
+        rmap = keywords_module.get_last_rationale_map()
+        # Legacy shape yields empty rationale for each keyword
+        assert rmap == {"snowflake stage": "", "masking policy": ""}
+
+    @pytest.mark.unit
+    def test_parse_keyword_response_resets_map_between_calls(self):
+        keywords_module._parse_keyword_response('[{"keyword": "one", "rationale": "r1"}]', count=10)
+        assert keywords_module.get_last_rationale_map() == {"one": "r1"}
+
+        keywords_module._parse_keyword_response('[{"keyword": "two", "rationale": "r2"}]', count=10)
+        assert keywords_module.get_last_rationale_map() == {"two": "r2"}
+
+
+# ---------------------------------------------------------------------------
+# Phase 0.5 Task 5 — Heuristic supplement stoplist filter
+# ---------------------------------------------------------------------------
+
+
+class TestHeuristicStoplistT5:
+    """Phase 0.5 Task 5 — workbench stop-list filters the heuristic supplement.
+
+    Pytest keyword marker: ``heuristic_stoplist``
+    """
+
+    @pytest.fixture(autouse=True)
+    def _reset_caches(self):
+        keywords_module._reset_stoplist_caches()
+        yield
+        keywords_module._reset_stoplist_caches()
+
+    def _write_stoplist(self, tmp_path: Path, tokens: list[str]) -> Path:
+        p = tmp_path / "keyword_stoplist.txt"
+        p.write_text("# test stop-list\n" + "\n".join(tokens) + "\n", encoding="utf-8")
+        return p
+
+    def _write_overrides(self, tmp_path: Path, mapping: dict[str, list[str]]) -> Path:
+        p = tmp_path / "keyword_stoplist_overrides.yml"
+        lines = ["overrides:"]
+        for rule, tokens in mapping.items():
+            lines.append(f"  {rule}:")
+            lines.append("    override:")
+            for t in tokens:
+                lines.append(f"      - {t}")
+            lines.append('    justification: "test"')
+        p.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        return p
+
+    @pytest.mark.unit
+    def test_heuristic_stoplist_loader_parses_comments_and_blanks(self, tmp_path):
+        path = tmp_path / "keyword_stoplist.txt"
+        path.write_text(
+            "# comment line\n\npython\nSNOWFLAKE\n  react  \n# tail comment\n",
+            encoding="utf-8",
+        )
+
+        tokens = keywords_module.load_keyword_stoplist(path=path)
+
+        assert tokens == {"python", "snowflake", "react"}
+
+    @pytest.mark.unit
+    def test_heuristic_stoplist_loader_missing_file_returns_empty(self, tmp_path):
+        missing = tmp_path / "nope.txt"
+
+        tokens = keywords_module.load_keyword_stoplist(path=missing)
+
+        assert tokens == set()
+
+    @pytest.mark.unit
+    def test_heuristic_stoplist_overrides_loader(self, tmp_path):
+        path = self._write_overrides(
+            tmp_path, {"200-python-core.md": ["python"], "600-golang-core.md": ["go", "golang"]}
+        )
+
+        overrides = keywords_module.load_keyword_stoplist_overrides(path=path)
+
+        assert overrides["200-python-core.md"] == {"python"}
+        assert overrides["600-golang-core.md"] == {"go", "golang"}
+
+    @pytest.mark.unit
+    def test_heuristic_stoplist_filters_bare_python_for_subdomain_rule(self, tmp_path, monkeypatch):
+        # Redirect the module-level defaults to test fixtures.
+        stoplist_path = self._write_stoplist(tmp_path, ["python", "snowflake"])
+        overrides_path = self._write_overrides(tmp_path, {"200-python-core.md": ["python"]})
+        monkeypatch.setattr(keywords_module, "_DEFAULT_STOPLIST_PATH", stoplist_path)
+        monkeypatch.setattr(keywords_module, "_DEFAULT_STOPLIST_OVERRIDES_PATH", overrides_path)
+        keywords_module._reset_stoplist_caches()
+
+        # Simulate LLM output missing 'python', and heuristic scan finding it.
+        heuristic_candidates = [
+            keywords_module.KeywordCandidate(term="python", score=5.0, source="technology"),
+        ]
+
+        merged = keywords_module.KeywordExtractor._merge_llm_with_heuristics(
+            ["pytest fixtures", "parametrize markers"],
+            heuristic_candidates,
+            count=10,
+            rule_filename="206-python-pytest.md",  # sub-domain — NO override
+        )
+
+        assert "python" not in [k.lower() for k in merged]
+
+    @pytest.mark.unit
+    def test_heuristic_stoplist_permits_override_for_anchor_rule(self, tmp_path, monkeypatch):
+        stoplist_path = self._write_stoplist(tmp_path, ["python"])
+        overrides_path = self._write_overrides(tmp_path, {"200-python-core.md": ["python"]})
+        monkeypatch.setattr(keywords_module, "_DEFAULT_STOPLIST_PATH", stoplist_path)
+        monkeypatch.setattr(keywords_module, "_DEFAULT_STOPLIST_OVERRIDES_PATH", overrides_path)
+        keywords_module._reset_stoplist_caches()
+
+        heuristic_candidates = [
+            keywords_module.KeywordCandidate(term="python", score=5.0, source="technology"),
+        ]
+
+        merged = keywords_module.KeywordExtractor._merge_llm_with_heuristics(
+            ["uv", "ruff"],
+            heuristic_candidates,
+            count=10,
+            rule_filename="200-python-core.md",  # override permits 'python'
+        )
+
+        assert "python" in [k.lower() for k in merged]
+
+    @pytest.mark.unit
+    def test_heuristic_stoplist_no_rule_name_drops_stoplist_tokens(self, tmp_path, monkeypatch):
+        stoplist_path = self._write_stoplist(tmp_path, ["python"])
+        monkeypatch.setattr(keywords_module, "_DEFAULT_STOPLIST_PATH", stoplist_path)
+        monkeypatch.setattr(
+            keywords_module,
+            "_DEFAULT_STOPLIST_OVERRIDES_PATH",
+            tmp_path / "missing.yml",
+        )
+        keywords_module._reset_stoplist_caches()
+
+        heuristic_candidates = [
+            keywords_module.KeywordCandidate(term="python", score=5.0, source="technology"),
+        ]
+
+        merged = keywords_module.KeywordExtractor._merge_llm_with_heuristics(
+            ["uv"], heuristic_candidates, count=10, rule_filename=None
+        )
+
+        assert "python" not in [k.lower() for k in merged]
+
+
+# ---------------------------------------------------------------------------
+# Phase 0.5 Task 6 — Collision post-filter + `keywords-collisions` subcommand
+# ---------------------------------------------------------------------------
+
+
+class TestCollisionMapBuilder:
+    """Tests for build_keyword_collision_map + find_collision_violations."""
+
+    def _write_index(self, tmp_path: Path, lines: list[str]) -> Path:
+        p = tmp_path / "RULES_INDEX.md"
+        header = "<!-- generated -->\n> keywords, extensions...\n"
+        p.write_text(header + "\n".join(lines) + "\n", encoding="utf-8")
+        return p
+
+    @pytest.mark.unit
+    def test_build_keyword_collision_map_counts_appearances(self, tmp_path):
+        index_path = self._write_index(
+            tmp_path,
+            [
+                "a.md tier=High kw=alpha shared-token",
+                "b.md tier=High kw=beta shared-token",
+                "c.md tier=Low kw=gamma shared-token unique-c",
+            ],
+        )
+
+        m = keywords_module.build_keyword_collision_map(rules_index_path=index_path)
+
+        assert sorted(m["shared-token"]) == ["a.md", "b.md", "c.md"]
+        assert m["alpha"] == ["a.md"]
+        assert m["unique-c"] == ["c.md"]
+
+    @pytest.mark.unit
+    def test_build_keyword_collision_map_respects_exclude_list(self, tmp_path):
+        index_path = self._write_index(
+            tmp_path,
+            [
+                "a.md tier=High kw=alpha shared",
+                "b.md tier=High kw=beta shared",
+                "tombstone.md tier=Low kw=shared",
+            ],
+        )
+        exclude_path = tmp_path / "exclude.txt"
+        exclude_path.write_text("tombstone.md\n", encoding="utf-8")
+
+        m = keywords_module.build_keyword_collision_map(
+            rules_index_path=index_path, exclude_list_path=exclude_path
+        )
+
+        assert sorted(m["shared"]) == ["a.md", "b.md"]
+        assert "tombstone.md" not in {r for rs in m.values() for r in rs}
+
+    @pytest.mark.unit
+    def test_build_keyword_collision_map_missing_index_returns_empty(self, tmp_path):
+        assert (
+            keywords_module.build_keyword_collision_map(rules_index_path=tmp_path / "nope.md") == {}
+        )
+
+    @pytest.mark.unit
+    def test_find_collision_violations_threshold(self):
+        m = {"shared": ["a.md", "b.md", "c.md", "d.md"], "solo": ["e.md"]}
+
+        violations = keywords_module.find_collision_violations(m, max_collision=3)
+
+        assert "shared" in violations
+        assert "solo" not in violations
+
+
+class TestCollisionPostfilterT6:
+    """Phase 0.5 Task 6 — post-filter integration.
+
+    Pytest keyword marker: ``collision_postfilter``
+    """
+
+    @pytest.mark.unit
+    def test_collision_postfilter_rejects_over_threshold_token(self):
+        collision_map = {
+            "over-threshold-token": ["a.md", "b.md", "c.md", "d.md", "e.md"],
+            "clean-alpha": ["a.md"],
+            "clean-beta": ["b.md"],
+        }
+
+        result = keywords_module.apply_collision_postfilter(
+            keywords=["over-threshold-token", "clean-alpha"],
+            rationale_candidates=["clean-beta", "over-threshold-token"],
+            collision_map=collision_map,
+            max_collision=3,
+        )
+
+        assert "over-threshold-token" not in result
+        assert "clean-alpha" in result
+        # Rejected slot substituted from rationale pool
+        assert "clean-beta" in result
+
+    @pytest.mark.unit
+    def test_collision_postfilter_excludes_self_from_count(self):
+        # Token collides with the current rule PLUS 3 others => 4 total,
+        # but excluding self => 3 which equals the threshold, so PASSES.
+        collision_map = {"boundary-token": ["self.md", "a.md", "b.md", "c.md"]}
+
+        result = keywords_module.apply_collision_postfilter(
+            keywords=["boundary-token"],
+            rationale_candidates=[],
+            collision_map=collision_map,
+            max_collision=3,
+            current_rule_filename="self.md",
+        )
+
+        assert result == ["boundary-token"]
+
+    @pytest.mark.unit
+    def test_collision_postfilter_deduplicates_case_insensitive(self):
+        collision_map = {"foo": ["a.md"], "bar": ["b.md"]}
+
+        result = keywords_module.apply_collision_postfilter(
+            keywords=["Foo", "foo", "FOO"],
+            rationale_candidates=["bar"],
+            collision_map=collision_map,
+            max_collision=3,
+        )
+
+        # Only first 'Foo' accepted; second/third rejected as dupes; both
+        # substitution attempts fill from the rationale pool.
+        assert result[0] == "Foo"
+        assert result.count("Foo") == 1  # not duplicated
+        assert "bar" in result
+
+    @pytest.mark.unit
+    def test_collision_postfilter_wired_into_suggest_keywords(self, tmp_path, monkeypatch):
+        """Seeded-corpus fixture: over-threshold token is rejected end-to-end."""
+        rule_file = tmp_path / "206-python-pytest.md"
+        rule_file.write_text(
+            "# 206-python-pytest\n\n"
+            "## Metadata\n\n**Keywords:** placeholder\n\n"
+            "## Content\n\nContent.\n"
+        )
+
+        # Fake LLM output: first two tokens are over-threshold; third is clean.
+        def fake_call(content, connection_name="default", count=15, debug=False):
+            # Populate rationale map so postfilter has substitution candidates.
+            keywords_module._LAST_RATIONALE_MAP.clear()
+            keywords_module._LAST_RATIONALE_MAP.update(
+                {
+                    "over-a": "collides",
+                    "over-b": "collides",
+                    "clean-c": "unique",
+                    "clean-d": "unique",
+                }
+            )
+            return ["over-a", "over-b", "clean-c"]
+
+        monkeypatch.setattr(keywords_module, "_call_cortex_complete", fake_call)
+
+        seeded_map = {
+            "over-a": ["r1.md", "r2.md", "r3.md", "r4.md"],  # 4 rules > 3
+            "over-b": ["r5.md", "r6.md", "r7.md", "r8.md"],
+            "clean-c": ["r9.md"],
+            "clean-d": ["r10.md"],
+        }
+
+        # Isolate from the on-disk stoplist so the merge doesn't drop tokens.
+        empty_stoplist = tmp_path / "empty_stoplist.txt"
+        empty_stoplist.write_text("", encoding="utf-8")
+        empty_overrides = tmp_path / "empty_overrides.yml"
+        empty_overrides.write_text("overrides: {}\n", encoding="utf-8")
+        monkeypatch.setattr(keywords_module, "_DEFAULT_STOPLIST_PATH", empty_stoplist)
+        monkeypatch.setattr(keywords_module, "_DEFAULT_STOPLIST_OVERRIDES_PATH", empty_overrides)
+        keywords_module._reset_stoplist_caches()
+
+        extractor = keywords_module.KeywordExtractor()
+
+        result = extractor.suggest_keywords(
+            rule_file,
+            count=10,
+            use_api=True,
+            max_collision=3,
+            collision_map=seeded_map,
+        )
+
+        # Over-threshold tokens dropped; substitutes drawn from the rationale pool.
+        assert "over-a" not in result.suggested_keywords
+        assert "over-b" not in result.suggested_keywords
+        assert "clean-c" in result.suggested_keywords
+        assert "clean-d" in result.suggested_keywords
+
+
+class TestKeywordsCollisionsCLI:
+    """Phase 0.5 Task 6 — ``ai-rules keywords-collisions`` CLI command."""
+
+    @pytest.mark.unit
+    def test_keywords_collisions_writes_json_report(self, tmp_path):
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        (rules_dir / "RULES_INDEX.md").write_text(
+            "# Index\n"
+            "a.md tier=High kw=alpha shared\n"
+            "b.md tier=High kw=beta shared\n"
+            "c.md tier=Low kw=gamma shared unique-c\n",
+            encoding="utf-8",
+        )
+        out = tmp_path / "audit" / "collision_map.json"
+
+        result = runner.invoke(
+            app,
+            [
+                "keywords-collisions",
+                "--rules-dir",
+                str(rules_dir),
+                "--max-collision",
+                "2",
+                "--output",
+                str(out),
+            ],
+        )
+
+        assert result.exit_code == 0, result.output
+        assert out.exists()
+
+        import json
+
+        report = json.loads(out.read_text(encoding="utf-8"))
+        assert report["max_collision"] == 2
+        assert sorted(report["collision_map"]["shared"]) == ["a.md", "b.md", "c.md"]
+        assert "shared" in report["violations"]  # 3 > 2
+
+
+# ---------------------------------------------------------------------------
+# Phase 0.5 Task 7 — keyword_rationale.jsonl emission
+# ---------------------------------------------------------------------------
+
+
+class TestKeywordRationaleEmission:
+    """Phase 0.5 Task 7 — ``--rationale`` flag on ``ai-rules keywords``.
+
+    Pytest keyword marker: ``rationale_emission``
+    """
+
+    @pytest.mark.unit
+    def test_rationale_emission_helper_appends_jsonl(self, tmp_path: Path):
+        result = keywords_module.ExtractionResult(
+            file_path=tmp_path / "206-python-pytest.md",
+            suggested_keywords=["pytest fixtures", "parametrize markers"],
+            rationale_map={
+                "pytest fixtures": "scopes test setup",
+                "parametrize markers": "matrix expansion",
+            },
+        )
+        out = tmp_path / "audit" / "keyword_rationale.jsonl"
+
+        emitted = keywords_module._emit_rationale_jsonl([result], out)
+
+        assert emitted == 2
+        assert out.exists()
+        lines = out.read_text(encoding="utf-8").strip().splitlines()
+        assert len(lines) == 2
+        parsed = [json.loads(line) for line in lines]
+        assert {p["keyword"] for p in parsed} == {
+            "pytest fixtures",
+            "parametrize markers",
+        }
+        assert all(p["rationale"] for p in parsed)  # non-empty
+        assert all(p["rule_path"].endswith("206-python-pytest.md") for p in parsed)
+        assert all("timestamp" in p for p in parsed)
+
+    @pytest.mark.unit
+    def test_rationale_emission_skips_empty_rationale(self, tmp_path: Path):
+        result = keywords_module.ExtractionResult(
+            file_path=tmp_path / "rule.md",
+            suggested_keywords=["with-rationale", "without-rationale"],
+            rationale_map={"with-rationale": "explains", "without-rationale": ""},
+        )
+        out = tmp_path / "rationale.jsonl"
+
+        emitted = keywords_module._emit_rationale_jsonl([result], out)
+
+        assert emitted == 1
+        parsed = [json.loads(line) for line in out.read_text(encoding="utf-8").strip().splitlines()]
+        assert [p["keyword"] for p in parsed] == ["with-rationale"]
+
+    @pytest.mark.unit
+    def test_rationale_emission_is_append_mode(self, tmp_path: Path):
+        out = tmp_path / "rationale.jsonl"
+        r1 = keywords_module.ExtractionResult(
+            file_path=tmp_path / "a.md",
+            suggested_keywords=["kw-a"],
+            rationale_map={"kw-a": "reason-a"},
+        )
+        r2 = keywords_module.ExtractionResult(
+            file_path=tmp_path / "b.md",
+            suggested_keywords=["kw-b"],
+            rationale_map={"kw-b": "reason-b"},
+        )
+
+        keywords_module._emit_rationale_jsonl([r1], out)
+        keywords_module._emit_rationale_jsonl([r2], out)
+
+        lines = out.read_text(encoding="utf-8").strip().splitlines()
+        assert len(lines) == 2
+        assert json.loads(lines[0])["keyword"] == "kw-a"
+        assert json.loads(lines[1])["keyword"] == "kw-b"
+
+    @pytest.mark.unit
+    def test_rationale_emission_via_cli_flag(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """End-to-end: ``keywords <path> --rationale`` writes the JSONL file."""
+        rule_file = tmp_path / "000-global-core.md"
+        rule_file.write_text(
+            "# 000-global-core\n\n"
+            "## Metadata\n\n**Keywords:** placeholder\n\n"
+            "## Content\n\nContent.\n"
+        )
+
+        # Fake LLM: return object-shape with rationale so parser populates the map.
+        def fake_call(content, connection_name="default", count=15, debug=False):
+            return keywords_module._parse_keyword_response(
+                json.dumps(
+                    [
+                        {"keyword": "kw-alpha", "rationale": "explains alpha"},
+                        {"keyword": "kw-beta", "rationale": "explains beta"},
+                    ]
+                ),
+                count,
+            )
+
+        monkeypatch.setattr(keywords_module, "_call_cortex_complete", fake_call)
+        monkeypatch.setattr(
+            keywords_module,
+            "load_snowflake_config",
+            lambda _c: {"account": "acct.snowflakecomputing.com", "token": "TKN"},
+        )
+
+        # Isolate stoplist so no filtering intervenes.
+        empty_stoplist = tmp_path / "stoplist.txt"
+        empty_stoplist.write_text("", encoding="utf-8")
+        empty_overrides = tmp_path / "overrides.yml"
+        empty_overrides.write_text("overrides: {}\n", encoding="utf-8")
+        monkeypatch.setattr(keywords_module, "_DEFAULT_STOPLIST_PATH", empty_stoplist)
+        monkeypatch.setattr(keywords_module, "_DEFAULT_STOPLIST_OVERRIDES_PATH", empty_overrides)
+        keywords_module._reset_stoplist_caches()
+
+        out = tmp_path / "audit" / "keyword_rationale.jsonl"
+
+        result = runner.invoke(
+            app,
+            [
+                "keywords",
+                str(rule_file),
+                "--count",
+                "7",
+                "--rationale",
+                "--rationale-output",
+                str(out),
+            ],
+        )
+
+        assert result.exit_code == 0, result.output
+        assert out.exists()
+
+        lines = out.read_text(encoding="utf-8").strip().splitlines()
+        assert lines, "expected at least one rationale line"
+        parsed = [json.loads(line) for line in lines]
+        # Every emitted line has a non-empty rationale (T7 success signal).
+        assert all(p["rationale"].strip() for p in parsed)
+        # Both LLM keywords surfaced with rationale.
+        keywords_in_file = {p["keyword"] for p in parsed}
+        assert "kw-alpha" in keywords_in_file
+        assert "kw-beta" in keywords_in_file
+
+
+# ---------------------------------------------------------------------------
+# Phase 0.5 Task 8 — Discrimination regression (challenger vs baseline)
+# Phase 0.5 Task 9 — Empirical acceptance gate
+#
+# These tests validate the on-disk artifacts produced by
+# ``scripts/phase05_challenger_report.py`` after the live Cortex challenger run.
+# They are skipped when the artifacts are absent so unit-test runs on a fresh
+# clone stay green; the T8/T9 CI job produces the artifacts before running.
+# ---------------------------------------------------------------------------
+
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+_CHALLENGER_REPORT = REPO_ROOT / ".workbench/eval/keyword_command_challenger_report.md"
+_ACCEPTANCE_JSON = REPO_ROOT / ".workbench/audit/keyword_command_acceptance.json"
+_ARTIFACTS_MISSING = not (_CHALLENGER_REPORT.exists() and _ACCEPTANCE_JSON.exists())
+
+
+class TestDiscriminationRegression:
+    """Phase 0.5 Task 8 — challenger vs baseline gate.
+
+    Pytest keyword marker: ``discrimination_regression``.
+    """
+
+    @pytest.mark.unit
+    @pytest.mark.skipif(
+        _ARTIFACTS_MISSING,
+        reason="Requires .workbench/eval/keyword_command_challenger_report.md "
+        "and acceptance JSON produced by scripts/phase05_challenger_report.py",
+    )
+    def test_discrimination_regression_report_exists_and_passes(self):
+        text = _CHALLENGER_REPORT.read_text(encoding="utf-8")
+
+        assert "Challenger vs Baseline Discrimination Report" in text
+        # The Gate line must explicitly declare PASS. This is the success
+        # signal per plan v5 Phase 0.5 Task 8.
+        assert "**PASS**" in text, (
+            "Challenger report must indicate PASS on the discrimination gate. "
+            f"Report contents:\n{text}"
+        )
+
+
+class TestAcceptanceGate:
+    """Phase 0.5 Task 9 — empirical acceptance gate.
+
+    Pytest keyword marker: ``acceptance_gate``.
+    """
+
+    @pytest.mark.unit
+    @pytest.mark.skipif(
+        _ARTIFACTS_MISSING,
+        reason="Requires .workbench/audit/keyword_command_acceptance.json "
+        "produced by scripts/phase05_challenger_report.py",
+    )
+    def test_acceptance_gate_overall_pass(self):
+        data = json.loads(_ACCEPTANCE_JSON.read_text(encoding="utf-8"))
+
+        assert data["overall_status"] == "pass", (
+            f"Acceptance JSON overall_status must be 'pass'; got {data['overall_status']}."
+            f" rules={data['rules']}"
+        )
+        assert len(data["rules"]) == 5, "expected 5 representative rules"
+        for entry in data["rules"]:
+            assert 5 <= entry["keyword_count"] <= 7, entry
+            assert entry["compound_ratio"] >= 0.6, entry
+            assert entry["stoplist_violations"] == [], entry
+            assert entry["collision_violations"] == [], entry
+            assert entry["passed"] is True, entry

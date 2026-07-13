@@ -1,21 +1,14 @@
 {
   "/Users/myoung/Development/ai_coding_rules/rules/000-global-core.md": {
-    "hash": "e62c86a8fa388af5ab5798e0eb162706ca1c224df02bc9f86c31407ba49fe44d",
+    "hash": "74bc2779e25413889b52f2251b672af4987bdab2a57beb105f2072885748fd67",
     "keywords": [
-      "foundation rule",
       "surgical edits",
-      "minimal changes",
-      "task confirmation",
-      "authorization protocol",
-      "pre-task validation",
-      "professional communication",
-      "context window management",
-      "rule loading protocol",
-      "validation gate",
-      "Taskfile",
-      "rollback strategy",
-      "delta editing",
-      "rules loaded section"
+      "pre-flight gates",
+      "validation command sequence",
+      "context preservation hierarchy",
+      "foundation operating contract",
+      "task list confirmation",
+      "pytest"
     ]
   },
   "/Users/myoung/Development/ai_coding_rules/rules/001-memory-bank.md": {
@@ -110,23 +103,15 @@
     ]
   },
   "/Users/myoung/Development/ai_coding_rules/rules/002d-advanced-rule-patterns.md": {
-    "hash": "33d07791237da3555a4aea04c77cb4ee2188335b7bd8530d68646f478d776034",
+    "hash": "d9b2eb8aeabbe1502471965a7548d7930dc69d06b79d50037e4a0579e54ba644",
     "keywords": [
       "system prompt altitude",
-      "Goldilocks Zone",
       "investigation-first protocol",
-      "anti-pattern library",
       "multi-session workflows",
-      "state management",
-      "STATE files",
-      "parallel execution",
-      "heuristics",
-      "brittle if-else",
-      "hallucination prevention",
-      "Problem/Correct pairs",
-      "context preservation",
-      "atomic changes",
-      "rollback strategy"
+      "anti-pattern library structure",
+      "parallel execution design",
+      "goldilocks zone heuristics",
+      "fastapi"
     ]
   },
   "/Users/myoung/Development/ai_coding_rules/rules/002e-schema-validator-usage.md": {
@@ -250,22 +235,15 @@
     ]
   },
   "/Users/myoung/Development/ai_coding_rules/rules/100-snowflake-core.md": {
-    "hash": "188df90c46994cc32a804eea3b576157ce412140e42fd70826590b5c017441bc",
+    "hash": "dce79852dbcb5910526ce51dd54cef35c90906d36eca97c6dd8349c142bd0ffd",
     "keywords": [
-      "Snowflake",
-      "CTE",
-      "VARIANT",
-      "Streams",
-      "MERGE",
-      "Query Profile",
-      "partition pruning",
-      "masking policy",
-      "row access policy",
-      "COPY INTO",
-      "incremental processing",
-      "QUALIFY",
-      "warehouse sizing",
-      "semi-structured data"
+      "CTE extraction",
+      "VARIANT parsing optimization",
+      "Streams Tasks incremental",
+      "partition pruning early filtering",
+      "QUALIFY ROW_NUMBER deduplication",
+      "Query Profile validation",
+      "masking policy row access"
     ]
   },
   "/Users/myoung/Development/ai_coding_rules/rules/100f-snowflake-connection-errors.md": {
@@ -1445,23 +1423,15 @@
     ]
   },
   "/Users/myoung/Development/ai_coding_rules/rules/200-python-core.md": {
-    "hash": "9592b0aff4f239cd040d2a124cd272c123ccf22797ee88fe84c1cf87afa4f57f",
+    "hash": "e3f1e21f00d89f56e467c60f21b862cf6520b97d880048b90083a3245113e832",
     "keywords": [
-      "Python",
-      "uv",
-      "Ruff",
       "pyproject.toml",
-      "dependency management",
-      "virtual environments",
-      "pytest",
-      "uv run",
-      "uvx",
-      "ty",
-      "type checking",
-      "mypy",
-      "type hints",
+      "toolchain detection",
       "datetime.now(UTC)",
-      "toolchain detection"
+      "collections.abc imports",
+      "dict list annotations",
+      "pathlib file operations",
+      "Python"
     ]
   },
   "/Users/myoung/Development/ai_coding_rules/rules/201-python-lint-format.md": {
@@ -2538,6 +2508,17 @@
       "DIMENSIONS",
       "METRICS",
       "Bash"
+    ]
+  },
+  "/Users/myoung/Development/ai_coding_rules/rules/102c-snowflake-sql-reserved-chars.md": {
+    "hash": "a5a53838d5ae9dc0675a04378c42a177c447c2329be81741752833d7f7d40c30",
+    "keywords": [
+      "cli compatibility",
+      "ampersand escaping",
+      "template expansion",
+      "enable-templating flag",
+      "brand name preservation",
+      "snow sql tool"
     ]
   }
 }

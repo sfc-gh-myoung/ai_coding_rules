@@ -11,7 +11,7 @@ from ai_rules.commands.badges import badges_app
 from ai_rules.commands.deploy import deploy
 from ai_rules.commands.dev import dev_app
 from ai_rules.commands.index import index_app
-from ai_rules.commands.keywords import keywords
+from ai_rules.commands.keywords import collisions_command, keywords
 from ai_rules.commands.new import new as new_command
 from ai_rules.commands.refs import refs_app
 from ai_rules.commands.rule_loader import rule_loader_app
@@ -34,6 +34,7 @@ app.command(name="tokens", no_args_is_help=True)(tokens)
 app.command(name="deploy")(deploy)
 app.add_typer(index_app, name="index")
 app.command(name="keywords")(keywords)
+app.command(name="keywords-collisions")(collisions_command)
 app.command(name="validate")(validate)
 app.add_typer(rule_loader_app, name="rule-loader")
 

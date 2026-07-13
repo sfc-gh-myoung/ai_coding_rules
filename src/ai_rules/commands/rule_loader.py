@@ -1452,7 +1452,7 @@ def refresh_all_cmd(
         Path | None,
         typer.Option(
             "--out-dir",
-            help="Write per-fixture YAML + summary.json here. Omit to stream to stdout.",
+            help="Write per-fixture YAML + summary.json here (overrides AI_RULES_RESULTS_DIR; CLI > env). Omit both to stream to stdout.",
         ),
     ] = None,
     max_turns: Annotated[int, typer.Option("--max-turns")] = DEFAULT_MAX_TURNS,
@@ -1472,10 +1472,10 @@ def refresh_all_cmd(
     Resolves ``--glob`` or ``--all`` to a list of fixture YAMLs (defaulting
     to ``--all`` when neither is given), drives each through
     ``run_live_async`` (capped by ``--concurrency``), and writes regenerated
-    skeletons either to ``--out-dir`` (per-fixture files + ``summary.json``)
-    or stdout. When ``--out-dir`` is set the SDK is silenced so stderr
-    stays clean; without ``--out-dir`` the YAML payload streams to stdout
-    alongside SDK output.
+    skeletons either to ``--out-dir`` / ``AI_RULES_RESULTS_DIR`` (per-fixture
+    files + ``summary.json``) or stdout. When an output dir is resolved the
+    SDK is silenced so stderr stays clean; without one the YAML payload streams
+    to stdout alongside SDK output.
 
     Pass ``--debug`` to also print the full debug dump and per-event
     timing trace for each fixture to stderr (and to replay any captured
@@ -1497,6 +1497,7 @@ def refresh_all_cmd(
         run_batch,
         validate_unique_output_names,
     )
+    from ai_rules.rule_loader_eval.results_writer import resolve_optional_results_root
     from ai_rules.rule_loader_eval.sdk_capture import quiet_sdk
 
     # R6: default to --all when neither flag is given. Mutex remains in force.
@@ -1535,15 +1536,16 @@ def refresh_all_cmd(
 
     _ensure_sdk_and_connection()
 
+    resolved_out_dir = resolve_optional_results_root(out_dir)
     _log_run_banner("refresh-all", pid=os.getpid(), concurrency=concurrency, total=len(items))
 
-    if out_dir is not None:
-        out_dir.mkdir(parents=True, exist_ok=True)
+    if resolved_out_dir is not None:
+        resolved_out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Capture SDK chatter only when --out-dir is set (§6.2 explicit capture
-    # logic). Without --out-dir the YAML payload streams to the user's
+    # Capture SDK chatter only when an output dir is resolved (§6.2 explicit
+    # capture logic). Without one the YAML payload streams to the user's
     # stdout, so muting the SDK gains nothing and just hides diagnostics.
-    capture_sdk = out_dir is not None
+    capture_sdk = resolved_out_dir is not None
     payload_stdout = sys.__stdout__ if capture_sdk else sys.stdout
 
     # Round-trip validation gate state: track per-fixture invariant
@@ -1586,8 +1588,8 @@ def refresh_all_cmd(
                 # log only.
                 invalid_count["n"] += 1
                 invalid_fixtures.append((outcome.item.id, invariant_errors))
-                if out_dir is not None:
-                    invalid_path = out_dir / f"{outcome.item.safe_id}.yaml.invalid"
+                if resolved_out_dir is not None:
+                    invalid_path = resolved_out_dir / f"{outcome.item.safe_id}.yaml.invalid"
                     invalid_path.write_text(snippet + "\n", encoding="utf-8")
                     log_warning(
                         f"[{outcome.item.id}] rendered candidate FAILED invariant; "
@@ -1619,12 +1621,12 @@ def refresh_all_cmd(
                 auto_demote_count["n"] += len(_sugg.auto_demoted)
             except Exception:
                 pass
-            if out_dir is not None:
-                (out_dir / f"{outcome.item.safe_id}.yaml").write_text(
+            if resolved_out_dir is not None:
+                (resolved_out_dir / f"{outcome.item.safe_id}.yaml").write_text(
                     snippet + "\n", encoding="utf-8"
                 )
             else:
-                # No --out-dir: stream YAML straight to stdout alongside SDK output.
+                # No output dir resolved: stream YAML straight to stdout alongside SDK output.
                 print(f"# fixture: {outcome.item.id}", file=payload_stdout)
                 print(snippet, file=payload_stdout)
                 print(file=payload_stdout)
@@ -1641,7 +1643,7 @@ def refresh_all_cmd(
                     total_cost_usd=_run.total_cost_usd if _run else 0.0,
                 )
 
-    # Suppress SDK chatter only when --out-dir is set (quiet_sdk is a no-op
+    # Suppress SDK chatter only when an output dir is resolved (quiet_sdk is a no-op
     # when capture=False). Top-level try/except handles SIGINT so
     # KeyboardInterrupt still surfaces cleanly.
     sdk_replay_text: str = ""
@@ -1700,7 +1702,7 @@ def refresh_all_cmd(
     if pending_other is not None:
         raise pending_other
 
-    if out_dir is not None:
+    if resolved_out_dir is not None:
         assert summary is not None
         summary_blob = {
             "concurrency": summary.concurrency,
@@ -1720,7 +1722,7 @@ def refresh_all_cmd(
                 for o in summary.outcomes
             ],
         }
-        (out_dir / "summary.json").write_text(
+        (resolved_out_dir / "summary.json").write_text(
             json.dumps(summary_blob, indent=2) + "\n", encoding="utf-8"
         )
 

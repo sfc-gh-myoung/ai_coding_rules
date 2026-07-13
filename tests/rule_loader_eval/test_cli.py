@@ -64,6 +64,15 @@ def test_refresh_all_help_omits_progress_flag() -> None:
     assert "--no-progress" not in result.output
 
 
+@pytest.mark.unit
+def test_refresh_all_out_dir_help_mentions_env_var_and_precedence() -> None:
+    """`refresh-all --help` documents AI_RULES_RESULTS_DIR and CLI > env precedence."""
+    result = runner.invoke(app, ["rule-loader", "refresh-all", "--help"])
+    assert result.exit_code == 0
+    assert "AI_RULES_RESULTS_DIR" in result.output
+    assert "CLI" in result.output or ">" in result.output
+
+
 @pytest.mark.integration
 def test_eval_help_omits_progress_flag() -> None:
     """`eval --help` no longer exposes --progress/-P/--no-progress (Phase 3)."""

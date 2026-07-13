@@ -108,6 +108,39 @@ def resolve_results_root(
     return _resolve(DEFAULT_RESULTS_ROOT_NAME)
 
 
+def resolve_optional_results_root(
+    out_dir: Path | None,
+    *,
+    env: dict[str, str] | None = None,
+    cwd: Path | None = None,
+) -> Path | None:
+    """Resolve output directory for ``refresh-all``, preserving stdout-on-omission.
+
+    Precedence (locked): explicit ``out_dir`` > ``AI_RULES_RESULTS_DIR`` env var
+    > ``None`` (stream to stdout). Relative paths resolved against ``cwd``
+    (default: :func:`Path.cwd`).
+
+    Unlike :func:`resolve_results_root`, returns ``None`` when neither CLI value
+    nor env var is set, preserving ``refresh-all``'s stdout-streaming contract.
+    The returned path is NOT created here.
+    """
+    resolved_cwd = cwd if cwd is not None else Path.cwd()
+    resolved_env = env if env is not None else os.environ
+
+    def _resolve(path_str: str | Path) -> Path:
+        p = Path(path_str)
+        if not p.is_absolute():
+            p = resolved_cwd / p
+        return p
+
+    if out_dir is not None:
+        return _resolve(out_dir)
+    env_value = resolved_env.get(RESULTS_ROOT_ENV_VAR)
+    if env_value:
+        return _resolve(env_value)
+    return None
+
+
 def sanitize_model_label(model_requested: str) -> str:
     """Replace path separators / whitespace with ``-`` for filesystem safety.
 

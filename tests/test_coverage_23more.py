@@ -160,7 +160,6 @@ def test_eval_cmd_multi_run_with_mocked_sdk() -> None:
                         "simple-python-task",
                         "--runs",
                         "2",
-                        "--no-progress",
                     ],
                 )
 

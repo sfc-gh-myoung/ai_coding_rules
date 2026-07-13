@@ -1,10 +1,10 @@
-"""Quiet the Cortex Code Agent SDK while a progress UI is active.
+"""Quiet the Cortex Code Agent SDK during batch runs.
 
-When the rule-loader CLI renders a Rich progress bar (or its plain log-line
-equivalent), unsolicited writes from the SDK -- ``Auto-apply [...]: 2 skill
+When the rule-loader CLI drives many fixtures against the live SDK,
+unsolicited writes from the SDK -- ``Auto-apply [...]: 2 skill
 repos``, ``[memory] Reranking: malformed LLM response, using fusion scores``,
-and similar internal status lines -- collide with the progress UI. They
-clobber the bar's redraw arithmetic, fight for terminal columns, and
+and similar internal status lines -- collide with per-fixture logging and
+YAML payload written to stdout. They interleave with intended output and
 generally make the run unwatchable.
 
 This module provides a single context manager, :func:`quiet_sdk`, that
@@ -49,8 +49,8 @@ def quiet_sdk(*, capture: bool = True) -> Iterator[io.StringIO | None]:
 
     Args:
         capture: when False, the context manager is a no-op (yields None).
-            Allows callers to gate the silencing on the active progress
-            mode without branching at every call site.
+            Allows callers to gate the silencing on whether ``--out-dir``
+            is set (per plan §6.2, ``capture_sdk = out_dir is not None``).
 
     Yields:
         ``io.StringIO`` containing every byte the SDK wrote to stdout
@@ -58,7 +58,7 @@ def quiet_sdk(*, capture: bool = True) -> Iterator[io.StringIO | None]:
 
     Example::
 
-        with quiet_sdk(capture=mode is not ProgressMode.NONE) as buf:
+        with quiet_sdk(capture=out_dir is not None) as buf:
             summary = run_batch(...)
         if buf is not None and any_failure:
             replay_buffer(buf)

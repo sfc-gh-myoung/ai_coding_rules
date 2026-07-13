@@ -47,30 +47,49 @@ def test_validate_fixtures_passes(project_root: Path) -> None:
 
 
 @pytest.mark.integration
-def test_validate_help_lists_progress_flag() -> None:
-    """`validate --help` exposes the new --progress / -P flag."""
+def test_validate_help_omits_progress_flag() -> None:
+    """`validate --help` no longer exposes --progress/-P/--no-progress (Phase 3)."""
     result = runner.invoke(app, ["rule-loader", "validate", "--help"])
     assert result.exit_code == 0
-    assert "--progress" in result.output
-    assert "-P" in result.output
+    assert "--progress" not in result.output
+    assert "--no-progress" not in result.output
 
 
 @pytest.mark.integration
-def test_refresh_all_help_lists_progress_flag() -> None:
-    """`refresh-all --help` exposes the new --progress / -P flag."""
+def test_refresh_all_help_omits_progress_flag() -> None:
+    """`refresh-all --help` no longer exposes --progress/-P/--no-progress (Phase 3)."""
     result = runner.invoke(app, ["rule-loader", "refresh-all", "--help"])
     assert result.exit_code == 0
-    assert "--progress" in result.output
-    assert "-P" in result.output
+    assert "--progress" not in result.output
+    assert "--no-progress" not in result.output
 
 
 @pytest.mark.integration
-def test_eval_help_lists_progress_flag() -> None:
-    """`eval --help` exposes the new --progress / -P flag."""
+def test_eval_help_omits_progress_flag() -> None:
+    """`eval --help` no longer exposes --progress/-P/--no-progress (Phase 3)."""
     result = runner.invoke(app, ["rule-loader", "eval", "--help"])
     assert result.exit_code == 0
-    assert "--progress" in result.output
-    assert "-P" in result.output
+    assert "--progress" not in result.output
+    assert "--no-progress" not in result.output
+
+
+@pytest.mark.integration
+def test_refresh_help_omits_progress_flag() -> None:
+    """`refresh --help` no longer exposes --progress/-P/--no-progress (Phase 3)."""
+    result = runner.invoke(app, ["rule-loader", "refresh", "--help"])
+    assert result.exit_code == 0
+    assert "--progress" not in result.output
+    assert "--no-progress" not in result.output
+
+
+@pytest.mark.unit
+def test_progress_symbols_removed_from_rule_loader_module() -> None:
+    """ProgressTracker/ProgressMode/resolve_progress_mode are deleted (Phase 3)."""
+    import ai_rules.commands.rule_loader as _rl
+
+    assert not hasattr(_rl, "ProgressTracker")
+    assert not hasattr(_rl, "ProgressMode")
+    assert not hasattr(_rl, "resolve_progress_mode")
 
 
 @pytest.mark.integration
@@ -229,7 +248,7 @@ def test_refresh_all_defaults_to_all_when_neither_flag_given(
             return_value=[fx_path],
         ),
     ):
-        result = runner.invoke(app, ["rule-loader", "refresh-all", "--no-progress"])
+        result = runner.invoke(app, ["rule-loader", "refresh-all"])
     # The legacy "provide exactly one of --glob or --all" error must NOT
     # appear; the new info line about defaulting must appear.
     assert "provide exactly one" not in result.output.lower()
@@ -461,94 +480,11 @@ def test_refresh_all_sigint_exits_130(tmp_path: Path, project_root: Path) -> Non
     ):
         result = runner.invoke(
             app,
-            ["rule-loader", "refresh-all", "--all", "--no-progress"],
+            ["rule-loader", "refresh-all", "--all"],
         )
 
     assert result.exit_code == 130
     assert "interrupted" in result.output.lower() or "interrupted" in (result.stderr or "")
-
-
-def test_refresh_all_progress_json_emits_jsonl(tmp_path: Path, project_root: Path) -> None:
-    """`--progress=json` writes parseable JSON-lines events to stderr."""
-    import json
-    from unittest.mock import patch
-
-    fx_path = tmp_path / "simple-test.yaml"
-    _make_fixture_yaml(fx_path, "simple-test", "Setup search.")
-
-    def _fake_run_batch(items, **kwargs):
-        summary = _make_summary(items, wall=0.5)
-        on_start = kwargs.get("on_start")
-        on_outcome = kwargs.get("on_outcome")
-        for i, outcome in enumerate(summary.outcomes, start=1):
-            if on_start is not None:
-                on_start(outcome.item, i)
-            if on_outcome is not None:
-                on_outcome(outcome, i)
-        return summary
-
-    with (
-        patch("ai_rules.rule_loader_eval.batch.run_batch", side_effect=_fake_run_batch),
-        patch("ai_rules.commands.rule_loader._ensure_sdk_and_connection"),
-        patch(
-            "ai_rules.commands.rule_loader.find_project_root",
-            return_value=project_root,
-        ),
-        patch(
-            "ai_rules.rule_loader_eval.batch.expand_glob",
-            return_value=[fx_path],
-        ),
-    ):
-        result = runner.invoke(
-            app,
-            ["rule-loader", "refresh-all", "--all", "--progress=json"],
-            catch_exceptions=False,
-        )
-
-    assert result.exit_code == 0, result.output
-    # Collect JSON events from stderr (CliRunner merges into result.output by default).
-    payloads: list[dict[str, object]] = []
-    for line in result.output.splitlines():
-        line = line.strip()
-        if not line.startswith("{"):
-            continue
-        try:
-            payloads.append(json.loads(line))
-        except json.JSONDecodeError:
-            continue
-    events = [p["event"] for p in payloads]
-    assert "start_run" in events
-    assert "start" in events
-    assert "done" in events
-    assert "end_run" in events
-
-
-def test_progress_tracker_rich_alias_uses_screen_dashboard() -> None:
-    """RICH mode is a back-compat alias for SCREEN; the parent bar is built and expand=True."""
-    from unittest.mock import patch
-
-    from ai_rules.commands import rule_loader as rl
-    from ai_rules.commands.rule_loader import ProgressMode, ProgressTracker
-
-    class FakeLive:
-        def __init__(self, *_: object, **__: object) -> None: ...
-        def __enter__(self) -> FakeLive:
-            return self
-
-        def __exit__(self, *_: object) -> None: ...
-        def update(self, *_: object, **__: object) -> None: ...
-
-    with patch.object(rl, "Live", FakeLive):
-        with ProgressTracker(total=1, mode=ProgressMode.RICH) as tracker:
-            assert tracker._parent_progress is not None  # type: ignore[attr-defined]
-            # Dashboard panel uses expand=True; BarColumn is constructed as a
-            # column of the parent Progress regardless of terminal width.
-            bar_cols = [
-                c
-                for c in tracker._parent_progress.columns  # type: ignore[attr-defined]
-                if type(c).__name__ == "BarColumn"
-            ]
-            assert bar_cols, "expected a BarColumn in the parent progress"
 
 
 # ---------------------------------------------------------------------------

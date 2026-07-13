@@ -8,36 +8,9 @@ from unittest.mock import patch
 import pytest
 
 # ---------------------------------------------------------------------------
-# rule_loader.py — ProgressTracker helpers
+# rule_loader.py — ProgressTracker helpers were removed in Phase 3; tests
+# migrated / deleted.
 # ---------------------------------------------------------------------------
-
-
-@pytest.mark.unit
-def test_progress_tracker_mode_property() -> None:
-    """ProgressTracker.mode returns the mode set at construction."""
-    from ai_rules.commands.rule_loader import ProgressMode, ProgressTracker
-
-    tracker = ProgressTracker(total=1, mode=ProgressMode.NONE, description="test")
-    assert tracker.mode is ProgressMode.NONE
-
-
-@pytest.mark.unit
-def test_progress_tracker_fmt_seconds_negative_seconds() -> None:
-    """_fmt_seconds clamps negative seconds to 0."""
-    from ai_rules.commands.rule_loader import ProgressTracker
-
-    result = ProgressTracker._fmt_seconds(-5.0)
-    assert result == "0:00"
-
-
-@pytest.mark.unit
-def test_progress_tracker_fmt_seconds_hours() -> None:
-    """_fmt_seconds formats H:MM:SS when duration >= 1 hour."""
-    from ai_rules.commands.rule_loader import ProgressTracker
-
-    # 4000 seconds = 1h6m40s
-    result = ProgressTracker._fmt_seconds(4000.0)
-    assert result.startswith("1:")
 
 
 # ---------------------------------------------------------------------------
@@ -304,7 +277,6 @@ def test_validate_cmd_single_fixture_not_found_exits_nonzero() -> None:
             "validate",
             "--fixture",
             "completely-nonexistent-fixture-id-xyz",
-            "--no-progress",
         ],
     )
     assert result.exit_code != 0
@@ -325,7 +297,6 @@ def test_validate_cmd_single_fixture_not_found_with_debug() -> None:
             "validate",
             "--fixture",
             "completely-nonexistent-fixture-id-xyz",
-            "--no-progress",
             "--debug",
         ],
     )
@@ -343,7 +314,7 @@ def test_validate_cmd_single_valid_fixture_succeeds() -> None:
     runner = CliRunner(env={"NO_COLOR": "1", "CI": "true"})
     result = runner.invoke(
         app,
-        ["rule-loader", "validate", "--fixture", "simple-python-task", "--no-progress"],
+        ["rule-loader", "validate", "--fixture", "simple-python-task"],
     )
     assert result.exit_code == 0
 
@@ -356,7 +327,7 @@ def test_validate_cmd_bulk_no_fixture_id_succeeds() -> None:
     from ai_rules.cli import app
 
     runner = CliRunner(env={"NO_COLOR": "1", "CI": "true"})
-    result = runner.invoke(app, ["rule-loader", "validate", "--no-progress"])
+    result = runner.invoke(app, ["rule-loader", "validate"])
     assert result.exit_code == 0
 
 
@@ -380,7 +351,7 @@ def test_validate_cmd_bulk_with_invalid_fixture_exits_nonzero(tmp_path: Path) ->
 
     runner = CliRunner(env={"NO_COLOR": "1", "CI": "true"})
     with patch("ai_rules.commands.rule_loader.find_project_root", return_value=tmp_path):
-        result = runner.invoke(app, ["rule-loader", "validate", "--no-progress"])
+        result = runner.invoke(app, ["rule-loader", "validate"])
     assert result.exit_code != 0
 
 
@@ -405,7 +376,6 @@ def test_eval_cmd_fixture_not_found_with_mocked_connection() -> None:
                 "eval",
                 "--fixture",
                 "completely-nonexistent-xyz-abc",
-                "--no-progress",
             ],
         )
     assert result.exit_code != 0

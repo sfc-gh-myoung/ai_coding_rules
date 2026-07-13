@@ -229,7 +229,6 @@ trigger_evidence:
                 "--all",
                 "--out-dir",
                 str(out_dir),
-                "--no-progress",
             ],
         )
 

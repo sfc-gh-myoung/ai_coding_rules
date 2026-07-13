@@ -114,7 +114,7 @@ def _pass_run(fixture_id: str) -> AgentRun:
     )
 
 
-def _run_eval(fixtures, *, concurrency, mode, out_dir=None, dispatch=None):
+def _run_eval(fixtures, *, concurrency, out_dir=None, dispatch=None):
     """Invoke _run_single_eval with run_live_async + rules metadata mocked."""
     from pathlib import Path
 
@@ -144,7 +144,6 @@ def _run_eval(fixtures, *, concurrency, mode, out_dir=None, dispatch=None):
             max_turns=3,
             effort="low",
             model="auto",
-            mode=mode,
             debug=False,
             out_dir=out_dir,
             label="test",
@@ -159,26 +158,22 @@ def _run_eval(fixtures, *, concurrency, mode, out_dir=None, dispatch=None):
 
 def test_parallel_results_resorted_to_input_order() -> None:
     """Completion order is scrambled by inverse delays; results stay input-ordered."""
-    from ai_rules.commands.rule_loader import ProgressMode as PM
-
     fixtures = [_make_fixture(f"fx{i}") for i in range(5)]
 
     def dispatch(fid: str):
         idx = int(fid[2:])
         return ((5 - idx) * 0.01, _pass_run(fid))  # later fixtures finish first
 
-    results = _run_eval(fixtures, concurrency=5, mode=PM.NONE, dispatch=dispatch)[0]
+    results = _run_eval(fixtures, concurrency=5, dispatch=dispatch)[0]
     assert [r.fixture_id for r in results] == [f"fx{i}" for i in range(5)]
 
 
 def test_parallel_output_equals_sequential() -> None:
     """N=4 produces the same (fixture_id, passed) sequence as N=1."""
-    from ai_rules.commands.rule_loader import ProgressMode as PM
-
     fixtures = [_make_fixture(f"fx{i}") for i in range(6)]
 
-    seq = _run_eval(fixtures, concurrency=1, mode=PM.NONE)[0]
-    par = _run_eval(fixtures, concurrency=4, mode=PM.NONE)[0]
+    seq = _run_eval(fixtures, concurrency=1)[0]
+    par = _run_eval(fixtures, concurrency=4)[0]
 
     assert [(r.fixture_id, r.passed) for r in seq] == [(r.fixture_id, r.passed) for r in par]
     # Sanity: the mocked runs all pass.
@@ -186,30 +181,19 @@ def test_parallel_output_equals_sequential() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Phase 6: unified ProgressTracker wiring (start_run + slot) incl N=1
+# Phase 3 (plain-log): per-fixture start/finish lines emitted for every N
 # ---------------------------------------------------------------------------
 
 
-def test_progress_start_run_and_slot_all_modes() -> None:
-    """start_run(concurrency=N) fires and every start_item gets a slot, incl N=1."""
+def test_plain_log_start_and_finish_lines_emitted_all_concurrency() -> None:
+    """_log_item_start/_log_item_finish fire for every fixture regardless of N."""
     from pathlib import Path
 
     from ai_rules.commands import rule_loader as rl
-    from ai_rules.commands.rule_loader import ProgressMode as PM
-    from ai_rules.commands.rule_loader import ProgressTracker
 
-    def _run_for(n: int) -> tuple[int | None, list[int | None]]:
-        captured_concurrency: list[int] = []
-        slots: list[int | None] = []
-
-        class SpyTracker(ProgressTracker):  # type: ignore[misc]
-            def start_run(self, *, pid: int, concurrency: int) -> None:
-                captured_concurrency.append(concurrency)
-                super().start_run(pid=pid, concurrency=concurrency)
-
-            def start_item(self, fixture_id: str, *, slot=None) -> None:
-                slots.append(slot)
-                super().start_item(fixture_id, slot=slot)
+    def _run_for(n: int) -> tuple[list[str], list[str]]:
+        started: list[str] = []
+        finished: list[str] = []
 
         fixtures = [_make_fixture(f"fx{i}") for i in range(3)]
 
@@ -219,7 +203,12 @@ def test_progress_start_run_and_slot_all_modes() -> None:
         with (
             patch("ai_rules.rule_loader_eval.engine.run_live_async", new=_async),
             patch.object(rl, "load_rules_metadata", return_value={}),
-            patch.object(rl, "ProgressTracker", SpyTracker),
+            patch.object(rl, "_log_item_start", side_effect=started.append),
+            patch.object(
+                rl,
+                "_log_item_finish",
+                side_effect=lambda fid, **kw: finished.append(fid),
+            ),
         ):
             rl._run_single_eval(
                 fixtures=fixtures,
@@ -229,19 +218,17 @@ def test_progress_start_run_and_slot_all_modes() -> None:
                 max_turns=3,
                 effort="low",
                 model="auto",
-                mode=PM.PLAIN,
                 debug=False,
                 out_dir=None,
                 label="t",
                 concurrency=n,
             )
-        return (captured_concurrency[0] if captured_concurrency else None, slots)
+        return started, finished
 
     for n in (1, 3):
-        start_run_concurrency, slots = _run_for(n)
-        assert start_run_concurrency == n
-        assert len(slots) == 3
-        assert all(s is not None and 1 <= s <= n for s in slots)
+        started, finished = _run_for(n)
+        assert set(started) == {"fx0", "fx1", "fx2"}
+        assert set(finished) == {"fx0", "fx1", "fx2"}
 
 
 # ---------------------------------------------------------------------------
@@ -253,8 +240,6 @@ def test_infra_failfast_aborts_skips_snapshot_and_diagnoses(tmp_path) -> None:
     """An InfraError (before any RunResult) aborts: infra row returned, no snapshot,
     cancelled/queued fixtures never appear as fixture-fail rows, is_infra True.
     """
-    from ai_rules.commands.rule_loader import ProgressMode as PM
-
     fixtures = [_make_fixture(f"fx{i}") for i in range(5)]
 
     def dispatch(fid: str):
@@ -267,7 +252,7 @@ def test_infra_failfast_aborts_skips_snapshot_and_diagnoses(tmp_path) -> None:
         return (0.1, _pass_run(fid))  # keep peers in-flight/queued
 
     results, is_infra = _run_eval(
-        fixtures, concurrency=2, mode=PM.NONE, out_dir=tmp_path / "snap", dispatch=dispatch
+        fixtures, concurrency=2, out_dir=tmp_path / "snap", dispatch=dispatch
     )
 
     assert is_infra is True

@@ -114,25 +114,3 @@ def log_error(message: str) -> None:
     color/style tags (which silently strips them from the output).
     """
     err_console.print(f"[red]✗[/red] {_rich_escape(message)}")
-
-
-def is_progress_capable() -> bool:
-    """Return True when an animated Rich progress UI is appropriate.
-
-    Centralised heuristic used by all rule-loader CLI commands so they share
-    a single source of truth for the auto-detect default.
-
-    Returns False when:
-
-    - ``stderr`` is not a TTY (piped, redirected, or captured),
-    - the ``CI`` env var is set (CI logs prefer plain output),
-    - the ``NO_COLOR`` env var is set (https://no-color.org/),
-    - the ``TERM`` env var is ``"dumb"`` (terminal can't render ANSI).
-    """
-    if not sys.stderr.isatty():
-        return False
-    if os.environ.get("CI"):
-        return False
-    if os.environ.get("NO_COLOR"):
-        return False
-    return os.environ.get("TERM") != "dumb"

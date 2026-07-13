@@ -1,21 +1,28 @@
 """Snapshot schema for rule-loader A/B comparisons.
 
-A snapshot directory captures one ``ai-rules rule-loader eval`` run plus
-its companion ``refresh-all`` run, plus a ``meta.json`` describing the
-environment that produced them. Two snapshots can be diffed by the
-``compare`` command to answer "did rule loading get better or worse"
-between two states of the rules / process.
+Phase 4 (ai-rules-eval-results-dir plan) migrated the on-disk layout from
+the legacy ``out/<label>/eval/`` tree to a streaming ``results/``-style
+tree, so a directory produced by :func:`write_eval_snapshot` is now a
+minimal ``ResultsRunWriter`` output that :func:`read_eval_snapshot` can
+also consume::
 
-Layout::
+    <snapshot_dir>/
+      manifest.json                       # translated from SnapshotMeta
+      summary.json                        # aggregate summary (§5.4)
+      run-01/
+        run_meta.json                     # per-pass metadata
+        summary.json                      # per-pass summary (§5.3)
+        fixtures/
+          <fixture_id>.json               # per-fixture snapshot row
 
-    out/<label>/
-      meta.json
-      eval/
-        summary.json
-        <fixture_id>.json    # one per fixture
-      refresh-all/             (optional; written by refresh-all --out-dir)
-        summary.json
-        <safe_id>.yaml
+The in-memory ``FixtureSnapshot`` / ``SnapshotMeta`` / ``SnapshotSummary`` /
+``Snapshot`` dataclasses are unchanged — only the serializers switch to
+the new file layout. Business logic in ``compare.py`` and
+``merge-snapshots`` therefore does not change.
+
+Read-side is **new-layout only** (§8 of the plan). Reading legacy
+``out/<label>/`` snapshots is out of scope; users re-run under the new
+layout if they need to compare against an old baseline.
 """
 
 from __future__ import annotations
@@ -32,6 +39,15 @@ if TYPE_CHECKING:
     from ai_rules.rule_loader_eval.fixtures import Fixture
 
 SNAPSHOT_SCHEMA_VERSION = 1
+
+# Constants matching the results_schemas.py schema_version strings so
+# manifest/summary files read by ``read_eval_snapshot`` carry the same
+# markers a fresh eval run writes.
+_MANIFEST_SCHEMA = "ai-rules-eval-manifest/v1"
+_RUN_META_SCHEMA = "ai-rules-eval-run-meta/v1"
+_PASS_SUMMARY_SCHEMA = "ai-rules-eval-summary/v1"
+_AGG_SUMMARY_SCHEMA = "ai-rules-eval-aggregate/v1"
+_FIXTURE_SCHEMA = "ai-rules-eval-fixture-snapshot/v1"
 
 
 @dataclass(frozen=True)
@@ -294,85 +310,373 @@ def compute_summary(fixtures: list[FixtureSnapshot]) -> SnapshotSummary:
     )
 
 
+def _meta_to_manifest(meta: SnapshotMeta, *, fixture_count: int) -> dict:
+    """Translate a :class:`SnapshotMeta` into a §5.1 manifest dict.
+
+    The captured-at timestamp becomes ``started_at`` / ``updated_at`` /
+    ``completed_at``; git fields are collapsed under ``git``; the label
+    passes through. Fields not present on ``SnapshotMeta`` (run_id,
+    concurrency, runs_requested) are given reproducible defaults so the
+    manifest still validates against the §5.1 shape.
+    """
+    ts = meta.captured_at or ""
+    return {
+        "schema_version": _MANIFEST_SCHEMA,
+        "run_id": f"snapshot-{(meta.label or 'snapshot').strip() or 'snapshot'}",
+        "run_dir_name": (meta.label or "snapshot").strip() or "snapshot",
+        "started_at": ts,
+        "updated_at": ts,
+        "completed_at": ts,
+        "model_requested": meta.model,
+        "model_resolved": meta.model or None,
+        "effort": meta.effort,
+        "max_turns": int(meta.max_turns),
+        "strict_forbidden": False,
+        "concurrency": 1,
+        "runs_requested": 1,
+        "label": meta.label or None,
+        "connection": "",
+        "git": {"sha": meta.git_commit, "branch": meta.git_branch, "dirty": False},
+        "ai_rules_version": "",
+        "fixture_selection": ["all"],
+        "fixture_count": int(fixture_count),
+        "passes": [
+            {
+                "run_number": 1,
+                "dir": "run-01",
+                "status": "completed",
+                "started_at": ts,
+                "completed_at": ts,
+                "totals": {"passed": 0, "failed": 0, "errors": 0},
+            }
+        ],
+        "aggregate_status": "completed",
+        # Round-trip helpers for SnapshotMeta fields not in §5.1.
+        "snapshot_meta_extras": {
+            "fixtures_dir": meta.fixtures_dir,
+            "rules_dir": meta.rules_dir,
+            "notes": meta.notes,
+            "snapshot_schema_version": int(meta.schema_version),
+        },
+    }
+
+
+def _manifest_to_meta(manifest: dict) -> SnapshotMeta:
+    """Inverse of :func:`_meta_to_manifest` — best-effort SnapshotMeta reconstruction."""
+    extras = manifest.get("snapshot_meta_extras") or {}
+    git = manifest.get("git") or {}
+    return SnapshotMeta(
+        schema_version=int(extras.get("snapshot_schema_version") or SNAPSHOT_SCHEMA_VERSION),
+        captured_at=str(manifest.get("started_at") or ""),
+        git_commit=str(git.get("sha") or ""),
+        git_branch=str(git.get("branch") or ""),
+        model=str(manifest.get("model_requested") or ""),
+        max_turns=int(manifest.get("max_turns") or 0),
+        effort=str(manifest.get("effort") or ""),
+        fixtures_dir=str(extras.get("fixtures_dir") or "fixtures/rule_loader_eval"),
+        rules_dir=str(extras.get("rules_dir") or "rules"),
+        label=str(manifest.get("label") or ""),
+        notes=str(extras.get("notes") or ""),
+    )
+
+
+def _fixture_to_doc(fx: FixtureSnapshot, *, run_number: int = 1) -> dict:
+    """Emit a per-fixture doc that satisfies §5.5 while preserving snapshot extras.
+
+    Fields required by §5.5 are written at the top level with the exact
+    types documented there. Snapshot-specific fields that don't fit §5.5
+    (``flake_score``, ``n_runs``, ``loaded_via_section``,
+    ``disagreement_details``, ``expected_*``, ``total_tokens``) live under
+    ``snapshot_extras`` so ``read_eval_snapshot`` can round-trip a
+    ``FixtureSnapshot`` losslessly.
+    """
+    if fx.is_infra_error:
+        result_str = "error"
+    elif fx.passed:
+        result_str = "pass"
+    else:
+        result_str = "fail"
+    return {
+        "schema_version": _FIXTURE_SCHEMA,
+        "fixture_id": fx.fixture_id,
+        "run_number": int(run_number),
+        "model": fx.model,
+        "passed": bool(fx.passed),
+        "result": result_str,
+        "match": {
+            "missing_required": list(fx.missing_required),
+            "missing_dependencies": list(fx.missing_dependencies),
+            "forbidden_present": list(fx.forbidden_present),
+            "extra_loaded": [],
+        },
+        "signal_report": {
+            "ok": int(fx.signal_disagreements) == 0,
+            "disagreements": list(fx.disagreement_details),
+        },
+        "citation_drifts": [{"index": i} for i in range(int(fx.citation_drifts))],
+        "depends_violations": list(fx.depends_violations),
+        "output_violations": list(fx.output_violations),
+        "turns": int(fx.turns),
+        "input_tokens": int(fx.input_tokens),
+        "output_tokens": int(fx.output_tokens),
+        "total_cost_usd": float(fx.total_cost_usd),
+        "duration_ms": int(fx.duration_ms),
+        "final_text": None,
+        "stop_reason": fx.stop_reason,
+        "is_infra_error": bool(fx.is_infra_error),
+        "infra_error_detail": fx.infra_error_detail or None,
+        "skill_invocations": list(fx.skill_invocations),
+        "loaded": list(fx.loaded),
+        "loaded_via_reads": list(fx.loaded_via_reads),
+        # Round-trip helpers.
+        "snapshot_extras": {
+            "expected_required": list(fx.expected_required),
+            "expected_dependencies": list(fx.expected_dependencies),
+            "expected_optional": list(fx.expected_optional),
+            "expected_forbidden": list(fx.expected_forbidden),
+            "loaded_via_section": list(fx.loaded_via_section),
+            "flake_score": float(fx.flake_score),
+            "n_runs": int(fx.n_runs),
+            "total_tokens": int(fx.total_tokens),
+            "signal_disagreements_count": int(fx.signal_disagreements),
+            "citation_drifts_count": int(fx.citation_drifts),
+        },
+    }
+
+
+def _doc_to_fixture(doc: dict) -> FixtureSnapshot:
+    """Inverse of :func:`_fixture_to_doc` — reconstruct a :class:`FixtureSnapshot`."""
+    extras = doc.get("snapshot_extras") or {}
+    match = doc.get("match") or {}
+    signal_report = doc.get("signal_report") or {}
+    citation_drifts_field = doc.get("citation_drifts")
+    if isinstance(citation_drifts_field, list):
+        cd_count = int(extras.get("citation_drifts_count") or len(citation_drifts_field))
+    else:
+        cd_count = int(citation_drifts_field or 0)
+    disagreements = signal_report.get("disagreements") or []
+    sd_raw = extras.get("signal_disagreements_count")
+    sd_count = len(disagreements) if sd_raw is None else int(sd_raw)
+    return FixtureSnapshot(
+        fixture_id=str(doc.get("fixture_id") or ""),
+        passed=bool(doc.get("passed") or False),
+        loaded=tuple(doc.get("loaded") or ()),
+        expected_required=tuple(extras.get("expected_required") or ()),
+        expected_dependencies=tuple(extras.get("expected_dependencies") or ()),
+        expected_optional=tuple(extras.get("expected_optional") or ()),
+        expected_forbidden=tuple(extras.get("expected_forbidden") or ()),
+        missing_required=tuple(match.get("missing_required") or ()),
+        missing_dependencies=tuple(match.get("missing_dependencies") or ()),
+        forbidden_present=tuple(match.get("forbidden_present") or ()),
+        signal_disagreements=sd_count,
+        citation_drifts=cd_count,
+        turns=int(doc.get("turns") or 0),
+        duration_ms=int(doc.get("duration_ms") or 0),
+        model=str(doc.get("model") or ""),
+        stop_reason=str(doc.get("stop_reason") or ""),
+        is_infra_error=bool(doc.get("is_infra_error") or False),
+        infra_error_detail=str(doc.get("infra_error_detail") or ""),
+        loaded_via_reads=tuple(doc.get("loaded_via_reads") or ()),
+        loaded_via_section=tuple(extras.get("loaded_via_section") or ()),
+        disagreement_details=tuple(str(d) for d in disagreements),
+        flake_score=float(extras.get("flake_score") or 0.0),
+        n_runs=int(extras.get("n_runs") or 1),
+        skill_invocations=tuple(doc.get("skill_invocations") or ()),
+        depends_violations=tuple(doc.get("depends_violations") or ()),
+        output_violations=tuple(doc.get("output_violations") or ()),
+        input_tokens=int(doc.get("input_tokens") or 0),
+        output_tokens=int(doc.get("output_tokens") or 0),
+        total_tokens=int(extras.get("total_tokens") or 0),
+        total_cost_usd=float(doc.get("total_cost_usd") or 0.0),
+    )
+
+
+def _write_json(path: Path, obj: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(obj, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
 def write_eval_snapshot(
     out_dir: Path,
     fixtures: list[FixtureSnapshot],
     meta: SnapshotMeta,
 ) -> None:
-    """Write a snapshot to disk.
+    """Write a snapshot to ``out_dir`` using the results/ layout (Phase 4).
 
     Layout:
-      <out_dir>/meta.json
-      <out_dir>/eval/summary.json
-      <out_dir>/eval/<fixture_id>.json
+      <out_dir>/manifest.json
+      <out_dir>/summary.json                          (aggregate)
+      <out_dir>/run-01/run_meta.json
+      <out_dir>/run-01/summary.json                   (per-pass)
+      <out_dir>/run-01/fixtures/<fixture_id>.json     (one per fixture)
+
+    ``SnapshotMeta`` extras (fixtures_dir, rules_dir, notes) and
+    ``FixtureSnapshot`` extras (flake_score, expected_*, etc.) that don't
+    fit §5.1/§5.5 are stored under ``snapshot_meta_extras`` / ``snapshot_extras``
+    so :func:`read_eval_snapshot` round-trips losslessly.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
-    eval_dir = out_dir / "eval"
-    eval_dir.mkdir(parents=True, exist_ok=True)
+    pass_dir = out_dir / "run-01"
+    fixtures_dir = pass_dir / "fixtures"
+    fixtures_dir.mkdir(parents=True, exist_ok=True)
 
     summary = compute_summary(fixtures)
+    passed = sum(1 for f in fixtures if f.passed)
+    errors = sum(1 for f in fixtures if f.is_infra_error)
+    failed = len(fixtures) - passed - errors
+    failures = [f.fixture_id for f in fixtures if not f.passed]
 
-    (out_dir / "meta.json").write_text(
-        json.dumps(meta.to_dict(), indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    (eval_dir / "summary.json").write_text(
-        json.dumps(summary.to_dict(), indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    manifest = _meta_to_manifest(meta, fixture_count=len(fixtures))
+    manifest["passes"][0]["totals"] = {
+        "passed": passed,
+        "failed": failed,
+        "errors": errors,
+    }
+    _write_json(out_dir / "manifest.json", manifest)
+
+    aggregate = {
+        "schema_version": _AGG_SUMMARY_SCHEMA,
+        "runs": 1,
+        "fixture_count": len(fixtures),
+        "per_fixture": {
+            f.fixture_id: {
+                "n_runs": int(f.n_runs),
+                "passes": 1 if f.passed else 0,
+                "fails": 0 if f.passed else 1,
+                "flake_score": float(f.flake_score),
+                "pass_rate": 1.0 if f.passed else 0.0,
+            }
+            for f in fixtures
+        },
+        "aggregate": {
+            "mean_pass_rate": round(passed / len(fixtures), 3) if fixtures else 0.0,
+            "flaky_fixtures": [],
+            "total_cost_usd": float(sum(f.total_cost_usd for f in fixtures)),
+            "total_input_tokens": int(sum(f.input_tokens for f in fixtures)),
+            "total_output_tokens": int(sum(f.output_tokens for f in fixtures)),
+            "total_duration_ms": int(sum(f.duration_ms for f in fixtures)),
+            "total_signal_disagreements": int(summary.total_signal_disagreements),
+            "total_citation_drifts": int(summary.total_citation_drifts),
+        },
+        # Round-trip helpers so read_eval_snapshot can reconstruct SnapshotSummary.
+        "snapshot_summary_extras": {
+            "mean_turns": float(summary.mean_turns),
+            "mean_duration_ms": float(summary.mean_duration_ms),
+            "mean_input_tokens": float(summary.mean_input_tokens),
+            "mean_output_tokens": float(summary.mean_output_tokens),
+            "mean_total_tokens": float(summary.mean_total_tokens),
+            "mean_total_cost_usd": float(summary.mean_total_cost_usd),
+            "total": int(summary.total),
+            "passed": int(summary.passed),
+            "failed": int(summary.failed),
+        },
+    }
+    _write_json(out_dir / "summary.json", aggregate)
+
+    run_meta = {
+        "schema_version": _RUN_META_SCHEMA,
+        "run_id": manifest["run_id"],
+        "run_number": 1,
+        "started_at": manifest["started_at"],
+        "completed_at": manifest["completed_at"],
+        "model_requested": meta.model,
+        "model_resolved": meta.model or None,
+        "effort": meta.effort,
+        "max_turns": int(meta.max_turns),
+        "strict_forbidden": False,
+        "concurrency": 1,
+        "git": manifest["git"],
+        "fixture_count": len(fixtures),
+        "fixtures": {
+            f.fixture_id: {
+                "status": "completed",
+                "result": "error" if f.is_infra_error else ("pass" if f.passed else "fail"),
+                "started_at": manifest["started_at"],
+                "completed_at": manifest["completed_at"],
+            }
+            for f in fixtures
+        },
+    }
+    _write_json(pass_dir / "run_meta.json", run_meta)
+
+    pass_summary = {
+        "schema_version": _PASS_SUMMARY_SCHEMA,
+        "run_number": 1,
+        "total": len(fixtures),
+        "passed": passed,
+        "failed": failed,
+        "errors": errors,
+        "pass_rate": round(passed / len(fixtures), 3) if fixtures else 0.0,
+        "totals": {
+            "turns": int(sum(f.turns for f in fixtures)),
+            "input_tokens": int(sum(f.input_tokens for f in fixtures)),
+            "output_tokens": int(sum(f.output_tokens for f in fixtures)),
+            "total_cost_usd": float(sum(f.total_cost_usd for f in fixtures)),
+            "duration_ms": int(sum(f.duration_ms for f in fixtures)),
+        },
+        "failures": failures,
+    }
+    _write_json(pass_dir / "summary.json", pass_summary)
+
     for fx in fixtures:
-        # Use safe_id-style filename: replace path separators just in case.
         safe = fx.fixture_id.replace("/", "_").replace(" ", "_")
-        (eval_dir / f"{safe}.json").write_text(
-            json.dumps(fx.to_dict(), indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
+        _write_json(fixtures_dir / f"{safe}.json", _fixture_to_doc(fx))
 
 
 def read_eval_snapshot(snapshot_dir: Path) -> Snapshot:
-    """Load a snapshot from disk.
+    """Load a snapshot from the new results/ layout (Phase 4, new-layout only).
 
-    Raises ``ValueError`` for missing meta.json or unsupported schema_version.
-    Returns ``Snapshot`` with empty fixtures tuple if the eval/ subdir is missing
-    (refresh-all-only snapshots are valid input but produce no per-fixture rows).
+    Raises ``ValueError`` for a missing ``manifest.json`` or unsupported
+    embedded ``snapshot_schema_version``. Returns a :class:`Snapshot` with
+    empty fixtures tuple when the ``run-01/fixtures/`` subdir is absent.
+    Legacy ``out/<label>/`` snapshots are **not** supported — see §8 of
+    the eval results-dir plan.
     """
-    meta_path = snapshot_dir / "meta.json"
-    if not meta_path.is_file():
-        raise ValueError(f"no meta.json under {snapshot_dir}")
-    meta = SnapshotMeta.from_dict(json.loads(meta_path.read_text(encoding="utf-8")))
-    if meta.schema_version != SNAPSHOT_SCHEMA_VERSION:
+    manifest_path = snapshot_dir / "manifest.json"
+    if not manifest_path.is_file():
+        raise ValueError(f"no manifest.json under {snapshot_dir}")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    embedded_schema = (manifest.get("snapshot_meta_extras") or {}).get(
+        "snapshot_schema_version"
+    ) or SNAPSHOT_SCHEMA_VERSION
+    if int(embedded_schema) != SNAPSHOT_SCHEMA_VERSION:
         raise ValueError(
-            f"unsupported snapshot schema_version {meta.schema_version!r}; "
+            f"unsupported snapshot schema_version {embedded_schema!r}; "
             f"expected {SNAPSHOT_SCHEMA_VERSION}"
         )
 
-    eval_dir = snapshot_dir / "eval"
-    fixtures: list[FixtureSnapshot] = []
-    summary: SnapshotSummary | None = None
-    if eval_dir.is_dir():
-        for path in sorted(eval_dir.glob("*.json")):
-            if path.name == "summary.json":
-                continue
-            data = json.loads(path.read_text(encoding="utf-8"))
-            fixtures.append(FixtureSnapshot.from_dict(data))
-        summary_path = eval_dir / "summary.json"
-        if summary_path.is_file():
-            sdata = json.loads(summary_path.read_text(encoding="utf-8"))
-            summary = SnapshotSummary(
-                total=int(sdata.get("total") or 0),
-                passed=int(sdata.get("passed") or 0),
-                failed=int(sdata.get("failed") or 0),
-                mean_turns=float(sdata.get("mean_turns") or 0.0),
-                mean_duration_ms=float(sdata.get("mean_duration_ms") or 0.0),
-                total_signal_disagreements=int(sdata.get("total_signal_disagreements") or 0),
-                total_citation_drifts=int(sdata.get("total_citation_drifts") or 0),
-                mean_input_tokens=float(sdata.get("mean_input_tokens") or 0.0),
-                mean_output_tokens=float(sdata.get("mean_output_tokens") or 0.0),
-                mean_total_tokens=float(sdata.get("mean_total_tokens") or 0.0),
-                mean_total_cost_usd=float(sdata.get("mean_total_cost_usd") or 0.0),
-            )
+    meta = _manifest_to_meta(manifest)
 
-    return Snapshot(meta=meta, fixtures=tuple(fixtures), summary=summary)
+    pass_dir = snapshot_dir / "run-01"
+    fixtures_dir = pass_dir / "fixtures"
+    fixture_rows: list[FixtureSnapshot] = []
+    if fixtures_dir.is_dir():
+        for path in sorted(fixtures_dir.glob("*.json")):
+            doc = json.loads(path.read_text(encoding="utf-8"))
+            fixture_rows.append(_doc_to_fixture(doc))
+
+    summary: SnapshotSummary | None = None
+    aggregate_path = snapshot_dir / "summary.json"
+    if aggregate_path.is_file():
+        agg = json.loads(aggregate_path.read_text(encoding="utf-8"))
+        extras = agg.get("snapshot_summary_extras") or {}
+        aggregate_totals = agg.get("aggregate") or {}
+        summary = SnapshotSummary(
+            total=int(extras.get("total") or agg.get("fixture_count") or 0),
+            passed=int(extras.get("passed") or 0),
+            failed=int(extras.get("failed") or 0),
+            mean_turns=float(extras.get("mean_turns") or 0.0),
+            mean_duration_ms=float(extras.get("mean_duration_ms") or 0.0),
+            total_signal_disagreements=int(aggregate_totals.get("total_signal_disagreements") or 0),
+            total_citation_drifts=int(aggregate_totals.get("total_citation_drifts") or 0),
+            mean_input_tokens=float(extras.get("mean_input_tokens") or 0.0),
+            mean_output_tokens=float(extras.get("mean_output_tokens") or 0.0),
+            mean_total_tokens=float(extras.get("mean_total_tokens") or 0.0),
+            mean_total_cost_usd=float(extras.get("mean_total_cost_usd") or 0.0),
+        )
+
+    return Snapshot(meta=meta, fixtures=tuple(fixture_rows), summary=summary)
 
 
 def capture_meta(

@@ -231,10 +231,11 @@ def test_cli_merge_writes_snapshot(tmp_path: Path) -> None:
     )
     assert result.exit_code == 0, result.output
 
-    # Output directory has expected layout.
-    assert (out / "meta.json").is_file()
-    assert (out / "eval" / "summary.json").is_file()
-    assert (out / "eval" / "a.json").is_file()
+    # Output directory has expected new-layout files.
+    assert (out / "manifest.json").is_file()
+    assert (out / "summary.json").is_file()
+    assert (out / "run-01" / "summary.json").is_file()
+    assert (out / "run-01" / "fixtures" / "a.json").is_file()
 
     # And it round-trips through read_eval_snapshot.
     snap = read_eval_snapshot(out)

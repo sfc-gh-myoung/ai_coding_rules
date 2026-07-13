@@ -15,33 +15,20 @@ Commands:
 
 from __future__ import annotations
 
-import contextlib
 import difflib
-import enum
 import os
 import sys
 from collections.abc import Sequence
-from datetime import UTC
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated
 
 import typer
-from rich.console import Group
-from rich.live import Live
-from rich.progress import (
-    BarColumn,
-    MofNCompleteColumn,
-    Progress,
-    SpinnerColumn,
-    TextColumn,
-    TimeElapsedColumn,
-)
 from rich.table import Table
 
 from ai_rules._shared.console import (
     console,
     err_console,
-    is_progress_capable,
     log_error,
     log_info,
     log_success,
@@ -75,6 +62,10 @@ from ai_rules.rule_loader_eval.snippet import format_fixture_snippet
 
 if TYPE_CHECKING:
     from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.results_writer import (
+        ResultsRunWriter,
+        RunPassWriter,
+    )
 
 rule_loader_app = typer.Typer(
     name="rule-loader",
@@ -139,519 +130,66 @@ def _rules_dir(project_root: Path) -> Path:
 
 
 # ---------------------------------------------------------------------------
-# ProgressTracker (shared Rich progress UI)
+# Plain-log helpers (harness-eval-bench style; replaces the removed Rich
+# Live/screen ProgressTracker). Every rule-loader CLI command emits plain
+# per-item and per-run lines to stderr via ``err_console`` / the shared
+# ``log_*`` helpers; static one-shot summary tables (`_print_results`,
+# `_print_aggregate_summary`, `_print_resource_summary`) still use Rich.
 # ---------------------------------------------------------------------------
-
-
-class ProgressMode(enum.StrEnum):
-    """Selected presentation mode for live progress UI."""
-
-    AUTO = "auto"
-    SCREEN = "screen"
-    RICH = "rich"
-    PLAIN = "plain"
-    JSON = "json"
-    NONE = "none"
-
-
-def resolve_progress_mode(value: str | None) -> ProgressMode:
-    """Resolve a ``--progress`` flag value to a concrete mode.
-
-    Accepts ``auto`` (default), ``screen``, ``rich``, ``plain``, ``json``, or
-    ``none``.
-
-    - ``auto`` (or ``None``) → ``SCREEN`` when stderr is a capable TTY, else
-      ``NONE``.
-    - ``screen`` → ``SCREEN`` (Rich alternate-screen Live dashboard).
-    - ``rich`` → ``SCREEN`` (back-compat alias; the legacy normal-buffer Rich
-      live UI was retired because SDK chatter could corrupt the bar).
-    - ``plain`` / ``json`` / ``none`` → unchanged.
-
-    Raises:
-        typer.BadParameter: for any other value.
-    """
-    raw = (value or "auto").strip().lower()
-    if raw == "auto":
-        return ProgressMode.SCREEN if is_progress_capable() else ProgressMode.NONE
-    if raw in ("screen", "rich"):
-        return ProgressMode.SCREEN
-    if raw == "plain":
-        return ProgressMode.PLAIN
-    if raw == "json":
-        return ProgressMode.JSON
-    if raw == "none":
-        return ProgressMode.NONE
-    raise typer.BadParameter(
-        f"--progress value {value!r} not recognised; expected auto|screen|rich|plain|json|none"
-    )
 
 
 def _utc_now_iso() -> str:
     """Return current UTC time as ISO-8601 with ``Z`` suffix and seconds precision."""
-    from datetime import datetime
-
     return datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
-class ProgressTracker:
-    """Mode-aware progress UI shared by ``validate``, ``eval``, ``refresh``, and ``refresh-all``.
+def _fmt_tokens_human(n: int) -> str:
+    """Format token count as e.g. '11.2k', '1.4M' (compact stderr lines)."""
+    if n >= 1_000_000:
+        return f"{n / 1_000_000:.1f}M"
+    if n >= 1_000:
+        return f"{n / 1_000:.1f}k"
+    return str(n)
 
-    Five presentation modes:
 
-    - :attr:`ProgressMode.SCREEN` — Rich ``Live(screen=True, transient=True)``
-      alternate-screen dashboard with a parent ``N/M`` bar, an active-fixtures
-      table (one row per in-flight slot), and a recent-completions ledger
-      (bounded, default 10 rows). Restores the normal terminal on exit, so
-      no stale frames remain in scrollback. ``RICH`` is an alias for
-      ``SCREEN`` since the legacy normal-buffer mode was retired.
-    - :attr:`ProgressMode.PLAIN` — One log line per ``start``/``done`` event
-      written to stderr with an ISO 8601 UTC timestamp prefix and optional
-      ``[wN]`` slot tag. Greppable, terminal-width-independent.
-    - :attr:`ProgressMode.JSON` — One JSON object per event on stderr
-      (``start_run``, ``start``, ``done``, ``end_run``). Designed for
-      CI / observability tools.
-    - :attr:`ProgressMode.NONE` — No-op; ``start_item`` / ``finish_item``
-      return immediately. Used when piped, in CI, or when the user passes
-      ``--no-progress``.
+def _log_run_banner(name: str, *, pid: int, concurrency: int, total: int) -> None:
+    """Emit the per-run banner line (analogous to harness's run header)."""
+    log_info(f"{name}  pid={pid}  concurrency={concurrency}  total={total}")
 
-    All modes are safe to call from multiple coroutines; the underlying
-    Rich ``Progress`` object is thread-safe.
-    """
 
-    # Rich Live refresh rate (Hz). 6 is the Rich-recommended sweet spot for
-    # smooth animation without burning CPU on long-running batches.
-    _RICH_REFRESH_HZ: int = 6
-    _RECENT_LEDGER_MAX: int = 5
+def _log_item_start(fixture_id: str) -> None:
+    """Emit a per-item start line to stderr."""
+    err_console.out(f"[{_utc_now_iso()}] start  {fixture_id}")
 
-    def __init__(  # noqa: D107
-        self,
-        total: int,
-        *,
-        mode: ProgressMode = ProgressMode.SCREEN,
-        description: str = "Processing",
-        id_pad: int = 0,
-    ) -> None:
-        self._total = total
-        self._mode = mode
-        self._description = description
-        self._id_pad = id_pad
-        self._parent_progress: Progress | None = None
-        self._live: Live | None = None
-        self._parent_task: int | None = None
-        self._start_times: dict[str, float] = {}
-        self._active: dict[str, dict[str, object]] = {}
-        from collections import deque
 
-        self._recent: deque[dict[str, object]] = deque(maxlen=self._RECENT_LEDGER_MAX)
-        self._completed: int = 0
-        self._failed: int = 0
-        self._concurrency: int = 0
-        self._pid: int = 0
-        self._total_input_tokens: int = 0
-        self._total_output_tokens: int = 0
-        self._total_cost_usd: float = 0.0
-        import time as _time
+def _log_item_finish(
+    fixture_id: str,
+    *,
+    ok: bool,
+    input_tokens: int = 0,
+    output_tokens: int = 0,
+    total_cost_usd: float = 0.0,
+    duration_ms: int | None = None,
+) -> None:
+    """Emit a per-item finish line to stderr with tokens/cost/duration when available."""
+    status = "pass" if ok else "fail"
+    parts: list[str] = [status]
+    if input_tokens or output_tokens:
+        parts.append(f"in={_fmt_tokens_human(input_tokens)} out={_fmt_tokens_human(output_tokens)}")
+    if total_cost_usd:
+        parts.append(f"${total_cost_usd:.4f}")
+    if duration_ms is not None and duration_ms > 0:
+        parts.append(f"{duration_ms / 1000:.1f}s")
+    err_console.out(f"[{_utc_now_iso()}] done   {fixture_id}  {' '.join(parts)}")
 
-        self._run_start_perf: float = _time.perf_counter()
 
-    @property
-    def mode(self) -> ProgressMode:
-        """The active presentation mode."""
-        return self._mode
-
-    def __enter__(self) -> ProgressTracker:  # noqa: D105
-        if self._mode in (ProgressMode.SCREEN, ProgressMode.RICH):
-            self._parent_progress = Progress(
-                SpinnerColumn(),
-                TextColumn("[bold blue]{task.description}"),
-                BarColumn(),
-                MofNCompleteColumn(),
-                TextColumn("•"),
-                TimeElapsedColumn(),
-                console=err_console,
-                expand=True,
-            )
-            self._parent_task = self._parent_progress.add_task(self._description, total=self._total)
-            self._live = Live(
-                self._build_screen_renderable(),  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-                console=err_console,
-                refresh_per_second=self._RICH_REFRESH_HZ,
-                screen=True,
-                transient=True,
-                redirect_stdout=False,
-                redirect_stderr=False,
-            )
-            self._live.__enter__()
-        return self
-
-    def __exit__(self, exc_type: object, exc: object, tb: object) -> None:  # noqa: D105
-        if self._live is not None:
-            with contextlib.suppress(Exception):
-                self._live.__exit__(exc_type, exc, tb)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-        self._live = None
-        self._parent_progress = None
-        self._parent_task = None
-        self._start_times.clear()
-        self._active.clear()
-
-    def start_run(self, *, pid: int, concurrency: int) -> None:
-        """Record run-start metadata. Emits a JSON event in JSON mode."""
-        import time as _time
-
-        self._pid = pid
-        self._concurrency = concurrency
-        self._run_start_perf = _time.perf_counter()
-        if self._mode is ProgressMode.JSON:
-            self._emit_json(
-                event="start_run",
-                ts=_utc_now_iso(),
-                pid=pid,
-                concurrency=concurrency,
-                total=self._total,
-            )
-        self._refresh()
-
-    def end_run(self, *, succeeded: int, failed: int, wall_seconds: float) -> None:
-        """Emit a run-end footer (JSON mode only)."""
-        if self._mode is ProgressMode.JSON:
-            self._emit_json(
-                event="end_run",
-                ts=_utc_now_iso(),
-                wall_seconds=round(wall_seconds, 3),
-                succeeded=succeeded,
-                failed=failed,
-                total=self._total,
-            )
-
-    def start_item(self, fixture_id: str, *, slot: int | None = None) -> None:
-        """Mark a fixture as actively in flight."""
-        import time
-
-        now = time.perf_counter()
-        self._start_times[fixture_id] = now
-        label = self._format_label(fixture_id, slot)
-        if self._mode in (ProgressMode.SCREEN, ProgressMode.RICH):
-            self._active[fixture_id] = {
-                "slot": slot,
-                "label": label,
-                "fixture_id": fixture_id,
-                "start": now,
-            }
-            self._refresh()
-        elif self._mode is ProgressMode.PLAIN:
-            err_console.out(f"[{_utc_now_iso()}] start  {label}")
-        elif self._mode is ProgressMode.JSON:
-            self._emit_json(
-                event="start",
-                ts=_utc_now_iso(),
-                slot=slot,
-                fixture=fixture_id,
-                total=self._total,
-            )
-
-    def finish_item(
-        self,
-        fixture_id: str,
-        *,
-        ok: bool = True,
-        slot: int | None = None,
-        input_tokens: int = 0,
-        output_tokens: int = 0,
-        total_cost_usd: float = 0.0,
-    ) -> None:
-        """Mark a fixture as done (advances the parent bar / emits a log line)."""
-        import time
-
-        elapsed = time.perf_counter() - self._start_times.pop(fixture_id, time.perf_counter())
-        if ok:
-            self._completed += 1
-        else:
-            self._failed += 1
-        self._total_input_tokens += input_tokens
-        self._total_output_tokens += output_tokens
-        self._total_cost_usd += total_cost_usd
-        ts = _utc_now_iso()
-        label = self._format_label(fixture_id, slot)
-
-        if self._mode in (ProgressMode.SCREEN, ProgressMode.RICH):
-            self._active.pop(fixture_id, None)
-            self._recent.append(
-                {
-                    "ts": ts,
-                    "ok": ok,
-                    "slot": slot,
-                    "label": label,
-                    "fixture_id": fixture_id,
-                    "elapsed": elapsed,
-                    "input_tokens": input_tokens,
-                    "output_tokens": output_tokens,
-                    "total_cost_usd": total_cost_usd,
-                }
-            )
-            if self._parent_progress is not None and self._parent_task is not None:
-                self._parent_progress.update(self._parent_task, advance=1)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-            self._refresh()
-        elif self._mode is ProgressMode.PLAIN:
-            status = "ok" if ok else "FAIL"
-            tok_str = (
-                f"  in={input_tokens:,} out={output_tokens:,}"
-                if (input_tokens or output_tokens)
-                else ""
-            )
-            cost_str = f"  ${total_cost_usd:.4f}" if total_cost_usd else ""
-            err_console.out(f"[{ts}] done   {label}  {status}  {elapsed:.1f}s{tok_str}{cost_str}")
-        elif self._mode is ProgressMode.JSON:
-            self._emit_json(
-                event="done",
-                ts=ts,
-                slot=slot,
-                fixture=fixture_id,
-                ok=ok,
-                elapsed_seconds=round(elapsed, 3),
-                total=self._total,
-                completed=self._completed + self._failed,
-                input_tokens=input_tokens,
-                output_tokens=output_tokens,
-                total_cost_usd=total_cost_usd,
-            )
-
-    # ------------------------------------------------------------------
-    # internals
-    # ------------------------------------------------------------------
-
-    def _format_label(self, fixture_id: str, slot: int | None) -> str:
-        """Render a fixture id with optional ``[wN]`` slot prefix and padding."""
-        pad = max(self._id_pad, len(fixture_id))
-        fid = f"{fixture_id:<{pad}}" if pad else fixture_id
-        return f"[w{slot}] {fid}" if slot is not None else fid
-
-    def _emit_json(self, **payload: object) -> None:
-        """Serialise a JSON event to stderr."""
-        import json as _json
-
-        err_console.out(_json.dumps(payload, separators=(",", ":")))
-
-    def _refresh(self) -> None:
-        """Re-render the screen dashboard if Live is active."""
-        if self._live is None or self._mode not in (
-            ProgressMode.SCREEN,
-            ProgressMode.RICH,
-        ):
-            return
-        with contextlib.suppress(Exception):
-            self._live.update(self._build_screen_renderable())  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-
-    def _build_screen_renderable(self, width: int | None = None) -> object:
-        """Return the dashboard renderable for screen-backed Live."""
-        import time as _time
-
-        from rich.panel import Panel
-        from rich.rule import Rule
-        from rich.text import Text
-
-        # Detect terminal width for responsive layout
-        if width is None:
-            if self._live is not None:
-                with contextlib.suppress(Exception):
-                    width = self._live.console.size.width
-            if width is None:
-                width = err_console.width or 120
-
-        elapsed = _time.perf_counter() - self._run_start_perf
-        done = self._completed + self._failed
-
-        # §4-A Structured summary bar (Table.grid, grouped key/value pairs)
-        pct = f"{100 * done // self._total}%" if self._total else "—"
-        ok_part = Text(f"✓ {self._completed}", style="green")
-        fail_text = f"✗ {self._failed}"
-        fail_part = Text(fail_text, style="red") if self._failed > 0 else Text(fail_text)
-        outcomes_val = Text.assemble(ok_part, "  ", fail_part)
-
-        throughput_k: str = ""
-        throughput_v: str = ""
-        if self._total_input_tokens or self._total_output_tokens or self._total_cost_usd:
-            tok_in = self._fmt_tokens_human(self._total_input_tokens)
-            tok_out = self._fmt_tokens_human(self._total_output_tokens)
-            throughput_k = "Throughput"
-            throughput_v = f"{tok_in} in / {tok_out} out  ${self._total_cost_usd:.4f}"
-
-        summary = Table.grid(padding=(0, 2))
-        for _ in range(6):
-            summary.add_column(no_wrap=True)
-        summary.add_row(
-            "[bold cyan]Progress[/bold cyan]",
-            f"{done}/{self._total} ({pct})",
-            "[bold cyan]Outcomes[/bold cyan]",
-            outcomes_val,
-            f"[bold cyan]{throughput_k}[/bold cyan]" if throughput_k else "",
-            throughput_v,
-        )
-        summary.add_row(
-            "[bold cyan]Elapsed[/bold cyan]",
-            self._fmt_seconds(elapsed),
-            "[bold cyan]ETA[/bold cyan]",
-            self._calc_eta(elapsed),
-            "[bold cyan]Concurrency[/bold cyan]",
-            str(self._concurrency),
-        )
-
-        # §4-B §4-C §4-D §4-J: aligned leading columns, responsive breakpoints
-        now = _time.perf_counter()
-        compact = width < 80  # §4-J: compact single-line form
-        include_time = width >= 100  # §4-J: drop time col when < 100
-        collapse_tokens = width < 100  # §4-J: collapse in+out sum when < 100
-        include_cost = width >= 120  # §4-J: cost col only in full layout
-
-        # -- Active table: status | worker | fixture | elapsed --
-        if compact:
-            active_tbl = Table.grid(padding=(0, 1))
-            active_tbl.add_column(width=1)
-            active_tbl.add_column(width=4)
-            active_tbl.add_column(no_wrap=True, overflow="ellipsis", max_width=max(width - 15, 10))
-            active_tbl.add_column(justify="right", width=7)
-        else:
-            active_tbl = Table(
-                title="Active", title_style="bold cyan", expand=True, show_edge=False
-            )
-            active_tbl.add_column("", width=1)
-            active_tbl.add_column("worker", width=6)
-            active_tbl.add_column("fixture", no_wrap=True, overflow="ellipsis", ratio=1)
-            active_tbl.add_column("elapsed", justify="right", width=8)
-
-        if self._active:
-            for state in self._active.values():
-                a_slot = state.get("slot")
-                wstr = f"w{a_slot}" if a_slot is not None else "—"
-                fid = str(state.get("fixture_id", ""))
-                start = float(state.get("start", now))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-                active_tbl.add_row("●", wstr, fid, self._fmt_seconds(now - start))
-        else:
-            active_tbl.add_row("", "—", "(idle)", "—")
-
-        # -- Recent table: status | worker | fixture | elapsed [| time] [| in+out|tokens] [| cost] --
-        if compact:
-            recent_tbl = Table.grid(padding=(0, 1))
-            recent_tbl.add_column(width=1)
-            recent_tbl.add_column(width=4)
-            recent_tbl.add_column(no_wrap=True, overflow="ellipsis", max_width=max(width - 15, 10))
-            recent_tbl.add_column(justify="right", width=7)
-        else:
-            recent_tbl = Table(
-                title=f"Recent completions (last {self._RECENT_LEDGER_MAX})",
-                title_style="bold cyan",
-                expand=True,
-                show_edge=False,
-            )
-            recent_tbl.add_column("", width=1)
-            recent_tbl.add_column("worker", width=6)
-            recent_tbl.add_column("fixture", no_wrap=True, overflow="ellipsis", ratio=1)
-            recent_tbl.add_column("elapsed", justify="right", width=8)
-            if include_time:
-                recent_tbl.add_column("time", justify="right", width=8)
-            recent_tbl.add_column(
-                "tokens" if collapse_tokens else "in+out",
-                justify="right",
-                width=10 if collapse_tokens else 14,
-            )
-            if include_cost:
-                recent_tbl.add_column("cost", justify="right", width=9)
-
-        if self._recent:
-            for entry in self._recent:
-                ok = bool(entry.get("ok", True))
-                marker = Text("✓", style="green") if ok else Text("✗", style="red")
-                r_slot = entry.get("slot")
-                wstr = f"w{r_slot}" if r_slot is not None else "—"
-                fid = str(entry.get("fixture_id", ""))
-                elapsed_e = float(entry.get("elapsed", 0.0))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-                if compact:
-                    recent_tbl.add_row(marker, wstr, fid, self._fmt_seconds(elapsed_e))
-                else:
-                    in_tok = int(entry.get("input_tokens", 0))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-                    out_tok = int(entry.get("output_tokens", 0))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-                    cost_val = float(entry.get("total_cost_usd", 0.0))  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-                    ts = str(entry.get("ts", ""))
-                    row: list[object] = [marker, wstr, fid, self._fmt_seconds(elapsed_e)]
-                    if include_time:
-                        row.append(self._fmt_ts_compact(ts))
-                    if collapse_tokens:
-                        combined = in_tok + out_tok
-                        row.append(self._fmt_tokens_human(combined) if combined else "—")
-                    else:
-                        row.append(
-                            f"{self._fmt_tokens_human(in_tok)}+{self._fmt_tokens_human(out_tok)}"
-                            if (in_tok or out_tok)
-                            else "—"
-                        )
-                    if include_cost:
-                        row.append(f"${cost_val:.4f}" if cost_val else "—")
-                    recent_tbl.add_row(*row)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-        else:
-            if compact:
-                recent_tbl.add_row("", "—", "(none yet)", "—")
-            else:
-                empty: list[object] = ["", "—", "(none yet)", "—"]
-                if include_time:
-                    empty.append("—")
-                empty.append("—")
-                if include_cost:
-                    empty.append("—")
-                recent_tbl.add_row(*empty)  # type: ignore[arg-type]  # ty:ignore[invalid-argument-type]
-
-        footer = "[dim]Ctrl-C cancels. Use --debug to replay captured SDK output on failure.[/dim]"
-
-        # §4-H section separators between summary, active, recent
-        body = Group(
-            summary,
-            self._parent_progress if self._parent_progress is not None else Table.grid(),
-            Rule(style="blue dim"),
-            active_tbl,
-            Rule(style="blue dim"),
-            recent_tbl,
-            Rule(style="blue dim"),
-            footer,
-        )
-        # §4-F: Panel title is the single source of the description
-        return Panel(body, title=self._description, border_style="blue")
-
-    @staticmethod
-    def _fmt_seconds(seconds: float) -> str:
-        """Format a duration as H:MM:SS or MM:SS."""
-        if seconds < 0:
-            seconds = 0.0
-        total = int(seconds)
-        h, rem = divmod(total, 3600)
-        m, s = divmod(rem, 60)
-        if h:
-            return f"{h}:{m:02d}:{s:02d}"
-        return f"{m}:{s:02d}"
-
-    def _calc_eta(self, elapsed: float) -> str:
-        """Compute ETA string from completed-rate x remaining items."""
-        done = self._completed + self._failed
-        if done == 0 or self._total == 0:
-            return "—"
-        remaining = self._total - done
-        if remaining <= 0:
-            return "done"
-        eta_s = (elapsed / done) * remaining
-        return "~" + self._fmt_seconds(eta_s)
-
-    @staticmethod
-    def _fmt_tokens_human(n: int) -> str:
-        """Format token count as e.g. '11.2k', '1.4M'."""
-        if n >= 1_000_000:
-            return f"{n / 1_000_000:.1f}M"
-        if n >= 1_000:
-            return f"{n / 1_000:.1f}k"
-        return str(n)
-
-    @staticmethod
-    def _fmt_ts_compact(ts_iso: str) -> str:
-        """Extract HH:MM:SS from ISO UTC timestamp (e.g. '2026-06-11T20:48:49Z')."""
-        if len(ts_iso) >= 19 and ts_iso[10] == "T":
-            return ts_iso[11:19]
-        return ts_iso
+def _log_run_summary(
+    name: str, *, succeeded: int, failed: int, wall_seconds: float | None = None
+) -> None:
+    """Emit the per-run summary line."""
+    total = succeeded + failed
+    tail = f" in {wall_seconds:.2f}s" if wall_seconds is not None else ""
+    log_info(f"{name}: {succeeded}/{total} succeeded{tail}")
 
 
 # ---------------------------------------------------------------------------
@@ -672,45 +210,19 @@ def validate_fixtures_cmd(
             help="Print full Python traceback for each failure (verbose mode).",
         ),
     ] = False,
-    progress: Annotated[
-        str,
-        typer.Option(
-            "--progress",
-            "-P",
-            help=(
-                "Progress UI mode: auto|screen|rich|plain|json|none. Auto "
-                "(default) shows a Rich alternate-screen dashboard on a TTY "
-                "and is silent when piped/CI/NO_COLOR. ``screen`` and ``rich`` "
-                "both select the alternate-screen dashboard. Bare ``-P`` is "
-                "an alias for ``screen``."
-            ),
-        ),
-    ] = "auto",
-    no_progress: Annotated[
-        bool,
-        typer.Option(
-            "--no-progress",
-            help="Alias for ``--progress=none``. Disables the live UI.",
-        ),
-    ] = False,
 ) -> None:
     """Run the trigger-evidence invariant; no agent invocation.
 
     By default, reports every failing fixture (path + id + message) instead
     of bailing on the first error, so a single run shows all problems.
     Pass ``--debug`` / ``-v`` to also print the full Python traceback for
-    each failure. The ``--progress`` flag controls the live UI mode (see
-    ``--help`` for accepted values).
+    each failure.
     """
     import traceback
 
     import yaml as _yaml
 
     from ai_rules.rule_loader_eval.fixtures import _parse_fixture, validate_fixture
-
-    if no_progress:
-        progress = "none"
-    mode = resolve_progress_mode(progress)
 
     root = find_project_root()
     fixtures_dir = _fixtures_dir(root)
@@ -733,34 +245,34 @@ def validate_fixtures_cmd(
     failures: list[tuple[Path, str, str]] = []  # (relative path, id, message)
     passed = 0
 
-    with ProgressTracker(total=len(yaml_paths), mode=mode, description="validate") as tracker:
-        for path in yaml_paths:
-            rel = path.relative_to(root) if path.is_relative_to(root) else path
-            raw_id: str = path.stem
-            ok = True
-            tracker.start_item(path.stem)
-            try:
-                with path.open(encoding="utf-8") as fh:
-                    raw = _yaml.safe_load(fh)
-                if isinstance(raw, dict) and isinstance(raw.get("id"), str):
-                    raw_id = raw["id"]
-                fixture = _parse_fixture(path, raw)
-                validate_fixture(fixture, rules)
-                passed += 1
-            except FixtureValidationError as exc:
-                failures.append((rel, raw_id, str(exc)))
-                ok = False
-                if debug:
-                    err_console.print(f"[dim]── traceback for {rel}[/dim]")
-                    err_console.print(traceback.format_exc())
-            except Exception as exc:
-                failures.append((rel, raw_id, f"unexpected error: {exc!r}"))
-                ok = False
-                if debug:
-                    err_console.print(f"[dim]── traceback for {rel}[/dim]")
-                    err_console.print(traceback.format_exc())
-            finally:
-                tracker.finish_item(path.stem, ok=ok)
+    _log_run_banner("validate", pid=os.getpid(), concurrency=1, total=len(yaml_paths))
+    for path in yaml_paths:
+        rel = path.relative_to(root) if path.is_relative_to(root) else path
+        raw_id: str = path.stem
+        ok = True
+        _log_item_start(path.stem)
+        try:
+            with path.open(encoding="utf-8") as fh:
+                raw = _yaml.safe_load(fh)
+            if isinstance(raw, dict) and isinstance(raw.get("id"), str):
+                raw_id = raw["id"]
+            fixture = _parse_fixture(path, raw)
+            validate_fixture(fixture, rules)
+            passed += 1
+        except FixtureValidationError as exc:
+            failures.append((rel, raw_id, str(exc)))
+            ok = False
+            if debug:
+                err_console.print(f"[dim]── traceback for {rel}[/dim]")
+                err_console.print(traceback.format_exc())
+        except Exception as exc:
+            failures.append((rel, raw_id, f"unexpected error: {exc!r}"))
+            ok = False
+            if debug:
+                err_console.print(f"[dim]── traceback for {rel}[/dim]")
+                err_console.print(traceback.format_exc())
+        finally:
+            _log_item_finish(path.stem, ok=ok)
 
     if failures:
         for rel, fid, msg in failures:
@@ -1001,28 +513,27 @@ def _run_single_eval(
     max_turns: int,
     effort: str,
     model: str,
-    mode: ProgressMode,
     debug: bool,
     out_dir: Path | None,
     label: str,
     run_number: int | None = None,
     concurrency: int = 1,
+    pass_writer: RunPassWriter | None = None,
 ) -> tuple[list[RunResult], bool]:
     """Execute a single eval pass. Returns (results, is_infra_error).
 
     Fixtures are evaluated through the shared concurrent driver capped at
     ``concurrency`` in-flight (``1`` = sequential). Results are re-sorted to input
     fixture order before printing/snapshot so output is deterministic regardless
-    of completion order. The unified ``ProgressTracker`` is driven with
-    ``start_run`` + per-fixture ``slot`` in every mode (including ``concurrency==1``).
+    of completion order. Progress is reported as plain per-fixture start/finish
+    lines on stderr (harness-eval-bench style); the streaming ``results/``
+    layout owned by ``pass_writer`` is the machine-readable interface.
 
     Fail-fast: the first ``InfraError`` aborts the pass (in-flight fixtures are
     cancelled, queued fixtures are skipped), the aborting fixture is recorded as a
     synthetic INFRA row, cancelled/queued fixtures are surfaced as diagnostics only
     (never as fixture failures or snapshot rows), and ``(results, True)`` is
     returned so the caller skips the snapshot and aborts remaining runs.
-
-    When ``run_number`` is set, it is displayed in the progress description.
     """
     from ai_rules.rule_loader_eval.concurrency import run_concurrent
     from ai_rules.rule_loader_eval.engine import InfraError, run_fixture_async
@@ -1031,7 +542,6 @@ def _run_single_eval(
     desc = f"eval run {run_number}" if run_number is not None else "eval"
     rules_meta = load_rules_metadata(_rules_dir(root))
     index_by_id = {f.id: i for i, f in enumerate(fixtures)}
-    id_pad = max((len(f.id) for f in fixtures), default=0)
 
     async def _work(fixture: Fixture, slot: int) -> RunResult:
         return await run_fixture_async(
@@ -1049,35 +559,43 @@ def _run_single_eval(
         # Non-aborting (non-Infra) per-fixture error -> synthetic FAIL row.
         return _synth(fixture, exc)
 
+    def _on_start(fixture: Fixture, slot: int) -> None:
+        _log_item_start(fixture.id)
+        if pass_writer is not None:
+            pass_writer.mark_fixture_started(fixture.id)
+
+    def _on_outcome(result: RunResult, slot: int) -> None:
+        run = result.run
+        _log_item_finish(
+            result.fixture_id,
+            ok=result.passed,
+            input_tokens=run.input_tokens if run else 0,
+            output_tokens=run.output_tokens if run else 0,
+            total_cost_usd=run.total_cost_usd if run else 0.0,
+            duration_ms=run.duration_ms if run else 0,
+        )
+        # Stream transcript then write fixture result. Ordering matches §7.5:
+        # transcript first, then <id>.json, then run_meta.json flips to
+        # `completed` inside write_fixture_result.
+        if pass_writer is not None and run is not None:
+            try:
+                pass_writer.write_transcript_from_events(result.fixture_id, run.events)
+                pass_writer.write_fixture_result(result)
+            except OSError as exc:
+                log_error(f"results/ writer error for {result.fixture_id}: {exc}")
+
+    _log_run_banner(desc, pid=os.getpid(), concurrency=concurrency, total=len(fixtures))
+
     try:
-        with ProgressTracker(
-            total=len(fixtures), mode=mode, description=desc, id_pad=id_pad
-        ) as tracker:
-            tracker.start_run(pid=os.getpid(), concurrency=concurrency)
-
-            def _on_start(fixture: Fixture, slot: int) -> None:
-                tracker.start_item(fixture.id, slot=slot)
-
-            def _on_outcome(result: RunResult, slot: int) -> None:
-                run = result.run
-                tracker.finish_item(
-                    result.fixture_id,
-                    ok=result.passed,
-                    slot=slot,
-                    input_tokens=run.input_tokens if run else 0,
-                    output_tokens=run.output_tokens if run else 0,
-                    total_cost_usd=run.total_cost_usd if run else 0.0,
-                )
-
-            summary = run_concurrent(
-                list(fixtures),
-                concurrency=concurrency,
-                work=_work,
-                exception_to_result=_exc_to_result,
-                should_abort_exception=lambda fixture, exc: isinstance(exc, InfraError),
-                on_start=_on_start,
-                on_outcome=_on_outcome,
-            )
+        summary = run_concurrent(
+            list(fixtures),
+            concurrency=concurrency,
+            work=_work,
+            exception_to_result=_exc_to_result,
+            should_abort_exception=lambda fixture, exc: isinstance(exc, InfraError),
+            on_start=_on_start,
+            on_outcome=_on_outcome,
+        )
     except RuntimeError as exc:
         log_error(str(exc))
         raise typer.Exit(EXIT_SDK_OR_CONN) from exc
@@ -1241,6 +759,149 @@ def _print_resource_summary(all_run_results: list[list[RunResult]]) -> None:
     console.print(table)
 
 
+def _write_pass_artifacts(
+    pass_writer: RunPassWriter,
+    results: list[RunResult],
+    *,
+    status: str,
+) -> None:
+    """Emit per-pass ``summary.json`` and flip ``run_meta.json`` to done.
+
+    Phase 2 helper. Derives per-pass counts + totals from the already-sorted
+    ``results`` list and delegates atomic writes to the writer. Kept small so
+    Phase 3 (TUI removal) can wire equivalent stderr summary lines without
+    touching this helper.
+    """
+    total = len(results)
+    passed = sum(1 for r in results if r.passed)
+    errors = sum(1 for r in results if getattr(r.run, "is_infra_error", False))
+    failed = total - passed - errors
+    failures = [r.fixture_id for r in results if not r.passed]
+
+    turns_total = 0
+    input_total = 0
+    output_total = 0
+    duration_total = 0
+    cost_total = 0.0
+    for r in results:
+        run = r.run
+        if run is None:
+            continue
+        turns_total += int(getattr(run, "turns", 0) or 0)
+        input_total += int(getattr(run, "input_tokens", 0) or 0)
+        output_total += int(getattr(run, "output_tokens", 0) or 0)
+        duration_total += int(getattr(run, "duration_ms", 0) or 0)
+        cost_total += float(getattr(run, "total_cost_usd", 0.0) or 0.0)
+
+    totals: dict[str, int | float] = {
+        "turns": turns_total,
+        "input_tokens": input_total,
+        "output_tokens": output_total,
+        "duration_ms": duration_total,
+        "total_cost_usd": cost_total,
+    }
+
+    pass_writer.write_pass_summary(
+        total=total,
+        passed=passed,
+        failed=failed,
+        errors=errors,
+        totals=totals,
+        failures=failures,
+    )
+    pass_writer.finalize_pass(status=status)
+
+
+def _write_aggregate_and_finalize(
+    writer: ResultsRunWriter,
+    all_run_results: list[list[RunResult]],
+    runs: int,
+    *,
+    status: str,
+) -> None:
+    """Compute per-fixture + aggregate totals and write run-root ``summary.json``.
+
+    Phase 2 helper. ``flake_score`` is the fraction of a fixture's runs whose
+    result differs from the modal result (§5.4 of the plan).
+    """
+    from collections import Counter
+
+    fixture_counts: dict[str, Counter[str]] = {}
+    fixture_totals: dict[str, int] = {}
+    total_cost = 0.0
+    total_input = 0
+    total_output = 0
+    total_duration = 0
+    total_signal_disagreements = 0
+    total_citation_drifts = 0
+
+    for pass_results in all_run_results:
+        for r in pass_results:
+            fixture_totals[r.fixture_id] = fixture_totals.get(r.fixture_id, 0) + 1
+            counter = fixture_counts.setdefault(r.fixture_id, Counter())
+            if getattr(r.run, "is_infra_error", False):
+                result_str = "error"
+            elif r.passed:
+                result_str = "pass"
+            else:
+                result_str = "fail"
+            counter[result_str] += 1
+
+            run = r.run
+            if run is not None:
+                total_cost += float(getattr(run, "total_cost_usd", 0.0) or 0.0)
+                total_input += int(getattr(run, "input_tokens", 0) or 0)
+                total_output += int(getattr(run, "output_tokens", 0) or 0)
+                total_duration += int(getattr(run, "duration_ms", 0) or 0)
+            report = getattr(r, "signal_report", None)
+            if report is not None:
+                disagreements = getattr(report, "disagreements", ())
+                total_signal_disagreements += len(disagreements) if disagreements else 0
+            total_citation_drifts += len(r.citation_drifts or ())
+
+    per_fixture: dict[str, dict[str, object]] = {}
+    flaky: list[str] = []
+    pass_rates: list[float] = []
+    for fid, counter in fixture_counts.items():
+        n = fixture_totals[fid]
+        passes = counter.get("pass", 0)
+        fails = counter.get("fail", 0) + counter.get("error", 0)
+        modal = counter.most_common(1)[0][1] if counter else n
+        flake_score = round((n - modal) / n, 3) if n else 0.0
+        pass_rate = round(passes / n, 3) if n else 0.0
+        per_fixture[fid] = {
+            "n_runs": n,
+            "passes": passes,
+            "fails": fails,
+            "flake_score": flake_score,
+            "pass_rate": pass_rate,
+        }
+        if 0 < passes < n:
+            flaky.append(fid)
+        pass_rates.append(pass_rate)
+
+    mean_pass_rate = round(sum(pass_rates) / len(pass_rates), 3) if pass_rates else 0.0
+
+    aggregate: dict[str, object] = {
+        "schema_version": "ai-rules-eval-aggregate/v1",
+        "runs": int(runs),
+        "fixture_count": len(fixture_counts),
+        "per_fixture": per_fixture,
+        "aggregate": {
+            "mean_pass_rate": mean_pass_rate,
+            "flaky_fixtures": sorted(flaky),
+            "total_cost_usd": total_cost,
+            "total_input_tokens": total_input,
+            "total_output_tokens": total_output,
+            "total_duration_ms": total_duration,
+            "total_signal_disagreements": total_signal_disagreements,
+            "total_citation_drifts": total_citation_drifts,
+        },
+    }
+    writer.write_aggregate_summary(aggregate)  # ty: ignore[invalid-argument-type]
+    writer.finalize(status=status)
+
+
 @rule_loader_app.command("eval")
 def eval_cmd(
     fixture_id: Annotated[
@@ -1261,9 +922,10 @@ def eval_cmd(
         typer.Option(
             "--out-dir",
             help=(
-                "Base directory for eval snapshots. With --runs > 1, each run "
-                "writes to <out-dir>-run-N. With --runs 1, writes directly to "
-                "this path. Auto-generates 'out/eval-run-N' when omitted."
+                "Root directory for streaming eval results (default: "
+                "'results/'). Each invocation creates a fresh "
+                "<model>_<runs>x_<timestamp>/ subdirectory here. "
+                "Overrides the AI_RULES_RESULTS_DIR env var when set."
             ),
         ),
     ] = None,
@@ -1271,7 +933,7 @@ def eval_cmd(
         str,
         typer.Option(
             "--label",
-            help="Base label stored in meta.json. With --runs > 1, '-run-N' is appended.",
+            help="Optional label recorded in manifest.json.",
         ),
     ] = "",
     runs: Annotated[
@@ -1300,30 +962,16 @@ def eval_cmd(
             help="Enable developer diagnostics (timing, signal disagreements, debug dump) to stderr.",
         ),
     ] = False,
-    progress: Annotated[
-        str,
-        typer.Option(
-            "--progress",
-            "-P",
-            help=(
-                "Progress UI mode: auto|screen|rich|plain|json|none. Auto "
-                "(default) shows a Rich alternate-screen dashboard on a TTY, "
-                "falls back to silent on pipes/CI. ``screen`` and ``rich`` "
-                "both select the alternate-screen dashboard."
-            ),
-        ),
-    ] = "auto",
-    no_progress: Annotated[
-        bool,
-        typer.Option("--no-progress", help="Alias for ``--progress=none``."),
-    ] = False,
 ) -> None:
     r"""Run fixtures through the live Cortex Code Agent SDK.
 
-    Executes --runs passes (default 3) to account for LLM variance.
-    Each run writes a snapshot to <out-dir>-run-N (auto-generated when
-    --out-dir is omitted). An aggregate summary table is printed after
-    all runs complete showing per-fixture pass rates.
+    Executes --runs passes (default 3) to account for LLM variance. Each
+    invocation writes to a fresh ``results/<model>_<runs>x_<timestamp>/``
+    directory (override with ``--out-dir`` or the ``AI_RULES_RESULTS_DIR``
+    env var). Per-fixture JSON + JSONL transcripts stream to disk as each
+    fixture finishes; a run-root ``summary.json`` aggregates across passes.
+    An aggregate summary table is also printed to stderr after all runs
+    complete showing per-fixture pass rates.
 
     Use ``--concurrency N`` to evaluate up to N fixtures in parallel WITHIN
     each run (default 1 = sequential; --runs still executes one pass at a
@@ -1331,8 +979,8 @@ def eval_cmd(
     are re-sorted to input-fixture order before tables/snapshots. Unlike
     ``refresh-all`` (default 2), eval defaults to 1 to preserve the
     sequential baseline; N>1 raises live SDK load. The first infra error
-    cancels in-flight fixtures, skips queued ones, skips the snapshot, and
-    aborts remaining runs.
+    cancels in-flight fixtures, skips queued ones, and aborts remaining
+    runs.
 
     Three checks are unconditional per fixture:
     1. Required + dependencies must all be present in the loaded set.
@@ -1357,7 +1005,7 @@ def eval_cmd(
 
     This runs a single fixture with low-effort (faster SDK responses) and
     no multi-run aggregation. Useful for rapid iteration during rule edits.
-    Expect higher variance — use ``--runs 3`` (default) for definitive results.
+    Expect higher variance -- use ``--runs 3`` (default) for definitive results.
     """
     if runs < 1:
         log_error("--runs must be >= 1")
@@ -1366,10 +1014,6 @@ def eval_cmd(
     if concurrency < 1:
         log_error("--concurrency must be >= 1")
         raise typer.Exit(EXIT_FIXTURE_INVALID)
-
-    if no_progress:
-        progress = "none"
-    mode = resolve_progress_mode(progress)
 
     root = find_project_root()
     resolved_connection = _require_connection_or_exit(connection)
@@ -1389,6 +1033,50 @@ def eval_cmd(
 
     _ensure_sdk_and_connection()
 
+    # Phase 2: streaming results/<run_dir>/ writer. Constructed once per
+    # invocation; per-pass writers threaded into _run_single_eval so
+    # transcript + <id>.json + run_meta.json are written incrementally as
+    # each fixture finishes. `--out-dir` (Phase 3) overrides the results
+    # root; env var `AI_RULES_RESULTS_DIR` is a secondary override.
+    from ai_rules import __version__ as _ai_rules_version
+    from ai_rules.rule_loader_eval.results_writer import (
+        ResultsRunWriter,
+        build_run_dir_name,
+        make_run_context,
+        resolve_results_root,
+    )
+
+    results_root = resolve_results_root(out_dir)
+    run_context = make_run_context(
+        model_requested=model,
+        effort=effort,
+        max_turns=max_turns,
+        strict_forbidden=strict_forbidden,
+        concurrency=concurrency,
+        runs_requested=runs,
+        label=label or None,
+        connection=resolved_connection,
+        ai_rules_version=_ai_rules_version,
+        fixture_selection=(fixture_id,) if fixture_id else ("all",),
+        fixture_count=len(fixtures),
+    )
+    _started_dt = datetime.fromisoformat(run_context.started_at)
+    _existing = (
+        {p.name for p in results_root.iterdir() if p.is_dir()} if results_root.exists() else set()
+    )
+    _run_dir_name = build_run_dir_name(
+        run_context.model_requested,
+        run_context.runs_requested,
+        _started_dt,
+        run_id=run_context.run_id,
+        existing=_existing,
+    )
+    results_writer = ResultsRunWriter(
+        root=results_root,
+        run_dir_name=_run_dir_name,
+        context=run_context,
+    )
+
     all_run_results: list[list[RunResult]] = []
     any_failure = False
 
@@ -1398,15 +1086,7 @@ def eval_cmd(
             log_info(f"Run {run_idx}/{runs}")
             log_info(f"{'═' * 60}")
 
-        if runs == 1:
-            run_out_dir = out_dir
-            run_label = label
-        else:
-            if out_dir is not None:
-                run_out_dir = Path(f"{out_dir}-run-{run_idx}")
-            else:
-                run_out_dir = Path(f"out/eval-run-{run_idx}")
-            run_label = f"{label}-run-{run_idx}" if label else f"run-{run_idx}"
+        pass_writer = results_writer.start_pass(run_idx)
 
         results, is_infra = _run_single_eval(
             fixtures=fixtures,
@@ -1416,20 +1096,23 @@ def eval_cmd(
             max_turns=max_turns,
             effort=effort,
             model=model,
-            mode=mode,
             debug=debug,
-            out_dir=run_out_dir,
-            label=run_label,
+            out_dir=None,
+            label=label,
             run_number=run_idx if runs > 1 else None,
             concurrency=concurrency,
+            pass_writer=pass_writer,
         )
         all_run_results.append(results)
+
+        _write_pass_artifacts(pass_writer, results, status="failed" if is_infra else "completed")
 
         if any(not r.passed for r in results):
             any_failure = True
 
         if is_infra:
             log_error(f"Infra error on run {run_idx}/{runs}. Aborting remaining runs.")
+            _write_aggregate_and_finalize(results_writer, all_run_results, runs, status="failed")
             raise typer.Exit(EXIT_INFRA_ERROR)
 
     if runs > 1:
@@ -1438,6 +1121,13 @@ def eval_cmd(
 
     console.print()
     _print_resource_summary(all_run_results)
+
+    _write_aggregate_and_finalize(
+        results_writer,
+        all_run_results,
+        runs,
+        status="failed" if any_failure else "completed",
+    )
 
     if any_failure:
         raise typer.Exit(EXIT_FIXTURE_FAIL)
@@ -1619,23 +1309,6 @@ def refresh_cmd(
             help="Enable developer diagnostics (timing, signal disagreements, debug dump) to stderr.",
         ),
     ] = False,
-    progress: Annotated[
-        str,
-        typer.Option(
-            "--progress",
-            "-P",
-            help=(
-                "Progress UI mode: auto|screen|rich|plain|json|none. Auto "
-                "(default) shows a Rich alternate-screen dashboard on a TTY. "
-                "``screen`` and ``rich`` both select the alternate-screen "
-                "dashboard."
-            ),
-        ),
-    ] = "auto",
-    no_progress: Annotated[
-        bool,
-        typer.Option("--no-progress", help="Alias for ``--progress=none``."),
-    ] = False,
 ) -> None:
     """Re-run an existing fixture and report drift, optionally rewriting it.
 
@@ -1650,45 +1323,19 @@ def refresh_cmd(
     and custom ordering are lost.
 
     Pass ``--debug`` to also print the full debug dump and per-event
-    timing trace to stderr. The ``--progress`` flag controls the live
-    UI mode (auto|screen|rich|plain|json|none).
+    timing trace to stderr.
     """
     if not fixture_path.exists():
         log_error(f"fixture file not found: {fixture_path}")
         raise typer.Exit(EXIT_FIXTURE_INVALID)
-
-    if no_progress:
-        progress = "none"
-    mode = resolve_progress_mode(progress)
 
     prompt = read_prompt(fixture_path)
     fixture_id = _extract_id(fixture_path)
     variant = _extract_variant(fixture_path)
 
     fid_for_progress = fixture_id or fixture_path.stem
-    if mode is not ProgressMode.NONE:
-        with ProgressTracker(total=1, mode=mode, description="refresh") as tracker:
-            tracker.start_item(fid_for_progress)
-            try:
-                run = _drive_live(
-                    fid_for_progress,
-                    prompt,
-                    max_turns=max_turns,
-                    effort=effort,
-                    model=model,
-                    connection=connection,
-                )
-                tracker.finish_item(
-                    fid_for_progress,
-                    ok=True,
-                    input_tokens=run.input_tokens,
-                    output_tokens=run.output_tokens,
-                    total_cost_usd=run.total_cost_usd,
-                )
-            except Exception:
-                tracker.finish_item(fid_for_progress, ok=False)
-                raise
-    else:
+    _log_item_start(fid_for_progress)
+    try:
         run = _drive_live(
             fid_for_progress,
             prompt,
@@ -1697,6 +1344,16 @@ def refresh_cmd(
             model=model,
             connection=connection,
         )
+        _log_item_finish(
+            fid_for_progress,
+            ok=True,
+            input_tokens=run.input_tokens,
+            output_tokens=run.output_tokens,
+            total_cost_usd=run.total_cost_usd,
+        )
+    except Exception:
+        _log_item_finish(fid_for_progress, ok=False)
+        raise
     root = find_project_root()
     if write:
         updated_value = current_updated_timestamp()
@@ -1809,24 +1466,6 @@ def refresh_all_cmd(
             help="Enable developer diagnostics (timing, signal disagreements, debug dump) to stderr per fixture.",
         ),
     ] = False,
-    progress: Annotated[
-        str,
-        typer.Option(
-            "--progress",
-            "-P",
-            help=(
-                "Progress UI mode: auto|screen|rich|plain|json|none. Auto "
-                "(default) shows a Rich alternate-screen dashboard with the "
-                "active fixtures and a recent-completions ledger; falls back "
-                "to silent when piped/CI/NO_COLOR. ``screen`` and ``rich`` "
-                "both select the alternate-screen dashboard."
-            ),
-        ),
-    ] = "auto",
-    no_progress: Annotated[
-        bool,
-        typer.Option("--no-progress", help="Alias for ``--progress=none``."),
-    ] = False,
 ) -> None:
     """Batch-capture or refresh fixtures concurrently against the live SDK.
 
@@ -1834,27 +1473,21 @@ def refresh_all_cmd(
     to ``--all`` when neither is given), drives each through
     ``run_live_async`` (capped by ``--concurrency``), and writes regenerated
     skeletons either to ``--out-dir`` (per-fixture files + ``summary.json``)
-    or stdout.
-
-    When ``--progress`` is active (default on a TTY) and ``--out-dir`` is
-    omitted, YAML payload is spooled to a bounded temp file (1 MB in RAM,
-    spills to disk above) and replayed to stdout only when stdout is a pipe;
-    on an interactive TTY a one-line "wrote N fixtures" hint is shown
-    instead, leaving the bar's scrollback uncluttered.
+    or stdout. When ``--out-dir`` is set the SDK is silenced so stderr
+    stays clean; without ``--out-dir`` the YAML payload streams to stdout
+    alongside SDK output.
 
     Pass ``--debug`` to also print the full debug dump and per-event
     timing trace for each fixture to stderr (and to replay any captured
-    SDK chatter that was hidden while the bar was active).
+    SDK chatter).
 
     Exit codes:
-    - ``0`` — every fixture succeeded.
-    - ``1`` — at least one fixture failed.
-    - ``3`` — SDK / connection error.
-    - ``4`` — invalid arguments (e.g., concurrency < 1, no fixtures matched).
+    - ``0`` -- every fixture succeeded.
+    - ``1`` -- at least one fixture failed.
+    - ``3`` -- SDK / connection error.
+    - ``4`` -- invalid arguments (e.g., concurrency < 1, no fixtures matched).
     """
     import json
-    import shutil
-    import tempfile
 
     from ai_rules.rule_loader_eval.batch import (
         BatchItem,
@@ -1865,10 +1498,6 @@ def refresh_all_cmd(
         validate_unique_output_names,
     )
     from ai_rules.rule_loader_eval.sdk_capture import quiet_sdk
-
-    if no_progress:
-        progress = "none"
-    mode = resolve_progress_mode(progress)
 
     # R6: default to --all when neither flag is given. Mutex remains in force.
     if glob is None and not all_fixtures:
@@ -1906,31 +1535,16 @@ def refresh_all_cmd(
 
     _ensure_sdk_and_connection()
 
-    # Run-start header: pid for cross-instance disambiguation, concurrency
-    # so the user sees how many slots are in play, total for capacity.
-    log_info(f"refresh-all  pid={os.getpid()}  concurrency={concurrency}  total={len(items)}")
+    _log_run_banner("refresh-all", pid=os.getpid(), concurrency=concurrency, total=len(items))
 
     if out_dir is not None:
         out_dir.mkdir(parents=True, exist_ok=True)
 
-    # R3: when progress is active and no --out-dir, spool YAML to a bounded
-    # temp file and replay only when stdout is non-TTY.
-    payload_spool: tempfile.SpooledTemporaryFile | None = None
-    if out_dir is None and mode is not ProgressMode.NONE:
-        payload_spool = tempfile.SpooledTemporaryFile(  # noqa: SIM115
-            max_size=1_048_576, mode="w+", encoding="utf-8"
-        )
-
-    # When SDK chatter is being captured, the test/runtime sys.stdout is
-    # swapped to a buffer; bypass that with sys.__stdout__ so YAML payload
-    # still reaches the real terminal / pipe. When NOT capturing, prefer the
-    # current sys.stdout so test runners (Click's CliRunner) see the output.
-    capture_sdk = mode not in (ProgressMode.NONE, ProgressMode.JSON)
+    # Capture SDK chatter only when --out-dir is set (§6.2 explicit capture
+    # logic). Without --out-dir the YAML payload streams to the user's
+    # stdout, so muting the SDK gains nothing and just hides diagnostics.
+    capture_sdk = out_dir is not None
     payload_stdout = sys.__stdout__ if capture_sdk else sys.stdout
-
-    # Pad child fixture-id descriptions to the longest id for tidy alignment
-    # as concurrent children come and go.
-    id_pad = max((len(it.id) for it in items), default=0)
 
     # Round-trip validation gate state: track per-fixture invariant
     # failures so the refresh-all output is a hard contract. A fixture
@@ -1943,7 +1557,7 @@ def refresh_all_cmd(
     auto_demote_count: dict[str, int] = {"n": 0}
 
     def _on_start(item: BatchItem, slot: int) -> None:
-        tracker.start_item(item.id, slot=slot)
+        _log_item_start(item.id)
 
     def _on_outcome(outcome: BatchOutcome, slot: int) -> None:
         finish_called = False
@@ -1986,12 +1600,9 @@ def refresh_all_cmd(
                     )
                 for err in invariant_errors:
                     log_warning(f"  - {err}")
-                # Mark the outcome as failed for tracker reporting so the
-                # progress UI reflects the refusal-to-overwrite.
-                tracker.finish_item(
+                _log_item_finish(
                     outcome.item.id,
                     ok=False,
-                    slot=slot,
                     input_tokens=outcome.run.input_tokens,
                     output_tokens=outcome.run.output_tokens,
                     total_cost_usd=outcome.run.total_cost_usd,
@@ -2012,10 +1623,8 @@ def refresh_all_cmd(
                 (out_dir / f"{outcome.item.safe_id}.yaml").write_text(
                     snippet + "\n", encoding="utf-8"
                 )
-            elif payload_spool is not None:
-                payload_spool.write(f"# fixture: {outcome.item.id}\n{snippet}\n\n")
             else:
-                # ProgressMode.NONE + no out_dir: stream straight to stdout.
+                # No --out-dir: stream YAML straight to stdout alongside SDK output.
                 print(f"# fixture: {outcome.item.id}", file=payload_stdout)
                 print(snippet, file=payload_stdout)
                 print(file=payload_stdout)
@@ -2024,78 +1633,61 @@ def refresh_all_cmd(
         finally:
             if not finish_called:
                 _run = outcome.run
-                tracker.finish_item(
+                _log_item_finish(
                     outcome.item.id,
                     ok=outcome.succeeded,
-                    slot=slot,
                     input_tokens=_run.input_tokens if _run else 0,
                     output_tokens=_run.output_tokens if _run else 0,
                     total_cost_usd=_run.total_cost_usd if _run else 0.0,
                 )
 
-    # R2: suppress SDK chatter while progress UI is active. quiet_sdk is a
-    # no-op when capture=False. Top-level try/except handles SIGINT
-    # (KeyboardInterrupt) so the Live region tears down cleanly via its
-    # __exit__, restoring the terminal before the process exits.
-    #
-    # Replay-after-exit policy: SDK buffer replay must NOT happen inside the
-    # ProgressTracker context, because in SCREEN mode the alternate screen
-    # discards anything written there on exit. Capture the buffer text and
-    # any deferred error/exception, then replay (and re-raise) after the
-    # tracker has torn down.
+    # Suppress SDK chatter only when --out-dir is set (quiet_sdk is a no-op
+    # when capture=False). Top-level try/except handles SIGINT so
+    # KeyboardInterrupt still surfaces cleanly.
     sdk_replay_text: str = ""
     summary = None
     pending_runtime_error: RuntimeError | None = None
     pending_other: BaseException | None = None
     try:
-        with ProgressTracker(
-            total=len(items), mode=mode, description="refresh-all", id_pad=id_pad
-        ) as tracker:
-            tracker.start_run(pid=os.getpid(), concurrency=concurrency)
-            with quiet_sdk(capture=capture_sdk) as sdk_buf:
-                try:
-                    summary = run_batch(
-                        items,
-                        concurrency=concurrency,
-                        project_root=root,
-                        max_turns=max_turns,
-                        effort=effort,
-                        model=model,
-                        connection=connection,
-                        on_start=_on_start,
-                        on_outcome=_on_outcome,
-                    )
-                except RuntimeError as exc:
-                    pending_runtime_error = exc
-                except KeyboardInterrupt:
-                    # asyncio.run translates SIGINT to CancelledError inside
-                    # gather; in-flight tasks are cancelled fast.
-                    if sdk_buf is not None:
-                        sdk_replay_text = sdk_buf.getvalue()
-                    raise
-                except Exception as exc:
-                    pending_other = exc
-                else:
-                    if debug and sdk_buf is not None:
-                        sdk_replay_text = sdk_buf.getvalue()
-                    assert summary is not None
-                    tracker.end_run(
-                        succeeded=summary.succeeded,
-                        failed=summary.failed,
-                        wall_seconds=summary.wall_seconds,
-                    )
-                if (
-                    pending_runtime_error is not None or pending_other is not None
-                ) and sdk_buf is not None:
+        with quiet_sdk(capture=capture_sdk) as sdk_buf:
+            try:
+                summary = run_batch(
+                    items,
+                    concurrency=concurrency,
+                    project_root=root,
+                    max_turns=max_turns,
+                    effort=effort,
+                    model=model,
+                    connection=connection,
+                    on_start=_on_start,
+                    on_outcome=_on_outcome,
+                )
+            except RuntimeError as exc:
+                pending_runtime_error = exc
+            except KeyboardInterrupt:
+                if sdk_buf is not None:
                     sdk_replay_text = sdk_buf.getvalue()
+                raise
+            except Exception as exc:
+                pending_other = exc
+            else:
+                if debug and sdk_buf is not None:
+                    sdk_replay_text = sdk_buf.getvalue()
+                assert summary is not None
+                _log_run_summary(
+                    "refresh-all",
+                    succeeded=summary.succeeded,
+                    failed=summary.failed,
+                    wall_seconds=summary.wall_seconds,
+                )
+            if (
+                pending_runtime_error is not None or pending_other is not None
+            ) and sdk_buf is not None:
+                sdk_replay_text = sdk_buf.getvalue()
     except KeyboardInterrupt:
-        # Tracker.__exit__ has already run -- terminal restored. Print a
-        # brief summary and exit with the POSIX SIGINT convention (130).
         if sdk_replay_text:
             _replay_text(sdk_replay_text)
         log_warning("interrupted by user; in-flight calls cancelled")
-        if payload_spool is not None:
-            payload_spool.close()
         raise typer.Exit(130) from None
 
     # Live has exited -- safe to replay captured SDK chatter and surface
@@ -2107,27 +1699,6 @@ def refresh_all_cmd(
         raise typer.Exit(EXIT_SDK_OR_CONN) from pending_runtime_error
     if pending_other is not None:
         raise pending_other
-
-    # R3: replay the spool only when stdout is non-TTY; on a TTY suppress and
-    # emit a one-line hint so the user isn't flooded with scrollback YAML.
-    if payload_spool is not None:
-        payload_spool.flush()
-        spool_size = payload_spool.tell()
-        payload_spool.seek(0)
-        # Use the real stdout for the isatty probe (the captured CliRunner
-        # stream pretends to be TTY-less, which is what we want there too).
-        real_stdout = sys.__stdout__
-        is_tty = real_stdout is not None and real_stdout.isatty()
-        if not is_tty and payload_stdout is not None:
-            shutil.copyfileobj(payload_spool, payload_stdout)
-        else:
-            assert summary is not None
-            log_info(
-                f"wrote {summary.total} fixture(s) to internal buffer "
-                f"({spool_size:,} bytes); re-run with `--out-dir <dir>` "
-                f"or pipe stdout to capture"
-            )
-        payload_spool.close()
 
     if out_dir is not None:
         assert summary is not None
@@ -2291,7 +1862,7 @@ def compare_cmd(
             "--alias-map",
             help=(
                 "JSON file mapping {old_rule_path: new_rule_path}. Used to "
-                "neutralize cosmetic renames (e.g. 002i -> 002-rule-governance) "
+                "neutralize cosmetic renames (e.g. old-rule.md -> new-rule.md) "
                 "so they do not show as drift. Optional."
             ),
         ),

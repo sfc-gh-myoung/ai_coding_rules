@@ -1,7 +1,6 @@
 """Extra unit tests for ai-rules rule-loader CLI, non-live paths.
 
 Covers:
-- resolve_progress_mode (pure function)
 - _resolve_connection (pure function)
 - _require_connection_or_exit (exit path)
 - eval_cmd early exits (--runs 0, no connection)
@@ -19,51 +18,17 @@ from ai_rules.cli import app
 from ai_rules.commands.rule_loader import (
     EXIT_FIXTURE_INVALID,
     EXIT_INFRA_ERROR,
-    ProgressMode,
     _require_connection_or_exit,
     _resolve_connection,
-    resolve_progress_mode,
 )
 
 runner = CliRunner(env={"NO_COLOR": "1", "CI": "true", "TERM": "dumb"})
 
 
 # ---------------------------------------------------------------------------
-# resolve_progress_mode — pure function
+# resolve_progress_mode was deleted in Phase 3; ProgressMode/ProgressTracker
+# tests removed. Coverage now lives in test_cli.py's help-flag assertions.
 # ---------------------------------------------------------------------------
-
-
-@pytest.mark.unit
-@pytest.mark.parametrize(
-    "value,expected",
-    [
-        ("screen", ProgressMode.SCREEN),
-        ("rich", ProgressMode.SCREEN),  # back-compat alias
-        ("plain", ProgressMode.PLAIN),
-        ("json", ProgressMode.JSON),
-        ("none", ProgressMode.NONE),
-    ],
-)
-def test_resolve_progress_mode_explicit(value: str, expected: ProgressMode) -> None:
-    assert resolve_progress_mode(value) == expected
-
-
-@pytest.mark.unit
-def test_resolve_progress_mode_auto_returns_valid_mode() -> None:
-    mode = resolve_progress_mode("auto")
-    assert mode in (ProgressMode.SCREEN, ProgressMode.NONE)
-
-
-@pytest.mark.unit
-def test_resolve_progress_mode_none_input_treated_as_auto() -> None:
-    mode = resolve_progress_mode(None)
-    assert mode in (ProgressMode.SCREEN, ProgressMode.NONE)
-
-
-@pytest.mark.unit
-def test_resolve_progress_mode_invalid_raises_bad_parameter() -> None:
-    with pytest.raises(typer.BadParameter, match="not recognised"):
-        resolve_progress_mode("bogus-mode")
 
 
 # ---------------------------------------------------------------------------
@@ -232,7 +197,7 @@ def test_eval_cmd_single_run_with_mocked_sdk(monkeypatch: pytest.MonkeyPatch) ->
     )
     result = runner.invoke(
         app,
-        ["rule-loader", "eval", "--runs", "1", "--no-progress"],
+        ["rule-loader", "eval", "--runs", "1"],
     )
     # Exit 0 = all fixtures pass; exit 1 = fixture failures (both are valid non-SDK paths)
     assert result.exit_code in (0, 1)
@@ -253,7 +218,7 @@ def test_eval_cmd_multi_run_with_mocked_sdk(monkeypatch: pytest.MonkeyPatch) -> 
     )
     result = runner.invoke(
         app,
-        ["rule-loader", "eval", "--runs", "2", "--no-progress"],
+        ["rule-loader", "eval", "--runs", "2"],
     )
     assert result.exit_code in (0, 1)
 
@@ -280,7 +245,6 @@ def test_eval_cmd_fixture_filter_with_mocked_sdk(monkeypatch: pytest.MonkeyPatch
             "simple-sql-procedure",
             "--runs",
             "1",
-            "--no-progress",
         ],
     )
     # May fail fixture validation if fixture doesn't exist — that's also valid

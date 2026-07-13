@@ -1,70 +1,10 @@
-"""Unit tests for _shared/console.py — covers lines 79 and 134-138."""
+"""Unit tests for _shared/console.py — covers err_console real-stderr branch."""
 
 from __future__ import annotations
 
 import sys
-from unittest.mock import MagicMock
 
 import pytest
-
-from ai_rules._shared.console import is_progress_capable
-
-# ---------------------------------------------------------------------------
-# is_progress_capable — lines 134-138
-# ---------------------------------------------------------------------------
-# Lines 132-133 (isatty() False path) are covered during normal test runs.
-# These tests cover the remaining branches reached only when isatty() is True.
-
-
-@pytest.mark.unit
-def test_is_progress_capable_false_when_ci_set(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Returns False when CI env var is set, even with a TTY. lines 134-135.."""
-    mock_stderr = MagicMock()
-    mock_stderr.isatty.return_value = True
-    monkeypatch.setattr(sys, "stderr", mock_stderr)
-    monkeypatch.setenv("CI", "true")
-    monkeypatch.delenv("NO_COLOR", raising=False)
-    monkeypatch.delenv("TERM", raising=False)
-    assert is_progress_capable() is False
-
-
-@pytest.mark.unit
-def test_is_progress_capable_false_when_no_color_set(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Returns False when NO_COLOR env var is set. lines 136-137.."""
-    mock_stderr = MagicMock()
-    mock_stderr.isatty.return_value = True
-    monkeypatch.setattr(sys, "stderr", mock_stderr)
-    monkeypatch.delenv("CI", raising=False)
-    monkeypatch.setenv("NO_COLOR", "1")
-    monkeypatch.delenv("TERM", raising=False)
-    assert is_progress_capable() is False
-
-
-@pytest.mark.unit
-def test_is_progress_capable_false_when_term_dumb(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Returns False when TERM=dumb. line 138, False branch.."""
-    mock_stderr = MagicMock()
-    mock_stderr.isatty.return_value = True
-    monkeypatch.setattr(sys, "stderr", mock_stderr)
-    monkeypatch.delenv("CI", raising=False)
-    monkeypatch.delenv("NO_COLOR", raising=False)
-    monkeypatch.setenv("TERM", "dumb")
-    assert is_progress_capable() is False
-
-
-@pytest.mark.unit
-def test_is_progress_capable_true_when_tty_and_no_blockers(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Returns True when TTY, no CI/NO_COLOR, and TERM is not 'dumb'. line 138, True branch.."""
-    mock_stderr = MagicMock()
-    mock_stderr.isatty.return_value = True
-    monkeypatch.setattr(sys, "stderr", mock_stderr)
-    monkeypatch.delenv("CI", raising=False)
-    monkeypatch.delenv("NO_COLOR", raising=False)
-    monkeypatch.setenv("TERM", "xterm-256color")
-    assert is_progress_capable() is True
-
 
 # ---------------------------------------------------------------------------
 # err_console real-stderr branch — line 79

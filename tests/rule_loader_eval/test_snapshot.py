@@ -111,25 +111,37 @@ def test_empty_summary() -> None:
 
 
 def test_meta_required_for_read(tmp_path: Path) -> None:
-    """read_eval_snapshot raises ValueError when meta.json is missing."""
-    with pytest.raises(ValueError, match="no meta.json"):
+    """read_eval_snapshot raises ValueError when manifest.json is missing (new layout)."""
+    with pytest.raises(ValueError, match="no manifest.json"):
         read_eval_snapshot(tmp_path)
 
 
 def test_unsupported_schema_version_rejected(tmp_path: Path) -> None:
-    """A snapshot with future schema_version is rejected."""
-    (tmp_path / "meta.json").write_text(json.dumps({"schema_version": 999}), encoding="utf-8")
+    """A snapshot manifest with an unsupported embedded snapshot_schema_version is rejected."""
+    (tmp_path / "manifest.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "ai-rules-eval-manifest/v1",
+                "snapshot_meta_extras": {"snapshot_schema_version": 999},
+            }
+        ),
+        encoding="utf-8",
+    )
     with pytest.raises(ValueError, match="unsupported snapshot schema_version"):
         read_eval_snapshot(tmp_path)
 
 
-def test_missing_eval_dir_returns_empty_fixtures(tmp_path: Path) -> None:
-    """A snapshot dir with meta.json but no eval/ subdir is valid (empty)."""
+def test_missing_fixtures_dir_returns_empty_fixtures(tmp_path: Path) -> None:
+    """A snapshot dir with manifest.json but no run-01/fixtures/ subdir is valid (empty)."""
     meta = SnapshotMeta(label="empty")
-    (tmp_path / "meta.json").write_text(json.dumps(meta.to_dict()), encoding="utf-8")
+    # Write a minimal new-layout manifest so read_eval_snapshot accepts the dir.
+    write_eval_snapshot(tmp_path, [], meta)
+    # Then remove the fixtures directory to simulate an incomplete write.
+    import shutil
+
+    shutil.rmtree(tmp_path / "run-01" / "fixtures", ignore_errors=True)
     snapshot = read_eval_snapshot(tmp_path)
     assert snapshot.fixtures == ()
-    assert snapshot.summary is None
 
 
 def test_capture_meta_populates_fields(tmp_path: Path) -> None:
@@ -151,16 +163,18 @@ def test_fixture_snapshot_to_dict_round_trip() -> None:
 
 
 def test_write_creates_summary_and_per_fixture_files(tmp_path: Path) -> None:
-    """Writing produces one JSON per fixture plus summary.json."""
+    """Writing produces one JSON per fixture plus per-pass + aggregate summary (new layout)."""
     rows = [_row("fx1"), _row("fx2"), _row("fx3", passed=False)]
     meta = SnapshotMeta(label="test")
     write_eval_snapshot(tmp_path, rows, meta)
-    eval_dir = tmp_path / "eval"
-    assert (eval_dir / "fx1.json").is_file()
-    assert (eval_dir / "fx2.json").is_file()
-    assert (eval_dir / "fx3.json").is_file()
-    assert (eval_dir / "summary.json").is_file()
-    assert (tmp_path / "meta.json").is_file()
+    fixtures_dir = tmp_path / "run-01" / "fixtures"
+    assert (fixtures_dir / "fx1.json").is_file()
+    assert (fixtures_dir / "fx2.json").is_file()
+    assert (fixtures_dir / "fx3.json").is_file()
+    assert (tmp_path / "run-01" / "summary.json").is_file()
+    assert (tmp_path / "run-01" / "run_meta.json").is_file()
+    assert (tmp_path / "summary.json").is_file()
+    assert (tmp_path / "manifest.json").is_file()
 
 
 def test_signal_investigation_fields_round_trip() -> None:

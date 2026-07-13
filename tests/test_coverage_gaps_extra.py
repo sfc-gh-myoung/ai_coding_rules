@@ -33,7 +33,7 @@ def test_validate_cmd_bulk_debug_schema_error(tmp_path: Path) -> None:
     )
 
     with patch("ai_rules.commands.rule_loader.find_project_root", return_value=tmp_path):
-        result = runner.invoke(app, ["rule-loader", "validate", "--no-progress", "--debug"])
+        result = runner.invoke(app, ["rule-loader", "validate", "--debug"])
     assert result.exit_code != 0
 
 
@@ -48,7 +48,7 @@ def test_validate_cmd_bulk_yaml_syntax_error(tmp_path: Path) -> None:
     (fixtures_dir / "bad-yaml.yaml").write_text("{: broken: [[", encoding="utf-8")
 
     with patch("ai_rules.commands.rule_loader.find_project_root", return_value=tmp_path):
-        result = runner.invoke(app, ["rule-loader", "validate", "--no-progress"])
+        result = runner.invoke(app, ["rule-loader", "validate"])
     assert result.exit_code != 0
 
 
@@ -62,7 +62,7 @@ def test_validate_cmd_bulk_yaml_error_with_debug(tmp_path: Path) -> None:
     (fixtures_dir / "bad-yaml.yaml").write_text("{: broken: [[", encoding="utf-8")
 
     with patch("ai_rules.commands.rule_loader.find_project_root", return_value=tmp_path):
-        result = runner.invoke(app, ["rule-loader", "validate", "--no-progress", "--debug"])
+        result = runner.invoke(app, ["rule-loader", "validate", "--debug"])
     assert result.exit_code != 0
 
 

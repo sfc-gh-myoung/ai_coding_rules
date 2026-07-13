@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `--out-dir` on `eval` is repurposed to override the results root (default `results/`); `AI_RULES_RESULTS_DIR` env var is a secondary override with CLI > env > default precedence.
 - New modules `src/ai_rules/rule_loader_eval/results_writer.py` + `results_schemas.py` own the `results/<run_dir>/` layout and JSON schemas (`ai-rules-eval-{manifest,run-meta,summary,aggregate,fixture}/v1`). Concurrency-safe via asyncio single-loop cooperative scheduling — synchronous writer methods are atomic; no explicit lock primitive.
 - `snapshot.py` migrated: `write_eval_snapshot` / `read_eval_snapshot` now use the new results/ layout on disk. `compare` and `merge-snapshots` operate against the new layout with unchanged in-memory dataclasses. Reading legacy `out/<label>/` snapshots is no longer supported — users re-run under the new layout.
-- **Deferred:** `refresh-all` snapshot output remains at `out/refresh-all/…`; migration to `results/` is a follow-on task.
+- **feat(rule-loader-eval):** `refresh-all --out-dir` now honors `AI_RULES_RESULTS_DIR` override precedence (CLI > env > None), matching `eval --out-dir` parity. `refresh-all` produces per-fixture regenerated YAML files + a refresh-specific `summary.json` — not eval snapshots — and streams to stdout when neither `--out-dir` nor `AI_RULES_RESULTS_DIR` is set. (Refs: `refresh-all-results-migration-v1` Phase 2, `c2ecafb` Phase 1.)
 - `results/` is gitignored.
 
 **TUI removed from all four rule-loader commands:**

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-10
-**Keywords:** ext:.md, kw:markdown, kw:pymarkdownlnt, kw:documentation, kw:markup validation
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:pymarkdownlnt, kw:markdown linting, kw:uvx pymarkdownlnt, kw:.pymarkdown.yml, kw:MD013 line length, kw:markdown automation integration, kw:TOML
 **TokenBudget:** ~2800
 **ContextTier:** Low
 **Depends:** required:202-markup-config-validation.md, optional:820-taskfile-automation.md

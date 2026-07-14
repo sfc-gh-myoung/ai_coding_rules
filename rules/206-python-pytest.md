@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:test, kw:coverage, kw:fixtures, kw:parametrization, kw:mocking, kw:test organization, kw:aaa pattern, kw:test markers, kw:uv run pytest, kw:unit test
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:pytest fixtures, kw:AAA pattern, kw:test parametrization, kw:uv run pytest, kw:test isolation, kw:flaky test protocol, kw:TOML
 **TokenBudget:** ~4950
 **ContextTier:** High
 **Depends:** required:000-global-core.md, required:200-python-core.md, optional:201-python-lint-format.md, optional:204-python-docs.md, optional:205-python-classes.md

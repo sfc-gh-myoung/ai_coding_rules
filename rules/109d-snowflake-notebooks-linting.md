@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.7
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:nbqa, kw:notebook-linting, kw:ruff, kw:code quality, kw:notebook formatting, kw:lint notebooks, kw:notebook validation
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:nbqa, kw:notebook linting, kw:Ruff notebook integration, kw:uvx nbqa commands, kw:notebook cell quality, kw:notebook automation targets, kw:TOML
 **TokenBudget:** ~3500
 **ContextTier:** Low
 **Depends:** required:109-snowflake-notebooks.md, required:201-python-lint-format.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:ruff, kw:formatting, kw:code quality, kw:style checking, kw:lint errors, kw:ruff check, kw:ruff format, kw:pyproject.toml configuration, kw:black, kw:flake8
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Ruff, kw:pyproject.toml configuration, kw:uvx ruff, kw:pydocstyle D rules, kw:pre-commit hooks, kw:zero-error validation gate, kw:TOML
 **TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** required:200-python-core.md, optional:203-python-project-setup.md, optional:204-python-docs.md

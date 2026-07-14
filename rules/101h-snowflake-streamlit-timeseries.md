@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:time series smoothing, kw:data aggregation, kw:resample, kw:scada data, kw:high-frequency data, kw:trend analysis, kw:rolling average, kw:ewma, kw:exponential smoothing
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:time series smoothing, kw:pandas resample, kw:SCADA visualization, kw:aggregation method selection, kw:high-frequency sensor data, kw:Streamlit chart performance, kw:pandas
 **TokenBudget:** ~2550
 **ContextTier:** Low
 **Depends:** optional:101a-snowflake-streamlit-visualization.md

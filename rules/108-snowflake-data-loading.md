@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.5
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:data-loading, kw:copy-into, kw:import, kw:bulk loading, kw:on_error, kw:file_format, kw:load data, kw:external stage, kw:internal stage, kw:data ingestion, kw:file upload, kw:copy error, kw:loading patterns, kw:stage files, kw:put command, kw:get command
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:COPY INTO, kw:stage management, kw:file format definition, kw:bulk load optimization, kw:VALIDATION_MODE, kw:ON_ERROR handling, kw:COPY_HISTORY monitoring
 **TokenBudget:** ~3950
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md

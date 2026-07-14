@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.8.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:cli development, kw:command-line interface, kw:click, kw:argument parsing, kw:typer.argument, kw:typer.option, kw:rich console, kw:exit codes
+**RuleVersion:** v3.9.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Typer CLI, kw:typer.Argument, kw:typer.Option, kw:exit code handling, kw:console script entry points, kw:Rich terminal output, kw:TOML
 **TokenBudget:** ~4300
 **ContextTier:** High
 **Depends:** required:200-python-core.md, optional:201-python-lint-format.md, optional:203-python-project-setup.md, optional:230-python-pydantic.md

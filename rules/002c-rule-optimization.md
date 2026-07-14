@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.4
-**LastUpdated:** 2026-07-11
-**Keywords:** kw:token budget, kw:performance, kw:rule sizing, kw:progressive loading, kw:context window, kw:model limits, kw:cost efficiency, kw:caching, kw:batch loading
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:token budget tiers, kw:progressive rule loading, kw:ai-rules tokens CLI, kw:rule splitting decision tree, kw:context window budget allocation, kw:TokenBudget metadata format, kw:cortex
 **TokenBudget:** ~4350
 **ContextTier:** High
 **Depends:** required:002-rule-governance.md, required:000-global-core.md, optional:002a-rule-creation.md

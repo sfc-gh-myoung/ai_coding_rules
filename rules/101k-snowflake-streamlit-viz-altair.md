@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.1.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:altair, kw:vega-lite, kw:st.altair_chart, kw:declarative visualization, kw:grammar of graphics, kw:mark_point, kw:mark_line, kw:mark_bar, kw:encoding, kw:selection, kw:interactive, kw:layered charts
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:altair declarative encoding, kw:vega-lite grammar, kw:mark_point mark_line mark_bar, kw:st.altair_chart, kw:interval selection brushing, kw:data type suffixes :Q :N :O :T, kw:pandas
 **TokenBudget:** ~3600
 **ContextTier:** Medium
 **Depends:** optional:101a-snowflake-streamlit-visualization.md

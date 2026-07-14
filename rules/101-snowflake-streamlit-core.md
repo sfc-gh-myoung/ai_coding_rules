@@ -5,9 +5,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v4.2.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:dashboard, kw:container runtime, kw:warehouse runtime, kw:navigation, kw:multipage, kw:session state, kw:config.toml, kw:theming, kw:st.connection
+**RuleVersion:** v4.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Streamlit, kw:st.navigation, kw:session state, kw:Container Runtime, kw:config.toml theming, kw:st.connection snowflake, kw:TOML
 **TokenBudget:** ~2350
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md, optional:101b-snowflake-streamlit-performance.md, optional:101c-snowflake-streamlit-security.md, optional:101l-snowflake-streamlit-deployment.md

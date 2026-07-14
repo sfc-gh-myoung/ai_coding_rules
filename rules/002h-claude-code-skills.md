@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.6.2
-**LastUpdated:** 2026-07-12
-**Keywords:** dir:skills/, kw:skill, kw:skills, kw:skill.md, kw:skill structure, kw:workflows, kw:trigger keywords, kw:skill authoring, kw:skill testing, kw:skill validation, kw:input contracts, kw:output contracts, kw:skill examples, kw:yaml frontmatter, kw:mcp tools, kw:third person
+**RuleVersion:** v3.7.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:SKILL.md authoring, kw:YAML frontmatter, kw:progressive disclosure, kw:trigger keywords, kw:input output contracts, kw:third person description
 **TokenBudget:** ~5650
 **ContextTier:** High
 **Depends:** required:000-global-core.md, required:002-rule-governance.md, optional:002a-rule-creation.md, optional:002d-advanced-rule-patterns.md

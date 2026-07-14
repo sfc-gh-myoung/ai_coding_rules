@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:env-file, kw:app-config, kw:basesettings, kw:environment variables, kw:configuration, kw:env_file, kw:nested settings, kw:config precedence
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:pydantic-settings, kw:BaseSettings, kw:environment variable loading, kw:SettingsConfigDict, kw:nested settings delimiter, kw:startup validation, kw:fastapi
 **TokenBudget:** ~1800
 **ContextTier:** Medium
 **Depends:** required:230-python-pydantic.md, optional:220a-python-typer-config.md, optional:210-python-fastapi-core.md

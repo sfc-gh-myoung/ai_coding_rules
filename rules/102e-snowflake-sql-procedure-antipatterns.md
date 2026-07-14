@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:stored procedure anti-patterns, kw:dollar quoting, kw:execute as, kw:bind variables, kw:unqualified names
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:stored procedure anti-patterns, kw:dollar quoting, kw:EXECUTE AS, kw:SQL injection bind variables, kw:fully qualified object names, kw:procedure delimiter escaping, kw:udf
 **TokenBudget:** ~1700
 **ContextTier:** Low
 **Depends:** optional:102b-snowflake-sql-procedures.md

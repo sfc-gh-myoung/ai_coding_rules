@@ -108,7 +108,7 @@ class TestKeywordsHelp:
     @pytest.mark.unit
     def test_help_shows_all_options(self):
         """Test that --help shows all options."""
-        result = runner.invoke(app, ["keywords", "--help"])
+        result = runner.invoke(app, ["keywords", "run", "--help"])
 
         assert result.exit_code == 0
         assert "--update" in result.output
@@ -121,7 +121,7 @@ class TestKeywordsHelp:
     @pytest.mark.unit
     def test_help_shows_path_argument(self):
         """Test that --help shows PATH argument."""
-        result = runner.invoke(app, ["keywords", "--help"])
+        result = runner.invoke(app, ["keywords", "run", "--help"])
 
         assert result.exit_code == 0
         assert "PATH" in result.output
@@ -931,7 +931,7 @@ class TestDeduplicateCLIFlag:
     @pytest.mark.unit
     def test_help_shows_deduplicate_option(self):
         """Test that --help shows --deduplicate option."""
-        result = runner.invoke(app, ["keywords", "--help"])
+        result = runner.invoke(app, ["keywords", "run", "--help"])
 
         assert result.exit_code == 0
         assert "--deduplicate" in result.output
@@ -1786,7 +1786,7 @@ class TestCollisionPostfilterT6:
 
 
 class TestKeywordsCollisionsCLI:
-    """Phase 0.5 Task 6 — ``ai-rules keywords-collisions`` CLI command."""
+    """Phase 1 Step 1 — ``ai-rules keywords collisions`` CLI subcommand."""
 
     @pytest.mark.unit
     def test_keywords_collisions_writes_json_report(self, tmp_path):
@@ -1804,7 +1804,8 @@ class TestKeywordsCollisionsCLI:
         result = runner.invoke(
             app,
             [
-                "keywords-collisions",
+                "keywords",
+                "collisions",
                 "--rules-dir",
                 str(rules_dir),
                 "--max-collision",

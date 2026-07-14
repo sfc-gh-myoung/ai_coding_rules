@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.6.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:git, kw:commit, kw:commit message, kw:feature-focused commits, kw:branching, kw:github, kw:pull requests, kw:feature branches, kw:conventional commits, kw:branch naming
+**RuleVersion:** v3.7.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:conventional commits, kw:feature branch workflow, kw:conventional branch naming, kw:CHANGELOG.md updates, kw:pre-commit validation gate, kw:pull request workflow, kw:cortex
 **TokenBudget:** ~3700
 **ContextTier:** Medium
 **Depends:** required:800-project-changelog.md, required:802-project-contributing.md, optional:000-global-core.md, optional:AGENTS.md

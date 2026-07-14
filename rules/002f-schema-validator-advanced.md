@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** kw:ci/cd integration, kw:automation workflow, kw:json parsing, kw:programmatic validation, kw:pre-commit hooks, kw:github actions, kw:batch validation, kw:error automation, kw:validation scripts
+**RuleVersion:** v1.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:ci/cd pipeline, kw:programmatic parsing, kw:automated fix iteration, kw:pre-commit hooks, kw:github actions workflow, kw:batch validation, kw:ci/cd
 **TokenBudget:** ~3350
 **ContextTier:** Medium
 **Depends:** required:002e-schema-validator-usage.md, required:002-rule-governance.md, required:000-global-core.md

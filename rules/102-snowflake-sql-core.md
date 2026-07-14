@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.5.0
-**LastUpdated:** 2026-07-12
-**Keywords:** ext:.sql, kw:sql files, kw:file headers, kw:copy into, kw:file_format, kw:create view, kw:fully qualified names, kw:idempotent, kw:reserved characters, kw:cli compatibility, kw:on_error, kw:transformation, kw:ambiguous column, kw:table alias
+**RuleVersion:** v1.6.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:SQL file headers, kw:COPY INTO ON_ERROR placement, kw:CREATE VIEW COMMENT syntax, kw:fully qualified object names, kw:CLI templating reserved characters, kw:idempotent DDL patterns, kw:ci/cd
 **TokenBudget:** ~4100
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md, optional:130-snowflake-demo-sql.md, optional:102a-snowflake-sql-automation.md, optional:112-snowflake-snowcli.md

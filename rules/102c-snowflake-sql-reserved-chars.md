@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-04
-**Keywords:** kw:cli compatibility, kw:snow sql, kw:snowsql, kw:template expansion, kw:ampersand, kw:enable-templating, kw:single-quote escaping, kw:jinja2, kw:dbt
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:cli compatibility, kw:ampersand escaping, kw:template expansion, kw:enable-templating flag, kw:brand name preservation, kw:snow sql tool
 **TokenBudget:** ~1550
 **ContextTier:** Low
 **Depends:** required:102-snowflake-sql-core.md

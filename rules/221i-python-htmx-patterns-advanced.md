@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:htmx-scroll, kw:htmx-modal, kw:htmx-wizard, kw:htmx-polling, kw:infinite scroll, kw:sse, kw:polling, kw:modals, kw:drawers, kw:wizard, kw:multi-step, kw:real-time, kw:lazy loading
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:infinite scroll, kw:SSE polling, kw:modal drawer, kw:multi-step wizard, kw:revealed trigger, kw:htmx-ext sse, kw:fastapi
 **TokenBudget:** ~2500
 **ContextTier:** Medium
 **Depends:** optional:221e-python-htmx-patterns.md, optional:221g-python-htmx-sse.md

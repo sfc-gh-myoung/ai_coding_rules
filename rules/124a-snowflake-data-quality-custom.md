@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:custom-quality-check, kw:quality assertions, kw:custom metrics, kw:validation functions, kw:create custom dmf, kw:custom quality checks, kw:business rule validation, kw:custom expectations, kw:quality functions, kw:udf for quality, kw:validation logic, kw:custom quality metrics, kw:custom validation
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:custom DMF creation, kw:business rule validation, kw:expectation thresholds, kw:FLOAT return type, kw:parameterized ARG_T, kw:Python UDF DMF, kw:dmf
 **TokenBudget:** ~3600
 **ContextTier:** Medium
 **Depends:** required:124-snowflake-data-quality-core.md, optional:124b-snowflake-data-quality-operations.md

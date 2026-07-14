@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.7
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:multi-env-deploy, kw:deployment-rollback, kw:multi-environment deployment, kw:deployment rollback, kw:deployment recovery, kw:environment-specific deployment, kw:dev qa prod deployment, kw:rollback strategy
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:multi-environment promotion, kw:deployment validation gates, kw:rollback recovery procedures, kw:stage backup snapshot, kw:deployment audit trail, kw:environment-aware automation, kw:streamlit
 **TokenBudget:** ~2700
 **ContextTier:** Low
 **Depends:** none

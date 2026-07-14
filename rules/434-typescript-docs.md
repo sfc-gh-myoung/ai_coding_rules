@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:tsdoc, kw:comments, ext:.ts, ext:.tsx, kw:eslint-plugin-jsdoc, kw:type documentation
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:TSDoc, kw:eslint-plugin-jsdoc, kw:TypeScript documentation, kw:type self-documenting, kw:semantic documentation, kw:public API documentation
 **TokenBudget:** ~3150
 **ContextTier:** High
 **Depends:** required:430-typescript-core.md, optional:424-javascript-docs.md

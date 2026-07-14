@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:data governance, kw:data quality, kw:lineage, kw:metadata management, kw:compliance, kw:data catalog, kw:great expectations, kw:schema evolution, kw:data observability, kw:incident response
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:expectation suites, kw:schema evolution, kw:metric definitions catalog, kw:data drift monitoring, kw:quality gates automation, kw:incident response procedures, kw:ci/cd
 **TokenBudget:** ~4300
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md, optional:100-snowflake-core.md, optional:124-snowflake-data-quality-core.md, optional:132-snowflake-demo-modeling.md

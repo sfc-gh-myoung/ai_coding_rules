@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:jsdoc, kw:comments, ext:.js, ext:.mjs, kw:eslint-plugin-jsdoc, kw:type annotations
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:JSDoc type annotations, kw:eslint-plugin-jsdoc, kw:@ts-check validation, kw:@param @returns tags, kw:@typedef custom types, kw:JavaScript API documentation
 **TokenBudget:** ~4300
 **ContextTier:** High
 **Depends:** required:420-javascript-core.md, optional:434-typescript-docs.md

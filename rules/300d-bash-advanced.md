@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-10
-**Keywords:** ext:.sh, ext:.bash, kw:bash, kw:associative arrays, kw:performance, kw:code style, kw:shellcheck, kw:debugging, kw:documentation, kw:security, kw:parameter expansion
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:associative arrays, kw:parameter expansion, kw:shellcheck, kw:debug mode, kw:bash built-ins, kw:usage documentation, kw:ci/cd
 **TokenBudget:** ~2700
 **ContextTier:** Medium
 **Depends:** required:300-bash-scripting-core.md, optional:300a-bash-security.md, optional:300b-bash-testing-tooling.md

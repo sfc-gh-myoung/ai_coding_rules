@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** kw:taskfile-includes, kw:taskfile-help, kw:categorized-help, kw:categorized help, kw:subtask files, kw:includes, kw:ai agent, kw:machine-readable, kw:cross-platform, kw:task namespaces, kw:portable tasks, kw:task discovery
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:taskfile includes, kw:categorized help output, kw:subtask file organization, kw:cross-platform task guards, kw:task namespaces, kw:AI agent task discovery, kw:ci/cd
 **TokenBudget:** ~3450
 **ContextTier:** Low
 **Depends:** required:820-taskfile-automation.md

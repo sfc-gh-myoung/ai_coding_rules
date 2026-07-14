@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:crud, kw:forms, kw:htmx patterns, kw:progressive enhancement, kw:search, kw:autocomplete, kw:inline editing
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:HTMX CRUD, kw:server-side form validation, kw:search debounce autocomplete, kw:progressive enhancement fallback, kw:inline editing outerHTML swap, kw:HX-Trigger response headers, kw:fastapi
 **TokenBudget:** ~3400
 **ContextTier:** Medium
 **Depends:** optional:221i-python-htmx-patterns-advanced.md, optional:221b-python-htmx-flask.md, optional:221c-python-htmx-fastapi.md

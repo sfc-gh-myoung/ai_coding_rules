@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:alpinejs-advanced, kw:alpine-stores, kw:alpine-plugins, kw:alpine.js, kw:stores, kw:plugins, kw:transitions, kw:x-teleport, kw:$dispatch, kw:custom directives, kw:sse, kw:lifecycle, kw:error recovery
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Alpine.store, kw:$dispatch cross-component, kw:lifecycle hooks init destroy, kw:x-transition animations, kw:Alpine.js DevTools debugging, kw:x-effect reactive side effects, kw:htmx
 **TokenBudget:** ~2700
 **ContextTier:** Low
 **Depends:** required:421-javascript-alpinejs-core.md, optional:420-javascript-core.md, optional:500-frontend-htmx-core.md

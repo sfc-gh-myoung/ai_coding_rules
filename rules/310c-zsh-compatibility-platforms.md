@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-10
-**Keywords:** ext:.zsh, kw:zsh-platform, kw:zsh-testing, kw:shell testing, kw:multi-shell, kw:environment detection, kw:platform compatibility, kw:performance benchmarking, kw:bsd vs gnu, kw:cross-shell testing
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:cross-shell testing, kw:platform compatibility, kw:environment detection, kw:performance benchmarking, kw:BSD vs GNU, kw:multi-shell project organization
 **TokenBudget:** ~2650
 **ContextTier:** Low
 **Depends:** required:310b-zsh-compatibility.md, optional:310-zsh-scripting-core.md, optional:310a-zsh-advanced-features.md, optional:300-bash-scripting-core.md

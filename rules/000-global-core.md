@@ -9,9 +9,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.9.0
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:workflow, kw:safety, kw:confirmation, kw:validation, kw:surgical edits, kw:minimal changes, kw:prompt engineering, kw:task list, kw:context window, kw:professional communication
+**RuleVersion:** v3.10.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:surgical edits, kw:pre-flight gates, kw:validation command sequence, kw:context preservation hierarchy, kw:foundation operating contract, kw:task list confirmation, kw:pytest
 **TokenBudget:** ~2550
 **ContextTier:** Critical
 **Depends:** optional:001-memory-bank.md, optional:002-rule-governance.md, optional:003-context-engineering.md

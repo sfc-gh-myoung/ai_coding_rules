@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:class, kw:oop, kw:dataclass, kw:python classes, kw:inheritance, kw:dataclasses, kw:@property, kw:class design, kw:encapsulation, kw:composition, kw:protocol, kw:abc, kw:type hints
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:dataclass decorator, kw:composition over inheritance, kw:@property decorator, kw:Protocol structural subtyping, kw:frozen immutable dataclass, kw:context manager resource, kw:pytest
 **TokenBudget:** ~4050
 **ContextTier:** Medium
 **Depends:** required:200-python-core.md, optional:206-python-pytest.md

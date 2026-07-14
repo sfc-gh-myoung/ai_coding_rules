@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-10
-**Keywords:** ext:.md, file:README.md, file:CONTRIBUTING.md, dir:docs/, kw:writing style, kw:voice, kw:active voice, kw:sentence case, kw:inclusive language, kw:bias-free, kw:serial comma, kw:accessibility, kw:microsoft style
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:technical writing style, kw:sentence case headings, kw:inclusive language, kw:active voice prose, kw:fenced code block language identifier, kw:descriptive link text
 **TokenBudget:** ~3350
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md, optional:801-project-readme.md, optional:804-project-documentation.md, optional:002g-agent-optimization.md

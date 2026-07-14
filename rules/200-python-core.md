@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v4.1.3
-**LastUpdated:** 2026-07-12
-**Keywords:** ext:.py, ext:.pyi, file:pyproject.toml, kw:python, kw:uv, kw:ruff, kw:pyproject.toml, kw:dependency management, kw:virtual environments, kw:pytest, kw:uv run, kw:uvx, kw:ty, kw:type checking, kw:mypy, kw:type hints
+**RuleVersion:** v4.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:pyproject.toml, kw:toolchain detection, kw:datetime.now(UTC), kw:collections.abc imports, kw:dict list annotations, kw:pathlib file operations, kw:Python
 **TokenBudget:** ~3800
 **ContextTier:** Critical
 **Depends:** required:000-global-core.md, optional:200a-python-validation-gate.md, optional:206-python-pytest.md, optional:201-python-lint-format.md

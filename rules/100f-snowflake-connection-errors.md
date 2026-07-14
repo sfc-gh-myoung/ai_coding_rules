@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:connection-error, kw:timeout, kw:connection errors, kw:error classification, kw:network policy, kw:authentication, kw:vpn, kw:error codes, kw:08001, kw:390114, kw:snowflake.connector, kw:databaseerror, kw:message analysis, kw:error detection
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:connection error classification, kw:network policy violation detection, kw:message-first error analysis, kw:VPN disconnect diagnosis, kw:snowflake.connector.errors.DatabaseError, kw:error code 08001 ambiguity, kw:snowpark
 **TokenBudget:** ~3900
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md, optional:101e-snowflake-streamlit-sql-errors.md, optional:101b-snowflake-streamlit-performance.md

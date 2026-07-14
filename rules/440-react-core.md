@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.3.2
-**LastUpdated:** 2026-07-12
-**Keywords:** ext:.jsx, ext:.tsx, kw:react, kw:next.js, kw:rsc, kw:tailwind, kw:zustand, kw:tanstack query, kw:shadcn, kw:feature-based, kw:typescript, kw:vitest, kw:testing library, kw:debug hooks, kw:fix react error, kw:component rendering
+**RuleVersion:** v3.4.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:feature-based architecture, kw:TanStack Query, kw:RSC server components, kw:Zustand client state, kw:named exports components, kw:shadcn Tailwind patterns, kw:tsx
 **TokenBudget:** ~3200
 **ContextTier:** High
 **Depends:** required:000-global-core.md, required:420-javascript-core.md, required:430-typescript-core.md, optional:440a-react-anti-patterns.md, optional:441-react-backend.md

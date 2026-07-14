@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:log, kw:logger, kw:python logging, kw:handlers, kw:formatters, kw:log levels, kw:webloghandler, kw:rich console, kw:sse streaming, kw:operation id, kw:thread safety, kw:log hierarchy, kw:log propagation
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:hierarchical logger names, kw:Rich console bridge, kw:WebLogHandler SSE, kw:operation-scoped handler attachment, kw:SUCCESS prefix pattern, kw:operation ID correlation, kw:fastapi
 **TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** required:200-python-core.md, optional:201-python-lint-format.md, optional:210-python-fastapi-core.md

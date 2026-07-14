@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.2.7
-**LastUpdated:** 2026-07-11
-**Keywords:** kw:rule update, kw:rule maintenance, kw:versioning, kw:ruleversion, kw:lastupdated, kw:semantic versioning, kw:major, kw:minor, kw:patch, kw:rule modification, kw:keyword expansion, kw:scope updates, kw:metadata updates, kw:changelog updates
+**RuleVersion:** v1.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:rule versioning, kw:RuleVersion increment, kw:LastUpdated field, kw:rule modification workflow, kw:MAJOR MINOR PATCH semantics, kw:schema migration checklist, kw:ci/cd
 **TokenBudget:** ~4150
 **ContextTier:** High
 **Depends:** required:002-rule-governance.md, required:000-global-core.md, optional:002a-rule-creation.md, optional:002e-schema-validator-usage.md, optional:002c-rule-optimization.md

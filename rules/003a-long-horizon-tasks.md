@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.3
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:compaction, kw:checkpointing, kw:sub-agents, kw:structured notes, kw:multi-session, kw:context compression, kw:persistent memory, kw:agent coordination
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:long-horizon tasks, kw:context compaction, kw:persistent memory, kw:sub-agent delegation, kw:multi-session continuity, kw:checkpointing protocols, kw:fastapi
 **TokenBudget:** ~2950
 **ContextTier:** Medium
 **Depends:** required:003-context-engineering.md, required:000-global-core.md

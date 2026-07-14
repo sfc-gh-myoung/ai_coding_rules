@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:snowpipe-alerts, kw:pipe-alerts, kw:pipe-cost-optimization, kw:snowpipe alerts, kw:pipe error alerts, kw:channel stall alerts, kw:cost optimization, kw:file size optimization, kw:streaming optimization, kw:alert thresholds, kw:system$send_email, kw:monitoring tasks, kw:performance metrics
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:snowpipe alert configuration, kw:channel stall detection, kw:SYSTEM$SEND_EMAIL, kw:baseline threshold derivation, kw:pipe cost per GB, kw:file size 100-250MB, kw:snowpipe
 **TokenBudget:** ~3100
 **ContextTier:** Medium
 **Depends:** required:121-snowflake-snowpipe.md, optional:121b-snowflake-snowpipe-monitoring.md, optional:105-snowflake-cost-governance.md

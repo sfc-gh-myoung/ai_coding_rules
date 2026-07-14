@@ -5,9 +5,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-04
-**Keywords:** kw:semantic-view, kw:semantic-model, kw:tables, kw:relationships, kw:primary key, kw:create semantic view, kw:sql, kw:yaml, kw:nlq, kw:mapping syntax
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:CREATE SEMANTIC VIEW, kw:TABLES PRIMARY KEY, kw:FACTS DIMENSIONS METRICS, kw:RELATIONSHIPS clause, kw:mapping syntax alias.physical_column, kw:SHOW SEMANTIC DIMENSIONS, kw:ci/cd
 **TokenBudget:** ~2550
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md

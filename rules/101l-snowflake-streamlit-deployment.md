@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.3.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:container runtime, kw:warehouse runtime, kw:deployment, kw:pyproject.toml, kw:environment.yml, kw:compute pool, kw:eai, kw:external access integration, kw:migration
+**RuleVersion:** v1.4.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:container runtime, kw:warehouse runtime, kw:pyproject.toml, kw:external access integration, kw:compute pool, kw:runtime migration, kw:TOML
 **TokenBudget:** ~4150
 **ContextTier:** High
 **Depends:** required:000-global-core.md, required:101-snowflake-streamlit-core.md, optional:101f-snowflake-streamlit-deployment-errors.md, optional:101c-snowflake-streamlit-security.md

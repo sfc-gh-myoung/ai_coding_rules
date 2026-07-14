@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.0.3
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:server-sent events, kw:alpine.js, kw:eventsource, kw:real-time, kw:streaming, kw:live updates, kw:push notifications, kw:event types, kw:sse-manager
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:HTMX SSE extension, kw:Alpine.js SSE manager, kw:event type matching, kw:thread-safe SSE publishing, kw:EventSourceResponse, kw:SSE connection limits, kw:fastapi
 **TokenBudget:** ~4150
 **ContextTier:** High
 **Depends:** optional:221f-python-htmx-integrations.md

@@ -5,9 +5,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:llm, kw:format, kw:token, kw:efficiency, kw:understanding, kw:execution, kw:comprehension, kw:design, kw:patterns, kw:priority, kw:agent-first
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:agent-first design, kw:ASCII table prohibition, kw:imperative voice instructions, kw:sequential processing model, kw:terminology consistency enforcement, kw:arrow character replacement, kw:llm
 **TokenBudget:** ~3000
 **ContextTier:** High
 **Depends:** required:000-global-core.md, required:002-rule-governance.md, optional:002a-rule-creation.md, optional:002c-rule-optimization.md, optional:002d-advanced-rule-patterns.md

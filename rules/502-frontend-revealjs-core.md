@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:reveal.js, kw:revealjs, kw:presentation, kw:slides, kw:html presentation, kw:slide deck, kw:code highlighting, kw:speaker notes, kw:markdown slides, kw:fragments, kw:vertical slides, kw:reveal themes, kw:presentation framework, kw:auto-animate
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:reveal.js 6.0.0, kw:slide markup hierarchy, kw:code highlighting data-trim, kw:plugin registration ESM, kw:fragments auto-animate, kw:speaker notes view, kw:theme CSS custom properties
 **TokenBudget:** ~4400
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md, optional:420-javascript-core.md, optional:501-frontend-browser-globals-collisions.md

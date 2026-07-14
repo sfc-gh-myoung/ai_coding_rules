@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.3
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:command line, kw:command line interface, kw:clig, kw:clig dev, kw:cli design, kw:cli ux, kw:flags, kw:stdout, kw:isatty, kw:tty, kw:subcommands, kw:cli help, kw:cli config, kw:xdg, kw:dry-run, kw:machine readable
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:clig.dev principles, kw:TTY detection, kw:stdout stderr separation, kw:destructive operation confirmation, kw:machine-readable output modes, kw:XDG Base Directory, kw:typer
 **TokenBudget:** ~4700
 **ContextTier:** Medium
 **Depends:** optional:220-python-typer-cli.md, optional:220c-python-typer-rich.md, optional:300-bash-scripting-core.md

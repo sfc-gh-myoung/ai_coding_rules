@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:tool design, kw:agent tools, kw:token efficiency, kw:tool parameters, kw:function calling, kw:tool contracts, kw:error handling, kw:minimal tool set, kw:self-contained tools, kw:llm-friendly parameters, kw:single responsibility
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:agent tool design, kw:single responsibility tools, kw:token-efficient outputs, kw:LLM-friendly parameters, kw:tool boundary overlap, kw:actionable error messages, kw:ci/cd
 **TokenBudget:** ~4500
 **ContextTier:** High
 **Depends:** required:000-global-core.md, required:003-context-engineering.md, optional:002g-agent-optimization.md, optional:004a-tool-set-curation.md, optional:004b-tool-output-efficiency.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v4.2.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:st.secrets, kw:sql injection, kw:authentication, kw:secure streamlit, kw:protect app, kw:credentials management, kw:api keys, kw:environment variables, kw:secure deployment, kw:input sanitization, kw:rbac streamlit, kw:access control, kw:security patterns, kw:container runtime, kw:warehouse runtime
+**RuleVersion:** v4.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:st.secrets, kw:SQL injection prevention, kw:Streamlit authentication, kw:input sanitization, kw:file upload validation, kw:container runtime secrets, kw:TOML
 **TokenBudget:** ~4050
 **ContextTier:** High
 **Depends:** required:107-snowflake-security-governance.md

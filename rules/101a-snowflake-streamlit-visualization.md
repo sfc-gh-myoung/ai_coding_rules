@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v4.2.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:st.plotly_chart, kw:st.pydeck_chart, kw:st.altair_chart, kw:dashboard, kw:interactive charts, kw:map visualization, kw:chart types, kw:visualization selection, kw:streamlit plotting
+**RuleVersion:** v4.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:st.plotly_chart, kw:st.pydeck_chart, kw:st.altair_chart, kw:library selection, kw:use_container_width, kw:WebGL context limits, kw:pandas
 **TokenBudget:** ~2250
 **ContextTier:** High
 **Depends:** required:000-global-core.md, required:101-snowflake-streamlit-core.md, optional:940-business-analytics.md, optional:101h-snowflake-streamlit-timeseries.md

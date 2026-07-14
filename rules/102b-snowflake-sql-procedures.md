@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:stored-procedure, kw:create-procedure, kw:udf, kw:create-function, kw:stored procedure, kw:create procedure, kw:create function, kw:dollar quoting, kw:nested quotes, kw:execute as, kw:execute immediate, kw:owner, kw:caller, kw:restricted caller, kw:sql scripting, kw:procedure body
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:SQL scripting, kw:dollar quoting, kw:EXECUTE AS, kw:EXECUTE IMMEDIATE, kw:bind variables, kw:procedure body quoting, kw:ci/cd
 **TokenBudget:** ~5700
 **ContextTier:** High
 **Depends:** required:102-snowflake-sql-core.md, optional:102a-snowflake-sql-automation.md, optional:100-snowflake-core.md

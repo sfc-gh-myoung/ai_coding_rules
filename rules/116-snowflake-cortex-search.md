@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.3.3
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:cortex-search, kw:embeddings, kw:search index, kw:rag, kw:agent tools, kw:retrieval, kw:ai_embed, kw:search service, kw:document retrieval, kw:hybrid search, kw:vector similarity
+**RuleVersion:** v3.4.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:cortex search service, kw:document chunking, kw:metadata filtering, kw:search tool configuration, kw:SEARCH_PREVIEW validation, kw:search index lifecycle, kw:ai_embed
 **TokenBudget:** ~3100
 **ContextTier:** Medium
 **Depends:** optional:115-snowflake-cortex-agents-core.md

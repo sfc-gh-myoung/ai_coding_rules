@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.7.0
-**LastUpdated:** 2026-07-12
-**Keywords:** dir:rules/, kw:rule governance, kw:schema, kw:metadata requirements, kw:rule quality, kw:schema compliance, kw:rule structure, kw:semantic discovery, kw:rules_index, kw:descriptive headings, kw:design priorities, kw:agent optimization, kw:skill governance
+**RuleVersion:** v3.8.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:rule schema compliance, kw:metadata field requirements, kw:Contract Markdown subsections, kw:semantic discovery keywords, kw:ai-rules validate, kw:agent-first design priorities, kw:ci/cd
 **TokenBudget:** ~4900
 **ContextTier:** Critical
 **Depends:** required:000-global-core.md, optional:002a-rule-creation.md, optional:002b-rule-update.md, optional:002e-schema-validator-usage.md

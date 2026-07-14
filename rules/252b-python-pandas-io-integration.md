@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:streamlit-pandas, kw:plotly-pandas, kw:pandas-io, kw:cache-data, kw:pandas streamlit, kw:pandas plotly, kw:cache_data, kw:dataframe caching, kw:interactive filtering, kw:csv download, kw:aggregate visualization, kw:data loading
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:streamlit cache_data, kw:plotly aggregation, kw:interactive dataframe filtering, kw:csv download button, kw:dtype optimization caching, kw:pandas streamlit plotly, kw:pandas
 **TokenBudget:** ~1800
 **ContextTier:** Medium
 **Depends:** required:252-python-pandas-core.md, optional:252a-python-pandas-performance.md, optional:101a-snowflake-streamlit-visualization.md, optional:101b-snowflake-streamlit-performance.md

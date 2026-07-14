@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:demo-creation, kw:synthetic-data, kw:demo creation, kw:synthetic data, kw:realistic demos, kw:data generation, kw:demo applications, kw:narrative design, kw:reproducible data, kw:progressive disclosure, kw:streamlit, kw:data visualization
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Faker seeded generation, kw:GENERATOR() table function, kw:offline fallback resilience, kw:DemoScenario pattern, kw:narrative-aligned correlations, kw:progressive disclosure UI, kw:faker
 **TokenBudget:** ~3100
 **ContextTier:** Low
 **Depends:** required:130-snowflake-demo-sql.md, optional:132-snowflake-demo-modeling.md

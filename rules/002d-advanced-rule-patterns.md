@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:system prompt altitude, kw:investigation-first, kw:multi-session workflows, kw:parallel execution, kw:heuristics, kw:goldilocks zone, kw:context management, kw:state management
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:system prompt altitude, kw:investigation-first protocol, kw:multi-session workflows, kw:anti-pattern library structure, kw:parallel execution design, kw:goldilocks zone heuristics, kw:fastapi
 **TokenBudget:** ~4000
 **ContextTier:** Medium
 **Depends:** required:002-rule-governance.md, required:000-global-core.md, optional:002a-rule-creation.md, optional:002c-rule-optimization.md, optional:004-tool-design-for-agents.md

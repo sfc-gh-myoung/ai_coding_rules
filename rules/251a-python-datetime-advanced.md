@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:timedelta, kw:dateoffset, kw:date-arithmetic, kw:time-series, kw:datetime arithmetic, kw:business days, kw:calendar math, kw:relativedelta, kw:performance, kw:downsampling, kw:resample
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:timedelta vs dateoffset, kw:calendar-aware arithmetic, kw:vectorized datetime operations, kw:business day calculations, kw:time series downsampling, kw:relativedelta age calculation, kw:pandas
 **TokenBudget:** ~2600
 **ContextTier:** Medium
 **Depends:** required:251-python-datetime-core.md, optional:251b-python-datetime-integration.md, optional:252-python-pandas-core.md

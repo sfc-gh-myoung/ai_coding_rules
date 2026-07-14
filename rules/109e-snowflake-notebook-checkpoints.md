@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.5
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:notebook-checkpoint, kw:teaching-point, kw:checkpoint validation, kw:teaching point callouts, kw:notebook validation gates, kw:progress verification, kw:learning checkpoints, kw:note prefix, kw:tutorial checkpoints
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:notebook checkpoint validation, kw:teaching point callouts, kw:actionable error messages, kw:progress verification gates, kw:context before code pedagogy, kw:checkpoint frequency placement
 **TokenBudget:** ~2650
 **ContextTier:** Low
 **Depends:** optional:109a-snowflake-notebooks-tutorials.md

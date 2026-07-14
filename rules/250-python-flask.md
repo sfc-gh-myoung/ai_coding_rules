@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:web, kw:blueprints, kw:flask-sqlalchemy, kw:templates, kw:routing, kw:application factory
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:application factory, kw:Flask blueprints, kw:Flask-SQLAlchemy, kw:CSRF protection, kw:Jinja2 templates, kw:Gunicorn deployment, kw:flask
 **TokenBudget:** ~2150
 **ContextTier:** High
 **Depends:** required:200-python-core.md, optional:203-python-project-setup.md, optional:201-python-lint-format.md

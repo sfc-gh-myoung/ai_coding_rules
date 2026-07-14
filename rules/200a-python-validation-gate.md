@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:validate, kw:type-check, kw:lint, kw:type checking, kw:linting, kw:formatting, kw:pytest, kw:ruff, kw:ty, kw:mypy, kw:pre-task, kw:gate, kw:syntax
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:pre-task completion gate, kw:ty vs mypy decision, kw:zero-tolerance validation, kw:toolchain-specific validation commands, kw:validation failure recovery sequence, kw:pre-commit hook automation, kw:TOML
 **TokenBudget:** ~3050
 **ContextTier:** High
 **Depends:** required:200-python-core.md, optional:201-python-lint-format.md, optional:206-python-pytest.md

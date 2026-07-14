@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:frontend, kw:htmx attributes, kw:client-side, kw:events, kw:css transitions, kw:debugging, kw:browser compatibility, kw:hx-get, kw:hx-post, kw:hx-swap, kw:hx-trigger, kw:hx-target
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:hx-get, kw:hx-swap, kw:hx-trigger, kw:htmx lifecycle events, kw:hypermedia-driven UI, kw:progressive enhancement fallbacks, kw:htmx
 **TokenBudget:** ~3800
 **ContextTier:** Low
 **Depends:** required:000-global-core.md, optional:221-python-htmx-core.md, optional:421-javascript-alpinejs-core.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-10
-**Keywords:** ext:.yml, ext:.yaml, ext:.toml, file:Taskfile.yml, kw:yaml, kw:configuration files, kw:yaml syntax, kw:parsing errors, kw:indentation, kw:anchors, kw:aliases, kw:markdown, kw:markdown linting, kw:pymarkdownlnt, kw:toml, kw:environment files
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:YAML syntax safety, kw:configuration file linting, kw:TOML validation, kw:Taskfile.yml patterns, kw:YAML anchors aliases, kw:secrets in version control, kw:ci/cd
 **TokenBudget:** ~3950
 **ContextTier:** Medium
 **Depends:** optional:202a-markdown-linting.md, optional:203-python-project-setup.md, optional:820-taskfile-automation.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:cors, kw:rate-limit, kw:security-headers, kw:fastapi hardening, kw:csrf, kw:rate limiting, kw:security headers, kw:input validation, kw:sql injection, kw:xss prevention, kw:trusted hosts, kw:production security
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:FastAPI hardening, kw:CORS middleware, kw:slowapi rate limiting, kw:security headers middleware, kw:parameterized queries, kw:Pydantic field validators, kw:fastapi
 **TokenBudget:** ~2800
 **ContextTier:** Medium
 **Depends:** optional:210a-python-fastapi-security.md

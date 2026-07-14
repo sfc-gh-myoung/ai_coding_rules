@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.4
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:log_level, kw:trace_level, kw:metric_level, kw:show parameters, kw:opentelemetry, kw:system views vs telemetry, kw:logging, kw:tracing, kw:debug observability, kw:event table queries, kw:observability patterns, kw:configure telemetry
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:event table setup, kw:telemetry level hierarchy, kw:system views latency, kw:DEBUG cost implications, kw:SHOW PARAMETERS investigation, kw:OpenTelemetry alignment, kw:snowpark
 **TokenBudget:** ~4350
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md

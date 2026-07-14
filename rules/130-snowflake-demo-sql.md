@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.3
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:demo, kw:workshop, kw:quickstart, kw:demo sql, kw:teardown, kw:progress indicators, kw:rerunnable demos, kw:create or replace, kw:educational sql, kw:demo patterns, kw:setup scripts, kw:customer learning, kw:per-schema isolation, kw:inline documentation, kw:current_user, kw:identifier
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:demo sql, kw:per-schema isolation, kw:rerunnable demos, kw:progress indicators, kw:inline educational comments, kw:schema-based file naming, kw:ci/cd
 **TokenBudget:** ~4600
 **ContextTier:** High
 **Depends:** required:102-snowflake-sql-core.md, optional:131-snowflake-demo-creation.md, optional:132-snowflake-demo-modeling.md, optional:102a-snowflake-sql-automation.md

@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.2.3
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:skill composition, kw:plan-validate-execute, kw:orchestrator skill, kw:batch skill, kw:visual analysis pattern, kw:skill advanced patterns, kw:visual analysis, kw:orchestrator worker, kw:batch skills, kw:verifiable outputs, kw:intermediate validation, kw:claude a/b iteration, kw:skill development, kw:toc guidance, kw:solve dont punt, kw:size heuristic
+**RuleVersion:** v1.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:plan-validate-execute, kw:orchestrator-worker composition, kw:visual analysis pattern, kw:intermediate validation scripts, kw:Claude A/B iteration, kw:batch failure handling
 **TokenBudget:** ~3200
 **ContextTier:** Low
 **Depends:** required:002h-claude-code-skills.md, optional:002d-advanced-rule-patterns.md

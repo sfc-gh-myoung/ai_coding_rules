@@ -9,9 +9,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.3
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:agent sdk, kw:mcp server, kw:mcp servers, kw:cortex-code, kw:agent hooks, kw:structured output, kw:streaming output, kw:streaming input, kw:system prompts, kw:agent typescript, kw:agent python
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:cortex-code-agent-sdk, kw:agent lifecycle hooks, kw:canUseTool permission callback, kw:streaming partial messages, kw:multi-turn session management, kw:structured output json schema, kw:cortex
 **TokenBudget:** ~5050
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md, optional:115-snowflake-cortex-agents-core.md, optional:117-snowflake-mcp-server.md, optional:118-snowflake-cortex-rest-api.md

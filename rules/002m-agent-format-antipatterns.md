@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.4
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:anti-pattern, kw:ascii table, kw:arrow character, kw:decision tree, kw:passive voice, kw:terminology, kw:mermaid, kw:horizontal rule
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:agent-optimized formatting, kw:ASCII table violations, kw:arrow character replacement, kw:imperative voice instructions, kw:visual diagram prohibition, kw:nested conditional lists, kw:mermaid
 **TokenBudget:** ~1650
 **ContextTier:** Medium
 **Depends:** required:002g-agent-optimization.md, required:000-global-core.md

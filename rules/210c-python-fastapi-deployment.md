@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.0.5
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:fastapi-deployment, kw:fastapi deployment, kw:uvicorn, kw:gunicorn, kw:asgi, kw:docker, kw:health checks, kw:multi-stage build, kw:openapi, kw:api documentation
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:gunicorn uvicorn worker, kw:multi-stage docker build, kw:health check endpoint, kw:non-root container user, kw:openapi schema customization, kw:worker process configuration, kw:ci/cd
 **TokenBudget:** ~4250
 **ContextTier:** High
 **Depends:** required:210-python-fastapi-core.md

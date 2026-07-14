@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.2.4
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:app-deployment, kw:create notebook, kw:stages, kw:sis, kw:deploy app, kw:deployment pipeline, kw:app publishing, kw:deployment patterns, kw:deploy to snowflake, kw:stage deployment, kw:app versioning, kw:automated deployment
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:staged application lifecycle, kw:five-step deployment workflow, kw:AUTO_COMPRESS FALSE, kw:REMOVE before PUT, kw:Streamlit ADD LIVE VERSION, kw:stage as source of truth, kw:ci/cd
 **TokenBudget:** ~4100
 **ContextTier:** Medium
 **Depends:** required:109-snowflake-notebooks.md

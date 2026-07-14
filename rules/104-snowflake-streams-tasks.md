@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.3
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:stream, kw:task, kw:cdc, kw:scheduled tasks, kw:pipeline automation, kw:merge patterns, kw:task dag, kw:after dependencies, kw:task history, kw:create stream, kw:create task, kw:debug stream, kw:task troubleshooting, kw:stream consumption, kw:task execution error, kw:stream lag
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:change data capture, kw:stream consumption, kw:task dag, kw:merge patterns, kw:task history monitoring, kw:stream staleness, kw:cdc
 **TokenBudget:** ~3100
 **ContextTier:** High
 **Depends:** required:000-global-core.md, required:100-snowflake-core.md

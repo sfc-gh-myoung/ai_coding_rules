@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:snowpipe-troubleshooting, kw:pipe-errors, kw:snowpipe troubleshooting, kw:debugging, kw:error resolution, kw:pipe errors, kw:streaming errors, kw:connection failures, kw:schema errors, kw:offset tracking, kw:latency issues, kw:duplicate data, kw:authentication errors, kw:channel errors
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:snowpipe debugging, kw:pipe execution failures, kw:streaming channel errors, kw:schema mismatch resolution, kw:latency diagnosis, kw:diagnostic queries, kw:snowpipe
 **TokenBudget:** ~4150
 **ContextTier:** Medium
 **Depends:** required:100-snowflake-core.md, required:121-snowflake-snowpipe.md, optional:121a-snowflake-snowpipe-streaming.md, optional:121b-snowflake-snowpipe-monitoring.md, optional:121e-snowflake-snowpipe-troubleshooting-advanced.md

@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-10
-**Keywords:** ext:.zsh, kw:z shell, kw:zsh features, kw:arrays, kw:functions, kw:oh-my-zsh, kw:emulate, kw:setopt, kw:parameter expansion, kw:globbing
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:z shell scripting, kw:parameter expansion modifiers, kw:emulate setopt, kw:1-indexed arrays, kw:extended glob patterns, kw:namespace pollution prevention
 **TokenBudget:** ~4300
 **ContextTier:** Medium
 **Depends:** required:300-bash-scripting-core.md, optional:310a-zsh-advanced-features.md, optional:310b-zsh-compatibility.md

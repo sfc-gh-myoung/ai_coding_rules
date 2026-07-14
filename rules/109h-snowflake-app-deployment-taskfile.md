@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.5
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:deployment-taskfile, kw:deploy-task, kw:taskfile deployment, kw:task automation, kw:deployment tasks, kw:task structure, kw:deploy task, kw:upload task, kw:create task, kw:drop task, kw:remove task, kw:deployment workflow
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Taskfile deployment automation, kw:five-step deployment workflow, kw:deployment task preconditions, kw:sequential task execution, kw:stage file upload tasks, kw:notebook streamlit deployment, kw:snowsight
 **TokenBudget:** ~3100
 **ContextTier:** Low
 **Depends:** required:820-taskfile-automation.md

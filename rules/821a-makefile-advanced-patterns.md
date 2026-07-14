@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:makefile-includes, kw:makefile-help, kw:makefile-conditional, kw:categorized help, kw:makefile includes, kw:conditional logic, kw:ifdef, kw:ifeq, kw:variable assignment, kw:simply expanded, kw:recursively expanded, kw:platform detection, kw:multi-target, kw:ai agent, kw:make patterns
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:categorized help, kw:makefile conditionals, kw:variable assignment operators, kw:makefile include directives, kw:platform detection, kw:AI agent integration, kw:ci/cd
 **TokenBudget:** ~3650
 **ContextTier:** Low
 **Depends:** required:821-makefile-automation.md, optional:820a-taskfile-advanced-patterns.md, optional:300-bash-scripting-core.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** kw:feature-store-patterns, kw:feature store anti-patterns, kw:data leakage, kw:point-in-time correctness, kw:feature versioning mistakes, kw:non-deterministic features, kw:feature view costs, kw:feature store governance
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:ASOF JOIN, kw:feature view versioning, kw:deterministic transformations, kw:dynamic table refresh costs, kw:training data leakage, kw:train serve skew
 **TokenBudget:** ~2300
 **ContextTier:** Low
 **Depends:** required:100-snowflake-core.md, required:113-snowflake-feature-store.md

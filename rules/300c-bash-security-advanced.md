@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:bash-security-advanced, kw:privilege-management, kw:audit-logging, kw:bash, kw:privilege management, kw:network security, kw:audit logging, kw:resource limits, kw:url validation, kw:security testing, kw:parameter expansion, kw:file permissions
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:privilege dropping, kw:ulimit resource constraints, kw:URL validation localhost blocking, kw:audit logging security events, kw:parameter expansion whitelisting, kw:malicious payload testing, kw:ci/cd
 **TokenBudget:** ~2200
 **ContextTier:** Medium
 **Depends:** required:300a-bash-security.md, optional:300-bash-scripting-core.md, optional:300b-bash-testing-tooling.md

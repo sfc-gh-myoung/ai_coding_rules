@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:agent-testing, kw:agent-rbac, kw:agent testing, kw:component testing, kw:agent rbac, kw:agent permissions, kw:agent grants, kw:cortex agent security, kw:test agent, kw:agent validation, kw:agent role, kw:agent access control
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:cortex agent testing, kw:agent RBAC grants, kw:component integration testing, kw:agent tool verification, kw:least-privilege agent permissions, kw:semantic view grants, kw:ci/cd
 **TokenBudget:** ~3300
 **ContextTier:** Low
 **Depends:** required:115-snowflake-cortex-agents-core.md, optional:115b-snowflake-cortex-agents-operations.md, optional:107-snowflake-security-governance.md

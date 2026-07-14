@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.4
-**LastUpdated:** 2026-07-11
-**Keywords:** kw:readme, kw:documentation, file:README.md, kw:project documentation, kw:getting started, kw:setup instructions, kw:badges, kw:quick start, kw:contributing, kw:license, kw:technical writing, kw:author contact, kw:maintainer
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:README.md structure, kw:quick start commands, kw:progressive disclosure, kw:badge validation, kw:clean environment testing, kw:author contact section, kw:ci/cd
 **TokenBudget:** ~4800
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md, optional:802-project-contributing.md, optional:805-technical-writing-style.md

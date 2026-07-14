@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-10
-**Keywords:** ext:.zsh, kw:zsh-compatibility, kw:shell compatibility, kw:bash vs zsh, kw:portable scripts, kw:cross-shell, kw:migration, kw:emulate, kw:posix compliance, kw:shell detection
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:bash vs zsh, kw:emulate mode, kw:array indexing differences, kw:POSIX compliance, kw:shell detection, kw:setopt explicit, kw:ci/cd
 **TokenBudget:** ~4150
 **ContextTier:** Low
 **Depends:** required:300-bash-scripting-core.md, optional:310-zsh-scripting-core.md, optional:310a-zsh-advanced-features.md, optional:310c-zsh-compatibility-platforms.md

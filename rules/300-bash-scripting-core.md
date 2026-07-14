@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-07-10
-**Keywords:** ext:.sh, ext:.bash, ext:.zsh, kw:shell scripting, kw:set -euo pipefail, kw:error handling, kw:strict mode, kw:functions, kw:variables, kw:script structure, kw:trap, kw:exit codes, kw:shellcheck, kw:input validation
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:set -euo pipefail, kw:variable quoting, kw:trap cleanup handlers, kw:shellcheck static analysis, kw:local function variables, kw:bash script structure, kw:taskfile
 **TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** required:000-global-core.md, optional:300a-bash-security.md, optional:300d-bash-advanced.md, optional:820-taskfile-automation.md

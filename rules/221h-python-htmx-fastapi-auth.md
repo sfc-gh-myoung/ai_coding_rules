@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:htmx-fastapi-auth, kw:htmx-jwt, kw:htmx-sse-fastapi, kw:htmx-csrf-fastapi, kw:jwt, kw:sse, kw:csrf, kw:starlette-wtf, kw:oauth2, kw:server-sent-events
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:FastAPI HTMX authentication, kw:HX-Redirect header, kw:SSE streaming FastAPI, kw:call_soon_threadsafe queue, kw:Starlette-WTF CSRF, kw:HTTPBearer dependency injection, kw:fastapi
 **TokenBudget:** ~2400
 **ContextTier:** Medium
 **Depends:** optional:221c-python-htmx-fastapi.md, optional:210a-python-fastapi-security.md, optional:221g-python-htmx-sse.md

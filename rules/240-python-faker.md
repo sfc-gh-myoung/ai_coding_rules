@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.8.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:test-data, kw:mock, kw:test data generation, kw:fake data, kw:providers, kw:synthetic data, kw:seeding, kw:deterministic testing, kw:python testing
+**RuleVersion:** v3.9.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Faker library, kw:seed_instance, kw:custom providers, kw:deterministic test data, kw:unique attribute, kw:locale fallback, kw:TOML
 **TokenBudget:** ~3300
 **ContextTier:** Low
 **Depends:** required:200-python-core.md, optional:201-python-lint-format.md, optional:230-python-pydantic.md, optional:240a-python-faker-testing.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:go-http, kw:go-server, kw:go-middleware, kw:go, kw:http server, kw:middleware, kw:graceful shutdown, kw:timeouts, kw:database patterns, kw:production, kw:server configuration
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:http.Server timeouts, kw:graceful shutdown, kw:middleware chain composition, kw:database connection pooling, kw:context-aware queries, kw:signal handling SIGTERM, kw:taskfile
 **TokenBudget:** ~2250
 **ContextTier:** Low
 **Depends:** required:600-golang-core.md, optional:820-taskfile-automation.md

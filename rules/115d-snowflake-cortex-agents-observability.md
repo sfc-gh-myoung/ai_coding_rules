@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.3
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:agent-observability, kw:agent-costs, kw:agent observability, kw:agent evaluation, kw:agent cost management, kw:agent latency, kw:agent health, kw:agent errors, kw:debug agent, kw:agent logs, kw:agent trace, kw:cortex agent troubleshooting, kw:agent cost tracking
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:cortex agent observability, kw:agent cost attribution, kw:AI Observability tracing, kw:agent health checks, kw:agent troubleshooting runbook, kw:dedicated agent warehouse, kw:cortex
 **TokenBudget:** ~3850
 **ContextTier:** Low
 **Depends:** required:115-snowflake-cortex-agents-core.md, optional:105-snowflake-cost-governance.md

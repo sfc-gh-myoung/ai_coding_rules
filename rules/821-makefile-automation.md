@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-10
-**Keywords:** file:Makefile, kw:make, kw:gnu make, kw:make target, kw:phony, kw:make help, kw:portable make, kw:make variables, kw:uv, kw:uvx, kw:make dependencies, kw:make error handling, kw:make cleanup
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:GNU Make, kw:make target, kw:.PHONY declaration, kw:self-documenting help, kw:uv uvx integration, kw:tool auto-detection, kw:ci/cd
 **TokenBudget:** ~3700
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md, optional:821a-makefile-advanced-patterns.md, optional:820-taskfile-automation.md, optional:300-bash-scripting-core.md

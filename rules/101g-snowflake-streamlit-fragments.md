@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.1.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:st.fragment, kw:run_every, kw:real-time progress, kw:polling, kw:live updates, kw:fragment pattern, kw:auto-refresh, kw:streaming, kw:monitoring dashboard
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:st.fragment, kw:run_every auto-refresh, kw:live progress polling, kw:session state persistence, kw:fragment termination st.stop, kw:conditional fragment rendering, kw:cortex
 **TokenBudget:** ~2850
 **ContextTier:** Medium
 **Depends:** required:101-snowflake-streamlit-core.md, optional:101b-snowflake-streamlit-performance.md

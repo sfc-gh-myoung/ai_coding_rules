@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:spcs, kw:compute pools, kw:oci images, kw:service spec, kw:container deployment, kw:service logs, kw:platform events, kw:instance family, kw:gen_x64_g2, kw:mem_x64_g2, kw:current generation, kw:gpu l40s, kw:gpu rtx pro 6000
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Snowpark Container Services, kw:compute pool instance families, kw:OCI image deployment, kw:service specification YAML, kw:platform events monitoring, kw:GPU workload configuration, kw:flask
 **TokenBudget:** ~3550
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md, optional:105-snowflake-cost-governance.md, optional:111-snowflake-observability-core.md, optional:119-snowflake-warehouse-management.md

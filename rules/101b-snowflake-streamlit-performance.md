@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:@st.cache_data, kw:@st.cache_resource, kw:st.fragment, kw:null handling, kw:slow streamlit, kw:streamlit caching, kw:optimize streamlit, kw:fix slow queries, kw:fragment batch processing, kw:streamlit performance, kw:app slow, kw:loading data, kw:caching pattern
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:@st.cache_data decorator, kw:@st.cache_resource decorator, kw:Snowflake column normalization, kw:st.spinner progress feedback, kw:query loop aggregation, kw:ttl cache expiration, kw:pandas
 **TokenBudget:** ~4950
 **ContextTier:** High
 **Depends:** required:103-snowflake-performance-tuning.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.6
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:snowflake, kw:dbt_semantic_view, kw:materialization, kw:cortex analyst, kw:yaml, kw:semantic model, kw:dbt models, kw:analytics, kw:business intelligence, kw:data modeling
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:dbt_semantic_view package, kw:semantic_view materialization, kw:cortex analyst integration, kw:SEMANTIC_VIEW() function, kw:primary key constraints, kw:dimensions metrics relationships, kw:ci/cd
 **TokenBudget:** ~5100
 **ContextTier:** High
 **Depends:** required:950-dbt-core.md

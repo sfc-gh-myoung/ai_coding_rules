@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.3.3
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:error boundary, kw:hydration, kw:error recovery, kw:suspense, kw:errorboundary, kw:useeffect, kw:use client, kw:resource exhaustion, kw:cleanup, kw:unmount, kw:abortcontroller
+**RuleVersion:** v3.4.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:error boundary, kw:hydration mismatch, kw:useEffect cleanup, kw:TanStack Query error, kw:use client directive, kw:query cache gcTime, kw:tsx
 **TokenBudget:** ~2450
 **ContextTier:** Medium
 **Depends:** required:440-react-core.md

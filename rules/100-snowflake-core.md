@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.3.1
-**LastUpdated:** 2026-07-10
-**Keywords:** ext:.sql, kw:sql, kw:cte, kw:performance, kw:cost optimization, kw:query profile, kw:warehouse, kw:security, kw:governance, kw:stages, kw:copy into, kw:streams, kw:tasks, kw:warehouse creation
+**RuleVersion:** v3.4.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:CTE extraction, kw:VARIANT parsing optimization, kw:Streams Tasks incremental, kw:partition pruning early filtering, kw:QUALIFY ROW_NUMBER deduplication, kw:Query Profile validation, kw:masking policy row access
 **TokenBudget:** ~5050
 **ContextTier:** High
 **Depends:** required:000-global-core.md, optional:119-snowflake-warehouse-management.md, optional:103-snowflake-performance-tuning.md, optional:105-snowflake-cost-governance.md

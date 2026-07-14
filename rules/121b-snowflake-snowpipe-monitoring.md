@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:snowpipe-monitoring, kw:pipe-costs, kw:snowpipe monitoring, kw:cost management, kw:load history, kw:pipe usage, kw:streaming monitoring, kw:channel status, kw:credits tracking, kw:performance metrics, kw:cost optimization, kw:metering history, kw:monitoring queries
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:PIPE_USAGE_HISTORY, kw:Snowpipe credit tracking, kw:channel status monitoring, kw:COPY_HISTORY Snowpipe, kw:cost per GB optimization, kw:baseline performance metrics, kw:snowpipe
 **TokenBudget:** ~4000
 **ContextTier:** Medium
 **Depends:** required:100-snowflake-core.md, required:121-snowflake-snowpipe.md, optional:121f-snowflake-snowpipe-monitoring-alerts.md, optional:121c-snowflake-snowpipe-troubleshooting.md, optional:105-snowflake-cost-governance.md

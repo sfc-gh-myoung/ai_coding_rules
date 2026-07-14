@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:bash-testing, kw:bats, kw:shellcheck, kw:shell script testing, kw:ci/cd, kw:debugging, kw:static analysis, kw:linting
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:ShellCheck, kw:Bats, kw:bash unit testing, kw:pre-commit hooks, kw:debug mode implementation, kw:CI/CD shell validation, kw:ci/cd
 **TokenBudget:** ~3600
 **ContextTier:** Medium
 **Depends:** required:300-bash-scripting-core.md, optional:300a-bash-security.md

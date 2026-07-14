@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:snowparksqlexception, kw:error messages, kw:streamlit errors, kw:snowflake errors, kw:debug sql error, kw:fix query error, kw:sql exception, kw:error troubleshooting, kw:query failed, kw:database error, kw:sql debugging patterns, kw:exception handling, kw:common sql errors, kw:streamlit error, kw:app error, kw:fix error
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:SnowparkSQLException, kw:streamlit sql error display, kw:error code display, kw:query context messaging, kw:st.stop cascade prevention, kw:empty dataframe warning, kw:pandas
 **TokenBudget:** ~3950
 **ContextTier:** Low
 **Depends:** required:000-global-core.md, required:100-snowflake-core.md, required:101-snowflake-streamlit-core.md, optional:100f-snowflake-connection-errors.md, optional:101c-snowflake-streamlit-security.md

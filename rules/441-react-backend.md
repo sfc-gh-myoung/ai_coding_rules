@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:react-backend, kw:react backend, kw:fastapi, kw:flask, kw:python api, kw:cors, kw:jwt, kw:authentication, kw:api integration, kw:full-stack, kw:express alternative, kw:fetch, kw:axios, kw:tanstack query backend, kw:next.js api routes, kw:httponly cookies
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:FastAPI React integration, kw:httpOnly cookie authentication, kw:TanStack Query backend communication, kw:CORS middleware configuration, kw:Python-first full-stack, kw:JWT refresh token rotation, kw:fastapi
 **TokenBudget:** ~4350
 **ContextTier:** High
 **Depends:** required:440-react-core.md, required:200-python-core.md

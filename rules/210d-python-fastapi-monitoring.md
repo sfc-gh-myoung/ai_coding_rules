@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.0.5
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:fastapi-monitoring, kw:fastapi monitoring, kw:health checks, kw:logging, kw:metrics, kw:caching, kw:redis, kw:structured logging, kw:health endpoints, kw:correlation ids
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:FastAPI health endpoints, kw:correlation ID middleware, kw:structured JSON logging, kw:Redis caching layer, kw:MetricsMiddleware performance tracking, kw:sensitive data sanitization, kw:fastapi
 **TokenBudget:** ~4300
 **ContextTier:** Medium
 **Depends:** required:210-python-fastapi-core.md

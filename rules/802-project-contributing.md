@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.3
-**LastUpdated:** 2026-07-10
-**Keywords:** file:CONTRIBUTING.md, kw:pull requests, kw:code review, kw:contribution guidelines, kw:branching strategy, kw:conventional commits, kw:rule authoring, kw:pr templates, kw:git workflow
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:pull requests, kw:conventional commits, kw:CONTRIBUTING.md, kw:changelog discipline, kw:rule authoring, kw:pre-commit validation, kw:cortex
 **TokenBudget:** ~2600
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md, optional:801-project-readme.md, optional:803-project-git-workflow.md, optional:002-rule-governance.md

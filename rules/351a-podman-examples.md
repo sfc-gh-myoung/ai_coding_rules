@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-07-04
-**Keywords:** kw:podman examples, kw:containerfile example, kw:buildah example, kw:quadlet example, kw:podman build script
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Buildah multi-stage, kw:Quadlet systemd, kw:rootless numeric UID, kw:SBOM generation script, kw:Containerfile healthcheck, kw:versioned image tags, kw:ini
 **TokenBudget:** ~1750
 **ContextTier:** Low
 **Depends:** required:351-podman-core.md

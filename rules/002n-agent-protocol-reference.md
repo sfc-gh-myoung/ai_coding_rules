@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.1
-**LastUpdated:** 2026-07-11
-**Keywords:** kw:anti-patterns, kw:quality gates, kw:task switch, kw:rule loading, kw:failure modes, kw:protocol reference, kw:term definitions, kw:gate compliance
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:agent bootstrap protocol, kw:PRE-FLIGHT gate compliance, kw:RULES_INDEX grep discovery, kw:ACT authorization recognition, kw:task switch detection, kw:fabricated gate anti-pattern, kw:cortex
 **TokenBudget:** ~4900
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md

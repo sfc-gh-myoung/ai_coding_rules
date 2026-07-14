@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:htmx-templates, kw:jinja2, kw:partials, kw:fragments, kw:template composition, kw:conditional rendering, kw:htmx templates, kw:template organization, kw:reusable components, kw:template context
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Jinja2 partials, kw:HTMX fragment rendering, kw:template directory organization, kw:conditional HTMX detection, kw:reusable template macros, kw:partial inheritance anti-patterns, kw:fastapi
 **TokenBudget:** ~4500
 **ContextTier:** High
 **Depends:** required:221-python-htmx-core.md, optional:221c-python-htmx-fastapi.md, optional:221e-python-htmx-patterns.md, optional:221b-python-htmx-flask.md

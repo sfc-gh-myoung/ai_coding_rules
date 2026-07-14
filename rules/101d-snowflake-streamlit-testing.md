@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:test streamlit app, kw:test framework, kw:test patterns, kw:app testing, kw:ui testing, kw:streamlit test suite, kw:test coverage, kw:debug tests, kw:testing strategies
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:AppTest, kw:streamlit ui testing, kw:cache behavior testing, kw:mock snowflake session, kw:widget interaction testing, kw:pytest coverage 80%, kw:TOML
 **TokenBudget:** ~3950
 **ContextTier:** High
 **Depends:** required:206-python-pytest.md, optional:101b-snowflake-streamlit-performance.md

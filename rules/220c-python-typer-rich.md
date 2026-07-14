@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:rich, kw:console, kw:progress-bar, kw:console output, kw:progress bars, kw:live display, kw:color detection, kw:stderr, kw:dual console
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Rich library, kw:Typer Rich integration, kw:shared console module, kw:dual console stdout stderr, kw:color detection environment, kw:Live progress display, kw:pytest
 **TokenBudget:** ~3450
 **ContextTier:** Medium
 **Depends:** required:220-python-typer-cli.md, optional:220b-python-typer-testing.md

@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:hypermedia, kw:hateoas, kw:hx-request, kw:hx-trigger, kw:partial rendering, kw:sse, kw:websockets, kw:csrf, kw:xss, kw:http headers, kw:swap strategies, kw:oob swaps, kw:response patterns
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:hx-request header detection, kw:partial HTML rendering, kw:HX-Trigger response headers, kw:CSRF token injection, kw:swap strategy selection, kw:hypermedia-driven navigation, kw:fastapi
 **TokenBudget:** ~4800
 **ContextTier:** High
 **Depends:** required:200-python-core.md, optional:221c-python-htmx-fastapi.md, optional:221e-python-htmx-patterns.md, optional:221g-python-htmx-sse.md

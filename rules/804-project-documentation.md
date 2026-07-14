@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.1.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:docs folder, file:docs/, file:ARCHITECTURE.md, kw:architecture.md, kw:deployment.md, kw:adr, kw:github pages, kw:community health files, kw:cross-references, kw:link maintenance, kw:documentation organization
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:docs folder structure, kw:community health files placement, kw:ARCHITECTURE.md location, kw:relative path cross-references, kw:ADR folder conventions, kw:GitHub Pages deployment
 **TokenBudget:** ~2850
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md, optional:800-project-changelog.md, optional:801-project-readme.md, optional:802-project-contributing.md

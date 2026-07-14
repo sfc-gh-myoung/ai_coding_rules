@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.1
-**LastUpdated:** 2026-07-04
-**Keywords:** kw:model optimization, kw:context window, kw:loading budget, kw:gpt, kw:claude, kw:gemini, kw:token limits, kw:cost efficiency, kw:prompt caching
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:context window sizing, kw:loading budget calculation, kw:GPT-4o GPT-5.1, kw:Claude Sonnet Opus, kw:Gemini Pro, kw:prompt caching strategy
 **TokenBudget:** ~2550
 **ContextTier:** Low
 **Depends:** required:002c-rule-optimization.md

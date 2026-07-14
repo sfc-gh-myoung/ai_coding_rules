@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.3
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:cli-testing, kw:clirunner, kw:cli testing, kw:ansi escape codes, kw:no_color, kw:cli integration testing, kw:mock
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:CliRunner, kw:ANSI escape suppression, kw:Typer command testing, kw:exit code verification, kw:CLI mock dependencies, kw:async command testing, kw:pytest
 **TokenBudget:** ~2300
 **ContextTier:** Medium
 **Depends:** required:206-python-pytest.md, optional:220c-python-typer-rich.md

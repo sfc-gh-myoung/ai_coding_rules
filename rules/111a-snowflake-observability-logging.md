@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.5
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:observability-logging, kw:debug, kw:info, kw:warn, kw:error, kw:fatal, kw:conditional logging, kw:sampling, kw:tight loop logging, kw:standard logging libraries, kw:log volume control, kw:cost management, kw:log configuration, kw:log handlers
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:handler logging, kw:log volume control, kw:sampling strategy, kw:conditional logging, kw:event table routing, kw:tight loop logging, kw:udf
 **TokenBudget:** ~4000
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md, required:111-snowflake-observability-core.md

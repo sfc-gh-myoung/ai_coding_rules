@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:data science, kw:snowflake, kw:pandas, kw:snowpark, kw:ml, kw:model lifecycle, kw:feature engineering, kw:nan handling, kw:model versioning, kw:jupyter
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:snowpark dataframe, kw:model registry versioning, kw:feature engineering leakage, kw:SHAP explainability, kw:SQL aggregation over loops, kw:pandas NaN handling, kw:uncertainty quantification intervals
 **TokenBudget:** ~3750
 **ContextTier:** High
 **Depends:** required:000-global-core.md, required:200-python-core.md, optional:100-snowflake-core.md, optional:101-snowflake-streamlit-core.md, optional:252-python-pandas-core.md

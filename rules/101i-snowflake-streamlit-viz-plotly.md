@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.1.3
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:plotly, kw:plotly express, kw:graph objects, kw:st.plotly_chart, kw:scatter, kw:line, kw:bar, kw:histogram, kw:heatmap, kw:box plot, kw:violin, kw:sunburst, kw:treemap, kw:animations, kw:faceting, kw:subplots
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:plotly express, kw:graph objects, kw:st.plotly_chart, kw:chart animations, kw:faceting subplots, kw:colorblind-safe palettes, kw:pandas
 **TokenBudget:** ~3450
 **ContextTier:** Medium
 **Depends:** optional:101a-snowflake-streamlit-visualization.md, optional:101j-snowflake-streamlit-viz-pydeck.md, optional:940-business-analytics.md

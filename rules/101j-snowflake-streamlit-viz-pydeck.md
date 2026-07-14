@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.1.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:pydeck, kw:st.pydeck_chart, kw:deck.gl, kw:3d visualization, kw:hexagon layer, kw:scatterplot layer, kw:geojson layer, kw:arc layer, kw:heatmap layer, kw:terrain, kw:point cloud, kw:webgl, kw:geospatial
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:pydeck, kw:deck.gl layers, kw:3D geospatial, kw:WebGL context limit, kw:ViewState configuration, kw:hexbin aggregation, kw:streamlit
 **TokenBudget:** ~2950
 **ContextTier:** Medium
 **Depends:** optional:101a-snowflake-streamlit-visualization.md, optional:101i-snowflake-streamlit-viz-plotly.md

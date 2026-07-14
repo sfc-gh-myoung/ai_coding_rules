@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:tool outputs, kw:minimal output, kw:progressive output, kw:context budget, kw:verbose output
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:tool output minimization, kw:progressive loading, kw:token-efficient responses, kw:silent success pattern, kw:metadata elimination, kw:agent context preservation, kw:ci/cd
 **TokenBudget:** ~2600
 **ContextTier:** Medium
 **Depends:** required:004-tool-design-for-agents.md, required:000-global-core.md, optional:003-context-engineering.md, optional:004a-tool-set-curation.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:agent-instructions, kw:cortex agents, kw:response instructions, kw:tool orchestration, kw:flagging logic, kw:agent prompts, kw:multi-tool orchestration, kw:tool selection, kw:agent prompting, kw:instruction patterns, kw:agent planning
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:cortex agent instructions, kw:planning instructions, kw:response instructions, kw:agent flagging logic, kw:multi-tool orchestration, kw:tool selection criteria, kw:cortex
 **TokenBudget:** ~4650
 **ContextTier:** High
 **Depends:** required:115-snowflake-cortex-agents-core.md

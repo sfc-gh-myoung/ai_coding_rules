@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:locale, kw:custom-provider, kw:faker-performance, kw:localization, kw:custom providers, kw:baseprovider, kw:performance optimization, kw:batch generation, kw:caching, kw:multi-language
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:faker localization, kw:custom provider, kw:BaseProvider extension, kw:DynamicProvider runtime, kw:streaming generator memory, kw:faker caching optimization, kw:TOML
 **TokenBudget:** ~3300
 **ContextTier:** Low
 **Depends:** required:240-python-faker.md, optional:240a-python-faker-testing.md

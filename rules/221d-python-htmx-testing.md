@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:integration tests, kw:fixtures, kw:mocking, kw:header validation, kw:html assertions, kw:test client, kw:htmx testing
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:htmx endpoint testing, kw:HX-Request header, kw:HX-Trigger response headers, kw:partial HTML assertions, kw:htmx_client fixture, kw:OOB swap testing, kw:fastapi
 **TokenBudget:** ~4600
 **ContextTier:** High
 **Depends:** required:206-python-pytest.md, optional:221b-python-htmx-flask.md, optional:221c-python-htmx-fastapi.md, optional:200-python-core.md

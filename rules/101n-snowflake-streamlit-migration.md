@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.2.3
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:warehouse runtime, kw:container runtime, kw:in-place upgrade, kw:live version, kw:environment.yml, kw:pyproject.toml, kw:get_active_session, kw:st.connection, kw:runtime migration, kw:bidirectional migration
+**RuleVersion:** v1.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Streamlit runtime migration, kw:environment.yml to pyproject.toml, kw:get_active_session replacement, kw:Container Runtime infrastructure, kw:bidirectional runtime swap, kw:in-place Streamlit upgrade, kw:TOML
 **TokenBudget:** ~2800
 **ContextTier:** Low
 **Depends:** optional:101l-snowflake-streamlit-deployment.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:faker-fixtures, kw:factory-boy, kw:seeded-data, kw:pytest fixtures, kw:factory boy, kw:seeded testing, kw:deterministic data, kw:pytest-xdist, kw:subfactory
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:faker pytest fixtures, kw:seed_instance parallel, kw:Factory Boy SubFactory, kw:pytest-xdist worker seeding, kw:conftest fixture hierarchy, kw:unique value cleanup, kw:TOML
 **TokenBudget:** ~3150
 **ContextTier:** Low
 **Depends:** required:240-python-faker.md, required:206-python-pytest.md, optional:240b-python-faker-advanced.md

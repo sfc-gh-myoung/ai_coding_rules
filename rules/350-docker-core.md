@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.3.2
-**LastUpdated:** 2026-07-12
-**Keywords:** file:Dockerfile, file:docker-compose.yml, file:docker-compose.yaml, kw:docker, kw:container, kw:dockerfile, kw:containers, kw:multi-stage builds, kw:layer caching, kw:image optimization, kw:docker-compose, kw:buildkit, kw:distroless, kw:security scanning, kw:sbom, kw:non-root
+**RuleVersion:** v3.4.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:multi-stage builds, kw:image digest pinning, kw:non-root container user, kw:layer caching optimization, kw:SBOM generation, kw:BuildKit mount cache, kw:ci/cd
 **TokenBudget:** ~4550
 **ContextTier:** Medium
 **Depends:** required:000-global-core.md, required:202-markup-config-validation.md, optional:200-python-core.md, optional:203-python-project-setup.md

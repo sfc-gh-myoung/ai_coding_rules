@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.2.3
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:context engineering, kw:attention budget, kw:context rot, kw:token efficiency, kw:compaction, kw:progressive disclosure, kw:sub-agents, kw:agentic search, kw:system prompts, kw:right altitude, kw:long-horizon tasks, kw:memory management, kw:state tracking
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:context window management, kw:attention budget, kw:context rot prevention, kw:progressive disclosure patterns, kw:agentic search vs RAG, kw:context compaction strategies, kw:long-horizon task state
 **TokenBudget:** ~4300
 **ContextTier:** Critical
 **Depends:** required:000-global-core.md

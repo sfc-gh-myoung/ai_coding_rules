@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:optimization, kw:slow, kw:search optimization, kw:pruning, kw:spillage, kw:sql optimization, kw:partition pruning, kw:query_history, kw:optimize query, kw:fix slow query, kw:query bottleneck, kw:warehouse performance, kw:micro-partitions, kw:clustering
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Query Profile analysis, kw:partition pruning optimization, kw:spillage detection, kw:clustering key justification, kw:warehouse sizing diagnosis, kw:slow query investigation, kw:snowsight
 **TokenBudget:** ~3200
 **ContextTier:** High
 **Depends:** required:000-global-core.md, required:100-snowflake-core.md

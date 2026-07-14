@@ -7,9 +7,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.1.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:rule examples, kw:example files, kw:example schema, kw:reference implementations, kw:example discovery, kw:example validation
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:rule examples, kw:example schema, kw:example-schema.yml, kw:example discovery, kw:reference implementations, kw:example staleness, kw:streamlit
 **TokenBudget:** ~1550
 **ContextTier:** Medium
 **Depends:** required:002-rule-governance.md, optional:002a-rule-creation.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.9.0
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:pydantic models, kw:basemodel, kw:data validation, kw:models, kw:field validation, kw:field, kw:validator, kw:model_validator, kw:emailstr
+**RuleVersion:** v3.10.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:BaseModel inheritance, kw:Field constraints, kw:@field_validator decorator, kw:@model_validator decorator, kw:ConfigDict settings, kw:discriminated unions, kw:TOML
 **TokenBudget:** ~3800
 **ContextTier:** High
 **Depends:** required:200-python-core.md

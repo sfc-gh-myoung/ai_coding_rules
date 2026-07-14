@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Annotated, Any
 
 import typer
+import typer.core
 from rich.columns import Columns
 from rich.panel import Panel
 from rich.table import Table
@@ -1056,7 +1057,7 @@ Rule file content:
                     f"[dim][DEBUG] Cortex API attempt {attempt + 1}/{max_retries}[/dim]"
                 )
 
-            resp = requests.post(url, headers=headers, json=payload, timeout=30)  # ty: ignore[invalid-argument-type]
+            resp = requests.post(url, headers=headers, json=payload, timeout=30)
 
             if resp.status_code == 200:
                 text = _parse_cortex_sse_response(resp.text)
@@ -1745,6 +1746,40 @@ def _emit_rationale_jsonl(results: list[ExtractionResult], output_path: Path) ->
     return emitted
 
 
+class _KeywordsGroup(typer.core.TyperGroup):
+    """Typer group that routes unknown positional args to the ``run`` subcommand.
+
+    This preserves the historical ``ai-rules keywords <path> [--flags]``
+    invocation shape while enabling real subcommands like
+    ``ai-rules keywords collisions``.
+    """
+
+    def resolve_command(self, ctx, args):
+        # If the user did not name a registered subcommand, prepend ``run``
+        # so the historical ``keywords <path>`` shape keeps working.
+        if not args or args[0] not in self.commands:
+            args = ["run", *args]
+        return super().resolve_command(ctx, args)
+
+
+keywords_app = typer.Typer(
+    name="keywords",
+    help="Generate semantically relevant keywords for AI coding rule files.",
+    invoke_without_command=True,
+    no_args_is_help=False,
+    cls=_KeywordsGroup,
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
+
+
+@keywords_app.callback(invoke_without_command=True)
+def _keywords_root(ctx: typer.Context) -> None:
+    """Dispatch to ``run`` (with defaults) when no subcommand is invoked."""
+    if ctx.invoked_subcommand is None:
+        ctx.invoke(keywords, ctx=ctx, path=None)
+
+
+@keywords_app.command("run")
 def keywords(
     ctx: typer.Context,
     path: Annotated[
@@ -1822,6 +1857,21 @@ def keywords(
             "--rationale-output",
             help="Override the rationale JSONL destination (default: "
             ".workbench/audit/keyword_rationale.jsonl).",
+        ),
+    ] = None,
+    output: Annotated[
+        Path | None,
+        typer.Option(
+            "--output",
+            help="Write a JSON manifest of {filename, keywords, rationale} entries "
+            "for every processed rule to this path (aggregated after all rules run).",
+        ),
+    ] = None,
+    exclude_list: Annotated[
+        Path | None,
+        typer.Option(
+            "--exclude-list",
+            help="Path to the exclude list of rule filenames to omit from --output.",
         ),
     ] = None,
 ) -> None:
@@ -1945,6 +1995,37 @@ def keywords(
         emitted = _emit_rationale_jsonl(results, target)
         log_success(f"Appended {emitted} rationale entries to {target} (rules={len(results)})")
 
+    # Phase 1 Step 2: emit aggregate JSON manifest of candidate keywords.
+    if output is not None:
+        excluded = _load_exclude_list(exclude_list)
+        manifest_entries = [
+            {
+                "filename": r.file_path.name,
+                "keywords": list(r.suggested_keywords),
+                "rationale": dict(r.rationale_map),
+            }
+            for r in results
+            if r.file_path.name not in excluded
+        ]
+        manifest = {
+            "generated_at": datetime.now(UTC).isoformat(),
+            "count_limit": count,
+            "connection": connection,
+            "source_path": str(path),
+            "rule_count": len(manifest_entries),
+            "excluded_count": len(results) - len(manifest_entries),
+            "rules": manifest_entries,
+        }
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(
+            json.dumps(manifest, indent=2, ensure_ascii=False, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        log_success(
+            f"Wrote keyword manifest to {output} "
+            f"(rules={len(manifest_entries)}, excluded={manifest['excluded_count']})"
+        )
+
     # Print summary for non-diff, non-update mode
     if not diff and not update:
         print_suggestions_table(results)
@@ -1959,22 +2040,24 @@ def keywords(
 
 
 # ---------------------------------------------------------------------------
-# T6 — Corpus collision reporter CLI command
+# T6 — Corpus collision reporter CLI command (Phase 1 Step 1 rework)
 # ---------------------------------------------------------------------------
 #
-# The plan's contract is ``ai-rules keywords collisions``. Click's group +
-# callback + positional-argument routing forces callers to put options BEFORE
-# the positional arg, which breaks the 24 existing tests + the T7 success
-# signal ``ai-rules keywords rules/000-global-core.md --count 7 --rationale``.
+# The plan's contract is ``ai-rules keywords collisions``. We satisfy that
+# contract by registering ``keywords`` as a Typer sub-app with
+# ``invoke_without_command=True`` and mounting ``collisions`` as a real
+# subcommand.  The sub-app callback consumes its declared Options first,
+# leaving any positional path argument in ``ctx.args`` for manual parsing —
+# this preserves the historical ``ai-rules keywords <path> --diff`` shape used
+# by the existing test suite while enabling ``ai-rules keywords collisions``
+# to route as a subcommand.
 #
-# We therefore ship the reporter as a sibling top-level command
-# ``ai-rules keywords-collisions`` and keep the historical ``keywords``
-# command shape unchanged. The internal library entry points
-# (:func:`build_keyword_collision_map`, :func:`find_collision_violations`,
-# :func:`apply_collision_postfilter`) are the primary integration surface;
-# the CLI wraps them.
+# The internal library entry points (:func:`build_keyword_collision_map`,
+# :func:`find_collision_violations`, :func:`apply_collision_postfilter`)
+# remain the primary integration surface; the CLI wraps them.
 
 
+@keywords_app.command("collisions")
 def collisions_command(
     rules_dir: Annotated[
         Path,

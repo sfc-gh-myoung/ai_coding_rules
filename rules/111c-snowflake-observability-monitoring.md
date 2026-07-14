@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:metrics, kw:copy history, kw:task history, kw:dynamic tables, kw:cost management, kw:troubleshooting, kw:performance analysis, kw:monitor queries, kw:telemetry volume, kw:sql
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:ACCOUNT_USAGE views, kw:telemetry cost optimization, kw:query history monitoring, kw:real-time vs historical latency, kw:Snowsight operational dashboards, kw:cortex token tracking, kw:cortex
 **TokenBudget:** ~4100
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md, required:111-snowflake-observability-core.md, optional:111a-snowflake-observability-logging.md, optional:111b-snowflake-observability-tracing.md

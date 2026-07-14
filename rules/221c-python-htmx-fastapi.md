@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:htmx-fastapi, kw:async, kw:dependency injection, kw:background tasks, kw:fastapi templates, kw:starlette, kw:pydantic, kw:async routes
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:FastAPI async routes, kw:Jinja2Templates FastAPI, kw:HTMX dependency injection, kw:BackgroundTasks polling, kw:Pydantic form validation, kw:htmx-fastapi integration, kw:fastapi
 **TokenBudget:** ~3450
 **ContextTier:** Medium
 **Depends:** optional:221e-python-htmx-patterns.md, optional:221d-python-htmx-testing.md, optional:221h-python-htmx-fastapi-auth.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v1.1.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:dbt core, kw:snowflake, kw:dbt project object, kw:execute dbt project, kw:profiles.yml, kw:workspaces, kw:snow dbt, kw:dbt deploy, kw:task scheduling, kw:dbt monitoring, kw:dbt access control, kw:data transformation, kw:schema customization, kw:generate_schema_name, kw:dbt versioning, kw:snow://dbt
+**RuleVersion:** v1.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:dbt project object, kw:EXECUTE DBT PROJECT, kw:profiles.yml snowflake, kw:snow dbt deploy, kw:dbt workspaces, kw:dbt external access integration, kw:ci/cd
 **TokenBudget:** ~5200
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md, required:200-python-core.md, optional:951-create-dbt-semantic-view.md, optional:104-snowflake-streams-tasks.md, optional:111-snowflake-observability-core.md

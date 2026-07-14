@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:api, kw:rest, kw:async, kw:rest api, kw:pydantic, kw:dependency injection, kw:routing, kw:request validation, kw:response models, kw:apirouter, kw:uvicorn, kw:async def, kw:application factory
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:application factory, kw:APIRouter modular routing, kw:Pydantic request response separation, kw:async def route handlers, kw:dependency injection database sessions, kw:uvicorn ASGI server, kw:fastapi
 **TokenBudget:** ~4600
 **ContextTier:** High
 **Depends:** required:200-python-core.md, optional:203-python-project-setup.md, optional:210b-python-fastapi-testing.md, optional:210d-python-fastapi-monitoring.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:agent-operations, kw:agent operations, kw:agent security, kw:agent monitoring, kw:agent evaluation, kw:agent costs, kw:debug agent, kw:agent troubleshooting, kw:agent security policies
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:agent RBAC, kw:component testing agents, kw:agent cost budgets, kw:agent plan template, kw:agent investigation protocol, kw:agent flagging instructions, kw:aisql
 **TokenBudget:** ~2800
 **ContextTier:** High
 **Depends:** required:115-snowflake-cortex-agents-core.md, optional:106c-snowflake-semantic-views-integration.md

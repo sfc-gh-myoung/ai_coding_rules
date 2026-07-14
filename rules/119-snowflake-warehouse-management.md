@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.5.4
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:high-memory warehouse, kw:warehouse tagging, kw:auto-suspend, kw:gen 2, kw:snowpark-optimized, kw:warehouse edition, kw:resource monitors, kw:create warehouse, kw:warehouse configuration, kw:warehouse types, kw:warehouse cost, kw:size warehouse, kw:max_query_performance_level, kw:query_throughput_multiplier, kw:system$bulk_update_wh, kw:create adaptive warehouse
+**RuleVersion:** v3.6.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:virtual warehouse creation, kw:warehouse sizing strategy, kw:auto-suspend configuration, kw:warehouse type selection, kw:GEN 2 warehouse, kw:adaptive warehouse tuning, kw:etl
 **TokenBudget:** ~8900
 **ContextTier:** High
 **Depends:** required:103-snowflake-performance-tuning.md, required:105-snowflake-cost-governance.md

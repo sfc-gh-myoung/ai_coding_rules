@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:bash-security, kw:shell-security, kw:bash, kw:input validation, kw:command injection, kw:path security, kw:secure shell scripts, kw:sanitization, kw:permissions, kw:privilege escalation, kw:secrets management
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:bash input sanitization, kw:command injection prevention, kw:shell path traversal, kw:bash credential storage, kw:shell script permissions, kw:eval alternatives
 **TokenBudget:** ~3600
 **ContextTier:** High
 **Depends:** required:300-bash-scripting-core.md, optional:300b-bash-testing-tooling.md, optional:300c-bash-security-advanced.md

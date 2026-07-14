@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-07-10
-**Keywords:** ext:.ts, ext:.tsx, kw:typescript, kw:zod, kw:strict mode, kw:type inference, kw:union types, kw:satisfies, kw:generics, kw:utility types, kw:matt pocock, kw:total typescript
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:strict mode enforcement, kw:Zod runtime validation, kw:type inference over annotation, kw:enum namespace forbidden, kw:satisfies operator, kw:discriminated union patterns
 **TokenBudget:** ~3950
 **ContextTier:** High
 **Depends:** required:000-global-core.md, optional:434-typescript-docs.md, optional:440-react-core.md, optional:420-javascript-core.md

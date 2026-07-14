@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.3
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:memory bank, kw:context, kw:session recovery, kw:progress tracking, kw:compaction, kw:rapid recovery
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:memory bank, kw:context preservation, kw:rapid recovery protocol, kw:aggressive pruning, kw:activeContext.md, kw:session initialization
 **TokenBudget:** ~1500
 **ContextTier:** Critical
 **Depends:** required:000-global-core.md, optional:002-rule-governance.md, optional:003-context-engineering.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:alpinejs, kw:hyperscript, kw:tailwind, kw:bootstrap, kw:css frameworks, kw:icon libraries, kw:chartjs, kw:frontend libraries, kw:client-side enhancements, kw:htmx integration, kw:javascript frameworks
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Alpine.js HTMX, kw:_hyperscript inline behavior, kw:CSS framework styling, kw:chart library reinitialization, kw:htmx:afterSwap event hooks, kw:frontend library lifecycle, kw:htmx
 **TokenBudget:** ~4150
 **ContextTier:** Low
 **Depends:** required:221-python-htmx-core.md, optional:221a-python-htmx-templates.md, optional:221e-python-htmx-patterns.md, optional:221g-python-htmx-sse.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:setup, kw:bootstrap, file:pyproject.toml, kw:python packaging, kw:setup.py, kw:pyproject.toml, kw:dependencies, kw:package distribution, kw:__init__.py, kw:hatchling, kw:uv, kw:flat layout, kw:src layout
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:pyproject.toml, kw:hatchling build backend, kw:uv dependency manager, kw:__init__.py package recognition, kw:flat layout src layout, kw:editable install, kw:TOML
 **TokenBudget:** ~4350
 **ContextTier:** High
 **Depends:** required:200-python-core.md, optional:201-python-lint-format.md, optional:206-python-pytest.md, optional:210-python-fastapi-core.md

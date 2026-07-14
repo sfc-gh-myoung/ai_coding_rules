@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v3.1.7
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:notebook, kw:ml, kw:reproducible notebooks, kw:nbqa, kw:code quality, kw:python, kw:debug notebook, kw:notebook execution, kw:notebook testing, kw:notebook deployment, kw:kernel management, kw:cell execution
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Snowflake Notebooks, kw:reproducible notebook execution, kw:Snowpark DataFrame computation, kw:cell naming conventions, kw:nbqa ruff linting, kw:notebook state management, kw:pandas
 **TokenBudget:** ~4450
 **ContextTier:** Medium
 **Depends:** none

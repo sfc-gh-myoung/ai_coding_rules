@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:snowpipe-streaming, kw:high-performance streaming, kw:classic streaming, kw:row-level ingestion, kw:low-latency ingestion, kw:sub-second latency, kw:real-time ingestion, kw:streaming architecture, kw:streaming channels
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:snowpipe streaming, kw:high-performance streaming architecture, kw:streaming channel management, kw:offset token tracking, kw:sub-second latency ingestion, kw:row-level SDK ingestion, kw:snowpipe
 **TokenBudget:** ~3700
 **ContextTier:** High
 **Depends:** required:100-snowflake-core.md, required:108-snowflake-data-loading.md, optional:121-snowflake-snowpipe.md, optional:121b-snowflake-snowpipe-monitoring.md, optional:121c-snowflake-snowpipe-troubleshooting.md

@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.4
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:cli-config, kw:pydantic-settings, kw:cli configuration, kw:pydantic settings, kw:environment variables, kw:cli options
+**RuleVersion:** v1.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:Typer CLI configuration, kw:pydantic-settings integration, kw:configuration precedence chain, kw:environment variable prefix, kw:CLI option overrides, kw:TOML config file loading, kw:TOML
 **TokenBudget:** ~2550
 **ContextTier:** Medium
 **Depends:** required:220-python-typer-cli.md, optional:230-python-pydantic.md, optional:230a-python-pydantic-settings.md

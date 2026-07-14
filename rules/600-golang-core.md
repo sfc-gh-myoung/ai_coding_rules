@@ -8,9 +8,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.2.2
-**LastUpdated:** 2026-07-10
-**Keywords:** ext:.go, file:go.mod, kw:go, kw:golang, kw:go.mod, kw:modules, kw:error handling, kw:interfaces, kw:goroutines, kw:channels, kw:testing, kw:go fmt, kw:golangci-lint, kw:concurrency, kw:context, kw:defer
+**RuleVersion:** v3.3.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:go.mod, kw:idiomatic Go, kw:goroutines channels, kw:golangci-lint, kw:table-driven tests, kw:error wrapping fmt.Errorf, kw:Go
 **TokenBudget:** ~3900
 **ContextTier:** High
 **Depends:** required:000-global-core.md, optional:600a-golang-patterns.md

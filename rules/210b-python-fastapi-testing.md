@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.0.2
-**LastUpdated:** 2026-07-10
-**Keywords:** kw:fastapi-testing, kw:fastapi testing, kw:testclient, kw:pytest-asyncio, kw:api tests, kw:mocking, kw:aaa pattern, kw:async testing
+**RuleVersion:** v3.1.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:TestClient fixture, kw:dependency overrides, kw:pytest-asyncio configuration, kw:test database isolation, kw:AAA pattern enforcement, kw:httpx AsyncClient, kw:TOML
 **TokenBudget:** ~3950
 **ContextTier:** High
 **Depends:** required:210-python-fastapi-core.md, optional:200-python-core.md, optional:206-python-pytest.md

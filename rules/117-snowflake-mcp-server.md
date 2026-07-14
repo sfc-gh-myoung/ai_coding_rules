@@ -3,9 +3,9 @@
 ## Metadata
 
 **SchemaVersion:** v3.3
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-07-12
-**Keywords:** kw:mcp, kw:mcp-server, kw:model context protocol, kw:snowflake-managed mcp server, kw:create mcp server, kw:system_execute_sql, kw:cortex_analyst_message, kw:cortex_search_service_query, kw:cortex_agent_run, kw:tools/list, kw:tools/call, kw:initialize, kw:oauth, kw:security integration, kw:rbac, kw:pat
+**RuleVersion:** v3.2.0
+**LastUpdated:** 2026-07-13
+**Keywords:** kw:snowflake-managed mcp server, kw:CREATE MCP SERVER, kw:mcp tool invocation, kw:cortex_analyst_message tool, kw:mcp json-rpc protocol, kw:mcp server rbac, kw:cortex
 **TokenBudget:** ~3400
 **ContextTier:** High
 **Depends:** required:107-snowflake-security-governance.md, optional:115-snowflake-cortex-agents-core.md

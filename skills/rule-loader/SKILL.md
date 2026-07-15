@@ -1,7 +1,7 @@
 ---
 name: rule-loader
 description: Determines which rule files to load for a given user request by matching file extensions, directory paths, and keywords against RULES_INDEX.md. Handles foundation loading, domain matching (HARD layer), activity matching (SOFT layer), dependency resolution, and token budget management. Runs as the single source of truth for rule discovery — typically inside a discovery sub-agent that returns a metadata-only JSON manifest (never rule file contents). Use when loading rules, selecting rules for a task, resolving rule dependencies, or managing token budgets during rule loading.
-version: 1.6.0
+version: 2.0.0
 ---
 
 # Rule Loader
@@ -63,14 +63,15 @@ A `## Rules Loaded` section listing all selected rules with loading reasons, for
 ## Manifest Output
 
 When this skill runs inside a **discovery sub-agent**, its authoritative return
-value is the fenced JSON manifest below (`rule-loader-manifest/v1`). It contains
+value is the fenced JSON manifest below (`rule-loader-manifest/v2` — default
+emission since Phase 4 cutover; skill version ≥ `2.0.0`). It contains
 **PATHS + METADATA ONLY — never rule file contents**. The `## Rules Loaded` prose
 above is retained only for the inline-render (Step 2B) case; any Markdown table is
 display-only and cannot satisfy Gate 2.
 
 ```json
 {
-  "schema_version": "rule-loader-manifest/v1",
+  "schema_version": "rule-loader-manifest/v2",
   "request_fingerprint": "sha256:<hex of normalized user request>",
   "runtime": {
     "primitive": "Task|runtime-specific-direct-worker",
@@ -149,6 +150,102 @@ Schema rules:
 - A malformed manifest, missing `runtime.agent_id` / `runtime.spawn_evidence` / `index_evidence` / `candidate_rules` / `candidate_count` / `deferred_rules`, invalid JSON, failed candidate-completeness validation, or any rule body content triggers Step 2B fallback.
 
 See `examples/manifest-output.md` for a minimal valid example.
+
+## Manifest v2 (`rule-loader-manifest/v2`)
+
+Starting at skill version `2.0.0` and defaulted since Phase 4 cutover, the
+authoritative manifest schema is `rule-loader-manifest/v2`. The v2 schema is
+**additive** relative to v1 — no fields are removed. `rule-loader-manifest/v1`
+manifests remain **accepted by the main agent** for legacy consumers that have
+not yet been updated; the skill itself emits v2 by default.
+
+**Added fields (all additive):**
+
+```json
+{
+  "schema_version": "rule-loader-manifest/v2",
+  "candidate_rules": [
+    {
+      "rule_path": "rules/206-python-pytest.md",
+      "rule_name": "206-python-pytest.md",
+      "reason_type": "activity_keyword",
+      "reason": "kw:pytest matched user request",
+      "context_tier": "High",
+      "token_estimate": 1800,
+      "layer": "SOFT",
+      "required": false,
+      "second_pass": {
+        "evaluated": true,
+        "confirmed": true,
+        "confirmation_reason": "scope-overlap: pytest",
+        "scope_excerpt_hash": "sha256:<hex>"
+      }
+    }
+  ],
+  "deferred_rules": [
+    {
+      "rule_path": "rules/210c-python-fastapi-deployment.md",
+      "rule_name": "210c-python-fastapi-deployment.md",
+      "reason_type": "second_pass_rejected",
+      "reason": "no-scope-overlap: request tokens absent from Scope",
+      "context_tier": "High",
+      "token_estimate": 2200,
+      "layer": "SOFT",
+      "deferred_because": "Phase 3.5 second-pass rejected: Scope excludes user request"
+    }
+  ],
+  "second_pass_evidence": [
+    {
+      "rule_path": "rules/206-python-pytest.md",
+      "confirmed": true,
+      "reason": "scope-overlap: pytest"
+    },
+    {
+      "rule_path": "rules/210c-python-fastapi-deployment.md",
+      "confirmed": false,
+      "reason": "no-scope-overlap: request tokens absent from Scope"
+    }
+  ]
+}
+```
+
+**v2 schema rules (additive to v1):**
+
+- `schema_version` MUST equal `"rule-loader-manifest/v2"` when emitted by
+  skill version ≥ `2.0.0`.
+- Every entry in `candidate_rules[]` MUST carry a `second_pass` object.
+  - For HARD candidates (`layer == "HARD"`): `{evaluated: false, confirmed: true, confirmation_reason: "hard-candidate-exempt"}`.
+  - For SOFT candidates evaluated in Phase 3.5 (top-8 by keyword-match count):
+    `{evaluated: true, confirmed: bool, confirmation_reason: string, scope_excerpt_hash: string}`.
+  - For SOFT candidates beyond the top-8 cap:
+    `{evaluated: false, confirmed: true, confirmation_reason: "cap-degraded-passthrough", degraded: true}`.
+- `deferred_rules[*].reason_type` enum gains value `"second_pass_rejected"`
+  (all v1 values remain valid).
+- Root-level `second_pass_evidence: [{rule_path, confirmed, reason}]` MUST be
+  present when v2 is emitted, even if empty (`[]` when no SOFT candidates were
+  evaluated).
+- **Completeness invariant is unchanged:** every unique
+  `candidate_rules[*].rule_path` must appear in exactly one of
+  `load_sequence[*].rule_path` or `deferred_rules[*].rule_path`.
+- **HARD-never-filtered invariant:** a HARD candidate MUST NOT appear in
+  `deferred_rules[]` with `reason_type: "second_pass_rejected"`. Second-pass
+  rejection applies only to SOFT candidates.
+
+**Backward compatibility:**
+
+- The main agent accepts both `rule-loader-manifest/v1` and
+  `rule-loader-manifest/v2` during the rollout window (schema-version
+  detection on `schema_version` field). Phase 4 flips the default emission to
+  v2 in this skill.
+- A v2-emitting skill invoked by a v1-only consumer degrades gracefully: the
+  consumer ignores the additive fields and reads `candidate_rules` +
+  `load_sequence` + `deferred_rules` as before.
+- Producing manifests without `schema_version`, or with an unrecognized
+  value, triggers Step 2B fallback.
+
+**Second-pass workflow:** see `workflows/second-pass-confirmation.md` for the
+Phase 3.5 filter algorithm, cap, latency budget, and cache invariants that
+produce the `second_pass` annotations and `second_pass_evidence` root list.
 
 ## Workflow
 

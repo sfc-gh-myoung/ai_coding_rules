@@ -5,8 +5,8 @@ description: # TODO
 variant: complex
 prompt: |
   Leadership flagged a finance budget overage last quarter. Walk me through a
-  cost optimization investigation: identify the noisiest warehouse offenders,
-  look for slow queries, and suggest a remediation plan with concrete budget
+  slow query investigation and warehouse sizing diagnosis to identify noisy
+  warehouse offenders, then propose a resource monitor with credit quota
   guardrails. Note: we want sustainable performance, not a one-off fix.
 expected:
   required:
@@ -19,12 +19,7 @@ expected:
       # missing: ext=.sql
     - rules/119-snowflake-warehouse-management.md  # demoted: warehouse mention is incidental ("noisiest warehouse offenders"); not a deep warehouse-mgmt ask
 trigger_evidence:
-  kw: [budget, cost, cost optimization, optimization, performance, slow, warehouse]   # suggested
-    # n-gram (no rule): "budget overage last quarter"
-    # n-gram (no rule): "finance budget overage last"
-    # n-gram (no rule): "a finance budget overage"
-    # n-gram (no rule): "flagged a finance budget"
-    # n-gram (no rule): "identify the noisiest warehouse"
+  kw: [slow query investigation, warehouse sizing diagnosis, resource monitor, credit quota]
   ext: []
   file: []
   dir: []

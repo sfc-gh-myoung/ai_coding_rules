@@ -8,9 +8,9 @@ prompt: |
   app entry point is dashboards/insights.py and depends on a small set of
   helper modules under dashboards/util/. The deployment target is Snowflake
   and we want this to run inside the warehouse runtime. Please walk me
-  through warehouse configuration, sizing, authentication, and the deploy
-  command. Note: this is for production, not a quick demo, so please err on
-  the side of conservative defaults.
+  through virtual warehouse creation, warehouse sizing strategy, authentication,
+  and the deploy command. Note: this is for production, not a quick demo, so
+  please err on the side of conservative defaults.
 expected:
   required:
     - rules/000-global-core.md  # foundation (always loaded)
@@ -26,8 +26,8 @@ expected:
       # missing: rule has no file-context triggers (ext:/file:/dir:)
     - rules/112-snowflake-snowcli.md  # triggered: kw:deploy command matches "the deploy command" in prompt
 trigger_evidence:
-  kw: [dashboard, streamlit, warehouse configuration]
-    # warehouse configuration matches rule 119 kw:warehouse configuration
+  kw: [dashboard, streamlit, virtual warehouse creation, warehouse sizing strategy]
+    # virtual warehouse creation + warehouse sizing strategy match rule 119 kws
     # streamlit, dashboard match rule 101 kws
   ext: []
   file: []

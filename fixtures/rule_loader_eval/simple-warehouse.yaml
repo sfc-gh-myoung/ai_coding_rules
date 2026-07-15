@@ -4,8 +4,8 @@ id: simple-warehouse
 description: # TODO
 variant: simple
 prompt: |
-  Create a warehouse configuration for our analytics team, sized for
-  interactive dashboards.
+  Create a virtual warehouse creation script for our analytics team, using
+  the warehouse sizing strategy for interactive dashboards.
 expected:
   required:
     - rules/000-global-core.md  # foundation (always loaded)
@@ -15,8 +15,7 @@ expected:
     - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
       # missing: ext=.sql
 trigger_evidence:
-  kw: [warehouse configuration]
-    # warehouse configuration matches rule 119 kw:warehouse configuration
+  kw: [virtual warehouse creation, warehouse sizing strategy]
   ext: []
   file: []
   dir: []

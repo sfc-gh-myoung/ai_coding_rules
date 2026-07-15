@@ -4,7 +4,7 @@ id: simple-mcp-server
 description: # TODO
 variant: simple
 prompt: |
-  Configure a mcp server endpoint for the local agent.
+  Configure a snowflake-managed mcp server endpoint for the local agent.
 expected:
   required:
     - rules/000-global-core.md  # foundation (always loaded)

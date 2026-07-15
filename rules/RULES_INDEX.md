@@ -34,7 +34,7 @@ metadata; this file intentionally omits volatile timestamps so
 
 000-global-core.md tier=Critical kw=surgical-edits pre-flight-gates validation-command-sequence context-preservation-hierarchy foundation-operating-contract task-list-confirmation pytest
 001-memory-bank.md tier=Critical kw=memory-bank context-preservation rapid-recovery-protocol aggressive-pruning activeContext.md session-initialization
-002-rule-governance.md tier=Critical kw=rule-schema-compliance metadata-field-requirements Contract-Markdown-subsections semantic-discovery-keywords ai-rules-validate agent-first-design-priorities ci/cd
+002-rule-governance.md tier=Critical dir=rules/ kw=rule-schema-compliance metadata-field-requirements Contract-Markdown-subsections semantic-discovery-keywords ai-rules-validate agent-first-design-priorities
 002a-rule-creation.md tier=High kw=rule-creation-workflow rule-numbering-ranges v3.4-schema-compliance Contract-Markdown-subsections rule-file-naming-convention metadata-field-setup aisql
 002b-rule-update.md tier=High kw=rule-versioning RuleVersion-increment LastUpdated-field rule-modification-workflow MAJOR-MINOR-PATCH-semantics schema-migration-checklist ci/cd
 002c-rule-optimization.md tier=High kw=token-budget-tiers progressive-rule-loading ai-rules-tokens-CLI rule-splitting-decision-tree context-window-budget-allocation TokenBudget-metadata-format cortex
@@ -42,8 +42,7 @@ metadata; this file intentionally omits volatile timestamps so
 002e-schema-validator-usage.md tier=High kw=ai-rules-validate schema-v3.2-compliance severity-levels-CRITICAL-HIGH-MEDIUM exit-code-interpretation common-validation-fixes validator-command-flags ci/cd
 002f-schema-validator-advanced.md tier=Medium kw=ci/cd-pipeline programmatic-parsing automated-fix-iteration pre-commit-hooks github-actions-workflow batch-validation ci/cd
 002g-agent-optimization.md tier=High kw=agent-first-design ASCII-table-prohibition imperative-voice-instructions sequential-processing-model terminology-consistency-enforcement arrow-character-replacement llm
-002h-claude-code-skills.md tier=High kw=SKILL.md-authoring YAML-frontmatter progressive-disclosure trigger-keywords input-output-contracts third-person-description
-002i-rule-loadtrigger.md tier=Low kw=-
+002h-claude-code-skills.md tier=High dir=skills/ kw=SKILL.md-authoring YAML-frontmatter progressive-disclosure trigger-keywords input-output-contracts third-person-description
 002j-rule-examples.md tier=Medium kw=rule-examples example-schema example-schema.yml example-discovery reference-implementations example-staleness streamlit
 002k-model-optimization.md tier=Low kw=context-window-sizing loading-budget-calculation GPT-4o-GPT-5.1 Claude-Sonnet-Opus Gemini-Pro prompt-caching-strategy
 002l-skill-advanced-patterns.md tier=Low kw=plan-validate-execute orchestrator-worker-composition visual-analysis-pattern intermediate-validation-scripts Claude-A/B-iteration batch-failure-handling
@@ -54,7 +53,7 @@ metadata; this file intentionally omits volatile timestamps so
 004-tool-design-for-agents.md tier=High kw=agent-tool-design single-responsibility-tools token-efficient-outputs LLM-friendly-parameters tool-boundary-overlap actionable-error-messages ci/cd
 004a-tool-set-curation.md tier=Medium kw=tool-set-curation minimal-viable-tool-set tool-splitting-criteria tool-merging-criteria tool-bloat-detection tool-boundaries etl
 004b-tool-output-efficiency.md tier=Medium kw=tool-output-minimization progressive-loading token-efficient-responses silent-success-pattern metadata-elimination agent-context-preservation ci/cd
-100-snowflake-core.md tier=High kw=CTE-extraction VARIANT-parsing-optimization Streams-Tasks-incremental partition-pruning-early-filtering QUALIFY-ROW_NUMBER-deduplication Query-Profile-validation masking-policy-row-access
+100-snowflake-core.md tier=High ext=.sql kw=CTE-extraction VARIANT-parsing-optimization Streams-Tasks-incremental partition-pruning-early-filtering QUALIFY-ROW_NUMBER-deduplication Query-Profile-validation
 100f-snowflake-connection-errors.md tier=High kw=connection-error-classification network-policy-violation-detection message-first-error-analysis VPN-disconnect-diagnosis snowflake.connector.errors.DatabaseError error-code-08001-ambiguity snowpark
 101-snowflake-streamlit-core.md tier=High kw=Streamlit st.navigation session-state Container-Runtime config.toml-theming st.connection-snowflake TOML
 101a-snowflake-streamlit-visualization.md tier=High kw=st.plotly_chart st.pydeck_chart st.altair_chart library-selection use_container_width WebGL-context-limits pandas
@@ -71,9 +70,9 @@ metadata; this file intentionally omits volatile timestamps so
 101l-snowflake-streamlit-deployment.md tier=High kw=container-runtime warehouse-runtime pyproject.toml external-access-integration compute-pool runtime-migration TOML
 101m-snowflake-streamlit-pydeck-layers.md tier=Low kw=pydeck-layer-types HexagonLayer-aggregation GeoJsonLayer-extrusion ArcLayer-flow-visualization multi-layer-composition deck.gl-accessor-syntax streamlit
 101n-snowflake-streamlit-migration.md tier=Low kw=Streamlit-runtime-migration environment.yml-to-pyproject.toml get_active_session-replacement Container-Runtime-infrastructure bidirectional-runtime-swap in-place-Streamlit-upgrade TOML
-102-snowflake-sql-core.md tier=High kw=SQL-file-headers COPY-INTO-ON_ERROR-placement CREATE-VIEW-COMMENT-syntax fully-qualified-object-names CLI-templating-reserved-characters idempotent-DDL-patterns ci/cd
+102-snowflake-sql-core.md tier=High ext=.sql kw=SQL-file-headers COPY-INTO-ON_ERROR-placement CREATE-VIEW-COMMENT-syntax fully-qualified-object-names CLI-templating-reserved-characters idempotent-DDL-patterns
 102a-snowflake-sql-automation.md tier=High kw=parameterized-SQL-templates idempotent-MERGE-operations CREATE-TABLE-IF-NOT-EXISTS multi-environment-deployment CI/CD-pipeline-integration production-safe-automation ci/cd
-102b-snowflake-sql-procedures.md tier=High kw=SQL-scripting dollar-quoting EXECUTE-AS EXECUTE-IMMEDIATE bind-variables procedure-body-quoting ci/cd
+102b-snowflake-sql-procedures.md tier=High ext=.sql kw=SQL-scripting dollar-quoting EXECUTE-AS EXECUTE-IMMEDIATE bind-variables procedure-body-quoting
 102c-snowflake-sql-reserved-chars.md tier=Low kw=cli-compatibility ampersand-escaping template-expansion enable-templating-flag brand-name-preservation snow-sql-tool
 102d-snowflake-sql-cicd.md tier=Low kw=Makefile-targets GitHub-Actions-workflows multi-environment-deployment Snowflake-CLI secrets-store-integration SQL-template-parameterization ci/cd
 102e-snowflake-sql-procedure-antipatterns.md tier=Low kw=stored-procedure-anti-patterns dollar-quoting EXECUTE-AS SQL-injection-bind-variables fully-qualified-object-names procedure-delimiter-escaping udf
@@ -106,7 +105,7 @@ metadata; this file intentionally omits volatile timestamps so
 111b-snowflake-observability-tracing.md tier=High kw=snowflake-telemetry-python create_span-context-manager 128-event-span-limit nested-span-hierarchy TRACE_LEVEL-configuration span-attribute-enrichment snowsight
 111c-snowflake-observability-monitoring.md tier=High kw=ACCOUNT_USAGE-views telemetry-cost-optimization query-history-monitoring real-time-vs-historical-latency Snowsight-operational-dashboards cortex-token-tracking cortex
 111d-snowflake-observability-snowsight.md tier=Low kw=snowsight-monitoring-interfaces cortex-ai-cost-attribution traces-and-logs-ui llm-evaluation-workflows distributed-tracing-ai-applications query-history-latency aisql
-112-snowflake-snowcli.md tier=Medium kw=snowcli-uvx-pinned snowflake.yml-project stage-copy-no-auto-compress streamlit-deploy-FROM connection-profile-env CI-non-interactive-json ci/cd
+112-snowflake-snowcli.md tier=Medium file=snowflake.yml kw=snowcli-uvx-pinned snowflake.yml-project stage-copy-no-auto-compress streamlit-deploy-FROM connection-profile-env CI-non-interactive-json
 113-snowflake-feature-store.md tier=Medium kw=feature-store point-in-time-correctness feature-view-versioning entity-modeling ASOF-JOIN ml-lineage-integration rbac
 113a-snowflake-feature-store-patterns.md tier=Low kw=ASOF-JOIN feature-view-versioning deterministic-transformations dynamic-table-refresh-costs training-data-leakage train-serve-skew
 113b-snowflake-feature-store-engineering.md tier=Low kw=feature-engineering windowed-aggregations RFM-features velocity-features NULLIF-division-protection deterministic-transformations
@@ -140,7 +139,7 @@ metadata; this file intentionally omits volatile timestamps so
 130-snowflake-demo-sql.md tier=High kw=demo-sql per-schema-isolation rerunnable-demos progress-indicators inline-educational-comments schema-based-file-naming ci/cd
 131-snowflake-demo-creation.md tier=Low kw=Faker-seeded-generation GENERATOR()-table-function offline-fallback-resilience DemoScenario-pattern narrative-aligned-correlations progressive-disclosure-UI faker
 132-snowflake-demo-modeling.md tier=High kw=Kimball-dimensional-modeling fact-dimension-FK-naming view-taxonomy-prefixes synthetic-data-referential-integrity business-first-column-naming SCD-Type-2-surrogate-keys etl
-200-python-core.md tier=Critical kw=pyproject.toml toolchain-detection datetime.now(UTC) collections.abc-imports dict-list-annotations pathlib-file-operations Python
+200-python-core.md tier=Critical ext=.py kw=pyproject.toml toolchain-detection datetime.now(UTC) collections.abc-imports dict-list-annotations pathlib-file-operations
 200a-python-validation-gate.md tier=High kw=pre-task-completion-gate ty-vs-mypy-decision zero-tolerance-validation toolchain-specific-validation-commands validation-failure-recovery-sequence pre-commit-hook-automation TOML
 200b-python-environment-tooling.md tier=High kw=venv uv-run uvx poetry-run toolchain-detection ModuleNotFoundError-diagnosis fastapi
 201-python-lint-format.md tier=High kw=Ruff pyproject.toml-configuration uvx-ruff pydocstyle-D-rules pre-commit-hooks zero-error-validation-gate TOML

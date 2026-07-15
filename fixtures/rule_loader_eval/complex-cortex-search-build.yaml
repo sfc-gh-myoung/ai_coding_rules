@@ -4,11 +4,10 @@ id: complex-cortex-search-build
 description: # TODO
 variant: complex
 prompt: |
-  We're building a customer-facing search service backed by cortex-search.
-  The semantic view we'll expose to end users sits on top of three
-  curated tables. Walk me through both pieces end to end, from the search
-  service definition to how the semantic model surfaces measures and
-  dimensions to a chat interface.
+  We're building a customer-facing cortex search service with search tool configuration.
+  We'll also CREATE SEMANTIC VIEW on top of three curated TABLES PRIMARY KEY entities.
+  Walk me through both pieces end to end, from the search service definition to how
+  the semantic model surfaces FACTS DIMENSIONS METRICS to a chat interface.
 expected:
   required:
     - rules/000-global-core.md  # foundation (always loaded)
@@ -20,11 +19,7 @@ expected:
     - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
       # missing: ext=.sql
 trigger_evidence:
-  kw: [cortex-search, search service, tables, semantic model]
-    # cortex-search matches rule 116 kw:cortex-search
-    # search service matches rule 116 kw:search service (appears twice in prompt)
-    # tables matches rule 106 kw:tables
-    # semantic model is prompt-only annotation (rule 106 has kw:semantic-model hyphenated)
+  kw: [cortex search service, search tool configuration, CREATE SEMANTIC VIEW, TABLES PRIMARY KEY, FACTS DIMENSIONS METRICS]
   ext: []
   file: []
   dir: []

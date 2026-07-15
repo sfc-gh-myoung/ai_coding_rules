@@ -2,15 +2,15 @@
 
 ## Purpose
 
-Ensure prerequisite rules are loaded before dependent rules, based on each rule's `Depends` metadata field.
+Ensure prerequisite rules are loaded before dependent rules, based on each rule's `depends:` metadata field (v3.5 YAML frontmatter; inline `**Depends:**` remains readable via dual-parse fallback).
 
 ## Algorithm
 
 ### Step 1: Collect Dependencies
 
 For each rule selected in Phases 2-3:
-1. Read the rule's metadata (specifically the `Depends` field)
-2. If `Depends` lists other rules, add those to the load list
+1. Read the rule's metadata (specifically the `depends:` YAML frontmatter mapping, or the inline `**Depends:**` line on unmigrated rules)
+2. If `depends.required` or `depends.optional` lists other rules, add those to the load list
 3. Repeat recursively until no new dependencies are found
 
 ### Step 2: Determine Load Order

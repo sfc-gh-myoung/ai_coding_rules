@@ -4,7 +4,7 @@ id: simple-cost-governance
 description: # TODO
 variant: simple
 prompt: |
-  Help me with Snowflake cost optimization for a noisy finance budget.
+  Help me set up a resource monitor for a noisy finance budget in Snowflake.
 expected:
   required:
     - rules/000-global-core.md  # foundation (always loaded)
@@ -17,12 +17,7 @@ expected:
     - rules/119-snowflake-warehouse-management.md  # auto-demoted: no trigger evidence
       # missing: kw=warehouse, compute
 trigger_evidence:
-  kw: [budget, cost, cost optimization, optimization]   # suggested
-    # n-gram (no rule): "a noisy finance budget"
-    # n-gram (no rule): "Snowflake cost optimization for"
-    # n-gram (no rule): "with Snowflake cost optimization"
-    # n-gram (no rule): "noisy finance budget"
-    # n-gram (no rule): "Snowflake cost optimization"
+  kw: [resource monitor, budget]
   ext: []
   file: []
   dir: []

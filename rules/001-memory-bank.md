@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:memory bank
+  - kw:context preservation
+  - kw:rapid recovery protocol
+  - kw:aggressive pruning
+  - kw:activeContext.md
+  - kw:session initialization
+token_budget: ~1500
+context_tier: Critical
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule
+  optional:
+    - 002-rule-governance.md  # Rule authoring standards
+    - 003-context-engineering.md  # Attention budget principles
+---
 # Universal Memory Bank System
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:memory bank, kw:context preservation, kw:rapid recovery protocol, kw:aggressive pruning, kw:activeContext.md, kw:session initialization
-**TokenBudget:** ~1500
-**ContextTier:** Critical
-**Depends:** required:000-global-core.md, optional:002-rule-governance.md, optional:003-context-engineering.md
 
 ## Scope
 
@@ -22,17 +32,7 @@ Memory bank patterns for AI context preservation across sessions. All writes sco
 
 **Scope Boundary:** Write operations to `memory-bank/` directory ONLY.
 
-
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule
-
-**Related:**
-- **002-rule-governance.md** - Rule authoring standards
-- **003-context-engineering.md** - Attention budget principles
 
 ### External Documentation
 - [Effective Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)

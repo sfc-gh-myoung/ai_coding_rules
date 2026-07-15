@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:object tagging
+  - kw:tag inheritance
+  - kw:tag-based masking
+  - kw:ALLOWED_VALUES
+  - kw:TAG_REFERENCES
+  - kw:cost attribution tags
+token_budget: ~3450
+context_tier: High
+depends:
+  required:
+    - 105-snowflake-cost-governance.md  # Resource monitors and cost optimization
+    - 107-snowflake-security-governance.md  # Access control and security policies
+---
 # Snowflake Object Tagging Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:object tagging, kw:tag inheritance, kw:tag-based masking, kw:ALLOWED_VALUES, kw:TAG_REFERENCES, kw:cost attribution tags
-**TokenBudget:** ~3450
-**ContextTier:** High
-**Depends:** required:105-snowflake-cost-governance.md, required:107-snowflake-security-governance.md
 
 ## Scope
 
@@ -22,13 +30,6 @@ Comprehensive best practices for Snowflake object tagging to enable effective da
 - Auditing tag coverage and compliance
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
-- **107-snowflake-security-governance.md** - Access control and security policies
 
 ### External Documentation
 

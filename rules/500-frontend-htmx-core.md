@@ -1,19 +1,30 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:hx-get
+  - kw:hx-swap
+  - kw:hx-trigger
+  - kw:htmx lifecycle events
+  - kw:hypermedia-driven UI
+  - kw:progressive enhancement fallbacks
+  - kw:htmx
+token_budget: ~3800
+context_tier: Low
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 221-python-htmx-core.md  # HTMX with Python backends
+    - 421-javascript-alpinejs-core.md  # Alpine.js for client-side reactivity
+---
 # HTMX Frontend Reference
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Frontend HTMX patterns. Load for HTMX tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:hx-get, kw:hx-swap, kw:hx-trigger, kw:htmx lifecycle events, kw:hypermedia-driven UI, kw:progressive enhancement fallbacks, kw:htmx
-**TokenBudget:** ~3800
-**ContextTier:** Low
-**Depends:** required:000-global-core.md, optional:221-python-htmx-core.md, optional:421-javascript-alpinejs-core.md
 
 ## Scope
 
@@ -28,15 +39,6 @@ Provides a standalone frontend reference for HTMX attributes, client-side events
 - Choosing between HTMX and JavaScript frameworks
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **221-python-htmx-core.md** - HTMX with Python backends
-- **421-javascript-alpinejs-core.md** - Alpine.js for client-side reactivity
 
 ### External Documentation
 

@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:handler logging
+  - kw:log volume control
+  - kw:sampling strategy
+  - kw:conditional logging
+  - kw:event table routing
+  - kw:tight loop logging
+  - kw:udf
+token_budget: ~4000
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md
+    - 111-snowflake-observability-core.md
+---
 # Snowflake Observability: Logging Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:handler logging, kw:log volume control, kw:sampling strategy, kw:conditional logging, kw:event table routing, kw:tight loop logging, kw:udf
-**TokenBudget:** ~4000
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:111-snowflake-observability-core.md
 
 ## Scope
 
@@ -36,13 +45,6 @@ Comprehensive logging best practices for Snowflake handler code, covering standa
 - [Snowflake Logging Overview](https://docs.snowflake.com/en/developer-guide/logging-tracing/logging) - Official logging documentation for Snowflake handlers
 - [Python Logging Library](https://docs.python.org/3/library/logging.html) - Standard Python logging library documentation
 - [SLF4J (Java)](https://www.slf4j.org/) - Standard Java logging facade
-
-### Dependencies
-
-**Must Load First:**
-- [100-snowflake-core.md](100-snowflake-core.md)
-- [111-snowflake-observability-core.md](111-snowflake-observability-core.md)
-
 
 ## Contract
 

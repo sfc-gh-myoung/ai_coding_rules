@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:HTMX SSE extension
+  - kw:Alpine.js SSE manager
+  - kw:event type matching
+  - kw:thread-safe SSE publishing
+  - kw:EventSourceResponse
+  - kw:SSE connection limits
+  - kw:fastapi
+token_budget: ~4150
+context_tier: High
+depends:
+  optional:
+    - 221f-python-htmx-integrations.md  # Alpine.js patterns
+---
 # HTMX SSE Patterns (Python)
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:HTMX SSE extension, kw:Alpine.js SSE manager, kw:event type matching, kw:thread-safe SSE publishing, kw:EventSourceResponse, kw:SSE connection limits, kw:fastapi
-**TokenBudget:** ~4150
-**ContextTier:** High
-**Depends:** optional:221f-python-htmx-integrations.md
 
 ## Scope
 
@@ -24,15 +32,6 @@ Patterns for implementing Server-Sent Events (SSE) in HTMX applications, coverin
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **221-python-htmx-core.md** - HTMX foundation patterns
-- **221f-python-htmx-integrations.md** - Alpine.js patterns
-
-**Related:**
-- **207-python-logging.md** - Web logging with SSE
-
 ### Project Documentation
 
 - **SSE Events Reference**: `docs/SSE_EVENTS.md` - Channel and event type documentation
@@ -40,7 +39,6 @@ Patterns for implementing Server-Sent Events (SSE) in HTMX applications, coverin
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

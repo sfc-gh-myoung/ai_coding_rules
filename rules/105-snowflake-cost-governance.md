@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:resource monitor
+  - kw:credit quota
+  - kw:warehouse metering history
+  - kw:cost attribution tagging
+  - kw:serverless task credits
+  - kw:suspend trigger
+  - kw:etl
+token_budget: ~3300
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+    - 100-snowflake-core.md  # Snowflake SQL patterns and best practices
+---
 # Snowflake Cost Governance
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:resource monitor, kw:credit quota, kw:warehouse metering history, kw:cost attribution tagging, kw:serverless task credits, kw:suspend trigger, kw:etl
-**TokenBudget:** ~3300
-**ContextTier:** High
-**Depends:** required:000-global-core.md, required:100-snowflake-core.md
 
 ## Scope
 
@@ -23,12 +32,6 @@ Comprehensive cost management and optimization strategies for Snowflake environm
 - Analyzing cost trends and anomalies
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **100-snowflake-core.md** - Snowflake SQL patterns and best practices
 
 ### External Documentation
 - [Cost Management Guide](https://docs.snowflake.com/en/guides-overview-cost) - Comprehensive cost optimization strategies and monitoring

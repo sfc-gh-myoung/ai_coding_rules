@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:compinit
+  - kw:zstyle completion
+  - kw:add-zsh-hook
+  - kw:precmd preexec
+  - kw:vcs_info
+  - kw:async prompt
+token_budget: ~2450
+context_tier: Low
+depends:
+  required:
+    - 310-zsh-scripting-core.md  # Foundation zsh scripting patterns
+  optional:
+    - 310a-zsh-advanced-features.md  # Advanced features and optimization
+---
 # Zsh Completion System and Prompt Engineering
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:compinit, kw:zstyle completion, kw:add-zsh-hook, kw:precmd preexec, kw:vcs_info, kw:async prompt
-**TokenBudget:** ~2450
-**ContextTier:** Low
-**Depends:** required:310-zsh-scripting-core.md, optional:310a-zsh-advanced-features.md
 
 ## Scope
 
@@ -22,15 +31,6 @@ Zsh completion system configuration (compinit, zstyle, custom completions), hook
 - Building custom prompts with git status, colors, or async updates
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **310-zsh-scripting-core.md** - Foundation zsh scripting patterns
-- **310a-zsh-advanced-features.md** - Advanced features and optimization
-
-**Related:**
-- **310b-zsh-compatibility.md** - Cross-shell compatibility strategies
 
 ### External Documentation
 

@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:time series smoothing
+  - kw:pandas resample
+  - kw:SCADA visualization
+  - kw:aggregation method selection
+  - kw:high-frequency sensor data
+  - kw:Streamlit chart performance
+  - kw:pandas
+token_budget: ~2550
+context_tier: Low
+depends:
+  optional:
+    - 101a-snowflake-streamlit-visualization.md  # Core visualization patterns
+---
 # Streamlit Time Series: Smoothing and Aggregation
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:time series smoothing, kw:pandas resample, kw:SCADA visualization, kw:aggregation method selection, kw:high-frequency sensor data, kw:Streamlit chart performance, kw:pandas
-**TokenBudget:** ~2550
-**ContextTier:** Low
-**Depends:** optional:101a-snowflake-streamlit-visualization.md
 
 ## Scope
 
@@ -24,15 +32,9 @@ Time-based aggregation and smoothing patterns for high-frequency data visualizat
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **101a-snowflake-streamlit-visualization.md** - Core visualization patterns
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

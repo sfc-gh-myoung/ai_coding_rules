@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:agent tool design
+  - kw:single responsibility tools
+  - kw:token-efficient outputs
+  - kw:LLM-friendly parameters
+  - kw:tool boundary overlap
+  - kw:actionable error messages
+  - kw:ci/cd
+token_budget: ~4500
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 003-context-engineering.md  # Context management and attention budgets
+  optional:
+    - 002g-agent-optimization.md  # Agent-first design principles
+    - 004a-tool-set-curation.md  # Minimal viable tool sets, when to split/merge tools
+    - 004b-tool-output-efficiency.md  # Token-efficient tool output design
+---
 # Tool Design for AI Agents
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:agent tool design, kw:single responsibility tools, kw:token-efficient outputs, kw:LLM-friendly parameters, kw:tool boundary overlap, kw:actionable error messages, kw:ci/cd
-**TokenBudget:** ~4500
-**ContextTier:** High
-**Depends:** required:000-global-core.md, required:003-context-engineering.md, optional:002g-agent-optimization.md, optional:004a-tool-set-curation.md, optional:004b-tool-output-efficiency.md
 
 ## Scope
 
@@ -24,17 +37,6 @@ Comprehensive tool design practices that maximize agent effectiveness. Covers si
 - Implementing LLM-friendly parameters
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **003-context-engineering.md** - Context management and attention budgets
-
-**Related:**
-- **002g-agent-optimization.md** - Agent-first design principles
-- **004a-tool-set-curation.md** - Minimal viable tool sets, when to split/merge tools
-- **004b-tool-output-efficiency.md** - Token-efficient tool output design
 
 ### External Documentation
 

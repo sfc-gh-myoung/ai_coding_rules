@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:application factory
+  - kw:Flask blueprints
+  - kw:Flask-SQLAlchemy
+  - kw:CSRF protection
+  - kw:Jinja2 templates
+  - kw:Gunicorn deployment
+  - kw:flask
+token_budget: ~2150
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Python foundation patterns
+  optional:
+    - 203-python-project-setup.md  # Python project structure and packaging
+    - 201-python-lint-format.md  # Code quality and formatting standards
+---
 # Flask Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:application factory, kw:Flask blueprints, kw:Flask-SQLAlchemy, kw:CSRF protection, kw:Jinja2 templates, kw:Gunicorn deployment, kw:flask
-**TokenBudget:** ~2150
-**ContextTier:** High
-**Depends:** required:200-python-core.md, optional:203-python-project-setup.md, optional:201-python-lint-format.md
 
 ## Scope
 
@@ -21,16 +32,7 @@ Flask application development: factory pattern, blueprints, security, SQLAlchemy
 - Securing Flask apps (CSRF, auth)
 - Deploying to production
 
-
 ## References
-
-### Dependencies
-**Must Load First:**
-- **200-python-core.md** - Python foundation patterns
-
-**Related:**
-- **203-python-project-setup.md** - Python project structure and packaging
-- **201-python-lint-format.md** - Code quality and formatting standards
 
 ### External Documentation
 - [Flask Documentation](https://flask.palletsprojects.com/en/stable/)

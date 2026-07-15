@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:CHANGELOG.md
+  - kw:Keep a Changelog
+  - kw:Conventional Commits style
+  - kw:Unreleased section
+  - kw:changelog entry consolidation
+  - kw:release notes workflow
+  - kw:ci/cd
+token_budget: ~5350
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+  optional:
+    - 801-project-readme.md  # README documentation standards
+    - 802-project-contributing.md  # Contributing guidelines and workflow
+    - 803-project-git-workflow.md  # Git workflow and branch management
+---
 # Changelog Governance Directives
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.4.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:CHANGELOG.md, kw:Keep a Changelog, kw:Conventional Commits style, kw:Unreleased section, kw:changelog entry consolidation, kw:release notes workflow, kw:ci/cd
-**TokenBudget:** ~5350
-**ContextTier:** Medium
-**Depends:** required:000-global-core.md, optional:801-project-readme.md, optional:802-project-contributing.md, optional:803-project-git-workflow.md
 
 ## Scope
 
@@ -24,16 +36,6 @@ Maintaining high-signal, audit-friendly CHANGELOG.md following Keep a Changelog 
 - Reviewing changelog compliance during pull requests
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-
-**Related:**
-- **801-project-readme.md** - README documentation standards
-- **802-project-contributing.md** - Contributing guidelines and workflow
-- **803-project-git-workflow.md** - Git workflow and branch management
 
 ### External Documentation
 

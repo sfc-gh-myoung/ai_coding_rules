@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:tool set curation
+  - kw:minimal viable tool set
+  - kw:tool splitting criteria
+  - kw:tool merging criteria
+  - kw:tool bloat detection
+  - kw:tool boundaries
+  - kw:etl
+token_budget: ~2200
+context_tier: Medium
+depends:
+  required:
+    - 004-tool-design-for-agents.md  # Core tool design principles
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 004b-tool-output-efficiency.md  # Token-efficient tool outputs
+---
 # Tool Set Curation for AI Agents
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:tool set curation, kw:minimal viable tool set, kw:tool splitting criteria, kw:tool merging criteria, kw:tool bloat detection, kw:tool boundaries, kw:etl
-**TokenBudget:** ~2200
-**ContextTier:** Medium
-**Depends:** required:004-tool-design-for-agents.md, required:000-global-core.md, optional:004b-tool-output-efficiency.md
 
 ## Scope
 
@@ -23,19 +34,9 @@ Curating minimal viable tool sets for AI agents. Covers deciding the right numbe
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **004-tool-design-for-agents.md** - Core tool design principles
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **004b-tool-output-efficiency.md** - Token-efficient tool outputs
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

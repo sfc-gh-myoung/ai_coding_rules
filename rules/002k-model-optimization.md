@@ -1,19 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:context window sizing
+  - kw:loading budget calculation
+  - kw:GPT-4o GPT-5.1
+  - kw:Claude Sonnet Opus
+  - kw:Gemini Pro
+  - kw:prompt caching strategy
+token_budget: ~2550
+context_tier: Low
+depends:
+  required:
+    - 002c-rule-optimization.md  # Token budget tiers, progressive loading, and sizing guidelines
+---
 # Model-Specific Rule Optimization
 
 > **REFERENCE RULE: LOAD WHEN NEEDED**
 >
 > Model-specific context windows, loading budgets, and optimization strategies.
 > Load when sizing rules for specific AI models or planning loading budgets.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:context window sizing, kw:loading budget calculation, kw:GPT-4o GPT-5.1, kw:Claude Sonnet Opus, kw:Gemini Pro, kw:prompt caching strategy
-**TokenBudget:** ~2550
-**ContextTier:** Low
-**Depends:** required:002c-rule-optimization.md
 
 ## Scope
 
@@ -28,15 +35,9 @@ Model-specific context windows, loading budget formulas, and optimization strate
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **002c-rule-optimization.md** - Token budget tiers, progressive loading, and sizing guidelines
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

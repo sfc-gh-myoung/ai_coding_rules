@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:semantic view generator
+  - kw:verified query repository
+  - kw:VQR logical table naming
+  - kw:YAML semantic model
+  - kw:iterative refinement workflow
+  - kw:onboarding questions
+  - kw:cortex
+token_budget: ~3500
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule
+    - 106-snowflake-semantic-views-core.md  # DDL fundamentals
+---
 # Snowflake Semantic Views: Development Workflows
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:semantic view generator, kw:verified query repository, kw:VQR logical table naming, kw:YAML semantic model, kw:iterative refinement workflow, kw:onboarding questions, kw:cortex
-**TokenBudget:** ~3500
-**ContextTier:** Medium
-**Depends:** required:000-global-core.md, required:106-snowflake-semantic-views-core.md
 
 ## Scope
 
@@ -25,12 +34,6 @@ Development workflows for Semantic Views including the Semantic View Generator t
 **For Cortex Analyst integration and governance, see `106c-snowflake-semantic-views-integration.md`.**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule
-- **106-snowflake-semantic-views-core.md** - DDL fundamentals
 
 ### External Documentation
 - [Semantic View Generator](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-generator) - Automated view creation

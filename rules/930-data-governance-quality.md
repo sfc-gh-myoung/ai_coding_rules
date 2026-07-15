@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:expectation suites
+  - kw:schema evolution
+  - kw:metric definitions catalog
+  - kw:data drift monitoring
+  - kw:quality gates automation
+  - kw:incident response procedures
+  - kw:ci/cd
+token_budget: ~4300
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 100-snowflake-core.md  # Snowflake SQL patterns
+    - 124-snowflake-data-quality-core.md  # Snowflake-specific data quality patterns
+    - 132-snowflake-demo-modeling.md  # Data modeling standards
+---
 # Data Governance & Quality Directives
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:expectation suites, kw:schema evolution, kw:metric definitions catalog, kw:data drift monitoring, kw:quality gates automation, kw:incident response procedures, kw:ci/cd
-**TokenBudget:** ~4300
-**ContextTier:** Medium
-**Depends:** required:000-global-core.md, optional:100-snowflake-core.md, optional:124-snowflake-data-quality-core.md, optional:132-snowflake-demo-modeling.md
 
 ## Scope
 
@@ -24,16 +36,6 @@ Comprehensive directives for ensuring data quality, governance, and operational 
 - Defining incident response procedures for data issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **100-snowflake-core.md** - Snowflake SQL patterns
-- **124-snowflake-data-quality-core.md** - Snowflake-specific data quality patterns
-- **132-snowflake-demo-modeling.md** - Data modeling standards
 
 ### External Documentation
 
@@ -458,7 +460,6 @@ def governance_aware_query(
     logger.info(f"Agent {agent_id} executed query for '{purpose}', "
                 f"returned {len(results)} rows")
     return results
-
 
 def get_metric_definition(session: Session, metric_name: str) -> dict:
     """Look up metric from the single source of truth (data catalog)."""

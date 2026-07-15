@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:docs folder structure
+  - kw:community health files placement
+  - kw:ARCHITECTURE.md location
+  - kw:relative path cross-references
+  - kw:ADR folder conventions
+  - kw:GitHub Pages deployment
+token_budget: ~2850
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 800-project-changelog.md  # Changelog management standards
+    - 801-project-readme.md  # README best practices
+    - 802-project-contributing.md  # Contributing guidelines
+---
 # Project Documentation Organization
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:docs folder structure, kw:community health files placement, kw:ARCHITECTURE.md location, kw:relative path cross-references, kw:ADR folder conventions, kw:GitHub Pages deployment
-**TokenBudget:** ~2850
-**ContextTier:** Medium
-**Depends:** required:000-global-core.md, optional:800-project-changelog.md, optional:801-project-readme.md, optional:802-project-contributing.md
 
 ## Scope
 
@@ -23,16 +34,6 @@ Universal best practices for organizing project documentation files, including f
 - Implementing GitHub Pages or documentation site
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **800-project-changelog.md** - Changelog management standards
-- **801-project-readme.md** - README best practices
-- **802-project-contributing.md** - Contributing guidelines
 
 ### External Documentation
 - [GitHub Community Health Files](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file) - Standard community health file conventions

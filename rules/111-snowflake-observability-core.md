@@ -1,19 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:event table setup
+  - kw:telemetry level hierarchy
+  - kw:system views latency
+  - kw:DEBUG cost implications
+  - kw:SHOW PARAMETERS investigation
+  - kw:OpenTelemetry alignment
+  - kw:snowpark
+token_budget: ~4350
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md
+---
 # Snowflake Observability Core
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Observability patterns. Load for observability tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:event table setup, kw:telemetry level hierarchy, kw:system views latency, kw:DEBUG cost implications, kw:SHOW PARAMETERS investigation, kw:OpenTelemetry alignment, kw:snowpark
-**TokenBudget:** ~4350
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md
 
 ## Scope
 
@@ -51,13 +59,6 @@ Foundational observability practices for Snowflake environments through telemetr
 ### External Documentation
 
 _None._
-
-### Dependencies
-
-**Must Load First:**
-- [100-snowflake-core.md](100-snowflake-core.md)
-
-
 
 ## Contract
 

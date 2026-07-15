@@ -1,15 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:model registry
+  - kw:ml model versioning
+  - kw:model inference serving
+  - kw:model RBAC privileges
+  - kw:sample input schema
+  - kw:model metadata governance
+  - kw:ci/cd
+token_budget: ~3900
+context_tier: Medium
+depends:
+  required:
+    - 100-snowflake-core.md
+---
 # Snowflake Model Registry
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.4.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:model registry, kw:ml model versioning, kw:model inference serving, kw:model RBAC privileges, kw:sample input schema, kw:model metadata governance, kw:ci/cd
-**TokenBudget:** ~3900
-**ContextTier:** Medium
-**Depends:** required:100-snowflake-core.md
-**Companions:** 110a-snowflake-model-monitor.md, 110b-snowflake-model-registry-operations.md
 
 ## Scope
 
@@ -30,12 +37,6 @@ Comprehensive best practices for using Snowflake Model Registry to manage machin
 - [Snowflake Model Management](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/model-management) - Model lifecycle and management best practices
 - [MODEL MONITOR Overview](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/model-observability) - ML Observability and drift detection
 - [CREATE MODEL MONITOR Syntax](https://docs.snowflake.com/en/sql-reference/sql/create-model-monitor) - SQL reference for MODEL MONITOR creation
-
-### Dependencies
-
-**Must Load First:**
-- [100-snowflake-core.md](100-snowflake-core.md)
-
 
 ## Contract
 

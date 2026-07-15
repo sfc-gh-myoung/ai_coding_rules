@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:SEMANTIC_VIEW function
+  - kw:dimension compatibility
+  - kw:FACTS METRICS mutual exclusion
+  - kw:window function metrics
+  - kw:semantic view testing
+  - kw:WHERE clause restrictions
+  - kw:cortex
+token_budget: ~2550
+context_tier: High
+depends:
+  required:
+    - 106-snowflake-semantic-views-core.md  # Semantic Views DDL fundamentals
+---
 # Snowflake Semantic Views: Querying and Testing
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.5.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:SEMANTIC_VIEW function, kw:dimension compatibility, kw:FACTS METRICS mutual exclusion, kw:window function metrics, kw:semantic view testing, kw:WHERE clause restrictions, kw:cortex
-**TokenBudget:** ~2550
-**ContextTier:** High
-**Depends:** required:106-snowflake-semantic-views-core.md
 
 ## Scope
 
@@ -22,11 +30,6 @@ Comprehensive guidance for querying Snowflake Semantic Views using `SEMANTIC_VIE
 - Understanding dimension compatibility rules
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **106-snowflake-semantic-views-core.md** - Semantic Views DDL fundamentals
 
 ### External Documentation
 

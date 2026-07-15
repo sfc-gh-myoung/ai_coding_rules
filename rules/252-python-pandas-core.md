@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:pandas vectorization
+  - kw:SettingWithCopyWarning
+  - kw:.loc .iloc indexing
+  - kw:pandas method chaining
+  - kw:np.where np.select conditional
+  - kw:iterrows apply anti-patterns
+  - kw:pandas
+token_budget: ~2550
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Modern Python tooling and practices
+  optional:
+    - 251-python-datetime-core.md  # Datetime handling for Pandas
+    - 252a-python-pandas-performance.md  # Memory optimization, groupby, merge, eval/query
+    - 252b-python-pandas-io-integration.md  # Streamlit, Plotly, file I/O integration
+---
 # Pandas Core Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.9.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:pandas vectorization, kw:SettingWithCopyWarning, kw:.loc .iloc indexing, kw:pandas method chaining, kw:np.where np.select conditional, kw:iterrows apply anti-patterns, kw:pandas
-**TokenBudget:** ~2550
-**ContextTier:** High
-**Depends:** required:200-python-core.md, optional:251-python-datetime-core.md, optional:252a-python-pandas-performance.md, optional:252b-python-pandas-io-integration.md
 
 ## Scope
 
@@ -22,16 +34,6 @@ Core Pandas best practices: vectorization over loops, explicit indexing with .lo
 - Building data transformation pipelines
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Modern Python tooling and practices
-
-**Related:**
-- **251-python-datetime-core.md** - Datetime handling for Pandas
-- **252a-python-pandas-performance.md** - Memory optimization, groupby, merge, eval/query
-- **252b-python-pandas-io-integration.md** - Streamlit, Plotly, file I/O integration
 
 ### External Documentation
 - [Pandas User Guide](https://pandas.pydata.org/docs/user_guide/index.html)

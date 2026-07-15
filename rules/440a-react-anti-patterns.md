@@ -1,19 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:error boundary
+  - kw:hydration mismatch
+  - kw:useEffect cleanup
+  - kw:TanStack Query error
+  - kw:use client directive
+  - kw:query cache gcTime
+  - kw:tsx
+token_budget: ~2450
+context_tier: Medium
+depends:
+  required:
+    - 440-react-core.md  # Core React architecture and patterns
+---
 # React Anti-Patterns & Recovery Patterns
 
 > **COMPANION RULE: LOAD WITH 440-react-core.md**
 >
 > Anti-patterns, error recovery, and output format examples for React development.
 > Load alongside 440-react-core.md for complete guidance.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.4.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:error boundary, kw:hydration mismatch, kw:useEffect cleanup, kw:TanStack Query error, kw:use client directive, kw:query cache gcTime, kw:tsx
-**TokenBudget:** ~2450
-**ContextTier:** Medium
-**Depends:** required:440-react-core.md
 
 ## Scope
 
@@ -29,19 +37,9 @@ Common React anti-patterns, error recovery strategies (hydration, Suspense, TanS
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **440-react-core.md** - Core React architecture and patterns
-- **430-typescript-core.md** - TypeScript patterns (AbortController)
-
-**Related:**
-- **420-javascript-core.md** - JavaScript foundation
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

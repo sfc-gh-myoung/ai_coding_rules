@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Typer CLI configuration
+  - kw:pydantic-settings integration
+  - kw:configuration precedence chain
+  - kw:environment variable prefix
+  - kw:CLI option overrides
+  - kw:TOML config file loading
+  - kw:TOML
+token_budget: ~2550
+context_tier: Medium
+depends:
+  required:
+    - 220-python-typer-cli.md  # Core Typer CLI patterns
+  optional:
+    - 230-python-pydantic.md  # Pydantic model patterns
+    - 230a-python-pydantic-settings.md  # Pydantic Settings details
+---
 # Python Typer CLI Configuration Management
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Typer CLI configuration, kw:pydantic-settings integration, kw:configuration precedence chain, kw:environment variable prefix, kw:CLI option overrides, kw:TOML config file loading, kw:TOML
-**TokenBudget:** ~2550
-**ContextTier:** Medium
-**Depends:** required:220-python-typer-cli.md, optional:230-python-pydantic.md, optional:230a-python-pydantic-settings.md
 
 ## Scope
 
@@ -23,19 +34,9 @@ Configuration and environment management for Typer CLI applications using Pydant
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **220-python-typer-cli.md** - Core Typer CLI patterns
-
-**Related:**
-- **230-python-pydantic.md** - Pydantic model patterns
-- **230a-python-pydantic-settings.md** - Pydantic Settings details
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 
@@ -182,7 +183,6 @@ from pathlib import Path
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 class AppSettings(BaseSettings):
     """Application settings with TOML file support."""
     config_file: Path | None = None
@@ -302,13 +302,11 @@ For complex settings with grouped sub-configurations:
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 class DatabaseConfig(BaseModel):
     """Database connection settings (not a BaseSettings — no env support)."""
     host: str = "localhost"
     port: int = Field(5432, ge=1, le=65535)
     name: str = "myapp"
-
 
 class AppSettings(BaseSettings):
     """Application settings with nested database config."""

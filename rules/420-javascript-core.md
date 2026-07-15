@@ -1,19 +1,29 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:ESM modules
+  - kw:immutable array methods
+  - kw:node:test runner
+  - kw:Biome linter
+  - kw:JSDoc type annotations
+  - kw:Object.groupBy
+token_budget: ~4450
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+  optional:
+    - 424-javascript-docs.md  # JSDoc documentation standards
+    - 440-react-core.md  # React-specific patterns and best practices
+---
 # JavaScript Core: Modern Standards & Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential JavaScript patterns. Load for JavaScript tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.4.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:ESM modules, kw:immutable array methods, kw:node:test runner, kw:Biome linter, kw:JSDoc type annotations, kw:Object.groupBy
-**TokenBudget:** ~4450
-**ContextTier:** High
-**Depends:** required:000-global-core.md, optional:424-javascript-docs.md, optional:440-react-core.md
 
 ## Scope
 
@@ -30,15 +40,6 @@ Definitive standards for writing modern, robust JavaScript in 2026, enforcing EC
 - Adding type safety with JSDoc
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-
-**Related:**
-- **424-javascript-docs.md** - JSDoc documentation standards
-- **440-react-core.md** - React-specific patterns and best practices
 
 ### External Documentation
 

@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Snowpark Container Services
+  - kw:compute pool instance families
+  - kw:OCI image deployment
+  - kw:service specification YAML
+  - kw:platform events monitoring
+  - kw:GPU workload configuration
+  - kw:flask
+token_budget: ~3550
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+  optional:
+    - 105-snowflake-cost-governance.md  # Cost optimization for compute pools
+    - 111-snowflake-observability-core.md  # Logging, tracing, and monitoring patterns
+    - 119-snowflake-warehouse-management.md  # Warehouse sizing and configuration
+---
 # Snowflake Snowpark Container Services (SPCS)
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Snowpark Container Services, kw:compute pool instance families, kw:OCI image deployment, kw:service specification YAML, kw:platform events monitoring, kw:GPU workload configuration, kw:flask
-**TokenBudget:** ~3550
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, optional:105-snowflake-cost-governance.md, optional:111-snowflake-observability-core.md, optional:119-snowflake-warehouse-management.md
 
 ## Scope
 
@@ -21,17 +33,7 @@ Deploying and managing containerized apps on SPCS: compute pools, service specs,
 - Troubleshooting SPCS services
 - GPU-enabled ML/AI workloads
 
-
 ## References
-
-### Dependencies
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-
-**Related:**
-- **105-snowflake-cost-governance.md** - Cost optimization for compute pools
-- **111-snowflake-observability-core.md** - Logging, tracing, and monitoring patterns
-- **119-snowflake-warehouse-management.md** - Warehouse sizing and configuration
 
 ### External Documentation
 - [SPCS Overview](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview)

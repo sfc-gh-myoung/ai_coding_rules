@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:PUT AUTO_COMPRESS
+  - kw:REMOVE before PUT
+  - kw:CREATE STREAMLIT FROM
+  - kw:stage path matching
+  - kw:snow stage copy recursive
+  - kw:embedded versioned stage
+  - kw:snowpark
+token_budget: ~4600
+context_tier: Low
+depends:
+  required:
+    - 109b-snowflake-app-deployment-core.md
+---
 # Snowflake App Deployment SQL Script Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:PUT AUTO_COMPRESS, kw:REMOVE before PUT, kw:CREATE STREAMLIT FROM, kw:stage path matching, kw:snow stage copy recursive, kw:embedded versioned stage, kw:snowpark
-**TokenBudget:** ~4600
-**ContextTier:** Low
-**Depends:** required:109b-snowflake-app-deployment-core.md
 
 ## Scope
 
@@ -26,13 +34,6 @@ Standardized SQL script templates for Snowflake application deployment operation
 ### External Documentation
 
 _None._
-
-### Dependencies
-
-**Must Load First:**
-- [109b-snowflake-app-deployment-core.md](109b-snowflake-app-deployment-core.md)
-
-
 
 ## Contract
 

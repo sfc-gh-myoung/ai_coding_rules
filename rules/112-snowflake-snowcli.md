@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.1
+last_updated: 2026-07-15
+keywords:
+  - kw:snowcli uvx pinned
+  - kw:snowflake.yml project
+  - kw:stage copy no-auto-compress
+  - kw:streamlit deploy FROM
+  - kw:connection profile env
+  - kw:CI non-interactive json
+  - file:snowflake.yml
+token_budget: ~5650
+context_tier: Medium
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+  optional:
+    - 820-taskfile-automation.md
+    - 803-project-git-workflow.md  # CI/CD integration patterns
+---
 # Snowflake SnowCLI (snow) Usage Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.5.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:snowcli uvx pinned, kw:snowflake.yml project, kw:stage copy no-auto-compress, kw:streamlit deploy FROM, kw:connection profile env, kw:CI non-interactive json, kw:ci/cd
-**TokenBudget:** ~5650
-**ContextTier:** Medium
-**Depends:** required:100-snowflake-core.md, optional:820-taskfile-automation.md, optional:803-project-git-workflow.md
 
 ## Scope
 
@@ -26,15 +37,6 @@ Clear, reproducible guidance for installing, invoking, and automating Snowflake 
 - Managing Snowflake CLI connections
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-
-**Related:**
-- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
-- **803-project-git-workflow.md** - CI/CD integration patterns
 
 ### External Documentation
 

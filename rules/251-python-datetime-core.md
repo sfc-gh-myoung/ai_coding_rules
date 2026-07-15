@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:datetime type conversion
+  - kw:timezone localize convert
+  - kw:datetime.now(UTC)
+  - kw:pd.Timestamp compatibility
+  - kw:date parsing format specification
+  - kw:epoch timestamp unit conversion
+  - kw:pandas
+token_budget: ~3000
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Modern Python tooling and practices
+  optional:
+    - 251a-python-datetime-advanced.md  # Date arithmetic, performance optimization
+    - 251b-python-datetime-integration.md  # Streamlit, Plotly, SQL integration
+    - 252-python-pandas-core.md  # Pandas performance and anti-patterns
+---
 # Python DateTime Core Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.9.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:datetime type conversion, kw:timezone localize convert, kw:datetime.now(UTC), kw:pd.Timestamp compatibility, kw:date parsing format specification, kw:epoch timestamp unit conversion, kw:pandas
-**TokenBudget:** ~3000
-**ContextTier:** High
-**Depends:** required:200-python-core.md, optional:251a-python-datetime-advanced.md, optional:251b-python-datetime-integration.md, optional:252-python-pandas-core.md
 
 ## Scope
 
@@ -22,16 +34,6 @@ Core datetime handling in Python and Pandas: type system, conversions, parsing, 
 - Debugging datetime-related TypeErrors in Pandas 2.x
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Modern Python tooling and practices
-
-**Related:**
-- **251a-python-datetime-advanced.md** - Date arithmetic, performance optimization
-- **251b-python-datetime-integration.md** - Streamlit, Plotly, SQL integration
-- **252-python-pandas-core.md** - Pandas performance and anti-patterns
 
 ### External Documentation
 - [Python datetime Documentation](https://docs.python.org/3/library/datetime.html)

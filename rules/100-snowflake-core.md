@@ -1,19 +1,31 @@
+---
+schema_version: v3.5
+rule_version: v4.0.1
+last_updated: 2026-07-15
+keywords:
+  - kw:CTE extraction
+  - kw:VARIANT parsing optimization
+  - kw:Streams Tasks incremental
+  - kw:partition pruning early filtering
+  - kw:QUALIFY ROW_NUMBER deduplication
+  - kw:Query Profile validation
+  - ext:.sql
+token_budget: ~5050
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+  optional:
+    - 119-snowflake-warehouse-management.md  # Warehouse config referenced throughout core patterns
+    - 103-snowflake-performance-tuning.md  # Query profiling and optimization
+    - 105-snowflake-cost-governance.md  # Cost monitoring and resource management
+---
 # Snowflake Core Directives
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Snowflake patterns. Load for Snowflake tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.4.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:CTE extraction, kw:VARIANT parsing optimization, kw:Streams Tasks incremental, kw:partition pruning early filtering, kw:QUALIFY ROW_NUMBER deduplication, kw:Query Profile validation, kw:masking policy row access
-**TokenBudget:** ~5050
-**ContextTier:** High
-**Depends:** required:000-global-core.md, optional:119-snowflake-warehouse-management.md, optional:103-snowflake-performance-tuning.md, optional:105-snowflake-cost-governance.md
 
 ## Scope
 
@@ -37,16 +49,6 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 - **Minimal data movement:** <10% of source data copied or transformed (context: validation of efficient query design)
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-
-**Related:**
-- **119-snowflake-warehouse-management.md** - Warehouse config referenced throughout core patterns
-- **103-snowflake-performance-tuning.md** - Query profiling and optimization
-- **105-snowflake-cost-governance.md** - Cost monitoring and resource management
 
 ### External Documentation
 

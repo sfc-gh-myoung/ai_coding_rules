@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:DMF scheduling
+  - kw:quality event tables
+  - kw:expectation failures
+  - kw:remediation workflows
+  - kw:EXECUTE DATA METRIC FUNCTION
+  - kw:quality alerting
+  - kw:dmf
+token_budget: ~4400
+context_tier: High
+depends:
+  optional:
+    - 124a-snowflake-data-quality-custom.md  # Custom DMF creation
+    - 104-snowflake-streams-tasks.md  # Task scheduling patterns
+---
 # Snowflake Data Quality: Operations & Monitoring
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:DMF scheduling, kw:quality event tables, kw:expectation failures, kw:remediation workflows, kw:EXECUTE DATA METRIC FUNCTION, kw:quality alerting, kw:dmf
-**TokenBudget:** ~4400
-**ContextTier:** High
-**Depends:** optional:124a-snowflake-data-quality-custom.md, optional:104-snowflake-streams-tasks.md
 
 ## Scope
 
@@ -24,17 +33,6 @@ Operational patterns for Data Quality Monitoring including DMF scheduling, event
 - Troubleshooting DMF execution or alerting issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **124-snowflake-data-quality-core.md** - Data Quality fundamentals
-- **111-snowflake-observability-core.md** - Event tables and monitoring patterns
-
-**Related:**
-- **124a-snowflake-data-quality-custom.md** - Custom DMF creation
-- **104-snowflake-streams-tasks.md** - Task scheduling patterns
 
 ### External Documentation
 

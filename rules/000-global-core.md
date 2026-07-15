@@ -1,3 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:surgical edits
+  - kw:pre-flight gates
+  - kw:validation command sequence
+  - kw:context preservation hierarchy
+  - kw:foundation operating contract
+  - kw:task list confirmation
+  - kw:pytest
+token_budget: ~2550
+context_tier: Critical
+depends:
+  optional:
+    - 001-memory-bank.md  # Context continuity across sessions
+    - 002-rule-governance.md  # Rule authoring standards
+    - 003-context-engineering.md  # Attention budget management
+---
 # Global Core Guidelines
 
 > **CRITICAL: DO NOT SUMMARIZE THIS FILE**
@@ -5,16 +25,6 @@
 > This is the foundation rule that defines core patterns for ALL agents. Required
 > for every response. If context limits are reached, preserve this file completely.
 > Summarize task history or other files first - this foundation must remain accessible.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.10.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:surgical edits, kw:pre-flight gates, kw:validation command sequence, kw:context preservation hierarchy, kw:foundation operating contract, kw:task list confirmation, kw:pytest
-**TokenBudget:** ~2550
-**ContextTier:** Critical
-**Depends:** optional:001-memory-bank.md, optional:002-rule-governance.md, optional:003-context-engineering.md
 
 ## Scope
 
@@ -34,16 +44,6 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 > communication standards, and context management.
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- None (this IS the foundation)
-
-**Related:**
-- **001-memory-bank.md** - Context continuity across sessions
-- **002-rule-governance.md** - Rule authoring standards
-- **003-context-engineering.md** - Attention budget management
 
 ### External Documentation
 

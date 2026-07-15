@@ -1,14 +1,21 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:feature engineering
+  - kw:windowed aggregations
+  - kw:RFM features
+  - kw:velocity features
+  - kw:NULLIF division protection
+  - kw:deterministic transformations
+token_budget: ~2550
+context_tier: Low
+depends:
+  required:
+    - 113-snowflake-feature-store.md  # Feature Store core patterns
+---
 # Snowflake Feature Store: Feature Engineering Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:feature engineering, kw:windowed aggregations, kw:RFM features, kw:velocity features, kw:NULLIF division protection, kw:deterministic transformations
-**TokenBudget:** ~2550
-**ContextTier:** Low
-**Depends:** required:113-snowflake-feature-store.md
 
 ## Scope
 
@@ -22,12 +29,6 @@ Feature engineering patterns for Snowflake Feature Store including aggregation f
 - Designing feature views with derived metrics
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **113-snowflake-feature-store.md** - Feature Store core patterns
 
 ### External Documentation
 

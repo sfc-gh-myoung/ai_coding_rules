@@ -1,19 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:long-horizon tasks
+  - kw:context compaction
+  - kw:persistent memory
+  - kw:sub-agent delegation
+  - kw:multi-session continuity
+  - kw:checkpointing protocols
+  - kw:fastapi
+token_budget: ~2950
+context_tier: Medium
+depends:
+  required:
+    - 003-context-engineering.md
+    - 000-global-core.md
+---
 # Long-Horizon Task Strategies for AI Agents
 
 > **CORE RULE**
 >
 > Strategies for managing context across long-running, multi-session agent tasks.
 > Load when working on tasks that span multiple turns or sessions.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:long-horizon tasks, kw:context compaction, kw:persistent memory, kw:sub-agent delegation, kw:multi-session continuity, kw:checkpointing protocols, kw:fastapi
-**TokenBudget:** ~2950
-**ContextTier:** Medium
-**Depends:** required:003-context-engineering.md, required:000-global-core.md
 
 ## Scope
 
@@ -32,16 +41,9 @@ Covers compaction protocols, structured note-taking for persistent memory, and s
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- `003-context-engineering.md` - Core context engineering principles (attention budget, progressive disclosure)
-- `000-global-core.md` - Foundation for all rules
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

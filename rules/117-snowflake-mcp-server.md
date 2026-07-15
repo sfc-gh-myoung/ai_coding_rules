@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:snowflake-managed mcp server
+  - kw:CREATE MCP SERVER
+  - kw:mcp tool invocation
+  - kw:cortex_analyst_message tool
+  - kw:mcp json-rpc protocol
+  - kw:mcp server rbac
+  - kw:cortex
+token_budget: ~3400
+context_tier: High
+depends:
+  required:
+    - 107-snowflake-security-governance.md  # Security governance and least privilege
+  optional:
+    - 115-snowflake-cortex-agents-core.md  # Cortex Agents configuration
+---
 # 117-snowflake-mcp-server: Snowflake-Managed MCP Server (Tool-Agnostic)
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:snowflake-managed mcp server, kw:CREATE MCP SERVER, kw:mcp tool invocation, kw:cortex_analyst_message tool, kw:mcp json-rpc protocol, kw:mcp server rbac, kw:cortex
-**TokenBudget:** ~3400
-**ContextTier:** High
-**Depends:** required:107-snowflake-security-governance.md, optional:115-snowflake-cortex-agents-core.md
 
 ## Scope
 
@@ -23,18 +33,6 @@ Authoritative, tool-agnostic guidance for using Snowflake's Snowflake-managed MC
 - Troubleshooting MCP server authentication or tool invocation issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake fundamentals (DDL, RBAC basics)
-- **107-snowflake-security-governance.md** - Security governance and least privilege
-- **112-snowflake-snowcli.md** - SnowCLI usage patterns
-
-**Related:**
-- **106-snowflake-semantic-views-core.md** - Semantic views for Cortex Analyst tools
-- **115-snowflake-cortex-agents-core.md** - Cortex Agents configuration
-- **116-snowflake-cortex-search.md** - Cortex Search services
 
 ### External Documentation
 

@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:pydantic-settings
+  - kw:BaseSettings
+  - kw:environment variable loading
+  - kw:SettingsConfigDict
+  - kw:nested settings delimiter
+  - kw:startup validation
+  - kw:fastapi
+token_budget: ~1800
+context_tier: Medium
+depends:
+  required:
+    - 230-python-pydantic.md  # Core Pydantic model patterns
+  optional:
+    - 220a-python-typer-config.md  # CLI configuration integration
+    - 210-python-fastapi-core.md  # FastAPI settings injection
+---
 # Python Pydantic Settings Management
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:pydantic-settings, kw:BaseSettings, kw:environment variable loading, kw:SettingsConfigDict, kw:nested settings delimiter, kw:startup validation, kw:fastapi
-**TokenBudget:** ~1800
-**ContextTier:** Medium
-**Depends:** required:230-python-pydantic.md, optional:220a-python-typer-config.md, optional:210-python-fastapi-core.md
 
 ## Scope
 
@@ -23,19 +34,9 @@ Application configuration management using pydantic-settings, including BaseSett
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **230-python-pydantic.md** - Core Pydantic model patterns
-
-**Related:**
-- **220a-python-typer-config.md** - CLI configuration integration
-- **210-python-fastapi-core.md** - FastAPI settings injection
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

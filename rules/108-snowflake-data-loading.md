@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:COPY INTO
+  - kw:stage management
+  - kw:file format definition
+  - kw:bulk load optimization
+  - kw:VALIDATION_MODE
+  - kw:ON_ERROR handling
+  - kw:COPY_HISTORY monitoring
+token_budget: ~3950
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md
+---
 # Snowflake Data Loading
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:COPY INTO, kw:stage management, kw:file format definition, kw:bulk load optimization, kw:VALIDATION_MODE, kw:ON_ERROR handling, kw:COPY_HISTORY monitoring
-**TokenBudget:** ~3950
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md
 
 ## Scope
 
@@ -39,12 +47,6 @@ Comprehensive best practices for efficiently staging and bulk loading data into 
 - [COPY INTO Command](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table) - Bulk data loading syntax and options
 - [Data Loading Stages](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Internal and external stage management
 - [Data Loading Best Practices](https://docs.snowflake.com/en/user-guide/data-load-considerations) - File sizing and optimization guidance
-
-### Dependencies
-
-**Must Load First:**
-- [100-snowflake-core.md](100-snowflake-core.md)
-
 
 ## Contract
 

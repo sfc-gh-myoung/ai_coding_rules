@@ -1,19 +1,31 @@
+---
+schema_version: v3.5
+rule_version: v5.0.1
+last_updated: 2026-07-15
+keywords:
+  - kw:pyproject.toml
+  - kw:toolchain detection
+  - kw:datetime.now(UTC)
+  - kw:collections.abc imports
+  - kw:dict list annotations
+  - kw:pathlib file operations
+  - ext:.py
+token_budget: ~3800
+context_tier: Critical
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+  optional:
+    - 200a-python-validation-gate.md  # Pre-Task-Completion Validation Gate and type checking
+    - 206-python-pytest.md  # Comprehensive testing patterns with pytest
+    - 201-python-lint-format.md  # Detailed Ruff linting and formatting patterns
+---
 # Python Core Engineering Directives
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Python patterns. Load for Python tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v4.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:pyproject.toml, kw:toolchain detection, kw:datetime.now(UTC), kw:collections.abc imports, kw:dict list annotations, kw:pathlib file operations, kw:Python
-**TokenBudget:** ~3800
-**ContextTier:** Critical
-**Depends:** required:000-global-core.md, optional:200a-python-validation-gate.md, optional:206-python-pytest.md, optional:201-python-lint-format.md
 
 ## Scope
 
@@ -30,16 +42,6 @@ Foundational Python development practices: investigation-first toolchain detecti
 - Implementing Python best practices and modern patterns
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-
-**Related:**
-- **200a-python-validation-gate.md** - Pre-Task-Completion Validation Gate and type checking
-- **206-python-pytest.md** - Comprehensive testing patterns with pytest
-- **201-python-lint-format.md** - Detailed Ruff linting and formatting patterns
 
 ### External Documentation
 
@@ -315,7 +317,6 @@ When working with async Python code:
 import asyncio
 from collections.abc import AsyncIterator
 
-
 async def fetch_data(url: str) -> dict[str, Any]:
     """Fetch data from API endpoint.
 
@@ -333,7 +334,6 @@ async def fetch_data(url: str) -> dict[str, Any]:
         response = await client.get(url)
         response.raise_for_status()
         return response.json()
-
 
 async def process_items(items: list[str]) -> AsyncIterator[str]:
     """Process items concurrently with controlled concurrency.
@@ -388,7 +388,6 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-
 def load_users(config_path: Path) -> list[dict[str, Any]]:
     """Load users from configuration file.
 
@@ -425,7 +424,6 @@ def load_users(config_path: Path) -> list[dict[str, Any]]:
         for u in raw_users
         if u.get("name") and isinstance(u["name"], str)
     ]
-
 
 def filter_active(users: Sequence[dict[str, Any]]) -> list[dict[str, Any]]:
     """Filter to only active users.

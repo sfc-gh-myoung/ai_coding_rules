@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:snowpark dataframe
+  - kw:model registry versioning
+  - kw:feature engineering leakage
+  - kw:SHAP explainability
+  - kw:SQL aggregation over loops
+  - kw:pandas NaN handling
+  - kw:uncertainty quantification intervals
+token_budget: ~3750
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 200-python-core.md  # Python development patterns
+  optional:
+    - 100-snowflake-core.md  # Snowflake SQL patterns
+    - 101-snowflake-streamlit-core.md  # Streamlit dashboard patterns
+    - 252-python-pandas-core.md  # Pandas best practices
+---
 # Data Science & Analytics Principles
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:snowpark dataframe, kw:model registry versioning, kw:feature engineering leakage, kw:SHAP explainability, kw:SQL aggregation over loops, kw:pandas NaN handling, kw:uncertainty quantification intervals
-**TokenBudget:** ~3750
-**ContextTier:** High
-**Depends:** required:000-global-core.md, required:200-python-core.md, optional:100-snowflake-core.md, optional:101-snowflake-streamlit-core.md, optional:252-python-pandas-core.md
 
 ## Scope
 
@@ -24,17 +37,6 @@ Comprehensive rules for data science and analytics on Snowflake. Covers model li
 - Implementing feature engineering pipelines
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **200-python-core.md** - Python development patterns
-
-**Related:**
-- **100-snowflake-core.md** - Snowflake SQL patterns
-- **101-snowflake-streamlit-core.md** - Streamlit dashboard patterns
-- **252-python-pandas-core.md** - Pandas best practices
 
 ### External Documentation
 

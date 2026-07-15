@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:model registry operations
+  - kw:ML cost governance
+  - kw:model version cleanup
+  - kw:inference warehouse sizing
+  - kw:model compliance audit
+  - kw:CI/CD model validation
+  - kw:ci/cd
+token_budget: ~3100
+context_tier: Low
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 110-snowflake-model-registry.md  # Model Registry core patterns
+  optional:
+    - 105-snowflake-cost-governance.md  # Cost monitoring and governance
+    - 119-snowflake-warehouse-management.md  # Warehouse sizing
+---
 # Snowflake Model Registry: Operations & Governance
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:model registry operations, kw:ML cost governance, kw:model version cleanup, kw:inference warehouse sizing, kw:model compliance audit, kw:CI/CD model validation, kw:ci/cd
-**TokenBudget:** ~3100
-**ContextTier:** Low
-**Depends:** required:100-snowflake-core.md, required:110-snowflake-model-registry.md, optional:105-snowflake-cost-governance.md, optional:119-snowflake-warehouse-management.md
 
 ## Scope
 
@@ -23,16 +35,6 @@ Operational patterns for Snowflake Model Registry including cost governance, sto
 - Establishing compliance and audit processes for ML models
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **110-snowflake-model-registry.md** - Model Registry core patterns
-
-**Related:**
-- **105-snowflake-cost-governance.md** - Cost monitoring and governance
-- **119-snowflake-warehouse-management.md** - Warehouse sizing
 
 ### External Documentation
 

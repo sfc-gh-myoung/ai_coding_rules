@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:clig.dev principles
+  - kw:TTY detection
+  - kw:stdout stderr separation
+  - kw:destructive operation confirmation
+  - kw:machine-readable output modes
+  - kw:XDG Base Directory
+  - kw:typer
+token_budget: ~4700
+context_tier: Medium
+depends:
+  optional:
+    - 220-python-typer-cli.md  # Typer-specific patterns (Python)
+    - 220c-python-typer-rich.md  # Rich console patterns (Python)
+    - 300-bash-scripting-core.md  # Bash CLI patterns
+---
 # 810-cli-design-core: Command-Line Interface Design Core
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:clig.dev principles, kw:TTY detection, kw:stdout stderr separation, kw:destructive operation confirmation, kw:machine-readable output modes, kw:XDG Base Directory, kw:typer
-**TokenBudget:** ~4700
-**ContextTier:** Medium
-**Depends:** optional:220-python-typer-cli.md, optional:220c-python-typer-rich.md, optional:300-bash-scripting-core.md
 
 ## Scope
 
@@ -23,15 +33,6 @@ Language-agnostic design principles for building command-line applications, synt
 - Choosing between interactive prompts and non-interactive flag-driven flows
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-
-**Related:**
-- **220-python-typer-cli.md** - Typer-specific patterns (Python)
-- **220c-python-typer-rich.md** - Rich console patterns (Python)
-- **300-bash-scripting-core.md** - Bash CLI patterns
 
 ### External Documentation
 

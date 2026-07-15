@@ -1,19 +1,30 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:strict mode enforcement
+  - kw:Zod runtime validation
+  - kw:type inference over annotation
+  - kw:enum namespace forbidden
+  - kw:satisfies operator
+  - kw:discriminated union patterns
+token_budget: ~3950
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 434-typescript-docs.md  # TSDoc documentation standards
+    - 440-react-core.md  # TypeScript usage in React applications
+    - 420-javascript-core.md  # JavaScript patterns that complement TypeScript
+---
 # TypeScript Core: Strictness & Modern Patterns
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential TypeScript patterns. Load for TypeScript tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:strict mode enforcement, kw:Zod runtime validation, kw:type inference over annotation, kw:enum namespace forbidden, kw:satisfies operator, kw:discriminated union patterns
-**TokenBudget:** ~3950
-**ContextTier:** High
-**Depends:** required:000-global-core.md, optional:434-typescript-docs.md, optional:440-react-core.md, optional:420-javascript-core.md
 
 ## Scope
 
@@ -28,16 +39,6 @@ Establishes the definitive standards for writing production-grade TypeScript in 
 - Reviewing TypeScript code for best practices
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **434-typescript-docs.md** - TSDoc documentation standards
-- **440-react-core.md** - TypeScript usage in React applications
-- **420-javascript-core.md** - JavaScript patterns that complement TypeScript
 
 ### External Documentation
 

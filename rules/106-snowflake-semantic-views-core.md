@@ -1,16 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:CREATE SEMANTIC VIEW
+  - kw:TABLES PRIMARY KEY
+  - kw:FACTS DIMENSIONS METRICS
+  - kw:RELATIONSHIPS clause
+  - kw:mapping syntax alias.physical_column
+  - kw:SHOW SEMANTIC DIMENSIONS
+  - kw:ci/cd
+token_budget: ~2550
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake SQL patterns
+---
 # Snowflake Native Semantic Views: Core DDL
 
 > **CORE RULE:** Essential Semantic Views patterns for DDL creation and validation.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:CREATE SEMANTIC VIEW, kw:TABLES PRIMARY KEY, kw:FACTS DIMENSIONS METRICS, kw:RELATIONSHIPS clause, kw:mapping syntax alias.physical_column, kw:SHOW SEMANTIC DIMENSIONS, kw:ci/cd
-**TokenBudget:** ~2550
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md
 
 ## Scope
 
@@ -27,12 +35,7 @@ Creating Snowflake Native Semantic Views using `CREATE SEMANTIC VIEW` DDL: struc
 - **106b** - Query patterns, SEMANTIC_VIEW() function
 - **106c** - Cortex Analyst/Agent integration
 
-
 ## References
-
-### Dependencies
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake SQL patterns
 
 ### External Documentation
 - [Snowflake Semantic Views](https://docs.snowflake.com/en/user-guide/semantic-views)

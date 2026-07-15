@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:FastAPI React integration
+  - kw:httpOnly cookie authentication
+  - kw:TanStack Query backend communication
+  - kw:CORS middleware configuration
+  - kw:Python-first full-stack
+  - kw:JWT refresh token rotation
+  - kw:fastapi
+token_budget: ~4350
+context_tier: High
+depends:
+  required:
+    - 440-react-core.md  # React patterns and architecture
+    - 200-python-core.md  # Python development standards
+---
 # React Backend Integration: Python-First Full-Stack Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:FastAPI React integration, kw:httpOnly cookie authentication, kw:TanStack Query backend communication, kw:CORS middleware configuration, kw:Python-first full-stack, kw:JWT refresh token rotation, kw:fastapi
-**TokenBudget:** ~4350
-**ContextTier:** High
-**Depends:** required:440-react-core.md, required:200-python-core.md
 
 ## Scope
 
@@ -24,16 +33,6 @@ Establishes backend integration patterns for React applications, with Python (Fa
 - Setting up API layer with TanStack Query
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **440-react-core.md** - React patterns and architecture
-- **200-python-core.md** - Python development standards
-
-**Related:**
-- **210-python-fastapi-core.md** - FastAPI patterns and best practices
-- **250-python-flask.md** - Flask patterns and best practices
 
 ### External Documentation
 

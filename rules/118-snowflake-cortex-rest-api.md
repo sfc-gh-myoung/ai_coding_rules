@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:cortex rest api
+  - kw:exponential backoff retry
+  - kw:idempotency keys
+  - kw:rest vs aisql decision
+  - kw:sse streaming responses
+  - kw:token usage monitoring
+  - kw:aisql
+token_budget: ~4250
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake fundamentals
+    - 105-snowflake-cost-governance.md  # Cost monitoring and optimization
+  optional:
+    - 114-snowflake-cortex-aisql.md  # AISQL for batch processing
+---
 # Snowflake Cortex REST API Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:cortex rest api, kw:exponential backoff retry, kw:idempotency keys, kw:rest vs aisql decision, kw:sse streaming responses, kw:token usage monitoring, kw:aisql
-**TokenBudget:** ~4250
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:105-snowflake-cost-governance.md, optional:114-snowflake-cortex-aisql.md
-**Companions:** 118a-snowflake-cortex-rest-api-streaming.md
 
 ## Scope
 
@@ -24,18 +34,6 @@ Production patterns for Cortex REST API: retry logic with exponential backoff, i
 - For authentication (PAT/OAuth/JWT) and SSE streaming, see **118a-snowflake-cortex-rest-api-streaming.md**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake fundamentals
-- **105-snowflake-cost-governance.md** - Cost monitoring and optimization
-- **111-snowflake-observability-core.md** - Logging and performance monitoring
-
-**Related:**
-- **114-snowflake-cortex-aisql.md** - AISQL for batch processing
-- **115-snowflake-cortex-agents-core.md** - Cortex Agents REST API
-- **107-snowflake-security-governance.md** - Authentication and security
 
 ### External Documentation
 

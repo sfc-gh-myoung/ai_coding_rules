@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:two-approach clarification
+  - kw:notebook approach selection
+  - kw:production vs learning approach
+  - kw:feature demonstration without full utilization
+  - kw:approach migration guidance
+  - kw:educational context justification
+  - kw:pandas
+token_budget: ~2600
+context_tier: Low
+depends:
+  optional:
+    - 109a-snowflake-notebooks-tutorials.md
+---
 # Snowflake Notebook Two-Approach Clarification Pattern
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:two-approach clarification, kw:notebook approach selection, kw:production vs learning approach, kw:feature demonstration without full utilization, kw:approach migration guidance, kw:educational context justification, kw:pandas
-**TokenBudget:** ~2600
-**ContextTier:** Low
-**Depends:** optional:109a-snowflake-notebooks-tutorials.md
 
 ## Scope
 
@@ -25,13 +33,6 @@ Pattern for clarifying when a tutorial notebook demonstrates a feature but uses 
 ### External Documentation
 
 _None._
-
-### Dependencies
-
-**Must Load First:**
-- [109a-snowflake-notebooks-tutorials.md](109a-snowflake-notebooks-tutorials.md)
-
-
 
 ## Contract
 

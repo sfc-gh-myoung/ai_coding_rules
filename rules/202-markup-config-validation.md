@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:YAML syntax safety
+  - kw:configuration file linting
+  - kw:TOML validation
+  - kw:Taskfile.yml patterns
+  - kw:YAML anchors aliases
+  - kw:secrets in version control
+  - kw:ci/cd
+token_budget: ~3950
+context_tier: Medium
+depends:
+  optional:
+    - 202a-markdown-linting.md  # Markdown linting patterns and pymarkdownlnt configuration (Recommended)
+    - 203-python-project-setup.md  # pyproject.toml configuration
+    - 820-taskfile-automation.md
+---
 # Markup and Configuration File Validation
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:YAML syntax safety, kw:configuration file linting, kw:TOML validation, kw:Taskfile.yml patterns, kw:YAML anchors aliases, kw:secrets in version control, kw:ci/cd
-**TokenBudget:** ~3950
-**ContextTier:** Medium
-**Depends:** optional:202a-markdown-linting.md, optional:203-python-project-setup.md, optional:820-taskfile-automation.md
 
 ## Scope
 
@@ -26,16 +36,6 @@ Safe markup and configuration file practices to prevent parsing errors and maint
 - Encountering "mapping values not allowed" errors
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- None (standalone rule)
-
-**Related:**
-- **202a-markdown-linting.md** - Markdown linting patterns and pymarkdownlnt configuration (Recommended)
-- **203-python-project-setup.md** - pyproject.toml configuration
-- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
 
 ### External Documentation
 

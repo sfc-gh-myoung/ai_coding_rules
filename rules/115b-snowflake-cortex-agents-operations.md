@@ -1,15 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:agent RBAC
+  - kw:component testing agents
+  - kw:agent cost budgets
+  - kw:agent plan template
+  - kw:agent investigation protocol
+  - kw:agent flagging instructions
+  - kw:aisql
+token_budget: ~2800
+context_tier: High
+depends:
+  required:
+    - 115-snowflake-cortex-agents-core.md  # Core agent creation and tool configuration
+  optional:
+    - 106c-snowflake-semantic-views-integration.md  # Semantic view design and Analyst tool configuration
+---
 # Snowflake Cortex Agents: Operations & Security
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:agent RBAC, kw:component testing agents, kw:agent cost budgets, kw:agent plan template, kw:agent investigation protocol, kw:agent flagging instructions, kw:aisql
-**TokenBudget:** ~2800
-**ContextTier:** High
-**Depends:** required:115-snowflake-cortex-agents-core.md, optional:106c-snowflake-semantic-views-integration.md
-**Companions:** 115c-snowflake-cortex-agents-testing.md, 115d-snowflake-cortex-agents-observability.md
 
 ## Scope
 
@@ -41,18 +50,6 @@ Operational patterns for Cortex Agents: investigation protocol, output format ex
 > "I see you have semantic views for sales data and Cortex Search for docs. Creating agent with these grounding sources..."
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **115-snowflake-cortex-agents-core.md** - Core agent creation and tool configuration
-- **111-snowflake-observability-core.md** - Observability patterns
-
-**Related:**
-- **106c-snowflake-semantic-views-integration.md** - Semantic view design and Analyst tool configuration
-- **116-snowflake-cortex-search.md** - Search service setup and tool integration
-- **106-snowflake-semantic-views-core.md** - Semantic views foundation
 
 ### External Documentation
 

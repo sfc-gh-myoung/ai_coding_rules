@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Faker seeded generation
+  - kw:GENERATOR() table function
+  - kw:offline fallback resilience
+  - kw:DemoScenario pattern
+  - kw:narrative-aligned correlations
+  - kw:progressive disclosure UI
+  - kw:faker
+token_budget: ~3100
+context_tier: Low
+depends:
+  required:
+    - 130-snowflake-demo-sql.md  # Demo SQL patterns
+  optional:
+    - 132-snowflake-demo-modeling.md  # Data modeling for demos
+---
 # Snowflake Demo: Creation and Synthetic Data
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Faker seeded generation, kw:GENERATOR() table function, kw:offline fallback resilience, kw:DemoScenario pattern, kw:narrative-aligned correlations, kw:progressive disclosure UI, kw:faker
-**TokenBudget:** ~3100
-**ContextTier:** Low
-**Depends:** required:130-snowflake-demo-sql.md, optional:132-snowflake-demo-modeling.md
 
 ## Scope
 
@@ -23,15 +33,6 @@ Directives for creating realistic, deterministic, and effective demo application
 - Optimizing demo performance and reliability
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **130-snowflake-demo-sql.md** - Demo SQL patterns
-
-**Related:**
-- **132-snowflake-demo-modeling.md** - Data modeling for demos
-- **101-snowflake-streamlit-core.md** - Streamlit UI patterns
 
 ### External Documentation
 

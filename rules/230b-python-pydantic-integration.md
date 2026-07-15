@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:model_dump serialization
+  - kw:TypeAdapter batch validation
+  - kw:FastAPI response_model
+  - kw:ORM from_attributes
+  - kw:SecretStr field exclusion
+  - kw:model_json_schema generation
+  - kw:fastapi
+token_budget: ~3450
+context_tier: Medium
+depends:
+  required:
+    - 230-python-pydantic.md  # Core Pydantic model patterns
+  optional:
+    - 210-python-fastapi-core.md  # FastAPI endpoint patterns
+    - 206-python-pytest.md  # Pytest patterns
+    - 230a-python-pydantic-settings.md  # Settings management
+---
 # Python Pydantic Integration and Performance
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:model_dump serialization, kw:TypeAdapter batch validation, kw:FastAPI response_model, kw:ORM from_attributes, kw:SecretStr field exclusion, kw:model_json_schema generation, kw:fastapi
-**TokenBudget:** ~3450
-**ContextTier:** Medium
-**Depends:** required:230-python-pydantic.md, optional:210-python-fastapi-core.md, optional:206-python-pytest.md, optional:230a-python-pydantic-settings.md
 
 ## Scope
 
@@ -24,20 +36,9 @@ Pydantic v2 serialization, JSON schema generation, FastAPI integration, database
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **230-python-pydantic.md** - Core Pydantic model patterns
-
-**Related:**
-- **210-python-fastapi-core.md** - FastAPI endpoint patterns
-- **206-python-pytest.md** - Pytest patterns
-- **230a-python-pydantic-settings.md** - Settings management
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

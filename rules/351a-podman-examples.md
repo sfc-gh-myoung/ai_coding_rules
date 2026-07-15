@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Buildah multi-stage
+  - kw:Quadlet systemd
+  - kw:rootless numeric UID
+  - kw:SBOM generation script
+  - kw:Containerfile healthcheck
+  - kw:versioned image tags
+  - kw:ini
+token_budget: ~1750
+context_tier: Low
+depends:
+  required:
+    - 351-podman-core.md  # Parent rule with patterns and requirements
+---
 # Podman Output Format Examples
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Buildah multi-stage, kw:Quadlet systemd, kw:rootless numeric UID, kw:SBOM generation script, kw:Containerfile healthcheck, kw:versioned image tags, kw:ini
-**TokenBudget:** ~1750
-**ContextTier:** Low
-**Depends:** required:351-podman-core.md
 
 ## Scope
 
@@ -23,15 +31,9 @@ Complete, production-ready output examples for Podman container workflows includ
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **351-podman-core.md** - Parent rule with patterns and requirements
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

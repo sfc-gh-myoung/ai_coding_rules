@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:rootless containers
+  - kw:Containerfile authoring
+  - kw:Quadlet systemd
+  - kw:daemonless architecture
+  - kw:pod orchestration
+  - kw:Buildah image building
+  - kw:SELinux volume labeling
+token_budget: ~4350
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 202-markup-config-validation.md  # Configuration validation patterns
+  optional:
+    - 351a-podman-examples.md  # Complete output format examples
+    - 350-docker-core.md  # Docker-specific patterns (Podman is largely compatible)
+    - 200-python-core.md  # Python-specific container patterns
+---
 # Podman Core
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:rootless containers, kw:Containerfile authoring, kw:Quadlet systemd, kw:daemonless architecture, kw:pod orchestration, kw:Buildah image building, kw:SELinux volume labeling
-**TokenBudget:** ~4350
-**ContextTier:** Medium
-**Depends:** required:000-global-core.md, required:202-markup-config-validation.md, optional:351a-podman-examples.md, optional:350-docker-core.md, optional:200-python-core.md
 
 ## Scope
 
@@ -24,17 +37,6 @@ Provides practical, production-ready guidance for authoring Containerfiles, buil
 - Working with pods (Kubernetes-style grouping)
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **202-markup-config-validation.md** - Configuration validation patterns
-
-**Related:**
-- **351a-podman-examples.md** - Complete output format examples
-- **350-docker-core.md** - Docker-specific patterns (Podman is largely compatible)
-- **200-python-core.md** - Python-specific container patterns
 
 ### External Documentation
 

@@ -1,19 +1,29 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:go.mod
+  - kw:idiomatic Go
+  - kw:goroutines channels
+  - kw:golangci-lint
+  - kw:table-driven tests
+  - kw:error wrapping fmt.Errorf
+  - kw:Go
+token_budget: ~3900
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+  optional:
+    - 600a-golang-patterns.md  # HTTP server patterns, graceful shutdown, advanced Go patterns
+---
 # Go Core: Modern Standards & Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Golang patterns. Load for Go tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:go.mod, kw:idiomatic Go, kw:goroutines channels, kw:golangci-lint, kw:table-driven tests, kw:error wrapping fmt.Errorf, kw:Go
-**TokenBudget:** ~3900
-**ContextTier:** High
-**Depends:** required:000-global-core.md, optional:600a-golang-patterns.md
 
 ## Scope
 
@@ -30,14 +40,6 @@ Foundational Go development practices using idiomatic patterns, modern tooling (
 - Implementing interfaces and goroutines
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-
-**Related:**
-- **600a-golang-patterns.md** - HTTP server patterns, graceful shutdown, advanced Go patterns
 
 ### External Documentation
 

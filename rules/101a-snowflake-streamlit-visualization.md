@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v5.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:st.plotly_chart
+  - kw:st.pydeck_chart
+  - kw:st.altair_chart
+  - kw:library selection
+  - kw:use_container_width
+  - kw:WebGL context limits
+  - kw:pandas
+token_budget: ~2250
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns
+    - 101-snowflake-streamlit-core.md  # Streamlit core patterns
+  optional:
+    - 940-business-analytics.md  # Dashboard design patterns
+    - 101h-snowflake-streamlit-timeseries.md  # Time series smoothing
+---
 # Streamlit Visualization: Overview and Library Selection
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v4.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:st.plotly_chart, kw:st.pydeck_chart, kw:st.altair_chart, kw:library selection, kw:use_container_width, kw:WebGL context limits, kw:pandas
-**TokenBudget:** ~2250
-**ContextTier:** High
-**Depends:** required:000-global-core.md, required:101-snowflake-streamlit-core.md, optional:940-business-analytics.md, optional:101h-snowflake-streamlit-timeseries.md
 
 ## Scope
 
@@ -21,21 +33,6 @@ Router rule for Streamlit visualization library selection. Provides quick guidan
 - Need quick reference for library selection criteria
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns
-- **101-snowflake-streamlit-core.md** - Streamlit core patterns
-
-**Library-Specific Deep Dives (load as needed):**
-- **101i-snowflake-streamlit-viz-plotly.md** - Plotly Express, Graph Objects, animations, faceting, tile maps
-- **101j-snowflake-streamlit-viz-pydeck.md** - PyDeck layers, 3D visualization, WebGL limits
-- **101k-snowflake-streamlit-viz-altair.md** - Declarative grammar, linked views, statistical charts
-
-**Related:**
-- **940-business-analytics.md** - Dashboard design patterns
-- **101h-snowflake-streamlit-timeseries.md** - Time series smoothing
 
 ### External Documentation
 

@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:pydeck
+  - kw:deck.gl layers
+  - kw:3D geospatial
+  - kw:WebGL context limit
+  - kw:ViewState configuration
+  - kw:hexbin aggregation
+  - kw:streamlit
+token_budget: ~2950
+context_tier: Medium
+depends:
+  optional:
+    - 101a-snowflake-streamlit-visualization.md  # Visualization overview and library selection
+    - 101i-snowflake-streamlit-viz-plotly.md  # Plotly for 2D charts and maps
+---
 # Streamlit Visualization: PyDeck Deep Dive
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:pydeck, kw:deck.gl layers, kw:3D geospatial, kw:WebGL context limit, kw:ViewState configuration, kw:hexbin aggregation, kw:streamlit
-**TokenBudget:** ~2950
-**ContextTier:** Medium
-**Depends:** optional:101a-snowflake-streamlit-visualization.md, optional:101i-snowflake-streamlit-viz-plotly.md
 
 ## Scope
 
@@ -24,15 +33,6 @@ PyDeck (deck.gl) visualization patterns for Streamlit, including 3D visualizatio
 - Complex multi-layer geospatial compositing
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation patterns and conventions
-- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection
-
-**Related:**
-- **101i-snowflake-streamlit-viz-plotly.md** - Plotly for 2D charts and maps
 
 ### External Documentation
 

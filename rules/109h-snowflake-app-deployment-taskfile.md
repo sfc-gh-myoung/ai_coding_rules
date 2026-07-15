@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Taskfile deployment automation
+  - kw:five-step deployment workflow
+  - kw:deployment task preconditions
+  - kw:sequential task execution
+  - kw:stage file upload tasks
+  - kw:notebook streamlit deployment
+  - kw:snowsight
+token_budget: ~3100
+context_tier: Low
+depends:
+  required:
+    - 820-taskfile-automation.md
+---
 # Snowflake App Deployment Taskfile Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Taskfile deployment automation, kw:five-step deployment workflow, kw:deployment task preconditions, kw:sequential task execution, kw:stage file upload tasks, kw:notebook streamlit deployment, kw:snowsight
-**TokenBudget:** ~3100
-**ContextTier:** Low
-**Depends:** required:820-taskfile-automation.md
 
 ## Scope
 
@@ -26,14 +34,6 @@ Taskfile implementation patterns for Snowflake application deployment automation
 ### External Documentation
 
 _None._
-
-### Dependencies
-
-**Must Load First:**
-- [109b-snowflake-app-deployment-core.md](109b-snowflake-app-deployment-core.md)
-- [820-taskfile-automation.md](820-taskfile-automation.md)
-
-
 
 ## Contract
 

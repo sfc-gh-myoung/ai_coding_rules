@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:ACCOUNT_USAGE views
+  - kw:telemetry cost optimization
+  - kw:query history monitoring
+  - kw:real-time vs historical latency
+  - kw:Snowsight operational dashboards
+  - kw:cortex token tracking
+  - kw:cortex
+token_budget: ~4100
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 111-snowflake-observability-core.md  # Telemetry configuration and event tables
+  optional:
+    - 111a-snowflake-observability-logging.md  # Logging best practices
+    - 111b-snowflake-observability-tracing.md  # Distributed tracing and metrics
+---
 # Snowflake Observability: Monitoring and Analysis
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:ACCOUNT_USAGE views, kw:telemetry cost optimization, kw:query history monitoring, kw:real-time vs historical latency, kw:Snowsight operational dashboards, kw:cortex token tracking, kw:cortex
-**TokenBudget:** ~4100
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:111-snowflake-observability-core.md, optional:111a-snowflake-observability-logging.md, optional:111b-snowflake-observability-tracing.md
-**Companions:** 111d-snowflake-observability-snowsight.md
 
 ## Scope
 
@@ -23,16 +34,6 @@ Monitoring, analysis, and cost management for Snowflake observability. Covers mo
 - Optimizing telemetry volume and costs
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **111-snowflake-observability-core.md** - Telemetry configuration and event tables
-
-**Related:**
-- **111a-snowflake-observability-logging.md** - Logging best practices
-- **111b-snowflake-observability-tracing.md** - Distributed tracing and metrics
 
 ### External Documentation
 

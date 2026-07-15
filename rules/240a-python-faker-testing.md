@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:faker pytest fixtures
+  - kw:seed_instance parallel
+  - kw:Factory Boy SubFactory
+  - kw:pytest-xdist worker seeding
+  - kw:conftest fixture hierarchy
+  - kw:unique value cleanup
+  - kw:TOML
+token_budget: ~3150
+context_tier: Low
+depends:
+  required:
+    - 240-python-faker.md  # Core Faker patterns
+    - 206-python-pytest.md  # Pytest patterns
+  optional:
+    - 240b-python-faker-advanced.md  # Custom providers and performance
+---
 # Python Faker Testing Integration
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:faker pytest fixtures, kw:seed_instance parallel, kw:Factory Boy SubFactory, kw:pytest-xdist worker seeding, kw:conftest fixture hierarchy, kw:unique value cleanup, kw:TOML
-**TokenBudget:** ~3150
-**ContextTier:** Low
-**Depends:** required:240-python-faker.md, required:206-python-pytest.md, optional:240b-python-faker-advanced.md
 
 ## Scope
 
@@ -23,19 +34,9 @@ Pytest integration with Faker including fixture patterns, Factory Boy for comple
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **240-python-faker.md** - Core Faker patterns
-- **206-python-pytest.md** - Pytest patterns
-
-**Related:**
-- **240b-python-faker-advanced.md** - Custom providers and performance
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

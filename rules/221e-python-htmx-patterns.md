@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:HTMX CRUD
+  - kw:server-side form validation
+  - kw:search debounce autocomplete
+  - kw:progressive enhancement fallback
+  - kw:inline editing outerHTML swap
+  - kw:HX-Trigger response headers
+  - kw:fastapi
+token_budget: ~3400
+context_tier: Medium
+depends:
+  optional:
+    - 221i-python-htmx-patterns-advanced.md  # Advanced patterns (scroll, modals, wizards, real-time)
+    - 221b-python-htmx-flask.md  # Flask-specific patterns
+    - 221c-python-htmx-fastapi.md  # FastAPI patterns
+---
 # HTMX Common Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:HTMX CRUD, kw:server-side form validation, kw:search debounce autocomplete, kw:progressive enhancement fallback, kw:inline editing outerHTML swap, kw:HX-Trigger response headers, kw:fastapi
-**TokenBudget:** ~3400
-**ContextTier:** Medium
-**Depends:** optional:221i-python-htmx-patterns-advanced.md, optional:221b-python-htmx-flask.md, optional:221c-python-htmx-fastapi.md
 
 ## Scope
 
@@ -22,17 +32,6 @@ Core HTMX implementation patterns: CRUD operations, form validation, search/auto
 - Adding progressive enhancement to existing forms
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **221-python-htmx-core.md** - HTMX core concepts
-- **221a-python-htmx-templates.md** - Jinja2 patterns
-
-**Related:**
-- **221i-python-htmx-patterns-advanced.md** - Advanced patterns (scroll, modals, wizards, real-time)
-- **221b-python-htmx-flask.md** - Flask-specific patterns
-- **221c-python-htmx-fastapi.md** - FastAPI patterns
 
 ### External Documentation
 

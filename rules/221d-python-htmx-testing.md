@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:htmx endpoint testing
+  - kw:HX-Request header
+  - kw:HX-Trigger response headers
+  - kw:partial HTML assertions
+  - kw:htmx_client fixture
+  - kw:OOB swap testing
+  - kw:fastapi
+token_budget: ~4600
+context_tier: High
+depends:
+  required:
+    - 206-python-pytest.md  # Pytest best practices
+  optional:
+    - 221b-python-htmx-flask.md  # Flask-specific testing
+    - 221c-python-htmx-fastapi.md  # FastAPI-specific testing
+    - 200-python-core.md  # Python standards
+---
 # HTMX Testing Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:htmx endpoint testing, kw:HX-Request header, kw:HX-Trigger response headers, kw:partial HTML assertions, kw:htmx_client fixture, kw:OOB swap testing, kw:fastapi
-**TokenBudget:** ~4600
-**ContextTier:** High
-**Depends:** required:206-python-pytest.md, optional:221b-python-htmx-flask.md, optional:221c-python-htmx-fastapi.md, optional:200-python-core.md
 
 ## Scope
 
@@ -24,17 +36,6 @@ Testing strategies for HTMX endpoints in Python applications, covering unit test
 - Setting up integration tests for HTMX applications
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **221-python-htmx-core.md** - HTMX patterns to test
-- **206-python-pytest.md** - Pytest best practices
-
-**Related:**
-- **221b-python-htmx-flask.md** - Flask-specific testing
-- **221c-python-htmx-fastapi.md** - FastAPI-specific testing
-- **200-python-core.md** - Python standards
 
 ### External Documentation
 
@@ -444,7 +445,6 @@ def test_csrf_required_on_htmx_post(htmx_client, app):
     """POST without CSRF token should be rejected."""
     response = htmx_client.post('/users', data={'name': 'Test'})
     assert response.status_code == 400  # Flask-WTF rejects without token
-
 
 def test_csrf_token_in_htmx_request(htmx_client, app):
     """POST with CSRF token should succeed."""

@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Cortex REST authentication
+  - kw:server-sent events
+  - kw:SSE stream parsing
+  - kw:Cortex Agent streaming
+  - kw:PAT token headers
+  - kw:response format detection
+  - kw:cortex
+token_budget: ~4650
+context_tier: High
+depends:
+  required:
+    - 118-snowflake-cortex-rest-api.md  # Core REST API patterns (retry, idempotency, cost controls)
+  optional:
+    - 115-snowflake-cortex-agents-core.md  # Cortex Agents REST API
+---
 # Snowflake Cortex REST API: Authentication & Streaming
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Cortex REST authentication, kw:server-sent events, kw:SSE stream parsing, kw:Cortex Agent streaming, kw:PAT token headers, kw:response format detection, kw:cortex
-**TokenBudget:** ~4650
-**ContextTier:** High
-**Depends:** required:118-snowflake-cortex-rest-api.md, optional:115-snowflake-cortex-agents-core.md
 
 ## Scope
 
@@ -25,16 +35,6 @@ Authentication token types for Cortex REST API (PAT, OAuth, JWT vs session token
 **For core REST API patterns (retry, idempotency, cost controls), see `118-snowflake-cortex-rest-api.md`**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **118-snowflake-cortex-rest-api.md** - Core REST API patterns (retry, idempotency, cost controls)
-
-**Related:**
-- **107-snowflake-security-governance.md** - Authentication and security
-- **115-snowflake-cortex-agents-core.md** - Cortex Agents REST API
 
 ### External Documentation
 

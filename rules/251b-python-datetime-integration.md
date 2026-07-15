@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:parameterized queries datetime
+  - kw:streamlit date input
+  - kw:SQL injection datetime
+  - kw:plotly datetime axis
+  - kw:datetime display formatting
+  - kw:allowlist validation SQL keywords
+  - kw:fastapi
+token_budget: ~2500
+context_tier: Medium
+depends:
+  required:
+    - 251-python-datetime-core.md  # Core datetime types and timezone handling
+  optional:
+    - 251a-python-datetime-advanced.md  # Date arithmetic and performance
+    - 101a-snowflake-streamlit-visualization.md  # Plotly visualization patterns
+---
 # Python DateTime Integration Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:parameterized queries datetime, kw:streamlit date input, kw:SQL injection datetime, kw:plotly datetime axis, kw:datetime display formatting, kw:allowlist validation SQL keywords, kw:fastapi
-**TokenBudget:** ~2500
-**ContextTier:** Medium
-**Depends:** required:251-python-datetime-core.md, optional:251a-python-datetime-advanced.md, optional:101a-snowflake-streamlit-visualization.md
 
 ## Scope
 
@@ -23,19 +34,9 @@ Datetime integration with SQL databases, Streamlit, and Plotly including SQL saf
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **251-python-datetime-core.md** - Core datetime types and timezone handling
-
-**Related:**
-- **251a-python-datetime-advanced.md** - Date arithmetic and performance
-- **101a-snowflake-streamlit-visualization.md** - Plotly visualization patterns
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

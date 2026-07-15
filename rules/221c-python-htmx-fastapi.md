@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:FastAPI async routes
+  - kw:Jinja2Templates FastAPI
+  - kw:HTMX dependency injection
+  - kw:BackgroundTasks polling
+  - kw:Pydantic form validation
+  - kw:htmx-fastapi integration
+  - kw:fastapi
+token_budget: ~3450
+context_tier: Medium
+depends:
+  optional:
+    - 221e-python-htmx-patterns.md  # CRUD, forms, etc.
+    - 221d-python-htmx-testing.md  # Testing FastAPI+HTMX
+    - 221h-python-htmx-fastapi-auth.md  # Auth, SSE, CSRF for FastAPI+HTMX
+---
 # FastAPI + HTMX Integration
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:FastAPI async routes, kw:Jinja2Templates FastAPI, kw:HTMX dependency injection, kw:BackgroundTasks polling, kw:Pydantic form validation, kw:htmx-fastapi integration, kw:fastapi
-**TokenBudget:** ~3450
-**ContextTier:** Medium
-**Depends:** optional:221e-python-htmx-patterns.md, optional:221d-python-htmx-testing.md, optional:221h-python-htmx-fastapi-auth.md
 
 ## Scope
 
@@ -23,17 +33,6 @@ FastAPI-specific integration patterns for HTMX applications, covering async rout
 - Implementing background tasks with HTMX polling
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **221-python-htmx-core.md** - HTMX foundation patterns
-- **221a-python-htmx-templates.md** - Jinja2 patterns
-
-**Related:**
-- **221h-python-htmx-fastapi-auth.md** - Auth, SSE, CSRF for FastAPI+HTMX
-- **221d-python-htmx-testing.md** - Testing FastAPI+HTMX
-- **221e-python-htmx-patterns.md** - CRUD, forms, etc.
 
 ### External Documentation
 

@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:pytest fixtures
+  - kw:AAA pattern
+  - kw:test parametrization
+  - kw:uv run pytest
+  - kw:test isolation
+  - kw:flaky test protocol
+  - kw:TOML
+token_budget: ~4950
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+    - 200-python-core.md  # Python core patterns (uv, pytest execution)
+  optional:
+    - 201-python-lint-format.md  # Ruff linting and formatting for test code
+    - 204-python-docs.md  # Documentation standards for test docstrings
+    - 205-python-classes.md  # Class patterns for test organization
+---
 # Python Testing with pytest: Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:pytest fixtures, kw:AAA pattern, kw:test parametrization, kw:uv run pytest, kw:test isolation, kw:flaky test protocol, kw:TOML
-**TokenBudget:** ~4950
-**ContextTier:** High
-**Depends:** required:000-global-core.md, required:200-python-core.md, optional:201-python-lint-format.md, optional:204-python-docs.md, optional:205-python-classes.md
 
 ## Scope
 
@@ -25,17 +38,6 @@ Pragmatic, industry-standard testing practices with pytest to produce fast, reli
 - Integrating tests into CI/CD pipelines
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **200-python-core.md** - Python core patterns (uv, pytest execution)
-
-**Related:**
-- **201-python-lint-format.md** - Ruff linting and formatting for test code
-- **204-python-docs.md** - Documentation standards for test docstrings
-- **205-python-classes.md** - Class patterns for test organization
 
 ### External Documentation
 

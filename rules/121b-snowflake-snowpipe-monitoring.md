@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:PIPE_USAGE_HISTORY
+  - kw:Snowpipe credit tracking
+  - kw:channel status monitoring
+  - kw:COPY_HISTORY Snowpipe
+  - kw:cost per GB optimization
+  - kw:baseline performance metrics
+  - kw:snowpipe
+token_budget: ~4000
+context_tier: Medium
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 121-snowflake-snowpipe.md  # File-based Snowpipe core concepts
+  optional:
+    - 121f-snowflake-snowpipe-monitoring-alerts.md  # Alert configuration and cost optimization
+    - 121c-snowflake-snowpipe-troubleshooting.md  # Troubleshooting and debugging patterns
+    - 105-snowflake-cost-governance.md  # Resource monitors and cost optimization
+---
 # Snowflake Snowpipe Monitoring and Cost Management
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:PIPE_USAGE_HISTORY, kw:Snowpipe credit tracking, kw:channel status monitoring, kw:COPY_HISTORY Snowpipe, kw:cost per GB optimization, kw:baseline performance metrics, kw:snowpipe
-**TokenBudget:** ~4000
-**ContextTier:** Medium
-**Depends:** required:100-snowflake-core.md, required:121-snowflake-snowpipe.md, optional:121f-snowflake-snowpipe-monitoring-alerts.md, optional:121c-snowflake-snowpipe-troubleshooting.md, optional:105-snowflake-cost-governance.md
 
 ## Scope
 
@@ -27,18 +40,6 @@ Monitoring, cost tracking, and performance analysis for both file-based Snowpipe
 **For troubleshooting, see `121c-snowflake-snowpipe-troubleshooting.md`**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **121-snowflake-snowpipe.md** - File-based Snowpipe core concepts
-- **121a-snowflake-snowpipe-streaming.md** - Streaming Snowpipe core concepts
-
-**Related:**
-- **121f-snowflake-snowpipe-monitoring-alerts.md** - Alert configuration and cost optimization
-- **121c-snowflake-snowpipe-troubleshooting.md** - Troubleshooting and debugging patterns
-- **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
 
 ### External Documentation
 

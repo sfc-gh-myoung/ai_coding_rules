@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:CliRunner
+  - kw:ANSI escape suppression
+  - kw:Typer command testing
+  - kw:exit code verification
+  - kw:CLI mock dependencies
+  - kw:async command testing
+  - kw:pytest
+token_budget: ~2300
+context_tier: Medium
+depends:
+  required:
+    - 206-python-pytest.md  # Pytest patterns
+  optional:
+    - 220c-python-typer-rich.md  # Rich integration (affects test output)
+---
 # Python Typer CLI Testing Strategies
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:CliRunner, kw:ANSI escape suppression, kw:Typer command testing, kw:exit code verification, kw:CLI mock dependencies, kw:async command testing, kw:pytest
-**TokenBudget:** ~2300
-**ContextTier:** Medium
-**Depends:** required:206-python-pytest.md, optional:220c-python-typer-rich.md
 
 ## Scope
 
@@ -23,19 +33,9 @@ Testing strategies for Typer CLI applications including CliRunner setup, ANSI es
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **220-python-typer-cli.md** - Core Typer CLI patterns
-- **206-python-pytest.md** - Pytest patterns
-
-**Related:**
-- **220c-python-typer-rich.md** - Rich integration (affects test output)
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 
@@ -234,16 +234,13 @@ async def fetch(url: str) -> None:
     await asyncio.sleep(0)  # Simulating async work
     typer.echo(f"Fetched: {url}")
 
-
 runner = CliRunner(env={"NO_COLOR": "1", "TERM": "dumb"})
-
 
 def test_async_command():
     """Async commands need no special handling — CliRunner manages the event loop."""
     result = runner.invoke(app, ["https://example.com"])
     assert result.exit_code == 0
     assert "Fetched: https://example.com" in result.output
-
 
 def test_async_command_with_mock():
     """Mock async dependencies with AsyncMock."""
@@ -281,19 +278,16 @@ def config_set(
     """Set a configuration value."""
     typer.echo(f"Set {key}={value}")
 
-
 # Tests — invoke with the full command path
 def test_config_show():
     result = runner.invoke(app, ["config", "show"])
     assert result.exit_code == 0
     assert "debug=False" in result.output
 
-
 def test_config_set():
     result = runner.invoke(app, ["config", "set", "debug", "true"])
     assert result.exit_code == 0
     assert "Set debug=true" in result.output
-
 
 def test_unknown_subcommand():
     """Unknown sub-commands should produce help text and non-zero exit."""

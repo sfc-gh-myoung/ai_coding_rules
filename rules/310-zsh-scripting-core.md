@@ -1,19 +1,29 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:z shell scripting
+  - kw:parameter expansion modifiers
+  - kw:emulate setopt
+  - kw:1-indexed arrays
+  - kw:extended glob patterns
+  - kw:namespace pollution prevention
+token_budget: ~4300
+context_tier: Medium
+depends:
+  required:
+    - 300-bash-scripting-core.md  # Foundation bash scripting patterns
+  optional:
+    - 310a-zsh-advanced-features.md  # Advanced zsh features, completion, and modules
+    - 310b-zsh-compatibility.md  # Cross-shell compatibility and migration strategies
+---
 # Zsh Scripting Core Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Zsh patterns. Load for shell scripting tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:z shell scripting, kw:parameter expansion modifiers, kw:emulate setopt, kw:1-indexed arrays, kw:extended glob patterns, kw:namespace pollution prevention
-**TokenBudget:** ~4300
-**ContextTier:** Medium
-**Depends:** required:300-bash-scripting-core.md, optional:310a-zsh-advanced-features.md, optional:310b-zsh-compatibility.md
 
 ## Scope
 
@@ -26,15 +36,6 @@ Foundational zsh scripting patterns covering unique zsh features, script structu
 - Setting up zsh environment or troubleshooting compatibility issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **300-bash-scripting-core.md** - Foundation bash scripting patterns
-
-**Related:**
-- **310a-zsh-advanced-features.md** - Advanced zsh features, completion, and modules
-- **310b-zsh-compatibility.md** - Cross-shell compatibility and migration strategies
 
 ### External Documentation
 

@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:dataclass decorator
+  - kw:composition over inheritance
+  - kw:@property decorator
+  - kw:Protocol structural subtyping
+  - kw:frozen immutable dataclass
+  - kw:context manager resource
+  - kw:pytest
+token_budget: ~4050
+context_tier: Medium
+depends:
+  required:
+    - 200-python-core.md  # Python foundation patterns
+  optional:
+    - 206-python-pytest.md  # Testing class-based code
+---
 # Python Classes: Design and Usage Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:dataclass decorator, kw:composition over inheritance, kw:@property decorator, kw:Protocol structural subtyping, kw:frozen immutable dataclass, kw:context manager resource, kw:pytest
-**TokenBudget:** ~4050
-**ContextTier:** Medium
-**Depends:** required:200-python-core.md, optional:206-python-pytest.md
 
 ## Scope
 
@@ -25,16 +35,6 @@ Practical, modern guidelines for when and how to use classes in Python, emphasiz
 - Reviewing OOP code for best practices
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Python foundation patterns
-- **201-python-lint-format.md** - Code quality and linting
-- **204-python-docs.md** - Documentation standards
-
-**Related:**
-- **206-python-pytest.md** - Testing class-based code
 
 ### External Documentation
 

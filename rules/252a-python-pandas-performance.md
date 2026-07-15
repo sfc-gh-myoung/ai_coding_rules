@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:pandas dtype optimization
+  - kw:categorical data memory
+  - kw:groupby aggregation efficiency
+  - kw:merge validation indicator
+  - kw:eval query expressions
+  - kw:chunked file processing
+  - kw:pandas
+token_budget: ~2550
+context_tier: Medium
+depends:
+  required:
+    - 252-python-pandas-core.md  # Core Pandas patterns
+  optional:
+    - 252b-python-pandas-io-integration.md  # Streamlit, Plotly, file I/O
+    - 251-python-datetime-core.md  # Datetime handling
+---
 # Pandas Performance and Memory Optimization
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:pandas dtype optimization, kw:categorical data memory, kw:groupby aggregation efficiency, kw:merge validation indicator, kw:eval query expressions, kw:chunked file processing, kw:pandas
-**TokenBudget:** ~2550
-**ContextTier:** Medium
-**Depends:** required:252-python-pandas-core.md, optional:252b-python-pandas-io-integration.md, optional:251-python-datetime-core.md
 
 ## Scope
 
@@ -23,15 +34,6 @@ Pandas performance optimization: memory-efficient dtypes, categorical data, grou
 - Running Pandas in concurrent/parallel environments
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **252-python-pandas-core.md** - Core Pandas patterns
-
-**Related:**
-- **252b-python-pandas-io-integration.md** - Streamlit, Plotly, file I/O
-- **251-python-datetime-core.md** - Datetime handling
 
 ### External Documentation
 - [Enhancing Performance](https://pandas.pydata.org/docs/user_guide/enhancingperf.html)

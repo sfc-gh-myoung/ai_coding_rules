@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Taskfile.yml
+  - kw:task runner automation
+  - kw:uvx ephemeral tools
+  - kw:command auto-detection
+  - kw:cross-platform task portability
+  - kw:pipefail error propagation
+  - kw:ci/cd
+token_budget: ~3400
+context_tier: Medium
+depends:
+  required:
+    - 202-markup-config-validation.md  # YAML validation patterns
+  optional:
+    - 820a-taskfile-advanced-patterns.md  # Advanced patterns
+    - 200-python-core.md  # Python automation patterns
+    - 300-bash-scripting-core.md  # Shell scripting patterns
+---
 # Automation Directives (Taskfile-first)
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Taskfile.yml, kw:task runner automation, kw:uvx ephemeral tools, kw:command auto-detection, kw:cross-platform task portability, kw:pipefail error propagation, kw:ci/cd
-**TokenBudget:** ~3400
-**ContextTier:** Medium
-**Depends:** required:202-markup-config-validation.md, optional:820a-taskfile-advanced-patterns.md, optional:200-python-core.md, optional:300-bash-scripting-core.md
 
 ## Scope
 
@@ -24,16 +36,6 @@ Core directives for creating and maintaining project automation using Taskfile.y
 **For advanced patterns (categorized help, subtask files, AI agent considerations), see `820a-taskfile-advanced-patterns.md`.**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **202-markup-config-validation.md** - YAML validation patterns
-
-**Related:**
-- **820a-taskfile-advanced-patterns.md** - Advanced patterns
-- **200-python-core.md** - Python automation patterns
-- **300-bash-scripting-core.md** - Shell scripting patterns
 
 ### External Documentation
 - [Taskfile Documentation](https://taskfile.dev/)

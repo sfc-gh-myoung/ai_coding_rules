@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:infinite scroll
+  - kw:SSE polling
+  - kw:modal drawer
+  - kw:multi-step wizard
+  - kw:revealed trigger
+  - kw:htmx-ext sse
+  - kw:fastapi
+token_budget: ~2500
+context_tier: Medium
+depends:
+  optional:
+    - 221e-python-htmx-patterns.md  # Core HTMX patterns (CRUD, forms, search)
+    - 221g-python-htmx-sse.md  # Comprehensive SSE patterns
+---
 # 221i: HTMX Advanced Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:infinite scroll, kw:SSE polling, kw:modal drawer, kw:multi-step wizard, kw:revealed trigger, kw:htmx-ext sse, kw:fastapi
-**TokenBudget:** ~2500
-**ContextTier:** Medium
-**Depends:** optional:221e-python-htmx-patterns.md, optional:221g-python-htmx-sse.md
 
 ## Scope
 
@@ -22,17 +31,6 @@ Advanced HTMX patterns: infinite scroll, real-time updates (SSE/polling), modals
 - Creating multi-step forms/wizards
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **221e-python-htmx-patterns.md** - Core HTMX patterns (CRUD, forms, search)
-- **221-python-htmx-core.md** - HTMX core concepts
-
-**Related:**
-- **221g-python-htmx-sse.md** - Comprehensive SSE patterns
-- **221d-python-htmx-testing.md** - Testing these patterns
-- **221f-python-htmx-integrations.md** - Frontend library integrations
 
 ### External Documentation
 

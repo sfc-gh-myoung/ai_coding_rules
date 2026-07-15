@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:pydeck layer types
+  - kw:HexagonLayer aggregation
+  - kw:GeoJsonLayer extrusion
+  - kw:ArcLayer flow visualization
+  - kw:multi-layer composition
+  - kw:deck.gl accessor syntax
+  - kw:streamlit
+token_budget: ~2950
+context_tier: Low
+depends:
+  optional:
+    - 101j-snowflake-streamlit-viz-pydeck.md  # Core PyDeck patterns, ViewState, coordinate validation
+---
 # PyDeck Layer Reference
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:pydeck layer types, kw:HexagonLayer aggregation, kw:GeoJsonLayer extrusion, kw:ArcLayer flow visualization, kw:multi-layer composition, kw:deck.gl accessor syntax, kw:streamlit
-**TokenBudget:** ~2950
-**ContextTier:** Low
-**Depends:** optional:101j-snowflake-streamlit-viz-pydeck.md
 
 ## Scope
 
@@ -22,15 +30,9 @@ Complete layer pattern reference for PyDeck visualization, including 8 layer typ
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **101j-snowflake-streamlit-viz-pydeck.md** - Core PyDeck patterns, ViewState, coordinate validation
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

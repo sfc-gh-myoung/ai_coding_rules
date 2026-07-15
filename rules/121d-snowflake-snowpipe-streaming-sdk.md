@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:snowpipe streaming sdk
+  - kw:java python ingest client
+  - kw:channel lifecycle management
+  - kw:offset token tracking
+  - kw:schema evolution modes
+  - kw:insertrow error handling
+  - kw:snowpipe
+token_budget: ~3850
+context_tier: High
+depends:
+  optional:
+    - 121a-snowflake-snowpipe-streaming.md  # Streaming architecture, overview, and anti-patterns
+    - 121-snowflake-snowpipe.md  # File-based Snowpipe for comparison
+---
 # Snowflake Snowpipe Streaming: SDK Implementation
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:snowpipe streaming sdk, kw:java python ingest client, kw:channel lifecycle management, kw:offset token tracking, kw:schema evolution modes, kw:insertrow error handling, kw:snowpipe
-**TokenBudget:** ~3850
-**ContextTier:** High
-**Depends:** optional:121a-snowflake-snowpipe-streaming.md, optional:121-snowflake-snowpipe.md
 
 ## Scope
 
@@ -24,17 +33,6 @@ SDK implementation patterns for Snowpipe Streaming: Java SDK setup and ingestion
 **For architecture selection, overview, and anti-patterns, see `121a-snowflake-snowpipe-streaming.md`**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **121a-snowflake-snowpipe-streaming.md** - Streaming architecture, overview, and anti-patterns
-
-**Related:**
-- **121-snowflake-snowpipe.md** - File-based Snowpipe for comparison
-- **121b-snowflake-snowpipe-monitoring.md** - Monitoring and cost tracking
-- **121c-snowflake-snowpipe-troubleshooting.md** - Troubleshooting and debugging
 
 ### External Documentation
 

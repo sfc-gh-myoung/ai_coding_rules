@@ -1,18 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:rule examples
+  - kw:example schema
+  - kw:example-schema.yml
+  - kw:example discovery
+  - kw:reference implementations
+  - kw:example staleness
+  - kw:streamlit
+token_budget: ~1550
+context_tier: Medium
+depends:
+  required:
+    - 002-rule-governance.md  # Parent rule for schema standards
+  optional:
+    - 002a-rule-creation.md  # Rule creation workflow
+---
 # Rule Examples Guidelines
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > Extracted from 002-rule-governance.md for token efficiency.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:rule examples, kw:example schema, kw:example-schema.yml, kw:example discovery, kw:reference implementations, kw:example staleness, kw:streamlit
-**TokenBudget:** ~1550
-**ContextTier:** Medium
-**Depends:** required:002-rule-governance.md, optional:002a-rule-creation.md
 
 ## Scope
 
@@ -26,18 +36,9 @@ Guidelines for creating and maintaining validated example files that accompany c
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **002-rule-governance.md** - Parent rule for schema standards
-
-**Related:**
-- **002a-rule-creation.md** - Rule creation workflow
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

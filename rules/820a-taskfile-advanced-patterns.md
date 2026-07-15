@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:taskfile includes
+  - kw:categorized help output
+  - kw:subtask file organization
+  - kw:cross-platform task guards
+  - kw:task namespaces
+  - kw:AI agent task discovery
+  - kw:ci/cd
+token_budget: ~3450
+context_tier: Low
+depends:
+  required:
+    - 820-taskfile-automation.md  # Core Taskfile patterns
+---
 # Taskfile Advanced Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:taskfile includes, kw:categorized help output, kw:subtask file organization, kw:cross-platform task guards, kw:task namespaces, kw:AI agent task discovery, kw:ci/cd
-**TokenBudget:** ~3450
-**ContextTier:** Low
-**Depends:** required:820-taskfile-automation.md
 
 ## Scope
 
@@ -24,11 +32,6 @@ Advanced Taskfile patterns including categorized help output, subtask file organ
 **For core Taskfile patterns, see `820-taskfile-automation.md`.**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **820-taskfile-automation.md** - Core Taskfile patterns
 
 ### External Documentation
 - [Taskfile Includes](https://taskfile.dev/usage/#including-other-taskfiles) - Namespacing and modules

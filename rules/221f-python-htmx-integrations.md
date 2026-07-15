@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Alpine.js HTMX
+  - kw:_hyperscript inline behavior
+  - kw:CSS framework styling
+  - kw:chart library reinitialization
+  - kw:htmx:afterSwap event hooks
+  - kw:frontend library lifecycle
+  - kw:htmx
+token_budget: ~4150
+context_tier: Low
+depends:
+  required:
+    - 221-python-htmx-core.md  # HTMX foundation patterns
+  optional:
+    - 221a-python-htmx-templates.md  # Jinja2 patterns
+    - 221e-python-htmx-patterns.md  # HTMX implementation patterns
+    - 221g-python-htmx-sse.md  # Server-Sent Events patterns
+---
 # HTMX Frontend Integrations
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Alpine.js HTMX, kw:_hyperscript inline behavior, kw:CSS framework styling, kw:chart library reinitialization, kw:htmx:afterSwap event hooks, kw:frontend library lifecycle, kw:htmx
-**TokenBudget:** ~4150
-**ContextTier:** Low
-**Depends:** required:221-python-htmx-core.md, optional:221a-python-htmx-templates.md, optional:221e-python-htmx-patterns.md, optional:221g-python-htmx-sse.md
 
 ## Scope
 
@@ -23,16 +35,6 @@ Integration patterns for using HTMX with popular frontend libraries and framewor
 - Integrating chart/visualization libraries with HTMX
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **221-python-htmx-core.md** - HTMX foundation patterns
-
-**Related:**
-- **221a-python-htmx-templates.md** - Jinja2 patterns
-- **221e-python-htmx-patterns.md** - HTMX implementation patterns
-- **221g-python-htmx-sse.md** - Server-Sent Events patterns
 
 ### External Documentation
 

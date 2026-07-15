@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:FastAPI hardening
+  - kw:CORS middleware
+  - kw:slowapi rate limiting
+  - kw:security headers middleware
+  - kw:parameterized queries
+  - kw:Pydantic field validators
+  - kw:fastapi
+token_budget: ~2800
+context_tier: Medium
+depends:
+  optional:
+    - 210a-python-fastapi-security.md  # Authentication and authorization patterns
+---
 # 210e: FastAPI Security Hardening
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:FastAPI hardening, kw:CORS middleware, kw:slowapi rate limiting, kw:security headers middleware, kw:parameterized queries, kw:Pydantic field validators, kw:fastapi
-**TokenBudget:** ~2800
-**ContextTier:** Medium
-**Depends:** optional:210a-python-fastapi-security.md
 
 ## Scope
 
@@ -23,15 +31,6 @@ Infrastructure security hardening for FastAPI applications. Covers CORS configur
 - Preparing FastAPI applications for production deployment
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **210a-python-fastapi-security.md** - Authentication and authorization patterns
-
-**Related:**
-- **210-python-fastapi-core.md** - FastAPI foundation patterns
-- **210c-python-fastapi-deployment.md** - Deployment configuration
 
 ### External Documentation
 

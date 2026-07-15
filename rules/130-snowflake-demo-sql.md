@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:demo sql
+  - kw:per-schema isolation
+  - kw:rerunnable demos
+  - kw:progress indicators
+  - kw:inline educational comments
+  - kw:schema-based file naming
+  - kw:ci/cd
+token_budget: ~4600
+context_tier: High
+depends:
+  required:
+    - 102-snowflake-sql-core.md  # General SQL file patterns (headers, syntax, qualified names)
+  optional:
+    - 131-snowflake-demo-creation.md  # Synthetic data generation for demos
+    - 132-snowflake-demo-modeling.md  # Data modeling patterns for demos
+    - 102a-snowflake-sql-automation.md  # Production patterns (when demos evolve to production)
+---
 # Snowflake SQL: Demo Engineering and Workshops
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:demo sql, kw:per-schema isolation, kw:rerunnable demos, kw:progress indicators, kw:inline educational comments, kw:schema-based file naming, kw:ci/cd
-**TokenBudget:** ~4600
-**ContextTier:** High
-**Depends:** required:102-snowflake-sql-core.md, optional:131-snowflake-demo-creation.md, optional:132-snowflake-demo-modeling.md, optional:102a-snowflake-sql-automation.md
 
 ## Scope
 
@@ -25,16 +37,6 @@ SQL file patterns specifically for Snowflake demos, workshops, and customer lear
 - Building workshop materials for field teams
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **102-snowflake-sql-core.md** - General SQL file patterns (headers, syntax, qualified names)
-
-**Related:**
-- **131-snowflake-demo-creation.md** - Synthetic data generation for demos
-- **132-snowflake-demo-modeling.md** - Data modeling patterns for demos
-- **102a-snowflake-sql-automation.md** - Production patterns (when demos evolve to production)
 
 ### External Documentation
 

@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v5.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:st.secrets
+  - kw:SQL injection prevention
+  - kw:Streamlit authentication
+  - kw:input sanitization
+  - kw:file upload validation
+  - kw:container runtime secrets
+  - kw:TOML
+token_budget: ~4050
+context_tier: High
+depends:
+  required:
+    - 107-snowflake-security-governance.md  # Snowflake security and RBAC
+---
 # Streamlit Security: Input Validation and Secrets Management
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v4.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:st.secrets, kw:SQL injection prevention, kw:Streamlit authentication, kw:input sanitization, kw:file upload validation, kw:container runtime secrets, kw:TOML
-**TokenBudget:** ~4050
-**ContextTier:** High
-**Depends:** required:107-snowflake-security-governance.md
 
 ## Scope
 
@@ -25,17 +33,6 @@ Comprehensive security guidance for Streamlit applications including input valid
 - Following OWASP security best practices for Streamlit
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
-- **107-snowflake-security-governance.md** - Snowflake security and RBAC
-
-**Related:**
-- **100-snowflake-core.md** - Base Snowflake connection and credential patterns
-- **200-python-core.md** - Python security patterns
 
 ### External Documentation
 

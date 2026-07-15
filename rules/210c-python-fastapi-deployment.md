@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:gunicorn uvicorn worker
+  - kw:multi-stage docker build
+  - kw:health check endpoint
+  - kw:non-root container user
+  - kw:openapi schema customization
+  - kw:worker process configuration
+  - kw:ci/cd
+token_budget: ~4250
+context_tier: High
+depends:
+  required:
+    - 210-python-fastapi-core.md
+---
 # FastAPI Deployment and Documentation
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:gunicorn uvicorn worker, kw:multi-stage docker build, kw:health check endpoint, kw:non-root container user, kw:openapi schema customization, kw:worker process configuration, kw:ci/cd
-**TokenBudget:** ~4250
-**ContextTier:** High
-**Depends:** required:210-python-fastapi-core.md
 
 ## Scope
 
@@ -24,12 +32,6 @@ Establish production deployment patterns and API documentation practices for Fas
 - [FastAPI Deployment Guide](https://fastapi.tiangolo.com/deployment/) - Production deployment strategies and server configurations
 - [Uvicorn Deployment](https://www.uvicorn.org/deployment/) - ASGI server deployment and process management
 - [Gunicorn Configuration](https://docs.gunicorn.org/en/stable/configure.html) - Worker processes, timeouts, and production settings
-
-### Dependencies
-
-**Must Load First:**
-- [210-python-fastapi-core.md](210-python-fastapi-core.md)
-
 
 ## Contract
 
@@ -548,7 +550,6 @@ from fastapi.responses import JSONResponse
 async def health_check():
     """Health check for load balancers and container orchestrators."""
     return {"status": "healthy"}
-
 
 @app.get("/health/ready")
 async def readiness_check(db: AsyncSession = Depends(get_db)):

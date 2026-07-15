@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:pyproject.toml
+  - kw:hatchling build backend
+  - kw:uv dependency manager
+  - kw:__init__.py package recognition
+  - kw:flat layout src layout
+  - kw:editable install
+  - kw:TOML
+token_budget: ~4350
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Python foundation patterns
+  optional:
+    - 201-python-lint-format.md  # Code quality configuration in pyproject.toml
+    - 206-python-pytest.md  # Testing configuration
+    - 210-python-fastapi-core.md  # FastAPI application patterns
+---
 # Python Project Setup and Packaging
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:pyproject.toml, kw:hatchling build backend, kw:uv dependency manager, kw:__init__.py package recognition, kw:flat layout src layout, kw:editable install, kw:TOML
-**TokenBudget:** ~4350
-**ContextTier:** High
-**Depends:** required:200-python-core.md, optional:201-python-lint-format.md, optional:206-python-pytest.md, optional:210-python-fastapi-core.md
 
 ## Scope
 
@@ -25,16 +37,6 @@ Essential Python project setup and packaging guidance covering package structure
 - Converting legacy setup.py to pyproject.toml
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Python foundation patterns
-
-**Related:**
-- **201-python-lint-format.md** - Code quality configuration in pyproject.toml
-- **206-python-pytest.md** - Testing configuration
-- **210-python-fastapi-core.md** - FastAPI application patterns
 
 ### External Documentation
 

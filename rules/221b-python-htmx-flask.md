@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Flask-HTMX extension
+  - kw:blueprint organization htmx
+  - kw:Flask-WTF csrf htmx
+  - kw:Flask-Login htmx redirect
+  - kw:flask route decorators htmx
+  - kw:flask session htmx
+  - kw:flask
+token_budget: ~4450
+context_tier: Medium
+depends:
+  optional:
+    - 221a-python-htmx-templates.md  # Jinja2 patterns
+    - 221d-python-htmx-testing.md  # Testing Flask+HTMX
+    - 221e-python-htmx-patterns.md  # CRUD, forms, etc.
+---
 # Flask + HTMX Integration
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Flask-HTMX extension, kw:blueprint organization htmx, kw:Flask-WTF csrf htmx, kw:Flask-Login htmx redirect, kw:flask route decorators htmx, kw:flask session htmx, kw:flask
-**TokenBudget:** ~4450
-**ContextTier:** Medium
-**Depends:** optional:221a-python-htmx-templates.md, optional:221d-python-htmx-testing.md, optional:221e-python-htmx-patterns.md
 
 ## Scope
 
@@ -23,17 +33,6 @@ Flask-specific integration patterns for HTMX applications, covering Flask-HTMX e
 - Managing CSRF protection for HTMX requests in Flask
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **221-python-htmx-core.md** - HTMX foundation patterns
-- **221a-python-htmx-templates.md** - Jinja2 patterns
-
-**Related:**
-- **221d-python-htmx-testing.md** - Testing Flask+HTMX
-- **221e-python-htmx-patterns.md** - CRUD, forms, etc.
-- **200-python-core.md** - Python standards
 
 ### External Documentation
 

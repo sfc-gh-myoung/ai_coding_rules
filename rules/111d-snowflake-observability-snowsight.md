@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:snowsight monitoring interfaces
+  - kw:cortex ai cost attribution
+  - kw:traces and logs ui
+  - kw:llm evaluation workflows
+  - kw:distributed tracing ai applications
+  - kw:query history latency
+  - kw:aisql
+token_budget: ~4100
+context_tier: Low
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+  optional:
+    - 111c-snowflake-observability-monitoring.md  # Monitoring queries and analysis
+---
 # Snowflake Observability: Snowsight Interfaces & AI Observability
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:snowsight monitoring interfaces, kw:cortex ai cost attribution, kw:traces and logs ui, kw:llm evaluation workflows, kw:distributed tracing ai applications, kw:query history latency, kw:aisql
-**TokenBudget:** ~4100
-**ContextTier:** Low
-**Depends:** required:100-snowflake-core.md, optional:111c-snowflake-observability-monitoring.md
 
 ## Scope
 
@@ -23,16 +33,6 @@ Snowsight monitoring interfaces (Traces & Logs, Query History, Copy History, Tas
 - Attributing AI costs by application or function
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **111-snowflake-observability-core.md** - Telemetry configuration and event tables
-- **111c-snowflake-observability-monitoring.md** - Monitoring queries and analysis
-
-**Related:**
-- **114-snowflake-cortex-aisql.md** - Cortex AI SQL function patterns and cost governance
 
 ### External Documentation
 

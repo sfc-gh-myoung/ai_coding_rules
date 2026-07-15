@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Typer CLI
+  - kw:typer.Argument
+  - kw:typer.Option
+  - kw:exit code handling
+  - kw:console script entry points
+  - kw:Rich terminal output
+  - kw:TOML
+token_budget: ~4300
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Core Python patterns and uv usage
+  optional:
+    - 201-python-lint-format.md  # Ruff linting and formatting standards
+    - 203-python-project-setup.md  # Python project structure and packaging
+    - 230-python-pydantic.md  # Pydantic integration with Typer
+---
 # Python Typer CLI Development Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.9.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Typer CLI, kw:typer.Argument, kw:typer.Option, kw:exit code handling, kw:console script entry points, kw:Rich terminal output, kw:TOML
-**TokenBudget:** ~4300
-**ContextTier:** High
-**Depends:** required:200-python-core.md, optional:201-python-lint-format.md, optional:203-python-project-setup.md, optional:230-python-pydantic.md
 
 ## Scope
 
@@ -22,16 +34,6 @@ Core guidance for building robust command-line applications using Typer, coverin
 - Implementing error handling with exit codes
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Core Python patterns and uv usage
-
-**Related:**
-- **201-python-lint-format.md** - Ruff linting and formatting standards
-- **203-python-project-setup.md** - Python project structure and packaging
-- **230-python-pydantic.md** - Pydantic integration with Typer
 
 ### External Documentation
 
@@ -407,7 +409,6 @@ def graceful_shutdown():
         signal.signal(signal.SIGINT, original_sigint)
         signal.signal(signal.SIGTERM, original_sigterm)
 
-
 @app.command()
 def batch_process(
     directory: Annotated[Path, typer.Argument(help="Directory to process")],
@@ -456,7 +457,6 @@ def complete_project_name(incomplete: str) -> list[str]:
     """Return matching project names for shell completion."""
     projects = ["web-app", "api-server", "cli-tool", "data-pipeline"]
     return [p for p in projects if p.startswith(incomplete)]
-
 
 @app.command()
 def deploy(

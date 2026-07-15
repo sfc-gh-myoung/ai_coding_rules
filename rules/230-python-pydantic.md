@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:BaseModel inheritance
+  - kw:Field constraints
+  - kw:@field_validator decorator
+  - kw:@model_validator decorator
+  - kw:ConfigDict settings
+  - kw:discriminated unions
+  - kw:TOML
+token_budget: ~3800
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md
+---
 # Python Pydantic Data Validation Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.10.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:BaseModel inheritance, kw:Field constraints, kw:@field_validator decorator, kw:@model_validator decorator, kw:ConfigDict settings, kw:discriminated unions, kw:TOML
-**TokenBudget:** ~3800
-**ContextTier:** High
-**Depends:** required:200-python-core.md
 
 ## Scope
 
@@ -25,12 +33,6 @@ Model definition and field validation patterns using Pydantic v2, covering BaseM
 ### External Documentation
 - [Pydantic Documentation](https://docs.pydantic.dev/latest/) - Complete guide to data validation and serialization
 - [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Configuration management
-
-### Dependencies
-
-**Must Load First:**
-- [200-python-core.md](200-python-core.md)
-
 
 ## Contract
 

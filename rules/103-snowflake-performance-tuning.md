@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Query Profile analysis
+  - kw:partition pruning optimization
+  - kw:spillage detection
+  - kw:clustering key justification
+  - kw:warehouse sizing diagnosis
+  - kw:slow query investigation
+  - kw:snowsight
+token_budget: ~3200
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+    - 100-snowflake-core.md  # Snowflake SQL patterns and best practices
+---
 # Snowflake Performance Tuning
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Query Profile analysis, kw:partition pruning optimization, kw:spillage detection, kw:clustering key justification, kw:warehouse sizing diagnosis, kw:slow query investigation, kw:snowsight
-**TokenBudget:** ~3200
-**ContextTier:** High
-**Depends:** required:000-global-core.md, required:100-snowflake-core.md
 
 ## Scope
 
@@ -31,12 +40,6 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 - **Complex query:** >5 table joins OR >3 CTEs (context: SQL patterns)
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **100-snowflake-core.md** - Snowflake SQL patterns and best practices
 
 ### External Documentation
 - [Query Profile Guide](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Query execution analysis and performance diagnostics

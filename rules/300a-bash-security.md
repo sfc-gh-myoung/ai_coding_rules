@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:bash input sanitization
+  - kw:command injection prevention
+  - kw:shell path traversal
+  - kw:bash credential storage
+  - kw:shell script permissions
+  - kw:eval alternatives
+token_budget: ~3600
+context_tier: High
+depends:
+  required:
+    - 300-bash-scripting-core.md  # Foundation bash scripting patterns
+  optional:
+    - 300b-bash-testing-tooling.md  # Testing security implementations
+    - 300c-bash-security-advanced.md  # Advanced security: privilege, network, logging, testing
+---
 # Bash Security Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:bash input sanitization, kw:command injection prevention, kw:shell path traversal, kw:bash credential storage, kw:shell script permissions, kw:eval alternatives
-**TokenBudget:** ~3600
-**ContextTier:** High
-**Depends:** required:300-bash-scripting-core.md, optional:300b-bash-testing-tooling.md, optional:300c-bash-security-advanced.md
 
 ## Scope
 
@@ -23,15 +33,6 @@ Comprehensive bash scripting security practices covering input validation, path 
 - Managing secrets and credentials in shell scripts
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **300-bash-scripting-core.md** - Foundation bash scripting patterns
-
-**Related:**
-- **300b-bash-testing-tooling.md** - Testing security implementations
-- **300c-bash-security-advanced.md** - Advanced security: privilege, network, logging, testing
 
 ### External Documentation
 

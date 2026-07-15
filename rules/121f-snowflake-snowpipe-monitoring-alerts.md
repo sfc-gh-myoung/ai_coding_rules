@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:snowpipe alert configuration
+  - kw:channel stall detection
+  - kw:SYSTEM$SEND_EMAIL
+  - kw:baseline threshold derivation
+  - kw:pipe cost per GB
+  - kw:file size 100-250MB
+  - kw:snowpipe
+token_budget: ~3100
+context_tier: Medium
+depends:
+  required:
+    - 121-snowflake-snowpipe.md  # File-based Snowpipe core concepts
+  optional:
+    - 121b-snowflake-snowpipe-monitoring.md  # Core monitoring queries and cost tracking
+    - 105-snowflake-cost-governance.md  # Resource monitors and cost optimization
+---
 # Snowpipe Monitoring Alerts and Cost Optimization
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:snowpipe alert configuration, kw:channel stall detection, kw:SYSTEM$SEND_EMAIL, kw:baseline threshold derivation, kw:pipe cost per GB, kw:file size 100-250MB, kw:snowpipe
-**TokenBudget:** ~3100
-**ContextTier:** Medium
-**Depends:** required:121-snowflake-snowpipe.md, optional:121b-snowflake-snowpipe-monitoring.md, optional:105-snowflake-cost-governance.md
 
 ## Scope
 
@@ -47,17 +58,6 @@ Alert configuration for Snowpipe and Snowpipe Streaming (error alerts, stall det
 > "Your p95 is 8.3s, so I'll set the alert threshold at 10s to catch anomalies..."
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **121b-snowflake-snowpipe-monitoring.md** - Core monitoring queries and cost tracking
-- **121-snowflake-snowpipe.md** - File-based Snowpipe core concepts
-
-**Related:**
-- **121a-snowflake-snowpipe-streaming.md** - Streaming Snowpipe core concepts
-- **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
-- **111-snowflake-observability-core.md** - Logging, tracing, and monitoring patterns
 
 ### External Documentation
 

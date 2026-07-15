@@ -1,19 +1,31 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:application factory
+  - kw:APIRouter modular routing
+  - kw:Pydantic request response separation
+  - kw:async def route handlers
+  - kw:dependency injection database sessions
+  - kw:uvicorn ASGI server
+  - kw:fastapi
+token_budget: ~4600
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Python foundation for all Python projects
+  optional:
+    - 203-python-project-setup.md  # Project structure and uv setup
+    - 210b-python-fastapi-testing.md  # FastAPI testing strategies
+    - 210d-python-fastapi-monitoring.md  # FastAPI monitoring and observability
+---
 # FastAPI Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential FastAPI patterns. Load for FastAPI tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:application factory, kw:APIRouter modular routing, kw:Pydantic request response separation, kw:async def route handlers, kw:dependency injection database sessions, kw:uvicorn ASGI server, kw:fastapi
-**TokenBudget:** ~4600
-**ContextTier:** High
-**Depends:** required:200-python-core.md, optional:203-python-project-setup.md, optional:210b-python-fastapi-testing.md, optional:210d-python-fastapi-monitoring.md
 
 ## Scope
 
@@ -28,16 +40,6 @@ Comprehensive FastAPI development best practices for modern web API development.
 - Working with async/await and Pydantic integration
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Python foundation for all Python projects
-
-**Related:**
-- **203-python-project-setup.md** - Project structure and uv setup
-- **210b-python-fastapi-testing.md** - FastAPI testing strategies
-- **210d-python-fastapi-monitoring.md** - FastAPI monitoring and observability
 
 ### External Documentation
 
@@ -492,7 +494,6 @@ Use Pydantic `BaseSettings` for type-safe, environment-based configuration with 
 ```python
 from pydantic_settings import BaseSettings
 
-
 class Settings(BaseSettings):
     """Application settings loaded from environment."""
 
@@ -502,7 +503,6 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379"
     debug: bool = False
     api_key: str  # Required — app fails to start if missing
-
 
 settings = Settings()  # Reads from APP_DATABASE_URL, APP_REDIS_URL, etc.
 ```

@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:cortex agent observability
+  - kw:agent cost attribution
+  - kw:AI Observability tracing
+  - kw:agent health checks
+  - kw:agent troubleshooting runbook
+  - kw:dedicated agent warehouse
+  - kw:cortex
+token_budget: ~3850
+context_tier: Low
+depends:
+  required:
+    - 115-snowflake-cortex-agents-core.md  # Core agent creation
+  optional:
+    - 105-snowflake-cost-governance.md  # Cost monitoring and governance
+---
 # Snowflake Cortex Agents: Observability & Cost Management
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:cortex agent observability, kw:agent cost attribution, kw:AI Observability tracing, kw:agent health checks, kw:agent troubleshooting runbook, kw:dedicated agent warehouse, kw:cortex
-**TokenBudget:** ~3850
-**ContextTier:** Low
-**Depends:** required:115-snowflake-cortex-agents-core.md, optional:105-snowflake-cost-governance.md
 
 ## Scope
 
@@ -22,16 +32,6 @@ Observability, evaluation, cost management, dedicated warehouse patterns, and er
 - Configuring dedicated warehouses for agent workloads
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **115-snowflake-cortex-agents-core.md** - Core agent creation
-- **111-snowflake-observability-core.md** - Observability patterns
-
-**Related:**
-- **105-snowflake-cost-governance.md** - Cost monitoring and governance
 
 ### External Documentation
 

@@ -1,14 +1,21 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:notebook checkpoint validation
+  - kw:teaching point callouts
+  - kw:actionable error messages
+  - kw:progress verification gates
+  - kw:context before code pedagogy
+  - kw:checkpoint frequency placement
+token_budget: ~2650
+context_tier: Low
+depends:
+  optional:
+    - 109a-snowflake-notebooks-tutorials.md
+---
 # Snowflake Notebook Checkpoints and Teaching Points
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:notebook checkpoint validation, kw:teaching point callouts, kw:actionable error messages, kw:progress verification gates, kw:context before code pedagogy, kw:checkpoint frequency placement
-**TokenBudget:** ~2650
-**ContextTier:** Low
-**Depends:** optional:109a-snowflake-notebooks-tutorials.md
 
 ## Scope
 
@@ -26,13 +33,6 @@ Patterns for implementing checkpoint validation cells and teaching point callout
 ### External Documentation
 
 _None._
-
-### Dependencies
-
-**Must Load First:**
-- [109a-snowflake-notebooks-tutorials.md](109a-snowflake-notebooks-tutorials.md)
-
-
 
 ## Contract
 

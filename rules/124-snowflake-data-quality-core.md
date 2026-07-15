@@ -1,19 +1,32 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Data Metric Functions
+  - kw:DMF expectations
+  - kw:system DMF
+  - kw:serverless quality monitoring
+  - kw:quality event tables
+  - kw:DMF scheduling patterns
+  - kw:dmf
+token_budget: ~4900
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 105-snowflake-cost-governance.md  # Resource monitors and cost optimization
+    - 107-snowflake-security-governance.md  # Access control and security policies
+  optional:
+    - 124a-snowflake-data-quality-custom.md  # Custom DMF creation patterns
+    - 124b-snowflake-data-quality-operations.md  # Operational patterns and remediation
+---
 # Snowflake Data Quality Monitoring Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Data Quality patterns. Load for data quality tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Data Metric Functions, kw:DMF expectations, kw:system DMF, kw:serverless quality monitoring, kw:quality event tables, kw:DMF scheduling patterns, kw:dmf
-**TokenBudget:** ~4900
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:105-snowflake-cost-governance.md, required:107-snowflake-security-governance.md, optional:124a-snowflake-data-quality-custom.md, optional:124b-snowflake-data-quality-operations.md
 
 ## Scope
 
@@ -30,17 +43,6 @@ Comprehensive best practices for Snowflake Data Quality Monitoring using Data Me
 - Establishing automated quality monitoring schedules
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
-- **107-snowflake-security-governance.md** - Access control and security policies
-
-**Related:**
-- **124a-snowflake-data-quality-custom.md** - Custom DMF creation patterns
-- **124b-snowflake-data-quality-operations.md** - Operational patterns and remediation
 
 ### External Documentation
 

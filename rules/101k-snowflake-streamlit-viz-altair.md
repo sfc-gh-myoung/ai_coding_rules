@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:altair declarative encoding
+  - kw:vega-lite grammar
+  - kw:mark_point mark_line mark_bar
+  - kw:st.altair_chart
+  - kw:interval selection brushing
+  - kw:data type suffixes :Q :N :O :T
+  - kw:pandas
+token_budget: ~3600
+context_tier: Medium
+depends:
+  optional:
+    - 101a-snowflake-streamlit-visualization.md  # Visualization overview and library selection
+---
 # Streamlit Visualization: Altair Deep Dive
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:altair declarative encoding, kw:vega-lite grammar, kw:mark_point mark_line mark_bar, kw:st.altair_chart, kw:interval selection brushing, kw:data type suffixes :Q :N :O :T, kw:pandas
-**TokenBudget:** ~3600
-**ContextTier:** Medium
-**Depends:** optional:101a-snowflake-streamlit-visualization.md
 
 ## Scope
 
@@ -23,15 +31,6 @@ Altair visualization patterns using the declarative grammar of graphics approach
 - Complex encoding relationships (color, size, shape by data)
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation patterns and conventions
-- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection
-
-**Related:**
-- **101i-snowflake-streamlit-viz-plotly.md** - Plotly for general-purpose charts
 
 ### External Documentation
 

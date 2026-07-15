@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:AppTest
+  - kw:streamlit ui testing
+  - kw:cache behavior testing
+  - kw:mock snowflake session
+  - kw:widget interaction testing
+  - kw:pytest coverage 80%
+  - kw:TOML
+token_budget: ~3950
+context_tier: High
+depends:
+  required:
+    - 206-python-pytest.md  # Python testing with pytest
+  optional:
+    - 101b-snowflake-streamlit-performance.md  # Cache behavior testing
+---
 # Streamlit Testing: AppTest and Debugging
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:AppTest, kw:streamlit ui testing, kw:cache behavior testing, kw:mock snowflake session, kw:widget interaction testing, kw:pytest coverage 80%, kw:TOML
-**TokenBudget:** ~3950
-**ContextTier:** High
-**Depends:** required:206-python-pytest.md, optional:101b-snowflake-streamlit-performance.md
 
 ## Scope
 
@@ -26,17 +36,6 @@ Comprehensive testing and debugging guidance for Streamlit applications using Ap
 - Setting up CI/CD test automation
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
-- **206-python-pytest.md** - Python testing with pytest
-
-**Related:**
-- **101b-snowflake-streamlit-performance.md** - Cache behavior testing
-- **200-python-core.md** - Python testing fundamentals
 
 ### External Documentation
 

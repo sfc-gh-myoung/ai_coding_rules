@@ -1,14 +1,20 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Snowflake Notebooks
+  - kw:reproducible notebook execution
+  - kw:Snowpark DataFrame computation
+  - kw:cell naming conventions
+  - kw:nbqa ruff linting
+  - kw:notebook state management
+  - kw:pandas
+token_budget: ~4450
+context_tier: Medium
+depends: {}
+---
 # Snowflake Notebook Directives
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Snowflake Notebooks, kw:reproducible notebook execution, kw:Snowpark DataFrame computation, kw:cell naming conventions, kw:nbqa ruff linting, kw:notebook state management, kw:pandas
-**TokenBudget:** ~4450
-**ContextTier:** Medium
-**Depends:** none
 
 ## Scope
 
@@ -41,13 +47,6 @@ Best practices for building reproducible, secure, and maintainable Jupyter Noteb
 - [Snowpark for Python](https://docs.snowflake.com/en/developer-guide/snowpark/python/index) - Snowpark Python API reference
 - [nbqa](https://nbqa.readthedocs.io/) - Code quality tools for Jupyter notebooks
 - [Jupyter Best Practices](https://jupyter-notebook.readthedocs.io/en/stable/notebook.html) - Notebook usage guidelines
-
-### Dependencies
-
-**Must Load First:**
-- [100-snowflake-core.md](100-snowflake-core.md)
-- [201-python-lint-format.md](201-python-lint-format.md)
-
 
 ## Contract
 

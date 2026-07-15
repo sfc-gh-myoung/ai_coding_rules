@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:faker localization
+  - kw:custom provider
+  - kw:BaseProvider extension
+  - kw:DynamicProvider runtime
+  - kw:streaming generator memory
+  - kw:faker caching optimization
+  - kw:TOML
+token_budget: ~3300
+context_tier: Low
+depends:
+  required:
+    - 240-python-faker.md  # Core Faker patterns
+  optional:
+    - 240a-python-faker-testing.md  # Pytest integration and seeding
+---
 # Python Faker Advanced Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:faker localization, kw:custom provider, kw:BaseProvider extension, kw:DynamicProvider runtime, kw:streaming generator memory, kw:faker caching optimization, kw:TOML
-**TokenBudget:** ~3300
-**ContextTier:** Low
-**Depends:** required:240-python-faker.md, optional:240a-python-faker-testing.md
 
 ## Scope
 
@@ -23,18 +33,9 @@ Advanced Faker patterns including localization for international testing, creati
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **240-python-faker.md** - Core Faker patterns
-
-**Related:**
-- **240a-python-faker-testing.md** - Pytest integration and seeding
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

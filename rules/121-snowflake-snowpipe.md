@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:snowpipe auto-ingest
+  - kw:file-based ingestion
+  - kw:cloud event notifications
+  - kw:pipe DDL
+  - kw:serverless compute
+  - kw:file sizing optimization
+  - kw:cdc
+token_budget: ~3100
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 108-snowflake-data-loading.md  # Stages and bulk loading
+  optional:
+    - 121a-snowflake-snowpipe-streaming.md  # SDK-based streaming ingestion
+    - 121b-snowflake-snowpipe-monitoring.md  # Monitoring and cost tracking
+    - 104-snowflake-streams-tasks.md  # Incremental pipelines and CDC
+---
 # Snowflake Snowpipe (File-Based Ingestion)
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:snowpipe auto-ingest, kw:file-based ingestion, kw:cloud event notifications, kw:pipe DDL, kw:serverless compute, kw:file sizing optimization, kw:cdc
-**TokenBudget:** ~3100
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:108-snowflake-data-loading.md, optional:121a-snowflake-snowpipe-streaming.md, optional:121b-snowflake-snowpipe-monitoring.md, optional:104-snowflake-streams-tasks.md
 
 ## Scope
 
@@ -24,17 +37,6 @@ Comprehensive best practices for continuous file-based data ingestion using Snow
 **For SDK-based streaming (sub-second latency), see `121a-snowflake-snowpipe-streaming.md`**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **108-snowflake-data-loading.md** - Stages and bulk loading
-
-**Related:**
-- **121a-snowflake-snowpipe-streaming.md** - SDK-based streaming ingestion
-- **121b-snowflake-snowpipe-monitoring.md** - Monitoring and cost tracking
-- **104-snowflake-streams-tasks.md** - Incremental pipelines and CDC
 
 ### External Documentation
 

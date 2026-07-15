@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:role introspection
+  - kw:account roles vs database roles
+  - kw:SHOW GRANTS syntax
+  - kw:SQL compilation error 000906
+  - kw:role type detection
+  - kw:RBAC automation
+  - kw:rbac
+token_budget: ~2350
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Core foundation patterns
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+  optional:
+    - 107-snowflake-security-governance.md  # RBAC and privilege patterns
+    - 200-python-core.md  # Python development patterns
+---
 # 125-snowflake-role-introspection: Snowflake Role Introspection
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:role introspection, kw:account roles vs database roles, kw:SHOW GRANTS syntax, kw:SQL compilation error 000906, kw:role type detection, kw:RBAC automation, kw:rbac
-**TokenBudget:** ~2350
-**ContextTier:** Medium
-**Depends:** required:000-global-core.md, required:100-snowflake-core.md, optional:107-snowflake-security-governance.md, optional:200-python-core.md
 
 ## Scope
 
@@ -23,16 +35,6 @@ Patterns for programmatically inspecting Snowflake roles and grants, handling bo
 - Troubleshooting `SHOW GRANTS` failures
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Core foundation patterns
-- **100-snowflake-core.md** - Snowflake foundation patterns
-
-**Related:**
-- **107-snowflake-security-governance.md** - RBAC and privilege patterns
-- **200-python-core.md** - Python development patterns
 
 ### External Documentation
 

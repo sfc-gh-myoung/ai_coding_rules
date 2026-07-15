@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:multi-stage builds
+  - kw:image digest pinning
+  - kw:non-root container user
+  - kw:layer caching optimization
+  - kw:SBOM generation
+  - kw:BuildKit mount cache
+  - kw:ci/cd
+token_budget: ~4550
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 202-markup-config-validation.md  # Configuration validation patterns
+  optional:
+    - 200-python-core.md  # Python-specific Docker patterns
+    - 203-python-project-setup.md  # Python project structure for containers
+---
 # Docker Core
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.4.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:multi-stage builds, kw:image digest pinning, kw:non-root container user, kw:layer caching optimization, kw:SBOM generation, kw:BuildKit mount cache, kw:ci/cd
-**TokenBudget:** ~4550
-**ContextTier:** Medium
-**Depends:** required:000-global-core.md, required:202-markup-config-validation.md, optional:200-python-core.md, optional:203-python-project-setup.md
 
 ## Scope
 
@@ -24,16 +36,6 @@ Provides practical, production-ready guidance for authoring Dockerfiles, buildin
 - Implementing CI/CD with Docker
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **202-markup-config-validation.md** - Configuration validation patterns
-
-**Related:**
-- **200-python-core.md** - Python-specific Docker patterns
-- **203-python-project-setup.md** - Python project structure for containers
 
 ### External Documentation
 

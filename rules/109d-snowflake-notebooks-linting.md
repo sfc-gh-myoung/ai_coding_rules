@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:nbqa
+  - kw:notebook linting
+  - kw:Ruff notebook integration
+  - kw:uvx nbqa commands
+  - kw:notebook cell quality
+  - kw:notebook automation targets
+  - kw:TOML
+token_budget: ~3500
+context_tier: Low
+depends:
+  required:
+    - 109-snowflake-notebooks.md
+    - 201-python-lint-format.md
+---
 # Snowflake Notebook Code Quality and Linting
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:nbqa, kw:notebook linting, kw:Ruff notebook integration, kw:uvx nbqa commands, kw:notebook cell quality, kw:notebook automation targets, kw:TOML
-**TokenBudget:** ~3500
-**ContextTier:** Low
-**Depends:** required:109-snowflake-notebooks.md, required:201-python-lint-format.md
 
 ## Scope
 
@@ -27,13 +36,6 @@ Code quality tooling and linting configuration for Jupyter Notebooks using nbqa 
 ### External Documentation
 - [nbqa](https://nbqa.readthedocs.io/) - Code quality tools for Jupyter notebooks
 - [Ruff](https://docs.astral.sh/ruff/) - Fast Python linter and formatter
-
-### Dependencies
-
-**Must Load First:**
-- [109-snowflake-notebooks.md](109-snowflake-notebooks.md)
-- [201-python-lint-format.md](201-python-lint-format.md)
-
 
 ## Contract
 

@@ -1,19 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:agent-optimized formatting
+  - kw:ASCII table violations
+  - kw:arrow character replacement
+  - kw:imperative voice instructions
+  - kw:visual diagram prohibition
+  - kw:nested conditional lists
+  - kw:mermaid
+token_budget: ~1650
+context_tier: Medium
+depends:
+  required:
+    - 002g-agent-optimization.md
+    - 000-global-core.md
+---
 # 002m: Agent Format Anti-Patterns
 
 > **REFERENCE RULE: FORMAT VIOLATION EXAMPLES**
 >
 > Complete set of formatting anti-patterns for agent-optimized rules.
 > Extracted from 002g-agent-optimization.md for size management.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:agent-optimized formatting, kw:ASCII table violations, kw:arrow character replacement, kw:imperative voice instructions, kw:visual diagram prohibition, kw:nested conditional lists, kw:mermaid
-**TokenBudget:** ~1650
-**ContextTier:** Medium
-**Depends:** required:002g-agent-optimization.md, required:000-global-core.md
 
 ## Scope
 
@@ -39,14 +48,6 @@ The 9 formatting anti-patterns that prevent reliable agent execution, extracted 
 ### External Documentation
 
 _None._
-
-### Dependencies
-
-**Must Load First:**
-- [002g-agent-optimization.md](002g-agent-optimization.md)
-- [000-global-core.md](000-global-core.md)
-
-
 
 ## Contract
 

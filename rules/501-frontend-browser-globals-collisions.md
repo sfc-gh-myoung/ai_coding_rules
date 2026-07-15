@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:browser globals collision
+  - kw:window.history shadowing
+  - kw:htmx:historyRestore
+  - kw:Alpine.js component namespacing
+  - kw:implicit global prevention
+  - kw:inline script scoping
+  - kw:htmx
+token_budget: ~1950
+context_tier: High
+depends:
+  required:
+    - 500-frontend-htmx-core.md
+---
 # 501-frontend-browser-globals-collisions: Frontend Browser Globals Collisions
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:browser globals collision, kw:window.history shadowing, kw:htmx:historyRestore, kw:Alpine.js component namespacing, kw:implicit global prevention, kw:inline script scoping, kw:htmx
-**TokenBudget:** ~1950
-**ContextTier:** High
-**Depends:** required:500-frontend-htmx-core.md
 
 ## Scope
 
@@ -25,12 +33,6 @@ Prevent accidental collisions with built-in browser globals (e.g., `window.histo
 ### External Documentation
 - [MDN: `Window.history`](https://developer.mozilla.org/en-US/docs/Web/API/Window/history) - Browser history object
 - [HTMX Events](https://htmx.org/events/) - `htmx:afterSwap` and `htmx:historyRestore` lifecycle hooks
-
-### Dependencies
-
-**Must Load First:**
-- [500-frontend-htmx-core.md](500-frontend-htmx-core.md)
-
 
 ## Contract
 

@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v3.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Streamlit deployment
+  - kw:Container Runtime
+  - kw:Warehouse Runtime
+  - kw:External Access Integration
+  - kw:stage upload compression
+  - kw:compute pool provisioning
+  - kw:TOML
+token_budget: ~2800
+context_tier: Low
+depends:
+  required:
+    - 101-snowflake-streamlit-core.md  # Core Streamlit patterns
+  optional:
+    - 101l-snowflake-streamlit-deployment.md  # Deployment guidance
+---
 # Streamlit Deployment Errors
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v2.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Streamlit deployment, kw:Container Runtime, kw:Warehouse Runtime, kw:External Access Integration, kw:stage upload compression, kw:compute pool provisioning, kw:TOML
-**TokenBudget:** ~2800
-**ContextTier:** Low
-**Depends:** required:101-snowflake-streamlit-core.md, optional:101l-snowflake-streamlit-deployment.md
 
 ## Scope
 
@@ -23,16 +33,6 @@ Deployment error scenarios and resolution steps for Streamlit applications in bo
 - Diagnosing service startup timeouts
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
-- **101l-snowflake-streamlit-deployment.md** - Deployment guidance
-
-**Related:**
-- **101c-snowflake-streamlit-security.md** - Security patterns
 
 ### External Documentation
 

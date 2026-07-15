@@ -1,14 +1,21 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:cli compatibility
+  - kw:ampersand escaping
+  - kw:template expansion
+  - kw:enable-templating flag
+  - kw:brand name preservation
+  - kw:snow sql tool
+token_budget: ~1550
+context_tier: Low
+depends:
+  required:
+    - 102-snowflake-sql-core.md  # SQL file patterns
+---
 # Snowflake SQL: Reserved Characters and CLI Compatibility
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:cli compatibility, kw:ampersand escaping, kw:template expansion, kw:enable-templating flag, kw:brand name preservation, kw:snow sql tool
-**TokenBudget:** ~1550
-**ContextTier:** Low
-**Depends:** required:102-snowflake-sql-core.md
 
 ## Scope
 
@@ -23,15 +30,9 @@ Reserved character handling for Snowflake CLI tools including `snow sql`, `snows
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **102-snowflake-sql-core.md** - SQL file patterns
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

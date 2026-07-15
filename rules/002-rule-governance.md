@@ -1,19 +1,31 @@
+---
+schema_version: v3.5
+rule_version: v4.0.3
+last_updated: 2026-07-15
+keywords:
+  - kw:rule schema compliance
+  - kw:metadata field requirements
+  - kw:Contract Markdown subsections
+  - kw:semantic discovery keywords
+  - kw:ai-rules validate
+  - kw:agent-first design priorities
+  - dir:rules/
+token_budget: ~4900
+context_tier: Critical
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 002a-rule-creation.md  # Step-by-step guide for creating new rules
+    - 002b-rule-update.md  # Updating and maintaining existing rules, versioning policy
+    - 002e-schema-validator-usage.md  # Detailed validator commands, error interpretation, CI/CD integration
+---
 # Rule Governance: Schema Standards
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when creating, reviewing, or maintaining rules.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.8.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:rule schema compliance, kw:metadata field requirements, kw:Contract Markdown subsections, kw:semantic discovery keywords, kw:ai-rules validate, kw:agent-first design priorities, kw:ci/cd
-**TokenBudget:** ~4900
-**ContextTier:** Critical
-**Depends:** required:000-global-core.md, optional:002a-rule-creation.md, optional:002b-rule-update.md, optional:002e-schema-validator-usage.md
 
 ## Scope
 
@@ -28,16 +40,6 @@ Schema standards (v3.3) for AI coding rule files. Defines required sections, met
 - Working with `ai-rules validate`
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **002a-rule-creation.md** - Step-by-step guide for creating new rules
-- **002b-rule-update.md** - Updating and maintaining existing rules, versioning policy
-- **002e-schema-validator-usage.md** - Detailed validator commands, error interpretation, CI/CD integration
 
 ### External Documentation
 
@@ -180,17 +182,17 @@ Where:
 ### Required Sections (v3.4)
 
 **Required Sections (in order):**
-1. **Metadata** — All 6 required fields in correct order.
+1. **Metadata** — 7 required fields (see §Metadata Fields). Preferred format is a YAML frontmatter block (`---`-fenced) at top-of-file (schema v3.5 canonical). Inline `**Field:**` markers before Scope remain accepted as a dual-parse fallback for rules that have not yet been migrated. The `## Metadata` H2 header is no longer required in v3.5.
 2. **Scope** — MUST contain the following bolded inline labels (enforced by validator):
    - `**What This Rule Covers:**` — one-paragraph plain-English summary.
    - `**When to Load This Rule:**` — bulleted list of trigger conditions.
-3. **References** — MUST contain the H3 subheadings (enforced by validator):
-   - `### Dependencies` — required; use `_None._` when the rule has no dependencies.
+3. **References** — MUST contain the H3 subheading (enforced by validator):
    - `### External Documentation` — required; use `_None._` when no external references apply.
+   - The former `### Dependencies` prose subsection was retired in v3.5; dependency data now lives in the frontmatter `depends:` field with per-item YAML comment justifications (see `#### Justification Preservation` in the v5 refactor plan).
 4. **Contract** — Structured contract with Markdown subsections (`###`), NOT XML tags. See §Contract Structure.
 5. **Anti-Patterns and Common Mistakes** — Optional but strongly recommended.
 
-**Enforcement:** `ai-rules validate rules/` fires HIGH-severity errors on missing Scope inline labels or missing References subheadings. The v3.4 schema retires the transient `### Related Rules` subsection (added and dropped mid-session 2026-07-04 due to token bloat with minimal value).
+**Enforcement:** `ai-rules validate rules/` fires HIGH-severity errors on missing Scope inline labels or missing References subheadings. The v3.4 schema retires the transient `### Related Rules` subsection (added and dropped mid-session 2026-07-04 due to token bloat with minimal value). The v3.5 schema additionally drops the `## Metadata` header requirement and the `### Dependencies` prose subsection.
 
 **Numbering:**
 - **FORBIDDEN:** Do NOT use numbered section headings (e.g., `## 1. Environment Setup`)
@@ -399,7 +401,7 @@ Every rule's `### Dependencies` section must conform to these limits (enforced b
 - **Inline style:** FORBIDDEN. Every entry must be a bullet (`- **filename.md** - justification`), not a comma-separated inline list.
 - **`**Depends:**` sync:** Every Must Load First entry must appear as `required:filename.md` in the `**Depends:**` metadata field. Every Related entry must appear as `optional:filename.md`. Order: all `required:` before all `optional:`.
 
-These limits are enforced by the custom gap-check scripts in `.workbench/rule-dep-audit/` and must pass before any rule PR is merged.
+These limits are enforced by `uv run ai-rules validate rules/`, `uv run ai-rules index check`, and the wired CI gates in `tests/test_track_b_ci_gates.py`, and must pass before any rule PR is merged.
 
 ## CommonMark Compliance
 
@@ -475,10 +477,10 @@ LoadTrigger guidance governs how rules declare their dynamic discovery triggers 
 **Keywords:** metadata field. These typed-prefix entries drive agent lookup in `RULES_INDEX.md`.
 
 **When to add typed triggers:**
-- Rule applies to specific file extensions → `ext:.py`, `ext:.sql`, `ext:.tsx`
-- Rule applies to specific filenames → `file:pyproject.toml`, `file:Dockerfile`
-- Rule applies to specific directories → `dir:rules/`, `dir:tests/`
-- Rule provides keyword/activity guidance → `kw:testing`, `kw:performance`
+- Rule applies to specific file extensions, use `ext:.py`, `ext:.sql`, `ext:.tsx`
+- Rule applies to specific filenames, use `file:pyproject.toml`, `file:Dockerfile`
+- Rule applies to specific directories, use `dir:rules/`, `dir:tests/`
+- Rule provides keyword/activity guidance, use `kw:testing`, `kw:performance`
 
 **When to skip:** Foundation/infrastructure rules (always loaded); sub-rules with explicit
 `Depends:` relationships loaded via parent; highly specialized on-demand-only rules.
@@ -490,7 +492,7 @@ LoadTrigger guidance governs how rules declare their dynamic discovery triggers 
 - `kw:<term>` — matches keyword/activity (e.g. `kw:testing`)
 
 **Best practices:**
-- Use 2–4 triggers per rule (combine `ext:` + `kw:` for language rules)
+- Use 2–4 HARD typed triggers (`ext:`, `file:`, `dir:`) per rule, plus 5–7 `kw:` semantic tokens.
 - Use specific, descriptive keywords — avoid overly generic terms matching 5+ rules across different domain families
 - Distinguish useful synonyms (different search terms, e.g. `kw:mock, kw:faker`) from redundant variants (abbreviations of the same term — keep only one)
 - Regenerate the discovery index after any trigger change: `uv run ai-rules index generate`
@@ -500,7 +502,7 @@ LoadTrigger guidance governs how rules declare their dynamic discovery triggers 
 - Redundant variants (`kw:python, kw:py`) — pick one canonical term
 - Adding triggers to foundation rules (000-series) or to sub-rules loaded exclusively via `Depends:`
 
-**Decision process:** (1) Foundation rule? → no trigger. (2) Has parent via `Depends:` only? → no trigger. (3) Specific file types? → add `ext:`/`file:`. (4) Specific activity? → add `kw:`. (5) Combined parent + standalone? → use both `Depends:` and triggers.
+**Decision process:** (1) Foundation rule? Then no trigger. (2) Has parent via `Depends:` only? Then no trigger. (3) Specific file types? Then add `ext:`/`file:`. (4) Specific activity? Then add `kw:`. (5) Combined parent + standalone? Then use both `Depends:` and triggers.
 
 ## Rule Examples
 

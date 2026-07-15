@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:venv
+  - kw:uv run
+  - kw:uvx
+  - kw:poetry run
+  - kw:toolchain detection
+  - kw:ModuleNotFoundError diagnosis
+  - kw:fastapi
+token_budget: ~3000
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Core Python patterns and toolchain detection
+  optional:
+    - 200a-python-validation-gate.md  # Validation gate commands per toolchain
+    - 203-python-project-setup.md  # Project structure and initialization
+---
 # Python Environment and Tooling
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:venv, kw:uv run, kw:uvx, kw:poetry run, kw:toolchain detection, kw:ModuleNotFoundError diagnosis, kw:fastapi
-**TokenBudget:** ~3000
-**ContextTier:** High
-**Depends:** required:200-python-core.md, optional:200a-python-validation-gate.md, optional:203-python-project-setup.md
 
 ## Scope
 
@@ -24,19 +35,9 @@ Virtual environment management, tool isolation patterns (uvx vs uv run), detaile
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Core Python patterns and toolchain detection
-
-**Related:**
-- **200a-python-validation-gate.md** - Validation gate commands per toolchain
-- **203-python-project-setup.md** - Project structure and initialization
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

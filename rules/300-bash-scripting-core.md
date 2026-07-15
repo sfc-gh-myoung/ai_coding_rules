@@ -1,19 +1,31 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:set -euo pipefail
+  - kw:variable quoting
+  - kw:trap cleanup handlers
+  - kw:shellcheck static analysis
+  - kw:local function variables
+  - kw:bash script structure
+  - kw:taskfile
+token_budget: ~3700
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+  optional:
+    - 300a-bash-security.md  # Security patterns for Bash scripts
+    - 300d-bash-advanced.md  # Advanced patterns, performance, code style, debugging
+    - 820-taskfile-automation.md  # Build automation patterns
+---
 # Bash Scripting Core Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Bash patterns. Load for shell scripting tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:set -euo pipefail, kw:variable quoting, kw:trap cleanup handlers, kw:shellcheck static analysis, kw:local function variables, kw:bash script structure, kw:taskfile
-**TokenBudget:** ~3700
-**ContextTier:** High
-**Depends:** required:000-global-core.md, optional:300a-bash-security.md, optional:300d-bash-advanced.md, optional:820-taskfile-automation.md
 
 ## Scope
 
@@ -30,16 +42,6 @@ Foundational bash scripting patterns covering script structure, variables, funct
 - Establishing Bash coding standards for projects
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-
-**Related:**
-- **300a-bash-security.md** - Security patterns for Bash scripts
-- **300d-bash-advanced.md** - Advanced patterns, performance, code style, debugging
-- **820-taskfile-automation.md** - Build automation patterns
 
 ### External Documentation
 

@@ -1,19 +1,30 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:associative arrays
+  - kw:parameter expansion
+  - kw:shellcheck
+  - kw:debug mode
+  - kw:bash built-ins
+  - kw:usage documentation
+  - kw:ci/cd
+token_budget: ~2700
+context_tier: Medium
+depends:
+  required:
+    - 300-bash-scripting-core.md  # Foundation bash patterns (variables, functions, error handling)
+  optional:
+    - 300a-bash-security.md  # Comprehensive security patterns for Bash scripts
+    - 300b-bash-testing-tooling.md  # Testing frameworks and CI/CD tooling
+---
 # Bash Advanced Patterns and Style
 
 > **SUB-RULE: ADVANCED PATTERNS**
 >
 > Advanced bash patterns covering associative arrays, performance optimization,
 > code style standards, debugging, documentation, and security best practices.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:associative arrays, kw:parameter expansion, kw:shellcheck, kw:debug mode, kw:bash built-ins, kw:usage documentation, kw:ci/cd
-**TokenBudget:** ~2700
-**ContextTier:** Medium
-**Depends:** required:300-bash-scripting-core.md, optional:300a-bash-security.md, optional:300b-bash-testing-tooling.md
 
 ## Scope
 
@@ -30,19 +41,9 @@ Advanced bash scripting patterns including associative arrays, performance optim
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **300-bash-scripting-core.md** - Foundation bash patterns (variables, functions, error handling)
-
-**Related:**
-- **300a-bash-security.md** - Comprehensive security patterns for Bash scripts
-- **300b-bash-testing-tooling.md** - Testing frameworks and CI/CD tooling
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

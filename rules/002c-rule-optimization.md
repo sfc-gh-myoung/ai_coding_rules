@@ -1,19 +1,30 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:token budget tiers
+  - kw:progressive rule loading
+  - kw:ai-rules tokens CLI
+  - kw:rule splitting decision tree
+  - kw:context window budget allocation
+  - kw:TokenBudget metadata format
+  - kw:cortex
+token_budget: ~4350
+context_tier: High
+depends:
+  required:
+    - 002-rule-governance.md  # Schema requirements and standards
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 002a-rule-creation.md  # Step-by-step rule creation workflow
+---
 # Rule Optimization: Token Budgets and Performance
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when creating, reviewing, or maintaining rules.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:token budget tiers, kw:progressive rule loading, kw:ai-rules tokens CLI, kw:rule splitting decision tree, kw:context window budget allocation, kw:TokenBudget metadata format, kw:cortex
-**TokenBudget:** ~4350
-**ContextTier:** High
-**Depends:** required:002-rule-governance.md, required:000-global-core.md, optional:002a-rule-creation.md
 
 ## Scope
 
@@ -30,15 +41,6 @@ is Standard tier. A rule at exactly 3500 tokens is Large tier.
 - Sizing rules for specific AI models and context windows
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **002-rule-governance.md** - Schema requirements and standards
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **002a-rule-creation.md** - Step-by-step rule creation workflow
 
 ### External Documentation
 

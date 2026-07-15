@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:snowpipe streaming offset
+  - kw:exactly-once semantics
+  - kw:streaming batch optimization
+  - kw:channel ownership conflicts
+  - kw:pre-insert validation
+  - kw:snowpipe debugging checklist
+  - kw:snowpipe
+token_budget: ~2700
+context_tier: Low
+depends:
+  optional:
+    - 121c-snowflake-snowpipe-troubleshooting.md  # Core troubleshooting patterns and decision tree
+---
 # Snowpipe Advanced Troubleshooting
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:snowpipe streaming offset, kw:exactly-once semantics, kw:streaming batch optimization, kw:channel ownership conflicts, kw:pre-insert validation, kw:snowpipe debugging checklist, kw:snowpipe
-**TokenBudget:** ~2700
-**ContextTier:** Low
-**Depends:** optional:121c-snowflake-snowpipe-troubleshooting.md
 
 ## Scope
 
@@ -25,20 +33,9 @@ Advanced Snowpipe Streaming troubleshooting patterns including offset tracking f
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **121c-snowflake-snowpipe-troubleshooting.md** - Core troubleshooting patterns and decision tree
-- **121a-snowflake-snowpipe-streaming.md** - Streaming Snowpipe core concepts
-
-**Related:**
-- **121b-snowflake-snowpipe-monitoring.md** - Monitoring and alerting
-- **121f-snowflake-snowpipe-monitoring-alerts.md** - Alert configuration
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

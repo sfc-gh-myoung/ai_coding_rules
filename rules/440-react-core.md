@@ -1,19 +1,32 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:feature-based architecture
+  - kw:TanStack Query
+  - kw:RSC server components
+  - kw:Zustand client state
+  - kw:named exports components
+  - kw:shadcn Tailwind patterns
+  - kw:tsx
+token_budget: ~3200
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 420-javascript-core.md  # JavaScript patterns
+    - 430-typescript-core.md  # TypeScript strict typing
+  optional:
+    - 440a-react-anti-patterns.md  # Anti-patterns, error recovery, hydration, resource exhaustion, cleanup, output examples
+    - 441-react-backend.md  # Python backend patterns, API communication, authentication
+---
 # React Core: Modern Architecture & Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential React patterns. Load for React tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.4.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:feature-based architecture, kw:TanStack Query, kw:RSC server components, kw:Zustand client state, kw:named exports components, kw:shadcn Tailwind patterns, kw:tsx
-**TokenBudget:** ~3200
-**ContextTier:** High
-**Depends:** required:000-global-core.md, required:420-javascript-core.md, required:430-typescript-core.md, optional:440a-react-anti-patterns.md, optional:441-react-backend.md
 
 ## Scope
 
@@ -29,17 +42,6 @@ Establishes the definitive standards for developing scalable, maintainable React
 - Reviewing React code for best practices
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **420-javascript-core.md** - JavaScript patterns
-- **430-typescript-core.md** - TypeScript strict typing
-
-**Related:**
-- **440a-react-anti-patterns.md** - Anti-patterns, error recovery, hydration, resource exhaustion, cleanup, output examples
-- **441-react-backend.md** - Python backend patterns, API communication, authentication
 
 ### External Documentation
 

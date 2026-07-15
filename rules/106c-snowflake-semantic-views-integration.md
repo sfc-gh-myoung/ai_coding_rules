@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Cortex Analyst
+  - kw:Cortex Agent grounding
+  - kw:semantic view governance
+  - kw:natural language query synonyms
+  - kw:analyst troubleshooting
+  - kw:policy inheritance base tables
+  - kw:ci/cd
+token_budget: ~3150
+context_tier: Medium
+depends:
+  required:
+    - 106-snowflake-semantic-views-core.md  # DDL fundamentals
+    - 106b-snowflake-semantic-views-querying.md  # Query patterns
+---
 # Snowflake Semantic Views: Integration and Governance
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Cortex Analyst, kw:Cortex Agent grounding, kw:semantic view governance, kw:natural language query synonyms, kw:analyst troubleshooting, kw:policy inheritance base tables, kw:ci/cd
-**TokenBudget:** ~3150
-**ContextTier:** Medium
-**Depends:** required:106-snowflake-semantic-views-core.md, required:106b-snowflake-semantic-views-querying.md
 
 ## Scope
 
@@ -24,13 +33,6 @@ Integrating Snowflake Semantic Views with Cortex Analyst and Cortex Agent, apply
 **For development workflows and VQR, see `106d-snowflake-semantic-views-development.md`.**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule
-- **106-snowflake-semantic-views-core.md** - DDL fundamentals
-- **106b-snowflake-semantic-views-querying.md** - Query patterns
 
 ### External Documentation
 - [Cortex Analyst Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst)

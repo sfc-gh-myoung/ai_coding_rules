@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:SnowparkSQLException
+  - kw:streamlit sql error display
+  - kw:error code display
+  - kw:query context messaging
+  - kw:st.stop cascade prevention
+  - kw:empty dataframe warning
+  - kw:pandas
+token_budget: ~3950
+context_tier: Low
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+    - 100-snowflake-core.md  # Snowflake fundamentals
+    - 101-snowflake-streamlit-core.md  # Core Streamlit patterns
+  optional:
+    - 100f-snowflake-connection-errors.md  # Connection error classification and handling
+    - 101c-snowflake-streamlit-security.md  # Input validation for SQL injection prevention
+---
 # Streamlit SQL Error Handling Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:SnowparkSQLException, kw:streamlit sql error display, kw:error code display, kw:query context messaging, kw:st.stop cascade prevention, kw:empty dataframe warning, kw:pandas
-**TokenBudget:** ~3950
-**ContextTier:** Low
-**Depends:** required:000-global-core.md, required:100-snowflake-core.md, required:101-snowflake-streamlit-core.md, optional:100f-snowflake-connection-errors.md, optional:101c-snowflake-streamlit-security.md
 
 ## Scope
 
@@ -25,17 +38,6 @@ Comprehensive SQL error handling patterns for Streamlit applications using Snowp
 - Building user-friendly SQL error displays
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **100-snowflake-core.md** - Snowflake fundamentals
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
-
-**Related:**
-- **100f-snowflake-connection-errors.md** - Connection error classification and handling
-- **101c-snowflake-streamlit-security.md** - Input validation for SQL injection prevention
 
 ### External Documentation
 

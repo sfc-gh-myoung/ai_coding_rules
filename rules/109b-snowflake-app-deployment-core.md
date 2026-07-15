@@ -1,19 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:staged application lifecycle
+  - kw:five-step deployment workflow
+  - kw:AUTO_COMPRESS FALSE
+  - kw:REMOVE before PUT
+  - kw:Streamlit ADD LIVE VERSION
+  - kw:stage as source of truth
+  - kw:ci/cd
+token_budget: ~4100
+context_tier: Medium
+depends:
+  required:
+    - 109-snowflake-notebooks.md  # Notebook deployment object lifecycle patterns
+---
 # Snowflake Application Deployment Automation - Core Patterns
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential App Deployment patterns. Load for deployment tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:staged application lifecycle, kw:five-step deployment workflow, kw:AUTO_COMPRESS FALSE, kw:REMOVE before PUT, kw:Streamlit ADD LIVE VERSION, kw:stage as source of truth, kw:ci/cd
-**TokenBudget:** ~4100
-**ContextTier:** Medium
-**Depends:** required:109-snowflake-notebooks.md
 
 ## Scope
 
@@ -33,14 +41,6 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 - [CREATE NOTEBOOK](https://docs.snowflake.com/en/sql-reference/sql/create-notebook) - Official Notebook deployment syntax
 - [PUT Command](https://docs.snowflake.com/en/sql-reference/sql/put) - Stage file upload reference
 - [Internal Stages](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Stage management guide
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **100-snowflake-core.md** - Snowflake SQL, stage management, and PUT command patterns
-- **109-snowflake-notebooks.md** - Notebook deployment object lifecycle patterns
-
 
 ## Contract
 

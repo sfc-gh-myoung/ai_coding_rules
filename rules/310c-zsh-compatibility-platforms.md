@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:cross-shell testing
+  - kw:platform compatibility
+  - kw:environment detection
+  - kw:performance benchmarking
+  - kw:BSD vs GNU
+  - kw:multi-shell project organization
+token_budget: ~2650
+context_tier: Low
+depends:
+  required:
+    - 310b-zsh-compatibility.md  # Cross-shell compatibility patterns and shell detection
+  optional:
+    - 310-zsh-scripting-core.md  # Foundation zsh scripting patterns
+    - 310a-zsh-advanced-features.md  # Advanced zsh features
+    - 300-bash-scripting-core.md  # Foundation bash scripting patterns
+---
 # Zsh Compatibility: Platforms, Testing, and Performance
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:cross-shell testing, kw:platform compatibility, kw:environment detection, kw:performance benchmarking, kw:BSD vs GNU, kw:multi-shell project organization
-**TokenBudget:** ~2650
-**ContextTier:** Low
-**Depends:** required:310b-zsh-compatibility.md, optional:310-zsh-scripting-core.md, optional:310a-zsh-advanced-features.md, optional:300-bash-scripting-core.md
 
 ## Scope
 
@@ -23,16 +34,6 @@ Environment detection and adaptation, cross-shell testing strategies, platform-s
 - Detecting and adapting to runtime environment
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **310b-zsh-compatibility.md** - Cross-shell compatibility patterns and shell detection
-
-**Related:**
-- **310-zsh-scripting-core.md** - Foundation zsh scripting patterns
-- **310a-zsh-advanced-features.md** - Advanced zsh features
-- **300-bash-scripting-core.md** - Foundation bash scripting patterns
 
 ### External Documentation
 

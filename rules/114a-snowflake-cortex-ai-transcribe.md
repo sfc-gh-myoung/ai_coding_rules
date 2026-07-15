@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:AI_TRANSCRIBE
+  - kw:TO_FILE syntax
+  - kw:speaker diarization
+  - kw:audio transcription
+  - kw:FILE type reference
+  - kw:staged audio formats
+  - kw:ai_complete
+token_budget: ~3500
+context_tier: Medium
+depends:
+  required:
+    - 114-snowflake-cortex-aisql.md  # Core Cortex AISQL patterns, governance, and cost control
+---
 # Snowflake Cortex AI_TRANSCRIBE Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:AI_TRANSCRIBE, kw:TO_FILE syntax, kw:speaker diarization, kw:audio transcription, kw:FILE type reference, kw:staged audio formats, kw:ai_complete
-**TokenBudget:** ~3500
-**ContextTier:** Medium
-**Depends:** required:114-snowflake-cortex-aisql.md
 
 ## Scope
 
@@ -45,16 +53,6 @@ Audio transcription patterns using Snowflake Cortex AI_TRANSCRIBE, including cor
 > "Your .mp3 files are supported. Here's the TO_FILE pattern for batch transcription..."
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **114-snowflake-cortex-aisql.md** - Core Cortex AISQL patterns, governance, and cost control
-- **100-snowflake-core.md** - Snowflake foundation patterns
-
-**Related:**
-- **108-snowflake-data-loading.md** - Stage management for audio files
-- **111-snowflake-observability-core.md** - Observability and tracing
 
 ### External Documentation
 

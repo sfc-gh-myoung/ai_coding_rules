@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:streamlit deployment troubleshooting
+  - kw:sis typeerror
+  - kw:auto_compress debugging
+  - kw:stage file diagnostics
+  - kw:live_version_location_uri
+  - kw:notebook cache clearing
+  - kw:deployment permission debugging
+token_budget: ~4450
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+    - 100-snowflake-core.md  # Snowflake SQL, stage operations, and diagnostic commands
+    - 101-snowflake-streamlit-core.md  # Core Streamlit patterns for deployment context
+---
 # Snowflake Application Deployment - Troubleshooting & Anti-Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:streamlit deployment troubleshooting, kw:sis typeerror, kw:auto_compress debugging, kw:stage file diagnostics, kw:live_version_location_uri, kw:notebook cache clearing, kw:deployment permission debugging
-**TokenBudget:** ~4450
-**ContextTier:** Medium
-**Depends:** required:000-global-core.md, required:100-snowflake-core.md, required:101-snowflake-streamlit-core.md
 
 ## Scope
 
@@ -29,14 +39,6 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 - [Snowflake Notebooks Troubleshooting](https://docs.snowflake.com/en/user-guide/ui-snowsight-notebooks-troubleshoot) - Notebook debugging
 - [Stage Management](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Stage operations reference
 - [Python Imports in Snowflake](https://docs.snowflake.com/en/developer-guide/udf/python/udf-python-packages) - Package and import handling
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **100-snowflake-core.md** - Snowflake SQL, stage operations, and diagnostic commands
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns for deployment context
-
 
 ## Contract
 

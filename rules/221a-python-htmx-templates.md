@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Jinja2 partials
+  - kw:HTMX fragment rendering
+  - kw:template directory organization
+  - kw:conditional HTMX detection
+  - kw:reusable template macros
+  - kw:partial inheritance anti-patterns
+  - kw:fastapi
+token_budget: ~4500
+context_tier: High
+depends:
+  required:
+    - 221-python-htmx-core.md  # HTMX foundation patterns
+  optional:
+    - 221c-python-htmx-fastapi.md  # FastAPI template setup
+    - 221e-python-htmx-patterns.md  # Template patterns for CRUD, forms, etc.
+    - 221b-python-htmx-flask.md  # Flask-specific template patterns
+---
 # HTMX Template Strategies
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Jinja2 partials, kw:HTMX fragment rendering, kw:template directory organization, kw:conditional HTMX detection, kw:reusable template macros, kw:partial inheritance anti-patterns, kw:fastapi
-**TokenBudget:** ~4500
-**ContextTier:** High
-**Depends:** required:221-python-htmx-core.md, optional:221c-python-htmx-fastapi.md, optional:221e-python-htmx-patterns.md, optional:221b-python-htmx-flask.md
 
 ## Scope
 
@@ -23,16 +35,6 @@ Jinja2 template organization patterns for HTMX applications, covering partial re
 - Managing template context for HTMX endpoints
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **221-python-htmx-core.md** - HTMX foundation patterns
-
-**Related:**
-- **221b-python-htmx-flask.md** - Flask-specific template patterns
-- **221c-python-htmx-fastapi.md** - FastAPI template setup
-- **221e-python-htmx-patterns.md** - Template patterns for CRUD, forms, etc.
 
 ### External Documentation
 
@@ -500,7 +502,6 @@ def app():
     app.config['TESTING'] = True
     return app
 
-
 def test_user_row_partial(app):
     """Test that user row partial renders correct HTML structure."""
     with app.app_context():
@@ -511,7 +512,6 @@ def test_user_row_partial(app):
         assert 'id="user-42"' in html
         assert 'Jane Doe' in html
         assert 'hx-delete=' in html  # Delete button present
-
 
 def test_validation_errors_partial(app):
     """Test error partial with multiple fields."""

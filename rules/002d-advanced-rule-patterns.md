@@ -1,19 +1,32 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:system prompt altitude
+  - kw:investigation-first protocol
+  - kw:multi-session workflows
+  - kw:anti-pattern library structure
+  - kw:parallel execution design
+  - kw:goldilocks zone heuristics
+  - kw:fastapi
+token_budget: ~4000
+context_tier: Medium
+depends:
+  required:
+    - 002-rule-governance.md  # Schema requirements and standards
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 002a-rule-creation.md  # Step-by-step rule creation workflow
+    - 002c-rule-optimization.md  # Token budgets and performance
+    - 004-tool-design-for-agents.md  # Tool Design Altitude patterns (moved from this rule)
+---
 # Advanced Rule Patterns: System Prompt Altitude & Complex Workflows
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when creating, reviewing, or maintaining rules.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:system prompt altitude, kw:investigation-first protocol, kw:multi-session workflows, kw:anti-pattern library structure, kw:parallel execution design, kw:goldilocks zone heuristics, kw:fastapi
-**TokenBudget:** ~4000
-**ContextTier:** Medium
-**Depends:** required:002-rule-governance.md, required:000-global-core.md, optional:002a-rule-creation.md, optional:002c-rule-optimization.md, optional:004-tool-design-for-agents.md
 
 ## Scope
 
@@ -28,17 +41,6 @@ Advanced patterns for writing rules that balance specificity with flexibility. F
 - Avoiding common rule design pitfalls
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **002-rule-governance.md** - Schema requirements and standards
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **002a-rule-creation.md** - Step-by-step rule creation workflow
-- **002c-rule-optimization.md** - Token budgets and performance
-- **004-tool-design-for-agents.md** - Tool Design Altitude patterns (moved from this rule)
 
 ### External Documentation
 

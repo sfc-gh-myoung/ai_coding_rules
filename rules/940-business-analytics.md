@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:business intelligence dashboards
+  - kw:WCAG accessibility compliance
+  - kw:KPI visualization
+  - kw:Snowsight dashboard patterns
+  - kw:data storytelling narrative
+  - kw:ethical visualization standards
+  - kw:snowsight
+token_budget: ~4150
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 100-snowflake-core.md  # Snowflake SQL patterns
+  optional:
+    - 101-snowflake-streamlit-core.md  # Streamlit dashboard patterns
+    - 920-data-science-analytics.md  # Analytics and visualization patterns
+    - 132-snowflake-demo-modeling.md  # Data modeling and naming conventions
+---
 # Business Analytics & Reporting Directives
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:business intelligence dashboards, kw:WCAG accessibility compliance, kw:KPI visualization, kw:Snowsight dashboard patterns, kw:data storytelling narrative, kw:ethical visualization standards, kw:snowsight
-**TokenBudget:** ~4150
-**ContextTier:** High
-**Depends:** required:000-global-core.md, required:100-snowflake-core.md, optional:101-snowflake-streamlit-core.md, optional:920-data-science-analytics.md, optional:132-snowflake-demo-modeling.md
 
 ## Scope
 
@@ -23,17 +36,6 @@ Comprehensive directives for creating business-oriented queries, reports, dashbo
 - Implementing data storytelling and narrative-driven reports
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **100-snowflake-core.md** - Snowflake SQL patterns
-
-**Related:**
-- **101-snowflake-streamlit-core.md** - Streamlit dashboard patterns
-- **920-data-science-analytics.md** - Analytics and visualization patterns
-- **132-snowflake-demo-modeling.md** - Data modeling and naming conventions
 
 ### External Documentation
 
@@ -389,7 +391,6 @@ def get_metric(name: str) -> dict:
         "owner": metric["owner"],
         "update_frequency": metric["update_frequency"]
     }
-
 
 def get_dashboard_data(session, metric_names: list[str], filters: dict = None) -> dict:
     """Programmatic dashboard data access for agents.

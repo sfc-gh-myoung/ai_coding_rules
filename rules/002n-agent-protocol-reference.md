@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:agent bootstrap protocol
+  - kw:PRE-FLIGHT gate compliance
+  - kw:RULES_INDEX grep discovery
+  - kw:ACT authorization recognition
+  - kw:task switch detection
+  - kw:fabricated gate anti-pattern
+  - kw:cortex
+token_budget: ~4900
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md
+---
 # 002n-agent-protocol-reference: Agent Protocol Reference
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:agent bootstrap protocol, kw:PRE-FLIGHT gate compliance, kw:RULES_INDEX grep discovery, kw:ACT authorization recognition, kw:task switch detection, kw:fabricated gate anti-pattern, kw:cortex
-**TokenBudget:** ~4900
-**ContextTier:** Medium
-**Depends:** required:000-global-core.md
 
 ## Scope
 
@@ -23,7 +31,6 @@ Agent protocol reference: anti-patterns, quality gates, task-switch examples, fa
 **What This Rule Covers:**
 Reference material for the AGENTS.md agent bootstrap protocol — anti-patterns, quality gates, task-switch examples, failure modes, project tool discovery, and term definitions.
 
-
 ## References
 
 - AGENTS.md: The main bootstrap protocol that this rule supplements
@@ -33,13 +40,6 @@ Reference material for the AGENTS.md agent bootstrap protocol — anti-patterns,
 ### External Documentation
 
 _None._
-
-### Dependencies
-
-**Must Load First:**
-- [000-global-core.md](000-global-core.md)
-
-
 
 ## Contract
 

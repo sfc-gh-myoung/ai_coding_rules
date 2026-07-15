@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:FastAPI health endpoints
+  - kw:correlation ID middleware
+  - kw:structured JSON logging
+  - kw:Redis caching layer
+  - kw:MetricsMiddleware performance tracking
+  - kw:sensitive data sanitization
+  - kw:fastapi
+token_budget: ~4300
+context_tier: Medium
+depends:
+  required:
+    - 210-python-fastapi-core.md
+---
 # FastAPI Monitoring and Performance
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:FastAPI health endpoints, kw:correlation ID middleware, kw:structured JSON logging, kw:Redis caching layer, kw:MetricsMiddleware performance tracking, kw:sensitive data sanitization, kw:fastapi
-**TokenBudget:** ~4300
-**ContextTier:** Medium
-**Depends:** required:210-python-fastapi-core.md
 
 ## Scope
 
@@ -24,12 +32,6 @@ Establish monitoring, logging, and performance optimization patterns for FastAPI
 - [FastAPI Middleware Guide](https://fastapi.tiangolo.com/tutorial/middleware/) - Custom middleware, CORS, and request processing
 - [Python Logging Documentation](https://docs.python.org/3/library/logging.html) - Structured logging, handlers, and formatters
 - [Redis Python Async](https://redis-py.readthedocs.io/en/stable/) - Async Redis operations and connection pooling
-
-### Dependencies
-
-**Must Load First:**
-- [210-python-fastapi-core.md](210-python-fastapi-core.md)
-
 
 ## Contract
 
@@ -500,13 +502,11 @@ def test_metrics_endpoint_exists(client):
     assert response.status_code == 200
     assert "http_requests_total" in response.text
 
-
 def test_error_increments_counter(client):
     # Trigger a 500 error
     client.get("/api/will-fail")
     response = client.get("/metrics")
     assert 'http_requests_total{method="GET",status="500"' in response.text
-
 
 def test_health_returns_200(client):
     response = client.get("/health")

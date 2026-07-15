@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:RBAC role hierarchy
+  - kw:masking policy attachment
+  - kw:row access policy enforcement
+  - kw:object tagging governance
+  - kw:data metric function scheduling
+  - kw:least privilege grant design
+  - kw:dmf
+token_budget: ~4000
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md
+---
 # Snowflake Security Governance
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:RBAC role hierarchy, kw:masking policy attachment, kw:row access policy enforcement, kw:object tagging governance, kw:data metric function scheduling, kw:least privilege grant design, kw:dmf
-**TokenBudget:** ~4000
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md
 
 ## Scope
 
@@ -40,12 +48,6 @@ Comprehensive data security and access control practices using Snowflake's gover
 - [Introduction to data quality and DMFs](https://docs.snowflake.com/en/user-guide/data-quality-intro) - Data metric functions, expectations, scheduling, billing
 - [Data Profile](https://docs.snowflake.com/en/user-guide/data-quality-profile) - Profiling datasets to baseline and discover issues
 - [Working with data quality](https://docs.snowflake.com/en/user-guide/data-quality-working) - Associate, schedule, monitor, and manage DMFs
-
-### Dependencies
-
-**Must Load First:**
-- [100-snowflake-core.md](100-snowflake-core.md)
-
 
 ## Contract
 

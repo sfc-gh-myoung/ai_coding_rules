@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Kimball dimensional modeling
+  - kw:fact dimension FK naming
+  - kw:view taxonomy prefixes
+  - kw:synthetic data referential integrity
+  - kw:business-first column naming
+  - kw:SCD Type 2 surrogate keys
+  - kw:etl
+token_budget: ~4350
+context_tier: High
+depends:
+  required:
+    - 130-snowflake-demo-sql.md  # Demo SQL patterns
+    - 131-snowflake-demo-creation.md  # Demo creation and synthetic data
+  optional:
+    - 930-data-governance-quality.md  # Data governance and quality patterns
+    - 940-business-analytics.md  # Business analytics patterns
+---
 # Snowflake Demo: Data Modeling and Generation
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Kimball dimensional modeling, kw:fact dimension FK naming, kw:view taxonomy prefixes, kw:synthetic data referential integrity, kw:business-first column naming, kw:SCD Type 2 surrogate keys, kw:etl
-**TokenBudget:** ~4350
-**ContextTier:** High
-**Depends:** required:130-snowflake-demo-sql.md, required:131-snowflake-demo-creation.md, optional:930-data-governance-quality.md, optional:940-business-analytics.md
 
 ## Scope
 
@@ -23,17 +35,6 @@ Comprehensive data generation and modeling standards for Business Analysts, Exec
 - Implementing backward-compatible schema changes
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **130-snowflake-demo-sql.md** - Demo SQL patterns
-- **131-snowflake-demo-creation.md** - Demo creation and synthetic data
-
-**Related:**
-- **930-data-governance-quality.md** - Data governance and quality patterns
-- **940-business-analytics.md** - Business analytics patterns
-- **100-snowflake-core.md** - Snowflake SQL patterns
 
 ### External Documentation
 

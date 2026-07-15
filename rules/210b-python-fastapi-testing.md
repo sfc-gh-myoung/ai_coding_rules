@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:TestClient fixture
+  - kw:dependency overrides
+  - kw:pytest-asyncio configuration
+  - kw:test database isolation
+  - kw:AAA pattern enforcement
+  - kw:httpx AsyncClient
+  - kw:TOML
+token_budget: ~3950
+context_tier: High
+depends:
+  required:
+    - 210-python-fastapi-core.md  # FastAPI foundation patterns
+  optional:
+    - 200-python-core.md  # Python core testing patterns
+    - 206-python-pytest.md  # Pytest patterns and best practices
+---
 # FastAPI Testing Strategies
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:TestClient fixture, kw:dependency overrides, kw:pytest-asyncio configuration, kw:test database isolation, kw:AAA pattern enforcement, kw:httpx AsyncClient, kw:TOML
-**TokenBudget:** ~3950
-**ContextTier:** High
-**Depends:** required:210-python-fastapi-core.md, optional:200-python-core.md, optional:206-python-pytest.md
 
 ## Scope
 
@@ -23,15 +34,6 @@ Comprehensive testing strategies for FastAPI applications. Covers TestClient usa
 - Mocking external services in tests
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **210-python-fastapi-core.md** - FastAPI foundation patterns
-
-**Related:**
-- **200-python-core.md** - Python core testing patterns
-- **206-python-pytest.md** - Pytest patterns and best practices
 
 ### External Documentation
 
@@ -382,7 +384,6 @@ def test_websocket_echo():
             ws.send_text("hello")
             data = ws.receive_text()
             assert data == "Echo: hello"
-
 
 def test_websocket_disconnect():
     with TestClient(app) as client:

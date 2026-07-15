@@ -1,19 +1,30 @@
+---
+schema_version: v3.5
+rule_version: v2.0.1
+last_updated: 2026-07-15
+keywords:
+  - kw:SQL scripting
+  - kw:dollar quoting
+  - kw:EXECUTE AS
+  - kw:EXECUTE IMMEDIATE
+  - kw:bind variables
+  - kw:procedure body quoting
+  - ext:.sql
+token_budget: ~5700
+context_tier: High
+depends:
+  required:
+    - 102-snowflake-sql-core.md  # SQL file patterns, fully qualified names, reserved characters
+  optional:
+    - 102a-snowflake-sql-automation.md  # Production CI/CD patterns for SQL deployment
+    - 100-snowflake-core.md  # Snowflake fundamentals
+---
 # Snowflake SQL: Stored Procedures and UDFs
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential patterns for Snowflake SQL Scripting stored procedures and UDFs.
 > Load when creating or modifying procedures/functions using LANGUAGE SQL.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:SQL scripting, kw:dollar quoting, kw:EXECUTE AS, kw:EXECUTE IMMEDIATE, kw:bind variables, kw:procedure body quoting, kw:ci/cd
-**TokenBudget:** ~5700
-**ContextTier:** High
-**Depends:** required:102-snowflake-sql-core.md, optional:102a-snowflake-sql-automation.md, optional:100-snowflake-core.md
 
 ## Scope
 
@@ -30,15 +41,6 @@ Best practices for authoring Snowflake SQL Scripting stored procedures and user-
 - Debugging quoting or escaping errors in procedures
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **102-snowflake-sql-core.md** - SQL file patterns, fully qualified names, reserved characters
-
-**Related:**
-- **102a-snowflake-sql-automation.md** - Production CI/CD patterns for SQL deployment
-- **100-snowflake-core.md** - Snowflake fundamentals
 
 ### External Documentation
 

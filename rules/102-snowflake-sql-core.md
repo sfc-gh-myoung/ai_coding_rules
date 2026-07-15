@@ -1,19 +1,31 @@
+---
+schema_version: v3.5
+rule_version: v2.0.1
+last_updated: 2026-07-15
+keywords:
+  - kw:SQL file headers
+  - kw:COPY INTO ON_ERROR placement
+  - kw:CREATE VIEW COMMENT syntax
+  - kw:fully qualified object names
+  - kw:CLI templating reserved characters
+  - kw:idempotent DDL patterns
+  - ext:.sql
+token_budget: ~4100
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake fundamentals
+  optional:
+    - 130-snowflake-demo-sql.md  # Demo/workshop SQL patterns (extends this rule)
+    - 102a-snowflake-sql-automation.md  # Production CI/CD patterns (extends this rule)
+    - 112-snowflake-snowcli.md  # Snowflake CLI usage
+---
 # Snowflake SQL: Core File Patterns
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential SQL file authoring patterns for Snowflake.
 > Load for any SQL file creation. Demo and production rules extend this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.6.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:SQL file headers, kw:COPY INTO ON_ERROR placement, kw:CREATE VIEW COMMENT syntax, kw:fully qualified object names, kw:CLI templating reserved characters, kw:idempotent DDL patterns, kw:ci/cd
-**TokenBudget:** ~4100
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, optional:130-snowflake-demo-sql.md, optional:102a-snowflake-sql-automation.md, optional:112-snowflake-snowcli.md
 
 ## Scope
 
@@ -28,16 +40,6 @@ Essential SQL file authoring patterns for Snowflake: file headers, COPY INTO syn
 - Setting up SQL file standards for a project
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake fundamentals
-
-**Related:**
-- **130-snowflake-demo-sql.md** - Demo/workshop SQL patterns (extends this rule)
-- **102a-snowflake-sql-automation.md** - Production CI/CD patterns (extends this rule)
-- **112-snowflake-snowcli.md** - Snowflake CLI usage
 
 ### External Documentation
 

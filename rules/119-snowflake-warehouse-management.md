@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:virtual warehouse creation
+  - kw:warehouse sizing strategy
+  - kw:auto-suspend configuration
+  - kw:warehouse type selection
+  - kw:GEN 2 warehouse
+  - kw:adaptive warehouse tuning
+  - kw:etl
+token_budget: ~8900
+context_tier: High
+depends:
+  required:
+    - 103-snowflake-performance-tuning.md  # Performance optimization patterns
+    - 105-snowflake-cost-governance.md  # Cost monitoring and optimization
+---
 # Snowflake Warehouse Management
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.6.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:virtual warehouse creation, kw:warehouse sizing strategy, kw:auto-suspend configuration, kw:warehouse type selection, kw:GEN 2 warehouse, kw:adaptive warehouse tuning, kw:etl
-**TokenBudget:** ~8900
-**ContextTier:** High
-**Depends:** required:103-snowflake-performance-tuning.md, required:105-snowflake-cost-governance.md
 
 ## Scope
 
@@ -55,17 +64,6 @@ Comprehensive best practices for creating, configuring, and managing Snowflake v
 **Note:** Gen2 supports XSMALL through X4LARGE only (X5LARGE/X6LARGE not supported)
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake fundamentals
-- **103-snowflake-performance-tuning.md** - Performance optimization patterns
-- **105-snowflake-cost-governance.md** - Cost monitoring and optimization
-
-**Related:**
-- **107-snowflake-security-governance.md** - Security and access control
-- **111-snowflake-observability-core.md** - Monitoring and logging
 
 ### External Documentation
 

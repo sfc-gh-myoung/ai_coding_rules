@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:connection error classification
+  - kw:network policy violation detection
+  - kw:message-first error analysis
+  - kw:VPN disconnect diagnosis
+  - kw:snowflake.connector.errors.DatabaseError
+  - kw:error code 08001 ambiguity
+  - kw:snowpark
+token_budget: ~3900
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake fundamentals and connection patterns
+  optional:
+    - 101e-snowflake-streamlit-sql-errors.md  # SQL error handling patterns for Streamlit
+    - 101b-snowflake-streamlit-performance.md  # Connection caching with @st.cache_resource
+---
 # Snowflake Connection Error Classification
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:connection error classification, kw:network policy violation detection, kw:message-first error analysis, kw:VPN disconnect diagnosis, kw:snowflake.connector.errors.DatabaseError, kw:error code 08001 ambiguity, kw:snowpark
-**TokenBudget:** ~3900
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, optional:101e-snowflake-streamlit-sql-errors.md, optional:101b-snowflake-streamlit-performance.md
 
 ## Scope
 
@@ -24,15 +35,6 @@ Systematic error classification for Snowflake connection errors using message-fi
 - Handling error code 08001 ambiguity (VPN/auth/network/URL)
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake fundamentals and connection patterns
-
-**Related:**
-- **101e-snowflake-streamlit-sql-errors.md** - SQL error handling patterns for Streamlit
-- **101b-snowflake-streamlit-performance.md** - Connection caching with @st.cache_resource
 
 ### External Documentation
 

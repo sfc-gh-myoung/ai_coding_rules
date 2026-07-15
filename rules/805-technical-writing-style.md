@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:technical writing style
+  - kw:sentence case headings
+  - kw:inclusive language
+  - kw:active voice prose
+  - kw:fenced code block language identifier
+  - kw:descriptive link text
+token_budget: ~3350
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns
+  optional:
+    - 801-project-readme.md  # README-specific structure and required sections
+    - 804-project-documentation.md  # docs/ folder organization
+    - 002g-agent-optimization.md  # Contrasting audience: rule files for agents
+---
 # Technical Writing Style for Human-Facing Documentation
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:technical writing style, kw:sentence case headings, kw:inclusive language, kw:active voice prose, kw:fenced code block language identifier, kw:descriptive link text
-**TokenBudget:** ~3350
-**ContextTier:** Medium
-**Depends:** required:000-global-core.md, optional:801-project-readme.md, optional:804-project-documentation.md, optional:002g-agent-optimization.md
 
 ## Scope
 
@@ -34,18 +45,6 @@ Writing standards for human-facing project documentation — voice, tone, senten
 - Establishing writing standards for a new project
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-
-- **000-global-core.md** - Foundation rule with core patterns
-
-**Related:**
-
-- **801-project-readme.md** - README-specific structure and required sections
-- **804-project-documentation.md** - docs/ folder organization
-- **002g-agent-optimization.md** - Contrasting audience: rule files for agents
 
 ### External Documentation
 

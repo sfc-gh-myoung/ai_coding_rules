@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Streamlit runtime migration
+  - kw:environment.yml to pyproject.toml
+  - kw:get_active_session replacement
+  - kw:Container Runtime infrastructure
+  - kw:bidirectional runtime swap
+  - kw:in-place Streamlit upgrade
+  - kw:TOML
+token_budget: ~2800
+context_tier: Low
+depends:
+  optional:
+    - 101l-snowflake-streamlit-deployment.md  # Runtime selection, EAI setup, compute pool creation
+---
 # Streamlit Deployment Migration Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Streamlit runtime migration, kw:environment.yml to pyproject.toml, kw:get_active_session replacement, kw:Container Runtime infrastructure, kw:bidirectional runtime swap, kw:in-place Streamlit upgrade, kw:TOML
-**TokenBudget:** ~2800
-**ContextTier:** Low
-**Depends:** optional:101l-snowflake-streamlit-deployment.md
 
 ## Scope
 
@@ -24,18 +32,9 @@ Streamlit deployment migration patterns: Warehouse ↔ Container Runtime migrati
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **101l-snowflake-streamlit-deployment.md** - Runtime selection, EAI setup, compute pool creation
-
-**Related:**
-- **101c-snowflake-streamlit-security.md** - Secrets migration patterns
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

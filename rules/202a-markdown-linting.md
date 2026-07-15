@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:pymarkdownlnt
+  - kw:markdown linting
+  - kw:uvx pymarkdownlnt
+  - kw:.pymarkdown.yml
+  - kw:MD013 line length
+  - kw:markdown automation integration
+  - kw:TOML
+token_budget: ~2800
+context_tier: Low
+depends:
+  required:
+    - 202-markup-config-validation.md  # Parent rule for markup and config validation
+  optional:
+    - 820-taskfile-automation.md
+---
 # Markdown Linting
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:pymarkdownlnt, kw:markdown linting, kw:uvx pymarkdownlnt, kw:.pymarkdown.yml, kw:MD013 line length, kw:markdown automation integration, kw:TOML
-**TokenBudget:** ~2800
-**ContextTier:** Low
-**Depends:** required:202-markup-config-validation.md, optional:820-taskfile-automation.md
 
 ## Scope
 
@@ -22,14 +32,6 @@ Markdown linting patterns, tool configuration, and integration for consistent do
 - Fixing Markdown formatting issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **202-markup-config-validation.md** - Parent rule for markup and config validation
-
-**Related:**
-- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
 
 ### External Documentation
 

@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:FastAPI HTMX authentication
+  - kw:HX-Redirect header
+  - kw:SSE streaming FastAPI
+  - kw:call_soon_threadsafe queue
+  - kw:Starlette-WTF CSRF
+  - kw:HTTPBearer dependency injection
+  - kw:fastapi
+token_budget: ~2400
+context_tier: Medium
+depends:
+  optional:
+    - 221c-python-htmx-fastapi.md  # Core FastAPI+HTMX patterns (Jinja2Templates, DI, async routes)
+    - 210a-python-fastapi-security.md  # FastAPI security patterns
+    - 221g-python-htmx-sse.md  # General SSE patterns
+---
 # 221h: FastAPI + HTMX Authentication, SSE & CSRF
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:FastAPI HTMX authentication, kw:HX-Redirect header, kw:SSE streaming FastAPI, kw:call_soon_threadsafe queue, kw:Starlette-WTF CSRF, kw:HTTPBearer dependency injection, kw:fastapi
-**TokenBudget:** ~2400
-**ContextTier:** Medium
-**Depends:** optional:221c-python-htmx-fastapi.md, optional:210a-python-fastapi-security.md, optional:221g-python-htmx-sse.md
 
 ## Scope
 
@@ -22,17 +32,6 @@ Authentication, Server-Sent Events (SSE), and CSRF protection patterns for FastA
 - Handling 401/403 redirects for HTMX requests
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **221c-python-htmx-fastapi.md** - Core FastAPI+HTMX patterns (Jinja2Templates, DI, async routes)
-- **221-python-htmx-core.md** - HTMX foundation patterns
-
-**Related:**
-- **210a-python-fastapi-security.md** - FastAPI security patterns
-- **221g-python-htmx-sse.md** - General SSE patterns
-- **221d-python-htmx-testing.md** - Testing auth+HTMX
 
 ### External Documentation
 

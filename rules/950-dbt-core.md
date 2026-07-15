@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:dbt project object
+  - kw:EXECUTE DBT PROJECT
+  - kw:profiles.yml snowflake
+  - kw:snow dbt deploy
+  - kw:dbt workspaces
+  - kw:dbt external access integration
+  - kw:ci/cd
+token_budget: ~5200
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake SQL patterns, object naming, security
+    - 200-python-core.md  # Python development standards (dbt uses Python)
+  optional:
+    - 951-create-dbt-semantic-view.md  # Building Snowflake semantic views as dbt materializations
+    - 104-snowflake-streams-tasks.md  # Task scheduling patterns for orchestrating dbt runs
+    - 111-snowflake-observability-core.md  # Telemetry setup for dbt monitoring
+---
 # dbt Projects on Snowflake
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:dbt project object, kw:EXECUTE DBT PROJECT, kw:profiles.yml snowflake, kw:snow dbt deploy, kw:dbt workspaces, kw:dbt external access integration, kw:ci/cd
-**TokenBudget:** ~5200
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:200-python-core.md, optional:951-create-dbt-semantic-view.md, optional:104-snowflake-streams-tasks.md, optional:111-snowflake-observability-core.md
 
 ## Scope
 
@@ -24,17 +37,6 @@ Best practices for using dbt Projects on Snowflake, Snowflake's native integrati
 - Troubleshooting dbt project deployment, execution, or dependency issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake SQL patterns, object naming, security
-- **200-python-core.md** - Python development standards (dbt uses Python)
-
-**Related:**
-- **951-create-dbt-semantic-view.md** - Building Snowflake semantic views as dbt materializations
-- **104-snowflake-streams-tasks.md** - Task scheduling patterns for orchestrating dbt runs
-- **111-snowflake-observability-core.md** - Telemetry setup for dbt monitoring
 
 ### External Documentation
 

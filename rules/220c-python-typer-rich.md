@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Rich library
+  - kw:Typer Rich integration
+  - kw:shared console module
+  - kw:dual console stdout stderr
+  - kw:color detection environment
+  - kw:Live progress display
+  - kw:pytest
+token_budget: ~3450
+context_tier: Medium
+depends:
+  required:
+    - 220-python-typer-cli.md  # Core Typer CLI patterns
+  optional:
+    - 220b-python-typer-testing.md  # Testing with ANSI suppression
+---
 # Python Typer CLI Rich Integration
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Rich library, kw:Typer Rich integration, kw:shared console module, kw:dual console stdout stderr, kw:color detection environment, kw:Live progress display, kw:pytest
-**TokenBudget:** ~3450
-**ContextTier:** Medium
-**Depends:** required:220-python-typer-cli.md, optional:220b-python-typer-testing.md
 
 ## Scope
 
@@ -23,18 +33,9 @@ Rich library integration with Typer CLI applications including shared console pa
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **220-python-typer-cli.md** - Core Typer CLI patterns
-
-**Related:**
-- **220b-python-typer-testing.md** - Testing with ANSI suppression
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 
@@ -188,31 +189,25 @@ _use_color = _should_use_color()
 _stdout = Console(no_color=not _use_color, force_terminal=_use_color)
 _stderr = Console(stderr=True, no_color=not _use_color, force_terminal=_use_color)
 
-
 def get_console() -> Console:
     """Get the stdout console for data output."""
     return _stdout
-
 
 def get_error_console() -> Console:
     """Get the stderr console for status/progress output."""
     return _stderr
 
-
 def log_info(msg: str) -> None:
     """Log informational message to stderr."""
     _stderr.print(f"[blue]INFO:[/blue] {msg}")
-
 
 def log_success(msg: str) -> None:
     """Log success message to stderr."""
     _stderr.print(f"[green]OK:[/green] {msg}")
 
-
 def log_error(msg: str) -> None:
     """Log error message to stderr."""
     _stderr.print(f"[red]ERROR:[/red] {msg}")
-
 
 def log_warning(msg: str) -> None:
     """Log warning message to stderr."""
@@ -230,7 +225,6 @@ def display_file_info(path: str, size: int) -> None:
     """Display file info — path may contain [brackets] or other Rich markup chars."""
     safe_path = escape(path)  # Escapes [, ], and other markup characters
     get_console().print(f"File: {safe_path} ({size:,} bytes)")
-
 
 # BAD — user input interpreted as markup:
 # path = "data/[backup]/report.csv"

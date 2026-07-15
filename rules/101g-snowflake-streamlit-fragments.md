@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:st.fragment
+  - kw:run_every auto-refresh
+  - kw:live progress polling
+  - kw:session state persistence
+  - kw:fragment termination st.stop
+  - kw:conditional fragment rendering
+  - kw:cortex
+token_budget: ~2850
+context_tier: Medium
+depends:
+  required:
+    - 101-snowflake-streamlit-core.md  # Core Streamlit patterns
+  optional:
+    - 101b-snowflake-streamlit-performance.md  # Caching and performance basics
+---
 # Streamlit Fragments: Real-Time Progress Tracking
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:st.fragment, kw:run_every auto-refresh, kw:live progress polling, kw:session state persistence, kw:fragment termination st.stop, kw:conditional fragment rendering, kw:cortex
-**TokenBudget:** ~2850
-**ContextTier:** Medium
-**Depends:** required:101-snowflake-streamlit-core.md, optional:101b-snowflake-streamlit-performance.md
 
 ## Scope
 
@@ -23,13 +33,6 @@ Advanced Streamlit fragment patterns for real-time progress tracking, live polli
 - Any pattern requiring `@st.fragment(run_every=...)`
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation patterns and conventions
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns
-- **101b-snowflake-streamlit-performance.md** - Caching and performance basics
 
 ### External Documentation
 

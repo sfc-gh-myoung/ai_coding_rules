@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:ShellCheck
+  - kw:Bats
+  - kw:bash unit testing
+  - kw:pre-commit hooks
+  - kw:debug mode implementation
+  - kw:CI/CD shell validation
+  - kw:ci/cd
+token_budget: ~3600
+context_tier: Medium
+depends:
+  required:
+    - 300-bash-scripting-core.md  # Foundation bash scripting patterns
+  optional:
+    - 300a-bash-security.md  # Security testing considerations
+---
 # Bash Testing and Tooling Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:ShellCheck, kw:Bats, kw:bash unit testing, kw:pre-commit hooks, kw:debug mode implementation, kw:CI/CD shell validation, kw:ci/cd
-**TokenBudget:** ~3600
-**ContextTier:** Medium
-**Depends:** required:300-bash-scripting-core.md, optional:300a-bash-security.md
 
 ## Scope
 
@@ -23,14 +33,6 @@ Comprehensive bash testing, debugging, and modern tooling integration including 
 - Debugging complex bash script issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **300-bash-scripting-core.md** - Foundation bash scripting patterns
-
-**Related:**
-- **300a-bash-security.md** - Security testing considerations
 
 ### External Documentation
 

@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:streamlit cache_data
+  - kw:plotly aggregation
+  - kw:interactive dataframe filtering
+  - kw:csv download button
+  - kw:dtype optimization caching
+  - kw:pandas streamlit plotly
+  - kw:pandas
+token_budget: ~1800
+context_tier: Medium
+depends:
+  required:
+    - 252-python-pandas-core.md  # Core Pandas patterns
+  optional:
+    - 252a-python-pandas-performance.md  # Memory optimization and groupby
+    - 101a-snowflake-streamlit-visualization.md  # Plotly chart patterns
+    - 101b-snowflake-streamlit-performance.md  # Caching strategies
+---
 # Pandas IO and Integration Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:streamlit cache_data, kw:plotly aggregation, kw:interactive dataframe filtering, kw:csv download button, kw:dtype optimization caching, kw:pandas streamlit plotly, kw:pandas
-**TokenBudget:** ~1800
-**ContextTier:** Medium
-**Depends:** required:252-python-pandas-core.md, optional:252a-python-pandas-performance.md, optional:101a-snowflake-streamlit-visualization.md, optional:101b-snowflake-streamlit-performance.md
 
 ## Scope
 
@@ -23,20 +35,9 @@ Pandas integration with Streamlit (caching, filtering, download) and Plotly (agg
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **252-python-pandas-core.md** - Core Pandas patterns
-
-**Related:**
-- **252a-python-pandas-performance.md** - Memory optimization and groupby
-- **101a-snowflake-streamlit-visualization.md** - Plotly chart patterns
-- **101b-snowflake-streamlit-performance.md** - Caching strategies
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

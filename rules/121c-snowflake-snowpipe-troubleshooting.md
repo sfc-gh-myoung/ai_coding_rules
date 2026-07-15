@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:snowpipe debugging
+  - kw:pipe execution failures
+  - kw:streaming channel errors
+  - kw:schema mismatch resolution
+  - kw:latency diagnosis
+  - kw:diagnostic queries
+  - kw:snowpipe
+token_budget: ~4150
+context_tier: Medium
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 121-snowflake-snowpipe.md  # File-based Snowpipe core concepts
+  optional:
+    - 121a-snowflake-snowpipe-streaming.md  # Streaming Snowpipe core concepts
+    - 121b-snowflake-snowpipe-monitoring.md  # Monitoring and cost management
+    - 121e-snowflake-snowpipe-troubleshooting-advanced.md  # Advanced streaming patterns and debugging checklists
+---
 # Snowflake Snowpipe Troubleshooting
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:snowpipe debugging, kw:pipe execution failures, kw:streaming channel errors, kw:schema mismatch resolution, kw:latency diagnosis, kw:diagnostic queries, kw:snowpipe
-**TokenBudget:** ~4150
-**ContextTier:** Medium
-**Depends:** required:100-snowflake-core.md, required:121-snowflake-snowpipe.md, optional:121a-snowflake-snowpipe-streaming.md, optional:121b-snowflake-snowpipe-monitoring.md, optional:121e-snowflake-snowpipe-troubleshooting-advanced.md
 
 ## Scope
 
@@ -27,18 +40,6 @@ Troubleshooting and debugging patterns for both file-based Snowpipe and Snowpipe
 **For monitoring, see `121b-snowflake-snowpipe-monitoring.md`**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **121-snowflake-snowpipe.md** - File-based Snowpipe core concepts
-- **121a-snowflake-snowpipe-streaming.md** - Streaming Snowpipe core concepts
-
-**Related:**
-- **121b-snowflake-snowpipe-monitoring.md** - Monitoring and cost management
-- **121e-snowflake-snowpipe-troubleshooting-advanced.md** - Advanced streaming patterns and debugging checklists
-- **111-snowflake-observability-core.md** - Logging, tracing, and monitoring patterns
 
 ### External Documentation
 

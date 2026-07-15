@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:x-data directive
+  - kw:declarative directives
+  - kw:magic properties
+  - kw:Alpine.data registration
+  - kw:x-cloak FOUC prevention
+  - kw:progressive enhancement
+  - kw:htmx
+token_budget: ~4250
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 421a-javascript-alpinejs-advanced.md  # Stores, plugins, transitions, lifecycle, error recovery
+    - 420-javascript-core.md  # JavaScript patterns and best practices
+    - 500-frontend-htmx-core.md  # HTMX patterns for server-driven interactivity
+---
 # Alpine.js Core: Lightweight Reactivity Framework
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:x-data directive, kw:declarative directives, kw:magic properties, kw:Alpine.data registration, kw:x-cloak FOUC prevention, kw:progressive enhancement, kw:htmx
-**TokenBudget:** ~4250
-**ContextTier:** Medium
-**Depends:** required:000-global-core.md, optional:421a-javascript-alpinejs-advanced.md, optional:420-javascript-core.md, optional:500-frontend-htmx-core.md
 
 ## Scope
 
@@ -23,16 +35,6 @@ Provides comprehensive guidance for Alpine.js 3.x, a lightweight JavaScript fram
 - Choosing between Alpine.js and heavier frameworks
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **421a-javascript-alpinejs-advanced.md** - Stores, plugins, transitions, lifecycle, error recovery
-- **420-javascript-core.md** - JavaScript patterns and best practices
-- **500-frontend-htmx-core.md** - HTMX patterns for server-driven interactivity
 
 ### External Documentation
 

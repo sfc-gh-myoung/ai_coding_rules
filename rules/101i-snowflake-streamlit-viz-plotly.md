@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:plotly express
+  - kw:graph objects
+  - kw:st.plotly_chart
+  - kw:chart animations
+  - kw:faceting subplots
+  - kw:colorblind-safe palettes
+  - kw:pandas
+token_budget: ~3450
+context_tier: Medium
+depends:
+  optional:
+    - 101a-snowflake-streamlit-visualization.md  # Visualization overview and library selection
+    - 101j-snowflake-streamlit-viz-pydeck.md  # PyDeck for 3D/geospatial
+    - 940-business-analytics.md  # Dashboard design patterns
+---
 # Streamlit Visualization: Plotly Deep Dive
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:plotly express, kw:graph objects, kw:st.plotly_chart, kw:chart animations, kw:faceting subplots, kw:colorblind-safe palettes, kw:pandas
-**TokenBudget:** ~3450
-**ContextTier:** Medium
-**Depends:** optional:101a-snowflake-streamlit-visualization.md, optional:101j-snowflake-streamlit-viz-pydeck.md, optional:940-business-analytics.md
 
 ## Scope
 
@@ -23,16 +33,6 @@ Deep patterns for Plotly visualization in Streamlit, including Plotly Express fo
 - Building complex multi-trace visualizations
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation patterns and conventions
-- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection
-
-**Related:**
-- **101j-snowflake-streamlit-viz-pydeck.md** - PyDeck for 3D/geospatial
-- **940-business-analytics.md** - Dashboard design patterns
 
 ### External Documentation
 

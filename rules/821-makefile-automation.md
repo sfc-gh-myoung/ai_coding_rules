@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:GNU Make
+  - kw:make target
+  - kw:.PHONY declaration
+  - kw:self-documenting help
+  - kw:uv uvx integration
+  - kw:tool auto-detection
+  - kw:ci/cd
+token_budget: ~3700
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 821a-makefile-advanced-patterns.md  # Advanced patterns (conditionals, categorized help, platform detection)
+    - 820-taskfile-automation.md  # Alternative task runner (Taskfile.yml)
+    - 300-bash-scripting-core.md  # Shell scripting patterns used in targets
+---
 # Makefile Automation Directives
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:GNU Make, kw:make target, kw:.PHONY declaration, kw:self-documenting help, kw:uv uvx integration, kw:tool auto-detection, kw:ci/cd
-**TokenBudget:** ~3700
-**ContextTier:** Medium
-**Depends:** required:000-global-core.md, optional:821a-makefile-advanced-patterns.md, optional:820-taskfile-automation.md, optional:300-bash-scripting-core.md
 
 ## Scope
 
@@ -24,16 +36,6 @@ Core directives for creating and maintaining project automation using Makefiles,
 **For advanced patterns (categorized help, conditional logic, variable assignment types), see `821a-makefile-advanced-patterns.md`.**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **821a-makefile-advanced-patterns.md** - Advanced patterns (conditionals, categorized help, platform detection)
-- **820-taskfile-automation.md** - Alternative task runner (Taskfile.yml)
-- **300-bash-scripting-core.md** - Shell scripting patterns used in targets
 
 ### External Documentation
 - [GNU Make Manual](https://www.gnu.org/software/make/manual/make.html)

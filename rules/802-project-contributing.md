@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:pull requests
+  - kw:conventional commits
+  - kw:CONTRIBUTING.md
+  - kw:changelog discipline
+  - kw:rule authoring
+  - kw:pre-commit validation
+  - kw:cortex
+token_budget: ~2600
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 801-project-readme.md  # README best practices
+    - 803-project-git-workflow.md  # Git workflow management
+    - 002-rule-governance.md  # Rule authoring standards
+---
 # Contribution Workflow
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:pull requests, kw:conventional commits, kw:CONTRIBUTING.md, kw:changelog discipline, kw:rule authoring, kw:pre-commit validation, kw:cortex
-**TokenBudget:** ~2600
-**ContextTier:** Medium
-**Depends:** required:000-global-core.md, optional:801-project-readme.md, optional:803-project-git-workflow.md, optional:002-rule-governance.md
 
 ## Scope
 
@@ -23,16 +35,6 @@ Professional contribution workflow directives covering commits, pull requests, c
 - Setting up rule authoring guidelines
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **801-project-readme.md** - README best practices
-- **803-project-git-workflow.md** - Git workflow management
-- **002-rule-governance.md** - Rule authoring standards
 
 ### External Documentation
 - [GitHub Contributing Guidelines](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors) - GitHub's guide for contribution workflows

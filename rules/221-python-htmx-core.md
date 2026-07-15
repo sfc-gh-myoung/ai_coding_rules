@@ -1,19 +1,31 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:hx-request header detection
+  - kw:partial HTML rendering
+  - kw:HX-Trigger response headers
+  - kw:CSRF token injection
+  - kw:swap strategy selection
+  - kw:hypermedia-driven navigation
+  - kw:fastapi
+token_budget: ~4800
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Python coding standards
+  optional:
+    - 221c-python-htmx-fastapi.md  # FastAPI-specific HTMX patterns
+    - 221e-python-htmx-patterns.md  # CRUD, forms, infinite scroll
+    - 221g-python-htmx-sse.md  # Server-Sent Events patterns
+---
 # HTMX Core Patterns (Python)
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential HTMX patterns. Load for HTMX tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:hx-request header detection, kw:partial HTML rendering, kw:HX-Trigger response headers, kw:CSRF token injection, kw:swap strategy selection, kw:hypermedia-driven navigation, kw:fastapi
-**TokenBudget:** ~4800
-**ContextTier:** High
-**Depends:** required:200-python-core.md, optional:221c-python-htmx-fastapi.md, optional:221e-python-htmx-patterns.md, optional:221g-python-htmx-sse.md
 
 ## Scope
 
@@ -28,16 +40,6 @@ Foundational HTMX patterns for Python web applications, covering request/respons
 - Implementing security (CSRF, XSS) for HTMX endpoints
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Python coding standards
-
-**Related:**
-- **221c-python-htmx-fastapi.md** - FastAPI-specific HTMX patterns
-- **221e-python-htmx-patterns.md** - CRUD, forms, infinite scroll
-- **221g-python-htmx-sse.md** - Server-Sent Events patterns
 
 ### External Documentation
 
@@ -280,7 +282,6 @@ def generate_csp_nonce():
     """Generate a single CSP nonce per request, stored in flask.g."""
     g.csp_nonce = secrets.token_urlsafe(16)
 
-
 @app.after_request
 def set_csp(response):
     """Add CSP header using the same nonce generated in before_request."""
@@ -290,7 +291,6 @@ def set_csp(response):
         f"style-src 'self' 'nonce-{g.csp_nonce}';"
     )
     return response
-
 
 @app.context_processor
 def inject_csp_nonce():

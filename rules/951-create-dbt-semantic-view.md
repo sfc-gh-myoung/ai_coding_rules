@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:dbt_semantic_view package
+  - kw:semantic_view materialization
+  - kw:cortex analyst integration
+  - kw:SEMANTIC_VIEW() function
+  - kw:primary key constraints
+  - kw:dimensions metrics relationships
+  - kw:ci/cd
+token_budget: ~5100
+context_tier: High
+depends:
+  required:
+    - 950-dbt-core.md
+---
 # Create Semantic Views via dbt-snowflake Native Package
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:dbt_semantic_view package, kw:semantic_view materialization, kw:cortex analyst integration, kw:SEMANTIC_VIEW() function, kw:primary key constraints, kw:dimensions metrics relationships, kw:ci/cd
-**TokenBudget:** ~5100
-**ContextTier:** High
-**Depends:** required:950-dbt-core.md
 
 ## Purpose
 
@@ -26,7 +34,6 @@ End-to-end workflow for creating a Snowflake Semantic View from a dbt project, i
 - When migrating a hand-authored Semantic View into the dbt project.
 - When troubleshooting semantic-view / dbt lineage or refresh issues.
 
-
 ## References
 
 ### External Documentation
@@ -34,13 +41,6 @@ End-to-end workflow for creating a Snowflake Semantic View from a dbt project, i
 - [Snowflake Semantic Views](https://docs.snowflake.com/en/user-guide/semantic-views) - Snowflake documentation
 - [dbt Materializations](https://docs.getdbt.com/docs/build/materializations) - dbt materialization concepts
 - [Cortex Analyst](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst) - Integration with semantic views
-
-### Dependencies
-
-**Must Load First:**
-- [950-dbt-core.md](950-dbt-core.md)
-- [200-python-core.md](200-python-core.md)
-
 
 ## Contract
 

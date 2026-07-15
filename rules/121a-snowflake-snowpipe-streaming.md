@@ -1,15 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:snowpipe streaming
+  - kw:high-performance streaming architecture
+  - kw:streaming channel management
+  - kw:offset token tracking
+  - kw:sub-second latency ingestion
+  - kw:row-level SDK ingestion
+  - kw:snowpipe
+token_budget: ~3700
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 108-snowflake-data-loading.md  # Data loading fundamentals (stages, COPY INTO basics)
+  optional:
+    - 121-snowflake-snowpipe.md  # File-based Snowpipe for comparison (when to use files vs streaming)
+    - 121b-snowflake-snowpipe-monitoring.md  # Monitoring, cost tracking, and performance analysis
+    - 121c-snowflake-snowpipe-troubleshooting.md  # Troubleshooting and debugging patterns
+---
 # Snowflake Snowpipe Streaming
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:snowpipe streaming, kw:high-performance streaming architecture, kw:streaming channel management, kw:offset token tracking, kw:sub-second latency ingestion, kw:row-level SDK ingestion, kw:snowpipe
-**TokenBudget:** ~3700
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:108-snowflake-data-loading.md, optional:121-snowflake-snowpipe.md, optional:121b-snowflake-snowpipe-monitoring.md, optional:121c-snowflake-snowpipe-troubleshooting.md
-**Companions:** 121d-snowflake-snowpipe-streaming-sdk.md
 
 ## Scope
 
@@ -25,17 +37,6 @@ Architecture selection and core concepts for Snowpipe Streaming: high-performanc
 **For file-based continuous ingestion (1-2 min latency), see `121-snowflake-snowpipe.md`**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **108-snowflake-data-loading.md** - Data loading fundamentals (stages, COPY INTO basics)
-
-**Related:**
-- **121-snowflake-snowpipe.md** - File-based Snowpipe for comparison (when to use files vs streaming)
-- **121b-snowflake-snowpipe-monitoring.md** - Monitoring, cost tracking, and performance analysis
-- **121c-snowflake-snowpipe-troubleshooting.md** - Troubleshooting and debugging patterns
 
 ### External Documentation
 

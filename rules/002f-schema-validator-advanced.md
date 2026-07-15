@@ -1,19 +1,29 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:ci/cd pipeline
+  - kw:programmatic parsing
+  - kw:automated fix iteration
+  - kw:pre-commit hooks
+  - kw:github actions workflow
+  - kw:batch validation
+  - kw:ci/cd
+token_budget: ~3350
+context_tier: Medium
+depends:
+  required:
+    - 002e-schema-validator-usage.md  # Core validation commands and error resolution
+    - 002-rule-governance.md  # Schema requirements and v3.2 standards
+    - 000-global-core.md  # Foundation for all rules
+---
 # Schema Validator Advanced: Automation and CI/CD Integration
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule covers advanced automation patterns for schema validation.
 > Load when setting up CI/CD pipelines or programmatic validation workflows.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:ci/cd pipeline, kw:programmatic parsing, kw:automated fix iteration, kw:pre-commit hooks, kw:github actions workflow, kw:batch validation, kw:ci/cd
-**TokenBudget:** ~3350
-**ContextTier:** Medium
-**Depends:** required:002e-schema-validator-usage.md, required:002-rule-governance.md, required:000-global-core.md
 
 ## Scope
 
@@ -28,13 +38,6 @@ Advanced automation patterns for schema validation including programmatic output
 - Building custom validation workflows
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **002e-schema-validator-usage.md** - Core validation commands and error resolution
-- **002-rule-governance.md** - Schema requirements and v3.2 standards
-- **000-global-core.md** - Foundation for all rules
 
 ### External Documentation
 

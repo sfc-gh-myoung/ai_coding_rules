@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Ruff
+  - kw:pyproject.toml configuration
+  - kw:uvx ruff
+  - kw:pydocstyle D rules
+  - kw:pre-commit hooks
+  - kw:zero-error validation gate
+  - kw:TOML
+token_budget: ~3700
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Python foundation patterns and toolchain detection
+  optional:
+    - 203-python-project-setup.md  # Project structure and configuration
+    - 204-python-docs.md  # Documentation standards
+---
 # Python Linting & Formatting (Ruff recommended, toolchain-flexible)
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Ruff, kw:pyproject.toml configuration, kw:uvx ruff, kw:pydocstyle D rules, kw:pre-commit hooks, kw:zero-error validation gate, kw:TOML
-**TokenBudget:** ~3700
-**ContextTier:** High
-**Depends:** required:200-python-core.md, optional:203-python-project-setup.md, optional:204-python-docs.md
 
 ## Scope
 
@@ -24,15 +35,6 @@ Python code quality standards with Ruff as the recommended tool for linting and 
 - Before completing any Python-related task (validation gate)
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Python foundation patterns and toolchain detection
-
-**Related:**
-- **203-python-project-setup.md** - Project structure and configuration
-- **204-python-docs.md** - Documentation standards
 
 ### External Documentation
 

@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:cortex agent testing
+  - kw:agent RBAC grants
+  - kw:component integration testing
+  - kw:agent tool verification
+  - kw:least-privilege agent permissions
+  - kw:semantic view grants
+  - kw:ci/cd
+token_budget: ~3300
+context_tier: Low
+depends:
+  required:
+    - 115-snowflake-cortex-agents-core.md  # Core agent creation and tool configuration
+  optional:
+    - 115b-snowflake-cortex-agents-operations.md  # Operations overview
+    - 107-snowflake-security-governance.md  # Security and governance patterns
+---
 # Snowflake Cortex Agents: Testing & RBAC
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:cortex agent testing, kw:agent RBAC grants, kw:component integration testing, kw:agent tool verification, kw:least-privilege agent permissions, kw:semantic view grants, kw:ci/cd
-**TokenBudget:** ~3300
-**ContextTier:** Low
-**Depends:** required:115-snowflake-cortex-agents-core.md, optional:115b-snowflake-cortex-agents-operations.md, optional:107-snowflake-security-governance.md
 
 ## Scope
 
@@ -22,16 +33,6 @@ Testing strategies (component, integration, business scenario) and RBAC configur
 - Implementing least-privilege security for agents
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **115-snowflake-cortex-agents-core.md** - Core agent creation and tool configuration
-- **115b-snowflake-cortex-agents-operations.md** - Operations overview
-
-**Related:**
-- **107-snowflake-security-governance.md** - Security and governance patterns
 
 ### External Documentation
 

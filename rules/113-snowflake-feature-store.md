@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:feature store
+  - kw:point-in-time correctness
+  - kw:feature view versioning
+  - kw:entity modeling
+  - kw:ASOF JOIN
+  - kw:ml lineage integration
+  - kw:rbac
+token_budget: ~4300
+context_tier: Medium
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 110-snowflake-model-registry.md  # Model Registry integration patterns
+  optional:
+    - 122-snowflake-dynamic-tables.md  # Dynamic Tables for feature views
+---
 # Snowflake Feature Store Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:feature store, kw:point-in-time correctness, kw:feature view versioning, kw:entity modeling, kw:ASOF JOIN, kw:ml lineage integration, kw:rbac
-**TokenBudget:** ~4300
-**ContextTier:** Medium
-**Depends:** required:100-snowflake-core.md, required:110-snowflake-model-registry.md, optional:122-snowflake-dynamic-tables.md
-**Companions:** 113a-snowflake-feature-store-patterns.md, 113b-snowflake-feature-store-engineering.md
 
 ## Scope
 
@@ -24,15 +34,6 @@ Comprehensive best practices for Snowflake Feature Store: creating, maintaining,
 - Setting up feature governance and access control
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **110-snowflake-model-registry.md** - Model Registry integration patterns
-
-**Related:**
-- **122-snowflake-dynamic-tables.md** - Dynamic Tables for feature views
 
 ### External Documentation
 

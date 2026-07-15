@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:cortex aisql
+  - kw:llm function batching
+  - kw:model selection strategy
+  - kw:token budget control
+  - kw:TO_FILE stage references
+  - kw:CORTEX_USER privilege governance
+  - kw:ai_classify
+token_budget: ~4900
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 105-snowflake-cost-governance.md  # Cost monitoring and optimization
+  optional:
+    - 114a-snowflake-cortex-ai-transcribe.md  # AI_TRANSCRIBE audio transcription patterns
+    - 102-snowflake-sql-core.md  # General SQL file patterns
+    - 119-snowflake-warehouse-management.md  # Warehouse sizing and management
+---
 # Snowflake Cortex AISQL Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:cortex aisql, kw:llm function batching, kw:model selection strategy, kw:token budget control, kw:TO_FILE stage references, kw:CORTEX_USER privilege governance, kw:ai_classify
-**TokenBudget:** ~4900
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:105-snowflake-cost-governance.md, optional:114a-snowflake-cortex-ai-transcribe.md, optional:102-snowflake-sql-core.md, optional:119-snowflake-warehouse-management.md
 
 ## Scope
 
@@ -48,17 +61,6 @@ Pragmatic, production-focused patterns for using Snowflake Cortex AISQL function
 > "I see you're using llama3.1-8b for classification. Here's how to add sentiment analysis with AI_SENTIMENT following the same model choice..."
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **105-snowflake-cost-governance.md** - Cost monitoring and optimization
-
-**Related:**
-- **114a-snowflake-cortex-ai-transcribe.md** - AI_TRANSCRIBE audio transcription patterns
-- **102-snowflake-sql-core.md** - General SQL file patterns
-- **119-snowflake-warehouse-management.md** - Warehouse sizing and management
 
 ### External Documentation
 

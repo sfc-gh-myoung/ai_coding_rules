@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Faker library
+  - kw:seed_instance
+  - kw:custom providers
+  - kw:deterministic test data
+  - kw:unique attribute
+  - kw:locale fallback
+  - kw:TOML
+token_budget: ~3300
+context_tier: Low
+depends:
+  required:
+    - 200-python-core.md  # Core Python patterns and uv usage
+  optional:
+    - 201-python-lint-format.md  # Ruff linting and formatting standards
+    - 230-python-pydantic.md  # Pydantic integration for data validation
+    - 240a-python-faker-testing.md  # Pytest fixtures, Factory Boy, seeding strategies
+---
 # Python Faker Data Generation Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.9.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Faker library, kw:seed_instance, kw:custom providers, kw:deterministic test data, kw:unique attribute, kw:locale fallback, kw:TOML
-**TokenBudget:** ~3300
-**ContextTier:** Low
-**Depends:** required:200-python-core.md, optional:201-python-lint-format.md, optional:230-python-pydantic.md, optional:240a-python-faker-testing.md
 
 ## Scope
 
@@ -21,16 +33,6 @@ Core patterns for generating realistic test data using Python's Faker library, c
 - Setting up Faker with proper seeding
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Core Python patterns and uv usage
-
-**Related:**
-- **201-python-lint-format.md** - Ruff linting and formatting standards
-- **230-python-pydantic.md** - Pydantic integration for data validation
-- **240a-python-faker-testing.md** - Pytest fixtures, Factory Boy, seeding strategies
 
 ### External Documentation
 - [Faker Documentation](https://faker.readthedocs.io/en/stable/) - Comprehensive guide to fake data generation

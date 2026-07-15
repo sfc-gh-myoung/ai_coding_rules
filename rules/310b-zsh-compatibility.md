@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:bash vs zsh
+  - kw:emulate mode
+  - kw:array indexing differences
+  - kw:POSIX compliance
+  - kw:shell detection
+  - kw:setopt explicit
+  - kw:ci/cd
+token_budget: ~4150
+context_tier: Low
+depends:
+  required:
+    - 300-bash-scripting-core.md  # Foundation bash scripting patterns
+  optional:
+    - 310-zsh-scripting-core.md  # Foundation zsh scripting patterns
+    - 310a-zsh-advanced-features.md  # Advanced zsh features
+    - 310c-zsh-compatibility-platforms.md  # Platforms, testing, and performance
+---
 # Zsh Compatibility and Cross-Shell Scripting
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:bash vs zsh, kw:emulate mode, kw:array indexing differences, kw:POSIX compliance, kw:shell detection, kw:setopt explicit, kw:ci/cd
-**TokenBudget:** ~4150
-**ContextTier:** Low
-**Depends:** required:300-bash-scripting-core.md, optional:310-zsh-scripting-core.md, optional:310a-zsh-advanced-features.md, optional:310c-zsh-compatibility-platforms.md
 
 ## Scope
 
@@ -23,16 +35,6 @@ Zsh compatibility strategies, bash migration patterns, and cross-shell scripting
 - Setting up mixed shell environments
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **300-bash-scripting-core.md** - Foundation bash scripting patterns
-
-**Related:**
-- **310-zsh-scripting-core.md** - Foundation zsh scripting patterns
-- **310a-zsh-advanced-features.md** - Advanced zsh features
-- **310c-zsh-compatibility-platforms.md** - Platforms, testing, and performance
 
 ### External Documentation
 

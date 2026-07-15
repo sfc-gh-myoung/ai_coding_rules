@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:container runtime
+  - kw:warehouse runtime
+  - kw:pyproject.toml
+  - kw:external access integration
+  - kw:compute pool
+  - kw:runtime migration
+  - kw:TOML
+token_budget: ~4150
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation patterns and conventions
+    - 101-snowflake-streamlit-core.md  # Core Streamlit patterns and state management
+  optional:
+    - 101f-snowflake-streamlit-deployment-errors.md  # Deployment error troubleshooting
+    - 101c-snowflake-streamlit-security.md  # Secrets management by runtime
+---
 # Streamlit Deployment: Runtime Selection and Setup
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.4.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:container runtime, kw:warehouse runtime, kw:pyproject.toml, kw:external access integration, kw:compute pool, kw:runtime migration, kw:TOML
-**TokenBudget:** ~4150
-**ContextTier:** High
-**Depends:** required:000-global-core.md, required:101-snowflake-streamlit-core.md, optional:101f-snowflake-streamlit-deployment-errors.md, optional:101c-snowflake-streamlit-security.md
 
 ## Scope
 
@@ -23,16 +35,6 @@ Comprehensive deployment guidance for Streamlit applications in Snowflake, cover
 - Troubleshooting deployment configuration issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation patterns and conventions
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns and state management
-
-**Related:**
-- **101f-snowflake-streamlit-deployment-errors.md** - Deployment error troubleshooting
-- **101c-snowflake-streamlit-security.md** - Secrets management by runtime
 
 ### External Documentation
 

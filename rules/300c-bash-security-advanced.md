@@ -1,19 +1,30 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:privilege dropping
+  - kw:ulimit resource constraints
+  - kw:URL validation localhost blocking
+  - kw:audit logging security events
+  - kw:parameter expansion whitelisting
+  - kw:malicious payload testing
+  - kw:ci/cd
+token_budget: ~2200
+context_tier: Medium
+depends:
+  required:
+    - 300a-bash-security.md  # Core security patterns (input validation, command injection, credentials)
+  optional:
+    - 300-bash-scripting-core.md  # Foundation bash scripting patterns
+    - 300b-bash-testing-tooling.md  # Testing frameworks and CI/CD tooling
+---
 # Bash Security Advanced Patterns
 
 > **SUB-RULE: ADVANCED SECURITY**
 >
 > Advanced security patterns for privilege management, network security,
 > audit logging, parameter expansion safety, and security testing.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:privilege dropping, kw:ulimit resource constraints, kw:URL validation localhost blocking, kw:audit logging security events, kw:parameter expansion whitelisting, kw:malicious payload testing, kw:ci/cd
-**TokenBudget:** ~2200
-**ContextTier:** Medium
-**Depends:** required:300a-bash-security.md, optional:300-bash-scripting-core.md, optional:300b-bash-testing-tooling.md
 
 ## Scope
 
@@ -29,19 +40,9 @@ Advanced bash security patterns covering privilege management, resource limits, 
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **300a-bash-security.md** - Core security patterns (input validation, command injection, credentials)
-
-**Related:**
-- **300-bash-scripting-core.md** - Foundation bash scripting patterns
-- **300b-bash-testing-tooling.md** - Testing frameworks and CI/CD tooling
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

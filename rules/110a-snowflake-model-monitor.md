@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:MODEL MONITOR
+  - kw:enable_monitoring
+  - kw:drift detection
+  - kw:baseline scoring schema
+  - kw:ml observability
+  - kw:monitor refresh interval
+  - kw:pandas
+token_budget: ~3300
+context_tier: Medium
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 110-snowflake-model-registry.md  # Model Registry core patterns
+---
 # Snowflake MODEL MONITOR (ML Observability)
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:MODEL MONITOR, kw:enable_monitoring, kw:drift detection, kw:baseline scoring schema, kw:ml observability, kw:monitor refresh interval, kw:pandas
-**TokenBudget:** ~3300
-**ContextTier:** Medium
-**Depends:** required:100-snowflake-core.md, required:110-snowflake-model-registry.md
 
 ## Scope
 
@@ -22,12 +31,6 @@ MODEL MONITOR integration for ML Observability including drift detection, perfor
 - Troubleshooting MODEL MONITOR errors
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **110-snowflake-model-registry.md** - Model Registry core patterns
 
 ### External Documentation
 

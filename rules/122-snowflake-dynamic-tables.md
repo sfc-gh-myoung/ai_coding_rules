@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:dynamic table
+  - kw:refresh mode
+  - kw:target lag
+  - kw:incremental refresh
+  - kw:downstream dependencies
+  - kw:modular pipeline chaining
+  - kw:cdc
+token_budget: ~3400
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 104-snowflake-streams-tasks.md  # Incremental pipelines and CDC
+  optional:
+    - 105-snowflake-cost-governance.md  # Cost optimization
+    - 103-snowflake-performance-tuning.md  # Query optimization
+---
 # Snowflake Dynamic Tables Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:dynamic table, kw:refresh mode, kw:target lag, kw:incremental refresh, kw:downstream dependencies, kw:modular pipeline chaining, kw:cdc
-**TokenBudget:** ~3400
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:104-snowflake-streams-tasks.md, optional:105-snowflake-cost-governance.md, optional:103-snowflake-performance-tuning.md
 
 ## Scope
 
@@ -21,19 +33,7 @@ Dynamic Tables best practices: refresh modes, lag configuration, warehouse sizin
 - Designing modular data pipelines
 - Choosing between Dynamic Tables, materialized views, and Streams/Tasks
 
-
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **104-snowflake-streams-tasks.md** - Incremental pipelines and CDC
-- **119-snowflake-warehouse-management.md** - Warehouse sizing
-
-**Related:**
-- **105-snowflake-cost-governance.md** - Cost optimization
-- **103-snowflake-performance-tuning.md** - Query optimization
 
 ### External Documentation
 - [Dynamic Tables Introduction](https://docs.snowflake.com/en/user-guide/dynamic-tables-intro)

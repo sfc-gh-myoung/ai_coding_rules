@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:stored procedure anti-patterns
+  - kw:dollar quoting
+  - kw:EXECUTE AS
+  - kw:SQL injection bind variables
+  - kw:fully qualified object names
+  - kw:procedure delimiter escaping
+  - kw:udf
+token_budget: ~1700
+context_tier: Low
+depends:
+  optional:
+    - 102b-snowflake-sql-procedures.md  # Procedure creation patterns and templates
+---
 # Snowflake SQL: Stored Procedure Anti-Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:stored procedure anti-patterns, kw:dollar quoting, kw:EXECUTE AS, kw:SQL injection bind variables, kw:fully qualified object names, kw:procedure delimiter escaping, kw:udf
-**TokenBudget:** ~1700
-**ContextTier:** Low
-**Depends:** optional:102b-snowflake-sql-procedures.md
 
 ## Scope
 
@@ -23,15 +31,9 @@ Common anti-patterns in Snowflake SQL stored procedures and UDFs: incorrect deli
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **102b-snowflake-sql-procedures.md** - Procedure creation patterns and templates
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

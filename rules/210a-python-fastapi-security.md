@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:JWT authentication
+  - kw:bcrypt password hashing
+  - kw:HTTPBearer token validation
+  - kw:token refresh pairs
+  - kw:RBAC dependency injection
+  - kw:environment secrets validation
+  - kw:fastapi
+token_budget: ~3800
+context_tier: High
+depends:
+  required:
+    - 210-python-fastapi-core.md  # FastAPI foundation patterns
+  optional:
+    - 200-python-core.md  # Python core patterns
+    - 210e-python-fastapi-security-hardening.md  # CORS, headers, rate limiting, input validation
+    - 210b-python-fastapi-testing.md  # Testing security implementations
+---
 # FastAPI Security Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.9.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:JWT authentication, kw:bcrypt password hashing, kw:HTTPBearer token validation, kw:token refresh pairs, kw:RBAC dependency injection, kw:environment secrets validation, kw:fastapi
-**TokenBudget:** ~3800
-**ContextTier:** High
-**Depends:** required:210-python-fastapi-core.md, optional:200-python-core.md, optional:210e-python-fastapi-security-hardening.md, optional:210b-python-fastapi-testing.md
 
 ## Scope
 
@@ -23,16 +35,6 @@ Authentication and authorization patterns for FastAPI applications. Covers JWT t
 - Configuring password hashing and secrets
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **210-python-fastapi-core.md** - FastAPI foundation patterns
-
-**Related:**
-- **200-python-core.md** - Python core patterns
-- **210e-python-fastapi-security-hardening.md** - CORS, headers, rate limiting, input validation
-- **210b-python-fastapi-testing.md** - Testing security implementations
 
 ### External Documentation
 
@@ -294,7 +296,6 @@ def create_token_pair(user_id: str) -> dict[str, str]:
         expires_delta=timedelta(days=7),
     )
     return {"access_token": access, "refresh_token": refresh}
-
 
 @app.post("/auth/refresh")
 async def refresh_token(refresh_token: str = Body(...)):

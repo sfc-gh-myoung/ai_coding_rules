@@ -1,19 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:plan-validate-execute
+  - kw:orchestrator-worker composition
+  - kw:visual analysis pattern
+  - kw:intermediate validation scripts
+  - kw:Claude A/B iteration
+  - kw:batch failure handling
+token_budget: ~3200
+context_tier: Low
+depends:
+  required:
+    - 002h-claude-code-skills.md  # Core skill authoring patterns and structure
+  optional:
+    - 002d-advanced-rule-patterns.md  # Advanced rule patterns (parallel to skill patterns)
+---
 # Skill Advanced Patterns
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines advanced skill authoring patterns for Claude Code skills.
 > Load when building complex skills requiring plan-validate-execute, visual analysis, or orchestrator composition.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:plan-validate-execute, kw:orchestrator-worker composition, kw:visual analysis pattern, kw:intermediate validation scripts, kw:Claude A/B iteration, kw:batch failure handling
-**TokenBudget:** ~3200
-**ContextTier:** Low
-**Depends:** required:002h-claude-code-skills.md, optional:002d-advanced-rule-patterns.md
 
 ## Scope
 
@@ -28,18 +37,9 @@ Advanced patterns for Claude Code skill authoring: the plan-validate-execute pat
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **002h-claude-code-skills.md** - Core skill authoring patterns and structure
-
-**Related:**
-- **002d-advanced-rule-patterns.md** - Advanced rule patterns (parallel to skill patterns)
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

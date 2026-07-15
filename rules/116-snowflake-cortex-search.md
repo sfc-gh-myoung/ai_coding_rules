@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:cortex search service
+  - kw:document chunking
+  - kw:metadata filtering
+  - kw:search tool configuration
+  - kw:SEARCH_PREVIEW validation
+  - kw:search index lifecycle
+  - kw:ai_embed
+token_budget: ~3100
+context_tier: Medium
+depends:
+  optional:
+    - 115-snowflake-cortex-agents-core.md  # Agent archetypes
+---
 # Snowflake Cortex Search Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.4.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:cortex search service, kw:document chunking, kw:metadata filtering, kw:search tool configuration, kw:SEARCH_PREVIEW validation, kw:search index lifecycle, kw:ai_embed
-**TokenBudget:** ~3100
-**ContextTier:** Medium
-**Depends:** optional:115-snowflake-cortex-agents-core.md
 
 ## Scope
 
@@ -31,18 +39,7 @@ Patterns for building and querying Cortex Search indices: data preparation, embe
 >
 > IF ANY condition fails, STOP and report to user.
 
-
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake SQL and warehouse fundamentals
-- **114-snowflake-cortex-aisql.md** - AI_EMBED function for embeddings
-
-**Related:**
-- **115-snowflake-cortex-agents-core.md** - Agent archetypes
-- **106c-snowflake-semantic-views-integration.md** - Analyst tool configuration
 
 ### External Documentation
 - [Cortex Search Overview](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-search/cortex-search-overview)

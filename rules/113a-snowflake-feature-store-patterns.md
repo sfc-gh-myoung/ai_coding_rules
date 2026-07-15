@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:ASOF JOIN
+  - kw:feature view versioning
+  - kw:deterministic transformations
+  - kw:dynamic table refresh costs
+  - kw:training data leakage
+  - kw:train serve skew
+token_budget: ~2300
+context_tier: Low
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 113-snowflake-feature-store.md  # Feature Store core patterns
+---
 # Snowflake Feature Store: Anti-Patterns and Common Mistakes
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:ASOF JOIN, kw:feature view versioning, kw:deterministic transformations, kw:dynamic table refresh costs, kw:training data leakage, kw:train serve skew
-**TokenBudget:** ~2300
-**ContextTier:** Low
-**Depends:** required:100-snowflake-core.md, required:113-snowflake-feature-store.md
 
 ## Scope
 
@@ -22,12 +30,6 @@ Anti-patterns and common mistakes when implementing Snowflake Feature Store, inc
 - Optimizing feature view refresh costs
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **113-snowflake-feature-store.md** - Feature Store core patterns
 
 ### External Documentation
 

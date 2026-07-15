@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:tool output minimization
+  - kw:progressive loading
+  - kw:token-efficient responses
+  - kw:silent success pattern
+  - kw:metadata elimination
+  - kw:agent context preservation
+  - kw:ci/cd
+token_budget: ~2600
+context_tier: Medium
+depends:
+  required:
+    - 004-tool-design-for-agents.md  # Core tool design principles
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 003-context-engineering.md  # Context management and attention budgets
+    - 004a-tool-set-curation.md  # Minimal viable tool sets
+---
 # Tool Output Token Efficiency
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:tool output minimization, kw:progressive loading, kw:token-efficient responses, kw:silent success pattern, kw:metadata elimination, kw:agent context preservation, kw:ci/cd
-**TokenBudget:** ~2600
-**ContextTier:** Medium
-**Depends:** required:004-tool-design-for-agents.md, required:000-global-core.md, optional:003-context-engineering.md, optional:004a-tool-set-curation.md
 
 ## Scope
 
@@ -23,20 +35,9 @@ Designing token-efficient tool outputs for AI agents. Covers returning only nece
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **004-tool-design-for-agents.md** - Core tool design principles
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **003-context-engineering.md** - Context management and attention budgets
-- **004a-tool-set-curation.md** - Minimal viable tool sets
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:parameterized SQL templates
+  - kw:idempotent MERGE operations
+  - kw:CREATE TABLE IF NOT EXISTS
+  - kw:multi-environment deployment
+  - kw:CI/CD pipeline integration
+  - kw:production-safe automation
+  - kw:ci/cd
+token_budget: ~5150
+context_tier: High
+depends:
+  required:
+    - 102-snowflake-sql-core.md  # General SQL file patterns (headers, syntax, qualified names)
+  optional:
+    - 117-snowflake-mcp-server.md  # MCP server integration patterns
+    - 130-snowflake-demo-sql.md  # Demo SQL patterns (this rule extends demo patterns to production)
+---
 # Snowflake SQL: Production Automation and CI/CD
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:parameterized SQL templates, kw:idempotent MERGE operations, kw:CREATE TABLE IF NOT EXISTS, kw:multi-environment deployment, kw:CI/CD pipeline integration, kw:production-safe automation, kw:ci/cd
-**TokenBudget:** ~5150
-**ContextTier:** High
-**Depends:** required:102-snowflake-sql-core.md, optional:117-snowflake-mcp-server.md, optional:130-snowflake-demo-sql.md
 
 ## Scope
 
@@ -25,15 +36,6 @@ Guide creation of parameterized SQL templates using <%VARIABLE%> syntax for auto
 - Preventing data loss from CREATE OR REPLACE TABLE
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **102-snowflake-sql-core.md** - General SQL file patterns (headers, syntax, qualified names)
-
-**Related:**
-- **117-snowflake-mcp-server.md** - MCP server integration patterns
-- **130-snowflake-demo-sql.md** - Demo SQL patterns (this rule extends demo patterns to production)
 
 ### External Documentation
 

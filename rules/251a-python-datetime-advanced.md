@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:timedelta vs dateoffset
+  - kw:calendar-aware arithmetic
+  - kw:vectorized datetime operations
+  - kw:business day calculations
+  - kw:time series downsampling
+  - kw:relativedelta age calculation
+  - kw:pandas
+token_budget: ~2600
+context_tier: Medium
+depends:
+  required:
+    - 251-python-datetime-core.md  # Core datetime types and timezone handling
+  optional:
+    - 251b-python-datetime-integration.md  # Streamlit, Plotly, SQL integration
+    - 252-python-pandas-core.md  # Pandas performance patterns
+---
 # Python DateTime Advanced Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:timedelta vs dateoffset, kw:calendar-aware arithmetic, kw:vectorized datetime operations, kw:business day calculations, kw:time series downsampling, kw:relativedelta age calculation, kw:pandas
-**TokenBudget:** ~2600
-**ContextTier:** Medium
-**Depends:** required:251-python-datetime-core.md, optional:251b-python-datetime-integration.md, optional:252-python-pandas-core.md
 
 ## Scope
 
@@ -23,19 +34,9 @@ Date arithmetic (Timedelta vs DateOffset), calendar calculations, performance op
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **251-python-datetime-core.md** - Core datetime types and timezone handling
-
-**Related:**
-- **251b-python-datetime-integration.md** - Streamlit, Plotly, SQL integration
-- **252-python-pandas-core.md** - Pandas performance patterns
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:conventional commits
+  - kw:feature branch workflow
+  - kw:conventional branch naming
+  - kw:CHANGELOG.md updates
+  - kw:pre-commit validation gate
+  - kw:pull request workflow
+  - kw:cortex
+token_budget: ~3700
+context_tier: Medium
+depends:
+  required:
+    - 800-project-changelog.md  # Changelog management
+    - 802-project-contributing.md  # Contribution workflow
+  optional:
+    - 000-global-core.md  # Pre-Task-Completion Validation Gate
+    - AGENTS.md  # Agent workflow integration
+---
 # Git Workflow Management
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.7.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:conventional commits, kw:feature branch workflow, kw:conventional branch naming, kw:CHANGELOG.md updates, kw:pre-commit validation gate, kw:pull request workflow, kw:cortex
-**TokenBudget:** ~3700
-**ContextTier:** Medium
-**Depends:** required:800-project-changelog.md, required:802-project-contributing.md, optional:000-global-core.md, optional:AGENTS.md
 
 ## Scope
 
@@ -20,18 +32,7 @@ Git workflow best practices including feature-focused Conventional Commit format
 - Using Conventional Commits format
 - Setting up branching strategies or PR processes
 
-
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **800-project-changelog.md** - Changelog management
-- **802-project-contributing.md** - Contribution workflow
-
-**Related:**
-- **000-global-core.md** - Pre-Task-Completion Validation Gate
-- **AGENTS.md** - Agent workflow integration
 
 ### External Documentation
 - [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification)

@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:categorized help
+  - kw:makefile conditionals
+  - kw:variable assignment operators
+  - kw:makefile include directives
+  - kw:platform detection
+  - kw:AI agent integration
+  - kw:ci/cd
+token_budget: ~3650
+context_tier: Low
+depends:
+  required:
+    - 821-makefile-automation.md  # Core Makefile patterns
+  optional:
+    - 820a-taskfile-advanced-patterns.md  # Equivalent patterns for Taskfile
+    - 300-bash-scripting-core.md  # Shell patterns used in recipes
+---
 # Makefile Advanced Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:categorized help, kw:makefile conditionals, kw:variable assignment operators, kw:makefile include directives, kw:platform detection, kw:AI agent integration, kw:ci/cd
-**TokenBudget:** ~3650
-**ContextTier:** Low
-**Depends:** required:821-makefile-automation.md, optional:820a-taskfile-advanced-patterns.md, optional:300-bash-scripting-core.md
 
 ## Scope
 
@@ -24,15 +35,6 @@ Advanced Makefile patterns including categorized help output, conditional logic,
 **For core Makefile patterns, see `821-makefile-automation.md`.**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **821-makefile-automation.md** - Core Makefile patterns
-
-**Related:**
-- **820a-taskfile-advanced-patterns.md** - Equivalent patterns for Taskfile
-- **300-bash-scripting-core.md** - Shell patterns used in recipes
 
 ### External Documentation
 - [GNU Make Manual - Conditionals](https://www.gnu.org/software/make/manual/make.html#Conditionals)

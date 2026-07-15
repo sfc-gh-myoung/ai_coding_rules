@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:hierarchical logger names
+  - kw:Rich console bridge
+  - kw:WebLogHandler SSE
+  - kw:operation-scoped handler attachment
+  - kw:SUCCESS prefix pattern
+  - kw:operation ID correlation
+  - kw:fastapi
+token_budget: ~3700
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Python foundation patterns
+  optional:
+    - 201-python-lint-format.md  # Code quality standards
+    - 210-python-fastapi-core.md  # FastAPI SSE streaming patterns
+---
 # Python Logging Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:hierarchical logger names, kw:Rich console bridge, kw:WebLogHandler SSE, kw:operation-scoped handler attachment, kw:SUCCESS prefix pattern, kw:operation ID correlation, kw:fastapi
-**TokenBudget:** ~3700
-**ContextTier:** High
-**Depends:** required:200-python-core.md, optional:201-python-lint-format.md, optional:210-python-fastapi-core.md
 
 ## Scope
 
@@ -25,15 +36,6 @@ Best practices for Python logging in applications with dual output requirements 
 - Debugging log propagation issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Python foundation patterns
-
-**Related:**
-- **201-python-lint-format.md** - Code quality standards
-- **210-python-fastapi-core.md** - FastAPI SSE streaming patterns
 
 ### External Documentation
 
@@ -366,7 +368,6 @@ import json
 import logging
 from datetime import UTC, datetime
 
-
 class JSONFormatter(logging.Formatter):
     """JSON log formatter for structured logging."""
 
@@ -387,7 +388,6 @@ class JSONFormatter(logging.Formatter):
             if hasattr(record, key):
                 log_data[key] = getattr(record, key)
         return json.dumps(log_data)
-
 
 # Configure for production
 handler = logging.StreamHandler()

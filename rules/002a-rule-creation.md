@@ -1,3 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:rule creation workflow
+  - kw:rule numbering ranges
+  - kw:v3.4 schema compliance
+  - kw:Contract Markdown subsections
+  - kw:rule file naming convention
+  - kw:metadata field setup
+  - kw:aisql
+token_budget: ~3900
+context_tier: High
+depends:
+  required:
+    - 002-rule-governance.md  # Schema requirements and standards
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 002b-rule-update.md  # Updating and maintaining existing rules
+    - 002e-schema-validator-usage.md  # Detailed validation commands and error resolution
+    - 002c-rule-optimization.md  # Token budget optimization strategies
+---
 # Rule Creation Guide: Step-by-Step Workflow
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
@@ -5,20 +28,12 @@
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when creating, reviewing, or maintaining rules.
 
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.5.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:rule creation workflow, kw:rule numbering ranges, kw:v3.4 schema compliance, kw:Contract Markdown subsections, kw:rule file naming convention, kw:metadata field setup, kw:aisql
-**TokenBudget:** ~3900
-**ContextTier:** High
-**Depends:** required:002-rule-governance.md, required:000-global-core.md, optional:002b-rule-update.md, optional:002e-schema-validator-usage.md, optional:002c-rule-optimization.md
-
 ## Scope
 
 **What This Rule Covers:**
-Step-by-step workflow for creating new rules from scratch. Covers rule numbering, naming conventions, metadata setup, v3.4 section structure, Contract with Markdown headers, and validation. For updating existing rules, see 002b-rule-update.md.
+Step-by-step workflow for creating new rules from scratch. Covers rule numbering, naming conventions, metadata setup, v3.5 section structure, Contract with Markdown headers, and validation. For updating existing rules, see 002b-rule-update.md.
+
+> **v3.5 migration note:** New rules SHOULD use YAML frontmatter (`---`-fenced block at top-of-file) for metadata. The `## Metadata` H2 header and the `### Dependencies` prose subsection are no longer required. Dependency justifications now live as inline YAML comments on each `depends:` item (Option B). Keywords count bound narrowed to 5-7 typed entries. The inline `**Field:**` metadata format remains accepted as a dual-parse fallback but is not the canonical form for new rules. See `rules/examples/002a-rule-template.md` for the reference v3.5 layout.
 
 **When to Load This Rule:**
 - Creating a new rule file from scratch
@@ -27,17 +42,6 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 - Structuring rule sections per v3.4 schema
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **002-rule-governance.md** - Schema requirements and standards
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **002b-rule-update.md** - Updating and maintaining existing rules
-- **002e-schema-validator-usage.md** - Detailed validation commands and error resolution
-- **002c-rule-optimization.md** - Token budget optimization strategies
 
 ### External Documentation
 

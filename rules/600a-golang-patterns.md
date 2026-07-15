@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:http.Server timeouts
+  - kw:graceful shutdown
+  - kw:middleware chain composition
+  - kw:database connection pooling
+  - kw:context-aware queries
+  - kw:signal handling SIGTERM
+  - kw:taskfile
+token_budget: ~2250
+context_tier: Low
+depends:
+  required:
+    - 600-golang-core.md  # Core Go patterns and conventions
+  optional:
+    - 820-taskfile-automation.md
+---
 # Go Patterns: HTTP Servers, Middleware & Production Readiness
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:http.Server timeouts, kw:graceful shutdown, kw:middleware chain composition, kw:database connection pooling, kw:context-aware queries, kw:signal handling SIGTERM, kw:taskfile
-**TokenBudget:** ~2250
-**ContextTier:** Low
-**Depends:** required:600-golang-core.md, optional:820-taskfile-automation.md
 
 ## Scope
 
@@ -24,14 +34,6 @@ Advanced Go patterns for production services including HTTP server configuration
 **For core Go patterns (error handling, interfaces, testing, concurrency), see `600-golang-core.md`.**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **600-golang-core.md** - Core Go patterns and conventions
-
-**Related:**
-- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
 
 ### External Documentation
 - [net/http Package](https://pkg.go.dev/net/http) - Standard library HTTP server

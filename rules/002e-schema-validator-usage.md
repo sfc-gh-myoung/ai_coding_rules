@@ -1,19 +1,32 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:ai-rules validate
+  - kw:schema v3.2 compliance
+  - kw:severity levels CRITICAL HIGH MEDIUM
+  - kw:exit code interpretation
+  - kw:common validation fixes
+  - kw:validator command flags
+  - kw:ci/cd
+token_budget: ~2600
+context_tier: High
+depends:
+  required:
+    - 002-rule-governance.md  # Schema requirements and v3.2 standards
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 002f-schema-validator-advanced.md  # CI/CD integration and automation workflows
+    - 002a-rule-creation.md  # Rule creation workflow with validation steps
+    - 002c-rule-optimization.md  # Token budgets and performance
+---
 # Schema Validator Usage: Validation Commands and Error Resolution
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when creating, reviewing, or maintaining rules.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:ai-rules validate, kw:schema v3.2 compliance, kw:severity levels CRITICAL HIGH MEDIUM, kw:exit code interpretation, kw:common validation fixes, kw:validator command flags, kw:ci/cd
-**TokenBudget:** ~2600
-**ContextTier:** High
-**Depends:** required:002-rule-governance.md, required:000-global-core.md, optional:002f-schema-validator-advanced.md, optional:002a-rule-creation.md, optional:002c-rule-optimization.md
 
 ## Scope
 
@@ -30,17 +43,6 @@ Core guide for running `ai-rules validate` against v3.2 rules. Covers command us
 - Load `002f-schema-validator-advanced.md`
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **002-rule-governance.md** - Schema requirements and v3.2 standards
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **002f-schema-validator-advanced.md** - CI/CD integration and automation workflows
-- **002a-rule-creation.md** - Rule creation workflow with validation steps
-- **002c-rule-optimization.md** - Token budgets and performance
 
 ### External Documentation
 

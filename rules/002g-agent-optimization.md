@@ -1,16 +1,29 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:agent-first design
+  - kw:ASCII table prohibition
+  - kw:imperative voice instructions
+  - kw:sequential processing model
+  - kw:terminology consistency enforcement
+  - kw:arrow character replacement
+  - kw:llm
+token_budget: ~3000
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 002-rule-governance.md  # Schema requirements and v3.2 standards
+  optional:
+    - 002a-rule-creation.md  # Step-by-step rule creation with agent optimization
+    - 002c-rule-optimization.md  # Token budgets and performance
+    - 002d-advanced-rule-patterns.md  # System prompt altitude and investigation-first
+---
 # 002g: Agent Optimization Principles
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:agent-first design, kw:ASCII table prohibition, kw:imperative voice instructions, kw:sequential processing model, kw:terminology consistency enforcement, kw:arrow character replacement, kw:llm
-**TokenBudget:** ~3000
-**ContextTier:** High
-**Depends:** required:000-global-core.md, required:002-rule-governance.md, optional:002a-rule-creation.md, optional:002c-rule-optimization.md, optional:002d-advanced-rule-patterns.md
 
 ## Scope
 
@@ -35,17 +48,6 @@ See `002-rule-governance.md` "Key Principles" for canonical definitions.
 **Rule:** When human-friendly formatting conflicts with agent parsing, **agent parsing wins**.
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **002-rule-governance.md** - Schema requirements and v3.2 standards
-
-**Related:**
-- **002a-rule-creation.md** - Step-by-step rule creation with agent optimization
-- **002c-rule-optimization.md** - Token budgets and performance
-- **002d-advanced-rule-patterns.md** - System prompt altitude and investigation-first
 
 ### External Documentation
 

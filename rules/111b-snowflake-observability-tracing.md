@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:snowflake-telemetry-python
+  - kw:create_span context manager
+  - kw:128 event span limit
+  - kw:nested span hierarchy
+  - kw:TRACE_LEVEL configuration
+  - kw:span attribute enrichment
+  - kw:snowsight
+token_budget: ~4600
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 111-snowflake-observability-core.md  # Telemetry configuration and event tables
+  optional:
+    - 111a-snowflake-observability-logging.md  # Logging best practices
+    - 111c-snowflake-observability-monitoring.md  # Monitoring, Snowsight interfaces, analysis
+    - 103-snowflake-performance-tuning.md  # Performance optimization using trace data
+---
 # Snowflake Observability: Distributed Tracing and Metrics
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:snowflake-telemetry-python, kw:create_span context manager, kw:128 event span limit, kw:nested span hierarchy, kw:TRACE_LEVEL configuration, kw:span attribute enrichment, kw:snowsight
-**TokenBudget:** ~4600
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:111-snowflake-observability-core.md, optional:111a-snowflake-observability-logging.md, optional:111c-snowflake-observability-monitoring.md, optional:103-snowflake-performance-tuning.md
 
 ## Scope
 
@@ -23,17 +36,6 @@ Distributed tracing and metrics collection patterns for Snowflake handlers using
 - Configuring TRACE_LEVEL and METRIC_LEVEL
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **111-snowflake-observability-core.md** - Telemetry configuration and event tables
-
-**Related:**
-- **111a-snowflake-observability-logging.md** - Logging best practices
-- **111c-snowflake-observability-monitoring.md** - Monitoring, Snowsight interfaces, analysis
-- **103-snowflake-performance-tuning.md** - Performance optimization using trace data
 
 ### External Documentation
 

@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:pre-task completion gate
+  - kw:ty vs mypy decision
+  - kw:zero-tolerance validation
+  - kw:toolchain-specific validation commands
+  - kw:validation failure recovery sequence
+  - kw:pre-commit hook automation
+  - kw:TOML
+token_budget: ~3050
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Core Python patterns and toolchain detection
+  optional:
+    - 201-python-lint-format.md  # Detailed Ruff linting and formatting
+    - 206-python-pytest.md  # Comprehensive testing patterns
+---
 # Python Pre-Task-Completion Validation Gate
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:pre-task completion gate, kw:ty vs mypy decision, kw:zero-tolerance validation, kw:toolchain-specific validation commands, kw:validation failure recovery sequence, kw:pre-commit hook automation, kw:TOML
-**TokenBudget:** ~3050
-**ContextTier:** High
-**Depends:** required:200-python-core.md, optional:201-python-lint-format.md, optional:206-python-pytest.md
 
 ## Scope
 
@@ -23,19 +34,9 @@ The mandatory Pre-Task-Completion Validation Gate for all Python tasks: linting,
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Core Python patterns and toolchain detection
-
-**Related:**
-- **201-python-lint-format.md** - Detailed Ruff linting and formatting
-- **206-python-pytest.md** - Comprehensive testing patterns
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

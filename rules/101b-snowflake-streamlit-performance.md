@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:@st.cache_data decorator
+  - kw:@st.cache_resource decorator
+  - kw:Snowflake column normalization
+  - kw:st.spinner progress feedback
+  - kw:query loop aggregation
+  - kw:ttl cache expiration
+  - kw:pandas
+token_budget: ~4950
+context_tier: High
+depends:
+  required:
+    - 103-snowflake-performance-tuning.md  # Snowflake query optimization
+---
 # Streamlit Performance: Caching and Optimization
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:@st.cache_data decorator, kw:@st.cache_resource decorator, kw:Snowflake column normalization, kw:st.spinner progress feedback, kw:query loop aggregation, kw:ttl cache expiration, kw:pandas
-**TokenBudget:** ~4950
-**ContextTier:** High
-**Depends:** required:103-snowflake-performance-tuning.md
 
 ## Scope
 
@@ -24,18 +32,6 @@ Comprehensive guidance for optimizing Streamlit application performance through 
 - Profiling and targeting <2s load time
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns and session management
-- **103-snowflake-performance-tuning.md** - Snowflake query optimization
-
-**Related:**
-- **101e-snowflake-streamlit-sql-errors.md** - SQL error handling for query failures
-- **105-snowflake-cost-governance.md** - Cost monitoring for cached queries
-- **119-snowflake-warehouse-management.md** - Warehouse sizing for query performance
 
 ### External Documentation
 

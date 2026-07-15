@@ -1,19 +1,32 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:cortex agent
+  - kw:agent archetype
+  - kw:tool orchestration
+  - kw:planning instructions
+  - kw:semantic view grounding
+  - kw:agent debugging
+  - kw:aisql
+token_budget: ~3100
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 106-snowflake-semantic-views-core.md  # Semantic views as agent tools
+  optional:
+    - 115a-snowflake-cortex-agents-instructions.md  # Planning and response instructions
+    - 115b-snowflake-cortex-agents-operations.md  # Testing, RBAC, observability
+    - 116-snowflake-cortex-search.md  # Cortex Search for document retrieval
+---
 # Snowflake Cortex Agents Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Cortex Agents patterns. Load for Cortex Agent tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.5.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:cortex agent, kw:agent archetype, kw:tool orchestration, kw:planning instructions, kw:semantic view grounding, kw:agent debugging, kw:aisql
-**TokenBudget:** ~3100
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:106-snowflake-semantic-views-core.md, optional:115a-snowflake-cortex-agents-instructions.md, optional:115b-snowflake-cortex-agents-operations.md, optional:116-snowflake-cortex-search.md
 
 ## Scope
 
@@ -37,17 +50,6 @@ Core patterns to design, configure, and deploy Cortex Agents including agent arc
 > **STOP if any condition fails. DO NOT create agents using assumptions.**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **106-snowflake-semantic-views-core.md** - Semantic views as agent tools
-
-**Related:**
-- **115a-snowflake-cortex-agents-instructions.md** - Planning and response instructions
-- **115b-snowflake-cortex-agents-operations.md** - Testing, RBAC, observability
-- **116-snowflake-cortex-search.md** - Cortex Search for document retrieval
 
 ### External Documentation
 - [Cortex Agents Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents)

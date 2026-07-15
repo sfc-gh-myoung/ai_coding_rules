@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:notebook-tutorial design
+  - kw:learning objectives structure
+  - kw:checkpoint validation cells
+  - kw:anti-pattern teaching
+  - kw:progressive complexity management
+  - kw:teaching point callouts
+  - kw:pandas
+token_budget: ~3600
+context_tier: High
+depends:
+  required:
+    - 109-snowflake-notebooks.md
+    - 920-data-science-analytics.md
+---
 # Snowflake Notebook Tutorial Design Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:notebook-tutorial design, kw:learning objectives structure, kw:checkpoint validation cells, kw:anti-pattern teaching, kw:progressive complexity management, kw:teaching point callouts, kw:pandas
-**TokenBudget:** ~3600
-**ContextTier:** High
-**Depends:** required:109-snowflake-notebooks.md, required:920-data-science-analytics.md
 
 ## Scope
 
@@ -28,13 +37,6 @@ Comprehensive patterns for designing educational Snowflake notebooks that effect
 - [Snowflake Notebooks Getting Started](https://docs.snowflake.com/en/user-guide/ui-snowsight-notebooks-gs) - Official quickstart guide
 - [Snowpark for Python Tutorials](https://quickstarts.snowflake.com/guide/getting_started_with_snowpark_python/index.html) - Hands-on learning
 - [Jupyter Best Practices](https://jupyter-notebook.readthedocs.io/en/stable/notebook.html) - General notebook guidelines
-
-### Dependencies
-
-**Must Load First:**
-- [109-snowflake-notebooks.md](109-snowflake-notebooks.md)
-- [920-data-science-analytics.md](920-data-science-analytics.md)
-
 
 ## Contract
 

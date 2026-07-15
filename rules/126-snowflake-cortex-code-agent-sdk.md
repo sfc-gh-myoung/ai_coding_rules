@@ -1,3 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:cortex-code-agent-sdk
+  - kw:agent lifecycle hooks
+  - kw:canUseTool permission callback
+  - kw:streaming partial messages
+  - kw:multi-turn session management
+  - kw:structured output json schema
+  - kw:cortex
+token_budget: ~5050
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+  optional:
+    - 115-snowflake-cortex-agents-core.md  # Server-side `CREATE CORTEX AGENT` DDL agents
+    - 117-snowflake-mcp-server.md  # Snowflake-managed MCP server (different scope)
+    - 118-snowflake-cortex-rest-api.md  # REST clients without the SDK
+---
 # Snowflake Cortex Code Agent SDK Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
@@ -5,16 +27,6 @@
 > This rule defines essential patterns for building agentic apps with the
 > Cortex Code Agent SDK in TypeScript and Python. Load for any task that uses
 > `cortex-code-agent-sdk` (npm or PyPI) or the `cortex` CLI as a subprocess.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:cortex-code-agent-sdk, kw:agent lifecycle hooks, kw:canUseTool permission callback, kw:streaming partial messages, kw:multi-turn session management, kw:structured output json schema, kw:cortex
-**TokenBudget:** ~5050
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, optional:115-snowflake-cortex-agents-core.md, optional:117-snowflake-mcp-server.md, optional:118-snowflake-cortex-rest-api.md
 
 ## Scope
 
@@ -43,16 +55,6 @@ and structured output. Status: PREVIEW.
 > - [ ] If CLI not on PATH, `CORTEX_CODE_CLI_PATH` is set or `cli_path`/`cliPath` is passed
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-
-**Related:**
-- **115-snowflake-cortex-agents-core.md** - Server-side `CREATE CORTEX AGENT` DDL agents
-- **117-snowflake-mcp-server.md** - Snowflake-managed MCP server (different scope)
-- **118-snowflake-cortex-rest-api.md** - REST clients without the SDK
 
 ### External Documentation
 

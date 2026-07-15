@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:.workbench/ folder
+  - kw:short-life assets
+  - kw:promotion protocol
+  - kw:filesystem hygiene
+  - kw:workbench mirroring
+  - kw:gitignore workbench
+token_budget: ~1950
+context_tier: Low
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns
+  optional:
+    - 800-project-changelog.md  # Changelog format for landed workbench work
+    - 803-project-git-workflow.md  # Commit conventions when promoting assets out of `.workbench/`
+    - 804-project-documentation.md  # `docs/` folder organization (long-lived docs)
+---
 # Workbench Folder Policy — Short-Life Project Assets
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:.workbench/ folder, kw:short-life assets, kw:promotion protocol, kw:filesystem hygiene, kw:workbench mirroring, kw:gitignore workbench
-**TokenBudget:** ~1950
-**ContextTier:** Low
-**Depends:** required:000-global-core.md, optional:800-project-changelog.md, optional:803-project-git-workflow.md, optional:804-project-documentation.md
 
 ## Scope
 
@@ -39,22 +50,9 @@ Where short-life, in-progress, or scratch project assets live in the repository.
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-
-- **000-global-core.md** - Foundation rule with core patterns
-
-**Related:**
-
-- **800-project-changelog.md** - Changelog format for landed workbench work
-- **803-project-git-workflow.md** - Commit conventions when promoting assets out of `.workbench/`
-- **804-project-documentation.md** - `docs/` folder organization (long-lived docs)
-
 ### External Documentation
 
 _None._
-
 
 ## Contract
 

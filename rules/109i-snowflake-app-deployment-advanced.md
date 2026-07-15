@@ -1,14 +1,20 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:multi-environment promotion
+  - kw:deployment validation gates
+  - kw:rollback recovery procedures
+  - kw:stage backup snapshot
+  - kw:deployment audit trail
+  - kw:environment-aware automation
+  - kw:streamlit
+token_budget: ~2700
+context_tier: Low
+depends: {}
+---
 # Snowflake App Deployment Advanced Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:multi-environment promotion, kw:deployment validation gates, kw:rollback recovery procedures, kw:stage backup snapshot, kw:deployment audit trail, kw:environment-aware automation, kw:streamlit
-**TokenBudget:** ~2700
-**ContextTier:** Low
-**Depends:** none
 
 ## Scope
 
@@ -26,14 +32,6 @@ Advanced deployment patterns for Snowflake applications including multi-environm
 ### External Documentation
 
 _None._
-
-### Dependencies
-
-**Must Load First:**
-- [109b-snowflake-app-deployment-core.md](109b-snowflake-app-deployment-core.md)
-- [109h-snowflake-app-deployment-taskfile.md](109h-snowflake-app-deployment-taskfile.md)
-
-
 
 ## Contract
 

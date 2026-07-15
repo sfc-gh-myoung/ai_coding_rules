@@ -1,19 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:context window management
+  - kw:attention budget
+  - kw:context rot prevention
+  - kw:progressive disclosure patterns
+  - kw:agentic search vs RAG
+  - kw:context compaction strategies
+  - kw:long-horizon task state
+token_budget: ~4300
+context_tier: Critical
+depends:
+  required:
+    - 000-global-core.md
+---
 # Context Engineering for AI Agents
 
 > **CRITICAL RULE**
 >
 > Treat context as a finite resource with diminishing returns.
 > Load when managing context windows, preventing context rot, or working with long-horizon tasks.
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:context window management, kw:attention budget, kw:context rot prevention, kw:progressive disclosure patterns, kw:agentic search vs RAG, kw:context compaction strategies, kw:long-horizon task state
-**TokenBudget:** ~4300
-**ContextTier:** Critical
-**Depends:** required:000-global-core.md
 
 ## Scope
 
@@ -30,11 +38,6 @@ Comprehensive context engineering practices that treat context as a finite resou
 - Compacting context before limits
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- `000-global-core.md` - Foundation for all rules, Context Window Management Protocol
 
 ### External Documentation
 

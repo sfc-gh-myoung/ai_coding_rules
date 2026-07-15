@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:JSDoc type annotations
+  - kw:eslint-plugin-jsdoc
+  - kw:@ts-check validation
+  - kw:@param @returns tags
+  - kw:@typedef custom types
+  - kw:JavaScript API documentation
+token_budget: ~4300
+context_tier: High
+depends:
+  required:
+    - 420-javascript-core.md  # JavaScript foundation and modern patterns
+  optional:
+    - 434-typescript-docs.md  # TSDoc patterns (TypeScript doesn't need type annotations)
+---
 # JavaScript Documentation and JSDoc
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:JSDoc type annotations, kw:eslint-plugin-jsdoc, kw:@ts-check validation, kw:@param @returns tags, kw:@typedef custom types, kw:JavaScript API documentation
-**TokenBudget:** ~4300
-**ContextTier:** High
-**Depends:** required:420-javascript-core.md, optional:434-typescript-docs.md
 
 ## Scope
 
@@ -23,14 +32,6 @@ JSDoc-based documentation standards for JavaScript projects. Covers type annotat
 - Documenting public APIs and libraries
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **420-javascript-core.md** - JavaScript foundation and modern patterns
-
-**Related:**
-- **434-typescript-docs.md** - TSDoc patterns (TypeScript doesn't need type annotations)
 
 ### External Documentation
 

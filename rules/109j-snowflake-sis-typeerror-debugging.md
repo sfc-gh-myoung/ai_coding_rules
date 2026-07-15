@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:SiS TypeError
+  - kw:AUTO_COMPRESS FALSE
+  - kw:AttributeError streamlit module
+  - kw:FROM source path
+  - kw:live_version_location_uri
+  - kw:environment.yml streamlit pin
+  - kw:pandas
+token_budget: ~5250
+context_tier: Medium
+depends:
+  optional:
+    - 109c-snowflake-app-deployment-troubleshooting.md  # Parent troubleshooting rule
+---
 # Snowflake SiS TypeError & AttributeError Debugging
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:SiS TypeError, kw:AUTO_COMPRESS FALSE, kw:AttributeError streamlit module, kw:FROM source path, kw:live_version_location_uri, kw:environment.yml streamlit pin, kw:pandas
-**TokenBudget:** ~5250
-**ContextTier:** Medium
-**Depends:** optional:109c-snowflake-app-deployment-troubleshooting.md
 
 ## Scope
 
@@ -22,15 +30,6 @@ Detailed diagnostic workflows for the two most common Streamlit in Snowflake (Si
 - Troubleshooting environment.yml version pinning
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **109c-snowflake-app-deployment-troubleshooting.md** - Parent troubleshooting rule
-
-**Related:**
-- **101-snowflake-streamlit-core.md** - Streamlit development patterns
-- **109b-snowflake-app-deployment-core.md** - Base deployment patterns
 
 ### External Documentation
 

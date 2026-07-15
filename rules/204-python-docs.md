@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:docstring conventions
+  - kw:PEP 257
+  - kw:Google style docstrings
+  - kw:NumPy style docstrings
+  - kw:Ruff pydocstyle
+  - kw:side effects documentation
+  - kw:TOML
+token_budget: ~3800
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Python foundation patterns
+    - 201-python-lint-format.md  # Ruff configuration and linting
+---
 # Python Documentation, Comments, and Docstrings
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:docstring conventions, kw:PEP 257, kw:Google style docstrings, kw:NumPy style docstrings, kw:Ruff pydocstyle, kw:side effects documentation, kw:TOML
-**TokenBudget:** ~3800
-**ContextTier:** High
-**Depends:** required:200-python-core.md, required:201-python-lint-format.md
 
 ## Scope
 
@@ -22,12 +31,6 @@ Clear, enforceable standards for Python documentation, source code comments, and
 - Documenting public APIs
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Python foundation patterns
-- **201-python-lint-format.md** - Ruff configuration and linting
 
 ### External Documentation
 

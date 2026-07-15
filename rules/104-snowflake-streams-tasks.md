@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:change data capture
+  - kw:stream consumption
+  - kw:task dag
+  - kw:merge patterns
+  - kw:task history monitoring
+  - kw:stream staleness
+  - kw:cdc
+token_budget: ~3100
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+    - 100-snowflake-core.md  # Snowflake SQL patterns and best practices
+---
 # Snowflake Streams and Tasks
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:change data capture, kw:stream consumption, kw:task dag, kw:merge patterns, kw:task history monitoring, kw:stream staleness, kw:cdc
-**TokenBudget:** ~3100
-**ContextTier:** High
-**Depends:** required:000-global-core.md, required:100-snowflake-core.md
 
 ## Scope
 
@@ -23,12 +32,6 @@ Patterns for building robust, incremental data pipelines using Snowflake Streams
 - Troubleshooting stream/task pipeline issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **100-snowflake-core.md** - Snowflake SQL patterns and best practices
 
 ### External Documentation
 - [Streams Management](https://docs.snowflake.com/en/user-guide/streams-manage) - Change data capture with streams for incremental processing

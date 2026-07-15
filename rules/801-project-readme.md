@@ -1,14 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:README.md structure
+  - kw:quick start commands
+  - kw:progressive disclosure
+  - kw:badge validation
+  - kw:clean environment testing
+  - kw:author contact section
+  - kw:ci/cd
+token_budget: ~4800
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 802-project-contributing.md  # Contributing guidelines
+    - 805-technical-writing-style.md  # Writing standards (voice, tone, sentence case, inclusive language, accessibility) that apply to README prose
+---
 # README Best Practices: Professional Project Documentation
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:README.md structure, kw:quick start commands, kw:progressive disclosure, kw:badge validation, kw:clean environment testing, kw:author contact section, kw:ci/cd
-**TokenBudget:** ~4800
-**ContextTier:** Medium
-**Depends:** required:000-global-core.md, optional:802-project-contributing.md, optional:805-technical-writing-style.md
 
 ## Scope
 
@@ -23,15 +34,6 @@ Comprehensive standards for README.md files following widely accepted industry b
 - Implementing professional documentation practices
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **802-project-contributing.md** - Contributing guidelines
-- **805-technical-writing-style.md** - Writing standards (voice, tone, sentence case, inclusive language, accessibility) that apply to README prose
 
 ### External Documentation
 - [GitHub README Guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) - Official GitHub documentation standards

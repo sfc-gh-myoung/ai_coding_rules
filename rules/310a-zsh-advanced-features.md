@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:zsh modules
+  - kw:async prompt operations
+  - kw:completion caching
+  - kw:zprof startup profiling
+  - kw:glob qualifiers
+  - kw:parameter expansion back-references
+token_budget: ~3800
+context_tier: Low
+depends:
+  required:
+    - 310-zsh-scripting-core.md  # Foundation zsh scripting patterns
+  optional:
+    - 310b-zsh-compatibility.md  # Cross-shell compatibility strategies
+    - 310d-zsh-completion-prompt.md  # Completion system, hooks, and prompt engineering
+---
 # Zsh Advanced Features and Optimization
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:zsh modules, kw:async prompt operations, kw:completion caching, kw:zprof startup profiling, kw:glob qualifiers, kw:parameter expansion back-references
-**TokenBudget:** ~3800
-**ContextTier:** Low
-**Depends:** required:310-zsh-scripting-core.md, optional:310b-zsh-compatibility.md, optional:310d-zsh-completion-prompt.md
 
 ## Scope
 
@@ -23,15 +33,6 @@ Comprehensive guidance on zsh's advanced features including modules, parameter e
 - Writing advanced scripting patterns (state machines, plugins)
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **310-zsh-scripting-core.md** - Foundation zsh scripting patterns
-
-**Related:**
-- **310b-zsh-compatibility.md** - Cross-shell compatibility strategies
-- **310d-zsh-completion-prompt.md** - Completion system, hooks, and prompt engineering
 
 ### External Documentation
 

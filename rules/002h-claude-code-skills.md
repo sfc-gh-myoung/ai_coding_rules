@@ -1,19 +1,31 @@
+---
+schema_version: v3.5
+rule_version: v4.0.1
+last_updated: 2026-07-15
+keywords:
+  - kw:SKILL.md authoring
+  - kw:YAML frontmatter
+  - kw:progressive disclosure
+  - kw:trigger keywords
+  - kw:input output contracts
+  - kw:third person description
+  - dir:skills/
+token_budget: ~5650
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 002-rule-governance.md  # Schema requirements and v3.2 standards
+  optional:
+    - 002a-rule-creation.md  # Rule authoring principles apply to skills
+    - 002d-advanced-rule-patterns.md  # Progressive disclosure and workflows
+---
 # Claude Code Skills Best Practices
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential patterns for creating Claude Code skills.
 > Load when authoring, reviewing, or maintaining skills in the `skills/` directory.
-
-## Metadata
-
-**SchemaVersion:** v3.3
-**RuleVersion:** v3.7.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:SKILL.md authoring, kw:YAML frontmatter, kw:progressive disclosure, kw:trigger keywords, kw:input output contracts, kw:third person description
-**TokenBudget:** ~5650
-**ContextTier:** High
-**Depends:** required:000-global-core.md, required:002-rule-governance.md, optional:002a-rule-creation.md, optional:002d-advanced-rule-patterns.md
 
 ## Scope
 
@@ -30,16 +42,6 @@ Best practices for authoring Claude Code skills in the `skills/` directory. Cove
 - Testing and validating skills
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **002-rule-governance.md** - Schema requirements and v3.2 standards
-
-**Related:**
-- **002a-rule-creation.md** - Rule authoring principles apply to skills
-- **002d-advanced-rule-patterns.md** - Progressive disclosure and workflows
 
 ### External Documentation
 

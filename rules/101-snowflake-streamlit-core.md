@@ -1,16 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v5.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:Streamlit
+  - kw:st.navigation
+  - kw:session state
+  - kw:Container Runtime
+  - kw:config.toml theming
+  - kw:st.connection snowflake
+  - kw:TOML
+token_budget: ~2350
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake connection and query execution fundamentals
+  optional:
+    - 101b-snowflake-streamlit-performance.md  # Caching and query optimization patterns
+    - 101c-snowflake-streamlit-security.md  # Input validation and secrets management
+    - 101l-snowflake-streamlit-deployment.md  # Container and Warehouse Runtime deployment
+---
 # Streamlit Core: Setup, Navigation, and State Management
 
 **CRITICAL: Load for ALL Streamlit tasks. Specialized rules (101a-101e) depend on this.**
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v4.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:Streamlit, kw:st.navigation, kw:session state, kw:Container Runtime, kw:config.toml theming, kw:st.connection snowflake, kw:TOML
-**TokenBudget:** ~2350
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, optional:101b-snowflake-streamlit-performance.md, optional:101c-snowflake-streamlit-security.md, optional:101l-snowflake-streamlit-deployment.md
 
 ## Scope
 
@@ -23,18 +35,7 @@ Foundational Streamlit setup: navigation, state management, runtime selection (C
 - Configuring navigation and themes
 - Selecting between Container Runtime and Warehouse Runtime
 
-
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake connection and query execution fundamentals
-
-**Related:**
-- **101b-snowflake-streamlit-performance.md** - Caching and query optimization patterns
-- **101c-snowflake-streamlit-security.md** - Input validation and secrets management
-- **101l-snowflake-streamlit-deployment.md** - Container and Warehouse Runtime deployment
 
 ### External Documentation
 - [Streamlit Documentation](https://docs.streamlit.io/)

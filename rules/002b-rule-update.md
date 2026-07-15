@@ -1,3 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:rule versioning
+  - kw:RuleVersion increment
+  - kw:LastUpdated field
+  - kw:rule modification workflow
+  - kw:MAJOR MINOR PATCH semantics
+  - kw:schema migration checklist
+  - kw:ci/cd
+token_budget: ~4150
+context_tier: High
+depends:
+  required:
+    - 002-rule-governance.md  # Schema requirements and standards
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 002a-rule-creation.md  # Creating new rules from scratch
+    - 002e-schema-validator-usage.md  # Validation commands and error resolution
+    - 002c-rule-optimization.md  # Token budget optimization
+---
 # Rule Update and Maintenance Guide
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
@@ -5,20 +28,12 @@
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when updating, modifying, or maintaining existing rules.
 
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.3.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:rule versioning, kw:RuleVersion increment, kw:LastUpdated field, kw:rule modification workflow, kw:MAJOR MINOR PATCH semantics, kw:schema migration checklist, kw:ci/cd
-**TokenBudget:** ~4150
-**ContextTier:** High
-**Depends:** required:002-rule-governance.md, required:000-global-core.md, optional:002a-rule-creation.md, optional:002e-schema-validator-usage.md, optional:002c-rule-optimization.md
-
 ## Scope
 
 **What This Rule Covers:**
 Workflow and best practices for updating and maintaining existing rule files. Covers semantic versioning (MAJOR/MINOR/PATCH), LastUpdated field management, common update scenarios, and validation requirements.
+
+> **v3.5 migration note:** Schema migration v3.4 to v3.5 was executed as a batched MAJOR bump: every migrated rule's `rule_version` was incremented (`vN.M.P` becomes `v{N+1}.0.0`) and `last_updated` stamped. Metadata now lives in a YAML frontmatter block at top-of-file; the `## Metadata` H2 and the `### Dependencies` prose subsection are retired. Dependency justifications are preserved as inline YAML comments on each `depends:` item (Option B). When updating a rule post-migration, edit fields inside the frontmatter (`rule_version`, `last_updated`, `keywords`, `depends`, etc.); do NOT reintroduce the inline `**Field:**` markers or the `## Metadata` H2.
 
 **When to Load This Rule:**
 - Updating existing rule files
@@ -29,17 +44,6 @@ Workflow and best practices for updating and maintaining existing rule files. Co
 - Determining MAJOR vs MINOR vs PATCH changes
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **002-rule-governance.md** - Schema requirements and standards
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **002a-rule-creation.md** - Creating new rules from scratch
-- **002e-schema-validator-usage.md** - Validation commands and error resolution
-- **002c-rule-optimization.md** - Token budget optimization
 
 ### External Documentation
 

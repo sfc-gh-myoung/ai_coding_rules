@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+last_updated: 2026-07-15
+keywords:
+  - kw:semantic view anti-patterns
+  - kw:relationship granularity
+  - kw:physical column verification
+  - kw:expression reference cycles
+  - kw:template character restrictions
+  - kw:semantic view quality checks
+  - kw:cortex
+token_budget: ~1900
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake SQL patterns
+    - 106-snowflake-semantic-views-core.md  # Semantic Views DDL fundamentals
+  optional:
+    - 106b-snowflake-semantic-views-querying.md  # Query patterns, SEMANTIC_VIEW() function
+    - 106c-snowflake-semantic-views-integration.md  # Cortex Analyst/Agent integration
+---
 # Snowflake Semantic Views: Advanced Patterns & Validation
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-07-13
-**Keywords:** kw:semantic view anti-patterns, kw:relationship granularity, kw:physical column verification, kw:expression reference cycles, kw:template character restrictions, kw:semantic view quality checks, kw:cortex
-**TokenBudget:** ~1900
-**ContextTier:** High
-**Depends:** required:100-snowflake-core.md, required:106-snowflake-semantic-views-core.md, optional:106b-snowflake-semantic-views-querying.md, optional:106c-snowflake-semantic-views-integration.md
 
 ## Scope
 
@@ -20,22 +32,11 @@ Advanced semantic view patterns: anti-patterns, validation rules, quality checks
 - Implementing validation rules
 - Debugging semantic view errors
 
-
 ## References
 
 ### External Documentation
 - [CREATE SEMANTIC VIEW DDL](https://docs.snowflake.com/en/sql-reference/sql/create-semantic-view)
 - [Validation Rules](https://docs.snowflake.com/en/user-guide/views-semantic/validation-rules)
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake SQL patterns
-- **106-snowflake-semantic-views-core.md** - Semantic Views DDL fundamentals
-
-**Related:**
-- **106b-snowflake-semantic-views-querying.md** - Query patterns, SEMANTIC_VIEW() function
-- **106c-snowflake-semantic-views-integration.md** - Cortex Analyst/Agent integration
 
 ## Contract
 

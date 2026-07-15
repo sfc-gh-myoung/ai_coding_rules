@@ -49,21 +49,24 @@ def _inject_template(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Sample rule content (v3.3 typed Keywords)
+# Sample rule content (v3.5 YAML frontmatter)
 # ---------------------------------------------------------------------------
 
 SAMPLE_RULE_CONTENT = dedent("""\
+    ---
+    schema_version: v3.5
+    rule_version: v1.0.0
+    last_updated: 2024-01-01
+    keywords:
+      - kw:core
+      - kw:foundation
+      - kw:global
+      - kw:standards
+    token_budget: ~3300
+    context_tier: Critical
+    depends: {}
+    ---
     # 000-global-core: Core Foundation
-
-    ## Metadata
-
-    **SchemaVersion:** v3.3
-    **RuleVersion:** v1.0.0
-    **LastUpdated:** 2024-01-01
-    **Keywords:** kw:core, kw:foundation, kw:global, kw:standards
-    **TokenBudget:** ~3300
-    **ContextTier:** Critical
-    **Depends:** None
 
     ## Scope
 
@@ -71,17 +74,22 @@ SAMPLE_RULE_CONTENT = dedent("""\
 """)
 
 SAMPLE_RULE_200 = dedent("""\
+    ---
+    schema_version: v3.5
+    rule_version: v1.0.0
+    last_updated: 2024-01-01
+    keywords:
+      - kw:python
+      - kw:development
+      - ext:.py
+      - ext:.pyi
+    token_budget: ~1800
+    context_tier: High
+    depends:
+      required:
+        - 000-global-core.md
+    ---
     # 200-python-core: Python Core
-
-    ## Metadata
-
-    **SchemaVersion:** v3.3
-    **RuleVersion:** v1.0.0
-    **LastUpdated:** 2024-01-01
-    **Keywords:** kw:python, kw:development, ext:.py, ext:.pyi
-    **TokenBudget:** ~1800
-    **ContextTier:** High
-    **Depends:** required:000-global-core.md
 """)
 
 
@@ -654,12 +662,15 @@ class TestExtractMetadataEdgeCases:
         rule_file = tmp_path / "000-test.md"
         rule_file.write_text(
             dedent("""\
+            ---
+            schema_version: v3.5
+            rule_version: v1.0.0
+            keywords:
+              - kw:test
+              - kw:example
+            depends: {}
+            ---
             # 000-test: Test Rule
-
-            ## Metadata
-
-            **Keywords:** kw:test, kw:example
-            **Depends:** None
         """)
         )
 
@@ -671,17 +682,19 @@ class TestExtractMetadataEdgeCases:
 
     @pytest.mark.unit
     def test_extract_metadata_with_load_trigger(self, tmp_path: Path):
-        """Test extract_metadata parses legacy LoadTrigger field (v3.2 fallback)."""
+        """Test extract_metadata parses legacy load_trigger frontmatter key."""
         rule_file = tmp_path / "200-test.md"
         rule_file.write_text(
             dedent("""\
+            ---
+            schema_version: v3.5
+            rule_version: v1.0.0
+            keywords:
+              - kw:python
+            depends: {}
+            load_trigger: "ext:.py, file:pyproject.toml"
+            ---
             # 200-test: Python Test
-
-            ## Metadata
-
-            **Keywords:** kw:python
-            **Depends:** None
-            **LoadTrigger:** ext:.py, file:pyproject.toml
 
             ## Scope
 
@@ -692,6 +705,45 @@ class TestExtractMetadataEdgeCases:
         metadata = index_module.extract_metadata(rule_file)
 
         assert metadata.load_trigger == "ext:.py, file:pyproject.toml"
+
+    @pytest.mark.unit
+    def test_extract_metadata_frontmatter_yaml(self, tmp_path: Path):
+        """Test extract_metadata parses v3.5 YAML frontmatter (canonical path)."""
+        rule_file = tmp_path / "300-fm-test.md"
+        rule_file.write_text(
+            dedent("""\
+            ---
+            schema_version: v3.5
+            rule_version: v1.0.0
+            last_updated: 2026-07-14
+            keywords:
+              - kw:frontmatter test
+              - kw:dual parse
+              - ext:.py
+            token_budget: ~500
+            context_tier: High
+            depends:
+              required:
+                - 000-global-core.md  # foundation
+              optional:
+                - 200-python-core.md  # python patterns
+            ---
+
+            # 300-fm-test
+
+            ## Scope
+
+            Frontmatter parsing test.
+        """)
+        )
+
+        metadata = index_module.extract_metadata(rule_file)
+
+        assert metadata.keywords == "kw:frontmatter test, kw:dual parse, ext:.py"
+        assert metadata.token_budget == "~500"
+        assert metadata.context_tier == "High"
+        assert "required:000-global-core.md" in metadata.depends
+        assert "optional:200-python-core.md" in metadata.depends
 
 
 # ============================================================================
@@ -1275,6 +1327,7 @@ class TestIndexStats:
             "min_matches_common_keyword": 1,
             "max_matches_broad_query": 50,
             "zero_result_is_anomaly": True,
+            "keyword_entries_min": 1200,
         }
 
     @pytest.mark.unit
@@ -1374,6 +1427,27 @@ class TestIndexStats:
 
         assert result.exit_code == 1
         assert "does not exist" in result.output
+
+    @pytest.mark.unit
+    def test_index_check_fails_below_keyword_entries_floor(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """`check` exits non-zero when regenerated `counts.keyword_entries` < sanity floor."""
+        rules_dir = tmp_path / "rules"
+        rules_dir.mkdir()
+        # Seed 25 rule files (>20 threshold) so the sanity check activates.
+        for i in range(25):
+            (rules_dir / f"{i:03d}-test.md").write_text(SAMPLE_RULE_CONTENT)
+
+        monkeypatch.setattr(index_module, "find_project_root", lambda: tmp_path)
+        # Raise the floor above the tiny per-file kw count so check trips.
+        monkeypatch.setitem(index_module._SANITY_THRESHOLDS, "keyword_entries_min", 10_000)
+
+        runner.invoke(app, ["index", "generate", "--rules-dir", str(rules_dir)])
+        result = runner.invoke(app, ["index", "check", "--rules-dir", str(rules_dir)])
+
+        assert result.exit_code == 1
+        assert "below sanity floor" in result.output
 
 
 # ============================================================================

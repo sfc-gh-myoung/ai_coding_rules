@@ -2700,18 +2700,21 @@ metadata:
   required_fields:
     - name: SchemaVersion
       format: "**SchemaVersion:**"
+      yaml_key: "schema_version"
       severity: HIGH
       error_message: "Invalid SchemaVersion format"
       pattern: '^v\\d+\\.\\d+(\\.\\d+)?$'
       fix_suggestion: "Use format vX.Y or vX.Y.Z"
     - name: RuleVersion
       format: "**RuleVersion:**"
+      yaml_key: "rule_version"
       severity: HIGH
       error_message: "Invalid RuleVersion format"
       pattern: '^v\\d+\\.\\d+\\.\\d+$'
       fix_suggestion: "Use format vX.Y.Z"
     - name: Keywords
       format: "**Keywords:**"
+      yaml_key: "keywords"
       severity: HIGH
       error_message: "Missing Keywords"
       min_items: 5
@@ -2719,16 +2722,19 @@ metadata:
       fix_suggestion: "Add {needed} more keywords"
     - name: TokenBudget
       format: "**TokenBudget:**"
+      yaml_key: "token_budget"
       severity: MEDIUM
       error_message: "Missing TokenBudget"
       pattern: '^~[0-9]+$'
     - name: ContextTier
       format: "**ContextTier:**"
+      yaml_key: "context_tier"
       severity: HIGH
       error_message: "Missing ContextTier"
       allowed_values: [Critical, High, Medium, Low]
     - name: Depends
       format: "**Depends:**"
+      yaml_key: "depends"
       severity: HIGH
       error_message: "Depends field must not be empty"
       fix_suggestion: "Add dependency reference"
@@ -2826,16 +2832,18 @@ class TestMetadataValidationGaps:
         validator = validate_module.SchemaValidator(
             schema_path=metadata_schema, project_root=tmp_path
         )
-        content = """# 100-test: Test Rule
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**Keywords:** test, validation, example, sample, demo
-**TokenBudget:** ~500
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
+        content = """---
+schema_version: v3.5
+rule_version: v1.0.0
+last_updated: 2026-07-15
+keywords: [test, validation, example, sample, demo]
+token_budget: ~500
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md
+---
+# 100-test: Test Rule
 
 ## Scope
 
@@ -2892,16 +2900,18 @@ Content.
         validator = validate_module.SchemaValidator(
             schema_path=metadata_schema, project_root=tmp_path
         )
-        content = """# 100-test: Test Rule
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**Keywords:** test, validation, example, sample, demo
-**TokenBudget:** ~500
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
+        content = """---
+schema_version: v3.5
+rule_version: v1.0.0
+last_updated: 2026-07-15
+keywords: [test, validation, example, sample, demo]
+token_budget: ~500
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md
+---
+# 100-test: Test Rule
 
 ## Scope
 
@@ -2958,16 +2968,18 @@ Content.
         validator = validate_module.SchemaValidator(
             schema_path=metadata_schema, project_root=tmp_path
         )
-        content = """# 100-test: Test Rule
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**Keywords:** test, validation, example, sample, demo
-**TokenBudget:** ~500
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
+        content = """---
+schema_version: v3.5
+rule_version: v1.0.0
+last_updated: 2026-07-15
+keywords: [test, validation, example, sample, demo]
+token_budget: ~500
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md
+---
+# 100-test: Test Rule
 
 ## Scope
 
@@ -2985,22 +2997,27 @@ Content.
         assert len(version_errors) == 0
 
     @pytest.mark.unit
-    def test_metadata_field_order_wrong(self, tmp_path: Path, metadata_schema: Path):
-        """Test metadata fields in wrong order triggers error."""
+    def test_metadata_field_order_wrong_retired(self, tmp_path: Path, metadata_schema: Path):
+        """Post-v3.5, field ordering is no longer semantically enforced (YAML mapping
+        keys are unordered). The inline-format order check was retired in Phase 4
+        cutover; this test asserts the retired behavior no longer fires.
+        """
         validator = validate_module.SchemaValidator(
             schema_path=metadata_schema, project_root=tmp_path
         )
-        # Put Depends before SchemaVersion — wrong order
-        content = """# 100-test: Test Rule
-
-## Metadata
-
-**Depends:** 000-global-core.md
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**Keywords:** test, validation, example, sample, demo
-**TokenBudget:** ~500
-**ContextTier:** Medium
+        # depends listed first in YAML — legal in v3.5 (mapping order irrelevant).
+        content = """---
+depends:
+  required:
+    - 000-global-core.md
+schema_version: v3.5
+rule_version: v1.0.0
+last_updated: 2026-07-15
+keywords: [test, validation, example, sample, demo]
+token_budget: ~500
+context_tier: Medium
+---
+# 100-test: Test Rule
 
 ## Scope
 
@@ -3015,7 +3032,7 @@ Content.
         result = validator.validate_file(rule_file)
 
         order_errors = [e for e in result.errors if "order" in e.message.lower()]
-        assert len(order_errors) > 0
+        assert order_errors == []
 
     @pytest.mark.unit
     def test_metadata_field_order_correct_passes(self, tmp_path: Path, metadata_schema: Path):

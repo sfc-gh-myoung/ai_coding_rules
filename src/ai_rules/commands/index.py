@@ -1,10 +1,17 @@
 """Index generator command for ai-rules CLI.
 
 Auto-generates RULES_INDEX.md from production-ready rule file metadata.
-Renders templates/RULES_INDEX.md.template with a Markdown table (one row per
-rule: filename | tier | ~tokens | ext | file | dir | kw) for self-contained
-grep-based discovery. The {{rules_path}} placeholder in the template is
-preserved at generate time and substituted at deploy time.
+Renders templates/RULES_INDEX.md.template with the F4 flat-line format —
+one line per rule (filename tier=<T> [ext=..] [file=..] [dir=..] kw=<w1> ...) —
+for self-contained grep-based discovery by agents. The {{rules_path}}
+placeholder in the template is preserved at generate time and substituted at
+deploy time.
+
+Metadata extraction is dual-parse (schema v3.5):
+- YAML frontmatter (`---` fence at top-of-file) is the canonical form; parsed
+  via `yaml.safe_load` and takes precedence when present.
+- Inline `**Field:**` markers remain supported as a fallback for pre-v3.5
+  rule files during the migration rollout.
 """
 
 from __future__ import annotations
@@ -18,19 +25,13 @@ from pathlib import Path
 from typing import Annotated, Any
 
 import typer
+import yaml
 from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.text import Text
 
 from ai_rules._shared.console import console, log_error, log_info, log_success, log_warning
 from ai_rules._shared.paths import find_project_root
-
-# Regex patterns for metadata extraction
-RE_KEYWORDS = re.compile(r"^\*\*Keywords:\*\*\s*(.*)$", re.IGNORECASE)
-RE_DEPENDS = re.compile(r"^\*\*Depends:\*\*\s*(.*)$", re.IGNORECASE)
-RE_TOKEN_BUDGET = re.compile(r"^\*\*TokenBudget:\*\*\s*(.*)$", re.IGNORECASE)
-RE_CONTEXT_TIER = re.compile(r"^\*\*ContextTier:\*\*\s*(.*)$", re.IGNORECASE)
-RE_LOAD_TRIGGER = re.compile(r"^\*\*LoadTrigger:\*\*\s*(.*)$", re.IGNORECASE)
 
 # Marker in the template where the generated index rows are injected
 RULE_TABLE_MARKER = "<!-- RULE_TABLE -->"
@@ -56,6 +57,11 @@ _SANITY_THRESHOLDS: dict[str, Any] = {
     "min_matches_common_keyword": 1,
     "max_matches_broad_query": 50,
     "zero_result_is_anomaly": True,
+    # Corpus-wide floor for total ``kw:`` tokens across the index. Fails
+    # ``ai-rules index check`` when a regeneration produces fewer entries than
+    # this value; guards against mass keyword deletion during schema-migration
+    # or bulk rule-edit runs (§5.4 failure mode mitigation).
+    "keyword_entries_min": 1200,
 }
 
 # Files to skip during scanning
@@ -66,6 +72,7 @@ SKIP_FILES = {
     "AGENTS.md",
     "AGENTS_V2.md",
     "RULES_INDEX.md",
+    "002i-rule-loadtrigger.md",  # DEPRECATED TOMBSTONE — retained for inbound-link stability, excluded from discovery index
 }
 
 
@@ -85,10 +92,83 @@ class RuleMetadata:
     load_trigger: str | None = None  # legacy LoadTrigger (v3.2 fallback)
 
 
-def extract_metadata(filepath: Path) -> RuleMetadata:
-    """Extract metadata from a single rule file.
+FRONTMATTER_FENCE_RE = re.compile(r"^---\s*$")
 
-    Parses the first ~30 lines of the file for metadata fields.
+
+def _parse_frontmatter(content: str) -> dict[str, Any] | None:
+    """Parse a leading YAML frontmatter block if present.
+
+    Returns the parsed mapping when the file begins with a `---` fence and a
+    closing `---` fence is found; otherwise returns None.
+    """
+    lines = content.split("\n")
+    if not lines or not FRONTMATTER_FENCE_RE.match(lines[0]):
+        return None
+    for idx in range(1, min(len(lines), 200)):
+        if FRONTMATTER_FENCE_RE.match(lines[idx]):
+            block = "\n".join(lines[1:idx])
+            try:
+                data = yaml.safe_load(block)
+            except yaml.YAMLError:
+                return None
+            return data if isinstance(data, dict) else None
+    return None
+
+
+def _normalize_depends_yaml(value: Any) -> str:
+    """Normalize a YAML `depends:` structure into the F4 flat comma-separated form.
+
+    Accepts either a mapping `{required: [...], optional: [...]}` or a flat
+    list of typed strings (`required:foo.md`, `optional:bar.md`). Returns "—"
+    for empty/None input.
+    """
+    if not value:
+        return "—"
+    entries: list[str] = []
+    if isinstance(value, dict):
+        for key in ("required", "optional"):
+            items = value.get(key) or []
+            for item in items:
+                if not item:
+                    continue
+                name = str(item).strip()
+                if not name.endswith(".md"):
+                    name = f"{name}.md"
+                entries.append(f"{key}:{name}")
+    elif isinstance(value, list):
+        for item in value:
+            if not item:
+                continue
+            name = str(item).strip()
+            if ":" not in name:
+                name = f"required:{name}"
+            prefix, rest = name.split(":", 1)
+            if not rest.endswith(".md"):
+                rest = f"{rest}.md"
+            entries.append(f"{prefix}:{rest}")
+    if not entries:
+        return "—"
+    return ", ".join(entries)
+
+
+def _normalize_keywords_yaml(value: Any) -> str:
+    """Normalize a YAML `keywords:` list into the inline comma-separated form."""
+    if not value:
+        return ""
+    if isinstance(value, list):
+        return ", ".join(str(k).strip() for k in value if str(k).strip())
+    return str(value).strip()
+
+
+def extract_metadata(filepath: Path) -> RuleMetadata:
+    """Extract metadata from a single rule file (YAML frontmatter, schema v3.5).
+
+    All production rule files begin with a ``---`` fenced YAML frontmatter
+    block; keys are ``keywords``, ``depends``, ``token_budget``,
+    ``context_tier``, and (legacy) ``load_trigger``. Files without frontmatter
+    are treated as unmigrated / tombstone entries: metadata defaults are
+    returned and a warning is logged. There is no inline ``**Field:**``
+    fallback path; the pre-v3.5 dual-parse window closed in Phase 4 cutover.
 
     Args:
         filepath: Path to the rule file.
@@ -104,8 +184,6 @@ def extract_metadata(filepath: Path) -> RuleMetadata:
     except Exception as exc:
         raise ValueError(f"Failed to read {filepath}: {exc}") from exc
 
-    lines = content.split("\n")
-
     metadata: dict[str, object] = {
         "filename": filepath.name,
         "filepath": filepath,
@@ -117,29 +195,19 @@ def extract_metadata(filepath: Path) -> RuleMetadata:
         "scope": "",
     }
 
-    for line in lines[:30]:
-        stripped = line.strip()
-
-        if match := RE_KEYWORDS.match(stripped):
-            metadata["keywords"] = match.group(1).strip()
-
-        elif match := RE_DEPENDS.match(stripped):
-            depends_val = match.group(1).strip()
-            if depends_val.lower() in {"none", "—", "", "n/a"}:
-                metadata["depends"] = "—"
-            else:
-                deps = [d.strip() for d in depends_val.split(",")]
-                deps = [d if d.endswith(".md") else f"{d}.md" for d in deps]
-                metadata["depends"] = ", ".join(deps)
-
-        elif match := RE_TOKEN_BUDGET.match(stripped):
-            metadata["token_budget"] = match.group(1).strip()
-
-        elif match := RE_CONTEXT_TIER.match(stripped):
-            metadata["context_tier"] = match.group(1).strip()
-
-        elif match := RE_LOAD_TRIGGER.match(stripped):
-            metadata["load_trigger"] = match.group(1).strip()
+    frontmatter = _parse_frontmatter(content)
+    if frontmatter is not None:
+        # Canonical YAML path (schema v3.5). Keys are lowercase_snake.
+        if (kw := frontmatter.get("keywords")) is not None:
+            metadata["keywords"] = _normalize_keywords_yaml(kw)
+        if (dep := frontmatter.get("depends")) is not None:
+            metadata["depends"] = _normalize_depends_yaml(dep)
+        if (tb := frontmatter.get("token_budget")) is not None:
+            metadata["token_budget"] = str(tb).strip()
+        if (ct := frontmatter.get("context_tier")) is not None:
+            metadata["context_tier"] = str(ct).strip()
+        if (lt := frontmatter.get("load_trigger")) is not None:
+            metadata["load_trigger"] = str(lt).strip()
 
     if not metadata["keywords"]:
         log_warning(f"{filepath.name} missing Keywords field, using empty string")
@@ -733,3 +801,28 @@ def check(
         raise typer.Exit(code=1) from None
 
     log_success(".index-stats.json is up-to-date")
+
+    # Corpus-wide `kw:` count sanity threshold (§5.4). Regenerated
+    # `counts.keyword_entries` must meet or exceed the stored floor; a lower
+    # value indicates mass keyword deletion or a regressed parser. The check
+    # is bypassed for tiny corpora (<20 rules) so unit tests that seed a
+    # single-rule scratch directory do not trip the production floor.
+    total_rules = int(generated_stats.get("counts", {}).get("rules", 0))
+    if total_rules >= 20:
+        regenerated_kw_entries = int(generated_stats.get("counts", {}).get("keyword_entries", 0))
+        kw_min = int(
+            generated_stats.get("sanity_thresholds", {}).get(
+                "keyword_entries_min", _SANITY_THRESHOLDS["keyword_entries_min"]
+            )
+        )
+        if regenerated_kw_entries < kw_min:
+            log_error(
+                f"Corpus keyword_entries={regenerated_kw_entries} is below sanity floor {kw_min}"
+            )
+            console.print(
+                "\n[yellow]This usually means a mass keyword deletion or a regressed metadata parser.[/yellow]"
+            )
+            raise typer.Exit(code=1) from None
+        log_success(
+            f"keyword_entries sanity check passed ({regenerated_kw_entries} ≥ floor {kw_min})"
+        )

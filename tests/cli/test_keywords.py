@@ -363,6 +363,48 @@ class TestKeywordExtractor:
         assert "data warehouse" in result.current_keywords
 
     @pytest.mark.unit
+    def test_extract_current_keywords_frontmatter_yaml(self):
+        """`_extract_current_keywords` reads YAML frontmatter keywords list (v3.5 canonical)."""
+        extractor = keywords_module.KeywordExtractor()
+        content = (
+            "---\n"
+            "schema_version: v3.5\n"
+            "keywords:\n"
+            "  - kw:alpha\n"
+            "  - kw:beta compound\n"
+            "  - ext:.py\n"
+            "---\n"
+            "\n"
+            "# 100-test\n"
+        )
+        assert extractor._extract_current_keywords(content) == [
+            "kw:alpha",
+            "kw:beta compound",
+            "ext:.py",
+        ]
+
+    @pytest.mark.unit
+    def test_extract_current_keywords_inline_fallback(self):
+        """`_extract_current_keywords` falls back to inline **Keywords:** for pre-v3.5 rules."""
+        extractor = keywords_module.KeywordExtractor()
+        content = "# 100-test\n\n## Metadata\n\n**Keywords:** kw:alpha, kw:beta compound, ext:.py\n"
+        assert extractor._extract_current_keywords(content) == [
+            "kw:alpha",
+            "kw:beta compound",
+            "ext:.py",
+        ]
+
+    @pytest.mark.unit
+    def test_extract_current_keywords_frontmatter_and_inline_parity(self):
+        """Frontmatter and inline paths return identical lists for the same keywords."""
+        extractor = keywords_module.KeywordExtractor()
+        fm_content = "---\nkeywords:\n  - kw:one\n  - kw:two\n  - ext:.sql\n---\n\n# 200-test\n"
+        inline_content = "# 200-test\n\n**Keywords:** kw:one, kw:two, ext:.sql\n"
+        assert extractor._extract_current_keywords(
+            fm_content
+        ) == extractor._extract_current_keywords(inline_content)
+
+    @pytest.mark.unit
     def test_extractor_extracts_code_languages(self, tmp_path: Path):
         """Test extractor identifies code block languages."""
         extractor = keywords_module.KeywordExtractor()
@@ -427,6 +469,50 @@ class TestUpdateKeywordsInFile:
 
         assert updated is False
 
+    @pytest.mark.unit
+    def test_update_keywords_in_frontmatter_yaml(self, tmp_path: Path):
+        """update_keywords_in_file rewrites `keywords:` inside YAML frontmatter (v3.5)."""
+        import yaml as _yaml
+
+        rule_file = tmp_path / "300-fm.md"
+        rule_file.write_text(
+            "---\n"
+            "schema_version: v3.5\n"
+            "keywords:\n"
+            "  - kw:old one\n"
+            "  - kw:old two\n"
+            "rule_version: v1.0.0\n"
+            "---\n"
+            "\n"
+            "# 300-fm\n"
+            "\n"
+            "Body text.\n"
+        )
+
+        updated = keywords_module.update_keywords_in_file(
+            rule_file, ["kw:new one", "kw:new two", "ext:.py"]
+        )
+
+        assert updated is True
+        content = rule_file.read_text()
+        # Round-trip through yaml.safe_load to prove the block is still valid.
+        block = content.split("---")[1]
+        data = _yaml.safe_load(block)
+        assert data["keywords"] == ["kw:new one", "kw:new two", "ext:.py"]
+        # Other frontmatter keys preserved.
+        assert data["schema_version"] == "v3.5"
+        assert data["rule_version"] == "v1.0.0"
+
+    @pytest.mark.unit
+    def test_update_keywords_in_frontmatter_noop_when_same(self, tmp_path: Path):
+        """update_keywords_in_file returns False when frontmatter keywords are unchanged."""
+        rule_file = tmp_path / "301-fm.md"
+        rule_file.write_text("---\nkeywords:\n  - kw:one\n  - kw:two\n---\n\n# 301-fm\n")
+
+        updated = keywords_module.update_keywords_in_file(rule_file, ["kw:one", "kw:two"])
+
+        assert updated is False
+
 
 class TestFormatKeywordsLine:
     """Test format_keywords_line function."""
@@ -444,6 +530,18 @@ class TestFormatKeywordsLine:
         """Test handling empty keywords list."""
         line = keywords_module.format_keywords_line([])
         assert line == "**Keywords:** "
+
+    @pytest.mark.unit
+    def test_format_keywords_line_yaml_style(self):
+        """`format_keywords_line(..., style="yaml")` emits a YAML block form (v3.5)."""
+        line = keywords_module.format_keywords_line(["kw:one", "kw:two", "ext:.sql"], style="yaml")
+        assert line == "keywords:\n  - kw:one\n  - kw:two\n  - ext:.sql"
+
+    @pytest.mark.unit
+    def test_format_keywords_line_yaml_style_empty(self):
+        """YAML style with empty list emits a valid empty-list line."""
+        line = keywords_module.format_keywords_line([], style="yaml")
+        assert line == "keywords: []"
 
 
 class TestKeywordCandidate:

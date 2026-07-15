@@ -22,6 +22,7 @@ from typing import Annotated, Any
 
 import typer
 import typer.core
+import yaml
 from rich.columns import Columns
 from rich.panel import Panel
 from rich.table import Table
@@ -508,6 +509,34 @@ def get_last_rationale_map() -> dict[str, str]:
     See ``_LAST_RATIONALE_MAP`` module attribute.
     """
     return dict(_LAST_RATIONALE_MAP)
+
+
+# ---------------------------------------------------------------------------
+# YAML frontmatter helpers (dual-parse; schema v3.5)
+# ---------------------------------------------------------------------------
+
+_FRONTMATTER_FENCE_RE = re.compile(r"^---\s*$")
+
+
+def _parse_frontmatter_block(content: str) -> dict[str, Any] | None:
+    """Return the YAML frontmatter mapping if `content` begins with a `---` fence.
+
+    Returns None when no frontmatter fence is present, when the closing fence is
+    missing within the first 200 lines, or when the block does not parse to a
+    mapping. This helper is used by the dual-parse metadata paths.
+    """
+    lines = content.split("\n")
+    if not lines or not _FRONTMATTER_FENCE_RE.match(lines[0]):
+        return None
+    for idx in range(1, min(len(lines), 200)):
+        if _FRONTMATTER_FENCE_RE.match(lines[idx]):
+            block = "\n".join(lines[1:idx])
+            try:
+                data = yaml.safe_load(block)
+            except yaml.YAMLError:
+                return None
+            return data if isinstance(data, dict) else None
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -1403,7 +1432,16 @@ class KeywordExtractor:
         return candidates
 
     def _extract_current_keywords(self, content: str) -> list[str]:
-        """Extract current keywords from the **Keywords:** metadata field."""
+        """Extract current keywords (dual-parse: v3.5 YAML frontmatter → inline fallback)."""
+        # Canonical path: YAML frontmatter fenced at top-of-file.
+        fm = _parse_frontmatter_block(content)
+        if fm is not None:
+            kw_val = fm.get("keywords")
+            if isinstance(kw_val, list):
+                return [str(k).strip() for k in kw_val if str(k).strip()]
+            if isinstance(kw_val, str):
+                return [k.strip() for k in kw_val.split(",") if k.strip()]
+        # Fallback path: inline **Keywords:** line (pre-v3.5).
         pattern = r"\*\*Keywords:\*\*\s*(.+)"
         match = re.search(pattern, content)
         if match:
@@ -1606,13 +1644,66 @@ class KeywordExtractor:
         )
 
 
-def format_keywords_line(keywords: list[str]) -> str:
-    """Format keywords as a metadata line."""
+def format_keywords_line(keywords: list[str], style: str = "inline") -> str:
+    r"""Format keywords as a metadata line.
+
+    Args:
+        keywords: keyword strings (already typed with kw:/ext:/file:/dir: prefixes).
+        style: ``"inline"`` (default) emits the pre-v3.5 ``**Keywords:** k1, k2, ...``
+            single-line form. ``"yaml"`` emits the v3.5 canonical YAML block form
+            ``keywords:\n  - k1\n  - k2``. The caller selects the style based on
+            the detected file format so writes remain within the same schema
+            during dual-parse rollout.
+    """
+    if style == "yaml":
+        if not keywords:
+            return "keywords: []"
+        return "keywords:\n" + "\n".join(f"  - {k}" for k in keywords)
     return f"**Keywords:** {', '.join(keywords)}"
 
 
+def _update_keywords_in_frontmatter(content: str, new_keywords: list[str]) -> tuple[str, bool]:
+    """Replace `keywords:` inside the leading YAML frontmatter block.
+
+    Returns (new_content, updated). Returns (content, False) when no frontmatter
+    block is present or when the value is unchanged.
+    """
+    lines = content.split("\n")
+    if not lines or not _FRONTMATTER_FENCE_RE.match(lines[0]):
+        return content, False
+    close_idx: int | None = None
+    for idx in range(1, min(len(lines), 200)):
+        if _FRONTMATTER_FENCE_RE.match(lines[idx]):
+            close_idx = idx
+            break
+    if close_idx is None:
+        return content, False
+
+    body = "\n".join(lines[1:close_idx])
+    try:
+        data = yaml.safe_load(body) or {}
+    except yaml.YAMLError:
+        return content, False
+    if not isinstance(data, dict):
+        return content, False
+
+    existing = data.get("keywords")
+    normalized_existing: list[str] = []
+    if isinstance(existing, list):
+        normalized_existing = [str(k).strip() for k in existing if str(k).strip()]
+    elif isinstance(existing, str):
+        normalized_existing = [k.strip() for k in existing.split(",") if k.strip()]
+    if normalized_existing == new_keywords:
+        return content, False
+
+    data["keywords"] = list(new_keywords)
+    new_body = yaml.safe_dump(data, sort_keys=False, allow_unicode=True).rstrip("\n")
+    new_content = "---\n" + new_body + "\n---" + "\n".join(["", *lines[close_idx + 1 :]])
+    return new_content, True
+
+
 def update_keywords_in_file(file_path: Path, new_keywords: list[str]) -> bool:
-    """Update the Keywords field in a rule file.
+    """Update the keywords list in a rule file (dual-parse: v3.5 YAML → inline fallback).
 
     Args:
         file_path: Path to rule file
@@ -1623,9 +1714,17 @@ def update_keywords_in_file(file_path: Path, new_keywords: list[str]) -> bool:
     """
     content = file_path.read_text(encoding="utf-8")
 
-    # Find and replace Keywords line
+    # Canonical v3.5 path: rewrite the `keywords:` key inside YAML frontmatter.
+    if _parse_frontmatter_block(content) is not None:
+        new_content, updated = _update_keywords_in_frontmatter(content, new_keywords)
+        if not updated:
+            return False
+        file_path.write_text(new_content, encoding="utf-8")
+        return True
+
+    # Fallback: inline **Keywords:** line rewrite (pre-v3.5 rules).
     pattern = r"(\*\*Keywords:\*\*\s*)(.+)"
-    new_line = format_keywords_line(new_keywords)
+    new_line = format_keywords_line(new_keywords, style="inline")
 
     new_content, count = re.subn(pattern, new_line, content, count=1)
 

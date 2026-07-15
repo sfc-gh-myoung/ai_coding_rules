@@ -514,54 +514,121 @@ class SchemaValidator:
 
         return result
 
+    # ------------------------------------------------------------------
+    # Frontmatter helpers (schema v3.5 dual-parse)
+    # ------------------------------------------------------------------
+
+    _FRONTMATTER_FENCE_RE = re.compile(r"^---\s*$")
+
+    def _parse_yaml_frontmatter(self, content: str) -> dict[str, Any] | None:
+        """Return the parsed YAML frontmatter mapping if `content` starts with `---`."""
+        lines = content.split("\n")
+        if not lines or not self._FRONTMATTER_FENCE_RE.match(lines[0]):
+            return None
+        for idx in range(1, min(len(lines), 200)):
+            if self._FRONTMATTER_FENCE_RE.match(lines[idx]):
+                block = "\n".join(lines[1:idx])
+                try:
+                    data = yaml.safe_load(block)
+                except yaml.YAMLError:
+                    return None
+                return data if isinstance(data, dict) else None
+        return None
+
+    def _frontmatter_end_line(self, content: str) -> int:
+        """Return the 1-based line number of the closing `---` fence, or 0 if none."""
+        lines = content.split("\n")
+        if not lines or not self._FRONTMATTER_FENCE_RE.match(lines[0]):
+            return 0
+        for idx in range(1, min(len(lines), 200)):
+            if self._FRONTMATTER_FENCE_RE.match(lines[idx]):
+                return idx + 1
+        return 0
+
+    def _flatten_depends_yaml(self, value: Any) -> str:
+        """Flatten a YAML `depends:` structure into the inline typed-string form.
+
+        An empty/None input yields the sentinel "None" so downstream validators
+        (which accept "None" as an allow-placeholder) do not fire on foundation
+        or dependency-free rules that migrated from `**Depends:** none`.
+        """
+        if not value:
+            return "None"
+        entries: list[str] = []
+        if isinstance(value, dict):
+            for key in ("required", "optional"):
+                for item in value.get(key) or []:
+                    if not item:
+                        continue
+                    name = str(item).strip()
+                    if not name.endswith(".md"):
+                        name = f"{name}.md"
+                    entries.append(f"{key}:{name}")
+        elif isinstance(value, list):
+            for item in value:
+                if not item:
+                    continue
+                name = str(item).strip()
+                if ":" not in name:
+                    name = f"required:{name}"
+                prefix, rest = name.split(":", 1)
+                if not rest.endswith(".md"):
+                    rest = f"{rest}.md"
+                entries.append(f"{prefix}:{rest}")
+        return ", ".join(entries)
+
     def _validate_metadata(self, content: str, lines: list[str], result: ValidationResult) -> None:
-        """Validate metadata fields per schema."""
+        """Validate metadata fields per schema (v3.5 YAML frontmatter only).
+
+        The pre-v3.5 inline ``**Field:**`` fallback path was retired in Phase 4
+        cutover. Every production rule must begin with a ``---`` fenced YAML
+        frontmatter block. Files without frontmatter emit CRITICAL "missing
+        required field" errors matching prior behavior.
+        """
         metadata_config = self.schema["metadata"]
 
-        # Check for ## Metadata header (v3.0 requirement)
-        if "header" in metadata_config:
-            header_config = metadata_config["header"]
-            if header_config.get("required", False):
-                metadata_header_pattern = r"^## Metadata\s*$"
-                if not re.search(metadata_header_pattern, content, re.MULTILINE):
+        frontmatter = self._parse_yaml_frontmatter(content)
+        metadata: dict[str, Any] = {}
+
+        if frontmatter is not None:
+            for field_config in metadata_config["required_fields"]:
+                field_name = field_config["name"]
+                yaml_key = field_config.get("yaml_key")
+                if not yaml_key or yaml_key not in frontmatter:
                     result.errors.append(
                         ValidationError(
-                            severity=header_config.get("severity", "HIGH"),
-                            message=header_config["error_message"],
+                            severity=field_config["severity"],
+                            message=field_config["error_message"],
                             error_group="Metadata",
-                            line_num=1,  # Metadata header should be near top
-                            fix_suggestion=header_config.get("fix_suggestion"),
-                            docs_reference=header_config.get("docs_reference"),
+                            line_num=1,
+                            fix_suggestion=field_config.get("fix_suggestion"),
+                            docs_reference=field_config.get("docs_reference"),
                         )
                     )
+                    continue
+                raw = frontmatter[yaml_key]
+                if field_name == "Keywords" and isinstance(raw, list):
+                    value = ", ".join(str(k).strip() for k in raw if str(k).strip())
+                elif field_name == "Depends":
+                    value = self._flatten_depends_yaml(raw)
                 else:
-                    result.passed_checks += 1
-
-        # Extract metadata from content
-        metadata = {}
-        for field_config in metadata_config["required_fields"]:
-            field_name = field_config["name"]
-            field_format = field_config["format"]
-            pattern = re.escape(field_format) + r"\s*(.+)"
-
-            match = re.search(pattern, content, re.MULTILINE)
-            if match:
-                metadata[field_name] = match.group(1).strip()
-                line_num = content[: match.start()].count("\n") + 1
-                metadata[f"{field_name}_line"] = line_num
-            else:
-                # Missing required field
+                    value = str(raw).strip() if raw is not None else ""
+                metadata[field_name] = value
+                metadata[f"{field_name}_line"] = 2  # inside frontmatter block
+        else:
+            # No YAML frontmatter → every required field is missing. Emit the
+            # same per-field CRITICAL errors the inline path used to raise.
+            for field_config in metadata_config["required_fields"]:
                 result.errors.append(
                     ValidationError(
                         severity=field_config["severity"],
                         message=field_config["error_message"],
                         error_group="Metadata",
-                        line_num=1,  # Metadata should be at top of file
+                        line_num=1,
                         fix_suggestion=field_config.get("fix_suggestion"),
                         docs_reference=field_config.get("docs_reference"),
                     )
                 )
-                continue
 
         # Validate Keywords count
         if "Keywords" in metadata:
@@ -574,7 +641,12 @@ class SchemaValidator:
 
             if not (min_items <= len(keywords) <= max_items):
                 needed = min_items - len(keywords) if len(keywords) < min_items else 0
-                fix_msg = keywords_config["fix_suggestion"].format(needed=needed)
+                fix_msg = keywords_config["fix_suggestion"].format(
+                    needed=needed,
+                    actual=len(keywords),
+                    min=min_items,
+                    max=max_items,
+                )
                 result.errors.append(
                     ValidationError(
                         severity=keywords_config["severity"],
@@ -2106,6 +2178,12 @@ def validate(
         if path.name == "AGENTS.md":
             result = validator.validate_agents_md(path)
         else:
+            # Honor `excluded_files` (schema-level opt-out) for single-file validation
+            # so templates/boilerplate/generated files pass cleanly when addressed directly.
+            excluded_files = set(validator.schema.get("excluded_files", {}).get("files", set()))
+            if path.name in excluded_files:
+                log_info(f"Skipping excluded file: {path.name}")
+                raise typer.Exit(0)
             result = validator.validate_file(path, verbose=verbose)
         validator.format_result(result, detailed=verbose)
 

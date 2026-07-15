@@ -1,4 +1,4 @@
-# 002a Example: Rule Template v3.2 Structure (Markdown)
+# 002a Example: Rule Template v3.5 Structure (YAML frontmatter)
 
 > **EXAMPLE FILE** - Reference implementation for `002a-rule-creation.md`
 > Not a rule file. Not validated against rule-schema.yml.
@@ -6,30 +6,39 @@
 ## Context
 
 **Parent Rule:** 002a-rule-creation.md
-**Demonstrates:** Complete v3.2 rule file structure for creating new rules
+**Demonstrates:** Complete v3.5 rule file structure for creating new rules
 **Use When:** Creating a new rule file from scratch
-**Version:** 1.0
-**Last Validated:** 2026-03-09
+**Version:** 2.0
+**Last Validated:** 2026-07-14
 
 ## Prerequisites
 
-- Familiarity with rule schema v3.2
+- Familiarity with rule schema v3.5 (YAML frontmatter canonical; inline dual-parse fallback still accepted)
 - Understanding of rule naming conventions (NNN-technology-aspect.md)
 
 ## Implementation
 
 ```markdown
+---
+schema_version: v3.5
+rule_version: v1.0.0
+last_updated: [YYYY-MM-DD]
+keywords:
+  - kw:[semantic keyword one]
+  - kw:[semantic keyword two]
+  - ext:.[file extension]
+  - file:[specific filename]
+  - dir:[specific directory prefix]
+token_budget: ~[estimate]
+context_tier: [Critical|High|Medium|Low]
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+  optional:
+    - [related-rule].md  # [Brief description of why this rule is optional context]
+---
+
 # [NNN]-[technology]-[aspect]
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** [YYYY-MM-DD]
-**Keywords:** [5-20 keywords here]
-**TokenBudget:** ~[estimate]
-**ContextTier:** [Critical|High|Medium|Low]
-**Depends:** 000-global-core.md
 
 ## Scope
 
@@ -42,14 +51,6 @@
 - [Condition 3]
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **[related-rule].md** - [Brief description]
 
 ### External Documentation
 
@@ -91,6 +92,13 @@
 [Anti-patterns with code examples]
 ```
 
+## Migration note (v3.4 → v3.5)
+
+- The `## Metadata` H2 header is no longer required; a YAML frontmatter block at top-of-file replaces it.
+- The `### Dependencies` prose subsection is no longer required; dependency data lives in the frontmatter `depends:` field with per-item YAML comment justifications (Option B — see the v5 refactor plan).
+- Keywords count bound narrowed to **5-7** total typed entries (mix of `kw:`, `ext:`, `file:`, `dir:`). The old 5-25 range is retired.
+- Inline `**Field:**` format is still accepted as a dual-parse fallback during migration, but new rules should use YAML frontmatter.
+
 ## Importance Markers
 
 Add an importance marker after the title for foundation rules:
@@ -122,7 +130,9 @@ uv run ai-rules validate rules/NNN-technology-aspect.md
 
 **Checklist:**
 - [ ] File name follows `NNN-technology-aspect.md` pattern
-- [ ] All required sections present (Metadata, Scope, Contract, Anti-Patterns)
-- [ ] SchemaVersion is v3.2
-- [ ] Depends field references appropriate parent rules
-- [ ] TokenBudget is within limits (500 advisory, 600 hard cap)
+- [ ] YAML frontmatter block at top-of-file (or inline `**Field:**` fallback with `## Metadata` header for pre-v3.5 legacy rules)
+- [ ] All required sections present (Scope, References with `### External Documentation`, Contract, optional Anti-Patterns)
+- [ ] `schema_version: v3.5`
+- [ ] `depends:` references appropriate parent rules with YAML comment justifications
+- [ ] `token_budget` is within limits (500 advisory, 600 hard cap)
+- [ ] `keywords:` contains 5-7 typed entries

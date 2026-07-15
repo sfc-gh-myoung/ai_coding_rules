@@ -20,11 +20,16 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 # ── constants ────────────────────────────────────────────────────────────────
 
-REQUIRED_SCHEMA_VERSION = "rule-loader-manifest/v1"
+SCHEMA_VERSION_V1 = "rule-loader-manifest/v1"
+SCHEMA_VERSION_V2 = "rule-loader-manifest/v2"
+ACCEPTED_SCHEMA_VERSIONS: frozenset[str] = frozenset({SCHEMA_VERSION_V1, SCHEMA_VERSION_V2})
+
+# Kept for backward compat with callers that import the v1 constant.
+REQUIRED_SCHEMA_VERSION = SCHEMA_VERSION_V1
 
 _REQUIRED_TOP_LEVEL_KEYS: frozenset[str] = frozenset(
     {
@@ -39,11 +44,23 @@ _REQUIRED_TOP_LEVEL_KEYS: frozenset[str] = frozenset(
     }
 )
 
+_V2_ADDITIONAL_TOP_LEVEL_KEYS: frozenset[str] = frozenset({"second_pass_evidence"})
+
 _REQUIRED_RUNTIME_KEYS: frozenset[str] = frozenset({"primitive", "spawn_evidence", "agent_id"})
 
 _REQUIRED_DEFERRED_KEYS: frozenset[str] = frozenset(
     {"rule_path", "reason_type", "reason", "deferred_because"}
 )
+
+_REQUIRED_SECOND_PASS_KEYS: frozenset[str] = frozenset(
+    {"evaluated", "confirmed", "confirmation_reason"}
+)
+
+_REQUIRED_SECOND_PASS_EVIDENCE_KEYS: frozenset[str] = frozenset(
+    {"rule_path", "confirmed", "reason"}
+)
+
+_SECOND_PASS_REJECTED_REASON = "second_pass_rejected"
 
 # Keys whose presence in any rule entry signals an accidentally embedded body.
 _BODY_LIKE_KEYS: frozenset[str] = frozenset(
@@ -86,12 +103,50 @@ def _check_body_content(entry: dict[str, Any], location: str) -> list[str]:
 # ── public API ───────────────────────────────────────────────────────────────
 
 
+def _check_second_pass(value: Any, location: str, layer: Any = None) -> list[str]:
+    """Validate a v2 ``second_pass`` annotation on a candidate rule."""
+    issues: list[str] = []
+    if value is None:
+        issues.append(f"{location}: v2 requires 'second_pass' annotation")
+        return issues
+    if not isinstance(value, dict):
+        issues.append(f"{location}.second_pass: must be an object, got {type(value).__name__!r}")
+        return issues
+    for key in sorted(_REQUIRED_SECOND_PASS_KEYS):
+        if key not in value:
+            issues.append(f"{location}.second_pass: missing required key {key!r}")
+    if "evaluated" in value and not isinstance(value["evaluated"], bool):
+        issues.append(f"{location}.second_pass.evaluated must be a boolean")
+    if "confirmed" in value and not isinstance(value["confirmed"], bool):
+        issues.append(f"{location}.second_pass.confirmed must be a boolean")
+    cr = value.get("confirmation_reason")
+    if cr is not None and (not isinstance(cr, str) or not cr.strip()):
+        issues.append(f"{location}.second_pass.confirmation_reason must be a non-empty string")
+    # HARD candidates get the exempt reason and evaluated=false.
+    if isinstance(layer, str) and layer.upper() == "HARD":
+        if value.get("evaluated") is True:
+            issues.append(f"{location}.second_pass: HARD candidates must have evaluated=false")
+        if value.get("confirmation_reason") != "hard-candidate-exempt":
+            issues.append(
+                f"{location}.second_pass: HARD candidates must use "
+                "confirmation_reason='hard-candidate-exempt'"
+            )
+    return issues
+
+
 def validate_manifest(manifest: dict[str, Any]) -> list[str]:
-    """Validate a decoded rule-loader-manifest/v1 dict.
+    """Validate a decoded rule-loader-manifest/v1 or v2 dict.
 
     Returns a list of human-readable issue strings.  An empty list means the
     manifest is valid.  Issues are stable enough for substring matching in tests
     but are not part of a versioned contract.
+
+    Both ``rule-loader-manifest/v1`` and ``rule-loader-manifest/v2`` are
+    accepted; when ``schema_version`` is v2, additional invariants are checked:
+    each candidate carries a ``second_pass`` annotation, HARD candidates use
+    ``confirmation_reason: "hard-candidate-exempt"``, HARD candidates are never
+    ``second_pass_rejected`` in ``deferred_rules``, and ``second_pass_evidence``
+    is present at the root.
     """
     issues: list[str] = []
 
@@ -105,8 +160,11 @@ def validate_manifest(manifest: dict[str, Any]) -> list[str]:
 
     # ── schema_version ────────────────────────────────────────────────────────
     sv = manifest["schema_version"]
-    if sv != REQUIRED_SCHEMA_VERSION:
-        issues.append(f"schema_version must be {REQUIRED_SCHEMA_VERSION!r}, got {sv!r}")
+    if sv not in ACCEPTED_SCHEMA_VERSIONS:
+        issues.append(
+            f"schema_version must be one of {sorted(ACCEPTED_SCHEMA_VERSIONS)!r}, got {sv!r}"
+        )
+    is_v2 = sv == SCHEMA_VERSION_V2
 
     # ── runtime ───────────────────────────────────────────────────────────────
     runtime = manifest["runtime"]
@@ -134,6 +192,7 @@ def validate_manifest(manifest: dict[str, Any]) -> list[str]:
     if not isinstance(crs, list):
         issues.append("candidate_rules must be a list")
         crs = []
+    hard_rule_paths: set[str] = set()
     for i, entry in enumerate(crs):
         loc = f"candidate_rules[{i}]"
         if not isinstance(entry, dict):
@@ -141,6 +200,13 @@ def validate_manifest(manifest: dict[str, Any]) -> list[str]:
             continue
         issues.extend(_check_rule_path(entry.get("rule_path"), loc))
         issues.extend(_check_body_content(entry, loc))
+        if (
+            isinstance(entry.get("rule_path"), str)
+            and str(entry.get("layer", "")).upper() == "HARD"
+        ):
+            hard_rule_paths.add(entry["rule_path"])
+        if is_v2:
+            issues.extend(_check_second_pass(entry.get("second_pass"), loc, entry.get("layer")))
 
     # ── candidate_count ───────────────────────────────────────────────────────
     cc = manifest["candidate_count"]
@@ -190,6 +256,37 @@ def validate_manifest(manifest: dict[str, Any]) -> list[str]:
             elif isinstance(val, str) and not val.strip():
                 issues.append(f"{loc}: {key!r} must be non-empty")
         issues.extend(_check_body_content(entry, loc))
+        # v2 HARD-never-filtered invariant: HARD candidates must not appear
+        # in deferred_rules with reason_type=second_pass_rejected.
+        if (
+            is_v2
+            and entry.get("reason_type") == _SECOND_PASS_REJECTED_REASON
+            and isinstance(rp, str)
+            and rp in hard_rule_paths
+        ):
+            issues.append(f"{loc}: HARD candidate {rp!r} must not be second_pass_rejected")
+
+    # ── second_pass_evidence (v2 only) ───────────────────────────────────────
+    if is_v2:
+        if "second_pass_evidence" not in manifest:
+            issues.append("v2: missing required top-level key 'second_pass_evidence'")
+        else:
+            spe = manifest["second_pass_evidence"]
+            if not isinstance(spe, list):
+                issues.append("second_pass_evidence must be a list")
+            else:
+                for i, raw_entry in enumerate(spe):
+                    loc = f"second_pass_evidence[{i}]"
+                    if not isinstance(raw_entry, dict):
+                        issues.append(f"{loc}: must be an object")
+                        continue
+                    entry = cast("dict[str, Any]", raw_entry)
+                    issues.extend(_check_rule_path(entry.get("rule_path"), loc))
+                    for key in sorted(_REQUIRED_SECOND_PASS_EVIDENCE_KEYS):
+                        if key not in entry:
+                            issues.append(f"{loc}: missing required key {key!r}")
+                    if "confirmed" in entry and not isinstance(entry["confirmed"], bool):
+                        issues.append(f"{loc}: 'confirmed' must be a boolean")
 
     # ── completeness invariant ────────────────────────────────────────────────
     # Every unique candidate_rules[*].rule_path must appear in exactly one of

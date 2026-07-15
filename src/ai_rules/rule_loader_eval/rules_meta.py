@@ -14,6 +14,9 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
+
+import yaml
 
 RE_KEYWORDS = re.compile(r"^\*\*Keywords:\*\*\s*(.*)$", re.IGNORECASE | re.MULTILINE)
 RE_DEPENDS = re.compile(r"^\*\*Depends:\*\*\s*(.*)$", re.IGNORECASE | re.MULTILINE)
@@ -21,6 +24,61 @@ RE_CONTEXT_TIER = re.compile(r"^\*\*ContextTier:\*\*\s*(.*)$", re.IGNORECASE | r
 RE_SCHEMA_VERSION = re.compile(r"^\*\*SchemaVersion:\*\*\s*(.*)$", re.IGNORECASE | re.MULTILINE)
 RE_RULE_VERSION = re.compile(r"^\*\*RuleVersion:\*\*\s*v?(.*)$", re.IGNORECASE | re.MULTILINE)
 RE_LAST_UPDATED = re.compile(r"^\*\*LastUpdated:\*\*\s*(.*)$", re.IGNORECASE | re.MULTILINE)
+
+_FRONTMATTER_FENCE_RE = re.compile(r"^---\s*$")
+
+
+def _parse_frontmatter(content: str) -> dict[str, Any] | None:
+    """Return the YAML frontmatter mapping if `content` begins with `---`."""
+    lines = content.split("\n")
+    if not lines or not _FRONTMATTER_FENCE_RE.match(lines[0]):
+        return None
+    for idx in range(1, min(len(lines), 200)):
+        if _FRONTMATTER_FENCE_RE.match(lines[idx]):
+            body = "\n".join(lines[1:idx])
+            try:
+                data = yaml.safe_load(body)
+            except yaml.YAMLError:
+                return None
+            return data if isinstance(data, dict) else None
+    return None
+
+
+def _flatten_yaml_keywords(value: Any) -> str:
+    """Return a comma-separated string form of a YAML keywords list/string."""
+    if not value:
+        return ""
+    if isinstance(value, list):
+        return ", ".join(str(k).strip() for k in value if str(k).strip())
+    return str(value).strip()
+
+
+def _flatten_yaml_depends(value: Any) -> str:
+    """Flatten a YAML depends mapping/list into the inline required:foo, optional:bar form."""
+    if not value:
+        return ""
+    entries: list[str] = []
+    if isinstance(value, dict):
+        for key in ("required", "optional"):
+            for item in value.get(key) or []:
+                if not item:
+                    continue
+                name = str(item).strip()
+                if not name.endswith(".md"):
+                    name = f"{name}.md"
+                entries.append(f"{key}:{name}")
+    elif isinstance(value, list):
+        for item in value:
+            if not item:
+                continue
+            name = str(item).strip()
+            if ":" not in name:
+                name = f"required:{name}"
+            prefix, rest = name.split(":", 1)
+            if not rest.endswith(".md"):
+                rest = f"{rest}.md"
+            entries.append(f"{prefix}:{rest}")
+    return ", ".join(entries)
 
 
 @dataclass(frozen=True)
@@ -147,17 +205,31 @@ def _split_depends(raw: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
 
 
 def parse_rule_metadata(path: Path, content: str) -> RuleMetadata:
-    """Parse metadata from a rule file's content.
+    """Parse metadata from a rule file's content (dual-parse: v3.5 frontmatter → inline fallback).
 
-    v3.3: typed ``Keywords:`` entries (``kw:``, ``ext:``, ``file:``, ``dir:``)
-    are parsed into four categorised fields and combined into ``triggers``.
+    v3.5: YAML frontmatter (`---`-fenced block at top-of-file) is the canonical
+    metadata form. When present, ``keywords`` and ``depends`` are read from the
+    parsed YAML mapping and normalized to the same inline string form the
+    downstream splitters expect.
+
+    v3.3/v3.4 fallback: inline ``**Field:**`` markers.
     """
-    keywords_raw = _first_match(RE_KEYWORDS, content)
-    depends_raw = _first_match(RE_DEPENDS, content)
-    tier_raw = _first_match(RE_CONTEXT_TIER, content)
-    schema_raw = _first_match(RE_SCHEMA_VERSION, content)
-    rule_version_raw = _first_match(RE_RULE_VERSION, content)
-    last_updated_raw = _first_match(RE_LAST_UPDATED, content)
+    fm = _parse_frontmatter(content)
+    if fm is not None:
+        keywords_raw = _flatten_yaml_keywords(fm.get("keywords"))
+        depends_raw = _flatten_yaml_depends(fm.get("depends"))
+        tier_raw = str(fm.get("context_tier") or "").strip()
+        schema_raw = str(fm.get("schema_version") or "").strip()
+        rv = str(fm.get("rule_version") or "").strip()
+        rule_version_raw = rv[1:] if rv.startswith("v") else rv
+        last_updated_raw = str(fm.get("last_updated") or "").strip()
+    else:
+        keywords_raw = _first_match(RE_KEYWORDS, content)
+        depends_raw = _first_match(RE_DEPENDS, content)
+        tier_raw = _first_match(RE_CONTEXT_TIER, content)
+        schema_raw = _first_match(RE_SCHEMA_VERSION, content)
+        rule_version_raw = _first_match(RE_RULE_VERSION, content)
+        last_updated_raw = _first_match(RE_LAST_UPDATED, content)
 
     keywords = tuple(kw.lower() for kw in _split_csv(keywords_raw))
 

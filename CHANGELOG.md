@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (2026-07-17 — rule-loader eval: turns in log line + keyword recall + Gate 1 parsing)
+
+- **feat(rule-loader-eval):** show `turns=NN` and prefix duration with `elapsed=` in the per-fixture stderr log line emitted by `_log_item_finish`; all call sites (eval, refresh, refresh-all) now pass turns from the run object.
+- **fix(rule-loader-eval):** pass actual `len(all_run_results)` instead of total planned `runs` to `_write_aggregate_and_finalize` on infra-error abort, preventing index-out-of-range when fewer passes completed than requested.
+- **feat(rule-loader-eval):** parse Gate 1 foundation citations (new single-line `Gate 1:` shape) in `parse_rules_loaded_section` so foundation rule is correctly detected as loaded.
+- **feat(rule-loader-eval):** add `rules/RULES_INDEX.md` to the discovery-artifact neutral set alongside `AGENTS.md`, suppressing false-positive signal disagreements when the agent reads the index during Step 2B fallback.
+- **feat(rules):** add bare recall keywords `kw:snowflake.yml`, `kw:snowcli` to rule 112 and `kw:MCP`, `kw:mcp server` to rule 117, improving keyword-only recall on prompts that lack compound triggers.
+- **feat(fixtures):** add three eval fixtures (`simple-citation-drift-regression`, `simple-mcp-server-bare`, `simple-snowcli-yml-bare`) covering bare-keyword recall and citation-drift regression scenarios.
+
 ### Changed (2026-07-16 — rule-loader: 102-snowflake-sql-core recall keyword)
 
 - **feat(rules):** add discriminating keyword `kw:SQL data transformation` to `102-snowflake-sql-core.md` (v2.0.1 → v2.1.0, MINOR) to close the last recall flake on the `complex-mixed-sql-py` eval fixture. On that mixed Python+SQL prompt, `openai-gpt-5.2` intermittently under-selected the SQL side (loaded `200-python-core` but not `102`) despite `ext:.sql`; the new keyword (0 cross-rule collisions, matches the prompt's "transformation … curated view … aggregate metrics" phrasing) adds a semantic hook beyond the file extension. Keyword count 6 → 7 (within the 5–7 Track A target). `RULES_INDEX.md` + `.index-stats.json` regenerated; `rule-loader validate` (30+2) and `index check` green.
@@ -14,6 +23,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed (2026-07-16 — rule-loader eval: silence coco auto-apply stderr noise)
 
 - **fix(rule-loader-eval):** suppress benign `_CORTEX_CODE_DEFAULT` auto-apply skill-stage warnings from coco stderr via a new `_filter_coco_stderr` SDK callback in `agent_runner.py`; real coco stderr errors still pass through. Removes the four repeated `⚠ Auto-apply` / `Failed to fetch from stage @CORTEX_CODE.CONFIG.AUTO_APPLY_SKILLS_STAGE` / `Schema 'CORTEX_CODE.CONFIG' does not exist or not authorized` lines that coco emits once per session when the active Snowflake role can't read the auto-apply skills stage.
+
+### Changed (2026-07-16 — rule-loader: v5 schema/second-pass refactor + eval flakiness fix)
+
+- **feat(rule-loader):** decouple R8 depends-propagation from pass/fail — rewrite required-closure resolution as a cycle-safe fixpoint (skill v2.0.0 → v2.1.0) and add `depends_ok` to `RunResult`/`FixtureSnapshot`, reported alongside (not gating) the `passed` composite; eliminates the nondeterministic parent-rule omission behind 44/51 failing drivers under token pressure (eval 48% → 98%, R8 zeroed) (5f34b2e).
+- **feat(rule-loader):** add Track C second-pass confirmation — canonical manifest `rule-loader-manifest/v2` with per-candidate `second_pass` annotation; top-8 SOFT candidates scored against their Scope excerpts (HARD candidates exempt, never filtered), 4k-token budget, no cross-invocation cache; v1 still accepted for legacy consumers (356c17c).
+- **feat(schema):** adopt schema v3.5 YAML frontmatter — lift the YAML-frontmatter ban, add `yaml_key` mappings, and make `index.py` / `validate.py` / `keywords.py` and the eval parsers read frontmatter as canonical; adds the manifest-v2 validator and the parity-preserving `migrate_v34_to_v35.py` migrator (1c7008b).
+- **feat(rules):** migrate 194 production rules to v3.5 YAML frontmatter (`keywords` / `depends` / `token_budget` / `context_tier` / `rule_version` / `last_updated`), with Track A HARD-trigger hardening on 7 rules (e.g. `+ext:.py`, `+ext:.sql`, `+file:snowflake.yml`, `+dir:rules/`) kept within the 5–7 keyword cap (bda7173).
 
 ### Changed (2026-07-12 — rule-loader eval: gitignored `results/` layout + TUI removal)
 

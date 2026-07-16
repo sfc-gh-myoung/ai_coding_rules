@@ -84,7 +84,9 @@ def test_eval_cmd_bulk_fixture_load_failure(tmp_path: Path) -> None:
         with patch(
             "ai_rules.commands.rule_loader._require_connection_or_exit", return_value="default"
         ):
-            result = runner.invoke(app, ["rule-loader", "eval"])
+            result = runner.invoke(
+                app, ["rule-loader", "eval", "--out-dir", str(tmp_path / "results")]
+            )
     assert result.exit_code != 0
 
 

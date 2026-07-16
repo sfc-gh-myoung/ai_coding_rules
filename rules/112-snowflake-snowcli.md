@@ -3,6 +3,8 @@ schema_version: v3.5
 rule_version: v4.0.1
 last_updated: 2026-07-15
 keywords:
+  - kw:snowflake.yml
+  - kw:snowcli
   - kw:snowcli uvx pinned
   - kw:snowflake.yml project
   - kw:stage copy no-auto-compress

@@ -170,8 +170,9 @@ def _log_item_finish(
     output_tokens: int = 0,
     total_cost_usd: float = 0.0,
     duration_ms: int | None = None,
+    turns: int = 0,
 ) -> None:
-    """Emit a per-item finish line to stderr with tokens/cost/duration when available."""
+    """Emit a per-item finish line to stderr with tokens/cost/duration/turns when available."""
     status = "pass" if ok else "fail"
     parts: list[str] = [status]
     if input_tokens or output_tokens:
@@ -179,7 +180,8 @@ def _log_item_finish(
     if total_cost_usd:
         parts.append(f"${total_cost_usd:.4f}")
     if duration_ms is not None and duration_ms > 0:
-        parts.append(f"{duration_ms / 1000:.1f}s")
+        parts.append(f"elapsed={duration_ms / 1000:.1f}s")
+    parts.append(f"turns={turns}")
     err_console.out(f"[{_utc_now_iso()}] done   {fixture_id}  {' '.join(parts)}")
 
 
@@ -573,6 +575,7 @@ def _run_single_eval(
             output_tokens=run.output_tokens if run else 0,
             total_cost_usd=run.total_cost_usd if run else 0.0,
             duration_ms=run.duration_ms if run else 0,
+            turns=run.turns if run else 0,
         )
         # Stream transcript then write fixture result. Ordering matches §7.5:
         # transcript first, then <id>.json, then run_meta.json flips to
@@ -1112,7 +1115,9 @@ def eval_cmd(
 
         if is_infra:
             log_error(f"Infra error on run {run_idx}/{runs}. Aborting remaining runs.")
-            _write_aggregate_and_finalize(results_writer, all_run_results, runs, status="failed")
+            _write_aggregate_and_finalize(
+                results_writer, all_run_results, len(all_run_results), status="failed"
+            )
             raise typer.Exit(EXIT_INFRA_ERROR)
 
     if runs > 1:
@@ -1350,6 +1355,7 @@ def refresh_cmd(
             input_tokens=run.input_tokens,
             output_tokens=run.output_tokens,
             total_cost_usd=run.total_cost_usd,
+            turns=run.turns,
         )
     except Exception:
         _log_item_finish(fid_for_progress, ok=False)
@@ -1608,6 +1614,7 @@ def refresh_all_cmd(
                     input_tokens=outcome.run.input_tokens,
                     output_tokens=outcome.run.output_tokens,
                     total_cost_usd=outcome.run.total_cost_usd,
+                    turns=outcome.run.turns,
                 )
                 finish_called = True
                 return
@@ -1641,6 +1648,7 @@ def refresh_all_cmd(
                     input_tokens=_run.input_tokens if _run else 0,
                     output_tokens=_run.output_tokens if _run else 0,
                     total_cost_usd=_run.total_cost_usd if _run else 0.0,
+                    turns=_run.turns if _run else 0,
                 )
 
     # Suppress SDK chatter only when an output dir is resolved (quiet_sdk is a no-op

@@ -126,6 +126,24 @@ F. For multi-technology requests, split on `+`, `and`, `with`, `,`, `using` and
    include each technology in the grep OR pattern. Full heuristic + examples:
    "Keyword Extraction Heuristic" in {{rules_path}}/002n-agent-protocol-reference.md.
 
+**Rule vs Reference File**
+
+**Rules** live under `rules/` with the `\d+-` numeric prefix (e.g.,
+`rules/100-snowflake-core.md`). Rules are loaded via `read_file` and cited
+under Gate 1 (foundation) and Gate 3 (domain/activity).
+
+**Reference files** are used to *discover* rules, not loaded *as* rules.
+Reference files include:
+- `AGENTS.md` — this bootstrap protocol.
+- `{{rules_path}}/RULES_INDEX.md` — the compact keyword index used by the `rule-loader`
+  skill and by the Step 2B grep fallback.
+
+Reference files MUST NOT be listed under Gate 1 or Gate 3. In the primary path
+(rule-loader skill), the main agent does not need to `read_file`
+`{{rules_path}}/RULES_INDEX.md` directly — the skill reads it internally and returns a
+manifest. In the Step 2B fallback path, direct read of `{{rules_path}}/RULES_INDEX.md`
+via grep or `read_file` is expected.
+
 **Step 3: Load Matching Rules (apply the manifest)**
 
 The rule set was determined in Step 2 (manifest) or Step 2B (inline fallback).
@@ -219,10 +237,11 @@ NEVER declare a rule as a Gate 3 sub-bullet unless `read_file` returned successf
 
 **Citation format (for eval compatibility):**
 When listing rules as Gate 3 sub-bullets, prefer the form
-`<path> (<reason>) — N lines` where `N` is the `wc -l` output for the file.
-Example: `- [x] Gate 1: Foundation {{rules_path}}/000-global-core.md — 267 lines`.
+`<path> (<reason>) — N lines` where `N` is the **exact** `wc -l` output for the file.
+Example: `- [x] Gate 1: Foundation {{rules_path}}/000-global-core.md — 273 lines`.
 The `— N lines` suffix is optional but enables citation-drift detection
-by the rule-loader evaluator.
+by the rule-loader evaluator. **If you cannot execute `wc -l` (no shell access),
+omit the `— N lines` suffix entirely. Never estimate or guess line counts.**
 
 **VIOLATION = INVALID RESPONSE**: Proceeding without completing all steps invalidates the response.
 

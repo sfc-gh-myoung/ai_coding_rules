@@ -105,7 +105,7 @@ metadata; this file intentionally omits volatile timestamps so
 111b-snowflake-observability-tracing.md tier=High kw=snowflake-telemetry-python create_span-context-manager 128-event-span-limit nested-span-hierarchy TRACE_LEVEL-configuration span-attribute-enrichment snowsight
 111c-snowflake-observability-monitoring.md tier=High kw=ACCOUNT_USAGE-views telemetry-cost-optimization query-history-monitoring real-time-vs-historical-latency Snowsight-operational-dashboards cortex-token-tracking cortex
 111d-snowflake-observability-snowsight.md tier=Low kw=snowsight-monitoring-interfaces cortex-ai-cost-attribution traces-and-logs-ui llm-evaluation-workflows distributed-tracing-ai-applications query-history-latency aisql
-112-snowflake-snowcli.md tier=Medium file=snowflake.yml kw=snowcli-uvx-pinned snowflake.yml-project stage-copy-no-auto-compress streamlit-deploy-FROM connection-profile-env CI-non-interactive-json
+112-snowflake-snowcli.md tier=Medium file=snowflake.yml kw=snowflake.yml snowcli snowcli-uvx-pinned snowflake.yml-project stage-copy-no-auto-compress streamlit-deploy-FROM connection-profile-env CI-non-interactive-json
 113-snowflake-feature-store.md tier=Medium kw=feature-store point-in-time-correctness feature-view-versioning entity-modeling ASOF-JOIN ml-lineage-integration rbac
 113a-snowflake-feature-store-patterns.md tier=Low kw=ASOF-JOIN feature-view-versioning deterministic-transformations dynamic-table-refresh-costs training-data-leakage train-serve-skew
 113b-snowflake-feature-store-engineering.md tier=Low kw=feature-engineering windowed-aggregations RFM-features velocity-features NULLIF-division-protection deterministic-transformations
@@ -117,7 +117,7 @@ metadata; this file intentionally omits volatile timestamps so
 115c-snowflake-cortex-agents-testing.md tier=Low kw=cortex-agent-testing agent-RBAC-grants component-integration-testing agent-tool-verification least-privilege-agent-permissions semantic-view-grants ci/cd
 115d-snowflake-cortex-agents-observability.md tier=Low kw=cortex-agent-observability agent-cost-attribution AI-Observability-tracing agent-health-checks agent-troubleshooting-runbook dedicated-agent-warehouse cortex
 116-snowflake-cortex-search.md tier=Medium kw=cortex-search-service document-chunking metadata-filtering search-tool-configuration SEARCH_PREVIEW-validation search-index-lifecycle ai_embed
-117-snowflake-mcp-server.md tier=High kw=snowflake-managed-mcp-server CREATE-MCP-SERVER mcp-tool-invocation cortex_analyst_message-tool mcp-json-rpc-protocol mcp-server-rbac cortex
+117-snowflake-mcp-server.md tier=High kw=MCP mcp-server snowflake-managed-mcp-server CREATE-MCP-SERVER mcp-tool-invocation cortex_analyst_message-tool mcp-json-rpc-protocol mcp-server-rbac cortex
 118-snowflake-cortex-rest-api.md tier=High kw=cortex-rest-api exponential-backoff-retry idempotency-keys rest-vs-aisql-decision sse-streaming-responses token-usage-monitoring aisql
 118a-snowflake-cortex-rest-api-streaming.md tier=High kw=Cortex-REST-authentication server-sent-events SSE-stream-parsing Cortex-Agent-streaming PAT-token-headers response-format-detection cortex
 119-snowflake-warehouse-management.md tier=High kw=virtual-warehouse-creation warehouse-sizing-strategy auto-suspend-configuration warehouse-type-selection GEN-2-warehouse adaptive-warehouse-tuning etl
@@ -224,6 +224,6 @@ metadata; this file intentionally omits volatile timestamps so
 821a-makefile-advanced-patterns.md tier=Low kw=categorized-help makefile-conditionals variable-assignment-operators makefile-include-directives platform-detection AI-agent-integration ci/cd
 920-data-science-analytics.md tier=High kw=snowpark-dataframe model-registry-versioning feature-engineering-leakage SHAP-explainability SQL-aggregation-over-loops pandas-NaN-handling uncertainty-quantification-intervals
 930-data-governance-quality.md tier=Medium kw=expectation-suites schema-evolution metric-definitions-catalog data-drift-monitoring quality-gates-automation incident-response-procedures ci/cd
-940-business-analytics.md tier=High kw=business-intelligence-dashboards WCAG-accessibility-compliance KPI-visualization Snowsight-dashboard-patterns data-storytelling-narrative ethical-visualization-standards snowsight
+940-business-analytics.md tier=High kw=WCAG-accessibility-compliance KPI-visualization data-storytelling-narrative ethical-visualization-standards snowsight
 950-dbt-core.md tier=High kw=dbt-project-object EXECUTE-DBT-PROJECT profiles.yml-snowflake snow-dbt-deploy dbt-workspaces dbt-external-access-integration ci/cd
 951-create-dbt-semantic-view.md tier=High kw=dbt_semantic_view-package semantic_view-materialization cortex-analyst-integration SEMANTIC_VIEW()-function primary-key-constraints dimensions-metrics-relationships ci/cd

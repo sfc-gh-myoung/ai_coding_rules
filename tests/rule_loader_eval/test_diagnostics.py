@@ -348,3 +348,45 @@ def test_load_rule_meta_for_project_skips_readme(tmp_path: Path) -> None:
     result = load_rule_meta_for_project(tmp_path)
     assert "rules/README.md" not in result
     assert "rules/001-test.md" in result
+
+
+# ---------------------------------------------------------------------------
+# Task 6.4: _DISCOVERY_ARTIFACTS reference-file exclusion
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_discovery_artifacts_includes_rules_index() -> None:
+    """_DISCOVERY_ARTIFACTS in diagnostics.py includes rules/RULES_INDEX.md."""
+    from ai_rules.rule_loader_eval.diagnostics import _DISCOVERY_ARTIFACTS
+
+    assert "rules/RULES_INDEX.md" in _DISCOVERY_ARTIFACTS
+    assert "AGENTS.md" in _DISCOVERY_ARTIFACTS
+
+
+@pytest.mark.unit
+def test_rules_index_read_no_cite_excluded_from_signals() -> None:
+    """Reading rules/RULES_INDEX.md without citing it produces no signal contribution."""
+    run = _make_run(
+        reads=("rules/000-global-core.md", "rules/RULES_INDEX.md"),
+        section=("rules/000-global-core.md",),
+    )
+    report = signal_disagreement(run)
+    assert "rules/RULES_INDEX.md" not in report.read_without_cite_unexpected
+    assert "rules/RULES_INDEX.md" not in report.read_without_cite_tolerated
+    assert "rules/RULES_INDEX.md" not in report.cited_without_read
+    assert all("RULES_INDEX" not in d for d in report.disagreements)
+
+
+@pytest.mark.unit
+def test_rule_file_read_without_cite_still_reported() -> None:
+    """Excluding RULES_INDEX.md must not suppress legitimate read_without_cite signals for rule files."""
+    run = _make_run(
+        reads=("rules/000-global-core.md", "rules/100-snowflake-core.md"),
+        section=("rules/000-global-core.md",),
+    )
+    report = signal_disagreement(run)
+    # 100-snowflake-core.md read but not cited: must still appear as read_without_cite
+    assert "rules/100-snowflake-core.md" in (
+        report.read_without_cite_unexpected + report.read_without_cite_tolerated
+    )

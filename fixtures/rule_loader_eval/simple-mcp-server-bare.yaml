@@ -1,0 +1,21 @@
+schema_version: 3
+updated: 2026-07-16T00:00:00-04:00
+id: simple-mcp-server-bare
+description: Bare MCP server prompt without compound keywords; exercises new bare MCP kw in rule 117 frontmatter
+variant: simple
+prompt: |
+  I need to set up an MCP server for my Snowflake tools. What are the steps?
+expected:
+  required:
+    - rules/000-global-core.md
+    - rules/117-snowflake-mcp-server.md
+  forbidden: []
+  optional:
+    - rules/100-snowflake-core.md
+    - rules/112-snowflake-snowcli.md
+    - rules/126-snowflake-cortex-code-agent-sdk.md
+trigger_evidence:
+  kw: [MCP]
+  ext: []
+  file: []
+  dir: []

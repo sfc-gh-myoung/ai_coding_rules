@@ -1,0 +1,21 @@
+schema_version: 3
+updated: 2026-07-16T00:00:00-04:00
+id: simple-citation-drift-regression
+description: Regression fixture targeting citation-drift on a rule with known hallucinated line counts (115b)
+variant: simple
+prompt: |
+  How do I configure agent RBAC and agent cost budgets for my Snowflake Cortex agent deployment?
+expected:
+  required:
+    - rules/000-global-core.md
+    - rules/115b-snowflake-cortex-agents-operations.md
+  forbidden: []
+  optional:
+    - rules/115-snowflake-cortex-agents-core.md
+    - rules/115a-snowflake-cortex-agents-instructions.md
+    - rules/100-snowflake-core.md
+trigger_evidence:
+  kw: [agent RBAC, agent cost budgets]
+  ext: []
+  file: []
+  dir: []

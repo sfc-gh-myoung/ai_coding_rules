@@ -582,7 +582,7 @@ Task Switch: FIRST
 
 @pytest.mark.unit
 def test_parse_rules_loaded_section_gate1_only_returns_domain_only() -> None:
-    """New Gate-1-only shape: Gate 3 sub-bullets include domain rules but NOT the foundation."""
+    """Gate-1-only shape: Gate 3 sub-bullets include domain rules; Task 6.1 fix adds Gate 1 foundation."""
     text = """\
 - [x] Gate 1: Foundation rules/000-global-core.md — 268 lines
 - [x] Gate 3: +1 domain rule:
@@ -592,8 +592,8 @@ Task Switch: FIRST
 """
     result = parse_rules_loaded_section(text)
     assert "rules/200-python-core.md" in result
-    # Foundation is on Gate 1, not in Gate 3 sub-bullets, so parse_rules_loaded returns domain only
-    assert "rules/000-global-core.md" not in result
+    # Task 6.1 fix: Gate 1 foundation is now scanned and included in the result.
+    assert "rules/000-global-core.md" in result
 
 
 @pytest.mark.unit
@@ -633,3 +633,132 @@ def test_no_ln_shorthand_not_present_in_canonical_artifacts() -> None:
                 if patterns.search(line):
                     hits.append(f"{path.relative_to(root)}:{lineno}: {line.strip()}")
     assert hits == [], "Found '— N ln' shorthand in canonical artifacts:\n" + "\n".join(hits)
+
+
+# ---------------------------------------------------------------------------
+# Task 6.2: test_parse_rules_loaded_section_gate1_foundation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_parse_rules_loaded_section_gate1_foundation() -> None:
+    """After Task 6.1 fix, Gate 1 foundation appears in parse_rules_loaded_section output."""
+    gate1_only_text = (
+        "- [x] Gate 1: Foundation rules/000-global-core.md — 273 lines\n"
+        "- [x] Gate 3: +1 domain rule:\n"
+        "  - rules/200-python-core.md (ext: .py)\n"
+    )
+    result = parse_rules_loaded_section(gate1_only_text)
+    # Post-fix: foundation on Gate 1 is included
+    assert "rules/000-global-core.md" in result
+    assert "rules/200-python-core.md" in result
+
+    # Regression guard: if Gate 1 scan block is absent, foundation would NOT be present.
+    # Demonstrate via a helper that strips the Gate 1 line:
+    gate3_only_text = "- [x] Gate 3: +1 domain rule:\n  - rules/200-python-core.md (ext: .py)\n"
+    result_gate3_only = parse_rules_loaded_section(gate3_only_text)
+    assert "rules/000-global-core.md" not in result_gate3_only
+    assert "rules/200-python-core.md" in result_gate3_only
+
+    # No double-count: when foundation appears on both Gate 1 and Gate 3, result has it once
+    both_text = (
+        "- [x] Gate 1: Foundation rules/000-global-core.md — 273 lines\n"
+        "- [x] Gate 3: +2 domain rules:\n"
+        "  - rules/000-global-core.md (foundation)\n"
+        "  - rules/200-python-core.md (ext: .py)\n"
+    )
+    result_both = parse_rules_loaded_section(both_text)
+    assert result_both.count("rules/000-global-core.md") == 1  # tuple; count occurrences
+    assert "rules/200-python-core.md" in result_both
+
+
+# ---------------------------------------------------------------------------
+# Task 6.3: test_gate1_citation_no_read_capture_behavior
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_gate1_citation_no_read_capture_behavior() -> None:
+    """After Task 6.1, Gate 1 foundation in section_set but not in read_set produces
+    cited_without_read_unexpected — the accepted (non-false-positive) behavior.
+
+    Background (H3): if the model cites foundation only on Gate 1 and no read_file
+    call was captured, section_set includes 000-global-core.md but reads does not.
+    The signal should be cited_without_read (correct diagnostic), not
+    read_without_cite_unexpected (which was the prior false positive before Task 6.1).
+    """
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import signal_disagreement
+
+    # Simulate: Gate 1 foundation cited in section_set, but no read_file captured
+    run = AgentRun(
+        fixture_id="test-fixture",
+        loaded=("rules/000-global-core.md",),
+        loaded_via_reads=(),  # no read_file call captured
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/000-global-core.md",),  # from Gate 1 scan (Task 6.1)
+    )
+    report = signal_disagreement(run)
+    # cited_without_read fires (correct: foundation was cited but no read captured)
+    assert "rules/000-global-core.md" in report.cited_without_read
+    # read_without_cite_unexpected does NOT fire (that was the old false positive)
+    assert "rules/000-global-core.md" not in report.read_without_cite_unexpected
+
+
+# ---------------------------------------------------------------------------
+# Task 6.4: reference-file exclusion tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_rules_index_read_step2b_no_signal_contribution() -> None:
+    """When model reads rules/RULES_INDEX.md (Step 2B fallback) and does not cite it,
+    the signal-partition reports zero contribution from RULES_INDEX.md.
+    """
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import signal_disagreement
+
+    run = AgentRun(
+        fixture_id="test-fixture",
+        loaded=("rules/000-global-core.md",),
+        loaded_via_reads=("rules/000-global-core.md", "rules/RULES_INDEX.md"),
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/000-global-core.md",),
+    )
+    report = signal_disagreement(run)
+    # RULES_INDEX.md must not appear in any signal set
+    for field in (
+        report.cited_without_read,
+        report.read_without_cite_unexpected,
+        report.read_without_cite_tolerated,
+    ):
+        assert "rules/RULES_INDEX.md" not in field, f"RULES_INDEX.md appeared in signal: {field}"
+    assert all("RULES_INDEX" not in d for d in report.disagreements)
+
+
+@pytest.mark.unit
+def test_skill_path_no_rules_index_read_unchanged_signals() -> None:
+    """When model takes the skill path (no RULES_INDEX.md read), signal output is unchanged."""
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import signal_disagreement
+
+    run_no_index = AgentRun(
+        fixture_id="test-fixture",
+        loaded=("rules/000-global-core.md",),
+        loaded_via_reads=("rules/000-global-core.md",),
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/000-global-core.md",),
+    )
+    run_with_index = AgentRun(
+        fixture_id="test-fixture",
+        loaded=("rules/000-global-core.md",),
+        loaded_via_reads=("rules/000-global-core.md", "rules/RULES_INDEX.md"),
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/000-global-core.md",),
+    )
+    report_no = signal_disagreement(run_no_index)
+    report_with = signal_disagreement(run_with_index)
+    # Both reports should have same disagreements, cited_without_read, read_without_cite sets
+    assert report_no.ok == report_with.ok
+    assert report_no.cited_without_read == report_with.cited_without_read
+    assert report_no.read_without_cite_unexpected == report_with.read_without_cite_unexpected

@@ -3,6 +3,8 @@ schema_version: v3.5
 rule_version: v4.0.0
 last_updated: 2026-07-15
 keywords:
+  - kw:MCP
+  - kw:mcp server
   - kw:snowflake-managed mcp server
   - kw:CREATE MCP SERVER
   - kw:mcp tool invocation

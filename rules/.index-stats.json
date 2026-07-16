@@ -1,13 +1,13 @@
 {
   "counts": {
     "index_lines": 229,
-    "keyword_entries": 1339,
+    "keyword_entries": 1341,
     "rules": 195,
     "rules_with_deps": 193
   },
   "format_version": "F4",
-  "generated_at": "2026-07-16T16:27:45Z",
-  "git_sha": "5e1daaa10d8cd3ab042d4a77e2266997e93eef47",
+  "generated_at": "2026-07-17T01:00:38Z",
+  "git_sha": "00cce1148235eaf2df8cafd6c9c871a5a914bfb0",
   "sanity_thresholds": {
     "keyword_entries_min": 1200,
     "max_matches_broad_query": 50,

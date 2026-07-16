@@ -3,10 +3,8 @@ schema_version: v3.5
 rule_version: v4.0.0
 last_updated: 2026-07-15
 keywords:
-  - kw:business intelligence dashboards
   - kw:WCAG accessibility compliance
   - kw:KPI visualization
-  - kw:Snowsight dashboard patterns
   - kw:data storytelling narrative
   - kw:ethical visualization standards
   - kw:snowsight

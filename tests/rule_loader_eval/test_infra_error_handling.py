@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from unittest.mock import patch
 
@@ -12,10 +13,14 @@ from ai_rules.commands.rule_loader import (
     EXIT_INFRA_ERROR,
     _require_connection_or_exit,
     _resolve_connection,
+    _write_aggregate_and_finalize,
 )
-from ai_rules.rule_loader_eval.agent_runner import _classify_infra
-from ai_rules.rule_loader_eval.engine import InfraError, _synthetic_failure
+from ai_rules.rule_loader_eval.agent_runner import AgentRun, _classify_infra
+from ai_rules.rule_loader_eval.diagnostics import SignalReport
+from ai_rules.rule_loader_eval.engine import InfraError, RunResult, _synthetic_failure
 from ai_rules.rule_loader_eval.fixtures import Fixture
+from ai_rules.rule_loader_eval.matcher import MatchResult
+from ai_rules.rule_loader_eval.results_writer import ResultsRunWriter, make_run_context
 from ai_rules.rule_loader_eval.snapshot import FixtureSnapshot
 
 # ---------------------------------------------------------------------------
@@ -229,3 +234,77 @@ def test_snapshot_backward_compat_missing_fields():
     )
     assert fs.is_infra_error is False
     assert fs.infra_error_detail == ""
+
+
+# ---------------------------------------------------------------------------
+# _write_aggregate_and_finalize — early-abort runs count
+# ---------------------------------------------------------------------------
+
+
+def _make_minimal_run_result(fixture_id: str) -> RunResult:
+    run = AgentRun(
+        fixture_id=fixture_id,
+        loaded=("rules/000-global-core.md",),
+        loaded_via_reads=("rules/000-global-core.md",),
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/000-global-core.md",),
+    )
+    match = MatchResult(
+        missing_required=(),
+        missing_dependencies=(),
+        forbidden_present=(),
+        optional_loaded=(),
+        passed=True,
+    )
+    return RunResult(
+        fixture_id=fixture_id,
+        run=run,
+        match=match,
+        signal_report=SignalReport(ok=True, disagreements=()),
+    )
+
+
+def _make_results_run_writer(tmp_path: pytest.TempPathFactory) -> ResultsRunWriter:
+    ctx = make_run_context(
+        model_requested="test-model",
+        effort="medium",
+        max_turns=10,
+        strict_forbidden=False,
+        concurrency=1,
+        runs_requested=3,
+        label=None,
+        connection="default",
+        ai_rules_version="test",
+        fixture_selection=("fx-test",),
+        fixture_count=1,
+        run_id="test-run-id-aabbcc",
+    )
+    return ResultsRunWriter(root=tmp_path, run_dir_name="test-run", context=ctx)
+
+
+def test_aggregator_early_abort_runs_count(tmp_path):
+    """summary.json["runs"] must equal len(all_run_results) on early-abort path.
+
+    Regression guard: calling with runs=3 (the buggy value) writes runs=3.
+    Fixed path: calling with len(all_run_results)=1 writes runs=1.
+    """
+    fixture_id = "fx-test"
+    completed_pass = [_make_minimal_run_result(fixture_id)]
+    all_run_results = [completed_pass]  # 1 pass completed out of 3 configured
+
+    # --- Fixed path: pass len(all_run_results) ---
+    writer_fixed = _make_results_run_writer(tmp_path / "fixed")
+    _write_aggregate_and_finalize(
+        writer_fixed, all_run_results, len(all_run_results), status="failed"
+    )
+    summary_fixed = json.loads((tmp_path / "fixed" / "test-run" / "summary.json").read_text())
+    assert summary_fixed["runs"] == 1, "Fixed path: runs should equal completed pass count"
+    assert summary_fixed["per_fixture"][fixture_id]["n_runs"] == 1
+
+    # --- Regression guard: original buggy value runs=3 ---
+    writer_buggy = _make_results_run_writer(tmp_path / "buggy")
+    _write_aggregate_and_finalize(writer_buggy, all_run_results, 3, status="failed")
+    summary_buggy = json.loads((tmp_path / "buggy" / "test-run" / "summary.json").read_text())
+    assert summary_buggy["runs"] == 3, "Regression guard: passing runs=3 must still write runs=3"
+    # per_fixture n_runs is always correct regardless of the top-level runs field
+    assert summary_buggy["per_fixture"][fixture_id]["n_runs"] == 1

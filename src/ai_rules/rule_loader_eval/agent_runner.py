@@ -319,6 +319,13 @@ def parse_rules_loaded_section(text: str) -> tuple[str, ...]:
         if in_section:
             for m in RULE_PATH_RE.findall(line):
                 found.add(m)
+    # Gate 1 foundation citation (new shape: foundation on Gate 1 only)
+    for line in lines:
+        stripped = line.strip()
+        if _GATE1_FOUNDATION_RE.match(stripped):
+            for m in RULE_PATH_RE.findall(line):
+                found.add(m)
+            break
     return tuple(sorted(found))
 
 
@@ -770,10 +777,10 @@ async def run_live_async(
     reads_performed_set = set(reads_performed)
     section_set = set(section_rules)
 
-    # Discovery artifacts: read for protocol, never cited. Suppress these paths
-    # from all signal-mismatch comparisons so reading them does not produce
-    # false-positive "In (A) tool reads only" failures.
-    _DISCOVERY_ARTIFACTS = frozenset({"AGENTS.md"})
+    # Paths neutral to R1 protocol accounting: read is neither expected nor
+    # forbidden; cite is forbidden. See "Rule vs Reference File" in
+    # templates/AGENTS_MODE.md.template.
+    _DISCOVERY_ARTIFACTS = frozenset({"AGENTS.md", "rules/RULES_INDEX.md"})
     reads_set -= _DISCOVERY_ARTIFACTS
     reads_performed_set -= _DISCOVERY_ARTIFACTS
     section_set -= _DISCOVERY_ARTIFACTS

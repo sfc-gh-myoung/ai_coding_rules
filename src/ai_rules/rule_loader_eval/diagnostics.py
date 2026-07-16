@@ -61,10 +61,10 @@ class SignalReport:
     read_without_cite_tolerated: tuple[str, ...] = ()
 
 
-# Discovery artifacts: read freely but never cited. Subtracted from both
-# signals before partitioning. Mirrors ``_DISCOVERY_ARTIFACTS`` in
-# ``agent_runner.py``.
-_DISCOVERY_ARTIFACTS: frozenset[str] = frozenset({"AGENTS.md"})
+# Paths neutral to R1 protocol accounting: read is neither expected nor
+# forbidden; cite is forbidden. See "Rule vs Reference File" in
+# templates/AGENTS_MODE.md.template.
+_DISCOVERY_ARTIFACTS: frozenset[str] = frozenset({"AGENTS.md", "rules/RULES_INDEX.md"})
 
 
 def signal_disagreement(

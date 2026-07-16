@@ -1,0 +1,19 @@
+schema_version: 3
+updated: 2026-07-16T00:00:00-04:00
+id: simple-snowcli-yml-bare
+description: Bare snowcli keyword recall without file-context trigger; exercises new bare snowcli kw in rule 112 frontmatter
+variant: simple
+prompt: |
+  I want to use the Snowflake CLI (snowcli) to manage my deployment pipeline. Where do I start?
+expected:
+  required:
+    - rules/000-global-core.md
+    - rules/112-snowflake-snowcli.md
+  forbidden: []
+  optional:
+    - rules/100-snowflake-core.md
+trigger_evidence:
+  kw: [snowcli]
+  ext: []
+  file: []
+  dir: []

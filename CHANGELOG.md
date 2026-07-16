@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (2026-07-16 — rule-loader eval: silence coco auto-apply stderr noise)
+
+- **fix(rule-loader-eval):** suppress benign `_CORTEX_CODE_DEFAULT` auto-apply skill-stage warnings from coco stderr via a new `_filter_coco_stderr` SDK callback in `agent_runner.py`; real coco stderr errors still pass through. Removes the four repeated `⚠ Auto-apply` / `Failed to fetch from stage @CORTEX_CODE.CONFIG.AUTO_APPLY_SKILLS_STAGE` / `Schema 'CORTEX_CODE.CONFIG' does not exist or not authorized` lines that coco emits once per session when the active Snowflake role can't read the auto-apply skills stage.
+
 ### Changed (2026-07-12 — rule-loader eval: gitignored `results/` layout + TUI removal)
 
 **Streaming eval results directory:**

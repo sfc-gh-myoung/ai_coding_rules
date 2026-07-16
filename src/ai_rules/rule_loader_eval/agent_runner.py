@@ -32,11 +32,34 @@ from __future__ import annotations
 import asyncio
 import os
 import re
+import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from ai_rules.rule_loader_eval.defaults import DEFAULT_EFFORT, DEFAULT_MAX_TURNS
+
+# Suppress benign auto-apply skill-stage warnings that coco emits on every
+# session when the active Snowflake role can't read
+# ``CORTEX_CODE.CONFIG.AUTO_APPLY_SKILLS_STAGE``. These lines are noise for the
+# eval harness — they don't affect rule discovery — but they clutter the log
+# and make failure diffs harder to read. Match the three known warning
+# phrases as substrings (the lines are wrapped in ANSI color escapes such as
+# ``\x1b[33m…⚠…\x1b[0m``, so anchoring on ``^`` or ``\s`` would miss them).
+_COCO_AUTO_APPLY_NOISE_RE = re.compile(
+    r"Auto-apply \[_CORTEX_CODE_DEFAULT\]"
+    r"|\[_CORTEX_CODE_DEFAULT\] Failed to fetch from stage "
+    r"@CORTEX_CODE\.CONFIG\.AUTO_APPLY_SKILLS_STAGE"
+    r"|Schema 'CORTEX_CODE\.CONFIG' does not exist or not authorized"
+)
+
+
+def _filter_coco_stderr(line: str) -> None:
+    """SDK stderr callback: drop known benign auto-apply warnings, forward the rest."""
+    if _COCO_AUTO_APPLY_NOISE_RE.search(line):
+        return
+    sys.stderr.write(line if line.endswith("\n") else line + "\n")
+
 
 # Anchor the leading ``rules`` so we don't match the substring inside
 # ``ai_coding_rules/...`` (the project directory name). Body is a single
@@ -631,6 +654,7 @@ async def run_live_async(
         ),
         hooks={"PreToolUse": [HookMatcher(matcher="Read", hooks=[pre_tool_use])]},
         connection=connection,
+        stderr=_filter_coco_stderr,
     )
 
     start = time.perf_counter()

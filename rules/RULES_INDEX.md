@@ -70,7 +70,7 @@ metadata; this file intentionally omits volatile timestamps so
 101l-snowflake-streamlit-deployment.md tier=High kw=container-runtime warehouse-runtime pyproject.toml external-access-integration compute-pool runtime-migration TOML
 101m-snowflake-streamlit-pydeck-layers.md tier=Low kw=pydeck-layer-types HexagonLayer-aggregation GeoJsonLayer-extrusion ArcLayer-flow-visualization multi-layer-composition deck.gl-accessor-syntax streamlit
 101n-snowflake-streamlit-migration.md tier=Low kw=Streamlit-runtime-migration environment.yml-to-pyproject.toml get_active_session-replacement Container-Runtime-infrastructure bidirectional-runtime-swap in-place-Streamlit-upgrade TOML
-102-snowflake-sql-core.md tier=High ext=.sql kw=SQL-file-headers COPY-INTO-ON_ERROR-placement CREATE-VIEW-COMMENT-syntax fully-qualified-object-names CLI-templating-reserved-characters idempotent-DDL-patterns
+102-snowflake-sql-core.md tier=High ext=.sql kw=SQL-file-headers COPY-INTO-ON_ERROR-placement CREATE-VIEW-COMMENT-syntax fully-qualified-object-names CLI-templating-reserved-characters idempotent-DDL-patterns SQL-data-transformation
 102a-snowflake-sql-automation.md tier=High kw=parameterized-SQL-templates idempotent-MERGE-operations CREATE-TABLE-IF-NOT-EXISTS multi-environment-deployment CI/CD-pipeline-integration production-safe-automation ci/cd
 102b-snowflake-sql-procedures.md tier=High ext=.sql kw=SQL-scripting dollar-quoting EXECUTE-AS EXECUTE-IMMEDIATE bind-variables procedure-body-quoting
 102c-snowflake-sql-reserved-chars.md tier=Low kw=cli-compatibility ampersand-escaping template-expansion enable-templating-flag brand-name-preservation snow-sql-tool

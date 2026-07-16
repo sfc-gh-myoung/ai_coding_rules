@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (2026-07-16 — rule-loader: 102-snowflake-sql-core recall keyword)
+
+- **feat(rules):** add discriminating keyword `kw:SQL data transformation` to `102-snowflake-sql-core.md` (v2.0.1 → v2.1.0, MINOR) to close the last recall flake on the `complex-mixed-sql-py` eval fixture. On that mixed Python+SQL prompt, `openai-gpt-5.2` intermittently under-selected the SQL side (loaded `200-python-core` but not `102`) despite `ext:.sql`; the new keyword (0 cross-rule collisions, matches the prompt's "transformation … curated view … aggregate metrics" phrasing) adds a semantic hook beyond the file extension. Keyword count 6 → 7 (within the 5–7 Track A target). `RULES_INDEX.md` + `.index-stats.json` regenerated; `rule-loader validate` (30+2) and `index check` green.
+
 ### Changed (2026-07-16 — rule-loader eval: silence coco auto-apply stderr noise)
 
 - **fix(rule-loader-eval):** suppress benign `_CORTEX_CODE_DEFAULT` auto-apply skill-stage warnings from coco stderr via a new `_filter_coco_stderr` SDK callback in `agent_runner.py`; real coco stderr errors still pass through. Removes the four repeated `⚠ Auto-apply` / `Failed to fetch from stage @CORTEX_CODE.CONFIG.AUTO_APPLY_SKILLS_STAGE` / `Schema 'CORTEX_CODE.CONFIG' does not exist or not authorized` lines that coco emits once per session when the active Snowflake role can't read the auto-apply skills stage.

@@ -1,7 +1,7 @@
 ---
 schema_version: v3.5
-rule_version: v2.0.1
-last_updated: 2026-07-15
+rule_version: v2.1.0
+last_updated: 2026-07-16
 keywords:
   - kw:SQL file headers
   - kw:COPY INTO ON_ERROR placement
@@ -9,6 +9,7 @@ keywords:
   - kw:fully qualified object names
   - kw:CLI templating reserved characters
   - kw:idempotent DDL patterns
+  - kw:SQL data transformation
   - ext:.sql
 token_budget: ~4100
 context_tier: High

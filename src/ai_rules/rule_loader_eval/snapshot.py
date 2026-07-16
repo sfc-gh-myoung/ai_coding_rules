@@ -100,6 +100,10 @@ class FixtureSnapshot:
     """R8 violations: rules loaded whose required: deps were not loaded.
     Each entry formatted as ``'PARENT requires CHILD (not loaded)'``.
     """
+    depends_ok: bool = True
+    """False when any R8 depends-propagation violations are present (decoupled from passed)."""
+    effective_loaded: tuple[str, ...] = ()
+    """Effective loaded set after required-closure expansion (Phase 2)."""
     output_violations: tuple[str, ...] = ()
     """Bootstrap/no-match output-shape violations from the final assistant text."""
     # Token / cost fields (added for eval cost tracking). Zero for non-live runs.
@@ -140,6 +144,8 @@ class FixtureSnapshot:
             "n_runs": self.n_runs,
             "skill_invocations": list(self.skill_invocations),
             "depends_violations": list(self.depends_violations),
+            "depends_ok": self.depends_ok,
+            "effective_loaded": list(self.effective_loaded),
             "output_violations": list(self.output_violations),
             "input_tokens": self.input_tokens,
             "output_tokens": self.output_tokens,
@@ -176,6 +182,8 @@ class FixtureSnapshot:
             n_runs=int(data.get("n_runs") or 1),
             skill_invocations=tuple(data.get("skill_invocations") or ()),
             depends_violations=tuple(data.get("depends_violations") or ()),
+            depends_ok=bool(data.get("depends_ok", True)),
+            effective_loaded=tuple(data.get("effective_loaded") or ()),
             output_violations=tuple(data.get("output_violations") or ()),
             input_tokens=int(data.get("input_tokens") or 0),
             output_tokens=int(data.get("output_tokens") or 0),
@@ -235,6 +243,10 @@ class SnapshotSummary:
     mean_output_tokens: float = 0.0
     mean_total_tokens: float = 0.0
     mean_total_cost_usd: float = 0.0
+    total_depends_violations: int = 0
+    """Total R8 violations across all fixtures (informational; decoupled from pass/fail)."""
+    closure_complete_rate: float = 0.0
+    """Fraction of fixtures where depends_ok=True (0.0–1.0)."""
 
     def to_dict(self) -> dict:  # noqa: D102
         return asdict(self)
@@ -280,6 +292,8 @@ def serialize_run_result(result: RunResult, fixture: Fixture) -> FixtureSnapshot
         disagreement_details=tuple(result.run.disagreements),
         skill_invocations=tuple(result.run.skill_invocations),
         depends_violations=tuple(str(v) for v in result.depends_violations),
+        depends_ok=result.depends_ok,
+        effective_loaded=getattr(result, "effective_loaded", ()),
         output_violations=tuple(result.run.output_violations),
         input_tokens=getattr(result.run, "input_tokens", 0),
         output_tokens=getattr(result.run, "output_tokens", 0),
@@ -295,6 +309,8 @@ def compute_summary(fixtures: list[FixtureSnapshot]) -> SnapshotSummary:
     if total == 0:
         return SnapshotSummary(0, 0, 0, 0.0, 0.0, 0, 0)
     passed = sum(1 for f in fixtures if f.passed)
+    total_depends_viol = sum(len(f.depends_violations) for f in fixtures)
+    depends_ok_count = sum(1 for f in fixtures if f.depends_ok)
     return SnapshotSummary(
         total=total,
         passed=passed,
@@ -307,6 +323,8 @@ def compute_summary(fixtures: list[FixtureSnapshot]) -> SnapshotSummary:
         mean_output_tokens=round(sum(f.output_tokens for f in fixtures) / total, 2),
         mean_total_tokens=round(sum(f.total_tokens for f in fixtures) / total, 2),
         mean_total_cost_usd=round(sum(f.total_cost_usd for f in fixtures) / total, 6),
+        total_depends_violations=total_depends_viol,
+        closure_complete_rate=round(depends_ok_count / total, 3),
     )
 
 
@@ -415,6 +433,8 @@ def _fixture_to_doc(fx: FixtureSnapshot, *, run_number: int = 1) -> dict:
         },
         "citation_drifts": [{"index": i} for i in range(int(fx.citation_drifts))],
         "depends_violations": list(fx.depends_violations),
+        "depends_ok": bool(fx.depends_ok),
+        "effective_loaded": list(fx.effective_loaded),
         "output_violations": list(fx.output_violations),
         "turns": int(fx.turns),
         "input_tokens": int(fx.input_tokens),
@@ -483,6 +503,8 @@ def _doc_to_fixture(doc: dict) -> FixtureSnapshot:
         n_runs=int(extras.get("n_runs") or 1),
         skill_invocations=tuple(doc.get("skill_invocations") or ()),
         depends_violations=tuple(doc.get("depends_violations") or ()),
+        depends_ok=bool(doc.get("depends_ok", True)),
+        effective_loaded=tuple(doc.get("effective_loaded") or ()),
         output_violations=tuple(doc.get("output_violations") or ()),
         input_tokens=int(doc.get("input_tokens") or 0),
         output_tokens=int(doc.get("output_tokens") or 0),

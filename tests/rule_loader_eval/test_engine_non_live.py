@@ -163,7 +163,8 @@ def test_run_result_fails_when_output_violations() -> None:
 
 
 @pytest.mark.unit
-def test_run_result_fails_when_depends_violations() -> None:
+def test_run_result_passes_when_depends_violations_present() -> None:
+    """R8 violations are reported via depends_ok but do NOT gate pass/fail (Phase 1 decouple)."""
     from ai_rules.rule_loader_eval.depends_validator import DependsViolation
 
     violation = DependsViolation(parent="rules/A.md", missing_dep="rules/B.md")
@@ -175,7 +176,8 @@ def test_run_result_fails_when_depends_violations() -> None:
         citation_drifts=(),
         depends_violations=(violation,),
     )
-    assert result.passed is False
+    assert result.passed is True
+    assert result.depends_ok is False
 
 
 @pytest.mark.unit

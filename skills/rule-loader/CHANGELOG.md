@@ -2,6 +2,13 @@
 
 All notable changes to the `rule-loader` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## [2.1.0] - 2026-07-16
+
+### Changed
+
+- **Deterministic required-closure algorithm (behavioral fix):** `workflows/dependency-resolution.md` Step 1 is rewritten from prose ("repeat recursively") to an explicit cycle-safe fixpoint algorithm. The pseudocode `closure / queue` loop produces identical results on every run and eliminates R8 violations caused by nondeterministic parent-rule omission under token pressure.
+- Rationale: eval evidence (3-run, 44/51 failing drivers = `depends_R8`) showed LLM-prose recursion was the root cause of flakiness; the deterministic loop eliminates this failure mode structurally.
+
 ## [1.6.0] - 2026-07-12
 
 ### Changed

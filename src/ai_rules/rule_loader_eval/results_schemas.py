@@ -209,6 +209,8 @@ class FixtureResultDoc(TypedDict, total=False):
     signal_report: dict[str, object]
     citation_drifts: list[dict[str, object]]
     depends_violations: list[str]
+    depends_ok: bool
+    effective_loaded: list[str]
     output_violations: list[str]
     turns: int
     input_tokens: int
@@ -311,6 +313,8 @@ def serialize_run_result(run_result: RunResult, run_number: int) -> FixtureResul
         "signal_report": _serialize_signal_report(run_result.signal_report),
         "citation_drifts": _serialize_citation_drifts(run_result.citation_drifts),
         "depends_violations": [str(v) for v in (run_result.depends_violations or ())],
+        "depends_ok": bool(run_result.depends_ok),
+        "effective_loaded": list(getattr(run_result, "effective_loaded", ()) or ()),
         "output_violations": list(getattr(run, "output_violations", ()) or ()),
         "turns": int(getattr(run, "turns", 0) or 0),
         "input_tokens": int(getattr(run, "input_tokens", 0) or 0),

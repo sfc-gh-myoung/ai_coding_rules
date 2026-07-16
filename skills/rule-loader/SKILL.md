@@ -1,7 +1,7 @@
 ---
 name: rule-loader
 description: Determines which rule files to load for a given user request by matching file extensions, directory paths, and keywords against RULES_INDEX.md. Handles foundation loading, domain matching (HARD layer), activity matching (SOFT layer), dependency resolution, and token budget management. Runs as the single source of truth for rule discovery — typically inside a discovery sub-agent that returns a metadata-only JSON manifest (never rule file contents). Use when loading rules, selecting rules for a task, resolving rule dependencies, or managing token budgets during rule loading.
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Rule Loader

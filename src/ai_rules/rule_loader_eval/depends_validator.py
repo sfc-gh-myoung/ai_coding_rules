@@ -60,6 +60,38 @@ def validate_depends_propagation(
     return sorted(violations, key=lambda v: (v.parent, v.missing_dep))
 
 
+def expand_required_closure(
+    loaded: tuple[str, ...] | list[str],
+    rules_meta: dict[str, RuleMetadata],
+) -> tuple[str, ...]:
+    """Return the transitive ``required:`` closure of ``loaded``.
+
+    Seeds the working set with ``loaded``, then repeatedly adds each
+    member's ``depends_required`` entries until no new rules are added
+    (fixpoint). Cycle-safe: already-visited rules are never re-enqueued.
+
+    Args:
+        loaded: raw loaded set from the agent run.
+        rules_meta: mapping from rule path to ``RuleMetadata``.
+
+    Returns:
+        Sorted tuple of all rule paths reachable via ``required:`` edges
+        from the seed set (includes the seed set itself).
+    """
+    closure: set[str] = set(loaded)
+    queue: list[str] = list(closure)
+    while queue:
+        rule_path = queue.pop()
+        meta = rules_meta.get(rule_path)
+        if meta is None:
+            continue
+        for dep in meta.depends_required:
+            if dep not in closure:
+                closure.add(dep)
+                queue.append(dep)
+    return tuple(sorted(closure))
+
+
 def format_violations(violations: list[DependsViolation]) -> list[str]:
     """Format violations as human-readable lines for CLI / compare output."""
     if not violations:

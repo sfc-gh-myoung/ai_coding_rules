@@ -17,6 +17,7 @@ from ai_rules.rule_loader_eval.agent_runner import AgentRun, run_live, run_live_
 from ai_rules.rule_loader_eval.defaults import DEFAULT_EFFORT, DEFAULT_MAX_TURNS
 from ai_rules.rule_loader_eval.depends_validator import (
     DependsViolation,
+    expand_required_closure,
     validate_depends_propagation,
 )
 from ai_rules.rule_loader_eval.diagnostics import (
@@ -41,8 +42,11 @@ class RunResult:
     - ``match.passed`` is True (required + dependencies all loaded), AND
     - ``signal_report.ok`` is True (3-signal agreement holds), AND
     - ``citation_drifts`` is empty (no line-count fabrication), AND
-    - ``run.output_violations`` is empty (bootstrap/no-match output shape is valid), AND
-    - ``depends_violations`` is empty (all required: deps of loaded rules are also loaded).
+    - ``run.output_violations`` is empty (bootstrap/no-match output shape is valid).
+
+    R8 depends-propagation is reported via ``depends_ok`` / ``depends_violations``
+    but does NOT gate pass/fail (Phase 1 decouple).
+    ``effective_loaded`` is the closure-expanded loaded set used for scoring (Phase 2).
 
     All checks are unconditional. There are no escape flags.
     """
@@ -54,17 +58,34 @@ class RunResult:
     citation_drifts: tuple[CitationDrift, ...] = field(default_factory=tuple)
     depends_violations: tuple[DependsViolation, ...] = field(default_factory=tuple)
     """R8 violations: rules in loaded set whose required: deps are absent."""
+    effective_loaded: tuple[str, ...] = field(default_factory=tuple)
+    """Loaded set after required-closure expansion (Phase 2)."""
 
     @property
     def passed(self) -> bool:
-        """Composite pass/fail across all four checks."""
+        """Composite pass/fail: match + signal + citation + output violations.
+
+        R8 depends-propagation is reported separately via :attr:`depends_ok`
+        and does NOT gate pass/fail.  This keeps the eval score honest when the
+        agent loads the right primary rule but nondeterministically forgets a
+        ``required:`` parent.
+        """
         return (
             self.match.passed
             and self.signal_report.ok
             and not self.citation_drifts
             and not self.run.output_violations
-            and not self.depends_violations
         )
+
+    @property
+    def depends_ok(self) -> bool:
+        """True when no R8 depends-propagation violations are present.
+
+        Reported alongside :attr:`passed` but does not affect it.
+        A fixture can pass while ``depends_ok=False`` when the agent loaded the
+        correct primary rule but skipped a ``required:`` parent.
+        """
+        return not self.depends_violations
 
 
 def _build_run_result(
@@ -84,21 +105,55 @@ def _build_run_result(
     """
     if getattr(run, "is_infra_error", False):
         raise InfraError(run.infra_error_detail or "agent SDK reported infra error")
-    match = match_loaded_rules(
-        loaded=run.loaded,
+
+    # Phase 2: expand the loaded set via required: closure before scoring.
+    # Forbidden is always checked on the RAW loaded set to prevent closure
+    # from masking a rule the agent should not have loaded.
+    effective_loaded = expand_required_closure(run.loaded, rules_meta)
+
+    # Score forbidden on raw, everything else on closure-expanded set.
+    match_full = match_loaded_rules(
+        loaded=effective_loaded,
         required=fixture.required,
         dependencies=fixture.dependencies,
         forbidden=fixture.forbidden,
         optional=fixture.optional,
         strict_forbidden=strict_forbidden,
     )
+    if match_full.forbidden_present:
+        # Re-score forbidden using only raw loaded so closure can't introduce
+        # false-positive forbidden hits.
+        match_forbidden_raw = match_loaded_rules(
+            loaded=run.loaded,
+            required=fixture.required,
+            dependencies=fixture.dependencies,
+            forbidden=fixture.forbidden,
+            optional=fixture.optional,
+            strict_forbidden=strict_forbidden,
+        )
+        match = MatchResult(
+            missing_required=match_full.missing_required,
+            missing_dependencies=match_full.missing_dependencies,
+            forbidden_present=match_forbidden_raw.forbidden_present,
+            optional_loaded=match_full.optional_loaded,
+            unloaded_optional=match_full.unloaded_optional,
+            extras=match_full.extras,
+            passed=match_full.missing_required == ()
+            and match_full.missing_dependencies == ()
+            and match_forbidden_raw.forbidden_present == (),
+            warnings=match_full.warnings,
+        )
+    else:
+        match = match_full
+
     return RunResult(
         fixture_id=fixture.id,
         run=run,
         match=match,
         signal_report=signal_disagreement(run, fixture_optional=fixture.optional),
         citation_drifts=citation_drift(run, rules_meta),
-        depends_violations=tuple(validate_depends_propagation(run.loaded, rules_meta)),
+        depends_violations=tuple(validate_depends_propagation(effective_loaded, rules_meta)),
+        effective_loaded=effective_loaded,
     )
 
 

@@ -6,12 +6,36 @@ Ensure prerequisite rules are loaded before dependent rules, based on each rule'
 
 ## Algorithm
 
-### Step 1: Collect Dependencies
+### Step 1: Compute Required-Closure (MUST RUN — deterministic)
 
-For each rule selected in Phases 2-3:
-1. Read the rule's metadata (specifically the `depends:` YAML frontmatter mapping, or the inline `**Depends:**` line on unmigrated rules)
-2. If `depends.required` or `depends.optional` lists other rules, add those to the load list
-3. Repeat recursively until no new dependencies are found
+**This step is mandatory and MUST complete before any other dependency work.**
+
+After Phases 2–3 produce the initial selection, compute the full transitive
+`required:` closure deterministically:
+
+```
+closure = set(selected_rules)
+queue   = list(closure)
+
+while queue is not empty:
+    rule = queue.pop()
+    for dep in rule.depends.required:          # from YAML frontmatter
+        if dep not in closure:
+            closure.add(dep)
+            queue.append(dep)
+
+effective_loaded = sorted(closure)
+```
+
+This fixpoint loop is **cycle-safe**: once a rule is in `closure` it is never
+re-enqueued.  Treat every rule in `effective_loaded` as if it were explicitly
+loaded.  Deduplicate against already-loaded rules before announcing them in
+the PRE-FLIGHT Gate 3 header.
+
+> **Why deterministic closure matters:** an LLM-prose instruction like "repeat
+> recursively" is nondeterministic under token pressure.  The explicit algorithm
+> above produces the same result on every run and eliminates R8 violations caused
+> by forgotten `required:` parents.
 
 ### Step 2: Determine Load Order
 

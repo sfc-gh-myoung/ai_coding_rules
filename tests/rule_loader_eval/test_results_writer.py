@@ -520,6 +520,8 @@ class TestSerializeRunResult:
             "signal_report",
             "citation_drifts",
             "depends_violations",
+            "depends_ok",
+            "effective_loaded",
             "output_violations",
             "turns",
             "input_tokens",

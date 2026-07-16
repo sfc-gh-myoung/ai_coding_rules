@@ -495,6 +495,8 @@ def test_results_dir_contract_fixture_json_required_fields(tmp_path: Path) -> No
         "signal_report",
         "citation_drifts",
         "depends_violations",
+        "depends_ok",
+        "effective_loaded",
         "output_violations",
         "turns",
         "input_tokens",

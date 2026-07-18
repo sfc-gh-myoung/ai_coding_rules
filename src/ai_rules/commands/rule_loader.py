@@ -2202,3 +2202,100 @@ def _extract_variant(fixture_path: Path) -> str:
         if isinstance(value, str) and value in {"simple", "complex"}:
             return value
     return "simple"
+
+
+# ---------------------------------------------------------------------------
+# report
+# ---------------------------------------------------------------------------
+
+
+@rule_loader_app.command("report")
+def report_cmd(
+    fmt: Annotated[
+        str,
+        typer.Option("--format", help="Output format: html, md, both"),
+    ] = "both",
+    output: Annotated[
+        Path | None,
+        typer.Option("--output", help="Output directory (defaults to <project_root>/reports/)"),
+    ] = None,
+    results_dir: Annotated[
+        Path | None,
+        typer.Option(
+            "--results-dir", help="Results directory (defaults to <project_root>/results/)"
+        ),
+    ] = None,
+    strict: Annotated[
+        bool,
+        typer.Option("--strict", help="Fail on any extraction error instead of skipping model"),
+    ] = False,
+) -> None:
+    """Generate compliance reports from eval results.
+
+    Discovers the latest run per model in --results-dir, extracts statistics,
+    and renders HTML and/or Markdown reports to --output.
+    """
+    from ai_rules.rule_loader_eval.report_generator import generate_reports
+
+    project_root = find_project_root()
+    resolved_results = results_dir if results_dir is not None else project_root / "results"
+    resolved_output = output if output is not None else project_root / "reports"
+
+    if not resolved_results.exists() or not resolved_results.is_dir():
+        log_error(
+            f"Results directory not found: {resolved_results}\n"
+            "Pass --results-dir <path> to specify the location of eval results."
+        )
+        raise typer.Exit(EXIT_FIXTURE_INVALID)
+
+    # Validate that at least one summary.json exists
+    summaries = list(resolved_results.glob("*/summary.json"))
+    if not summaries:
+        log_error(
+            f"No summary.json files found under {resolved_results}\n"
+            "Run 'ai-rules rule-loader eval' first to produce results."
+        )
+        raise typer.Exit(EXIT_FIXTURE_INVALID)
+
+    formats: list[str]
+    if fmt == "both":
+        formats = ["html", "md"]
+    elif fmt in ("html", "md"):
+        formats = [fmt]
+    else:
+        log_error(f"Unknown format {fmt!r}. Use html, md, or both.")
+        raise typer.Exit(EXIT_FIXTURE_INVALID)
+
+    if strict:
+        # In strict mode, validate extraction before rendering
+        from ai_rules.rule_loader_eval.report_generator import (
+            discover_results,
+            extract_model_stats,
+        )
+
+        discovered = discover_results(resolved_results)
+        if not discovered:
+            log_error("No valid result directories found.")
+            raise typer.Exit(EXIT_FIXTURE_INVALID)
+        for model, run_dir in sorted(discovered.items()):
+            try:
+                extract_model_stats(run_dir)
+            except Exception as exc:
+                log_error(f"Extraction failed for model {model!r}: {exc}")
+                raise typer.Exit(EXIT_FIXTURE_INVALID) from exc
+
+    written = generate_reports(
+        results_dir=resolved_results,
+        output_dir=resolved_output,
+        formats=formats,
+    )
+
+    if not written:
+        log_error(
+            "No reports were generated. Check --results-dir contains valid summary.json files."
+        )
+        raise typer.Exit(EXIT_FIXTURE_INVALID)
+
+    for path in written:
+        log_success(f"Report written: {path}")
+    raise typer.Exit(EXIT_OK)

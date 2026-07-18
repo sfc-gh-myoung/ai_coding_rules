@@ -216,6 +216,7 @@ reviews/*
 out/
 # Eval results (see rule_loader_eval/results_writer.py)
 results/
+reports/
 
 # Lock files
 uv.lock

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **feat(report):** add `ai-rules rule-loader report` CLI subcommand generating HTML and Markdown compliance reports from eval results via Jinja2 templates.
+- **feat(report):** add report generation module (`report_generator.py`) with result discovery, per-model stat extraction, duration/turn aggregation, and template rendering.
+- **feat(report):** add Jinja2 report templates under `templates/reports/` (HTML shell + CSS/JS/tab partials + Markdown template) with inline SVG protocol diagram and Chart.js visualizations.
+
+### Changed
+
+- **feat(report):** add `jinja2>=3.0` to project dependencies for template-based report generation.
+- **chore(git):** update `.gitignore` with report generation artifacts.
+
 ### Changed (2026-07-17 — rule-loader eval: turns in log line + keyword recall + Gate 1 parsing)
 
 - **feat(rule-loader-eval):** show `turns=NN` and prefix duration with `elapsed=` in the per-fixture stderr log line emitted by `_log_item_finish`; all call sites (eval, refresh, refresh-all) now pass turns from the run object.

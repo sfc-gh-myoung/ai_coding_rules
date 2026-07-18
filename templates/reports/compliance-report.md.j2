@@ -1,0 +1,179 @@
+# LLM Protocol Compliance Report
+
+**Generated:** July 2026 | **Models:** {{ total_models }} | **Fixtures:** 33 | **Harness:** rule-loader eval
+
+---
+
+## Overview
+
+### Key Metrics
+
+| Metric | Value |
+|--------|-------|
+| Models Tested | {{ total_models }} |
+| Test Fixtures | 33 |
+| Runs per Model | {{ results[0].runs if results else 3 }} |
+| Failure Modes Identified | 7 |
+
+### Executive Summary
+
+A rule-loading protocol — encoded in `AGENTS.md` — was designed to require language models to discover, read, and cite domain-specific rules before responding to user prompts. The protocol is deliberately multi-step: the model must search an index, load matching files via tool calls, and declare what it loaded in a structured header.
+
+The protocol was evaluated against {{ total_models }} frontier models. The results reveal a striking variance in compliance — from {{ "%.0f"|format(results[0].pass_rate * 100) if results else "100" }}% to {{ "%.0f"|format(results[-1].pass_rate * 100) if results else "17" }}% — across models that are otherwise considered capability peers.
+
+### Model Results
+
+| Model | Fixture Count | Total Runs | Pass Rate | Tier |
+|-------|--------------|------------|----------|------|
+{% for r in results -%}
+{% set pct = (r.pass_rate * 100) | round(1) -%}
+{% if pct >= 98 %}{% set tier = "Compliant" %}{% elif pct >= 90 %}{% set tier = "Partial" %}{% elif pct >= 50 %}{% set tier = "Non-compliant" %}{% else %}{% set tier = "Failed" %}{% endif -%}
+| `{{ r.model }}` | {{ r.fixture_count }} | {{ r.fixture_count * r.runs }} | {{ pct }}% | {{ tier }} |
+{% endfor %}
+
+---
+
+## Protocol
+
+The protocol is built around a four-gate sequence encoded in `AGENTS.md`:
+
+1. **Gate 1 — Foundation:** Read `000-global-core.md` before any response.
+2. **Gate 2 — Discovery:** Search `RULES_INDEX.md` for rules matching the current prompt's keywords.
+3. **Gate 3 — Loading:** Execute `read_file` on each matched rule and cite it in the PRE-FLIGHT header.
+4. **Gate 4 — Response:** Generate the response informed by loaded rules.
+
+### The "Read Before You Cite" Contract
+
+A rule is only considered "loaded" when all three hold:
+1. `read_file` was called and returned successfully (verifiable in tool trace)
+2. The guidance is applied to the response content
+3. The rule is declared under Gate 3 in the PRE-FLIGHT header
+
+---
+
+## Taxonomy of Failure Modes
+
+| Mode | Name | Severity | Primary Risk |
+|------|------|----------|-------------|
+| 5.1 | Declared-but-not-read | High | False grounding |
+| 5.2 | Hallucinated Metadata | Medium | Trust erosion |
+| 5.3 | Tool Substitution | Medium | Measurement gap |
+| 5.4 | Over-Eager Loading | Low | Token waste |
+| 5.5 | Under-Matching | Medium | Missing guidance |
+| 5.6 | Protocol Shape Divergence | Low | Parse brittleness |
+| 5.7 | Stochastic Instability | Medium | Unreliable compliance |
+
+### 5.1 Declared-but-not-read (High)
+
+Model lists rules in its PRE-FLIGHT header that it never accessed via any tool call. This is the highest-severity failure mode because it is **invisible without tool-trace auditing**. The header looks fully compliant; only by inspecting the tool trace can you detect the deception.
+
+### 5.2 Hallucinated Metadata (Medium)
+
+Model declares specific line counts in citations that don't match actual file sizes. Numbers are always in the right ballpark but systematically off by 10–30%.
+
+### 5.3 Tool Substitution (Medium)
+
+Model uses shell commands (`bash`) instead of `read_file` to access rule content, creating a measurement blindspot in the eval harness.
+
+### 5.4 Over-Eager Loading (Low)
+
+Model loads significantly more rules than required. Not a trust issue — the model is being thorough. Context window is consumed by marginally-relevant rules.
+
+### 5.5 Under-Matching (Medium)
+
+Model fails to discover rules that keyword or file-extension triggers should have surfaced. File-extension triggers (`file=snowflake.yml`) and abbreviated keywords are particularly prone to being missed.
+
+### 5.6 Protocol Shape Divergence (Low)
+
+Models emit structurally different PRE-FLIGHT header formats despite identical format specifications. Low severity for trust, but creates significant eval-engineering challenges.
+
+### 5.7 Stochastic Instability (Medium)
+
+Same model, same fixture, same prompt — produces different compliance outcomes across runs. Protocol compliance is a distribution, not a binary.
+
+---
+
+## Results
+
+### Pass Rates
+
+| Model | Pass Rate | Flaky Fixtures | Citation Drifts |
+|-------|----------|---------------|----------------|
+{% for r in results -%}
+| `{{ r.model }}` | {{ (r.pass_rate * 100) | round(1) }}% | {{ r.flaky_fixtures | length }} | {{ r.citation_drifts }} |
+{% endfor %}
+
+---
+
+## Recommendations
+
+### Model Selection Tiers
+
+#### Compliant Tier (≥98%)
+
+Models: {% for r in results if (r.pass_rate * 100) >= 98 %}`{{ r.model }}`{% if not loop.last %}, {% endif %}{% endfor %}
+
+Safe for production use with standard monitoring. Protocol adherence is reliable and stable.
+
+#### Partial Tier (90–98%)
+
+{% set partial = results | selectattr("pass_rate", "ge", 0.90) | selectattr("pass_rate", "lt", 0.98) | list %}
+Models: {% if partial %}{% for r in partial %}`{{ r.model }}`{% if not loop.last %}, {% endif %}{% endfor %}{% else %}None in this dataset{% endif %}
+
+Usable in production with enhanced monitoring. Add fallback discovery for file-trigger rules.
+
+#### Non-Compliant Tier (<90%)
+
+{% set noncompliant = results | selectattr("pass_rate", "ge", 0.50) | selectattr("pass_rate", "lt", 0.90) | list %}
+Models: {% if noncompliant %}{% for r in noncompliant %}`{{ r.model }}`{% if not loop.last %}, {% endif %}{% endfor %}{% else %}None in this dataset{% endif %}
+
+Requires architectural mitigation: retry loops, verification layers, or simplified protocols.
+
+#### Failed Tier (<50%)
+
+{% set failed = results | selectattr("pass_rate", "lt", 0.50) | list %}
+Models: {% if failed %}{% for r in failed %}`{{ r.model }}`{% if not loop.last %}, {% endif %}{% endfor %}{% else %}None in this dataset{% endif %}
+
+Not suitable for protocol-heavy workloads. The failure is systematic, not stochastic.
+
+### For Eval Design
+
+- **Widen capture hooks:** Don't only hook `read_file` — also capture bash calls that access the same paths.
+- **Cumulative read tracking:** Track `read_file` calls across the entire conversation.
+- **Manifest-based verification:** Compare Gate 3 citations against the rule-loader manifest.
+- **Minimum 3 runs per fixture:** Single-run evaluation is insufficient for any model below 99%.
+
+### Methodology Notes
+
+Not all models followed the protocol on first exposure. Top-tier models (compliant tier, ≥98%) required no prompt iteration — they correctly executed the multi-step sequence on the first attempt. The partial and non-compliant tiers benefited from wording adjustments to the AGENTS.md bootstrap protocol, though even after iteration some models remain resistant to text-based intervention.
+
+Some models exhibit behavior that is invariant to protocol wording changes: they shortcut the grounding sequence regardless of how the instructions are phrased. For these models, architectural interventions (retry loops, verification layers, simplified protocols) are more effective than prompt refinement.
+
+---
+
+## Performance
+
+| Model | Pass Rate | Avg Duration | Median Duration | P95 Duration | Avg Turns | Median Turns | Max Turns |
+|-------|----------|-------------|----------------|-------------|----------|-------------|---------|
+{% for r in results -%}
+{% set pct = (r.pass_rate * 100) | round(1) -%}
+{% if r.duration_stats -%}
+{% set dur_mean = r.duration_stats.mean_s ~ "s" -%}
+{% set dur_med = r.duration_stats.median_s ~ "s" -%}
+{% set dur_p95 = r.duration_stats.p95_s ~ "s" -%}
+{% else -%}
+{% set dur_mean = "—" %}{% set dur_med = "—" %}{% set dur_p95 = "—" %}
+{% endif -%}
+{% if r.turn_stats -%}
+{% set t_mean = r.turn_stats.mean -%}
+{% set t_med = r.turn_stats.median -%}
+{% set t_max = r.turn_stats.max -%}
+{% else -%}
+{% set t_mean = "—" %}{% set t_med = "—" %}{% set t_max = "—" %}
+{% endif -%}
+| `{{ r.model }}` | {{ pct }}% | {{ dur_mean }} | {{ dur_med }} | {{ dur_p95 }} | {{ t_mean }} | {{ t_med }} | {{ t_max }} |
+{% endfor %}
+
+---
+
+*Generated by `ai-rules rule-loader report` — rule-loader eval harness*

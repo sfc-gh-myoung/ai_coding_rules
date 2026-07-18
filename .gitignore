@@ -216,7 +216,10 @@ reviews/*
 out/
 # Eval results (see rule_loader_eval/results_writer.py)
 results/
+# Generated reports (regenerated via `ai-rules rule-loader report`)
 reports/
+# But track the report templates
+!templates/reports/
 
 # Lock files
 uv.lock

@@ -15,6 +15,7 @@ Commands:
 
 from __future__ import annotations
 
+import asyncio
 import difflib
 import os
 import sys
@@ -521,6 +522,7 @@ def _run_single_eval(
     run_number: int | None = None,
     concurrency: int = 1,
     pass_writer: RunPassWriter | None = None,
+    retry_infra: int = 1,
 ) -> tuple[list[RunResult], bool]:
     """Execute a single eval pass. Returns (results, is_infra_error).
 
@@ -546,16 +548,29 @@ def _run_single_eval(
     index_by_id = {f.id: i for i, f in enumerate(fixtures)}
 
     async def _work(fixture: Fixture, slot: int) -> RunResult:
-        return await run_fixture_async(
-            fixture,
-            project_root=root,
-            rules_meta=rules_meta,
-            strict_forbidden=strict_forbidden,
-            max_turns=max_turns,
-            effort=effort,
-            model=model,
-            connection=resolved_connection,
-        )
+        last_exc: InfraError | None = None
+        for attempt in range(1, retry_infra + 1):
+            try:
+                return await run_fixture_async(
+                    fixture,
+                    project_root=root,
+                    rules_meta=rules_meta,
+                    strict_forbidden=strict_forbidden,
+                    max_turns=max_turns,
+                    effort=effort,
+                    model=model,
+                    connection=resolved_connection,
+                )
+            except InfraError as exc:
+                last_exc = exc
+                if attempt < retry_infra:
+                    log_info(
+                        f"  infra retry {attempt}/{retry_infra} for {fixture.id}"
+                        f" (waiting 30s, excluded from timing)"
+                    )
+                    await asyncio.sleep(30)
+        assert last_exc is not None  # loop always runs at least once
+        raise last_exc
 
     def _exc_to_result(fixture: Fixture, exc: Exception) -> RunResult:
         # Non-aborting (non-Infra) per-fixture error -> synthetic FAIL row.
@@ -958,6 +973,17 @@ def eval_cmd(
             ),
         ),
     ] = 1,
+    retry_infra: Annotated[
+        int,
+        typer.Option(
+            "--retry-infra",
+            help=(
+                "Retry a fixture N times on infra error before fail-fast "
+                "(default 1 = no retry). Delay between retries (30s) is "
+                "excluded from fixture timing."
+            ),
+        ),
+    ] = 1,
     debug: Annotated[
         bool,
         typer.Option(
@@ -1016,6 +1042,10 @@ def eval_cmd(
 
     if concurrency < 1:
         log_error("--concurrency must be >= 1")
+        raise typer.Exit(EXIT_FIXTURE_INVALID)
+
+    if retry_infra < 1:
+        log_error("--retry-infra must be >= 1")
         raise typer.Exit(EXIT_FIXTURE_INVALID)
 
     root = find_project_root()
@@ -1105,6 +1135,7 @@ def eval_cmd(
             run_number=run_idx if runs > 1 else None,
             concurrency=concurrency,
             pass_writer=pass_writer,
+            retry_infra=retry_infra,
         )
         all_run_results.append(results)
 

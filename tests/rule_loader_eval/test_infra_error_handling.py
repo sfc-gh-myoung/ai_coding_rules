@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -308,3 +309,171 @@ def test_aggregator_early_abort_runs_count(tmp_path):
     assert summary_buggy["runs"] == 3, "Regression guard: passing runs=3 must still write runs=3"
     # per_fixture n_runs is always correct regardless of the top-level runs field
     assert summary_buggy["per_fixture"][fixture_id]["n_runs"] == 1
+
+
+# ---------------------------------------------------------------------------
+# --retry-infra: retry on InfraError with timing exclusion
+# ---------------------------------------------------------------------------
+
+
+def _make_fixture(fixture_id: str) -> Fixture:
+    """Helper to build a minimal Fixture for retry tests."""
+    return Fixture(
+        path=None,
+        schema_version=3,
+        updated="2026-07-18",
+        id=fixture_id,
+        description="",
+        variant="simple",
+        prompt="test prompt",
+        required=("rules/000-global-core.md",),
+        dependencies=(),
+        forbidden=(),
+        optional=(),
+        trigger_evidence={},
+    )
+
+
+def test_retry_infra_retries_then_succeeds():
+    """When retry_infra > 1, a transient InfraError is retried and the fixture passes."""
+    from ai_rules.commands.rule_loader import _run_single_eval
+    from ai_rules.rule_loader_eval.engine import InfraError, RunResult
+
+    fixture = _make_fixture("test-retry")
+
+    call_count = 0
+
+    # Mock run_fixture_async to fail on first call, succeed on second
+    async def mock_run_fixture_async(fixture, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            raise InfraError("SDK reported stop_reason='error_during_execution'")
+        # Return a passing RunResult
+        run = AgentRun(
+            fixture_id=fixture.id,
+            loaded=("rules/000-global-core.md",),
+            loaded_via_reads=("rules/000-global-core.md",),
+            loaded_via_reads_performed=(),
+            loaded_via_section=("rules/000-global-core.md",),
+            disagreements=(),
+            turns=3,
+            duration_ms=5000,
+            model="test-model",
+        )
+        match = MatchResult(
+            missing_required=(),
+            missing_dependencies=(),
+            forbidden_present=(),
+            optional_loaded=(),
+            extras=(),
+            passed=True,
+            warnings=(),
+        )
+        return RunResult(
+            fixture_id=fixture.id,
+            run=run,
+            match=match,
+            signal_report=SignalReport(ok=True, disagreements=()),
+            citation_drifts=(),
+        )
+
+    with (
+        patch("ai_rules.rule_loader_eval.engine.run_fixture_async", mock_run_fixture_async),
+        patch("ai_rules.commands.rule_loader.load_rules_metadata", return_value={}),
+        patch("asyncio.sleep", return_value=None),
+    ):
+        _results, is_infra = _run_single_eval(
+            fixtures=[fixture],
+            root=Path("/fake"),
+            resolved_connection="test",
+            strict_forbidden=False,
+            max_turns=10,
+            effort="medium",
+            model="auto",
+            debug=False,
+            out_dir=None,
+            label="",
+            concurrency=1,
+            retry_infra=2,
+        )
+
+    assert call_count == 2, "Should have been called twice (1 failure + 1 success)"
+    assert is_infra is False, "Should not be infra error after successful retry"
+    assert len(_results) == 1
+    assert _results[0].passed is True
+
+
+def test_retry_infra_exhausted_triggers_failfast():
+    """When all retries exhausted, InfraError propagates and triggers fail-fast."""
+    from ai_rules.commands.rule_loader import _run_single_eval
+    from ai_rules.rule_loader_eval.engine import InfraError
+
+    fixture = _make_fixture("test-retry-fail")
+
+    call_count = 0
+
+    async def mock_run_fixture_async(fixture, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        raise InfraError("SDK reported stop_reason='error_during_execution'")
+
+    with (
+        patch("ai_rules.rule_loader_eval.engine.run_fixture_async", mock_run_fixture_async),
+        patch("ai_rules.commands.rule_loader.load_rules_metadata", return_value={}),
+        patch("asyncio.sleep", return_value=None),
+    ):
+        _results, is_infra = _run_single_eval(
+            fixtures=[fixture],
+            root=Path("/fake"),
+            resolved_connection="test",
+            strict_forbidden=False,
+            max_turns=10,
+            effort="medium",
+            model="auto",
+            debug=False,
+            out_dir=None,
+            label="",
+            concurrency=1,
+            retry_infra=2,
+        )
+
+    assert call_count == 2, "Should have tried twice before giving up"
+    assert is_infra is True, "Should signal infra error after exhausting retries"
+
+
+def test_retry_infra_default_no_retry():
+    """With default retry_infra=1, first InfraError triggers immediate fail-fast."""
+    from ai_rules.commands.rule_loader import _run_single_eval
+    from ai_rules.rule_loader_eval.engine import InfraError
+
+    fixture = _make_fixture("test-no-retry")
+
+    call_count = 0
+
+    async def mock_run_fixture_async(fixture, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        raise InfraError("SDK reported stop_reason='error_during_execution'")
+
+    with (
+        patch("ai_rules.rule_loader_eval.engine.run_fixture_async", mock_run_fixture_async),
+        patch("ai_rules.commands.rule_loader.load_rules_metadata", return_value={}),
+    ):
+        _results, is_infra = _run_single_eval(
+            fixtures=[fixture],
+            root=Path("/fake"),
+            resolved_connection="test",
+            strict_forbidden=False,
+            max_turns=10,
+            effort="medium",
+            model="auto",
+            debug=False,
+            out_dir=None,
+            label="",
+            concurrency=1,
+            retry_infra=1,
+        )
+
+    assert call_count == 1, "Should only try once with retry_infra=1"
+    assert is_infra is True

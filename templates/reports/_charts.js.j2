@@ -1,0 +1,179 @@
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // ===== Tab routing =====
+  const tabs = document.querySelectorAll('nav[role="tablist"] a');
+  const panels = document.querySelectorAll('.tab-panel');
+
+  function activate(tabId) {
+    tabs.forEach(t => {
+      const isActive = t.dataset.tab === tabId;
+      t.classList.toggle('active', isActive);
+      t.setAttribute('aria-selected', String(isActive));
+    });
+    panels.forEach(p => p.classList.toggle('active', p.id === tabId));
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', e => {
+      e.preventDefault();
+      const id = tab.dataset.tab;
+      activate(id);
+      history.replaceState(null, '', '#' + id);
+    });
+  });
+
+  const hash = location.hash.slice(1);
+  if (hash && document.getElementById(hash)) activate(hash);
+
+  // Inject chart data from Python
+  const chartData = {{ chart_data | tojson }};
+
+  // ===== Chart.js — Pass Rate Bar Chart =====
+  const passRateCtx = document.getElementById('passRateChart');
+  if (passRateCtx) {
+    const tierColor = (rate) => {
+      if (rate >= 98) return '#10B981';
+      if (rate >= 90) return '#F59E0B';
+      if (rate >= 50) return '#EF4444';
+      return '#991B1B';
+    };
+    new Chart(passRateCtx, {
+      type: 'bar',
+      data: {
+        labels: chartData.labels,
+        datasets: [{
+          label: 'Pass Rate (%)',
+          data: chartData.pass_rates,
+          backgroundColor: chartData.pass_rates.map(r => tierColor(r)),
+          borderColor: chartData.pass_rates.map(r => tierColor(r)),
+          borderWidth: 1,
+          borderRadius: 4,
+          barThickness: 44
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: function(context) { return context.raw + '% pass rate'; } } }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 105,
+            ticks: { callback: function(value) { return value + '%'; }, stepSize: 25 },
+            grid: { color: 'rgba(128,128,128,0.1)' }
+          },
+          x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // ===== Results Table Generation =====
+  const fixtures = {{ fixtures_data | tojson }};
+  const modelKeys = chartData.labels;
+  const modelPerFixture = {{ per_fixture_data | tojson }};
+
+  const tbody = document.querySelector('#results-table tbody');
+  if (tbody) {
+    let currentTier = '';
+    fixtures.forEach((fixture) => {
+      if (fixture.tier !== currentTier) {
+        currentTier = fixture.tier;
+        const sep = document.createElement('tr');
+        const sepTd = document.createElement('td');
+        sepTd.colSpan = modelKeys.length + 1;
+        sepTd.style.cssText = 'background:var(--bg);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);text-align:left;padding:0.6rem;';
+        sepTd.textContent = fixture.tier + ' tier';
+        sep.appendChild(sepTd);
+        tbody.appendChild(sep);
+      }
+
+      const tr = document.createElement('tr');
+      const nameTd = document.createElement('td');
+      nameTd.style.cssText = "text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;font-weight:500;font-size:0.75rem;font-family:'SF Mono',monospace;";
+      nameTd.textContent = fixture.name;
+      tr.appendChild(nameTd);
+
+      modelKeys.forEach(model => {
+        const td = document.createElement('td');
+        const mData = modelPerFixture[model] || {};
+        const fData = mData[fixture.name];
+        if (fData === undefined || fData === null) {
+          td.textContent = '\u2014';
+          td.classList.add('na');
+        } else {
+          const passes = fData.passes || 0;
+          const nRuns = fData.n_runs || 3;
+          td.textContent = passes + '/' + nRuns;
+          if (passes === nRuns) td.classList.add('pass-3');
+          else if (passes >= nRuns - 1) td.classList.add('pass-2');
+          else if (passes > 0) td.classList.add('pass-1');
+          else td.classList.add('pass-0');
+        }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+
+    // Summary row
+    const sumRow = document.createElement('tr');
+    sumRow.style.fontWeight = '700';
+    sumRow.style.borderTop = '3px solid var(--border)';
+    const sumLabel = document.createElement('td');
+    sumLabel.style.cssText = 'text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;';
+    sumLabel.textContent = 'Overall Pass Rate';
+    sumRow.appendChild(sumLabel);
+    chartData.pass_rates.forEach(r => {
+      const td = document.createElement('td');
+      td.textContent = r + '%';
+      td.style.fontWeight = '700';
+      if (r >= 98) td.style.color = 'var(--sf-green)';
+      else if (r >= 90) td.style.color = 'var(--sf-amber)';
+      else td.style.color = 'var(--sf-red)';
+      sumRow.appendChild(td);
+    });
+    tbody.appendChild(sumRow);
+  }
+
+  // ===== Performance Tab Charts =====
+  const scatterCtx = document.getElementById('scatter-chart');
+  if (scatterCtx) {
+    const tierColors = { compliant: '#10B981', partial: '#F59E0B', 'non-compliant': '#F97316', failed: '#991B1B' };
+    const perfPoints = chartData.labels.map((model, i) => ({
+      model,
+      turns: chartData.avg_turns[i],
+      dur: chartData.avg_durations[i],
+      rate: chartData.pass_rates[i],
+      tier: chartData.pass_rates[i] >= 98 ? 'compliant' : chartData.pass_rates[i] >= 90 ? 'partial' : chartData.pass_rates[i] >= 50 ? 'non-compliant' : 'failed'
+    }));
+
+    new Chart(scatterCtx, {
+      type: 'scatter',
+      data: {
+        datasets: Object.keys(tierColors).map(tier => ({
+          label: tier.charAt(0).toUpperCase() + tier.slice(1),
+          data: perfPoints.filter(d => d.tier === tier).map(d => ({ x: d.turns, y: d.dur, model: d.model, rate: d.rate })),
+          backgroundColor: tierColors[tier],
+          borderColor: tierColors[tier],
+          pointRadius: 10,
+          pointHoverRadius: 13
+        }))
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          tooltip: { callbacks: { label: function(ctx) { const p = ctx.raw; return p.model + ': ' + p.x + ' turns, ' + p.y + 's avg, ' + p.rate + '% pass'; } } },
+          legend: { position: 'bottom' }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Average Turns' }, min: 0, grid: { color: 'rgba(128,128,128,0.1)' } },
+          y: { title: { display: true, text: 'Average Duration (seconds)' }, min: 0, grid: { color: 'rgba(128,128,128,0.1)' } }
+        }
+      }
+    });
+  }
+});
+</script>

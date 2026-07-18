@@ -1,0 +1,97 @@
+  <!-- ========== TAB 2: PROTOCOL ========== -->
+  <section class="tab-panel" id="protocol" role="tabpanel" data-tab-title="Protocol">
+    <h2>How Rule-Loading Works</h2>
+
+    <p>The protocol was built around a simple contract: <strong>discover, read, cite, respond</strong>. Before answering any user prompt, the model must execute a four-gate sequence encoded in <code>AGENTS.md</code>. Each gate produces a verifiable artifact&mdash;a tool call, a file read, a structured citation&mdash;that the eval harness can inspect post-hoc.</p>
+
+    <p>The motivation is straightforward: a library of domain-specific rules (Snowflake SQL conventions, deployment checklists, security policies) is maintained independently of model training data. Models must consult the <em>current</em> version of these rules, not their parametric memory of what the rules <em>used to say</em>. The protocol enforces this by requiring a tool-call read of the actual file before the model may claim it as loaded.</p>
+
+    <h3>The Four Gates</h3>
+
+    <p><strong>Gate 1: Foundation.</strong> The model reads a single foundational rule file (<code>000-global-core.md</code>) that applies to every interaction. This is the baseline&mdash;if Gate 1 fails, nothing else proceeds.</p>
+    <p><strong>Gate 2: Discovery.</strong> The model identifies which domain-specific rules are relevant to the current user prompt. It does this by extracting keywords from the prompt and searching a compact index file (<code>RULES_INDEX.md</code>). The protocol supports two paths: a primary path using a delegated skill, and a fallback path using direct grep.</p>
+    <p><strong>Gate 3: Loading.</strong> For each rule identified in Gate 2, the model executes <code>read_file</code> and declares the result in a structured header. This is the critical grounding step&mdash;the rule content is now in the model's context window, not just its parametric memory.</p>
+    <p><strong>Gate 4: Response.</strong> The model generates its response, informed by the loaded rules. The PRE-FLIGHT header at the top declares which gates passed and which rules were loaded.</p>
+
+    <h3>Discovery Flow</h3>
+    <p>The protocol supports two discovery paths to handle different runtime environments. The primary path delegates to a <code>rule-loader</code> skill that returns a structured manifest. The fallback path (Step 2B) has the model grep <code>RULES_INDEX.md</code> directly. Both paths converge at the same point: an ordered list of rule files to load via <code>read_file</code>.</p>
+
+    <svg viewBox="0 0 720 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Protocol discovery flow diagram" style="max-width:720px; margin:24px auto; display:block; background:light-dark(var(--sf-gray-100, #F1F5F9), #1E293B); border-radius:12px; padding:16px;">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="light-dark(#334155, #94A3B8)"/></marker>
+        <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#29B5E8"/></marker>
+      </defs>
+      <!-- Nodes -->
+      <rect x="280" y="10" width="160" height="40" rx="8" fill="#29B5E8"/><text x="360" y="35" text-anchor="middle" font-size="13" font-weight="600" fill="#fff" font-family="system-ui">User Prompt Arrives</text>
+      <rect x="270" y="80" width="180" height="40" rx="8" fill="light-dark(#fff,#334155)" stroke="light-dark(#E2E8F0,#475569)"/><text x="360" y="105" text-anchor="middle" font-size="12" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">Load AGENTS.md Bootstrap</text>
+      <!-- Decision diamond -->
+      <polygon points="360,155 440,195 360,235 280,195" fill="light-dark(#fff,#334155)" stroke="light-dark(#E2E8F0,#475569)" stroke-width="1.5"/>
+      <text x="360" y="200" text-anchor="middle" font-size="11" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">Discovery Path?</text>
+      <!-- Primary path -->
+      <rect x="100" y="260" width="180" height="44" rx="8" fill="light-dark(#EFF8FF,#0C2D48)" stroke="#29B5E8"/><text x="190" y="278" text-anchor="middle" font-size="11" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">rule-loader Skill</text><text x="190" y="294" text-anchor="middle" font-size="10" fill="light-dark(#475569,#94A3B8)" font-family="system-ui">(returns manifest)</text>
+      <!-- Fallback path -->
+      <rect x="440" y="260" width="180" height="44" rx="8" fill="light-dark(#FFFBEB,#422006)" stroke="#F59E0B"/><text x="530" y="278" text-anchor="middle" font-size="11" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">Step 2B: grep</text><text x="530" y="294" text-anchor="middle" font-size="10" fill="light-dark(#475569,#94A3B8)" font-family="system-ui">RULES_INDEX.md</text>
+      <!-- Converge -->
+      <rect x="250" y="335" width="220" height="40" rx="8" fill="light-dark(#fff,#334155)" stroke="light-dark(#E2E8F0,#475569)"/><text x="360" y="360" text-anchor="middle" font-size="12" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">read_file each matched rule</text>
+      <!-- Cite -->
+      <rect x="250" y="400" width="220" height="40" rx="8" fill="light-dark(#fff,#334155)" stroke="light-dark(#E2E8F0,#475569)"/><text x="360" y="425" text-anchor="middle" font-size="12" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">Cite under Gate 3 (PRE-FLIGHT)</text>
+      <!-- Response -->
+      <rect x="280" y="465" width="160" height="40" rx="20" fill="#10B981"/><text x="360" y="490" text-anchor="middle" font-size="13" font-weight="600" fill="#fff" font-family="system-ui">Generate Response</text>
+      <!-- Arrows -->
+      <line x1="360" y1="50" x2="360" y2="80" stroke="light-dark(#334155,#94A3B8)" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <line x1="360" y1="120" x2="360" y2="155" stroke="light-dark(#334155,#94A3B8)" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <line x1="300" y1="207" x2="190" y2="260" stroke="#29B5E8" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+      <line x1="420" y1="207" x2="530" y2="260" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <line x1="190" y1="304" x2="310" y2="335" stroke="light-dark(#334155,#94A3B8)" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <line x1="530" y1="304" x2="410" y2="335" stroke="light-dark(#334155,#94A3B8)" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <line x1="360" y1="375" x2="360" y2="400" stroke="light-dark(#334155,#94A3B8)" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <line x1="360" y1="440" x2="360" y2="465" stroke="light-dark(#334155,#94A3B8)" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <!-- Labels on branches -->
+      <text x="220" y="237" font-size="10" font-weight="600" fill="#29B5E8" font-family="system-ui">Primary</text>
+      <text x="460" y="237" font-size="10" font-weight="600" fill="#F59E0B" font-family="system-ui">Fallback</text>
+    </svg>
+
+    <h3>The "Read Before You Cite" Contract</h3>
+    <p>The protocol is explicit about what constitutes a "loaded" rule. Three conditions must all be met:</p>
+    <ol>
+      <li><code>read_file</code> was called and returned successfully (verifiable in tool trace)</li>
+      <li>The guidance from the rule is applied to the response content</li>
+      <li>The rule is declared as a Gate 3 sub-bullet in the PRE-FLIGHT header</li>
+    </ol>
+    <p>This is the central invariant that the eval harness checks. When a model claims a rule is loaded (condition 3) without a corresponding <code>read_file</code> call (condition 1) in the tool trace, that is a protocol violation&mdash;specifically, failure mode FM-1 (<em>declared-but-not-read</em>).</p>
+
+    <h3>Rules vs. Reference Files</h3>
+    <div class="two-col">
+      <div>
+        <h4>Rules (loaded + cited)</h4>
+        <p>Files under <code>rules/</code> with numeric prefixes (e.g., <code>100-snowflake-core.md</code>). These are the domain-specific guidance documents that models must read and cite under Gate 3.</p>
+      </div>
+      <div>
+        <h4>Reference Files (discovery aids)</h4>
+        <p>Files used to <em>find</em> rules, not loaded as rules themselves. These include <code>AGENTS.md</code> (the bootstrap protocol) and <code>RULES_INDEX.md</code> (the keyword index).</p>
+        <p>Reference files must NOT appear under Gate 3.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><strong>The contract is simple: discover, read, cite, respond. Every failure mode in this report is a deviation from one of these four steps.</strong></p>
+    </div>
+
+    <h3>Why This Design?</h3>
+    <p><strong>Verifiability.</strong> Each step produces an observable artifact. The eval harness doesn't need to understand <em>what</em> the model read&mdash;it only needs to confirm <em>that</em> it read.</p>
+    <p><strong>Freshness guarantee.</strong> Without the read requirement, a model could "comply" with the protocol using stale knowledge. The <code>read_file</code> call forces the current version into context.</p>
+    <p><strong>Composability.</strong> The protocol adapts to different runtime environments: primary path uses a delegated skill; fallback uses basic grep. Both converge on the same terminal state.</p>
+
+    <h3>Key Terminology</h3>
+    <details>
+      <summary>Glossary of terms used in this report</summary>
+      <ul>
+        <li><strong>Fixture:</strong> A synthetic user prompt designed to test specific rule-loading paths.</li>
+        <li><strong>Gate:</strong> A checkpoint in the protocol sequence with a verifiable artifact.</li>
+        <li><strong>PRE-FLIGHT header:</strong> The structured block declaring which gates passed and which rules were loaded.</li>
+        <li><strong>Tool trace:</strong> The complete sequence of tool calls made by the model during a single run.</li>
+        <li><strong>Parametric memory:</strong> Knowledge encoded in the model's weights during training.</li>
+        <li><strong>Stochastic instability:</strong> Identical inputs producing different compliance outcomes across runs due to sampling variance.</li>
+      </ul>
+    </details>
+  </section>

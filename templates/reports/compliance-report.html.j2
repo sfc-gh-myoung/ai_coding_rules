@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Protocol Compliance: Rule-Loader Eval Report</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+{% include "_styles.j2" %}
+</head>
+<body>
+
+<header>
+  <span class="badge badge-research">Research Report</span>
+  <h1>LLM Protocol Compliance: Observed Failure Modes Across {{ total_models }} Models</h1>
+  <p>A systematic evaluation of multi-step instruction adherence in frontier language models</p>
+  <p style="opacity:0.6; font-size:0.82rem; margin-top:0.5rem;">July 2026 &middot; 33 fixtures &middot; {{ total_models }} models &middot; rule-loader eval harness</p>
+</header>
+
+<main>
+  <nav role="tablist" aria-label="Report sections">
+    <a href="#overview" role="tab" aria-selected="true" class="active" data-tab="overview">Overview</a>
+    <a href="#protocol" role="tab" aria-selected="false" data-tab="protocol">Protocol</a>
+    <a href="#taxonomy" role="tab" aria-selected="false" data-tab="taxonomy">Taxonomy</a>
+    <a href="#results" role="tab" aria-selected="false" data-tab="results">Results</a>
+    <a href="#recommendations" role="tab" aria-selected="false" data-tab="recommendations">Recommendations</a>
+    <a href="#performance" role="tab" aria-selected="false" data-tab="performance">Performance</a>
+  </nav>
+
+  <!-- ========== TAB 1: OVERVIEW ========== -->
+  <section class="tab-panel active" id="overview" role="tabpanel" data-tab-title="Overview">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="label">Models Tested</div>
+        <div class="value">{{ total_models }}</div>
+        <div class="sub">Frontier-class LLMs evaluated</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Test Fixtures</div>
+        <div class="value">33</div>
+        <div class="sub">Synthetic prompts: simple / medium / complex</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Runs per Model</div>
+        <div class="value">{{ results[0].runs if results else 3 }}</div>
+        <div class="sub">Stochastic stability verification</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Failure Modes</div>
+        <div class="value">7</div>
+        <div class="sub">Distinct categories identified</div>
+      </div>
+    </div>
+
+    <h2>Executive Summary</h2>
+
+    <p>A rule-loading protocol&mdash;encoded in a file called <code>AGENTS.md</code>&mdash;was designed to require language models to discover, read, and cite domain-specific rules before responding to user prompts. The protocol is deliberately multi-step: the model must search an index, load matching files via tool calls, and declare what it loaded in a structured header. This creates a verifiable chain of evidence that an evaluation harness can audit.</p>
+
+    <p>The protocol was evaluated against {{ total_models }} frontier models, each processing carefully-designed test fixtures multiple times. The results reveal a striking variance in compliance&mdash;from {{ "%.0f"|format(results[0].pass_rate * 100) if results else "100" }}% to {{ "%.0f"|format(results[-1].pass_rate * 100) if results else "17" }}%&mdash;across models that are otherwise considered capability peers.</p>
+
+    <p>More interesting than the raw pass rates are the <em>failure modes</em> themselves. Seven distinct ways models deviate from the protocol were identified. Each reveals something different about how frontier models process and execute multi-step procedural instructions.</p>
+
+    <div class="chart-container">
+      <canvas id="passRateChart" aria-label="Bar chart showing pass rates per model" role="img"></canvas>
+    </div>
+
+    <div class="callout callout-success">
+      <strong>Top 3 Takeaways</strong>
+      <p><strong>1.</strong> Protocol compliance is not a function of model &ldquo;intelligence&rdquo;&mdash;it correlates more strongly with instruction-following fidelity and tool-use discipline than with reasoning benchmarks.</p>
+      <p><strong>2.</strong> The most dangerous failure mode is <em>declared-but-not-read</em> (FM-1): models that claim compliance without performing the required steps. This is undetectable without tool-call auditing.</p>
+      <p><strong>3.</strong> Three runs per fixture is the minimum needed to distinguish stable compliance from lucky passes. Single-run evaluation is insufficient for any model below 98% compliance.</p>
+    </div>
+
+    <h3>Model Versions Tested</h3>
+    <div class="table-wrap">
+      <table aria-label="Model versions and configurations">
+        <thead>
+          <tr>
+            <th style="text-align:left">Model</th>
+            <th>Fixtures Run</th>
+            <th>Total Runs</th>
+            <th>Pass Rate</th>
+            <th>Tier</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+          <tr>
+            <td style="text-align:left"><code>{{ r.model }}</code></td>
+            <td>{{ r.fixture_count }}</td>
+            <td>{{ r.fixture_count * r.runs }}</td>
+            {% set pct = (r.pass_rate * 100) | round(1) %}
+            {% if pct >= 98 %}
+            <td style="color:var(--sf-green)">{{ pct }}%</td>
+            <td>Compliant</td>
+            {% elif pct >= 90 %}
+            <td style="color:var(--sf-amber)">{{ pct }}%</td>
+            <td>Partial</td>
+            {% elif pct >= 50 %}
+            <td style="color:var(--sf-red)">{{ pct }}%</td>
+            <td>Non-compliant</td>
+            {% else %}
+            <td style="color:#991b1b">{{ pct }}%</td>
+            <td>Failed</td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  {% include "_tab_protocol.j2" %}
+  {% include "_tab_taxonomy.j2" %}
+
+  <!-- ========== TAB 4: RESULTS ========== -->
+  <section class="tab-panel" id="results" role="tabpanel" data-tab-title="Results">
+    <h2>Full Results Matrix</h2>
+
+    <p>Each cell shows pass count out of total runs. Color coding: <span style="color:var(--sf-green); font-weight:600;">3/3</span> = fully stable, <span style="color:var(--sf-amber); font-weight:600;">2/3</span> = flaky, <span style="color:var(--sf-red); font-weight:600;">0&ndash;1/3</span> = failing. A dash (&mdash;) indicates the fixture was not included in that model&rsquo;s evaluation run.</p>
+
+    <p>Models are sorted left-to-right by overall pass rate (descending). Fixtures are grouped by complexity tier.</p>
+
+    <div class="table-wrap">
+      <table id="results-table" aria-label="Per-model per-fixture pass rate matrix">
+        <thead>
+          <tr>
+            <th style="text-align:left; position:sticky; left:0; background:var(--surface); z-index:3; min-width:180px;">Fixture</th>
+            {% for r in results %}
+            {% set pct = (r.pass_rate * 100) | round(1) %}
+            <th>{{ r.model }}<br>
+              {% if pct >= 98 %}<small style="color:var(--sf-green)">{{ pct }}%</small>
+              {% elif pct >= 90 %}<small style="color:var(--sf-amber)">{{ pct }}%</small>
+              {% else %}<small style="color:var(--sf-red)">{{ pct }}%</small>
+              {% endif %}
+            </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <h3>Aggregate Statistics</h3>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="label">Total Models Evaluated</div>
+        <div class="value">{{ total_models }}</div>
+        <div class="sub">Frontier-class LLMs from multiple providers</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Models &ge;98% Pass Rate</div>
+        <div class="value">{{ results | selectattr("pass_rate", "ge", 0.98) | list | length }}</div>
+        <div class="sub">Compliant tier</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Total Flaky Fixtures</div>
+        <div class="value">{{ results | map(attribute="flaky_fixtures") | sum(start=[]) | unique | list | length }}</div>
+        <div class="sub">At least one model scored below 100% on these</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Total Citation Drifts</div>
+        <div class="value">{{ results | map(attribute="citation_drifts") | sum }}</div>
+        <div class="sub">Across all models and runs</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== TAB 5: RECOMMENDATIONS ========== -->
+  <section class="tab-panel" id="recommendations" role="tabpanel" data-tab-title="Recommendations">
+    <h2>Forward-Looking Guidance</h2>
+
+    <h3>For Model Selection</h3>
+    <p>Based on observed compliance rates, a tiered classification for production use with multi-step protocols is proposed.</p>
+
+    <div class="two-col">
+      <div style="border-left: 4px solid var(--sf-green);">
+        <h4>Compliant Tier (98%+)</h4>
+        <p><strong>Models:</strong>
+          {% for r in results if (r.pass_rate * 100) >= 98 %}<code>{{ r.model }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
+        </p>
+        <p>Safe for production use with standard monitoring. Protocol adherence is reliable and stable across fixture complexity tiers.</p>
+        <p><em>Recommendation:</em> Use with confidence. Standard alerting on compliance metrics is sufficient.</p>
+      </div>
+      <div style="border-left: 4px solid var(--sf-amber);">
+        <h4>Partial Tier (90&ndash;98%)</h4>
+        <p><strong>Models:</strong>
+          {% set partial = results | selectattr("pass_rate", "ge", 0.90) | selectattr("pass_rate", "lt", 0.98) | list %}
+          {% if partial %}{% for r in partial %}<code>{{ r.model }}</code>{% if not loop.last %}, {% endif %}{% endfor %}{% else %}<em>None in this dataset</em>{% endif %}
+        </p>
+        <p>Usable in production with enhanced monitoring. Failures concentrate in metadata hallucination and under-matching.</p>
+        <p><em>Recommendation:</em> Deploy with line-count validation as soft signal. Add fallback discovery for file-trigger rules.</p>
+      </div>
+    </div>
+    <div class="two-col">
+      <div style="border-left: 4px solid var(--sf-red);">
+        <h4>Non-Compliant Tier (&lt;90%)</h4>
+        <p><strong>Models:</strong>
+          {% set noncompliant = results | selectattr("pass_rate", "ge", 0.50) | selectattr("pass_rate", "lt", 0.90) | list %}
+          {% if noncompliant %}{% for r in noncompliant %}<code>{{ r.model }}</code>{% if not loop.last %}, {% endif %}{% endfor %}{% else %}<em>None in this dataset</em>{% endif %}
+        </p>
+        <p>Requires architectural mitigation. Retry loops or verification layers that cross-check citations against tool traces are recommended.</p>
+      </div>
+      <div style="border-left: 4px solid #991b1b;">
+        <h4>Failed Tier (&lt;50%)</h4>
+        <p><strong>Models:</strong>
+          {% set failed = results | selectattr("pass_rate", "lt", 0.50) | list %}
+          {% if failed %}{% for r in failed %}<code>{{ r.model }}</code>{% if not loop.last %}, {% endif %}{% endfor %}{% else %}<em>None in this dataset</em>{% endif %}
+        </p>
+        <p>Not suitable for protocol-heavy workloads. The failure is not stochastic; it&rsquo;s systematic.</p>
+        <p><em>Recommendation:</em> Do not use for agentic workflows requiring verifiable multi-step compliance.</p>
+      </div>
+    </div>
+
+    <h3>For Eval Design</h3>
+    <ul>
+      <li><strong>Widen capture hooks.</strong> Don&rsquo;t only hook <code>read_file</code>&mdash;also capture bash calls that access the same paths.</li>
+      <li><strong>Cumulative read tracking.</strong> Track <code>read_file</code> calls across the entire conversation, not just per-turn.</li>
+      <li><strong>Manifest-based verification.</strong> Compare Gate 3 citations against the rule-loader manifest.</li>
+      <li><strong>Minimum 3 runs per fixture.</strong> Single-run evaluation is insufficient for any model below 99%.</li>
+    </ul>
+
+    <div class="callout callout-warning">
+      <strong>Protocol compliance is a testing problem as much as a prompting problem.</strong>
+      <p>You cannot prompt your way to reliability without measuring whether the model actually follows your prompts. Tool-trace auditing is not optional&mdash;it is the only ground truth.</p>
+    </div>
+
+    <h3>Methodology Notes</h3>
+    <p>Not all models followed the protocol on first exposure. Top-tier models (compliant tier, &ge;98%) required no prompt iteration&mdash;they correctly executed the multi-step sequence on the first attempt across the full fixture set. The partial and non-compliant tiers benefited from wording adjustments to the AGENTS.md bootstrap protocol (specifically, the gate-failure recovery section and the task-switch detection decision tree), though even after iteration some models remain resistant to text-based intervention.</p>
+    <p>Some models (notably those in the failed tier) exhibit behavior that is invariant to protocol wording changes: they shortcut the grounding sequence regardless of how the instructions are phrased. This suggests the failure is not a misunderstanding of the protocol but a systematic preference for efficiency over compliance that persists across prompt variations. For these models, architectural interventions (retry loops, verification layers, simplified protocols) are more effective than prompt refinement.</p>
+  </section>
+
+  <!-- ========== TAB 6: PERFORMANCE ========== -->
+  <section class="tab-panel" id="performance" role="tabpanel" data-tab-title="Performance">
+    <h2>Operational Characteristics</h2>
+
+    <p>Beyond pass/fail compliance, each model exhibits distinct operational signatures: how long it takes to complete the protocol sequence and how many tool-use turns it requires.</p>
+
+    <div class="callout callout-info">
+      <div class="callout-title">Key Observation</div>
+      <p>OpenAI models execute the entire protocol in a single turn&mdash;they batch all tool calls into one response. Claude models use 4&ndash;7 turns, executing tool calls incrementally. This architectural difference fundamentally shapes failure profiles.</p>
+    </div>
+
+    <h3>Summary Table</h3>
+    <div class="table-responsive">
+      <table class="data-table" id="perf-table">
+        <thead>
+          <tr>
+            <th style="text-align:left">Model</th>
+            <th>Pass Rate</th>
+            <th>Fixture-Runs</th>
+            <th>Avg Duration</th>
+            <th>Median Duration</th>
+            <th>P95 Duration</th>
+            <th>Avg Turns</th>
+            <th>Median Turns</th>
+            <th>Max Turns</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+          {% set pct = (r.pass_rate * 100) | round(1) %}
+          <tr>
+            <td style="text-align:left"><code>{{ r.model }}</code></td>
+            {% if pct >= 98 %}<td class="pass-high">{{ pct }}%</td>
+            {% elif pct >= 90 %}<td class="pass-mid">{{ pct }}%</td>
+            {% elif pct >= 50 %}<td class="pass-low">{{ pct }}%</td>
+            {% else %}<td class="pass-fail">{{ pct }}%</td>
+            {% endif %}
+            <td>{{ r.fixture_count * r.runs }}</td>
+            {% if r.duration_stats %}
+            <td>{{ r.duration_stats.mean_s }}s</td>
+            <td>{{ r.duration_stats.median_s }}s</td>
+            <td>{{ r.duration_stats.p95_s }}s</td>
+            {% else %}
+            <td>&mdash;</td><td>&mdash;</td><td>&mdash;</td>
+            {% endif %}
+            {% if r.turn_stats %}
+            <td>{{ r.turn_stats.mean }}</td>
+            <td>{{ r.turn_stats.median }}</td>
+            <td>{{ r.turn_stats.max }}</td>
+            {% else %}
+            <td>&mdash;</td><td>&mdash;</td><td>&mdash;</td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Turns vs. Duration (by compliance tier)</h3>
+    <p>Each point represents a model. Position reflects average operational cost; color reflects compliance tier.</p>
+    <div class="chart-container" style="max-width:700px; margin:24px auto;">
+      <canvas id="scatter-chart" aria-label="Scatter plot: average turns vs average duration by compliance tier"></canvas>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Generated by <code>ai-rules rule-loader report</code> &middot; rule-loader eval harness &middot; July 2026</p>
+  <p>{{ total_models }} models &middot; 33 fixtures &middot; Data from <code>results/</code> directory</p>
+</footer>
+
+<script>
+const fixtures_data = {{ fixtures_data | tojson }};
+const per_fixture_data = {{ per_fixture_data | tojson }};
+</script>
+{% include "_charts.js.j2" %}
+
+</body>
+</html>

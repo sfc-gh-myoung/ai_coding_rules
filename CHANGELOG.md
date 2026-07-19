@@ -9,12 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **feat(rule-loader-eval):** add provenance-annotated citation markers (`[x]`/`[~]`/`[?]`) to AGENTS.md templates and eval signal partition, enabling honest self-attestation of citation grounding (RF7/RF10).
+- **feat(rule-loader-eval):** widen the eval read hook to capture bash commands (`wc`, `cat`, `head`, `tail`, `sed`, `grep`) that inspect rule files, counting them as reads (RF5).
+- **feat(rule-loader-eval):** add cumulative read tracking (`prior_reads`) and manifest-based cite verification (`manifest_paths`) to `AgentRun` and signal partition (RF8/RF9).
+- **feat(rule-loader-eval):** add soft-quality `inferred_citation_count` and `inferred_citation_rate` metrics to `SignalReport` for visibility into `[?]` fabrication (RF11).
+- **feat(report):** add failure mode distribution heatmap to the Failure Modes tab, showing per-model occurrence counts across all seven failure modes.
 - **feat(report):** add `ai-rules rule-loader report` CLI subcommand generating HTML and Markdown compliance reports from eval results via Jinja2 templates.
 - **feat(report):** add report generation module (`report_generator.py`) with result discovery, per-model stat extraction, duration/turn aggregation, and template rendering.
 - **feat(report):** add Jinja2 report templates under `templates/reports/` (HTML shell + CSS/JS/tab partials + Markdown template) with inline SVG protocol diagram and Chart.js visualizations.
 
 ### Changed
 
+- **fix(rule-loader-eval):** fix `extract_contract_text` to anchor at `PRE-FLIGHT:` / `Gate 1:` instead of only `Gate 3:`, so Phase 6 Gate 1 recognition actually sees the Gate 1 line (RF4).
+- **feat(rule-loader-eval):** revert `exact wc -l output` wording in templates and system prompt; replace with softer "must be accurate; omit if not possible" to reduce bash-peek incentive (RF6).
+- **feat(report):** rename Taxonomy tab to "Failure Modes" for clarity.
+- **fix(report):** cap pass-rate bar chart Y-axis at 100% instead of 105%.
+- **feat(report):** highlight lowest duration/turn values green and highest red in the performance table.
 - **feat(report):** add `jinja2>=3.0` to project dependencies for template-based report generation.
 - **chore(git):** update `.gitignore` with report generation artifacts.
 

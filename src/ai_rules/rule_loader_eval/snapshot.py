@@ -115,6 +115,8 @@ class FixtureSnapshot:
     """input_tokens + output_tokens (computed at serialize time)."""
     total_cost_usd: float = 0.0
     """Total cost in USD for this fixture run (0 when SDK unavailable)."""
+    scoring_version: str = "v2"
+    """FM-6 extras accounting version. v1 = pre-Option-A; v2 = dep-closure subtracted from extras."""
 
     def to_dict(self) -> dict:
         """Serialize to a JSON-compatible dict (tuples become lists)."""
@@ -151,6 +153,7 @@ class FixtureSnapshot:
             "output_tokens": self.output_tokens,
             "total_tokens": self.total_tokens,
             "total_cost_usd": self.total_cost_usd,
+            "scoring_version": self.scoring_version,
         }
 
     @classmethod
@@ -189,6 +192,7 @@ class FixtureSnapshot:
             output_tokens=int(data.get("output_tokens") or 0),
             total_tokens=int(data.get("total_tokens") or 0),
             total_cost_usd=float(data.get("total_cost_usd") or 0.0),
+            scoring_version=str(data.get("scoring_version") or "v1"),
         )
 
 
@@ -300,6 +304,7 @@ def serialize_run_result(result: RunResult, fixture: Fixture) -> FixtureSnapshot
         total_tokens=getattr(result.run, "input_tokens", 0)
         + getattr(result.run, "output_tokens", 0),
         total_cost_usd=float(getattr(result.run, "total_cost_usd", 0.0) or 0.0),
+        scoring_version=getattr(result, "scoring_version", "v2"),
     )
 
 
@@ -448,6 +453,7 @@ def _fixture_to_doc(fx: FixtureSnapshot, *, run_number: int = 1) -> dict:
         "skill_invocations": list(fx.skill_invocations),
         "loaded": list(fx.loaded),
         "loaded_via_reads": list(fx.loaded_via_reads),
+        "scoring_version": fx.scoring_version,
         # Round-trip helpers.
         "snapshot_extras": {
             "expected_required": list(fx.expected_required),
@@ -510,6 +516,7 @@ def _doc_to_fixture(doc: dict) -> FixtureSnapshot:
         output_tokens=int(doc.get("output_tokens") or 0),
         total_tokens=int(extras.get("total_tokens") or 0),
         total_cost_usd=float(doc.get("total_cost_usd") or 0.0),
+        scoring_version=str(doc.get("scoring_version") or "v1"),
     )
 
 

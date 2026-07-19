@@ -292,6 +292,103 @@ def _build_per_fixture_data(results: Sequence[ModelResult]) -> dict[str, dict[st
     return out
 
 
+_FAILURE_MODES = [
+    "FM-1 Declared-but-not-read",
+    "FM-2 Hallucinated Metadata",
+    "FM-3 Tool Substitution",
+    "FM-4 Under-Matching",
+    "FM-5 Stochastic Instability",
+    "FM-6 Over-Eager Loading",
+    "FM-7 Protocol Shape Divergence",
+]
+
+
+def _build_failure_mode_data(results: Sequence[ModelResult]) -> dict[str, Any]:
+    """Build failure mode heatmap data from per-fixture results.
+
+    Scans fixture JSONs for each model to count occurrences of each failure mode.
+
+    Returns:
+        Dict with 'models' (list of model names), 'modes' (list of FM names),
+        and 'counts' (model x mode matrix of occurrence counts).
+    """
+    models = [r.model for r in results]
+    # model -> mode -> count
+    mode_counts: dict[str, dict[str, int]] = {m: dict.fromkeys(_FAILURE_MODES, 0) for m in models}
+
+    for r in results:
+        # Track per-fixture pass/fail for stochastic instability detection
+        fixture_outcomes: dict[str, list[bool]] = {}
+
+        result_dir = _find_result_dir(r.result_dir)
+        if not result_dir:
+            continue
+
+        for fx_path in _collect_fixture_jsons(result_dir):
+            try:
+                fx = json.loads(fx_path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                continue
+
+            fixture_id = fx.get("fixture_id", fx_path.stem)
+            passed = fx.get("passed", True)
+            fixture_outcomes.setdefault(fixture_id, []).append(passed)
+
+            sr = fx.get("signal_report", {})
+
+            # FM-1: cited_without_read
+            if sr.get("cited_without_read"):
+                mode_counts[r.model][_FAILURE_MODES[0]] += 1
+
+            # FM-2: citation drifts
+            if fx.get("citation_drifts"):
+                mode_counts[r.model][_FAILURE_MODES[1]] += 1
+
+            # FM-3: tool substitution (bash reads detected but not read_file)
+            notes = fx.get("notes", ())
+            if isinstance(notes, (list, tuple)):
+                bash_reads = [n for n in notes if isinstance(n, str) and "BashRead:" in n]
+                if bash_reads:
+                    mode_counts[r.model][_FAILURE_MODES[2]] += 1
+
+            # FM-4: under-matching (missing required rules)
+            match = fx.get("match", {})
+            if match.get("missing_required") or match.get("missing_dependencies"):
+                mode_counts[r.model][_FAILURE_MODES[3]] += 1
+
+            # FM-6: over-eager loading
+            if match.get("extra_loaded"):
+                mode_counts[r.model][_FAILURE_MODES[5]] += 1
+
+            # FM-7: protocol shape divergence
+            if fx.get("output_violations"):
+                mode_counts[r.model][_FAILURE_MODES[6]] += 1
+
+        # FM-5: stochastic instability (fixture with mixed pass/fail across runs)
+        for _fid, outcomes in fixture_outcomes.items():
+            if len(outcomes) > 1 and any(outcomes) and not all(outcomes):
+                mode_counts[r.model][_FAILURE_MODES[4]] += 1
+
+    counts = [[mode_counts[m][fm] for fm in _FAILURE_MODES] for m in models]
+    return {
+        "models": models,
+        "modes": _FAILURE_MODES,
+        "counts": counts,
+    }
+
+
+def _find_result_dir(dir_name: str) -> Path | None:
+    """Locate a result directory by name under the project results/ folder."""
+    here = Path(__file__).resolve()
+    for parent in [here, *here.parents]:
+        if (parent / "pyproject.toml").exists():
+            candidate = parent / "results" / dir_name
+            if candidate.exists():
+                return candidate
+            break
+    return None
+
+
 def _templates_dir() -> Path:
     """Locate the templates/reports directory relative to the package root."""
     # Walk up from this file to find pyproject.toml (project root)
@@ -338,11 +435,13 @@ def render_report(
     chart_data = _build_chart_data(results)
     fixtures_data = _build_fixtures_data(results)
     per_fixture_data = _build_per_fixture_data(results)
+    failure_mode_data = _build_failure_mode_data(results)
     rendered = template.render(
         results=results,
         chart_data=chart_data,
         fixtures_data=fixtures_data,
         per_fixture_data=per_fixture_data,
+        failure_mode_data=failure_mode_data,
         total_models=len(results),
         required_tabs=REQUIRED_TABS,
     )

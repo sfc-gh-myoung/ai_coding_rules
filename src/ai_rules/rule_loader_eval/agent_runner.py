@@ -108,8 +108,8 @@ _SEED_SYSTEM_PROMPT = (
     "  - [x] Gate 3: +N domain rule(s):\n"
     "    - rules/<matched-rule>.md (<reason>) — N lines\n"
     "    - rules/<required-dep>.md (required dep of <matched-rule>) — N lines\n\n"
-    "Citation rules: `N lines` MUST be the `wc -l` output for the "
-    "file (number of newline characters, not visual line count). "
+    "Citation rules: if including `— N lines`, it must be accurate. "
+    "If accuracy is not possible, omit the `— N lines` suffix entirely. "
     "Do not include `RuleVersion` or `LastUpdated` in citations.\n\n"
     "If no domain rule matches the prompt, emit:\n\n"
     "  - [x] Gate 3: none matched\n\n"
@@ -130,6 +130,54 @@ _SEED_SYSTEM_PROMPT = (
     "test files, or any project source file. Rule discovery only — "
     "task execution is FORBIDDEN."
 )
+
+
+def build_progressive_prompt(fixture_prompt: str, rules_index_path: Path) -> str:
+    """Build the progressive discovery system prompt for a fixture.
+
+    Injects micro-kernel + manifest inline. The model still reads matched
+    rules (so PreToolUse captures them for scoring) but skips the AGENTS.md
+    bootstrap ceremony, 000-global-core.md read, and RULES_INDEX.md grep.
+    """
+    from ai_rules.progressive_eval.manifest_generator import generate_manifest
+    from ai_rules.progressive_eval.micro_kernel import get_micro_kernel
+
+    manifest = generate_manifest(rules_index_path, user_request=fixture_prompt)
+    manifest_text = manifest.render()
+    kernel = get_micro_kernel()
+
+    return (
+        "HARD STOP: This is a PROGRESSIVE rule-discovery probe. You MUST stop after "
+        "emitting the PRE-FLIGHT gates and `SEED_FIXTURE_COMPLETE`.\n\n"
+        "## Foundation (micro-kernel — always active)\n\n"
+        f"{kernel}\n\n"
+        "## Rule Manifest (pre-computed — do NOT grep RULES_INDEX.md)\n\n"
+        f"{manifest_text}\n\n"
+        "## Your Task\n\n"
+        "1. Review the manifest above and identify which rules match the user's request.\n"
+        "2. **CRITICAL: You MUST call the Read tool on each matched rule file.**\n"
+        "   Do NOT skip this step. Do NOT cite a rule in Gate 3 without reading it.\n"
+        "   Citing a rule without a corresponding Read tool call is a CONFORMANCE FAILURE\n"
+        "   that will be detected by the 2-signal agreement check and will FAIL the fixture.\n"
+        "3. For each matched rule, also read its `required:` dependencies transitively.\n"
+        "4. Emit the PRE-FLIGHT block and STOP.\n\n"
+        "ENFORCEMENT: Every rule listed under Gate 3 MUST have a matching Read tool call.\n"
+        "The evaluator independently verifies tool calls against your Gate 3 citations.\n"
+        "If you cite `rules/X.md` in Gate 3 but did not Read it, the fixture FAILS.\n\n"
+        "DO NOT:\n"
+        "- Read AGENTS.md (unnecessary — you already have the micro-kernel)\n"
+        "- Read rules/000-global-core.md (unnecessary — micro-kernel replaces it)\n"
+        "- Grep rules/RULES_INDEX.md (unnecessary — manifest is pre-computed)\n"
+        "- Execute the user's task or write code\n"
+        "- Cite a rule in Gate 3 that you did not Read (this WILL fail)\n\n"
+        "Your FINAL message MUST include:\n\n"
+        "  PRE-FLIGHT:\n"
+        "  - [x] Gate 1: Foundation (micro-kernel)\n"
+        "  - [x] Gate 2: Manifest provided (N rules available)\n"
+        "  - [x] Gate 3: +N domain rule(s):\n"
+        "    - rules/<matched-rule>.md (<reason>) — N lines\n\n"
+        "After the Gate 3 block, output `SEED_FIXTURE_COMPLETE` and IMMEDIATELY STOP."
+    )
 
 
 def _usage_get(usage: object, key: str, default: int = 0) -> int:
@@ -165,10 +213,15 @@ class Citation:
 
     Citations have the form ``<path> (<reason>) — N lines``. The line count
     may be None if the declaration was malformed or the line was a FAILED placeholder.
+
+    v9 (RF7/RF10): ``provenance`` captures the self-attested marker:
+    ``"x"`` (read), ``"~"`` (from manifest), ``"?"`` (inferred), or
+    ``None`` (no marker — treated as ``"x"`` for backward compat).
     """
 
     line_count: int | None = None
     failed: bool = False
+    provenance: str | None = None
 
 
 @dataclass(frozen=True)
@@ -220,6 +273,19 @@ class AgentRun:
     """Names of skills invoked during this run (legacy; empty for local-file rule-loader eval)."""
     output_violations: tuple[str, ...] = field(default_factory=tuple)
     """Bootstrap output-shape violations detected in the final assistant text."""
+    prior_reads: frozenset[str] = field(default_factory=frozenset)
+    """RF8: cumulative reads from prior turns in the same session.
+
+    A rule read in turn 1 satisfies an ``[x]`` citation in turn N without
+    a repeat read. Callers populate this from session state; the runner
+    itself does not persist state across invocations.
+    """
+    manifest_paths: frozenset[str] = field(default_factory=frozenset)
+    """RF9: paths from the rule-loader skill manifest (or grep fallback).
+
+    ``[~]`` citations of these paths pass. ``[~]`` citations of paths NOT in
+    this set are hard failures (``cited_without_manifest``).
+    """
 
 
 def _project_root() -> Path:
@@ -245,6 +311,28 @@ def _normalize_to_repo_rule(file_path: str, project_root: Path) -> str | None:
     if not rel_str.startswith("rules/") or not rel_str.endswith(".md"):
         return None
     return rel_str
+
+
+# RF5: regex for bash commands that inspect rule files
+_BASH_INSPECT_RE = re.compile(
+    r"(?:^|\s|&&|\|\||;)"
+    r"\s*(?:wc|head|tail|cat|sed|grep|less|more|awk)"
+    r"\b"
+)
+
+_BASH_RULE_PATH_RE = re.compile(r"\brules/\d+-[a-zA-Z0-9_-]+\.md\b")
+
+
+def _extract_bash_rule_paths(command: str) -> list[str]:
+    """Extract rule paths from a bash command that inspects rule files.
+
+    Returns repo-relative paths (e.g. ``rules/100-snowflake-core.md``) for
+    commands using wc, head, tail, cat, sed, grep, less, more, or awk on
+    files matching the ``rules/<NNN>-<name>.md`` pattern.
+    """
+    if not _BASH_INSPECT_RE.search(command):
+        return []
+    return _BASH_RULE_PATH_RE.findall(command)
 
 
 _INFRA_STOP_REASONS = frozenset({"error_during_execution"})
@@ -395,15 +483,27 @@ def parse_bootstrap_line(text: str) -> dict[str, int | bool]:
 
 
 def extract_contract_text(text: str) -> str:
-    """Return the contract block from the first Rules Loaded marker onward.
+    """Return the contract block from the first PRE-FLIGHT / Rules Loaded marker onward.
 
-    The current AGENTS.md contract emits a PRE-FLIGHT ``- [x] Gate 3:`` rule
-    list. Legacy responses emit ``## Rules Loaded`` / ``**Rules Loaded**`` (or
-    the retired ``**Bootstrap:**`` prefix). Anchoring backs up to the start of
-    the line containing the earliest marker so a bullet/checkbox prefix (e.g.
-    ``- [x] Gate 3:``) is preserved for downstream anchor-regex matching.
+    The current AGENTS.md contract emits a PRE-FLIGHT block with Gate 1
+    (foundation) and Gate 3 (domain rules). Legacy responses emit
+    ``## Rules Loaded`` / ``**Rules Loaded**`` (or the retired
+    ``**Bootstrap:**`` prefix). Anchoring backs up to the start of the line
+    containing the earliest marker so a bullet/checkbox prefix (e.g.
+    ``- [x] Gate 1:``) is preserved for downstream anchor-regex matching.
+
+    v9 fix (RF4): Previously anchored to Gate 3 only, discarding the Gate 1
+    line. Now includes ``PRE-FLIGHT:`` and ``Gate 1:`` as candidates so the
+    full PRE-FLIGHT block is preserved for Phase 6 Gate 1 recognition.
     """
-    candidates = ["Gate 3:", "## Rules Loaded", "**Rules Loaded**", "**Bootstrap:**"]
+    candidates = [
+        "PRE-FLIGHT:",
+        "Gate 1:",
+        "Gate 3:",
+        "## Rules Loaded",
+        "**Rules Loaded**",
+        "**Bootstrap:**",
+    ]
     earliest = -1
     for marker in candidates:
         idx = text.find(marker)
@@ -441,6 +541,32 @@ CITATION_RE_LINES_ONLY = re.compile(
 )
 
 FAILED_RE = re.compile(r"FAILED\s*:\s*not\s+found", re.IGNORECASE)
+
+
+# RF7/RF10: provenance marker regex — matches [x], [~], [?] at start of a citation sub-bullet
+_PROVENANCE_MARKER_RE = re.compile(r"\[([x~?])\]", re.IGNORECASE)
+
+
+def _extract_provenance(line: str) -> str | None:
+    """Extract the provenance marker from a citation line.
+
+    Returns 'x', '~', or '?' if a marker is found before the rule path,
+    None otherwise (backward compat: treated as 'x').
+    """
+    m = _PROVENANCE_MARKER_RE.search(line)
+    if not m:
+        return None
+    # Only count markers that appear before the rule path (not the Gate checkbox)
+    marker_pos = m.start()
+    rule_pos = line.find("rules/")
+    if rule_pos < 0 or marker_pos >= rule_pos:
+        return None
+    # Skip Gate-level checkboxes (Gate 1/2/3 lines use [x] as checkbox, not provenance)
+    if re.search(r"Gate\s+[123]", line[:rule_pos]) and (
+        not line[:marker_pos].strip().startswith("-") or "Gate" in line
+    ):
+        return None
+    return m.group(1).lower()
 
 
 def extract_citations(text: str, section_heading: str) -> dict[str, Citation]:
@@ -498,15 +624,16 @@ def extract_citations(text: str, section_heading: str) -> dict[str, Citation]:
         if not paths:
             continue
         path = paths[0]
+        provenance = _extract_provenance(line)
         if FAILED_RE.search(line):
-            citations[path] = Citation(failed=True)
+            citations[path] = Citation(failed=True, provenance=provenance)
             continue
         m2 = CITATION_RE_LINES_ONLY.search(line)
         if m2:
             line_count = int(m2.group("suffix") or m2.group("prefix"))
-            citations[path] = Citation(line_count=line_count)
+            citations[path] = Citation(line_count=line_count, provenance=provenance)
         elif path not in citations:
-            citations[path] = Citation()
+            citations[path] = Citation(provenance=provenance)
     return citations
 
 
@@ -555,6 +682,7 @@ async def run_live_async(
     effort: str,
     model: str,
     connection: str | None,
+    system_prompt: str | None = None,
 ) -> AgentRun:
     """Async core of the live SDK runner. Intended for batch use."""
     try:
@@ -578,7 +706,7 @@ async def run_live_async(
     notes: list[str] = []
 
     async def pre_tool_use(input_data, _tool_use_id, _context):
-        """Record every rule-file Read path."""
+        """Record every rule-file Read or Bash-inspection path."""
         # PreToolUseHookInput exposes ``tool_name`` and ``tool_input`` fields.
         tool = getattr(input_data, "tool_name", None) or ""
         tool_input = getattr(input_data, "tool_input", None) or {}
@@ -589,6 +717,11 @@ async def run_live_async(
                 if rel:
                     reads.add(rel)
                     notes.append(f"Read: {rel}")
+        elif tool.lower() == "bash":
+            cmd = tool_input.get("command") or ""
+            for rule_path in _extract_bash_rule_paths(cmd):
+                reads.add(rule_path)
+                notes.append(f"BashRead: {rule_path}")
         return {}
 
     options = CortexCodeAgentOptions(
@@ -598,68 +731,13 @@ async def run_live_async(
         model=model,
         setting_sources=["project"],
         allowed_tools=["Read", "Glob", "Grep", "Bash"],
-        system_prompt=(
-            "HARD STOP: This is a rule-discovery probe. You MUST stop after "
-            "emitting the PRE-FLIGHT Gate 1 foundation citation and Gate 3 domain "
-            "rule list. You MUST NOT execute the user's task, "
-            "write code, read or search the user's task/project files "
-            "(e.g. etl_pipeline.py, via Read/Glob/find/ls/list_dir), call SQL "
-            "tools, call ask_user_question, or perform ANY action beyond rule "
-            "discovery. After the Gate 3 rule list, "
-            "output `SEED_FIXTURE_COMPLETE` and immediately stop. "
-            "This stop boundary applies AFTER rule discovery: it forbids executing the user's underlying task, but it does NOT override the AGENTS.md bootstrap reading steps — you MUST still read rules/000-global-core.md, read_file every matched rule, AND read_file each matched rule's `required:` Depends (transitively) before emitting the Gate 3 block.\n\n"
-            "You are evaluating rule discovery for the ai_coding_rules repo. "
-            "Before answering ANY user request, you MUST follow the AGENTS.md "
-            "bootstrap protocol exactly:\n\n"
-            "  1. Read `AGENTS.md` at the project root.\n"
-            "  2. Always read `rules/000-global-core.md` first (this is the "
-            "foundation rule, loaded on every request).\n"
-            "  3. Extract candidate keywords from the user prompt and run "
-            "`grep -iwE 'KW1|KW2|KW3' rules/RULES_INDEX.md` to discover "
-            "matching rules. RULES_INDEX.md has one space-separated row "
-            "per rule; each matching row is self-contained — the rule filename "
-            "is the first field, no further context lookup needed. "
-            "RULES_INDEX.md is the single agent discovery index.\n"
-            "  4. Read every matched rule. Then, for EACH matched rule's "
-            "`**Depends:**` field, you MUST also read_file every `required:` "
-            "dependency rule — these are transitive, so a required dep that "
-            "itself declares further `required:` deps must also be read, until "
-            "the required-dependency closure is fully loaded. Consider "
-            "`optional:` deps based on context.\n"
-            "  5. Use the `Read`, `Grep`, and `Bash` tools for rule discovery "
-            "(Glob/find/ls only to locate rule files, never the user's task "
-            "files) - do not answer from memory.\n\n"
-            "Your FINAL assistant message MUST include a PRE-FLIGHT block with "
-            "Gate 1 foundation citation and Gate 3 domain rules formatted as:\n\n"
-            "  PRE-FLIGHT:\n"
-            "  - [x] Gate 1: Foundation rules/000-global-core.md — N lines\n"
-            "  - [x] Gate 2: rules/RULES_INDEX.md searched for: keyword1, keyword2\n"
-            "  - [x] Gate 3: +N domain rule(s):\n"
-            "    - rules/<matched-rule>.md (<reason>) — N lines\n"
-            "    - rules/<required-dep>.md (required dep of <matched-rule>) — N lines\n\n"
-            "Citation rules: `N lines` MUST be the `wc -l` output for the "
-            "file (number of newline characters, not visual line count). "
-            "Do not include `RuleVersion` or `LastUpdated` in citations.\n\n"
-            "If no domain rule matches the prompt, emit:\n\n"
-            "  - [x] Gate 3: none matched\n\n"
-            "Do NOT emit a standalone `## Rules Loaded` / `**Rules Loaded**` section "
-            "(the old format is retired; citations now live inside PRE-FLIGHT Gate 3).\n\n"
-            "If you cannot read AGENTS.md, output the single token "
-            "`BOOTSTRAP_FAILED` and stop. Do NOT generate any answer that "
-            "lacks the Gate 3 rule list - an answer without it is "
-            "non-compliant.\n\n"
-            "STOP CONDITION (seed-fixture scope only): Your task is finished "
-            "as soon as you have emitted the Gate 3 rule list. "
-            "After it, output the literal token `SEED_FIXTURE_COMPLETE` on "
-            "its own line and IMMEDIATELY STOP. Do NOT attempt to answer the "
-            "user's underlying request, do NOT invoke domain skills, do NOT "
-            "call ask_user_question, and do NOT call SQL or any other tool "
-            "after Gate 3 is written. Do NOT use Glob/find/ls to "
-            "locate the user's task files, and do NOT read etl_pipeline.py, "
-            "test files, or any project source file. Rule discovery only — "
-            "task execution is FORBIDDEN."
-        ),
-        hooks={"PreToolUse": [HookMatcher(matcher="Read", hooks=[pre_tool_use])]},
+        system_prompt=(system_prompt or _SEED_SYSTEM_PROMPT),
+        hooks={
+            "PreToolUse": [
+                HookMatcher(matcher="Read", hooks=[pre_tool_use]),
+                HookMatcher(matcher="Bash", hooks=[pre_tool_use]),
+            ]
+        },
         connection=connection,
         stderr=_filter_coco_stderr,
     )
@@ -739,6 +817,13 @@ async def run_live_async(
                         rel = _normalize_to_repo_rule(target, root)
                         if rel:
                             reads.add(rel)
+                # RF5: capture bash commands that inspect rule files
+                elif (
+                    tool_name and str(tool_name).lower() == "bash" and isinstance(tool_input, dict)
+                ):
+                    cmd = tool_input.get("command") or ""
+                    for rule_path in _extract_bash_rule_paths(cmd):
+                        reads.add(rule_path)
         elif isinstance(message, ResultMessage):
             saw_result_message = True
             turns = getattr(message, "num_turns", 0) or getattr(message, "turns", 0)

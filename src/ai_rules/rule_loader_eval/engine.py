@@ -33,6 +33,8 @@ from ai_rules.rule_loader_eval.matcher import (
 )
 from ai_rules.rule_loader_eval.rules_meta import RuleMetadata, load_rules_metadata
 
+_FOUNDATION_RULE = "rules/000-global-core.md"
+
 
 @dataclass(frozen=True)
 class RunResult:
@@ -60,6 +62,8 @@ class RunResult:
     """R8 violations: rules in loaded set whose required: deps are absent."""
     effective_loaded: tuple[str, ...] = field(default_factory=tuple)
     """Loaded set after required-closure expansion (Phase 2)."""
+    scoring_version: str = "v2"
+    """Accounting version for FM-6 extras. v1 = pre-Option-A; v2 = dep-closure subtracted from extras."""
 
     @property
     def passed(self) -> bool:
@@ -94,6 +98,7 @@ def _build_run_result(
     rules_meta: dict[str, RuleMetadata],
     *,
     strict_forbidden: bool,
+    progressive: bool = False,
 ) -> RunResult:
     """Match a completed ``AgentRun`` against a fixture and build a ``RunResult``.
 
@@ -111,25 +116,40 @@ def _build_run_result(
     # from masking a rule the agent should not have loaded.
     effective_loaded = expand_required_closure(run.loaded, rules_meta)
 
+    # In progressive mode the micro-kernel replaces 000-global-core.md, so
+    # models correctly skip reading it. Filter it from the required set before
+    # scoring so its absence does not cause a spurious failure.
+    effective_required = (
+        tuple(r for r in fixture.required if r != _FOUNDATION_RULE)
+        if progressive
+        else fixture.required
+    )
+
     # Score forbidden on raw, everything else on closure-expanded set.
+    # match_full: pass rules_meta so dep-closure is subtracted from extras (Option A).
     match_full = match_loaded_rules(
         loaded=effective_loaded,
-        required=fixture.required,
+        required=effective_required,
         dependencies=fixture.dependencies,
         forbidden=fixture.forbidden,
         optional=fixture.optional,
         strict_forbidden=strict_forbidden,
+        rules_meta=rules_meta,
     )
     if match_full.forbidden_present:
         # Re-score forbidden using only raw loaded so closure can't introduce
         # false-positive forbidden hits.
+        # match_forbidden_raw: rules_meta passed for signature consistency;
+        # closure subtraction does not affect the forbidden_present field since
+        # forbidden is checked against loaded_set directly (not extras).
         match_forbidden_raw = match_loaded_rules(
             loaded=run.loaded,
-            required=fixture.required,
+            required=effective_required,
             dependencies=fixture.dependencies,
             forbidden=fixture.forbidden,
             optional=fixture.optional,
             strict_forbidden=strict_forbidden,
+            rules_meta=rules_meta,
         )
         match = MatchResult(
             missing_required=match_full.missing_required,
@@ -154,6 +174,7 @@ def _build_run_result(
         citation_drifts=citation_drift(run, rules_meta),
         depends_violations=tuple(validate_depends_propagation(effective_loaded, rules_meta)),
         effective_loaded=effective_loaded,
+        scoring_version="v2",
     )
 
 
@@ -167,6 +188,7 @@ def run_fixture(
     effort: str = DEFAULT_EFFORT,
     model: str = "auto",
     connection: str | None = None,
+    progressive: bool = False,
 ) -> RunResult:
     """Run a single fixture against the live agent and match results."""
     if rules_meta is None:
@@ -180,7 +202,9 @@ def run_fixture(
         model=model,
         connection=connection,
     )
-    return _build_run_result(fixture, run, rules_meta, strict_forbidden=strict_forbidden)
+    return _build_run_result(
+        fixture, run, rules_meta, strict_forbidden=strict_forbidden, progressive=progressive
+    )
 
 
 async def run_fixture_async(
@@ -193,6 +217,8 @@ async def run_fixture_async(
     effort: str = DEFAULT_EFFORT,
     model: str = "auto",
     connection: str | None = None,
+    system_prompt: str | None = None,
+    progressive: bool = False,
 ) -> RunResult:
     """Async twin of :func:`run_fixture`.
 
@@ -211,8 +237,11 @@ async def run_fixture_async(
         effort=effort,
         model=model,
         connection=connection,
+        system_prompt=system_prompt,
     )
-    return _build_run_result(fixture, run, rules_meta, strict_forbidden=strict_forbidden)
+    return _build_run_result(
+        fixture, run, rules_meta, strict_forbidden=strict_forbidden, progressive=progressive
+    )
 
 
 class InfraError(RuntimeError):

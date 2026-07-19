@@ -46,7 +46,12 @@ class SignalReport:
       ``optional:`` list): benign over-read of a known optional rule.
       Reported informationally; does NOT fail the fixture.
 
-    ``ok = not cited_without_read``.
+    v9 (RF10): marker-aware partition:
+    - ``cited_without_manifest``: `[~]` citation of a path NOT in manifest.
+    - ``inferred_citation_count``: count of `[?]` citations (soft signal).
+    - ``inferred_citation_rate``: `[?]` count / total citations.
+
+    ``ok = not cited_without_read and not cited_without_manifest``.
     Read-without-cite rows are diagnostics; cited-without-read is fabrication.
 
     ``disagreements`` retains the raw flat string list for backward
@@ -59,6 +64,9 @@ class SignalReport:
     cited_without_read: tuple[str, ...] = ()
     read_without_cite_unexpected: tuple[str, ...] = ()
     read_without_cite_tolerated: tuple[str, ...] = ()
+    cited_without_manifest: tuple[str, ...] = ()
+    inferred_citation_count: int = 0
+    inferred_citation_rate: float = 0.0
 
 
 # Paths neutral to R1 protocol accounting: read is neither expected nor
@@ -82,18 +90,46 @@ def signal_disagreement(
     Read-without-cite is diagnostic in both cases. Cited-without-read remains a
     hard failure.
     """
-    reads = set(run.loaded_via_reads) - _DISCOVERY_ARTIFACTS
+    reads = (set(run.loaded_via_reads) | set(run.prior_reads)) - _DISCOVERY_ARTIFACTS
     section = set(run.loaded_via_section) - _DISCOVERY_ARTIFACTS
     optional_set = set(fixture_optional)
+    manifest = set(run.manifest_paths)
 
-    # B > A: cited but not read. Always failure (R1 fabrication).
-    cited_without_read = tuple(sorted(section - reads))
+    # RF10: marker-aware partition using citations_rules_loaded provenance
+    citations = run.citations_rules_loaded
+
+    # Partition section paths by provenance marker
+    read_required: set[str] = set()  # [x] or no marker → must be in reads
+    manifest_required: set[str] = set()  # [~] → must be in manifest
+    inferred: set[str] = set()  # [?] → soft signal only
+
+    for path in section:
+        cit = citations.get(path)
+        prov = cit.provenance if cit else None
+        if prov == "~":
+            manifest_required.add(path)
+        elif prov == "?":
+            inferred.add(path)
+        else:
+            # [x] or None (backward compat) → must be in reads
+            read_required.add(path)
+
+    # B > A (read-required paths): cited [x] but not read → fabrication
+    cited_without_read = tuple(sorted(read_required - reads))
+    # [~] paths not in manifest → hard fail
+    cited_without_manifest = tuple(sorted(manifest_required - manifest)) if manifest else ()
+
     # A > B: read but not cited. Tolerated when path is in fixture's optional.
     read_without_cite_all = sorted(reads - section)
     tolerated = tuple(p for p in read_without_cite_all if p in optional_set)
     unexpected = tuple(p for p in read_without_cite_all if p not in optional_set)
 
-    ok = not cited_without_read
+    # RF11: inferred citation metrics
+    inferred_count = len(inferred)
+    total_citations = len(section)
+    inferred_rate = inferred_count / total_citations if total_citations > 0 else 0.0
+
+    ok = not cited_without_read and not cited_without_manifest
 
     return SignalReport(
         ok=ok,
@@ -101,6 +137,9 @@ def signal_disagreement(
         cited_without_read=cited_without_read,
         read_without_cite_unexpected=unexpected,
         read_without_cite_tolerated=tolerated,
+        cited_without_manifest=cited_without_manifest,
+        inferred_citation_count=inferred_count,
+        inferred_citation_rate=inferred_rate,
     )
 
 

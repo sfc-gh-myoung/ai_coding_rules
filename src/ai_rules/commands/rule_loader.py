@@ -523,6 +523,7 @@ def _run_single_eval(
     concurrency: int = 1,
     pass_writer: RunPassWriter | None = None,
     retry_infra: int = 1,
+    progressive: bool = False,
 ) -> tuple[list[RunResult], bool]:
     """Execute a single eval pass. Returns (results, is_infra_error).
 
@@ -547,7 +548,23 @@ def _run_single_eval(
     rules_meta = load_rules_metadata(_rules_dir(root))
     index_by_id = {f.id: i for i, f in enumerate(fixtures)}
 
+    # Build progressive prompt factory if needed
+    _progressive_prompt_cache: dict[str, str] = {}
+    if progressive:
+        from ai_rules.rule_loader_eval.agent_runner import build_progressive_prompt
+
+        rules_index_path = root / "rules" / "RULES_INDEX.md"
+        log_info("[progressive] Using micro-kernel + manifest injection (no AGENTS.md bootstrap)")
+
     async def _work(fixture: Fixture, slot: int) -> RunResult:
+        sys_prompt: str | None = None
+        if progressive:
+            if fixture.id not in _progressive_prompt_cache:
+                _progressive_prompt_cache[fixture.id] = build_progressive_prompt(
+                    fixture.prompt, rules_index_path
+                )
+            sys_prompt = _progressive_prompt_cache[fixture.id]
+
         last_exc: InfraError | None = None
         for attempt in range(1, retry_infra + 1):
             try:
@@ -560,6 +577,8 @@ def _run_single_eval(
                     effort=effort,
                     model=model,
                     connection=resolved_connection,
+                    system_prompt=sys_prompt,
+                    progressive=progressive,
                 )
             except InfraError as exc:
                 last_exc = exc
@@ -984,6 +1003,16 @@ def eval_cmd(
             ),
         ),
     ] = 1,
+    progressive: Annotated[
+        bool,
+        typer.Option(
+            "--progressive",
+            help=(
+                "Use progressive rule loading: micro-kernel + manifest injection "
+                "instead of AGENTS.md bootstrap ceremony. Measures token reduction."
+            ),
+        ),
+    ] = False,
     debug: Annotated[
         bool,
         typer.Option(
@@ -1136,6 +1165,7 @@ def eval_cmd(
             concurrency=concurrency,
             pass_writer=pass_writer,
             retry_infra=retry_infra,
+            progressive=progressive,
         )
         all_run_results.append(results)
 
@@ -1500,7 +1530,7 @@ def refresh_all_cmd(
         bool,
         typer.Option(
             "--debug",
-            help="Enable developer diagnostics (timing, signal disagreements, debug dump) to stderr per fixture.",
+            help="Enable developer diagnostics (timing, signal disagreements, debug dump) to stderr.",
         ),
     ] = False,
 ) -> None:

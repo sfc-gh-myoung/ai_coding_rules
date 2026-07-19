@@ -9,7 +9,6 @@ keywords:
   - kw:RELATIONSHIPS clause
   - kw:mapping syntax alias.physical_column
   - kw:SHOW SEMANTIC DIMENSIONS
-  - kw:ci/cd
 token_budget: ~2550
 context_tier: High
 depends:

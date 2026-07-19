@@ -76,15 +76,15 @@ metadata; this file intentionally omits volatile timestamps so
 102c-snowflake-sql-reserved-chars.md tier=Low kw=cli-compatibility ampersand-escaping template-expansion enable-templating-flag brand-name-preservation snow-sql-tool
 102d-snowflake-sql-cicd.md tier=Low kw=Makefile-targets GitHub-Actions-workflows multi-environment-deployment Snowflake-CLI secrets-store-integration SQL-template-parameterization ci/cd
 102e-snowflake-sql-procedure-antipatterns.md tier=Low kw=stored-procedure-anti-patterns dollar-quoting EXECUTE-AS SQL-injection-bind-variables fully-qualified-object-names procedure-delimiter-escaping udf
-103-snowflake-performance-tuning.md tier=High kw=Query-Profile-analysis partition-pruning-optimization spillage-detection clustering-key-justification warehouse-sizing-diagnosis slow-query-investigation snowsight
+103-snowflake-performance-tuning.md tier=High kw=Query-Profile-analysis partition-pruning-optimization spillage-detection clustering-key-justification cluster-key-tuning slow-query-investigation snowsight
 104-snowflake-streams-tasks.md tier=High kw=change-data-capture stream-consumption task-dag merge-patterns task-history-monitoring stream-staleness cdc
-105-snowflake-cost-governance.md tier=High kw=resource-monitor credit-quota warehouse-metering-history cost-attribution-tagging serverless-task-credits suspend-trigger etl
-106-snowflake-semantic-views-core.md tier=High kw=CREATE-SEMANTIC-VIEW TABLES-PRIMARY-KEY FACTS-DIMENSIONS-METRICS RELATIONSHIPS-clause mapping-syntax-alias.physical_column SHOW-SEMANTIC-DIMENSIONS ci/cd
+105-snowflake-cost-governance.md tier=High kw=resource-monitor credit-quota warehouse-metering-history cost-attribution-tagging serverless-task-credits suspend-trigger credit-quota-monitoring
+106-snowflake-semantic-views-core.md tier=High kw=CREATE-SEMANTIC-VIEW TABLES-PRIMARY-KEY FACTS-DIMENSIONS-METRICS RELATIONSHIPS-clause mapping-syntax-alias.physical_column SHOW-SEMANTIC-DIMENSIONS
 106a-snowflake-semantic-views-advanced.md tier=High kw=semantic-view-anti-patterns relationship-granularity physical-column-verification expression-reference-cycles template-character-restrictions semantic-view-quality-checks cortex
 106b-snowflake-semantic-views-querying.md tier=High kw=SEMANTIC_VIEW-function dimension-compatibility FACTS-METRICS-mutual-exclusion window-function-metrics semantic-view-testing WHERE-clause-restrictions cortex
 106c-snowflake-semantic-views-integration.md tier=Medium kw=Cortex-Analyst Cortex-Agent-grounding semantic-view-governance natural-language-query-synonyms analyst-troubleshooting policy-inheritance-base-tables ci/cd
 106d-snowflake-semantic-views-development.md tier=Medium kw=semantic-view-generator verified-query-repository VQR-logical-table-naming YAML-semantic-model iterative-refinement-workflow onboarding-questions cortex
-107-snowflake-security-governance.md tier=High kw=RBAC-role-hierarchy masking-policy-attachment row-access-policy-enforcement object-tagging-governance data-metric-function-scheduling least-privilege-grant-design dmf
+107-snowflake-security-governance.md tier=High kw=RBAC-role-hierarchy masking-policy-attachment row-access-policy-enforcement object-tagging-governance data-metric-function-scheduling least-privilege-grant-design
 108-snowflake-data-loading.md tier=High kw=COPY-INTO stage-management file-format-definition bulk-load-optimization VALIDATION_MODE ON_ERROR-handling COPY_HISTORY-monitoring
 109-snowflake-notebooks.md tier=Medium kw=Snowflake-Notebooks reproducible-notebook-execution Snowpark-DataFrame-computation cell-naming-conventions nbqa-ruff-linting notebook-state-management pandas
 109a-snowflake-notebooks-tutorials.md tier=High kw=notebook-tutorial-design learning-objectives-structure checkpoint-validation-cells anti-pattern-teaching progressive-complexity-management teaching-point-callouts pandas

@@ -19,6 +19,7 @@ import pytest
 from ai_rules.rule_loader_eval.agent_runner import (
     Citation,
     extract_citations,
+    extract_contract_text,
     parse_bootstrap_line,
     parse_reads_performed_section,
     parse_rules_loaded_section,
@@ -762,3 +763,182 @@ def test_skill_path_no_rules_index_read_unchanged_signals() -> None:
     assert report_no.ok == report_with.ok
     assert report_no.cited_without_read == report_with.cited_without_read
     assert report_no.read_without_cite_unexpected == report_with.read_without_cite_unexpected
+
+
+# ---------------------------------------------------------------------------
+# RF4: extract_contract_text preserves Gate 1
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_extract_contract_text_preserves_gate_1() -> None:
+    """RF4: extract_contract_text must preserve Gate 1 when the full PRE-FLIGHT block is present."""
+    text = (
+        "Some preamble text that should be discarded.\n"
+        "\n"
+        "PRE-FLIGHT:\n"
+        "- [x] Gate 1: Foundation rules/000-global-core.md — 273 lines\n"
+        "- [x] Gate 2: RULES_INDEX.md searched for: snowflake, sql\n"
+        "- [x] Gate 3: +1 domain rule(s):\n"
+        "  - rules/100-snowflake-core.md (snowflake) — 150 lines\n"
+        "\n"
+        "Task Switch: FIRST\n"
+    )
+    result = extract_contract_text(text)
+    assert "Gate 1" in result
+    assert "rules/000-global-core.md" in result
+    assert "Gate 3" in result
+    assert "Some preamble" not in result
+
+
+@pytest.mark.unit
+def test_extract_contract_text_gate1_without_preflight_marker() -> None:
+    """RF4: Gate 1 line is found even without explicit PRE-FLIGHT: marker."""
+    text = (
+        "Intro paragraph.\n"
+        "- [x] Gate 1: Foundation rules/000-global-core.md — 273 lines\n"
+        "- [x] Gate 3: +1 domain rule(s):\n"
+        "  - rules/102-snowflake-sql-core.md (sql) — 80 lines\n"
+    )
+    result = extract_contract_text(text)
+    assert "Gate 1" in result
+    assert "Intro paragraph" not in result
+
+
+@pytest.mark.unit
+def test_extract_contract_text_legacy_format_still_works() -> None:
+    """RF4: Legacy **Rules Loaded** format still works after the fix."""
+    text = "Some intro.\n\n**Rules Loaded**\n\n- rules/100-snowflake-core.md\n"
+    result = extract_contract_text(text)
+    assert "**Rules Loaded**" in result
+    assert "Some intro" not in result
+
+
+# ---------------------------------------------------------------------------
+# RF5: bash inspection counts as read
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_bash_inspection_counts_as_read() -> None:
+    """RF5: bash wc/cat/head on a rule path is captured as a read."""
+    from ai_rules.rule_loader_eval.agent_runner import _extract_bash_rule_paths
+
+    assert _extract_bash_rule_paths("wc -l rules/100-snowflake-core.md") == [
+        "rules/100-snowflake-core.md"
+    ]
+    assert _extract_bash_rule_paths(
+        "cat /Users/me/ai_coding_rules/rules/102-snowflake-sql-core.md"
+    ) == ["rules/102-snowflake-sql-core.md"]
+    assert _extract_bash_rule_paths("head -20 rules/000-global-core.md") == [
+        "rules/000-global-core.md"
+    ]
+    assert _extract_bash_rule_paths("tail -n 5 rules/940-business-analytics.md") == [
+        "rules/940-business-analytics.md"
+    ]
+    assert _extract_bash_rule_paths("sed -n '1,10p' rules/117-snowflake-mcp-core.md") == [
+        "rules/117-snowflake-mcp-core.md"
+    ]
+    assert _extract_bash_rule_paths("grep -c 'keyword' rules/112-snowflake-snowcli-core.md") == [
+        "rules/112-snowflake-snowcli-core.md"
+    ]
+    # Non-rule paths should not match
+    assert _extract_bash_rule_paths("wc -l src/main.py") == []
+    assert _extract_bash_rule_paths("ls rules/") == []
+    assert _extract_bash_rule_paths("echo hello") == []
+
+
+# ---------------------------------------------------------------------------
+# RF10: marker-aware signal partition
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_marker_aware_signal_partition_read_marker() -> None:
+    """RF10: [x] citation without read_file → cited_without_read."""
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import signal_disagreement
+
+    run = AgentRun(
+        fixture_id="test",
+        loaded=("rules/100-snowflake-core.md",),
+        loaded_via_reads=(),  # no reads!
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/100-snowflake-core.md",),
+        citations_rules_loaded={
+            "rules/100-snowflake-core.md": Citation(line_count=150, provenance="x"),
+        },
+    )
+    report = signal_disagreement(run)
+    assert not report.ok
+    assert "rules/100-snowflake-core.md" in report.cited_without_read
+
+
+@pytest.mark.unit
+def test_marker_aware_signal_partition_manifest_marker() -> None:
+    """RF10: [~] citation in manifest → passes; not in manifest → cited_without_manifest."""
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import signal_disagreement
+
+    run = AgentRun(
+        fixture_id="test",
+        loaded=("rules/100-snowflake-core.md", "rules/102-snowflake-sql-core.md"),
+        loaded_via_reads=(),
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/100-snowflake-core.md", "rules/102-snowflake-sql-core.md"),
+        citations_rules_loaded={
+            "rules/100-snowflake-core.md": Citation(line_count=150, provenance="~"),
+            "rules/102-snowflake-sql-core.md": Citation(line_count=80, provenance="~"),
+        },
+        manifest_paths=frozenset({"rules/100-snowflake-core.md"}),
+    )
+    report = signal_disagreement(run)
+    assert not report.ok
+    assert "rules/102-snowflake-sql-core.md" in report.cited_without_manifest
+    assert "rules/100-snowflake-core.md" not in report.cited_without_manifest
+    assert report.cited_without_read == ()
+
+
+@pytest.mark.unit
+def test_marker_aware_signal_partition_inferred_marker() -> None:
+    """RF10/RF11: [?] citations never hard-fail; counted as inferred."""
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import signal_disagreement
+
+    run = AgentRun(
+        fixture_id="test",
+        loaded=("rules/100-snowflake-core.md",),
+        loaded_via_reads=(),
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/100-snowflake-core.md",),
+        citations_rules_loaded={
+            "rules/100-snowflake-core.md": Citation(line_count=150, provenance="?"),
+        },
+    )
+    report = signal_disagreement(run)
+    assert report.ok  # [?] never hard-fails
+    assert report.cited_without_read == ()
+    assert report.inferred_citation_count == 1
+    assert report.inferred_citation_rate == 1.0
+
+
+@pytest.mark.unit
+def test_cumulative_reads_satisfy_citation() -> None:
+    """RF8: prior_reads satisfy [x] citations without a repeat read this turn."""
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import signal_disagreement
+
+    run = AgentRun(
+        fixture_id="test",
+        loaded=("rules/100-snowflake-core.md",),
+        loaded_via_reads=(),  # not read this turn
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/100-snowflake-core.md",),
+        citations_rules_loaded={
+            "rules/100-snowflake-core.md": Citation(line_count=150, provenance="x"),
+        },
+        prior_reads=frozenset({"rules/100-snowflake-core.md"}),  # read in prior turn
+    )
+    report = signal_disagreement(run)
+    assert report.ok
+    assert report.cited_without_read == ()

@@ -20,12 +20,15 @@ taken at eval start. Mismatches are reported as fabrication signals.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ai_rules.rule_loader_eval.agent_runner import Citation
     from ai_rules.rule_loader_eval.rules_meta import RuleMetadata
+
+_log = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -62,6 +65,45 @@ class MatchResult:
     """Per-citation mismatches against the rules-metadata snapshot."""
 
 
+def _fixture_dep_closure(
+    seed: list[str],
+    rules_meta: dict[str, RuleMetadata],
+    warnings: list[str],
+) -> set[str]:
+    """Expand transitive required: closure of seed with skip-and-log.
+
+    Same fixpoint algorithm as ``expand_required_closure`` in
+    ``depends_validator``, but emits a warning when a dep target is
+    absent from ``rules_meta`` instead of silently continuing.
+
+    Args:
+        seed: starting rule paths (fixture's required + dependencies union).
+        rules_meta: mapping from rule path to metadata.
+        warnings: mutable list; missing-target messages are appended here
+            AND emitted via ``_log.warning`` (skip-and-log strategy).
+
+    Returns:
+        Set of all rule paths reachable via ``required:`` edges from seed
+        (includes seed itself). Absent targets are skipped but logged.
+    """
+    closure: set[str] = set(seed)
+    queue = list(seed)
+    while queue:
+        rule_path = queue.pop()
+        meta = rules_meta.get(rule_path)
+        if meta is None:
+            msg = f"dep-closure: target absent from rules_meta, skipped: {rule_path}"
+            _log.warning(msg)
+            if msg not in warnings:
+                warnings.append(msg)
+            continue
+        for dep in meta.depends_required:
+            if dep not in closure:
+                closure.add(dep)
+                queue.append(dep)
+    return closure
+
+
 def match_loaded_rules(
     *,
     loaded: tuple[str, ...] | list[str] | set[str],
@@ -70,6 +112,7 @@ def match_loaded_rules(
     forbidden: tuple[str, ...] | list[str] = (),
     optional: tuple[str, ...] | list[str] = (),
     strict_forbidden: bool = False,
+    rules_meta: dict[str, RuleMetadata] | None = None,
 ) -> MatchResult:
     """Compare loaded rules to expected sets.
 
@@ -80,6 +123,11 @@ def match_loaded_rules(
         forbidden: rules that MUST NOT be loaded.
         optional: informational; loaded or not.
         strict_forbidden: when True, forbidden presence fails the run.
+        rules_meta: when provided, the transitive ``required:`` closure of
+            the fixture's ``required + dependencies`` union sets is subtracted
+            from ``extras`` (Option A dep-accounting fix). Absent targets
+            are skipped and logged. Pass ``None`` (default) for backward
+            compatibility — ``extras`` is unchanged.
 
     Returns:
         :class:`MatchResult`. ``passed`` is False iff any required or
@@ -92,14 +140,28 @@ def match_loaded_rules(
     forbidden_set = set(forbidden)
     optional_set = set(optional)
 
+    # Option A: compute fixture dep closure and subtract from extras.
+    # This prevents transitive required: deps from being counted as FM-6
+    # extras when the model correctly follows the dependency chain.
+    skip_log_warnings: list[str] = []
+    dep_closure_set: set[str] = set()
+    if rules_meta is not None:
+        dep_closure_set = _fixture_dep_closure(
+            list(required_set | deps_set), rules_meta, skip_log_warnings
+        )
+
     missing_required = tuple(sorted(required_set - loaded_set))
     missing_dependencies = tuple(sorted(deps_set - loaded_set))
     forbidden_present = tuple(sorted(loaded_set & forbidden_set))
     optional_loaded = tuple(sorted(loaded_set & optional_set))
     unloaded_optional = tuple(sorted(optional_set - loaded_set))
-    extras = tuple(sorted(loaded_set - required_set - deps_set - forbidden_set - optional_set))
+    extras = tuple(
+        sorted(
+            loaded_set - required_set - deps_set - forbidden_set - optional_set - dep_closure_set
+        )
+    )
 
-    warnings: list[str] = []
+    warnings: list[str] = list(skip_log_warnings)
     for rule in forbidden_present:
         warnings.append(f"forbidden rule loaded: {rule}")
 

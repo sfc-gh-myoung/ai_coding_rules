@@ -29,10 +29,10 @@ import yaml
 from ai_rules.rule_loader_eval.rules_meta import RuleMetadata
 
 REQUIRED_TOP_KEYS = ("schema_version", "updated", "id", "prompt", "expected", "trigger_evidence")
-ALLOWED_VARIANTS = {"simple", "complex"}
+ALLOWED_VARIANTS = {"simple", "complex", "behavioral"}
 ALLOWED_TRIGGER_KINDS = {"kw", "ext", "file", "dir"}
 SUPPORTED_SCHEMA_VERSION = 3
-SUPPORTED_SCHEMA_VERSIONS = (2, 3)
+SUPPORTED_SCHEMA_VERSIONS = (2, 3, 4)
 
 # ISO 8601 with explicit offset (+HH:MM, -HH:MM, or Z).
 # Example: 2026-05-16T14:30:00-07:00 or 2026-05-16T21:30:00Z

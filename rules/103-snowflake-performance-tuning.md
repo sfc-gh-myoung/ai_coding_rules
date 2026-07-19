@@ -7,7 +7,7 @@ keywords:
   - kw:partition pruning optimization
   - kw:spillage detection
   - kw:clustering key justification
-  - kw:warehouse sizing diagnosis
+  - kw:cluster-key-tuning
   - kw:slow query investigation
   - kw:snowsight
 token_budget: ~3200

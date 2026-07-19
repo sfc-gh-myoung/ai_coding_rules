@@ -1,10 +1,44 @@
-  <!-- ========== TAB 3: TAXONOMY ========== -->
-  <section class="tab-panel" id="taxonomy" role="tabpanel" data-tab-title="Taxonomy">
+  <!-- ========== TAB 3: FAILURE MODES ========== -->
+  <section class="tab-panel" id="taxonomy" role="tabpanel" data-tab-title="Failure Modes">
     <h2>Seven Failure Modes</h2>
 
     <p>Through systematic analysis of tool traces across all runs, seven distinct ways models deviate from the protocol were identified. They range from catastrophic (citing rules never read) to benign (loading more than necessary). Each reveals a different facet of how models process procedural instructions under real-world conditions.</p>
 
     <p>The taxonomy is organized by severity. High-severity modes undermine the protocol&rsquo;s core guarantee (grounded responses). Medium-severity modes create measurement challenges or correctness risks. Low-severity modes are inefficiencies that don&rsquo;t threaten trust.</p>
+
+    <h3>Failure Mode Distribution</h3>
+    <p>Each cell shows the number of fixture-runs where the failure mode was observed. Darker shading indicates higher occurrence.</p>
+    <div class="table-wrap">
+      <table id="fm-heatmap" aria-label="Failure mode occurrence heatmap across models">
+        <thead>
+          <tr>
+            <th style="text-align:left; min-width:200px;">Failure Mode</th>
+            {% for model in failure_mode_data.models %}
+            <th style="font-size:0.72rem;">{{ model }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for mode_idx in range(failure_mode_data.modes | length) %}
+          <tr>
+            <td style="text-align:left; font-weight:500; font-size:0.8rem;">{{ failure_mode_data.modes[mode_idx] }}</td>
+            {% for model_idx in range(failure_mode_data.models | length) %}
+            {% set count = failure_mode_data.counts[model_idx][mode_idx] %}
+            {% if count == 0 %}
+            <td class="fm-zero">&mdash;</td>
+            {% elif count <= 3 %}
+            <td class="fm-low">{{ count }}</td>
+            {% elif count <= 10 %}
+            <td class="fm-mid">{{ count }}</td>
+            {% else %}
+            <td class="fm-high">{{ count }}</td>
+            {% endif %}
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
 
     <!-- FM-1: HIGH -->
     <h3>FM-1 Declared-but-not-read <span class="badge badge-high">High Severity</span></h3>

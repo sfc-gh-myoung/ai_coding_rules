@@ -206,7 +206,7 @@ Task Switch: FIRST
 
 @pytest.mark.unit
 def test_extract_contract_text_prefers_earliest_marker_gate3_vs_legacy() -> None:
-    """When Gate 3 appears before a legacy ## Rules Loaded heading, Gate 3 wins."""
+    """When PRE-FLIGHT: appears before a legacy ## Rules Loaded heading, PRE-FLIGHT wins (RF4)."""
     text = """\
 PRE-FLIGHT:
 - [x] Gate 3: Rules loaded:
@@ -218,7 +218,9 @@ Some prose.
 - rules/000-global-core.md (foundation) — 263 lines
 """
     extracted = extract_contract_text(text)
-    assert extracted.startswith("- [x] Gate 3:")
+    # RF4: now starts at PRE-FLIGHT:, which is earlier than Gate 3
+    assert extracted.startswith("PRE-FLIGHT:")
+    assert "- [x] Gate 3:" in extracted
 
 
 @pytest.mark.unit
@@ -237,8 +239,9 @@ PRE-FLIGHT:
 SEED_FIXTURE_COMPLETE
 """
     extracted = extract_contract_text(text)
-    # The checkbox prefix must survive so validate_output_shape recognises Gate 3.
-    assert extracted.startswith("- [x] Gate 3:")
+    # RF4: starts at PRE-FLIGHT: now; Gate 3 checkbox is preserved within
+    assert extracted.startswith("PRE-FLIGHT:")
+    assert "- [x] Gate 3:" in extracted
     assert validate_output_shape(extracted, loaded_count=2) == ()
 
 

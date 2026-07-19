@@ -10,12 +10,13 @@ prompt: |
   against real prompts before submitting.
 expected:
   required:
-    - rules/000-global-core.md  # foundation (always loaded)
-    - rules/002h-claude-code-skills.md  # migrated from dependencies (v3.15)
+  - rules/000-global-core.md    # foundation (always loaded)
+  - rules/002h-claude-code-skills.md    # migrated from dependencies (v3.15)
   forbidden: []
   optional:
-    - rules/002l-skill-advanced-patterns.md  # auto-demoted: no trigger evidence
+  - rules/002l-skill-advanced-patterns.md    # auto-demoted: no trigger evidence
       # missing: kw=skill composition, orchestrator skill, batch skill, visual analysis pattern
+  - rules/002-rule-governance.md             # dep-chain: required by 002h-claude-code-skills.md
 trigger_evidence:
   kw: [skill]   # suggested
     # n-gram (no rule): "against real prompts before"

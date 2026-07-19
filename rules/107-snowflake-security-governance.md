@@ -9,7 +9,6 @@ keywords:
   - kw:object tagging governance
   - kw:data metric function scheduling
   - kw:least privilege grant design
-  - kw:dmf
 token_budget: ~4000
 context_tier: High
 depends:

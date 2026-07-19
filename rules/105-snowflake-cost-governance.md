@@ -9,7 +9,7 @@ keywords:
   - kw:cost attribution tagging
   - kw:serverless task credits
   - kw:suspend trigger
-  - kw:etl
+  - kw:credit-quota-monitoring
 token_budget: ~3300
 context_tier: High
 depends:

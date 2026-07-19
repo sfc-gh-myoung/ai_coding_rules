@@ -117,6 +117,16 @@ C. Sanity + Gate-2 verification: zero results for a common keyword is an anomaly
    read_file call you can cite — never from prior session context or a summary.
    Details: "Step 2B Fallback Details" in {{rules_path}}/002n-agent-protocol-reference.md.
 
+D. Match selection priority — `kw=` matches are ALWAYS valid. Apply these tie-breakers:
+   - `kw=` only (no file/ext context): use the `kw=` match directly; do NOT require
+     file or extension evidence. Keyword-only prompts (cost, performance, governance,
+     rule authoring) are legitimate and must match via `kw=` alone.
+   - `file=` or `ext=` match present: prefer these as high-confidence triggers when
+     the user's request references a specific file or file extension; `kw=` matches
+     remain valid and should also be considered.
+   - Multi-word compound `kw=` terms (e.g., `slow-query-investigation`) are preferred
+     over single generic words when available; they reduce false-positive loading.
+
 E. High-risk actions require an additional targeted search. See
    "High-Risk Action Rule Map" in {{rules_path}}/002n-agent-protocol-reference.md.
    (Load 002n now if the request involves git, deploy, test, README, CHANGELOG,
@@ -237,11 +247,30 @@ NEVER declare a rule as a Gate 3 sub-bullet unless `read_file` returned successf
 
 **Citation format (for eval compatibility):**
 When listing rules as Gate 3 sub-bullets, prefer the form
-`<path> (<reason>) — N lines` where `N` is the **exact** `wc -l` output for the file.
+`<path> (<reason>) — N lines` where `N` is the line count of the file.
 Example: `- [x] Gate 1: Foundation {{rules_path}}/000-global-core.md — 273 lines`.
 The `— N lines` suffix is optional but enables citation-drift detection
-by the rule-loader evaluator. **If you cannot execute `wc -l` (no shell access),
-omit the `— N lines` suffix entirely. Never estimate or guess line counts.**
+by the rule-loader evaluator. **If including a line count in the citation, it
+must be accurate. If accuracy is not possible (e.g., no shell access),
+omit the `— N lines` suffix entirely.**
+
+**Citation provenance markers (v9):**
+Each Gate 3 sub-bullet SHOULD include a provenance marker indicating how the
+citation was grounded:
+
+- `[x]` — **read**: rule content was inspected via `read_file` or bash inspection (e.g., `cat`, `wc -l`) this session.
+- `[~]` — **from manifest**: cited based on the `rule-loader` skill manifest or grep output; content not directly inspected this turn.
+- `[?]` — **inferred**: cited without direct read or manifest evidence. Explicit self-attestation.
+
+When no marker is present, the evaluator treats the citation as `[x]` for backward compatibility.
+
+Example with all three markers:
+```
+- [x] Gate 3: +2 domain rule(s):
+  - [x] rules/100-snowflake-core.md (snowflake) — 150 lines
+  - [~] rules/102-snowflake-sql-core.md (required dep, from manifest) — 85 lines
+  - [?] rules/940-business-analytics.md (inferred from context)
+```
 
 **VIOLATION = INVALID RESPONSE**: Proceeding without completing all steps invalidates the response.
 

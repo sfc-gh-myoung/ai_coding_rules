@@ -75,11 +75,16 @@ def test_refresh_all_out_dir_help_mentions_env_var_and_precedence() -> None:
 
 @pytest.mark.integration
 def test_eval_help_omits_progress_flag() -> None:
-    """`eval --help` no longer exposes --progress/-P/--no-progress (Phase 3)."""
+    """`eval --help` no longer exposes --progress/-P/--no-progress (Phase 3).
+
+    Note: --progressive is a DIFFERENT flag (progressive rule loading) and is expected.
+    """
     result = runner.invoke(app, ["rule-loader", "eval", "--help"])
     assert result.exit_code == 0
-    assert "--progress" not in result.output
+    # Check the exact old flags, not substring of --progressive
+    assert "--progress " not in result.output  # trailing space distinguishes from --progressive
     assert "--no-progress" not in result.output
+    assert "-P " not in result.output or "--progressive" in result.output
 
 
 @pytest.mark.integration

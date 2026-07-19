@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         scales: {
           y: {
             beginAtZero: true,
-            max: 105,
+            max: 100,
             ticks: { callback: function(value) { return value + '%'; }, stepSize: 25 },
             grid: { color: 'rgba(128,128,128,0.1)' }
           },
@@ -174,6 +174,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     });
+  }
+
+  // ===== Performance Table Min/Max Highlighting =====
+  const perfTable = document.getElementById('perf-table');
+  if (perfTable) {
+    const rows = Array.from(perfTable.querySelectorAll('tbody tr'));
+    if (rows.length > 1) {
+      // Columns to highlight: 3=Avg Duration, 4=Median Duration, 5=P95 Duration, 6=Avg Turns, 7=Median Turns, 8=Max Turns
+      const colIndices = [3, 4, 5, 6, 7, 8];
+      colIndices.forEach(colIdx => {
+        const values = rows.map(row => {
+          const cell = row.cells[colIdx];
+          if (!cell) return null;
+          const text = cell.textContent.trim().replace('s', '');
+          const num = parseFloat(text);
+          return isNaN(num) ? null : num;
+        });
+        const validValues = values.filter(v => v !== null);
+        if (validValues.length < 2) return;
+        const minVal = Math.min(...validValues);
+        const maxVal = Math.max(...validValues);
+        if (minVal === maxVal) return;
+        rows.forEach((row, i) => {
+          if (values[i] === null) return;
+          const cell = row.cells[colIdx];
+          if (values[i] === minVal) {
+            cell.style.color = 'var(--sf-green)';
+            cell.style.fontWeight = '600';
+          } else if (values[i] === maxVal) {
+            cell.style.color = 'var(--sf-red)';
+            cell.style.fontWeight = '600';
+          }
+        });
+      });
+    }
   }
 });
 </script>

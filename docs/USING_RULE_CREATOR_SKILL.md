@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-03-27
 
-The Rule Creator Skill automates creation of production-ready Cursor rules following schema v3.2 standards. It guides you through research, template generation, content population, validation, and RULES_INDEX.md registration—reducing rule creation time by ~60-70%.
+The Rule Creator Skill automates creation of production-ready Cursor rules following schema v3.5 standards. It guides you through research, template generation, content population, validation, and RULES_INDEX.md registration—reducing rule creation time by ~60-70%.
 
 > **Internal Use Only:** This skill is excluded from deployment to consuming projects. See [Deployment Exclusion](#deployment-exclusion) for rationale.
 
@@ -97,8 +97,8 @@ All rules must pass these gates before completion:
 | Gate | Requirement |
 |------|-------------|
 | Discovery | RULES_INDEX.md searched, domain identified, number available |
-| Template | `ai-rules new` executed, v3.2 sections present |
-| Metadata | Keywords (5-20), TokenBudget (~NUMBER), ContextTier valid |
+| Template | `ai-rules new` executed, v3.5 sections present |
+| Metadata | Keywords (5-7), TokenBudget (~NUMBER), ContextTier valid |
 | Contract | 6 Markdown headers present, placed before line 160 |
 | Validation | `ai-rules validate` returns exit code 0 |
 | Indexing | Entry added to RULES_INDEX.md in correct position |
@@ -107,7 +107,7 @@ All rules must pass these gates before completion:
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `Keywords count: 3 (expected 5-20)` | Too few keywords | Add more semantic keywords |
+| `Keywords count: 3 (expected 5-7)` | Too few keywords | Add more semantic keywords |
 | `TokenBudget format invalid` | Missing tilde | Change `1200` to `~1200` |
 | `Missing header: ### Validation` | Incomplete Contract | Add all 6 required headers |
 | `Contract after line 160` | Contract too late | Move Contract earlier in file |
@@ -204,7 +204,7 @@ ai-rules validate rules/422-daisyui-core.md
 After 3 iterations, the skill stops and reports remaining errors. Common fixes:
 1. Check for missing required sections (Examples, Anti-patterns)
 2. Ensure all 6 Contract headers are present
-3. Verify keywords are in 5-20 range
+3. Verify keywords are in 5-7 range
 
 ### How do I verify the skill executed correctly?
 

@@ -66,7 +66,7 @@ max_parallel: 1                      # Optional: sequential execution (one rule 
 
 | Mode | Purpose | When to Use |
 |------|---------|-------------|
-| **FULL** | Full 7-dimension evaluation | Quarterly audits, pre-release validation |
+| **FULL** | Full 6-dimension evaluation | Quarterly audits, pre-release validation |
 | **FOCUSED** | Actionability + Completeness only | Quick quality checks |
 | **STALENESS** | Freshness dimension only | Monthly maintenance, link rot detection |
 
@@ -76,7 +76,7 @@ max_parallel: 1                      # Optional: sequential execution (one rule 
 review_mode: FULL
 ```
 
-All 7 dimensions evaluated per rule. Each worker gets fresh context per rule to prevent cross-rule drift. Duration varies by rule count, complexity, and model.
+All 6 dimensions evaluated per rule. Each worker gets fresh context per rule to prevent cross-rule drift. Duration varies by rule count, complexity, and model.
 
 ### FOCUSED Mode
 
@@ -145,7 +145,7 @@ Each rule gets a review file at `reviews/rule-reviews/<rule-name>-<model>-<date>
 | `filter_pattern` | Glob | `rules/*.md` | Filter rules by pattern |
 | `skip_existing` | Boolean | `true` | Skip files with existing reviews |
 | `max_parallel` | Integer | `5` | Concurrent sub-agents (1-10) |
-| `timing_enabled` | Boolean | `false` | Enable execution timing |
+| `timing_enabled` | Boolean | `true` | Enable execution timing (default flipped to true in v2.4.0) |
 
 ### Custom Output Directory
 

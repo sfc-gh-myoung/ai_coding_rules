@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **fix(docs):** correct stale "5-20 keywords" to "5-7" in CONTRIBUTING.md and USING_RULE_CREATOR_SKILL.md to match enforced v3.5 cap.
+- **fix(docs):** update "schema v3.2" references to "v3.5" across CONTRIBUTING.md, USING_RULE_CREATOR_SKILL.md, README.md, and ARCHITECTURE.md.
+- **fix(docs):** correct "7 dimensions" / "8 dimensions" to "6 dimensions" in USING_BULK_RULE_REVIEWER_SKILL.md and USING_RULE_REVIEWER_SKILL.md.
+
 ### Added
 
 - **feat(rule-loader-eval):** add provenance-annotated citation markers (`[x]`/`[~]`/`[?]`) to AGENTS.md templates and eval signal partition, enabling honest self-attestation of citation grounding (RF7/RF10).

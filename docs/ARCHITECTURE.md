@@ -381,7 +381,7 @@ AI assistants follow a two-phase loading process: auto-loading by the IDE/tool, 
 flowchart TD
     Start([User: Create New Rule]) --> Generate
     Generate["ai-rules new XXX"] --> Template
-    Template[ai-rules new] --> Create[Create rules/XXX.md<br/>with v3.2 structure]
+    Template[ai-rules new] --> Create[Create rules/XXX.md<br/>with v3.5 structure]
     Create --> Edit[User: Edit Content]
     Edit --> Validate{Validate?}
     Validate -->|"ai-rules validate rules/"| SchemaVal[ai-rules validate]

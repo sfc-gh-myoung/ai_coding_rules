@@ -59,7 +59,7 @@ model: claude-sonnet-45              # Required
 
 | Mode | Purpose | When to Use |
 |------|---------|-------------|
-| **FULL** | Full 7-dimension review | Validate rules before deployment |
+| **FULL** | Full 6-dimension review | Validate rules before deployment |
 | **FOCUSED** | Deep-dive on critical areas | Quick check on Actionability + Completeness only |
 | **STALENESS** | Check for outdated content | Periodic currency audits |
 
@@ -213,7 +213,7 @@ overwrite: true
 
 **Rule Files (rules/*.md):**
 - Full schema validation against `schemas/rule-schema.yml`
-- All 8 dimensions scored
+- All 6 dimensions scored
 - TokenBudget variance check applies
 
 **Project Files (AGENTS.md, PROJECT.md):**

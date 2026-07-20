@@ -348,11 +348,11 @@ uv run ai-rules new 300-example-rule --force
 
 ### Rule Structure
 
-All rules must follow the v3.2 schema defined in [rules/002-rule-governance.md](rules/002-rule-governance.md).
+All rules must follow the v3.5 schema defined in [rules/002-rule-governance.md](rules/002-rule-governance.md).
 
 **Quick reference:**
 
-- **Required metadata:** SchemaVersion, RuleVersion, LastUpdated, Keywords (5-20), TokenBudget, ContextTier, Depends (each entry uses `required:`/`optional:` bucket prefix; see `rules/002-rule-governance.md` "Depends Bucket Semantics")
+- **Required metadata:** SchemaVersion, RuleVersion, LastUpdated, Keywords (5-7), TokenBudget, ContextTier, Depends (each entry uses `required:`/`optional:` bucket prefix; see `rules/002-rule-governance.md` "Depends Bucket Semantics")
 - **Required sections:** Scope, References, Contract, Anti-Patterns, Post-Execution Checklist
 - **Contract must appear before line 200**
 

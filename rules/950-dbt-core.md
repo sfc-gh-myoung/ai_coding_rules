@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Best practices for using dbt Projects on Snowflake, Snowflake's native integration for running dbt Core projects. Covers the full lifecycle: project setup with profiles.yml and Workspaces, deployment"
 last_updated: 2026-07-15
 keywords:
   - kw:dbt project object

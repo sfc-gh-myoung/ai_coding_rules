@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive FastAPI development best practices for modern web API development. Covers application architecture (factory pattern, APIRouter), async programming patterns, request/response handling"
 last_updated: 2026-07-15
 keywords:
   - kw:application factory

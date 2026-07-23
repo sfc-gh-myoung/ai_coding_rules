@@ -1,25 +1,25 @@
 schema_version: 3
-updated: 2026-05-17T16:26:51-04:00
+updated: '2026-07-20T13:00:00-04:00'
 id: simple-sql-edit
-description: # TODO
+description: null
 variant: simple
-prompt: |
-  Edit the SQL in queries.sql to add a common table expression (CTE) for daily revenue.
-  The query should aggregate daily revenue from the orders table.
+prompt: 'What''s the right CTE pattern for adding a daily revenue aggregation to
+
+  queries.sql? The query should aggregate daily revenue from the orders table.
+
+  '
 expected:
   required:
-    - rules/000-global-core.md  # foundation (always loaded)
-    - rules/102-snowflake-sql-core.md  # suggested: kw: sql; ext: .sql
-    - rules/100-snowflake-core.md  # migrated from dependencies (v3.15)
+  - rules/000-global-core.md
+  - rules/102-snowflake-sql-core.md
+  - rules/100-snowflake-core.md
   forbidden: []
   optional: []
 trigger_evidence:
-  kw: [sql]   # suggested
-    # n-gram (no rule): "the daily revenue calculation"
-    # n-gram (no rule): "daily revenue calculation"
-    # n-gram (no rule): "CTE for the daily"
-    # n-gram (no rule): "for the daily revenue"
-    # n-gram (no rule): "the daily revenue"
-  ext: [.sql]   # suggested
-  file: [queries.sql]
+  kw:
+  - sql
+  ext:
+  - .sql
+  file:
+  - queries.sql
   dir: []

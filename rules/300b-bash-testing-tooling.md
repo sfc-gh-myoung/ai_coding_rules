@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive bash testing, debugging, and modern tooling integration including ShellCheck, CI/CD workflows, and development practices to ensure script quality and reliability."
 last_updated: 2026-07-15
 keywords:
   - kw:ShellCheck

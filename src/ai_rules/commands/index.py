@@ -325,7 +325,11 @@ def _split_typed_tokens(keywords_str: str) -> dict[str, list[str]]:
     return result
 
 
-def render_rules_index(rules: list[RuleMetadata], template_path: Path) -> str:
+def render_rules_index(
+    rules: list[RuleMetadata],
+    template_path: Path,
+    desc_map: dict[str, str] | None = None,
+) -> str:
     """Render RULES_INDEX.md by injecting compact index rows into the template.
 
     Replaces the ``<!-- RULE_TABLE -->`` marker in the template with one
@@ -334,6 +338,8 @@ def render_rules_index(rules: list[RuleMetadata], template_path: Path) -> str:
     Args:
         rules: Sorted list of RuleMetadata objects.
         template_path: Path to ``templates/RULES_INDEX.md.template``.
+        desc_map: Optional mapping of ``{filename: desc_text}`` to preserve
+            existing ``desc="..."`` fields across regeneration.
 
     Returns:
         Complete RULES_INDEX.md content as a string.
@@ -351,7 +357,8 @@ def render_rules_index(rules: list[RuleMetadata], template_path: Path) -> str:
             f"Template {template_path} does not contain the '{RULE_TABLE_MARKER}' marker."
         )
 
-    rows = "\n".join(render_index_line(r) for r in rules)
+    _desc = desc_map or {}
+    rows = "\n".join(render_index_line(r, _desc.get(r.filename, "")) for r in rules)
     return template.replace(RULE_TABLE_MARKER, rows)
 
 
@@ -377,12 +384,12 @@ def _hyphenate_keyword(kw: str) -> str:
     return re.sub(r"\s+", "-", stripped)
 
 
-def render_index_line(rule: RuleMetadata) -> str:
+def render_index_line(rule: RuleMetadata, desc: str = "") -> str:
     """Render one F4-format row of the index.
 
     Format (F4):
 
-        ``<filename> tier=<T> [ext=<e1>,<e2>] [file=<f1>] [dir=<d1>] kw=<w1> <w2> ...``
+        ``<filename> tier=<T> [ext=<e1>,<e2>] [file=<f1>] [dir=<d1>] kw=<w1> <w2> ... [desc="<sentence>"]``
 
     Fields are space-delimited. ``filename``, ``tier=``, and ``kw=`` are
     always present; ``ext=``, ``file=``, and ``dir=`` are emitted only when
@@ -395,6 +402,7 @@ def render_index_line(rule: RuleMetadata) -> str:
 
     Args:
         rule: RuleMetadata for the rule to render.
+        desc: Optional description string (sourced from existing ``desc=`` field).
 
     Returns:
         A single-line string without a trailing newline.
@@ -418,7 +426,38 @@ def render_index_line(rule: RuleMetadata) -> str:
     else:
         parts.append("kw=-")
 
+    if desc:
+        parts.append(f'desc="{desc}"')
+
     return " ".join(parts)
+
+
+def _extract_desc_map(index_path: Path) -> dict[str, str]:
+    """Read existing ``desc="..."`` fields from an index file.
+
+    Parses each line of the form::
+
+        <filename> tier=... kw=... desc="<sentence>"
+
+    Args:
+        index_path: Path to an existing RULES_INDEX.md (may not exist).
+
+    Returns:
+        Mapping of ``{filename: description_text}``.
+    """
+    desc_map: dict[str, str] = {}
+    if not index_path.exists():
+        return desc_map
+    try:
+        text = index_path.read_text(encoding="utf-8")
+    except OSError:
+        return desc_map  # Unreadable; proceed without desc= fields
+    desc_re = re.compile(r'^(\S+\.md)\s+.*?\bdesc="([^"]+)"')
+    for line in text.splitlines():
+        m = desc_re.match(line)
+        if m:
+            desc_map[m.group(1)] = m.group(2)
+    return desc_map
 
 
 def _normalize_for_check(text: str) -> str:
@@ -654,8 +693,12 @@ def _scan_and_generate(
 
     template_path = _resolve_template(project_root)
 
+    # Preserve existing desc= fields across regeneration (manually-authored).
+    existing_index_path = rules_dir / "RULES_INDEX.md"
+    desc_map = _extract_desc_map(existing_index_path)
+
     try:
-        content = render_rules_index(rules, template_path)
+        content = render_rules_index(rules, template_path, desc_map)
     except Exception as exc:
         log_error(f"Error rendering RULES_INDEX.md: {exc}")
         raise typer.Exit(code=1) from None

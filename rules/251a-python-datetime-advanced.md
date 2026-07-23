@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Date arithmetic (Timedelta vs DateOffset), calendar calculations, performance optimization for time series, and downsampling strategies."
 last_updated: 2026-07-15
 keywords:
   - kw:timedelta vs dateoffset

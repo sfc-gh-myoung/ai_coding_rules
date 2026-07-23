@@ -162,6 +162,8 @@ class PerFixtureAggregate(TypedDict):
     fails: int
     flake_score: float
     pass_rate: float
+    deterministic_fail: bool
+    """True when pass_rate == 0.0 AND fails > 0. Distinguishes always-fail (Mode A) from no-runs."""
 
 
 class AggregateTotals(TypedDict):

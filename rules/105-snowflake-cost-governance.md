@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive cost management and optimization strategies for Snowflake environments, including resource monitoring, warehouse right-sizing, and governance policies to control and predict cloud data"
 last_updated: 2026-07-15
 keywords:
   - kw:resource monitor

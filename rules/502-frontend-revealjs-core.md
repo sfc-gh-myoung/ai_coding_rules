@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Best practices for building HTML presentations with Reveal.js 6.0.0, covering project setup (npm/ESM), slide markup patterns (horizontal/vertical slides, fragments, Markdown), configuration options,"
 last_updated: 2026-07-15
 keywords:
   - kw:reveal.js 6.0.0

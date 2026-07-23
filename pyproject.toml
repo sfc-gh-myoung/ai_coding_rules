@@ -103,10 +103,12 @@ ignore = [
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417", "SIM117", "F841", "RUF043"]
+"tests/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417", "SIM117", "F841", "RUF043", "RUF059", "RUF005"]
 "scripts/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
 "skills/**/tests/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
 "skills/**/scripts/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
+"src/ai_rules/rule_matcher/**" = ["B008", "D101", "D102"]
+"src/ai_rules/progressive_eval/**" = ["D101", "D102"]
 
 [tool.ruff.format]
 quote-style = "double"

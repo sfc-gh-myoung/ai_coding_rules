@@ -1,31 +1,34 @@
 schema_version: 3
-updated: 2026-05-17T16:26:51-04:00
+updated: '2026-07-20T13:00:00-04:00'
 id: complex-snowcli-deploy
-description: # TODO
+description: null
 variant: complex
-prompt: |
-  We're moving from manual deploy steps to a snowcli driven flow. Our
+prompt: 'We''re moving from manual deploy steps to a snowcli driven flow. Our
+
   snowflake.yml currently lists three application objects but we now need to
-  split that into multi environment configurations and add a deploy step to
-  CI. Please review snowflake.yml, suggest the right partitioning, and walk
-  me through how to validate before promoting to prod.
+
+  split that into multi environment configurations and validate before
+
+  promoting to prod. What''s the right partitioning approach and what does the
+
+  deploy step look like in CI?
+
+  '
 expected:
   required:
-    - rules/000-global-core.md  # foundation (always loaded)
-    - rules/112-snowflake-snowcli.md  # suggested: kw: snowcli; file: snowflake.yml
+  - rules/000-global-core.md
+  - rules/112-snowflake-snowcli.md
   forbidden: []
   optional:
-    - rules/102a-snowflake-sql-automation.md  # kw: promoting to prod, multi environment  # legacy v3.2 keywords do not match prompt  # legacy v3.2 keywords do not match prompt
-    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
-      # missing: ext=.sql
-    - rules/102d-snowflake-sql-cicd.md  # demoted: kw entries don't substring-match prompt phrasing
+  - rules/102a-snowflake-sql-automation.md
+  - rules/100-snowflake-core.md
+  - rules/102d-snowflake-sql-cicd.md
 trigger_evidence:
-  kw: [multi environment, promoting to prod, snowcli]   # suggested
-    # n-gram (no rule): "currently lists three application"
-    # n-gram (no rule): "lists three application objects"
-    # n-gram (no rule): "three application objects but"
-    # n-gram (no rule): "yml currently lists three"
-    # n-gram (no rule): "a snowcli driven flow"
+  kw:
+  - multi environment
+  - promoting to prod
+  - snowcli
   ext: []
-  file: [snowflake.yml]   # suggested
+  file:
+  - snowflake.yml
   dir: []

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Systematic error classification for Snowflake connection errors using message-first analysis (never 1:1 error code mapping) to prevent misdiagnosis of network policy violations as authentication"
 last_updated: 2026-07-15
 keywords:
   - kw:connection error classification

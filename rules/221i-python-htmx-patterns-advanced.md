@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Advanced HTMX patterns: infinite scroll, real-time updates (SSE/polling), modals and drawers, and multi-step form wizards. For core patterns (CRUD, forms, search, progressive enhancement), see 221e."
 last_updated: 2026-07-15
 keywords:
   - kw:infinite scroll

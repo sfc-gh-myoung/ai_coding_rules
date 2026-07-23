@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Python code quality standards with Ruff as the recommended tool for linting and formatting. Covers command patterns for multiple toolchains (uv, poetry, pip), pyproject.toml configuration, pydocstyle"
 last_updated: 2026-07-15
 keywords:
   - kw:Ruff

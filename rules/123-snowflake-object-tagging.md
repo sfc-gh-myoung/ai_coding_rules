@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive best practices for Snowflake object tagging to enable effective data governance, cost attribution, security classification, and policy automation. Covers tag taxonomy design,"
 last_updated: 2026-07-15
 keywords:
   - kw:object tagging

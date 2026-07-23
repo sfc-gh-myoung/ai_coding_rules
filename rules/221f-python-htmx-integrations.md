@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Integration patterns for using HTMX with popular frontend libraries and frameworks including Alpine.js, _hyperscript, CSS frameworks (Tailwind, Bootstrap), icon libraries, and visualization libraries."
 last_updated: 2026-07-15
 keywords:
   - kw:Alpine.js HTMX

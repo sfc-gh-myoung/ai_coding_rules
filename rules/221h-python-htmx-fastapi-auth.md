@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Authentication, Server-Sent Events (SSE), and CSRF protection patterns for FastAPI+HTMX applications. Split from 221c to keep rule sizes manageable."
 last_updated: 2026-07-15
 keywords:
   - kw:FastAPI HTMX authentication

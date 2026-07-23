@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Comprehensive deployment guidance for Streamlit applications in Snowflake, covering runtime selection (Container vs Warehouse), dependency management, External Access Integration (EAI) setup, and"
 last_updated: 2026-07-15
 keywords:
   - kw:container runtime

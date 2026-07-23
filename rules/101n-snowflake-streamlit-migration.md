@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Streamlit deployment migration patterns: Warehouse ↔ Container Runtime migrations, in-place upgrades within the same runtime (e.g., updating Streamlit version or dependencies), and safe swap"
 last_updated: 2026-07-15
 keywords:
   - kw:Streamlit runtime migration

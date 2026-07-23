@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Language-agnostic design principles for building command-line applications, synthesized as a checklist from the Command Line Interface Guidelines (https://clig.dev). Applies to CLIs written in"
 last_updated: 2026-07-15
 keywords:
   - kw:clig.dev principles

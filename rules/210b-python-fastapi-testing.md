@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive testing strategies for FastAPI applications. Covers TestClient usage, pytest-asyncio for async tests, test database fixtures, dependency overrides, AAA pattern, mocking external"
 last_updated: 2026-07-15
 keywords:
   - kw:TestClient fixture

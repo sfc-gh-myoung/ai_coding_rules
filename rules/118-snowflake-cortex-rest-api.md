@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Production patterns for Cortex REST API: retry logic with exponential backoff, idempotency keys, cost controls, observability, and REST vs AISQL decision guidance."
 last_updated: 2026-07-15
 keywords:
   - kw:cortex rest api

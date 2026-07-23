@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Troubleshooting and debugging patterns for both file-based Snowpipe and Snowpipe Streaming. Covers common issues, error resolution strategies, debugging checklists, and diagnostic queries for"
 last_updated: 2026-07-15
 keywords:
   - kw:snowpipe debugging

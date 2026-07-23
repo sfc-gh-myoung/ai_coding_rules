@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Flask-specific integration patterns for HTMX applications, covering Flask-HTMX extension usage, blueprint organization, route decorators, session management, and Flask-specific authentication"
 last_updated: 2026-07-15
 keywords:
   - kw:Flask-HTMX extension

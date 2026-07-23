@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Guidelines for creating and maintaining validated example files that accompany complex rule files in the rules/examples/ directory."
 last_updated: 2026-07-15
 keywords:
   - kw:rule examples

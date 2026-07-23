@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Core datetime handling in Python and Pandas: type system, conversions, parsing, timezone management, and anti-patterns for type-safe datetime operations."
 last_updated: 2026-07-15
 keywords:
   - kw:datetime type conversion

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Core patterns for generating realistic test data using Python's Faker library, covering setup, providers, seeding, and data generation classes."
 last_updated: 2026-07-15
 keywords:
   - kw:Faker library

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Core guide for running ai-rules validate against v3.2 rules. Covers command usage, interpreting validation output, resolving common errors, and understanding severity levels."
 last_updated: 2026-07-15
 keywords:
   - kw:ai-rules validate

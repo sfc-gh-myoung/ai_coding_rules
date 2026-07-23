@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.1
+description: "Clear, reproducible guidance for installing, invoking, and automating Snowflake CLI (SnowCLI) with hermetic, pinned execution. Covers uvx usage, build automation integration, profile/env var"
 last_updated: 2026-07-15
 keywords:
   - kw:snowflake.yml

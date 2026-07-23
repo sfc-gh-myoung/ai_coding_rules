@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive best practices for Snowflake Feature Store: creating, maintaining, and serving ML features with consistency and reusability. Covers feature engineering, entity modeling, feature views"
 last_updated: 2026-07-15
 keywords:
   - kw:feature store

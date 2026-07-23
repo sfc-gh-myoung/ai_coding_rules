@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "The mandatory Pre-Task-Completion Validation Gate for all Python tasks: linting, formatting, type checking, syntax validation, test execution, and documentation updates. Includes the ty vs mypy"
 last_updated: 2026-07-15
 keywords:
   - kw:pre-task completion gate

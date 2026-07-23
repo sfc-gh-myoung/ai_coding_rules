@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Where short-life, in-progress, or scratch project assets live in the repository. Establishes .workbench/ at the repo root as the single canonical home for workbench artifacts so long-lived"
 last_updated: 2026-07-15
 keywords:
   - kw:.workbench/ folder

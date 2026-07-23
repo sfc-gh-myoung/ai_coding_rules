@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Development workflows for Semantic Views including the Semantic View Generator tool, Verified Query Repository (VQR) for YAML semantic models, and iterative refinement patterns."
 last_updated: 2026-07-15
 keywords:
   - kw:semantic view generator

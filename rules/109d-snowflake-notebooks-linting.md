@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Code quality tooling and linting configuration for Jupyter Notebooks using nbqa and Ruff, including automation integration, common linting issues, Ruff configuration, and when to skip linting."
 last_updated: 2026-07-15
 keywords:
   - kw:nbqa

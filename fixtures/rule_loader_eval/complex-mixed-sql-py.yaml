@@ -1,29 +1,32 @@
 schema_version: 3
-updated: 2026-05-17T16:26:51-04:00
+updated: '2026-07-20T13:00:00-04:00'
 id: complex-mixed-sql-py
 description: Python ingest loader + SQL transformation in a single analytics deploy
 variant: complex
-prompt: |
-  We're standing up a new analytics product. Step one is to add a Python
-  loader at ingest/loader.py that reads from S3 and writes a raw landing
-  table. Step two is a transformation in transforms/clean.sql that produces
-  a curated view with aggregate metrics. Walk me through both steps,
-  including how to coordinate them in a single deploy.
+prompt: 'We''re standing up a new analytics product. What''s the recommended approach for
+
+  a Python loader at ingest/loader.py that reads from S3 and writes a raw
+
+  landing table, combined with a transformation in transforms/clean.sql that
+
+  produces a curated view with aggregate metrics? How should both steps be
+
+  coordinated in a single deploy?
+
+  '
 expected:
   required:
-    - rules/000-global-core.md  # foundation (always loaded)
-    - rules/102-snowflake-sql-core.md  # direct: ext:.sql (transforms/clean.sql)
-    - rules/200-python-core.md  # direct: ext:.py (ingest/loader.py)
+  - rules/000-global-core.md
+  - rules/102-snowflake-sql-core.md
+  - rules/200-python-core.md
   forbidden: []
   optional:
-    - rules/100-snowflake-core.md  # dep of 102 — enforced by global depends gate (R8)
+  - rules/100-snowflake-core.md
 trigger_evidence:
-  kw: [sql]   # suggested
-    # n-gram (no rule): "curated view with aggregate"
-    # n-gram (no rule): "me through both steps"
-    # n-gram (no rule): "view with aggregate metrics"
-    # n-gram (no rule): "Walk me through both"
-    # n-gram (no rule): "writes a raw landing"
-  ext: [.py, .sql]   # suggested
+  kw:
+  - sql
+  ext:
+  - .py
+  - .sql
   file: []
   dir: []

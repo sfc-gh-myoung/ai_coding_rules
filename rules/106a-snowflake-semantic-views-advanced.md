@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Advanced semantic view patterns: anti-patterns, validation rules, quality checks, compliance."
 last_updated: 2026-07-15
 keywords:
   - kw:semantic view anti-patterns

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Infrastructure security hardening for FastAPI applications. Covers CORS configuration, security headers, rate limiting, input validation, SQL injection prevention, XSS prevention, and production"
 last_updated: 2026-07-15
 keywords:
   - kw:FastAPI hardening

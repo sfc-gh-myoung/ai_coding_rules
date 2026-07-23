@@ -1,0 +1,40 @@
+schema_version: 4
+updated: '2026-07-20T13:00:00-04:00'
+id: behavioral-streamlit-navigation
+description: Verifies agent uses st.navigation and st.Page for Streamlit multi-page apps and avoids unsafe_allow_html
+variant: behavioral
+prompt: 'What''s needed to add a new settings page to a Streamlit app that uses st.navigation?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/101-snowflake-streamlit-core.md
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw:
+  - streamlit
+  - navigation
+  - page
+  ext:
+  - .py
+  file: []
+  dir: []
+behavioral_checks:
+- id: uses-st-navigation
+  description: Agent uses st.navigation for page routing
+  rule_source: rules/101-snowflake-streamlit-core.md
+  check_type: output_pattern
+  pattern: st\.navigation
+- id: no-unsafe-html
+  description: Agent does not use unsafe_allow_html
+  rule_source: rules/101-snowflake-streamlit-core.md
+  check_type: output_absent
+  pattern: unsafe_allow_html
+- id: uses-st-page
+  description: Agent uses st.Page to define pages
+  rule_source: rules/101-snowflake-streamlit-core.md
+  check_type: output_pattern
+  pattern: st\.Page
+architecture_mode: both

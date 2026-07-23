@@ -118,7 +118,9 @@ display-only and cannot satisfy Gate 2.
       "context_tier": "Critical|High|Medium|Low",
       "token_estimate": 2550,
       "layer": "FOUNDATION|HARD|SOFT",
-      "required": true
+      "required": true,
+      "read_required": true,
+      "description": "One-sentence summary sourced from the rule's desc= field in RULES_INDEX.md. Optional; populated when desc= is present."
     }
   ],
   "deferred_rules": [
@@ -132,7 +134,12 @@ display-only and cannot satisfy Gate 2.
       "layer": "SOFT",
       "deferred_because": "ContextTier Low and total estimated context exceeded the configured token-budget cap"
     }
-  ]
+  ],
+  "execution_hints": {
+    "expected_turns_per_fixture": 3,
+    "max_output_tokens": 1000,
+    "note": "Advisory only. Calibrated from opus-4-6 baseline (91 turns / 35 fixtures ≈ 2.6 turns/fixture; 19k output tokens / 35 fixtures ≈ 543 tokens/fixture)."
+  }
 }
 ```
 
@@ -246,6 +253,48 @@ not yet been updated; the skill itself emits v2 by default.
 **Second-pass workflow:** see `workflows/second-pass-confirmation.md` for the
 Phase 3.5 filter algorithm, cap, latency budget, and cache invariants that
 produce the `second_pass` annotations and `second_pass_evidence` root list.
+
+## Python Script Invocation (Primary Path)
+
+Starting with skill version `2.1.0`, rule discovery is delegated to the
+deterministic Python matcher (`src/ai_rules/rule_matcher/`).  The sub-agent
+or skill executor invokes it as:
+
+```bash
+python -m ai_rules.rule_matcher \
+  --keywords "streamlit,deploy" \
+  --extensions ".py" \
+  --paths "src/app.py" \
+  --rules-dir ./rules \
+  --format manifest-v2
+```
+
+**Exit codes:**
+- `0` — success, at least one rule matched; stdout contains `rule-loader-manifest/v2` JSON.
+- `1` — no rules matched; stdout contains valid JSON with `load_sequence: []`.
+- `2` — fatal error (e.g. `--rules-dir` not found); stdout is empty, error on stderr.
+
+**Fallback path (script unavailable or exits 2):** Return the empty-manifest
+sentinel to the main agent:
+
+```json
+{
+  "schema_version": "rule-loader-manifest/v2",
+  "error": "matcher_unavailable",
+  "load_sequence": [],
+  "deferred_rules": [],
+  "candidate_rules": [],
+  "warnings": []
+}
+```
+
+The main agent treats this as a Gate 2 failure and automatically falls through
+to the Step 2B grep fallback (RULES_INDEX.md grep / read_file).  No manual
+intervention is required.
+
+**RULES_INDEX.md status:** Retained for the Step 2B fallback path. Deprecated
+as the primary discovery mechanism.  Do not remove until all three model eval
+suites pass their targets and AC-11 (round-trip parity) is verified.
 
 ## Workflow
 

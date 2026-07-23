@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Curating minimal viable tool sets for AI agents. Covers deciding the right number of tools, when to split complex tools into focused ones, when to merge related tools for efficiency, and maintaining"
 last_updated: 2026-07-15
 keywords:
   - kw:tool set curation

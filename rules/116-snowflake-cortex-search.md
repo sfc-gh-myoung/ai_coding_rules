@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Patterns for building and querying Cortex Search indices: data preparation, embedding hygiene, metadata filters, agent tool configuration, and cost/latency optimization."
 last_updated: 2026-07-15
 keywords:
   - kw:cortex search service

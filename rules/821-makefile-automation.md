@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Core directives for creating and maintaining project automation using Makefiles, ensuring consistent, portable, and well-documented target management with GNU Make."
 last_updated: 2026-07-15
 keywords:
   - kw:GNU Make

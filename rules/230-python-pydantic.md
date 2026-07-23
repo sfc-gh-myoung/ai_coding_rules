@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Model definition and field validation patterns using Pydantic v2, covering BaseModel design, Field() constraints, custom validators, and anti-patterns."
 last_updated: 2026-07-15
 keywords:
   - kw:BaseModel inheritance

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Authentication and authorization patterns for FastAPI applications. Covers JWT token authentication, OAuth2 password flow, password hashing (bcrypt), role-based access control (RBAC), token refresh,"
 last_updated: 2026-07-15
 keywords:
   - kw:JWT authentication

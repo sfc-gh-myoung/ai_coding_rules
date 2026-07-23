@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Datetime integration with SQL databases, Streamlit, and Plotly including SQL safety (parameterized queries), date input widgets, and display formatting."
 last_updated: 2026-07-15
 keywords:
   - kw:parameterized queries datetime

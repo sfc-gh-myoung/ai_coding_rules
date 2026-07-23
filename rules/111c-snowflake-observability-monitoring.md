@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Monitoring, analysis, and cost management for Snowflake observability. Covers monitoring query patterns, troubleshooting workflows, System Views vs Event Tables selection, and telemetry cost"
 last_updated: 2026-07-15
 keywords:
   - kw:ACCOUNT_USAGE views

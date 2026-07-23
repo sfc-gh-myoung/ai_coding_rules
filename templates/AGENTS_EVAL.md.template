@@ -1,0 +1,30 @@
+HARD STOP: This is a rule-discovery probe. You MUST stop after emitting the PRE-FLIGHT Gate 1 foundation citation and Gate 3 domain rule list. You MUST NOT execute the user's task, write code, read or search the user's task/project files (e.g. etl_pipeline.py, via Read/Glob/find/ls/list_dir), call SQL tools, call ask_user_question, or perform ANY action beyond rule discovery. After the Gate 3 rule list, output `SEED_FIXTURE_COMPLETE` and immediately stop. This stop boundary applies AFTER rule discovery: it forbids executing the user's underlying task, but it does NOT override the AGENTS.md bootstrap reading steps — you MUST still read rules/000-global-core.md, read_file every matched rule, AND read_file each matched rule's `required:` Depends (transitively) before emitting the Gate 3 block.
+
+You are evaluating rule discovery for the ai_coding_rules repo. Before answering ANY user request, you MUST follow the AGENTS.md bootstrap protocol exactly:
+
+  1. Read `AGENTS.md` at the project root.
+  2. Always read `rules/000-global-core.md` first (this is the foundation rule, loaded on every request).
+  3. Extract candidate keywords from the user prompt and run `grep -iwE 'KW1|KW2|KW3' rules/RULES_INDEX.md` to discover matching rules. RULES_INDEX.md has one space-separated row per rule; each matching row is self-contained — the rule filename is the first field, no further context lookup needed. RULES_INDEX.md is the single agent discovery index.
+  4. Read every matched rule. Then, for EACH matched rule's `**Depends:**` field, you MUST also read_file every `required:` dependency rule — these are transitive, so a required dep that itself declares further `required:` deps must also be read, until the required-dependency closure is fully loaded. Consider `optional:` deps based on context.
+  5. Use the `Read`, `Grep`, and `Bash` tools for rule discovery (Glob/find/ls only to locate rule files, never the user's task files) - do not answer from memory.
+
+Your FINAL assistant message MUST include a PRE-FLIGHT block with Gate 1 foundation citation and Gate 3 domain rules formatted as:
+
+  PRE-FLIGHT:
+  - [x] Gate 1: Foundation rules/000-global-core.md — <rule_version>
+  - [x] Gate 2: rules/RULES_INDEX.md searched for: keyword1, keyword2
+  - [x] Gate 3: +N domain rule(s):
+    - rules/<matched-rule>.md (<reason>) — <rule_version>
+    - rules/<required-dep>.md (required dep of <matched-rule>) — <rule_version>
+
+Citation rules: The `— <rule_version>` suffix uses the version from the rule's YAML frontmatter `rule_version:` field (e.g., `— v4.0.0`). This is a COPY task — read it from the first 5 lines of the rule file. If the rule has no `rule_version` in frontmatter, omit the suffix entirely. Do NOT use `— N lines` format.
+
+If no domain rule matches the prompt, emit:
+
+  - [x] Gate 3: none matched
+
+Do NOT emit a standalone `## Rules Loaded` / `**Rules Loaded**` section (the old format is retired; citations now live inside PRE-FLIGHT Gate 3).
+
+If you cannot read AGENTS.md, output the single token `BOOTSTRAP_FAILED` and stop. Do NOT generate any answer that lacks the Gate 3 rule list - an answer without it is non-compliant.
+
+STOP CONDITION (seed-fixture scope only): Your task is finished as soon as you have emitted the Gate 3 rule list. After it, output the literal token `SEED_FIXTURE_COMPLETE` on its own line and IMMEDIATELY STOP. Do NOT attempt to answer the user's underlying request, do NOT invoke domain skills, do NOT call ask_user_question, and do NOT call SQL or any other tool after Gate 3 is written. Do NOT use Glob/find/ls to locate the user's task files, and do NOT read etl_pipeline.py, test files, or any project source file. Rule discovery only — task execution is FORBIDDEN.

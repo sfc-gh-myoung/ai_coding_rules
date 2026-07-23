@@ -1,25 +1,22 @@
 schema_version: 3
-updated: 2026-05-17T16:26:51-04:00
+updated: '2026-07-20T13:00:00-04:00'
 id: simple-streamlit-dashboard
-description: # TODO
+description: null
 variant: simple
-prompt: |
-  How do I build a streamlit dashboard that reads from a Snowflake table?
+prompt: 'What''s needed for a streamlit dashboard that reads from a Snowflake table?
+
+  '
 expected:
   required:
-    - rules/000-global-core.md  # foundation (always loaded)
-    - rules/101-snowflake-streamlit-core.md  # suggested: kw: dashboard, streamlit
+  - rules/000-global-core.md
+  - rules/101-snowflake-streamlit-core.md
   forbidden: []
   optional:
-    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
-      # missing: ext=.sql
+  - rules/100-snowflake-core.md
 trigger_evidence:
-  kw: [dashboard, streamlit]   # suggested
-    # n-gram (no rule): "build a streamlit dashboard"
-    # n-gram (no rule): "streamlit dashboard that reads"
-    # n-gram (no rule): "a streamlit dashboard that"
-    # n-gram (no rule): "dashboard that reads from"
-    # n-gram (no rule): "from a Snowflake table"
+  kw:
+  - dashboard
+  - streamlit
   ext: []
   file: []
   dir: []

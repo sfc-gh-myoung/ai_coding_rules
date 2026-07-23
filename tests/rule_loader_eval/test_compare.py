@@ -26,6 +26,7 @@ from ai_rules.rule_loader_eval.snapshot import (
     Snapshot,
     SnapshotMeta,
     compute_summary,
+    write_eval_snapshot,
 )
 
 
@@ -555,3 +556,66 @@ def test_render_merge_summary_suppresses_token_lines_when_zero() -> None:
     lines = render_merge_summary(snap, n_inputs=2)
     joined = "\n".join(lines)
     assert "median input tokens" not in joined
+
+
+# ---------------------------------------------------------------------------
+# P5: deterministic_fail in PerFixtureAggregate
+# ---------------------------------------------------------------------------
+
+
+def _agg_for(tmp_path: Path, rows: list) -> dict:
+    """Write a snapshot and return the aggregate per_fixture dict."""
+    write_eval_snapshot(tmp_path, rows, SnapshotMeta(label="p5-test"))
+    summary = json.loads((tmp_path / "summary.json").read_text())
+    return summary["per_fixture"]
+
+
+@pytest.mark.unit
+def test_deterministic_fail_true_when_all_fail(tmp_path: Path) -> None:
+    """pass_rate=0.0, fails=1, n_runs=1 → deterministic_fail=True."""
+    agg = _agg_for(tmp_path, [_row("fx", passed=False)])
+    assert agg["fx"]["deterministic_fail"] is True
+
+
+@pytest.mark.unit
+def test_deterministic_fail_false_when_no_runs(tmp_path: Path) -> None:
+    """A fixture with n_runs=0 / passes=0 / fails=0 → deterministic_fail=False (no runs case).
+
+    In the single-pass write path, a fixture with no runs is represented as
+    passed=True with n_runs=0.  deterministic_fail must be False because
+    there are no actual fail observations.
+    """
+    row = FixtureSnapshot(
+        fixture_id="fx-noruns",
+        passed=False,
+        loaded=(),
+        expected_required=(),
+        expected_dependencies=(),
+        expected_optional=(),
+        expected_forbidden=(),
+        missing_required=(),
+        missing_dependencies=(),
+        forbidden_present=(),
+        signal_disagreements=0,
+        citation_drifts=0,
+        turns=0,
+        duration_ms=0,
+        n_runs=0,
+    )
+    write_eval_snapshot(tmp_path, [row], SnapshotMeta(label="p5-noruns"))
+    summary = json.loads((tmp_path / "summary.json").read_text())
+    assert summary["per_fixture"]["fx-noruns"]["deterministic_fail"] is False
+
+
+@pytest.mark.unit
+def test_deterministic_fail_false_when_flaky(tmp_path: Path) -> None:
+    """A fixture that sometimes passes (pass_rate>0) → deterministic_fail=False (flaky)."""
+    agg = _agg_for(tmp_path, [_row("fx-pass", passed=True), _row("fx-fail", passed=False)])
+    assert agg["fx-pass"]["deterministic_fail"] is False
+
+
+@pytest.mark.unit
+def test_deterministic_fail_false_when_all_pass(tmp_path: Path) -> None:
+    """pass_rate=1.0, fails=0 → deterministic_fail=False."""
+    agg = _agg_for(tmp_path, [_row("fx", passed=True)])
+    assert agg["fx"]["deterministic_fail"] is False

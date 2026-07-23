@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v5.0.0
+description: "Comprehensive security guidance for Streamlit applications including input validation with bounds checking, secrets management via st.secrets, SQL injection prevention with parameterized queries,"
 last_updated: 2026-07-15
 keywords:
   - kw:st.secrets

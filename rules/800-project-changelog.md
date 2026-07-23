@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Maintaining high-signal, audit-friendly CHANGELOG.md following Keep a Changelog standard with feature-focused Conventional Commits-style entries for consistent project change documentation."
 last_updated: 2026-07-15
 keywords:
   - kw:CHANGELOG.md

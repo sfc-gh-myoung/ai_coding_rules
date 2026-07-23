@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Step-by-step workflow for creating new rules from scratch. Covers rule numbering, naming conventions, metadata setup, v3.5 section structure, Contract with Markdown headers, and validation. For"
 last_updated: 2026-07-15
 keywords:
   - kw:rule creation workflow

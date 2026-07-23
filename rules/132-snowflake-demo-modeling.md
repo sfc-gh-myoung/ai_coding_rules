@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive data generation and modeling standards for Business Analysts, Executive Users, Data Scientists, and Data Engineers. Covers naming conventions, Kimball dimensional modeling, view"
 last_updated: 2026-07-15
 keywords:
   - kw:Kimball dimensional modeling

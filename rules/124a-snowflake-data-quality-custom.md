@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Patterns for creating custom Data Metric Functions (DMFs) and expectations to implement business-specific quality rules and validation logic beyond system DMFs. Covers custom DMF creation, business"
 last_updated: 2026-07-15
 keywords:
   - kw:custom DMF creation

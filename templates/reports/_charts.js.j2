@@ -32,10 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const passRateCtx = document.getElementById('passRateChart');
   if (passRateCtx) {
     const tierColor = (rate) => {
-      if (rate >= 98) return '#10B981';
+      if (rate >= 95) return '#10B981';
       if (rate >= 90) return '#F59E0B';
-      if (rate >= 50) return '#EF4444';
-      return '#991B1B';
+      if (rate >= 85) return '#F97316';
+      return '#EF4444';
     };
     new Chart(passRateCtx, {
       type: 'bar',
@@ -130,8 +130,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const td = document.createElement('td');
       td.textContent = r + '%';
       td.style.fontWeight = '700';
-      if (r >= 98) td.style.color = 'var(--sf-green)';
+      if (r >= 95) td.style.color = 'var(--sf-green)';
       else if (r >= 90) td.style.color = 'var(--sf-amber)';
+      else if (r >= 85) td.style.color = 'var(--sf-orange)';
       else td.style.color = 'var(--sf-red)';
       sumRow.appendChild(td);
     });
@@ -141,13 +142,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // ===== Performance Tab Charts =====
   const scatterCtx = document.getElementById('scatter-chart');
   if (scatterCtx) {
-    const tierColors = { compliant: '#10B981', partial: '#F59E0B', 'non-compliant': '#F97316', failed: '#991B1B' };
+    const tierColors = { compliant: '#10B981', partial: '#F59E0B', low: '#F97316', 'non-compliant': '#EF4444' };
     const perfPoints = chartData.labels.map((model, i) => ({
       model,
       turns: chartData.avg_turns[i],
       dur: chartData.avg_durations[i],
       rate: chartData.pass_rates[i],
-      tier: chartData.pass_rates[i] >= 98 ? 'compliant' : chartData.pass_rates[i] >= 90 ? 'partial' : chartData.pass_rates[i] >= 50 ? 'non-compliant' : 'failed'
+      tier: chartData.pass_rates[i] >= 95 ? 'compliant' : chartData.pass_rates[i] >= 90 ? 'partial' : chartData.pass_rates[i] >= 85 ? 'low' : 'non-compliant'
     }));
 
     new Chart(scatterCtx, {

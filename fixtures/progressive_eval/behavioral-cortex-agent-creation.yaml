@@ -1,0 +1,37 @@
+schema_version: 4
+updated: '2026-07-20T13:00:00-04:00'
+id: behavioral-cortex-agent-creation
+description: Verifies agent creates Cortex Agent with search service and proper instruction configuration
+variant: behavioral
+prompt: 'What''s needed to set up a Cortex Agent that answers questions about our product documentation using Cortex Search?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/115-snowflake-cortex-agents-core.md
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw:
+  - cortex
+  - agent
+  - search
+  - create
+  ext:
+  - .sql
+  - .yaml
+  file: []
+  dir: []
+behavioral_checks:
+- id: creates-search-service
+  description: Agent includes Cortex Search Service creation or reference
+  rule_source: rules/115-snowflake-cortex-agents-core.md
+  check_type: output_pattern
+  pattern: CREATE.*CORTEX SEARCH SERVICE|cortex_search
+- id: includes-instructions
+  description: Agent configures planning or response instructions for the agent
+  rule_source: rules/115-snowflake-cortex-agents-core.md
+  check_type: output_pattern
+  pattern: planning[._]instructions|response[._]instructions
+architecture_mode: both

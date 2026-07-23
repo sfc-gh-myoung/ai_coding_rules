@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Complete layer pattern reference for PyDeck visualization, including 8 layer types and multi-layer composition."
 last_updated: 2026-07-15
 keywords:
   - kw:pydeck layer types

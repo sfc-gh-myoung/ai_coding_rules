@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Establishes the definitive standards for writing production-grade TypeScript in 2026. This rule enforces Strict Mode, prioritizes Type Inference over manual typing, mandates Runtime Validation (Zod)"
 last_updated: 2026-07-15
 keywords:
   - kw:strict mode enforcement

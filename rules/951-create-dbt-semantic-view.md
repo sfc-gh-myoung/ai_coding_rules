@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Guide creation of Snowflake semantic views using the dbt-snowflake native integration through the `dbt_semantic_view` package to materialize semantic views as native dbt models with version control, CI/CD integration, and lineage tracking"
 last_updated: 2026-07-15
 keywords:
   - kw:dbt_semantic_view package

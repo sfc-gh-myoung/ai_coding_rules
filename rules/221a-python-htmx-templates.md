@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Jinja2 template organization patterns for HTMX applications, covering partial rendering, fragment composition, conditional template logic, and reusable component strategies for hypermedia-driven"
 last_updated: 2026-07-15
 keywords:
   - kw:Jinja2 partials

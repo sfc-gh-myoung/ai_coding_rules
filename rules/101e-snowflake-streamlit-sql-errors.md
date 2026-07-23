@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive SQL error handling patterns for Streamlit applications using SnowparkSQLException with error codes, query context display (table names, operations, filters), numbered queries for"
 last_updated: 2026-07-15
 keywords:
   - kw:SnowparkSQLException

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "PyDeck (deck.gl) visualization patterns for Streamlit, including 3D visualizations, hexbin aggregation, terrain rendering, and large-scale geospatial data. PyDeck excels where Plotly reaches"
 last_updated: 2026-07-15
 keywords:
   - kw:pydeck

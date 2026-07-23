@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Configuration and environment management for Typer CLI applications using Pydantic Settings, including configuration precedence, environment variables, and CLI override patterns."
 last_updated: 2026-07-15
 keywords:
   - kw:Typer CLI configuration

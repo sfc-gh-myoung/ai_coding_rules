@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Authentication token types for Cortex REST API (PAT, OAuth, JWT vs session tokens), response format verification (JSON vs SSE detection), and complete Server-Sent Events (SSE) implementation:"
 last_updated: 2026-07-15
 keywords:
   - kw:Cortex REST authentication

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.1
+description: "Best practices for authoring Snowflake SQL Scripting stored procedures and user-defined functions (UDFs). Covers body delimiter selection ($$ vs single quotes), nested quoting strategies, the EXECUTE"
 last_updated: 2026-07-15
 keywords:
   - kw:SQL scripting

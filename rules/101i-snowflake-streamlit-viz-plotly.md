@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Deep patterns for Plotly visualization in Streamlit, including Plotly Express for rapid development, Graph Objects for custom visualizations, advanced features like animations, faceting, and subplots."
 last_updated: 2026-07-15
 keywords:
   - kw:plotly express

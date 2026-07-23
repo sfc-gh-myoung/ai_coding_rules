@@ -1,0 +1,43 @@
+schema_version: 4
+updated: '2026-07-20T13:00:00-04:00'
+id: behavioral-multi-rule-streamlit-test
+description: Verifies agent uses AppTest for Streamlit testing with pytest conventions when multiple rules apply
+variant: behavioral
+prompt: 'What''s the recommended approach for writing tests for my Streamlit dashboard''s data filtering component using pytest?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/200-python-core.md
+  - rules/206-python-pytest.md
+  - rules/101d-snowflake-streamlit-testing.md
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw:
+  - streamlit
+  - test
+  - pytest
+  - dashboard
+  ext:
+  - .py
+  file: []
+  dir: []
+behavioral_checks:
+- id: uses-apptest
+  description: Agent uses Streamlit's AppTest framework for testing
+  rule_source: rules/101d-snowflake-streamlit-testing.md
+  check_type: output_pattern
+  pattern: AppTest
+- id: uses-test-functions
+  description: Agent defines pytest-style test functions
+  rule_source: rules/206-python-pytest.md
+  check_type: output_pattern
+  pattern: def test_
+- id: uses-assertions
+  description: Agent includes assertions in tests
+  rule_source: rules/206-python-pytest.md
+  check_type: output_pattern
+  pattern: assert
+architecture_mode: both

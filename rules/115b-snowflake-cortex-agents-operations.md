@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Operational patterns for Cortex Agents: investigation protocol, output format examples, agent plan/configuration templates, and anti-patterns for RBAC, testing, and cost management."
 last_updated: 2026-07-15
 keywords:
   - kw:agent RBAC

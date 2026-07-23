@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Patterns for implementing checkpoint validation cells and teaching point callouts in educational Snowflake notebooks, including validation gate structure, actionable error messages, and inline"
 last_updated: 2026-07-15
 keywords:
   - kw:notebook checkpoint validation

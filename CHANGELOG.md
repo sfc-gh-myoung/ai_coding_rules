@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **feat(rule-matcher):** add deterministic python-based rule matcher (`src/ai_rules/rule_matcher/`) that scores rules against user keywords + file context using phrase/bigram/word matching (10/5/1), resolves frontmatter-declared dependencies, and replaces RULES_INDEX.md grep-based discovery.
+- **feat(rule-matcher):** add `description:` field to all ~192 rule frontmatter files for improved manifest selection hints.
+- **feat(progressive-eval):** add version-based citation drift detection for progressive mode — compares declared `vX.Y.Z` against rule frontmatter `rule_version` instead of line counts.
+- **feat(eval):** add `deterministic_fail: bool` field to `PerFixtureAggregate` distinguishing fixtures that always fail (0/5) from flaky or never-failing fixtures.
+- **feat(eval):** add progressive zero-reads hard-fail signal (`progressive-zero-reads-hard-fail`) that catches models citing rules without calling `read_file`.
+- **feat(report):** add personality profiles, role routing, optimism spectrum, and anti-patterns to Recommendations tab sourced from model-trait-bench research.
+- **feat(fixtures):** add 12 behavioral eval fixtures exercising multi-rule loading, high-risk actions, token budgets, surgical edits, and cross-domain prompts for progressive-mode regression coverage.
+- **feat(report):** add Architecture tab with inline SVG system diagram showing rule library, protocol, and eval benchmark subsystems.
+
+### Changed
+
+- **feat(rule-matcher):** make score primary sort key (strongest matches first) with tier as tiebreaker, replacing the previous tier-first sort that evicted high-scoring Medium-tier rules.
+- **feat(eval):** progressive mode now uses version-based citation drift exclusively; line-count drift skipped.
+- **feat(report):** update compliance tier thresholds from 98/90/50 to 95/90/85 for green/yellow/orange/red color coding across all report templates.
+- **feat(cli):** `--progressive` flag now automatically writes results to `results/progressive/` subdirectory.
+- **feat(progressive-eval):** adapter extracts compound keywords, file extensions, filenames, and directory paths from user prompts for deterministic matcher input.
+- **feat(rule-loader):** add `loading_contract`, `read_required`, `execution_hints`, and `description` fields to manifest schema (additive within `rule-loader-manifest/v1`).
+
+### Fixed
+
+- **fix(report):** resolve failure mode distribution table showing all dashes in progressive reports by storing full result directory path instead of basename only.
+- **fix(rule-matcher):** prevent false-positive phrase matches where single common words (e.g., "query", "table") scored 10 against multi-word rule keywords; require ≥50% word coverage for phrase-level scoring.
+- **fix(rule-matcher):** protect foundation rules (`000-*`) and dependency-only rules from token-budget eviction in manifest builder.
+- **fix(rule-matcher):** add `.yml`/`.yaml` extension normalization and nested file/dir pattern matching support.
+
+### Changed
+
+- **refactor(fixtures):** reframe all 16 imperative-framed eval fixtures to use question/neutral phrasing to prevent models from triggering skill invocations or task execution during discovery probes.
+- **feat(fixtures):** split `simple-cortex-agent-build` into 3 focused fixtures (`simple-cortex-agent-build`, `simple-cortex-agent-instructions`, `simple-cortex-agent-semantic-view`) to eliminate 26-turn/4.4M-token runaway behavior.
+
 ### Fixed
 
 - **fix(docs):** correct stale "5-20 keywords" to "5-7" in CONTRIBUTING.md and USING_RULE_CREATOR_SKILL.md to match enforced v3.5 cap.

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Operational patterns for Snowflake Model Registry including cost governance, storage/compute optimization, administrative queries, model maintenance, CI/CD integration, and compliance documentation."
 last_updated: 2026-07-15
 keywords:
   - kw:model registry operations

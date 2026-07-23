@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "JSDoc-based documentation standards for JavaScript projects. Covers type annotations in doc comments, eslint-plugin-jsdoc configuration, API documentation patterns, and TypeScript-powered type"
 last_updated: 2026-07-15
 keywords:
   - kw:JSDoc type annotations

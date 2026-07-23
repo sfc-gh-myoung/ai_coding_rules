@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.3
+description: "Schema standards (v3.3) for AI coding rule files. Defines required sections, metadata fields, Contract structure, and validation requirements. All rules must comply with schemas/rule-schema.yml v3.3"
 last_updated: 2026-07-15
 keywords:
   - kw:rule schema compliance

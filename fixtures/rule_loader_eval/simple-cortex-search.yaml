@@ -1,25 +1,22 @@
 schema_version: 3
-updated: 2026-05-17T16:26:51-04:00
+updated: '2026-07-20T13:00:00-04:00'
 id: simple-cortex-search
-description: # TODO
+description: null
 variant: simple
-prompt: |
-  Set up a cortex search service over our document corpus.
+prompt: 'What''s needed to stand up a cortex search service over a document corpus?
+
+  '
 expected:
   required:
-    - rules/000-global-core.md  # foundation (always loaded)
-    - rules/116-snowflake-cortex-search.md  # suggested: kw: cortex search, search
+  - rules/000-global-core.md
+  - rules/116-snowflake-cortex-search.md
   forbidden: []
   optional:
-    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
-      # missing: ext=.sql
+  - rules/100-snowflake-core.md
 trigger_evidence:
-  kw: [cortex search, search]   # suggested
-    # n-gram (no rule): "a cortex search service over"
-    # n-gram (no rule): "cortex search service over our"
-    # n-gram (no rule): "over our document corpus"
-    # n-gram (no rule): "service over our document"
-    # n-gram (no rule): "up a cortex search service"
+  kw:
+  - cortex search
+  - search
   ext: []
   file: []
   dir: []

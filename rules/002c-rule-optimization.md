@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Guidelines for optimizing rule token budgets, sizing rules appropriately, and loading rules efficiently. Covers token budget tiers (Small: 1000-1999, Standard: 2000-3499, Large: 3500-4999, Reference:"
 last_updated: 2026-07-15
 keywords:
   - kw:token budget tiers

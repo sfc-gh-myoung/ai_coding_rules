@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Testing strategies (component, integration, business scenario) and RBAC configuration for Snowflake Cortex Agents including grant patterns, verification queries, and least-privilege enforcement."
 last_updated: 2026-07-15
 keywords:
   - kw:cortex agent testing

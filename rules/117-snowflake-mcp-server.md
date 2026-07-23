@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Authoritative, tool-agnostic guidance for using Snowflake's Snowflake-managed MCP server to expose governed Snowflake capabilities (Cortex Analyst/Search/Agents, SQL execution, and custom tools) to"
 last_updated: 2026-07-15
 keywords:
   - kw:MCP

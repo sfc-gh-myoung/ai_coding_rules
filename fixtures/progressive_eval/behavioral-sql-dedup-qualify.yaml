@@ -1,0 +1,42 @@
+schema_version: 4
+updated: '2026-07-20T13:00:00-04:00'
+id: behavioral-sql-dedup-qualify
+description: Verifies agent uses QUALIFY ROW_NUMBER and CTEs for Snowflake deduplication instead of nested subqueries
+variant: behavioral
+prompt: 'What''s the best Snowflake query pattern to deduplicate customer records by email, keeping the most recent entry?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/100-snowflake-core.md
+  - rules/102-snowflake-sql-core.md
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw:
+  - snowflake
+  - query
+  - deduplicate
+  - SQL
+  ext:
+  - .sql
+  file: []
+  dir: []
+behavioral_checks:
+- id: uses-qualify-row-number
+  description: Agent uses QUALIFY with ROW_NUMBER for deduplication (Snowflake-idiomatic pattern)
+  rule_source: rules/102-snowflake-sql-core.md
+  check_type: output_pattern
+  pattern: QUALIFY\s+ROW_NUMBER
+- id: uses-cte
+  description: Agent uses a CTE (WITH ... AS) for readability
+  rule_source: rules/102-snowflake-sql-core.md
+  check_type: output_pattern
+  pattern: WITH\s+\w+\s+AS
+- id: no-nested-subquery
+  description: Agent avoids nested subquery anti-pattern for deduplication
+  rule_source: rules/102-snowflake-sql-core.md
+  check_type: output_absent
+  pattern: FROM\s*\(\s*SELECT.*FROM\s*\(\s*SELECT
+architecture_mode: both

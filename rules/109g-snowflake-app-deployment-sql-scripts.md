@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Standardized SQL script templates for Snowflake application deployment operations: upload (PUT), remove (REMOVE), create (CREATE NOTEBOOK/STREAMLIT), drop (DROP), and CLI-based recursive upload"
 last_updated: 2026-07-15
 keywords:
   - kw:PUT AUTO_COMPRESS

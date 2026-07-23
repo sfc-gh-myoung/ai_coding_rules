@@ -1,21 +1,24 @@
 schema_version: 3
-updated: 2026-07-04T00:00:00Z
+updated: '2026-07-20T13:00:00-04:00'
 id: simple-warehouse
-description: # TODO
+description: null
 variant: simple
-prompt: |
-  Create a virtual warehouse creation script for our analytics team, using
-  the warehouse sizing strategy for interactive dashboards.
+prompt: 'What''s the recommended virtual warehouse creation strategy for an analytics
+
+  team, considering warehouse sizing strategy for interactive dashboards?
+
+  '
 expected:
   required:
-    - rules/000-global-core.md  # foundation (always loaded)
-    - rules/119-snowflake-warehouse-management.md  # matches: kw:warehouse configuration, kw:size warehouse
+  - rules/000-global-core.md
+  - rules/119-snowflake-warehouse-management.md
   forbidden: []
   optional:
-    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
-      # missing: ext=.sql
+  - rules/100-snowflake-core.md
 trigger_evidence:
-  kw: [virtual warehouse creation, warehouse sizing strategy]
+  kw:
+  - virtual warehouse creation
+  - warehouse sizing strategy
   ext: []
   file: []
   dir: []

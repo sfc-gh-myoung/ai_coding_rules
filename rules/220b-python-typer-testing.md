@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Testing strategies for Typer CLI applications including CliRunner setup, ANSI escape code suppression, integration testing, and mocking external dependencies."
 last_updated: 2026-07-15
 keywords:
   - kw:CliRunner

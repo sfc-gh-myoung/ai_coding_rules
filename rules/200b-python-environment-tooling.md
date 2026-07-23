@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Virtual environment management, tool isolation patterns (uvx vs uv run), detailed command patterns for each toolchain (uv, poetry, pip), environment setup best practices, troubleshooting common"
 last_updated: 2026-07-15
 keywords:
   - kw:venv

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "SQL file patterns specifically for Snowflake demos, workshops, and customer learning environments. Covers schema-based file naming (NN_<schema>_<operation>.sql), per-schema isolation with independent"
 last_updated: 2026-07-15
 keywords:
   - kw:demo sql

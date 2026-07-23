@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "The PRIMARY design priority for all rules: agent understanding and execution reliability. All rules are instruction sets for autonomous agents, not reference documents for humans."
 last_updated: 2026-07-15
 keywords:
   - kw:agent-first design

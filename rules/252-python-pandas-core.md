@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Core Pandas best practices: vectorization over loops, explicit indexing with .loc/.iloc, method chaining, conditional operations, and anti-pattern avoidance."
 last_updated: 2026-07-15
 keywords:
   - kw:pandas vectorization

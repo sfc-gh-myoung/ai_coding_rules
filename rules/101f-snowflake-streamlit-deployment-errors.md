@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v3.0.0
+description: "Deployment error scenarios and resolution steps for Streamlit applications in both Container Runtime and Warehouse Runtime environments."
 last_updated: 2026-07-15
 keywords:
   - kw:Streamlit deployment

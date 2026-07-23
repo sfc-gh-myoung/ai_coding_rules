@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Application configuration management using pydantic-settings, including BaseSettings patterns, environment variable loading, nested configuration, and startup validation."
 last_updated: 2026-07-15
 keywords:
   - kw:pydantic-settings

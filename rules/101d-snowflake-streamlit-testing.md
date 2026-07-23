@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive testing and debugging guidance for Streamlit applications using AppTest patterns (Streamlit 1.28+), unit testing strategies with pytest for data functions, mocking external services"
 last_updated: 2026-07-15
 keywords:
   - kw:AppTest

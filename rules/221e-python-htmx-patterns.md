@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Core HTMX implementation patterns: CRUD operations, form validation, search/autocomplete, and progressive enhancement. For advanced patterns (infinite scroll, modals, wizards, real-time), see 221i."
 last_updated: 2026-07-15
 keywords:
   - kw:HTMX CRUD

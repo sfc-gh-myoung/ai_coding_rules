@@ -1109,6 +1109,8 @@ def eval_cmd(
     )
 
     results_root = resolve_results_root(out_dir)
+    if progressive and out_dir is None:
+        results_root = results_root / "progressive"
     run_context = make_run_context(
         model_requested=model,
         effort=effort,

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "CI/CD pipeline patterns for automated Snowflake SQL deployments: Makefile integration, GitHub Actions workflows, and environment-specific variable management across dev/test/prod."
 last_updated: 2026-07-15
 keywords:
   - kw:Makefile targets

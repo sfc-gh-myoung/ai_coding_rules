@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Advanced Taskfile patterns including categorized help output, subtask file organization, cross-platform patterns, and AI agent integration considerations."
 last_updated: 2026-07-15
 keywords:
   - kw:taskfile includes

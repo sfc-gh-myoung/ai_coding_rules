@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive best practices for creating, configuring, and managing Snowflake virtual warehouses, including proper selection of warehouse types (CPU/GPU/High-Memory), mandatory GEN 2 preference,"
 last_updated: 2026-07-15
 keywords:
   - kw:virtual warehouse creation

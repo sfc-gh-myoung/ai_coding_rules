@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Pydantic v2 serialization, JSON schema generation, FastAPI integration, database ORM patterns, performance optimization, and model testing."
 last_updated: 2026-07-15
 keywords:
   - kw:model_dump serialization

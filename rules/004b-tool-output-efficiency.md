@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Designing token-efficient tool outputs for AI agents. Covers returning only necessary information, using structured parseable formats, progressive output for large results, and avoiding verbose"
 last_updated: 2026-07-15
 keywords:
   - kw:tool output minimization

@@ -15,6 +15,7 @@
   --sf-gray-900: #0F172A;
   --sf-green: #10B981;
   --sf-amber: #F59E0B;
+  --sf-orange: #F97316;
   --sf-red: #EF4444;
   --sf-violet: #7C3AED;
   --bg: light-dark(var(--sf-light-bg), var(--sf-gray-900));
@@ -292,6 +293,45 @@ footer {
   .two-col { grid-template-columns: 1fr; }
   h2 { font-size: 1.3rem; }
 }
+
+/* Personality table */
+.personality-table td, .personality-table th { padding: 0.5rem 0.75rem; }
+.personality-table tbody tr:hover { background: light-dark(var(--sf-gray-100), var(--sf-gray-700)); }
+
+/* Optimism spectrum bar */
+.optimism-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: light-dark(var(--sf-gray-100), var(--sf-gray-800));
+  border-radius: 8px;
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+.optimism-label-left, .optimism-label-right {
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0.6;
+}
+.optimism-models {
+  display: flex;
+  gap: 0.25rem;
+  flex: 1;
+  justify-content: space-between;
+}
+.optimism-chip {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono, monospace);
+  background: light-dark(var(--sf-white), var(--sf-gray-700));
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.optimism-models .optimism-chip:first-child { border-color: var(--sf-green); }
+.optimism-models .optimism-chip:last-child { border-color: var(--sf-red); }
 
 @media (max-width: 480px) {
   .kpi-grid { grid-template-columns: 1fr; }

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Best practices for building agentic AI applications with the Cortex Code Agent SDK (cortex-code-agent-sdk npm and PyPI packages) including session lifecycle, system prompts, streaming I/O, hooks,"
 last_updated: 2026-07-15
 keywords:
   - kw:cortex-code-agent-sdk

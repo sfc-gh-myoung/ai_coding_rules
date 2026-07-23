@@ -1,0 +1,46 @@
+schema_version: 4
+updated: '2026-07-20T13:00:00-04:00'
+id: behavioral-multi-phase-fix-test-docs
+description: Verifies agent follows read-edit-validate sequence for a multi-phase fix+test+docs task
+variant: behavioral
+prompt: 'What''s the right approach to fix the off-by-one error in the pagination function in src/paginator.py, add a test
+  for the fix, and update the docstring?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/200-python-core.md
+  - rules/206-python-pytest.md
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw:
+  - python
+  - fix
+  - test
+  - paginator
+  ext:
+  - .py
+  file:
+  - src/paginator.py
+  dir:
+  - src/
+behavioral_checks:
+- id: read-edit-validate-sequence
+  description: Agent reads the file before editing, then validates with a test run
+  rule_source: rules/000-global-core.md
+  check_type: tool_call_sequence
+  pattern: Read,Edit,Bash
+- id: writes-test-function
+  description: Agent creates a test function for the fix
+  rule_source: rules/206-python-pytest.md
+  check_type: output_pattern
+  pattern: def test_
+- id: runs-pytest
+  description: Agent runs pytest to validate the fix
+  rule_source: rules/000-global-core.md
+  check_type: tool_call_present
+  tool: Bash
+  pattern: pytest
+architecture_mode: both

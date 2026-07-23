@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Common anti-patterns in Snowflake SQL stored procedures and UDFs: incorrect delimiter usage, missing EXECUTE AS, SQL injection via string concatenation, literal $$ in bodies, and unqualified object"
 last_updated: 2026-07-15
 keywords:
   - kw:stored procedure anti-patterns

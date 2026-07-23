@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Advanced bash scripting patterns including associative arrays, performance optimization with built-ins, code style and formatting standards, ShellCheck integration, debugging techniques,"
 last_updated: 2026-07-15
 keywords:
   - kw:associative arrays

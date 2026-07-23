@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Distributed tracing and metrics collection patterns for Snowflake handlers using snowflake-telemetry-python package. Covers span creation, nested tracing hierarchies, performance analysis, bottleneck"
 last_updated: 2026-07-15
 keywords:
   - kw:snowflake-telemetry-python

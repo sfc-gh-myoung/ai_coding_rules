@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Establishes the definitive standards for developing scalable, maintainable React applications in 2026. This rule enforces \"Feature-based\" architecture, Server Components (RSC) usage, and modern state"
 last_updated: 2026-07-15
 keywords:
   - kw:feature-based architecture

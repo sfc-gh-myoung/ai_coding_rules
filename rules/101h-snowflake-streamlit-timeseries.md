@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Time-based aggregation and smoothing patterns for high-frequency data visualization in Streamlit applications."
 last_updated: 2026-07-15
 keywords:
   - kw:time series smoothing

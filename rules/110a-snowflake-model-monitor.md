@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "MODEL MONITOR integration for ML Observability including drift detection, performance monitoring, baseline/scoring table setup, schema alignment, and privilege configuration."
 last_updated: 2026-07-15
 keywords:
   - kw:MODEL MONITOR

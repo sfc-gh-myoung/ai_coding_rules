@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Advanced bash security patterns covering privilege management, resource limits, network security, secure logging, parameter expansion safety, permission validation, and security testing methodologies."
 last_updated: 2026-07-15
 keywords:
   - kw:privilege dropping

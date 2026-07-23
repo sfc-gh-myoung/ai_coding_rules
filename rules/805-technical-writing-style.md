@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Writing standards for human-facing project documentation — voice, tone, sentence structure, capitalization, punctuation, inclusive language, list conventions, code sample presentation, link text, and"
 last_updated: 2026-07-15
 keywords:
   - kw:technical writing style

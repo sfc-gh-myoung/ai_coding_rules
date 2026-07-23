@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Advanced Alpine.js patterns including global stores, cross-component communication with $dispatch, transitions, lifecycle hooks, error recovery, plugins, and integration patterns."
 last_updated: 2026-07-15
 keywords:
   - kw:Alpine.store

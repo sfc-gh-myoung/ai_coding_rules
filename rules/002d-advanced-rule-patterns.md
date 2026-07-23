@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Advanced patterns for writing rules that balance specificity with flexibility. Focuses on system prompt altitude (the \"Goldilocks Zone\"), investigation-first protocols, anti-pattern structures,"
 last_updated: 2026-07-15
 keywords:
   - kw:system prompt altitude

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Rich library integration with Typer CLI applications including shared console patterns, dual console (stdout/stderr), Live progress displays, color detection, and context object state management."
 last_updated: 2026-07-15
 keywords:
   - kw:Rich library

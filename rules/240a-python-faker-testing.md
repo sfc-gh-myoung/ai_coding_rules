@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Pytest integration with Faker including fixture patterns, Factory Boy for complex models, and seeding strategies for reproducible and parallel-safe tests."
 last_updated: 2026-07-15
 keywords:
   - kw:faker pytest fixtures

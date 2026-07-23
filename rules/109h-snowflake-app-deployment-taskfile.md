@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Taskfile implementation patterns for Snowflake application deployment automation, including task structure per application, variable configuration, includes, preconditions, and deployment validation"
 last_updated: 2026-07-15
 keywords:
   - kw:Taskfile deployment automation

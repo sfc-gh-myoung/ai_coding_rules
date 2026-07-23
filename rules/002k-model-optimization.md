@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Model-specific context windows, loading budget formulas, and optimization strategies for OpenAI, Anthropic, and Google models. Includes pricing and output limits where relevant."
 last_updated: 2026-07-15
 keywords:
   - kw:context window sizing

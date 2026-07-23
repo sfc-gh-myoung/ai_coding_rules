@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Advanced Streamlit fragment patterns for real-time progress tracking, live polling, and automatic UI updates without full page reruns."
 last_updated: 2026-07-15
 keywords:
   - kw:st.fragment

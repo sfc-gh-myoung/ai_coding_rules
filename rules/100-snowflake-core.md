@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.1
+description: "Foundational Snowflake practices: SQL authoring, object naming, cost control, security policies, and performance patterns."
 last_updated: 2026-07-15
 keywords:
   - kw:CTE extraction

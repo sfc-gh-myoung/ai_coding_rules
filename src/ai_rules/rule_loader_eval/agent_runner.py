@@ -222,6 +222,7 @@ class Citation:
     line_count: int | None = None
     failed: bool = False
     provenance: str | None = None
+    version: str | None = None  # declared vX.Y.Z suffix; None when omitted
 
 
 @dataclass(frozen=True)
@@ -540,6 +541,10 @@ CITATION_RE_LINES_ONLY = re.compile(
     re.IGNORECASE,
 )
 
+CITATION_RE_VERSION = re.compile(
+    r"[—\-]\s*v(?P<version>\d+\.\d+(?:\.\d+)?(?:[-+][A-Za-z0-9.]+)?)\b",
+)
+
 FAILED_RE = re.compile(r"FAILED\s*:\s*not\s+found", re.IGNORECASE)
 
 
@@ -598,9 +603,11 @@ def extract_citations(text: str, section_heading: str) -> dict[str, Citation]:
                 if paths:
                     path = paths[0]
                     m2 = CITATION_RE_LINES_ONLY.search(line)
-                    if m2:
-                        line_count = int(m2.group("suffix") or m2.group("prefix"))
-                        citations[path] = Citation(line_count=line_count)
+                    m_ver = CITATION_RE_VERSION.search(line)
+                    line_count = int(m2.group("suffix") or m2.group("prefix")) if m2 else None
+                    version = m_ver.group("version") if m_ver else None
+                    if line_count is not None or version is not None:
+                        citations[path] = Citation(line_count=line_count, version=version)
                     elif path not in citations:
                         citations[path] = Citation()
                 break
@@ -629,9 +636,13 @@ def extract_citations(text: str, section_heading: str) -> dict[str, Citation]:
             citations[path] = Citation(failed=True, provenance=provenance)
             continue
         m2 = CITATION_RE_LINES_ONLY.search(line)
-        if m2:
-            line_count = int(m2.group("suffix") or m2.group("prefix"))
-            citations[path] = Citation(line_count=line_count, provenance=provenance)
+        m_ver = CITATION_RE_VERSION.search(line)
+        line_count = int(m2.group("suffix") or m2.group("prefix")) if m2 else None
+        version = m_ver.group("version") if m_ver else None
+        if line_count is not None or version is not None:
+            citations[path] = Citation(
+                line_count=line_count, provenance=provenance, version=version
+            )
         elif path not in citations:
             citations[path] = Citation(provenance=provenance)
     return citations

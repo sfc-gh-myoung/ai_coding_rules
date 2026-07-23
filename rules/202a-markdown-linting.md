@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Markdown linting patterns, tool configuration, and integration for consistent documentation quality. Uses pymarkdownlnt as the primary Python-native linter."
 last_updated: 2026-07-15
 keywords:
   - kw:pymarkdownlnt

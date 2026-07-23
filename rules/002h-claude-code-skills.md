@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.1
+description: "Best practices for authoring Claude Code skills in the skills/ directory. Covers SKILL.md structure, YAML frontmatter, directory organization, progressive disclosure patterns, input/output contracts,"
 last_updated: 2026-07-15
 keywords:
   - kw:SKILL.md authoring

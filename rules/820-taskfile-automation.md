@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Core directives for creating and maintaining project automation using Taskfile.yml, ensuring consistent, portable, and well-documented task management."
 last_updated: 2026-07-15
 keywords:
   - kw:Taskfile.yml

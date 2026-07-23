@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Altair visualization patterns using the declarative grammar of graphics approach. Altair excels at statistical visualizations and linked multi-view displays with minimal code."
 last_updated: 2026-07-15
 keywords:
   - kw:altair declarative encoding

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Provides practical, production-ready guidance for authoring Containerfiles, building images with Podman/Buildah, and running containers securely using Podman's daemonless, rootless-by-default"
 last_updated: 2026-07-15
 keywords:
   - kw:rootless containers

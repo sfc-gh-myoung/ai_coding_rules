@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Advanced automation patterns for schema validation including programmatic output parsing, CI/CD integration, automated fix workflows, and batch validation strategies."
 last_updated: 2026-07-15
 keywords:
   - kw:ci/cd pipeline

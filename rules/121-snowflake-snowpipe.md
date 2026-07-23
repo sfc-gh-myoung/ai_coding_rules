@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive best practices for continuous file-based data ingestion using Snowflake Snowpipe. Covers auto-ingest vs REST API, file sizing optimization, cloud event configuration, security,"
 last_updated: 2026-07-15
 keywords:
   - kw:snowpipe auto-ingest

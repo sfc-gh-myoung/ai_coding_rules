@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Advanced Faker patterns including localization for international testing, creating custom providers for domain-specific data, and performance optimization for large dataset generation."
 last_updated: 2026-07-15
 keywords:
   - kw:faker localization

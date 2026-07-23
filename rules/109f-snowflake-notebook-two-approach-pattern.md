@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Pattern for clarifying when a tutorial notebook demonstrates a feature but uses a simplified approach, explaining both the production and simplified approaches and why the simpler one is chosen for"
 last_updated: 2026-07-15
 keywords:
   - kw:two-approach clarification

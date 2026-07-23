@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "SDK implementation patterns for Snowpipe Streaming: Java SDK setup and ingestion, Python SDK setup and ingestion, production-ready error handling, channel lifecycle management, offset token best"
 last_updated: 2026-07-15
 keywords:
   - kw:snowpipe streaming sdk

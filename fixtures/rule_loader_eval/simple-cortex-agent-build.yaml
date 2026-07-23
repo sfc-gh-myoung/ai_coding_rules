@@ -1,26 +1,22 @@
 schema_version: 3
-updated: 2026-05-19T08:00:00-04:00
+updated: 2026-07-20T12:00:00-04:00
 id: simple-cortex-agent-build
-description: Build a Cortex Agent on top of a semantic view
+description: Identify rules for Cortex Agent configuration
 variant: simple
 prompt: |
-  Help me build a Cortex Agent that answers questions about our sales data
-  using a semantic view. I want the agent to expose a chat interface to end
-  users and run against our existing semantic model.
+  I need to create a Cortex Agent for querying sales data via a semantic view.
+  What configuration and components are needed?
 expected:
   required:
     - rules/000-global-core.md  # foundation (always loaded)
-    - rules/115-snowflake-cortex-agents-core.md  # kw: cortex agent, create agent
+    - rules/115-snowflake-cortex-agents-core.md  # kw: cortex agent
   forbidden: []
   optional:
-    - rules/106-snowflake-semantic-views-core.md  # kw: semantic view (referenced but not required)
+    - rules/106-snowflake-semantic-views-core.md  # kw: semantic view
     - rules/106c-snowflake-semantic-views-integration.md  # integration with agent
     - rules/115a-snowflake-cortex-agents-instructions.md  # may load on detailed agent design
 trigger_evidence:
-  kw: [cortex agent, semantic view, agent]
-    # n-gram (no rule): "build a Cortex Agent"
-    # n-gram (no rule): "answers questions about our"
-    # n-gram (no rule): "expose a chat interface"
+  kw: [cortex agent, semantic view]
   ext: []
   file: []
   dir: []

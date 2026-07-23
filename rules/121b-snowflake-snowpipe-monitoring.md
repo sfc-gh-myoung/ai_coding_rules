@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Monitoring, cost tracking, and performance analysis for both file-based Snowpipe and Snowpipe Streaming. Covers load history queries, channel status monitoring, credit usage tracking, cost"
 last_updated: 2026-07-15
 keywords:
   - kw:PIPE_USAGE_HISTORY

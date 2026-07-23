@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Agent protocol reference: anti-patterns, quality gates, task-switch examples, failure modes, project tool discovery, and term definitions"
 last_updated: 2026-07-15
 keywords:
   - kw:agent bootstrap protocol

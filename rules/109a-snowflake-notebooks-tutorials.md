@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive patterns for designing educational Snowflake notebooks that effectively teach concepts through clear learning objectives, structured content, anti-pattern examples, validation"
 last_updated: 2026-07-15
 keywords:
   - kw:notebook-tutorial design

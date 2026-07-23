@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v5.0.0
+description: "Streamlit in Snowflake: navigation, session state, runtime selection (Container/Warehouse), and config.toml theming."
 last_updated: 2026-07-15
 keywords:
   - kw:Streamlit

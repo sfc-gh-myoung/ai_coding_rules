@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Foundational observability practices for Snowflake environments through telemetry configuration and event table management, enabling effective monitoring, troubleshooting, and performance"
 last_updated: 2026-07-15
 keywords:
   - kw:event table setup

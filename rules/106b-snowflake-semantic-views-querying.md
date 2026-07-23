@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive guidance for querying Snowflake Semantic Views using SEMANTIC_VIEW() function and validating implementations through systematic testing. Covers query syntax, dimension compatibility,"
 last_updated: 2026-07-15
 keywords:
   - kw:SEMANTIC_VIEW function

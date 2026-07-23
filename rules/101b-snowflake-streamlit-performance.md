@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive guidance for optimizing Streamlit application performance through caching strategies (@st.cache_data, @st.cache_resource), efficient data loading from Snowflake with column"
 last_updated: 2026-07-15
 keywords:
   - kw:@st.cache_data decorator

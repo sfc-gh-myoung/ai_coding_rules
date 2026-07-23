@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Memory bank patterns for AI context preservation across sessions. All writes scoped to memory-bank/ only."
 last_updated: 2026-07-15
 keywords:
   - kw:memory bank

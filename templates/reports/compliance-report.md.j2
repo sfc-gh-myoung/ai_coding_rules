@@ -27,7 +27,7 @@ The protocol was evaluated against {{ total_models }} frontier models. The resul
 |-------|--------------|------------|----------|------|
 {% for r in results -%}
 {% set pct = (r.pass_rate * 100) | round(1) -%}
-{% if pct >= 98 %}{% set tier = "Compliant" %}{% elif pct >= 90 %}{% set tier = "Partial" %}{% elif pct >= 50 %}{% set tier = "Non-compliant" %}{% else %}{% set tier = "Failed" %}{% endif -%}
+{% if pct >= 95 %}{% set tier = "Compliant" %}{% elif pct >= 90 %}{% set tier = "Partial" %}{% elif pct >= 85 %}{% set tier = "Low" %}{% else %}{% set tier = "Non-compliant" %}{% endif -%}
 | `{{ r.model }}` | {{ r.fixture_count }} | {{ r.fixture_count * r.runs }} | {{ pct }}% | {{ tier }} |
 {% endfor %}
 
@@ -107,47 +107,76 @@ Same model, same fixture, same prompt — produces different compliance outcomes
 
 ## Recommendations
 
-### Model Selection Tiers
+Protocol compliance correlates with instruction-following fidelity and tool-use discipline — not reasoning benchmarks or general intelligence. The guidance below combines compliance data with personality research from [multi-phase model personality experiments](https://jaraxal.dev/post/2026/05/05/model-personality-routing/).
 
-#### Compliant Tier (≥98%)
+### 1. Compliance Tiers
 
-Models: {% for r in results if (r.pass_rate * 100) >= 98 %}`{{ r.model }}`{% if not loop.last %}, {% endif %}{% endfor %}
+#### Compliant (≥95%)
 
-Safe for production use with standard monitoring. Protocol adherence is reliable and stable.
+Models: {% for r in results if (r.pass_rate * 100) >= 95 %}`{{ r.model }}`{% if not loop.last %}, {% endif %}{% endfor %}
 
-#### Partial Tier (90–98%)
+Reliably follows multi-step protocols without shortcuts. Safe for agentic workflows where verifiable compliance matters.
 
-{% set partial = results | selectattr("pass_rate", "ge", 0.90) | selectattr("pass_rate", "lt", 0.98) | list %}
+#### Partial (90–95%)
+
+{% set partial = results | selectattr("pass_rate", "ge", 0.90) | selectattr("pass_rate", "lt", 0.95) | list %}
 Models: {% if partial %}{% for r in partial %}`{{ r.model }}`{% if not loop.last %}, {% endif %}{% endfor %}{% else %}None in this dataset{% endif %}
 
-Usable in production with enhanced monitoring. Add fallback discovery for file-trigger rules.
+Occasional protocol deviations. Usable with enhanced monitoring.
 
-#### Non-Compliant Tier (<90%)
+#### Low Compliance (85–90%)
 
-{% set noncompliant = results | selectattr("pass_rate", "ge", 0.50) | selectattr("pass_rate", "lt", 0.90) | list %}
+{% set low = results | selectattr("pass_rate", "ge", 0.85) | selectattr("pass_rate", "lt", 0.90) | list %}
+Models: {% if low %}{% for r in low %}`{{ r.model }}`{% if not loop.last %}, {% endif %}{% endfor %}{% else %}None in this dataset{% endif %}
+
+Frequent deviations. Requires retry strategies or simplified protocols.
+
+#### Non-Compliant (<85%)
+
+{% set noncompliant = results | selectattr("pass_rate", "lt", 0.85) | list %}
 Models: {% if noncompliant %}{% for r in noncompliant %}`{{ r.model }}`{% if not loop.last %}, {% endif %}{% endfor %}{% else %}None in this dataset{% endif %}
 
-Requires architectural mitigation: retry loops, verification layers, or simplified protocols.
+Systematic shortcuts. Architectural mitigation required.
 
-#### Failed Tier (<50%)
+### 2. Model Personality Profiles
 
-{% set failed = results | selectattr("pass_rate", "lt", 0.50) | list %}
-Models: {% if failed %}{% for r in failed %}`{{ r.model }}`{% if not loop.last %}, {% endif %}{% endfor %}{% else %}None in this dataset{% endif %}
+Each model exhibits a stable behavioral personality — a repeatable instinct that shows up across tasks. These describe what each model thinks the artifact *is for*.
 
-Not suitable for protocol-heavy workloads. The failure is systematic, not stochastic.
+{% if personality_profiles %}
+| Model | Personality | Core Instinct | Best Role | Risk Tolerance |
+|-------|------------|---------------|-----------|----------------|
+{% for model_id, p in personality_profiles.models.items() -%}
+| `{{ model_id }}` | **{{ p.personality }}** | {{ p.instinct }} | {{ p.best_role }} | {{ p.risk_tolerance }} |
+{% endfor %}
 
-### For Eval Design
+**Optimism spectrum** (same defect → different severity): {{ personality_profiles.optimism_spectrum | join(" → ") }}
+{% endif %}
 
-- **Widen capture hooks:** Don't only hook `read_file` — also capture bash calls that access the same paths.
-- **Cumulative read tracking:** Track `read_file` calls across the entire conversation.
-- **Manifest-based verification:** Compare Gate 3 citations against the rule-loader manifest.
-- **Minimum 3 runs per fixture:** Single-run evaluation is insufficient for any model below 99%.
+### 3. Role Routing
+
+A complex task has four seats. Principle: **Anthropic authors, OpenAI stress-tests, Anthropic ships.**
+
+{% if personality_profiles %}
+| Role | Model | Why |
+|------|-------|-----|
+{% for role, info in personality_profiles.role_routing.default.items() -%}
+| {{ role | replace("_", " ") | title }} | `{{ info.model }}` | {{ info.reason }} |
+{% endfor %}
+
+When requirements are well-specified: planner *commits* (Opus 4.7), reviewer *challenges frame* (GPT-5.4). When ambiguous: flip — planner *reframes* (GPT-5.4), reviewer *closes loopholes* (Opus 4.7).
+{% endif %}
+
+### 4. Anti-Patterns
+
+{% if personality_profiles %}
+{% for ap in personality_profiles.anti_patterns %}
+- **{{ ap.name }}:** {{ ap.description }} *Fix:* {{ ap.fix }}
+{% endfor %}
+{% endif %}
 
 ### Methodology Notes
 
-Not all models followed the protocol on first exposure. Top-tier models (compliant tier, ≥98%) required no prompt iteration — they correctly executed the multi-step sequence on the first attempt. The partial and non-compliant tiers benefited from wording adjustments to the AGENTS.md bootstrap protocol, though even after iteration some models remain resistant to text-based intervention.
-
-Some models exhibit behavior that is invariant to protocol wording changes: they shortcut the grounding sequence regardless of how the instructions are phrased. For these models, architectural interventions (retry loops, verification layers, simplified protocols) are more effective than prompt refinement.
+Compliance tiers are from this eval's pass-rate data. Personality profiles are from a separate four-phase experiment across plan authoring, structured review, open-ended review, and documentation tasks. Personality labels describe observed behavioral tendencies, not permanent identities.
 
 ---
 

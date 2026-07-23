@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive guidance on zsh's advanced features including modules, parameter expansion, globbing, performance optimization, caching, and advanced scripting patterns."
 last_updated: 2026-07-15
 keywords:
   - kw:zsh modules

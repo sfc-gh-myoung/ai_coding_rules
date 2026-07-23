@@ -386,6 +386,7 @@ def _drive_mocked_run(root: Path) -> Path:
                     "fails": 0,
                     "flake_score": 0.0,
                     "pass_rate": 1.0,
+                    "deterministic_fail": False,
                 }
             },
             "aggregate": {

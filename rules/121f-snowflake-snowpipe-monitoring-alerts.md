@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Alert configuration for Snowpipe and Snowpipe Streaming (error alerts, stall detection, SLA monitoring), cost optimization strategies for both file-based and streaming ingestion, and performance"
 last_updated: 2026-07-15
 keywords:
   - kw:snowpipe alert configuration

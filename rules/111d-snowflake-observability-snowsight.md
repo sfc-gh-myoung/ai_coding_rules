@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Snowsight monitoring interfaces (Traces & Logs, Query History, Copy History, Task History, Dynamic Tables) and AI observability patterns for Cortex AI function monitoring, cost attribution, LLM"
 last_updated: 2026-07-15
 keywords:
   - kw:snowsight monitoring interfaces

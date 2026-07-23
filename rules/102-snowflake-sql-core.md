@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.1.0
+description: "Snowflake SQL file patterns: file headers, COPY INTO and CREATE VIEW syntax, qualified names, and CLI-safe idempotent DDL."
 last_updated: 2026-07-16
 keywords:
   - kw:SQL file headers

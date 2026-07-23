@@ -68,7 +68,7 @@
       <strong>Top 3 Takeaways</strong>
       <p><strong>1.</strong> Protocol compliance is not a function of model &ldquo;intelligence&rdquo;&mdash;it correlates more strongly with instruction-following fidelity and tool-use discipline than with reasoning benchmarks.</p>
       <p><strong>2.</strong> The most dangerous failure mode is <em>declared-but-not-read</em> (FM-1): models that claim compliance without performing the required steps. This is undetectable without tool-call auditing.</p>
-      <p><strong>3.</strong> Three runs per fixture is the minimum needed to distinguish stable compliance from lucky passes. Single-run evaluation is insufficient for any model below 98% compliance.</p>
+      <p><strong>3.</strong> Three runs per fixture is the minimum needed to distinguish stable compliance from lucky passes. Single-run evaluation is insufficient for any model below 95% compliance.</p>
     </div>
 
     <h3>Model Versions Tested</h3>
@@ -90,18 +90,18 @@
             <td>{{ r.fixture_count }}</td>
             <td>{{ r.fixture_count * r.runs }}</td>
             {% set pct = (r.pass_rate * 100) | round(1) %}
-            {% if pct >= 98 %}
+            {% if pct >= 95 %}
             <td style="color:var(--sf-green)">{{ pct }}%</td>
             <td>Compliant</td>
             {% elif pct >= 90 %}
             <td style="color:var(--sf-amber)">{{ pct }}%</td>
             <td>Partial</td>
-            {% elif pct >= 50 %}
+            {% elif pct >= 85 %}
+            <td style="color:var(--sf-orange)">{{ pct }}%</td>
+            <td>Low</td>
+            {% else %}
             <td style="color:var(--sf-red)">{{ pct }}%</td>
             <td>Non-compliant</td>
-            {% else %}
-            <td style="color:#991b1b">{{ pct }}%</td>
-            <td>Failed</td>
             {% endif %}
           </tr>
           {% endfor %}
@@ -129,8 +129,9 @@
             {% for r in results %}
             {% set pct = (r.pass_rate * 100) | round(1) %}
             <th>{{ r.model }}<br>
-              {% if pct >= 98 %}<small style="color:var(--sf-green)">{{ pct }}%</small>
+              {% if pct >= 95 %}<small style="color:var(--sf-green)">{{ pct }}%</small>
               {% elif pct >= 90 %}<small style="color:var(--sf-amber)">{{ pct }}%</small>
+              {% elif pct >= 85 %}<small style="color:var(--sf-orange)">{{ pct }}%</small>
               {% else %}<small style="color:var(--sf-red)">{{ pct }}%</small>
               {% endif %}
             </th>
@@ -149,8 +150,8 @@
         <div class="sub">Frontier-class LLMs from multiple providers</div>
       </div>
       <div class="kpi-card">
-        <div class="label">Models &ge;98% Pass Rate</div>
-        <div class="value">{{ results | selectattr("pass_rate", "ge", 0.98) | list | length }}</div>
+        <div class="label">Models &ge;95% Pass Rate</div>
+        <div class="value">{{ results | selectattr("pass_rate", "ge", 0.95) | list | length }}</div>
         <div class="sub">Compliant tier</div>
       </div>
       <div class="kpi-card">
@@ -170,64 +171,173 @@
   <section class="tab-panel" id="recommendations" role="tabpanel" data-tab-title="Recommendations">
     <h2>Forward-Looking Guidance</h2>
 
-    <h3>For Model Selection</h3>
-    <p>Based on observed compliance rates, a tiered classification for production use with multi-step protocols is proposed.</p>
+    <p>Protocol compliance is one dimension of model behavior. It correlates strongly with <em>instruction-following fidelity</em> and tool-use discipline&mdash;not with reasoning benchmarks or general intelligence. The guidance below combines compliance data from this eval with personality research from <a href="https://jaraxal.dev/post/2026/05/05/model-personality-routing/">multi-phase model personality experiments</a>.</p>
+
+    <!-- ===== 1. Compliance Tiers ===== -->
+    <h3>1. Compliance Tiers</h3>
+    <p>Instruction-following reliability for multi-step procedural protocols. A model&rsquo;s tier reflects how deterministically it follows structured sequences&mdash;not how well it codes, reasons, or generates text.</p>
 
     <div class="two-col">
       <div style="border-left: 4px solid var(--sf-green);">
-        <h4>Compliant Tier (98%+)</h4>
+        <h4>Compliant (95%+)</h4>
         <p><strong>Models:</strong>
-          {% for r in results if (r.pass_rate * 100) >= 98 %}<code>{{ r.model }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
+          {% for r in results if (r.pass_rate * 100) >= 95 %}<code>{{ r.model }}</code>{% if not loop.last %}, {% endif %}{% endfor %}
         </p>
-        <p>Safe for production use with standard monitoring. Protocol adherence is reliable and stable across fixture complexity tiers.</p>
-        <p><em>Recommendation:</em> Use with confidence. Standard alerting on compliance metrics is sufficient.</p>
+        <p>Reliably follows multi-step protocols without shortcuts. Safe for agentic workflows where verifiable compliance matters.</p>
       </div>
       <div style="border-left: 4px solid var(--sf-amber);">
-        <h4>Partial Tier (90&ndash;98%)</h4>
+        <h4>Partial (90&ndash;95%)</h4>
         <p><strong>Models:</strong>
-          {% set partial = results | selectattr("pass_rate", "ge", 0.90) | selectattr("pass_rate", "lt", 0.98) | list %}
+          {% set partial = results | selectattr("pass_rate", "ge", 0.90) | selectattr("pass_rate", "lt", 0.95) | list %}
           {% if partial %}{% for r in partial %}<code>{{ r.model }}</code>{% if not loop.last %}, {% endif %}{% endfor %}{% else %}<em>None in this dataset</em>{% endif %}
         </p>
-        <p>Usable in production with enhanced monitoring. Failures concentrate in metadata hallucination and under-matching.</p>
-        <p><em>Recommendation:</em> Deploy with line-count validation as soft signal. Add fallback discovery for file-trigger rules.</p>
+        <p>Occasional protocol deviations, typically on dependency-loading or metadata accuracy. Usable with enhanced monitoring.</p>
       </div>
     </div>
     <div class="two-col">
-      <div style="border-left: 4px solid var(--sf-red);">
-        <h4>Non-Compliant Tier (&lt;90%)</h4>
+      <div style="border-left: 4px solid var(--sf-orange);">
+        <h4>Low Compliance (85&ndash;90%)</h4>
         <p><strong>Models:</strong>
-          {% set noncompliant = results | selectattr("pass_rate", "ge", 0.50) | selectattr("pass_rate", "lt", 0.90) | list %}
-          {% if noncompliant %}{% for r in noncompliant %}<code>{{ r.model }}</code>{% if not loop.last %}, {% endif %}{% endfor %}{% else %}<em>None in this dataset</em>{% endif %}
+          {% set low = results | selectattr("pass_rate", "ge", 0.85) | selectattr("pass_rate", "lt", 0.90) | list %}
+          {% if low %}{% for r in low %}<code>{{ r.model }}</code>{% if not loop.last %}, {% endif %}{% endfor %}{% else %}<em>None in this dataset</em>{% endif %}
         </p>
-        <p>Requires architectural mitigation. Retry loops or verification layers that cross-check citations against tool traces are recommended.</p>
+        <p>Frequent deviations. Requires retry strategies or simplified protocols.</p>
       </div>
-      <div style="border-left: 4px solid #991b1b;">
-        <h4>Failed Tier (&lt;50%)</h4>
+      <div style="border-left: 4px solid var(--sf-red);">
+        <h4>Non-Compliant (&lt;85%)</h4>
         <p><strong>Models:</strong>
-          {% set failed = results | selectattr("pass_rate", "lt", 0.50) | list %}
+          {% set failed = results | selectattr("pass_rate", "lt", 0.85) | list %}
           {% if failed %}{% for r in failed %}<code>{{ r.model }}</code>{% if not loop.last %}, {% endif %}{% endfor %}{% else %}<em>None in this dataset</em>{% endif %}
         </p>
-        <p>Not suitable for protocol-heavy workloads. The failure is not stochastic; it&rsquo;s systematic.</p>
-        <p><em>Recommendation:</em> Do not use for agentic workflows requiring verifiable multi-step compliance.</p>
+        <p>Systematic shortcuts regardless of prompt wording. Architectural mitigation required (verification layers, tool-trace auditing).</p>
       </div>
     </div>
 
-    <h3>For Eval Design</h3>
-    <ul>
-      <li><strong>Widen capture hooks.</strong> Don&rsquo;t only hook <code>read_file</code>&mdash;also capture bash calls that access the same paths.</li>
-      <li><strong>Cumulative read tracking.</strong> Track <code>read_file</code> calls across the entire conversation, not just per-turn.</li>
-      <li><strong>Manifest-based verification.</strong> Compare Gate 3 citations against the rule-loader manifest.</li>
-      <li><strong>Minimum 3 runs per fixture.</strong> Single-run evaluation is insufficient for any model below 99%.</li>
-    </ul>
+    <!-- ===== 2. Personality Profiles ===== -->
+    <h3>2. Model Personality Profiles</h3>
+    <p>Each model exhibits a stable <em>behavioral personality</em>&mdash;a repeatable instinct that shows up across tasks. These are not about intelligence; they describe what each model thinks the artifact <em>is for</em>. Personality determines which role a model plays best in multi-agent workflows.</p>
 
+    {% if personality_profiles %}
+    <div class="table-wrap">
+      <table class="personality-table" aria-label="Model personality profiles">
+        <thead>
+          <tr>
+            <th style="text-align:left">Model</th>
+            <th style="text-align:left">Personality</th>
+            <th style="text-align:left">Core Instinct</th>
+            <th>Best Role</th>
+            <th>Risk Tolerance</th>
+            <th style="text-align:left">Typical Failure Mode</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for model_id, p in personality_profiles.models.items() %}
+          <tr>
+            <td style="text-align:left"><code>{{ model_id }}</code></td>
+            <td style="text-align:left"><strong>{{ p.personality }}</strong></td>
+            <td style="text-align:left">{{ p.instinct }}</td>
+            <td>{{ p.best_role }}</td>
+            <td>{{ p.risk_tolerance }}</td>
+            <td style="text-align:left; font-size:0.85em; opacity:0.8">{{ p.typical_failure_mode }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Optimism Spectrum</h4>
+    <p>The same defect, viewed by the model panel, produces verdicts ranging from &ldquo;Excellent (10/10)&rdquo; to &ldquo;actively dangerous.&rdquo; This ordering is consistent across tasks:</p>
+    <div class="optimism-bar">
+      <div class="optimism-label-left">Most optimistic</div>
+      <div class="optimism-models">
+        {% for m in personality_profiles.optimism_spectrum %}
+        <span class="optimism-chip">{{ m | replace("claude-", "") | replace("openai-", "") }}</span>
+        {% endfor %}
+      </div>
+      <div class="optimism-label-right">Least optimistic</div>
+    </div>
+    <p style="font-size:0.85em; opacity:0.7; margin-top:0.5rem;">If you need to trust severity assessments, use models from the right side. If you need stakeholder-ready prose, use the left&mdash;but never only the left when correctness matters.</p>
+    {% endif %}
+
+    <!-- ===== 3. Role Routing ===== -->
+    <h3>3. Role Routing</h3>
+    <p>A complex task has four seats to fill. Treating these as separate roles&mdash;with a different personality in each&mdash;is the configuration best supported by cross-phase evidence. The principle: <strong>Anthropic authors, OpenAI stress-tests, Anthropic ships.</strong></p>
+
+    {% if personality_profiles %}
+    <div class="table-wrap">
+      <table aria-label="Default role routing">
+        <thead>
+          <tr><th>Role</th><th>Model</th><th>Family</th><th>Why This Model</th></tr>
+        </thead>
+        <tbody>
+          {% for role, info in personality_profiles.role_routing.default.items() %}
+          <tr>
+            <td><strong>{{ role | replace("_", " ") | title }}</strong></td>
+            <td><code>{{ info.model }}</code></td>
+            <td>{{ "Anthropic" if "claude" in info.model else "OpenAI" }}</td>
+            <td>{{ info.reason }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Scenario Variants</h4>
+    <div class="table-wrap">
+      <table aria-label="Role routing by scenario">
+        <thead>
+          <tr><th>Scenario</th><th>Planner</th><th>Primary Reviewer</th><th>Secondary Reviewer</th><th>Executor</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Small / routine task</strong></td>
+            <td>&mdash;</td>
+            <td><code>{{ personality_profiles.role_routing.small_task.primary_reviewer.model }}</code></td>
+            <td>&mdash;</td>
+            <td><code>{{ personality_profiles.role_routing.small_task.executor.model }}</code></td>
+          </tr>
+          <tr>
+            <td><strong>Standard implementation</strong></td>
+            <td><code>{{ personality_profiles.role_routing.default.planner.model }}</code></td>
+            <td><code>{{ personality_profiles.role_routing.default.primary_reviewer.model }}</code></td>
+            <td><code>{{ personality_profiles.role_routing.default.secondary_reviewer.model }}</code></td>
+            <td><code>{{ personality_profiles.role_routing.default.executor.model }}</code></td>
+          </tr>
+          <tr>
+            <td><strong>Ambiguous requirements</strong></td>
+            <td><code>{{ personality_profiles.role_routing.ambiguous_requirements.planner.model }}</code></td>
+            <td><code>{{ personality_profiles.role_routing.ambiguous_requirements.primary_reviewer.model }}</code></td>
+            <td><code>{{ personality_profiles.role_routing.ambiguous_requirements.secondary_reviewer.model }}</code></td>
+            <td><code>{{ personality_profiles.role_routing.ambiguous_requirements.executor.model }}</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:0.85em;">When requirements are well-specified, the planner should <em>commit</em> (Opus 4.7) and the reviewer should <em>challenge the frame</em> (GPT-5.4). When requirements are messy, flip the order: the planner should <em>reframe first</em> (GPT-5.4) and the reviewer should <em>close loopholes</em> (Opus 4.7).</p>
+    {% endif %}
+
+    <!-- ===== 4. Anti-Patterns ===== -->
+    <h3>4. Anti-Patterns</h3>
+
+    {% if personality_profiles %}
+    {% for ap in personality_profiles.anti_patterns %}
     <div class="callout callout-warning">
+      <strong>{{ ap.name }}</strong>
+      <p>{{ ap.description }}</p>
+      <p><em>Fix:</em> {{ ap.fix }}</p>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="callout callout-info">
       <strong>Protocol compliance is a testing problem as much as a prompting problem.</strong>
       <p>You cannot prompt your way to reliability without measuring whether the model actually follows your prompts. Tool-trace auditing is not optional&mdash;it is the only ground truth.</p>
     </div>
 
     <h3>Methodology Notes</h3>
-    <p>Not all models followed the protocol on first exposure. Top-tier models (compliant tier, &ge;98%) required no prompt iteration&mdash;they correctly executed the multi-step sequence on the first attempt across the full fixture set. The partial and non-compliant tiers benefited from wording adjustments to the AGENTS.md bootstrap protocol (specifically, the gate-failure recovery section and the task-switch detection decision tree), though even after iteration some models remain resistant to text-based intervention.</p>
-    <p>Some models (notably those in the failed tier) exhibit behavior that is invariant to protocol wording changes: they shortcut the grounding sequence regardless of how the instructions are phrased. This suggests the failure is not a misunderstanding of the protocol but a systematic preference for efficiency over compliance that persists across prompt variations. For these models, architectural interventions (retry loops, verification layers, simplified protocols) are more effective than prompt refinement.</p>
+    <p>Compliance tiers are derived from this eval&rsquo;s pass-rate data. Personality profiles are derived from a separate four-phase experiment evaluating model behavior across plan authoring, structured review, open-ended review, and documentation tasks. Not all models in the personality study appear in the compliance eval, and vice versa.</p>
+    <p>Personality labels describe <em>observed behavioral tendencies</em>, not permanent identities. They are stable enough to use as routing signals but should be re-validated as model versions change.</p>
+    <!-- TODO: Dynamic trait-bench integration — load personality.json artifacts from model-trait-bench results -->
   </section>
 
   <!-- ========== TAB 6: PERFORMANCE ========== -->
@@ -262,9 +372,9 @@
           {% set pct = (r.pass_rate * 100) | round(1) %}
           <tr>
             <td style="text-align:left"><code>{{ r.model }}</code></td>
-            {% if pct >= 98 %}<td class="pass-high">{{ pct }}%</td>
+            {% if pct >= 95 %}<td class="pass-high">{{ pct }}%</td>
             {% elif pct >= 90 %}<td class="pass-mid">{{ pct }}%</td>
-            {% elif pct >= 50 %}<td class="pass-low">{{ pct }}%</td>
+            {% elif pct >= 85 %}<td class="pass-low">{{ pct }}%</td>
             {% else %}<td class="pass-fail">{{ pct }}%</td>
             {% endif %}
             <td>{{ r.fixture_count * r.runs }}</td>

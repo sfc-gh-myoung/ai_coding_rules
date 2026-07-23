@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Core guidance for building robust command-line applications using Typer, covering project setup, argument handling, command definitions, error handling, and packaging."
 last_updated: 2026-07-15
 keywords:
   - kw:Typer CLI

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive rules for data science and analytics on Snowflake. Covers model lifecycle management, ML/AI insight presentation, advanced SQL techniques, performance optimization, and ethical"
 last_updated: 2026-07-15
 keywords:
   - kw:snowpark dataframe

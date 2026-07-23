@@ -1,0 +1,32 @@
+schema_version: 4
+updated: '2026-07-20T13:00:00-04:00'
+id: behavioral-token-budget-5turn
+description: Verifies rule token budget stays modest for a single-file Python fix (under 15000 tokens)
+variant: behavioral
+prompt: 'What''s the fix for the bug in auth.py where the JWT token isn''t being refreshed?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/200-python-core.md
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw:
+  - python
+  - fix
+  - bug
+  - JWT
+  ext:
+  - .py
+  file:
+  - auth.py
+  dir: []
+behavioral_checks:
+- id: token-budget-modest
+  description: Total rule tokens loaded should be under 15000 for a single-file fix
+  rule_source: rules/000-global-core.md
+  check_type: token_budget
+  threshold: 15000
+architecture_mode: both

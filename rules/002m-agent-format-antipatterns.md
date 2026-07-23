@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "The 9 formatting anti-patterns that prevent reliable agent execution, extracted from 002g-agent-optimization.md. Each anti-pattern includes the problem, a failing example, and the correct pattern."
 last_updated: 2026-07-15
 keywords:
   - kw:agent-optimized formatting

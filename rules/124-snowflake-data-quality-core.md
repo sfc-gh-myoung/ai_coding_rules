@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive best practices for Snowflake Data Quality Monitoring using Data Metric Functions (DMFs), data profiling, expectations, and automated quality checks. Covers system DMFs, custom DMF"
 last_updated: 2026-07-15
 keywords:
   - kw:Data Metric Functions

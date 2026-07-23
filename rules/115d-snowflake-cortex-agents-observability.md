@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Observability, evaluation, cost management, dedicated warehouse patterns, and error troubleshooting for Snowflake Cortex Agents."
 last_updated: 2026-07-15
 keywords:
   - kw:cortex agent observability

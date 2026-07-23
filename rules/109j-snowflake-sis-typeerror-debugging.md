@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Detailed diagnostic workflows for the two most common Streamlit in Snowflake (SiS) deployment errors: TypeError from file compression or path mismatches, and AttributeError from missing or outdated"
 last_updated: 2026-07-15
 keywords:
   - kw:SiS TypeError

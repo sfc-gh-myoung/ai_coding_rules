@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Advanced patterns for Claude Code skill authoring: the plan-validate-execute pattern for verifiable intermediate outputs, visual analysis for image-based inputs, and the orchestrator-worker"
 last_updated: 2026-07-15
 keywords:
   - kw:plan-validate-execute

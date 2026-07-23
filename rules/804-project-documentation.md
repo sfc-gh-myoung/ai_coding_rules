@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Universal best practices for organizing project documentation files, including file placement conventions, extended documentation types, cross-reference management, and GitHub community health file"
 last_updated: 2026-07-15
 keywords:
   - kw:docs folder structure

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v5.0.0
+description: "Router rule for Streamlit visualization library selection. Provides quick guidance on choosing between Plotly, PyDeck, and Altair, then delegates to specialized sub-rules for detailed patterns."
 last_updated: 2026-07-15
 keywords:
   - kw:st.plotly_chart

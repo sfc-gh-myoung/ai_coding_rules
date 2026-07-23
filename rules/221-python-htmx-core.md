@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Foundational HTMX patterns for Python web applications, covering request/response lifecycle, HTTP header management, security considerations, and hypermedia-driven architecture principles for"
 last_updated: 2026-07-15
 keywords:
   - kw:hx-request header detection

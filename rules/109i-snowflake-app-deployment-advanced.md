@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Advanced deployment patterns for Snowflake applications including multi-environment deployment (dev/qa/prod), deployment with validation gates, and rollback/recovery procedures."
 last_updated: 2026-07-15
 keywords:
   - kw:multi-environment promotion

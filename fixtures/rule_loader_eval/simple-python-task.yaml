@@ -1,23 +1,22 @@
 schema_version: 3
-updated: 2026-05-17T16:26:51-04:00
+updated: '2026-07-20T13:00:00-04:00'
 id: simple-python-task
-description: # TODO
+description: null
 variant: simple
-prompt: |
-  Update analytics/etl_pipeline.py to add error handling around the database write step.
+prompt: 'What''s the best approach for adding error handling around the database
+
+  write step in analytics/etl_pipeline.py?
+
+  '
 expected:
   required:
-    - rules/000-global-core.md  # foundation (always loaded)
-    - rules/200-python-core.md  # suggested: ext: .py
+  - rules/000-global-core.md
+  - rules/200-python-core.md
   forbidden: []
   optional: []
 trigger_evidence:
   kw: []
-    # n-gram (no rule): "add error handling around"
-    # n-gram (no rule): "error handling around the"
-    # n-gram (no rule): "handling around the database"
-    # n-gram (no rule): "error handling around"
-    # n-gram (no rule): "around the database write"
-  ext: [.py]   # suggested
+  ext:
+  - .py
   file: []
   dir: []

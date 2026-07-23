@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Feature engineering patterns for Snowflake Feature Store including aggregation features, time-based features, derived ratios, and common RFM (Recency, Frequency, Monetary) patterns. Provides SQL"
 last_updated: 2026-07-15
 keywords:
   - kw:feature engineering

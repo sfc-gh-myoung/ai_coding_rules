@@ -1,29 +1,29 @@
 schema_version: 3
-updated: 2026-05-17T16:26:51-04:00
+updated: '2026-07-20T13:00:00-04:00'
 id: simple-sql-procedure
 description: Draft a stored procedure in a .sql file that purges stale rows nightly
 variant: simple
-prompt: |
-  Help me draft a stored procedure in procs/cleanup.sql that purges stale rows nightly.
+prompt: 'What''s the recommended pattern for a stored procedure in procs/cleanup.sql
+
+  that purges stale rows nightly?
+
+  '
 expected:
   required:
-    - rules/000-global-core.md  # foundation (always loaded)
-    - rules/102-snowflake-sql-core.md  # direct: ext:.sql (procs/cleanup.sql)
-    - rules/102b-snowflake-sql-procedures.md  # direct: kw: stored procedure
+  - rules/000-global-core.md
+  - rules/102-snowflake-sql-core.md
+  - rules/102b-snowflake-sql-procedures.md
   forbidden: []
   optional:
-    - rules/100-snowflake-core.md  # dep of 102 — enforced by global depends gate (R8)
-    - rules/102a-snowflake-sql-automation.md  # triggered: kw:procedure, kw:sql pipeline; nightly purge is a SQL automation task
-    - rules/102e-snowflake-sql-procedure-antipatterns.md  # auto-demoted: no trigger evidence
-      # missing: rule has no file-context triggers (ext:/file:/dir:)
-    - rules/104-snowflake-streams-tasks.md  # triggered by kw:sql (over-broad); narrowed separately
+  - rules/100-snowflake-core.md
+  - rules/102a-snowflake-sql-automation.md
+  - rules/102e-snowflake-sql-procedure-antipatterns.md
+  - rules/104-snowflake-streams-tasks.md
 trigger_evidence:
-  kw: [sql, stored procedure]   # suggested
-    # n-gram (no rule): "purges stale rows nightly"
-    # n-gram (no rule): "draft a stored procedure"
-    # n-gram (no rule): "sql that purges stale"
-    # n-gram (no rule): "stored procedure in procs"
-    # n-gram (no rule): "that purges stale rows"
-  ext: [.sql]   # suggested
+  kw:
+  - sql
+  - stored procedure
+  ext:
+  - .sql
   file: []
   dir: []

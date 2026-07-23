@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Architecture selection and core concepts for Snowpipe Streaming: high-performance vs classic architecture, decision matrix for file-based vs streaming ingestion, and anti-patterns. This is a"
 last_updated: 2026-07-15
 keywords:
   - kw:snowpipe streaming

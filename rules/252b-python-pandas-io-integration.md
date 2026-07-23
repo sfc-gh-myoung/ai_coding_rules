@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Pandas integration with Streamlit (caching, filtering, download) and Plotly (aggregation before plotting, performance), plus efficient data loading patterns."
 last_updated: 2026-07-15
 keywords:
   - kw:streamlit cache_data

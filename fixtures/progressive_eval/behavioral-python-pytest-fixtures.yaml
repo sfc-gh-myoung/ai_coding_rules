@@ -1,0 +1,44 @@
+schema_version: 4
+updated: '2026-07-20T13:00:00-04:00'
+id: behavioral-python-pytest-fixtures
+description: Verifies agent uses pytest fixtures and avoids unittest.TestCase when writing test suites
+variant: behavioral
+prompt: 'What''s the recommended pytest test structure for the UserService class in src/services/user.py?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/200-python-core.md
+  - rules/206-python-pytest.md
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw:
+  - pytest
+  - test
+  - python
+  - service
+  ext:
+  - .py
+  file:
+  - src/services/user.py
+  dir:
+  - src/services/
+behavioral_checks:
+- id: uses-pytest-fixtures
+  description: Agent uses @pytest.fixture decorator for test setup
+  rule_source: rules/206-python-pytest.md
+  check_type: output_pattern
+  pattern: '@pytest\.fixture'
+- id: defines-test-functions
+  description: Agent defines pytest-style test functions
+  rule_source: rules/206-python-pytest.md
+  check_type: output_pattern
+  pattern: def test_
+- id: no-unittest-testcase
+  description: Agent does not use unittest.TestCase (prefers pytest style)
+  rule_source: rules/206-python-pytest.md
+  check_type: output_absent
+  pattern: unittest\.TestCase
+architecture_mode: both

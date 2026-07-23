@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Clear, enforceable standards for Python documentation, source code comments, and docstrings aligned with PEP 257 and modern tooling (Ruff pydocstyle, Sphinx Napoleon). Covers Google and NumPy styles,"
 last_updated: 2026-07-15
 keywords:
   - kw:docstring conventions

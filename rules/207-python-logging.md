@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Best practices for Python logging in applications with dual output requirements (CLI and web UI), covering hierarchical logger names, handler configuration, Rich console integration, SSE/WebSocket"
 last_updated: 2026-07-15
 keywords:
   - kw:hierarchical logger names

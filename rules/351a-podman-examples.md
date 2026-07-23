@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Complete, production-ready output examples for Podman container workflows including Buildah multi-stage builds, Containerfile patterns, Quadlet unit files, and build/validate/deploy scripts."
 last_updated: 2026-07-15
 keywords:
   - kw:Buildah multi-stage

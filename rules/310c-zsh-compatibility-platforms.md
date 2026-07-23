@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Environment detection and adaptation, cross-shell testing strategies, platform-specific differences (macOS/Linux, BSD/GNU tools), performance benchmarking, and project organization for mixed-shell"
 last_updated: 2026-07-15
 keywords:
   - kw:cross-shell testing

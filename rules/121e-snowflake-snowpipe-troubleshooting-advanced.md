@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Advanced Snowpipe Streaming troubleshooting patterns including offset tracking for exactly-once semantics, batch performance optimization, data validation before insert, and comprehensive debugging"
 last_updated: 2026-07-15
 keywords:
   - kw:snowpipe streaming offset

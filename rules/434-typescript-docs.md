@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "TSDoc-based documentation standards for TypeScript projects. Covers doc comment syntax, eslint-plugin-jsdoc configuration for TypeScript, API documentation patterns, and when documentation adds value"
 last_updated: 2026-07-15
 keywords:
   - kw:TSDoc

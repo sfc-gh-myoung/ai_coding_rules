@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Strategies for managing context in long-horizon agent tasks (>10 agent turns within a session, OR tasks spanning multiple sessions). A task is long-horizon when context from earlier turns is needed"
 last_updated: 2026-07-15
 keywords:
   - kw:long-horizon tasks

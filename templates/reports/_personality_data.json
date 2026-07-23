@@ -1,0 +1,156 @@
+{
+  "_comment": "Static personality profiles from model-trait-bench research (May-July 2026). TODO: Replace with dynamic loading from model-trait-bench personality.json artifacts once sync mechanism is established.",
+  "_sourcing": {
+    "formal_study": ["claude-opus-4-5", "claude-opus-4-6", "claude-opus-4-7", "claude-sonnet-4-5", "claude-sonnet-4-6", "openai-gpt-5.2", "openai-gpt-5.4"],
+    "trait_bench_observed": ["claude-opus-4-8", "claude-sonnet-5"],
+    "pending_evaluation": ["glm-5.2"]
+  },
+  "models": {
+    "claude-opus-4-5": {
+      "personality": "Context-sensitive diplomat",
+      "instinct": "Shapes deliverables to look polished regardless of underlying accuracy",
+      "best_role": "Stakeholder-facing synthesis",
+      "risk_tolerance": "High (most optimistic)",
+      "typical_failure_mode": "Recategorizes failures as manageable polish; can rate broken docs highly",
+      "optimism_rank": 1,
+      "source": "formal_study",
+      "planning_note": "Produces a plan that reads thoroughly while quietly adding unneeded dependencies"
+    },
+    "claude-opus-4-6": {
+      "personality": "Forensic cataloguer",
+      "instinct": "Makes reasoning inspectable; leaves the audit trail visible",
+      "best_role": "Primary reviewer",
+      "risk_tolerance": "Low",
+      "typical_failure_mode": "Can overwhelm with detail",
+      "optimism_rank": 6,
+      "source": "formal_study",
+      "planning_note": "Most readable plan in panel — forensic instinct produces prose a new engineer can follow"
+    },
+    "claude-opus-4-7": {
+      "personality": "Governance reviewer",
+      "instinct": "Asks what standard or process would make a defect impossible",
+      "best_role": "Planner",
+      "risk_tolerance": "Low",
+      "typical_failure_mode": "Can over-formalize simple fixes",
+      "optimism_rank": 5,
+      "source": "formal_study",
+      "planning_note": "Only model to consistently close each phase with testable exit conditions"
+    },
+    "claude-opus-4-8": {
+      "personality": "Spec-driven implementer",
+      "instinct": "Reads spec and source in parallel, grounds every edit in documented requirements",
+      "best_role": "Planner / Primary reviewer",
+      "risk_tolerance": "Conservative",
+      "typical_failure_mode": "Over-reads and re-validates; assumes environment tools exist before checking",
+      "optimism_rank": 5,
+      "source": "trait_bench_observed",
+      "planning_note": "Inherits governance instinct from Opus 4.7 lineage; strongest on spec-anchored tasks with clear oracles"
+    },
+    "claude-sonnet-4-5": {
+      "personality": "Rubric-shaped grader",
+      "instinct": "Scores, grades, gates, and percentage-tables whether asked or not",
+      "best_role": "Progress tracking / structured scorecards",
+      "risk_tolerance": "Moderate (optimistic)",
+      "typical_failure_mode": "Can over-credit visible structure; calibration gaps under open-ended prompts",
+      "optimism_rank": 2,
+      "source": "formal_study",
+      "planning_note": "Highest form-consistency but shakier precision under the presentation"
+    },
+    "claude-sonnet-4-6": {
+      "personality": "Surgical executor",
+      "instinct": "Shrinks the distance between a finding and a fix",
+      "best_role": "Executor",
+      "risk_tolerance": "Low (most willing to call something broken)",
+      "typical_failure_mode": "May skip root-cause strategy in favor of immediate fix",
+      "optimism_rank": 8,
+      "source": "formal_study",
+      "planning_note": "Makes operationally risky things structurally impossible via CI/drift detection"
+    },
+    "claude-sonnet-5": {
+      "personality": "Disciplined verifier",
+      "instinct": "Refuses to declare done until the real oracle passes; reconstructs broken verification paths",
+      "best_role": "Executor / Verification-heavy tasks",
+      "risk_tolerance": "Conservative",
+      "typical_failure_mode": "Verbose output; may over-explain during execution",
+      "optimism_rank": 7,
+      "source": "trait_bench_observed",
+      "planning_note": "Strong recovery from broken commands; will reverse-engineer the intended test if the prescribed path fails"
+    },
+    "openai-gpt-5.2": {
+      "personality": "Pragmatic operator",
+      "instinct": "Compresses risk into the fewest useful decisions",
+      "best_role": "Secondary reviewer",
+      "risk_tolerance": "Moderate",
+      "typical_failure_mode": "May under-explain strategy",
+      "optimism_rank": 4,
+      "source": "formal_study",
+      "planning_note": "Catches mechanical failures others soften (--max-warnings 0, exit-code discipline)"
+    },
+    "openai-gpt-5.4": {
+      "personality": "Reader-centered systems thinker",
+      "instinct": "Reframes messy work into a coherent system",
+      "best_role": "Primary reviewer (framing)",
+      "risk_tolerance": "Moderate",
+      "typical_failure_mode": "May over-systematize well-specified tasks",
+      "optimism_rank": 3,
+      "source": "formal_study",
+      "planning_note": "Most valuable when input is ambiguous; least valuable when already tightly specified"
+    }
+  },
+  "optimism_spectrum": [
+    "claude-opus-4-5",
+    "claude-sonnet-4-5",
+    "openai-gpt-5.4",
+    "openai-gpt-5.2",
+    "claude-opus-4-7",
+    "claude-opus-4-8",
+    "claude-opus-4-6",
+    "claude-sonnet-5",
+    "claude-sonnet-4-6"
+  ],
+  "optimism_spectrum_labels": {
+    "left": "Most optimistic",
+    "right": "Least optimistic"
+  },
+  "role_routing": {
+    "default": {
+      "planner": {"model": "claude-opus-4-7", "reason": "Governance-minded planner with exit criteria and default-pattern discipline"},
+      "primary_reviewer": {"model": "openai-gpt-5.4", "reason": "Attacks framing and ownership rather than line items"},
+      "secondary_reviewer": {"model": "openai-gpt-5.2", "reason": "Compresses review into concrete prevention mechanisms"},
+      "executor": {"model": "claude-sonnet-4-6", "reason": "Converts reviews into concrete drop-in fixes"}
+    },
+    "small_task": {
+      "primary_reviewer": {"model": "openai-gpt-5.2", "reason": "Mechanics check"},
+      "executor": {"model": "claude-sonnet-4-6", "reason": "Surgical fix"}
+    },
+    "ambiguous_requirements": {
+      "planner": {"model": "openai-gpt-5.4", "reason": "Reframing instinct resolves ambiguity first"},
+      "primary_reviewer": {"model": "claude-opus-4-7", "reason": "Governance instinct locks it down after"},
+      "secondary_reviewer": {"model": "openai-gpt-5.2", "reason": "Pragmatic compression"},
+      "executor": {"model": "claude-sonnet-4-6", "reason": "Surgical execution"}
+    },
+    "high_stakes_verification": {
+      "planner": {"model": "claude-opus-4-8", "reason": "Spec-driven planning with exhaustive requirement coverage"},
+      "primary_reviewer": {"model": "claude-opus-4-6", "reason": "Forensic cataloguing catches every discrepancy"},
+      "secondary_reviewer": {"model": "claude-sonnet-4-6", "reason": "Low tolerance catches what others soften"},
+      "executor": {"model": "claude-sonnet-5", "reason": "Refuses to declare done until oracle passes; reconstructs broken verification"}
+    }
+  },
+  "anti_patterns": [
+    {
+      "name": "False confidence pipeline",
+      "description": "Pairing Sonnet 4.5 with Opus 4.5 as your only reviewers. Both produce polished, reassuring outputs with documented calibration gaps. Together they create a pipeline where two models agree things are fine while concrete failures go unflagged.",
+      "fix": "Always include at least one low-risk-tolerance model in correctness-critical loops: Sonnet 4.6, Sonnet 5, Opus 4.6, or GPT-5.2."
+    },
+    {
+      "name": "Redundant insight loop",
+      "description": "Using two Opus models in the same review loop expecting diverse insight. Opus 4.5 and Opus 4.7 produced verbatim-level score and fix duplication in structured review — they converge on verdict even though their personalities differ.",
+      "fix": "Cross the family line whenever possible. A better pairing crosses the optimism spectrum: one cataloguer, one systems thinker, one pragmatic operator."
+    },
+    {
+      "name": "Executor without verifier",
+      "description": "Using a surgical executor (Sonnet 4.6) without a verification step. Its instinct is to fix immediately, which can skip root-cause analysis. The fix may be correct but the underlying problem recurs.",
+      "fix": "Pair executors with a verifier pass: Sonnet 5 (refuses to declare done until oracle passes) or Opus 4.8 (spec-driven validation) as a post-execution check."
+    }
+  ]
+}

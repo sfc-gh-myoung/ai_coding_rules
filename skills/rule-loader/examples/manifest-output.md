@@ -10,6 +10,7 @@ itself via `read_file` (preserving the Gate 3 read-and-apply contract).
 ```json
 {
   "schema_version": "rule-loader-manifest/v1",
+  "loading_contract": "Each load_sequence entry with read_required=true MUST be loaded via read_file before citation. The manifest is metadata only — it does not substitute for reading rule content.",
   "request_fingerprint": "sha256:6b1f...c2a9",
   "runtime": {
     "primitive": "Task",
@@ -50,7 +51,9 @@ itself via `read_file` (preserving the Gate 3 read-and-apply contract).
       "context_tier": "Critical",
       "token_estimate": 2550,
       "layer": "FOUNDATION",
-      "required": true
+      "required": true,
+      "read_required": true,
+      "description": "Foundational operating contract: PRE-FLIGHT gates, surgical edits, validation sequences, and communication standards for all AI agents."
     },
     {
       "order": 2,
@@ -61,10 +64,17 @@ itself via `read_file` (preserving the Gate 3 read-and-apply contract).
       "context_tier": "High",
       "token_estimate": 2600,
       "layer": "HARD",
-      "required": true
+      "required": true,
+      "read_required": true,
+      "description": "Python core: toolchain detection, datetime UTC, collections.abc imports, error handling, and mandatory validation gate."
     }
   ],
-  "deferred_rules": []
+  "deferred_rules": [],
+  "execution_hints": {
+    "expected_turns_per_fixture": 3,
+    "max_output_tokens": 1000,
+    "note": "Advisory only. Calibrated from opus-4-6 baseline (91 turns / 35 fixtures ≈ 2.6 turns/fixture; 19k output tokens / 35 fixtures ≈ 543 tokens/fixture)."
+  }
 }
 ```
 
@@ -78,6 +88,7 @@ token-budget / ContextTier cap. Note the completeness invariant: every
 ```json
 {
   "schema_version": "rule-loader-manifest/v1",
+  "loading_contract": "Each load_sequence entry with read_required=true MUST be loaded via read_file before citation. The manifest is metadata only — it does not substitute for reading rule content.",
   "request_fingerprint": "sha256:9d0e...11bb",
   "runtime": {
     "primitive": "Task",
@@ -138,7 +149,8 @@ token-budget / ContextTier cap. Note the completeness invariant: every
       "context_tier": "Critical",
       "token_estimate": 2550,
       "layer": "FOUNDATION",
-      "required": true
+      "required": true,
+      "read_required": true
     },
     {
       "order": 2,
@@ -149,7 +161,8 @@ token-budget / ContextTier cap. Note the completeness invariant: every
       "context_tier": "High",
       "token_estimate": 3000,
       "layer": "SOFT",
-      "required": false
+      "required": false,
+      "read_required": true
     },
     {
       "order": 3,
@@ -160,7 +173,8 @@ token-budget / ContextTier cap. Note the completeness invariant: every
       "context_tier": "Medium",
       "token_estimate": 2400,
       "layer": "SOFT",
-      "required": false
+      "required": false,
+      "read_required": true
     }
   ],
   "deferred_rules": [
@@ -174,7 +188,12 @@ token-budget / ContextTier cap. Note the completeness invariant: every
       "layer": "SOFT",
       "deferred_because": "ContextTier Low and the domain/activity cap (3) was reached by higher-tier rules; total estimated context would exceed the configured token-budget ceiling"
     }
-  ]
+  ],
+  "execution_hints": {
+    "expected_turns_per_fixture": 3,
+    "max_output_tokens": 1000,
+    "note": "Advisory only. Calibrated from opus-4-6 baseline (91 turns / 35 fixtures ≈ 2.6 turns/fixture; 19k output tokens / 35 fixtures ≈ 543 tokens/fixture)."
+  }
 }
 ```
 

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Comprehensive context engineering practices that treat context as a finite resource with diminishing returns. Covers attention budgets (n² pairwise relationships), context rot, progressive"
 last_updated: 2026-07-15
 keywords:
   - kw:context window management

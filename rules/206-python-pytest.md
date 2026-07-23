@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Pytest best practices: AAA pattern, fixtures, parametrization, test isolation, uv-run-pytest, and flaky-test protocol."
 last_updated: 2026-07-15
 keywords:
   - kw:pytest fixtures

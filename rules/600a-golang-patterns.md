@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Advanced Go patterns for production services including HTTP server configuration, middleware chains, graceful shutdown, database access patterns, and server hardening."
 last_updated: 2026-07-15
 keywords:
   - kw:http.Server timeouts

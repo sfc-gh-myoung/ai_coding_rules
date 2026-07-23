@@ -1,0 +1,43 @@
+schema_version: 4
+updated: '2026-07-20T13:00:00-04:00'
+id: behavioral-sql-create-table
+description: Verifies agent uses IF NOT EXISTS, proper timestamp types, and COMMENT in Snowflake DDL
+variant: behavioral
+prompt: 'What''s the recommended DDL for a Snowflake table tracking user login events with timestamp, user_id, ip_address,
+  and device_type?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/100-snowflake-core.md
+  - rules/102-snowflake-sql-core.md
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw:
+  - snowflake
+  - create
+  - table
+  - SQL
+  ext:
+  - .sql
+  file: []
+  dir: []
+behavioral_checks:
+- id: uses-if-not-exists
+  description: Agent uses CREATE TABLE IF NOT EXISTS for idempotent DDL
+  rule_source: rules/102-snowflake-sql-core.md
+  check_type: output_pattern
+  pattern: CREATE.*TABLE.*IF NOT EXISTS
+- id: uses-proper-timestamp
+  description: Agent uses a Snowflake-specific timestamp type (LTZ, NTZ, or TZ)
+  rule_source: rules/102-snowflake-sql-core.md
+  check_type: output_pattern
+  pattern: TIMESTAMP_LTZ|TIMESTAMP_NTZ|TIMESTAMP_TZ
+- id: includes-comment
+  description: Agent adds a COMMENT on the table or columns for documentation
+  rule_source: rules/102-snowflake-sql-core.md
+  check_type: output_pattern
+  pattern: COMMENT
+architecture_mode: both

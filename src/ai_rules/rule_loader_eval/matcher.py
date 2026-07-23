@@ -35,7 +35,7 @@ _log = logging.getLogger(__name__)
 class CitationDrift:
     """A single citation that does not match the actual rule file.
 
-    ``field`` is one of ``path`` or ``line_count``.
+    ``field`` is one of ``path``, ``line_count``, or ``version``.
     """
 
     rule_path: str
@@ -239,6 +239,50 @@ def validate_citations(
                     field="line_count",
                     declared=str(citation.line_count),
                     actual=str(meta.line_count),
+                    section=section,
+                )
+            )
+    return tuple(drifts)
+
+
+def validate_version_citations(
+    *,
+    citations: dict[str, Citation],
+    rules_meta: dict[str, RuleMetadata],
+    section: str,
+) -> tuple[CitationDrift, ...]:
+    """Compare declared version citations against rule metadata.
+
+    Emits a CitationDrift for each version mismatch. Citations without
+    a declared version are skipped (version citation is optional).
+    Rules without a rule_version in frontmatter are also skipped.
+    ``field`` is one of ``path``, ``line_count``, or ``version``.
+    """
+    drifts: list[CitationDrift] = []
+    for path, citation in sorted(citations.items()):
+        if citation.failed or citation.version is None:
+            continue
+        meta = rules_meta.get(path)
+        if meta is None:
+            drifts.append(
+                CitationDrift(
+                    rule_path=path,
+                    field="path",
+                    declared=path,
+                    actual="<rule file not in snapshot>",
+                    section=section,
+                )
+            )
+            continue
+        if not meta.rule_version:
+            continue  # rule has no version in frontmatter; cannot compare
+        if citation.version != meta.rule_version:
+            drifts.append(
+                CitationDrift(
+                    rule_path=path,
+                    field="version",
+                    declared=citation.version,
+                    actual=meta.rule_version,
                     section=section,
                 )
             )

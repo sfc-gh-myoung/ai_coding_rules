@@ -1,0 +1,41 @@
+schema_version: 4
+updated: '2026-07-20T13:00:00-04:00'
+id: behavioral-python-surgical-edit
+description: Verifies agent makes surgical edits (not full file rewrites) and validates after fixing a TypeError
+variant: behavioral
+prompt: 'What''s the minimal fix for the TypeError on line 23 of utils.py where we''re calling .strip() on a None value?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/200-python-core.md
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw:
+  - python
+  - fix
+  - TypeError
+  ext:
+  - .py
+  file: []
+  dir: []
+behavioral_checks:
+- id: surgical-edit-scope
+  description: Edit targets a small section (5 lines or fewer of context) rather than rewriting the whole file
+  rule_source: rules/000-global-core.md
+  check_type: output_pattern
+  pattern: old_string.*\n.*new_string|edit.*line.*(2[1-5]|23)
+- id: validation-run-present
+  description: Agent runs pytest or ruff to validate the fix
+  rule_source: rules/000-global-core.md
+  check_type: tool_call_present
+  tool: Bash
+  pattern: pytest|ruff|python.*-m.*pytest
+- id: no-full-rewrite
+  description: Agent does not rewrite the entire file
+  rule_source: rules/000-global-core.md
+  check_type: output_absent
+  pattern: write_file.*utils\.py|cat.*>.*utils\.py
+architecture_mode: both

@@ -32,7 +32,7 @@ See `rules/.index-stats.json` for rule count, `format_version`, and generation
 metadata; this file intentionally omits volatile timestamps so
 `ai-rules index check` is deterministic against corpus content only.
 
-000-global-core.md tier=Critical kw=surgical-edits pre-flight-gates validation-command-sequence context-preservation-hierarchy foundation-operating-contract task-list-confirmation pytest
+000-global-core.md tier=Critical kw=surgical-edits pre-flight-gates validation-command-sequence context-preservation-hierarchy foundation-operating-contract task-list-confirmation pytest desc="Foundational operating contract: PRE-FLIGHT gates, surgical edits, validation sequences, and communication standards for all AI agents."
 001-memory-bank.md tier=Critical kw=memory-bank context-preservation rapid-recovery-protocol aggressive-pruning activeContext.md session-initialization
 002-rule-governance.md tier=Critical dir=rules/ kw=rule-schema-compliance metadata-field-requirements Contract-Markdown-subsections semantic-discovery-keywords ai-rules-validate agent-first-design-priorities
 002a-rule-creation.md tier=High kw=rule-creation-workflow rule-numbering-ranges v3.4-schema-compliance Contract-Markdown-subsections rule-file-naming-convention metadata-field-setup aisql
@@ -53,9 +53,9 @@ metadata; this file intentionally omits volatile timestamps so
 004-tool-design-for-agents.md tier=High kw=agent-tool-design single-responsibility-tools token-efficient-outputs LLM-friendly-parameters tool-boundary-overlap actionable-error-messages ci/cd
 004a-tool-set-curation.md tier=Medium kw=tool-set-curation minimal-viable-tool-set tool-splitting-criteria tool-merging-criteria tool-bloat-detection tool-boundaries etl
 004b-tool-output-efficiency.md tier=Medium kw=tool-output-minimization progressive-loading token-efficient-responses silent-success-pattern metadata-elimination agent-context-preservation ci/cd
-100-snowflake-core.md tier=High ext=.sql kw=CTE-extraction VARIANT-parsing-optimization Streams-Tasks-incremental partition-pruning-early-filtering QUALIFY-ROW_NUMBER-deduplication Query-Profile-validation
+100-snowflake-core.md tier=High ext=.sql kw=CTE-extraction VARIANT-parsing-optimization Streams-Tasks-incremental partition-pruning-early-filtering QUALIFY-ROW_NUMBER-deduplication Query-Profile-validation desc="Foundational Snowflake practices: SQL authoring, object naming, cost control, security policies, and performance patterns."
 100f-snowflake-connection-errors.md tier=High kw=connection-error-classification network-policy-violation-detection message-first-error-analysis VPN-disconnect-diagnosis snowflake.connector.errors.DatabaseError error-code-08001-ambiguity snowpark
-101-snowflake-streamlit-core.md tier=High kw=Streamlit st.navigation session-state Container-Runtime config.toml-theming st.connection-snowflake TOML
+101-snowflake-streamlit-core.md tier=High kw=Streamlit st.navigation session-state Container-Runtime config.toml-theming st.connection-snowflake TOML desc="Streamlit in Snowflake: navigation, session state, runtime selection (Container/Warehouse), and config.toml theming."
 101a-snowflake-streamlit-visualization.md tier=High kw=st.plotly_chart st.pydeck_chart st.altair_chart library-selection use_container_width WebGL-context-limits pandas
 101b-snowflake-streamlit-performance.md tier=High kw=@st.cache_data-decorator @st.cache_resource-decorator Snowflake-column-normalization st.spinner-progress-feedback query-loop-aggregation ttl-cache-expiration pandas
 101c-snowflake-streamlit-security.md tier=High kw=st.secrets SQL-injection-prevention Streamlit-authentication input-sanitization file-upload-validation container-runtime-secrets TOML
@@ -70,7 +70,7 @@ metadata; this file intentionally omits volatile timestamps so
 101l-snowflake-streamlit-deployment.md tier=High kw=container-runtime warehouse-runtime pyproject.toml external-access-integration compute-pool runtime-migration TOML
 101m-snowflake-streamlit-pydeck-layers.md tier=Low kw=pydeck-layer-types HexagonLayer-aggregation GeoJsonLayer-extrusion ArcLayer-flow-visualization multi-layer-composition deck.gl-accessor-syntax streamlit
 101n-snowflake-streamlit-migration.md tier=Low kw=Streamlit-runtime-migration environment.yml-to-pyproject.toml get_active_session-replacement Container-Runtime-infrastructure bidirectional-runtime-swap in-place-Streamlit-upgrade TOML
-102-snowflake-sql-core.md tier=High ext=.sql kw=SQL-file-headers COPY-INTO-ON_ERROR-placement CREATE-VIEW-COMMENT-syntax fully-qualified-object-names CLI-templating-reserved-characters idempotent-DDL-patterns SQL-data-transformation
+102-snowflake-sql-core.md tier=High ext=.sql kw=SQL-file-headers COPY-INTO-ON_ERROR-placement CREATE-VIEW-COMMENT-syntax fully-qualified-object-names CLI-templating-reserved-characters idempotent-DDL-patterns SQL-data-transformation desc="Snowflake SQL file patterns: file headers, COPY INTO and CREATE VIEW syntax, qualified names, and CLI-safe idempotent DDL."
 102a-snowflake-sql-automation.md tier=High kw=parameterized-SQL-templates idempotent-MERGE-operations CREATE-TABLE-IF-NOT-EXISTS multi-environment-deployment CI/CD-pipeline-integration production-safe-automation ci/cd
 102b-snowflake-sql-procedures.md tier=High ext=.sql kw=SQL-scripting dollar-quoting EXECUTE-AS EXECUTE-IMMEDIATE bind-variables procedure-body-quoting
 102c-snowflake-sql-reserved-chars.md tier=Low kw=cli-compatibility ampersand-escaping template-expansion enable-templating-flag brand-name-preservation snow-sql-tool
@@ -84,7 +84,7 @@ metadata; this file intentionally omits volatile timestamps so
 106b-snowflake-semantic-views-querying.md tier=High kw=SEMANTIC_VIEW-function dimension-compatibility FACTS-METRICS-mutual-exclusion window-function-metrics semantic-view-testing WHERE-clause-restrictions cortex
 106c-snowflake-semantic-views-integration.md tier=Medium kw=Cortex-Analyst Cortex-Agent-grounding semantic-view-governance natural-language-query-synonyms analyst-troubleshooting policy-inheritance-base-tables ci/cd
 106d-snowflake-semantic-views-development.md tier=Medium kw=semantic-view-generator verified-query-repository VQR-logical-table-naming YAML-semantic-model iterative-refinement-workflow onboarding-questions cortex
-107-snowflake-security-governance.md tier=High kw=RBAC-role-hierarchy masking-policy-attachment row-access-policy-enforcement object-tagging-governance data-metric-function-scheduling least-privilege-grant-design
+107-snowflake-security-governance.md tier=High kw=RBAC-role-hierarchy masking-policy-attachment row-access-policy-enforcement object-tagging-governance data-metric-function-scheduling least-privilege-grant-design desc="Snowflake governance: RBAC, data masking, row-level security, and object tagging for enterprise-grade access control."
 108-snowflake-data-loading.md tier=High kw=COPY-INTO stage-management file-format-definition bulk-load-optimization VALIDATION_MODE ON_ERROR-handling COPY_HISTORY-monitoring
 109-snowflake-notebooks.md tier=Medium kw=Snowflake-Notebooks reproducible-notebook-execution Snowpark-DataFrame-computation cell-naming-conventions nbqa-ruff-linting notebook-state-management pandas
 109a-snowflake-notebooks-tutorials.md tier=High kw=notebook-tutorial-design learning-objectives-structure checkpoint-validation-cells anti-pattern-teaching progressive-complexity-management teaching-point-callouts pandas
@@ -139,7 +139,7 @@ metadata; this file intentionally omits volatile timestamps so
 130-snowflake-demo-sql.md tier=High kw=demo-sql per-schema-isolation rerunnable-demos progress-indicators inline-educational-comments schema-based-file-naming ci/cd
 131-snowflake-demo-creation.md tier=Low kw=Faker-seeded-generation GENERATOR()-table-function offline-fallback-resilience DemoScenario-pattern narrative-aligned-correlations progressive-disclosure-UI faker
 132-snowflake-demo-modeling.md tier=High kw=Kimball-dimensional-modeling fact-dimension-FK-naming view-taxonomy-prefixes synthetic-data-referential-integrity business-first-column-naming SCD-Type-2-surrogate-keys etl
-200-python-core.md tier=Critical ext=.py kw=pyproject.toml toolchain-detection datetime.now(UTC) collections.abc-imports dict-list-annotations pathlib-file-operations
+200-python-core.md tier=Critical ext=.py kw=pyproject.toml toolchain-detection datetime.now(UTC) collections.abc-imports dict-list-annotations pathlib-file-operations desc="Python core: toolchain detection, datetime UTC, collections.abc imports, error handling, and mandatory validation gate."
 200a-python-validation-gate.md tier=High kw=pre-task-completion-gate ty-vs-mypy-decision zero-tolerance-validation toolchain-specific-validation-commands validation-failure-recovery-sequence pre-commit-hook-automation TOML
 200b-python-environment-tooling.md tier=High kw=venv uv-run uvx poetry-run toolchain-detection ModuleNotFoundError-diagnosis fastapi
 201-python-lint-format.md tier=High kw=Ruff pyproject.toml-configuration uvx-ruff pydocstyle-D-rules pre-commit-hooks zero-error-validation-gate TOML
@@ -148,7 +148,7 @@ metadata; this file intentionally omits volatile timestamps so
 203-python-project-setup.md tier=High kw=pyproject.toml hatchling-build-backend uv-dependency-manager __init__.py-package-recognition flat-layout-src-layout editable-install TOML
 204-python-docs.md tier=High kw=docstring-conventions PEP-257 Google-style-docstrings NumPy-style-docstrings Ruff-pydocstyle side-effects-documentation TOML
 205-python-classes.md tier=Medium kw=dataclass-decorator composition-over-inheritance @property-decorator Protocol-structural-subtyping frozen-immutable-dataclass context-manager-resource pytest
-206-python-pytest.md tier=High kw=pytest-fixtures AAA-pattern test-parametrization uv-run-pytest test-isolation flaky-test-protocol TOML
+206-python-pytest.md tier=High kw=pytest-fixtures AAA-pattern test-parametrization uv-run-pytest test-isolation flaky-test-protocol TOML desc="Pytest best practices: AAA pattern, fixtures, parametrization, test isolation, uv-run-pytest, and flaky-test protocol."
 207-python-logging.md tier=High kw=hierarchical-logger-names Rich-console-bridge WebLogHandler-SSE operation-scoped-handler-attachment SUCCESS-prefix-pattern operation-ID-correlation fastapi
 210-python-fastapi-core.md tier=High kw=application-factory APIRouter-modular-routing Pydantic-request-response-separation async-def-route-handlers dependency-injection-database-sessions uvicorn-ASGI-server fastapi
 210a-python-fastapi-security.md tier=High kw=JWT-authentication bcrypt-password-hashing HTTPBearer-token-validation token-refresh-pairs RBAC-dependency-injection environment-secrets-validation fastapi
@@ -196,7 +196,7 @@ metadata; this file intentionally omits volatile timestamps so
 350-docker-core.md tier=Medium kw=multi-stage-builds image-digest-pinning non-root-container-user layer-caching-optimization SBOM-generation BuildKit-mount-cache ci/cd
 351-podman-core.md tier=Medium kw=rootless-containers Containerfile-authoring Quadlet-systemd daemonless-architecture pod-orchestration Buildah-image-building SELinux-volume-labeling
 351a-podman-examples.md tier=Low kw=Buildah-multi-stage Quadlet-systemd rootless-numeric-UID SBOM-generation-script Containerfile-healthcheck versioned-image-tags ini
-420-javascript-core.md tier=High kw=ESM-modules immutable-array-methods node:test-runner Biome-linter JSDoc-type-annotations Object.groupBy
+420-javascript-core.md tier=High kw=ESM-modules immutable-array-methods node:test-runner Biome-linter JSDoc-type-annotations Object.groupBy desc="Modern JS in 2026: ECMAScript Modules, immutable ES2023+ methods, JSDoc type annotations, and Biome/node:test tooling."
 421-javascript-alpinejs-core.md tier=Medium kw=x-data-directive declarative-directives magic-properties Alpine.data-registration x-cloak-FOUC-prevention progressive-enhancement htmx
 421a-javascript-alpinejs-advanced.md tier=Low kw=Alpine.store $dispatch-cross-component lifecycle-hooks-init-destroy x-transition-animations Alpine.js-DevTools-debugging x-effect-reactive-side-effects htmx
 424-javascript-docs.md tier=High kw=JSDoc-type-annotations eslint-plugin-jsdoc @ts-check-validation @param-@returns-tags @typedef-custom-types JavaScript-API-documentation
@@ -213,7 +213,7 @@ metadata; this file intentionally omits volatile timestamps so
 800-project-changelog.md tier=Medium kw=CHANGELOG.md Keep-a-Changelog Conventional-Commits-style Unreleased-section changelog-entry-consolidation release-notes-workflow ci/cd
 801-project-readme.md tier=Medium kw=README.md-structure quick-start-commands progressive-disclosure badge-validation clean-environment-testing author-contact-section ci/cd
 802-project-contributing.md tier=Medium kw=pull-requests conventional-commits CONTRIBUTING.md changelog-discipline rule-authoring pre-commit-validation cortex
-803-project-git-workflow.md tier=Medium kw=conventional-commits feature-branch-workflow conventional-branch-naming CHANGELOG.md-updates pre-commit-validation-gate pull-request-workflow cortex
+803-project-git-workflow.md tier=Medium kw=conventional-commits feature-branch-workflow conventional-branch-naming CHANGELOG.md-updates pre-commit-validation-gate pull-request-workflow cortex desc="Git workflow: Conventional Commits, feature branching, PR workflows, pre-commit validation, and CHANGELOG updates."
 804-project-documentation.md tier=Medium kw=docs-folder-structure community-health-files-placement ARCHITECTURE.md-location relative-path-cross-references ADR-folder-conventions GitHub-Pages-deployment
 805-technical-writing-style.md tier=Medium kw=technical-writing-style sentence-case-headings inclusive-language active-voice-prose fenced-code-block-language-identifier descriptive-link-text
 806-workbench-folder-policy.md tier=Low kw=.workbench/-folder short-life-assets promotion-protocol filesystem-hygiene workbench-mirroring gitignore-workbench
@@ -224,6 +224,6 @@ metadata; this file intentionally omits volatile timestamps so
 821a-makefile-advanced-patterns.md tier=Low kw=categorized-help makefile-conditionals variable-assignment-operators makefile-include-directives platform-detection AI-agent-integration ci/cd
 920-data-science-analytics.md tier=High kw=snowpark-dataframe model-registry-versioning feature-engineering-leakage SHAP-explainability SQL-aggregation-over-loops pandas-NaN-handling uncertainty-quantification-intervals
 930-data-governance-quality.md tier=Medium kw=expectation-suites schema-evolution metric-definitions-catalog data-drift-monitoring quality-gates-automation incident-response-procedures ci/cd
-940-business-analytics.md tier=High kw=WCAG-accessibility-compliance KPI-visualization data-storytelling-narrative ethical-visualization-standards snowsight
+940-business-analytics.md tier=High kw=WCAG-accessibility-compliance KPI-visualization data-storytelling-narrative ethical-visualization-standards snowsight desc="Business analytics: KPI visualization, ethical data storytelling, WCAG accessibility, and Snowsight dashboards."
 950-dbt-core.md tier=High kw=dbt-project-object EXECUTE-DBT-PROJECT profiles.yml-snowflake snow-dbt-deploy dbt-workspaces dbt-external-access-integration ci/cd
 951-create-dbt-semantic-view.md tier=High kw=dbt_semantic_view-package semantic_view-materialization cortex-analyst-integration SEMANTIC_VIEW()-function primary-key-constraints dimensions-metrics-relationships ci/cd

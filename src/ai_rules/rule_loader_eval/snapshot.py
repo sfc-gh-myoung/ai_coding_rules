@@ -574,6 +574,7 @@ def write_eval_snapshot(
                 "fails": 0 if f.passed else 1,
                 "flake_score": float(f.flake_score),
                 "pass_rate": 1.0 if f.passed else 0.0,
+                "deterministic_fail": not f.passed and f.n_runs > 0,
             }
             for f in fixtures
         },

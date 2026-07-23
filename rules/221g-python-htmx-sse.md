@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Patterns for implementing Server-Sent Events (SSE) in HTMX applications, covering the decision between HTMX SSE extension and Alpine.js SSE manager, event type matching, thread-safe publishing, and"
 last_updated: 2026-07-15
 keywords:
   - kw:HTMX SSE extension

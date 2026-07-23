@@ -218,7 +218,7 @@ def extract_model_stats(run_dir: Path) -> ModelResult:
         citation_drifts=citation_drifts,
         duration_stats=duration_stats,
         turn_stats=turn_stats,
-        result_dir=run_dir.name,
+        result_dir=str(run_dir),
         per_fixture=per_fixture,
     )
 
@@ -320,7 +320,9 @@ def _build_failure_mode_data(results: Sequence[ModelResult]) -> dict[str, Any]:
         # Track per-fixture pass/fail for stochastic instability detection
         fixture_outcomes: dict[str, list[bool]] = {}
 
-        result_dir = _find_result_dir(r.result_dir)
+        result_dir = Path(r.result_dir)
+        if not result_dir.exists():
+            result_dir = _find_result_dir(result_dir.name)
         if not result_dir:
             continue
 
@@ -399,6 +401,17 @@ def _templates_dir() -> Path:
     raise FileNotFoundError("Cannot locate project root for templates")
 
 
+def _load_personality_profiles(tmpl_dir: Path) -> dict[str, Any] | None:
+    """Load static personality profiles from _personality_data.json if available."""
+    data_path = tmpl_dir / "_personality_data.json"
+    if not data_path.exists():
+        return None
+    try:
+        return json.loads(data_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
 def render_report(
     results: Sequence[ModelResult],
     template_name: str,
@@ -436,12 +449,14 @@ def render_report(
     fixtures_data = _build_fixtures_data(results)
     per_fixture_data = _build_per_fixture_data(results)
     failure_mode_data = _build_failure_mode_data(results)
+    personality_profiles = _load_personality_profiles(tmpl_dir)
     rendered = template.render(
         results=results,
         chart_data=chart_data,
         fixtures_data=fixtures_data,
         per_fixture_data=per_fixture_data,
         failure_mode_data=failure_mode_data,
+        personality_profiles=personality_profiles,
         total_models=len(results),
         required_tabs=REQUIRED_TABS,
     )

@@ -24,6 +24,7 @@ from ai_rules.rule_loader_eval.diagnostics import (
     SignalReport,
     citation_drift,
     signal_disagreement,
+    version_citation_drift,
 )
 from ai_rules.rule_loader_eval.fixtures import Fixture
 from ai_rules.rule_loader_eval.matcher import (
@@ -171,7 +172,11 @@ def _build_run_result(
         run=run,
         match=match,
         signal_report=signal_disagreement(run, fixture_optional=fixture.optional),
-        citation_drifts=citation_drift(run, rules_meta),
+        citation_drifts=(
+            version_citation_drift(run, rules_meta)
+            if progressive
+            else citation_drift(run, rules_meta)
+        ),
         depends_violations=tuple(validate_depends_propagation(effective_loaded, rules_meta)),
         effective_loaded=effective_loaded,
         scoring_version="v2",

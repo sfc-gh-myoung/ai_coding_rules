@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Directives for creating realistic, deterministic, and effective demo applications. Covers data generation, narrative design, and visual clarity to deliver compelling demonstrations that showcase"
 last_updated: 2026-07-15
 keywords:
   - kw:Faker seeded generation

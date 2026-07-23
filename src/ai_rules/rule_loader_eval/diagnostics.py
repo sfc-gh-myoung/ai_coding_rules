@@ -22,7 +22,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ai_rules.rule_loader_eval.matcher import CitationDrift, validate_citations
+from ai_rules.rule_loader_eval.matcher import (
+    CitationDrift,
+    validate_citations,
+    validate_version_citations,
+)
 
 if TYPE_CHECKING:
     from ai_rules.rule_loader_eval.agent_runner import AgentRun
@@ -165,6 +169,21 @@ def citation_drift(run: AgentRun, rules_meta: dict[str, RuleMetadata]) -> tuple[
     return tuple(drifts_loaded)
 
 
+def version_citation_drift(
+    run: AgentRun, rules_meta: dict[str, RuleMetadata]
+) -> tuple[CitationDrift, ...]:
+    """Return version-based citation drifts for progressive mode.
+
+    Checks only the Rules Loaded section (progressive mode does not
+    emit a Reads Performed section).
+    """
+    return validate_version_citations(
+        citations=run.citations_rules_loaded,
+        rules_meta=rules_meta,
+        section="Rules Loaded",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Human-readable formatters
 # ---------------------------------------------------------------------------
@@ -279,9 +298,8 @@ def format_citation_drift_warning(drifts: tuple[CitationDrift, ...]) -> str | No
         return None
     lines = [
         "Citation drift detected. Declared citation values do not match the actual",
-        "rule file line counts required by AGENTS.md. This is",
-        "a fabrication signal: the agent likely cited values from pretraining instead",
-        "of reading the file in this turn.",
+        "rule file metadata. This is a fabrication signal: the agent likely cited",
+        "values from pretraining instead of reading the file in this turn.",
         "",
     ]
     for d in drifts:

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Establish monitoring, logging, and performance optimization patterns for FastAPI applications including health checks, structured logging, caching, and observability."
 last_updated: 2026-07-15
 keywords:
   - kw:FastAPI health endpoints

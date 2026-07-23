@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Audio transcription patterns using Snowflake Cortex AI_TRANSCRIBE, including correct TO_FILE syntax, speaker diarization, common type errors, and batch transcription from staged audio files."
 last_updated: 2026-07-15
 keywords:
   - kw:AI_TRANSCRIBE

@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Modern JS in 2026: ECMAScript Modules, immutable ES2023+ methods, JSDoc type annotations, and Biome/node:test tooling."
 last_updated: 2026-07-15
 keywords:
   - kw:ESM modules

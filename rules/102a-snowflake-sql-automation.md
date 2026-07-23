@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Guide creation of parameterized SQL templates using <%VARIABLE%> syntax for automated Snowflake deployments in production environments. NEVER use CREATE OR REPLACE TABLE (data loss risk), instead use"
 last_updated: 2026-07-15
 keywords:
   - kw:parameterized SQL templates

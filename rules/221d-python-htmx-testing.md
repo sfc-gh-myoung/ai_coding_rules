@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Testing strategies for HTMX endpoints in Python applications, covering unit tests for header validation, integration tests for partial responses, pytest fixtures for HTMX requests, HTML assertion"
 last_updated: 2026-07-15
 keywords:
   - kw:htmx endpoint testing

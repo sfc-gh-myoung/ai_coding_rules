@@ -1,25 +1,23 @@
 schema_version: 3
-updated: 2026-05-17T16:26:51-04:00
+updated: '2026-07-20T13:00:00-04:00'
 id: simple-snowcli-app-file
-description: # TODO
+description: null
 variant: simple
-prompt: |
-  Add an additional native app artifact entry to snowflake.yml.
+prompt: 'What''s needed to include an additional native app artifact entry in
+
+  snowflake.yml?
+
+  '
 expected:
   required:
-    - rules/000-global-core.md  # foundation (always loaded)
-    - rules/112-snowflake-snowcli.md  # suggested: file: snowflake.yml
+  - rules/000-global-core.md
+  - rules/112-snowflake-snowcli.md
   forbidden: []
   optional:
-    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
-      # missing: ext=.sql
+  - rules/100-snowflake-core.md
 trigger_evidence:
   kw: []
-    # n-gram (no rule): "additional native app artifact"
-    # n-gram (no rule): "native app artifact entry"
-    # n-gram (no rule): "an additional native app"
-    # n-gram (no rule): "app artifact entry to"
-    # n-gram (no rule): "artifact entry to snowflake"
   ext: []
-  file: [snowflake.yml]   # suggested
+  file:
+  - snowflake.yml
   dir: []

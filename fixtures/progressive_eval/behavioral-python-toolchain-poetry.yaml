@@ -1,0 +1,37 @@
+schema_version: 4
+updated: '2026-07-20T13:00:00-04:00'
+id: behavioral-python-toolchain-poetry
+description: Verifies agent reads project config (pyproject.toml) before running commands
+variant: behavioral
+prompt: 'What''s needed to add a retry decorator to the API client in src/client.py?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/200-python-core.md
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw:
+  - python
+  - decorator
+  - retry
+  ext:
+  - .py
+  file: []
+  dir:
+  - src/
+behavioral_checks:
+- id: reads-project-config
+  description: Agent reads pyproject.toml before running install or dependency commands
+  rule_source: rules/200-python-core.md
+  check_type: tool_call_present
+  tool: Read
+  pattern: pyproject\.toml
+- id: read-before-bash
+  description: Agent reads project file before running shell commands
+  rule_source: rules/200-python-core.md
+  check_type: tool_call_sequence
+  pattern: Read,Bash
+architecture_mode: both

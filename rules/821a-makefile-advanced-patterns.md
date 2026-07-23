@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Advanced Makefile patterns including categorized help output, conditional logic, variable assignment types, include directives, platform detection, and AI agent integration considerations."
 last_updated: 2026-07-15
 keywords:
   - kw:categorized help

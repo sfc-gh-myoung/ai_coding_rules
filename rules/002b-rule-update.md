@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Workflow and best practices for updating and maintaining existing rule files. Covers semantic versioning (MAJOR/MINOR/PATCH), LastUpdated field management, common update scenarios, and validation"
 last_updated: 2026-07-15
 keywords:
   - kw:rule versioning

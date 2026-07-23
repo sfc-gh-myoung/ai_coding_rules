@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Integrating Snowflake Semantic Views with Cortex Analyst and Cortex Agent, applying governance and security controls, and troubleshooting integration issues."
 last_updated: 2026-07-15
 keywords:
   - kw:Cortex Analyst

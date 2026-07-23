@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v5.0.1
+description: "Python core: toolchain detection, datetime UTC, collections.abc imports, error handling, and mandatory validation gate."
 last_updated: 2026-07-15
 keywords:
   - kw:pyproject.toml

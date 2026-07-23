@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Reserved character handling for Snowflake CLI tools including snow sql, snowsql, and dbt/Jinja contexts. Covers &, <%, %>, {{, }} template characters and SQL single-quote escaping."
 last_updated: 2026-07-15
 keywords:
   - kw:cli compatibility

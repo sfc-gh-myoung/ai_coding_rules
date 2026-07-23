@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Prevent accidental collisions with built-in browser globals (e.g., window.history) that can break HTMX navigation, Alpine components, and browser back/forward behavior. Codifies safe naming, scoping,"
 last_updated: 2026-07-15
 keywords:
   - kw:browser globals collision

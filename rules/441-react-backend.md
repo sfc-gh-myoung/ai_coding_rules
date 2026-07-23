@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Establishes backend integration patterns for React applications, with Python (FastAPI/Flask) as the organizational default. Covers API communication, authentication flows, CORS configuration, and"
 last_updated: 2026-07-15
 keywords:
   - kw:FastAPI React integration

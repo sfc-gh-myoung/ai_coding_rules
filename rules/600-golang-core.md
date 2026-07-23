@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v4.0.0
+description: "Foundational Go development practices using idiomatic patterns, modern tooling (Go 1.22+), and industry-standard conventions to ensure reliable, maintainable, and performant Go codebases."
 last_updated: 2026-07-15
 keywords:
   - kw:go.mod

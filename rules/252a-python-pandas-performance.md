@@ -1,6 +1,7 @@
 ---
 schema_version: v3.5
 rule_version: v2.0.0
+description: "Pandas performance optimization: memory-efficient dtypes, categorical data, groupby/merge best practices, eval/query expressions, chunked processing, and thread-safety."
 last_updated: 2026-07-15
 keywords:
   - kw:pandas dtype optimization

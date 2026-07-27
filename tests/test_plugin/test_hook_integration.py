@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[2]
+PLUGIN_DIR = PLUGIN_ROOT / "ai-coding-rules-plugin"
 HOOK_SCRIPT = PLUGIN_ROOT / "hooks" / "user-prompt-submit"
 
 
@@ -130,7 +131,7 @@ class TestPluginManifest:
 
     def test_cortex_plugin_json_valid(self):
         """The .cortex-plugin/plugin.json is valid JSON with required fields."""
-        manifest_path = PLUGIN_ROOT / ".cortex-plugin" / "plugin.json"
+        manifest_path = PLUGIN_DIR / ".cortex-plugin" / "plugin.json"
         assert manifest_path.exists(), ".cortex-plugin/plugin.json not found"
 
         data = json.loads(manifest_path.read_text())
@@ -141,18 +142,18 @@ class TestPluginManifest:
 
     def test_declared_skills_dir_exists(self):
         """Skills directories declared in plugin.json must exist."""
-        manifest_path = PLUGIN_ROOT / ".cortex-plugin" / "plugin.json"
+        manifest_path = PLUGIN_DIR / ".cortex-plugin" / "plugin.json"
         data = json.loads(manifest_path.read_text())
         for skill_dir in data.get("skills", []):
-            resolved = PLUGIN_ROOT / skill_dir.lstrip("./")
+            resolved = PLUGIN_DIR / skill_dir.lstrip("./")
             assert resolved.is_dir(), f"Declared skills dir missing: {resolved}"
 
     def test_declared_agents_dir_exists(self):
         """Agents directories declared in plugin.json must exist."""
-        manifest_path = PLUGIN_ROOT / ".cortex-plugin" / "plugin.json"
+        manifest_path = PLUGIN_DIR / ".cortex-plugin" / "plugin.json"
         data = json.loads(manifest_path.read_text())
         for agents_dir in data.get("agents", []):
-            resolved = PLUGIN_ROOT / agents_dir.lstrip("./")
+            resolved = PLUGIN_DIR / agents_dir.lstrip("./")
             if not resolved.is_dir():
                 pytest.skip(f"agents/ dir not yet created: {resolved}")
 
@@ -175,8 +176,8 @@ class TestPluginManifest:
 
     def test_no_duplicate_claude_plugin_dir(self):
         """Only .cortex-plugin/ should exist -- both CoCo and Claude Code accept it."""
-        assert (PLUGIN_ROOT / ".cortex-plugin" / "plugin.json").exists()
-        assert not (PLUGIN_ROOT / ".claude-plugin").exists(), (
+        assert (PLUGIN_DIR / ".cortex-plugin" / "plugin.json").exists()
+        assert not (PLUGIN_DIR / ".claude-plugin").exists(), (
             ".claude-plugin/ should not exist alongside .cortex-plugin/ -- "
             "both CoCo and Claude Code accept .cortex-plugin/"
         )

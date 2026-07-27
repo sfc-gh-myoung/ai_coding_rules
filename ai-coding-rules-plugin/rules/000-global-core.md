@@ -1,8 +1,8 @@
 ---
 schema_version: v3.5
-rule_version: v4.0.0
+rule_version: v4.1.0
 description: "Foundational operating contract: PRE-FLIGHT gates, surgical edits, validation sequences, and communication standards for all AI agents."
-last_updated: 2026-07-15
+last_updated: 2026-07-27
 keywords:
   - kw:surgical edits
   - kw:pre-flight gates
@@ -70,7 +70,7 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 
 ### Mandatory
 
-- **Rules loaded:** List all loaded rules in response
+- **Rules read:** Read all matched rules before applying them
 - **Task list:** Present task list before any modifications
 - **Validation:** Run language-specific validation (see Validation Command Reference) before marking complete
 - **Surgical edits:** Make minimal, targeted changes only
@@ -82,7 +82,7 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 
 ### Execution Steps
 
-1. Cite foundation on Gate 1 (`— vX.Y.Z`); list domain/activity rules as Gate 3 sub-bullets (or `none matched`)
+1. Read all matched rules before applying them
 2. Present clear task list for user confirmation
 3. Perform surgical edits (see Mandatory section above)
 4. Validate changes immediately (lint, test, format)
@@ -90,11 +90,13 @@ Foundational operating contract for all AI coding assistants, ensuring reliable,
 
 ### Output Format
 
-**Required Response Structure:**
+**Diagnostic Output (on request only):**
+
+Output the PRE-FLIGHT block **only** when explicitly requested (via `$show-rules`) or when instructed by a system prompt (e.g., during eval testing). It is not part of the default response.
 
 ```markdown
 PRE-FLIGHT:
-- [x] Gate 1: Foundation rules/000-global-core.md — v4.0.0
+- [x] Gate 1: Foundation rules/000-global-core.md — v4.1.0
 - [x] Gate 2: Manifest provided (hook injection)
 - [x] Gate 3: +N domain rule(s):
   - rules/[domain-core].md (technology domain) — vX.Y.Z
@@ -102,8 +104,6 @@ PRE-FLIGHT:
   (or: `- [x] Gate 3: none matched`)
 
 Task Switch: [FIRST | NO | YES (reason)]
-
-[Response content: analysis, task list, implementation, or code]
 ```
 
 ### Validation
@@ -111,8 +111,8 @@ Task Switch: [FIRST | NO | YES (reason)]
 **Pre-Task-Completion Validation Gate (CRITICAL):**
 
 **Rules Validation:**
-- **CRITICAL:** Gate 1 foundation citation present with `— vX.Y.Z` (from rule frontmatter `rule_version`); domain/activity rules listed as Gate 3 sub-bullets (or `none matched`)
-- **CRITICAL:** Never declare rule as loaded when `read_file` failed
+- **CRITICAL:** All rules must be read (via `read_file`) before being applied — never declare a rule as loaded when `read_file` failed
+- When PRE-FLIGHT is requested: Gate 1 foundation citation present with `— vX.Y.Z`; domain/activity rules listed as Gate 3 sub-bullets (or `none matched`)
 
 **Gate 2:** Gate 2 passes when matched rules are present in the system context (injected automatically). If no rules were provided, invoke the rule-loader skill to discover and load rules for the current request.
 
@@ -129,7 +129,7 @@ Error: [exact message] | Fix: [specific action]
 
 ### Post-Execution Checklist
 
-- [ ] Rules listed explicitly under PRE-FLIGHT Gate 3
+- [ ] All rules read before application
 - [ ] Task list presented before modifications
 - [ ] Surgical edits only
 - [ ] Validation executed (lint, test, format)
@@ -186,7 +186,6 @@ Error: [exact message] | Fix: [specific action]
 ### Critical Violations
 
 **Critical Violations:**
-- **Rules not listed:** Missing PRE-FLIGHT Gate 3 rule list - Add Gate 3 sub-bullets listing all loaded rules
 - **False rule declaration:** Declared rule as loaded when `read_file` failed - STOP, remove false declaration, report failure to user with options (A) Provide correct path, (B) Proceed without rule, (C) Cancel task
 
 **High Priority Violations:**
@@ -248,7 +247,7 @@ Memory/Disk Full:
 When approaching context limits, preserve rules in this priority order:
 
 **ALWAYS PRESERVE (never summarize):**
-1. **CLAUDE.md** — Plugin entry point (if session started from it)
+1. **Bootstrap entry point** (CLAUDE.md / AGENTS.md) — if session started from one
 2. **000-global-core.md** — This file (foundation)
 3. **Active domain -core.md** — Primary domain rule for current task
 
@@ -260,6 +259,6 @@ When approaching context limits, preserve rules in this priority order:
 3. Reference rules (>4000 tokens, lookup-only)
 4. Specialized rules not relevant to active task
 
-**NEVER:** Summarize CLAUDE.md or 000-global-core.md. Drop active domain -core.md while working in that domain.
+**NEVER:** Summarize the bootstrap entry point (CLAUDE.md / AGENTS.md) or 000-global-core.md. Drop active domain -core.md while working in that domain.
 
 For decision tree, -core.md recognition patterns, and ContextTier relationship, see `rules/003-context-engineering.md`.

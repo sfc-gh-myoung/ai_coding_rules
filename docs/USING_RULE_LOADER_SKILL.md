@@ -1,6 +1,6 @@
 # Using the Rule Loader Skill
 
-**Last Updated:** 2026-03-27
+**Last Updated:** 2026-07-27
 
 The Rule Loader Skill determines which rule files to load for any user request by analyzing file extensions, directory paths, and keywords against RULES_INDEX.md. It ensures consistent, dependency-aware rule discovery across all agents and sessions, formalizing the rule-loading algorithm from AGENTS.md (Steps 1-3) into a reusable skill with progressive disclosure.
 
@@ -83,7 +83,7 @@ context_tier_filter: all
 
 ### Output Format
 
-The skill produces Gate 1 and Gate 3 inline citations inside the PRE-FLIGHT block — Gate 1 carries the foundation citation, Gate 3 lists all selected domain/activity rules with loading reasons:
+The skill produces a manifest that the agent uses internally. When diagnostic output is requested (via `$show-rules` or during eval testing), the agent renders the manifest as a PRE-FLIGHT block — Gate 1 carries the foundation citation, Gate 3 lists all selected domain/activity rules with loading reasons:
 
 ```markdown
 PRE-FLIGHT:
@@ -98,6 +98,8 @@ PRE-FLIGHT:
 
 Task Switch: FIRST
 ```
+
+> **Note:** PRE-FLIGHT output is not emitted by default. It appears only when explicitly requested or during eval runs.
 
 ### Loading Reasons
 
@@ -278,4 +280,4 @@ skills/rule-loader/
 - **Workflow guides:** `skills/rule-loader/workflows/*.md`
 - **Examples:** `skills/rule-loader/examples/*.md`
 - **RULES_INDEX.md:** Authoritative source for agent rule discovery mappings
-- **AGENTS.md:** Bootstrap protocol that invokes rule-loading (Steps 1-3)
+- **Discovery paths:** AGENTS.md bootstrap protocol (Steps 1-3) or the `UserPromptSubmit` hook (plugin architecture)

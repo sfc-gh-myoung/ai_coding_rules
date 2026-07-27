@@ -17,9 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(report):** add personality profiles, role routing, optimism spectrum, and anti-patterns to Recommendations tab sourced from model-trait-bench research.
 - **feat(fixtures):** add 12 behavioral eval fixtures exercising multi-rule loading, high-risk actions, token budgets, surgical edits, and cross-domain prompts for progressive-mode regression coverage.
 - **feat(report):** add Architecture tab with inline SVG system diagram showing rule library, protocol, and eval benchmark subsystems.
-- **feat(plugin):** add `ai-rules plugin build` command that assembles the distributable `ai-coding-rules-plugin/` directory — copies rules, hook script, rule-loader skill, and `match_rules.py`; generates `.cortex-plugin/plugin.json` and `.claude-plugin/plugin.json` manifests with inline `UserPromptSubmit` hooks.
+- **feat(plugin):** add `ai-rules plugin build` command that assembles the distributable `ai-coding-rules-plugin/` directory — copies rules, hook script, rule-loader skill, and `match_rules.py`; generates `.cortex-plugin/plugin.json` manifest with inline `UserPromptSubmit` hooks (accepted by both Cortex Code and Claude Code).
 - **feat(match-rules):** add standalone stdlib-only `src/ai_rules/match_rules.py` rule matcher — single importable module requiring no pip install, suitable for bundling directly in the plugin directory.
 - **feat(hooks):** add `hooks/user-prompt-submit` shell hook and `hooks/hooks.json` to repo root — inject matched-rule manifest as `<system-reminder>` context on every user prompt.
+- **feat(plugin):** add `$show-rules` skill for on-demand PRE-FLIGHT diagnostic output.
 
 ### Changed
 
@@ -29,6 +30,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(cli):** `--progressive` flag now automatically writes results to `results/progressive/` subdirectory.
 - **feat(progressive-eval):** adapter extracts compound keywords, file extensions, filenames, and directory paths from user prompts for deterministic matcher input.
 - **feat(rule-loader):** add `loading_contract`, `read_required`, `execution_hints`, and `description` fields to manifest schema (additive within `rule-loader-manifest/v1`).
+- **feat(plugin):** make PRE-FLIGHT output optional — no longer emitted by default, available via `$show-rules` or eval harness injection.
+- **feat(plugin):** remove redundant `.claude-plugin/` directory from plugin build; `.cortex-plugin/` is accepted by both Cortex Code and Claude Code.
+- **feat(rules):** update `000-global-core.md` to v4.1.0 — PRE-FLIGHT is on-demand, bootstrap references are IDE-agnostic (CLAUDE.md / AGENTS.md).
+- **feat(docs):** add plugin architecture section (§3.6) to ARCHITECTURE.md covering hook-based progressive loading.
+- **feat(docs):** add Plugin Installation section to README.md as alternative to AGENTS.md deploy.
 
 ### Fixed
 
@@ -36,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **fix(rule-matcher):** prevent false-positive phrase matches where single common words (e.g., "query", "table") scored 10 against multi-word rule keywords; require ≥50% word coverage for phrase-level scoring.
 - **fix(rule-matcher):** protect foundation rules (`000-*`) and dependency-only rules from token-budget eviction in manifest builder.
 - **fix(rule-matcher):** add `.yml`/`.yaml` extension normalization and nested file/dir pattern matching support.
+- **fix(tests):** correct `PLUGIN_ROOT` path in `test_hook_integration.py` — manifest tests now reference `ai-coding-rules-plugin/` instead of repo root.
 
 ### Changed
 

@@ -26,7 +26,7 @@
 
 ## 1. Overview
 
-> **Architecture update (2026-05-17, v3.8.0):** AGENTS.md is now a thin bootstrap pointer that invokes the `rule-loader` skill and references `rules/000-global-core.md` for the canonical Rule Loading Contract (R1-R8, with R8 binding the `**Depends:**` `required:`/`optional:` bucket grammar). Workflow content (foundation loading, domain matching, activity matching, dependency resolution, token budget, task switch detection, anti-patterns, failure modes, project tool discovery) lives in the skill at `skills/rule-loader/`. Sections 4 and 5 of this document describe the previous flow; the same logical workflow now lives in skill files instead of inline in AGENTS.md.
+> **Architecture update (2026-05-17, v3.8.0):** AGENTS.md is now a thin bootstrap pointer that invokes the `rule-loader` skill and references `rules/000-global-core.md` for the canonical Rule Loading Contract (R1-R8, with R8 binding the `**Depends:**` `required:`/`optional:` bucket grammar). Workflow content (foundation loading, domain matching, activity matching, dependency resolution, token budget, task switch detection, anti-patterns, failure modes, project tool discovery) lives in the skill at `skills/rule-loader/`. An alternative plugin-based architecture (§3.6) provides hook-driven rule discovery without AGENTS.md. Sections 4 and 5 of this document describe the AGENTS.md flow; the same logical workflow now lives in skill files or in the plugin hook.
 
 ### 1.1 The Problem
 
@@ -297,6 +297,53 @@ The frontmatter is parsed by the agent at skill discovery time. The `description
 **User-facing documentation:**
 
 Larger project-maintenance skills ship with a `docs/USING_<SKILL_NAME>_SKILL.md` user guide containing examples, mode tables, FAQ, and reference material. Smaller workflow skills are documented primarily in their own `SKILL.md` files. Architectural details about how a specific skill works belong in that skill's own documentation, not in this file.
+
+### 3.6 The Plugin (`ai-coding-rules-plugin/`)
+
+The plugin is an alternative distribution path that works with Cortex Code and Claude Code's native plugin system. Instead of deploying `AGENTS.md` into each project, the plugin installs once and activates automatically across all projects.
+
+**Architecture:**
+
+```
+ai-coding-rules-plugin/
+├── .cortex-plugin/plugin.json    # Plugin manifest (hooks, skills declaration)
+├── hooks/user-prompt-submit      # UserPromptSubmit hook (entry point)
+├── micro_kernel_content.md       # Foundation micro-kernel (~500 tokens)
+├── rules/                        # Full rule library (same as rules/)
+└── skills/
+    ├── rule-loader/              # Deterministic matcher + manifest builder
+    │   └── scripts/match_rules.py  # Stdlib-only Python scorer
+    └── show-rules/               # $show-rules diagnostic skill
+```
+
+**How it works:**
+
+1. On every user prompt, the IDE invokes the `UserPromptSubmit` hook.
+2. The hook runs `match_rules.py` — a deterministic scorer that matches the prompt against rule keywords/extensions.
+3. The hook injects a `<system-reminder>` containing the micro-kernel (foundation behaviors) and a list of matched rule paths.
+4. The agent reads the matched rules and applies them to the response.
+
+**Key design decisions:**
+
+1. **Hook-driven, not file-driven.** No `AGENTS.md` or `RULES_INDEX.md` needed — the hook performs discovery deterministically per-turn.
+2. **Micro-kernel over full foundation.** The micro-kernel is a ~500-token compression of `000-global-core.md` covering only mandatory behaviors. Full rules are still read on demand.
+3. **PRE-FLIGHT is on-demand.** The plugin does not require PRE-FLIGHT output by default. Use `$show-rules` for diagnostics.
+4. **Single manifest.** `.cortex-plugin/plugin.json` is accepted by both Cortex Code and Claude Code — no need for separate `.claude-plugin/` directory.
+5. **Stdlib-only matcher.** `match_rules.py` requires no pip dependencies, enabling zero-install plugin distribution.
+
+**Relationship to AGENTS.md deploy:**
+
+| | AGENTS.md Deploy | Plugin |
+|---|---|---|
+| **Scope** | Per-project | All projects |
+| **Setup** | `ai-rules deploy --agents-dest <DIR>` | Install plugin once |
+| **Discovery** | RULES_INDEX.md grep at runtime | Deterministic scorer in hook |
+| **Bootstrap** | AGENTS.md auto-loaded by IDE | Hook fires on every prompt |
+| **PRE-FLIGHT** | Depends on AGENTS.md template | On-demand only |
+
+Both paths are supported and can coexist. The plugin path is preferred for developers who want rules active everywhere without per-project configuration.
+
+For plugin build commands, see [README.md → Plugin Installation](../README.md#plugin-installation).
 
 ---
 

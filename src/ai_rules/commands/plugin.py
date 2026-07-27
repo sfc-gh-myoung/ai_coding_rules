@@ -104,19 +104,6 @@ def build(
         encoding="utf-8",
     )
 
-    # .claude-plugin/plugin.json declares hooks inline (same as .cortex-plugin).
-    # Skills are auto-discovered by Claude Code; no explicit "skills" declaration needed.
-    claude_manifest = plugin_dir / ".claude-plugin" / "plugin.json"
-    claude_manifest.parent.mkdir(parents=True, exist_ok=True)
-    claude_manifest.write_text(
-        "{\n"
-        '  "name": "ai-coding-rules",\n'
-        '  "version": "1.0.0",\n'
-        '  "description": "Deterministic rule loading for AI coding assistants",\n'
-        '  "author": { "name": "Michael Young" },\n' + _hook_block + "}\n",
-        encoding="utf-8",
-    )
-
     # --- 7. Validate: ensure the script runs standalone ---
     import subprocess
     import sys

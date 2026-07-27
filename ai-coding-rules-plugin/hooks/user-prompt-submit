@@ -78,6 +78,6 @@ echo "$RULE_PATHS" | while read -r path; do
     echo "- $path"
 done
 echo ""
-echo "Use the Read tool on each rule above. Cite them in your PRE-FLIGHT Gate 3."
+echo "Use the Read tool on each rule above."
 echo "</system-reminder>"
 exit 0

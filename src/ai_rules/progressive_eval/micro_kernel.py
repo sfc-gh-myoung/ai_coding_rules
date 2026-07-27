@@ -5,8 +5,8 @@ Produces a compressed ~500 token foundation that replaces the full
 
 Content selection criteria (from v3 plan Section 4.4):
 - INCLUDE: All CRITICAL-tagged principles and MANDATORY behavioral rules
-- INCLUDE: The PRE-FLIGHT header format and gate checklist syntax
-- INCLUDE: Gate success/failure definition and the three gate labels
+- INCLUDE: Rule loading protocol and validation sequence
+- EXCLUDE: PRE-FLIGHT format (on-demand only, injected by eval or $show-rules skill)
 - EXCLUDE: Anti-patterns section, worked examples, multi-paragraph explanations
 - EXCLUDE: Gate failure message catalog (lazy-loaded on first gate failure)
 - EXCLUDE: High-risk action rule map and reference-file definitions
@@ -32,18 +32,6 @@ MICRO_KERNEL = """\
 1. Detect project automation: Makefile → Taskfile.yml → package.json → direct commands
 2. Run validation tools appropriate to the language
 3. On failure: revert, report with exact error and fix
-
-## Response Format
-```
-PRE-FLIGHT:
-- [x] Gate 1: Foundation loaded
-- [x] Gate 2: Discovery performed
-- [x] Gate 3: +N domain rule(s):
-  - rules/<name>.md (<reason>)
-  (or: none matched)
-
-Task Switch: [FIRST | NO | YES (reason)]
-```
 
 ## Rule Loading
 - The manifest is metadata only — each load_sequence entry with read_required=true MUST be loaded via read_file before citation

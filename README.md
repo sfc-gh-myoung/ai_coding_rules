@@ -219,6 +219,22 @@ uv run ai-rules deploy --agents-dest ~/my-project --rules-dest ~/my-project/rule
 
 **Skills exclusions:** Some internal-only skills are excluded from deployment (configured in `pyproject.toml`)
 
+### Plugin Installation
+
+For Cortex Code or Claude Code users who want rules active across all projects without per-project deploy:
+
+```bash
+# Build the plugin
+uv run ai-rules plugin build
+
+# Install (symlink into your plugin directory)
+ln -s "$(pwd)/ai-coding-rules-plugin" ~/.snowflake/cortex/plugins/ai-coding-rules
+# Or for Claude Code:
+ln -s "$(pwd)/ai-coding-rules-plugin" ~/.claude/plugins/ai-coding-rules
+```
+
+The plugin uses a `UserPromptSubmit` hook to automatically match and inject relevant rules on every prompt. No `AGENTS.md` deploy needed — rules activate everywhere. See [docs/ARCHITECTURE.md § 3.6](docs/ARCHITECTURE.md#36-the-plugin-ai-coding-rules-plugin) for details.
+
 ### Option: Git Submodule (Version Tracking)
 
 Track rule updates via git submodule:

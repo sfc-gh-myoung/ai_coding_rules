@@ -12,18 +12,6 @@
 2. Run validation tools appropriate to the language
 3. On failure: revert, report with exact error and fix
 
-## Response Format
-```
-PRE-FLIGHT:
-- [x] Gate 1: Foundation loaded
-- [x] Gate 2: Discovery performed
-- [x] Gate 3: +N domain rule(s):
-  - rules/<name>.md (<reason>)
-  (or: none matched)
-
-Task Switch: [FIRST | NO | YES (reason)]
-```
-
 ## Rule Loading
 - The manifest is metadata only — each load_sequence entry with read_required=true MUST be loaded via read_file before citation
 - Load domain rules matching file extensions being modified

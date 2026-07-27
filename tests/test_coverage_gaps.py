@@ -409,11 +409,8 @@ def test_run_batch_covers_synchronous_wrapper(tmp_path: Path) -> None:
         loaded_via_section=(),
     )
 
-    def fake_run_live_async(*args, **kwargs):
-        async def _inner():
-            return mock_run
-
-        return _inner()
+    async def fake_run_live_async(*args, **kwargs):
+        return mock_run
 
     with _patch(
         "ai_rules.rule_loader_eval.agent_runner.run_live_async",

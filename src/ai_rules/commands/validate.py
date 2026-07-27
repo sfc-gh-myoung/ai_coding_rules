@@ -1362,13 +1362,7 @@ class SchemaValidator:
                 )
 
             # Check for ASCII tables (Priority 1 violation)
-            # RULES_INDEX.md and its template are intentionally tabular grep-metadata —
-            # the rule-loader depends on the pipe-delimited format, so exempt them here.
-            is_rules_index = result.file_path.name in {
-                "RULES_INDEX.md",
-                "RULES_INDEX.md.template",
-            }
-            if not is_rules_index and table_pattern.search(line_without_inline_code):
+            if table_pattern.search(line_without_inline_code):
                 result.errors.append(
                     ValidationError(
                         severity="HIGH",

@@ -7,7 +7,7 @@ Identify the correct domain range, determine the next available rule number, and
 ## Inputs
 
 - User request containing technology name
-- Access to `RULES_INDEX.md`
+- Access to deterministic rule matcher (`python3 skills/rule-loader/scripts/match_rules.py`)
 - Web search capability
 
 ## Outputs
@@ -28,27 +28,27 @@ Parse the user request to identify:
 - **Aspect:** "core" (default), "security", "testing", "performance", etc.
 - **Related technologies:** e.g., "Tailwind" for DaisyUI, "React" for React Testing Library
 
-### Step 1.2: Search RULES_INDEX.md
+### Step 1.2: Run Deterministic Matcher
 
 Execute comprehensive search:
 
 ```bash
 # primary technology search
-grep -i "[technology]" RULES_INDEX.md
+python3 skills/rule-loader/scripts/match_rules.py --keywords "[technology]" --rules-dir rules
 
 # related technology search (broader)
-grep -i "[related-tech]" RULES_INDEX.md
+python3 skills/rule-loader/scripts/match_rules.py --keywords "[related-tech]" --rules-dir rules
 
 # domain search if no exact match
-grep -i "javascript\|frontend\|python\|snowflake" RULES_INDEX.md
+python3 skills/rule-loader/scripts/match_rules.py --keywords "javascript,frontend,python,snowflake" --rules-dir rules
 ```
 
-**Example: DaisyUI** (RULES_INDEX.md searches)
+**Example: DaisyUI** (rule frontmatter searches)
 ```bash
-$ grep -i "daisyui" RULES_INDEX.md
+$ python3 skills/rule-loader/scripts/match_rules.py --keywords "daisyui" --rules-dir rules
 # (No results - new technology)
 
-$ grep -i "javascript\|tailwind" RULES_INDEX.md
+$ python3 skills/rule-loader/scripts/match_rules.py --keywords "javascript,tailwind" --rules-dir rules
 | 420-javascript-core.md | ...
 | 421-javascript-alpinejs-core.md | ...
 ```
@@ -186,11 +186,11 @@ Step 1: Extract technology
   → Aspect: core (default)
   → Related: Tailwind CSS, components
 
-Step 2: Search RULES_INDEX.md
-  $ grep -i "daisyui" RULES_INDEX.md
+Step 2: Run Deterministic Matcher
+  $ python3 skills/rule-loader/scripts/match_rules.py --keywords "daisyui" --rules-dir rules
   → No results (new technology)
   
-  $ grep -i "javascript\|tailwind\|frontend" RULES_INDEX.md
+  $ python3 skills/rule-loader/scripts/match_rules.py --keywords "javascript,tailwind,frontend" --rules-dir rules
   → 420-javascript-core.md
   → 421-javascript-alpinejs-core.md
 

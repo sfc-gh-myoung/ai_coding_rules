@@ -19,8 +19,8 @@ ls skills/rule-creator/examples/*.md
 uv run ai-rules new --help
 uv run ai-rules validate --help
 
-# 3. Verify RULES_INDEX.md is accessible
-head -20 RULES_INDEX.md
+# 3. Verify rule frontmatter is accessible
+head -20 rule frontmatter
 ```
 
 **Expected:** All files exist, no errors.
@@ -43,8 +43,8 @@ Create a new rule for TestTechnology best practices following schema
 
 **Verify:**
 ```bash
-# Agent should search RULES_INDEX.md
-grep -i "testtechnology" RULES_INDEX.md
+# Agent should search rule frontmatter
+grep -i "testtechnology" rule frontmatter
 ```
 
 - [ ] Search executed
@@ -80,9 +80,9 @@ echo $?
 
 ### Test 5: Indexing
 
-**Verify:** (RULES_INDEX.md)
+**Verify:** (rule frontmatter)
 ```bash
-grep "NNN-testtechnology" RULES_INDEX.md
+grep "NNN-testtechnology" rule frontmatter
 ```
 
 - [ ] Entry added to index
@@ -160,7 +160,7 @@ model: claude-sonnet-45
 - **Python** - 3.11+
 - **PyYAML** - 6.0+
 - **Schema** - v3.0
-- **RULES_INDEX** - Current
+- **rule-matcher** - Current
 
 ## Validation Schedule
 
@@ -270,16 +270,16 @@ def validate_schema_clean(rule_path):
     return True, "Schema validation clean (exit code 0)"
 ```
 
-**Check 5: RULES_INDEX Entry Present**
+**Check 5: rule-matcher Entry Present**
 ```python
 def validate_indexed(rule_name):
-    """Verify rule is indexed in RULES_INDEX.md."""
+    """Verify rule is indexed in rule frontmatter."""
     
-    with open("RULES_INDEX.md", 'r') as f:
+    with open("rule frontmatter", 'r') as f:
         content = f.read()
     
-    if f"rules/{rule_name}.md" not in content:  # RULES_INDEX.md
-        return False, f"Rule not found in RULES_INDEX.md"
+    if f"rules/{rule_name}.md" not in content:  # rule frontmatter
+        return False, f"Rule not found in rule frontmatter"
     
     return True, "Rule properly indexed"
 ```
@@ -295,7 +295,7 @@ Rule creation issues found:
   - Missing sections: ['### Anti-Patterns', '### Post-Execution Checklist']
   - Placeholder text found: ['TODO', '[Add content]']
   - Schema validation: FAILED (3 CRITICAL errors)
-  - RULES_INDEX entry: MISSING
+  - rule-matcher entry: MISSING
 
 Likely cause: Agent skipped phases or left rule incomplete
 

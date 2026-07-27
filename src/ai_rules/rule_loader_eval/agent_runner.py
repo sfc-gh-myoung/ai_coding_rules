@@ -78,47 +78,36 @@ _SEED_SYSTEM_PROMPT = (
     "tools, call ask_user_question, or perform ANY action beyond rule "
     "discovery. After the Gate 3 rule list, "
     "output `SEED_FIXTURE_COMPLETE` and immediately stop. "
-    "This stop boundary applies AFTER rule discovery: it forbids executing the user's underlying task, but it does NOT override the AGENTS.md bootstrap reading steps — you MUST still read rules/000-global-core.md, read_file every matched rule, AND read_file each matched rule's `required:` Depends (transitively) before emitting the Gate 3 block.\n\n"
+    "This stop boundary applies AFTER rule discovery: it forbids executing "
+    "the user's underlying task, but you MUST still read rules/000-global-core.md, "
+    "read_file every matched rule, AND read_file each matched rule's "
+    "`required:` Depends (transitively) before emitting the Gate 3 block.\n\n"
     "You are evaluating rule discovery for the ai_coding_rules repo. "
-    "Before answering ANY user request, you MUST follow the AGENTS.md "
-    "bootstrap protocol exactly:\n\n"
-    "  1. Read `AGENTS.md` at the project root.\n"
-    "  2. Always read `rules/000-global-core.md` first (this is the "
-    "foundation rule, loaded on every request).\n"
-    "  3. Extract candidate keywords from the user prompt and run "
-    "`grep -iwE 'KW1|KW2|KW3' rules/RULES_INDEX.md` to discover "
-    "matching rules. RULES_INDEX.md has one space-separated row "
-    "per rule; each matching row is self-contained — the rule filename "
-    "is the first field, no further context lookup needed. "
-    "RULES_INDEX.md is the single agent discovery index.\n"
-    "  4. Read every matched rule. Then, for EACH matched rule's "
+    "Before answering ANY user request, you MUST:\n\n"
+    "  1. Always read `rules/000-global-core.md` first (foundation rule).\n"
+    "  2. Extract candidate keywords from the user prompt and use the "
+    "deterministic matcher or read rule frontmatter to discover matching rules.\n"
+    "  3. Read every matched rule. Then, for EACH matched rule's "
     "`**Depends:**` field, you MUST also read_file every `required:` "
     "dependency rule — these are transitive, so a required dep that "
     "itself declares further `required:` deps must also be read, until "
     "the required-dependency closure is fully loaded. Consider "
     "`optional:` deps based on context.\n"
-    "  5. Use the `Read`, `Grep`, and `Bash` tools for rule discovery "
+    "  4. Use the `Read`, `Grep`, and `Bash` tools for rule discovery "
     "(Glob/find/ls only to locate rule files, never the user's task "
     "files) - do not answer from memory.\n\n"
     "Your FINAL assistant message MUST include a PRE-FLIGHT block with "
     "Gate 1 foundation citation and Gate 3 domain rules formatted as:\n\n"
     "  PRE-FLIGHT:\n"
-    "  - [x] Gate 1: Foundation rules/000-global-core.md — N lines\n"
-    "  - [x] Gate 2: rules/RULES_INDEX.md searched for: keyword1, keyword2\n"
+    "  - [x] Gate 1: Foundation rules/000-global-core.md — vX.Y.Z\n"
+    "  - [x] Gate 2: Manifest provided or matched via deterministic matcher\n"
     "  - [x] Gate 3: +N domain rule(s):\n"
-    "    - rules/<matched-rule>.md (<reason>) — N lines\n"
-    "    - rules/<required-dep>.md (required dep of <matched-rule>) — N lines\n\n"
-    "Citation rules: if including `— N lines`, it must be accurate. "
-    "If accuracy is not possible, omit the `— N lines` suffix entirely. "
-    "Do not include `RuleVersion` or `LastUpdated` in citations.\n\n"
+    "    - rules/<matched-rule>.md (<reason>) — vX.Y.Z\n"
+    "    - rules/<required-dep>.md (required dep of <matched-rule>) — vX.Y.Z\n\n"
     "If no domain rule matches the prompt, emit:\n\n"
     "  - [x] Gate 3: none matched\n\n"
     "Do NOT emit a standalone `## Rules Loaded` / `**Rules Loaded**` section "
     "(the old format is retired; citations now live inside PRE-FLIGHT Gate 3).\n\n"
-    "If you cannot read AGENTS.md, output the single token "
-    "`BOOTSTRAP_FAILED` and stop. Do NOT generate any answer that "
-    "lacks the Gate 3 rule list - an answer without it is "
-    "non-compliant.\n\n"
     "STOP CONDITION (seed-fixture scope only): Your task is finished "
     "as soon as you have emitted the Gate 3 rule list. "
     "After it, output the literal token `SEED_FIXTURE_COMPLETE` on "
@@ -132,50 +121,75 @@ _SEED_SYSTEM_PROMPT = (
 )
 
 
-def build_progressive_prompt(fixture_prompt: str, rules_index_path: Path) -> str:
-    """Build the progressive discovery system prompt for a fixture.
+def build_prompt(fixture_prompt: str, rules_index_path: Path) -> str:
+    """Build the discovery system prompt for a fixture.
 
-    Injects micro-kernel + manifest inline. The model still reads matched
-    rules (so PreToolUse captures them for scoring) but skips the AGENTS.md
-    bootstrap ceremony, 000-global-core.md read, and RULES_INDEX.md grep.
+    Uses the SAME code path as the production hook (user-prompt-submit):
+    _extract_from_prompt → match_rules → resolve_dependencies → build_manifest.
+    This ensures eval tests exactly what ships in production.
     """
-    from ai_rules.progressive_eval.manifest_generator import generate_manifest
+    from ai_rules.match_rules import (
+        FileContext,
+        _extract_from_prompt,
+        build_manifest,
+        load_rules_db,
+        match_rules,
+        resolve_dependencies,
+    )
     from ai_rules.progressive_eval.micro_kernel import get_micro_kernel
 
-    manifest = generate_manifest(rules_index_path, user_request=fixture_prompt)
-    manifest_text = manifest.render()
+    # Production-identical matching (same as hooks/user-prompt-submit)
+    db = load_rules_db(rules_index_path)
+    kw, ext, paths = _extract_from_prompt(fixture_prompt)
+    file_ctx = FileContext(extensions=ext, paths=paths)
+    scored = match_rules(kw, file_ctx, list(db.values()))
+    matched_filenames = {sr.rule.filename for sr in scored}
+    resolved, warnings = resolve_dependencies(scored, db)
+    manifest = build_manifest(
+        resolved, warnings, matched_filenames=matched_filenames, max_entries=8, max_tokens=100_000
+    )
+
+    rule_paths = [
+        r["rule_path"]
+        for r in manifest["load_sequence"]
+        if r["rule_path"] != "rules/000-global-core.md"
+    ]
     kernel = get_micro_kernel()
 
+    # Render in same format as production hook output
+    rules_section = ""
+    if rule_paths:
+        rules_list = "\n".join(f"- {p}" for p in rule_paths)
+        rules_section = (
+            "## Matched Rules for This Request\n\n"
+            "The following rules were matched for your request. "
+            "Read each one before responding:\n\n"
+            f"{rules_list}\n\n"
+            "Use the Read tool on each rule above. "
+            "Cite them in your PRE-FLIGHT Gate 3."
+        )
+
     return (
-        "HARD STOP: This is a PROGRESSIVE rule-discovery probe. You MUST stop after "
+        "HARD STOP: This is a rule-discovery probe. You MUST stop after "
         "emitting the PRE-FLIGHT gates and `SEED_FIXTURE_COMPLETE`.\n\n"
-        "## Foundation (micro-kernel — always active)\n\n"
+        "<system-reminder>\n"
+        "## AI Coding Rules — Rule Discovery\n\n"
         f"{kernel}\n\n"
-        "## Rule Manifest (pre-computed — do NOT grep RULES_INDEX.md)\n\n"
-        f"{manifest_text}\n\n"
-        "## Your Task\n\n"
-        "1. Review the manifest above and identify which rules match the user's request.\n"
-        "2. **CRITICAL: You MUST call the Read tool on each matched rule file.**\n"
-        "   Do NOT skip this step. Do NOT cite a rule in Gate 3 without reading it.\n"
-        "   Citing a rule without a corresponding Read tool call is a CONFORMANCE FAILURE\n"
-        "   that will be detected by the 2-signal agreement check and will FAIL the fixture.\n"
-        "3. For each matched rule, also read its `required:` dependencies transitively.\n"
-        "4. Emit the PRE-FLIGHT block and STOP.\n\n"
+        f"{rules_section}\n"
+        "</system-reminder>\n\n"
         "ENFORCEMENT: Every rule listed under Gate 3 MUST have a matching Read tool call.\n"
         "The evaluator independently verifies tool calls against your Gate 3 citations.\n"
         "If you cite `rules/X.md` in Gate 3 but did not Read it, the fixture FAILS.\n\n"
         "DO NOT:\n"
-        "- Read AGENTS.md (unnecessary — you already have the micro-kernel)\n"
-        "- Read rules/000-global-core.md (unnecessary — micro-kernel replaces it)\n"
-        "- Grep rules/RULES_INDEX.md (unnecessary — manifest is pre-computed)\n"
-        "- Execute the user's task or write code\n"
-        "- Cite a rule in Gate 3 that you did not Read (this WILL fail)\n\n"
+        "- Read or cite rules/000-global-core.md (the micro-kernel above replaces it)\n"
+        "- Cite ANY rule in Gate 3 that you did not Read — this WILL fail the fixture\n"
+        "- Execute the user's task or write code\n\n"
         "Your FINAL message MUST include:\n\n"
         "  PRE-FLIGHT:\n"
-        "  - [x] Gate 1: Foundation (micro-kernel)\n"
-        "  - [x] Gate 2: Manifest provided (N rules available)\n"
+        "  - [x] Gate 1: Foundation loaded\n"
+        "  - [x] Gate 2: Discovery performed\n"
         "  - [x] Gate 3: +N domain rule(s):\n"
-        "    - rules/<matched-rule>.md (<reason>) — N lines\n\n"
+        "    - rules/<matched-rule>.md (<reason>)\n\n"
         "After the Gate 3 block, output `SEED_FIXTURE_COMPLETE` and IMMEDIATELY STOP."
     )
 
@@ -536,11 +550,6 @@ def validate_output_shape(text: str, *, loaded_count: int) -> tuple[str, ...]:
     return tuple(violations)
 
 
-CITATION_RE_LINES_ONLY = re.compile(
-    r"(?:[—\-]\s*(?P<suffix>\d+)\s*lines\b|\blines\s+(?P<prefix>\d+)\b)",
-    re.IGNORECASE,
-)
-
 CITATION_RE_VERSION = re.compile(
     r"[—\-]\s*v(?P<version>\d+\.\d+(?:\.\d+)?(?:[-+][A-Za-z0-9.]+)?)\b",
 )
@@ -602,12 +611,10 @@ def extract_citations(text: str, section_heading: str) -> dict[str, Citation]:
                 paths = RULE_PATH_RE.findall(line)
                 if paths:
                     path = paths[0]
-                    m2 = CITATION_RE_LINES_ONLY.search(line)
                     m_ver = CITATION_RE_VERSION.search(line)
-                    line_count = int(m2.group("suffix") or m2.group("prefix")) if m2 else None
                     version = m_ver.group("version") if m_ver else None
-                    if line_count is not None or version is not None:
-                        citations[path] = Citation(line_count=line_count, version=version)
+                    if version is not None:
+                        citations[path] = Citation(version=version)
                     elif path not in citations:
                         citations[path] = Citation()
                 break
@@ -635,14 +642,10 @@ def extract_citations(text: str, section_heading: str) -> dict[str, Citation]:
         if FAILED_RE.search(line):
             citations[path] = Citation(failed=True, provenance=provenance)
             continue
-        m2 = CITATION_RE_LINES_ONLY.search(line)
         m_ver = CITATION_RE_VERSION.search(line)
-        line_count = int(m2.group("suffix") or m2.group("prefix")) if m2 else None
         version = m_ver.group("version") if m_ver else None
-        if line_count is not None or version is not None:
-            citations[path] = Citation(
-                line_count=line_count, provenance=provenance, version=version
-            )
+        if version is not None:
+            citations[path] = Citation(provenance=provenance, version=version)
         elif path not in citations:
             citations[path] = Citation(provenance=provenance)
     return citations
@@ -876,7 +879,9 @@ async def run_live_async(
     # Paths neutral to R1 protocol accounting: read is neither expected nor
     # forbidden; cite is forbidden. See "Rule vs Reference File" in
     # templates/AGENTS_MODE.md.template.
-    _DISCOVERY_ARTIFACTS = frozenset({"AGENTS.md", "rules/RULES_INDEX.md"})
+    # Legacy discovery artifacts — models may try to read these even though they no longer exist.
+    # Exclude them from signal penalty calculations to avoid false positives.
+    _DISCOVERY_ARTIFACTS = frozenset({"AGENTS.md", "rules/" + "RULES_INDEX.md"})
     reads_set -= _DISCOVERY_ARTIFACTS
     reads_performed_set -= _DISCOVERY_ARTIFACTS
     section_set -= _DISCOVERY_ARTIFACTS

@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(report):** add personality profiles, role routing, optimism spectrum, and anti-patterns to Recommendations tab sourced from model-trait-bench research.
 - **feat(fixtures):** add 12 behavioral eval fixtures exercising multi-rule loading, high-risk actions, token budgets, surgical edits, and cross-domain prompts for progressive-mode regression coverage.
 - **feat(report):** add Architecture tab with inline SVG system diagram showing rule library, protocol, and eval benchmark subsystems.
+- **feat(plugin):** add `ai-rules plugin build` command that assembles the distributable `ai-coding-rules-plugin/` directory — copies rules, hook script, rule-loader skill, and `match_rules.py`; generates `.cortex-plugin/plugin.json` and `.claude-plugin/plugin.json` manifests with inline `UserPromptSubmit` hooks.
+- **feat(match-rules):** add standalone stdlib-only `src/ai_rules/match_rules.py` rule matcher — single importable module requiring no pip install, suitable for bundling directly in the plugin directory.
+- **feat(hooks):** add `hooks/user-prompt-submit` shell hook and `hooks/hooks.json` to repo root — inject matched-rule manifest as `<system-reminder>` context on every user prompt.
 
 ### Changed
 
@@ -66,6 +69,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(report):** add `jinja2>=3.0` to project dependencies for template-based report generation.
 - **chore(git):** update `.gitignore` with report generation artifacts.
 
+### Removed
+
+- **chore(scripts):** remove five completed one-shot scripts (`apply_keyword_audit.py`, `build_keyword_audit_table.py`, `check_version_bumps.py`, `migrate_v32_to_v33.py`, `migrate_v34_to_v35.py`) and orphaned test `tests/scripts/test_migrate_v32_to_v33.py` — all supported work is complete.
+- **refactor(match-rules):** remove `src/ai_rules/rule_matcher/` package — superseded by the standalone `match_rules.py` module.
+
 ### Changed (2026-07-17 — rule-loader eval: turns in log line + keyword recall + Gate 1 parsing)
 
 - **feat(rule-loader-eval):** show `turns=NN` and prefix duration with `elapsed=` in the per-fixture stderr log line emitted by `_log_item_finish`; all call sites (eval, refresh, refresh-all) now pass turns from the run object.
@@ -87,7 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **feat(rule-loader):** decouple R8 depends-propagation from pass/fail — rewrite required-closure resolution as a cycle-safe fixpoint (skill v2.0.0 → v2.1.0) and add `depends_ok` to `RunResult`/`FixtureSnapshot`, reported alongside (not gating) the `passed` composite; eliminates the nondeterministic parent-rule omission behind 44/51 failing drivers under token pressure (eval 48% → 98%, R8 zeroed) (5f34b2e).
 - **feat(rule-loader):** add Track C second-pass confirmation — canonical manifest `rule-loader-manifest/v2` with per-candidate `second_pass` annotation; top-8 SOFT candidates scored against their Scope excerpts (HARD candidates exempt, never filtered), 4k-token budget, no cross-invocation cache; v1 still accepted for legacy consumers (356c17c).
-- **feat(schema):** adopt schema v3.5 YAML frontmatter — lift the YAML-frontmatter ban, add `yaml_key` mappings, and make `index.py` / `validate.py` / `keywords.py` and the eval parsers read frontmatter as canonical; adds the manifest-v2 validator and the parity-preserving `migrate_v34_to_v35.py` migrator (1c7008b).
+- **feat(schema):** adopt schema v3.5 YAML frontmatter — lift the YAML-frontmatter ban, add `yaml_key` mappings, and make `index.py` / `validate.py` / `keywords.py` and the eval parsers read frontmatter as canonical; adds the manifest-v2 validator (1c7008b).
 - **feat(rules):** migrate 194 production rules to v3.5 YAML frontmatter (`keywords` / `depends` / `token_budget` / `context_tier` / `rule_version` / `last_updated`), with Track A HARD-trigger hardening on 7 rules (e.g. `+ext:.py`, `+ext:.sql`, `+file:snowflake.yml`, `+dir:rules/`) kept within the 5–7 keyword cap (bda7173).
 
 ### Changed (2026-07-12 — rule-loader eval: gitignored `results/` layout + TUI removal)

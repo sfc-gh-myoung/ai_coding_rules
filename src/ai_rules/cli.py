@@ -8,12 +8,9 @@ from ai_rules import __version__
 from ai_rules._shared.console import console
 from ai_rules._shared.runtime import set_debug
 from ai_rules.commands.badges import badges_app
-from ai_rules.commands.deploy import deploy
 from ai_rules.commands.dev import dev_app
-from ai_rules.commands.index import index_app
-from ai_rules.commands.keywords import keywords_app
 from ai_rules.commands.new import new as new_command
-from ai_rules.commands.refs import refs_app
+from ai_rules.commands.plugin import plugin_app
 from ai_rules.commands.rule_loader import rule_loader_app
 from ai_rules.commands.tokens import tokens
 from ai_rules.commands.validate import validate
@@ -28,14 +25,19 @@ app = typer.Typer(
 # Register commands
 app.add_typer(badges_app, name="badges")
 app.add_typer(dev_app, name="dev")
-app.add_typer(refs_app, name="refs")
 app.command(name="new")(new_command)
 app.command(name="tokens", no_args_is_help=True)(tokens)
-app.command(name="deploy")(deploy)
-app.add_typer(index_app, name="index")
-app.add_typer(keywords_app, name="keywords")
 app.command(name="validate")(validate)
 app.add_typer(rule_loader_app, name="rule-loader")
+app.add_typer(plugin_app, name="plugin")
+
+# Plugin configuration wizard
+try:
+    from setup.wizard import app as configure_app  # type: ignore[import]
+
+    app.add_typer(configure_app, name="configure")
+except ImportError:
+    pass  # wizard optional
 
 
 def version_callback(value: bool) -> None:

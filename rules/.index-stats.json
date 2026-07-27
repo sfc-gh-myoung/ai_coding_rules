@@ -6,8 +6,8 @@
     "rules_with_deps": 193
   },
   "format_version": "F4",
-  "generated_at": "2026-07-22T18:57:19Z",
-  "git_sha": "c8544160f70ebc0259119fc9e1e479322641ece1",
+  "generated_at": "2026-07-23T22:58:59Z",
+  "git_sha": "956b3b3bb4815fa00eeafdc8f72b8a44b80db3e1",
   "sanity_thresholds": {
     "keyword_entries_min": 1200,
     "max_matches_broad_query": 50,

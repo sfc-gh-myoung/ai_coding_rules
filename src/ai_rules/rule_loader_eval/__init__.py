@@ -39,7 +39,7 @@ __all__ = [
     "validate_fixture",
 ]
 
-SDK_PIN = "1.0.2"
+SDK_PIN = "1.0.6"
 """Pinned Cortex Code Agent SDK version.
 
 ``ai-rules rule-loader doctor`` enforces equality with this pin via

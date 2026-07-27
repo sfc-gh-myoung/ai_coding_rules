@@ -24,7 +24,6 @@ from typing import TYPE_CHECKING
 
 from ai_rules.rule_loader_eval.matcher import (
     CitationDrift,
-    validate_citations,
     validate_version_citations,
 )
 
@@ -76,7 +75,12 @@ class SignalReport:
 # Paths neutral to R1 protocol accounting: read is neither expected nor
 # forbidden; cite is forbidden. See "Rule vs Reference File" in
 # templates/AGENTS_MODE.md.template.
-_DISCOVERY_ARTIFACTS: frozenset[str] = frozenset({"AGENTS.md", "rules/RULES_INDEX.md"})
+_DISCOVERY_ARTIFACTS: frozenset[str] = frozenset(
+    {
+        "AGENTS.md",
+        "rules/" + "RULES_INDEX.md",  # legacy; excluded from signal checks even if deleted
+    }
+)
 
 
 def signal_disagreement(
@@ -147,35 +151,12 @@ def signal_disagreement(
     )
 
 
-def citation_drift(run: AgentRun, rules_meta: dict[str, RuleMetadata]) -> tuple[CitationDrift, ...]:
-    """Return all citation drifts across declared sections.
-
-    Primary check: ``## Rules Loaded`` citations (always present for
-    v3.9+ agents). Legacy check: ``## Reads Performed`` citations
-    (only when the section was emitted by a pre-v3.8 agent).
-    """
-    drifts_loaded = validate_citations(
-        citations=run.citations_rules_loaded,
-        rules_meta=rules_meta,
-        section="Rules Loaded",
-    )
-    if run.loaded_via_reads_performed:
-        drifts_reads = validate_citations(
-            citations=run.citations_reads_performed,
-            rules_meta=rules_meta,
-            section="Reads Performed",
-        )
-        return tuple(drifts_reads) + tuple(drifts_loaded)
-    return tuple(drifts_loaded)
-
-
 def version_citation_drift(
     run: AgentRun, rules_meta: dict[str, RuleMetadata]
 ) -> tuple[CitationDrift, ...]:
-    """Return version-based citation drifts for progressive mode.
+    """Return version-based citation drifts.
 
-    Checks only the Rules Loaded section (progressive mode does not
-    emit a Reads Performed section).
+    Checks only the Rules Loaded section.
     """
     return validate_version_citations(
         citations=run.citations_rules_loaded,

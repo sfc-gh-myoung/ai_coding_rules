@@ -136,23 +136,19 @@ def test_extract_citations_version_from_gate1_foundation() -> None:
 
 @pytest.mark.unit
 def test_extract_citations_mixed_suffix_both_fields_populated() -> None:
-    """A line with both — vX.Y.Z and — N lines populates both fields.
-
-    This is a synthetic test since no progressive transcript with mixed suffixes
-    has been observed in the wild; the spec (D6) requires both to coexist.
-    """
+    """A line with — vX.Y.Z populates the version field; line-count suffix is ignored."""
     text = """\
 PRE-FLIGHT:
 - [x] Gate 1: Foundation rules/000-global-core.md
 - [x] Gate 3: +1 domain rule(s):
-  - [x] rules/100-snowflake-core.md (snowflake) — v4.0.1 — 275 lines
+  - [x] rules/100-snowflake-core.md (snowflake) — v4.0.1
 
 Task Switch: FIRST
 """
     result = extract_citations(text, "Rules Loaded")
     c = result["rules/100-snowflake-core.md"]
     assert c.version == "4.0.1"
-    assert c.line_count == 275
+    assert c.line_count is None
 
 
 @pytest.mark.unit
@@ -171,6 +167,7 @@ Task Switch: FIRST
 
 @pytest.mark.unit
 def test_extract_citations_no_version_yields_none() -> None:
+    """A line with only — N lines suffix has version=None and line_count=None (line-count removed)."""
     text = """\
 PRE-FLIGHT:
 - [x] Gate 1: Foundation rules/000-global-core.md
@@ -181,7 +178,7 @@ Task Switch: FIRST
 """
     result = extract_citations(text, "Rules Loaded")
     assert result["rules/100-snowflake-core.md"].version is None
-    assert result["rules/100-snowflake-core.md"].line_count == 275
+    assert result["rules/100-snowflake-core.md"].line_count is None
 
 
 # ---------------------------------------------------------------------------

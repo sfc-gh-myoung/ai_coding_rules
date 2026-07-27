@@ -1,0 +1,83 @@
+#!/bin/bash
+# Hook: UserPromptSubmit — run deterministic rule matcher and inject manifest as system-reminder
+# Receives JSON {"prompt": "..."} on stdin, outputs <system-reminder> context on stdout.
+
+set -euo pipefail
+
+# Read prompt from stdin (Cortex Code sends JSON with "prompt" field)
+INPUT_JSON=$(cat)
+USER_PROMPT=$(echo "$INPUT_JSON" | jq -r '.prompt // empty' 2>/dev/null || echo "")
+if [ -z "$USER_PROMPT" ]; then
+    # Fallback: treat entire input as the prompt
+    USER_PROMPT="$INPUT_JSON"
+fi
+
+# Resolve plugin root and paths
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(dirname "$(readlink -f "$0")")/..}"
+RULES_DIR="${PLUGIN_ROOT}/rules"
+MATCH_SCRIPT="${PLUGIN_ROOT}/skills/rule-loader/scripts/match_rules.py"
+
+# The standalone script is stdlib-only — any python3 works (no venv needed)
+if [ -x "${PLUGIN_ROOT}/.venv/bin/python" ]; then
+    PYTHON="${PLUGIN_ROOT}/.venv/bin/python"
+elif command -v python3 &>/dev/null; then
+    PYTHON="python3"
+elif command -v python &>/dev/null; then
+    PYTHON="python"
+else
+    exit 0
+fi
+
+# Verify the standalone script exists
+if [ ! -f "$MATCH_SCRIPT" ]; then
+    exit 0
+fi
+
+# Run the deterministic matcher
+MANIFEST=$("$PYTHON" "$MATCH_SCRIPT" \
+    --prompt "$USER_PROMPT" \
+    --rules-dir "$RULES_DIR" \
+    --max-entries 8 \
+    --max-tokens 100000 \
+    2>/dev/null) || MANIFEST=""
+
+if [ -z "$MANIFEST" ]; then
+    exit 0
+fi
+
+# Extract rule paths from manifest load_sequence
+RULE_PATHS=$(echo "$MANIFEST" | "$PYTHON" -c "
+import json, sys
+data = json.load(sys.stdin)
+paths = [r.get('rule_path', '') for r in data.get('load_sequence', [])]
+print('\n'.join(p for p in paths if p))
+" 2>/dev/null || echo "")
+
+if [ -z "$RULE_PATHS" ]; then
+    exit 0
+fi
+
+# Inject micro-kernel + matched rules as system-reminder
+MICRO_KERNEL_FILE="${PLUGIN_ROOT}/micro_kernel_content.md"
+if [ ! -f "$MICRO_KERNEL_FILE" ]; then
+    MICRO_KERNEL_FILE="${PLUGIN_ROOT}/src/ai_rules/progressive_eval/micro_kernel_content.md"
+fi
+
+echo "<system-reminder>"
+echo "## AI Coding Rules — Rule Discovery"
+echo ""
+if [ -f "$MICRO_KERNEL_FILE" ]; then
+    cat "$MICRO_KERNEL_FILE"
+    echo ""
+fi
+echo "## Matched Rules for This Request"
+echo ""
+echo "The following rules were matched for your request. Read each one before responding:"
+echo ""
+echo "$RULE_PATHS" | while read -r path; do
+    echo "- $path"
+done
+echo ""
+echo "Use the Read tool on each rule above. Cite them in your PRE-FLIGHT Gate 3."
+echo "</system-reminder>"
+exit 0

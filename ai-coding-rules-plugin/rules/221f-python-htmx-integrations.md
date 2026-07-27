@@ -1,0 +1,533 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Integration patterns for using HTMX with popular frontend libraries and frameworks including Alpine.js, _hyperscript, CSS frameworks (Tailwind, Bootstrap), icon libraries, and visualization libraries."
+last_updated: 2026-07-15
+keywords:
+  - kw:Alpine.js HTMX
+  - kw:_hyperscript inline behavior
+  - kw:CSS framework styling
+  - kw:chart library reinitialization
+  - kw:htmx:afterSwap event hooks
+  - kw:frontend library lifecycle
+  - kw:htmx
+token_budget: ~4150
+context_tier: Low
+depends:
+  required:
+    - 221-python-htmx-core.md  # HTMX foundation patterns
+  optional:
+    - 221a-python-htmx-templates.md  # Jinja2 patterns
+    - 221e-python-htmx-patterns.md  # HTMX implementation patterns
+    - 221g-python-htmx-sse.md  # Server-Sent Events patterns
+---
+# HTMX Frontend Integrations
+
+## Scope
+
+**What This Rule Covers:**
+Integration patterns for using HTMX with popular frontend libraries and frameworks including Alpine.js, _hyperscript, CSS frameworks (Tailwind, Bootstrap), icon libraries, and visualization libraries.
+
+**When to Load This Rule:**
+- Integrating HTMX with Alpine.js for client-side state
+- Using _hyperscript with HTMX
+- Styling HTMX applications with CSS frameworks
+- Adding icon libraries to HTMX applications
+- Integrating chart/visualization libraries with HTMX
+
+## References
+
+### External Documentation
+
+- [Alpine.js Documentation](https://alpinejs.dev/) - Alpine.js guide
+- [Hyperscript Documentation](https://hyperscript.org/) - _hyperscript reference
+- [Tailwind CSS](https://tailwindcss.com/) - Tailwind documentation
+- [Bootstrap](https://getbootstrap.com/) - Bootstrap documentation
+- [Chart.js](https://www.chartjs.org/) - Chart.js guide
+- [HTMX Events](https://htmx.org/events/) - HTMX event reference
+
+## Contract
+
+### Inputs and Prerequisites
+
+- HTMX core patterns (221-python-htmx-core.md)
+- Frontend library documentation
+- Understanding of HTMX event lifecycle
+
+### Mandatory
+
+- HTMX library
+- Chosen frontend libraries
+- Event listeners for HTMX lifecycle
+- Base template for script/CSS loading
+
+### Forbidden
+
+- jQuery (not recommended with HTMX)
+- Heavy JavaScript frameworks (React, Vue, Angular)
+- Multiple `htmx:afterSwap` listeners that initialize the same plugin type (e.g., two separate listeners both calling `new bootstrap.Tooltip(...)`) — consolidate into a single listener with conditional checks per plugin type
+- Unmanaged global state in JavaScript — use scoped registries (e.g., `let chartInstances = {}`) for lifecycle management of third-party library instances. Avoid arbitrary global variables for application data.
+
+### Execution Steps
+
+1. Load HTMX and frontend libraries in base template
+2. Configure Alpine.js or _hyperscript for client-side behavior
+3. Style with CSS framework (Tailwind, Bootstrap, etc.)
+4. Add icon library for UI elements
+5. Hook chart/visualization library to HTMX events (htmx:afterSwap)
+6. Test integration with HTMX swaps
+7. Verify no conflicts or memory leaks
+
+### Output Format
+
+- Integrated application using HTMX with Alpine.js/_hyperscript
+- CSS framework
+- Icons
+- Charts
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Frontend libraries loaded in base template
+- Alpine.js/hyperscript integrated for client-side behavior
+- CSS framework configured (if using Tailwind/Bootstrap)
+- Icon library loaded (FontAwesome, Heroicons, etc.)
+- Chart/visualization library initialization hooked to HTMX events
+
+**Success Criteria:**
+- Frontend libraries load correctly
+- Alpine.js/hyperscript work after HTMX swaps
+- CSS framework styles apply to dynamically loaded content
+- Icons render in HTMX-loaded partials
+- Charts re-initialize after swaps
+- No console errors or memory leaks
+
+### Design Principles
+
+- **Alpine.js for client-side state** - Use for dropdowns, toggles, local UI state
+- **_hyperscript for inline behavior** - Simple event handling and DOM manipulation
+- **CSS framework integration** - Tailwind/Bootstrap work seamlessly with HTMX
+- **Icon libraries** - Use SVG sprites or icon fonts, load once globally
+- **Chart libraries** - Re-initialize charts after HTMX swaps using `htmx:afterSwap` event
+
+### Post-Execution Checklist
+
+- [ ] Frontend libraries loaded in base template
+- [ ] Alpine.js or _hyperscript integrated for client-side behavior
+- [ ] CSS framework styles apply to HTMX-loaded content
+- [ ] Icons display correctly in partials
+- [ ] Charts/visualizations reinitialize after swaps
+- [ ] Event listeners hooked to HTMX lifecycle
+- [ ] Memory cleanup implemented (destroy chart instances, etc.)
+- [ ] No console errors after HTMX swaps
+- [ ] Integration tested with multiple swap operations
+- [ ] No conflicts between HTMX and frontend libraries
+
+> **Investigation Required**
+> Before adding frontend library integrations, the agent MUST:
+> 1. Check which frontend libraries are already in the project — never add a library that conflicts with an existing one
+> 2. Read existing `base.html` script and CSS loading order — add new libraries in the correct position
+> 3. Check for existing `htmx:afterSwap` event listeners — extend the existing listener rather than creating a duplicate
+> 4. Determine if Alpine.js or _hyperscript is already chosen — **do not use both** in the same project
+> 5. Check existing chart library (Chart.js vs D3.js vs Plotly) — don't introduce a second charting library
+> 6. Verify CDN vs self-hosted strategy — match the project's existing approach
+
+### Choosing Alpine.js vs _hyperscript
+
+- **Stateful UI (dropdowns, modals, tabs):** Alpine.js — `x-data` provides reactive state management
+- **Stateless animations (fade, remove):** _hyperscript — inline `_="..."` keeps simple behavior close to HTML
+- **SSE event routing to multiple elements:** Alpine.js — SSE manager pattern requires state
+- **Simple class toggling:** _hyperscript — `on click toggle .active on me` is more readable
+
+**Rule:** Choose one for the project. If the project already uses one, use the same. If starting fresh, choose Alpine.js for complex interactivity, _hyperscript for mostly-static pages with occasional animations.
+
+### ARIA Attributes for Dynamic Elements
+
+All HTMX-driven interactive elements MUST include ARIA attributes:
+
+```html
+<!-- Dropdown -->
+<div x-data="{ open: false }">
+    <button @click="open = !open"
+            aria-haspopup="true"
+            :aria-expanded="open">Menu</button>
+    <div x-show="open" role="menu" aria-label="Navigation menu">
+        <a href="/dashboard" role="menuitem">Dashboard</a>
+    </div>
+</div>
+
+<!-- Modal -->
+<div x-show="showModal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="modal-title"
+     @keydown.escape.window="showModal = false">
+    <h2 id="modal-title">Edit User</h2>
+</div>
+```
+
+## Key Principles
+
+### 1. Alpine.js Integration
+
+**Setup:**
+```html
+{# base.html #}
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+```
+
+> **Note:** For production, self-host libraries or use a package bundler. CDN failures can break your application.
+
+**Dropdown with Alpine.js:**
+```html
+<div x-data="{ open: false }">
+    <button @click="open = !open">Toggle Menu</button>
+
+    <div x-show="open" @click.away="open = false">
+        <a href="#"
+           hx-get="/profile"
+           hx-target="#content"
+           @click="open = false">Profile</a>
+        <a href="#"
+           hx-get="/settings"
+           hx-target="#content"
+           @click="open = false">Settings</a>
+    </div>
+</div>
+```
+
+**Modal with Alpine.js:**
+```html
+<div x-data="{ modalOpen: false }">
+    <button @click="modalOpen = true">Open Modal</button>
+
+    <div x-show="modalOpen"
+         x-cloak
+         @keydown.escape.window="modalOpen = false"
+         class="modal-overlay">
+        <div class="modal-content" @click.away="modalOpen = false">
+            <button @click="modalOpen = false">Close</button>
+
+            <div hx-get="/modal-content"
+                 hx-trigger="load"
+                 hx-swap="innerHTML">
+                Loading...
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+**Alpine.js Persists After HTMX Swaps:**
+Alpine.js automatically re-initializes on DOM changes, so it works seamlessly with HTMX swaps.
+
+**Alpine.js SSE Manager Pattern:**
+
+When using Alpine.js to manage SSE connections and trigger HTMX refreshes, use camelCase custom events (NOT `sse:` prefix):
+
+```html
+<div x-data="statusPage()" x-init="init()">
+    <!-- Use camelCase trigger, NOT sse:system_status -->
+    <div id="status-display"
+         hx-get="/status/content"
+         hx-trigger="load, systemStatus"
+         hx-swap="innerHTML">
+    </div>
+</div>
+
+<script>
+function statusPage() {
+    return {
+        init() {
+            window.waitForSSEManager(() => {
+                window.sseManager.connect('status', (data, event) => {
+                    if (event.type === 'system_status') {
+                        // ✓ GOOD: Use camelCase event name
+                        htmx.trigger('#status-display', 'systemStatus');
+
+                        // ❌ BAD: sse: prefix won't work from htmx.trigger()
+                        // htmx.trigger('#status-display', 'sse:system_status');
+                    }
+                });
+            });
+        }
+    };
+}
+</script>
+```
+
+See `221g-python-htmx-sse.md` for comprehensive SSE patterns.
+
+### 2. _hyperscript Integration
+
+**Setup:**
+```html
+{# base.html #}
+<script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+```
+
+**Simple Interactions:**
+```html
+{# Toggle class #}
+<button _="on click toggle .active on #sidebar">
+    Toggle Sidebar
+</button>
+
+{# Remove element #}
+<div class="notification" _="on click remove me">
+    Notification message
+</div>
+
+{# Smooth scroll #}
+<button _="on click scroll #section into view smoothly">
+    Scroll to Section
+</button>
+```
+
+**Combined with HTMX:**
+```html
+<button hx-delete="/items/123"
+        hx-target="#item-123"
+        _="on htmx:afterRequest remove #item-123 with opacity fade">
+    Delete with Animation
+</button>
+
+<form hx-post="/search"
+      hx-target="#results"
+      _="on htmx:beforeRequest add .loading to #results
+         on htmx:afterRequest remove .loading from #results">
+    <input type="search" name="q">
+    <button type="submit">Search</button>
+</form>
+```
+
+### 3. CSS Framework Integration
+
+**Tailwind CSS:**
+```html
+{# base.html #}
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+```
+
+```html
+{# Tailwind styles apply to HTMX-loaded content #}
+<button hx-get="/users"
+        hx-target="#content"
+        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+    Load Users
+</button>
+
+<div id="content" class="container mx-auto p-4">
+    {# HTMX-loaded content inherits Tailwind classes #}
+</div>
+```
+
+**Bootstrap 5:**
+```html
+{# base.html #}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+```
+
+```html
+{# Bootstrap components work with HTMX #}
+<button hx-get="/modal-content"
+        hx-target="#modalBody"
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#myModal">
+    Open Modal
+</button>
+
+<div class="modal fade" id="myModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body" id="modalBody">
+                Loading...
+            </div>
+        </div>
+    </div>
+</div>
+```
+
+**Reinitializing Bootstrap Components:**
+```javascript
+// Reinitialize Bootstrap tooltips/popovers after HTMX swap
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    // Reinitialize tooltips in swapped content
+    const tooltips = event.detail.target.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltips.forEach(el => new bootstrap.Tooltip(el));
+
+    // Reinitialize popovers
+    const popovers = event.detail.target.querySelectorAll('[data-bs-toggle="popover"]');
+    popovers.forEach(el => new bootstrap.Popover(el));
+});
+```
+
+### 4. Icon Libraries
+
+**FontAwesome:**
+```html
+{# base.html #}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+```
+
+```html
+{# Icons work in HTMX-loaded partials #}
+<button hx-delete="/items/123" hx-target="#item-123">
+    <i class="fas fa-trash"></i> Delete
+</button>
+
+<button hx-get="/items/123/edit" hx-target="#item-123">
+    <i class="fas fa-edit"></i> Edit
+</button>
+```
+
+**Heroicons (SVG):**
+```html
+{# Inline SVG icons in partials #}
+<button hx-delete="/items/123">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+    </svg>
+    Delete
+</button>
+```
+
+### 5. Chart and Visualization Libraries
+
+**Chart.js Integration:**
+```html
+{# base.html #}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+```
+
+```javascript
+// Initialize/update charts after HTMX swap
+let chartInstances = {};
+
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    const chartElements = event.detail.target.querySelectorAll('canvas.chart');
+
+    chartElements.forEach(canvas => {
+        const chartId = canvas.id;
+
+        // Destroy existing chart if it exists
+        if (chartInstances[chartId]) {
+            chartInstances[chartId].destroy();
+        }
+
+        // Create new chart
+        const ctx = canvas.getContext('2d');
+        const data = JSON.parse(canvas.dataset.chartData);
+
+        chartInstances[chartId] = new Chart(ctx, {
+            type: canvas.dataset.chartType || 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+    });
+});
+```
+
+```html
+{# Partial with chart #}
+<div hx-get="/chart-data" hx-trigger="every 10s">
+    <canvas id="chart-1"
+            class="chart"
+            data-chart-type="line"
+            data-chart-data='{"labels": ["Jan", "Feb"], "datasets": [...]}'></canvas>
+</div>
+```
+
+**Destroying Charts Before Swap:**
+```javascript
+// Clean up charts before replacement
+document.body.addEventListener('htmx:beforeSwap', function(event) {
+    const chartElements = event.detail.target.querySelectorAll('canvas.chart');
+
+    chartElements.forEach(canvas => {
+        const chartId = canvas.id;
+        if (chartInstances[chartId]) {
+            chartInstances[chartId].destroy();
+            delete chartInstances[chartId];
+        }
+    });
+});
+```
+
+### 6. HTMX Event Lifecycle Hooks
+
+**Common Integration Points:**
+```javascript
+// Before request - show loading state
+document.body.addEventListener('htmx:beforeRequest', function(event) {
+    event.detail.target.classList.add('loading');
+});
+
+// After request - hide loading state
+document.body.addEventListener('htmx:afterRequest', function(event) {
+    event.detail.target.classList.remove('loading');
+});
+
+// After swap - reinitialize plugins
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    // Reinitialize datepickers, etc.
+    event.detail.target.querySelectorAll('.datepicker').forEach(el => initDatepicker(el));
+});
+
+// On error - display error message
+document.body.addEventListener('htmx:responseError', function(event) {
+    showToast('Error: ' + event.detail.xhr.status, 'error');
+});
+```
+
+## Anti-Patterns and Common Mistakes
+
+### Anti-Pattern 1: Not Reinitializing Plugins After Swaps
+
+**Problem:** JavaScript plugins only initialized on page load, not after HTMX swaps.
+
+**Why It Fails:** Plugins don't work on dynamically loaded content; broken UI.
+
+**Correct Pattern:**
+```javascript
+function initPlugins(container) {
+    container.querySelectorAll('.datepicker').forEach(el => initDatepicker(el));
+}
+
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    initPlugins(event.detail.target);
+});
+```
+
+### Anti-Pattern 2: Memory Leaks from Chart Instances
+
+**Problem:** Creating new chart instances without destroying old ones on swap.
+
+**Why It Fails:** Memory leaks; performance degradation; canvas errors.
+
+**Correct Pattern:**
+```javascript
+let chartInstance = null;
+document.body.addEventListener('htmx:beforeSwap', function(event) {
+    if (chartInstance) chartInstance.destroy();
+});
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    chartInstance = new Chart(ctx, {...});
+});
+```
+
+## Output Format Examples
+
+### Complete Integration Example
+
+See sections 1-5 for individual library setup. Combine the `<head>` includes (Alpine.js, HTMX, CSS framework, chart library) and `htmx:afterSwap` handlers in your `base.html` per the patterns above.

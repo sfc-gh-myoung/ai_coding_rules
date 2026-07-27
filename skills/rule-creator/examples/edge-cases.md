@@ -48,7 +48,7 @@ Please confirm or select alternative.
 
 **Scenario:** User requests a rule for "Rust language patterns"
 
-**Ambiguity:** No existing Rust rules in RULES_INDEX.md
+**Ambiguity:** No existing Rust rules in rule frontmatter
 
 **Resolution Pattern:**
 ```
@@ -168,7 +168,7 @@ Please confirm or select alternative.
 **Resolution Pattern:**
 ```
 Check existing rules first:
-$ grep -i "pytest" RULES_INDEX.md 
+$ grep -i "pytest" rule frontmatter 
 
 Found:
 - 206-python-pytest.md (core)

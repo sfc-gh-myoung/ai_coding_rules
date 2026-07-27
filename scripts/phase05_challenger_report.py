@@ -20,7 +20,7 @@ from collections import defaultdict
 from datetime import UTC, datetime
 from pathlib import Path
 
-from ai_rules.commands.keywords import (
+from ai_rules.commands.rule_loader.keywords import (
     build_keyword_collision_map,
     load_keyword_stoplist,
     load_keyword_stoplist_overrides,

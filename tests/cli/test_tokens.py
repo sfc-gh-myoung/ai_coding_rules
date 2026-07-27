@@ -994,18 +994,13 @@ class TestTokensCLIBranches:
 def estimate_repo(tmp_path: Path) -> Path:
     """Build a minimal repo skeleton for --context-estimate tests."""
     (tmp_path / "templates").mkdir()
-    (tmp_path / "templates" / "AGENTS_MODE.md.template").write_text("template\n")
     rules = tmp_path / "rules"
     rules.mkdir()
-    (tmp_path / "AGENTS.md").write_text("# AGENTS\n" + ("floor body line\n" * 20))
+    (tmp_path / "CLAUDE.md").write_text("# CLAUDE\n" + ("floor body line\n" * 20))
     (rules / "000-global-core.md").write_text("# core\n" + ("core line\n" * 15))
     skills = tmp_path / "skills" / "rule-loader"
     skills.mkdir(parents=True)
     (skills / "SKILL.md").write_text("# skill\n" + ("skill line\n" * 10))
-    (rules / "RULES_INDEX.md").write_text(
-        "100-snowflake-core.md tier=High ext=.sql kw=sql cte performance\n"
-        "200-python-core.md tier=High ext=.py kw=python testing\n"
-    )
     (rules / "100-snowflake-core.md").write_text("# sql\n" + ("sql line\n" * 30))
     return tmp_path
 
@@ -1078,7 +1073,7 @@ class TestContextEstimate:
     def test_estimate_never_writes_files(self, estimate_repo: Path):
         """Estimate mode is read-only: no floor/rule file is modified."""
         watched = [
-            estimate_repo / "AGENTS.md",
+            estimate_repo / "CLAUDE.md",
             estimate_repo / "rules" / "000-global-core.md",
             estimate_repo / "rules" / "100-snowflake-core.md",
         ]

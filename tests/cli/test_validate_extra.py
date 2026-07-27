@@ -191,48 +191,11 @@ def test_validate_templates_mode_with_real_template(tmp_path: Path) -> None:
     assert "Template Validation Summary" in result.output
 
 
-@pytest.mark.integration
-def test_validate_templates_mode_failed_template_shows_list(tmp_path: Path) -> None:
-    """--templates with invalid template shows FAILED TEMPLATES section (no --verbose)."""
-    # Write a minimal template that fails validation (missing required structure)
-    templates_sub = tmp_path / "templates"
-    templates_sub.mkdir()
-    (templates_sub / "AGENTS_BAD.md.template").write_text(
-        "<!-- Template: bad -->\n\nBad content.\n"
-    )
-    result = runner.invoke(app, ["validate", str(tmp_path), "--templates"])
-    # Either shows failures or passes (validator may be lenient) — just must not crash
-    assert result.exit_code in (0, 1)
-    assert "Template Validation Summary" in result.output
-
-
 # ---------------------------------------------------------------------------
-# SchemaValidator._validate_ascii_patterns — RULES_INDEX table exemption
+# SchemaValidator._validate_ascii_patterns — non-index exemption check
 # ---------------------------------------------------------------------------
 
 TABLE_CONTENT = "| Rule | Tier |\n|---------|------|\n| foo.md | High |\n"
-
-
-@pytest.mark.unit
-def test_rules_index_md_table_is_exempt(tmp_path: Path) -> None:
-    """ASCII table in RULES_INDEX.md must not produce a validation error."""
-    rules_index = tmp_path / "RULES_INDEX.md"
-    rules_index.write_text(TABLE_CONTENT)
-    validator = SchemaValidator(project_root=PROJECT_ROOT)
-    result = validator.validate_agents_md(rules_index)
-    table_errors = [e for e in result.errors if "ASCII table" in e.message]
-    assert table_errors == [], "RULES_INDEX.md should be exempt from ASCII table check"
-
-
-@pytest.mark.unit
-def test_rules_index_template_table_is_exempt(tmp_path: Path) -> None:
-    """ASCII table in RULES_INDEX.md.template must not produce a validation error."""
-    rules_index_tmpl = tmp_path / "RULES_INDEX.md.template"
-    rules_index_tmpl.write_text(TABLE_CONTENT)
-    validator = SchemaValidator(project_root=PROJECT_ROOT)
-    result = validator.validate_agents_md(rules_index_tmpl)
-    table_errors = [e for e in result.errors if "ASCII table" in e.message]
-    assert table_errors == [], "RULES_INDEX.md.template should be exempt from ASCII table check"
 
 
 @pytest.mark.unit

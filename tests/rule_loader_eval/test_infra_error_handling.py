@@ -381,6 +381,9 @@ def test_retry_infra_retries_then_succeeds():
     with (
         patch("ai_rules.rule_loader_eval.engine.run_fixture_async", mock_run_fixture_async),
         patch("ai_rules.commands.rule_loader.load_rules_metadata", return_value={}),
+        patch(
+            "ai_rules.rule_loader_eval.agent_runner.build_prompt", return_value="mock system prompt"
+        ),
         patch("asyncio.sleep", return_value=None),
     ):
         _results, is_infra = _run_single_eval(
@@ -421,6 +424,9 @@ def test_retry_infra_exhausted_triggers_failfast():
     with (
         patch("ai_rules.rule_loader_eval.engine.run_fixture_async", mock_run_fixture_async),
         patch("ai_rules.commands.rule_loader.load_rules_metadata", return_value={}),
+        patch(
+            "ai_rules.rule_loader_eval.agent_runner.build_prompt", return_value="mock system prompt"
+        ),
         patch("asyncio.sleep", return_value=None),
     ):
         _results, is_infra = _run_single_eval(
@@ -459,6 +465,9 @@ def test_retry_infra_default_no_retry():
     with (
         patch("ai_rules.rule_loader_eval.engine.run_fixture_async", mock_run_fixture_async),
         patch("ai_rules.commands.rule_loader.load_rules_metadata", return_value={}),
+        patch(
+            "ai_rules.rule_loader_eval.agent_runner.build_prompt", return_value="mock system prompt"
+        ),
     ):
         _results, is_infra = _run_single_eval(
             fixtures=[fixture],

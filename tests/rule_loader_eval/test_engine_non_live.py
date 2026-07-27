@@ -353,13 +353,13 @@ def _make_progressive_fixture(
 
 @pytest.mark.unit
 def test_build_run_result_progressive_excludes_foundation() -> None:
-    """In progressive mode, 000-global-core.md absent from loaded set does not fail the fixture."""
+    """000-global-core.md absent from loaded set does not fail the fixture (always excluded)."""
     fixture = _make_progressive_fixture()
-    # Agent loaded the domain rule but NOT the foundation (correct progressive behavior)
+    # Agent loaded the domain rule but NOT the foundation (correct behavior)
     run = _make_progressive_run(loaded=("rules/116-snowflake-cortex-search.md",))
     rules_meta: dict = {}
 
-    result = _build_run_result(fixture, run, rules_meta, strict_forbidden=False, progressive=True)
+    result = _build_run_result(fixture, run, rules_meta, strict_forbidden=False)
 
     assert result.match.passed is True
     assert "rules/000-global-core.md" not in result.match.missing_required
@@ -367,27 +367,28 @@ def test_build_run_result_progressive_excludes_foundation() -> None:
 
 @pytest.mark.unit
 def test_build_run_result_nonprogressive_requires_foundation() -> None:
-    """In non-progressive mode, 000-global-core.md must be loaded (regression guard)."""
+    """000-global-core.md is always excluded from required set (regression guard)."""
     fixture = _make_progressive_fixture()
-    # Agent loaded the domain rule but NOT the foundation
+    # Agent loaded the domain rule but NOT the foundation — should pass since foundation always excluded
     run = _make_progressive_run(loaded=("rules/116-snowflake-cortex-search.md",))
     rules_meta: dict = {}
 
-    result = _build_run_result(fixture, run, rules_meta, strict_forbidden=False, progressive=False)
+    result = _build_run_result(fixture, run, rules_meta, strict_forbidden=False)
 
-    assert result.match.passed is False
-    assert "rules/000-global-core.md" in result.match.missing_required
+    # Foundation is always excluded, so this passes even without it
+    assert result.match.passed is True
+    assert "rules/000-global-core.md" not in result.match.missing_required
 
 
 @pytest.mark.unit
 def test_build_run_result_progressive_still_requires_domain_rule() -> None:
-    """Progressive mode only excludes 000-global-core.md; other required rules still needed."""
+    """Only 000-global-core.md is excluded; other required rules still needed."""
     fixture = _make_progressive_fixture()
     # Agent loaded NEITHER the foundation NOR the domain rule
     run = _make_progressive_run(loaded=())
     rules_meta: dict = {}
 
-    result = _build_run_result(fixture, run, rules_meta, strict_forbidden=False, progressive=True)
+    result = _build_run_result(fixture, run, rules_meta, strict_forbidden=False)
 
     assert result.match.passed is False
     assert "rules/116-snowflake-cortex-search.md" in result.match.missing_required

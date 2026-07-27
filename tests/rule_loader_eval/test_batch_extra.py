@@ -91,12 +91,8 @@ def test_run_batch_synchronous_wrapper_calls_async(tmp_path: Path) -> None:
         loaded_via_section=(),
     )
 
-    def fake_run_live_async(*args, **kwargs):
-
-        async def _inner():
-            return mock_run
-
-        return _inner()
+    async def fake_run_live_async(*args, **kwargs):
+        return mock_run
 
     with patch(
         "ai_rules.rule_loader_eval.agent_runner.run_live_async",
@@ -121,17 +117,14 @@ def test_run_batch_behavior_unchanged_after_driver_delegation(tmp_path: Path) ->
         for n in range(4)
     ]
 
-    def fake_run_live_async(fixture_id, prompt, **kwargs):
-        async def _inner():
-            return AgentRun(
-                fixture_id=fixture_id,
-                loaded=("rules/000-global-core.md",),
-                loaded_via_reads=(),
-                loaded_via_reads_performed=(),
-                loaded_via_section=(),
-            )
-
-        return _inner()
+    async def fake_run_live_async(fixture_id, prompt, **kwargs):
+        return AgentRun(
+            fixture_id=fixture_id,
+            loaded=("rules/000-global-core.md",),
+            loaded_via_reads=(),
+            loaded_via_reads_performed=(),
+            loaded_via_section=(),
+        )
 
     start_slots: list[int] = []
     outcome_slots: list[int] = []

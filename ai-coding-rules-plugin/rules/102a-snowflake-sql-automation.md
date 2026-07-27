@@ -1,0 +1,635 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Guide creation of parameterized SQL templates using <%VARIABLE%> syntax for automated Snowflake deployments in production environments. NEVER use CREATE OR REPLACE TABLE (data loss risk), instead use"
+last_updated: 2026-07-15
+keywords:
+  - kw:parameterized SQL templates
+  - kw:idempotent MERGE operations
+  - kw:CREATE TABLE IF NOT EXISTS
+  - kw:multi-environment deployment
+  - kw:CI/CD pipeline integration
+  - kw:production-safe automation
+  - kw:ci/cd
+token_budget: ~5150
+context_tier: High
+depends:
+  required:
+    - 102-snowflake-sql-core.md  # General SQL file patterns (headers, syntax, qualified names)
+  optional:
+    - 117-snowflake-mcp-server.md  # MCP server integration patterns
+    - 130-snowflake-demo-sql.md  # Demo SQL patterns (this rule extends demo patterns to production)
+---
+# Snowflake SQL: Production Automation and CI/CD
+
+## Scope
+
+**What This Rule Covers:**
+Guide creation of parameterized SQL templates using <%VARIABLE%> syntax for automated Snowflake deployments in production environments. NEVER use CREATE OR REPLACE TABLE (data loss risk), instead use CREATE TABLE IF NOT EXISTS and MERGE for idempotent upserts. Supports CI/CD pipelines with environment-specific secrets, multi-environment workflows (dev/test/prod), infrastructure-as-code patterns, documented parameters in headers, and safe-to-rerun operations. Optimized for DevOps engineers, data engineers, and automated deployment systems.
+
+**When to Load This Rule:**
+- Creating parameterized SQL templates for production
+- Setting up CI/CD pipelines for Snowflake deployments
+- Implementing multi-environment workflows (dev/test/prod)
+- Automating Snowflake infrastructure as code
+- Converting demo SQL to production-safe templates
+- Using MERGE for idempotent data operations
+- Preventing data loss from CREATE OR REPLACE TABLE
+
+## References
+
+### External Documentation
+
+**Snowflake:**
+- [MERGE Statement](https://docs.snowflake.com/en/sql-reference/sql/merge.html) - Idempotent upsert operations
+- [SQL Variables](https://docs.snowflake.com/en/sql-reference/variables.html) - Variable substitution
+- [CREATE TABLE IF NOT EXISTS](https://docs.snowflake.com/en/sql-reference/sql/create-table.html) - Safe table creation
+
+**CI/CD:**
+- [GitHub Actions](https://docs.github.com/en/actions) - CI/CD automation
+- [Terraform Snowflake Provider](https://registry.terraform.io/providers/Snowflake-Labs/snowflake/latest/docs) - Infrastructure as code
+
+**Task Automation:**
+- [GNU Make](https://www.gnu.org/software/make/) - Build automation for SQL templates
+- [Taskfile](https://taskfile.dev/) - Alternative task runner for SQL templates
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Production Snowflake account with SYSADMIN or equivalent role
+- USAGE privilege on target database/schema; CREATE TABLE, CREATE VIEW privileges on target schema
+- For COPY INTO operations: USAGE on stage and appropriate storage integration
+- CI/CD pipeline (GitHub Actions, GitLab CI, or equivalent) with Snowflake CLI installed
+- Environment-specific secrets configured (SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER, SNOWFLAKE_PASSWORD per environment)
+
+### Mandatory
+
+- All environment-specific values parameterized with `<%VARIABLE%>` syntax
+- Use `CREATE TABLE IF NOT EXISTS` for table creation (never `CREATE OR REPLACE TABLE` in production)
+- Use MERGE for idempotent data upserts
+- File headers with Parameters, Usage, Example, Dependencies, and Idempotency sections
+- Tested in dev/test environments before production deployment
+
+### Forbidden
+
+- `CREATE OR REPLACE TABLE` on tables with data (causes data loss)
+- Hardcoded database/schema names in reusable templates (breaks environment portability)
+- Hardcoded credentials in SQL files or CI/CD configs (use secrets management)
+- Non-idempotent scripts that fail on re-run
+
+### Conditional
+
+- `CREATE OR REPLACE` is acceptable for views (no data loss) and stages
+- `FORCE = TRUE` in COPY INTO only when intentional file reloading is needed
+
+### Execution Steps
+
+1. Create parameterized SQL templates with variables
+2. Use idempotent patterns (MERGE, IF NOT EXISTS)
+3. Never use CREATE OR REPLACE for tables (data loss risk)
+4. Add validation scripts for pre/post deployment
+5. Integrate with CI/CD pipeline
+6. Test across dev/test environments before production
+
+### Output Format
+
+SQL template files (.sql), Makefile targets, CI/CD workflow files
+
+### Validation
+
+**Test Requirements:**
+- Template validation (syntax check)
+- Dev deployment test
+- Test environment verification
+- Production deployment
+- Post-deploy checks
+
+**Success Criteria:**
+- Templates deploy without errors across environments
+- Idempotent operations work correctly on rerun
+- No data loss from table operations
+- All parameters correctly substituted
+- CI/CD pipeline executes successfully
+
+### Design Principles
+
+- **Parameterization**: All environment-specific values as variables
+- **Idempotency**: Safe to run multiple times (MERGE, WHERE NOT EXISTS)
+- **Environment Agnostic**: Works across dev/test/prod with different parameters
+- **Automation Ready**: Integrates with Makefile, GitHub Actions
+- **Audit Trail**: Clear tracking of what was executed and when
+- **Data Preservation**: Never use CREATE OR REPLACE for tables with data
+
+**Essential Patterns:**
+- **Use `<%VARIABLE%>` for parameterization** - All environment values as variables: `<%DATABASE%>`, `<%SCHEMA%>`, `<%STAGE%>`
+- **NEVER use `CREATE OR REPLACE TABLE` in production** - Data loss risk! Use `CREATE TABLE IF NOT EXISTS` instead
+- **Use MERGE for idempotent upserts** - Updates existing, inserts new, safe to rerun
+- **Document parameters in header** - List all variables with descriptions and concrete examples
+- **Test across dev/test before production** - Same SQL, different variables per environment
+- **Never hardcode database/schema names** - Breaks environment portability
+
+### Post-Execution Checklist
+
+- [ ] All environment values parameterized (`<%VARIABLE%>`)
+- [ ] Header documents parameters with usage examples
+- [ ] Uses `CREATE TABLE IF NOT EXISTS` (never `CREATE OR REPLACE TABLE`)
+- [ ] Data updates use MERGE or `INSERT WHERE NOT EXISTS`
+- [ ] Tested in dev/test environments
+- [ ] CI/CD pipeline configured with environment secrets
+- [ ] Pre/post deployment validation scripts added
+- [ ] Rollback procedures documented
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Using CREATE OR REPLACE for Tables in Automation**
+```sql
+-- Bad: Drops and recreates table, loses all data!
+CREATE OR REPLACE TABLE <%DATABASE%>.<%SCHEMA%>.customers AS
+SELECT * FROM raw_customers WHERE is_active = TRUE;
+-- Next run: All data lost, recreated from scratch!
+```
+**Problem:** Data loss on every run; not incremental; breaks downstream dependencies; table permissions reset; emergency data recovery; production outage
+
+**Correct Pattern:**
+```sql
+-- Good: Use CREATE TABLE IF NOT EXISTS + MERGE for incremental updates
+CREATE TABLE IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.customers (
+  customer_id NUMBER PRIMARY KEY,
+  name STRING,
+  email STRING,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+);
+
+MERGE INTO <%DATABASE%>.<%SCHEMA%>.customers tgt
+USING (SELECT * FROM raw_customers WHERE is_active = TRUE) src
+ON tgt.customer_id = src.customer_id
+WHEN MATCHED THEN
+  UPDATE SET
+    name = src.name,
+    email = src.email,
+    updated_at = CURRENT_TIMESTAMP()
+WHEN NOT MATCHED THEN
+  INSERT (customer_id, name, email, created_at, updated_at)
+  VALUES (src.customer_id, src.name, src.email, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
+```
+**Benefits:** No data loss; incremental updates; idempotent; preserves permissions; production-safe; no outages; reliable automation
+
+**Anti-Pattern 2: Hardcoding Database/Schema Names Instead of Variables**
+```sql
+-- Bad: Hardcoded names, can't reuse across environments
+CREATE TABLE PROD_DB.PUBLIC.sales_summary AS
+SELECT
+  DATE_TRUNC('day', order_date) as day,
+  SUM(amount) as total_sales
+FROM PROD_DB.PUBLIC.orders
+GROUP BY day;
+-- Can't deploy to DEV or TEST! Manual find/replace required!
+```
+**Problem:** Not portable across environments; manual modifications required; error-prone deployment; can't test in dev; production-only scripts; breaks CI/CD
+
+**Correct Pattern:**
+```sql
+-- Good: Use Snowflake variables for portability
+/*!
+Parameters:
+  DATABASE: Target database (e.g., PROD_DB, DEV_DB, TEST_DB)
+  SCHEMA: Target schema (e.g., PUBLIC, ANALYTICS)
+
+Usage:
+  snowsql -D DATABASE=DEV_DB -D SCHEMA=PUBLIC -f sales_summary.sql
+*/
+
+CREATE TABLE IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.sales_summary (
+  day DATE,
+  total_sales NUMBER(38,2)
+);
+
+INSERT INTO <%DATABASE%>.<%SCHEMA%>.sales_summary
+SELECT
+  DATE_TRUNC('day', order_date) as day,
+  SUM(amount) as total_sales
+FROM <%DATABASE%>.<%SCHEMA%>.orders
+WHERE DATE_TRUNC('day', order_date) NOT IN (SELECT day FROM <%DATABASE%>.<%SCHEMA%>.sales_summary)
+GROUP BY day;
+```
+**Benefits:** Environment-portable; testable in dev; CI/CD-friendly; no manual edits; reliable deployment; professional automation; multi-environment support
+
+**Anti-Pattern 3: Missing Documentation Header in SQL Templates**
+```sql
+-- Bad: No header, unclear purpose and usage
+SELECT * FROM customers WHERE region = '<%REGION%>';
+-- What is REGION? What are valid values? How to run this?
+```
+**Problem:** Unclear purpose; unknown parameters; no usage examples; difficult maintenance; knowledge silos; onboarding friction; support burden
+
+**Correct Pattern:**
+```sql
+-- Good: Comprehensive header documentation
+/*!
+Script: regional_customer_report.sql
+Purpose: Generate customer report filtered by region for monthly analysis
+Author: data-engineering-team
+Created: 2024-11-15
+Last Modified: 2024-11-20
+
+Parameters:
+  REGION: Geographic region code (required)
+    Valid values: 'NORTH', 'SOUTH', 'EAST', 'WEST', 'CENTRAL'
+    Example: REGION=WEST
+
+Usage:
+  Development:
+    snowsql -D REGION=WEST -f regional_customer_report.sql
+
+  Production (CI/CD):
+    snow sql -f regional_customer_report.sql --variable REGION=EAST
+
+Dependencies:
+  - Source table: RAW_DB.PUBLIC.CUSTOMERS must exist
+  - Requires SELECT on RAW_DB.PUBLIC.CUSTOMERS
+
+Idempotency:
+  - Safe to run multiple times
+  - Uses CREATE TABLE IF NOT EXISTS
+  - Incremental MERGE prevents duplicates
+*/
+
+SELECT * FROM customers WHERE region = '<%REGION%>';
+```
+**Benefits:** Clear purpose; documented parameters; usage examples; easy maintenance; self-documenting; onboarding-friendly; reduced support; professional
+
+**Anti-Pattern 4: Not Making SQL Scripts Idempotent**
+```sql
+-- Bad: Fails on second run
+CREATE TABLE analytics_summary AS
+SELECT * FROM raw_data;
+
+INSERT INTO metrics
+SELECT COUNT(*) FROM analytics_summary;
+-- Second run: ERROR - Table already exists!
+```
+**Problem:** Not repeatable; fails on re-run; manual cleanup required; breaks automation; CI/CD failures; deployment fragility; unprofessional
+
+**Correct Pattern:**
+```sql
+-- Good: Idempotent operations
+CREATE TABLE IF NOT EXISTS analytics_summary (
+  -- schema definition
+);
+
+-- Clear existing data for this run's date range
+DELETE FROM analytics_summary
+WHERE report_date = CURRENT_DATE();
+
+-- Insert today's data
+INSERT INTO analytics_summary
+SELECT * FROM raw_data WHERE DATE(created_at) = CURRENT_DATE();
+
+-- Upsert metrics (idempotent)
+MERGE INTO metrics m
+USING (SELECT COUNT(*) as cnt FROM analytics_summary WHERE report_date = CURRENT_DATE()) s
+ON m.report_date = CURRENT_DATE()
+WHEN MATCHED THEN UPDATE SET row_count = s.cnt
+WHEN NOT MATCHED THEN INSERT (report_date, row_count) VALUES (CURRENT_DATE(), s.cnt);
+```
+**Benefits:** Repeatable execution; safe re-runs; no manual cleanup; automation-friendly; CI/CD reliable; production-ready; professional deployment
+
+## Output Format Examples
+```sql
+-- ============================================================================
+-- Filename: merge_grid_assets.sql
+-- Description: Upsert grid assets from stage (production-safe)
+--
+-- Parameters:
+--   DATABASE - Database name (e.g., UTILITY_DEMO_V2)
+--   SCHEMA   - Schema name (e.g., GRID_DATA)
+--   STAGE    - Stage name (e.g., @UTILITY_DEMO_V2.GRID_DATA.FILES)
+--
+-- Usage:
+--   snow sql -D DATABASE=DB -D SCHEMA=SCH -D STAGE=STG -f merge_grid_assets.sql
+--
+-- Example:
+--   snow sql -D DATABASE=PROD -D SCHEMA=GRID_DATA -D STAGE=@PROD.GRID_DATA.FILES -f merge_grid_assets.sql
+--
+-- Dependencies: GRID_ASSETS table must exist, stage must have CSV files
+-- Idempotency: MERGE ensures safe reruns (updates/inserts)
+-- ============================================================================
+
+-- Load into temp table
+CREATE TEMP TABLE GRID_ASSETS_STAGE LIKE <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS;
+
+COPY INTO GRID_ASSETS_STAGE
+FROM @<%STAGE%>
+PATTERN = '.*grid_assets.*\\.csv'
+FILE_FORMAT = (TYPE = 'CSV', SKIP_HEADER = 1);
+
+-- Merge into production
+MERGE INTO <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS AS target
+USING GRID_ASSETS_STAGE AS source
+    ON target.asset_id = source.asset_id
+WHEN MATCHED THEN
+    UPDATE SET
+        asset_type = source.asset_type,
+        latitude = source.latitude,
+        longitude = source.longitude,
+        install_date = source.install_date
+WHEN NOT MATCHED THEN
+    INSERT (asset_id, asset_type, latitude, longitude, install_date)
+    VALUES (source.asset_id, source.asset_type, source.latitude,
+            source.longitude, source.install_date);
+```
+
+## SQL Template Patterns
+
+### 1.1 Snowflake Variable Syntax
+
+**Rule:** Use `<%VARIABLE%>` for parameter substitution
+
+**CLI Usage:**
+```bash
+snow sql -D DATABASE=PROD -D SCHEMA=GRID -f template.sql
+```
+
+**Why:** Variables make SQL reusable across environments without code duplication
+
+### 1.2 Template File Structure
+
+**Standard Template:**
+```sql
+-- ============================================================================
+-- Filename: copy_grid_assets.sql
+-- Description: Load grid assets from stage (parameterized template)
+--
+-- Parameters:
+--   DATABASE - Database name (e.g., UTILITY_DEMO_V2)
+--   SCHEMA   - Schema name (e.g., GRID_DATA)
+--   STAGE    - Fully qualified stage name
+--
+-- Usage:
+--   snow sql -D DATABASE=DB -D SCHEMA=SCH -D STAGE=@DB.SCH.STG -f copy_grid_assets.sql
+--
+-- Example:
+--   snow sql -D DATABASE=PROD -D SCHEMA=GRID -D STAGE=@PROD.GRID.FILES -f copy_grid_assets.sql
+-- ============================================================================
+
+COPY INTO <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS
+FROM <%STAGE%>
+PATTERN = '.*grid_assets.*\\.csv'
+FILE_FORMAT = (TYPE = 'CSV', SKIP_HEADER = 1)
+ON_ERROR = 'CONTINUE';
+```
+
+**Required Sections:**
+- **Parameters**: List all variables with descriptions
+- **Usage**: Generic usage pattern
+- **Example**: Concrete example with real values
+
+### 1.3 Variable Naming Conventions
+
+**Rule:** Use UPPERCASE for variable names
+
+**Standard Variables:**
+```text
+<%DATABASE%>           # Database name
+<%SCHEMA%>             # Schema name
+<%TABLE%>              # Table name
+<%STAGE%>              # Stage name (fully qualified)
+<%WAREHOUSE%>          # Warehouse name
+<%ENVIRONMENT%>        # Environment (DEV, TEST, PROD)
+<%ROLE%>               # Role name for grants
+```
+
+## Directory Structure for Operations
+
+### 2.1 Operations Directory Pattern
+
+**Structure:**
+
+Directory structure for `sql/operations/`:
+- **grid/** - Domain/schema grouping
+  - `01_grid_create_schema.sql`, `02_grid_create_tables.sql`
+  - `03_grid_copy_assets.sql`, `04_grid_copy_scada.sql`
+  - `05_grid_upsert_assets.sql`, `06_grid_upsert_events.sql`
+  - `99_grid_drop_schema.sql`
+- **customer/** - Customer domain (same numbered pattern)
+- **shared/** - Cross-domain scripts
+  - `00_shared_create_database.sql`, `01_shared_create_roles.sql`, `99_shared_drop_database.sql`
+
+**Benefits:**
+- Clear domain separation
+- Operation types grouped together
+- Testable in isolation
+- Reusable across projects
+
+### 2.2 Template Naming Convention
+
+**Pattern:** `NN_<schema>_<operation>.sql`
+
+**Examples:**
+```text
+01_grid_create_schema.sql
+02_grid_create_tables.sql
+03_grid_copy_assets.sql
+04_grid_merge_assets.sql
+05_grid_grant_access.sql
+99_grid_drop_schema.sql
+```
+
+**Numeric prefixes required:** Two-digit prefix establishes execution order. Automation tools SHOULD respect filename order.
+
+## Idempotent Production Patterns
+
+### 3.1 Schema and Database Creation
+
+**Rule:** Use IF NOT EXISTS for creation
+
+**Pattern:**
+```sql
+-- Idempotent schema creation
+CREATE SCHEMA IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>
+    COMMENT = 'Grid data for <%ENVIRONMENT%> environment';
+
+-- Idempotent database creation
+CREATE DATABASE IF NOT EXISTS <%DATABASE%>
+    COMMENT = 'Utility demo database - <%ENVIRONMENT%>';
+```
+
+**Why:** Safe to run in CI/CD repeatedly
+
+### 3.2 Table Creation (Production)
+
+**Rule:** Use CREATE TABLE IF NOT EXISTS, never CREATE OR REPLACE
+
+**Critical:** CREATE OR REPLACE deletes data - unacceptable in production
+
+**Pattern:**
+```sql
+-- Production-safe table creation
+CREATE TABLE IF NOT EXISTS <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS (
+    asset_id VARCHAR PRIMARY KEY,
+    asset_type VARCHAR,
+    latitude FLOAT,
+    longitude FLOAT,
+    install_date DATE
+);
+
+-- Add columns if schema evolves
+ALTER TABLE <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS
+ADD COLUMN IF NOT EXISTS region VARCHAR;
+```
+
+**Never do this in production:**
+```sql
+-- Destroys all data - production disaster
+CREATE OR REPLACE TABLE <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS (...);
+```
+
+### 3.3 Data Loading with MERGE
+
+**Rule:** Use MERGE for idempotent upserts
+
+**Pattern:**
+```sql
+-- ============================================================================
+-- Filename: 04_grid_merge_assets.sql
+-- Description: Upsert grid assets (insert new, update existing)
+--
+-- Parameters:
+--   DATABASE - Database name
+--   SCHEMA   - Schema name
+--   STAGE    - Stage name
+-- ============================================================================
+
+-- Step 1: Load into temp table
+CREATE TEMP TABLE GRID_ASSETS_STAGE (
+    asset_id VARCHAR,
+    asset_type VARCHAR,
+    latitude FLOAT,
+    longitude FLOAT,
+    install_date DATE
+);
+
+COPY INTO GRID_ASSETS_STAGE
+FROM @<%STAGE%>
+PATTERN = '.*grid_assets.*\\.csv'
+FILE_FORMAT = (TYPE = 'CSV', SKIP_HEADER = 1);
+
+-- Step 2: MERGE into production table
+MERGE INTO <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS AS target
+USING GRID_ASSETS_STAGE AS source
+    ON target.asset_id = source.asset_id
+WHEN MATCHED THEN
+    UPDATE SET
+        asset_type = source.asset_type,
+        latitude = source.latitude,
+        longitude = source.longitude,
+        install_date = source.install_date
+WHEN NOT MATCHED THEN
+    INSERT (asset_id, asset_type, latitude, longitude, install_date)
+    VALUES (source.asset_id, source.asset_type, source.latitude,
+            source.longitude, source.install_date);
+
+-- Step 3: Report results
+SELECT 'Rows merged' AS operation, COUNT(*) AS row_count
+FROM <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS;
+```
+
+**Why MERGE:**
+- Idempotent (safe to rerun)
+- Updates existing records
+- Inserts new records
+- Single atomic operation
+
+### 3.4 View Updates
+
+**Rule:** CREATE OR REPLACE is safe for views (no data loss)
+
+**Pattern:**
+```sql
+-- Safe: Views don't store data
+CREATE OR REPLACE VIEW <%DATABASE%>.<%SCHEMA%>.VW_ASSET_SUMMARY
+COMMENT = 'Asset summary view for <%ENVIRONMENT%>'
+AS
+SELECT
+    asset_type,
+    COUNT(*) AS asset_count,
+    AVG(DATEDIFF(YEAR, install_date, CURRENT_DATE())) AS avg_age_years
+FROM <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS
+GROUP BY asset_type;
+```
+
+## CI/CD Integration
+
+For CI/CD pipeline integration (Makefile, GitHub Actions, environment-specific variables, secrets management), see **102d-snowflake-sql-cicd.md**.
+
+**Quick reference:** Use `snow sql -D DATABASE=PROD -D SCHEMA=GRID -f template.sql` for environment-specific deployments. Store credentials in CI/CD secret stores, never in code.
+
+## Production SQL File Headers
+
+For the standard template header format and examples, see **Template File Structure** (section 1.2) and **Output Format Examples** above. All production SQL files must include the required header sections: Parameters, Usage, Example, Dependencies, and Idempotency.
+
+## Validation and Testing
+
+### 6.1 Pre-Deployment Validation
+
+**Create validation template:**
+```sql
+-- ============================================================================
+-- Filename: validate_schema.sql
+-- Description: Validate schema exists and has required objects
+-- ============================================================================
+
+-- Check schema exists
+SELECT
+    'Schema exists' AS check_name,
+    CASE
+        WHEN COUNT(*) > 0 THEN 'PASS'
+        ELSE 'FAIL'
+    END AS status
+FROM INFORMATION_SCHEMA.SCHEMATA
+WHERE CATALOG_NAME = '<%DATABASE%>'
+  AND SCHEMA_NAME = '<%SCHEMA%>';
+
+-- Check required tables exist
+SELECT
+    'Required tables exist' AS check_name,
+    CASE
+        WHEN COUNT(*) = 5 THEN 'PASS'
+        ELSE 'FAIL - Found ' || COUNT(*) || ' of 5 tables'
+    END AS status
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_CATALOG = '<%DATABASE%>'
+  AND TABLE_SCHEMA = '<%SCHEMA%>'
+  AND TABLE_NAME IN ('GRID_ASSETS', 'SCADA_DATA', 'FAILURE_EVENTS',
+                     'AMI_DATA', 'TRANSFORMER_DATA');
+```
+
+### 6.2 Post-Deployment Verification
+
+**Pattern:**
+```sql
+-- Row count verification
+SELECT
+    'GRID_ASSETS' AS table_name,
+    COUNT(*) AS row_count,
+    MAX(METADATA$ROW_ID) AS max_row_id
+FROM <%DATABASE%>.<%SCHEMA%>.GRID_ASSETS
+
+UNION ALL
+
+SELECT
+    'SCADA_DATA' AS table_name,
+    COUNT(*) AS row_count,
+    MAX(METADATA$ROW_ID) AS max_row_id
+FROM <%DATABASE%>.<%SCHEMA%>.SCADA_DATA;
+```
+
+### 6.3 Migration Rollback
+
+If a migration fails mid-execution:
+
+1. **After staging table created but before swap:** `DROP TABLE IF EXISTS staging_table;`
+2. **After swap fails:** `ALTER TABLE original RENAME TO original_backup; ALTER TABLE staging RENAME TO original;`
+3. **Always verify after swap:** `SELECT COUNT(*) FROM <%DATABASE%>.<%SCHEMA%>.target_table;` -- confirm row counts match expectations

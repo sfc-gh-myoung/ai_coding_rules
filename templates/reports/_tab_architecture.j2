@@ -208,7 +208,7 @@
 
     <h3>Output Artifacts</h3>
 
-    <p>Every invocation of the eval harness streams results to a timestamped run directory under <code>results/</code> (or <code>results/progressive/</code> for <code>--progressive</code> runs). The artifacts are written incrementally as each fixture completes, so a partial run is always recoverable. The full artifact set for a completed run is:</p>
+    <p>Every invocation of the eval harness streams results to a timestamped run directory under <code>results/</code>. The artifacts are written incrementally as each fixture completes, so a partial run is always recoverable. The full artifact set for a completed run is:</p>
 
     <dl style="display:grid; grid-template-columns: max-content 1fr; gap:0.4rem 1.2rem; font-size:0.9rem;">
       <dt><code>manifest.json</code></dt>
@@ -235,7 +235,6 @@
         <li><strong>Pass:</strong> One complete sweep through all fixtures. A run with <code>--runs 5</code> contains five passes (<code>run-01</code> through <code>run-05</code>).</li>
         <li><strong>Signal report:</strong> A structured summary of per-failure-mode indicators extracted from the tool trace and response text for a single fixture run.</li>
         <li><strong>Stochastic instability:</strong> A fixture that produces mixed pass/fail results across runs due to sampling variance in the model&rsquo;s output.</li>
-        <li><strong>Progressive mode:</strong> An alternative eval mode (<code>--progressive</code>) that replaces the AGENTS.md bootstrap with a micro-kernel + manifest injection system, used to measure the token overhead of the standard protocol.</li>
       </ul>
     </details>
   </section>

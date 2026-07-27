@@ -6,7 +6,6 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-import typer
 from typer.testing import CliRunner
 
 from ai_rules.cli import app
@@ -96,53 +95,11 @@ def test_eval_cmd_bulk_fixture_load_failure(tmp_path: Path) -> None:
 
 
 @pytest.mark.integration
-def test_index_generate_missing_template(tmp_path: Path) -> None:
-    """_resolve_template with missing template covers lines 365-367."""
-    from ai_rules.commands.index import _resolve_template
-
-    # Directly call _resolve_template with a dir that lacks the template
-    with pytest.raises(typer.Exit):
-        _resolve_template(tmp_path)
-
-
-# ---------------------------------------------------------------------------
-# tokens.py — dry_run path (lines 472-473)
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.integration
 def test_tokens_update_dry_run_covers_472() -> None:
     """Tokens update --dry-run shows dry-run output (covers lines 472-473)."""
     # tokens command takes a path argument + --dry-run
     result = runner.invoke(app, ["tokens", "rules/200-python-core.md", "--dry-run"])
     # Either exit 0 (dry-run) or non-zero is fine
-
-
-# ---------------------------------------------------------------------------
-# index.py — preview truncation (line 474) and duplicate trigger continue (201)
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.integration
-def test_index_preview_large_rule() -> None:
-    """Index show on a large rule file covers the truncation preview (line 474)."""
-    from ai_rules.commands.index import index_app
-
-    index_runner = CliRunner(env={"NO_COLOR": "1"})
-    # Use a real rule that likely has >100 lines
-    result = index_runner.invoke(index_app, ["show", "200-python-core.md"])
-    # Exit 0 or non-zero; we just need the code to run
-
-
-@pytest.mark.integration
-def test_index_generate_real_project() -> None:
-    """Index generate in the real project covers various index.py branches."""
-    from ai_rules.commands.index import index_app
-
-    index_runner = CliRunner(env={"NO_COLOR": "1"})
-    # Run generate --dry-run to avoid modifying files
-    result = index_runner.invoke(index_app, ["generate", "--dry-run"])
-    # Should work in the real project
 
 
 # ---------------------------------------------------------------------------

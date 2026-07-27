@@ -6,10 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from ai_rules.rule_loader_eval.agent_runner import AgentRun, Citation, TurnEvent
+from ai_rules.rule_loader_eval.agent_runner import AgentRun, TurnEvent
 from ai_rules.rule_loader_eval.diagnostics import (
     SignalReport,
-    citation_drift,
     format_citation_drift_warning,
     format_debug,
     format_disagreement_warning,
@@ -18,7 +17,6 @@ from ai_rules.rule_loader_eval.diagnostics import (
     signal_disagreement,
 )
 from ai_rules.rule_loader_eval.matcher import CitationDrift
-from ai_rules.rule_loader_eval.rules_meta import RuleMetadata
 
 # ---------------------------------------------------------------------------
 # Helper
@@ -102,60 +100,6 @@ def test_signal_disagreement_empty_run_all_ok() -> None:
     assert report.cited_without_read == ()
     assert report.read_without_cite_unexpected == ()
     assert report.read_without_cite_tolerated == ()
-
-
-# ---------------------------------------------------------------------------
-# citation_drift
-# ---------------------------------------------------------------------------
-
-
-@pytest.mark.unit
-def test_citation_drift_no_citations_returns_empty() -> None:
-    assert citation_drift(_make_run(), {}) == ()
-
-
-@pytest.mark.unit
-def test_citation_drift_path_not_in_snapshot_produces_drift() -> None:
-    run = _make_run(citations_rules_loaded={"rules/missing.md": Citation(line_count=50)})
-    drifts = citation_drift(run, {})
-    assert len(drifts) == 1
-    assert drifts[0].rule_path == "rules/missing.md"
-    assert drifts[0].field == "path"
-
-
-@pytest.mark.unit
-def test_citation_drift_matching_line_count_no_drift() -> None:
-    meta = {"rules/a.md": RuleMetadata(path=Path("rules/a.md"), line_count=100)}
-    run = _make_run(citations_rules_loaded={"rules/a.md": Citation(line_count=100)})
-    assert citation_drift(run, meta) == ()
-
-
-@pytest.mark.unit
-def test_citation_drift_mismatched_line_count() -> None:
-    meta = {"rules/a.md": RuleMetadata(path=Path("rules/a.md"), line_count=200)}
-    run = _make_run(citations_rules_loaded={"rules/a.md": Citation(line_count=50)})
-    drifts = citation_drift(run, meta)
-    assert len(drifts) == 1
-    assert drifts[0].field == "line_count"
-    assert drifts[0].declared == "50"
-    assert drifts[0].actual == "200"
-
-
-@pytest.mark.unit
-def test_citation_drift_failed_citation_skipped() -> None:
-    meta = {"rules/a.md": RuleMetadata(path=Path("rules/a.md"), line_count=100)}
-    run = _make_run(citations_rules_loaded={"rules/a.md": Citation(failed=True)})
-    assert citation_drift(run, meta) == ()
-
-
-@pytest.mark.unit
-def test_citation_drift_checks_reads_performed_when_non_empty() -> None:
-    run = _make_run(
-        reads_performed=("rules/dummy.md",),
-        citations_reads_performed={"rules/not-in-meta.md": Citation(line_count=10)},
-    )
-    drifts = citation_drift(run, {})
-    assert any(d.rule_path == "rules/not-in-meta.md" for d in drifts)
 
 
 # ---------------------------------------------------------------------------

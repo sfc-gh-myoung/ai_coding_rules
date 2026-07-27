@@ -113,7 +113,7 @@ class TemplateGenerator:
 
 **Pre-Task-Completion Validation Gate (CRITICAL):**
 
-Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+Reference: Complete validation protocol in `000-global-core.md`
 
 **CRITICAL:** Before marking any task as complete, ALL of the following checks MUST pass:
 
@@ -409,7 +409,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
             "\nNext steps:\n"
             f"1. Edit {output_path} and replace all placeholders with actual content\n"
             f"2. Validate: python scripts/schema_validator.py {output_path}\n"
-            "3. Add to rules/RULES_INDEX.md"
+            "3. Run: ai-rules keywords generate --rule-path " + "{output_path}"
         )
 
     @staticmethod
@@ -533,7 +533,7 @@ def new(
             f"  1. Edit [cyan]{output_path}[/cyan] and replace all placeholders with actual content"
         )
         console.print(f"  2. Validate: [cyan]ai-rules validate {output_path}[/cyan]")
-        console.print("  3. Add to [cyan]rules/RULES_INDEX.md[/cyan]")
+        console.print("  3. Run: [cyan]ai-rules keywords generate --rule-path {output_path}[/cyan]")
 
     except (ValueError, FileExistsError) as e:
         log_error(str(e))

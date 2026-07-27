@@ -1,0 +1,507 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive best practices for Snowflake Data Quality Monitoring using Data Metric Functions (DMFs), data profiling, expectations, and automated quality checks. Covers system DMFs, custom DMF"
+last_updated: 2026-07-15
+keywords:
+  - kw:Data Metric Functions
+  - kw:DMF expectations
+  - kw:system DMF
+  - kw:serverless quality monitoring
+  - kw:quality event tables
+  - kw:DMF scheduling patterns
+  - kw:dmf
+token_budget: ~4900
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 105-snowflake-cost-governance.md  # Resource monitors and cost optimization
+    - 107-snowflake-security-governance.md  # Access control and security policies
+  optional:
+    - 124a-snowflake-data-quality-custom.md  # Custom DMF creation patterns
+    - 124b-snowflake-data-quality-operations.md  # Operational patterns and remediation
+---
+# Snowflake Data Quality Monitoring Best Practices
+
+> **CORE RULE: PRESERVE WHEN POSSIBLE**
+>
+> This rule defines essential Data Quality patterns. Load for data quality tasks.
+> Specialized rules depend on this foundation.
+
+## Scope
+
+**What This Rule Covers:**
+Comprehensive best practices for Snowflake Data Quality Monitoring using Data Metric Functions (DMFs), data profiling, expectations, and automated quality checks. Covers system DMFs, custom DMF creation, data profiling workflows, expectation definitions, scheduling strategies, event table monitoring, alerting, remediation workflows, and cost optimization to ensure data reliability, integrity, and compliance throughout the data lifecycle.
+
+**When to Load This Rule:**
+- Implementing Snowflake Data Quality Monitoring with DMFs
+- Creating or configuring Data Metric Functions (system or custom)
+- Setting up data profiling and baseline quality metrics
+- Defining quality expectations and pass/fail criteria
+- Troubleshooting DMF execution or expectation failures
+- Monitoring data quality trends and violations
+- Establishing automated quality monitoring schedules
+
+## References
+
+### External Documentation
+
+- [Data Quality Introduction](https://docs.snowflake.com/en/user-guide/data-quality-intro) - Overview and concepts
+- [Data Metric Functions](https://docs.snowflake.com/en/user-guide/data-metric-functions) - DMF creation and usage
+- [System DMFs](https://docs.snowflake.com/en/sql-reference/data-metric-functions) - Built-in quality metrics
+- [Data Quality Monitoring](https://docs.snowflake.com/en/user-guide/ui-snowsight-data-quality-monitoring) - Snowsight monitoring
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Snowflake Enterprise Edition account
+- Tables/views requiring quality monitoring
+- Defined quality expectations and pass/fail criteria
+- EXECUTE DATA METRIC FUNCTION privilege
+- Event table for capturing results
+
+### Mandatory
+
+- System DMFs in SNOWFLAKE.CORE schema
+- Custom DMF creation (when system DMFs insufficient)
+- ALTER TABLE/VIEW for DMF associations
+- Snowsight Data Quality tab for monitoring
+- INFORMATION_SCHEMA and ACCOUNT_USAGE views for analysis
+
+### Forbidden
+
+- Exceeding 10,000 DMF-object associations per account
+- Setting DMFs on shared objects or reader accounts
+- Setting DMFs on object tags
+- Using database roles as table owners for DMF operations
+
+### Execution Steps
+
+1. Profile data using Snowsight Data Profile to understand baseline characteristics
+2. Select appropriate system DMFs or create custom DMFs for specific quality checks
+3. Associate DMFs with tables/views using ALTER TABLE/VIEW statements
+4. Define expectations for pass/fail criteria with appropriate thresholds
+5. Schedule DMF evaluations at appropriate intervals based on data refresh frequency
+6. Configure event table to capture results and enable alerts for failures
+7. Monitor DMF execution via Snowsight Data Quality tab and query event tables for trends
+8. Establish remediation workflows for failures with clear SLAs and ownership
+9. Track cost consumption via DATA_QUALITY_MONITORING_USAGE_HISTORY view
+10. Continuously refine expectations based on historical performance
+
+### Output Format
+
+Data quality implementations produce:
+- DMF DDL for custom metric functions
+- ALTER TABLE/VIEW statements for DMF associations
+- Expectation definitions with pass/fail thresholds
+- Monitoring queries for event table analysis
+- Alert configurations for proactive notifications
+- Remediation workflow documentation
+
+### Validation
+
+**Pre-Task-Completion Checks:**
+- Enterprise Edition enabled for account
+- EXECUTE DATA METRIC FUNCTION privilege granted to table owner role
+- Event table configured and accessible
+- DMFs created successfully (system or custom)
+- Expectations defined for all critical quality checks
+
+**Success Criteria:**
+- DMFs execute successfully and write results to event table
+- Expectations evaluate correctly (pass/fail logic functioning)
+- Alerts trigger appropriately for expectation failures
+- Cost consumption within expected ranges for monitoring frequency
+- Remediation workflows documented and followed
+- Quality trends visible in Snowsight Data Quality tab
+
+**Negative Tests:**
+- DMF execution should fail without EXECUTE DATA METRIC FUNCTION privilege
+- Invalid DMF associations should be rejected at ALTER TABLE/VIEW time
+- Exceeding 10,000 DMF associations should produce clear error
+- Expectations with invalid syntax should fail validation
+
+### Design Principles
+
+- **Enterprise Edition Required:** Data Quality and DMFs require Snowflake Enterprise Edition
+- **Serverless Compute:** DMFs use serverless compute billed under "Data Quality Monitoring" category
+- **Proactive Monitoring:** Scheduled DMF evaluations provide continuous quality assurance
+- **Expectations-Driven:** Define explicit pass/fail criteria using expectations for all quality checks
+- **Automated Alerting:** Configure alerts on expectation failures to drive timely remediation
+- **Cost Awareness:** Monitor serverless credit consumption and right-size schedules
+- **Least Privilege:** Table owner role must have global EXECUTE DATA METRIC FUNCTION privilege
+
+> **Investigation Required**
+> When working with Data Quality:
+> 1. **Check existing DMFs BEFORE creating new ones** - Use SHOW DATA METRIC FUNCTIONS to understand current setup
+> 2. **Verify Enterprise Edition** - Data Quality features require Enterprise Edition
+> 3. **Profile data first** - Use Snowsight Data Profile to understand baseline before setting expectations
+> 4. **Review event table** - Check DMF_EVALUATION_HISTORY for execution patterns and failures
+> 5. **Monitor costs** - Query DATA_QUALITY_MONITORING_USAGE_HISTORY for credit consumption
+>
+> **Anti-Pattern:**
+> "Creating DMF... (without profiling data first)"
+> "Setting expectations... (without understanding baseline)"
+>
+> **Correct Pattern:**
+> "Let me check your existing data quality setup first."
+> [reads SHOW DATA METRIC FUNCTIONS, checks event table, profiles data]
+> "I see you have NULL rate monitoring with 5% threshold. Creating new DMF following this pattern..."
+
+### Post-Execution Checklist
+
+- [ ] Enterprise Edition verified for account
+- [ ] Data profiling completed to understand baselines
+- [ ] System DMFs evaluated for applicability
+- [ ] Custom DMFs created where system DMFs insufficient
+- [ ] DMFs associated with critical tables/views
+- [ ] Expectations defined with appropriate thresholds
+- [ ] Monitoring schedule configured based on data refresh frequency
+- [ ] Event table configured and accessible
+- [ ] Alerts configured for expectation failures
+- [ ] Remediation workflows documented with SLAs
+- [ ] Cost monitoring queries established
+- [ ] Snowsight Data Quality tab reviewed
+- [ ] EXECUTE DATA METRIC FUNCTION privilege granted appropriately
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Using DMFs Without Defining Expectations**
+```sql
+-- Bad: DMF created but no expectations set
+CREATE DATA METRIC FUNCTION check_nulls()
+RETURNS FLOAT
+AS $$
+  SELECT COUNT_IF(important_column IS NULL)::FLOAT / COUNT(*)::FLOAT
+  FROM critical_table
+$$;
+
+ALTER TABLE critical_table ADD DATA METRIC FUNCTION check_nulls ON ();
+-- No expectation defined! DMF runs but never alerts on high null rates
+```
+**Problem:** No pass/fail criteria; silent quality degradation; no alerting on violations
+
+**Correct Pattern:**
+```sql
+-- Good: DMF with clear expectation threshold
+CREATE DATA METRIC FUNCTION check_nulls()
+RETURNS FLOAT
+AS $$
+  SELECT COUNT_IF(important_column IS NULL)::FLOAT / COUNT(*)::FLOAT
+  FROM critical_table
+$$;
+
+ALTER TABLE critical_table
+  ADD DATA METRIC FUNCTION check_nulls ON ()
+  EXPECT (check_nulls ON ()) < 0.05;  -- Alert if >5% nulls
+
+-- Set up alerting on expectation failures via event table
+```
+**Benefits:** Automated pass/fail evaluation; proactive alerting; enables quality gates
+
+**Anti-Pattern 2: Not Profiling Data Before Setting Thresholds**
+```sql
+-- Bad: Arbitrary expectation thresholds without baseline understanding
+ALTER TABLE sales_data
+  MODIFY DATA METRIC SCHEDULE '1 HOUR'
+  EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON (discount_pct)) = 0;
+-- Expectation fails immediately because discount_pct is NULL for 30% of rows naturally!
+```
+**Problem:** False positive alerts; alert fatigue; lost trust in monitoring
+
+**Correct Pattern:**
+```sql
+-- Good: Profile data first to understand baseline
+-- Step 1: Profile using Snowsight Data Profile or SQL
+SELECT
+  COUNT(*) as total_rows,
+  COUNT_IF(discount_pct IS NULL) as null_count,
+  COUNT_IF(discount_pct IS NULL)::FLOAT / COUNT(*)::FLOAT as null_rate
+FROM sales_data;
+-- Result: null_rate = 0.32 (32% naturally NULL for non-discounted sales)
+
+-- Step 2: Set realistic expectation based on baseline
+ALTER TABLE sales_data
+  MODIFY DATA METRIC SCHEDULE '1 HOUR'
+  EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON (discount_pct)) < 0.40;
+-- Alert only if null rate exceeds normal 32% by significant margin
+```
+**Benefits:** Realistic thresholds based on profiling; actionable alerts; effective quality gates
+
+**Anti-Pattern 3: Exceeding 10,000 DMF-Object Association Limit**
+```sql
+-- Bad: Associating same DMF to every table without prioritization
+-- [Loop through 15,000 tables and add same DMF to each]
+-- Hits 10,000 association limit and fails
+```
+**Problem:** Account-wide 10,000 association limit; deployment failures; wasted associations on low-value tables
+
+**Correct Pattern:**
+```sql
+-- Good: Prioritize DMF associations for critical tables only
+-- Step 1: Identify critical tables with tagging
+ALTER TABLE critical_customer_data SET TAG criticality = 'HIGH';
+ALTER TABLE critical_financial_data SET TAG criticality = 'HIGH';
+-- [Tag 200 critical tables]
+
+-- Step 2: Apply DMFs only to high-criticality tables
+SELECT
+  table_catalog,
+  table_schema,
+  table_name
+FROM SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES
+WHERE tag_name = 'CRITICALITY' AND tag_value = 'HIGH';
+
+-- Associate DMFs to ~200 critical tables, well under 10,000 limit
+-- Use system DMFs efficiently: FRESHNESS, NULL_COUNT, ROW_COUNT
+```
+**Benefits:** Stays under 10,000 limit; focuses on high-value tables; cost-effective monitoring
+
+**Anti-Pattern 4: Using Database Roles as DMF Table Owners**
+```sql
+-- Bad: Table owned by database role, can't execute DMFs
+CREATE DATABASE ROLE db_owner;
+GRANT OWNERSHIP ON TABLE customers TO DATABASE ROLE db_owner;
+
+-- Try to add DMF - FAILS
+ALTER TABLE customers ADD DATA METRIC FUNCTION check_freshness ON ();
+-- Error: Database roles cannot have global EXECUTE DATA METRIC FUNCTION privilege
+```
+**Problem:** Database roles can't hold global privileges; DMF execution fails; requires ownership transfer
+
+**Correct Pattern:**
+```sql
+-- Good: Use account-scoped role as table owner for DMF operations
+CREATE ROLE data_quality_owner;  -- Account role, not database role
+GRANT EXECUTE DATA METRIC FUNCTION TO ROLE data_quality_owner;
+
+-- Transfer ownership to account role
+GRANT OWNERSHIP ON TABLE customers TO ROLE data_quality_owner;
+
+-- Now DMF operations succeed
+ALTER TABLE customers ADD DATA METRIC FUNCTION check_freshness ON ();
+```
+**Benefits:** DMF operations work; proper privilege model; account-scoped role inheritance
+
+## Output Format Examples
+
+```sql
+-- Complete workflow: Create DMFs, associate with table, set expectations
+
+-- Step 1: Create custom DMF for email format validation
+CREATE OR REPLACE DATA METRIC FUNCTION DMF_INVALID_EMAIL_COUNT(
+  ARG_T TABLE(email STRING)
+)
+RETURNS FLOAT
+COMMENT = 'Count rows with invalid email format'
+AS
+$$
+  SELECT COUNT(*)::FLOAT
+  FROM ARG_T
+  WHERE email IS NOT NULL
+    AND email NOT REGEXP '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}'
+$$;
+
+-- Step 2: Associate system and custom DMFs with table
+ALTER TABLE PROD_DB.DIM.CUSTOMERS
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (email);
+ALTER TABLE PROD_DB.DIM.CUSTOMERS
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (phone);
+ALTER TABLE PROD_DB.DIM.CUSTOMERS
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.DUPLICATE_COUNT ON (customer_id);
+ALTER TABLE PROD_DB.DIM.CUSTOMERS
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.FRESHNESS ON (last_updated_ts);
+ALTER TABLE PROD_DB.DIM.CUSTOMERS
+  ADD DATA METRIC FUNCTION DMF_INVALID_EMAIL_COUNT ON (email);
+
+-- Step 3: Set schedule and expectations
+ALTER TABLE PROD_DB.DIM.CUSTOMERS
+  MODIFY DATA METRIC SCHEDULE '60 MINUTES'
+    EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON email) < 500          -- <5% null emails
+    EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON phone) < 1000         -- <10% null phones
+    EXPECT (SNOWFLAKE.CORE.DUPLICATE_COUNT ON customer_id) = 0 -- no duplicates
+    EXPECT (SNOWFLAKE.CORE.FRESHNESS ON last_updated_ts) < 1440 -- updated within 24h
+    EXPECT (DMF_INVALID_EMAIL_COUNT ON email) < 100;           -- <1% invalid emails
+
+-- Step 4: Query execution history
+SELECT *
+FROM SNOWFLAKE.LOCAL.DATA_METRIC_FUNCTION_RESULTS
+WHERE TABLE_NAME = 'CUSTOMERS'
+ORDER BY MEASUREMENT_TIME DESC
+LIMIT 10;
+```
+
+## Data Quality Fundamentals
+
+### What are Data Metric Functions (DMFs)?
+
+Data Metric Functions (DMFs) are specialized functions that measure data quality metrics such as freshness, NULL counts, duplicates, and custom business rules.
+
+**Key Characteristics:**
+- DMFs run on serverless compute (no warehouse required)
+- Results stored in dedicated event tables
+- Scheduled evaluations for continuous monitoring
+- System-provided and user-defined DMF types
+- Enterprise Edition feature only
+
+**DMF Types:**
+
+1. **System DMFs (SNOWFLAKE.CORE):**
+   - Pre-built functions for common metrics
+   - No need to create, just use directly
+   - Examples: NULL_COUNT, DUPLICATE_COUNT, FRESHNESS, ROW_COUNT
+
+2. **Custom DMFs:**
+   - User-defined functions for specific business rules
+   - Created in user schemas
+   - Must return FLOAT for compatibility with expectations
+
+### Enterprise Edition Requirement
+
+**REQUIREMENT:** Data Quality and DMFs require Snowflake Enterprise Edition.
+
+## Data Profiling
+
+Always start with data profiling to understand baseline characteristics before implementing DMFs.
+
+### Using Data Profile in Snowsight
+
+**Access Data Profile:**
+```
+1. Sign in to Snowsight
+2. Navigate to: Catalog » Database Explorer
+3. Select table or view
+4. Click "Data Quality" tab
+5. Click "Data Profile"
+```
+
+**Profile Statistics Provided:**
+- Number of rows in table
+- Last update timestamp
+- NULL value counts per column
+- Minimum and maximum values per column
+- Most common values per column
+- Data type distributions
+
+### Warehouse Considerations for Profiling
+
+Data profiling uses the user's default warehouse (X-Small recommended). For large tables, select a larger warehouse in Snowsight dropdown.
+
+### Profiling-to-DMF Workflow
+
+```sql
+-- Step 1: Profile data (Snowsight Data Profile or SQL queries)
+-- Step 2: Identify concerns (e.g., Column X has 15% NULLs — unexpected)
+-- Step 3: Create expectation-based DMF
+ALTER TABLE CUSTOMERS
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (email);
+
+-- Step 4: Set schedule and expectation
+ALTER TABLE CUSTOMERS
+  MODIFY DATA METRIC SCHEDULE '5 MINUTES'
+    EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON email) < 100;
+```
+
+## System DMFs
+
+System DMFs are pre-built functions in the SNOWFLAKE.CORE schema for common quality metrics.
+
+### Available System DMFs
+
+**System Data Metric Functions:**
+- **NULL_COUNT** - Count NULL values in column (returns FLOAT) - Monitor unexpected NULLs in required fields
+- **DUPLICATE_COUNT** - Count duplicate values in column(s) (returns FLOAT) - Detect duplicate keys in dimensional tables
+- **UNIQUE_COUNT** - Count distinct values (returns FLOAT) - Monitor cardinality of categorical columns
+- **ROW_COUNT** - Count total rows in table (returns FLOAT) - Track table growth over time
+- **FRESHNESS** - Measure data staleness in minutes since last update (returns FLOAT) - SLA monitoring for data pipelines
+
+### System DMF Usage
+
+```sql
+-- Associate system DMFs with columns
+ALTER TABLE CUSTOMERS
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (email);
+ALTER TABLE ORDERS
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.DUPLICATE_COUNT ON (order_id);
+ALTER TABLE SALES_FACT
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.FRESHNESS ON (updated_timestamp);
+ALTER TABLE TRANSACTIONS
+  ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.ROW_COUNT ON ();
+
+-- Set schedule with expectations
+ALTER TABLE CUSTOMERS
+  MODIFY DATA METRIC SCHEDULE '1 HOUR'
+    EXPECT (SNOWFLAKE.CORE.NULL_COUNT ON email) < 500;          -- <5% null emails
+ALTER TABLE ORDERS
+  MODIFY DATA METRIC SCHEDULE '30 MINUTES'
+    EXPECT (SNOWFLAKE.CORE.DUPLICATE_COUNT ON order_id) = 0;    -- no duplicates
+ALTER TABLE SALES_FACT
+  MODIFY DATA METRIC SCHEDULE '15 MINUTES'
+    EXPECT (SNOWFLAKE.CORE.FRESHNESS ON updated_timestamp) < 60; -- <60 min stale
+ALTER TABLE TRANSACTIONS
+  MODIFY DATA METRIC SCHEDULE '1 DAY'
+    EXPECT (SNOWFLAKE.CORE.ROW_COUNT ON ()) > 1000;             -- minimum rows
+```
+
+## DMF Scheduling
+
+**Set DMF schedule** with `ALTER TABLE` to control evaluation frequency:
+
+```sql
+-- Event-driven: evaluate after data changes
+ALTER TABLE CUSTOMERS SET DATA_METRIC_SCHEDULE = 'TRIGGER_ON_CHANGES';
+
+-- Periodic: evaluate at fixed intervals (minimum 5 minutes)
+ALTER TABLE CUSTOMERS SET DATA_METRIC_SCHEDULE = '5 MINUTE';
+
+-- Hourly checks for less critical tables
+ALTER TABLE REFERENCE_DATA SET DATA_METRIC_SCHEDULE = '60 MINUTE';
+```
+
+**Scheduling guidance:** Use `TRIGGER_ON_CHANGES` for tables fed by Snowpipe or streams. Use `5 MINUTE` for high-criticality tables with frequent updates. Use `60 MINUTE` or `1 DAY` for reference/dimension tables with infrequent changes.
+
+## Event Table Query Patterns
+
+DMF results are written to the account's event table. Query patterns for monitoring:
+
+```sql
+-- Recent DMF results for a specific table:
+SELECT
+  RESOURCE_ATTRIBUTES['snow.database.name']::STRING AS db,
+  RESOURCE_ATTRIBUTES['snow.schema.name']::STRING AS schema,
+  RESOURCE_ATTRIBUTES['snow.table.name']::STRING AS table_name,
+  RECORD_ATTRIBUTES['metric_name']::STRING AS metric,
+  RECORD_ATTRIBUTES['column_name']::STRING AS column_name,
+  VALUE::FLOAT AS metric_value,
+  RECORD_ATTRIBUTES['expectation_result']::STRING AS pass_fail,
+  TIMESTAMP AS eval_time
+FROM MY_DB.PUBLIC.MY_EVENT_TABLE
+WHERE RECORD_TYPE = 'DATA_METRIC_FUNCTION'
+  AND RESOURCE_ATTRIBUTES['snow.table.name'] = 'CUSTOMERS'
+ORDER BY TIMESTAMP DESC LIMIT 20;
+
+-- Expectation failures in last 24 hours (alerting query):
+SELECT *
+FROM MY_DB.PUBLIC.MY_EVENT_TABLE
+WHERE RECORD_TYPE = 'DATA_METRIC_FUNCTION'
+  AND RECORD_ATTRIBUTES['expectation_result'] = 'FAILED'
+  AND TIMESTAMP >= DATEADD(hour, -24, CURRENT_TIMESTAMP())
+ORDER BY TIMESTAMP DESC;
+
+-- Quality trend — daily pass rate:
+SELECT
+  DATE_TRUNC('day', TIMESTAMP) AS eval_day,
+  COUNT_IF(RECORD_ATTRIBUTES['expectation_result'] = 'PASSED') AS passed,
+  COUNT_IF(RECORD_ATTRIBUTES['expectation_result'] = 'FAILED') AS failed,
+  ROUND(passed / NULLIF(passed + failed, 0) * 100, 1) AS pass_rate_pct
+FROM MY_DB.PUBLIC.MY_EVENT_TABLE
+WHERE RECORD_TYPE = 'DATA_METRIC_FUNCTION'
+  AND TIMESTAMP >= DATEADD(day, -30, CURRENT_TIMESTAMP())
+GROUP BY eval_day ORDER BY eval_day;
+```
+
+## Custom DMFs
+
+See **124a-snowflake-data-quality-custom.md** for custom DMF creation patterns including SQL UDFs, Python UDFs, parameterized column references, and multi-check validation functions.

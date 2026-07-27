@@ -15,12 +15,12 @@ Create a new Cursor rule documenting DaisyUI best practices following schema
 - Aspect: core (default for foundational rule)
 - Related: Tailwind CSS, components, UI library
 
-**Step 1.2: Search RULES_INDEX.md**
+**Step 1.2: Search rule frontmatter**
 ```bash
-$ grep -i "daisyui" RULES_INDEX.md
+$ grep -i "daisyui" rule frontmatter
 # No results - new technology
 
-$ grep -i "javascript\|tailwind\|frontend" RULES_INDEX.md
+$ grep -i "javascript\|tailwind\|frontend" rule frontmatter
 || `420-javascript-core.md` | JavaScript and frontend foundations | ...
 || `421-javascript-alpinejs-core.md` | Alpine.js 3.x usage | ...
 ```
@@ -96,7 +96,7 @@ $ uv run ai-rules new 422-daisyui-core \
 Next steps:
 1. Edit rules/422-daisyui-core.md and replace all placeholders
 2. Validate: uv run ai-rules validate rules/422-daisyui-core.md
-3. Add to RULES_INDEX.md
+3. Add to rule frontmatter
 ```
 
 **Step 2.3: Verify Template**
@@ -234,9 +234,9 @@ RESULT:   WARNINGS ONLY (exit code 0)
 | 422-daisyui-core | DaisyUI component library patterns and best practices | daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization | rules/420-javascript-core.md |
 ```
 
-**Step 5.2: Determine Insertion Position in RULES_INDEX.md**
+**Step 5.2: Determine Insertion Position in rule frontmatter**
 ```bash
-$ grep "^|| \`42[0-9]-\|^|| \`43[0-9]-" RULES_INDEX.md
+$ grep "^|| \`42[0-9]-\|^|| \`43[0-9]-" rule frontmatter
 || `420-javascript-core.md` | ...
 || `421-javascript-alpinejs-core.md` | ...
 || `430-typescript-core.md` | ...
@@ -245,11 +245,11 @@ $ grep "^|| \`42[0-9]-\|^|| \`43[0-9]-" RULES_INDEX.md
 ```
 
 **Step 5.3: Insert Entry**
-*Entry added to RULES_INDEX.md between lines for 421 and 430*
+*Entry added to rule frontmatter between lines for 421 and 430*
 
-**Step 5.4: Verify** (RULES_INDEX.md)
+**Step 5.4: Verify** (rule frontmatter)
 ```bash
-$ grep "422-daisyui-core" RULES_INDEX.md
+$ grep "422-daisyui-core" rule frontmatter
 || `422-daisyui-core.md` | DaisyUI component library patterns and best practices | daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization | rules/420-javascript-core.md |
 
  Entry added successfully
@@ -271,7 +271,7 @@ File Details:
 - Size: ~18KB (approximately 450 lines)
 - TokenBudget: ~1200 tokens
 - Validation: 0 CRITICAL errors, 0 HIGH errors
-- Indexed: Yes (RULES_INDEX.md updated)
+- Indexed: Yes (rule frontmatter updated)
 
 Ready for use: rules/422-daisyui-core.md
 ```

@@ -10,9 +10,9 @@ Create a new Cursor rule documenting Snowflake Hybrid Tables best practices foll
 
 ### Phase 1: Discovery (6 min)
 
-**Search RULES_INDEX.md:**
+**Search rule frontmatter:**
 ```bash
-$ grep -i "snowflake\|hybrid\|unistore\|oltp" RULES_INDEX.md 
+$ grep -i "snowflake\|hybrid\|unistore\|oltp" rule frontmatter 
 || `100-snowflake-core.md` | Snowflake foundations | ...
 || `122-snowflake-dynamic-tables.md` | Dynamic Tables | ...
 || `123-snowflake-object-tagging.md` | Object tagging | ...

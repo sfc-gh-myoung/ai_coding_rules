@@ -122,3 +122,8 @@ jobs:
 
       - name: Validate rule loader fixtures
         run: uv run ai-rules rule-loader validate
+
+      - name: Verify plugin build is fresh
+        run: |
+          uv run ai-rules plugin build
+          git diff --exit-code ai-coding-rules-plugin/

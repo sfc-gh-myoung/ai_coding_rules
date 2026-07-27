@@ -140,8 +140,12 @@ class TestTemplatesPathDerivation:
         result = runner.invoke(app, ["validate", str(tmp_path), "--templates"])
 
         assert result.exit_code in (0, 1)
-        # Real project_root/templates/ exists with 3 templates → summary is shown.
-        assert "Template Validation Summary" in result.output
+        # Project templates/ exists but may be empty after legacy templates removed.
+        # Accept summary (if templates exist) or "no files" message (if empty).
+        assert (
+            "Template Validation Summary" in result.output
+            or "No template files found" in result.output
+        )
 
     @pytest.mark.unit
     def test_direct_leaf_no_double_append(self, tmp_path: Path) -> None:
@@ -192,10 +196,11 @@ class TestTemplatesPathDerivation:
         result = runner.invoke(app, ["validate", "--templates"])
 
         assert result.exit_code in (0, 1)
-        # Real templates/ exists → should show summary (or "not found" if absent)
+        # Real templates/ exists → should show summary (or "not found"/"no files" if absent/empty)
         has_output = (
             "Template Validation Summary" in result.output
             or "No templates directory found" in result.output
+            or "No template files found" in result.output
         )
         assert has_output
 
@@ -229,7 +234,11 @@ class TestCombinedExamplesTemplates:
 
         assert result.exit_code in (0, 1)
         assert "Example Validation Summary" in result.output
-        assert "Template Validation Summary" in result.output
+        # Template validation ran — may show summary or "no files" if project templates are empty.
+        assert (
+            "Template Validation Summary" in result.output
+            or "No template files found" in result.output
+        )
 
     @pytest.mark.unit
     def test_both_flags_missing_examples_subdir_still_runs_templates(self, tmp_path: Path) -> None:
@@ -247,4 +256,8 @@ class TestCombinedExamplesTemplates:
 
         assert result.exit_code in (0, 1)
         assert "No examples directory found at" in result.output
-        assert "Template Validation Summary" in result.output
+        # Template validation ran — may show summary or "no files" if project templates are empty.
+        assert (
+            "Template Validation Summary" in result.output
+            or "No template files found" in result.output
+        )

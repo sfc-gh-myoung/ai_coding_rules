@@ -1,0 +1,385 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive best practices for efficiently staging and bulk loading data into Snowflake using Stages and COPY INTO commands, optimizing for performance, reliability, and cost-effectiveness in batch"
+last_updated: 2026-07-15
+keywords:
+  - kw:COPY INTO
+  - kw:stage management
+  - kw:file format definition
+  - kw:bulk load optimization
+  - kw:VALIDATION_MODE
+  - kw:ON_ERROR handling
+  - kw:COPY_HISTORY monitoring
+token_budget: ~3950
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md
+---
+# Snowflake Data Loading
+
+## Scope
+
+**What This Rule Covers:**
+Comprehensive best practices for efficiently staging and bulk loading data into Snowflake using Stages and COPY INTO commands, optimizing for performance, reliability, and cost-effectiveness in batch loading scenarios.
+
+**When to Load This Rule:**
+- Staging files for bulk data loading
+- Using COPY INTO for batch data ingestion
+- Configuring file formats and error handling
+- Optimizing bulk load performance
+- Troubleshooting COPY INTO errors
+
+### Quantification Standards
+
+**File Sizing Thresholds:**
+- **Optimal file size:** 100-250MB compressed per file (context: COPY INTO performance)
+- **Small files threshold:** <10MB compressed (context: avoid without batching, causes metadata overhead)
+- **Excessive file count:** >100K files (context: metadata overhead degradation)
+- **Large load monitoring:** >10GB total data OR >100 files OR >10M rows (context: monitor COPY_HISTORY during execution)
+- **Batching requirement:** Concatenate files <10MB into 100-250MB batches before loading
+
+**For continuous ingestion with Snowpipe, see `121-snowflake-snowpipe.md`**
+
+## References
+
+### External Documentation
+- [COPY INTO Command](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table) - Bulk data loading syntax and options
+- [Data Loading Stages](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Internal and external stage management
+- [Data Loading Best Practices](https://docs.snowflake.com/en/user-guide/data-load-considerations) - File sizing and optimization guidance
+
+## Contract
+
+### Inputs and Prerequisites
+
+- Role with USAGE on stage and warehouse; INSERT on target table
+- CREATE STAGE privilege (for new stages) or USAGE on existing stage
+- For external stages: storage integration configured with appropriate cloud credentials
+- Source data files in supported format (CSV, JSON, Parquet, Avro, ORC, XML)
+- Target table schema defined and created
+- File format definition (delimiter, compression, encoding, null handling)
+- Error handling strategy defined (ON_ERROR behavior)
+
+### Mandatory
+
+- Stage files: CREATE STAGE or configure external stage (S3, Azure, GCS)
+- File format: CREATE FILE FORMAT with explicit configuration
+- COPY INTO command with error handling (ON_ERROR = CONTINUE | SKIP_FILE | ABORT)
+- VALIDATION_MODE for testing before full load
+- COPY_HISTORY monitoring for load tracking
+- File size optimization: Target 100-250MB compressed per file
+- Semi-structured data: MATCH_BY_COLUMN_NAME for parquet, explicit VARIANT handling for JSON
+- LIST @stage to verify files before loading
+
+### Forbidden
+
+- Loading many small files (<10MB) without batching
+- Missing error handling (no ON_ERROR clause)
+- Skipping VALIDATION_MODE for first-time loads
+- Loading without FILE_FORMAT definition (implicit parsing unreliable)
+- Using SELECT * in COPY INTO (specify columns explicitly)
+- Loading duplicate data without deduplication strategy
+- Ignoring COPY_HISTORY errors (silent data quality issues)
+
+### Execution Steps
+
+1. Analyze source files: Size, format, structure, data types
+2. CREATE STAGE (internal) or configure external stage with storage integration
+3. Upload files to stage: PUT for internal, cloud provider tools for external
+4. LIST @stage to verify files present and accessible
+5. CREATE FILE_FORMAT with explicit configuration (delimiter, compression, NULL_IF, etc.)
+6. CREATE target table if not exists (match file schema)
+7. Test with VALIDATION_MODE: COPY INTO ... VALIDATION_MODE = RETURN_ERRORS
+8. Review validation errors, adjust FILE_FORMAT or file content
+9. Execute load: COPY INTO target_table FROM @stage FILE_FORMAT = (...) ON_ERROR = CONTINUE
+10. Monitor progress for large loads (>10GB total OR >100 files OR >10M rows): Query COPY_HISTORY while running
+11. Verify load: Check row counts, query COPY_HISTORY for errors
+12. Handle errors: Review rejected rows, fix and reload
+
+### Output Format
+
+- Stage DDL: CREATE STAGE with URL, credentials (via storage integration)
+- File format DDL: CREATE FILE_FORMAT with all parsing rules
+- COPY INTO statement: With error handling and file pattern matching
+- Load statistics: Rows loaded, errors, execution time, warehouse credits
+- Error report: COPY_HISTORY query showing file-level and row-level errors
+- Validation results from VALIDATION_MODE execution
+
+### Validation
+
+**Test Requirements:**
+- Stage accessible: LIST @stage returns files
+- File format parses correctly: VALIDATION_MODE returns 0 errors (or acceptable error rate)
+- COPY INTO executes successfully
+- Row count matches expected (source file rows vs loaded rows)
+- Error rate acceptable (<1% for production loads)
+- Data types correct (no truncation, no precision loss)
+- NULL handling correct (empty strings vs NULL values)
+
+**Success Criteria:**
+- All files loaded from stage: COPY_HISTORY shows status = 'LOADED'
+- Error rate within SLA: <1% rows rejected for data quality, 0% for schema mismatch
+- Load performance acceptable: ≥50MB/s per warehouse size (XS: 50MB/s, L: 400MB/s)
+- Target table row count matches source (accounting for deduplication)
+- Semi-structured columns properly parsed (VARIANT fields accessible)
+- No excessive metadata overhead (file count reasonable, not 100k+ small files)
+
+### Design Principles
+
+- Stage files first; use dedicated stages per source; manage with PUT/GET for internal stages.
+- Use COPY INTO for bulk, scheduled, and one-time loads; target 100–250MB compressed files.
+- For continuous near-real-time ingestion, use Snowpipe (see `121-snowflake-snowpipe.md`).
+- Prepare semi-structured data for subcolumnarization; be explicit about ON_ERROR and file formats.
+
+### Post-Execution Checklist
+
+- [ ] Stage created with appropriate encryption and access controls. Verify: `SHOW STAGES LIKE '<stage_name>'`
+- [ ] FILE_FORMAT defined with explicit delimiter, compression, NULL_IF, encoding. Verify: `DESCRIBE FILE FORMAT <format_name>`
+- [ ] VALIDATION_MODE tested before production load. Verify: `VALIDATION_MODE = 'RETURN_ERRORS'` returns 0 rows
+- [ ] ON_ERROR strategy defined (CONTINUE, SKIP_FILE, or ABORT_STATEMENT)
+- [ ] Files sized 100-250MB compressed (small files batched). Verify: `LIST @<stage>` shows file sizes
+- [ ] COPY_HISTORY checked for errors after load. Verify: `SELECT * FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(TABLE_NAME=>'<TABLE>', START_TIME=>DATEADD(hour,-1,CURRENT_TIMESTAMP())))`
+- [ ] Row counts verified (source vs target). Verify: `SELECT COUNT(*) FROM <target_table>`
+- [ ] Semi-structured data parsed correctly (VARIANT fields accessible)
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Loading Many Small Files Instead of Larger Batches**
+```sql
+-- Bad: 10,000 files of 1MB each
+COPY INTO target_table
+FROM @my_stage/
+FILES = ('file0001.csv', 'file0002.csv', ..., 'file10000.csv');
+-- Takes hours, high metadata overhead, poor performance
+```
+**Problem:** Metadata overhead dominates; slow load performance; increased costs; table metadata bloat; compaction needed immediately; inefficient resource usage
+
+**Correct Pattern:**
+```bash
+# Good: Concatenate small files into 100-250MB batches before loading
+# Note: For files WITH headers, strip headers from all but the first file:
+head -1 file0001.csv > batch_001.csv && tail -n +2 -q file*.csv >> batch_001.csv
+# For headerless files, simple concatenation works:
+# cat file*.csv > batch_001.csv
+
+# Then load larger files
+COPY INTO target_table
+FROM @my_stage/
+PATTERN = 'batch_.*\.csv'
+FILE_FORMAT = (TYPE=CSV);
+```
+**Benefits:** Optimal 100-250MB file size; faster loading; lower metadata overhead; better compression; efficient resource usage; no immediate compaction needed
+
+**Anti-Pattern 2: Not Specifying FILE_FORMAT for Semi-Structured Data**
+```sql
+-- Bad: Let Snowflake infer format, inconsistent parsing
+COPY INTO json_table
+FROM @my_stage/data.json;
+-- May misparse nested structures, wrong type inference
+```
+**Problem:** Inconsistent parsing; type inference errors; nested structure issues; poor subcolumnarization; query performance degradation; data quality issues
+
+**Correct Pattern:**
+```sql
+-- Good: Explicit FILE_FORMAT with STRIP_OUTER_ARRAY for JSON arrays
+CREATE FILE FORMAT my_json_format
+  TYPE = JSON
+  STRIP_OUTER_ARRAY = TRUE
+  COMPRESSION = GZIP;
+
+COPY INTO json_table
+FROM @my_stage/data.json.gz
+FILE_FORMAT = my_json_format;
+
+-- For subcolumnarization, ensure consistent data types within JSON elements
+-- Note: Schema evolution (ENABLE_SCHEMA_EVOLUTION) is a separate feature for
+-- auto-adding new columns during COPY INTO — it does not enable subcolumnarization
+```
+**Benefits:** Consistent parsing; correct type handling; subcolumnarization enabled; better query performance; data quality assured; predictable loading behavior
+
+**Anti-Pattern 3: Using INSERT INTO for Bulk Data Loading**
+```sql
+-- Bad: Row-by-row INSERT in loop (Python/stored proc)
+FOR row IN (SELECT * FROM source_data) LOOP
+  INSERT INTO target_table VALUES (row.col1, row.col2, ...);
+END LOOP;
+-- Extremely slow, thousands of micro-partitions, table bloat
+```
+**Problem:** Glacially slow (1000x slower than COPY); creates micro-partitions per INSERT; metadata bloat; compaction required; high costs; table performance degrades
+
+**Correct Pattern:**
+```sql
+-- Good: Use COPY INTO for bulk loading, INSERT SELECT for internal data
+-- External data: Use COPY INTO
+COPY INTO target_table
+FROM @my_stage/data.csv
+FILE_FORMAT = (TYPE=CSV);
+
+-- Internal data: Use INSERT SELECT for batch
+INSERT INTO target_table
+SELECT col1, col2, col3
+FROM source_table
+WHERE load_date = CURRENT_DATE();
+-- Creates optimal partitions, fast bulk operation
+```
+**Benefits:** 1000x faster than row-by-row; optimal partition sizes; no metadata bloat; efficient resource usage; production-grade performance; no compaction needed
+
+**Anti-Pattern 4: Not Using VALIDATION_MODE to Test Before Loading**
+```sql
+-- Bad: Load directly to production table without validation
+COPY INTO prod_critical_table
+FROM @my_stage/untested_data.csv;
+-- Discover format errors after partial load, data corruption!
+```
+**Problem:** Format errors discovered mid-load; partial data loaded; data corruption; rollback required; production downtime; emergency recovery; user impact
+
+**Correct Pattern:**
+```sql
+-- Good: Test with VALIDATION_MODE first
+-- Step 1: Validate file format without loading
+COPY INTO prod_critical_table
+FROM @my_stage/untested_data.csv
+VALIDATION_MODE = 'RETURN_ERRORS';
+-- Returns: Row errors, parsing issues, format mismatches
+
+-- Step 2: Check row count
+COPY INTO prod_critical_table
+FROM @my_stage/untested_data.csv
+VALIDATION_MODE = 'RETURN_10_ROWS';
+-- Preview first 10 rows
+
+-- Step 3: Only after validation, load to production
+COPY INTO prod_critical_table
+FROM @my_stage/untested_data.csv
+FILE_FORMAT = (TYPE=CSV);
+```
+**Benefits:** Errors caught before loading; no partial loads; no data corruption; production safety; confidence in load; zero downtime; professional deployment
+
+### Partial Load Recovery
+
+When using `ON_ERROR = CONTINUE`, some rows may be rejected. To find and reload rejected rows:
+
+```sql
+-- Find files with errors from COPY_HISTORY
+SELECT file_name, error_count, first_error, first_error_line
+FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
+  TABLE_NAME => 'TARGET_TABLE',
+  START_TIME => DATEADD(hour, -1, CURRENT_TIMESTAMP())
+))
+WHERE error_count > 0;
+
+-- Extract rejected rows for investigation and re-processing
+-- Fix source data issues, then reload corrected files
+```
+
+## Output Format Examples
+
+```sql
+-- Data Load Workflow
+
+-- Step 1: Create stage and file format
+CREATE STAGE IF NOT EXISTS db.schema.load_stage
+  ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE');
+
+CREATE FILE FORMAT IF NOT EXISTS db.schema.csv_format
+  TYPE = CSV
+  FIELD_DELIMITER = ','
+  SKIP_HEADER = 1
+  NULL_IF = ('', 'NULL', 'null')
+  FIELD_OPTIONALLY_ENCLOSED_BY = '"'
+  COMPRESSION = GZIP
+  ENCODING = 'UTF-8';
+
+-- Step 2: Upload and verify
+PUT file:///data/sales_*.csv.gz @db.schema.load_stage/sales/;
+LIST @db.schema.load_stage/sales/;
+
+-- Step 3: Validate before loading
+COPY INTO db.schema.sales_target
+FROM @db.schema.load_stage/sales/
+FILE_FORMAT = db.schema.csv_format
+VALIDATION_MODE = 'RETURN_ERRORS';
+
+-- Step 4: Execute load
+COPY INTO db.schema.sales_target
+FROM @db.schema.load_stage/sales/
+FILE_FORMAT = db.schema.csv_format
+ON_ERROR = CONTINUE
+PATTERN = '.*\.csv\.gz';
+
+-- Optional: Auto-remove staged files after successful load
+-- COPY INTO ... PURGE = TRUE;
+-- Optional: Reload previously loaded files (use carefully)
+-- COPY INTO ... FORCE = TRUE;
+
+-- Step 5: Verify results
+-- Row count check (compare against expected source count)
+SELECT COUNT(*) FROM db.schema.sales_target;
+
+-- Check COPY_HISTORY for load status and errors
+-- Note: TABLE_NAME uses unqualified name; call from the target database context
+SELECT *
+FROM TABLE(INFORMATION_SCHEMA.COPY_HISTORY(
+  TABLE_NAME => 'SALES_TARGET',
+  START_TIME => DATEADD(hour, -1, CURRENT_TIMESTAMP())
+));
+```
+
+### Parallel COPY INTO Guidance
+
+**Optimal file sizes:** 100-250MB compressed per file for maximum throughput.
+
+**File count vs warehouse size:**
+- **XS warehouse:** 4-8 files loading in parallel
+- **S warehouse:** 8-16 files
+- **M warehouse:** 16-32 files
+- **L warehouse:** 32-64 files
+- **XL+:** 64+ files
+
+**Best practice:** Split large files to match warehouse parallelism. A 2GB file on an XS warehouse loads slower than 8x 250MB files.
+
+### Encoding and BOM Handling
+
+```sql
+-- Specify encoding explicitly for non-UTF-8 files
+CREATE FILE FORMAT latin1_format
+  TYPE = CSV
+  ENCODING = 'ISO-8859-1'
+  SKIP_HEADER = 1;
+
+-- Handle UTF-8 BOM (Byte Order Mark) from Excel exports
+-- Snowflake auto-detects BOM in UTF-8 files
+-- For explicit handling, use ENCODING = 'UTF-8' (handles BOM automatically)
+
+-- Common encoding issues:
+-- Windows exports: Often WINDOWS-1252, not UTF-8
+-- Excel CSV: May include BOM (EF BB BF prefix)
+-- If garbled characters appear, check source file encoding with: file -I data.csv
+```
+
+## Stages and Bulk Loading
+
+See Contract section for stage, COPY INTO, file format, and optimization requirements.
+
+## File Preparation and Optimization
+- **Requirement:** Aim for compressed file sizes between 100–250 MB for optimal performance and cost.
+- **Requirement:** For semi-structured data, ensure consistent data types within elements to enable subcolumnarization.
+
+### Data Files vs Application Files: Compression Distinction
+
+Compression behavior differs depending on what you are staging:
+
+- **Data files** (CSV, JSON, Parquet): Compression **ON** (default, recommended) — `AUTO_COMPRESS=TRUE` (default) / `--auto-compress` (default)
+- **Application files** (.py, .yml): Compression **OFF** (mandatory) — `AUTO_COMPRESS=FALSE` / `--no-auto-compress`
+
+- **Data loading (this rule):** Compression is desirable. GZIP reduces transfer time and storage.
+  The default `AUTO_COMPRESS=TRUE` is correct for data files staged via PUT/COPY INTO.
+- **Application deployment (see `109b-snowflake-app-deployment-core.md`):** Compression MUST be
+  disabled. Python's import system cannot read `.py.gz` files, and Streamlit in Snowflake (SiS)
+  will fail with `TypeError: bad argument type for built-in operation` if `.py` files are compressed.
+
+> **Do not apply data loading compression defaults to application deployment.**
+> When writing Python wrappers that call `PUT` or `snow stage copy`, use `AUTO_COMPRESS=FALSE` /
+> `--no-auto-compress` for application files. See `109b-snowflake-app-deployment-core.md` for
+> the correct pattern.

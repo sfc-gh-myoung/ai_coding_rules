@@ -1,4 +1,4 @@
-"""Unit tests for cli.py — end-to-end CLI, exit codes, JSON output."""
+"""Unit tests for match_rules.py — CLI via main(), exit codes, JSON output."""
 
 from __future__ import annotations
 
@@ -7,11 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from typer.testing import CliRunner
-
-from ai_rules.rule_matcher.cli import app
-
-runner = CliRunner()
+from ai_rules.match_rules import main
 
 SAMPLE_RULE = """\
 ---
@@ -50,93 +46,47 @@ def _make_rules_dir(tmp_path: Path, rules: dict[str, str]) -> Path:
 
 
 # ---------------------------------------------------------------------------
-# Exit code 0 — matched
+# Exit codes
 # ---------------------------------------------------------------------------
 
 
 class TestCLIExitCodes:
-    def test_exit_0_when_match_found(self, tmp_path):
+    def test_exit_0_when_match_found(self, tmp_path, capsys):
         rules_dir = _make_rules_dir(tmp_path, {"101-streamlit.md": SAMPLE_RULE})
-        result = runner.invoke(
-            app,
-            [
-                "--keywords",
-                "streamlit",
-                "--rules-dir",
-                str(rules_dir),
-            ],
-        )
-        assert result.exit_code == 0
+        code = main(["--keywords", "streamlit", "--rules-dir", str(rules_dir)])
+        assert code == 0
 
-    def test_exit_1_when_no_match(self, tmp_path):
+    def test_exit_1_when_no_match(self, tmp_path, capsys):
         rules_dir = _make_rules_dir(tmp_path, {"101-streamlit.md": SAMPLE_RULE})
-        result = runner.invoke(
-            app,
-            [
-                "--keywords",
-                "completely_unrelated_zzz",
-                "--rules-dir",
-                str(rules_dir),
-            ],
-        )
-        assert result.exit_code == 1
+        code = main(["--keywords", "completely_unrelated_zzz", "--rules-dir", str(rules_dir)])
+        assert code == 1
 
-    def test_exit_2_when_rules_dir_missing(self, tmp_path):
-        """Exit code 2 for fatal error: non-existent --rules-dir."""
+    def test_exit_2_when_rules_dir_missing(self, tmp_path, capsys):
         nonexistent = tmp_path / "no_such_dir"
-        result = runner.invoke(
-            app,
-            [
-                "--keywords",
-                "streamlit",
-                "--rules-dir",
-                str(nonexistent),
-            ],
-        )
-        assert result.exit_code == 2
+        code = main(["--keywords", "streamlit", "--rules-dir", str(nonexistent)])
+        assert code == 2
 
     def test_exit_2_no_json_on_stdout(self, tmp_path):
-        """When exit code 2, stdout must be empty (error JSON goes to stderr)."""
         nonexistent = tmp_path / "no_such_dir"
-        # Use subprocess so stdout and stderr are truly separated
         result = subprocess.run(
             [
                 sys.executable,
-                "-m",
-                "ai_rules.rule_matcher",
-                "--keywords",
-                "streamlit",
-                "--rules-dir",
-                str(nonexistent),
+                "-c",
+                f"from ai_rules.match_rules import main; import sys; sys.exit(main(['--keywords', 'streamlit', '--rules-dir', '{nonexistent}']))",
             ],
             capture_output=True,
             text=True,
         )
         assert result.returncode == 2
-        assert result.stdout.strip() == "", (
-            f"Expected empty stdout on exit 2, got: {result.stdout!r}"
-        )
+        assert result.stdout.strip() == ""
 
-    def test_exit_2_not_returned_for_single_malformed_rule(self, tmp_path):
-        """A single malformed rule file does NOT cause exit code 2."""
+    def test_malformed_rule_not_fatal(self, tmp_path, capsys):
         rules_dir = _make_rules_dir(
             tmp_path,
-            {
-                "valid.md": SAMPLE_RULE,
-                "malformed.md": "# No frontmatter here",
-            },
+            {"valid.md": SAMPLE_RULE, "malformed.md": "# No frontmatter here"},
         )
-        result = runner.invoke(
-            app,
-            [
-                "--keywords",
-                "streamlit",
-                "--rules-dir",
-                str(rules_dir),
-            ],
-        )
-        # Should succeed (0 or 1), not fatal (2)
-        assert result.exit_code in (0, 1)
+        code = main(["--keywords", "streamlit", "--rules-dir", str(rules_dir)])
+        assert code in (0, 1)
 
 
 # ---------------------------------------------------------------------------
@@ -145,78 +95,37 @@ class TestCLIExitCodes:
 
 
 class TestCLIOutput:
-    def test_valid_json_on_stdout(self, tmp_path):
+    def test_valid_json_on_stdout(self, tmp_path, capsys):
         rules_dir = _make_rules_dir(tmp_path, {"101-streamlit.md": SAMPLE_RULE})
-        result = runner.invoke(
-            app,
-            [
-                "--keywords",
-                "streamlit",
-                "--rules-dir",
-                str(rules_dir),
-            ],
-        )
-        data = json.loads(result.output)
+        main(["--keywords", "streamlit", "--rules-dir", str(rules_dir)])
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
         assert data["schema_version"] == "rule-loader-manifest/v2"
 
-    def test_load_sequence_contains_matched_rule(self, tmp_path):
+    def test_load_sequence_contains_matched_rule(self, tmp_path, capsys):
         rules_dir = _make_rules_dir(tmp_path, {"101-streamlit.md": SAMPLE_RULE})
-        result = runner.invoke(
-            app,
-            [
-                "--keywords",
-                "streamlit",
-                "--rules-dir",
-                str(rules_dir),
-            ],
-        )
-        data = json.loads(result.output)
+        main(["--keywords", "streamlit", "--rules-dir", str(rules_dir)])
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
         filenames = [e["filename"] for e in data["load_sequence"]]
         assert "101-streamlit.md" in filenames
 
-    def test_extension_match(self, tmp_path):
+    def test_extension_match(self, tmp_path, capsys):
         rules_dir = _make_rules_dir(tmp_path, {"101-streamlit.md": SAMPLE_RULE})
-        result = runner.invoke(
-            app,
-            [
-                "--keywords",
-                "",
-                "--extensions",
-                ".py",
-                "--rules-dir",
-                str(rules_dir),
-            ],
-        )
-        data = json.loads(result.output)
+        main(["--keywords", "streamlit", "--extensions", ".py", "--rules-dir", str(rules_dir)])
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
         filenames = [e["filename"] for e in data["load_sequence"]]
         assert "101-streamlit.md" in filenames
 
-    def test_empty_manifest_on_no_match(self, tmp_path):
+    def test_empty_manifest_on_no_match(self, tmp_path, capsys):
         rules_dir = _make_rules_dir(tmp_path, {"101-streamlit.md": SAMPLE_RULE})
-        result = runner.invoke(
-            app,
-            [
-                "--keywords",
-                "zzz_no_match_ever",
-                "--rules-dir",
-                str(rules_dir),
-            ],
-        )
-        data = json.loads(result.output)
+        main(["--keywords", "zzz_no_match_ever", "--rules-dir", str(rules_dir)])
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
         assert data["load_sequence"] == []
 
-    def test_dependency_resolution_in_output(self, tmp_path):
-        """Matched rule's required dep appears in load_sequence."""
-        dep_content = """\
----
-rule_version: v1.0
-context_tier: Critical
-keywords:
-  - kw:foundation
-token_budget: ~500
----
-# Foundation
-"""
+    def test_dependency_resolution_in_output(self, tmp_path, capsys):
         main_content = """\
 ---
 rule_version: v2.0
@@ -232,20 +141,19 @@ depends:
 """
         rules_dir = _make_rules_dir(
             tmp_path,
-            {
-                "000-global-core.md": dep_content,
-                "101-streamlit.md": main_content,
-            },
+            {"000-global-core.md": FOUNDATION_RULE, "101-streamlit.md": main_content},
         )
-        result = runner.invoke(
-            app,
-            [
-                "--keywords",
-                "streamlit",
-                "--rules-dir",
-                str(rules_dir),
-            ],
-        )
-        data = json.loads(result.output)
+        main(["--keywords", "streamlit", "--rules-dir", str(rules_dir)])
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
         filenames = [e["filename"] for e in data["load_sequence"]]
         assert "000-global-core.md" in filenames
+
+    def test_metadata_mode(self, tmp_path, capsys):
+        rules_dir = _make_rules_dir(tmp_path, {"101-streamlit.md": SAMPLE_RULE})
+        code = main(["--mode", "metadata", "--rules-dir", str(rules_dir)])
+        assert code == 0
+        captured = capsys.readouterr()
+        data = json.loads(captured.out)
+        assert "rules" in data
+        assert "101-streamlit.md" in [v["filename"] for v in data["rules"].values()]

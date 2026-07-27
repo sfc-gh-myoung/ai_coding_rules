@@ -43,6 +43,7 @@ dependencies = [
     "snowflake-connector-python>=3.12.0",  # AI_COMPLETE transport + connections.toml resolution
     "jinja2>=3.0",  # HTML/Markdown report templating
     "ruamel-yaml>=0.18",
+    "filelock>=3.13.0",  # Cross-platform file locking for concurrent cache writes
 ]
 
 [dependency-groups]
@@ -58,7 +59,7 @@ dev = [
 # CI does not install this group; only `ai-rules rule-loader doctor`,
 # `eval`, and `refresh` need the SDK at runtime.
 live-agent = [
-    "cortex-code-agent-sdk>=1.0.2",
+    "cortex-code-agent-sdk>=1.0.6",
 ]
 
 [project.scripts]
@@ -107,7 +108,6 @@ convention = "google"
 "scripts/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
 "skills/**/tests/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
 "skills/**/scripts/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
-"src/ai_rules/rule_matcher/**" = ["B008", "D101", "D102"]
 "src/ai_rules/progressive_eval/**" = ["D101", "D102"]
 
 [tool.ruff.format]

@@ -193,9 +193,8 @@ class TokenBudgetUpdater:
             List of TokenBudgetAnalysis results
         """
         results = []
-        # Skip generated index artifacts — they are projections of the corpus,
-        # not source rule files, and do not carry TokenBudget frontmatter.
-        _skip = {"RULES_INDEX.md"}
+        # Skip generated/plugin artifacts — they don't carry TokenBudget frontmatter.
+        _skip: set[str] = set()
         md_files = sorted(f for f in directory.glob("*.md") if f.name not in _skip)
 
         with Progress(
@@ -334,7 +333,7 @@ def _print_update_details(analyses: list[TokenBudgetAnalysis], dry_run: bool) ->
 
 
 FIXED_FLOOR_FILES = (
-    "AGENTS.md",
+    "CLAUDE.md",
     "rules/000-global-core.md",
     "skills/rule-loader/SKILL.md",
 )
@@ -351,18 +350,8 @@ def _find_repo_root(start: Path) -> Path:
 
 
 def _estimate_index_match(root: Path, selected: list[str]) -> int:
-    """Sum index tokens for rows matching selected rule filenames."""
-    index = root / "rules" / "RULES_INDEX.md"
-    if not index.exists() or not selected:
-        return 0
-    updater = TokenBudgetUpdater(UpdateConfig(dry_run=True))
-    wanted = {s.strip() for s in selected}
-    matched = [
-        line
-        for line in index.read_text(encoding="utf-8").splitlines()
-        if any(line.strip().startswith(w) for w in wanted)
-    ]
-    return updater.estimate_tokens("\n".join(matched)) if matched else 0
+    """Estimate index tokens for selected rules (returns 0 — index removed)."""
+    return 0
 
 
 def _print_context_estimate(
@@ -394,7 +383,7 @@ def _run_context_estimate(start: Path, selected: list[str], ceiling: int) -> Non
     """Estimate total per-response rule-loading context. Read-only.
 
     total = fixed_floor(always-injected files)
-          + index_match(RULES_INDEX.md rows for selected rules, else default)
+          + index_match(manifest entries for selected rules, else default)
           + sum(selected rule token counts)
     Exits 0 if total <= ceiling, 1 if over, 2 if a selected/floor file is missing.
     """

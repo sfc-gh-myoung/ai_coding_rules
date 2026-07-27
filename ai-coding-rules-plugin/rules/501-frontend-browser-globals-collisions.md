@@ -1,0 +1,188 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Prevent accidental collisions with built-in browser globals (e.g., window.history) that can break HTMX navigation, Alpine components, and browser back/forward behavior. Codifies safe naming, scoping,"
+last_updated: 2026-07-15
+keywords:
+  - kw:browser globals collision
+  - kw:window.history shadowing
+  - kw:htmx:historyRestore
+  - kw:Alpine.js component namespacing
+  - kw:implicit global prevention
+  - kw:inline script scoping
+  - kw:htmx
+token_budget: ~1950
+context_tier: High
+depends:
+  required:
+    - 500-frontend-htmx-core.md
+---
+# 501-frontend-browser-globals-collisions: Frontend Browser Globals Collisions
+
+## Scope
+
+**What This Rule Covers:**
+Prevent accidental collisions with built-in browser globals (e.g., `window.history`) that can break HTMX navigation, Alpine components, and browser back/forward behavior. Codifies safe naming, scoping, and namespacing patterns for inline scripts and small frontend helpers in HTMX-driven UIs and server-rendered apps that embed JavaScript/Alpine helpers (<50 lines) in templates (including inline `<script>` blocks).
+
+**When to Load This Rule:**
+- Working with inline `<script>` blocks or small JS helpers in HTMX/Alpine templates
+- Debugging broken browser back/forward navigation in HTMX apps
+- Reviewing or creating top-level JavaScript functions/variables in server-rendered pages
+
+## References
+
+### External Documentation
+- [MDN: `Window.history`](https://developer.mozilla.org/en-US/docs/Web/API/Window/history) - Browser history object
+- [HTMX Events](https://htmx.org/events/) - `htmx:afterSwap` and `htmx:historyRestore` lifecycle hooks
+
+## Contract
+
+### Inputs and Prerequisites
+Basic knowledge of browser global objects (`window`, `history`, `location`) and HTMX history (`hx-push-url`, history restoration).
+
+### Mandatory
+- Edit access to templates/JS
+- Browser devtools access to verify history behavior
+- HTMX/Alpine loaded if used in the app
+
+**Essential Patterns:**
+- Variables MUST NOT shadow browser globals (`window`, `document`, `navigator`, `location`, `event`, `name`, `status`, `length`, `history`, `top`, `parent`, `frames`, `self`, `screen`, `alert`, `confirm`, `prompt`, `open`, `close`)
+- MUST use `const` or `let` for all declarations; `var` is FORBIDDEN
+- MUST NOT define top-level functions/vars that collide with browser built-ins
+- MUST namespace any globals exposed for HTML references (e.g., `window.unistore.*` for `x-data="..."`)
+- ES modules (`import`/`export`) MUST be preferred — they are automatically in strict mode, preventing implicit global creation
+- For non-module scripts, MUST add `"use strict";` at the top to prevent accidental global variable creation
+
+### Forbidden
+- Top-level globals named after browser APIs
+- Implicit globals (missing `const`/`let`)
+- Disabling HTMX history as a fix
+
+### Execution Steps
+1. Identify all JS entry points: base template scripts, page templates, and any static JS bundles.
+2. Scan for collisions with browser globals (especially `history`, `location`, `event`) and for implicit globals.
+3. Rename colliding identifiers and update all call sites (HTML attributes like `x-data="..."` included).
+4. Prefer namespacing component factories under a single app object: `window.<app>.<feature> = (...) => ({ ... })`.
+5. Validate navigation: click-through navbar, use browser back/forward, and confirm HTMX content restores correctly.
+
+### Output Format
+Template and/or JS changes that remove browser-global collisions (renames + namespacing), plus updated references in HTML.
+
+### Validation
+
+**Success Checks:**
+- Browser back/forward works without manual refresh on HTMX-swapped pages
+- `window.history` remains an object (not a function) in console: `typeof window.history === "object"`
+- No console errors during `htmx:afterSwap` / `htmx:historyRestore` / `popstate`
+- Back/forward restores content correctly on HTMX-driven navigation (`htmx:historyRestore` fires and UI updates)
+
+**Negative Tests:**
+- If you intentionally add `function history(){}` at top-level, back/forward and/or HTMX history will break (this should be caught in review)
+- If you remove `const`/`let` for a variable assignment, it should show up as `window.<name>` unexpectedly
+
+**Automated Validation:**
+```bash
+# Catch browser global collisions via ESLint (uses config from Tooling section below)
+npx eslint --rule 'no-restricted-globals: [error, event, name, status, length, top, parent, frames, self, screen]' src/
+
+# Detect implicit globals (missing const/let/var)
+npx eslint --rule 'no-implicit-globals: error' src/
+```
+
+### Post-Execution Checklist
+- [ ] No top-level `history`, `location`, or `event` identifiers introduced
+- [ ] No implicit globals (missing `const`/`let`) introduced
+- [ ] HTMX navigation works (click links, `hx-push-url`, back/forward restore)
+- [ ] Alpine component factories referenced from HTML are namespaced (or otherwise collision-safe)
+- [ ] Rule references added where relevant (HTMX + integrations rules)
+
+> **Investigation Required**
+> When applying this rule:
+> 1. List all `<script>` tags in the base HTML template (check for non-module scripts)
+> 2. Search for top-level `function` or `var` declarations matching the 19 browser globals (line 45)
+> 3. Check if HTMX history is used (`hx-push-url`, `hx-boost`) — collisions are most dangerous here
+> 4. Identify any third-party scripts loaded globally that may create collisions
+
+## Anti-Patterns and Common Mistakes
+
+**Anti-Pattern 1: Defining `function history()` (breaks HTMX/browser history)**
+```html
+<div x-data="history()"></div>
+<script>
+  function history() {
+    return { /* ... */ };
+  }
+</script>
+```
+**Problem:** In browsers, `window.history` is a built-in object. A top-level `function history()` can overwrite it, breaking HTMX history management and back/forward navigation.
+
+**Correct Pattern:**
+```html
+<div x-data="unistore.historyComponent()"></div>
+<script>
+  window.unistore = window.unistore ?? {};
+  window.unistore.historyComponent = () => {
+    return { /* ... */ };
+  };
+</script>
+```
+**Benefits:** Prevents collisions, keeps a single global namespace, and remains stable across HTMX swaps.
+
+**Anti-Pattern 2: Implicit globals via missing `const`/`let`**
+```javascript
+function init() {
+  activeTab = window.location.pathname; // implicit global!
+}
+```
+**Problem:** Creates/overwrites `window.activeTab`, leading to hard-to-debug cross-page coupling and swap-related bugs.
+
+**Correct Pattern:**
+```javascript
+function init() {
+  const activeTab = window.location.pathname;
+  // ...
+}
+```
+**Benefits:** Scoped state, predictable behavior across HTMX swaps, and fewer accidental collisions.
+
+**Third-Party Script Collisions:**
+If a vendor script creates global collisions you cannot rename (e.g., analytics library defines `window.event`):
+1. **Isolate in iframe:** Load the vendor script in a sandboxed iframe to separate its global scope
+2. **Wrap in module:** Use `<script type="module">` — modules have their own scope and don't create globals
+3. **Load order:** Ensure your code loads after the vendor script and checks for existing globals before overwriting
+4. **Report upstream:** File an issue with the library maintainer requesting namespaced globals
+
+## Output Format Examples
+
+```bash
+# In browser console (DevTools):
+typeof window.history
+// Expected: "object"
+```
+
+```html
+<!-- Namespaced Alpine component factory -->
+<div x-data="unistore.historyComponent()"></div>
+```
+
+```json
+// .eslintrc.json — prevent accidental use of dangerous globals
+{
+  "rules": {
+    "no-restricted-globals": [
+      "error",
+      "event", "name", "status", "length", "top", "parent",
+      "frames", "self", "screen", "alert", "confirm", "prompt",
+      "open", "close",
+      {
+        "name": "history",
+        "message": "Use window.history explicitly to avoid collisions with local variables."
+      },
+      {
+        "name": "location",
+        "message": "Use window.location explicitly to avoid collisions with local variables."
+      }
+    ]
+  }
+}
+```

@@ -6,13 +6,13 @@ All notable changes to the `rule-creator` skill. Current version is tracked in `
 
 ### Changed
 
-- docs: remove all `human-only` qualifiers from SKILL.md, workflows, examples, and tests now that `RULES_INDEX.md` is the single agent-discovery index (dual-index collapse). References to `RULES_INDEX.md` are now unqualified. `RULES_INDEX_COMPACT.md` was deleted; all occurrences updated to `RULES_INDEX.md`.
+- docs: remove all `human-only` qualifiers from SKILL.md, workflows, examples, and tests now that `rule frontmatter` is the single agent-discovery index (dual-index collapse). References to `rule frontmatter` are now unqualified. `rule-matcher_COMPACT.md` was deleted; all occurrences updated to `rule frontmatter`.
 
-## v1.1.2 (2026-07-11) — Audit human-only RULES_INDEX.md labeling
+## v1.1.2 (2026-07-11) — Audit human-only rule frontmatter labeling
 
 ### Changed
 
-- docs: label all `RULES_INDEX.md` references throughout skill, workflows, examples, and tests as `human-only` to distinguish the generated full index from the agent-discovery `RULES_INDEX_COMPACT.md`. No behavioral changes; documentation and comments only.
+- docs: label all `rule frontmatter` references throughout skill, workflows, examples, and tests as `human-only` to distinguish the generated full index from the agent-discovery `rule-matcher_COMPACT.md`. No behavioral changes; documentation and comments only.
 
 ## v1.1.1 (2026-06-21) — Audit P3 remediation
 

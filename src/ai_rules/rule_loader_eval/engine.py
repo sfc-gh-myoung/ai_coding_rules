@@ -21,14 +21,13 @@ from ai_rules.rule_loader_eval.depends_validator import (
     validate_depends_propagation,
 )
 from ai_rules.rule_loader_eval.diagnostics import (
+    CitationDrift,
     SignalReport,
-    citation_drift,
     signal_disagreement,
     version_citation_drift,
 )
 from ai_rules.rule_loader_eval.fixtures import Fixture
 from ai_rules.rule_loader_eval.matcher import (
-    CitationDrift,
     MatchResult,
     match_loaded_rules,
 )
@@ -99,7 +98,6 @@ def _build_run_result(
     rules_meta: dict[str, RuleMetadata],
     *,
     strict_forbidden: bool,
-    progressive: bool = False,
 ) -> RunResult:
     """Match a completed ``AgentRun`` against a fixture and build a ``RunResult``.
 
@@ -117,14 +115,9 @@ def _build_run_result(
     # from masking a rule the agent should not have loaded.
     effective_loaded = expand_required_closure(run.loaded, rules_meta)
 
-    # In progressive mode the micro-kernel replaces 000-global-core.md, so
-    # models correctly skip reading it. Filter it from the required set before
-    # scoring so its absence does not cause a spurious failure.
-    effective_required = (
-        tuple(r for r in fixture.required if r != _FOUNDATION_RULE)
-        if progressive
-        else fixture.required
-    )
+    # The micro-kernel replaces 000-global-core.md, so models correctly skip
+    # reading it. Filter it from the required set before scoring.
+    effective_required = tuple(r for r in fixture.required if r != _FOUNDATION_RULE)
 
     # Score forbidden on raw, everything else on closure-expanded set.
     # match_full: pass rules_meta so dep-closure is subtracted from extras (Option A).
@@ -172,11 +165,7 @@ def _build_run_result(
         run=run,
         match=match,
         signal_report=signal_disagreement(run, fixture_optional=fixture.optional),
-        citation_drifts=(
-            version_citation_drift(run, rules_meta)
-            if progressive
-            else citation_drift(run, rules_meta)
-        ),
+        citation_drifts=(version_citation_drift(run, rules_meta)),
         depends_violations=tuple(validate_depends_propagation(effective_loaded, rules_meta)),
         effective_loaded=effective_loaded,
         scoring_version="v2",
@@ -193,7 +182,6 @@ def run_fixture(
     effort: str = DEFAULT_EFFORT,
     model: str = "auto",
     connection: str | None = None,
-    progressive: bool = False,
 ) -> RunResult:
     """Run a single fixture against the live agent and match results."""
     if rules_meta is None:
@@ -207,9 +195,7 @@ def run_fixture(
         model=model,
         connection=connection,
     )
-    return _build_run_result(
-        fixture, run, rules_meta, strict_forbidden=strict_forbidden, progressive=progressive
-    )
+    return _build_run_result(fixture, run, rules_meta, strict_forbidden=strict_forbidden)
 
 
 async def run_fixture_async(
@@ -223,7 +209,6 @@ async def run_fixture_async(
     model: str = "auto",
     connection: str | None = None,
     system_prompt: str | None = None,
-    progressive: bool = False,
 ) -> RunResult:
     """Async twin of :func:`run_fixture`.
 
@@ -244,9 +229,7 @@ async def run_fixture_async(
         connection=connection,
         system_prompt=system_prompt,
     )
-    return _build_run_result(
-        fixture, run, rules_meta, strict_forbidden=strict_forbidden, progressive=progressive
-    )
+    return _build_run_result(fixture, run, rules_meta, strict_forbidden=strict_forbidden)
 
 
 class InfraError(RuntimeError):

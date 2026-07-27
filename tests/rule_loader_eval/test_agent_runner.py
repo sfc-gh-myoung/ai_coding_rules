@@ -145,15 +145,15 @@ def test_parse_reads_performed_section() -> None:
 
 @pytest.mark.unit
 def test_extract_citations_basic() -> None:
-    """Line-count citations are extracted."""
+    """Version citations are extracted; line-count suffixes are ignored."""
     text = """
 **Rules Loaded**
-- rules/999-test-core.md (foundation) — 470 lines
-- rules/100-snowflake-core.md (keyword: Snowflake) — 200 lines
+- rules/999-test-core.md (foundation) — v3.7.0
+- rules/100-snowflake-core.md (keyword: Snowflake) — v1.2.3
 """
     out = extract_citations(text, "Rules Loaded")
-    assert out["rules/999-test-core.md"] == Citation(line_count=470)
-    assert out["rules/100-snowflake-core.md"] == Citation(line_count=200)
+    assert out["rules/999-test-core.md"] == Citation(version="3.7.0")
+    assert out["rules/100-snowflake-core.md"] == Citation(version="1.2.3")
 
 
 @pytest.mark.unit
@@ -171,17 +171,18 @@ def test_extract_citations_failed_marker() -> None:
 
 @pytest.mark.unit
 def test_extract_citations_reads_performed_form() -> None:
-    """Reads Performed line form ``lines N`` works too.
+    """Reads Performed entries are captured (legacy section retired in v3.8.0).
 
-    (Legacy backward-compat — ``## Reads Performed`` retired in v3.8.0.)
+    The version is not extracted from the RuleVersion field in Reads Performed;
+    the path is extracted and a Citation with no metadata is returned.
     """
     text = """
 ## Reads Performed
-- read_file("rules/999-test-core.md") -> lines 470
+- read_file("rules/999-test-core.md") -> RuleVersion v3.7.0, lines 470
 """
     out = extract_citations(text, "Reads Performed")
-    c = out["rules/999-test-core.md"]
-    assert c.line_count == 470
+    assert "rules/999-test-core.md" in out
+    assert out["rules/999-test-core.md"].failed is False
 
 
 @pytest.mark.unit
@@ -297,11 +298,11 @@ def test_citation_drift_uses_rules_loaded_citations() -> None:
     text = (
         "**Bootstrap:** rule-loader [scanned: (python) — 1 rules loaded, 0 failed.\n\n"
         "**Rules Loaded**\n"
-        "- rules/999-test-core.md (foundation) — 601 lines\n"
+        "- rules/999-test-core.md (foundation) — v3.7.0\n"
     )
     citations = extract_citations(text, "Rules Loaded")
     c = citations["rules/999-test-core.md"]
-    assert c.line_count == 601
+    assert c.version == "3.7.0"
 
 
 # ---------------------------------------------------------------------------
@@ -475,17 +476,17 @@ Task Switch: FIRST
 
 @pytest.mark.unit
 def test_extract_citations_gate3_line_counts() -> None:
-    """— N lines values are parsed from Gate 3 sub-bullets."""
+    """Version values are parsed from Gate 3 sub-bullets; line-count suffixes ignored."""
     text = """\
 - [x] Gate 3: Rules loaded:
-  - rules/000-global-core.md (foundation) — 263 lines
-  - rules/200-python-core.md (ext: .py) — 453 lines
+  - rules/000-global-core.md (foundation) — v4.0.0
+  - rules/200-python-core.md (ext: .py) — v3.2.1
 
 Task Switch: FIRST
 """
     out = extract_citations(text, "Rules Loaded")
-    assert out["rules/000-global-core.md"] == Citation(line_count=263)
-    assert out["rules/200-python-core.md"] == Citation(line_count=453)
+    assert out["rules/000-global-core.md"] == Citation(version="4.0.0")
+    assert out["rules/200-python-core.md"] == Citation(version="3.2.1")
 
 
 @pytest.mark.unit
@@ -493,14 +494,14 @@ def test_extract_citations_gate3_failed_line() -> None:
     """FAILED: not found sub-bullet yields Citation(failed=True)."""
     text = """\
 - [x] Gate 3: Rules loaded:
-  - rules/000-global-core.md (foundation) — 263 lines
+  - rules/000-global-core.md (foundation) — v4.0.0
   - rules/999-missing.md FAILED: not found
 
 Task Switch: FIRST
 """
     out = extract_citations(text, "Rules Loaded")
     assert out["rules/999-missing.md"] == Citation(failed=True)
-    assert out["rules/000-global-core.md"] == Citation(line_count=263)
+    assert out["rules/000-global-core.md"] == Citation(version="4.0.0")
 
 
 @pytest.mark.unit
@@ -542,16 +543,16 @@ def test_extract_citations_reads_gate1_foundation() -> None:
     """Gate 1 foundation citation is captured when foundation is NOT in Gate 3."""
     text = """\
 PRE-FLIGHT:
-- [x] Gate 1: Foundation rules/000-global-core.md — 268 lines
+- [x] Gate 1: Foundation rules/000-global-core.md — v4.0.0
 - [x] Gate 2: Searched: python
 - [x] Gate 3: +1 domain rule:
-  - rules/200-python-core.md (file extension: .py) — 453 lines
+  - rules/200-python-core.md (file extension: .py) — v3.2.1
 
 Task Switch: FIRST
 """
     out = extract_citations(text, "Rules Loaded")
-    assert out["rules/000-global-core.md"] == Citation(line_count=268)
-    assert out["rules/200-python-core.md"] == Citation(line_count=453)
+    assert out["rules/000-global-core.md"] == Citation(version="4.0.0")
+    assert out["rules/200-python-core.md"] == Citation(version="3.2.1")
 
 
 @pytest.mark.unit

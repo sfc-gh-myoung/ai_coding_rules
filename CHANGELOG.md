@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(rules):** update `000-global-core.md` to v4.1.0 — PRE-FLIGHT is on-demand, bootstrap references are IDE-agnostic (CLAUDE.md / AGENTS.md).
 - **feat(docs):** add plugin architecture section (§3.6) to ARCHITECTURE.md covering hook-based progressive loading.
 - **feat(docs):** add Plugin Installation section to README.md as alternative to AGENTS.md deploy.
+- **feat(eval):** strengthen anti-fabrication enforcement in eval `build_prompt()` — add explicit "FAILURE CONDITION" block requiring Read tool call before any Gate 3 citation.
 
 ### Fixed
 

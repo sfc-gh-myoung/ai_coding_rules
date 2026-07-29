@@ -10,7 +10,6 @@ keywords:
   - kw:non-root container user
   - kw:openapi schema customization
   - kw:worker process configuration
-  - kw:ci/cd
 token_budget: ~4250
 context_tier: High
 depends:

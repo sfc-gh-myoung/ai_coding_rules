@@ -10,7 +10,6 @@ keywords:
   - kw:planning instructions
   - kw:semantic view grounding
   - kw:agent debugging
-  - kw:aisql
 token_budget: ~3100
 context_tier: High
 depends:

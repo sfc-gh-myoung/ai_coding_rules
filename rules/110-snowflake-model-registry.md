@@ -10,7 +10,6 @@ keywords:
   - kw:model RBAC privileges
   - kw:sample input schema
   - kw:model metadata governance
-  - kw:ci/cd
 token_budget: ~3900
 context_tier: Medium
 depends:

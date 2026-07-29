@@ -10,7 +10,6 @@ keywords:
   - kw:CHANGELOG.md updates
   - kw:pre-commit validation gate
   - kw:pull request workflow
-  - kw:cortex
 token_budget: ~3700
 context_tier: Medium
 depends:

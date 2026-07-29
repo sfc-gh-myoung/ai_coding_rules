@@ -10,7 +10,6 @@ keywords:
   - kw:mock snowflake session
   - kw:widget interaction testing
   - kw:pytest coverage 80%
-  - kw:TOML
 token_budget: ~3950
 context_tier: High
 depends:

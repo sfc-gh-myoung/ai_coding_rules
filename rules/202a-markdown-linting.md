@@ -10,7 +10,6 @@ keywords:
   - kw:.pymarkdown.yml
   - kw:MD013 line length
   - kw:markdown automation integration
-  - kw:TOML
 token_budget: ~2800
 context_tier: Low
 depends:

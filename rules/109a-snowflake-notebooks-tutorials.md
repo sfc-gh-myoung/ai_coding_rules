@@ -10,7 +10,6 @@ keywords:
   - kw:anti-pattern teaching
   - kw:progressive complexity management
   - kw:teaching point callouts
-  - kw:pandas
 token_budget: ~3600
 context_tier: High
 depends:

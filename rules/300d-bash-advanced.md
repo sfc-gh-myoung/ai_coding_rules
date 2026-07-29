@@ -10,7 +10,6 @@ keywords:
   - kw:debug mode
   - kw:bash built-ins
   - kw:usage documentation
-  - kw:ci/cd
 token_budget: ~2700
 context_tier: Medium
 depends:

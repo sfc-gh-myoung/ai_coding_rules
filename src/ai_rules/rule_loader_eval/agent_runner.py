@@ -143,10 +143,18 @@ def build_prompt(fixture_prompt: str, rules_index_path: Path) -> str:
     kw, ext, paths = _extract_from_prompt(fixture_prompt)
     file_ctx = FileContext(extensions=ext, paths=paths)
     scored = match_rules(kw, file_ctx, list(db.values()))
-    matched_filenames = {sr.rule.filename for sr in scored}
-    resolved, warnings = resolve_dependencies(scored, db)
+    # Cap aligned with the micro-kernel's "3 domain rules per response" budget.
+    # max_entries=8 contradicted the kernel and, combined with an uncapped
+    # dependency closure, injected up to 22 rules for a 2-rule fixture.
+    max_direct = 3
+    matched_filenames = {sr.rule.filename for sr in scored[:max_direct]}
+    resolved, warnings = resolve_dependencies(scored, db, max_direct=max_direct)
     manifest = build_manifest(
-        resolved, warnings, matched_filenames=matched_filenames, max_entries=8, max_tokens=100_000
+        resolved,
+        warnings,
+        matched_filenames=matched_filenames,
+        max_entries=max_direct,
+        max_tokens=100_000,
     )
 
     rule_paths = [
@@ -155,6 +163,7 @@ def build_prompt(fixture_prompt: str, rules_index_path: Path) -> str:
         if r["rule_path"] != "rules/000-global-core.md"
     ]
     kernel = get_micro_kernel()
+    rules_root = rules_index_path.resolve()
 
     # Render in same format as production hook output
     rules_section = ""
@@ -162,21 +171,33 @@ def build_prompt(fixture_prompt: str, rules_index_path: Path) -> str:
         rules_list = "\n".join(f"- {p}" for p in rule_paths)
         rules_section = (
             "## Matched Rules for This Request\n\n"
-            "The following rules were matched for your request. "
-            "Read each one before responding:\n\n"
-            f"{rules_list}\n\n"
-            "Use the Read tool on each rule above. "
-            "Cite them in your PRE-FLIGHT Gate 3."
+            "These are CANDIDATES, not an instruction to read all of them. "
+            "Select the most relevant (up to 3), read those with the Read tool, "
+            "and cite exactly what you read in your PRE-FLIGHT Gate 3:\n\n"
+            f"{rules_list}"
         )
 
     return (
-        "HARD STOP: This is a rule-discovery probe. You MUST stop after "
-        "emitting the PRE-FLIGHT gates and `SEED_FIXTURE_COMPLETE`.\n\n"
+        # The stop boundary must be stated as an ORDERED two-step contract.
+        # Stating "HARD STOP" alone caused agents to read it as "make no tool
+        # calls at all" and emit a zero-rule Gate 3 without ever attempting
+        # discovery. Reading rules is the task, not a violation of the stop.
+        "HARD STOP: This is a rule-discovery probe. Your job has exactly two "
+        "steps, in this order:\n"
+        "  (1) Discover and READ the relevant rule files.\n"
+        "  (2) Emit the PRE-FLIGHT gates, then `SEED_FIXTURE_COMPLETE`, then stop.\n"
+        "The stop boundary applies AFTER step 1. It forbids executing the user's "
+        "underlying task; it does NOT forbid reading rule files. Reading rules IS "
+        "the task, so step 1 must actually happen before you stop.\n\n"
         "<system-reminder>\n"
         "## AI Coding Rules — Rule Discovery\n\n"
         f"{kernel}\n\n"
         f"{rules_section}\n"
         "</system-reminder>\n\n"
+        f"RULE PATHS: rule files live under `{rules_root}`. Read them using the "
+        "exact relative paths shown above (e.g. `rules/100-snowflake-core.md`). "
+        "Do NOT rewrite them as absolute paths and do NOT guess a project root; "
+        "a wrong path yields a file-not-found and counts as loading nothing.\n\n"
         "ENFORCEMENT: Every rule listed under Gate 3 MUST have a matching Read tool call.\n"
         "The evaluator independently verifies tool calls against your Gate 3 citations.\n"
         "If you cite `rules/X.md` in Gate 3 but did not Read it, the fixture FAILS.\n\n"
@@ -188,13 +209,24 @@ def build_prompt(fixture_prompt: str, rules_index_path: Path) -> str:
         "DO NOT:\n"
         "- Read or cite rules/000-global-core.md (the micro-kernel above replaces it)\n"
         "- Cite ANY rule in Gate 3 that you did not Read — this WILL fail the fixture\n"
-        "- Execute the user's task or write code\n\n"
-        "Your FINAL message MUST include:\n\n"
+        "- Execute the user's task or write code\n"
+        "- Ask a clarifying question, or answer the user's request instead of stopping\n\n"
+        # Agents that could not find the user's project files sometimes abandoned
+        # the protocol entirely and replied in prose, producing no Gate 3 block.
+        "UNCONDITIONAL OUTPUT REQUIREMENT:\n"
+        "Your FINAL message MUST contain the PRE-FLIGHT block below — always, with "
+        "no exceptions. This still applies if rule files are missing, if discovery "
+        "fails, if the user's files cannot be located, or if the request seems "
+        "ambiguous. In those cases still emit the block and record what happened "
+        "in the Gate 3 reason text.\n\n"
         "  PRE-FLIGHT:\n"
         "  - [x] Gate 1: Foundation loaded\n"
         "  - [x] Gate 2: Discovery performed\n"
         "  - [x] Gate 3: +N domain rule(s):\n"
         "    - rules/<matched-rule>.md (<reason>)\n\n"
+        "When no domain rule was loaded, use exactly this Gate 3 line and nothing "
+        "else in its place:\n\n"
+        "  - [x] Gate 3: none matched\n\n"
         "After the Gate 3 block, output `SEED_FIXTURE_COMPLETE` and IMMEDIATELY STOP."
     )
 
@@ -427,12 +459,18 @@ def parse_rules_loaded_section(text: str) -> tuple[str, ...]:
         if in_section:
             for m in RULE_PATH_RE.findall(line):
                 found.add(m)
-    # Gate 1 foundation citation (new shape: foundation on Gate 1 only)
+    # Gate 1 foundation citation (new shape: foundation on Gate 1 only).
+    # Skip when the line explicitly disclaims reading the path: under the
+    # progressive/micro-kernel contract the prompt tells the agent NOT to read
+    # rules/000-global-core.md, so a compliant agent naming it to report that
+    # it deliberately did not read it is not a citation. Harvesting it here
+    # produced a false cited_without_read (fabrication) failure.
     for line in lines:
         stripped = line.strip()
         if _GATE1_FOUNDATION_RE.match(stripped):
-            for m in RULE_PATH_RE.findall(line):
-                found.add(m)
+            if not _NEGATED_CITATION_RE.search(line):
+                for m in RULE_PATH_RE.findall(line):
+                    found.add(m)
             break
     return tuple(sorted(found))
 
@@ -471,7 +509,28 @@ _BOOTSTRAP_RE = re.compile(
 
 _NO_RULES_RE = re.compile(
     r"\(none\s+[—-]\s+no\s+domain\s+rules\s+matched\)"  # legacy
-    r"|Gate 3:\s*none\s+matched",  # new sentinel
+    r"|Gate 3:\s*none\s+matched"  # new sentinel
+    # The same system prompt supplies a "+N domain rule(s)" template, so agents
+    # legitimately render the zero case as "+0 domain rule(s)" (optionally with
+    # a "none matched" sub-bullet on the following line). Accept that shape
+    # instead of failing it on a contiguity technicality.
+    r"|Gate 3:\s*\+0\s+domain\s+rules?",
+    re.IGNORECASE,
+)
+
+# Explicit disclaimers that a named rule path was deliberately NOT read.
+# Used to stop the Gate 1 foundation harvest from turning a compliance
+# statement into a fabricated-citation failure.
+_NEGATED_CITATION_RE = re.compile(
+    r"not\s+read"
+    r"|never\s+read"
+    r"|without\s+reading"
+    r"|excluded\b"
+    r"|not\s+cited"
+    r"|superseded\b"
+    r"|replaced\s+by\b"
+    r"|intentionally\s+(?:omitted|skipped)"
+    r"|per\s+instruction",
     re.IGNORECASE,
 )
 
@@ -539,7 +598,9 @@ def validate_output_shape(text: str, *, loaded_count: int) -> tuple[str, ...]:
     """Return output-shape violations for the AGENTS.md bootstrap contract.
 
     Required: a PRE-FLIGHT Gate 3 rule list or legacy ``**Rules Loaded**``
-    section in the final response. No-match runs must use the explicit
+    section in the final response. No-match runs must signal the empty case
+    explicitly -- accepted forms are ``Gate 3: none matched``,
+    ``Gate 3: +0 domain rule(s)``, or the legacy
     ``(none - no domain rules matched)`` body.
     """
     violations: list[str] = []

@@ -10,7 +10,6 @@ keywords:
   - kw:Alpine.js component namespacing
   - kw:implicit global prevention
   - kw:inline script scoping
-  - kw:htmx
 token_budget: ~1950
 context_tier: High
 depends:

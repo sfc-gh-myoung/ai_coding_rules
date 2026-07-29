@@ -10,7 +10,6 @@ keywords:
   - kw:self-documenting help
   - kw:uv uvx integration
   - kw:tool auto-detection
-  - kw:ci/cd
 token_budget: ~3700
 context_tier: Medium
 depends:

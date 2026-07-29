@@ -10,7 +10,6 @@ keywords:
   - kw:test database isolation
   - kw:AAA pattern enforcement
   - kw:httpx AsyncClient
-  - kw:TOML
 token_budget: ~3950
 context_tier: High
 depends:

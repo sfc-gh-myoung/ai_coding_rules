@@ -10,7 +10,6 @@ keywords:
   - kw:partial HTML assertions
   - kw:htmx_client fixture
   - kw:OOB swap testing
-  - kw:fastapi
 token_budget: ~4600
 context_tier: High
 depends:

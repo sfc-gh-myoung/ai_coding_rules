@@ -10,7 +10,6 @@ keywords:
   - kw:thread-safe SSE publishing
   - kw:EventSourceResponse
   - kw:SSE connection limits
-  - kw:fastapi
 token_budget: ~4150
 context_tier: High
 depends:

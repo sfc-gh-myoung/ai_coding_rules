@@ -10,7 +10,6 @@ keywords:
   - kw:NumPy style docstrings
   - kw:Ruff pydocstyle
   - kw:side effects documentation
-  - kw:TOML
 token_budget: ~3800
 context_tier: High
 depends:

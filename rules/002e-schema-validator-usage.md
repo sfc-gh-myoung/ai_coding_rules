@@ -10,7 +10,6 @@ keywords:
   - kw:exit code interpretation
   - kw:common validation fixes
   - kw:validator command flags
-  - kw:ci/cd
 token_budget: ~2600
 context_tier: High
 depends:

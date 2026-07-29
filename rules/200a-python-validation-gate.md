@@ -10,7 +10,6 @@ keywords:
   - kw:toolchain-specific validation commands
   - kw:validation failure recovery sequence
   - kw:pre-commit hook automation
-  - kw:TOML
 token_budget: ~3050
 context_tier: High
 depends:

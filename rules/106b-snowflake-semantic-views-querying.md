@@ -10,7 +10,6 @@ keywords:
   - kw:window function metrics
   - kw:semantic view testing
   - kw:WHERE clause restrictions
-  - kw:cortex
 token_budget: ~2550
 context_tier: High
 depends:

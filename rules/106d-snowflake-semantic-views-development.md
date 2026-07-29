@@ -10,7 +10,6 @@ keywords:
   - kw:YAML semantic model
   - kw:iterative refinement workflow
   - kw:onboarding questions
-  - kw:cortex
 token_budget: ~3500
 context_tier: Medium
 depends:

@@ -10,7 +10,6 @@ keywords:
   - kw:Alpine.data registration
   - kw:x-cloak FOUC prevention
   - kw:progressive enhancement
-  - kw:htmx
 token_budget: ~4250
 context_tier: Medium
 depends:

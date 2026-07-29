@@ -10,7 +10,6 @@ keywords:
   - kw:rule splitting decision tree
   - kw:context window budget allocation
   - kw:TokenBudget metadata format
-  - kw:cortex
 token_budget: ~4350
 context_tier: High
 depends:

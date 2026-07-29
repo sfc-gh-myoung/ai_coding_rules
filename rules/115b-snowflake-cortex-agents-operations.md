@@ -10,7 +10,6 @@ keywords:
   - kw:agent plan template
   - kw:agent investigation protocol
   - kw:agent flagging instructions
-  - kw:aisql
 token_budget: ~2800
 context_tier: High
 depends:

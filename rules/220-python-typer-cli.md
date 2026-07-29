@@ -10,7 +10,6 @@ keywords:
   - kw:exit code handling
   - kw:console script entry points
   - kw:Rich terminal output
-  - kw:TOML
 token_budget: ~4300
 context_tier: High
 depends:

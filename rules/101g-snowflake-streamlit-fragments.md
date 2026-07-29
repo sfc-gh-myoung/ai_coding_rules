@@ -10,7 +10,6 @@ keywords:
   - kw:session state persistence
   - kw:fragment termination st.stop
   - kw:conditional fragment rendering
-  - kw:cortex
 token_budget: ~2850
 context_tier: Medium
 depends:

@@ -10,7 +10,6 @@ keywords:
   - kw:agent tool verification
   - kw:least-privilege agent permissions
   - kw:semantic view grants
-  - kw:ci/cd
 token_budget: ~3300
 context_tier: Low
 depends:

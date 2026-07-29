@@ -10,7 +10,6 @@ keywords:
   - kw:llm evaluation workflows
   - kw:distributed tracing ai applications
   - kw:query history latency
-  - kw:aisql
 token_budget: ~4100
 context_tier: Low
 depends:

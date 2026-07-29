@@ -10,7 +10,6 @@ keywords:
   - kw:environment variable prefix
   - kw:CLI option overrides
   - kw:TOML config file loading
-  - kw:TOML
 token_budget: ~2550
 context_tier: Medium
 depends:

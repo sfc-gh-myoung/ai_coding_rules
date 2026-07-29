@@ -10,7 +10,6 @@ keywords:
   - kw:progress indicators
   - kw:inline educational comments
   - kw:schema-based file naming
-  - kw:ci/cd
 token_budget: ~4600
 context_tier: High
 depends:

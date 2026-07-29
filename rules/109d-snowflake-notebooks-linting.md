@@ -10,7 +10,6 @@ keywords:
   - kw:uvx nbqa commands
   - kw:notebook cell quality
   - kw:notebook automation targets
-  - kw:TOML
 token_budget: ~3500
 context_tier: Low
 depends:

@@ -10,7 +10,6 @@ keywords:
   - kw:conditional HTMX detection
   - kw:reusable template macros
   - kw:partial inheritance anti-patterns
-  - kw:fastapi
 token_budget: ~4500
 context_tier: High
 depends:

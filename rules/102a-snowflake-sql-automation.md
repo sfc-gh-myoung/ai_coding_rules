@@ -10,7 +10,6 @@ keywords:
   - kw:multi-environment deployment
   - kw:CI/CD pipeline integration
   - kw:production-safe automation
-  - kw:ci/cd
 token_budget: ~5150
 context_tier: High
 depends:

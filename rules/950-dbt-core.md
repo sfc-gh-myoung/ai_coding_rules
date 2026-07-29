@@ -10,7 +10,6 @@ keywords:
   - kw:snow dbt deploy
   - kw:dbt workspaces
   - kw:dbt external access integration
-  - kw:ci/cd
 token_budget: ~5200
 context_tier: High
 depends:

@@ -10,7 +10,6 @@ keywords:
   - kw:__init__.py package recognition
   - kw:flat layout src layout
   - kw:editable install
-  - kw:TOML
 token_budget: ~4350
 context_tier: High
 depends:

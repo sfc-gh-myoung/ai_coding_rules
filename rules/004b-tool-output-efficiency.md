@@ -10,7 +10,6 @@ keywords:
   - kw:silent success pattern
   - kw:metadata elimination
   - kw:agent context preservation
-  - kw:ci/cd
 token_budget: ~2600
 context_tier: Medium
 depends:

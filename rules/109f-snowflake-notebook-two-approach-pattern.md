@@ -10,7 +10,6 @@ keywords:
   - kw:feature demonstration without full utilization
   - kw:approach migration guidance
   - kw:educational context justification
-  - kw:pandas
 token_budget: ~2600
 context_tier: Low
 depends:

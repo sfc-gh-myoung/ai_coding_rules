@@ -10,7 +10,6 @@ keywords:
   - kw:anti-pattern library structure
   - kw:parallel execution design
   - kw:goldilocks zone heuristics
-  - kw:fastapi
 token_budget: ~4000
 context_tier: Medium
 depends:

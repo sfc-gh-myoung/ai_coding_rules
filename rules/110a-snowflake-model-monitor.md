@@ -10,7 +10,6 @@ keywords:
   - kw:baseline scoring schema
   - kw:ml observability
   - kw:monitor refresh interval
-  - kw:pandas
 token_budget: ~3300
 context_tier: Medium
 depends:

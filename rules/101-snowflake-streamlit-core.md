@@ -10,7 +10,6 @@ keywords:
   - kw:Container Runtime
   - kw:config.toml theming
   - kw:st.connection snowflake
-  - kw:TOML
 token_budget: ~2350
 context_tier: High
 depends:

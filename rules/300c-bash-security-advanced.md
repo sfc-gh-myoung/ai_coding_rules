@@ -10,7 +10,6 @@ keywords:
   - kw:audit logging security events
   - kw:parameter expansion whitelisting
   - kw:malicious payload testing
-  - kw:ci/cd
 token_budget: ~2200
 context_tier: Medium
 depends:

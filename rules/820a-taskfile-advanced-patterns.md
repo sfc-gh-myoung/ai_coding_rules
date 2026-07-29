@@ -10,7 +10,6 @@ keywords:
   - kw:cross-platform task guards
   - kw:task namespaces
   - kw:AI agent task discovery
-  - kw:ci/cd
 token_budget: ~3450
 context_tier: Low
 depends:

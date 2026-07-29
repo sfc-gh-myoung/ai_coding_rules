@@ -10,7 +10,6 @@ keywords:
   - kw:query context messaging
   - kw:st.stop cascade prevention
   - kw:empty dataframe warning
-  - kw:pandas
 token_budget: ~3950
 context_tier: Low
 depends:

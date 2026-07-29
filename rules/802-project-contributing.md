@@ -10,7 +10,6 @@ keywords:
   - kw:changelog discipline
   - kw:rule authoring
   - kw:pre-commit validation
-  - kw:cortex
 token_budget: ~2600
 context_tier: Medium
 depends:

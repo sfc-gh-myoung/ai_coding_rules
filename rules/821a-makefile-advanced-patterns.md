@@ -10,7 +10,6 @@ keywords:
   - kw:makefile include directives
   - kw:platform detection
   - kw:AI agent integration
-  - kw:ci/cd
 token_budget: ~3650
 context_tier: Low
 depends:

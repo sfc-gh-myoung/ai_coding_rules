@@ -10,7 +10,6 @@ keywords:
   - kw:plotly datetime axis
   - kw:datetime display formatting
   - kw:allowlist validation SQL keywords
-  - kw:fastapi
 token_budget: ~2500
 context_tier: Medium
 depends:

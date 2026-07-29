@@ -10,7 +10,6 @@ keywords:
   - kw:natural language query synonyms
   - kw:analyst troubleshooting
   - kw:policy inheritance base tables
-  - kw:ci/cd
 token_budget: ~3150
 context_tier: Medium
 depends:

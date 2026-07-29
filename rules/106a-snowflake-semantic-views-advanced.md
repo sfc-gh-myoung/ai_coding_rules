@@ -10,7 +10,6 @@ keywords:
   - kw:expression reference cycles
   - kw:template character restrictions
   - kw:semantic view quality checks
-  - kw:cortex
 token_budget: ~1900
 context_tier: High
 depends:

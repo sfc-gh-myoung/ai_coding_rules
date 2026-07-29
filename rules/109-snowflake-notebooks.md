@@ -10,7 +10,6 @@ keywords:
   - kw:cell naming conventions
   - kw:nbqa ruff linting
   - kw:notebook state management
-  - kw:pandas
 token_budget: ~4450
 context_tier: Medium
 depends: {}

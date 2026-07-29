@@ -10,7 +10,6 @@ keywords:
   - kw:aggregation method selection
   - kw:high-frequency sensor data
   - kw:Streamlit chart performance
-  - kw:pandas
 token_budget: ~2550
 context_tier: Low
 depends:

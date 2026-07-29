@@ -10,7 +10,6 @@ keywords:
   - kw:library selection
   - kw:use_container_width
   - kw:WebGL context limits
-  - kw:pandas
 token_budget: ~2250
 context_tier: High
 depends:

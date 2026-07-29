@@ -10,7 +10,6 @@ keywords:
   - kw:chart animations
   - kw:faceting subplots
   - kw:colorblind-safe palettes
-  - kw:pandas
 token_budget: ~3450
 context_tier: Medium
 depends:

@@ -10,7 +10,6 @@ keywords:
   - kw:x-transition animations
   - kw:Alpine.js DevTools debugging
   - kw:x-effect reactive side effects
-  - kw:htmx
 token_budget: ~2700
 context_tier: Low
 depends:

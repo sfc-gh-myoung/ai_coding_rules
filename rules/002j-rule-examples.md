@@ -10,7 +10,6 @@ keywords:
   - kw:example discovery
   - kw:reference implementations
   - kw:example staleness
-  - kw:streamlit
 token_budget: ~1550
 context_tier: Medium
 depends:

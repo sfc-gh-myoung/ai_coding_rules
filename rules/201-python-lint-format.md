@@ -10,7 +10,6 @@ keywords:
   - kw:pydocstyle D rules
   - kw:pre-commit hooks
   - kw:zero-error validation gate
-  - kw:TOML
 token_budget: ~3700
 context_tier: High
 depends:

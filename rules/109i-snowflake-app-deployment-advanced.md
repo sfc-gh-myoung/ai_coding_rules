@@ -10,7 +10,6 @@ keywords:
   - kw:stage backup snapshot
   - kw:deployment audit trail
   - kw:environment-aware automation
-  - kw:streamlit
 token_budget: ~2700
 context_tier: Low
 depends: {}

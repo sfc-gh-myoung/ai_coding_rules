@@ -35,8 +35,10 @@ MICRO_KERNEL = """\
 
 ## Rule Loading
 - The manifest is metadata only — each load_sequence entry with read_required=true MUST be loaded via read_file before citation
-- Load domain rules matching file extensions being modified
+- Read rule paths EXACTLY as given, relative to the repository root (e.g. `rules/100-snowflake-core.md`). Never convert them to absolute paths and never guess a project root
+- Matched rules are CANDIDATES, not instructions to read all of them: select the most relevant, up to 3
 - Cap: 3 domain rules per response (dependencies don't count against cap)
+- Load domain rules matching file extensions being modified
 - If no rules match: proceed with foundation only, note "none matched"
 
 ## Communication
@@ -45,7 +47,7 @@ MICRO_KERNEL = """\
 - Show deltas not entire files
 """
 
-MICRO_KERNEL_VERSION = "1.0.0"
+MICRO_KERNEL_VERSION = "1.1.0"
 
 
 def get_micro_kernel() -> str:

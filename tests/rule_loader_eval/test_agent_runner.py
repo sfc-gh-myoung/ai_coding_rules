@@ -943,3 +943,120 @@ def test_cumulative_reads_satisfy_citation() -> None:
     report = signal_disagreement(run)
     assert report.ok
     assert report.cited_without_read == ()
+
+
+# ---------------------------------------------------------------------------
+# Validator correctness: negated foundation mention / +0 no-match shape
+# ---------------------------------------------------------------------------
+
+
+def test_gate1_negated_foundation_is_not_a_citation() -> None:
+    """Naming the foundation rule to say it was NOT read must not count as a citation.
+
+    The progressive prompt instructs the agent not to read rules/000-global-core.md.
+    A compliant agent reports that fact on Gate 1; harvesting the path from that
+    line produced a false cited_without_read (fabrication) failure.
+    """
+    from ai_rules.rule_loader_eval.agent_runner import parse_rules_loaded_section
+
+    text = (
+        "PRE-FLIGHT:\n"
+        "- [x] Gate 1: Foundation loaded (micro-kernel in context; "
+        "`rules/000-global-core.md` intentionally not read)\n"
+        "- [x] Gate 2: Discovery performed\n"
+        "- [x] Gate 3: +1 domain rule(s):\n"
+        "  - rules/112-snowflake-snowcli.md (snow CLI deploy)\n"
+    )
+    cited = parse_rules_loaded_section(text)
+    assert "rules/000-global-core.md" not in cited
+    assert "rules/112-snowflake-snowcli.md" in cited
+
+
+def test_gate1_positive_foundation_still_counts() -> None:
+    """A genuine Gate 1 foundation citation is still harvested."""
+    from ai_rules.rule_loader_eval.agent_runner import parse_rules_loaded_section
+
+    text = (
+        "PRE-FLIGHT:\n"
+        "- [x] Gate 1: Foundation rules/000-global-core.md — v5.0.0\n"
+        "- [x] Gate 3: none matched\n"
+    )
+    assert "rules/000-global-core.md" in parse_rules_loaded_section(text)
+
+
+def test_no_rules_regex_accepts_plus_zero_shape() -> None:
+    """'+0 domain rule(s)' is a valid empty-case rendering of the +N template."""
+    from ai_rules.rule_loader_eval.agent_runner import _NO_RULES_RE
+
+    assert _NO_RULES_RE.search("- [x] Gate 3: +0 domain rule(s):")
+    assert _NO_RULES_RE.search("- [x] Gate 3: +0 domain rule(s):\n  - none matched")
+    assert _NO_RULES_RE.search("- [ ] Gate 3: +0 domain rule(s) — **none loaded**")
+    # Non-empty counts must still be rejected
+    assert not _NO_RULES_RE.search("Gate 3: +1 domain rule(s):")
+    assert not _NO_RULES_RE.search("Gate 3: +2 domain rule(s):")
+
+
+def test_validate_output_shape_accepts_plus_zero() -> None:
+    from ai_rules.rule_loader_eval.agent_runner import validate_output_shape
+
+    text = "PRE-FLIGHT:\n- [x] Gate 3: +0 domain rule(s):\n  - none matched\n"
+    assert validate_output_shape(text, loaded_count=0) == ()
+
+
+# ---------------------------------------------------------------------------
+# build_prompt discovery contract (Phase 3)
+# ---------------------------------------------------------------------------
+
+
+def _discovery_prompt() -> str:
+    from pathlib import Path as _P
+
+    from ai_rules.rule_loader_eval.agent_runner import build_prompt
+
+    repo = _P(__file__).resolve().parents[2]
+    return build_prompt("Review jobs/extract_load.py retry logic.", repo / "rules")
+
+
+def test_build_prompt_orders_stop_after_discovery() -> None:
+    """HARD STOP alone was read as 'make no tool calls', yielding zero-rule runs.
+
+    The stop boundary must be stated as an ordered two-step contract so the agent
+    understands reading rules happens BEFORE the stop.
+    """
+    p = _discovery_prompt()
+    assert "two steps" in p
+    assert "The stop boundary applies AFTER step 1" in p
+    assert "does NOT forbid reading rule files" in p
+
+
+def test_build_prompt_anchors_rules_root() -> None:
+    """Agents guessed absolute project roots (e.g. /root/rules) and failed to read."""
+    from pathlib import Path as _P
+
+    p = _discovery_prompt()
+    assert "RULE PATHS:" in p
+    assert str(_P(__file__).resolve().parents[2] / "rules") in p
+    assert "do NOT guess a project root" in p
+
+
+def test_build_prompt_frames_matches_as_candidates_not_orders() -> None:
+    """The old wording ('Read each one') contradicted the micro-kernel 3-rule cap."""
+    p = _discovery_prompt()
+    assert "CANDIDATES" in p
+    assert "Select the most relevant (up to 3)" in p
+    assert "Read each one before responding" not in p
+
+
+def test_build_prompt_requires_preflight_unconditionally() -> None:
+    """Agents that could not find project files replied in prose with no Gate 3."""
+    p = _discovery_prompt()
+    assert "UNCONDITIONAL OUTPUT REQUIREMENT:" in p
+    assert "no exceptions" in p
+    assert "Ask a clarifying question" in p
+
+
+def test_build_prompt_gives_single_no_match_shape() -> None:
+    """Offering both '+N domain rule(s)' and 'none matched' produced hybrid output."""
+    p = _discovery_prompt()
+    assert "- [x] Gate 3: none matched" in p
+    assert "nothing else in its place" in p

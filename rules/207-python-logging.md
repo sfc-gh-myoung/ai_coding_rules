@@ -10,7 +10,6 @@ keywords:
   - kw:operation-scoped handler attachment
   - kw:SUCCESS prefix pattern
   - kw:operation ID correlation
-  - kw:fastapi
 token_budget: ~3700
 context_tier: High
 depends:

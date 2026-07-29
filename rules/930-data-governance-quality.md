@@ -10,7 +10,6 @@ keywords:
   - kw:data drift monitoring
   - kw:quality gates automation
   - kw:incident response procedures
-  - kw:ci/cd
 token_budget: ~4300
 context_tier: Medium
 depends:

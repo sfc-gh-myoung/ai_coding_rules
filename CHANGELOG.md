@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **test(rule-loader):** add micro-kernel drift guards asserting the `MICRO_KERNEL` string, packaged `.md`, and plugin copy stay byte-identical and within the 500-token budget.
+- **test(eval):** add discovery-contract tests pinning the ordered stop boundary, rules-root anchor, candidate framing, and single no-match Gate 3 shape in `build_prompt`.
 - **feat(report):** add "Model Effort" tab to HTML compliance report — per-fixture average bars with max-spread whiskers for input tokens, output tokens, elapsed time, and turns, with each model's pass rate shown in its axis label.
 - **feat(report):** add cost-vs-quality Pareto frontier chart ranking models on accuracy-adjusted tokens, gated on an 85% pass-rate threshold so sub-threshold models are never marked optimal.
 - **feat(report):** add Stochastic Reliability table reporting per-model token coefficient of variation and flaky-fixture rate with explicit in-rankings eligibility.
@@ -32,6 +34,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **feat(match-rules):** cap the dependency closure to the top `max_direct` matches so the manifest no longer ships dependencies of rules the entry cap already discarded.
+- **feat(eval):** lower the discovery manifest cap from 8 to 3 direct matches, aligning the injected list with the micro-kernel's 3-domain-rule budget.
+- **feat(micro-kernel):** bump to v1.1.0 — anchor rule paths as repo-relative, and frame matched rules as candidates to select from rather than a list to read in full.
+- **feat(eval):** restate the discovery stop boundary as an ordered two-step contract and require the PRE-FLIGHT block unconditionally, so a failed lookup no longer yields a prose reply.
+- **feat(rules):** remove 92 incidental high-fanout keywords (`ci/cd` 29→1, `toml` 20→0, `cortex` 14→4) so generic terms no longer tie dozens of rules at the top score.
+- **perf(match-rules):** cut injected rule context from ~11.3 to ~6.4 rules per prompt (~43,100 → ~24,600 tokens) while holding fixture recall at 100%.
 - **feat(report):** replace the Performance tab's "Turns vs Duration (by compliance tier)" scatter with a threshold-gated "Latency vs Quality" Pareto frontier that encodes average turns as point size.
 - **refactor(report):** hoist the collision-aware scatter label renderer into a shared `makeScatterLabelPlugin` factory used by both frontier charts.
 - **feat(rule-matcher):** make score primary sort key (strongest matches first) with tier as tiebreaker, replacing the previous tier-first sort that evicted high-scoring Medium-tier rules.
@@ -49,6 +57,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **fix(match-rules):** extend the ≥50% word-coverage guard — a single word inside a two-word rule keyword still scored a full 10, tying incidental hits with exact matches; it now scores 5.
+- **fix(match-rules):** strip trailing sentence punctuation from path tokens so `jobs/etl.py.` no longer loses its `.py` extension signal.
+- **fix(eval):** stop counting a deliberately-unread foundation rule as a fabricated citation when the agent names it on Gate 1 to report compliance.
+- **fix(eval):** accept `Gate 3: +0 domain rule(s)` as a valid no-match shape, matching the `+N` template the same prompt supplies.
 - **fix(report):** stop `claude-opus-4-7` rendering in two Pareto datasets simultaneously by making frontier, off-frontier, and sub-threshold categories mutually exclusive.
 - **fix(report):** parse Snowflake AI_COMPLETE's double-encoded, code-fenced JSON response so Model Effort insights render instead of silently falling back to empty.
 - **fix(report):** raise the AI_COMPLETE token ceiling to 2000 so multi-model insight JSON is no longer truncated mid-string.

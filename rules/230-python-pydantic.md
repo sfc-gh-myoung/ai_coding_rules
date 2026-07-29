@@ -10,7 +10,6 @@ keywords:
   - kw:@model_validator decorator
   - kw:ConfigDict settings
   - kw:discriminated unions
-  - kw:TOML
 token_budget: ~3800
 context_tier: High
 depends:

@@ -10,7 +10,6 @@ keywords:
   - kw:badge validation
   - kw:clean environment testing
   - kw:author contact section
-  - kw:ci/cd
 token_budget: ~4800
 context_tier: Medium
 depends:

@@ -10,7 +10,6 @@ keywords:
   - kw:business day calculations
   - kw:time series downsampling
   - kw:relativedelta age calculation
-  - kw:pandas
 token_budget: ~2600
 context_tier: Medium
 depends:

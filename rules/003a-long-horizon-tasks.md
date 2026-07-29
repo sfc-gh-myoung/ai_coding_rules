@@ -10,7 +10,6 @@ keywords:
   - kw:sub-agent delegation
   - kw:multi-session continuity
   - kw:checkpointing protocols
-  - kw:fastapi
 token_budget: ~2950
 context_tier: Medium
 depends:

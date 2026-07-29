@@ -10,7 +10,6 @@ keywords:
   - kw:deterministic test data
   - kw:unique attribute
   - kw:locale fallback
-  - kw:TOML
 token_budget: ~3300
 context_tier: Low
 depends:

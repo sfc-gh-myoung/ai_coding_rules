@@ -10,7 +10,6 @@ keywords:
   - kw:CSRF token injection
   - kw:swap strategy selection
   - kw:hypermedia-driven navigation
-  - kw:fastapi
 token_budget: ~4800
 context_tier: High
 depends:

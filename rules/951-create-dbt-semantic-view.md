@@ -10,7 +10,6 @@ keywords:
   - kw:SEMANTIC_VIEW() function
   - kw:primary key constraints
   - kw:dimensions metrics relationships
-  - kw:ci/cd
 token_budget: ~5100
 context_tier: High
 depends:

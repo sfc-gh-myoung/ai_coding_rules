@@ -10,7 +10,6 @@ keywords:
   - kw:input sanitization
   - kw:file upload validation
   - kw:container runtime secrets
-  - kw:TOML
 token_budget: ~4050
 context_tier: High
 depends:

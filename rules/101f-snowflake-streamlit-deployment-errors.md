@@ -10,7 +10,6 @@ keywords:
   - kw:External Access Integration
   - kw:stage upload compression
   - kw:compute pool provisioning
-  - kw:TOML
 token_budget: ~2800
 context_tier: Low
 depends:

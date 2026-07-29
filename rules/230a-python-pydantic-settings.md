@@ -10,7 +10,6 @@ keywords:
   - kw:SettingsConfigDict
   - kw:nested settings delimiter
   - kw:startup validation
-  - kw:fastapi
 token_budget: ~1800
 context_tier: Medium
 depends:

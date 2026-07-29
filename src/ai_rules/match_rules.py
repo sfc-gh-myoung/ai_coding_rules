@@ -339,6 +339,14 @@ def _score_kw(user_kw: str, rule_kw: str) -> int:
         if ((u_wc == 1 and r_wc == 1) or (shorter_wc * 2 >= longer_wc)) and (
             _word_boundary_match(u, r) or _word_boundary_match(r, u)
         ):
+            # A single user word found inside a MULTI-word rule keyword is a
+            # partial signal, not an exact match. Awarding full credit here made
+            # incidental hits indistinguishable from precise ones — e.g. generic
+            # "deployment" scored 10 against "Gunicorn deployment", tying with an
+            # exact "snowcli" == "snowcli" hit and pushing the correct rule out of
+            # the entry cap. Score it like bigram overlap (5) instead.
+            if u_wc == 1 and r_wc >= 2:
+                return 5
             return 10
 
     r_words = r.split()
@@ -600,9 +608,23 @@ def match_rules(
 def resolve_dependencies(
     matched: list[ScoredRule],
     rules_db: dict[str, RuleEntry],
+    *,
+    max_direct: int | None = None,
 ) -> tuple[list[RuleEntry], list[dict]]:
-    """Walk the required dep graph transitively. Returns (resolved, warnings)."""
+    """Walk the required dep graph transitively. Returns (resolved, warnings).
+
+    Args:
+        matched: Scored direct matches, highest score first.
+        rules_db: Full rule database for dependency lookup.
+        max_direct: When set, resolve dependencies for only the top ``max_direct``
+            matches. ``build_manifest`` caps direct entries but appends every
+            resolved dependency uncapped, so without this the manifest shipped
+            dependencies belonging to matches it had already discarded.
+    """
     from collections import OrderedDict
+
+    if max_direct is not None:
+        matched = matched[:max_direct]
 
     to_load: OrderedDict[str, RuleEntry] = OrderedDict()
     warnings: list[dict] = []
@@ -752,7 +774,14 @@ def _extract_from_prompt(prompt: str) -> tuple[list[str], list[str], list[str]]:
     keywords = []
     extensions = []
     paths = []
-    for word in words:
+    for raw_word in words:
+        # Sentence punctuation clings to tokens because "." and "/" are kept in
+        # the split class. Left unstripped, "jobs/extract_load.py." fails the
+        # trailing-extension regex below and the .py signal is silently lost --
+        # extension matches are the strongest signal the matcher has.
+        word = raw_word.rstrip(".,;:!?")
+        if not word:
+            continue
         if word.startswith(".") and len(word) > 1:
             extensions.append(word)
         elif "/" in word:
@@ -814,9 +843,9 @@ def main(argv: list[str] | None = None) -> int:  # noqa: D103
 
     file_ctx = FileContext(extensions=ext_list, paths=path_list)
     scored = match_rules(kw_list, file_ctx, list(db.values()))
-    matched_filenames = {sr.rule.filename for sr in scored}
+    matched_filenames = {sr.rule.filename for sr in scored[: args.max_entries]}
 
-    resolved, warnings = resolve_dependencies(scored, db)
+    resolved, warnings = resolve_dependencies(scored, db, max_direct=args.max_entries)
     manifest = build_manifest(
         resolved,
         warnings,

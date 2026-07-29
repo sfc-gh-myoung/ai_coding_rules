@@ -10,7 +10,6 @@ keywords:
   - kw:LLM-friendly parameters
   - kw:tool boundary overlap
   - kw:actionable error messages
-  - kw:ci/cd
 token_budget: ~4500
 context_tier: High
 depends:

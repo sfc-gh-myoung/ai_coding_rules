@@ -10,7 +10,6 @@ keywords:
   - kw:Container Runtime infrastructure
   - kw:bidirectional runtime swap
   - kw:in-place Streamlit upgrade
-  - kw:TOML
 token_budget: ~2800
 context_tier: Low
 depends:

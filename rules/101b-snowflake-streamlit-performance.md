@@ -10,7 +10,6 @@ keywords:
   - kw:st.spinner progress feedback
   - kw:query loop aggregation
   - kw:ttl cache expiration
-  - kw:pandas
 token_budget: ~4950
 context_tier: High
 depends:

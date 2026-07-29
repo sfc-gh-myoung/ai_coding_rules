@@ -10,7 +10,6 @@ keywords:
   - kw:pre-commit hooks
   - kw:github actions workflow
   - kw:batch validation
-  - kw:ci/cd
 token_budget: ~3350
 context_tier: Medium
 depends:

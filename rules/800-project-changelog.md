@@ -10,7 +10,6 @@ keywords:
   - kw:Unreleased section
   - kw:changelog entry consolidation
   - kw:release notes workflow
-  - kw:ci/cd
 token_budget: ~5350
 context_tier: Medium
 depends:

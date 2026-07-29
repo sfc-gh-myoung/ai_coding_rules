@@ -10,7 +10,6 @@ keywords:
   - kw:POSIX compliance
   - kw:shell detection
   - kw:setopt explicit
-  - kw:ci/cd
 token_budget: ~4150
 context_tier: Low
 depends:

@@ -10,7 +10,6 @@ keywords:
   - kw:REMOVE before PUT
   - kw:Streamlit ADD LIVE VERSION
   - kw:stage as source of truth
-  - kw:ci/cd
 token_budget: ~4100
 context_tier: Medium
 depends:

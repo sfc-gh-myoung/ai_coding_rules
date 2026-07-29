@@ -10,7 +10,6 @@ keywords:
   - kw:command auto-detection
   - kw:cross-platform task portability
   - kw:pipefail error propagation
-  - kw:ci/cd
 token_budget: ~3400
 context_tier: Medium
 depends:

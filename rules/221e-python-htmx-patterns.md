@@ -10,7 +10,6 @@ keywords:
   - kw:progressive enhancement fallback
   - kw:inline editing outerHTML swap
   - kw:HX-Trigger response headers
-  - kw:fastapi
 token_budget: ~3400
 context_tier: Medium
 depends:

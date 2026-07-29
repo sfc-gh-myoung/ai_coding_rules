@@ -10,7 +10,6 @@ keywords:
   - kw:st.altair_chart
   - kw:interval selection brushing
   - kw:data type suffixes :Q :N :O :T
-  - kw:pandas
 token_budget: ~3600
 context_tier: Medium
 depends:

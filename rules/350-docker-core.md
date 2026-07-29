@@ -10,7 +10,6 @@ keywords:
   - kw:layer caching optimization
   - kw:SBOM generation
   - kw:BuildKit mount cache
-  - kw:ci/cd
 token_budget: ~4550
 context_tier: Medium
 depends:

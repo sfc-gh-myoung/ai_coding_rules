@@ -12,7 +12,6 @@ keywords:
   - kw:cortex_analyst_message tool
   - kw:mcp json-rpc protocol
   - kw:mcp server rbac
-  - kw:cortex
 token_budget: ~3400
 context_tier: High
 depends:

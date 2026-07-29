@@ -10,7 +10,6 @@ keywords:
   - kw:uv run pytest
   - kw:test isolation
   - kw:flaky test protocol
-  - kw:TOML
 token_budget: ~4950
 context_tier: High
 depends:

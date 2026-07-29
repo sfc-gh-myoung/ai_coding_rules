@@ -50,8 +50,16 @@ class TestScoreKw:
     def test_exact_phrase_match_scores_10(self):
         assert _score_kw("pytest fixtures", "pytest fixtures") == 10
 
-    def test_user_substring_of_rule_scores_10(self):
-        assert _score_kw("pytest", "pytest fixtures") == 10
+    def test_single_word_into_multiword_rule_scores_5(self):
+        """A lone user word inside a multi-word rule keyword is a PARTIAL match.
+
+        It previously scored 10 — identical to an exact phrase match — which made
+        incidental hits indistinguishable from precise ones and was the dominant
+        source of over-matching (generic "deployment" tied with an exact
+        "snowcli" hit and displaced the correct rule from the entry cap).
+        Scored 5 now, matching the bigram-overlap tier.
+        """
+        assert _score_kw("pytest", "pytest fixtures") == 5
 
     def test_rule_substring_of_user_scores_10(self):
         assert _score_kw("pytest fixtures setup", "pytest fixtures") == 10
@@ -124,3 +132,58 @@ class TestMatchRules:
         scored = match_rules(["python"], FileContext(), [r_high, r_low])
         assert scored[0].rule.filename == "high.md"
         assert scored[1].rule.filename == "low.md"
+
+
+# ---------------------------------------------------------------------------
+# Phase 1: extraction hygiene + dependency pre-cap (context-bloat controls)
+# ---------------------------------------------------------------------------
+
+
+class TestExtractionHygiene:
+    """Trailing sentence punctuation used to destroy the extension signal."""
+
+    def test_trailing_period_does_not_lose_extension(self):
+        from ai_rules.match_rules import _extract_from_prompt
+
+        _, ext, paths = _extract_from_prompt("Please review the file\njobs/extract_load.py.")
+        assert ".py" in ext, "trailing '.' must not defeat extension detection"
+        assert "jobs/extract_load.py" in paths
+        assert not any(p.endswith(".") for p in paths)
+
+    def test_trailing_comma_stripped_from_path(self):
+        from ai_rules.match_rules import _extract_from_prompt
+
+        _, ext, paths = _extract_from_prompt("Check src/app.sql, then stop.")
+        assert ".sql" in ext
+        assert "src/app.sql" in paths
+
+    def test_bare_extension_still_detected(self):
+        from ai_rules.match_rules import _extract_from_prompt
+
+        _, ext, _ = _extract_from_prompt("Anything with .py files")
+        assert ".py" in ext
+
+
+class TestDependencyPreCap:
+    """build_manifest caps direct entries but appends deps uncapped."""
+
+    def test_max_direct_limits_dependency_closure(self):
+        from dataclasses import replace
+
+        from ai_rules.match_rules import ScoredRule, resolve_dependencies
+
+        db = {
+            "a.md": replace(_rule("a.md"), depends_required=["dep-a.md"]),
+            "b.md": replace(_rule("b.md"), depends_required=["dep-b.md"]),
+            "dep-a.md": _rule("dep-a.md"),
+            "dep-b.md": _rule("dep-b.md"),
+        }
+        matched = [ScoredRule(rule=db["a.md"], score=10), ScoredRule(rule=db["b.md"], score=9)]
+
+        uncapped, _ = resolve_dependencies(matched, db)
+        assert {r.filename for r in uncapped} == {"a.md", "b.md", "dep-a.md", "dep-b.md"}
+
+        # Only the top match survives the cap, so only its dependency should ship.
+        capped, _ = resolve_dependencies(matched, db, max_direct=1)
+        assert {r.filename for r in capped} == {"a.md", "dep-a.md"}
+        assert "dep-b.md" not in {r.filename for r in capped}

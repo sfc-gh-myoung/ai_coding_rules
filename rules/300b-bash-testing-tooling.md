@@ -10,7 +10,6 @@ keywords:
   - kw:pre-commit hooks
   - kw:debug mode implementation
   - kw:CI/CD shell validation
-  - kw:ci/cd
 token_budget: ~3600
 context_tier: Medium
 depends:

@@ -10,7 +10,6 @@ keywords:
   - kw:poetry run
   - kw:toolchain detection
   - kw:ModuleNotFoundError diagnosis
-  - kw:fastapi
 token_budget: ~3000
 context_tier: High
 depends:

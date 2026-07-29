@@ -10,7 +10,6 @@ keywords:
   - kw:multi-step wizard
   - kw:revealed trigger
   - kw:htmx-ext sse
-  - kw:fastapi
 token_budget: ~2500
 context_tier: Medium
 depends:

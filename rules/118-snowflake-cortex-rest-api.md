@@ -10,7 +10,6 @@ keywords:
   - kw:rest vs aisql decision
   - kw:sse streaming responses
   - kw:token usage monitoring
-  - kw:aisql
 token_budget: ~4250
 context_tier: High
 depends:

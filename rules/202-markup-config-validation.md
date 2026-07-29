@@ -10,7 +10,6 @@ keywords:
   - kw:Taskfile.yml patterns
   - kw:YAML anchors aliases
   - kw:secrets in version control
-  - kw:ci/cd
 token_budget: ~3950
 context_tier: Medium
 depends:

@@ -10,7 +10,6 @@ keywords:
   - kw:DynamicProvider runtime
   - kw:streaming generator memory
   - kw:faker caching optimization
-  - kw:TOML
 token_budget: ~3300
 context_tier: Low
 depends:

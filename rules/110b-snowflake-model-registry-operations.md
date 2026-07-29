@@ -10,7 +10,6 @@ keywords:
   - kw:inference warehouse sizing
   - kw:model compliance audit
   - kw:CI/CD model validation
-  - kw:ci/cd
 token_budget: ~3100
 context_tier: Low
 depends:

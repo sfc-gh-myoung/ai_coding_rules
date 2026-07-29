@@ -10,7 +10,6 @@ keywords:
   - kw:external access integration
   - kw:compute pool
   - kw:runtime migration
-  - kw:TOML
 token_budget: ~4150
 context_tier: High
 depends:

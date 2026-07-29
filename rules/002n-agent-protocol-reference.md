@@ -10,7 +10,6 @@ keywords:
   - kw:ACT authorization recognition
   - kw:task switch detection
   - kw:fabricated gate anti-pattern
-  - kw:cortex
 token_budget: ~4900
 context_tier: Medium
 depends:

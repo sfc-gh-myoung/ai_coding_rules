@@ -10,7 +10,6 @@ keywords:
   - kw:FROM source path
   - kw:live_version_location_uri
   - kw:environment.yml streamlit pin
-  - kw:pandas
 token_budget: ~5250
 context_tier: Medium
 depends:

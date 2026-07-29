@@ -10,7 +10,6 @@ keywords:
   - kw:real-time vs historical latency
   - kw:Snowsight operational dashboards
   - kw:cortex token tracking
-  - kw:cortex
 token_budget: ~4100
 context_tier: High
 depends:

@@ -10,7 +10,6 @@ keywords:
   - kw:pytest-xdist worker seeding
   - kw:conftest fixture hierarchy
   - kw:unique value cleanup
-  - kw:TOML
 token_budget: ~3150
 context_tier: Low
 depends:

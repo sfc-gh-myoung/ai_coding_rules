@@ -10,7 +10,6 @@ keywords:
   - kw:Contract Markdown subsections
   - kw:rule file naming convention
   - kw:metadata field setup
-  - kw:aisql
 token_budget: ~3900
 context_tier: High
 depends:

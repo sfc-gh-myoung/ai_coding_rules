@@ -10,7 +10,6 @@ keywords:
   - kw:rule modification workflow
   - kw:MAJOR MINOR PATCH semantics
   - kw:schema migration checklist
-  - kw:ci/cd
 token_budget: ~4150
 context_tier: High
 depends:

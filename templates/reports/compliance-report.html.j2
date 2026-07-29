@@ -25,6 +25,7 @@
     <a href="#results" role="tab" aria-selected="false" data-tab="results">Results</a>
     <a href="#recommendations" role="tab" aria-selected="false" data-tab="recommendations">Recommendations</a>
     <a href="#performance" role="tab" aria-selected="false" data-tab="performance">Performance</a>
+    <a href="#model-effort" role="tab" aria-selected="false" data-tab="model-effort">Model Effort</a>
   </nav>
 
   <!-- ========== TAB 1: OVERVIEW ========== -->
@@ -398,12 +399,16 @@
       </table>
     </div>
 
-    <h3>Turns vs. Duration (by compliance tier)</h3>
-    <p>Each point represents a model. Position reflects average operational cost; color reflects compliance tier.</p>
-    <div class="chart-container" style="max-width:700px; margin:24px auto;">
-      <canvas id="scatter-chart" aria-label="Scatter plot: average turns vs average duration by compliance tier"></canvas>
+    <h3>Latency vs. Quality — Pareto Frontier</h3>
+    <p>Each point is a model; <strong>point size reflects average turns</strong> (small = single-shot, large = iterative). The <strong style="color:var(--sf-green);">green frontier</strong> marks the best latency-for-accuracy trade-offs among models meeting the {{ chart_data.quality_threshold }}% quality bar — no other qualifying model is both faster <em>and</em> more accurate. Grey points qualify but are dominated. <span style="color:var(--sf-red);">Red triangles</span> fall below the {{ chart_data.quality_threshold }}% threshold and are excluded from the frontier; their low duration reflects skipped work, not speed. Note this is a <em>wall-clock</em> cost axis — it can rank models differently from the token-cost frontier in the Model Effort tab.</p>
+    <div class="chart-container" style="max-width:760px; margin:24px auto; height:420px;">
+      <canvas id="scatter-chart"
+              aria-label="Scatter plot: average duration vs pass rate with Pareto frontier, point size encoding average turns"
+              style="display:block; height:400px;"></canvas>
     </div>
   </section>
+
+  {% include "_tab_model_effort.j2" %}
 </main>
 
 <footer>

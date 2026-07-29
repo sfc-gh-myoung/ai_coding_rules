@@ -2277,13 +2277,28 @@ def report_cmd(
         bool,
         typer.Option("--strict", help="Fail on any extraction error instead of skipping model"),
     ] = False,
+    connection: Annotated[
+        str | None,
+        typer.Option(
+            "--connection",
+            help=(
+                "Snowflake connection name for AI_COMPLETE insights in the Model Effort tab "
+                "(overrides SNOWFLAKE_CONNECTION_NAME). Omit to skip AI insights."
+            ),
+        ),
+    ] = None,
 ) -> None:
     """Generate compliance reports from eval results.
 
     Discovers the latest run per model in --results-dir, extracts statistics,
     and renders HTML and/or Markdown reports to --output.
+
+    Pass --connection to enable AI-generated efficiency insights in the
+    Model Effort tab of the HTML report.
     """
     from ai_rules.rule_loader_eval.report_generator import generate_reports
+
+    resolved_connection = _resolve_connection(connection)
 
     project_root = find_project_root()
     resolved_results = results_dir if results_dir is not None else project_root / "results"
@@ -2332,10 +2347,16 @@ def report_cmd(
                 log_error(f"Extraction failed for model {model!r}: {exc}")
                 raise typer.Exit(EXIT_FIXTURE_INVALID) from exc
 
+    if resolved_connection:
+        log_info(f"connection (--connection): {resolved_connection} — AI effort insights enabled")
+    else:
+        log_info("No connection configured — AI effort insights will be skipped in HTML report")
+
     written = generate_reports(
         results_dir=resolved_results,
         output_dir=resolved_output,
         formats=formats,
+        connection_name=resolved_connection,
     )
 
     if not written:

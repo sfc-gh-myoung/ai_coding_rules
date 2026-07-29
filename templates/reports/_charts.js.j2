@@ -28,6 +28,64 @@ document.addEventListener('DOMContentLoaded', () => {
   // Inject chart data from Python
   const chartData = {{ chart_data | tojson }};
 
+  // Shared: collision-aware point labeller for Pareto-style scatter charts.
+  // Datasets opt in via `_labelPoints: true`; each point needs a `model` field.
+  function makeScatterLabelPlugin(pluginId) {
+    return {
+      id: pluginId,
+      afterDatasetsDraw: function(chart) {
+        var ctx2 = chart.ctx;
+        var FONT_H = 12;
+        var PAD_X  = 9;
+        var clr = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--text').trim() || '#94a3b8';
+
+        var pts = [];
+        chart.data.datasets.forEach(function(ds, di) {
+          if (!ds._labelPoints) return;
+          chart.getDatasetMeta(di).data.forEach(function(el, i) {
+            var d = ds.data[i];
+            if (!d || !d.model) return;
+            var lbl = d.model.replace(/^claude-/, '').replace(/^openai-/, '');
+            pts.push({px: el.x, py: el.y, label: lbl});
+          });
+        });
+        if (!pts.length) return;
+
+        pts.sort(function(a, b) { return a.px - b.px; });
+        ctx2.font = '10px "SF Mono", Menlo, monospace';
+        ctx2.textAlign = 'left';
+
+        var placed = [];
+        pts.forEach(function(p) {
+          var lw = ctx2.measureText(p.label).width;
+          var lx = p.px + PAD_X;
+          var offsets = [0, -FONT_H, FONT_H, -FONT_H*2, FONT_H*2, -FONT_H*3, FONT_H*3, -FONT_H*4];
+          var ly = p.py + 4;
+          for (var k = 0; k < offsets.length; k++) {
+            var testY = p.py + 4 + offsets[k];
+            var overlaps = placed.some(function(r) {
+              return !(lx > r.x2 || lx + lw < r.x1 || testY < r.y1 || testY - FONT_H > r.y2);
+            });
+            if (!overlaps) { ly = testY; break; }
+          }
+          placed.push({x1: lx - 3, y1: ly - FONT_H - 3, x2: lx + lw + 3, y2: ly + 3});
+
+          ctx2.save();
+          if (Math.abs(ly - (p.py + 4)) > 6) {
+            ctx2.strokeStyle = clr; ctx2.globalAlpha = 0.2; ctx2.lineWidth = 0.8;
+            ctx2.setLineDash([2, 2]); ctx2.beginPath();
+            ctx2.moveTo(p.px, p.py); ctx2.lineTo(lx, ly - 2); ctx2.stroke();
+            ctx2.setLineDash([]);
+          }
+          ctx2.globalAlpha = 0.88; ctx2.fillStyle = clr;
+          ctx2.fillText(p.label, lx, ly);
+          ctx2.restore();
+        });
+      }
+    };
+  }
+
   // ===== Chart.js — Pass Rate Bar Chart =====
   const passRateCtx = document.getElementById('passRateChart');
   if (passRateCtx) {
@@ -139,39 +197,108 @@ document.addEventListener('DOMContentLoaded', () => {
     tbody.appendChild(sumRow);
   }
 
-  // ===== Performance Tab Charts =====
+  // ===== Performance Tab — Latency vs Quality Pareto Frontier =====
   const scatterCtx = document.getElementById('scatter-chart');
-  if (scatterCtx) {
-    const tierColors = { compliant: '#10B981', partial: '#F59E0B', low: '#F97316', 'non-compliant': '#EF4444' };
-    const perfPoints = chartData.labels.map((model, i) => ({
-      model,
-      turns: chartData.avg_turns[i],
-      dur: chartData.avg_durations[i],
-      rate: chartData.pass_rates[i],
-      tier: chartData.pass_rates[i] >= 95 ? 'compliant' : chartData.pass_rates[i] >= 90 ? 'partial' : chartData.pass_rates[i] >= 85 ? 'low' : 'non-compliant'
-    }));
+  const latencyRaw = chartData.latency_pareto || [];
+  if (scatterCtx && latencyRaw.length) {
+    const latThreshold = chartData.quality_threshold || 85;
+
+    // Point radius encodes avg turns (single-shot vs iterative execution shape)
+    const turnVals = latencyRaw.map(m => m.avg_turns).filter(t => t > 0);
+    const tMin = turnVals.length ? Math.min.apply(null, turnVals) : 0;
+    const tMax = turnVals.length ? Math.max.apply(null, turnVals) : 1;
+    const radiusFor = (turns) => {
+      if (tMax <= tMin) return 9;
+      return 6 + ((turns - tMin) / (tMax - tMin)) * 8;
+    };
+    const toPoint = (m) => ({
+      x: m.avg_duration_s, y: m.pass_rate,
+      model: m.model, turns: m.avg_turns,
+      r: radiusFor(m.avg_turns)
+    });
+
+    // Mutually exclusive categories — each model appears in exactly ONE dataset
+    const latBelow = latencyRaw.filter(m => m.below_threshold && m.avg_duration_s > 0);
+    const latOn    = latencyRaw.filter(m => !m.below_threshold && m.on_frontier && m.avg_duration_s > 0);
+    const latOff   = latencyRaw.filter(m => !m.below_threshold && !m.on_frontier && m.avg_duration_s > 0);
+
+    const latFrontierLine = latOn
+      .slice()
+      .sort((a, b) => a.avg_duration_s - b.avg_duration_s)
+      .map(m => ({ x: m.avg_duration_s, y: m.pass_rate }));
 
     new Chart(scatterCtx, {
+      plugins: [makeScatterLabelPlugin('latencyLabels')],
       type: 'scatter',
       data: {
-        datasets: Object.keys(tierColors).map(tier => ({
-          label: tier.charAt(0).toUpperCase() + tier.slice(1),
-          data: perfPoints.filter(d => d.tier === tier).map(d => ({ x: d.turns, y: d.dur, model: d.model, rate: d.rate })),
-          backgroundColor: tierColors[tier],
-          borderColor: tierColors[tier],
-          pointRadius: 10,
-          pointHoverRadius: 13
-        }))
+        datasets: [
+          {
+            label: 'Pareto frontier',
+            data: latOn.map(toPoint),
+            backgroundColor: 'rgba(16, 185, 129, 0.85)',
+            borderColor: 'rgba(16, 185, 129, 1)',
+            pointRadius: (c) => (c.raw ? c.raw.r : 9),
+            pointHoverRadius: (c) => (c.raw ? c.raw.r + 3 : 12),
+            _labelPoints: true
+          },
+          {
+            label: 'Off frontier (\u2265' + latThreshold + '% accuracy)',
+            data: latOff.map(toPoint),
+            backgroundColor: 'rgba(148, 163, 184, 0.7)',
+            borderColor: 'rgba(148, 163, 184, 0.9)',
+            pointRadius: (c) => (c.raw ? c.raw.r : 8),
+            pointHoverRadius: (c) => (c.raw ? c.raw.r + 3 : 11),
+            _labelPoints: true
+          },
+          {
+            label: 'Below ' + latThreshold + '% threshold',
+            data: latBelow.map(toPoint),
+            backgroundColor: 'rgba(239, 68, 68, 0.4)',
+            borderColor: 'rgba(239, 68, 68, 0.6)',
+            pointStyle: 'triangle',
+            pointRadius: (c) => (c.raw ? c.raw.r : 7),
+            pointHoverRadius: (c) => (c.raw ? c.raw.r + 3 : 10),
+            _labelPoints: true
+          },
+          {
+            label: 'Frontier',
+            type: 'line',
+            data: latFrontierLine,
+            borderColor: 'rgba(16, 185, 129, 0.4)',
+            borderWidth: 1.5,
+            borderDash: [5, 4],
+            fill: false, pointRadius: 0, tension: 0, showLine: true
+          }
+        ]
       },
       options: {
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
-          tooltip: { callbacks: { label: function(ctx) { const p = ctx.raw; return p.model + ': ' + p.x + ' turns, ' + p.y + 's avg, ' + p.rate + '% pass'; } } },
-          legend: { position: 'bottom' }
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                const p = ctx.raw;
+                if (!p || !p.model) return '';
+                return p.model + ': ' + p.x + 's avg, ' + p.y + '% pass, ' + p.turns + ' turns';
+              }
+            }
+          },
+          legend: {
+            position: 'bottom',
+            labels: { filter: (item) => item.text !== 'Frontier', usePointStyle: true }
+          }
         },
         scales: {
-          x: { title: { display: true, text: 'Average Turns' }, min: 0, grid: { color: 'rgba(128,128,128,0.1)' } },
-          y: { title: { display: true, text: 'Average Duration (seconds)' }, min: 0, grid: { color: 'rgba(128,128,128,0.1)' } }
+          x: {
+            title: { display: true, text: 'Average Duration (seconds) — lower is better' },
+            grid: { color: 'rgba(128,128,128,0.1)' }
+          },
+          y: {
+            title: { display: true, text: 'Pass Rate (%) — higher is better' },
+            grid: { color: 'rgba(128,128,128,0.1)' },
+            ticks: { callback: (v) => v + '%' }
+          }
         }
       }
     });
@@ -208,6 +335,279 @@ document.addEventListener('DOMContentLoaded', () => {
             cell.style.fontWeight = '600';
           }
         });
+      });
+    }
+  }
+
+  // ===== Model Effort Tab Charts =====
+  const effortData = {{ effort_data | tojson }};
+
+  if (effortData && effortData.by_fixture) {
+    const effortModels = effortData.models || [];
+
+    const effortPassRates = effortData.pass_rates || {};
+
+    function buildEffortDatasets(fixtureId, metric) {
+      var avgData = [], spreadData = [];
+      effortModels.forEach(function(m) {
+        var s = ((effortData.by_fixture[fixtureId] || {})[m] || {})[metric]
+                || {min_val: 0, avg_val: 0, max_val: 0};
+        var av  = s.avg_val || 0;
+        var spd = Math.max(0, (s.max_val || 0) - av);
+        avgData.push(av);
+        spreadData.push(spd);   // delta: max - avg (stacks on top of avg bar)
+      });
+      return [
+        {
+          label: 'Avg',
+          data:  avgData,
+          backgroundColor: 'rgba(59, 130, 246, 0.78)',
+          borderColor:     'rgba(59, 130, 246, 0.95)',
+          borderWidth: 1,
+          borderSkipped: false,
+          stack: 'eff',
+        },
+        {
+          label: 'Max spread',
+          data:  spreadData,
+          backgroundColor: 'rgba(249, 115, 22, 0.32)',
+          borderColor:     'rgba(249, 115, 22, 0.55)',
+          borderWidth: 1,
+          borderSkipped: 'start',
+          stack: 'eff',
+        }
+      ];
+    }
+
+    function makeEffortChart(canvasId, metric, xLabel, chartTitle) {
+      var ctx = document.getElementById(canvasId);
+      if (!ctx) return null;
+      var labelClr = getComputedStyle(document.documentElement)
+                       .getPropertyValue('--text').trim() || '#94a3b8';
+      return new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels:   effortModels,
+          datasets: buildEffortDatasets('__aggregate__', metric)
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+              display: true,
+              text: chartTitle,
+              color: labelClr,
+              font: { size: 13, weight: '600' },
+              padding: { top: 2, bottom: 6 }
+            },
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 12, font: { size: 12 }, padding: 14, color: labelClr,
+                generateLabels: function(chart) {
+                  return [
+                    { text: 'Avg', fillStyle: 'rgba(59,130,246,0.78)', strokeStyle: 'rgba(59,130,246,0.95)', lineWidth: 1 },
+                    { text: 'Max spread (less = more consistent)', fillStyle: 'rgba(249,115,22,0.32)', strokeStyle: 'rgba(249,115,22,0.55)', lineWidth: 1 }
+                  ];
+                }
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                title: function(items) { return items[0] ? items[0].label : ''; },
+                label: function(ctx) {
+                  if (ctx.datasetIndex === 0) {
+                    return 'Avg: ' + ctx.raw.toLocaleString();
+                  }
+                  var avg = ctx.chart.data.datasets[0].data[ctx.dataIndex] || 0;
+                  return 'Max: ' + (avg + ctx.raw).toLocaleString()
+                       + '  (+' + ctx.raw.toLocaleString() + ' above avg)';
+                },
+                footer: function(items) {
+                  if (!items.length) return '';
+                  var fixtureId = document.getElementById('effort-fixture-select')
+                                    ? document.getElementById('effort-fixture-select').value
+                                    : '__aggregate__';
+                  var model = effortModels[items[0].dataIndex];
+                  var s = ((effortData.by_fixture[fixtureId] || {})[model] || {})[metric]
+                          || {min_val: 0};
+                  return 'Min: ' + (s.min_val || 0).toLocaleString();
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              stacked: true,
+              beginAtZero: true,
+              title: { display: true, text: xLabel, font: { size: 12 }, color: labelClr },
+              grid:  { color: 'rgba(128,128,128,0.1)' },
+              ticks: { font: { size: 11 }, color: labelClr }
+            },
+            y: {
+              stacked: true,
+              grid:   { display: false },
+              ticks:  {
+                font: { size: 11 },
+                crossAlign: 'far',
+                color: labelClr,
+                callback: function(val, idx) {
+                  var model = effortModels[idx];
+                  var rate  = effortPassRates[model];
+                  return rate !== undefined ? model + ' (' + rate + '%)' : model;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    const effortCharts = {
+      inputTokens:  makeEffortChart('effort-input-tokens-chart',  'input_tokens',  'Tokens',  'Input Tokens'),
+      outputTokens: makeEffortChart('effort-output-tokens-chart', 'output_tokens', 'Tokens',  'Output Tokens'),
+      elapsedTime:  makeEffortChart('effort-elapsed-time-chart',  'elapsed_s',     'Seconds', 'Elapsed Time (s)'),
+      turns:        makeEffortChart('effort-turns-chart',         'turns',         'Turns',   'Turns per Run')
+    };
+
+    const EFFORT_METRICS = ['input_tokens', 'output_tokens', 'elapsed_s', 'turns'];
+    const EFFORT_CHART_LIST = [
+      effortCharts.inputTokens,
+      effortCharts.outputTokens,
+      effortCharts.elapsedTime,
+      effortCharts.turns
+    ];
+
+    const fixtureSelect = document.getElementById('effort-fixture-select');
+    if (fixtureSelect) {
+      fixtureSelect.addEventListener('change', function() {
+        const fid = fixtureSelect.value;
+        EFFORT_CHART_LIST.forEach(function(chart, i) {
+          if (!chart) return;
+          chart.data.datasets = buildEffortDatasets(fid, EFFORT_METRICS[i]);
+          chart.update('none');
+        });
+      });
+    }
+
+    // ===== Pareto Frontier Chart =====
+    var paretoRaw   = effortData.pareto_data   || [];
+    var threshold   = effortData.quality_threshold || 85;
+    var paretoCtx   = document.getElementById('effort-pareto-chart');
+
+    if (paretoCtx && paretoRaw.length) {
+      var labelClrP = getComputedStyle(document.documentElement)
+                        .getPropertyValue('--text').trim() || '#94a3b8';
+
+      // Mutually exclusive categories — each model appears in exactly ONE dataset.
+      // below_threshold takes precedence: a sub-threshold model is never drawn green.
+      var belowThresh = paretoRaw.filter(function(m) {
+        return m.below_threshold && m.avg_total_tokens > 0;
+      });
+      var onFrontier = paretoRaw.filter(function(m) {
+        return !m.below_threshold && m.on_frontier && m.avg_total_tokens > 0;
+      });
+      var offFrontier = paretoRaw.filter(function(m) {
+        return !m.below_threshold && !m.on_frontier && m.avg_total_tokens > 0;
+      });
+
+      // Frontier step-line: connect frontier points left→right
+      var frontierLine = onFrontier
+        .slice()
+        .sort(function(a, b) { return a.avg_total_tokens - b.avg_total_tokens; })
+        .map(function(m) { return {x: m.avg_total_tokens, y: m.pass_rate}; });
+
+      new Chart(paretoCtx, {
+        plugins: [makeScatterLabelPlugin('paretoLabels')],
+        type: 'scatter',
+        data: {
+          datasets: [
+            {
+              label: 'Pareto frontier',
+              data: onFrontier.map(function(m){return {x:m.avg_total_tokens, y:m.pass_rate, model:m.model};}),
+              backgroundColor: 'rgba(16, 185, 129, 0.85)',
+              borderColor:     'rgba(16, 185, 129, 1)',
+              pointRadius: 9, pointHoverRadius: 11,
+              _labelPoints: true,
+            },
+            {
+              label: 'Off frontier (\u2265' + threshold + '% accuracy)',
+              data: offFrontier.map(function(m){return {x:m.avg_total_tokens, y:m.pass_rate, model:m.model};}),
+              backgroundColor: 'rgba(148, 163, 184, 0.7)',
+              borderColor:     'rgba(148, 163, 184, 0.9)',
+              pointRadius: 7, pointHoverRadius: 9,
+              _labelPoints: true,
+            },
+            {
+              label: 'Below ' + threshold + '% threshold',
+              data: belowThresh.map(function(m){return {x:m.avg_total_tokens, y:m.pass_rate, model:m.model};}),
+              backgroundColor: 'rgba(239, 68, 68, 0.4)',
+              borderColor:     'rgba(239, 68, 68, 0.6)',
+              pointRadius: 6, pointHoverRadius: 8,
+              pointStyle: 'triangle',
+              _labelPoints: true,
+            },
+            {
+              label: 'Frontier',
+              type: 'line',
+              data: frontierLine,
+              borderColor: 'rgba(16, 185, 129, 0.4)',
+              borderWidth: 1.5, borderDash: [5, 4],
+              fill: false, pointRadius: 0, tension: 0,
+              showLine: true,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Cost vs Quality — Pareto Frontier',
+              color: labelClrP,
+              font: { size: 13, weight: '600' },
+              padding: { bottom: 6 }
+            },
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: labelClrP, font: { size: 11 }, boxWidth: 12, padding: 12,
+                filter: function(item) { return item.text !== 'Frontier'; }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  if (!ctx.raw.model) return '';
+                  return ctx.raw.model + ': '
+                    + (ctx.raw.x || 0).toLocaleString() + ' avg tokens, '
+                    + ctx.raw.y + '% pass rate';
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: { display: true, text: 'Avg Total Tokens (lower = cheaper)', color: labelClrP, font: { size: 12 } },
+              grid:  { color: 'rgba(128,128,128,0.1)' },
+              ticks: { color: labelClrP, font: { size: 11 } }
+            },
+            y: {
+              min: 0, max: 105,
+              title: { display: true, text: 'Pass Rate (%)', color: labelClrP, font: { size: 12 } },
+              grid:  { color: 'rgba(128,128,128,0.1)' },
+              ticks: {
+                color: labelClrP, font: { size: 11 },
+                callback: function(v) { return v + '%'; }
+              }
+            }
+          }
+        }
       });
     }
   }

@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **feat(report):** add "Model Effort" tab to HTML compliance report — per-fixture average bars with max-spread whiskers for input tokens, output tokens, elapsed time, and turns, with each model's pass rate shown in its axis label.
+- **feat(report):** add cost-vs-quality Pareto frontier chart ranking models on accuracy-adjusted tokens, gated on an 85% pass-rate threshold so sub-threshold models are never marked optimal.
+- **feat(report):** add Stochastic Reliability table reporting per-model token coefficient of variation and flaky-fixture rate with explicit in-rankings eligibility.
+- **feat(report):** add AI-generated efficiency, consistency, and Pareto commentary to the Model Effort tab via `claude-sonnet-4-5` when `--connection` is provided.
+- **feat(report):** add `--connection` option to `ai-rules rule-loader report` for Snowflake connection resolution enabling AI_COMPLETE effort insights in the Model Effort tab.
+- **feat(report):** add `_compute_metric_stats`, `_collect_per_fixture_effort`, `_build_effort_insights`, `_build_effort_data`, `_compute_pareto_data`, and `_compute_latency_pareto` to `report_generator.py` for effort and frontier computation.
+- **feat(report):** add `_fixture_tier` / `_TIER_ORDER` module-level helpers extracted from the `_build_fixtures_data` closure.
+
 - **feat(rule-matcher):** add deterministic python-based rule matcher (`src/ai_rules/rule_matcher/`) that scores rules against user keywords + file context using phrase/bigram/word matching (10/5/1), resolves frontmatter-declared dependencies, and replaces RULES_INDEX.md grep-based discovery.
 - **feat(rule-matcher):** add `description:` field to all ~192 rule frontmatter files for improved manifest selection hints.
 - **feat(progressive-eval):** add version-based citation drift detection for progressive mode — compares declared `vX.Y.Z` against rule frontmatter `rule_version` instead of line counts.
@@ -24,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **feat(report):** replace the Performance tab's "Turns vs Duration (by compliance tier)" scatter with a threshold-gated "Latency vs Quality" Pareto frontier that encodes average turns as point size.
+- **refactor(report):** hoist the collision-aware scatter label renderer into a shared `makeScatterLabelPlugin` factory used by both frontier charts.
 - **feat(rule-matcher):** make score primary sort key (strongest matches first) with tier as tiebreaker, replacing the previous tier-first sort that evicted high-scoring Medium-tier rules.
 - **feat(eval):** progressive mode now uses version-based citation drift exclusively; line-count drift skipped.
 - **feat(report):** update compliance tier thresholds from 98/90/50 to 95/90/85 for green/yellow/orange/red color coding across all report templates.
@@ -39,6 +49,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **fix(report):** stop `claude-opus-4-7` rendering in two Pareto datasets simultaneously by making frontier, off-frontier, and sub-threshold categories mutually exclusive.
+- **fix(report):** parse Snowflake AI_COMPLETE's double-encoded, code-fenced JSON response so Model Effort insights render instead of silently falling back to empty.
+- **fix(report):** raise the AI_COMPLETE token ceiling to 2000 so multi-model insight JSON is no longer truncated mid-string.
+- **fix(report):** make Model Effort charts legible by disabling aspect-ratio locking and setting explicit canvas heights.
 - **fix(report):** resolve failure mode distribution table showing all dashes in progressive reports by storing full result directory path instead of basename only.
 - **fix(rule-matcher):** prevent false-positive phrase matches where single common words (e.g., "query", "table") scored 10 against multi-word rule keywords; require ≥50% word coverage for phrase-level scoring.
 - **fix(rule-matcher):** protect foundation rules (`000-*`) and dependency-only rules from token-budget eviction in manifest builder.

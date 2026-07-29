@@ -1,0 +1,182 @@
+  <!-- ========== TAB 7: MODEL EFFORT ========== -->
+  <section class="tab-panel" id="model-effort" role="tabpanel" data-tab-title="Model Effort">
+    <h2>Model Effort Analysis</h2>
+
+    <p>Computational effort comparison across {{ total_models }} models over {{ effort_data.fixtures | length - 1 }} test fixtures. Each bar shows the <strong>average</strong> value (blue), with an <strong>orange extension</strong> showing how much worse the worst run was above average. Models are ordered by protocol compliance (highest at top). <strong>Shorter blue bar = more efficient. Less orange = more consistent.</strong> Hover for exact min/avg/max values.</p>
+
+    <div style="display:flex; align-items:center; gap:0.75rem; margin:1.5rem 0 0.5rem;">
+      <label for="effort-fixture-select" style="font-weight:600; font-size:0.85rem; white-space:nowrap;">Fixture:</label>
+      <select id="effort-fixture-select"
+              aria-label="Select fixture for effort charts"
+              style="font-size:0.85rem; padding:0.35rem 0.75rem; border-radius:6px; border:1px solid var(--border); background:var(--surface); color:var(--text); min-width:260px; cursor:pointer;">
+        {% for fixture_id, fixture_label in effort_data.fixture_items %}
+        <option value="{{ fixture_id }}">{{ fixture_label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.75rem; margin-top:1.25rem;">
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:1rem;">
+        <canvas id="effort-input-tokens-chart"
+                aria-label="Bar chart of input token counts per model (min/avg/max)"
+                role="img"
+                style="display:block; height:300px;"></canvas>
+      </div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:1rem;">
+        <canvas id="effort-output-tokens-chart"
+                aria-label="Bar chart of output token counts per model (min/avg/max)"
+                role="img"
+                style="display:block; height:300px;"></canvas>
+      </div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:1rem;">
+        <canvas id="effort-elapsed-time-chart"
+                aria-label="Bar chart of elapsed time in seconds per model (min/avg/max)"
+                role="img"
+                style="display:block; height:300px;"></canvas>
+      </div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:1rem;">
+        <canvas id="effort-turns-chart"
+                aria-label="Bar chart of turn counts per model (min/avg/max)"
+                role="img"
+                style="display:block; height:300px;"></canvas>
+      </div>
+    </div>
+
+    <!-- ── Pareto Frontier ── -->
+    <h3 style="margin-top:2rem;">Cost vs Quality — Pareto Frontier</h3>
+    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
+      Each point is a model. The <strong style="color:var(--sf-green);">green frontier</strong> marks the optimal trade-off set — among models meeting the {{ effort_data.quality_threshold }}% quality bar, no other is both cheaper <em>and</em> more accurate. Grey points meet the {{ effort_data.quality_threshold }}% threshold but are not on the frontier. <span style="color:var(--sf-red);">Red triangles</span> fall below the {{ effort_data.quality_threshold }}% threshold and are excluded from both the frontier and the efficiency rankings — a model that skips this much of the protocol is not a rational choice at any price.
+    </p>
+    <div style="background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:1rem; height:440px;">
+      <canvas id="effort-pareto-chart"
+              aria-label="Scatter plot showing cost vs quality Pareto frontier"
+              role="img"
+              style="display:block; height:400px;"></canvas>
+    </div>
+
+    <!-- ── Stochastic Reliability ── -->
+    <h3 style="margin-top:2rem;">Stochastic Reliability</h3>
+    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">
+      <strong>Token CV</strong> (coefficient of variation = std_dev ÷ mean) measures run-to-run token predictability — lower is more predictable.
+      <strong>Flaky fixtures</strong> are fixtures where pass/fail outcomes varied across runs; a high flake count indicates unstable protocol adherence.
+      {% if effort_data.below_threshold %}<span style="color:var(--sf-amber);">Models below the {{ effort_data.quality_threshold }}% threshold are shown separately and excluded from efficiency rankings.</span>{% endif %}
+    </p>
+    <div class="table-wrap">
+      <table aria-label="Stochastic reliability metrics per model">
+        <thead>
+          <tr>
+            <th style="text-align:left;">Model</th>
+            <th style="text-align:center;">Pass Rate</th>
+            <th style="text-align:center;">Token CV</th>
+            <th style="text-align:center;">Flaky Fixtures</th>
+            <th style="text-align:center;">In Rankings?</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for model in effort_data.models %}
+          {% set rel = effort_data.reliability_data[model] %}
+          {% set pr  = effort_data.pass_rates[model] %}
+          {% set above = model in effort_data.above_threshold %}
+          <tr{% if not above %} style="opacity:0.65;"{% endif %}>
+            <td style="text-align:left; font-family:'SF Mono',monospace; font-size:0.8rem; font-weight:500;">{{ model }}</td>
+            <td style="text-align:center;">
+              {% if pr >= 95 %}<span style="color:var(--sf-green); font-weight:600;">{{ pr }}%</span>
+              {% elif pr >= 85 %}<span style="color:var(--sf-amber);">{{ pr }}%</span>
+              {% else %}<span style="color:var(--sf-red);">{{ pr }}%</span>{% endif %}
+            </td>
+            <td style="text-align:center; font-size:0.85rem;">
+              {% if rel.token_cv == 0 %}<span style="color:var(--text-muted);">—</span>
+              {% elif rel.token_cv < 0.1 %}<span style="color:var(--sf-green);">{{ rel.token_cv }}</span>
+              {% elif rel.token_cv < 0.25 %}<span>{{ rel.token_cv }}</span>
+              {% else %}<span style="color:var(--sf-amber);">{{ rel.token_cv }}</span>{% endif %}
+            </td>
+            <td style="text-align:center; font-size:0.85rem;">
+              {% if rel.flaky_count == 0 %}<span style="color:var(--sf-green);">0</span>
+              {% elif rel.flaky_count <= 2 %}<span>{{ rel.flaky_count }}</span>
+              {% else %}<span style="color:var(--sf-amber);">{{ rel.flaky_count }}</span>{% endif %}
+            </td>
+            <td style="font-size:0.8rem;">
+              {% if above %}<span style="color:var(--sf-green);">&#10003; Yes</span>
+              {% else %}<span style="color:var(--sf-red);">&#10007; Below {{ effort_data.quality_threshold }}% threshold</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── AI Insights ── -->
+    {% if effort_data.insights %}
+    <h3 style="margin-top:2rem;">AI-Generated Efficiency Insights</h3>
+    <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:0.75rem;">Analysis generated by <code>claude-sonnet-4-5</code> via Snowflake Cortex AI_COMPLETE. <strong>Efficiency is accuracy-adjusted</strong> (avg tokens ÷ pass rate). Only models above the {{ effort_data.quality_threshold }}% quality threshold are ranked. Models below appear separately.</p>
+
+    <div class="callout callout-success">
+      <p>{{ effort_data.insights.summary }}</p>
+    </div>
+
+    <div class="two-col" style="margin-top:1.5rem;">
+      <div>
+        <h4>Efficiency Ranking <span style="font-size:0.75rem; font-weight:400; color:var(--text-muted)">(lowest avg tokens ÷ pass rate)</span></h4>
+        <ol style="margin:0; padding-left:1.25rem; font-size:0.875rem; line-height:2;">
+          {% for model in effort_data.insights.efficiency_ranking %}
+          <li>
+            <code>{{ model }}</code>
+            {% if loop.first %}<span class="badge" style="background:var(--sf-green);color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.4rem;">Most Efficient</span>{% endif %}
+            {% if loop.last %}<span class="badge" style="background:var(--sf-red);color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.4rem;">Least Efficient</span>{% endif %}
+          </li>
+          {% else %}
+          <li style="color:var(--text-muted); font-style:italic; list-style:none;">No efficiency ranking data returned.</li>
+          {% endfor %}
+        </ol>
+        {% if effort_data.below_threshold %}
+        <div style="margin-top:0.75rem; padding:0.5rem 0.75rem; border:1px dashed var(--border); border-radius:6px; font-size:0.8rem; color:var(--text-muted);">
+          <strong>Excluded (below {{ effort_data.quality_threshold }}% accuracy):</strong>
+          {% for m in effort_data.below_threshold %}<code style="margin:0 0.2rem;">{{ m }} ({{ effort_data.pass_rates[m] }}%)</code>{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <div>
+        <h4>Consistency Ranking <span style="font-size:0.75rem; font-weight:400; color:var(--text-muted)">(lowest token spread)</span></h4>
+        <ol style="margin:0; padding-left:1.25rem; font-size:0.875rem; line-height:2;">
+          {% for model in effort_data.insights.consistency_ranking %}
+          <li>
+            <code>{{ model }}</code>
+            {% if loop.first %}<span class="badge" style="background:var(--sf-green);color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.4rem;">Most Consistent</span>{% endif %}
+          </li>
+          {% else %}
+          <li style="color:var(--text-muted); font-style:italic; list-style:none;">No consistency ranking data returned.</li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+
+    <h4 style="margin-top:1.5rem;">Per-Model Observations</h4>
+    <div class="table-wrap">
+      <table aria-label="Per-model AI-generated effort observations">
+        <thead>
+          <tr>
+            <th style="text-align:left; min-width:180px;">Model</th>
+            <th style="text-align:left;">Observation</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for obs in effort_data.insights.key_observations %}
+          <tr>
+            <td style="text-align:left; font-family:'SF Mono',monospace; font-size:0.8rem; font-weight:500;">{{ obs.model }}</td>
+            <td style="text-align:left; font-size:0.875rem;">{{ obs.observation }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="2" style="color:var(--text-muted); font-style:italic;">No per-model observations returned.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% else %}
+    <div class="callout" style="margin-top:1.75rem; border-left:4px solid var(--sf-amber); background:rgba(245,158,11,0.06);">
+      <strong>AI insights not available.</strong>
+      <p>Pass <code>--connection &lt;name&gt;</code> to <code>ai-rules rule-loader report</code> to enable AI-generated efficiency analysis via Snowflake Cortex. The connection is used only for this insights call and does not affect the report data itself.</p>
+      <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.5rem;">Example: <code>ai-rules rule-loader report --connection default</code></p>
+    </div>
+    {% endif %}
+  </section>

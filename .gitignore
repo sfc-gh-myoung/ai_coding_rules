@@ -228,3 +228,7 @@ uv.lock
 AGENTS.md
 PROJECT.md
 prompts/archive/
+
+# Generated plugin build output (ai-rules plugin build)
+# Source of truth is rules/, skills/, hooks/, src/. Regenerate on demand.
+ai-coding-rules-plugin/

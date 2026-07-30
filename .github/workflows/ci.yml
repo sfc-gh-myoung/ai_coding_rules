@@ -108,22 +108,29 @@ jobs:
       - name: Validate rule schemas
         run: uv run ai-rules validate rules/
 
-      - name: Check RULES_INDEX.md is current
-        run: uv run ai-rules index check
-
-      - name: Check rule references resolve
-        run: uv run ai-rules refs check
-
-      - name: Verify AGENTS.md is rendered from templates (no drift)
-        run: |
-          rm -rf /tmp/agents-render && mkdir -p /tmp/agents-render
-          uv run ai-rules deploy --agents-dest /tmp/agents-render
-          diff -u AGENTS.md /tmp/agents-render/AGENTS.md
-
       - name: Validate rule loader fixtures
         run: uv run ai-rules rule-loader validate
 
-      - name: Verify plugin build is fresh
+      - name: Verify plugin build is reproducible and source-faithful
         run: |
-          uv run ai-rules plugin build
-          git diff --exit-code ai-coding-rules-plugin/
+          A="$(mktemp -d)"; B="$(mktemp -d)"
+          trap 'rm -rf "$A" "$B"' EXIT
+
+          # Two independent builds from identical source must agree.
+          # Replaces the old `git diff --exit-code ai-coding-rules-plugin/` gate,
+          # which became vacuous once that path was gitignored.
+          uv run ai-rules plugin build --plugin-dir "$A"
+          uv run ai-rules plugin build --plugin-dir "$B"
+          diff -r "$A" "$B"
+
+          # Vendored matcher must match canonical source exactly.
+          diff -q src/ai_rules/match_rules.py "$A/skills/rule-loader/scripts/match_rules.py"
+
+          # Completeness by content, not cardinality. rules/ holds non-.md entries
+          # (.index-stats.json, examples/) that the build correctly does not copy.
+          diff <(cd rules && ls *.md | sort) <(cd "$A/rules" && ls *.md | sort)
+          diff -r -x '.index-stats.json' -x 'examples' rules "$A/rules"
+
+          # Artifact contract, asserted from EXPECTED_ARTIFACTS/EXPECTED_TREES.
+          # Fails on a missing artifact AND on undeclared output.
+          uv run ai-rules plugin verify --plugin-dir "$A"

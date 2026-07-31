@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(match-rules):** add standalone stdlib-only `src/ai_rules/match_rules.py` rule matcher — single importable module requiring no pip install, suitable for bundling directly in the plugin directory.
 - **feat(hooks):** add `hooks/user-prompt-submit` shell hook and `hooks/hooks.json` to repo root — inject matched-rule manifest as `<system-reminder>` context on every user prompt.
 - **feat(plugin):** add `$show-rules` skill for on-demand PRE-FLIGHT diagnostic output.
+- **test(eval):** add `test_infra_error_handling.py` covering transport-error classification, programming-error propagation, exception-group handling, and synthetic-failure row shape.
 
 ### Changed
 
@@ -54,6 +55,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(docs):** add plugin architecture section (§3.6) to ARCHITECTURE.md covering hook-based progressive loading.
 - **feat(docs):** add Plugin Installation section to README.md as alternative to AGENTS.md deploy.
 - **feat(eval):** strengthen anti-fabrication enforcement in eval `build_prompt()` — add explicit "FAILURE CONDITION" block requiring Read tool call before any Gate 3 citation.
+- **refactor(eval):** extract the SDK message loop into `_consume_query` so transport failures can be caught around the entire stream rather than per-message.
+- **docs(readme):** replace the `ai-rules deploy` / AGENTS.md deploy flow with a build-and-install plugin flow, documenting the plugin layout and `cortex plugin validate`.
+- **docs(contributing):** swap `ai-rules deploy` and `ai-rules index generate` steps for `ai-rules plugin build` and drop `RULES_INDEX.md` from the contribution checklist.
+- **docs(eval):** document the Latency-vs-Quality Pareto frontier and Model Effort report tabs in `EVALUATING_RULE_LOADER.md`.
+- **feat(rules):** reframe bootstrap references (`CLAUDE.md` / `AGENTS.md`) as the injected foundation / micro-kernel so rule text no longer assumes a file-based entry point.
+- **chore(plugin):** rebuild the bundled plugin rules so the packaged copy matches the de-fanned keyword set and updated foundation wording.
+- **refactor(skills):** move `show-rules/SKILL.md` out of the built plugin directory into the repo `skills/` source tree, matching how `rule-loader` is sourced and copied by `ai-rules plugin build`.
 
 ### Fixed
 
@@ -70,6 +78,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **fix(rule-matcher):** protect foundation rules (`000-*`) and dependency-only rules from token-budget eviction in manifest builder.
 - **fix(rule-matcher):** add `.yml`/`.yaml` extension normalization and nested file/dir pattern matching support.
 - **fix(tests):** correct `PLUGIN_ROOT` path in `test_hook_integration.py` — manifest tests now reference `ai-coding-rules-plugin/` instead of repo root.
+- **fix(eval):** classify SDK transport exceptions raised mid-stream as infra errors instead of scoring them as rule-discovery failures.
+- **fix(eval):** re-raise programming errors (`AttributeError`, `TypeError`, `KeyError`, …) from the message loop instead of laundering module defects into infra retries and a misattributed abort.
+- **fix(eval):** filter the foundation rule out of `missing_required` on synthetic failure rows so infra aborts no longer look like genuine micro-kernel discovery misses.
+- **fix(rules):** replace hardcoded example passwords in rule snippets with placeholders so the secret scanner stops flagging documentation samples.
 
 ### Changed
 

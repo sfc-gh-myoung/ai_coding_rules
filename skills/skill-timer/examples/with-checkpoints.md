@@ -28,7 +28,7 @@ Store the `TIMING_RUN_ID` from output.
 
 ### Step 2: Record Gate Checkpoints
 
-After completing each AGENTS.md gate, record a checkpoint:
+After completing each PRE-FLIGHT gate, record a checkpoint:
 
 ```bash
 # After Gate 1 (foundation loaded)

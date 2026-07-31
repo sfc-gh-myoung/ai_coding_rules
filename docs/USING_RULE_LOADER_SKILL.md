@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-07-27
 
-The Rule Loader Skill determines which rule files to load for any user request by analyzing file extensions, directory paths, and keywords against RULES_INDEX.md. It ensures consistent, dependency-aware rule discovery across all agents and sessions, formalizing the rule-loading algorithm from AGENTS.md (Steps 1-3) into a reusable skill with progressive disclosure.
+The Rule Loader Skill determines which rule files to load for any user request by analyzing file extensions, directory paths, and keywords against the YAML frontmatter of the rules in `rules/`. It ensures consistent, dependency-aware rule discovery across all agents and sessions.
 
 ## Examples
 
@@ -108,7 +108,7 @@ Task Switch: FIRST
 | `(foundation)` | Foundation rule (000-global-core.md) — cited on Gate 1, not as a Gate 3 row |
 | `(file extension: .py)` | Matched from file extension in request |
 | `(directory: skills/)` | Matched from directory path in request |
-| `(keyword: test)` | Matched keyword in RULES_INDEX.md |
+| `(keyword: test)` | Matched keyword in a rule's frontmatter |
 | `(dependency of NNN)` | Loaded as prerequisite for another rule |
 | `[Deferred: ...]` | Skipped due to token budget constraints |
 
@@ -120,7 +120,7 @@ The skill executes 5 phases in order:
 |-------|------|--------------|
 | 1 | **Foundation Loading** | Always loads `000-global-core.md` (~2,400 tokens) |
 | 2 | **Domain Matching** | Matches file extensions and directories to domain rules |
-| 3 | **Activity Matching** | Searches RULES_INDEX.md for keyword matches |
+| 3 | **Activity Matching** | Scores rule frontmatter keywords against the prompt |
 | 4 | **Dependency Resolution** | Loads prerequisites before dependent rules |
 | 5 | **Token Budget Management** | Defers low-priority rules if over budget |
 
@@ -174,22 +174,22 @@ Uses an alternate rules directory instead of the default `rules/`.
 
 ## FAQ
 
-### What is the relationship to AGENTS.md?
+### What is the relationship to the plugin hook?
 
-AGENTS.md contains the bootstrap protocol that invokes rule-loading logic inline (Steps 1-3). This skill provides detailed workflow files for each loading phase, worked examples showing the complete selection process, and test scenarios for validating rule-loading behavior. AGENTS.md remains self-contained; this skill offers enriched reference material.
+The plugin's `UserPromptSubmit` hook runs the same matching algorithm automatically on every prompt and injects the result. This skill provides detailed workflow files for each loading phase, worked examples showing the complete selection process, and test scenarios for validating rule-loading behavior.
 
 ### Why was my expected rule not loaded?
 
 Check these causes in order:
 
-1. **No keyword match:** The keyword may not exist in RULES_INDEX.md
-2. **No extension match:** Use `grep -iE "ext=.*\.<ext>" rules/RULES_INDEX.md` to find the authoritative rule for that extension
+1. **No keyword match:** No rule declares that keyword in its frontmatter
+2. **No extension match:** Use `grep -rl "<ext>" rules/` to find the authoritative rule for that extension
 3. **Dependency missing:** A missing prerequisite skips the dependent rule
 4. **Deferred for budget:** Check if it was listed in the Deferred section
 
-### What happens if RULES_INDEX.md is not found?
+### What happens if the `rules/` directory is not found?
 
-The skill falls back to foundation + file-extension matching only. Keyword-based activity matching is skipped. Regenerate the index with `uv run ai-rules index generate`.
+The skill falls back to the injected foundation only. Confirm the plugin is installed and active with `cortex plugin list`.
 
 ### What if a rule file is not found?
 
@@ -203,7 +203,7 @@ Each rule declares a `TokenBudget` value in its metadata (e.g., `~3,500`). The s
 ### Token budget exceeded - what should I do?
 
 1. Low-tier rules are deferred automatically
-2. Check which rules are Critical vs Low tier in RULES_INDEX.md metadata
+2. Check which rules are Critical vs Low tier in their frontmatter `context_tier`
 3. Consider using `context_tier_filter: critical+high` to pre-filter
 
 ## Reference
@@ -221,7 +221,7 @@ User Request
 │   └── Match file extensions (.py, .sql, .ts, etc.)
 │
 ├── Phase 3: Activity Matching
-│   └── Search RULES_INDEX.md for keywords
+│   └── Score rule frontmatter keywords
 │
 ├── Phase 4: Dependency Resolution
 │   └── Load prerequisites before dependents
@@ -279,5 +279,4 @@ skills/rule-loader/
 - **Skill entrypoint:** `skills/rule-loader/SKILL.md`
 - **Workflow guides:** `skills/rule-loader/workflows/*.md`
 - **Examples:** `skills/rule-loader/examples/*.md`
-- **RULES_INDEX.md:** Authoritative source for agent rule discovery mappings
-- **Discovery paths:** AGENTS.md bootstrap protocol (Steps 1-3) or the `UserPromptSubmit` hook (plugin architecture)
+- **Discovery path:** the `UserPromptSubmit` hook, or the `rule-loader` skill invoked directly

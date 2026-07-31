@@ -247,7 +247,7 @@ Memory/Disk Full:
 When approaching context limits, preserve rules in this priority order:
 
 **ALWAYS PRESERVE (never summarize):**
-1. **Bootstrap entry point** (CLAUDE.md / AGENTS.md) — if session started from one
+1. **Injected foundation** (micro-kernel / bootstrap entry point) — if the session provided one
 2. **000-global-core.md** — This file (foundation)
 3. **Active domain -core.md** — Primary domain rule for current task
 
@@ -259,6 +259,6 @@ When approaching context limits, preserve rules in this priority order:
 3. Reference rules (>4000 tokens, lookup-only)
 4. Specialized rules not relevant to active task
 
-**NEVER:** Summarize the bootstrap entry point (CLAUDE.md / AGENTS.md) or 000-global-core.md. Drop active domain -core.md while working in that domain.
+**NEVER:** Summarize the injected foundation or 000-global-core.md. Drop active domain -core.md while working in that domain.
 
 For decision tree, -core.md recognition patterns, and ContextTier relationship, see `rules/003-context-engineering.md`.

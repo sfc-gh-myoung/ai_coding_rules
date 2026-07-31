@@ -43,7 +43,7 @@ $PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
 
 ### Gate Checkpoints
 
-These checkpoints map to the AGENTS.md bootstrap gates and provide visibility into where time is spent during rule loading and gate execution:
+These checkpoints map to the PRE-FLIGHT gates and provide visibility into where time is spent during rule loading and gate execution:
 
 - **`gates_started`** - After Gate 1 foundation rule loaded (marks start of gate processing)
 - **`rules_loaded`** - After Gate 3 matching rules loaded (all rule discovery and loading complete)

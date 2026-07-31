@@ -9,7 +9,7 @@ fi
 
 echo "Custom Hook: ✅ 'entro.skipSecretScan' is NOT true. Proceeding with scan."
 
- entro scan pre-commit . --fail-on-findings || { # '||' means: if previous command fails (non-zero exit)
+entro scan pre-commit . --fail-on-findings "$@" || { # '||' means: if previous command fails (non-zero exit)
   echo "Custom Hook: ❌ entro cli scan FAILED! Please fix issues before committing."
   exit 1
 }

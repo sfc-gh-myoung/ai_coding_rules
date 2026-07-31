@@ -247,6 +247,12 @@ def _synthetic_failure(fixture: Fixture, exc: BaseException, *, infra: bool = Fa
     When ``infra=True``, the row is marked as INFRA ERROR (notes prefix and
     ``run.is_infra_error=True``) so downstream rendering and snapshot
     serialization can distinguish it from a regular fixture failure.
+
+    ``missing_required`` is reported with ``_FOUNDATION_RULE`` filtered out, the
+    same way :func:`_build_run_result` does it. Without the filter a synthetic
+    row is distinguishable from a normally-scored one by the presence of the
+    foundation rule, which previously made these rows look like genuine
+    discovery failures that had somehow missed the micro-kernel.
     """
     note_prefix = "INFRA ERROR" if infra else "runtime error"
     run = AgentRun(
@@ -264,7 +270,7 @@ def _synthetic_failure(fixture: Fixture, exc: BaseException, *, infra: bool = Fa
         infra_error_detail=str(exc) if infra else "",
     )
     match = MatchResult(
-        missing_required=tuple(fixture.required),
+        missing_required=tuple(r for r in fixture.required if r != _FOUNDATION_RULE),
         missing_dependencies=tuple(fixture.dependencies),
         forbidden_present=(),
         optional_loaded=(),

@@ -12,7 +12,7 @@ Related: [`fixtures/rule_loader_eval/AUTHORING_GUIDE.md`](../fixtures/rule_loade
 ## Purpose
 
 The Rule Loading Evaluator is a two-layer sanity check that the Cortex Code
-Agent SDK, given `AGENTS.md` + a fixture prompt, loads exactly the rules each
+Agent SDK, given the injected rule context + a fixture prompt, loads exactly the rules each
 fixture declares:
 
 | Layer | Command | Requires live SDK? | Runs in CI? |
@@ -197,20 +197,39 @@ Options:
   --label TEXT          Label stored in meta.json.
   --strict-forbidden    Treat forbidden hits as failures.
   --max-turns INTEGER   [default: 25]
+  --concurrency INTEGER Fixtures evaluated in parallel within each run
+                        [default: 1 = sequential]. --runs still executes one
+                        pass at a time; output order is deterministic.
+  --retry-infra INTEGER Retry a fixture N times on infra error (SDK/model/
+                        connection failure, not a fixture failure).
   --debug               Developer diagnostics (timing, signal disagreements) to stderr.
   --progress / -P TEXT  auto|screen|rich|plain|json|none  [default: auto]
   --no-progress         Alias for --progress=none.
 ```
 
-Three checks are unconditional per fixture:
+Four checks are unconditional per fixture (`RunResult.passed` in
+`rule_loader_eval/engine.py`):
 
-1. `required + dependencies` must all appear in the agent's loaded set.
-2. 2-signal agreement: tool reads vs `**Rules Loaded**` section must match
-   (legacy `## Reads Performed` checked when present).
-3. Citation drift: declared line counts vs actual rule line counts must be zero.
+1. **Match** — every `required:` rule and its dependency closure appears in the
+   agent's loaded set. Extra rules beyond the expected set are recorded as
+   `extra_loaded` but do *not* fail the fixture.
+2. **Signal agreement** — every rule cited in `PRE-FLIGHT` Gate 3 must have a
+   matching `read_file` tool call. Citing an unread rule (`cited_without_read`)
+   is a fabrication failure. The legacy `**Rules Loaded**` / `## Reads Performed`
+   sections are still parsed for backward compatibility.
+3. **Citation drift** — declared rule versions must match rule frontmatter
+   `rule_version`. (Progressive mode uses version-based drift; the older
+   line-count comparison is retired.)
+4. **Output shape** — the final message must carry a `PRE-FLIGHT` Gate 3 block.
+   A run that loaded no rules must say so explicitly, via `Gate 3: none matched`
+   or `Gate 3: +0 domain rule(s)`.
 
-Any of the three failing fails the fixture. There are no escape flags — rule
+Any of the four failing fails the fixture. There are no escape flags — rule
 loading correctness is non-negotiable.
+
+`depends_ok` / `depends_violations` (R8 depends-propagation) is reported
+alongside but deliberately does **not** gate pass/fail, so a fixture can pass
+while the agent loaded the right primary rule and skipped a `required:` parent.
 
 **Fast iteration profile** (single fixture, single run, low effort):
 
@@ -429,6 +448,63 @@ uv run ai-rules rule-loader suggest-kw \
 
 ---
 
+### `report` — render the HTML / Markdown compliance report
+
+Aggregates every `results/<model>_<runs>x_<timestamp>/` directory into a
+cross-model report. Picks the newest run per model; directories whose model is
+`auto` are skipped.
+
+```text
+uv run ai-rules rule-loader report [OPTIONS]
+
+Options:
+  --format TEXT        html | md | both  [default: both]
+  --output PATH        Output directory (defaults to reports/).
+  --results-dir PATH   Results directory (defaults to results/).
+  --strict             Fail on any extraction error instead of warning.
+  --connection TEXT    Snowflake connection name for the AI_COMPLETE insights in
+                       the Model Effort tab (overrides SNOWFLAKE_CONNECTION_NAME).
+                       Omit to skip AI insights; the tab still renders.
+```
+
+The HTML report carries seven tabs (`REQUIRED_TABS` in
+`rule_loader_eval/report_generator.py`): `overview`, `protocol`, `taxonomy`,
+`results`, `recommendations`, `performance`, and `model-effort`.
+
+Two tabs are worth calling out:
+
+- **Performance** — *Latency vs. Quality* Pareto frontier: average duration on
+  the cost axis, pass rate on the quality axis, point size encoding average
+  turns. Replaces the earlier turns-vs-duration scatter.
+- **Model Effort** — per-fixture average bars with max-spread whiskers for input
+  tokens, output tokens, elapsed time, and turns; a cost-vs-quality Pareto
+  frontier over accuracy-adjusted tokens; and a Stochastic Reliability table
+  (token coefficient of variation, flaky-fixture rate).
+
+Both frontiers are gated on `QUALITY_THRESHOLD` (85% pass rate). A model below
+the threshold is drawn as a red triangle and is excluded from frontier
+membership and the efficiency rankings — a model that skips much of the protocol
+is not a rational choice at any price, so cheapness alone must not mark it
+optimal.
+
+Efficiency is reported as **accuracy-adjusted tokens**
+(`avg_total_tokens / pass_rate`) — cost per *successful* completion rather than
+raw token count.
+
+```bash
+# Full report with AI insights
+uv run ai-rules rule-loader report --format html --connection default
+
+# HTML only, no Snowflake round-trip
+uv run ai-rules rule-loader report --format html
+```
+
+When `--connection` is supplied, insights come from `claude-sonnet-4-5` via
+AI_COMPLETE. Failures are non-fatal: a connector or parse error logs a warning
+and the tab renders a degradation callout instead of insights.
+
+---
+
 ## Pre-commit Hook
 
 The `rule-loader-eval` local hook runs five representative fixtures through the
@@ -473,7 +549,7 @@ against rule-loading regressions that the deterministic `validate` cannot catch.
 
 ### When to run full eval instead
 
-If you changed `AGENTS.md`, `rules/000-global-core.md`, `skills/rule-loader/`,
+If you changed `rules/000-global-core.md`, the micro-kernel, `skills/rule-loader/`,
 or a rule's `**Keywords:**` metadata, run the full eval suite (all fixtures,
 3 runs) rather than relying on the pre-commit 5-fixture subset:
 
@@ -515,7 +591,7 @@ uv run ai-rules rule-loader merge-snapshots \
     out/baseline-1 out/baseline-2 out/baseline-3 \
     -o out/baseline-merged
 
-# 2. Make your change (edit rules, AGENTS.md, keywords, etc.)
+# 2. Make your change (edit rules, keywords, the micro-kernel, etc.)
 
 # 3. Capture a post-change snapshot (single run or merged):
 uv run ai-rules rule-loader eval \

@@ -204,7 +204,7 @@ Where:
 See `000-global-core.md` §Context Window Management Protocol for canonical marker definitions and preservation priority order.
 
 **Quick Reference - Importance Markers:**
-- **CRITICAL: DO NOT SUMMARIZE** - Bootstrap files (AGENTS.md, 000-global-core.md)
+- **CRITICAL: DO NOT SUMMARIZE** - Foundation content (injected micro-kernel, 000-global-core.md)
 - **CORE RULE: PRESERVE WHEN POSSIBLE** - Domain cores (*-core.md files)
 - **FOUNDATION RULE: PRESERVE WHEN POSSIBLE** - Governance rules (002-series)
 - **(none)** - Standard rules, can be summarized if needed

@@ -109,9 +109,9 @@ If a needed rule isn't loaded, name it explicitly: *"Also load `rules/201-python
 - Good: `Fix F841: Local variable 'table_end_idx' is assigned but never used`
 - Vague: `Fix the linting error`
 
-**Force a mode when you need to.** Add `MODE: PLAN` or `MODE: ACT` explicitly to override drift. Most agents respect the workflow defined in `AGENTS.md` and `rules/000-global-core.md`, but some will silently stay in `ACT` when they should be planning.
+**Force a mode when you need to.** Add `MODE: PLAN` or `MODE: ACT` explicitly to override drift. Most agents respect the workflow defined in `rules/000-global-core.md`, but some will silently stay in `ACT` when they should be planning.
 
-**Watch the bootstrap output.** If the `**Rules Loaded**` block doesn't show the rules you expect, stop the agent and tell it to reload. As context fills up, parts of `AGENTS.md` can be evicted during compaction — naming rules explicitly hardens the run.
+**Watch the bootstrap output.** If the `**Rules Loaded**` block doesn't show the rules you expect, stop the agent and tell it to reload. As context fills up, parts of the injected foundation can be evicted during compaction — naming rules explicitly hardens the run.
 
 ---
 

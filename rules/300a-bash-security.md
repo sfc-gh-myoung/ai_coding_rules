@@ -161,7 +161,7 @@ declare -A handlers=(["process"]="do_process" ["validate"]="do_validate")
 **Correct Pattern:**
 ```bash
 # BAD: Secrets in script
-PASSWORD="super_secret_123"
+PASSWORD="<PASSWORD>"
 mysql -u admin -p"$PASSWORD" database
 
 # BAD: Secrets as arguments (visible in ps)

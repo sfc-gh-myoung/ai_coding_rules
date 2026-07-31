@@ -389,6 +389,26 @@ def _extract_bash_rule_paths(command: str) -> list[str]:
 
 _INFRA_STOP_REASONS = frozenset({"error_during_execution"})
 
+# Exception types that indicate a defect in this module rather than an SDK or
+# network failure. These are re-raised from the message loop instead of being
+# classified as infra, so a real bug surfaces immediately instead of being
+# retried and then reported as an infrastructure abort.
+#
+# NOTE: asyncio.CancelledError is deliberately absent — it derives from
+# BaseException (not Exception) on Python >= 3.8, so `except Exception` never
+# catches it and it propagates for free. Likewise a BaseExceptionGroup carrying
+# a CancelledError is not an Exception subclass and propagates; a plain
+# ExceptionGroup of ordinary errors is an Exception and is treated as infra.
+_PROGRAMMING_ERRORS = (
+    AttributeError,
+    TypeError,
+    NameError,
+    KeyError,
+    IndexError,
+    UnboundLocalError,
+    AssertionError,
+)
+
 
 def _classify_infra(
     *,
@@ -397,16 +417,20 @@ def _classify_infra(
     duration_ms: int,
     reads_set: set[str],
     saw_result_message: bool,
+    transport_error: str = "",
 ) -> tuple[bool, str]:
     """Classify a run as INFRA error (SDK / model / connection) vs valid agent run.
 
     Returns (is_infra_error, detail). Detail is empty string when not an infra error.
-    Per the v3.15 plan, four signals are OR'd together:
+    Per the v3.15 plan, five signals are OR'd together:
+      0. transport_error is non-empty (SDK raised before the stream completed)
       1. stop_reason in INFRA_STOP_REASONS (e.g. "error_during_execution")
       2. No ResultMessage observed (iterator broke before completion)
       3. Zero turns AND duration_ms < 5000 (agent never started)
       4. Zero turns AND zero reads (agent never engaged)
     """
+    if transport_error:
+        return True, f"SDK transport failure: {transport_error}"
     if stop_reason in _INFRA_STOP_REASONS:
         return True, f"SDK reported stop_reason={stop_reason!r}"
     if not saw_result_message:
@@ -850,86 +874,115 @@ async def run_live_async(
                     return f"{name} {key}={v[:120]}"
         return name
 
-    async for message in query(prompt=prompt, options=options):
-        if isinstance(message, AssistantMessage):
-            for block in message.content or []:
-                text = getattr(block, "text", None)
-                if text:
-                    final_text_chunks.append(text)
-                    events.append(
-                        TurnEvent(
-                            t_ms=_now_ms(),
-                            kind="assistant_text",
-                            detail=f"len={len(text)} head={text[:80]!r}",
+    async def _consume_query() -> None:
+        """Drive the SDK message loop. Mutates enclosing-scope accumulators."""
+        nonlocal turns, stop_reason, saw_result_message
+        nonlocal input_tokens, output_tokens, total_cost_usd
+        async for message in query(prompt=prompt, options=options):
+            if isinstance(message, AssistantMessage):
+                for block in message.content or []:
+                    text = getattr(block, "text", None)
+                    if text:
+                        final_text_chunks.append(text)
+                        events.append(
+                            TurnEvent(
+                                t_ms=_now_ms(),
+                                kind="assistant_text",
+                                detail=f"len={len(text)} head={text[:80]!r}",
+                            )
                         )
-                    )
-                # Capture tool_use blocks regardless of which tool. This
-                # surfaces calls the runner does not otherwise track
-                # (e.g., Glob, Grep, Bash) for debugging.
-                tool_name = getattr(block, "name", None) or getattr(block, "tool_name", None)
-                tool_input = getattr(block, "input", None) or getattr(block, "tool_input", None)
-                if tool_name and tool_input is not None:
-                    notes.append(f"tool_use: {tool_name} {tool_input!r}")
-                    events.append(
-                        TurnEvent(
-                            t_ms=_now_ms(),
-                            kind="tool_use",
-                            detail=_short_tool_detail(str(tool_name), tool_input),
+                    # Capture tool_use blocks regardless of which tool. This
+                    # surfaces calls the runner does not otherwise track
+                    # (e.g., Glob, Grep, Bash) for debugging.
+                    tool_name = getattr(block, "name", None) or getattr(block, "tool_name", None)
+                    tool_input = getattr(block, "input", None) or getattr(block, "tool_input", None)
+                    if tool_name and tool_input is not None:
+                        notes.append(f"tool_use: {tool_name} {tool_input!r}")
+                        events.append(
+                            TurnEvent(
+                                t_ms=_now_ms(),
+                                kind="tool_use",
+                                detail=_short_tool_detail(str(tool_name), tool_input),
+                            )
                         )
-                    )
-                elif tool_name:
-                    notes.append(f"tool_use: {tool_name}")
-                    events.append(
-                        TurnEvent(
-                            t_ms=_now_ms(),
-                            kind="tool_use",
-                            detail=str(tool_name),
+                    elif tool_name:
+                        notes.append(f"tool_use: {tool_name}")
+                        events.append(
+                            TurnEvent(
+                                t_ms=_now_ms(),
+                                kind="tool_use",
+                                detail=str(tool_name),
+                            )
                         )
-                    )
-                # Belt-and-suspenders: also derive ``loaded_via_reads`` from
-                # message-loop tool_use blocks. The PreToolUse hook is the
-                # primary source but does not always fire (SDK hook
-                # registration can silently no-op). Capture Read paths
-                # directly from the assistant message stream as well.
-                if tool_name and str(tool_name).lower() == "read" and isinstance(tool_input, dict):
-                    target = tool_input.get("file_path") or tool_input.get("filePath") or ""
-                    if target:
-                        rel = _normalize_to_repo_rule(target, root)
-                        if rel:
-                            reads.add(rel)
-                # RF5: capture bash commands that inspect rule files
-                elif (
-                    tool_name and str(tool_name).lower() == "bash" and isinstance(tool_input, dict)
-                ):
-                    cmd = tool_input.get("command") or ""
-                    for rule_path in _extract_bash_rule_paths(cmd):
-                        reads.add(rule_path)
-        elif isinstance(message, ResultMessage):
-            saw_result_message = True
-            turns = getattr(message, "num_turns", 0) or getattr(message, "turns", 0)
-            stop_reason = (
-                getattr(message, "stop_reason", "")
-                or getattr(message, "subtype", "")
-                or getattr(message, "result", "")
-                or ""
-            )
-            usage = getattr(message, "usage", None) or {}
-            input_tokens = (
-                _usage_get(usage, "input_tokens")
-                + _usage_get(usage, "cache_creation_input_tokens")
-                + _usage_get(usage, "cache_read_input_tokens")
-            )
-            output_tokens = _usage_get(usage, "output_tokens")
-            total_cost_usd = getattr(message, "total_cost_usd", None) or 0.0
-            events.append(
-                TurnEvent(
-                    t_ms=_now_ms(),
-                    kind="result",
-                    detail=f"stop_reason={stop_reason or '(none)'} turns={turns}",
+                    # Belt-and-suspenders: also derive ``loaded_via_reads`` from
+                    # message-loop tool_use blocks. The PreToolUse hook is the
+                    # primary source but does not always fire (SDK hook
+                    # registration can silently no-op). Capture Read paths
+                    # directly from the assistant message stream as well.
+                    if (
+                        tool_name
+                        and str(tool_name).lower() == "read"
+                        and isinstance(tool_input, dict)
+                    ):
+                        target = tool_input.get("file_path") or tool_input.get("filePath") or ""
+                        if target:
+                            rel = _normalize_to_repo_rule(target, root)
+                            if rel:
+                                reads.add(rel)
+                    # RF5: capture bash commands that inspect rule files
+                    elif (
+                        tool_name
+                        and str(tool_name).lower() == "bash"
+                        and isinstance(tool_input, dict)
+                    ):
+                        cmd = tool_input.get("command") or ""
+                        for rule_path in _extract_bash_rule_paths(cmd):
+                            reads.add(rule_path)
+            elif isinstance(message, ResultMessage):
+                saw_result_message = True
+                turns = getattr(message, "num_turns", 0) or getattr(message, "turns", 0)
+                stop_reason = (
+                    getattr(message, "stop_reason", "")
+                    or getattr(message, "subtype", "")
+                    or getattr(message, "result", "")
+                    or ""
                 )
-            )
-            # Do not break: let the generator complete so anyio's TaskGroup
-            # exits in the same task that entered it.
+                usage = getattr(message, "usage", None) or {}
+                input_tokens = (
+                    _usage_get(usage, "input_tokens")
+                    + _usage_get(usage, "cache_creation_input_tokens")
+                    + _usage_get(usage, "cache_read_input_tokens")
+                )
+                output_tokens = _usage_get(usage, "output_tokens")
+                total_cost_usd = getattr(message, "total_cost_usd", None) or 0.0
+                events.append(
+                    TurnEvent(
+                        t_ms=_now_ms(),
+                        kind="result",
+                        detail=f"stop_reason={stop_reason or '(none)'} turns={turns}",
+                    )
+                )
+                # Do not break: let the generator complete so anyio's TaskGroup
+                # exits in the same task that entered it.
+
+    # Transport/SDK exceptions must not be scored as rule-discovery failures.
+    # Convert them into an infra-flagged AgentRun so _build_run_result raises
+    # InfraError, which the retry loop and fail-fast abort both understand.
+    transport_error: str = ""
+    try:
+        await _consume_query()
+    except _PROGRAMMING_ERRORS:
+        # A bug in this module's own message-loop handling, not an SDK/transport
+        # failure. Let it propagate loudly rather than laundering it into an
+        # infra retry, which would mask the defect behind two 30s sleeps and an
+        # abort attributed to infrastructure.
+        raise
+    except Exception as exc:
+        transport_error = f"{type(exc).__name__}: {exc}"
+        notes.append(f"transport error: {transport_error}")
+        events.append(
+            TurnEvent(t_ms=_now_ms(), kind="transport_error", detail=transport_error[:200])
+        )
 
     duration_ms = int((time.perf_counter() - start) * 1000)
     final_text = extract_contract_text("\n".join(final_text_chunks))
@@ -991,6 +1044,7 @@ async def run_live_async(
         duration_ms=duration_ms,
         reads_set=reads_set,
         saw_result_message=saw_result_message,
+        transport_error=transport_error,
     )
 
     return AgentRun(

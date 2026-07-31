@@ -216,7 +216,7 @@ overwrite: true
 - All 6 dimensions scored
 - TokenBudget variance check applies
 
-**Project Files (AGENTS.md, PROJECT.md):**
+**Project Files (PROJECT.md):**
 - Schema validation skipped (different structure)
 - All dimensions scored except schema-specific checks
 - TokenBudget variance skipped

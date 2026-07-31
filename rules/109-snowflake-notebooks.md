@@ -141,7 +141,7 @@ result = df_filtered.groupby('region').sum()
 # BAD: Credentials in code
 connection = snowflake.connector.connect(
     user='admin',
-    password='SuperSecret123!',  # Exposed in .ipynb JSON
+    password='<PASSWORD>',  # Exposed in .ipynb JSON
     account='xy12345.us-east-1'
 )
 

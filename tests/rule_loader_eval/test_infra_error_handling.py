@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from pathlib import Path
 from unittest.mock import patch
 
@@ -87,6 +88,52 @@ def test_classify_infra_healthy_run():
     )
     assert is_infra is False
     assert detail == ""
+
+
+def test_classify_infra_transport_error_wins_over_healthy_signals():
+    """A transport error is infra even when every other signal looks healthy.
+
+    Regression guard: transport/SDK exceptions were previously converted to a
+    synthetic FAIL row scored as a rule-discovery failure, which understated
+    pass rates and bypassed --retry-infra.
+    """
+    is_infra, detail = _classify_infra(
+        stop_reason="success",
+        turns=4,
+        duration_ms=38_000,
+        reads_set={"rules/999-test-core.md"},
+        saw_result_message=True,
+        transport_error="ConnectionResetError: peer closed connection",
+    )
+    assert is_infra is True
+    assert "transport" in detail.lower()
+    assert "ConnectionResetError" in detail
+
+
+def test_classify_infra_transport_error_empty_string_is_not_infra():
+    """Empty transport_error must not trip the check (default arg safety)."""
+    is_infra, detail = _classify_infra(
+        stop_reason="success",
+        turns=4,
+        duration_ms=38_000,
+        reads_set={"rules/999-test-core.md"},
+        saw_result_message=True,
+        transport_error="",
+    )
+    assert is_infra is False
+    assert detail == ""
+
+
+def test_classify_infra_transport_error_defaults_to_absent():
+    """transport_error is optional -- existing callers keep working unchanged."""
+    is_infra, _ = _classify_infra(
+        stop_reason="success",
+        turns=4,
+        duration_ms=38_000,
+        reads_set={"rules/999-test-core.md"},
+        saw_result_message=True,
+    )
+    assert is_infra is False
 
 
 # ---------------------------------------------------------------------------
@@ -486,3 +533,220 @@ def test_retry_infra_default_no_retry():
 
     assert call_count == 1, "Should only try once with retry_infra=1"
     assert is_infra is True
+
+
+# ---------------------------------------------------------------------------
+# run_live_async transport-error containment (Option B regression guards)
+# ---------------------------------------------------------------------------
+
+
+def test_run_live_async_converts_transport_exception_to_infra_flag(monkeypatch):
+    """A raising SDK stream must yield an infra-flagged AgentRun, not propagate.
+
+    Before this fix the exception escaped run_live_async, was caught by
+    concurrency.py, and became a synthetic FAIL row scored as a rule-discovery
+    failure with zeroed metrics and an unfiltered missing_required list.
+    """
+    import asyncio
+
+    import ai_rules.rule_loader_eval.agent_runner as ar
+
+    def _boom(*_args, **_kwargs):
+        async def _gen():
+            raise ConnectionResetError("peer closed connection")
+            yield  # pragma: no cover — makes this an async generator
+
+        return _gen()
+
+    fake_sdk = type(
+        "FakeSDK",
+        (),
+        {
+            "AssistantMessage": type("AM", (), {"content": ()}),
+            "ResultMessage": type("RM", (), {"stop_reason": "success"}),
+            "CortexCodeAgentOptions": lambda **kw: object(),
+            "HookMatcher": lambda **kw: object(),
+            "query": staticmethod(_boom),
+        },
+    )
+    monkeypatch.setitem(sys.modules, "cortex_code_agent_sdk", fake_sdk)
+
+    run = asyncio.run(
+        ar.run_live_async(
+            "fx-transport",
+            "prompt",
+            project_root=Path("/fake"),
+            max_turns=5,
+            effort="medium",
+            model="auto",
+            connection=None,
+        )
+    )
+
+    assert run.is_infra_error is True, "transport exception must be flagged as infra"
+    assert "ConnectionResetError" in run.infra_error_detail
+    assert any("transport error" in n for n in run.notes)
+
+
+def test_build_run_result_raises_infra_error_for_transport_flagged_run():
+    """_build_run_result must convert an infra-flagged run into InfraError.
+
+    This is the seam that makes --retry-infra and fail-fast abort work. Together
+    with the run_live_async change it closes the phantom-record path end to end.
+    """
+    from ai_rules.rule_loader_eval.engine import _build_run_result
+
+    run = AgentRun(
+        fixture_id="fx-transport",
+        loaded=(),
+        loaded_via_reads=(),
+        loaded_via_reads_performed=(),
+        loaded_via_section=(),
+        is_infra_error=True,
+        infra_error_detail="SDK transport failure: ConnectionResetError: boom",
+    )
+
+    with pytest.raises(InfraError) as excinfo:
+        _build_run_result(_make_fixture("fx-transport"), run, {}, strict_forbidden=False)
+
+    assert "ConnectionResetError" in str(excinfo.value)
+
+
+def _fake_sdk_raising(exc_factory):
+    """Build a fake cortex_code_agent_sdk whose query() stream raises."""
+
+    def _q(*_args, **_kwargs):
+        async def _gen():
+            raise exc_factory()
+            yield  # pragma: no cover — makes this an async generator
+
+        return _gen()
+
+    return type(
+        "FakeSDK",
+        (),
+        {
+            "AssistantMessage": type("AM", (), {"content": ()}),
+            "ResultMessage": type("RM", (), {"stop_reason": "success"}),
+            "CortexCodeAgentOptions": lambda **kw: object(),
+            "HookMatcher": lambda **kw: object(),
+            "query": staticmethod(_q),
+        },
+    )
+
+
+def test_run_live_async_reraises_programming_errors(monkeypatch):
+    """A defect in our own loop handling must NOT be laundered into infra.
+
+    Consensus finding (skeptic D3): a bare `except Exception` would convert an
+    AttributeError into an infra retry, masking a real bug behind two 30s sleeps
+    and an abort attributed to infrastructure.
+    """
+    import asyncio
+
+    import ai_rules.rule_loader_eval.agent_runner as ar
+
+    monkeypatch.setitem(
+        sys.modules,
+        "cortex_code_agent_sdk",
+        _fake_sdk_raising(lambda: AttributeError("'NoneType' has no attribute 'content'")),
+    )
+
+    with pytest.raises(AttributeError):
+        asyncio.run(
+            ar.run_live_async(
+                "fx-bug",
+                "prompt",
+                project_root=Path("/fake"),
+                max_turns=5,
+                effort="medium",
+                model="auto",
+                connection=None,
+            )
+        )
+
+
+def test_run_live_async_exception_group_of_ordinary_errors_is_infra(monkeypatch):
+    """TaskGroup (anyio) wraps failures in ExceptionGroup, which is an Exception.
+
+    A group carrying only ordinary errors must be classified as infra rather
+    than escaping into the phantom-record path.
+    """
+    import asyncio
+
+    import ai_rules.rule_loader_eval.agent_runner as ar
+
+    monkeypatch.setitem(
+        sys.modules,
+        "cortex_code_agent_sdk",
+        _fake_sdk_raising(lambda: ExceptionGroup("tg", [OSError("broken pipe")])),
+    )
+
+    run = asyncio.run(
+        ar.run_live_async(
+            "fx-group",
+            "prompt",
+            project_root=Path("/fake"),
+            max_turns=5,
+            effort="medium",
+            model="auto",
+            connection=None,
+        )
+    )
+    assert run.is_infra_error is True
+    assert "ExceptionGroup" in run.infra_error_detail
+
+
+def test_synthetic_failure_filters_foundation_rule_from_missing_required():
+    """Consensus finding: the raw missing_required list was the phantom fingerprint.
+
+    _build_run_result filters _FOUNDATION_RULE (engine.py) because the
+    micro-kernel replaces it. _synthetic_failure must filter identically, or a
+    synthetic row is falsely distinguishable as a discovery failure that missed
+    the foundation.
+    """
+    fx = _make_fixture("fx-filter")
+    assert "rules/000-global-core.md" in fx.required, "precondition: fixture requires foundation"
+
+    rr = _synthetic_failure(fx, RuntimeError("boom"), infra=False)
+
+    assert "rules/000-global-core.md" not in rr.match.missing_required
+
+
+def test_transport_failure_does_not_produce_scored_discovery_fail(monkeypatch, tmp_path):
+    """FULL-CHAIN guard: SDK raise -> infra flag -> InfraError -> abort, not a scored FAIL.
+
+    This is the end-to-end assertion both reviewers flagged as missing. It
+    stitches run_live_async -> _build_run_result -> InfraError so a regression at
+    any single seam is caught here.
+    """
+    import asyncio
+
+    import ai_rules.rule_loader_eval.agent_runner as ar
+    from ai_rules.rule_loader_eval.engine import _build_run_result
+
+    monkeypatch.setitem(
+        sys.modules,
+        "cortex_code_agent_sdk",
+        _fake_sdk_raising(lambda: ConnectionResetError("peer closed connection")),
+    )
+
+    run = asyncio.run(
+        ar.run_live_async(
+            "fx-chain",
+            "prompt",
+            project_root=tmp_path,
+            max_turns=5,
+            effort="medium",
+            model="auto",
+            connection=None,
+        )
+    )
+
+    # Seam 1: run_live_async contained the exception and flagged it.
+    assert run.is_infra_error is True
+
+    # Seam 2: _build_run_result refuses to score it and raises InfraError, which
+    # is what --retry-infra and should_abort_exception both discriminate on.
+    with pytest.raises(InfraError):
+        _build_run_result(_make_fixture("fx-chain"), run, {}, strict_forbidden=False)

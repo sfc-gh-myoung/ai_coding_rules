@@ -406,7 +406,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 **For AI projects,** document the following:
 - Document token budgets or context limitations
 - Explain modular loading strategies
-- Include searchable indexes (e.g., the `RULES_INDEX.md` pattern)
+- Include searchable indexes or category tables for large collections
 
 **Example:**
 ```markdown
@@ -558,7 +558,7 @@ See `rules/805-technical-writing-style.md` §Accessibility for the full accessib
 - MUST appear in every project the operator creates or is the primary author of
 - MUST include at minimum: name, email, and GitHub handle
 - MAY include role, team, or Slack channel for internal projects
-- Agent SHOULD check AGENTS.md or operator profile for contact details to auto-populate
+- Agent SHOULD check PROJECT.md or operator profile for contact details to auto-populate
 - For forked or contributed projects, add to existing Authors section rather than replacing
 
 ## Internal Project README Considerations

@@ -20,22 +20,21 @@ depends:
 
 ## Scope
 
-Agent protocol reference: anti-patterns, quality gates, task-switch examples, failure modes, project tool discovery, and term definitions. Load this rule when the main AGENTS.md EXECUTION SEQUENCE does not address your specific situation.
+Agent protocol reference: anti-patterns, quality gates, task-switch examples, failure modes, project tool discovery, and term definitions. Load this rule when the foundation EXECUTION SEQUENCE does not address your specific situation.
 
 **When to Load This Rule:**
-- When encountering an edge case not covered by the EXECUTION SEQUENCE in AGENTS.md
+- When encountering an edge case not covered by the EXECUTION SEQUENCE in `rules/000-global-core.md`
 - When debugging protocol compliance failures
 - When uncertain about quality gate requirements or term definitions
 - When facing rule loading failures beyond standard handling
 
 **What This Rule Covers:**
-Reference material for the AGENTS.md agent bootstrap protocol — anti-patterns, quality gates, task-switch examples, failure modes, project tool discovery, and term definitions.
+Reference material for the agent execution protocol — anti-patterns, quality gates, task-switch examples, failure modes, project tool discovery, and term definitions.
 
 ## References
 
-- AGENTS.md: The main bootstrap protocol that this rule supplements
-- rules/000-global-core.md: Foundation rule loaded before this reference rule
-- rules/rule frontmatter: agent discovery index (grep target).
+- rules/000-global-core.md: Foundation rule carrying the protocol that this rule supplements
+- hooks/user-prompt-submit: Plugin hook that performs rule discovery per prompt
 
 ### External Documentation
 
@@ -46,7 +45,7 @@ _None._
 ### Inputs and Prerequisites
 
 - Foundation rule `rules/000-global-core.md` loaded in current response cycle
-- User request that requires protocol edge-case guidance not covered by AGENTS.md EXECUTION SEQUENCE
+- User request that requires protocol edge-case guidance not covered by the foundation EXECUTION SEQUENCE
 
 ### Mandatory
 
@@ -64,7 +63,7 @@ _None._
 
 ### Execution Steps
 
-1. Identify the specific edge case or gap in AGENTS.md EXECUTION SEQUENCE
+1. Identify the specific edge case or gap in the foundation EXECUTION SEQUENCE
 2. Navigate to the relevant section in this reference file
 3. Apply the guidance to the current situation
 4. Return to the EXECUTION SEQUENCE main flow
@@ -248,7 +247,7 @@ grep -iwE "python|streamlit|ext=\.py" rules/rule frontmatter
 ### Delegated discovery (Gate 2)
 
 Rule discovery is owned by the `rule-loader` skill and is normally run in a
-**discovery sub-agent** (AGENTS.md Step 2). Gate 2 passes when discovery was
+**discovery sub-agent**. Gate 2 passes when discovery was
 performed by EITHER:
 
 - **(a) Delegated:** a discovery sub-agent running the `rule-loader` skill — cite the
@@ -341,7 +340,7 @@ When a user request contains multiple technologies (joined by `+`, `and`, `with`
 
 ## Gate Failure Message Catalog
 
-Exact per-gate failure messages used by the bootstrap PRE-FLIGHT header (AGENTS.md Step 4).
+Exact per-gate failure messages used by the PRE-FLIGHT header.
 
 Gate 1 failures:
 - "rules/000-global-core.md not found"
@@ -415,7 +414,7 @@ Step 4: NOW check if result equals "ACT" (case-insensitive) or starts with "ACT 
 
 ## Step 2B Fallback Details
 
-The bootstrap's Step 2B runs ONLY when the rule-loader skill (Step 2) is unavailable. The condensed grep command lives inline in AGENTS.md; the supporting detail is here.
+The Step 2B fallback runs ONLY when the rule-loader skill is unavailable. The supporting detail is here.
 
 **A. Keyword extraction:**
 1. Identify the PRIMARY VERB (test, deploy, lint, commit, help, fix, create, etc.)

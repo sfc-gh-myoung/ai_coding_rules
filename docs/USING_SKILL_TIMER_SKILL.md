@@ -484,9 +484,9 @@ Multiple agents can run timing sessions simultaneously without collisions:
 
 All support `timing_enabled: true` parameter.
 
-### Deployment
+### Distribution
 
-This skill is **deployable** (included in `ai-rules deploy`). After deployment, users can time skill executions, measure performance, and track improvements.
+This skill ships in the built plugin. Once the plugin is installed, users can time skill executions, measure performance, and track improvements.
 
 ### Support
 

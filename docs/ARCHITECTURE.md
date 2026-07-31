@@ -26,7 +26,7 @@
 
 ## 1. Overview
 
-> **Architecture update (2026-05-17, v3.8.0):** AGENTS.md is now a thin bootstrap pointer that invokes the `rule-loader` skill and references `rules/000-global-core.md` for the canonical Rule Loading Contract (R1-R8, with R8 binding the `**Depends:**` `required:`/`optional:` bucket grammar). Workflow content (foundation loading, domain matching, activity matching, dependency resolution, token budget, task switch detection, anti-patterns, failure modes, project tool discovery) lives in the skill at `skills/rule-loader/`. An alternative plugin-based architecture (§3.6) provides hook-driven rule discovery without AGENTS.md. Sections 4 and 5 of this document describe the AGENTS.md flow; the same logical workflow now lives in skill files or in the plugin hook.
+> **Architecture:** Rule discovery is performed by the plugin's `UserPromptSubmit` hook, which scores rules deterministically and injects a compact foundation (the micro-kernel) together with the matched rule paths. The canonical Rule Loading Contract lives in `rules/000-global-core.md`; the detailed workflow content (foundation loading, domain matching, dependency resolution, token budget, anti-patterns, failure modes) lives in the `rule-loader` skill under `skills/rule-loader/`. An earlier design deployed a per-project bootstrap file; that path has been retired in favor of the plugin (§3.5).
 
 ### 1.1 The Problem
 
@@ -46,24 +46,25 @@ AI Coding Rules solves this by storing rules as Markdown files with embedded met
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                    AI CODING RULES                                │
-│                                                                   │
-│   rules/ ─────────► RULES_INDEX.md ─────────────────► AGENTS.md           │
-│   (195 files)       (searchable                (bootstrap         │
-│                      catalog)                    protocol)        │
-│         │                                          │              │
-│         ▼                                          ▼              │
-│   schemas/ ────► ai-rules CLI ────► Deployer ────► AI Assistant   │
-│   (validation)   (validate,         (split by      (Claude,       │
-│                   index, deploy)     artifact)      Cursor, …)    │
-│                                                                   │
-│   skills/  ─────────────────────────────────────► (agent          │
-│   (agent-invokable                                  invocation)   │
-│    capabilities)                                                  │
+│                    AI CODING RULES                               │
+│                                                                  │
+│   rules/ ──────────┐                                             │
+│   (195 files)      │                                             │
+│                    ▼                                             │
+│   schemas/ ────► ai-rules CLI ────► ai-coding-rules-plugin/      │
+│   (validation)   (validate,         (rules + skills + hook)      │
+│                   tokens, plugin)          │                     │
+│                                            ▼                     │
+│   skills/  ──────────────────────►  AI Assistant                 │
+│   (rule-loader,                     (CoCo, Claude Code, …)       │
+│    show-rules)                             │                     │
+│                                            ▼                     │
+│                                     UserPromptSubmit hook        │
+│                                     injects matched rules        │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-The user clones this repository, optionally edits or adds rules, and runs `ai-rules deploy` to copy rules and a bootstrap protocol into a target project. The AI assistant in that project then auto-loads `AGENTS.md` and pulls rules from `rules/` on demand.
+The user clones this repository, optionally edits or adds rules, and runs `ai-rules plugin build` to assemble the plugin. Installing the plugin registers the skills and the `UserPromptSubmit` hook, which performs rule discovery on every prompt.
 
 ---
 
@@ -120,7 +121,7 @@ Rules use letter suffixes to split large topics into focused, independently-load
 The repository uses a dual-layer approach for context preservation:
 
 **Primary layer: natural language instructions (universal):**
-- CRITICAL warnings in `AGENTS.md` and `000-global-core.md`.
+- CRITICAL warnings in `000-global-core.md`.
 - CORE RULE / FOUNDATION RULE markers in all `-core.md` and `002-series` files.
 - Context Management Protocol in `000-global-core.md` teaching explicit preservation hierarchy.
 - Works across all LLMs: Claude, GPT, Gemini, Llama, etc.
@@ -179,7 +180,7 @@ rules/
 **Design decisions:**
 
 - Files are loaded by AI assistants verbatim. Anything that should not appear in an LLM's context window does not belong in this directory.
-- `rules/RULES_INDEX.md` is regenerated by `ai-rules index generate` from rule metadata; never hand-edit it.
+- Rule metadata lives in each rule's YAML frontmatter; there is no generated catalog file to keep in sync.
 - `examples/` holds runnable reference implementations validated against `schemas/example-schema.yml` rather than the rule schema.
 
 For the file naming convention, rule lifecycle, and contribution flow, see [CONTRIBUTING.md](../CONTRIBUTING.md).
@@ -229,35 +230,7 @@ src/ai_rules/
 
 For the full command reference, see [README.md → CLI Commands](../README.md#cli-commands).
 
-### 3.4 The Deployer
-
-The deployer writes the bootstrap protocol (`AGENTS.md`) to `--agents-dest` and optionally copies `rules/` and `skills/` to `--rules-dest` and `--skills-dest` respectively. When only `--agents-dest` is given (agents-only deploy), no rules or skills are copied; instead the generated `AGENTS.md` references the ai\_coding\_rules project's own `rules/` and `skills/` directories as absolute paths. Deployment is split by artifact so it can adapt to any project layout.
-
-**Architecture:**
-
-```
-ai-rules deploy
-├── Validate source structure
-├── Resolve target paths (--agents-dest / --rules-dest / --skills-dest)
-├── Render AGENTS.md template (with rules/skills path substitution)
-├── Copy rules/ → --rules-dest  (excluded skills filtered)
-├── Copy skills/ → --skills-dest (optional)
-└── Emit deployment report
-```
-
-**Key design decisions:**
-
-1. **Templates as source of truth.** `templates/AGENTS_NO_MODE.md.template` (default) and `templates/AGENTS_MODE.md.template` (opt-in via `--with-mode`) are the canonical AGENTS.md content; deployment substitutes paths into the template.
-2. **Skill exclusions are config-driven.** `pyproject.toml` `[tool.rule_deployer].exclude_skills` keeps internal-only skills out of deployments.
-3. **No write-by-default.** `--dry-run` previews exactly what will be copied, including paths and substitutions.
-4. **Sentinel-gated template sections.** Both templates use `<!-- MODE-ONLY:start/end -->` and `<!-- NO-MODE-ONLY:start/end -->` sentinel comments to bracket variant-specific content. `strip_template_markers()` removes these sentinels (plus the `<!-- Template: ... -->` header) from the deployed file so no bookkeeping comments reach the AI assistant. The `tests/templates/` parity test validates that both templates share the same non-conditional structure.
-5. **NO_MODE is the default.** `ai-rules deploy --agents-dest X` produces the auto-execute (NO_MODE) variant. Pass `--with-mode` to deploy the PLAN/ACT (MODE) variant. Internally the CLI computes `no_mode = not with_mode`; the internal `no_mode` parameter throughout `deploy_rules` and helpers is unchanged.
-6. **Skills-only deployment.** `--only-skills` deploys only `skills/` to `--skills-dest`, skipping AGENTS.md and rules entirely. The `--skills-dest` requires `--agents-dest` constraint is relaxed when `--only-skills` is active.
-7. **Rule-path resolution.** `{{rules_path}}` / `{{skills_path}}` in AGENTS.md templates are replaced with the absolute `--rules-dest` / `--skills-dest` paths when those flags are given (files are also copied there). When a destination is absent (agents-only deploy), the placeholder is set to the ai\_coding\_rules project's own absolute `rules/` or `skills/` directory — no files are copied to the target project. This means the target's `AGENTS.md` points at the live ai\_coding\_rules repository, so that repository must remain in place. `RULES_INDEX.md` is only copied when `--rules-dest` is given; `copy_root_files()` rewrites its relative `rules/` prefixes to the absolute deployed path at that time.
-
-For deployment commands and destination configuration, see [README.md → Quick Start](../README.md#quick-start).
-
-### 3.5 Agent Skills Architecture
+### 3.4 Agent Skills Architecture
 
 The project includes Agent Skills following [Anthropic's best practices](https://claude.com/blog/equipping-agents-for-the-real-world-with-agent-skills). Skills are agent-invokable, modular capabilities that live under `skills/<skill-name>/` with a consistent layout.
 
@@ -298,9 +271,9 @@ The frontmatter is parsed by the agent at skill discovery time. The `description
 
 Larger project-maintenance skills ship with a `docs/USING_<SKILL_NAME>_SKILL.md` user guide containing examples, mode tables, FAQ, and reference material. Smaller workflow skills are documented primarily in their own `SKILL.md` files. Architectural details about how a specific skill works belong in that skill's own documentation, not in this file.
 
-### 3.6 The Plugin (`ai-coding-rules-plugin/`)
+### 3.5 The Plugin (`ai-coding-rules-plugin/`)
 
-The plugin is an alternative distribution path that works with Cortex Code and Claude Code's native plugin system. Instead of deploying `AGENTS.md` into each project, the plugin installs once and activates automatically across all projects.
+The plugin is the distribution path for Cortex Code and Claude Code's native plugin system. It installs once and activates automatically across all projects.
 
 **Architecture:**
 
@@ -321,29 +294,29 @@ ai-coding-rules-plugin/
 1. On every user prompt, the IDE invokes the `UserPromptSubmit` hook.
 2. The hook runs `match_rules.py` — a deterministic scorer that matches the prompt against rule keywords/extensions.
 3. The hook injects a `<system-reminder>` containing the micro-kernel (foundation behaviors) and a list of matched rule paths.
-4. The agent reads the matched rules and applies them to the response.
+4. The agent reads the most relevant matched rules, up to the 3-rule cap.
 
 **Key design decisions:**
 
-1. **Hook-driven, not file-driven.** No `AGENTS.md` or `RULES_INDEX.md` needed — the hook performs discovery deterministically per-turn.
-2. **Micro-kernel over full foundation.** The micro-kernel is a ~500-token compression of `000-global-core.md` covering only mandatory behaviors. Full rules are still read on demand.
+1. **Hook-driven, not file-driven.** Discovery happens deterministically in the hook each turn, with no catalog file to grep and no per-project bootstrap file.
+2. **Micro-kernel over full foundation.** The micro-kernel is a compact compression of `000-global-core.md` covering only mandatory behaviors. Full rules are still read on demand.
 3. **PRE-FLIGHT is on-demand.** The plugin does not require PRE-FLIGHT output by default. Use `$show-rules` for diagnostics.
 4. **Single manifest.** `.cortex-plugin/plugin.json` is accepted by both Cortex Code and Claude Code — no need for separate `.claude-plugin/` directory.
 5. **Stdlib-only matcher.** `match_rules.py` requires no pip dependencies, enabling zero-install plugin distribution.
 
-**Relationship to AGENTS.md deploy:**
+**Why the plugin replaced per-project deployment:**
 
-| | AGENTS.md Deploy | Plugin |
-|---|---|---|
-| **Scope** | Per-project | All projects |
-| **Setup** | `ai-rules deploy --agents-dest <DIR>` | Install plugin once |
-| **Discovery** | RULES_INDEX.md grep at runtime | Deterministic scorer in hook |
-| **Bootstrap** | AGENTS.md auto-loaded by IDE | Hook fires on every prompt |
-| **PRE-FLIGHT** | Depends on AGENTS.md template | On-demand only |
+An earlier design copied rules, skills, and a bootstrap file into each target
+project. That produced duplicate copies of the same artifacts across a developer's
+machine, and every rule update required re-copying into each project. The plugin
+installs once and the hook applies everywhere, so there is a single copy of the
+rule library.
 
-Both paths are supported and can coexist. The plugin path is preferred for developers who want rules active everywhere without per-project configuration.
+Note that rules are not a first-class plugin capability — plugin manifests declare
+skills, subagents, commands, hooks, and MCP servers. The rule library ships
+alongside those as plain files that the hook reads at match time.
 
-For plugin build commands, see [README.md → Plugin Installation](../README.md#plugin-installation).
+For build and install commands, see [README.md → Install the plugin](../README.md#install-the-plugin).
 
 ---
 
@@ -355,53 +328,46 @@ AI assistants follow a two-phase loading process: auto-loading by the IDE/tool, 
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                     AI ASSISTANT INITIALIZATION                         │
+│                        USER SUBMITS A PROMPT                            │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ PHASE 1: AUTO-LOADED BY IDE/TOOL (Parallel)                             │
+│ PHASE 1: HOOK FIRES (UserPromptSubmit)                                  │
 │                                                                         │
-│   ┌─────────────┐              ┌─────────────┐                          │
-│   │  AGENTS.md  │              │ PROJECT.md  │                          │
-│   │ (Bootstrap  │              │  (Project   │                          │
-│   │  Protocol)  │              │   Config)   │                          │
-│   └─────────────┘              └─────────────┘                          │
-│         │                            │                                  │
-│         │ Defines rule loading       │ Defines project-specific         │
-│         │ sequence (auto-execute by  │ tooling requirements and         │
-│         │ default; MODE/ACT via      │ validation gates                 │
-│         │ --with-mode)               │                                  │
-└─────────────────────────────────────────────────────────────────────────┘
-                                    │
-                                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│ PHASE 2: RULE LOADING PROTOCOL (Sequential, per AGENTS.md)              │
-│                                                                         │
-│   Step 1: Load Foundation                                               │
-│   ┌────────────────────────┐                                            │
-│   │ rules/000-global-core  │  Always loaded first, no exceptions        │
-│   │ (Foundation Rule)      │  Defines MODE transitions, validation      │
-│   └────────────────────────┘                                            │
+│   ┌──────────────────────────┐                                          │
+│   │ hooks/user-prompt-submit │  Receives {"prompt": "..."} on stdin     │
+│   └──────────────────────────┘                                          │
 │              │                                                          │
 │              ▼                                                          │
-│   Step 2: Search for Domain Rules                                       │
+│   ┌──────────────────────────┐                                          │
+│   │ match_rules.py           │  Score keywords, file extensions, paths  │
+│   │ (deterministic, stdlib)  │  Resolve required dependencies           │
+│   └──────────────────────────┘                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ PHASE 2: CONTEXT INJECTION                                              │
+│                                                                         │
+│   A <system-reminder> is prepended to the turn containing:              │
+│                                                                         │
 │   ┌────────────────────────┐                                            │
-│   │    RULES_INDEX.md        │  Search Keywords field for task matches    │
-│   │    (flat RULES_INDEX.md) │  Check Depends field for prerequisites     │
+│   │ micro_kernel_content   │  Foundation: mandatory behaviors,          │
+│   │ (compact foundation)   │  validation sequence, loading contract     │
 │   └────────────────────────┘                                            │
-│              │                                                          │
-│              ▼                                                          │
-│   Step 3: Load Domain + Activity Rules                                  │
+│              +                                                          │
 │   ┌────────────────────────┐                                            │
-│   │  rules/XXX-domain.md   │  Load based on file extensions, keywords   │
-│   │  rules/YYY-activity.md │  Load dependencies first (Depends field)   │
+│   │ Matched rule paths     │  Candidates, ranked; entry cap applied     │
 │   └────────────────────────┘                                            │
 └─────────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ READY: Agent has loaded context, begins in MODE: PLAN                   │
+│ PHASE 3: AGENT READS AND APPLIES                                        │
+│                                                                         │
+│   Reads the most relevant rules (up to the cap) plus required           │
+│   dependencies, cites them under RULES_LOADED, then acts.               │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -409,18 +375,17 @@ AI assistants follow a two-phase loading process: auto-loading by the IDE/tool, 
 
 | File | Loading | Purpose |
 |------|---------|---------|
-| **AGENTS.md** | Auto-loaded by IDE | Bootstrap protocol, rule discovery instructions (auto-execute by default; MODE/ACT framework included when deployed with `--with-mode`) |
+| **`micro_kernel_content.md`** | Injected by the hook every prompt | Compact foundation: mandatory behaviors, validation sequence, rule-loading contract |
 | **PROJECT.md** | Auto-loaded by IDE | Project-specific tooling, validation requirements, critical violations |
-| **RULES_INDEX.md** | Referenced by AGENTS.md | Searchable catalog of all rules with keywords and dependencies |
-| **rules/000-global-core.md** | First rule loaded | Foundation patterns, MODE transitions, validation gates |
-| **rules/XXX-*.md** | Loaded on demand | Domain and activity-specific rules based on task requirements |
+| **rules/000-global-core.md** | Full foundation, read on demand | Execution protocols, validation gates, workflows |
+| **rules/XXX-*.md** | Loaded on demand | Domain and activity-specific rules selected by the matcher |
 
 ### 4.3 Key Design Decisions
 
-1. **Parallel auto-loading.** `AGENTS.md` and `PROJECT.md` are loaded simultaneously by the IDE, not sequentially.
+1. **Discovery is deterministic.** The hook scores rules with a fixed algorithm rather than relying on the model to grep a catalog.
 2. **`PROJECT.md` is not part of the rule chain.** It's project configuration, not a rule file.
-3. **Sequential rule loading.** Rules load in dependency order per the AGENTS.md protocol.
-4. **Lazy loading.** Specialized rules load only when needed (token optimization).
+3. **Dependencies load in order.** Required dependencies resolve ahead of the rules that declare them.
+4. **Lazy loading.** Only matched rules are read, and the entry cap bounds how many.
 
 ### 4.4 Rule Creation Flow
 
@@ -435,34 +400,29 @@ flowchart TD
     SchemaVal --> Pass{Passed?}
     Pass -->|No| Fix[Fix Errors]
     Fix --> Edit
-    Pass -->|Yes| Index["ai-rules index generate"]
-    Index --> UpdateIndex[Update rules/RULES_INDEX.md]
-    UpdateIndex --> Commit[git commit]
+    Pass -->|Yes| Build["ai-rules plugin build"]
+    Build --> Commit[git commit]
     Commit --> End([Rule Ready])
 ```
 
-### 4.5 Deployment Flow
+### 4.5 Plugin Build and Install Flow
 
 ```mermaid
 flowchart TD
-    Start([User: Deploy Rules]) --> Command
-    Command["ai-rules deploy --agents-dest ..."] --> Deployer
-    Deployer[ai-rules deploy] --> Validate{Validate Source}
-    Validate -->|Fail| Error[Error: Missing Files]
-    Validate -->|Pass| CheckDest{Check Destination}
-    CheckDest -->|Not Writable| Error2[Error: Cannot Write]
-    CheckDest -->|Writable| Copy
-    Copy[Copy Operations] --> CopyAgents[AGENTS.md → --agents-dest/]
-    Copy --> CopyRules[rules/*.md → --rules-dest/]
-    CopyRules --> CopyIndex[RULES_INDEX.md → --rules-dest/]
-    Copy --> CopySkills[skills/ → --skills-dest/]
-    CopyAgents --> Report[Deployment Report]
-    CopyIndex --> Report
-    CopySkills --> Report
-    Report --> Success([Deployment Complete])
+    Start([User: Build Plugin]) --> Command
+    Command["ai-rules plugin build"] --> Assemble
+    Assemble[Assemble plugin tree] --> CopyRules[rules/*.md]
+    Assemble --> CopySkills[skills/rule-loader, skills/show-rules]
+    Assemble --> CopyHook[hooks/user-prompt-submit]
+    Assemble --> CopyKernel[micro_kernel_content.md]
+    Assemble --> Manifest[.cortex-plugin/plugin.json]
+    Manifest --> Validate{cortex plugin validate}
+    Validate -->|Fail| Error[Error: Manifest or component invalid]
+    Validate -->|Pass| Install["cortex plugin install ./ai-coding-rules-plugin"]
+    Install --> Registry[(~/.snowflake/cortex/plugins/registry.json)]
+    Registry --> Active([Hook active on every prompt])
 
     Error --> End([Failed])
-    Error2 --> End
 ```
 
 ---
@@ -616,7 +576,7 @@ The system is designed to be extended without forking. The four most common exte
 
 ### 6.1 Adding New Rules
 
-Rule authoring is the most frequent extension. Use `uv run ai-rules new NNN-description` to scaffold a new rule, then fill in content per the schema. Validate with `uv run ai-rules validate rules/` and regenerate the index with `ai-rules index generate`.
+Rule authoring is the most frequent extension. Use `uv run ai-rules new NNN-description` to scaffold a new rule, then fill in content per the schema. Validate with `uv run ai-rules validate rules/`, then rebuild the plugin with `uv run ai-rules plugin build`.
 
 For the full rule-creation workflow, see [CONTRIBUTING.md → Adding a New Rule](../CONTRIBUTING.md#adding-a-new-rule).
 

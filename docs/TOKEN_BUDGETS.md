@@ -67,5 +67,4 @@ uv run ai-rules tokens rules/100-snowflake-core.md   # single file
 ## Related
 
 - `ai-rules validate` checks rule schema compliance.
-- `ai-rules index generate` regenerates `rules/RULES_INDEX.md`.
-- `ai-rules deploy` copies rules into a target project.
+- `ai-rules plugin build` assembles the distributable plugin.

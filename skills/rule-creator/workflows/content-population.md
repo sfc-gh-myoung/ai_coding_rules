@@ -452,7 +452,7 @@ module.exports = {
 - [Tutorial](URL) - Getting started guide
 ```
 
-**Note:** Related Rules can use bare filenames (e.g., `000-global-core.md`) or include the `rules/` prefix. The rules location is defined in AGENTS.md for token efficiency.
+**Note:** Related Rules can use bare filenames (e.g., `000-global-core.md`) or include the `rules/` prefix. Paths are resolved relative to the repository root.
 
 **Example: DaisyUI**
 ```markdown

@@ -18,7 +18,6 @@ depends:
     - 802-project-contributing.md  # Contribution workflow
   optional:
     - 000-global-core.md  # Pre-Task-Completion Validation Gate
-    - AGENTS.md  # Agent workflow integration
 ---
 # Git Workflow Management
 

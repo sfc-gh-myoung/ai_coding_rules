@@ -4,7 +4,7 @@
 ![Version](https://img.shields.io/badge/version-3.8.0-blue)
 [![CI](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml/badge.svg)](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
-![Coverage](https://img.shields.io/badge/coverage-92%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-87%25-brightgreen)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/sfc-gh-myoung/ai_coding_rules)
 
@@ -14,7 +14,7 @@
 
 **What:** Universal AI coding rule system working with any assistant/IDE  
 **Works with:** Cursor, Claude Code, GitHub Copilot, VS Code, ChatGPT, and more  
-**Deploy:** 2 commands (`git clone` + `uv run ai-rules deploy --agents-dest <DIR>`)  
+**Install:** build the plugin, then install it with your assistant's plugin command  
 **Benefit:** production-ready rules, automatic discovery, zero vendor lock-in
 
 **Quick Checklist:**
@@ -85,7 +85,7 @@ git --version     # Should show Git version
 
 ## Quick Start
 
-**Get started in 2 commands:**
+**Get started in 3 steps:** clone, build the plugin, install it in your assistant.
 
 ### Clone this repository (choose one)
 
@@ -97,89 +97,82 @@ git clone https://github.com/sfc-gh-myoung/ai_coding_rules.git
 git clone git@github.com:sfc-gh-myoung/ai_coding_rules.git
 ```
 
-### Deploy rules
-
-#### Pick your AGENTS.md
-
-Choose which bootstrap protocol to deploy:
-
-| Mode | File | Best For |
-|------|------|----------|
-| **NO_MODE auto-execute** (default) | `AGENTS.md` | Solo developers, rapid iteration |
-| **With PLAN/ACT** (`--with-mode`) | `AGENTS.md` | Teams wanting review gates, safety-first workflows |
-
-**How PLAN/ACT mode works:** The AI presents a task list in PLAN mode and waits for you to type `ACT` before making any file modifications. This gives you a chance to review proposed changes before they happen.
-
-NO_MODE auto-execute is the default. For a PLAN/ACT workflow with review gates, add `--with-mode`:
-
-```bash
-uv run ai-rules deploy --agents-dest ~/my-project --with-mode
-```
-
-> **Rule path resolution:** When only `--agents-dest` is provided (no `--rules-dest`/`--skills-dest`), the generated `AGENTS.md` references the ai\_coding\_rules project's own `rules/` and `skills/` directories as **absolute paths**. No rules or skills are copied to the target project, but the target's `AGENTS.md` depends on this repository remaining at its current location. Pass `--rules-dest <PATH>` (and/or `--skills-dest <PATH>`) to copy rules/skills to a chosen absolute location and point `AGENTS.md` there — useful for shared or common rule directories.
-
-#### Deploy rules to your project directory
-
-Copies rules and skills directly into your project. Convenient for standalone projects.
+### Build the plugin
 
 ```bash
 cd ai_coding_rules
-uv sync --all-groups                     # Install dependencies
-uv run ai-rules deploy --agents-dest ~/my-project --rules-dest ~/my-project/rules --skills-dest ~/my-project/skills
+uv sync --all-groups                 # Install dependencies
+uv run ai-rules plugin build         # Assemble ai-coding-rules-plugin/
 ```
 
-**Trade-off:** Each project gets its own copy. When rules are updated, re-deploy to each project individually.
+The build assembles a self-contained plugin directory:
 
-#### Deploy rules to a common/shared directory
+| Component | Contents |
+|-----------|----------|
+| `skills/` | `rule-loader`, `show-rules` |
+| `rules/` | The rule library, read by the hook when it matches a prompt |
+| `hooks/` | `UserPromptSubmit` hook that performs discovery on every prompt |
+| `micro_kernel_content.md` | Compact foundation injected into each prompt |
+| `.cortex-plugin/plugin.json` | Manifest declaring the skills and the hook |
 
-Stores rules and skills in a shared location (`~/.ai-rules`), while each project gets its own `AGENTS.md` pointing to the shared location.
+Validate the build before installing:
 
 ```bash
-cd ai_coding_rules
-uv sync --all-groups                     # Install dependencies
-
-# First: Deploy rules and skills to the shared location (once)
-uv run ai-rules deploy --agents-dest ~/.ai-rules --rules-dest ~/.ai-rules/rules --skills-dest ~/.ai-rules/skills
-
-# Then: Point each project's AGENTS.md at the shared rules and skills
-uv run ai-rules deploy --agents-dest ~/project-a --rules-dest ~/.ai-rules/rules --skills-dest ~/.ai-rules/skills
-uv run ai-rules deploy --agents-dest ~/project-b --rules-dest ~/.ai-rules/rules --skills-dest ~/.ai-rules/skills
+cortex plugin validate ./ai-coding-rules-plugin
 ```
 
-**Trade-off:** Update `~/.ai-rules` once to update all projects. Each project only needs its own `AGENTS.md`.
+### Install the plugin
 
+Installation is product-specific — follow your assistant's plugin documentation:
+
+| Product | Reference |
+|---------|-----------|
+| CoCo CLI | [CoCo CLI plugins](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-plugins) |
+| CoCo Desktop | [CoCo Desktop plugins](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-desktop/plugins) |
+| Claude Code / Claude CoWork | [Claude plugins reference](https://code.claude.com/docs/en/plugins-reference) |
+
+**Example — CoCo CLI:**
+
+```bash
+# Install from the local build
+cortex plugin install ./ai-coding-rules-plugin
+
+# Or install straight from git
+cortex plugin install sfc-gh-myoung/ai_coding_rules
+
+# Confirm it registered and is active
+cortex plugin list
+```
+
+Use it without installing, for local development:
+
+```bash
+cortex --plugin-dir ./ai-coding-rules-plugin
+```
+
+Alternatively, place the built directory in `.cortex/plugins/` (CoCo) or
+`.claude/plugins/` (Claude Code) inside your project to load it automatically.
+
+> Already in a running session? Plugin changes are not picked up automatically.
+> Run `/plugin reload`, or restart the assistant.
 ### Use in your AI assistant
 
-The benefit of this project is that it uses AGENTS.md to start the rule loading process. AGENTS.md is
-automatically loaded by most agentic tools and IDEs. If you are having issues with your tool of choice
-not loading AGENTS.md, then you can add the following to your prompt:
+Once the plugin is installed, rule discovery is automatic. On every prompt the
+`UserPromptSubmit` hook scores your text against rule keywords, file extensions,
+and paths, then injects a `<system-reminder>` containing the micro-kernel
+foundation and the matched rule paths. The assistant reads the most relevant
+rules (up to the 3-rule cap) and applies them.
 
-```text
-Load AGENTS.md and follow guidance for rule loading via rules/RULES_INDEX.md.
-```
+There is nothing to load by hand and no per-project bootstrap file.
 
-**That's it!** Your project has rules ready to use.
-
-**What just happened?**
-
-| Approach | What gets copied |
-|----------|------------------|
-| **Project directory** | `rules/`, `skills/`, `AGENTS.md`, `rules/RULES_INDEX.md` to your project |
-| **Shared directory** | Rules/skills to `~/.ai-rules`; only `AGENTS.md` to each project (with paths pointing to shared location) |
-
-Ready to use immediately with any AI assistant or IDE.
+To see what was matched for a given prompt, invoke the bundled `$show-rules`
+skill — it prints the PRE-FLIGHT gates and the rules that were cited.
 
 **Next Steps:**
 
-- 📝 Consider creating a `PROJECT.md` for project-specific guidance
-- ✅ Deployment complete → [Configure Your AI](#ai-configuration)
-- 🤔 Want to understand how rules work → [Understanding Rules](#understanding-rules)
-- 🔧 Need different setup? → See [Additional Deployment Options](#additional-deployment-options)
-
-**Alternative Paths:**
-
-- 🛠️ **Modify or contribute** → See [For Rule Maintainers](#for-rule-maintainers-contributing-to-rules)
-
+- Consider creating a `PROJECT.md` for project-specific guidance
+- Understand how discovery works → [Understanding Rules](#understanding-rules)
+- Modify or contribute → [Contributing](#contributing)
 ## Document Map: What to Read First
 
 | File | Purpose | When to Read |
@@ -189,68 +182,22 @@ Ready to use immediately with any AI assistant or IDE.
 | **[CONTRIBUTING.md](CONTRIBUTING.md)** | Development guidelines, PR process | When contributing rules |
 | **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** | System architecture, design decisions | When understanding internals or extending |
 | **[docs/MEMORY_BANK.md](docs/MEMORY_BANK.md)** | Memory Bank system for long-running projects | When using Memory Bank (optional) |
-| **[docs/EVALUATING_RULE_LOADER.md](docs/EVALUATING_RULE_LOADER.md)** | Rule Loading Evaluator: live-agent sanity check (pre-commit) for rule discovery + dependency loading | When changing AGENTS.md, rules, or fixtures |
+| **[docs/EVALUATING_RULE_LOADER.md](docs/EVALUATING_RULE_LOADER.md)** | Rule Loading Evaluator: live-agent sanity check (pre-commit) for rule discovery + dependency loading | When changing rules, the hook, or fixtures |
 | **[CHANGELOG.md](CHANGELOG.md)** | Version history, changes | When checking updates |
 | **[docs/USING_DEV_CLI.md](docs/USING_DEV_CLI.md)** | Development command reference (`ai-rules dev`) | When running tasks |
 
-### Additional Deployment Options
-
-**Preview before deploying:**
-
-```bash
-uv run ai-rules deploy --agents-dest ~/my-project --rules-dest ~/my-project/rules --dry-run
-```
-
-**Deploy skills only (to agent config directories):**
-
-```bash
-uv run ai-rules deploy --skills-dest ~/.claude/skills --only-skills
-
-# Common locations:
-# Claude Code: ~/.claude/skills
-# Cortex Code: ~/.snowflake/cortex/skills
-```
-
-**Deploy rules only (skip skills):**
-
-```bash
-uv run ai-rules deploy --agents-dest ~/my-project --rules-dest ~/my-project/rules --skip-skills
-```
-
-**Skills exclusions:** Some internal-only skills are excluded from deployment (configured in `pyproject.toml`)
-
-### Plugin Installation
-
-For Cortex Code or Claude Code users who want rules active across all projects without per-project deploy:
-
-```bash
-# Build the plugin
-uv run ai-rules plugin build
-
-# Install (symlink into your plugin directory)
-ln -s "$(pwd)/ai-coding-rules-plugin" ~/.snowflake/cortex/plugins/ai-coding-rules
-# Or for Claude Code:
-ln -s "$(pwd)/ai-coding-rules-plugin" ~/.claude/plugins/ai-coding-rules
-```
-
-The plugin uses a `UserPromptSubmit` hook to automatically match and inject relevant rules on every prompt. No `AGENTS.md` deploy needed — rules activate everywhere. See [docs/ARCHITECTURE.md § 3.6](docs/ARCHITECTURE.md#36-the-plugin-ai-coding-rules-plugin) for details.
-
 ### Option: Git Submodule (Version Tracking)
 
-Track rule updates via git submodule:
+Track rule updates via git submodule, then rebuild the plugin after each pull:
 
 ```bash
-# From your project root (choose one)
-
-# GitHub:
+# From your project root
 git submodule add https://github.com/sfc-gh-myoung/ai_coding_rules.git .ai-rules
+cd .ai-rules && uv sync --all-groups && uv run ai-rules plugin build
 
-cd .ai-rules
-uv sync --all-groups
-uv run ai-rules deploy --agents-dest .. --rules-dest ../rules --skills-dest ../skills   # Deploy to parent project
-
-# Update rules later
-cd .ai-rules && git pull && uv run ai-rules deploy --agents-dest .. --rules-dest ../rules --skills-dest ../skills
+# Update later
+cd .ai-rules && git pull && uv run ai-rules plugin build
+cortex plugin update ai-coding-rules
 ```
 
 ## Understanding Rules
@@ -278,31 +225,31 @@ AI assistants automatically discover and load relevant rules based on your task 
 │                   Rule Discovery System                         │
 └─────────────────────────────────────────────────────────────────┘
 
-  User Task                    AI Agent Actions
-  ─────────                   ──────────────────
+  User Task                    Hook + Agent Actions
+  ─────────                   ──────────────────────
 
   📝 "Build a                 ┌──────────────────┐
-   Snowflake                  │ 1. Read          │
-   Streamlit                  │   AGENTS.md      │◄─── Loading Protocol
-   dashboard"                 │                  │     (MODE, validation)
+   Snowflake                  │ 1. Hook fires    │◄─── UserPromptSubmit
+   Streamlit                  │   on the prompt  │     (every prompt)
+   dashboard"                 │                  │
                               └────────┬─────────┘
                                        │
                               ┌────────▼─────────┐
-                               │ 2. Search        │
-                                │   rules/RULES_INDEX.md   │◄─── Keyword Match
-                              │                  │     ("Streamlit")
+                              │ 2. Score rules   │◄─── Keywords, file
+                              │   deterministic  │     extensions, paths
+                              │   matcher        │     ("Streamlit", .py)
                               └────────┬─────────┘
                                        │
                               ┌────────▼─────────┐
-                              │ 3. Load Rules    │
-                              │   (dependency    │◄─── Dependency Chain
-                              │    order)        │     (000→100→101)
+                              │ 3. Inject        │◄─── Micro-kernel +
+                              │   system-        │     candidate rule
+                              │   reminder       │     paths
                               └────────┬─────────┘
                                        │
                               ┌────────▼─────────┐
-                              │ 4. Apply Rules   │
-                              │   to Task        │◄─── Code Generation
-                              │                  │
+                              │ 4. Agent reads   │◄─── Up to 3 rules,
+                              │   and applies    │     plus required
+                              │   rules          │     dependencies
                               └──────────────────┘
 
 Example Loading Sequence:
@@ -317,10 +264,10 @@ Example Loading Sequence:
 **Step-by-step:**
 
 1. **You provide a task** → "Build a Snowflake Streamlit dashboard"
-2. **AI reads AGENTS.md** → Understands loading protocol (MODE, validation gates)
-3. **AI searches `rules/RULES_INDEX.md`** → Finds rules with "Streamlit" keyword
-4. **AI loads dependencies** → Follows dependency chain (000 → 100 → 101)
-5. **AI applies rules** → Generates code following loaded patterns
+2. **The hook fires** → `UserPromptSubmit` runs the deterministic matcher on your prompt
+3. **Rules are scored** → keywords, file extensions, and paths rank candidate rules
+4. **Context is injected** → a `<system-reminder>` carries the micro-kernel plus matched rule paths
+5. **AI loads and applies** → reads the most relevant rules (up to 3) and their required dependencies
 
 **Example keyword matching:**
 - "Streamlit" → loads `101-snowflake-streamlit-core.md`
@@ -330,7 +277,7 @@ Example Loading Sequence:
 > **💡 Pro Tip: Keywords Drive Discovery**
 >
 > The `Keywords` metadata in each rule enables semantic search. When you say "optimize Streamlit performance,"
-> the AI searches `rules/RULES_INDEX.md` for rules with keywords: "performance", "streamlit", "caching", "optimization".
+> the hook scores your prompt against rule keywords: "performance", "streamlit", "caching", "optimization".
 >
 > **This is why well-crafted prompts matter** - specific keywords help the AI load the most relevant rules.
 > See [prompts/README.md](prompts/README.md) for effective prompt patterns.
@@ -443,7 +390,7 @@ Loading Order (Follow Dependencies):
 
 **Step 4: Add specialized rules as needed**
 
-Use `rules/RULES_INDEX.md` to search for additional rules by keyword (testing, security, performance, etc.)
+Search for additional rules by keyword with `grep -ril "<keyword>" rules/` (testing, security, performance, etc.)
 
 ### Example Loading Sequences
 
@@ -521,7 +468,7 @@ You can use these skills in Cursor by telling Cursor to explicitly load the skil
 - Prompt: `Load skills/<skill_name>/SKILL.md`
 
 #### Claude Code
-You can use these skills in Claude Code by deploying the skills to the `.claude/skills` directory, either project or personal locations using the `uv run ai-rules deploy` command or via filesystem `cp` command.
+Install the plugin and these skills are registered automatically. Alternatively, copy a skill directory into `.claude/skills/` (project or personal), or tell Claude Code to load it explicitly.
 
 You can also use these skill by telling Claude Code to explicitly load the skill in your prompt.
 - Prompt: `Load skills/<skill_name>/SKILL.md`
@@ -547,7 +494,7 @@ These skills are intended for the ai_coding_rules project maintenance workflow:
 
 ## CLI Commands
 
-The `ai-rules` CLI provides 10 subcommands for rules management:
+The `ai-rules` CLI provides the following commands for rules management:
 
 ```bash
 # Show help and all available commands
@@ -557,15 +504,13 @@ uv run ai-rules --help
 | Command | Description |
 |---------|-------------|
 | `ai-rules validate` | Validate rule files against v3.5 schema |
-| `ai-rules index` | Generate and check `rules/RULES_INDEX.md` from rule metadata |
-| `ai-rules keywords` | Suggest/update keywords via Snowflake Cortex (AI_COMPLETE) |
-| `ai-rules deploy` | Deploy rules and skills to target projects |
 | `ai-rules tokens` | Validate/update TokenBudget metadata; `--context-estimate` reports total per-response context |
 | `ai-rules new` | Generate new rule file from v3.5 template |
 | `ai-rules badges` | Update README badges (version, tests, coverage) |
-| `ai-rules refs` | Validate rule references in `rules/RULES_INDEX.md` |
 | `ai-rules dev` | Development orchestration (replaces former Makefile) |
+| `ai-rules plugin` | Build the distributable `ai-coding-rules-plugin/` |
 | `ai-rules rule-loader` | Rule Loading Evaluator: live-agent sanity check |
+| `ai-rules rule-loader keywords` | Suggest/update keywords via Snowflake Cortex (AI_COMPLETE) |
 
 ## Development Commands
 
@@ -575,7 +520,7 @@ Run `uv run ai-rules --help` to see the top-level commands or `uv run ai-rules d
 uv run ai-rules dev quality all --fix    # Fix all code quality issues
 uv run ai-rules dev test run             # Run all pytest tests
 uv run ai-rules dev validate             # Run all CI/CD checks
-uv run ai-rules deploy --agents-dest ~ --rules-dest ~/rules    # Deploy rules to project
+uv run ai-rules plugin build             # Build the distributable plugin
 uv run ai-rules --debug dev validate     # Show Python tracebacks for CLI failures
 ```
 
@@ -598,7 +543,7 @@ The rules are organized by domain using a three-digit numbering system. Each cat
 | **Project Management** | 800-899 | 10 | Workflows | Git, changelog, README, contributing, CLI design, Taskfile, Makefile-rule-authoring |
 | **Analytics & Governance** | 900-999 | 5 | Business intelligence | Data science, data governance, business analytics, semantic views, dbt |
 
-**Searchable index:** See [rules/RULES_INDEX.md](rules/RULES_INDEX.md) for complete rule list with keywords, dependencies, and semantic search.
+**Browse rules:** see the [Rule Categories](#rule-categories) table above, or `grep -ril "<keyword>" rules/` to search by keyword.
 
 ## Directive Language Hierarchy
 
@@ -622,7 +567,7 @@ AI loads: 000-global-core → 100-snowflake-core → 101-snowflake-streamlit-cor
 **Search for rules by keyword:**
 
 ```bash
-grep -i "performance" rules/RULES_INDEX.md
+grep -ril "performance" rules/
 ```
 
 **Check rule dependencies:**
@@ -709,8 +654,8 @@ uv sync --all-groups
 2. **Try Direct CLI**
 
 ```bash
-# For deployment
-uv run ai-rules deploy --agents-dest ~/my-project --rules-dest ~/my-project/rules
+# Rebuild and validate the plugin
+uv run ai-rules plugin build && cortex plugin validate ./ai-coding-rules-plugin
 ```
 
 1. **Verify Project Structure**
@@ -761,32 +706,30 @@ pip install -e ".[dev]"
 
 ### IDE Not Recognizing Rules
 
-**Problem:** AI assistant not using deployed rules
+If an assistant is not applying rules, ask it explicitly:
 
-You can force the AI assistant to load rules with simple additions to your prompt.
-
-```
-Load AGENTS.md into the context.  Review rules/RULES_INDEX.md based on the keywords in my prompt and load appropriate rules.
+```text
+Run the rule-loader skill for my prompt and cite the rules you load.
 ```
 
 **For Universal Format (Claude, ChatGPT, Cursor, etc.):**
 
-1. **Verify Files Deployed**
+1. **Confirm the plugin is active**
 
 ```bash
-ls rules/*.md | wc -l
+cortex plugin list
 ```
 
-1. **Add to AI Context**
-   - **Claude Projects:** Upload `AGENTS.md`, `rules/RULES_INDEX.md`, and relevant `rules/*.md` files to project knowledge
+1. **Add rules to context (assistants without plugin support)**
+   - **Claude Projects:** upload the relevant `rules/*.md` files to project knowledge
    - **ChatGPT:** Add files to custom instructions or upload via file attachment
-   - **Cursor:** Rules automatically discovered from project root
+   - **Cursor:** install the plugin, or load a rule explicitly in your prompt
    - **Other LLMs:** Refer to specific tool documentation for context management
 
 2. **Test Rule Loading**
    - Ask: "What rules are available for Snowflake development?"
-   - AI should reference `rules/RULES_INDEX.md` and list rules
-   - If not working, verify `rules/RULES_INDEX.md` is in context
+   - AI should cite the matched rules under RULES_LOADED
+   - If not, run `/plugin reload` and confirm `cortex plugin list` shows the plugin active
 
 ### How to Verify Rules Are Working
 
@@ -794,7 +737,7 @@ ls rules/*.md | wc -l
 
 ```
 Prompt: "What rules are available for Snowflake development?"
-Expected: AI references `rules/RULES_INDEX.md` and lists 100-series rules
+Expected: AI cites 100-series Snowflake rules under RULES_LOADED
 ```
 
 **Test 2: Rule Application**
@@ -814,64 +757,64 @@ Expected: AI loads 000-global-core, 100-snowflake-core, 101-snowflake-streamlit-
 **Manual Verification:**
 
 ```bash
-# Verify files exist
-ls rules/*.md | wc -l
+# Verify the rule library is present in the built plugin
+ls ai-coding-rules-plugin/rules/*.md | wc -l
 
-# Check files in project root
-cat AGENTS.md | head -20
-cat rules/RULES_INDEX.md | head -20
-
-# Test keyword search
-grep -i "fastapi" rules/RULES_INDEX.md
-grep -i "snowflake" rules/RULES_INDEX.md
+# Confirm the manifest and hook shipped
+cat ai-coding-rules-plugin/.cortex-plugin/plugin.json
+ls ai-coding-rules-plugin/hooks/
 ```
 
-### Permission Errors During Deployment
+### Plugin Not Loading
 
-**Problem:** Permission denied when deploying rules
+**Problem:** The plugin is installed but rules are not being injected
 
 **Solutions:**
 
-1. **Check Current Directory Permissions**
+1. **Confirm the plugin is registered and active**
 
 ```bash
-# Verify you can write to current directory
-touch test.txt && rm test.txt
+cortex plugin list
 ```
 
-1. **Use Custom Destination**
+1. **Validate the manifest and components**
 
 ```bash
-# Deploy to home directory
-uv run ai-rules deploy --agents-dest ~/ai-coding-rules-output --rules-dest ~/ai-coding-rules-output/rules
-
-# Or use absolute path
-uv run ai-rules deploy --agents-dest /tmp/rules-output --rules-dest /tmp/rules-output/rules
+cortex plugin validate ./ai-coding-rules-plugin
 ```
 
-1. **Fix Repository Permissions**
+1. **Reload the plugin runtime**
 
-```bash
-# If cloned repository has wrong permissions
-chmod -R u+w .
-```
+Plugin changes are not picked up by running sessions. Run `/plugin reload` in the
+session, or restart the assistant.
+
+1. **Verify the hook prerequisites**
+
+The `UserPromptSubmit` hook is a shell script requiring `jq` and `python3` on
+`PATH`. Both must be available to the process running the assistant.
 
 ### Give Specific Rules
 
-While the ai_coding_rules system is designed to automatically load appropriate rules based on keywords and context, it's not a perfect system. As your conversation length and iterations increase, the overall utilization of your token count in the context window will increase. This does increase the likelihood that some of AGENTS.md is potentially lost from the context during compaction.
+While discovery is automatic, it is not perfect. As a conversation grows, more
+of the context window is consumed and injected rule content can be displaced
+during compaction.
 
-It is considered a best practice to include specific rule names in your prompt, particularly if you know they are relevant. If the agent does not show the list of rules you expect under RULES_LOADED, stop the agent and tell it to load additional rules or reevaluate which rules are loaded.
+It is good practice to name specific rules in your prompt when you know they are
+relevant. If the assistant does not cite the rules you expect, stop it and ask it
+to load the additional rules or re-run discovery.
 
-### MODE PLAN|ACT
+### Confirming which rules loaded
 
-Most of the LLMs and agentic tools will generally do a good job of following the MODE workflow established in AGENTS.md and rules/000-global-core.md. However, some LLMs have a tendency to stay in MODE: ACT even when they should fall back to MODE: PLAN. In such cases, stop the agent and tell it to resume MODE:PLAN. You can also explicitly add MODE:PLAN or MODE:ACT to any prompt to force the agent and LLM into the correct mode.
+If the assistant does not cite the rules you expect, invoke the `$show-rules`
+skill to print the PRE-FLIGHT gates for the current prompt. That shows which
+rules the hook matched and which the assistant actually read.
 
 ### Still Having Issues?
 
 **Get Help:**
 - **Check Issues:** [GitHub Issues](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)
 - **Review Validation:** Run `uv run ai-rules validate rules/` to check rule structure
-- **Enable Verbose Mode:** `uv run ai-rules deploy --agents-dest ~/path --verbose` for detailed output
+- **Validate the Plugin:** `cortex plugin validate ./ai-coding-rules-plugin` to surface manifest or component errors
 - **Check Logs:** Review terminal output for specific error messages
 
 **Common Fixes:**

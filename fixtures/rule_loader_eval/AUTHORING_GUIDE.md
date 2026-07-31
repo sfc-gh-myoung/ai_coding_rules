@@ -34,7 +34,7 @@ trigger_evidence:
 
 A fixture **passes** when:
 
-1. `rules/000-global-core.md` is loaded (the legacy AGENTS.md bootstrap loads it on every request and every fixture must declare it as required).
+1. `rules/000-global-core.md` is loaded (the foundation is injected on every request, and every fixture must declare it as required).
 2. Every rule in `required:` appears in the agent's loaded set.
 3. No rule in `forbidden:` appears in the loaded set.
 4. No `cited_without_read` (R1 fabrication: rule cited but no `read_file`).

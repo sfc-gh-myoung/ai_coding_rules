@@ -47,7 +47,7 @@ Before executing Phase 1:
 
 ## Outputs
 
-A `## Rules Loaded` section listing all selected rules with loading reasons, formatted per AGENTS.md Step 4.
+A `## Rules Loaded` section listing all selected rules with loading reasons, formatted per the rule-loading contract in `rules/000-global-core.md`.
 
 **Example output:**
 ```markdown
@@ -376,7 +376,7 @@ See `examples/` for complete walkthroughs:
 
 ## Related
 
-- **AGENTS.md** - Bootstrap protocol that invokes this loading logic (Steps 1-3)
+- **`hooks/user-prompt-submit`** - Plugin hook that runs this loading logic automatically
 - **rule frontmatter** - The agent discovery index (grep target). Generated from rule frontmatter.
 - **002h-claude-code-skills.md** - Skill authoring standards this skill follows
 - **003-context-engineering.md** - Token budget and attention management principles

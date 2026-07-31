@@ -473,7 +473,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://user:password@db:5432/fastapi_db
+      - DATABASE_URL=postgresql+asyncpg://user:${DB_PASSWORD}@db:5432/fastapi_db
       - REDIS_URL=redis://redis:6379
     depends_on:
       - db

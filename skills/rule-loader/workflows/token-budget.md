@@ -78,7 +78,7 @@ Deferred rules must be declared in the Rules Loaded section:
 - The budget ceiling (default 20,000) applies to the WHOLE per-response context,
   not just selected rules:
   `total = fixed_floor + index_match + sum(selected rules)`.
-- `fixed_floor` = AGENTS.md + 000-global-core.md + rule-loader/SKILL.md (always injected).
+- `fixed_floor` = injected micro-kernel + 000-global-core.md + rule-loader/SKILL.md (always injected).
 - Verify with: `ai-rules tokens --context-estimate --selected <rule> [--selected <rule> ...]`.
 - `required:` dependency closure is loaded in addition to — and does not count against — the 3 domain/activity-selection cap, and a `required:` parent is never deferred for token pressure. If loading a mandatory closure would exceed the 20,000-token R4 ceiling, defer LEAF/optional selections first; a still-over-budget mandatory closure is escalated (see Q3-resolution below), never silently trimmed.
 - If `total > ceiling`: defer Low, then Medium, then apply the rule cap before deferring any High/Critical rule.

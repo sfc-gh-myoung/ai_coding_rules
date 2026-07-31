@@ -174,7 +174,7 @@ This project follows industry standards for Git workflow:
 
 ## Project Structure
 
-The project uses a production-ready rules architecture. For complete details, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#directory-structure).
+The project uses a production-ready rules architecture. For complete details, see [docs/ARCHITECTURE.md → System Components](docs/ARCHITECTURE.md#3-system-components).
 
 **Key directories:**
 

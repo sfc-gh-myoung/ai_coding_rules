@@ -304,6 +304,29 @@ ai-coding-rules-plugin/
 4. **Single manifest.** `.cortex-plugin/plugin.json` is accepted by both Cortex Code and Claude Code — no need for separate `.claude-plugin/` directory.
 5. **Stdlib-only matcher.** `match_rules.py` requires no pip dependencies, enabling zero-install plugin distribution.
 
+**Vendored matcher, not a trampoline.**
+
+There are two ways to give the hook a matcher, and the choice matters:
+
+- **Trampoline (rejected).** Ship a thin shim that imports `ai_rules.match_rules`
+  from an installed package. This keeps one copy of the code, but it only works if
+  the interpreter that resolves at hook time has `ai_rules` importable. The hook runs
+  in whatever environment the IDE happens to provide, and the plugin is meant to work
+  on machines that have never installed this project — so the import would frequently
+  fail, and failure would be silent.
+- **Vendored (chosen).** Build step 1 copies `src/ai_rules/match_rules.py` into
+  `skills/rule-loader/scripts/`. The hook executes that copy directly with any
+  `python3` on `PATH`. No install, no virtualenv, no import path.
+
+The cost is a second copy of the file, which can drift from its source. That cost is
+paid down mechanically rather than by discipline: the build diffs the copy against
+the canonical source, `plugin verify` re-checks it, CI asserts
+`diff -q src/ai_rules/match_rules.py <build>/skills/rule-loader/scripts/match_rules.py`,
+and a unit test asserts the same. Drift therefore fails the build rather than
+silently shipping a stale matcher.
+
+The canonical source is `src/ai_rules/match_rules.py`. Never edit the vendored copy.
+
 **Why the plugin replaced per-project deployment:**
 
 An earlier design copied rules, skills, and a bootstrap file into each target
@@ -322,7 +345,7 @@ For build and install commands, see [README.md → Install the plugin](../README
 
 ## 4. Rule Loading Workflow
 
-AI assistants follow a two-phase loading process: auto-loading by the IDE/tool, then on-demand rule discovery via the bootstrap protocol.
+AI assistants follow a two-phase loading process: the hook injects the micro-kernel and matched rule paths on every prompt, then the agent reads the rules it selects on demand.
 
 ### 4.1 Loading Sequence
 
@@ -407,6 +430,41 @@ flowchart TD
 
 ### 4.5 Plugin Build and Install Flow
 
+`ai-rules plugin build` assembles the plugin tree from the source tree. The plugin
+directory is **generated output** — it is gitignored and must never be hand-edited,
+because every build recreates it. Edit the source and rebuild.
+
+The build performs seven steps, implemented in `src/ai_rules/commands/plugin.py`:
+
+| Step | Action | Source |
+|------|--------|--------|
+| 1 | Copy the matcher into the skill's `scripts/` | `src/ai_rules/match_rules.py` |
+| 2 | Copy the rule library | `rules/*.md` |
+| 3 | Copy the hook | `hooks/` |
+| 4 | Copy the `rule-loader` skill (`SKILL.md`, `workflows/`, `examples/`) | `skills/rule-loader/` |
+| 4b | Copy the `show-rules` skill (`SKILL.md` only) | `skills/show-rules/` |
+| 5 | Copy the micro-kernel content | `src/ai_rules/progressive_eval/micro_kernel_content.md` |
+| 6 | Generate the plugin manifest | written, not copied |
+| 7 | Validate that the copied matcher runs standalone | executes the script |
+| 7b | Validate the artifact contract | same check as `plugin verify` |
+
+**The artifact contract.** `plugin.py` declares what a correct build looks like and
+checks it in **both** directions:
+
+- `EXPECTED_ARTIFACTS` — eight named files that must be present.
+- `EXPECTED_TREES` — three directory prefixes (`rules`, and the rule-loader
+  `examples/` and `workflows/`) whose contents vary. Splitting static files from
+  dynamic trees is what keeps "add a rule" from requiring a code change.
+- `check_artifacts()` asserts every declared artifact exists **and** that every
+  emitted file is either declared or falls under a declared tree. The second
+  direction is the important one: it catches a copy step that silently stops
+  emitting something, which a presence-only check cannot.
+
+`ai-rules plugin verify` runs the same `check_artifacts()` the build does, so the
+two cannot disagree. CI additionally builds twice into separate directories and
+diffs them, proving the build is deterministic, and diffs the vendored matcher
+against its canonical source.
+
 ```mermaid
 flowchart TD
     Start([User: Build Plugin]) --> Command
@@ -415,14 +473,18 @@ flowchart TD
     Assemble --> CopySkills[skills/rule-loader, skills/show-rules]
     Assemble --> CopyHook[hooks/user-prompt-submit]
     Assemble --> CopyKernel[micro_kernel_content.md]
-    Assemble --> Manifest[.cortex-plugin/plugin.json]
-    Manifest --> Validate{cortex plugin validate}
-    Validate -->|Fail| Error[Error: Manifest or component invalid]
-    Validate -->|Pass| Install["cortex plugin install ./ai-coding-rules-plugin"]
+    Assemble --> CopyMatcher[match_rules.py into skill scripts/]
+    Assemble --> Manifest[.cortex-plugin/plugin.json generated]
+    Manifest --> Standalone{Matcher runs standalone?}
+    Standalone -->|Fail| Error[Error: matcher is not self-contained]
+    Standalone -->|Pass| Contract{check_artifacts: declared == emitted?}
+    Contract -->|Fail| Error2[Error: missing or undeclared artifact]
+    Contract -->|Pass| Install["cortex plugin install ./ai-coding-rules-plugin"]
     Install --> Registry[(~/.snowflake/cortex/plugins/registry.json)]
     Registry --> Active([Hook active on every prompt])
 
     Error --> End([Failed])
+    Error2 --> End
 ```
 
 ---

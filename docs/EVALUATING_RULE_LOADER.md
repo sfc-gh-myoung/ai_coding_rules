@@ -78,7 +78,7 @@ Each fixture `expected` block has four lists:
 | List | Semantics | Eval behavior |
 |---|---|---|
 | `required` | Rules the prompt directly targets. Trigger-evidence invariant is enforced here. | Missing = failure |
-| `dependencies` | Rules that should load because a `required` rule declares `Depends:` for them. The agent reads + cites them as part of its bootstrap. | Missing = failure (reported separately from `required` gaps) |
+| `dependencies` | Rules that should load because a `required` rule declares `Depends:` for them. The agent reads + cites them alongside the rules it selected. | Missing = failure (reported separately from `required` gaps) |
 | `optional` | Rules that may load; if read but not cited, the harness treats it as benign. Use for plausibly-related rules some agents explore. | Neither missing nor extra triggers a failure |
 | `forbidden` | Rules that must not appear in the loaded set. | Present = failure |
 

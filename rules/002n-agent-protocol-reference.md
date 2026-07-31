@@ -51,7 +51,7 @@ _None._
 
 - Load `rules/000-global-core.md` (foundation) before consulting this reference rule
 - Use `read_file` to read any rule file; never assume file contents
-- Cite foundation on Gate 1 (`— N lines`); list domain/activity rules as Gate 3 sub-bullets (or `none matched`) in the response
+- Cite foundation on Gate 1 (`— vX.Y.Z`); list domain/activity rules as Gate 3 sub-bullets (or `none matched`) in the response
 - Execute actual grep or read_file for Gate 2; never fabricate gate compliance
 
 ### Forbidden
@@ -154,12 +154,12 @@ Task complete.
 [Actual grep output: 102-snowflake-sql-core.md | tier:High | ~1400 | ...]
 
 PRE-FLIGHT:
-- [x] Gate 1: Foundation rules/000-global-core.md — N lines
+- [x] Gate 1: Foundation rules/000-global-core.md — vX.Y.Z
 - [x] Gate 2: rule frontmatter searched for: sql, streamlit
   (grep matched: 102-snowflake-sql-core.md, 101-snowflake-streamlit-core.md)
 - [x] Gate 3: +2 domain rules:
-  - rules/102-snowflake-sql-core.md (sql match) — N lines
-  - rules/101-snowflake-streamlit-core.md (streamlit match) — N lines
+  - rules/102-snowflake-sql-core.md (sql match) — vX.Y.Z
+  - rules/101-snowflake-streamlit-core.md (streamlit match) — vX.Y.Z
 ```
 
 ## Anti-Pattern: Symptom-Only Rule Loading
@@ -191,7 +191,7 @@ PRE-FLIGHT:
 2. Extract new keywords from current request
 3. Search `rules/rule frontmatter`
 4. Load matching rules before acting
-5. Cite foundation on Gate 1 with `— N lines`; list domain/activity rules as Gate 3 sub-bullets (or `none matched`) in response
+5. Cite foundation on Gate 1 with `— vX.Y.Z`; list domain/activity rules as Gate 3 sub-bullets (or `none matched`) in response
 
 ## Rule Loading Failures
 
@@ -297,10 +297,10 @@ itself (Gate 3 read-and-apply).
 [Actual grep output received and read]
 
 PRE-FLIGHT:
-- [x] Gate 1: Foundation rules/000-global-core.md — N lines
+- [x] Gate 1: Foundation rules/000-global-core.md — vX.Y.Z
 - [x] Gate 2: rule frontmatter searched for: sql, streamlit
 - [x] Gate 3: +1 domain rule:
-  - rules/102-snowflake-sql-core.md (sql match) — N lines
+  - rules/102-snowflake-sql-core.md (sql match) — vX.Y.Z
 ```
 
 ### Anti-Pattern: Skipping Validation Before Task Completion
@@ -369,10 +369,10 @@ Gate 3 failures:
 **Example - Partial Success:**
 ```markdown
 PRE-FLIGHT:
-- [x] Gate 1: Foundation rules/000-global-core.md — N lines
+- [x] Gate 1: Foundation rules/000-global-core.md — vX.Y.Z
 - [x] Gate 2: rule frontmatter searched for: python, sql
 - [x] Gate 3: +1 domain rule:
-  - rules/102-snowflake-sql-core.md (for .sql extension) — N lines
+  - rules/102-snowflake-sql-core.md (for .sql extension) — vX.Y.Z
   - ⚠️ Rule load failed: 200-python-core.md not found
 ```
 Note: Gate 3 shows `[x]` because SQL rule loaded successfully. Continue with available rules.
@@ -435,4 +435,4 @@ The Step 2B fallback runs ONLY when the rule-loader skill is unavailable. The su
 
 **Rule Loading Definition:** Loading = Read file + Apply guidance + Declare as Gate 3 sub-bullet. All three required. NEVER declare a rule loaded unless `read_file` returned successfully.
 
-**Citation format (for eval compatibility):** When listing rules as Gate 3 sub-bullets, prefer `<path> (<reason>) — N lines` where `N` is the `wc -l` output. Example: `- [x] Gate 1: Foundation rules/000-global-core.md — 267 lines`. The `— N lines` suffix enables citation-drift detection by the rule-loader evaluator.
+**Citation format (for eval compatibility):** When listing rules as Gate 3 sub-bullets, use `<path> (<reason>) — vX.Y.Z`, where `X.Y.Z` is the `rule_version` from that rule's YAML frontmatter. Example: `- [x] Gate 1: Foundation rules/000-global-core.md — v4.1.0`. The version suffix is what enables citation-drift detection by the rule-loader evaluator: it compares the cited version against the rule's actual frontmatter. Do NOT substitute a line count — the evaluator parses a line-count suffix as `version=None` and silently skips the drift check for that citation. See `src/ai_rules/rule_loader_eval/matcher.py` `validate_version_citations`.

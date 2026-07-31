@@ -87,13 +87,13 @@ The skill produces a manifest that the agent uses internally. When diagnostic ou
 
 ```markdown
 PRE-FLIGHT:
-- [x] Gate 1: Foundation rules/000-global-core.md — N lines
+- [x] Gate 1: Foundation rules/000-global-core.md — vX.Y.Z
 - [x] Gate 2: Searched: python, streamlit, test
 - [x] Gate 3: +4 domain rules:
-  - rules/200-python-core.md (file extension: .py) — N lines
-  - rules/100-snowflake-core.md (dependency of 101) — N lines
-  - rules/101-snowflake-streamlit-core.md (keyword: Streamlit) — N lines
-  - rules/206-python-pytest.md (keyword: test) — N lines
+  - rules/200-python-core.md (file extension: .py) — vX.Y.Z
+  - rules/100-snowflake-core.md (dependency of 101) — vX.Y.Z
+  - rules/101-snowflake-streamlit-core.md (keyword: Streamlit) — vX.Y.Z
+  - rules/206-python-pytest.md (keyword: test) — vX.Y.Z
   - [Deferred: 204-python-docs.md - Low tier, not required for task]
 
 Task Switch: FIRST

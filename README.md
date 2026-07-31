@@ -19,7 +19,7 @@
 
 **Quick Checklist:**
 - [ ] Prerequisites met? → [Prerequisites](#prerequisites)
-- [ ] Ready to deploy? → [Quick Start](#quick-start)
+- [ ] Ready to install? → [Quick Start](#quick-start)
 - [ ] Want to understand first? → [Understanding Rules](#understanding-rules)
 - [ ] Contributing rules? → [Contributing](#contributing)
 
@@ -118,7 +118,7 @@ The build assembles a self-contained plugin directory:
 Validate the build before installing:
 
 ```bash
-cortex plugin validate ./ai-coding-rules-plugin
+uv run ai-rules plugin verify
 ```
 
 ### Install the plugin
@@ -282,7 +282,7 @@ Example Loading Sequence:
 > **This is why well-crafted prompts matter** - specific keywords help the AI load the most relevant rules.
 > See [prompts/README.md](prompts/README.md) for effective prompt patterns.
 
-See [docs/ARCHITECTURE.md#discovery-system](docs/ARCHITECTURE.md#discovery-system) for complete technical details.
+See [docs/ARCHITECTURE.md → Rule Loading Workflow](docs/ARCHITECTURE.md#4-rule-loading-workflow) for complete technical details.
 
 ### Why Smaller, Focused Rules?
 
@@ -549,11 +549,11 @@ The rules are organized by domain using a three-digit numbering system. Each cat
 
 The rules use a structured directive language (Critical, Mandatory, Always, Requirement, Rule, Consider) with clear priority levels to guide AI agents and developers.
 
-**See [docs/ARCHITECTURE.md#directive-language-hierarchy](docs/ARCHITECTURE.md#directive-language-hierarchy) for complete hierarchy, informational directives, and usage examples.**
+**See [CONTRIBUTING.md → Directive Language](CONTRIBUTING.md#directive-language) for the canonical hierarchy, informational directives, and usage examples.**
 
 ## AI Configuration
 
-After deploying rules to your project, AI assistants automatically discover and load relevant rules based on your tasks. For complete details on the discovery protocol, see [docs/ARCHITECTURE.md#discovery-system](docs/ARCHITECTURE.md#discovery-system).
+Once the plugin is installed, AI assistants discover and load relevant rules automatically on every prompt — there is nothing to deploy per project. For complete details, see [docs/ARCHITECTURE.md → Rule Loading Workflow](docs/ARCHITECTURE.md#4-rule-loading-workflow).
 
 **Quick example:**
 
@@ -625,9 +625,9 @@ The Memory Bank is a structured documentation system that helps AI assistants ma
 
 ## Troubleshooting
 
-### Rules Directory Not Generated
+### Plugin Build Produces No Rules
 
-**Problem:** Rules directory doesn't exist after deployment
+**Problem:** `ai-coding-rules-plugin/rules/` is empty or missing after a build
 
 **Solutions:**
 
@@ -655,7 +655,7 @@ uv sync --all-groups
 
 ```bash
 # Rebuild and validate the plugin
-uv run ai-rules plugin build && cortex plugin validate ./ai-coding-rules-plugin
+uv run ai-rules plugin build && uv run ai-rules plugin verify
 ```
 
 1. **Verify Project Structure**
@@ -780,7 +780,7 @@ cortex plugin list
 1. **Validate the manifest and components**
 
 ```bash
-cortex plugin validate ./ai-coding-rules-plugin
+uv run ai-rules plugin verify
 ```
 
 1. **Reload the plugin runtime**
@@ -814,13 +814,19 @@ rules the hook matched and which the assistant actually read.
 **Get Help:**
 - **Check Issues:** [GitHub Issues](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)
 - **Review Validation:** Run `uv run ai-rules validate rules/` to check rule structure
-- **Validate the Plugin:** `cortex plugin validate ./ai-coding-rules-plugin` to surface manifest or component errors
+- **Verify the Plugin:** `uv run ai-rules plugin verify` to surface a missing or undeclared build artifact, or an unparseable manifest
 - **Check Logs:** Review terminal output for specific error messages
 
 **Common Fixes:**
 - Update uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - Clear cache: `uv run ai-rules dev clean cache`
 - Reinstall dependencies: `uv run ai-rules dev clean venv --force && uv run ai-rules dev env sync`
+
+## Author
+
+**Michael Young** — Snowflake
+- Email: michael.young@snowflake.com
+- GitHub: [@sfc-gh-myoung](https://github.com/sfc-gh-myoung)
 
 ## License
 

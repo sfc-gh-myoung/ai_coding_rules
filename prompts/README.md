@@ -51,7 +51,7 @@ The example files below show different shapes of well-formed prompts so you can 
 
 ## Operational prompts → skills
 
-The operational prompts have been converted into self-contained skills. Project-maintenance skills remain under `../skills/`; broadly reusable skills may live in the external portable-skills repository. The original prompt files are preserved under [`./archive/`](./archive/) for reference.
+The operational prompts have been converted into self-contained skills. Project-maintenance skills remain under `../skills/`; broadly reusable skills may live in the external portable-skills repository. The original prompt files were removed rather than archived in-tree — recover them from git history if needed.
 
 | Original prompt | Replacement skill | Notes |
 |---|---|---|
@@ -63,7 +63,7 @@ The operational prompts have been converted into self-contained skills. Project-
 | _(new)_ | Moved to the external portable-skills repository | Grouped multi-select staging with two-gate flow |
 | _(new orchestrator)_ | Moved to the external portable-skills repository | Combined staging, changelog, and commit workflows with atomic apply |
 
-Decisions captured in [`docs/adr/`](../docs/adr/) (ADRs 0001–0006). Shared vocabulary in [`docs/GLOSSARY.md`](../docs/GLOSSARY.md).
+Architectural rationale is captured in [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md#5-design-decisions); rule-authoring vocabulary lives in [`CONTRIBUTING.md`](../CONTRIBUTING.md#directive-language).
 
 ---
 
@@ -123,9 +123,9 @@ When a prompt from this folder is used, the agent's response should begin with t
 **Bootstrap:** rule Keywords metadata scanned (python, lint) — 3 rules loaded, 0 failed.
 
 **Rules Loaded**
-- rules/000-global-core.md (foundation) — N lines
-- rules/200-python-core.md (python file type) — N lines
-- rules/201-python-lint-format.md (activity: linting) — N lines
+- rules/000-global-core.md (foundation) — vX.Y.Z
+- rules/200-python-core.md (python file type) — vX.Y.Z
+- rules/201-python-lint-format.md (activity: linting) — vX.Y.Z
 
 Task Switch: FIRST
 

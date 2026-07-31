@@ -13,7 +13,6 @@ keywords:
 - kw:bind variables
 - kw:procedure body quoting
 - ext:.sql
-- kw:stored procedure
 token_budget: ~5700
 context_tier: High
 depends:

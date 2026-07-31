@@ -13,8 +13,6 @@ keywords:
 - kw:input output contracts
 - kw:third person description
 - dir:skills/
-- kw:skill
-- kw:claude code skill
 token_budget: ~5650
 context_tier: High
 depends:

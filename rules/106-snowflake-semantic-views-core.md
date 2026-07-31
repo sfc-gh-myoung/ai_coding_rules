@@ -12,7 +12,6 @@ keywords:
 - kw:mapping syntax alias.physical_column
 - kw:SHOW SEMANTIC DIMENSIONS
 - kw:semantic view
-- kw:semantic model
 token_budget: ~2550
 context_tier: High
 depends:

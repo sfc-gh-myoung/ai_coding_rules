@@ -11,10 +11,7 @@ keywords:
 - kw:service specification YAML
 - kw:platform events monitoring
 - kw:GPU workload configuration
-- kw:flask
-- kw:container services
 - kw:SPCS
-- kw:snowpark container
 token_budget: ~3550
 context_tier: High
 depends:

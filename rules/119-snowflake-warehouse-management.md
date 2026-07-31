@@ -12,7 +12,6 @@ keywords:
 - kw:warehouse type selection
 - kw:GEN 2 warehouse
 - kw:adaptive warehouse tuning
-- kw:etl
 - kw:warehouse
 token_budget: ~8900
 context_tier: High

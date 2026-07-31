@@ -11,11 +11,7 @@ keywords:
 - kw:fully qualified object names
 - kw:CLI templating reserved characters
 - kw:idempotent DDL patterns
-- kw:SQL data transformation
 - ext:.sql
-- kw:snowflake sql
-- kw:sql transformation
-- kw:data pipeline sql
 token_budget: ~4100
 context_tier: High
 depends:

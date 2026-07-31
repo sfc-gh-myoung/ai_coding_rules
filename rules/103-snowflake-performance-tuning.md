@@ -13,8 +13,6 @@ keywords:
 - kw:cluster-key-tuning
 - kw:slow query investigation
 - kw:snowsight
-- kw:query performance
-- kw:cost optimization
 token_budget: ~3200
 context_tier: High
 depends:

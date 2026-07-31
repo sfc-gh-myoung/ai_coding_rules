@@ -12,7 +12,6 @@ keywords:
 - kw:dict list annotations
 - kw:pathlib file operations
 - ext:.py
-- kw:python
 token_budget: ~3800
 context_tier: Critical
 depends:

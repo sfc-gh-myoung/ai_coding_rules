@@ -13,8 +13,6 @@ keywords:
 - kw:SEARCH_PREVIEW validation
 - kw:search index lifecycle
 - kw:ai_embed
-- kw:cortex search
-- kw:search service
 token_budget: ~3100
 context_tier: Medium
 depends:

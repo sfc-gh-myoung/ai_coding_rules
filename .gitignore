@@ -235,3 +235,7 @@ prompts/archive/
 # Generated plugin build output (ai-rules plugin build)
 # Source of truth is rules/, skills/, hooks/, src/. Regenerate on demand.
 ai-coding-rules-plugin/
+
+# Regenerable keyword-extraction cache, written into rules/ by
+# `ai-rules rule-loader keywords run`. Not an artifact; never commit it.
+rules/.keywords-cache.json

@@ -61,9 +61,9 @@ _DEFAULT_COUNT = 6
 class _KeywordsGroup(typer.core.TyperGroup):
     """Typer group that routes unknown positional args to the ``run`` subcommand.
 
-    Preserves the historical ``ai-rules keywords <path> [--flags]``
+    Preserves the positional ``ai-rules rule-loader keywords <path> [--flags]``
     invocation shape while enabling real subcommands like
-    ``ai-rules keywords collisions``.
+    ``ai-rules rule-loader keywords collisions``.
     """
 
     def resolve_command(self, ctx, args):

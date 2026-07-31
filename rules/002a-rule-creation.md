@@ -1,6 +1,6 @@
 ---
 schema_version: v3.5
-rule_version: v4.0.0
+rule_version: v4.1.0
 description: "Step-by-step workflow for creating new rules from scratch. Covers rule numbering, naming conventions, metadata setup, v3.5 section structure, Contract with Markdown headers, and validation. For"
 last_updated: 2026-07-15
 keywords:
@@ -85,7 +85,7 @@ Step-by-step workflow for creating new rules from scratch. Covers rule numbering
 6. Add Contract section with Contract subsections (### headers), NOT XML tags
 7. Use descriptive section names (not numbered: "Environment Setup" not "1. Environment Setup")
 8. Validate with `ai-rules validate` (must pass with 0 CRITICAL errors)
-9. Generate keywords by running `uv run ai-rules keywords generate --rule-path <path>`
+9. Generate keywords by running `uv run ai-rules rule-loader keywords run <path> --update`
 
 ### Output Format
 
@@ -112,7 +112,7 @@ Markdown file named `<NNN>[<letter>]-<technology>-<aspect>.md` with:
 - File named correctly (`<NNN>[<letter>]-<technology>-<aspect>.md`, single-letter suffix only)
 - All required metadata fields present and formatted correctly
 - All required sections present in v3.4 order
-- Keywords generated (`uv run ai-rules keywords generate --rule-path <path>`)
+- Keywords generated (`uv run ai-rules rule-loader keywords run <path> --update`)
 
 **Negative Tests:**
 - File named with spaces triggers error
@@ -157,7 +157,7 @@ Markdown file named `<NNN>[<letter>]-<technology>-<aspect>.md` with:
 
 **Final Validation:**
 - [ ] `uv run ai-rules validate rules/<your-rule>.md` returns 0 CRITICAL errors
-- [ ] Run `uv run ai-rules keywords generate --rule-path <path>` to populate keywords
+- [ ] Run `uv run ai-rules rule-loader keywords run <path> --update` to populate keywords
 
 ## Anti-Patterns and Common Mistakes
 
@@ -432,7 +432,7 @@ uv run ai-rules validate rules/<your-new-rule>.md --verbose
 After creating and validating the rule, generate keywords so the rule is discoverable by the deterministic matcher:
 
 ```bash
-uv run ai-rules keywords generate --rule-path rules/<your-rule>.md
+uv run ai-rules rule-loader keywords run rules/<your-rule>.md --update
 ```
 
 The keywords command reads the rule's frontmatter and content, then generates relevant keyword metadata. Verify the new rule's keywords appear in its frontmatter.

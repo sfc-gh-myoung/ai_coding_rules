@@ -19,7 +19,7 @@ After creating and validating a rule file, generate keyword metadata so the dete
 Run the keywords generation command:
 
 ```bash
-uv run ai-rules keywords generate --rule-path rules/422-daisyui-core.md
+uv run ai-rules rule-loader keywords run rules/422-daisyui-core.md --update
 ```
 
 This calls Cortex AI to analyze the rule content and generate 5-7 discovery keywords.
@@ -49,7 +49,7 @@ Confirm `422-daisyui-core.md` appears in the `load_sequence`.
 Optionally verify no keyword over-collision:
 
 ```bash
-uv run ai-rules keywords collisions --max-collision 3
+uv run ai-rules rule-loader keywords collisions --max-collision 3
 ```
 
 If the new rule's keywords appear in the `violations` list, consider more specific compound phrases.

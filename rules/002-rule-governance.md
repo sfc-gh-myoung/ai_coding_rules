@@ -1,6 +1,6 @@
 ---
 schema_version: v3.5
-rule_version: v4.0.3
+rule_version: v4.1.0
 description: "Schema standards (v3.3) for AI coding rule files. Defines required sections, metadata fields, Contract structure, and validation requirements. All rules must comply with schemas/rule-schema.yml v3.3"
 last_updated: 2026-07-15
 keywords:
@@ -137,7 +137,7 @@ Markdown file (.md) with:
 - [ ] `uv run ai-rules validate` runs with 0 CRITICAL errors
 - [ ] TokenBudget reflects actual file size (±10% acceptable)
 - [ ] Filename matches pattern `<NNN>[<letter>]-<technology>-<aspect>.md` (single-letter suffix only)
-- [ ] File added to rule frontmatter (run `uv run ai-rules keywords generate --rule-path <path>`) with keywords
+- [ ] File added to rule frontmatter (run `uv run ai-rules rule-loader keywords run <path> --update`) with keywords
 - [ ] Dependencies declared in Depends metadata
 - [ ] No emojis in rule file content
 
@@ -402,7 +402,7 @@ Every rule's `### Dependencies` section must conform to these limits (enforced b
 - **Inline style:** FORBIDDEN. Every entry must be a bullet (`- **filename.md** - justification`), not a comma-separated inline list.
 - **`**Depends:**` sync:** Every Must Load First entry must appear as `required:filename.md` in the `**Depends:**` metadata field. Every Related entry must appear as `optional:filename.md`. Order: all `required:` before all `optional:`.
 
-These limits are enforced by `uv run ai-rules validate rules/`, `uv run ai-rules keywords collisions`, and the wired CI gates in `tests/test_track_b_ci_gates.py`, and must pass before any rule PR is merged.
+These limits are enforced by `uv run ai-rules validate rules/`, `uv run ai-rules rule-loader keywords collisions`, and the wired CI gates in `tests/test_track_b_ci_gates.py`, and must pass before any rule PR is merged.
 
 ## CommonMark Compliance
 
@@ -496,7 +496,7 @@ LoadTrigger guidance governs how rules declare their dynamic discovery triggers 
 - Use 2–4 HARD typed triggers (`ext:`, `file:`, `dir:`) per rule, plus 5–7 `kw:` semantic tokens.
 - Use specific, descriptive keywords — avoid overly generic terms matching 5+ rules across different domain families
 - Distinguish useful synonyms (different search terms, e.g. `kw:mock, kw:faker`) from redundant variants (abbreviations of the same term — keep only one)
-- Regenerate the discovery index after any trigger change: `uv run ai-rules keywords generate --rule-path <path>`
+- Regenerate the discovery index after any trigger change: `uv run ai-rules rule-loader keywords run <path> --update`
 
 **Anti-patterns:**
 - Generic keywords (`kw:code`, `kw:file`) with 5+ matches across unrelated domains

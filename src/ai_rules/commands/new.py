@@ -408,8 +408,8 @@ Reference: Complete validation protocol in `000-global-core.md`
             f"✅ Created rule template: {output_path}\n"
             "\nNext steps:\n"
             f"1. Edit {output_path} and replace all placeholders with actual content\n"
-            f"2. Validate: python scripts/schema_validator.py {output_path}\n"
-            "3. Run: ai-rules keywords generate --rule-path " + "{output_path}"
+            f"2. Validate: ai-rules validate {output_path}\n"
+            f"3. Generate keywords: ai-rules rule-loader keywords run {output_path} --update"
         )
 
     @staticmethod
@@ -533,7 +533,10 @@ def new(
             f"  1. Edit [cyan]{output_path}[/cyan] and replace all placeholders with actual content"
         )
         console.print(f"  2. Validate: [cyan]ai-rules validate {output_path}[/cyan]")
-        console.print("  3. Run: [cyan]ai-rules keywords generate --rule-path {output_path}[/cyan]")
+        console.print(
+            f"  3. Generate keywords: [cyan]ai-rules rule-loader keywords run {output_path} "
+            "--update[/cyan]"
+        )
 
     except (ValueError, FileExistsError) as e:
         log_error(str(e))

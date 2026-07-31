@@ -389,6 +389,13 @@ class TestTemplateGeneratorDirect:
         assert "Created rule template" in msg
         assert "Next steps" in msg
         assert "100-test-rule.md" in msg
+        # Every step must interpolate the path, not print a literal placeholder.
+        # A missing f-prefix previously leaked "{output_path}" into step 3.
+        assert "{output_path}" not in msg
+        assert msg.count("100-test-rule.md") == 4  # header + 3 steps
+        # The recommended commands must be ones the CLI actually exposes.
+        assert "ai-rules validate" in msg
+        assert "ai-rules rule-loader keywords run" in msg
 
     def test_format_error_message(self):
         """Test format_error_message returns expected content."""

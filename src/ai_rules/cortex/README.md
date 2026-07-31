@@ -1,7 +1,7 @@
 # `ai_rules.cortex`
 
 A small functional client for Snowflake Cortex completions. Used by
-`ai-rules keywords` (and available to any future `ai-rules` command that
+`ai-rules rule-loader keywords` (and available to any future `ai-rules` command that
 needs LLM access).
 
 ## Public API

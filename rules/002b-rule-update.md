@@ -1,6 +1,6 @@
 ---
 schema_version: v3.5
-rule_version: v2.0.0
+rule_version: v2.1.0
 description: "Workflow and best practices for updating and maintaining existing rule files. Covers semantic versioning (MAJOR/MINOR/PATCH), LastUpdated field management, common update scenarios, and validation"
 last_updated: 2026-07-15
 keywords:
@@ -85,7 +85,7 @@ Workflow and best practices for updating and maintaining existing rule files. Co
 7. Update TokenBudget if file size changed by >50 lines or >10%
 8. Validate with `ai-rules validate` (must pass with 0 CRITICAL errors)
 9. Update CHANGELOG.md with change details
-10. Run `uv run ai-rules keywords generate --rule-path <path>` if keywords changed
+10. Run `uv run ai-rules rule-loader keywords run <path> --update` if keywords changed
 
 ### Output Format
 
@@ -123,7 +123,7 @@ Updated rule file with:
 - [ ] TokenBudget updated if file size changed
 - [ ] Schema validation passes (0 CRITICAL errors)
 - [ ] CHANGELOG.md updated with change details
-- [ ] Keywords updated (`uv run ai-rules keywords generate --rule-path <path>`)
+- [ ] Keywords updated (`uv run ai-rules rule-loader keywords run <path> --update`)
 - [ ] Git commit with conventional commit message
 
 ## Rule Versioning Policy
@@ -404,7 +404,7 @@ Add entry under `## [Unreleased]` section:
 make index-generate
 
 # Or directly:
-uv run ai-rules keywords generate --rule-path <path>
+uv run ai-rules rule-loader keywords run <path> --update
 ```
 
 ## Common Update Scenarios
@@ -418,7 +418,7 @@ All update scenarios follow the same core workflow:
 3. Update LastUpdated to current date
 4. Update TokenBudget if file size changed by >50 lines or >10%
 5. Run `ai-rules validate` (must pass with 0 CRITICAL errors)
-6. Add CHANGELOG.md entry, then regenerate rule frontmatter with `uv run ai-rules keywords generate --rule-path <path>`
+6. Add CHANGELOG.md entry, then regenerate rule frontmatter with `uv run ai-rules rule-loader keywords run <path> --update`
 
 ### Scenario Comparison
 

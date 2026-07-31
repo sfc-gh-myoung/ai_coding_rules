@@ -1,10 +1,12 @@
-"""Characterization tests for ai_rules.commands.keywords.
+"""Characterization tests for the keyword-generation subsystem.
 
-These tests capture current behavior before any refactoring begins (Phase 0).
-They serve as the primary regression guard throughout Phases 0.5-4.
+Behavioral coverage for stoplist loading, keyword collision mapping, cache
+round-tripping, and the extractor. Written as a regression guard for a
+refactor that has since completed.
 
-All imports use the public surface at ``ai_rules.commands.keywords`` so they
-remain valid after the shim is introduced in Phase 1 Step 11.
+Imports target the canonical package ``ai_rules.commands.rule_loader.keywords``.
+These previously routed through a backward-compatibility shim at
+``ai_rules.commands.keywords``, which has been removed.
 """
 
 from __future__ import annotations
@@ -15,7 +17,7 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from ai_rules.commands.keywords import (
+from ai_rules.commands.rule_loader.keywords import (
     ExtractionResult,
     KeywordExtractor,
     _content_hash,
@@ -103,7 +105,9 @@ class TestStoplistLoading:
 
     def test_stoplist_path_resolves_correctly(self):
         """Default stoplist path must resolve to an existing file."""
-        from ai_rules.commands.keywords import _DEFAULT_STOPLIST_PATH
+        from ai_rules.commands.rule_loader.keywords.stoplist import _get_repo_root
+
+        _DEFAULT_STOPLIST_PATH = _get_repo_root() / ".workbench" / "config" / "keyword_stoplist.txt"
 
         assert _DEFAULT_STOPLIST_PATH.exists(), (
             f"Stoplist file not found at {_DEFAULT_STOPLIST_PATH}"
@@ -130,7 +134,11 @@ class TestStoplistLoading:
 
     def test_override_path_resolves(self):
         """Default overrides path resolves under workbench config."""
-        from ai_rules.commands.keywords import _DEFAULT_STOPLIST_OVERRIDES_PATH
+        from ai_rules.commands.rule_loader.keywords.stoplist import _get_repo_root
+
+        _DEFAULT_STOPLIST_OVERRIDES_PATH = (
+            _get_repo_root() / ".workbench" / "config" / "keyword_stoplist_overrides.yml"
+        )
 
         # Path must exist (may be empty YAML)
         assert _DEFAULT_STOPLIST_OVERRIDES_PATH.exists(), (
@@ -307,7 +315,7 @@ class TestKeywordExtractor:
 
     def test_suggest_keywords_no_stop_terms(self, tmp_path):
         """Suggested keywords must not contain STOP_TERMS entries."""
-        from ai_rules.commands.keywords import STOP_TERMS
+        from ai_rules.commands.rule_loader.keywords.stoplist import STOP_TERMS
 
         rule_file = tmp_path / "test-rule.md"
         rule_file.write_text(FIXTURE_RULE_CONTENT, encoding="utf-8")
@@ -362,7 +370,7 @@ class TestKeywordExtractor:
 
 class TestNonRepoCWD:
     def test_import_keywords_from_tmp_cwd(self, tmp_path):
-        """Importing ai_rules.commands.keywords from a non-repo CWD must not crash.
+        """Importing the keywords package from a non-repo CWD must not crash.
 
         find_project_root() is CWD-based. This test verifies that a simple
         import (which triggers module-level code) does not raise an error
@@ -377,7 +385,7 @@ class TestNonRepoCWD:
                 sys.executable,
                 "-c",
                 "import os, sys; os.chdir(sys.argv[1]); "
-                "from ai_rules.commands.keywords import keywords_app; "
+                "from ai_rules.commands.rule_loader.keywords import keywords_app; "
                 "print('ok')",
                 str(tmp_path),
             ],
@@ -391,7 +399,7 @@ class TestNonRepoCWD:
 
 
 # ---------------------------------------------------------------------------
-# 6. Positional invocation form (ai-rules keywords rules/foo.md)
+# 6. Positional invocation form (keywords <path>)
 # ---------------------------------------------------------------------------
 
 
@@ -502,21 +510,31 @@ class TestFormattingHelpers:
 class TestPathConstants:
     def test_default_stoplist_path_under_workbench(self):
         """Default stoplist path resolves under .workbench/config/."""
-        from ai_rules.commands.keywords import _DEFAULT_STOPLIST_PATH
+        from ai_rules.commands.rule_loader.keywords.stoplist import _get_repo_root
+
+        _DEFAULT_STOPLIST_PATH = _get_repo_root() / ".workbench" / "config" / "keyword_stoplist.txt"
 
         assert ".workbench" in str(_DEFAULT_STOPLIST_PATH)
         assert "keyword_stoplist.txt" in str(_DEFAULT_STOPLIST_PATH)
 
     def test_default_overrides_path_under_workbench(self):
         """Default overrides path resolves under .workbench/config/."""
-        from ai_rules.commands.keywords import _DEFAULT_STOPLIST_OVERRIDES_PATH
+        from ai_rules.commands.rule_loader.keywords.stoplist import _get_repo_root
+
+        _DEFAULT_STOPLIST_OVERRIDES_PATH = (
+            _get_repo_root() / ".workbench" / "config" / "keyword_stoplist_overrides.yml"
+        )
 
         assert ".workbench" in str(_DEFAULT_STOPLIST_OVERRIDES_PATH)
         assert "keyword_stoplist_overrides" in str(_DEFAULT_STOPLIST_OVERRIDES_PATH)
 
     def test_default_exclude_list_path_under_workbench(self):
         """Default exclude list path resolves under .workbench/config/."""
-        from ai_rules.commands.keywords import _DEFAULT_EXCLUDE_LIST_PATH
+        from ai_rules.commands.rule_loader.keywords.collision import (
+            _get_default_exclude_list_path,
+        )
+
+        _DEFAULT_EXCLUDE_LIST_PATH = _get_default_exclude_list_path()
 
         assert ".workbench" in str(_DEFAULT_EXCLUDE_LIST_PATH)
         assert "exclude_list" in str(_DEFAULT_EXCLUDE_LIST_PATH)

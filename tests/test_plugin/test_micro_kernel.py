@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ai_rules.progressive_eval.micro_kernel import (
+from ai_rules.plugin.micro_kernel import (
     MICRO_KERNEL,
     MICRO_KERNEL_VERSION,
     get_micro_kernel,
@@ -18,7 +18,7 @@ from ai_rules.progressive_eval.micro_kernel import (
 )
 
 _REPO = Path(__file__).resolve().parents[2]
-_SRC_MD = _REPO / "src" / "ai_rules" / "progressive_eval" / "micro_kernel_content.md"
+_SRC_MD = _REPO / "src" / "ai_rules" / "plugin" / "micro_kernel_content.md"
 _PLUGIN_MD = _REPO / "ai-coding-rules-plugin" / "micro_kernel_content.md"
 
 

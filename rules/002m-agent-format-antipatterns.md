@@ -1,6 +1,6 @@
 ---
 schema_version: v3.5
-rule_version: v2.0.0
+rule_version: v2.1.0
 description: "The 9 formatting anti-patterns that prevent reliable agent execution, extracted from 002g-agent-optimization.md. Each anti-pattern includes the problem, a failing example, and the correct pattern."
 last_updated: 2026-07-15
 keywords:
@@ -34,6 +34,8 @@ The 9 formatting anti-patterns that prevent reliable agent execution, extracted 
 - Reviewing or auditing rule files for formatting violations
 - Need detailed examples of correct vs incorrect formatting
 - Referenced from 002g-agent-optimization.md for full anti-pattern details
+
+**Audience Scope:** These 9 anti-patterns apply to **agent-facing content only** — `rules/**`, `prompts/**`, skill instructions, and injected context. They do **NOT** apply to human-facing project documentation (`README.md`, `CONTRIBUTING.md`, `docs/**`), where ASCII diagrams, Mermaid, and directory trees are legitimate. See `002g-agent-optimization.md` "Audience Scope" for the canonical statement.
 
 ## References
 

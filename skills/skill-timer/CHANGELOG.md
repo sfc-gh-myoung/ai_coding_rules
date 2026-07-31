@@ -55,7 +55,7 @@ This release combines the 2026-05-14 skill rename (`skill-timing` → `skill-tim
 - `cmd_checkpoint` records `elapsed_seconds_raw` (full-precision monotonic delta) and `epoch` (wall-clock) in addition to the existing rounded `elapsed_seconds`.
 - `cmd_end` computes `duration_seconds_monotonic` and emits `clock_source: "monotonic" | "wall"`. `duration_seconds` is monotonic when both endpoints recorded in the same process.
 - Distribution-validator thresholds and per-skill floors configurable via `reviews/.timing-thresholds.json`.
-- Renamed `## Core Operations` heading to `## Workflow` (canonical per [ADR 0007](../../docs/adr/0007-skill-style-guide.md)). Audit finding ST-1.
+- Renamed `## Core Operations` heading to `## Workflow` (canonical per the then-current skill style guide). Audit finding ST-1.
 - Reordered sections so `## Purpose` precedes `## Quick Start` (canonical order). Audit finding ST-2.
 - Description rewritten to include explicit trigger phrases per 002h §5.
 

@@ -137,7 +137,7 @@ def build_prompt(fixture_prompt: str, rules_index_path: Path) -> str:
         match_rules,
         resolve_dependencies,
     )
-    from ai_rules.progressive_eval.micro_kernel import get_micro_kernel
+    from ai_rules.plugin.micro_kernel import get_micro_kernel
 
     # Production-identical matching (same as hooks/user-prompt-submit)
     db = load_rules_db(rules_index_path)

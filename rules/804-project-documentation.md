@@ -1,6 +1,6 @@
 ---
 schema_version: v3.5
-rule_version: v2.0.0
+rule_version: v2.1.0
 description: "Universal best practices for organizing project documentation files, including file placement conventions, extended documentation types, cross-reference management, and GitHub community health file"
 last_updated: 2026-07-15
 keywords:
@@ -52,7 +52,7 @@ Universal best practices for organizing project documentation files, including f
 
 ### Mandatory
 - MUST keep community health files (README.md, CONTRIBUTING.md, LICENSE, CODE_OF_CONDUCT.md, SECURITY.md) in repository root
-- MUST place extended documentation (ARCHITECTURE.md, DEPLOYMENT.md, ADRs) in docs/ folder
+- MUST place extended documentation (ARCHITECTURE.md, DEPLOYMENT.md) in docs/ folder
 - MUST validate all cross-references when moving or renaming documentation files
 - MUST use relative paths for internal documentation links
 
@@ -236,7 +236,11 @@ When moving a documentation file:
 
 ### Architectural Decision Records (ADRs)
 
-**Location:** `docs/adr/`
+**Optional.** ADRs are opt-in per project. Do not create `docs/adr/` unless the
+project has decided to keep ADRs — an empty or absent directory is the correct
+state otherwise, and rules must not require a directory a project will not have.
+
+**Location (when used):** `docs/adr/`
 **Audience:** Contributors, future maintainers
 **Purpose:** Document significant technical decisions and their rationale
 

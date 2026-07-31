@@ -302,30 +302,7 @@ ai-coding-rules-plugin/
 2. **Micro-kernel over full foundation.** The micro-kernel is a compact compression of `000-global-core.md` covering only mandatory behaviors. Full rules are still read on demand.
 3. **PRE-FLIGHT is on-demand.** The plugin does not require PRE-FLIGHT output by default. Use `$show-rules` for diagnostics.
 4. **Single manifest.** `.cortex-plugin/plugin.json` is accepted by both Cortex Code and Claude Code — no need for separate `.claude-plugin/` directory.
-5. **Stdlib-only matcher.** `match_rules.py` requires no pip dependencies, enabling zero-install plugin distribution.
-
-**Vendored matcher, not a trampoline.**
-
-There are two ways to give the hook a matcher, and the choice matters:
-
-- **Trampoline (rejected).** Ship a thin shim that imports `ai_rules.match_rules`
-  from an installed package. This keeps one copy of the code, but it only works if
-  the interpreter that resolves at hook time has `ai_rules` importable. The hook runs
-  in whatever environment the IDE happens to provide, and the plugin is meant to work
-  on machines that have never installed this project — so the import would frequently
-  fail, and failure would be silent.
-- **Vendored (chosen).** Build step 1 copies `src/ai_rules/match_rules.py` into
-  `skills/rule-loader/scripts/`. The hook executes that copy directly with any
-  `python3` on `PATH`. No install, no virtualenv, no import path.
-
-The cost is a second copy of the file, which can drift from its source. That cost is
-paid down mechanically rather than by discipline: the build diffs the copy against
-the canonical source, `plugin verify` re-checks it, CI asserts
-`diff -q src/ai_rules/match_rules.py <build>/skills/rule-loader/scripts/match_rules.py`,
-and a unit test asserts the same. Drift therefore fails the build rather than
-silently shipping a stale matcher.
-
-The canonical source is `src/ai_rules/match_rules.py`. Never edit the vendored copy.
+5. **Stdlib-only matcher.** `match_rules.py` requires no pip dependencies, enabling zero-install plugin distribution. It is **vendored** into the plugin by the build rather than imported from an installed package — see [4.5 Plugin Build and Install Flow](#45-plugin-build-and-install-flow) for why, and how copy drift is caught.
 
 **Why the plugin replaced per-project deployment:**
 
@@ -443,7 +420,7 @@ The build performs seven steps, implemented in `src/ai_rules/commands/plugin.py`
 | 3 | Copy the hook | `hooks/` |
 | 4 | Copy the `rule-loader` skill (`SKILL.md`, `workflows/`, `examples/`) | `skills/rule-loader/` |
 | 4b | Copy the `show-rules` skill (`SKILL.md` only) | `skills/show-rules/` |
-| 5 | Copy the micro-kernel content | `src/ai_rules/progressive_eval/micro_kernel_content.md` |
+| 5 | Copy the micro-kernel content | `src/ai_rules/plugin/micro_kernel_content.md` |
 | 6 | Generate the plugin manifest | written, not copied |
 | 7 | Validate that the copied matcher runs standalone | executes the script |
 | 7b | Validate the artifact contract | same check as `plugin verify` |
@@ -464,6 +441,38 @@ checks it in **both** directions:
 two cannot disagree. CI additionally builds twice into separate directories and
 diffs them, proving the build is deterministic, and diffs the vendored matcher
 against its canonical source.
+
+**The manifest contract.** `check_manifest()` validates the generated
+`.cortex-plugin/plugin.json`: required keys present and non-empty, hook events
+recognised, each hook entry shaped correctly, and every referenced hook command
+actually present and executable in the build. The Cortex CLI has **no**
+`plugin validate` subcommand, so without this a malformed manifest would surface
+only at install time on a consumer's machine. `check_artifacts()` calls it, so
+both `build` and `verify` enforce it.
+
+**Vendored matcher, not a trampoline.**
+
+There are two ways to give the hook a matcher, and the choice matters:
+
+- **Trampoline (rejected).** Ship a thin shim that imports `ai_rules.match_rules`
+  from an installed package. This keeps one copy of the code, but it only works if
+  the interpreter that resolves at hook time has `ai_rules` importable. The hook runs
+  in whatever environment the IDE happens to provide, and the plugin is meant to work
+  on machines that have never installed this project — so the import would frequently
+  fail, and failure would be silent.
+- **Vendored (chosen).** Build step 1 copies `src/ai_rules/match_rules.py` into
+  `skills/rule-loader/scripts/`. The hook executes that copy directly with any
+  `python3` on `PATH`. No install, no virtualenv, no import path.
+
+The cost is a second copy of the file, which can drift from its source. That cost is
+paid down mechanically rather than by discipline: the build diffs the copy against
+the canonical source, `plugin verify` re-checks it, CI asserts
+`diff -q src/ai_rules/match_rules.py <build>/skills/rule-loader/scripts/match_rules.py`,
+and a unit test asserts the same. Drift therefore fails the build rather than
+silently shipping a stale matcher.
+
+The canonical source is `src/ai_rules/match_rules.py`. Never edit the vendored copy.
+
 
 ```mermaid
 flowchart TD

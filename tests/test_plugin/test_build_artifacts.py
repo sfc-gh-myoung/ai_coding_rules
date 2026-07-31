@@ -17,7 +17,9 @@ from typer.testing import CliRunner
 from ai_rules.commands.plugin import (
     EXPECTED_ARTIFACTS,
     EXPECTED_TREES,
+    REQUIRED_MANIFEST_KEYS,
     check_artifacts,
+    check_manifest,
     plugin_app,
 )
 
@@ -177,3 +179,129 @@ def test_vendored_matcher_matches_canonical_source(built_plugin: Path) -> None:
     vendored = built_plugin / "skills" / "rule-loader" / "scripts" / "match_rules.py"
     canonical = REPO_ROOT / "src" / "ai_rules" / "match_rules.py"
     assert vendored.read_bytes() == canonical.read_bytes()
+
+
+# ---------------------------------------------------------------------------
+# Manifest contract (check_manifest)
+#
+# The Cortex CLI has no `plugin validate` subcommand, so a malformed manifest
+# would otherwise surface only at install time on a consumer's machine. Every
+# test below pairs a clean-build assertion with a positive control that breaks
+# the manifest deliberately -- a validator that cannot fail gates nothing.
+# ---------------------------------------------------------------------------
+
+
+def _manifest_path(plugin_dir: Path) -> Path:
+    return plugin_dir / ".cortex-plugin" / "plugin.json"
+
+
+def _rewrite_manifest(plugin_dir: Path, mutate) -> None:
+    """Load, mutate, and write back the manifest in place."""
+    path = _manifest_path(plugin_dir)
+    data = json.loads(path.read_text(encoding="utf-8"))
+    mutate(data)
+    path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
+def test_manifest_is_valid_on_clean_build(built_plugin: Path) -> None:
+    """A freshly built manifest satisfies the contract."""
+    assert check_manifest(built_plugin) == []
+
+
+@pytest.mark.parametrize("key", REQUIRED_MANIFEST_KEYS)
+def test_manifest_missing_required_key_is_flagged(tmp_path: Path, key: str) -> None:
+    """Each required key is genuinely required, not merely documented."""
+    out = tmp_path / "p"
+    assert runner.invoke(plugin_app, ["build", "--plugin-dir", str(out)]).exit_code == 0
+
+    _rewrite_manifest(out, lambda d: d.pop(key))
+
+    problems = check_manifest(out)
+    assert any(key in p for p in problems), problems
+
+
+def test_manifest_empty_required_key_is_flagged(tmp_path: Path) -> None:
+    """A present-but-empty key is as broken as a missing one."""
+    out = tmp_path / "p"
+    assert runner.invoke(plugin_app, ["build", "--plugin-dir", str(out)]).exit_code == 0
+
+    _rewrite_manifest(out, lambda d: d.update(name=""))
+
+    assert any("empty" in p and "name" in p for p in check_manifest(out))
+
+
+def test_manifest_unknown_hook_event_is_flagged(tmp_path: Path) -> None:
+    """A typo'd event name is silently ignored at runtime, so catch it here."""
+    out = tmp_path / "p"
+    assert runner.invoke(plugin_app, ["build", "--plugin-dir", str(out)]).exit_code == 0
+
+    def mutate(d: dict) -> None:
+        d["hooks"] = {"UserPromptSubmitt": d["hooks"]["UserPromptSubmit"]}
+
+    _rewrite_manifest(out, mutate)
+
+    assert any("unknown hook event" in p for p in check_manifest(out))
+
+
+def test_manifest_missing_hook_command_is_flagged(tmp_path: Path) -> None:
+    """A manifest pointing at a script the build never emitted must fail.
+
+    This is the check that catches a renamed or unshipped hook.
+    """
+    out = tmp_path / "p"
+    assert runner.invoke(plugin_app, ["build", "--plugin-dir", str(out)]).exit_code == 0
+
+    def mutate(d: dict) -> None:
+        d["hooks"]["UserPromptSubmit"][0]["hooks"][0]["command"] = (
+            "${CLAUDE_PLUGIN_ROOT}/hooks/does-not-exist"
+        )
+
+    _rewrite_manifest(out, mutate)
+
+    assert any("does not exist in the build" in p for p in check_manifest(out))
+
+
+def test_manifest_non_executable_hook_command_is_flagged(tmp_path: Path) -> None:
+    """A hook that ships without the execute bit would fail at runtime."""
+    out = tmp_path / "p"
+    assert runner.invoke(plugin_app, ["build", "--plugin-dir", str(out)]).exit_code == 0
+
+    hook = out / "hooks" / "user-prompt-submit"
+    hook.chmod(0o644)
+
+    assert any("not executable" in p for p in check_manifest(out))
+
+
+def test_manifest_bad_hook_entry_type_is_flagged(tmp_path: Path) -> None:
+    """Hook entries must declare type 'command'."""
+    out = tmp_path / "p"
+    assert runner.invoke(plugin_app, ["build", "--plugin-dir", str(out)]).exit_code == 0
+
+    def mutate(d: dict) -> None:
+        d["hooks"]["UserPromptSubmit"][0]["hooks"][0]["type"] = "inline"
+
+    _rewrite_manifest(out, mutate)
+
+    assert any("type must be 'command'" in p for p in check_manifest(out))
+
+
+def test_manifest_wrong_types_are_flagged(tmp_path: Path) -> None:
+    """The skills key must be a list and hooks must be an object."""
+    out = tmp_path / "p"
+    assert runner.invoke(plugin_app, ["build", "--plugin-dir", str(out)]).exit_code == 0
+
+    _rewrite_manifest(out, lambda d: d.update(skills="./skills"))
+
+    assert any("'skills' must be a list" in p for p in check_manifest(out))
+
+
+def test_verify_command_fails_on_broken_manifest(tmp_path: Path) -> None:
+    """check_manifest is wired into verify, not merely available."""
+    out = tmp_path / "p"
+    assert runner.invoke(plugin_app, ["build", "--plugin-dir", str(out)]).exit_code == 0
+
+    _rewrite_manifest(out, lambda d: d.pop("hooks"))
+
+    result = runner.invoke(plugin_app, ["verify", "--plugin-dir", str(out)])
+    assert result.exit_code == 1
+    assert "hooks" in result.output

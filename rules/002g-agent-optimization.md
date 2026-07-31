@@ -1,6 +1,6 @@
 ---
 schema_version: v3.5
-rule_version: v4.0.0
+rule_version: v4.1.0
 description: "The PRIMARY design priority for all rules: agent understanding and execution reliability. All rules are instruction sets for autonomous agents, not reference documents for humans."
 last_updated: 2026-07-15
 keywords:
@@ -47,6 +47,19 @@ See `002-rule-governance.md` "Key Principles" for canonical definitions.
 - Resolving conflicts between human-friendly vs agent-parseable formats
 
 **Rule:** When human-friendly formatting conflicts with agent parsing, **agent parsing wins**.
+
+### Audience Scope (applies to this rule and 002m)
+
+**Critical:** These formatting constraints apply **ONLY** to agent-facing content:
+
+- **IN scope:** `rules/**`, `prompts/**`, skill instruction files, and any content injected into an agent's context (for example the micro-kernel).
+- **OUT of scope:** project documentation written for humans — `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, and everything under `docs/**`.
+
+**Rule:** Do NOT apply agent-optimization formatting constraints to human-facing project documentation, and do NOT apply human-readability conventions to rules. ASCII diagrams, Mermaid diagrams, directory trees, arrow characters, and horizontal rules are **legitimate and often preferable** in human documentation. Flagging them there is a false positive.
+
+**Why:** The two audiences have opposed needs. Agents parse text sequentially and gain nothing from a rendered diagram; humans navigate visually and benefit from one. A rule that conflates the two degrades whichever audience it was not written for. Markdown linting rules that are purely mechanical (line length, list style — see `202a-markdown-linting.md`) are audience-neutral and DO apply to both.
+
+**Enforcement note:** `ai-rules validate` applies these checks to `rules/` and to the micro-kernel only. It does not scan `docs/**`, and it must not be extended to do so.
 
 ## References
 

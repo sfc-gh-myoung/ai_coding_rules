@@ -1,6 +1,6 @@
 ---
 schema_version: v3.5
-rule_version: v2.0.0
+rule_version: v2.1.0
 description: "Where short-life, in-progress, or scratch project assets live in the repository. Establishes .workbench/ at the repo root as the single canonical home for workbench artifacts so long-lived"
 last_updated: 2026-07-15
 keywords:
@@ -39,7 +39,6 @@ Where short-life, in-progress, or scratch project assets live in the repository.
 
 - Canonical project scripts (migration runners kept for reproducibility, security-scan pre-commit hooks, CI helpers)
 - Committed plans that represent a project deliverable (once a plan lands, it is promoted out of `.workbench/plans/` to `docs/plans/`)
-- Architectural Decision Records — ADRs live under `docs/adr/` from creation
 - Frozen baselines that ship as canonical references alongside a batch commit — those are promoted out of `.workbench/benchmarks/` to `docs/benchmarks/` at landing time
 
 **When to Load This Rule:**

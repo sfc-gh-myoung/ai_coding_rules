@@ -11,7 +11,7 @@ Per [skills audit 2026-06-21](../../docs/audits/skills-audit-2026-06-21.md) find
 - `rubrics/scoring.md` — extracted scoring system (formula, weights, hard caps, example calculation). Finding RR-2.
 - `workflows/execution-discipline.md` — extracted forbidden/required behaviors, self-correction triggers, pre-execution commitment. Finding RR-3.
 - `workflows/validation-checklists.md` — extracted pre/during/post checks plus expected review size validation. Finding RR-4.
-- `references/gate-8.md` — extracted Gate 8 verbatim contract (mirrored across reviewer skills per [ADR 0007](../../docs/adr/0007-skill-style-guide.md)). Cross-cutting finding C-GATE8.
+- `references/gate-8.md` — extracted Gate 8 verbatim contract (mirrored across reviewer skills per the then-current skill style guide). Cross-cutting finding C-GATE8.
 
 ### Changed
 

@@ -1877,7 +1877,7 @@ class TestValidateKernelContent:
 
         This is the regression guard for the defect where the kernel was assumed
         to sit at the project root. It does not: it lives under
-        src/ai_rules/progressive_eval/. A validator aimed at a missing path
+        src/ai_rules/plugin/. A validator aimed at a missing path
         returns clean forever and gates nothing.
         """
         validator = validate_module.SchemaValidator(project_root=PROJECT_ROOT)

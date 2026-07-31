@@ -60,7 +60,7 @@ fi
 # Inject micro-kernel + matched rules as system-reminder
 MICRO_KERNEL_FILE="${PLUGIN_ROOT}/micro_kernel_content.md"
 if [ ! -f "$MICRO_KERNEL_FILE" ]; then
-    MICRO_KERNEL_FILE="${PLUGIN_ROOT}/src/ai_rules/progressive_eval/micro_kernel_content.md"
+    MICRO_KERNEL_FILE="${PLUGIN_ROOT}/src/ai_rules/plugin/micro_kernel_content.md"
 fi
 
 echo "<system-reminder>"

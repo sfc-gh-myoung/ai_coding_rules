@@ -33,7 +33,7 @@ from ai_rules._shared.paths import find_project_root, get_schemas_dir
 # This is the real source the plugin build copies from (see commands/plugin.py);
 # it does NOT live at the project root. Pointing the validator at a non-existent
 # path would make it silently pass on every run.
-KERNEL_CONTENT_RELPATH = Path("src/ai_rules/progressive_eval/micro_kernel_content.md")
+KERNEL_CONTENT_RELPATH = Path("src/ai_rules/plugin/micro_kernel_content.md")
 KERNEL_CONTENT_FILENAME = KERNEL_CONTENT_RELPATH.name
 
 
@@ -1320,7 +1320,7 @@ class SchemaValidator:
         - Horizontal rule separators (---) as visual dividers
 
         These patterns are problematic for LLM sequential text processing.
-        See 002e-agent-optimization.md for alternatives.
+        See 002m-agent-format-antipatterns.md for alternatives.
 
         Skips:
         - Content inside code blocks (``` ... ```)
@@ -1363,8 +1363,8 @@ class SchemaValidator:
                         error_group="Priority 1",
                         line_num=i,
                         line_preview=line.strip()[:80],
-                        fix_suggestion="Replace with nested conditional lists. See 002e-agent-optimization.md Anti-Pattern 7",
-                        docs_reference="002e-agent-optimization.md",
+                        fix_suggestion="Replace with nested conditional lists. See 002m-agent-format-antipatterns.md Anti-Pattern 7",
+                        docs_reference="002m-agent-format-antipatterns.md",
                     )
                 )
 
@@ -1377,8 +1377,8 @@ class SchemaValidator:
                         error_group="Priority 1",
                         line_num=i,
                         line_preview=line.strip()[:80],
-                        fix_suggestion="Replace with structured lists. See 002e-agent-optimization.md Anti-Pattern 1",
-                        docs_reference="002e-agent-optimization.md",
+                        fix_suggestion="Replace with structured lists. See 002m-agent-format-antipatterns.md Anti-Pattern 1",
+                        docs_reference="002m-agent-format-antipatterns.md",
                     )
                 )
 
@@ -1391,8 +1391,8 @@ class SchemaValidator:
                         error_group="Priority 1",
                         line_num=i,
                         line_preview=line.strip()[:80],
-                        fix_suggestion="Replace with text alternatives (then, to, becomes). See 002e-agent-optimization.md Anti-Pattern 6",
-                        docs_reference="002e-agent-optimization.md",
+                        fix_suggestion="Replace with text alternatives (then, to, becomes). See 002m-agent-format-antipatterns.md Anti-Pattern 6",
+                        docs_reference="002m-agent-format-antipatterns.md",
                     )
                 )
 
@@ -1407,8 +1407,8 @@ class SchemaValidator:
                         error_group="Priority 2",
                         line_num=i,
                         line_preview=line.strip()[:80],
-                        fix_suggestion="Use headers (###) for structure instead of visual separators. See 002e-agent-optimization.md Anti-Pattern 9",
-                        docs_reference="002e-agent-optimization.md",
+                        fix_suggestion="Use headers (###) for structure instead of visual separators. See 002m-agent-format-antipatterns.md Anti-Pattern 9",
+                        docs_reference="002m-agent-format-antipatterns.md",
                     )
                 )
 

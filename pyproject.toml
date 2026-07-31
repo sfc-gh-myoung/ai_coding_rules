@@ -108,7 +108,7 @@ convention = "google"
 "scripts/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
 "skills/**/tests/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
 "skills/**/scripts/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
-"src/ai_rules/progressive_eval/**" = ["D101", "D102"]
+"src/ai_rules/plugin/**" = ["D101", "D102"]
 
 [tool.ruff.format]
 quote-style = "double"

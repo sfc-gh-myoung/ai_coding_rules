@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import os
 import shutil
 from pathlib import Path
+from typing import Any, cast
 
 import typer
 
@@ -49,6 +51,28 @@ EXPECTED_TREES: tuple[str, ...] = (
 # Filesystem noise that is never part of the contract.
 _IGNORED_NAMES: frozenset[str] = frozenset({".DS_Store"})
 
+# Manifest contract. The Cortex CLI exposes no `plugin validate` subcommand, so a
+# malformed manifest would otherwise surface only at install time on a consumer's
+# machine. check_manifest() enforces this at build time instead.
+REQUIRED_MANIFEST_KEYS: tuple[str, ...] = ("name", "version", "description", "skills", "hooks")
+
+# Hook events the plugin host recognises. An unrecognised event is silently
+# ignored at runtime, which makes a typo here indistinguishable from a hook that
+# simply never fires — the exact failure this check exists to surface.
+KNOWN_HOOK_EVENTS: frozenset[str] = frozenset(
+    {
+        "UserPromptSubmit",
+        "PreToolUse",
+        "PostToolUse",
+        "SessionStart",
+        "SessionEnd",
+        "Stop",
+        "SubagentStop",
+        "Notification",
+        "PreCompact",
+    }
+)
+
 
 def _emitted_files(plugin_dir: Path) -> list[str]:
     """Collect every file the build produced, as plugin-relative POSIX paths.
@@ -66,12 +90,127 @@ def _emitted_files(plugin_dir: Path) -> list[str]:
     )
 
 
+def check_manifest(plugin_dir: Path) -> list[str]:
+    """Validate the generated plugin manifest against the Cortex plugin contract.
+
+    The Cortex CLI has no ``plugin validate`` subcommand — a malformed manifest
+    is only discovered at install time, on the consumer's machine. This check
+    moves that failure to build time.
+
+    Verifies required keys are present and non-empty, that hook events are
+    recognised, that each hook entry has the expected shape, and that every
+    referenced hook command actually exists and is executable once
+    ``${CLAUDE_PLUGIN_ROOT}`` is resolved. The last check is the one that
+    catches a renamed or unshipped hook script.
+
+    Args:
+        plugin_dir: Root of a built plugin directory.
+
+    Returns:
+        Human-readable problem descriptions. Empty when the manifest is valid.
+    """
+    import json
+
+    problems: list[str] = []
+    manifest_path = plugin_dir / ".cortex-plugin" / "plugin.json"
+
+    if not manifest_path.is_file():
+        return [f"missing manifest: {manifest_path.relative_to(plugin_dir)}"]
+
+    try:
+        decoded = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"invalid plugin.json: {exc}"]
+
+    if not isinstance(decoded, dict):
+        return ["plugin.json must be a JSON object"]
+
+    manifest = cast("dict[str, Any]", decoded)
+
+    for key in REQUIRED_MANIFEST_KEYS:
+        if key not in manifest:
+            problems.append(f"plugin.json missing required key: {key}")
+        elif not manifest[key]:
+            problems.append(f"plugin.json key is empty: {key}")
+
+    skills = manifest.get("skills")
+    if skills is not None and not isinstance(skills, list):
+        problems.append("plugin.json 'skills' must be a list")
+
+    hooks = manifest.get("hooks")
+    if hooks is not None and not isinstance(hooks, dict):
+        problems.append("plugin.json 'hooks' must be an object")
+    elif isinstance(hooks, dict):
+        event_map = cast("dict[str, Any]", hooks)
+        for event, groups in event_map.items():
+            if event not in KNOWN_HOOK_EVENTS:
+                problems.append(
+                    f"plugin.json unknown hook event: {event} "
+                    f"(known: {', '.join(sorted(KNOWN_HOOK_EVENTS))})"
+                )
+            if not isinstance(groups, list):
+                problems.append(f"plugin.json hooks.{event} must be a list")
+                continue
+            group_list = cast("list[Any]", groups)
+            for i, group in enumerate(group_list):
+                loc = f"hooks.{event}[{i}]"
+                if not isinstance(group, dict):
+                    problems.append(f"plugin.json {loc} must be an object")
+                    continue
+                group_map = cast("dict[str, Any]", group)
+                entries = group_map.get("hooks")
+                if not isinstance(entries, list) or not entries:
+                    problems.append(f"plugin.json {loc}.hooks must be a non-empty list")
+                    continue
+                entry_list = cast("list[Any]", entries)
+                for j, entry in enumerate(entry_list):
+                    eloc = f"{loc}.hooks[{j}]"
+                    if not isinstance(entry, dict):
+                        problems.append(f"plugin.json {eloc} must be an object")
+                        continue
+                    entry_map = cast("dict[str, Any]", entry)
+                    if entry_map.get("type") != "command":
+                        problems.append(f"plugin.json {eloc}.type must be 'command'")
+                    command = entry_map.get("command")
+                    if not isinstance(command, str) or not command:
+                        problems.append(f"plugin.json {eloc}.command must be a non-empty string")
+                        continue
+                    problems.extend(_check_hook_command(plugin_dir, command, eloc))
+
+    return problems
+
+
+def _check_hook_command(plugin_dir: Path, command: str, loc: str) -> list[str]:
+    """Resolve a manifest hook command and confirm it is runnable.
+
+    Args:
+        plugin_dir: Root of a built plugin directory.
+        command: Raw command string from the manifest.
+        loc: Manifest location, for error messages.
+
+    Returns:
+        Problems found, or empty when the command resolves to an executable.
+    """
+    if "${CLAUDE_PLUGIN_ROOT}" not in command:
+        # An absolute or bare command may be legitimate; we cannot resolve it.
+        return []
+
+    rel = command.replace("${CLAUDE_PLUGIN_ROOT}", "").lstrip("/")
+    target = plugin_dir / rel
+    if not target.is_file():
+        return [f"plugin.json {loc}.command does not exist in the build: {rel}"]
+    if not os.access(target, os.X_OK):
+        return [f"plugin.json {loc}.command is not executable: {rel}"]
+    return []
+
+
 def check_artifacts(plugin_dir: Path) -> list[str]:
     """Validate a built plugin directory against the artifact contract.
 
     Checks both directions: every ``EXPECTED_ARTIFACTS`` entry is present, and
     every emitted file is either an expected artifact or lives under an
-    ``EXPECTED_TREES`` prefix. Also confirms the generated manifest parses.
+    ``EXPECTED_TREES`` prefix. Also validates the generated manifest via
+    :func:`check_manifest`.
 
     Args:
         plugin_dir: Root of a built plugin directory.
@@ -79,8 +218,6 @@ def check_artifacts(plugin_dir: Path) -> list[str]:
     Returns:
         Human-readable problem descriptions. Empty when the contract holds.
     """
-    import json
-
     problems: list[str] = []
 
     for rel in EXPECTED_ARTIFACTS:
@@ -99,12 +236,7 @@ def check_artifacts(plugin_dir: Path) -> list[str]:
             continue
         problems.append(f"undeclared output (add to EXPECTED_ARTIFACTS/EXPECTED_TREES): {rel}")
 
-    manifest = plugin_dir / ".cortex-plugin" / "plugin.json"
-    if manifest.is_file():
-        try:
-            json.loads(manifest.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            problems.append(f"invalid plugin.json: {exc}")
+    problems.extend(check_manifest(plugin_dir))
 
     return problems
 
@@ -165,9 +297,7 @@ def build(
         shutil.copy2(show_rules_src, show_rules_dest / "SKILL.md")
 
     # --- 5. Copy micro-kernel content ---
-    micro_kernel_src = (
-        _REPO_ROOT / "src" / "ai_rules" / "progressive_eval" / "micro_kernel_content.md"
-    )
+    micro_kernel_src = _REPO_ROOT / "src" / "ai_rules" / "plugin" / "micro_kernel_content.md"
     if micro_kernel_src.exists():
         micro_kernel_dest = plugin_dir / "micro_kernel_content.md"
         shutil.copy2(micro_kernel_src, micro_kernel_dest)

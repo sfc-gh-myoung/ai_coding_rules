@@ -1,7 +1,7 @@
 """Rule Loading Evaluator — live-agent sanity check.
 
-Drives the Cortex Code Agent SDK against AGENTS.md plus a fixture prompt,
-captures the rules the agent loaded, and compares
+Drives the Cortex Code Agent SDK against the hook-injected rule context plus a
+fixture prompt, captures the rules the agent loaded, and compares
 them to the fixture's declared expectation. Pre-commit drives a smoke
 subset; CI runs only the trigger-evidence invariant.
 

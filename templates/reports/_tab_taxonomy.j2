@@ -54,7 +54,7 @@
 
 ## Actual tool trace:
 1. read_file("rules/000-global-core.md")  &rarr; Gate 1 &check;
-2. bash("grep ... RULES_INDEX.md")        &rarr; Gate 2 &check;
+2. read_file("hook-injected-manifest")   &rarr; Gate 2 &check;
 3. [NO MORE read_file CALLS]
 
 ## Verdict: 5 rules cited, 0 rules read. Gate 3 is fabricated.</code></pre>
@@ -82,7 +82,7 @@ Declared: rules/115c-...-advanced.md &mdash; 280 lines (Actual: 391, delta: -111
       <summary>Example: sonnet-5, fixture <code>medium-security-review</code></summary>
 <pre><code>## Observed:
 1. read_file("rules/000-global-core.md")         &larr; correct
-2. bash("grep ... RULES_INDEX.md")               &larr; correct (Gate 2)
+2. read_file("hook-injected-manifest")               &larr; correct (Gate 2)
 3. bash("wc -l rules/100-snowflake-core.md")     &larr; tool substitution begins
 4. bash("head -80 rules/100-snowflake-core.md")  &larr; partial read via bash
 5. bash("sed -n '1,50p' rules/105-...md")        &larr; partial read via bash
@@ -98,7 +98,7 @@ Declared: rules/115c-...-advanced.md &mdash; 280 lines (Actual: 391, delta: -111
     <details>
       <summary>Example: gpt-5.4 missing snowcli rule despite filename trigger</summary>
 <pre><code>## Prompt includes: "...using the snowflake.yml configuration file."
-## RULES_INDEX: 112-snowflake-snowcli.md  file=snowflake.yml kw=snowcli deploy snow app
+## Hook manifest: 112-snowflake-snowcli.md  file=snowflake.yml kw=snowcli deploy snow app
 ## gpt-5.4 extracts: ["snowflake", "deploy"] &rarr; misses "snowflake.yml" file trigger
 ## Result: rule 112 is missed. Response lacks snowcli-specific guidance.</code></pre>
     </details>

@@ -195,8 +195,9 @@ def validate_citations(
 ) -> tuple[CitationDrift, ...]:
     """Compare declared citations against a rule-metadata snapshot.
 
-    Citations follow the form ``<path> (<reason>) — N lines``. This function
-    emits a ``CitationDrift`` for each path or line-count mismatch.
+    Citations follow the form ``<path> (<reason>) — vX.Y.Z``. This function
+    emits a ``CitationDrift`` for each path or version mismatch. The legacy
+    line-count suffix is still parsed for pre-cutover fixtures.
 
     Args:
         citations: per-path declared citations (from the agent response).

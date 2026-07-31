@@ -3,7 +3,7 @@
     <h2>How the Eval Benchmark Works</h2>
 
     <h3>Part 1: System Overview</h3>
-    <p>The <code>ai-coding-rules</code> project maintains a versioned library of domain-specific coding rules encoded as Markdown files. These rules cover areas such as SQL conventions, Python style, security policy, deployment checklists, and Snowflake-specific patterns. The rules are not embedded in model weights&mdash;they live in a repository that teams control and update independently of any model release cycle. The protocol that governs how models consult these rules is defined in <code>AGENTS.md</code>, which is the entry point for the four-gate rule-loading sequence described in the Protocol tab.</p>
+    <p>The <code>ai-coding-rules</code> project maintains a versioned library of domain-specific coding rules encoded as Markdown files. These rules cover areas such as SQL conventions, Python style, security policy, deployment checklists, and Snowflake-specific patterns. The rules are not embedded in model weights&mdash;they live in a repository that teams control and update independently of any model release cycle. The rule-loader protocol governs how models consult these rules via the four-gate rule-loading sequence described in the Protocol tab.</p>
 
     <p>The eval benchmark exists to answer one operational question: <em>is the protocol being followed?</em> It sits alongside the rule library in the same repository and is invoked via the <code>ai-rules rule-loader eval</code> command exposed by the <strong>CoCo CLI</strong> (<code>cortex</code>). The CLI is the single interface through which fixture runs are dispatched, model connections are resolved, concurrency is controlled, and results are streamed to disk.</p>
 
@@ -25,12 +25,11 @@
       <text x="130" y="108" text-anchor="middle" font-size="10" fill="light-dark(#334155,#CBD5E1)" font-family="system-ui">rules/100-snowflake-core.md</text>
       <text x="130" y="124" text-anchor="middle" font-size="10" fill="light-dark(#334155,#CBD5E1)" font-family="system-ui">rules/200-python-core.md</text>
       <text x="130" y="140" text-anchor="middle" font-size="10" fill="light-dark(#475569,#94A3B8)" font-family="system-ui">... ({{ total_models }}+ domain rules)</text>
-      <text x="130" y="158" text-anchor="middle" font-size="10" fill="light-dark(#334155,#CBD5E1)" font-family="system-ui">rules/RULES_INDEX.md</text>
 
-      <!-- AGENTS.md -->
+      <!-- Protocol box -->
       <rect x="30" y="190" width="200" height="50" rx="8" fill="light-dark(#F0FDF4,#052E16)" stroke="#10B981" stroke-width="1.5"/>
       <text x="130" y="213" text-anchor="middle" font-size="12" font-weight="700" fill="#10B981" font-family="system-ui">Protocol</text>
-      <text x="130" y="230" text-anchor="middle" font-size="10" fill="light-dark(#334155,#CBD5E1)" font-family="system-ui">AGENTS.md (4-gate bootstrap)</text>
+      <text x="130" y="230" text-anchor="middle" font-size="10" fill="light-dark(#334155,#CBD5E1)" font-family="system-ui">the injected foundation (4-gate protocol)</text>
 
       <!-- Eval Benchmark -->
       <rect x="280" y="50" width="200" height="190" rx="8" fill="light-dark(#FFFBEB,#422006)" stroke="#F59E0B" stroke-width="1.5"/>
@@ -79,13 +78,13 @@
       <text x="386" y="264" font-size="9" fill="light-dark(#475569,#94A3B8)" font-family="system-ui">reads results/</text>
     </svg>
 
-    <p>The diagram above shows the three primary subsystems. The <strong>Rule Library</strong> is the source of truth for domain rules and the compact <code>RULES_INDEX.md</code> that models use during discovery. The <strong>Protocol</strong> (<code>AGENTS.md</code>) defines the loading contract. The <strong>Eval Benchmark</strong> orchestrates fixture runs through the CoCo CLI, dispatches prompts to frontier models via Snowflake Cortex, scores each response against the protocol contract, and writes structured artifacts to <code>results/</code>. The <strong>Report Generator</strong> reads those artifacts and produces this document.</p>
+    <p>The diagram above shows the three primary subsystems. The <strong>Rule Library</strong> is the source of truth for domain rules. The <strong>Protocol</strong> (the rule-loader protocol) defines the loading contract. The <strong>Eval Benchmark</strong> orchestrates fixture runs through the CoCo CLI, dispatches prompts to frontier models via Snowflake Cortex, scores each response against the protocol contract, and writes structured artifacts to <code>results/</code>. The <strong>Report Generator</strong> reads those artifacts and produces this document.</p>
 
     <h3>Part 2: A Single Benchmark Run</h3>
 
     <p>When <code>ai-rules rule-loader eval</code> is invoked, the harness executes each test fixture against the target model one or more times (<code>--runs</code>). Each fixture is a synthetic user prompt constructed to trigger a specific set of rule-loading paths&mdash;for example, a Python ETL task is expected to load <code>200-python-core.md</code>, while a Snowflake query prompt should load <code>100-snowflake-core.md</code>. The fixture definition includes the expected rules, any rules that must <em>not</em> be loaded, and dependency relationships between rules.</p>
 
-    <p>The runner dispatches each fixture to the model as a conversational turn with the <code>AGENTS.md</code> bootstrap as the system prompt. It captures the full tool-call trace across all turns until the model produces a final response. That response and trace are then passed to the scoring engine, which checks compliance across several dimensions before writing results to disk.</p>
+    <p>The runner dispatches each fixture to the model as a conversational turn with the injected foundation as the system prompt. It captures the full tool-call trace across all turns until the model produces a final response. That response and trace are then passed to the scoring engine, which checks compliance across several dimensions before writing results to disk.</p>
 
     <svg viewBox="0 0 760 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Single benchmark run pipeline diagram" style="max-width:760px; margin:24px auto; display:block; background:light-dark(var(--sf-gray-100, #F1F5F9), #1E293B); border-radius:12px; padding:16px;">
       <defs>
@@ -109,7 +108,7 @@
       <!-- Stage 3: Model -->
       <rect x="460" y="20" width="160" height="80" rx="8" fill="light-dark(#fff,#334155)" stroke="light-dark(#CBD5E1,#475569)" stroke-width="1.5"/>
       <text x="540" y="48" text-anchor="middle" font-size="12" font-weight="700" fill="light-dark(#334155,#E2E8F0)" font-family="system-ui">Frontier Model</text>
-      <text x="540" y="66" text-anchor="middle" font-size="10" fill="light-dark(#475569,#94A3B8)" font-family="system-ui">system prompt: AGENTS.md</text>
+      <text x="540" y="66" text-anchor="middle" font-size="10" fill="light-dark(#475569,#94A3B8)" font-family="system-ui">system prompt: injected foundation</text>
       <text x="540" y="82" text-anchor="middle" font-size="10" fill="light-dark(#475569,#94A3B8)" font-family="system-ui">multi-turn tool calls</text>
 
       <!-- Stage 4: Scoring Engine -->

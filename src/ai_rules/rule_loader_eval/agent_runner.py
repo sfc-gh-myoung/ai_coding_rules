@@ -1,8 +1,8 @@
 """Live Cortex Code Agent SDK runner.
 
-Drives ``query()`` against a fixture prompt with AGENTS.md as the project
-context. Captures the loaded rules via two primary signals plus one optional
-legacy backward-compat signal:
+Drives ``query()`` against a fixture prompt with the rule-loader hook
+supplying per-turn rule context. Captures the loaded rules via two primary
+signals plus one optional legacy backward-compat signal:
 
 1. ``PreToolUse`` async hook records every ``Read`` tool call where the
    path resolves to ``rules/*.md`` under the project - deterministic
@@ -38,6 +38,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from ai_rules.rule_loader_eval.defaults import DEFAULT_EFFORT, DEFAULT_MAX_TURNS
+from ai_rules.rule_loader_eval.diagnostics import _DISCOVERY_ARTIFACTS
 
 # Suppress benign auto-apply skill-stage warnings that coco emits on every
 # session when the active Snowflake role can't read
@@ -262,8 +263,9 @@ class TurnEvent:
 class Citation:
     """A declared citation extracted from a Rules Loaded line (or legacy Reads Performed).
 
-    Citations have the form ``<path> (<reason>) — N lines``. The line count
-    may be None if the declaration was malformed or the line was a FAILED placeholder.
+    Citations have the form ``<path> (<reason>) — vX.Y.Z``. The version may be
+    None if the declaration was malformed or the line was a FAILED placeholder.
+    The legacy line-count suffix is still accepted for pre-cutover fixtures.
 
     v9 (RF7/RF10): ``provenance`` captures the self-attested marker:
     ``"x"`` (read), ``"~"`` (from manifest), ``"?"`` (inferred), or
@@ -503,7 +505,7 @@ def parse_reads_performed_section(text: str) -> tuple[str, ...]:
     """Extract rule paths from a ``## Reads Performed`` section.
 
     **Legacy/backward-compat.** This section was retired by the
-    AGENTS.md bootstrap contract. Modern agents emit a ``**Bootstrap:**``
+    rule-loader protocol. Modern agents emit a ``**Bootstrap:**``
     compact summary line instead. This parser is kept for pre-v3.8
     fixtures and historical CI artifacts. When the section is absent,
     returns an empty tuple (no spurious disagreements are raised).
@@ -570,7 +572,7 @@ def parse_bootstrap_line(text: str) -> dict[str, int | bool]:
 
     Returns ``{'found': bool, 'n_loaded': int, 'n_failed': int}``.
     The ``**Bootstrap:**`` line must be the first emitted output per the
-    AGENTS.md bootstrap contract.
+    rule-loader protocol.
     """
     if not text:
         return {"found": False, "n_loaded": 0, "n_failed": 0}
@@ -588,7 +590,7 @@ def parse_bootstrap_line(text: str) -> dict[str, int | bool]:
 def extract_contract_text(text: str) -> str:
     """Return the contract block from the first PRE-FLIGHT / Rules Loaded marker onward.
 
-    The current AGENTS.md contract emits a PRE-FLIGHT block with Gate 1
+    The current rule-loader protocol emits a PRE-FLIGHT block with Gate 1
     (foundation) and Gate 3 (domain rules). Legacy responses emit
     ``## Rules Loaded`` / ``**Rules Loaded**`` (or the retired
     ``**Bootstrap:**`` prefix). Anchoring backs up to the start of the line
@@ -619,7 +621,7 @@ def extract_contract_text(text: str) -> str:
 
 
 def validate_output_shape(text: str, *, loaded_count: int) -> tuple[str, ...]:
-    """Return output-shape violations for the AGENTS.md bootstrap contract.
+    """Return output-shape violations for the rule-loader protocol.
 
     Required: a PRE-FLIGHT Gate 3 rule list or legacy ``**Rules Loaded**``
     section in the final response. No-match runs must signal the empty case
@@ -676,7 +678,8 @@ def _extract_provenance(line: str) -> str | None:
 def extract_citations(text: str, section_heading: str) -> dict[str, Citation]:
     """Extract per-rule citations from the named section.
 
-    Citation format per AGENTS.md is ``<path> (<reason>) — N lines``.
+    Citation format per the rule-loader protocol is
+    ``<path> (<reason>) — vX.Y.Z``.
     ``FAILED: not found`` lines yield a ``Citation(failed=True)``. Returns
     ``{rule_path: Citation}``.
 
@@ -762,7 +765,7 @@ def run_live(
     rule-file ``Read`` call via a ``PreToolUse`` hook and parses the
     Gate 1 foundation citation and Gate 3 domain rule list (or legacy
     ``**Rules Loaded**`` section) from the assistant output.
-    Contract: AGENTS.md bootstrap contract.
+    Contract: rule-loader protocol.
     """
     return asyncio.run(
         run_live_async(
@@ -996,11 +999,10 @@ async def run_live_async(
     section_set = set(section_rules)
 
     # Paths neutral to R1 protocol accounting: read is neither expected nor
-    # forbidden; cite is forbidden. See "Rule vs Reference File" in
-    # templates/AGENTS_MODE.md.template.
-    # Legacy discovery artifacts — models may try to read these even though they no longer exist.
-    # Exclude them from signal penalty calculations to avoid false positives.
-    _DISCOVERY_ARTIFACTS = frozenset({"AGENTS.md", "rules/" + "RULES_INDEX.md"})
+    # forbidden; cite is forbidden.
+    # Legacy discovery artifacts are excluded from signal penalty calculations so a
+    # model attempting to read a no-longer-existent bootstrap file is not penalized.
+    # Canonical definition lives in diagnostics.py — imported, not redefined.
     reads_set -= _DISCOVERY_ARTIFACTS
     reads_performed_set -= _DISCOVERY_ARTIFACTS
     section_set -= _DISCOVERY_ARTIFACTS

@@ -78,7 +78,7 @@ ELSE:
 
 1a. **Collect ALL parameters** (use `ask_user_question`). See `workflows/parameter-collection.md`. **MANDATORY:** batched questions (max 4 per call); do NOT silently apply defaults. If `ask_user_question` unavailable, fall back to text-based prompting.
 
-1b. **Detect file type.** Run the `target_basename` / `FILE_TYPE` / `SKIP_SCHEMA` detection from `workflows/input-validation.md` (File-Type Detection section). Outcomes: `rule` → full schema validation; `project` (AGENTS.md/PROJECT.md) → schema validation skipped.
+1b. **Detect file type.** Run the `target_basename` / `FILE_TYPE` / `SKIP_SCHEMA` detection from `workflows/input-validation.md` (File-Type Detection section). Outcomes: `rule` → full schema validation; `project` (PROJECT.md) → schema validation skipped.
 
 2. **Pre-Review Canary Check (SILENT).** See Canary Checks below.
 
@@ -161,7 +161,7 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
 - All 6 dimensions scored (100 points max)
 - TokenBudget variance check applies
 
-**Project Files (AGENTS.md, PROJECT.md):**
+**Project Files (PROJECT.md):**
 - Bootstrap and configuration documents
 - Loaded once during project initialization
 - Schema validation skipped (different structure than rules)
@@ -199,7 +199,7 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
 
 ## Inputs
 
-- **target_file:** Path to file (e.g., `rules/200-python-core.md`, `AGENTS.md`, `PROJECT.md`)
+- **target_file:** Path to file (e.g., `rules/200-python-core.md`, `PROJECT.md`)
 - **review_date:** ISO 8601 format (YYYY-MM-DD)
 - **review_mode:** FULL | FOCUSED | STALENESS
 - **model:** Lowercase-hyphenated slug (e.g., `claude-sonnet-4-6`)

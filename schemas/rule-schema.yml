@@ -459,15 +459,13 @@ link_validation:
       required: false  # Subsection is recommended but optional
       rule_reference_format:
         # Rules can be referenced with or without 'rules/' prefix
-        # The rules/ location is defined in AGENTS.md for token efficiency
+        # The rules/ location is defined in the rule-loader protocol for token efficiency
         pattern: "([a-zA-Z0-9_-]+\\.md|rules/[a-zA-Z0-9_-]+\\.md)"
         # Allow root-level project files
         allowed_root_files:
-          - "AGENTS.md"
           - "CHANGELOG.md"
           - "CONTRIBUTING.md"
           - "README.md"
-          - "RULES_INDEX.md"  # generated index (not a rule; skip rule-schema validation)
         severity: "INFO"
         docs_reference: "002-rule-governance.md Section 11"
 
@@ -548,9 +546,7 @@ excluded_files:
     - "README.md"
     - "CHANGELOG.md"
     - "CONTRIBUTING.md"
-    - "RULES_INDEX.md"  # generated index (not a rule; skip rule-schema validation)
     - "UNIVERSAL_PROMPT.md"
-    - "AGENTS.md"
     - "002a-rule-boilerplate.md"  # Boilerplate is reference, not validated
     - "002a-rule-template.md"  # Template example (placeholder syntax), not validated
     - "002i-rule-loadtrigger.md"  # DEPRECATED TOMBSTONE — retained for inbound-link stability; no Contract

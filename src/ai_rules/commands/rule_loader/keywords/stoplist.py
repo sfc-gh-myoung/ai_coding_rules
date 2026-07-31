@@ -13,7 +13,10 @@ from ai_rules._shared.paths import find_project_root
 # Constants
 # ---------------------------------------------------------------------------
 
-# Files to skip when processing directories
+# Files to skip when processing directories.
+# AGENTS.md / AGENTS_V2.md are retained deliberately: this project no longer uses a
+# bootstrap entry-point file, but these are still valid filenames to encounter in a
+# consumer repo, and skipping them keeps extracted keywords free of boilerplate.
 SKIP_FILES = {
     "README.md",
     "CHANGELOG.md",

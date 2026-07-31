@@ -307,11 +307,10 @@ def _cross_check_required_rules(fixture: Fixture, rules: dict[str, RuleMetadata]
         # check (already run by the caller) applies.
         return errors
 
-    # The legacy AGENTS.md bootstrap loads rules/000-global-core.md
-    # unconditionally on every request (it is the foundation, not a
-    # keyword-discovered rule). Skip the trigger-evidence cross-check
-    # for foundation rules so fixtures don't have to embed kw:workflow,
-    # kw:safety, etc. in their prompts.
+    # rules/000-global-core.md is loaded unconditionally on every request (it is
+    # the foundation, not a keyword-discovered rule). Skip the trigger-evidence
+    # cross-check for foundation rules so fixtures don't have to embed
+    # kw:workflow, kw:safety, etc. in their prompts.
     FOUNDATION_RULES = frozenset({"rules/000-global-core.md"})
 
     for rel in fixture.required:

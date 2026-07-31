@@ -55,10 +55,6 @@ target_question = {
             "description": "Select a specific rule file"
         },
         {
-            "label": "AGENTS.md",
-            "description": "Review the AGENTS.md bootstrap file"
-        },
-        {
             "label": "PROJECT.md",
             "description": "Review the PROJECT.md configuration"
         }
@@ -164,7 +160,7 @@ If `ask_user_question` is unavailable, prompt for each parameter as text, listin
 User: review rule
 
 System: [ask_user_question tool - Batch 1]
-  - Target File? [rules/*.md / AGENTS.md / PROJECT.md / Something else]
+  - Target File? [rules/*.md / PROJECT.md / Something else]
   - Mode? [FULL / FOCUSED / STALENESS]
   - Execution? [parallel / sequential]
   - Timing? [No / Yes]

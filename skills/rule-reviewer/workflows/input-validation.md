@@ -36,7 +36,7 @@ After input validation, determine whether `target_file` is a rule file or a proj
 ```bash
 target_basename=$(basename "$target_file")
 
-if [[ "$target_basename" =~ ^(AGENTS|PROJECT)\.md$ ]]; then
+if [[ "$target_basename" =~ ^PROJECT\.md$ ]]; then
     FILE_TYPE="project"
     SKIP_SCHEMA=true
     echo "File type: Project configuration (schema validation skipped)"
@@ -45,12 +45,12 @@ elif [[ "$target_file" == rules/*.md ]]; then
     SKIP_SCHEMA=false
     echo "File type: Rule (full schema validation)"
 else
-    echo "ERROR: Target must be AGENTS.md, PROJECT.md, or rules/*.md"
+    echo "ERROR: Target must be PROJECT.md or rules/*.md"
     exit 1
 fi
 ```
 
-**Rationale:** `AGENTS.md` and `PROJECT.md` are bootstrap/configuration files with different structure than domain rules. They do not use rule metadata (`SchemaVersion`, `RuleVersion`, `TokenBudget`) or rule sections (`Scope`, `Contract`, `References`).
+**Rationale:** `PROJECT.md` is a project configuration file with different structure than domain rules. It does not use rule metadata (`SchemaVersion`, `RuleVersion`, `TokenBudget`) or rule sections (`Scope`, `Contract`, `References`).
 
 **Outputs set:**
 - `FILE_TYPE` — one of `rule`, `project`

@@ -8,9 +8,9 @@
   "keywords_searched": ["streamlit", "test", "document", "dashboard"],
   "index_evidence": [
     {
-      "kind": "grep",
-      "target": "rules/RULES_INDEX.md",
-      "query": "grep -iE \"streamlit|test|docs\" rules/RULES_INDEX.md",
+      "kind": "hook",
+      "target": "hook-injected-manifest",
+      "query": "matcher: streamlit|test|docs",
       "result_summary": "101-snowflake-streamlit-core.md, 206-python-pytest.md, 204-python-docs.md"
     }
   ],

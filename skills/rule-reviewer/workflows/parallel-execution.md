@@ -71,14 +71,14 @@ Before launching sub-agents, validate the rule file:
 ```bash
 target_basename=$(basename "$target_file")
 
-if [[ "$target_basename" =~ ^(AGENTS|PROJECT)\.md$ ]]; then
+if [[ "$target_basename" =~ ^PROJECT\.md$ ]]; then
     FILE_TYPE="project"
     SKIP_SCHEMA=true
 elif [[ "$target_file" == rules/*.md ]]; then
     FILE_TYPE="rule"
     SKIP_SCHEMA=false
 else
-    echo "ERROR: Target must be AGENTS.md, PROJECT.md, or rules/*.md"
+    echo "ERROR: Target must be PROJECT.md or rules/*.md"
     exit 1
 fi
 ```

@@ -996,7 +996,6 @@ def estimate_repo(tmp_path: Path) -> Path:
     (tmp_path / "templates").mkdir()
     rules = tmp_path / "rules"
     rules.mkdir()
-    (tmp_path / "CLAUDE.md").write_text("# CLAUDE\n" + ("floor body line\n" * 20))
     (rules / "000-global-core.md").write_text("# core\n" + ("core line\n" * 15))
     skills = tmp_path / "skills" / "rule-loader"
     skills.mkdir(parents=True)
@@ -1073,7 +1072,6 @@ class TestContextEstimate:
     def test_estimate_never_writes_files(self, estimate_repo: Path):
         """Estimate mode is read-only: no floor/rule file is modified."""
         watched = [
-            estimate_repo / "CLAUDE.md",
             estimate_repo / "rules" / "000-global-core.md",
             estimate_repo / "rules" / "100-snowflake-core.md",
         ]

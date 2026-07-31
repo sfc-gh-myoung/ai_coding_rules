@@ -34,8 +34,8 @@ def _v2_hard_only_manifest() -> dict:
         "keywords_searched": ["python"],
         "index_evidence": [
             {
-                "kind": "grep",
-                "target": "rules/RULES_INDEX.md",
+                "kind": "hook",
+                "target": "hook-injected-manifest",
                 "query": "python",
                 "result_summary": "matched 200-python-core.md",
             }

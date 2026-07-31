@@ -1,7 +1,7 @@
 """Bootstrap-health diagnostics for the rule-loader eval harness.
 
-Centralizes the checks that detect rule-loading regressions when AGENTS.md
-or the ``rule-loader`` skill changes:
+Centralizes the checks that detect rule-loading regressions when the
+injected foundation or the ``rule-loader`` skill changes:
 
 1. **2-signal agreement** - the agent's ``## Rules Loaded`` section
    must agree with the actual ``Read`` tool calls captured by the
@@ -73,12 +73,13 @@ class SignalReport:
 
 
 # Paths neutral to R1 protocol accounting: read is neither expected nor
-# forbidden; cite is forbidden. See "Rule vs Reference File" in
-# templates/AGENTS_MODE.md.template.
+# forbidden; cite is forbidden.
+# Canonical definition. ``agent_runner`` imports this rather than redefining it.
+# Legacy artifacts that may persist in consumer repos; excluded from signal checks.
 _DISCOVERY_ARTIFACTS: frozenset[str] = frozenset(
     {
         "AGENTS.md",
-        "rules/" + "RULES_INDEX.md",  # legacy; excluded from signal checks even if deleted
+        "rules/" + "RULES_INDEX.md",
     }
 )
 
@@ -227,7 +228,8 @@ def format_disagreement_warning(run: AgentRun, *, signal_report: SignalReport | 
     lines.extend(
         [
             "",
-            "Per AGENTS.md, every entry in (B) must be backed by a `read_file` call in (A).",
+            "Per the rule-loader protocol, every entry in (B) must be backed by a "
+            "`read_file` call in (A).",
         ]
     )
     if reads_performed:

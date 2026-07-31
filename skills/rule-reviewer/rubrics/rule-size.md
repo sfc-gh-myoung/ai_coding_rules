@@ -292,7 +292,7 @@ Small rules may lack coverage.
 
 ### Pattern 1: Foundation Rules
 
-**Pattern:** 000-global-core.md, AGENTS.md exceed 500 lines
+**Pattern:** 000-global-core.md exceeds 500 lines
 **Why NOT an issue:** Foundation rules are architectural exceptions
 **Action:** Note in review: "Foundation rule—size exception applies"
 

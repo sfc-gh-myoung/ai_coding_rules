@@ -332,8 +332,11 @@ def _print_update_details(analyses: list[TokenBudgetAnalysis], dry_run: bool) ->
     console.print(table)
 
 
+# Always-present context, used as the fixed floor of a context estimate.
+# The legacy bootstrap entry-point file was dropped from this tuple: it no longer
+# exists in the repo, and `--context-estimate` hard-exits 2 on a missing floor
+# file, which made the command unusable here.
 FIXED_FLOOR_FILES = (
-    "CLAUDE.md",
     "rules/000-global-core.md",
     "skills/rule-loader/SKILL.md",
 )

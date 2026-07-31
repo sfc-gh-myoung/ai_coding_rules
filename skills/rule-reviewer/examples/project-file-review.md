@@ -1,6 +1,6 @@
 # Example: Project File Review
 
-## Reviewing AGENTS.md or PROJECT.md
+## Reviewing PROJECT.md
 
 ```text
 Use the rule-reviewer skill.
@@ -25,7 +25,7 @@ Expected output file:
 # Agent detects project file automatically
 target_basename=$(basename "PROJECT.md")
 
-if [[ "$target_basename" =~ ^(AGENTS|PROJECT)\.md$ ]]; then
+if [[ "$target_basename" =~ ^PROJECT\.md$ ]]; then
     FILE_TYPE="project"
     SKIP_SCHEMA=true
 fi

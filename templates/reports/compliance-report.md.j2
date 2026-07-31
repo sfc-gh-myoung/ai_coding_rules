@@ -17,7 +17,7 @@
 
 ### Executive Summary
 
-A rule-loading protocol — encoded in `AGENTS.md` — was designed to require language models to discover, read, and cite domain-specific rules before responding to user prompts. The protocol is deliberately multi-step: the model must search an index, load matching files via tool calls, and declare what it loaded in a structured header.
+A rule-loading protocol — defined by the rule-loader protocol — was designed to require language models to discover, read, and cite domain-specific rules before responding to user prompts. The protocol is deliberately multi-step: the model must search an index, load matching files via tool calls, and declare what it loaded in a structured header.
 
 The protocol was evaluated against {{ total_models }} frontier models. The results reveal a striking variance in compliance — from {{ "%.0f"|format(results[0].pass_rate * 100) if results else "100" }}% to {{ "%.0f"|format(results[-1].pass_rate * 100) if results else "17" }}% — across models that are otherwise considered capability peers.
 
@@ -35,10 +35,10 @@ The protocol was evaluated against {{ total_models }} frontier models. The resul
 
 ## Protocol
 
-The protocol is built around a four-gate sequence encoded in `AGENTS.md`:
+The protocol is built around a four-gate sequence defined by the rule-loader protocol:
 
 1. **Gate 1 — Foundation:** Read `000-global-core.md` before any response.
-2. **Gate 2 — Discovery:** Search `RULES_INDEX.md` for rules matching the current prompt's keywords.
+2. **Gate 2 — Discovery:** Read the hook-injected manifest to find rules matching the current prompt's keywords.
 3. **Gate 3 — Loading:** Execute `read_file` on each matched rule and cite it in the PRE-FLIGHT header.
 4. **Gate 4 — Response:** Generate the response informed by loaded rules.
 

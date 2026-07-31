@@ -1,7 +1,8 @@
 """Track B CI gates: v3.5 frontmatter roundtrip, depends parity.
 
 Tests here cover the Track B migration validation gates that remain valid
-after the legacy RULES_INDEX.md was removed.
+under hook-based rule discovery, after the legacy standalone rule index was
+removed in favour of per-rule frontmatter.
 """
 
 from __future__ import annotations

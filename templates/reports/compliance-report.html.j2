@@ -55,7 +55,7 @@
 
     <h2>Executive Summary</h2>
 
-    <p>A rule-loading protocol&mdash;encoded in a file called <code>AGENTS.md</code>&mdash;was designed to require language models to discover, read, and cite domain-specific rules before responding to user prompts. The protocol is deliberately multi-step: the model must search an index, load matching files via tool calls, and declare what it loaded in a structured header. This creates a verifiable chain of evidence that an evaluation harness can audit.</p>
+    <p>A rule-loading protocol&mdash;defined by the rule-loader protocol&mdash;was designed to require language models to discover, read, and cite domain-specific rules before responding to user prompts. The protocol is deliberately multi-step: the model must search an index, load matching files via tool calls, and declare what it loaded in a structured header. This creates a verifiable chain of evidence that an evaluation harness can audit.</p>
 
     <p>The protocol was evaluated against {{ total_models }} frontier models, each processing carefully-designed test fixtures multiple times. The results reveal a striking variance in compliance&mdash;from {{ "%.0f"|format(results[0].pass_rate * 100) if results else "100" }}% to {{ "%.0f"|format(results[-1].pass_rate * 100) if results else "17" }}%&mdash;across models that are otherwise considered capability peers.</p>
 

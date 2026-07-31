@@ -8,9 +8,9 @@
   "keywords_searched": [".py", "fix", "bug"],
   "index_evidence": [
     {
-      "kind": "grep",
-      "target": "rules/RULES_INDEX.md",
-      "query": "grep -iwE \"ext=\\.py\" rules/RULES_INDEX.md",
+      "kind": "hook",
+      "target": "hook-injected-manifest",
+      "query": "matcher: ext=.py HARD match",
       "result_summary": "200-python-core.md"
     }
   ],

@@ -387,7 +387,7 @@ $ uv run ai-rules validate rules/example.md
 
 ## Parsability for Project Files
 
-**Applies to:** AGENTS.md, PROJECT.md
+**Applies to:** PROJECT.md
 
 **When FILE_TYPE == "project":**
 
@@ -442,7 +442,7 @@ $ uv run ai-rules validate rules/example.md
 
 **Schema Validation:** SKIPPED (project file)
 
-**Rationale:** AGENTS.md is a bootstrap/configuration file with different structure than domain rules. Schema validation against rule schema is not applicable.
+**Rationale:** PROJECT.md is a project configuration file with different structure than domain rules. Schema validation against rule schema is not applicable.
 
 **Markdown Structure:** Excellent
 

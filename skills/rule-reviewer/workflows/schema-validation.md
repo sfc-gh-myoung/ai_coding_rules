@@ -284,4 +284,4 @@ else
 fi
 ```
 
-**Rationale:** `AGENTS.md` / `PROJECT.md` do not use the rule metadata schema (`SchemaVersion`, `RuleVersion`, `TokenBudget`) or the `Scope → Contract → References` section structure. Running the validator on them would produce spurious CRITICAL errors.
+**Rationale:** `PROJECT.md` does not use the rule metadata schema (`SchemaVersion`, `RuleVersion`, `TokenBudget`) or the `Scope → Contract → References` section structure. Running the validator on it would produce spurious CRITICAL errors.

@@ -115,8 +115,8 @@ def _build_v2_manifest_from_fixture_entry(fp_entry: dict) -> dict:
         "keywords_searched": list(fp_entry["false_positive_rule"]["keywords_matched"]),
         "index_evidence": [
             {
-                "kind": "grep",
-                "target": "rules/RULES_INDEX.md",
+                "kind": "hook",
+                "target": "hook-injected-manifest",
                 "query": " ".join(fp_entry["false_positive_rule"]["keywords_matched"]),
                 "result_summary": f"matched {rp}",
             }
@@ -204,8 +204,8 @@ def test_false_positive_fixture_hard_candidates_never_filtered(fixtures: dict) -
             "keywords_searched": [],
             "index_evidence": [
                 {
-                    "kind": "grep",
-                    "target": "rules/RULES_INDEX.md",
+                    "kind": "hook",
+                    "target": "hook-injected-manifest",
                     "query": entry["hard_candidate"]["trigger"],
                     "result_summary": f"matched {rp}",
                 }

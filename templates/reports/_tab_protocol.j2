@@ -2,19 +2,19 @@
   <section class="tab-panel" id="protocol" role="tabpanel" data-tab-title="Protocol">
     <h2>How Rule-Loading Works</h2>
 
-    <p>The protocol was built around a simple contract: <strong>discover, read, cite, respond</strong>. Before answering any user prompt, the model must execute a four-gate sequence encoded in <code>AGENTS.md</code>. Each gate produces a verifiable artifact&mdash;a tool call, a file read, a structured citation&mdash;that the eval harness can inspect post-hoc.</p>
+    <p>The protocol was built around a simple contract: <strong>discover, read, cite, respond</strong>. Before answering any user prompt, the model must execute a four-gate sequence defined by the rule-loader protocol. Each gate produces a verifiable artifact&mdash;a tool call, a file read, a structured citation&mdash;that the eval harness can inspect post-hoc.</p>
 
     <p>The motivation is straightforward: a library of domain-specific rules (Snowflake SQL conventions, deployment checklists, security policies) is maintained independently of model training data. Models must consult the <em>current</em> version of these rules, not their parametric memory of what the rules <em>used to say</em>. The protocol enforces this by requiring a tool-call read of the actual file before the model may claim it as loaded.</p>
 
     <h3>The Four Gates</h3>
 
     <p><strong>Gate 1: Foundation.</strong> The model reads a single foundational rule file (<code>000-global-core.md</code>) that applies to every interaction. This is the baseline&mdash;if Gate 1 fails, nothing else proceeds.</p>
-    <p><strong>Gate 2: Discovery.</strong> The model identifies which domain-specific rules are relevant to the current user prompt. It does this by extracting keywords from the prompt and searching a compact index file (<code>RULES_INDEX.md</code>). The protocol supports two paths: a primary path using a delegated skill, and a fallback path using direct grep.</p>
+    <p><strong>Gate 2: Discovery.</strong> The model identifies which domain-specific rules are relevant to the current user prompt. It does this by extracting keywords from the prompt and reading the hook-injected manifest. The protocol supports two paths: a primary path using a delegated skill, and a fallback path using direct keyword scan.</p>
     <p><strong>Gate 3: Loading.</strong> For each rule identified in Gate 2, the model executes <code>read_file</code> and declares the result in a structured header. This is the critical grounding step&mdash;the rule content is now in the model's context window, not just its parametric memory.</p>
     <p><strong>Gate 4: Response.</strong> The model generates its response, informed by the loaded rules. The PRE-FLIGHT header at the top declares which gates passed and which rules were loaded.</p>
 
     <h3>Discovery Flow</h3>
-    <p>The protocol supports two discovery paths to handle different runtime environments. The primary path delegates to a <code>rule-loader</code> skill that returns a structured manifest. The fallback path (Step 2B) has the model grep <code>RULES_INDEX.md</code> directly. Both paths converge at the same point: an ordered list of rule files to load via <code>read_file</code>.</p>
+    <p>The protocol supports two discovery paths to handle different runtime environments. The primary path delegates to a <code>rule-loader</code> skill that returns a structured manifest. The fallback path (Step 2B) performs a direct keyword scan of rule frontmatter. Both paths converge at the same point: an ordered list of rule files to load via <code>read_file</code>.</p>
 
     <svg viewBox="0 0 720 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Protocol discovery flow diagram" style="max-width:720px; margin:24px auto; display:block; background:light-dark(var(--sf-gray-100, #F1F5F9), #1E293B); border-radius:12px; padding:16px;">
       <defs>
@@ -23,14 +23,14 @@
       </defs>
       <!-- Nodes -->
       <rect x="280" y="10" width="160" height="40" rx="8" fill="#29B5E8"/><text x="360" y="35" text-anchor="middle" font-size="13" font-weight="600" fill="#fff" font-family="system-ui">User Prompt Arrives</text>
-      <rect x="270" y="80" width="180" height="40" rx="8" fill="light-dark(#fff,#334155)" stroke="light-dark(#E2E8F0,#475569)"/><text x="360" y="105" text-anchor="middle" font-size="12" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">Load AGENTS.md Bootstrap</text>
+      <rect x="270" y="80" width="180" height="40" rx="8" fill="light-dark(#fff,#334155)" stroke="light-dark(#E2E8F0,#475569)"/><text x="360" y="105" text-anchor="middle" font-size="12" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">Load the Injected Foundation</text>
       <!-- Decision diamond -->
       <polygon points="360,155 440,195 360,235 280,195" fill="light-dark(#fff,#334155)" stroke="light-dark(#E2E8F0,#475569)" stroke-width="1.5"/>
       <text x="360" y="200" text-anchor="middle" font-size="11" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">Discovery Path?</text>
       <!-- Primary path -->
       <rect x="100" y="260" width="180" height="44" rx="8" fill="light-dark(#EFF8FF,#0C2D48)" stroke="#29B5E8"/><text x="190" y="278" text-anchor="middle" font-size="11" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">rule-loader Skill</text><text x="190" y="294" text-anchor="middle" font-size="10" fill="light-dark(#475569,#94A3B8)" font-family="system-ui">(returns manifest)</text>
       <!-- Fallback path -->
-      <rect x="440" y="260" width="180" height="44" rx="8" fill="light-dark(#FFFBEB,#422006)" stroke="#F59E0B"/><text x="530" y="278" text-anchor="middle" font-size="11" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">Step 2B: grep</text><text x="530" y="294" text-anchor="middle" font-size="10" fill="light-dark(#475569,#94A3B8)" font-family="system-ui">RULES_INDEX.md</text>
+      <rect x="440" y="260" width="180" height="44" rx="8" fill="light-dark(#FFFBEB,#422006)" stroke="#F59E0B"/><text x="530" y="278" text-anchor="middle" font-size="11" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">Step 2B: keyword scan</text><text x="530" y="294" text-anchor="middle" font-size="10" fill="light-dark(#475569,#94A3B8)" font-family="system-ui">rule frontmatter</text>
       <!-- Converge -->
       <rect x="250" y="335" width="220" height="40" rx="8" fill="light-dark(#fff,#334155)" stroke="light-dark(#E2E8F0,#475569)"/><text x="360" y="360" text-anchor="middle" font-size="12" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">read_file each matched rule</text>
       <!-- Cite -->
@@ -68,7 +68,7 @@
       </div>
       <div>
         <h4>Reference Files (discovery aids)</h4>
-        <p>Files used to <em>find</em> rules, not loaded as rules themselves. These include <code>AGENTS.md</code> (the bootstrap protocol) and <code>RULES_INDEX.md</code> (the keyword index).</p>
+        <p>Files used to <em>find</em> rules, not loaded as rules themselves. These include the injected foundation (the rule-loader protocol) and the hook-injected manifest (the keyword index).</p>
         <p>Reference files must NOT appear under Gate 3.</p>
       </div>
     </div>

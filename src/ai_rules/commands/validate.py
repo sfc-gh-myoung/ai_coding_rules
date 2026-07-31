@@ -29,6 +29,13 @@ from ai_rules._shared.console import (
 )
 from ai_rules._shared.paths import find_project_root, get_schemas_dir
 
+# Canonical location of the micro-kernel content, relative to the project root.
+# This is the real source the plugin build copies from (see commands/plugin.py);
+# it does NOT live at the project root. Pointing the validator at a non-existent
+# path would make it silently pass on every run.
+KERNEL_CONTENT_RELPATH = Path("src/ai_rules/progressive_eval/micro_kernel_content.md")
+KERNEL_CONTENT_FILENAME = KERNEL_CONTENT_RELPATH.name
+
 
 @dataclass
 class ValidationError:
@@ -1411,8 +1418,8 @@ class SchemaValidator:
 
         # Validate Related Rules subsection format
         # Note: Both bare filenames (e.g., 000-global-core.md) and prefixed references
-        # (e.g., rules/000-global-core.md) are valid. The rules/ location is defined
-        # in AGENTS.md for token efficiency.
+        # (e.g., rules/000-global-core.md) are valid. The rules/ location is fixed by
+        # the rule-loader protocol.
         refs_section_config = link_config.get("references_section", {})
         related_rules_config = refs_section_config.get("related_rules_subsection", {})
 
@@ -1551,46 +1558,83 @@ class SchemaValidator:
 
         return results
 
-    def validate_agents_md(self, agents_path: Path | None = None) -> ValidationResult:
-        """Validate AGENTS.md for ASCII patterns.
+    def validate_ascii_only(self, path: Path) -> ValidationResult:
+        """Validate a markdown file for ASCII patterns only, skipping rule-schema checks.
 
-        AGENTS.md is the bootstrap protocol file that should also follow
-        agent optimization patterns (no ASCII trees, tables, or arrows).
+        Used for non-rule markdown that still has to stay agent-parseable: the
+        micro-kernel content (injected into every prompt) and any
+        ``*.md.template`` files. Rule files go through ``validate_file`` instead.
 
         Args:
-            agents_path: Path to AGENTS.md. Defaults to project root.
+            path: Markdown file to check.
 
         Returns:
-            ValidationResult with any ASCII pattern violations
+            ValidationResult with any ASCII pattern violations.
         """
-        if agents_path is None:
-            agents_path = self.project_root / "AGENTS.md"
+        result = ValidationResult(file_path=path)
 
-        result = ValidationResult(file_path=agents_path)
-
-        if not agents_path.exists():
-            # AGENTS.md is optional, not an error if missing
+        if not path.exists():
+            # Absent input is not an error — callers may probe optional files.
+            # Note: validate_kernel_content deliberately does not rely on this,
+            # because a missing kernel would silently pass. See its docstring.
             return result
 
         try:
-            with open(agents_path) as f:
+            with open(path) as f:
                 content = f.read()
         except Exception as e:
             result.errors.append(
                 ValidationError(
                     severity="CRITICAL",
-                    message=f"Failed to read AGENTS.md: {e}",
+                    message=f"Failed to read {path.name}: {e}",
                     error_group="File",
                 )
             )
             return result
 
-        lines = content.split("\n")
-
-        # Only validate ASCII patterns for AGENTS.md
-        self._validate_ascii_patterns(content, lines, result)
+        self._validate_ascii_patterns(content, content.split("\n"), result)
 
         return result
+
+    def kernel_content_path(self) -> Path:
+        """Absolute path to the micro-kernel content for this project root."""
+        return self.project_root / KERNEL_CONTENT_RELPATH
+
+    def validate_kernel_content(self, path: Path | None = None) -> ValidationResult:
+        """Validate the micro-kernel content for ASCII patterns.
+
+        The kernel is injected into every prompt, so it must follow the same
+        agent-optimization patterns rules do: no ASCII trees, tables, or arrows.
+
+        Unlike ``validate_ascii_only``, a missing kernel is reported as an error
+        rather than passing quietly. A validator aimed at a path that does not
+        exist would be green forever and would gate nothing.
+
+        Args:
+            path: Override path. Defaults to the canonical kernel location.
+
+        Returns:
+            ValidationResult with any ASCII pattern violations.
+        """
+        if path is None:
+            path = self.kernel_content_path()
+
+        if not path.exists():
+            result = ValidationResult(file_path=path)
+            result.errors.append(
+                ValidationError(
+                    severity="CRITICAL",
+                    message=f"Micro-kernel content not found at {path}",
+                    error_group="File",
+                    fix_suggestion=(
+                        "The kernel is required. If it moved, update "
+                        "KERNEL_CONTENT_RELPATH in commands/validate.py."
+                    ),
+                )
+            )
+            return result
+
+        return self.validate_ascii_only(path)
 
     def format_json(self, results: list[ValidationResult]) -> str:
         """Format validation results as JSON.
@@ -2118,7 +2162,7 @@ def validate(
                 else:
                     results_t: list[ValidationResult] = []
                     for template_path in template_files:
-                        result = validator.validate_agents_md(template_path)
+                        result = validator.validate_ascii_only(template_path)
                         results_t.append(result)
 
                     if verbose:
@@ -2168,9 +2212,9 @@ def validate(
 
     # Validate file or directory
     if path.is_file():
-        # Special handling for AGENTS.md - only validate ASCII patterns, not rule schema
-        if path.name == "AGENTS.md":
-            result = validator.validate_agents_md(path)
+        # The micro-kernel is not a rule: check ASCII patterns only, not rule schema.
+        if path.name == KERNEL_CONTENT_FILENAME:
+            result = validator.validate_kernel_content(path)
         else:
             # Honor `excluded_files` (schema-level opt-out) for single-file validation
             # so templates/boilerplate/generated files pass cleanly when addressed directly.

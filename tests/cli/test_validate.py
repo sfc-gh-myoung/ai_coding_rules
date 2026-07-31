@@ -9,6 +9,7 @@ Tests follow pytest best practices:
 """
 
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from typer.testing import CliRunner
@@ -17,6 +18,8 @@ from ai_rules.cli import app
 from ai_rules.commands import validate as validate_module
 
 runner = CliRunner(env={"NO_COLOR": "1", "CI": "true", "TERM": "dumb"})
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 # ============================================================================
@@ -1775,13 +1778,13 @@ class TestValidateDirectory:
         (rules_dir / "100-good.md").write_text(
             "# Good Rule\n\n## Metadata\n\n**Keywords:** a, b, c, d, e\n"
         )
-        (rules_dir / "AGENTS.md").write_text("# Agents\n")
+        (rules_dir / "NOTES.md").write_text("# Notes\n")
 
-        results = validator.validate_directory(rules_dir, excluded_files={"AGENTS.md"})
+        results = validator.validate_directory(rules_dir, excluded_files={"NOTES.md"})
 
         filenames = [r.file_path.name for r in results]
         assert "100-good.md" in filenames
-        assert "AGENTS.md" not in filenames
+        assert "NOTES.md" not in filenames
 
     @pytest.mark.unit
     def test_validate_directory_returns_results_for_each_file(
@@ -1801,57 +1804,132 @@ class TestValidateDirectory:
 
 
 # ============================================================================
-# Validate AGENTS.md Tests
+# ASCII-only validation: validate_ascii_only / validate_kernel_content
 # ============================================================================
 
 
-class TestValidateAgentsMd:
-    """Test validate_agents_md method."""
+class TestValidateAsciiOnly:
+    """Test validate_ascii_only, the shared ASCII-pattern-only entry point."""
 
     @pytest.mark.unit
-    def test_agents_md_clean(self, tmp_path: Path, full_schema: Path):
-        """Test AGENTS.md without violations passes."""
+    def test_clean_file_passes(self, tmp_path: Path, full_schema: Path):
+        """A markdown file without Priority 1 violations passes."""
         validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
 
-        agents_path = tmp_path / "AGENTS.md"
-        agents_path.write_text("# AGENTS\n\n## Rules\n\nLoad rules from rules/ directory.\n")
+        target = tmp_path / "kernel.md"
+        target.write_text("# Kernel\n\n## Rules\n\nLoad rules from rules/ directory.\n")
 
-        result = validator.validate_agents_md(agents_path)
+        result = validator.validate_ascii_only(target)
 
         assert result.is_clean
 
     @pytest.mark.unit
-    def test_agents_md_with_ascii_violations(self, tmp_path: Path, full_schema: Path):
-        """Test AGENTS.md with ASCII tree characters."""
+    @pytest.mark.parametrize(
+        "content",
+        [
+            "# K\n\n├── rules/\n│   └── 100-core.md\n",
+            "| Rule | Tier |\n|---------|------|\n| foo.md | High |\n",
+            "# K\n\n1. Detect: Makefile → Taskfile.yml\n",
+        ],
+        ids=["ascii_tree", "ascii_table", "arrow"],
+    )
+    def test_priority_1_violations_are_flagged(
+        self, tmp_path: Path, full_schema: Path, content: str
+    ):
+        """Each Priority 1 pattern is detected regardless of filename."""
         validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
 
-        agents_path = tmp_path / "AGENTS.md"
-        agents_path.write_text("# AGENTS\n\n├── rules/\n│   └── 100-core.md\n")
+        target = tmp_path / "anything.md"
+        target.write_text(content)
 
-        result = validator.validate_agents_md(agents_path)
+        result = validator.validate_ascii_only(target)
 
         assert not result.is_clean
 
     @pytest.mark.unit
-    def test_agents_md_missing_returns_clean(self, tmp_path: Path, full_schema: Path):
-        """Test missing AGENTS.md returns clean result."""
+    def test_missing_file_is_not_an_error(self, tmp_path: Path, full_schema: Path):
+        """An absent optional input returns clean; callers may probe."""
         validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
 
-        result = validator.validate_agents_md(tmp_path / "nonexistent" / "AGENTS.md")
+        result = validator.validate_ascii_only(tmp_path / "nonexistent" / "kernel.md")
 
         assert result.is_clean
 
     @pytest.mark.unit
-    def test_agents_md_default_path(self, tmp_path: Path, full_schema: Path):
-        """Test validate_agents_md uses project root default."""
+    def test_read_failure_returns_error(self, tmp_path: Path, full_schema: Path):
+        """An unreadable file produces a CRITICAL error naming the file."""
+        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
+        target = tmp_path / "kernel.md"
+        target.write_text("# Kernel")
+
+        with patch("builtins.open", side_effect=PermissionError("Access denied")):
+            result = validator.validate_ascii_only(target)
+
+        assert any("Failed to read kernel.md" in e.message for e in result.errors)
+
+
+class TestValidateKernelContent:
+    """Test validate_kernel_content and its non-vacuous default path."""
+
+    @pytest.mark.unit
+    def test_default_path_points_at_a_file_that_exists(self):
+        """The real default target must exist, or the gate would be vacuous.
+
+        This is the regression guard for the defect where the kernel was assumed
+        to sit at the project root. It does not: it lives under
+        src/ai_rules/progressive_eval/. A validator aimed at a missing path
+        returns clean forever and gates nothing.
+        """
+        validator = validate_module.SchemaValidator(project_root=PROJECT_ROOT)
+
+        assert validator.kernel_content_path().is_file()
+
+    @pytest.mark.unit
+    def test_real_kernel_content_is_clean(self):
+        """The shipped kernel must satisfy the guard it is validated by."""
+        validator = validate_module.SchemaValidator(project_root=PROJECT_ROOT)
+
+        result = validator.validate_kernel_content()
+
+        assert result.is_clean, [e.message for e in result.errors]
+
+    @pytest.mark.unit
+    def test_missing_kernel_is_an_error(self, tmp_path: Path, full_schema: Path):
+        """A missing kernel is reported, NOT silently passed.
+
+        This is the behavioral difference from validate_ascii_only and the whole
+        point of the wrapper.
+        """
         validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
 
-        agents_path = tmp_path / "AGENTS.md"
-        agents_path.write_text("# AGENTS\n\nClean content.\n")
+        result = validator.validate_kernel_content()
 
-        result = validator.validate_agents_md()
+        assert not result.is_clean
+        assert any("not found" in e.message for e in result.errors)
 
-        assert result.file_path == agents_path
+    @pytest.mark.unit
+    def test_violation_in_kernel_is_flagged(self, tmp_path: Path, full_schema: Path):
+        """An explicit kernel path with an arrow fails."""
+        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
+        target = tmp_path / "micro_kernel_content.md"
+        target.write_text("# K\n\n1. Makefile → Taskfile.yml\n")
+
+        result = validator.validate_kernel_content(target)
+
+        assert not result.is_clean
+
+    @pytest.mark.unit
+    def test_default_path_is_reported_on_the_result(self, tmp_path: Path, full_schema: Path):
+        """The result carries the resolved default path."""
+        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
+
+        kernel = tmp_path / validate_module.KERNEL_CONTENT_RELPATH
+        kernel.parent.mkdir(parents=True)
+        kernel.write_text("# Kernel\n\nClean content.\n")
+
+        result = validator.validate_kernel_content()
+
+        assert result.file_path == kernel
 
 
 # ============================================================================
@@ -2187,39 +2265,12 @@ class TestValidateCLIBranches:
         assert result.exit_code in [0, 1]
 
     @pytest.mark.unit
-    def test_directory_with_agents_md_autodetection(
+    def test_validate_single_kernel_content(
         self, tmp_path: Path, full_schema: Path, monkeypatch: pytest.MonkeyPatch
     ):
-        """Test that validating rules/ also checks AGENTS.md."""
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "100-rule.md").write_text(
-            "# Rule\n\n## Metadata\n\n**Keywords:** a, b, c, d, e\n"
-        )
-
-        # Create AGENTS.md with violations in parent
-        agents_md = tmp_path / "AGENTS.md"
-        agents_md.write_text("# AGENTS\n\n├── rules/\n│   └── file.md\n")
-
-        pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text('[project]\nname = "test"')
-
-        monkeypatch.setattr(validate_module, "find_project_root", lambda: tmp_path)
-
-        result = runner.invoke(
-            app, ["validate", str(rules_dir), "--schema", str(full_schema), "--json"]
-        )
-
-        # AGENTS.md violations should appear in results
-        assert result.exit_code in [0, 1]
-
-    @pytest.mark.unit
-    def test_validate_single_agents_md(
-        self, tmp_path: Path, full_schema: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test validating AGENTS.md directly as a single file."""
-        agents_md = tmp_path / "AGENTS.md"
-        agents_md.write_text("# AGENTS\n\nClean bootstrap protocol.\n")
+        """The kernel is routed to ASCII-only validation as a single file."""
+        agents_md = tmp_path / validate_module.KERNEL_CONTENT_FILENAME
+        agents_md.write_text("# Kernel\n\nClean foundation content.\n")
 
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text('[project]\nname = "test"')
@@ -2781,7 +2832,7 @@ link_validation:
   references_section:
     related_rules_subsection:
       rule_reference_format:
-        allowed_root_files: [AGENTS.md, README.md]
+        allowed_root_files: [CONTRIBUTING.md, README.md]
   rule_references:
     enabled: true
     pattern: 'rules/[\\w-]+\\.md'
@@ -3359,7 +3410,7 @@ Content.
 
 ### Related Rules
 
-- `AGENTS.md`
+- `CONTRIBUTING.md`
 - `000-global-core.md`
 - `rules/000-global-core.md`
 """
@@ -3402,30 +3453,6 @@ Content.
         # Placeholder ref should be skipped (passed check, no error)
         placeholder_errors = [e for e in result.errors if "placeholder" in str(e.message).lower()]
         assert len(placeholder_errors) == 0
-
-
-# ============================================================================
-# Coverage Gap: AGENTS.md read failure
-# ============================================================================
-
-
-class TestAgentsMdReadFailure:
-    """Test AGENTS.md validation when file cannot be read."""
-
-    @pytest.mark.unit
-    def test_agents_md_read_failure(self, tmp_path: Path, full_schema: Path):
-        """Test AGENTS.md read failure returns error result."""
-        from unittest.mock import patch
-
-        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
-        agents_md = tmp_path / "AGENTS.md"
-        agents_md.write_text("# Agents")
-
-        with patch("builtins.open", side_effect=PermissionError("Access denied")):
-            result = validator.validate_agents_md(agents_md)
-
-        assert len(result.errors) > 0
-        assert any("Failed to read AGENTS.md" in e.message for e in result.errors)
 
 
 class TestExampleValidatorDebugEarlyReturn:

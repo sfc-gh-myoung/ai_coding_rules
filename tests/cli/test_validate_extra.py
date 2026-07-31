@@ -7,7 +7,7 @@ Covers:
 - SchemaValidator._get_null_byte_locations long-line preview — lines 280-282
 - ExampleValidator._get_null_byte_locations positions — lines 1549-1576
 - ExampleValidator._validate_file_integrity verbose=True/False — lines 1594, 1597-1621
-- SchemaValidator._validate_ascii_patterns RULES_INDEX table exemption
+- SchemaValidator._validate_ascii_patterns applies to every filename
 """
 
 from __future__ import annotations
@@ -192,18 +192,23 @@ def test_validate_templates_mode_with_real_template(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# SchemaValidator._validate_ascii_patterns — non-index exemption check
+# SchemaValidator._validate_ascii_patterns — no filename is exempt
 # ---------------------------------------------------------------------------
 
 TABLE_CONTENT = "| Rule | Tier |\n|---------|------|\n| foo.md | High |\n"
 
 
 @pytest.mark.unit
-def test_non_rules_index_table_is_still_flagged(tmp_path: Path) -> None:
-    """ASCII table in any other file name must still be flagged (exemption is narrow)."""
+def test_ascii_table_is_flagged_regardless_of_filename(tmp_path: Path) -> None:
+    """An ASCII table is flagged in any file; the checker has no per-name exemption.
+
+    An earlier revision exempted one index filename from the table check. That
+    exemption is gone, so no filename is special. This test pins that: if a
+    filename-based carve-out is ever reintroduced, it must not apply here.
+    """
     other_file = tmp_path / "OTHER_INDEX.md"
     other_file.write_text(TABLE_CONTENT)
     validator = SchemaValidator(project_root=PROJECT_ROOT)
-    result = validator.validate_agents_md(other_file)
+    result = validator.validate_ascii_only(other_file)
     table_errors = [e for e in result.errors if "ASCII table" in e.message]
-    assert table_errors, "Non-RULES_INDEX file with |---| should still fail validation"
+    assert table_errors, "a file containing |---| must fail validation"

@@ -8,7 +8,7 @@
 - Load language-specific rules when modifying code files
 
 ## Validation Sequence
-1. Detect project automation: Makefile → Taskfile.yml → package.json → direct commands
+1. Detect project automation, first match wins: Makefile, then Taskfile.yml, then package.json, then direct commands
 2. Run validation tools appropriate to the language
 3. On failure: revert, report with exact error and fix
 

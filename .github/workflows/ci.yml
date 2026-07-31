@@ -86,6 +86,32 @@ jobs:
       - name: Run tests
         run: uv run ai-rules dev test run
 
+  # Job 3b: Coverage gate (single interpreter, parallel)
+  #
+  # Deliberately separate from the matrix above. Coverage roughly doubles the
+  # run, and a matrix would enforce the threshold once per interpreter with
+  # potentially different numbers. Pinned to 3.12 so the enforced figure is
+  # deterministic. `fail_under` in pyproject.toml is what actually fails here.
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.0.0
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Enforce coverage threshold
+        run: uv run ai-rules dev test run --coverage
+
   # Job 4: Rules Validation (parallel)
   validate:
     runs-on: ubuntu-latest

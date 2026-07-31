@@ -158,7 +158,15 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
-fail_under = 92
+# Enforced by the `coverage` job in .github/workflows/ci.yml.
+#
+# Set to 87 against a measured 88.01 so the gate is real and green from the day
+# it is wired, with one point of headroom for normal noise. This is a ratchet:
+# raise it as coverage rises, never lower it to accommodate a regression.
+#
+# Was 92 while nothing passed --cov, so it enforced nothing -- a gate that
+# cannot fail is worse than no gate, because it reads as protection.
+fail_under = 87
 
 [[tool.ty.overrides]]
 include = ["tests/**"]

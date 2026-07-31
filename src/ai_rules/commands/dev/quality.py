@@ -32,11 +32,7 @@ def _markdown_targets(root: Path) -> tuple[list[str], list[str]]:
     cfg = _dev_config(root)
     rules = cfg.get(
         "markdown_rules_targets",
-        [
-            "rules/",
-            "templates/AGENTS_MODE.md.template",
-            "templates/AGENTS_NO_MODE.md.template",
-        ],
+        ["rules/"],
     )
     docs = cfg.get(
         "markdown_docs_targets",

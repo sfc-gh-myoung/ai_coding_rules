@@ -184,10 +184,6 @@ include = ["src/ai_rules/rule_loader_eval/agent_runner.py"]
 unresolved-import = "ignore"
 invalid-argument-type = "ignore"
 
-[tool.rule_deployer]
-exclude_skills = [
-]
-
 [tool.ai_rules.dev]
 markdown_rules_targets = [
     "rules/",

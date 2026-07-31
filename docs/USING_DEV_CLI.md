@@ -88,7 +88,7 @@ Project information and environment checks.
 
 ### `ai-rules dev validate` / `ai-rules dev ci`
 
-Full validation pipeline (quality + tests + schema validation + index check). Both commands are identical; `ci` is an alias for `validate`.
+Full validation pipeline (quality + tests + schema validation of `rules/`, `rules/examples/`, and `templates/`). Both commands are identical; `ci` is an alias for `validate`.
 
 ### `ai-rules dev release`
 

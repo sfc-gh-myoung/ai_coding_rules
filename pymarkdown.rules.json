@@ -1,4 +1,9 @@
 {
+  "extensions": {
+    "front-matter": {
+      "enabled": true
+    }
+  },
   "plugins": {
     "line-length": {
       "enabled": false
@@ -60,7 +65,9 @@
     },
     "no-reversed-links": {
       "enabled": false
+    },
+    "first-line-heading": {
+      "enabled": false
     }
   }
 }
-

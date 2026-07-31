@@ -30,7 +30,7 @@ dev_app.add_typer(mirror_app, name="mirror")
 
 @dev_app.command("validate")
 def dev_validate() -> None:
-    """Run the full validation pipeline (quality + tests + schema + index)."""
+    """Run the full validation pipeline (quality + tests + schema)."""
     run_validate()
 
 

@@ -40,7 +40,7 @@ AI Coding Rules solves this by storing rules as Markdown files with embedded met
 2. **No Generation Step.** Rules live in their final form, so there's no build step.
 3. **Universal Format.** Standard Markdown with embedded metadata works with any AI assistant or IDE.
 4. **Schema-Validated.** A declarative YAML schema enforces consistency.
-5. **Agent-Agnostic Deployment.** Optional destination flags (`--agents-dest`, `--rules-dest`, `--skills-dest`) deploy each artifact to the project location it belongs in.
+5. **Agent-Agnostic Distribution.** Rules ship as a plugin whose hook injects matched rules into any assistant that supports `UserPromptSubmit`.
 
 ### 1.3 High-Level System Diagram
 

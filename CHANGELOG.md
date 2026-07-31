@@ -56,12 +56,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(docs):** add Plugin Installation section to README.md as alternative to AGENTS.md deploy.
 - **feat(eval):** strengthen anti-fabrication enforcement in eval `build_prompt()` — add explicit "FAILURE CONDITION" block requiring Read tool call before any Gate 3 citation.
 - **refactor(eval):** extract the SDK message loop into `_consume_query` so transport failures can be caught around the entire stream rather than per-message.
-- **docs(readme):** replace the `ai-rules deploy` / AGENTS.md deploy flow with a build-and-install plugin flow, documenting the plugin layout and `cortex plugin validate`.
+- **docs(readme):** replace the `ai-rules deploy` / AGENTS.md deploy flow with a build-and-install plugin flow, documenting the plugin layout and `ai-rules plugin verify`.
 - **docs(contributing):** swap `ai-rules deploy` and `ai-rules index generate` steps for `ai-rules plugin build` and drop `RULES_INDEX.md` from the contribution checklist.
 - **docs(eval):** document the Latency-vs-Quality Pareto frontier and Model Effort report tabs in `EVALUATING_RULE_LOADER.md`.
 - **feat(rules):** reframe bootstrap references (`CLAUDE.md` / `AGENTS.md`) as the injected foundation / micro-kernel so rule text no longer assumes a file-based entry point.
-- **chore(plugin):** rebuild the bundled plugin rules so the packaged copy matches the de-fanned keyword set and updated foundation wording.
+- **chore(plugin):** stop tracking the built `ai-coding-rules-plugin/` directory — it is generated output, regenerated on demand from `rules/`, `skills/`, `hooks/`, and `src/`.
 - **refactor(skills):** move `show-rules/SKILL.md` out of the built plugin directory into the repo `skills/` source tree, matching how `rule-loader` is sourced and copied by `ai-rules plugin build`.
+- **refactor(ci):** reduce the plugin validate step to the one check that can fail — `rules/*.md` reaching the built plugin complete and byte-identical — and state it in terms of the `*.md` set rather than a `diff -r` exclusion list, which silently rots when a new cache file or dotfile lands in `rules/`. Drops a second full build diffed against the first, a vendored-file diff against its own copy source, and a `plugin verify` that re-ran the contract `plugin build` already asserted.
+- **chore(cleanup):** remove the dead `[tool.rule_deployer]` config table, the deleted `templates/AGENTS_*.md.template` entries from the markdown-target fallback, and stale `index check` mentions from the `dev validate` docs and docstring.
 
 ### Fixed
 
@@ -82,6 +84,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **fix(eval):** re-raise programming errors (`AttributeError`, `TypeError`, `KeyError`, …) from the message loop instead of laundering module defects into infra retries and a misattributed abort.
 - **fix(eval):** filter the foundation rule out of `missing_required` on synthetic failure rows so infra aborts no longer look like genuine micro-kernel discovery misses.
 - **fix(rules):** replace hardcoded example passwords in rule snippets with placeholders so the secret scanner stops flagging documentation samples.
+- **fix(quality):** enable pymarkdown's `front-matter` extension so MD041 no longer fires on all 195 frontmatter-bearing rule files — the markdown gate had been red in CI since frontmatter was introduced.
+- **fix(ci):** track `uv.lock` so the `cache-dependency-glob: "uv.lock"` cache key resolves and dependency floors (`ruff`, `pymarkdownlnt`) can no longer turn a green PR red with no repo change.
+- **fix(docs):** point the contributor plugin-check step at `ai-rules plugin verify`; `cortex plugin validate` is not a Cortex CLI subcommand and failed on first use.
+- **fix(tests):** restore `test_validate_templates_mode_with_real_template` with a synthetic fixture — it had been silently skipping since `templates/AGENTS_NO_MODE.md.template` was deleted.
 
 ### Changed
 

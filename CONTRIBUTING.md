@@ -276,14 +276,14 @@ uv run ai-rules validate rules/
 # 2. Validate specific rule you modified
 uv run ai-rules validate rules/XXX-rule-name.md --verbose
 
-# 3. Rebuild and validate the plugin
+# 3. Rebuild and verify the plugin
 uv run ai-rules plugin build
-cortex plugin validate ./ai-coding-rules-plugin
+uv run ai-rules plugin verify
 
-# 5. Run test suite
+# 4. Run test suite
 uv run ai-rules dev test run
 
-# 6. Run all quality checks
+# 5. Run all quality checks
 uv run ai-rules dev quality all --fix
 ```
 

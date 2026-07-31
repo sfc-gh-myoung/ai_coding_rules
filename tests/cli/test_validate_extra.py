@@ -178,14 +178,15 @@ def test_validate_templates_mode_empty_dir(tmp_path: Path) -> None:
 
 @pytest.mark.integration
 def test_validate_templates_mode_with_real_template(tmp_path: Path) -> None:
-    """--templates with a real template file produces a summary table."""
-    real_template = PROJECT_ROOT / "templates" / "AGENTS_NO_MODE.md.template"
-    if not real_template.exists():
-        pytest.skip("AGENTS_NO_MODE.md.template not present in templates/")
+    """--templates with a template file present produces a summary table.
+
+    Passes the templates directory directly: --templates ignores PATH for
+    resolution unless PATH itself is named "templates" (direct-leaf exception).
+    """
     templates_sub = tmp_path / "templates"
     templates_sub.mkdir()
-    (templates_sub / "AGENTS_NO_MODE.md.template").write_bytes(real_template.read_bytes())
-    result = runner.invoke(app, ["validate", str(tmp_path), "--templates"])
+    (templates_sub / "TEST.md.template").write_text("<!-- Template: test -->\n")
+    result = runner.invoke(app, ["validate", str(templates_sub), "--templates"])
     # 0 = all valid, 1 = some invalid — both are expected depending on content
     assert result.exit_code in (0, 1)
     assert "Template Validation Summary" in result.output

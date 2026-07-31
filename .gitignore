@@ -221,12 +221,15 @@ reports/
 # But track the report templates
 !templates/reports/
 
-# Lock files
-uv.lock
+# Lock files: uv.lock is intentionally tracked. CI keys its dependency cache on
+# it (cache-dependency-glob), and unpinned floors would otherwise let a new tool
+# release turn a green PR red with no repo change.
 
-# AGENTS.md should be generated
+# Consumer-side bootstrap files. This project no longer generates them, but an
+# operator working in this repo may have local copies; never commit them.
 AGENTS.md
 PROJECT.md
+
 prompts/archive/
 
 # Generated plugin build output (ai-rules plugin build)

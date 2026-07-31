@@ -152,11 +152,7 @@ class TestTemplatesPathDerivation:
         """Validate X/templates/ --templates uses X/templates/ directly (no double-append)."""
         templates_dir = tmp_path / "templates"
         templates_dir.mkdir()
-        real_tmpl = PROJECT_ROOT / "templates" / "AGENTS_NO_MODE.md.template"
-        if real_tmpl.exists():
-            (templates_dir / "AGENTS_NO_MODE.md.template").write_bytes(real_tmpl.read_bytes())
-        else:
-            (templates_dir / "TEST.md.template").write_text("<!-- Template: test -->\n")
+        (templates_dir / "TEST.md.template").write_text("<!-- Template: test -->\n")
 
         result = runner.invoke(app, ["validate", str(templates_dir), "--templates"])
 
@@ -224,11 +220,7 @@ class TestCombinedExamplesTemplates:
         # Create X/templates/
         templates_sub = tmp_path / "templates"
         templates_sub.mkdir()
-        real_tmpl = PROJECT_ROOT / "templates" / "AGENTS_NO_MODE.md.template"
-        if real_tmpl.exists():
-            (templates_sub / "AGENTS_NO_MODE.md.template").write_bytes(real_tmpl.read_bytes())
-        else:
-            (templates_sub / "TEST.md.template").write_text("<!-- Template: test -->\n")
+        (templates_sub / "TEST.md.template").write_text("<!-- Template: test -->\n")
 
         result = runner.invoke(app, ["validate", str(tmp_path), "--examples", "--templates"])
 
@@ -246,11 +238,7 @@ class TestCombinedExamplesTemplates:
         # No examples/ subdir, but templates/ exists
         templates_sub = tmp_path / "templates"
         templates_sub.mkdir()
-        real_tmpl = PROJECT_ROOT / "templates" / "AGENTS_NO_MODE.md.template"
-        if real_tmpl.exists():
-            (templates_sub / "AGENTS_NO_MODE.md.template").write_bytes(real_tmpl.read_bytes())
-        else:
-            (templates_sub / "TEST.md.template").write_text("<!-- Template: test -->\n")
+        (templates_sub / "TEST.md.template").write_text("<!-- Template: test -->\n")
 
         result = runner.invoke(app, ["validate", str(tmp_path), "--examples", "--templates"])
 

@@ -65,9 +65,6 @@
     },
     "no-reversed-links": {
       "enabled": false
-    },
-    "first-line-heading": {
-      "enabled": false
     }
   }
 }

@@ -88,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **fix(ci):** track `uv.lock` so the `cache-dependency-glob: "uv.lock"` cache key resolves and dependency floors (`ruff`, `pymarkdownlnt`) can no longer turn a green PR red with no repo change.
 - **fix(docs):** point the contributor plugin-check step at `ai-rules plugin verify`; `cortex plugin validate` is not a Cortex CLI subcommand and failed on first use.
 - **fix(tests):** restore `test_validate_templates_mode_with_real_template` with a synthetic fixture — it had been silently skipping since `templates/AGENTS_NO_MODE.md.template` was deleted.
+- **fix(keywords):** preserve typed extension, filename, and directory triggers when `--update` regenerates semantic rule keywords.
 
 ### Changed
 

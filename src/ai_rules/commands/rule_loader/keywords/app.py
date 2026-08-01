@@ -51,6 +51,42 @@ from ai_rules.commands.rule_loader.keywords.stoplist import (
 
 # Default keyword count when --count is not passed explicitly
 _DEFAULT_COUNT = 6
+_STRUCTURAL_TRIGGER_PREFIXES = ("ext:", "file:", "dir:")
+_TYPED_TRIGGER_PREFIXES = ("kw:", *_STRUCTURAL_TRIGGER_PREFIXES)
+
+
+def _finalize_suggested_keywords(
+    current_keywords: list[str], suggested_keywords: list[str]
+) -> tuple[list[str], dict[str, str]]:
+    """Preserve structural triggers and type regenerated semantic keywords."""
+    finalized = [
+        keyword
+        for keyword in current_keywords
+        if keyword.lower().startswith(_STRUCTURAL_TRIGGER_PREFIXES)
+    ]
+
+    finalized_rationale_keys: dict[str, str] = {}
+    for keyword in suggested_keywords:
+        normalized = keyword.strip()
+        if not normalized:
+            continue
+        original = normalized
+        prefix, separator, value = normalized.partition(":")
+        if separator and f"{prefix.lower()}:" in _TYPED_TRIGGER_PREFIXES:
+            normalized = f"{prefix.lower()}:{value}"
+        else:
+            normalized = f"kw:{normalized}"
+        finalized.append(normalized)
+        finalized_rationale_keys[original] = normalized
+
+    unique: list[str] = []
+    seen: set[str] = set()
+    for keyword in finalized:
+        comparison_key = keyword.lower()
+        if comparison_key not in seen:
+            seen.add(comparison_key)
+            unique.append(keyword)
+    return unique, finalized_rationale_keys
 
 
 # ---------------------------------------------------------------------------
@@ -440,6 +476,15 @@ def keywords(
 
     if deduplicate and len(results) > 1:
         _deduplicate_across_rules(results)
+
+    for result in results:
+        result.suggested_keywords, rationale_keys = _finalize_suggested_keywords(
+            result.current_keywords, result.suggested_keywords
+        )
+        result.rationale_map = {
+            rationale_keys.get(keyword, keyword): rationale
+            for keyword, rationale in result.rationale_map.items()
+        }
 
     for result in results:
         if diff:

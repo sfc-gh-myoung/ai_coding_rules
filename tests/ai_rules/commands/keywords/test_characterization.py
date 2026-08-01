@@ -11,12 +11,14 @@ These previously routed through a backward-compatibility shim at
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
 
 from typer.testing import CliRunner
 
+import ai_rules.commands.rule_loader.keywords.app as keywords_module
 from ai_rules.commands.rule_loader.keywords import (
     ExtractionResult,
     KeywordExtractor,
@@ -35,6 +37,7 @@ from ai_rules.commands.rule_loader.keywords import (
     load_keyword_stoplist_overrides,
     update_keywords_in_file,
 )
+from ai_rules.commands.rule_loader.keywords.app import _finalize_suggested_keywords
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -452,6 +455,104 @@ class TestPositionalInvocation:
 
 
 class TestFormattingHelpers:
+    def test_update_command_preserves_structural_triggers(self, tmp_path, monkeypatch):
+        """The CLI update path writes finalized typed keyword metadata."""
+        rule = tmp_path / "rule.md"
+        rule.write_text(
+            """\
+---
+keywords:
+  - kw:old semantic term
+  - ext:.py
+  - file:pyproject.toml
+  - dir:tests/
+---
+
+# Rule
+""",
+            encoding="utf-8",
+        )
+
+        class FakeExtractor:
+            def __init__(self, **_kwargs):
+                pass
+
+            def suggest_keywords(self, file_path, **_kwargs):
+                return ExtractionResult(
+                    file_path=file_path,
+                    current_keywords=[
+                        "kw:old semantic term",
+                        "ext:.py",
+                        "file:pyproject.toml",
+                        "dir:tests/",
+                    ],
+                    suggested_keywords=["new semantic term"],
+                    rationale_map={"new semantic term": "Distinctive rule concept."},
+                )
+
+        monkeypatch.setattr(keywords_module, "KeywordExtractor", FakeExtractor)
+        monkeypatch.setattr(
+            keywords_module,
+            "load_snowflake_config",
+            lambda _connection: {"account": "test", "token": "test"},
+        )
+        manifest_path = tmp_path / "keywords.json"
+
+        result = CliRunner().invoke(
+            keywords_app,
+            [
+                "run",
+                str(rule),
+                "--update",
+                "--count",
+                "5",
+                "--output",
+                str(manifest_path),
+            ],
+        )
+
+        assert result.exit_code == 0, result.output
+        content = rule.read_text(encoding="utf-8")
+        assert "kw:old semantic term" not in content
+        assert "kw:new semantic term" in content
+        assert "ext:.py" in content
+        assert "file:pyproject.toml" in content
+        assert "dir:tests/" in content
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        assert manifest["rules"][0]["rationale"] == {
+            "kw:new semantic term": "Distinctive rule concept."
+        }
+
+    def test_finalize_suggested_keywords_preserves_structural_triggers(self):
+        """Regeneration replaces semantic terms without losing path triggers."""
+        result, rationale_keys = _finalize_suggested_keywords(
+            current_keywords=[
+                "kw:old semantic term",
+                "ext:.py",
+                "file:pyproject.toml",
+                "dir:tests/",
+            ],
+            suggested_keywords=[
+                "new semantic term",
+                "kw:already typed",
+                "EXT:.PY",
+                "new semantic term",
+            ],
+        )
+
+        assert result == [
+            "ext:.py",
+            "file:pyproject.toml",
+            "dir:tests/",
+            "kw:new semantic term",
+            "kw:already typed",
+        ]
+        assert rationale_keys == {
+            "new semantic term": "kw:new semantic term",
+            "kw:already typed": "kw:already typed",
+            "EXT:.PY": "ext:.PY",
+        }
+
     def test_format_keywords_line_inline(self):
         """Inline style produces **Keywords:** prefix."""
         result = format_keywords_line(["pytest fixtures", "parametrize"], style="inline")

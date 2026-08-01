@@ -14,7 +14,7 @@
 
 **What:** Universal AI coding rule system working with any assistant/IDE  
 **Works with:** Cursor, Claude Code, GitHub Copilot, VS Code, ChatGPT, and more  
-**Install:** build the plugin, then install it with your assistant's plugin command  
+**Install:** build the plugin, then install it with your assistant's plugin command
 **Benefit:** production-ready rules, automatic discovery, zero vendor lock-in
 
 **Quick Checklist:**

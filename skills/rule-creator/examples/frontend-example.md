@@ -3,7 +3,7 @@
 ## User Request
 
 ```
-Create a new Cursor rule documenting DaisyUI best practices following schema
+Create a new rule documenting DaisyUI best practices following schema
 ```
 
 ## Complete Workflow Execution
@@ -50,11 +50,9 @@ Search 4: "DaisyUI theme customization optimization"
 - Component composition patterns
 - data-theme attribute for theme switching
 
-**Step 1.6: Extract Keywords (15)**
+**Step 1.6: Extract Keywords (5)**
 ```
-daisyui, tailwind, components, ui library, themes, accessibility,
-semantic html, css variables, responsive design, customization,
-utility-first, design system, best practices, patterns, optimization
+daisyui, tailwind, components, ui library, accessibility
 ```
 
 **Step 1.7: Essential Patterns (4)**
@@ -105,10 +103,10 @@ $ ls -lh rules/422-daisyui-core.md
 -rw-r--r--  1 user  staff   3.2K Dec 11 15:30 rules/422-daisyui-core.md
 
 $ grep -c "^## " rules/422-daisyui-core.md
-9  # All 9 required sections present 
+3  # Required top-level sections present
 
-$ grep -c "<inputs_prereqs>\|<mandatory>\|<forbidden>\|<steps>\|<output_format>\|<validation>" rules/422-daisyui-core.md
-6  # All 6 Contract XML tags present 
+$ grep -c "^### " rules/422-daisyui-core.md
+6  # Required Contract subsections present
 
 $ grep -n "^## Contract" rules/422-daisyui-core.md
 35:## Contract  # Before line 160 
@@ -122,13 +120,21 @@ $ grep -n "^## Contract" rules/422-daisyui-core.md
 
 **Step 3.1: Update Metadata**
 ```markdown
-## Metadata
-
-**SchemaVersion:** v3.0
-**Keywords:** daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization, utility-first, design system, best practices, patterns, optimization
-**TokenBudget:** ~1200
-**ContextTier:** Medium
-**Depends:** rules/000-global-core.md, rules/420-javascript-core.md
+---
+schema_version: v3.6
+keywords:
+  - kw:daisyui
+  - kw:tailwind
+  - kw:components
+  - kw:ui library
+  - kw:accessibility
+token_budget: ~1200
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md
+    - 420-javascript-core.md
+---
 ```
 
 **Step 3.2: Write Purpose**
@@ -164,7 +170,7 @@ All web applications using DaisyUI v4.0+ component library for UI development wi
 - [ ] Accessibility requirements defined (WCAG level)
 ```
 
-**Step 3.5: Fill Contract** *(shortened for brevity - all 6 XML tags filled)*
+**Step 3.5: Fill Contract** *(shortened for brevity - all required Contract subsections filled)*
 
 **Step 3.6: Write Anti-Patterns** *(2 complete anti-patterns with code examples)*
 
@@ -192,15 +198,15 @@ SUMMARY:
 
  CRITICAL ISSUES (1):
 ────────────────────────────────────────────────────────────────────────────────
-[Metadata] Keywords count: 14 (expected 10-15)
+[Metadata] Keywords count: 4 (expected 5-11)
   Line: 5
-  Fix: Keywords count is within range, but validator detected as 9 - recount
+  Fix: Add one keyword to reach the minimum of 5
 
 RESULT:  FAILED (exit code 1)
 ```
 
 **Fix Applied:**
-Recounted keywords - actually had 9, needed 10-15. Added "component-design" keyword.
+Added "component-design" to reach 5 keyword entries.
 
 **Iteration 2:**
 ```bash

@@ -1,7 +1,7 @@
 # AI Coding Rules
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/license/apache-2-0)
-![Version](https://img.shields.io/badge/version-3.8.0-blue)
+![Version](https://img.shields.io/badge/version-3.9.0-blue)
 [![CI](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml/badge.svg)](https://github.com/sfc-gh-myoung/ai_coding_rules/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-100%25%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-87%25-brightgreen)
@@ -33,7 +33,7 @@ A universal AI coding rule system that works with any AI assistant, IDE, or deve
 
 ## Key Features
 
-- **194 rule files** covering Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Podman, Shell scripting, and project management.
+- **195 rule files** covering Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Podman, Shell scripting, and project management.
 - **Portable Markdown format** that works with Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and similar tools.
 - **Automatic discovery** via semantic keyword matching (matches by meaning, not just exact text).
 - **Explicit dependency chains** so rules load in the correct order.
@@ -113,7 +113,7 @@ The build assembles a self-contained plugin directory:
 | `rules/` | The rule library, read by the matcher when it scores a prompt |
 | `hooks/` | `UserPromptSubmit` hook (opt-in via `--with-hook` at install) |
 | `micro_kernel_content.md` | Compact foundation injected by the hook or `$rule-loader` |
-| `.cortex-plugin/plugin.json` | Manifest declaring skills (and hooks when included) |
+| `.cortex-plugin/plugin.json` | Manifest declaring skills |
 
 Validate the build before installing:
 
@@ -183,9 +183,8 @@ inside your project to load it automatically without a global install.
 > (CoCo deduplicates by name). Use `ai-rules plugin uninstall --target cortex` to
 > remove the global copy when you want the project-local install to take effect.
 
-**Platform differences:** The install command adapts the hook format for each target:
-- `--target cortex`: Hook command uses a relative path (`hooks/user-prompt-submit`)
-- `--target claude`: Hook command uses `${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt-submit`
+**Hook configuration:** `hooks/hooks.json` is the single hook declaration. Every supported host resolves
+`${CLAUDE_PLUGIN_ROOT}` when loading that configuration, so installation is platform-neutral.
 
 ### Use in your AI assistant
 
@@ -533,9 +532,9 @@ uv run ai-rules --help
 
 | Command | Description |
 |---------|-------------|
-| `ai-rules validate` | Validate rule files against v3.5 schema |
+| `ai-rules validate` | Validate rule files against v3.6 schema |
 | `ai-rules tokens` | Validate/update TokenBudget metadata; `--context-estimate` reports total per-response context |
-| `ai-rules new` | Generate new rule file from v3.5 template |
+| `ai-rules new` | Generate new rule file from v3.6 template |
 | `ai-rules badges` | Update README badges (version, tests, coverage) |
 | `task` | Development orchestration via Taskfile.yml |
 | `ai-rules plugin` | Build the distributable `ai-coding-rules-plugin/` |
@@ -562,7 +561,7 @@ The rules are organized by domain using a three-digit numbering system. Each cat
 
 | Domain | Range | # Rules | Focus Area | Key Topics |
 |--------|-------|---------|------------|------------|
-| **Core Foundation** | 000-099 | 22 | Universal patterns | Operating principles, memory bank, rule governance, context engineering, tool design, skills, model optimization |
+| **Core Foundation** | 000-099 | 21 | Universal patterns | Operating principles, memory bank, rule governance, context engineering, tool design, skills, model optimization |
 | **Snowflake** | 100-199 | 86 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines, demo creation, data quality, dynamic tables, Cortex Code Agent SDK |
 | **Python** | 200-299 | 44 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas, **HTMX**, datetime, Faker |
 | **Shell/Containers** | 300-399 | 13 | Automation & Infrastructure | Bash and Zsh scripting, security, testing, Docker, **Podman** |
@@ -570,7 +569,7 @@ The rules are organized by domain using a three-digit numbering system. Each cat
 | **Frontend** | 500-599 | 3 | Client-side | HTMX frontend, browser globals |
 | **Systems/Backend Languages** | 600-699 | 2 | Backend development | **Go/Golang** core patterns, advanced patterns, error handling, concurrency |
 | **Reserved** | 700-799 | 0 | Future use | Reserved for future domain expansion |
-| **Project Management** | 800-899 | 10 | Workflows | Git, changelog, README, contributing, CLI design, Taskfile, Makefile-rule-authoring |
+| **Project Management** | 800-899 | 12 | Workflows | Git, changelog, README, contributing, CLI design, Taskfile, Makefile-rule-authoring |
 | **Analytics & Governance** | 900-999 | 5 | Business intelligence | Data science, data governance, business analytics, semantic views, dbt |
 
 **Browse rules:** see the [Rule Categories](#rule-categories) table above, or `grep -ril "<keyword>" rules/` to search by keyword.
@@ -733,7 +732,7 @@ source .venv/bin/activate  # Linux/macOS
 # OR
 .venv\Scripts\activate     # Windows
 
-pip install -e ".[dev]"
+pip install -e .
 ```
 
 ### IDE Not Recognizing Rules

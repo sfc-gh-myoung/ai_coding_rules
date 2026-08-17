@@ -248,7 +248,7 @@ Dimension scores table must be valid markdown:
 ## Version Compatibility
 
 - **SKILL.md (with rubric)** - Current
-- **Rule schema** - v3.0
+- **Rule schema** - v3.6
 - **reviews/ directory** - Writable
 
 ## Validation Schedule

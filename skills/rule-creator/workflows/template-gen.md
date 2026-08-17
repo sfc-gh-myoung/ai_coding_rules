@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Execute `template_generator.py` to create a v3.0-compliant rule file structure with all required sections, Contract XML tags, and metadata placeholders ready for population.
+Use `ai-rules new` to create a v3.6-compliant rule file with the required Markdown sections and metadata placeholders ready for population.
 
 ## Inputs
 
@@ -55,32 +55,32 @@ Format: `NNN-technology-aspect`
 - ✗ `42-DaisyUI-Core` (wrong: not 3 digits, wrong case)
 - ✗ `422_daisyui_core` (wrong: underscores)
 
-### Step 2.3: Execute template_generator.py
+### Step 2.3: Execute `ai-rules new`
 
 **Command format:**
 ```bash
-python scripts/template_generator.py [NNN]-[technology]-[aspect] \
+uv run ai-rules new [NNN]-[technology]-[aspect] \
   --context-tier [Critical|High|Medium|Low] \
   --output-dir rules/
 ```
 
 **Example: DaisyUI**
 ```bash
-python scripts/template_generator.py 422-daisyui-core \
+uv run ai-rules new 422-daisyui-core \
   --context-tier Medium \
   --output-dir rules/
 ```
 
 **Example: Snowflake Feature**
 ```bash
-python scripts/template_generator.py 125-snowflake-hybrid-tables \
+uv run ai-rules new 125-snowflake-hybrid-tables \
   --context-tier High \
   --output-dir rules/
 ```
 
 **Example: Python Library**
 ```bash
-python scripts/template_generator.py 231-python-msgspec \
+uv run ai-rules new 231-python-msgspec \
   --context-tier Medium \
   --output-dir rules/
 ```
@@ -93,7 +93,7 @@ python scripts/template_generator.py 231-python-msgspec \
 
 Next steps:
 1. Edit rules/422-daisyui-core.md and replace all placeholders with actual content
-2. Validate: python scripts/schema_validator.py rules/422-daisyui-core.md
+2. Validate: uv run ai-rules validate rules/422-daisyui-core.md
 3. Add to rule frontmatter
 ```
 
@@ -112,62 +112,66 @@ fi
 Read created file and confirm presence of:
 
 ```markdown
-# [NNN]-[technology]-[aspect]: [Title]
+---
+schema_version: v3.6
+rule_version: v1.0.0
+description: [One-sentence rule summary]
+last_updated: YYYY-MM-DD
+keywords:
+  - kw:[semantic keyword]
+  - kw:[semantic keyword]
+  - kw:[semantic keyword]
+  - kw:[semantic keyword]
+  - kw:[semantic keyword]
+token_budget: ~1200
+context_tier: [specified tier]
+depends:
+  required:
+    - 000-global-core.md
+---
 
-## Metadata
+# [NNN]-[technology]-[aspect]
 
-**SchemaVersion:** v3.0
-**Keywords:** [placeholder keywords]
-**TokenBudget:** ~1200
-**ContextTier:** [specified tier]
-**Depends:** rules/000-global-core.md
+## Scope
 
-## Purpose
-[1-2 sentence description...]
+**What This Rule Covers:** [1-2 sentence description]
 
-## Rule Scope
-[Single line defining...]
+**When to Load This Rule:**
+- [Trigger condition]
 
-## Quick Start TL;DR
+## References
 
-**MANDATORY:**
-**Essential Patterns:**
-- **[Pattern 1]:** [Description]
-- **[Pattern 2]:** [Description]
-- **[Pattern 3]:** [Description]
+### External Documentation
 
-**Pre-Execution Checklist:**
-- [ ] [First prerequisite]
-- [ ] [Second prerequisite]
-...
+_None._
 
 ## Contract
 
-<inputs_prereqs>
-[What the agent needs...]
-</inputs_prereqs>
+### Inputs and Prerequisites
 
-<mandatory>
-[Required tools...]
-</mandatory>
+[What the agent needs]
 
-<forbidden>
-[Prohibited actions...]
-</forbidden>
+### Mandatory
 
-<steps>
+[Required tools and behaviors]
+
+### Forbidden
+
+[Prohibited actions]
+
+### Execution Steps
+
 1. [First step]
 2. [Second step]
 ...
-</steps>
 
-<output_format>
-[Expected output...]
-</output_format>
+### Output Format
 
-<validation>
-[How to verify...]
-</validation>
+[Expected output]
+
+### Validation
+
+[How to verify]
 
 ## Anti-Patterns and Common Mistakes
 
@@ -177,42 +181,18 @@ Read created file and confirm presence of:
 ## Post-Execution Checklist
 - [ ] [Verification item...]
 
-## Validation
-
-**Success Checks:**
-...
-
-**Negative Tests:**
-...
-
-## Output Format Examples
-
-```bash
-# Example command
-...
-```
-
-## References
-
-### Related Rules
-- `rules/000-global-core.md` - Global standards
-
-### External Documentation
-- [Link](URL) - Description
 ```
 
 ### Step 2.6: Count Sections
 
-Verify all 9 required sections present:
+Verify required frontmatter and top-level sections are present:
 
-1. ✓ Purpose
-2. ✓ Rule Scope
-3. ✓ Quick Start TL;DR
+1. ✓ YAML frontmatter with v3.6 metadata
+2. ✓ Scope
+3. ✓ References
 4. ✓ Contract
 5. ✓ Anti-Patterns and Common Mistakes
 6. ✓ Post-Execution Checklist
-7. ✓ Validation
-8. ✓ Output Format Examples
 9. ✓ References
 
 ### Step 2.7: Verify Contract XML Tags
@@ -223,8 +203,8 @@ Confirm all 6 tags present in Contract section:
 2. ✓ `<mandatory>...</mandatory>`
 3. ✓ `<forbidden>...</forbidden>`
 4. ✓ `<steps>...</steps>`
-5. ✓ `<output_format>...</output_format>`
-6. ✓ `<validation>...</validation>`
+5. ✓ `### Output Format`
+6. ✓ `### Validation`
 
 ### Step 2.8: Check Contract Placement
 
@@ -239,7 +219,7 @@ grep -n "^## Contract" rules/422-daisyui-core.md
 ```
 
 **If Contract after line 160:**
-- This is a template_generator.py issue (unlikely)
+- This is an `ai-rules new` issue (unlikely)
 - File structure may need adjustment
 - Report issue and manually adjust if needed
 
@@ -291,36 +271,36 @@ Error: Context tier must be one of: Critical, High, Medium, Low
 - Check spelling: `Meduim` → `Medium`
 - Retry with correct tier value
 
-### Error 4: Script Not Found
+### Error 4: CLI Not Found
 
 **Error message:**
 ```
-python: can't open file 'scripts/template_generator.py': No such file or directory
+ai-rules: command not found
 ```
 
 **Fix:**
 - Verify current directory: `pwd`
 - Should be in project root: `/Users/myoung/Development/ai_coding_rules`
 - If not, cd to project root first
-- Verify script exists: `ls scripts/template_generator.py`
+- Sync the environment: `uv sync --all-groups`
 
 ### Error 5: Python Not Found
 
 **Error message:**
 ```
-bash: python: command not found
+uv: command not found
 ```
 
 **Fix:**
-- Try `python3` instead: `python3 scripts/template_generator.py ...`
+- Install uv, then run `uv sync --all-groups`
 - Verify Python installed: `python3 --version`
-- Should be Python 3.11+ for uv compatibility
+- Project requires Python 3.12+
 
 ## Validation Checklist
 
 Before proceeding to Phase 3, verify:
 
-- [x] template_generator.py executed successfully (exit code 0)
+- [x] `ai-rules new` executed successfully (exit code 0)
 - [x] File created at `rules/NNN-technology-aspect.md`
 - [x] All 9 required sections present
 - [x] Contract section has 6 XML tags
@@ -341,7 +321,7 @@ ContextTier: Medium
 
 **Execution:**
 ```bash
-$ python scripts/template_generator.py 422-daisyui-core \
+$ uv run ai-rules new 422-daisyui-core \
     --context-tier Medium \
     --output-dir rules/
 
@@ -349,7 +329,7 @@ $ python scripts/template_generator.py 422-daisyui-core \
 
 Next steps:
 1. Edit rules/422-daisyui-core.md and replace all placeholders
-2. Validate: python scripts/schema_validator.py rules/422-daisyui-core.md
+2. Validate: uv run ai-rules validate rules/422-daisyui-core.md
 3. Add to rule frontmatter
 ```
 
@@ -359,19 +339,12 @@ $ ls -lh rules/422-daisyui-core.md
 -rw-r--r--  1 user  staff   3.2K Dec 11 15:30 rules/422-daisyui-core.md
 
 $ grep -n "^## " rules/422-daisyui-core.md
-3:## Metadata
-9:## Purpose
-13:## Rule Scope
-17:## Quick Start TL;DR
-35:## Contract (line 35 < 160 ✓)
-65:## Anti-Patterns and Common Mistakes
-85:## Post-Execution Checklist
-95:## Validation
-105:## Output Format Examples
-120:## References
+3:## Scope
+20:## References
+35:## Contract
 
-$ grep -c "<inputs_prereqs>\|<mandatory>\|<forbidden>\|<steps>\|<output_format>\|<validation>" rules/422-daisyui-core.md
-6  # All 6 XML tags present ✓
+$ grep -c "^### " rules/422-daisyui-core.md
+6  # Required Contract subsections present
 ```
 
 **Output Summary:**

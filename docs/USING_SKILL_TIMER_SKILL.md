@@ -438,16 +438,22 @@ skills/skill-timer/
 ├── SKILL.md               # Skill definition (entrypoint)
 ├── scripts/
 │   ├── skill_timer.py    # Python module
-│   └── find_python.sh    # Python interpreter discovery
+│   ├── find_python.sh    # Python interpreter discovery
+│   └── validate_timing.py # Validation helper
 ├── examples/              # Workflow examples
 │   ├── basic-timing.md
 │   ├── with-checkpoints.md
 │   ├── baseline-workflow.md
-│   └── ci-integration.md
+│   ├── ci-integration.md
+│   └── with-wrap.md
 └── workflows/             # Step-by-step guides
     ├── timing-start.md
     ├── timing-checkpoint.md
-    └── timing-end.md
+    ├── timing-end.md
+    ├── timing-wrap.md
+    ├── timing-finalize.md
+    ├── validation-checkpoints.md
+    └── advanced-operations.md
 ```
 
 ### Data Storage

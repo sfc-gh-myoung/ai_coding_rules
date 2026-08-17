@@ -108,7 +108,8 @@ The GitHub Actions CI workflow runs automatically on pushes and PRs to `main`:
 | `quality` | Code quality | ruff lint, ruff format, ty type check |
 | `markdown` | Markdown linting | pymarkdownlnt for rules/ and docs/ |
 | `test` | Unit tests | pytest with Python 3.12, 3.13 matrix |
-| `validate` | Rules validation | schema validation, `rule-loader-validate` (trigger-evidence invariant; pure-Python) |
+| `coverage` | Coverage gate | pytest coverage report with the configured minimum |
+| `validate` | Rules and plugin validation | rule schema, trigger evidence, corpus audit, trigger contract, and source-faithful plugin verification |
 
 All jobs run in parallel for fast feedback. Ensure all checks pass before requesting review.
 
@@ -200,7 +201,7 @@ We use modern Python tooling for consistent development:
 - **uv** - Fast Python package installer and resolver
 - **Ruff** - Lightning-fast linting and formatting
 - **ty** - Fast type checker (Astral toolchain)
-- **make** - Task automation
+- **Task (go-task)** - Task automation
 
 ```bash
 # Python environment with uv (recommended)
@@ -209,7 +210,7 @@ uv sync --all-groups         # Sync all dependencies
 # Alternative with pip (fallback)
 python -m venv .venv
 source .venv/bin/activate    # On Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
+pip install -e .
 ```
 
 ### Development Commands
@@ -341,7 +342,7 @@ uv run ai-rules new 300-example-rule --force
 
 ### Rule Structure
 
-All rules must follow the v3.5 schema defined in [rules/002-rule-governance.md](rules/002-rule-governance.md).
+All rules must follow the v3.6 schema defined in [rules/002-rule-governance.md](rules/002-rule-governance.md).
 
 **Quick reference:**
 

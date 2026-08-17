@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Ensure prerequisite rules are loaded before dependent rules, based on each rule's `depends:` metadata field (v3.5 YAML frontmatter; inline `**Depends:**` remains readable via dual-parse fallback).
+Ensure prerequisite rules are loaded before dependent rules, based on each rule's `depends:` metadata field (v3.6 YAML frontmatter; inline `**Depends:**` remains readable via dual-parse fallback).
 
 ## Algorithm
 

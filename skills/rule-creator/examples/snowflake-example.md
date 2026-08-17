@@ -3,7 +3,7 @@
 ## User Request
 
 ```
-Create a new Cursor rule documenting Snowflake Hybrid Tables best practices following schema
+Create a new rule documenting Snowflake Hybrid Tables best practices following schema
 ```
 
 ## Abbreviated Workflow (Key Steps Only)

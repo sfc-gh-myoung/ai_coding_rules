@@ -66,9 +66,9 @@ SUMMARY:
 
  CRITICAL ISSUES (2):
 ────────────────────────────────────────────────────────────────────────────────
-[Metadata] Keywords count: 8 (expected 5-11)
+[Metadata] Keywords count: 4 (expected 5-11)
   Line: 5
-  Fix: Add 2 more keywords to reach minimum of 10
+  Fix: Add one more keyword to reach the minimum of 5
 
 [Contract] Missing Contract header: ### Validation
   Line: 78
@@ -90,18 +90,18 @@ RESULT:  FAILED
 
 **Error:**
 ```
-[Metadata] Keywords count: 8 (expected 5-11)
+[Metadata] Keywords count: 4 (expected 5-11)
   Line: 5
-  Fix: Add 2 more keywords to reach minimum of 10
+  Fix: Add one more keyword to reach the minimum of 5
 ```
 
 **Fix:**
 ```markdown
-# Before (8 keywords)
-**Keywords:** daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables
+# Before (4 keywords)
+**Keywords:** daisyui, tailwind, components, ui library
 
-# After (12 keywords)
-**Keywords:** daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization, utility-first, design system
+# After (5 keywords)
+**Keywords:** daisyui, tailwind, components, ui library, accessibility
 ```
 
 **Verification:**

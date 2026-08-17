@@ -7,7 +7,7 @@ Replace all placeholder content in the template with researched, high-quality co
 ## Inputs
 
 From Phase 1:
-- 10-15 semantic keywords
+- 5-11 combined typed keyword entries
 - 3+ essential patterns
 - 2+ anti-patterns with correct alternatives
 - External documentation links
@@ -32,15 +32,15 @@ Replace placeholder values:
 ```markdown
 ## Metadata
 
-**SchemaVersion:** v3.0
-**Keywords:** [REPLACE with 10-15 keywords from Phase 1]
+**SchemaVersion:** v3.6
+**Keywords:** [REPLACE with 5-11 typed entries from Phase 1]
 **TokenBudget:** ~[ESTIMATE: lines × 2, round to 50]
 **ContextTier:** [KEEP from ai-rules new]
 **Depends:** rules/000-global-core.md, rules/[domain-core].md
 ```
 
 **Keywords Format:**
-- Exactly 10-15 comma-separated terms
+- Exactly 5-11 combined typed entries
 - No quotes, no brackets
 - Example: `daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization, utility-first, design system, best practices, patterns, optimization`
 
@@ -474,7 +474,7 @@ module.exports = {
 
 Check that all content is populated:
 
-- [x] Metadata: Keywords (10-15), TokenBudget (~NUMBER), ContextTier, Depends
+- [x] Metadata: Keywords (5-11 typed entries), TokenBudget (~NUMBER), ContextTier, Depends
 - [x] Purpose: 1-2 meaningful sentences
 - [x] Rule Scope: 1 specific line
 - [x] Quick Start TL;DR: 3+ Essential Patterns, 5-7 Pre-Execution items
@@ -490,7 +490,7 @@ Check that all content is populated:
 
 **Mistake 1:** Leaving placeholder text
 ```markdown
- **Keywords:** [10-15 keywords here]
+ **Keywords:** [5-11 typed entries here]
  **Keywords:** daisyui, tailwind, components, ...
 ```
 

@@ -315,7 +315,6 @@ Bulk Review Orchestrator
 ```text
 skills/bulk-rule-reviewer/
 ├── SKILL.md                       # Main skill (entrypoint)
-├── CRITICAL_CONTEXT.md            # Execution integrity rules
 ├── examples/
 │   ├── full-bulk-review.md        # Complete walkthrough example
 │   └── shortcut-prevention.md     # Anti-shortcut patterns

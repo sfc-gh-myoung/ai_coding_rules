@@ -8,7 +8,7 @@ Manage the total token cost of loaded rules to prevent context window exhaustion
 
 ### Step 1: Sum Token Budgets
 
-For each rule selected in Phases 1-4, read its `token_budget:` metadata value (v3.5 YAML frontmatter key; inline `**TokenBudget:**` remains readable via dual-parse fallback). Sum all values.
+For each rule selected in Phases 1-4, read its `token_budget:` metadata value (v3.6 YAML frontmatter key; inline `**TokenBudget:**` remains readable via dual-parse fallback). Sum all values.
 
 ### Step 2: Check Against Limit
 

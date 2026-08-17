@@ -298,6 +298,7 @@ skills/rule-reviewer/
 │   ├── rule-size.md
 │   ├── staleness.md
 │   ├── cross-agent-consistency.md
+│   ├── scoring.md
 │   └── _overlap-resolution.md
 ├── examples/              # Mode walkthroughs
 │   ├── full-review.md
@@ -306,7 +307,7 @@ skills/rule-reviewer/
 │   ├── project-file-review.md
 │   └── edge-cases.md
 ├── tests/                 # Test cases
-│   ├── README.md
+│   ├── TESTING.md
 │   ├── test-inputs.md
 │   ├── test-modes.md
 │   └── test-outputs.md
@@ -316,7 +317,9 @@ skills/rule-reviewer/
     ├── review-execution.md
     ├── schema-validation.md
     ├── file-write.md
-    └── error-handling.md
+    ├── error-handling.md
+    ├── execution-discipline.md
+    └── validation-checklists.md
 ```
 
 ### Integration with Other Skills

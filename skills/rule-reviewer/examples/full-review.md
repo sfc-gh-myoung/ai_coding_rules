@@ -112,7 +112,7 @@ Using weighted formula from SKILL.md (Scoring Rubric v2.0):
 
 **Critical Schema Violations:**
 1. [CRITICAL] Missing metadata field: Depends (line 10) - Required field per schemas/rule-schema.yml
-2. [HIGH] Section order violation: Contract appears before References (line 45) - References must appear before Contract per v3.2 schema
+2. [HIGH] Section order violation: Contract appears before References (line 45) - References must appear before Contract per v3.6 schema
 ```
 
 **Critical Issues Section:**

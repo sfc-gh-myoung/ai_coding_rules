@@ -60,7 +60,7 @@ constraints: online research allowed
 **Pass Criteria:**
 - [ ] 3+ searches executed
 - [ ] Results summarized
-- [ ] Keywords extracted (10-15)
+- [ ] Keywords extracted (5-11)
 - [ ] Anti-patterns identified (2+)
 
 ---
@@ -78,8 +78,8 @@ uv run ai-rules new 210-python-pydantic-core \
 
 **Expected:**
 - File created: `rules/210-python-pydantic-core.md`
-- Contains 9 required sections
-- Contains 6 Contract XML tags
+- Contains required v3.6 frontmatter and sections
+- Contains required Contract Markdown subsections
 - Contract before line 160
 
 **Verification:**
@@ -87,9 +87,9 @@ uv run ai-rules new 210-python-pydantic-core \
 # Check file exists
 ls rules/210-python-pydantic-core.md
 
-# Count sections
+# Confirm canonical top-level sections
 grep -c "^## " rules/210-python-pydantic-core.md
-# Expected: 9+
+# Expected: 3+
 
 # Check Contract placement
 grep -n "## Contract" rules/210-python-pydantic-core.md
@@ -98,9 +98,9 @@ grep -n "## Contract" rules/210-python-pydantic-core.md
 
 **Pass Criteria:**
 - [ ] File created
-- [ ] 9+ sections present
+- [ ] Required sections present
 - [ ] Contract before line 160
-- [ ] All 6 XML tags present
+- [ ] Required Contract subsections present
 
 ---
 
@@ -160,7 +160,7 @@ Keywords from research: pydantic, validation, data models, type hints,
 ```
 
 **Pass Criteria:**
-- [ ] Keywords: 10-15 count
+- [ ] Keywords: 5-11 count
 - [ ] TokenBudget: ~NUMBER format
 - [ ] ContextTier: Valid value
 - [ ] Depends: Includes foundation + domain core
@@ -225,14 +225,14 @@ RESULT:  PASSED (exit code 0)
 
 ### Test 4.2: Validation Failure - Keywords Count
 
-**Scenario:** Rule has only 8 keywords
+**Scenario:** Rule has only 4 keywords
 
 **Expected:**
 ```
  CRITICAL ISSUES (1):
-[Metadata] Keywords count: 8 (expected 10-15)
+[Metadata] Keywords count: 4 (expected 5-11)
   Line: 5
-  Fix: Add 2 more keywords to reach minimum of 10
+  Fix: Add one more keyword to reach the minimum of 5
 ```
 
 **Pass Criteria:**

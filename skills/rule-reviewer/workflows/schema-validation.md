@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Integrate automated schema validation into the rule review process to provide objective, deterministic Parsability scoring based on compliance with `schemas/rule-schema.yml` v3.2 standards.
+Integrate automated schema validation into the rule review process to provide objective, deterministic Parsability scoring based on compliance with `schemas/rule-schema.yml` v3.6 standards.
 
 ## When to Use
 

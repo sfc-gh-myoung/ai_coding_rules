@@ -21,7 +21,7 @@ fixture declares:
 | Behavioral (live agent) | `rule-loader eval` | Yes | **No: manual only** |
 
 > **`rule-loader eval` is an explicit, opt-in command.** It never runs
-> automatically: not in CI, not in pre-commit, not in `dev test run`, and not
+> automatically: not in CI, not in pre-commit, not in `task test:run`, and not
 > in the default pytest suite. The `live` pytest marker is deselected by
 > default (`addopts = ["-m", "not live"]` in `pyproject.toml`). To run the live
 > behavioral evaluation, invoke it directly:

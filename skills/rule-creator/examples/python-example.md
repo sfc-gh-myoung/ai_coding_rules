@@ -3,7 +3,7 @@
 ## User Request
 
 ```
-Create a new Cursor rule documenting pytest-mock best practices following schema
+Create a new rule documenting pytest-mock best practices following schema
 ```
 
 ## Abbreviated Workflow (Key Steps Only)

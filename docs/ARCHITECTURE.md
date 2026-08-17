@@ -1,6 +1,6 @@
 # Architecture: AI Coding Rules
 
-**Last Updated:** 2026-05-14
+**Last Updated:** 2026-08-17
 
 > **What this document is**
 > Design and rationale of the AI Coding Rules system: how it's shaped, why, and what extension points exist.
@@ -32,7 +32,7 @@
 
 AI assistants need consistent, high-signal guidance to produce reliable code across many domains. The default options are poor: stuffing every rule into a single system prompt wastes context, and IDE-specific formats fragment the same information across tools that don't share a standard.
 
-AI Coding Rules solves this by storing rules as Markdown files with embedded metadata. An AI assistant loads a foundation rule, searches an index for task-relevant rules, and pulls only what it needs. This keeps context small while preserving depth.
+AI Coding Rules solves this by storing rules as Markdown files with embedded metadata. The deterministic matcher selects task-relevant candidates and the assistant reads only what it needs. This keeps context small while preserving depth.
 
 ### 1.2 Core Architecture Principles
 
@@ -173,7 +173,7 @@ rules/
 ├── 101-snowflake-streamlit-core.md (+101a-101n)
 ├── 200-python-core.md (+200a-200b)
 ├── 600-golang-core.md
-├── ...                            # 194 rules covering all domains
+├── ...                            # 195 rules covering all domains
 └── examples/                      # Validated implementation examples
 ```
 
@@ -210,7 +210,7 @@ For schema field reference and validation usage, see [`schemas/rule-schema.yml`]
 
 ### 3.3 The CLI (`ai-rules`)
 
-The `ai-rules` CLI is a Typer-based Python application installed as a package entry point in `pyproject.toml`. It owns all rule lifecycle operations: creation, validation, indexing, token-budget checks, deployment, and badge updates.
+The `ai-rules` CLI is a Typer-based Python application installed as a package entry point in `pyproject.toml`. It owns rule creation, validation, token-budget checks, badge updates, plugin lifecycle operations, and rule-loader evaluation.
 
 **Architecture:**
 
@@ -219,7 +219,7 @@ src/ai_rules/
 ├── __main__.py        # python -m ai_rules entry point
 ├── cli.py             # Typer app: registers all commands
 ├── _shared/           # Cross-command utilities (paths, console)
-└── commands/          # One module per command (validate, index, deploy, …)
+└── commands/          # Command modules (validate, plugin, rule_loader, …)
 ```
 
 **Key design decisions:**
@@ -279,7 +279,8 @@ The plugin is the distribution path for Cortex Code and Claude Code's native plu
 
 ```
 ai-coding-rules-plugin/
-├── .cortex-plugin/plugin.json    # Plugin manifest (hooks, skills declaration)
+├── .cortex-plugin/plugin.json    # Plugin manifest (skills declaration)
+├── hooks/hooks.json              # UserPromptSubmit hook declaration
 ├── hooks/user-prompt-submit      # UserPromptSubmit hook (entry point)
 ├── micro_kernel_content.md       # Foundation micro-kernel (~500 tokens)
 ├── rules/                        # Full rule library (same as rules/)
@@ -395,7 +396,7 @@ AI assistants follow a two-phase loading process: the hook (if installed) or the
 flowchart TD
     Start([User: Create New Rule]) --> Generate
     Generate["ai-rules new XXX"] --> Template
-    Template[ai-rules new] --> Create[Create rules/XXX.md<br/>with v3.5 structure]
+    Template[ai-rules new] --> Create[Create rules/XXX.md with v3.6 structure]
     Create --> Edit[User: Edit Content]
     Edit --> Validate{Validate?}
     Validate -->|"ai-rules validate rules/"| SchemaVal[ai-rules validate]
@@ -665,11 +666,11 @@ Organizations that need additional validation (e.g., requiring an `Author` field
 
 ### 6.3 Adding Custom Automation
 
-To add organization-specific commands, drop a new module under `src/ai_rules/commands/`, register it in `src/ai_rules/cli.py`. Existing commands (`validate.py`, `index.py`) work as templates. Tests follow the patterns in `tests/cli/`.
+To add organization-specific commands, add a module under `src/ai_rules/commands/`, register it in `src/ai_rules/cli.py`, and follow existing command and test patterns in `tests/cli/`.
 
 ### 6.4 IDE-Specific Enhancements
 
-Universal Markdown is the default, but IDE-specific formats (Cursor `.mdc`, Copilot `appliesTo`, etc.) can be generated at deploy time. The pattern is to add a deploy variant (e.g., `deploy_cursor.py`) that wraps the universal Markdown with IDE-specific frontmatter rather than maintaining parallel source files.
+Universal Markdown is the default. IDE-specific packaging should wrap the canonical source at distribution time rather than maintaining parallel rule sources.
 
 This preserves the single-source-of-truth invariant while letting downstream consumers opt into richer formats.
 

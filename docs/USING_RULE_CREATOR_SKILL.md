@@ -1,8 +1,8 @@
 # Using the Rule Creator Skill
 
-**Last Updated:** 2026-03-27
+**Last Updated:** 2026-08-17
 
-The Rule Creator Skill automates creation of production-ready Cursor rules following schema v3.5 standards. It guides you through research, template generation, content population, and validation: reducing rule creation time by ~60-70%.
+The Rule Creator Skill automates creation of production-ready rules following schema v3.6 standards. It guides you through research, template generation, content population, and validation.
 
 > **Internal Use Only:** This skill is excluded from deployment to consuming projects. See [Deployment Exclusion](#deployment-exclusion) for rationale.
 
@@ -96,7 +96,7 @@ All rules must pass these gates before completion:
 | Gate | Requirement |
 |------|-------------|
 | Discovery | `rules/` scanned, domain identified, number available |
-| Template | `ai-rules new` executed, v3.5 sections present |
+| Template | `ai-rules new` executed, v3.6 sections present |
 | Metadata | Keywords (5-11), TokenBudget (~NUMBER), ContextTier valid |
 | Contract | 6 Markdown headers present, placed before line 160 |
 | Validation | `ai-rules validate` returns exit code 0 |
@@ -121,13 +121,13 @@ Rules are numbered by domain range. The skill auto-suggests the next available n
 | Range | Domain | Examples |
 |-------|--------|----------|
 | 000-099 | Core/Foundational | 000-global-core, 002-rule-governance |
-| 100-199 | Snowflake | 100-snowflake-core, 125-hybrid-tables |
-| 200-299 | Python | 200-python-core, 209-pytest-mock |
+| 100-199 | Snowflake | 100-snowflake-core, 125-snowflake-role-introspection |
+| 200-299 | Python | 200-python-core, 206-python-pytest |
 | 300-399 | Shell/Bash | 300-bash-scripting-core |
 | 420-449 | JavaScript/Frontend | 420-javascript-core, 422-daisyui-core |
 | 600-699 | Golang | 600-golang-core |
 | 800-899 | Project Management | 800-project-changelog |
-| 900-999 | Demos/Examples | 900-demo-creation |
+| 900-999 | Analytics and governance | 950-dbt-core |
 
 ### Context Tier Options
 
@@ -272,15 +272,14 @@ User Request
 ```text
 skills/rule-creator/
 ├── SKILL.md               # Main skill (entrypoint)
-├── test_cases.yaml        # Evaluation test cases
 ├── examples/              # Complete workflow examples
 │   ├── frontend-example.md
 │   ├── python-example.md
 │   ├── snowflake-example.md
 │   └── edge-cases.md
-├── testing/               # Testing and maintenance
+├── tests/                 # Skill test cases and maintenance guidance
+│   ├── test_cases.yaml
 │   └── TESTING.md
-├── tests/                 # Skill test cases
 └── workflows/             # Step-by-step guides
     ├── discovery.md
     ├── template-gen.md
@@ -302,16 +301,11 @@ skills/rule-creator/
 |-------|--------------|
 | **rule-reviewer** | Review created rules for quality |
 | **rule-loader** | Load rules by domain/activity match |
-| **skill-timing** | Track creation duration metrics |
+| **skill-timer** | Track creation duration metrics |
 
 ### Deployment Exclusion
 
-This skill is excluded from deployment via `pyproject.toml`:
-
-```toml
-[tool.rule_deployer]
-exclude_skills = ["rule-creator/"]
-```
+The plugin build includes only the `rule-loader` and `show-rules` skills. The rule-creator skill remains source-only because it depends on repository-local rule authoring and schema tooling.
 
 **Rationale:** Specific to ai_coding_rules project structure, requires source repository CLI and schemas, generates rules for this project only.
 

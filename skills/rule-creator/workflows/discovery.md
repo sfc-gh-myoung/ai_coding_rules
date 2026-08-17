@@ -14,7 +14,7 @@ Identify the correct domain range, determine the next available rule number, and
 
 - Domain range (e.g., 420-449 for JavaScript/Frontend)
 - Next available rule number (e.g., 422)
-- 10-15 semantic keywords for metadata
+- 5-11 combined typed keyword entries for metadata
 - Best practices summary
 - Anti-pattern candidates
 - External documentation links
@@ -150,7 +150,7 @@ From web research, identify:
 - Deprecated approaches
 - Performance anti-patterns
 
-**Keywords (10-15 required):**
+**Keywords (5-11 required):**
 - Technology name (e.g., "daisyui")
 - Related technologies (e.g., "tailwind")
 - Use cases (e.g., "components", "ui library")
@@ -168,7 +168,7 @@ From web research, identify:
 Check that you have:
 -  Domain range identified (e.g., 420-449)
 -  Next rule number determined (e.g., 422)
--  10-15 semantic keywords extracted
+-  5-11 combined typed keyword entries extracted
 -  3+ essential patterns identified
 -  2+ anti-patterns identified
 -  External reference links collected

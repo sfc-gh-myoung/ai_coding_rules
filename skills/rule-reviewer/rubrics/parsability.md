@@ -20,7 +20,7 @@
 
 | Field | Present? | Valid Format? | Notes |
 |-------|----------|---------------|-------|
-| SchemaVersion | Y/N | Y/N | Expected: v3.2 |
+| SchemaVersion | Y/N | Y/N | Expected: v3.6 |
 | RuleVersion | Y/N | Y/N | Expected: vX.Y.Z |
 | LastUpdated | Y/N | Y/N | Expected: YYYY-MM-DD |
 | Keywords | Y/N | Y/N | Expected: 3+ terms |
@@ -83,10 +83,10 @@ uv run ai-rules validate [target_file]
 
 ### Metadata Field Checklist
 
-**Required fields (v3.2 schema) - check Y/N:**
+**Required fields (v3.6 schema) - check Y/N:**
 
 **Metadata Field Checklist:**
-- SchemaVersion: Present? Valid format (v3.2)?
+- SchemaVersion: Present? Valid format (v3.6)?
 - RuleVersion: Present? Valid format (vX.Y.Z semver)?
 - LastUpdated: Present? Valid format (YYYY-MM-DD)?
 - Keywords: Present? Valid format (3+ comma-separated)?
@@ -141,7 +141,7 @@ uv run ai-rules validate [target_file]
 
 ## Schema Compliance Checklist
 
-### Required Section Order (v3.2 schema)
+### Required Section Order (v3.6 schema)
 
 Check order (mark sequence violations):
 
@@ -303,7 +303,7 @@ $ uv run ai-rules validate rules/example.md
 ### Step 2: Check Metadata
 
 **Metadata Assessment:**
-- SchemaVersion: Yes, valid (v3.2)
+- SchemaVersion: Yes, valid (v3.6)
 - RuleVersion: Yes, valid (v1.0.0)
 - LastUpdated: Yes, valid (2026-01-06)
 - Keywords: Yes, valid (5 terms)

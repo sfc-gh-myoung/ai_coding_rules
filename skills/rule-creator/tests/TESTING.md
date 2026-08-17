@@ -159,7 +159,7 @@ model: claude-sonnet-45
 
 - **Python** - 3.11+
 - **PyYAML** - 6.0+
-- **Schema** - v3.0
+- **Schema** - v3.6
 - **rule-matcher** - Current
 
 ## Validation Schedule

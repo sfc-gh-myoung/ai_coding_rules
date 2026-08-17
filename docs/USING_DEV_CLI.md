@@ -115,7 +115,7 @@ Maintainer-only commands for syncing GitHub `main` to the GitLab mirror via orph
 | `ai-rules validate <PATH>` | Validate rule schema |
 | `ai-rules new <FILENAME>` | Generate a new rule template |
 | `ai-rules tokens <PATH>` | Update token budget metadata |
-| `ai-rules rule-loader keywords <PATH>` | Suggest keywords for a rule |
+| `ai-rules rule-loader keywords run <PATH>` | Suggest keywords for a rule |
 | `ai-rules badges` | Update README badges |
 | `ai-rules plugin build` | Build the distributable `ai-coding-rules-plugin/` |
 | `ai-rules rule-loader` | Live-agent rule loading evaluator |

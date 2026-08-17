@@ -3,7 +3,7 @@ name: rule-creator
 description: Create production-ready rule files by orchestrating template generation, schema validation, and keyword metadata generation. Triggers on keywords like "create rule", "add rule", "new rule", "generate rule". Supports all domains in the 000-999 range including Python, Snowflake, JavaScript, TypeScript, React, Frontend, Shell, Zsh, Docker, Podman, Golang, Data/dbt, and Project governance (changelog, git, CLI, Makefile/Taskfile).
 version: 1.1.3
 author: AI Coding Rules Project
-tags: [rule-generation, automation, v3.0-schema, template, validation, indexing]
+tags: [rule-generation, automation, v3.6-schema, template, validation, indexing]
 dependencies: []
 ---
 
@@ -11,9 +11,9 @@ dependencies: []
 
 ## Purpose
 
-Create production-ready Cursor rule files that comply with the repository’s v3.0 rule schema by orchestrating:
-- `scripts/template_generator.py`
-- `scripts/schema_validator.py`
+Create production-ready rule files that comply with the repository’s v3.6 rule schema by orchestrating:
+- `ai-rules new`
+- `ai-rules validate`
 - (optional) web research for current best practices
 
 ## Use this skill when
@@ -60,11 +60,11 @@ Detailed phase content is loaded on demand from `workflows/` (progressive disclo
 These inline checks can be run without external dependencies for fast feedback:
 
 ```python
-# Validate keyword count (10-15 required)
+# Validate keyword count (5-11 required)
 def check_keywords(keywords_line: str) -> tuple[bool, int]:
     """Returns (is_valid, count)"""
     keywords = [k.strip() for k in keywords_line.split(",") if k.strip()]
-    return (10 <= len(keywords) <= 15, len(keywords))
+    return (5 <= len(keywords) <= 11, len(keywords))
 
 
 # Validate rule filename format
@@ -90,7 +90,7 @@ def check_context_tier(tier: str) -> bool:
     return tier.strip() in VALID_TIERS
 ```
 
-For full schema validation, use: `python scripts/schema_validator.py rules/<file>.md`
+For full schema validation, use: `uv run ai-rules validate rules/<file>.md`
 
 ## Related Skills
 

@@ -168,7 +168,7 @@ Please confirm or select alternative.
 **Resolution Pattern:**
 ```
 Check existing rules first:
-$ grep -i "pytest" rule frontmatter 
+$ grep -i "pytest" rule frontmatter
 
 Found:
 - 206-python-pytest.md (core)

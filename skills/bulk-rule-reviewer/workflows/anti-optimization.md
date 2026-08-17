@@ -96,7 +96,7 @@ After EACH rule review, output exactly:
 ```
 
 This output MUST appear after writing EACH review file. If you see yourself
-planning to output multiple completion messages at once, you are batching: 
+planning to output multiple completion messages at once, you are batching:
 STOP immediately.
 
 ## Why This Process Cannot Be Shortened

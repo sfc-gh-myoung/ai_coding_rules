@@ -12,7 +12,7 @@ Create a new rule documenting pytest-mock best practices following schema
 
 **Search rule frontmatter:**
 ```bash
-$ grep -i "pytest\|mock\|python.*test" rule frontmatter 
+$ grep -i "pytest\|mock\|python.*test" rule frontmatter
 || `200-python-core.md` | Python foundations | ...
 || `206-python-pytest.md` | pytest usage | ...
 

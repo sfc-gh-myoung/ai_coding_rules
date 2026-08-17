@@ -428,7 +428,7 @@ Options:
   --flake-threshold FLOAT         Jaccard-distance threshold for flaky classification.  [default: 0.5]
 ```
 
-Exit codes: 0 = identical; 2 = drift (loaded sets shifted, no regressions): 
+Exit codes: 0 = identical; 2 = drift (loaded sets shifted, no regressions):
 advisory; 1 = regression (pass → fail): block landing.
 
 The JSON output also carries a `manifest_regressions` bucket (Phase 6):

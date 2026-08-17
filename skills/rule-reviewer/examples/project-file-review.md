@@ -128,7 +128,7 @@ echo "Schema validation skipped for project file"
 
 **Rule:** PROJECT.md  
 **File Type:** Project Configuration  
-**Reviewer:** claude-sonnet-4-6  
+**Reviewer:** claude-sonnet-4-6
 **Review Date:** 2026-01-15  
 **Review Mode:** FULL  
 **Max Score:** 100 points

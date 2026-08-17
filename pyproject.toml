@@ -190,4 +190,3 @@ include = ["src/ai_rules/rule_loader_eval/agent_runner.py"]
 [tool.ty.overrides.rules]
 unresolved-import = "ignore"
 invalid-argument-type = "ignore"
-

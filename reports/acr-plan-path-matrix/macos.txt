@@ -1,0 +1,7 @@
+# Date: 2026-08-17
+# Host: macOS local release-validation environment
+# Command: task plugin:verify
+# Result: PASS
+
+Built the plugin into a temporary directory and validated its manifest and artifact contract.
+The hook command resolves through `${CLAUDE_PLUGIN_ROOT}/hooks/user-prompt-submit`.

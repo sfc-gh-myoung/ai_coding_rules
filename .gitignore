@@ -221,6 +221,9 @@ reports/*
 # But track the reviewed corpus-audit dispositions (CI audit gate reads them;
 # the generated audit artifact itself stays ignored — it is regenerated in CI)
 !reports/rule-loader-corpus-audit-dispositions.json
+# Track reviewed plugin path-resolution evidence consumed by the plugin tests.
+!reports/acr-plan-path-matrix/
+!reports/acr-plan-path-matrix/*.txt
 # But track the report templates
 !templates/reports/
 

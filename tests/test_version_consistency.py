@@ -1,10 +1,10 @@
 """Version-consistency guard: __init__.__version__ must match pyproject.toml version.
 
 This test acts as a regression guard for the known 3.5.3/3.7.3 drift and the
-upcoming 3.8.0 bump.  Two properties are asserted:
+upcoming 3.9.0 bump.  Two properties are asserted:
 
 1. __version__ == pyproject version  (catches future drift)
-2. Both equal the target release "3.8.0" (fails pre-implementation, passes after)
+2. Both equal the target release "3.9.0" (fails pre-implementation, passes after)
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ import pytest
 
 import ai_rules
 
-TARGET_VERSION = "3.8.0"
+TARGET_VERSION = "3.9.0"
 _PYPROJECT_RE = re.compile(r'^version\s*=\s*"([^"]+)"', re.MULTILINE)
 
 
@@ -42,7 +42,7 @@ class TestVersionConsistency:
 
     @pytest.mark.unit
     def test_version_is_target(self):
-        """Both __version__ and pyproject.toml version must equal 3.8.0."""
+        """Both __version__ and pyproject.toml version must equal 3.9.0."""
         pyproject_version = _read_pyproject_version()
         assert ai_rules.__version__ == TARGET_VERSION, (
             f"ai_rules.__version__={ai_rules.__version__!r} != {TARGET_VERSION!r}"
@@ -53,7 +53,7 @@ class TestVersionConsistency:
 
     @pytest.mark.unit
     def test_readme_badge_shows_target_version(self):
-        """README.md version badge must reference 3.8.0."""
+        """README.md version badge must reference 3.9.0."""
         readme = Path(__file__).parent.parent / "README.md"
         content = readme.read_text(encoding="utf-8")
         assert f"badge/version-{TARGET_VERSION}" in content, (

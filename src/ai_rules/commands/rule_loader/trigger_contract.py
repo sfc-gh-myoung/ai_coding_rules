@@ -135,6 +135,10 @@ REGISTERED_SURFACES: frozenset[str] = frozenset(
         "src/ai_rules/match_rules.py",
         "schemas/README.md",
         "skills/rule-creator/tests/test_cases.yaml",
+        "skills/rule-creator/SKILL.md",
+        "skills/rule-creator/examples/frontend-example.md",
+        "skills/rule-creator/workflows/content-population.md",
+        "skills/rule-creator/workflows/discovery.md",
         "skills/rule-creator/workflows/validation.md",
     }
 )

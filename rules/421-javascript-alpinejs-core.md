@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Provides comprehensive guidance for Alpine.js 3.x, a lightweight JavaScript framework for composing behavior directly in HTML markup through declarative directives, reactive data, and magic"
+last_updated: 2026-07-15
+keywords:
+  - kw:x-data directive
+  - kw:declarative directives
+  - kw:magic properties
+  - kw:Alpine.data registration
+  - kw:x-cloak FOUC prevention
+  - kw:progressive enhancement
+token_budget: ~4250
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 421a-javascript-alpinejs-advanced.md  # Stores, plugins, transitions, lifecycle, error recovery
+    - 420-javascript-core.md  # JavaScript patterns and best practices
+    - 500-frontend-htmx-core.md  # HTMX patterns for server-driven interactivity
+---
 # Alpine.js Core: Lightweight Reactivity Framework
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Alpine.js, reactivity, x-data, x-bind, x-on, x-model, x-show, x-if, magic properties, $el, $refs, declarative, progressive enhancement, lightweight
-**TokenBudget:** ~4250
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
-**LoadTrigger:** kw:alpinejs, kw:alpine
 
 ## Scope
 
@@ -24,16 +35,6 @@ Provides comprehensive guidance for Alpine.js 3.x, a lightweight JavaScript fram
 - Choosing between Alpine.js and heavier frameworks
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **421a-javascript-alpinejs-advanced.md** - Stores, plugins, transitions, lifecycle, error recovery
-- **420-javascript-core.md** - JavaScript patterns and best practices
-- **500-frontend-htmx-core.md** - HTMX patterns for server-driven interactivity
 
 ### External Documentation
 
@@ -142,7 +143,7 @@ This removes x-cloak so content is at least visible. For critical applications, 
 **x-data Parse Error:**
 If inline x-data object syntax has a typo (missing comma, unquoted key in wrong context), Alpine silently fails to initialize that component. Debugging steps:
 1. Check browser console for Alpine.js initialization errors
-2. Common cause: trailing comma in inline object literal — `x-data="{ a: 1, }"` fails in some browsers
+2. Common cause: trailing comma in inline object literal: `x-data="{ a: 1, }"` fails in some browsers
 3. Move complex data to `Alpine.data()` registration for better error messages:
 ```html
 <script>
@@ -382,7 +383,7 @@ Problem: Directives silently fail without component scope.
 Correct Pattern: Always wrap Alpine directives in an x-data element.
 
 ```html
-<!-- BAD: No x-data scope — directives silently fail -->
+<!-- BAD: No x-data scope - directives silently fail -->
 <button @click="count++">Increment</button>
 
 <!-- GOOD: Proper scope -->
@@ -397,7 +398,7 @@ Problem: Arrow functions do not bind `this` to the component data, causing undef
 Correct Pattern: Use regular function syntax for component methods.
 
 ```html
-<!-- BAD: Arrow function — this is undefined -->
+<!-- BAD: Arrow function - this is undefined -->
 <div x-data="{
     count: 0,
     increment: () => { this.count++ }

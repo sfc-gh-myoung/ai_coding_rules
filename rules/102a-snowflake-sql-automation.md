@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Guide creation of parameterized SQL templates using <%VARIABLE%> syntax for automated Snowflake deployments in production environments. NEVER use CREATE OR REPLACE TABLE (data loss risk), instead use"
+last_updated: 2026-07-15
+keywords:
+  - kw:parameterized SQL templates
+  - kw:idempotent MERGE operations
+  - kw:create table not exists
+  - kw:multi-environment deployment
+  - kw:cicd pipeline integration
+  - kw:production-safe automation
+token_budget: ~5150
+context_tier: High
+depends:
+  required:
+    - 102-snowflake-sql-core.md  # General SQL file patterns (headers, syntax, qualified names)
+  optional:
+    - 117-snowflake-mcp-server.md  # MCP server integration patterns
+    - 130-snowflake-demo-sql.md  # Demo SQL patterns (this rule extends demo patterns to production)
+---
 # Snowflake SQL: Production Automation and CI/CD
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-26
-**LoadTrigger:** kw:sql-automation, kw:procedure
-**Keywords:** idempotent, MERGE, operations, multi-environment, infrastructure as code, Snowflake variables, production-safe, upsert, SQL automation, deployment scripts, SQL pipeline, config management, environment variables
-**TokenBudget:** ~5150
-**ContextTier:** High
-**Depends:** 102-snowflake-sql-core.md
 
 ## Scope
 
@@ -26,15 +36,6 @@ Guide creation of parameterized SQL templates using <%VARIABLE%> syntax for auto
 - Preventing data loss from CREATE OR REPLACE TABLE
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **102-snowflake-sql-core.md** - General SQL file patterns (headers, syntax, qualified names)
-
-**Related:**
-- **117-snowflake-mcp-server.md** - MCP server integration patterns
-- **130-snowflake-demo-sql.md** - Demo SQL patterns (this rule extends demo patterns to production)
 
 ### External Documentation
 
@@ -630,4 +631,4 @@ If a migration fails mid-execution:
 
 1. **After staging table created but before swap:** `DROP TABLE IF EXISTS staging_table;`
 2. **After swap fails:** `ALTER TABLE original RENAME TO original_backup; ALTER TABLE staging RENAME TO original;`
-3. **Always verify after swap:** `SELECT COUNT(*) FROM <%DATABASE%>.<%SCHEMA%>.target_table;` -- confirm row counts match expectations
+3. **Always verify after swap:** `SELECT COUNT(*) FROM <%DATABASE%>.<%SCHEMA%>.target_table;`: confirm row counts match expectations

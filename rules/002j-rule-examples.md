@@ -1,18 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Guidelines for creating and maintaining validated example files that accompany complex rule files in the rules/examples/ directory."
+last_updated: 2026-07-15
+keywords:
+  - kw:rule examples
+  - kw:example schema
+  - kw:example-schema.yml
+  - kw:example discovery
+  - kw:reference implementations
+  - kw:example staleness
+token_budget: ~1550
+context_tier: Medium
+depends:
+  required:
+    - 002-rule-governance.md  # Parent rule for schema standards
+  optional:
+    - 002a-rule-creation.md  # Rule creation workflow
+---
 # Rule Examples Guidelines
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > Extracted from 002-rule-governance.md for token efficiency.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** rule examples, example files, example schema, reference implementations, example discovery, example validation
-**TokenBudget:** ~1550
-**ContextTier:** Medium
-**Depends:** 002-rule-governance.md
 
 ## Scope
 
@@ -26,13 +36,9 @@ Guidelines for creating and maintaining validated example files that accompany c
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **002-rule-governance.md** - Parent rule for schema standards
-
-**Related:**
-- **002a-rule-creation.md** - Rule creation workflow
+_None._
 
 ## Contract
 
@@ -80,9 +86,9 @@ Markdown file in `rules/examples/` following the example schema.
 ### Error Recovery
 
 - **Validation fails:** Fix reported errors in example structure and re-run validation:
-  - **YAML snippets:** Run `python3 -c "import yaml; yaml.safe_load(open('file.yaml'))"` — must not raise
-  - **JSON snippets:** Run `python3 -c "import json; json.load(open('file.json'))"` — must not raise
-  - **Markdown:** Run `uv run ai-rules validate examples/<rule-name>-example.md` — exit code 0
+  - **YAML snippets:** Run `python3 -c "import yaml; yaml.safe_load(open('file.yaml'))"`: must not raise
+  - **JSON snippets:** Run `python3 -c "import json; json.load(open('file.json'))"`: must not raise
+  - **Markdown:** Run `uv run ai-rules validate examples/<rule-name>-example.md`: exit code 0
   - **Code blocks:** Verify syntax highlighting language identifier matches content language
 - **`example-schema.yml` not found:** Verify schema file exists at `schemas/example-schema.yml`
 - **Example references non-existent parent rule:** Verify parent rule exists at `rules/{rule-number}-*.md`
@@ -221,7 +227,7 @@ Examples should be reviewed when:
    use current metadata format
 3. **Tool changes:** If referenced tools (`uv run ai-rules`, etc.) change flags or output
    format, update example output accordingly
-4. **Quarterly check:** Review examples every 90 days for accuracy — add to project
+4. **Quarterly check:** Review examples every 90 days for accuracy: add to project
    maintenance checklist
 
 **Staleness indicators:**

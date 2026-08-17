@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Streamlit deployment migration patterns: Warehouse ↔ Container Runtime migrations, in-place upgrades within the same runtime (e.g., updating Streamlit version or dependencies), and safe swap"
+last_updated: 2026-07-15
+keywords:
+  - kw:Streamlit runtime migration
+  - kw:environment.yml to pyproject.toml
+  - kw:get_active_session replacement
+  - kw:Container Runtime infrastructure
+  - kw:bidirectional runtime swap
+  - kw:in-place Streamlit upgrade
+token_budget: ~2800
+context_tier: Low
+depends:
+  optional:
+    - 101l-snowflake-streamlit-deployment.md  # Runtime selection, EAI setup, compute pool creation
+---
 # Streamlit Deployment Migration Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-05-11
-**Keywords:** migration, Warehouse Runtime, Container Runtime, in-place upgrade, live version, environment.yml, pyproject.toml, get_active_session, st.connection, runtime migration, bidirectional migration
-**TokenBudget:** ~2100
-**ContextTier:** Low
-**Depends:** 101l-snowflake-streamlit-deployment.md
 
 ## Scope
 
@@ -24,13 +32,9 @@ Streamlit deployment migration patterns: Warehouse ↔ Container Runtime migrati
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **101l-snowflake-streamlit-deployment.md** - Runtime selection, EAI setup, compute pool creation
-
-**Related:**
-- **101c-snowflake-streamlit-security.md** - Secrets migration patterns
+_None._
 
 ## Contract
 
@@ -72,7 +76,7 @@ Migrated Streamlit app running on Container Runtime.
 - All queries execute correctly
 - Secrets accessible
 
-**Troubleshooting:** If app fails to start on Container Runtime, check compute pool status: `DESCRIBE COMPUTE POOL <name>` -- state must be ACTIVE or IDLE. If SUSPENDED, resume it with `ALTER COMPUTE POOL <name> RESUME`.
+**Troubleshooting:** If app fails to start on Container Runtime, check compute pool status: `DESCRIBE COMPUTE POOL <name>`: state must be ACTIVE or IDLE. If SUSPENDED, resume it with `ALTER COMPUTE POOL <name> RESUME`.
 
 ### Post-Execution Checklist
 
@@ -117,12 +121,14 @@ dependencies = [
 **Before (Warehouse Runtime):**
 ```python
 from snowflake.snowpark.context import get_active_session
+
 session = get_active_session()  # NOT thread-safe, won't work in Container
 ```
 
 **After (Both Runtimes):**
 ```python
 import streamlit as st
+
 conn = st.connection("snowflake")
 session = conn.session()
 ```
@@ -184,7 +190,7 @@ ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
 If reverting a Container Runtime app to Warehouse Runtime (e.g., to reduce infrastructure complexity or use Anaconda-only packages):
 
 1. **Convert `pyproject.toml` back to `environment.yml`** with `snowflake` channel and pinned Streamlit version.
-2. **Update connection handling** — `st.connection("snowflake")` still works in Warehouse Runtime; no changes required if already using it.
+2. **Update connection handling**: `st.connection("snowflake")` still works in Warehouse Runtime; no changes required if already using it.
 3. **Remove EAI and compute pool** from the `CREATE STREAMLIT` statement.
 4. **Re-upload files to stage** with `AUTO_COMPRESS=FALSE` (mandatory for Warehouse Runtime `.py` files).
 5. **Recreate the Streamlit object** without `RUNTIME_NAME` or `COMPUTE_POOL`:
@@ -245,9 +251,11 @@ ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
 # WRONG - Fallback pattern masks the real problem
 try:
     from snowflake.snowpark.context import get_active_session
+
     session = get_active_session()
 except Exception:
     import streamlit as st
+
     session = st.connection("snowflake").session()
 ```
 
@@ -255,6 +263,7 @@ except Exception:
 
 ```python
 import streamlit as st
+
 conn = st.connection("snowflake")
 session = conn.session()
 ```

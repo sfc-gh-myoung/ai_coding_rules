@@ -1,20 +1,30 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Foundational Go development practices using idiomatic patterns, modern tooling (Go 1.22+), and industry-standard conventions to ensure reliable, maintainable, and performant Go codebases."
+last_updated: 2026-07-15
+keywords:
+  - kw:go.mod
+  - kw:idiomatic Go
+  - kw:goroutines channels
+  - kw:golangci-lint
+  - kw:table-driven tests
+  - kw:error wrapping fmt.Errorf
+  - kw:golang
+token_budget: ~3900
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+  optional:
+    - 600a-golang-patterns.md  # HTTP server patterns, graceful shutdown, advanced Go patterns
+---
 # Go Core: Modern Standards & Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Golang patterns. Load for Go tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-03-26
-**Keywords:** Go, Golang, go.mod, modules, error handling, interfaces, goroutines, channels, testing, go fmt, golangci-lint, concurrency, context, defer
-**TokenBudget:** ~3900
-**ContextTier:** High
-**Depends:** 000-global-core.md
-**LoadTrigger:** ext:.go, file:go.mod
 
 ## Scope
 
@@ -31,14 +41,6 @@ Foundational Go development practices using idiomatic patterns, modern tooling (
 - Implementing interfaces and goroutines
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-
-**Related:**
-- **600a-golang-patterns.md** - HTTP server patterns, graceful shutdown, advanced Go patterns
 
 ### External Documentation
 
@@ -78,7 +80,7 @@ Foundational Go development practices using idiomatic patterns, modern tooling (
 - Global mutable state (use dependency injection)
 - `init()` functions with side effects (network calls, file I/O)
 - Missing error handling
-- Unexported error types — always export sentinel errors as named values (e.g., `var ErrNotFound = errors.New("not found")`)
+- Unexported error types: always export sentinel errors as named values (e.g., `var ErrNotFound = errors.New("not found")`)
 
 ### Execution Steps
 
@@ -97,10 +99,10 @@ Go source files with: package doc comment, grouped imports (stdlib, external, in
 
 **Pre-Task-Completion Validation Gate (CRITICAL):**
 
-Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+Reference: Complete validation protocol in `000-global-core.md`
 
 **Code Quality:**
-- **CRITICAL:** All Mandatory tooling passes (`go fmt`, `go vet`, `golangci-lint` — see Mandatory section)
+- **CRITICAL:** All Mandatory tooling passes (`go fmt`, `go vet`, `golangci-lint`: see Mandatory section)
 - **CRITICAL:** All errors handled explicitly (no ignored errors with `_`)
 - **Format Check:** All exported identifiers have godoc comments
 - **Format Check:** Imports grouped (stdlib, external, internal)
@@ -400,7 +402,7 @@ func watch(ctx context.Context, ch chan Event) {
 }
 ```
 
-> **Panic Recovery:** For HTTP server panic recovery middleware (preventing a single request from crashing the server), see `600a-golang-patterns.md` Recovery Middleware section. Libraries MUST NOT use `recover()` — they should return errors. Only use panic recovery at the outermost handler level.
+> **Panic Recovery:** For HTTP server panic recovery middleware (preventing a single request from crashing the server), see `600a-golang-patterns.md` Recovery Middleware section. Libraries MUST NOT use `recover()`: they should return errors. Only use panic recovery at the outermost handler level.
 
 **Anti-Pattern 5: Package-Level `init()` with Side Effects**
 ```go
@@ -440,7 +442,7 @@ func main() {
 ### Golangci-lint Configuration
 
 ```yaml
-# .golangci.yml — minimal recommended configuration
+# .golangci.yml - minimal recommended configuration
 linters:
   enable:
     - errcheck

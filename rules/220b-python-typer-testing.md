@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Testing strategies for Typer CLI applications including CliRunner setup, ANSI escape code suppression, integration testing, and mocking external dependencies."
+last_updated: 2026-07-15
+keywords:
+  - kw:CliRunner
+  - kw:ANSI escape suppression
+  - kw:Typer command testing
+  - kw:exit code verification
+  - kw:CLI mock dependencies
+  - kw:async command testing
+  - kw:pytest
+token_budget: ~2300
+context_tier: Medium
+depends:
+  required:
+    - 206-python-pytest.md  # Pytest patterns
+  optional:
+    - 220c-python-typer-rich.md  # Rich integration (affects test output)
+---
 # Python Typer CLI Testing Strategies
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Typer, CLI testing, CliRunner, ANSI escape codes, NO_COLOR, pytest, CLI integration testing, mock
-**TokenBudget:** ~2300
-**ContextTier:** Medium
-**Depends:** 220-python-typer-cli.md, 206-python-pytest.md
-**LoadTrigger:** kw:cli-testing, kw:clirunner
 
 ## Scope
 
@@ -24,14 +34,9 @@ Testing strategies for Typer CLI applications including CliRunner setup, ANSI es
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **220-python-typer-cli.md** - Core Typer CLI patterns
-- **206-python-pytest.md** - Pytest patterns
-
-**Related:**
-- **220c-python-typer-rich.md** - Rich integration (affects test output)
+_None._
 
 ## Contract
 
@@ -90,11 +95,11 @@ pytest test files with CliRunner-based CLI tests, proper ANSI suppression, and c
 
 > **Investigation Required**
 > Before creating or modifying CLI tests, the agent MUST:
-> 1. Read existing `conftest.py` for CliRunner fixtures — never create a duplicate runner fixture
-> 2. Check for existing ANSI suppression patterns — verify NO_COLOR and TERM=dumb are already configured
+> 1. Read existing `conftest.py` for CliRunner fixtures: never create a duplicate runner fixture
+> 2. Check for existing ANSI suppression patterns: verify NO_COLOR and TERM=dumb are already configured
 > 3. Read existing test files to match naming conventions (e.g., `test_cli_*.py` vs `test_commands/`)
 > 4. Check if `pytest-cov` is configured for CLI coverage in `pyproject.toml`
-> 5. Verify existing mock patterns — use `@patch` or `mocker` consistently with the project
+> 5. Verify existing mock patterns: use `@patch` or `mocker` consistently with the project
 
 ### Post-Execution Checklist
 
@@ -159,6 +164,7 @@ assert "Error" in result.stdout
 import pytest
 from typer.testing import CliRunner
 
+
 @pytest.fixture
 def runner() -> CliRunner:
     """CliRunner with ANSI codes disabled for clean test assertions."""
@@ -170,6 +176,7 @@ def runner() -> CliRunner:
 ```python
 from myapp.cli.main import app
 
+
 def test_process_command_success(runner, tmp_path):
     """Test successful file processing."""
     input_file = tmp_path / "input.txt"
@@ -179,6 +186,7 @@ def test_process_command_success(runner, tmp_path):
 
     assert result.exit_code == 0
     assert "Processing" in result.stdout
+
 
 def test_process_command_missing_file(runner):
     """Test error handling for missing input file."""
@@ -193,7 +201,8 @@ def test_process_command_missing_file(runner):
 ```python
 from unittest.mock import patch
 
-@patch('myapp.core.services.external_api_call')
+
+@patch("myapp.core.services.external_api_call")
 def test_command_with_mock(mock_api, runner):
     """Test command with external dependencies."""
     mock_api.return_value = {"status": "success"}
@@ -215,7 +224,7 @@ def test_complete_pipeline(runner, tmp_path):
 
 ### Testing Async Commands
 
-Typer's CliRunner handles `asyncio.run()` internally — async commands work identically to sync commands in tests:
+Typer's CliRunner handles `asyncio.run()` internally: async commands work identically to sync commands in tests:
 
 ```python
 import asyncio
@@ -223,6 +232,7 @@ import typer
 from typer.testing import CliRunner
 
 app = typer.Typer()
+
 
 @app.command()
 async def fetch(url: str) -> None:
@@ -235,7 +245,7 @@ runner = CliRunner(env={"NO_COLOR": "1", "TERM": "dumb"})
 
 
 def test_async_command():
-    """Async commands need no special handling — CliRunner manages the event loop."""
+    """Async commands need no special handling - CliRunner manages the event loop."""
     result = runner.invoke(app, ["https://example.com"])
     assert result.exit_code == 0
     assert "Fetched: https://example.com" in result.output
@@ -264,10 +274,12 @@ app = typer.Typer()
 config_app = typer.Typer()
 app.add_typer(config_app, name="config")
 
+
 @config_app.command("show")
 def config_show() -> None:
     """Show current configuration."""
     typer.echo("debug=False")
+
 
 @config_app.command("set")
 def config_set(
@@ -278,7 +290,7 @@ def config_set(
     typer.echo(f"Set {key}={value}")
 
 
-# Tests — invoke with the full command path
+# Tests - invoke with the full command path
 def test_config_show():
     result = runner.invoke(app, ["config", "show"])
     assert result.exit_code == 0

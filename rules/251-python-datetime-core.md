@@ -1,15 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Core datetime handling in Python and Pandas: type system, conversions, parsing, timezone management, and anti-patterns for type-safe datetime operations."
+last_updated: 2026-07-15
+keywords:
+  - kw:datetime type conversion
+  - kw:timezone localize convert
+  - kw:datetime now utc
+  - kw:pd.Timestamp compatibility
+  - kw:date parsing format specification
+  - kw:epoch timestamp unit conversion
+  - kw:pandas
+token_budget: ~3000
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Modern Python tooling and practices
+  optional:
+    - 251a-python-datetime-advanced.md  # Date arithmetic, performance optimization
+    - 251b-python-datetime-integration.md  # Streamlit, Plotly, SQL integration
+    - 252-python-pandas-core.md  # Pandas performance and anti-patterns
+---
 # Python DateTime Core Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v4.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:datetime, kw:timezone
-**Keywords:** datetime, timezone, UTC, timedelta, tz_localize, tz_convert, datetime.now(UTC), pd.Timestamp, type conversion, zoneinfo
-**TokenBudget:** ~3000
-**ContextTier:** High
-**Depends:** 200-python-core.md
 
 ## Scope
 
@@ -23,16 +35,6 @@ Core datetime handling in Python and Pandas: type system, conversions, parsing, 
 - Debugging datetime-related TypeErrors in Pandas 2.x
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Modern Python tooling and practices
-
-**Related:**
-- **251a-python-datetime-advanced.md** - Date arithmetic, performance optimization
-- **251b-python-datetime-integration.md** - Streamlit, Plotly, SQL integration
-- **252-python-pandas-core.md** - Pandas performance and anti-patterns
 
 ### External Documentation
 - [Python datetime Documentation](https://docs.python.org/3/library/datetime.html)
@@ -119,7 +121,7 @@ Type-safe datetime operations, explicit timezone handling, Pandas 2.x compatible
 
 ```python
 # Wrong: Direct comparison causes TypeError in Pandas 2.x+
-pd_ts = pd.Timestamp('2024-10-23 14:30:00', tz='UTC')
+pd_ts = pd.Timestamp("2024-10-23 14:30:00", tz="UTC")
 py_dt = datetime.now(UTC)
 if pd_ts > py_dt:  # TypeError!
     print("Future date")
@@ -141,6 +143,7 @@ timestamp = datetime.utcnow()
 
 # Correct: Modern timezone-aware datetime
 from datetime import datetime, UTC
+
 timestamp = datetime.now(UTC)
 ```
 
@@ -152,10 +155,10 @@ timestamp = datetime.now(UTC)
 
 ```python
 # Wrong: Slow inference, ambiguous
-df['date'] = pd.to_datetime(df['date'])
+df["date"] = pd.to_datetime(df["date"])
 
 # Correct: Explicit format (fast, unambiguous)
-df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S')
+df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d %H:%M:%S")
 ```
 
 ### Anti-Pattern 4: Ignoring Timezones
@@ -166,13 +169,13 @@ df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d %H:%M:%S')
 
 ```python
 # Wrong: No timezone info
-df['date'] = pd.to_datetime(df['date'])
-df_filtered = df[df['date'] > datetime.now()]  # tz mismatch?
+df["date"] = pd.to_datetime(df["date"])
+df_filtered = df[df["date"] > datetime.now()]  # tz mismatch?
 
 # Correct: Explicit timezone handling
-df['date'] = pd.to_datetime(df['date']).dt.tz_localize('UTC')
-now_utc = pd.Timestamp.now(tz='UTC')
-df_filtered = df[df['date'] > now_utc]
+df["date"] = pd.to_datetime(df["date"]).dt.tz_localize("UTC")
+now_utc = pd.Timestamp.now(tz="UTC")
+df_filtered = df[df["date"] > now_utc]
 ```
 
 ### Anti-Pattern 5: Using Python datetime for Vectorized Operations
@@ -184,29 +187,29 @@ df_filtered = df[df['date'] > now_utc]
 ```python
 # Wrong: Row-level iteration
 for idx, row in df.iterrows():
-    row['next_week'] = row['date'] + datetime.timedelta(days=7)
+    row["next_week"] = row["date"] + datetime.timedelta(days=7)
 
 # Correct: Vectorized Pandas operation
-df['next_week'] = df['date'] + pd.Timedelta(days=7)
+df["next_week"] = df["date"] + pd.Timedelta(days=7)
 ```
 
 ### Type Preservation in Arithmetic
 
-Arithmetic operations preserve types — be aware of what you get back:
+Arithmetic operations preserve types: be aware of what you get back:
 
 ```python
 import pandas as pd
 from datetime import datetime, UTC
 
-ts = pd.Timestamp.now(tz='UTC')
+ts = pd.Timestamp.now(tz="UTC")
 result = ts + pd.Timedelta(days=7)
-type(result)  # pd.Timestamp — NOT datetime.datetime
+type(result)  # pd.Timestamp - NOT datetime.datetime
 
 # If you need Python datetime:
 py_dt = result.to_pydatetime()  # Convert explicitly
 
 # DataFrame column arithmetic also returns Timestamp:
-df['next_week'] = df['date'] + pd.Timedelta(days=7)
+df["next_week"] = df["date"] + pd.Timedelta(days=7)
 # df['next_week'].dtype → datetime64[ns, UTC]
 
 # See 251a for full arithmetic details (relativedelta, business days, etc.)
@@ -218,7 +221,7 @@ df['next_week'] = df['date'] + pd.Timedelta(days=7)
 > 2. **Verify Pandas version** - Check if Pandas 2.x compatibility needed
 > 3. **Never assume datetime types** - Check df.dtypes to see datetime64 vs object
 > 4. **Check existing timezone handling** - Read code to understand if tz-aware or naive
-> 5. **Check if `python-dateutil` is installed** (`uv pip list | grep dateutil`) — needed for `relativedelta`, `rrule`, flexible parsing
+> 5. **Check if `python-dateutil` is installed** (`uv pip list | grep dateutil`): needed for `relativedelta`, `rrule`, flexible parsing
 
 ## DateTime Type System
 
@@ -236,14 +239,14 @@ py_dt_utc = datetime.now(UTC)  # Timezone-aware
 ```python
 import pandas as pd
 
-pd_ts = pd.Timestamp('2024-10-23 14:30:00')
-pd_ts_utc = pd.Timestamp.now(tz='UTC')  # Timezone-aware
+pd_ts = pd.Timestamp("2024-10-23 14:30:00")
+pd_ts_utc = pd.Timestamp.now(tz="UTC")  # Timezone-aware
 ```
 
 **NumPy datetime64 / Pandas Series dtype:**
 ```python
 # Pandas Series with datetime64[ns] dtype
-df['date'] = pd.to_datetime(df['date'])  # Creates datetime64[ns] column
+df["date"] = pd.to_datetime(df["date"])  # Creates datetime64[ns] column
 ```
 
 **Key Insight:** Pandas Series operations return datetime64[ns] arrays, but individual elements are pd.Timestamp objects.
@@ -256,6 +259,7 @@ df['date'] = pd.to_datetime(df['date'])  # Creates datetime64[ns] column
 import datetime
 import pandas as pd
 
+
 def ensure_python_datetime(dt):
     """Convert any datetime-like object to Python datetime.
 
@@ -266,7 +270,7 @@ def ensure_python_datetime(dt):
         return None
     if isinstance(dt, datetime.datetime):
         return dt
-    if hasattr(dt, 'to_pydatetime'):
+    if hasattr(dt, "to_pydatetime"):
         return dt.to_pydatetime()
     return pd.to_datetime(dt).to_pydatetime()
 ```
@@ -275,24 +279,24 @@ def ensure_python_datetime(dt):
 
 ```python
 # String to datetime
-df['date'] = pd.to_datetime(df['date'])
+df["date"] = pd.to_datetime(df["date"])
 
 # Datetime to string (for display or Plotly performance)
-df['date_str'] = df['date'].dt.strftime('%Y-%m-%d')
+df["date_str"] = df["date"].dt.strftime("%Y-%m-%d")
 
 # To Python datetime objects (for compatibility)
-df['date_python'] = df['date'].apply(lambda x: x.to_pydatetime() if pd.notna(x) else None)
+df["date_python"] = df["date"].apply(lambda x: x.to_pydatetime() if pd.notna(x) else None)
 
 # Remove timezone info (make tz-naive)
-df['date'] = df['date'].dt.tz_localize(None)
+df["date"] = df["date"].dt.tz_localize(None)
 ```
 
 ### Epoch Timestamp Type Conversion
 
 ```python
 # Epoch (int/float) → pd.Timestamp:
-ts = pd.Timestamp(1709913600, unit='s')
-ts = pd.Timestamp(1709913600000, unit='ms')
+ts = pd.Timestamp(1709913600, unit="s")
+ts = pd.Timestamp(1709913600000, unit="ms")
 
 # pd.Timestamp → epoch:
 epoch_s = int(ts.timestamp())  # seconds
@@ -300,6 +304,7 @@ epoch_ms = int(ts.timestamp() * 1000)  # milliseconds
 
 # Python datetime → epoch:
 from datetime import datetime, UTC
+
 dt = datetime.now(UTC)
 epoch = int(dt.timestamp())
 ```
@@ -310,23 +315,23 @@ epoch = int(dt.timestamp())
 
 ```python
 # GOOD: Explicit format (fast, unambiguous)
-df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%d')
+df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d")
 
 # GOOD: ISO 8601 format
-df['date'] = pd.to_datetime(df['date'], format='%Y-%m-%dT%H:%M:%S')
+df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%dT%H:%M:%S")
 
 # ACCEPTABLE: Mixed formats (flexible, but slower)
-df['date'] = pd.to_datetime(df['date'], format='mixed')
+df["date"] = pd.to_datetime(df["date"], format="mixed")
 
 # Handle parsing errors gracefully
-df['date'] = pd.to_datetime(df['date'], errors='coerce')  # Invalid becomes NaT
+df["date"] = pd.to_datetime(df["date"], errors="coerce")  # Invalid becomes NaT
 ```
 
 ### Read CSV with Date Parsing
 
 ```python
 # BEST: Parse dates during CSV read
-df = pd.read_csv('data.csv', parse_dates=['order_date', 'ship_date'], date_format='%Y-%m-%d')
+df = pd.read_csv("data.csv", parse_dates=["order_date", "ship_date"], date_format="%Y-%m-%d")
 ```
 
 ### Epoch / Unix Timestamp Conversion
@@ -337,22 +342,23 @@ Convert Unix timestamps (seconds or milliseconds since 1970-01-01):
 import pandas as pd
 
 # Seconds since epoch (common in APIs, logs):
-df['datetime'] = pd.to_datetime(df['epoch_seconds'], unit='s')
+df["datetime"] = pd.to_datetime(df["epoch_seconds"], unit="s")
 
 # Milliseconds since epoch (common in JavaScript, Java):
-df['datetime'] = pd.to_datetime(df['epoch_ms'], unit='ms')
+df["datetime"] = pd.to_datetime(df["epoch_ms"], unit="ms")
 
-# With timezone — epoch is always UTC:
-df['datetime'] = pd.to_datetime(df['epoch_seconds'], unit='s', utc=True)
+# With timezone - epoch is always UTC:
+df["datetime"] = pd.to_datetime(df["epoch_seconds"], unit="s", utc=True)
 
 # Convert datetime back to epoch:
-df['epoch'] = df['datetime'].astype('int64') // 10**9  # seconds
-df['epoch_ms'] = df['datetime'].astype('int64') // 10**6  # milliseconds
+df["epoch"] = df["datetime"].astype("int64") // 10**9  # seconds
+df["epoch_ms"] = df["datetime"].astype("int64") // 10**6  # milliseconds
 
 # Python stdlib equivalent:
 from datetime import datetime, UTC
+
 dt = datetime.fromtimestamp(1709913600, tz=UTC)  # Always specify tz!
-# Never use datetime.fromtimestamp(ts) without tz — returns local time
+# Never use datetime.fromtimestamp(ts) without tz - returns local time
 ```
 
 ## Timezone Management
@@ -367,16 +373,16 @@ dt = datetime.fromtimestamp(1709913600, tz=UTC)  # Always specify tz!
 
 ```python
 # Make timezone-aware (localize)
-df['date'] = pd.to_datetime(df['date'])
-df['date'] = df['date'].dt.tz_localize('UTC')
+df["date"] = pd.to_datetime(df["date"])
+df["date"] = df["date"].dt.tz_localize("UTC")
 
 # Handle ambiguous times (DST transitions)
-df['date'] = df['date'].dt.tz_localize('US/Eastern', ambiguous='infer')
+df["date"] = df["date"].dt.tz_localize("US/Eastern", ambiguous="infer")
 
 # Convert between timezones
-df['date_utc'] = df['date'].dt.tz_convert('UTC')
-df['date_eastern'] = df['date'].dt.tz_convert('US/Eastern')
+df["date_utc"] = df["date"].dt.tz_convert("UTC")
+df["date_eastern"] = df["date"].dt.tz_convert("US/Eastern")
 
 # Remove timezone info (for libraries that don't support tz-aware)
-df['date'] = df['date'].dt.tz_localize(None)
+df["date"] = df["date"].dt.tz_localize(None)
 ```

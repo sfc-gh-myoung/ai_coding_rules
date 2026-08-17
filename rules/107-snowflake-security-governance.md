@@ -1,15 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Snowflake governance: RBAC, data masking, row-level security, and object tagging for enterprise-grade access control."
+last_updated: 2026-07-15
+keywords:
+  - kw:RBAC role hierarchy
+  - kw:masking policy attachment
+  - kw:row access policy enforcement
+  - kw:object tagging governance
+  - kw:data metric function scheduling
+  - kw:least privilege grant design
+token_budget: ~4000
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md
+---
 # Snowflake Security Governance
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:security, kw:rbac, kw:grant
-**Keywords:** roles, grants, secure views, security policies, access control, data security, policy troubleshooting, grant management, Data Metric Functions, DMF, least privilege, create masking policy, tagging, SQL, dynamic grant, IDENTIFIER
-**TokenBudget:** ~4000
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md
 
 ## Scope
 
@@ -41,20 +48,6 @@ Comprehensive data security and access control practices using Snowflake's gover
 - [Introduction to data quality and DMFs](https://docs.snowflake.com/en/user-guide/data-quality-intro) - Data metric functions, expectations, scheduling, billing
 - [Data Profile](https://docs.snowflake.com/en/user-guide/data-quality-profile) - Profiling datasets to baseline and discover issues
 - [Working with data quality](https://docs.snowflake.com/en/user-guide/data-quality-working) - Associate, schedule, monitor, and manage DMFs
-
-### Related Rules
-**Closely Related** (consider loading together):
-- **100-snowflake-core.md** - fundamental DDL patterns and object creation
-- **105-snowflake-cost-governance.md** - RBAC on resource monitors and cost controls
-
-**Sometimes Related** (load if specific scenario):
-- **106-snowflake-semantic-views-core.md** - applying masking policies and row access to semantic views
-- **119-snowflake-warehouse-management.md** - configuring warehouse access control and RBAC
-- **115b-snowflake-cortex-agents-operations.md** - implementing agent RBAC and security
-
-**Complementary** (different aspects of same domain):
-- **111-snowflake-observability-core.md** - security event monitoring and audit logs
-- **108-snowflake-data-loading.md** - stage encryption and secure data loading
 
 ## Contract
 
@@ -89,7 +82,7 @@ Comprehensive data security and access control practices using Snowflake's gover
 - Creating DMFs without clear expectations and alert thresholds
 - Skipping data profiling before implementing quality checks
 
-> **Not covered:** Network policies (IP whitelisting) — see Snowflake documentation for `CREATE NETWORK POLICY`.
+> **Not covered:** Network policies (IP whitelisting): see Snowflake documentation for `CREATE NETWORK POLICY`.
 
 ### Execution Steps
 
@@ -296,7 +289,7 @@ CREATE ROLE IF NOT EXISTS DATA_ENGINEER;
 GRANT ROLE DATA_ANALYST TO ROLE DATA_ENGINEER;  -- Engineers inherit analyst access
 
 -- Step 1b: Grant roles to executing user (for setup scripts)
--- Use SET + IDENTIFIER($var) — GRANT does not accept CURRENT_USER() directly
+-- Use SET + IDENTIFIER($var) - GRANT does not accept CURRENT_USER() directly
 SET SETUP_USER = CURRENT_USER();
 GRANT ROLE DATA_ENGINEER TO USER IDENTIFIER($SETUP_USER);
 

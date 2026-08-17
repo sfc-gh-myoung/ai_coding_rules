@@ -1,15 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Zsh completion system configuration (compinit, zstyle, custom completions), hook system (precmd, preexec, chpwd, periodic), and prompt engineering (PROMPT_SUBST, vcs_info, async prompts)."
+last_updated: 2026-07-15
+keywords:
+  - kw:compinit
+  - kw:zstyle completion
+  - kw:add-zsh-hook
+  - kw:precmd preexec
+  - kw:vcs_info
+  - kw:async prompt
+token_budget: ~2450
+context_tier: Low
+depends:
+  required:
+    - 310-zsh-scripting-core.md  # Foundation zsh scripting patterns
+  optional:
+    - 310a-zsh-advanced-features.md  # Advanced features and optimization
+---
 # Zsh Completion System and Prompt Engineering
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Zsh, completion system, compinit, zstyle, hooks, precmd, preexec, prompt, PROMPT_SUBST, vcs_info, async prompt
-**TokenBudget:** ~2450
-**ContextTier:** Low
-**Depends:** 310-zsh-scripting-core.md, 310a-zsh-advanced-features.md
-**LoadTrigger:** ext:.zsh, kw:zsh-completion, kw:zsh-prompt
 
 ## Scope
 
@@ -23,15 +32,6 @@ Zsh completion system configuration (compinit, zstyle, custom completions), hook
 - Building custom prompts with git status, colors, or async updates
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **310-zsh-scripting-core.md** - Foundation zsh scripting patterns
-- **310a-zsh-advanced-features.md** - Advanced features and optimization
-
-**Related:**
-- **310b-zsh-compatibility.md** - Cross-shell compatibility strategies
 
 ### External Documentation
 
@@ -150,7 +150,7 @@ autoload -Uz compinit
 compinit
 
 # For compinit failure recovery (corrupt cache, missing dump file), see
-# 310a-zsh-advanced-features.md § Error Recovery — covers cache rebuild
+# 310a-zsh-advanced-features.md § Error Recovery - covers cache rebuild
 # with `rm -f ~/.zcompdump*` and `compinit -C` fallback.
 
 # Enable completion caching for performance
@@ -308,7 +308,7 @@ async_git_status() {
     echo "$status" > "$tmpfile"
 }
 
-# Cleanup trap — register once at shell startup
+# Cleanup trap - register once at shell startup
 trap 'rm -f "${XDG_RUNTIME_DIR:-/tmp}/git_status_$$"' EXIT
 
 # In precmd hook:

@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive best practices for efficiently staging and bulk loading data into Snowflake using Stages and COPY INTO commands, optimizing for performance, reliability, and cost-effectiveness in batch"
+last_updated: 2026-07-15
+keywords:
+  - kw:COPY INTO
+  - kw:stage management
+  - kw:file format definition
+  - kw:bulk load optimization
+  - kw:VALIDATION_MODE
+  - kw:ON_ERROR handling
+  - kw:COPY_HISTORY monitoring
+token_budget: ~3950
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md
+---
 # Snowflake Data Loading
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:data-loading, kw:copy-into, kw:import
-**Keywords:** bulk loading, ON_ERROR, FILE_FORMAT, load data, external stage, internal stage, data ingestion, file upload, COPY error, loading patterns, stage files, PUT command, GET command
-**TokenBudget:** ~3750
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md
 
 ## Scope
 
@@ -40,20 +48,6 @@ Comprehensive best practices for efficiently staging and bulk loading data into 
 - [COPY INTO Command](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table) - Bulk data loading syntax and options
 - [Data Loading Stages](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Internal and external stage management
 - [Data Loading Best Practices](https://docs.snowflake.com/en/user-guide/data-load-considerations) - File sizing and optimization guidance
-
-### Related Rules
-**Closely Related** (consider loading together):
-- **100-snowflake-core.md** - stage creation, COPY INTO fundamentals, and object naming
-- **103-snowflake-performance-tuning.md** - optimizing COPY INTO performance and file sizing
-
-**Sometimes Related** (load if specific scenario):
-- **104-snowflake-streams-tasks.md** - setting up automated loading pipelines with tasks
-- **116-snowflake-cortex-search.md** - loading documents for indexing and search
-- **119-snowflake-warehouse-management.md** - warehouse sizing for data loading workloads
-
-**Complementary** (different aspects of same domain):
-- **107-snowflake-security-governance.md** - encryption, masking during loading, stage access
-- **111-snowflake-observability-core.md** - monitoring COPY INTO performance and errors
 
 ## Contract
 
@@ -200,7 +194,7 @@ FILE_FORMAT = my_json_format;
 
 -- For subcolumnarization, ensure consistent data types within JSON elements
 -- Note: Schema evolution (ENABLE_SCHEMA_EVOLUTION) is a separate feature for
--- auto-adding new columns during COPY INTO — it does not enable subcolumnarization
+-- auto-adding new columns during COPY INTO - it does not enable subcolumnarization
 ```
 **Benefits:** Consistent parsing; correct type handling; subcolumnarization enabled; better query performance; data quality assured; predictable loading behavior
 
@@ -376,8 +370,8 @@ See Contract section for stage, COPY INTO, file format, and optimization require
 
 Compression behavior differs depending on what you are staging:
 
-- **Data files** (CSV, JSON, Parquet): Compression **ON** (default, recommended) — `AUTO_COMPRESS=TRUE` (default) / `--auto-compress` (default)
-- **Application files** (.py, .yml): Compression **OFF** (mandatory) — `AUTO_COMPRESS=FALSE` / `--no-auto-compress`
+- **Data files** (CSV, JSON, Parquet): Compression **ON** (default, recommended): `AUTO_COMPRESS=TRUE` (default) / `--auto-compress` (default)
+- **Application files** (.py, .yml): Compression **OFF** (mandatory): `AUTO_COMPRESS=FALSE` / `--no-auto-compress`
 
 - **Data loading (this rule):** Compression is desirable. GZIP reduces transfer time and storage.
   The default `AUTO_COMPRESS=TRUE` is correct for data files staged via PUT/COPY INTO.

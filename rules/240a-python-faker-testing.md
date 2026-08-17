@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Pytest integration with Faker including fixture patterns, Factory Boy for complex models, and seeding strategies for reproducible and parallel-safe tests."
+last_updated: 2026-07-15
+keywords:
+  - kw:faker pytest fixtures
+  - kw:seed_instance parallel
+  - kw:Factory Boy SubFactory
+  - kw:pytest-xdist worker seeding
+  - kw:conftest fixture hierarchy
+  - kw:unique value cleanup
+token_budget: ~3150
+context_tier: Low
+depends:
+  required:
+    - 240-python-faker.md  # Core Faker patterns
+    - 206-python-pytest.md  # Pytest patterns
+  optional:
+    - 240b-python-faker-advanced.md  # Custom providers and performance
+---
 # Python Faker Testing Integration
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:faker-fixtures, kw:factory-boy, kw:seeded-data
-**Keywords:** Faker, pytest fixtures, Factory Boy, seeded testing, deterministic data, pytest-xdist, test isolation, SubFactory
-**TokenBudget:** ~3150
-**ContextTier:** Low
-**Depends:** 240-python-faker.md, 206-python-pytest.md
 
 ## Scope
 
@@ -24,14 +34,9 @@ Pytest integration with Faker including fixture patterns, Factory Boy for comple
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **240-python-faker.md** - Core Faker patterns
-- **206-python-pytest.md** - Pytest patterns
-
-**Related:**
-- **240b-python-faker-advanced.md** - Custom providers and performance
+_None._
 
 ## Contract
 
@@ -76,11 +81,11 @@ conftest.py with seeded Faker fixtures, Factory Boy factories, and reproducible 
 
 Before adding or modifying Faker test fixtures, agents MUST check:
 
-- [ ] **Existing conftest.py**: Search for `Faker` in `conftest.py` files — avoid creating duplicate fixtures or conflicting seeds
-- [ ] **Factory Boy status**: Check `pyproject.toml` for `factory-boy` in dev dependencies — install only if needed for complex model relationships
-- [ ] **Test parallelization**: Check for `pytest-xdist` in dependencies and `addopts = "-n"` in config — parallel tests require `seed_instance()` not `Faker.seed()`
+- [ ] **Existing conftest.py**: Search for `Faker` in `conftest.py` files: avoid creating duplicate fixtures or conflicting seeds
+- [ ] **Factory Boy status**: Check `pyproject.toml` for `factory-boy` in dev dependencies: install only if needed for complex model relationships
+- [ ] **Test parallelization**: Check for `pytest-xdist` in dependencies and `addopts = "-n"` in config: parallel tests require `seed_instance()` not `Faker.seed()`
 - [ ] **Existing factory patterns**: Search for `class.*Factory.*` to find existing Factory Boy factories and match their conventions
-- [ ] **Seed conventions**: Check existing fixtures for seed values — use the same seed across the team for consistency
+- [ ] **Seed conventions**: Check existing fixtures for seed values: use the same seed across the team for consistency
 
 ### Design Principles
 
@@ -124,12 +129,18 @@ fake.seed_instance(12345)  # Only seeds THIS instance
 # tests/test_users.py
 fake = Faker()
 fake.seed_instance(42)
+
+
 def make_user(): ...
+
 
 # tests/test_orders.py
 fake = Faker()
 fake.seed_instance(99)  # Different seed!
+
+
 def make_user(): ...  # Duplicated!
+
 
 # Correct: Centralized in conftest.py
 # tests/conftest.py
@@ -139,12 +150,14 @@ def fake():
     f.seed_instance(12345)
     return f
 
+
 @pytest.fixture
 def fake_user(fake):
     def _generate(**overrides):
         data = {"username": fake.user_name(), "email": fake.email()}
         data.update(overrides)
         return data
+
     return _generate
 ```
 
@@ -154,23 +167,23 @@ For multi-directory test suites, use conftest.py at each level:
 
 ```
 tests/
-├── conftest.py              # Root — seeded_faker, reset_unique (shared by ALL tests)
+├── conftest.py              # Root - seeded_faker, reset_unique (shared by ALL tests)
 ├── unit/
-│   ├── conftest.py          # Unit — fake_user, fake_product (unit-specific data)
+│   ├── conftest.py          # Unit - fake_user, fake_product (unit-specific data)
 │   └── test_models.py
 ├── integration/
-│   ├── conftest.py          # Integration — fake_db_record, fake_api_response
+│   ├── conftest.py          # Integration - fake_db_record, fake_api_response
 │   └── test_api.py
 └── e2e/
-    ├── conftest.py          # E2E — fake_full_workflow (uses Factory Boy)
+    ├── conftest.py          # E2E - fake_full_workflow (uses Factory Boy)
     └── test_workflow.py
 ```
 
-- **`seeded_faker`:** Root conftest.py, scope `session` — shared by all tests
-- **`reset_faker_unique`:** Root conftest.py, scope `function` (autouse) — clears unique values between all tests
-- **`fake_user`:** Unit conftest.py, scope `function` — domain-specific to unit tests
-- **`UserFactory`:** Root conftest.py, N/A (class) — shared across unit and integration
-- **`fake_api_response`:** Integration conftest.py, scope `function` — specific to API tests
+- **`seeded_faker`:** Root conftest.py, scope `session`: shared by all tests
+- **`reset_faker_unique`:** Root conftest.py, scope `function` (autouse): clears unique values between all tests
+- **`fake_user`:** Unit conftest.py, scope `function`: domain-specific to unit tests
+- **`UserFactory`:** Root conftest.py, N/A (class): shared across unit and integration
+- **`fake_api_response`:** Integration conftest.py, scope `function`: specific to API tests
 
 ## Pytest Fixture Patterns
 
@@ -180,6 +193,7 @@ tests/
 # conftest.py
 import pytest
 from faker import Faker
+
 
 @pytest.fixture
 def fake():
@@ -207,9 +221,10 @@ def reset_faker_unique(fake):
 
 Why this matters:
 ```python
-# Without clearing — test 2 fails:
+# Without clearing - test 2 fails:
 def test_create_user_1(fake):
     name = fake.unique.user_name()  # "john_doe" ✓
+
 
 def test_create_user_2(fake):
     name = fake.unique.user_name()  # UniquenessException!
@@ -222,9 +237,11 @@ def test_create_user_2(fake):
 from typing import Dict
 from myapp.models import User
 
+
 @pytest.fixture
 def fake_user_data(fake):
     """Generate fake user data with optional overrides."""
+
     def _generate(**overrides) -> Dict:
         data = {
             "username": fake.unique.user_name(),
@@ -236,13 +253,17 @@ def fake_user_data(fake):
         }
         data.update(overrides)
         return data
+
     return _generate
+
 
 @pytest.fixture
 def fake_users_batch(fake_user_data):
     """Generate batch of fake users."""
+
     def _generate_batch(count: int = 10):
         return [fake_user_data() for _ in range(count)]
+
     return _generate_batch
 ```
 
@@ -277,6 +298,7 @@ import factory
 from factory.faker import Faker as FactoryFaker
 from myapp.models import User, Order
 
+
 class UserFactory(factory.Factory):
     class Meta:
         model = User
@@ -287,6 +309,7 @@ class UserFactory(factory.Factory):
     first_name = FactoryFaker("first_name")
     is_active = True
 
+
 class OrderFactory(factory.Factory):
     class Meta:
         model = Order
@@ -294,6 +317,7 @@ class OrderFactory(factory.Factory):
     user = factory.SubFactory(UserFactory)
     quantity = FactoryFaker("random_int", min=1, max=10)
     status = FactoryFaker("random_element", elements=["pending", "shipped"])
+
 
 # Usage
 def test_create_order():
@@ -309,6 +333,7 @@ def test_create_order():
 ```python
 from faker import Faker
 from typing import Dict, List
+
 
 class SeededDataGenerator:
     """Generate scenario-specific test data with isolated seeds."""
@@ -370,17 +395,20 @@ class UserFactory(factory.Factory):
             role="suspended",
         )
 
-# Usage — clean and expressive:
-viewer = UserFactory()                    # Default viewer
-admin = UserFactory(admin=True)           # Admin with admin_ prefix
-inactive = UserFactory(inactive=True)     # Inactive viewer
+
+# Usage - clean and expressive:
+viewer = UserFactory()  # Default viewer
+admin = UserFactory(admin=True)  # Admin with admin_ prefix
+inactive = UserFactory(inactive=True)  # Inactive viewer
 suspended_admin = UserFactory(admin=True, suspended=True)  # Combine traits
+
 
 # In tests:
 def test_admin_can_delete():
     admin = UserFactory(admin=True)
     assert admin.role == "admin"
     assert admin.username.startswith("admin_")
+
 
 def test_inactive_user_rejected():
     user = UserFactory(inactive=True)
@@ -407,9 +435,10 @@ dev = [
 ### Worker-Safe Seeding
 
 ```python
-# conftest.py — each worker gets a unique seed based on worker ID
+# conftest.py - each worker gets a unique seed based on worker ID
 import pytest
 from faker import Faker
+
 
 @pytest.fixture(scope="session")
 def seeded_faker(worker_id):

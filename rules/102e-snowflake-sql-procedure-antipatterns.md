@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Common anti-patterns in Snowflake SQL stored procedures and UDFs: incorrect delimiter usage, missing EXECUTE AS, SQL injection via string concatenation, literal $$ in bodies, and unqualified object"
+last_updated: 2026-07-15
+keywords:
+  - kw:stored procedure anti-patterns
+  - kw:dollar quoting
+  - kw:EXECUTE AS
+  - kw:SQL injection bind variables
+  - kw:fully qualified object names
+  - kw:procedure delimiter escaping
+  - kw:udf
+token_budget: ~1700
+context_tier: Low
+depends:
+  optional:
+    - 102b-snowflake-sql-procedures.md  # Procedure creation patterns and templates
+---
 # Snowflake SQL: Stored Procedure Anti-Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** stored procedure anti-patterns, dollar quoting, EXECUTE AS, bind variables, SQL injection, dynamic SQL, unqualified names
-**TokenBudget:** ~1700
-**ContextTier:** Low
-**Depends:** 102b-snowflake-sql-procedures.md
 
 ## Scope
 
@@ -23,10 +32,9 @@ Common anti-patterns in Snowflake SQL stored procedures and UDFs: incorrect deli
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **102b-snowflake-sql-procedures.md** - Procedure creation patterns and templates
+_None._
 
 ## Contract
 

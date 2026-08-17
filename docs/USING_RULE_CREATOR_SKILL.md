@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-03-27
 
-The Rule Creator Skill automates creation of production-ready Cursor rules following schema v3.2 standards. It guides you through research, template generation, content population, validation, and RULES_INDEX.md registration—reducing rule creation time by ~60-70%.
+The Rule Creator Skill automates creation of production-ready Cursor rules following schema v3.5 standards. It guides you through research, template generation, content population, and validation: reducing rule creation time by ~60-70%.
 
 > **Internal Use Only:** This skill is excluded from deployment to consuming projects. See [Deployment Exclusion](#deployment-exclusion) for rationale.
 
@@ -13,8 +13,8 @@ The Rule Creator Skill automates creation of production-ready Cursor rules follo
 ```text
 Use the rule-creator skill.
 
-rule_name: 422-daisyui-core          # Required — rule filename (NNN-lowercase-hyphenated)
-domain: JavaScript/Frontend           # Required — technology domain
+rule_name: 422-daisyui-core          # Required - rule filename (NNN-lowercase-hyphenated)
+domain: JavaScript/Frontend           # Required - technology domain
 ```
 
 ### With All Optional Settings
@@ -24,8 +24,8 @@ Use the rule-creator skill.
 
 rule_name: 209-python-pytest-security  # Required
 domain: Python                         # Required
-context_tier: High                     # Optional (default: Medium) — token budget tier
-timing_enabled: true                   # Optional (default: false) — track creation duration
+context_tier: High                     # Optional (default: Medium) - token budget tier
+timing_enabled: true                   # Optional (default: false) - track creation duration
 ```
 
 ### With Aspect (Non-Core Rule)
@@ -44,20 +44,19 @@ Create a new rule for Snowflake+Python integration patterns
 
 Agent adds both `rules/100-snowflake-core.md` and `rules/200-python-core.md` to Depends.
 
-
 ## Workflow Phases
 
 | Phase | Name | What Happens |
 |-------|------|--------------|
-| 1 | **Discovery & Research** | Searches RULES_INDEX.md, identifies domain, checks for duplicates |
+| 1 | **Discovery & Research** | Scans `rules/` frontmatter, identifies domain, checks for duplicates |
 | 2 | **Template Generation** | Runs `ai-rules new` with domain and context tier |
 | 3 | **Content Population** | Fills all schema sections with researched, domain-specific content |
 | 4 | **Validation Loop** | Runs `ai-rules validate` until 0 CRITICAL errors |
-| 5 | **Indexing** | Adds entry to RULES_INDEX.md with metadata |
+| 5 | **Verification** | Confirms the rule is discoverable by the matcher |
 
 ### Phase 1: Discovery & Research
 
-The skill reads RULES_INDEX.md to:
+The skill reads the frontmatter of existing rules in `rules/` to:
 - Check for existing rules covering the same technology
 - Identify the correct domain range (000-999 based on technology)
 - Gather context from related rules
@@ -74,7 +73,6 @@ Iteration 3: 0 CRITICAL, 2 RECOMMENDED ✓ (passed)
 
 RECOMMENDED issues are logged but do not block completion.
 
-
 ## Understanding Your Results
 
 ### Verdicts
@@ -86,11 +84,10 @@ RECOMMENDED issues are logged but do not block completion.
 
 ### Output Artifacts
 
-The skill produces three artifacts:
+The skill produces two artifacts:
 
-1. **Rule file:** `rules/<rule-name>.md` — The complete rule document
-2. **Index entry:** Line added to `RULES_INDEX.md` — Enables rule-loader discovery
-3. **Validation log:** Console output — Shows iteration history
+1. **Rule file:** `rules/<rule-name>.md`: The complete rule document
+2. **Validation log:** Console output: Shows iteration history
 
 ### Validation Gates
 
@@ -98,23 +95,22 @@ All rules must pass these gates before completion:
 
 | Gate | Requirement |
 |------|-------------|
-| Discovery | RULES_INDEX.md searched, domain identified, number available |
-| Template | `ai-rules new` executed, v3.2 sections present |
-| Metadata | Keywords (5-20), TokenBudget (~NUMBER), ContextTier valid |
+| Discovery | `rules/` scanned, domain identified, number available |
+| Template | `ai-rules new` executed, v3.5 sections present |
+| Metadata | Keywords (5-11), TokenBudget (~NUMBER), ContextTier valid |
 | Contract | 6 Markdown headers present, placed before line 160 |
 | Validation | `ai-rules validate` returns exit code 0 |
-| Indexing | Entry added to RULES_INDEX.md in correct position |
+| Verification | Rule is matched by the loader for its keywords |
 
 ### Common Errors and Fixes
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `Keywords count: 3 (expected 5-20)` | Too few keywords | Add more semantic keywords |
+| `Keywords count: 3 (expected 5-11)` | Too few keywords | Add more semantic keywords |
 | `TokenBudget format invalid` | Missing tilde | Change `1200` to `~1200` |
 | `Missing header: ### Validation` | Incomplete Contract | Add all 6 required headers |
 | `Contract after line 160` | Contract too late | Move Contract earlier in file |
 | `Invalid filename format` | Wrong casing/format | Use `NNN-lowercase-hyphenated` |
-
 
 ## Advanced Usage
 
@@ -191,7 +187,6 @@ ai-rules new 422-daisyui-core --context-tier Medium
 ai-rules validate rules/422-daisyui-core.md
 ```
 
-
 ## FAQ
 
 ### How long does rule creation take?
@@ -208,7 +203,7 @@ ai-rules validate rules/422-daisyui-core.md
 After 3 iterations, the skill stops and reports remaining errors. Common fixes:
 1. Check for missing required sections (Examples, Anti-patterns)
 2. Ensure all 6 Contract headers are present
-3. Verify keywords are in 5-20 range
+3. Verify keywords are in 5-11 range
 
 ### How do I verify the skill executed correctly?
 
@@ -244,8 +239,7 @@ The skill is a productivity tool, not a requirement.
 
 ### What domain should I use for ambiguous technologies?
 
-Check RULES_INDEX.md for similar technologies. If still unclear, ask the user. Example: "React Testing Library" → Frontend (420s) or Testing (200s)?
-
+Check existing rules in `rules/` for similar technologies. If still unclear, ask the user. Example: "React Testing Library" → Frontend (420s) or Testing (200s)?
 
 ## Reference
 
@@ -255,7 +249,7 @@ Check RULES_INDEX.md for similar technologies. If still unclear, ask the user. E
 User Request
 │
 ├── Phase 1: Discovery
-│   ├── Read RULES_INDEX.md
+│   ├── Scan rules/ frontmatter
 │   ├── Identify domain range
 │   └── Check for duplicates
 │
@@ -270,7 +264,7 @@ User Request
 │   └── ai-rules validate (max 3 iterations)
 │
 └── Phase 5: Indexing
-    └── Append to RULES_INDEX.md
+    └── Verify matcher discovery
 ```
 
 ### File Structure
@@ -301,7 +295,6 @@ skills/rule-creator/
 |---------|---------|
 | `ai-rules new` | Creates rule skeleton from domain |
 | `ai-rules validate` | Validates against rule-schema.yml |
-| `ai-rules index` | Maintains RULES_INDEX.md |
 
 ### Integration with Other Skills
 

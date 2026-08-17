@@ -290,35 +290,38 @@ Run this before starting review to catch common issues:
 from pathlib import Path
 from datetime import datetime
 
-def validate_review_inputs(target_file: str, review_date: str, 
-                           review_mode: str, model: str) -> list[str]:
+
+def validate_review_inputs(
+    target_file: str, review_date: str, review_mode: str, model: str
+) -> list[str]:
     """Returns list of error messages (empty if all valid)"""
     errors = []
-    
+
     # Check target file
     if not Path(target_file).exists():
         errors.append(f"Target file not found: {target_file}")
-    elif not target_file.endswith('.md'):
+    elif not target_file.endswith(".md"):
         errors.append(f"Target must be .md file: {target_file}")
-    elif 'rules/' not in target_file:
+    elif "rules/" not in target_file:
         errors.append(f"Target must be under rules/: {target_file}")
-    
+
     # Check date format
     try:
-        datetime.strptime(review_date, '%Y-%m-%d')
+        datetime.strptime(review_date, "%Y-%m-%d")
     except ValueError:
         errors.append(f"Invalid date format: {review_date} (expected YYYY-MM-DD)")
-    
+
     # Check review mode
-    valid_modes = {'FULL', 'FOCUSED', 'STALENESS'}
+    valid_modes = {"FULL", "FOCUSED", "STALENESS"}
     if review_mode.upper() not in valid_modes:
         errors.append(f"Invalid mode: {review_mode} (valid: {', '.join(valid_modes)})")
-    
+
     # Check {output_root}rule-reviews directory (default: reviews/rule-reviews)
-    if not Path('reviews/rule-reviews').exists():
+    if not Path("reviews/rule-reviews").exists():
         errors.append("Directory 'reviews/rule-reviews/' does not exist - will be created")
-    
+
     return errors
+
 
 # Usage
 errors = validate_review_inputs(target_file, review_date, review_mode, model)

@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Taskfile implementation patterns for Snowflake application deployment automation, including task structure per application, variable configuration, includes, preconditions, and deployment validation"
+last_updated: 2026-07-15
+keywords:
+  - kw:Taskfile deployment automation
+  - kw:five-step deployment workflow
+  - kw:deployment task preconditions
+  - kw:sequential task execution
+  - kw:stage file upload tasks
+  - kw:notebook streamlit deployment
+  - kw:snowsight
+token_budget: ~3100
+context_tier: Low
+depends:
+  required:
+    - 820-taskfile-automation.md
+---
 # Snowflake App Deployment Taskfile Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:deployment-taskfile, kw:deploy-task
-**Keywords:** Taskfile deployment, task automation, deployment tasks, task structure, deploy task, upload task, create task, drop task, remove task, deployment workflow
-**TokenBudget:** ~3100
-**ContextTier:** Low
-**Depends:** 109b-snowflake-app-deployment-core.md, 820-taskfile-automation.md
 
 ## Scope
 
@@ -24,10 +32,9 @@ Taskfile implementation patterns for Snowflake application deployment automation
 
 ## References
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **109b-snowflake-app-deployment-core.md** - Parent rule with core deployment patterns
-- **820-taskfile-automation.md** - General Taskfile patterns
+### External Documentation
+
+_None._
 
 ## Contract
 
@@ -193,7 +200,7 @@ tasks:
 For Streamlit apps, adjust the upload task for `pages/`, `utils/`, and `environment.yml`:
 
 ```yaml
-# task/streamlit/Taskfile.yml — key differences from notebook variant
+# task/streamlit/Taskfile.yml - key differences from notebook variant
 vars:
   STREAMLIT_DIR: streamlit
   SNOWFLAKE_STAGE: "{{.SNOWFLAKE_DB}}.SCHEMA.STREAMLIT_STAGE"
@@ -247,7 +254,7 @@ Add a `verify:app` task to confirm deployment succeeded:
 **Correct Pattern:** The deploy task must use sequential `cmds` with `task:` calls, not `deps`. The order is strict: drop -> remove -> upload -> create. Each step must complete before the next begins. Use `cmds` with `- task: drop:app` / `- task: remove:app` / `- task: upload:app` / `- task: create:app` in sequence.
 
 ```yaml
-# Wrong: Using deps causes parallel execution — race conditions
+# Wrong: Using deps causes parallel execution - race conditions
 deploy:app:
   deps:
     - drop:app
@@ -272,7 +279,7 @@ deploy:app:
 **Correct Pattern:** Add `preconditions` to every upload task that verify required local files exist before any deployment step runs. Also add preconditions to the deploy task itself so the check happens before drop/remove execute: `preconditions: [{ test: -f {{.NOTEBOOK_DIR}}/app.ipynb, msg: "app.ipynb not found" }]`.
 
 ```yaml
-# Wrong: No preconditions — drop/remove succeed, then upload fails on missing file
+# Wrong: No preconditions - drop/remove succeed, then upload fails on missing file
 upload:app:
   cmds:
     - task: utils:sql:template
@@ -284,7 +291,7 @@ upload:app:
 deploy:app:
   preconditions:
     - test -f {{.NOTEBOOK_DIR}}/app.ipynb
-    - msg: "app.ipynb not found — run from project root"
+    - msg: "app.ipynb not found - run from project root"
   cmds:
     - task: drop:app
     - task: remove:app
@@ -308,7 +315,7 @@ upload:app:
 **Correct Pattern:** Define all environment-specific values as `vars` at the top of the Taskfile (`SNOWFLAKE_DB`, `SNOWFLAKE_WH`, `SNOWFLAKE_STAGE`). Reference them in commands with `{{.SNOWFLAKE_DB}}` syntax. For multi-environment support, use `ENV` variable with a shell case statement to resolve the correct database name per environment.
 
 ```yaml
-# Wrong: Hardcoded names — impossible to deploy to different environments
+# Wrong: Hardcoded names - impossible to deploy to different environments
 drop:app:
   cmds:
     - snow sql -q "DROP NOTEBOOK IF EXISTS UTILITY_DEMO_V2.GRID_DATA.MY_NOTEBOOK;"

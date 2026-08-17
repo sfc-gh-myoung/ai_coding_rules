@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "SQL file patterns specifically for Snowflake demos, workshops, and customer learning environments. Covers schema-based file naming (NN_<schema>_<operation>.sql), per-schema isolation with independent"
+last_updated: 2026-07-15
+keywords:
+  - kw:demo sql
+  - kw:per-schema isolation
+  - kw:rerunnable demos
+  - kw:progress indicators
+  - kw:inline educational comments
+  - kw:schema-based file naming
+token_budget: ~4600
+context_tier: High
+depends:
+  required:
+    - 102-snowflake-sql-core.md  # General SQL file patterns (headers, syntax, qualified names)
+  optional:
+    - 131-snowflake-demo-creation.md  # Synthetic data generation for demos
+    - 132-snowflake-demo-modeling.md  # Data modeling patterns for demos
+    - 102a-snowflake-sql-automation.md  # Production patterns (when demos evolve to production)
+---
 # Snowflake SQL: Demo Engineering and Workshops
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-03-26
-**Keywords:** demo SQL, workshop, teardown, progress indicators, rerunnable demos, CREATE OR REPLACE, educational SQL, demo patterns, setup scripts, customer learning, per-schema isolation, inline documentation, dynamic grant, CURRENT_USER, IDENTIFIER
-**LoadTrigger:** kw:demo, kw:workshop, kw:quickstart
-**TokenBudget:** ~4600
-**ContextTier:** High
-**Depends:** 102-snowflake-sql-core.md
 
 ## Scope
 
@@ -26,16 +37,6 @@ SQL file patterns specifically for Snowflake demos, workshops, and customer lear
 - Building workshop materials for field teams
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **102-snowflake-sql-core.md** - General SQL file patterns (headers, syntax, qualified names)
-
-**Related:**
-- **131-snowflake-demo-creation.md** - Synthetic data generation for demos
-- **132-snowflake-demo-modeling.md** - Data modeling patterns for demos
-- **102a-snowflake-sql-automation.md** - Production patterns (when demos evolve to production)
 
 ### External Documentation
 
@@ -327,7 +328,7 @@ CREATE OR REPLACE VIEW UTILITY_DEMO_V2.GRID_DATA.VW_SUMMARY AS ...;   -- Always 
 CREATE OR REPLACE STAGE UTILITY_DEMO_V2.GRID_DATA.DATA_FILES;         -- Files remain in cloud
 ```
 
-`CREATE OR REPLACE TABLE` is OK for demos (data is ephemeral/regenerable). **NOT production-safe** — for production use `102a-snowflake-sql-automation.md` patterns (CREATE TABLE IF NOT EXISTS + MERGE).
+`CREATE OR REPLACE TABLE` is OK for demos (data is ephemeral/regenerable). **NOT production-safe**: for production use `102a-snowflake-sql-automation.md` patterns (CREATE TABLE IF NOT EXISTS + MERGE).
 
 ## Demo Project Structure and Orchestration
 
@@ -470,8 +471,8 @@ Demo SQL without concept explanations and column-level comments has no teaching 
 ```python
 # Bad: CLI runs files in numeric order without considering dependencies
 def setup():
-    run_sql("06_grid_traceability.sql")   # Has FK to UNIQUE_DESCRIPTIONS
-    run_sql("09_grid_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS — too late!
+    run_sql("06_grid_traceability.sql")  # Has FK to UNIQUE_DESCRIPTIONS
+    run_sql("09_grid_dedup.sql")  # Creates UNIQUE_DESCRIPTIONS - too late!
 ```
 
 **Error:** `Table 'UNIQUE_DESCRIPTIONS' does not exist or not authorized.`
@@ -479,8 +480,8 @@ def setup():
 ```python
 # Correct: respect FK dependencies, not file numbers
 def setup():
-    run_sql("09_grid_dedup.sql")          # Creates UNIQUE_DESCRIPTIONS FIRST
-    run_sql("06_grid_traceability.sql")   # Now FK constraint succeeds
+    run_sql("09_grid_dedup.sql")  # Creates UNIQUE_DESCRIPTIONS FIRST
+    run_sql("06_grid_traceability.sql")  # Now FK constraint succeeds
 ```
 
 **Prevention:** Run `grep -n "FOREIGN KEY\|REFERENCES" sql/*.sql` before implementing CLI orchestration.

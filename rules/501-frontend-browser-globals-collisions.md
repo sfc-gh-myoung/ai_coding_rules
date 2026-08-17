@@ -1,15 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Prevent accidental collisions with built-in browser globals (e.g., window.history) that can break HTMX navigation, Alpine components, and browser back/forward behavior. Codifies safe naming, scoping,"
+last_updated: 2026-07-15
+keywords:
+  - kw:browser globals collision
+  - kw:window.history shadowing
+  - kw:htmx history restore
+  - kw:Alpine.js component namespacing
+  - kw:implicit global prevention
+  - kw:inline script scoping
+token_budget: ~1950
+context_tier: High
+depends:
+  required:
+    - 500-frontend-htmx-core.md
+---
 # 501-frontend-browser-globals-collisions: Frontend Browser Globals Collisions
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** browser globals, javascript globals, window.history, HTMX history, Alpine.js, name collisions, reserved identifiers, implicit globals, historyRestore, hx-push-url, popstate, best practices, anti-patterns
-**TokenBudget:** ~1950
-**ContextTier:** High
-**LoadTrigger:** kw:browser-globals, kw:window-history, kw:htmx-history
-**Depends:** 500-frontend-htmx-core.md
 
 ## Scope
 
@@ -22,10 +29,6 @@ Prevent accidental collisions with built-in browser globals (e.g., `window.histo
 - Reviewing or creating top-level JavaScript functions/variables in server-rendered pages
 
 ## References
-
-### Related Rules
-- `rules/500-frontend-htmx-core.md` - HTMX frontend usage and lifecycle events
-- `rules/221f-python-htmx-integrations.md` - Alpine.js + HTMX integration patterns
 
 ### External Documentation
 - [MDN: `Window.history`](https://developer.mozilla.org/en-US/docs/Web/API/Window/history) - Browser history object
@@ -46,7 +49,7 @@ Basic knowledge of browser global objects (`window`, `history`, `location`) and 
 - MUST use `const` or `let` for all declarations; `var` is FORBIDDEN
 - MUST NOT define top-level functions/vars that collide with browser built-ins
 - MUST namespace any globals exposed for HTML references (e.g., `window.unistore.*` for `x-data="..."`)
-- ES modules (`import`/`export`) MUST be preferred — they are automatically in strict mode, preventing implicit global creation
+- ES modules (`import`/`export`) MUST be preferred: they are automatically in strict mode, preventing implicit global creation
 - For non-module scripts, MUST add `"use strict";` at the top to prevent accidental global variable creation
 
 ### Forbidden
@@ -96,7 +99,7 @@ npx eslint --rule 'no-implicit-globals: error' src/
 > When applying this rule:
 > 1. List all `<script>` tags in the base HTML template (check for non-module scripts)
 > 2. Search for top-level `function` or `var` declarations matching the 19 browser globals (line 45)
-> 3. Check if HTMX history is used (`hx-push-url`, `hx-boost`) — collisions are most dangerous here
+> 3. Check if HTMX history is used (`hx-push-url`, `hx-boost`): collisions are most dangerous here
 > 4. Identify any third-party scripts loaded globally that may create collisions
 
 ## Anti-Patterns and Common Mistakes
@@ -144,7 +147,7 @@ function init() {
 **Third-Party Script Collisions:**
 If a vendor script creates global collisions you cannot rename (e.g., analytics library defines `window.event`):
 1. **Isolate in iframe:** Load the vendor script in a sandboxed iframe to separate its global scope
-2. **Wrap in module:** Use `<script type="module">` — modules have their own scope and don't create globals
+2. **Wrap in module:** Use `<script type="module">`: modules have their own scope and don't create globals
 3. **Load order:** Ensure your code loads after the vendor script and checks for existing globals before overwriting
 4. **Report upstream:** File an issue with the library maintainer requesting namespaced globals
 
@@ -162,7 +165,7 @@ typeof window.history
 ```
 
 ```json
-// .eslintrc.json — prevent accidental use of dangerous globals
+// .eslintrc.json - prevent accidental use of dangerous globals
 {
   "rules": {
     "no-restricted-globals": [

@@ -1,20 +1,31 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Provides a standalone frontend reference for HTMX attributes, client-side events, CSS transitions, debugging techniques, and browser compatibility considerations for pure HTMX usage without backend"
+last_updated: 2026-07-15
+keywords:
+  - kw:hx-get
+  - kw:hx-swap
+  - kw:hx-trigger
+  - kw:htmx lifecycle events
+  - kw:hypermedia-driven UI
+  - kw:progressive enhancement fallbacks
+  - kw:htmx
+token_budget: ~3800
+context_tier: Low
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 221-python-htmx-core.md  # HTMX with Python backends
+    - 421-javascript-alpinejs-core.md  # Alpine.js for client-side reactivity
+---
 # HTMX Frontend Reference
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Frontend HTMX patterns. Load for HTMX tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:htmx, kw:frontend
-**Keywords:** htmx attributes, client-side, events, css transitions, debugging, browser compatibility, hx-get, hx-post, hx-swap, hx-trigger, hx-target
-**TokenBudget:** ~3800
-**ContextTier:** Low
-**Depends:** 000-global-core.md
 
 ## Scope
 
@@ -29,15 +40,6 @@ Provides a standalone frontend reference for HTMX attributes, client-side events
 - Choosing between HTMX and JavaScript frameworks
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **221-python-htmx-core.md** - HTMX with Python backends
-- **421-javascript-alpinejs-core.md** - Alpine.js for client-side reactivity
 
 ### External Documentation
 
@@ -62,7 +64,7 @@ Provides a standalone frontend reference for HTMX attributes, client-side events
 
 ### Forbidden
 
-- Using HTMX with incompatible browsers (IE11 and below — not supported, no polyfills)
+- Using HTMX with incompatible browsers (IE11 and below: not supported, no polyfills)
 - Missing CSRF protection for state-changing requests
 - Skipping progressive enhancement fallbacks
 
@@ -132,7 +134,7 @@ HTML with HTMX attributes:
 > **Investigation Required**
 > When applying this rule:
 > 1. Check if HTMX is already loaded (search for `<script src` containing `htmx`)
-> 2. Identify HTMX version (1.x vs 2.0) — check `htmx.version` in console or script URL
+> 2. Identify HTMX version (1.x vs 2.0): check `htmx.version` in console or script URL
 > 3. Scan for existing HTMX patterns (`hx-get`, `hx-post`, `hx-swap`) to match conventions
 > 4. Verify CSRF middleware is configured on the backend if using cookie-based auth
 
@@ -404,7 +406,7 @@ document.body.addEventListener('showNotification', function(event) {
 
 **Enable Logging:**
 ```javascript
-// Enable verbose logging — shows full request lifecycle in console
+// Enable verbose logging - shows full request lifecycle in console
 htmx.logAll();
 ```
 
@@ -487,9 +489,9 @@ htmx.trigger(element, 'click');
 
 ### Anti-Pattern 4: Missing Progressive Enhancement
 
-**Problem:** HTMX-only forms that break without JavaScript — accessibility issues, SEO problems.
+**Problem:** HTMX-only forms that break without JavaScript: accessibility issues, SEO problems.
 
-**Correct Pattern:** See [Progressive Enhancement](#browser-compatibility) above — always include `action` and `method` attributes alongside HTMX attributes on forms.
+**Correct Pattern:** See [Progressive Enhancement](#browser-compatibility) above: always include `action` and `method` attributes alongside HTMX attributes on forms.
 
 ### Progressive Enhancement with hx-boost
 
@@ -515,8 +517,8 @@ See [SSE extension docs](https://htmx.org/extensions/sse/) and [WebSocket extens
 
 ## HTMX 2.0 Changes
 
-- **IE11 dropped** — No longer supported; remove any IE11 polyfills
-- **`hx-on` syntax changed** — Use `hx-on:event="handler"` instead of `hx-on="event: handler"`
-- **`hx-swap` default behavior** — `outerHTML` settling behavior changed; test swap transitions after upgrade
-- **Attribute inheritance** — Some attributes no longer inherit by default; check `hx-inherit` docs
+- **IE11 dropped**: No longer supported; remove any IE11 polyfills
+- **`hx-on` syntax changed**: Use `hx-on:event="handler"` instead of `hx-on="event: handler"`
+- **`hx-swap` default behavior**: `outerHTML` settling behavior changed; test swap transitions after upgrade
+- **Attribute inheritance**: Some attributes no longer inherit by default; check `hx-inherit` docs
 - See [HTMX 2.0 Migration Guide](https://htmx.org/migration-guide-htmx-1/) for full details

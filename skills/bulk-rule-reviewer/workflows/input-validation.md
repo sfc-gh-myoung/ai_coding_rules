@@ -21,7 +21,7 @@ Execute validation before Stage 1 (Discovery). Fail fast on invalid inputs.
 - Case-sensitive (uppercase only)
 
 ### model
-- Format: lowercase-hyphenated (e.g., `claude-sonnet-45`, `gpt-4`)
+- Format: lowercase-hyphenated (e.g., `claude-sonnet-4-6`, `gpt-4`)
 - Regex: `^[a-z0-9]+(-[a-z0-9]+)*$`
 - Length: 3-50 characters
 
@@ -66,56 +66,73 @@ Execute validation before Stage 1 (Discovery). Fail fast on invalid inputs.
 ## Validation Code Pattern
 
 ```python
-def validate_inputs(review_date, review_mode, model, filter_pattern=None, 
-                    skip_existing=True, max_parallel=1, output_root='reviews/'):
+def validate_inputs(
+    review_date,
+    review_mode,
+    model,
+    filter_pattern=None,
+    skip_existing=True,
+    max_parallel=1,
+    output_root="reviews/",
+):
     """Validate all input parameters before execution."""
     import re
     import os
     from datetime import datetime
-    
+
     errors = []
-    
+
     # Validate review_date
-    if not re.match(r'^\d{4}-\d{2}-\d{2}$', review_date):
+    if not re.match(r"^\d{4}-\d{2}-\d{2}$", review_date):
         errors.append(f"Invalid review_date: '{review_date}' - Expected format: YYYY-MM-DD")
     else:
         try:
-            datetime.strptime(review_date, '%Y-%m-%d')
+            datetime.strptime(review_date, "%Y-%m-%d")
         except ValueError:
             errors.append(f"Invalid review_date: '{review_date}' - Not a valid calendar date")
-    
+
     # Validate review_mode
-    if review_mode not in ['FULL', 'FOCUSED', 'STALENESS']:
-        errors.append(f"Invalid review_mode: '{review_mode}' - Expected: FULL, FOCUSED, or STALENESS")
-    
+    if review_mode not in ["FULL", "FOCUSED", "STALENESS"]:
+        errors.append(
+            f"Invalid review_mode: '{review_mode}' - Expected: FULL, FOCUSED, or STALENESS"
+        )
+
     # Validate model
-    if not re.match(r'^[a-z0-9]+(-[a-z0-9]+)*$', model):
-        errors.append(f"Invalid model: '{model}' - Expected: lowercase-hyphenated (e.g., claude-sonnet-45)")
-    
+    if not re.match(r"^[a-z0-9]+(-[a-z0-9]+)*$", model):
+        errors.append(
+            f"Invalid model: '{model}' - Expected: lowercase-hyphenated (e.g., claude-sonnet-4-6)"
+        )
+
     # Validate filter_pattern (if provided)
     if filter_pattern is not None:
-        if not filter_pattern.startswith('rules/'):
+        if not filter_pattern.startswith("rules/"):
             errors.append(f"Invalid filter_pattern: '{filter_pattern}' - Must start with 'rules/'")
-        if not filter_pattern.endswith('.md'):
+        if not filter_pattern.endswith(".md"):
             errors.append(f"Invalid filter_pattern: '{filter_pattern}' - Must end with '.md'")
-        if '..' in filter_pattern:
-            errors.append(f"Invalid filter_pattern: '{filter_pattern}' - Directory traversal not allowed")
-    
+        if ".." in filter_pattern:
+            errors.append(
+                f"Invalid filter_pattern: '{filter_pattern}' - Directory traversal not allowed"
+            )
+
     # Validate skip_existing
     if not isinstance(skip_existing, bool):
-        errors.append(f"Invalid skip_existing: '{skip_existing}' - Expected: true or false (boolean)")
-    
+        errors.append(
+            f"Invalid skip_existing: '{skip_existing}' - Expected: true or false (boolean)"
+        )
+
     # Validate max_parallel
     if not isinstance(max_parallel, int) or max_parallel < 1 or max_parallel > 10:
-        errors.append(f"Invalid max_parallel: '{max_parallel}' - Expected: integer between 1 and 10")
-    
+        errors.append(
+            f"Invalid max_parallel: '{max_parallel}' - Expected: integer between 1 and 10"
+        )
+
     # Environment checks
-    if not os.path.isdir('rules'):
+    if not os.path.isdir("rules"):
         errors.append("Environment error: rules/ directory not found")
-    
+
     # Normalize output_root
-    output_root = output_root.rstrip('/') + '/'
-    
+    output_root = output_root.rstrip("/") + "/"
+
     # Auto-create output directories
     rule_reviews_dir = f"{output_root}rule-reviews"
     if not os.path.exists(rule_reviews_dir):
@@ -123,14 +140,14 @@ def validate_inputs(review_date, review_mode, model, filter_pattern=None,
             os.makedirs(rule_reviews_dir, exist_ok=True)
         except OSError:
             errors.append(f"Environment error: Cannot create {rule_reviews_dir}/ directory")
-    
+
     summaries_dir = f"{output_root}summaries"
     if not os.path.exists(summaries_dir):
         try:
             os.makedirs(summaries_dir, exist_ok=True)
         except OSError:
             errors.append(f"Environment error: Cannot create {summaries_dir}/ directory")
-    
+
     # If errors found, report and exit
     if errors:
         print("VALIDATION FAILED:\n")
@@ -138,7 +155,7 @@ def validate_inputs(review_date, review_mode, model, filter_pattern=None,
             print(f"   {error}")
         print("\nAbort execution. Fix validation errors and retry.")
         return False
-    
+
     print(" Input validation passed")
     return True
 ```
@@ -172,12 +189,12 @@ def validate_review_structure(review_path):
         "### Dimension Scores",
         "**Overall:** ",
         "### Critical Issues",
-        "### Recommendations"
+        "### Recommendations",
     ]
-    
-    with open(review_path, 'r') as f:
+
+    with open(review_path, "r") as f:
         content = f.read()
-    
+
     missing = [s for s in required_sections if s not in content]
     return (True, "Valid") if not missing else (False, f"Missing: {missing}")
 ```

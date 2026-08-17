@@ -1,20 +1,29 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Advanced patterns for Claude Code skill authoring: the plan-validate-execute pattern for verifiable intermediate outputs, visual analysis for image-based inputs, and the orchestrator-worker"
+last_updated: 2026-07-15
+keywords:
+  - kw:plan-validate-execute
+  - kw:orchestrator-worker composition
+  - kw:visual analysis pattern
+  - kw:intermediate validation scripts
+  - kw:claude ab iteration
+  - kw:batch failure handling
+token_budget: ~3200
+context_tier: Low
+depends:
+  required:
+    - 002h-claude-code-skills.md  # Core skill authoring patterns and structure
+  optional:
+    - 002d-advanced-rule-patterns.md  # Advanced rule patterns (parallel to skill patterns)
+---
 # Skill Advanced Patterns
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines advanced skill authoring patterns for Claude Code skills.
 > Load when building complex skills requiring plan-validate-execute, visual analysis, or orchestrator composition.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-03-25
-**Keywords:** skill advanced patterns, plan-validate-execute, visual analysis, skill composition, orchestrator worker, batch skills, verifiable outputs, intermediate validation, Claude A/B iteration, skill development, TOC guidance, solve dont punt, error handling, size heuristic
-**TokenBudget:** ~3200
-**ContextTier:** Low
-**Depends:** 002h-claude-code-skills.md
-**LoadTrigger:** kw:skill composition, kw:plan-validate-execute, kw:orchestrator skill, kw:batch skill, kw:visual analysis pattern
 
 ## Scope
 
@@ -29,13 +38,9 @@ Advanced patterns for Claude Code skill authoring: the plan-validate-execute pat
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **002h-claude-code-skills.md** - Core skill authoring patterns and structure
-
-**Related:**
-- **002d-advanced-rule-patterns.md** - Advanced rule patterns (parallel to skill patterns)
+_None._
 
 ## Contract
 
@@ -61,7 +66,7 @@ Advanced patterns for Claude Code skill authoring: the plan-validate-execute pat
 1. Read the skill definition at `skills/<skill-name>/SKILL.md` to understand the workflow
    (located in the skill's own directory within the `skills/` project root folder)
 2. Execute the skill's defined steps sequentially, using the tools specified in each step
-3. Record changes in `skills/<skill-name>/changes.json` — create if it does not exist
+3. Record changes in `skills/<skill-name>/changes.json`: create if it does not exist
    (schema defined below in "Changes Tracking Schema" section)
 
 ### Output Format
@@ -105,7 +110,7 @@ The `changes.json` file tracks skill execution history:
       "files_modified": ["rules/002g-agent-optimization.md"],
       "files_created": ["reviews/rule-reviews/002g-review.md"],
       "status": "completed",
-      "summary": "Reviewed 002g rule — score 81/100"
+      "summary": "Reviewed 002g rule - score 81/100"
     }
   ]
 }
@@ -162,10 +167,10 @@ When inputs can be rendered as images, have Claude analyze them visually instead
 
 **Choose the tool based on the input type and analysis goal:**
 
-- **Screenshot/PNG/JPG:** Read tool — need to understand UI layout, read text, identify elements
-- **Code diff:** File comparison — comparing two versions of the same file for changes
-- **Diagram/flowchart:** Read tool — need to extract structure or validate against specification
-- **PDF document:** Read tool (PDF mode) — extract text and visual content from multi-page docs
+- **Screenshot/PNG/JPG:** Read tool: need to understand UI layout, read text, identify elements
+- **Code diff:** File comparison: comparing two versions of the same file for changes
+- **Diagram/flowchart:** Read tool: need to extract structure or validate against specification
+- **PDF document:** Read tool (PDF mode): extract text and visual content from multi-page docs
 
 **Decision criteria:**
 1. Can you describe what you need to learn from the visual? Use Read tool.
@@ -249,7 +254,7 @@ For reference files longer than 100 lines, include a TOC at the top. Claude may 
 
 When writing scripts for skills, handle errors explicitly instead of letting them propagate to Claude for interpretation.
 
-**Correct -- resolve the error:**
+**Correct: resolve the error:**
 ```python
 def process_file(path):
     try:
@@ -262,7 +267,7 @@ def process_file(path):
         return ""
 ```
 
-**Incorrect -- punt to Claude:** `open(path).read()` with no error handling; Claude guesses why it failed. Also document configuration constants: `REQUEST_TIMEOUT = 30` with a comment explaining why 30, not a "voodoo constant" like `TIMEOUT = 47`.
+**Incorrect: punt to Claude:** `open(path).read()` with no error handling; Claude guesses why it failed. Also document configuration constants: `REQUEST_TIMEOUT = 30` with a comment explaining why 30, not a "voodoo constant" like `TIMEOUT = 47`.
 
 ### Size Heuristic: 5,000 Words
 
@@ -324,6 +329,6 @@ def orchestrator_process_item(item):
 def orchestrator_process_item(item):
     # Read worker/SKILL.md to understand the workflow
     # Execute each step from the worker's documented process
-    # Do not reimplement — follow the documented steps
+    # Do not reimplement - follow the documented steps
     pass
 ```

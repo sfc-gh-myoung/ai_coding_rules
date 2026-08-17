@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Advanced Alpine.js patterns including global stores, cross-component communication with $dispatch, transitions, lifecycle hooks, error recovery, plugins, and integration patterns."
+last_updated: 2026-07-15
+keywords:
+  - kw:Alpine.store
+  - kw:$dispatch cross-component
+  - kw:lifecycle hooks init destroy
+  - kw:x-transition animations
+  - kw:Alpine.js DevTools debugging
+  - kw:x-effect reactive side effects
+token_budget: ~2700
+context_tier: Low
+depends:
+  required:
+    - 421-javascript-alpinejs-core.md  # Core Alpine.js directives and reactivity
+  optional:
+    - 420-javascript-core.md  # JavaScript patterns and best practices
+    - 500-frontend-htmx-core.md  # HTMX patterns for server-driven interactivity
+---
 # 421a-javascript-alpinejs-advanced
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Alpine.js, stores, plugins, transitions, x-teleport, $dispatch, custom directives, advanced patterns, SSE, lifecycle, error recovery
-**TokenBudget:** ~2700
-**ContextTier:** Low
-**Depends:** 421-javascript-alpinejs-core.md
-**LoadTrigger:** kw:alpinejs-advanced, kw:alpine-stores, kw:alpine-plugins
 
 ## Scope
 
@@ -26,14 +36,9 @@ Advanced Alpine.js patterns including global stores, cross-component communicati
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **421-javascript-alpinejs-core.md** - Core Alpine.js directives and reactivity
-
-**Related:**
-- **420-javascript-core.md** - JavaScript patterns and best practices
-- **500-frontend-htmx-core.md** - HTMX patterns for server-driven interactivity
+_None._
 
 ## Contract
 
@@ -116,7 +121,7 @@ HTML with advanced Alpine.js patterns:
 </div>
 ```
 
-> **Reactivity Warning:** Do not replace entire store objects — this breaks existing reactive bindings:
+> **Reactivity Warning:** Do not replace entire store objects: this breaks existing reactive bindings:
 > ```javascript
 > // BAD: Replaces the proxy, breaks reactivity
 > Alpine.store('darkMode', { on: true, toggle() { this.on = !this.on } })

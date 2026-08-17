@@ -1,15 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Feature engineering patterns for Snowflake Feature Store including aggregation features, time-based features, derived ratios, and common RFM (Recency, Frequency, Monetary) patterns. Provides SQL"
+last_updated: 2026-07-15
+keywords:
+  - kw:feature engineering
+  - kw:windowed aggregations
+  - kw:RFM features
+  - kw:velocity features
+  - kw:NULLIF division protection
+  - kw:deterministic transformations
+token_budget: ~2550
+context_tier: Low
+depends:
+  required:
+    - 113-snowflake-feature-store.md  # Feature Store core patterns
+---
 # Snowflake Feature Store: Feature Engineering Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:feature-engineering
-**Keywords:** feature engineering, aggregation features, time-based features, recency features, frequency features, monetary features, velocity features, RFM features, windowed aggregations, derived features
-**TokenBudget:** ~2550
-**ContextTier:** Low
-**Depends:** 100-snowflake-core.md, 113-snowflake-feature-store.md
 
 ## Scope
 
@@ -23,12 +30,6 @@ Feature engineering patterns for Snowflake Feature Store including aggregation f
 - Designing feature views with derived metrics
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **113-snowflake-feature-store.md** - Feature Store core patterns
 
 ### External Documentation
 
@@ -151,7 +152,7 @@ SUM(amount) / NULLIF(COUNT(*), 0) AS spend_per_transaction
 -- Compare recent vs. historical behavior
 orders_7d / NULLIF(orders_30d, 0) AS order_acceleration,
 spend_7d - spend_30d AS spend_trend
--- Edge case: When all windows return 0, velocity ratios will be NULL — handle with COALESCE:
+-- Edge case: When all windows return 0, velocity ratios will be NULL - handle with COALESCE:
 -- COALESCE(orders_7d / NULLIF(orders_30d, 0), 0) AS order_acceleration
 ```
 
@@ -179,7 +180,7 @@ SELECT COUNT(DISTINCT <entity_col>) FROM <feature_view>;
 **Correct Pattern:** Pass timestamps and random seeds as columns from the source table, not as function calls in the transformation. For recency features, compute `DATEDIFF('day', event_timestamp, refresh_timestamp)` where `refresh_timestamp` is a concrete column value populated at ingestion time, not `CURRENT_DATE()`. This ensures the same input rows always produce the same feature values.
 
 ```sql
--- Wrong: Non-deterministic function in feature view — values change on every refresh
+-- Wrong: Non-deterministic function in feature view - values change on every refresh
 SELECT
     customer_id,
     DATEDIFF('day', MAX(order_date), CURRENT_DATE()) AS days_since_last_order,
@@ -205,7 +206,7 @@ GROUP BY customer_id, snapshot_date;
 **Correct Pattern:** Always wrap denominators with `NULLIF(denominator, 0)` so division by zero returns NULL instead of erroring. Then handle NULLs explicitly with `COALESCE` if the model requires a default value: `COALESCE(total_spend / NULLIF(order_count, 0), 0) AS avg_order_value`.
 
 ```sql
--- Wrong: Division by zero when customer has no orders — query error or silent NULL
+-- Wrong: Division by zero when customer has no orders - query error or silent NULL
 SELECT
     customer_id,
     total_spend / order_count AS avg_order_value,
@@ -228,7 +229,7 @@ FROM CUSTOMER_METRICS;
 **Correct Pattern:** Always create features at multiple time windows (e.g., 7d, 30d, 90d) and include ratio features between windows. `orders_7d / NULLIF(orders_30d, 0) AS order_velocity_ratio` captures whether activity is accelerating or decelerating. This gives the model temporal pattern information without requiring complex time-series architectures.
 
 ```sql
--- Wrong: Single time window — no temporal signal for the model
+-- Wrong: Single time window - no temporal signal for the model
 SELECT
     customer_id,
     COUNT(DISTINCT order_id) AS orders_30d,
@@ -247,7 +248,7 @@ SELECT
     -- Multi-window spend
     SUM(IFF(order_date >= DATEADD('day', -7, CURRENT_DATE()), order_amount, 0)) AS spend_7d,
     SUM(IFF(order_date >= DATEADD('day', -30, CURRENT_DATE()), order_amount, 0)) AS spend_30d,
-    -- Velocity ratios — captures acceleration/deceleration
+    -- Velocity ratios - captures acceleration/deceleration
     orders_7d / NULLIF(orders_30d, 0) AS order_velocity_7d_30d,
     orders_30d / NULLIF(orders_90d, 0) AS order_velocity_30d_90d
 FROM ORDERS
@@ -263,5 +264,5 @@ GROUP BY customer_id;
     NAME => 'MY_FEATURE_VIEW'
   )) ORDER BY refresh_start_time DESC LIMIT 5;
   ```
-- **If refresh shows UPSTREAM_FAILED:** The source table or upstream dynamic table has an error — fix upstream first.
+- **If refresh shows UPSTREAM_FAILED:** The source table or upstream dynamic table has an error: fix upstream first.
 - **If features return unexpected NULLs:** Verify source data freshness and check for schema changes in upstream tables.

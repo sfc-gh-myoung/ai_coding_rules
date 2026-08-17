@@ -130,23 +130,25 @@ if previous_review_size < 2500:
     read_file("skills/rule-reviewer/examples/TEMPLATE.md")
     read_file("skills/bulk-rule-reviewer/SKILL.md")  # Full re-read
 
+
 # Format deviation check - run after EVERY review
 def check_format_deviation(review_content):
     """Check if review matches TEMPLATE.md structure."""
     required_patterns = [
-        r'\| Dimension \| Raw \(0-10\) \| Weight \| Points \| Notes \|',  # Exact header
-        r'## Executive Summary',
-        r'## Schema Validation Results',
-        r'## Agent Executability Analysis',
-        r'## Dimension Analysis',
-        r'## Critical Issues',
-        r'## Recommendations',
-        r'## Conclusion'
+        r"\| Dimension \| Raw \(0-10\) \| Weight \| Points \| Notes \|",  # Exact header
+        r"## Executive Summary",
+        r"## Schema Validation Results",
+        r"## Agent Executability Analysis",
+        r"## Dimension Analysis",
+        r"## Critical Issues",
+        r"## Recommendations",
+        r"## Conclusion",
     ]
     for pattern in required_patterns:
         if not re.search(pattern, review_content):
             return True  # Deviation detected
     return False
+
 
 if check_format_deviation(last_review_content):
     print("FORMAT DEVIATION DETECTED")

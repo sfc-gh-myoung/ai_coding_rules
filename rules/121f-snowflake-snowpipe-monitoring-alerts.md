@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Alert configuration for Snowpipe and Snowpipe Streaming (error alerts, stall detection, SLA monitoring), cost optimization strategies for both file-based and streaming ingestion, and performance"
+last_updated: 2026-07-15
+keywords:
+  - kw:snowpipe alert configuration
+  - kw:channel stall detection
+  - kw:system send email
+  - kw:baseline threshold derivation
+  - kw:pipe cost per GB
+  - kw:file size 100-250MB
+  - kw:snowpipe
+token_budget: ~3100
+context_tier: Medium
+depends:
+  required:
+    - 121-snowflake-snowpipe.md  # File-based Snowpipe core concepts
+  optional:
+    - 121b-snowflake-snowpipe-monitoring.md  # Core monitoring queries and cost tracking
+    - 105-snowflake-cost-governance.md  # Resource monitors and cost optimization
+---
 # Snowpipe Monitoring Alerts and Cost Optimization
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:snowpipe-alerts, kw:pipe-alerts, kw:pipe-cost-optimization
-**Keywords:** snowpipe alerts, pipe error alerts, channel stall alerts, cost optimization, file size optimization, streaming optimization, alert thresholds, SYSTEM$SEND_EMAIL, monitoring tasks, performance metrics
-**TokenBudget:** ~3100
-**ContextTier:** Medium
-**Depends:** 121b-snowflake-snowpipe-monitoring.md, 121-snowflake-snowpipe.md
 
 ## Scope
 
@@ -48,17 +59,6 @@ Alert configuration for Snowpipe and Snowpipe Streaming (error alerts, stall det
 > "Your p95 is 8.3s, so I'll set the alert threshold at 10s to catch anomalies..."
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **121b-snowflake-snowpipe-monitoring.md** - Core monitoring queries and cost tracking
-- **121-snowflake-snowpipe.md** - File-based Snowpipe core concepts
-
-**Related:**
-- **121a-snowflake-snowpipe-streaming.md** - Streaming Snowpipe core concepts
-- **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
-- **111-snowflake-observability-core.md** - Logging, tracing, and monitoring patterns
 
 ### External Documentation
 
@@ -121,17 +121,17 @@ SQL ALERT object definitions, scheduled TASK definitions, and cost optimization 
 ### Post-Execution Checklist
 
 - [ ] Baseline metrics established from 1-2 weeks of data
-      Verify: Run percentile queries on PIPE_USAGE_HISTORY -- confirm p95 values available
+      Verify: Run percentile queries on PIPE_USAGE_HISTORY: confirm p95 values available
 - [ ] Alert thresholds set above p95 baseline values
-      Verify: Compare alert threshold to baseline p95 -- threshold should be 1.2-1.5x p95
+      Verify: Compare alert threshold to baseline p95: threshold should be 1.2-1.5x p95
 - [ ] Notification integration tested with SYSTEM$SEND_EMAIL
-      Verify: Send test email -- confirm delivery
+      Verify: Send test email: confirm delivery
 - [ ] Pipe error alert deployed and resumed
-      Verify: `SHOW ALERTS IN SCHEMA MONITORING.ALERTS;` -- status is 'started'
+      Verify: `SHOW ALERTS IN SCHEMA MONITORING.ALERTS;`: status is 'started'
 - [ ] Channel stall alert deployed and resumed (if using Streaming)
-      Verify: `SHOW ALERTS IN SCHEMA MONITORING.ALERTS;` -- status is 'started'
+      Verify: `SHOW ALERTS IN SCHEMA MONITORING.ALERTS;`: status is 'started'
 - [ ] Cost optimization strategies implemented
-      Verify: Check file sizes are 100-250MB compressed -- review cost per GB trend
+      Verify: Check file sizes are 100-250MB compressed: review cost per GB trend
 
 ## Alert Configuration
 
@@ -265,7 +265,7 @@ CREATE OR REPLACE ALERT MONITORING.ALERTS.LATENCY_ALERT
 
 **Anti-Pattern 2: Running Monitoring Tasks on Production Warehouses**
 
-**Problem:** Scheduling monitoring queries (COPY_HISTORY scans, ACCOUNT_USAGE aggregations, alert evaluations) on the same warehouse that handles production ingestion or queries creates resource contention. During peak load, monitoring tasks compete for compute, which can slow down both production workloads and the monitoring itself -- the exact time when monitoring matters most.
+**Problem:** Scheduling monitoring queries (COPY_HISTORY scans, ACCOUNT_USAGE aggregations, alert evaluations) on the same warehouse that handles production ingestion or queries creates resource contention. During peak load, monitoring tasks compete for compute, which can slow down both production workloads and the monitoring itself: the exact time when monitoring matters most.
 
 **Correct Pattern:** Use a dedicated, small monitoring warehouse (e.g., X-Small) for all alert evaluations and monitoring tasks. This isolates monitoring cost, ensures alerts fire reliably during production load spikes, and makes monitoring costs visible and predictable.
 

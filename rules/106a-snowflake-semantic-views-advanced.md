@@ -1,22 +1,33 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Advanced semantic view patterns: anti-patterns, validation rules, quality checks, compliance."
+last_updated: 2026-07-15
+keywords:
+  - kw:semantic view anti-patterns
+  - kw:relationship granularity
+  - kw:physical column verification
+  - kw:expression reference cycles
+  - kw:template character restrictions
+  - kw:semantic view quality checks
+token_budget: ~1900
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake SQL patterns
+    - 106-snowflake-semantic-views-core.md  # Semantic Views DDL fundamentals
+  optional:
+    - 106b-snowflake-semantic-views-querying.md  # Query patterns, SEMANTIC_VIEW() function
+    - 106c-snowflake-semantic-views-integration.md  # Cortex Analyst/Agent integration
+---
 # Snowflake Semantic Views: Advanced Patterns & Validation
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:semantic-view-advanced
-**Keywords:** validation rules, semantic model quality, semantic view pitfalls, debug semantic view, validation failures, relationship errors
-**TokenBudget:** ~1900
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 106-snowflake-semantic-views-core.md
 
 ## Scope
 
 **What This Rule Covers:**
 Advanced semantic view patterns: anti-patterns, validation rules, quality checks, compliance.
 
-**When to Load:**
+**When to Load This Rule:**
 - Avoiding common semantic view mistakes
 - Implementing validation rules
 - Debugging semantic view errors
@@ -26,16 +37,6 @@ Advanced semantic view patterns: anti-patterns, validation rules, quality checks
 ### External Documentation
 - [CREATE SEMANTIC VIEW DDL](https://docs.snowflake.com/en/sql-reference/sql/create-semantic-view)
 - [Validation Rules](https://docs.snowflake.com/en/user-guide/views-semantic/validation-rules)
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake SQL patterns
-- **106-snowflake-semantic-views-core.md** - Semantic Views DDL fundamentals
-
-**Related:**
-- **106b-snowflake-semantic-views-querying.md** - Query patterns, SEMANTIC_VIEW() function
-- **106c-snowflake-semantic-views-integration.md** - Cortex Analyst/Agent integration
 
 ## Contract
 

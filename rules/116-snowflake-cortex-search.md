@@ -1,22 +1,34 @@
+---
+schema_version: v3.5
+rule_version: v4.1.0
+description: 'Patterns for building and querying Cortex Search indices: data preparation,
+  embedding hygiene, metadata filters, agent tool configuration, and cost/latency
+  optimization.'
+last_updated: 2026-08-02
+keywords:
+- kw:cortex search service
+- kw:document chunking
+- kw:metadata filtering
+- kw:search tool configuration
+- kw:SEARCH_PREVIEW validation
+- kw:search index lifecycle
+- kw:ai_embed
+- kw:cortex search
+- kw:search service
+token_budget: ~3100
+context_tier: Medium
+depends:
+  optional:
+  - 115-snowflake-cortex-agents-core.md
+---
 # Snowflake Cortex Search Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:search, kw:cortex-search
-**Keywords:** embeddings, search index, RAG, agent tools, retrieval, AI_EMBED, search service, document retrieval, hybrid search, vector similarity
-**TokenBudget:** ~3100
-**ContextTier:** Medium
-**Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 114-snowflake-cortex-aisql.md
 
 ## Scope
 
 **What This Rule Covers:**
 Patterns for building and querying Cortex Search indices: data preparation, embedding hygiene, metadata filters, agent tool configuration, and cost/latency optimization.
 
-**When to Load:**
+**When to Load This Rule:**
 - Creating Cortex Search indices
 - Querying search services with metadata filters
 - Integrating Cortex Search as agent tools
@@ -33,16 +45,6 @@ Patterns for building and querying Cortex Search indices: data preparation, embe
 > IF ANY condition fails, STOP and report to user.
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake SQL and warehouse fundamentals
-- **114-snowflake-cortex-aisql.md** - AI_EMBED function for embeddings
-
-**Related:**
-- **115-snowflake-cortex-agents-core.md** - Agent archetypes
-- **106c-snowflake-semantic-views-integration.md** - Analyst tool configuration
 
 ### External Documentation
 - [Cortex Search Overview](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-search/cortex-search-overview)
@@ -103,8 +105,8 @@ AS (SELECT * FROM {SOURCE_VIEW});
 
 ### SEARCH vs SEARCH_PREVIEW
 
-- **`SEARCH_PREVIEW`:** Use for testing and validation — returns results directly in SQL with no agent context needed
-- **`SEARCH` (via Cortex Agent tools):** Used by agents at runtime for RAG — requires a Cortex Agent with a search tool configured
+- **`SEARCH_PREVIEW`:** Use for testing and validation: returns results directly in SQL with no agent context needed
+- **`SEARCH` (via Cortex Agent tools):** Used by agents at runtime for RAG: requires a Cortex Agent with a search tool configured
 - **Rule:** Always validate with `SEARCH_PREVIEW` before wiring into an agent
 
 ### Python SDK Example
@@ -168,8 +170,12 @@ tools = [{"name": "search_docs", "description": "Search documents"}]
 
 **Correct Pattern:**
 ```python
-tools = [{"name": "product_api_docs_search",
-          "description": "Search product API documentation: endpoints, auth, code examples. Use for technical API questions. NOT for: billing, account management."}]
+tools = [
+    {
+        "name": "product_api_docs_search",
+        "description": "Search product API documentation: endpoints, auth, code examples. Use for technical API questions. NOT for: billing, account management.",
+    }
+]
 ```
 
 ### Anti-Pattern 4: No Post-Creation Validation

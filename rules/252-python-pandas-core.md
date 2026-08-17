@@ -1,15 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Core Pandas best practices: vectorization over loops, explicit indexing with .loc/.iloc, method chaining, conditional operations, and anti-pattern avoidance."
+last_updated: 2026-07-15
+keywords:
+  - kw:pandas vectorization
+  - kw:SettingWithCopyWarning
+  - kw:.loc .iloc indexing
+  - kw:pandas method chaining
+  - kw:np.where np.select conditional
+  - kw:iterrows apply anti-patterns
+  - kw:pandas
+token_budget: ~2550
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Modern Python tooling and practices
+  optional:
+    - 251-python-datetime-core.md  # Datetime handling for Pandas
+    - 252a-python-pandas-performance.md  # Memory optimization, groupby, merge, eval/query
+    - 252b-python-pandas-io-integration.md  # Streamlit, Plotly, file I/O integration
+---
 # Pandas Core Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v4.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:pandas, kw:dataframe
-**Keywords:** pandas, DataFrame, vectorization, SettingWithCopyWarning, method chaining, loc, iloc, np.where, np.select, apply, iterrows
-**TokenBudget:** ~2550
-**ContextTier:** High
-**Depends:** 200-python-core.md
 
 ## Scope
 
@@ -23,16 +35,6 @@ Core Pandas best practices: vectorization over loops, explicit indexing with .lo
 - Building data transformation pipelines
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Modern Python tooling and practices
-
-**Related:**
-- **251-python-datetime-core.md** - Datetime handling for Pandas
-- **252a-python-pandas-performance.md** - Memory optimization, groupby, merge, eval/query
-- **252b-python-pandas-io-integration.md** - Streamlit, Plotly, file I/O integration
 
 ### External Documentation
 - [Pandas User Guide](https://pandas.pydata.org/docs/user_guide/index.html)
@@ -110,10 +112,10 @@ Performant Pandas code with vectorized operations, explicit indexing, and clear 
 ```python
 # Wrong: 100x slower for large DataFrames
 for idx, row in df.iterrows():
-    df.at[idx, 'total'] = row['price'] * row['quantity']
+    df.at[idx, "total"] = row["price"] * row["quantity"]
 
 # Correct: Vectorized operation (100x+ faster)
-df['total'] = df['price'] * df['quantity']
+df["total"] = df["price"] * df["quantity"]
 ```
 
 ### Anti-Pattern 2: Chained Assignment (SettingWithCopyWarning)
@@ -124,10 +126,10 @@ df['total'] = df['price'] * df['quantity']
 
 ```python
 # Wrong: May not modify original DataFrame
-df[df['status'] == 'active']['price'] = df['price'] * 1.1
+df[df["status"] == "active"]["price"] = df["price"] * 1.1
 
 # Correct: Explicit .loc indexing
-df.loc[df['status'] == 'active', 'price'] *= 1.1
+df.loc[df["status"] == "active", "price"] *= 1.1
 ```
 
 ### Anti-Pattern 3: apply() When Vectorization Works
@@ -138,10 +140,10 @@ df.loc[df['status'] == 'active', 'price'] *= 1.1
 
 ```python
 # Wrong: Unnecessary apply() (10x slower)
-df['total'] = df.apply(lambda row: row['price'] * row['qty'], axis=1)
+df["total"] = df.apply(lambda row: row["price"] * row["qty"], axis=1)
 
 # Correct: Vectorized multiplication
-df['total'] = df['price'] * df['qty']
+df["total"] = df["price"] * df["qty"]
 ```
 
 > **Investigation Required**
@@ -150,16 +152,16 @@ df['total'] = df['price'] * df['qty']
 > 2. **Profile actual performance** - Measure before and after
 > 3. **Never speculate about DataFrame shape** - Use df.shape, df.dtypes
 > 4. **Check memory usage** - Use df.memory_usage(deep=True)
-> 5. **Check Pandas version** - `python -c "import pandas; print(pandas.__version__)"` — behavior differs between 1.x and 2.x (Copy-on-Write default, deprecated APIs)
+> 5. **Check Pandas version** - `python -c "import pandas; print(pandas.__version__)"`: behavior differs between 1.x and 2.x (Copy-on-Write default, deprecated APIs)
 
 ## Vectorization Patterns
 
 ### Simple Arithmetic
 
 ```python
-df['total'] = df['price'] * df['quantity']
-df['discount'] = df['price'] * 0.1
-df['final_price'] = df['price'] - df['discount']
+df["total"] = df["price"] * df["quantity"]
+df["discount"] = df["price"] * 0.1
+df["final_price"] = df["price"] - df["discount"]
 ```
 
 ### Conditional Operations
@@ -168,22 +170,20 @@ df['final_price'] = df['price'] - df['discount']
 import numpy as np
 
 # Single condition
-df['category'] = np.where(df['price'] > 100, 'expensive', 'affordable')
+df["category"] = np.where(df["price"] > 100, "expensive", "affordable")
 
 # Multiple conditions
-df['tier'] = np.select(
-    [df['score'] >= 90, df['score'] >= 70, df['score'] >= 50],
-    ['A', 'B', 'C'],
-    default='F'
+df["tier"] = np.select(
+    [df["score"] >= 90, df["score"] >= 70, df["score"] >= 50], ["A", "B", "C"], default="F"
 )
 ```
 
 ### String Operations
 
 ```python
-df['upper_name'] = df['name'].str.upper()
-df['first_word'] = df['description'].str.split().str[0]
-df['contains_keyword'] = df['text'].str.contains('important', case=False)
+df["upper_name"] = df["name"].str.upper()
+df["first_word"] = df["description"].str.split().str[0]
+df["contains_keyword"] = df["text"].str.contains("important", case=False)
 ```
 
 ### When iterrows() is Acceptable
@@ -193,11 +193,11 @@ Read-only operations where vectorization is not possible:
 ```python
 # ACCEPTABLE: Display in Streamlit (read-only)
 for _, row in df.iterrows():
-    st.metric(row['metric_name'], f"{row['value']:.2f}")
+    st.metric(row["metric_name"], f"{row['value']:.2f}")
 
 # ACCEPTABLE: External API calls per row
 for _, row in df.iterrows():
-    result = complex_external_api_call(row['id'])
+    result = complex_external_api_call(row["id"])
 ```
 
 ### When apply() is Appropriate
@@ -206,14 +206,15 @@ Complex operations with no vectorized equivalent:
 
 ```python
 def complex_calculation(row):
-    if row['type'] == 'A':
-        return row['value'] * row['factor'] ** 2
-    elif row['type'] == 'B':
-        return row['value'] / row['denominator']
+    if row["type"] == "A":
+        return row["value"] * row["factor"] ** 2
+    elif row["type"] == "B":
+        return row["value"] / row["denominator"]
     else:
-        return row['default_value']
+        return row["default_value"]
 
-df['result'] = df.apply(complex_calculation, axis=1)
+
+df["result"] = df.apply(complex_calculation, axis=1)
 ```
 
 ## Explicit Indexing with .loc/.iloc
@@ -222,24 +223,24 @@ df['result'] = df.apply(complex_calculation, axis=1)
 
 ```python
 # BAD: Chained indexing - may modify copy
-df[df['status'] == 'active']['price'] = 100
+df[df["status"] == "active"]["price"] = 100
 
 # GOOD: .loc for explicit indexing
-df.loc[df['status'] == 'active', 'price'] = 100
+df.loc[df["status"] == "active", "price"] = 100
 
 # GOOD: Multiple columns
-df.loc[df['status'] == 'active', ['price', 'cost']] *= 1.1
+df.loc[df["status"] == "active", ["price", "cost"]] *= 1.1
 ```
 
 ### Working with DataFrame Subsets
 
 ```python
 # GOOD: Explicit copy if you want a separate DataFrame
-subset = df[df['category'] == 'A'].copy()
-subset['price'] *= 1.1  # No warning, independent copy
+subset = df[df["category"] == "A"].copy()
+subset["price"] *= 1.1  # No warning, independent copy
 
 # GOOD: Modify original directly
-df.loc[df['category'] == 'A', 'price'] *= 1.1
+df.loc[df["category"] == "A", "price"] *= 1.1
 ```
 
 ### Query Method for Filtering
@@ -250,7 +251,7 @@ expensive = df.query('price > 100 and category == "electronics"')
 
 # Reference local variables with @
 min_price = 50
-filtered = df.query('price >= @min_price')
+filtered = df.query("price >= @min_price")
 ```
 
 > **Note:** For large DataFrames (>100K rows), `pd.eval()` and `df.eval()` can speed up arithmetic expressions by using Numexpr under the hood. Example: `df.eval('total = price * quantity', inplace=False)`
@@ -261,16 +262,15 @@ filtered = df.query('price >= @min_price')
 
 ```python
 result = (
-    df
-    .query('status == "active"')
+    df.query('status == "active"')
     .assign(
-        total=lambda x: x['price'] * x['quantity'],
-        discount=lambda x: x['total'] * 0.1,
+        total=lambda x: x["price"] * x["quantity"],
+        discount=lambda x: x["total"] * 0.1,
     )
-    .groupby('category')
-    .agg({'total': 'sum', 'discount': 'sum'})
+    .groupby("category")
+    .agg({"total": "sum", "discount": "sum"})
     .reset_index()
-    .sort_values('total', ascending=False)
+    .sort_values("total", ascending=False)
 )
 ```
 
@@ -281,30 +281,28 @@ def remove_outliers(df: pd.DataFrame, column: str, n_std: float = 3) -> pd.DataF
     mean, std = df[column].mean(), df[column].std()
     return df[df[column].between(mean - n_std * std, mean + n_std * std)]
 
+
 def add_computed_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df.assign(
-        total=lambda x: x['price'] * x['quantity'],
-        margin=lambda x: x['total'] - x['cost'],
+        total=lambda x: x["price"] * x["quantity"],
+        margin=lambda x: x["total"] - x["cost"],
     )
 
+
 result = (
-    df
-    .pipe(remove_outliers, column='price')
+    df.pipe(remove_outliers, column="price")
     .pipe(add_computed_columns)
-    .sort_values('margin', ascending=False)
+    .sort_values("margin", ascending=False)
 )
 ```
 
 ### Assign for New Columns in Chain
 
 ```python
-df_processed = (
-    df
-    .assign(
-        total=lambda x: x['price'] * x['qty'],
-        tax=lambda x: x['total'] * 0.08,
-        final_price=lambda x: x['total'] + x['tax'],
-    )
+df_processed = df.assign(
+    total=lambda x: x["price"] * x["qty"],
+    tax=lambda x: x["total"] * 0.08,
+    final_price=lambda x: x["total"] + x["tax"],
 )
 ```
 
@@ -314,21 +312,18 @@ df_processed = (
 
 ```python
 # Time series data
-df_ts = df.set_index('timestamp').sort_index()
-df_ts['2024-01':'2024-03']  # Slice by date range
+df_ts = df.set_index("timestamp").sort_index()
+df_ts["2024-01":"2024-03"]  # Slice by date range
 
 # MultiIndex for hierarchical data
-df_multi = df.set_index(['country', 'city', 'date'])
-df_multi.loc[('USA', 'New York')]
+df_multi = df.set_index(["country", "city", "date"])
+df_multi.loc[("USA", "New York")]
 ```
 
 ### Reset Index After Operations
 
 ```python
 result = (
-    df
-    .groupby('category')['sales']
-    .sum()
-    .reset_index()  # Convert index back to column
+    df.groupby("category")["sales"].sum().reset_index()  # Convert index back to column
 )
 ```

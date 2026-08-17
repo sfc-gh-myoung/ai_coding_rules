@@ -1,19 +1,29 @@
+---
+schema_version: v3.5
+rule_version: v2.1.0
+description: "The 9 formatting anti-patterns that prevent reliable agent execution, extracted from 002g-agent-optimization.md. Each anti-pattern includes the problem, a failing example, and the correct pattern."
+last_updated: 2026-07-15
+keywords:
+  - kw:agent-optimized formatting
+  - kw:ASCII table violations
+  - kw:arrow character replacement
+  - kw:imperative voice instructions
+  - kw:visual diagram prohibition
+  - kw:nested conditional lists
+  - kw:mermaid
+token_budget: ~1650
+context_tier: Medium
+depends:
+  required:
+    - 002g-agent-optimization.md
+    - 000-global-core.md
+---
 # 002m: Agent Format Anti-Patterns
 
 > **REFERENCE RULE: FORMAT VIOLATION EXAMPLES**
 >
 > Complete set of formatting anti-patterns for agent-optimized rules.
 > Extracted from 002g-agent-optimization.md for size management.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** anti-pattern, format, ASCII table, arrow character, decision tree, passive voice, terminology, mermaid, horizontal rule, agent optimization
-**TokenBudget:** ~1650
-**ContextTier:** Medium
-**Depends:** 002g-agent-optimization.md, 000-global-core.md
 
 ## Scope
 
@@ -25,6 +35,8 @@ The 9 formatting anti-patterns that prevent reliable agent execution, extracted 
 - Need detailed examples of correct vs incorrect formatting
 - Referenced from 002g-agent-optimization.md for full anti-pattern details
 
+**Audience Scope:** These 9 anti-patterns apply to **agent-facing content only**: `rules/**`, `prompts/**`, skill instructions, and injected context. They do **NOT** apply to human-facing project documentation (`README.md`, `CONTRIBUTING.md`, `docs/**`), where ASCII diagrams, Mermaid, and directory trees are legitimate. See `002g-agent-optimization.md` "Audience Scope" for the canonical statement.
+
 ## References
 
 ### Rule Dependencies
@@ -35,6 +47,10 @@ The 9 formatting anti-patterns that prevent reliable agent execution, extracted 
 
 **Related:**
 - **002-rule-governance.md** - v3.2 schema standards
+
+### External Documentation
+
+_None._
 
 ## Contract
 
@@ -227,7 +243,7 @@ flowchart TD
 ```
 ````
 
-**Why It Fails:** Agents parse Mermaid as raw DSL syntax, not rendered flowcharts. The diagram above consumes ~50 tokens while conveying less information than 2 lines of structured text. Rules in `rules/` are intended exclusively for autonomous agents — any content targeting human visual consumption is wasted token space.
+**Why It Fails:** Agents parse Mermaid as raw DSL syntax, not rendered flowcharts. The diagram above consumes ~50 tokens while conveying less information than 2 lines of structured text. Rules in `rules/` are intended exclusively for autonomous agents: any content targeting human visual consumption is wasted token space.
 
 **Correct Pattern:** Use structured conditional lists
 

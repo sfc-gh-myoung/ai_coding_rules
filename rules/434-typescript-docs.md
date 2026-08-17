@@ -1,15 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "TSDoc-based documentation standards for TypeScript projects. Covers doc comment syntax, eslint-plugin-jsdoc configuration for TypeScript, API documentation patterns, and when documentation adds value"
+last_updated: 2026-07-15
+keywords:
+  - kw:TSDoc
+  - kw:eslint-plugin-jsdoc
+  - kw:TypeScript documentation
+  - kw:type self-documenting
+  - kw:semantic documentation
+  - kw:public API documentation
+token_budget: ~3150
+context_tier: High
+depends:
+  required:
+    - 430-typescript-core.md  # TypeScript foundation and type patterns
+  optional:
+    - 424-javascript-docs.md  # JSDoc patterns (JavaScript requires type annotations)
+---
 # TypeScript Documentation and TSDoc
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-04-11
-**Keywords:** TypeScript, TSDoc, documentation, eslint-plugin-jsdoc, API docs, type documentation
-**TokenBudget:** ~3150
-**ContextTier:** High
-**Depends:** 430-typescript-core.md
-**LoadTrigger:** kw:tsdoc, kw:documentation, kw:comments, ext:.ts, ext:.tsx
 
 ## Scope
 
@@ -23,14 +32,6 @@ TSDoc-based documentation standards for TypeScript projects. Covers doc comment 
 - Documenting public APIs and libraries
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **430-typescript-core.md** - TypeScript foundation and type patterns
-
-**Related:**
-- **424-javascript-docs.md** - JSDoc patterns (JavaScript requires type annotations)
 
 ### External Documentation
 

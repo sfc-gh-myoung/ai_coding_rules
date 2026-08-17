@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Standardized SQL script templates for Snowflake application deployment operations: upload (PUT), remove (REMOVE), create (CREATE NOTEBOOK/STREAMLIT), drop (DROP), and CLI-based recursive upload"
+last_updated: 2026-07-15
+keywords:
+  - kw:PUT AUTO_COMPRESS
+  - kw:REMOVE before PUT
+  - kw:CREATE STREAMLIT FROM
+  - kw:stage path matching
+  - kw:snow stage copy recursive
+  - kw:embedded versioned stage
+  - kw:snowpark
+token_budget: ~4600
+context_tier: Low
+depends:
+  required:
+    - 109b-snowflake-app-deployment-core.md
+---
 # Snowflake App Deployment SQL Script Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.2.1
-**LastUpdated:** 2026-05-13
-**LoadTrigger:** kw:deployment-sql, kw:put-script
-**Keywords:** PUT command, REMOVE command, CREATE NOTEBOOK, CREATE STREAMLIT, deployment scripts, upload script, stage upload, SQL deployment templates, snow stage copy, recursive upload
-**TokenBudget:** ~3700
-**ContextTier:** Low
-**Depends:** 109b-snowflake-app-deployment-core.md
 
 ## Scope
 
@@ -24,10 +32,9 @@ Standardized SQL script templates for Snowflake application deployment operation
 
 ## References
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **109b-snowflake-app-deployment-core.md** - Parent rule with core deployment patterns
-- **109c-snowflake-app-deployment-troubleshooting.md** - Deployment debugging
+### External Documentation
+
+_None._
 
 ## Contract
 
@@ -132,7 +139,7 @@ OVERWRITE=TRUE;
 
 **Stage Path Requirement:**
 - Upload files directly to stage root: `@STAGE_NAME`
-- **Never** use an extra nesting subdirectory for the main app file: `@STAGE_NAME/streamlit/streamlit_app.py` — upload `streamlit_app.py` directly to `@STAGE_NAME`. Subdirectories for `pages/` and `utils/` are fine.
+- **Never** use an extra nesting subdirectory for the main app file: `@STAGE_NAME/streamlit/streamlit_app.py`; upload `streamlit_app.py` directly to `@STAGE_NAME`. Subdirectories for `pages/` and `utils/` are fine.
 - FROM source path in CREATE STREAMLIT must match actual file locations
 - Subdirectory mismatch causes same "TypeError" (Snowflake cannot find files)
 
@@ -340,13 +347,13 @@ ALTER STREAMLIT <%DATABASE%>.<%SCHEMA%>.APP_NAME ADD LIVE VERSION FROM LAST;
 
 **Problem:** Developers skip the REMOVE script and rely solely on `OVERWRITE=TRUE` in PUT commands, assuming it fully replaces old files. However, if a file was renamed or deleted from the local directory (e.g., `pages/old_page.py` removed), the old stage file persists because OVERWRITE only replaces files with matching names. The stale file causes the deployed app to load deleted pages or import removed modules, producing confusing runtime errors.
 
-**Correct Pattern:** Always run explicit `REMOVE @STAGE/filename;` for every file before uploading. Better yet, use `REMOVE @STAGE;` to clear the entire stage, then re-upload everything. The remove script should be a mirror of the upload script -- every PUT has a corresponding REMOVE.
+**Correct Pattern:** Always run explicit `REMOVE @STAGE/filename;` for every file before uploading. Better yet, use `REMOVE @STAGE;` to clear the entire stage, then re-upload everything. The remove script should be a mirror of the upload script: every PUT has a corresponding REMOVE.
 
 ```sql
--- Wrong: Relying on OVERWRITE alone — stale files from renamed/deleted pages persist
+-- Wrong: Relying on OVERWRITE alone - stale files from renamed/deleted pages persist
 PUT file://streamlit/streamlit_app.py @STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 PUT file://streamlit/pages/dashboard.py @STAGE/pages/ AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
--- old_page.py was deleted locally but still exists on stage — app loads ghost page
+-- old_page.py was deleted locally but still exists on stage - app loads ghost page
 
 -- Correct: Explicit REMOVE before PUT to ensure clean state
 REMOVE @STAGE;  -- Clear entire stage first
@@ -361,10 +368,10 @@ PUT file://streamlit/pages/dashboard.py @STAGE/pages/ AUTO_COMPRESS=FALSE OVERWR
 **Correct Pattern:** Every PUT command for `.py`, `.yml`, and `.ipynb` files must include `AUTO_COMPRESS=FALSE`. Verify after upload with `LIST @STAGE;` and confirm file extensions are `.py` not `.py.gz`. Add this as a deployment precondition check.
 
 ```sql
--- Wrong: Missing AUTO_COMPRESS=FALSE — files silently compressed to .py.gz
+-- Wrong: Missing AUTO_COMPRESS=FALSE - files silently compressed to .py.gz
 PUT file://streamlit/streamlit_app.py @STAGE OVERWRITE=TRUE;
 PUT file://streamlit/environment.yml @STAGE OVERWRITE=TRUE;
--- LIST shows streamlit_app.py.gz — Python import system cannot read gzipped files
+-- LIST shows streamlit_app.py.gz - Python import system cannot read gzipped files
 
 -- Correct: AUTO_COMPRESS=FALSE on every PUT for .py/.yml/.ipynb files
 PUT file://streamlit/streamlit_app.py @STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
@@ -374,7 +381,7 @@ PUT file://streamlit/environment.yml @STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 
 **LEGACY (ROOT_LOCATION)** Anti-Pattern 3: Path Mismatch Between Upload and ROOT_LOCATION
 
-> **Legacy context:** This anti-pattern applies to apps created with the legacy `ROOT_LOCATION` syntax. For new apps, use `FROM` instead (see CREATE STREAMLIT templates above). Legacy apps created in older Snowsight versions may show `root_location` as a `snow://` URL instead of a named stage — this is expected for older legacy apps; modern legacy apps use `@stage` paths.
+> **Legacy context:** This anti-pattern applies to apps created with the legacy `ROOT_LOCATION` syntax. For new apps, use `FROM` instead (see CREATE STREAMLIT templates above). Legacy apps created in older Snowsight versions may show `root_location` as a `snow://` URL instead of a named stage: this is expected for older legacy apps; modern legacy apps use `@stage` paths.
 
 **Problem:** Files are uploaded to the stage root (`@STAGE/streamlit_app.py`) but the CREATE STREAMLIT statement specifies `ROOT_LOCATION = '@STAGE/streamlit'`, or vice versa. This path mismatch causes the same `"TypeError"` as compression issues, making it hard to diagnose.
 
@@ -427,7 +434,7 @@ How to push source file updates depends on whether the app was created with `FRO
 
 `FROM` copies files into an **embedded versioned stage** at CREATE time. Edits to the original source stage do **not** automatically update the app. To update:
 
-**Option A — Recreate (recommended for full redeployment):**
+**Option A: Recreate (recommended for full redeployment):**
 ```sql
 DROP STREAMLIT IF EXISTS DB.SCHEMA.MY_APP;
 -- (re-upload files to source stage if needed)
@@ -438,7 +445,7 @@ CREATE STREAMLIT DB.SCHEMA.MY_APP
 ALTER STREAMLIT DB.SCHEMA.MY_APP ADD LIVE VERSION FROM LAST;
 ```
 
-**Option B — Copy files into live_version_location_uri (in-place update):**
+**Option B: Copy files into live_version_location_uri (in-place update):**
 ```sql
 -- Retrieve the embedded stage URI
 DESCRIBE STREAMLIT DB.SCHEMA.MY_APP;
@@ -452,7 +459,7 @@ COPY FILES
 
 ### **LEGACY (ROOT_LOCATION)** Apps
 
-Legacy apps read from the named stage at runtime. To update: PUT or COPY FILES directly against the stage referenced by `root_location` — no recreate needed.
+Legacy apps read from the named stage at runtime. To update: PUT or COPY FILES directly against the stage referenced by `root_location`: no recreate needed.
 
 ```sql
 -- Update source files in the legacy stage

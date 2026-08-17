@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Business analytics: KPI visualization, ethical data storytelling, WCAG accessibility, and Snowsight dashboards."
+last_updated: 2026-07-15
+keywords:
+  - kw:WCAG accessibility compliance
+  - kw:KPI visualization
+  - kw:data storytelling narrative
+  - kw:ethical visualization standards
+  - kw:snowsight
+token_budget: ~4150
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 100-snowflake-core.md  # Snowflake SQL patterns
+  optional:
+    - 101-snowflake-streamlit-core.md  # Streamlit dashboard patterns
+    - 920-data-science-analytics.md  # Analytics and visualization patterns
+    - 132-snowflake-demo-modeling.md  # Data modeling and naming conventions
+---
 # Business Analytics & Reporting Directives
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Business intelligence, dashboards, KPIs, reporting, visualization, stakeholder reports, metrics, Snowsight, executive dashboards, data storytelling, WCAG accessibility
-**TokenBudget:** ~4150
-**ContextTier:** High
-**Depends:** 000-global-core.md, 100-snowflake-core.md
 
 ## Scope
 
@@ -23,17 +35,6 @@ Comprehensive directives for creating business-oriented queries, reports, dashbo
 - Implementing data storytelling and narrative-driven reports
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **100-snowflake-core.md** - Snowflake SQL patterns
-
-**Related:**
-- **101-snowflake-streamlit-core.md** - Streamlit dashboard patterns
-- **920-data-science-analytics.md** - Analytics and visualization patterns
-- **132-snowflake-demo-modeling.md** - Data modeling and naming conventions
 
 ### External Documentation
 
@@ -169,7 +170,8 @@ Before building business analytics dashboards or reports, investigate the follow
 
 ```python
 # BAD: 15 charts on one page - cognitive overload
-st.plotly_chart(chart1); st.plotly_chart(chart2)  # ... 13 more
+st.plotly_chart(chart1)
+st.plotly_chart(chart2)  # ... 13 more
 ```
 
 **Problem:** Information overload, unclear priorities, slow loading.
@@ -211,9 +213,9 @@ fig = go.Figure(go.Pie(labels=all_12_categories, values=sales))
 **Correct Pattern:**
 ```python
 # GOOD: Top 5 + "Other"
-top_5 = df.nlargest(5, 'sales')
-other_sum = df.nsmallest(len(df)-5, 'sales')['sales'].sum()
-fig = go.Figure(go.Pie(labels=['A','B','C','D','E','Other'], values=[...], hole=0.3))
+top_5 = df.nlargest(5, "sales")
+other_sum = df.nsmallest(len(df) - 5, "sales")["sales"].sum()
+fig = go.Figure(go.Pie(labels=["A", "B", "C", "D", "E", "Other"], values=[...], hole=0.3))
 ```
 
 ### Anti-Pattern 4: Misleading Truncated Y-Axis
@@ -235,8 +237,8 @@ fig.add_annotation(text="Sales grew 1% ($10 increase)")
 
 ```python
 # BAD: 8% of males are red-green colorblind
-fig.add_trace(go.Bar(name='Profit', marker_color='green'))
-fig.add_trace(go.Bar(name='Loss', marker_color='red'))
+fig.add_trace(go.Bar(name="Profit", marker_color="green"))
+fig.add_trace(go.Bar(name="Loss", marker_color="red"))
 ```
 
 **Problem:** Information inaccessible to colorblind users, WCAG failure.
@@ -244,8 +246,8 @@ fig.add_trace(go.Bar(name='Loss', marker_color='red'))
 **Correct Pattern:**
 ```python
 # GOOD: Color + icons + patterns
-fig.add_trace(go.Bar(name='Profit ▲', marker=dict(color='#029E73', pattern_shape="/")))
-fig.add_trace(go.Bar(name='Loss ▼', marker=dict(color='#CC3311', pattern_shape="\\")))
+fig.add_trace(go.Bar(name="Profit ▲", marker=dict(color="#029E73", pattern_shape="/")))
+fig.add_trace(go.Bar(name="Loss ▼", marker=dict(color="#CC3311", pattern_shape="\\")))
 ```
 
 ## Audience Segmentation
@@ -301,7 +303,7 @@ fig.add_trace(go.Bar(name='Loss ▼', marker=dict(color='#CC3311', pattern_shape
 
 **Colorblind-Safe Palette:**
 ```python
-COLORBLIND_SAFE = ['#0173B2', '#DE8F05', '#029E73', '#CC78BC', '#CA9161', '#ECE133']
+COLORBLIND_SAFE = ["#0173B2", "#DE8F05", "#029E73", "#CC78BC", "#CA9161", "#ECE133"]
 ```
 
 **Screen Reader Support:** Add alt text to charts, provide data table alternatives
@@ -350,7 +352,7 @@ METRIC_DEFINITIONS = {
         "definition": "Sum of all active subscription values at month end",
         "calculation": "SUM(subscription_amount) WHERE status = 'active'",
         "owner": "Finance Team",
-        "update_frequency": "Daily at 00:00 UTC"
+        "update_frequency": "Daily at 00:00 UTC",
     }
 }
 ```
@@ -359,7 +361,7 @@ METRIC_DEFINITIONS = {
 
 - MUST ensure dashboards meet WCAG 2.1 AA accessibility standards (color contrast, keyboard navigation, screen reader labels)
 - Use responsive layouts that adapt to tablet and mobile viewports
-- Avoid hover-only interactions — provide tap-friendly alternatives for touch devices
+- Avoid hover-only interactions: provide tap-friendly alternatives for touch devices
 - Test dashboards at 320px, 768px, and 1024px breakpoints minimum
 - Prefer scalable units (rem, %) over fixed pixels for layout dimensions
 
@@ -380,14 +382,13 @@ def get_metric(name: str) -> dict:
     """
     metric = METRIC_DEFINITIONS.get(name)
     if not metric:
-        return {"error": f"Unknown metric: {name}. "
-                f"Available: {list(METRIC_DEFINITIONS.keys())}"}
+        return {"error": f"Unknown metric: {name}. Available: {list(METRIC_DEFINITIONS.keys())}"}
     return {
         "display_name": metric["display_name"],
         "definition": metric["definition"],
         "calculation": metric["calculation"],
         "owner": metric["owner"],
-        "update_frequency": metric["update_frequency"]
+        "update_frequency": metric["update_frequency"],
     }
 
 
@@ -407,7 +408,7 @@ def get_dashboard_data(session, metric_names: list[str], filters: dict = None) -
         # Use CTEs and explicit columns (no SELECT *)
         query = f"""
             WITH metric_data AS (
-                SELECT {defn['calculation']} AS value,
+                SELECT {defn["calculation"]} AS value,
                        CURRENT_TIMESTAMP() AS queried_at
                 FROM dashboard_metrics
             )
@@ -422,7 +423,7 @@ def get_dashboard_data(session, metric_names: list[str], filters: dict = None) -
             **defn,
             "value": row["VALUE"],
             "queried_at": str(row["QUERIED_AT"]),
-            "freshness": defn["update_frequency"]
+            "freshness": defn["update_frequency"],
         }
     return results
 ```
@@ -437,8 +438,7 @@ metric_info = get_metric("mrr")
 #           "owner": "Finance Team", "update_frequency": "Daily at 00:00 UTC"}
 
 # Agent fetches current dashboard data
-data = get_dashboard_data(session, ["mrr", "customer_churn_rate"],
-                          filters={"region": "APAC"})
+data = get_dashboard_data(session, ["mrr", "customer_churn_rate"], filters={"region": "APAC"})
 ```
 
 ## Internationalization Note

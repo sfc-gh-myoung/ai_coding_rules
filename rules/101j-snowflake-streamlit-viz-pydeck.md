@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "PyDeck (deck.gl) visualization patterns for Streamlit, including 3D visualizations, hexbin aggregation, terrain rendering, and large-scale geospatial data. PyDeck excels where Plotly reaches"
+last_updated: 2026-07-15
+keywords:
+  - kw:pydeck
+  - kw:deck.gl layers
+  - kw:3D geospatial
+  - kw:WebGL context limit
+  - kw:ViewState configuration
+  - kw:hexbin aggregation
+  - kw:streamlit
+token_budget: ~2950
+context_tier: Medium
+depends:
+  optional:
+    - 101a-snowflake-streamlit-visualization.md  # Visualization overview and library selection
+    - 101i-snowflake-streamlit-viz-plotly.md  # Plotly for 2D charts and maps
+---
 # Streamlit Visualization: PyDeck Deep Dive
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** pydeck, st.pydeck_chart, deck.gl, 3D visualization, hexagon layer, scatterplot layer, geojson layer, arc layer, heatmap layer, terrain, point cloud, WebGL, geospatial
-**TokenBudget:** ~2950
-**ContextTier:** Medium
-**Depends:** 000-global-core.md, 101a-snowflake-streamlit-visualization.md
 
 ## Scope
 
@@ -24,15 +34,6 @@ PyDeck (deck.gl) visualization patterns for Streamlit, including 3D visualizatio
 - Complex multi-layer geospatial compositing
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation patterns and conventions `[Available]`
-- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection `[Available]`
-
-**Related:**
-- **101i-snowflake-streamlit-viz-plotly.md** - Plotly for 2D charts and maps
 
 ### External Documentation
 
@@ -81,7 +82,7 @@ PyDeck (deck.gl) visualization patterns for Streamlit, including 3D visualizatio
 import pydeck as pdk
 import streamlit as st
 
-layer = pdk.Layer('ScatterplotLayer', data=df, get_position='[longitude, latitude]')
+layer = pdk.Layer("ScatterplotLayer", data=df, get_position="[longitude, latitude]")
 view_state = pdk.ViewState(latitude=37.77, longitude=-122.4, zoom=10)
 deck = pdk.Deck(layers=[layer], initial_view_state=view_state)
 st.pydeck_chart(deck, width="stretch")
@@ -121,26 +122,18 @@ import pydeck as pdk
 import streamlit as st
 
 layer = pdk.Layer(
-    'ScatterplotLayer',
+    "ScatterplotLayer",
     data=df,
-    get_position='[longitude, latitude]',
-    get_color='[200, 30, 0, 160]',
+    get_position="[longitude, latitude]",
+    get_color="[200, 30, 0, 160]",
     get_radius=100,
-    pickable=True
+    pickable=True,
 )
 
-view_state = pdk.ViewState(
-    latitude=37.7749,
-    longitude=-122.4194,
-    zoom=11,
-    pitch=45,
-    bearing=0
-)
+view_state = pdk.ViewState(latitude=37.7749, longitude=-122.4194, zoom=11, pitch=45, bearing=0)
 
 deck = pdk.Deck(
-    layers=[layer],
-    initial_view_state=view_state,
-    tooltip={'text': '{name}\nValue: {value}'}
+    layers=[layer], initial_view_state=view_state, tooltip={"text": "{name}\nValue: {value}"}
 )
 
 st.pydeck_chart(deck, width="stretch")
@@ -148,22 +141,16 @@ st.pydeck_chart(deck, width="stretch")
 
 ## Common Layer Patterns
 
-See **101m-snowflake-streamlit-pydeck-layers.md** `[Available]` for complete layer patterns: ScatterplotLayer, HexagonLayer, GeoJsonLayer, ArcLayer, ColumnLayer, HeatmapLayer, PathLayer, TerrainLayer, PointCloudLayer, and multi-layer composition.
+See **101m-snowflake-streamlit-pydeck-layers.md** for complete layer patterns: ScatterplotLayer, HexagonLayer, GeoJsonLayer, ArcLayer, ColumnLayer, HeatmapLayer, PathLayer, TerrainLayer, PointCloudLayer, and multi-layer composition.
 
 ## ViewState Configuration
 
 ```python
 view_state = pdk.ViewState(
-    latitude=37.7749,
-    longitude=-122.4194,
-    zoom=11,
-    min_zoom=5,
-    max_zoom=18,
-    pitch=45,
-    bearing=-27
+    latitude=37.7749, longitude=-122.4194, zoom=11, min_zoom=5, max_zoom=18, pitch=45, bearing=-27
 )
 
-view_state = pdk.data_utils.compute_view(points_df[['longitude', 'latitude']])
+view_state = pdk.data_utils.compute_view(points_df[["longitude", "latitude"]])
 view_state.pitch = 45
 view_state.bearing = 0
 ```
@@ -172,16 +159,10 @@ view_state.bearing = 0
 
 ```python
 deck = pdk.Deck(
-    layers=[layer],
-    initial_view_state=view_state,
-    map_style='mapbox://styles/mapbox/light-v10'
+    layers=[layer], initial_view_state=view_state, map_style="mapbox://styles/mapbox/light-v10"
 )
 
-deck = pdk.Deck(
-    layers=[layer],
-    initial_view_state=view_state,
-    map_style=None
-)
+deck = pdk.Deck(layers=[layer], initial_view_state=view_state, map_style=None)
 ```
 
 **Available Mapbox styles:**
@@ -191,27 +172,27 @@ deck = pdk.Deck(
 - `mapbox://styles/mapbox/satellite-v9` - Satellite imagery
 - `None` - No basemap (transparent)
 
-**Mapbox token:** Mapbox styles require an API token. For token-free usage, use `map_style=None` (no basemap). For local development with Mapbox styles: `MAPBOX_API_KEY = st.secrets.get("mapbox_api_key", "")` and set via `pdk.settings.custom_libraries`. In Streamlit in Snowflake, Mapbox styles may not be available -- use `map_style=None` for reliable rendering.
+**Mapbox token:** Mapbox styles require an API token. For token-free usage, use `map_style=None` (no basemap). For local development with Mapbox styles: `MAPBOX_API_KEY = st.secrets.get("mapbox_api_key", "")` and set via `pdk.settings.custom_libraries`. In Streamlit in Snowflake, Mapbox styles may not be available; use `map_style=None` for reliable rendering.
 
 ## Coordinate Validation
 
 ```python
-def validate_coordinates(df, lat_col='latitude', lon_col='longitude'):
+def validate_coordinates(df, lat_col="latitude", lon_col="longitude"):
     """Validate and clean coordinate data for PyDeck."""
     df_clean = df.dropna(subset=[lat_col, lon_col])
     df_clean = df_clean[
-        (df_clean[lat_col].between(-90, 90)) &
-        (df_clean[lon_col].between(-180, 180))
+        (df_clean[lat_col].between(-90, 90)) & (df_clean[lon_col].between(-180, 180))
     ]
-    
+
     if len(df_clean) == 0:
         st.warning("No valid coordinates found")
         return None
-    
+
     if len(df_clean) < len(df):
         st.info(f"Filtered {len(df) - len(df_clean)} invalid coordinates")
-    
+
     return df_clean
+
 
 df_valid = validate_coordinates(df)
 if df_valid is not None:
@@ -224,11 +205,11 @@ PyDeck supports JavaScript expressions for dynamic styling:
 
 ```python
 layer = pdk.Layer(
-    'ScatterplotLayer',
+    "ScatterplotLayer",
     data=df,
-    get_position='[longitude, latitude]',
+    get_position="[longitude, latitude]",
     get_color='[status == "active" ? 0 : 255, status == "active" ? 255 : 0, 0, 180]',
-    get_radius='value > 100 ? 500 : 200'
+    get_radius="value > 100 ? 500 : 200",
 )
 ```
 
@@ -241,12 +222,9 @@ deck = pdk.Deck(
     layers=[layer],
     initial_view_state=view_state,
     tooltip={
-        'html': '<b>{name}</b><br/>Value: {value}<br/>Status: {status}',
-        'style': {
-            'backgroundColor': 'steelblue',
-            'color': 'white'
-        }
-    }
+        "html": "<b>{name}</b><br/>Value: {value}<br/>Status: {status}",
+        "style": {"backgroundColor": "steelblue", "color": "white"},
+    },
 )
 ```
 
@@ -260,11 +238,11 @@ else:
     df_sample = df
 
 layer = pdk.Layer(
-    'ScatterplotLayer',
+    "ScatterplotLayer",
     data=df_sample,
-    get_position='[longitude, latitude]',
+    get_position="[longitude, latitude]",
     radius_min_pixels=1,
-    radius_max_pixels=10
+    radius_max_pixels=10,
 )
 ```
 
@@ -275,9 +253,10 @@ layer = pdk.Layer(
 def load_geo_data():
     return session.sql("SELECT * FROM locations").to_pandas()
 
+
 df = load_geo_data()
 # Build deck from cached data (deck creation is fast)
-layer = pdk.Layer('ScatterplotLayer', data=df, get_position='[longitude, latitude]')
+layer = pdk.Layer("ScatterplotLayer", data=df, get_position="[longitude, latitude]")
 deck = pdk.Deck(layers=[layer], initial_view_state=view_state)
 st.pydeck_chart(deck, width="stretch")
 ```
@@ -287,12 +266,15 @@ st.pydeck_chart(deck, width="stretch")
 ```python
 MAX_PYDECK_CHARTS = 8
 
+
 def render_pydeck_safely(deck, chart_count):
     """Render PyDeck chart with WebGL limit awareness."""
     if chart_count >= MAX_PYDECK_CHARTS:
-        st.warning(f"WebGL limit reached ({MAX_PYDECK_CHARTS} charts max). Consider consolidating layers.")
+        st.warning(
+            f"WebGL limit reached ({MAX_PYDECK_CHARTS} charts max). Consider consolidating layers."
+        )
         return chart_count
-    
+
     st.pydeck_chart(deck, width="stretch")
     return chart_count + 1
 ```

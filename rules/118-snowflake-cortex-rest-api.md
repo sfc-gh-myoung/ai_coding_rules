@@ -1,16 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Production patterns for Cortex REST API: retry logic with exponential backoff, idempotency keys, cost controls, observability, and REST vs AISQL decision guidance."
+last_updated: 2026-07-15
+keywords:
+  - kw:cortex rest api
+  - kw:exponential backoff retry
+  - kw:idempotency keys
+  - kw:rest vs aisql decision
+  - kw:sse streaming responses
+  - kw:token usage monitoring
+token_budget: ~4250
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake fundamentals
+    - 105-snowflake-cost-governance.md  # Cost monitoring and optimization
+  optional:
+    - 114-snowflake-cortex-aisql.md  # AISQL for batch processing
+---
 # Snowflake Cortex REST API Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:cortex-api, kw:rest-api
-**Keywords:** idempotency, rate limits, Complete endpoint, Embed endpoint, exponential backoff, REST API, Cortex API, response format, retry logic, cost controls, batch vs interactive
-**TokenBudget:** ~4250
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 111-snowflake-observability-core.md
-**Companions:** 118a-snowflake-cortex-rest-api-streaming.md
 
 ## Scope
 
@@ -25,18 +34,6 @@ Production patterns for Cortex REST API: retry logic with exponential backoff, i
 - For authentication (PAT/OAuth/JWT) and SSE streaming, see **118a-snowflake-cortex-rest-api-streaming.md**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake fundamentals
-- **105-snowflake-cost-governance.md** - Cost monitoring and optimization
-- **111-snowflake-observability-core.md** - Logging and performance monitoring
-
-**Related:**
-- **114-snowflake-cortex-aisql.md** - AISQL for batch processing
-- **115-snowflake-cortex-agents-core.md** - Cortex Agents REST API
-- **107-snowflake-security-governance.md** - Authentication and security
 
 ### External Documentation
 
@@ -84,13 +81,14 @@ Production patterns for Cortex REST API: retry logic with exponential backoff, i
 import requests
 from tenacity import retry, wait_exponential, stop_after_attempt
 
+
 @retry(wait=wait_exponential(multiplier=1, min=2, max=30), stop=stop_after_attempt(5))
 def call_complete(prompt: str, model: str = "mistral-large") -> str:
     response = requests.post(
         f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
         headers={"Authorization": f"Bearer {token}"},
         json={"model": model, "prompt": prompt, "max_tokens": 500},
-        stream=True
+        stream=True,
     )
     response.raise_for_status()
     # Parse SSE stream (stream=True requires line-by-line parsing, NOT response.json())
@@ -152,7 +150,7 @@ def call_complete(prompt: str, model: str = "mistral-large") -> str:
 ### Circuit Breaker and Connection Pooling
 
 - **Rule:** After 5 consecutive failures, stop retrying for 60 seconds before attempting again (circuit breaker pattern)
-- **Rule:** Use `requests.Session()` for connection reuse across multiple API calls — avoids TCP handshake overhead
+- **Rule:** Use `requests.Session()` for connection reuse across multiple API calls: avoids TCP handshake overhead
 - **Consider:** Rate limits vary by account tier; check Snowflake documentation for current limits. If you receive HTTP 429 responses, reduce request frequency.
 
 ```python
@@ -166,10 +164,11 @@ session.headers.update({"Authorization": f"Bearer {token}"})
 consecutive_failures = 0
 circuit_open_until = None
 
+
 def call_api_with_circuit_breaker(payload):
     global consecutive_failures, circuit_open_until
     if circuit_open_until and time.time() < circuit_open_until:
-        raise Exception("Circuit breaker open — waiting 60s")
+        raise Exception("Circuit breaker open - waiting 60s")
     try:
         resp = session.post(url, json=payload)
         resp.raise_for_status()
@@ -190,7 +189,7 @@ import requests
 response = requests.post(
     f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
     headers={"Authorization": f"Bearer {token}"},
-    json={"model": "mistral-large", "prompt": "Hello"}
+    json={"model": "mistral-large", "prompt": "Hello"},
 )
 # Network glitch or rate limit = immediate failure!
 ```
@@ -200,12 +199,14 @@ response = requests.post(
 ```python
 # Good: Use with_retry utility (see "Retry and Backoff Implementation" section below)
 # Retry on 429 (rate limit) and 5xx (server errors) with exponential backoff + jitter
-resp = with_retry(lambda: requests.post(
-    f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
-    headers={"Authorization": f"Bearer {token}"},
-    json={"model": "mistral-large", "prompt": prompt},
-    timeout=30
-))
+resp = with_retry(
+    lambda: requests.post(
+        f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"model": "mistral-large", "prompt": prompt},
+        timeout=30,
+    )
+)
 # Key: Honor Retry-After header on 429, use jitter to avoid thundering herd
 ```
 **Benefits:** Handles rate limits and transient errors; production-ready reliability
@@ -219,11 +220,11 @@ response = requests.post(
     json={
         "model": "mistral-large",
         "prompt": "Write a 2000 word essay on AI",
-        "stream": False  # Waits for full response!
-    }
+        "stream": False,  # Waits for full response!
+    },
 )
 result = response.json()
-print(result['choices'][0]['text'])  # User waits 30+ seconds!
+print(result["choices"][0]["text"])  # User waits 30+ seconds!
 ```
 **Problem:** Long wait times; poor UX; appears frozen to user
 
@@ -236,20 +237,20 @@ response = requests.post(
     json={
         "model": "mistral-large",
         "prompt": "Write a 2000 word essay on AI",
-        "stream": True  # Enable streaming!
+        "stream": True,  # Enable streaming!
     },
-    stream=True
+    stream=True,
 )
 
-print("Response: ", end='', flush=True)
+print("Response: ", end="", flush=True)
 for line in response.iter_lines():
     if line:
         # Parse server-sent events format
-        if line.startswith(b'data: '):
+        if line.startswith(b"data: "):
             data = json.loads(line[6:])
-            if 'choices' in data:
-                chunk = data['choices'][0].get('delta', {}).get('content', '')
-                print(chunk, end='', flush=True)  # Show immediately!
+            if "choices" in data:
+                chunk = data["choices"][0].get("delta", {}).get("content", "")
+                print(chunk, end="", flush=True)  # Show immediately!
 print()  # New line at end
 ```
 **Benefits:** Immediate feedback; better UX; shows progress; feels responsive; professional; lower perceived latency; user engagement
@@ -259,7 +260,7 @@ print()  # New line at end
 # Bad: No tracking of token usage
 for user_query in user_queries:
     response = call_cortex_api(prompt=user_query)
-    print(response['choices'][0]['text'])
+    print(response["choices"][0]["text"])
 # No idea: How many tokens used? What's the cost? Any patterns?
 ```
 **Problem:** No cost visibility; budget overruns; can't optimize usage
@@ -272,10 +273,9 @@ from datetime import datetime
 
 # Set up logging
 logging.basicConfig(
-    filename='cortex_api_usage.log',
-    level=logging.INFO,
-    format='%(asctime)s - %(message)s'
+    filename="cortex_api_usage.log", level=logging.INFO, format="%(asctime)s - %(message)s"
 )
+
 
 def call_cortex_api_with_tracking(prompt, model="mistral-large"):
     start_time = datetime.now()
@@ -283,37 +283,38 @@ def call_cortex_api_with_tracking(prompt, model="mistral-large"):
     response = requests.post(
         f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
         headers={"Authorization": f"Bearer {token}"},
-        json={"model": model, "prompt": prompt}
+        json={"model": model, "prompt": prompt},
     )
 
     end_time = datetime.now()
     latency_ms = (end_time - start_time).total_seconds() * 1000
 
     result = response.json()
-    usage = result.get('usage', {})
+    usage = result.get("usage", {})
 
     # Log usage metrics
     log_entry = {
-        'timestamp': start_time.isoformat(),
-        'model': model,
-        'prompt_tokens': usage.get('prompt_tokens', 0),
-        'completion_tokens': usage.get('completion_tokens', 0),
-        'total_tokens': usage.get('total_tokens', 0),
-        'latency_ms': latency_ms,
-        'status': response.status_code
+        "timestamp": start_time.isoformat(),
+        "model": model,
+        "prompt_tokens": usage.get("prompt_tokens", 0),
+        "completion_tokens": usage.get("completion_tokens", 0),
+        "total_tokens": usage.get("total_tokens", 0),
+        "latency_ms": latency_ms,
+        "status": response.status_code,
     }
     logging.info(json.dumps(log_entry))
 
     return result
 
+
 # Analyze usage patterns
-def analyze_token_usage(log_file='cortex_api_usage.log'):
+def analyze_token_usage(log_file="cortex_api_usage.log"):
     import pandas as pd
 
     logs = []
     with open(log_file) as f:
         for line in f:
-            logs.append(json.loads(line.split(' - ')[1]))
+            logs.append(json.loads(line.split(" - ")[1]))
 
     df = pd.DataFrame(logs)
 
@@ -325,7 +326,9 @@ def analyze_token_usage(log_file='cortex_api_usage.log'):
 
     # Check current pricing at https://www.snowflake.com/pricing/
     # Credit costs vary by model and change with each release
-    print(f"Total tokens used: {df['total_tokens'].sum():,} -- check pricing docs for cost estimate")
+    print(
+        f"Total tokens used: {df['total_tokens'].sum():,} -- check pricing docs for cost estimate"
+    )
 ```
 **Benefits:** Cost visibility; usage tracking; optimization insights; budget control; anomaly detection; performance monitoring; professional; financial responsibility
 
@@ -339,10 +342,7 @@ for record in records:
     response = requests.post(
         f"https://{account}.snowflakecomputing.com/api/v2/cortex/inference:complete",
         headers={"Authorization": f"Bearer {token}"},
-        json={
-            "model": "mistral-large",
-            "prompt": f"Classify sentiment: {record['text']}"
-        }
+        json={"model": "mistral-large", "prompt": f"Classify sentiment: {record['text']}"},
     )
     results.append(response.json())
     time.sleep(0.1)  # Rate limit protection
@@ -427,9 +427,10 @@ curl -sS -X POST "$CORTEX_URL/complete" \
 def call_complete(client, payload):
     return client.complete(**payload)
 
-resp = with_retry(lambda: call_complete(client, {
-    "model": "llama3.1-8b", "prompt": prompt, "max_tokens": 64
-}))
+
+resp = with_retry(
+    lambda: call_complete(client, {"model": "llama3.1-8b", "prompt": prompt, "max_tokens": 64})
+)
 ```
 
 ### REST vs AISQL
@@ -442,6 +443,7 @@ Rate limits vary by endpoint and account tier. If receiving HTTP 429, implement 
 
 ```python
 import time, random
+
 
 def with_retry(call, max_attempts=5, base=0.5, cap=8.0):
     attempt = 0
@@ -483,4 +485,4 @@ for chunk in client.complete_stream(model="llama3.1-8b", prompt=prompt, max_toke
 ## Authentication, Response Format, and SSE Streaming
 
 > **See companion rule for authentication and streaming implementation details:**
-> - **118a-snowflake-cortex-rest-api-streaming.md** — Authentication token types (PAT, OAuth, JWT vs session tokens), response format verification (JSON vs SSE detection), SSE protocol format, parsing approaches (sseclient library and manual), SSE error handling with reconnection, production-ready Cortex Agent SSE example, and SSE best practices
+> - **118a-snowflake-cortex-rest-api-streaming.md**: Authentication token types (PAT, OAuth, JWT vs session tokens), response format verification (JSON vs SSE detection), SSE protocol format, parsing approaches (sseclient library and manual), SSE error handling with reconnection, production-ready Cortex Agent SSE example, and SSE best practices

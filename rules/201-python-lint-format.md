@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Python code quality standards with Ruff as the recommended tool for linting and formatting. Covers command patterns for multiple toolchains (uv, poetry, pip), pyproject.toml configuration, pydocstyle"
+last_updated: 2026-07-15
+keywords:
+  - kw:Ruff
+  - kw:pyproject.toml configuration
+  - kw:uvx ruff
+  - kw:pydocstyle D rules
+  - kw:pre-commit hooks
+  - kw:zero-error validation gate
+token_budget: ~3700
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Python foundation patterns and toolchain detection
+  optional:
+    - 203-python-project-setup.md  # Project structure and configuration
+    - 204-python-docs.md  # Documentation standards
+---
 # Python Linting & Formatting (Ruff recommended, toolchain-flexible)
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-03-26
-**Keywords:** Ruff, linting, formatting, code quality, style checking, lint errors, ruff check, ruff format, pyproject.toml configuration, black, flake8
-**TokenBudget:** ~3700
-**ContextTier:** High
-**Depends:** 000-global-core.md, 200-python-core.md
-**LoadTrigger:** kw:lint, kw:format, kw:ruff
 
 ## Scope
 
@@ -25,15 +35,6 @@ Python code quality standards with Ruff as the recommended tool for linting and 
 - Before completing any Python-related task (validation gate)
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Python foundation patterns and toolchain detection
-
-**Related:**
-- **203-python-project-setup.md** - Project structure and configuration
-- **204-python-docs.md** - Documentation standards
 
 ### External Documentation
 
@@ -149,7 +150,7 @@ Linting and formatting produces:
 - Consistently formatted Python files
 - pyproject.toml with [tool.ruff] configuration
 - Pre-commit hooks configured (if applicable)
-- Pre-commit integration is **mandatory** for projects with >3 contributors or CI pipelines. For single-developer projects without CI, pre-commit is recommended but not required — the validation gate (200a) still applies.
+- Pre-commit integration is **mandatory** for projects with >3 contributors or CI pipelines. For single-developer projects without CI, pre-commit is recommended but not required; the validation gate (200a) still applies.
 
 ### Validation
 
@@ -210,7 +211,7 @@ uv run ruff format --check --diff .
 # If format and lint conflict (rare):
 # 1. Run format first: uv run ruff format .
 # 2. Then run lint: uv run ruff check . --fix
-# Order matters — format output is lint input
+# Order matters - format output is lint input
 ```
 
 **Type checking failures (ty/mypy):**
@@ -239,6 +240,7 @@ uv run ruff format --check --diff .
 ```python
 # BAD: Blanket ignore hides real issues
 from module import *  # noqa
+
 result = eval(user_input)  # type: ignore
 
 # GOOD: Fix the issue or use specific ignore with justification
@@ -297,7 +299,7 @@ All checks passed!
 $ uvx ruff format --check .
 0 files would be reformatted
 
-# Failing lint check — interpret error codes
+# Failing lint check - interpret error codes
 $ uvx ruff check .
 app/services/auth.py:12:1: F401 [*] `os` imported but unused
 app/services/auth.py:45:5: B006 Do not use mutable data structures for argument defaults
@@ -325,14 +327,14 @@ convention = "google"  # or "numpy"
 
 **Ruff Rule Category Reference:**
 
-- **E** — pycodestyle: Style errors (whitespace, etc.)
-- **W** — pycodestyle: Style warnings
-- **F** — pyflakes: Logic errors, undefined names
-- **I** — isort: Import ordering
-- **B** — flake8-bugbear: Common bug risks
-- **C4** — comprehensions: Simplifiable comprehensions
-- **UP** — pyupgrade: Modernize to newer Python syntax
-- **D** — pydocstyle: Docstring format/presence
+- **E**: pycodestyle: Style errors (whitespace, etc.)
+- **W**: pycodestyle: Style warnings
+- **F**: pyflakes: Logic errors, undefined names
+- **I**: isort: Import ordering
+- **B**: flake8-bugbear: Common bug risks
+- **C4**: comprehensions: Simplifiable comprehensions
+- **UP**: pyupgrade: Modernize to newer Python syntax
+- **D**: pydocstyle: Docstring format/presence
 
 **Per-file ignores** for common exceptions:
 ```toml
@@ -346,7 +348,7 @@ convention = "google"  # or "numpy"
 - **CRITICAL:** These checks are part of the Pre-Task-Completion Validation Gate (see Validation section above).
 - If the project has automation (Makefile, Taskfile.yml, or package.json), the project's lint and format targets must also pass. See `000-global-core.md` for automation detection.
 - Fix ALL failures before reporting success; do not rely on editor-only lints.
-- Reference Pre-Task-Completion Validation Gate in `000-global-core.md` and `AGENTS.md`.
+- Reference Pre-Task-Completion Validation Gate in `000-global-core.md`.
 
 ## Automation Integration
 

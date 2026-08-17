@@ -1,15 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive best practices for continuous file-based data ingestion using Snowflake Snowpipe. Covers auto-ingest vs REST API, file sizing optimization, cloud event configuration, security,"
+last_updated: 2026-07-15
+keywords:
+  - kw:snowpipe auto-ingest
+  - kw:file-based ingestion
+  - kw:cloud event notifications
+  - kw:pipe DDL
+  - kw:serverless compute
+  - kw:file sizing optimization
+  - kw:cdc
+token_budget: ~3100
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 108-snowflake-data-loading.md  # Stages and bulk loading
+  optional:
+    - 121a-snowflake-snowpipe-streaming.md  # SDK-based streaming ingestion
+    - 121b-snowflake-snowpipe-monitoring.md  # Monitoring and cost tracking
+    - 104-snowflake-streams-tasks.md  # Incremental pipelines and CDC
+---
 # Snowflake Snowpipe (File-Based Ingestion)
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:snowpipe, kw:streaming
-**Keywords:** snowpipe, auto-ingest, REST API, file-based ingestion, event notifications, COPY INTO, pipe management, serverless ingestion
-**TokenBudget:** ~3100
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 108-snowflake-data-loading.md
 
 ## Scope
 
@@ -25,21 +38,6 @@ Comprehensive best practices for continuous file-based data ingestion using Snow
 **For SDK-based streaming (sub-second latency), see `121a-snowflake-snowpipe-streaming.md`**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **108-snowflake-data-loading.md** - Stages and bulk loading
-
-**Related:**
-- **121a-snowflake-snowpipe-streaming.md** - SDK-based streaming ingestion
-- **121b-snowflake-snowpipe-monitoring.md** - Monitoring and cost tracking
-- **104-snowflake-streams-tasks.md** - Incremental pipelines and CDC
-
-### Related Examples
-
-- **examples/121-snowpipe-auto-ingest-example.md** - Complete AWS S3 auto-ingest setup with SNS
 
 ### External Documentation
 

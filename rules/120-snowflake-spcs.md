@@ -1,37 +1,41 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: 'Deploying and managing containerized apps on SPCS: compute pools, service
+  specs, monitoring, and troubleshooting.'
+last_updated: 2026-07-15
+keywords:
+- kw:Snowpark Container Services
+- kw:compute pool instance families
+- kw:OCI image deployment
+- kw:service specification YAML
+- kw:platform events monitoring
+- kw:GPU workload configuration
+- kw:SPCS
+token_budget: ~3550
+context_tier: High
+depends:
+  required:
+  - 100-snowflake-core.md
+  optional:
+  - 105-snowflake-cost-governance.md
+  - 111-snowflake-observability-core.md
+  - 119-snowflake-warehouse-management.md
+---
 # Snowflake Snowpark Container Services (SPCS)
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-05-12
-**LoadTrigger:** kw:spcs, kw:container
-**Keywords:** SPCS, compute pools, OCI images, service spec, container deployment, service logs, platform events, instance family, GEN_X64_G2, MEM_X64_G2, current generation, GPU L40S, GPU RTX PRO 6000
-**TokenBudget:** ~2350
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md
 
 ## Scope
 
 **What This Rule Covers:**
 Deploying and managing containerized apps on SPCS: compute pools, service specs, monitoring, and troubleshooting.
 
-**When to Load:**
+**When to Load This Rule:**
 - Deploying containers on Snowflake SPCS
 - Creating/configuring compute pools
 - Troubleshooting SPCS services
 - GPU-enabled ML/AI workloads
 
 ## References
-
-### Dependencies
-**Must Load First:** 100-snowflake-core.md
-
-**Related:** 105 (cost), 107 (security), 111 (observability), 119 (warehouse mgmt)
-
-### Related Examples
-
-- **examples/120-spcs-service-spec-example.md** - Production SPCS YAML spec with security, logging, RBAC
 
 ### External Documentation
 - [SPCS Overview](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview)
@@ -145,7 +149,7 @@ endpoints:
 
 ### Instance Family Selection
 
-> **Investigation Required (MANDATORY before pool creation):** Always run `SHOW COMPUTE POOL INSTANCE FAMILIES;` and `SELECT CURRENT_REGION();` to confirm availability — region availability differs per cloud and changes over time. See [Snowflake docs](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/instance-families).
+> **Investigation Required (MANDATORY before pool creation):** Always run `SHOW COMPUTE POOL INSTANCE FAMILIES;` and `SELECT CURRENT_REGION();` to confirm availability: region availability differs per cloud and changes over time. See [Snowflake docs](https://docs.snowflake.com/en/developer-guide/snowpark-container-services/instance-families).
 
 **Cloud-aware Current-Generation Families (prefer for new workloads):**
 
@@ -156,7 +160,7 @@ endpoints:
 - **GPU (inference, light):** AWS `GPU_NV_S` (A10G) or `GPU_L40S_G1_8` (L40S) | Azure `GPU_NV_XS` (T4) | GCP `GPU_GCP_NV_L4_1_24G` (L4)
 - **GPU (training, heavy):** AWS `GPU_NV_L` (A100 8x), `GPU_L40S_G1_192`, or `GPU_R6K_G1_*` (RTX PRO 6000 Blackwell) | Azure `GPU_NV_3M`/`GPU_NV_SL` (A100) | GCP `GPU_GCP_NV_A100_8_40G`
 
-**Note (GCP):** On Google Cloud, `CPU_X64_*` and `HIGHMEM_X64_*` ARE the current generation — there are no previous-generation families on GCP. On AWS and Azure, those names are previous-generation; use `GEN_X64_G2_*`/`MEM_X64_G2_*` instead.
+**Note (GCP):** On Google Cloud, `CPU_X64_*` and `HIGHMEM_X64_*` ARE the current generation: there are no previous-generation families on GCP. On AWS and Azure, those names are previous-generation; use `GEN_X64_G2_*`/`MEM_X64_G2_*` instead.
 
 **Previous-Generation Migration (AWS/Azure only):**
 
@@ -227,9 +231,11 @@ docker push <account>.registry.snowflakecomputing.com/db/schema/repo/app:v1.0.0
 ### Health Check Implementation
 ```python
 from flask import Flask, jsonify
+
 app = Flask(__name__)
 
-@app.route('/health')
+
+@app.route("/health")
 def health():
     return jsonify({"status": "healthy", "checks": {"database": "ok"}}), 200
 ```
@@ -294,7 +300,9 @@ spec:
 ### Connection Pooling
 ```python
 from snowflake.connector import pooling
+
 pool = pooling.SnowflakeConnectionPool(pool_size=10, connection_name="myconn")
+
 
 @app.get("/data")
 def get():

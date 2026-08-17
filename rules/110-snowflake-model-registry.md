@@ -1,16 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive best practices for using Snowflake Model Registry to manage machine learning models, ensuring secure, performant, and governable ML operations through proper lifecycle management,"
+last_updated: 2026-07-15
+keywords:
+  - kw:model registry
+  - kw:ml model versioning
+  - kw:model inference serving
+  - kw:model RBAC privileges
+  - kw:sample input schema
+  - kw:model metadata governance
+token_budget: ~3900
+context_tier: Medium
+depends:
+  required:
+    - 100-snowflake-core.md
+---
 # Snowflake Model Registry
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:model-registry, kw:ml-model
-**Keywords:** model governance, model lifecycle, model logging, model inference, RBAC, model privileges, register model, log model, model management, ML registry, model tracking, model metadata, deploy model, model lineage
-**TokenBudget:** ~3900
-**ContextTier:** Medium
-**Depends:** 100-snowflake-core.md
-**Companions:** 110a-snowflake-model-monitor.md, 110b-snowflake-model-registry-operations.md
 
 ## Scope
 
@@ -31,14 +37,6 @@ Comprehensive best practices for using Snowflake Model Registry to manage machin
 - [Snowflake Model Management](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/model-management) - Model lifecycle and management best practices
 - [MODEL MONITOR Overview](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/model-observability) - ML Observability and drift detection
 - [CREATE MODEL MONITOR Syntax](https://docs.snowflake.com/en/sql-reference/sql/create-model-monitor) - SQL reference for MODEL MONITOR creation
-
-### Related Rules
-- **Snowflake Core**: `100-snowflake-core.md`
-- **Data Science Analytics**: `920-data-science-analytics.md`
-- **Snowflake Security**: `107-snowflake-security-governance.md`
-- **Cost Governance**: `105-snowflake-cost-governance.md`
-- **Warehouse Management**: `119-snowflake-warehouse-management.md`
-- **Snowflake Notebooks**: `109-snowflake-notebooks.md`
 
 ## Contract
 
@@ -117,12 +115,13 @@ SELECT * FROM INFORMATION_SCHEMA.MODEL_VERSIONS WHERE MODEL_NAME = 'customer_chu
 ```python
 # Bad: Register model without sample input
 from snowflake.ml.registry import Registry
+
 registry = Registry(session=session)
 
 registry.log_model(
     model=trained_model,
     model_name="customer_churn_predictor",
-    version_name="v1"
+    version_name="v1",
     # Missing sample_input_data!
 )
 # Model registered but schema inference fails, can't generate SQL for inference!
@@ -138,17 +137,15 @@ from snowflake.ml.registry import Registry
 registry = Registry(session=session)
 
 # Create sample input matching training data structure
-sample_input = pd.DataFrame({
-    'customer_age': [35],
-    'account_balance': [50000.0],
-    'days_since_last_purchase': [45]
-})
+sample_input = pd.DataFrame(
+    {"customer_age": [35], "account_balance": [50000.0], "days_since_last_purchase": [45]}
+)
 
 registry.log_model(
     model=trained_model,
     model_name="customer_churn_predictor",
     version_name="v1",
-    sample_input_data=sample_input  # Schema captured!
+    sample_input_data=sample_input,  # Schema captured!
 )
 ```
 **Benefits:** Input schema captured; SQL inference enabled; deployment-ready
@@ -163,7 +160,7 @@ registry.log_model(
     model_name="complex_model",
     version_name="v1",
     target_platforms=[TargetPlatform.WAREHOUSE],  # Fails! Not all sklearn supported
-    sample_input_data=sample_df
+    sample_input_data=sample_df,
 )
 # Error: Custom transformers not supported in SQL translation!
 ```
@@ -179,7 +176,7 @@ registry.log_model(
     model_name="complex_model",
     version_name="v1",
     target_platforms=[TargetPlatform.SNOWPARK_CONTAINER_SERVICES],  # Python inference
-    sample_input_data=sample_df
+    sample_input_data=sample_df,
 )
 
 # Use WAREHOUSE only for simple models (linear, tree-based)
@@ -194,7 +191,7 @@ registry.log_model(
     model=trained_model,
     model_name="model_v1",  # Generic name!
     version_name="v1",
-    sample_input_data=sample_df
+    sample_input_data=sample_df,
 )
 # Can't identify: use case, owner, data source, performance, approval status
 ```
@@ -216,20 +213,26 @@ registry.log_model(
     Approval: Approved by Model Governance Board on 2024-11-15
     """,
     metrics={
-        'accuracy': 0.87,
-        'precision': 0.82,
-        'recall': 0.79,
-        'f1_score': 0.80,
-        'auc_roc': 0.91
-    }
+        "accuracy": 0.87,
+        "precision": 0.82,
+        "recall": 0.79,
+        "f1_score": 0.80,
+        "auc_roc": 0.91,
+    },
 )
 
 # Add tags for discovery
 # First, ensure tags exist
-session.sql("CREATE TAG IF NOT EXISTS use_case ALLOWED_VALUES 'churn_prediction', 'fraud_detection', 'recommendation'").collect()
+session.sql(
+    "CREATE TAG IF NOT EXISTS use_case ALLOWED_VALUES 'churn_prediction', 'fraud_detection', 'recommendation'"
+).collect()
 session.sql("CREATE TAG IF NOT EXISTS owner_team").collect()
-session.sql("CREATE TAG IF NOT EXISTS data_classification ALLOWED_VALUES 'PUBLIC', 'CONFIDENTIAL', 'RESTRICTED'").collect()
-session.sql("CREATE TAG IF NOT EXISTS approval_status ALLOWED_VALUES 'PENDING', 'APPROVED', 'REJECTED'").collect()
+session.sql(
+    "CREATE TAG IF NOT EXISTS data_classification ALLOWED_VALUES 'PUBLIC', 'CONFIDENTIAL', 'RESTRICTED'"
+).collect()
+session.sql(
+    "CREATE TAG IF NOT EXISTS approval_status ALLOWED_VALUES 'PENDING', 'APPROVED', 'REJECTED'"
+).collect()
 
 session.sql(f"""
     ALTER MODEL customer_churn_predictor
@@ -263,7 +266,7 @@ from snowflake.ml.registry import Registry
 reg = Registry(
     session=session,
     database_name="ML",
-    schema_name="REGISTRY"
+    schema_name="REGISTRY",
     # Add options={"enable_monitoring": True} if using MODEL MONITOR (see 110a)
 )
 ```
@@ -290,7 +293,7 @@ mv = reg.log_model(
     comment="Improved feature engineering with 95% accuracy",
     conda_dependencies=["scikit-learn==1.3.0", "pandas==2.0.3"],
     sample_input_data=X_sample,
-    metadata={"training_dataset": "customer_data_2024_q3"}
+    metadata={"training_dataset": "customer_data_2024_q3"},
 )
 ```
 
@@ -315,12 +318,15 @@ mv.set_metric("recall", 0.89)
 mv.set_metric("f1_score", 0.90)
 
 # Set training context
-mv.set_metric("training_info", {
-    "dataset_size": 100000,
-    "training_duration": "2.5 hours",
-    "feature_count": 25,
-    "algorithm": "RandomForest"
-})
+mv.set_metric(
+    "training_info",
+    {
+        "dataset_size": 100000,
+        "training_duration": "2.5 hours",
+        "feature_count": 25,
+        "algorithm": "RandomForest",
+    },
+)
 ```
 
 - **Rule:** Include business-relevant metrics alongside technical metrics
@@ -367,7 +373,7 @@ try:
     predictions = mv.run(
         input_data,
         function_name="predict",
-        warehouse="ML_INFERENCE_WH"  # Right-sized warehouse
+        warehouse="ML_INFERENCE_WH",  # Right-sized warehouse
     )
     results = predictions.collect()
 except Exception as e:
@@ -405,12 +411,14 @@ def promote_model(source_session, target_session, model_name, version_name):
 
     if metrics.get("accuracy", 0) >= 0.90:
         # 2. Re-log model in target registry with the original model object
-        target_reg = Registry(session=target_session, database_name="ML_PROD", schema_name="REGISTRY")
+        target_reg = Registry(
+            session=target_session, database_name="ML_PROD", schema_name="REGISTRY"
+        )
         target_reg.log_model(
             model=source_mv,  # Pass model version as source
             model_name=model_name,
             version_name=version_name,
-            sample_input_data=sample_df
+            sample_input_data=sample_df,
         )
 ```
 

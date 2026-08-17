@@ -19,8 +19,8 @@ ls skills/rule-creator/examples/*.md
 uv run ai-rules new --help
 uv run ai-rules validate --help
 
-# 3. Verify RULES_INDEX.md is accessible
-head -20 RULES_INDEX.md
+# 3. Verify rule frontmatter is accessible
+head -20 rule frontmatter
 ```
 
 **Expected:** All files exist, no errors.
@@ -43,8 +43,8 @@ Create a new rule for TestTechnology best practices following schema
 
 **Verify:**
 ```bash
-# Agent should search RULES_INDEX.md
-grep -i "testtechnology" RULES_INDEX.md
+# Agent should search rule frontmatter
+grep -i "testtechnology" rule frontmatter
 ```
 
 - [ ] Search executed
@@ -80,9 +80,9 @@ echo $?
 
 ### Test 5: Indexing
 
-**Verify:**
+**Verify:** (rule frontmatter)
 ```bash
-grep "NNN-testtechnology" RULES_INDEX.md
+grep "NNN-testtechnology" rule frontmatter
 ```
 
 - [ ] Entry added to index
@@ -160,7 +160,7 @@ model: claude-sonnet-45
 - **Python** - 3.11+
 - **PyYAML** - 6.0+
 - **Schema** - v3.0
-- **RULES_INDEX** - Current
+- **rule-matcher** - Current
 
 ## Validation Schedule
 
@@ -197,7 +197,7 @@ def validate_rule_size(rule_path):
 ```python
 def validate_rule_structure(rule_path):
     """Verify rule contains all required sections."""
-    
+
     required_sections = [
         "## Metadata",
         "## Scope",
@@ -208,17 +208,17 @@ def validate_rule_structure(rule_path):
         "### Forbidden",
         "### Execution Steps",
         "### Output Format",
-        "### Validation"
+        "### Validation",
     ]
-    
-    with open(rule_path, 'r') as f:
+
+    with open(rule_path, "r") as f:
         content = f.read()
-    
+
     missing = [s for s in required_sections if s not in content]
-    
+
     if missing:
         return False, f"Missing sections: {missing}"
-    
+
     return True, "All required sections present"
 ```
 
@@ -226,7 +226,7 @@ def validate_rule_structure(rule_path):
 ```python
 def validate_no_placeholders(rule_path):
     """Verify rule has no placeholder text."""
-    
+
     placeholders = [
         "TODO",
         "[Add content]",
@@ -234,17 +234,17 @@ def validate_no_placeholders(rule_path):
         "[Example]",
         "[TBD]",
         "...",  # Ellipsis indicating incomplete content
-        "placeholder"
+        "placeholder",
     ]
-    
-    with open(rule_path, 'r') as f:
+
+    with open(rule_path, "r") as f:
         content = f.read().lower()
-    
+
     found = [p for p in placeholders if p.lower() in content]
-    
+
     if found:
         return False, f"Placeholder text found: {found}"
-    
+
     return True, "No placeholders"
 ```
 
@@ -253,34 +253,32 @@ def validate_no_placeholders(rule_path):
 def validate_schema_clean(rule_path):
     """Verify ai-rules validate returns exit code 0."""
     import subprocess
-    
+
     result = subprocess.run(
-        ["uv", "run", "ai-rules", "validate", rule_path],
-        capture_output=True,
-        text=True
+        ["uv", "run", "ai-rules", "validate", rule_path], capture_output=True, text=True
     )
-    
+
     if result.returncode != 0:
         return False, f"Schema validation failed: {result.stdout}"
-    
+
     # Check for CRITICAL errors in output
     if "CRITICAL" in result.stdout:
         return False, f"CRITICAL errors present"
-    
+
     return True, "Schema validation clean (exit code 0)"
 ```
 
-**Check 5: RULES_INDEX Entry Present**
+**Check 5: rule-matcher Entry Present**
 ```python
 def validate_indexed(rule_name):
-    """Verify rule is indexed in RULES_INDEX.md."""
-    
-    with open("RULES_INDEX.md", 'r') as f:
+    """Verify rule is indexed in rule frontmatter."""
+
+    with open("rule frontmatter", "r") as f:
         content = f.read()
-    
-    if f"rules/{rule_name}.md" not in content:
-        return False, f"Rule not found in RULES_INDEX.md"
-    
+
+    if f"rules/{rule_name}.md" not in content:  # rule frontmatter
+        return False, f"Rule not found in rule frontmatter"
+
     return True, "Rule properly indexed"
 ```
 
@@ -295,7 +293,7 @@ Rule creation issues found:
   - Missing sections: ['### Anti-Patterns', '### Post-Execution Checklist']
   - Placeholder text found: ['TODO', '[Add content]']
   - Schema validation: FAILED (3 CRITICAL errors)
-  - RULES_INDEX entry: MISSING
+  - rule-matcher entry: MISSING
 
 Likely cause: Agent skipped phases or left rule incomplete
 

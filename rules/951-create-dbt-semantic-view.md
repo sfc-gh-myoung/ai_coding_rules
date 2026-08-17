@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Guide creation of Snowflake semantic views using the dbt-snowflake native integration through the `dbt_semantic_view` package to materialize semantic views as native dbt models with version control, CI/CD integration, and lineage tracking"
+last_updated: 2026-07-15
+keywords:
+  - kw:dbt_semantic_view package
+  - kw:semantic_view materialization
+  - kw:cortex analyst integration
+  - kw:semantic view function
+  - kw:primary key constraints
+  - kw:dimensions metrics relationships
+token_budget: ~5100
+context_tier: High
+depends:
+  required:
+    - 950-dbt-core.md
+---
 # Create Semantic Views via dbt-snowflake Native Package
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
-**Keywords:** dbt, semantic view, Snowflake, dbt_semantic_view, materialization, Cortex Analyst, YAML, semantic model, dbt models, analytics, business intelligence, data modeling
-**TokenBudget:** ~5100
-**ContextTier:** High
-**Depends:** 950-dbt-core.md, 200-python-core.md
 
 ## Purpose
 
@@ -18,12 +26,15 @@ Guide creation of Snowflake semantic views using the dbt-snowflake native integr
 
 Creating Snowflake semantic views through dbt using the `dbt_semantic_view` package for analytics and Cortex Agent integration
 
-## References
+**What This Rule Covers:**
+End-to-end workflow for creating a Snowflake Semantic View from a dbt project, including source-model discovery, semantic-view YAML authoring, and validation.
 
-### Related Rules
-- `200-python-core.md` - Python development standards for dbt projects
-- `100-snowflake-core.md` - Snowflake SQL best practices
-- `106-snowflake-semantic-views-core.md` - Semantic view query patterns
+**When to Load This Rule:**
+- When authoring a new Semantic View that sources from dbt models.
+- When migrating a hand-authored Semantic View into the dbt project.
+- When troubleshooting semantic-view / dbt lineage or refresh issues.
+
+## References
 
 ### External Documentation
 - [dbt_semantic_view Package](https://github.com/Snowflake-Labs/dbt_semantic_view) - Official package documentation
@@ -280,10 +291,10 @@ Add `Snowflake-Labs/dbt_semantic_view` to `packages.yml`, run `dbt deps`, then v
 
 ## Key Components
 
-- **TABLES** — Syntax: `<name> AS {{ ref('<model>') }} PRIMARY KEY (<col>)`. Required: `PRIMARY KEY`. Optional: `WITH SYNONYMS`, `COMMENT`. One entry per table.
-- **RELATIONSHIPS** — Syntax: `<name> AS <table1>(<fk>) REFERENCES <table2>(<pk>)`. Required: FK and PK columns. Optional: `COMMENT`. Only for multi-table views.
-- **DIMENSIONS** — Syntax: `<table>.<col> AS <dim_name>`. Required: Table-qualified column. Optional: `WITH SYNONYMS`, `COMMENT`. Time columns are regular dimensions.
-- **METRICS** — Syntax: `<name> AS <aggregation_expr>`. Required: Aggregation expression. Optional: `COMMENT`. Use standard SQL: SUM, AVG, COUNT, CASE.
+- **TABLES**: Syntax: `<name> AS {{ ref('<model>') }} PRIMARY KEY (<col>)`. Required: `PRIMARY KEY`. Optional: `WITH SYNONYMS`, `COMMENT`. One entry per table.
+- **RELATIONSHIPS**: Syntax: `<name> AS <table1>(<fk>) REFERENCES <table2>(<pk>)`. Required: FK and PK columns. Optional: `COMMENT`. Only for multi-table views.
+- **DIMENSIONS**: Syntax: `<table>.<col> AS <dim_name>`. Required: Table-qualified column. Optional: `WITH SYNONYMS`, `COMMENT`. Time columns are regular dimensions.
+- **METRICS**: Syntax: `<name> AS <aggregation_expr>`. Required: Aggregation expression. Optional: `COMMENT`. Use standard SQL: SUM, AVG, COUNT, CASE.
 
 ## Common Patterns
 
@@ -427,10 +438,10 @@ METRICS (
 
 For semantic views over large datasets (>1M rows), base model materialization directly impacts query performance:
 
-- **<100K rows** — Recommended: `view`. Acceptable latency for small datasets.
-- **100K–1M rows** — Recommended: `table`. Materialized for consistent performance.
-- **>1M rows** — Recommended: `incremental`. Avoids full-table rebuild on each run.
-- **>10M rows** — Recommended: `incremental` + clustering. Add `cluster_by` for frequently filtered columns.
+- **<100K rows**: Recommended: `view`. Acceptable latency for small datasets.
+- **100K–1M rows**: Recommended: `table`. Materialized for consistent performance.
+- **>1M rows**: Recommended: `incremental`. Avoids full-table rebuild on each run.
+- **>10M rows**: Recommended: `incremental` + clustering. Add `cluster_by` for frequently filtered columns.
 
 ```sql
 -- Base model optimized for large semantic views

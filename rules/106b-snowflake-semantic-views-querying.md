@@ -1,15 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive guidance for querying Snowflake Semantic Views using SEMANTIC_VIEW() function and validating implementations through systematic testing. Covers query syntax, dimension compatibility,"
+last_updated: 2026-07-15
+keywords:
+  - kw:SEMANTIC_VIEW function
+  - kw:dimension compatibility
+  - kw:FACTS METRICS mutual exclusion
+  - kw:window function metrics
+  - kw:semantic view testing
+  - kw:WHERE clause restrictions
+token_budget: ~2550
+context_tier: High
+depends:
+  required:
+    - 106-snowflake-semantic-views-core.md  # Semantic Views DDL fundamentals
+---
 # Snowflake Semantic Views: Querying and Testing
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:semantic-query, kw:analyst
-**Keywords:** window functions, dimension compatibility, testing, validation, TPC-DS, SEMANTIC_VIEW function, query patterns
-**TokenBudget:** ~2550
-**ContextTier:** High
-**Depends:** 106-snowflake-semantic-views-core.md
 
 ## Scope
 
@@ -23,11 +30,6 @@ Comprehensive guidance for querying Snowflake Semantic Views using `SEMANTIC_VIE
 - Understanding dimension compatibility rules
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **106-snowflake-semantic-views-core.md** - Semantic Views DDL fundamentals
 
 ### External Documentation
 
@@ -286,10 +288,13 @@ snow cortex analyst query \
 ```python
 payload = {
     "semantic_view": "DATABASE.SCHEMA.MY_VIEW",
-    "messages": [{"role": "user", "content": "What are top brands?"}]
+    "messages": [{"role": "user", "content": "What are top brands?"}],
 }
-response = requests.post(f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/message",
-                        headers={"Authorization": f"Bearer {token}"}, json=payload)
+response = requests.post(
+    f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/message",
+    headers={"Authorization": f"Bearer {token}"},
+    json=payload,
+)
 ```
 
 ## Performance Optimization

@@ -1,13 +1,24 @@
-# YAML Schema for AI Coding Rules v3.2
+# YAML Schema for AI Coding Rules v3.5
 # ==============================================================================
-# Purpose: Validation schema for rule files per 002-rule-governance.md v3.2
+# Purpose: Validation schema for rule files per 002-rule-governance.md v3.5
 # Usage: ai-rules validate rules/NNN-rule.md
+#
+# Migration note (v3.4 → v3.5):
+# - YAML frontmatter is now the canonical metadata format; inline **Field:**
+#   format is still accepted during rollout (dual-parse mode).
+# - `## Metadata` H2 header is no longer required (frontmatter fence replaces it).
+# - `### Dependencies` prose subsection is no longer required in References;
+#   dependency data lives in frontmatter `depends:` with per-item YAML
+#   comment justifications.
+# - Keywords count bound set to a combined 5-11 typed entries (kw:/ext:/file:/dir:).
+#   Advisory shape within that hard bound: 2-4 structural (ext:/file:/dir:) plus
+#   5-7 semantic (kw:). `--count` controls the semantic count only.
 # ==============================================================================
 
 $schema: "http://json-schema.org/draft-07/schema#"
-version: "3.2"
-description: "Validation schema for AI coding rules v3.2 (eliminated Purpose/Quick Start, added Scope, early References, Markdown-only Contract)"
-last_updated: "2025-12-22"
+version: "3.6"
+description: "Validation schema for AI coding rules v3.5 (YAML frontmatter canonical, inline dual-parse fallback; `## Metadata` header dropped; `### Dependencies` prose subsection dropped; keeps typed Keywords kw:/ext:/file:/dir: and typed Depends required:/optional: from v3.3)"
+last_updated: "2026-07-14"
 
 # ==============================================================================
 # METADATA VALIDATION RULES
@@ -18,6 +29,7 @@ metadata:
   required_fields:
     - name: "SchemaVersion"
       format: "**SchemaVersion:**"
+      yaml_key: "schema_version"
       type: "string"
       pattern: "^v\\d+\\.\\d+(\\.\\d+)?$"
       error_message: "SchemaVersion must be semantic version format (e.g., v3.1 or v3.1.0)"
@@ -27,6 +39,7 @@ metadata:
     
     - name: "RuleVersion"
       format: "**RuleVersion:**"
+      yaml_key: "rule_version"
       type: "string"
       pattern: "^v\\d+\\.\\d+\\.\\d+$"
       error_message: "RuleVersion must be semantic version format (e.g., v1.0.0)"
@@ -36,6 +49,7 @@ metadata:
     
     - name: "LastUpdated"
       format: "**LastUpdated:**"
+      yaml_key: "last_updated"
       type: "string"
       pattern: "^\\d{4}-\\d{2}-\\d{2}$"
       error_message: "LastUpdated must be date format YYYY-MM-DD (e.g., 2025-12-23)"
@@ -46,18 +60,22 @@ metadata:
     
     - name: "Keywords"
       format: "**Keywords:**"
+      yaml_key: "keywords"
       type: "array"
       min_items: 5
-      max_items: 20
+      max_items: 11
       item_type: "string"
       separator: ", "
-      error_message: "Keywords must contain 5-20 comma-separated terms"
-      fix_suggestion: "Add {needed} more semantic keywords for better discovery"
+      pattern: "^(kw:[a-z0-9][a-z0-9 _.-]*|ext:\\.[a-z0-9]+|file:[A-Za-z0-9_.+-]+|dir:[A-Za-z0-9_/-]+/?)$"
+      description: "Typed-prefix keywords for rule discovery (schema v3.6). Four prefixes: kw: (semantic keyword, lowercase), ext: (file extension, e.g. ext:.py), file: (specific filename, e.g. file:Dockerfile), dir: (directory path, e.g. dir:tests/). All entries count toward the combined 5-11 minimum/maximum (advisory shape within that hard bound: 2-4 structural ext:/file:/dir: plus 5-7 semantic kw:). Foundation rules use kw: prefixes only (no ext:/file:/dir:)."
+      error_message: "Keywords entries must use a typed prefix (kw:, ext:, file:, dir:) and total 5-11 entries (combined)."
+      fix_suggestion: "Use typed prefixes on every entry. Example: kw:python, ext:.py, file:pyproject.toml. Currently {actual} entries (need {min}-{max})."
       severity: "HIGH"
       docs_reference: "002-rule-governance.md Section 11.1"
     
     - name: "TokenBudget"
       format: "**TokenBudget:**"
+      yaml_key: "token_budget"
       type: "string"
       pattern: "^~[0-9]+$"
       accuracy_tolerance: 0.10  # ±10% of actual word count
@@ -68,6 +86,7 @@ metadata:
     
     - name: "ContextTier"
       format: "**ContextTier:**"
+      yaml_key: "context_tier"
       type: "enum"
       allowed_values: ["Critical", "High", "Medium", "Low"]
       error_message: "ContextTier must be one of: Critical, High, Medium, Low"
@@ -78,54 +97,44 @@ metadata:
     
     - name: "Depends"
       format: "**Depends:**"
+      yaml_key: "depends"
       type: "array"
-      min_items: 1
+      min_items: 0
       item_type: "string"
-      pattern: "rules/[a-zA-Z0-9_-]+\\.md"
+      pattern: "^(required|optional):[a-zA-Z0-9_-]+\\.md$"
       check_file_exists: true
-      allow_placeholders: ["000-global-core"]
-      error_message: "Depends must list at least one prerequisite rule"
-      fix_suggestion: "Add rules/000-global-core or other dependencies"
+      allow_placeholders: ["None", "-", "-"]
+      error_message: "Depends entries must use 'required:FILENAME.md' or 'optional:FILENAME.md' (or 'None' for foundation rules)"
+      fix_suggestion: "Prefix each entry with required: or optional:. Example: required:000-global-core.md, optional:200-python-core.md"
       severity: "HIGH"
       docs_reference: "002-rule-governance.md Section 11.1"
   
-  # Optional metadata fields (used by index generator but not required for all rules)
-  optional_fields:
-    - name: "LoadTrigger"
-      format: "**LoadTrigger:**"
-      type: "array"
-      item_type: "string"
-      separator: ", "
-      pattern: "^(ext:\\.[a-z0-9]+|file:[a-zA-Z0-9_.-]+|dir:[a-zA-Z0-9_/-]+|kw:[a-z0-9_-]+)$"
-      description: "Triggers for automatic rule loading. Prefixes: ext: (file extension), file: (specific filename), dir: (directory), kw: (keyword)"
-      example: "ext:.py, ext:.pyi, file:pyproject.toml"
-      error_message: "LoadTrigger items must use prefix format: ext:.py, file:Dockerfile, dir:skills/, kw:test"
-      severity: "MEDIUM"
-      docs_reference: "002-rule-governance.md Section 11.1"
-  
+  # Optional metadata fields (deprecated in v3.3 — LoadTrigger merged into Keywords)
+  optional_fields: []
+
   field_order:
     required: true
     order: ["SchemaVersion", "RuleVersion", "LastUpdated", "Keywords", "TokenBudget", "ContextTier", "Depends"]
-    optional_after: ["LoadTrigger"]  # Optional fields allowed after required fields
-    error_message: "Metadata fields must appear in order: SchemaVersion, RuleVersion, LastUpdated, Keywords, TokenBudget, ContextTier, Depends (LoadTrigger optional after Depends)"
+    optional_after: []
+    error_message: "Metadata fields must appear in order: SchemaVersion, RuleVersion, LastUpdated, Keywords, TokenBudget, ContextTier, Depends"
     fix_suggestion: "Reorder metadata fields per Section 11.1 of 002-rule-governance.md"
     severity: "HIGH"
     docs_reference: "002-rule-governance.md Section 11.1"
   
   placement:
+    # v3.5: YAML frontmatter (`---` fenced block) MUST appear at the very top of
+    # the file (line 1). Inline `**Field:**` format (v3.4 fallback) still permitted
+    # before the Scope section during dual-parse rollout.
+    frontmatter_fence_at_top: true
     before_section: "Scope"
-    error_message: "Metadata must appear before Scope section"
-    fix_suggestion: "Move metadata to lines 3-7, immediately after H1 title"
+    error_message: "Metadata must appear as YAML frontmatter at top-of-file, or (dual-parse fallback) as inline fields before Scope"
+    fix_suggestion: "Wrap metadata block in `---` fences at line 1, or place inline `**Field:**` lines before the `## Scope` header"
     severity: "CRITICAL"
   
-  header:
-    required: true
-    format: "## Metadata"
-    placement: "after_h1_before_fields"
-    error_message: "Metadata fields must be under ## Metadata header"
-    fix_suggestion: "Add '## Metadata' header after H1 title, before metadata fields"
-    severity: "HIGH"
-    docs_reference: "002-rule-governance.md Section 11.1"
+  # header block removed in v3.5:
+  # `## Metadata` H2 header is no longer required — the YAML frontmatter fence
+  # (`---`) at top-of-file replaces it. Inline dual-parse mode does not require
+  # the H2 header either.
 
 # ==============================================================================
 # DOCUMENT STRUCTURE RULES
@@ -134,6 +143,9 @@ structure:
   description: "Document structure validation rules"
   
   # Single H1 title requirement
+  # Note (v3.5): the regex matches the H1 line content only; leading YAML
+  # frontmatter block (`---` fences at top-of-file) is tolerated by the parser
+  # which locates the first `^# ` line rather than assuming a fixed position.
   title:
     level: 1
     count: 1
@@ -171,7 +183,7 @@ structure:
         before: "Contract"
         max_percentage: 10
       content_validation:
-        required_subsections: ["Dependencies", "External Documentation"]
+        required_subsections: ["External Documentation"]
         min_items: 1
       error_message: "References section is required early in file (after Scope, before Contract)"
       error_group: "Structure"
@@ -380,7 +392,7 @@ restrictions:
     docs_reference: "002-rule-governance.md Section 11.5"
   
   no_yaml_frontmatter:
-    enabled: true
+    enabled: false  # v3.5: YAML frontmatter is now the canonical metadata format (dual-parse rollout)
     pattern: "^---\\s*$"
     error_message: "YAML frontmatter is not allowed (universal output format)"
     fix_suggestion: "Convert YAML frontmatter to inline **Field:** format"
@@ -397,7 +409,7 @@ restrictions:
   universal_format:
     enabled: true
     inline_metadata: true
-    no_yaml_blocks: true
+    no_yaml_blocks: false  # v3.5: YAML frontmatter block allowed for metadata
     markdown_only: true
     error_message: "File must use universal Markdown format"
     severity: "HIGH"
@@ -449,16 +461,13 @@ link_validation:
       required: false  # Subsection is recommended but optional
       rule_reference_format:
         # Rules can be referenced with or without 'rules/' prefix
-        # The rules/ location is defined in AGENTS.md for token efficiency
+        # The rules/ location is defined in the rule-loader protocol for token efficiency
         pattern: "([a-zA-Z0-9_-]+\\.md|rules/[a-zA-Z0-9_-]+\\.md)"
         # Allow root-level project files
         allowed_root_files:
-          - "AGENTS.md"
           - "CHANGELOG.md"
           - "CONTRIBUTING.md"
           - "README.md"
-          - "RULES_INDEX.md"
-        # No error for missing prefix - both formats valid
         severity: "INFO"
         docs_reference: "002-rule-governance.md Section 11"
 
@@ -539,10 +548,10 @@ excluded_files:
     - "README.md"
     - "CHANGELOG.md"
     - "CONTRIBUTING.md"
-    - "RULES_INDEX.md"
     - "UNIVERSAL_PROMPT.md"
-    - "AGENTS.md"
     - "002a-rule-boilerplate.md"  # Boilerplate is reference, not validated
+    - "002a-rule-template.md"  # Template example (placeholder syntax), not validated
+    - "002i-rule-loadtrigger.md"  # DEPRECATED TOMBSTONE — retained for inbound-link stability; no Contract
 
 # ==============================================================================
 # VALIDATION BEHAVIOR

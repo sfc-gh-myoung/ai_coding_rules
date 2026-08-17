@@ -1,20 +1,31 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Establishes the definitive standards for writing production-grade TypeScript in 2026. This rule enforces Strict Mode, prioritizes Type Inference over manual typing, mandates Runtime Validation (Zod)"
+last_updated: 2026-07-15
+keywords:
+  - kw:strict mode enforcement
+  - kw:Zod runtime validation
+  - kw:type inference over annotation
+  - kw:enum namespace forbidden
+  - kw:satisfies operator
+  - kw:discriminated union patterns
+token_budget: ~3950
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 434-typescript-docs.md  # TSDoc documentation standards
+    - 440-react-core.md  # TypeScript usage in React applications
+    - 420-javascript-core.md  # JavaScript patterns that complement TypeScript
+---
 # TypeScript Core: Strictness & Modern Patterns
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential TypeScript patterns. Load for TypeScript tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** TypeScript, Zod, Strict Mode, Type Inference, Union Types, Satisfies, Generics, Utility Types, Matt Pocock, Total TypeScript
-**TokenBudget:** ~3950
-**ContextTier:** High
-**Depends:** 000-global-core.md
-**LoadTrigger:** ext:.ts, ext:.tsx
 
 ## Scope
 
@@ -29,16 +40,6 @@ Establishes the definitive standards for writing production-grade TypeScript in 
 - Reviewing TypeScript code for best practices
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **434-typescript-docs.md** - TSDoc documentation standards
-- **440-react-core.md** - TypeScript usage in React applications
-- **420-javascript-core.md** - JavaScript patterns that complement TypeScript
 
 ### External Documentation
 
@@ -59,8 +60,8 @@ Establishes the definitive standards for writing production-grade TypeScript in 
 - `zod` library for runtime validation
 
 **Recommended:**
-- `@total-typescript/ts-reset` — fixes standard library annoyances (e.g., `JSON.parse` returning `any`). Use when you want safer built-in types without manual overrides.
-- `ts-pattern` — exhaustive pattern matching for discriminated unions. Use when complex branching logic benefits from compile-time exhaustiveness checks.
+- `@total-typescript/ts-reset`: fixes standard library annoyances (e.g., `JSON.parse` returning `any`). Use when you want safer built-in types without manual overrides.
+- `ts-pattern`: exhaustive pattern matching for discriminated unions. Use when complex branching logic benefits from compile-time exhaustiveness checks.
 
 ### Mandatory
 
@@ -323,7 +324,7 @@ export const UserSchema = z.object({
  id: z.string().uuid(),
  username: z.string().min(3),
  email: z.string().email(),
- role: z.enum(['admin', 'user', 'guest']), // z.enum() is Zod runtime validation — NOT the banned TypeScript `enum` keyword
+ role: z.enum(['admin', 'user', 'guest']), // z.enum() is Zod runtime validation - NOT the banned TypeScript `enum` keyword
 });
 
 // 2. Infer Type (Compile time)
@@ -429,7 +430,7 @@ Use `// @ts-expect-error REASON` (never `@ts-ignore`) for temporary suppression 
 - **Rule:** Use `declare module` overrides for incorrect third-party types. Always document the reason.
 
 ```typescript
-// fix-bad-lib-types.d.ts — override incorrect return type in bad-lib v2.1.0
+// fix-bad-lib-types.d.ts - override incorrect return type in bad-lib v2.1.0
 declare module 'bad-lib' {
  export function getData(): Promise<unknown>; // upstream declares `any`
 }
@@ -520,4 +521,4 @@ function handleError(error: unknown): Error {
 }
 ```
 
-> **See also:** Type narrowing patterns (`in`, `instanceof`, `is` predicates) are essential when working with `unknown` — consider creating a `430a-typescript-patterns.md` companion rule.
+> **See also:** Type narrowing patterns (`in`, `instanceof`, `is` predicates) are essential when working with `unknown`: consider creating a `430a-typescript-patterns.md` companion rule.

@@ -194,6 +194,9 @@ output/
 temp/
 tmp/
 
+# Workbench (short-life project assets; see rules/806-workbench-folder-policy.md)
+.workbench/
+
 # Task automation
 .task/
 
@@ -210,15 +213,36 @@ reviews/*
 !reviews/.gitkeep
 .cortex/
 .snowflake/
+out/
+# Eval results (see rule_loader_eval/results_writer.py)
+results/
+# Generated reports (regenerated via `ai-rules rule-loader report`)
+reports/*
+# But track the reviewed corpus-audit dispositions (CI audit gate reads them;
+# the generated audit artifact itself stays ignored — it is regenerated in CI)
+!reports/rule-loader-corpus-audit-dispositions.json
+# But track the report templates
+!templates/reports/
 
-# Lock files
-uv.lock
+# Lock files: uv.lock is intentionally tracked. CI keys its dependency cache on
+# it (cache-dependency-glob), and unpinned floors would otherwise let a new tool
+# release turn a green PR red with no repo change.
 
-# AGENTS.md should be generated
+# Consumer-side bootstrap files. This project no longer generates them, but an
+# operator working in this repo may have local copies; never commit them.
 AGENTS.md
 PROJECT.md
-prompts/analyze-plan.md
-prompts/commit-changes.md
-prompts/execute-plan.md
-prompts/update-changelog.md
-prompts/update-project-docs.md
+
+prompts/archive/
+
+# Generated plugin build output (ai-rules plugin build)
+# Source of truth is rules/, skills/, hooks/, src/. Regenerate on demand.
+ai-coding-rules-plugin/
+
+# Regenerable keyword-extraction cache, written into rules/ by
+# `ai-rules rule-loader keywords run`. Not an artifact; never commit it.
+rules/.keywords-cache.json
+
+.tmp/
+.uv-cache/
+.coco-tmp/

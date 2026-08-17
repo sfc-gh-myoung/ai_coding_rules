@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive best practices for Snowflake object tagging to enable effective data governance, cost attribution, security classification, and policy automation. Covers tag taxonomy design,"
+last_updated: 2026-07-15
+keywords:
+  - kw:object tagging
+  - kw:tag inheritance
+  - kw:tag-based masking
+  - kw:ALLOWED_VALUES
+  - kw:TAG_REFERENCES
+  - kw:cost attribution tags
+token_budget: ~3450
+context_tier: High
+depends:
+  required:
+    - 105-snowflake-cost-governance.md  # Resource monitors and cost optimization
+    - 107-snowflake-security-governance.md  # Access control and security policies
+---
 # Snowflake Object Tagging Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:tag, kw:tagging, kw:metadata
-**Keywords:** cost attribution, resource tagging, governance tags, masking policies, row access policies, tag lineage, tag management
-**TokenBudget:** ~3450
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 107-snowflake-security-governance.md
 
 ## Scope
 
@@ -23,13 +31,6 @@ Comprehensive best practices for Snowflake object tagging to enable effective da
 - Auditing tag coverage and compliance
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
-- **107-snowflake-security-governance.md** - Access control and security policies
 
 ### External Documentation
 
@@ -305,7 +306,7 @@ CREATE ROW ACCESS POLICY GOVERNANCE.POLICIES.REGION_FILTER AS (region_val VARCHA
 ALTER TAG GOVERNANCE.TAGS.REGION SET
   ROW ACCESS POLICY GOVERNANCE.POLICIES.REGION_FILTER;
 
--- Tag tables — row access policy automatically applies
+-- Tag tables - row access policy automatically applies
 ALTER TABLE SALES SET TAG GOVERNANCE.TAGS.REGION = 'US';
 ALTER TABLE ORDERS SET TAG GOVERNANCE.TAGS.REGION = 'EU';
 ```
@@ -354,8 +355,8 @@ GROUP BY tr.tag_value;
 ## Monitoring Tags
 
 **TAG_REFERENCES: Function vs View**
-- `TABLE(INFORMATION_SCHEMA.TAG_REFERENCES(...))` — real-time table function, scoped to current database
-- `SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES` — account-level view with up to 120-minute latency
+- `TABLE(INFORMATION_SCHEMA.TAG_REFERENCES(...))`: real-time table function, scoped to current database
+- `SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES`: account-level view with up to 120-minute latency
 
 ```sql
 -- Get tags for specific object

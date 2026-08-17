@@ -46,6 +46,7 @@ myapp/
 ```python
 # myapp/_shared/console.py
 """Centralized console output for consistent CLI styling."""
+
 import os
 import sys
 
@@ -55,7 +56,7 @@ from rich.live import Live
 
 __all__ = [
     "log_info",
-    "log_success", 
+    "log_success",
     "log_error",
     "log_warning",
     "get_console",
@@ -67,7 +68,7 @@ __all__ = [
 
 def _should_use_color() -> bool:
     """Determine if console should use colors based on environment.
-    
+
     Checks (in order):
     - NO_COLOR env var: Standard convention (https://no-color.org/)
     - CI env var: Disable colors in CI for clean logs
@@ -139,6 +140,7 @@ def create_live(renderable, **kwargs) -> Live:
 ```python
 # myapp/cli/main.py
 """Main CLI application entry point."""
+
 import typer
 from importlib.metadata import version
 from typing_extensions import Annotated
@@ -169,14 +171,10 @@ def version_callback(value: bool) -> None:
 @app.callback()
 def main(
     ctx: typer.Context,
-    verbose: Annotated[
-        bool, typer.Option("--verbose", "-v", help="Enable verbose output")
-    ] = False,
+    verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False,
     version: Annotated[
         bool,
-        typer.Option(
-            "--version", callback=version_callback, is_eager=True, help="Show version"
-        ),
+        typer.Option("--version", callback=version_callback, is_eager=True, help="Show version"),
     ] = False,
 ):
     """
@@ -201,6 +199,7 @@ if __name__ == "__main__":
 ```python
 # myapp/cli/commands/data.py
 """Data processing commands with Rich output."""
+
 import time
 from enum import Enum
 from pathlib import Path
@@ -253,7 +252,9 @@ def list_items(
 def export(
     input_file: Annotated[Path, typer.Argument(help="Input file to export", exists=True)],
     output_file: Annotated[Path, typer.Option("--output", "-o", help="Output file")] = None,
-    format: Annotated[OutputFormat, typer.Option("--format", "-f", help="Output format")] = OutputFormat.json,
+    format: Annotated[
+        OutputFormat, typer.Option("--format", "-f", help="Output format")
+    ] = OutputFormat.json,
     dry_run: Annotated[bool, typer.Option("--dry-run", help="Show what would be done")] = False,
 ):
     """Export data to specified format."""
@@ -334,6 +335,7 @@ testpaths = ["tests"]
 ```python
 # tests/cli/test_commands.py
 """CLI command tests using CliRunner."""
+
 import pytest
 from typer.testing import CliRunner
 
@@ -380,9 +382,7 @@ class TestDataCommands:
         input_file = tmp_path / "data.txt"
         input_file.write_text("test data")
 
-        result = runner.invoke(
-            app, ["data", "export", str(input_file), "--dry-run"]
-        )
+        result = runner.invoke(app, ["data", "export", str(input_file), "--dry-run"])
         assert result.exit_code == 0
         assert "DRY RUN" in result.stdout
 
@@ -415,9 +415,7 @@ class TestEnumValidation:
         input_file = tmp_path / "data.txt"
         input_file.write_text("test")
 
-        result = runner.invoke(
-            app, ["data", "export", str(input_file), "--format", "invalid"]
-        )
+        result = runner.invoke(app, ["data", "export", str(input_file), "--format", "invalid"])
         assert result.exit_code != 0
         # Typer provides helpful error about valid choices
 ```

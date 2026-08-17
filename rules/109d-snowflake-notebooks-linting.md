@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Code quality tooling and linting configuration for Jupyter Notebooks using nbqa and Ruff, including automation integration, common linting issues, Ruff configuration, and when to skip linting."
+last_updated: 2026-07-15
+keywords:
+  - kw:nbqa
+  - kw:notebook linting
+  - kw:Ruff notebook integration
+  - kw:uvx nbqa commands
+  - kw:notebook cell quality
+  - kw:notebook automation targets
+token_budget: ~3500
+context_tier: Low
+depends:
+  required:
+    - 109-snowflake-notebooks.md
+    - 201-python-lint-format.md
+---
 # Snowflake Notebook Code Quality and Linting
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.3
-**LastUpdated:** 2026-03-26
-**LoadTrigger:** kw:nbqa, kw:notebook-linting
-**Keywords:** nbqa, ruff, notebook linting, code quality, Jupyter, notebook formatting, lint notebooks, notebook validation
-**TokenBudget:** ~3500
-**ContextTier:** Low
-**Depends:** 109-snowflake-notebooks.md, 201-python-lint-format.md
 
 ## Scope
 
@@ -28,11 +36,6 @@ Code quality tooling and linting configuration for Jupyter Notebooks using nbqa 
 ### External Documentation
 - [nbqa](https://nbqa.readthedocs.io/) - Code quality tools for Jupyter notebooks
 - [Ruff](https://docs.astral.sh/ruff/) - Fast Python linter and formatter
-
-### Related Rules
-**Closely Related** (consider loading together):
-- **109-snowflake-notebooks.md** - Parent rule for notebook best practices
-- **201-python-lint-format.md** - Python linting and formatting standards
 
 ## Contract
 
@@ -94,7 +97,7 @@ Jupyter notebooks should maintain the same code quality standards as Python modu
 
 #### Installation and Usage
 
-See Contract Mandatory and Execution Steps above for the core commands. No installation required — `uvx` runs nbqa and Ruff directly.
+See Contract Mandatory and Execution Steps above for the core commands. No installation required; `uvx` runs nbqa and Ruff directly.
 
 ```bash
 # Check specific notebook
@@ -186,9 +189,9 @@ ignore = ["E501"]  # E501 ignored for linting (long lines allowed); line-length=
 ```
 
 **Notebook-valuable Ruff rules:** Beyond the defaults, these rules are particularly useful for notebooks:
-- `B006` — mutable default arguments (common in notebook function definitions)
-- `C4` — unnecessary comprehensions (simplify list/dict/set comprehensions)
-- `UP` — pyupgrade for modern Python syntax (f-strings, type hints)
+- `B006`: mutable default arguments (common in notebook function definitions)
+- `C4`: unnecessary comprehensions (simplify list/dict/set comprehensions)
+- `UP`: pyupgrade for modern Python syntax (f-strings, type hints)
 
 ### Alternative Tools
 
@@ -244,12 +247,13 @@ result = large_df.describe()  # Quick stats for investigation
 
 **Problem:** Developers run `uvx nbqa ruff notebooks/` but the notebook contains stale outputs with embedded Python tracebacks or code-like text in markdown cells. nbqa reports false positives from output cells, leading developers to add blanket `# noqa` suppression across the notebook, which then hides real linting issues in actual code cells.
 
-**Correct Pattern:** Clear notebook outputs before linting (`jupyter nbconvert --clear-output --inplace notebooks/*.ipynb`), or configure nbqa to only lint code cells (the default behavior). Never add blanket `# noqa` to suppress output-related false positives -- investigate the actual source of the warning first.
+**Correct Pattern:** Clear notebook outputs before linting (`jupyter nbconvert --clear-output --inplace notebooks/*.ipynb`), or configure nbqa to only lint code cells (the default behavior). Never add blanket `# noqa` to suppress output-related false positives: investigate the actual source of the warning first.
 
 ```python
 # Wrong: Suppress all warnings with blanket noqa to silence output-related false positives
 # ruff: noqa
 import pandas as pd
+
 df = pd.read_csv("data.csv")
 result = df.groupby("category").sum()  # Real lint issue (F841 unused var) now hidden
 
@@ -258,6 +262,7 @@ result = df.groupby("category").sum()  # Real lint issue (F841 unused var) now h
 # Step 2: uvx nbqa ruff notebooks/
 # Step 3: Fix real issues reported, use targeted suppression only where justified
 import pandas as pd
+
 df = pd.read_csv("data.csv")
 result = df.groupby("category").sum()
 result.to_csv("output.csv")  # Actually use the variable
@@ -306,7 +311,7 @@ lint-notebooks: ## Lint Jupyter notebooks with Ruff via nbqa
 lint: lint-ruff lint-notebooks ## Run all linting checks (run before every commit)
 ```
 
-**Correct CI/CD pattern** — run the same automation targets in CI:
+**Correct CI/CD pattern**: run the same automation targets in CI:
 ```yaml
 # .github/workflows/ci.yml
 jobs:

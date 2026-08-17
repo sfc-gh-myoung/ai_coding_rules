@@ -1,20 +1,33 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Pragmatic, production-focused patterns for using Snowflake Cortex AISQL functions for classification, extraction, summarization, translation, embeddings, transcriptions, document parsing, and"
+last_updated: 2026-07-15
+keywords:
+  - kw:cortex aisql
+  - kw:llm function batching
+  - kw:model selection strategy
+  - kw:token budget control
+  - kw:TO_FILE stage references
+  - kw:CORTEX_USER privilege governance
+  - kw:ai_classify
+token_budget: ~4900
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 105-snowflake-cost-governance.md  # Cost monitoring and optimization
+  optional:
+    - 114a-snowflake-cortex-ai-transcribe.md  # AI_TRANSCRIBE audio transcription patterns
+    - 102-snowflake-sql-core.md  # General SQL file patterns
+    - 119-snowflake-warehouse-management.md  # Warehouse sizing and management
+---
 # Snowflake Cortex AISQL Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:aisql, kw:cortex-aisql
-**Keywords:** Cortex AISQL, AI_COMPLETE, AI_CLASSIFY, AI_EXTRACT, AI_SENTIMENT, AI_SUMMARIZE, embeddings, LLM functions, batching, token costs, text generation, classification, sentiment analysis, summarization, AI function error
-**TokenBudget:** ~4900
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md
 
 ## Scope
 
 **What This Rule Covers:**
-Pragmatic, production-focused patterns for using Snowflake Cortex AISQL functions for classification, extraction, summarization, translation, embeddings, transcriptions, document parsing, and aggregation—optimized for cost, throughput, security, and governance.
+Pragmatic, production-focused patterns for using Snowflake Cortex AISQL functions for classification, extraction, summarization, translation, embeddings, transcriptions, document parsing, and aggregation: optimized for cost, throughput, security, and governance.
 
 **When to Load This Rule:**
 - Using AISQL functions (`AI_COMPLETE`, `AI_CLASSIFY`, `AI_FILTER`, `AI_AGG`, `AI_SUMMARIZE_AGG`, `AI_EMBED`, `AI_EXTRACT`, `AI_SENTIMENT`, `AI_SIMILARITY`, `AI_TRANSCRIBE`, `AI_PARSE_DOCUMENT`, `AI_TRANSLATE`)
@@ -49,20 +62,6 @@ Pragmatic, production-focused patterns for using Snowflake Cortex AISQL function
 > "I see you're using llama3.1-8b for classification. Here's how to add sentiment analysis with AI_SENTIMENT following the same model choice..."
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **105-snowflake-cost-governance.md** - Cost monitoring and optimization
-
-**Related:**
-- **114a-snowflake-cortex-ai-transcribe.md** - AI_TRANSCRIBE audio transcription patterns
-- **102-snowflake-sql-core.md** - General SQL file patterns
-- **106-snowflake-semantic-views-core.md** - Semantic views for Cortex Analyst
-- **111-snowflake-observability-core.md** - Observability and tracing
-- **112-snowflake-snowcli.md** - Snowflake CLI patterns
-- **119-snowflake-warehouse-management.md** - Warehouse sizing and management
 
 ### External Documentation
 
@@ -161,7 +160,7 @@ SQL/Snowpark examples with explicit columns and prompts
 
 **Problem:** Calling AI_COMPLETE or other LLM functions on every row in a large table without batching, limits, or cost controls.
 
-**Why It Fails:** LLM calls are expensive (tokens cost credits). Processing 1M rows with AI_COMPLETE can consume thousands of dollars in credits in minutes. No automatic throttling exists—queries run until completion or timeout.
+**Why It Fails:** LLM calls are expensive (tokens cost credits). Processing 1M rows with AI_COMPLETE can consume thousands of dollars in credits in minutes. No automatic throttling exists: queries run until completion or timeout.
 
 **Correct Pattern:**
 ```sql
@@ -401,24 +400,25 @@ FROM (SELECT 1);  -- Dummy table for demonstration
 ```python
 from snowflake.snowpark.functions import ai_classify, ai_filter, prompt, col
 
-df = session.create_dataframe([
-    ["I dream of backpacking across South America."],
-    ["I made the best pasta yesterday."],
-], schema=["sentence"])
+df = session.create_dataframe(
+    [
+        ["I dream of backpacking across South America."],
+        ["I made the best pasta yesterday."],
+    ],
+    schema=["sentence"],
+)
 
 classified = df.select(
-    col("sentence"),
-    ai_classify(col("sentence"), ["travel", "cooking"]).alias("classification")
+    col("sentence"), ai_classify(col("sentence"), ["travel", "cooking"]).alias("classification")
 )
 
 filtered = classified.select(
-    col("sentence"),
-    ai_filter(prompt("Is {0} about food?", col("sentence"))).alias("is_food")
+    col("sentence"), ai_filter(prompt("Is {0} about food?", col("sentence"))).alias("is_food")
 )
 ```
 
 ## Performance and Warehouse Sizing
-- AISQL functions are optimized for throughput -- batch workloads perform best.
+- AISQL functions are optimized for throughput: batch workloads perform best.
 - Use `llama3.1-8b` when p95 latency must be <2s; use `llama3.1-70b` when accuracy is critical and latency up to 10s is acceptable.
 - Start with a MEDIUM warehouse (4 credits/hr) with AUTO_SUSPEND = 60. Scale to LARGE only if query queue time exceeds 30 seconds consistently.
 - Prefer `AI_AGG`/`AI_SUMMARIZE_AGG` to bypass context window limits for multi-row summaries.

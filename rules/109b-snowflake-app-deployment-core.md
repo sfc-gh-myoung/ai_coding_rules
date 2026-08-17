@@ -1,20 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Core deployment automation patterns for Snowflake applications (Notebooks, Streamlit apps, UDFs, and other staged applications), ensuring reliable, deterministic deployments through proper stage file"
+last_updated: 2026-07-15
+keywords:
+  - kw:staged application lifecycle
+  - kw:five-step deployment workflow
+  - kw:AUTO_COMPRESS FALSE
+  - kw:REMOVE before PUT
+  - kw:Streamlit ADD LIVE VERSION
+  - kw:stage as source of truth
+token_budget: ~4100
+context_tier: Medium
+depends:
+  required:
+    - 109-snowflake-notebooks.md  # Notebook deployment object lifecycle patterns
+---
 # Snowflake Application Deployment Automation - Core Patterns
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential App Deployment patterns. Load for deployment tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-05-11
-**LoadTrigger:** kw:app-deployment, kw:deploy
-**Keywords:** CREATE NOTEBOOK, stages, deployment automation, SiS, deploy app, deployment pipeline, app publishing, deployment patterns, deploy to snowflake, stage deployment, production deployment, app versioning, automated deployment
-**TokenBudget:** ~3900
-**ContextTier:** Medium
-**Depends:** 100-snowflake-core.md, 109-snowflake-notebooks.md, 101-snowflake-streamlit-core.md, 820-taskfile-automation.md
 
 ## Scope
 
@@ -35,12 +42,6 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 - [PUT Command](https://docs.snowflake.com/en/sql-reference/sql/put) - Stage file upload reference
 - [Internal Stages](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Stage management guide
 
-### Related Rules
-- **Snowflake Notebooks**: `109-snowflake-notebooks.md` - Core notebook patterns
-- **Streamlit Core**: `101-snowflake-streamlit-core.md` - Streamlit app development
-- **Build Automation**: `820-taskfile-automation.md` / `821-makefile-automation.md` - Automation patterns
-- **Troubleshooting**: `109c-snowflake-app-deployment-troubleshooting.md` - Deployment debugging
-
 ## Contract
 
 ### Inputs and Prerequisites
@@ -58,7 +59,7 @@ Core deployment automation patterns for Snowflake applications (Notebooks, Strea
 - After `CREATE STREAMLIT ... FROM ...`, run `ALTER STREAMLIT <name> ADD LIVE VERSION FROM LAST` before the app is viewable by non-owner roles
 - Automated deployment via project automation (no manual Snowsight UI deployments)
 - SQL scripts stored in version control, not inline in YAML
-- Snowflake CLI minimum version: 3.12+ (`uvx --from=snowflake-cli>=3.12 snow`) — verify against [Snowflake CLI releases](https://docs.snowflake.com/en/developer-guide/snowflake-cli/index) for latest requirements
+- Snowflake CLI minimum version: 3.12+ (`uvx --from=snowflake-cli>=3.12 snow`): verify against [Snowflake CLI releases](https://docs.snowflake.com/en/developer-guide/snowflake-cli/index) for latest requirements
 
 ### Forbidden
 - Manual file uploads via Snowsight UI (not reproducible)
@@ -139,11 +140,11 @@ PUT file://./apps/*.py @apps_stage/my_app AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
 
 **Anti-Pattern 3: Inverted Compression Flag in Python/CLI Wrappers**
 ```python
-# Bad: Flag logic is inverted — --no-auto-compress is NEVER passed
+# Bad: Flag logic is inverted - --no-auto-compress is NEVER passed
 def stage_copy(path, stage, auto_compress=True, recursive=False):
     flags = ["--overwrite"]
-    if auto_compress:                   # Only adds flag when True
-        flags.append("--auto-compress") # Wrong flag name AND wrong condition
+    if auto_compress:  # Only adds flag when True
+        flags.append("--auto-compress")  # Wrong flag name AND wrong condition
     # When auto_compress=False: no flag added → CLI uses default (compress ON)
     # Result: .py files silently uploaded as .py.gz → SiS TypeError
 ```
@@ -154,8 +155,8 @@ def stage_copy(path, stage, auto_compress=True, recursive=False):
 # Good: Default to no compression for application deployments
 def stage_copy(path, stage, auto_compress=False, recursive=False):
     flags = ["--overwrite"]
-    if not auto_compress:                  # Explicitly disable when False
-        flags.append("--no-auto-compress") # Correct flag name
+    if not auto_compress:  # Explicitly disable when False
+        flags.append("--no-auto-compress")  # Correct flag name
     if recursive:
         flags.append("--recursive")
     # Default auto_compress=False ensures safe SiS deployments

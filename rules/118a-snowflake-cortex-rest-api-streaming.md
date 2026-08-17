@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Authentication token types for Cortex REST API (PAT, OAuth, JWT vs session tokens), response format verification (JSON vs SSE detection), and complete Server-Sent Events (SSE) implementation:"
+last_updated: 2026-07-15
+keywords:
+  - kw:Cortex REST authentication
+  - kw:server-sent events
+  - kw:SSE stream parsing
+  - kw:Cortex Agent streaming
+  - kw:PAT token headers
+  - kw:response format detection
+  - kw:cortex
+token_budget: ~4650
+context_tier: High
+depends:
+  required:
+    - 118-snowflake-cortex-rest-api.md  # Core REST API patterns (retry, idempotency, cost controls)
+  optional:
+    - 115-snowflake-cortex-agents-core.md  # Cortex Agents REST API
+---
 # Snowflake Cortex REST API: Authentication & Streaming
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:cortex-api-streaming, kw:cortex-auth
-**Keywords:** SSE, server-sent events, streaming response, event stream, PAT, OAuth, JWT, authentication token, token type, response format, sseclient, cortex agent SSE, streaming parsing
-**TokenBudget:** ~4650
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 118-snowflake-cortex-rest-api.md
 
 ## Scope
 
@@ -26,16 +36,6 @@ Authentication token types for Cortex REST API (PAT, OAuth, JWT vs session token
 **For core REST API patterns (retry, idempotency, cost controls), see `118-snowflake-cortex-rest-api.md`**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **118-snowflake-cortex-rest-api.md** - Core REST API patterns (retry, idempotency, cost controls)
-
-**Related:**
-- **107-snowflake-security-governance.md** - Authentication and security
-- **115-snowflake-cortex-agents-core.md** - Cortex Agents REST API
 
 ### External Documentation
 
@@ -136,10 +136,11 @@ headers = {"Authorization": f"Bearer {token}"}  # Will fail with 390303 error
 ```python
 # Good: Use PAT for REST API
 import os
+
 pat = os.getenv("SNOWFLAKE_PAT")
 headers = {
     "Authorization": f"Bearer {pat}",
-    "X-Snowflake-Authorization-Token-Type": "PROGRAMMATIC_ACCESS_TOKEN"
+    "X-Snowflake-Authorization-Token-Type": "PROGRAMMATIC_ACCESS_TOKEN",
 }
 ```
 
@@ -204,12 +205,12 @@ Always check `Content-Type` header before parsing:
 ```python
 response = requests.post(url, json=payload, stream=True)
 
-content_type = response.headers.get('Content-Type', '')
+content_type = response.headers.get("Content-Type", "")
 
-if 'text/event-stream' in content_type:
+if "text/event-stream" in content_type:
     # SSE format - parse as event stream
     parse_sse_stream(response)
-elif 'application/json' in content_type:
+elif "application/json" in content_type:
     # JSON format - parse as JSON
     data = response.json()
 else:
@@ -225,12 +226,7 @@ else:
 import sseclient
 import json
 
-response = requests.post(
-    url,
-    json=payload,
-    stream=True,
-    headers=headers
-)
+response = requests.post(url, json=payload, stream=True, headers=headers)
 
 client = sseclient.SSEClient(response)
 
@@ -251,6 +247,7 @@ for event in client.events():
 ```python
 import json
 
+
 def parse_sse_stream(response):
     """
     Parse SSE stream manually without external dependencies.
@@ -267,7 +264,7 @@ def parse_sse_stream(response):
             continue
 
         # Skip comments
-        if line.startswith(':'):
+        if line.startswith(":"):
             continue
 
         # Empty line marks end of event
@@ -278,15 +275,16 @@ def parse_sse_stream(response):
             continue
 
         # Parse data field
-        if line.startswith('data:'):
+        if line.startswith("data:"):
             data = line[5:].strip()  # Remove 'data:' prefix
             buffer = data
 
         # Parse event field (optional)
-        elif line.startswith('event:'):
+        elif line.startswith("event:"):
             event_type = line[6:].strip()
             # Handle different event types if needed
             pass
+
 
 # Usage:
 response = requests.post(url, json=payload, stream=True)
@@ -309,6 +307,7 @@ import json
 import requests
 from requests.exceptions import RequestException
 
+
 def consume_sse_with_error_handling(url, payload, headers, max_retries=3):
     """
     Robust SSE consumption with error handling.
@@ -320,7 +319,7 @@ def consume_sse_with_error_handling(url, payload, headers, max_retries=3):
                 json=payload,
                 headers=headers,
                 stream=True,
-                timeout=60  # Connection timeout
+                timeout=60,  # Connection timeout
             )
 
             # Check for error status codes
@@ -329,8 +328,8 @@ def consume_sse_with_error_handling(url, payload, headers, max_retries=3):
                 raise Exception(f"HTTP {response.status_code}: {error_body}")
 
             # Verify Content-Type
-            content_type = response.headers.get('Content-Type', '')
-            if 'text/event-stream' not in content_type:
+            content_type = response.headers.get("Content-Type", "")
+            if "text/event-stream" not in content_type:
                 raise ValueError(f"Expected SSE, got Content-Type: {content_type}")
 
             # Parse SSE stream
@@ -345,7 +344,7 @@ def consume_sse_with_error_handling(url, payload, headers, max_retries=3):
                     data = json.loads(event.data)
 
                     # Check for error events
-                    if 'error' in data:
+                    if "error" in data:
                         print(f"Error event: {data['error']}")
                         return None
 
@@ -362,13 +361,14 @@ def consume_sse_with_error_handling(url, payload, headers, max_retries=3):
         except RequestException as e:
             print(f"Connection error (attempt {attempt + 1}/{max_retries}): {e}")
             if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)  # See 118 core rule for full retry pattern
+                time.sleep(2**attempt)  # See 118 core rule for full retry pattern
             else:
                 raise
 
         except Exception as e:
             print(f"Unexpected error: {e}")
             raise
+
 
 # Usage:
 try:
@@ -389,12 +389,9 @@ import sseclient
 import json
 import os
 
+
 def call_cortex_agent_sse(
-    account_url: str,
-    agent_name: str,
-    question: str,
-    pat_token: str,
-    max_tokens: int = 1024
+    account_url: str, agent_name: str, question: str, pat_token: str, max_tokens: int = 1024
 ):
     """
     Call Cortex Agent with SSE streaming response.
@@ -414,13 +411,10 @@ def call_cortex_agent_sse(
     headers = {
         "Authorization": f"Bearer {pat_token}",
         "X-Snowflake-Authorization-Token-Type": "PROGRAMMATIC_ACCESS_TOKEN",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
     }
 
-    payload = {
-        "question": question,
-        "max_tokens": max_tokens
-    }
+    payload = {"question": question, "max_tokens": max_tokens}
 
     print(f"Calling Cortex Agent: {agent_name}")
     print(f"Question: {question}")
@@ -432,7 +426,7 @@ def call_cortex_agent_sse(
             json=payload,
             headers=headers,
             stream=True,  # CRITICAL: Enable streaming
-            timeout=60
+            timeout=60,
         )
 
         # Check status
@@ -441,8 +435,8 @@ def call_cortex_agent_sse(
             raise Exception(f"Agent API error {response.status_code}: {error_msg}")
 
         # Verify SSE format
-        content_type = response.headers.get('Content-Type', '')
-        if 'text/event-stream' not in content_type:
+        content_type = response.headers.get("Content-Type", "")
+        if "text/event-stream" not in content_type:
             raise ValueError(f"Expected text/event-stream, got: {content_type}")
 
         # Parse SSE stream
@@ -458,18 +452,18 @@ def call_cortex_agent_sse(
                 data = json.loads(event.data)
 
                 # Check for completion
-                if data.get('done'):
+                if data.get("done"):
                     print("\n[Stream complete]")
                     break
 
                 # Extract content chunk
-                if 'content' in data:
-                    chunk = data['content']
-                    print(chunk, end='', flush=True)
+                if "content" in data:
+                    chunk = data["content"]
+                    print(chunk, end="", flush=True)
                     full_response += chunk
 
                 # Check for errors
-                if 'error' in data:
+                if "error" in data:
                     raise Exception(f"Agent error: {data['error']}")
 
             except json.JSONDecodeError:
@@ -483,6 +477,7 @@ def call_cortex_agent_sse(
         raise Exception("Agent request timed out after 60 seconds")
     except requests.exceptions.RequestException as e:
         raise Exception(f"Request failed: {e}")
+
 
 # Example usage:
 # response = call_cortex_agent_sse(
@@ -524,7 +519,7 @@ def call_cortex_agent_sse(
 ```python
 import requests, sseclient, json
 
-# Wrong: Missing stream=True — blocks until server closes connection
+# Wrong: Missing stream=True - blocks until server closes connection
 response = requests.post(url, json=payload, headers=headers)
 # Client hangs here waiting for the full response body...
 for line in response.text.splitlines():  # Only runs after entire stream is buffered
@@ -550,7 +545,7 @@ import snowflake.connector, os, requests
 
 # Wrong: Extracting internal session token for REST API use
 conn = snowflake.connector.connect(user="me", password="...", account="myaccount")
-token = conn._rest._token  # Private internal attribute — NOT for REST APIs
+token = conn._rest._token  # Private internal attribute - NOT for REST APIs
 headers = {"Authorization": f"Bearer {token}"}
 resp = requests.post(cortex_url, json=payload, headers=headers)
 # Result: HTTP 390303 authentication error
@@ -577,14 +572,14 @@ import requests, sseclient, json
 
 # Wrong: Assuming JSON response from a streaming endpoint
 response = requests.post(agent_url, json=payload, headers=headers, stream=True)
-data = response.json()  # Raises JSONDecodeError — response is SSE, not JSON!
+data = response.json()  # Raises JSONDecodeError - response is SSE, not JSON!
 
 # Correct: Check Content-Type and parse accordingly
 response = requests.post(agent_url, json=payload, headers=headers, stream=True)
 content_type = response.headers.get("Content-Type", "")
 
 if "text/event-stream" in content_type:
-    # SSE stream — parse each event's data field individually
+    # SSE stream - parse each event's data field individually
     client = sseclient.SSEClient(response)
     for event in client.events():
         if event.data:

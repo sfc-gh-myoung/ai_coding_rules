@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive testing strategies for FastAPI applications. Covers TestClient usage, pytest-asyncio for async tests, test database fixtures, dependency overrides, AAA pattern, mocking external"
+last_updated: 2026-07-15
+keywords:
+  - kw:TestClient fixture
+  - kw:dependency overrides
+  - kw:pytest-asyncio configuration
+  - kw:test database isolation
+  - kw:AAA pattern enforcement
+  - kw:httpx AsyncClient
+token_budget: ~3950
+context_tier: High
+depends:
+  required:
+    - 210-python-fastapi-core.md  # FastAPI foundation patterns
+  optional:
+    - 200-python-core.md  # Python core testing patterns
+    - 206-python-pytest.md  # Pytest patterns and best practices
+---
 # FastAPI Testing Strategies
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:fastapi-testing
-**Keywords:** FastAPI testing, TestClient, pytest-asyncio, API tests, integration testing, mocking, test fixtures, AAA pattern, async testing, Python
-**TokenBudget:** ~3950
-**ContextTier:** High
-**Depends:** 210-python-fastapi-core.md
 
 ## Scope
 
@@ -24,15 +34,6 @@ Comprehensive testing strategies for FastAPI applications. Covers TestClient usa
 - Mocking external services in tests
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **210-python-fastapi-core.md** - FastAPI foundation patterns
-
-**Related:**
-- **200-python-core.md** - Python core testing patterns
-- **206-python-pytest.md** - Pytest patterns and best practices
 
 ### External Documentation
 
@@ -61,7 +62,7 @@ Comprehensive testing strategies for FastAPI applications. Covers TestClient usa
 
 - Testing against production database
 - Sharing state between tests
-- Using TestClient for async-specific tests (use `httpx.AsyncClient` instead — see limitations below)
+- Using TestClient for async-specific tests (use `httpx.AsyncClient` instead: see limitations below)
 - Skipping error scenario tests
 - Hardcoding test data when factories are warranted:
   - **≥3 tests** create similar objects (DRY threshold)
@@ -79,7 +80,8 @@ Comprehensive testing strategies for FastAPI applications. Covers TestClient usa
       }
       defaults.update(overrides)
       return defaults
-  
+
+
   # Usage
   response = client.post("/users", json=create_user())
   response = client.post("/users", json=create_user(is_active=False))
@@ -88,7 +90,7 @@ Comprehensive testing strategies for FastAPI applications. Covers TestClient usa
   For inline data (< 3 tests or ≤ 4 fields), construct directly in the test.
 
 **TestClient limitations:**
-1. **Sync wrapper:** Uses `requests` internally — blocks. Use `httpx.AsyncClient` for testing async behavior (concurrent requests, streaming)
+1. **Sync wrapper:** Uses `requests` internally: blocks. Use `httpx.AsyncClient` for testing async behavior (concurrent requests, streaming)
 2. **No real server:** Uses ASGI transport, not HTTP. WebSocket and redirect tests may behave differently
 3. **No startup/shutdown:** Doesn't trigger lifespan events unless `with TestClient(app) as client:` context manager is used
 4. **Single-threaded:** Cannot test race conditions or concurrent request behavior
@@ -186,18 +188,18 @@ Test suite with:
 # BAD: Sync client for async app
 from fastapi.testclient import TestClient
 
+
 def test_async_endpoint():
     client = TestClient(app)
     response = client.get("/async-data")  # Runs in thread, misses async bugs
 
+
 # GOOD: Use httpx.AsyncClient for async testing
 from httpx import AsyncClient, ASGITransport
 
+
 async def test_async_endpoint():
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test"
-    ) as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/async-data")
         assert response.status_code == 200
 ```
@@ -214,6 +216,7 @@ async def test_async_endpoint():
 @pytest.fixture
 def db():
     return SessionLocal()  # Connects to DATABASE_URL (production!)
+
 
 # GOOD: Isolated test database with cleanup
 @pytest.fixture
@@ -266,6 +269,7 @@ from app.config import get_settings
 # Test database setup
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
+
 @pytest.fixture
 async def test_db():
     """Create test database session."""
@@ -281,6 +285,7 @@ async def test_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
+
 @pytest.fixture
 def test_app(test_db):
     """Create test app with overridden dependencies."""
@@ -291,6 +296,7 @@ def test_app(test_db):
 
     app.dependency_overrides[get_db] = override_get_db
     return app
+
 
 @pytest.fixture
 def client(test_app):
@@ -311,6 +317,7 @@ import pytest
 from fastapi import status
 from app.models.user import UserCreate
 
+
 class TestUserEndpoints:
     """Test suite for user management endpoints."""
 
@@ -319,7 +326,7 @@ class TestUserEndpoints:
         user_data = {
             "email": "test@example.com",
             "password": "testpassword123",
-            "full_name": "Test User"
+            "full_name": "Test User",
         }
         response = client.post("/users/", json=user_data)
 
@@ -336,7 +343,7 @@ class TestUserEndpoints:
         user_data = {
             "email": "invalid-email",
             "password": "testpassword123",
-            "full_name": "Test User"
+            "full_name": "Test User",
         }
         response = client.post("/users/", json=user_data)
 
@@ -364,9 +371,7 @@ class TestUserEndpoints:
         from app.services.user_service import create_user
 
         user_data = UserCreate(
-            email="async@test.com",
-            password="password123",
-            full_name="Async Test"
+            email="async@test.com", password="password123", full_name="Async Test"
         )
 
         user = await create_user(test_db, user_data)
@@ -399,6 +404,7 @@ def test_websocket_disconnect():
 ```python
 import httpx
 
+
 async def test_sse_stream():
     async with httpx.AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         async with ac.stream("GET", "/events") as response:
@@ -423,24 +429,20 @@ from fastapi.testclient import TestClient
 from app.services.auth_service import create_access_token
 from datetime import timedelta
 
+
 def create_test_user(client: TestClient, email: str = "test@example.com") -> dict:
     """Create a test user and return user data."""
-    user_data = {
-        "email": email,
-        "password": "testpassword123",
-        "full_name": "Test User"
-    }
+    user_data = {"email": email, "password": "testpassword123", "full_name": "Test User"}
     response = client.post("/users/", json=user_data)
     assert response.status_code == 201
     return response.json()
 
+
 def get_auth_headers(user_email: str = "test@example.com") -> dict:
     """Generate authentication headers for testing."""
-    access_token = create_access_token(
-        data={"sub": user_email},
-        expires_delta=timedelta(hours=1)
-    )
+    access_token = create_access_token(data={"sub": user_email}, expires_delta=timedelta(hours=1))
     return {"Authorization": f"Bearer {access_token}"}
+
 
 @pytest.fixture
 def auth_headers():
@@ -454,11 +456,13 @@ def auth_headers():
 import pytest
 from faker import Faker
 
+
 @pytest.fixture
 def fake():
     f = Faker()
     f.seed_instance(12345)
     return f
+
 
 @pytest.fixture
 def fake_user(fake):
@@ -468,6 +472,7 @@ def fake_user(fake):
         "full_name": fake.name(),
         "password": fake.password(length=16, special_chars=True),
     }
+
 
 def test_create_user(client, fake_user):
     response = client.post("/users", json=fake_user)
@@ -490,6 +495,7 @@ asyncio_mode = "auto"  # All async tests run automatically
 import pytest
 from httpx import ASGITransport, AsyncClient
 
+
 @pytest.fixture
 async def async_client():
     async with AsyncClient(
@@ -497,6 +503,7 @@ async def async_client():
         base_url="http://test",
     ) as ac:
         yield ac
+
 
 # Usage
 async def test_async_endpoint(async_client):
@@ -526,7 +533,7 @@ addopts = [
     "--cov-report=term-missing",
     "--asyncio-mode=auto",
 ]
-asyncio_mode = "auto"  # With this setting, async tests are auto-detected — no marker needed
+asyncio_mode = "auto"  # With this setting, async tests are auto-detected - no marker needed
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",

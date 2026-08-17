@@ -1,15 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Distributed tracing and metrics collection patterns for Snowflake handlers using snowflake-telemetry-python package. Covers span creation, nested tracing hierarchies, performance analysis, bottleneck"
+last_updated: 2026-07-15
+keywords:
+  - kw:snowflake-telemetry-python
+  - kw:create_span context manager
+  - kw:128 event span limit
+  - kw:nested span hierarchy
+  - kw:TRACE_LEVEL configuration
+  - kw:span attribute enrichment
+  - kw:snowsight
+token_budget: ~4600
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 111-snowflake-observability-core.md  # Telemetry configuration and event tables
+  optional:
+    - 111a-snowflake-observability-logging.md  # Logging best practices
+    - 111c-snowflake-observability-monitoring.md  # Monitoring, Snowsight interfaces, analysis
+    - 103-snowflake-performance-tuning.md  # Performance optimization using trace data
+---
 # Snowflake Observability: Distributed Tracing and Metrics
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:tracing, kw:distributed-tracing
-**Keywords:** span attributes, trace_id, performance analysis, metrics collection, cpu_usage, memory_usage, telemetry.create_span, OpenTelemetry, nested spans, tracing patterns, span creation, trace analysis, distributed traces
-**TokenBudget:** ~4600
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
 
 ## Scope
 
@@ -24,17 +37,6 @@ Distributed tracing and metrics collection patterns for Snowflake handlers using
 - Configuring TRACE_LEVEL and METRIC_LEVEL
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **111-snowflake-observability-core.md** - Telemetry configuration and event tables
-
-**Related:**
-- **111a-snowflake-observability-logging.md** - Logging best practices
-- **111c-snowflake-observability-monitoring.md** - Monitoring, Snowsight interfaces, analysis
-- **103-snowflake-performance-tuning.md** - Performance optimization using trace data
 
 ### External Documentation
 
@@ -131,6 +133,8 @@ def process_order(order):
             transform(order)
         with telemetry.create_span("save"):  # Span 4 - 10ms
             save(order)
+
+
 # 4 spans for 18ms total operation - excessive overhead!
 ```
 **Problem:** Span overhead exceeds actual work time; massive trace volume; performance degradation
@@ -229,6 +233,7 @@ import time
 
 logger = logging.getLogger(__name__)
 
+
 def my_handler(session, input_data):
     """Handler with distributed tracing."""
 
@@ -281,6 +286,7 @@ def my_handler(session, input_data):
 
 ```python
 from snowflake import telemetry
+
 
 def complex_calculation(session, input_data):
     """Complex calculation with distributed tracing."""
@@ -347,6 +353,7 @@ def data_pipeline_stage(session, stage_name, data):
 ```python
 import time
 from snowflake import telemetry
+
 
 def process_with_performance_tracking(session, data):
     """Track performance of expensive operations."""
@@ -432,10 +439,10 @@ with telemetry.create_span("operation") as span:
     span.set_attribute("input_size", len(data))  # Input attrs at start
     try:
         result = process(data)
-        span.set_attribute("success", True)       # Status at end
+        span.set_attribute("success", True)  # Status at end
     except Exception as e:
         span.set_attribute("success", False)
-        span.set_attribute("error", str(e))        # Error attrs before raise
+        span.set_attribute("error", str(e))  # Error attrs before raise
         raise
 ```
 
@@ -450,7 +457,7 @@ with telemetry.create_span("operation") as span:
     span.set_attribute("input_size", len(data))
     span.set_attribute("operation_type", "transformation")
     span.set_attribute("success", True)
-    # Don't create an attribute per record — use set_attribute for aggregates only
+    # Don't create an attribute per record - use set_attribute for aggregates only
 ```
 
 ## Querying Trace Data
@@ -517,6 +524,7 @@ Emit custom metrics for business-relevant measurements and performance indicator
 
 ```python
 from snowflake import telemetry
+
 
 def process_batch(session, batch_data):
     """Process batch with custom metrics."""

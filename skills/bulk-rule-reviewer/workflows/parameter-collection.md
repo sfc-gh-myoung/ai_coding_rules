@@ -51,19 +51,10 @@ mode_question = {
     "question": "Which review mode do you want to use?",
     "multiSelect": False,
     "options": [
-        {
-            "label": "FULL",
-            "description": "Complete review of all 7 dimensions (default)"
-        },
-        {
-            "label": "FOCUSED",
-            "description": "Review Actionability + Completeness only"
-        },
-        {
-            "label": "STALENESS",
-            "description": "Quick check for outdated content"
-        }
-    ]
+        {"label": "FULL", "description": "Complete review of all 7 dimensions (default)"},
+        {"label": "FOCUSED", "description": "Review Actionability + Completeness only"},
+        {"label": "STALENESS", "description": "Quick check for outdated content"},
+    ],
 }
 ```
 
@@ -75,23 +66,11 @@ filter_question = {
     "question": "Which rules should be reviewed?",
     "multiSelect": False,
     "options": [
-        {
-            "label": "rules/*.md",
-            "description": "All rules (default)"
-        },
-        {
-            "label": "rules/1*.md",
-            "description": "Snowflake domain only (100-199)"
-        },
-        {
-            "label": "rules/2*.md",
-            "description": "Python domain only (200-299)"
-        },
-        {
-            "label": "rules/*-core.md",
-            "description": "Core rules only"
-        }
-    ]
+        {"label": "rules/*.md", "description": "All rules (default)"},
+        {"label": "rules/1*.md", "description": "Snowflake domain only (100-199)"},
+        {"label": "rules/2*.md", "description": "Python domain only (200-299)"},
+        {"label": "rules/*-core.md", "description": "Core rules only"},
+    ],
 }
 # Note: User can select "Something else" to specify custom pattern
 ```
@@ -106,8 +85,8 @@ execution_questions = [
         "multiSelect": False,
         "options": [
             {"label": "Yes", "description": "Resume capability - skip already reviewed (default)"},
-            {"label": "No", "description": "Re-review all rules"}
-        ]
+            {"label": "No", "description": "Re-review all rules"},
+        ],
     },
     {
         "header": "Parallel",
@@ -116,9 +95,9 @@ execution_questions = [
         "options": [
             {"label": "5", "description": "Default - good balance (default)"},
             {"label": "1", "description": "Sequential - for debugging"},
-            {"label": "10", "description": "Maximum parallelism"}
-        ]
-    }
+            {"label": "10", "description": "Maximum parallelism"},
+        ],
+    },
 ]
 ```
 
@@ -134,17 +113,20 @@ output_questions = [
         "multiSelect": False,
         "options": [
             {"label": "No", "description": "Skip timing metadata (default)"},
-            {"label": "Yes", "description": "Record and embed execution duration"}
-        ]
+            {"label": "Yes", "description": "Record and embed execution duration"},
+        ],
     },
     {
         "header": "Overwrite",
         "question": "Overwrite existing review files?",
         "multiSelect": False,
         "options": [
-            {"label": "No", "description": "Use sequential numbering (-01, -02, etc.) if file exists (default)"},
-            {"label": "Yes", "description": "Replace existing files"}
-        ]
+            {
+                "label": "No",
+                "description": "Use sequential numbering (-01, -02, etc.) if file exists (default)",
+            },
+            {"label": "Yes", "description": "Replace existing files"},
+        ],
     },
     {
         "header": "Output Dir",
@@ -152,9 +134,9 @@ output_questions = [
         "multiSelect": False,
         "options": [
             {"label": "reviews/", "description": "Default output directory"},
-            {"label": "../reviews/", "description": "Parent directory"}
-        ]
-    }
+            {"label": "../reviews/", "description": "Parent directory"},
+        ],
+    },
 ]
 ```
 
@@ -165,68 +147,79 @@ output_questions = [
 ```python
 def collect_parameters_interactively(missing_params: list) -> dict:
     """Use ask_user_question to collect missing parameters.
-    
+
     Args:
         missing_params: List of parameter names that need to be collected
-        
+
     Returns:
         dict of collected parameter values
     """
-    
+
     collected = {}
     questions = []
-    
+
     # Ask review mode
-    if 'review_mode' in missing_params:
-        questions.append({
-            "header": "Mode",
-            "question": "Which review mode do you want to use?",
+    if "review_mode" in missing_params:
+        questions.append(
+            {
+                "header": "Mode",
+                "question": "Which review mode do you want to use?",
+                "multiSelect": False,
+                "options": [
+                    {"label": "FULL", "description": "Complete review of all 7 dimensions"},
+                    {"label": "FOCUSED", "description": "Review Actionability + Completeness only"},
+                    {"label": "STALENESS", "description": "Quick check for outdated content"},
+                ],
+            }
+        )
+
+    # Ask filter pattern
+    questions.append(
+        {
+            "header": "Filter",
+            "question": "Which rules should be reviewed?",
             "multiSelect": False,
             "options": [
-                {"label": "FULL", "description": "Complete review of all 7 dimensions"},
-                {"label": "FOCUSED", "description": "Review Actionability + Completeness only"},
-                {"label": "STALENESS", "description": "Quick check for outdated content"}
-            ]
-        })
-    
-    # Ask filter pattern
-    questions.append({
-        "header": "Filter",
-        "question": "Which rules should be reviewed?",
-        "multiSelect": False,
-        "options": [
-            {"label": "rules/*.md", "description": "All rules (default)"},
-            {"label": "rules/1*.md", "description": "Snowflake domain only (100-199)"},
-            {"label": "rules/2*.md", "description": "Python domain only (200-299)"},
-            {"label": "rules/*-core.md", "description": "Core rules only"}
-        ]
-    })
-    
+                {"label": "rules/*.md", "description": "All rules (default)"},
+                {"label": "rules/1*.md", "description": "Snowflake domain only (100-199)"},
+                {"label": "rules/2*.md", "description": "Python domain only (200-299)"},
+                {"label": "rules/*-core.md", "description": "Core rules only"},
+            ],
+        }
+    )
+
     # Ask skip_existing
-    questions.append({
-        "header": "Skip Existing",
-        "question": "Skip rules that already have reviews?",
-        "multiSelect": False,
-        "options": [
-            {"label": "Yes", "description": "Resume capability - skip already reviewed (default)"},
-            {"label": "No", "description": "Re-review all rules"}
-        ]
-    })
-    
+    questions.append(
+        {
+            "header": "Skip Existing",
+            "question": "Skip rules that already have reviews?",
+            "multiSelect": False,
+            "options": [
+                {
+                    "label": "Yes",
+                    "description": "Resume capability - skip already reviewed (default)",
+                },
+                {"label": "No", "description": "Re-review all rules"},
+            ],
+        }
+    )
+
     # Ask max_parallel
-    questions.append({
-        "header": "Parallel",
-        "question": "How many parallel workers?",
-        "multiSelect": False,
-        "options": [
-            {"label": "5", "description": "Default - good balance (default)"},
-            {"label": "1", "description": "Sequential - for debugging"},
-            {"label": "10", "description": "Maximum parallelism"}
-        ]
-    })
-    
+    questions.append(
+        {
+            "header": "Parallel",
+            "question": "How many parallel workers?",
+            "multiSelect": False,
+            "options": [
+                {"label": "5", "description": "Default - good balance (default)"},
+                {"label": "1", "description": "Sequential - for debugging"},
+                {"label": "10", "description": "Maximum parallelism"},
+            ],
+        }
+    )
+
     # Call ask_user_question tool (Batch 1: Mode, Filter, Skip Existing, Parallel)
-    
+
     # Batch 2: Timing, Overwrite, Output Dir
     batch2_questions = [
         {
@@ -235,17 +228,20 @@ def collect_parameters_interactively(missing_params: list) -> dict:
             "multiSelect": False,
             "options": [
                 {"label": "No", "description": "Skip timing metadata (default)"},
-                {"label": "Yes", "description": "Record and embed execution duration"}
-            ]
+                {"label": "Yes", "description": "Record and embed execution duration"},
+            ],
         },
         {
             "header": "Overwrite",
             "question": "Overwrite existing review files?",
             "multiSelect": False,
             "options": [
-                {"label": "No", "description": "Use sequential numbering (-01, -02, etc.) if file exists (default)"},
-                {"label": "Yes", "description": "Replace existing files"}
-            ]
+                {
+                    "label": "No",
+                    "description": "Use sequential numbering (-01, -02, etc.) if file exists (default)",
+                },
+                {"label": "Yes", "description": "Replace existing files"},
+            ],
         },
         {
             "header": "Output Dir",
@@ -253,11 +249,11 @@ def collect_parameters_interactively(missing_params: list) -> dict:
             "multiSelect": False,
             "options": [
                 {"label": "reviews/", "description": "Default output directory"},
-                {"label": "../reviews/", "description": "Parent directory"}
-            ]
-        }
+                {"label": "../reviews/", "description": "Parent directory"},
+            ],
+        },
     ]
-    
+
     return collected
 
 
@@ -270,9 +266,9 @@ def header_to_param(header: str) -> str:
         "Parallel": "max_parallel",
         "Timing": "timing_enabled",
         "Overwrite": "overwrite",
-        "Output Dir": "output_root"
+        "Output Dir": "output_root",
     }
-    return mapping.get(header, header.lower().replace(' ', '_'))
+    return mapping.get(header, header.lower().replace(" ", "_"))
 ```
 
 ---
@@ -284,14 +280,14 @@ When `ask_user_question` is not available:
 ```python
 def collect_parameters_text(missing_params: list) -> dict:
     """Prompt user for missing parameters via text output.
-    
+
     This is used when ask_user_question tool is unavailable.
     """
-    
+
     print("Missing required parameters. Please provide:")
     print()
-    
-    if 'review_mode' in missing_params:
+
+    if "review_mode" in missing_params:
         print("**Review Mode:**")
         print("  - FULL: Complete review of all 7 dimensions")
         print("  - FOCUSED: Review Actionability + Completeness only")
@@ -299,16 +295,18 @@ def collect_parameters_text(missing_params: list) -> dict:
         print()
         print("Please specify: review_mode=<MODE>")
         print()
-    
+
     print("**Optional Parameters:**")
     print("  - filter_pattern: rules/*.md (default) - glob pattern for rule files")
     print("  - skip_existing: true (default) | false - resume capability")
     print("  - max_parallel: 5 (default) - concurrent workers (1-10)")
-    print("  - timing_enabled: true (default, v2.4.0+) | false (opt-out; per-rule reviews use `not-requested` row)")
+    print(
+        "  - timing_enabled: true (default, v2.4.0+) | false (opt-out; per-rule reviews use `not-requested` row)"
+    )
     print("  - overwrite: false (default) | true")
     print("  - output_root: reviews/ (default)")
     print()
-    
+
     return {}  # Empty - user must re-invoke with params
 ```
 
@@ -372,9 +370,9 @@ Stage 4: Summary Report
 
 ## `timing_enabled` Parameter (Required Collection)
 
-**Added v2.3.0, default flipped v2.4.0.** The `timing_enabled` parameter MUST be collected explicitly -- the user is still prompted, but the default shown is now `true`.
+**Added v2.3.0, default flipped v2.4.0.** The `timing_enabled` parameter MUST be collected explicitly: the user is still prompted, but the default shown is now `true`.
 
-Aligns with SKILL.md line "MANDATORY: Prompt for ALL parameters" -- a silent `false` default made timing the default-off path and masked the pipeline entirely.
+Aligns with SKILL.md line "MANDATORY: Prompt for ALL parameters": a silent `false` default made timing the default-off path and masked the pipeline entirely.
 
 ### Prompt Text
 
@@ -385,7 +383,7 @@ Ask the user via `ask_user_question`:
   "header": "Timing",
   "question": "Enable per-rule and per-dimension timing capture? (default: Yes. Adds 1-3s overhead per rule; produces Section 10 Timing Breakdown in master summary)",
   "options": [
-    {"label": "Yes - enable timing (default)", "description": "Captures bulk-level, per-rule, and per-dimension durations. Requires skill-timing v1.5.0+."},
+    {"label": "Yes - enable timing (default)", "description": "Captures bulk-level, per-rule, and per-dimension durations. Requires skill-timer v1.5.0+."},
     {"label": "No - opt out", "description": "Master summary still includes Timing Breakdown section; per-rule rows marked `not-requested`."}
   ]
 }
@@ -403,4 +401,4 @@ If the caller passes `timing_enabled` as an explicit input parameter (programmat
 ### Validation
 
 - Must be boolean `true` or `false`; reject strings like `"true"` with `VALIDATION ERROR`.
-- If `true`, verify `skill-timing/scripts/find_python.sh` exists and is executable before proceeding. If missing, STOP with error guiding the user to install skill-timing v1.5.0+.
+- If `true`, verify `skill-timer/scripts/find_python.sh` exists and is executable before proceeding. If missing, STOP with error guiding the user to install skill-timer v1.5.0+.

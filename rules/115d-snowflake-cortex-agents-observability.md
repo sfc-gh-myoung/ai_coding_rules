@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Observability, evaluation, cost management, dedicated warehouse patterns, and error troubleshooting for Snowflake Cortex Agents."
+last_updated: 2026-07-15
+keywords:
+  - kw:cortex agent observability
+  - kw:agent cost attribution
+  - kw:AI Observability tracing
+  - kw:agent health checks
+  - kw:agent troubleshooting runbook
+  - kw:dedicated agent warehouse
+  - kw:cortex
+token_budget: ~3850
+context_tier: Low
+depends:
+  required:
+    - 115-snowflake-cortex-agents-core.md  # Core agent creation
+  optional:
+    - 105-snowflake-cost-governance.md  # Cost monitoring and governance
+---
 # Snowflake Cortex Agents: Observability & Cost Management
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-05-12
-**LoadTrigger:** kw:agent-observability, kw:agent-costs
-**Keywords:** agent observability, agent evaluation, agent cost management, agent monitoring, agent latency, agent health, agent errors, debug agent, agent logs, agent trace, cortex agent troubleshooting, agent cost tracking
-**TokenBudget:** ~3850
-**ContextTier:** Low
-**Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md, 115b-snowflake-cortex-agents-operations.md, 111-snowflake-observability-core.md
 
 ## Scope
 
@@ -23,17 +33,6 @@ Observability, evaluation, cost management, dedicated warehouse patterns, and er
 - Configuring dedicated warehouses for agent workloads
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **115-snowflake-cortex-agents-core.md** - Core agent creation
-- **115b-snowflake-cortex-agents-operations.md** - Operations overview
-- **111-snowflake-observability-core.md** - Observability patterns
-
-**Related:**
-- **105-snowflake-cost-governance.md** - Cost monitoring and governance
 
 ### External Documentation
 
@@ -258,7 +257,7 @@ SELECT COUNT(*) FROM {SEMANTIC_VIEW};
 test_queries = [
     ("What are my top 10 holdings?", "portfolio_analyzer"),
     ("What does research say about AAPL?", "search_research_reports"),
-    ("Show sector allocation", "portfolio_analyzer")
+    ("Show sector allocation", "portfolio_analyzer"),
 ]
 
 for query, expected_tool in test_queries:
@@ -320,12 +319,12 @@ SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW('{SERVICE_NAME}', '{"query": "test", "lim
 **Correct Pattern:** Create a dedicated X-SMALL warehouse per agent (or per agent group) with aggressive auto-suspend (60 seconds). This enables per-agent cost attribution via `WAREHOUSE_METERING_HISTORY`, performance isolation, and independent sizing. Name warehouses with an `AGENT_` prefix (e.g., `AGENT_PORTFOLIO_WH`) for easy filtering in cost queries.
 
 ```sql
--- Wrong: All agents share a single warehouse — no cost attribution
+-- Wrong: All agents share a single warehouse - no cost attribution
 CREATE CORTEX AGENT my_portfolio_agent ...
     WAREHOUSE = 'COMPUTE_WH';  -- Shared with ETL, dashboards, and other agents
 
 CREATE CORTEX AGENT my_research_agent ...
-    WAREHOUSE = 'COMPUTE_WH';  -- Same warehouse — which agent caused the cost spike?
+    WAREHOUSE = 'COMPUTE_WH';  -- Same warehouse - which agent caused the cost spike?
 
 -- Correct: Dedicated warehouse per agent for cost isolation
 CREATE WAREHOUSE IF NOT EXISTS AGENT_PORTFOLIO_WH
@@ -356,16 +355,18 @@ ORDER BY credits DESC;
 **Correct Pattern:** Implement periodic health checks that run a set of known-good "golden questions" against each production agent. Track success rate, latency percentiles, and tool invocation counts over time. Set alerts on success rate drops (e.g., below 95%) and latency spikes (e.g., p95 exceeds 2x baseline). Use `CORTEX_AGENT_HISTORY` (or `QUERY_HISTORY` with filters) to monitor agent query patterns and error rates.
 
 ```python
-# Wrong: Deploy and forget — no health monitoring
+# Wrong: Deploy and forget - no health monitoring
 def deploy_agent():
     session.sql("CREATE CORTEX AGENT ...").collect()
     print("Agent deployed!")  # No monitoring, no alerting
+
 
 # Correct: Periodic health checks with golden questions
 GOLDEN_QUESTIONS = [
     {"query": "What are the top 5 holdings?", "expect_tool": "portfolio_analyzer"},
     {"query": "Find research on AAPL", "expect_tool": "search_research_reports"},
 ]
+
 
 def run_agent_health_check(session, agent_name):
     """Run golden questions and report health metrics."""
@@ -385,7 +386,7 @@ def run_agent_health_check(session, agent_name):
                 log.error(f"Empty response for: {test['query']}")
         except Exception as e:
             results["failed"] += 1
-            log.error(f"Health check failed: {test['query']} — {e}")
+            log.error(f"Health check failed: {test['query']} - {e}")
 
     success_rate = results["passed"] / len(GOLDEN_QUESTIONS) * 100
     p95_latency = sorted(results["latencies"])[int(len(results["latencies"]) * 0.95)]
@@ -403,23 +404,23 @@ def run_agent_health_check(session, agent_name):
 **Correct Pattern:** Set explicit `max_tokens` on agent responses from day one. Monitor token consumption per query using AI Observability traces and set per-query cost thresholds. Implement guardrails that fail fast on oversized requests (e.g., reject input prompts exceeding a token limit). Review token usage trends weekly during the first month after deployment, then shift to alerting on anomalies.
 
 ```python
-# Wrong: No token limits — unbounded cost per query
+# Wrong: No token limits - unbounded cost per query
 response = call_cortex_agent(
     agent_name="ANALYTICS.AI.PORTFOLIO_AGENT",
     question=user_input,
-    # No max_tokens, no input validation — could cost $$$
+    # No max_tokens, no input validation - could cost $$$
 )
 
 # Correct: Enforce token budgets and input guardrails
-MAX_INPUT_LENGTH = 2000   # Reject oversized prompts
+MAX_INPUT_LENGTH = 2000  # Reject oversized prompts
 MAX_OUTPUT_TOKENS = 1024  # Cap response generation cost
+
 
 def call_agent_with_guardrails(agent_name, user_input):
     # Guardrail: reject oversized input before calling the model
     if len(user_input) > MAX_INPUT_LENGTH:
         raise ValueError(
-            f"Input too long ({len(user_input)} chars). "
-            f"Max allowed: {MAX_INPUT_LENGTH}"
+            f"Input too long ({len(user_input)} chars). Max allowed: {MAX_INPUT_LENGTH}"
         )
 
     response = call_cortex_agent(

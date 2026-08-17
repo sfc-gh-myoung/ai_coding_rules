@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Establish monitoring, logging, and performance optimization patterns for FastAPI applications including health checks, structured logging, caching, and observability."
+last_updated: 2026-07-15
+keywords:
+  - kw:FastAPI health endpoints
+  - kw:correlation ID middleware
+  - kw:structured JSON logging
+  - kw:Redis caching layer
+  - kw:MetricsMiddleware performance tracking
+  - kw:sensitive data sanitization
+  - kw:fastapi
+token_budget: ~4300
+context_tier: Medium
+depends:
+  required:
+    - 210-python-fastapi-core.md
+---
 # FastAPI Monitoring and Performance
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:fastapi-monitoring
-**Keywords:** FastAPI monitoring, health checks, logging, metrics, caching, Redis, observability, structured logging, health endpoints, correlation IDs
-**TokenBudget:** ~4300
-**ContextTier:** Medium
-**Depends:** 210-python-fastapi-core.md
 
 ## Scope
 
@@ -25,11 +33,6 @@ Establish monitoring, logging, and performance optimization patterns for FastAPI
 - [FastAPI Middleware Guide](https://fastapi.tiangolo.com/tutorial/middleware/) - Custom middleware, CORS, and request processing
 - [Python Logging Documentation](https://docs.python.org/3/library/logging.html) - Structured logging, handlers, and formatters
 - [Redis Python Async](https://redis-py.readthedocs.io/en/stable/) - Async Redis operations and connection pooling
-
-### Related Rules
-- **FastAPI Core**: `210-python-fastapi-core.md`
-- **FastAPI Deployment**: `210c-python-fastapi-deployment.md`
-- **Python Core**: `200-python-core.md`
 
 ## Contract
 
@@ -59,10 +62,10 @@ Establish monitoring, logging, and performance optimization patterns for FastAPI
 > **Investigation Required:**
 > Before adding monitoring to a FastAPI application:
 > 1. Check for existing monitoring setup (Prometheus, Datadog, New Relic, Sentry)
-> 2. Check existing middleware — don't duplicate metric collection
+> 2. Check existing middleware: don't duplicate metric collection
 > 3. Check if Sentry SDK is already initialized (duplicate init causes issues)
 > 4. Check deployment platform for built-in monitoring (AWS CloudWatch, GCP Cloud Monitoring)
-> 5. Check `/metrics` endpoint — if it exists, extend it rather than replacing
+> 5. Check `/metrics` endpoint: if it exists, extend it rather than replacing
 > 6. Check log format requirements from ops team (JSON, logfmt, plain text)
 
 ### Execution Steps
@@ -141,12 +144,14 @@ async def log_requests(request: Request, call_next):
     logger.info(f"Request body: {body}")  # Logs passwords!
     return await call_next(request)
 
+
 # GOOD: Filter sensitive fields before logging
 SENSITIVE_FIELDS = {"password", "token", "api_key", "ssn", "credit_card"}
 
+
 def sanitize_log_data(data: dict) -> dict:
-    return {k: "***REDACTED***" if k in SENSITIVE_FIELDS else v
-            for k, v in data.items()}
+    return {k: "***REDACTED***" if k in SENSITIVE_FIELDS else v for k, v in data.items()}
+
 
 logger.info(f"Request: {sanitize_log_data(request_data)}")
 ```
@@ -165,8 +170,10 @@ async def get_data():
     logger.info("Fetching data")  # Which request is this?
     return await fetch_from_service()
 
+
 # GOOD: Correlation ID middleware
 from uuid import uuid4
+
 
 @app.middleware("http")
 async def add_correlation_id(request: Request, call_next):
@@ -197,14 +204,16 @@ import asyncio
 
 router = APIRouter(tags=["health"])
 
+
 @router.get("/health")
 async def health_check():
     """Basic health check endpoint for load balancers."""
     return {
         "status": "healthy",
         "timestamp": datetime.now(UTC).isoformat(),
-        "version": get_settings().version
+        "version": get_settings().version,
     }
+
 
 @router.get("/health/detailed")
 async def detailed_health_check(db: AsyncSession = Depends(get_db)):
@@ -222,6 +231,7 @@ async def detailed_health_check(db: AsyncSession = Depends(get_db)):
         "checks": {"database": db_status, "memory_percent": memory.percent},
     }
 
+
 @router.get("/health/ready")
 async def readiness_check(db: AsyncSession = Depends(get_db)):
     """Kubernetes readiness probe."""
@@ -231,8 +241,9 @@ async def readiness_check(db: AsyncSession = Depends(get_db)):
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail={"status": "not ready", "reason": "database unavailable"}
+            detail={"status": "not ready", "reason": "database unavailable"},
         )
+
 
 @router.get("/health/live")
 async def liveness_check():
@@ -257,6 +268,7 @@ from datetime import datetime, UTC
 from fastapi import Request
 from typing import Dict, Any
 
+
 class StructuredFormatter(logging.Formatter):
     """Custom formatter for structured JSON logging."""
 
@@ -272,31 +284,31 @@ class StructuredFormatter(logging.Formatter):
         }
 
         # Add extra fields if present
-        if hasattr(record, 'correlation_id'):
-            log_data['correlation_id'] = record.correlation_id
-        if hasattr(record, 'user_id'):
-            log_data['user_id'] = record.user_id
-        if hasattr(record, 'request_id'):
-            log_data['request_id'] = record.request_id
+        if hasattr(record, "correlation_id"):
+            log_data["correlation_id"] = record.correlation_id
+        if hasattr(record, "user_id"):
+            log_data["user_id"] = record.user_id
+        if hasattr(record, "request_id"):
+            log_data["request_id"] = record.request_id
 
         # Add exception info if present
         if record.exc_info:
-            log_data['exception'] = self.formatException(record.exc_info)
+            log_data["exception"] = self.formatException(record.exc_info)
 
         return json.dumps(log_data)
+
 
 def setup_logging():
     """Configure application logging."""
     logging.basicConfig(
-        level=logging.INFO,
-        format='%(message)s',
-        handlers=[logging.StreamHandler()]
+        level=logging.INFO, format="%(message)s", handlers=[logging.StreamHandler()]
     )
 
     # Set formatter for all handlers
     formatter = StructuredFormatter()
     for handler in logging.root.handlers:
         handler.setFormatter(formatter)
+
 
 # Middleware for request logging
 class RequestLoggingMiddleware:
@@ -322,8 +334,8 @@ class RequestLoggingMiddleware:
                     "correlation_id": correlation_id,
                     "method": request.method,
                     "url": str(request.url),
-                    "client_ip": request.client.host if request.client else None
-                }
+                    "client_ip": request.client.host if request.client else None,
+                },
             )
 
         await self.app(scope, receive, send)
@@ -342,6 +354,7 @@ import json
 from typing import Optional, Any
 from functools import wraps
 import hashlib
+
 
 class CacheManager:
     """Redis-based cache manager."""
@@ -374,8 +387,10 @@ class CacheManager:
         except Exception:
             return False
 
+
 def cache_result(ttl: int = 300, key_prefix: str = ""):
     """Decorator to cache function results."""
+
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -395,7 +410,9 @@ def cache_result(ttl: int = 300, key_prefix: str = ""):
             return result
 
         return wrapper
+
     return decorator
+
 
 # Usage example
 @cache_result(ttl=600, key_prefix="user")
@@ -418,12 +435,12 @@ settings = get_settings()
 engine = create_async_engine(
     settings.database_url,
     # Connection pool settings
-    pool_size=20,           # Number of connections to maintain
-    max_overflow=30,        # Additional connections beyond pool_size
-    pool_pre_ping=True,     # Verify connections before use
-    pool_recycle=3600,      # Recycle connections after 1 hour
+    pool_size=20,  # Number of connections to maintain
+    max_overflow=30,  # Additional connections beyond pool_size
+    pool_pre_ping=True,  # Verify connections before use
+    pool_recycle=3600,  # Recycle connections after 1 hour
     # Performance settings
-    echo=settings.debug,    # Log SQL queries in debug mode
+    echo=settings.debug,  # Log SQL queries in debug mode
 )
 ```
 
@@ -436,6 +453,7 @@ import time
 from fastapi import Request, Response
 from fastapi.middleware.base import BaseHTTPMiddleware
 import logging
+
 
 class MetricsMiddleware(BaseHTTPMiddleware):
     """Middleware to collect performance metrics."""
@@ -458,8 +476,8 @@ class MetricsMiddleware(BaseHTTPMiddleware):
                 "path": request.url.path,
                 "status_code": response.status_code,
                 "duration_seconds": duration,
-                "correlation_id": getattr(request.state, 'correlation_id', None)
-            }
+                "correlation_id": getattr(request.state, "correlation_id", None),
+            },
         )
 
         # Add performance headers
@@ -523,6 +541,7 @@ import logging
 import uuid
 from starlette.middleware.base import BaseHTTPMiddleware
 
+
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
         request_id = str(uuid.uuid4())
@@ -569,6 +588,7 @@ uv run python -m pytest tests/test_performance.py -v
 from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 from typing import Optional
+
 
 class Settings(BaseSettings):
     # Existing settings...

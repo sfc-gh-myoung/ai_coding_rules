@@ -1,20 +1,33 @@
+---
+schema_version: v3.5
+rule_version: v5.0.1
+description: 'Python core: toolchain detection, datetime UTC, collections.abc imports,
+  error handling, and mandatory validation gate.'
+last_updated: 2026-07-15
+keywords:
+- kw:pyproject.toml
+- kw:toolchain detection
+- kw:datetime.now(UTC)
+- kw:collections.abc imports
+- kw:dict list annotations
+- kw:pathlib file operations
+- ext:.py
+token_budget: ~3800
+context_tier: Critical
+depends:
+  required:
+  - 000-global-core.md
+  optional:
+  - 200a-python-validation-gate.md
+  - 206-python-pytest.md
+  - 201-python-lint-format.md
+---
 # Python Core Engineering Directives
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Python patterns. Load for Python tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v4.1.1
-**LastUpdated:** 2026-03-26
-**Keywords:** Python, uv, Ruff, pyproject.toml, dependency management, virtual environments, pytest, validation, uv run, uvx, ty, type checking, mypy, type hints
-**TokenBudget:** ~3600
-**ContextTier:** Critical
-**Depends:** 000-global-core.md
-**LoadTrigger:** ext:.py, ext:.pyi, file:pyproject.toml
 
 ## Scope
 
@@ -31,22 +44,6 @@ Foundational Python development practices: investigation-first toolchain detecti
 - Implementing Python best practices and modern patterns
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-
-**Recommended:**
-- **200a-python-validation-gate.md** - Pre-Task-Completion Validation Gate and type checking
-- **200b-python-environment-tooling.md** - Virtual environments, tool isolation, troubleshooting
-- **201-python-lint-format.md** - Detailed Ruff linting and formatting patterns
-- **203-python-project-setup.md** - Project structure and initialization patterns
-
-**Related:**
-- **202-markup-config-validation.md** - YAML and configuration file validation
-- **204-python-docs.md** - Documentation and docstring standards
-- **206-python-pytest.md** - Comprehensive testing patterns with pytest
 
 ### External Documentation
 
@@ -71,10 +68,10 @@ Foundational Python development practices: investigation-first toolchain detecti
 
 1. **Read pyproject.toml** for existing dependencies and tool configurations
 2. **Check for lock files** to identify the dependency manager:
-   - `uv.lock` — Project uses **uv** — Run prefix: `uv run` — Tool prefix: `uvx`
-   - `poetry.lock` — Project uses **poetry** — Run prefix: `poetry run` — Tool prefix: `poetry run`
-   - `Pipfile.lock` — Project uses **pipenv** — Run prefix: `pipenv run`
-   - `requirements.txt` only — Project uses **pip** — Run prefix: `python` (venv active)
+   - `uv.lock`: Project uses **uv**: Run prefix: `uv run`: Tool prefix: `uvx`
+   - `poetry.lock`: Project uses **poetry**: Run prefix: `poetry run`: Tool prefix: `poetry run`
+   - `Pipfile.lock`: Project uses **pipenv**: Run prefix: `pipenv run`
+   - `requirements.txt` only; Project uses **pip**: Run prefix: `python` (venv active)
 3. **Respect project's existing choices** unless explicitly asked to change
 
 **Recommended for NEW projects:** uv + Ruff + ty (Astral ecosystem: fast, modern, comprehensive)
@@ -121,12 +118,14 @@ These requirements apply regardless of toolchain choice:
 from typing import Protocol
 from datetime import datetime, UTC
 
+
 class ServiceProtocol(Protocol):
     """Clear contract for service implementations."""
 
     def process(self, data: dict) -> dict:
         """Process data following validation rules."""
         ...
+
 
 def implementation_function(input_data: dict) -> dict:
     """
@@ -229,6 +228,7 @@ ls -la | grep -E '(uv.lock|poetry.lock|Pipfile.lock)'
 ```python
 # Bad: Using deprecated datetime API
 from datetime import datetime
+
 timestamp = datetime.utcnow()  # Deprecated in Python 3.12+
 ```
 
@@ -238,6 +238,7 @@ timestamp = datetime.utcnow()  # Deprecated in Python 3.12+
 ```python
 # Good: Use timezone-aware datetime with UTC
 from datetime import datetime, UTC
+
 timestamp = datetime.now(UTC)  # Modern, timezone-aware
 ```
 
@@ -336,6 +337,7 @@ async def fetch_data(url: str) -> dict[str, Any]:
         httpx.HTTPStatusError: If response status is not 2xx.
     """
     import httpx
+
     async with httpx.AsyncClient() as client:
         response = await client.get(url)
         response.raise_for_status()
@@ -413,6 +415,7 @@ def load_users(config_path: Path) -> list[dict[str, Any]]:
         raise FileNotFoundError(f"Config not found: {config_path}")
 
     import tomllib
+
     with config_path.open("rb") as f:
         data = tomllib.load(f)
 

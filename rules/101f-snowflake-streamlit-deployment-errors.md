@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v3.0.0
+description: "Deployment error scenarios and resolution steps for Streamlit applications in both Container Runtime and Warehouse Runtime environments."
+last_updated: 2026-07-15
+keywords:
+  - kw:Streamlit deployment
+  - kw:Container Runtime
+  - kw:Warehouse Runtime
+  - kw:External Access Integration
+  - kw:stage upload compression
+  - kw:compute pool provisioning
+token_budget: ~2800
+context_tier: Low
+depends:
+  required:
+    - 101-snowflake-streamlit-core.md  # Core Streamlit patterns
+  optional:
+    - 101l-snowflake-streamlit-deployment.md  # Deployment guidance
+---
 # Streamlit Deployment Errors
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v2.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** deployment error, Container Runtime, Warehouse Runtime, EAI error, compute pool, stage upload, service startup, troubleshooting, runtime error
-**TokenBudget:** ~2800
-**ContextTier:** Low
-**Depends:** 101-snowflake-streamlit-core.md, 101l-snowflake-streamlit-deployment.md
 
 ## Scope
 
@@ -23,16 +33,6 @@ Deployment error scenarios and resolution steps for Streamlit applications in bo
 - Diagnosing service startup timeouts
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
-- **101l-snowflake-streamlit-deployment.md** - Deployment guidance `[Available]`
-
-**Related:**
-- **101c-snowflake-streamlit-security.md** - Security patterns `[Available]`
 
 ### External Documentation
 
@@ -77,10 +77,10 @@ Resolved deployment with Streamlit app accessible.
 - Logs show no warnings
 
 **Negative Tests:**
-- EAI includes both `pypi.org` and `files.pythonhosted.org` -- FAIL if either missing
-- Stage files are `.py` not `.py.gz` -- FAIL if compressed
-- Compute pool is ACTIVE before deployment -- FAIL if suspended or provisioning
-- `get_active_session()` not used in Container Runtime code -- FAIL if present
+- EAI includes both `pypi.org` and `files.pythonhosted.org`: FAIL if either missing
+- Stage files are `.py` not `.py.gz`: FAIL if compressed
+- Compute pool is ACTIVE before deployment: FAIL if suspended or provisioning
+- `get_active_session()` not used in Container Runtime code: FAIL if present
 
 ### Post-Execution Checklist
 
@@ -303,7 +303,7 @@ MemoryError: Unable to allocate
 **Cause:** App loads too much data into memory or a query/operation exceeds the container or warehouse timeout.
 
 **Resolution:**
-1. Reduce data loaded into memory — use server-side filtering and aggregation:
+1. Reduce data loaded into memory: use server-side filtering and aggregation:
 ```python
 # Bad: loads entire table into memory
 df = session.table("LARGE_TABLE").to_pandas()
@@ -325,6 +325,7 @@ ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = 600;
 ```python
 # Assuming Warehouse Runtime patterns work in Container Runtime
 from snowflake.snowpark.context import get_active_session
+
 session = get_active_session()  # Fails silently in Container Runtime
 ```
 

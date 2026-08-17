@@ -1,20 +1,33 @@
+---
+schema_version: v3.5
+rule_version: v2.0.1
+description: Best practices for authoring Snowflake SQL Scripting stored procedures
+  and user-defined functions (UDFs). Covers body delimiter selection ($$ vs single
+  quotes), nested quoting strategies, the EXECUTE
+last_updated: 2026-07-15
+keywords:
+- kw:SQL scripting
+- kw:dollar quoting
+- kw:EXECUTE AS
+- kw:EXECUTE IMMEDIATE
+- kw:bind variables
+- kw:procedure body quoting
+- ext:.sql
+token_budget: ~5700
+context_tier: High
+depends:
+  required:
+  - 102-snowflake-sql-core.md
+  optional:
+  - 102a-snowflake-sql-automation.md
+  - 100-snowflake-core.md
+---
 # Snowflake SQL: Stored Procedures and UDFs
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential patterns for Snowflake SQL Scripting stored procedures and UDFs.
 > Load when creating or modifying procedures/functions using LANGUAGE SQL.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** stored procedure, CREATE PROCEDURE, UDF, CREATE FUNCTION, dollar quoting, nested quotes, EXECUTE AS, EXECUTE IMMEDIATE, dynamic SQL, bind variables, OWNER, CALLER, RESTRICTED CALLER, SQL scripting, procedure body
-**TokenBudget:** ~5700
-**ContextTier:** High
-**Depends:** 102-snowflake-sql-core.md
-**LoadTrigger:** kw:stored-procedure, kw:create-procedure, kw:udf, kw:create-function
 
 ## Scope
 
@@ -31,15 +44,6 @@ Best practices for authoring Snowflake SQL Scripting stored procedures and user-
 - Debugging quoting or escaping errors in procedures
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **102-snowflake-sql-core.md** - SQL file patterns, fully qualified names, reserved characters
-
-**Related:**
-- **102a-snowflake-sql-automation.md** - Production CI/CD patterns for SQL deployment
-- **100-snowflake-core.md** - Snowflake fundamentals
 
 ### External Documentation
 
@@ -445,7 +449,7 @@ $$;
 
 ### Nested Quote Escaping in Dynamic SQL
 
-When dynamic SQL must contain string literals, each nesting level doubles the quotes. This gets complex fast -- prefer bind variables to avoid it:
+When dynamic SQL must contain string literals, each nesting level doubles the quotes. This gets complex fast: prefer bind variables to avoid it:
 
 ```sql
 AS
@@ -464,9 +468,9 @@ $$;
 
 **Quote nesting reference:**
 
-- **Inside `$$` body (direct SQL):** `'value'` -- normal, no escaping
-- **Inside a VARCHAR string in `$$` body:** `''value''` -- doubled
-- **Inside a VARCHAR inside another VARCHAR:** `''''value''''` -- quadrupled
+- **Inside `$$` body (direct SQL):** `'value'`: normal, no escaping
+- **Inside a VARCHAR string in `$$` body:** `''value''`: doubled
+- **Inside a VARCHAR inside another VARCHAR:** `''''value''''`: quadrupled
 
 Avoid going beyond two levels. Refactor into multiple statements or use bind variables instead.
 
@@ -518,12 +522,12 @@ $$;
 ```
 
 **Key EXCEPTION handlers:**
-- `WHEN statement_error THEN` -- catches SQL statement execution errors
-- `WHEN expression_error THEN` -- catches expression evaluation errors
-- `WHEN other THEN` -- catch-all for any unhandled exception
-- `SQLCODE` -- numeric error code
-- `SQLERRM` -- error message text
-- `RAISE` -- re-raise the current exception after handling
+- `WHEN statement_error THEN`: catches SQL statement execution errors
+- `WHEN expression_error THEN`: catches expression evaluation errors
+- `WHEN other THEN`: catch-all for any unhandled exception
+- `SQLCODE`: numeric error code
+- `SQLERRM`: error message text
+- `RAISE`: re-raise the current exception after handling
 
 ## Transaction Handling
 
@@ -553,7 +557,7 @@ $$;
 ## Debugging Procedures
 
 1. **Use `SYSTEM$LOG()`** for server-side logging: `SYSTEM$LOG('info', 'Processing ' || :row_count || ' rows');`
-2. **Test body SQL outside the procedure first** -- run the SELECT/INSERT/MERGE statements directly to verify logic
+2. **Test body SQL outside the procedure first**: run the SELECT/INSERT/MERGE statements directly to verify logic
 3. **Check `QUERY_HISTORY`** for the procedure's internal queries: `SELECT * FROM TABLE(INFORMATION_SCHEMA.QUERY_HISTORY()) WHERE QUERY_TEXT ILIKE '%procedure_name%' ORDER BY START_TIME DESC LIMIT 10;`
 4. **Use `RESULT_SCAN(LAST_QUERY_ID())`** to inspect intermediate results during development
 
@@ -599,7 +603,7 @@ $$
 $$;
 ```
 
-**Note:** UDFs do not support EXECUTE AS -- they always run with the caller's context for SQL UDFs.
+**Note:** UDFs do not support EXECUTE AS: they always run with the caller's context for SQL UDFs.
 
 ### Table Function (UDTF) Template
 

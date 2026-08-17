@@ -1,15 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Advanced Taskfile patterns including categorized help output, subtask file organization, cross-platform patterns, and AI agent integration considerations."
+last_updated: 2026-07-15
+keywords:
+  - kw:taskfile includes
+  - kw:categorized help output
+  - kw:subtask file organization
+  - kw:cross-platform task guards
+  - kw:task namespaces
+  - kw:AI agent task discovery
+token_budget: ~3450
+context_tier: Low
+depends:
+  required:
+    - 820-taskfile-automation.md  # Core Taskfile patterns
+---
 # Taskfile Advanced Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:taskfile-includes, kw:taskfile-help, kw:categorized-help
-**Keywords:** categorized help, subtask files, includes, AI agent, machine-readable, cross-platform, task namespaces, portable tasks, task discovery
-**TokenBudget:** ~3450
-**ContextTier:** Low
-**Depends:** 820-taskfile-automation.md
 
 ## Scope
 
@@ -25,11 +32,6 @@ Advanced Taskfile patterns including categorized help output, subtask file organ
 **For core Taskfile patterns, see `820-taskfile-automation.md`.**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **820-taskfile-automation.md** - Core Taskfile patterns
 
 ### External Documentation
 - [Taskfile Includes](https://taskfile.dev/usage/#including-other-taskfiles) - Namespacing and modules
@@ -83,9 +85,9 @@ Advanced Taskfile patterns including categorized help output, subtask file organ
 
 Before applying advanced Taskfile patterns, complete these checks:
 
-1. **Read existing Taskfile.yml:** `cat Taskfile.yml` — count tasks and assess current structure
-2. **Check for existing subtask directory:** `ls task/ 2>/dev/null` — identify existing modules
-3. **Count current tasks:** `task --list | wc -l` — if 8+, categorized help is mandatory
+1. **Read existing Taskfile.yml:** `cat Taskfile.yml`: count tasks and assess current structure
+2. **Check for existing subtask directory:** `ls task/ 2>/dev/null`: identify existing modules
+3. **Count current tasks:** `task --list | wc -l`: if 8+, categorized help is mandatory
 4. **Identify target platforms:** Check CI/CD config for OS matrix (e.g., `.github/workflows/*.yml`)
 5. **Check parent 820 rule compliance:** Verify `version`, `set: [pipefail]`, `desc:` on all public tasks
 6. **Determine AI agent consumption:** Check if tasks are invoked by AI coding agents (e.g., Cortex Code, Cursor)
@@ -127,7 +129,7 @@ includes:
 - Mark non-CLI tasks as `internal: true`
 
 **Debugging Failed Includes:**
-- Run `task --list` — unresolved includes show errors in output
+- Run `task --list`: unresolved includes show errors in output
 - Check `optional: true` flag on includes for files that may not exist
 - Verify `dir:` paths are relative to the root Taskfile location
 

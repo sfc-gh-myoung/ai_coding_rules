@@ -10,9 +10,9 @@ Create a new Cursor rule documenting pytest-mock best practices following schema
 
 ### Phase 1: Discovery (5 min)
 
-**Search RULES_INDEX.md:**
+**Search rule frontmatter:**
 ```bash
-$ grep -i "pytest\|mock\|python.*test" RULES_INDEX.md
+$ grep -i "pytest\|mock\|python.*test" rule frontmatter 
 || `200-python-core.md` | Python foundations | ...
 || `206-python-pytest.md` | pytest usage | ...
 
@@ -91,7 +91,7 @@ def test_something(mock_func):
 ```python
 # Right: Use mocker fixture
 def test_something(mocker):
-    mock_func = mocker.patch('module.function', return_value=42)
+    mock_func = mocker.patch("module.function", return_value=42)
     assert module.function() == 42
     mock_func.assert_called_once()
 ```

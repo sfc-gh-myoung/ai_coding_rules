@@ -1,20 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Foundational observability practices for Snowflake environments through telemetry configuration and event table management, enabling effective monitoring, troubleshooting, and performance"
+last_updated: 2026-07-15
+keywords:
+  - kw:event table setup
+  - kw:telemetry level hierarchy
+  - kw:system views latency
+  - kw:DEBUG cost implications
+  - kw:SHOW PARAMETERS investigation
+  - kw:OpenTelemetry alignment
+  - kw:snowpark
+token_budget: ~4350
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md
+---
 # Snowflake Observability Core
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Observability patterns. Load for observability tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:observability, kw:monitoring
-**Keywords:** LOG_LEVEL, TRACE_LEVEL, METRIC_LEVEL, SHOW PARAMETERS, OpenTelemetry, System Views vs Telemetry, monitoring, logging, tracing, debug observability, event table queries, observability patterns, configure telemetry
-**TokenBudget:** ~4650
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md
 
 ## Scope
 
@@ -49,20 +57,9 @@ Foundational observability practices for Snowflake environments through telemetr
 - [Event Table Setup Guide](https://docs.snowflake.com/en/developer-guide/logging-tracing/event-table-setting-up) - Step-by-step guide for setting up and managing event tables
 - [Snowflake Telemetry Levels](https://docs.snowflake.com/en/developer-guide/logging-tracing/telemetry-levels) - Complete guide to configuring telemetry levels and hierarchy
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **111a-snowflake-observability-logging.md** - logging best practices and standard library integration
-- **111b-snowflake-observability-tracing.md** - distributed tracing patterns with custom spans
-- **111c-snowflake-observability-monitoring.md** - monitoring queries and Snowsight interfaces
+### External Documentation
 
-**Sometimes Related** (load if specific scenario):
-- **103-snowflake-performance-tuning.md** - using telemetry data for performance optimization
-- **115b-snowflake-cortex-agents-operations.md** - implementing agent observability and evaluation
-- **109-snowflake-notebooks.md** - adding telemetry to notebook executions
-
-**Complementary** (different aspects of same domain):
-- **105-snowflake-cost-governance.md** - monitoring costs using telemetry data
-- **107-snowflake-security-governance.md** - security event monitoring and audit logs
+_None._
 
 ## Contract
 
@@ -208,7 +205,7 @@ session.sql("SELECT SYSTEM$LOG('INFO', 'Process started')").collect()
 # Good: Verify event table active before relying on telemetry
 # Check if event table is configured
 result = session.sql("SHOW PARAMETERS LIKE 'EVENT_TABLE'").collect()
-event_table = result[0]['value'] if result else None
+event_table = result[0]["value"] if result else None
 
 if not event_table:
     # Fallback: Create or set event table first

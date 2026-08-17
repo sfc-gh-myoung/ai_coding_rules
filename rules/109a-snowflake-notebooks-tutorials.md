@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive patterns for designing educational Snowflake notebooks that effectively teach concepts through clear learning objectives, structured content, anti-pattern examples, validation"
+last_updated: 2026-07-15
+keywords:
+  - kw:notebook-tutorial design
+  - kw:learning objectives structure
+  - kw:checkpoint validation cells
+  - kw:anti-pattern teaching
+  - kw:progressive complexity management
+  - kw:teaching point callouts
+token_budget: ~3600
+context_tier: High
+depends:
+  required:
+    - 109-snowflake-notebooks.md
+    - 920-data-science-analytics.md
+---
 # Snowflake Notebook Tutorial Design Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:notebook-tutorial
-**Keywords:** checkpoints, learning objectives, pedagogical design, educational content, progressive learning, Snowflake notebooks, teaching point callouts, validation gates, tutorial structure, learning design, educational notebooks, teaching methodology, notebook education
-**TokenBudget:** ~3600
-**ContextTier:** High
-**Depends:** 109-snowflake-notebooks.md, 920-data-science-analytics.md
 
 ## Scope
 
@@ -29,11 +37,6 @@ Comprehensive patterns for designing educational Snowflake notebooks that effect
 - [Snowflake Notebooks Getting Started](https://docs.snowflake.com/en/user-guide/ui-snowsight-notebooks-gs) - Official quickstart guide
 - [Snowpark for Python Tutorials](https://quickstarts.snowflake.com/guide/getting_started_with_snowpark_python/index.html) - Hands-on learning
 - [Jupyter Best Practices](https://jupyter-notebook.readthedocs.io/en/stable/notebook.html) - General notebook guidelines
-
-### Related Rules
-- **Notebook Core**: `109-snowflake-notebooks.md` - Core notebook patterns
-- **App Deployment**: `109b-snowflake-app-deployment-core.md` - Production deployment
-- **Snowflake Core**: `100-snowflake-core.md` - Foundational practices
 
 ## Contract
 
@@ -106,7 +109,7 @@ See detailed Post-Execution Checklist below for comprehensive tutorial validatio
 
 **Anti-Pattern 2: No Anti-Pattern Teaching**
 
-**Problem:** Listing best practices without showing what to avoid or why — learners may still make common mistakes.
+**Problem:** Listing best practices without showing what to avoid or why: learners may still make common mistakes.
 
 ```markdown
 ## Best Practices

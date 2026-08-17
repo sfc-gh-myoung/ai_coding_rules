@@ -1,19 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Strategies for managing context in long-horizon agent tasks (>10 agent turns within a session, OR tasks spanning multiple sessions). A task is long-horizon when context from earlier turns is needed"
+last_updated: 2026-07-15
+keywords:
+  - kw:long-horizon tasks
+  - kw:context compaction
+  - kw:persistent memory
+  - kw:sub-agent delegation
+  - kw:multi-session continuity
+  - kw:checkpointing protocols
+token_budget: ~2950
+context_tier: Medium
+depends:
+  required:
+    - 003-context-engineering.md
+    - 000-global-core.md
+---
 # Long-Horizon Task Strategies for AI Agents
 
 > **CORE RULE**
 >
 > Strategies for managing context across long-running, multi-session agent tasks.
 > Load when working on tasks that span multiple turns or sessions.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** long-horizon tasks, compaction, checkpointing, sub-agents, structured notes, multi-session, context compression, persistent memory, agent coordination
-**TokenBudget:** ~2950
-**ContextTier:** Medium
-**Depends:** 003-context-engineering.md, 000-global-core.md
 
 ## Scope
 
@@ -32,16 +41,9 @@ Covers compaction protocols, structured note-taking for persistent memory, and s
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- `003-context-engineering.md` - Core context engineering principles (attention budget, progressive disclosure)
-- `000-global-core.md` - Foundation for all rules
-
-### Related Rules
-
-- `001-memory-bank.md` - Structured documentation and context preservation
-- `004-tool-design-for-agents.md` - Token-efficient tool development patterns
+_None._
 
 ## Contract
 
@@ -57,7 +59,7 @@ Covers compaction protocols, structured note-taking for persistent memory, and s
 - Grep tool, Glob tool (for context exploration)
 - memory.store / memory.retrieve (for persistent state), or file-based persistence
   (NOTES.md) when agent memory is unavailable. Choose ONE primary method per project
-  and use it consistently — do not split decisions across both NOTES.md and memory API,
+  and use it consistently: do not split decisions across both NOTES.md and memory API,
   as this creates divergent state.
 - Sub-agent orchestration tools (for delegation patterns)
 
@@ -121,10 +123,10 @@ Covers compaction protocols, structured note-taking for persistent memory, and s
 
 Choose the strategy based on task characteristics:
 
-- **Single session approaching limits** -- Strategy 1 (Compaction)
-- **Multi-session, persistent state needed** -- Strategy 2 (Structured Notes)
-- **Parallelizable decomposition possible** -- Strategy 3 (Sub-Agents)
-- **Complex multi-session with parallelization** -- Combine all three
+- **Single session approaching limits**: Strategy 1 (Compaction)
+- **Multi-session, persistent state needed**: Strategy 2 (Structured Notes)
+- **Parallelizable decomposition possible**: Strategy 3 (Sub-Agents)
+- **Complex multi-session with parallelization**: Combine all three
 
 ## Strategy 1: Compaction
 
@@ -235,12 +237,15 @@ Assistant: Yes, let me check the dependencies...
 **Tool Support:**
 ```python
 # Memory tool (Anthropic Platform)
-memory.store("oauth_progress", {
-    "completed_tasks": ["user_model", "jwt_auth"],
-    "current_focus": "oauth2_integration",
-    "blockers": [],
-    "next_steps": ["create_callback_handler", "test_oauth_flow"]
-})
+memory.store(
+    "oauth_progress",
+    {
+        "completed_tasks": ["user_model", "jwt_auth"],
+        "current_focus": "oauth2_integration",
+        "blockers": [],
+        "next_steps": ["create_callback_handler", "test_oauth_flow"],
+    },
+)
 
 # Retrieve later
 state = memory.retrieve("oauth_progress")
@@ -284,14 +289,11 @@ Main Agent (Coordinator) delegates to:
 **Implementation:**
 ```python
 # Main agent delegates
-research_summary = sub_agent_research(
-    "Find OAuth2 best practices for FastAPI"
-)
+research_summary = sub_agent_research("Find OAuth2 best practices for FastAPI")
 # Sub-agent uses 20K tokens exploring, returns 2K summary
 
 implementation = sub_agent_implement(
-    context=research_summary,
-    task="Create OAuth2 endpoints following best practices"
+    context=research_summary, task="Create OAuth2 endpoints following best practices"
 )
 # Sub-agent uses 30K tokens coding, returns 1K summary + code
 
@@ -311,7 +313,7 @@ implementation = sub_agent_implement(
 
 ## Combining Strategies
 
-For complex multi-session tasks, combine all three strategies. Example — refactoring a 50-file codebase: use sub-agents for parallel file analysis, structured notes (NOTES.md) for cross-session state tracking, and compaction within each sub-agent session to keep individual contexts focused.
+For complex multi-session tasks, combine all three strategies. Example: refactoring a 50-file codebase: use sub-agents for parallel file analysis, structured notes (NOTES.md) for cross-session state tracking, and compaction within each sub-agent session to keep individual contexts focused.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -348,16 +350,16 @@ for step in task_steps:
 4. Write summary to `NOTES.md` or the agent's persistent memory
 
 **Target:** Summary should be 10-20% of the original conversation tokens. If the
-summary exceeds 20%, it's not compressed enough — remove additional narrative.
+summary exceeds 20%, it's not compressed enough: remove additional narrative.
 
 ### Compaction Quality Check
 
 After compacting conversation history, verify the summary:
 
 1. **Decision preservation:** Can you list every technical decision made? If any are missing,
-   the summary is too aggressive — add them back.
+   the summary is too aggressive: add them back.
 2. **Task continuity:** Can you continue the task using ONLY the summary (without the original
-   conversation)? If not, the summary is missing context — expand it.
+   conversation)? If not, the summary is missing context: expand it.
 3. **File reference check:** Are all file paths and line numbers from the original conversation
    preserved in the summary? Missing references cause wasted re-investigation.
 4. **Token target:** Is the summary 10-20% of the original? If >20%, further compress
@@ -377,7 +379,7 @@ for i, item in enumerate(large_dataset):
 ```python
 # CORRECT: Checkpoint progress
 checkpoint = load_checkpoint() or {"last_index": 0}
-for i, item in enumerate(large_dataset[checkpoint["last_index"]:]):
+for i, item in enumerate(large_dataset[checkpoint["last_index"] :]):
     process(item)
     save_checkpoint({"last_index": i + 1})
 ```

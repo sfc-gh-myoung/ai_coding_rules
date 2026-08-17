@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Professional contribution workflow directives covering commits, pull requests, changelog discipline, and rule authoring standards to ensure consistent project collaboration and quality."
+last_updated: 2026-07-15
+keywords:
+  - kw:pull requests
+  - kw:conventional commits
+  - kw:CONTRIBUTING.md
+  - kw:changelog discipline
+  - kw:rule authoring
+  - kw:pre-commit validation
+token_budget: ~2600
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 801-project-readme.md  # README best practices
+    - 803-project-git-workflow.md  # Git workflow management
+    - 002-rule-governance.md  # Rule authoring standards
+---
 # Contribution Workflow
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-03-26
-**LoadTrigger:** kw:contributing, file:CONTRIBUTING.md
-**Keywords:** CONTRIBUTING, pull requests, code review, contribution guidelines, branching strategy, Conventional Commits, rule authoring, PR templates, project governance, git workflow
-**TokenBudget:** ~2600
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
 
 ## Scope
 
@@ -24,17 +35,6 @@ Professional contribution workflow directives covering commits, pull requests, c
 - Setting up rule authoring guidelines
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **800-project-changelog.md** - Changelog management standards
-- **801-project-readme.md** - README best practices
-- **803-project-git-workflow.md** - Git workflow management
-- **002-rule-governance.md** - Rule authoring standards
 
 ### External Documentation
 - [GitHub Contributing Guidelines](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors) - GitHub's guide for contribution workflows
@@ -65,10 +65,10 @@ Professional contribution workflow directives covering commits, pull requests, c
 
 ### Execution Steps
 1. Fork repository and create feature branch following naming conventions:
-   - `feat/add-snowflake-cortex-rule` — new feature or rule
-   - `fix/schema-validation-error` — bug fix
-   - `docs/update-contributing-guide` — documentation change
-   - `refactor/consolidate-anti-patterns` — code restructuring
+   - `feat/add-snowflake-cortex-rule` - new feature or rule
+   - `fix/schema-validation-error` - bug fix
+   - `docs/update-contributing-guide` - documentation change
+   - `refactor/consolidate-anti-patterns` - code restructuring
    - Match branch type prefix to Conventional Commits type (see 803-project-git-workflow.md)
 2. Edit rules/ directory files directly (production-ready rules)
 3. Follow Conventional Commits format for all commit messages
@@ -122,11 +122,11 @@ Well-structured pull request with:
 
 Before making contributions, complete these checks:
 
-1. **Read existing CONTRIBUTING.md:** `cat CONTRIBUTING.md` — understand current workflow before proposing changes
-2. **Check project automation for available commands:** `make help`, `task --list`, or equivalent — verify validation commands exist
-3. **Verify rule numbering scheme:** `ls rules/*.md | sort` — identify next available rule number if creating new rules
-4. **Check for PR template:** `ls .github/PULL_REQUEST_TEMPLATE.md` — if present, use it for PR descriptions
-5. **Review existing branch naming:** `git branch -r | head -20` — observe project conventions in practice
+1. **Read existing CONTRIBUTING.md:** `cat CONTRIBUTING.md`: understand current workflow before proposing changes
+2. **Check project automation for available commands:** `make help`, `task --list`, or equivalent: verify validation commands exist
+3. **Verify rule numbering scheme:** `ls rules/*.md | sort`: identify next available rule number if creating new rules
+4. **Check for PR template:** `ls .github/PULL_REQUEST_TEMPLATE.md`: if present, use it for PR descriptions
+5. **Review existing branch naming:** `git branch -r | head -20`: observe project conventions in practice
 
 ## Anti-Patterns and Common Mistakes
 
@@ -240,7 +240,7 @@ Closes #123
 
 When a reviewer requests changes, follow this workflow:
 
-1. **Address feedback in new commits** — do NOT amend or squash during review (preserves review context and comment threads)
+1. **Address feedback in new commits**: do NOT amend or squash during review (preserves review context and comment threads)
 2. **Re-run validation after each fix:**
    ```bash
    make rules-validate
@@ -248,9 +248,9 @@ When a reviewer requests changes, follow this workflow:
    make format
    ```
 3. **Reply to each review comment** indicating how it was addressed:
-   - "Fixed in commit `abc1234`" — link to specific commit
-   - "Won't fix — rationale: ..." — explain disagreement respectfully
-   - "Moved to follow-up issue #N" — for out-of-scope requests
+   - "Fixed in commit `abc1234`": link to specific commit
+   - "Won't fix: rationale: ...": explain disagreement respectfully
+   - "Moved to follow-up issue #N": for out-of-scope requests
 4. **Request re-review** when all feedback is addressed:
    ```bash
    gh pr ready
@@ -274,7 +274,7 @@ Verify the validation pipeline catches common errors by intentionally introducin
 ### Test 1: Invalid Metadata
 ```yaml
 # Break SchemaVersion in any rule file
-SchemaVersion: v2.0  # Invalid — must be v3.2
+SchemaVersion: v2.0  # Invalid - must be v3.2
 ```
 **Expected:** Project validation fails with schema version error (`make rules-validate` in this project).
 
@@ -298,6 +298,6 @@ git checkout main && git commit -m "feat: test" && git push
 
 ## Contribution Anti-Patterns
 
-- Do NOT submit large PRs that mix features and refactoring — split into separate PRs
-- Do NOT push directly to main — always use feature branches and PRs
+- Do NOT submit large PRs that mix features and refactoring: split into separate PRs
+- Do NOT push directly to main: always use feature branches and PRs
 - Do NOT merge your own PRs without review (unless solo maintainer)

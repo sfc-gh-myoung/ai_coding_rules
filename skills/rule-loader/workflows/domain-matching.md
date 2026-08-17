@@ -1,5 +1,8 @@
 # Phase 2: Domain Matching
 
+> **Layer: HARD (mechanical, reproducible).** Extension / file / directory matches
+> are exact-string lookups against `rules/rule frontmatter`. No LLM judgment.
+
 ## Purpose
 
 Select domain rules based on file extensions and directory paths mentioned in the user request.
@@ -29,7 +32,8 @@ IF neither directory mentioned:
 
 ### Step 2: File Extension Matching
 
-Extract all file extensions from the user request, then look up each in RULES_INDEX.md Section 2.
+Extract all file extensions from the user request, then look up each via
+`grep -iwE "ext=\.<ext>" rules/rule frontmatter` (the index agents grep).
 
 **Authoritative Extension Mapping:**
 
@@ -86,9 +90,9 @@ If no extensions found and no directory matches, skip to Phase 3.
 
 ## Rules
 
-- **MANDATORY:** Use only rule names from RULES_INDEX.md. Never invent rule names.
+- **MANDATORY:** Use only rule names from rule frontmatter. Never invent rule names.
 - **FORBIDDEN:** Guessing `300-sql-core.md` when the index says `102-snowflake-sql-core.md`.
-- If an extension has no mapping in RULES_INDEX.md, note: "No domain rule for [extension]"
+- If an extension has no mapping in rule frontmatter, note: "No domain rule for [extension]"
 - Multiple extensions can match (e.g., `.py` + `.sql` loads both domain rules)
 
 ## Deduplication

@@ -1,33 +1,39 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Flask application development: factory pattern, blueprints, security, SQLAlchemy, templates, deployment."
+last_updated: 2026-07-15
+keywords:
+  - kw:application factory
+  - kw:Flask blueprints
+  - kw:Flask-SQLAlchemy
+  - kw:CSRF protection
+  - kw:Jinja2 templates
+  - kw:Gunicorn deployment
+  - kw:flask
+token_budget: ~2150
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Python foundation patterns
+  optional:
+    - 203-python-project-setup.md  # Python project structure and packaging
+    - 201-python-lint-format.md  # Code quality and formatting standards
+---
 # Flask Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:flask, kw:web
-**Keywords:** Flask, web, blueprints, Flask-SQLAlchemy, templates, routing, application factory
-**TokenBudget:** ~2150
-**ContextTier:** High
-**Depends:** 200-python-core.md
 
 ## Scope
 
 **What This Rule Covers:**
 Flask application development: factory pattern, blueprints, security, SQLAlchemy, templates, deployment.
 
-**When to Load:**
+**When to Load This Rule:**
 - Building Flask applications
 - Implementing factory pattern and blueprints
 - Securing Flask apps (CSRF, auth)
 - Deploying to production
 
 ## References
-
-### Dependencies
-**Must Load First:** 200-python-core.md
-
-**Related:** 203-python-project-setup.md, 201-python-lint-format.md
 
 ### External Documentation
 - [Flask Documentation](https://flask.palletsprojects.com/en/stable/)
@@ -111,6 +117,7 @@ class Config:
 ```python
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY")
+
     def __init__(self):
         if not self.SECRET_KEY:
             raise ValueError("SECRET_KEY required")
@@ -142,15 +149,16 @@ from app.extensions import db, migrate, login_manager, csrf
 
 from app.blueprints.main import main_bp
 
+
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
-    
+
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
     csrf.init_app(app)
-    
+
     app.register_blueprint(main_bp)
     register_error_handlers(app)
     return app
@@ -170,6 +178,7 @@ login_manager = LoginManager()
 login_manager.login_view = "auth.login"
 csrf = CSRFProtect()
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
@@ -179,13 +188,14 @@ def load_user(user_id):
 ```python
 # app/blueprints/auth/__init__.py
 from flask import Blueprint
-auth_bp = Blueprint('auth', __name__, template_folder='templates')
+
+auth_bp = Blueprint("auth", __name__, template_folder="templates")
 from app.blueprints.auth import routes
 ```
 
 ```python
 # app/blueprints/auth/routes.py
-@auth_bp.route('/login', methods=['GET', 'POST'])
+@auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
@@ -194,8 +204,8 @@ def login():
         ).scalar_one_or_none()
         if user and user.check_password(form.password.data):
             login_user(user)
-            return redirect(url_for('main.index'))
-    return render_template('auth/login.html', form=form)
+            return redirect(url_for("main.index"))
+    return render_template("auth/login.html", form=form)
 ```
 
 ### Configuration
@@ -204,9 +214,10 @@ def login():
 import os
 from datetime import timedelta
 
+
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY')
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
@@ -218,16 +229,19 @@ class Config:
         if missing:
             raise RuntimeError(f"Missing required config: {', '.join(missing)}")
 
+
 class DevelopmentConfig(Config):
     DEBUG = True
     SESSION_COOKIE_SECURE = False
 
+
 class ProductionConfig(Config):
     DEBUG = False
 
+
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     WTF_CSRF_ENABLED = False
 ```
 
@@ -237,9 +251,10 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField
 from wtforms.validators import DataRequired, Email
 
+
 class LoginForm(FlaskForm):
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
+    email = StringField("Email", validators=[DataRequired(), Email()])
+    password = PasswordField("Password", validators=[DataRequired()])
 ```
 
 ### Model Example
@@ -248,15 +263,16 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.extensions import db
 
+
 class User(UserMixin, db.Model):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-    
+
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 ```
@@ -266,12 +282,12 @@ class User(UserMixin, db.Model):
 def register_error_handlers(app):
     @app.errorhandler(404)
     def not_found(error):
-        return render_template('errors/404.html'), 404
-    
+        return render_template("errors/404.html"), 404
+
     @app.errorhandler(500)
     def internal_error(error):
         db.session.rollback()
-        return render_template('errors/500.html'), 500
+        return render_template("errors/500.html"), 500
 ```
 
 ### Testing
@@ -279,6 +295,7 @@ def register_error_handlers(app):
 import pytest
 from app import create_app, db
 from app.config import TestingConfig
+
 
 @pytest.fixture
 def app():
@@ -288,12 +305,14 @@ def app():
         yield app
         db.drop_all()
 
+
 @pytest.fixture
 def client(app):
     return app.test_client()
 
+
 def test_login_page(client):
-    response = client.get('/auth/login')
+    response = client.get("/auth/login")
     assert response.status_code == 200
 ```
 
@@ -338,6 +357,7 @@ def get_data():
 ```python
 # wsgi.py
 from app import create_app
+
 app = create_app()
 ```
 

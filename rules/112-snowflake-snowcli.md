@@ -1,15 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v4.1.0
+description: "Clear, reproducible guidance for installing, invoking, and automating Snowflake CLI (SnowCLI) with hermetic, pinned execution. Covers uvx usage, build automation integration, profile/env var"
+last_updated: 2026-08-02
+keywords:
+  - kw:snowcli
+  - kw:snowcli uvx pinned
+  - kw:stage copy no-auto-compress
+  - kw:streamlit deploy FROM
+  - kw:connection profile env
+  - kw:CI non-interactive json
+  - kw:snowflake.yml
+  - kw:snowflake.yml project
+  - file:snowflake.yml
+token_budget: ~5650
+context_tier: Medium
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+  optional:
+    - 820-taskfile-automation.md
+    - 803-project-git-workflow.md  # CI/CD integration patterns
+---
 # Snowflake SnowCLI (snow) Usage Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.3.1
-**LastUpdated:** 2026-05-13
-**LoadTrigger:** kw:snowcli, file:snowflake.yml
-**Keywords:** SnowCLI, Snowflake CLI, uvx, automation, deployment automation, snowflake.yml, profiles, CI/CD, JSON output, authentication, config.toml, PAT authentication, WIF authentication, project definition, connection management, stage-to-stage copy, streamlit deploy, FROM deployment, live version
-**TokenBudget:** ~4900
-**ContextTier:** Medium
-**Depends:** 100-snowflake-core.md
 
 ## Scope
 
@@ -27,15 +40,6 @@ Clear, reproducible guidance for installing, invoking, and automating Snowflake 
 - Managing Snowflake CLI connections
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-
-**Related:**
-- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
-- **803-project-git-workflow.md** - CI/CD integration patterns
 
 ### External Documentation
 
@@ -247,7 +251,7 @@ def stage_copy(path, stage, auto_compress=True):
     # When caller passes auto_compress=False: nothing happens!
     # CLI still auto-compresses → .py becomes .py.gz → SiS TypeError
 ```
-**Problem:** The `snow stage copy` CLI auto-compresses by default. Omitting `--no-auto-compress` does NOT disable compression — it enables it. This bug is especially insidious because deployment succeeds (`[PASS]`) while the app fails at runtime.
+**Problem:** The `snow stage copy` CLI auto-compresses by default. Omitting `--no-auto-compress` does NOT disable compression: it enables it. This bug is especially insidious because deployment succeeds (`[PASS]`) while the app fails at runtime.
 
 **Correct Pattern:**
 ```python
@@ -461,10 +465,10 @@ uvx --from=snowflake-cli==3.16.0 snow streamlit deploy --replace --open
 
 ### Key flags
 
-- `--replace` — Replace the app if it already exists (uploads new/changed files; does not remove stage files).
-- `--prune` — Delete stage files that no longer exist locally (use with `--replace`).
-- `--open` — Open the deployed app in a browser.
-- `--legacy` — **Opt-in to legacy `ROOT_LOCATION` SQL syntax.** Do not use for new deployments.
+- `--replace`: Replace the app if it already exists (uploads new/changed files; does not remove stage files).
+- `--prune`: Delete stage files that no longer exist locally (use with `--replace`).
+- `--open`: Open the deployed app in a browser.
+- `--legacy`: **Opt-in to legacy `ROOT_LOCATION` SQL syntax.** Do not use for new deployments.
 
 ### Verify deployment behavior
 

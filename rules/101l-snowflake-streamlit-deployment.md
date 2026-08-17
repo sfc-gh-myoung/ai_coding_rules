@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Comprehensive deployment guidance for Streamlit applications in Snowflake, covering runtime selection (Container vs Warehouse), dependency management, External Access Integration (EAI) setup, and"
+last_updated: 2026-07-15
+keywords:
+  - kw:container runtime
+  - kw:warehouse runtime
+  - kw:pyproject.toml
+  - kw:external access integration
+  - kw:compute pool
+  - kw:runtime migration
+token_budget: ~4150
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation patterns and conventions
+    - 101-snowflake-streamlit-core.md  # Core Streamlit patterns and state management
+  optional:
+    - 101f-snowflake-streamlit-deployment-errors.md  # Deployment error troubleshooting
+    - 101c-snowflake-streamlit-security.md  # Secrets management by runtime
+---
 # Streamlit Deployment: Runtime Selection and Setup
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.3.0
-**LastUpdated:** 2026-05-12
-**Keywords:** Container Runtime, Warehouse Runtime, deployment, pyproject.toml, environment.yml, compute pool, EAI, external access integration, CREATE STREAMLIT, migration
-**TokenBudget:** ~3850
-**ContextTier:** High
-**Depends:** 000-global-core.md, 101-snowflake-streamlit-core.md
 
 ## Scope
 
@@ -23,16 +35,6 @@ Comprehensive deployment guidance for Streamlit applications in Snowflake, cover
 - Troubleshooting deployment configuration issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation patterns and conventions `[Available]`
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns and state management `[Available]`
-
-**Related:**
-- **101f-snowflake-streamlit-deployment-errors.md** - Deployment error troubleshooting
-- **101c-snowflake-streamlit-security.md** - Secrets management by runtime
 
 ### External Documentation
 
@@ -199,12 +201,12 @@ GRANT USAGE ON COMPUTE POOL streamlit_compute_pool
 
 **Instance Family Guidelines (cloud-aware):**
 
-- **Basic apps, low memory** — AWS/Azure: `GEN_X64_G2_2`; GCP: `CPU_X64_XS`
-- **Moderate memory needs** — AWS/Azure: `GEN_X64_G2_4`; GCP: `CPU_X64_S`
-- **Large DataFrames, complex visualizations** — AWS/Azure: `GEN_X64_G2_8`; GCP: `CPU_X64_M`
+- **Basic apps, low memory**: AWS/Azure: `GEN_X64_G2_2`; GCP: `CPU_X64_XS`
+- **Moderate memory needs**: AWS/Azure: `GEN_X64_G2_4`; GCP: `CPU_X64_S`
+- **Large DataFrames, complex visualizations**: AWS/Azure: `GEN_X64_G2_8`; GCP: `CPU_X64_M`
 
 - Note: Streamlit runs single-threaded; multiple CPUs won't help
-- Note: On AWS/Azure, `CPU_X64_*` are previous-generation — prefer `GEN_X64_G2_*` for new pools
+- Note: On AWS/Azure, `CPU_X64_*` are previous-generation: prefer `GEN_X64_G2_*` for new pools
 
 ### Step 3: Create Dependency File (pyproject.toml)
 
@@ -295,7 +297,7 @@ snow stage list-files @my_db.my_schema.my_stage/streamlit_app
 
 ### Post-Deployment Verification
 
-1. `SHOW SERVICE CONTAINERS IN SERVICE <name>` -- verify READY status
+1. `SHOW SERVICE CONTAINERS IN SERVICE <name>`: verify READY status
 2. Access app URL and verify home page loads
 3. Test database connectivity by triggering a query
 4. Verify secrets accessible via `st.secrets`
@@ -429,6 +431,7 @@ ALTER STREAMLIT my_app ADD LIVE VERSION FROM LAST;
 **Problem:**
 ```python
 from snowflake.snowpark.context import get_active_session
+
 session = get_active_session()  # Fails in Container Runtime!
 ```
 
@@ -437,6 +440,7 @@ session = get_active_session()  # Fails in Container Runtime!
 **Correct Pattern:**
 ```python
 import streamlit as st
+
 conn = st.connection("snowflake")
 session = conn.session()  # Works in both runtimes
 ```

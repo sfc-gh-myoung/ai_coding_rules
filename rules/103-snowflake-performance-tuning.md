@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: Systematic approaches for profiling, optimizing, and fine-tuning Snowflake
+  queries and warehouse usage to achieve optimal performance while managing costs
+  effectively.
+last_updated: 2026-07-15
+keywords:
+- kw:Query Profile analysis
+- kw:partition pruning optimization
+- kw:spillage detection
+- kw:clustering key justification
+- kw:cluster-key-tuning
+- kw:slow query investigation
+- kw:snowsight
+token_budget: ~3200
+context_tier: High
+depends:
+  required:
+  - 000-global-core.md
+  - 100-snowflake-core.md
+---
 # Snowflake Performance Tuning
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** search optimization, pruning, spillage, SQL optimization, Snowflake, partition pruning, QUERY_HISTORY, optimize query, fix slow query, query bottleneck, warehouse performance, micro-partitions, clustering, performance analysis
-**TokenBudget:** ~3200
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md
-**LoadTrigger:** kw:performance, kw:optimization, kw:slow
 
 ## Scope
 
@@ -33,32 +44,10 @@ Systematic approaches for profiling, optimizing, and fine-tuning Snowflake queri
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **100-snowflake-core.md** - Snowflake SQL patterns and best practices
-
 ### External Documentation
 - [Query Profile Guide](https://docs.snowflake.com/en/user-guide/ui-query-profile) - Query execution analysis and performance diagnostics
 - [Virtual Warehouse Management](https://docs.snowflake.com/en/user-guide/warehouses) - Warehouse sizing, scaling, and cost optimization
 - [Clustering Keys](https://docs.snowflake.com/en/user-guide/tables-clustering-keys) - Table clustering for query performance optimization
-
-### Related Rules
-
-**Closely Related** (consider loading together):
-- **119-snowflake-warehouse-management.md** - Warehouse sizing, type selection (CPU/GPU/High-Memory), auto-suspend config
-- **105-snowflake-cost-governance.md** - Cost monitoring, resource monitors, budget alerts during optimization
-
-**Sometimes Related** (load if specific scenario):
-- **100-snowflake-core.md** - CTE usage patterns and query structure fundamentals
-- **102-snowflake-sql-core.md** - General SQL file patterns
-- **122-snowflake-dynamic-tables.md** - Optimizing dynamic table refresh performance
-- **104-snowflake-streams-tasks.md** - Optimizing stream/task pipeline performance
-
-**Complementary** (different aspects of same domain):
-- **108-snowflake-data-loading.md** - Optimizing COPY INTO and data loading performance
-- **111-snowflake-observability-core.md** - Query profiling and performance monitoring
 
 ## Contract
 

@@ -1,0 +1,320 @@
+{%- import "_macros.j2" as labels -%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Step Instruction Compliance: Verifiable Protocol Adherence Across Frontier LLMs</title>
+
+<script src="https://cdn.jsdelivr.net/npm/vega@5.30.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5.21.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6.26.0"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+{% include "_styles.j2" %}
+</head>
+<body>
+
+<header>
+  <span class="badge badge-research">Research Report</span>
+  <h1>Multi-Step Instruction Compliance: Observed Failure Modes Across {{ total_models }} Models</h1>
+  <p>Do frontier language models reliably follow structured procedures when tool-call auditing provides ground truth?</p>
+  <p style="opacity:0.6; font-size:0.82rem; margin-top:0.5rem;">{{ report_date | default("2026") }} &middot; {{ fixtures_data | length }} fixtures &middot; {{ total_models }} models &middot; instruction compliance benchmark</p>
+  {% if has_noplugin %}<p style="font-size:0.78rem; margin-top:0.4rem;"><span style="background:light-dark(#FEF3C7,#451A03); color:light-dark(#92400E,#FCD34D); padding:0.15rem 0.5rem; border-radius:4px; font-weight:600;">no-plugin</span> results included &mdash; models evaluated with prompt-only rule discovery (no hook injection)</p>{% endif %}
+</header>
+
+<div x-data="reportApp()" x-init="initFromHash()">
+
+{% if has_noplugin %}
+<div class="plugin-status-bar" id="global-plugin-filter" role="group" aria-label="Plugin status filter">
+  <span class="plugin-status-bar__label">Plugin Status:</span>
+  <button class="plugin-pill" :class="{ active: $store.filter.mode === 'all' }" @click="$store.filter.mode = 'all'">All ({{ results | length }})</button>
+  <button class="plugin-pill" :class="{ active: $store.filter.mode === 'plugin' }" @click="$store.filter.mode = 'plugin'">With Plugin ({{ plugin_results | length }})</button>
+  <button class="plugin-pill" :class="{ active: $store.filter.mode === 'without-plugin' }" @click="$store.filter.mode = 'without-plugin'">Without Plugin ({{ noplugin_results | length }})</button>
+</div>
+{% endif %}
+<main>
+  <nav role="tablist" aria-label="Report sections">
+    <a href="#overview" role="tab" :aria-selected="(tab==='overview').toString()" :class="{ active: tab==='overview' }" @click.prevent="switchTab('overview')">Overview</a>
+    <a href="#protocol" role="tab" :aria-selected="(tab==='protocol').toString()" :class="{ active: tab==='protocol' }" @click.prevent="switchTab('protocol')">Protocol</a>
+    <a href="#taxonomy" role="tab" :aria-selected="(tab==='taxonomy').toString()" :class="{ active: tab==='taxonomy' }" @click.prevent="switchTab('taxonomy')">Failure Modes</a>
+    <a href="#results" role="tab" :aria-selected="(tab==='results').toString()" :class="{ active: tab==='results' }" @click.prevent="switchTab('results')">Results</a>
+    <a href="#performance" role="tab" :aria-selected="(tab==='performance').toString()" :class="{ active: tab==='performance' }" @click.prevent="switchTab('performance')">Performance</a>
+    <a href="#model-effort" role="tab" :aria-selected="(tab==='model-effort').toString()" :class="{ active: tab==='model-effort' }" @click.prevent="switchTab('model-effort')">Model Effort</a>
+    <a href="#model-selection" role="tab" :aria-selected="(tab==='model-selection').toString()" :class="{ active: tab==='model-selection' }" @click.prevent="switchTab('model-selection')">Model Selection</a>
+    <a href="#fixtures" role="tab" :aria-selected="(tab==='fixtures').toString()" :class="{ active: tab==='fixtures' }" @click.prevent="switchTab('fixtures')">Fixtures</a>
+  </nav>
+
+  <!-- ========== TAB 1: OVERVIEW ========== -->
+  <section class="tab-panel" id="overview" role="tabpanel" data-tab-title="Overview" x-show="tab==='overview'" x-transition:enter.opacity.duration.200ms>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="label">Models Tested</div>
+        <div class="value">{{ total_models }}</div>
+        <div class="sub">Frontier-class LLMs evaluated{% if has_noplugin %} &middot; {{ total_model_runs }} model/mode runs{% endif %}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Test Fixtures</div>
+        <div class="value">{{ fixtures_data | length }}</div>
+        <div class="sub">Synthetic prompts: simple / medium / complex</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Runs per Model</div>
+        <div class="value">{{ results[0].runs if results else 5 }}</div>
+        <div class="sub">Stochastic stability verification</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Failure Modes</div>
+        <div class="value">7</div>
+        <div class="sub">Distinct categories identified</div>
+      </div>
+    </div>
+
+    <h2>Executive Summary</h2>
+
+    <p>This benchmark came out of building <strong>AI Coding Rules</strong>, a project intended to give the other agentic coding tools the kind of rule support Cursor users take for granted: Cortex Code, Claude Code, Codex, and anything else that can read a file and follow instructions. The premise is deliberately unglamorous. Keep your coding standards in versioned Markdown, surface only the handful that matter for the prompt at hand, and have the agent read them before it touches your code.</p>
+
+    <p>Months of writing those rules and tuning the prompt that loads them turned up an awkward pattern. A prompt that got one model to reliably find, read, and cite the right rules would quietly fail on another. The gap did not respect vendor boundaries either: sibling models from the same family, one version apart, disagreed about whether an instruction was a hard requirement or a polite suggestion. Wording is not a portable optimization. That left no way to tell whether a change to the loading prompt was an improvement or a regression without measuring it against each model separately, which is the gap this evaluation exists to close.</p>
+
+    <p>The protocol under test requires a model to discover, read, and cite domain-specific rules before it responds. On every prompt, a deterministic hook injects a compressed behavioral contract and a ranked list of candidate rules. The model then reads the relevant candidates via tool calls and declares what it loaded in a structured header. That declaration is the whole point: it creates a verifiable chain of evidence the harness can audit afterwards by cross-referencing the citations against the tool-call trace, rather than taking the model's word for it.</p>
+
+    <p>The protocol was evaluated against {{ total_models }} frontier models, each processing {{ fixtures_data | length }} test fixtures {{ results[0].runs if results else 5 }} times{% if has_noplugin %}, and {{ noplugin_results | length }} of them were additionally re-run with rule discovery left to the prompt alone &mdash; {{ total_model_runs }} model/mode runs in total{% endif %}. The results reveal striking variance in compliance, from {{ "%.0f"|format(results[0].pass_rate * 100) if results else "100" }}% to {{ "%.0f"|format(results[-1].pass_rate * 100) if results else "17" }}%, across models that are otherwise considered capability peers. This suggests that procedural instruction-following is a distinct and independently measurable dimension of model behavior, not a simple function of general capability.</p>
+
+    <p>More informative than the raw pass rates are the <em>failure modes</em> themselves. Seven distinct ways models deviate from the protocol were identified. Each reveals something different about how frontier models process and execute multi-step procedural instructions under real-world tool-use conditions.</p>
+
+    <div class="chart-container">
+      <div id="passRateChart" style="width:100%;" aria-label="Bar chart showing pass rates per model" role="img"></div>
+    </div>
+
+    <div class="callout callout-success">
+      <strong>Observations</strong>
+      <p><strong>1.</strong> Protocol compliance varies dramatically across models with similar general capabilities. The variance suggests instruction-following fidelity is a distinct behavioral dimension that this benchmark measures independently.</p>
+      <p><strong>2.</strong> The most dangerous failure mode is <em>declared-but-not-read</em> (FM-1): models that claim compliance without performing the required steps. This is undetectable without tool-call auditing.</p>
+      <p><strong>3.</strong> Multiple runs per fixture ({{ results[0].runs if results else 5 }} in this eval) are essential to distinguish stable compliance from lucky passes. Single-run evaluation is insufficient for any model below 95% compliance.</p>
+    </div>
+
+    {% if family_comparison and family_comparison | length >= 2 %}
+    <div class="callout" style="border-left:4px solid var(--sf-blue, #3b82f6); background:rgba(59,130,246,0.04);">
+      <strong>Model Sovereignty</strong>
+      <p>Provider families achieve comparable compliance ({{ family_comparison[0].avg_pass }}% vs {{ family_comparison[1].avg_pass }}%) through fundamentally different strategies: {{ family_comparison[0].family }} averages {{ family_comparison[0].turn_mean }} turns while {{ family_comparison[1].family }} converges in {{ family_comparison[1].turn_mean }}. This architectural divergence&mdash;not quality&mdash;is the primary variable. See the <a href="#model-selection">Model Sovereignty</a> tab for the full breakdown.</p>
+    </div>
+    {% endif %}
+
+    {% if overview_insights_available %}
+    <div class="callout callout-info">
+      <strong>This Report</strong>
+      {% for insight in overview_insights %}<p>{{ insight }}</p>{% endfor %}
+    </div>
+    {% endif %}
+
+    <h3>Model Versions Tested</h3>
+    <div class="table-wrap">
+      <table class="data-table sortable-table compact" data-sort-fallback="1:desc,0:asc" aria-label="Model versions and configurations">
+        <thead>
+          <tr>
+            <th data-sort-type="text" style="text-align:left">Model</th>
+            <th data-sort-type="number">Fixtures Run</th>
+            <th data-sort-type="number">Total Runs</th>
+            <th class="sorted-desc" data-sort-type="number">Pass Rate</th>
+            <th data-sort-type="text">Tier</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+          <tr data-model-mode="{{ r.mode }}"{% if not r.has_usable_data %} class="row-nodata"{% endif %}>
+                        <td style="text-align:left"><code>{{ labels.model_label(r.display_key) }}</code>{% if r.mode != "plugin" %} {{ labels.no_plugin_pill(inline=true) }}{% endif %}</td>
+            <td>{{ r.fixture_count }}</td>
+            <td>{{ r.fixture_count * r.runs }}</td>
+            {% set pct = (r.pass_rate * 100) | round(1) %}
+            {% if pct >= 95 %}
+            <td style="color:var(--sf-green)">{{ pct }}%</td>
+            <td>Compliant</td>
+            {% elif pct >= 90 %}
+            <td style="color:var(--sf-amber)">{{ pct }}%</td>
+            <td>Partial</td>
+            {% elif pct >= 85 %}
+            <td style="color:var(--sf-orange)">{{ pct }}%</td>
+            <td>Low</td>
+            {% else %}
+            <td style="color:var(--sf-red)">{{ pct }}%</td>
+            <td>Non-compliant</td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  {% include "_tab_protocol.j2" %}
+  {% include "_tab_taxonomy.j2" %}
+
+  <!-- ========== TAB 4: RESULTS ========== -->
+  <section class="tab-panel" id="results" role="tabpanel" data-tab-title="Results" x-show="tab==='results'" x-cloak x-transition:enter.opacity.duration.200ms>
+    <h2>Full Results Matrix</h2>
+
+    <p>Each cell shows pass count out of total runs. Color coding: <span style="color:var(--sf-green); font-weight:600;">{{ results[0].runs if results else 5 }}/{{ results[0].runs if results else 5 }}</span> = fully stable, <span style="color:var(--sf-amber); font-weight:600;">partial</span> = flaky, <span style="color:var(--sf-red); font-weight:600;">0&ndash;1</span> = failing.</p>
+
+    <div class="table-wrap">
+      <table id="results-table" aria-label="Per-model per-fixture pass rate matrix">
+        <thead>
+          <tr>
+            <th style="text-align:left; position:sticky; left:0; background:var(--surface); z-index:3; min-width:180px;">Fixture</th>
+            {% for r in results %}
+            {% set pct = (r.pass_rate * 100) | round(1) %}
+            <th data-model-mode="{{ r.mode }}">{{ labels.model_label(r.model) }}{% if r.mode != "plugin" %}<br>{{ labels.no_plugin_pill() }}{% endif %}<br>
+              {% if pct >= 95 %}<small style="color:var(--sf-green)">{{ pct }}%</small>
+              {% elif pct >= 90 %}<small style="color:var(--sf-amber)">{{ pct }}%</small>
+              {% elif pct >= 85 %}<small style="color:var(--sf-orange)">{{ pct }}%</small>
+              {% else %}<small style="color:var(--sf-red)">{{ pct }}%</small>
+              {% endif %}
+            </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <h3>Aggregate Statistics</h3>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="label">Total Models Evaluated</div>
+        <div class="value">{{ total_models }}</div>
+        <div class="sub">Frontier-class LLMs from multiple providers{% if has_noplugin %} &middot; {{ total_model_runs }} model/mode runs{% endif %}</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Models &ge;95% Pass Rate</div>
+        <div class="value">{{ results | selectattr("pass_rate", "ge", 0.95) | list | length }}</div>
+        <div class="sub">Compliant tier</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Total Flaky Fixtures</div>
+        <div class="value">{{ results | map(attribute="flaky_fixtures") | sum(start=[]) | unique | list | length }}</div>
+        <div class="sub">At least one model scored below 100% on these</div>
+      </div>
+      <div class="kpi-card">
+        <div class="label">Total Citation Drifts</div>
+        <div class="value">{{ results | map(attribute="citation_drifts") | sum }}</div>
+        <div class="sub">Across all models and runs</div>
+      </div>
+    </div>
+
+    {% if discovery_attribution %}
+    <h3>Discovery Attribution</h3>
+    <p>Separates deterministic matcher recall from agent read/cite compliance so a
+       matcher regression is never masked by out-of-manifest model recovery.
+       <strong>Recovery-only</strong> runs are counted as non-passing. Legacy runs
+       (pre-attribution schema) are reported separately and excluded from the
+       recall/compliance denominators.</p>
+    <div class="table-wrap">
+      <table id="discovery-attribution-table" class="data-table sortable-table compact" data-sort-fallback="0:asc" aria-label="Per-model discovery attribution">
+        <thead>
+          <tr>
+            <th data-sort-type="text" style="text-align:left;">Model</th>
+            <th data-sort-type="text">Matcher recall (recalled / miss)</th>
+            <th data-sort-type="text">Agent compliance (complied / missed)</th>
+            <th class="sorted-desc" data-sort-type="number">Recovery-only (non-passing)</th>
+            <th data-sort-type="number">Legacy</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in discovery_attribution %}
+          <tr data-model-mode="{{ row.mode | default('plugin') }}">
+            <td style="text-align:left;">{{ labels.model_label(row.model) }}{% if row.mode != "plugin" %} {{ labels.no_plugin_pill() }}{% endif %}</td>
+            <td>{{ row.matcher_recall.recalled }} / {{ row.matcher_recall.not_recalled }}</td>
+            <td>{{ row.agent_compliance.complied }} / {{ row.agent_compliance.missed }}</td>
+            <td>{% if row.recovery_only %}<span style="color:var(--sf-red); font-weight:600;">{{ row.recovery_only }}</span>{% else %}0{% endif %}</td>
+            <td>{{ row.legacy }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </section>
+
+  {% include "_tab_fixtures.j2" %}
+
+
+  <!-- ========== TAB 6: PERFORMANCE ========== -->
+  <section class="tab-panel" id="performance" role="tabpanel" data-tab-title="Performance" x-show="tab==='performance'" x-cloak x-transition:enter.opacity.duration.200ms>
+    <h2>Operational Characteristics</h2>
+
+    <p>Beyond pass/fail compliance, each model exhibits distinct operational signatures: how long it takes to complete the protocol sequence and how many tool-use turns it requires.</p>
+
+    <div class="callout callout-info">
+      <div class="callout-title">Observation: Turn Count Variance</div>
+      <p>Models exhibit dramatically different turn counts for the same protocol. Some execute all tool calls in a single turn (batched), while others use multiple sequential turns. This architectural difference shapes failure profiles: single-turn models either comply fully or fail entirely, while multi-turn models can exhibit partial compliance within a single run. Consult the Avg/Median Turns columns below for model-specific patterns.</p>
+    </div>
+
+    <h3>Summary Table</h3>
+    <div class="table-responsive">
+      <table class="data-table sortable-table compact" data-sort-fallback="6:asc,3:asc,0:asc" id="perf-table">
+        <thead>
+          <tr>
+            <th data-sort-type="text" style="text-align:left">Model</th>
+            <th class="sorted-desc" data-sort-type="number">Pass Rate</th>
+            <th data-sort-type="number">Fixture-Runs</th>
+            <th data-sort-type="number">Avg Duration</th>
+            <th data-sort-type="number">Median Duration</th>
+            <th data-sort-type="number">P95 Duration</th>
+            <th data-sort-type="number">Avg Turns</th>
+            <th data-sort-type="number">Median Turns</th>
+            <th data-sort-type="number">Max Turns</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+          {% set pct = (r.pass_rate * 100) | round(1) %}
+          <tr data-model-mode="{{ r.mode }}"{% if not r.has_usable_data %} class="row-nodata"{% endif %}>
+            <td style="text-align:left"><code>{{ labels.model_label(r.display_key) }}</code>{% if r.mode != "plugin" %} {{ labels.no_plugin_pill(inline=true) }}{% endif %}</td>
+            {% if pct >= 95 %}<td class="pass-high">{{ pct }}%</td>
+            {% elif pct >= 90 %}<td class="pass-mid">{{ pct }}%</td>
+            {% elif pct >= 85 %}<td class="pass-low">{{ pct }}%</td>
+            {% else %}<td class="pass-fail">{{ pct }}%</td>
+            {% endif %}
+            <td>{{ r.fixture_count * r.runs }}</td>
+            {% if r.duration_stats %}
+            <td>{{ r.duration_stats.mean_s }}s</td>
+            <td>{{ r.duration_stats.median_s }}s</td>
+            <td>{{ r.duration_stats.p95_s }}s</td>
+            {% else %}
+            <td>-</td><td>-</td><td>-</td>
+            {% endif %}
+            {% if r.turn_stats %}
+            <td>{{ r.turn_stats.mean }}</td>
+            <td>{{ r.turn_stats.median }}</td>
+            <td>{{ r.turn_stats.max }}</td>
+            {% else %}
+            <td>-</td><td>-</td><td>-</td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Latency vs. Quality</h3>
+    <p>Each point is a model; <strong>point size reflects average turns</strong> (small = single-shot, large = iterative). The <strong style="color:var(--sf-green);">green frontier</strong> marks the best latency-for-accuracy trade-offs among models meeting the {{ chart_data.quality_threshold }}% quality bar - no other qualifying model is both faster <em>and</em> more accurate. Grey points qualify but are dominated. <span style="color:var(--sf-red);">Red triangles</span> fall below the {{ chart_data.quality_threshold }}% threshold and are excluded from the frontier; their low duration reflects skipped work, not speed. Note this is a <em>wall-clock</em> cost axis - it can rank models differently from the token-cost frontier in the Model Effort tab.</p>
+    <div class="chart-container" style="height:520px;">
+      <div id="scatter-chart" style="width:100%; height:480px;"
+              aria-label="Scatter plot: average duration vs pass rate with Pareto frontier, point size encoding average turns"
+              role="img"></div>
+    </div>
+  </section>
+
+  {% include "_tab_model_effort.j2" %}
+  {% include "_tab_model_selection.j2" %}
+</main>
+
+<footer>
+  <p>Generated by <code>ai-rules rule-loader report</code> &middot; instruction compliance benchmark &middot; {{ report_date | default("2026") }}</p>
+  <p>{{ total_models }} models &middot; {{ fixtures_data | length }} fixtures &middot; Data from <code>results/</code> directory</p>
+</footer>
+
+{% include "_charts_vegalite.j2" %}
+
+</div><!-- /x-data="reportApp()" -->
+
+</body>
+</html>

@@ -7,9 +7,9 @@ Load the foundation rule (`000-global-core.md`) which is required for every agen
 ## Algorithm
 
 ```
-1. Execute: read_file("{rules_path}/000-global-core.md")
+1. Execute: read_file("rules/000-global-core.md")
 2. IF file_not_found OR empty_content:
-     OUTPUT "CRITICAL ERROR: Cannot proceed - {rules_path}/000-global-core.md not accessible"
+     OUTPUT "CRITICAL ERROR: Cannot proceed - rules/000-global-core.md not accessible"
      STOP (do not proceed to Phase 2)
 3. IF success:
      Record: "000-global-core.md" in loaded rules list

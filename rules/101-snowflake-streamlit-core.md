@@ -1,35 +1,41 @@
+---
+schema_version: v3.5
+rule_version: v5.0.0
+description: "Streamlit in Snowflake: navigation, session state, runtime selection (Container/Warehouse), and config.toml theming."
+last_updated: 2026-07-15
+keywords:
+  - kw:Streamlit
+  - kw:st.navigation
+  - kw:session state
+  - kw:Container Runtime
+  - kw:config.toml theming
+  - kw:st.connection snowflake
+token_budget: ~2350
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake connection and query execution fundamentals
+  optional:
+    - 101b-snowflake-streamlit-performance.md  # Caching and query optimization patterns
+    - 101c-snowflake-streamlit-security.md  # Input validation and secrets management
+    - 101l-snowflake-streamlit-deployment.md  # Container and Warehouse Runtime deployment
+---
 # Streamlit Core: Setup, Navigation, and State Management
 
 **CRITICAL: Load for ALL Streamlit tasks. Specialized rules (101a-101e) depend on this.**
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v4.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Streamlit, Container Runtime, Warehouse Runtime, navigation, multipage, session state, config.toml, theming, st.connection
-**TokenBudget:** ~2350
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md
-**LoadTrigger:** kw:streamlit, kw:dashboard
 
 ## Scope
 
 **What This Rule Covers:**
 Foundational Streamlit setup: navigation, state management, runtime selection (Container vs Warehouse), theming via config.toml.
 
-**When to Load:**
+**When to Load This Rule:**
 - Building Streamlit applications on Snowflake
 - Implementing multipage apps
 - Configuring navigation and themes
 - Selecting between Container Runtime and Warehouse Runtime
 
 ## References
-
-### Dependencies
-**Must Load First:** 100-snowflake-core.md
-
-**Related:** 101a-snowflake-streamlit-visualization.md, 101b-snowflake-streamlit-performance.md, 101c-snowflake-streamlit-security.md, 101l-snowflake-streamlit-deployment.md
 
 ### External Documentation
 - [Streamlit Documentation](https://docs.streamlit.io/)
@@ -92,10 +98,12 @@ st.set_page_config(page_title="App", page_icon="🏔️", layout="wide")
 if "user_id" not in st.session_state:
     st.session_state.user_id = None
 
-pg = st.navigation([
-    st.Page("pages/home.py", title="Home", icon="🏠"),
-    st.Page("pages/dashboard.py", title="Dashboard", icon="📊"),
-])
+pg = st.navigation(
+    [
+        st.Page("pages/home.py", title="Home", icon="🏠"),
+        st.Page("pages/dashboard.py", title="Dashboard", icon="📊"),
+    ]
+)
 pg.run()
 ```
 
@@ -117,12 +125,12 @@ pg.run()
 ### Negative Tests
 
 **These patterns should NEVER appear in reviewed code:**
-- `st.set_page_config()` called in multiple files -- FAIL
-- `unsafe_allow_html=True` used for styling -- FAIL
-- `st.button()` used for page navigation -- FAIL
-- Module-level variable used for user-specific data -- FAIL
+- `st.set_page_config()` called in multiple files: FAIL
+- `unsafe_allow_html=True` used for styling: FAIL
+- `st.button()` used for page navigation: FAIL
+- Module-level variable used for user-specific data: FAIL
 - `if value is not None` used for DataFrame NaN check (use `pd.notna()`) -- FAIL
-- Mixing `st.navigation()` with `pages/` auto-discovery -- FAIL
+- Mixing `st.navigation()` with `pages/` auto-discovery: FAIL
 
 ## Error Recovery
 
@@ -252,16 +260,18 @@ port = 8501
 ## State Management
 
 ```python
-if 'authenticated' not in st.session_state:
+if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
+
 
 def login_callback():
     st.session_state.authenticated = True
 
+
 st.button("Login", on_click=login_callback)
 ```
 
-**Multi-user isolation:** Each user gets isolated session state. Do not use module-level variables for user-specific data — they are shared across all users in Container Runtime.
+**Multi-user isolation:** Each user gets isolated session state. Do not use module-level variables for user-specific data: they are shared across all users in Container Runtime.
 
 **Persistence:** Session state is lost on app restart/redeployment. For persistent state, use Snowflake tables or `st.connection().query()` to store/retrieve user preferences.
 
@@ -303,6 +313,7 @@ if file_size is not None:
 
 # CORRECT
 import pandas as pd
+
 if pd.notna(file_size):
     display = f"{file_size:.1f}"  # Safe
 ```

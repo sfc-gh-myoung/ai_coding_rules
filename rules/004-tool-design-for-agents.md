@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive tool design practices that maximize agent effectiveness. Covers single responsibility, token-efficient outputs, LLM-friendly parameters, clear contracts, minimal tool overlap,"
+last_updated: 2026-07-15
+keywords:
+  - kw:agent tool design
+  - kw:single responsibility tools
+  - kw:token-efficient outputs
+  - kw:LLM-friendly parameters
+  - kw:tool boundary overlap
+  - kw:actionable error messages
+token_budget: ~4500
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 003-context-engineering.md  # Context management and attention budgets
+  optional:
+    - 002g-agent-optimization.md  # Agent-first design principles
+    - 004a-tool-set-curation.md  # Minimal viable tool sets, when to split/merge tools
+    - 004b-tool-output-efficiency.md  # Token-efficient tool output design
+---
 # Tool Design for AI Agents
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** tool design, agent tools, token efficiency, tool parameters, function calling, tool overlap, tool contracts, error handling, minimal tool set, self-contained tools, LLM-friendly parameters, single responsibility
-**TokenBudget:** ~4500
-**ContextTier:** High
-**Depends:** 000-global-core.md, 003-context-engineering.md
 
 ## Scope
 
@@ -24,18 +37,6 @@ Comprehensive tool design practices that maximize agent effectiveness. Covers si
 - Implementing LLM-friendly parameters
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **003-context-engineering.md** - Context management and attention budgets
-
-**Related:**
-- **002g-agent-optimization.md** - Agent-first design principles
-- **002c-rule-optimization.md** - Token budgets and optimization
-- **004a-tool-set-curation.md** - Minimal viable tool sets, when to split/merge tools
-- **004b-tool-output-efficiency.md** - Token-efficient tool output design
 
 ### External Documentation
 
@@ -66,7 +67,7 @@ Comprehensive tool design practices that maximize agent effectiveness. Covers si
 - Stateful tools that maintain hidden state between calls without documentation.
   **Exception:** Explicitly stateful tools (database connections, session managers) are
   acceptable when: (1) state is documented in the tool's return value, (2) state lifetime
-  is explicit, and (3) state can be inspected. The prohibition is against HIDDEN state —
+  is explicit, and (3) state can be inspected. The prohibition is against HIDDEN state:
   undocumented side effects that change tool behavior between calls.
 
 ### Execution Steps
@@ -141,9 +142,9 @@ Self-contained tools with:
 
 ### Negative Tests
 
-- Agent provides wrong parameter types -- tool returns clear type error, not stack trace
-- Agent calls tool in wrong context -- tool explains why it cannot proceed and suggests correct tool
-- Tool receives empty/null input -- tool returns descriptive validation error, not silent failure
+- Agent provides wrong parameter types: tool returns clear type error, not stack trace
+- Agent calls tool in wrong context: tool explains why it cannot proceed and suggests correct tool
+- Tool receives empty/null input: tool returns descriptive validation error, not silent failure
 
 ## Anti-Patterns and Common Mistakes
 
@@ -177,14 +178,14 @@ def search(query: str) -> dict:
             "timestamp": "2025-01-22T10:30:00",
             "duration_ms": 145,
             "api_version": "v2",
-            "request_id": "req_12345"
+            "request_id": "req_12345",
         },
         "results": {
             "total_count": 42,
             "returned_count": 10,
             "has_more": true,
-            "items": [...]  # Actual results buried
-        }
+            "items": [...],  # Actual results buried
+        },
     }
 ```
 **Problem:** Wastes ~50 tokens on metadata; actual results obscured
@@ -214,7 +215,7 @@ def process_data(
     data: str,
     priority: Literal["speed", "accuracy", "balanced"] = "balanced",
     preserve_formatting: bool = True,
-    validate_output: bool = True
+    validate_output: bool = True,
 ):
     """Process data with clear options"""
 ```
@@ -246,9 +247,13 @@ def api_call(endpoint: str) -> dict:
         )
     except requests.HTTPError as e:
         if e.response.status_code == 404:
-            raise NotFoundError(f"Endpoint {endpoint} not found. Check API documentation for correct path.")
+            raise NotFoundError(
+                f"Endpoint {endpoint} not found. Check API documentation for correct path."
+            )
         elif e.response.status_code == 401:
-            raise AuthenticationError(f"API key invalid or missing. Set API_KEY environment variable.")
+            raise AuthenticationError(
+                f"API key invalid or missing. Set API_KEY environment variable."
+            )
         else:
             raise APIError(f"API returned {e.response.status_code}: {e.response.text}")
 ```
@@ -290,8 +295,8 @@ def search(query: str, page: int = 1, limit: int = 10) -> SearchResponse:
    FAIL: "manage_files" (list + create + delete = multiple verbs)
 
 2. **Parameter test:** Do all parameters serve the same operation?
-   PASS: `search(query, max_results, format)` — all serve the search operation
-   FAIL: `process(data, mode, cleanup_after)` — `cleanup_after` implies a second operation
+   PASS: `search(query, max_results, format)`: all serve the search operation
+   FAIL: `process(data, mode, cleanup_after)`: `cleanup_after` implies a second operation
 
 3. **Docstring test:** Can the tool's purpose be described in one sentence without "and"?
    PASS: "Validates a rule file against the v3.2 schema"
@@ -320,8 +325,10 @@ def file_operation(path: str, operation: str, content: str = None):
 def read_file(path: str) -> str:
     """Read and return the complete contents of a file."""
 
+
 def write_file(path: str, content: str) -> None:
     """Write content to a file, overwriting if it exists."""
+
 
 def search_file(path: str, pattern: str) -> List[Match]:
     """Search for pattern in file, return matching lines."""
@@ -371,8 +378,10 @@ Is there exactly ONE obvious tool for this task?
 def search_codebase(query: str):
     """Search for code matching query"""
 
+
 def find_function(name: str):
     """Find function by name"""
+
 
 def grep_files(pattern: str):
     """Grep for pattern in files"""
@@ -387,6 +396,7 @@ def grep(pattern: str, path: str = ".") -> List[Match]:
     """Search for exact text pattern in files using ripgrep.
     Use for: Finding specific strings, class names, function calls"""
 
+
 def codebase_search(semantic_query: str) -> List[Result]:
     """Semantic search for code by meaning, not exact text.
     Use for: Finding functionality when you don't know exact names"""
@@ -397,9 +407,9 @@ def codebase_search(semantic_query: str) -> List[Result]:
 
 Key principles for tool output design:
 
-1. **Return only what the agent needs for its next decision** -- omit metadata, timestamps, and internal IDs unless requested
-2. **Use structured formats (JSON/tables) over prose** -- agents parse structured data more reliably and with fewer tokens
-3. **Implement progressive output for large results** -- return summary first, let agent request details on specific items
+1. **Return only what the agent needs for its next decision**: omit metadata, timestamps, and internal IDs unless requested
+2. **Use structured formats (JSON/tables) over prose**: agents parse structured data more reliably and with fewer tokens
+3. **Implement progressive output for large results**: return summary first, let agent request details on specific items
 
 See **004b-tool-output-efficiency.md** for detailed guidance on minimal outputs, structured formats, and progressive output for large results.
 
@@ -441,10 +451,10 @@ Validate inputs and provide clear, actionable errors:
 ```python
 def search_date_range(start_date: str, end_date: str, resource_type: str):
     """Search resources within date range.
-    
+
     Args:
         start_date: ISO format (YYYY-MM-DD)
-        end_date: ISO format (YYYY-MM-DD)  
+        end_date: ISO format (YYYY-MM-DD)
         resource_type: One of: "users", "posts", "comments"
     """
     if not validate_iso_date(start_date):
@@ -473,7 +483,7 @@ def create_pull_request(
     description: str,
     source_branch: str,
     target_branch: str = "main",
-    reviewers: List[str] = None
+    reviewers: List[str] = None,
 ) -> Dict[str, Any]:
     """Create a pull request from source_branch to target_branch.
 
@@ -506,8 +516,7 @@ raise ValueError(
     f"Available branches: {', '.join(available_branches)}"
 )
 raise PermissionError(
-    f"User '{username}' lacks 'repo:write' permission. "
-    f"Contact repository administrator."
+    f"User '{username}' lacks 'repo:write' permission. Contact repository administrator."
 )
 ```
 
@@ -515,9 +524,9 @@ raise PermissionError(
 
 Tool design can encourage or discourage behaviors. Key principles:
 
-- **Encourage targeted exploration over bulk loading** -- provide search/filter tools rather than "get all" tools
-- **Support incremental work** -- allow running subsets (e.g., specific tests) rather than forcing all-or-nothing operations
-- **Eliminate ambiguous decision points** -- either provide ONE tool per task or multiple tools with explicit "Use for:" distinctions in docstrings
+- **Encourage targeted exploration over bulk loading**: provide search/filter tools rather than "get all" tools
+- **Support incremental work**: allow running subsets (e.g., specific tests) rather than forcing all-or-nothing operations
+- **Eliminate ambiguous decision points**: either provide ONE tool per task or multiple tools with explicit "Use for:" distinctions in docstrings
 
 See Anti-Patterns 1 and 5 above for detailed before/after examples.
 

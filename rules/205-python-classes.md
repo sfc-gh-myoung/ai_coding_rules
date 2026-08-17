@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Practical, modern guidelines for when and how to use classes in Python, emphasizing composition over inheritance, type safety, encapsulation, and pythonic idioms. Covers dataclasses, properties,"
+last_updated: 2026-07-15
+keywords:
+  - kw:dataclass decorator
+  - kw:composition over inheritance
+  - kw:@property decorator
+  - kw:Protocol structural subtyping
+  - kw:frozen immutable dataclass
+  - kw:context manager resource
+  - kw:pytest
+token_budget: ~4050
+context_tier: Medium
+depends:
+  required:
+    - 200-python-core.md  # Python foundation patterns
+  optional:
+    - 206-python-pytest.md  # Testing class-based code
+---
 # Python Classes: Design and Usage Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Python classes, OOP, inheritance, dataclasses, @property, class design, encapsulation, composition, Protocol, ABC, type hints
-**TokenBudget:** ~4050
-**ContextTier:** Medium
-**Depends:** 200-python-core.md, 201-python-lint-format.md, 204-python-docs.md
-**LoadTrigger:** kw:class, kw:oop, kw:dataclass
 
 ## Scope
 
@@ -26,16 +36,6 @@ Practical, modern guidelines for when and how to use classes in Python, emphasiz
 - Reviewing OOP code for best practices
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Python foundation patterns
-- **201-python-lint-format.md** - Code quality and linting
-- **204-python-docs.md** - Documentation standards
-
-**Related:**
-- **206-python-pytest.md** - Testing class-based code
 
 ### External Documentation
 
@@ -145,19 +145,22 @@ class DataCollector:
     def __init__(self, items=[]):  # Same list shared across all instances!
         self.items = items
 
+
 # collector1.items.append("a") affects collector2.items
+
 
 # GOOD: Use None and create new object in body
 class DataCollector:
     def __init__(self, items: list | None = None):
         self.items = items if items is not None else []
 
+
 # Each instance gets its own list
 ```
 
 ### Anti-Pattern 2: God Classes With Too Many Responsibilities
 
-**Problem:** Creating classes that handle multiple unrelated concerns—data access, business logic, formatting, validation—all in one place.
+**Problem:** Creating classes that handle multiple unrelated concerns: data access, business logic, formatting, validation: all in one place.
 
 **Why It Fails:** Violates Single Responsibility Principle. Changes to one feature risk breaking others. Testing requires mocking everything. Code reuse becomes impossible. Class grows indefinitely.
 
@@ -172,12 +175,15 @@ class UserManager:
     def generate_report(self, users): ...
     def export_to_csv(self, users): ...
 
+
 # GOOD: Separate concerns into focused classes
 class UserRepository:
     def create(self, user: User) -> User: ...
 
+
 class UserValidator:
     def validate(self, data: dict) -> ValidationResult: ...
+
 
 class EmailService:
     def send_welcome(self, user: User) -> None: ...
@@ -208,14 +214,17 @@ class EmailService:
 from dataclasses import dataclass
 from typing import Protocol
 
+
 class EmailSender(Protocol):
     def send(self, to: str, subject: str, body: str) -> None: ...
+
 
 @dataclass(slots=True, kw_only=True, frozen=True)
 class User:
     id: str
     name: str
     email: str
+
 
 class Notifier:
     def __init__(self, sender: EmailSender) -> None:
@@ -239,6 +248,7 @@ Directive levels: **Mandatory** = must always follow. **Rule** = strong default,
 ```python
 from dataclasses import dataclass
 
+
 @dataclass(slots=True, kw_only=True, frozen=False)
 class Customer:
     id: str
@@ -257,6 +267,7 @@ class Customer:
   class Point:
       x: float
       y: float
+
 
   # Attempting mutation raises FrozenInstanceError:
   # point = Point(1.0, 2.0)
@@ -282,6 +293,7 @@ class Customer:
 ### 1.3 Encapsulation and properties
 ```python
 from dataclasses import dataclass
+
 
 @dataclass(slots=True)
 class Temperature:
@@ -310,12 +322,14 @@ class Temperature:
 from abc import ABC, abstractmethod
 from typing import Protocol
 
+
 class Cache(ABC):
     @abstractmethod
     def get(self, key: str) -> str | None: ...
 
     @abstractmethod
     def set(self, key: str, value: str) -> None: ...
+
 
 class KeyValueStore(Protocol):
     def get(self, key: str) -> str | None: ...
@@ -342,6 +356,7 @@ When you need to define an interface that multiple classes must implement:
 ```python
 from abc import ABC, abstractmethod
 
+
 class Repository(ABC):
     """Interface for data repositories."""
 
@@ -354,6 +369,7 @@ class Repository(ABC):
     def save(self, model: Model) -> None:
         """Persist a model."""
         ...
+
 
 class PostgresRepository(Repository):
     def get(self, id: str) -> Model:
@@ -373,6 +389,7 @@ class PostgresRepository(Repository):
 ```python
 from contextlib import contextmanager
 from typing import Iterator
+
 
 @contextmanager
 def opened(path: str) -> Iterator[object]:
@@ -417,6 +434,7 @@ class DatabaseConnection:
 ### 1.6 Special methods and representation
 ```python
 from dataclasses import dataclass
+
 
 @dataclass(slots=True)
 class Point:

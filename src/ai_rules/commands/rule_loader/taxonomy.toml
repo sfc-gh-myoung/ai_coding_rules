@@ -1,0 +1,27 @@
+# Category taxonomy for audit-report classifier.
+# Precedence is strict top-to-bottom; first matching entry wins.
+# Adding a category requires only a new [categories.<name>] section + a test.
+
+[categories.cap-displacement]
+precedence = 1
+predicate = "score != null AND rank != null"
+trigger_shape = "any"
+recommended_action = "review ranked exclusion"
+
+[categories.punctuated-no-score]
+precedence = 2
+predicate = "score == null AND rank == null"
+trigger_shape = "punctuated"
+recommended_action = "review punctuation/no-score trigger shape"
+
+[categories.generic-ambiguous]
+precedence = 3
+predicate = "score == null AND rank == null"
+trigger_shape = "single-token"
+recommended_action = "review generic single-word trigger"
+
+[categories.no-score-unexplained]
+precedence = 4
+predicate = "score == null AND rank == null"
+trigger_shape = "multi-token"
+recommended_action = "manual review — unexplained"

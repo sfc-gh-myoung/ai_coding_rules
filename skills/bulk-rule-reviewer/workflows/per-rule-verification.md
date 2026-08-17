@@ -133,7 +133,7 @@ For each rule:
 
 **As of v2.4.0, `timing_enabled: true` is the default.** The bulk orchestrator MUST enforce Gate 7
 on every rule-reviewer invocation. Explicit `timing_enabled: false` at the batch level is
-satisfied by each per-rule review emitting a single `not-requested` row — the `### Per-Dimension
+satisfied by each per-rule review emitting a single `not-requested` row: the `### Per-Dimension
 Timing` section itself must still be present.
 
 **Enforcement on every produced review (see `skills/rule-reviewer/workflows/review-verification.md`):**
@@ -148,7 +148,7 @@ Timing` section itself must still be present.
    - Append a single `unavailable` row with the failure reason so the omission is visible.
 4. Aggregate Gate 7 pass/fail counts into the batch summary report.
 
-**Requires skill-timing v1.5.0+ and rule-reviewer v2.8.0+** (for
+**Requires skill-timer v1.5.0+ and rule-reviewer v2.8.0+** (for
 `--auto-dimension-timings`, `PER_DIMENSION_STATUS` marker, and mandatory Step 6a checkpoints).
 
 ## Why This Works
@@ -207,7 +207,7 @@ def gate_summary_timing_section(summary_path, timing_enabled):
     return True, []
 ```
 
-Unlike per-rule warnings, the summary-level check is **BLOCKING** when `timing_enabled: true` -- an enabled-timing run that produces no Timing Breakdown indicates a pipeline failure that MUST be surfaced.
+Unlike per-rule warnings, the summary-level check is **BLOCKING** when `timing_enabled: true`: an enabled-timing run that produces no Timing Breakdown indicates a pipeline failure that MUST be surfaced.
 
 ### Output Routing
 

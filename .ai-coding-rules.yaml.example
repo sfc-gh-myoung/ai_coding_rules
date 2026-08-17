@@ -1,0 +1,24 @@
+# .ai-coding-rules.yaml example configuration
+# Copy to .ai-coding-rules.yaml and customize for your project.
+# Run `ai-rules configure` for interactive setup.
+
+version: 1
+
+domains:
+  languages:
+    - python
+    - sql
+  frameworks: []
+  platforms:
+    - snowflake
+
+rules_filter:
+  include_prefixes:
+    - "000"
+    - "002"
+    - "003"
+    - "100"
+    - "200"
+    - "201"
+    - "206"
+  exclude_prefixes: []

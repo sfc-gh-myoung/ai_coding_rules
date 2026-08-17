@@ -1,15 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Pattern for clarifying when a tutorial notebook demonstrates a feature but uses a simplified approach, explaining both the production and simplified approaches and why the simpler one is chosen for"
+last_updated: 2026-07-15
+keywords:
+  - kw:two-approach clarification
+  - kw:notebook approach selection
+  - kw:production vs learning approach
+  - kw:feature demonstration without full utilization
+  - kw:approach migration guidance
+  - kw:educational context justification
+token_budget: ~2600
+context_tier: Low
+depends:
+  optional:
+    - 109a-snowflake-notebooks-tutorials.md
+---
 # Snowflake Notebook Two-Approach Clarification Pattern
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:two-approach, kw:notebook-approach, kw:tutorial-approach, kw:approach-comparison
-**Keywords:** two-approach pattern, feature store approach, simplified approach, production vs learning, approach clarification, tutorial approach selection
-**TokenBudget:** ~2600
-**ContextTier:** Low
-**Depends:** 109a-snowflake-notebooks-tutorials.md
 
 ## Scope
 
@@ -23,10 +30,9 @@ Pattern for clarifying when a tutorial notebook demonstrates a feature but uses 
 
 ## References
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **109a-snowflake-notebooks-tutorials.md** - Parent rule for tutorial design patterns
-- **109e-snowflake-notebook-checkpoints.md** - Checkpoint validations for tutorials
+### External Documentation
+
+_None._
 
 ## Contract
 
@@ -163,8 +169,7 @@ training_df = fs.generate_dataset(
 ### Approach B: Direct Snowpark DataFrame Operations
 ```python
 # Explicit joins for learning purposes
-training_df = spine.join(customer_features, on='CUSTOMER_ID') \
-                   .join(order_features, on='ORDER_ID')
+training_df = spine.join(customer_features, on="CUSTOMER_ID").join(order_features, on="ORDER_ID")
 ```
 
 **Benefits:**

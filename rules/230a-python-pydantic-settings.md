@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Application configuration management using pydantic-settings, including BaseSettings patterns, environment variable loading, nested configuration, and startup validation."
+last_updated: 2026-07-15
+keywords:
+  - kw:pydantic-settings
+  - kw:BaseSettings
+  - kw:environment variable loading
+  - kw:SettingsConfigDict
+  - kw:nested settings delimiter
+  - kw:startup validation
+token_budget: ~1800
+context_tier: Medium
+depends:
+  required:
+    - 230-python-pydantic.md  # Core Pydantic model patterns
+  optional:
+    - 220a-python-typer-config.md  # CLI configuration integration
+    - 210-python-fastapi-core.md  # FastAPI settings injection
+---
 # Python Pydantic Settings Management
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:pydantic-settings, kw:env-file, kw:app-config
-**Keywords:** Pydantic Settings, BaseSettings, environment variables, configuration, env_file, nested settings, config precedence
-**TokenBudget:** ~1800
-**ContextTier:** Medium
-**Depends:** 230-python-pydantic.md
 
 ## Scope
 
@@ -24,14 +34,9 @@ Application configuration management using pydantic-settings, including BaseSett
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **230-python-pydantic.md** - Core Pydantic model patterns
-
-**Related:**
-- **220a-python-typer-config.md** - CLI configuration integration
-- **210-python-fastapi-core.md** - FastAPI settings injection
+_None._
 
 ## Contract
 
@@ -105,6 +110,7 @@ def validate_data_dir(cls, v: Path) -> Path:
     v.mkdir(parents=True, exist_ok=True)  # Side-effect!
     return v
 
+
 # Correct: Validate only; create at startup
 @field_validator("data_dir")
 @classmethod
@@ -112,6 +118,7 @@ def validate_data_dir(cls, v: Path) -> Path:
     if not v.parent.exists():
         raise ValueError(f"Parent directory does not exist: {v.parent}")
     return v
+
 
 # In main.py or app startup:
 settings = AppSettings()
@@ -128,13 +135,14 @@ settings.data_dir.mkdir(parents=True, exist_ok=True)
 # Wrong: Generic names without prefix
 class AppSettings(BaseSettings):
     host: str = "0.0.0.0"  # Collides with HOST env var
-    debug: bool = False     # Collides with DEBUG env var
+    debug: bool = False  # Collides with DEBUG env var
+
 
 # Correct: Namespaced with prefix
 class AppSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="MYAPP_")
     host: str = "0.0.0.0"  # Reads MYAPP_HOST
-    debug: bool = False     # Reads MYAPP_DEBUG
+    debug: bool = False  # Reads MYAPP_DEBUG
 ```
 
 ## Settings Patterns
@@ -146,6 +154,7 @@ from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional, List
 from pathlib import Path
+
 
 class DatabaseSettings(BaseSettings):
     """Database configuration settings."""
@@ -161,6 +170,7 @@ class DatabaseSettings(BaseSettings):
         """Generate database URL."""
         return f"postgresql://{self.username}:{self.password.get_secret_value()}@{self.host}:{self.port}/{self.database}"
 
+
 class AppSettings(BaseSettings):
     """Main application settings."""
 
@@ -174,7 +184,7 @@ class AppSettings(BaseSettings):
     # Application settings
     app_name: str = Field(default="MyApp", description="Application name")
     debug: bool = Field(default=False, description="Debug mode")
-    log_level: str = Field(default="INFO", pattern=r'^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$')
+    log_level: str = Field(default="INFO", pattern=r"^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")
 
     # Server settings
     host: str = Field(default="0.0.0.0")
@@ -207,6 +217,7 @@ class AppSettings(BaseSettings):
         if len(set(secret)) < 10:
             raise ValueError("Secret key must have sufficient entropy")
         return v
+
 
 # Usage: set env vars with MYAPP_ prefix and __ for nesting
 # MYAPP_DEBUG=true

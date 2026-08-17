@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: Comprehensive best practices for creating, configuring, and managing
+  Snowflake virtual warehouses, including proper selection of warehouse types (CPU/GPU/High-Memory),
+  mandatory GEN 2 preference,
+last_updated: 2026-07-15
+keywords:
+- kw:virtual warehouse creation
+- kw:warehouse sizing strategy
+- kw:auto-suspend configuration
+- kw:warehouse type selection
+- kw:GEN 2 warehouse
+- kw:adaptive warehouse tuning
+- kw:warehouse
+token_budget: ~8900
+context_tier: High
+depends:
+  required:
+  - 103-snowflake-performance-tuning.md
+  - 105-snowflake-cost-governance.md
+---
 # Snowflake Warehouse Management
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-05-12
-**LoadTrigger:** kw:warehouse, kw:compute
-**Keywords:** high-memory warehouse, warehouse tagging, auto-suspend, auto-resume, GEN 2, Snowpark-Optimized, warehouse edition, resource monitors, create warehouse, warehouse configuration, warehouse types, warehouse cost, size warehouse, adaptive warehouse, MAX_QUERY_PERFORMANCE_LEVEL, QUERY_THROUGHPUT_MULTIPLIER, SYSTEM$BULK_UPDATE_WH, CREATE ADAPTIVE WAREHOUSE
-**TokenBudget:** ~6500
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 103-snowflake-performance-tuning.md, 105-snowflake-cost-governance.md
 
 ## Scope
 
@@ -57,37 +68,11 @@ Comprehensive best practices for creating, configuring, and managing Snowflake v
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake fundamentals
-- **103-snowflake-performance-tuning.md** - Performance optimization patterns
-- **105-snowflake-cost-governance.md** - Cost monitoring and optimization
-
-**Related:**
-- **107-snowflake-security-governance.md** - Security and access control
-- **111-snowflake-observability-core.md** - Monitoring and logging
-
 ### External Documentation
 
 - [Warehouse Overview](https://docs.snowflake.com/en/user-guide/warehouses-overview) - Virtual warehouse concepts
 - [CREATE WAREHOUSE](https://docs.snowflake.com/en/sql-reference/sql/create-warehouse) - DDL syntax
 - [Warehouse Types](https://docs.snowflake.com/en/user-guide/warehouse-considerations) - Type selection guidance
-
-### Related Rules
-
-**Closely Related** (consider loading together):
-- **105-snowflake-cost-governance.md** - resource monitors, credit quotas, cost alerts
-- **103-snowflake-performance-tuning.md** - warehouse sizing decisions based on query performance
-
-**Sometimes Related** (load if specific scenario):
-- **120-snowflake-spcs.md** - creating compute pools for Snowpark Container Services
-- **122-snowflake-dynamic-tables.md** - assigning warehouses to dynamic table refreshes
-- **104-snowflake-streams-tasks.md** - assigning warehouses to task executions
-
-**Complementary** (different aspects of same domain):
-- **100-snowflake-core.md** - warehouse naming conventions
-- **107-snowflake-security-governance.md** - warehouse access control and RBAC
 
 ## Contract
 
@@ -127,7 +112,7 @@ Warehouse created successfully; correct type and edition selected; mandatory tag
 
 ### Design Principles
 
-- **Adaptive First (when supported):** When Adaptive Warehouses are available in your region/edition, prefer them — they self-tune and eliminate manual sizing. See "Adaptive Warehouses" section.
+- **Adaptive First (when supported):** When Adaptive Warehouses are available in your region/edition, prefer them: they self-tune and eliminate manual sizing. See "Adaptive Warehouses" section.
 - **GEN 2 First:** When Adaptive is not available, always prefer GEN 2 warehouses over Standard edition for improved performance and cost efficiency
 - **Type Selection:** Use Standard CPU for general workloads, Snowpark-Optimized for GPU-accelerated ML, High-Memory for complex analytics
 - **Start Small:** Begin with smaller sizes (XSMALL/SMALL) and scale up based on actual performance metrics
@@ -272,7 +257,7 @@ ALTER WAREHOUSE old_wh SET GENERATION = '2';
 - **Supported sizes:** XSMALL through X4LARGE only (X5LARGE and X6LARGE NOT supported)
 - **Not available for:** Snowpark-optimized warehouses, Interactive warehouses
 - **Region check required:** Run `SELECT CURRENT_REGION()` and verify against [Gen2 region availability](https://docs.snowflake.com/en/user-guide/warehouses-gen2#region-availability)
-- **Snowsight:** GENERATION clause not available in UI — must use SQL
+- **Snowsight:** GENERATION clause not available in UI: must use SQL
 
 > **Investigation Required**
 > When applying this rule:
@@ -328,7 +313,7 @@ SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('WH_[WORKLOAD]_M', 'WAREHO
 
 **Rule:** Prefer Gen2 warehouses for new standard warehouses when available. Use `GENERATION = '2'` in DDL syntax.
 
-**Why Gen2:** Better DML performance (DELETE, UPDATE, MERGE), improved table scan operations, faster query execution. Gen2 is a performance feature, not a cost-saving feature — it has higher credit-per-hour rates but queries finish faster.
+**Why Gen2:** Better DML performance (DELETE, UPDATE, MERGE), improved table scan operations, faster query execution. Gen2 is a performance feature, not a cost-saving feature: it has higher credit-per-hour rates but queries finish faster.
 
 **DDL Syntax:**
 ```sql
@@ -354,7 +339,7 @@ SHOW WAREHOUSES LIKE 'my_wh';
 - **MEMORY_16X:** High-memory warehouse (16X memory, 256GB @ LARGE)
 - **MEMORY_16X_x86:** High-memory x86 warehouse
 
-**Note:** Snowpark-Optimized uses `WAREHOUSE_TYPE = 'SNOWPARK-OPTIMIZED'` — Gen2 is NOT available for Snowpark-optimized warehouses.
+**Note:** Snowpark-Optimized uses `WAREHOUSE_TYPE = 'SNOWPARK-OPTIMIZED'`: Gen2 is NOT available for Snowpark-optimized warehouses.
 
 ## Adaptive Warehouses (Public Preview)
 

@@ -1,0 +1,377 @@
+# AI Coding Rules - Development Automation
+# Replaces: `uv run ai-rules dev <command>`
+# Docs: docs/USING_DEV_CLI.md
+# Supported platforms: macOS (darwin), Linux
+version: '3.45'
+set: [pipefail]
+
+vars:
+  UV:
+    sh: command -v uv || echo "uv"
+  PYTHON_VERSION: '3.12'
+  # Markdown targets (inlined from former [tool.ai_rules.dev])
+  MARKDOWN_RULES_TARGETS: 'rules/'
+  MARKDOWN_DOCS_TARGETS: 'docs/ README.md CONTRIBUTING.md CHANGELOG.md'
+
+tasks:
+  default:
+    desc: "Show available tasks"
+    silent: true
+    cmds:
+      - task --list
+
+  # ─── Environment ───────────────────────────────────────────────────────
+  env:setup:
+    desc: "Pin Python {{.PYTHON_VERSION}}, create .venv"
+    preconditions:
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+    cmds:
+      - "{{.UV}} python install {{.PYTHON_VERSION}}"
+      - "{{.UV}} python pin {{.PYTHON_VERSION}}"
+      - "{{.UV}} venv"
+
+  env:sync:
+    desc: "Sync dev dependencies (fast)"
+    preconditions:
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+    cmds:
+      - "{{.UV}} sync --all-groups"
+
+  env:lock:
+    desc: "Lock and sync all dependencies"
+    preconditions:
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+    cmds:
+      - "{{.UV}} lock"
+      - "{{.UV}} sync --all-groups"
+
+  # ─── Quality ───────────────────────────────────────────────────────────
+  quality:all:
+    desc: "Run all quality checks (lint + format + typecheck + markdown)"
+    cmds:
+      - task: quality:lint
+      - task: quality:format
+      - task: quality:typecheck
+      - task: quality:markdown
+
+  quality:all:fix:
+    desc: "Run all quality checks with auto-fix"
+    cmds:
+      - task: quality:lint:fix
+      - task: quality:format:fix
+      - task: quality:typecheck
+      - task: quality:markdown:fix
+
+  quality:lint:
+    desc: "Run ruff linter (check only)"
+    preconditions:
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+    sources:
+      - "**/*.py"
+      - "pyproject.toml"
+    cmds:
+      - "{{.UV}} run ruff check ."
+
+  quality:lint:fix:
+    desc: "Run ruff linter with auto-fix"
+    preconditions:
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+    cmds:
+      - "{{.UV}} run ruff check --fix ."
+
+  quality:format:
+    desc: "Run ruff formatter (check only)"
+    preconditions:
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+    sources:
+      - "**/*.py"
+      - "pyproject.toml"
+    cmds:
+      - "{{.UV}} run ruff format --check ."
+
+  quality:format:fix:
+    desc: "Apply ruff formatting"
+    preconditions:
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+    cmds:
+      - "{{.UV}} run ruff format ."
+
+  quality:typecheck:
+    desc: "Run ty type checker"
+    preconditions:
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+    cmds:
+      - "{{.UV}} run ty check ."
+
+  quality:markdown:
+    desc: "Lint markdown files (rules + docs)"
+    preconditions:
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+    cmds:
+      - "{{.UV}} run pymarkdownlnt --config pymarkdown.rules.json scan {{.MARKDOWN_RULES_TARGETS}}"
+      - "{{.UV}} run pymarkdownlnt --config pymarkdown.docs.json scan {{.MARKDOWN_DOCS_TARGETS}}"
+
+  quality:markdown:fix:
+    desc: "Fix markdown files (rules + docs)"
+    preconditions:
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+    cmds:
+      - "{{.UV}} run pymarkdownlnt --config pymarkdown.rules.json fix {{.MARKDOWN_RULES_TARGETS}}"
+      - "{{.UV}} run pymarkdownlnt --config pymarkdown.docs.json fix {{.MARKDOWN_DOCS_TARGETS}}"
+
+  # ─── Tests ─────────────────────────────────────────────────────────────
+  test:run:
+    desc: "Run all pytest tests"
+    preconditions:
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+    cmds:
+      - "{{.UV}} run pytest tests/ --tb=short"
+
+  test:coverage:
+    desc: "Run tests with coverage report"
+    preconditions:
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+    cmds:
+      - "{{.UV}} run pytest --cov=src/ai_rules --cov-report=term-missing --cov-report=html tests/"
+
+  test:coverage:open:
+    desc: "Run tests with coverage and open HTML report"
+    platforms: [darwin]
+    cmds:
+      - task: test:coverage
+      - open htmlcov/index.html
+
+  # ─── Validation (CI pipeline) ─────────────────────────────────────────
+  validate:
+    desc: "Full validation pipeline (quality + tests + schema + plugin)"
+    # NOTE: CI additionally runs rule-loader validate/audit/trigger-contract via
+    # direct `uv run ai-rules ...` calls. Plugin replica and artifact fidelity is
+    # now shared: `plugin:verify` below runs the same commands as the CI validate
+    # job, so a stale replica fails locally instead of only on a push to main.
+    cmds:
+      - task: status:preflight
+      - task: quality:all
+      - task: test:run
+      - task: validate:schemas
+      - task: plugin:verify
+
+  ci:
+    desc: "CI pipeline entry point (alias for validate)"
+    cmds:
+      - task: validate
+
+  plugin:verify:
+    desc: "Verify plugin replicas are in sync and the build is source-faithful"
+    cmds:
+      # 1. Tracked in-repo replicas match their primaries (read-only; exits 1 on drift).
+      - "{{.UV}} run ai-rules plugin sync --check"
+      # 2. Build to a throwaway dir, then assert every artifact is present,
+      #    declared, and byte-identical to its primary.
+      - |
+        set -eu
+        BUILD_DIR="$(mktemp -d)"
+        trap 'rm -rf "$BUILD_DIR"' EXIT
+        {{.UV}} run ai-rules plugin build --plugin-dir "$BUILD_DIR"
+        {{.UV}} run ai-rules plugin verify --plugin-dir "$BUILD_DIR"
+        # 3. Validate against CoCo's own loader expectations, not just ours.
+        #    Skipped when the cortex binary is unavailable so this target stays
+        #    usable in environments without it (including CI runners).
+        if command -v cortex >/dev/null 2>&1; then
+          cortex plugin validate "$BUILD_DIR"
+        else
+          echo "cortex binary not found; skipping 'cortex plugin validate'"
+        fi
+
+  validate:schemas:
+    desc: "Validate rule and template schemas"
+    internal: true
+    cmds:
+      - "{{.UV}} run ai-rules validate rules/"
+      - "{{.UV}} run ai-rules validate rules/examples/ --examples"
+      - "{{.UV}} run ai-rules validate templates/ --templates"
+
+  # ─── Clean ─────────────────────────────────────────────────────────────
+  clean:cache:
+    desc: "Remove Python caches (__pycache__, .pyc, coverage, etc.)"
+    cmds:
+      - |
+        set -euo pipefail
+        find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+        find . -type f -name '*.pyc' -delete 2>/dev/null || true
+        find . -type d -name .pytest_cache -exec rm -rf {} + 2>/dev/null || true
+        find . -type d -name .mypy_cache -exec rm -rf {} + 2>/dev/null || true
+        rm -rf .ruff_cache htmlcov .coverage
+        echo "Cache cleaned."
+
+  clean:venv:
+    desc: "Remove .venv (pass FORCE=1 for non-interactive use)"
+    cmds:
+      - |
+        set -euo pipefail
+        if [ "${FORCE:-0}" != "1" ] && [ -t 0 ]; then
+          printf "Remove .venv? [y/N] "
+          read -r ans
+          case "$ans" in [yY]*) ;; *) echo "Aborted."; exit 1;; esac
+        elif [ "${FORCE:-0}" != "1" ]; then
+          echo "ERROR: Refusing to remove .venv on non-interactive terminal. Pass FORCE=1." >&2
+          exit 1
+        fi
+        rm -rf .venv
+        echo "Virtual environment removed."
+
+  clean:all:
+    desc: "Remove all caches and .venv (pass FORCE=1 for non-interactive use)"
+    deps: [clean:cache]
+    cmds:
+      - task: clean:venv
+        vars:
+          FORCE: "{{.FORCE}}"
+
+  # ─── Status ────────────────────────────────────────────────────────────
+  status:show:
+    desc: "Show project status (rule counts, tool versions)"
+    silent: true
+    cmds:
+      - |
+        echo "════════════════════════════════════════════════════════════════════"
+        echo "AI Coding Rules - Project Status"
+        echo "════════════════════════════════════════════════════════════════════"
+        echo ""
+        printf "  Rules:    %s files in rules/\n" "$(find rules -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')"
+        printf "  Examples: %s files in rules/examples/\n" "$(find rules/examples -maxdepth 1 -name '*.md' 2>/dev/null | wc -l | tr -d ' ')"
+        printf "  Skills:   %s directories in skills/\n" "$(find skills -maxdepth 2 -name 'SKILL.md' 2>/dev/null | wc -l | tr -d ' ')"
+        printf "  Tests:    %s test files\n" "$(find tests -name 'test_*.py' | wc -l | tr -d ' ')"
+        echo ""
+        printf "  Python:   %s\n" "$(python --version 2>&1)"
+        printf "  uv:       %s\n" "$(uv --version 2>&1)"
+        printf "  Task:     %s\n" "$(task --version 2>&1)"
+        echo ""
+
+  status:preflight:
+    desc: "Verify development environment is ready"
+    preconditions:
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+      - sh: test -f pyproject.toml
+        msg: "pyproject.toml not found. Run from project root."
+    cmds:
+      - echo "Environment ready."
+
+  # ─── Release ───────────────────────────────────────────────────────────
+  release:bump:
+    desc: "Bump version on release branch and push (requires VERSION=X.Y.Z)"
+    requires:
+      vars: [VERSION]
+    preconditions:
+      - sh: 'echo "{{.VERSION}}" | grep -qE "^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9]+)?$"'
+        msg: "Invalid version format: {{.VERSION}}. Expected X.Y.Z"
+      - sh: command -v uv
+        msg: "uv not found. Install from https://docs.astral.sh/uv/"
+      - sh: 'git diff --quiet HEAD'
+        msg: "Uncommitted changes detected. Commit or stash before bumping version."
+    cmds:
+      - |
+        set -euo pipefail
+        if [ "${DRY_RUN:-0}" = "1" ]; then
+          echo "DRY RUN -- Release branch prep v{{.VERSION}}"
+          echo '  pyproject.toml: version = "?" -> "{{.VERSION}}"'
+          echo '  README.md:      badge/version-? -> badge/version-{{.VERSION}}'
+          echo "  Commit:         chore: bump version to {{.VERSION}}"
+          echo "  Push:           origin $(git branch --show-current)"
+          exit 0
+        fi
+
+        BRANCH=$(git branch --show-current)
+        echo "Bumping version to v{{.VERSION}} on $BRANCH..."
+
+        # Cross-platform atomic version bump
+        uv run python scripts/bump_version.py "{{.VERSION}}"
+
+        git add pyproject.toml README.md
+        git commit -S -m "chore: bump version to {{.VERSION}}"
+        git push origin HEAD
+        echo "Version bumped. Run 'task release:merge VERSION={{.VERSION}}' when ready."
+
+  release:merge:
+    desc: "Squash-merge release branch into main, tag, publish (requires VERSION=X.Y.Z)"
+    requires:
+      vars: [VERSION]
+    preconditions:
+      - sh: 'echo "{{.VERSION}}" | grep -qE "^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9]+)?$"'
+        msg: "Invalid version format: {{.VERSION}}. Expected X.Y.Z"
+      - sh: '[ "$(git branch --show-current)" != "main" ]'
+        msg: "ERROR: Run from release/v{{.VERSION}}, not main."
+      - sh: 'gh auth status'
+        msg: "GitHub CLI not authenticated. Run 'gh auth login' first."
+    cmds:
+      - |
+        set -euo pipefail
+        if [ "${DRY_RUN:-0}" = "1" ]; then
+          echo "DRY RUN -- release-merge v{{.VERSION}}"
+          echo "  Checkout: main"
+          echo "  Pull: origin main"
+          echo "  Squash merge: release/v{{.VERSION}} into main with -X theirs"
+          echo "  Commit: chore: squash merge release/v{{.VERSION}} into main"
+          echo "  Tag: v{{.VERSION}}"
+          echo "  Push: origin main and refs/tags/v{{.VERSION}}"
+          echo "  GitHub: gh release create v{{.VERSION}} --draft --generate-notes"
+          exit 0
+        fi
+
+        git checkout main
+        git pull origin main
+        git merge --squash -X theirs "release/v{{.VERSION}}"
+        git commit -S -m "chore: squash merge release/v{{.VERSION}} into main"
+        git tag -s "v{{.VERSION}}" -m "Release {{.VERSION}}"
+        git push origin main
+        git push origin "refs/tags/v{{.VERSION}}"
+        gh release create "v{{.VERSION}}" --title "v{{.VERSION}}" --draft --generate-notes
+        echo "Release v{{.VERSION}} complete! Run 'task mirror:sync' to sync GitLab."
+
+  # ─── Mirror ────────────────────────────────────────────────────────────
+  mirror:sync:
+    desc: "Squash-sync main to GitLab mirror (orphan commit + force push)"
+    preconditions:
+      - sh: 'git diff --quiet HEAD'
+        msg: "Uncommitted changes detected. Commit or stash first."
+      - sh: 'git remote | grep -q gitlab'
+        msg: "No 'gitlab' remote configured. Add it first."
+    cmds:
+      - |
+        set -euo pipefail
+        VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "//;s/"//')
+        SHA=$(git rev-parse --short main)
+
+        if [ "${DRY_RUN:-0}" = "1" ]; then
+          echo "DRY RUN -- mirror v$VERSION"
+          echo "  Delete local _gitlab-sync branch if it exists"
+          echo "  Create orphan branch _gitlab-sync"
+          echo "  Create signed mirror commit"
+          echo "  Force push _gitlab-sync to gitlab/main"
+          echo "  Checkout main"
+          echo "  Delete local _gitlab-sync branch"
+          exit 0
+        fi
+
+        echo "Syncing v$VERSION to GitLab mirror ($SHA)..."
+        git branch -D _gitlab-sync 2>/dev/null || true
+        trap 'git checkout main 2>/dev/null; git branch -D _gitlab-sync 2>/dev/null' EXIT
+        git checkout --orphan _gitlab-sync
+        git commit -S -m "mirror: v$VERSION ($SHA)"
+        git push gitlab HEAD:main --force
+        git checkout main
+        trap - EXIT
+        git branch -D _gitlab-sync 2>/dev/null || true
+        echo "GitLab mirror synced: v$VERSION ($SHA)"

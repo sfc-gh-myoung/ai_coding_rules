@@ -1,20 +1,32 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive FastAPI development best practices for modern web API development. Covers application architecture (factory pattern, APIRouter), async programming patterns, request/response handling"
+last_updated: 2026-07-15
+keywords:
+  - kw:application factory
+  - kw:APIRouter modular routing
+  - kw:Pydantic request response separation
+  - kw:async def route handlers
+  - kw:dependency injection database sessions
+  - kw:uvicorn ASGI server
+  - kw:fastapi
+token_budget: ~4600
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Python foundation for all Python projects
+  optional:
+    - 203-python-project-setup.md  # Project structure and uv setup
+    - 210b-python-fastapi-testing.md  # FastAPI testing strategies
+    - 210d-python-fastapi-monitoring.md  # FastAPI monitoring and observability
+---
 # FastAPI Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential FastAPI patterns. Load for FastAPI tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:fastapi, kw:api, kw:rest
-**Keywords:** FastAPI, async, REST API, Pydantic, dependency injection, routing, request validation, response models, APIRouter, uvicorn, async def, application factory
-**TokenBudget:** ~4600
-**ContextTier:** High
-**Depends:** 200-python-core.md
 
 ## Scope
 
@@ -29,19 +41,6 @@ Comprehensive FastAPI development best practices for modern web API development.
 - Working with async/await and Pydantic integration
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Python foundation for all Python projects
-
-**Related:**
-- **203-python-project-setup.md** - Project structure and uv setup
-- **201-python-lint-format.md** - Linting and formatting standards
-- **210a-python-fastapi-security.md** - FastAPI security patterns
-- **210b-python-fastapi-testing.md** - FastAPI testing strategies
-- **210c-python-fastapi-deployment.md** - FastAPI deployment patterns
-- **210d-python-fastapi-monitoring.md** - FastAPI monitoring and observability
 
 ### External Documentation
 
@@ -163,8 +162,10 @@ async def get_data():
     response = requests.get("https://api.example.com/data")  # Blocks event loop!
     return response.json()
 
+
 # GOOD: Use async HTTP client
 import httpx
+
 
 @app.get("/data")
 async def get_data():
@@ -189,6 +190,7 @@ async def get_user(user_id: int):
     session.close()
     return user
 
+
 # GOOD: Dependency injection with proper lifecycle
 def get_db():
     db = SessionLocal()
@@ -196,6 +198,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 @app.get("/users/{user_id}")
 async def get_user(user_id: int, db: Session = Depends(get_db)):
@@ -261,6 +264,7 @@ from app.routers import auth, users
 from app.exceptions import add_exception_handlers
 from app.config import get_settings
 
+
 def create_app() -> FastAPI:
     """Create and configure FastAPI application."""
     settings = get_settings()
@@ -281,6 +285,7 @@ def create_app() -> FastAPI:
 
     return app
 
+
 app = create_app()
 ```
 
@@ -299,6 +304,7 @@ async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
 
 # INCORRECT: Missing async/await
 @router.get("/users/{user_id}")
@@ -328,16 +334,15 @@ from sqlalchemy.orm import sessionmaker
 
 engine = create_async_engine(
     DATABASE_URL,
-    pool_size=20,          # Max persistent connections
-    max_overflow=10,       # Additional connections under load
-    pool_timeout=30,       # Seconds to wait before raising error
-    pool_recycle=3600,     # Recycle connections after 1 hour
-    pool_pre_ping=True,    # Verify connection health before use
+    pool_size=20,  # Max persistent connections
+    max_overflow=10,  # Additional connections under load
+    pool_timeout=30,  # Seconds to wait before raising error
+    pool_recycle=3600,  # Recycle connections after 1 hour
+    pool_pre_ping=True,  # Verify connection health before use
 )
 
-AsyncSessionLocal = sessionmaker(
-    engine, class_=AsyncSession, expire_on_commit=False
-)
+AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
 
 async def get_db() -> AsyncSession:
     async with AsyncSessionLocal() as session:
@@ -361,12 +366,14 @@ async def get_db() -> AsyncSession:
 ```python
 from contextlib import asynccontextmanager
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: engine created above
     yield
     # Shutdown: dispose pool
     await engine.dispose()
+
 
 app = FastAPI(lifespan=lifespan)
 ```
@@ -395,14 +402,18 @@ from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from typing import Optional
 from datetime import datetime
 
+
 class UserCreate(BaseModel):
     """User creation request model."""
+
     email: EmailStr
     password: str = Field(..., min_length=8)
     full_name: str = Field(..., min_length=1, max_length=100)
 
+
 class UserResponse(BaseModel):
     """User response model - excludes sensitive fields."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -411,8 +422,10 @@ class UserResponse(BaseModel):
     created_at: datetime
     is_active: bool
 
+
 class UserUpdate(BaseModel):
     """User update model - all fields optional."""
+
     email: Optional[EmailStr] = None
     full_name: Optional[str] = Field(None, min_length=1, max_length=100)
     is_active: Optional[bool] = None
@@ -426,16 +439,17 @@ class UserUpdate(BaseModel):
 ```python
 from pydantic import field_validator, Field
 
+
 class ProductCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     price: float = Field(..., gt=0, le=10000)
     category_id: int = Field(..., gt=0)
 
-    @field_validator('name')
+    @field_validator("name")
     @classmethod
     def validate_name(cls, v: str) -> str:
         if not v.strip():
-            raise ValueError('Name cannot be empty or whitespace only')
+            raise ValueError("Name cannot be empty or whitespace only")
         return v.strip()
 ```
 
@@ -455,34 +469,35 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class AppException(Exception):
     """Base application exception."""
+
     def __init__(self, message: str, status_code: int = 500):
         self.message = message
         self.status_code = status_code
         super().__init__(self.message)
 
+
 class UserNotFoundError(AppException):
     def __init__(self, user_id: int):
         super().__init__(f"User {user_id} not found", 404)
 
+
 async def app_exception_handler(request: Request, exc: AppException):
     logger.error(f"Application error: {exc.message}")
     return JSONResponse(
-        status_code=exc.status_code,
-        content={"error": exc.message, "type": "application_error"}
+        status_code=exc.status_code, content={"error": exc.message, "type": "application_error"}
     )
+
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     logger.warning(f"Validation error: {exc.errors()}")
     return JSONResponse(
         status_code=422,
-        content={
-            "error": "Validation failed",
-            "details": exc.errors(),
-            "type": "validation_error"
-        }
+        content={"error": "Validation failed", "details": exc.errors(), "type": "validation_error"},
     )
+
 
 def add_exception_handlers(app: FastAPI):
     app.add_exception_handler(AppException, app_exception_handler)
@@ -505,7 +520,7 @@ class Settings(BaseSettings):
     database_url: str
     redis_url: str = "redis://localhost:6379"
     debug: bool = False
-    api_key: str  # Required — app fails to start if missing
+    api_key: str  # Required - app fails to start if missing
 
 
 settings = Settings()  # Reads from APP_DATABASE_URL, APP_REDIS_URL, etc.
@@ -524,6 +539,7 @@ For complete configuration patterns including CORS, security settings, and envir
 
 ```python
 from fastapi import WebSocket, WebSocketDisconnect
+
 
 @app.websocket("/ws/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: str):

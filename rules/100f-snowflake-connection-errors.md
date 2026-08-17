@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Systematic error classification for Snowflake connection errors using message-first analysis (never 1:1 error code mapping) to prevent misdiagnosis of network policy violations as authentication"
+last_updated: 2026-07-15
+keywords:
+  - kw:connection error classification
+  - kw:network policy violation detection
+  - kw:message-first error analysis
+  - kw:VPN disconnect diagnosis
+  - kw:snowflake.connector.errors.DatabaseError
+  - kw:error code 08001 ambiguity
+  - kw:snowpark
+token_budget: ~3900
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake fundamentals and connection patterns
+  optional:
+    - 101e-snowflake-streamlit-sql-errors.md  # SQL error handling patterns for Streamlit
+    - 101b-snowflake-streamlit-performance.md  # Connection caching with @st.cache_resource
+---
 # Snowflake Connection Error Classification
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:connection-error, kw:timeout
-**Keywords:** connection errors, error classification, network policy, authentication, VPN, error codes, 08001, 390114, error handling, snowflake.connector, DatabaseError, message analysis, error detection
-**TokenBudget:** ~3900
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md
 
 ## Scope
 
@@ -25,15 +36,6 @@ Systematic error classification for Snowflake connection errors using message-fi
 - Handling error code 08001 ambiguity (VPN/auth/network/URL)
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake fundamentals and connection patterns
-
-**Related:**
-- **101e-snowflake-streamlit-sql-errors.md** - SQL error handling patterns for Streamlit
-- **101b-snowflake-streamlit-performance.md** - Connection caching with @st.cache_resource
 
 ### External Documentation
 
@@ -118,11 +120,11 @@ Error classification enum/constant with user-facing guidance string
 
 **Language-Agnostic Error Classification:**
 
-1. **NETWORK_POLICY** — Message contains "not allowed to access", "IP/Token", or "network policy". Action: Reconnect VPN, check IP allowlist
-2. **AUTH_EXPIRED** — Error code 390114, 390318, 390144, or 390195. Action: Run `snow connection test`
-3. **TRANSIENT** — Message contains "timeout", "connection reset", or "temporarily unavailable". Action: Retry with exponential backoff
-4. **PERMISSION** — Message contains "insufficient privileges" or "permission denied". Action: Contact admin for role/privileges
-5. **CONNECTION** — Error code 08001, 08003, or 08004 (fallback). Action: Verify account URL, check network
+1. **NETWORK_POLICY**: Message contains "not allowed to access", "IP/Token", or "network policy". Action: Reconnect VPN, check IP allowlist
+2. **AUTH_EXPIRED**: Error code 390114, 390318, 390144, or 390195. Action: Run `snow connection test`
+3. **TRANSIENT**: Message contains "timeout", "connection reset", or "temporarily unavailable". Action: Retry with exponential backoff
+4. **PERMISSION**: Message contains "insufficient privileges" or "permission denied". Action: Contact admin for role/privileges
+5. **CONNECTION**: Error code 08001, 08003, or 08004 (fallback). Action: Verify account URL, check network
 
 **Detection order matters:** Check patterns top-to-bottom. Network policy MUST be checked before auth codes.
 
@@ -135,9 +137,7 @@ Snowflake error code `08001` appears in multiple scenarios:
 **WRONG Approach:**
 ```python
 # [FAIL] This misclassifies VPN issues as auth problems
-AUTH_ERROR_CODES = {
-    "08001": "Authentication expired"
-}
+AUTH_ERROR_CODES = {"08001": "Authentication expired"}
 
 if error_code in AUTH_ERROR_CODES:
     return "Run snow connection test to refresh auth"
@@ -184,7 +184,7 @@ def _is_network_policy_error(error_msg: str) -> bool:
         "network policy",
         "allowlist",
         "whitelist",
-        "incoming request with ip"
+        "incoming request with ip",
     ]
     msg_lower = error_msg.lower()
     return any(indicator in msg_lower for indicator in indicators)
@@ -224,7 +224,7 @@ def _is_auth_error(error_code: str) -> bool:
         "390114": "Authentication token has expired",
         "390318": "Session token has expired",
         "390144": "Invalid authentication token",
-        "390195": "JWT token has expired"
+        "390195": "JWT token has expired",
     }
     return error_code in AUTH_ERROR_CODES
 ```
@@ -248,12 +248,7 @@ def _is_transient_error(error_msg: str) -> bool:
     """
     Detect temporary network issues that may self-resolve.
     """
-    indicators = [
-        "timeout",
-        "connection reset",
-        "temporarily unavailable",
-        "network unreachable"
-    ]
+    indicators = ["timeout", "connection reset", "temporarily unavailable", "network unreachable"]
     msg_lower = error_msg.lower()
     return any(indicator in msg_lower for indicator in indicators)
 ```
@@ -270,6 +265,7 @@ Auto-retry with exponential backoff (3 attempts).
 ```python
 import time
 
+
 def retry_on_transient(func, max_retries=3, base_delay=1.0):
     """Retry a Snowflake operation on transient errors with exponential backoff."""
     for attempt in range(max_retries):
@@ -280,7 +276,7 @@ def retry_on_transient(func, max_retries=3, base_delay=1.0):
                 raise  # Non-transient errors should not be retried
             if attempt == max_retries - 1:
                 raise  # Exhausted retries
-            time.sleep(base_delay * 2 ** attempt)  # 1s, 2s, 4s
+            time.sleep(base_delay * 2**attempt)  # 1s, 2s, 4s
 ```
 
 ### 4. Permission Errors
@@ -291,12 +287,7 @@ def _is_permission_error(error_msg: str) -> bool:
     """
     Detect insufficient privileges for database operations.
     """
-    indicators = [
-        "insufficient privileges",
-        "permission denied",
-        "access denied",
-        "not authorized"
-    ]
+    indicators = ["insufficient privileges", "permission denied", "access denied", "not authorized"]
     msg_lower = error_msg.lower()
     # Exclude network policy messages (already handled)
     if "not allowed to access snowflake" in msg_lower:
@@ -326,7 +317,7 @@ def _is_connection_error(error_code: str) -> bool:
     CONNECTION_ERROR_CODES = {
         "08001": "Unable to establish connection",
         "08003": "Connection does not exist",
-        "08004": "Connection rejected"
+        "08004": "Connection rejected",
     }
     return error_code in CONNECTION_ERROR_CODES
 ```
@@ -376,6 +367,7 @@ Actions:
 from enum import Enum
 from typing import Tuple
 
+
 class SnowflakeErrorType(Enum):
     NETWORK_POLICY = "network_policy"
     AUTH_EXPIRED = "auth_expired"
@@ -383,6 +375,7 @@ class SnowflakeErrorType(Enum):
     PERMISSION = "permission"
     CONNECTION = "connection"
     UNKNOWN = "unknown"
+
 
 # Guidance messages per error type
 _GUIDANCE = {
@@ -396,10 +389,7 @@ _GUIDANCE = {
     SnowflakeErrorType.TRANSIENT: "NETWORK TIMEOUT - Retrying automatically",
     SnowflakeErrorType.PERMISSION: "PERMISSION DENIED\n\nContact administrator for privileges",
     SnowflakeErrorType.CONNECTION: (
-        "CONNECTION FAILED\n\n"
-        "1. Verify account URL\n"
-        "2. Check network\n"
-        "3. Run: snow connection test"
+        "CONNECTION FAILED\n\n1. Verify account URL\n2. Check network\n3. Run: snow connection test"
     ),
     SnowflakeErrorType.UNKNOWN: "UNRECOGNIZED ERROR\n\nLog error details and run: snow connection test",
 }
@@ -407,16 +397,16 @@ _GUIDANCE = {
 # Compose detectors: reuses functions defined in sections 1-5 above
 _DETECTORS = [
     # (check_func, uses_msg, error_type)
-    (_is_network_policy_error, True,  SnowflakeErrorType.NETWORK_POLICY),
-    (_is_auth_error,           False, SnowflakeErrorType.AUTH_EXPIRED),
-    (_is_transient_error,      True,  SnowflakeErrorType.TRANSIENT),
-    (_is_permission_error,     True,  SnowflakeErrorType.PERMISSION),
-    (_is_connection_error,     False, SnowflakeErrorType.CONNECTION),
+    (_is_network_policy_error, True, SnowflakeErrorType.NETWORK_POLICY),
+    (_is_auth_error, False, SnowflakeErrorType.AUTH_EXPIRED),
+    (_is_transient_error, True, SnowflakeErrorType.TRANSIENT),
+    (_is_permission_error, True, SnowflakeErrorType.PERMISSION),
+    (_is_connection_error, False, SnowflakeErrorType.CONNECTION),
 ]
 
+
 def classify_snowflake_connection_error(
-    error_msg: str,
-    error_code: str
+    error_msg: str, error_code: str
 ) -> Tuple[SnowflakeErrorType, str]:
     """Classify Snowflake connection error using composition of detectors.
 
@@ -439,15 +429,10 @@ from snowflake.connector import connect
 from snowflake.connector.errors import DatabaseError
 
 try:
-    conn = connect(
-        account="myaccount",
-        user="myuser",
-        authenticator="externalbrowser"
-    )
+    conn = connect(account="myaccount", user="myuser", authenticator="externalbrowser")
 except DatabaseError as e:
     error_type, guidance = classify_snowflake_connection_error(
-        str(e),
-        str(e.errno) if hasattr(e, 'errno') else ""
+        str(e), str(e.errno) if hasattr(e, "errno") else ""
     )
 
     if error_type == SnowflakeErrorType.NETWORK_POLICY:
@@ -503,6 +488,7 @@ def classify_error(error_code: str):
         return "Auth problem"
     return "Connection problem"
 
+
 # Problem: Misses network policy violations in message text
 ```
 **Problem:** Network policy failures often reuse generic connection codes; skipping message analysis causes repeated misdiagnosis.
@@ -518,5 +504,5 @@ error_type, guidance = classify_snowflake_connection_error(
     "08001",
 )
 print(error_type.value)  # network_policy
-print(guidance)          # NETWORK POLICY VIOLATION ... Reconnect to VPN ...
+print(guidance)  # NETWORK POLICY VIOLATION ... Reconnect to VPN ...
 ```

@@ -69,7 +69,7 @@ Result:   {summary}
 
 **Blocking Issues Count: {N}**
 
-1. **{Issue type} at line {N}:** {Description of ambiguity/problem} — {Why an agent would struggle}
+1. **{Issue type} at line {N}:** {Description of ambiguity/problem} - {Why an agent would struggle}
 
 2. ...
 ```
@@ -95,7 +95,7 @@ Result:   {summary}
 - Line {N}: {Specific weakness with line reference}
 - ...
 
-**Quote (line {N}):** `"{exact quote from rule}"` — {Why this matters}
+**Quote (line {N}):** `"{exact quote from rule}"` - {Why this matters}
 
 ### 2. Rule Size (X/10 × 5 = XX points)
 

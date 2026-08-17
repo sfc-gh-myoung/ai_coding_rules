@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Configuration and environment management for Typer CLI applications using Pydantic Settings, including configuration precedence, environment variables, and CLI override patterns."
+last_updated: 2026-07-15
+keywords:
+  - kw:Typer CLI configuration
+  - kw:pydantic-settings integration
+  - kw:configuration precedence chain
+  - kw:environment variable prefix
+  - kw:CLI option overrides
+  - kw:TOML config file loading
+token_budget: ~2550
+context_tier: Medium
+depends:
+  required:
+    - 220-python-typer-cli.md  # Core Typer CLI patterns
+  optional:
+    - 230-python-pydantic.md  # Pydantic model patterns
+    - 230a-python-pydantic-settings.md  # Pydantic Settings details
+---
 # Python Typer CLI Configuration Management
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Typer, CLI configuration, Pydantic Settings, environment variables, config precedence, CLI options
-**TokenBudget:** ~2550
-**ContextTier:** Medium
-**Depends:** 220-python-typer-cli.md
-**LoadTrigger:** kw:cli-config, kw:pydantic-settings
 
 ## Scope
 
@@ -24,14 +34,9 @@ Configuration and environment management for Typer CLI applications using Pydant
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **220-python-typer-cli.md** - Core Typer CLI patterns
-
-**Related:**
-- **230-python-pydantic.md** - Pydantic model patterns
-- **230a-python-pydantic-settings.md** - Pydantic Settings details
+_None._
 
 ## Contract
 
@@ -90,12 +95,12 @@ Settings class with validated configuration, CLI overrides, and env var support.
 
 > **Investigation Required**
 > Before adding or modifying configuration patterns, the agent MUST:
-> 1. Read existing settings/config classes — check for existing `BaseSettings` subclasses in the project
-> 2. Check current environment variable patterns — look for existing `env_prefix` values to avoid conflicts
+> 1. Read existing settings/config classes: check for existing `BaseSettings` subclasses in the project
+> 2. Check current environment variable patterns: look for existing `env_prefix` values to avoid conflicts
 > 3. Read `.env` files and `pyproject.toml` for existing config conventions
 > 4. Check if `pydantic-settings` is already installed (`uv pip list | grep pydantic-settings`)
 > 5. Verify the config precedence chain matches the project's existing behavior
-> 6. Never create a second settings class when one already exists — extend the existing class
+> 6. Never create a second settings class when one already exists: extend the existing class
 
 ### Post-Execution Checklist
 
@@ -113,6 +118,7 @@ Settings class with validated configuration, CLI overrides, and env var support.
 ```python
 # BAD: Mutating global state
 settings = AppSettings()
+
 
 @app.callback()
 def main(debug: bool = None):
@@ -149,6 +155,7 @@ from pydantic import Field
 from pathlib import Path
 from typing import Optional
 
+
 class AppSettings(BaseSettings):
     """Application settings with multiple sources."""
 
@@ -164,6 +171,7 @@ class AppSettings(BaseSettings):
         env_file=".env",
         case_sensitive=False,
     )
+
 
 settings = AppSettings()
 ```
@@ -181,6 +189,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class AppSettings(BaseSettings):
     """Application settings with TOML file support."""
+
     config_file: Path | None = None
     api_url: str = "https://api.example.com"
     api_timeout: int = Field(30, ge=1, le=300)
@@ -204,7 +213,7 @@ class AppSettings(BaseSettings):
                 raise ValueError(f"Config file not found: {path}")
             with open(path, "rb") as f:
                 file_data = tomllib.load(f)
-            # File values are lowest priority — only fill missing keys
+            # File values are lowest priority - only fill missing keys
             for key, value in file_data.items():
                 data.setdefault(key, value)
         return data
@@ -247,6 +256,7 @@ Wrap settings initialization to catch validation errors from any source:
 ```python
 from pydantic import ValidationError
 
+
 @app.callback()
 def main(
     ctx: typer.Context,
@@ -277,6 +287,7 @@ Common failure modes this handles:
 ```python
 from rich.table import Table
 
+
 @app.command()
 def show_config(ctx: typer.Context):
     """Display current configuration."""
@@ -300,7 +311,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class DatabaseConfig(BaseModel):
-    """Database connection settings (not a BaseSettings — no env support)."""
+    """Database connection settings (not a BaseSettings - no env support)."""
+
     host: str = "localhost"
     port: int = Field(5432, ge=1, le=65535)
     name: str = "myapp"
@@ -308,6 +320,7 @@ class DatabaseConfig(BaseModel):
 
 class AppSettings(BaseSettings):
     """Application settings with nested database config."""
+
     debug: bool = False
     database: DatabaseConfig = DatabaseConfig()
 
@@ -328,8 +341,9 @@ For sensitive values (API keys, passwords), use Pydantic's `SecretStr`:
 ```python
 from pydantic import SecretStr
 
+
 class AppSettings(BaseSettings):
-    api_key: SecretStr  # Required — no default
+    api_key: SecretStr  # Required - no default
     db_password: SecretStr = SecretStr("")
 
     model_config = SettingsConfigDict(

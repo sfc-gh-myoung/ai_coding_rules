@@ -1,20 +1,30 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Modern JS in 2026: ECMAScript Modules, immutable ES2023+ methods, JSDoc type annotations, and Biome/node:test tooling."
+last_updated: 2026-07-15
+keywords:
+  - kw:ESM modules
+  - kw:immutable array methods
+  - kw:node:test runner
+  - kw:Biome linter
+  - kw:JSDoc type annotations
+  - kw:Object.groupBy
+token_budget: ~4450
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+  optional:
+    - 424-javascript-docs.md  # JSDoc documentation standards
+    - 440-react-core.md  # React-specific patterns and best practices
+---
 # JavaScript Core: Modern Standards & Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential JavaScript patterns. Load for JavaScript tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-03-25
-**Keywords:** JavaScript, ES2024, ESM, Node.js, JSDoc, Biome, node:test, Immutability, Async/Await, Functional Programming
-**TokenBudget:** ~4450
-**ContextTier:** High
-**Depends:** 000-global-core.md
-**LoadTrigger:** ext:.js, ext:.jsx, ext:.mjs, ext:.cjs
 
 ## Scope
 
@@ -31,15 +41,6 @@ Definitive standards for writing modern, robust JavaScript in 2026, enforcing EC
 - Adding type safety with JSDoc
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-
-**Related:**
-- **424-javascript-docs.md** - JSDoc documentation standards
-- **440-react-core.md** - React-specific patterns and best practices
 
 ### External Documentation
 
@@ -136,7 +137,7 @@ test('processTransactions sorts by date', () => {
 
 **Pre-Task-Completion Validation Gate (CRITICAL):**
 
-Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+Reference: Complete validation protocol in `000-global-core.md`
 
 **Code Quality:**
 - **CRITICAL:** `npx biome check .` passes with no errors
@@ -235,7 +236,7 @@ See [Anti-Patterns and Common Mistakes](#anti-patterns-and-common-mistakes) sect
 2. Ensure `"type": "module"` is set in `package.json`
 3. Rename files that must stay CJS to `.cjs` extension
 4. For CJS dependencies in ESM: use `import pkg from 'cjs-pkg'` (default import) or `createRequire`
-5. Check for `__dirname`/`__filename` usage — replace with `import.meta.url` and `fileURLToPath`
+5. Check for `__dirname`/`__filename` usage: replace with `import.meta.url` and `fileURLToPath`
 
 ## Anti-Patterns and Common Mistakes
 
@@ -382,7 +383,7 @@ const result = Object.groupBy(inventory, ({ type }) => type);
 // db.js
 import { connect } from 'some-db-driver';
 
-// Allowed in modules — wrap in try/catch if failure should not block all importers
+// Allowed in modules - wrap in try/catch if failure should not block all importers
 export const db = await connect(process.env.DB_URL).catch(err => {
   console.error('Database connection failed:', err.message);
   process.exit(1);  // Fail fast rather than exporting undefined
@@ -418,17 +419,17 @@ try {
 - Use for code-splitting, conditional loading, or lazy initialization.
 - Always handle the promise rejection: `const mod = await import('./module.js').catch(handleError);`
 - Type with JSDoc: `/** @type {typeof import('./module.js')} */`
-- Avoid for static dependencies — prefer top-level `import` for better tree-shaking and analysis.
+- Avoid for static dependencies: prefer top-level `import` for better tree-shaking and analysis.
 
 **Top-Level Await Pitfalls:**
 - Requires ESM (`"type": "module"` in package.json) and Node.js 20+ (per this rule's prerequisites).
-- Blocks importing modules from executing until the awaited value resolves — avoid in library entry points.
+- Blocks importing modules from executing until the awaited value resolves: avoid in library entry points.
 - Do not use in modules imported by many consumers; prefer explicit async init functions instead.
 
 **`structuredClone` for Deep Copies:**
 - Use `structuredClone(obj)` instead of `JSON.parse(JSON.stringify(obj))` or spread/`Object.assign` for deep copies.
 - Handles `Date`, `Map`, `Set`, `ArrayBuffer`, and circular references correctly.
-- Does **not** clone functions, DOM nodes, or `Error` objects — use manual copying for those.
+- Does **not** clone functions, DOM nodes, or `Error` objects: use manual copying for those.
 
 **Browser vs Node.js ESM:**
 - In browsers, ESM requires import maps for bare specifiers (`import 'lodash'`). Node.js resolves bare specifiers via `node_modules` automatically.
@@ -468,7 +469,7 @@ node --test --watch tests/
 - **Requirement:** Use **Biome** (`@biomejs/biome`) for linting and formatting. It is significantly faster than ESLint + Prettier and requires less configuration.
 
 ```json
-// biome.json — minimal configuration
+// biome.json - minimal configuration
 {
     "linter": { "enabled": true },
     "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2 },

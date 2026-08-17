@@ -1,15 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Snowsight monitoring interfaces (Traces & Logs, Query History, Copy History, Task History, Dynamic Tables) and AI observability patterns for Cortex AI function monitoring, cost attribution, LLM"
+last_updated: 2026-07-15
+keywords:
+  - kw:snowsight monitoring interfaces
+  - kw:cortex ai cost attribution
+  - kw:traces and logs ui
+  - kw:llm evaluation workflows
+  - kw:distributed tracing ai applications
+  - kw:query history latency
+token_budget: ~4100
+context_tier: Low
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+  optional:
+    - 111c-snowflake-observability-monitoring.md  # Monitoring queries and analysis
+---
 # Snowflake Observability: Snowsight Interfaces & AI Observability
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:snowsight-monitoring, kw:ai-observability
-**Keywords:** Snowsight monitoring, Traces and Logs, Query History UI, Copy History, Task History, Dynamic Tables monitoring, AI observability, Cortex AI monitoring, token tracking, AI cost attribution, LLM evaluation, generative AI tracing
-**TokenBudget:** ~3900
-**ContextTier:** Low
-**Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md, 111c-snowflake-observability-monitoring.md
 
 ## Scope
 
@@ -24,16 +33,6 @@ Snowsight monitoring interfaces (Traces & Logs, Query History, Copy History, Tas
 - Attributing AI costs by application or function
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **111-snowflake-observability-core.md** - Telemetry configuration and event tables
-- **111c-snowflake-observability-monitoring.md** - Monitoring queries and analysis
-
-**Related:**
-- **114-snowflake-cortex-aisql.md** - Cortex AI SQL function patterns and cost governance
 
 ### External Documentation
 
@@ -295,6 +294,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def generate_insights(session, user_query):
     """Generate AI insights with comprehensive tracing."""
 
@@ -364,7 +364,7 @@ SELECT query_id, error_message
 FROM SNOWFLAKE.ACCOUNT_USAGE.QUERY_HISTORY
 WHERE start_time >= DATEADD('minute', -5, CURRENT_TIMESTAMP())
   AND execution_status = 'FAIL';
--- Returns nothing — data hasn't arrived yet!
+-- Returns nothing - data hasn't arrived yet!
 
 -- Correct: Use Event Tables for real-time application debugging
 SELECT timestamp, record_attributes, resource_attributes
@@ -391,7 +391,7 @@ WHERE execution_status = 'FAIL';
 **Correct Pattern:** Always include attribution dimensions in AI cost queries: `resource_attributes:"snow.executable.name"` for application name, `resource_attributes:"cortex.function"` for function type, and model name. Use dedicated warehouses per agent to enable warehouse-level cost attribution via `WAREHOUSE_METERING_HISTORY`. Set up alerts on per-application cost thresholds, not just account-wide totals.
 
 ```sql
--- Wrong: Aggregate-only cost tracking — no way to find the culprit
+-- Wrong: Aggregate-only cost tracking - no way to find the culprit
 SELECT SUM(tokens_used) AS total_tokens
 FROM my_ai_usage_table
 WHERE usage_date >= CURRENT_DATE() - 30;
@@ -420,16 +420,20 @@ ORDER BY total_tokens DESC;
 ```python
 from snowflake import telemetry
 
-# Wrong: Single flat span — no visibility into which phase is slow
+
+# Wrong: Single flat span - no visibility into which phase is slow
 def generate_response_flat(session, query):
     with telemetry.create_span("ai_workflow") as span:
         prompt = build_prompt(query)
-        # SECURITY: f-string shown as anti-pattern — use parameterized query instead
-        result = session.sql(f"SELECT SNOWFLAKE.CORTEX.COMPLETE('mistral-large2', '{prompt}')").collect()
+        # SECURITY: f-string shown as anti-pattern - use parameterized query instead
+        result = session.sql(
+            f"SELECT SNOWFLAKE.CORTEX.COMPLETE('mistral-large2', '{prompt}')"
+        ).collect()
         parsed = parse_response(result[0][0])
         return parsed
 
-# Correct: Nested spans for each phase — pinpoint the bottleneck
+
+# Correct: Nested spans for each phase - pinpoint the bottleneck
 def generate_response_traced(session, query):
     with telemetry.create_span("ai_workflow") as parent:
         parent.set_attribute("model", "mistral-large2")

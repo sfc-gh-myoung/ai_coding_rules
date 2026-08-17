@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Integrating Snowflake Semantic Views with Cortex Analyst and Cortex Agent, applying governance and security controls, and troubleshooting integration issues."
+last_updated: 2026-07-15
+keywords:
+  - kw:Cortex Analyst
+  - kw:Cortex Agent grounding
+  - kw:semantic view governance
+  - kw:natural language query synonyms
+  - kw:analyst troubleshooting
+  - kw:policy inheritance base tables
+token_budget: ~3150
+context_tier: Medium
+depends:
+  required:
+    - 106-snowflake-semantic-views-core.md  # DDL fundamentals
+    - 106b-snowflake-semantic-views-querying.md  # Query patterns
+---
 # Snowflake Semantic Views: Integration and Governance
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:semantic-integration
-**Keywords:** RBAC, masking policy, row access policy, cortex analyst, agent integration, semantic view security, analyst troubleshooting, fix analyst, debug analyst, synonyms, natural language queries
-**TokenBudget:** ~3150
-**ContextTier:** Medium
-**Depends:** 106-snowflake-semantic-views-core.md, 106b-snowflake-semantic-views-querying.md
 
 ## Scope
 
@@ -26,23 +34,11 @@ Integrating Snowflake Semantic Views with Cortex Analyst and Cortex Agent, apply
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule
-- **106-snowflake-semantic-views-core.md** - DDL fundamentals
-- **106b-snowflake-semantic-views-querying.md** - Query patterns
-
 ### External Documentation
 - [Cortex Analyst Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst)
 - [Cortex Agent Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents)
 - [Masking Policies](https://docs.snowflake.com/en/user-guide/security-column-ddm)
 - [Row Access Policies](https://docs.snowflake.com/en/user-guide/security-row)
-
-### Related Rules
-- **106d-snowflake-semantic-views-development.md** - VQR, Generator workflow
-- **115-snowflake-cortex-agents-core.md** - Agent design and configuration
-- **107-snowflake-security-governance.md** - Security policies
 
 ## Contract
 
@@ -120,17 +116,12 @@ import requests
 
 url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/message"
 
-headers = {
-    "Authorization": f"Bearer {snowflake_token}",
-    "Content-Type": "application/json"
-}
+headers = {"Authorization": f"Bearer {snowflake_token}", "Content-Type": "application/json"}
 
 # Native semantic view (no YAML needed)
 payload = {
     "semantic_view": "PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH",
-    "messages": [
-        {"role": "user", "content": "Which transformers have the highest load?"}
-    ]
+    "messages": [{"role": "user", "content": "Which transformers have the highest load?"}],
 }
 
 response = requests.post(url, headers=headers, json=payload)
@@ -149,15 +140,19 @@ from snowflake.core.cortex import Agent
 
 root = Root(session)
 
-agent = root.databases["PROD"].schemas["GRID_DATA"].cortex_agents.create(
-    Agent(
-        name="grid_ops_assistant",
-        grounding_sources=[
-            "PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH",
-            "PROD.GRID_DATA.SEM_ASSET_INVENTORY"
-        ],
-        instructions="Answer questions about transformer health and assets.",
-        model="mistral-large2"  # Use mistral-large2 for cost-effective queries; see 115 for model selection guidance
+agent = (
+    root.databases["PROD"]
+    .schemas["GRID_DATA"]
+    .cortex_agents.create(
+        Agent(
+            name="grid_ops_assistant",
+            grounding_sources=[
+                "PROD.GRID_DATA.SEM_TRANSFORMER_HEALTH",
+                "PROD.GRID_DATA.SEM_ASSET_INVENTORY",
+            ],
+            instructions="Answer questions about transformer health and assets.",
+            model="mistral-large2",  # Use mistral-large2 for cost-effective queries; see 115 for model selection guidance
+        )
     )
 )
 
@@ -286,7 +281,7 @@ If base table columns are renamed or dropped, the semantic view becomes invalid.
 
 **Why It Fails:** Semantic views don't support direct policy attachment. Policies applied to semantic views are silently ignored, creating false security assumptions.
 
-> **CRITICAL:** Policies applied directly to semantic views are SILENTLY IGNORED. Row access policies and masking policies MUST be applied to the underlying base tables. There is no error or warning -- they simply have no effect.
+> **CRITICAL:** Policies applied directly to semantic views are SILENTLY IGNORED. Row access policies and masking policies MUST be applied to the underlying base tables. There is no error or warning: they simply have no effect.
 
 **Correct Pattern:**
 ```sql
@@ -401,7 +396,7 @@ cursor.execute("""
 url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/message"
 payload = {
     "semantic_view": "PROD.ANALYTICS.SEM_SALES",
-    "messages": [{"role": "user", "content": "Top 5 products by revenue?"}]
+    "messages": [{"role": "user", "content": "Top 5 products by revenue?"}],
 }
 response = requests.post(url, headers=headers, json=payload)
 ```

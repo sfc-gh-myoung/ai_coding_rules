@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Environment detection and adaptation, cross-shell testing strategies, platform-specific differences (macOS/Linux, BSD/GNU tools), performance benchmarking, and project organization for mixed-shell"
+last_updated: 2026-07-15
+keywords:
+  - kw:cross-shell testing
+  - kw:platform compatibility
+  - kw:environment detection
+  - kw:performance benchmarking
+  - kw:BSD vs GNU
+  - kw:multi-shell project organization
+token_budget: ~2650
+context_tier: Low
+depends:
+  required:
+    - 310b-zsh-compatibility.md  # Cross-shell compatibility patterns and shell detection
+  optional:
+    - 310-zsh-scripting-core.md  # Foundation zsh scripting patterns
+    - 310a-zsh-advanced-features.md  # Advanced zsh features
+    - 300-bash-scripting-core.md  # Foundation bash scripting patterns
+---
 # Zsh Compatibility: Platforms, Testing, and Performance
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Zsh, shell testing, multi-shell, environment detection, platform compatibility, performance benchmarking, BSD vs GNU, cross-shell testing
-**TokenBudget:** ~2650
-**ContextTier:** Low
-**Depends:** 310b-zsh-compatibility.md
-**LoadTrigger:** ext:.zsh, kw:zsh-platform, kw:zsh-testing
 
 ## Scope
 
@@ -24,16 +35,6 @@ Environment detection and adaptation, cross-shell testing strategies, platform-s
 - Detecting and adapting to runtime environment
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **310b-zsh-compatibility.md** - Cross-shell compatibility patterns and shell detection
-
-**Related:**
-- **310-zsh-scripting-core.md** - Foundation zsh scripting patterns
-- **310a-zsh-advanced-features.md** - Advanced zsh features
-- **300-bash-scripting-core.md** - Foundation bash scripting patterns
 
 ### External Documentation
 
@@ -232,7 +233,7 @@ check_compatibility() {
 ### Missing Shell Binaries
 - **Rule:** Detect and handle missing shells before testing:
 ```zsh
-# Shell requirement check — canonical implementation in 310b-zsh-compatibility.md (§ Missing Shell Binaries)
+# Shell requirement check - canonical implementation in 310b-zsh-compatibility.md (§ Missing Shell Binaries)
 # Duplicated here for self-contained testing; keep in sync with 310b
 require_shell() {
     local shell="$1"

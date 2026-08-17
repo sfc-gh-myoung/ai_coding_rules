@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Operational patterns for Snowflake Model Registry including cost governance, storage/compute optimization, administrative queries, model maintenance, CI/CD integration, and compliance documentation."
+last_updated: 2026-07-15
+keywords:
+  - kw:model registry operations
+  - kw:ML cost governance
+  - kw:model version cleanup
+  - kw:inference warehouse sizing
+  - kw:model compliance audit
+  - kw:cicd model validation
+token_budget: ~3100
+context_tier: Low
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 110-snowflake-model-registry.md  # Model Registry core patterns
+  optional:
+    - 105-snowflake-cost-governance.md  # Cost monitoring and governance
+    - 119-snowflake-warehouse-management.md  # Warehouse sizing
+---
 # Snowflake Model Registry: Operations & Governance
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:model-registry-operations
-**Keywords:** model cost governance, model queries, model administration, model compliance, model audit, model maintenance, resource monitor ML, model integration, CI/CD models, notebook models
-**TokenBudget:** ~3100
-**ContextTier:** Low
-**Depends:** 100-snowflake-core.md, 110-snowflake-model-registry.md
 
 ## Scope
 
@@ -24,16 +35,6 @@ Operational patterns for Snowflake Model Registry including cost governance, sto
 - Establishing compliance and audit processes for ML models
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **110-snowflake-model-registry.md** - Model Registry core patterns
-
-**Related:**
-- **105-snowflake-cost-governance.md** - Cost monitoring and governance
-- **119-snowflake-warehouse-management.md** - Warehouse sizing
 
 ### External Documentation
 
@@ -229,9 +230,9 @@ ORDER BY query_start_time DESC;
 
 **Anti-Pattern 1: Running Inference on Oversized Warehouses Without Cost Controls**
 
-**Problem:** Developers use their default XL or 2XL warehouse for model inference because it's convenient, without considering that inference workloads are often lightweight and don't need large compute. Without a resource monitor, a batch inference job on an oversized warehouse silently burns through credits — a simple scoring query that needs an XS warehouse runs on a 2XL at 64x the cost per hour.
+**Problem:** Developers use their default XL or 2XL warehouse for model inference because it's convenient, without considering that inference workloads are often lightweight and don't need large compute. Without a resource monitor, a batch inference job on an oversized warehouse silently burns through credits: a simple scoring query that needs an XS warehouse runs on a 2XL at 64x the cost per hour.
 
-**Correct Pattern:** Create a dedicated right-sized warehouse for inference (typically XS or S) with auto-suspend enabled, and attach a resource monitor with NOTIFY and SUSPEND triggers. Profile inference latency on smaller warehouses before scaling up — most single-model scoring jobs perform identically on XS as on XL.
+**Correct Pattern:** Create a dedicated right-sized warehouse for inference (typically XS or S) with auto-suspend enabled, and attach a resource monitor with NOTIFY and SUSPEND triggers. Profile inference latency on smaller warehouses before scaling up: most single-model scoring jobs perform identically on XS as on XL.
 
 ```sql
 -- Wrong: Running inference on default oversized warehouse without cost controls
@@ -313,15 +314,18 @@ AS
 ```python
 # Wrong: Register and immediately use in production without validation
 from snowflake.ml.registry import Registry
+
 registry = Registry(session=session, database_name="ML", schema_name="REGISTRY")
 model_ref = registry.log_model(model, model_name="CHURN_MODEL", version_name="v2_0_0")
-# Immediately promoted — no validation, no comparison to previous version
+# Immediately promoted - no validation, no comparison to previous version
 
 # Correct: Validate before promoting to production
 model_ref = registry.log_model(
-    model, model_name="CHURN_MODEL", version_name="v2_0_0",
+    model,
+    model_name="CHURN_MODEL",
+    version_name="v2_0_0",
     sample_input_data=X_test.head(5),
-    comment="Candidate — pending validation"
+    comment="Candidate - pending validation",
 )
 
 # Gate 1: Schema compatibility check
@@ -340,7 +344,7 @@ prod_predictions = prev_version.run(X_holdout, function_name="predict")
 prod_accuracy = (prod_predictions[output_col] == y_holdout).mean()
 assert accuracy >= prod_accuracy * 0.98, "New version regression vs production"
 
-# All gates passed — tag as production via SQL
+# All gates passed - tag as production via SQL
 session.sql("""
     ALTER MODEL ML.REGISTRY.CHURN_MODEL MODIFY VERSION V2_0_0
     SET COMMENT = 'PRODUCTION - validated and promoted'

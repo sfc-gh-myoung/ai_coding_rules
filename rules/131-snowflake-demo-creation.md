@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Directives for creating realistic, deterministic, and effective demo applications. Covers data generation, narrative design, and visual clarity to deliver compelling demonstrations that showcase"
+last_updated: 2026-07-15
+keywords:
+  - kw:Faker seeded generation
+  - kw:generator table function
+  - kw:offline fallback resilience
+  - kw:DemoScenario pattern
+  - kw:narrative-aligned correlations
+  - kw:progressive disclosure UI
+  - kw:faker
+token_budget: ~3100
+context_tier: Low
+depends:
+  required:
+    - 130-snowflake-demo-sql.md  # Demo SQL patterns
+  optional:
+    - 132-snowflake-demo-modeling.md  # Data modeling for demos
+---
 # Snowflake Demo: Creation and Synthetic Data
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-13
-**Keywords:** Demo creation, synthetic data, realistic demos, data generation, demo applications, narrative design, reproducible data, progressive disclosure, Streamlit, data visualization
-**LoadTrigger:** kw:demo-creation, kw:synthetic-data
-**TokenBudget:** ~3100
-**ContextTier:** Low
-**Depends:** 130-snowflake-demo-sql.md
 
 ## Scope
 
@@ -24,17 +34,6 @@ Directives for creating realistic, deterministic, and effective demo application
 - Optimizing demo performance and reliability
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **130-snowflake-demo-sql.md** - Demo SQL patterns
-
-**Related:**
-- **132-snowflake-demo-modeling.md** - Data modeling for demos
-- **101-snowflake-streamlit-core.md** - Streamlit UI patterns
-- **240-python-faker.md** - Synthetic data generation with Faker
-- **920-data-science-analytics.md** - Data science and analytics patterns
 
 ### External Documentation
 
@@ -70,7 +69,7 @@ Directives for creating realistic, deterministic, and effective demo application
 
 ### Execution Steps
 
-0. **Check platform-native solutions first** — Before building custom infrastructure (REST clients, auth flows, polling mechanisms), verify if Snowflake provides a native SDK, connector, or feature that solves the problem. Present platform-native vs custom options to the user.
+0. **Check platform-native solutions first**: Before building custom infrastructure (REST clients, auth flows, polling mechanisms), verify if Snowflake provides a native SDK, connector, or feature that solves the problem. Present platform-native vs custom options to the user.
 1. Define demo narrative with customer problem and clear outcome
 2. Design data schema with referential integrity constraints
 3. Implement batch data generation with Faker seeding (seed=42 for reproducibility)
@@ -152,13 +151,10 @@ Demo application with:
 ```python
 # Problem: Generating 1M rows in memory during demo
 import random
+
 data = []
 for i in range(1_000_000):
-    data.append({
-        'id': i,
-        'value': random.random(),
-        'category': random.choice(['A', 'B', 'C'])
-    })
+    data.append({"id": i, "value": random.random(), "category": random.choice(["A", "B", "C"])})
 df = pd.DataFrame(data)
 ```
 **Problem:** Memory exhaustion, slow execution, demo timing unpredictable - audience waits while data generates.
@@ -167,24 +163,28 @@ df = pd.DataFrame(data)
 ```python
 # Pre-generated data or batch generation
 from faker import Faker
+
 fake = Faker()
 fake.seed_instance(42)  # Deterministic
 
+
 def generate_batch(n=1000):
     """Generate data in batches for efficiency"""
-    return pd.DataFrame([
-        {'id': i, 'value': fake.pyfloat(), 'category': fake.random_element(['A', 'B', 'C'])}
-        for i in range(n)
-    ])
+    return pd.DataFrame(
+        [
+            {"id": i, "value": fake.pyfloat(), "category": fake.random_element(["A", "B", "C"])}
+            for i in range(n)
+        ]
+    )
 ```
 **Benefits:** Predictable timing, memory efficient, reproducible results with seeding.
 
 **Anti-Pattern 2: Fully Random Independent Columns**
 ```python
 # Problem: No realistic patterns
-df['age'] = np.random.randint(18, 80, size=1000)
-df['income'] = np.random.randint(20000, 200000, size=1000)
-df['purchase'] = np.random.randint(0, 10000, size=1000)
+df["age"] = np.random.randint(18, 80, size=1000)
+df["income"] = np.random.randint(20000, 200000, size=1000)
+df["purchase"] = np.random.randint(0, 10000, size=1000)
 ```
 **Problem:** Unrealistic - no correlation between age/income/purchase behavior. Data doesn't tell a story.
 
@@ -199,7 +199,7 @@ for _ in range(1000):
     age = fake.random_int(22, 70)
     income = 25000 + (age - 22) * 2000 + fake.random_int(-5000, 15000)  # Age-income correlation
     purchase = income * 0.05 + fake.random_int(-500, 1500)  # Income-purchase correlation
-    data.append({'age': age, 'income': income, 'purchase': purchase})
+    data.append({"age": age, "income": income, "purchase": purchase})
 ```
 **Benefits:** Realistic correlations, meaningful patterns, supports narrative storytelling.
 
@@ -210,6 +210,7 @@ for _ in range(1000):
 ```python
 from dataclasses import dataclass
 
+
 @dataclass
 class DemoScenario:
     name: str
@@ -218,17 +219,23 @@ class DemoScenario:
     products: int = 50
     days_of_history: int = 90
 
+
 # Usage
 scenario = DemoScenario(name="quick_demo", customers=50, orders=200)
+
 
 def generate_demo_data(scenario: DemoScenario):
     fake = Faker()
     fake.seed_instance(42)
     customers = [fake.simple_profile() for _ in range(scenario.customers)]
     # Generate orders referencing customer IDs
-    orders = [{'customer_id': fake.random_element(range(scenario.customers)),
-               'amount': fake.pyfloat(min_value=10, max_value=500)}
-              for _ in range(scenario.orders)]
+    orders = [
+        {
+            "customer_id": fake.random_element(range(scenario.customers)),
+            "amount": fake.pyfloat(min_value=10, max_value=500),
+        }
+        for _ in range(scenario.orders)
+    ]
     return customers, orders
 ```
 
@@ -239,6 +246,7 @@ import json
 from pathlib import Path
 
 CACHE_DIR = Path("demo_cache")
+
 
 def get_demo_data(scenario: DemoScenario):
     cache_file = CACHE_DIR / f"{scenario.name}.json"
@@ -268,7 +276,7 @@ from snowflake.connector.pandas_tools import write_pandas
 session.sql("ALTER SESSION SET QUERY_TAG = 'demo_data_pipeline'").collect()
 
 # Vectorized write (much faster than row-by-row INSERT)
-write_pandas(conn, df, table_name='DEMO_TABLE', database='DEMO_DB', schema='PUBLIC', overwrite=True)
+write_pandas(conn, df, table_name="DEMO_TABLE", database="DEMO_DB", schema="PUBLIC", overwrite=True)
 ```
 
 ## Snowflake-Native Data Generation with GENERATOR()
@@ -334,10 +342,12 @@ st.title("Customer Analytics Demo")
 scenario = st.selectbox("Demo Scenario", ["Quick (50 customers)", "Full (500 customers)"])
 n_customers = 50 if "Quick" in scenario else 500
 
+
 # Load or generate data
 @st.cache_data(ttl=300)
 def load_demo_data(n):
     return session.sql(f"SELECT * FROM DEMO_DB.ANALYTICS.CUSTOMERS LIMIT {n}").to_pandas()
+
 
 try:
     df = load_demo_data(n_customers)

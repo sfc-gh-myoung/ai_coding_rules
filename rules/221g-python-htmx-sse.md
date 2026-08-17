@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Patterns for implementing Server-Sent Events (SSE) in HTMX applications, covering the decision between HTMX SSE extension and Alpine.js SSE manager, event type matching, thread-safe publishing, and"
+last_updated: 2026-07-15
+keywords:
+  - kw:HTMX SSE extension
+  - kw:Alpine.js SSE manager
+  - kw:event type matching
+  - kw:thread-safe SSE publishing
+  - kw:EventSourceResponse
+  - kw:SSE connection limits
+token_budget: ~4150
+context_tier: High
+depends:
+  optional:
+    - 221f-python-htmx-integrations.md  # Alpine.js patterns
+---
 # HTMX SSE Patterns (Python)
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** sse, server-sent events, htmx, alpine.js, eventsource, real-time, streaming, live updates, push notifications, event types, sse-manager
-**TokenBudget:** ~4150
-**ContextTier:** High
-**Depends:** 221-python-htmx-core.md, 221f-python-htmx-integrations.md
 
 ## Scope
 
@@ -24,18 +32,13 @@ Patterns for implementing Server-Sent Events (SSE) in HTMX applications, coverin
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **221-python-htmx-core.md** - HTMX foundation patterns
-- **221f-python-htmx-integrations.md** - Alpine.js patterns
-
-**Related:**
-- **207-python-logging.md** - Web logging with SSE
-
 ### Project Documentation
 
 - **SSE Events Reference**: `docs/SSE_EVENTS.md` - Channel and event type documentation
+
+### External Documentation
+
+_None._
 
 ## Contract
 
@@ -113,11 +116,11 @@ Patterns for implementing Server-Sent Events (SSE) in HTMX applications, coverin
 
 > **Investigation Required**
 > Before adding SSE patterns, the agent MUST:
-> 1. Check existing SSE connections in the project — avoid creating duplicate streams for the same data
-> 2. Determine which SSE approach (HTMX extension vs Alpine.js) is already in use — **never mix both**
+> 1. Check existing SSE connections in the project: avoid creating duplicate streams for the same data
+> 2. Determine which SSE approach (HTMX extension vs Alpine.js) is already in use: **never mix both**
 > 3. Read existing `docs/SSE_EVENTS.md` for documented channels and event types
 > 4. Verify `sse-starlette` is installed if using FastAPI: `uv pip list | grep sse-starlette`
-> 5. Count existing SSE connections — browsers limit to ~6 per domain; consolidate if approaching limit
+> 5. Count existing SSE connections: browsers limit to ~6 per domain; consolidate if approaching limit
 
 ## SSE Approach Decision Matrix
 
@@ -144,6 +147,7 @@ Patterns for implementing Server-Sent Events (SSE) in HTMX applications, coverin
 ```python
 async def multiplexed_events(request: Request):
     """Single SSE endpoint that emits multiple event types."""
+
     async def generate():
         while True:
             # Check all event sources and emit with different event types
@@ -155,6 +159,7 @@ async def multiplexed_events(request: Request):
             if progress := await get_task_progress():
                 yield {"event": "task_progress", "data": json.dumps(progress)}
             await asyncio.sleep(1)
+
     return EventSourceResponse(generate())
 ```
 
@@ -176,6 +181,7 @@ Use when: Simple, single-element updates from SSE events.
 ```python
 from sse_starlette.sse import EventSourceResponse
 
+
 @router.get("/api/sse/status")
 async def sse_status():
     async def event_generator():
@@ -183,7 +189,7 @@ async def sse_status():
             status = await get_current_status()
             yield {
                 "event": "system_status",  # Named event type
-                "data": json.dumps(status)
+                "data": json.dumps(status),
             }
             await asyncio.sleep(5)
 
@@ -297,16 +303,10 @@ async def demo_status_stream(demo_id: str):
         def progress_callback(step: str, message: str) -> None:
             """Thread-safe callback from background thread."""
             # Use call_soon_threadsafe to interact with main loop
-            main_loop.call_soon_threadsafe(
-                progress_queue.put_nowait,
-                (step, message)
-            )
+            main_loop.call_soon_threadsafe(progress_queue.put_nowait, (step, message))
 
         async def run_in_thread():
-            await asyncio.to_thread(
-                long_running_operation,
-                callback=progress_callback
-            )
+            await asyncio.to_thread(long_running_operation, callback=progress_callback)
             await progress_queue.put(("done", ""))
 
         task = asyncio.create_task(run_in_thread())
@@ -356,7 +356,7 @@ async def resilient_event_generator(task_id: str):
         async for event_type, data in progress_stream(task_id):
             yield {"event": event_type, "data": data}
     except asyncio.CancelledError:
-        # Client disconnected — clean up
+        # Client disconnected - clean up
         await cleanup_task(task_id)
         return
     except Exception as exc:
@@ -387,13 +387,13 @@ document.body.addEventListener('htmx:sseError', function(event) {
 
 **Option 1: Token in query parameter (recommended for JWT):**
 ```javascript
-// Frontend — pass JWT token in URL
+// Frontend - pass JWT token in URL
 const token = localStorage.getItem('auth_token');
 const source = new EventSource(`/api/sse/status?token=${token}`);
 ```
 
 ```python
-# Backend — validate token from query param
+# Backend - validate token from query param
 @app.get("/api/sse/status")
 async def sse_status(token: str = Query(...)):
     try:
@@ -412,7 +412,7 @@ async def sse_status(token: str = Query(...)):
 
 **Option 2: Cookie-based (recommended for session auth):**
 ```python
-# Backend — validate session cookie (automatic with Flask/FastAPI session middleware)
+# Backend - validate session cookie (automatic with Flask/FastAPI session middleware)
 @app.get("/api/sse/notifications")
 async def sse_notifications(request: Request):
     user = await get_current_user(request)  # From session cookie
@@ -422,14 +422,14 @@ async def sse_notifications(request: Request):
 ```
 
 ```html
-<!-- Frontend — cookies sent automatically, no code needed -->
+<!-- Frontend - cookies sent automatically, no code needed -->
 <div sse-connect="/api/sse/notifications" hx-ext="sse">
     <div sse-swap="notification">Waiting for notifications...</div>
 </div>
 ```
 
 **Key rules:**
-- JWT tokens in query params are visible in server logs — use short-lived tokens
+- JWT tokens in query params are visible in server logs: use short-lived tokens
 - Cookie-based auth is simpler but requires same-origin SSE endpoints
 - Never pass long-lived secrets in query parameters
 - For HTMX SSE extension: cookies are sent automatically; for `new EventSource()`: use `withCredentials: true` for cross-origin cookies
@@ -557,7 +557,7 @@ data: {}
 
 This rule focuses on FastAPI (async) SSE patterns with `sse-starlette`. For Flask:
 
-- **flask-sse**: Uses Redis for pub/sub — `uv add flask-sse`. Requires `gunicorn` with `gevent` worker
+- **flask-sse**: Uses Redis for pub/sub: `uv add flask-sse`. Requires `gunicorn` with `gevent` worker
  - **Polling fallback**: For simple Flask apps without async support, use `hx-trigger="every 5s"` polling instead of SSE (see 221i for polling patterns)
 - **Quart**: If Flask-compatible async is needed, consider Quart (`uv add quart`) which supports native async SSE generators
 

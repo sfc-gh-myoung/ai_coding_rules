@@ -1,14 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive rules for data science and analytics on Snowflake. Covers model lifecycle management, ML/AI insight presentation, advanced SQL techniques, performance optimization, and ethical"
+last_updated: 2026-07-15
+keywords:
+  - kw:snowpark dataframe
+  - kw:model registry versioning
+  - kw:feature engineering leakage
+  - kw:SHAP explainability
+  - kw:SQL aggregation over loops
+  - kw:pandas NaN handling
+  - kw:uncertainty quantification intervals
+token_budget: ~3750
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 200-python-core.md  # Python development patterns
+  optional:
+    - 100-snowflake-core.md  # Snowflake SQL patterns
+    - 101-snowflake-streamlit-core.md  # Streamlit dashboard patterns
+    - 252-python-pandas-core.md  # Pandas best practices
+---
 # Data Science & Analytics Principles
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Data science, Snowflake, pandas, Snowpark, ML, model lifecycle, feature engineering, NaN handling, model versioning, Jupyter
-**TokenBudget:** ~3750
-**ContextTier:** High
-**Depends:** 200-python-core.md, 000-global-core.md
 
 ## Scope
 
@@ -24,18 +38,6 @@ Comprehensive rules for data science and analytics on Snowflake. Covers model li
 - Implementing feature engineering pipelines
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **200-python-core.md** - Python development patterns
-
-**Related:**
-- **100-snowflake-core.md** - Snowflake SQL patterns
-- **101-snowflake-streamlit-core.md** - Streamlit dashboard patterns
-- **110-snowflake-model-registry.md** - Model versioning and registry
-- **252-python-pandas-core.md** - Pandas best practices
 
 ### External Documentation
 
@@ -130,10 +132,10 @@ Comprehensive rules for data science and analytics on Snowflake. Covers model li
 
 Before starting data science tasks on Snowflake, complete these checks:
 
-1. **Check available warehouses:** `SHOW WAREHOUSES` — identify warehouse size appropriate for ML workloads (MEDIUM+ recommended for training)
-2. **Review existing models:** `SHOW MODELS IN SCHEMA` — check if related models already exist in Model Registry
-3. **Identify data freshness:** `SELECT MAX(loaded_at) FROM table` — confirm data is recent enough for analysis
-4. **Check data volume:** `SELECT COUNT(*) FROM table` — determines SQL-first (>100K rows) vs Python-acceptable (<100K rows) approach
+1. **Check available warehouses:** `SHOW WAREHOUSES`: identify warehouse size appropriate for ML workloads (MEDIUM+ recommended for training)
+2. **Review existing models:** `SHOW MODELS IN SCHEMA`: check if related models already exist in Model Registry
+3. **Identify data freshness:** `SELECT MAX(loaded_at) FROM table`: confirm data is recent enough for analysis
+4. **Check data volume:** `SELECT COUNT(*) FROM table`: determines SQL-first (>100K rows) vs Python-acceptable (<100K rows) approach
 5. **Review existing features:** Check for existing feature engineering queries or feature stores in the schema
 6. **Verify tool availability:** Confirm `snowflake-snowpark-python`, `scikit-learn`, `shap` are in project dependencies
 
@@ -144,7 +146,7 @@ Before starting data science tasks on Snowflake, complete these checks:
 ```python
 # BAD: Fetching millions of rows
 df = session.sql("SELECT * FROM sales_fact").to_pandas()
-filtered = df[df['region'] == 'US']
+filtered = df[df["region"] == "US"]
 ```
 
 **Problem:** Pulls all data across network (slow, expensive), exhausts memory.
@@ -187,6 +189,7 @@ predictions = model.predict(X_test)  # No explanation!
 **Correct Pattern:**
 ```python
 import shap
+
 explainer = shap.TreeExplainer(model)
 shap_values = explainer(X_test)
 st.pyplot(shap.plots.waterfall(shap_values[0]))
@@ -204,7 +207,7 @@ model.fit(X_train, y_train)
 **Correct Pattern:**
 ```python
 quality_report = dqm.check_data_quality(table="customer_features")
-if quality_report['quality_score'] < 0.9:
+if quality_report["quality_score"] < 0.9:
     raise ValueError(f"Data quality insufficient: {quality_report['issues']}")
 model.fit(X_train, y_train)
 ```
@@ -220,8 +223,7 @@ st.metric("Predicted Revenue", f"${prediction:,.0f}")
 
 **Correct Pattern:**
 ```python
-st.metric("Predicted Revenue", f"${point:,.0f}",
-          help=f"95% CI: ${lower:,.0f} - ${upper:,.0f}")
+st.metric("Predicted Revenue", f"${point:,.0f}", help=f"95% CI: ${lower:,.0f} - ${upper:,.0f}")
 ```
 
 ## Pandas NULL Handling
@@ -230,11 +232,14 @@ st.metric("Predicted Revenue", f"${point:,.0f}",
 
 ```python
 # BAD: Doesn't catch NaN
-if duration is not None: formatted = f"{duration:.1f}s"
+if duration is not None:
+    formatted = f"{duration:.1f}s"
 
 # GOOD: Use pandas-aware functions
 import pandas as pd
-if pd.notna(duration): formatted = f"{duration:.1f}s"
+
+if pd.notna(duration):
+    formatted = f"{duration:.1f}s"
 ```
 
 **Always use:** `pd.notna(x)`, `pd.isna(x)`, `df.fillna()`, `df.dropna()`
@@ -245,9 +250,11 @@ if pd.notna(duration): formatted = f"{duration:.1f}s"
 **Reproducibility:**
 ```python
 registry.log_model(
-    model=trained_model, model_name="customer_churn",
-    version_name="v2", metrics={"accuracy": 0.89},
-    tags={"data_hash": data_hash}
+    model=trained_model,
+    model_name="customer_churn",
+    version_name="v2",
+    metrics={"accuracy": 0.89},
+    tags={"data_hash": data_hash},
 )
 ```
 
@@ -256,7 +263,8 @@ registry.log_model(
 **Monitoring:** Detect drift with statistical tests:
 ```python
 ks_stat, p_value = ks_2samp(baseline_preds, current_preds)
-if p_value < 0.05: alert("Model drift detected")
+if p_value < 0.05:
+    alert("Model drift detected")
 ```
 
 **Explainability:** Store SHAP values with model artifacts.
@@ -276,7 +284,8 @@ WHERE as_of_date <= training_date;
 **SQL-First Approach:**
 ```python
 # BAD: Python loops
-for customer_id in ids: features = calculate(customer_id)
+for customer_id in ids:
+    features = calculate(customer_id)
 
 # GOOD: SQL aggregation
 features = session.sql("""
@@ -312,20 +321,20 @@ SELECT * FROM large_table SAMPLE (10000 ROWS);  -- Fixed size
 **Confusion Matrix:**
 ```python
 cm = confusion_matrix(y_test, y_pred)
-fig = ff.create_annotated_heatmap(z=cm, colorscale='Blues')
+fig = ff.create_annotated_heatmap(z=cm, colorscale="Blues")
 st.metric("Precision", f"{report['1']['precision']:.2%}")
 ```
 
 **Feature Importance:**
 ```python
-importance = pd.DataFrame({'feature': names, 'importance': model.feature_importances_})
-fig = go.Figure(go.Bar(x=importance['importance'], y=importance['feature'], orientation='h'))
+importance = pd.DataFrame({"feature": names, "importance": model.feature_importances_})
+fig = go.Figure(go.Bar(x=importance["importance"], y=importance["feature"], orientation="h"))
 ```
 
 **Uncertainty Visualization:**
 ```python
-fig.add_trace(go.Scatter(x=dates, y=point_estimates, name='Forecast'))
-fig.add_trace(go.Scatter(x=dates, y=upper_bounds, fill='tonexty', name='95% Upper'))
+fig.add_trace(go.Scatter(x=dates, y=point_estimates, name="Forecast"))
+fig.add_trace(go.Scatter(x=dates, y=upper_bounds, fill="tonexty", name="95% Upper"))
 ```
 
 ## Performance Optimization
@@ -335,7 +344,7 @@ fig.add_trace(go.Scatter(x=dates, y=upper_bounds, fill='tonexty', name='95% Uppe
 # Filter in SQL, not pandas (use parameterized queries to prevent injection)
 query = session.sql(
     "SELECT * FROM sales_fact WHERE region = ? AND order_date >= DATEADD('year', -1, CURRENT_DATE()) LIMIT 10000",
-    params=[selection]
+    params=[selection],
 ).to_pandas()
 ```
 
@@ -373,7 +382,7 @@ MUST handle `SnowparkSQLException` in production Snowpark code. For session mana
 - Use sampling for EDA: `SELECT * FROM table SAMPLE (10000 ROWS)`
 
 **Out-of-Memory (DataFrame exceeds Python memory):**
-- Switch to SQL aggregation — never pull raw rows to Python
+- Switch to SQL aggregation: never pull raw rows to Python
 - Use Snowpark DataFrame API instead of `to_pandas()` for transformations
 - If pandas is required, use chunked reading: `session.sql("...").to_pandas_batches()`
 
@@ -408,12 +417,13 @@ MUST handle `SnowparkSQLException` in production Snowpark code. For session mana
 import json
 from datetime import datetime
 
+
 def create_analysis_result(
     analysis_name: str,
     predictions: dict,
     model_version: str,
     confidence: float,
-    data_range: tuple[str, str]
+    data_range: tuple[str, str],
 ) -> dict:
     """Create structured output for AI agent consumption."""
     return {
@@ -423,12 +433,9 @@ def create_analysis_result(
         "confidence": confidence,
         "data_range": {"start": data_range[0], "end": data_range[1]},
         "predictions": predictions,
-        "metadata": {
-            "framework": "snowpark-ml",
-            "output_format": "json",
-            "schema_version": "1.0"
-        }
+        "metadata": {"framework": "snowpark-ml", "output_format": "json", "schema_version": "1.0"},
     }
+
 
 # Usage:
 result = create_analysis_result(
@@ -436,7 +443,7 @@ result = create_analysis_result(
     predictions={"churn_rate": 0.15, "at_risk_count": 342},
     model_version="v2.1",
     confidence=0.89,
-    data_range=("2025-01-01", "2025-12-31")
+    data_range=("2025-01-01", "2025-12-31"),
 )
 # Agent can parse: result["predictions"]["churn_rate"]
 ```

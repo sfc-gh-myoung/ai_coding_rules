@@ -6,7 +6,7 @@ Reference examples for borderline classification decisions. Consult these BEFORE
 
 ### Example A: Ambiguous Documentation Update
 **Source:** "Update relevant documentation" (no criteria for "relevant")
-**Classification:** Ambiguous action — **1 blocking issue**
+**Classification:** Ambiguous action: **1 blocking issue**
 **Rationale:** Agent cannot determine which files to update; "relevant" has no criteria
 **Correct fix:** "Update README.md for public API changes, CHANGELOG.md for user-visible behavior, docstrings for modified functions"
 
@@ -41,7 +41,7 @@ Reference examples for borderline classification decisions. Consult these BEFORE
 
 ## Cross-Agent Calibration
 
-### Example G: Tool Names — NOT Agent-Specific
+### Example G: Tool Names: NOT Agent-Specific
 **Source:** "Use read_file to inspect" / "edit with old_string/new_string"
 **Classification:** **Do NOT count** as agent-specific consideration
 **Rationale:** Universal agent operations; all platforms have equivalents (Read/read_file, Edit/edit, etc.)

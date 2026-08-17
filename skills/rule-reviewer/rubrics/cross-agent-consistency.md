@@ -36,11 +36,11 @@
 ### Counting Protocol
 
 > **Standard 5-Step Counting Protocol:**
-> 1. **Create Empty Inventory** — Copy template above into working document. Do NOT start reading rule yet.
-> 2. **Read Rule Systematically** — Start at line 1, read to END (no skipping). Record all matches with line numbers.
-> 3. **Calculate Raw Totals** — Sum counts by category using dimension-specific definitions.
-> 4. **Check Non-Issues List** — Review EACH flagged item against this dimension's Non-Issues section. Remove false positives with note. Recalculate totals.
-> 5. **Look Up Score** — Use adjusted totals in Score Decision Matrix. Record score with inventory evidence.
+> 1. **Create Empty Inventory**: Copy template above into working document. Do NOT start reading rule yet.
+> 2. **Read Rule Systematically**: Start at line 1, read to END (no skipping). Record all matches with line numbers.
+> 3. **Calculate Raw Totals**: Sum counts by category using dimension-specific definitions.
+> 4. **Check Non-Issues List**: Review EACH flagged item against this dimension's Non-Issues section. Remove false positives with note. Recalculate totals.
+> 5. **Look Up Score**: Use adjusted totals in Score Decision Matrix. Record score with inventory evidence.
 >
 > **Inter-run consistency:** Use inventory tables with line numbers for evidence. If variance exceeds threshold documented below, re-count using checklists and document ambiguous cases.
 >
@@ -112,7 +112,7 @@ Gemini CLI, GitHub Copilot).
 
 - Universal programming concepts
 - Standard tool references (git, npm, pytest, etc.)
-- Standard agent tool operations (read_file/Read, edit/Edit, list_dir/Glob, grep/Grep, search — these are universal operations with platform-specific names)
+- Standard agent tool operations (read_file/Read, edit/Edit, list_dir/Glob, grep/Grep, search: these are universal operations with platform-specific names)
 - Explicit conditionals with all branches defined
 - Quantified thresholds
 - Issues already assigned to Actionability via overlap resolution Rule 2 (do not double-count)

@@ -66,7 +66,7 @@ SUMMARY:
 
  CRITICAL ISSUES (2):
 ────────────────────────────────────────────────────────────────────────────────
-[Metadata] Keywords count: 8 (expected 5-20)
+[Metadata] Keywords count: 8 (expected 5-11)
   Line: 5
   Fix: Add 2 more keywords to reach minimum of 10
 
@@ -90,7 +90,7 @@ RESULT:  FAILED
 
 **Error:**
 ```
-[Metadata] Keywords count: 8 (expected 5-20)
+[Metadata] Keywords count: 8 (expected 5-11)
   Line: 5
   Fix: Add 2 more keywords to reach minimum of 10
 ```
@@ -106,7 +106,7 @@ RESULT:  FAILED
 
 **Verification:**
 - Count commas + 1 = keyword count
-- Must be between 5-20 (inclusive)
+- Must be between 5-11 (inclusive)
 
 ---
 
@@ -321,7 +321,7 @@ while iteration <= max_iterations:
 - Missing required metadata fields
 - Missing required sections
 - Missing Contract Markdown headers
-- Keywords count outside 5-20 range
+- Keywords count outside 5-11 range
 - TokenBudget format invalid
 
 **Action:** Fix immediately, cannot proceed without resolving
@@ -364,7 +364,7 @@ SUMMARY:
   ℹ️  MEDIUM: 0
 
  CRITICAL ISSUES (2):
-[Metadata] Keywords count: 9 (expected 5-20)
+[Metadata] Keywords count: 9 (expected 5-11)
   Fix: Add 1 more keyword
 
 [Metadata] TokenBudget format invalid
@@ -422,14 +422,14 @@ ai-rules validate rules/422-daisyui-core.md --json > validation.json
 ```python
 import json
 
-with open('validation.json') as f:
+with open("validation.json") as f:
     result = json.load(f)
 
-critical_count = result['summary']['failed']
+critical_count = result["summary"]["failed"]
 if critical_count > 0:
-    for file_info in result['failed_files']:
-        for error in file_info['errors']:
-            if error['severity'] == 'CRITICAL':
+    for file_info in result["failed_files"]:
+        for error in file_info["errors"]:
+            if error["severity"] == "CRITICAL":
                 print(f"Line {error['line']}: {error['message']}")
                 print(f"Fix: {error['fix']}")
 ```
@@ -508,5 +508,5 @@ Proceed to **Phase 5: Indexing** (`workflows/indexing.md`)
 **Preparation:**
 - Rule file validated and ready
 - No more modifications needed
-- Ready to add to RULES_INDEX.md
+- Ready to add to rule frontmatter
 

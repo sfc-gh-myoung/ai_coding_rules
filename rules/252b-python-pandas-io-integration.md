@@ -1,15 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Pandas integration with Streamlit (caching, filtering, download) and Plotly (aggregation before plotting, performance), plus efficient data loading patterns."
+last_updated: 2026-07-15
+keywords:
+  - kw:streamlit cache_data
+  - kw:plotly aggregation
+  - kw:interactive dataframe filtering
+  - kw:csv download button
+  - kw:dtype optimization caching
+  - kw:pandas streamlit plotly
+  - kw:pandas
+token_budget: ~1800
+context_tier: Medium
+depends:
+  required:
+    - 252-python-pandas-core.md  # Core Pandas patterns
+  optional:
+    - 252a-python-pandas-performance.md  # Memory optimization and groupby
+    - 101a-snowflake-streamlit-visualization.md  # Plotly chart patterns
+    - 101b-snowflake-streamlit-performance.md  # Caching strategies
+---
 # Pandas IO and Integration Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:streamlit-pandas, kw:plotly-pandas, kw:pandas-io, kw:cache-data
-**Keywords:** pandas Streamlit, pandas Plotly, cache_data, DataFrame caching, interactive filtering, CSV download, aggregate visualization, data loading
-**TokenBudget:** ~1800
-**ContextTier:** Medium
-**Depends:** 252-python-pandas-core.md
 
 ## Scope
 
@@ -24,15 +36,9 @@ Pandas integration with Streamlit (caching, filtering, download) and Plotly (agg
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **252-python-pandas-core.md** - Core Pandas patterns
-
-**Related:**
-- **252a-python-pandas-performance.md** - Memory optimization and groupby
-- **101a-snowflake-streamlit-visualization.md** - Plotly chart patterns
-- **101b-snowflake-streamlit-performance.md** - Caching strategies
+_None._
 
 ## Contract
 
@@ -100,11 +106,11 @@ Cached data loading, interactive Streamlit filtering, aggregated Plotly charts, 
 
 ```python
 # Wrong: Plot 1M rows (slow, cluttered)
-fig = px.scatter(df, x='date', y='value')  # df has 1M rows
+fig = px.scatter(df, x="date", y="value")  # df has 1M rows
 
 # Correct: Aggregate first, then plot
-df_daily = df.groupby('date').agg({'value': 'mean'}).reset_index()
-fig = px.line(df_daily, x='date', y='value')  # 365 rows - fast!
+df_daily = df.groupby("date").agg({"value": "mean"}).reset_index()
+fig = px.line(df_daily, x="date", y="value")  # 365 rows - fast!
 ```
 
 ### Anti-Pattern 2: Missing Cache on Data Loading
@@ -116,13 +122,14 @@ fig = px.line(df_daily, x='date', y='value')  # 365 rows - fast!
 ```python
 # Wrong: Reloads every rerun
 def load_data():
-    return pd.read_csv('large_data.csv')
+    return pd.read_csv("large_data.csv")
+
 
 # Correct: Cached with TTL
 @st.cache_data(ttl=3600)
 def load_data():
-    df = pd.read_csv('large_data.csv')
-    df['category'] = df['category'].astype('category')
+    df = pd.read_csv("large_data.csv")
+    df["category"] = df["category"].astype("category")
     return df
 ```
 
@@ -134,19 +141,21 @@ def load_data():
 import streamlit as st
 import pandas as pd
 
+
 @st.cache_data(ttl=3600)
 def load_and_process_data():
     """Cache DataFrame loading and dtype optimization together."""
-    df = pd.read_csv('large_data.csv')
+    df = pd.read_csv("large_data.csv")
 
     # Optimize dtypes for memory
-    df['category'] = df['category'].astype('category')
-    df['status_code'] = df['status_code'].astype('int8')
+    df["category"] = df["category"].astype("category")
+    df["status_code"] = df["status_code"].astype("int8")
 
     # Pre-compute expensive operations
-    df['total'] = df['price'] * df['quantity']
+    df["total"] = df["price"] * df["quantity"]
 
     return df
+
 
 df = load_and_process_data()
 ```
@@ -155,11 +164,11 @@ df = load_and_process_data()
 
 ```python
 # User filters
-category = st.selectbox('Category', df['category'].unique())
-min_price = st.slider('Min Price', 0, 1000, 100)
+category = st.selectbox("Category", df["category"].unique())
+min_price = st.slider("Min Price", 0, 1000, 100)
 
 # Efficient filtering with query()
-filtered_df = df.query('category == @category and price >= @min_price')
+filtered_df = df.query("category == @category and price >= @min_price")
 st.dataframe(filtered_df)
 ```
 
@@ -168,14 +177,15 @@ st.dataframe(filtered_df)
 ```python
 @st.cache_data
 def convert_df_to_csv(df):
-    return df.to_csv(index=False).encode('utf-8')
+    return df.to_csv(index=False).encode("utf-8")
+
 
 csv = convert_df_to_csv(filtered_df)
 st.download_button(
     label="Download filtered data as CSV",
     data=csv,
-    file_name='filtered_data.csv',
-    mime='text/csv',
+    file_name="filtered_data.csv",
+    mime="text/csv",
 )
 ```
 
@@ -187,15 +197,9 @@ st.download_button(
 import plotly.express as px
 
 # Pre-process for Plotly
-df_viz = (
-    df
-    .groupby(['date', 'category'])
-    .agg({'sales': 'sum'})
-    .reset_index()
-    .sort_values('date')
-)
+df_viz = df.groupby(["date", "category"]).agg({"sales": "sum"}).reset_index().sort_values("date")
 
-fig = px.line(df_viz, x='date', y='sales', color='category')
+fig = px.line(df_viz, x="date", y="sales", color="category")
 st.plotly_chart(fig, use_container_width=True)
 ```
 
@@ -206,21 +210,23 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
+
 @st.cache_data(ttl=3600)
 def load_data():
-    df = pd.read_csv('data.csv')
-    df['category'] = df['category'].astype('category')
-    df['status_code'] = df['status_code'].astype('int8')
-    df['total'] = df['price'] * df['quantity']
+    df = pd.read_csv("data.csv")
+    df["category"] = df["category"].astype("category")
+    df["status_code"] = df["status_code"].astype("int8")
+    df["total"] = df["price"] * df["quantity"]
     return df
+
 
 df = load_data()
 
-category = st.selectbox('Category', df['category'].unique())
-filtered_df = df.query('category == @category')
+category = st.selectbox("Category", df["category"].unique())
+filtered_df = df.query("category == @category")
 
-df_viz = filtered_df.groupby('date').agg({'total': 'sum'}).reset_index()
-fig = px.line(df_viz, x='date', y='total')
+df_viz = filtered_df.groupby("date").agg({"total": "sum"}).reset_index()
+fig = px.line(df_viz, x="date", y="total")
 st.plotly_chart(fig, use_container_width=True)
 ```
 
@@ -239,24 +245,24 @@ def load_data_safe(filepath: str) -> pd.DataFrame:
     except pd.errors.EmptyDataError:
         st.warning("Data file is empty")
         return pd.DataFrame()
-    df['category'] = df['category'].astype('category')
+    df["category"] = df["category"].astype("category")
     return df
 ```
 
 ### Empty DataFrame Widget Guards
 
 ```python
-df = load_data_safe('data.csv')
+df = load_data_safe("data.csv")
 if df.empty:
     st.warning("No data available")
     st.stop()
 
-# Safe widget population — avoid errors on empty unique()
-categories = df['category'].unique().tolist()
+# Safe widget population - avoid errors on empty unique()
+categories = df["category"].unique().tolist()
 if not categories:
     st.info("No categories found in data")
     st.stop()
-category = st.selectbox('Category', categories)
+category = st.selectbox("Category", categories)
 ```
 
 ### Cache Invalidation

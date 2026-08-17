@@ -1,19 +1,29 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Advanced automation patterns for schema validation including programmatic output parsing, CI/CD integration, automated fix workflows, and batch validation strategies."
+last_updated: 2026-07-15
+keywords:
+  - kw:ci/cd pipeline
+  - kw:programmatic parsing
+  - kw:automated fix iteration
+  - kw:pre-commit hooks
+  - kw:github actions workflow
+  - kw:batch validation
+token_budget: ~3350
+context_tier: Medium
+depends:
+  required:
+    - 002e-schema-validator-usage.md  # Core validation commands and error resolution
+    - 002-rule-governance.md  # Schema requirements and v3.2 standards
+    - 000-global-core.md  # Foundation for all rules
+---
 # Schema Validator Advanced: Automation and CI/CD Integration
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule covers advanced automation patterns for schema validation.
 > Load when setting up CI/CD pipelines or programmatic validation workflows.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** schema validator, CI/CD integration, automation workflow, JSON parsing, programmatic validation, pre-commit hooks, GitHub Actions, batch validation, error automation, validation scripts
-**TokenBudget:** ~3350
-**ContextTier:** Medium
-**Depends:** 002e-schema-validator-usage.md, 002-rule-governance.md, 000-global-core.md
 
 ## Scope
 
@@ -28,13 +38,6 @@ Advanced automation patterns for schema validation including programmatic output
 - Building custom validation workflows
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **002e-schema-validator-usage.md** - Core validation commands and error resolution
-- **002-rule-governance.md** - Schema requirements and v3.2 standards
-- **000-global-core.md** - Foundation for all rules
 
 ### External Documentation
 
@@ -114,23 +117,21 @@ import json
 import subprocess
 
 result = subprocess.run(
-    ['uv', 'run', 'ai-rules', 'validate', 'rules/', '--json'],
-    capture_output=True,
-    text=True
+    ["uv", "run", "ai-rules", "validate", "rules/", "--json"], capture_output=True, text=True
 )
 
 data = json.loads(result.stdout)
 
 # Access summary
-total_files = data['summary']['total_files']
-failed = data['summary']['failed']
+total_files = data["summary"]["total_files"]
+failed = data["summary"]["failed"]
 
 # Process failed files
-for file_info in data['failed_files']:
-    file_path = file_info['path']
-    for error in file_info['errors']:
+for file_info in data["failed_files"]:
+    file_path = file_info["path"]
+    for error in file_info["errors"]:
         print(f"[{error['severity']}] {file_path}: {error['message']}")
-        if error['line']:
+        if error["line"]:
             print(f"  Line: {error['line']}")
         print(f"  Fix: {error['fix']}")
 ```
@@ -165,7 +166,7 @@ The `--json` flag outputs results in the following structure:
           "group": "Metadata",
           "message": "Missing required field: Keywords",
           "line": null,
-          "fix": "Add **Keywords:** [5-20 comma-separated terms]"
+          "fix": "Add **Keywords:** [5-11 comma-separated terms]"
         }
       ]
     }
@@ -188,18 +189,18 @@ When JSON is unavailable, use regex patterns:
 import re
 
 # Strip ANSI escape codes first
-clean = re.sub(r'\x1b\[[0-9;]*m', '', output)
+clean = re.sub(r"\x1b\[[0-9;]*m", "", output)
 
 # Extract counts from summary table (format: "│ CRITICAL │   3 │")
-critical_match = re.search(r'CRITICAL\s*│\s*(\d+)', clean)
-high_match = re.search(r'HIGH\s*│\s*(\d+)', clean)
+critical_match = re.search(r"CRITICAL\s*│\s*(\d+)", clean)
+high_match = re.search(r"HIGH\s*│\s*(\d+)", clean)
 critical_count = int(critical_match.group(1)) if critical_match else 0
 high_count = int(high_match.group(1)) if high_match else 0
 
 # Extract result status
-if 'All validations passed' in clean:
+if "All validations passed" in clean:
     status = "PASS"
-elif 'RESULT: FAILED' in clean:
+elif "RESULT: FAILED" in clean:
     status = "FAIL"
 else:
     status = "UNKNOWN"
@@ -214,9 +215,7 @@ import json
 import subprocess
 
 result = subprocess.run(
-    ['uv', 'run', 'ai-rules', 'validate', 'rules/', '--json'],
-    capture_output=True,
-    text=True
+    ["uv", "run", "ai-rules", "validate", "rules/", "--json"], capture_output=True, text=True
 )
 
 try:
@@ -233,9 +232,7 @@ except (json.JSONDecodeError, ValueError) as e:
 if data is None:
     # Re-run without --json and parse text output instead
     result = subprocess.run(
-        ['uv', 'run', 'ai-rules', 'validate', 'rules/'],
-        capture_output=True,
-        text=True
+        ["uv", "run", "ai-rules", "validate", "rules/"], capture_output=True, text=True
     )
     # Use regex-based text parsing (see Text Output Parsing above)
 ```
@@ -268,39 +265,41 @@ import json
 import subprocess
 import sys
 
+
 def validate_file(file_path):
     """Run validator and return parsed results."""
     result = subprocess.run(
-        ['uv', 'run', 'ai-rules', 'validate', file_path, '--json'],
-        capture_output=True,
-        text=True
+        ["uv", "run", "ai-rules", "validate", file_path, "--json"], capture_output=True, text=True
     )
     data = json.loads(result.stdout)
     return result.returncode, data
+
 
 def fix_keywords_count(file_path, target=12):
     """Add content-derived keywords to reach target count."""
     import os
     import shutil
-    backup_path = file_path + '.bak'
+
+    backup_path = file_path + ".bak"
     shutil.copy(file_path, backup_path)
-    
+
     try:
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             content = f.read()
-        
+
         import re
-        match = re.search(r'\*\*Keywords:\*\* (.+)', content)
+
+        match = re.search(r"\*\*Keywords:\*\* (.+)", content)
         if match:
-            keywords = [k.strip() for k in match.group(1).split(',')]
+            keywords = [k.strip() for k in match.group(1).split(",")]
             # Extract additional keywords from rule's section headings and key terms
             additional = extract_keywords_from_headings(content)
-            keywords.extend(additional[:target - len(keywords)])
+            keywords.extend(additional[: target - len(keywords)])
             # Example: A rule about SQL stored procedures would get
             # keywords like "procedure", "stored-procedure", "sql-body"
-            new_line = f'**Keywords:** {", ".join(keywords)}'
-            content = re.sub(r'\*\*Keywords:\*\* .+', new_line, content)
-            with open(file_path, 'w') as f:
+            new_line = f"**Keywords:** {', '.join(keywords)}"
+            content = re.sub(r"\*\*Keywords:\*\* .+", new_line, content)
+            with open(file_path, "w") as f:
                 f.write(content)
             return True
         return False
@@ -308,38 +307,40 @@ def fix_keywords_count(file_path, target=12):
         if os.path.exists(backup_path):
             os.remove(backup_path)
 
+
 def main(file_path):
     """Main workflow with iteration limit."""
     max_iterations = 3
-    
+
     for i in range(1, max_iterations + 1):
         exit_code, data = validate_file(file_path)
-        
+
         if exit_code == 0:
             print(f"[PASS] Validation passed after {i} iteration(s)")
             return 0
-        
-        errors = data.get('failed_files', [{}])[0].get('errors', [])
-        critical = [e for e in errors if e['severity'] == 'CRITICAL']
-        
+
+        errors = data.get("failed_files", [{}])[0].get("errors", [])
+        critical = [e for e in errors if e["severity"] == "CRITICAL"]
+
         if not critical:
             print("[WARN] Passed with warnings")
             return 0
-        
+
         # Apply fixes for known patterns
         fixed = False
         for error in critical:
-            if 'Keywords count' in error['message']:
+            if "Keywords count" in error["message"]:
                 fixed = fix_keywords_count(file_path)
-        
+
         if not fixed:
             print("[FAIL] No automated fix available")
             return 1
-    
+
     print(f"[FAIL] Still failing after {max_iterations} iterations")
     return 1
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main(sys.argv[1]))
 ```
 
@@ -415,7 +416,7 @@ Common issues when running validation in CI/CD runners:
 - **Wrong working directory:** Validate that `rules/` path is relative to the repository root, not a subdirectory
 - **Permission denied:** CI runners may need explicit read access to rule files; check file permissions in the Docker image
 - **Empty directory:** If `ai-rules validate rules/` finds no `.md` files, it returns
-  exit code 0 with a summary showing `total_files: 0`. This is not an error — the
+  exit code 0 with a summary showing `total_files: 0`. This is not an error: the
   directory simply has no rules to validate. To verify the directory path is correct,
   use `ls rules/*.md` first.
 

@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Rich library integration with Typer CLI applications including shared console patterns, dual console (stdout/stderr), Live progress displays, color detection, and context object state management."
+last_updated: 2026-07-15
+keywords:
+  - kw:Rich library
+  - kw:Typer Rich integration
+  - kw:shared console module
+  - kw:dual console stdout stderr
+  - kw:color detection environment
+  - kw:Live progress display
+  - kw:pytest
+token_budget: ~3450
+context_tier: Medium
+depends:
+  required:
+    - 220-python-typer-cli.md  # Core Typer CLI patterns
+  optional:
+    - 220b-python-typer-testing.md  # Testing with ANSI suppression
+---
 # Python Typer CLI Rich Integration
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Typer, Rich, console output, progress bars, Live display, color detection, stderr, dual console
-**TokenBudget:** ~3450
-**ContextTier:** Medium
-**Depends:** 220-python-typer-cli.md
-**LoadTrigger:** kw:rich, kw:console, kw:progress-bar
 
 ## Scope
 
@@ -24,13 +34,9 @@ Rich library integration with Typer CLI applications including shared console pa
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **220-python-typer-cli.md** - Core Typer CLI patterns
-
-**Related:**
-- **220b-python-typer-testing.md** - Testing with ANSI suppression
+_None._
 
 ## Contract
 
@@ -84,7 +90,7 @@ Shared console module with environment-aware output, dual stream support, and Ri
 
 > **Investigation Required**
 > Before creating or modifying Rich console patterns, the agent MUST:
-> 1. Check for existing `console.py` or shared console modules — never create a second one
+> 1. Check for existing `console.py` or shared console modules: never create a second one
 > 2. Search for existing Rich imports (`from rich` or `import rich`) across the project
 > 3. Verify whether `typer[all]` or bare `typer` + `rich` is installed: `uv pip list | grep -i rich`
 > 4. Read existing stderr/stdout patterns to maintain consistent stream separation
@@ -116,10 +122,12 @@ def export(format: str = "json"):
 ```python
 from enum import Enum
 
+
 class OutputFormat(str, Enum):
     json = "json"
     csv = "csv"
     yaml = "yaml"
+
 
 @app.command()
 def export(
@@ -167,6 +175,7 @@ import os
 import sys
 from rich.console import Console
 
+
 def _should_use_color() -> bool:
     """Detect whether the environment supports color output."""
     if os.environ.get("NO_COLOR"):
@@ -178,6 +187,7 @@ def _should_use_color() -> bool:
     if "pytest" in sys.modules:
         return False
     return True
+
 
 _use_color = _should_use_color()
 
@@ -222,17 +232,18 @@ User-provided strings may contain characters that Rich interprets as markup. Alw
 ```python
 from rich.markup import escape
 
+
 def display_file_info(path: str, size: int) -> None:
-    """Display file info — path may contain [brackets] or other Rich markup chars."""
+    """Display file info - path may contain [brackets] or other Rich markup chars."""
     safe_path = escape(path)  # Escapes [, ], and other markup characters
     get_console().print(f"File: {safe_path} ({size:,} bytes)")
 
 
-# BAD — user input interpreted as markup:
+# BAD - user input interpreted as markup:
 # path = "data/[backup]/report.csv"
 # console.print(f"File: {path}")  # Rich tries to parse [backup] as a style tag
 
-# GOOD — escaped input is safe:
+# GOOD - escaped input is safe:
 # console.print(f"File: {escape(path)}")  # Displays literal [backup]
 ```
 
@@ -250,8 +261,9 @@ def display_file_info(path: str, size: int) -> None:
 from rich.table import Table
 from rich.markup import escape
 
+
 def display_results(results: list[dict[str, str]]) -> None:
-    """Display results in a table — escape all user data."""
+    """Display results in a table - escape all user data."""
     table = Table(title="Search Results")
     table.add_column("Name", style="cyan")
     table.add_column("Path")
@@ -259,9 +271,9 @@ def display_results(results: list[dict[str, str]]) -> None:
 
     for r in results:
         table.add_row(
-            escape(r["name"]),      # User data — escape
-            escape(r["path"]),      # File path — escape
-            r["status"],            # Known enum ("ok"/"error") — safe
+            escape(r["name"]),  # User data - escape
+            escape(r["path"]),  # File path - escape
+            r["status"],  # Known enum ("ok"/"error") - safe
         )
     get_console().print(table)
 ```
@@ -271,16 +283,17 @@ def display_results(results: list[dict[str, str]]) -> None:
 ```python
 from myapp._shared.console import get_console, get_error_console, log_info
 
-console = get_console()       # Data output (stdout)
+console = get_console()  # Data output (stdout)
 err_console = get_error_console()  # Status output (stderr)
+
 
 @app.command()
 def export(output: Path):
     """Export data. Status goes to stderr, data to stdout."""
-    log_info(f"Exporting to {output}")       # stderr
+    log_info(f"Exporting to {output}")  # stderr
     data = generate_export()
-    console.print_json(data=data)            # stdout - pipeable
-    log_info("Export complete")              # stderr
+    console.print_json(data=data)  # stdout - pipeable
+    log_info("Export complete")  # stderr
 ```
 
 ### File Output (No ANSI Codes)
@@ -292,6 +305,7 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 
+
 def export_report(data: list[dict], output_path: Path) -> None:
     """Export report to file without ANSI escape codes."""
     table = Table(title="Report")
@@ -300,7 +314,7 @@ def export_report(data: list[dict], output_path: Path) -> None:
     for row in data:
         table.add_row(row["name"], str(row["value"]))
 
-    # File console — no_color=True strips all ANSI, width prevents wrapping
+    # File console - no_color=True strips all ANSI, width prevents wrapping
     with open(output_path, "w") as f:
         file_console = Console(file=f, no_color=True, width=120)
         file_console.print(table)
@@ -311,7 +325,7 @@ def export_report(data: list[dict], output_path: Path) -> None:
 **Key rules:**
 - `no_color=True` ensures no ANSI codes in file output
 - Set explicit `width=120` to prevent line wrapping based on terminal width
-- This is the ONE exception to the "never create Console instances outside the shared module" rule — file-targeted Consoles are inherently single-use
+- This is the ONE exception to the "never create Console instances outside the shared module" rule: file-targeted Consoles are inherently single-use
 - Always confirm file write to stderr, not stdout
 
 ## Context Object State Pattern
@@ -327,6 +341,7 @@ def main(
     """Main entry point."""
     ctx.ensure_object(dict)
     ctx.obj["verbose"] = verbose
+
 
 @app.command()
 def process(ctx: typer.Context, input_file: Path):
@@ -345,6 +360,7 @@ from rich.live import Live
 from rich.table import Table
 from myapp._shared.console import get_error_console
 
+
 def make_status_table(items: dict[str, str]) -> Table:
     """Build a status table for Live display."""
     table = Table(title="Sync Progress")
@@ -354,6 +370,7 @@ def make_status_table(items: dict[str, str]) -> Table:
         style = {"done": "green", "syncing": "yellow", "error": "red"}.get(status, "")
         table.add_row(name, status, style=style)
     return table
+
 
 def sync_with_progress(items: list[str]) -> None:
     """Sync items with live progress display on stderr."""
@@ -379,6 +396,7 @@ For single-task operations where a Live table is overkill, use `console.status()
 ```python
 from myapp._shared.console import get_error_console, get_console
 
+
 def deploy_app(target: str) -> None:
     """Deploy with a simple spinner on stderr."""
     err = get_error_console()
@@ -403,15 +421,15 @@ def deploy_app(target: str) -> None:
 
 **When to use `console.status()` vs `Live`:**
 
-- **`console.status()`:** Use for single task with phases — simple spinner
+- **`console.status()`:** Use for single task with phases: simple spinner
 - **`Live` + `Table`:** Use for multiple items with individual status tracking
 - **`Progress`:** Use for known total with measurable progress (file downloads, batch processing)
 
 **Key rules:**
-- Always use `get_error_console()` for spinners — keeps stdout clean for piped data
+- Always use `get_error_console()` for spinners: keeps stdout clean for piped data
 - `status.update()` changes the spinner text for each phase
 - Spinner auto-clears when the `with` block exits
-- Works correctly with `NO_COLOR=1` — falls back to text-only status
+- Works correctly with `NO_COLOR=1`: falls back to text-only status
 
 ### Table Column Overflow
 
@@ -420,6 +438,7 @@ For tables with potentially long strings, configure column overflow behavior:
 ```python
 from rich.table import Table
 from rich.markup import escape
+
 
 def display_logs(entries: list[dict]) -> None:
     """Display log entries with overflow handling."""
@@ -433,17 +452,17 @@ def display_logs(entries: list[dict]) -> None:
         table.add_row(
             entry["time"],
             entry["level"],
-            escape(entry["message"]),    # User data — escape
-            escape(entry["source"]),     # File path — escape
+            escape(entry["message"]),  # User data - escape
+            escape(entry["source"]),  # File path - escape
         )
     get_console().print(table)
 ```
 
 **Overflow modes:**
 
-- **`"fold"`:** Wraps text to next line within cell — use for log messages, descriptions
-- **`"ellipsis"`:** Truncates with `…` — use for file paths, identifiers
-- **`"crop"`:** Hard truncates (no indicator) — rarely use, prefer ellipsis instead
+- **`"fold"`:** Wraps text to next line within cell: use for log messages, descriptions
+- **`"ellipsis"`:** Truncates with `…`: use for file paths, identifiers
+- **`"crop"`:** Hard truncates (no indicator): rarely use, prefer ellipsis instead
 
 **Key rules:**
 - Use `no_wrap=True` for fixed-width columns (timestamps, status codes)

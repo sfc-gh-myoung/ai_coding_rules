@@ -1,20 +1,32 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Foundational bash scripting patterns covering script structure, variables, functions, and essential error handling practices to create reliable, maintainable, and portable shell scripts."
+last_updated: 2026-07-15
+keywords:
+  - kw:set -euo pipefail
+  - kw:variable quoting
+  - kw:trap cleanup handlers
+  - kw:shellcheck static analysis
+  - kw:local function variables
+  - kw:bash script structure
+  - kw:taskfile
+token_budget: ~3700
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+  optional:
+    - 300a-bash-security.md  # Security patterns for Bash scripts
+    - 300d-bash-advanced.md  # Advanced patterns, performance, code style, debugging
+    - 820-taskfile-automation.md  # Build automation patterns
+---
 # Bash Scripting Core Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Bash patterns. Load for shell scripting tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-03-26
-**Keywords:** Bash, shell scripting, set -euo pipefail, error handling, strict mode, functions, variables, script structure, trap, exit codes, shellcheck, input validation
-**TokenBudget:** ~3700
-**ContextTier:** High
-**Depends:** 000-global-core.md
-**LoadTrigger:** ext:.sh, ext:.bash, ext:.zsh
 
 ## Scope
 
@@ -31,17 +43,6 @@ Foundational bash scripting patterns covering script structure, variables, funct
 - Establishing Bash coding standards for projects
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-
-**Related:**
-- **300a-bash-security.md** - Security patterns for Bash scripts
-- **300b-bash-testing-tooling.md** - Testing and tooling for Bash
-- **300d-bash-advanced.md** - Advanced patterns, performance, code style, debugging
-- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
 
 ### External Documentation
 
@@ -143,7 +144,7 @@ main "$@"
 
 **Pre-Task-Completion Validation Gate (CRITICAL):**
 
-Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+Reference: Complete validation protocol in `000-global-core.md`
 
 **Code Quality:**
 - **CRITICAL:** `shellcheck script.sh` passes with no errors
@@ -242,7 +243,7 @@ done < <(find . -name "*.txt" -print0)
 ## Variable Management
 
 ### Variable Declaration and Naming
-- **Requirement:** Use descriptive, lowercase variable names with underscores (minimum 3 characters, e.g., `idx` not `i` — except `i`, `j`, `k` in `for` loops)
+- **Requirement:** Use descriptive, lowercase variable names with underscores (minimum 3 characters, e.g., `idx` not `i`: except `i`, `j`, `k` in `for` loops)
 - **Rule:** Constants in UPPERCASE: `readonly MAX_RETRIES=3`
 - **Always:** Declare readonly variables when values won't change
 - **Avoid:** Single-letter variables except `i`, `j`, `k` in `for` loops

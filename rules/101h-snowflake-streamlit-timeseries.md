@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Time-based aggregation and smoothing patterns for high-frequency data visualization in Streamlit applications."
+last_updated: 2026-07-15
+keywords:
+  - kw:time series smoothing
+  - kw:pandas resample
+  - kw:SCADA visualization
+  - kw:aggregation method selection
+  - kw:high-frequency sensor data
+  - kw:Streamlit chart performance
+token_budget: ~2550
+context_tier: Low
+depends:
+  optional:
+    - 101a-snowflake-streamlit-visualization.md  # Core visualization patterns
+---
 # Streamlit Time Series: Smoothing and Aggregation
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** time series smoothing, data aggregation, resample, SCADA data, high-frequency data, trend analysis, rolling average, EWMA, exponential smoothing
-**TokenBudget:** ~2550
-**ContextTier:** Low
-**Depends:** 101a-snowflake-streamlit-visualization.md
 
 ## Scope
 
@@ -24,14 +32,9 @@ Time-based aggregation and smoothing patterns for high-frequency data visualizat
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **101a-snowflake-streamlit-visualization.md** - Core visualization patterns
-
-### Related
-
-- **251-python-datetime-core.md** - Datetime optimization for time series
+_None._
 
 ## Contract
 
@@ -156,14 +159,14 @@ with col1:
         "Data Aggregation Level",
         options=["15min", "30min", "1H", "2H", "4H"],
         index=2,  # Default to 1 hour
-        help="Aggregate data to reduce noise in visualization"
+        help="Aggregate data to reduce noise in visualization",
     )
 with col2:
     smoothing_method = st.selectbox(
         "Aggregation Method",
         options=["mean", "median", "max", "min", "ewma"],
         index=0,  # Default to mean
-        help="Mean provides smoothest results, max/min preserve extremes, ewma for adaptive smoothing"
+        help="Mean provides smoothest results, max/min preserve extremes, ewma for adaptive smoothing",
     )
 
 # NOTE: When "ewma" is selected, aggregation_level controls output resolution
@@ -173,11 +176,7 @@ with col2:
 original_count = len(scada_data)
 if aggregation_level != "15min":
     scada_smooth = smooth_time_series_data(
-        scada_data,
-        "timestamp",
-        ["voltage_kv", "power_factor"],
-        aggregation_level,
-        smoothing_method
+        scada_data, "timestamp", ["voltage_kv", "power_factor"], aggregation_level, smoothing_method
     )
     st.info(f"Smoothed from {original_count:,} to {len(scada_smooth):,} points")
 else:
@@ -224,19 +223,20 @@ def ewma_smooth(
 ) -> pd.Series:
     """
     Apply EWMA smoothing. Recent values weighted more heavily.
-    
+
     Args:
         df: DataFrame with time series
         value_col: Column to smooth
         span: Decay span (higher = smoother, lower = more reactive)
-    
+
     Returns:
         EWMA-smoothed series
     """
     return df[value_col].ewm(span=span, adjust=False).mean()
 
+
 # Usage
-df['voltage_ewma'] = ewma_smooth(df, 'voltage_kv', span=12)
+df["voltage_ewma"] = ewma_smooth(df, "voltage_kv", span=12)
 ```
 
 **When to use EWMA vs resampling:**
@@ -251,7 +251,7 @@ Detect gaps in time series data (e.g., missing sensor readings):
 def detect_gaps(df: pd.DataFrame, time_col: str, threshold: str = "1H") -> pd.DataFrame:
     """Flag rows where the time gap exceeds the threshold."""
     df = df.sort_values(time_col)
-    df['gap'] = df[time_col].diff().gt(pd.Timedelta(threshold)).fillna(False)
+    df["gap"] = df[time_col].diff().gt(pd.Timedelta(threshold)).fillna(False)
     return df
 ```
 
@@ -286,7 +286,7 @@ ORDER BY hour_bucket;
 - 15-min SCADA (96 points/day) aggregated to 1H (24 points/day) = 75% reduction
 - Faster chart rendering, better UX, preserved patterns
 - Always display both original and smoothed counts to user
-- **NaN behavior:** `resample().mean()` skips NaN by default, but `resample().max()` and `resample().min()` propagate NaN -- this matters for sensor data with missing readings. Use `resample().max(min_count=1)` to treat all-NaN windows as NaN while still computing max when at least one value exists.
+- **NaN behavior:** `resample().mean()` skips NaN by default, but `resample().max()` and `resample().min()` propagate NaN: this matters for sensor data with missing readings. Use `resample().max(min_count=1)` to treat all-NaN windows as NaN while still computing max when at least one value exists.
 
 ## Anti-Patterns and Common Mistakes
 
@@ -294,7 +294,7 @@ ORDER BY hour_bucket;
 
 **Problem:**
 ```python
-df_smooth = df.resample('1H').mean()
+df_smooth = df.resample("1H").mean()
 st.line_chart(df_smooth)
 ```
 
@@ -303,7 +303,7 @@ st.line_chart(df_smooth)
 **Correct Pattern:**
 ```python
 original_count = len(df)
-df_smooth = df.resample('1H').mean()
+df_smooth = df.resample("1H").mean()
 st.info(f"Smoothed from {original_count:,} to {len(df_smooth):,} points (75% reduction)")
 st.line_chart(df_smooth)
 ```
@@ -312,13 +312,13 @@ st.line_chart(df_smooth)
 
 **Problem:**
 ```python
-voltage_data = df['voltage_kv'].resample('1H').mean()
+voltage_data = df["voltage_kv"].resample("1H").mean()
 ```
 
 **Why It Fails:** Using mean for voltage obscures dangerous spikes. Peak voltage values matter for grid safety.
 
 **Correct Pattern:**
 ```python
-voltage_max = df['voltage_kv'].resample('1H').max()
-voltage_min = df['voltage_kv'].resample('1H').min()
+voltage_max = df["voltage_kv"].resample("1H").max()
+voltage_min = df["voltage_kv"].resample("1H").min()
 ```

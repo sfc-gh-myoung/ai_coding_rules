@@ -1,16 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Architecture selection and core concepts for Snowpipe Streaming: high-performance vs classic architecture, decision matrix for file-based vs streaming ingestion, and anti-patterns. This is a"
+last_updated: 2026-07-15
+keywords:
+  - kw:snowpipe streaming
+  - kw:high-performance streaming architecture
+  - kw:streaming channel management
+  - kw:offset token tracking
+  - kw:sub-second latency ingestion
+  - kw:row-level SDK ingestion
+  - kw:snowpipe
+token_budget: ~3700
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 108-snowflake-data-loading.md  # Data loading fundamentals (stages, COPY INTO basics)
+  optional:
+    - 121-snowflake-snowpipe.md  # File-based Snowpipe for comparison (when to use files vs streaming)
+    - 121b-snowflake-snowpipe-monitoring.md  # Monitoring, cost tracking, and performance analysis
+    - 121c-snowflake-snowpipe-troubleshooting.md  # Troubleshooting and debugging patterns
+---
 # Snowflake Snowpipe Streaming
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:snowpipe-streaming
-**Keywords:** snowpipe streaming, high-performance streaming, classic streaming, row-level ingestion, low-latency ingestion, sub-second latency, real-time ingestion, streaming architecture, streaming channels
-**TokenBudget:** ~3700
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 108-snowflake-data-loading.md
-**Companions:** 121d-snowflake-snowpipe-streaming-sdk.md
 
 ## Scope
 
@@ -26,20 +38,6 @@ Architecture selection and core concepts for Snowpipe Streaming: high-performanc
 **For file-based continuous ingestion (1-2 min latency), see `121-snowflake-snowpipe.md`**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **108-snowflake-data-loading.md** - Data loading fundamentals (stages, COPY INTO basics)
-
-**Related:**
-- **121-snowflake-snowpipe.md** - File-based Snowpipe for comparison (when to use files vs streaming)
-- **121b-snowflake-snowpipe-monitoring.md** - Monitoring, cost tracking, and performance analysis
-- **121c-snowflake-snowpipe-troubleshooting.md** - Troubleshooting and debugging patterns
-- **104-snowflake-streams-tasks.md** - Incremental pipelines and change data capture
-- **111-snowflake-observability-core.md** - Logging, tracing, and monitoring patterns
-- **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
 
 ### External Documentation
 
@@ -201,8 +199,8 @@ last_offset = load_last_offset_from_storage()
 
 # Insert rows with monotonically increasing offset tokens
 for idx, row in enumerate(data_stream, start=last_offset + 1):
-    response = channel.insert_row(row, offset_token=f'offset_{idx}')
-    
+    response = channel.insert_row(row, offset_token=f"offset_{idx}")
+
     if response.has_errors():
         print(f"Insert errors: {response.insert_errors}")
     else:
@@ -221,7 +219,7 @@ channel = client.open_channel(...)
 
 # Load 10 million historical rows row-by-row
 for row in historical_data_10M_rows:
-    channel.insert_row(row, offset_token=f'offset_{row["id"]}')
+    channel.insert_row(row, offset_token=f"offset_{row['id']}")
     # Extremely slow! High latency! Expensive! Wrong tool!
 
 channel.close()
@@ -241,7 +239,7 @@ channel = client.open_channel(...)
 
 # Stream only new real-time data
 for row in real_time_stream:  # Ongoing stream, not bulk load
-    response = channel.insert_row(row, offset_token=f'offset_{row["timestamp"]}')
+    response = channel.insert_row(row, offset_token=f"offset_{row['timestamp']}")
     if response.has_errors():
         handle_error(response.insert_errors)
 
@@ -256,16 +254,16 @@ client = SnowflakeStreamingIngestClient(...)
 
 # Open channel without specifying schema evolution mode
 channel = client.open_channel(
-    database='DB',
-    schema='SCHEMA',
-    table='TABLE',
-    channel_name='CHANNEL'
+    database="DB",
+    schema="SCHEMA",
+    table="TABLE",
+    channel_name="CHANNEL",
     # No on_error or schema evolution config!
 )
 
 # Insert row with new column not in table
-row = {'id': 1, 'name': 'Alice', 'email': 'alice@example.com'}  # 'email' column doesn't exist!
-channel.insert_row(row, 'offset_1')
+row = {"id": 1, "name": "Alice", "email": "alice@example.com"}  # 'email' column doesn't exist!
+channel.insert_row(row, "offset_1")
 # What happens? Depends on default! Data loss? Error? Unknown!
 ```
 **Problem:** Silent data loss; unpredictable behavior with unknown columns
@@ -279,11 +277,11 @@ client = SnowflakeStreamingIngestClient(...)
 
 # Open channel with explicit error handling mode
 channel = client.open_channel(
-    database='DB',
-    schema='SCHEMA',
-    table='TABLE',
-    channel_name='CHANNEL',
-    on_error=OnErrorOption.CONTINUE  # Or ABORT, SKIP_FILE
+    database="DB",
+    schema="SCHEMA",
+    table="TABLE",
+    channel_name="CHANNEL",
+    on_error=OnErrorOption.CONTINUE,  # Or ABORT, SKIP_FILE
 )
 
 # Note: on_error controls error behavior, NOT schema evolution.
@@ -291,8 +289,8 @@ channel = client.open_channel(
 # is configured at the table level. See "Schema Evolution" section below.
 
 # Insert row with validation
-row = {'id': 1, 'name': 'Alice', 'email': 'alice@example.com'}
-response = channel.insert_row(row, 'offset_1')
+row = {"id": 1, "name": "Alice", "email": "alice@example.com"}
+response = channel.insert_row(row, "offset_1")
 
 if response.has_errors():
     for error in response.insert_errors:
@@ -395,4 +393,4 @@ if response.has_errors():
 ## SDK Implementation, Channel Management, and Schema Evolution
 
 > **See companion rule for all SDK implementation details:**
-> - **121d-snowflake-snowpipe-streaming-sdk.md** — Java SDK setup and ingestion, Python SDK setup and ingestion, production-ready error handling class, channel lifecycle management, channel naming best practices, offset token patterns, schema evolution modes and configuration, monitoring and troubleshooting quick references
+> - **121d-snowflake-snowpipe-streaming-sdk.md**: Java SDK setup and ingestion, Python SDK setup and ingestion, production-ready error handling class, channel lifecycle management, channel naming best practices, offset token patterns, schema evolution modes and configuration, monitoring and troubleshooting quick references

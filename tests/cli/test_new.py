@@ -45,8 +45,15 @@ class TestNewCommandHappyPath:
         content = output_path.read_text()
         assert "# 100-test-rule" in content
         assert "## Metadata" in content
-        assert "**SchemaVersion:** v3.2" in content
+        assert "**SchemaVersion:** v3.4" in content
         assert "**ContextTier:** Medium" in content  # Default tier
+        # v3.4 body-schema required sections + inline labels + subheadings
+        assert "## Scope" in content
+        assert "**What This Rule Covers:**" in content
+        assert "**When to Load This Rule:**" in content
+        assert "## References" in content
+        assert "### Dependencies" in content
+        assert "### External Documentation" in content
 
     def test_create_rule_with_letter_suffix(self, tmp_path: Path):
         """Test creating a rule file with letter suffix (e.g., 111a-example)."""
@@ -382,6 +389,13 @@ class TestTemplateGeneratorDirect:
         assert "Created rule template" in msg
         assert "Next steps" in msg
         assert "100-test-rule.md" in msg
+        # Every step must interpolate the path, not print a literal placeholder.
+        # A missing f-prefix previously leaked "{output_path}" into step 3.
+        assert "{output_path}" not in msg
+        assert msg.count("100-test-rule.md") == 4  # header + 3 steps
+        # The recommended commands must be ones the CLI actually exposes.
+        assert "ai-rules validate" in msg
+        assert "ai-rules rule-loader keywords run" in msg
 
     def test_format_error_message(self):
         """Test format_error_message returns expected content."""

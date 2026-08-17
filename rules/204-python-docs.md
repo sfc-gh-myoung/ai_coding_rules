@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Clear, enforceable standards for Python documentation, source code comments, and docstrings aligned with PEP 257 and modern tooling (Ruff pydocstyle, Sphinx Napoleon). Covers Google and NumPy styles,"
+last_updated: 2026-07-15
+keywords:
+  - kw:docstring conventions
+  - kw:PEP 257
+  - kw:Google style docstrings
+  - kw:NumPy style docstrings
+  - kw:Ruff pydocstyle
+  - kw:side effects documentation
+token_budget: ~3800
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Python foundation patterns
+    - 201-python-lint-format.md  # Ruff configuration and linting
+---
 # Python Documentation, Comments, and Docstrings
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Python docstrings, documentation, comments, pydocstyle, Ruff DOC rules, Google style, NumPy style, PEP 257, semantic depth, side effects
-**TokenBudget:** ~3800
-**ContextTier:** High
-**Depends:** 200-python-core.md, 201-python-lint-format.md
-**LoadTrigger:** kw:docstring, kw:documentation, kw:comments
 
 ## Scope
 
@@ -23,12 +31,6 @@ Clear, enforceable standards for Python documentation, source code comments, and
 - Documenting public APIs
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Python foundation patterns
-- **201-python-lint-format.md** - Ruff configuration and linting
 
 ### External Documentation
 
@@ -68,7 +70,7 @@ Clear, enforceable standards for Python documentation, source code comments, and
 
   Comments **add value** when they explain:
   1. **Why:** `timeout = 30  # Matches upstream SLA requirement`
-  2. **Non-obvious behavior:** `# sort() is stable — preserves insertion order for equal elements`
+  2. **Non-obvious behavior:** `# sort() is stable - preserves insertion order for equal elements`
   3. **Business context:** `# Users created before 2024 use legacy auth flow`
   4. **Warning:** `# WARNING: This modifies the input dict in place`
 
@@ -167,7 +169,7 @@ if user.role == "admin":
 select = ["E", "W", "F", "I", "B", "C4", "UP", "D"]
 
 [tool.ruff.lint.pydocstyle]
-convention = "google"  # or "numpy" — pick ONE
+convention = "google"  # or "numpy" - pick ONE
 ```
 
 **Common Ruff D-rule issues:**
@@ -268,9 +270,9 @@ Thread Safety: Not thread-safe. Create separate instances for concurrent operati
 """
 ```
 
-### Class Docstrings — class vs `__init__`
+### Class Docstrings: class vs `__init__`
 
-**Where to put the docstring — class vs `__init__`:**
+**Where to put the docstring: class vs `__init__`:**
 
 ```python
 # CORRECT: Docstring on the class (Google convention)
@@ -295,6 +297,7 @@ class UserService:
 # BAD
 def generate(self) -> OperationResult:
     """Generate synthetic data."""
+
 
 # GOOD
 def generate(self) -> OperationResult:
@@ -351,13 +354,13 @@ result = compute(x)  # Normalize to unit vector
 
 **When to use inline comments:**
 - Explain non-obvious constants: `MAX_RETRIES = 3  # Matches circuit breaker threshold`
-- Mark workarounds: `# HACK: pandas 2.1 bug — fixed in 2.2, remove when upgraded`
+- Mark workarounds: `# HACK: pandas 2.1 bug - fixed in 2.2, remove when upgraded`
 - Flag assumptions: `# ASSUMES: input is already sorted by timestamp`
 
 **When NOT to use inline comments:**
 - On obvious operations (see "restates" criteria in Forbidden above)
 - To disable linting: use `# noqa: E501` only with specific code, never bare `# noqa`
-- To explain complex logic — refactor instead or add a block comment above
+- To explain complex logic: refactor instead or add a block comment above
 
 **Block comments** (full-line comments) for multi-line explanations:
 ```python
@@ -438,5 +441,5 @@ Requires Ruff ≥0.4.0. These are the most frequently encountered pydocstyle vio
 - **`__init__.py` docstrings**: Required by D104. Use to describe package purpose and public API.
 - **Property docstrings**: Document on the `@property` method, not the setter.
 - **Overridden method docstrings**: Use `# noqa: D102` when parent docstring applies unchanged. Add docstring only when behavior differs.
-- **Abstract method docstrings**: Always document — subclasses inherit the contract.
+- **Abstract method docstrings**: Always document: subclasses inherit the contract.
 - **Generated code docstrings**: Skip manual docstrings for generated code (protobuf stubs, auto-generated dataclasses). Use `# noqa: D101` on generated files or add to `[tool.ruff.lint.per-file-ignores]`.

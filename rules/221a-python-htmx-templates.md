@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Jinja2 template organization patterns for HTMX applications, covering partial rendering, fragment composition, conditional template logic, and reusable component strategies for hypermedia-driven"
+last_updated: 2026-07-15
+keywords:
+  - kw:Jinja2 partials
+  - kw:HTMX fragment rendering
+  - kw:template directory organization
+  - kw:conditional HTMX detection
+  - kw:reusable template macros
+  - kw:partial inheritance anti-patterns
+token_budget: ~4500
+context_tier: High
+depends:
+  required:
+    - 221-python-htmx-core.md  # HTMX foundation patterns
+  optional:
+    - 221c-python-htmx-fastapi.md  # FastAPI template setup
+    - 221e-python-htmx-patterns.md  # Template patterns for CRUD, forms, etc.
+    - 221b-python-htmx-flask.md  # Flask-specific template patterns
+---
 # HTMX Template Strategies
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:htmx-templates
-**Keywords:** jinja2, templates, partials, fragments, template composition, conditional rendering, htmx templates, template organization, reusable components, template context
-**TokenBudget:** ~4500
-**ContextTier:** High
-**Depends:** 221-python-htmx-core.md
 
 ## Scope
 
@@ -24,17 +35,6 @@ Jinja2 template organization patterns for HTMX applications, covering partial re
 - Managing template context for HTMX endpoints
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **221-python-htmx-core.md** - HTMX foundation patterns
-
-**Related:**
-- **221b-python-htmx-flask.md** - Flask-specific template patterns
-- **221c-python-htmx-fastapi.md** - FastAPI template setup
-- **221e-python-htmx-patterns.md** - Template patterns for CRUD, forms, etc.
-- **200-python-core.md** - Python coding standards
 
 ### External Documentation
 
@@ -127,11 +127,11 @@ Jinja2 template organization patterns for HTMX applications, covering partial re
 
 > **Investigation Required**
 > Before creating or modifying HTMX templates, the agent MUST:
-> 1. Check existing template directory structure — adopt existing conventions (e.g., `partials/` vs `fragments/` vs `components/`)
+> 1. Check existing template directory structure: adopt existing conventions (e.g., `partials/` vs `fragments/` vs `components/`)
 > 2. Read existing `base.html` for HTMX script includes, CSRF meta tags, and `htmx:configRequest` listener
-> 3. Check existing partial naming patterns — use `_prefix` only if the project already does; match existing convention
+> 3. Check existing partial naming patterns: use `_prefix` only if the project already does; match existing convention
 > 4. Verify current CSRF protection setup before adding `htmx:configRequest` event listener (may already exist)
-> 5. Read existing macros in `templates/macros/` before creating new ones — extend rather than duplicate
+> 5. Read existing macros in `templates/macros/` before creating new ones: extend rather than duplicate
 
 ## Key Principles
 
@@ -180,7 +180,7 @@ Directory structure for `templates/`:
 
     {% include 'components/_footer.html' %}
 
-    {# HTMX Library — 1.9.x (current stable); 2.0.x renames hx-ws → ws-connect, hx-sse → sse-connect #}
+    {# HTMX Library - 1.9.x (current stable); 2.0.x renames hx-ws → ws-connect, hx-sse → sse-connect #}
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 
     {# HTMX Configuration #}
@@ -285,14 +285,14 @@ Directory structure for `templates/`:
 **Method 1: View-Level Detection (Recommended):**
 ```python
 # Flask example
-@app.route('/users')
+@app.route("/users")
 def users_list():
     users = get_users()
 
-    if request.headers.get('HX-Request') == 'true':
-        return render_template('partials/_users_table.html', users=users)
+    if request.headers.get("HX-Request") == "true":
+        return render_template("partials/_users_table.html", users=users)
 
-    return render_template('pages/users.html', users=users)
+    return render_template("pages/users.html", users=users)
 ```
 
 **Method 2: Template-Level Detection (Include-Based):**
@@ -301,7 +301,7 @@ def users_list():
 
 ```html
 {# templates/users.html #}
-{# This template does NOT use extends — it builds the page inline #}
+{# This template does NOT use extends - it builds the page inline #}
 {% if request.headers.get('HX-Request') %}
     {# Partial response for HTMX #}
     {% include 'partials/_users_table.html' %}
@@ -370,22 +370,23 @@ def users_list():
 **Minimal Context for Partials:**
 ```python
 # Good: Pass only necessary data
-@app.route('/user/<int:user_id>/edit')
+@app.route("/user/<int:user_id>/edit")
 def edit_user(user_id):
     user = get_user(user_id)
-    return render_template('partials/_user_form.html',
-                          user=user,
-                          errors={})
+    return render_template("partials/_user_form.html", user=user, errors={})
+
 
 # Avoid: Passing entire app state
-@app.route('/user/<int:user_id>/edit')
+@app.route("/user/<int:user_id>/edit")
 def edit_user(user_id):
     # DON'T DO THIS
-    return render_template('partials/_user_form.html',
-                          user=user,
-                          all_users=get_all_users(),  # Unnecessary
-                          config=app.config,           # Unnecessary
-                          session=session)             # Unnecessary
+    return render_template(
+        "partials/_user_form.html",
+        user=user,
+        all_users=get_all_users(),  # Unnecessary
+        config=app.config,  # Unnecessary
+        session=session,
+    )  # Unnecessary
 ```
 
 **Context Processor for Common Data:**
@@ -394,10 +395,11 @@ def edit_user(user_id):
 @app.context_processor
 def inject_common():
     return {
-        'app_name': 'MyApp',
-        'current_year': datetime.now().year,
-        'is_htmx': request.headers.get('HX-Request') == 'true'
+        "app_name": "MyApp",
+        "current_year": datetime.now().year,
+        "is_htmx": request.headers.get("HX-Request") == "true",
     }
+
 
 # Now available in all templates
 # {{ app_name }}, {{ current_year }}, {{ is_htmx }}
@@ -440,10 +442,10 @@ Validation error and toast partials are needed in nearly every HTMX application:
 ```python
 if errors:
     response = make_response(
-        render_template('partials/_validation_errors.html', errors=errors), 400
+        render_template("partials/_validation_errors.html", errors=errors), 400
     )
-    response.headers['HX-Retarget'] = '#form-errors'
-    response.headers['HX-Reswap'] = 'innerHTML'
+    response.headers["HX-Retarget"] = "#form-errors"
+    response.headers["HX-Reswap"] = "innerHTML"
     return response
 ```
 
@@ -466,21 +468,22 @@ if errors:
 
 **Route:**
 ```python
-@app.route('/users')
+@app.route("/users")
 def list_users():
-    page = request.args.get('page', 1, type=int)
+    page = request.args.get("page", 1, type=int)
     per_page = 20
     users = User.query.paginate(page=page, per_page=per_page)
 
-    if request.headers.get('HX-Request') == 'true':
-        return render_template('partials/_user_rows.html',
-                             users=users.items,
-                             has_more=users.has_next,
-                             next_page=page + 1)
-    return render_template('pages/users.html',
-                         users=users.items,
-                         has_more=users.has_next,
-                         next_page=page + 1)
+    if request.headers.get("HX-Request") == "true":
+        return render_template(
+            "partials/_user_rows.html",
+            users=users.items,
+            has_more=users.has_next,
+            next_page=page + 1,
+        )
+    return render_template(
+        "pages/users.html", users=users.items, has_more=users.has_next, next_page=page + 1
+    )
 ```
 
 **Key rules:**
@@ -496,10 +499,11 @@ Render partials in isolation to verify HTML structure:
 import pytest
 from flask import Flask
 
+
 @pytest.fixture
 def app():
-    app = Flask(__name__, template_folder='../templates')
-    app.config['TESTING'] = True
+    app = Flask(__name__, template_folder="../templates")
+    app.config["TESTING"] = True
     return app
 
 
@@ -507,28 +511,38 @@ def test_user_row_partial(app):
     """Test that user row partial renders correct HTML structure."""
     with app.app_context():
         from flask import render_template
-        html = render_template('partials/_user_row.html', user={
-            'id': 42, 'name': 'Jane Doe', 'email': 'jane@example.com',
-        })
+
+        html = render_template(
+            "partials/_user_row.html",
+            user={
+                "id": 42,
+                "name": "Jane Doe",
+                "email": "jane@example.com",
+            },
+        )
         assert 'id="user-42"' in html
-        assert 'Jane Doe' in html
-        assert 'hx-delete=' in html  # Delete button present
+        assert "Jane Doe" in html
+        assert "hx-delete=" in html  # Delete button present
 
 
 def test_validation_errors_partial(app):
     """Test error partial with multiple fields."""
     with app.app_context():
         from flask import render_template
-        html = render_template('partials/_validation_errors.html', errors={
-            'name': ['Name is required'],
-            'email': ['Invalid email format'],
-        })
-        assert 'Name is required' in html
-        assert 'Invalid email format' in html
+
+        html = render_template(
+            "partials/_validation_errors.html",
+            errors={
+                "name": ["Name is required"],
+                "email": ["Invalid email format"],
+            },
+        )
+        assert "Name is required" in html
+        assert "Invalid email format" in html
 ```
 
 **Key rules:**
-- Test partials with minimal context — only pass required template variables
+- Test partials with minimal context: only pass required template variables
 - Assert HTML structure (IDs, HTMX attributes) not just content
 - Use `app.app_context()` for Flask or `Jinja2Environment` for framework-agnostic testing
 

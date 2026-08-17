@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Audio transcription patterns using Snowflake Cortex AI_TRANSCRIBE, including correct TO_FILE syntax, speaker diarization, common type errors, and batch transcription from staged audio files."
+last_updated: 2026-07-15
+keywords:
+  - kw:AI_TRANSCRIBE
+  - kw:TO_FILE syntax
+  - kw:speaker diarization
+  - kw:audio transcription
+  - kw:FILE type reference
+  - kw:staged audio formats
+  - kw:ai_complete
+token_budget: ~3500
+context_tier: Medium
+depends:
+  required:
+    - 114-snowflake-cortex-aisql.md  # Core Cortex AISQL patterns, governance, and cost control
+---
 # Snowflake Cortex AI_TRANSCRIBE Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:ai_transcribe, kw:transcribe, kw:audio, kw:diarization
-**Keywords:** AI_TRANSCRIBE, audio transcription, TO_FILE, speaker diarization, timestamp_granularity, FLAC, MP3, OGG, WAV, WebM
-**TokenBudget:** ~3500
-**ContextTier:** Medium
-**Depends:** 114-snowflake-cortex-aisql.md, 100-snowflake-core.md
 
 ## Scope
 
@@ -46,16 +54,6 @@ Audio transcription patterns using Snowflake Cortex AI_TRANSCRIBE, including cor
 > "Your .mp3 files are supported. Here's the TO_FILE pattern for batch transcription..."
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **114-snowflake-cortex-aisql.md** - Core Cortex AISQL patterns, governance, and cost control
-- **100-snowflake-core.md** - Snowflake foundation patterns
-
-**Related:**
-- **108-snowflake-data-loading.md** - Stage management for audio files
-- **111-snowflake-observability-core.md** - Observability and tracing
 
 ### External Documentation
 
@@ -244,9 +242,9 @@ ORDER BY start_time;
 
 **Anti-Pattern 1: Using GET_PRESIGNED_URL or BUILD_SCOPED_FILE_URL as AI_TRANSCRIBE Input**
 
-**Problem:** Developers familiar with other Snowflake file operations instinctively use `GET_PRESIGNED_URL('@stage', 'file.mp3')` or `BUILD_SCOPED_FILE_URL(@stage, path)` to reference audio files. These functions return a VARCHAR (HTTP URL string), but AI_TRANSCRIBE requires a FILE type reference. The query fails with "Invalid argument types for function 'AI_TRANSCRIBE': (VARCHAR)" — an error message that doesn't clearly explain the root cause is a type mismatch, leading developers to chase permission issues instead.
+**Problem:** Developers familiar with other Snowflake file operations instinctively use `GET_PRESIGNED_URL('@stage', 'file.mp3')` or `BUILD_SCOPED_FILE_URL(@stage, path)` to reference audio files. These functions return a VARCHAR (HTTP URL string), but AI_TRANSCRIBE requires a FILE type reference. The query fails with "Invalid argument types for function 'AI_TRANSCRIBE': (VARCHAR)": an error message that doesn't clearly explain the root cause is a type mismatch, leading developers to chase permission issues instead.
 
-**Correct Pattern:** Always use `TO_FILE('@stage_name', 'relative_path')` with two separate arguments to create a proper FILE type reference. `TO_FILE` is the only function that produces the FILE type that AI_TRANSCRIBE accepts. Never wrap URL-returning functions with TO_FILE either — `TO_FILE(GET_PRESIGNED_URL(...))` passes a single VARCHAR argument instead of the required two arguments (stage, path).
+**Correct Pattern:** Always use `TO_FILE('@stage_name', 'relative_path')` with two separate arguments to create a proper FILE type reference. `TO_FILE` is the only function that produces the FILE type that AI_TRANSCRIBE accepts. Never wrap URL-returning functions with TO_FILE either: `TO_FILE(GET_PRESIGNED_URL(...))` passes a single VARCHAR argument instead of the required two arguments (stage, path).
 
 ```sql
 -- Wrong: GET_PRESIGNED_URL returns VARCHAR, not FILE type
@@ -257,7 +255,7 @@ SELECT AI_TRANSCRIBE(GET_PRESIGNED_URL('@my_stage', 'recording.mp3'));
 SELECT AI_TRANSCRIBE(BUILD_SCOPED_FILE_URL(@my_stage, 'recording.mp3'));
 -- Error: Invalid argument types for function 'AI_TRANSCRIBE': (VARCHAR)
 
--- Wrong: Wrapping URL function with TO_FILE — single arg instead of two
+-- Wrong: Wrapping URL function with TO_FILE - single arg instead of two
 SELECT AI_TRANSCRIBE(TO_FILE(GET_PRESIGNED_URL('@my_stage', 'recording.mp3')));
 -- Error: TO_FILE expects 2 arguments (stage, path), not 1
 
@@ -272,7 +270,7 @@ SELECT AI_TRANSCRIBE(TO_FILE('@my_stage', 'recording.mp3'));
 **Correct Pattern:** Always add `LIMIT 1` or `LIMIT 5` during development and testing. Verify the output format, check transcription quality, and confirm costs on a small sample before processing the full dataset. Remove the LIMIT only for the final production run after validating the pipeline end-to-end.
 
 ```sql
--- Wrong: No LIMIT — transcribes all files, potentially hundreds of hours of audio
+-- Wrong: No LIMIT - transcribes all files, potentially hundreds of hours of audio
 SELECT
     RELATIVE_PATH AS audio_file,
     AI_TRANSCRIBE(TO_FILE('@CALL_RECORDINGS', RELATIVE_PATH)) AS transcription
@@ -297,7 +295,7 @@ LIMIT 1;  -- Validate output format and quality first
 **Correct Pattern:** Treat speaker labels as relative identifiers scoped to a single audio file only. For semantic role identification (e.g., "agent" vs. "customer"), chain the transcription output with AI_COMPLETE to classify speakers based on conversational context. For cross-file speaker matching, use external speaker identification before or after transcription.
 
 ```sql
--- Wrong: Aggregating raw speaker labels across files — labels are not stable
+-- Wrong: Aggregating raw speaker labels across files - labels are not stable
 SELECT
     speaker,
     COUNT(*) AS total_segments,

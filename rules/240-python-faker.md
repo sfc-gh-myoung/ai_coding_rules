@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Core patterns for generating realistic test data using Python's Faker library, covering setup, providers, seeding, and data generation classes."
+last_updated: 2026-07-15
+keywords:
+  - kw:Faker library
+  - kw:seed_instance
+  - kw:custom providers
+  - kw:deterministic test data
+  - kw:unique attribute
+  - kw:locale fallback
+token_budget: ~3300
+context_tier: Low
+depends:
+  required:
+    - 200-python-core.md  # Core Python patterns and uv usage
+  optional:
+    - 201-python-lint-format.md  # Ruff linting and formatting standards
+    - 230-python-pydantic.md  # Pydantic integration for data validation
+    - 240a-python-faker-testing.md  # Pytest fixtures, Factory Boy, seeding strategies
+---
 # Python Faker Data Generation Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v4.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:faker, kw:test-data, kw:mock
-**Keywords:** Faker, test data generation, fake data, providers, synthetic data, seeding, deterministic testing, Python testing
-**TokenBudget:** ~3300
-**ContextTier:** Low
-**Depends:** 200-python-core.md
 
 ## Scope
 
@@ -22,17 +33,6 @@ Core patterns for generating realistic test data using Python's Faker library, c
 - Setting up Faker with proper seeding
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Core Python patterns and uv usage
-
-**Related:**
-- **201-python-lint-format.md** - Ruff linting and formatting standards
-- **230-python-pydantic.md** - Pydantic integration for data validation
-- **240a-python-faker-testing.md** - Pytest fixtures, Factory Boy, seeding strategies
-- **240b-python-faker-advanced.md** - Localization, custom providers, performance
 
 ### External Documentation
 - [Faker Documentation](https://faker.readthedocs.io/en/stable/) - Comprehensive guide to fake data generation
@@ -116,16 +116,21 @@ Deterministic, realistic test data with proper seeding, reusable pytest fixtures
 ```python
 # BAD: Random data each run
 from faker import Faker
+
 fake = Faker()
+
 
 def test_user_creation():
     user = create_user(fake.email(), fake.name())  # Different every run!
     assert user.is_valid()
 
+
 # GOOD: Seeded for reproducibility
 from faker import Faker
+
 fake = Faker()
 fake.seed_instance(12345)  # Same data every run, instance-level
+
 
 # Or per-test seeding for isolation
 @pytest.fixture
@@ -133,6 +138,7 @@ def fake():
     f = Faker()
     f.seed_instance(0)
     return f
+
 
 def test_user_creation(fake):
     user = create_user(fake.email(), fake.name())  # Reproducible!
@@ -142,26 +148,27 @@ def test_user_creation(fake):
 ### Seed Value Selection
 
 ```python
-# Seed values are arbitrary — any integer produces a deterministic sequence.
+# Seed values are arbitrary - any integer produces a deterministic sequence.
 # Common conventions:
 
-# 1. Fixed test seed — same across all tests for team consistency:
+# 1. Fixed test seed - same across all tests for team consistency:
 FAKER_SEED = 12345  # Defined once in conftest.py or constants
 
-# 2. Per-scenario seeds — different seeds for different test domains:
+# 2. Per-scenario seeds - different seeds for different test domains:
 USER_SEED = 100
 ORDER_SEED = 200
 PRODUCT_SEED = 300
 
-# 3. CI reproducibility — log the seed to reproduce failures:
+# 3. CI reproducibility - log the seed to reproduce failures:
 import os
+
 SEED = int(os.environ.get("FAKER_SEED", "12345"))
 fake.seed_instance(SEED)
 # In CI: FAKER_SEED=67890 pytest tests/  (reproduce a specific run)
 ```
 
 **When to change seeds:**
-- **Never** change seeds in existing tests without reason — it changes all generated data and may break assertions
+- **Never** change seeds in existing tests without reason: it changes all generated data and may break assertions
 - **New test suites:** Pick any seed, document it in conftest.py
 - **Debugging:** Use CI's logged seed to reproduce exact data
 - **Parallel workers:** Use worker-specific offsets (see 240a for xdist patterns)
@@ -184,10 +191,12 @@ fake.text(max_nb_chars=50)  # Respects field length
 fake.random_int(min=18, max=120)  # Valid age range
 fake.random_element(["pending", "active", "closed"])  # Valid enum values
 
+
 # BEST: Custom providers for domain-specific data
 class OrderProvider(BaseProvider):
     def order_status(self):
         return self.random_element(["pending", "shipped", "delivered"])
+
 
 fake.add_provider(OrderProvider)
 ```
@@ -199,7 +208,7 @@ fake.add_provider(OrderProvider)
 > 3. **Never assume seeding strategy** - Read tests to understand reproducibility requirements
 > 4. **Verify custom providers** - Check if domain-specific providers already defined
 > 5. **Match existing patterns** - Follow project's test data conventions
-> 6. **Verify Faker is dev-only** - Check `pyproject.toml` — Faker must be in `[dependency-groups] dev` or `[project.optional-dependencies] dev`, never in `[project.dependencies]`. Using Faker in production code is forbidden.
+> 6. **Verify Faker is dev-only** - Check `pyproject.toml`: Faker must be in `[dependency-groups] dev` or `[project.optional-dependencies] dev`, never in `[project.dependencies]`. Using Faker in production code is forbidden.
 >
 > **Anti-Pattern:**
 > "Adding Faker to generate test data... (without checking existing approach)"
@@ -237,12 +246,12 @@ from faker.exceptions import UniquenessException
 fake = Faker()
 fake.seed_instance(12345)
 
-# Small pool — only 2 possible values:
+# Small pool - only 2 possible values:
 try:
     for _ in range(10):
         value = fake.unique.random_element(["active", "inactive"])
 except UniquenessException:
-    # Raised on 3rd call — only 2 unique values exist
+    # Raised on 3rd call - only 2 unique values exist
     # Solutions:
     # 1. Clear and regenerate: fake.unique.clear()
     # 2. Use non-unique method: fake.random_element(["active", "inactive"])
@@ -264,12 +273,14 @@ except UniquenessException:
 import pytest
 from faker import Faker
 
+
 @pytest.fixture(scope="session")
 def seeded_faker() -> Faker:
     """Session-scoped, seeded Faker for reproducible test data."""
     f = Faker("en_US")
     f.seed_instance(12345)
     return f
+
 
 @pytest.fixture
 def fake_user(seeded_faker):
@@ -322,6 +333,7 @@ Directory structure for `project/`:
 from faker import Faker
 from typing import Dict, Any
 
+
 class DataGenerator:
     """Centralized data generation using Faker."""
 
@@ -365,6 +377,7 @@ class DataGenerator:
             "created_at": self.fake.date_time_between(start_date="-1y", end_date="now"),
         }
 
+
 # Usage
 generator = DataGenerator(seed=12345)  # Reproducible data
 user_data = generator.generate_user()
@@ -378,12 +391,12 @@ When a provider method doesn't exist for the specified locale, Faker falls back 
 ```python
 from faker import Faker
 
-# Japanese locale — some providers fall back to English
+# Japanese locale - some providers fall back to English
 fake_ja = Faker("ja_JP")
 fake_ja.seed_instance(12345)
 
-fake_ja.name()      # → Japanese name (provider exists)
-fake_ja.ssn()       # → Falls back to en_US format (no ja_JP SSN provider)
+fake_ja.name()  # → Japanese name (provider exists)
+fake_ja.ssn()  # → Falls back to en_US format (no ja_JP SSN provider)
 
 # To explicitly set fallback locale:
 fake = Faker(["ja_JP", "en_US"])  # ja_JP primary, en_US fallback

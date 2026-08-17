@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive standards for README.md files following widely accepted industry best practices, ensuring consistent, professional, and accessible project documentation that serves both technical and"
+last_updated: 2026-07-15
+keywords:
+  - kw:README.md structure
+  - kw:quick start commands
+  - kw:progressive disclosure
+  - kw:badge validation
+  - kw:clean environment testing
+  - kw:author contact section
+  - file:README.md
+token_budget: ~4800
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 802-project-contributing.md  # Contributing guidelines
+    - 805-technical-writing-style.md  # Writing standards (voice, tone, sentence case, inclusive language, accessibility) that apply to README prose
+---
 # README Best Practices: Professional Project Documentation
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** README, project documentation, getting started, setup instructions, badges, Quick Start, Contributing, License, project structure, technical writing, author contact, maintainer
-**TokenBudget:** ~5100
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
-**LoadTrigger:** kw:readme, kw:documentation, file:README.md
 
 ## Scope
 
@@ -24,16 +35,6 @@ Comprehensive standards for README.md files following widely accepted industry b
 - Implementing professional documentation practices
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **800-project-changelog.md** - Changelog management standards
-- **802-project-contributing.md** - Contributing guidelines
-- **803-project-git-workflow.md** - Git workflow management
 
 ### External Documentation
 - [GitHub README Guide](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes) - Official GitHub documentation standards
@@ -91,10 +92,7 @@ Markdown file (README.md) with:
 - All code examples syntactically correct and tested
 - All links working and pointing to current resources
 - Badges reflect current project status
-- Language passes readability check: Flesch-Kincaid grade level ≤12
-- No jargon used without definition on first occurrence
-- No gendered pronouns (use "they/them" or rephrase)
-- No slang, colloquialisms, or culture-specific idioms
+- Prose complies with `rules/805-technical-writing-style.md` (voice, sentence case, inclusive language, accessibility)
 
 **Success Criteria:**
 - README.md validates with markdown linter
@@ -192,7 +190,7 @@ as Administrator or use `npm install --no-optional`.
 
 **Key Principles:**
 - State which OS was tested in the Quick Start header
-- Use `<details>` for alternative platforms — keeps primary path clean
+- Use `<details>` for alternative platforms: keeps primary path clean
 - Include platform-specific error resolutions
 - Never assume a single platform without stating it
 
@@ -202,7 +200,7 @@ as Administrator or use `npm install --no-optional`.
 
 **Why It Fails:** Creates maintenance burden (two places to update), overwhelms end users with contributor information, violates progressive disclosure principle.
 
-**Correct Pattern:** Use the Contributing boundary pattern from [Content Boundaries](#content-boundaries-readme-vs-contributingmd) — minimal pointer with quick reference commands, full workflow in CONTRIBUTING.md.
+**Correct Pattern:** Use the Contributing boundary pattern from [Content Boundaries](#content-boundaries-readme-vs-contributingmd); minimal pointer with quick reference commands, full workflow in CONTRIBUTING.md.
 
 ### Anti-Pattern 3: Assuming Tech Stack Without Verification
 
@@ -237,10 +235,10 @@ as Administrator or use `npm install --no-optional`.
 
 Before modifying any README.md, complete these checks:
 
-1. **Check if README.md exists:** `ls README.md` — if missing, use the Required Sections template (line 249)
+1. **Check if README.md exists:** `ls README.md`: if missing, use the Required Sections template (line 249)
 2. **Identify project type:** Check `package.json`, `pyproject.toml`, `go.mod`, `Cargo.toml`, or `Gemfile` for actual tech stack
 3. **Verify current badges are functional:** `grep -oP 'https://[^)]+\.svg' README.md | xargs -I{} curl -f -s -o /dev/null {}`
-4. **Check CONTRIBUTING.md exists:** `ls CONTRIBUTING.md` — if present, verify no content duplication per Content Boundaries pattern
+4. **Check CONTRIBUTING.md exists:** `ls CONTRIBUTING.md`: if present, verify no content duplication per Content Boundaries pattern
 5. **Identify target audience:** Check if project is library (API docs needed), application (setup docs needed), or framework (tutorial needed)
 
 ## Implementation Details
@@ -409,7 +407,7 @@ For detailed workflows, see [CONTRIBUTING.md](CONTRIBUTING.md).
 **For AI projects,** document the following:
 - Document token budgets or context limitations
 - Explain modular loading strategies
-- Include searchable indexes (e.g., RULES_INDEX.md pattern)
+- Include searchable indexes or category tables for large collections
 
 **Example:**
 ```markdown
@@ -465,17 +463,17 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 ### Contributing Section
 - **Requirement:** Link to CONTRIBUTING.md if it exists
 - **Always:** Include minimal pointer with quick reference commands
-- **Rule:** Use boundary statement to separate user/contributor content — see [Content Boundaries](#content-boundaries-readme-vs-contributingmd)
+- **Rule:** Use boundary statement to separate user/contributor content: see [Content Boundaries](#content-boundaries-readme-vs-contributingmd)
 - **Avoid:** Duplicating detailed contribution workflows from CONTRIBUTING.md in README
 
 ## Quality and Formatting
 
-- **Requirement:** Use consistent heading hierarchy (H1 > H2 > H3), fenced code blocks with language identifiers
+**Writing style:** All README prose must follow `rules/805-technical-writing-style.md` for voice, tone, capitalization (sentence case headings), punctuation (serial commas), inclusive language, list conventions, code sample presentation, link text, and accessibility. Items called out below are README-specific extensions.
+
 - **Requirement:** All code examples must be syntactically correct and tested
-- **Rule:** Use descriptive link text — avoid "click here"
 - **Always:** Keep line length ≤100 characters
 - **Rule:** Include table of contents for long READMEs (>500 lines)
-- **Avoid:** Horizontal rule markers (`---`) for content separation — use text-based boundary statements instead
+- **Avoid:** Horizontal rule markers (`---`) for content separation: use text-based boundary statements instead
 
 ## Lifecycle: README Update Triggers
 
@@ -527,11 +525,10 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 
 ## Accessibility in README Content
 
-- MUST include alt text for all images and badges in README
-- SHOULD use text labels alongside color-coded badges so meaning is not color-dependent
-- Avoid relying solely on images or screenshots to convey critical setup information
-- Use semantic heading hierarchy for screen reader navigation
-- Ensure code blocks have language identifiers for syntax highlighting tools
+See `rules/805-technical-writing-style.md` §Accessibility for the full accessibility checklist (alt text, color independence, semantic heading hierarchy, code-block language identifiers). README-specific extensions:
+
+- All images and badges must have alt text describing the badge's purpose (for example, "Build status: passing"): not just the service name.
+- Do not rely solely on screenshots to convey critical setup information; pair every screenshot with a text alternative.
 
 ## Author / Contact Section
 
@@ -543,7 +540,7 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 ```markdown
 ## Author
 
-**Your Name** — Organization
+**Your Name** - Organization
 - Email: your.email@example.com
 - GitHub: [@your-handle](https://github.com/your-handle)
 ```
@@ -562,7 +559,7 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 - MUST appear in every project the operator creates or is the primary author of
 - MUST include at minimum: name, email, and GitHub handle
 - MAY include role, team, or Slack channel for internal projects
-- Agent SHOULD check AGENTS.md or operator profile for contact details to auto-populate
+- Agent SHOULD check PROJECT.md or operator profile for contact details to auto-populate
 - For forked or contributed projects, add to existing Authors section rather than replacing
 
 ## Internal Project README Considerations
@@ -578,7 +575,7 @@ For internal/private project READMEs, also consider:
 
 > **Note:** See also [Anti-Patterns and Common Mistakes](#anti-patterns-and-common-mistakes) for detailed patterns with Problem/Correct format.
 
-- **Empty sections with "TODO" placeholders** — Remove sections until content is ready rather than leaving stubs
-- **Screenshots without text alternatives** — Always include descriptive text alongside visual content (see also Accessibility, line 475)
-- **Installation instructions that skip prerequisites** — List all required tools and versions before commands (see AP1)
-- **"Just run `npm install`" without explaining what the project does** — Always lead with project purpose (see AP3)
+- **Empty sections with "TODO" placeholders**: Remove sections until content is ready rather than leaving stubs
+- **Screenshots without text alternatives**: Always include descriptive text alongside visual content (see also Accessibility, line 475)
+- **Installation instructions that skip prerequisites**: List all required tools and versions before commands (see AP1)
+- **"Just run `npm install`" without explaining what the project does**: Always lead with project purpose (see AP3)

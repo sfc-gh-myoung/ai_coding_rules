@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Advanced Makefile patterns including categorized help output, conditional logic, variable assignment types, include directives, platform detection, and AI agent integration considerations."
+last_updated: 2026-07-15
+keywords:
+  - kw:categorized help
+  - kw:makefile conditionals
+  - kw:variable assignment operators
+  - kw:makefile include directives
+  - kw:platform detection
+  - kw:AI agent integration
+token_budget: ~3650
+context_tier: Low
+depends:
+  required:
+    - 821-makefile-automation.md  # Core Makefile patterns
+  optional:
+    - 820a-taskfile-advanced-patterns.md  # Equivalent patterns for Taskfile
+    - 300-bash-scripting-core.md  # Shell patterns used in recipes
+---
 # Makefile Advanced Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:makefile-includes, kw:makefile-help, kw:makefile-conditional
-**Keywords:** categorized help, Makefile includes, conditional logic, ifdef, ifeq, variable assignment, simply expanded, recursively expanded, platform detection, multi-target, AI agent, make patterns
-**TokenBudget:** ~3650
-**ContextTier:** Low
-**Depends:** 821-makefile-automation.md
 
 ## Scope
 
@@ -25,15 +35,6 @@ Advanced Makefile patterns including categorized help output, conditional logic,
 **For core Makefile patterns, see `821-makefile-automation.md`.**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **821-makefile-automation.md** - Core Makefile patterns
-
-**Related:**
-- **820a-taskfile-advanced-patterns.md** - Equivalent patterns for Taskfile
-- **300-bash-scripting-core.md** - Shell patterns used in recipes
 
 ### External Documentation
 - [GNU Make Manual - Conditionals](https://www.gnu.org/software/make/manual/make.html#Conditionals)
@@ -87,7 +88,7 @@ Advanced Makefile patterns including categorized help output, conditional logic,
 **Negative Tests:**
 - Using `=` instead of `:=` for `UV` variable: `time make lint` should show slower execution due to repeated shell evaluation
 - `include mk/missing.mk` (without `-` prefix) MUST produce: `mk/missing.mk: No such file or directory`
-- `ifeq` with trailing whitespace MUST fail to match — verify with `$(info OS=[$(OS)])` debugging
+- `ifeq` with trailing whitespace MUST fail to match: verify with `$(info OS=[$(OS)])` debugging
 
 ### Post-Execution Checklist
 - [ ] Categorized help implemented for 8+ targets
@@ -124,11 +125,11 @@ Common error patterns and resolutions for advanced Makefile features:
 
 Before applying advanced Makefile patterns, complete these checks:
 
-1. **Read existing Makefile:** `cat Makefile` — count targets and assess current variable assignment patterns
+1. **Read existing Makefile:** `cat Makefile`: count targets and assess current variable assignment patterns
 2. **Check for existing include structure:** `ls mk/ 2>/dev/null` or `grep '^-\?include' Makefile`
 3. **Identify target platforms:** Check CI config for OS matrix: `grep -r 'os:' .github/workflows/*.yml 2>/dev/null`
-4. **Check if categorized help exists:** `make help 2>/dev/null | head -20` — determine current help format
-5. **Verify GNU Make version:** `make --version | head -1` — confirm 3.81+ for conditionals, 4.0+ for extended features
+4. **Check if categorized help exists:** `make help 2>/dev/null | head -20`: determine current help format
+5. **Verify GNU Make version:** `make --version | head -1`: confirm 3.81+ for conditionals, 4.0+ for extended features
 6. **Check parent 821 compliance:** Verify SHELL, .DEFAULT_GOAL, .PHONY, help target are present
 
 ## Variable Assignment Types
@@ -251,7 +252,7 @@ help: ## Show this help message
 
 For simpler Makefiles, use `grep`-based help that extracts `##` comments. See `821-makefile-automation.md` for the auto-generated help pattern.
 
-**Decision Framework — Manual vs Auto-Generated Help:**
+**Decision Framework: Manual vs Auto-Generated Help:**
 
 - **Maintenance:** Manual requires updating help text with each target change. Auto-generated stays current automatically.
 - **Organization:** Manual supports logical grouping, quickstart sections, and visual hierarchy. Auto-generated produces a flat alphabetical list.

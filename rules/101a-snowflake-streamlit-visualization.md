@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v5.0.0
+description: "Router rule for Streamlit visualization library selection. Provides quick guidance on choosing between Plotly, PyDeck, and Altair, then delegates to specialized sub-rules for detailed patterns."
+last_updated: 2026-07-15
+keywords:
+  - kw:st.plotly_chart
+  - kw:st.pydeck_chart
+  - kw:st.altair_chart
+  - kw:library selection
+  - kw:use_container_width
+  - kw:WebGL context limits
+token_budget: ~2250
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns
+    - 101-snowflake-streamlit-core.md  # Streamlit core patterns
+  optional:
+    - 940-business-analytics.md  # Dashboard design patterns
+    - 101h-snowflake-streamlit-timeseries.md  # Time series smoothing
+---
 # Streamlit Visualization: Overview and Library Selection
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v4.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** st.plotly_chart, st.pydeck_chart, st.altair_chart, dashboard, interactive charts, map visualization, chart types, visualization selection, streamlit plotting
-**TokenBudget:** ~2250
-**ContextTier:** High
-**Depends:** 000-global-core.md, 101-snowflake-streamlit-core.md
 
 ## Scope
 
@@ -21,21 +33,6 @@ Router rule for Streamlit visualization library selection. Provides quick guidan
 - Need quick reference for library selection criteria
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns
-- **101-snowflake-streamlit-core.md** - Streamlit core patterns
-
-**Library-Specific Deep Dives (load as needed):**
-- **101i-snowflake-streamlit-viz-plotly.md** - Plotly Express, Graph Objects, animations, faceting, tile maps
-- **101j-snowflake-streamlit-viz-pydeck.md** - PyDeck layers, 3D visualization, WebGL limits
-- **101k-snowflake-streamlit-viz-altair.md** - Declarative grammar, linked views, statistical charts
-
-**Related:**
-- **940-business-analytics.md** - Dashboard design patterns
-- **101h-snowflake-streamlit-timeseries.md** - Time series smoothing
 
 ### External Documentation
 
@@ -79,7 +76,7 @@ Router rule for Streamlit visualization library selection. Provides quick guidan
 import streamlit as st
 import plotly.express as px
 
-fig = px.line(df, x='date', y='value', title='Chart Title')
+fig = px.line(df, x="date", y="value", title="Chart Title")
 st.plotly_chart(fig, use_container_width=True)
 ```
 
@@ -90,11 +87,11 @@ st.plotly_chart(fig, use_container_width=True)
 - [ ] Clear title and axis labels present
 - [ ] Colorblind-safe colors applied
 
-**Negative Tests -- These patterns should NEVER appear in reviewed code:**
-- Chart rendered without `use_container_width=True` -- FAIL
-- Chart missing title or axis labels -- FAIL
-- >8 PyDeck charts on single page -- FAIL
-- PyDeck used for simple 2D scatter map -- FAIL
+**Negative Tests: These patterns should NEVER appear in reviewed code:**
+- Chart rendered without `use_container_width=True`: FAIL
+- Chart missing title or axis labels: FAIL
+- >8 PyDeck charts on single page: FAIL
+- PyDeck used for simple 2D scatter map: FAIL
 
 ### Post-Execution Checklist
 
@@ -149,7 +146,7 @@ st.plotly_chart(fig, use_container_width=True)
 
 ### Multi-Library Composition
 
-When requirements span libraries (e.g., linked brushing + maps), use one library per visual section. Plotly and Altair can coexist on the same page. Limit PyDeck to dedicated map sections due to WebGL constraints. Do not mix Altair and Plotly for the same data view -- pick one per visual component.
+When requirements span libraries (e.g., linked brushing + maps), use one library per visual section. Plotly and Altair can coexist on the same page. Limit PyDeck to dedicated map sections due to WebGL constraints. Do not mix Altair and Plotly for the same data view: pick one per visual component.
 
 ## Universal Best Practices
 
@@ -165,33 +162,37 @@ st.altair_chart(chart, use_container_width=True)
 **Minimal Altair Example:**
 ```python
 import altair as alt
-chart = alt.Chart(df).mark_bar().encode(x='category', y='value')
+
+chart = alt.Chart(df).mark_bar().encode(x="category", y="value")
 st.altair_chart(chart, use_container_width=True)
 ```
 
 **Minimal PyDeck Example:**
 ```python
 import pydeck as pdk
-layer = pdk.Layer('ScatterplotLayer', data=df, get_position='[lon, lat]',
-                  get_radius=200, get_fill_color=[255, 140, 0])
+
+layer = pdk.Layer(
+    "ScatterplotLayer",
+    data=df,
+    get_position="[lon, lat]",
+    get_radius=200,
+    get_fill_color=[255, 140, 0],
+)
 view = pdk.ViewState(latitude=37.76, longitude=-122.4, zoom=11)
 st.pydeck_chart(pdk.Deck(layers=[layer], initial_view_state=view))
 ```
 
 **Colorblind-Safe Palette:**
 ```python
-SAFE_COLORS = ['#0173B2', '#DE8F05', '#029E73', '#D55E00', '#CC78BC']
+SAFE_COLORS = ["#0173B2", "#DE8F05", "#029E73", "#D55E00", "#CC78BC"]
 ```
 
 **Accessibility:** For charts with critical data, include a data table alternative using `st.dataframe()` below the chart for screen reader access.
 
 **Coordinate Validation (Maps):**
 ```python
-df_valid = df.dropna(subset=['lat', 'lon'])
-df_valid = df_valid[
-    df_valid['lat'].between(-90, 90) & 
-    df_valid['lon'].between(-180, 180)
-]
+df_valid = df.dropna(subset=["lat", "lon"])
+df_valid = df_valid[df_valid["lat"].between(-90, 90) & df_valid["lon"].between(-180, 180)]
 ```
 
 ## Cross-References
@@ -222,7 +223,8 @@ df_valid = df_valid[
 **Problem:**
 ```python
 import pydeck as pdk
-deck = pdk.Deck(layers=[pdk.Layer('ScatterplotLayer', data=df)])
+
+deck = pdk.Deck(layers=[pdk.Layer("ScatterplotLayer", data=df)])
 st.pydeck_chart(deck)
 ```
 
@@ -231,7 +233,8 @@ st.pydeck_chart(deck)
 **Correct Pattern:**
 ```python
 import plotly.express as px
-fig = px.scatter_map(df, lat='lat', lon='lon')
+
+fig = px.scatter_map(df, lat="lat", lon="lon")
 st.plotly_chart(fig, use_container_width=True)
 ```
 
@@ -253,7 +256,7 @@ st.plotly_chart(fig, use_container_width=True)
 
 **Problem:**
 ```python
-fig = px.bar(df, x='category', y='value')
+fig = px.bar(df, x="category", y="value")
 st.plotly_chart(fig, use_container_width=True)
 ```
 
@@ -261,8 +264,12 @@ st.plotly_chart(fig, use_container_width=True)
 
 **Correct Pattern:**
 ```python
-fig = px.bar(df, x='category', y='value',
-             title='Sales by Category',
-             labels={'category': 'Product Category', 'value': 'Revenue ($)'})
+fig = px.bar(
+    df,
+    x="category",
+    y="value",
+    title="Sales by Category",
+    labels={"category": "Product Category", "value": "Revenue ($)"},
+)
 st.plotly_chart(fig, use_container_width=True)
 ```

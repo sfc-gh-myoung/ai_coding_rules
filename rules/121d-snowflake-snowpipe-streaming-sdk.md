@@ -1,15 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "SDK implementation patterns for Snowpipe Streaming: Java SDK setup and ingestion, Python SDK setup and ingestion, production-ready error handling, channel lifecycle management, offset token best"
+last_updated: 2026-07-15
+keywords:
+  - kw:snowpipe streaming sdk
+  - kw:java python ingest client
+  - kw:channel lifecycle management
+  - kw:offset token tracking
+  - kw:schema evolution modes
+  - kw:insertrow error handling
+  - kw:snowpipe
+token_budget: ~3850
+context_tier: High
+depends:
+  optional:
+    - 121a-snowflake-snowpipe-streaming.md  # Streaming architecture, overview, and anti-patterns
+    - 121-snowflake-snowpipe.md  # File-based Snowpipe for comparison
+---
 # Snowflake Snowpipe Streaming: SDK Implementation
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:snowpipe-streaming-sdk
-**Keywords:** snowpipe streaming SDK, Java SDK, Python SDK, streaming client, channel management, offset tracking, schema evolution, streaming ingestion code, SnowflakeStreamingIngestClient
-**TokenBudget:** ~3850
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 121a-snowflake-snowpipe-streaming.md
 
 ## Scope
 
@@ -25,17 +34,6 @@ SDK implementation patterns for Snowpipe Streaming: Java SDK setup and ingestion
 **For architecture selection, overview, and anti-patterns, see `121a-snowflake-snowpipe-streaming.md`**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **121a-snowflake-snowpipe-streaming.md** - Streaming architecture, overview, and anti-patterns
-
-**Related:**
-- **121-snowflake-snowpipe.md** - File-based Snowpipe for comparison
-- **121b-snowflake-snowpipe-monitoring.md** - Monitoring and cost tracking
-- **121c-snowflake-snowpipe-troubleshooting.md** - Troubleshooting and debugging
 
 ### External Documentation
 
@@ -190,35 +188,35 @@ from snowflake.ingest.utils.crypto import load_private_key
 import time
 
 # Load private key
-with open('snowflake_key.pem', 'rb') as f:
+with open("snowflake_key.pem", "rb") as f:
     private_key = load_private_key(f.read(), None)
 
 # Create client
 client = SnowflakeStreamingIngestClient(
-    account='ACCOUNT_IDENTIFIER',
-    user='USERNAME',
+    account="ACCOUNT_IDENTIFIER",
+    user="USERNAME",
     private_key=private_key,
-    role='ROLE_NAME',
-    warehouse='WAREHOUSE_NAME',  # Optional for high-perf
+    role="ROLE_NAME",
+    warehouse="WAREHOUSE_NAME",  # Optional for high-perf
 )
 
 # Open channel
 channel = client.open_channel(
-    database='DATABASE_NAME',
-    schema='SCHEMA_NAME',
-    table='TABLE_NAME',
-    channel_name='CHANNEL_NAME',
-    on_error='CONTINUE'
+    database="DATABASE_NAME",
+    schema="SCHEMA_NAME",
+    table="TABLE_NAME",
+    channel_name="CHANNEL_NAME",
+    on_error="CONTINUE",
 )
 
 # Insert rows with offset tracking
 rows = [
-    {'id': 1, 'name': 'Alice', 'timestamp': int(time.time())},
-    {'id': 2, 'name': 'Bob', 'timestamp': int(time.time())},
+    {"id": 1, "name": "Alice", "timestamp": int(time.time())},
+    {"id": 2, "name": "Bob", "timestamp": int(time.time())},
 ]
 
 for idx, row in enumerate(rows):
-    response = channel.insert_row(row, offset_token=f'offset_{idx}')
+    response = channel.insert_row(row, offset_token=f"offset_{idx}")
     if response.has_errors():
         print(f"Insert errors: {response.insert_errors}")
 
@@ -238,12 +236,13 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class SnowpipeStreamingProducer:
     def __init__(self, account, user, private_key_path, role, database, schema, table):
         # Load private key
-        with open(private_key_path, 'rb') as f:
+        with open(private_key_path, "rb") as f:
             private_key = load_private_key(f.read(), None)
-        
+
         # Create client
         self.client = SnowflakeStreamingIngestClient(
             account=account,
@@ -251,35 +250,35 @@ class SnowpipeStreamingProducer:
             private_key=private_key,
             role=role,
         )
-        
+
         # Open channel
         self.channel = self.client.open_channel(
             database=database,
             schema=schema,
             table=table,
-            channel_name=f'{table}_channel_{int(time.time())}',
-            on_error='CONTINUE'
+            channel_name=f"{table}_channel_{int(time.time())}",
+            on_error="CONTINUE",
         )
-        
+
         self.offset = 0
         logger.info(f"Channel opened: {self.channel.name}")
-    
+
     def insert_rows(self, rows):
         """Insert rows with offset tracking and error handling"""
         for row in rows:
             self.offset += 1
-            offset_token = f'offset_{self.offset}'
-            
+            offset_token = f"offset_{self.offset}"
+
             response = self.channel.insert_row(row, offset_token=offset_token)
-            
+
             if response.has_errors():
                 logger.error(f"Insert failed at offset {offset_token}: {response.insert_errors}")
                 # Implement retry logic or dead-letter queue
             else:
                 logger.debug(f"Inserted row at offset {offset_token}")
-        
+
         logger.info(f"Batch inserted: {len(rows)} rows, current offset: {self.offset}")
-    
+
     def close(self):
         """Close channel and client gracefully"""
         logger.info(f"Closing channel at offset {self.offset}")
@@ -287,15 +286,16 @@ class SnowpipeStreamingProducer:
         self.client.close()
         logger.info("Channel and client closed")
 
+
 # Usage
 producer = SnowpipeStreamingProducer(
-    account='ACCOUNT_IDENTIFIER',
-    user='USERNAME',
-    private_key_path='snowflake_key.pem',
-    role='ROLE_NAME',
-    database='DB',
-    schema='SCHEMA',
-    table='TABLE'
+    account="ACCOUNT_IDENTIFIER",
+    user="USERNAME",
+    private_key_path="snowflake_key.pem",
+    role="ROLE_NAME",
+    database="DB",
+    schema="SCHEMA",
+    table="TABLE",
 )
 
 # Stream data
@@ -342,27 +342,27 @@ client = SnowflakeStreamingIngestClient(...)
 
 # Open channel
 channel = client.open_channel(
-    database='DB',
-    schema='SCHEMA',
-    table='TABLE',
-    channel_name='kafka_orders_partition0',
-    on_error='CONTINUE'
+    database="DB",
+    schema="SCHEMA",
+    table="TABLE",
+    channel_name="kafka_orders_partition0",
+    on_error="CONTINUE",
 )
 
 # Use channel for ingestion
 for row in data_stream:
-    channel.insert_row(row, offset_token=f'offset_{row["id"]}')
+    channel.insert_row(row, offset_token=f"offset_{row['id']}")
 
 # Close channel gracefully
 channel.close()
 
 # Reopen channel (resumes from last offset)
 channel = client.open_channel(
-    database='DB',
-    schema='SCHEMA',
-    table='TABLE',
-    channel_name='kafka_orders_partition0',  # Same name
-    on_error='CONTINUE'
+    database="DB",
+    schema="SCHEMA",
+    table="TABLE",
+    channel_name="kafka_orders_partition0",  # Same name
+    on_error="CONTINUE",
 )
 # Channel resumes from last committed offset automatically
 ```
@@ -378,16 +378,16 @@ channel = client.open_channel(
 **Good Offset Patterns:**
 ```python
 # Pattern 1: Sequential integers
-offset_token = f'offset_{counter}'
+offset_token = f"offset_{counter}"
 
 # Pattern 2: Kafka offsets
-offset_token = f'kafka_{topic}_{partition}_{offset}'
+offset_token = f"kafka_{topic}_{partition}_{offset}"
 
 # Pattern 3: Timestamps + sequence
-offset_token = f'{timestamp_ms}_{sequence}'
+offset_token = f"{timestamp_ms}_{sequence}"
 
 # Pattern 4: Source system IDs
-offset_token = f'event_{event_id}'
+offset_token = f"event_{event_id}"
 ```
 
 **Bad Offset Patterns:**
@@ -409,8 +409,8 @@ channel.insert_row(row)  # Missing offset_token!
 ```python
 # Initial table schema: id, name
 # Insert row with new column
-row = {'id': 1, 'name': 'Alice', 'email': 'alice@example.com'}
-channel.insert_row(row, 'offset_1')
+row = {"id": 1, "name": "Alice", "email": "alice@example.com"}
+channel.insert_row(row, "offset_1")
 
 # Snowflake automatically adds 'email' column to table (if enabled)
 ```
@@ -443,21 +443,21 @@ client = SnowflakeStreamingIngestClient(...)
 
 # Production: Strict error handling + strict schema
 channel = client.open_channel(
-    database='DB',
-    schema='SCHEMA',
-    table='CRITICAL_TABLE',
-    channel_name='CHANNEL',
-    on_error='ABORT'  # Fail on any insert error
+    database="DB",
+    schema="SCHEMA",
+    table="CRITICAL_TABLE",
+    channel_name="CHANNEL",
+    on_error="ABORT",  # Fail on any insert error
     # Schema evolution mode: set FAIL_MISSING_COLUMNS at table level
 )
 
 # Development: Lenient error handling + flexible schema
 channel = client.open_channel(
-    database='DB',
-    schema='SCHEMA',
-    table='EXPLORATORY_TABLE',
-    channel_name='CHANNEL',
-    on_error='CONTINUE'  # Skip bad rows, continue ingestion
+    database="DB",
+    schema="SCHEMA",
+    table="EXPLORATORY_TABLE",
+    channel_name="CHANNEL",
+    on_error="CONTINUE",  # Skip bad rows, continue ingestion
     # Schema evolution mode: set ADD_COLUMNS at table level
 )
 ```

@@ -176,7 +176,7 @@ Can I recite from memory (without re-reading):
 The Context Window Management Protocol in 000-global-core.md defines preservation for RULES. This protocol extends that concept to SKILLS during execution.
 
 **Priority alignment:**
-1. AGENTS.md (bootstrap)
+1. Injected foundation (micro-kernel)
 2. 000-global-core.md (foundation)
 3. **Active skill anchor sections** (during skill execution)
 4. Domain rules relevant to task

@@ -9,6 +9,7 @@ Tests follow pytest best practices:
 """
 
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from typer.testing import CliRunner
@@ -17,6 +18,8 @@ from ai_rules.cli import app
 from ai_rules.commands import validate as validate_module
 
 runner = CliRunner(env={"NO_COLOR": "1", "CI": "true", "TERM": "dumb"})
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 # ============================================================================
@@ -1512,6 +1515,53 @@ class TestValidateAsciiPatterns:
         assert any("horizontal" in e.message.lower() for e in p2_errors)
 
     @pytest.mark.unit
+    def test_yaml_frontmatter_fences_not_detected_as_horizontal_rules(
+        self, tmp_path: Path, full_schema: Path
+    ):
+        """Valid YAML frontmatter fences are not horizontal rules."""
+        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
+        content = "---\nschema_version: v3.5\n---\n# Title\n"
+        lines = content.split("\n")
+        result = validate_module.ValidationResult(file_path=tmp_path / "test.md")
+
+        validator._validate_ascii_patterns(content, lines, result)
+
+        p2_errors = [e for e in result.errors if e.error_group == "Priority 2"]
+        assert p2_errors == []
+
+    @pytest.mark.unit
+    def test_horizontal_rule_after_yaml_frontmatter_detected_once(
+        self, tmp_path: Path, full_schema: Path
+    ):
+        """A body horizontal rule after frontmatter is still flagged."""
+        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
+        content = "---\nschema_version: v3.5\n---\n# Title\n\n---\n\nMore content.\n"
+        lines = content.split("\n")
+        result = validate_module.ValidationResult(file_path=tmp_path / "test.md")
+
+        validator._validate_ascii_patterns(content, lines, result)
+
+        p2_errors = [e for e in result.errors if e.error_group == "Priority 2"]
+        assert len(p2_errors) == 1
+        assert p2_errors[0].line_num == 6
+
+    @pytest.mark.unit
+    def test_malformed_yaml_frontmatter_does_not_hide_horizontal_rule(
+        self, tmp_path: Path, full_schema: Path
+    ):
+        """Malformed frontmatter does not suppress later separators."""
+        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
+        content = "---\nschema_version: [invalid\n---\n# Title\n\n---\n\nMore content.\n"
+        lines = content.split("\n")
+        result = validate_module.ValidationResult(file_path=tmp_path / "test.md")
+
+        validator._validate_ascii_patterns(content, lines, result)
+
+        p2_errors = [e for e in result.errors if e.error_group == "Priority 2"]
+        assert len(p2_errors) == 1
+        assert p2_errors[0].line_num == 6
+
+    @pytest.mark.unit
     def test_patterns_inside_code_block_skipped(self, tmp_path: Path, full_schema: Path):
         """Test patterns inside code blocks are not flagged."""
         validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
@@ -1775,13 +1825,13 @@ class TestValidateDirectory:
         (rules_dir / "100-good.md").write_text(
             "# Good Rule\n\n## Metadata\n\n**Keywords:** a, b, c, d, e\n"
         )
-        (rules_dir / "AGENTS.md").write_text("# Agents\n")
+        (rules_dir / "NOTES.md").write_text("# Notes\n")
 
-        results = validator.validate_directory(rules_dir, excluded_files={"AGENTS.md"})
+        results = validator.validate_directory(rules_dir, excluded_files={"NOTES.md"})
 
         filenames = [r.file_path.name for r in results]
         assert "100-good.md" in filenames
-        assert "AGENTS.md" not in filenames
+        assert "NOTES.md" not in filenames
 
     @pytest.mark.unit
     def test_validate_directory_returns_results_for_each_file(
@@ -1801,57 +1851,132 @@ class TestValidateDirectory:
 
 
 # ============================================================================
-# Validate AGENTS.md Tests
+# ASCII-only validation: validate_ascii_only / validate_kernel_content
 # ============================================================================
 
 
-class TestValidateAgentsMd:
-    """Test validate_agents_md method."""
+class TestValidateAsciiOnly:
+    """Test validate_ascii_only, the shared ASCII-pattern-only entry point."""
 
     @pytest.mark.unit
-    def test_agents_md_clean(self, tmp_path: Path, full_schema: Path):
-        """Test AGENTS.md without violations passes."""
+    def test_clean_file_passes(self, tmp_path: Path, full_schema: Path):
+        """A markdown file without Priority 1 violations passes."""
         validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
 
-        agents_path = tmp_path / "AGENTS.md"
-        agents_path.write_text("# AGENTS\n\n## Rules\n\nLoad rules from rules/ directory.\n")
+        target = tmp_path / "kernel.md"
+        target.write_text("# Kernel\n\n## Rules\n\nLoad rules from rules/ directory.\n")
 
-        result = validator.validate_agents_md(agents_path)
+        result = validator.validate_ascii_only(target)
 
         assert result.is_clean
 
     @pytest.mark.unit
-    def test_agents_md_with_ascii_violations(self, tmp_path: Path, full_schema: Path):
-        """Test AGENTS.md with ASCII tree characters."""
+    @pytest.mark.parametrize(
+        "content",
+        [
+            "# K\n\n├── rules/\n│   └── 100-core.md\n",
+            "| Rule | Tier |\n|---------|------|\n| foo.md | High |\n",
+            "# K\n\n1. Detect: Makefile → Taskfile.yml\n",
+        ],
+        ids=["ascii_tree", "ascii_table", "arrow"],
+    )
+    def test_priority_1_violations_are_flagged(
+        self, tmp_path: Path, full_schema: Path, content: str
+    ):
+        """Each Priority 1 pattern is detected regardless of filename."""
         validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
 
-        agents_path = tmp_path / "AGENTS.md"
-        agents_path.write_text("# AGENTS\n\n├── rules/\n│   └── 100-core.md\n")
+        target = tmp_path / "anything.md"
+        target.write_text(content)
 
-        result = validator.validate_agents_md(agents_path)
+        result = validator.validate_ascii_only(target)
 
         assert not result.is_clean
 
     @pytest.mark.unit
-    def test_agents_md_missing_returns_clean(self, tmp_path: Path, full_schema: Path):
-        """Test missing AGENTS.md returns clean result."""
+    def test_missing_file_is_not_an_error(self, tmp_path: Path, full_schema: Path):
+        """An absent optional input returns clean; callers may probe."""
         validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
 
-        result = validator.validate_agents_md(tmp_path / "nonexistent" / "AGENTS.md")
+        result = validator.validate_ascii_only(tmp_path / "nonexistent" / "kernel.md")
 
         assert result.is_clean
 
     @pytest.mark.unit
-    def test_agents_md_default_path(self, tmp_path: Path, full_schema: Path):
-        """Test validate_agents_md uses project root default."""
+    def test_read_failure_returns_error(self, tmp_path: Path, full_schema: Path):
+        """An unreadable file produces a CRITICAL error naming the file."""
+        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
+        target = tmp_path / "kernel.md"
+        target.write_text("# Kernel")
+
+        with patch("builtins.open", side_effect=PermissionError("Access denied")):
+            result = validator.validate_ascii_only(target)
+
+        assert any("Failed to read kernel.md" in e.message for e in result.errors)
+
+
+class TestValidateKernelContent:
+    """Test validate_kernel_content and its non-vacuous default path."""
+
+    @pytest.mark.unit
+    def test_default_path_points_at_a_file_that_exists(self):
+        """The real default target must exist, or the gate would be vacuous.
+
+        This is the regression guard for the defect where the kernel was assumed
+        to sit at the project root. It does not: it lives under
+        src/ai_rules/plugin/. A validator aimed at a missing path
+        returns clean forever and gates nothing.
+        """
+        validator = validate_module.SchemaValidator(project_root=PROJECT_ROOT)
+
+        assert validator.kernel_content_path().is_file()
+
+    @pytest.mark.unit
+    def test_real_kernel_content_is_clean(self):
+        """The shipped kernel must satisfy the guard it is validated by."""
+        validator = validate_module.SchemaValidator(project_root=PROJECT_ROOT)
+
+        result = validator.validate_kernel_content()
+
+        assert result.is_clean, [e.message for e in result.errors]
+
+    @pytest.mark.unit
+    def test_missing_kernel_is_an_error(self, tmp_path: Path, full_schema: Path):
+        """A missing kernel is reported, NOT silently passed.
+
+        This is the behavioral difference from validate_ascii_only and the whole
+        point of the wrapper.
+        """
         validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
 
-        agents_path = tmp_path / "AGENTS.md"
-        agents_path.write_text("# AGENTS\n\nClean content.\n")
+        result = validator.validate_kernel_content()
 
-        result = validator.validate_agents_md()
+        assert not result.is_clean
+        assert any("not found" in e.message for e in result.errors)
 
-        assert result.file_path == agents_path
+    @pytest.mark.unit
+    def test_violation_in_kernel_is_flagged(self, tmp_path: Path, full_schema: Path):
+        """An explicit kernel path with an arrow fails."""
+        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
+        target = tmp_path / "micro_kernel_content.md"
+        target.write_text("# K\n\n1. Makefile → Taskfile.yml\n")
+
+        result = validator.validate_kernel_content(target)
+
+        assert not result.is_clean
+
+    @pytest.mark.unit
+    def test_default_path_is_reported_on_the_result(self, tmp_path: Path, full_schema: Path):
+        """The result carries the resolved default path."""
+        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
+
+        kernel = tmp_path / validate_module.KERNEL_CONTENT_RELPATH
+        kernel.parent.mkdir(parents=True)
+        kernel.write_text("# Kernel\n\nClean content.\n")
+
+        result = validator.validate_kernel_content()
+
+        assert result.file_path == kernel
 
 
 # ============================================================================
@@ -2187,39 +2312,12 @@ class TestValidateCLIBranches:
         assert result.exit_code in [0, 1]
 
     @pytest.mark.unit
-    def test_directory_with_agents_md_autodetection(
+    def test_validate_single_kernel_content(
         self, tmp_path: Path, full_schema: Path, monkeypatch: pytest.MonkeyPatch
     ):
-        """Test that validating rules/ also checks AGENTS.md."""
-        rules_dir = tmp_path / "rules"
-        rules_dir.mkdir()
-        (rules_dir / "100-rule.md").write_text(
-            "# Rule\n\n## Metadata\n\n**Keywords:** a, b, c, d, e\n"
-        )
-
-        # Create AGENTS.md with violations in parent
-        agents_md = tmp_path / "AGENTS.md"
-        agents_md.write_text("# AGENTS\n\n├── rules/\n│   └── file.md\n")
-
-        pyproject = tmp_path / "pyproject.toml"
-        pyproject.write_text('[project]\nname = "test"')
-
-        monkeypatch.setattr(validate_module, "find_project_root", lambda: tmp_path)
-
-        result = runner.invoke(
-            app, ["validate", str(rules_dir), "--schema", str(full_schema), "--json"]
-        )
-
-        # AGENTS.md violations should appear in results
-        assert result.exit_code in [0, 1]
-
-    @pytest.mark.unit
-    def test_validate_single_agents_md(
-        self, tmp_path: Path, full_schema: Path, monkeypatch: pytest.MonkeyPatch
-    ):
-        """Test validating AGENTS.md directly as a single file."""
-        agents_md = tmp_path / "AGENTS.md"
-        agents_md.write_text("# AGENTS\n\nClean bootstrap protocol.\n")
+        """The kernel is routed to ASCII-only validation as a single file."""
+        agents_md = tmp_path / validate_module.KERNEL_CONTENT_FILENAME
+        agents_md.write_text("# Kernel\n\nClean foundation content.\n")
 
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text('[project]\nname = "test"')
@@ -2700,18 +2798,21 @@ metadata:
   required_fields:
     - name: SchemaVersion
       format: "**SchemaVersion:**"
+      yaml_key: "schema_version"
       severity: HIGH
       error_message: "Invalid SchemaVersion format"
       pattern: '^v\\d+\\.\\d+(\\.\\d+)?$'
       fix_suggestion: "Use format vX.Y or vX.Y.Z"
     - name: RuleVersion
       format: "**RuleVersion:**"
+      yaml_key: "rule_version"
       severity: HIGH
       error_message: "Invalid RuleVersion format"
       pattern: '^v\\d+\\.\\d+\\.\\d+$'
       fix_suggestion: "Use format vX.Y.Z"
     - name: Keywords
       format: "**Keywords:**"
+      yaml_key: "keywords"
       severity: HIGH
       error_message: "Missing Keywords"
       min_items: 5
@@ -2719,16 +2820,19 @@ metadata:
       fix_suggestion: "Add {needed} more keywords"
     - name: TokenBudget
       format: "**TokenBudget:**"
+      yaml_key: "token_budget"
       severity: MEDIUM
       error_message: "Missing TokenBudget"
       pattern: '^~[0-9]+$'
     - name: ContextTier
       format: "**ContextTier:**"
+      yaml_key: "context_tier"
       severity: HIGH
       error_message: "Missing ContextTier"
       allowed_values: [Critical, High, Medium, Low]
     - name: Depends
       format: "**Depends:**"
+      yaml_key: "depends"
       severity: HIGH
       error_message: "Depends field must not be empty"
       fix_suggestion: "Add dependency reference"
@@ -2775,7 +2879,7 @@ link_validation:
   references_section:
     related_rules_subsection:
       rule_reference_format:
-        allowed_root_files: [AGENTS.md, README.md]
+        allowed_root_files: [CONTRIBUTING.md, README.md]
   rule_references:
     enabled: true
     pattern: 'rules/[\\w-]+\\.md'
@@ -2826,16 +2930,18 @@ class TestMetadataValidationGaps:
         validator = validate_module.SchemaValidator(
             schema_path=metadata_schema, project_root=tmp_path
         )
-        content = """# 100-test: Test Rule
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**Keywords:** test, validation, example, sample, demo
-**TokenBudget:** ~500
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
+        content = """---
+schema_version: v3.5
+rule_version: v1.0.0
+last_updated: 2026-07-15
+keywords: [test, validation, example, sample, demo]
+token_budget: ~500
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md
+---
+# 100-test: Test Rule
 
 ## Scope
 
@@ -2892,16 +2998,18 @@ Content.
         validator = validate_module.SchemaValidator(
             schema_path=metadata_schema, project_root=tmp_path
         )
-        content = """# 100-test: Test Rule
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**Keywords:** test, validation, example, sample, demo
-**TokenBudget:** ~500
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
+        content = """---
+schema_version: v3.5
+rule_version: v1.0.0
+last_updated: 2026-07-15
+keywords: [test, validation, example, sample, demo]
+token_budget: ~500
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md
+---
+# 100-test: Test Rule
 
 ## Scope
 
@@ -2958,16 +3066,18 @@ Content.
         validator = validate_module.SchemaValidator(
             schema_path=metadata_schema, project_root=tmp_path
         )
-        content = """# 100-test: Test Rule
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**Keywords:** test, validation, example, sample, demo
-**TokenBudget:** ~500
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
+        content = """---
+schema_version: v3.5
+rule_version: v1.0.0
+last_updated: 2026-07-15
+keywords: [test, validation, example, sample, demo]
+token_budget: ~500
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md
+---
+# 100-test: Test Rule
 
 ## Scope
 
@@ -2985,22 +3095,27 @@ Content.
         assert len(version_errors) == 0
 
     @pytest.mark.unit
-    def test_metadata_field_order_wrong(self, tmp_path: Path, metadata_schema: Path):
-        """Test metadata fields in wrong order triggers error."""
+    def test_metadata_field_order_wrong_retired(self, tmp_path: Path, metadata_schema: Path):
+        """Post-v3.5, field ordering is no longer semantically enforced (YAML mapping
+        keys are unordered). The inline-format order check was retired in Phase 4
+        cutover; this test asserts the retired behavior no longer fires.
+        """
         validator = validate_module.SchemaValidator(
             schema_path=metadata_schema, project_root=tmp_path
         )
-        # Put Depends before SchemaVersion — wrong order
-        content = """# 100-test: Test Rule
-
-## Metadata
-
-**Depends:** 000-global-core.md
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**Keywords:** test, validation, example, sample, demo
-**TokenBudget:** ~500
-**ContextTier:** Medium
+        # depends listed first in YAML: legal in v3.5 (mapping order irrelevant).
+        content = """---
+depends:
+  required:
+    - 000-global-core.md
+schema_version: v3.5
+rule_version: v1.0.0
+last_updated: 2026-07-15
+keywords: [test, validation, example, sample, demo]
+token_budget: ~500
+context_tier: Medium
+---
+# 100-test: Test Rule
 
 ## Scope
 
@@ -3015,7 +3130,7 @@ Content.
         result = validator.validate_file(rule_file)
 
         order_errors = [e for e in result.errors if "order" in e.message.lower()]
-        assert len(order_errors) > 0
+        assert order_errors == []
 
     @pytest.mark.unit
     def test_metadata_field_order_correct_passes(self, tmp_path: Path, metadata_schema: Path):
@@ -3129,7 +3244,7 @@ Content.
         validator = validate_module.SchemaValidator(
             schema_path=metadata_schema, project_root=tmp_path
         )
-        # References before Scope — wrong order
+        # References before Scope: wrong order
         content = """# 100-test: Test Rule
 
 ## Metadata
@@ -3342,7 +3457,7 @@ Content.
 
 ### Related Rules
 
-- `AGENTS.md`
+- `CONTRIBUTING.md`
 - `000-global-core.md`
 - `rules/000-global-core.md`
 """
@@ -3385,30 +3500,6 @@ Content.
         # Placeholder ref should be skipped (passed check, no error)
         placeholder_errors = [e for e in result.errors if "placeholder" in str(e.message).lower()]
         assert len(placeholder_errors) == 0
-
-
-# ============================================================================
-# Coverage Gap: AGENTS.md read failure
-# ============================================================================
-
-
-class TestAgentsMdReadFailure:
-    """Test AGENTS.md validation when file cannot be read."""
-
-    @pytest.mark.unit
-    def test_agents_md_read_failure(self, tmp_path: Path, full_schema: Path):
-        """Test AGENTS.md read failure returns error result."""
-        from unittest.mock import patch
-
-        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
-        agents_md = tmp_path / "AGENTS.md"
-        agents_md.write_text("# Agents")
-
-        with patch("builtins.open", side_effect=PermissionError("Access denied")):
-            result = validator.validate_agents_md(agents_md)
-
-        assert len(result.errors) > 0
-        assert any("Failed to read AGENTS.md" in e.message for e in result.errors)
 
 
 class TestExampleValidatorDebugEarlyReturn:
@@ -3769,3 +3860,186 @@ link_validation: {}
         assert result.exit_code == 1
         # Should suggest sed command to fix
         assert "sed" in result.output.lower() or "--verbose" in result.output
+
+
+# ============================================================================
+# TestBodySections (v3.4 body-schema enforcement)
+# ============================================================================
+
+
+@pytest.fixture
+def body_schema(tmp_path: Path) -> Path:
+    """Schema that exercises the v3.4 body-section enforcement (Scope + References)."""
+    schema_content = """version: "3.4"
+metadata:
+  header:
+    required: true
+    severity: HIGH
+    error_message: "Missing ## Metadata header"
+  required_fields: []
+  field_order:
+    required: false
+    order: []
+    severity: INFO
+    error_message: "Field order incorrect"
+
+structure:
+  title:
+    count: 1
+    severity: CRITICAL
+  required_sections:
+    - name: "Scope"
+      level: 2
+      order: 1
+      required: true
+      content_validation:
+        required_keywords: ["What This Rule Covers", "When to Load This Rule"]
+      error_message: "Scope required"
+      error_group: "Structure"
+      severity: "HIGH"
+    - name: "References"
+      level: 2
+      order: 2
+      required: true
+      content_validation:
+        required_subsections: ["Dependencies", "External Documentation"]
+      error_message: "References required"
+      error_group: "Structure"
+      severity: "HIGH"
+  section_order:
+    validate_sequence: false
+    severity: MEDIUM
+    error_message: "Section order incorrect"
+
+content_rules: {}
+restrictions: {}
+link_validation: {}
+"""
+    schema_path = tmp_path / "body-schema.yml"
+    schema_path.write_text(schema_content)
+    return schema_path
+
+
+def _synth_rule(
+    title: str = "# 100-body-test: Test rule",
+    metadata: str = "## Metadata\n\n**SchemaVersion:** v3.4\n",
+    scope_body: str = (
+        "## Scope\n\n"
+        "**What This Rule Covers:**\nSummary of the rule.\n\n"
+        "**When to Load This Rule:**\n- primary trigger\n"
+    ),
+    references_body: str = (
+        "## References\n\n### Dependencies\n\n_None._\n\n### External Documentation\n\n_None._\n"
+    ),
+) -> str:
+    """Compose a minimal synthetic rule file with the given section bodies."""
+    return f"{title}\n\n{metadata}\n{scope_body}\n{references_body}\n"
+
+
+class TestBodySections:
+    """Unit tests for `_validate_body_sections` (v3.4 schema tightening)."""
+
+    def _errs_by_msg(self, result: validate_module.ValidationResult) -> list[str]:
+        return [e.message for e in result.errors]
+
+    @pytest.mark.unit
+    def test_conformant_rule_passes(self, tmp_path: Path, body_schema: Path):
+        """Fully conformant rule emits 0 body-section errors."""
+        rule = tmp_path / "100-conformant.md"
+        rule.write_text(_synth_rule())
+        v = validate_module.SchemaValidator(schema_path=body_schema, project_root=tmp_path)
+        result = v.validate_file(rule)
+        body_errs = [e for e in result.errors if "section missing" in e.message]
+        assert body_errs == [], f"unexpected body-section errors: {body_errs}"
+
+    @pytest.mark.unit
+    def test_missing_what_covers_label_fails_HIGH(self, tmp_path: Path, body_schema: Path):
+        """`**What This Rule Covers:**` absence fires HIGH."""
+        scope = "## Scope\n\n**When to Load This Rule:**\n- primary trigger\n"
+        rule = tmp_path / "100-nowhat.md"
+        rule.write_text(_synth_rule(scope_body=scope))
+        v = validate_module.SchemaValidator(schema_path=body_schema, project_root=tmp_path)
+        result = v.validate_file(rule)
+        msgs = self._errs_by_msg(result)
+        assert any(
+            "'Scope' section missing required inline label '**What This Rule Covers:**'" in m
+            for m in msgs
+        ), msgs
+        assert any(e.severity == "HIGH" for e in result.errors)
+
+    @pytest.mark.unit
+    def test_missing_when_to_load_label_fails_HIGH(self, tmp_path: Path, body_schema: Path):
+        """`**When to Load This Rule:**` absence fires HIGH."""
+        scope = "## Scope\n\n**What This Rule Covers:**\nSummary.\n"
+        rule = tmp_path / "100-nowhen.md"
+        rule.write_text(_synth_rule(scope_body=scope))
+        v = validate_module.SchemaValidator(schema_path=body_schema, project_root=tmp_path)
+        result = v.validate_file(rule)
+        msgs = self._errs_by_msg(result)
+        assert any(
+            "'Scope' section missing required inline label '**When to Load This Rule:**'" in m
+            for m in msgs
+        ), msgs
+
+    @pytest.mark.unit
+    def test_missing_external_docs_fails_HIGH(self, tmp_path: Path, body_schema: Path):
+        """`### External Documentation` absence inside References fires HIGH."""
+        refs = "## References\n\n### Dependencies\n\n_None._\n"
+        rule = tmp_path / "100-noext.md"
+        rule.write_text(_synth_rule(references_body=refs))
+        v = validate_module.SchemaValidator(schema_path=body_schema, project_root=tmp_path)
+        result = v.validate_file(rule)
+        msgs = self._errs_by_msg(result)
+        assert any(
+            "'References' section missing required subheading '### External Documentation'" in m
+            for m in msgs
+        ), msgs
+
+    @pytest.mark.unit
+    def test_missing_dependencies_fails_HIGH(self, tmp_path: Path, body_schema: Path):
+        """`### Dependencies` absence inside References fires HIGH."""
+        refs = "## References\n\n### External Documentation\n\n_None._\n"
+        rule = tmp_path / "100-nodeps.md"
+        rule.write_text(_synth_rule(references_body=refs))
+        v = validate_module.SchemaValidator(schema_path=body_schema, project_root=tmp_path)
+        result = v.validate_file(rule)
+        msgs = self._errs_by_msg(result)
+        assert any(
+            "'References' section missing required subheading '### Dependencies'" in m for m in msgs
+        ), msgs
+
+    @pytest.mark.unit
+    def test_none_placeholder_body_passes(self, tmp_path: Path, body_schema: Path):
+        """`_None._` under required subheadings satisfies presence check."""
+        # This is essentially the default fixture: assert no errors specifically
+        # about External Documentation or Dependencies subheadings.
+        rule = tmp_path / "100-none.md"
+        rule.write_text(_synth_rule())
+        v = validate_module.SchemaValidator(schema_path=body_schema, project_root=tmp_path)
+        result = v.validate_file(rule)
+        msgs = self._errs_by_msg(result)
+        assert not any("External Documentation" in m or "Dependencies" in m for m in msgs), msgs
+
+    @pytest.mark.unit
+    def test_label_outside_parent_section_fails(self, tmp_path: Path, body_schema: Path):
+        """Inline labels placed OUTSIDE `## Scope` still count as missing."""
+        # `**What This Rule Covers:**` appears: but inside References, not Scope.
+        rule_text = (
+            "# 100-out: Test rule\n\n"
+            "## Metadata\n\n**SchemaVersion:** v3.4\n\n"
+            "## Scope\n\n"
+            "**When to Load This Rule:**\n- primary trigger\n\n"
+            "## References\n\n"
+            "**What This Rule Covers:**\nMisplaced label.\n\n"
+            "### Dependencies\n\n_None._\n\n"
+            "### External Documentation\n\n_None._\n"
+        )
+        rule = tmp_path / "100-mislabel.md"
+        rule.write_text(rule_text)
+        v = validate_module.SchemaValidator(schema_path=body_schema, project_root=tmp_path)
+        result = v.validate_file(rule)
+        msgs = self._errs_by_msg(result)
+        assert any(
+            "'Scope' section missing required inline label '**What This Rule Covers:**'" in m
+            for m in msgs
+        ), msgs

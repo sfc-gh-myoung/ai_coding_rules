@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive directives for ensuring data quality, governance, and operational reliability throughout the data lifecycle. Covers code-based validation, schema evolution management, automated quality"
+last_updated: 2026-07-15
+keywords:
+  - kw:expectation suites
+  - kw:schema evolution
+  - kw:metric definitions catalog
+  - kw:data drift monitoring
+  - kw:quality gates automation
+  - kw:incident response procedures
+token_budget: ~4300
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 100-snowflake-core.md  # Snowflake SQL patterns
+    - 124-snowflake-data-quality-core.md  # Snowflake-specific data quality patterns
+    - 132-snowflake-demo-modeling.md  # Data modeling standards
+---
 # Data Governance & Quality Directives
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Data governance, data quality, lineage, metadata management, compliance, data catalog, Great Expectations, schema evolution, data observability, incident response
-**TokenBudget:** ~4300
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
 
 ## Scope
 
@@ -24,16 +36,6 @@ Comprehensive directives for ensuring data quality, governance, and operational 
 - Defining incident response procedures for data issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **100-snowflake-core.md** - Snowflake SQL patterns
-- **124-snowflake-data-quality-core.md** - Snowflake-specific data quality patterns
-- **132-snowflake-demo-modeling.md** - Data modeling standards
 
 ### External Documentation
 
@@ -57,7 +59,7 @@ Comprehensive directives for ensuring data quality, governance, and operational 
 - MUST use non-destructive schema evolution (add columns first, avoid destructive changes)
 - MUST maintain a single source of truth for metric definitions
 
-  **Implementation Pattern — Metric Definitions File:**
+  **Implementation Pattern: Metric Definitions File:**
   ```yaml
   # metrics/metric_definitions.yml (version-controlled)
   metrics:
@@ -90,7 +92,7 @@ Comprehensive directives for ensuring data quality, governance, and operational 
       last_reviewed: "2026-02-15"
   ```
 
-  **dbt Alternative — Semantic Models:**
+  **dbt Alternative: Semantic Models:**
   ```yaml
   # models/staging/schema.yml
   semantic_models:
@@ -229,7 +231,7 @@ Thresholds that don't reflect real data patterns generate false positives (noise
 expectation_suite.add_expectation(
     ExpectationConfiguration(
         expectation_type="expect_column_values_to_be_between",
-        kwargs={"column": "price", "min_value": 0, "max_value": 1000}
+        kwargs={"column": "price", "min_value": 0, "max_value": 1000},
     )
 )
 
@@ -242,8 +244,8 @@ expectation_suite.add_expectation(
         kwargs={
             "column": "price",
             "min_value": stats["min"] * 0.9,  # 10% buffer
-            "max_value": stats["max"] * 1.1
-        }
+            "max_value": stats["max"] * 1.1,
+        },
     )
 )
 ```
@@ -296,7 +298,7 @@ Manual checks are inconsistent, not repeatable, and don't scale. They rely on in
 expectation_suite.add_expectation(
     ExpectationConfiguration(
         expectation_type="expect_column_values_to_be_between",
-        kwargs={"column": "amount", "min_value": 0}
+        kwargs={"column": "amount", "min_value": 0},
     )
 )
 # Runs automatically in CI/CD pipeline on every deployment
@@ -434,19 +436,18 @@ import logging
 
 logger = logging.getLogger("agent_governance")
 
-def governance_aware_query(
-    session: Session,
-    query: str,
-    agent_id: str,
-    purpose: str
-) -> list:
+
+def governance_aware_query(session: Session, query: str, agent_id: str, purpose: str) -> list:
     """Execute a query with governance checks and audit logging."""
     # 1. Log agent access for audit trail
-    session.sql(f"""
+    session.sql(
+        f"""
         INSERT INTO governance.agent_access_log
             (agent_id, query_text, purpose, executed_at)
         VALUES (?, ?, ?, CURRENT_TIMESTAMP())
-    """, params=[agent_id, query, purpose]).collect()
+    """,
+        params=[agent_id, query, purpose],
+    ).collect()
 
     # 2. Validate query goes through quality gates
     # Agent queries use the same governed role as human queries
@@ -455,29 +456,33 @@ def governance_aware_query(
     # 3. Execute with row-level security and masking active
     results = session.sql(query).collect()
 
-    logger.info(f"Agent {agent_id} executed query for '{purpose}', "
-                f"returned {len(results)} rows")
+    logger.info(f"Agent {agent_id} executed query for '{purpose}', returned {len(results)} rows")
     return results
 
 
 def get_metric_definition(session: Session, metric_name: str) -> dict:
     """Look up metric from the single source of truth (data catalog)."""
-    result = session.sql(f"""
+    result = session.sql(
+        f"""
         SELECT metric_name, formula, owner, update_frequency, data_source
         FROM governance.metric_catalog
         WHERE metric_name = ?
-    """, params=[metric_name]).collect()
+    """,
+        params=[metric_name],
+    ).collect()
 
     if not result:
-        return {"error": f"Unknown metric: {metric_name}. "
-                "Check governance.metric_catalog for available metrics."}
+        return {
+            "error": f"Unknown metric: {metric_name}. "
+            "Check governance.metric_catalog for available metrics."
+        }
     row = result[0]
     return {
         "metric_name": row["METRIC_NAME"],
         "formula": row["FORMULA"],
         "owner": row["OWNER"],
         "update_frequency": row["UPDATE_FREQUENCY"],
-        "data_source": row["DATA_SOURCE"]
+        "data_source": row["DATA_SOURCE"],
     }
 ```
 

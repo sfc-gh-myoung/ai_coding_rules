@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "CI/CD pipeline patterns for automated Snowflake SQL deployments: Makefile integration, GitHub Actions workflows, and environment-specific variable management across dev/test/prod."
+last_updated: 2026-07-15
+keywords:
+  - kw:Makefile targets
+  - kw:GitHub Actions workflows
+  - kw:multi-environment deployment
+  - kw:Snowflake CLI
+  - kw:secrets store integration
+  - kw:SQL template parameterization
+  - kw:ci/cd
+token_budget: ~1300
+context_tier: Low
+depends:
+  optional:
+    - 102a-snowflake-sql-automation.md  # SQL automation patterns and templates
+---
 # Snowflake SQL: CI/CD Pipeline Integration
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-03-26
-**Keywords:** CI/CD, GitHub Actions, Makefile, deployment automation, environment variables, multi-environment, pipeline, secrets management
-**TokenBudget:** ~1300
-**ContextTier:** Low
-**Depends:** 102a-snowflake-sql-automation.md
 
 ## Scope
 
@@ -23,10 +32,9 @@ CI/CD pipeline patterns for automated Snowflake SQL deployments: Makefile integr
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **102a-snowflake-sql-automation.md** - SQL automation patterns and templates
+_None._
 
 ## Contract
 

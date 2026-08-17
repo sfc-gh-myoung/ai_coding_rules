@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive patterns for writing planning instructions (tool orchestration logic) and response instructions (output formatting and flagging logic) for Cortex Agents."
+last_updated: 2026-07-15
+keywords:
+  - kw:cortex agent instructions
+  - kw:planning instructions
+  - kw:response instructions
+  - kw:agent flagging logic
+  - kw:multi-tool orchestration
+  - kw:tool selection criteria
+  - kw:cortex
+token_budget: ~4650
+context_tier: High
+depends:
+  required:
+    - 115-snowflake-cortex-agents-core.md  # Core agent creation and tool configuration
+---
 # Snowflake Cortex Agents: Planning & Response Instructions
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:agent-instructions
-**Keywords:** Cortex Agents, planning instructions, response instructions, tool orchestration, flagging logic, agent prompts, multi-tool orchestration, tool selection, agent prompting, instruction patterns, agent planning
-**TokenBudget:** ~4650
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md
 
 ## Scope
 
@@ -32,17 +40,6 @@ Comprehensive patterns for writing planning instructions (tool orchestration log
 > 5. Make grounded recommendations based on investigated agent responses and tool outputs
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **115-snowflake-cortex-agents-core.md** - Core agent creation and tool configuration
-
-**Related:**
-- **115b-snowflake-cortex-agents-operations.md** - Testing, observability, RBAC
-- **106c-snowflake-semantic-views-integration.md** - Using Cortex Analyst as agent tool
-- **106-snowflake-semantic-views-core.md** - Semantic views as agent data sources
 
 ### External Documentation
 
@@ -114,7 +111,7 @@ Planning/response instruction templates
 - Explicit is better than implicit for multi-tool agents
 - Test tool selection logic independently before integration
 - Keep instruction text under 4000 characters per field. For longer instructions, reference a document in a Cortex Search service.
-  - Validate with: `SELECT LENGTH($$your_instructions$$);` — must be <4000
+  - Validate with: `SELECT LENGTH($$your_instructions$$);`: must be <4000
 
 ### Post-Execution Checklist
 
@@ -317,11 +314,11 @@ Response instructions define HOW the agent formats and presents answers.
 
 ## Common Mistakes in Instruction Wording
 
-- **Avoid:** "Always use Tool X" — the agent may call Tool X even when irrelevant
+- **Avoid:** "Always use Tool X": the agent may call Tool X even when irrelevant
 - **Better:** "Use Tool X when the user asks about financial data"
-- **Avoid:** "Be helpful" — too vague, provides no guidance
+- **Avoid:** "Be helpful": too vague, provides no guidance
 - **Better:** "If the user's question is unclear, ask one clarifying question before proceeding"
-- **Avoid:** "Never make mistakes" — impossible constraint, causes agent to hedge excessively
+- **Avoid:** "Never make mistakes": impossible constraint, causes agent to hedge excessively
 - **Better:** "If confidence is below 80%, state the uncertainty and suggest verification steps"
 
 ## Anti-Patterns and Common Mistakes

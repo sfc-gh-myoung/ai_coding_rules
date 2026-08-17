@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Best practices for building HTML presentations with Reveal.js 6.0.0, covering project setup (npm/ESM), slide markup patterns (horizontal/vertical slides, fragments, Markdown), configuration options,"
+last_updated: 2026-07-15
+keywords:
+  - kw:reveal.js 6.0.0
+  - kw:slide markup hierarchy
+  - kw:code highlighting data-trim
+  - kw:plugin registration ESM
+  - kw:fragments auto-animate
+  - kw:speaker notes view
+  - kw:theme CSS custom properties
+token_budget: ~4400
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 420-javascript-core.md  # ESM and modern JavaScript standards (load if writing custom Reveal.js plugins or extensive JS logic)
+    - 501-frontend-browser-globals-collisions.md  # Relevant when embedding Reveal.js alongside other frontend libraries
+---
 # Reveal.js Presentation Framework Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-04-01
-**Keywords:** Reveal.js, revealjs, presentation, slides, HTML presentation, slide deck, code highlighting, speaker notes, Markdown slides, fragments, vertical slides, reveal themes, presentation framework, auto-animate
-**TokenBudget:** ~4400
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
 
 ## Scope
 
@@ -23,15 +35,6 @@ Best practices for building HTML presentations with Reveal.js 6.0.0, covering pr
 - Troubleshooting Reveal.js rendering, navigation, or plugin issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **420-javascript-core.md** - ESM and modern JavaScript standards (load if writing custom Reveal.js plugins or extensive JS logic)
-- **501-frontend-browser-globals-collisions.md** - Relevant when embedding Reveal.js alongside other frontend libraries
 
 ### External Documentation
 

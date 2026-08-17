@@ -95,20 +95,16 @@ registry = Registry(
     session=session,
     database_name="ML",
     schema_name="REGISTRY",
-    options={"enable_monitoring": True}  # REQUIRED for MODEL MONITOR!
+    options={"enable_monitoring": True},  # REQUIRED for MODEL MONITOR!
 )
 
 # Prepare training data (example)
 training_df = session.table("ML.TRAINING.CHURN_FEATURES").to_pandas()
-X = training_df.drop(['CUSTOMER_ID', 'CHURNED'], axis=1)
-y = training_df['CHURNED']
+X = training_df.drop(["CUSTOMER_ID", "CHURNED"], axis=1)
+y = training_df["CHURNED"]
 
 # Train model
-model = RandomForestClassifier(
-    n_estimators=100,
-    max_depth=10,
-    random_state=42
-)
+model = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42)
 model.fit(X, y)
 
 # Register model - no special parameters needed when Registry has monitoring enabled
@@ -123,18 +119,14 @@ model_ref = registry.log_model(
     Use case: Daily batch predictions for retention campaigns
     """,
     sample_input_data=X.head(5),  # REQUIRED for schema inference
-    conda_dependencies=[
-        "scikit-learn==1.3.0",
-        "pandas==2.0.3",
-        "numpy==1.24.0"
-    ],
+    conda_dependencies=["scikit-learn==1.3.0", "pandas==2.0.3", "numpy==1.24.0"],
     metrics={
-        'accuracy': 0.87,
-        'precision': 0.82,
-        'recall': 0.79,
-        'f1_score': 0.80,
-        'auc_roc': 0.91
-    }
+        "accuracy": 0.87,
+        "precision": 0.82,
+        "recall": 0.79,
+        "f1_score": 0.80,
+        "auc_roc": 0.91,
+    },
 )
 
 print(f"Model registered: {model_ref.model_name} version {model_ref.version_name}")
@@ -145,7 +137,7 @@ print(f"Model registered: {model_ref.model_name} version {model_ref.version_name
 ```python
 # Verify model was registered correctly
 models = registry.show_models()
-print(models[['name', 'default_version_name', 'comment']])
+print(models[["name", "default_version_name", "comment"]])
 
 # Get model version details
 mv = registry.get_model("CUSTOMER_CHURN_PREDICTOR").version("V1_0_0")
@@ -154,13 +146,15 @@ mv = registry.get_model("CUSTOMER_CHURN_PREDICTOR").version("V1_0_0")
 print("Model metrics:", mv.show_metrics())
 
 # Test inference
-test_input = pd.DataFrame({
-    'ACCOUNT_AGE_DAYS': [365, 30],
-    'TOTAL_PURCHASES': [25, 2],
-    'AVG_ORDER_VALUE': [150.0, 45.0],
-    'DAYS_SINCE_LAST_PURCHASE': [7, 90],
-    'SUPPORT_TICKETS_30D': [0, 3]
-})
+test_input = pd.DataFrame(
+    {
+        "ACCOUNT_AGE_DAYS": [365, 30],
+        "TOTAL_PURCHASES": [25, 2],
+        "AVG_ORDER_VALUE": [150.0, 45.0],
+        "DAYS_SINCE_LAST_PURCHASE": [7, 90],
+        "SUPPORT_TICKETS_30D": [0, 3],
+    }
+)
 
 predictions = mv.run(test_input)
 print("Test predictions:", predictions)
@@ -174,30 +168,35 @@ baseline_df = session.table("ML.TRAINING.CHURN_FEATURES").sample(n=1000)
 baseline_pandas = baseline_df.to_pandas()
 
 # Get features for prediction
-X_baseline = baseline_pandas.drop(['CUSTOMER_ID', 'CHURNED'], axis=1)
+X_baseline = baseline_pandas.drop(["CUSTOMER_ID", "CHURNED"], axis=1)
 
 # Run inference on baseline
 baseline_predictions = mv.run(X_baseline)
 
 # Combine with original data
-baseline_pandas['PREDICTION'] = baseline_predictions['output_feature_0']
-baseline_pandas['PREDICTION_CLASS'] = (baseline_pandas['PREDICTION'] > 0.5).astype(int)
-baseline_pandas['ACTUAL_LABEL'] = baseline_pandas['CHURNED']
-baseline_pandas['PREDICTION_TIMESTAMP'] = pd.Timestamp.now()
+baseline_pandas["PREDICTION"] = baseline_predictions["output_feature_0"]
+baseline_pandas["PREDICTION_CLASS"] = (baseline_pandas["PREDICTION"] > 0.5).astype(int)
+baseline_pandas["ACTUAL_LABEL"] = baseline_pandas["CHURNED"]
+baseline_pandas["PREDICTION_TIMESTAMP"] = pd.Timestamp.now()
 
 # Write to baseline table
-baseline_final = baseline_pandas[[
-    'CUSTOMER_ID', 'ACCOUNT_AGE_DAYS', 'TOTAL_PURCHASES',
-    'AVG_ORDER_VALUE', 'DAYS_SINCE_LAST_PURCHASE', 'SUPPORT_TICKETS_30D',
-    'PREDICTION', 'PREDICTION_CLASS', 'ACTUAL_LABEL', 'PREDICTION_TIMESTAMP'
-]]
+baseline_final = baseline_pandas[
+    [
+        "CUSTOMER_ID",
+        "ACCOUNT_AGE_DAYS",
+        "TOTAL_PURCHASES",
+        "AVG_ORDER_VALUE",
+        "DAYS_SINCE_LAST_PURCHASE",
+        "SUPPORT_TICKETS_30D",
+        "PREDICTION",
+        "PREDICTION_CLASS",
+        "ACTUAL_LABEL",
+        "PREDICTION_TIMESTAMP",
+    ]
+]
 
 session.write_pandas(
-    baseline_final, 
-    "CHURN_BASELINE_DATA",
-    database="ML",
-    schema="MONITORING",
-    overwrite=True
+    baseline_final, "CHURN_BASELINE_DATA", database="ML", schema="MONITORING", overwrite=True
 )
 
 print(f"Baseline data populated: {len(baseline_final)} rows")
@@ -292,7 +291,7 @@ registry = Registry(
     session=session,
     database_name="ML",
     schema_name="REGISTRY",
-    options={"enable_monitoring": True}  # THIS IS THE FIX!
+    options={"enable_monitoring": True},  # THIS IS THE FIX!
 )
 
 # Step 3: Re-register the model

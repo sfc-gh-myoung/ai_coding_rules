@@ -29,6 +29,13 @@ from ai_rules._shared.console import (
 )
 from ai_rules._shared.paths import find_project_root, get_schemas_dir
 
+# Canonical location of the micro-kernel content, relative to the project root.
+# This is the real source the plugin build copies from (see commands/plugin.py);
+# it does NOT live at the project root. Pointing the validator at a non-existent
+# path would make it silently pass on every run.
+KERNEL_CONTENT_RELPATH = Path("src/ai_rules/plugin/micro_kernel_content.md")
+KERNEL_CONTENT_FILENAME = KERNEL_CONTENT_RELPATH.name
+
 
 @dataclass
 class ValidationError:
@@ -274,12 +281,10 @@ class SchemaValidator:
             column = pos - line_start + 1
 
             # Get line preview (handle line containing null byte)
-            if line_num <= len(lines):
-                preview = lines[line_num - 1][:60].replace("\x00", "<NUL>")
-                if len(lines[line_num - 1]) > 60:
-                    preview += "..."
-            else:
-                preview = "<unable to extract>"
+            # line_num is always <= len(lines) for any valid pos in content
+            preview = lines[line_num - 1][:60].replace("\x00", "<NUL>")
+            if len(lines[line_num - 1]) > 60:
+                preview += "..."
 
             locations.append(
                 {
@@ -509,60 +514,128 @@ class SchemaValidator:
         # Run validation phases
         self._validate_metadata(content, lines, result)
         self._validate_structure(content, lines, result)
+        self._validate_body_sections(content, lines, result)
         self._validate_content(content, lines, result)
         self._validate_restrictions(content, lines, result)
         self._validate_links(content, lines, result)
 
         return result
 
+    # ------------------------------------------------------------------
+    # Frontmatter helpers (schema v3.5 dual-parse)
+    # ------------------------------------------------------------------
+
+    _FRONTMATTER_FENCE_RE = re.compile(r"^---\s*$")
+
+    def _parse_yaml_frontmatter(self, content: str) -> dict[str, Any] | None:
+        """Return the parsed YAML frontmatter mapping if `content` starts with `---`."""
+        lines = content.split("\n")
+        if not lines or not self._FRONTMATTER_FENCE_RE.match(lines[0]):
+            return None
+        for idx in range(1, min(len(lines), 200)):
+            if self._FRONTMATTER_FENCE_RE.match(lines[idx]):
+                block = "\n".join(lines[1:idx])
+                try:
+                    data = yaml.safe_load(block)
+                except yaml.YAMLError:
+                    return None
+                return data if isinstance(data, dict) else None
+        return None
+
+    def _frontmatter_end_line(self, content: str) -> int:
+        """Return the 1-based line number of the closing `---` fence, or 0 if none."""
+        lines = content.split("\n")
+        if not lines or not self._FRONTMATTER_FENCE_RE.match(lines[0]):
+            return 0
+        for idx in range(1, min(len(lines), 200)):
+            if self._FRONTMATTER_FENCE_RE.match(lines[idx]):
+                return idx + 1
+        return 0
+
+    def _flatten_depends_yaml(self, value: Any) -> str:
+        """Flatten a YAML `depends:` structure into the inline typed-string form.
+
+        An empty/None input yields the sentinel "None" so downstream validators
+        (which accept "None" as an allow-placeholder) do not fire on foundation
+        or dependency-free rules that migrated from `**Depends:** none`.
+        """
+        if not value:
+            return "None"
+        entries: list[str] = []
+        if isinstance(value, dict):
+            for key in ("required", "optional"):
+                for item in value.get(key) or []:
+                    if not item:
+                        continue
+                    name = str(item).strip()
+                    if not name.endswith(".md"):
+                        name = f"{name}.md"
+                    entries.append(f"{key}:{name}")
+        elif isinstance(value, list):
+            for item in value:
+                if not item:
+                    continue
+                name = str(item).strip()
+                if ":" not in name:
+                    name = f"required:{name}"
+                prefix, rest = name.split(":", 1)
+                if not rest.endswith(".md"):
+                    rest = f"{rest}.md"
+                entries.append(f"{prefix}:{rest}")
+        return ", ".join(entries)
+
     def _validate_metadata(self, content: str, lines: list[str], result: ValidationResult) -> None:
-        """Validate metadata fields per schema."""
+        """Validate metadata fields per schema (v3.5 YAML frontmatter only).
+
+        The pre-v3.5 inline ``**Field:**`` fallback path was retired in Phase 4
+        cutover. Every production rule must begin with a ``---`` fenced YAML
+        frontmatter block. Files without frontmatter emit CRITICAL "missing
+        required field" errors matching prior behavior.
+        """
         metadata_config = self.schema["metadata"]
 
-        # Check for ## Metadata header (v3.0 requirement)
-        if "header" in metadata_config:
-            header_config = metadata_config["header"]
-            if header_config.get("required", False):
-                metadata_header_pattern = r"^## Metadata\s*$"
-                if not re.search(metadata_header_pattern, content, re.MULTILINE):
+        frontmatter = self._parse_yaml_frontmatter(content)
+        metadata: dict[str, Any] = {}
+
+        if frontmatter is not None:
+            for field_config in metadata_config["required_fields"]:
+                field_name = field_config["name"]
+                yaml_key = field_config.get("yaml_key")
+                if not yaml_key or yaml_key not in frontmatter:
                     result.errors.append(
                         ValidationError(
-                            severity=header_config.get("severity", "HIGH"),
-                            message=header_config["error_message"],
+                            severity=field_config["severity"],
+                            message=field_config["error_message"],
                             error_group="Metadata",
-                            line_num=1,  # Metadata header should be near top
-                            fix_suggestion=header_config.get("fix_suggestion"),
-                            docs_reference=header_config.get("docs_reference"),
+                            line_num=1,
+                            fix_suggestion=field_config.get("fix_suggestion"),
+                            docs_reference=field_config.get("docs_reference"),
                         )
                     )
+                    continue
+                raw = frontmatter[yaml_key]
+                if field_name == "Keywords" and isinstance(raw, list):
+                    value = ", ".join(str(k).strip() for k in raw if str(k).strip())
+                elif field_name == "Depends":
+                    value = self._flatten_depends_yaml(raw)
                 else:
-                    result.passed_checks += 1
-
-        # Extract metadata from content
-        metadata = {}
-        for field_config in metadata_config["required_fields"]:
-            field_name = field_config["name"]
-            field_format = field_config["format"]
-            pattern = re.escape(field_format) + r"\s*(.+)"
-
-            match = re.search(pattern, content, re.MULTILINE)
-            if match:
-                metadata[field_name] = match.group(1).strip()
-                line_num = content[: match.start()].count("\n") + 1
-                metadata[f"{field_name}_line"] = line_num
-            else:
-                # Missing required field
+                    value = str(raw).strip() if raw is not None else ""
+                metadata[field_name] = value
+                metadata[f"{field_name}_line"] = 2  # inside frontmatter block
+        else:
+            # No YAML frontmatter → every required field is missing. Emit the
+            # same per-field CRITICAL errors the inline path used to raise.
+            for field_config in metadata_config["required_fields"]:
                 result.errors.append(
                     ValidationError(
                         severity=field_config["severity"],
                         message=field_config["error_message"],
                         error_group="Metadata",
-                        line_num=1,  # Metadata should be at top of file
+                        line_num=1,
                         fix_suggestion=field_config.get("fix_suggestion"),
                         docs_reference=field_config.get("docs_reference"),
                     )
                 )
-                continue
 
         # Validate Keywords count
         if "Keywords" in metadata:
@@ -575,7 +648,12 @@ class SchemaValidator:
 
             if not (min_items <= len(keywords) <= max_items):
                 needed = min_items - len(keywords) if len(keywords) < min_items else 0
-                fix_msg = keywords_config["fix_suggestion"].format(needed=needed)
+                fix_msg = keywords_config["fix_suggestion"].format(
+                    needed=needed,
+                    actual=len(keywords),
+                    min=min_items,
+                    max=max_items,
+                )
                 result.errors.append(
                     ValidationError(
                         severity=keywords_config["severity"],
@@ -872,6 +950,97 @@ class SchemaValidator:
 
         return "\n".join(output)
 
+    def _validate_body_sections(
+        self, content: str, lines: list[str], result: ValidationResult
+    ) -> None:
+        """Validate per-section content_validation entries (v3.4 schema tightening).
+
+        For each H2 in `structure.required_sections`, this checks:
+        - `content_validation.required_subsections`: every named entry must appear
+          as an H3 heading INSIDE the parent H2 (i.e., before the next H2). Case-
+          insensitive; code-block aware.
+        - `content_validation.required_keywords`: every named entry must appear as
+          a bolded inline label (`**<text>:**`) inside the parent H2. This is
+          stricter than substring matching and catches drift like `**When to
+          Load:**` (missing "This Rule" suffix) or plain-text prose mentions.
+        """
+        structure_config = self.schema.get("structure", {})
+        for section_config in structure_config.get("required_sections", []):
+            content_val = section_config.get("content_validation", {})
+            if not content_val:
+                continue
+            section_name = section_config["name"]
+            severity = section_config.get("severity", "HIGH")
+            docs_ref = section_config.get("docs_reference")
+            # Extract the H2 body (start..next H2).
+            section_start, section_end, section_body = self._extract_section(
+                lines, section_name, track_code_blocks=True
+            )
+            if section_start is None:
+                # Missing H2 is reported by _validate_structure; skip here.
+                continue
+
+            # Check required subheadings (H3 inside the H2).
+            subheadings_seen: set[str] = set()
+            in_code = False
+            for i in range(section_start + 1, section_end or len(lines)):
+                line = lines[i].rstrip()
+                if line.startswith("```"):
+                    in_code = not in_code
+                    continue
+                if in_code:
+                    continue
+                m = re.match(r"^### +(?!#)(.+?)\s*$", line)
+                if m:
+                    # Normalise (strip parentheticals like "(Universal Requirements)")
+                    subheadings_seen.add(self._normalize_section_name(m.group(1)))
+
+            for sub in content_val.get("required_subsections", []):
+                if self._normalize_section_name(sub) not in subheadings_seen:
+                    result.errors.append(
+                        ValidationError(
+                            severity=severity,
+                            message=(
+                                f"'{section_name}' section missing required subheading '### {sub}'"
+                            ),
+                            error_group="Structure",
+                            line_num=section_start + 1,
+                            fix_suggestion=(
+                                f"Add '### {sub}' inside '## {section_name}' "
+                                "(use '_None._' as the body if no content applies)."
+                            ),
+                            docs_reference=docs_ref,
+                        )
+                    )
+                else:
+                    result.passed_checks += 1
+
+            # Check required bolded inline labels inside the H2.
+            for keyword in content_val.get("required_keywords", []):
+                # Normalise: strip a trailing ':' so both `"What This Rule Covers"`
+                # and `"Problem:"` styles render the same `**<text>:**` pattern.
+                normalised = keyword.rstrip(":")
+                label_pattern = re.compile(rf"^\s*\*\*{re.escape(normalised)}:\*\*", re.MULTILINE)
+                if not label_pattern.search(section_body):
+                    result.errors.append(
+                        ValidationError(
+                            severity=severity,
+                            message=(
+                                f"'{section_name}' section missing required inline "
+                                f"label '**{normalised}:**'"
+                            ),
+                            error_group="Structure",
+                            line_num=section_start + 1,
+                            fix_suggestion=(
+                                f"Add '**{normalised}:**' as a bolded line inside "
+                                f"'## {section_name}'."
+                            ),
+                            docs_reference=docs_ref,
+                        )
+                    )
+                else:
+                    result.passed_checks += 1
+
     def _validate_content(self, content: str, lines: list[str], result: ValidationResult) -> None:
         """Validate section content per schema."""
         content_rules = self.schema.get("content_rules", {})
@@ -1151,7 +1320,7 @@ class SchemaValidator:
         - Horizontal rule separators (---) as visual dividers
 
         These patterns are problematic for LLM sequential text processing.
-        See 002e-agent-optimization.md for alternatives.
+        See 002m-agent-format-antipatterns.md for alternatives.
 
         Skips:
         - Content inside code blocks (``` ... ```)
@@ -1165,6 +1334,7 @@ class SchemaValidator:
         table_pattern = re.compile(r"\|[-]+\|")
         arrow_pattern = re.compile(r"→")
         hr_pattern = re.compile(r"^---+\s*$")
+        frontmatter_end_line = self._frontmatter_end_line(content)
 
         # Pattern to remove inline code before checking
         inline_code_pattern = re.compile(r"`[^`]+`")
@@ -1194,8 +1364,8 @@ class SchemaValidator:
                         error_group="Priority 1",
                         line_num=i,
                         line_preview=line.strip()[:80],
-                        fix_suggestion="Replace with nested conditional lists. See 002e-agent-optimization.md Anti-Pattern 7",
-                        docs_reference="002e-agent-optimization.md",
+                        fix_suggestion="Replace with nested conditional lists. See 002m-agent-format-antipatterns.md Anti-Pattern 7",
+                        docs_reference="002m-agent-format-antipatterns.md",
                     )
                 )
 
@@ -1208,8 +1378,8 @@ class SchemaValidator:
                         error_group="Priority 1",
                         line_num=i,
                         line_preview=line.strip()[:80],
-                        fix_suggestion="Replace with structured lists. See 002e-agent-optimization.md Anti-Pattern 1",
-                        docs_reference="002e-agent-optimization.md",
+                        fix_suggestion="Replace with structured lists. See 002m-agent-format-antipatterns.md Anti-Pattern 1",
+                        docs_reference="002m-agent-format-antipatterns.md",
                     )
                 )
 
@@ -1222,15 +1392,17 @@ class SchemaValidator:
                         error_group="Priority 1",
                         line_num=i,
                         line_preview=line.strip()[:80],
-                        fix_suggestion="Replace with text alternatives (then, to, becomes). See 002e-agent-optimization.md Anti-Pattern 6",
-                        docs_reference="002e-agent-optimization.md",
+                        fix_suggestion="Replace with text alternatives (then, to, becomes). See 002m-agent-format-antipatterns.md Anti-Pattern 6",
+                        docs_reference="002m-agent-format-antipatterns.md",
                     )
                 )
 
-            # Check for horizontal rule separators (Priority 1 violation)
-            # Only flag standalone --- lines, not YAML frontmatter or table separators
-            # Skip line 1 (could be YAML frontmatter start)
-            if hr_pattern.match(line) and not tracker.in_code_block and i > 1:
+            # Check for horizontal rule separators outside leading YAML frontmatter.
+            if (
+                hr_pattern.match(line)
+                and not tracker.in_code_block
+                and (frontmatter_end_line == 0 or i > frontmatter_end_line)
+            ):
                 result.errors.append(
                     ValidationError(
                         severity="MEDIUM",
@@ -1238,8 +1410,8 @@ class SchemaValidator:
                         error_group="Priority 2",
                         line_num=i,
                         line_preview=line.strip()[:80],
-                        fix_suggestion="Use headers (###) for structure instead of visual separators. See 002e-agent-optimization.md Anti-Pattern 9",
-                        docs_reference="002e-agent-optimization.md",
+                        fix_suggestion="Use headers (###) for structure instead of visual separators. See 002m-agent-format-antipatterns.md Anti-Pattern 9",
+                        docs_reference="002m-agent-format-antipatterns.md",
                     )
                 )
 
@@ -1249,8 +1421,8 @@ class SchemaValidator:
 
         # Validate Related Rules subsection format
         # Note: Both bare filenames (e.g., 000-global-core.md) and prefixed references
-        # (e.g., rules/000-global-core.md) are valid. The rules/ location is defined
-        # in AGENTS.md for token efficiency.
+        # (e.g., rules/000-global-core.md) are valid. The rules/ location is fixed by
+        # the rule-loader protocol.
         refs_section_config = link_config.get("references_section", {})
         related_rules_config = refs_section_config.get("related_rules_subsection", {})
 
@@ -1389,46 +1561,83 @@ class SchemaValidator:
 
         return results
 
-    def validate_agents_md(self, agents_path: Path | None = None) -> ValidationResult:
-        """Validate AGENTS.md for ASCII patterns.
+    def validate_ascii_only(self, path: Path) -> ValidationResult:
+        """Validate a markdown file for ASCII patterns only, skipping rule-schema checks.
 
-        AGENTS.md is the bootstrap protocol file that should also follow
-        agent optimization patterns (no ASCII trees, tables, or arrows).
+        Used for non-rule markdown that still has to stay agent-parseable: the
+        micro-kernel content (injected into every prompt) and any
+        ``*.md.template`` files. Rule files go through ``validate_file`` instead.
 
         Args:
-            agents_path: Path to AGENTS.md. Defaults to project root.
+            path: Markdown file to check.
 
         Returns:
-            ValidationResult with any ASCII pattern violations
+            ValidationResult with any ASCII pattern violations.
         """
-        if agents_path is None:
-            agents_path = self.project_root / "AGENTS.md"
+        result = ValidationResult(file_path=path)
 
-        result = ValidationResult(file_path=agents_path)
-
-        if not agents_path.exists():
-            # AGENTS.md is optional, not an error if missing
+        if not path.exists():
+            # Absent input is not an error: callers may probe optional files.
+            # Note: validate_kernel_content deliberately does not rely on this,
+            # because a missing kernel would silently pass. See its docstring.
             return result
 
         try:
-            with open(agents_path) as f:
+            with open(path) as f:
                 content = f.read()
         except Exception as e:
             result.errors.append(
                 ValidationError(
                     severity="CRITICAL",
-                    message=f"Failed to read AGENTS.md: {e}",
+                    message=f"Failed to read {path.name}: {e}",
                     error_group="File",
                 )
             )
             return result
 
-        lines = content.split("\n")
-
-        # Only validate ASCII patterns for AGENTS.md
-        self._validate_ascii_patterns(content, lines, result)
+        self._validate_ascii_patterns(content, content.split("\n"), result)
 
         return result
+
+    def kernel_content_path(self) -> Path:
+        """Absolute path to the micro-kernel content for this project root."""
+        return self.project_root / KERNEL_CONTENT_RELPATH
+
+    def validate_kernel_content(self, path: Path | None = None) -> ValidationResult:
+        """Validate the micro-kernel content for ASCII patterns.
+
+        The kernel is injected into every prompt, so it must follow the same
+        agent-optimization patterns rules do: no ASCII trees, tables, or arrows.
+
+        Unlike ``validate_ascii_only``, a missing kernel is reported as an error
+        rather than passing quietly. A validator aimed at a path that does not
+        exist would be green forever and would gate nothing.
+
+        Args:
+            path: Override path. Defaults to the canonical kernel location.
+
+        Returns:
+            ValidationResult with any ASCII pattern violations.
+        """
+        if path is None:
+            path = self.kernel_content_path()
+
+        if not path.exists():
+            result = ValidationResult(file_path=path)
+            result.errors.append(
+                ValidationError(
+                    severity="CRITICAL",
+                    message=f"Micro-kernel content not found at {path}",
+                    error_group="File",
+                    fix_suggestion=(
+                        "The kernel is required. If it moved, update "
+                        "KERNEL_CONTENT_RELPATH in commands/validate.py."
+                    ),
+                )
+            )
+            return result
+
+        return self.validate_ascii_only(path)
 
     def format_json(self, results: list[ValidationResult]) -> str:
         """Format validation results as JSON.
@@ -1557,12 +1766,10 @@ class ExampleValidator:
             column = pos - line_start + 1
 
             # Get line preview (handle line containing null byte)
-            if line_num <= len(lines):
-                preview = lines[line_num - 1][:60].replace("\x00", "<NUL>")
-                if len(lines[line_num - 1]) > 60:
-                    preview += "..."
-            else:
-                preview = "<unable to extract>"
+            # line_num is always <= len(lines) for any valid pos in content
+            preview = lines[line_num - 1][:60].replace("\x00", "<NUL>")
+            if len(lines[line_num - 1]) > 60:
+                preview += "..."
 
             locations.append(
                 {
@@ -1827,14 +2034,14 @@ def validate(
         bool,
         typer.Option(
             "--examples",
-            help="Validate example files in rules/examples/ against example-schema.yml.",
+            help="Validate example files in <PATH>/examples/ against example-schema.yml. If PATH already ends in 'examples', it is used directly. Defaults to rules/examples/ when PATH is omitted.",
         ),
     ] = False,
     templates: Annotated[
         bool,
         typer.Option(
             "--templates",
-            help="Validate AGENTS template files against ASCII pattern rules.",
+            help="Always validates the repo-root templates/ directory. If PATH already ends in 'templates', that directory is used directly; PATH is otherwise ignored for template resolution.",
         ),
     ] = False,
 ) -> None:
@@ -1859,7 +2066,7 @@ def validate(
         # Validate example files
         ai-rules validate rules/examples/ --examples
     """
-    if path is None:
+    if path is None and not examples and not templates:
         console.print(ctx.get_help())
         raise typer.Exit(0)
 
@@ -1870,132 +2077,136 @@ def validate(
         log_error("Could not find project root (no pyproject.toml found)")
         raise typer.Exit(1) from None
 
-    # Handle --examples mode separately
-    if examples:
-        try:
-            example_validator = ExampleValidator(debug=debug, project_root=project_root)
-        except Exception as e:
-            log_error(f"Error loading example schema: {e}")
-            raise typer.Exit(1) from None
+    # Handle --examples and/or --templates mode.
+    # Both flags may be active simultaneously; run each and report combined results.
+    if examples or templates:
+        overall_failed = False
 
-        # Determine examples directory
-        if path.is_dir():
-            examples_dir = path
-        else:
-            # Assume rules/examples/ if a file is specified
-            examples_dir = (
-                path.parent if "examples" in str(path) else project_root / "rules" / "examples"
-            )
+        if examples:
+            try:
+                example_validator = ExampleValidator(debug=debug, project_root=project_root)
+            except Exception as e:
+                log_error(f"Error loading example schema: {e}")
+                raise typer.Exit(1) from None
 
-        if not examples_dir.exists():
-            log_info(f"Examples directory not found: {examples_dir}")
-            raise typer.Exit(0)  # Not an error if no examples exist yet
+            # Derive examples directory from PATH.
+            # Direct-leaf form: if PATH already IS an "examples" dir, use it directly.
+            # Otherwise: append /examples to avoid scanning all files under PATH.
+            if path is None:
+                examples_dir = project_root / "rules" / "examples"
+            else:
+                base = path.parent if path.is_file() else path
+                examples_dir = base if base.name == "examples" else base / "examples"
 
-        results = example_validator.validate_directory(examples_dir, verbose=verbose)
+            if not examples_dir.exists():
+                log_info(f"No examples directory found at {examples_dir}")
+            else:
+                results_ex = example_validator.validate_directory(examples_dir, verbose=verbose)
 
-        if not results:
-            log_info(f"No example files found in {examples_dir}")
-            raise typer.Exit(0)
+                if not results_ex:
+                    log_info(f"No example files found in {examples_dir}")
+                else:
+                    if verbose:
+                        for result in results_ex:
+                            example_validator.format_result(result, detailed=True)
+                            console.print()
 
-        if verbose:
-            for result in results:
-                example_validator.format_result(result, detailed=True)
-                console.print()
+                    total_files = len(results_ex)
+                    ex_failed = sum(1 for r in results_ex if r.has_critical_or_high)
+                    ex_clean = sum(1 for r in results_ex if r.is_clean)
 
-        # Print summary
-        total_files = len(results)
-        failed = sum(1 for r in results if r.has_critical_or_high)
-        clean = sum(1 for r in results if r.is_clean)
+                    if ex_failed > 0 and not verbose:
+                        console.print("\n[bold red]FAILED EXAMPLES:[/bold red]")
+                        for result in results_ex:
+                            if result.has_critical_or_high:
+                                console.print(f"  • {result.file_path.name}")
+                                for error in result.errors:
+                                    if error.severity in ("CRITICAL", "HIGH"):
+                                        console.print(f"    [dim]{error.message}[/dim]")
+                                        break
+                        console.print()
 
-        # List failed examples (even without verbose mode)
-        if failed > 0 and not verbose:
-            console.print("\n[bold red]FAILED EXAMPLES:[/bold red]")
-            for result in results:
-                if result.has_critical_or_high:
-                    console.print(f"  • {result.file_path.name}")
-                    # Show first error for context
-                    for error in result.errors:
-                        if error.severity in ("CRITICAL", "HIGH"):
-                            console.print(f"    [dim]{error.message}[/dim]")
-                            break
-            console.print()
+                    summary_table = Table(title="Example Validation Summary")
+                    summary_table.add_column("Metric", style="bold")
+                    summary_table.add_column("Count", justify="right")
+                    summary_table.add_row("Total examples", str(total_files))
+                    summary_table.add_row("[green]Valid[/green]", str(ex_clean))
+                    summary_table.add_row("[red]Invalid[/red]", str(ex_failed))
+                    console.print(summary_table)
 
-        summary_table = Table(title="Example Validation Summary")
-        summary_table.add_column("Metric", style="bold")
-        summary_table.add_column("Count", justify="right")
-        summary_table.add_row("Total examples", str(total_files))
-        summary_table.add_row("[green]Valid[/green]", str(clean))
-        summary_table.add_row("[red]Invalid[/red]", str(failed))
-        console.print(summary_table)
+                    if ex_failed > 0:
+                        overall_failed = True
 
-        if failed > 0:
-            raise typer.Exit(1) from None
-        raise typer.Exit(0)
+        if templates:
+            try:
+                validator = SchemaValidator(
+                    schema_path=schema, debug=debug, project_root=project_root
+                )
+            except Exception as e:
+                log_error(f"Error loading schema: {e}")
+                raise typer.Exit(1) from None
 
-    # Handle --templates mode separately
-    if templates:
-        try:
-            validator = SchemaValidator(schema_path=schema, debug=debug, project_root=project_root)
-        except Exception as e:
-            log_error(f"Error loading schema: {e}")
-            raise typer.Exit(1) from None
+            # Templates directory is always <project_root>/templates/.
+            # Direct-leaf exception: if PATH itself is named "templates", use it directly.
+            # PATH is otherwise ignored for template resolution.
+            if path is None:
+                templates_dir = project_root / "templates"
+            else:
+                base = path.parent if path.is_file() else path
+                templates_dir = base if base.name == "templates" else project_root / "templates"
 
-        # Determine templates directory
-        if path.is_dir():
-            templates_dir = path
-        else:
-            templates_dir = path.parent if "templates" in str(path) else project_root / "templates"
+            if not templates_dir.exists():
+                log_info(f"No templates directory found at {templates_dir}")
+            else:
+                template_files = sorted(templates_dir.glob("*.md.template"))
 
-        if not templates_dir.exists():
-            log_info(f"Templates directory not found: {templates_dir}")
-            raise typer.Exit(0)
+                if not template_files:
+                    log_info(f"No template files found in {templates_dir}")
+                else:
+                    results_t: list[ValidationResult] = []
+                    for template_path in template_files:
+                        result = validator.validate_ascii_only(template_path)
+                        results_t.append(result)
 
-        template_files = sorted(templates_dir.glob("*.md.template"))
+                    if verbose:
+                        for result in results_t:
+                            validator.format_result(result, detailed=True)
+                            console.print()
 
-        if not template_files:
-            log_info(f"No template files found in {templates_dir}")
-            raise typer.Exit(0)
+                    total_files_t = len(results_t)
+                    t_failed = sum(1 for r in results_t if r.has_critical_or_high)
+                    t_clean = sum(1 for r in results_t if r.is_clean)
 
-        results: list[ValidationResult] = []
-        for template_path in template_files:
-            result = validator.validate_agents_md(template_path)
-            results.append(result)
+                    if t_failed > 0 and not verbose:
+                        console.print("\n[bold red]FAILED TEMPLATES:[/bold red]")
+                        for result in results_t:
+                            if result.has_critical_or_high:
+                                console.print(f"  • {result.file_path.name}")
+                                for error in result.errors:
+                                    if error.severity in ("CRITICAL", "HIGH"):
+                                        console.print(f"    [dim]{error.message}[/dim]")
+                                        break
+                        console.print()
 
-        if verbose:
-            for result in results:
-                validator.format_result(result, detailed=True)
-                console.print()
+                    summary_table_t = Table(title="Template Validation Summary")
+                    summary_table_t.add_column("Metric", style="bold")
+                    summary_table_t.add_column("Count", justify="right")
+                    summary_table_t.add_row("Total templates", str(total_files_t))
+                    summary_table_t.add_row("[green]Valid[/green]", str(t_clean))
+                    summary_table_t.add_row("[red]Invalid[/red]", str(t_failed))
+                    console.print(summary_table_t)
 
-        # Print summary
-        total_files = len(results)
-        failed = sum(1 for r in results if r.has_critical_or_high)
-        clean = sum(1 for r in results if r.is_clean)
+                    if t_failed > 0:
+                        overall_failed = True
 
-        # List failed templates (even without verbose mode)
-        if failed > 0 and not verbose:
-            console.print("\n[bold red]FAILED TEMPLATES:[/bold red]")
-            for result in results:
-                if result.has_critical_or_high:
-                    console.print(f"  • {result.file_path.name}")
-                    for error in result.errors:
-                        if error.severity in ("CRITICAL", "HIGH"):
-                            console.print(f"    [dim]{error.message}[/dim]")
-                            break
-            console.print()
-
-        summary_table = Table(title="Template Validation Summary")
-        summary_table.add_column("Metric", style="bold")
-        summary_table.add_column("Count", justify="right")
-        summary_table.add_row("Total templates", str(total_files))
-        summary_table.add_row("[green]Valid[/green]", str(clean))
-        summary_table.add_row("[red]Invalid[/red]", str(failed))
-        console.print(summary_table)
-
-        if failed > 0:
+        if overall_failed:
             raise typer.Exit(1) from None
         raise typer.Exit(0)
 
     # Initialize validator for rule files
+    # path is non-None here: flags branches always exit; no-path/no-flags exits above.
+    if path is None:  # pragma: no cover
+        raise typer.Exit(0)
     try:
         validator = SchemaValidator(schema_path=schema, debug=debug, project_root=project_root)
     except Exception as e:
@@ -2004,10 +2215,16 @@ def validate(
 
     # Validate file or directory
     if path.is_file():
-        # Special handling for AGENTS.md - only validate ASCII patterns, not rule schema
-        if path.name == "AGENTS.md":
-            result = validator.validate_agents_md(path)
+        # The micro-kernel is not a rule: check ASCII patterns only, not rule schema.
+        if path.name == KERNEL_CONTENT_FILENAME:
+            result = validator.validate_kernel_content(path)
         else:
+            # Honor `excluded_files` (schema-level opt-out) for single-file validation
+            # so templates/boilerplate/generated files pass cleanly when addressed directly.
+            excluded_files = set(validator.schema.get("excluded_files", {}).get("files", set()))
+            if path.name in excluded_files:
+                log_info(f"Skipping excluded file: {path.name}")
+                raise typer.Exit(0)
             result = validator.validate_file(path, verbose=verbose)
         validator.format_result(result, detailed=verbose)
 

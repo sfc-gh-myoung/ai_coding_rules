@@ -1,20 +1,33 @@
+---
+schema_version: v3.5
+rule_version: v2.1.0
+description: 'Snowflake SQL file patterns: file headers, COPY INTO and CREATE VIEW
+  syntax, qualified names, and CLI-safe idempotent DDL.'
+last_updated: 2026-07-16
+keywords:
+- kw:SQL file headers
+- kw:COPY INTO ON_ERROR placement
+- kw:CREATE VIEW COMMENT syntax
+- kw:fully qualified object names
+- kw:CLI templating reserved characters
+- kw:idempotent DDL patterns
+- ext:.sql
+token_budget: ~4100
+context_tier: High
+depends:
+  required:
+  - 100-snowflake-core.md
+  optional:
+  - 130-snowflake-demo-sql.md
+  - 102a-snowflake-sql-automation.md
+  - 112-snowflake-snowcli.md
+---
 # Snowflake SQL: Core File Patterns
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential SQL file authoring patterns for Snowflake.
 > Load for any SQL file creation. Demo and production rules extend this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.3.0
-**LastUpdated:** 2026-03-09
-**Keywords:** SQL files, file headers, COPY INTO, FILE_FORMAT, CREATE VIEW, fully qualified names, idempotent, reserved characters, CLI compatibility, ON_ERROR, JOIN, ambiguous column, table alias
-**TokenBudget:** ~4100
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md
-**LoadTrigger:** ext:.sql, kw:sql
 
 ## Scope
 
@@ -29,16 +42,6 @@ Essential SQL file authoring patterns for Snowflake: file headers, COPY INTO syn
 - Setting up SQL file standards for a project
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake fundamentals
-
-**Related:**
-- **130-snowflake-demo-sql.md** - Demo/workshop SQL patterns (extends this rule)
-- **102a-snowflake-sql-automation.md** - Production CI/CD patterns (extends this rule)
-- **112-snowflake-snowcli.md** - Snowflake CLI usage
 
 ### External Documentation
 
@@ -361,7 +364,7 @@ WITH cte1 AS (...),
 SELECT * FROM data;
 ```
 
-**Naming pattern:** `<verb_or_adjective>_<noun>` -- e.g., `filtered_orders`, `daily_revenue`, `active_users`, `joined_events`.
+**Naming pattern:** `<verb_or_adjective>_<noun>`: e.g., `filtered_orders`, `daily_revenue`, `active_users`, `joined_events`.
 
 ## Reserved Characters (CLI Compatibility)
 
@@ -505,7 +508,7 @@ INSERT INTO items (name, brand) VALUES
 -- ERROR: SQL template rendering error: 'Ms' is undefined
 ```
 
-**Why It Fails:** The `&` character is interpreted as a template variable prefix by `snow sql` in LEGACY mode (the default). The CLI attempts to expand `&W`, `&Ms`, etc. as variables. Do NOT corrupt data by replacing `&` with `and` -- instead disable templating at the CLI layer.
+**Why It Fails:** The `&` character is interpreted as a template variable prefix by `snow sql` in LEGACY mode (the default). The CLI attempts to expand `&W`, `&Ms`, etc. as variables. Do NOT corrupt data by replacing `&` with `and`: instead disable templating at the CLI layer.
 
 **Correct Pattern:**
 ```bash

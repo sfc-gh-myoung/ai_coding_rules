@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Core guidance for building robust command-line applications using Typer, covering project setup, argument handling, command definitions, error handling, and packaging."
+last_updated: 2026-07-15
+keywords:
+  - kw:Typer CLI
+  - kw:typer.Argument
+  - kw:typer.Option
+  - kw:exit code handling
+  - kw:console script entry points
+  - kw:Rich terminal output
+token_budget: ~4300
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Core Python patterns and uv usage
+  optional:
+    - 201-python-lint-format.md  # Ruff linting and formatting standards
+    - 203-python-project-setup.md  # Python project structure and packaging
+    - 230-python-pydantic.md  # Pydantic integration with Typer
+---
 # Python Typer CLI Development Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v4.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Typer, CLI development, command-line interface, click, argument parsing, typer.Argument, typer.Option, rich console, exit codes
-**TokenBudget:** ~4300
-**ContextTier:** High
-**Depends:** 200-python-core.md
-**LoadTrigger:** kw:typer, kw:cli
 
 ## Scope
 
@@ -23,20 +34,6 @@ Core guidance for building robust command-line applications using Typer, coverin
 - Implementing error handling with exit codes
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Core Python patterns and uv usage
-
-**Related:**
-- **220a-python-typer-config.md** - Configuration and environment management (Recommended)
-- **220b-python-typer-testing.md** - CLI testing strategies (Recommended)
-- **220c-python-typer-rich.md** - Rich integration and console patterns (Recommended)
-- **201-python-lint-format.md** - Ruff linting and formatting standards
-- **203-python-project-setup.md** - Python project structure and packaging
-- **230-python-pydantic.md** - Pydantic integration with Typer
-- **207-python-logging.md** - CLI apps needing Rich console + Python logger bridge
 
 ### External Documentation
 
@@ -122,9 +119,9 @@ Python CLI application with:
 
 > **Investigation Required**
 > Before modifying or creating CLI commands, the agent MUST:
-> 1. Read existing CLI structure — check for existing Typer app instances in cli/, commands/, or main.py
+> 1. Read existing CLI structure: check for existing Typer app instances in cli/, commands/, or main.py
 > 2. Check `pyproject.toml` for existing `[project.scripts]` console script entry points
-> 3. Verify current argument patterns — Annotated style vs legacy `typer.Argument()` positional style
+> 3. Verify current argument patterns: Annotated style vs legacy `typer.Argument()` positional style
 > 4. Read existing command modules to match naming conventions and command group structure
 > 5. Check for existing short option conflicts (e.g., `-h`, `-v`, `-o`) before adding new options
 > 6. Never add duplicate commands or conflicting short options to an existing CLI app
@@ -159,6 +156,7 @@ def process_file(path: str):
         print("File not found")
         return  # Exits 0, automation thinks success!
 
+
 # GOOD: Explicit exit codes with raise_typer_exit
 @app.command()
 def process_file(path: str):
@@ -186,15 +184,17 @@ def export_data():
     output_path = "/home/developer/exports/data.csv"  # Only works for one user!
     save_to_csv(output_path)
 
+
 # GOOD: Configurable with sensible defaults
 @app.command()
 def export_data(
     output: Path = typer.Option(
         Path("./exports/data.csv"),
-        "--output", "-o",
+        "--output",
+        "-o",
         help="Output file path",
-        envvar="EXPORT_OUTPUT_PATH"
-    )
+        envvar="EXPORT_OUTPUT_PATH",
+    ),
 ):
     output.parent.mkdir(parents=True, exist_ok=True)
     save_to_csv(output)
@@ -212,15 +212,14 @@ def export_data(
 @app.command()
 def connect(
     host: Annotated[str, typer.Option("--host", "-h", help="Server host")] = "localhost",
-):
-    ...
+): ...
+
 
 # GOOD: Use different short option
 @app.command()
 def connect(
     host: Annotated[str, typer.Option("--host", "-H", help="Server host")] = "localhost",
-):
-    ...
+): ...
 ```
 
 ## Project Setup and Structure
@@ -292,6 +291,7 @@ app = typer.Typer(
 app.add_typer(config.app, name="config", help="Configuration management")
 app.add_typer(data.app, name="data", help="Data processing commands")
 
+
 @app.callback()
 def main(
     verbose: Annotated[bool, typer.Option("--verbose", "-v", help="Enable verbose output")] = False,
@@ -299,6 +299,7 @@ def main(
     """My awesome CLI application."""
     if verbose:
         typer.echo("Verbose mode enabled")
+
 
 if __name__ == "__main__":
     app()
@@ -317,10 +318,12 @@ from enum import Enum
 
 app = typer.Typer()
 
+
 class OutputFormat(str, Enum):
     json = "json"
     csv = "csv"
     yaml = "yaml"
+
 
 @app.command()
 def process(
@@ -349,15 +352,17 @@ from rich.panel import Panel
 
 console = Console()
 
+
 def handle_processing_error(error: Exception, context: str = ""):
     """Handle processing errors with rich formatting."""
     error_panel = Panel(
         f"[red]Error:[/red] {str(error)}\n\n[dim]{context}[/dim]",
         title="Processing Failed",
-        border_style="red"
+        border_style="red",
     )
     console.print(error_panel)
     raise typer.Exit(1)
+
 
 @app.command()
 def risky_operation(
@@ -389,6 +394,7 @@ For long-running CLI operations, register signal handlers to ensure clean exit:
 import signal
 from contextlib import contextmanager
 
+
 @contextmanager
 def graceful_shutdown():
     """Context manager for clean Ctrl+C handling in long-running operations."""
@@ -399,7 +405,7 @@ def graceful_shutdown():
     def handler(signum, frame):
         nonlocal shutdown_requested
         if shutdown_requested:
-            # Second signal — force exit
+            # Second signal - force exit
             raise typer.Exit(code=130)
         shutdown_requested = True
         err_console.print("\n[yellow]Shutdown requested. Finishing current item...[/yellow]")
@@ -502,6 +508,7 @@ uv run myapp --install-completion
 import platform
 from pathlib import Path
 
+
 def get_config_dir() -> Path:
     """Get platform-appropriate configuration directory."""
     system = platform.system()
@@ -518,16 +525,18 @@ def get_config_dir() -> Path:
 ```python
 from importlib.metadata import version
 
+
 def version_callback(value: bool):
     if value:
         console.print(f"myapp version {version('myapp')}")
         raise typer.Exit()
 
+
 @app.callback()
 def main(
-    version: Annotated[bool, typer.Option(
-        "--version", callback=version_callback, is_eager=True
-    )] = False,
+    version: Annotated[
+        bool, typer.Option("--version", callback=version_callback, is_eager=True)
+    ] = False,
 ):
     pass
 ```
@@ -540,6 +549,7 @@ def main(
 ```python
 import asyncio
 import aiohttp
+
 
 @app.command()
 def fetch_data(urls: list[str], concurrent: int = 5):

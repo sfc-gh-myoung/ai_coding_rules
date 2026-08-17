@@ -1,21 +1,32 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Memory bank patterns for AI context preservation across sessions. All writes scoped to memory-bank/ only."
+last_updated: 2026-07-15
+keywords:
+  - kw:memory bank
+  - kw:context preservation
+  - kw:rapid recovery protocol
+  - kw:aggressive pruning
+  - kw:activeContext.md
+  - kw:session initialization
+token_budget: ~1500
+context_tier: Critical
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule
+  optional:
+    - 002-rule-governance.md  # Rule authoring standards
+    - 003-context-engineering.md  # Attention budget principles
+---
 # Universal Memory Bank System
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
-**Keywords:** memory bank, context, session recovery, progress tracking, compaction, rapid recovery
-**TokenBudget:** ~1400
-**ContextTier:** Critical
-**Depends:** 000-global-core.md
 
 ## Scope
 
 **What This Rule Covers:**
 Memory bank patterns for AI context preservation across sessions. All writes scoped to `memory-bank/` only.
 
-**When to Load:**
+**When to Load This Rule:**
 - Implementing/maintaining memory bank systems
 - Managing project context across session resets
 - Setting up context preservation for AI agents
@@ -23,15 +34,6 @@ Memory bank patterns for AI context preservation across sessions. All writes sco
 **Scope Boundary:** Write operations to `memory-bank/` directory ONLY.
 
 ## References
-
-### Dependencies
-**Must Load First:** 000-global-core.md
-
-**Related:** 002-rule-governance.md, 003-context-engineering.md
-
-### Related Examples
-
-- **examples/001-memory-bank-templates-example.md** - Complete file templates with size budgets
 
 ### External Documentation
 - [Effective Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)

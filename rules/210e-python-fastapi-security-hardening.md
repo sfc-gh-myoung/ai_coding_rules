@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Infrastructure security hardening for FastAPI applications. Covers CORS configuration, security headers, rate limiting, input validation, SQL injection prevention, XSS prevention, and production"
+last_updated: 2026-07-15
+keywords:
+  - kw:FastAPI hardening
+  - kw:CORS middleware
+  - kw:slowapi rate limiting
+  - kw:security headers middleware
+  - kw:parameterized queries
+  - kw:Pydantic field validators
+  - kw:fastapi
+token_budget: ~2800
+context_tier: Medium
+depends:
+  optional:
+    - 210a-python-fastapi-security.md  # Authentication and authorization patterns
+---
 # 210e: FastAPI Security Hardening
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:fastapi-security, kw:cors, kw:rate-limit, kw:security-headers
-**Keywords:** FastAPI hardening, CORS, CSRF, rate limiting, security headers, input validation, SQL injection, XSS prevention, trusted hosts, production security
-**TokenBudget:** ~2800
-**ContextTier:** Medium
-**Depends:** 210a-python-fastapi-security.md
 
 ## Scope
 
@@ -24,15 +32,6 @@ Infrastructure security hardening for FastAPI applications. Covers CORS configur
 - Preparing FastAPI applications for production deployment
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **210a-python-fastapi-security.md** - Authentication and authorization patterns
-
-**Related:**
-- **210-python-fastapi-core.md** - FastAPI foundation patterns
-- **210c-python-fastapi-deployment.md** - Deployment configuration
 
 ### External Documentation
 
@@ -161,12 +160,14 @@ app.add_middleware(
 async def login(credentials: LoginRequest):
     return authenticate(credentials)  # Unlimited attempts!
 
+
 # GOOD: Rate limited authentication
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
+
 
 @app.post("/auth/login")
 @limiter.limit("5/minute")  # Max 5 attempts per minute per IP
@@ -188,6 +189,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from app.config import Settings
 
+
 def add_security_middleware(app: FastAPI, settings: Settings):
     """Add security middleware to FastAPI application."""
 
@@ -203,10 +205,7 @@ def add_security_middleware(app: FastAPI, settings: Settings):
 
     # Trusted hosts middleware (production only)
     if not settings.debug:
-        app.add_middleware(
-            TrustedHostMiddleware,
-            allowed_hosts=settings.allowed_hosts
-        )
+        app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
 ```
 
 ### Security Headers
@@ -217,6 +216,7 @@ def add_security_middleware(app: FastAPI, settings: Settings):
 # app/middleware/headers.py
 from fastapi import Request, Response
 from fastapi.middleware.base import BaseHTTPMiddleware
+
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Add security headers to all responses."""
@@ -246,24 +246,24 @@ from slowapi.util import get_remote_address
 
 limiter = Limiter(key_func=get_remote_address)
 
+
 @app.post("/auth/login")
 @limiter.limit("5/minute")  # Strict for auth endpoints
-async def login(request: Request, credentials: LoginForm):
-    ...
+async def login(request: Request, credentials: LoginForm): ...
+
 
 @app.get("/api/data")
 @limiter.limit("100/minute")  # Generous for data endpoints
-async def get_data(request: Request):
-    ...
+async def get_data(request: Request): ...
 ```
 
 **Rate limit tiers:**
 
-- **Auth (login/register):** 5/minute — prevents brute force
-- **Password reset:** 3/minute — prevents email spam
-- **API reads:** 100/minute — normal usage
-- **API writes:** 30/minute — prevents abuse
-- **File upload:** 10/minute — resource-intensive
+- **Auth (login/register):** 5/minute: prevents brute force
+- **Password reset:** 3/minute: prevents email spam
+- **API reads:** 100/minute: normal usage
+- **API writes:** 30/minute: prevents abuse
+- **File upload:** 10/minute: resource-intensive
 
 ## Input Sanitization and Validation
 
@@ -276,19 +276,18 @@ async def get_data(request: Request):
 # CORRECT: Using SQLAlchemy ORM (automatically parameterized)
 async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
     """Get user by email - safe from SQL injection."""
-    result = await db.execute(
-        select(User).where(User.email == email)
-    )
+    result = await db.execute(select(User).where(User.email == email))
     return result.scalar_one_or_none()
+
 
 # CORRECT: Using raw SQL with parameters
 async def search_users(db: AsyncSession, search_term: str) -> List[User]:
     """Search users by name - parameterized query."""
     result = await db.execute(
-        text("SELECT * FROM users WHERE full_name ILIKE :search"),
-        {"search": f"%{search_term}%"}
+        text("SELECT * FROM users WHERE full_name ILIKE :search"), {"search": f"%{search_term}%"}
     )
     return result.fetchall()
+
 
 # INCORRECT: String concatenation (vulnerable to SQL injection)
 async def bad_search_users(db: AsyncSession, search_term: str):
@@ -308,26 +307,28 @@ from pydantic import BaseModel, field_validator, Field, EmailStr
 import re
 from typing import Optional
 
+
 class SecureUserInput(BaseModel):
     """Example of secure input validation."""
+
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
     bio: Optional[str] = Field(None, max_length=500)
 
-    @field_validator('username')
+    @field_validator("username")
     @classmethod
     def validate_username(cls, v: str) -> str:
         # Only allow alphanumeric and underscore
-        if not re.match(r'^[a-zA-Z0-9_]+$', v):
-            raise ValueError('Username can only contain letters, numbers, and underscores')
+        if not re.match(r"^[a-zA-Z0-9_]+$", v):
+            raise ValueError("Username can only contain letters, numbers, and underscores")
         return v.lower()
 
-    @field_validator('bio')
+    @field_validator("bio")
     @classmethod
     def sanitize_bio(cls, v: Optional[str]) -> Optional[str]:
         if v:
             # Remove potentially dangerous characters
-            v = re.sub(r'[<>"\']', '', v)
+            v = re.sub(r'[<>"\']', "", v)
             return v.strip()
         return v
 ```
@@ -342,6 +343,7 @@ class SecureUserInput(BaseModel):
 # app/main.py - Production security configuration
 from app.config import get_settings
 from app.middleware.security import add_security_middleware, SecurityHeadersMiddleware
+
 
 def create_secure_app() -> FastAPI:
     """Create FastAPI app with production security settings."""

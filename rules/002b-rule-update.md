@@ -1,3 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.1.0
+description: "Workflow and best practices for updating and maintaining existing rule files. Covers semantic versioning (MAJOR/MINOR/PATCH), LastUpdated field management, common update scenarios, and validation"
+last_updated: 2026-07-15
+keywords:
+  - kw:rule versioning
+  - kw:RuleVersion increment
+  - kw:LastUpdated field
+  - kw:rule modification workflow
+  - kw:MAJOR MINOR PATCH semantics
+  - kw:schema migration checklist
+token_budget: ~4150
+context_tier: High
+depends:
+  required:
+    - 002-rule-governance.md  # Schema requirements and standards
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 002a-rule-creation.md  # Creating new rules from scratch
+    - 002e-schema-validator-usage.md  # Validation commands and error resolution
+    - 002c-rule-optimization.md  # Token budget optimization
+---
 # Rule Update and Maintenance Guide
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
@@ -5,20 +28,12 @@
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when updating, modifying, or maintaining existing rules.
 
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.2.2
-**LastUpdated:** 2026-03-26
-**Keywords:** rule update, rule maintenance, versioning, RuleVersion, LastUpdated, semantic versioning, MAJOR, MINOR, PATCH, rule modification, keyword expansion, scope updates, metadata updates, CHANGELOG updates
-**TokenBudget:** ~3950
-**ContextTier:** High
-**Depends:** 002-rule-governance.md, 000-global-core.md
-
 ## Scope
 
 **What This Rule Covers:**
 Workflow and best practices for updating and maintaining existing rule files. Covers semantic versioning (MAJOR/MINOR/PATCH), LastUpdated field management, common update scenarios, and validation requirements.
+
+> **v3.5 migration note:** Schema migration v3.4 to v3.5 was executed as a batched MAJOR bump: every migrated rule's `rule_version` was incremented (`vN.M.P` becomes `v{N+1}.0.0`) and `last_updated` stamped. Metadata now lives in a YAML frontmatter block at top-of-file; the `## Metadata` H2 and the `### Dependencies` prose subsection are retired. Dependency justifications are preserved as inline YAML comments on each `depends:` item (Option B). When updating a rule post-migration, edit fields inside the frontmatter (`rule_version`, `last_updated`, `keywords`, `depends`, etc.); do NOT reintroduce the inline `**Field:**` markers or the `## Metadata` H2.
 
 **When to Load This Rule:**
 - Updating existing rule files
@@ -30,21 +45,9 @@ Workflow and best practices for updating and maintaining existing rule files. Co
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **002-rule-governance.md** - Schema requirements and standards
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **002a-rule-creation.md** - Creating new rules from scratch
-- **002e-schema-validator-usage.md** - Validation commands and error resolution
-- **002c-rule-optimization.md** - Token budget optimization
-- **800-project-changelog.md** - CHANGELOG.md format and requirements
-
 ### External Documentation
 
-- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema with validation rules
+- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.3 schema with validation rules
 - **Semantic Versioning:** https://semver.org/spec/v2.0.0.html - Versioning specification
 
 ## Contract
@@ -82,7 +85,7 @@ Workflow and best practices for updating and maintaining existing rule files. Co
 7. Update TokenBudget if file size changed by >50 lines or >10%
 8. Validate with `ai-rules validate` (must pass with 0 CRITICAL errors)
 9. Update CHANGELOG.md with change details
-10. Regenerate RULES_INDEX.md with `make index-generate`
+10. Run `uv run ai-rules rule-loader keywords run <path> --update` if keywords changed
 
 ### Output Format
 
@@ -108,7 +111,7 @@ Updated rule file with:
 - RuleVersion follows semantic versioning (vX.Y.Z)
 - LastUpdated is current date (YYYY-MM-DD)
 - CHANGELOG.md has entry for this update
-- RULES_INDEX.md regenerated with updated metadata
+- Keywords regenerated with updated metadata
 
 ### Post-Execution Checklist
 
@@ -120,7 +123,7 @@ Updated rule file with:
 - [ ] TokenBudget updated if file size changed
 - [ ] Schema validation passes (0 CRITICAL errors)
 - [ ] CHANGELOG.md updated with change details
-- [ ] RULES_INDEX.md regenerated
+- [ ] Keywords updated (`uv run ai-rules rule-loader keywords run <path> --update`)
 - [ ] Git commit with conventional commit message
 
 ## Rule Versioning Policy
@@ -136,7 +139,7 @@ Updated rule file with:
 - Changing Contract structure fundamentally (e.g., XML to Markdown migration)
 - Removing mandatory tools, commands, or dependencies
 - Changing execution workflow in incompatible ways
-- Schema version upgrades (v3.1 to v3.2)
+- Schema version upgrades (v3.2 to v3.3)
 - Removing keywords that agents rely on for discovery
 
 **MINOR (vX.Y.0)** - Additive changes enhancing functionality:
@@ -155,6 +158,7 @@ Updated rule file with:
 - Formatting improvements (whitespace, markdown)
 - TokenBudget adjustments to reflect actual size
 - Updating examples without changing patterns
+- **Schema-conformance backfill:** inserting missing required body sections (`### Dependencies`, `### External Documentation`) or inline labels (`**What This Rule Covers:**`, `**When to Load This Rule:**`) that the rule already logically had. Bump PATCH and stamp `LastUpdated`; do NOT bump MINOR since the semantic guidance is unchanged.
 
 ### LastUpdated Field
 
@@ -175,8 +179,8 @@ If a version bump needs to be reverted:
 
 1. **Git revert:** `git checkout HEAD~1 -- rules/<rule>.md` (if committed)
 2. **Manual revert:** Restore previous RuleVersion and LastUpdated values
-3. **CHANGELOG:** Add a revert entry: `"Reverted vX.Y.Z — [reason]"`
-4. **Do NOT** reuse a version number — if v2.1.0 is reverted, next version is v2.1.1
+3. **CHANGELOG:** Add a revert entry: `"Reverted vX.Y.Z - [reason]"`
+4. **Do NOT** reuse a version number: if v2.1.0 is reverted, next version is v2.1.1
 
 ### Version Update Examples
 
@@ -214,10 +218,20 @@ Before:
 **LastUpdated:** 2026-03-09
 
 After:
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.3
 **RuleVersion:** v3.0.0
 **LastUpdated:** 2026-03-09
 ```
+
+### v3.2 to v3.3 Migration Checklist
+
+When updating a rule file from schema v3.2 to v3.3:
+
+1. Update `SchemaVersion:` field from `v3.2` to `v3.3` if not already v3.3
+2. Verify all `ext:` entries in rule frontmatter use the current format
+3. Confirm `ContextTier` field is present (added in v3.3)
+4. Run `uv run ai-rules validate rules/` to confirm schema compliance
+5. Update `RuleVersion` per semantic versioning and set `LastUpdated` to today
 
 ## When to Update Rules
 
@@ -383,14 +397,14 @@ Add entry under `## [Unreleased]` section:
   - Impact: Improves rule discovery for [use case]
 ```
 
-### Step 7: Regenerate RULES_INDEX.md
+### Step 7: Regenerate rule frontmatter
 
 ```bash
 # Regenerate index with updated metadata
 make index-generate
 
 # Or directly:
-uv run ai-rules index generate
+uv run ai-rules rule-loader keywords run <path> --update
 ```
 
 ## Common Update Scenarios
@@ -404,11 +418,11 @@ All update scenarios follow the same core workflow:
 3. Update LastUpdated to current date
 4. Update TokenBudget if file size changed by >50 lines or >10%
 5. Run `ai-rules validate` (must pass with 0 CRITICAL errors)
-6. Add CHANGELOG.md entry, then regenerate RULES_INDEX.md
+6. Add CHANGELOG.md entry, then regenerate rule frontmatter with `uv run ai-rules rule-loader keywords run <path> --update`
 
 ### Scenario Comparison
 
-**Add keywords (MINOR):** Update Keywords field (maintain 5-20 terms). New terms must appear in task descriptions agents typically receive.
+**Add keywords (MINOR):** Update Keywords field (maintain 5-11 terms). New terms must appear in task descriptions agents typically receive.
 
 **Expand scope/triggers (MINOR):** Update "When to Load This Rule" section. New triggers must align with existing scope.
 
@@ -510,4 +524,4 @@ When multiple agents or developers may be editing the same rule:
    - For conflicting edits to the same line, prefer the version that is more specific
    - Re-run validation after conflict resolution
    - Bump version appropriately for the combined changes
-4. **Prevention:** Use git branches for rule modifications — one branch per rule update
+4. **Prevention:** Use git branches for rule modifications: one branch per rule update

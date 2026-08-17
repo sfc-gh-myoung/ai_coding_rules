@@ -1,19 +1,30 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Guidelines for optimizing rule token budgets, sizing rules appropriately, and loading rules efficiently. Covers token budget tiers (Small: 1000-1999, Standard: 2000-3499, Large: 3500-4999, Reference:"
+last_updated: 2026-07-15
+keywords:
+  - kw:token budget tiers
+  - kw:progressive rule loading
+  - kw:ai-rules tokens CLI
+  - kw:rule splitting decision tree
+  - kw:context window budget allocation
+  - kw:TokenBudget metadata format
+token_budget: ~4350
+context_tier: High
+depends:
+  required:
+    - 002-rule-governance.md  # Schema requirements and standards
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 002a-rule-creation.md  # Step-by-step rule creation workflow
+---
 # Rule Optimization: Token Budgets and Performance
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when creating, reviewing, or maintaining rules.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-03-09
-**Keywords:** token budget, optimization, performance, rule sizing, progressive loading, context window, model limits, cost efficiency, caching, batch loading
-**TokenBudget:** ~4350
-**ContextTier:** High
-**Depends:** 002-rule-governance.md, 000-global-core.md, 002k-model-optimization.md
 
 ## Scope
 
@@ -31,20 +42,10 @@ is Standard tier. A rule at exactly 3500 tokens is Large tier.
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **002-rule-governance.md** - Schema requirements and standards
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **002a-rule-creation.md** - Step-by-step rule creation workflow
-- **002k-model-optimization.md** - Model-specific context windows and loading budgets
-
 ### External Documentation
 
 - **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema
-- **Rules Index:** `RULES_INDEX.md` - Master index with current token budgets
+- **Rules Index:** `rule frontmatter` - Master index with current token budgets
 - **Token Validator:** `ai-rules tokens` - CLI command for measuring actual token counts
 
 ## Contract
@@ -98,7 +99,7 @@ Rule file with:
 - Rule size calculated or estimated
 - Rule focuses on single concept: all Keywords cluster around one domain,
   and the Scope section describes one coherent purpose. A rule covering "token budgets
-  AND progressive loading AND model optimization" is multi-topic — split into focused rules.
+  AND progressive loading AND model optimization" is multi-topic: split into focused rules.
 - `ai-rules tokens` ready to run
 
 **Success Criteria:**
@@ -125,7 +126,7 @@ Rule file with:
 If `uv run ai-rules tokens` was run without `--dry-run` and modified files unintentionally:
 
 1. **Check git status:** `git diff rules/<rule>.md` to see what changed
-2. **If only TokenBudget changed:** Verify the new value is accurate — keep it if correct
+2. **If only TokenBudget changed:** Verify the new value is accurate: keep it if correct
 3. **If other content changed unexpectedly:** Revert with `git checkout -- rules/<rule>.md`
 4. **Prevention:** Always use `--dry-run` first: `uv run ai-rules tokens --dry-run rules/<rule>.md`
 
@@ -193,7 +194,7 @@ Note: Line-based estimation is unreliable (actual tokens per line varies from 3 
 depending on content density). Do not use "tokens per line" for estimation.
 
 > **IMPORTANT:** Token budget examples are point-in-time snapshots. Before relying on specific values for budget calculations:
-> 1. Check **RULES_INDEX.md** (auto-generated, always current)
+> 1. Check **rule frontmatter** (auto-generated, always current)
 > 2. Or run: `uv run ai-rules tokens rules/002-rule-governance.md --detailed`
 > 3. Trust declared metadata over narrative examples
 

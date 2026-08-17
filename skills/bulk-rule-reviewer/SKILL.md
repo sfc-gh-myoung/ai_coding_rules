@@ -1,7 +1,7 @@
 ---
 name: bulk-rule-reviewer
-description: Execute agent-centric reviews on all rules in rules/ directory and generate prioritized improvement report
-version: 2.4.0
+description: Reviews every rule file under rules/ using the rule-reviewer 6-dimension rubric, aggregates per-file scores into a single weighted backlog, and emits a prioritized improvement report. Use for periodic rule-system audits, before major rule-set releases, or to surface drift across the catalog. Triggers on "audit all rules", "bulk rule review", "rule system audit", "review rules directory", "score every rule".
+version: 2.4.1
 ---
 
 # Bulk Rule Reviewer
@@ -22,7 +22,7 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 **Required:**
 - **review_date**: `YYYY-MM-DD` (default: today)
 - **review_mode**: `FULL` | `FOCUSED` | `STALENESS` (default: FULL)
-- **model**: Lowercase-hyphenated slug (default: `claude-sonnet-45`)
+- **model**: Lowercase-hyphenated slug (default: `claude-sonnet-4-6`)
 
 **Optional:**
 - **filter_pattern**: Glob pattern (default: `rules/*.md`)
@@ -31,7 +31,7 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 - **overwrite**: Boolean (default: false) - If true, overwrite existing review files. If false, use sequential numbering (-01, -02, etc.) for conflicts
 - **max_parallel**: Integer 1-10 (default: 5) - Concurrent sub-agent workers. Set to 1 for sequential execution (legacy behavior)
 - **output_root**: Root directory for output files (default: `reviews/`). Subdirectories `rule-reviews/` and `summaries/` appended automatically. Supports relative paths including `../`.
-- **timing_enabled**: `true` | `false` (default: `true` — v2.4.0 universal default; set `false` to opt out; per-rule reviews use `not-requested` row)
+- **timing_enabled**: `true` | `false` (default: `true`: v2.4.0 universal default; set `false` to opt out; per-rule reviews use `not-requested` row)
 
 ## Outputs
 
@@ -54,11 +54,11 @@ Execute comprehensive agent-centric reviews on all rule files in `rules/` direct
 
 This skill prioritizes ACCURACY over efficiency. The full anti-optimization protocol, shortcut detection, evidence requirements, and self-correction procedure are mandatory reading **before each run**:
 
-- **See:** `workflows/anti-optimization.md` — Foundational principle, forbidden thoughts, One Rule At A Time rule, canary checks, shortcut detection, self-correction protocol, verification requirements, evidence rules.
+- **See:** `workflows/anti-optimization.md` - Foundational principle, forbidden thoughts, One Rule At A Time rule, canary checks, shortcut detection, self-correction protocol, verification requirements, evidence rules.
 
 ### Must-Remember Rules (Context Anchor)
 
-Keep these in active context throughout execution — NEVER summarize away:
+Keep these in active context throughout execution: NEVER summarize away:
 
 1. **One rule at a time.** Never batch. Read one file, score it, write it, move on.
 2. **Read the actual rule file** before scoring. Reviews without `read_file()` fail verification.
@@ -72,11 +72,11 @@ Keep these in active context throughout execution — NEVER summarize away:
 **Drift prevention:** Re-read `../rule-reviewer/examples/TEMPLATE.md` every 5 rules. If any review <2500 bytes OR format deviates, re-read TEMPLATE.md and SKILL.md, then regenerate.
 
 **See also:**
-- `workflows/context-anchor.md` — Context preservation + inter-rule gate
-- `workflows/proactive-canary.md` — Pre/Post/Mid canary questions
-- `workflows/per-rule-verification.md` — Evidence gate + reset trigger
-- `workflows/inter-rule-gate.md` — Every-5-rules structural re-anchor
-- `workflows/reset-trigger.md` — What to do when verification fails
+- `workflows/context-anchor.md` - Context preservation + inter-rule gate
+- `workflows/proactive-canary.md` - Pre/Post/Mid canary questions
+- `workflows/per-rule-verification.md` - Evidence gate + reset trigger
+- `workflows/inter-rule-gate.md` - Every-5-rules structural re-anchor
+- `workflows/reset-trigger.md` - What to do when verification fails
 
 ### How Skills Work Together
 
@@ -107,11 +107,11 @@ Collect ALL parameters (required AND optional) using `ask_user_question` tool.
 **When:** Only if `timing_enabled: true` in inputs
 **MODE:** Safe in PLAN mode
 
-**See:** `../skill-timing/workflows/timing-start.md` and `workflows/timing-integration.md` for the canonical copy-paste Quick Reference block and anti-pattern guide.
+**See:** `../skill-timer/workflows/timing-start.md` and `workflows/timing-integration.md` for the canonical copy-paste Quick Reference block and anti-pattern guide.
 
 **Action:** Capture `run_id` in working memory as `BULK_RUN_ID` for later use.
 
-**Note:** Timing tracks the entire bulk review process (all stages) AND per-rule durations via `rule_{slug}_start/end` checkpoint pairs. Each rule-reviewer invocation also captures its OWN per-dimension timings under its own child run_id — these are embedded in each review's `## Timing Metadata` section and aggregated by `workflows/aggregation.md`.
+**Note:** Timing tracks the entire bulk review process (all stages) AND per-rule durations via `rule_{slug}_start/end` checkpoint pairs. Each rule-reviewer invocation also captures its OWN per-dimension timings under its own child run_id: these are embedded in each review's `## Timing Metadata` section and aggregated by `workflows/aggregation.md`.
 
 ### Checkpoint: skill_loaded (when `timing_enabled: true`)
 
@@ -218,23 +218,23 @@ Generate master summary with:
 
 Emit `summary_complete` on `$BULK_RUN_ID`.
 
-### Timing End — Compute (when `timing_enabled: true`)
+### Timing End: Compute (when `timing_enabled: true`)
 
 **MODE:** Safe in PLAN mode (outputs to STDOUT only)
 
-**See:** `../skill-timing/workflows/timing-end.md` (Step 1) and `workflows/timing-integration.md`.
+**See:** `../skill-timer/workflows/timing-end.md` (Step 1) and `workflows/timing-integration.md`.
 
-**Action:** Invoke `skill_timing.py end --auto-dimension-timings`. Capture STDOUT for metadata embedding. Check `PER_DIMENSION_STATUS=` marker — `missing` triggers warnings aggregated into the summary Timing Breakdown.
+**Action:** Invoke `skill_timer.py end --auto-dimension-timings`. Capture STDOUT for metadata embedding. Check `PER_DIMENSION_STATUS=` marker: `missing` triggers warnings aggregated into the summary Timing Breakdown.
 
 ### [MODE TRANSITION: PLAN → ACT]
 
 Request user ACT authorization before file modifications.
 
-### Timing End — Embed (when `timing_enabled: true`)
+### Timing End: Embed (when `timing_enabled: true`)
 
 **MODE:** Requires ACT mode (appends metadata to file)
 
-**See:** `../skill-timing/workflows/timing-end.md` (Step 2) and `workflows/timing-integration.md`.
+**See:** `../skill-timer/workflows/timing-end.md` (Step 2) and `workflows/timing-integration.md`.
 
 **Action:** Parse STDOUT, append timing metadata section + **Timing Breakdown** section (see `workflows/summary-report.md`) to the master summary report file.
 
@@ -282,8 +282,8 @@ See `CHANGELOG.md`.
 
 ## Installation Requirements
 
-**Dependency:** rule-reviewer skill v2.9.0+ (required — per-dimension Gate 7 universal-default timing)
-**Dependency:** skill-timing v1.5.0+ (required when `timing_enabled: true` — `--auto-dimension-timings` flag, `PER_DIMENSION_STATUS` marker)
+**Dependency:** rule-reviewer skill v2.9.0+ (required: per-dimension Gate 7 universal-default timing)
+**Dependency:** skill-timer v1.5.0+ (required when `timing_enabled: true`: `--auto-dimension-timings` flag, `PER_DIMENSION_STATUS` marker)
 
 Skill location resolution supports two patterns:
 
@@ -299,13 +299,33 @@ Auto-detection selects the available pattern. If neither found, execution stops 
 **Key Requirements:**
 - `review_date`: YYYY-MM-DD format (valid calendar date)
 - `review_mode`: FULL | FOCUSED | STALENESS (uppercase)
-- `model`: lowercase-hyphenated (e.g., claude-sonnet-45)
+- `model`: lowercase-hyphenated (e.g., claude-sonnet-4-6)
 - `filter_pattern`: rules/*.md glob (optional, must match ≥1 file)
 - `skip_existing`: boolean true/false (optional, default: true)
 - `max_parallel`: integer 1-10 (optional, default: 1)
 - Environment: `rules/` exists and readable, `reviews/rule-reviews/` and `reviews/summaries/` writable
 
 **Execution:** Validate inputs before Stage 1 (Discovery). Fail fast on errors.
+
+## Gate 8: Per-Dimension Timing rejection (skill-timer v2.0.0+)
+
+After `skill_timer.py end` returns, check the run-level `status` field:
+
+- If `status ∈ {dimension_invalid, instrumentation_failed}`: **DO NOT
+  publish** the "Per-Dimension Timing" markdown table. Instead emit:
+
+  ```
+  > **Per-Dimension Timing rejected**
+  >
+  > Per-dimension timing data was rejected by skill-timer v2.0.0 due to
+  > alerts: <comma-separated alert types>. See
+  > `reviews/.timing-data/skill-timer-{run_id}-complete.json` for details.
+  ```
+
+- If `status ∈ {completed, warning}`: publish the table as before.
+
+This gate is mirrored in local reviewer skills `rule-reviewer` and
+`bulk-rule-reviewer`.
 
 ## Examples
 
@@ -314,14 +334,14 @@ Auto-detection selects the available pattern. If neither found, execution stops 
 
 ## Related Skills
 
-- **rule-reviewer** — Single rule review (required dependency)
-- **rule-creator** — Create new rules (complementary)
-- **skill-timing** — Timing instrumentation (required when `timing_enabled: true`)
+- **rule-reviewer**: Single rule review (required dependency)
+- **rule-creator**: Create new rules (complementary)
+- **skill-timer**: Timing instrumentation (required when `timing_enabled: true`)
 
 ## References
 
 ### Rules
 
-- `rules/002h-claude-code-skills.md` — Skill authoring best practices
-- `rules/002-rule-governance.md` — Rule schema and standards
-- `rules/000-global-core.md` — Foundation patterns
+- `rules/002h-claude-code-skills.md`: Skill authoring best practices
+- `rules/002-rule-governance.md`: Rule schema and standards
+- `rules/000-global-core.md`: Foundation patterns

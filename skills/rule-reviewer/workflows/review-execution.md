@@ -99,7 +99,7 @@ For EACH dimension:
 ### Step 2.2a: Per-Dimension Timing (IF timing_enabled)
 
 When `timing_enabled: true`, wrap each **scored** dimension evaluation with a checkpoint pair.
-This is **mandatory** — see SKILL.md Step 6a and `workflows/review-verification.md` Gate 7.
+This is **mandatory**: see SKILL.md Step 6a and `workflows/review-verification.md` Gate 7.
 
 | Before Dimension | After Dimension |
 |-----------------|-----------------|
@@ -112,7 +112,7 @@ This is **mandatory** — see SKILL.md Step 6a and `workflows/review-verificatio
 
 Token Efficiency and Staleness are informational-only in v2.0 and do NOT require timing checkpoints.
 
-**Preferred path — auto-derive at `timing-end`:**
+**Preferred path: auto-derive at `timing-end`:**
 
 ```
 $PYTHON $SCRIPT end --run-id {{_timing_run_id}} \
@@ -121,7 +121,7 @@ $PYTHON $SCRIPT end --run-id {{_timing_run_id}} \
 # Verify: stdout contains PER_DIMENSION_STATUS=derived
 ```
 
-No manual JSON assembly is required in sequential mode. `skill_timing.py` v1.5.0+ pairs the
+No manual JSON assembly is required in sequential mode. `skill_timer.py` v1.5.0+ pairs the
 `dim_<name>_start` / `dim_<name>_end` checkpoints automatically and populates
 `dimension_timings` with `mode: "checkpoint"`.
 

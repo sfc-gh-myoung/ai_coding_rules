@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Integration patterns for using HTMX with popular frontend libraries and frameworks including Alpine.js, _hyperscript, CSS frameworks (Tailwind, Bootstrap), icon libraries, and visualization libraries."
+last_updated: 2026-07-15
+keywords:
+  - kw:Alpine.js HTMX
+  - kw:_hyperscript inline behavior
+  - kw:CSS framework styling
+  - kw:chart library reinitialization
+  - kw:htmx:afterSwap event hooks
+  - kw:frontend library lifecycle
+  - kw:htmx
+token_budget: ~4150
+context_tier: Low
+depends:
+  required:
+    - 221-python-htmx-core.md  # HTMX foundation patterns
+  optional:
+    - 221a-python-htmx-templates.md  # Jinja2 patterns
+    - 221e-python-htmx-patterns.md  # HTMX implementation patterns
+    - 221g-python-htmx-sse.md  # Server-Sent Events patterns
+---
 # HTMX Frontend Integrations
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** alpinejs, hyperscript, tailwind, bootstrap, css frameworks, icon libraries, chartjs, frontend libraries, client-side enhancements, htmx integration, javascript frameworks
-**TokenBudget:** ~4150
-**ContextTier:** Low
-**Depends:** 221-python-htmx-core.md
 
 ## Scope
 
@@ -23,16 +36,6 @@ Integration patterns for using HTMX with popular frontend libraries and framewor
 - Integrating chart/visualization libraries with HTMX
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **221-python-htmx-core.md** - HTMX foundation patterns
-
-**Related:**
-- **221a-python-htmx-templates.md** - Jinja2 patterns
-- **221e-python-htmx-patterns.md** - HTMX implementation patterns
-- **221g-python-htmx-sse.md** - Server-Sent Events patterns
 
 ### External Documentation
 
@@ -62,8 +65,8 @@ Integration patterns for using HTMX with popular frontend libraries and framewor
 
 - jQuery (not recommended with HTMX)
 - Heavy JavaScript frameworks (React, Vue, Angular)
-- Multiple `htmx:afterSwap` listeners that initialize the same plugin type (e.g., two separate listeners both calling `new bootstrap.Tooltip(...)`) — consolidate into a single listener with conditional checks per plugin type
-- Unmanaged global state in JavaScript — use scoped registries (e.g., `let chartInstances = {}`) for lifecycle management of third-party library instances. Avoid arbitrary global variables for application data.
+- Multiple `htmx:afterSwap` listeners that initialize the same plugin type (e.g., two separate listeners both calling `new bootstrap.Tooltip(...)`): consolidate into a single listener with conditional checks per plugin type
+- Unmanaged global state in JavaScript: use scoped registries (e.g., `let chartInstances = {}`) for lifecycle management of third-party library instances. Avoid arbitrary global variables for application data.
 
 ### Execution Steps
 
@@ -122,19 +125,19 @@ Integration patterns for using HTMX with popular frontend libraries and framewor
 
 > **Investigation Required**
 > Before adding frontend library integrations, the agent MUST:
-> 1. Check which frontend libraries are already in the project — never add a library that conflicts with an existing one
-> 2. Read existing `base.html` script and CSS loading order — add new libraries in the correct position
-> 3. Check for existing `htmx:afterSwap` event listeners — extend the existing listener rather than creating a duplicate
-> 4. Determine if Alpine.js or _hyperscript is already chosen — **do not use both** in the same project
-> 5. Check existing chart library (Chart.js vs D3.js vs Plotly) — don't introduce a second charting library
-> 6. Verify CDN vs self-hosted strategy — match the project's existing approach
+> 1. Check which frontend libraries are already in the project: never add a library that conflicts with an existing one
+> 2. Read existing `base.html` script and CSS loading order: add new libraries in the correct position
+> 3. Check for existing `htmx:afterSwap` event listeners: extend the existing listener rather than creating a duplicate
+> 4. Determine if Alpine.js or _hyperscript is already chosen: **do not use both** in the same project
+> 5. Check existing chart library (Chart.js vs D3.js vs Plotly): don't introduce a second charting library
+> 6. Verify CDN vs self-hosted strategy: match the project's existing approach
 
 ### Choosing Alpine.js vs _hyperscript
 
-- **Stateful UI (dropdowns, modals, tabs):** Alpine.js — `x-data` provides reactive state management
-- **Stateless animations (fade, remove):** _hyperscript — inline `_="..."` keeps simple behavior close to HTML
-- **SSE event routing to multiple elements:** Alpine.js — SSE manager pattern requires state
-- **Simple class toggling:** _hyperscript — `on click toggle .active on me` is more readable
+- **Stateful UI (dropdowns, modals, tabs):** Alpine.js: `x-data` provides reactive state management
+- **Stateless animations (fade, remove):** _hyperscript: inline `_="..."` keeps simple behavior close to HTML
+- **SSE event routing to multiple elements:** Alpine.js: SSE manager pattern requires state
+- **Simple class toggling:** _hyperscript: `on click toggle .active on me` is more readable
 
 **Rule:** Choose one for the project. If the project already uses one, use the same. If starting fresh, choose Alpine.js for complex interactivity, _hyperscript for mostly-static pages with occasional animations.
 

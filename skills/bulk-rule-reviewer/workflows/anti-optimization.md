@@ -40,10 +40,10 @@ principles here.
 
 ## Important Distinction
 
-- **Optimizing the SKILL EXECUTION (forbidden)** — "I can review faster by
+- **Optimizing the SKILL EXECUTION (forbidden)**: "I can review faster by
   skipping rubric consultation", "I'll batch these reviews to save time",
   "Let me create a template"
-- **Evaluating RULE OPTIMIZATION (required)** — Scoring Token Efficiency
+- **Evaluating RULE OPTIMIZATION (required)**: Scoring Token Efficiency
   dimension, identifying verbose patterns in rules, recommending rule
   consolidation
 
@@ -96,7 +96,7 @@ After EACH rule review, output exactly:
 ```
 
 This output MUST appear after writing EACH review file. If you see yourself
-planning to output multiple completion messages at once, you are batching —
+planning to output multiple completion messages at once, you are batching: 
 STOP immediately.
 
 ## Why This Process Cannot Be Shortened
@@ -122,16 +122,16 @@ answer is NO. The user authorized ACT. Proceed with the work.
 
 ### Common Efficiency Instincts (ALL WRONG)
 
-1. **"I can create streamlined reviews to save time"** — Streamlined reviews
+1. **"I can create streamlined reviews to save time"**: Streamlined reviews
    miss critical issues, produce false confidence, lead to undetected
    blocking issues.
-2. **"Template-based reviews are consistent"** — Templates skip actual
+2. **"Template-based reviews are consistent"**: Templates skip actual
    analysis, miss rule-specific issues, cause score drift.
-3. **"Batch processing multiple rules is efficient"** — Aggregation loses
+3. **"Batch processing multiple rules is efficient"**: Aggregation loses
    per-rule detail, makes actionable recommendations impossible.
-4. **"This will take too long"** — Comprehensive review completes
+4. **"This will take too long"**: Comprehensive review completes
    efficiently with measured execution.
-5. **"Token costs are too high"** — ~$0.45 for a repository-wide quality
+5. **"Token costs are too high"**: ~$0.45 for a repository-wide quality
    audit is cheap. One bad rule costs more.
 
 ### When Shortcuts Are Acceptable

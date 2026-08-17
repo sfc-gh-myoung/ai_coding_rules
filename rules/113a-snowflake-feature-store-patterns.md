@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Anti-patterns and common mistakes when implementing Snowflake Feature Store, including data leakage from improper joins, feature versioning errors, non-deterministic transformations, unmonitored"
+last_updated: 2026-07-15
+keywords:
+  - kw:ASOF JOIN
+  - kw:feature view versioning
+  - kw:deterministic transformations
+  - kw:dynamic table refresh costs
+  - kw:training data leakage
+  - kw:train serve skew
+token_budget: ~2300
+context_tier: Low
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 113-snowflake-feature-store.md  # Feature Store core patterns
+---
 # Snowflake Feature Store: Anti-Patterns and Common Mistakes
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:feature-store-patterns
-**Keywords:** feature store anti-patterns, data leakage, point-in-time correctness, feature versioning mistakes, non-deterministic features, feature view costs, feature store governance
-**TokenBudget:** ~2300
-**ContextTier:** Low
-**Depends:** 100-snowflake-core.md, 113-snowflake-feature-store.md
 
 ## Scope
 
@@ -23,12 +31,6 @@ Anti-patterns and common mistakes when implementing Snowflake Feature Store, inc
 - Optimizing feature view refresh costs
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **113-snowflake-feature-store.md** - Feature Store core patterns
 
 ### External Documentation
 
@@ -97,11 +99,7 @@ Anti-patterns and common mistakes when implementing Snowflake Feature Store, inc
 **Anti-Pattern 1: Not Using ASOF JOIN for Point-in-Time Correctness**
 ```python
 # Bad: Regular JOIN causes data leakage
-training_data = entities_df.join(
-    features_df,
-    on='customer_id',
-    how='left'
-)
+training_data = entities_df.join(features_df, on="customer_id", how="left")
 # Uses latest feature values, not values at prediction time!
 # Leaks future information into training data!
 ```
@@ -112,16 +110,13 @@ training_data = entities_df.join(
 # Good: ASOF JOIN for point-in-time correctness
 from snowflake.ml.feature_store import FeatureStore
 
-fs = FeatureStore(session, database='FEATURE_STORE_DB', schema='CUSTOMER_FEATURES')
+fs = FeatureStore(session, database="FEATURE_STORE_DB", schema="CUSTOMER_FEATURES")
 
 training_data = fs.generate_training_set(
     spine_df=entities_df,  # Has customer_id and prediction_timestamp
-    features=[
-        'customer_features@v1',
-        'transaction_features@v2'
-    ],
-    spine_timestamp_col='prediction_timestamp',  # Point-in-time!
-    exclude_columns=['internal_id']
+    features=["customer_features@v1", "transaction_features@v2"],
+    spine_timestamp_col="prediction_timestamp",  # Point-in-time!
+    exclude_columns=["internal_id"],
 )
 
 # ASOF JOIN ensures features use only data available before prediction_timestamp
@@ -132,14 +127,16 @@ training_data = fs.generate_training_set(
 **Anti-Pattern 2: Not Versioning Feature Views**
 ```python
 # Bad: Overwrite feature view without versioning
-@fv(name='customer_features', version='1.0')
+@fv(name="customer_features", version="1.0")
 def customer_features(df):
-    return df.select('customer_id', 'age', 'income')
+    return df.select("customer_id", "age", "income")
+
 
 # Later: Change feature logic but keep same name/version
-@fv(name='customer_features', version='1.0')  # Same name!
+@fv(name="customer_features", version="1.0")  # Same name!
 def customer_features(df):
-    return df.select('customer_id', 'age_bucket', 'income_log')  # Different features!
+    return df.select("customer_id", "age_bucket", "income_log")  # Different features!
+
 
 # Models trained on old features break, can't reproduce results!
 ```
@@ -150,31 +147,31 @@ def customer_features(df):
 # Good: Semantic versioning for feature views
 from snowflake.ml.feature_store import FeatureStore, FeatureView
 
-fs = FeatureStore(session, database='FEATURE_STORE_DB', schema='CUSTOMER_FEATURES')
+fs = FeatureStore(session, database="FEATURE_STORE_DB", schema="CUSTOMER_FEATURES")
+
 
 # Version 1.0: Initial features
-@fv(name='customer_features', version='1.0')
+@fv(name="customer_features", version="1.0")
 def customer_features_v1(df):
-    return df.select(
-        col('customer_id'),
-        col('age'),
-        col('income')
-    )
+    return df.select(col("customer_id"), col("age"), col("income"))
+
 
 # Version 2.0: Breaking change - different feature engineering
-@fv(name='customer_features', version='2.0')  # New version!
+@fv(name="customer_features", version="2.0")  # New version!
 def customer_features_v2(df):
     return df.select(
-        col('customer_id'),
-        when(col('age') < 30, 'young')
-         .when(col('age') < 50, 'middle')
-         .otherwise('senior').alias('age_bucket'),
-        log(col('income') + 1).alias('income_log')
+        col("customer_id"),
+        when(col("age") < 30, "young")
+        .when(col("age") < 50, "middle")
+        .otherwise("senior")
+        .alias("age_bucket"),
+        log(col("income") + 1).alias("income_log"),
     )
 
+
 # Models reference specific versions
-model_v1 = train_model(features='customer_features@1.0')
-model_v2 = train_model(features='customer_features@2.0')
+model_v1 = train_model(features="customer_features@1.0")
+model_v2 = train_model(features="customer_features@2.0")
 
 # Can reproduce, rollback, and maintain multiple versions
 ```
@@ -183,14 +180,15 @@ model_v2 = train_model(features='customer_features@2.0')
 **Anti-Pattern 3: Using Non-Deterministic Functions in Feature Engineering**
 ```python
 # Bad: Non-deterministic transformations
-@fv(name='transaction_features', version='1.0')
+@fv(name="transaction_features", version="1.0")
 def transaction_features(df):
     return df.select(
-        col('transaction_id'),
-        col('amount'),
-        CURRENT_TIMESTAMP().alias('feature_created_at'),  # Changes every run!
-        uniform(0, 1, random()).alias('random_feature')   # Different every time!
+        col("transaction_id"),
+        col("amount"),
+        CURRENT_TIMESTAMP().alias("feature_created_at"),  # Changes every run!
+        uniform(0, 1, random()).alias("random_feature"),  # Different every time!
     )
+
 
 # Training and inference produce different feature values!
 ```
@@ -199,24 +197,27 @@ def transaction_features(df):
 **Correct Pattern:**
 ```python
 # Good: Deterministic transformations only
-@fv(name='transaction_features', version='1.0')
+@fv(name="transaction_features", version="1.0")
 def transaction_features(df):
     return df.select(
-        col('transaction_id'),
-        col('amount'),
-        col('transaction_timestamp'),  # Use existing timestamp column
-        (col('amount') * 0.1).alias('amount_scaled'),  # Deterministic math
-        when(col('amount') > 1000, 1).otherwise(0).alias('high_value_flag')  # Deterministic logic
+        col("transaction_id"),
+        col("amount"),
+        col("transaction_timestamp"),  # Use existing timestamp column
+        (col("amount") * 0.1).alias("amount_scaled"),  # Deterministic math
+        when(col("amount") > 1000, 1).otherwise(0).alias("high_value_flag"),  # Deterministic logic
     )
 
+
 # If you need current time context, use spine timestamp
-@fv(name='time_aware_features', version='1.0')
+@fv(name="time_aware_features", version="1.0")
 def time_aware_features(df):
     # df already has event_timestamp from source
     return df.select(
-        col('customer_id'),
-        col('event_timestamp'),
-        datediff('day', col('last_purchase_date'), col('event_timestamp')).alias('days_since_last_purchase')
+        col("customer_id"),
+        col("event_timestamp"),
+        datediff("day", col("last_purchase_date"), col("event_timestamp")).alias(
+            "days_since_last_purchase"
+        ),
         # Deterministic: same inputs always produce same outputs
     )
 ```

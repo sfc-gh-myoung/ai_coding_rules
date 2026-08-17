@@ -1,15 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Patterns for programmatically inspecting Snowflake roles and grants, handling both account-scoped roles and database roles to avoid SQL compilation errors when automating RBAC audits and permission"
+last_updated: 2026-07-15
+keywords:
+  - kw:role introspection
+  - kw:account roles vs database roles
+  - kw:SHOW GRANTS syntax
+  - kw:SQL compilation error 000906
+  - kw:role type detection
+  - kw:RBAC automation
+  - kw:rbac
+token_budget: ~2350
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Core foundation patterns
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+  optional:
+    - 107-snowflake-security-governance.md  # RBAC and privilege patterns
+    - 200-python-core.md  # Python development patterns
+---
 # 125-snowflake-role-introspection: Snowflake Role Introspection
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:role, kw:introspection, kw:access
-**Keywords:** account roles, database roles, SHOW GRANTS, role introspection, RBAC, Python automation, error 000906, too many qualifiers, grants inspection, programmatic RBAC
-**TokenBudget:** ~2350
-**ContextTier:** Medium
-**Depends:** 000-global-core.md, 100-snowflake-core.md
 
 ## Scope
 
@@ -24,16 +36,6 @@ Patterns for programmatically inspecting Snowflake roles and grants, handling bo
 - Troubleshooting `SHOW GRANTS` failures
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Core foundation patterns
-- **100-snowflake-core.md** - Snowflake foundation patterns
-
-**Related:**
-- **107-snowflake-security-governance.md** - RBAC and privilege patterns
-- **200-python-core.md** - Python development patterns
 
 ### External Documentation
 
@@ -120,6 +122,8 @@ Python functions produce:
 # Bad: Assumes all roles are account-scoped
 def get_role_grants(role_name):
     return execute_query(f"SHOW GRANTS TO ROLE {role_name}")
+
+
 # Fails for database roles like SNOWFLAKE.CORTEX_USER
 ```
 **Problem:** Database roles have qualifiers (dots) and require different syntax; script crashes with error 000906
@@ -130,9 +134,11 @@ def get_role_grants(role_name):
 ```python
 # Bad: Only handles SNOWFLAKE.* database roles
 def get_role_grants(role_name):
-    if role_name.startswith('SNOWFLAKE.'):
+    if role_name.startswith("SNOWFLAKE."):
         return execute_query(f"SHOW GRANTS TO DATABASE ROLE {role_name}")
     return execute_query(f"SHOW GRANTS TO ROLE {role_name}")
+
+
 # Misses custom database roles like MYDB.PUBLIC.CUSTOM_ROLE
 ```
 **Problem:** Only handles `SNOWFLAKE.*` database roles; misses custom database roles in user databases
@@ -142,7 +148,7 @@ def get_role_grants(role_name):
 def is_database_role(role_name):
     if role_name.startswith('"') and role_name.endswith('"'):
         return False
-    return '.' in role_name.strip('"')
+    return "." in role_name.strip('"')
 ```
 
 ## Output Format Examples
@@ -151,28 +157,31 @@ def is_database_role(role_name):
 import snowflake.connector
 from snowflake.connector.errors import ProgrammingError
 
+
 def execute_query(cursor, query):
     """Execute SQL and return results."""
     cursor.execute(query)
     return cursor.fetchall()
 
+
 def is_database_role(role_name):
     """Detect if role is a database role by checking for dots outside quotes.
-    
+
     Quoted identifiers like '"my.dotted.role"' are account roles despite containing dots.
     """
     stripped = role_name.strip('"')
     # If the original had outer quotes and stripping removed them, it's a quoted account role
     if role_name.startswith('"') and role_name.endswith('"'):
         return False
-    return '.' in stripped
+    return "." in stripped
+
 
 def get_role_grants(cursor, role_name):
     """Get grants for a Snowflake role (account or database role).
-    
+
     Handles quoted identifiers, database roles, and error 000906.
     Role names should come from trusted sources (SHOW ROLES output).
-    
+
     Args:
         cursor: Snowflake cursor (DictCursor recommended)
         role_name: Role name (e.g., 'PUBLIC', 'SNOWFLAKE.CORTEX_USER', '"my.role"')
@@ -186,20 +195,23 @@ def get_role_grants(cursor, role_name):
             query = f"SHOW GRANTS TO ROLE {role_name}"
         return execute_query(cursor, query)
     except ProgrammingError as e:
-        if '000906' in str(e):
+        if "000906" in str(e):
             # Retry with opposite syntax
-            alt_query = (f"SHOW GRANTS TO ROLE {role_name}" 
-                        if is_database_role(role_name)
-                        else f"SHOW GRANTS TO DATABASE ROLE {role_name}")
+            alt_query = (
+                f"SHOW GRANTS TO ROLE {role_name}"
+                if is_database_role(role_name)
+                else f"SHOW GRANTS TO DATABASE ROLE {role_name}"
+            )
             return execute_query(cursor, alt_query)
         raise
 
-# Usage — role names should come from SHOW ROLES (trusted source)
+
+# Usage - role names should come from SHOW ROLES (trusted source)
 conn = snowflake.connector.connect(...)
 cur = conn.cursor(snowflake.connector.DictCursor)
 
-account_grants = get_role_grants(cur, 'ACCOUNTADMIN')
-db_role_grants = get_role_grants(cur, 'SNOWFLAKE.CORTEX_USER')
+account_grants = get_role_grants(cur, "ACCOUNTADMIN")
+db_role_grants = get_role_grants(cur, "SNOWFLAKE.CORTEX_USER")
 quoted_grants = get_role_grants(cur, '"my.dotted.role"')  # Account role despite dots
 ```
 
@@ -232,7 +244,7 @@ def get_role_hierarchy(cursor, role_name):
 ```python
 def walk_role_tree(cursor, root_role, direction="down", visited=None):
     """Recursively traverse role hierarchy.
-    
+
     Args:
         direction: "down" = privileges this role inherits; "up" = roles/users granted this role
     """
@@ -241,30 +253,31 @@ def walk_role_tree(cursor, root_role, direction="down", visited=None):
     if root_role in visited:
         return []  # Prevent cycles
     visited.add(root_role)
-    
+
     role_keyword = "DATABASE ROLE" if is_database_role(root_role) else "ROLE"
-    
+
     if direction == "down":
         grants = execute_query(cursor, f"SHOW GRANTS TO {role_keyword} {root_role}")
         # Find child roles (granted_on = 'ROLE') and recurse
         for grant in grants:
-            if grant.get('granted_on') == 'ROLE':
-                child_role = grant['name']
+            if grant.get("granted_on") == "ROLE":
+                child_role = grant["name"]
                 grants.extend(walk_role_tree(cursor, child_role, "down", visited))
     else:  # up
         grants = execute_query(cursor, f"SHOW GRANTS OF {role_keyword} {root_role}")
         for grant in grants:
-            if grant.get('granted_to') == 'ROLE':
-                parent_role = grant['grantee_name']
+            if grant.get("granted_to") == "ROLE":
+                parent_role = grant["grantee_name"]
                 grants.extend(walk_role_tree(cursor, parent_role, "up", visited))
-    
+
     return grants
 
+
 # Example: find all inherited privileges for ANALYST role
-all_privileges = walk_role_tree(cur, 'ANALYST', direction="down")
+all_privileges = walk_role_tree(cur, "ANALYST", direction="down")
 
 # Example: find all roles/users that ultimately hold SYSADMIN
-all_holders = walk_role_tree(cur, 'SYSADMIN', direction="up")
+all_holders = walk_role_tree(cur, "SYSADMIN", direction="up")
 ```
 
 **Security Note:** The `role_name` parameter uses f-strings in SHOW GRANTS commands. Ensure role names come from trusted sources (e.g., `SHOW ROLES` output) rather than untrusted user input. For user-provided names, validate against the output of `SHOW ROLES` before use.

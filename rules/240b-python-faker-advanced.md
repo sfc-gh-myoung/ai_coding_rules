@@ -1,15 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Advanced Faker patterns including localization for international testing, creating custom providers for domain-specific data, and performance optimization for large dataset generation."
+last_updated: 2026-07-15
+keywords:
+  - kw:faker localization
+  - kw:custom provider
+  - kw:BaseProvider extension
+  - kw:DynamicProvider runtime
+  - kw:streaming generator memory
+  - kw:faker caching optimization
+token_budget: ~3300
+context_tier: Low
+depends:
+  required:
+    - 240-python-faker.md  # Core Faker patterns
+  optional:
+    - 240a-python-faker-testing.md  # Pytest integration and seeding
+---
 # Python Faker Advanced Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:locale, kw:custom-provider, kw:faker-performance
-**Keywords:** Faker, localization, locale, custom providers, BaseProvider, performance optimization, batch generation, caching, multi-language
-**TokenBudget:** ~3300
-**ContextTier:** Low
-**Depends:** 240-python-faker.md
 
 ## Scope
 
@@ -24,13 +33,9 @@ Advanced Faker patterns including localization for international testing, creati
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **240-python-faker.md** - Core Faker patterns
-
-**Related:**
-- **240a-python-faker-testing.md** - Pytest integration and seeding
+_None._
 
 ## Contract
 
@@ -76,10 +81,10 @@ Custom Faker providers, localized data generators, and batch-optimized generatio
 Before adding custom providers, localization, or performance optimizations, agents MUST check:
 
 - [ ] **Existing custom providers**: Search for `class.*BaseProvider` in the project to find existing providers and avoid duplicating functionality
-- [ ] **Supported locales**: Check application requirements for which locales are actually needed — don't add locales speculatively
-- [ ] **Dataset size requirements**: Ask about expected data volumes before implementing streaming/batch generators — premature optimization if generating <1K records
+- [ ] **Supported locales**: Check application requirements for which locales are actually needed; don't add locales speculatively
+- [ ] **Dataset size requirements**: Ask about expected data volumes before implementing streaming/batch generators: premature optimization if generating <1K records
 - [ ] **Provider registration**: Search for `add_provider` calls to understand existing provider setup and avoid registration conflicts
-- [ ] **Built-in coverage**: Check Faker's built-in providers first at `faker.providers.*` — only create custom providers for truly domain-specific data
+- [ ] **Built-in coverage**: Check Faker's built-in providers first at `faker.providers.*`: only create custom providers for truly domain-specific data
 
 ### Design Principles
 
@@ -133,6 +138,7 @@ fake_de = Faker("de_DE")  # Only if German data is actually needed
 from faker import Faker
 from typing import Dict, Any, List
 
+
 class LocalizedDataGenerator:
     """Generate localized data for different regions."""
 
@@ -184,11 +190,16 @@ from faker.providers import BaseProvider
 from faker import Faker
 from typing import List
 
+
 class TechCompanyProvider(BaseProvider):
     """Custom provider for tech company data."""
 
     tech_companies = [
-        "TechCorp", "DataSystems", "CloudWorks", "NetDynamics", "CodeForge",
+        "TechCorp",
+        "DataSystems",
+        "CloudWorks",
+        "NetDynamics",
+        "CodeForge",
     ]
     tech_domains = ["AI/ML", "Web Development", "DevOps", "Cloud Infrastructure"]
     tech_roles = ["Software Engineer", "Data Scientist", "DevOps Engineer", "SRE"]
@@ -204,14 +215,13 @@ class TechCompanyProvider(BaseProvider):
         return self.random_element(self.tech_roles)
 
     def tech_stack(self, count: int = 3) -> List[str]:
-        return self.random_elements(
-            elements=self.programming_languages, length=count, unique=True
-        )
+        return self.random_elements(elements=self.programming_languages, length=count, unique=True)
 
     def github_username(self) -> str:
         adjectives = ["cool", "awesome", "super", "mega"]
         nouns = ["coder", "dev", "ninja", "guru"]
         return f"{self.random_element(adjectives)}{self.random_element(nouns)}{self.random_int(10, 999)}"
+
 
 class ProjectProvider(BaseProvider):
     """Custom provider for software project data."""
@@ -235,6 +245,7 @@ class ProjectProvider(BaseProvider):
             purpose=self.generator.bs(),  # bs() generates "business speak" phrases
             tech=self.random_element(["Python", "JavaScript", "Go", "Rust"]),
         )
+
 
 # Register and use custom providers
 fake = Faker()
@@ -260,9 +271,11 @@ class ProviderA(BaseProvider):
     def status(self) -> str:
         return self.random_element(["active", "inactive"])
 
+
 class ProviderB(BaseProvider):
     def status(self) -> str:
         return self.random_element(["open", "closed", "pending"])
+
 
 fake = Faker()
 fake.add_provider(ProviderA)
@@ -305,6 +318,7 @@ Loading from external sources:
 ```python
 import json
 
+
 def create_provider_from_config(config_path: str) -> DynamicProvider:
     """Load provider values from a JSON config file."""
     with open(config_path) as f:
@@ -313,6 +327,7 @@ def create_provider_from_config(config_path: str) -> DynamicProvider:
         provider_name=config["name"],
         elements=config["values"],
     )
+
 
 # config/departments.json: {"name": "department", "values": ["Engineering", "Sales", ...]}
 dept_provider = create_provider_from_config("config/departments.json")
@@ -324,10 +339,10 @@ fake.department()  # → "Engineering"
 
 ### When to Use Each Pattern
 
-- **<1,000 records:** Simple loop — no optimization needed, Faker generates ~10K/sec
-- **1K–100K records:** Pre-computed cache — cache repeated lookups (companies, domains); generate unique fields per record
-- **100K–1M records:** Streaming generator — `yield` keeps memory flat; process records as they're generated
-- **>1M records:** Batch + streaming — generate in batches (e.g., 10K) for database inserts; stream batches to avoid memory spikes
+- **<1,000 records:** Simple loop: no optimization needed, Faker generates ~10K/sec
+- **1K–100K records:** Pre-computed cache: cache repeated lookups (companies, domains); generate unique fields per record
+- **100K–1M records:** Streaming generator: `yield` keeps memory flat; process records as they're generated
+- **>1M records:** Batch + streaming: generate in batches (e.g., 10K) for database inserts; stream batches to avoid memory spikes
 
 ```python
 # Quick benchmark to decide:
@@ -350,6 +365,7 @@ print(f"10K names: {elapsed:.2f}s")  # ~0.5-1.0s typical
 ```python
 from faker import Faker
 from typing import Iterator, Dict, Any, List
+
 
 class PerformantDataGenerator:
     """Memory-efficient data generation with caching."""
@@ -427,7 +443,7 @@ def test_tech_company_deterministic():
     fake.add_provider(TechCompanyProvider)
     result1 = fake.tech_company_name()
 
-    # Reset and regenerate — should be identical
+    # Reset and regenerate - should be identical
     fake2 = Faker()
     fake2.seed_instance(12345)
     fake2.add_provider(TechCompanyProvider)

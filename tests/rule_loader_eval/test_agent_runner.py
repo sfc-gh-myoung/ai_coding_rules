@@ -1,0 +1,1062 @@
+"""Tests for the agent runner's section parsers.
+
+The ``parse_rules_loaded_section`` and ``parse_reads_performed_section``
+functions extract ``rules/<name>.md`` paths from the agent's final
+assistant text. Edge cases include:
+
+- Absolute paths that include the project directory name
+  ``ai_coding_rules`` must not produce ``rules/rules/<name>.md``.
+- Markdown link form ``[rules/X.md](rules/X.md)`` should dedupe.
+- Text outside the named section is ignored.
+- Citations of form ``<path> (<reason>): N lines`` are extracted via
+  ``extract_citations``.
+"""
+
+from __future__ import annotations
+
+import pytest
+
+from ai_rules.rule_loader_eval.agent_runner import (
+    Citation,
+    extract_citations,
+    extract_contract_text,
+    parse_bootstrap_line,
+    parse_reads_performed_section,
+    parse_rules_loaded_section,
+)
+
+
+@pytest.mark.unit
+def test_simple_list_extracted() -> None:
+    """A bullet list of rule paths under the bold marker is extracted."""
+    text = """
+**Rules Loaded**
+
+- rules/999-test-core.md
+- rules/100-snowflake-core.md
+"""
+    assert parse_rules_loaded_section(text) == (
+        "rules/100-snowflake-core.md",
+        "rules/999-test-core.md",
+    )
+
+
+@pytest.mark.unit
+def test_absolute_path_does_not_double_rules() -> None:
+    """Absolute paths inside ai_coding_rules/ must not produce rules/rules/...
+
+    Regression for the bug where an unanchored regex matched the ``rules``
+    substring inside ``ai_coding_rules`` and greedily consumed across
+    a path separator into ``rules/rules/999-test-core.md``.
+    """
+    text = """
+**Rules Loaded**
+
+- /Users/me/Development/ai_coding_rules/rules/999-test-core.md
+- /Users/me/Development/ai_coding_rules/rules/116-snowflake-cortex-search.md
+"""
+    out = parse_rules_loaded_section(text)
+    assert "rules/999-test-core.md" in out
+    assert "rules/116-snowflake-cortex-search.md" in out
+    for rule in out:
+        assert not rule.startswith("rules/rules/"), rule
+
+
+@pytest.mark.unit
+def test_markdown_link_form_dedupes() -> None:
+    """A markdown link to a rule should produce one entry, not two."""
+    text = """
+**Rules Loaded**
+
+- [rules/100-snowflake-core.md](rules/100-snowflake-core.md)
+"""
+    assert parse_rules_loaded_section(text) == ("rules/100-snowflake-core.md",)
+
+
+@pytest.mark.unit
+def test_text_outside_section_ignored() -> None:
+    """Rule paths outside a Rules Loaded heading are not picked up."""
+    text = """
+Some prelude that mentions rules/100-snowflake-core.md inline.
+
+## Other Heading
+
+- rules/200-python-core.md
+"""
+    assert parse_rules_loaded_section(text) == ()
+
+
+@pytest.mark.unit
+def test_section_terminates_at_task_switch() -> None:
+    """Content after Task Switch: is not part of the section (new format)."""
+    text = """
+**Bootstrap:** rule-loader [scanned: (python)- 1 rules loaded, 0 failed.
+**Rules Loaded**
+- rules/999-test-core.md
+
+Task Switch: FIRST
+
+Some response content mentioning rules/200-python-core.md.
+"""
+    assert parse_rules_loaded_section(text) == ("rules/999-test-core.md",)
+
+
+@pytest.mark.unit
+def test_section_terminates_at_next_heading_legacy() -> None:
+    """Legacy ## Rules Loaded heading: content after next heading not captured (backward compat)."""
+    text = """
+## Rules Loaded
+
+- rules/999-test-core.md
+
+## Notes
+
+- rules/200-python-core.md should not be captured.
+"""
+    assert parse_rules_loaded_section(text) == ("rules/999-test-core.md",)
+
+
+@pytest.mark.unit
+def test_empty_input() -> None:
+    """Empty text yields an empty tuple."""
+    assert parse_rules_loaded_section("") == ()
+    assert parse_rules_loaded_section(None) == ()  # type: ignore[arg-type]
+
+
+@pytest.mark.unit
+def test_parse_reads_performed_section() -> None:
+    """``## Reads Performed`` parser extracts paths same as Rules Loaded.
+
+    (Legacy backward-compat: ``## Reads Performed`` retired in v3.8.0.)
+    """
+    text = """
+## Reads Performed
+- read_file("rules/999-test-core.md") -> RuleVersion v3.7.0, LastUpdated 2026-05-14, lines 470
+- grep rules/*.md (Keywords discovery step)
+- read_file("rules/100-snowflake-core.md") -> RuleVersion v1.2.3, LastUpdated 2026-04-01, lines 200
+
+**Rules Loaded**
+- rules/999-test-core.md (foundation)- 470 lines
+"""
+    out = parse_reads_performed_section(text)
+    assert "rules/999-test-core.md" in out
+    assert "rules/100-snowflake-core.md" in out
+
+
+@pytest.mark.unit
+def test_extract_citations_basic() -> None:
+    """Version citations are extracted; line-count suffixes are ignored."""
+    text = """
+**Rules Loaded**
+- rules/999-test-core.md (foundation)- v3.7.0
+- rules/100-snowflake-core.md (keyword: Snowflake)- v1.2.3
+"""
+    out = extract_citations(text, "Rules Loaded")
+    assert out["rules/999-test-core.md"] == Citation(version="3.7.0")
+    assert out["rules/100-snowflake-core.md"] == Citation(version="1.2.3")
+
+
+@pytest.mark.unit
+def test_extract_citations_failed_marker() -> None:
+    """``FAILED: not found`` lines yield Citation(failed=True)."""
+    text = """
+## Reads Performed
+- read_file("rules/999-test-core.md") -> RuleVersion v3.7.0, LastUpdated 2026-05-14, lines 470
+- read_file("rules/200-python-core.md") -> FAILED: not found
+"""
+    out = extract_citations(text, "Reads Performed")
+    assert out["rules/200-python-core.md"].failed is True
+    assert out["rules/999-test-core.md"].failed is False
+
+
+@pytest.mark.unit
+def test_extract_citations_reads_performed_form() -> None:
+    """Reads Performed entries are captured (legacy section retired in v3.8.0).
+
+    The version is not extracted from the RuleVersion field in Reads Performed;
+    the path is extracted and a Citation with no metadata is returned.
+    """
+    text = """
+## Reads Performed
+- read_file("rules/999-test-core.md") -> RuleVersion v3.7.0, lines 470
+"""
+    out = extract_citations(text, "Reads Performed")
+    assert "rules/999-test-core.md" in out
+    assert out["rules/999-test-core.md"].failed is False
+
+
+@pytest.mark.unit
+def test_extract_citations_failed_marker_rules_loaded() -> None:
+    """``FAILED: not found`` lines in ``## Rules Loaded`` yield Citation(failed=True)."""
+    text = (
+        "**Bootstrap:** rule-loader [scanned: (sql)- 1 rules loaded, 1 failed.\n\n"
+        "## Rules Loaded\n"
+        "- rules/999-test-core.md (foundation)- 601 lines\n"
+        "- rules/200-python-core.md: FAILED: not found\n"
+    )
+    out = extract_citations(text, "Rules Loaded")
+    assert out["rules/200-python-core.md"].failed is True
+    assert out["rules/999-test-core.md"].failed is False
+
+
+@pytest.mark.unit
+def test_format_timing_lines_renders_event_table() -> None:
+    """``format_timing_lines`` renders an ``AgentRun`` event list deterministically."""
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun, TurnEvent
+    from ai_rules.rule_loader_eval.diagnostics import format_timing_lines
+
+    run = AgentRun(
+        fixture_id="candidate",
+        loaded=(),
+        loaded_via_reads=(),
+        loaded_via_reads_performed=(),
+        loaded_via_section=(),
+        turns=3,
+        duration_ms=12_345,
+        model="auto",
+        events=(
+            TurnEvent(t_ms=120, kind="tool_use", detail="Skill skill_name=rule-loader"),
+            TurnEvent(t_ms=2_400, kind="tool_use", detail="Read file_path=rules/999-test-core.md"),
+            TurnEvent(
+                t_ms=11_900,
+                kind="assistant_text",
+                detail="len=512 head='**Bootstrap:** rule-loader [scanned: (python)'",
+            ),
+            TurnEvent(t_ms=12_345, kind="result", detail="stop_reason=end_turn turns=3"),
+        ),
+    )
+    lines = format_timing_lines(run, effort="low", model="auto")
+    assert lines[0] == "--- diagnostics timing ---"
+    assert lines[1] == "total: 12_345 ms across 3 turns (model=auto effort=low)"
+    assert lines[2].lstrip().startswith("0 ms")
+    assert "[start]" in lines[2]
+    assert "Skill skill_name=rule-loader" in lines[3]
+    assert "Read file_path=rules/999-test-core.md" in lines[4]
+    assert "assistant_text" in lines[5]
+    assert "result" in lines[6]
+    assert "stop_reason=end_turn" in lines[6]
+    assert lines[-1] == "--- end diagnostics timing ---"
+
+
+# ---------------------------------------------------------------------------
+# v3.8 contract compatibility (Phase 0)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_parse_bootstrap_line_counts_loaded_and_failed() -> None:
+    """``parse_bootstrap_line`` extracts n_loaded and n_failed from a v3.8 line."""
+    text = (
+        "**Bootstrap:** rule-loader [scanned: (plan, batch, python) "
+        "- 3 rules loaded, 0 failed.\n\n**Rules Loaded**\n"
+    )
+    result = parse_bootstrap_line(text)
+    assert result["found"] is True
+    assert result["n_loaded"] == 3
+    assert result["n_failed"] == 0
+
+
+@pytest.mark.unit
+def test_parse_bootstrap_line_with_failures() -> None:
+    """``parse_bootstrap_line`` captures failure count correctly."""
+    text = "**Bootstrap:** rule-loader [scanned: (sql)- 2 rules loaded, 1 failed.\n"
+    result = parse_bootstrap_line(text)
+    assert result["found"] is True
+    assert result["n_loaded"] == 2
+    assert result["n_failed"] == 1
+
+
+@pytest.mark.unit
+def test_parse_bootstrap_line_absent() -> None:
+    """When no ``**Bootstrap:**`` line is present, ``found`` is False."""
+    text = "**Rules Loaded**\n- rules/999-test-core.md\n"
+    result = parse_bootstrap_line(text)
+    assert result["found"] is False
+    assert result["n_loaded"] == 0
+    assert result["n_failed"] == 0
+
+
+@pytest.mark.unit
+def test_rules_loaded_remains_authoritative_without_reads_performed() -> None:
+    """v3.9 ## Rules Loaded heading format yields correct loaded set."""
+    text = (
+        "**Bootstrap:** rule-loader [scanned: (python, test)- 2 rules loaded, 0 failed.\n\n"
+        "## Rules Loaded\n"
+        "- rules/999-test-core.md (foundation)- 601 lines\n"
+        "- rules/200-python-core.md (keyword: python)- 454 lines\n\n"
+        "Task Switch: FIRST\n"
+    )
+    loaded = parse_rules_loaded_section(text)
+    assert loaded == ("rules/200-python-core.md", "rules/999-test-core.md")
+    reads_performed = parse_reads_performed_section(text)
+    assert reads_performed == ()
+
+
+@pytest.mark.unit
+def test_citation_drift_uses_rules_loaded_citations() -> None:
+    """Citations are extracted from ``**Rules Loaded**`` in v3.9-patch output."""
+    text = (
+        "**Bootstrap:** rule-loader [scanned: (python)- 1 rules loaded, 0 failed.\n\n"
+        "**Rules Loaded**\n"
+        "- rules/999-test-core.md (foundation)- v3.7.0\n"
+    )
+    citations = extract_citations(text, "Rules Loaded")
+    c = citations["rules/999-test-core.md"]
+    assert c.version == "3.7.0"
+
+
+# ---------------------------------------------------------------------------
+# Additional branch coverage for agent_runner.py non-live functions
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_parse_reads_performed_section_with_heading_in_section() -> None:
+    """parse_reads_performed_section stops at the next heading inside the section."""
+    text = (
+        "## Reads Performed\n"
+        "- rules/100-snowflake-core.md (loaded)\n"
+        "## Next Section\n"
+        "- rules/200-python-core.md (should be ignored)\n"
+    )
+    result = parse_reads_performed_section(text)
+    assert "rules/100-snowflake-core.md" in result
+    assert "rules/200-python-core.md" not in result
+
+
+@pytest.mark.unit
+def test_parse_reads_performed_section_nonempty_text() -> None:
+    """parse_reads_performed_section with non-empty text containing section returns paths."""
+    text = "Some preamble.\n## Reads Performed\n- rules/999-test-core.md (loaded)\n"
+    result = parse_reads_performed_section(text)
+    assert "rules/999-test-core.md" in result
+
+
+@pytest.mark.unit
+def test_parse_bootstrap_line_found_returns_counts() -> None:
+    """parse_bootstrap_line extracts n_loaded and n_failed from the Bootstrap line."""
+    text = "**Bootstrap:** 3 rules loaded, 1 failed\n"
+    result = parse_bootstrap_line(text)
+    assert result["found"] is True
+    assert result["n_loaded"] == 3
+    assert result["n_failed"] == 1
+
+
+@pytest.mark.unit
+def test_validate_output_shape_empty_text() -> None:
+    """validate_output_shape returns a single 'empty' violation for empty text."""
+    from ai_rules.rule_loader_eval.agent_runner import validate_output_shape
+
+    result = validate_output_shape("", loaded_count=0)
+    assert len(result) == 1
+    assert "empty" in result[0]
+
+
+@pytest.mark.unit
+def test_extract_citations_empty_text_returns_empty() -> None:
+    """extract_citations returns {} when text is empty."""
+    result = extract_citations("", "Rules Loaded")
+    assert result == {}
+
+
+@pytest.mark.unit
+def test_extract_citations_section_broken_by_heading() -> None:
+    """extract_citations stops collecting when it hits a heading inside the section."""
+    text = (
+        "**Rules Loaded**\n"
+        "- rules/100-snowflake-core.md (loaded)\n"
+        "## Another Heading\n"
+        "- rules/200-python-core.md (should be ignored)\n"
+    )
+    result = extract_citations(text, "Rules Loaded")
+    assert "rules/100-snowflake-core.md" in result
+    assert "rules/200-python-core.md" not in result
+
+
+@pytest.mark.unit
+def test_extract_citations_line_without_rule_path_skipped() -> None:
+    """Lines in the section with no rule paths are skipped gracefully."""
+    text = "**Rules Loaded**\n- (no rule path here)\n- rules/100-snowflake-core.md (loaded)\n"
+    result = extract_citations(text, "Rules Loaded")
+    # Only the actual rule path should appear
+    assert "rules/100-snowflake-core.md" in result
+
+
+@pytest.mark.unit
+def test_extract_citations_path_without_line_count() -> None:
+    """A rule path with no line count creates a Citation with line_count=None."""
+    text = "**Rules Loaded**\n- rules/100-snowflake-core.md (loaded)\n"
+    result = extract_citations(text, "Rules Loaded")
+    c = result["rules/100-snowflake-core.md"]
+    assert c.line_count is None
+    assert not c.failed
+
+
+@pytest.mark.unit
+def test_extract_citations_non_rules_loaded_heading() -> None:
+    """extract_citations works with a custom (non-Rules-Loaded) heading."""
+    text = "## Reads Performed\n- rules/100-snowflake-core.md (loaded)\n"
+    result = extract_citations(text, "Reads Performed")
+    assert "rules/100-snowflake-core.md" in result
+
+
+@pytest.mark.unit
+def test_normalize_to_repo_rule_non_relative_path_returns_none() -> None:
+    """_normalize_to_repo_rule returns None when path is outside project_root."""
+    from pathlib import Path
+
+    from ai_rules.rule_loader_eval.agent_runner import _normalize_to_repo_rule
+
+    result = _normalize_to_repo_rule(
+        "/some/completely/other/path/rules/test.md", Path("/my/project")
+    )
+    assert result is None
+
+
+@pytest.mark.unit
+def test_normalize_to_repo_rule_non_rules_path_returns_none(tmp_path) -> None:
+    """_normalize_to_repo_rule returns None for paths not in rules/*.md."""
+    from ai_rules.rule_loader_eval.agent_runner import _normalize_to_repo_rule
+
+    # Path is under project_root but not in rules/
+    non_rules = tmp_path / "src" / "something.py"
+    non_rules.parent.mkdir(parents=True)
+    non_rules.touch()
+    result = _normalize_to_repo_rule(str(non_rules), tmp_path)
+    assert result is None
+
+
+@pytest.mark.unit
+def test_normalize_to_repo_rule_valid_rules_path(tmp_path) -> None:
+    """_normalize_to_repo_rule returns relative path for a rules/*.md file."""
+    from ai_rules.rule_loader_eval.agent_runner import _normalize_to_repo_rule
+
+    rules_dir = tmp_path / "rules"
+    rules_dir.mkdir()
+    rule_file = rules_dir / "100-snowflake-core.md"
+    rule_file.touch()
+    result = _normalize_to_repo_rule(str(rule_file), tmp_path)
+    assert result == "rules/100-snowflake-core.md"
+
+
+# --- Gate 3 tests ---
+
+
+@pytest.mark.unit
+def test_parse_rules_loaded_section_reads_gate3_subbullets() -> None:
+    """Gate 3 sub-bullets are parsed into sorted unique rule paths."""
+    text = """\
+PRE-FLIGHT:
+- [x] Gate 1: Foundation rules/000-global-core.md- 263 lines
+- [x] Gate 2: Searched: python
+- [x] Gate 3: Rules loaded:
+  - rules/000-global-core.md (foundation)- 263 lines
+  - rules/200-python-core.md (ext: .py)- 453 lines
+
+Task Switch: FIRST
+"""
+    result = parse_rules_loaded_section(text)
+    assert result == ("rules/000-global-core.md", "rules/200-python-core.md")
+
+
+@pytest.mark.unit
+def test_parse_rules_loaded_section_gate3_terminates_on_task_switch() -> None:
+    """Rule paths after Task Switch: are not included."""
+    text = """\
+- [x] Gate 3: Rules loaded:
+  - rules/000-global-core.md (foundation)- 263 lines
+
+Task Switch: FIRST
+- rules/999-should-not-appear.md
+"""
+    result = parse_rules_loaded_section(text)
+    assert "rules/999-should-not-appear.md" not in result
+    assert "rules/000-global-core.md" in result
+
+
+@pytest.mark.unit
+def test_extract_citations_gate3_line_counts() -> None:
+    """Version values are parsed from Gate 3 sub-bullets; line-count suffixes ignored."""
+    text = """\
+- [x] Gate 3: Rules loaded:
+  - rules/000-global-core.md (foundation)- v4.0.0
+  - rules/200-python-core.md (ext: .py)- v3.2.1
+
+Task Switch: FIRST
+"""
+    out = extract_citations(text, "Rules Loaded")
+    assert out["rules/000-global-core.md"] == Citation(version="4.0.0")
+    assert out["rules/200-python-core.md"] == Citation(version="3.2.1")
+
+
+@pytest.mark.unit
+def test_extract_citations_gate3_failed_line() -> None:
+    """FAILED: not found sub-bullet yields Citation(failed=True)."""
+    text = """\
+- [x] Gate 3: Rules loaded:
+  - rules/000-global-core.md (foundation)- v4.0.0
+  - rules/999-missing.md FAILED: not found
+
+Task Switch: FIRST
+"""
+    out = extract_citations(text, "Rules Loaded")
+    assert out["rules/999-missing.md"] == Citation(failed=True)
+    assert out["rules/000-global-core.md"] == Citation(version="4.0.0")
+
+
+@pytest.mark.unit
+def test_parse_rules_loaded_section_still_reads_legacy_heading() -> None:
+    """Legacy ## Rules Loaded heading remains accepted (C1 regression guard)."""
+    text = """\
+## Rules Loaded
+- rules/000-global-core.md (foundation)- 263 lines
+- rules/200-python-core.md (ext: .py)- 453 lines
+
+Task Switch: FIRST
+"""
+    result = parse_rules_loaded_section(text)
+    assert result == ("rules/000-global-core.md", "rules/200-python-core.md")
+
+
+@pytest.mark.unit
+def test_gate3_anchor_rejects_incidental_prose_without_checkbox() -> None:
+    """A prose line containing 'Gate 3:' without checkbox anchor does not start the rules section."""
+    text = """\
+Step Gate 3: Compare against current production version
+- rules/999-should-not-appear.md
+
+## Rules Loaded
+- rules/000-global-core.md (foundation)- 263 lines
+"""
+    result = parse_rules_loaded_section(text)
+    assert "rules/999-should-not-appear.md" not in result
+    assert "rules/000-global-core.md" in result
+
+
+# ---------------------------------------------------------------------------
+# New Gate-1-only shape tests (added 2026-07-10)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_extract_citations_reads_gate1_foundation() -> None:
+    """Gate 1 foundation citation is captured when foundation is NOT in Gate 3."""
+    text = """\
+PRE-FLIGHT:
+- [x] Gate 1: Foundation rules/000-global-core.md- v4.0.0
+- [x] Gate 2: Searched: python
+- [x] Gate 3: +1 domain rule:
+  - rules/200-python-core.md (file extension: .py)- v3.2.1
+
+Task Switch: FIRST
+"""
+    out = extract_citations(text, "Rules Loaded")
+    assert out["rules/000-global-core.md"] == Citation(version="4.0.0")
+    assert out["rules/200-python-core.md"] == Citation(version="3.2.1")
+
+
+@pytest.mark.unit
+def test_extract_citations_reads_gate1_foundation_no_line_count() -> None:
+    """Gate 1 foundation citation without line count yields Citation() with line_count=None."""
+    text = """\
+- [x] Gate 1: Foundation rules/000-global-core.md loaded
+- [x] Gate 3: none matched
+
+Task Switch: FIRST
+"""
+    out = extract_citations(text, "Rules Loaded")
+    assert "rules/000-global-core.md" in out
+    assert out["rules/000-global-core.md"].line_count is None
+
+
+@pytest.mark.unit
+def test_extract_citations_gate1_prose_not_matched() -> None:
+    """Prose line mentioning Gate 1 without checkbox prefix does not mis-capture a citation."""
+    text = """\
+Step Gate 1: Foundation rules/999-test-core.md should not appear
+- [x] Gate 3: none matched
+
+Task Switch: FIRST
+"""
+    out = extract_citations(text, "Rules Loaded")
+    assert "rules/999-test-core.md" not in out
+
+
+@pytest.mark.unit
+def test_parse_rules_loaded_section_gate1_only_returns_domain_only() -> None:
+    """Gate-1-only shape: Gate 3 sub-bullets include domain rules; Task 6.1 fix adds Gate 1 foundation."""
+    text = """\
+- [x] Gate 1: Foundation rules/000-global-core.md- 268 lines
+- [x] Gate 3: +1 domain rule:
+  - rules/200-python-core.md (file extension: .py)- 453 lines
+
+Task Switch: FIRST
+"""
+    result = parse_rules_loaded_section(text)
+    assert "rules/200-python-core.md" in result
+    # Task 6.1 fix: Gate 1 foundation is now scanned and included in the result.
+    assert "rules/000-global-core.md" in result
+
+
+@pytest.mark.unit
+def test_no_rules_re_accepts_gate3_none_matched() -> None:
+    """New sentinel 'Gate 3: none matched' is matched by _NO_RULES_RE."""
+    from ai_rules.rule_loader_eval.agent_runner import _NO_RULES_RE
+
+    assert _NO_RULES_RE.search("- [x] Gate 3: none matched")
+    assert _NO_RULES_RE.search("- [x] Gate 3: none matched\n")
+    # Legacy form still accepted
+    assert _NO_RULES_RE.search("(none - no domain rules matched)")
+    assert _NO_RULES_RE.search("(none - no domain rules matched)")
+    # Must NOT match unrelated text
+    assert not _NO_RULES_RE.search("Gate 3: +1 domain rule:")
+    assert not _NO_RULES_RE.search("rules/200-python-core.md")
+
+
+@pytest.mark.unit
+def test_no_ln_shorthand_not_present_in_canonical_artifacts() -> None:
+    """Negative guard: templates, rules, docs, and AGENTS.md must not use the shorthand
+    ': N ln' (only ': N lines' is accepted by the citation-drift checker).
+    """
+    import pathlib
+    import re as _re
+
+    root = pathlib.Path(__file__).parents[3]
+    patterns = _re.compile(r": \s*\d+\s+ln\b|; \s*N\s+ln\b")
+    hits: list[str] = []
+    for glob in [
+        "templates/*.template",
+        "rules/*.md",
+        "docs/*.md",
+        "AGENTS.md",
+    ]:
+        for path in root.glob(glob):
+            for lineno, line in enumerate(path.read_text().splitlines(), 1):
+                if patterns.search(line):
+                    hits.append(f"{path.relative_to(root)}:{lineno}: {line.strip()}")
+    assert hits == [], "Found ': N ln' shorthand in canonical artifacts:\n" + "\n".join(hits)
+
+
+# ---------------------------------------------------------------------------
+# Task 6.2: test_parse_rules_loaded_section_gate1_foundation
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_parse_rules_loaded_section_gate1_foundation() -> None:
+    """After Task 6.1 fix, Gate 1 foundation appears in parse_rules_loaded_section output."""
+    gate1_only_text = (
+        "- [x] Gate 1: Foundation rules/000-global-core.md- 273 lines\n"
+        "- [x] Gate 3: +1 domain rule:\n"
+        "  - rules/200-python-core.md (ext: .py)\n"
+    )
+    result = parse_rules_loaded_section(gate1_only_text)
+    # Post-fix: foundation on Gate 1 is included
+    assert "rules/000-global-core.md" in result
+    assert "rules/200-python-core.md" in result
+
+    # Regression guard: if Gate 1 scan block is absent, foundation would NOT be present.
+    # Demonstrate via a helper that strips the Gate 1 line:
+    gate3_only_text = "- [x] Gate 3: +1 domain rule:\n  - rules/200-python-core.md (ext: .py)\n"
+    result_gate3_only = parse_rules_loaded_section(gate3_only_text)
+    assert "rules/000-global-core.md" not in result_gate3_only
+    assert "rules/200-python-core.md" in result_gate3_only
+
+    # No double-count: when foundation appears on both Gate 1 and Gate 3, result has it once
+    both_text = (
+        "- [x] Gate 1: Foundation rules/000-global-core.md- 273 lines\n"
+        "- [x] Gate 3: +2 domain rules:\n"
+        "  - rules/000-global-core.md (foundation)\n"
+        "  - rules/200-python-core.md (ext: .py)\n"
+    )
+    result_both = parse_rules_loaded_section(both_text)
+    assert result_both.count("rules/000-global-core.md") == 1  # tuple; count occurrences
+    assert "rules/200-python-core.md" in result_both
+
+
+# ---------------------------------------------------------------------------
+# Task 6.3: test_gate1_citation_no_read_capture_behavior
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_gate1_citation_no_read_capture_behavior() -> None:
+    """After Task 6.1, Gate 1 foundation in section_set but not in read_set produces
+    cited_without_read_unexpected: the accepted (non-false-positive) behavior.
+
+    Background (H3): if the model cites foundation only on Gate 1 and no read_file
+    call was captured, section_set includes 000-global-core.md but reads does not.
+    The signal should be cited_without_read (correct diagnostic), not
+    read_without_cite_unexpected (which was the prior false positive before Task 6.1).
+    """
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import signal_disagreement
+
+    # Simulate: Gate 1 foundation cited in section_set, but no read_file captured
+    run = AgentRun(
+        fixture_id="test-fixture",
+        loaded=("rules/000-global-core.md",),
+        loaded_via_reads=(),  # no read_file call captured
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/000-global-core.md",),  # from Gate 1 scan (Task 6.1)
+    )
+    report = signal_disagreement(run)
+    # cited_without_read fires (correct: foundation was cited but no read captured)
+    assert "rules/000-global-core.md" in report.cited_without_read
+    # read_without_cite_unexpected does NOT fire (that was the old false positive)
+    assert "rules/000-global-core.md" not in report.read_without_cite_unexpected
+
+
+# ---------------------------------------------------------------------------
+# Task 6.4: reference-file exclusion tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_rules_index_read_step2b_no_signal_contribution() -> None:
+    """When model reads rules/RULES_INDEX.md (Step 2B fallback) and does not cite it,
+    the signal-partition reports zero contribution from RULES_INDEX.md.
+    """
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import signal_disagreement
+
+    run = AgentRun(
+        fixture_id="test-fixture",
+        loaded=("rules/000-global-core.md",),
+        loaded_via_reads=("rules/000-global-core.md", "rules/RULES_INDEX.md"),
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/000-global-core.md",),
+    )
+    report = signal_disagreement(run)
+    # RULES_INDEX.md must not appear in any signal set
+    for field in (
+        report.cited_without_read,
+        report.read_without_cite_unexpected,
+        report.read_without_cite_tolerated,
+    ):
+        assert "rules/RULES_INDEX.md" not in field, f"RULES_INDEX.md appeared in signal: {field}"
+    assert all("RULES_INDEX" not in d for d in report.disagreements)
+
+
+@pytest.mark.unit
+def test_skill_path_no_rules_index_read_unchanged_signals() -> None:
+    """When model takes the skill path (no RULES_INDEX.md read), signal output is unchanged."""
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import signal_disagreement
+
+    run_no_index = AgentRun(
+        fixture_id="test-fixture",
+        loaded=("rules/000-global-core.md",),
+        loaded_via_reads=("rules/000-global-core.md",),
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/000-global-core.md",),
+    )
+    run_with_index = AgentRun(
+        fixture_id="test-fixture",
+        loaded=("rules/000-global-core.md",),
+        loaded_via_reads=("rules/000-global-core.md", "rules/RULES_INDEX.md"),
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/000-global-core.md",),
+    )
+    report_no = signal_disagreement(run_no_index)
+    report_with = signal_disagreement(run_with_index)
+    # Both reports should have same disagreements, cited_without_read, read_without_cite sets
+    assert report_no.ok == report_with.ok
+    assert report_no.cited_without_read == report_with.cited_without_read
+    assert report_no.read_without_cite_unexpected == report_with.read_without_cite_unexpected
+
+
+# ---------------------------------------------------------------------------
+# RF4: extract_contract_text preserves Gate 1
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_extract_contract_text_preserves_gate_1() -> None:
+    """RF4: extract_contract_text must preserve Gate 1 when the full PRE-FLIGHT block is present."""
+    text = (
+        "Some preamble text that should be discarded.\n"
+        "\n"
+        "PRE-FLIGHT:\n"
+        "- [x] Gate 1: Foundation rules/000-global-core.md- 273 lines\n"
+        "- [x] Gate 2: RULES_INDEX.md searched for: snowflake, sql\n"
+        "- [x] Gate 3: +1 domain rule(s):\n"
+        "  - rules/100-snowflake-core.md (snowflake)- 150 lines\n"
+        "\n"
+        "Task Switch: FIRST\n"
+    )
+    result = extract_contract_text(text)
+    assert "Gate 1" in result
+    assert "rules/000-global-core.md" in result
+    assert "Gate 3" in result
+    assert "Some preamble" not in result
+
+
+@pytest.mark.unit
+def test_extract_contract_text_gate1_without_preflight_marker() -> None:
+    """RF4: Gate 1 line is found even without explicit PRE-FLIGHT: marker."""
+    text = (
+        "Intro paragraph.\n"
+        "- [x] Gate 1: Foundation rules/000-global-core.md- 273 lines\n"
+        "- [x] Gate 3: +1 domain rule(s):\n"
+        "  - rules/102-snowflake-sql-core.md (sql)- 80 lines\n"
+    )
+    result = extract_contract_text(text)
+    assert "Gate 1" in result
+    assert "Intro paragraph" not in result
+
+
+@pytest.mark.unit
+def test_extract_contract_text_legacy_format_still_works() -> None:
+    """RF4: Legacy **Rules Loaded** format still works after the fix."""
+    text = "Some intro.\n\n**Rules Loaded**\n\n- rules/100-snowflake-core.md\n"
+    result = extract_contract_text(text)
+    assert "**Rules Loaded**" in result
+    assert "Some intro" not in result
+
+
+# ---------------------------------------------------------------------------
+# RF5: bash inspection counts as read
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_bash_inspection_counts_as_read() -> None:
+    """RF5: bash wc/cat/head on a rule path is captured as a read."""
+    from ai_rules.rule_loader_eval.agent_runner import _extract_bash_rule_paths
+
+    assert _extract_bash_rule_paths("wc -l rules/100-snowflake-core.md") == [
+        "rules/100-snowflake-core.md"
+    ]
+    assert _extract_bash_rule_paths(
+        "cat /Users/me/ai_coding_rules/rules/102-snowflake-sql-core.md"
+    ) == ["rules/102-snowflake-sql-core.md"]
+    assert _extract_bash_rule_paths("head -20 rules/000-global-core.md") == [
+        "rules/000-global-core.md"
+    ]
+    assert _extract_bash_rule_paths("tail -n 5 rules/940-business-analytics.md") == [
+        "rules/940-business-analytics.md"
+    ]
+    assert _extract_bash_rule_paths("sed -n '1,10p' rules/117-snowflake-mcp-core.md") == [
+        "rules/117-snowflake-mcp-core.md"
+    ]
+    assert _extract_bash_rule_paths("grep -c 'keyword' rules/112-snowflake-snowcli-core.md") == [
+        "rules/112-snowflake-snowcli-core.md"
+    ]
+    # Non-rule paths should not match
+    assert _extract_bash_rule_paths("wc -l src/main.py") == []
+    assert _extract_bash_rule_paths("ls rules/") == []
+    assert _extract_bash_rule_paths("echo hello") == []
+
+
+# ---------------------------------------------------------------------------
+# RF10: marker-aware signal partition
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_marker_aware_signal_partition_read_marker() -> None:
+    """RF10: [x] citation without read_file → cited_without_read."""
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import signal_disagreement
+
+    run = AgentRun(
+        fixture_id="test",
+        loaded=("rules/100-snowflake-core.md",),
+        loaded_via_reads=(),  # no reads!
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/100-snowflake-core.md",),
+        citations_rules_loaded={
+            "rules/100-snowflake-core.md": Citation(line_count=150, provenance="x"),
+        },
+    )
+    report = signal_disagreement(run)
+    assert not report.ok
+    assert "rules/100-snowflake-core.md" in report.cited_without_read
+
+
+@pytest.mark.unit
+def test_marker_aware_signal_partition_manifest_marker() -> None:
+    """RF10: [~] citation in manifest → passes; not in manifest → cited_without_manifest."""
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import signal_disagreement
+
+    run = AgentRun(
+        fixture_id="test",
+        loaded=("rules/100-snowflake-core.md", "rules/102-snowflake-sql-core.md"),
+        loaded_via_reads=(),
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/100-snowflake-core.md", "rules/102-snowflake-sql-core.md"),
+        citations_rules_loaded={
+            "rules/100-snowflake-core.md": Citation(line_count=150, provenance="~"),
+            "rules/102-snowflake-sql-core.md": Citation(line_count=80, provenance="~"),
+        },
+        manifest_paths=frozenset({"rules/100-snowflake-core.md"}),
+    )
+    report = signal_disagreement(run)
+    assert not report.ok
+    assert "rules/102-snowflake-sql-core.md" in report.cited_without_manifest
+    assert "rules/100-snowflake-core.md" not in report.cited_without_manifest
+    assert report.cited_without_read == ()
+
+
+@pytest.mark.unit
+def test_marker_aware_signal_partition_inferred_marker() -> None:
+    """RF10/RF11: [?] citations never hard-fail; counted as inferred."""
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import signal_disagreement
+
+    run = AgentRun(
+        fixture_id="test",
+        loaded=("rules/100-snowflake-core.md",),
+        loaded_via_reads=(),
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/100-snowflake-core.md",),
+        citations_rules_loaded={
+            "rules/100-snowflake-core.md": Citation(line_count=150, provenance="?"),
+        },
+    )
+    report = signal_disagreement(run)
+    assert report.ok  # [?] never hard-fails
+    assert report.cited_without_read == ()
+    assert report.inferred_citation_count == 1
+    assert report.inferred_citation_rate == 1.0
+
+
+@pytest.mark.unit
+def test_cumulative_reads_satisfy_citation() -> None:
+    """RF8: prior_reads satisfy [x] citations without a repeat read this turn."""
+    from ai_rules.rule_loader_eval.agent_runner import AgentRun
+    from ai_rules.rule_loader_eval.diagnostics import signal_disagreement
+
+    run = AgentRun(
+        fixture_id="test",
+        loaded=("rules/100-snowflake-core.md",),
+        loaded_via_reads=(),  # not read this turn
+        loaded_via_reads_performed=(),
+        loaded_via_section=("rules/100-snowflake-core.md",),
+        citations_rules_loaded={
+            "rules/100-snowflake-core.md": Citation(line_count=150, provenance="x"),
+        },
+        prior_reads=frozenset({"rules/100-snowflake-core.md"}),  # read in prior turn
+    )
+    report = signal_disagreement(run)
+    assert report.ok
+    assert report.cited_without_read == ()
+
+
+# ---------------------------------------------------------------------------
+# Validator correctness: negated foundation mention / +0 no-match shape
+# ---------------------------------------------------------------------------
+
+
+def test_gate1_negated_foundation_is_not_a_citation() -> None:
+    """Naming the foundation rule to say it was NOT read must not count as a citation.
+
+    The progressive prompt instructs the agent not to read rules/000-global-core.md.
+    A compliant agent reports that fact on Gate 1; harvesting the path from that
+    line produced a false cited_without_read (fabrication) failure.
+    """
+    from ai_rules.rule_loader_eval.agent_runner import parse_rules_loaded_section
+
+    text = (
+        "PRE-FLIGHT:\n"
+        "- [x] Gate 1: Foundation loaded (micro-kernel in context; "
+        "`rules/000-global-core.md` intentionally not read)\n"
+        "- [x] Gate 2: Discovery performed\n"
+        "- [x] Gate 3: +1 domain rule(s):\n"
+        "  - rules/112-snowflake-snowcli.md (snow CLI deploy)\n"
+    )
+    cited = parse_rules_loaded_section(text)
+    assert "rules/000-global-core.md" not in cited
+    assert "rules/112-snowflake-snowcli.md" in cited
+
+
+def test_gate1_positive_foundation_still_counts() -> None:
+    """A genuine Gate 1 foundation citation is still harvested."""
+    from ai_rules.rule_loader_eval.agent_runner import parse_rules_loaded_section
+
+    text = (
+        "PRE-FLIGHT:\n"
+        "- [x] Gate 1: Foundation rules/000-global-core.md- v5.0.0\n"
+        "- [x] Gate 3: none matched\n"
+    )
+    assert "rules/000-global-core.md" in parse_rules_loaded_section(text)
+
+
+def test_no_rules_regex_accepts_plus_zero_shape() -> None:
+    """'+0 domain rule(s)' is a valid empty-case rendering of the +N template."""
+    from ai_rules.rule_loader_eval.agent_runner import _NO_RULES_RE
+
+    assert _NO_RULES_RE.search("- [x] Gate 3: +0 domain rule(s):")
+    assert _NO_RULES_RE.search("- [x] Gate 3: +0 domain rule(s):\n  - none matched")
+    assert _NO_RULES_RE.search("- [ ] Gate 3: +0 domain rule(s): **none loaded**")
+    # Non-empty counts must still be rejected
+    assert not _NO_RULES_RE.search("Gate 3: +1 domain rule(s):")
+    assert not _NO_RULES_RE.search("Gate 3: +2 domain rule(s):")
+
+
+def test_validate_output_shape_accepts_plus_zero() -> None:
+    from ai_rules.rule_loader_eval.agent_runner import validate_output_shape
+
+    text = "PRE-FLIGHT:\n- [x] Gate 3: +0 domain rule(s):\n  - none matched\n"
+    assert validate_output_shape(text, loaded_count=0) == ()
+
+
+# ---------------------------------------------------------------------------
+# build_prompt discovery contract (Phase 3)
+# ---------------------------------------------------------------------------
+
+
+def _discovery_prompt() -> str:
+    from pathlib import Path as _P
+
+    from ai_rules.rule_loader_eval.agent_runner import build_prompt
+
+    repo = _P(__file__).resolve().parents[2]
+    return build_prompt("Review jobs/extract_load.py retry logic.", repo / "rules")
+
+
+def test_build_prompt_orders_stop_after_discovery() -> None:
+    """HARD STOP alone was read as 'make no tool calls', yielding zero-rule runs.
+
+    The stop boundary must be stated as an ordered two-step contract so the agent
+    understands reading rules happens BEFORE the stop.
+    """
+    p = _discovery_prompt()
+    assert "two steps" in p
+    assert "The stop boundary applies AFTER step 1" in p
+    assert "does NOT forbid reading rule files" in p
+
+
+def test_build_prompt_anchors_rules_root() -> None:
+    """Agents guessed absolute project roots (e.g. /root/rules) and failed to read."""
+    from pathlib import Path as _P
+
+    p = _discovery_prompt()
+    assert "RULE PATHS:" in p
+    assert str(_P(__file__).resolve().parents[2] / "rules") in p
+    assert "do NOT guess a project root" in p
+
+
+def test_build_prompt_frames_matches_as_candidates_not_orders() -> None:
+    """The old wording ('Read each one') contradicted the micro-kernel 3-rule cap."""
+    p = _discovery_prompt()
+    assert "CANDIDATES" in p
+    assert "Select the most relevant (up to 3)" in p
+    assert "Read each one before responding" not in p
+
+
+def test_build_prompt_requires_preflight_unconditionally() -> None:
+    """Agents that could not find project files replied in prose with no Gate 3."""
+    p = _discovery_prompt()
+    assert "UNCONDITIONAL OUTPUT REQUIREMENT:" in p
+    assert "no exceptions" in p
+    assert "Ask a clarifying question" in p
+
+
+def test_build_prompt_gives_single_no_match_shape() -> None:
+    """Offering both '+N domain rule(s)' and 'none matched' produced hybrid output."""
+    p = _discovery_prompt()
+    assert "- [x] Gate 3: none matched" in p
+    assert "nothing else in its place" in p

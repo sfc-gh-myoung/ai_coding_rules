@@ -1,0 +1,26 @@
+# Foundation (micro-kernel)
+
+## Mandatory Behaviors
+- Present a task list before any file modifications
+- Make surgical edits only (minimal, targeted changes)
+- Run validation (lint, test, format) before marking tasks complete
+- Never declare a rule as loaded without a successful read
+- Load language-specific rules when modifying code files
+
+## Validation Sequence
+1. Detect project automation, first match wins: Makefile, then Taskfile.yml, then package.json, then direct commands
+2. Run validation tools appropriate to the language
+3. On failure: revert, report with exact error and fix
+
+## Rule Loading
+- The manifest is metadata only; each load_sequence entry with read_required=true MUST be loaded via read_file before citation
+- Read rule paths EXACTLY as given. When a path is absolute (plugin-installed rules, e.g. `<plugin-root>/rules/100-snowflake-core.md`), use it directly. When a path is repo-relative (e.g. `rules/100-snowflake-core.md`), resolve it against the repository root only; never convert a supplied absolute path and never guess a project root. If an absolute plugin path and a repo-relative path for the same rule both appear, prefer the absolute one.
+- Matched rules are CANDIDATES, not instructions to read all of them: select the most relevant, up to 3
+- Cap: 3 domain rules per response (dependencies don't count against cap)
+- Load domain rules matching file extensions being modified
+- If no rules match: proceed with foundation only, note "none matched"
+
+## Communication
+- Technical, concise, code-first
+- No emojis unless requested
+- Show deltas not entire files

@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Complete layer pattern reference for PyDeck visualization, including 8 layer types and multi-layer composition."
+last_updated: 2026-07-15
+keywords:
+  - kw:pydeck layer types
+  - kw:HexagonLayer aggregation
+  - kw:GeoJsonLayer extrusion
+  - kw:ArcLayer flow visualization
+  - kw:multi-layer composition
+  - kw:deck.gl accessor syntax
+  - kw:streamlit
+token_budget: ~2950
+context_tier: Low
+depends:
+  optional:
+    - 101j-snowflake-streamlit-viz-pydeck.md  # Core PyDeck patterns, ViewState, coordinate validation
+---
 # PyDeck Layer Reference
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** pydeck layers, HexagonLayer, ScatterplotLayer, GeoJsonLayer, ArcLayer, ColumnLayer, HeatmapLayer, PathLayer, TerrainLayer, PointCloudLayer, multi-layer
-**TokenBudget:** ~2950
-**ContextTier:** Low
-**Depends:** 101j-snowflake-streamlit-viz-pydeck.md
 
 ## Scope
 
@@ -22,10 +31,9 @@ Complete layer pattern reference for PyDeck visualization, including 8 layer typ
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **101j-snowflake-streamlit-viz-pydeck.md** - Core PyDeck patterns, ViewState, coordinate validation
+_None._
 
 ## Contract
 
@@ -66,15 +74,15 @@ Configured PyDeck layer ready for `pdk.Deck(layers=[...])`.
 
 ### Layer Selection Guide
 
-- **Dense point aggregation / heatmap bins** -- HexagonLayer
-- **Individual point display with attributes** -- ScatterplotLayer
-- **Building footprints / region boundaries** -- GeoJsonLayer
-- **Network flows / origin-destination** -- ArcLayer
-- **Comparative values by location (3D bars)** -- ColumnLayer
-- **Continuous density surface** -- HeatmapLayer
-- **Route tracking / GPS trajectories** -- PathLayer
-- **3D terrain with satellite imagery** -- TerrainLayer
-- **LiDAR / 3D point cloud data** -- PointCloudLayer
+- **Dense point aggregation / heatmap bins**: HexagonLayer
+- **Individual point display with attributes**: ScatterplotLayer
+- **Building footprints / region boundaries**: GeoJsonLayer
+- **Network flows / origin-destination**: ArcLayer
+- **Comparative values by location (3D bars)**: ColumnLayer
+- **Continuous density surface**: HeatmapLayer
+- **Route tracking / GPS trajectories**: PathLayer
+- **3D terrain with satellite imagery**: TerrainLayer
+- **LiDAR / 3D point cloud data**: PointCloudLayer
 
 ## HexagonLayer (Density Aggregation)
 
@@ -82,30 +90,24 @@ Configured PyDeck layer ready for `pdk.Deck(layers=[...])`.
 
 ```python
 layer = pdk.Layer(
-    'HexagonLayer',
+    "HexagonLayer",
     data=df,
-    get_position='[longitude, latitude]',
+    get_position="[longitude, latitude]",
     radius=200,
     elevation_scale=50,
     elevation_range=[0, 1000],
     extruded=True,
     coverage=0.8,
     pickable=True,
-    auto_highlight=True
+    auto_highlight=True,
 )
 
 view_state = pdk.ViewState(
-    latitude=df['latitude'].mean(),
-    longitude=df['longitude'].mean(),
-    zoom=10,
-    pitch=50,
-    bearing=-27
+    latitude=df["latitude"].mean(), longitude=df["longitude"].mean(), zoom=10, pitch=50, bearing=-27
 )
 
 deck = pdk.Deck(
-    layers=[layer],
-    initial_view_state=view_state,
-    map_style='mapbox://styles/mapbox/dark-v10'
+    layers=[layer], initial_view_state=view_state, map_style="mapbox://styles/mapbox/dark-v10"
 )
 st.pydeck_chart(deck, width="stretch")
 ```
@@ -116,17 +118,17 @@ st.pydeck_chart(deck, width="stretch")
 
 ```python
 layer = pdk.Layer(
-    'ScatterplotLayer',
+    "ScatterplotLayer",
     data=df,
-    get_position='[longitude, latitude]',
+    get_position="[longitude, latitude]",
     get_color='[category == "A" ? 255 : 0, category == "B" ? 255 : 0, 200, 180]',
-    get_radius='value * 10',
+    get_radius="value * 10",
     radius_min_pixels=2,
     radius_max_pixels=50,
     pickable=True,
     opacity=0.8,
     stroked=True,
-    line_width_min_pixels=1
+    line_width_min_pixels=1,
 )
 ```
 
@@ -136,17 +138,17 @@ layer = pdk.Layer(
 
 ```python
 layer = pdk.Layer(
-    'GeoJsonLayer',
+    "GeoJsonLayer",
     data=geojson_url,
     opacity=0.8,
     stroked=True,
     filled=True,
     extruded=True,
     wireframe=True,
-    get_elevation='properties.height',
-    get_fill_color='[255, 255, properties.value * 2.55]',
+    get_elevation="properties.height",
+    get_fill_color="[255, 255, properties.value * 2.55]",
     get_line_color=[255, 255, 255],
-    pickable=True
+    pickable=True,
 )
 
 # Full Deck assembly for GeoJsonLayer
@@ -161,15 +163,15 @@ st.pydeck_chart(deck, width="stretch")
 
 ```python
 layer = pdk.Layer(
-    'ArcLayer',
+    "ArcLayer",
     data=connections_df,
-    get_source_position='[source_lon, source_lat]',
-    get_target_position='[target_lon, target_lat]',
-    get_source_color='[64, 255, 0]',
-    get_target_color='[0, 128, 200]',
-    get_width='flow_volume / 100',
+    get_source_position="[source_lon, source_lat]",
+    get_target_position="[target_lon, target_lat]",
+    get_source_color="[64, 255, 0]",
+    get_target_color="[0, 128, 200]",
+    get_width="flow_volume / 100",
     pickable=True,
-    auto_highlight=True
+    auto_highlight=True,
 )
 
 # Full Deck assembly for ArcLayer
@@ -184,15 +186,15 @@ st.pydeck_chart(deck, width="stretch")
 
 ```python
 layer = pdk.Layer(
-    'ColumnLayer',
+    "ColumnLayer",
     data=df,
-    get_position='[longitude, latitude]',
-    get_elevation='value',
+    get_position="[longitude, latitude]",
+    get_elevation="value",
     elevation_scale=100,
     radius=50,
-    get_fill_color='[value * 2, 100, 200, 200]',
+    get_fill_color="[value * 2, 100, 200, 200]",
     pickable=True,
-    auto_highlight=True
+    auto_highlight=True,
 )
 ```
 
@@ -202,14 +204,14 @@ layer = pdk.Layer(
 
 ```python
 layer = pdk.Layer(
-    'HeatmapLayer',
+    "HeatmapLayer",
     data=df,
-    get_position='[longitude, latitude]',
-    get_weight='intensity',
-    aggregation=pdk.types.String('MEAN'),
+    get_position="[longitude, latitude]",
+    get_weight="intensity",
+    aggregation=pdk.types.String("MEAN"),
     radius_pixels=50,
     intensity=1,
-    threshold=0.05
+    threshold=0.05,
 )
 ```
 
@@ -219,14 +221,14 @@ layer = pdk.Layer(
 
 ```python
 layer = pdk.Layer(
-    'PathLayer',
+    "PathLayer",
     data=routes_df,
-    get_path='coordinates',
-    get_color='[255, 100, 100]',
+    get_path="coordinates",
+    get_color="[255, 100, 100]",
     width_scale=20,
     width_min_pixels=2,
     get_width=5,
-    pickable=True
+    pickable=True,
 )
 ```
 
@@ -236,16 +238,11 @@ layer = pdk.Layer(
 
 ```python
 layer = pdk.Layer(
-    'TerrainLayer',
-    elevation_decoder={
-        'rScaler': 256,
-        'gScaler': 1,
-        'bScaler': 1/256,
-        'offset': -32768
-    },
-    elevation_data='https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
-    texture='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    bounds=[-122.52, 37.70, -122.35, 37.82]
+    "TerrainLayer",
+    elevation_decoder={"rScaler": 256, "gScaler": 1, "bScaler": 1 / 256, "offset": -32768},
+    elevation_data="https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
+    texture="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    bounds=[-122.52, 37.70, -122.35, 37.82],
 )
 ```
 
@@ -255,14 +252,14 @@ layer = pdk.Layer(
 
 ```python
 layer = pdk.Layer(
-    'PointCloudLayer',
+    "PointCloudLayer",
     data=points_df,
-    get_position='[longitude, latitude, elevation]',
-    get_color='[255, height * 2, 0]',
-    get_normal='[0, 0, 1]',
+    get_position="[longitude, latitude, elevation]",
+    get_color="[255, height * 2, 0]",
+    get_normal="[0, 0, 1]",
     point_size=2,
     pickable=True,
-    auto_highlight=True
+    auto_highlight=True,
 )
 ```
 
@@ -270,38 +267,38 @@ layer = pdk.Layer(
 
 ```python
 scatter_layer = pdk.Layer(
-    'ScatterplotLayer',
+    "ScatterplotLayer",
     data=points_df,
-    get_position='[longitude, latitude]',
-    get_color='[255, 0, 0, 160]',
+    get_position="[longitude, latitude]",
+    get_color="[255, 0, 0, 160]",
     get_radius=50,
-    pickable=True
+    pickable=True,
 )
 
 arc_layer = pdk.Layer(
-    'ArcLayer',
+    "ArcLayer",
     data=connections_df,
-    get_source_position='[src_lon, src_lat]',
-    get_target_position='[dst_lon, dst_lat]',
-    get_source_color='[0, 255, 0]',
-    get_target_color='[255, 0, 0]',
-    get_width=2
+    get_source_position="[src_lon, src_lat]",
+    get_target_position="[dst_lon, dst_lat]",
+    get_source_color="[0, 255, 0]",
+    get_target_color="[255, 0, 0]",
+    get_width=2,
 )
 
 polygon_layer = pdk.Layer(
-    'GeoJsonLayer',
+    "GeoJsonLayer",
     data=boundaries_geojson,
     opacity=0.3,
     stroked=True,
     filled=True,
-    get_fill_color='[100, 100, 200, 80]',
-    get_line_color='[255, 255, 255]'
+    get_fill_color="[100, 100, 200, 80]",
+    get_line_color="[255, 255, 255]",
 )
 
 deck = pdk.Deck(
     layers=[polygon_layer, arc_layer, scatter_layer],
     initial_view_state=view_state,
-    tooltip={'text': '{name}'}
+    tooltip={"text": "{name}"},
 )
 st.pydeck_chart(deck, width="stretch")
 ```
@@ -315,9 +312,9 @@ st.pydeck_chart(deck, width="stretch")
 ```python
 # WRONG - Python list won't be evaluated per-row
 layer = pdk.Layer(
-    'ScatterplotLayer',
+    "ScatterplotLayer",
     data=df,
-    get_position=[df['longitude'], df['latitude']],  # Passes entire Series objects
+    get_position=[df["longitude"], df["latitude"]],  # Passes entire Series objects
     get_color=(255, 0, 0),  # Tuple works for static, but inconsistent style
 )
 ```
@@ -326,11 +323,11 @@ layer = pdk.Layer(
 
 ```python
 layer = pdk.Layer(
-    'ScatterplotLayer',
+    "ScatterplotLayer",
     data=df,
-    get_position='[longitude, latitude]',  # String accessor - evaluated per row
-    get_color=[255, 0, 0, 180],            # Python list - static, same for all points
-    get_radius='value * 10',               # String expression - dynamic per row
+    get_position="[longitude, latitude]",  # String accessor - evaluated per row
+    get_color=[255, 0, 0, 180],  # Python list - static, same for all points
+    get_radius="value * 10",  # String expression - dynamic per row
 )
 ```
 
@@ -340,16 +337,16 @@ layer = pdk.Layer(
 
 ```python
 layer = pdk.Layer(
-    'ScatterplotLayer',
+    "ScatterplotLayer",
     data=df,
-    get_position='[longitude, latitude]',
+    get_position="[longitude, latitude]",
     get_radius=100,
     # Missing pickable=True
 )
 deck = pdk.Deck(
     layers=[layer],
     initial_view_state=view_state,
-    tooltip={'text': '{name}: {value}'}  # Tooltip configured but never triggers
+    tooltip={"text": "{name}: {value}"},  # Tooltip configured but never triggers
 )
 ```
 
@@ -357,9 +354,9 @@ deck = pdk.Deck(
 
 ```python
 layer = pdk.Layer(
-    'ScatterplotLayer',
+    "ScatterplotLayer",
     data=df,
-    get_position='[longitude, latitude]',
+    get_position="[longitude, latitude]",
     get_radius=100,
     pickable=True,  # Required for tooltip interaction
 )
@@ -372,11 +369,11 @@ layer = pdk.Layer(
 ```python
 # WRONG - radius (meters) and coverage are HexagonLayer params, not HeatmapLayer
 layer = pdk.Layer(
-    'HeatmapLayer',
+    "HeatmapLayer",
     data=df,
-    get_position='[longitude, latitude]',
-    radius=200,          # Ignored; HeatmapLayer uses radius_pixels
-    coverage=0.8,        # HexagonLayer-only parameter
+    get_position="[longitude, latitude]",
+    radius=200,  # Ignored; HeatmapLayer uses radius_pixels
+    coverage=0.8,  # HexagonLayer-only parameter
     elevation_scale=50,  # HeatmapLayer has no 3D extrusion
 )
 ```
@@ -386,10 +383,10 @@ layer = pdk.Layer(
 ```python
 # HeatmapLayer - pixel-based parameters
 heat_layer = pdk.Layer(
-    'HeatmapLayer',
+    "HeatmapLayer",
     data=df,
-    get_position='[longitude, latitude]',
-    get_weight='intensity',
+    get_position="[longitude, latitude]",
+    get_weight="intensity",
     radius_pixels=50,
     intensity=1,
     threshold=0.05,
@@ -397,9 +394,9 @@ heat_layer = pdk.Layer(
 
 # HexagonLayer - meter-based parameters
 hex_layer = pdk.Layer(
-    'HexagonLayer',
+    "HexagonLayer",
     data=df,
-    get_position='[longitude, latitude]',
+    get_position="[longitude, latitude]",
     radius=200,
     elevation_scale=50,
     coverage=0.8,

@@ -1,20 +1,36 @@
+---
+schema_version: v3.5
+rule_version: v4.1.0
+description: Best practices for authoring Claude Code skills in the skills/ directory.
+  Covers SKILL.md structure, YAML frontmatter, directory organization, progressive
+  disclosure patterns, input/output contracts,
+last_updated: 2026-08-02
+keywords:
+- kw:SKILL.md authoring
+- kw:YAML frontmatter
+- kw:progressive disclosure
+- kw:trigger keywords
+- kw:input output contracts
+- kw:third person description
+- kw:skill
+- kw:claude code skill
+- dir:skills/
+token_budget: ~5650
+context_tier: High
+depends:
+  required:
+  - 000-global-core.md
+  - 002-rule-governance.md
+  optional:
+  - 002a-rule-creation.md
+  - 002d-advanced-rule-patterns.md
+---
 # Claude Code Skills Best Practices
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential patterns for creating Claude Code skills.
 > Load when authoring, reviewing, or maintaining skills in the `skills/` directory.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.6.0
-**LastUpdated:** 2026-04-04
-**Keywords:** Claude Code, skills, SKILL.md, skill structure, progressive disclosure, workflows, trigger keywords, skill authoring, skill testing, skill validation, input contracts, output contracts, skill examples, YAML frontmatter, description writing, MCP tools, degrees of freedom, context window, third person, naming conventions
-**TokenBudget:** ~5100
-**ContextTier:** High
-**Depends:** 000-global-core.md, 002-rule-governance.md
-**LoadTrigger:** dir:skills/, kw:skill
 
 ## Scope
 
@@ -31,16 +47,6 @@ Best practices for authoring Claude Code skills in the `skills/` directory. Cove
 - Testing and validating skills
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **002-rule-governance.md** - Schema requirements and v3.2 standards
-
-**Related:**
-- **002a-rule-creation.md** - Rule authoring principles apply to skills
-- **002d-advanced-rule-patterns.md** - Progressive disclosure and workflows
 
 ### External Documentation
 
@@ -202,8 +208,8 @@ Skill directory structure with:
       (verb: reviews, noun: rule files, context: schema compliance + agent executability)
     - PASS: "Generates Snowflake stored procedures from natural language descriptions"
       (verb: generates, noun: stored procedures, context: Snowflake + natural language)
-    - FAIL: "Helps with documents" (verb: helps — too generic, no context)
-    - FAIL: "Processes data" (verb: processes — too generic, no domain noun specificity)
+    - FAIL: "Helps with documents" (verb: helps: too generic, no context)
+    - FAIL: "Processes data" (verb: processes: too generic, no domain noun specificity)
 
 **Project standard (optional fields):**
 - **version**: Semantic version (e.g., 1.0.0, 2.1.0) - Recommended for tracking changes
@@ -269,9 +275,9 @@ version: 2.0.0
 
 ### 3. Progressive Disclosure
 
-**Level 1 — YAML frontmatter:** Always loaded. Provides enough info for Claude to know when to use the skill.
-**Level 2 — SKILL.md body:** Loaded when skill is relevant. Contains full instructions.
-**Level 3 — Linked files:** `scripts/`, `references/`, `assets/` loaded only as needed. Keep references one level deep from SKILL.md.
+**Level 1: YAML frontmatter:** Always loaded. Provides enough info for Claude to know when to use the skill.
+**Level 2: SKILL.md body:** Loaded when skill is relevant. Contains full instructions.
+**Level 3: Linked files:** `scripts/`, `references/`, `assets/` loaded only as needed. Keep references one level deep from SKILL.md.
 
 ### 4. Input/Output Contracts
 
@@ -290,12 +296,14 @@ version: 2.0.0
 **Output Contract Pattern:**
 
 ```markdown
-## Output (required)
+## Outputs
 
 Write to: `path/to/<name>-<date>.md`
 
 **No overwrites:** If file exists, append `-01.md`, `-02.md`, etc.
 ```
+
+Use `## Outputs` (plural) as the top-level heading regardless of how many artifacts are produced. `### Output Format` is permitted as a subsection. This is a project-local convention; Anthropic's upstream Agent Skills spec does not mandate a structural Outputs section.
 
 ### 5. Trigger Keywords
 
@@ -376,7 +384,7 @@ Create evaluations BEFORE writing extensive documentation: identify gaps by runn
 }
 ```
 
-There is no built-in evaluation runner — create your own or evaluate manually.
+There is no built-in evaluation runner: create your own or evaluate manually.
 
 #### Test with All Models You Plan to Use
 
@@ -447,7 +455,7 @@ reader = PdfReader("file.pdf")
 
 When multiple developers may edit the same skill:
 
-1. Use git branches — one branch per skill modification
+1. Use git branches: one branch per skill modification
 2. Check `git status skills/<skill-name>/` before editing
 3. If conflict on SKILL.md: prefer the version with more specific trigger keywords
 4. If conflict on workflow files: merge both changes, re-test the complete workflow
@@ -561,6 +569,26 @@ For scanned PDFs requiring OCR, use pdf2image with pytesseract instead."
 
 Provide a single recommended approach. Only mention alternatives when a specific condition requires them.
 
+### Anti-Pattern 8: Singular `## Output` or Decorative Heading Suffixes
+
+**Problem:**
+```markdown
+# BAD: Heading carries commentary
+## Output (required)
+## Inputs (recommended)
+## Workflow (progressive disclosure)
+```
+
+**Correct Pattern:**
+```markdown
+# GOOD: Heading is the canonical noun only
+## Outputs
+## Inputs
+## Workflow
+```
+
+Section names must be the canonical noun only; commentary belongs in body prose. Use `## Outputs` (plural) for parallelism with `## Inputs`. Aligns with Google Developer Documentation Style Guide and Microsoft Writing Style Guide conventions for technical-documentation headings.
+
 ### Testing Skill Discovery
 
 To verify a skill triggers correctly:
@@ -575,24 +603,25 @@ To verify a skill triggers correctly:
 
 As you iterate on skills, watch how Claude actually uses them:
 
-- **Unexpected exploration paths:** Claude reads files in an unanticipated order — structure may not be intuitive
-- **Missed connections:** Claude fails to follow references — links need to be more explicit or prominent
-- **Overreliance on certain sections:** Claude repeatedly reads the same file — consider moving that content into SKILL.md
-- **Ignored content:** Claude never accesses a bundled file — it may be unnecessary or poorly signaled
+- **Unexpected exploration paths:** Claude reads files in an unanticipated order: structure may not be intuitive
+- **Missed connections:** Claude fails to follow references: links need to be more explicit or prominent
+- **Overreliance on certain sections:** Claude repeatedly reads the same file: consider moving that content into SKILL.md
+- **Ignored content:** Claude never accesses a bundled file: it may be unnecessary or poorly signaled
 
-Iterate based on observed behavior, not assumptions. The `name` and `description` metadata fields are critical — Claude uses these when deciding whether to trigger the skill.
+Iterate based on observed behavior, not assumptions. The `name` and `description` metadata fields are critical: Claude uses these when deciding whether to trigger the skill.
 
 ### Input Validation Snippet Example
 
 ```python
 from pathlib import Path
 
+
 def check_inputs(target_file: str, mode: str) -> tuple[bool, list[str]]:
     """Validate skill inputs before workflow execution."""
     errors = []
     if not Path(target_file).exists():
         errors.append(f"File not found: {target_file}")
-    if mode.upper() not in {'FULL', 'FOCUSED', 'STALENESS'}:
+    if mode.upper() not in {"FULL", "FOCUSED", "STALENESS"}:
         errors.append(f"Invalid mode: {mode}")
     return (len(errors) == 0, errors)
 ```

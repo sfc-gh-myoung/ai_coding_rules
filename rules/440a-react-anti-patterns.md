@@ -1,20 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Common React anti-patterns, error recovery strategies (hydration, Suspense, TanStack Query errors, 'use client' directives), resource exhaustion prevention, and cleanup/unmount patterns."
+last_updated: 2026-07-15
+keywords:
+  - kw:error boundary
+  - kw:hydration mismatch
+  - kw:useEffect cleanup
+  - kw:TanStack Query error
+  - kw:use client directive
+  - kw:query cache gcTime
+  - kw:tsx
+token_budget: ~2450
+context_tier: Medium
+depends:
+  required:
+    - 440-react-core.md  # Core React architecture and patterns
+---
 # React Anti-Patterns & Recovery Patterns
 
 > **COMPANION RULE: LOAD WITH 440-react-core.md**
 >
 > Anti-patterns, error recovery, and output format examples for React development.
 > Load alongside 440-react-core.md for complete guidance.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-03-25
-**Keywords:** React, Anti-Patterns, Error Recovery, Hydration, Suspense, ErrorBoundary, useEffect, use client, Resource Exhaustion, Cleanup, Unmount, AbortController
-**TokenBudget:** ~2450
-**ContextTier:** Medium
-**Depends:** 440-react-core.md, 430-typescript-core.md
-**LoadTrigger:** kw:anti-pattern, kw:error boundary, kw:hydration
 
 ## Scope
 
@@ -30,14 +38,9 @@ Common React anti-patterns, error recovery strategies (hydration, Suspense, TanS
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **440-react-core.md** - Core React architecture and patterns
-- **430-typescript-core.md** - TypeScript patterns (AbortController)
-
-**Related:**
-- **420-javascript-core.md** - JavaScript foundation
+_None._
 
 ## Contract
 
@@ -186,7 +189,7 @@ function FeatureSection() {
 
 Enable error propagation in individual queries:
 ```typescript
-// In useQuery options — propagate failures to nearest ErrorBoundary
+// In useQuery options - propagate failures to nearest ErrorBoundary
 useQuery({
   queryKey: ['feature', id],
   queryFn: fetchFeature,
@@ -209,7 +212,7 @@ import { useState } from 'react';
 ```
 
 **Guidelines:**
-- Only add `'use client'` to the nearest component that needs interactivity — don't mark entire feature directories
+- Only add `'use client'` to the nearest component that needs interactivity: don't mark entire feature directories
 - Server Components (default in Next.js App Router) can import Client Components, but not vice versa for server-only logic
 - If unsure, check: does this component use `useState`, `useEffect`, `useContext`, `useQuery`, or browser APIs? If yes, it needs `'use client'`
 
@@ -226,7 +229,7 @@ import { useState } from 'react';
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        gcTime: 10 * 60 * 1000,  // 10 minutes — evict unused cache entries
+        gcTime: 10 * 60 * 1000,  // 10 minutes: evict unused cache entries
         staleTime: 5 * 60 * 1000,
       },
     },
@@ -257,7 +260,7 @@ function useAbortableFetch(url: string) {
   return data;
 }
 ```
-TanStack Query v5 passes `signal` via `queryFn` context — use it to cancel in-flight requests on unmount.
+TanStack Query v5 passes `signal` via `queryFn` context: use it to cancel in-flight requests on unmount.
 
 ### useEffect Cleanup
 ```typescript

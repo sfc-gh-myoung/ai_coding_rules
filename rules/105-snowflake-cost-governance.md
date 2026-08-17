@@ -1,15 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive cost management and optimization strategies for Snowflake environments, including resource monitoring, warehouse right-sizing, and governance policies to control and predict cloud data"
+last_updated: 2026-07-15
+keywords:
+  - kw:resource monitor
+  - kw:credit quota
+  - kw:warehouse metering history
+  - kw:cost attribution tagging
+  - kw:serverless task credits
+  - kw:suspend trigger
+  - kw:credit-quota-monitoring
+token_budget: ~3300
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+    - 100-snowflake-core.md  # Snowflake SQL patterns and best practices
+---
 # Snowflake Cost Governance
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:cost, kw:budget, kw:billing
-**Keywords:** budget alerts, spend tracking, Snowflake, SQL, CREDIT_QUOTA, WAREHOUSE_METERING_HISTORY, object tagging, monitor credits, warehouse spending, cost alerts, credit limits, budget management, resource monitor, tag enforcement
-**TokenBudget:** ~3300
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md
 
 ## Scope
 
@@ -25,31 +34,9 @@ Comprehensive cost management and optimization strategies for Snowflake environm
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **100-snowflake-core.md** - Snowflake SQL patterns and best practices
-
 ### External Documentation
 - [Cost Management Guide](https://docs.snowflake.com/en/guides-overview-cost) - Comprehensive cost optimization strategies and monitoring
 - [Resource Monitors](https://docs.snowflake.com/en/user-guide/resource-monitors) - Credit usage tracking, quotas, and automated controls
-
-### Related Rules
-
-**Closely Related** (consider loading together):
-- **119-snowflake-warehouse-management.md** - Warehouse sizing, auto-suspend config affecting costs
-- **103-snowflake-performance-tuning.md** - Optimizing queries to reduce compute costs
-
-**Sometimes Related** (load if specific scenario):
-- **111-snowflake-observability-core.md** - Monitoring warehouse usage and query costs via telemetry
-- **106c-snowflake-semantic-views-integration.md** - Monitoring Cortex Analyst API costs
-- **115-snowflake-cortex-agents-core.md** - Monitoring agent execution costs
-
-**Complementary** (different aspects of same domain):
-- **100-snowflake-core.md** - Tagging conventions (COST_CENTER, WORKLOAD_TYPE, OWNER_TEAM)
-- **107-snowflake-security-governance.md** - RBAC on resource monitors and cost controls
-- **123-snowflake-object-tagging.md** - Object tagging for cost tracking
 
 ## Contract
 

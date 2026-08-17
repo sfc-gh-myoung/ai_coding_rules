@@ -1,15 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive logging best practices for Snowflake handler code, covering standard library integration, strategic log level usage, conditional logging patterns, and volume control strategies to"
+last_updated: 2026-07-15
+keywords:
+  - kw:handler logging
+  - kw:log volume control
+  - kw:sampling strategy
+  - kw:conditional logging
+  - kw:event table routing
+  - kw:tight loop logging
+  - kw:udf
+token_budget: ~4000
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md
+    - 111-snowflake-observability-core.md
+---
 # Snowflake Observability: Logging Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:observability-logging
-**Keywords:** DEBUG, INFO, WARN, ERROR, FATAL, conditional logging, sampling, tight loop logging, standard logging libraries, log volume control, cost management, log configuration, log handlers
-**TokenBudget:** ~4000
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 111-snowflake-observability-core.md
 
 ## Scope
 
@@ -37,12 +46,6 @@ Comprehensive logging best practices for Snowflake handler code, covering standa
 - [Snowflake Logging Overview](https://docs.snowflake.com/en/developer-guide/logging-tracing/logging) - Official logging documentation for Snowflake handlers
 - [Python Logging Library](https://docs.python.org/3/library/logging.html) - Standard Python logging library documentation
 - [SLF4J (Java)](https://www.slf4j.org/) - Standard Java logging facade
-
-### Related Rules
-- **Observability Core**: `111-snowflake-observability-core.md` - Foundation observability patterns and telemetry configuration
-- **Observability Tracing**: `111b-snowflake-observability-tracing.md` - Distributed tracing patterns
-- **Observability Monitoring**: `111c-snowflake-observability-monitoring.md` - Monitoring and analysis patterns
-- **Snowflake Core**: `100-snowflake-core.md` - Foundation Snowflake practices
 
 ## Contract
 
@@ -114,12 +117,16 @@ def process_data(records):
 ```python
 # Good: Use standard logging library
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 def process_data(records):
     logger.info(f"Processing {len(records)} records")
     # [process records with sampling - see anti-pattern 2]
     logger.info("Processing complete")
+
+
 # Logs automatically routed to event table for querying
 ```
 **Benefits:** Logs persisted in event tables; queryable history; proper log levels
@@ -168,8 +175,10 @@ def authenticate_user(username, password, ssn):
 ```python
 # Bad: DEBUG level in production
 import logging
+
 logging.basicConfig(level=logging.DEBUG)  # In production!
 logger = logging.getLogger(__name__)
+
 
 def process_order(order):
     logger.debug(f"Order details: {order}")  # 100x more data volume
@@ -186,12 +195,13 @@ import logging
 import os
 
 # Production: WARN or ERROR only
-if os.getenv('ENV') == 'production':
+if os.getenv("ENV") == "production":
     logging.basicConfig(level=logging.WARN)
 else:  # Development
     logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
+
 
 def process_order(order):
     logger.info(f"Processing order {order['id']}")  # Key milestone only
@@ -209,6 +219,7 @@ import logging
 
 # Configure logger at module level
 logger = logging.getLogger(__name__)
+
 
 def my_handler(session, input_data):
     """Handler with logging best practices."""
@@ -231,7 +242,7 @@ def my_handler(session, input_data):
         for i, record in enumerate(input_data):
             # Sample progress logging (every 10,000 records)
             if i % 10000 == 0 and i > 0:
-                logger.info(f"Progress: {i}/{len(input_data)} ({i/len(input_data)*100:.1f}%)")
+                logger.info(f"Progress: {i}/{len(input_data)} ({i / len(input_data) * 100:.1f}%)")
 
             try:
                 result = process_record(record)
@@ -266,6 +277,7 @@ import logging
 
 # Configure logging at module level
 logger = logging.getLogger(__name__)
+
 
 def process_data(session, df):
     """Process DataFrame with comprehensive logging."""
@@ -407,7 +419,7 @@ def process_large_dataset(records):
     for i, record in enumerate(records):
         # Log progress at intervals (not every record)
         if i % 10000 == 0:
-            logger.info(f"Progress: {i}/{total} records ({i/total*100:.1f}%)")
+            logger.info(f"Progress: {i}/{total} records ({i / total * 100:.1f}%)")
 
         try:
             process_record(record)
@@ -428,11 +440,13 @@ def process_large_dataset(records):
 ```python
 import random
 
+
 # Volume-conscious logging strategy
 def log_with_sampling(logger, level, message, sample_rate=0.1):
     """Log messages with sampling to control volume."""
     if random.random() < sample_rate:
-        logger.log(level, f"[SAMPLED {sample_rate*100}%] {message}")
+        logger.log(level, f"[SAMPLED {sample_rate * 100}%] {message}")
+
 
 # Use for high-frequency operations
 for record in large_dataset:
@@ -457,6 +471,7 @@ import logging
 import json
 
 logger = logging.getLogger(__name__)
+
 
 def process_order(session, order_id):
     # Include structured context as JSON for event table querying

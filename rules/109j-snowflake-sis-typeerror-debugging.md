@@ -1,15 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Detailed diagnostic workflows for the two most common Streamlit in Snowflake (SiS) deployment errors: TypeError from file compression or path mismatches, and AttributeError from missing or outdated"
+last_updated: 2026-07-15
+keywords:
+  - kw:SiS TypeError
+  - kw:AUTO_COMPRESS FALSE
+  - kw:AttributeError streamlit module
+  - kw:FROM source path
+  - kw:live_version_location_uri
+  - kw:environment.yml streamlit pin
+token_budget: ~5250
+context_tier: Medium
+depends:
+  optional:
+    - 109c-snowflake-app-deployment-troubleshooting.md  # Parent troubleshooting rule
+---
 # Snowflake SiS TypeError & AttributeError Debugging
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-05-13
-**LoadTrigger:** kw:sis-typeerror
-**Keywords:** TypeError bad argument, AttributeError streamlit, SiS debugging, AUTO_COMPRESS, FROM source path, live_version_location_uri, ROOT_LOCATION mismatch (legacy), environment.yml, streamlit version, compression debugging, stage path mismatch
-**TokenBudget:** ~4200
-**ContextTier:** Medium
-**Depends:** 100-snowflake-core.md, 109c-snowflake-app-deployment-troubleshooting.md
 
 ## Scope
 
@@ -23,15 +30,6 @@ Detailed diagnostic workflows for the two most common Streamlit in Snowflake (Si
 - Troubleshooting environment.yml version pinning
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **109c-snowflake-app-deployment-troubleshooting.md** - Parent troubleshooting rule
-
-**Related:**
-- **101-snowflake-streamlit-core.md** - Streamlit development patterns
-- **109b-snowflake-app-deployment-core.md** - Base deployment patterns
 
 ### External Documentation
 
@@ -126,8 +124,8 @@ Detailed diagnostic workflows for the two most common Streamlit in Snowflake (Si
 - For FROM-based apps, see the "TypeError on FROM-based apps" section below for the equivalent failure modes
 
 **Cause 3: Inverted Compression Flag in Python/CLI Wrappers**
-- Python wrapper function adds `--auto-compress` when `True` (redundant -- already the default)
-- But never adds `--no-auto-compress` when `False` -- compression is never actually disabled
+- Python wrapper function adds `--auto-compress` when `True` (redundant: already the default)
+- But never adds `--no-auto-compress` when `False`: compression is never actually disabled
 - Deployment reports success (`[PASS]`) but app fails at runtime
 - Especially insidious because `auto_compress=False` in the calling code *looks* correct
 
@@ -148,7 +146,7 @@ uvx snow sql -q "LIST @UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE;"
 # streamlit_stage/streamlit_app.py.gz       | 1024  | <hash> | ...
 # streamlit_stage/pages/1_Home.py.gz        | 512   | <hash> | ...
 
-# Step 2: Verify source path — behavior differs for FROM vs legacy apps
+# Step 2: Verify source path - behavior differs for FROM vs legacy apps
 uvx snow sql -q "DESCRIBE STREAMLIT UTILITY_DEMO_V2.GRID_DATA.APP_NAME;"
 
 # For FROM-based apps (created with FROM '@stage'):
@@ -161,7 +159,7 @@ uvx snow sql -q "DESCRIBE STREAMLIT UTILITY_DEMO_V2.GRID_DATA.APP_NAME;"
 # Look for root_location value in output
 # Expected: root_location = @UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE
 # Must match LIST output paths (no extra /streamlit/ subdirectory nesting)
-# Note: Legacy apps in older Snowsight may show root_location as a snow:// URL — this is expected
+# Note: Legacy apps in older Snowsight may show root_location as a snow:// URL - this is expected
 
 # Verify paths align (legacy apps):
 # LIST shows: streamlit_stage/streamlit_app.py
@@ -182,7 +180,7 @@ uvx snow sql -q "LIST @UTILITY_DEMO_V2.GRID_DATA.STREAMLIT_STAGE;" \
 # If wrapper uses auto_compress=False but doesn't pass --no-auto-compress, files are still compressed
 ```
 
-> **Multi-page apps:** Verify each page file individually: `LIST @STAGE/pages/;` — all `.py` files in subdirectories must also be uncompressed. A single compressed page file can cause TypeError for that page only.
+> **Multi-page apps:** Verify each page file individually: `LIST @STAGE/pages/;`; all `.py` files in subdirectories must also be uncompressed. A single compressed page file can cause TypeError for that page only.
 
 **Solutions:**
 
@@ -194,7 +192,7 @@ task streamlit:upload:app   # Upload with AUTO_COMPRESS=FALSE
 task streamlit:create:app   # Recreate Streamlit object
 ```
 
-**For Path Mismatch (FROM-based apps — recommended):**
+**For Path Mismatch (FROM-based apps: recommended):**
 ```sql
 -- Recreate app with correct FROM source path (files must be at stage root)
 LIST @DB.SCHEMA.STREAMLIT_STAGE;  -- Verify files are at root before recreating
@@ -262,11 +260,11 @@ to its bundled Streamlit version (currently **1.22.0**), which predates many mod
 
 > **Staleness guard:** Add `st.write(st.__version__)` temporarily to verify the actual bundled version. The default may change as Snowflake updates SiS.
 
-- `st.navigation()` -- requires 1.36+ (not available in SiS default 1.22.0)
-- `st.Page()` -- requires 1.36+ (not available in SiS default 1.22.0)
-- `st.dialog()` -- requires 1.37+ (not available in SiS default 1.22.0)
-- `st.fragment()` -- requires 1.37+ (not available in SiS default 1.22.0)
-- `st.rerun()` -- requires 1.27+ (not available in SiS default 1.22.0)
+- `st.navigation()`: requires 1.36+ (not available in SiS default 1.22.0)
+- `st.Page()`: requires 1.36+ (not available in SiS default 1.22.0)
+- `st.dialog()`: requires 1.37+ (not available in SiS default 1.22.0)
+- `st.fragment()`: requires 1.37+ (not available in SiS default 1.22.0)
+- `st.rerun()`: requires 1.27+ (not available in SiS default 1.22.0)
 
 **Diagnostic Steps:**
 
@@ -359,7 +357,7 @@ uvx snow sql -q "LIST @DB.SCHEMA.STREAMLIT_STAGE;" | grep environment.yml
 #   except TypeError:
 #       st.error("Import failed")  # Masks the real issue (compressed files)
 
-# Correct: Run diagnostics first — check stage files and source path
+# Correct: Run diagnostics first - check stage files and source path
 uvx snow sql -q "LIST @DB.SCHEMA.STREAMLIT_STAGE;" | grep -E '\.py|\.yml'
 # Look for .py.gz (compressed) vs .py (correct)
 # If you see .py.gz → fix AUTO_COMPRESS, don't touch app code
@@ -376,12 +374,12 @@ uvx snow sql -q "DESCRIBE STREAMLIT DB.SCHEMA.MY_APP;"
 **Correct Pattern:** Always pin the Streamlit version explicitly: `- streamlit=1.51.0` (or the latest available in the `snowflake` conda channel). After deploying, verify the version by temporarily adding `st.write(st.__version__)` to the app. Remove the debug line once confirmed.
 
 ```yaml
-# Wrong: No version pin — SiS uses bundled default (often 1.22.0)
+# Wrong: No version pin - SiS uses bundled default (often 1.22.0)
 name: my_app
 channels:
   - snowflake
 dependencies:
-  - streamlit        # Resolves to 1.22.0 — st.navigation() still missing!
+  - streamlit        # Resolves to 1.22.0 - st.navigation() still missing!
   - pandas
 
 # Correct: Explicit version pin to get modern Streamlit APIs
@@ -389,13 +387,13 @@ name: my_app
 channels:
   - snowflake
 dependencies:
-  - streamlit=1.51.0  # Explicit pin — st.navigation(), st.Page() available
+  - streamlit=1.51.0  # Explicit pin - st.navigation(), st.Page() available
   - pandas
 ```
 
 **Anti-Pattern 3: Fixing Compression but Forgetting to Recreate the Streamlit Object**
 
-**Problem:** A developer identifies that files were compressed, re-uploads with `AUTO_COMPRESS=FALSE`, and confirms via `LIST @STAGE;` that files now have correct `.py` extensions. But the app still shows the TypeError. The reason: the Streamlit object caches metadata from creation time. Simply re-uploading files doesn't update the object's internal references -- the object must be dropped and recreated to pick up the new files.
+**Problem:** A developer identifies that files were compressed, re-uploads with `AUTO_COMPRESS=FALSE`, and confirms via `LIST @STAGE;` that files now have correct `.py` extensions. But the app still shows the TypeError. The reason: the Streamlit object caches metadata from creation time. Simply re-uploading files doesn't update the object's internal references: the object must be dropped and recreated to pick up the new files.
 
 **Correct Pattern:** After fixing stage files, always drop and recreate the Streamlit object. For FROM-based apps: `DROP STREAMLIT IF EXISTS ...; CREATE STREAMLIT ... FROM '@stage' ...; ALTER STREAMLIT ... ADD LIVE VERSION FROM LAST;`. For legacy apps: `DROP STREAMLIT IF EXISTS ...; CREATE STREAMLIT ... ROOT_LOCATION='@stage' ...;`. The full redeployment workflow is: drop object -> remove stage files -> upload corrected files -> create object -> (FROM apps only) add live version. Skipping the drop/create steps is a common source of "I fixed it but it's still broken."
 
@@ -403,7 +401,7 @@ dependencies:
 -- Wrong: Re-upload files but skip recreating the Streamlit object
 REMOVE @DB.SCHEMA.STAGE/streamlit_app.py;
 PUT file://streamlit_app.py @DB.SCHEMA.STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
--- LIST confirms .py (not .py.gz) — looks fixed!
+-- LIST confirms .py (not .py.gz) - looks fixed!
 -- But app still shows TypeError because object caches old metadata
 
 -- Correct (FROM-based apps): Full redeployment with live-version activation
@@ -416,7 +414,7 @@ CREATE STREAMLIT DB.SCHEMA.MY_APP
     MAIN_FILE = 'streamlit_app.py'
     QUERY_WAREHOUSE = MY_WH;
 ALTER STREAMLIT DB.SCHEMA.MY_APP ADD LIVE VERSION FROM LAST;
--- Object recreated with fresh metadata — TypeError resolved
+-- Object recreated with fresh metadata - TypeError resolved
 ```
 
 ## TypeError on FROM-based Apps
@@ -425,7 +423,7 @@ Apps created with `FROM '@stage'` have different failure modes from legacy `ROOT
 
 **FROM-specific Cause 1: MAIN_FILE has a leading slash (warehouse runtime)**
 
-For warehouse-runtime apps, `MAIN_FILE` must be a filename only — no leading `/`.
+For warehouse-runtime apps, `MAIN_FILE` must be a filename only; no leading `/`.
 
 ```sql
 -- Wrong: Leading slash causes file-not-found error in warehouse runtime
@@ -451,7 +449,7 @@ Because `FROM` copies files into an embedded stage at `CREATE` time, an empty or
 ```bash
 # Diagnose: List source stage BEFORE creating the app
 uvx snow sql -q "LIST @DB.SCHEMA.STREAMLIT_STAGE;"
-# If empty or missing streamlit_app.py / environment.yml — upload files first
+# If empty or missing streamlit_app.py / environment.yml - upload files first
 
 # Fix: Upload files, then recreate
 uvx snow sql -q "DROP STREAMLIT IF EXISTS DB.SCHEMA.MY_APP;"

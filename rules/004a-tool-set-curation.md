@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Curating minimal viable tool sets for AI agents. Covers deciding the right number of tools, when to split complex tools into focused ones, when to merge related tools for efficiency, and maintaining"
+last_updated: 2026-07-15
+keywords:
+  - kw:tool set curation
+  - kw:minimal viable tool set
+  - kw:tool splitting criteria
+  - kw:tool merging criteria
+  - kw:tool bloat detection
+  - kw:tool boundaries
+  - kw:etl
+token_budget: ~2200
+context_tier: Medium
+depends:
+  required:
+    - 004-tool-design-for-agents.md  # Core tool design principles
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 004b-tool-output-efficiency.md  # Token-efficient tool outputs
+---
 # Tool Set Curation for AI Agents
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** tool set curation, minimal viable tool set, tool splitting, tool merging, tool overlap, tool bloat, tool boundaries
-**TokenBudget:** ~2200
-**ContextTier:** Medium
-**Depends:** 004-tool-design-for-agents.md, 000-global-core.md
 
 ## Scope
 
@@ -23,14 +35,9 @@ Curating minimal viable tool sets for AI agents. Covers deciding the right numbe
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **004-tool-design-for-agents.md** - Core tool design principles
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **004b-tool-output-efficiency.md** - Token-efficient tool outputs
+_None._
 
 ## Contract
 
@@ -100,7 +107,7 @@ After curation, the agent should NOT:
 
 **Principle:** Provide the smallest set of tools that covers all necessary use cases. Follow the Execution Steps above.
 
-**Tool count guidance:** 5-12 tools -- lean and focused. 13-20 tools -- review for overlap. 20+ tools -- audit required, likely bloated.
+**Tool count guidance:** 5-12 tools: lean and focused. 13-20 tools -- review for overlap. 20+ tools -- audit required, likely bloated.
 
 **Example Minimal Set for Code Repository:**
 
@@ -131,18 +138,18 @@ git_diff(file: str = None) -> Diff
 ### Example: Data Analysis Agent Tool Set
 
 **Core tools (always loaded):**
-- `query_database` — execute SQL queries against the data warehouse
-- `read_file` — read CSV/Parquet/Excel files from local filesystem
-- `write_file` — save analysis results and transformed data
+- `query_database`: execute SQL queries against the data warehouse
+- `read_file`: read CSV/Parquet/Excel files from local filesystem
+- `write_file`: save analysis results and transformed data
 
 **Conditional tools (loaded when needed):**
-- `create_chart` — visualization (load when user mentions "chart", "plot", "graph")
-- `statistical_test` — hypothesis testing (load when user mentions "significant", "correlation")
-- `export_report` — generate PDF/HTML reports (load when user mentions "report", "export")
+- `create_chart`: visualization (load when user mentions "chart", "plot", "graph")
+- `statistical_test`: hypothesis testing (load when user mentions "significant", "correlation")
+- `export_report`: generate PDF/HTML reports (load when user mentions "report", "export")
 
 **Excluded tools (available but not loaded by default):**
-- `train_model` — ML model training (separate agent specialization)
-- `deploy_pipeline` — ETL deployment (separate agent specialization)
+- `train_model`: ML model training (separate agent specialization)
+- `deploy_pipeline`: ETL deployment (separate agent specialization)
 
 ## When to Split Tools
 
@@ -156,7 +163,7 @@ git_diff(file: str = None) -> Diff
   strong signal that the operations have different reliability characteristics.
 
 Example: A `database_operation(action, query)` tool where `action="read"` should retry
-on timeout but `action="delete"` should never retry — split into `database_read` and
+on timeout but `action="delete"` should never retry: split into `database_read` and
 `database_delete`.
 
 **Example:**
@@ -174,15 +181,19 @@ def file_operation(path, operation, content=None, lines=None, append=False):
         return write_file(path, content)
     # Gets complex fast...
 
+
 # After: Clear, focused tools
 def read_file(path: str) -> str:
     """Read entire file"""
 
+
 def read_lines(path: str, start: int, end: int) -> str:
     """Read specific line range"""
 
+
 def write_file(path: str, content: str) -> None:
     """Write/overwrite file"""
+
 
 def append_to_file(path: str, content: str) -> None:
     """Append to existing file"""
@@ -236,9 +247,9 @@ New tools start as experimental before joining the curated set:
 1. **Trial period:** Add tool to a test agent configuration, not the main set
 2. **Track usage:** Does the agent use it? In what percentage of interactions?
 3. **After evaluation period, decide:**
-   - Used in >30% of relevant interactions -- Promote to conditional tool
-   - Used in >70% of relevant interactions -- Promote to core tool
-   - Used in <10% of interactions -- Remove from the set
+   - Used in >30% of relevant interactions: Promote to conditional tool
+   - Used in >70% of relevant interactions: Promote to core tool
+   - Used in <10% of interactions: Remove from the set
 4. **Document decision:** Record promotion/removal rationale in the agent's tool config comments
 
 ## Anti-Patterns and Common Mistakes
@@ -249,12 +260,7 @@ New tools start as experimental before joining the curated set:
 
 ```python
 # WRONG: Overlapping tools
-tools = [
-    "read_file",
-    "get_file_contents",
-    "load_file",
-    "fetch_file_data"
-]
+tools = ["read_file", "get_file_contents", "load_file", "fetch_file_data"]
 ```
 
 **Correct Pattern:**
@@ -279,7 +285,14 @@ def manage_data(data): ...
 **Correct Pattern:**
 ```python
 # CORRECT: Clear, distinct purposes
-def validate_data(data): """Check data format and constraints"""
-def transform_data(data): """Convert data to target format"""
-def store_data(data): """Persist data to database"""
+def validate_data(data):
+    """Check data format and constraints"""
+
+
+def transform_data(data):
+    """Convert data to target format"""
+
+
+def store_data(data):
+    """Persist data to database"""
 ```

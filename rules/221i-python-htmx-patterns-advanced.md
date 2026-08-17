@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Advanced HTMX patterns: infinite scroll, real-time updates (SSE/polling), modals and drawers, and multi-step form wizards. For core patterns (CRUD, forms, search, progressive enhancement), see 221e."
+last_updated: 2026-07-15
+keywords:
+  - kw:infinite scroll
+  - kw:SSE polling
+  - kw:modal drawer
+  - kw:multi-step wizard
+  - kw:revealed trigger
+  - kw:htmx-ext sse
+token_budget: ~2500
+context_tier: Medium
+depends:
+  optional:
+    - 221e-python-htmx-patterns.md  # Core HTMX patterns (CRUD, forms, search)
+    - 221g-python-htmx-sse.md  # Comprehensive SSE patterns
+---
 # 221i: HTMX Advanced Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** infinite scroll, sse, polling, modals, drawers, wizard, multi-step, real-time, lazy loading
-**TokenBudget:** ~2500
-**ContextTier:** Medium
-**Depends:** 221e-python-htmx-patterns.md, 221-python-htmx-core.md
-**LoadTrigger:** kw:htmx-scroll, kw:htmx-modal, kw:htmx-wizard, kw:htmx-polling
 
 ## Scope
 
@@ -23,17 +31,6 @@ Advanced HTMX patterns: infinite scroll, real-time updates (SSE/polling), modals
 - Creating multi-step forms/wizards
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **221e-python-htmx-patterns.md** - Core HTMX patterns (CRUD, forms, search)
-- **221-python-htmx-core.md** - HTMX core concepts
-
-**Related:**
-- **221g-python-htmx-sse.md** - Comprehensive SSE patterns
-- **221d-python-htmx-testing.md** - Testing these patterns
-- **221f-python-htmx-integrations.md** - Frontend library integrations
 
 ### External Documentation
 
@@ -58,7 +55,7 @@ Advanced HTMX patterns: infinite scroll, real-time updates (SSE/polling), modals
 
 ### Forbidden
 
-- Using `time.sleep()` in SSE generators — blocks the worker thread. Use async frameworks or polling instead.
+- Using `time.sleep()` in SSE generators: blocks the worker thread. Use async frameworks or polling instead.
 - Modals that cannot be dismissed with Escape key or overlay click
 - Wizard forms that lose data on browser back button without warning
 
@@ -96,9 +93,9 @@ Advanced HTMX patterns: infinite scroll, real-time updates (SSE/polling), modals
 
 > **Investigation Required**
 > Before implementing advanced HTMX patterns, the agent MUST:
-> 1. Check existing modal/drawer implementation — don't mix Alpine.js modals with _hyperscript modals
+> 1. Check existing modal/drawer implementation: don't mix Alpine.js modals with _hyperscript modals
 > 2. Read current session configuration if implementing wizard/multi-step patterns
-> 3. Check if SSE extension is already loaded — never include it twice
+> 3. Check if SSE extension is already loaded; never include it twice
 > 4. Verify existing infinite scroll implementation to avoid duplicate sentinel patterns
 > 5. Check whether the project uses async framework (FastAPI) or sync (Flask) for SSE decisions
 
@@ -126,11 +123,11 @@ Advanced HTMX patterns: infinite scroll, real-time updates (SSE/polling), modals
 ```
 
 ```python
-@app.route('/items')
+@app.route("/items")
 def items_list():
-    page = int(request.args.get('page', 1))
+    page = int(request.args.get("page", 1))
     per_page = 20
-    htmx = request.headers.get('HX-Request') == 'true'
+    htmx = request.headers.get("HX-Request") == "true"
 
     items = get_items(page=page, per_page=per_page)
     total = get_total_items()
@@ -138,31 +135,27 @@ def items_list():
 
     if htmx:
         # Return partial for lazy loading
-        html = render_template('partials/_items_list.html',
-                             items=items,
-                             has_more=has_more,
-                             next_page=page + 1)
+        html = render_template(
+            "partials/_items_list.html", items=items, has_more=has_more, next_page=page + 1
+        )
         return html
 
     # Full page load
-    return render_template('pages/items.html',
-                         items=items,
-                         has_more=has_more,
-                         next_page=page + 1)
+    return render_template("pages/items.html", items=items, has_more=has_more, next_page=page + 1)
 
-@app.route('/load_more')
+
+@app.route("/load_more")
 def load_more():
-    page = int(request.args.get('page', 2))
+    page = int(request.args.get("page", 2))
     per_page = 20
 
     items = get_items(page=page, per_page=per_page)
     total = get_total_items()
     has_more = (page * per_page) < total
 
-    return render_template('partials/_load_more_sentinel.html',
-                           items=items,
-                           has_more=has_more,
-                           next_page=page + 1)
+    return render_template(
+        "partials/_load_more_sentinel.html", items=items, has_more=has_more, next_page=page + 1
+    )
 ```
 
 ### 2. Real-Time Updates
@@ -188,6 +181,7 @@ async def generate():
         yield f"event: statusUpdate\ndata: {render_partial(data)}\n\n"
         await asyncio.sleep(2)
 
+
 # For Flask without async, use polling instead:
 # hx-trigger="every 2s" hx-get="/api/status" (see polling pattern below)
 ```
@@ -203,10 +197,10 @@ async def generate():
 ```
 
 ```python
-@app.route('/status')
+@app.route("/status")
 def get_status():
     status = get_current_status()
-    return render_template('partials/_status.html', status=status)
+    return render_template("partials/_status.html", status=status)
 ```
 
 ### 3. Modals and Drawers
@@ -242,13 +236,11 @@ def get_status():
 ```
 
 ```python
-@app.route('/users/<int:user_id>/modal')
+@app.route("/users/<int:user_id>/modal")
 def user_detail_modal(user_id):
     user = get_user(user_id)
-    content = render_template('partials/_user_detail.html', user=user)
-    return render_template('partials/_modal.html',
-                         title=f'User: {user.name}',
-                         content=content)
+    content = render_template("partials/_user_detail.html", user=user)
+    return render_template("partials/_modal.html", title=f"User: {user.name}", content=content)
 ```
 
 ### 4. Multi-Step Forms / Wizards
@@ -270,41 +262,40 @@ def user_detail_modal(user_id):
 ```
 
 ```python
-@app.route('/wizard/step2', methods=['POST'])
+@app.route("/wizard/step2", methods=["POST"])
 def wizard_step_2():
     # Store step 1 data in session
-    session['wizard'] = {
-        'name': request.form['name'],
-        'email': request.form['email']
-    }
+    session["wizard"] = {"name": request.form["name"], "email": request.form["email"]}
 
     # Return step 2 form
-    return render_template('partials/_wizard_step_2.html')
+    return render_template("partials/_wizard_step_2.html")
 
-@app.route('/wizard/step3', methods=['POST'])
+
+@app.route("/wizard/step3", methods=["POST"])
 def wizard_step_3():
     # Add step 2 data to session
-    session['wizard']['address'] = request.form['address']
-    session['wizard']['phone'] = request.form['phone']
+    session["wizard"]["address"] = request.form["address"]
+    session["wizard"]["phone"] = request.form["phone"]
 
     # Return step 3 form
-    return render_template('partials/_wizard_step_3.html')
+    return render_template("partials/_wizard_step_3.html")
 
-@app.route('/wizard/complete', methods=['POST'])
+
+@app.route("/wizard/complete", methods=["POST"])
 def wizard_complete():
     # Get all wizard data from session
-    data = session.get('wizard', {})
-    data['preferences'] = request.form.getlist('preferences')
+    data = session.get("wizard", {})
+    data["preferences"] = request.form.getlist("preferences")
 
     # Save to database
     user = create_user_from_wizard(data)
 
     # Clear session
-    session.pop('wizard', None)
+    session.pop("wizard", None)
 
     # Return success message with redirect
     response = make_response('<div class="success">Account created!</div>')
-    response.headers['HX-Redirect'] = url_for('dashboard')
+    response.headers["HX-Redirect"] = url_for("dashboard")
     return response
 ```
 
@@ -321,6 +312,7 @@ def generate():
     while True:
         time.sleep(1)  # Blocks entire thread!
         yield f"data: {get_update()}\n\n"
+
 
 # GOOD: Use polling for Flask sync apps
 # In template:

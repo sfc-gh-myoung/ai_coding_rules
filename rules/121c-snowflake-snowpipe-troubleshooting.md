@@ -1,15 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Troubleshooting and debugging patterns for both file-based Snowpipe and Snowpipe Streaming. Covers common issues, error resolution strategies, debugging checklists, and diagnostic queries for"
+last_updated: 2026-07-15
+keywords:
+  - kw:snowpipe debugging
+  - kw:pipe execution failures
+  - kw:streaming channel errors
+  - kw:schema mismatch resolution
+  - kw:latency diagnosis
+  - kw:diagnostic queries
+  - kw:snowpipe
+token_budget: ~4150
+context_tier: Medium
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 121-snowflake-snowpipe.md  # File-based Snowpipe core concepts
+  optional:
+    - 121a-snowflake-snowpipe-streaming.md  # Streaming Snowpipe core concepts
+    - 121b-snowflake-snowpipe-monitoring.md  # Monitoring and cost management
+    - 121e-snowflake-snowpipe-troubleshooting-advanced.md  # Advanced streaming patterns and debugging checklists
+---
 # Snowflake Snowpipe Troubleshooting
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:snowpipe-troubleshooting, kw:pipe-errors
-**Keywords:** snowpipe troubleshooting, debugging, error resolution, pipe errors, streaming errors, connection failures, schema errors, offset tracking, latency issues, duplicate data, authentication errors, channel errors
-**TokenBudget:** ~4150
-**ContextTier:** Medium
-**Depends:** 100-snowflake-core.md, 121-snowflake-snowpipe.md, 121a-snowflake-snowpipe-streaming.md
 
 ## Scope
 
@@ -28,18 +41,6 @@ Troubleshooting and debugging patterns for both file-based Snowpipe and Snowpipe
 **For monitoring, see `121b-snowflake-snowpipe-monitoring.md`**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **121-snowflake-snowpipe.md** - File-based Snowpipe core concepts
-- **121a-snowflake-snowpipe-streaming.md** - Streaming Snowpipe core concepts
-
-**Related:**
-- **121b-snowflake-snowpipe-monitoring.md** - Monitoring and cost management
-- **121e-snowflake-snowpipe-troubleshooting-advanced.md** - Advanced streaming patterns and debugging checklists
-- **111-snowflake-observability-core.md** - Logging, tracing, and monitoring patterns
 
 ### External Documentation
 
@@ -258,22 +259,22 @@ Troubleshooting and debugging patterns for both file-based Snowpipe and Snowpipe
   # Configure schema evolution mode
   from snowflake.ingest import SnowflakeStreamingIngestClient
   from snowflake.ingest.utils.constants import OnErrorOption
-  
+
   client = SnowflakeStreamingIngestClient(...)
-  
+
   # Strict mode: Fail on unknown columns
   channel = client.open_channel(
-      database='DB',
-      schema='SCHEMA',
-      table='TABLE',
-      channel_name='CHANNEL',
-      on_error=OnErrorOption.ABORT  # Or CONTINUE, SKIP_FILE
+      database="DB",
+      schema="SCHEMA",
+      table="TABLE",
+      channel_name="CHANNEL",
+      on_error=OnErrorOption.ABORT,  # Or CONTINUE, SKIP_FILE
   )
-  
+
   # Validate row data types before insert
-  row = {'id': 1, 'name': 'Alice'}
-  response = channel.insert_row(row, 'offset_1')
-  
+  row = {"id": 1, "name": "Alice"}
+  response = channel.insert_row(row, "offset_1")
+
   if response.has_errors():
       for error in response.insert_errors:
           print(f"Schema error: {error}")

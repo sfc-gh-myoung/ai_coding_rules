@@ -1,3 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.1.0
+description: "Schema standards (v3.3) for AI coding rule files. Defines required sections, metadata fields, Contract structure, and validation requirements. All rules must comply with schemas/rule-schema.yml v3.3"
+last_updated: 2026-07-15
+keywords:
+  - kw:rule schema compliance
+  - kw:metadata field requirements
+  - kw:Contract Markdown subsections
+  - kw:semantic discovery keywords
+  - kw:ai-rules validate
+  - kw:agent-first design priorities
+  - dir:rules/
+token_budget: ~4900
+context_tier: Critical
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 002a-rule-creation.md  # Step-by-step guide for creating new rules
+    - 002b-rule-update.md  # Updating and maintaining existing rules, versioning policy
+    - 002e-schema-validator-usage.md  # Detailed validator commands, error interpretation, CI/CD integration
+---
 # Rule Governance: Schema Standards
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
@@ -5,21 +28,10 @@
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when creating, reviewing, or maintaining rules.
 
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.3.1
-**LastUpdated:** 2026-03-09
-**Keywords:** rule governance, schema, metadata requirements, validation, schema compliance, rule structure, semantic discovery, RULES_INDEX, descriptive headings, design priorities, agent optimization
-**TokenBudget:** ~4550
-**ContextTier:** Critical
-**Depends:** 000-global-core.md
-**LoadTrigger:** dir:rules/
-
 ## Scope
 
 **What This Rule Covers:**
-Schema standards (v3.2) for AI coding rule files. Defines required sections, metadata fields, Contract structure, and validation requirements. All rules must comply with `schemas/rule-schema.yml` v3.2 specifications.
+Schema standards (v3.3) for AI coding rule files. Defines required sections, metadata fields, Contract structure, and validation requirements. All rules must comply with `schemas/rule-schema.yml` v3.3 specifications.
 
 **When to Load This Rule:**
 - Creating new rule files (also load 002a-rule-creation.md)
@@ -30,22 +42,10 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **002a-rule-creation.md** - Step-by-step guide for creating new rules
-- **002b-rule-update.md** - Updating and maintaining existing rules, versioning policy
-- **002c-rule-optimization.md** - Token budgets, performance tuning, model-specific tips
-- **002d-advanced-rule-patterns.md** - System prompt altitude, investigation-first, multi-session workflows
-- **002e-schema-validator-usage.md** - Detailed validator commands, error interpretation, CI/CD integration
-
 ### External Documentation
 
-- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.2 schema with validation rules
-- **Rules Index:** `RULES_INDEX.md` - Master index of all rules with keywords
+- **Schema Definition:** `schemas/rule-schema.yml` - Authoritative v3.3 schema with validation rules
+- **Rules Index:** `rule frontmatter` - Master index of all rules with keywords
 - **[CommonMark Spec](https://spec.commonmark.org/)** - Authoritative Markdown specification (all rule files MUST comply)
 
 ## Contract
@@ -53,7 +53,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 ### Inputs and Prerequisites
 
 - Rule creation or maintenance task
-- Schema understanding (v3.2)
+- Schema understanding (v3.3)
 - Access to `schemas/rule-schema.yml`
 - Understanding of required sections and metadata fields
 
@@ -62,7 +62,7 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 - Text editor
 - `ai-rules validate` CLI command
 - Access to existing `rules/` directory
-- `schemas/rule-schema.yml` file (v3.2)
+- `schemas/rule-schema.yml` file (v3.3)
 
 ### Forbidden
 
@@ -70,16 +70,16 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 - Skipping validation
 - Using outdated schema (v3.0 or v3.1)
 - Using emojis in rule files
-- Using XML tags in Contract section (v3.2 uses Markdown headers)
-- Using numbered section headings (v3.2 uses descriptive names)
+- Using XML tags in Contract section (v3.3 uses Markdown headers)
+- Using numbered section headings (v3.3 uses descriptive names)
 - Non-compliant Markdown (must follow CommonMark spec)
 
 ### Execution Steps
 
-1. Review v3.2 schema requirements (metadata, required sections, Markdown headers)
+1. Review v3.3 schema requirements (metadata, required sections, Markdown headers)
 2. For creating new rules: use 002a-rule-creation.md workflow
 3. For updating existing rules: use 002b-rule-update.md workflow
-4. Fill required metadata fields correctly (SchemaVersion: v3.2, RuleVersion, Keywords: 5-20 terms, TokenBudget, ContextTier, Depends)
+4. Fill required metadata fields correctly (SchemaVersion: v3.3, RuleVersion, Keywords: 5-11 terms, TokenBudget, ContextTier, Depends)
 5. Write required sections in order: Scope, References, Contract, Anti-Patterns (optional)
 6. Add Contract section with Markdown subsections (###): Inputs and Prerequisites, Mandatory, Forbidden, Execution Steps, Output Format, Validation, Design Principles, Post-Execution Checklist
 7. Use descriptive section names (not numbered: "## Environment Setup" not "## 1. Environment Setup")
@@ -88,20 +88,20 @@ Schema standards (v3.2) for AI coding rule files. Defines required sections, met
 ### Output Format
 
 Markdown file (.md) with:
-- v3.2 schema metadata
+- v3.3 schema metadata
 - Required sections in correct order
 - Contract with Markdown headers (###) (see Forbidden section)
 - Descriptive section names (not numbered)
-- 5-20 keywords for semantic discovery
+- 5-11 keywords for semantic discovery
 
 ### Validation
 
 **Pre-Task-Completion Checks:**
 - All metadata fields present and correctly formatted
-- Required sections present in v3.2 order (Scope, References, Contract)
+- Required sections present in v3.3 order (Scope, References, Contract)
 - Contract has Markdown subsections (###), not XML tags
 - No numbered section headings
-- Keywords count is 5-20 terms (semantic and discoverable)
+- Keywords count is 5-11 terms (semantic and discoverable)
 - schema validation ready to run
 
 **Success Criteria:**
@@ -109,7 +109,7 @@ Markdown file (.md) with:
 - All metadata fields parse correctly
 - All required sections found in correct order
 - Contract Markdown subsections validated successfully
-- Keywords count within 5-20 range
+- Keywords count within 5-11 range
 - RuleVersion in semantic version format (vX.Y.Z)
 - TokenBudget reflects actual file size (±10% acceptable)
 
@@ -118,7 +118,7 @@ Markdown file (.md) with:
 - Wrong section order triggers HIGH error
 - XML tags in Contract trigger HIGH error
 - Numbered section headings trigger HIGH error
-- Keywords <5 or >20 triggers HIGH error
+- Keywords <5 or >11 triggers HIGH error
 - TokenBudget without tilde triggers MEDIUM error
 
 **Error Recovery:**
@@ -129,19 +129,19 @@ Markdown file (.md) with:
 ### Post-Execution Checklist
 
 - [ ] New/updated rule has all required metadata fields correctly formatted
-- [ ] SchemaVersion is v3.2
-- [ ] All required sections present in v3.2 order
+- [ ] SchemaVersion is v3.3
+- [ ] All required sections present in v3.3 order
 - [ ] Contract section uses Markdown headers (###), not XML tags
 - [ ] No numbered section headings (## 1., ## 2., etc.)
-- [ ] Keywords count is 5-20 terms (semantic and discoverable)
+- [ ] Keywords count is 5-11 terms (semantic and discoverable)
 - [ ] `uv run ai-rules validate` runs with 0 CRITICAL errors
 - [ ] TokenBudget reflects actual file size (±10% acceptable)
 - [ ] Filename matches pattern `<NNN>[<letter>]-<technology>-<aspect>.md` (single-letter suffix only)
-- [ ] File added to RULES_INDEX.md with keywords
+- [ ] File added to rule frontmatter (run `uv run ai-rules rule-loader keywords run <path> --update`) with keywords
 - [ ] Dependencies declared in Depends metadata
 - [ ] No emojis in rule file content
 
-## Schema Requirements (v3.2)
+## Schema Requirements (v3.3)
 
 ### Rule Filename Convention (MANDATORY)
 
@@ -168,9 +168,9 @@ Where:
 ### Metadata Fields (6 Required + 1 Optional)
 
 **Required Fields:**
-- **SchemaVersion:** `v3.2` - CRITICAL (must be v3.2 for new/updated rules)
+- **SchemaVersion:** `v3.3` - CRITICAL (must be v3.3 for new/updated rules)
 - **RuleVersion:** Semantic version `vX.Y.Z` (e.g., v1.0.0, v2.0.0)
-- **Keywords:** 5-20 comma-separated terms for semantic discovery
+- **Keywords:** 5-11 combined typed entries (`kw:` semantic, plus optional `ext:`/`file:`/`dir:` structural) for discovery. Advisory shape within that hard bound: 2-4 structural triggers plus 5-7 semantic `kw:` tokens; foundation rules use `kw:` only.
 - **TokenBudget:** `~NUMBER` format (e.g., ~1200)
 - **ContextTier:** One of: Critical, High, Medium, Low (see `002c-rule-optimization.md` for detailed tier selection guidance)
 - **Depends:** At least one rule dependency (e.g., `000-global-core.md`)
@@ -180,14 +180,20 @@ Where:
 
 **Note on Versioning:** For guidance on when and how to increment RuleVersion and update LastUpdated fields, see `002b-rule-update.md`.
 
-### Required Sections (v3.2)
+### Required Sections (v3.4)
 
 **Required Sections (in order):**
-1. **Metadata** - All 6 required fields in correct order
-2. **Scope** - What the rule covers + when to load it (replaces Purpose and Rule Scope from v3.1)
-3. **References** - Dependencies and external documentation (moved early for discovery)
-4. **Contract** - Structured contract with Markdown subsections (###), NOT XML tags
-5. **Anti-Patterns and Common Mistakes** - Optional but strongly recommended
+1. **Metadata**: 7 required fields (see §Metadata Fields). Preferred format is a YAML frontmatter block (`---`-fenced) at top-of-file (schema v3.5 canonical). Inline `**Field:**` markers before Scope remain accepted as a dual-parse fallback for rules that have not yet been migrated. The `## Metadata` H2 header is no longer required in v3.5.
+2. **Scope**: MUST contain the following bolded inline labels (enforced by validator):
+   - `**What This Rule Covers:**`: one-paragraph plain-English summary.
+   - `**When to Load This Rule:**`: bulleted list of trigger conditions.
+3. **References**: MUST contain the H3 subheading (enforced by validator):
+   - `### External Documentation`: required; use `_None._` when no external references apply.
+   - The former `### Dependencies` prose subsection was retired in v3.5; dependency data now lives in the frontmatter `depends:` field with per-item YAML comment justifications (see `#### Justification Preservation` in the v5 refactor plan).
+4. **Contract**: Structured contract with Markdown subsections (`###`), NOT XML tags. See §Contract Structure.
+5. **Anti-Patterns and Common Mistakes**: Optional but strongly recommended.
+
+**Enforcement:** `ai-rules validate rules/` fires HIGH-severity errors on missing Scope inline labels or missing References subheadings. The v3.4 schema retires the transient `### Related Rules` subsection (added and dropped mid-session 2026-07-04 due to token bloat with minimal value). The v3.5 schema additionally drops the `## Metadata` header requirement and the `### Dependencies` prose subsection.
 
 **Numbering:**
 - **FORBIDDEN:** Do NOT use numbered section headings (e.g., `## 1. Environment Setup`)
@@ -198,14 +204,14 @@ Where:
 See `000-global-core.md` §Context Window Management Protocol for canonical marker definitions and preservation priority order.
 
 **Quick Reference - Importance Markers:**
-- **CRITICAL: DO NOT SUMMARIZE** - Bootstrap files (AGENTS.md, 000-global-core.md)
+- **CRITICAL: DO NOT SUMMARIZE** - Foundation content (injected micro-kernel, 000-global-core.md)
 - **CORE RULE: PRESERVE WHEN POSSIBLE** - Domain cores (*-core.md files)
 - **FOUNDATION RULE: PRESERVE WHEN POSSIBLE** - Governance rules (002-series)
 - **(none)** - Standard rules, can be summarized if needed
 
 **ContextTier Metadata:** Provides fine-grained prioritization within tiers. See 000-global-core.md for details.
 
-### Contract Structure (v3.2 - Markdown Headers)
+### Contract Structure (v3.3 - Markdown Headers)
 
 The Contract section must use Markdown subsections (###), NOT XML tags:
 
@@ -272,13 +278,13 @@ uv run ai-rules validate rules/
 
 **Metadata Errors:**
 - **Missing metadata field** - Add missing Keywords, TokenBudget, ContextTier, or Depends in correct order
-- **Keywords count wrong** - Adjust to 5-20 comma-separated terms
+- **Keywords count wrong** - Adjust to 5-11 comma-separated terms
 - **TokenBudget format** - Use `~NUMBER` format (e.g., ~500, ~1200)
 
 **Structure Errors:**
-- **Missing required section** - Add missing section per v3.2 order (Scope, References, Contract)
+- **Missing required section** - Add missing section per v3.3 order (Scope, References, Contract)
 - **Contract missing Markdown subsection** - Add missing ### header (e.g., `### Inputs and Prerequisites`)
-- **Section order wrong** - Reorder sections per v3.2: Metadata, Scope, References, Contract
+- **Section order wrong** - Reorder sections per v3.3: Metadata, Scope, References, Contract
 
 **For detailed error resolution:** See `002e-schema-validator-usage.md`
 
@@ -298,17 +304,17 @@ If validator installation fails:
 2. Verify metadata fields present (SchemaVersion, RuleVersion, LastUpdated, Keywords, TokenBudget, ContextTier, Depends)
 3. Check section order: Metadata, Scope, References, Contract, Content
 4. Verify no XML tags in Contract section (use Markdown headers ###)
-5. Confirm Keywords count: 5-20 terms
+5. Confirm Keywords count: 5-11 terms
 6. Validate TokenBudget format: ~NUMBER
 
 **Option 3: Request Assistance**
 If both options fail, note the validation gap in commit message and request review.
 
 **Schema Version Mismatch:**
-- **Error:** "Expected v3.2, found v3.1" or "SchemaVersion field missing"
+- **Error:** "Expected v3.3, found older version" or "SchemaVersion field missing"
 - **Fix:**
-  1. Update SchemaVersion field to `v3.2`
-  2. Verify section order matches v3.2 requirements:
+  1. Update SchemaVersion field to `v3.3`
+  2. Verify section order matches v3.3 requirements:
      - Metadata at top
      - Scope section
      - References section
@@ -316,13 +322,12 @@ If both options fail, note the validation gap in commit message and request revi
   3. Remove deprecated sections (Preconditions, Setup, Validation if separate)
   4. Merge validation steps into Contract, Execution Workflow
 - **Bulk migration:** If updating multiple rules, see `002a-rule-creation.md` for batch update workflow
-- **Example:**
+- **Example (from v3.2 to v3.3):**
   ```markdown
-  <!-- Change from v3.1: -->
-  **SchemaVersion:** v3.1
-  
-  <!-- To v3.2: -->
-  **SchemaVersion:** v3.2
+  <!-- Change from v3.2 to v3.3: update the SchemaVersion field -->
+
+  <!-- To v3.3: -->
+  **SchemaVersion:** v3.3
   ```
 
 ## Key Principles
@@ -341,7 +346,7 @@ If both options fail, note the validation gap in commit message and request revi
   - Keywords must enable reliable semantic discovery
   - Rule loading must be deterministic (same input produces same rules loaded)
   - Dependencies must be explicit and acyclic
-  - rules/RULES_INDEX.md must be accurate and current
+  - `rules/rule frontmatter` must be accurate and current
 
   **Priority 3 (HIGH): Context Window and Token Utilization Efficiency**
   - Minimize tokens without sacrificing Priority 1 or Priority 2
@@ -380,29 +385,45 @@ If both options fail, note the validation gap in commit message and request revi
 
 - **Schema Compliance:** All rules must validate against schemas/rule-schema.yml with zero CRITICAL errors
 - **CommonMark Compliance:** All Markdown must follow [CommonMark spec](https://spec.commonmark.org/) for consistent parsing
-- **Semantic Discovery:** Keywords (5-20) enable AI agents to automatically discover relevant rules
+- **Semantic Discovery:** Keywords (5-11) enable AI agents to automatically discover relevant rules
 - **Progressive Disclosure:** Scope section provides overview (5-15 lines covering what the rule does and when to load it). Contract section provides unlimited detailed execution steps, validation, and error handling. If an agent only reads the Scope, it should know whether to load the full rule.
 - **Validation-First:** Always run `ai-rules validate` before committing rule changes
 - **Text-Only Format:** No emojis in rule files (schema requirement for universal compatibility)
 - **Agent-First Formatting:** See `002g-agent-optimization.md` for required formatting patterns
 
+### Dependency Declaration Limits
+
+Every rule's `### Dependencies` section must conform to these limits (enforced by `check_limits.py`):
+
+- **Must Load First:** ≤3 entries, each with a one-line justification after `-`. If 0, write `- None (this IS the foundation)` (foundation rule only).
+- **Related:** ≤3 entries, each with a one-line justification after `-`. If 0, omit the block entirely.
+- **Recommended tier:** RETIRED. No rule may contain a `**Recommended:**` subsection. Any existing Recommended links must be promoted to Must Load First, demoted to Related (within the ≤3 cap), or dropped with a written reason.
+- **Available markers:** FORBIDDEN on all bullets. Strip any trailing availability-status suffix (the bracketed word "Available" wrapped in backticks) from Related or Must Load First bullets.
+- **Inline style:** FORBIDDEN. Every entry must be a bullet (`- **filename.md** - justification`), not a comma-separated inline list.
+- **`**Depends:**` sync:** Every Must Load First entry must appear as `required:filename.md` in the `**Depends:**` metadata field. Every Related entry must appear as `optional:filename.md`. Order: all `required:` before all `optional:`.
+
+These limits are enforced by `uv run ai-rules validate rules/`, `uv run ai-rules rule-loader keywords collisions`, and the wired CI gates in `tests/test_track_b_ci_gates.py`, and must pass before any rule PR is merged.
+
 ## CommonMark Compliance
 
 Rules are parsed as CommonMark-compliant Markdown. See `002e-schema-validator-usage.md`
-for full CommonMark compliance requirements. Key rules:
+for full CommonMark compliance requirements. Concrete constraints for rule files:
 
-- ATX-style headings with strict hierarchy (H1 to H2 to H3)
-- Dash (`-`) for unordered lists, 2-space nesting
-- Triple backticks with language identifier; quad backticks for nesting
-- Prefer structured lists over tables (see 002g-agent-optimization.md)
+- ATX-style headings with strict hierarchy (H1 to H2 to H3). Setext-style headings (`===` or `---` underlines) are FORBIDDEN: they conflict with the ban on thematic-break `---` separators and cause ambiguous parsing.
+- Fenced code blocks MUST include a language identifier (info string). A bare ` ``` ` fence is not permitted. Use `text` or `plaintext` when the block has no specific language.
+- Indented code blocks (4-space indentation) are FORBIDDEN. Use fenced code blocks so the language identifier is explicit.
+- Use a single, consistent list marker within each list. Use `-` for unordered lists across the codebase; do NOT mix `-`, `*`, and `+` within the same list.
+- 2-space nesting for sub-items in unordered lists.
+- Nested fences require MORE backticks than the outer fence: use quad backticks (` ```` `) for a fence that contains a triple-backtick block.
+- Prefer structured lists over tables (see 002g-agent-optimization.md).
 
 ## Anti-Patterns and Common Mistakes
 
 ### Anti-Pattern 1: Keyword Stuffing for Discovery
 
-**Problem:** Adding irrelevant or duplicate keywords to meet the 5-20 requirement, or using overly generic terms that don't aid semantic discovery.
+**Problem:** Adding irrelevant or duplicate keywords to meet the 5-11 requirement, or using overly generic terms that don't aid semantic discovery.
 
-**Why It Fails:** Pollutes RULES_INDEX.md with false matches, causes wrong rules to load, wastes agent context budget on irrelevant rules, and degrades rule discovery accuracy.
+**Why It Fails:** Pollutes rule frontmatter with false matches, causes wrong rules to load, wastes agent context budget on irrelevant rules, and degrades rule discovery accuracy.
 
 **Correct Pattern:**
 ```markdown
@@ -453,7 +474,36 @@ Example:
 
 ## LoadTrigger Guidelines
 
-**See:** `002i-rule-loadtrigger.md` for complete LoadTrigger specification, syntax, patterns, best practices, and examples.
+LoadTrigger guidance governs how rules declare their dynamic discovery triggers via the
+**Keywords:** metadata field. These typed-prefix entries drive agent lookup in `rule frontmatter`.
+
+**When to add typed triggers:**
+- Rule applies to specific file extensions, use `ext:.py`, `ext:.sql`, `ext:.tsx`
+- Rule applies to specific filenames, use `file:pyproject.toml`, `file:Dockerfile`
+- Rule applies to specific directories, use `dir:rules/`, `dir:tests/`
+- Rule provides keyword/activity guidance, use `kw:testing`, `kw:performance`
+
+**When to skip:** Foundation/infrastructure rules (always loaded); sub-rules with explicit
+`Depends:` relationships loaded via parent; highly specialized on-demand-only rules.
+
+**Trigger types** (combine in **Keywords:** field, comma-separated):
+- `ext:<extension>`: matches file extension (e.g. `ext:.py`)
+- `file:<name>`: matches exact filename (e.g. `file:Dockerfile`)
+- `dir:<path>`: matches directory prefix (e.g. `dir:tests/`)
+- `kw:<term>`: matches keyword/activity (e.g. `kw:testing`)
+
+**Best practices:**
+- Use 2–4 HARD typed triggers (`ext:`, `file:`, `dir:`) per rule, plus 5–7 `kw:` semantic tokens.
+- Use specific, descriptive keywords: avoid overly generic terms matching 5+ rules across different domain families
+- Distinguish useful synonyms (different search terms, e.g. `kw:mock, kw:faker`) from redundant variants (abbreviations of the same term: keep only one)
+- Regenerate the discovery index after any trigger change: `uv run ai-rules rule-loader keywords run <path> --update`
+
+**Anti-patterns:**
+- Generic keywords (`kw:code`, `kw:file`) with 5+ matches across unrelated domains
+- Redundant variants (`kw:python, kw:py`): pick one canonical term
+- Adding triggers to foundation rules (000-series) or to sub-rules loaded exclusively via `Depends:`
+
+**Decision process:** (1) Foundation rule? Then no trigger. (2) Has parent via `Depends:` only? Then no trigger. (3) Specific file types? Then add `ext:`/`file:`. (4) Specific activity? Then add `kw:`. (5) Combined parent + standalone? Then use both `Depends:` and triggers.
 
 ## Rule Examples
 

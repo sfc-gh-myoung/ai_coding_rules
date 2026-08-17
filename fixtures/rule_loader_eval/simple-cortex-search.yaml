@@ -1,0 +1,22 @@
+schema_version: 3
+updated: '2026-07-20T13:00:00-04:00'
+id: simple-cortex-search
+description: null
+variant: simple
+prompt: 'What''s needed to stand up a cortex search service over a document corpus?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/116-snowflake-cortex-search.md
+  forbidden: []
+  optional:
+  - rules/100-snowflake-core.md
+trigger_evidence:
+  kw:
+  - cortex search
+  - search
+  ext: []
+  file: []
+  dir: []

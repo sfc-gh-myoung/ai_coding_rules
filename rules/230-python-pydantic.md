@@ -1,15 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Model definition and field validation patterns using Pydantic v2, covering BaseModel design, Field() constraints, custom validators, and anti-patterns."
+last_updated: 2026-07-15
+keywords:
+  - kw:BaseModel inheritance
+  - kw:Field constraints
+  - kw:@field_validator decorator
+  - kw:@model_validator decorator
+  - kw:ConfigDict settings
+  - kw:discriminated unions
+token_budget: ~3800
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md
+---
 # Python Pydantic Data Validation Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v4.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:pydantic, kw:validation, kw:basemodel
-**Keywords:** Pydantic, data validation, models, BaseModel, field validation, Field, validator, model_validator, EmailStr
-**TokenBudget:** ~3800
-**ContextTier:** High
-**Depends:** 200-python-core.md
 
 ## Scope
 
@@ -26,12 +33,6 @@ Model definition and field validation patterns using Pydantic v2, covering BaseM
 ### External Documentation
 - [Pydantic Documentation](https://docs.pydantic.dev/latest/) - Complete guide to data validation and serialization
 - [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) - Configuration management
-
-### Related Rules
-- **200-python-core.md** - Core Python patterns and uv usage
-- **201-python-lint-format.md** - Ruff linting and formatting standards
-- **230a-python-pydantic-settings.md** - Settings management with pydantic-settings
-- **230b-python-pydantic-integration.md** - Serialization, FastAPI, database, performance, testing
 
 ## Contract
 
@@ -108,9 +109,9 @@ Python modules containing:
 Before creating or modifying Pydantic models, agents MUST check:
 
 - [ ] **Existing models**: Search for `class.*BaseModel` in the project to find existing Pydantic models and avoid duplication
-- [ ] **Pydantic version**: Check `pyproject.toml` for current Pydantic version — if v1, migration is needed before applying v2 patterns
+- [ ] **Pydantic version**: Check `pyproject.toml` for current Pydantic version: if v1, migration is needed before applying v2 patterns
 - [ ] **Model organization**: Identify existing directory structure (models/, schemas/, types/) to place new models consistently
-- [ ] **Installed extras**: Check if `pydantic[email]` is already installed — avoid duplicate dependency declarations
+- [ ] **Installed extras**: Check if `pydantic[email]` is already installed; avoid duplicate dependency declarations
 - [ ] **Existing validators**: Search for `@field_validator` and `@model_validator` to understand current validation patterns
 
 ## Anti-Patterns and Common Mistakes
@@ -129,6 +130,7 @@ async def get_user(user_id: int) -> dict:
     user = db.get_user(user_id)
     return {"id": user.id, "name": user.name, "created": str(user.created_at)}
 
+
 # GOOD: Pydantic response model
 class UserResponse(BaseModel):
     id: int
@@ -136,6 +138,7 @@ class UserResponse(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
 
 @app.get("/users/{user_id}", response_model=UserResponse)
 async def get_user(user_id: int) -> UserResponse:
@@ -154,6 +157,7 @@ async def create_user(data: dict):
     if not data.get("email") or "@" not in data["email"]:
         raise HTTPException(400, "Invalid email")
 
+
 # GOOD: Validation in Pydantic model
 class UserCreate(BaseModel):
     email: EmailStr
@@ -165,6 +169,7 @@ class UserCreate(BaseModel):
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters")
         return v
+
 
 @app.post("/users")
 async def create_user(data: UserCreate):  # Auto-validated
@@ -183,6 +188,7 @@ def validate_data_dir(cls, v: Path) -> Path:
     v.mkdir(parents=True, exist_ok=True)  # Side-effect!
     return v
 
+
 # GOOD: Validate only; create directories at application startup
 @field_validator("data_dir")
 @classmethod
@@ -190,6 +196,8 @@ def validate_data_dir(cls, v: Path) -> Path:
     if not v.parent.exists():
         raise ValueError(f"Parent directory does not exist: {v.parent}")
     return v
+
+
 # Call settings.data_dir.mkdir(parents=True, exist_ok=True) at startup
 ```
 
@@ -198,6 +206,7 @@ def validate_data_dir(cls, v: Path) -> Path:
 ```python
 from datetime import datetime, UTC
 from pydantic import BaseModel, Field, ConfigDict, field_validator, computed_field
+
 
 class OrderItem(BaseModel):
     """Example Pydantic v2 model with common patterns."""
@@ -208,7 +217,7 @@ class OrderItem(BaseModel):
         json_schema_extra={"example": {"sku": "AB-1234", "quantity": 2, "unit_price": 19.99}},
     )
 
-    sku: str = Field(..., pattern=r'^[A-Z]{2,3}-\d{4,6}$')
+    sku: str = Field(..., pattern=r"^[A-Z]{2,3}-\d{4,6}$")
     quantity: int = Field(..., gt=0, le=1000)
     unit_price: float = Field(..., gt=0)
     ordered_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
@@ -223,7 +232,7 @@ class OrderItem(BaseModel):
     @computed_field
     @property
     def total(self) -> float:
-        """Total price — included in serialization."""
+        """Total price - included in serialization."""
         return self.quantity * self.unit_price
         # item.model_dump() → {"sku": "AB-1234", ..., "total": 39.98}
 ```
@@ -268,10 +277,12 @@ from typing import Optional, List
 from pydantic import BaseModel, ConfigDict, Field, EmailStr
 from enum import Enum
 
+
 class UserRole(str, Enum):
     ADMIN = "admin"
     USER = "user"
     MODERATOR = "moderator"
+
 
 class User(BaseModel):
     """User model with comprehensive validation."""
@@ -293,7 +304,7 @@ class User(BaseModel):
 
     id: int = Field(..., gt=0, description="Unique user identifier")
     email: EmailStr = Field(..., description="User email address")
-    username: str = Field(..., min_length=3, max_length=50, pattern=r'^[a-zA-Z0-9_]+$')
+    username: str = Field(..., min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_]+$")
     full_name: Optional[str] = Field(None, max_length=100)
     age: Optional[int] = Field(None, ge=13, le=120, description="User age in years")
     role: UserRole = Field(default=UserRole.USER)
@@ -311,71 +322,78 @@ class User(BaseModel):
 from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Optional
 
+
 class Product(BaseModel):
     """Product model with custom validation."""
 
     name: str = Field(..., min_length=1, max_length=200)
-    sku: str = Field(..., pattern=r'^[A-Z]{2,3}-\d{4,6}$')
+    sku: str = Field(..., pattern=r"^[A-Z]{2,3}-\d{4,6}$")
     price: float = Field(..., gt=0, le=10000, description="Price in USD")
     discount_percent: Optional[float] = Field(None, ge=0, le=100)
     category: str = Field(..., min_length=1)
 
-    @field_validator('name')
+    @field_validator("name")
     @classmethod
     def validate_name(cls, v: str) -> str:
         """Ensure product name doesn't contain prohibited words."""
-        prohibited = ['test', 'sample', 'demo']
+        prohibited = ["test", "sample", "demo"]
         if any(word in v.lower() for word in prohibited):
-            raise ValueError('Product name cannot contain prohibited words')
+            raise ValueError("Product name cannot contain prohibited words")
         return v.title()
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def validate_discount_logic(cls, values: dict) -> dict:
         """Ensure discount logic is consistent."""
-        price = values.get('price')
-        discount = values.get('discount_percent')
+        price = values.get("price")
+        discount = values.get("discount_percent")
         if discount and discount > 0 and price and price < 10:
-            raise ValueError('Discount not allowed on items under $10')
+            raise ValueError("Discount not allowed on items under $10")
         return values
 ```
 
 ## Nested Models
 
-Pydantic supports model composition — use nested models for structured data:
+Pydantic supports model composition: use nested models for structured data:
 
 ```python
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 
+
 class Address(BaseModel):
     """Mailing or billing address."""
+
     street: str = Field(min_length=1, max_length=200)
     city: str = Field(min_length=1, max_length=100)
     state: str = Field(min_length=2, max_length=2, pattern=r"^[A-Z]{2}$")
     zip_code: str = Field(pattern=r"^\d{5}(-\d{4})?$")
     country: str = Field(default="US", max_length=2)
 
+
 class Customer(BaseModel):
     """Customer with multiple addresses."""
+
     model_config = ConfigDict(from_attributes=True)
 
     name: str = Field(min_length=1, max_length=100)
     billing_address: Address
     shipping_addresses: List[Address] = Field(default_factory=list)
-    primary_phone: Optional[str] = Field(
-        default=None, pattern=r"^\+?1?\d{10,15}$"
-    )
+    primary_phone: Optional[str] = Field(default=None, pattern=r"^\+?1?\d{10,15}$")
+
 
 # Nested models validate recursively:
 customer = Customer(
     name="Jane Doe",
-    billing_address={"street": "123 Main St", "city": "Portland",
-                     "state": "OR", "zip_code": "97201"},
+    billing_address={
+        "street": "123 Main St",
+        "city": "Portland",
+        "state": "OR",
+        "zip_code": "97201",
+    },
     shipping_addresses=[
-        {"street": "456 Oak Ave", "city": "Seattle",
-         "state": "WA", "zip_code": "98101"}
-    ]
+        {"street": "456 Oak Ave", "city": "Seattle", "state": "WA", "zip_code": "98101"}
+    ],
 )
 # customer.billing_address is an Address instance, not a dict
 ```
@@ -388,27 +406,32 @@ Use discriminated unions for polymorphic data with a type field:
 from pydantic import BaseModel, Field
 from typing import Annotated, Literal, Union
 
+
 class CreditCardPayment(BaseModel):
     payment_type: Literal["credit_card"]
     card_number: str = Field(pattern=r"^\d{16}$")
     expiry: str = Field(pattern=r"^\d{2}/\d{2}$")
     cvv: str = Field(pattern=r"^\d{3,4}$")
 
+
 class BankTransferPayment(BaseModel):
     payment_type: Literal["bank_transfer"]
     routing_number: str = Field(pattern=r"^\d{9}$")
     account_number: str = Field(min_length=8, max_length=17)
+
 
 class CryptoPayment(BaseModel):
     payment_type: Literal["crypto"]
     wallet_address: str = Field(min_length=26, max_length=62)
     network: str = Field(pattern=r"^(ethereum|bitcoin|solana)$")
 
+
 # Discriminator selects the right model based on payment_type:
 Payment = Annotated[
     Union[CreditCardPayment, BankTransferPayment, CryptoPayment],
-    Field(discriminator="payment_type")
+    Field(discriminator="payment_type"),
 ]
+
 
 class Order(BaseModel):
     order_id: str
@@ -423,9 +446,11 @@ Use `Annotated` with `BeforeValidator` / `AfterValidator` for reusable type-leve
 from typing import Annotated
 from pydantic import BaseModel, AfterValidator, BeforeValidator
 
+
 def strip_whitespace(v: str) -> str:
     """Pre-process: strip leading/trailing whitespace."""
     return v.strip()
+
 
 def validate_not_empty(v: str) -> str:
     """Post-process: ensure string is not empty after stripping."""
@@ -433,14 +458,18 @@ def validate_not_empty(v: str) -> str:
         raise ValueError("Value must not be empty or whitespace-only")
     return v
 
-# Reusable custom type — use across multiple models:
+
+# Reusable custom type - use across multiple models:
 CleanString = Annotated[str, BeforeValidator(strip_whitespace), AfterValidator(validate_not_empty)]
+
 
 def normalize_email(v: str) -> str:
     """Normalize email to lowercase."""
     return v.lower().strip()
 
+
 NormalizedEmail = Annotated[str, BeforeValidator(normalize_email)]
+
 
 class ContactForm(BaseModel):
     name: CleanString  # Strips whitespace, rejects empty

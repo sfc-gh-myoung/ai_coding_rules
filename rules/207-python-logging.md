@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Best practices for Python logging in applications with dual output requirements (CLI and web UI), covering hierarchical logger names, handler configuration, Rich console integration, SSE/WebSocket"
+last_updated: 2026-07-15
+keywords:
+  - kw:hierarchical logger names
+  - kw:Rich console bridge
+  - kw:WebLogHandler SSE
+  - kw:operation-scoped handler attachment
+  - kw:SUCCESS prefix pattern
+  - kw:operation ID correlation
+token_budget: ~3700
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Python foundation patterns
+  optional:
+    - 201-python-lint-format.md  # Code quality standards
+    - 210-python-fastapi-core.md  # FastAPI SSE streaming patterns
+---
 # Python Logging Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** logging, Python logging, logger, handlers, formatters, log levels, WebLogHandler, Rich console, SSE streaming, structured logging, operation ID, thread safety, log hierarchy, log propagation
-**TokenBudget:** ~3700
-**ContextTier:** High
-**Depends:** 200-python-core.md
-**LoadTrigger:** kw:logging, kw:log, kw:logger
 
 ## Scope
 
@@ -26,15 +36,6 @@ Best practices for Python logging in applications with dual output requirements 
 - Debugging log propagation issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Python foundation patterns
-
-**Related:**
-- **201-python-lint-format.md** - Code quality standards
-- **210-python-fastapi-core.md** - FastAPI SSE streaming patterns
 
 ### External Documentation
 
@@ -69,9 +70,9 @@ Best practices for Python logging in applications with dual output requirements 
 
 > **Investigation Required:**
 > Before modifying logging configuration:
-> 1. Check existing logging setup — look for `logging.config`, `dictConfig`, `basicConfig`, or Rich handlers
+> 1. Check existing logging setup: look for `logging.config`, `dictConfig`, `basicConfig`, or Rich handlers
 > 2. Check for structured logging libraries (structlog, python-json-logger)
-> 3. Check if the project uses Rich — if so, use `RichHandler`
+> 3. Check if the project uses Rich: if so, use `RichHandler`
 > 4. Check for log aggregation services (Datadog, Sentry, CloudWatch) that may require specific formatters
 > 5. Check `pyproject.toml` for logging-related dependencies
 > 6. Never replace a working logging configuration without understanding what consumes the logs
@@ -167,14 +168,13 @@ When using Rich for CLI output, bridge to the logger for web UI capture:
 try:
     from rich.console import Console
     from rich.logging import RichHandler
+
     console = Console()
     handler = RichHandler(rich_tracebacks=True)
 except ImportError:
     console = None
     handler = logging.StreamHandler()
-    handler.setFormatter(
-        logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
-    )
+    handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
 
 logging.basicConfig(level=logging.INFO, handlers=[handler])
 ```
@@ -190,15 +190,18 @@ from rich.console import Console
 logger = logging.getLogger("app.operations")
 console = Console()
 
+
 def log_info(message: str) -> None:
     """Output to both Rich console and Python logger."""
     console.print(f"[INFO] {message}", style="blue")
     logger.info(message)
 
+
 def log_success(message: str) -> None:
     """Output success with prefix for web UI detection."""
     console.print(f"[OK] {message}", style="green")
     logger.info(f"SUCCESS: {message}")  # Prefix enables SUCCESS level mapping
+
 
 def log_error(message: str) -> None:
     """Output error to both outputs."""
@@ -263,6 +266,7 @@ For web applications with SSE-based log streaming:
 ```python
 from datetime import datetime, UTC
 
+
 def add_log(level: str, message: str, operation_id: str | None = None) -> None:
     """Publish log entry to SSE logs channel.
 
@@ -279,7 +283,9 @@ def add_log(level: str, message: str, operation_id: str | None = None) -> None:
     if operation_id:
         log_entry["operation_id"] = operation_id
 
-    publish_to_sse_channel("logs", "log", log_entry)  # High-level: publishes structured log entries to SSE
+    publish_to_sse_channel(
+        "logs", "log", log_entry
+    )  # High-level: publishes structured log entries to SSE
 ```
 
 **Thread-Safe Publishing from Background Tasks:**
@@ -301,9 +307,7 @@ async def status_stream(demo_id: str):
         main_loop.call_soon_threadsafe(queue.put_nowait, (step, message))
 
     # Run blocking operation in thread pool
-    result = await asyncio.to_thread(
-        check_status, callback=progress_callback
-    )
+    result = await asyncio.to_thread(check_status, callback=progress_callback)
 ```
 
 **SSE Connection Failure Handling:**
@@ -317,7 +321,7 @@ Include `operation_id` in logs for correlation and filtering:
 ```python
 # Generate consistent operation IDs
 operation_id = f"status-{demo_id[:8]}"  # For status checks
-operation_id = str(uuid.uuid4())[:8]    # For general operations
+operation_id = str(uuid.uuid4())[:8]  # For general operations
 
 # Include in all log calls during operation
 add_log("INFO", "Starting database check...", operation_id)
@@ -327,7 +331,7 @@ add_log("SUCCESS", "Database connection verified", operation_id)
 **Input Validation for Logging Parameters:**
 - Validate `operation_id` format: non-empty string, alphanumeric + hyphens only
 - Handle empty/None log messages gracefully: log a warning instead of propagating errors
-- Never let logging failures crash the application — wrap custom handler `emit()` in try/except
+- Never let logging failures crash the application: wrap custom handler `emit()` in try/except
 
 ### Log File Rotation
 
@@ -401,9 +405,7 @@ logging.basicConfig(level=logging.INFO, handlers=[handler])
 from pythonjsonlogger import jsonlogger
 
 handler = logging.StreamHandler()
-handler.setFormatter(jsonlogger.JsonFormatter(
-    "%(asctime)s %(levelname)s %(name)s %(message)s"
-))
+handler.setFormatter(jsonlogger.JsonFormatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
 ```
 
 **Decision:** Use custom `JSONFormatter` for full control, `python-json-logger` for quick setup.
@@ -434,8 +436,10 @@ def process_data():
 handler = WebLogHandler()
 logging.getLogger("app").addHandler(handler)  # Attached forever
 
+
 def operation_a():
     log_info("Operation A")  # Logged once
+
 
 def operation_b():
     log_info("Operation B")  # Also logged, but handler from A still attached

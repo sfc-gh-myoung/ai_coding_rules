@@ -1,15 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive bash testing, debugging, and modern tooling integration including ShellCheck, CI/CD workflows, and development practices to ensure script quality and reliability."
+last_updated: 2026-07-15
+keywords:
+  - kw:ShellCheck
+  - kw:Bats
+  - kw:bash unit testing
+  - kw:pre-commit hooks
+  - kw:debug mode implementation
+  - kw:cicd shell validation
+token_budget: ~3600
+context_tier: Medium
+depends:
+  required:
+    - 300-bash-scripting-core.md  # Foundation bash scripting patterns
+  optional:
+    - 300a-bash-security.md  # Security testing considerations
+---
 # Bash Testing and Tooling Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:bash-testing, kw:bats
-**Keywords:** Bash, testing, ShellCheck, bats, shell script testing, CI/CD, debugging, static analysis, linting, test automation
-**TokenBudget:** ~3600
-**ContextTier:** Medium
-**Depends:** 300-bash-scripting-core.md
 
 ## Scope
 
@@ -24,14 +33,6 @@ Comprehensive bash testing, debugging, and modern tooling integration including 
 - Debugging complex bash script issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **300-bash-scripting-core.md** - Foundation bash scripting patterns
-
-**Related:**
-- **300a-bash-security.md** - Security testing considerations
 
 ### External Documentation
 
@@ -471,9 +472,9 @@ show_coverage() {
 
 ### Tool Version Requirements
 
-- **ShellCheck 0.8.0+** — Install: `apt install shellcheck` or `brew install shellcheck`
-- **Bats 1.5.0+** — Install: `npm install -g bats` or `brew install bats-core`
-- **Node.js 14+** — Required only if installing Bats via npm
+- **ShellCheck 0.8.0+**: Install: `apt install shellcheck` or `brew install shellcheck`
+- **Bats 1.5.0+**: Install: `npm install -g bats` or `brew install bats-core`
+- **Node.js 14+**: Required only if installing Bats via npm
 
 ### Setup Checklist
 - Install ShellCheck via package manager (`apt-get install shellcheck`, `brew install shellcheck`, or Docker)

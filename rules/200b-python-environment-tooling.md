@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Virtual environment management, tool isolation patterns (uvx vs uv run), detailed command patterns for each toolchain (uv, poetry, pip), environment setup best practices, troubleshooting common"
+last_updated: 2026-07-15
+keywords:
+  - kw:venv
+  - kw:uv run
+  - kw:uvx
+  - kw:poetry run
+  - kw:toolchain detection
+  - kw:ModuleNotFoundError diagnosis
+token_budget: ~3000
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Core Python patterns and toolchain detection
+  optional:
+    - 200a-python-validation-gate.md  # Validation gate commands per toolchain
+    - 203-python-project-setup.md  # Project structure and initialization
+---
 # Python Environment and Tooling
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.2
-**LastUpdated:** 2026-03-26
-**Keywords:** virtual environment, venv, uv, poetry, pip, pipenv, uvx, tool isolation, ModuleNotFoundError, environment setup, dependency management
-**TokenBudget:** ~3000
-**ContextTier:** High
-**Depends:** 200-python-core.md
-**LoadTrigger:** kw:venv, kw:virtual-environment, kw:uv, kw:poetry
 
 ## Scope
 
@@ -25,14 +35,9 @@ Virtual environment management, tool isolation patterns (uvx vs uv run), detaile
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **200-python-core.md** - Core Python patterns and toolchain detection
-
-**Related:**
-- **200a-python-validation-gate.md** - Validation gate commands per toolchain
-- **203-python-project-setup.md** - Project structure and initialization
+_None._
 
 ## Contract
 
@@ -256,7 +261,7 @@ conda env export --from-history > environment.yml
 When a `requirements.txt` is needed (Docker, legacy CI, deployment):
 
 ```bash
-# From uv (preferred — deterministic)
+# From uv (preferred - deterministic)
 uv pip compile pyproject.toml -o requirements.txt
 uv pip compile pyproject.toml --extra dev -o requirements-dev.txt
 
@@ -264,13 +269,13 @@ uv pip compile pyproject.toml --extra dev -o requirements-dev.txt
 poetry export -f requirements.txt -o requirements.txt --without-hashes
 
 # From pip (least reproducible)
-pip freeze > requirements.txt  # Includes ALL packages — review before committing
+pip freeze > requirements.txt  # Includes ALL packages - review before committing
 ```
 
 **Rules for requirements.txt:**
 - Always pin exact versions: `requests==2.31.0` not `requests>=2.31`
 - Regenerate after every `uv add` / `uv remove`
-- Never manually edit — always regenerate from pyproject.toml
+- Never manually edit: always regenerate from pyproject.toml
 - Add to `.gitignore` if using lockfile-based workflow (uv.lock is the source of truth)
 - Keep in git if deployment requires it (Docker, Heroku)
 
@@ -366,9 +371,9 @@ CMD ["uv", "run", "python", "-m", "myapp"]
 > 1. Read pyproject.toml for toolchain (uv, poetry, pip)
 > 2. Check for lockfiles (uv.lock, poetry.lock, conda-lock.yml)
 > 3. Verify virtual environment location (.venv, conda env)
-> 4. Check for `environment.yml` — if present, project uses conda
-> 5. Check for `.python-version` — pyenv may manage Python versions
-> 6. Check for `Dockerfile` — may need requirements.txt export
+> 4. Check for `environment.yml`: if present, project uses conda
+> 5. Check for `.python-version`: pyenv may manage Python versions
+> 6. Check for `Dockerfile`: may need requirements.txt export
 
 ## Anti-Patterns and Common Mistakes
 

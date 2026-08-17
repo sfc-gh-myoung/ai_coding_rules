@@ -237,49 +237,52 @@ Calculate impact × effort ratio and rank:
 ## File Writing and No-Overwrite Logic
 
 ```python
-def write_summary_report(summary_data, review_date, model, review_mode, output_root='reviews/'):
+def write_summary_report(summary_data, review_date, model, review_mode, output_root="reviews/"):
     """Write master summary report to file with no-overwrite protection."""
     import os
     from datetime import datetime
-    
+
     # Normalize output_root
-    output_root = output_root.rstrip('/') + '/'
-    
+    output_root = output_root.rstrip("/") + "/"
+
     # Ensure summaries directory exists
     os.makedirs(f"{output_root}summaries", exist_ok=True)
-    
+
     # Build base filename
     base_filename = f"{output_root}summaries/_bulk-review-{model}-{review_date}.md"
-    
+
     # Check if file exists
     if os.path.exists(base_filename):
-        # Increment suffix: _bulk-review-claude-sonnet-45-2026-01-06-01.md
+        # Increment suffix: _bulk-review-claude-sonnet-4-6-2026-01-06-01.md
         for counter in range(1, 100):
-            incremented_filename = f"{output_root}summaries/_bulk-review-{model}-{review_date}-{counter:02d}.md"
+            incremented_filename = (
+                f"{output_root}summaries/_bulk-review-{model}-{review_date}-{counter:02d}.md"
+            )
             if not os.path.exists(incremented_filename):
                 output_path = incremented_filename
                 break
         else:
             # Fallback: use timestamp (prevents data loss)
             import time
+
             ts = int(time.time())
             output_path = f"{output_root}summaries/_bulk-review-{model}-{review_date}-{ts}.md"
     else:
         output_path = base_filename
-    
+
     # Generate report content
     report_content = generate_report_markdown(summary_data, review_date, model, review_mode)
-    
+
     # Write to file
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         f.write(report_content)
-    
+
     # Print success message
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"Master summary report written to:")
     print(f"  {output_path}")
-    print(f"{'='*60}\n")
-    
+    print(f"{'=' * 60}\n")
+
     return output_path
 ```
 
@@ -290,23 +293,23 @@ def write_summary_report(summary_data, review_date, model, review_mode, output_r
 ```python
 def calculate_impact_effort_ratio(rule_data):
     """Calculate impact × effort ratio for prioritization.
-    
+
     Impact factors:
     - Score (lower = higher impact)
     - Critical issues count
     - Verdict severity
-    
+
     Effort factors:
     - Score delta to next tier
     - Number of missing components
     """
     score = rule_data["overall_score"]
     critical = rule_data["critical_issues"]
-    
+
     # Impact score (0-100, higher = more impactful)
     # Low scores have high impact
     impact = 100 - score + (critical * 5)
-    
+
     # Effort estimate (hours)
     if score < 60:
         effort = 4 + (critical * 0.5)  # 4-6 hours
@@ -318,15 +321,11 @@ def calculate_impact_effort_ratio(rule_data):
         effort = 0.5 + (critical * 0.1)  # 30-45 min
     else:
         effort = 0.25  # 15 min
-    
+
     # Impact × Effort ratio (higher = better ROI)
     ratio = impact / effort if effort > 0 else 0
-    
-    return {
-        "impact": impact,
-        "effort": effort,
-        "ratio": ratio
-    }
+
+    return {"impact": impact, "effort": effort, "ratio": ratio}
 ```
 
 ### format_effort_estimate(hours)
@@ -470,7 +469,7 @@ These rules are excluded from 10.2-10.4 statistics but remain in the score table
 ### Rendering Rules
 
 1. **Gate:** If `timing_stats is None`, emit nothing for Section 10 and continue. The rest of the summary is unchanged.
-2. **Ordering:** Section 10 appears AFTER the Appendix and BEFORE any timing metadata embedded by `skill_timing.py end --output-file` (if timing-end appends its own block, the Section 10 narrative precedes it).
+2. **Ordering:** Section 10 appears AFTER the Appendix and BEFORE any timing metadata embedded by `skill_timer.py end --output-file` (if timing-end appends its own block, the Section 10 narrative precedes it).
 3. **Warnings:** If `timing_stats.warnings` is empty, render "No warnings." Never omit 10.5.
 4. **Parallel mode:** Add a sub-section "10.6 Sub-Agent Timing" rendering per-worker stats from the sub-agent JSON contract (see `workflows/parallel-execution.md`).
 

@@ -1,0 +1,26 @@
+schema_version: 3
+updated: '2026-07-20T13:00:00-04:00'
+id: simple-cost-governance
+description: null
+variant: simple
+prompt: 'What''s the recommended approach for a resource monitor to control a noisy
+
+  finance budget in Snowflake?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/105-snowflake-cost-governance.md
+  forbidden: []
+  optional:
+  - rules/100-snowflake-core.md
+  - rules/103-snowflake-performance-tuning.md
+  - rules/119-snowflake-warehouse-management.md
+trigger_evidence:
+  kw:
+  - resource monitor
+  - budget
+  ext: []
+  file: []
+  dir: []

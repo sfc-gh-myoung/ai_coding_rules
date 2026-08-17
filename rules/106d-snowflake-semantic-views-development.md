@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Development workflows for Semantic Views including the Semantic View Generator tool, Verified Query Repository (VQR) for YAML semantic models, and iterative refinement patterns."
+last_updated: 2026-07-15
+keywords:
+  - kw:semantic view generator
+  - kw:verified query repository
+  - kw:VQR logical table naming
+  - kw:YAML semantic model
+  - kw:iterative refinement workflow
+  - kw:onboarding questions
+token_budget: ~3500
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule
+    - 106-snowflake-semantic-views-core.md  # DDL fundamentals
+---
 # Snowflake Semantic Views: Development Workflows
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:semantic-generator, kw:vqr
-**Keywords:** VQR, verified queries, Generator workflow, iterative development, YAML semantic model, semantic model file, onboarding questions, development workflow, verified query repository, semantic view generator
-**TokenBudget:** ~3500
-**ContextTier:** Medium
-**Depends:** 106-snowflake-semantic-views-core.md
 
 ## Scope
 
@@ -27,19 +35,10 @@ Development workflows for Semantic Views including the Semantic View Generator t
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule
-- **106-snowflake-semantic-views-core.md** - DDL fundamentals
-
 ### External Documentation
 - [Semantic View Generator](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-generator) - Automated view creation
 - [Verified Query Repository](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/verified-query-repository) - VQR documentation
 - [Verified Query Suggestions](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/verified-query-suggestions) - AI-suggested queries
-
-### Related Rules
-- **106c-snowflake-semantic-views-integration.md** - Cortex Analyst integration, governance
 
 ## Contract
 
@@ -201,7 +200,7 @@ LIST @PROD.ANALYTICS.SEMANTIC_MODELS/;
 ```python
 payload = {
     "semantic_model_file": "@PROD.ANALYTICS.SEMANTIC_MODELS/sales_model.yaml",
-    "messages": [{"role": "user", "content": "What is total revenue by month?"}]
+    "messages": [{"role": "user", "content": "What is total revenue by month?"}],
 }
 ```
 
@@ -244,7 +243,7 @@ url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/suggestio
 payload = {
     "semantic_model_file": "@ANALYTICS.MODELS/model.yaml",
     "mode": "ca_requests_based",  # or "query_history_based"
-    "limit": 10
+    "limit": 10,
 }
 ```
 
@@ -355,7 +354,7 @@ test_queries = [
 for query in test_queries:
     payload = {
         "semantic_view": "SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES",
-        "messages": [{"role": "user", "content": query}]
+        "messages": [{"role": "user", "content": query}],
     }
     response = requests.post(url, headers=headers, json=payload)
     print(f"Query: {query}\nResponse: {response.json()}\n")

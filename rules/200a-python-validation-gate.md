@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "The mandatory Pre-Task-Completion Validation Gate for all Python tasks: linting, formatting, type checking, syntax validation, test execution, and documentation updates. Includes the ty vs mypy"
+last_updated: 2026-07-15
+keywords:
+  - kw:pre-task completion gate
+  - kw:ty vs mypy decision
+  - kw:zero-tolerance validation
+  - kw:toolchain-specific validation commands
+  - kw:validation failure recovery sequence
+  - kw:pre-commit hook automation
+token_budget: ~3050
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Core Python patterns and toolchain detection
+  optional:
+    - 201-python-lint-format.md  # Detailed Ruff linting and formatting
+    - 206-python-pytest.md  # Comprehensive testing patterns
+---
 # Python Pre-Task-Completion Validation Gate
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** validation, type checking, linting, formatting, pytest, ruff, ty, mypy, pre-task, gate, syntax
-**TokenBudget:** ~3050
-**ContextTier:** High
-**Depends:** 200-python-core.md
-**LoadTrigger:** kw:validate, kw:type-check, kw:lint
 
 ## Scope
 
@@ -24,14 +34,9 @@ The mandatory Pre-Task-Completion Validation Gate for all Python tasks: linting,
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **200-python-core.md** - Core Python patterns and toolchain detection
-
-**Related:**
-- **201-python-lint-format.md** - Detailed Ruff linting and formatting
-- **206-python-pytest.md** - Comprehensive testing patterns
+_None._
 
 ## Contract
 
@@ -114,7 +119,7 @@ uv run pre-commit run --all-files  # Verify setup
 
 **Pre-Task-Completion Validation Gate (CRITICAL):**
 
-Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+Reference: Complete validation protocol in `000-global-core.md`
 
 **CRITICAL:** Before marking any Python task as complete, ALL of the following checks MUST pass:
 
@@ -149,7 +154,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **Rule:** Run validation immediately after modifications, not in batches
 - **Rule:** Do not mark tasks complete if ANY check fails
 - **Rule:** Fix all failures before responding to user
-- **Exception:** Only skip with explicit user override — acknowledge risks
+- **Exception:** Only skip with explicit user override: acknowledge risks
 
 **Success Criteria:**
 - All code quality checks pass (ruff, ty/mypy, py_compile)
@@ -177,7 +182,7 @@ When validation fails, follow this sequence:
 1. **Lint failures:** Run `uv run ruff check . --fix` to auto-fix. Review changes before committing.
 2. **Format failures:** Run `uv run ruff format .` to auto-format. Always safe to auto-apply.
 3. **Type check failures:**
-   - Read the error message carefully — ty/mypy errors are precise
+   - Read the error message carefully: ty/mypy errors are precise
    - Add type annotations to untyped parameters
    - Use `assert isinstance(x, Type)` to narrow types instead of `# type: ignore`
    - If genuinely unfixable: `# type: ignore[specific-error]` with comment explaining why
@@ -295,8 +300,8 @@ strict = true
 > Before running validation:
 > 1. Check which type checker the project uses (ty, mypy, pyright)
 > 2. Check pyproject.toml for existing lint/format/type-check configuration
-> 3. Check for `.pre-commit-config.yaml` — if present, use `pre-commit run` instead of manual commands
-> 4. Check for CI configuration (`.github/workflows/`) — local validation should match CI
+> 3. Check for `.pre-commit-config.yaml`: if present, use `pre-commit run` instead of manual commands
+> 4. Check for CI configuration (`.github/workflows/`): local validation should match CI
 > 5. Check if project has custom Ruff rules or ignores that affect validation
 
 ## Anti-Patterns and Common Mistakes

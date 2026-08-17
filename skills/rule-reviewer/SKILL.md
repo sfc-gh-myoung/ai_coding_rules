@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/rule-reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 2.9.0
+version: 2.10.0
 ---
 
 # Rule Reviewer
@@ -26,50 +26,29 @@ Use the rule-reviewer skill.
 target_file: rules/200-python-core.md
 review_date: 2026-01-06
 review_mode: FULL
-model: claude-sonnet-45
+model: claude-sonnet-4-6
 ```
 
-Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
+Output: `reviews/rule-reviews/200-python-core-claude-sonnet-4-6-2026-01-06.md`
 
-(With `output_root: mytest/` → `mytest/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`)
+(With `output_root: mytest/` → `mytest/rule-reviews/200-python-core-claude-sonnet-4-6-2026-01-06.md`)
 
 ## Scoring System (100 points)
 
-> **Scoring Rubric v2.0** - 6 scored dimensions, 100 points total
+6 scored dimensions, 100 points total. Hard caps apply for size (> 600 lines / > 700 lines) and blocking issues (≥ 6 / ≥ 10).
 
-**Raw Score Range:** 0-10 per dimension
-**Formula:** Raw (0-10) × Weight = Points
+**Quick reference:**
 
-**Scored Dimensions:**
+| Dimension | Weight | Max |
+|---|---|---|
+| Actionability | 3.0 | 30 |
+| Rule Size | 2.5 | 25 |
+| Parsability | 1.5 | 15 |
+| Completeness | 1.5 | 15 |
+| Consistency | 1.0 | 10 |
+| Cross-Agent Consistency | 0.5 | 5 |
 
-| Dimension | Weight | Max Points | Focus |
-|-----------|--------|------------|-------|
-| Actionability | 3.0 | 30 | Can agents execute without judgment? |
-| Rule Size | 2.5 | 25 | Within 500-line target? (deterministic) |
-| Parsability | 1.5 | 15 | Schema valid? |
-| Completeness | 1.5 | 15 | All scenarios covered? |
-| Consistency | 1.0 | 10 | Internal alignment correct? |
-| Cross-Agent Consistency | 0.5 | 5 | Works across all agents? |
-
-**Informational Only (Not Scored):**
-- **Token Efficiency** - Merged into Rule Size; findings in recommendations
-- **Staleness** - Flagged in recommendations; not scored
-
-**Hard Caps:**
-
-| Condition | Effect |
-|-----------|--------|
-| >600 lines | Total score capped at 70/100 |
-| >700 lines | Total score capped at 50/100 |
-| ≥6 blocking issues | Total score capped at 80/100 |
-| ≥10 blocking issues | Verdict forced to NOT_EXECUTABLE |
-
-**Detailed rubrics:** `rubrics/[dimension].md`
-
-**Example Calculation (Actionability):**
-- Raw score: 8/10
-- Weight: 3.0
-- Points: 8 × 3.0 = 24 points
+Full scoring formula, hard-cap thresholds, per-dimension rubric file references, and example calculations: [`rubrics/scoring.md`](rubrics/scoring.md).
 
 ## Review Modes
 
@@ -79,34 +58,9 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-45-2026-01-06.md`
 
 ## Execution Discipline
 
-**FOUNDATIONAL PRINCIPLE:** This skill prioritizes ACCURACY over efficiency. The user authorized this review knowing the scope. Proceed with the full process.
+**FOUNDATIONAL PRINCIPLE:** This skill prioritizes ACCURACY over efficiency. Proceed with the full process; do not propose streamlined alternatives or estimate completion time.
 
-**Forbidden Behaviors:**
-- Calculating or mentioning projected completion time
-- Asking about time constraints mid-execution
-- Proposing "faster" or "streamlined" alternatives
-- Creating template-based reviews without analysis
-- Estimating scores without consulting rubrics
-- Skipping dimensions, schema validation, or Agent Execution Test
-- Expressing concern about token costs or scope
-- Abbreviating reviews to save tokens
-
-**Required Behaviors:**
-- Read the complete rule file (line 1 to END)
-- Run schema validator (`uv run ai-rules validate`)
-- Measure line count (`wc -l`)
-- Consult rubrics for each scored dimension
-- Generate specific recommendations with line numbers
-- Write complete review (3000-8000 bytes for FULL mode)
-
-**Skills vs Rules Distinction:**
-- **Rules** are loaded 100s-1000s of times → token efficiency CRITICAL
-- **Skills** are used occasionally → quality over efficiency, tokens IRRELEVANT
-- Do NOT apply token-efficiency principles from rules to this skill's execution
-
-**Self-Correction Triggers:** If you think or write "to save time", "for efficiency", "should I continue with", "would you prefer", or "let me create a streamlined" → STOP, re-read this section, resume comprehensive process silently.
-
-**Pre-Execution Commitment:** Before starting ANY review, confirm you will NOT calculate projected time, NOT ask about time constraints, NOT create template-based reviews, NOT propose faster alternatives, and WILL read the file completely, consult rubrics, and write specific analysis.
+Full discipline contract (forbidden behaviors, required behaviors, self-correction triggers, pre-execution commitment): [`workflows/execution-discipline.md`](workflows/execution-discipline.md).
 
 ## Workflow
 
@@ -120,11 +74,11 @@ ELSE:
 
 **Progress Display:** Show only `Starting: [rule-name]` and `Complete: [rule-name] → score/100`. All canary checks, dimension scoring, and evidence gathering are INTERNAL (silent).
 
-1. **Validate inputs** — date format YYYY-MM-DD, file exists, mode in {FULL, FOCUSED, STALENESS}. See `workflows/input-validation.md`.
+1. **Validate inputs**: date format YYYY-MM-DD, file exists, mode in {FULL, FOCUSED, STALENESS}. See `workflows/input-validation.md`.
 
 1a. **Collect ALL parameters** (use `ask_user_question`). See `workflows/parameter-collection.md`. **MANDATORY:** batched questions (max 4 per call); do NOT silently apply defaults. If `ask_user_question` unavailable, fall back to text-based prompting.
 
-1b. **Detect file type.** Run the `target_basename` / `FILE_TYPE` / `SKIP_SCHEMA` detection from `workflows/input-validation.md` (File-Type Detection section). Outcomes: `rule` → full schema validation; `project` (AGENTS.md/PROJECT.md) → schema validation skipped.
+1b. **Detect file type.** Run the `target_basename` / `FILE_TYPE` / `SKIP_SCHEMA` detection from `workflows/input-validation.md` (File-Type Detection section). Outcomes: `rule` → full schema validation; `project` (PROJECT.md) → schema validation skipped.
 
 2. **Pre-Review Canary Check (SILENT).** See Canary Checks below.
 
@@ -146,9 +100,9 @@ ELSE:
    - `rubrics/token-efficiency.md`
    - `rubrics/rule-size.md` (100% deterministic - line count)
    - `rubrics/staleness.md`
-   - `rubrics/cross-agent-consistency.md` — includes documentation currency check via `web_fetch`; see `workflows/doc-currency-check.md`
+   - `rubrics/cross-agent-consistency.md` - includes documentation currency check via `web_fetch`; see `workflows/doc-currency-check.md`
 
-6a. **(When `timing_enabled: true` — default) Bracket EACH dimension with a checkpoint pair.**
+6a. **(When `timing_enabled: true`: default) Bracket EACH dimension with a checkpoint pair.**
 
    Required checkpoint names (one pair per scored dimension):
    - `dim_actionability_start` / `dim_actionability_end`
@@ -160,11 +114,11 @@ ELSE:
 
    On `timing-end`, pass `--auto-dimension-timings` (**preferred**) to derive the `dimension_timings` array from the captured checkpoint pairs automatically. Only assemble `--dimension-timings` JSON manually if you are aggregating sub-agent output (parallel mode).
 
-   **FAILURE TO DO THIS:** The `### Per-Dimension Timing` subsection will be absent and the review will fail post-write Quality Gate 7 (see `workflows/review-verification.md`). Requires skill-timing v1.5.0+.
+   **FAILURE TO DO THIS:** The `### Per-Dimension Timing` subsection will be absent and the review will fail post-write Quality Gate 7 (see `workflows/review-verification.md`). Requires skill-timer v1.5.0+.
 
 7. **Mid-Review Canary (after dimension 3) (SILENT).** See Canary Checks below.
 
-8. **Generate recommendations** — specific line numbers, quantified fixes, expected score improvements.
+8. **Generate recommendations**: specific line numbers, quantified fixes, expected score improvements.
 
 9. **Verify review authenticity.** Before writing, verify review contains ≥15 line references (FULL mode), direct quotes with line numbers, rule-specific findings (not generic); output matches `references/REVIEW-OUTPUT-TEMPLATE.md` structure. See `workflows/review-verification.md`. **FAILURE → Trigger reset: Re-read SKILL.md completely.**
 
@@ -172,7 +126,7 @@ ELSE:
 
 **See `workflows/error-handling.md` for detailed error handling across all steps.**
 
-### Canary Checks (SILENT — never output)
+### Canary Checks (SILENT: never output)
 
 All three canaries are internal self-tests. If any fails, re-read the referenced file and resume silently.
 
@@ -183,18 +137,18 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
 ## Verdicts
 
 **Score Ranges (100-point scale):**
-- **90-100** — EXECUTABLE — Production-ready
-- **75-89** — EXECUTABLE_WITH_REFINEMENTS — Good, minor fixes
-- **50-74** — NEEDS_REFINEMENT — Needs work
-- **<50** — NOT_EXECUTABLE — Major issues
+- **90-100**: EXECUTABLE: Production-ready
+- **75-89**: EXECUTABLE_WITH_REFINEMENTS: Good, minor fixes
+- **50-74**: NEEDS_REFINEMENT: Needs work
+- **<50**: NOT_EXECUTABLE: Major issues
 
 **Critical dimension override:** If both Actionability ≤4/10 AND Completeness ≤4/10 → NOT_EXECUTABLE regardless of total score.
 
 **Rule Size flags:**
-- `SPLIT_RECOMMENDED` (501-550 lines) — Review for split opportunities
-- `SPLIT_REQUIRED` (551-600 lines) — Mandatory split plan required
-- `NOT_DEPLOYABLE` (601-700 lines) — Block deployment, hard cap 70/100
-- `BLOCKED` (>700 lines) — Reject review, hard cap 50/100
+- `SPLIT_RECOMMENDED` (501-550 lines): Review for split opportunities
+- `SPLIT_REQUIRED` (551-600 lines): Mandatory split plan required
+- `NOT_DEPLOYABLE` (601-700 lines): Block deployment, hard cap 70/100
+- `BLOCKED` (>700 lines): Reject review, hard cap 50/100
 
 **Hard caps:** See Scoring System above (single source of truth).
 
@@ -207,7 +161,7 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
 - All 6 dimensions scored (100 points max)
 - TokenBudget variance check applies
 
-**Project Files (AGENTS.md, PROJECT.md):**
+**Project Files (PROJECT.md):**
 - Bootstrap and configuration documents
 - Loaded once during project initialization
 - Schema validation skipped (different structure than rules)
@@ -226,7 +180,7 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
 | Section structure | Scope → Contract → Content | Custom per project |
 | Max score | 100 points | 100 points |
 
-**Both file types are agent-executable documents** — they just follow different schemas optimized for their architectural roles.
+**Both file types are agent-executable documents**: they just follow different schemas optimized for their architectural roles.
 
 ## Required Sections in Review
 
@@ -245,16 +199,24 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
 
 ## Inputs
 
-- **target_file:** Path to file (e.g., `rules/200-python-core.md`, `AGENTS.md`, `PROJECT.md`)
+- **target_file:** Path to file (e.g., `rules/200-python-core.md`, `PROJECT.md`)
 - **review_date:** ISO 8601 format (YYYY-MM-DD)
 - **review_mode:** FULL | FOCUSED | STALENESS
-- **model:** Lowercase-hyphenated slug (e.g., `claude-sonnet-45`)
+- **model:** Lowercase-hyphenated slug (e.g., `claude-sonnet-4-6`)
 - **output_root:** (optional) Root directory for output files (default: `reviews/`). Subdirectory `rule-reviews/` is appended automatically. Supports relative paths including `../`.
-- **overwrite:** (optional) true | false (default: false) — If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
-- **timing_enabled:** (optional) true | false (default: true) — set to `false` to explicitly opt out; the Per-Dimension Timing section is then satisfied by a single `not-requested` row.
+- **overwrite:** (optional) true | false (default: false): If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
+- **timing_enabled:** (optional) true | false (default: true): set to `false` to explicitly opt out; the Per-Dimension Timing section is then satisfied by a single `not-requested` row.
 - **execution_mode:** (optional) `parallel` | `sequential` (default: `parallel`)
   - `parallel`: Uses 5 sub-agents for scored dimension evaluation (faster, recommended for 8GB+ RAM)
   - `sequential`: Legacy single-agent behavior (for debugging or low-resource environments)
+
+## Outputs
+
+Write to: `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` (default `output_root` is `reviews/`).
+
+**No overwrites:** If file exists and `overwrite: false` (default), append `-01.md`, `-02.md`, etc. Set `overwrite: true` to replace. See **No-Overwrite Safety** section below for full behavior.
+
+**Format:** Reviews follow the structure defined in `references/REVIEW-OUTPUT-TEMPLATE.md`. See **Required Sections in Review** above for the section checklist.
 
 ## Integration with Other Skills
 
@@ -262,30 +224,30 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
 
 bulk-rule-reviewer invokes this skill once per rule file. **Never** implement review logic yourself when bulk-rule-reviewer calls you. Context-preservation safeguards (pre-write verification, post-write size check, periodic refresh): `workflows/bulk-coordination.md`.
 
-### With skill-timing
+### With skill-timer
 
 **Execute IF:** `timing_enabled: true` (default).
-**Skip IF:** `timing_enabled: false` (explicit opt-out) — satisfy Gate 7 with a single `not-requested` row.
+**Skip IF:** `timing_enabled: false` (explicit opt-out): satisfy Gate 7 with a single `not-requested` row.
 
 When enabled, execute ALL steps below (not optional once enabled):
 
 | When | Action | Command | Track |
 |------|--------|---------|-------|
-| Before review | Start timing | `$PYTHON skill_timing.py start --skill rule-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
-| After schema validation | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
-| Before EACH dimension | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_start` | - |
-| After EACH dimension | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_end` | - |
-| After scoring complete | Checkpoint | `$PYTHON skill_timing.py checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
-| Before file write | End timing | `$PYTHON skill_timing.py end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer --format markdown --auto-dimension-timings` | Store `_timing_stdout` |
+| Before review | Start timing | `$PYTHON skill_timer.py start --skill rule-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
+| After schema validation | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
+| Before EACH dimension | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_start` | - |
+| After EACH dimension | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_end` | - |
+| After scoring complete | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
+| Before file write | End timing | `$PYTHON skill_timer.py end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer --format markdown --auto-dimension-timings` | Store `_timing_stdout` |
 | After file write | Embed | Append `_timing_stdout` to output file | - |
 
 **Working memory contract:** Retain `_timing_run_id`, `_timing_stdout`, and `_dimension_timings` from start through embed.
 
-**Per-dimension timing responsibility:** skill-timing **validates and formats** the timing data you pass in. **You are responsible for capturing** start/end markers (checkpoint pairs in sequential mode, or sub-agent self-reports in parallel mode) around each dimension. Use `--auto-dimension-timings` in sequential mode (preferred).
+**Per-dimension timing responsibility:** skill-timer **validates and formats** the timing data you pass in. **You are responsible for capturing** start/end markers (checkpoint pairs in sequential mode, or sub-agent self-reports in parallel mode) around each dimension. Use `--auto-dimension-timings` in sequential mode (preferred).
 
 **Copy-paste bash quick reference, 4 common anti-patterns, and per-command validation procedure:** `workflows/timing-integration.md`.
 
-**Schema + epoch capture reference:** `../skill-timing/SKILL.md`.
+**Schema + epoch capture reference:** `../skill-timer/SKILL.md`.
 
 ## Error Handling
 
@@ -327,38 +289,15 @@ The existing file at `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` 
 
 ## Validation Checklists
 
-Consolidated pre/during/post checks for every review. Also see `workflows/review-verification.md`.
-
-**Pre-execution:**
-- [ ] target_file exists
-- [ ] review_date matches YYYY-MM-DD format
-- [ ] review_mode is valid enum
-- [ ] model slug is lowercase-hyphenated
-
-**During execution:**
-- [ ] Schema validation attempted (or skipped with reason for project files)
-- [ ] Agent Execution Test completed
-- [ ] Line count measured (`wc -l`)
-- [ ] All dimensions scored (FULL mode — 6 dimensions)
-- [ ] Each score has rationale
-- [ ] Critical issues identified
-- [ ] Rule Size flags applied if applicable
-- [ ] Recommendations include line numbers and are prioritized
-
-**Post-execution:**
-- [ ] Review file written to `{output_root}/rule-reviews/`
-- [ ] Path confirmed
-- [ ] No overwrites occurred
-- [ ] **Review file ≥2500 bytes (drift check)**
+Pre/during/post execution checks: [`workflows/validation-checklists.md`](workflows/validation-checklists.md). Quick reminder: every review must verify schema validation, Agent Execution Test completion, all dimensions scored, recommendations include line numbers, and final review file ≥ 2500 bytes.
 
 ## Expected Review Size
 
-Typical FULL mode review: 3000-8000 bytes.
+Typical FULL mode review: 3000–8000 bytes. Detailed size validation thresholds: [`workflows/validation-checklists.md`](workflows/validation-checklists.md).
 
-**Size validation:**
-- If <2000 bytes: STOP, expand analysis with more specific findings
-- If 2000-13500 bytes: Acceptable range
-- If >13500 bytes: STOP, consolidate redundant content before writing
+## Gate 8: Per-Dimension Timing rejection (skill-timer v2.0.0+)
+
+When `skill_timer.py end` returns `status ∈ {dimension_invalid, instrumentation_failed}`: do not publish the Per-Dimension Timing table; emit a banner pointing at the rejected JSON instead. Full verbatim contract (mirrored across reviewer skills): [`references/gate-8.md`](references/gate-8.md).
 
 ## Examples
 
@@ -368,19 +307,11 @@ Complete review samples in `examples/`: `full-review.md`, `focused-review.md`, `
 
 - **bulk-rule-reviewer:** Batch review orchestrator (uses this skill)
 - **rule-creator:** Rule authoring (validated with this skill)
-- **skill-timing:** Execution time measurement (optional integration)
+- **skill-timer:** Execution time measurement (optional integration)
 
 ## Determinism Requirements
 
-**Goal:** Reduce score variance from ±5-8 points to <±2 points across runs.
-
-**Mandatory (always do):** batch-load all rubrics BEFORE reading target; create all 8 inventories BEFORE reading target; read target line 1 to END; fill inventories systematically; check Non-Issues list for every flagged item; apply overlap resolution (each issue to ONE dimension only); use Score Decision Matrix for every score; include completed inventories in review output.
-
-**Prohibited (never do):** read target rule before loading rubrics; skip inventory creation; estimate scores without counting; double-count issues across dimensions; flag items without checking Non-Issues list; omit inventories from review output; score on "feel"; start scoring before completing all inventories.
-
-**Variance tolerance:** dimension scores ±1 point, overall score ±2 points.
-
-**Full contract (variance table, self-verification checklist):** `workflows/determinism.md`.
+Goal: reduce score variance from ±5–8 points to < ±2 points across runs. Full contract (mandatory/prohibited behaviors, variance tolerance, self-verification checklist): `workflows/determinism.md`.
 
 ## Version History
 

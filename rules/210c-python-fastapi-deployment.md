@@ -1,15 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Establish production deployment patterns and API documentation practices for FastAPI applications using Docker, ASGI servers, and OpenAPI customization."
+last_updated: 2026-07-15
+keywords:
+  - kw:gunicorn uvicorn worker
+  - kw:multi-stage docker build
+  - kw:health check endpoint
+  - kw:non-root container user
+  - kw:openapi schema customization
+  - kw:worker process configuration
+token_budget: ~4250
+context_tier: High
+depends:
+  required:
+    - 210-python-fastapi-core.md
+---
 # FastAPI Deployment and Documentation
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:fastapi-deployment
-**Keywords:** FastAPI deployment, Uvicorn, Gunicorn, ASGI, Docker, production deployment, health checks, multi-stage build, OpenAPI, API documentation
-**TokenBudget:** ~4250
-**ContextTier:** High
-**Depends:** 210-python-fastapi-core.md
 
 ## Scope
 
@@ -25,12 +32,6 @@ Establish production deployment patterns and API documentation practices for Fas
 - [FastAPI Deployment Guide](https://fastapi.tiangolo.com/deployment/) - Production deployment strategies and server configurations
 - [Uvicorn Deployment](https://www.uvicorn.org/deployment/) - ASGI server deployment and process management
 - [Gunicorn Configuration](https://docs.gunicorn.org/en/stable/configure.html) - Worker processes, timeouts, and production settings
-
-### Related Rules
-- **FastAPI Core**: `210-python-fastapi-core.md`
-- **FastAPI Security**: `210a-python-fastapi-security.md`
-- **FastAPI Monitoring**: `210d-python-fastapi-monitoring.md`
-- **Python Core**: `200-python-core.md`
 
 ## Contract
 
@@ -132,7 +133,7 @@ Production deployment configuration:
 
 **Problem:** Running FastAPI with a single uvicorn worker (`uvicorn main:app`) in production, unable to utilize multiple CPU cores.
 
-**Why It Fails:** Single process handles all requests sequentially. CPU-bound tasks block the entire application. No fault tolerance—process crash means total downtime. Cannot scale to handle production traffic.
+**Why It Fails:** Single process handles all requests sequentially. CPU-bound tasks block the entire application. No fault tolerance: process crash means total downtime. Cannot scale to handle production traffic.
 
 **Correct Pattern:**
 ```bash
@@ -165,6 +166,7 @@ async def liveness():
     """Kubernetes liveness probe - is the process running?"""
     return {"status": "alive"}
 
+
 @app.get("/health/ready")
 async def readiness(db: Session = Depends(get_db)):
     """Kubernetes readiness probe - can we serve traffic?"""
@@ -185,7 +187,7 @@ Before modifying any deployment configuration, check the existing setup:
 5. **CI/CD pipeline** - Check existing build/push/deploy steps
 6. **Python version** - Check current Python version in production vs development
 7. **Container registry** - Check registry (Docker Hub, ECR, GCR, GHCR) and authentication
-8. Do NOT overwrite working configurations—extend or adjust them
+8. Do NOT overwrite working configurations: extend or adjust them
 9. Never change deployment configuration without testing in staging first
 
 ## API Documentation
@@ -202,7 +204,7 @@ from app.models.user import UserCreate, UserResponse
 user_create_example = {
     "email": "user@example.com",
     "password": "securepassword123",
-    "full_name": "John Doe"
+    "full_name": "John Doe",
 }
 
 user_response_example = {
@@ -210,8 +212,9 @@ user_response_example = {
     "email": "user@example.com",
     "full_name": "John Doe",
     "created_at": "2024-01-15T10:30:00Z",
-    "is_active": True
+    "is_active": True,
 }
+
 
 # Enhanced endpoint documentation
 @router.post(
@@ -224,11 +227,7 @@ user_response_example = {
     responses={
         201: {
             "description": "User created successfully",
-            "content": {
-                "application/json": {
-                    "example": user_response_example
-                }
-            }
+            "content": {"application/json": {"example": user_response_example}},
         },
         400: {
             "description": "Invalid input data",
@@ -236,7 +235,7 @@ user_response_example = {
                 "application/json": {
                     "example": {"error": "Email already registered", "type": "validation_error"}
                 }
-            }
+            },
         },
         422: {
             "description": "Validation error",
@@ -245,17 +244,17 @@ user_response_example = {
                     "example": {
                         "error": "Validation failed",
                         "details": [{"field": "email", "message": "Invalid email format"}],
-                        "type": "validation_error"
+                        "type": "validation_error",
                     }
                 }
-            }
-        }
+            },
+        },
     },
-    tags=["users"]
+    tags=["users"],
 )
 async def create_user(
     user_data: UserCreate = Body(..., example=user_create_example),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ) -> UserResponse:
     """
     Create a new user account.
@@ -395,7 +394,7 @@ certfile = os.getenv("SSL_CERTFILE")
 - **Always:** Use specific base image versions, not 'latest'.
 
 ```dockerfile
-# Dockerfile — pin exact versions, never use :latest
+# Dockerfile - pin exact versions, never use :latest
 FROM python:3.12.7-slim-bookworm as builder
 
 # Set environment variables
@@ -410,7 +409,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv — pin version, never use :latest
+# Install uv - pin version, never use :latest
 COPY --from=ghcr.io/astral-sh/uv:0.5 /uv /usr/local/bin/uv
 
 # Set work directory
@@ -472,7 +471,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://user:password@db:5432/fastapi_db
+      - DATABASE_URL=postgresql+asyncpg://user:${DB_PASSWORD}@db:5432/fastapi_db
       - REDIS_URL=redis://redis:6379
     depends_on:
       - db
@@ -545,6 +544,7 @@ Every FastAPI deployment must have a health check endpoint:
 from fastapi import FastAPI, status
 from fastapi.responses import JSONResponse
 
+
 @app.get("/health", status_code=status.HTTP_200_OK)
 async def health_check():
     """Health check for load balancers and container orchestrators."""
@@ -553,7 +553,7 @@ async def health_check():
 
 @app.get("/health/ready")
 async def readiness_check(db: AsyncSession = Depends(get_db)):
-    """Readiness check — verifies database connectivity."""
+    """Readiness check - verifies database connectivity."""
     try:
         await db.execute(text("SELECT 1"))
         return {"status": "ready", "database": "connected"}
@@ -565,8 +565,8 @@ async def readiness_check(db: AsyncSession = Depends(get_db)):
 ```
 
 **Two endpoints:**
-- `/health` — Liveness: app process is running (always returns 200)
-- `/health/ready` — Readiness: app can serve traffic (checks dependencies)
+- `/health`: Liveness: app process is running (always returns 200)
+- `/health/ready`: Readiness: app can serve traffic (checks dependencies)
 
 ## Integration with Core Rules
 

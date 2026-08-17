@@ -1,15 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Provides practical, production-ready guidance for authoring Containerfiles, building images with Podman/Buildah, and running containers securely using Podman's daemonless, rootless-by-default"
+last_updated: 2026-07-15
+keywords:
+  - kw:rootless containers
+  - kw:Containerfile authoring
+  - kw:Quadlet systemd
+  - kw:daemonless architecture
+  - kw:pod orchestration
+  - kw:Buildah image building
+  - kw:SELinux volume labeling
+token_budget: ~4350
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 202-markup-config-validation.md  # Configuration validation patterns
+  optional:
+    - 351a-podman-examples.md  # Complete output format examples
+    - 350-docker-core.md  # Docker-specific patterns (Podman is largely compatible)
+    - 200-python-core.md  # Python-specific container patterns
+---
 # Podman Core
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-25
-**Keywords:** Podman, Containerfile, containers, rootless containers, buildah, podman-compose, pods, daemonless, systemd, quadlet, image optimization, non-root, healthcheck, security scanning, SBOM
-**TokenBudget:** ~4350
-**ContextTier:** Medium
-**Depends:** 000-global-core.md, 202-markup-config-validation.md
-**LoadTrigger:** file:Containerfile, file:podman-compose.yml, file:podman-compose.yaml, kw:podman, kw:buildah
 
 ## Scope
 
@@ -25,18 +38,6 @@ Provides practical, production-ready guidance for authoring Containerfiles, buil
 - Working with pods (Kubernetes-style grouping)
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **202-markup-config-validation.md** - Configuration validation patterns
-
-**Related:**
-- **351a-podman-examples.md** - Complete output format examples
-- **350-docker-core.md** - Docker-specific patterns (Podman is largely compatible)
-- **200-python-core.md** - Python-specific container patterns
-- **203-python-project-setup.md** - Python project structure for containers
 
 ### External Documentation
 

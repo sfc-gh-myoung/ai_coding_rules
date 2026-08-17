@@ -1,20 +1,32 @@
+---
+schema_version: v3.5
+rule_version: v4.0.1
+description: "Foundational Snowflake practices: SQL authoring, object naming, cost control, security policies, and performance patterns."
+last_updated: 2026-07-15
+keywords:
+  - kw:CTE extraction
+  - kw:VARIANT parsing optimization
+  - kw:Streams Tasks incremental
+  - kw:partition pruning early filtering
+  - kw:QUALIFY ROW_NUMBER deduplication
+  - kw:Query Profile validation
+  - ext:.sql
+token_budget: ~5050
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+  optional:
+    - 119-snowflake-warehouse-management.md  # Warehouse config referenced throughout core patterns
+    - 103-snowflake-performance-tuning.md  # Query profiling and optimization
+    - 105-snowflake-cost-governance.md  # Cost monitoring and resource management
+---
 # Snowflake Core Directives
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Snowflake patterns. Load for Snowflake tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-03-25
-**Keywords:** SQL, CTE, performance, cost optimization, query profile, warehouse, security, governance, stages, COPY INTO, streams, tasks, warehouse creation
-**TokenBudget:** ~5050
-**ContextTier:** High
-**Depends:** 000-global-core.md
-**LoadTrigger:** ext:.sql
 
 ## Scope
 
@@ -38,26 +50,6 @@ Comprehensive foundational practices for all Snowflake development work, ensurin
 - **Minimal data movement:** <10% of source data copied or transformed (context: validation of efficient query design)
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-
-**Recommended:**
-- **103-snowflake-performance-tuning.md** - Detailed query profiling and optimization
-- **105-snowflake-cost-governance.md** - Cost monitoring and resource management
-- **119-snowflake-warehouse-management.md** - Warehouse sizing, types, and configuration
-
-**Related:**
-- **101-snowflake-streamlit-core.md** `[Available]` - Streamlit UI development on Snowflake
-- **102-snowflake-sql-core.md** `[Available]` - General SQL file patterns
-- **104-snowflake-streams-tasks.md** `[Available]` - Incremental pipelines with Streams + Tasks
-- **106-snowflake-semantic-views-core.md** `[Available]` - View layering and naming conventions
-- **107-snowflake-security-governance.md** `[Available]` - Security policies and governance
-- **108-snowflake-data-loading.md** `[Available]` - Data loading patterns (COPY INTO)
-- **121-snowflake-snowpipe.md** `[Available]` - Continuous ingestion with Snowpipe
-- **123-snowflake-object-tagging.md** `[Available]` - Object tagging for governance
 
 ### External Documentation
 
@@ -129,7 +121,7 @@ SELECT customer_id, num_orders, total_amount FROM agg;
 
 **Pre-Task-Completion Validation Gate (CRITICAL):**
 
-Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+Reference: Complete validation protocol in `000-global-core.md`
 
 **Checklist:**
 - **CRITICAL:** All queries use explicit column selection (no `SELECT *`)
@@ -146,7 +138,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **Incremental:** Streams and Tasks used for mutable large tables meeting Quantification Standards thresholds (>10M rows OR >5GB uncompressed OR >1M rows with >1000 updates/hour OR >10% rows modified per day)
 - **Idempotency:** MERGE operations handle late arrivals and duplicates
 
-**Negative Tests -- These patterns should NEVER appear in reviewed code:**
+**Negative Tests: These patterns should NEVER appear in reviewed code:**
 - `SELECT *` in any production query
 - `DISTINCT` used for deduplication (use `QUALIFY ROW_NUMBER()` instead)
 - Repeated VARIANT parsing without CTE extraction
@@ -200,15 +192,15 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 - **Warehouse Stuck:** If queries queue indefinitely, check `SHOW WAREHOUSES` for state. Force restart with suspend/resume cycle.
 - **Transaction Rollback:** Wrap multi-statement operations in explicit transactions (`BEGIN ... COMMIT`) with `ROLLBACK` on failure.
 
-- **Stream Staleness:** If stream offset falls behind retention, it cannot be consumed. Detection: `SHOW STREAMS` — check `STALE_AFTER` column. Recovery: Recreate stream with `CREATE OR REPLACE STREAM`, then perform full reload from source.
+- **Stream Staleness:** If stream offset falls behind retention, it cannot be consumed. Detection: `SHOW STREAMS`: check `STALE_AFTER` column. Recovery: Recreate stream with `CREATE OR REPLACE STREAM`, then perform full reload from source.
 
 - **External Stage Errors:** If `COPY INTO` fails with "access denied" or timeout on S3/Azure/GCS stages: 1. Verify storage integration: `DESC INTEGRATION <integration_name>`. 2. Check IAM role trust policy or SAS token expiration. 3. Test stage access: `LIST @<stage_name>`. 4. If intermittent, retry with `ON_ERROR = 'CONTINUE'` and inspect `COPY_HISTORY()` for failed files.
 
 - **API Integration Timeout:** If external function calls timeout: 1. Check `SHOW EXTERNAL FUNCTIONS` for endpoint status. 2. Verify API integration: `DESC API INTEGRATION <name>`. 3. Increase `MAX_BATCH_ROWS` or decrease payload size. 4. Add retry logic with exponential backoff in the calling stored procedure.
 
-- **Empty Result Sets:** If a CTE or subquery returns zero rows, downstream JOINs produce empty results silently. Detection: Add `SELECT COUNT(*) FROM <cte_name>` assertions in development. For Tasks: wrap MERGE source in a zero-row guard — if source returns 0 rows and this is unexpected, log a warning via `SYSTEM$LOG('WARN', 'Zero rows in source')` and skip the MERGE.
+- **Empty Result Sets:** If a CTE or subquery returns zero rows, downstream JOINs produce empty results silently. Detection: Add `SELECT COUNT(*) FROM <cte_name>` assertions in development. For Tasks: wrap MERGE source in a zero-row guard: if source returns 0 rows and this is unexpected, log a warning via `SYSTEM$LOG('WARN', 'Zero rows in source')` and skip the MERGE.
 
-- **Zero-Row Streams:** `SYSTEM$STREAM_HAS_DATA()` returns FALSE for zero-row streams, so the Task will not execute. If the stream is stale (past retention), it must be recreated. If the stream has data but `METADATA$ACTION` filtering removes all rows, the stream is consumed but no MERGE occurs — verify `METADATA$ACTION` filter logic covers UPDATE and DELETE actions.
+- **Zero-Row Streams:** `SYSTEM$STREAM_HAS_DATA()` returns FALSE for zero-row streams, so the Task will not execute. If the stream is stale (past retention), it must be recreated. If the stream has data but `METADATA$ACTION` filtering removes all rows, the stream is consumed but no MERGE occurs: verify `METADATA$ACTION` filter logic covers UPDATE and DELETE actions.
 
 ## Anti-Patterns and Common Mistakes
 

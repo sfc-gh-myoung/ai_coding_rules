@@ -1,16 +1,30 @@
+---
+schema_version: v3.5
+rule_version: v4.1.0
+description: "The PRIMARY design priority for all rules: agent understanding and execution reliability. All rules are instruction sets for autonomous agents, not reference documents for humans."
+last_updated: 2026-07-15
+keywords:
+  - kw:agent-first design
+  - kw:ASCII table prohibition
+  - kw:imperative voice instructions
+  - kw:sequential processing model
+  - kw:terminology consistency enforcement
+  - kw:arrow character replacement
+  - kw:llm
+token_budget: ~3000
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 002-rule-governance.md  # Schema requirements and v3.2 standards
+  optional:
+    - 002a-rule-creation.md  # Step-by-step rule creation with agent optimization
+    - 002c-rule-optimization.md  # Token budgets and performance
+    - 002d-advanced-rule-patterns.md  # System prompt altitude and investigation-first
+---
 # 002g: Agent Optimization Principles
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** agent, LLM, optimization, format, token, efficiency, understanding, execution, comprehension, design, patterns, priority, agent-first
-**TokenBudget:** ~3000
-**ContextTier:** High
-**Depends:** 000-global-core.md, 002-rule-governance.md
 
 ## Scope
 
@@ -34,18 +48,20 @@ See `002-rule-governance.md` "Key Principles" for canonical definitions.
 
 **Rule:** When human-friendly formatting conflicts with agent parsing, **agent parsing wins**.
 
+### Audience Scope (applies to this rule and 002m)
+
+**Critical:** These formatting constraints apply **ONLY** to agent-facing content:
+
+- **IN scope:** `rules/**`, `prompts/**`, skill instruction files, and any content injected into an agent's context (for example the micro-kernel).
+- **OUT of scope:** project documentation written for humans: `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, and everything under `docs/**`.
+
+**Rule:** Do NOT apply agent-optimization formatting constraints to human-facing project documentation, and do NOT apply human-readability conventions to rules. ASCII diagrams, Mermaid diagrams, directory trees, arrow characters, and horizontal rules are **legitimate and often preferable** in human documentation. Flagging them there is a false positive.
+
+**Why:** The two audiences have opposed needs. Agents parse text sequentially and gain nothing from a rendered diagram; humans navigate visually and benefit from one. A rule that conflates the two degrades whichever audience it was not written for. Markdown linting rules that are purely mechanical (line length, list style: see `202a-markdown-linting.md`) are audience-neutral and DO apply to both.
+
+**Enforcement note:** `ai-rules validate` applies these checks to `rules/` and to the micro-kernel only. It does not scan `docs/**`, and it must not be extended to do so.
+
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **002-rule-governance.md** - Schema requirements and v3.2 standards
-
-**Related:**
-- **002a-rule-creation.md** - Step-by-step rule creation with agent optimization
-- **002c-rule-optimization.md** - Token budgets and performance
-- **002d-advanced-rule-patterns.md** - System prompt altitude and investigation-first
 
 ### External Documentation
 
@@ -125,7 +141,7 @@ Rule files with optimized formatting for agent comprehension
 
 ### Error Recovery
 
-- If ASCII tables cannot be fully converted to lists, add a **TODO:** Convert table to structured list — and flag for manual review
+- If ASCII tables cannot be fully converted to lists, add a **TODO:** Convert table to structured list: and flag for manual review
 - If terminology conflicts exist between rules, defer to the term defined in 002-rule-governance.md
 - If validation fails after optimization, revert the failing change and re-run `ai-rules validate` before retrying
 
@@ -239,21 +255,21 @@ Optimize tokens while preserving meaning:
 Use identical terms for identical concepts across all rules:
 
 **Standard Terms (use the first term; avoid alternatives):**
-- "agent" — not "AI", "LLM", "bot", "assistant"
-- "rule" — not "prompt", "instruction set", "system prompt", "guideline"
-- "rule file" — not "rule document", "rule spec", "rule page"
-- "validation" — not "checking", "verification"
-- "execution" — not "running", "performing", "processing"
-- "execution steps" — not "workflow", "procedure", "instructions"
-- "anti-pattern" — not "bad practice", "mistake", "pitfall"
-- "schema" — not "definition", "spec", "format"
-- "metadata" — not "frontmatter", "header fields", "properties"
-- "dependency" — not "prerequisite rule", "required rule"
-- "context window" — not "context limit", "token limit", "memory"
-- "token budget" — not "token count", "token allocation", "size"
-- "cross-reference" — not "link", "pointer", "see also"
-- "surgical edit" — not "targeted change", "minimal fix", "patch"
-- "blocking issue" — not "critical bug", "showstopper", "dealbreaker"
+- "agent": not "AI", "LLM", "bot", "assistant"
+- "rule": not "prompt", "instruction set", "system prompt", "guideline"
+- "rule file": not "rule document", "rule spec", "rule page"
+- "validation": not "checking", "verification"
+- "execution": not "running", "performing", "processing"
+- "execution steps": not "workflow", "procedure", "instructions"
+- "anti-pattern": not "bad practice", "mistake", "pitfall"
+- "schema": not "definition", "spec", "format"
+- "metadata": not "frontmatter", "header fields", "properties"
+- "dependency": not "prerequisite rule", "required rule"
+- "context window": not "context limit", "token limit", "memory"
+- "token budget": not "token count", "token allocation", "size"
+- "cross-reference": not "link", "pointer", "see also"
+- "surgical edit": not "targeted change", "minimal fix", "patch"
+- "blocking issue": not "critical bug", "showstopper", "dealbreaker"
 
 ## Anti-Patterns and Common Mistakes
 
@@ -261,8 +277,8 @@ For the complete set of 9 formatting anti-patterns with Problem/Correct Pattern 
 see `002m-agent-format-antipatterns.md`. Key violations to avoid:
 
 1. ASCII tables in rule content (use structured lists)
-2. Arrow characters outside code blocks (use text alternatives — see Arrow Replacement Guide)
-3. ASCII decision trees (use nested lists — see Tree Replacement Guide)
+2. Arrow characters outside code blocks (use text alternatives: see Arrow Replacement Guide)
+3. ASCII decision trees (use nested lists: see Tree Replacement Guide)
 4. Passive voice in instructions (use imperative voice)
 5. Buried critical information (front-load priorities)
 

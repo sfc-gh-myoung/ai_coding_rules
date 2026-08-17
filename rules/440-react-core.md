@@ -1,20 +1,33 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Establishes the definitive standards for developing scalable, maintainable React applications in 2026. This rule enforces \"Feature-based\" architecture, Server Components (RSC) usage, and modern state"
+last_updated: 2026-07-15
+keywords:
+  - kw:feature-based architecture
+  - kw:TanStack Query
+  - kw:RSC server components
+  - kw:Zustand client state
+  - kw:named exports components
+  - kw:shadcn Tailwind patterns
+  - kw:tsx
+token_budget: ~3200
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 420-javascript-core.md  # JavaScript patterns
+    - 430-typescript-core.md  # TypeScript strict typing
+  optional:
+    - 440a-react-anti-patterns.md  # Anti-patterns, error recovery, hydration, resource exhaustion, cleanup, output examples
+    - 441-react-backend.md  # Python backend patterns, API communication, authentication
+---
 # React Core: Modern Architecture & Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential React patterns. Load for React tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-03-25
-**Keywords:** React, Next.js, RSC, Hooks, Tailwind, Zustand, TanStack Query, Shadcn, Feature-based, TypeScript, Vitest, Testing Library, debug hooks, fix React error, component rendering
-**TokenBudget:** ~3200
-**ContextTier:** High
-**Depends:** 000-global-core.md, 420-javascript-core.md, 430-typescript-core.md
-**LoadTrigger:** ext:.jsx, ext:.tsx, kw:react
 
 ## Scope
 
@@ -30,17 +43,6 @@ Establishes the definitive standards for developing scalable, maintainable React
 - Reviewing React code for best practices
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **420-javascript-core.md** - JavaScript patterns
-- **430-typescript-core.md** - TypeScript strict typing
-
-**Related:**
-- **440a-react-anti-patterns.md** - Anti-patterns, error recovery, hydration, resource exhaustion, cleanup, output examples
-- **441-react-backend.md** - Python backend patterns, API communication, authentication
 
 ### External Documentation
 
@@ -81,7 +83,7 @@ Establishes the definitive standards for developing scalable, maintainable React
   - `error.tsx`
   - `not-found.tsx`
   - `route.ts`
-- `barrel files` (circular dependency risks — exception: one `index.ts` per feature as public API boundary, re-exporting only that feature's public surface)
+- `barrel files` (circular dependency risks: exception: one `index.ts` per feature as public API boundary, re-exporting only that feature's public surface)
 - `enzyme` testing library (deprecated)
 - Manual data fetching with `useEffect` + `useState`
 
@@ -289,7 +291,7 @@ export const useThemeStore = create<ThemeStore>()(
 );
 ```
 
-> **Note:** `persist` hydrates asynchronously. Use `useThemeStore.persist.hasHydrated()` to avoid flash of default state. In SSR (Next.js), the store hydrates on the client only — use the hydration mismatch pattern from above.
+> **Note:** `persist` hydrates asynchronously. Use `useThemeStore.persist.hasHydrated()` to avoid flash of default state. In SSR (Next.js), the store hydrates on the client only; use the hydration mismatch pattern from above.
 
 ### Styling & UI Patterns
 

@@ -1,0 +1,20 @@
+schema_version: 3
+updated: 2026-07-20T12:00:00-04:00
+id: simple-cortex-agent-instructions
+description: Identify rules for Cortex Agent instruction patterns
+variant: simple
+prompt: |
+  What are the best practices for writing planning instructions and
+  response instructions for a Cortex Agent?
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/115a-snowflake-cortex-agents-instructions.md  # kw: planning instructions, response instructions
+  forbidden: []
+  optional:
+    - rules/115-snowflake-cortex-agents-core.md  # parent rule
+trigger_evidence:
+  kw: [planning instructions, response instructions, cortex agent]
+  ext: []
+  file: []
+  dir: []

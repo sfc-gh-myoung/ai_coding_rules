@@ -1,15 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Establishes backend integration patterns for React applications, with Python (FastAPI/Flask) as the organizational default. Covers API communication, authentication flows, CORS configuration, and"
+last_updated: 2026-07-15
+keywords:
+  - kw:FastAPI React integration
+  - kw:httpOnly cookie authentication
+  - kw:TanStack Query backend communication
+  - kw:CORS middleware configuration
+  - kw:Python-first full-stack
+  - kw:JWT refresh token rotation
+  - kw:fastapi
+token_budget: ~4350
+context_tier: High
+depends:
+  required:
+    - 440-react-core.md  # React patterns and architecture
+    - 200-python-core.md  # Python development standards
+---
 # React Backend Integration: Python-First Full-Stack Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:react-backend
-**Keywords:** React backend, FastAPI, Flask, Python API, CORS, JWT, authentication, API integration, full-stack, Express alternative, fetch, axios, TanStack Query backend, Next.js API routes, httpOnly cookies
-**TokenBudget:** ~4350
-**ContextTier:** High
-**Depends:** 440-react-core.md, 200-python-core.md
 
 ## Scope
 
@@ -25,16 +34,6 @@ Establishes backend integration patterns for React applications, with Python (Fa
 - Setting up API layer with TanStack Query
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **440-react-core.md** - React patterns and architecture
-- **200-python-core.md** - Python development standards
-
-**Related:**
-- **210-python-fastapi-core.md** - FastAPI patterns and best practices
-- **250-python-flask.md** - Flask patterns and best practices
 
 ### External Documentation
 
@@ -252,6 +251,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.post("/auth/login")
 async def login(response: Response, credentials: LoginRequest):
     # Validate credentials, generate JWT
@@ -298,7 +298,7 @@ export const useAuth = () => {
 #### Refresh Token Rotation
 ```typescript
 // Server MUST invalidate the old refresh token on each rotation
-// Frontend simply calls the refresh endpoint — cookies are handled by the browser
+// Frontend simply calls the refresh endpoint - cookies are handled by the browser
 async function refreshAuth(): Promise<void> {
   const response = await fetch('/auth/refresh', {
     method: 'POST',
@@ -306,13 +306,13 @@ async function refreshAuth(): Promise<void> {
   });
 
   if (!response.ok) {
-    // Refresh failed — token expired or revoked, redirect to login
+    // Refresh failed - token expired or revoked, redirect to login
     clearAuthState();  // Clear any client-side auth state (user info, not tokens)
     window.location.href = '/login';
     throw new Error('Session expired');
   }
   // Server sets new httpOnly cookies in the response
-  // No client-side token storage needed — browser handles cookie updates
+  // No client-side token storage needed - browser handles cookie updates
 }
 ```
 
@@ -391,11 +391,11 @@ api.interceptors.response.use(
 
 If you see `403` or `CORS error` on `OPTIONS` requests:
 
-1. **Verify origin match:** The origin in `allow_origins` must match exactly — protocol + host + port. `http://localhost:3000` ≠ `http://localhost:5173` ≠ `https://localhost:3000`.
-2. **Check credentials:** If using cookies, `allow_credentials=True` (FastAPI) or `supports_credentials=True` (Flask-CORS) must be set. With credentials, `allow_origins` cannot be `["*"]` — list specific origins.
+1. **Verify origin match:** The origin in `allow_origins` must match exactly: protocol + host + port. `http://localhost:3000` ≠ `http://localhost:5173` ≠ `https://localhost:3000`.
+2. **Check credentials:** If using cookies, `allow_credentials=True` (FastAPI) or `supports_credentials=True` (Flask-CORS) must be set. With credentials, `allow_origins` cannot be `["*"]`: list specific origins.
 3. **Check methods:** Ensure `allow_methods` includes the method being used (`POST`, `PUT`, `DELETE`, `PATCH`). `GET` and `HEAD` don't trigger preflight.
 4. **Check headers:** If sending custom headers (e.g., `X-CSRF-Token`), add them to `allow_headers`.
-5. **Server logs:** Check the backend logs for CORS middleware rejection messages — the browser error is intentionally vague for security.
+5. **Server logs:** Check the backend logs for CORS middleware rejection messages: the browser error is intentionally vague for security.
 
 ```bash
 # Quick test: simulate preflight from terminal
@@ -563,6 +563,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/api/projects")
 async def list_projects(user: User = Depends(get_current_user)):

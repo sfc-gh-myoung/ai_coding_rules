@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Advanced Streamlit fragment patterns for real-time progress tracking, live polling, and automatic UI updates without full page reruns."
+last_updated: 2026-07-15
+keywords:
+  - kw:st.fragment
+  - kw:run_every auto-refresh
+  - kw:live progress polling
+  - kw:session state persistence
+  - kw:fragment termination st.stop
+  - kw:conditional fragment rendering
+token_budget: ~2850
+context_tier: Medium
+depends:
+  required:
+    - 101-snowflake-streamlit-core.md  # Core Streamlit patterns
+  optional:
+    - 101b-snowflake-streamlit-performance.md  # Caching and performance basics
+---
 # Streamlit Fragments: Real-Time Progress Tracking
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** st.fragment, run_every, real-time progress, polling, live updates, fragment pattern, auto-refresh, streaming, monitoring dashboard
-**TokenBudget:** ~2850
-**ContextTier:** Medium
-**Depends:** 000-global-core.md, 101-snowflake-streamlit-core.md, 101b-snowflake-streamlit-performance.md
 
 ## Scope
 
@@ -23,13 +33,6 @@ Advanced Streamlit fragment patterns for real-time progress tracking, live polli
 - Any pattern requiring `@st.fragment(run_every=...)`
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation patterns and conventions `[Available]`
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
-- **101b-snowflake-streamlit-performance.md** - Caching and performance basics `[Available]`
 
 ### External Documentation
 
@@ -120,27 +123,35 @@ from concurrent.futures import ThreadPoolExecutor
 # Reference: https://docs.streamlit.io/develop/concepts/architecture/fragments
 # ========================================================================
 
+
 def initialize_analysis_progress(audio_file: str):
     """Initialize progress tracking in database table"""
-    session.sql("""
+    session.sql(
+        """
         INSERT INTO UTILITY_DEMO_V2.CUSTOMER_DATA.ANALYSIS_PROGRESS
         (AUDIO_FILE_NAME, STATUS, CURRENT_STEP, TOTAL_STEPS)
         VALUES (?, 'in_progress', 0, 18)
-    """, params=[audio_file]).collect()
+    """,
+        params=[audio_file],
+    ).collect()
+
 
 def call_stored_procedure_async(proc_name: str, *args):
     """Execute stored procedure in background thread."""
     executor = ThreadPoolExecutor(max_workers=1)
+
     def run_proc():
         try:
             return session.call(proc_name, *args)
         except Exception as e:
             return e  # Store error for fragment to surface
+
     future = executor.submit(run_proc)
     # NOTE: executor is intentionally not shut down here -- it will be
     # garbage-collected after the future completes. For long-lived apps,
     # consider a module-level executor with atexit cleanup.
     return future
+
 
 @st.fragment(run_every="0.5s")
 def show_analysis_progress_live(audio_file):
@@ -155,13 +166,16 @@ def show_analysis_progress_live(audio_file):
     """
     # Query current progress from database
     try:
-        progress_result = session.sql("""
+        progress_result = session.sql(
+            """
             SELECT STATUS, CURRENT_STEP, TOTAL_STEPS, STEP_DESCRIPTION, LAST_UPDATED
             FROM UTILITY_DEMO_V2.CUSTOMER_DATA.ANALYSIS_PROGRESS
             WHERE AUDIO_FILE_NAME = ?
             ORDER BY LAST_UPDATED DESC
             LIMIT 1
-        """, params=[audio_file]).collect()
+        """,
+            params=[audio_file],
+        ).collect()
     except Exception:
         st.warning("Unable to fetch progress. Retrying...")
         return
@@ -203,6 +217,7 @@ def show_analysis_progress_live(audio_file):
             del st.session_state.analysis_future
 
         st.stop()  # Stop fragment auto-refresh
+
 
 # Main app code
 st.title("Call Center Analytics")
@@ -250,9 +265,11 @@ if st.button(
 **Problem:**
 ```python
 if st.button("Start"):
+
     @st.fragment(run_every="1s")
     def show_progress():
         st.write("Progress...")
+
     show_progress()
 ```
 
@@ -264,6 +281,7 @@ if st.button("Start"):
 def show_progress():
     if st.session_state.get("active"):
         st.write("Progress...")
+
 
 if st.session_state.get("active"):
     show_progress()
@@ -288,6 +306,7 @@ def fragment_with_widgets():
 **Correct Pattern:**
 ```python
 user_input = st.text_input("Name")
+
 
 @st.fragment(run_every="1s")
 def display_only_fragment():
@@ -324,6 +343,7 @@ When fragments execute queries that may take too long, enforce a timeout to prev
 ```python
 import time
 
+
 @st.fragment(run_every="2s")
 def monitored_fragment():
     start = st.session_state.get("fragment_start_time")
@@ -348,4 +368,4 @@ def monitored_fragment():
 ## Limitations
 
 - **No Nesting:** Fragments cannot be nested inside other fragments. A fragment function cannot call another fragment function. Use a single fragment that manages multiple UI components instead.
-- **Multiple Fragments:** Multiple `@st.fragment(run_every=...)` functions can run simultaneously on the same page. Each fragment reruns independently at its own interval. Be aware that each active fragment adds database polling load -- keep the total number of concurrent auto-refreshing fragments low (2-3 max) and stagger intervals to avoid query spikes.
+- **Multiple Fragments:** Multiple `@st.fragment(run_every=...)` functions can run simultaneously on the same page. Each fragment reruns independently at its own interval. Be aware that each active fragment adds database polling load: keep the total number of concurrent auto-refreshing fragments low (2-3 max) and stagger intervals to avoid query spikes.

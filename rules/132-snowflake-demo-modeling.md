@@ -1,15 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive data generation and modeling standards for Business Analysts, Executive Users, Data Scientists, and Data Engineers. Covers naming conventions, Kimball dimensional modeling, view"
+last_updated: 2026-07-15
+keywords:
+  - kw:Kimball dimensional modeling
+  - kw:fact dimension FK naming
+  - kw:view taxonomy prefixes
+  - kw:synthetic data referential integrity
+  - kw:business-first column naming
+  - kw:scd type 2 surrogate
+  - kw:etl
+token_budget: ~4350
+context_tier: High
+depends:
+  required:
+    - 130-snowflake-demo-sql.md  # Demo SQL patterns
+    - 131-snowflake-demo-creation.md  # Demo creation and synthetic data
+  optional:
+    - 930-data-governance-quality.md  # Data governance and quality patterns
+    - 940-business-analytics.md  # Business analytics patterns
+---
 # Snowflake Demo: Data Modeling and Generation
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Data modeling, naming conventions, Kimball, dimensional modeling, fact tables, dimension tables, foreign keys, view taxonomy, data generation, backward compatibility, surrogate keys
-**TokenBudget:** ~4350
-**ContextTier:** High
-**LoadTrigger:** kw:data-modeling, kw:dimensional-model, kw:kimball
-**Depends:** 130-snowflake-demo-sql.md, 131-snowflake-demo-creation.md
 
 ## Scope
 
@@ -24,17 +36,6 @@ Comprehensive data generation and modeling standards for Business Analysts, Exec
 - Implementing backward-compatible schema changes
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **130-snowflake-demo-sql.md** - Demo SQL patterns
-- **131-snowflake-demo-creation.md** - Demo creation and synthetic data
-
-**Related:**
-- **930-data-governance-quality.md** - Data governance and quality patterns
-- **940-business-analytics.md** - Business analytics patterns
-- **100-snowflake-core.md** - Snowflake SQL patterns
 
 ### External Documentation
 
@@ -254,7 +255,7 @@ CREATE TABLE DIM_GRID_ASSET (
 
 ### SCD Patterns for Dimensions
 
-**Type 1 (Overwrite):** Current value only — simplest for demos:
+**Type 1 (Overwrite):** Current value only; simplest for demos:
 ```sql
 -- MERGE overwrites changed attributes, keeps same PK
 MERGE INTO DIM_GRID_ASSET tgt USING staging src ON tgt.asset_id = src.asset_id
@@ -412,10 +413,10 @@ All Python generators must produce:
 
 ```python
 required_columns = {
-    '<entity>_id': 'VARCHAR(50)',
-    '<entity>_name': 'VARCHAR(100)',
-    'created_timestamp': 'TIMESTAMP_NTZ',
-    'source_system': 'VARCHAR(50)',
+    "<entity>_id": "VARCHAR(50)",
+    "<entity>_name": "VARCHAR(100)",
+    "created_timestamp": "TIMESTAMP_NTZ",
+    "source_system": "VARCHAR(50)",
 }
 ```
 

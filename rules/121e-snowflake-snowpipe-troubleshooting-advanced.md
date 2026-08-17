@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Advanced Snowpipe Streaming troubleshooting patterns including offset tracking for exactly-once semantics, batch performance optimization, data validation before insert, and comprehensive debugging"
+last_updated: 2026-07-15
+keywords:
+  - kw:snowpipe streaming offset
+  - kw:exactly-once semantics
+  - kw:streaming batch optimization
+  - kw:channel ownership conflicts
+  - kw:pre-insert validation
+  - kw:snowpipe debugging checklist
+  - kw:snowpipe
+token_budget: ~2700
+context_tier: Low
+depends:
+  optional:
+    - 121c-snowflake-snowpipe-troubleshooting.md  # Core troubleshooting patterns and decision tree
+---
 # Snowpipe Advanced Troubleshooting
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:snowpipe-offset, kw:snowpipe-streaming-debug, kw:snowpipe-checklist
-**Keywords:** snowpipe streaming, offset tracking, batch performance, data validation, debugging checklists, channel troubleshooting, exactly-once semantics
-**TokenBudget:** ~2700
-**ContextTier:** Low
-**Depends:** 121c-snowflake-snowpipe-troubleshooting.md, 121a-snowflake-snowpipe-streaming.md
 
 ## Scope
 
@@ -26,15 +34,9 @@ Advanced Snowpipe Streaming troubleshooting patterns including offset tracking f
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **121c-snowflake-snowpipe-troubleshooting.md** - Core troubleshooting patterns and decision tree
-- **121a-snowflake-snowpipe-streaming.md** - Streaming Snowpipe core concepts
-
-**Related:**
-- **121b-snowflake-snowpipe-monitoring.md** - Monitoring and alerting
-- **121f-snowflake-snowpipe-monitoring-alerts.md** - Alert configuration
+_None._
 
 ## Contract
 
@@ -120,8 +122,8 @@ last_offset = load_last_offset_from_storage()
 
 # Insert rows with monotonically increasing offset tokens
 for idx, row in enumerate(data_stream, start=last_offset + 1):
-    response = channel.insert_row(row, offset_token=f'offset_{idx}')
-    
+    response = channel.insert_row(row, offset_token=f"offset_{idx}")
+
     if response.has_errors():
         print(f"Insert errors: {response.insert_errors}")
         # Handle errors, retry, or skip
@@ -158,18 +160,18 @@ global_offset = 0
 
 for row in data_stream:
     batch.append(row)
-    
+
     if len(batch) >= batch_size:
         # Insert batch with globally unique offset tokens
         for row_item in batch:
-            channel.insert_row(row_item, offset_token=f'offset_{global_offset}')
+            channel.insert_row(row_item, offset_token=f"offset_{global_offset}")
             global_offset += 1
         batch = []
 
 # Insert remaining rows
 if batch:
     for row_item in batch:
-        channel.insert_row(row_item, offset_token=f'offset_{global_offset}')
+        channel.insert_row(row_item, offset_token=f"offset_{global_offset}")
         global_offset += 1
 
 channel.close()
@@ -194,30 +196,32 @@ from snowflake.ingest import SnowflakeStreamingIngestClient
 client = SnowflakeStreamingIngestClient(...)
 channel = client.open_channel(...)
 
+
 def validate_row(row):
     """Validate row data before insertion"""
     # Check required fields
-    if 'id' not in row or 'name' not in row:
+    if "id" not in row or "name" not in row:
         return False, "Missing required fields"
-    
+
     # Check data types
-    if not isinstance(row['id'], int):
+    if not isinstance(row["id"], int):
         return False, "id must be integer"
-    
-    if not isinstance(row['name'], str):
+
+    if not isinstance(row["name"], str):
         return False, "name must be string"
-    
+
     return True, None
+
 
 for idx, row in enumerate(data_stream):
     valid, error = validate_row(row)
-    
+
     if not valid:
         print(f"Validation error at offset {idx}: {error}")
         continue  # Skip invalid row
-    
-    response = channel.insert_row(row, offset_token=f'offset_{idx}')
-    
+
+    response = channel.insert_row(row, offset_token=f"offset_{idx}")
+
     if response.has_errors():
         print(f"Insert error at offset {idx}: {response.insert_errors}")
 
@@ -241,7 +245,7 @@ channel.close()
 ```python
 # Wrong: one row at a time
 for row in data_stream:
-    channel.insert_row(row, offset_token=f'offset_{idx}')
+    channel.insert_row(row, offset_token=f"offset_{idx}")
     idx += 1
     # Each row = separate network round-trip
 
@@ -251,7 +255,7 @@ for row in data_stream:
     batch.append(row)
     if len(batch) >= 1000:
         for row_item in batch:
-            channel.insert_row(row_item, offset_token=f'offset_{idx}')
+            channel.insert_row(row_item, offset_token=f"offset_{idx}")
             idx += 1
         batch = []
 ```
@@ -266,14 +270,14 @@ for row in data_stream:
 # Wrong: offset only in memory
 offset = 0
 for row in data_stream:
-    channel.insert_row(row, offset_token=f'offset_{offset}')
+    channel.insert_row(row, offset_token=f"offset_{offset}")
     offset += 1  # Lost on crash!
 
 # Correct: persist offset to durable storage
 offset = load_last_offset_from_storage()  # Recover on restart
 for row in data_stream:
     offset += 1
-    channel.insert_row(row, offset_token=f'offset_{offset}')
+    channel.insert_row(row, offset_token=f"offset_{offset}")
     if offset % 1000 == 0:
         save_offset_to_storage(offset)  # Durable checkpoint
 ```

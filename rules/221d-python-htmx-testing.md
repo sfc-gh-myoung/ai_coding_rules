@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Testing strategies for HTMX endpoints in Python applications, covering unit tests for header validation, integration tests for partial responses, pytest fixtures for HTMX requests, HTML assertion"
+last_updated: 2026-07-15
+keywords:
+  - kw:htmx endpoint testing
+  - kw:HX-Request header
+  - kw:HX-Trigger response headers
+  - kw:partial HTML assertions
+  - kw:htmx_client fixture
+  - kw:OOB swap testing
+token_budget: ~4600
+context_tier: High
+depends:
+  required:
+    - 206-python-pytest.md  # Pytest best practices
+  optional:
+    - 221b-python-htmx-flask.md  # Flask-specific testing
+    - 221c-python-htmx-fastapi.md  # FastAPI-specific testing
+    - 200-python-core.md  # Python standards
+---
 # HTMX Testing Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** testing, pytest, unit tests, integration tests, fixtures, mocking, header validation, html assertions, test client, htmx testing
-**TokenBudget:** ~4600
-**ContextTier:** High
-**Depends:** 221-python-htmx-core.md, 206-python-pytest.md
 
 ## Scope
 
@@ -24,17 +36,6 @@ Testing strategies for HTMX endpoints in Python applications, covering unit test
 - Setting up integration tests for HTMX applications
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **221-python-htmx-core.md** - HTMX patterns to test
-- **206-python-pytest.md** - Pytest best practices
-
-**Related:**
-- **221b-python-htmx-flask.md** - Flask-specific testing
-- **221c-python-htmx-fastapi.md** - FastAPI-specific testing
-- **200-python-core.md** - Python standards
 
 ### External Documentation
 
@@ -134,11 +135,11 @@ Testing strategies for HTMX endpoints in Python applications, covering unit test
 
 > **Investigation Required**
 > Before creating or modifying HTMX tests, the agent MUST:
-> 1. Read existing `conftest.py` files for HTMX test fixtures — never create duplicate `htmx_client` fixtures
-> 2. Check installed HTML parsing library: `uv pip list | grep -i beautifulsoup` — use existing parser
+> 1. Read existing `conftest.py` files for HTMX test fixtures: never create duplicate `htmx_client` fixtures
+> 2. Check installed HTML parsing library: `uv pip list | grep -i beautifulsoup`: use existing parser
 > 3. Inspect current test directory structure and file naming conventions (e.g., `test_htmx_*.py` vs `tests/htmx/`)
 > 4. Check if `pytest-cov` is configured in `pyproject.toml` for coverage settings
-> 5. Verify existing mock patterns — use `@patch` or `mocker.patch()` consistently with the project
+> 5. Verify existing mock patterns: use `@patch` or `mocker.patch()` consistently with the project
 
 ## Key Principles
 
@@ -154,30 +155,37 @@ The `client` fixture differs by framework; the HTMX wrapper pattern is the same 
 ```python
 import pytest
 
+
 @pytest.fixture
 def htmx_headers():
     """Standard HTMX request headers"""
-    return {
-        'HX-Request': 'true',
-        'HX-Current-URL': 'http://localhost/test'
-    }
+    return {"HX-Request": "true", "HX-Current-URL": "http://localhost/test"}
+
 
 @pytest.fixture
 def htmx_client(client, htmx_headers):
     """Test client wrapper that injects HTMX headers into every request"""
+
     class HTMXClient:
         def __init__(self, client, headers):
             self.client = client
             self.headers = headers
 
         def _merge(self, kwargs):
-            kwargs.setdefault('headers', {}).update(self.headers)
+            kwargs.setdefault("headers", {}).update(self.headers)
             return kwargs
 
-        def get(self, *a, **kw):    return self.client.get(*a, **self._merge(kw))
-        def post(self, *a, **kw):   return self.client.post(*a, **self._merge(kw))
-        def put(self, *a, **kw):    return self.client.put(*a, **self._merge(kw))
-        def delete(self, *a, **kw): return self.client.delete(*a, **self._merge(kw))
+        def get(self, *a, **kw):
+            return self.client.get(*a, **self._merge(kw))
+
+        def post(self, *a, **kw):
+            return self.client.post(*a, **self._merge(kw))
+
+        def put(self, *a, **kw):
+            return self.client.put(*a, **self._merge(kw))
+
+        def delete(self, *a, **kw):
+            return self.client.delete(*a, **self._merge(kw))
 
     return HTMXClient(client, htmx_headers)
 ```
@@ -190,25 +198,27 @@ def htmx_client(client, htmx_headers):
 ```python
 def test_htmx_detection_with_header(client, htmx_headers):
     """Test endpoint detects HTMX request"""
-    response = client.get('/users', headers=htmx_headers)
+    response = client.get("/users", headers=htmx_headers)
 
     assert response.status_code == 200
     # Should return partial, not full page
-    assert '<html>' not in response.data.decode()
-    assert '<table' in response.data.decode()
+    assert "<html>" not in response.data.decode()
+    assert "<table" in response.data.decode()
+
 
 def test_htmx_detection_without_header(client):
     """Test endpoint returns full page without HTMX header"""
-    response = client.get('/users')
+    response = client.get("/users")
 
     assert response.status_code == 200
     # Should return full page
-    assert '<html>' in response.data.decode()
-    assert '<table' in response.data.decode()
+    assert "<html>" in response.data.decode()
+    assert "<table" in response.data.decode()
+
 
 def test_htmx_only_endpoint_rejects_non_htmx(client):
     """Test HTMX-only endpoint rejects regular requests"""
-    response = client.get('/htmx/users/search')
+    response = client.get("/htmx/users/search")
 
     assert response.status_code == 400
 ```
@@ -219,31 +229,34 @@ def test_htmx_only_endpoint_rejects_non_htmx(client):
 ```python
 from bs4 import BeautifulSoup
 
+
 def parse_html(response_data):
     """Parse response HTML with BeautifulSoup"""
-    return BeautifulSoup(response_data, 'html.parser')
+    return BeautifulSoup(response_data, "html.parser")
+
 
 def test_user_row_structure(htmx_client):
     """Test partial HTML structure"""
-    response = htmx_client.get('/users/1')
+    response = htmx_client.get("/users/1")
     soup = parse_html(response.data)
 
     # Assert structure
-    tr = soup.find('tr', id='user-1')
+    tr = soup.find("tr", id="user-1")
     assert tr is not None
-    assert tr.find('td', string='John Doe') is not None
+    assert tr.find("td", string="John Doe") is not None
 
     # Assert HTMX attributes present
-    edit_button = tr.find('button', attrs={'hx-get': '/users/1/edit'})
+    edit_button = tr.find("button", attrs={"hx-get": "/users/1/edit"})
     assert edit_button is not None
-    assert edit_button['hx-target'] == '#user-1'
+    assert edit_button["hx-target"] == "#user-1"
+
 
 def test_table_has_rows(htmx_client):
     """Test table contains expected rows"""
-    response = htmx_client.get('/users')
+    response = htmx_client.get("/users")
     soup = parse_html(response.data)
 
-    rows = soup.find_all('tr', id=lambda x: x and x.startswith('user-'))
+    rows = soup.find_all("tr", id=lambda x: x and x.startswith("user-"))
     assert len(rows) == 3  # Expected number of users
 ```
 
@@ -252,26 +265,26 @@ def test_table_has_rows(htmx_client):
 def assert_htmx_attributes(element, expected_attrs):
     """Assert HTMX attributes on element"""
     for attr, value in expected_attrs.items():
-        assert element.get(attr) == value, \
-            f"Expected {attr}={value}, got {element.get(attr)}"
+        assert element.get(attr) == value, f"Expected {attr}={value}, got {element.get(attr)}"
+
 
 def assert_element_count(soup, selector, expected_count):
     """Assert number of elements matching selector"""
     elements = soup.select(selector)
-    assert len(elements) == expected_count, \
+    assert len(elements) == expected_count, (
         f"Expected {expected_count} elements, found {len(elements)}"
+    )
+
 
 # Usage
 def test_user_buttons(htmx_client):
-    response = htmx_client.get('/users/1')
+    response = htmx_client.get("/users/1")
     soup = parse_html(response.data)
 
-    edit_btn = soup.find('button', attrs={'hx-get': '/users/1/edit'})
-    assert_htmx_attributes(edit_btn, {
-        'hx-get': '/users/1/edit',
-        'hx-target': '#user-1',
-        'hx-swap': 'outerHTML'
-    })
+    edit_btn = soup.find("button", attrs={"hx-get": "/users/1/edit"})
+    assert_htmx_attributes(
+        edit_btn, {"hx-get": "/users/1/edit", "hx-target": "#user-1", "hx-swap": "outerHTML"}
+    )
 ```
 
 ### 4. Response Header Assertions
@@ -280,34 +293,37 @@ def test_user_buttons(htmx_client):
 ```python
 def test_delete_triggers_event(htmx_client):
     """Test DELETE returns HX-Trigger header"""
-    response = htmx_client.delete('/users/1')
+    response = htmx_client.delete("/users/1")
 
     assert response.status_code == 200
-    assert response.headers.get('HX-Trigger') == 'userDeleted'
+    assert response.headers.get("HX-Trigger") == "userDeleted"
+
 
 def test_unauthorized_redirects(htmx_client):
     """Test unauthorized request returns HX-Redirect"""
-    response = htmx_client.get('/protected')
+    response = htmx_client.get("/protected")
 
     assert response.status_code == 401
-    assert response.headers.get('HX-Redirect') == '/login'
+    assert response.headers.get("HX-Redirect") == "/login"
+
 
 def test_error_retargets(htmx_client):
     """Test error response retargets to error container"""
-    response = htmx_client.post('/users', data={'name': ''})
+    response = htmx_client.post("/users", data={"name": ""})
 
     assert response.status_code == 400
-    assert response.headers.get('HX-Retarget') == '#error-container'
+    assert response.headers.get("HX-Retarget") == "#error-container"
+
 
 def test_multiple_triggers(htmx_client):
     """Test multiple events in HX-Trigger header"""
-    response = htmx_client.post('/cart/add/1')
+    response = htmx_client.post("/cart/add/1")
 
     assert response.status_code == 200
-    trigger_header = response.headers.get('HX-Trigger')
+    trigger_header = response.headers.get("HX-Trigger")
     # HX-Trigger can contain multiple events: {"event1": {}, "event2": {}}
-    assert 'cartUpdated' in trigger_header
-    assert 'itemAdded' in trigger_header
+    assert "cartUpdated" in trigger_header
+    assert "itemAdded" in trigger_header
 ```
 
 ### 5. Integration Tests
@@ -317,50 +333,48 @@ def test_multiple_triggers(htmx_client):
 def test_user_crud_workflow(client, htmx_client, db):
     """Test complete CRUD workflow with HTMX"""
     # Create user
-    response = htmx_client.post('/users', data={
-        'name': 'Jane Doe',
-        'email': 'jane@example.com'
-    })
+    response = htmx_client.post("/users", data={"name": "Jane Doe", "email": "jane@example.com"})
     assert response.status_code == 200
     soup = parse_html(response.data)
-    user_id = soup.find('tr')['id'].replace('user-', '')
+    user_id = soup.find("tr")["id"].replace("user-", "")
 
     # Read user
-    response = htmx_client.get(f'/users/{user_id}')
+    response = htmx_client.get(f"/users/{user_id}")
     assert response.status_code == 200
-    assert 'Jane Doe' in response.data.decode()
+    assert "Jane Doe" in response.data.decode()
 
     # Update user
-    response = htmx_client.put(f'/users/{user_id}', data={
-        'name': 'Jane Smith'
-    })
+    response = htmx_client.put(f"/users/{user_id}", data={"name": "Jane Smith"})
     assert response.status_code == 200
-    assert 'Jane Smith' in response.data.decode()
-    assert response.headers.get('HX-Trigger') == 'userUpdated'
+    assert "Jane Smith" in response.data.decode()
+    assert response.headers.get("HX-Trigger") == "userUpdated"
 
     # Delete user
-    response = htmx_client.delete(f'/users/{user_id}')
+    response = htmx_client.delete(f"/users/{user_id}")
     assert response.status_code == 200
-    assert response.headers.get('HX-Trigger') == 'userDeleted'
+    assert response.headers.get("HX-Trigger") == "userDeleted"
 ```
 
 **Form Validation Testing:**
 ```python
 def test_form_validation_errors(htmx_client):
     """Test form returns validation errors"""
-    response = htmx_client.post('/users', data={
-        'name': '',  # Invalid: empty
-        'email': 'not-an-email'  # Invalid: bad format
-    })
+    response = htmx_client.post(
+        "/users",
+        data={
+            "name": "",  # Invalid: empty
+            "email": "not-an-email",  # Invalid: bad format
+        },
+    )
 
     assert response.status_code == 400
     soup = parse_html(response.data)
 
     # Check error messages present
-    name_error = soup.find('span', class_='error', string=lambda t: t and 'name' in t.lower())
+    name_error = soup.find("span", class_="error", string=lambda t: t and "name" in t.lower())
     assert name_error is not None
 
-    email_error = soup.find('span', class_='error', string=lambda t: t and 'email' in t.lower())
+    email_error = soup.find("span", class_="error", string=lambda t: t and "email" in t.lower())
     assert email_error is not None
 ```
 
@@ -370,20 +384,21 @@ def test_form_validation_errors(htmx_client):
 ```python
 from unittest.mock import patch, MagicMock, AsyncMock
 
+
 def test_users_list_with_mock(htmx_client, mocker):
     """Test users endpoint with mocked database"""
     # Mock get_users function
     mock_users = [
-        {'id': 1, 'name': 'User 1', 'email': 'user1@example.com'},
-        {'id': 2, 'name': 'User 2', 'email': 'user2@example.com'}
+        {"id": 1, "name": "User 1", "email": "user1@example.com"},
+        {"id": 2, "name": "User 2", "email": "user2@example.com"},
     ]
-    mocker.patch('app.routes.get_users', return_value=mock_users)
+    mocker.patch("app.routes.get_users", return_value=mock_users)
 
-    response = htmx_client.get('/users')
+    response = htmx_client.get("/users")
 
     assert response.status_code == 200
     soup = parse_html(response.data)
-    rows = soup.find_all('tr', id=lambda x: x and x.startswith('user-'))
+    rows = soup.find_all("tr", id=lambda x: x and x.startswith("user-"))
     assert len(rows) == 2
 ```
 
@@ -392,18 +407,15 @@ def test_users_list_with_mock(htmx_client, mocker):
 def test_weather_endpoint_with_mock(htmx_client, mocker):
     """Test weather endpoint with mocked API"""
     mock_response = MagicMock()
-    mock_response.json.return_value = {
-        'temp': 72,
-        'condition': 'Sunny'
-    }
+    mock_response.json.return_value = {"temp": 72, "condition": "Sunny"}
 
-    mocker.patch('httpx.AsyncClient.get', return_value=mock_response)
+    mocker.patch("httpx.AsyncClient.get", return_value=mock_response)
 
-    response = htmx_client.get('/weather/seattle')
+    response = htmx_client.get("/weather/seattle")
 
     assert response.status_code == 200
-    assert '72' in response.data.decode()
-    assert 'Sunny' in response.data.decode()
+    assert "72" in response.data.decode()
+    assert "Sunny" in response.data.decode()
 ```
 
 ### Testing OOB Swaps
@@ -413,27 +425,27 @@ HTMX Out-of-Band swaps return multiple elements in a single response. Parse and 
 ```python
 def test_update_user_with_oob_notification(htmx_client):
     """Update should return updated row + OOB notification."""
-    response = htmx_client.put('/users/1', data={'name': 'Updated Name'})
+    response = htmx_client.put("/users/1", data={"name": "Updated Name"})
     assert response.status_code == 200
 
     soup = parse_html(response.data)
 
-    # Primary content — updated user row
-    user_row = soup.find('tr', id='user-1')
+    # Primary content - updated user row
+    user_row = soup.find("tr", id="user-1")
     assert user_row is not None
-    assert 'Updated Name' in user_row.text
+    assert "Updated Name" in user_row.text
 
-    # OOB element — notification toast
-    oob_element = soup.find(attrs={'hx-swap-oob': 'true'})
+    # OOB element - notification toast
+    oob_element = soup.find(attrs={"hx-swap-oob": "true"})
     assert oob_element is not None
-    assert oob_element.get('id') == 'notification-area'
+    assert oob_element.get("id") == "notification-area"
 
     # HX-Trigger header for client-side events
-    assert 'userUpdated' in response.headers.get('HX-Trigger', '')
+    assert "userUpdated" in response.headers.get("HX-Trigger", "")
 ```
 
 **Key rules:**
-- Parse the full response body — OOB elements are siblings of the primary content
+- Parse the full response body: OOB elements are siblings of the primary content
 - Use `soup.find(attrs={'hx-swap-oob': 'true'})` to locate OOB elements
 - Assert both primary content and each OOB element independently
 
@@ -442,7 +454,7 @@ def test_update_user_with_oob_notification(htmx_client):
 ```python
 def test_csrf_required_on_htmx_post(htmx_client, app):
     """POST without CSRF token should be rejected."""
-    response = htmx_client.post('/users', data={'name': 'Test'})
+    response = htmx_client.post("/users", data={"name": "Test"})
     assert response.status_code == 400  # Flask-WTF rejects without token
 
 
@@ -450,12 +462,13 @@ def test_csrf_token_in_htmx_request(htmx_client, app):
     """POST with CSRF token should succeed."""
     with app.test_request_context():
         from flask_wtf.csrf import generate_csrf
+
         token = generate_csrf()
 
     response = htmx_client.post(
-        '/users',
-        data={'name': 'Test User', 'csrf_token': token},
-        headers={'X-CSRFToken': token},  # HTMX sends via htmx:configRequest
+        "/users",
+        data={"name": "Test User", "csrf_token": token},
+        headers={"X-CSRFToken": token},  # HTMX sends via htmx:configRequest
     )
     assert response.status_code in (200, 201)
 ```
@@ -470,32 +483,35 @@ def test_csrf_token_in_htmx_request(htmx_client, app):
 ```python
 import pytest
 
-@pytest.mark.parametrize('endpoint,expected_status', [
-    ('/users', 200),
-    ('/users/1', 200),
-    ('/users/999', 404),
-    ('/users/-1', 404)
-])
+
+@pytest.mark.parametrize(
+    "endpoint,expected_status",
+    [("/users", 200), ("/users/1", 200), ("/users/999", 404), ("/users/-1", 404)],
+)
 def test_endpoint_status_codes(htmx_client, endpoint, expected_status):
     """Test various endpoints return correct status codes"""
     response = htmx_client.get(endpoint)
     assert response.status_code == expected_status
 
-@pytest.mark.parametrize('method,endpoint,data,expected_trigger', [
-    ('POST', '/users', {'name': 'Test'}, 'userCreated'),
-    ('PUT', '/users/1', {'name': 'Updated'}, 'userUpdated'),
-    ('DELETE', '/users/1', None, 'userDeleted')
-])
+
+@pytest.mark.parametrize(
+    "method,endpoint,data,expected_trigger",
+    [
+        ("POST", "/users", {"name": "Test"}, "userCreated"),
+        ("PUT", "/users/1", {"name": "Updated"}, "userUpdated"),
+        ("DELETE", "/users/1", None, "userDeleted"),
+    ],
+)
 def test_crud_triggers(htmx_client, method, endpoint, data, expected_trigger):
     """Test CRUD operations return correct HX-Trigger"""
-    if method == 'POST':
+    if method == "POST":
         response = htmx_client.post(endpoint, data=data)
-    elif method == 'PUT':
+    elif method == "PUT":
         response = htmx_client.put(endpoint, data=data)
-    elif method == 'DELETE':
+    elif method == "DELETE":
         response = htmx_client.delete(endpoint)
 
-    assert response.headers.get('HX-Trigger') == expected_trigger
+    assert response.headers.get("HX-Trigger") == expected_trigger
 ```
 
 ## Anti-Patterns and Common Mistakes
@@ -509,12 +525,13 @@ def test_crud_triggers(htmx_client, method, endpoint, data, expected_trigger):
 **Correct Pattern:**
 ```python
 def test_users_htmx(htmx_client):
-    response = htmx_client.get('/users')
-    assert '<html>' not in response.data.decode()  # Partial
+    response = htmx_client.get("/users")
+    assert "<html>" not in response.data.decode()  # Partial
+
 
 def test_users_full_page(client):
-    response = client.get('/users')
-    assert '<html>' in response.data.decode()  # Full page
+    response = client.get("/users")
+    assert "<html>" in response.data.decode()  # Full page
 ```
 
 ### Anti-Pattern 2: No HTML Structure Validation
@@ -526,11 +543,11 @@ def test_users_full_page(client):
 **Correct Pattern:**
 ```python
 def test_user_row(htmx_client):
-    response = htmx_client.get('/users/1')
+    response = htmx_client.get("/users/1")
     soup = parse_html(response.data)
-    tr = soup.find('tr', id='user-1')
+    tr = soup.find("tr", id="user-1")
     assert tr is not None
-    assert tr.find('td', string='John Doe') is not None
+    assert tr.find("td", string="John Doe") is not None
 ```
 
 ## Output Format Examples

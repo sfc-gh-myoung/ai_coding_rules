@@ -1,16 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive best practices for Snowflake Feature Store: creating, maintaining, and serving ML features with consistency and reusability. Covers feature engineering, entity modeling, feature views"
+last_updated: 2026-07-15
+keywords:
+  - kw:feature store
+  - kw:point-in-time correctness
+  - kw:feature view versioning
+  - kw:entity modeling
+  - kw:ASOF JOIN
+  - kw:ml lineage integration
+  - kw:rbac
+token_budget: ~4300
+context_tier: Medium
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 110-snowflake-model-registry.md  # Model Registry integration patterns
+  optional:
+    - 122-snowflake-dynamic-tables.md  # Dynamic Tables for feature views
+---
 # Snowflake Feature Store Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:feature-store, kw:ml-features
-**Keywords:** feature views, entity modeling, ML pipeline, ASOF JOIN, point-in-time correctness, Dynamic Tables, feature versioning, create features, feature catalog, feature pipeline, feature discovery, feature registry, feature lineage
-**TokenBudget:** ~4300
-**ContextTier:** Medium
-**Depends:** 100-snowflake-core.md, 110-snowflake-model-registry.md
-**Companions:** 113a-snowflake-feature-store-patterns.md, 113b-snowflake-feature-store-engineering.md
 
 ## Scope
 
@@ -25,15 +35,6 @@ Comprehensive best practices for Snowflake Feature Store: creating, maintaining,
 - Setting up feature governance and access control
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **110-snowflake-model-registry.md** - Model Registry integration patterns
-
-**Related:**
-- **122-snowflake-dynamic-tables.md** - Dynamic Tables for feature views
 
 ### External Documentation
 
@@ -125,15 +126,15 @@ Comprehensive best practices for Snowflake Feature Store: creating, maintaining,
 
 **Anti-Pattern 1: Generating Training Datasets Without Point-in-Time Correctness**
 
-**Problem:** Developers join features to training labels using a standard JOIN on entity keys without considering temporal alignment. This causes data leakage — the model trains on feature values computed from future data that would not have been available at prediction time. The model appears to perform well in offline evaluation but degrades in production because it no longer has access to "future" features.
+**Problem:** Developers join features to training labels using a standard JOIN on entity keys without considering temporal alignment. This causes data leakage: the model trains on feature values computed from future data that would not have been available at prediction time. The model appears to perform well in offline evaluation but degrades in production because it no longer has access to "future" features.
 
 **Correct Pattern:** Always use `generate_dataset()` with `spine_timestamp_col` to enable ASOF JOIN. This ensures each training example only sees feature values that existed at the time of the observation.
 
 ```python
-# Wrong: Standard join causes data leakage — features may include future data
+# Wrong: Standard join causes data leakage - features may include future data
 spine_df = session.sql("SELECT customer_id, churned AS label FROM CHURN_LABELS")
 features_df = session.table("CUSTOMER_FEATURES")
-# Simple join has no temporal awareness — 2024-03-01 label gets 2024-03-31 features
+# Simple join has no temporal awareness - 2024-03-01 label gets 2024-03-31 features
 train_df = spine_df.join(features_df, on="customer_id")
 
 # Correct: Use generate_dataset with spine_timestamp_col for ASOF JOIN
@@ -146,7 +147,7 @@ training_data = fs.generate_dataset(
     features=[customer_purchases_fv, customer_engagement_fv],
     spine_timestamp_col="observation_date",  # Enables ASOF JOIN
     name="churn_training_v1",
-    version="1.0"
+    version="1.0",
 )
 ```
 
@@ -158,12 +159,20 @@ training_data = fs.generate_dataset(
 
 ```python
 # Wrong: Overwriting feature view without version tracking
-fv = FeatureView(name="CUSTOMER_PURCHASES", entities=[customer_entity],
-                 feature_df=session.sql("SELECT customer_id, COUNT(*) AS orders FROM ORDERS GROUP BY 1"))
+fv = FeatureView(
+    name="CUSTOMER_PURCHASES",
+    entities=[customer_entity],
+    feature_df=session.sql("SELECT customer_id, COUNT(*) AS orders FROM ORDERS GROUP BY 1"),
+)
 fs.register_feature_view(feature_view=fv, version="1.0")
-# Later, transformation changes but version stays the same — lineage broken
-fv_updated = FeatureView(name="CUSTOMER_PURCHASES", entities=[customer_entity],
-                         feature_df=session.sql("SELECT customer_id, COUNT(*) AS orders, SUM(amount) AS spend FROM ORDERS GROUP BY 1"))
+# Later, transformation changes but version stays the same - lineage broken
+fv_updated = FeatureView(
+    name="CUSTOMER_PURCHASES",
+    entities=[customer_entity],
+    feature_df=session.sql(
+        "SELECT customer_id, COUNT(*) AS orders, SUM(amount) AS spend FROM ORDERS GROUP BY 1"
+    ),
+)
 fs.register_feature_view(feature_view=fv_updated, version="1.0")  # Overwrites!
 
 # Correct: Increment version when transformation changes
@@ -186,7 +195,7 @@ fs = FeatureStore(
     database="ML_DATABASE",
     name="CUSTOMER_FEATURE_STORE",  # This creates/uses schema CUSTOMER_FEATURE_STORE
     default_warehouse="FEATURE_ENGINEERING_WH",
-    creation_mode="create_if_not_exists"
+    creation_mode="create_if_not_exists",
 )
 ```
 
@@ -217,14 +226,14 @@ GRANT CREATE DYNAMIC TABLE ON SCHEMA ML_DATABASE.CUSTOMER_FEATURE_STORE TO ROLE 
 customer_entity = fs.register_entity(
     name="CUSTOMER",
     join_keys=["customer_id"],  # Primary key columns
-    desc="Customer entity for behavioral and demographic features"
+    desc="Customer entity for behavioral and demographic features",
 )
 
 # Register multiple entities
 product_entity = fs.register_entity(
     name="PRODUCT",
     join_keys=["product_id"],
-    desc="Product entity for catalog and performance features"
+    desc="Product entity for catalog and performance features",
 )
 ```
 
@@ -248,12 +257,13 @@ product_entity = fs.register_entity(
 ```python
 from snowflake.ml.feature_store import FeatureView
 
+
 # Create Snowflake-managed feature view with SQL transformation
 @feature_view(
     name="CUSTOMER_PURCHASES_30D",
     entities=[customer_entity],
     refresh_freq="1 day",  # Automatic refresh schedule
-    desc="30-day customer purchase aggregations"
+    desc="30-day customer purchase aggregations",
 )
 def customer_purchase_features(session):
     return session.sql("""
@@ -269,10 +279,10 @@ def customer_purchase_features(session):
         GROUP BY customer_id
     """)
 
+
 # Register with feature store
 customer_purchases_fv = fs.register_feature_view(
-    feature_view=customer_purchase_features,
-    version="1.0"
+    feature_view=customer_purchase_features, version="1.0"
 )
 ```
 
@@ -283,9 +293,9 @@ customer_purchases_fv = fs.register_feature_view(
 
 ```python
 # Common refresh patterns
-refresh_freq="1 hour"    # Real-time features (streaming, high-velocity)
-refresh_freq="1 day"     # Daily batch features (most common)
-refresh_freq="1 week"    # Static/slow-changing features
+refresh_freq = "1 hour"  # Real-time features (streaming, high-velocity)
+refresh_freq = "1 day"  # Daily batch features (most common)
+refresh_freq = "1 week"  # Static/slow-changing features
 ```
 
 ## Feature Views - External (User-Managed)
@@ -293,7 +303,7 @@ refresh_freq="1 week"    # Static/slow-changing features
 ### External Feature Views with dbt
 - **Rule:** Use external feature views when features are managed by tools like dbt
 - **Always:** Register external views to make them discoverable in Feature Store
-- **Requirement:** Ensure external pipeline maintains feature freshness — verify with:
+- **Requirement:** Ensure external pipeline maintains feature freshness: verify with:
   ```sql
   SELECT MAX(update_ts) FROM ML_DATABASE.DBT_MODELS.CUSTOMER_SEGMENTS;
   -- Alert if MAX(update_ts) < DATEADD('hour', -24, CURRENT_TIMESTAMP())
@@ -305,13 +315,13 @@ external_fv = FeatureView(
     name="DBT_CUSTOMER_SEGMENTS",
     entities=[customer_entity],
     feature_df=session.table("ML_DATABASE.DBT_MODELS.CUSTOMER_SEGMENTS"),
-    desc="Customer segments from dbt pipeline (externally managed)"
+    desc="Customer segments from dbt pipeline (externally managed)",
 )
 
 fs.register_feature_view(
     feature_view=external_fv,
     version="1.0",
-    block=False  # External - don't create managed refresh
+    block=False,  # External - don't create managed refresh
 )
 ```
 
@@ -341,14 +351,14 @@ spine_df = session.sql("""
 training_data = fs.generate_dataset(
     spine_df=spine_df,
     features=[
-        customer_purchases_fv,    # 30-day purchase features
-        customer_engagement_fv,   # Engagement metrics
-        customer_demographics_fv  # Static demographic features
+        customer_purchases_fv,  # 30-day purchase features
+        customer_engagement_fv,  # Engagement metrics
+        customer_demographics_fv,  # Static demographic features
     ],
     spine_timestamp_col="observation_date",  # Critical for ASOF JOIN
     name="churn_training_v1",
     version="1.0",
-    desc="Churn prediction training dataset - Q1 2024"
+    desc="Churn prediction training dataset - Q1 2024",
 )
 
 # Access dataset as DataFrame
@@ -469,25 +479,25 @@ training_data = fs.generate_dataset(
     spine_df=spine_df,
     features=[customer_purchases_fv, customer_engagement_fv],
     name="churn_training_q1_2024",
-    version="1.0"
+    version="1.0",
 )
 
 # Train model
-X = training_data.read.to_pandas().drop(['label'], axis=1)
-y = training_data.read.to_pandas()['label']
+X = training_data.read.to_pandas().drop(["label"], axis=1)
+y = training_data.read.to_pandas()["label"]
 model = XGBClassifier().fit(X, y)
 
 # Register model with lineage to feature views
 # NOTE: options={"enable_monitoring": True} is REQUIRED on Registry if you plan to use MODEL MONITOR
 registry = Registry(
     session=session,
-    options={"enable_monitoring": True}  # Required for MODEL MONITOR
+    options={"enable_monitoring": True},  # Required for MODEL MONITOR
 )
 model_ref = registry.log_model(
     model,
     model_name="CHURN_PREDICTOR",
     version_name="v1_0_0",  # Use underscores (periods not valid in SQL identifiers)
     sample_input_data=X.head(5),  # Required for schema inference
-    comment=f"Trained on {training_data.name} (Feature Store lineage tracked)"
+    comment=f"Trained on {training_data.name} (Feature Store lineage tracked)",
 )
 ```

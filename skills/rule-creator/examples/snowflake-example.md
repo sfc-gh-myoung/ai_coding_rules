@@ -10,9 +10,9 @@ Create a new Cursor rule documenting Snowflake Hybrid Tables best practices foll
 
 ### Phase 1: Discovery (6 min)
 
-**Search RULES_INDEX.md:**
+**Search rule frontmatter:**
 ```bash
-$ grep -i "snowflake\|hybrid\|unistore\|oltp" RULES_INDEX.md
+$ grep -i "snowflake\|hybrid\|unistore\|oltp" rule frontmatter 
 || `100-snowflake-core.md` | Snowflake foundations | ...
 || `122-snowflake-dynamic-tables.md` | Dynamic Tables | ...
 || `123-snowflake-object-tagging.md` | Object tagging | ...
@@ -87,7 +87,7 @@ Establishes best practices for Snowflake Hybrid Tables, enabling OLTP workloads 
 
 ```sql
 -- Wrong: Hybrid Table for data warehouse fact table
-CREATE HYBRID TABLE fact_sales (  -- Hybrid table inappropriate here
+CREATE HYBRID TABLE fact_sales ( : Hybrid table inappropriate here
     sale_id INT PRIMARY KEY,
     ...millions of rows for analytics...
 );
@@ -102,7 +102,7 @@ CREATE HYBRID TABLE fact_sales (  -- Hybrid table inappropriate here
 **Correct Pattern:**
 ```sql
 -- Right: Regular table for analytics, Hybrid for transactional
-CREATE OR REPLACE TABLE fact_sales (  -- Regular table for OLAP
+CREATE OR REPLACE TABLE fact_sales ( : Regular table for OLAP
     sale_id INT,
     customer_id INT,
     sale_amount DECIMAL(10,2),
@@ -110,7 +110,7 @@ CREATE OR REPLACE TABLE fact_sales (  -- Regular table for OLAP
 )
 CLUSTER BY (sale_date);  -- Optimize for time-series queries
 
-CREATE HYBRID TABLE current_orders (  -- Hybrid for OLTP
+CREATE HYBRID TABLE current_orders ( : Hybrid for OLTP
     order_id INT PRIMARY KEY,
     status VARCHAR,
     last_updated TIMESTAMP

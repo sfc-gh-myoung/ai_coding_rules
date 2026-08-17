@@ -1,14 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Designing token-efficient tool outputs for AI agents. Covers returning only necessary information, using structured parseable formats, progressive output for large results, and avoiding verbose"
+last_updated: 2026-07-15
+keywords:
+  - kw:tool output minimization
+  - kw:progressive loading
+  - kw:token-efficient responses
+  - kw:silent success pattern
+  - kw:metadata elimination
+  - kw:agent context preservation
+token_budget: ~2600
+context_tier: Medium
+depends:
+  required:
+    - 004-tool-design-for-agents.md  # Core tool design principles
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 003-context-engineering.md  # Context management and attention budgets
+    - 004a-tool-set-curation.md  # Minimal viable tool sets
+---
 # Tool Output Token Efficiency
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** token efficiency, tool outputs, minimal output, structured output, progressive output, context budget, verbose output
-**TokenBudget:** ~2600
-**ContextTier:** Medium
-**Depends:** 004-tool-design-for-agents.md, 000-global-core.md
 
 ## Scope
 
@@ -23,15 +35,9 @@ Designing token-efficient tool outputs for AI agents. Covers returning only nece
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **004-tool-design-for-agents.md** - Core tool design principles
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **003-context-engineering.md** - Context management and attention budgets
-- **004a-tool-set-curation.md** - Minimal viable tool sets
+_None._
 
 ## Contract
 
@@ -99,8 +105,8 @@ but the agent only needs to display file names and check if files are recent:
 
 **Token efficiency targets:**
 - Simple operations (create, delete, update) -- <100 tokens output
-- Read operations -- <500 tokens output
-- Search/list operations -- <2000 tokens output
+- Read operations: <500 tokens output
+- Search/list operations: <2000 tokens output
 - Optimize when any tool output exceeds 5% of context window per call
 
 ### Post-Execution Checklist
@@ -136,7 +142,7 @@ def read_file(path: str) -> dict:
         "last_modified": "2025-01-22T10:30:00",
         "encoding": "utf-8",
         "line_count": 50,
-        "content": "..."  # Actual content buried in metadata
+        "content": "...",  # Actual content buried in metadata
     }
 ```
 **Problem:** Wastes ~100 tokens on metadata; actual content is obscured
@@ -168,7 +174,7 @@ def read_file(path: str) -> str:
 {
     "matches": [
         {"file": "auth.py", "line": 42, "text": "def login(user):"},
-        {"file": "views.py", "line": 15, "text": "def login_view(request):"}
+        {"file": "views.py", "line": 15, "text": "def login_view(request):"},
     ]
 }
 
@@ -179,7 +185,7 @@ def read_file(path: str) -> str:
         "timestamp": "2025-01-22T10:30:00",  # Unnecessary
         "total_matches": 2,  # Can count matches array
         "execution_time_ms": 145,  # Usually irrelevant
-        "matches": [...]
+        "matches": [...],
     }
 }
 ```
@@ -209,7 +215,7 @@ def write_file(path: str, content: str) -> dict:
 def search_documents(
     query: str,
     limit: int = 10,  # Default to reasonable limit
-    fields: List[str] = ["title", "summary"]  # Not full content
+    fields: List[str] = ["title", "summary"],  # Not full content
 ) -> List[Dict]:
     """Search documents with result limiting.
 
@@ -232,8 +238,8 @@ def search_documents(
 ## Large Output Handling
 
 For tools that must return large content:
-- Content >1000 tokens -- offer line-range or section parameters
-- Content >5000 tokens -- require explicit pagination
+- Content >1000 tokens: offer line-range or section parameters
+- Content >5000 tokens: require explicit pagination
 - Binary content (images, files) -- return metadata (name, size, type) not content
 
 ### Irreducibly Large Outputs
@@ -278,16 +284,17 @@ This pattern lets agents decide whether to read full output or act on the summar
 ```python
 # WRONG: Returns everything
 def list_files(path):
-    return [{"name": f.name, "content": f.read(), "metadata": f.stat()} 
-            for f in Path(path).iterdir()]
+    return [
+        {"name": f.name, "content": f.read(), "metadata": f.stat()} for f in Path(path).iterdir()
+    ]
 ```
 
 **Correct Pattern:**
 ```python
 # CORRECT: Return summary, fetch details on demand
 def list_files(path):
-    return [{"name": f.name, "size": f.stat().st_size} 
-            for f in Path(path).iterdir()]
+    return [{"name": f.name, "size": f.stat().st_size} for f in Path(path).iterdir()]
+
 
 def read_file(path):  # Separate tool for content
     return Path(path).read_text()

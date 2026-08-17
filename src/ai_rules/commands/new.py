@@ -1,4 +1,4 @@
-"""Generate rule file templates compliant with v3.2 schema.
+"""Generate rule file templates compliant with v3.4 schema.
 
 This module provides the `ai-rules new` command to create new rule files
 with all required sections and placeholders, making it easier for users
@@ -19,13 +19,13 @@ app = typer.Typer(help="Create new rule file templates.")
 
 
 class TemplateGenerator:
-    """Generate v3.2 compliant rule file templates."""
+    """Generate v3.4 compliant rule file templates."""
 
     TEMPLATE = """# {title}
 
 ## Metadata
 
-**SchemaVersion:** v3.2
+**SchemaVersion:** v3.4
 **RuleVersion:** v1.0.0
 **LastUpdated:** {last_updated}
 **Keywords:** {keywords}
@@ -113,7 +113,7 @@ class TemplateGenerator:
 
 **Pre-Task-Completion Validation Gate (CRITICAL):**
 
-Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+Reference: Complete validation protocol in `000-global-core.md`
 
 **CRITICAL:** Before marking any task as complete, ALL of the following checks MUST pass:
 
@@ -266,7 +266,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
             slug: Rule slug (e.g., "snowflake-sql")
 
         Returns:
-            Comma-separated keyword string (5-20 keywords per v3.2 schema)
+            Comma-separated keyword string (5-11 keywords per v3.2 schema)
         """
         # Find matching range
         range_keywords = ""
@@ -288,7 +288,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
         keyword_list = [kw.strip() for kw in all_keywords.split(",")]
         keyword_list = list(dict.fromkeys(keyword_list))  # Remove duplicates, preserve order
 
-        # Ensure we have 5-20 keywords (v3.2 schema requirement)
+        # Ensure we have 5-11 keywords (v3.2 schema requirement)
         if len(keyword_list) < 5:
             # Add filler keywords
             fillers = [
@@ -332,10 +332,10 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
         if keywords is None:
             keywords = cls.get_default_keywords(number, slug)
         else:
-            # Validate keyword count (v3.2: 5-20 keywords)
+            # Validate keyword count (v3.2: 5-11 keywords)
             keyword_list = [kw.strip() for kw in keywords.split(",")]
             if len(keyword_list) < 5 or len(keyword_list) > 20:
-                raise ValueError(f"Keywords must contain 5-20 terms, got {len(keyword_list)}")
+                raise ValueError(f"Keywords must contain 5-11 terms, got {len(keyword_list)}")
 
         # Get current date in UTC for LastUpdated field
         last_updated = datetime.now(UTC).strftime("%Y-%m-%d")
@@ -408,8 +408,8 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
             f"✅ Created rule template: {output_path}\n"
             "\nNext steps:\n"
             f"1. Edit {output_path} and replace all placeholders with actual content\n"
-            f"2. Validate: python scripts/schema_validator.py {output_path}\n"
-            "3. Add to rules/RULES_INDEX.md"
+            f"2. Validate: ai-rules validate {output_path}\n"
+            f"3. Generate keywords: ai-rules rule-loader keywords run {output_path} --update"
         )
 
     @staticmethod
@@ -460,7 +460,7 @@ def new(
         typer.Option(
             "--keywords",
             "-k",
-            help="Custom comma-separated keywords (5-20 terms per v3.2 schema).",
+            help="Custom comma-separated keywords (5-11 terms per v3.2 schema).",
         ),
     ] = None,
     force: Annotated[
@@ -472,7 +472,7 @@ def new(
         ),
     ] = False,
 ) -> None:
-    """Create a new rule file from a v3.2 compliant template.
+    """Create a new rule file from a v3.4 compliant template.
 
     Examples:
         # Create a Snowflake rule
@@ -481,7 +481,7 @@ def new(
         # Create a Python rule with custom tier
         ai-rules new 200-python-example --context-tier High
 
-        # Create a rule with custom keywords (5-20 terms per v3.2 schema)
+        # Create a rule with custom keywords (5-11 terms per v3.2 schema)
         ai-rules new 300-react-hooks --keywords "react, hooks, state, effects, custom hooks, lifecycle, functional components, useState, useEffect, optimization"
 
         # Overwrite existing file
@@ -533,7 +533,10 @@ def new(
             f"  1. Edit [cyan]{output_path}[/cyan] and replace all placeholders with actual content"
         )
         console.print(f"  2. Validate: [cyan]ai-rules validate {output_path}[/cyan]")
-        console.print("  3. Add to [cyan]rules/RULES_INDEX.md[/cyan]")
+        console.print(
+            f"  3. Generate keywords: [cyan]ai-rules rule-loader keywords run {output_path} "
+            "--update[/cyan]"
+        )
 
     except (ValueError, FileExistsError) as e:
         log_error(str(e))

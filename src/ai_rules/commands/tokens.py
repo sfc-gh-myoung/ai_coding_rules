@@ -193,7 +193,9 @@ class TokenBudgetUpdater:
             List of TokenBudgetAnalysis results
         """
         results = []
-        md_files = sorted(f for f in directory.glob("*.md") if f.name != "RULES_INDEX.md")
+        # Skip generated/plugin artifacts: they don't carry TokenBudget frontmatter.
+        _skip: set[str] = set()
+        md_files = sorted(f for f in directory.glob("*.md") if f.name not in _skip)
 
         with Progress(
             SpinnerColumn(),
@@ -330,6 +332,94 @@ def _print_update_details(analyses: list[TokenBudgetAnalysis], dry_run: bool) ->
     console.print(table)
 
 
+# Always-present context, used as the fixed floor of a context estimate.
+# The legacy bootstrap entry-point file was dropped from this tuple: it no longer
+# exists in the repo, and `--context-estimate` hard-exits 2 on a missing floor
+# file, which made the command unusable here.
+FIXED_FLOOR_FILES = (
+    "rules/000-global-core.md",
+    "skills/rule-loader/SKILL.md",
+)
+DEFAULT_INDEX_MATCH_TOKENS = 800
+
+
+def _find_repo_root(start: Path) -> Path:
+    """Walk up from start until a dir containing both rules/ and templates/."""
+    cur = start.resolve()
+    for candidate in (cur, *cur.parents):
+        if (candidate / "rules").is_dir() and (candidate / "templates").is_dir():
+            return candidate
+    return cur
+
+
+def _estimate_index_match(root: Path, selected: list[str]) -> int:
+    """Estimate index tokens for selected rules (returns 0: index removed)."""
+    return 0
+
+
+def _print_context_estimate(
+    floor_rows: list[tuple[str, int]],
+    index_cost: int,
+    rule_rows: list[tuple[str, int]],
+    total: int,
+    ceiling: int,
+) -> None:
+    """Render the per-response context estimate table."""
+    table = Table(title="PER-RESPONSE CONTEXT ESTIMATE (tiktoken GPT-4o)")
+    table.add_column("Component")
+    table.add_column("Tokens", justify="right")
+    for rel, n in floor_rows:
+        table.add_row(f"floor: {rel}", str(n))
+    table.add_row("index match", str(index_cost))
+    for name, n in rule_rows:
+        table.add_row(f"rule: {name}", str(n))
+    table.add_row("[bold]TOTAL[/bold]", f"[bold]{total}[/bold]")
+    table.add_row("ceiling", str(ceiling))
+    console.print(table)
+    if total > ceiling:
+        log_error(f"OVER BUDGET: {total} > {ceiling}")
+    else:
+        log_success(f"within budget: {total} <= {ceiling}")
+
+
+def _run_context_estimate(start: Path, selected: list[str], ceiling: int) -> None:
+    """Estimate total per-response rule-loading context. Read-only.
+
+    total = fixed_floor(always-injected files)
+          + index_match(manifest entries for selected rules, else default)
+          + sum(selected rule token counts)
+    Exits 0 if total <= ceiling, 1 if over, 2 if a selected/floor file is missing.
+    """
+    updater = TokenBudgetUpdater(UpdateConfig(dry_run=True))
+    root = _find_repo_root(start)
+
+    floor = 0
+    floor_rows: list[tuple[str, int]] = []
+    for rel in FIXED_FLOOR_FILES:
+        fp = root / rel
+        if not fp.exists():
+            log_error(f"context-estimate: fixed-floor file not found: {rel}")
+            raise typer.Exit(2)
+        n = updater.estimate_tokens(fp.read_text(encoding="utf-8"))
+        floor += n
+        floor_rows.append((rel, n))
+
+    rule_rows: list[tuple[str, int]] = []
+    rules_dir = root / "rules"
+    for name in selected:
+        fp = rules_dir / name
+        if not fp.exists():
+            log_error(f"context-estimate: selected rule not found: {name}")
+            raise typer.Exit(2)
+        rule_rows.append((name, updater.estimate_tokens(fp.read_text(encoding="utf-8"))))
+
+    index_cost = _estimate_index_match(root, selected) or DEFAULT_INDEX_MATCH_TOKENS
+    total = floor + index_cost + sum(n for _, n in rule_rows)
+
+    _print_context_estimate(floor_rows, index_cost, rule_rows, total, ceiling)
+    raise typer.Exit(0 if total <= ceiling else 1)
+
+
 def tokens(
     path: Annotated[
         Path,
@@ -361,6 +451,30 @@ def tokens(
             help="Minimum difference percentage to trigger update.",
         ),
     ] = 5.0,
+    context_estimate: Annotated[
+        bool,
+        typer.Option(
+            "--context-estimate",
+            help="Estimate total per-response rule-loading context "
+            "(fixed floor + index-match + selected rules) instead of "
+            "updating TokenBudget metadata. Read-only; never writes files.",
+        ),
+    ] = False,
+    selected: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--selected",
+            help="Rule filename selected for the response (repeatable). "
+            "Used only with --context-estimate.",
+        ),
+    ] = None,
+    ceiling: Annotated[
+        int,
+        typer.Option(
+            "--ceiling",
+            help="Per-response context ceiling for --context-estimate.",
+        ),
+    ] = 20000,
 ) -> None:
     """Validate and update token budgets for AI coding rule files.
 
@@ -388,6 +502,15 @@ def tokens(
     if not path.exists():
         log_error(f"Path not found: {path}")
         raise typer.Exit(1)
+
+    # Context-estimate mode is read-only and never updates TokenBudget metadata.
+    if context_estimate:
+        _run_context_estimate(
+            start=path if path.is_dir() else path.parent,
+            selected=list(selected or []),
+            ceiling=ceiling,
+        )
+        return
 
     # Create configuration
     config = UpdateConfig(

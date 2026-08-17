@@ -1,15 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "MODEL MONITOR integration for ML Observability including drift detection, performance monitoring, baseline/scoring table setup, schema alignment, and privilege configuration."
+last_updated: 2026-07-15
+keywords:
+  - kw:MODEL MONITOR
+  - kw:enable_monitoring
+  - kw:drift detection
+  - kw:baseline scoring schema
+  - kw:ml observability
+  - kw:monitor refresh interval
+token_budget: ~3300
+context_tier: Medium
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 110-snowflake-model-registry.md  # Model Registry core patterns
+---
 # Snowflake MODEL MONITOR (ML Observability)
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:model-monitor, kw:ml-observability
-**Keywords:** model monitor, drift detection, baseline data, scoring data, ML observability, model performance monitoring, prediction drift, schema alignment, enable_monitoring
-**TokenBudget:** ~3300
-**ContextTier:** Medium
-**Depends:** 100-snowflake-core.md, 110-snowflake-model-registry.md
 
 ## Scope
 
@@ -23,12 +31,6 @@ MODEL MONITOR integration for ML Observability including drift detection, perfor
 - Troubleshooting MODEL MONITOR errors
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **110-snowflake-model-registry.md** - Model Registry core patterns
 
 ### External Documentation
 
@@ -110,7 +112,7 @@ registry = Registry(
     session=session,
     database_name="ML",
     schema_name="REGISTRY",
-    options={"enable_monitoring": True}  # CRITICAL for MODEL MONITOR!
+    options={"enable_monitoring": True},  # CRITICAL for MODEL MONITOR!
 )
 ```
 
@@ -124,7 +126,7 @@ model_ref = registry.log_model(
     version_name="v1_0_0",
     comment="Binary classifier for customer churn prediction",
     sample_input_data=X_test.head(5),
-    conda_dependencies=["scikit-learn", "pandas", "numpy"]
+    conda_dependencies=["scikit-learn", "pandas", "numpy"],
 )
 ```
 
@@ -280,8 +282,9 @@ SHOW WAREHOUSES LIKE 'MY_WH';
 **Correct Pattern:** Always initialize the Registry with `options={"enable_monitoring": True}` before registering any model you plan to monitor. Treat this as a one-time setup step per registry schema and verify it before the first `log_model` call.
 
 ```python
-# Wrong: Registry without enable_monitoring — monitors will fail with "MODEL does not exist"
+# Wrong: Registry without enable_monitoring - monitors will fail with "MODEL does not exist"
 from snowflake.ml.registry import Registry
+
 registry = Registry(session=session, database_name="ML", schema_name="REGISTRY")
 registry.log_model(model, model_name="CHURN_MODEL", version_name="v1_0_0")
 # Later: CREATE MODEL MONITOR ... MODEL = CHURN_MODEL -> ERROR
@@ -291,7 +294,7 @@ registry = Registry(
     session=session,
     database_name="ML",
     schema_name="REGISTRY",
-    options={"enable_monitoring": True}  # Required for MODEL MONITOR
+    options={"enable_monitoring": True},  # Required for MODEL MONITOR
 )
 registry.log_model(model, model_name="CHURN_MODEL", version_name="v1_0_0")
 ```
@@ -303,7 +306,7 @@ registry.log_model(model, model_name="CHURN_MODEL", version_name="v1_0_0")
 **Correct Pattern:** Create a view over the baseline table that selects only the columns present in the scoring table. Use `DESCRIBE TABLE` on both tables to confirm column names and types match exactly before creating the monitor. Define the baseline schema from the scoring schema, not the other way around.
 
 ```sql
--- Wrong: Baseline has extra columns not in scoring table — schema mismatch error
+-- Wrong: Baseline has extra columns not in scoring table - schema mismatch error
 CREATE TABLE ML.MONITORING.BASELINE_DATA AS
 SELECT * FROM TRAINING_DATA;  -- Includes target, metadata, extra features
 
@@ -336,7 +339,7 @@ CREATE MODEL MONITOR churn_monitor
 **Correct Pattern:** Always set explicit session context with `USE DATABASE <db>; USE SCHEMA <schema>;` immediately before `CREATE MODEL MONITOR`. This ensures the model reference resolves correctly against the registry schema where the model is registered.
 
 ```sql
--- Wrong: No session context — model reference fails to resolve
+-- Wrong: No session context - model reference fails to resolve
 CREATE MODEL MONITOR churn_monitor
   WITH MODEL = ML.REGISTRY.CUSTOMER_CHURN_PREDICTOR, VERSION = V1_0_0,
     SOURCE = ML.MONITORING.SCORING_DATA,

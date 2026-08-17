@@ -1,0 +1,242 @@
+  <!-- ========== TAB: MODEL SELECTION (merged sovereignty + recommendations + AI insights) ========== -->
+  <section class="tab-panel" id="model-selection" role="tabpanel" data-tab-title="Model Selection" x-show="tab==='model-selection'" x-cloak x-transition:enter.opacity.duration.200ms>
+    <h2>Model Selection</h2>
+
+    <p>Protocol compliance measures one specific dimension of model behavior: how deterministically a model follows structured, multi-step procedural instructions with verifiable checkpoints. It does not measure general intelligence, coding ability, or reasoning quality. This tab collects the evidence that model choice matters, the tiers that say which models qualify, and the guidance that follows from both.</p>
+
+    {# Sub-tab state lives on reportApp() rather than a local x-data so legacy hashes
+       (#sovereignty, #recommendations, #ai-insights) can deep-link a sub-panel. The
+       Protocol and Fixtures tabs keep their local x-data pattern; they have no permalinks. #}
+    <nav class="sub-tablist" aria-label="Model selection sections">
+      <a role="tab" :aria-selected="(selectionTab==='guidance').toString()" :tabindex="selectionTab==='guidance' ? 0 : -1" :class="{ active: selectionTab==='guidance' }" @click.prevent="selectionTab = 'guidance'">Guidance</a>
+      <a role="tab" :aria-selected="(selectionTab==='families').toString()" :tabindex="selectionTab==='families' ? 0 : -1" :class="{ active: selectionTab==='families' }" @click.prevent="selectionTab = 'families'">Provider Families</a>
+      <a role="tab" :aria-selected="(selectionTab==='ai-analysis').toString()" :tabindex="selectionTab==='ai-analysis' ? 0 : -1" :class="{ active: selectionTab==='ai-analysis' }" @click.prevent="selectionTab = 'ai-analysis'">AI Analysis</a>
+    </nav>
+
+{#- ===================== MACRO: provider family block ===================== -#}
+{%- macro family_block(fc, insight) -%}
+    {% if fc %}
+    <h3>Provider Family Comparison</h3>
+    <div class="table-wrap">
+      <table class="data-table sortable-table compact" data-sort-fallback="2:desc,0:asc" aria-label="Provider family comparison statistics">
+        <thead>
+          <tr>
+            <th data-sort-type="text" style="text-align:left;">Family</th>
+            <th data-sort-type="number">Models (n)</th>
+            <th class="sorted-desc" data-sort-type="number">Avg Pass %</th>
+            <th data-sort-type="text">Turns (range)</th>
+            <th data-sort-type="number">Avg Turns</th>
+            <th data-sort-type="number">Avg Input Tokens</th>
+            <th data-sort-type="number">Avg Elapsed (s)</th>
+            <th data-sort-type="number">Avg Flaky</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for fam in fc %}
+          <tr{% if fam.n <= 1 %} class="row-nodata"{% endif %}>
+            <td style="text-align:left; font-weight:600;">{{ fam.family }}</td>
+            <td>{{ fam.n }}</td>
+            <td>
+              {% if fam.avg_pass >= 95 %}<span class="v-good">{{ fam.avg_pass }}%</span>
+              {% elif fam.avg_pass >= 85 %}<span class="v-mid">{{ fam.avg_pass }}%</span>
+              {% else %}<span class="v-poor">{{ fam.avg_pass }}%</span>{% endif %}
+            </td>
+            <td style="font-variant-numeric:tabular-nums;">{{ fam.turn_range[0] }}&ndash;{{ fam.turn_range[1] }}</td>
+            <td style="font-variant-numeric:tabular-nums;">{{ fam.turn_mean }}</td>
+            <td style="font-variant-numeric:tabular-nums;">{{ '{:,}'.format(fam.avg_input_tokens) }}</td>
+            <td style="font-variant-numeric:tabular-nums;">{{ fam.avg_elapsed_s }}s</td>
+            <td style="font-variant-numeric:tabular-nums;">{{ fam.avg_flaky }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.75rem;">
+      Families with n&le;1 are shown for completeness but are <strong>not statistically meaningful</strong> &mdash; a single run cannot characterize a provider&rsquo;s behavior. They are greyed out and sort last.
+    </p>
+
+    <h3 style="margin-top:2rem;">Strategic Implications</h3>
+    <div class="two-col">
+      <div style="border-left:4px solid var(--sf-green);">
+        <h4>Iteration Strategy Matters</h4>
+        <p>Single-turn models (OpenAI) batch all tool calls in one shot &mdash; they either comply fully or fail entirely. Multi-turn models (Anthropic) iterate sequentially, enabling partial compliance and recovery but consuming more tokens and wall-clock time.</p>
+      </div>
+      <div style="border-left:4px solid var(--sf-blue, #3b82f6);">
+        <h4>Cost &ne; Quality</h4>
+        <p>Higher token consumption does not correlate with higher compliance. The cheapest-per-pass model varies by fixture complexity &mdash; consult the Pareto frontier in the Model Effort tab for per-model cost/quality trade-offs.</p>
+      </div>
+    </div>
+
+    {% if insight %}
+    <h3 style="margin-top:2rem;">AI Interpretation</h3>
+    <div class="callout" style="border-left:4px solid var(--sf-blue, #3b82f6); background:rgba(59,130,246,0.04);">
+      <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;"><em>Generated by <code>{{ "claude-sonnet-4-5" }}</code> via Snowflake Cortex. Numbers are pre-computed by Python; this is interpretation only.</em></p>
+      <p>{{ insight }}</p>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="callout" style="border-left:4px solid var(--sf-amber); background:rgba(245,158,11,0.06);">
+      <strong>Insufficient data.</strong> Family comparison requires at least two models with usable data.
+    </div>
+    {% endif %}
+{%- endmacro -%}
+
+{#- ===================== MACRO: AI insights block ===================== -#}
+{#- `excluded` is the per-mode below-threshold list so this block follows the plugin
+    filter instead of always reporting all models. -#}
+{%- macro render_insights(ins, mode_label, excluded) -%}
+    <div class="callout callout-success">
+      <p>{{ ins.summary }}</p>
+    </div>
+
+    <div class="two-col" style="margin-top:1.5rem;">
+      <div>
+        <h4>Efficiency Ranking <span style="font-size:0.75rem; font-weight:400; color:var(--text-muted)">(lowest avg tokens &divide; pass rate)</span></h4>
+        <ol style="margin:0; padding-left:1.25rem; font-size:0.875rem; line-height:2;">
+          {% for model in ins.efficiency_ranking %}
+          <li>
+            <code>{{ model }}</code>
+            {% if loop.first %}<span class="badge" style="background:var(--sf-green);color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.4rem;">Most Efficient</span>{% endif %}
+            {% if loop.last %}<span class="badge" style="background:var(--sf-red);color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.4rem;">Least Efficient</span>{% endif %}
+          </li>
+          {% else %}
+          <li style="color:var(--text-muted); font-style:italic; list-style:none;">No efficiency ranking data returned.</li>
+          {% endfor %}
+        </ol>
+        {% if excluded %}
+        <div style="margin-top:0.75rem; padding:0.5rem 0.75rem; border:1px dashed var(--border); border-radius:6px; font-size:0.8rem; color:var(--text-muted);">
+          <strong>Excluded (below {{ effort_data.quality_threshold }}% accuracy):</strong>
+          {% for m in excluded %}<code style="margin:0 0.2rem;">{{ m }} ({{ effort_data.pass_rates[m] }}%)</code>{% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      <div>
+        <h4>Consistency Ranking <span style="font-size:0.75rem; font-weight:400; color:var(--text-muted)">(lowest token spread)</span></h4>
+        <ol style="margin:0; padding-left:1.25rem; font-size:0.875rem; line-height:2;">
+          {% for model in ins.consistency_ranking %}
+          <li>
+            <code>{{ model }}</code>
+            {% if loop.first %}<span class="badge" style="background:var(--sf-green);color:#fff;font-size:0.7rem;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.4rem;">Most Consistent</span>{% endif %}
+          </li>
+          {% else %}
+          <li style="color:var(--text-muted); font-style:italic; list-style:none;">No consistency ranking data returned.</li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+
+    <h4 style="margin-top:1.5rem;">Per-Model Observations</h4>
+    <div class="table-wrap">
+      <table aria-label="Per-model AI-generated effort observations ({{ mode_label }})">
+        <thead>
+          <tr>
+            <th style="text-align:left; min-width:180px;">Model</th>
+            <th style="text-align:left;">Observation</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for obs in ins.key_observations %}
+          <tr>
+            <td style="text-align:left; font-family:'SF Mono',monospace; font-size:0.8rem; font-weight:500;">{{ obs.model }}</td>
+            <td style="text-align:left; font-size:0.875rem;">{{ obs.observation }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="2" style="color:var(--text-muted); font-style:italic;">No per-model observations returned.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+{%- endmacro -%}
+
+    <!-- ---------- SUB-PANEL: GUIDANCE ---------- -->
+    <div class="sub-panel" id="selection-guidance" x-show="selectionTab==='guidance'">
+
+      <h3>1. Practical Implications</h3>
+
+      <div class="callout callout-info">
+        <strong>Protocol compliance is a testing problem as much as a prompting problem.</strong>
+        <p>You cannot prompt your way to reliability without measuring whether the model actually follows your prompts. Tool-trace auditing is not optional; it is the only ground truth.</p>
+      </div>
+
+      <ul>
+        <li><strong>For agentic workflows:</strong> If your system relies on models following multi-step procedures (tool sequences, checklists, approval gates), compliance tier is a meaningful selection criterion alongside capability.</li>
+        <li><strong>For monitoring:</strong> FM-1 (declared-but-not-read) is invisible in model output. Any system that audits compliance from output text alone will miss the highest-severity failure mode. Tool-trace inspection is required.</li>
+        <li><strong>For prompt engineering:</strong> Stochastic instability (FM-5) means a prompt that works in testing may fail in production. Design for verification, not for single-sample success.</li>
+        <li><strong>For model selection:</strong> Provider families differ in iteration strategy, not compliance quality. Evaluate total cost (tokens &times; turns) for your specific workload rather than assuming any single provider dominates. See the <strong>Provider Families</strong> sub-tab above for the full breakdown.</li>
+      </ul>
+
+      <h3>2. Scope &amp; Limitations</h3>
+      <p>This evaluation measures one dimension: procedural instruction-following with verifiable checkpoints. It does <strong>not</strong> measure:</p>
+      <ul>
+        <li>General coding ability or problem-solving quality</li>
+        <li>Reasoning depth or accuracy on novel problems</li>
+        <li>Whether rule content is correctly <em>applied</em> in responses (only whether it was read and cited)</li>
+        <li>Performance on non-procedural tasks (creative writing, open-ended analysis)</li>
+      </ul>
+      <p>A model with low compliance in this benchmark may still be excellent for tasks that don&rsquo;t require structured multi-step protocols. Conversely, high compliance here does not guarantee superiority on other dimensions.</p>
+    </div><!-- end sub-panel guidance -->
+
+    <!-- ---------- SUB-PANEL: PROVIDER FAMILIES ---------- -->
+    <div class="sub-panel" id="selection-families" x-show="selectionTab==='families'" x-cloak>
+      <h3>Model Sovereignty Analysis</h3>
+
+      <p>Provider-family comparison reveals that model choice is a <strong>consequential, workload-specific decision</strong> &mdash; not a quality gap. Different families achieve statistically comparable compliance through fundamentally different architectural strategies.</p>
+
+      <div class="callout callout-info">
+        <div class="callout-title">Key Finding</div>
+        <p>OpenAI models converge in ~1 turn (batched tool calls); Anthropic models average ~3 turns for statistically indistinguishable pass rates. This is a real architectural difference in iteration strategy, not a quality gap &mdash; the strongest available evidence that model choice is a consequential, workload-specific decision.</p>
+      </div>
+
+      {# Three pre-rendered variants, switched by the global plugin filter. #}
+      <div x-show="$store.filter.mode === 'all'">{{ family_block(family_comparisons['all'], sovereignty_insights['all']) }}</div>
+      <div x-show="$store.filter.mode === 'plugin'" x-cloak>{{ family_block(family_comparisons['plugin'], sovereignty_insights['plugin']) }}</div>
+      <div x-show="$store.filter.mode === 'without-plugin'" x-cloak>{{ family_block(family_comparisons['without-plugin'], sovereignty_insights['without-plugin']) }}</div>
+    </div><!-- end sub-panel families -->
+
+    <!-- ---------- SUB-PANEL: AI ANALYSIS ---------- -->
+    {# render_insights consumes effort_data keys: quality_threshold, pass_rates, and
+       below_threshold_by_mode. An editor changing _build_effort_data must check this
+       template as well as _tab_model_effort.j2. #}
+    <div class="sub-panel" id="selection-ai-analysis" x-show="selectionTab==='ai-analysis'" x-cloak>
+      <h3>AI-Generated Efficiency Insights</h3>
+
+      {% if effort_data.insights_available %}
+      <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:0.75rem;">Analysis generated by <code>claude-sonnet-4-5</code> via Snowflake Cortex AI_COMPLETE. <strong>Efficiency is accuracy-adjusted:</strong> avg_tokens &divide; pass_rate. This penalizes models whose apparent token savings reflect skipped protocol steps rather than genuine efficiency; a model at 50% compliance that uses half the tokens is not &ldquo;efficient&rdquo;; it is non-compliant. Only models above the {{ effort_data.quality_threshold }}% quality threshold are ranked.</p>
+
+      {# All models #}
+      <div x-show="$store.filter.mode === 'all'">
+        {% if effort_data.insights_all %}
+        {{ render_insights(effort_data.insights_all, "all models", effort_data.below_threshold_by_mode['all']) }}
+        {% else %}
+        <p style="color:var(--text-muted); font-style:italic;">Insights generation failed for this filter.</p>
+        {% endif %}
+      </div>
+
+      {# Plugin only #}
+      <div x-show="$store.filter.mode === 'plugin'" x-cloak>
+        {% if effort_data.insights_plugin %}
+        {{ render_insights(effort_data.insights_plugin, "with plugin", effort_data.below_threshold_by_mode['plugin']) }}
+        {% else %}
+        <p style="color:var(--text-muted); font-style:italic;">Not enough models in the &ldquo;With Plugin&rdquo; filter to generate separate insights (need &ge;2).</p>
+        {% endif %}
+      </div>
+
+      {# Without plugin #}
+      <div x-show="$store.filter.mode === 'without-plugin'" x-cloak>
+        {% if effort_data.insights_noplugin %}
+        {{ render_insights(effort_data.insights_noplugin, "without plugin", effort_data.below_threshold_by_mode['without-plugin']) }}
+        {% else %}
+        <p style="color:var(--text-muted); font-style:italic;">Not enough models in the &ldquo;Without Plugin&rdquo; filter to generate separate insights (need &ge;2).</p>
+        {% endif %}
+      </div>
+
+      {% else %}
+      <div class="callout" style="margin-top:1.75rem; border-left:4px solid var(--sf-amber); background:rgba(245,158,11,0.06);">
+        <strong>AI insights not available.</strong>
+        <p>Pass <code>--connection &lt;name&gt;</code> to <code>ai-rules rule-loader report</code> to enable AI-generated efficiency analysis via Snowflake Cortex. The connection is used only for this insights call and does not affect the report data itself.</p>
+        <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.5rem;">Example: <code>ai-rules rule-loader report --connection default</code></p>
+      </div>
+      {% endif %}
+    </div><!-- end sub-panel ai-analysis -->
+  </section>

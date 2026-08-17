@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive guidance on zsh's advanced features including modules, parameter expansion, globbing, performance optimization, caching, and advanced scripting patterns."
+last_updated: 2026-07-15
+keywords:
+  - kw:zsh modules
+  - kw:async prompt operations
+  - kw:completion caching
+  - kw:zprof startup profiling
+  - kw:glob qualifiers
+  - kw:parameter expansion back-references
+token_budget: ~3800
+context_tier: Low
+depends:
+  required:
+    - 310-zsh-scripting-core.md  # Foundation zsh scripting patterns
+  optional:
+    - 310b-zsh-compatibility.md  # Cross-shell compatibility strategies
+    - 310d-zsh-completion-prompt.md  # Completion system, hooks, and prompt engineering
+---
 # Zsh Advanced Features and Optimization
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Zsh, modules, advanced features, performance optimization, parameter expansion, globbing, autoload, scripting, caching, memoization
-**TokenBudget:** ~3800
-**ContextTier:** Low
-**Depends:** 310-zsh-scripting-core.md
-**LoadTrigger:** ext:.zsh, kw:zsh-advanced
 
 ## Scope
 
@@ -24,15 +34,6 @@ Comprehensive guidance on zsh's advanced features including modules, parameter e
 - Writing advanced scripting patterns (state machines, plugins)
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **310-zsh-scripting-core.md** - Foundation zsh scripting patterns
-
-**Related:**
-- **310b-zsh-compatibility.md** - Cross-shell compatibility strategies
-- **310d-zsh-completion-prompt.md** - Completion system, hooks, and prompt engineering
 
 ### External Documentation
 
@@ -254,7 +255,7 @@ if ! zmodload zsh/mathfunc 2>/dev/null; then
     print -u2 "zsh/mathfunc unavailable; math functions disabled"
 fi
 
-# Hook failure recovery — isolate errors so one bad hook
+# Hook failure recovery - isolate errors so one bad hook
 # does not break the prompt or shell
 _safe_hook_wrapper() {
     local hook_fn="$1"

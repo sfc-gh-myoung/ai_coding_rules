@@ -21,7 +21,7 @@ def create_sample_rule(
     include_depends: bool = False,
     token_budget: int = 500,
     keywords: str = "test, sample",
-    depends: str = "000-global-core.md",
+    depends: str = "999-test-core.md",
 ) -> Path:
     """Create a sample rule file for testing.
 
@@ -158,32 +158,6 @@ def run_script_with_args(
     )
 
     return result.returncode, result.stdout, result.stderr
-
-
-def create_mock_agents_template(tmp_path: Path, template_var: str = "{rule_path}") -> Path:
-    """Create a mock AGENTS.md template file.
-
-    Args:
-        tmp_path: pytest tmp_path fixture
-        template_var: Template variable to use (default: {rule_path})
-
-    Returns:
-        Path to created AGENTS.md template
-    """
-    content = f"""# AGENTS.md Template
-
-## How to Load Rules
-
-Rules are located at: {template_var}
-
-## For LLMs and Agents
-
-Load rules from {template_var} directory.
-"""
-
-    agents_file = tmp_path / "AGENTS.md"
-    agents_file.write_text(content)
-    return agents_file
 
 
 def count_test_markers(test_file: Path) -> dict[str, int]:

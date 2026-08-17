@@ -1,15 +1,20 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Advanced deployment patterns for Snowflake applications including multi-environment deployment (dev/qa/prod), deployment with validation gates, and rollback/recovery procedures."
+last_updated: 2026-07-15
+keywords:
+  - kw:multi-environment promotion
+  - kw:deployment validation gates
+  - kw:rollback recovery procedures
+  - kw:stage backup snapshot
+  - kw:deployment audit trail
+  - kw:environment-aware automation
+token_budget: ~2700
+context_tier: Low
+depends: {}
+---
 # Snowflake App Deployment Advanced Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.2
-**LastUpdated:** 2026-05-11
-**LoadTrigger:** kw:multi-env-deploy, kw:deployment-rollback
-**Keywords:** multi-environment deployment, deployment rollback, deployment recovery, deployment validation, environment-specific deployment, dev qa prod deployment, rollback strategy
-**TokenBudget:** ~2700
-**ContextTier:** Low
-**Depends:** 109b-snowflake-app-deployment-core.md, 109h-snowflake-app-deployment-taskfile.md
 
 ## Scope
 
@@ -24,11 +29,9 @@ Advanced deployment patterns for Snowflake applications including multi-environm
 
 ## References
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **109b-snowflake-app-deployment-core.md** - Parent rule with core deployment patterns
-- **109h-snowflake-app-deployment-taskfile.md** - Taskfile implementation patterns (Makefile alternative: see 821)
-- **109c-snowflake-app-deployment-troubleshooting.md** - Deployment debugging
+### External Documentation
+
+_None._
 
 ## Contract
 
@@ -221,7 +224,7 @@ Add an automation target that sends a notification on deployment completion or f
       - |
         curl -s -X POST "{{.WEBHOOK_URL}}" \
           -H "Content-Type: application/json" \
-          -d '{"text": "Deployed {{.APP_NAME}} to {{.ENV}} — status: {{.STATUS}}"}'
+          -d '{"text": "Deployed {{.APP_NAME}} to {{.ENV}} - status: {{.STATUS}}"}'
 ```
 
 ## Anti-Patterns and Common Mistakes
@@ -233,7 +236,7 @@ Add an automation target that sends a notification on deployment completion or f
 **Correct Pattern:** Always promote through environments in order: dev -> qa -> prod. Each environment deployment should pass validation gates (stage contents verified, object created successfully, basic smoke test) before promoting to the next. Never skip environments regardless of change size.
 
 ```bash
-# Wrong: Deploying directly to prod — skipping dev/qa validation
+# Wrong: Deploying directly to prod - skipping dev/qa validation
 task deploy:app ENV=prod  # "It's a small change, it'll be fine"
 # Result: Missing dependency surfaces only in prod, app is broken
 
@@ -278,12 +281,12 @@ CREATE NOTEBOOK DB.SCHEMA.MY_NOTEBOOK
 **Correct Pattern:** Validation gates should verify both object existence and object health. Check that `LIST @STAGE` returns the expected number of files, verify file extensions are correct (`.py` not `.py.gz`), confirm `live_version_location_uri` is populated via `DESCRIBE STREAMLIT` (for FROM-based apps), and if possible, perform a basic health check by accessing the app endpoint.
 
 ```bash
-# Wrong: Only checking if object exists — passes even with broken deployments
+# Wrong: Only checking if object exists - passes even with broken deployments
 validate:object:
   cmds:
     - uvx snow sql -q "SHOW NOTEBOOKS IN SCHEMA {{.DB}}.{{.SCHEMA}};" | grep -q "APP"
     - echo "[PASS] Object exists"
-# Result: Object exists but live_version_location_uri is not verified — app may fail at runtime
+# Result: Object exists but live_version_location_uri is not verified - app may fail at runtime
 
 # Correct: Validate existence, file health, and path alignment
 validate:object:

@@ -1,19 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Model-specific context windows, loading budget formulas, and optimization strategies for OpenAI, Anthropic, and Google models. Includes pricing and output limits where relevant."
+last_updated: 2026-07-15
+keywords:
+  - kw:context window sizing
+  - kw:loading budget calculation
+  - kw:GPT-4o GPT-5.1
+  - kw:Claude Sonnet Opus
+  - kw:Gemini Pro
+  - kw:prompt caching strategy
+token_budget: ~2550
+context_tier: Low
+depends:
+  required:
+    - 002c-rule-optimization.md  # Token budget tiers, progressive loading, and sizing guidelines
+---
 # Model-Specific Rule Optimization
 
 > **REFERENCE RULE: LOAD WHEN NEEDED**
 >
 > Model-specific context windows, loading budgets, and optimization strategies.
 > Load when sizing rules for specific AI models or planning loading budgets.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** model optimization, context window, loading budget, GPT, Claude, Gemini, token limits, cost efficiency, prompt caching
-**TokenBudget:** ~2550
-**ContextTier:** Low
-**Depends:** 002c-rule-optimization.md
 
 ## Scope
 
@@ -28,10 +36,9 @@ Model-specific context windows, loading budget formulas, and optimization strate
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **002c-rule-optimization.md** - Token budget tiers, progressive loading, and sizing guidelines
+_None._
 
 ## Contract
 

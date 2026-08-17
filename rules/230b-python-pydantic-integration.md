@@ -1,15 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Pydantic v2 serialization, JSON schema generation, FastAPI integration, database ORM patterns, performance optimization, and model testing."
+last_updated: 2026-07-15
+keywords:
+  - kw:model_dump serialization
+  - kw:TypeAdapter batch validation
+  - kw:FastAPI response_model
+  - kw:ORM from_attributes
+  - kw:SecretStr field exclusion
+  - kw:model_json_schema generation
+  - kw:fastapi
+token_budget: ~3450
+context_tier: Medium
+depends:
+  required:
+    - 230-python-pydantic.md  # Core Pydantic model patterns
+  optional:
+    - 210-python-fastapi-core.md  # FastAPI endpoint patterns
+    - 206-python-pytest.md  # Pytest patterns
+    - 230a-python-pydantic-settings.md  # Settings management
+---
 # Python Pydantic Integration and Performance
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:serialization, kw:model-dump, kw:type-adapter
-**Keywords:** Pydantic, serialization, JSON schema, FastAPI integration, database ORM, TypeAdapter, performance, testing, model_dump, SecretStr
-**TokenBudget:** ~3450
-**ContextTier:** Medium
-**Depends:** 230-python-pydantic.md
 
 ## Scope
 
@@ -25,15 +37,9 @@ Pydantic v2 serialization, JSON schema generation, FastAPI integration, database
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **230-python-pydantic.md** - Core Pydantic model patterns
-
-**Related:**
-- **210-python-fastapi-core.md** - FastAPI endpoint patterns
-- **206-python-pytest.md** - Pytest patterns
-- **230a-python-pydantic-settings.md** - Settings management
+_None._
 
 ## Contract
 
@@ -82,9 +88,9 @@ Pydantic models with serialization, API integration, ORM support, and test cover
 
 Before modifying serialization, integration, or performance patterns, agents MUST check:
 
-- [ ] **Existing serialization helpers**: Search for `model_dump`, `to_dict`, `to_json` in the project — avoid creating duplicate serialization methods
+- [ ] **Existing serialization helpers**: Search for `model_dump`, `to_dict`, `to_json` in the project: avoid creating duplicate serialization methods
 - [ ] **ORM conversion patterns**: Search for `from_attributes` and `model_validate` to understand existing ORM-to-Pydantic conversion flow
-- [ ] **Pydantic version**: Check `pyproject.toml` — if Pydantic v1, methods like `.dict()` and `.from_orm()` need migration to v2 equivalents
+- [ ] **Pydantic version**: Check `pyproject.toml`: if Pydantic v1, methods like `.dict()` and `.from_orm()` need migration to v2 equivalents
 - [ ] **Batch processing code**: Search for `ValidationError` catch blocks to identify existing error handling patterns (especially silent `continue` anti-patterns)
 - [ ] **API response models**: Check FastAPI routes for existing `response_model` usage and request/response model separation
 
@@ -120,9 +126,12 @@ def process_large_dataset(data_stream):
         except ValidationError:
             continue  # No logging, no counting, data silently lost
 
+
 # Correct: Track and report errors
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 def process_large_dataset(data_stream):
     errors = []
@@ -148,7 +157,7 @@ def process_large_dataset(data_stream):
 user_dict = user.dict()
 user = User.from_orm(orm_obj)
 schema = User.schema()
-model_config = {"strict": True}   # Plain dict
+model_config = {"strict": True}  # Plain dict
 
 # Correct: Pydantic v2 API
 user_dict = user.model_dump()
@@ -165,6 +174,7 @@ model_config = ConfigDict(strict=True)
 from pydantic import BaseModel, ConfigDict, Field, SecretStr
 from typing import Optional
 from datetime import datetime, UTC
+
 
 class UserProfile(BaseModel):
     """User profile with serialization control."""
@@ -196,6 +206,7 @@ Use `@field_serializer` for per-field control over serialization output:
 from datetime import datetime, UTC
 from pydantic import BaseModel, Field, field_serializer, ConfigDict
 
+
 class AuditEvent(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -213,6 +224,7 @@ class AuditEvent(BaseModel):
         """Remove internal keys starting with underscore."""
         return {k: v for k, v in value.items() if not k.startswith("_")}
 
+
 # event.model_dump() →
 # {"event_type": "login", "created_at": "2026-03-09T14:30:00Z",
 #  "metadata": {"ip": "10.0.0.1"}}  # _internal_id stripped
@@ -220,19 +232,20 @@ class AuditEvent(BaseModel):
 
 ### Direct JSON Serialization
 
-For JSON output, prefer `model_dump_json()` over `json.dumps(model_dump())` — it skips the intermediate dict and is faster:
+For JSON output, prefer `model_dump_json()` over `json.dumps(model_dump())`: it skips the intermediate dict and is faster:
 
 ```python
 response = ApiResponse(status="ok", data={"user_id": 42})
 
-# GOOD: Direct JSON string — faster, handles datetime automatically
+# GOOD: Direct JSON string - faster, handles datetime automatically
 json_str = response.model_dump_json(indent=2)
 
 # GOOD: Selective JSON serialization
 json_str = response.model_dump_json(exclude={"timestamp"})
 
-# BAD: Intermediate dict step — slower, may need custom encoder for datetime
+# BAD: Intermediate dict step - slower, may need custom encoder for datetime
 import json
+
 json_str = json.dumps(response.model_dump(), default=str)  # Avoid this
 ```
 
@@ -241,14 +254,15 @@ json_str = json.dumps(response.model_dump(), default=str)  # Avoid this
 Use `model_validate_json()` to parse JSON strings directly:
 
 ```python
-# GOOD: Direct from JSON string — faster, single-pass parsing
+# GOOD: Direct from JSON string - faster, single-pass parsing
 user = User.model_validate_json('{"username": "jane", "email": "jane@example.com"}')
 
 # GOOD: From bytes (e.g., HTTP request body)
 user = User.model_validate_json(request.body)
 
-# BAD: Intermediate dict step — slower
+# BAD: Intermediate dict step - slower
 import json
+
 user = User.model_validate(json.loads(json_string))  # Avoid this
 ```
 
@@ -257,6 +271,7 @@ user = User.model_validate(json.loads(json_string))  # Avoid this
 ```python
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
+
 
 class APIResponse(BaseModel):
     model_config = ConfigDict(
@@ -268,6 +283,7 @@ class APIResponse(BaseModel):
     success: bool = Field(..., description="Whether request was successful")
     message: str = Field(..., description="Human-readable message")
     data: Optional[dict] = Field(None, description="Response data")
+
 
 schema = APIResponse.model_json_schema()
 ```
@@ -281,10 +297,12 @@ from fastapi import FastAPI, Depends
 from pydantic import BaseModel, Field, EmailStr
 from typing import Optional
 
+
 class UserCreateRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
     full_name: Optional[str] = None
+
 
 class UserResponse(BaseModel):
     id: int
@@ -293,11 +311,14 @@ class UserResponse(BaseModel):
     full_name: Optional[str]
     is_active: bool
 
+
 app = FastAPI()
+
 
 def get_settings() -> AppSettings:
     """Dependency for accessing application settings."""
     return settings
+
 
 @app.post("/users/", response_model=UserResponse)
 async def create_user(
@@ -306,8 +327,11 @@ async def create_user(
 ):
     """Create a new user with validation."""
     return UserResponse(
-        id=1, username=user_data.username,
-        email=user_data.email, full_name=user_data.full_name, is_active=True,
+        id=1,
+        username=user_data.username,
+        email=user_data.email,
+        full_name=user_data.full_name,
+        is_active=True,
     )
 ```
 
@@ -318,6 +342,7 @@ async def create_user(
 ```python
 from pydantic import BaseModel, ConfigDict
 
+
 class UserSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -325,6 +350,7 @@ class UserSchema(BaseModel):
     username: str
     email: str
     is_active: bool
+
 
 def get_user_by_id(user_id: int) -> UserSchema:
     user_orm = session.query(UserORM).filter(UserORM.id == user_id).first()
@@ -339,13 +365,16 @@ def get_user_by_id(user_id: int) -> UserSchema:
 from pydantic import BaseModel, ConfigDict, TypeAdapter
 from typing import List
 
+
 class StrictUser(BaseModel):
     model_config = ConfigDict(strict=True)
     id: int
     username: str
     email: str
 
+
 UserList = TypeAdapter(List[StrictUser])
+
 
 def validate_users_batch(users_data: list[dict]) -> list[StrictUser]:
     return UserList.validate_python(users_data)
@@ -355,6 +384,7 @@ def validate_users_batch(users_data: list[dict]) -> list[StrictUser]:
 
 ```python
 from pydantic import BaseModel, ConfigDict
+
 
 class EfficientModel(BaseModel):
     model_config = ConfigDict(slots=True)
@@ -371,6 +401,7 @@ class EfficientModel(BaseModel):
 ```python
 import pytest
 from pydantic import ValidationError
+
 
 class TestUserModel:
     @pytest.fixture
@@ -399,6 +430,7 @@ Use `@computed_field` to include derived values in `model_dump()` and JSON schem
 ```python
 from pydantic import BaseModel, Field, computed_field
 
+
 class Invoice(BaseModel):
     items: list[dict] = Field(description="Line items with 'amount' key")
     tax_rate: float = Field(default=0.08, ge=0, le=1)
@@ -406,20 +438,21 @@ class Invoice(BaseModel):
     @computed_field
     @property
     def subtotal(self) -> float:
-        """Sum of all item amounts — included in serialization."""
+        """Sum of all item amounts - included in serialization."""
         return sum(item.get("amount", 0) for item in self.items)
 
     @computed_field
     @property
     def tax(self) -> float:
-        """Tax amount — included in serialization."""
+        """Tax amount - included in serialization."""
         return round(self.subtotal * self.tax_rate, 2)
 
     @computed_field
     @property
     def total(self) -> float:
-        """Grand total — included in serialization."""
+        """Grand total - included in serialization."""
         return round(self.subtotal + self.tax, 2)
+
 
 invoice = Invoice(items=[{"desc": "Widget", "amount": 100}, {"desc": "Gadget", "amount": 50}])
 invoice.model_dump()
@@ -435,20 +468,16 @@ Use `model_json_schema()` to generate OpenAPI-compatible schemas:
 ```python
 from pydantic import BaseModel, Field
 
+
 class CreateUserRequest(BaseModel):
     """Request body for creating a new user."""
-    username: str = Field(
-        min_length=3, max_length=50,
-        json_schema_extra={"examples": ["jane_doe"]}
-    )
+
+    username: str = Field(min_length=3, max_length=50, json_schema_extra={"examples": ["jane_doe"]})
     email: str = Field(
-        pattern=r"^[\w.+-]+@[\w-]+\.[\w.]+$",
-        json_schema_extra={"examples": ["jane@example.com"]}
+        pattern=r"^[\w.+-]+@[\w-]+\.[\w.]+$", json_schema_extra={"examples": ["jane@example.com"]}
     )
-    role: str = Field(
-        default="viewer",
-        json_schema_extra={"enum": ["admin", "editor", "viewer"]}
-    )
+    role: str = Field(default="viewer", json_schema_extra={"enum": ["admin", "editor", "viewer"]})
+
 
 # Generate JSON Schema (for OpenAPI docs, Swagger UI, etc.)
 schema = CreateUserRequest.model_json_schema()
@@ -467,4 +496,4 @@ schema_serial = CreateUserRequest.model_json_schema(mode="serialization")
 schema_valid = CreateUserRequest.model_json_schema(mode="validation")
 ```
 
-FastAPI automatically uses `model_json_schema()` for Swagger UI docs — `json_schema_extra` values appear as examples in the interactive documentation.
+FastAPI automatically uses `model_json_schema()` for Swagger UI docs: `json_schema_extra` values appear as examples in the interactive documentation.

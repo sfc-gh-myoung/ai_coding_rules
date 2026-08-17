@@ -108,7 +108,7 @@ Using weighted formula from SKILL.md (Scoring Rubric v2.0):
 - HIGH: 1 errors
 - MEDIUM: 1 errors
 
-**Rationale:** Schema validation detected CRITICAL errors, capping this score at 2/5 per rubric. The missing "Depends" field prevents agents from loading prerequisite rules via dependency chain, breaking the rule loading protocol defined in AGENTS.md.
+**Rationale:** Schema validation detected CRITICAL errors, capping this score at 2/5 per rubric. The missing "Depends" field prevents agents from loading prerequisite rules via dependency chain, breaking the rule-loader protocol.
 
 **Critical Schema Violations:**
 1. [CRITICAL] Missing metadata field: Depends (line 10) - Required field per schemas/rule-schema.yml

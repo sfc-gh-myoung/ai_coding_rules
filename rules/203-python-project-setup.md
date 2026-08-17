@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Essential Python project setup and packaging guidance covering package structure, pyproject.toml configuration, dependency management, and build error prevention. Includes __init__.py requirements,"
+last_updated: 2026-07-15
+keywords:
+  - kw:pyproject.toml
+  - kw:hatchling build backend
+  - kw:uv dependency manager
+  - kw:__init__.py package recognition
+  - kw:flat layout src layout
+  - kw:editable install
+token_budget: ~4350
+context_tier: High
+depends:
+  required:
+    - 200-python-core.md  # Python foundation patterns
+  optional:
+    - 201-python-lint-format.md  # Code quality configuration in pyproject.toml
+    - 206-python-pytest.md  # Testing configuration
+    - 210-python-fastapi-core.md  # FastAPI application patterns
+---
 # Python Project Setup and Packaging
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Python packaging, project structure, setup.py, pyproject.toml, dependencies, package distribution, __init__.py, hatchling, uv, flat layout, src layout
-**TokenBudget:** ~4350
-**ContextTier:** High
-**Depends:** 200-python-core.md
-**LoadTrigger:** kw:setup, kw:bootstrap, file:pyproject.toml
 
 ## Scope
 
@@ -26,18 +37,6 @@ Essential Python project setup and packaging guidance covering package structure
 - Converting legacy setup.py to pyproject.toml
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **200-python-core.md** - Python foundation patterns
-
-**Related:**
-- **201-python-lint-format.md** - Code quality configuration in pyproject.toml
-- **204-python-docs.md** - Documentation standards
-- **206-python-pytest.md** - Testing configuration
-- **210-python-fastapi-core.md** - FastAPI application patterns
-- **220-python-typer-cli.md** - CLI application patterns
 
 ### External Documentation
 
@@ -295,7 +294,7 @@ Directory structure for `cli-project/`:
   - **utils/** - `__init__.py`, `helpers.py` (Utility functions)
 - **tests/** - `__init__.py`
 
-### Example Command-Line App Structure (src/ Layout — Large Projects)
+### Example Command-Line App Structure (src/ Layout: Large Projects)
 
 Directory structure for `cli-project/`:
 - `pyproject.toml`
@@ -401,7 +400,7 @@ check_untyped_defs = true
 myapp = "myapp.main:main"
 myapp-dev = "myapp.cli.dev:dev_main"
 
-# src/ layout (large projects) — same import paths, different packages config
+# src/ layout (large projects) - same import paths, different packages config
 # [project.scripts] section is identical; the difference is in
 # [tool.hatch.build.targets.wheel] packages = ["src/myapp"]
 ```

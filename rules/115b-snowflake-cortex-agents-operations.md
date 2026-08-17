@@ -1,16 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Operational patterns for Cortex Agents: investigation protocol, output format examples, agent plan/configuration templates, and anti-patterns for RBAC, testing, and cost management."
+last_updated: 2026-07-15
+keywords:
+  - kw:agent RBAC
+  - kw:component testing agents
+  - kw:agent cost budgets
+  - kw:agent plan template
+  - kw:agent investigation protocol
+  - kw:agent flagging instructions
+token_budget: ~2800
+context_tier: High
+depends:
+  required:
+    - 115-snowflake-cortex-agents-core.md  # Core agent creation and tool configuration
+  optional:
+    - 106c-snowflake-semantic-views-integration.md  # Semantic view design and Analyst tool configuration
+---
 # Snowflake Cortex Agents: Operations & Security
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:agent-operations
-**Keywords:** agent operations, agent security, agent monitoring, agent evaluation, agent costs, debug agent, agent troubleshooting, agent security policies
-**TokenBudget:** ~2800
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md, 111-snowflake-observability-core.md
-**Companions:** 115c-snowflake-cortex-agents-testing.md, 115d-snowflake-cortex-agents-observability.md
 
 ## Scope
 
@@ -42,20 +50,6 @@ Operational patterns for Cortex Agents: investigation protocol, output format ex
 > "I see you have semantic views for sales data and Cortex Search for docs. Creating agent with these grounding sources..."
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **115-snowflake-cortex-agents-core.md** - Core agent creation and tool configuration
-- **111-snowflake-observability-core.md** - Observability patterns
-
-**Related:**
-- **106c-snowflake-semantic-views-integration.md** - Semantic view design and Analyst tool configuration
-- **116-snowflake-cortex-search.md** - Search service setup and tool integration
-- **106-snowflake-semantic-views-core.md** - Semantic views foundation
-- **105-snowflake-cost-governance.md** - Cost monitoring and governance
-- **119-snowflake-warehouse-management.md** - Warehouse sizing
 
 ### External Documentation
 
@@ -165,13 +159,13 @@ SELECT CORTEX_AGENT('my_agent', 'What is the total revenue?');
 ## Testing, RBAC, Observability, Cost Management, and Troubleshooting
 
 > **See companion rules for detailed operational patterns:**
-> - **115c-snowflake-cortex-agents-testing.md** — Component testing, integration testing, business scenario testing, validation checklists, RBAC grants, verification queries, and least-privilege patterns
-> - **115d-snowflake-cortex-agents-observability.md** — AI Observability, agent health checks, evaluation frameworks, cost/latency management, dedicated warehouses, cost monitoring queries, and common error solutions (semantic view not found, empty response, wrong tool selection, permission denied, search service errors, flagging logic issues)
+> - **115c-snowflake-cortex-agents-testing.md**: Component testing, integration testing, business scenario testing, validation checklists, RBAC grants, verification queries, and least-privilege patterns
+> - **115d-snowflake-cortex-agents-observability.md**: AI Observability, agent health checks, evaluation frameworks, cost/latency management, dedicated warehouses, cost monitoring queries, and common error solutions (semantic view not found, empty response, wrong tool selection, permission denied, search service errors, flagging logic issues)
 
 ## Cortex Agent Plan
 - Archetype: <Multi-Domain Analytics / Single-Domain / Research / Hybrid>
 - Objective: <clear objective>
-- Model: <smallest sufficient model — see 114-snowflake-cortex-aisql.md model ladder>
+- Model: <smallest sufficient model: see 114-snowflake-cortex-aisql.md model ladder>
 - Grounding: <semantic views / indices>
 - Tools (allowlist):
   - Cortex Analyst: [analyst_tool_1, analyst_tool_2]
@@ -242,6 +236,7 @@ def test_agent():
     response = agent.query("What are top holdings?")
     assert "AAPL" in response  # Fails - but why?
 
+
 # GOOD: Component testing first, then integration
 def test_cortex_analyst_tool_directly():
     # Test semantic view + Cortex Analyst in isolation
@@ -253,6 +248,7 @@ def test_cortex_analyst_tool_directly():
     """).collect()
     assert "AAPL" in result[0][0]  # Validates tool works
 
+
 def test_cortex_search_tool_directly():
     # Test search service in isolation
     result = session.sql("""
@@ -262,6 +258,7 @@ def test_cortex_search_tool_directly():
         )
     """).collect()
     assert len(result) > 0  # Validates search works
+
 
 def test_agent_integration():
     # Now test full agent with known-good tools

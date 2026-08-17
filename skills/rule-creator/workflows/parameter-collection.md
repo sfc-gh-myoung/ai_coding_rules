@@ -47,23 +47,14 @@ tech_question = {
     "question": "What technology should the rule document?",
     "multiSelect": False,
     "options": [
-        {
-            "label": "Python library",
-            "description": "e.g., pytest-mock, pandas, FastAPI"
-        },
+        {"label": "Python library", "description": "e.g., pytest-mock, pandas, FastAPI"},
         {
             "label": "Snowflake feature",
-            "description": "e.g., Hybrid Tables, Dynamic Tables, Cortex"
+            "description": "e.g., Hybrid Tables, Dynamic Tables, Cortex",
         },
-        {
-            "label": "JavaScript/TypeScript",
-            "description": "e.g., React, Next.js, DaisyUI"
-        },
-        {
-            "label": "DevOps/Infra",
-            "description": "e.g., Docker, Terraform, GitHub Actions"
-        }
-    ]
+        {"label": "JavaScript/TypeScript", "description": "e.g., React, Next.js, DaisyUI"},
+        {"label": "DevOps/Infra", "description": "e.g., Docker, Terraform, GitHub Actions"},
+    ],
 }
 # Note: User can select "Something else" to specify custom technology
 ```
@@ -76,23 +67,11 @@ aspect_question = {
     "question": "Which aspect of the technology should the rule cover?",
     "multiSelect": False,
     "options": [
-        {
-            "label": "core",
-            "description": "General best practices and patterns (default)"
-        },
-        {
-            "label": "security",
-            "description": "Security considerations and vulnerabilities"
-        },
-        {
-            "label": "testing",
-            "description": "Testing strategies and patterns"
-        },
-        {
-            "label": "performance",
-            "description": "Performance optimization techniques"
-        }
-    ]
+        {"label": "core", "description": "General best practices and patterns (default)"},
+        {"label": "security", "description": "Security considerations and vulnerabilities"},
+        {"label": "testing", "description": "Testing strategies and patterns"},
+        {"label": "performance", "description": "Performance optimization techniques"},
+    ],
 }
 ```
 
@@ -107,9 +86,15 @@ optional_questions = [
         "question": "How should research be conducted?",
         "multiSelect": False,
         "options": [
-            {"label": "online", "description": "Use web search for current best practices (default)"},
-            {"label": "offline", "description": "Use only local knowledge (faster, may be outdated)"}
-        ]
+            {
+                "label": "online",
+                "description": "Use web search for current best practices (default)",
+            },
+            {
+                "label": "offline",
+                "description": "Use only local knowledge (faster, may be outdated)",
+            },
+        ],
     },
     {
         "header": "Context Tier",
@@ -119,8 +104,8 @@ optional_questions = [
             {"label": "Auto", "description": "Determine automatically based on domain (default)"},
             {"label": "Critical", "description": "Always load - foundational patterns"},
             {"label": "High", "description": "Load for related tasks"},
-            {"label": "Medium", "description": "Load when explicitly relevant"}
-        ]
+            {"label": "Medium", "description": "Load when explicitly relevant"},
+        ],
     },
     {
         "header": "Timing",
@@ -128,9 +113,9 @@ optional_questions = [
         "multiSelect": False,
         "options": [
             {"label": "No", "description": "Skip timing metadata (default)"},
-            {"label": "Yes", "description": "Record and embed execution duration"}
-        ]
-    }
+            {"label": "Yes", "description": "Record and embed execution duration"},
+        ],
+    },
 ]
 ```
 
@@ -141,69 +126,98 @@ optional_questions = [
 ```python
 def collect_parameters_interactively(missing_params: list) -> dict:
     """Use ask_user_question to collect missing parameters.
-    
+
     Args:
         missing_params: List of parameter names that need to be collected
-        
+
     Returns:
         dict of collected parameter values
     """
-    
+
     collected = {}
     questions = []
-    
+
     # Always ask technology name first (required)
-    if 'technology_name' in missing_params:
-        questions.append({
-            "header": "Technology",
-            "question": "What technology should the rule document?",
+    if "technology_name" in missing_params:
+        questions.append(
+            {
+                "header": "Technology",
+                "question": "What technology should the rule document?",
+                "multiSelect": False,
+                "options": [
+                    {
+                        "label": "Python library",
+                        "description": "e.g., pytest-mock, pandas, FastAPI",
+                    },
+                    {
+                        "label": "Snowflake feature",
+                        "description": "e.g., Hybrid Tables, Dynamic Tables, Cortex",
+                    },
+                    {
+                        "label": "JavaScript/TypeScript",
+                        "description": "e.g., React, Next.js, DaisyUI",
+                    },
+                    {
+                        "label": "DevOps/Infra",
+                        "description": "e.g., Docker, Terraform, GitHub Actions",
+                    },
+                ],
+            }
+        )
+
+    # Ask aspect
+    questions.append(
+        {
+            "header": "Aspect",
+            "question": "Which aspect of the technology should the rule cover?",
             "multiSelect": False,
             "options": [
-                {"label": "Python library", "description": "e.g., pytest-mock, pandas, FastAPI"},
-                {"label": "Snowflake feature", "description": "e.g., Hybrid Tables, Dynamic Tables, Cortex"},
-                {"label": "JavaScript/TypeScript", "description": "e.g., React, Next.js, DaisyUI"},
-                {"label": "DevOps/Infra", "description": "e.g., Docker, Terraform, GitHub Actions"}
-            ]
-        })
-    
-    # Ask aspect
-    questions.append({
-        "header": "Aspect",
-        "question": "Which aspect of the technology should the rule cover?",
-        "multiSelect": False,
-        "options": [
-            {"label": "core", "description": "General best practices and patterns (default)"},
-            {"label": "security", "description": "Security considerations and vulnerabilities"},
-            {"label": "testing", "description": "Testing strategies and patterns"},
-            {"label": "performance", "description": "Performance optimization techniques"}
-        ]
-    })
-    
+                {"label": "core", "description": "General best practices and patterns (default)"},
+                {"label": "security", "description": "Security considerations and vulnerabilities"},
+                {"label": "testing", "description": "Testing strategies and patterns"},
+                {"label": "performance", "description": "Performance optimization techniques"},
+            ],
+        }
+    )
+
     # ALWAYS ask ALL optional parameters - never silently default
-    questions.append({
-        "header": "Research",
-        "question": "How should research be conducted?",
-        "multiSelect": False,
-        "options": [
-            {"label": "online", "description": "Use web search for current best practices (default)"},
-            {"label": "offline", "description": "Use only local knowledge (faster, may be outdated)"}
-        ]
-    })
-    
-    questions.append({
-        "header": "Context Tier",
-        "question": "What priority tier for this rule?",
-        "multiSelect": False,
-        "options": [
-            {"label": "Auto", "description": "Determine automatically based on domain (default)"},
-            {"label": "Critical", "description": "Always load - foundational patterns"},
-            {"label": "High", "description": "Load for related tasks"},
-            {"label": "Medium", "description": "Load when explicitly relevant"}
-        ]
-    })
-    
+    questions.append(
+        {
+            "header": "Research",
+            "question": "How should research be conducted?",
+            "multiSelect": False,
+            "options": [
+                {
+                    "label": "online",
+                    "description": "Use web search for current best practices (default)",
+                },
+                {
+                    "label": "offline",
+                    "description": "Use only local knowledge (faster, may be outdated)",
+                },
+            ],
+        }
+    )
+
+    questions.append(
+        {
+            "header": "Context Tier",
+            "question": "What priority tier for this rule?",
+            "multiSelect": False,
+            "options": [
+                {
+                    "label": "Auto",
+                    "description": "Determine automatically based on domain (default)",
+                },
+                {"label": "Critical", "description": "Always load - foundational patterns"},
+                {"label": "High", "description": "Load for related tasks"},
+                {"label": "Medium", "description": "Load when explicitly relevant"},
+            ],
+        }
+    )
+
     # Call ask_user_question tool (Batch 1: Technology, Aspect, Research, Context Tier)
-    
+
     # Batch 2: Timing (if needed)
     batch2_questions = [
         {
@@ -212,11 +226,11 @@ def collect_parameters_interactively(missing_params: list) -> dict:
             "multiSelect": False,
             "options": [
                 {"label": "No", "description": "Skip timing metadata (default)"},
-                {"label": "Yes", "description": "Record and embed execution duration"}
-            ]
+                {"label": "Yes", "description": "Record and embed execution duration"},
+            ],
         }
     ]
-    
+
     return collected
 
 
@@ -227,9 +241,9 @@ def header_to_param(header: str) -> str:
         "Aspect": "aspect",
         "Research": "research_mode",
         "Context Tier": "context_tier",
-        "Timing": "timing_enabled"
+        "Timing": "timing_enabled",
     }
-    return mapping.get(header, header.lower().replace(' ', '_'))
+    return mapping.get(header, header.lower().replace(" ", "_"))
 ```
 
 ---
@@ -241,21 +255,21 @@ When `ask_user_question` is not available:
 ```python
 def collect_parameters_text(missing_params: list) -> dict:
     """Prompt user for missing parameters via text output.
-    
+
     This is used when ask_user_question tool is unavailable.
     """
-    
+
     print("Missing required parameters. Please provide:")
     print()
-    
-    if 'technology_name' in missing_params:
+
+    if "technology_name" in missing_params:
         print("**Technology Name:**")
         print("  The technology to document")
         print("  Examples: DaisyUI, pytest-mock, Snowflake Hybrid Tables")
         print()
         print("Please specify: technology_name=<NAME>")
         print()
-    
+
     print("**Aspect (optional):**")
     print("  - core: General best practices (default)")
     print("  - security: Security considerations")
@@ -264,13 +278,13 @@ def collect_parameters_text(missing_params: list) -> dict:
     print()
     print("Please specify: aspect=<ASPECT>")
     print()
-    
+
     print("**Other Optional Parameters:**")
     print("  - research_mode: online (default) | offline")
     print("  - context_tier: Auto (default) | Critical | High | Medium | Low")
     print("  - timing_enabled: true (default) | false")
     print()
-    
+
     return {}  # Empty - user must re-invoke with params
 ```
 

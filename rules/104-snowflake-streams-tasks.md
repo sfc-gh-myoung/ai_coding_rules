@@ -1,15 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Patterns for building robust, incremental data pipelines using Snowflake Streams and Tasks, covering change data capture, scheduling, idempotency, and monitoring for reliable data processing"
+last_updated: 2026-07-15
+keywords:
+  - kw:change data capture
+  - kw:stream consumption
+  - kw:task dag
+  - kw:merge patterns
+  - kw:task history monitoring
+  - kw:stream staleness
+  - kw:cdc
+token_budget: ~3100
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+    - 100-snowflake-core.md  # Snowflake SQL patterns and best practices
+---
 # Snowflake Streams and Tasks
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:stream, kw:task, kw:cdc
-**Keywords:** scheduled tasks, pipeline automation, MERGE patterns, SQL, Snowflake, task DAG, AFTER dependencies, Task History, create stream, create task, debug stream, task troubleshooting, stream consumption, task execution error, stream lag
-**TokenBudget:** ~3100
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md
 
 ## Scope
 
@@ -25,34 +34,10 @@ Patterns for building robust, incremental data pipelines using Snowflake Streams
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **100-snowflake-core.md** - Snowflake SQL patterns and best practices
-
 ### External Documentation
 - [Streams Management](https://docs.snowflake.com/en/user-guide/streams-manage) - Change data capture with streams for incremental processing
 - [Tasks Introduction](https://docs.snowflake.com/en/user-guide/tasks-intro) - Scheduled task execution and workflow automation
 - [Idempotent DDL](https://docs.snowflake.com/en/sql-reference/sql-ddl-idempotent) - CREATE OR REPLACE patterns for reliable automation
-
-### Related Rules
-
-**Closely Related** (consider loading together):
-- **122-snowflake-dynamic-tables.md** - Alternative declarative approach to CDC pipelines
-- **119-snowflake-warehouse-management.md** - Warehouse sizing and configuration for task execution
-
-**Sometimes Related** (load if specific scenario):
-- **103-snowflake-performance-tuning.md** - Optimizing task SQL statements
-- **124-snowflake-data-quality-core.md** - Triggering tasks based on data quality events
-- **111-snowflake-observability-core.md** - Monitoring task execution and stream consumption
-
-**Complementary** (different aspects of same domain):
-- **100-snowflake-core.md** - Naming conventions and DDL fundamentals
-- **102-snowflake-sql-core.md** - General SQL file patterns
-- **107-snowflake-security-governance.md** - RBAC on tasks and streams
-- **105-snowflake-cost-governance.md** - Monitoring task compute costs
-- **108-snowflake-data-loading.md** - Data loading patterns
 
 ## Contract
 
@@ -319,7 +304,7 @@ SELECT SYSTEM$STREAM_HAS_DATA('MY_DB.MY_SCHEMA.MY_STREAM');
 
 **Key strategies:**
 - **Monitor `STALE_AFTER`:** This column shows when the stream will become stale. Set alerts when `STALE_AFTER` is within 24 hours of the current time.
-- **Increase source table retention:** `ALTER TABLE source SET DATA_RETENTION_TIME_IN_DAYS = 14;` -- gives streams more time before staleness.
+- **Increase source table retention:** `ALTER TABLE source SET DATA_RETENTION_TIME_IN_DAYS = 14;`: gives streams more time before staleness.
 - **Schedule tasks frequently enough** that the stream is consumed well before the retention window expires.
 - **Alert on task failures:** A failed task that stops consuming a stream is the most common cause of staleness. Monitor `TASK_HISTORY()` for consecutive failures.
 

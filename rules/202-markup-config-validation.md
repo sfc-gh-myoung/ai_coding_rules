@@ -1,15 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Safe markup and configuration file practices to prevent parsing errors and maintain consistency across YAML, TOML, environment files, and Markdown documentation. Covers YAML syntax safety, quoting"
+last_updated: 2026-07-15
+keywords:
+  - kw:YAML syntax safety
+  - kw:configuration file linting
+  - kw:TOML validation
+  - kw:Taskfile.yml patterns
+  - kw:YAML anchors aliases
+  - kw:secrets in version control
+token_budget: ~3950
+context_tier: Medium
+depends:
+  optional:
+    - 202a-markdown-linting.md  # Markdown linting patterns and pymarkdownlnt configuration (Recommended)
+    - 203-python-project-setup.md  # pyproject.toml configuration
+    - 820-taskfile-automation.md
+---
 # Markup and Configuration File Validation
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-26
-**Keywords:** YAML, configuration files, YAML syntax, parsing errors, indentation, anchors, aliases, Markdown, markdown linting, pymarkdownlnt, markup validation, TOML, environment files
-**TokenBudget:** ~3950
-**ContextTier:** Medium
-**Depends:** None
-**LoadTrigger:** ext:.yml, ext:.yaml, ext:.toml, file:Taskfile.yml
 
 ## Scope
 
@@ -27,16 +36,6 @@ Safe markup and configuration file practices to prevent parsing errors and maint
 - Encountering "mapping values not allowed" errors
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- None (standalone rule)
-
-**Related:**
-- **202a-markdown-linting.md** - Markdown linting patterns and pymarkdownlnt configuration (Recommended)
-- **203-python-project-setup.md** - pyproject.toml configuration
-- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
 
 ### External Documentation
 
@@ -78,7 +77,7 @@ When validation tools are not available:
 - **pymarkdownlnt** (detect with `uvx pymarkdownlnt`): Skip Markdown linting, add TODO comment: `# TODO: Install pymarkdownlnt for MD linting`
 - **taplo (TOML)** (detect with `which taplo`): Fallback to `python -c "import tomllib; tomllib.load(open('file.toml', 'rb'))"` for syntax check
 
-**Key rule:** Never skip YAML syntax validation — Python's built-in `yaml.safe_load()` is always available as a fallback. TOML validation can use Python 3.11+ built-in `tomllib`.
+**Key rule:** Never skip YAML syntax validation: Python's built-in `yaml.safe_load()` is always available as a fallback. TOML validation can use Python 3.11+ built-in `tomllib`.
 
 ### Execution Steps
 
@@ -267,7 +266,7 @@ rules:
 ```
 
 - **Always:** Run `uvx yamllint .` to validate all YAML files in a project
-- **Rule:** Customize `.yamllint.yml` per project — disable `document-start` for Taskfiles, adjust `line-length` for readability
+- **Rule:** Customize `.yamllint.yml` per project: disable `document-start` for Taskfiles, adjust `line-length` for readability
 - yamllint warning classification:
   - **Must fix (parsing risk):** `truthy` (bare Yes/No/On/Off), `empty-values`, `key-duplicates`
   - **Must fix (readability):** `indentation`, `colons`, `brackets` (inconsistent formatting)
@@ -375,11 +374,11 @@ production:
 ```
 
 ### Common Pitfalls
-- **Critical:** Anchors must be defined before use — YAML is parsed top-to-bottom
+- **Critical:** Anchors must be defined before use: YAML is parsed top-to-bottom
 - **Critical:** `<<: *anchor` only works for mappings, not sequences
 - **Always:** Keep anchor definitions near the top of the file for readability
 - **Never:** Use deeply nested anchor chains (A to B to C) -- they are hard to debug
-- **Never:** Use anchors for secrets — the value is duplicated in memory and may appear in logs
+- **Never:** Use anchors for secrets: the value is duplicated in memory and may appear in logs
 
 ## Documentation and Comments
 
@@ -392,10 +391,10 @@ production:
 - **Always:** Document required environment variables.
 - **Always:** Provide example configurations.
 - **Critical:** Add comments for configuration values that meet ANY of these criteria:
-  1. Magic numbers (e.g., `timeout: 2147483647` — explain it's max int32)
+  1. Magic numbers (e.g., `timeout: 2147483647`: explain it's max int32)
   2. Values that differ from tool defaults (e.g., `max-line-length: 120` when default is 79)
-  3. Values with non-obvious units (e.g., `ttl: 3600` — add `# seconds (1 hour)`)
-  4. Values that reference external systems (e.g., `port: 5433` — add `# PostgreSQL replica`)
+  3. Values with non-obvious units (e.g., `ttl: 3600`: add `# seconds (1 hour)`)
+  4. Values that reference external systems (e.g., `port: 5433`: add `# PostgreSQL replica`)
 
 ## Security Considerations
 

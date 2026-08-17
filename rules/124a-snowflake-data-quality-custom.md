@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Patterns for creating custom Data Metric Functions (DMFs) and expectations to implement business-specific quality rules and validation logic beyond system DMFs. Covers custom DMF creation, business"
+last_updated: 2026-07-15
+keywords:
+  - kw:custom DMF creation
+  - kw:business rule validation
+  - kw:expectation thresholds
+  - kw:FLOAT return type
+  - kw:parameterized ARG_T
+  - kw:Python UDF DMF
+  - kw:dmf
+token_budget: ~3600
+context_tier: Medium
+depends:
+  required:
+    - 124-snowflake-data-quality-core.md  # Data Quality fundamentals
+  optional:
+    - 124b-snowflake-data-quality-operations.md  # Operational patterns and scheduling
+---
 # Snowflake Data Quality: Custom DMFs & Expectations
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:custom-quality-check
-**Keywords:** quality assertions, custom metrics, validation functions, create custom DMF, custom quality checks, business rule validation, custom expectations, quality functions, UDF for quality, validation logic, custom quality metrics, quality rules, custom validation
-**TokenBudget:** ~3600
-**ContextTier:** Medium
-**Depends:** 100-snowflake-core.md, 124-snowflake-data-quality-core.md
 
 ## Scope
 
@@ -23,15 +33,6 @@ Patterns for creating custom Data Metric Functions (DMFs) and expectations to im
 - Troubleshooting custom DMF execution issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **124-snowflake-data-quality-core.md** - Data Quality fundamentals
-
-**Related:**
-- **124b-snowflake-data-quality-operations.md** - Operational patterns and scheduling
 
 ### External Documentation
 
@@ -231,7 +232,7 @@ ALTER TABLE CUSTOMERS
 ```
 
 > **When to use Python UDF DMFs:** Use when validation requires regex, statistical
-> analysis, or logic too complex for SQL. SQL DMFs are faster and cheaper — prefer
+> analysis, or logic too complex for SQL. SQL DMFs are faster and cheaper: prefer
 > SQL unless Python capabilities are specifically needed.
 
 ## Anti-Patterns and Common Mistakes

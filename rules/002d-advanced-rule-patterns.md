@@ -1,19 +1,32 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Advanced patterns for writing rules that balance specificity with flexibility. Focuses on system prompt altitude (the \"Goldilocks Zone\"), investigation-first protocols, anti-pattern structures,"
+last_updated: 2026-07-15
+keywords:
+  - kw:system prompt altitude
+  - kw:investigation-first protocol
+  - kw:multi-session workflows
+  - kw:anti-pattern library structure
+  - kw:parallel execution design
+  - kw:goldilocks zone heuristics
+token_budget: ~4000
+context_tier: Medium
+depends:
+  required:
+    - 002-rule-governance.md  # Schema requirements and standards
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 002a-rule-creation.md  # Step-by-step rule creation workflow
+    - 002c-rule-optimization.md  # Token budgets and performance
+    - 004-tool-design-for-agents.md  # Tool Design Altitude patterns (moved from this rule)
+---
 # Advanced Rule Patterns: System Prompt Altitude & Complex Workflows
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when creating, reviewing, or maintaining rules.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.1
-**LastUpdated:** 2026-03-09
-**Keywords:** system prompt altitude, investigation-first, anti-patterns, multi-session workflows, parallel execution, advanced patterns, heuristics, goldilocks zone, context management, state management
-**TokenBudget:** ~4000
-**ContextTier:** Medium
-**Depends:** 002-rule-governance.md, 000-global-core.md
 
 ## Scope
 
@@ -28,17 +41,6 @@ Advanced patterns for writing rules that balance specificity with flexibility. F
 - Avoiding common rule design pitfalls
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **002-rule-governance.md** - Schema requirements and standards
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **002a-rule-creation.md** - Step-by-step rule creation workflow
-- **002c-rule-optimization.md** - Token budgets and performance
-- **004-tool-design-for-agents.md** - Tool Design Altitude patterns (moved from this rule)
 
 ### External Documentation
 
@@ -453,7 +455,7 @@ When gathering data from multiple sources:
 1. Report successful results immediately with explicit caveat: "Completed X of Y operations"
 2. List failed operations with specific error messages
 3. Offer targeted retry for failed operations only (not full re-execution)
-4. If >50% fail, abort remaining operations and report — likely a systemic issue
+4. If >50% fail, abort remaining operations and report: likely a systemic issue
 
 ### Combining Patterns
 

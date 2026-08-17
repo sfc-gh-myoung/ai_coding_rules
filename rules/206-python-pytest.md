@@ -1,15 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Pytest best practices: AAA pattern, fixtures, parametrization, test isolation, uv-run-pytest, and flaky-test protocol."
+last_updated: 2026-07-15
+keywords:
+  - kw:pytest fixtures
+  - kw:AAA pattern
+  - kw:test parametrization
+  - kw:uv run pytest
+  - kw:test isolation
+  - kw:flaky test protocol
+token_budget: ~4950
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+    - 200-python-core.md  # Python core patterns (uv, pytest execution)
+  optional:
+    - 201-python-lint-format.md  # Ruff linting and formatting for test code
+    - 204-python-docs.md  # Documentation standards for test docstrings
+    - 205-python-classes.md  # Class patterns for test organization
+---
 # Python Testing with pytest: Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-25
-**Keywords:** pytest, testing, fixtures, parametrization, test isolation, mocking, test organization, coverage, AAA pattern, test markers, uv run pytest, unit test, unit tests
-**TokenBudget:** ~4950
-**ContextTier:** High
-**Depends:** 000-global-core.md, 200-python-core.md, 201-python-lint-format.md, 203-python-project-setup.md
-**LoadTrigger:** kw:test, kw:pytest, kw:coverage
 
 ## Scope
 
@@ -26,20 +38,6 @@ Pragmatic, industry-standard testing practices with pytest to produce fast, reli
 - Integrating tests into CI/CD pipelines
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-- **200-python-core.md** - Python core patterns (uv, pytest execution)
-
-**Recommended:**
-- **201-python-lint-format.md** - Ruff linting and formatting for test code
-- **203-python-project-setup.md** - Project structure and pytest configuration
-
-**Related:**
-- **204-python-docs.md** - Documentation standards for test docstrings
-- **205-python-classes.md** - Class patterns for test organization
 
 ### External Documentation
 
@@ -105,18 +103,20 @@ Pragmatic, industry-standard testing practices with pytest to produce fast, reli
 import pytest
 from yourapp.services import UserService
 
+
 # Arrange-Act-Assert pattern
 def test_create_user_success():
     # Arrange
     service = UserService()
     user_data = {"email": "test@example.com", "name": "Test User"}
-    
+
     # Act
     result = service.create_user(user_data)
-    
+
     # Assert
     assert result.id is not None
     assert result.email == "test@example.com"
+
 
 # Parametrization
 @pytest.mark.parametrize(
@@ -147,7 +147,7 @@ See comprehensive Post-Execution Checklist in the Flaky Test Protocol section be
 
 **Pre-Task-Completion Test Execution Gate (CRITICAL):**
 
-Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+Reference: Complete validation protocol in `000-global-core.md`
 
 **CRITICAL:** Test execution is MANDATORY before task completion. Tests are not optional.
 
@@ -232,11 +232,10 @@ When a test passes and fails intermittently:
    - **Resource leak (Fails late in suite):** Add proper teardown in fixture
    - **External service (Fails on network issues):** Mock the external call or use `vcr.py`
 
-3. **Fix or quarantine** — never leave flaky tests unmarked:
+3. **Fix or quarantine**: never leave flaky tests unmarked:
    ```python
    @pytest.mark.xfail(reason="BUG-1234: Race condition in cache invalidation", strict=False)
-   def test_cache_update():
-       ...
+   def test_cache_update(): ...
    ```
 
 4. **Track:** Every `xfail` must have a ticket number. Review quarantined tests weekly.
@@ -257,11 +256,10 @@ When a test passes and fails intermittently:
    - **Resource leak (Fails late in suite):** Add proper teardown in fixture
    - **External service (Fails on network issues):** Mock the external call or use `vcr.py`
 
-3. **Fix or quarantine** — never leave flaky tests unmarked:
+3. **Fix or quarantine**: never leave flaky tests unmarked:
    ```python
    @pytest.mark.xfail(reason="BUG-1234: Race condition in cache invalidation", strict=False)
-   def test_cache_update():
-       ...
+   def test_cache_update(): ...
    ```
 
 4. **Track:** Every `xfail` must have a ticket number. Review quarantined tests weekly.
@@ -323,10 +321,12 @@ def test_division():
     except:
         pass  # Swallows ZeroDivisionError, test passes incorrectly
 
+
 # GOOD: Explicit exception testing with pytest.raises
 def test_division_by_zero():
     with pytest.raises(ZeroDivisionError, match="division by zero"):
         divide(10, 0)
+
 
 def test_division_success():
     result = divide(10, 2)
@@ -346,31 +346,38 @@ def test_division_success():
 def database():
     return create_db()
 
+
 @pytest.fixture
 def user_table(database):
     return database.create_table("users")
+
 
 @pytest.fixture
 def test_user(user_table):
     return user_table.insert({"name": "test"})
 
+
 @pytest.fixture
 def user_session(test_user):
     return create_session(test_user)
 
+
 def test_something(user_session):  # What does this need? Unclear!
     assert user_session.is_active()
+
 
 # GOOD: Flat, explicit fixtures with composition
 @pytest.fixture
 def database():
     return create_db()
 
+
 @pytest.fixture
 def test_user(database):
     # Single fixture handles user creation directly
     table = database.create_table("users")
     return table.insert({"name": "test"})
+
 
 def test_user_session(database, test_user):
     # Test explicitly requests what it needs
@@ -394,10 +401,12 @@ def test_user_session(database, test_user):
 import os
 import pytest
 
+
 @pytest.fixture()
 def db_url(monkeypatch: pytest.MonkeyPatch) -> str:
     monkeypatch.setenv("DB_URL", "sqlite:///:memory:")
     return os.environ["DB_URL"]
+
 
 @pytest.fixture()
 def tmp_file(tmp_path):
@@ -413,6 +422,7 @@ def tmp_file(tmp_path):
 ```python
 import pytest
 
+
 @pytest.mark.parametrize(
     "email,valid",
     [("a@example.com", True), ("bad", False)],
@@ -426,17 +436,20 @@ def test_email_validation(email: str, valid: bool) -> None:
 - Rule: Always provide `ids=` for parametrized tests to make failure output readable.
 - Rule: Limit parameter sets to ≤10 per test. If you need more, split into separate test functions or use `pytest.param` with marks:
   ```python
-  @pytest.mark.parametrize("input_val,expected", [
-      pytest.param("valid", True, id="happy-path"),
-      pytest.param("", False, id="empty-string"),
-      pytest.param(None, False, id="none-value", marks=pytest.mark.xfail),
-  ])
+  @pytest.mark.parametrize(
+      "input_val,expected",
+      [
+          pytest.param("valid", True, id="happy-path"),
+          pytest.param("", False, id="empty-string"),
+          pytest.param(None, False, id="none-value", marks=pytest.mark.xfail),
+      ],
+  )
   def test_validation(input_val, expected):
       assert validate(input_val) is expected
   ```
 - Rule: Group related parameters into tuples or dataclasses rather than having >3 separate parametrize arguments.
 - Rule: For parametrize sets >50 entries, use `pytest_generate_tests` or load test data from a fixture/file to keep test files readable and avoid slow collection.
-- Rule: Avoid duplicate entries in parametrize sets — pytest runs them separately but duplicate ids cause confusing output. Use `set()` or unique ids to detect.
+- Rule: Avoid duplicate entries in parametrize sets: pytest runs them separately but duplicate ids cause confusing output. Use `set()` or unique ids to detect.
 
 ## Test Isolation and Mocking
 - Rule: Control randomness with a fixed seed in setup; inject RNG where possible.
@@ -447,6 +460,7 @@ def test_email_validation(email: str, valid: bool) -> None:
 ```python
 import random
 import pytest
+
 
 @pytest.fixture(autouse=True)
 def _seed_rng():
@@ -483,10 +497,12 @@ markers = [
 ```python
 import pytest
 
+
 def divide(a: int, b: int) -> float:
     if b == 0:
         raise ZeroDivisionError("division by zero")
     return a / b
+
 
 def test_divide_raises_on_zero():
     with pytest.raises(ZeroDivisionError, match="division by zero"):
@@ -501,6 +517,7 @@ def test_divide_raises_on_zero():
 def main():
     print("ok")
 
+
 def test_main_prints_ok(capsys):
     main()
     out, err = capsys.readouterr()
@@ -508,7 +525,7 @@ def test_main_prints_ok(capsys):
 ```
 
 ## Coverage and CI Integration
-- Rule: Target 80% line coverage; 90% for modules in `src/*/services/`, `src/*/domain/`, or `src/*/core/` directories — excluding tests, configs, and migration scripts. Use `pytest-cov` for coverage reporting.
+- Rule: Target 80% line coverage; 90% for modules in `src/*/services/`, `src/*/domain/`, or `src/*/core/` directories: excluding tests, configs, and migration scripts. Use `pytest-cov` for coverage reporting.
 - Rule: Avoid coverage gaming; focus on assertion quality and meaningful branches.
 
 ```bash

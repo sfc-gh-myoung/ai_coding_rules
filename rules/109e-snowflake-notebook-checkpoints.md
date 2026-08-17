@@ -1,15 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Patterns for implementing checkpoint validation cells and teaching point callouts in educational Snowflake notebooks, including validation gate structure, actionable error messages, and inline"
+last_updated: 2026-07-15
+keywords:
+  - kw:notebook checkpoint validation
+  - kw:teaching point callouts
+  - kw:actionable error messages
+  - kw:progress verification gates
+  - kw:context before code pedagogy
+  - kw:checkpoint frequency placement
+token_budget: ~2650
+context_tier: Low
+depends:
+  optional:
+    - 109a-snowflake-notebooks-tutorials.md
+---
 # Snowflake Notebook Checkpoints and Teaching Points
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:notebook-checkpoint, kw:teaching-point
-**Keywords:** checkpoint validation, teaching point callouts, notebook validation gates, progress verification, learning checkpoints, NOTE prefix, tutorial checkpoints
-**TokenBudget:** ~2650
-**ContextTier:** Low
-**Depends:** 109a-snowflake-notebooks-tutorials.md
 
 ## Scope
 
@@ -24,10 +31,9 @@ Patterns for implementing checkpoint validation cells and teaching point callout
 
 ## References
 
-### Related Rules
-**Closely Related** (consider loading together):
-- **109a-snowflake-notebooks-tutorials.md** - Parent rule for tutorial design patterns
-- **109-snowflake-notebooks.md** - Core notebook best practices
+### External Documentation
+
+_None._
 
 ## Contract
 
@@ -210,7 +216,7 @@ FROM target_table;
 
 **Problem:** Developers add checkpoint cells that only print a success message without actually validating state. The cell runs `print("[PASS] Data loaded successfully")` unconditionally, giving learners false confidence. When they hit errors in later sections, they have no idea which earlier step failed because the checkpoint never checked anything.
 
-**Correct Pattern:** Every checkpoint must contain actual validation logic -- query row counts, verify columns exist, check that variables are defined and non-empty. Use `if/else` with `checks_passed` and `checks_failed` lists. A checkpoint with zero conditional checks is not a checkpoint, it's decoration.
+**Correct Pattern:** Every checkpoint must contain actual validation logic: query row counts, verify columns exist, check that variables are defined and non-empty. Use `if/else` with `checks_passed` and `checks_failed` lists. A checkpoint with zero conditional checks is not a checkpoint, it's decoration.
 
 ```python
 # Wrong: Unconditional success message with no actual validation
@@ -235,7 +241,9 @@ missing = [c for c in expected_cols if c not in training_df.columns]
 if not missing:
     checks_passed.append("[PASS] All required feature columns present")
 else:
-    checks_failed.append(f"[FAIL] Missing columns: {missing} - re-run Step 2.3 (Feature Engineering)")
+    checks_failed.append(
+        f"[FAIL] Missing columns: {missing} - re-run Step 2.3 (Feature Engineering)"
+    )
 
 for msg in checks_passed:
     print(msg)
@@ -252,7 +260,7 @@ if checks_failed:
 **Correct Pattern:** Always place teaching point callouts (markdown cells with `[NOTE]` prefix) immediately before the implementation cell they explain. The learner should read the "why" before seeing the "how". Structure notebooks as: Teaching Point (markdown) -> Implementation (code) -> Checkpoint (code).
 
 ```markdown
-<!-- Wrong: Teaching point AFTER code — learner sees code before context -->
+<!-- Wrong: Teaching point AFTER code - learner sees code before context -->
 <!-- Cell 5 (code): -->
 model = RandomForestClassifier(class_weight="balanced")
 model.fit(X_train, y_train)
@@ -261,7 +269,7 @@ model.fit(X_train, y_train)
 ### [NOTE] Why we use class_weight="balanced"
 In imbalanced datasets, the minority class gets overwhelmed...
 
-<!-- Correct: Teaching point BEFORE code — context then implementation -->
+<!-- Correct: Teaching point BEFORE code - context then implementation -->
 <!-- Cell 5 (markdown): -->
 ### [NOTE] Teaching Point: Why class_weight="balanced"
 In imbalanced datasets (e.g., 95% healthy, 5% failure), standard

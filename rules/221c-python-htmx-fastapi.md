@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "FastAPI-specific integration patterns for HTMX applications, covering async route handlers, Jinja2 template configuration, dependency injection for HTMX detection, background task patterns with"
+last_updated: 2026-07-15
+keywords:
+  - kw:FastAPI async routes
+  - kw:Jinja2Templates FastAPI
+  - kw:HTMX dependency injection
+  - kw:BackgroundTasks polling
+  - kw:Pydantic form validation
+  - kw:htmx-fastapi integration
+  - kw:fastapi
+token_budget: ~3450
+context_tier: Medium
+depends:
+  optional:
+    - 221e-python-htmx-patterns.md  # CRUD, forms, etc.
+    - 221d-python-htmx-testing.md  # Testing FastAPI+HTMX
+    - 221h-python-htmx-fastapi-auth.md  # Auth, SSE, CSRF for FastAPI+HTMX
+---
 # FastAPI + HTMX Integration
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** fastapi, async, dependency injection, background tasks, fastapi templates, starlette, pydantic, async routes
-**TokenBudget:** ~3450
-**ContextTier:** Medium
-**Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
-**LoadTrigger:** kw:htmx-fastapi
 
 ## Scope
 
@@ -24,18 +34,6 @@ FastAPI-specific integration patterns for HTMX applications, covering async rout
 - Implementing background tasks with HTMX polling
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **221-python-htmx-core.md** - HTMX foundation patterns
-- **221a-python-htmx-templates.md** - Jinja2 patterns
-
-**Related:**
-- **221h-python-htmx-fastapi-auth.md** - Auth, SSE, CSRF for FastAPI+HTMX
-- **221d-python-htmx-testing.md** - Testing FastAPI+HTMX
-- **221e-python-htmx-patterns.md** - CRUD, forms, etc.
-- **200-python-core.md** - Python standards
 
 ### External Documentation
 
@@ -69,10 +67,10 @@ FastAPI-specific integration patterns for HTMX applications, covering async rout
 
 - Blocking I/O in async routes
 - Returning JSON for HTMX requests
-- Using synchronous I/O libraries (`requests`, `urllib3`, `psycopg2`, `pymysql`) inside `async def` routes — use async alternatives (`httpx`, `asyncpg`, `aiomysql`) or wrap with `asyncio.to_thread()`
-- Accepting form data without Pydantic model validation or FastAPI parameter constraints (`Field(min_length=1, max_length=255)`, `Query(ge=1, le=100)`, `Path(gt=0)`) — every user input must have type + constraint validation
+- Using synchronous I/O libraries (`requests`, `urllib3`, `psycopg2`, `pymysql`) inside `async def` routes: use async alternatives (`httpx`, `asyncpg`, `aiomysql`) or wrap with `asyncio.to_thread()`
+- Accepting form data without Pydantic model validation or FastAPI parameter constraints (`Field(min_length=1, max_length=255)`, `Query(ge=1, le=100)`, `Path(gt=0)`); every user input must have type + constraint validation
 - Bypassing CSRF protection
-- Using unmanaged global state for request data — use dependency injection, Redis, or database instead. Module-level registries for lifecycle management (e.g., background task tracking) are acceptable when clearly labeled for production replacement.
+- Using unmanaged global state for request data: use dependency injection, Redis, or database instead. Module-level registries for lifecycle management (e.g., background task tracking) are acceptable when clearly labeled for production replacement.
 
 ### Execution Steps
 
@@ -135,7 +133,7 @@ FastAPI-specific integration patterns for HTMX applications, covering async rout
 
 > **Investigation Required**
 > Before modifying FastAPI+HTMX integration, the agent MUST:
-> 1. Check if `Jinja2Templates` is already configured — never create a duplicate `templates` instance
+> 1. Check if `Jinja2Templates` is already configured; never create a duplicate `templates` instance
 > 2. Verify existing dependency injection patterns for HTMX detection (`is_htmx()` or `HTMXContext`)
 > 3. Check current CSRF middleware setup (Starlette-WTF may already be configured)
 > 4. Read existing `Depends()` patterns to match the project's DI style
@@ -160,11 +158,13 @@ templates = Jinja2Templates(directory="templates")
 # Or with multiple directories
 templates = Jinja2Templates(directory=["templates", "app/templates"])
 
+
 # Add custom filters (optional)
 def format_date(value):
-    return value.strftime('%Y-%m-%d')
+    return value.strftime("%Y-%m-%d")
 
-templates.env.filters['format_date'] = format_date
+
+templates.env.filters["format_date"] = format_date
 ```
 
 **Basic Template Rendering:**
@@ -172,11 +172,12 @@ templates.env.filters['format_date'] = format_date
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse(
         "pages/home.html",
-        {"request": request}  # Required by Jinja2Templates
+        {"request": request},  # Required by Jinja2Templates
     )
 ```
 
@@ -186,34 +187,30 @@ async def home(request: Request):
 ```python
 from fastapi import Request
 
+
 def is_htmx(request: Request) -> bool:
     """Dependency to detect HTMX requests"""
-    return request.headers.get('HX-Request') == 'true'
+    return request.headers.get("HX-Request") == "true"
+
 
 # Usage in route
 @app.get("/users")
-async def users_list(
-    request: Request,
-    htmx: bool = Depends(is_htmx)
-):
+async def users_list(request: Request, htmx: bool = Depends(is_htmx)):
     users = await get_users()
 
     if htmx:
         return templates.TemplateResponse(
-            "partials/_users_table.html",
-            {"request": request, "users": users}
+            "partials/_users_table.html", {"request": request, "users": users}
         )
 
-    return templates.TemplateResponse(
-        "pages/users.html",
-        {"request": request, "users": users}
-    )
+    return templates.TemplateResponse("pages/users.html", {"request": request, "users": users})
 ```
 
 **Enhanced HTMX Context Dependency:**
 ```python
 from dataclasses import dataclass
 from typing import Optional
+
 
 @dataclass
 class HTMXContext:
@@ -222,21 +219,20 @@ class HTMXContext:
     target: Optional[str] = None
     current_url: Optional[str] = None
 
+
 def get_htmx_context(request: Request) -> HTMXContext:
     """Extract all HTMX-related request headers"""
     return HTMXContext(
-        is_htmx=request.headers.get('HX-Request') == 'true',
-        trigger=request.headers.get('HX-Trigger'),
-        target=request.headers.get('HX-Target'),
-        current_url=request.headers.get('HX-Current-URL')
+        is_htmx=request.headers.get("HX-Request") == "true",
+        trigger=request.headers.get("HX-Trigger"),
+        target=request.headers.get("HX-Target"),
+        current_url=request.headers.get("HX-Current-URL"),
     )
+
 
 # Usage
 @app.get("/data")
-async def get_data(
-    request: Request,
-    htmx_ctx: HTMXContext = Depends(get_htmx_context)
-):
+async def get_data(request: Request, htmx_ctx: HTMXContext = Depends(get_htmx_context)):
     if htmx_ctx.is_htmx:
         # Handle based on trigger, target, etc.
         pass
@@ -249,48 +245,39 @@ async def get_data(
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+
 @app.get("/users/{user_id}")
 async def user_detail(
     user_id: int,
     request: Request,
     htmx: bool = Depends(is_htmx),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     user = await db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     template = "partials/_user_detail.html" if htmx else "pages/user.html"
-    return templates.TemplateResponse(
-        template,
-        {"request": request, "user": user}
-    )
+    return templates.TemplateResponse(template, {"request": request, "user": user})
 ```
 
 **Async Route with External API:**
 ```python
 import httpx
 
+
 @app.get("/weather/{city}")
-async def weather(
-    city: str,
-    request: Request,
-    htmx: bool = Depends(is_htmx)
-):
+async def weather(city: str, request: Request, htmx: bool = Depends(is_htmx)):
     async with httpx.AsyncClient() as client:
         response = await client.get(f"https://api.weather.com/{city}")
         data = response.json()
 
     if htmx:
         return templates.TemplateResponse(
-            "partials/_weather.html",
-            {"request": request, "weather": data}
+            "partials/_weather.html", {"request": request, "weather": data}
         )
 
-    return templates.TemplateResponse(
-        "pages/weather.html",
-        {"request": request, "weather": data}
-    )
+    return templates.TemplateResponse("pages/weather.html", {"request": request, "weather": data})
 ```
 
 ### 4. Form Handling with Pydantic
@@ -299,12 +286,13 @@ async def weather(
 ```python
 from pydantic import BaseModel, Field, field_validator
 
+
 class UserCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
-    email: str = Field(..., pattern=r'^[^@]+@[^@]+\.[^@]+$')
+    email: str = Field(..., pattern=r"^[^@]+@[^@]+\.[^@]+$")
     age: int = Field(..., gt=0, lt=150)
 
-    @field_validator('email', mode='before')
+    @field_validator("email", mode="before")
     @classmethod
     def email_must_be_lowercase(cls, v):
         return v.lower()
@@ -315,12 +303,10 @@ class UserCreate(BaseModel):
 from fastapi import Form, Response
 from pydantic import ValidationError
 
+
 @app.post("/users")
 async def create_user(
-    request: Request,
-    name: str = Form(...),
-    email: str = Form(...),
-    age: int = Form(...)
+    request: Request, name: str = Form(...), email: str = Form(...), age: int = Form(...)
 ):
     try:
         user_data = UserCreate(name=name, email=email, age=age)
@@ -328,19 +314,18 @@ async def create_user(
 
         # Success: Return new user row
         return templates.TemplateResponse(
-            "partials/_user_row.html",
-            {"request": request, "user": user}
+            "partials/_user_row.html", {"request": request, "user": user}
         )
 
     except ValidationError as e:
         # Error: Return form with errors
-        errors = {err['loc'][0]: err['msg'] for err in e.errors()}
+        errors = {err["loc"][0]: err["msg"] for err in e.errors()}
         response = templates.TemplateResponse(
             "partials/_user_form.html",
-            {"request": request, "errors": errors, "name": name, "email": email, "age": age}
+            {"request": request, "errors": errors, "name": name, "email": email, "age": age},
         )
         response.status_code = 400
-        response.headers['HX-Retarget'] = '#user-form'
+        response.headers["HX-Retarget"] = "#user-form"
         return response
 ```
 
@@ -357,6 +342,7 @@ import uuid
 # - Database: `await db.execute(insert(Task).values(...))`
 tasks: dict[str, dict] = {}
 
+
 async def process_data(task_id: str, data: dict):
     """Long-running background task"""
     tasks[task_id] = {"status": "processing", "progress": 0}
@@ -368,20 +354,17 @@ async def process_data(task_id: str, data: dict):
     tasks[task_id]["status"] = "completed"
     tasks[task_id]["result"] = "Data processed successfully"
 
+
 @app.post("/process")
-async def start_processing(
-    request: Request,
-    background_tasks: BackgroundTasks,
-    data: dict
-):
+async def start_processing(request: Request, background_tasks: BackgroundTasks, data: dict):
     task_id = str(uuid.uuid4())
     background_tasks.add_task(process_data, task_id, data)
 
     # Return polling element
     return templates.TemplateResponse(
-        "partials/_task_progress.html",
-        {"request": request, "task_id": task_id, "progress": 0}
+        "partials/_task_progress.html", {"request": request, "task_id": task_id, "progress": 0}
     )
+
 
 @app.get("/tasks/{task_id}/status")
 async def task_status(task_id: str, request: Request):
@@ -390,7 +373,7 @@ async def task_status(task_id: str, request: Request):
     if task["status"] == "processing":
         return templates.TemplateResponse(
             "partials/_task_progress.html",
-            {"request": request, "task_id": task_id, "progress": task["progress"]}
+            {"request": request, "task_id": task_id, "progress": task["progress"]},
         )
 
     elif task["status"] == "completed":
@@ -406,26 +389,25 @@ async def task_status(task_id: str, request: Request):
 ```python
 from fastapi.responses import HTMLResponse
 
+
 @app.delete("/users/{user_id}")
 async def delete_user(user_id: int):
     await delete_user_from_db(user_id)
 
     response = HTMLResponse(content="", status_code=200)
-    response.headers['HX-Trigger'] = 'userDeleted'
+    response.headers["HX-Trigger"] = "userDeleted"
     return response
+
 
 @app.post("/login")
 async def login(username: str = Form(...), password: str = Form(...)):
     user = authenticate(username, password)
     if not user:
-        return HTMLResponse(
-            '<div class="error">Invalid credentials</div>',
-            status_code=401
-        )
+        return HTMLResponse('<div class="error">Invalid credentials</div>', status_code=401)
 
     # Successful login: redirect
     response = HTMLResponse(content="", status_code=200)
-    response.headers['HX-Redirect'] = '/dashboard'
+    response.headers["HX-Redirect"] = "/dashboard"
     return response
 ```
 

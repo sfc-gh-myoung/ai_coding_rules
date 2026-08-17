@@ -1,20 +1,33 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive best practices for Snowflake Data Quality Monitoring using Data Metric Functions (DMFs), data profiling, expectations, and automated quality checks. Covers system DMFs, custom DMF"
+last_updated: 2026-07-15
+keywords:
+  - kw:Data Metric Functions
+  - kw:DMF expectations
+  - kw:system DMF
+  - kw:serverless quality monitoring
+  - kw:quality event tables
+  - kw:DMF scheduling patterns
+  - kw:dmf
+token_budget: ~4900
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 105-snowflake-cost-governance.md  # Resource monitors and cost optimization
+    - 107-snowflake-security-governance.md  # Access control and security policies
+  optional:
+    - 124a-snowflake-data-quality-custom.md  # Custom DMF creation patterns
+    - 124b-snowflake-data-quality-operations.md  # Operational patterns and remediation
+---
 # Snowflake Data Quality Monitoring Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Data Quality patterns. Load for data quality tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:data-quality, kw:validation
-**Keywords:** data profiling, expectations, quality checks, data validation, NULL detection, uniqueness validation, freshness monitoring, anomaly detection, automated monitoring, event tables, create DMF, quality monitoring, data expectations, quality rules
-**TokenBudget:** ~4900
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 105-snowflake-cost-governance.md, 107-snowflake-security-governance.md, 930-data-governance-quality.md
 
 ## Scope
 
@@ -32,39 +45,12 @@ Comprehensive best practices for Snowflake Data Quality Monitoring using Data Me
 
 ## References
 
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **105-snowflake-cost-governance.md** - Resource monitors and cost optimization
-- **107-snowflake-security-governance.md** - Access control and security policies
-- **930-data-governance-quality.md** - Data governance framework
-
-**Related:**
-- **124a-snowflake-data-quality-custom.md** - Custom DMF creation patterns
-- **124b-snowflake-data-quality-operations.md** - Operational patterns and remediation
-
 ### External Documentation
 
 - [Data Quality Introduction](https://docs.snowflake.com/en/user-guide/data-quality-intro) - Overview and concepts
 - [Data Metric Functions](https://docs.snowflake.com/en/user-guide/data-metric-functions) - DMF creation and usage
 - [System DMFs](https://docs.snowflake.com/en/sql-reference/data-metric-functions) - Built-in quality metrics
 - [Data Quality Monitoring](https://docs.snowflake.com/en/user-guide/ui-snowsight-data-quality-monitoring) - Snowsight monitoring
-
-### Related Rules
-
-**Closely Related** (consider loading together):
-- **124a-snowflake-data-quality-custom.md** - creating custom DMFs with SQL or Python UDFs
-- **124b-snowflake-data-quality-operations.md** - scheduling, monitoring, and alerting on DMF results
-
-**Sometimes Related** (load if specific scenario):
-- **122-snowflake-dynamic-tables.md** - adding quality checks to dynamic table pipelines
-- **104-snowflake-streams-tasks.md** - triggering tasks based on data quality events
-- **111-snowflake-observability-core.md** - logging data quality metrics to event tables
-
-**Complementary** (different aspects of same domain):
-- **107-snowflake-security-governance.md** - access control on DMFs and quality monitoring
-- **100-snowflake-core.md** - DDL fundamentals and object creation patterns
 
 ## Contract
 
@@ -407,7 +393,7 @@ Data profiling uses the user's default warehouse (X-Small recommended). For larg
 
 ```sql
 -- Step 1: Profile data (Snowsight Data Profile or SQL queries)
--- Step 2: Identify concerns (e.g., Column X has 15% NULLs — unexpected)
+-- Step 2: Identify concerns (e.g., Column X has 15% NULLs - unexpected)
 -- Step 3: Create expectation-based DMF
 ALTER TABLE CUSTOMERS
   ADD DATA METRIC FUNCTION SNOWFLAKE.CORE.NULL_COUNT ON (email);
@@ -504,7 +490,7 @@ WHERE RECORD_TYPE = 'DATA_METRIC_FUNCTION'
   AND TIMESTAMP >= DATEADD(hour, -24, CURRENT_TIMESTAMP())
 ORDER BY TIMESTAMP DESC;
 
--- Quality trend — daily pass rate:
+-- Quality trend - daily pass rate:
 SELECT
   DATE_TRUNC('day', TIMESTAMP) AS eval_day,
   COUNT_IF(RECORD_ATTRIBUTES['expectation_result'] = 'PASSED') AS passed,

@@ -1,8 +1,12 @@
 # Phase 3: Activity Matching
 
+> **Layer: SOFT (best-effort, non-deterministic).** Keyword extraction and matching
+> are LLM-mediated. The **high-risk-action check (Step 4)** is the exception: it is
+> HARD (mandatory fixed lookups regardless of keyword judgment).
+
 ## Purpose
 
-Discover activity-specific rules by searching RULES_INDEX.md for keywords extracted from the user request.
+Discover activity-specific rules by searching rule frontmatter for keywords extracted from the user request.
 
 ## Algorithm
 
@@ -26,29 +30,31 @@ When the user request contains multiple technologies joined by delimiters (`+`, 
 
 **Example:** `"FastAPI + HTMX + SSE in SPCS"` becomes:
 ```bash
-grep -iE "fastapi|htmx|sse|spcs" {rules_path}/RULES_INDEX.md
+grep -iE "fastapi|htmx|sse|spcs" rules/rule frontmatter
 ```
 
-### Step 2: Search RULES_INDEX.md
+### Step 2: Search rule frontmatter (grep against the index)
 
-Execute a single compound grep combining all keywords:
+Execute a single compound grep combining all keywords. Target
+`rules/rule frontmatter`: a space-separated, keyword-only
+projection of rule frontmatter designed to minimise tokens consumed by
+discovery. It is the ONLY index agents should grep.
 
 ```bash
-grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" {rules_path}/RULES_INDEX.md
+grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" rules/rule frontmatter
 ```
 
-**Expected outcome for typical requests:**
-- 5-50 matching lines for multi-technology requests
-- 1-10 matching lines for single-technology requests
-- 0 lines = ANOMALY (re-execute grep once, then use fallback immediately)
+Each hit is a self-contained row of the form
+`<filename> tier=<T> [ext=..] [file=..] [dir=..] kw=<w1> <w2> ...`: the
+rule filename is the first field.
 
-**If grep unavailable:** Read RULES_INDEX.md via `read_file` and manually scan for keywords. This is the required fallback.
+**If grep unavailable:** Read `rules/rule frontmatter` via `read_file` and manually scan for keywords. This is the required fallback.
 
 **FORBIDDEN:** Substituting glob, find, ls, or any file-discovery tool for grep.
 
 ### Step 2.5: Sanity Check (MANDATORY)
 
-Zero results is almost always an anomaly. RULES_INDEX.md contains 750+ lines with 159 keyword entries across 100+ rules.
+Zero results is almost always an anomaly. Expected corpus size and keyword volume are defined in `rules/.index-stats.json` (see `counts.rules`, `counts.keyword_entries`, and `sanity_thresholds`). If measured results are near zero for a common keyword, either the corpus shrank materially or the query is malformed.
 
 **On zero results for any common keyword (python, sql, docker, deploy, test, snowflake, fastapi, streamlit):**
 
@@ -86,5 +92,4 @@ If any high-risk keyword is present, the corresponding search is mandatory even 
 - A Gate 2 claim without tool execution is INVALID
 - Never claim Gate 2 passed based on memory or prior session context
 - If grep returns no matches for a keyword: note "No rules found for [keyword]"
-- **Zero results for common keywords (python, docker, deploy, test, snowflake, fastapi) is an ANOMALY** — re-execute grep once, then use read_file fallback
-- **Consistency check:** Keywords searched in Gate 2 must produce rules in Gate 3, or explicitly state "no rules found"
+- **Zero results for common keywords (python, docker, deploy, test, snowflake, fastapi) is an ANOMALY**: re-execute grep once, then use read_file fallback

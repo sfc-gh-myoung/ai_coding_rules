@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Testing strategies (component, integration, business scenario) and RBAC configuration for Snowflake Cortex Agents including grant patterns, verification queries, and least-privilege enforcement."
+last_updated: 2026-07-15
+keywords:
+  - kw:cortex agent testing
+  - kw:agent RBAC grants
+  - kw:component integration testing
+  - kw:agent tool verification
+  - kw:least-privilege agent permissions
+  - kw:semantic view grants
+token_budget: ~3300
+context_tier: Low
+depends:
+  required:
+    - 115-snowflake-cortex-agents-core.md  # Core agent creation and tool configuration
+  optional:
+    - 115b-snowflake-cortex-agents-operations.md  # Operations overview
+    - 107-snowflake-security-governance.md  # Security and governance patterns
+---
 # Snowflake Cortex Agents: Testing & RBAC
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:agent-testing, kw:agent-rbac
-**Keywords:** agent testing, component testing, integration testing, agent RBAC, agent permissions, agent grants, cortex agent security, test agent, agent validation, agent role, agent access control
-**TokenBudget:** ~3300
-**ContextTier:** Low
-**Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md, 115b-snowflake-cortex-agents-operations.md
 
 ## Scope
 
@@ -23,16 +33,6 @@ Testing strategies (component, integration, business scenario) and RBAC configur
 - Implementing least-privilege security for agents
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **115-snowflake-cortex-agents-core.md** - Core agent creation and tool configuration
-- **115b-snowflake-cortex-agents-operations.md** - Operations overview
-
-**Related:**
-- **107-snowflake-security-governance.md** - Security and governance patterns
 
 ### External Documentation
 
@@ -146,6 +146,7 @@ After component tests pass, test realistic workflows:
 ```python
 # Quantitative (Analyst)
 "What are the top 10 holdings by weight?"
+
 "Calculate sector allocation breakdown"
 
 # Qualitative (Search)
@@ -285,8 +286,9 @@ SELECT SNOWFLAKE.CORTEX.COMPLETE('llama3.1-8b', 'test');
 # Wrong: Jumping straight to end-to-end agent testing
 def test_agent():
     response = agent.query("What are my top holdings?")
-    assert "holdings" in response  # Fails — but WHY?
+    assert "holdings" in response  # Fails - but WHY?
     # Is the semantic view empty? Search service down? Wrong tool picked?
+
 
 # Correct: Component-first testing isolates failures
 def test_semantic_view_returns_data(session):
@@ -298,6 +300,7 @@ def test_semantic_view_returns_data(session):
     assert len(rows) > 0, "Semantic view returned no data"
     assert rows[0]["POSITION_WEIGHT"] > 0, "Weights should be positive"
 
+
 def test_search_service_returns_docs(session):
     """Step 2: Verify search tool works independently."""
     result = session.sql("""
@@ -307,6 +310,7 @@ def test_search_service_returns_docs(session):
         )
     """).collect()
     assert len(result) > 0, "Search service returned no results"
+
 
 def test_agent_integration():
     """Step 3: Only after component tests pass, test the agent."""
@@ -322,7 +326,7 @@ def test_agent_integration():
 **Correct Pattern:** Create a dedicated `agent_runner` role with granular grants: `USAGE` on specific databases/schemas, `SELECT` on only the semantic views and tables the agent needs, and `USAGE` on specific Cortex Search services. Verify grants with test queries under the agent role before deployment. Review grants periodically and revoke any that are no longer needed.
 
 ```sql
--- Wrong: Overly broad access — agent can read ANY table
+-- Wrong: Overly broad access - agent can read ANY table
 GRANT ROLE ACCOUNTADMIN TO USER agent_service_user;
 -- Or almost as bad:
 GRANT SELECT ON ALL TABLES IN DATABASE ANALYTICS TO ROLE agent_runner;
@@ -358,8 +362,8 @@ SELECT COUNT(*) FROM HR.PRIVATE.SALARY_DATA;  -- Should fail (no grant)
 ```python
 # Wrong: Only testing unambiguous single-tool queries
 test_queries = [
-    "What are the top 10 holdings?",       # Obviously Analyst
-    "Find research reports on AAPL",        # Obviously Search
+    "What are the top 10 holdings?",  # Obviously Analyst
+    "Find research reports on AAPL",  # Obviously Search
 ]
 
 # Correct: Include ambiguous and mixed-intent queries
@@ -367,17 +371,15 @@ test_queries = [
     # Clear single-tool (baseline)
     ("What are the top 10 holdings by weight?", ["portfolio_analyzer"]),
     ("Find latest research on AAPL", ["search_research_reports"]),
-
-    # Ambiguous — could use either tool
+    # Ambiguous - could use either tool
     ("Why is tech exposure so high?", ["portfolio_analyzer", "search_research_reports"]),
-
-    # Mixed — requires BOTH tools for a complete answer
-    ("Show top holdings and their latest analyst ratings",
-     ["portfolio_analyzer", "search_research_reports"]),
-
-    # Implicit data need — sounds qualitative but needs data
-    ("Are there any concentration risks I should worry about?",
-     ["portfolio_analyzer"]),
+    # Mixed - requires BOTH tools for a complete answer
+    (
+        "Show top holdings and their latest analyst ratings",
+        ["portfolio_analyzer", "search_research_reports"],
+    ),
+    # Implicit data need - sounds qualitative but needs data
+    ("Are there any concentration risks I should worry about?", ["portfolio_analyzer"]),
 ]
 
 for query, expected_tools in test_queries:
@@ -385,7 +387,6 @@ for query, expected_tools in test_queries:
     tools_used = result.tools_used  # List of tools invoked
     for tool in expected_tools:
         assert tool in tools_used, (
-            f"Query '{query}' expected tool '{tool}' "
-            f"but agent used: {tools_used}"
+            f"Query '{query}' expected tool '{tool}' but agent used: {tools_used}"
         )
 ```

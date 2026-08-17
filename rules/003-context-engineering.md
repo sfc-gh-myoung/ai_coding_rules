@@ -1,19 +1,28 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive context engineering practices that treat context as a finite resource with diminishing returns. Covers attention budgets (n² pairwise relationships), context rot, progressive"
+last_updated: 2026-07-15
+keywords:
+  - kw:context window management
+  - kw:attention budget
+  - kw:context rot prevention
+  - kw:progressive disclosure patterns
+  - kw:agentic search vs RAG
+  - kw:context compaction strategies
+  - kw:long-horizon task state
+token_budget: ~4300
+context_tier: Critical
+depends:
+  required:
+    - 000-global-core.md
+---
 # Context Engineering for AI Agents
 
 > **CRITICAL RULE**
 >
 > Treat context as a finite resource with diminishing returns.
 > Load when managing context windows, preventing context rot, or working with long-horizon tasks.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** context engineering, attention budget, context rot, token efficiency, compaction, progressive disclosure, sub-agents, agentic search, system prompts, right altitude, long-horizon tasks, memory management, state tracking
-**TokenBudget:** ~4300
-**ContextTier:** Critical
-**Depends:** 000-global-core.md
 
 ## Scope
 
@@ -30,19 +39,6 @@ Comprehensive context engineering practices that treat context as a finite resou
 - Compacting context before limits
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- `000-global-core.md` - Foundation for all rules, Context Window Management Protocol
-
-### Related Rules
-
-- `001-memory-bank.md` - Structured documentation and context preservation
-- `002d-advanced-rule-patterns.md` - System prompt altitude and investigation-first
-- `002c-rule-optimization.md` - Token budgets and optimization
-- `003a-long-horizon-tasks.md` - Compaction, structured notes, sub-agent architectures
-- `004-tool-design-for-agents.md` - Token-efficient tool development patterns
 
 ### External Documentation
 
@@ -231,11 +227,7 @@ for turn in session:
 **Correct Pattern: Structured External Memory**
 ```python
 # GOOD: Use persistent memory
-memory.store("session_state", {
-    "completed": ["task1", "task2"],
-    "current": "task3",
-    "blockers": []
-})
+memory.store("session_state", {"completed": ["task1", "task2"], "current": "task3", "blockers": []})
 
 # Keep only recent context
 recent_turns = conversation_history[-3:]
@@ -509,7 +501,7 @@ See `003a-long-horizon-tasks.md` for compaction protocols, structured note-takin
 
 For models with limited context (Haiku, GPT-3.5, smaller open-source models):
 
-1. **Load only Critical tier rules** — skip High, Medium, Low entirely
+1. **Load only Critical tier rules**: skip High, Medium, Low entirely
 2. **Single rule at a time:** Load the one most relevant rule, complete the task, unload
 3. **No conversation history:** Each turn starts fresh; persist state to files
 4. **Compress aggressively:** Summarize any context to <500 tokens before including

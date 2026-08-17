@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive testing and debugging guidance for Streamlit applications using AppTest patterns (Streamlit 1.28+), unit testing strategies with pytest for data functions, mocking external services"
+last_updated: 2026-07-15
+keywords:
+  - kw:AppTest
+  - kw:streamlit ui testing
+  - kw:cache behavior testing
+  - kw:mock snowflake session
+  - kw:widget interaction testing
+  - kw:pytest coverage 80%
+token_budget: ~3950
+context_tier: High
+depends:
+  required:
+    - 206-python-pytest.md  # Python testing with pytest
+  optional:
+    - 101b-snowflake-streamlit-performance.md  # Cache behavior testing
+---
 # Streamlit Testing: AppTest and Debugging
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** test Streamlit app, pytest, test framework, test patterns, app testing, UI testing, test automation, streamlit test suite, integration testing, test coverage, debug tests, test fixtures, testing strategies
-**TokenBudget:** ~3950
-**ContextTier:** High
-**Depends:** 101-snowflake-streamlit-core.md, 206-python-pytest.md
 
 ## Scope
 
@@ -26,17 +36,6 @@ Comprehensive testing and debugging guidance for Streamlit applications using Ap
 - Setting up CI/CD test automation
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
-- **206-python-pytest.md** - Python testing with pytest `[Available]`
-
-**Related:**
-- **101b-snowflake-streamlit-performance.md** - Cache behavior testing `[Available]`
-- **200-python-core.md** - Python testing fundamentals `[Available]`
 
 ### External Documentation
 
@@ -165,9 +164,10 @@ def test_load_data():
 ```python
 from unittest.mock import patch
 
+
 def test_load_data():
-    with patch('your_app.get_snowflake_session') as mock:
-        mock_df = pd.DataFrame({'col1': [1, 2, 3]})
+    with patch("your_app.get_snowflake_session") as mock:
+        mock_df = pd.DataFrame({"col1": [1, 2, 3]})
         mock.return_value.table.return_value.to_pandas.return_value = mock_df
 
         df = load_data()
@@ -178,7 +178,7 @@ def test_load_data():
 ```python
 def test_process_data():
     # Only tests happy path
-    df = pd.DataFrame({'col1': [1, 2, 3]})
+    df = pd.DataFrame({"col1": [1, 2, 3]})
     result = process_data(df)
     assert result is not None
 ```
@@ -190,8 +190,9 @@ def test_process_data_empty():
     result = process_data(pd.DataFrame())
     assert result is not None
 
+
 def test_process_data_invalid():
-    df = pd.DataFrame({'wrong_col': [1, 2]})
+    df = pd.DataFrame({"wrong_col": [1, 2]})
     with pytest.raises(KeyError):
         process_data(df)
 ```
@@ -208,7 +209,7 @@ def test_cache():
 **Correct Pattern:**
 ```python
 def test_cache_with_mock():
-    with patch('db.query') as mock_query:
+    with patch("db.query") as mock_query:
         mock_query.return_value = [1, 2, 3]
 
         # First call
@@ -231,14 +232,16 @@ import pytest
 import pandas as pd
 from your_app import load_data, process_data, normalize_columns
 
+
 def test_normalize_columns():
     """Test column name normalization from Snowflake."""
-    df = pd.DataFrame({'COL1': [1, 2], 'COL2': [3, 4]})
+    df = pd.DataFrame({"COL1": [1, 2], "COL2": [3, 4]})
     result = normalize_columns(df)
 
-    assert 'col1' in result.columns
-    assert 'col2' in result.columns
-    assert 'COL1' not in result.columns
+    assert "col1" in result.columns
+    assert "col2" in result.columns
+    assert "COL1" not in result.columns
+
 
 def test_process_data_empty_input():
     """Test graceful handling of empty dataframe."""
@@ -248,32 +251,28 @@ def test_process_data_empty_input():
     assert result is not None
     assert isinstance(result, pd.DataFrame)
 
+
 def test_process_data_valid_input():
     """Test data processing with valid input."""
-    df = pd.DataFrame({
-        'date': ['2025-01-01', '2025-01-02'],
-        'value': [100, 200]
-    })
+    df = pd.DataFrame({"date": ["2025-01-01", "2025-01-02"], "value": [100, 200]})
     result = process_data(df)
 
     assert len(result) == 2
-    assert 'processed_value' in result.columns
+    assert "processed_value" in result.columns
+
 
 @pytest.fixture
 def sample_data():
     """Fixture providing sample test data."""
-    return pd.DataFrame({
-        'id': [1, 2, 3],
-        'value': [10, 20, 30],
-        'category': ['A', 'B', 'A']
-    })
+    return pd.DataFrame({"id": [1, 2, 3], "value": [10, 20, 30], "category": ["A", "B", "A"]})
+
 
 def test_aggregation(sample_data):
     """Test aggregation logic using fixture."""
     result = aggregate_by_category(sample_data)
 
     assert len(result) == 2  # Two categories
-    assert result[result['category'] == 'A']['total'].iloc[0] == 40
+    assert result[result["category"] == "A"]["total"].iloc[0] == 40
 ```
 
 ## UI and Integration Testing with AppTest
@@ -282,9 +281,9 @@ def test_aggregation(sample_data):
 **Use Streamlit AppTest (Streamlit 1.28+) for UI/integration testing:**
 
 **Widget Access Methods:**
-- **Key-based (recommended):** `at.text_input(key="username")` -- most stable, survives reordering
-- **Label-based:** `at.text_input("Username")` -- readable, but breaks if label changes
-- **Index-based:** `at.text_input[0]` -- fragile, breaks if widget order changes
+- **Key-based (recommended):** `at.text_input(key="username")`: most stable, survives reordering
+- **Label-based:** `at.text_input("Username")`: readable, but breaks if label changes
+- **Index-based:** `at.text_input[0]`: fragile, breaks if widget order changes
 
 Use key-based access as the default. Assign `key=` to all widgets in your app code to enable stable test access.
 
@@ -293,11 +292,13 @@ Use key-based access as the default. Assign `key=` to all widgets in your app co
 # test_app.py
 from streamlit.testing.v1 import AppTest
 
+
 def test_app_loads():
     """Smoke test: verify app loads without errors."""
     at = AppTest.from_file("streamlit_app.py")
     at.run()
     assert not at.exception, f"App raised exception: {at.exception}"
+
 
 def test_data_display():
     """Verify expected UI elements are present."""
@@ -308,6 +309,7 @@ def test_data_display():
     assert len(at.title) > 0, "No title rendered"
     assert len(at.dataframe) > 0, "No dataframes displayed"
     assert len(at.metric) >= 3, "Expected at least 3 metrics"
+
 
 def test_user_interaction():
     """Test user interaction workflow."""
@@ -323,7 +325,10 @@ def test_user_interaction():
     at.button[0].click().run()
 
     # Verify state change
-    assert at.session_state.query_executed == True  # Replace 'query_executed' with your app's actual session state key
+    assert (
+        at.session_state.query_executed == True
+    )  # Replace 'query_executed' with your app's actual session state key
+
 
 def test_error_handling():
     """Verify graceful error handling."""
@@ -337,6 +342,7 @@ def test_error_handling():
     # Check error message displayed
     assert len(at.error) > 0, "No error message shown"
     assert "required" in str(at.error[0]).lower()
+
 
 def test_navigation():
     """Test multipage navigation via selectbox."""
@@ -368,10 +374,11 @@ def test_form_submission():
     assert len(at.success) > 0
     assert "submitted" in str(at.success[0]).lower()
 
+
 def test_caching():
     """Test cache behavior using mock call counts."""
-    with patch('your_app.get_snowflake_session') as mock_session:
-        mock_df = pd.DataFrame({'col1': [1, 2, 3]})
+    with patch("your_app.get_snowflake_session") as mock_session:
+        mock_df = pd.DataFrame({"col1": [1, 2, 3]})
         mock_session.return_value.sql.return_value.to_pandas.return_value = mock_df
 
         # First call - cache miss, hits database
@@ -403,10 +410,11 @@ def clear_cache():
 import streamlit as st
 from unittest.mock import patch, MagicMock
 
+
 def test_cache_data_behavior():
     """Test @st.cache_data behavior."""
-    with patch('your_app.get_snowflake_session') as mock_session:
-        mock_df = pd.DataFrame({'col1': [1, 2, 3]})
+    with patch("your_app.get_snowflake_session") as mock_session:
+        mock_df = pd.DataFrame({"col1": [1, 2, 3]})
         mock_session.return_value.table.return_value.to_pandas.return_value = mock_df
 
         # First call - should hit database
@@ -421,9 +429,10 @@ def test_cache_data_behavior():
         # Verify results identical
         pd.testing.assert_frame_equal(result1, result2)
 
+
 def test_cache_resource_behavior():
     """Test @st.cache_resource for connections."""
-    with patch('your_app.Session') as mock_session_class:
+    with patch("your_app.Session") as mock_session_class:
         mock_session = MagicMock()
         mock_session_class.builder.configs.return_value.create.return_value = mock_session
 
@@ -448,22 +457,22 @@ import pytest
 import pandas as pd
 from unittest.mock import MagicMock, patch
 
+
 @pytest.fixture
 def mock_snowflake_session():
     """Reusable mock for Snowflake session across all tests."""
-    with patch('your_app.get_snowflake_session') as mock:
+    with patch("your_app.get_snowflake_session") as mock:
         session = MagicMock()
         mock.return_value = session
         yield session
 
+
 @pytest.fixture
 def sample_df():
     """Standard test DataFrame with lowercase columns."""
-    return pd.DataFrame({
-        'id': [1, 2, 3],
-        'name': ['Alice', 'Bob', 'Charlie'],
-        'value': [100, 200, 300]
-    })
+    return pd.DataFrame(
+        {"id": [1, 2, 3], "name": ["Alice", "Bob", "Charlie"], "value": [100, 200, 300]}
+    )
 ```
 
 ## Common Debugging Issues
@@ -485,11 +494,13 @@ def sample_df():
 
 ```python
 # [PASS] Correct state management
-if 'counter' not in st.session_state:
+if "counter" not in st.session_state:
     st.session_state.counter = 0
+
 
 def increment():
     st.session_state.counter += 1
+
 
 st.button("Increment", on_click=increment)
 st.write(f"Count: {st.session_state.counter}")

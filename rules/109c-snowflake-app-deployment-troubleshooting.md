@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive troubleshooting guidance and anti-pattern identification for Snowflake application deployments, focusing on common errors, diagnostic commands, and proven solutions for Streamlit in"
+last_updated: 2026-07-15
+keywords:
+  - kw:streamlit deployment troubleshooting
+  - kw:sis typeerror
+  - kw:auto_compress debugging
+  - kw:stage file diagnostics
+  - kw:live_version_location_uri
+  - kw:notebook cache clearing
+  - kw:deployment permission debugging
+token_budget: ~4450
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+    - 100-snowflake-core.md  # Snowflake SQL, stage operations, and diagnostic commands
+    - 101-snowflake-streamlit-core.md  # Core Streamlit patterns for deployment context
+---
 # Snowflake Application Deployment - Troubleshooting & Anti-Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-05-13
-**LoadTrigger:** kw:deployment-error
-**Keywords:** Snowflake deployment troubleshooting, Streamlit debugging, SiS TypeError, notebook deployment issues, deployment errors, stage file debugging, AUTO_COMPRESS debugging, FROM deployment, live_version_location_uri, ROOT_LOCATION errors (legacy), deployment anti-patterns, diagnostic commands, deployment validation, cache issues
-**TokenBudget:** ~3900
-**ContextTier:** Medium
-**Depends:** 100-snowflake-core.md, 109-snowflake-notebooks.md, 101-snowflake-streamlit-core.md, 109b-snowflake-app-deployment-core.md
 
 ## Scope
 
@@ -30,13 +40,6 @@ Comprehensive troubleshooting guidance and anti-pattern identification for Snowf
 - [Snowflake Notebooks Troubleshooting](https://docs.snowflake.com/en/user-guide/ui-snowsight-notebooks-troubleshoot) - Notebook debugging
 - [Stage Management](https://docs.snowflake.com/en/user-guide/data-load-stages-intro) - Stage operations reference
 - [Python Imports in Snowflake](https://docs.snowflake.com/en/developer-guide/udf/python/udf-python-packages) - Package and import handling
-
-### Related Rules
-- **Core Deployment**: `109b-snowflake-app-deployment-core.md` - Base deployment patterns
-- **SiS TypeError/AttributeError Debugging**: `109j-snowflake-sis-typeerror-debugging.md` - Detailed diagnostic workflows for TypeError and AttributeError
-- **Streamlit Core**: `101-snowflake-streamlit-core.md` - Streamlit development
-- **Snowflake Notebooks**: `109-snowflake-notebooks.md` - Notebook best practices
-- **Snowflake Core**: `100-snowflake-core.md` - Foundational practices
 
 ## Contract
 
@@ -125,7 +128,7 @@ See `109b-snowflake-app-deployment-core.md` Anti-Pattern 2 for additional contex
 
 **LEGACY (ROOT_LOCATION)** Anti-Pattern 6: Uploading Streamlit Files to Subdirectory Path
 
-> **Legacy context:** This anti-pattern applies to apps created with the legacy `ROOT_LOCATION` syntax. For new apps, use `FROM` instead (see `109g-snowflake-app-deployment-sql-scripts.md`). Legacy apps created in older Snowsight versions may show `root_location` as a `snow://` URL instead of a named stage — this is expected for older legacy apps; modern legacy apps use `@stage` paths.
+> **Legacy context:** This anti-pattern applies to apps created with the legacy `ROOT_LOCATION` syntax. For new apps, use `FROM` instead (see `109g-snowflake-app-deployment-sql-scripts.md`). Legacy apps created in older Snowsight versions may show `root_location` as a `snow://` URL instead of a named stage: this is expected for older legacy apps; modern legacy apps use `@stage` paths.
 
 ```sql
 # LEGACY WRONG: Files nested in subdirectory
@@ -168,14 +171,14 @@ CREATE STREAMLIT APP
 
 For apps created with `FROM`, the primary diagnostic pattern differs from legacy ROOT_LOCATION apps.
 
-**Step 1 — Verify source stage before CREATE:**
+**Step 1: Verify source stage before CREATE:**
 ```sql
 LIST @DB.SCHEMA.STREAMLIT_STAGE;
 -- Expected: streamlit_app.py, environment.yml, pages/*, utils/* listed without .gz extensions
 -- If empty or missing: re-upload files before recreating the app
 ```
 
-**Step 2 — Check live_version_location_uri after CREATE:**
+**Step 2: Check live_version_location_uri after CREATE:**
 ```sql
 DESCRIBE STREAMLIT DB.SCHEMA.MY_APP;
 -- For FROM-based apps, look for live_version_location_uri (not root_location)
@@ -183,7 +186,7 @@ DESCRIBE STREAMLIT DB.SCHEMA.MY_APP;
 -- If only root_location is present: app was created with legacy ROOT_LOCATION syntax
 ```
 
-**Step 3 — Recreate flow when source files change:**
+**Step 3: Recreate flow when source files change:**
 ```sql
 DROP STREAMLIT IF EXISTS DB.SCHEMA.MY_APP;
 -- (Re-upload updated files to source stage if needed)

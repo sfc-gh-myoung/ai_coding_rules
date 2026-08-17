@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive guidance for optimizing Streamlit application performance through caching strategies (@st.cache_data, @st.cache_resource), efficient data loading from Snowflake with column"
+last_updated: 2026-07-15
+keywords:
+  - kw:@st.cache_data decorator
+  - kw:@st.cache_resource decorator
+  - kw:Snowflake column normalization
+  - kw:st.spinner progress feedback
+  - kw:query loop aggregation
+  - kw:ttl cache expiration
+token_budget: ~4950
+context_tier: High
+depends:
+  required:
+    - 103-snowflake-performance-tuning.md  # Snowflake query optimization
+---
 # Streamlit Performance: Caching and Optimization
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** @st.cache_data, @st.cache_resource, st.fragment, NULL handling, slow streamlit, streamlit caching, optimize streamlit, fix slow queries, fragment batch processing, streamlit performance, app slow, loading data, caching pattern
-**TokenBudget:** ~4950
-**ContextTier:** High
-**Depends:** 101-snowflake-streamlit-core.md, 103-snowflake-performance-tuning.md
 
 ## Scope
 
@@ -24,23 +32,6 @@ Comprehensive guidance for optimizing Streamlit application performance through 
 - Profiling and targeting <2s load time
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns and session management `[Available]`
-- **103-snowflake-performance-tuning.md** - Snowflake query optimization `[Available]`
-
-**Related:**
-- **101e-snowflake-streamlit-sql-errors.md** - Comprehensive SQL error handling patterns
-- **101a-snowflake-streamlit-visualization.md** - Chart/visualization performance
-- **101c-snowflake-streamlit-security.md** - Secure caching patterns
-- **105-snowflake-cost-governance.md** - Cost monitoring for cached queries
-- **111-snowflake-observability-core.md** - Query profiling and monitoring
-- **119-snowflake-warehouse-management.md** - Warehouse sizing for query performance
-- **251-python-datetime-core.md** - Datetime optimization for time series
-- **252-python-pandas-core.md** - DataFrame optimization and caching
 
 ### External Documentation
 
@@ -155,7 +146,8 @@ Optimized Streamlit app with <2s initial load, cached data operations, normalize
 ```python
 def load_data():
     # Runs every rerun - slow!
-    return session.table('LARGE_TABLE').to_pandas()
+    return session.table("LARGE_TABLE").to_pandas()
+
 
 df = load_data()  # Hits database every time
 ```
@@ -165,9 +157,10 @@ df = load_data()  # Hits database every time
 ```python
 @st.cache_data(ttl=600)
 def load_data():
-    df = session.table('LARGE_TABLE').to_pandas()
+    df = session.table("LARGE_TABLE").to_pandas()
     df.columns = [col.lower() for col in df.columns]  # See "Data Loading from Snowflake" section
     return df
+
 
 df = load_data()  # Cached, hits database once per ttl
 ```
@@ -175,7 +168,7 @@ df = load_data()  # Cached, hits database once per ttl
 **Anti-Pattern 2: Forgetting column normalization**
 ```python
 df = load_assets()
-transformers = df[df['asset_type'] == 'TRANSFORMER']  # KeyError!
+transformers = df[df["asset_type"] == "TRANSFORMER"]  # KeyError!
 ```
 **Problem:** Snowflake returns UPPERCASE column names; Python expects lowercase. See "Data Loading from Snowflake" section below for normalization pattern.
 
@@ -197,6 +190,7 @@ st.success("Processing complete!")
 def get_connection():
     return Session.builder.configs(st.secrets["snowflake"]).create()
 
+
 # Creates new connection every rerun!
 session1 = get_connection()
 session2 = get_connection()
@@ -208,6 +202,7 @@ session2 = get_connection()
 @st.cache_resource
 def get_connection():
     return Session.builder.configs(st.secrets["snowflake"]).create()
+
 
 # Reuses cached connection
 session1 = get_connection()
@@ -223,10 +218,12 @@ import streamlit as st
 import pandas as pd
 from snowflake.snowpark import Session
 
+
 @st.cache_resource
 def get_snowflake_session() -> Session:
     """Create and cache Snowflake connection."""
     return Session.builder.configs(st.secrets["snowflake"]).create()
+
 
 @st.cache_data(ttl=600)
 def load_data() -> pd.DataFrame:
@@ -267,12 +264,13 @@ def load_data() -> pd.DataFrame:
         """)
         st.stop()
 
+
 # Load data (cached)
 df = load_data()
 st.success(f"Loaded {len(df):,} records")
 
 # Access with lowercase column names
-st.dataframe(df[['region', 'product', 'total_amount']])
+st.dataframe(df[["region", "product", "total_amount"]])
 ```
 
 ## Implementation Details
@@ -321,16 +319,18 @@ st.dataframe(df[['region', 'product', 'total_amount']])
 import streamlit as st
 import pandas as pd
 
+
 @st.cache_data(ttl=600)  # Cache for 10 minutes
 def load_grid_assets() -> pd.DataFrame:
     """Load grid assets from Snowflake with normalized column names."""
     session = get_snowflake_session()
-    df = session.table('UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS').to_pandas()
+    df = session.table("UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS").to_pandas()
 
     # Apply column normalization (see "Data Loading from Snowflake" section)
     df.columns = [col.lower() for col in df.columns]
 
     return df
+
 
 # First call: executes query
 assets = load_grid_assets()  # Hits database
@@ -347,10 +347,12 @@ assets = load_grid_assets()  # Returns cache (fast!)
 ```python
 from snowflake.snowpark import Session
 
+
 @st.cache_resource
 def get_snowflake_session() -> Session:
     """Create and cache Snowflake connection."""
     return Session.builder.configs(st.secrets["snowflake"]).create()
+
 
 # First call: creates connection
 session = get_snowflake_session()  # Creates new session
@@ -392,6 +394,7 @@ def load_metrics():
         st.warning("Some metrics unavailable")
     return df
 
+
 metrics_df = load_metrics()
 for _, row in metrics_df.iterrows():
     value = row["value"]
@@ -427,16 +430,16 @@ Use this utility in all data loader functions instead of inline normalization. D
 **Problem:**
 ```python
 # This will fail with KeyError: 'asset_type'
-df = session.table('GRID_ASSETS').to_pandas()
-transformers = df[df['asset_type'] == 'TRANSFORMER']  # KeyError!
+df = session.table("GRID_ASSETS").to_pandas()
+transformers = df[df["asset_type"] == "TRANSFORMER"]  # KeyError!
 ```
 
 **Solution:**
 ```python
 # CORRECT - Normalize column names to lowercase
-df = session.table('UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS').to_pandas()
+df = session.table("UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS").to_pandas()
 df = normalize_sf_df(df)  # Critical!
-transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
+transformers = df[df["asset_type"] == "TRANSFORMER"]  # Works!
 ```
 
 **Best Practice:** Always normalize in data loader functions, not UI code:
@@ -445,7 +448,7 @@ transformers = df[df['asset_type'] == 'TRANSFORMER']  # Works!
 def load_grid_assets() -> pd.DataFrame:
     """Load grid assets with lowercase column names."""
     session = get_snowflake_session()
-    df = session.table('UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS').to_pandas()
+    df = session.table("UTILITY_DEMO_V2.GRID_DATA.GRID_ASSETS").to_pandas()
     return normalize_sf_df(df)  # Normalize here, not in UI
 ```
 
@@ -484,7 +487,7 @@ progress_bar = st.progress(0)
 status_text = st.empty()
 
 for i, batch in enumerate(data_batches):
-    status_text.text(f"Processing batch {i+1}/{len(data_batches)}...")
+    status_text.text(f"Processing batch {i + 1}/{len(data_batches)}...")
     process_batch(batch)
     progress_bar.progress((i + 1) / len(data_batches))
 
@@ -528,6 +531,7 @@ def load_all_sales() -> pd.DataFrame:
     df.columns = [col.lower() for col in df.columns]  # See "Data Loading from Snowflake" section
     return df
 
+
 df = load_all_sales()  # Single query, cached
 ```
 
@@ -543,7 +547,7 @@ df = load_all_sales()  # Single query, cached
 import streamlit as st
 
 # Debug: Log rerun count
-if 'rerun_count' not in st.session_state:
+if "rerun_count" not in st.session_state:
     st.session_state.rerun_count = 0
 st.session_state.rerun_count += 1
 

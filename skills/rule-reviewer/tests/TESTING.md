@@ -286,7 +286,7 @@ def validate_review_size(review_path):
 ```python
 def validate_review_structure(review_path):
     """Verify review contains all required sections."""
-    
+
     required_sections = [
         "### Agent Execution Test",
         "### Dimension Scores",
@@ -299,17 +299,17 @@ def validate_review_structure(review_path):
         "**Staleness:**",
         "### Agent Executability Verdict",
         "### Critical Issues",
-        "### Recommendations"
+        "### Recommendations",
     ]
-    
-    with open(review_path, 'r') as f:
+
+    with open(review_path, "r") as f:
         content = f.read()
-    
+
     missing = [s for s in required_sections if s not in content]
-    
+
     if missing:
         return False, f"Missing sections: {missing}"
-    
+
     return True, "All required sections present"
 ```
 
@@ -317,32 +317,33 @@ def validate_review_structure(review_path):
 ```python
 def validate_dimension_rationales(review_path):
     """Verify dimensions have rationales, not just scores."""
-    
-    with open(review_path, 'r') as f:
+
+    with open(review_path, "r") as f:
         content = f.read()
-    
+
     # Check for dimension scores with explanations
     # Each dimension should have score + rationale text
     dimensions = [
         "Actionability",
-        "Completeness", 
+        "Completeness",
         "Consistency",
         "Parsability",
         "Token Efficiency",
-        "Staleness"
+        "Staleness",
     ]
-    
+
     issues = []
     for dim in dimensions:
         # Look for pattern: **Dimension:** N/5 followed by explanation text
         import re
+
         pattern = f"\\*\\*{dim}:\\*\\* \\d/5(.{{50,}}?)(?=\\*\\*|###|$)"
         if not re.search(pattern, content, re.DOTALL):
             issues.append(f"{dim} missing rationale (score without explanation)")
-    
+
     if issues:
         return False, f"Incomplete dimension scoring: {issues}"
-    
+
     return True, "All dimensions have rationales"
 ```
 

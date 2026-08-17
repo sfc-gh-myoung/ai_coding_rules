@@ -1,14 +1,23 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Complete, production-ready output examples for Podman container workflows including Buildah multi-stage builds, Containerfile patterns, Quadlet unit files, and build/validate/deploy scripts."
+last_updated: 2026-07-15
+keywords:
+  - kw:Buildah multi-stage
+  - kw:Quadlet systemd
+  - kw:rootless numeric UID
+  - kw:SBOM generation script
+  - kw:Containerfile healthcheck
+  - kw:versioned image tags
+  - kw:ini
+token_budget: ~1750
+context_tier: Low
+depends:
+  required:
+    - 351-podman-core.md  # Parent rule with patterns and requirements
+---
 # Podman Output Format Examples
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-25
-**Keywords:** Podman examples, Containerfile example, buildah example, quadlet example, podman build script
-**TokenBudget:** ~1750
-**ContextTier:** Low
-**Depends:** 351-podman-core.md
 
 ## Scope
 
@@ -23,10 +32,9 @@ Complete, production-ready output examples for Podman container workflows includ
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **351-podman-core.md** - Parent rule with patterns and requirements
+_None._
 
 ## Contract
 

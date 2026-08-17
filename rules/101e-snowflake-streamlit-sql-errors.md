@@ -1,14 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive SQL error handling patterns for Streamlit applications using SnowparkSQLException with error codes, query context display (table names, operations, filters), numbered queries for"
+last_updated: 2026-07-15
+keywords:
+  - kw:SnowparkSQLException
+  - kw:streamlit sql error display
+  - kw:error code display
+  - kw:query context messaging
+  - kw:st.stop cascade prevention
+  - kw:empty dataframe warning
+token_budget: ~3950
+context_tier: Low
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+    - 100-snowflake-core.md  # Snowflake fundamentals
+    - 101-snowflake-streamlit-core.md  # Core Streamlit patterns
+  optional:
+    - 100f-snowflake-connection-errors.md  # Connection error classification and handling
+    - 101c-snowflake-streamlit-security.md  # Input validation for SQL injection prevention
+---
 # Streamlit SQL Error Handling Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** SnowparkSQLException, error messages, Streamlit errors, Snowflake errors, debug SQL error, fix query error, SQL exception, error troubleshooting, query failed, database error, SQL debugging patterns, exception handling, error recovery, common SQL errors, streamlit error, app error, fix error, error handling
-**TokenBudget:** ~3950
-**ContextTier:** Low
-**Depends:** 100-snowflake-core.md, 101-snowflake-streamlit-core.md, 101b-snowflake-streamlit-performance.md
 
 ## Scope
 
@@ -25,18 +38,6 @@ Comprehensive SQL error handling patterns for Streamlit applications using Snowp
 - Building user-friendly SQL error displays
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
-- **100-snowflake-core.md** - Snowflake fundamentals `[Available]`
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
-- **101b-snowflake-streamlit-performance.md** - Performance and caching patterns `[Available]`
-
-**Related:**
-- **100f-snowflake-connection-errors.md** - Connection error classification and handling `[Available]`
-- **101c-snowflake-streamlit-security.md** - Input validation for SQL injection prevention `[Available]`
 
 ### External Documentation
 
@@ -96,10 +97,10 @@ Streamlit error messages with full context; stopped execution on SQL failure; em
 - Empty results handled with st.warning()
 
 **Negative Tests:**
-- Error messages contain error code, table name, and operation -- FAIL if any missing
-- `st.stop()` called after every `SnowparkSQLException` -- FAIL if missing
-- Empty results use `st.warning()` not `st.error()` -- FAIL if wrong severity
-- Generic `Exception` caught without preceding `SnowparkSQLException` -- FAIL
+- Error messages contain error code, table name, and operation: FAIL if any missing
+- `st.stop()` called after every `SnowparkSQLException`: FAIL if missing
+- Empty results use `st.warning()` not `st.error()`: FAIL if wrong severity
+- Generic `Exception` caught without preceding `SnowparkSQLException`: FAIL
 
 ### Design Principles
 
@@ -128,31 +129,40 @@ When many queries need identical error handling, use a decorator to avoid repeti
 
 **Helper function (used throughout this rule):**
 ```python
-def get_error_code(e): return getattr(e, 'error_code', 'N/A')
+def get_error_code(e):
+    return getattr(e, "error_code", "N/A")
 ```
 
 ```python
 import functools
 from snowflake.snowpark.exceptions import SnowparkSQLException
 
+
 def handle_sql_error(table: str, operation: str):
     """Decorator for consistent SQL error handling across queries."""
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
             except SnowparkSQLException as e:
-                st.error(f"**SQL Failed: {operation}**\n\n"
-                         f"**Error:** {e}\n**Code:** {get_error_code(e)}\n**Table:** {table}")
+                st.error(
+                    f"**SQL Failed: {operation}**\n\n"
+                    f"**Error:** {e}\n**Code:** {get_error_code(e)}\n**Table:** {table}"
+                )
                 st.stop()
+
         return wrapper
+
     return decorator
+
 
 # Usage
 @handle_sql_error(table="ASSETS", operation="Load assets")
 def load_assets():
     return session.sql("SELECT asset_id, asset_type, install_date FROM ASSETS").to_pandas()
+
 
 @handle_sql_error(table="OUTAGES", operation="Load outages")
 def load_outages():
@@ -180,6 +190,7 @@ def load_data():
 ```python
 # Good: Specific SQL exception handling with context
 from snowflake.snowpark.exceptions import SnowparkSQLException
+
 
 def load_data():
     try:
@@ -264,7 +275,7 @@ except SnowparkSQLException as e:
     # Missing st.stop()!
 
 # Code continues executing with df undefined
-transformers = df[df['type'] == 'TRANSFORMER']  # NameError!
+transformers = df[df["type"] == "TRANSFORMER"]  # NameError!
 st.dataframe(transformers)  # Cascading failures
 ```
 **Problem:** Cascading errors from undefined variables; confusing error messages; user sees multiple red boxes; unprofessional UX
@@ -282,7 +293,7 @@ except SnowparkSQLException as e:
     st.stop()  # Halt execution immediately
 
 # Code below only runs if query succeeded
-transformers = df[df['type'] == 'TRANSFORMER']
+transformers = df[df["type"] == "TRANSFORMER"]
 st.dataframe(transformers)
 ```
 **Benefits:** Prevents cascading errors; clean single error message; professional error handling; user knows exactly what failed
@@ -372,6 +383,7 @@ except SnowparkSQLException as e:
 import streamlit as st
 from snowflake.snowpark.exceptions import SnowparkSQLException
 
+
 def load_data_with_error_handling():
     """Load data with comprehensive error handling."""
     try:
@@ -448,10 +460,10 @@ For connection-level errors (authentication, network policy, VPN issues), see **
 - Unknown error fallback handling
 
 **Streamlit UI integration:** Use the classification from 100f to select appropriate Streamlit widgets:
-- `SnowflakeErrorType.NETWORK_POLICY` -- `st.warning()` + retry button + VPN tip
-- `SnowflakeErrorType.AUTH_EXPIRED` -- `st.error()` + `st.code("snow connection test")`
-- `SnowflakeErrorType.TRANSIENT` -- `st.warning()` + auto-retry with exponential backoff
-- `SnowflakeErrorType.UNKNOWN` -- `st.error()` + raw error display + retry button
+- `SnowflakeErrorType.NETWORK_POLICY`: `st.warning()` + retry button + VPN tip
+- `SnowflakeErrorType.AUTH_EXPIRED`: `st.error()` + `st.code("snow connection test")`
+- `SnowflakeErrorType.TRANSIENT`: `st.warning()` + auto-retry with exponential backoff
+- `SnowflakeErrorType.UNKNOWN`: `st.error()` + raw error display + retry button
 
 **Auto-retry pattern:** For transient errors, use exponential backoff (`base_delay * 2^attempt`) with max 3 retries. Do not retry auth errors (user action required). Show progress with `st.spinner()`.
 

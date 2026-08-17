@@ -1,15 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Operational patterns for Data Quality Monitoring including DMF scheduling, event table analysis, alerting, remediation workflows, and RBAC configuration. Covers automated monitoring, quality event"
+last_updated: 2026-07-15
+keywords:
+  - kw:DMF scheduling
+  - kw:quality event tables
+  - kw:expectation failures
+  - kw:remediation workflows
+  - kw:EXECUTE DATA METRIC FUNCTION
+  - kw:quality alerting
+  - kw:dmf
+token_budget: ~4400
+context_tier: High
+depends:
+  optional:
+    - 124a-snowflake-data-quality-custom.md  # Custom DMF creation
+    - 104-snowflake-streams-tasks.md  # Task scheduling patterns
+---
 # Snowflake Data Quality: Operations & Monitoring
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:dmf-operations, kw:quality-monitoring
-**Keywords:** remediation, RBAC, privilege requirements, automated monitoring, quality alerts, schedule DMF, quality event tables, quality alerting, DMF results, quality workflows, DMF RBAC, quality notifications, remediation workflows
-**TokenBudget:** ~4400
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 124-snowflake-data-quality-core.md, 111-snowflake-observability-core.md
 
 ## Scope
 
@@ -25,17 +34,6 @@ Operational patterns for Data Quality Monitoring including DMF scheduling, event
 - Troubleshooting DMF execution or alerting issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **124-snowflake-data-quality-core.md** - Data Quality fundamentals
-- **111-snowflake-observability-core.md** - Event tables and monitoring patterns
-
-**Related:**
-- **124a-snowflake-data-quality-custom.md** - Custom DMF creation
-- **104-snowflake-streams-tasks.md** - Task scheduling patterns
 
 ### External Documentation
 
@@ -224,9 +222,9 @@ CREATE TABLE DATA_QUALITY.TRACKING.INCIDENTS (
 
 > **Investigation Required**
 > When applying this rule:
-> 1. **Profile data BEFORE recommending DMFs — verify baseline characteristics**
+> 1. **Profile data BEFORE recommending DMFs: verify baseline characteristics**
 > 2. **Check table ownership and privileges before suggesting DMF associations**
-> 3. **Never assume expectation thresholds — profile data to understand reality**
+> 3. **Never assume expectation thresholds: profile data to understand reality**
 > 4. **Query event table to verify DMFs are actually running before troubleshooting**
 > 5. **Review cost consumption patterns before recommending schedule changes**
 >
@@ -360,7 +358,7 @@ CREATE OR REPLACE ALERT DATA_QUALITY.ALERTS.EMAIL_NULL_ALERT
       'The email column in CUSTOMERS table has exceeded acceptable NULL threshold.'
     );
 
--- CRITICAL: Alert is created in suspended state — must resume
+-- CRITICAL: Alert is created in suspended state - must resume
 ALTER ALERT DATA_QUALITY.ALERTS.EMAIL_NULL_ALERT RESUME;
 
 -- Grant execute privilege to the alert owner role
@@ -510,6 +508,6 @@ ORDER BY total_credits DESC;
 
 ### Limits and Quotas
 
-- **10,000 total DMF-object associations** per account — plan capacity for large deployments
+- **10,000 total DMF-object associations** per account: plan capacity for large deployments
 - Cannot set DMFs on shared tables (consumer side), object tags, or in reader accounts
 - DMFs replicate within database replication; monitor primary and secondary independently

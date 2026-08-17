@@ -1,15 +1,20 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Best practices for building reproducible, secure, and maintainable Jupyter Notebooks within the Snowflake environment, ensuring deterministic execution, proper state management, and seamless"
+last_updated: 2026-07-15
+keywords:
+  - kw:Snowflake Notebooks
+  - kw:reproducible notebook execution
+  - kw:Snowpark DataFrame computation
+  - kw:cell naming conventions
+  - kw:nbqa ruff linting
+  - kw:notebook state management
+token_budget: ~4450
+context_tier: Medium
+depends: {}
+---
 # Snowflake Notebook Directives
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.2
-**LastUpdated:** 2026-03-26
-**LoadTrigger:** kw:notebook, kw:jupyter
-**Keywords:** ML, reproducible notebooks, nbqa, notebook linting, code quality, Python, create notebook, debug notebook, notebook execution, notebook testing, notebook deployment, kernel management, cell execution
-**TokenBudget:** ~4450
-**ContextTier:** Medium
-**Depends:** 100-snowflake-core.md, 201-python-lint-format.md
 
 ## Scope
 
@@ -42,20 +47,6 @@ Best practices for building reproducible, secure, and maintainable Jupyter Noteb
 - [Snowpark for Python](https://docs.snowflake.com/en/developer-guide/snowpark/python/index) - Snowpark Python API reference
 - [nbqa](https://nbqa.readthedocs.io/) - Code quality tools for Jupyter notebooks
 - [Jupyter Best Practices](https://jupyter-notebook.readthedocs.io/en/stable/notebook.html) - Notebook usage guidelines
-
-### Related Rules
-**Closely Related** (consider loading together):
-- **100-snowflake-core.md** - Snowflake fundamentals, connection patterns, DDL syntax
-- **111-snowflake-observability-core.md** - adding telemetry and monitoring to notebook executions
-
-**Sometimes Related** (load if specific scenario):
-- **101-snowflake-streamlit-core.md** - combining notebook development with Streamlit deployment
-- **114-snowflake-cortex-aisql.md** - using Cortex AI functions in notebook workflows
-- **124-snowflake-data-quality-core.md** - running data quality checks in notebooks
-
-**Complementary** (different aspects of same domain):
-- **103-snowflake-performance-tuning.md** - optimizing queries in notebook cells
-- **107-snowflake-security-governance.md** - secrets management and RBAC in notebooks
 
 ## Contract
 
@@ -126,17 +117,17 @@ See the Post-Execution Checklist section below for comprehensive validation step
 ```python
 # BAD: Cell 5 depends on variable from deleted Cell 3
 # df_filtered was created interactively, then Cell 3 was deleted
-result = df_filtered.groupby('region').sum()  # NameError on fresh run
+result = df_filtered.groupby("region").sum()  # NameError on fresh run
 
 # GOOD: Each cell is self-contained or explicitly chains
 # Cell 1: Load data
-df_raw = session.table('SALES').to_pandas()
+df_raw = session.table("SALES").to_pandas()
 
 # Cell 2: Filter (explicit dependency on Cell 1)
-df_filtered = df_raw[df_raw['status'] == 'active']
+df_filtered = df_raw[df_raw["status"] == "active"]
 
 # Cell 3: Aggregate (explicit dependency on Cell 2)
-result = df_filtered.groupby('region').sum()
+result = df_filtered.groupby("region").sum()
 ```
 
 ### Anti-Pattern 2: Hardcoded Credentials in Notebook Cells
@@ -149,17 +140,18 @@ result = df_filtered.groupby('region').sum()
 ```python
 # BAD: Credentials in code
 connection = snowflake.connector.connect(
-    user='admin',
-    password='SuperSecret123!',  # Exposed in .ipynb JSON
-    account='xy12345.us-east-1'
+    user="admin",
+    password="<PASSWORD>",  # Exposed in .ipynb JSON
+    account="xy12345.us-east-1",
 )
 
 # GOOD: Credentials from environment
 import os
+
 connection = snowflake.connector.connect(
-    user=os.environ['SNOWFLAKE_USER'],
-    password=os.environ['SNOWFLAKE_PASSWORD'],
-    account=os.environ['SNOWFLAKE_ACCOUNT']
+    user=os.environ["SNOWFLAKE_USER"],
+    password=os.environ["SNOWFLAKE_PASSWORD"],
+    account=os.environ["SNOWFLAKE_ACCOUNT"],
 )
 # Or use Streamlit secrets: st.secrets["snowflake"]["password"]
 ```
@@ -191,14 +183,16 @@ connection = snowflake.connector.connect(
 ```python
 # BAD: Pull entire table locally for filtering
 df = session.table("LARGE_TABLE").to_pandas()  # 10M rows to local memory
-result = df[df['status'] == 'active'].groupby('region').sum()
+result = df[df["status"] == "active"].groupby("region").sum()
 
 # GOOD: Filter and aggregate in Snowpark, then collect small result
-result = (session.table("LARGE_TABLE")
+result = (
+    session.table("LARGE_TABLE")
     .filter(col("STATUS") == "active")
     .group_by("REGION")
     .agg(sum("AMOUNT").alias("TOTAL"))
-    .to_pandas())  # Only collect the small aggregated result
+    .to_pandas()
+)  # Only collect the small aggregated result
 ```
 
 ## Post-Execution Checklist
@@ -241,7 +235,7 @@ connection_params = {
     "password": os.getenv("SNOWFLAKE_PASSWORD"),
     "warehouse": "COMPUTE_WH",
     "database": "ANALYTICS_DB",
-    "schema": "PUBLIC"
+    "schema": "PUBLIC",
 }
 
 # Cell: create_snowpark_session
@@ -252,13 +246,12 @@ customers_df = session.table("CUSTOMERS").select(
     col("CUSTOMER_ID"),
     col("CUSTOMER_NAME"),
     col("REGISTRATION_DATE"),
-    month(col("REGISTRATION_DATE")).alias("REGISTRATION_MONTH")
+    month(col("REGISTRATION_DATE")).alias("REGISTRATION_MONTH"),
 )
 
 # Cell: calculate_monthly_metrics
 monthly_summary = customers_df.group_by("REGISTRATION_MONTH").agg(
-    sum("TOTAL_ORDERS").alias("MONTHLY_ORDERS"),
-    avg("ORDER_VALUE").alias("AVG_ORDER_VALUE")
+    sum("TOTAL_ORDERS").alias("MONTHLY_ORDERS"), avg("ORDER_VALUE").alias("AVG_ORDER_VALUE")
 )
 ```
 
@@ -395,6 +388,7 @@ AS
 ```python
 # Snowflake Notebook session pattern
 from snowflake.snowpark.context import get_active_session
+
 session = get_active_session()
 
 # Use session for all Snowpark operations

@@ -1,20 +1,30 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Advanced bash security patterns covering privilege management, resource limits, network security, secure logging, parameter expansion safety, permission validation, and security testing methodologies."
+last_updated: 2026-07-15
+keywords:
+  - kw:privilege dropping
+  - kw:ulimit resource constraints
+  - kw:URL validation localhost blocking
+  - kw:audit logging security events
+  - kw:parameter expansion whitelisting
+  - kw:malicious payload testing
+token_budget: ~2200
+context_tier: Medium
+depends:
+  required:
+    - 300a-bash-security.md  # Core security patterns (input validation, command injection, credentials)
+  optional:
+    - 300-bash-scripting-core.md  # Foundation bash scripting patterns
+    - 300b-bash-testing-tooling.md  # Testing frameworks and CI/CD tooling
+---
 # Bash Security Advanced Patterns
 
 > **SUB-RULE: ADVANCED SECURITY**
 >
 > Advanced security patterns for privilege management, network security,
 > audit logging, parameter expansion safety, and security testing.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Bash, security, privilege management, network security, audit logging, resource limits, URL validation, security testing, parameter expansion, file permissions
-**TokenBudget:** ~2200
-**ContextTier:** Medium
-**Depends:** 300a-bash-security.md
-**LoadTrigger:** kw:bash-security-advanced, kw:privilege-management, kw:audit-logging
 
 ## Scope
 
@@ -30,14 +40,9 @@ Advanced bash security patterns covering privilege management, resource limits, 
 
 ## References
 
-### Dependencies
+### External Documentation
 
-**Must Load First:**
-- **300a-bash-security.md** - Core security patterns (input validation, command injection, credentials)
-
-**Related:**
-- **300-bash-scripting-core.md** - Foundation bash scripting patterns
-- **300b-bash-testing-tooling.md** - Testing frameworks and CI/CD tooling
+_None._
 
 ## Contract
 
@@ -136,7 +141,7 @@ deploy() {
 echo "Login failed" >> /var/log/app.log
 
 # GOOD: Structured security logging with context
-# GOOD: Use audit_log() — see Secure Logging section for implementation
+# GOOD: Use audit_log() - see Secure Logging section for implementation
 audit_log "AUTH_FAILURE" "source_ip=$remote_ip username=$attempted_user"
 ```
 
@@ -173,7 +178,7 @@ set_limits() {
     ulimit -c 0        # No core dumps (security: prevents credential leaks)
 
     # Trap SIGXCPU for graceful shutdown when CPU limit approached
-    trap 'echo "CPU limit reached — shutting down" >&2; exit 152' XCPU
+    trap 'echo "CPU limit reached - shutting down" >&2; exit 152' XCPU
 }
 ```
 

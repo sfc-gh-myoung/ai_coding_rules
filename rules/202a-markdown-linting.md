@@ -1,15 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Markdown linting patterns, tool configuration, and integration for consistent documentation quality. Uses pymarkdownlnt as the primary Python-native linter."
+last_updated: 2026-07-15
+keywords:
+  - kw:pymarkdownlnt
+  - kw:markdown linting
+  - kw:uvx pymarkdownlnt
+  - kw:.pymarkdown.yml
+  - kw:MD013 line length
+  - kw:markdown automation integration
+token_budget: ~2800
+context_tier: Low
+depends:
+  required:
+    - 202-markup-config-validation.md  # Parent rule for markup and config validation
+  optional:
+    - 820-taskfile-automation.md
+---
 # Markdown Linting
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-03-26
-**Keywords:** Markdown, markdown linting, pymarkdownlnt, documentation, markup validation
-**TokenBudget:** ~2800
-**ContextTier:** Low
-**Depends:** 202-markup-config-validation.md
-**LoadTrigger:** ext:.md, kw:markdown, kw:pymarkdownlnt
 
 ## Scope
 
@@ -23,14 +32,6 @@ Markdown linting patterns, tool configuration, and integration for consistent do
 - Fixing Markdown formatting issues
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **202-markup-config-validation.md** - Parent rule for markup and config validation
-
-**Related:**
-- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
 
 ### External Documentation
 
@@ -120,7 +121,7 @@ README.md:12:81: MD013: Line length [Expected: 80; Actual: 120]
 
 **pymarkdownlnt not installed:**
 ```bash
-# Always available via uvx — no installation needed
+# Always available via uvx - no installation needed
 uvx pymarkdownlnt scan path/to/file.md
 
 # If uvx fails, install directly

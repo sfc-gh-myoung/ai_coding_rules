@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Core directives for creating and maintaining project automation using Makefiles, ensuring consistent, portable, and well-documented target management with GNU Make."
+last_updated: 2026-07-15
+keywords:
+  - kw:GNU Make
+  - kw:make target
+  - kw:phony declaration
+  - kw:self-documenting help
+  - kw:uv uvx integration
+  - kw:tool auto-detection
+token_budget: ~3700
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 821a-makefile-advanced-patterns.md  # Advanced patterns (conditionals, categorized help, platform detection)
+    - 820-taskfile-automation.md  # Alternative task runner (Taskfile.yml)
+    - 300-bash-scripting-core.md  # Shell scripting patterns used in targets
+---
 # Makefile Automation Directives
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** file:Makefile, kw:makefile, kw:make
-**Keywords:** Makefile, GNU Make, make, build automation, make target, phony, make help, portable make, make variables, uv, uvx, make dependencies, make error handling, make cleanup
-**TokenBudget:** ~3700
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
 
 ## Scope
 
@@ -25,16 +36,6 @@ Core directives for creating and maintaining project automation using Makefiles,
 **For advanced patterns (categorized help, conditional logic, variable assignment types), see `821a-makefile-advanced-patterns.md`.**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **821a-makefile-advanced-patterns.md** - Advanced patterns (conditionals, categorized help, platform detection)
-- **820-taskfile-automation.md** - Alternative task runner (Taskfile.yml)
-- **300-bash-scripting-core.md** - Shell scripting patterns used in targets
 
 ### External Documentation
 - [GNU Make Manual](https://www.gnu.org/software/make/manual/make.html)
@@ -94,7 +95,7 @@ Core directives for creating and maintaining project automation using Makefiles,
 **Negative Tests:**
 - `make deploy` without `DEST=...` MUST produce: `*** DEST is required. Usage: make deploy DEST=/path/to/project.  Stop.`
 - If a `test/` directory exists and `.PHONY: test` is missing, `make test` should skip (demonstrates why .PHONY is mandatory)
-- `make -n <target>` should show command expansion without executing — verify no side effects in dry run
+- `make -n <target>` should show command expansion without executing: verify no side effects in dry run
 
 **Error Recovery:**
 - **make: command not found:** Install GNU Make via system package manager
@@ -122,11 +123,11 @@ Core directives for creating and maintaining project automation using Makefiles,
 
 Before creating or modifying a Makefile, complete these checks:
 
-1. **Read existing Makefile:** `cat Makefile` — understand current targets, variables, and structure
+1. **Read existing Makefile:** `cat Makefile`: understand current targets, variables, and structure
 2. **Identify toolchain(s):** Check for `pyproject.toml` (Python), `go.mod` (Go), `Dockerfile` (Docker), `package.json` (Node.js)
-3. **Check for .env files:** `ls .env* 2>/dev/null` — targets may depend on environment variables
-4. **Verify GNU Make version:** `make --version | head -1` — confirm 3.81+ (4.0+ for extended features)
-5. **Check for sub-Makefiles:** `grep -r 'include ' Makefile 2>/dev/null` — identify include directives and dependencies
+3. **Check for .env files:** `ls .env* 2>/dev/null`: targets may depend on environment variables
+4. **Verify GNU Make version:** `make --version | head -1`: confirm 3.81+ (4.0+ for extended features)
+5. **Check for sub-Makefiles:** `grep -r 'include ' Makefile 2>/dev/null`; identify include directives and dependencies
 
 ## Makefile Structure
 

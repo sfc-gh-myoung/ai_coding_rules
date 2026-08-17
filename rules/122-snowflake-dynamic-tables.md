@@ -1,39 +1,40 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Dynamic Tables best practices: refresh modes, lag configuration, warehouse sizing, modular pipelines, monitoring, cost optimization."
+last_updated: 2026-07-15
+keywords:
+  - kw:dynamic table
+  - kw:refresh mode
+  - kw:target lag
+  - kw:incremental refresh
+  - kw:downstream dependencies
+  - kw:modular pipeline chaining
+  - kw:cdc
+token_budget: ~3400
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 104-snowflake-streams-tasks.md  # Incremental pipelines and CDC
+  optional:
+    - 105-snowflake-cost-governance.md  # Cost optimization
+    - 103-snowflake-performance-tuning.md  # Query optimization
+---
 # Snowflake Dynamic Tables Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:dynamic-table, kw:incremental
-**Keywords:** automatic pipelines, DOWNSTREAM, FULL, warehouse sizing, data freshness, dynamic table lag, refresh frequency, pipeline automation
-**TokenBudget:** ~3400
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 104-snowflake-streams-tasks.md, 119-snowflake-warehouse-management.md
 
 ## Scope
 
 **What This Rule Covers:**
 Dynamic Tables best practices: refresh modes, lag configuration, warehouse sizing, modular pipelines, monitoring, cost optimization.
 
-**When to Load:**
+**When to Load This Rule:**
 - Creating/configuring Dynamic Tables
 - Troubleshooting refresh issues
 - Designing modular data pipelines
 - Choosing between Dynamic Tables, materialized views, and Streams/Tasks
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **104-snowflake-streams-tasks.md** - Incremental pipelines and CDC
-- **119-snowflake-warehouse-management.md** - Warehouse sizing
-
-**Related:**
-- **105-snowflake-cost-governance.md** - Cost optimization
-- **103-snowflake-performance-tuning.md** - Query optimization
 
 ### External Documentation
 - [Dynamic Tables Introduction](https://docs.snowflake.com/en/user-guide/dynamic-tables-intro)
@@ -395,7 +396,7 @@ SELECT * FROM analytics.DT_SALES AT(TIMESTAMP => '2024-03-09 12:00:00'::TIMESTAM
 SELECT SYSTEM$DYNAMIC_TABLE_REFRESH_HISTORY('analytics.DT_SALES');
 ```
 
-> **Note:** Time travel on Dynamic Tables uses the refresh history — you can only travel
+> **Note:** Time travel on Dynamic Tables uses the refresh history: you can only travel
 > to points where a refresh completed. The retention period follows standard Snowflake
 > time travel settings (default 1 day, max 90 days with Enterprise edition).
 

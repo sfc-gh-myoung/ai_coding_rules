@@ -41,7 +41,7 @@ Result:   {summary}
 **Blocking Issues Count: {N}**
 
 {For each blocking issue:}
-1. **{Issue type} at line {N}:** {Description} -- {Why an agent would struggle}
+1. **{Issue type} at line {N}:** {Description}: {Why an agent would struggle}
 
 ## Dimension Analysis
 

@@ -1,20 +1,32 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Core patterns to design, configure, and deploy Cortex Agents including agent archetypes, tool configurations, and essential anti-patterns."
+last_updated: 2026-07-15
+keywords:
+  - kw:cortex agent
+  - kw:agent archetype
+  - kw:tool orchestration
+  - kw:planning instructions
+  - kw:semantic view grounding
+  - kw:agent debugging
+token_budget: ~3100
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 106-snowflake-semantic-views-core.md  # Semantic views as agent tools
+  optional:
+    - 115a-snowflake-cortex-agents-instructions.md  # Planning and response instructions
+    - 115b-snowflake-cortex-agents-operations.md  # Testing, RBAC, observability
+    - 116-snowflake-cortex-search.md  # Cortex Search for document retrieval
+---
 # Snowflake Cortex Agents Best Practices
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential Cortex Agents patterns. Load for Cortex Agent tasks.
 > Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** multi-tool agents, planning instructions, testing, troubleshooting, semantic views, create agent, debug agent, agent not working, tool execution failed, agent error, fix agent
-**TokenBudget:** ~3100
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md, 106-snowflake-semantic-views-core.md
-**LoadTrigger:** kw:agent, kw:cortex-agent
 
 ## Scope
 
@@ -38,23 +50,6 @@ Core patterns to design, configure, and deploy Cortex Agents including agent arc
 > **STOP if any condition fails. DO NOT create agents using assumptions.**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **106-snowflake-semantic-views-core.md** - Semantic views as agent tools
-
-**Related:**
-- **115a-snowflake-cortex-agents-instructions.md** - Planning and response instructions
-- **115b-snowflake-cortex-agents-operations.md** - Testing, RBAC, observability
-- **116-snowflake-cortex-search.md** - Cortex Search for document retrieval
-
-### Related Examples
-
-- **examples/115-cortex-agent-prerequisites-example.md** - Pre-flight validation workflow
-- **examples/115-cortex-agent-hybrid-sql-example.md** - Multi-tool agent (SQL DDL)
-- **examples/115-cortex-agent-hybrid-python-example.md** - Multi-tool agent (Python SDK)
 
 ### External Documentation
 - [Cortex Agents Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents)
@@ -81,7 +76,7 @@ Cortex Agents, semantic views, Cortex Search, Cortex Analyst
 ### Execution Steps
 
 1. Choose agent archetype based on use case
-2. Define objectives; select smallest model that meets quality (prefer llama3.1-8b for classification tasks; scale to 70b only for complex multi-step reasoning — see 114-snowflake-cortex-aisql.md model ladder)
+2. Define objectives; select smallest model that meets quality (prefer llama3.1-8b for classification tasks; scale to 70b only for complex multi-step reasoning: see 114-snowflake-cortex-aisql.md model ladder)
 3. Ground with governed sources (semantic views, curated indices)
 4. Configure tools with clear descriptions
 5. Write planning instructions for tool selection
@@ -125,14 +120,16 @@ Agent configs, planning templates, SQL/Python snippets
 
 **Correct Pattern:**
 ```python
-tools = [{
-    "name": "sales_revenue_analyst",
-    "description": """Query sales revenue data including:
+tools = [
+    {
+        "name": "sales_revenue_analyst",
+        "description": """Query sales revenue data including:
     - Total revenue by time period
     - Revenue by product category, region
     - Top N products by revenue
-    Use for quantitative revenue questions."""
-}]
+    Use for quantitative revenue questions.""",
+    }
+]
 ```
 
 ### Anti-Pattern 2: Missing Planning Instructions for Multi-Tool Agents
@@ -155,7 +152,7 @@ agent = cortex.Agent(
     - Structured data query -> CORTEX_ANALYST + semantic view
     - Document search -> CORTEX_SEARCH_SERVICE + search service name
     - Both needed -> Configure both tools in agent definition
-    """
+    """,
 )
 ```
 
@@ -188,7 +185,7 @@ test_questions = [
     "What's the weather?",
     "Book me a flight",
     # Edge cases
-    "Revenue for year 3000"
+    "Revenue for year 3000",
 ]
 ```
 

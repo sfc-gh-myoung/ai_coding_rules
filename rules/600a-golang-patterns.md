@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Advanced Go patterns for production services including HTTP server configuration, middleware chains, graceful shutdown, database access patterns, and server hardening."
+last_updated: 2026-07-15
+keywords:
+  - kw:http.Server timeouts
+  - kw:graceful shutdown
+  - kw:middleware chain composition
+  - kw:database connection pooling
+  - kw:context-aware queries
+  - kw:signal handling SIGTERM
+  - kw:taskfile
+token_budget: ~2250
+context_tier: Low
+depends:
+  required:
+    - 600-golang-core.md  # Core Go patterns and conventions
+  optional:
+    - 820-taskfile-automation.md
+---
 # Go Patterns: HTTP Servers, Middleware & Production Readiness
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.1
-**LastUpdated:** 2026-03-26
-**Keywords:** Go, Golang, HTTP server, middleware, graceful shutdown, timeouts, database patterns, production, server configuration
-**TokenBudget:** ~2250
-**ContextTier:** Low
-**Depends:** 600-golang-core.md
-**LoadTrigger:** kw:go-http, kw:go-server, kw:go-middleware
 
 ## Scope
 
@@ -25,14 +35,6 @@ Advanced Go patterns for production services including HTTP server configuration
 **For core Go patterns (error handling, interfaces, testing, concurrency), see `600-golang-core.md`.**
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **600-golang-core.md** - Core Go patterns and conventions
-
-**Related:**
-- **820-taskfile-automation.md** / **821-makefile-automation.md** - Build automation patterns
 
 ### External Documentation
 - [net/http Package](https://pkg.go.dev/net/http) - Standard library HTTP server
@@ -100,10 +102,10 @@ go test -race ./...
 
 > **Investigation Required**
 > When applying this rule:
-> 1. Check existing `http.Server` configuration for timeout values — avoid overwriting intentional settings
-> 2. Identify signal handling patterns already in use (`os.Signal`, `signal.Notify`) — don't duplicate handlers
+> 1. Check existing `http.Server` configuration for timeout values: avoid overwriting intentional settings
+> 2. Identify signal handling patterns already in use (`os.Signal`, `signal.Notify`): don't duplicate handlers
 > 3. Review current database connection configuration (`sql.Open`, connection pool settings)
-> 4. Check if a middleware chain already exists and what order it uses — recovery must be outermost
+> 4. Check if a middleware chain already exists and what order it uses: recovery must be outermost
 
 ## HTTP Server with Timeouts
 
@@ -205,7 +207,7 @@ mux := http.NewServeMux()
 mux.HandleFunc("GET /health", healthHandler)
 mux.HandleFunc("GET /api/users", usersHandler)
 
-// Recovery MUST be outermost — wraps everything including logging
+// Recovery MUST be outermost - wraps everything including logging
 handler := recoveryMiddleware(loggingMiddleware(authMiddleware(mux)))
 ```
 
@@ -256,7 +258,7 @@ func getUser(ctx context.Context, db *sql.DB, id int) (*User, error) {
 ### Anti-Pattern 1: HTTP Server Without Timeouts
 
 ```go
-// Bad: No timeouts — vulnerable to slowloris attacks
+// Bad: No timeouts - vulnerable to slowloris attacks
 http.ListenAndServe(":8080", mux)
 ```
 **Problem:** Slow or malicious clients hold connections open indefinitely.

@@ -1,19 +1,32 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Core guide for running ai-rules validate against v3.2 rules. Covers command usage, interpreting validation output, resolving common errors, and understanding severity levels."
+last_updated: 2026-07-15
+keywords:
+  - kw:ai-rules validate
+  - kw:schema v3.2 compliance
+  - kw:severity levels CRITICAL HIGH MEDIUM
+  - kw:exit code interpretation
+  - kw:common validation fixes
+  - kw:validator command flags
+token_budget: ~2600
+context_tier: High
+depends:
+  required:
+    - 002-rule-governance.md  # Schema requirements and v3.2 standards
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 002f-schema-validator-advanced.md  # CI/CD integration and automation workflows
+    - 002a-rule-creation.md  # Rule creation workflow with validation steps
+    - 002c-rule-optimization.md  # Token budgets and performance
+---
 # Schema Validator Usage: Validation Commands and Error Resolution
 
 > **FOUNDATION RULE: PRESERVE WHEN POSSIBLE**
 >
 > This rule defines essential governance patterns for the ai_coding_rules system.
 > Load when creating, reviewing, or maintaining rules.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.1
-**LastUpdated:** 2026-03-09
-**Keywords:** schema validator, validation errors, error resolution, exit codes, command options, output parsing, error severity, CRITICAL errors, HIGH warnings, MEDIUM info
-**TokenBudget:** ~2600
-**ContextTier:** High
-**Depends:** 002-rule-governance.md, 000-global-core.md
 
 ## Scope
 
@@ -30,17 +43,6 @@ Core guide for running `ai-rules validate` against v3.2 rules. Covers command us
 - Load `002f-schema-validator-advanced.md`
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **002-rule-governance.md** - Schema requirements and v3.2 standards
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **002f-schema-validator-advanced.md** - CI/CD integration and automation workflows
-- **002a-rule-creation.md** - Rule creation workflow with validation steps
-- **002c-rule-optimization.md** - Token budgets and performance
 
 ### External Documentation
 
@@ -76,7 +78,7 @@ Core guide for running `ai-rules validate` against v3.2 rules. Covers command us
 2. Review validation output (CRITICAL, HIGH, MEDIUM, INFO)
 3. Fix CRITICAL errors (required for passing)
 4. Review and fix HIGH errors (strongly recommended)
-5. Consider MEDIUM errors — fix if project total exceeds 10 (see Error Severity Levels)
+5. Consider MEDIUM errors: fix if project total exceeds 10 (see Error Severity Levels)
 6. Re-run validation until 0 CRITICAL errors
 
 ### Output Format
@@ -198,7 +200,7 @@ SUMMARY:
 CRITICAL ISSUES (2):
 ────────────────────────────────────────────────────────────────────────────────
 [Metadata] Missing required field: Keywords
-  Fix: Add **Keywords:** [5-20 comma-separated terms]
+  Fix: Add **Keywords:** [5-11 comma-separated terms]
 [Contract] Missing Markdown subsection: ### Mandatory
   Line: 45
   Fix: Add ### Mandatory header in Contract section
@@ -226,13 +228,13 @@ RESULT: FAILED
 ```markdown
 **Keywords:** keyword1, keyword2, keyword3, keyword4, keyword5
 ```
-Keywords must have 5-20 comma-separated terms.
+Keywords must have 5-11 comma-separated terms.
 
 ### Error 2: Keywords Count Wrong
 
-**Error:** `[Metadata] Keywords count: 3 (expected 5-20)`
+**Error:** `[Metadata] Keywords count: 3 (expected 5-11)`
 
-**Fix:** Add more keywords to reach 5-20 count.
+**Fix:** Add more keywords to reach 5-11 count.
 ```markdown
 # Before (3 keywords)
 **Keywords:** SQL, Snowflake, CTE

@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Zsh compatibility strategies, bash migration patterns, and cross-shell scripting best practices for mixed environments, ensuring seamless transitions and portable script solutions."
+last_updated: 2026-07-15
+keywords:
+  - kw:bash vs zsh
+  - kw:emulate mode
+  - kw:array indexing differences
+  - kw:POSIX compliance
+  - kw:shell detection
+  - kw:setopt explicit
+token_budget: ~4150
+context_tier: Low
+depends:
+  required:
+    - 300-bash-scripting-core.md  # Foundation bash scripting patterns
+  optional:
+    - 310-zsh-scripting-core.md  # Foundation zsh scripting patterns
+    - 310a-zsh-advanced-features.md  # Advanced zsh features
+    - 310c-zsh-compatibility-platforms.md  # Platforms, testing, and performance
+---
 # Zsh Compatibility and Cross-Shell Scripting
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** Zsh, shell compatibility, bash vs zsh, portable scripts, cross-shell, migration, emulate, POSIX compliance, shell detection
-**TokenBudget:** ~4150
-**ContextTier:** Low
-**Depends:** 300-bash-scripting-core.md
-**LoadTrigger:** ext:.zsh, kw:zsh-compatibility
 
 ## Scope
 
@@ -24,16 +35,6 @@ Zsh compatibility strategies, bash migration patterns, and cross-shell scripting
 - Setting up mixed shell environments
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **300-bash-scripting-core.md** - Foundation bash scripting patterns
-
-**Related:**
-- **310-zsh-scripting-core.md** - Foundation zsh scripting patterns
-- **310a-zsh-advanced-features.md** - Advanced zsh features
-- **310c-zsh-compatibility-platforms.md** - Platforms, testing, and performance
 
 ### External Documentation
 
@@ -136,7 +137,7 @@ Cross-shell compatible scripts with:
 
 **Problem:** Writing scripts with `#!/bin/sh` or `#!/bin/bash` shebang but using zsh-specific syntax like extended globbing, associative array syntax, or zsh parameter expansion.
 
-**Why It Fails:** Scripts fail on systems where /bin/sh is dash or bash. CI/CD environments may not have zsh. Docker containers use minimal shells (sh, dash, busybox sh — shells without zsh/bash extensions). Portability broken silently.
+**Why It Fails:** Scripts fail on systems where /bin/sh is dash or bash. CI/CD environments may not have zsh. Docker containers use minimal shells (sh, dash, busybox sh: shells without zsh/bash extensions). Portability broken silently.
 
 **Correct Pattern:**
 ```zsh
@@ -159,7 +160,7 @@ printf "\033[31mError\033[0m\n"  # POSIX printf
 
 **Problem:** Writing scripts that depend on options set in .zshrc (like EXTENDED_GLOB or NULL_GLOB) without explicitly setting them in the script.
 
-**Why It Fails:** Scripts work when sourced but fail when executed. Behavior differs between users with different .zshrc configs. CI environments have different defaults. Specific problematic option mismatches: `EXTENDED_GLOB` (off by default in scripts — `*.txt~backup*` fails), `NULL_GLOB` (unmatched globs cause errors instead of expanding to nothing), `KSH_ARRAYS` (changes array indexing from 1-based to 0-based).
+**Why It Fails:** Scripts work when sourced but fail when executed. Behavior differs between users with different .zshrc configs. CI environments have different defaults. Specific problematic option mismatches: `EXTENDED_GLOB` (off by default in scripts: `*.txt~backup*` fails), `NULL_GLOB` (unmatched globs cause errors instead of expanding to nothing), `KSH_ARRAYS` (changes array indexing from 1-based to 0-based).
 
 **Correct Pattern:**
 ```zsh
@@ -215,7 +216,7 @@ zsh -n script.zsh
 ### Compatibility Assessment
 - **Rule:** Scan for bash-specific constructs before migration:
 ```zsh
-# Quick compatibility scan — run against any bash script
+# Quick compatibility scan - run against any bash script
 grep -n 'declare -[aA]\|BASH_\|shopt\|\[\[.*=~\|BASH_SOURCE\|BASH_REMATCH' "$script"
 ```
 Key constructs requiring conversion: `declare` to `typeset`, `BASH_SOURCE` to `${(%):-%x}`, `shopt` to `setopt`, `BASH_REMATCH` to `$MATCH`/`$match`.
@@ -245,9 +246,9 @@ setopt EXTENDED_GLOB
 ## Cross-Shell Compatibility Patterns
 
 ### Canonical Shell Detection Utility
-- **Requirement (MANDATORY):** Define `detect_shell` once and reuse it -- MUST NOT duplicate shell-detection logic:
+- **Requirement (MANDATORY):** Define `detect_shell` once and reuse it: MUST NOT duplicate shell-detection logic:
 ```zsh
-# Canonical shell detection — use this everywhere, do not duplicate
+# Canonical shell detection - use this everywhere, do not duplicate
 detect_shell() {
     if [[ -n "${ZSH_VERSION:-}" ]]; then echo "zsh"
     elif [[ -n "${BASH_VERSION:-}" ]]; then echo "bash"
@@ -380,7 +381,7 @@ require_shell() {
 ### Migration Failure Recovery
 - **Rule:** Always create backups; rollback on sed/conversion failures:
 ```zsh
-# Safe sed wrapper — rolls back on failure
+# Safe sed wrapper - rolls back on failure
 safe_sed() {
     local file="$1"; shift
     cp "$file" "${file}.sedbackup" || return 1
@@ -400,7 +401,7 @@ safe_sed() {
 ### Automated Migration Commands
 - **Rule:** Use concrete sed commands for bash-to-zsh conversion:
 ```zsh
-# Step-by-step migration — run each command, review diff after each step
+# Step-by-step migration - run each command, review diff after each step
 migrate_bash_to_zsh() {
     local src="$1"
     local dest="${2:-${src%.sh}.zsh}"

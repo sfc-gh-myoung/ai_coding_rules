@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v2.1.0
+description: "Universal best practices for organizing project documentation files, including file placement conventions, extended documentation types, cross-reference management, and GitHub community health file"
+last_updated: 2026-07-15
+keywords:
+  - kw:docs folder structure
+  - kw:community health files placement
+  - kw:ARCHITECTURE.md location
+  - kw:relative path cross-references
+  - kw:ADR folder conventions
+  - kw:GitHub Pages deployment
+token_budget: ~2850
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 800-project-changelog.md  # Changelog management standards
+    - 801-project-readme.md  # README best practices
+    - 802-project-contributing.md  # Contributing guidelines
+---
 # Project Documentation Organization
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-04-22
-**LoadTrigger:** kw:documentation, kw:docs folder, file:docs/, file:ARCHITECTURE.md
-**Keywords:** documentation, docs folder, project structure, ARCHITECTURE.md, DEPLOYMENT.md, ADR, GitHub Pages, community health files, cross-references, link maintenance, documentation organization
-**TokenBudget:** ~3200
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
 
 ## Scope
 
@@ -24,17 +35,6 @@ Universal best practices for organizing project documentation files, including f
 - Implementing GitHub Pages or documentation site
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **800-project-changelog.md** - Changelog management standards
-- **801-project-readme.md** - README best practices
-- **802-project-contributing.md** - Contributing guidelines
-- **803-project-git-workflow.md** - Git workflow management
 
 ### External Documentation
 - [GitHub Community Health Files](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file) - Standard community health file conventions
@@ -52,7 +52,7 @@ Universal best practices for organizing project documentation files, including f
 
 ### Mandatory
 - MUST keep community health files (README.md, CONTRIBUTING.md, LICENSE, CODE_OF_CONDUCT.md, SECURITY.md) in repository root
-- MUST place extended documentation (ARCHITECTURE.md, DEPLOYMENT.md, ADRs) in docs/ folder
+- MUST place extended documentation (ARCHITECTURE.md, DEPLOYMENT.md) in docs/ folder
 - MUST validate all cross-references when moving or renaming documentation files
 - MUST use relative paths for internal documentation links
 
@@ -236,7 +236,11 @@ When moving a documentation file:
 
 ### Architectural Decision Records (ADRs)
 
-**Location:** `docs/adr/`
+**Optional.** ADRs are opt-in per project. Do not create `docs/adr/` unless the
+project has decided to keep ADRs: an empty or absent directory is the correct
+state otherwise, and rules must not require a directory a project will not have.
+
+**Location (when used):** `docs/adr/`
 **Audience:** Contributors, future maintainers
 **Purpose:** Document significant technical decisions and their rationale
 

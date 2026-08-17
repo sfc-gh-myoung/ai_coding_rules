@@ -1,14 +1,24 @@
+---
+schema_version: v3.5
+rule_version: v2.0.0
+description: "Deep patterns for Plotly visualization in Streamlit, including Plotly Express for rapid development, Graph Objects for custom visualizations, advanced features like animations, faceting, and subplots."
+last_updated: 2026-07-15
+keywords:
+  - kw:plotly express
+  - kw:graph objects
+  - kw:st.plotly_chart
+  - kw:chart animations
+  - kw:faceting subplots
+  - kw:colorblind-safe palettes
+token_budget: ~3450
+context_tier: Medium
+depends:
+  optional:
+    - 101a-snowflake-streamlit-visualization.md  # Visualization overview and library selection
+    - 101j-snowflake-streamlit-viz-pydeck.md  # PyDeck for 3D/geospatial
+    - 940-business-analytics.md  # Dashboard design patterns
+---
 # Streamlit Visualization: Plotly Deep Dive
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** plotly, plotly express, graph objects, st.plotly_chart, interactive charts, scatter, line, bar, histogram, heatmap, box plot, violin, sunburst, treemap, animations, faceting, subplots
-**TokenBudget:** ~3450
-**ContextTier:** Medium
-**Depends:** 000-global-core.md, 101a-snowflake-streamlit-visualization.md
 
 ## Scope
 
@@ -23,16 +33,6 @@ Deep patterns for Plotly visualization in Streamlit, including Plotly Express fo
 - Building complex multi-trace visualizations
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation patterns and conventions `[Available]`
-- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection `[Available]`
-
-**Related:**
-- **101j-snowflake-streamlit-viz-pydeck.md** - PyDeck for 3D/geospatial
-- **940-business-analytics.md** - Dashboard design patterns
 
 ### External Documentation
 
@@ -82,8 +82,9 @@ Deep patterns for Plotly visualization in Streamlit, including Plotly Express fo
 import plotly.express as px
 import streamlit as st
 
-fig = px.line(df, x='date', y='value', title='Chart Title',
-              labels={'date': 'Date', 'value': 'Value'})
+fig = px.line(
+    df, x="date", y="value", title="Chart Title", labels={"date": "Date", "value": "Value"}
+)
 st.plotly_chart(fig, width="stretch")
 ```
 
@@ -107,7 +108,16 @@ st.plotly_chart(fig, width="stretch")
 Define once; reference everywhere:
 
 ```python
-COLORBLIND_SAFE = ['#0173B2', '#DE8F05', '#029E73', '#D55E00', '#CC78BC', '#CA9161', '#FBAFE4', '#949494']
+COLORBLIND_SAFE = [
+    "#0173B2",
+    "#DE8F05",
+    "#029E73",
+    "#D55E00",
+    "#CC78BC",
+    "#CA9161",
+    "#FBAFE4",
+    "#949494",
+]
 ```
 
 ## Plotly Express Quick Reference
@@ -121,7 +131,7 @@ COLORBLIND_SAFE = ['#0173B2', '#DE8F05', '#029E73', '#D55E00', '#CC78BC', '#CA91
 **Part-to-whole:** `px.pie()`, `px.sunburst()`, `px.treemap()`
 **Ranking:** `px.bar()` (horizontal)
 **Geospatial 2D:** `px.scatter_map()`, `px.choropleth_map()`
-**3D scatter:** `px.scatter_3d()` -- use sparingly; 3D is hard to interpret on 2D screens. Prefer 2D scatter with color/size encoding.
+**3D scatter:** `px.scatter_3d()`: use sparingly; 3D is hard to interpret on 2D screens. Prefer 2D scatter with color/size encoding.
 **Flow/process:** `px.funnel()` for conversion funnels. For Sankey diagrams, use `go.Sankey()` from Graph Objects (not available in Express).
 **Matrix/correlation:** `px.imshow()`
 
@@ -135,12 +145,12 @@ df = load_data()
 
 fig = px.line(
     df,
-    x='date',
-    y='value',
-    color='category',
-    title='Trend Analysis',
-    labels={'date': 'Date', 'value': 'Metric Value', 'category': 'Category'},
-    hover_data=['additional_info']
+    x="date",
+    y="value",
+    color="category",
+    title="Trend Analysis",
+    labels={"date": "Date", "value": "Metric Value", "category": "Category"},
+    hover_data=["additional_info"],
 )
 st.plotly_chart(fig, width="stretch")
 ```
@@ -150,12 +160,12 @@ st.plotly_chart(fig, width="stretch")
 ```python
 fig = px.bar(
     df,
-    x='region',
-    y='sales',
-    color='product',
-    barmode='group',
-    title='Sales by Region and Product',
-    color_discrete_sequence=COLORBLIND_SAFE  # Defined above
+    x="region",
+    y="sales",
+    color="product",
+    barmode="group",
+    title="Sales by Region and Product",
+    color_discrete_sequence=COLORBLIND_SAFE,  # Defined above
 )
 st.plotly_chart(fig, width="stretch")
 ```
@@ -165,23 +175,23 @@ st.plotly_chart(fig, width="stretch")
 ```python
 fig = px.histogram(
     df,
-    x='value',
-    color='category',
-    marginal='box',
+    x="value",
+    color="category",
+    marginal="box",
     nbins=50,
-    title='Value Distribution by Category',
-    opacity=0.7
+    title="Value Distribution by Category",
+    opacity=0.7,
 )
 st.plotly_chart(fig, width="stretch")
 
 fig = px.violin(
     df,
-    x='category',
-    y='value',
-    color='category',
+    x="category",
+    y="value",
+    color="category",
     box=True,
-    points='outliers',
-    title='Distribution Comparison'
+    points="outliers",
+    title="Distribution Comparison",
 )
 st.plotly_chart(fig, width="stretch")
 ```
@@ -191,14 +201,14 @@ st.plotly_chart(fig, width="stretch")
 ```python
 fig = px.scatter(
     df,
-    x='x_metric',
-    y='y_metric',
-    color='category',
-    facet_col='region',
-    facet_row='year',
+    x="x_metric",
+    y="y_metric",
+    color="category",
+    facet_col="region",
+    facet_row="year",
     facet_col_wrap=3,
-    title='Metrics by Region and Year',
-    category_orders={'region': ['North', 'South', 'East', 'West']}
+    title="Metrics by Region and Year",
+    category_orders={"region": ["North", "South", "East", "West"]},
 )
 fig.update_layout(height=600)
 st.plotly_chart(fig, width="stretch")
@@ -209,18 +219,18 @@ st.plotly_chart(fig, width="stretch")
 ```python
 fig = px.scatter(
     df,
-    x='gdp_per_capita',
-    y='life_expectancy',
-    size='population',
-    color='continent',
-    hover_name='country',
-    animation_frame='year',
-    animation_group='country',
+    x="gdp_per_capita",
+    y="life_expectancy",
+    size="population",
+    color="continent",
+    hover_name="country",
+    animation_frame="year",
+    animation_group="country",
     log_x=True,
     size_max=60,
     range_x=[100, 100000],
     range_y=[25, 90],
-    title='Development Over Time'
+    title="Development Over Time",
 )
 st.plotly_chart(fig, width="stretch")
 ```
@@ -232,39 +242,37 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 fig = make_subplots(
-    rows=2, cols=2,
-    subplot_titles=['Revenue', 'Costs', 'Profit', 'Margin'],
-    specs=[[{'type': 'scatter'}, {'type': 'scatter'}],
-           [{'type': 'bar'}, {'type': 'indicator'}]]
+    rows=2,
+    cols=2,
+    subplot_titles=["Revenue", "Costs", "Profit", "Margin"],
+    specs=[[{"type": "scatter"}, {"type": "scatter"}], [{"type": "bar"}, {"type": "indicator"}]],
 )
 
 fig.add_trace(
-    go.Scatter(x=df['date'], y=df['revenue'], mode='lines+markers', name='Revenue'),
-    row=1, col=1
+    go.Scatter(x=df["date"], y=df["revenue"], mode="lines+markers", name="Revenue"), row=1, col=1
 )
 
 fig.add_trace(
-    go.Scatter(x=df['date'], y=df['costs'], mode='lines', name='Costs', fill='tozeroy'),
-    row=1, col=2
+    go.Scatter(x=df["date"], y=df["costs"], mode="lines", name="Costs", fill="tozeroy"),
+    row=1,
+    col=2,
 )
 
-fig.add_trace(
-    go.Bar(x=df['quarter'], y=df['profit'], name='Profit'),
-    row=2, col=1
-)
+fig.add_trace(go.Bar(x=df["quarter"], y=df["profit"], name="Profit"), row=2, col=1)
 
 fig.add_trace(
     go.Indicator(
-        mode='gauge+number+delta',
-        value=df['margin'].iloc[-1],
-        delta={'reference': df['margin'].iloc[-2]},
-        gauge={'axis': {'range': [0, 100]}},
-        title={'text': 'Current Margin %'}
+        mode="gauge+number+delta",
+        value=df["margin"].iloc[-1],
+        delta={"reference": df["margin"].iloc[-2]},
+        gauge={"axis": {"range": [0, 100]}},
+        title={"text": "Current Margin %"},
     ),
-    row=2, col=2
+    row=2,
+    col=2,
 )
 
-fig.update_layout(height=600, title_text='Financial Dashboard')
+fig.update_layout(height=600, title_text="Financial Dashboard")
 st.plotly_chart(fig, width="stretch")
 ```
 
@@ -273,43 +281,43 @@ st.plotly_chart(fig, width="stretch")
 ```python
 fig = px.scatter_map(
     df,
-    lat='latitude',
-    lon='longitude',
-    color='category',
-    size='value',
-    hover_name='name',
-    hover_data=['address', 'status'],
-    color_discrete_map={'Active': COLORBLIND_SAFE[2], 'Inactive': COLORBLIND_SAFE[3]},
+    lat="latitude",
+    lon="longitude",
+    color="category",
+    size="value",
+    hover_name="name",
+    hover_data=["address", "status"],
+    color_discrete_map={"Active": COLORBLIND_SAFE[2], "Inactive": COLORBLIND_SAFE[3]},
     zoom=10,
-    map_style='carto-positron',
-    title='Location Overview'
+    map_style="carto-positron",
+    title="Location Overview",
 )
-fig.update_layout(margin={'r': 0, 't': 50, 'l': 0, 'b': 0})
+fig.update_layout(margin={"r": 0, "t": 50, "l": 0, "b": 0})
 st.plotly_chart(fig, width="stretch")
 
 fig = px.choropleth_map(
     df,
     geojson=geojson_data,
-    locations='region_id',
-    featureidkey='properties.id',
-    color='metric_value',
-    color_continuous_scale='Viridis',
-    center={'lat': 37.7749, 'lon': -122.4194},
+    locations="region_id",
+    featureidkey="properties.id",
+    color="metric_value",
+    color_continuous_scale="Viridis",
+    center={"lat": 37.7749, "lon": -122.4194},
     zoom=8,
     opacity=0.6,
-    title='Regional Metrics'
+    title="Regional Metrics",
 )
 st.plotly_chart(fig, width="stretch")
 
 fig = px.density_map(
     df,
-    lat='latitude',
-    lon='longitude',
-    z='event_count',
+    lat="latitude",
+    lon="longitude",
+    z="event_count",
     radius=15,
     zoom=10,
-    map_style='open-street-map',  # 'stamen-terrain' deprecated; use 'open-street-map' or 'carto-positron'
-    title='Event Density'
+    map_style="open-street-map",  # 'stamen-terrain' deprecated; use 'open-street-map' or 'carto-positron'
+    title="Event Density",
 )
 st.plotly_chart(fig, width="stretch")
 ```
@@ -319,21 +327,21 @@ st.plotly_chart(fig, width="stretch")
 ```python
 fig = px.sunburst(
     df,
-    path=['continent', 'country', 'city'],
-    values='population',
-    color='gdp_per_capita',
-    color_continuous_scale='RdBu',
-    title='Population Hierarchy'
+    path=["continent", "country", "city"],
+    values="population",
+    color="gdp_per_capita",
+    color_continuous_scale="RdBu",
+    title="Population Hierarchy",
 )
 st.plotly_chart(fig, width="stretch")
 
 fig = px.treemap(
     df,
-    path=[px.Constant('All'), 'category', 'subcategory', 'item'],
-    values='sales',
-    color='profit_margin',
-    color_continuous_scale='RdYlGn',
-    title='Sales Breakdown'
+    path=[px.Constant("All"), "category", "subcategory", "item"],
+    values="sales",
+    color="profit_margin",
+    color_continuous_scale="RdYlGn",
+    title="Sales Breakdown",
 )
 st.plotly_chart(fig, width="stretch")
 ```
@@ -342,38 +350,39 @@ st.plotly_chart(fig, width="stretch")
 
 ```python
 fig.update_layout(
-    title={'text': 'Chart Title', 'x': 0.5, 'xanchor': 'center'},
-    xaxis_title='X Axis Label',
-    yaxis_title='Y Axis Label',
-    legend_title='Legend',
-    font=dict(family='Arial', size=12),
-    hovermode='x unified',
-    template='plotly_white',
-    margin=dict(l=60, r=20, t=60, b=60)
+    title={"text": "Chart Title", "x": 0.5, "xanchor": "center"},
+    xaxis_title="X Axis Label",
+    yaxis_title="Y Axis Label",
+    legend_title="Legend",
+    font=dict(family="Arial", size=12),
+    hovermode="x unified",
+    template="plotly_white",
+    margin=dict(l=60, r=20, t=60, b=60),
 )
 
-fig.update_xaxes(tickangle=45, tickformat='%Y-%m-%d')
-fig.update_yaxes(tickprefix='$', tickformat=',.0f')
+fig.update_xaxes(tickangle=45, tickformat="%Y-%m-%d")
+fig.update_yaxes(tickprefix="$", tickformat=",.0f")
 ```
 
 ## Colorblind-Safe Usage Examples
 
 ```python
 # Using the COLORBLIND_SAFE palette defined above
-fig = px.bar(df, x='category', y='value', color='group',
-             color_discrete_sequence=COLORBLIND_SAFE)
+fig = px.bar(df, x="category", y="value", color="group", color_discrete_sequence=COLORBLIND_SAFE)
 
 # Alternative: Plotly built-in Safe palette
 import plotly.colors
-fig = px.scatter(df, x='x', y='y', color='category',
-                 color_discrete_sequence=plotly.colors.qualitative.Safe)
+
+fig = px.scatter(
+    df, x="x", y="y", color="category", color_discrete_sequence=plotly.colors.qualitative.Safe
+)
 ```
 
 ## Performance Optimization
 
 ```python
 if len(df) > 5000:
-    fig = px.scatter(df, x='x', y='y', render_mode='webgl')
+    fig = px.scatter(df, x="x", y="y", render_mode="webgl")
 
 # For very large datasets (>100K rows), WebGL alone is not enough.
 # Pre-aggregate in Snowflake or sample before rendering:
@@ -382,10 +391,12 @@ if len(df) > 5000:
 # Plotly WebGL handles ~100K points; beyond that, use server-side
 # aggregation (see 101h time series smoothing) or sampling.
 
+
 @st.cache_data(ttl=600)
 def create_expensive_figure(data):
-    fig = px.scatter_matrix(data, dimensions=['a', 'b', 'c', 'd'])
+    fig = px.scatter_matrix(data, dimensions=["a", "b", "c", "d"])
     return fig
+
 
 fig = create_expensive_figure(df)
 st.plotly_chart(fig, width="stretch")
@@ -399,19 +410,19 @@ st.plotly_chart(fig, width="stretch")
 if df.empty:
     st.warning("No data available for visualization.")
 else:
-    fig = px.line(df, x='date', y='value', title='Trend')
+    fig = px.line(df, x="date", y="value", title="Trend")
     st.plotly_chart(fig, width="stretch")
 ```
 
 ### Missing Columns
 
 ```python
-required_cols = ['date', 'value', 'category']
+required_cols = ["date", "value", "category"]
 missing = set(required_cols) - set(df.columns)
 if missing:
     st.error(f"Missing required columns: {missing}")
 else:
-    fig = px.scatter(df, x='date', y='value', color='category')
+    fig = px.scatter(df, x="date", y="value", color="category")
     st.plotly_chart(fig, width="stretch")
 ```
 
@@ -444,13 +455,13 @@ st.plotly_chart(fig, width="stretch")
 **Problem:** Using Graph Objects for simple visualizations when Plotly Express is simpler.
 ```python
 fig = go.Figure()
-fig.add_trace(go.Scatter(x=df['x'], y=df['y'], mode='lines'))
-fig.update_layout(title='Simple Line')
+fig.add_trace(go.Scatter(x=df["x"], y=df["y"], mode="lines"))
+fig.update_layout(title="Simple Line")
 ```
 
 **Correct (simpler with Express):**
 ```python
-fig = px.line(df, x='x', y='y', title='Simple Line')
+fig = px.line(df, x="x", y="y", title="Simple Line")
 ```
 
 ### Anti-Pattern 3: Red-Green Color Scheme
@@ -458,12 +469,12 @@ fig = px.line(df, x='x', y='y', title='Simple Line')
 **Problem:** Using red-green color combinations that are inaccessible to colorblind users.
 
 ```python
-color_map = {'good': 'green', 'bad': 'red'}
+color_map = {"good": "green", "bad": "red"}
 ```
 
 **Correct Pattern:**
 ```python
-color_map = {'good': '#029E73', 'bad': '#D55E00'}  # Colorblind-safe
+color_map = {"good": "#029E73", "bad": "#D55E00"}  # Colorblind-safe
 ```
 
 ## Validation Checklist

@@ -1,15 +1,27 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Authentication and authorization patterns for FastAPI applications. Covers JWT token authentication, OAuth2 password flow, password hashing (bcrypt), role-based access control (RBAC), token refresh,"
+last_updated: 2026-07-15
+keywords:
+  - kw:JWT authentication
+  - kw:bcrypt password hashing
+  - kw:HTTPBearer token validation
+  - kw:token refresh pairs
+  - kw:RBAC dependency injection
+  - kw:environment secrets validation
+  - kw:fastapi
+token_budget: ~3800
+context_tier: High
+depends:
+  required:
+    - 210-python-fastapi-core.md  # FastAPI foundation patterns
+  optional:
+    - 200-python-core.md  # Python core patterns
+    - 210e-python-fastapi-security-hardening.md  # CORS, headers, rate limiting, input validation
+    - 210b-python-fastapi-testing.md  # Testing security implementations
+---
 # FastAPI Security Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v4.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:fastapi-security, kw:oauth, kw:jwt, kw:rbac
-**Keywords:** FastAPI security, authentication, OAuth2, JWT, API keys, bcrypt, HTTPBearer, role-based access control, RBAC, token refresh, password hashing
-**TokenBudget:** ~3800
-**ContextTier:** High
-**Depends:** 210-python-fastapi-core.md
 
 ## Scope
 
@@ -24,16 +36,6 @@ Authentication and authorization patterns for FastAPI applications. Covers JWT t
 - Configuring password hashing and secrets
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **210-python-fastapi-core.md** - FastAPI foundation patterns
-
-**Related:**
-- **200-python-core.md** - Python core patterns
-- **210e-python-fastapi-security-hardening.md** - CORS, headers, rate limiting, input validation
-- **210b-python-fastapi-testing.md** - Testing security implementations
 
 ### External Documentation
 
@@ -53,7 +55,7 @@ Authentication and authorization patterns for FastAPI applications. Covers JWT t
 
 ### Mandatory
 
-- `passlib` for password hashing (bcrypt) — or direct `bcrypt` library
+- `passlib` for password hashing (bcrypt): or direct `bcrypt` library
 - `python-jose` or `pyjwt` for JWT tokens
 - `fastapi.security` modules (HTTPBearer, OAuth2PasswordBearer)
 - Environment variables for secrets (no defaults for secret keys)
@@ -147,11 +149,13 @@ DATABASE_URL = "postgresql://admin:password123@prod-db:5432/app"
 from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
 
+
 class Settings(BaseSettings):
     model_config = ConfigDict(env_file=".env")
 
     secret_key: str
     database_url: str
+
 
 settings = Settings()  # Fails fast if secrets missing
 ```
@@ -169,13 +173,16 @@ settings = Settings()  # Fails fast if secrets missing
 async def create_user(data: dict):
     return db.insert(data)  # Accepts anything!
 
+
 # GOOD: Pydantic model with constraints
 from pydantic import BaseModel, EmailStr, Field
+
 
 class UserCreate(BaseModel):
     email: EmailStr
     username: str = Field(min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_]+$")
     age: int = Field(ge=0, le=150)
+
 
 @app.post("/users")
 async def create_user(data: UserCreate):
@@ -207,7 +214,7 @@ async def create_user(data: UserCreate):
 
 ```python
 # app/services/auth_service.py
-# passlib — widely used but maintenance status uncertain as of 2024+
+# passlib - widely used but maintenance status uncertain as of 2024+
 # Alternative: use bcrypt directly if passlib becomes unmaintained
 from passlib.context import CryptContext
 from jose import JWTError, jwt
@@ -224,13 +231,16 @@ SECRET_KEY = settings.jwt_secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plaintext password against its hash."""
     return pwd_context.verify(plain_password, hashed_password)
 
+
 def get_password_hash(password: str) -> str:
     """Generate password hash using bcrypt."""
     return pwd_context.hash(password)
+
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Create JWT access token with expiration."""
@@ -242,6 +252,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
 
 async def get_current_user(token: str = Depends(security)):
     """Extract and validate current user from JWT token."""
@@ -270,8 +281,10 @@ async def get_current_user(token: str = Depends(security)):
 ```python
 import bcrypt
 
+
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
 
 def verify_password(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode(), hashed.encode())
@@ -283,6 +296,7 @@ def verify_password(password: str, hashed: str) -> bool:
 
 ```python
 from datetime import UTC, datetime, timedelta
+
 
 def create_token_pair(user_id: str) -> dict[str, str]:
     """Create access + refresh token pair."""
@@ -328,6 +342,7 @@ from datetime import timedelta
 
 router = APIRouter()
 
+
 @router.post("/token", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     """Authenticate user and return access token."""
@@ -339,10 +354,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
+    access_token = create_access_token(data={"sub": user.email}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
@@ -351,8 +365,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     existing_user = await get_user_by_email(db, user_data.email)
     if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
         )
 
     # Create new user with hashed password
@@ -375,46 +388,44 @@ from app.services.auth_service import get_current_user
 from app.models.user import User
 from enum import Enum
 
+
 class UserRole(str, Enum):
     ADMIN = "admin"
     USER = "user"
     MODERATOR = "moderator"
 
+
 def require_role(required_role: UserRole):
     """Dependency factory for role-based access control."""
+
     def check_role(current_user: User = Depends(get_current_user)):
         if current_user.role != required_role and current_user.role != UserRole.ADMIN:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Insufficient permissions"
+                status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
             )
         return current_user
+
     return check_role
+
 
 def require_admin(current_user: User = Depends(get_current_user)):
     """Require admin role for access."""
     if current_user.role != UserRole.ADMIN:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return current_user
+
 
 def require_active_user(current_user: User = Depends(get_current_user)):
     """Require active user account."""
     if not current_user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is disabled"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account is disabled")
     return current_user
+
 
 # Usage in routes
 @router.delete("/users/{user_id}")
 async def delete_user(
-    user_id: int,
-    current_user: User = Depends(require_admin),
-    db: AsyncSession = Depends(get_db)
+    user_id: int, current_user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)
 ):
     """Delete user - admin only."""
     await delete_user_by_id(db, user_id)
@@ -433,12 +444,14 @@ async def delete_user(
 from pydantic_settings import BaseSettings
 from pydantic import field_validator, ConfigDict
 
+
 class SecuritySettings(BaseSettings):
     """Security-focused configuration settings."""
+
     model_config = ConfigDict(env_prefix="SECURITY_", env_file=".env")
 
-    # JWT Configuration — NO defaults for secrets
-    jwt_secret_key: str  # Required — MUST be set, fails at startup if missing
+    # JWT Configuration - NO defaults for secrets
+    jwt_secret_key: str  # Required - MUST be set, fails at startup if missing
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 30
     jwt_refresh_expire_days: int = 7
@@ -448,22 +461,22 @@ class SecuritySettings(BaseSettings):
     password_require_uppercase: bool = True
     password_require_numbers: bool = True
 
-    @field_validator('jwt_secret_key')
+    @field_validator("jwt_secret_key")
     @classmethod
     def validate_secret_key(cls, v: str) -> str:
         if len(v) < 32:
-            raise ValueError('JWT secret key must be at least 32 characters long')
+            raise ValueError("JWT secret key must be at least 32 characters long")
         return v
 ```
 
 **Rule:** JWT secrets MUST NOT have default values. Use `BaseSettings` with no default (raises `ValidationError`) or `os.environ["KEY"]` (raises `KeyError`) to fail-fast at startup.
 
 ```python
-# WRONG — has a default value (security vulnerability)
+# WRONG - has a default value (security vulnerability)
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
 SECRET_KEY = secrets.token_urlsafe(32)  # Generates new key on every restart!
 
-# CORRECT — no default, fails fast
+# CORRECT - no default, fails fast
 SECRET_KEY = os.environ["JWT_SECRET_KEY"]  # Raises KeyError if not set
 ```
 

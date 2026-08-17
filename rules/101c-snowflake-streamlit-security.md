@@ -1,14 +1,22 @@
+---
+schema_version: v3.5
+rule_version: v5.0.0
+description: "Comprehensive security guidance for Streamlit applications including input validation with bounds checking, secrets management via st.secrets, SQL injection prevention with parameterized queries,"
+last_updated: 2026-07-15
+keywords:
+  - kw:st.secrets
+  - kw:SQL injection prevention
+  - kw:Streamlit authentication
+  - kw:input sanitization
+  - kw:file upload validation
+  - kw:container runtime secrets
+token_budget: ~4050
+context_tier: High
+depends:
+  required:
+    - 107-snowflake-security-governance.md  # Snowflake security and RBAC
+---
 # Streamlit Security: Input Validation and Secrets Management
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v4.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** st.secrets, SQL injection, authentication, secure streamlit, protect app, credentials management, API keys, environment variables, secure deployment, input sanitization, RBAC streamlit, access control, security patterns, Container Runtime, Warehouse Runtime
-**TokenBudget:** ~4050
-**ContextTier:** High
-**Depends:** 101-snowflake-streamlit-core.md, 107-snowflake-security-governance.md
 
 ## Scope
 
@@ -25,17 +33,6 @@ Comprehensive security guidance for Streamlit applications including input valid
 - Following OWASP security best practices for Streamlit
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
-- **107-snowflake-security-governance.md** - Snowflake security and RBAC `[Available]`
-
-**Related:**
-- **100-snowflake-core.md** - Base Snowflake connection and credential patterns `[Available]`
-- **200-python-core.md** - Python security patterns `[Available]`
 
 ### External Documentation
 
@@ -169,7 +166,7 @@ query = f"SELECT * FROM users WHERE id = '{user_id}'"  # SQL injection!
 # Validate and use safe query methods
 user_id = st.text_input("Enter user ID")
 if user_id.isdigit():
-    users_df = session.table('users').filter(col('id') == int(user_id))
+    users_df = session.table("users").filter(col("id") == int(user_id))
 else:
     st.error("Invalid user ID format (must be numeric)")
 ```
@@ -201,7 +198,7 @@ df = pd.read_csv(uploaded_file)  # No size or type validation!
 
 **Correct Pattern:**
 ```python
-uploaded_file = st.file_uploader("Upload CSV", type=['csv'])
+uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
 if uploaded_file:
     if uploaded_file.size > 10 * 1024 * 1024:
         st.error("File too large. Maximum 10MB.")
@@ -246,11 +243,11 @@ Use the `_snowflake` module for secrets:
 import _snowflake
 
 # Get secret from Snowflake secret object
-api_key = _snowflake.get_generic_secret_string('my_secret_name')
+api_key = _snowflake.get_generic_secret_string("my_secret_name")
 
 # For external access (requires EAI even in Warehouse Runtime for some ops)
-username = _snowflake.get_username_password('my_credential').username
-password = _snowflake.get_username_password('my_credential').password
+username = _snowflake.get_username_password("my_credential").username
+password = _snowflake.get_username_password("my_credential").password
 ```
 
 ### Local Development with secrets.toml
@@ -282,7 +279,7 @@ except KeyError as e:
 
 **FORBIDDEN:** (See Contract Forbidden section above, plus:)
 - Never pass secrets in URL parameters
-- Never hardcode credentials: `api_key = "sk-1234567890abcdef"`  -- Security violation!
+- Never hardcode credentials: `api_key = "sk-1234567890abcdef"` : Security violation!
 
 ## Input Validation
 
@@ -296,11 +293,7 @@ except KeyError as e:
 ```python
 # [PASS] Validated numeric input with bounds
 age = st.number_input(
-    "Age",
-    min_value=0,
-    max_value=120,
-    value=25,
-    help="Enter age between 0 and 120"
+    "Age", min_value=0, max_value=120, value=25, help="Enter age between 0 and 120"
 )
 
 # [PASS] Custom validation with feedback
@@ -318,7 +311,7 @@ import html
 user_input = st.text_input("Enter name")
 if user_input:
     # Remove special characters
-    sanitized = re.sub(r'[^a-zA-Z0-9\s_-]', '', user_input)
+    sanitized = re.sub(r"[^a-zA-Z0-9\s_-]", "", user_input)
 
     # HTML escape for display
     safe_display = html.escape(sanitized)
@@ -332,14 +325,14 @@ if user_input:
 **File Upload Validation:**
 ```python
 # [PASS] File upload with comprehensive validation
-uploaded_file = st.file_uploader("Upload CSV", type=['csv'])
+uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
 
 if uploaded_file:
     # Size validation (10MB limit)
     MAX_SIZE = 10 * 1024 * 1024  # 10MB
 
     if uploaded_file.size > MAX_SIZE:
-        st.error(f"File too large. Maximum size is {MAX_SIZE / (1024*1024):.0f}MB.")
+        st.error(f"File too large. Maximum size is {MAX_SIZE / (1024 * 1024):.0f}MB.")
         st.stop()
 
     try:
@@ -347,7 +340,7 @@ if uploaded_file:
         df = pd.read_csv(uploaded_file)
 
         # Validate required columns
-        required_cols = ['date', 'value', 'category']
+        required_cols = ["date", "value", "category"]
         missing_cols = set(required_cols) - set(df.columns)
 
         if missing_cols:
@@ -377,14 +370,14 @@ result = session.sql(query).to_pandas()
 **Secure Pattern:**
 ```python
 # Snowpark DataFrame API (safe)
-users_df = session.table('users').filter(col('id') == user_input)
+users_df = session.table("users").filter(col("id") == user_input)
 
 # Parameterized SQL (safe)
 users_df = session.sql("SELECT id, name FROM users WHERE id = ?", params=[user_input]).to_pandas()
 
 # Or validate and use parameterized approach
 if user_input.isdigit():
-    users_df = session.table('users').filter(col('id') == int(user_input))
+    users_df = session.table("users").filter(col("id") == int(user_input))
 else:
     st.error("Invalid user ID format")
 ```
@@ -405,13 +398,15 @@ import streamlit as st
 
 import bcrypt
 
+
 def verify_password(password: str, hashed: bytes) -> bool:
     """Verify password against bcrypt hash."""
     return bcrypt.checkpw(password.encode(), hashed)
 
+
 def check_authentication():
     """Simple authentication check using bcrypt."""
-    if 'authenticated' not in st.session_state:
+    if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
 
     if not st.session_state.authenticated:
@@ -428,8 +423,14 @@ def check_authentication():
             # Always hash-check even on wrong username to prevent timing attacks
             stored_hash = st.secrets.get("admin", {}).get("password_hash", "").encode()
             dummy_hash = bcrypt.hashpw(b"dummy", bcrypt.gensalt())
-            hash_to_check = stored_hash if username == st.secrets.get("admin", {}).get("username") else dummy_hash
-            if bcrypt.checkpw(password.encode(), hash_to_check) and username == st.secrets.get("admin", {}).get("username"):
+            hash_to_check = (
+                stored_hash
+                if username == st.secrets.get("admin", {}).get("username")
+                else dummy_hash
+            )
+            if bcrypt.checkpw(password.encode(), hash_to_check) and username == st.secrets.get(
+                "admin", {}
+            ).get("username"):
                 st.session_state.authenticated = True
                 st.session_state.username = username
                 st.rerun()
@@ -437,6 +438,7 @@ def check_authentication():
                 st.error("Invalid credentials")
 
         st.stop()
+
 
 # Check auth before showing app
 check_authentication()
@@ -477,8 +479,9 @@ except Exception as e:
 **Session Timeout (for authenticated apps):**
 ```python
 import time
+
 TIMEOUT_SECONDS = 1800  # 30 minutes
-if 'last_activity' in st.session_state:
+if "last_activity" in st.session_state:
     if time.time() - st.session_state.last_activity > TIMEOUT_SECONDS:
         st.session_state.authenticated = False
         st.rerun()
@@ -490,8 +493,9 @@ st.session_state.last_activity = time.time()
 **Rate Limiting (for user-triggered queries):**
 ```python
 import time
+
 MIN_INTERVAL = 2  # seconds between queries
-if 'last_query' in st.session_state:
+if "last_query" in st.session_state:
     elapsed = time.time() - st.session_state.last_query
     if elapsed < MIN_INTERVAL:
         st.warning(f"Please wait {MIN_INTERVAL - elapsed:.0f}s before querying again.")

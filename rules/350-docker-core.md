@@ -1,15 +1,26 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Provides practical, production-ready guidance for authoring Dockerfiles, building images, and running containers securely and efficiently, minimizing image size, build time, and supply-chain risk."
+last_updated: 2026-07-15
+keywords:
+  - kw:multi-stage builds
+  - kw:image digest pinning
+  - kw:non-root container user
+  - kw:layer caching optimization
+  - kw:SBOM generation
+  - kw:BuildKit mount cache
+token_budget: ~4550
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 202-markup-config-validation.md  # Configuration validation patterns
+  optional:
+    - 200-python-core.md  # Python-specific Docker patterns
+    - 203-python-project-setup.md  # Python project structure for containers
+---
 # Docker Core
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-03-25
-**Keywords:** Docker, Dockerfile, containers, multi-stage builds, layer caching, image optimization, docker-compose, BuildKit, distroless, security scanning, SBOM, non-root, healthcheck
-**TokenBudget:** ~4550
-**ContextTier:** Medium
-**Depends:** 000-global-core.md, 202-markup-config-validation.md
-**LoadTrigger:** file:Dockerfile, file:docker-compose.yml, file:docker-compose.yaml, kw:docker, kw:container
 
 ## Scope
 
@@ -25,16 +36,6 @@ Provides practical, production-ready guidance for authoring Dockerfiles, buildin
 - Implementing CI/CD with Docker
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **202-markup-config-validation.md** - Configuration validation patterns
-
-**Related:**
-- **200-python-core.md** - Python-specific Docker patterns
-- **203-python-project-setup.md** - Python project structure for containers
 
 ### External Documentation
 
@@ -177,7 +178,7 @@ Deterministic Dockerfile(s) and Compose files with:
 Developers use `FROM python:latest` or `FROM node:latest` in Dockerfiles, creating non-reproducible builds that break unpredictably when upstream images update.
 
 **Why It Fails:**
-The `latest` tag is mutable — it points to different image contents over time. A build that works today may fail tomorrow when the base image updates with breaking changes, new OS packages, or a different Python/Node minor version. This violates deterministic build requirements and makes debugging production incidents nearly impossible.
+The `latest` tag is mutable: it points to different image contents over time. A build that works today may fail tomorrow when the base image updates with breaking changes, new OS packages, or a different Python/Node minor version. This violates deterministic build requirements and makes debugging production incidents nearly impossible.
 
 **Bad:**
 ```dockerfile
@@ -218,10 +219,10 @@ CMD ["python", "app.py"]
 ```dockerfile
 FROM python:3.12-slim@sha256:a1b2c3...
 WORKDIR /app
-# Copy dependency manifest first — this layer is cached until requirements change
+# Copy dependency manifest first - this layer is cached until requirements change
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-# Copy source code last — only this layer rebuilds on code changes
+# Copy source code last - only this layer rebuilds on code changes
 COPY . .
 CMD ["python", "app.py"]
 ```

@@ -1,20 +1,31 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Maintaining high-signal, audit-friendly CHANGELOG.md following Keep a Changelog standard with feature-focused Conventional Commits-style entries for consistent project change documentation."
+last_updated: 2026-07-15
+keywords:
+  - kw:CHANGELOG.md
+  - kw:Keep a Changelog
+  - kw:Conventional Commits style
+  - kw:Unreleased section
+  - kw:changelog entry consolidation
+  - kw:release notes workflow
+token_budget: ~5350
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns and validation gates
+  optional:
+    - 801-project-readme.md  # README documentation standards
+    - 802-project-contributing.md  # Contributing guidelines and workflow
+    - 803-project-git-workflow.md  # Git workflow and branch management
+---
 # Changelog Governance Directives
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-04-21
-**LoadTrigger:** kw:changelog, file:CHANGELOG.md
-**Keywords:** CHANGELOG, changelog format, semantic versioning, release notes, conventional commits, Unreleased section, scope patterns, project governance, git workflow, version control
-**TokenBudget:** ~5200
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
 
 ## Scope
 
 **What This Rule Covers:**
-Maintaining high-signal, audit-friendly CHANGELOG.md following Keep a Changelog standard with Conventional Commits format for consistent project change documentation.
+Maintaining high-signal, audit-friendly CHANGELOG.md following Keep a Changelog standard with feature-focused Conventional Commits-style entries for consistent project change documentation.
 
 **When to Load This Rule:**
 - Modifying CHANGELOG.md directly
@@ -25,16 +36,6 @@ Maintaining high-signal, audit-friendly CHANGELOG.md following Keep a Changelog 
 - Reviewing changelog compliance during pull requests
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates
-
-**Related:**
-- **801-project-readme.md** - README documentation standards
-- **802-project-contributing.md** - Contributing guidelines and workflow
-- **803-project-git-workflow.md** - Git workflow and branch management
 
 ### External Documentation
 
@@ -61,7 +62,9 @@ Maintaining high-signal, audit-friendly CHANGELOG.md following Keep a Changelog 
 - Read existing CHANGELOG.md to understand format and scope patterns
 - Use Keep a Changelog v1.1.0 standard types (see canonical list in Document Structure and Format)
 - Add entries under ## [Unreleased] section
+- Prefer feature-focused Conventional Commits-style bullets: `**type(scope):** user-facing summary`
 - Ensure human-readable, user-impact focused summaries
+- Preserve existing logical changelog concepts when restyling; rewrite each concept into the preferred style unless explicitly asked to consolidate
 
 ### Forbidden
 
@@ -69,15 +72,17 @@ Maintaining high-signal, audit-friendly CHANGELOG.md following Keep a Changelog 
 - Never skip CHANGELOG update for code changes
 - Never use jargon or internal-only terminology
 - Never duplicate full commit messages in changelog entries
+- Never include file lists or implementation inventories in changelog entries
+- Never collapse or delete existing logical entries merely to restyle them
 
 ### Execution Steps
 
 1. Read CHANGELOG.md to check format, existing scopes, and structure
 2. Identify change type: Added, Changed, Deprecated, Removed, Fixed, or Security
-3. Write concise, human-readable summary focusing on user impact
+3. Write concise, human-readable summary focusing on user-visible behavior
 4. Add entry under appropriate type heading in ## [Unreleased] section
-5. Optionally use Conventional Commits format: type(scope): summary
-6. Verify entry is not duplicate and follows existing patterns
+5. Use feature-focused Conventional Commits style when practical: `**type(scope):** summary`
+6. Verify entry is not duplicate, preserves logical concepts, and follows existing patterns
 
 ### Output Format
 
@@ -95,7 +100,7 @@ Maintaining high-signal, audit-friendly CHANGELOG.md following Keep a Changelog 
 
 **Pre-Task-Completion Validation Gate (CRITICAL):**
 
-Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
+Reference: Complete validation protocol in `000-global-core.md`
 
 **Documentation Requirements:**
 - **CRITICAL:** Entry added under `## [Unreleased]` section
@@ -106,7 +111,7 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 
 **Success Criteria:**
 - CHANGELOG.md contains entry under `## [Unreleased]`
-- If using Conventional Commits, entry follows format: `<type>(<scope>): <summary>`
+- If using Conventional Commits, entry follows format: `**<type>(<scope>):** <summary>`
 - Entry is concise and user-impact oriented
 - Pre-Task-Completion Validation Gate passed
 
@@ -120,7 +125,8 @@ Reference: Complete validation protocol in `000-global-core.md` and `AGENTS.md`
 2. **Verify Unreleased section exists** - Create if missing
 3. **Never assume scope conventions** - Check existing scopes in file
 4. **Check for duplicates** - Avoid redundant entries
-5. **Validate Conventional Commits format (if used)** - Ensure `type(scope): summary`
+5. **Validate Conventional Commits format (if used)** - Ensure `**type(scope):** summary`
+6. **Preserve existing concepts when restyling** - Convert each logical entry to the preferred style unless the user explicitly approves consolidation
 
 **Anti-Pattern Examples:**
 - "Adding changelog entry..." (without checking existing format)
@@ -215,15 +221,15 @@ Copying raw commit messages or technical details into changelog.
 
 **Correct Pattern:**
 ```markdown
-# ❌ WRONG - Technical commit dump
+# WRONG - Technical commit dump
 ## [Unreleased]
 ### Fixed
 - refactor(auth): replace deprecated bcrypt.compare with bcrypt.verify in UserService.authenticate() method
 
-# ✅ CORRECT - User-focused summary
+# CORRECT - User-focused, conventional-style summary
 ## [Unreleased]
 ### Fixed
-- Resolved login failures for users with special characters in passwords
+- **fix(auth):** resolve login failures for users with special characters in passwords.
 ```
 
 ### Pattern 4: Duplicate Category Headings
@@ -284,7 +290,7 @@ Repeating the same `**type(scope):**` prefix multiple times within a single cate
 
 # [GOOD] - Consolidated by version bump
 ### Added
-- **feat(plan-reviewer):** v2.4.0 — per-dimension timing capture
+- **feat(plan-reviewer):** v2.4.0 - per-dimension timing capture
   - Step 4a checkpoint pairs, Gate 7 verification, anti-pattern block
   - Quick Reference, timing walkthrough example, Test 7
 ```
@@ -384,10 +390,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Security** for vulnerability fixes (with CVE references when applicable)
 - **Requirement:** Maintain exactly ONE instance of each category heading (Added, Changed, Deprecated, Removed, Fixed, Security) within each version section. Consolidate all entries of the same type under a single heading.
 - **Requirement:** Each entry is a single line with human-readable summary.
-- **Consider (Optional):** Use Conventional Commit format for consistency: `type(scope): summary`
+- **Requirement:** Prefer feature-focused Conventional Commits style for entries: `**type(scope):** summary`
   - This is the PREFERRED format per [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification)
   - Conventional Commits enhances Keep a Changelog, not replaces it
   - Entries must remain human-readable and user-impact focused regardless of format
+  - The summary after the prefix should describe the released feature, behavior, fix, or user-visible impact
   - Benefits: automated tooling, consistent patterns, semantic versioning alignment
 - **Consider:** Add version comparison links at bottom of CHANGELOG.md:
   ```markdown
@@ -408,6 +415,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Content Quality Guidelines
 
 - **Requirement:** Summaries are concise and user-impact oriented; avoid duplicating commit body details.
+- **Requirement:** Changelog entries are more product/user-facing than git commit messages. Use release-note language after the `**type(scope):**` prefix.
+- **Requirement:** Git commit bodies may carry more developer-facing detail; do not copy that detail into CHANGELOG.md unless it changes user-visible behavior.
 - **Requirement:** Do not include raw stack traces, personal names, or internal-only jargon.
 - **Requirement:** Mark breaking changes with `!` in Conventional Commits format and explain them clearly.
 - **CRITICAL:** Security vulnerabilities must use **Security** type and include CVE references when applicable.
@@ -420,7 +429,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 When a component (skill, package, module) receives a version bump, consolidate ALL related changes into a single changelog entry with sub-bullets:
 
-- **Primary bullet:** `**type(scope):** vX.Y.Z — short summary`
+- **Primary bullet:** `**type(scope):** vX.Y.Z - short summary`
 - **Sub-bullets:** Notable specifics (features, files, breaking changes)
 
 ### Fold Related Change Types
@@ -437,6 +446,29 @@ When `feat()`, `docs()`, and `test()` changes all support the same feature, cons
 - **feat(auth):** add OAuth2 support with configuration guide and integration tests
 ```
 
+### Pattern 6: Over-Collapsing Existing Entries
+
+**Problem:**
+Replacing multiple existing changelog bullets with one broad summary when the user asked only to restyle the entries.
+
+**Why It Fails:**
+- Deletes release-history signal
+- Makes review harder because content changes are mixed with style changes
+- Violates the preservation expectation for existing changelog concepts
+
+**Correct Pattern:**
+```markdown
+# WRONG - Three concepts collapsed into one vague summary
+### Changed
+- **feat(report):** improve benchmark reporting.
+
+# CORRECT - Same concepts preserved in conventional style
+### Changed
+- **feat(benchmark):** rename the Claude CoCo harness target to `claude-coco-plugin`.
+- **feat(report):** standardize compact metric labels with accessible definitions.
+- **feat(report):** apply brand-correct harness colors across charts, badges, and pills.
+```
+
 ### Granularity Threshold
 
 **Too granular (avoid):**
@@ -451,7 +483,7 @@ When `feat()`, `docs()`, and `test()` changes all support the same feature, cons
 
 ## Workflow and Maintenance
 
-**Reference:** Pre-Task-Completion Validation Gate in `000-global-core.md` and `AGENTS.md`
+**Reference:** Pre-Task-Completion Validation Gate in `000-global-core.md`
 
 **MUST:** CHANGELOG.md updates are required before task completion for all code changes.
 
@@ -473,7 +505,7 @@ When `feat()`, `docs()`, and `test()` changes all support the same feature, cons
 - **MANDATORY:** Any modification to shell scripts (`.sh`, `.bash`, `.zsh`)
 - **MANDATORY:** Any modification to rule files (`.md` in `ai_coding_rules/`)
 - **MANDATORY:** Any modification to documentation files (`README.md`, `CONTRIBUTING.md`)
-- **Exception:** Changes to CHANGELOG.md itself — including format fixes, backfilling entries, or correcting typos — do not require a separate changelog entry. However, adding entries for other code changes remains mandatory per lines 360-368.
+- **Exception:** Changes to CHANGELOG.md itself: including format fixes, backfilling entries, or correcting typos: do not require a separate changelog entry. However, adding entries for other code changes remains mandatory per lines 360-368.
 - **MANDATORY:** New features, bug fixes, refactors, or performance improvements
 - **MANDATORY:** Documentation-only changes (no longer optional - ALWAYS update CHANGELOG.md)
 - **Rationale:** Documentation changes are user-facing and must be tracked for complete audit trail
@@ -485,12 +517,12 @@ When `feat()`, `docs()`, and `test()` changes all support the same feature, cons
 ```markdown
 ## [Unreleased]
 ### Added
-- Progress bars for long-running CLI operations
-- Async command support for Typer applications
+- **feat(cli):** add progress bars for long-running operations.
+- **feat(cli):** support asynchronous Typer commands.
 
 ### Fixed
-- Keyboard interrupt handling in CLI applications
-- Pydantic serialization issues with nested models
+- **fix(cli):** handle keyboard interrupts cleanly.
+- **fix(pydantic):** serialize nested models without data loss.
 ```
 
 ### Example 2: Security Vulnerabilities (Security)
@@ -498,22 +530,22 @@ When `feat()`, `docs()`, and `test()` changes all support the same feature, cons
 ```markdown
 ## [Unreleased]
 ### Security
-- Fixed SQL injection vulnerability in user input validation (CVE-2024-1234)
-- Patched authentication bypass in Flask middleware (CVE-2024-5678)
-- Updated dependencies to address known vulnerabilities
+- **fix(security):** prevent SQL injection in user input validation (CVE-2024-1234).
+- **fix(auth):** patch authentication bypass in Flask middleware (CVE-2024-5678).
+- **fix(deps):** update dependencies to address known vulnerabilities.
 ```
 
-### Example 3: With Optional Conventional Commits Format
+### Example 3: Feature-Focused Conventional Commits Style
 
 ```markdown
 ## [Unreleased]
 ### Added
-- feat(cli): progress bars for long-running operations
-- feat(flask): application factory pattern with blueprints
+- **feat(cli):** add progress bars for long-running operations.
+- **feat(flask):** support application factories with blueprints.
 
 ### Fixed
-- fix(cli): keyboard interrupt handling
-- fix(pydantic): serialization issues with nested models
+- **fix(cli):** handle keyboard interrupts cleanly.
+- **fix(pydantic):** serialize nested models without data loss.
 ```
 
 ## Monorepo Changelog Strategy
@@ -526,9 +558,9 @@ When `feat()`, `docs()`, and `test()` changes all support the same feature, cons
 
 ## Automated Changelog Tools
 
-- **`conventional-changelog`** — Generates changelog from Conventional Commits history
-- **`changesets`** — Monorepo changelog management with per-package versioning
-- **`git-cliff`** — Highly configurable changelog generator using commit conventions
+- **`conventional-changelog`**: Generates changelog from Conventional Commits history
+- **`changesets`**: Monorepo changelog management with per-package versioning
+- **`git-cliff`**: Highly configurable changelog generator using commit conventions
 - **Note:** Automated tools supplement human-written summaries; MUST review generated entries for user-impact clarity
 
 ## Release Workflow

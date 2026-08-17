@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Flask-specific integration patterns for HTMX applications, covering Flask-HTMX extension usage, blueprint organization, route decorators, session management, and Flask-specific authentication"
+last_updated: 2026-07-15
+keywords:
+  - kw:Flask-HTMX extension
+  - kw:blueprint organization htmx
+  - kw:Flask-WTF csrf htmx
+  - kw:Flask-Login htmx redirect
+  - kw:flask route decorators htmx
+  - kw:flask session htmx
+  - kw:flask
+token_budget: ~4450
+context_tier: Medium
+depends:
+  optional:
+    - 221a-python-htmx-templates.md  # Jinja2 patterns
+    - 221d-python-htmx-testing.md  # Testing Flask+HTMX
+    - 221e-python-htmx-patterns.md  # CRUD, forms, etc.
+---
 # Flask + HTMX Integration
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:htmx-flask
-**Keywords:** flask, flask-htmx, blueprints, flask-login, session management, flask routes, flask templates, flask csrf, flask extensions, request context
-**TokenBudget:** ~4450
-**ContextTier:** Medium
-**Depends:** 221-python-htmx-core.md, 221a-python-htmx-templates.md
 
 ## Scope
 
@@ -24,17 +34,6 @@ Flask-specific integration patterns for HTMX applications, covering Flask-HTMX e
 - Managing CSRF protection for HTMX requests in Flask
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **221-python-htmx-core.md** - HTMX foundation patterns
-- **221a-python-htmx-templates.md** - Jinja2 patterns
-
-**Related:**
-- **221d-python-htmx-testing.md** - Testing Flask+HTMX
-- **221e-python-htmx-patterns.md** - CRUD, forms, etc.
-- **200-python-core.md** - Python standards
 
 ### External Documentation
 
@@ -129,12 +128,12 @@ Flask-specific integration patterns for HTMX applications, covering Flask-HTMX e
 
 > **Investigation Required**
 > Before modifying Flask+HTMX integration, the agent MUST:
-> 1. Check if `create_app()` factory already exists — extend it, never create a second factory
+> 1. Check if `create_app()` factory already exists: extend it, never create a second factory
 > 2. Verify Flask-HTMX extension status: `uv pip list | grep flask-htmx`
 > 3. Read existing blueprint structure and naming conventions
-> 4. Check current CSRF protection — Flask-WTF may already be configured with `htmx:configRequest` listener
+> 4. Check current CSRF protection: Flask-WTF may already be configured with `htmx:configRequest` listener
 > 5. Read existing Flask-Login setup and unauthorized handler before adding auth patterns
-> 6. Check existing error handlers (404, 500) — extend rather than replace
+> 6. Check existing error handlers (404, 500): extend rather than replace
 
 ## Key Principles
 
@@ -155,32 +154,34 @@ htmx = HTMX(app)
 # The `htmx` variable here is the app-level HTMX instance.
 # In blueprints, import the proxy: `from flask_htmx import htmx`
 
+
 # Now access via `htmx` object in routes
-@app.route('/data')
+@app.route("/data")
 def get_data():
     if htmx:  # True if HX-Request header present
-        return render_template('partials/_data.html')
-    return render_template('pages/data.html')
+        return render_template("partials/_data.html")
+    return render_template("pages/data.html")
 ```
 
 **Extension Features:**
 ```python
 from flask import request
 
+
 # Flask-HTMX provides `htmx` proxy object
-@app.route('/example')
+@app.route("/example")
 def example():
     # Check if HTMX request
     if htmx:  # Equivalent to request.headers.get('HX-Request') == 'true'
         pass
 
     # Access HTMX-specific request headers
-    trigger_id = request.headers.get('HX-Trigger')
-    target_id = request.headers.get('HX-Target')
-    current_url = request.headers.get('HX-Current-URL')
+    trigger_id = request.headers.get("HX-Trigger")
+    target_id = request.headers.get("HX-Target")
+    current_url = request.headers.get("HX-Current-URL")
 
     # Flask-HTMX also adds `htmx` to template context
-    return render_template('template.html')  # {{ htmx }} available in template
+    return render_template("template.html")  # {{ htmx }} available in template
 ```
 
 ### 2. Blueprint Organization
@@ -190,16 +191,18 @@ def example():
 # app/blueprints/pages.py - Full-page routes
 from flask import Blueprint, render_template
 
-pages = Blueprint('pages', __name__, template_folder='templates')
+pages = Blueprint("pages", __name__, template_folder="templates")
 
-@pages.route('/')
+
+@pages.route("/")
 def index():
-    return render_template('pages/home.html')
+    return render_template("pages/home.html")
 
-@pages.route('/users')
+
+@pages.route("/users")
 def users():
     users = get_users()
-    return render_template('pages/users.html', users=users)
+    return render_template("pages/users.html", users=users)
 ```
 
 ```python
@@ -207,24 +210,27 @@ def users():
 from flask import Blueprint, render_template, request, abort
 from flask_htmx import htmx
 
-htmx_bp = Blueprint('htmx', __name__, url_prefix='/htmx')
+htmx_bp = Blueprint("htmx", __name__, url_prefix="/htmx")
+
 
 @htmx_bp.before_request
 def check_htmx():
     """Ensure all routes in this blueprint are HTMX-only"""
     if not htmx:
-        abort(400, 'HTMX request required')
+        abort(400, "HTMX request required")
 
-@htmx_bp.route('/users/search')
+
+@htmx_bp.route("/users/search")
 def users_search():
-    query = request.args.get('q', '')
+    query = request.args.get("q", "")
     users = search_users(query)
-    return render_template('partials/_users_table.html', users=users)
+    return render_template("partials/_users_table.html", users=users)
 
-@htmx_bp.route('/users/<int:user_id>')
+
+@htmx_bp.route("/users/<int:user_id>")
 def user_detail(user_id):
     user = get_user(user_id)
-    return render_template('partials/_user_detail.html', user=user)
+    return render_template("partials/_user_detail.html", user=user)
 ```
 
 **Blueprint Registration:**
@@ -234,9 +240,10 @@ from flask import Flask
 from flask_htmx import HTMX
 from flask_wtf.csrf import CSRFProtect
 
+
 def create_app():
     app = Flask(__name__)
-    app.config.from_object('config.Config')
+    app.config.from_object("config.Config")
 
     # Initialize extensions
     htmx = HTMX(app)
@@ -256,37 +263,38 @@ def create_app():
 
 **Dual-Purpose Route (HTMX + Full Page):**
 ```python
-@app.route('/users')
+@app.route("/users")
 def users_list():
     users = get_users()
 
     if htmx:
-        return render_template('partials/_users_table.html', users=users)
+        return render_template("partials/_users_table.html", users=users)
 
-    return render_template('pages/users.html', users=users)
+    return render_template("pages/users.html", users=users)
 ```
 
 **HTMX-Only Route:**
 ```python
-@app.route('/htmx/user/<int:user_id>/edit')
+@app.route("/htmx/user/<int:user_id>/edit")
 def edit_user_form(user_id):
     if not htmx:
-        abort(400, 'HTMX request required')
+        abort(400, "HTMX request required")
 
     user = get_user_or_404(user_id)
-    return render_template('partials/_user_form.html', user=user)
+    return render_template("partials/_user_form.html", user=user)
 ```
 
 **State-Changing Route with Response Headers:**
 ```python
 from flask import make_response
 
-@app.route('/users/<int:user_id>', methods=['DELETE'])
+
+@app.route("/users/<int:user_id>", methods=["DELETE"])
 def delete_user(user_id):
     delete_user_from_db(user_id)
 
-    response = make_response('', 200)
-    response.headers['HX-Trigger'] = 'userDeleted'
+    response = make_response("", 200)
+    response.headers["HX-Trigger"] = "userDeleted"
     return response
 ```
 
@@ -298,7 +306,7 @@ from flask import Flask
 from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
+app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
 csrf = CSRFProtect(app)
 ```
 
@@ -328,10 +336,10 @@ csrf = CSRFProtect(app)
 
 **Exempting Specific Routes (Only for public read-only endpoints accepting no user input):**
 ```python
-@app.route('/public/data', methods=['POST'])
+@app.route("/public/data", methods=["POST"])
 @csrf.exempt  # Only for truly public endpoints
 def public_data():
-    return render_template('partials/_data.html')
+    return render_template("partials/_data.html")
 ```
 
 ### 5. Flask-Login Integration
@@ -342,7 +350,8 @@ from flask_login import LoginManager, login_required, current_user
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'
+login_manager.login_view = "login"
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -351,34 +360,36 @@ def load_user(user_id):
 
 **Protected Route:**
 ```python
-@app.route('/dashboard')
+@app.route("/dashboard")
 @login_required
 def dashboard():
     if htmx:
-        return render_template('partials/_dashboard_content.html', user=current_user)
+        return render_template("partials/_dashboard_content.html", user=current_user)
 
-    return render_template('pages/dashboard.html', user=current_user)
+    return render_template("pages/dashboard.html", user=current_user)
 ```
 
 **HTMX Login Redirect:**
 ```python
 from flask import redirect, url_for, make_response
 
-@app.route('/protected')
+
+@app.route("/protected")
 @login_required
 def protected_route():
     # Flask-Login automatically handles redirects
     # For HTMX requests, return HX-Redirect header
-    return render_template('partials/_protected_content.html')
+    return render_template("partials/_protected_content.html")
+
 
 @login_manager.unauthorized_handler
 def unauthorized():
     if htmx:
-        response = make_response('Unauthorized', 401)
-        response.headers['HX-Redirect'] = url_for('login')
+        response = make_response("Unauthorized", 401)
+        response.headers["HX-Redirect"] = url_for("login")
         return response
 
-    return redirect(url_for('login'))
+    return redirect(url_for("login"))
 ```
 
 ### 6. Session Management
@@ -387,27 +398,27 @@ def unauthorized():
 ```python
 from flask import session
 
-@app.route('/cart/add/<int:item_id>', methods=['POST'])
-def add_to_cart(item_id):
-    cart = session.get('cart', [])
-    cart.append(item_id)
-    session['cart'] = cart
 
-    response = make_response(
-        render_template('partials/_cart_count.html', count=len(cart))
-    )
-    response.headers['HX-Trigger'] = 'cartUpdated'
+@app.route("/cart/add/<int:item_id>", methods=["POST"])
+def add_to_cart(item_id):
+    cart = session.get("cart", [])
+    cart.append(item_id)
+    session["cart"] = cart
+
+    response = make_response(render_template("partials/_cart_count.html", count=len(cart)))
+    response.headers["HX-Trigger"] = "cartUpdated"
     return response
 
-@app.route('/cart')
+
+@app.route("/cart")
 def view_cart():
-    cart_ids = session.get('cart', [])
+    cart_ids = session.get("cart", [])
     items = [get_item(id) for id in cart_ids]
 
     if htmx:
-        return render_template('partials/_cart_items.html', items=items)
+        return render_template("partials/_cart_items.html", items=items)
 
-    return render_template('pages/cart.html', items=items)
+    return render_template("pages/cart.html", items=items)
 ```
 
 ### 7. Flash Messages with HTMX
@@ -427,24 +438,26 @@ Flask's `flash()` system needs special handling for HTMX partial responses:
 {% endwith %}
 ```
 
-**Route pattern — trigger flash refresh via HX-Trigger:**
+**Route pattern: trigger flash refresh via HX-Trigger:**
 ```python
-@app.route('/users', methods=['POST'])
+@app.route("/users", methods=["POST"])
 def create_user():
     user = create_user_from_form(request.form)
-    flash(f'User {user.name} created.', 'success')
+    flash(f"User {user.name} created.", "success")
 
     if htmx:
-        response = make_response(render_template('partials/_user_row.html', user=user))
-        response.headers['HX-Trigger'] = json.dumps({
-            'userCreated': None,
-            'showFlash': None,  # Trigger flash container refresh
-        })
+        response = make_response(render_template("partials/_user_row.html", user=user))
+        response.headers["HX-Trigger"] = json.dumps(
+            {
+                "userCreated": None,
+                "showFlash": None,  # Trigger flash container refresh
+            }
+        )
         return response
-    return redirect(url_for('users.list_users'))
+    return redirect(url_for("users.list_users"))
 ```
 
-**Base template — flash container with HTMX listener:**
+**Base template: flash container with HTMX listener:**
 ```html
 <div id="flash-container"
      hx-get="{{ url_for('main.flash_messages') }}"
@@ -455,9 +468,9 @@ def create_user():
 ```
 
 ```python
-@app.route('/flash-messages')
+@app.route("/flash-messages")
 def flash_messages():
-    return render_template('partials/_flash_messages.html')
+    return render_template("partials/_flash_messages.html")
 ```
 
 **Key rules:**
@@ -484,57 +497,58 @@ HTMX supports file uploads with `hx-encoding="multipart/form-data"`:
 ```python
 from werkzeug.utils import secure_filename
 
-ALLOWED_EXTENSIONS = {'.csv', '.xlsx'}
+ALLOWED_EXTENSIONS = {".csv", ".xlsx"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
-@app.route('/upload', methods=['POST'])
+
+@app.route("/upload", methods=["POST"])
 def upload():
-    file = request.files.get('file')
+    file = request.files.get("file")
     if not file or not file.filename:
-        return render_template('partials/_error_toast.html',
-                             message='No file selected'), 400
+        return render_template("partials/_error_toast.html", message="No file selected"), 400
 
     filename = secure_filename(file.filename)
     ext = Path(filename).suffix.lower()
     if ext not in ALLOWED_EXTENSIONS:
-        return render_template('partials/_error_toast.html',
-                             message=f'Invalid file type: {ext}'), 400
+        return render_template(
+            "partials/_error_toast.html", message=f"Invalid file type: {ext}"
+        ), 400
 
     content = file.read()
     if len(content) > MAX_FILE_SIZE:
-        return render_template('partials/_error_toast.html',
-                             message='File too large (max 10 MB)'), 400
+        return render_template(
+            "partials/_error_toast.html", message="File too large (max 10 MB)"
+        ), 400
     file.seek(0)
 
-    save_path = Path(app.config['UPLOAD_FOLDER']) / filename
+    save_path = Path(app.config["UPLOAD_FOLDER"]) / filename
     file.save(save_path)
-    return render_template('partials/_upload_success.html',
-                         filename=filename, size=len(content))
+    return render_template("partials/_upload_success.html", filename=filename, size=len(content))
 ```
 
 **Key rules:**
-- `hx-encoding="multipart/form-data"` is REQUIRED — without it, files are not sent
+- `hx-encoding="multipart/form-data"` is REQUIRED: without it, files are not sent
 - Always use `secure_filename()` from Werkzeug
 - Validate file extension and size server-side (never trust client `accept` attribute)
 
 ### 9. Flask Async Routes (Flask 2.0+)
 
-Flask 2.0+ supports `async def` routes. HTMX endpoints work identically — no client-side changes needed:
+Flask 2.0+ supports `async def` routes. HTMX endpoints work identically: no client-side changes needed:
 
 ```python
-@htmx_bp.route('/users/search')
+@htmx_bp.route("/users/search")
 async def search_users():
-    query = request.args.get('q', '').strip()
+    query = request.args.get("q", "").strip()
     if not query or len(query) < 2:
-        return render_template('partials/_empty_results.html')
+        return render_template("partials/_empty_results.html")
 
-    users = await db.execute(select(User).where(User.name.ilike(f'%{query}%')))
-    return render_template('partials/_users_table.html', users=users.scalars().all())
+    users = await db.execute(select(User).where(User.name.ilike(f"%{query}%")))
+    return render_template("partials/_users_table.html", users=users.scalars().all())
 ```
 
 **Key rules:**
 - Requires `uv add flask[async]` (installs `asgiref`)
-- Use `async def` only for I/O-bound operations (database, HTTP calls) — sync `def` for CPU-bound work
+- Use `async def` only for I/O-bound operations (database, HTTP calls): sync `def` for CPU-bound work
 - The `htmx` proxy from Flask-HTMX works in both sync and async routes
 
 ### 10. Error Handling
@@ -545,27 +559,24 @@ async def search_users():
 def not_found(error):
     if htmx:
         response = make_response(
-            render_template('partials/_error.html',
-                          message='Resource not found'),
-            404
+            render_template("partials/_error.html", message="Resource not found"), 404
         )
-        response.headers['HX-Retarget'] = '#error-container'
+        response.headers["HX-Retarget"] = "#error-container"
         return response
 
-    return render_template('errors/404.html'), 404
+    return render_template("errors/404.html"), 404
+
 
 @app.errorhandler(500)
 def server_error(error):
     if htmx:
         response = make_response(
-            render_template('partials/_error.html',
-                          message='Server error'),
-            500
+            render_template("partials/_error.html", message="Server error"), 500
         )
-        response.headers['HX-Retarget'] = '#error-container'
+        response.headers["HX-Retarget"] = "#error-container"
         return response
 
-    return render_template('errors/500.html'), 500
+    return render_template("errors/500.html"), 500
 ```
 
 ## Anti-Patterns and Common Mistakes
@@ -584,9 +595,12 @@ def get_items():
         return render_template("partials/items.html")
     return render_template("items.html")
 
+
 # GOOD: Use Flask-HTMX extension
 from flask_htmx import HTMX
+
 htmx = HTMX(app)
+
 
 @app.route("/items")
 def get_items():
@@ -595,7 +609,7 @@ def get_items():
     return render_template("items.html")
 ```
 
-Use `if htmx:` from the Flask-HTMX extension (see Section 1) — it handles all edge cases.
+Use `if htmx:` from the Flask-HTMX extension (see Section 1): it handles all edge cases.
 
 ### Anti-Pattern 2: Missing CSRF Token Configuration
 

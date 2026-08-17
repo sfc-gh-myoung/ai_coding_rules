@@ -1,15 +1,25 @@
+---
+schema_version: v3.5
+rule_version: v4.0.0
+description: "Comprehensive bash scripting security practices covering input validation, path security, permissions, and secure coding patterns to prevent vulnerabilities and ensure safe script execution."
+last_updated: 2026-07-15
+keywords:
+  - kw:bash input sanitization
+  - kw:command injection prevention
+  - kw:shell path traversal
+  - kw:bash credential storage
+  - kw:shell script permissions
+  - kw:eval alternatives
+token_budget: ~3600
+context_tier: High
+depends:
+  required:
+    - 300-bash-scripting-core.md  # Foundation bash scripting patterns
+  optional:
+    - 300b-bash-testing-tooling.md  # Testing security implementations
+    - 300c-bash-security-advanced.md  # Advanced security: privilege, network, logging, testing
+---
 # Bash Security Best Practices
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:bash-security, kw:shell-security
-**Keywords:** Bash, security, input validation, command injection, path security, secure shell scripts, sanitization, permissions, privilege escalation, secrets management
-**TokenBudget:** ~3600
-**ContextTier:** High
-**Depends:** 300-bash-scripting-core.md
 
 ## Scope
 
@@ -24,15 +34,6 @@ Comprehensive bash scripting security practices covering input validation, path 
 - Managing secrets and credentials in shell scripts
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **300-bash-scripting-core.md** - Foundation bash scripting patterns
-
-**Related:**
-- **300b-bash-testing-tooling.md** - Testing security implementations
-- **300c-bash-security-advanced.md** - Advanced security: privilege, network, logging, testing
 
 ### External Documentation
 
@@ -160,7 +161,7 @@ declare -A handlers=(["process"]="do_process" ["validate"]="do_validate")
 **Correct Pattern:**
 ```bash
 # BAD: Secrets in script
-PASSWORD="super_secret_123"
+PASSWORD="<PASSWORD>"
 mysql -u admin -p"$PASSWORD" database
 
 # BAD: Secrets as arguments (visible in ps)
@@ -187,7 +188,7 @@ IFS=$'\n\t'
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly ALLOWED_DIR="$SCRIPT_DIR/data"
 
-# Input validation — see Input Validation section for validate_input()
+# Input validation - see Input Validation section for validate_input()
 validate_input "$1" '^[a-zA-Z0-9._-]+$' "filename"
 
 safe_path() {
@@ -287,7 +288,7 @@ validate_path() {
 }
 
 # Note: validate_path is subject to TOCTOU (time-of-check-time-of-use) race
-# conditions — the path could change between validation and use. For concurrent
+# conditions - the path could change between validation and use. For concurrent
 # environments, see 300c-bash-security-advanced.md for mitigation strategies.
 
 # Secure file operations with path validation
@@ -411,7 +412,7 @@ execute_safe_query() {
         return 1
     fi
 
-    # GOOD: Validated numeric input — safe for interpolation after regex check
+    # GOOD: Validated numeric input - safe for interpolation after regex check
     sqlite3 "$db_file" "SELECT * FROM users WHERE id = $user_id;"
 }
 

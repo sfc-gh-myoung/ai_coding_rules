@@ -61,12 +61,14 @@ This project was inspired, in part, by:
 - [Document Map](#document-map-what-to-read-first)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
+- [Security](SECURITY.md)
 
 **For Contributors:**
 
 - [Contributing](#contributing)
 - [Claude Agent Skills](#claude-agent-skills)
 - [Development Commands](#development-commands)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Prerequisites
 
@@ -536,19 +538,20 @@ uv run ai-rules --help
 | `ai-rules tokens` | Validate/update TokenBudget metadata; `--context-estimate` reports total per-response context |
 | `ai-rules new` | Generate new rule file from v3.6 template |
 | `ai-rules badges` | Update README badges (version, tests, coverage) |
-| `task` | Development orchestration via Taskfile.yml |
-| `ai-rules plugin` | Build the distributable `ai-coding-rules-plugin/` |
+| `ai-rules plugin build` | Build the distributable `ai-coding-rules-plugin/` |
+| `ai-rules plugin verify` | Verify plugin replicas and built artifact fidelity |
+| `ai-rules plugin install` / `uninstall` | Manage CoCo or Claude plugin installations |
 | `ai-rules rule-loader` | Rule Loading Evaluator: live-agent sanity check |
 | `ai-rules rule-loader keywords` | Suggest/update keywords via Snowflake Cortex (AI_COMPLETE) |
 
 ## Development Commands
 
-Run `task --list` to see all development commands, or `uv run ai-rules --help` for the rules management CLI. Common commands:
+Run `task --list` to see development automation, or `uv run ai-rules --help` for the rules management CLI. Common commands:
 
 ```bash
 task quality:all:fix                    # Fix all code quality issues
 task test:run                           # Run all pytest tests
-task validate                           # Run all CI/CD checks
+task validate                           # Run local quality, tests, schemas, and plugin verification
 uv run ai-rules plugin build             # Build the distributable plugin
 
 ```
@@ -576,9 +579,11 @@ The rules are organized by domain using a three-digit numbering system. Each cat
 
 ## Directive Language Hierarchy
 
-The rules use a structured directive language (Critical, Mandatory, Always, Requirement, Rule, Consider) with clear priority levels to guide AI agents and developers.
+The rules use the canonical directive vocabulary: Requirement, Always, Rule, Avoid, and Consider.
 
 **See [CONTRIBUTING.md → Directive Language](CONTRIBUTING.md#directive-language) for the canonical hierarchy, informational directives, and usage examples.**
+
+For community standards and vulnerability reporting, see [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) and [SECURITY.md](SECURITY.md).
 
 ## AI Configuration
 

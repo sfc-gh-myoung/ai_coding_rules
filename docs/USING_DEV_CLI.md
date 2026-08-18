@@ -19,7 +19,7 @@ task test:run
 # Run tests with coverage
 task test:coverage
 
-# Full validation pipeline (CI equivalent)
+# Full local validation pipeline
 task validate
 ```
 
@@ -82,7 +82,7 @@ Project information and environment checks.
 
 ### `validate` / `ci`
 
-Full validation pipeline (quality + tests + schema validation of `rules/`, `rules/examples/`, and `templates/`). Both commands are identical; `ci` is an alias for `validate`.
+Full local validation pipeline (quality + tests + schema validation of `rules/`, `rules/examples/`, and `templates/`). Both commands are identical; `ci` is an alias for `validate`.
 
 **Note:** This is the local validation surface. CI additionally runs rule-loader validate/audit/trigger-contract and plugin-build checks via direct `uv run ai-rules ...` calls. The two are complementary, not equivalent.
 

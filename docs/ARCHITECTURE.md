@@ -74,7 +74,7 @@ The user clones this repository, optionally edits or adds rules, and runs `ai-ru
 
 A rule is a single Markdown file under `rules/`. Every rule has metadata (version, keywords, dependencies, token budget, context tier), a scope statement, references, and a structured contract that defines mandatory and forbidden behaviors plus execution steps.
 
-Rules are designed to be loaded by an LLM with no preprocessing. The same file is editable by a human contributor, parsed by the validator, indexed by the index generator, and consumed by the AI assistant at runtime.
+Rules are designed to be loaded by an LLM with no preprocessing. The same file is editable by a human contributor, parsed by the validator, selected by the deterministic matcher, and consumed by the AI assistant at runtime.
 
 For the full rule template and field-by-field structure, see [CONTRIBUTING.md → Rule Structure](../CONTRIBUTING.md#rule-structure). The authoritative schema lives in [`schemas/rule-schema.yml`](../schemas/rule-schema.yml).
 
@@ -144,11 +144,11 @@ Adding a new validation requirement is typically a schema-only change. See §5.3
 
 ### 2.5 Directive Language
 
-Rules use a structured directive vocabulary (`Critical`, `Mandatory`, `Always`, `Requirement`, `Rule`, `Consider`) so that AI agents can apply consistent priority across rule content. The hierarchy is defined canonically in [CONTRIBUTING.md → Directive Language](../CONTRIBUTING.md#directive-language). Rules consume the vocabulary but do not redefine it.
+Rules use the canonical directive vocabulary defined in [CONTRIBUTING.md → Directive Language](../CONTRIBUTING.md#directive-language): Requirement, Always, Rule, Avoid, and Consider. Rules consume the vocabulary but do not redefine it.
 
 ### 2.6 Rule Numbering Convention
 
-The `rules/` directory uses numeric ranges to group rules by domain. The full mapping (000-099 foundation, 100-199 Snowflake, 200-299 Python, 300-399 shells, 400-499 JavaScript, 500-599 frontend, 600-699 systems, 800-899 project tooling, 900-999 dbt, etc.) is documented in [README.md → Rule Categories](../README.md#rule-categories).
+The `rules/` directory uses numeric ranges to group rules by domain. The full mapping, including the 900-999 Analytics & Governance range, is documented in [README.md → Rule Categories](../README.md#rule-categories).
 
 A new rule's number is determined by the domain it covers. Within a range, the core rule has no suffix and companions use single-letter suffixes per §2.2.
 
@@ -574,7 +574,7 @@ sections:
   required:
     - name: Contract
       order: 4
-      required_before_line: 160
+      required_before_line: 200
 ```
 
 vs. the older hard-coded approach:
@@ -582,8 +582,8 @@ vs. the older hard-coded approach:
 ```python
 if "Contract" not in sections:
     errors.append("Missing Contract section")
-if sections["Contract"]["line"] > 160:
-    errors.append("Contract must appear before line 160")
+if sections["Contract"]["line"] > 200:
+    errors.append("Contract must appear before line 200")
 ```
 
 **Benefits realized:**

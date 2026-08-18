@@ -138,9 +138,9 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
 
 **Score Ranges (100-point scale):**
 - **90-100**: EXECUTABLE: Production-ready
-- **75-89**: EXECUTABLE_WITH_REFINEMENTS: Good, minor fixes
-- **50-74**: NEEDS_REFINEMENT: Needs work
-- **<50**: NOT_EXECUTABLE: Major issues
+- **80-89**: EXECUTABLE_WITH_REFINEMENTS: Good, minor fixes
+- **60-79**: NEEDS_REFINEMENT: Needs work
+- **<60**: NOT_EXECUTABLE: Major issues
 
 **Critical dimension override:** If both Actionability ≤4/10 AND Completeness ≤4/10 → NOT_EXECUTABLE regardless of total score.
 

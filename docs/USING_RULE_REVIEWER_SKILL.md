@@ -1,6 +1,6 @@
 # Using the Rule Reviewer Skill
 
-**Last Updated:** 2026-05-14
+**Last Updated:** 2026-08-18
 
 The Rule Reviewer Skill evaluates rule files to ensure autonomous agents can execute them successfully. It scores rules across 6 dimensions using a weighted scoring system optimized for agent executability.
 
@@ -60,7 +60,7 @@ model: claude-sonnet-45              # Required
 | Mode | Purpose | When to Use |
 |------|---------|-------------|
 | **FULL** | Full 6-dimension review | Validate rules before deployment |
-| **FOCUSED** | Deep-dive on critical areas | Quick check on Actionability + Completeness only |
+| **FOCUSED** | Actionability + Completeness only | Quick check on the two scored dimensions |
 | **STALENESS** | Check for outdated content | Periodic currency audits |
 
 ### FULL Mode
@@ -97,10 +97,10 @@ review_mode: STALENESS
 
 | Score | Verdict | Action |
 |-------|---------|--------|
-| 94-105 | **EXECUTABLE** | Production-ready |
-| 84-93 | **EXECUTABLE_WITH_REFINEMENTS** | Good, minor fixes needed |
-| 63-83 | **NEEDS_REFINEMENT** | Significant refinement required |
-| <63 | **NOT_EXECUTABLE** | Major revision needed |
+| 90-100 | **EXECUTABLE** | Production-ready |
+| 80-89 | **EXECUTABLE_WITH_REFINEMENTS** | Good, minor fixes needed |
+| 60-79 | **NEEDS_REFINEMENT** | Significant refinement required |
+| <60 | **NOT_EXECUTABLE** | Major revision needed |
 
 **Critical dimension override:** If both Actionability ≤4/10 AND Completeness ≤4/10 → NOT_EXECUTABLE regardless of total score.
 
@@ -147,7 +147,7 @@ The skill counts issues that prevent autonomous execution:
 - Missing conditional branches (no explicit else)
 - Visual formatting (ASCII art, arrows, diagrams)
 
-**Impact on score:** ≥10 blocking issues → Score capped at 60
+**Impact on score:** Six or more blocking issues cap the total score at 80/100. Ten or more blocking issues force the `NOT_EXECUTABLE` verdict. See [`skills/rule-reviewer/rubrics/scoring.md`](../skills/rule-reviewer/rubrics/scoring.md) for the full hard-cap rules.
 
 
 ## Advanced Usage
@@ -168,23 +168,7 @@ timing_enabled: true
 
 Adds timing metadata to output (duration, token usage, cost estimation).
 
-**Example timing metadata:**
-
-```markdown
-## Timing Metadata
-
-| Metric | Value |
-|--------|-------|
-| Run ID | `a1b2c3d4e5f67890` |
-| Duration | 3m 45s (225.5s) |
-| Model | claude-sonnet-45 |
-| Tokens | 16,700 (12,500 in / 4,200 out) |
-| Cost | ~$0.04 |
-```
-
-**Timing thresholds:**
-- <60 seconds: Warning (possible shortcut)
-- >180 seconds: Warning (possible issue)
+For the current timing metadata format, threshold definitions, and cost calculation, see [Using the Skill Timer Skill](USING_SKILL_TIMER_SKILL.md). The timer implementation is the source of truth for those volatile values.
 
 ### Execution Modes
 
@@ -286,6 +270,8 @@ Coordinator (Main Agent)
 
 ### File Structure
 
+Representative layout (see `skills/rule-reviewer/` for the complete current inventory):
+
 ```text
 skills/rule-reviewer/
 ├── SKILL.md               # Main skill (entrypoint)
@@ -329,7 +315,7 @@ skills/rule-reviewer/
 **With rule-creator:** Validate rules after creation:
 1. Create rule using rule-creator skill
 2. Run FULL review on the created rule
-3. Verify: score ≥75/100, no CRITICAL issues
+3. Verify: score ≥80/100, no CRITICAL issues
 
 **With skill-timer:** Adds execution timing when `timing_enabled: true`.
 

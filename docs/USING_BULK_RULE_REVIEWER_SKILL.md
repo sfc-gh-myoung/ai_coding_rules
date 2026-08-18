@@ -1,6 +1,6 @@
 # Using the Bulk Rule Reviewer Skill
 
-**Last Updated:** 2026-05-14
+**Last Updated:** 2026-08-18
 
 The Bulk Rule Reviewer Skill runs agent-centric reviews on every rule file in the `rules/` directory and generates a consolidated priority report showing which rules need attention. It orchestrates the rule-reviewer skill for each rule, holding to the same quality standards as individual reviews.
 
@@ -25,7 +25,7 @@ model: claude-sonnet-45              # Required: model slug for naming
 ### With All Optional Settings
 
 ```text
-✓ Bulk review complete
+Use the bulk-rule-reviewer skill.
 
 review_date: 2026-03-27              # Required
 review_mode: FULL                    # Required
@@ -124,6 +124,8 @@ Each rule gets a review file at `reviews/rule-reviews/<rule-name>-<model>-<date>
 
 ### Score Distribution
 
+The individual-review score bands and hard-cap behavior are defined by the [Rule Reviewer scoring rubric](../skills/rule-reviewer/rubrics/scoring.md). This summary uses the same 100-point scale.
+
 | Score | Verdict | Action |
 |-------|---------|--------|
 | 90-100 | **EXECUTABLE** | Production-ready, quarterly staleness reviews only |
@@ -161,19 +163,7 @@ Writes to `quarterly-audit/rule-reviews/` and `quarterly-audit/summaries/` inste
 timing_enabled: true
 ```
 
-Adds timing metadata to the master summary:
-
-```markdown
-## Timing Metadata
-
-| Metric | Value |
-|--------|-------|
-| Run ID | `a1b2c3d4e5f67890` |
-| Duration | 342m 15s (20535.5s) |
-| Model | claude-sonnet-45 |
-| Tokens | 1,840,300 (1,250,000 in / 590,300 out) |
-| Cost | ~$12.60 |
-```
+Adds timing metadata to the master summary. See [Using the Skill Timer Skill](USING_SKILL_TIMER_SKILL.md) for the current metadata format, thresholds, and cost calculation.
 
 **Checkpoints tracked:** `skill_loaded` → `discovery_complete` → `reviews_complete` → `aggregation_complete` → `summary_complete`
 

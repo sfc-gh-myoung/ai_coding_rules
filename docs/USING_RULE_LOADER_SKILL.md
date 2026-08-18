@@ -233,6 +233,8 @@ User Request
 
 ### File Structure
 
+Representative layout (see `skills/rule-loader/` for the complete current inventory):
+
 ```text
 skills/rule-loader/
 ├── SKILL.md                        # Main entrypoint (~120 lines)
@@ -246,6 +248,8 @@ skills/rule-loader/
 │   ├── streamlit-dashboard.md      # Cross-domain: Streamlit + Python + test
 │   ├── python-api.md               # Python + FastAPI endpoint
 │   └── multi-domain.md             # Snowflake SQL + Python
+├── scripts/
+│   └── match_rules.py              # Vendored deterministic matcher
 └── tests/
     └── test-scenarios.md           # Input/output test cases (16 scenarios)
 ```

@@ -271,7 +271,7 @@ Unresolved errors:
 - [Error 1]
 - [Error 2]
 
-Reference: rules/002d-schema-validator-usage.md
+Reference: rules/002e-schema-validator-usage.md
 ```
 
 **Pass Criteria:**

@@ -1,5 +1,7 @@
 # Evaluating the Rule Loader
 
+**Last Updated:** 2026-08-18
+
 This document is the full reference for the Rule Loading Evaluator. It covers
 the trigger-evidence invariant, fixture schema, all `ai-rules rule-loader`
 subcommands, the pre-commit hook, CI behavior, and batch refresh/compare

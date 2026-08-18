@@ -1,6 +1,6 @@
 # Memory Bank System
 
-**Last Updated:** 2026-05-14
+**Last Updated:** 2026-08-18
 
 > **Note:** This is an optional advanced feature for complex, long-running projects. Skip this section if you're just getting started with AI Coding Rules.
 
@@ -78,17 +78,17 @@ Before ending each session, update relevant memory-bank/ files with new decision
 
 The file structure follows the standard defined in `rules/001-memory-bank.md`:
 
-| File | Purpose | Update Frequency | Size Limit |
-|------|---------|-----------------|------------|
-| `activeContext.md` | Current session focus, immediate next steps | Every session | ≤100 lines |
-| `projectbrief.md` | Foundation reference: purpose, goals, constraints | Rarely (major changes) | ≤300 lines |
-| `productContext.md` | Product vision, user value, key features | Occasionally | ≤200 lines |
-| `systemPatterns.md` | Architecture decisions, design patterns | As patterns emerge | ≤400 lines |
-| `techContext.md` | Technical stack, dependencies, tools | When tech changes | ≤300 lines |
-| `progress.md` | Current state, roadmap, milestones | Weekly or per milestone | ≤200 lines |
-| `archive/` | Historical context (subdirectory) | As needed | No limit |
+| File | Purpose | Update Frequency |
+|------|---------|------------------|
+| `activeContext.md` | Current session focus, immediate next steps | Every session |
+| `projectbrief.md` | Foundation reference: purpose, goals, constraints | Rarely (major changes) |
+| `productContext.md` | Product vision, user value, key features | Occasionally |
+| `systemPatterns.md` | Architecture decisions, design patterns | As patterns emerge |
+| `techContext.md` | Technical stack, dependencies, tools | When tech changes |
+| `progress.md` | Current state, roadmap, milestones | Weekly or per milestone |
+| `archive/` | Historical context (subdirectory) | As needed |
 
-> **Note:** For detailed guidance on file sizes, update triggers, and failure recovery, see `rules/001-memory-bank.md`.
+> **Note:** [`rules/001-memory-bank.md`](../rules/001-memory-bank.md) is the source of truth for file size limits, update triggers, and failure recovery.
 
 ## Usage Patterns
 

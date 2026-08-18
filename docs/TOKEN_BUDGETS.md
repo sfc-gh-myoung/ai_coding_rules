@@ -1,6 +1,6 @@
 # Token Budgets
 
-**Last Updated:** 2026-05-14
+**Last Updated:** 2026-08-18
 
 ## Purpose
 
@@ -14,25 +14,19 @@ GPT-4o encoding (`o200k_base`).
 
 ```bash
 # Validate a single rule
-ai-rules tokens rules/100-snowflake-core.md
+uv run ai-rules tokens rules/100-snowflake-core.md
 
 # Dry run with per-file detail
-ai-rules tokens rules/ --dry-run --detailed
+uv run ai-rules tokens rules/ --dry-run --detailed
 
 # Apply updates across all rules
-ai-rules tokens rules/
+uv run ai-rules tokens rules/
 
 # Custom threshold (percent)
-ai-rules tokens rules/ --threshold 20
+uv run ai-rules tokens rules/ --threshold 20
 ```
 
-The same command can be invoked with verbose / dry-run flags:
-
-```bash
-uv run ai-rules tokens rules/ --dry-run --detailed   # dry run + detailed
-uv run ai-rules tokens rules/                        # apply updates
-uv run ai-rules tokens rules/100-snowflake-core.md   # single file
-```
+Run commands through `uv run` in a cloned repository; installed package users can omit the prefix.
 
 ## How it works
 

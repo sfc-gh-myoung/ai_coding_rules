@@ -95,7 +95,7 @@ Use our issue templates:
 - [ ] **Test** your changes locally
 - [ ] **Run** `task quality:all:fix` to fix any quality issues
 - [ ] **Build** the plugin with `uv run ai-rules plugin build` and validate it
-- [ ] **Run** `task validate` to run all CI/CD checks
+- [ ] **Run** `task validate` to run the local validation pipeline
 - [ ] **Update** documentation if needed
 - [ ] **Add** yourself to contributors if first contribution
 
@@ -222,12 +222,14 @@ The project uses [Task](https://taskfile.dev/) for development automation. Run `
 ```bash
 task quality:all:fix    # Fix all code quality issues
 task test:run           # Run all pytest tests
-task validate           # Run all CI/CD checks
+task validate           # Run local quality, tests, schemas, and plugin verification
 uv run ai-rules validate rules/          # Validate rules against schema
 uv run ai-rules plugin build             # Build the distributable plugin
 ```
 
 **See [docs/USING_DEV_CLI.md](docs/USING_DEV_CLI.md) for the complete task reference.**
+
+For the complete Task catalog and the distinction between local validation and hosted CI, see [docs/USING_DEV_CLI.md](docs/USING_DEV_CLI.md).
 
 ### Code Quality and Linting
 
@@ -305,18 +307,7 @@ git commit -m "feat: update XXX rule"
 
 ### File Naming Convention
 
-Follow the established 3-digit numbering system:
-
-- **000-099**: Core foundation rules
-- **100-199**: Data platform rules (Snowflake)
-- **200-299**: Software engineering rules (Python)
-  - **210-219**: FastAPI framework subsection
-- **300-399**: Shell/Containers
-- **400-499**: Frontend (JavaScript/TypeScript)
-- **500-599**: Frontend (HTMX)
-- **600-699**: Systems/Backend (Go)
-- **800-899**: Project management
-- **900-999**: Analytics and governance
+Use the canonical [README rule-category map](README.md#rule-categories) to select the 3-digit domain range. The FastAPI subsection remains 210-219.
 
 Use format: `XXX-topic-description.md` (3-digit number)
 
@@ -380,6 +371,8 @@ Use explicit, actionable language:
 - **Rule:** Specific directives or standards
 - **Avoid:** Anti-patterns to prevent
 - **Consider:** Recommendations for specific scenarios
+
+This vocabulary is canonical for the project. README and architecture documentation link here rather than define separate hierarchies.
 
 ### Content Guidelines
 
@@ -536,20 +529,14 @@ Review Mode: STALENESS
 
 This provides:
 
-- **6-point scoring** - Actionability, Completeness, Consistency, Parsability, Token Efficiency, Staleness
+- **100-point scoring** - Six scored dimensions with hard caps defined by the reviewer rubric
 - **Three review modes** - FULL, FOCUSED (targeted), STALENESS (periodic maintenance)
 - **Staleness detection** - Identifies outdated tool versions, deprecated patterns, API changes
-- **Cross-model compatibility** - Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
+- **Cross-model compatibility** - Review criteria are designed for consistent evaluation across supported agent families
 
 ## Code of Conduct
 
-We are committed to fostering an open and welcoming environment. Please:
-
-- **Be respectful** in all interactions
-- **Be collaborative** and help others learn
-- **Be patient** with newcomers and different perspectives
-- **Be constructive** in feedback and criticism
-- **Be inclusive** and welcome diverse contributors
+All contributors must follow the [Code of Conduct](CODE_OF_CONDUCT.md). Report conduct concerns privately through the repository owner's GitHub profile.
 
 ## Getting Help
 
@@ -563,6 +550,8 @@ We are committed to fostering an open and welcoming environment. Please:
 
 - **GitHub Issues:** [File an issue](https://github.com/sfc-gh-myoung/ai_coding_rules/issues) for bugs, features, or rule suggestions
 - **GitHub Discussions:** [Join the discussion](https://github.com/sfc-gh-myoung/ai_coding_rules/discussions) for questions and community support
+- **Issue templates:** [bug reports](.github/ISSUE_TEMPLATE/bug_report.yml) and [feature requests](.github/ISSUE_TEMPLATE/feature_request.yml) capture the required context
+- **Security issues:** Follow the private reporting process in [SECURITY.md](SECURITY.md); do not file suspected vulnerabilities as public issues
 
 ## Rule Quality Standards
 

@@ -1,6 +1,6 @@
 # Using the Rule Creator Skill
 
-**Last Updated:** 2026-08-17
+**Last Updated:** 2026-08-18
 
 The Rule Creator Skill automates creation of production-ready rules following schema v3.6 standards. It guides you through research, template generation, content population, and validation.
 
@@ -98,7 +98,7 @@ All rules must pass these gates before completion:
 | Discovery | `rules/` scanned, domain identified, number available |
 | Template | `ai-rules new` executed, v3.6 sections present |
 | Metadata | Keywords (5-11), TokenBudget (~NUMBER), ContextTier valid |
-| Contract | 6 Markdown headers present, placed before line 160 |
+| Contract | 6 Markdown headers present, placed before line 200 |
 | Validation | `ai-rules validate` returns exit code 0 |
 | Verification | Rule is matched by the loader for its keywords |
 
@@ -109,7 +109,7 @@ All rules must pass these gates before completion:
 | `Keywords count: 3 (expected 5-11)` | Too few keywords | Add more semantic keywords |
 | `TokenBudget format invalid` | Missing tilde | Change `1200` to `~1200` |
 | `Missing header: ### Validation` | Incomplete Contract | Add all 6 required headers |
-| `Contract after line 160` | Contract too late | Move Contract earlier in file |
+| `Contract after line 200` | Contract too late | Move Contract earlier in file |
 | `Invalid filename format` | Wrong casing/format | Use `NNN-lowercase-hyphenated` |
 
 ## Advanced Usage
@@ -269,6 +269,8 @@ User Request
 
 ### File Structure
 
+Representative layout (see `skills/rule-creator/` for the complete current inventory):
+
 ```text
 skills/rule-creator/
 ├── SKILL.md               # Main skill (entrypoint)
@@ -319,4 +321,4 @@ The plugin build includes only the `rule-loader` and `show-rules` skills. The ru
 - **Workflow guides:** `skills/rule-creator/workflows/*.md`
 - **Examples:** `skills/rule-creator/examples/*.md`
 - **Rule governance:** `rules/002-rule-governance.md`
-- **Schema validation:** `rules/002d-schema-validator-usage.md`
+- **Schema validation:** `rules/002e-schema-validator-usage.md`

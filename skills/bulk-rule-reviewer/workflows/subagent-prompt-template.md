@@ -119,7 +119,7 @@ Count blocking issues:
 - Ambiguous actions (multiple interpretations)
 - Visual formatting (ASCII art, arrows, diagrams)
 
-Cap score at 60 if ≥10 blocking issues.
+Apply the reviewer hard caps: six or more blocking issues cap the total score at 80/100, and ten or more force the `NOT_EXECUTABLE` verdict. See `skills/rule-reviewer/rubrics/scoring.md`.
 
 **Step 7: Score Dimensions**
 

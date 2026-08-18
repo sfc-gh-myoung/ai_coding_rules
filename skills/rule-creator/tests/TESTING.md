@@ -131,7 +131,7 @@ Run after any skill modifications:
 **Symptom:** Exit code 1 after 3 iterations
 
 **Check:**
-1. Review `rules/002d-schema-validator-usage.md`
+1. Review `rules/002e-schema-validator-usage.md`
 2. Run with `--verbose` flag
 3. Check similar rules for structure examples
 

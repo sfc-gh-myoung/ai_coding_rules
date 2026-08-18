@@ -147,7 +147,7 @@ echo "Schema validation skipped for project file"
 | **Cross-Agent** | 9/10 | ×0.5 | 4.5 | 5 |
 | **TOTAL** | - | - | **82.5** | **100** |
 
-**Overall Verdict:** EXECUTABLE_WITH_REFINEMENTS (75-89)
+**Overall Verdict:** EXECUTABLE_WITH_REFINEMENTS (80-89)
 
 **Note:** PROJECT.md is a project configuration file. Schema validation skipped. Token Efficiency and Staleness tracked as informational only (not scored).
 
@@ -224,7 +224,7 @@ echo "Schema validation skipped for project file"
 - Cross-agent consistency scoring
 - Rule Size scoring (line count)
 - Max score: 100 points
-- Verdict thresholds: 90-100 EXECUTABLE, 75-89 REFINEMENTS, 50-74 NEEDS_REFINEMENT, <50 NOT_EXECUTABLE
+- Verdict thresholds: 90-100 EXECUTABLE, 80-89 REFINEMENTS, 60-79 NEEDS_REFINEMENT, <60 NOT_EXECUTABLE
 - Review file size: 3000-8000 bytes
 
 ### What's Different

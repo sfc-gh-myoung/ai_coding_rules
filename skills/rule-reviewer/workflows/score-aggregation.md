@@ -174,9 +174,9 @@ def determine_verdict(total_score: float) -> str:
     
     if total_score >= 90:
         return "EXECUTABLE"
-    elif total_score >= 75:
+    elif total_score >= 80:
         return "EXECUTABLE_WITH_REFINEMENTS"
-    elif total_score >= 50:
+    elif total_score >= 60:
         return "NEEDS_REFINEMENT"
     else:
         return "NOT_EXECUTABLE"
@@ -185,9 +185,9 @@ def determine_verdict(total_score: float) -> str:
 | Score Range | Verdict | Description |
 |-------------|---------|-------------|
 | 90-100 | EXECUTABLE | Production-ready |
-| 75-89 | EXECUTABLE_WITH_REFINEMENTS | Good, minor fixes |
-| 50-74 | NEEDS_REFINEMENT | Needs work |
-| <50 | NOT_EXECUTABLE | Major issues |
+| 80-89 | EXECUTABLE_WITH_REFINEMENTS | Good, minor fixes |
+| 60-79 | NEEDS_REFINEMENT | Needs work |
+| <60 | NOT_EXECUTABLE | Major issues |
 
 ## Partial Results Handling
 

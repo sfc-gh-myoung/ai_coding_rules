@@ -144,4 +144,4 @@ reviews/rule-reviews/801-project-readme-claude-sonnet45-2025-12-12.md
 4. **Hard caps apply** - >600 lines caps at 70/100, ≥6 blocking issues caps at 80/100
 5. **Rule Size flags trigger actions** - >600 lines = SPLIT_REQUIRED, >700 = BLOCKED
 6. **Schema errors go to Critical Issues** - All CRITICAL/HIGH violations listed
-7. **New verdict thresholds** - 90-100 EXECUTABLE, 75-89 REFINEMENTS, 50-74 NEEDS_REFINEMENT, <50 NOT_EXECUTABLE
+7. **Verdict thresholds** - 90-100 EXECUTABLE, 80-89 REFINEMENTS, 60-79 NEEDS_REFINEMENT, <60 NOT_EXECUTABLE

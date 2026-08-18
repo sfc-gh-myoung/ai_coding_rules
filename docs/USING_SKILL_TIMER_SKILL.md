@@ -1,6 +1,6 @@
 # Using the Skill Timer Skill
 
-**Last Updated:** 2026-05-14
+**Last Updated:** 2026-08-18
 
 The Skill Timer Skill provides execution timing instrumentation for measuring and analyzing skill performance. It tracks wall-clock duration, records checkpoints, estimates token costs, detects anomalies, and compares against historical baselines.
 
@@ -195,7 +195,7 @@ $PYTHON skills/skill-timer/scripts/skill_timer.py baseline compare \
 ### Human Format Output
 
 ```
-TIMING: skill-timer v1.5.0
+TIMING: skill-timer v2.0.0-rc1
 ----------------------------------------
 Run ID:      a1b2c3d4e5f67890
 Skill:       rule-reviewer
@@ -215,7 +215,7 @@ Checkpoints:
   file_written:   222.10s
 ----------------------------------------
 Tokens:      16,700 (12,500 in / 4,200 out)
-Cost:        $0.1200
+Cost:        $0.1005
 Baseline:    +7.4% vs avg (within normal)
 ----------------------------------------
 ```
@@ -238,7 +238,7 @@ Baseline:    +7.4% vs avg (within normal)
     "input_tokens": 12500,
     "output_tokens": 4200,
     "total_tokens": 16700,
-    "estimated_cost_usd": 0.12
+    "estimated_cost_usd": 0.1005
   },
   "baseline_comparison": {
     "delta_percent": 7.4,
@@ -259,9 +259,9 @@ Baseline:    +7.4% vs avg (within normal)
 | End (UTC) | 2026-01-06T10:33:45Z |
 | Duration | 3m 45s (225.5s) |
 | Model | claude-sonnet-45 |
-| Agent | cursor |
+| Agent | cortex-code |
 | Tokens | 16,700 (12,500 in / 4,200 out) |
-| Cost | ~$0.04 |
+| Cost | $0.1005 |
 ```
 
 ### Anomaly Detection
@@ -326,16 +326,7 @@ ALERT_THRESHOLDS = {
 
 ### Token Pricing Configuration
 
-Edit `COST_PER_1M_TOKENS` in `scripts/skill_timer.py`:
-
-```python
-COST_PER_1M_TOKENS = {
-    "claude-sonnet-45": {"input": 3.00, "output": 15.00},
-    "claude-opus-45": {"input": 15.00, "output": 75.00},
-    "gpt-4-turbo": {"input": 10.00, "output": 30.00},
-    "default": {"input": 5.00, "output": 15.00},
-}
-```
+The authoritative `COST_PER_1M_TOKENS` mapping lives in [`skills/skill-timer/scripts/skill_timer.py`](../skills/skill-timer/scripts/skill_timer.py). Update that mapping when pricing changes rather than copying rates into this guide.
 
 **Sources:** [Anthropic Pricing](https://www.anthropic.com/pricing), [OpenAI Pricing](https://openai.com/pricing)
 
@@ -432,6 +423,8 @@ Timing Module (skill_timer.py)
 ```
 
 ### File Structure
+
+Representative layout (see `skills/skill-timer/` for the complete current inventory):
 
 ```text
 skills/skill-timer/

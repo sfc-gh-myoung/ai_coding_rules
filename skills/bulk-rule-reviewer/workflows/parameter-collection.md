@@ -113,7 +113,10 @@ output_questions = [
         "multiSelect": False,
         "options": [
             {"label": "No", "description": "Opt out; per-rule reviews marked `not-requested`"},
-            {"label": "Yes", "description": "Record and embed execution duration + Per-Dimension Timing (default)"},
+            {
+                "label": "Yes",
+                "description": "Record and embed execution duration + Per-Dimension Timing (default)",
+            },
         ],
     },
     {
@@ -228,7 +231,10 @@ def collect_parameters_interactively(missing_params: list) -> dict:
             "multiSelect": False,
             "options": [
                 {"label": "No", "description": "Opt out; per-rule reviews marked `not-requested`"},
-                {"label": "Yes", "description": "Record and embed execution duration + Per-Dimension Timing (default)"},
+                {
+                    "label": "Yes",
+                    "description": "Record and embed execution duration + Per-Dimension Timing (default)",
+                },
             ],
         },
         {

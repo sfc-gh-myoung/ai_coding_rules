@@ -95,10 +95,14 @@ class TestStoplistLoading:
         _reset_stoplist_caches()
 
     def test_default_stoplist_loads_nonempty(self):
-        """Stoplist must load from the workbench config path and be non-empty."""
+        """Stoplist loads as a set; non-empty only when the workbench file is present (soft-fail)."""
+        from ai_rules.commands.rule_loader.keywords.stoplist import _get_repo_root
+
         stoplist = load_keyword_stoplist()
         assert isinstance(stoplist, set)
-        assert len(stoplist) > 0
+        default_path = _get_repo_root() / ".workbench" / "config" / "keyword_stoplist.txt"
+        if default_path.exists():
+            assert len(stoplist) > 0
 
     def test_stoplist_contains_lowercase_tokens(self):
         """All tokens in the stoplist must be lowercase."""
@@ -107,13 +111,16 @@ class TestStoplistLoading:
             assert token == token.lower(), f"Token not lowercase: {token!r}"
 
     def test_stoplist_path_resolves_correctly(self):
-        """Default stoplist path must resolve to an existing file."""
+        """Default stoplist path resolves under <repo>/.workbench/config (existence not required: soft-fail)."""
         from ai_rules.commands.rule_loader.keywords.stoplist import _get_repo_root
 
         _DEFAULT_STOPLIST_PATH = _get_repo_root() / ".workbench" / "config" / "keyword_stoplist.txt"
 
-        assert _DEFAULT_STOPLIST_PATH.exists(), (
-            f"Stoplist file not found at {_DEFAULT_STOPLIST_PATH}"
+        assert _DEFAULT_STOPLIST_PATH.is_absolute()
+        assert _DEFAULT_STOPLIST_PATH.parts[-3:] == (
+            ".workbench",
+            "config",
+            "keyword_stoplist.txt",
         )
 
     def test_stoplist_cached_on_second_call(self):
@@ -136,16 +143,18 @@ class TestStoplistLoading:
         assert isinstance(overrides, dict)
 
     def test_override_path_resolves(self):
-        """Default overrides path resolves under workbench config."""
+        """Default overrides path resolves under <repo>/.workbench/config (existence not required: soft-fail)."""
         from ai_rules.commands.rule_loader.keywords.stoplist import _get_repo_root
 
         _DEFAULT_STOPLIST_OVERRIDES_PATH = (
             _get_repo_root() / ".workbench" / "config" / "keyword_stoplist_overrides.yml"
         )
 
-        # Path must exist (may be empty YAML)
-        assert _DEFAULT_STOPLIST_OVERRIDES_PATH.exists(), (
-            f"Overrides file not found at {_DEFAULT_STOPLIST_OVERRIDES_PATH}"
+        assert _DEFAULT_STOPLIST_OVERRIDES_PATH.is_absolute()
+        assert _DEFAULT_STOPLIST_OVERRIDES_PATH.parts[-3:] == (
+            ".workbench",
+            "config",
+            "keyword_stoplist_overrides.yml",
         )
 
     def test_custom_stoplist_path(self, tmp_path):

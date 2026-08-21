@@ -16,7 +16,7 @@ From Phase 1:
 
 - File created: `rules/NNN-technology-aspect.md`
 - All 9 required sections present
-- Contract section with 6 XML tags
+- Contract section with 7 ### subsections
 - Metadata structure ready for population
 - Placeholder content to replace
 
@@ -195,16 +195,17 @@ Verify required frontmatter and top-level sections are present:
 6. ✓ Post-Execution Checklist
 9. ✓ References
 
-### Step 2.7: Verify Contract XML Tags
+### Step 2.7: Verify Contract ### Headers
 
-Confirm all 6 tags present in Contract section:
+Confirm all 7 required ### subsections present in Contract section:
 
-1. ✓ `<inputs_prereqs>...</inputs_prereqs>`
-2. ✓ `<mandatory>...</mandatory>`
-3. ✓ `<forbidden>...</forbidden>`
-4. ✓ `<steps>...</steps>`
+1. ✓ `### Inputs and Prerequisites`
+2. ✓ `### Mandatory`
+3. ✓ `### Forbidden`
+4. ✓ `### Execution Steps`
 5. ✓ `### Output Format`
 6. ✓ `### Validation`
+7. ✓ `### Post-Execution Checklist`
 
 ### Step 2.8: Check Contract Placement
 
@@ -303,7 +304,7 @@ Before proceeding to Phase 3, verify:
 - [x] `ai-rules new` executed successfully (exit code 0)
 - [x] File created at `rules/NNN-technology-aspect.md`
 - [x] All 9 required sections present
-- [x] Contract section has 6 XML tags
+- [x] Contract section has 7 ### subsections
 - [x] Contract placed before line 160
 - [x] Metadata structure present (Keywords, TokenBudget, ContextTier, Depends)
 - [x] Placeholder content ready for population
@@ -352,7 +353,7 @@ $ grep -c "^### " rules/422-daisyui-core.md
 ✓ Template created: rules/422-daisyui-core.md
 ✓ Size: 3.2KB (reasonable starting point)
 ✓ Sections: 9/9 present
-✓ Contract XML tags: 6/6 present
+✓ Contract ### subsections: 7/7 present
 ✓ Contract placement: Line 35 (before 160 ✓)
 ✓ Ready for Phase 3: Content Population
 ```

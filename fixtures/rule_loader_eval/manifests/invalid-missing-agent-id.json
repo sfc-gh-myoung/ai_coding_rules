@@ -1,54 +1,19 @@
 {
-  "schema_version": "rule-loader-manifest/v1",
-  "runtime": {
-    "primitive": "Task",
-    "spawn_evidence": "toolu_01ABcDef...",
-    "agent_id": ""
-  },
-  "keywords_searched": [".py", "fix"],
-  "index_evidence": [
-    {
-      "kind": "hook",
-      "target": "hook-injected-manifest",
-      "query": "matcher: ext=.py HARD match",
-      "result_summary": "200-python-core.md"
-    }
-  ],
+  "schema_version": "rule-loader-matcher/v1",
   "candidate_rules": [
     {
-      "rule_path": "rules/200-python-core.md",
-      "rule_name": "200-python-core.md",
-      "reason_type": "extension",
-      "reason": "ext=.py HARD match",
+      "rule_path": "200-python-core.md",
+      "layer": "SOFT",
       "context_tier": "High",
-      "token_estimate": 2600,
-      "layer": "HARD",
-      "required": true
+      "description": "missing rules/ prefix"
     }
   ],
-  "candidate_count": 1,
   "load_sequence": [
     {
-      "order": 1,
       "rule_path": "rules/000-global-core.md",
-      "rule_name": "000-global-core.md",
-      "reason_type": "foundation",
-      "reason": "foundation",
-      "context_tier": "Critical",
-      "token_estimate": 2550,
-      "layer": "FOUNDATION",
-      "required": true
-    },
-    {
-      "order": 2,
-      "rule_path": "rules/200-python-core.md",
-      "rule_name": "200-python-core.md",
-      "reason_type": "extension",
-      "reason": "ext=.py HARD match",
-      "context_tier": "High",
-      "token_estimate": 2600,
       "layer": "HARD",
-      "required": true
+      "context_tier": "Critical",
+      "description": "Foundation rule"
     }
   ],
   "deferred_rules": []

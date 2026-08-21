@@ -28,12 +28,9 @@ Match: "Snowflake" keyword -> 100-snowflake-core.md
 - Domain nouns: `CSV`, `COPY INTO`, `data loading`
 
 ```bash
-grep -i "COPY INTO" rules/rule frontmatter
+python3 src/ai_rules/match_rules.py --prompt "Create a Python script that loads CSV data into Snowflake using COPY INTO" --rules-dir rules/
 # Matches: 102-snowflake-sql-core.md (keyword: COPY INTO)
 #          108-snowflake-data-loading.md (keyword: copy-into, data-loading)
-
-grep -i "data-loading" rules/rule frontmatter
-# Matches: 108-snowflake-data-loading.md
 ```
 
 Both `102` (SQL patterns for COPY INTO) and `108` (data loading specifics) are relevant.

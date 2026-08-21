@@ -1,12 +1,12 @@
 ---
 schema_version: v3.5
-rule_version: v2.0.0
+rule_version: v2.0.2
 description: "Agent protocol reference: anti-patterns, quality gates, task-switch examples, failure modes, project tool discovery, and term definitions"
-last_updated: 2026-07-15
+last_updated: 2026-08-20
 keywords:
   - kw:agent bootstrap protocol
   - kw:PRE-FLIGHT gate compliance
-  - kw:rule-matcher grep discovery
+  - kw:rule-loader discovery
   - kw:ACT authorization recognition
   - kw:task switch detection
   - kw:fabricated gate anti-pattern
@@ -52,13 +52,13 @@ _None._
 - Load `rules/000-global-core.md` (foundation) before consulting this reference rule
 - Use `read_file` to read any rule file; never assume file contents
 - Cite foundation on Gate 1 (`-  vX.Y.Z`); list domain/activity rules as Gate 3 sub-bullets (or `none matched`) in the response
-- Execute actual grep or read_file for Gate 2; never fabricate gate compliance
+- Use a hook-injected manifest or invoke `$rule-loader` for Gate 2; never fabricate gate compliance
 
 ### Forbidden
 
 - Fabricating gate compliance based on session summaries
 - Skipping validation gates before marking tasks complete
-- Guessing rule filenames; always use rule frontmatter grep to find authoritative names
+- Guessing rule filenames; use hook or `$rule-loader` results to find authoritative names
 - Loading this rule to bypass the EXECUTION SEQUENCE; it supplements, not replaces
 
 ### Execution Steps
@@ -139,24 +139,25 @@ Task complete.
 
 ## Anti-Pattern: Fabricated Gate Compliance
 
-**Problem:** Claiming `[x] Gate 2: rule frontmatter searched` without executing grep or read_file, especially after session continuation where a summary claims prior gates passed.
+**Problem:** Claiming `[x] Gate 2: rule discovery completed` without a hook-injected manifest or a `rule-loader` skill invocation, especially after session continuation where a summary claims prior gates passed.
 
 **Why It Fails:** Gate checkboxes become meaningless self-attestations. Session summaries may contain inaccurate claims about prior execution.
 
 **Detection Signals:**
-- Gate 2 marked `[x]` but no grep or read_file call to rule frontmatter visible
+- Gate 2 marked `[x]` but no hook-injected manifest or `rule-loader` skill invocation visible
 - Keywords in Gate 2 match previous session summary rather than current tool output
 - Rules in Gate 3 were not read via read_file in the current response cycle (foundation should not appear in Gate 3; it belongs on Gate 1)
 
 **Correct Pattern:**
 ```markdown
-[Agent executes: grep -iwE "sql|streamlit" rules/rule frontmatter]
-[Actual grep output: 102-snowflake-sql-core.md | tier:High | ~1400 | ...]
+[Hook injects the matched-rule manifest for: sql, streamlit]
+or
+[Agent invokes: $rule-loader for "sql streamlit"]
 
 PRE-FLIGHT:
 - [x] Gate 1: Foundation rules/000-global-core.md - vX.Y.Z
-- [x] Gate 2: rule frontmatter searched for: sql, streamlit
-  (grep matched: 102-snowflake-sql-core.md, 101-snowflake-streamlit-core.md)
+- [x] Gate 2: rule discovery completed for: sql, streamlit
+  (found: 102-snowflake-sql-core.md, 101-snowflake-streamlit-core.md)
 - [x] Gate 3: +2 domain rules:
   - rules/102-snowflake-sql-core.md (sql match) - vX.Y.Z
   - rules/101-snowflake-streamlit-core.md (streamlit match) - vX.Y.Z
@@ -170,7 +171,7 @@ PRE-FLIGHT:
 
 ## Search Triggers
 
-**ALWAYS search rule frontmatter when user request contains ANY of:**
+**Rule discovery is required when the user request contains ANY of:**
 
 - **Error messages** (stack traces, exceptions, "error", "failed"): Error-specific rules exist
 - **Screenshots/images** (any visual input): Visual salience overrides protocol: compensate
@@ -189,7 +190,7 @@ PRE-FLIGHT:
 **On Task Switch: STOP and Re-evaluate:**
 1. STOP: Do not proceed with previous rule context
 2. Extract new keywords from current request
-3. Search `rules/rule frontmatter`
+3. Use the hook-injected manifest when present; otherwise invoke `$rule-loader`
 4. Load matching rules before acting
 5. Cite foundation on Gate 1 with `-  vX.Y.Z`; list domain/activity rules as Gate 3 sub-bullets (or `none matched`) in response
 
@@ -200,7 +201,7 @@ PRE-FLIGHT:
 - **Explicit rule read fails:** STOP and report with options (A) Provide correct path, (B) Proceed without this rule, (C) Cancel task
 
 **WARNING (Can proceed with limitations):**
-- **rule frontmatter missing:** WARN, load 000 + grep by extension. Proceed (degraded).
+- **rule-loader unavailable and no hook manifest:** WARN, read relevant rule YAML frontmatter directly, and proceed in degraded mode. Do not run `match_rules.py` directly during normal task execution.
 - **No matching rule found:** Note "No rule found for [keyword]". Proceed with foundation only.
 - **Dependency missing:** Skip dependent rule, log warning. Proceed.
 
@@ -230,34 +231,25 @@ PRE-FLIGHT:
 - `Pipfile.lock` means project uses `pipenv run`
 - `requirements.txt` only means bare pip or venv activation
 
-## rule-matcher Format Reference
+## Rule Discovery Ownership
 
-**Agent discovery index:** `rules/rule frontmatter`. This is the index agents grep for discovery.
+**Normal runtime mechanism:** Rule discovery is owned by one of two paths:
 
-**Format:** one space-separated row per rule:
-```text
-<filename> tier=<Critical|High|Medium|Low> [ext=<csv>] [file=<csv>] [dir=<csv>] kw=<w1> <w2> ...
-```
+1. The hook automatically injects a metadata-only manifest before the agent responds.
+2. The `$rule-loader` skill performs discovery on demand when no manifest was injected.
 
-**Grep recipe:**
-```bash
-grep -iwE "python|streamlit|ext=\.py" rules/rule frontmatter
-```
+`src/ai_rules/match_rules.py` is an implementation detail of those two paths. Agents must not invoke it directly during ordinary task execution.
+
+**Direct matcher exception:** Tests and evaluations may invoke the matcher directly to verify deterministic discovery behavior.
 
 ### Delegated discovery (Gate 2)
 
-Rule discovery is owned by the `rule-loader` skill and is normally run in a
-**discovery sub-agent**. Gate 2 passes when discovery was
-performed by EITHER:
+Rule discovery is owned by the hook or the `rule-loader` skill. Gate 2 passes when discovery was performed by EITHER:
 
-- **(a) Delegated:** a discovery sub-agent running the `rule-loader` skill: cite the
-  runtime-visible spawn evidence (`tool_call_id`), the sub-agent `agent_id`, and the
-  fenced JSON manifest with `schema_version: rule-loader-manifest/v1`; OR
-- **(b) Inline (Step 2B):** a `grep`/`read_file` call against
-  `rules/rule frontmatter` you can cite.
+- **(a) Hook:** the current system context includes a hook-injected matcher manifest; OR
+- **(b) Skill:** the agent invoked the `rule-loader` skill and can cite its returned manifest.
 
-A Gate 2 claim with NEITHER spawn evidence + manifest + `agent_id` NOR a citable
-inline call is INVALID. Never claim Gate 2 from prior session context or a summary.
+A Gate 2 claim with neither a hook manifest nor a rule-loader result is INVALID. Never claim Gate 2 from prior session context or a summary.
 The manifest is metadata only; the main agent still `read_file`s each rule body
 itself (Gate 3 read-and-apply).
 
@@ -273,7 +265,7 @@ itself (Gate 3 read-and-apply).
 
 - **File awareness:** Verify current state before modifications if another agent may be editing
 - **Independent operation:** Each agent maintains its own state
-- **Rule consistency:** All agents should use the same `rules/rule frontmatter` version
+- **Rule consistency:** All agents should use the same canonical rules directory and matcher version
 
 ## Term Definitions
 
@@ -289,16 +281,16 @@ itself (Gate 3 read-and-apply).
 
 ### Anti-Pattern: Fabricated Gate Compliance
 
-**Problem:** Claiming `[x] Gate 2: rule frontmatter searched` without executing grep or read_file against it.
+**Problem:** Claiming `[x] Gate 2: rule discovery completed` without a hook manifest or a `rule-loader` result.
 
 **Correct Pattern:**
 ```markdown
-[Agent executes: grep -iwE "sql|streamlit" rules/rule frontmatter]
-[Actual grep output received and read]
+[Agent invokes: $rule-loader for "sql streamlit"]
+[Rule-loader manifest received and read]
 
 PRE-FLIGHT:
 - [x] Gate 1: Foundation rules/000-global-core.md - vX.Y.Z
-- [x] Gate 2: rule frontmatter searched for: sql, streamlit
+- [x] Gate 2: rule discovery completed for: sql, streamlit
 - [x] Gate 3: +1 domain rule:
   - rules/102-snowflake-sql-core.md (sql match) - vX.Y.Z
 ```
@@ -336,7 +328,7 @@ When a user request contains multiple technologies (joined by `+`, `and`, `with`
 2. Technical terms (capitalized, hyphenated, acronyms like SSE/API/SPCS) are almost always keywords
 3. Each technology should be included in the grep OR pattern
 
-**Example:** "FastAPI + HTMX + SSE in SPCS" produces `grep -iwE "fastapi|htmx|sse|spcs" rules/rule frontmatter` (4 keywords)
+**Example:** "FastAPI + HTMX + SSE in SPCS" is passed to `$rule-loader`, which returns the metadata-only rule manifest for the request.
 
 ## Gate Failure Message Catalog
 
@@ -348,8 +340,8 @@ Gate 1 failures:
 - "read_file tool not available"
 
 Gate 2 failures:
-- "rules/rule frontmatter not found"
-- "grep tool unavailable" -> **AUTO-FALLBACK:** Read rule frontmatter directly and scan manually. Do NOT mark as FAILED if fallback succeeds.
+- "rules directory not found"
+- "rule-loader unavailable and no hook manifest" -> **AUTO-FALLBACK:** Read relevant rule YAML frontmatter directly. Do NOT mark as FAILED if fallback succeeds.
 - "No keywords extracted from user request"
 
 Gate 3 failures:
@@ -370,7 +362,7 @@ Gate 3 failures:
 ```markdown
 PRE-FLIGHT:
 - [x] Gate 1: Foundation rules/000-global-core.md - vX.Y.Z
-- [x] Gate 2: rule frontmatter searched for: python, sql
+- [x] Gate 2: rule discovery completed for: python, sql
 - [x] Gate 3: +1 domain rule:
   - rules/102-snowflake-sql-core.md (for .sql extension) - vX.Y.Z
   - ⚠️ Rule load failed: 200-python-core.md not found
@@ -412,20 +404,20 @@ Step 4: NOW check if result equals "ACT" (case-insensitive) or starts with "ACT 
 - **Partial authorization:** "ACT on items 1-N" MUST trigger MODE: ACT (scoped to specified items)
 - **Authorization prompt REQUIRED for file modifications:** Even when asking clarifying questions, include "Authorization (required): Reply with `ACT` once clarification is provided"
 
-## Step 2B Fallback Details
+## Rule-Loader Unavailable Fallback
 
-The Step 2B fallback runs ONLY when the rule-loader skill is unavailable. The supporting detail is here.
+This fallback runs ONLY when the rule-loader skill is unavailable and the hook did not inject a manifest. It reads relevant YAML frontmatter directly; it does not invoke `match_rules.py`.
 
 **A. Keyword extraction:**
 1. Identify the PRIMARY VERB (test, deploy, lint, commit, help, fix, create, etc.)
 2. Identify the PRIMARY TECHNOLOGY (Python, Docker, Snowflake, etc.)
 3. Identify any FILE EXTENSIONS mentioned (.py, .sql, .tsx, etc.)
 
-**CRITICAL:** If ANY word in the request could be a keyword, extract it. Gate 2 should ONLY fail if the grep tool is unavailable OR the request is truly empty. **DO NOT fail Gate 2** for vague requests: always extract at least the verb or noun.
+**CRITICAL:** If ANY word in the request could be a keyword, extract it. Gate 2 should ONLY fail if the hook, rule-loader skill, and direct-frontmatter fallback are unavailable OR the request is truly empty. **DO NOT fail Gate 2** for vague requests: always extract at least the verb or noun.
 
-**C. Grep sanity check:** Zero results is almost always an anomaly. rule frontmatter has one row per rule (~200 rules); common keywords (python, sql, docker, deploy, test, streamlit, fastapi, snowflake) should ALWAYS match. On zero results for a common keyword: (1) re-execute grep once, (2) if still zero, use the read_file fallback immediately, (3) note "Grep returned unexpectedly empty; used fallback". Expected volume: 2–15 lines (multi-tech), 1–5 (single-tech); zero for reasonable keywords = ANOMALY.
+**C. Discovery sanity check:** Zero results is almost always an anomaly. Common keywords (python, sql, docker, deploy, test, streamlit, fastapi, snowflake) should normally match. On zero results for a common keyword: (1) invoke `$rule-loader` once if the result came from the hook, (2) if still zero and the skill is unavailable, use the direct-frontmatter fallback, (3) note "Rule discovery returned unexpectedly empty; used frontmatter fallback".
 
-**D. Gate 2 verification:** Gate 2 passes ONLY if the agent invoked the rule-loader skill (Step 2) OR executed grep / the read_file fallback (Step 2B) AND can cite specific matched lines or rule names. A Gate 2 claim without a corresponding tool call in the same response is INVALID. Claiming Gate 2 from prior session context or summaries is an anti-pattern: re-execute per the Step 0 decision tree. Consistency: if Gate 2 lists keywords, Gate 3 MUST list specific rule filenames OR state "no rules found for [keyword]".
+**D. Gate 2 verification:** Gate 2 passes ONLY if the hook injected a manifest or the agent invoked the rule-loader skill (Step 2) and can cite specific matched rules. A Gate 2 claim without one of those discovery records in the same response is INVALID. Claiming Gate 2 from prior session context or summaries is an anti-pattern: re-execute per the Step 0 decision tree. Consistency: if Gate 2 lists keywords, Gate 3 MUST list specific rule filenames OR state "no rules found for [keyword]".
 
 ## PRE-FLIGHT Gate Checklist Rules
 

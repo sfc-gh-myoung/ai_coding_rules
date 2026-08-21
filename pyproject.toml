@@ -54,6 +54,7 @@ dev = [
     "ty==0.0.35",
     "pre-commit>=4.0",
     "pymarkdownlnt>=0.9.0",
+    "jsonschema>=4.26.0",  # validate matcher output against its published schema
 ]
 # Optional group: live-agent path for the Rule Loading Evaluator.
 # CI does not install this group; only `ai-rules rule-loader doctor`,

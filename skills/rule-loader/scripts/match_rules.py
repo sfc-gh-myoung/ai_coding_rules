@@ -5,7 +5,7 @@ Can be used two ways:
   1. CLI: python3 match_rules.py --prompt "Write a Streamlit app" --rules-dir ./rules
   2. Import: from ai_rules.match_rules import match_rules, load_rules_db, resolve_dependencies
 
-Produces rule-loader-manifest/v2 JSON or full rule metadata JSON.
+Produces rule-loader-matcher/v1 JSON or full rule metadata JSON.
 Exit codes: 0 = rules matched, 1 = no rules matched, 2 = fatal error.
 
 THIS FILE IS THE PRIMARY. It is vendored verbatim to
@@ -677,37 +677,48 @@ def build_manifest(
     warnings: list[dict],
     *,
     matched_filenames: set[str] | None = None,
+    foundation: RuleEntry | None = None,
     max_entries: int = 3,
     max_tokens: int = 20_000,
 ) -> dict:
-    """Build a rule-loader-manifest/v2 dict."""
+    """Build a rule-loader-matcher/v1 dict."""
     if matched_filenames is None:
         matched_filenames = {r.filename for r in resolved}
 
-    def _to_entry(rule: RuleEntry, is_dep: bool = False) -> dict:
+    def _to_entry(rule: RuleEntry, layer: str = "SOFT") -> dict:
         d: dict[str, Any] = {
-            "filename": rule.filename,
             "rule_path": f"rules/{rule.filename}",
+            "layer": layer,
             "context_tier": rule.context_tier,
-            "rule_version": rule.rule_version,
             "description": rule.description,
         }
         if rule.token_budget is not None:
             d["token_budget"] = rule.token_budget
-        if is_dep:
-            d["is_dependency_only"] = True
         return d
 
-    candidate_rules = [_to_entry(r) for r in resolved]
+    if foundation is not None and all(rule.filename != foundation.filename for rule in resolved):
+        resolved = [foundation, *resolved]
+
+    candidate_rules = [
+        _to_entry(
+            r, "HARD" if (foundation is not None and r.filename == foundation.filename) else "SOFT"
+        )
+        for r in resolved
+    ]
     deferred: list[dict] = []
 
     # Split into direct matches and deps
+    foundation_entry: dict | None = None
     direct = []
     deps_only = []
     for rule in resolved:
         is_dep = rule.filename not in matched_filenames
-        entry = _to_entry(rule, is_dep)
-        if is_dep:
+        is_foundation = foundation is not None and rule.filename == foundation.filename
+        layer = "HARD" if is_foundation else "SOFT"
+        entry = _to_entry(rule, layer)
+        if is_foundation:
+            foundation_entry = entry
+        elif is_dep:
             deps_only.append(entry)
         else:
             direct.append(entry)
@@ -715,9 +726,44 @@ def build_manifest(
     # Apply entry cap to direct matches
     capped_direct = direct[:max_entries]
     for entry in direct[max_entries:]:
-        deferred.append({"filename": entry["filename"], "reason": "entry_cap"})
+        deferred.append({"rule_path": entry["rule_path"], "reason": "entry_cap"})
 
-    load_sequence = capped_direct + deps_only
+    # Order dependencies before dependents: emit each surviving direct match's
+    # transitive required deps ahead of it. Foundation always leads (HARD).
+    rule_by_path = {f"rules/{r.filename}": r for r in resolved}
+    keep_entries = (
+        ([foundation_entry] if foundation_entry is not None else []) + capped_direct + deps_only
+    )
+    entry_by_path = {e["rule_path"]: e for e in keep_entries}
+
+    ordered: list[dict] = []
+    emitted: set[str] = set()
+
+    if foundation_entry is not None:
+        ordered.append(foundation_entry)
+        emitted.add(foundation_entry["rule_path"])
+
+    def _emit_with_deps(path: str) -> None:
+        # Mark before recursing so a dependency cycle terminates.
+        if path in emitted or path not in entry_by_path:
+            return
+        emitted.add(path)
+        rule = rule_by_path.get(path)
+        if rule is not None:
+            for dep_name in rule.depends_required:
+                dep_clean = dep_name.split("#")[0].strip()
+                if dep_clean:
+                    _emit_with_deps(f"rules/{dep_clean}")
+        ordered.append(entry_by_path[path])
+
+    for entry in capped_direct:
+        _emit_with_deps(entry["rule_path"])
+    # Append any dependency-only rules no surviving match reached.
+    for entry in deps_only:
+        _emit_with_deps(entry["rule_path"])
+
+    load_sequence = ordered
+    deps_only_paths = {entry["rule_path"] for entry in deps_only}
 
     # Token budget enforcement
     def _total_tokens(seq: list[dict]) -> int:
@@ -727,17 +773,19 @@ def build_manifest(
         removed_idx = None
         for i in range(len(load_sequence) - 1, -1, -1):
             entry = load_sequence[i]
-            is_foundation = entry["filename"].startswith("000-")
-            if not is_foundation and not entry.get("is_dependency_only"):
+            # Protect HARD foundation rules and dependency-only rules: evicting a
+            # dependency would leave the rule that requires it loaded without its
+            # dep. Direct matches are evicted first instead.
+            if entry.get("layer") != "HARD" and entry["rule_path"] not in deps_only_paths:
                 removed_idx = i
                 break
         if removed_idx is None:
             break
         removed = load_sequence.pop(removed_idx)
-        deferred.append({"filename": removed["filename"], "reason": "token_budget"})
+        deferred.append({"rule_path": removed["rule_path"], "reason": "token_budget"})
 
     return {
-        "schema_version": "rule-loader-manifest/v2",
+        "schema_version": "rule-loader-matcher/v1",
         "load_sequence": load_sequence,
         "deferred_rules": deferred,
         "candidate_rules": candidate_rules,
@@ -1158,6 +1206,7 @@ def main(argv: list[str] | None = None) -> int:  # noqa: D103
         resolved,
         warnings,
         matched_filenames=matched_filenames,
+        foundation=db.get("000-global-core.md"),
         max_entries=args.max_entries,
         max_tokens=args.max_tokens,
     )

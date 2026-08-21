@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **fix(cli):** remove the inert `ai-rules configure` wizard (`setup/wizard.py`) and its `.ai-coding-rules.yaml.example`. The generated config was never consumed by the matcher, so it produced a config file with no effect.
+
+### Fixed
+
+- **fix(rule-loader):** emit required dependencies before the rules that depend on them in `load_sequence`, honoring the documented dependency-first loading order.
+- **fix(plugin):** reword the `UserPromptSubmit` hook output to present matched rules as ranked candidates and defer to the 3-rule cap, instead of instructing the agent to read all matches.
+- **fix(schema):** add the `warnings` array to `schemas/rule-loader-matcher-v1.schema.json` so real matcher output validates against its own schema.
+
 ## [3.9.0]
 
 ### Added

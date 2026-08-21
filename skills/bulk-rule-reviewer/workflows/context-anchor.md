@@ -98,29 +98,29 @@ A **Context Anchor** is a section of skill documentation that:
 **Solution: Periodic file re-reads inject fresh context that cannot be summarized:**
 
 ```python
-# Every 5 rules - mandatory (output format)
+# Every 5 rules - mandatory (schema validation)
 if rule_number % 5 == 0:
-    read_file("skills/rule-reviewer/examples/TEMPLATE.md")
+    invoke("ai-rules review-artifact validate --input <last_review.json>")
 
 # On drift detection - immediate
-if previous_review_size < 2500:
-    read_file("skills/rule-reviewer/examples/TEMPLATE.md")
-    read_file("skills/bulk-rule-reviewer/SKILL.md")
+if not json_path.exists() or validate_exit_code != 0:
+    read_file("skills/rule-reviewer/SKILL.md")
+    read_file("skills/rule-reviewer/references/reviewer-defaults.yml")
 
 # On format deviation - immediate
 if format_deviation_detected:
-    read_file("skills/rule-reviewer/examples/TEMPLATE.md")
-    # Regenerate the review
+    invoke(
+        "ai-rules review-artifact render --input <corrected.json> --output <review.md> --replace"
+    )
+    # Re-verify the pair
 ```
 
-**TEMPLATE.md contains (~200 tokens):**
-- EXACT Executive Summary table format with column headers
-- All 7 required section headers in order
-- Quality gate thresholds
-- Anti-drift protocol with self-check questions
-- Evidence requirements (merged from former CRITICAL_CONTEXT.md)
+**`reviewer-defaults.yml` contains (~80 tokens):**
+- 6 canonical dimension names with exact weights
+- Hard-cap conditions and verdict thresholds
+- Evidence requirements (blocking findings require source or docs)
 
-**Why this works:** File reads are "new" content that gets full attention weight, unlike "old" content from conversation start that gets summarized.
+**Why validation, not template re-read:** Schema validation is deterministic and machine-verifiable. `ai-rules review-artifact validate` catches exact structural and semantic violations that pattern-matching in Markdown cannot.
 
 ### Detection of Anchor Loss
 

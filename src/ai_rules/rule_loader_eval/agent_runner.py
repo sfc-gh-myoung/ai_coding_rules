@@ -136,7 +136,7 @@ def build_eval_manifest(prompt: str, rules_db: dict) -> dict:
         rules_db: A filename-keyed ``RuleEntry`` database (``load_rules_db``).
 
     Returns:
-        A ``rule-loader-manifest/v2`` dict (``load_sequence`` etc.).
+        A ``rule-loader-matcher/v1`` dict (``load_sequence`` etc.).
     """
     from ai_rules.match_rules import (
         FileContext,

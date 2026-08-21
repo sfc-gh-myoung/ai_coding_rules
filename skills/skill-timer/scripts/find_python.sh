@@ -41,7 +41,7 @@ resolve() {
         echo "uv run python"
         return 0
     fi
-    echo "ERROR: No Python interpreter found. Install Python 3.10+ or uv." >&2
+    echo "ERROR: No Python interpreter found. Install Python 3.11+ or uv." >&2
     return 1
 }
 

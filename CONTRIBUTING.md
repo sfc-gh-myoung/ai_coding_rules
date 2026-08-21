@@ -591,116 +591,21 @@ prompt, loads the rules each fixture declares. See
 [`docs/EVALUATING_RULE_LOADER.md`](docs/EVALUATING_RULE_LOADER.md) for
 the full reference.
 
-**Pre-commit hook.** A local hook (`rule-loader-eval`) runs five
-representative fixtures through the live SDK
-(`uv run ai-rules rule-loader eval --fixture <id>`). Commits without
-Snowflake credentials should bypass it explicitly:
+Two points matter when you commit:
 
-```bash
-SKIP=rule-loader-eval git commit -m "..."
-```
+- **Pre-commit hook.** The local `rule-loader-eval` hook runs five representative
+  fixtures through the live SDK. Commits without Snowflake credentials should bypass
+  it explicitly:
 
-CI does not run the live agent; it only runs the trigger-evidence
-invariant via `uv run ai-rules rule-loader validate` (called
-from `task validate`).
+  ```bash
+  SKIP=rule-loader-eval git commit -m "..."
+  ```
 
-**The trigger-evidence invariant** (enforced via
-`uv run ai-rules rule-loader validate`) requires every fixture's
-`prompt` to contain a literal token for each `ext:` / `file:` /
-`dir:` trigger declared by a required rule:
+- **CI does not run the live agent.** CI runs only the trigger-evidence invariant
+  (`uv run ai-rules rule-loader validate`, called from `task validate`).
 
-- `ext:.py` -> prompt MUST contain a filename ending in `.py`
-  (e.g., `analytics/etl_pipeline.py`).
-- `ext:.sh` -> prompt MUST contain a filename ending in `.sh`
-  (e.g., `scripts/deploy.sh`).
-- `file:snowflake.yml` -> prompt MUST contain `snowflake.yml`.
-- `dir:skills/` -> prompt MUST contain `skills/`.
-
-A fixture that declares `ext:.py` but lacks any `.py` filename in the
-prompt is rejected at fixture-load time (exit 4).
-
-**Required vs dependencies.** Each fixture's `expected` block has two
-lists. `expected.required` lists rules the prompt directly should
-match (these are also the rules the trigger-evidence invariant
-checks). `expected.dependencies` lists rules that should be loaded
-because a required rule declares them (`Depends:` /
-`## References → Must Load First`). The matcher checks the agent's
-loaded set against the union and reports gaps separately for each
-list. The evaluator does not parse rule-file dependency metadata;
-rules own that information and the agent loads + reports it in
-its `**Bootstrap:**` line and `**Rules Loaded**` section per the
-Rule Loading Contract (R1-R8 in `rules/000-global-core.md`).
-
-**Authoring a new fixture.** Use `create` to capture the live agent's loaded set
-for your prompt. The default `--effort low --max-turns 15` gives the live agent
-enough budget to complete the bootstrap protocol, run the citation gate, and emit
-structured output reliably for most fixtures. For difficult fixtures, use the
-exhaustive fallback:
-
-```bash
-uv sync --group live-agent
-ai-rules rule-loader create \
-    --prompt 'How do I build a streamlit dashboard?' \
-    --id new-fixture --variant simple \
-    --write fixtures/rule_loader_eval/new-fixture.yaml
-
-# Exhaustive fallback for difficult fixtures:
-ai-rules rule-loader create \
-    --prompt 'How do I build a streamlit dashboard?' \
-    --id new-fixture --variant simple \
-    --effort high --max-turns 50 \
-    --write fixtures/rule_loader_eval/new-fixture.yaml
-```
-
-**Batch-refreshing.** When authoring or refreshing multiple fixtures at once,
-use `refresh-all`. It runs all matched fixtures concurrently and writes
-candidate YAMLs to an output directory:
-
-```bash
-# Refresh all fixtures at once:
-uv run ai-rules rule-loader refresh-all --all \
-    --concurrency 4 \
-    --out-dir out/seeds/
-
-# Exhaustive fallback (difficult fixtures or reliability investigations):
-ai-rules rule-loader refresh-all --all --max-turns 50 --effort high
-
-# Lower concurrency if you hit rate limits:
-ai-rules rule-loader refresh-all --all --concurrency 1
-```
-
-See `docs/EVALUATING_RULE_LOADER.md` for full batch documentation.
-
-**Refreshing or iterating on an existing fixture.** Use `refresh` to
-re-run a fixture's prompt through the live SDK and detect drift:
-
-```bash
-# Refresh: re-run and diff against the on-disk YAML.
-ai-rules rule-loader refresh \
-    fixtures/rule_loader_eval/simple-cortex-search.yaml
-
-# Accept the regenerated skeleton (snapshot-style write-back):
-ai-rules rule-loader refresh \
-    fixtures/rule_loader_eval/simple-cortex-search.yaml --write
-```
-
-The `create` and `refresh` commands compare two primary signals of which rules the agent loaded (per Rule Loading Contract R1-R8), with an optional legacy 3rd signal:
-
-1. **Tool reads** - `read_file` calls captured via PreToolUse hook (ground truth).
-2. **`**Rules Loaded**`** - the agent's declared loaded section (R1).
-3. **`## Reads Performed`** - (legacy) only checked when present; v3.9+ agents do not emit it.
-
-When the primary signals agree, the captured loaded set is trustworthy. When they disagree, a structured warning explains which signals diverge and points at likely causes (especially Anti-Pattern 3: fabricated gate compliance). A separate warning surfaces citation drift: declared line counts that don't match actual rule file line counts (R3/R5 fabrication signal).
-
-When trusting the generated `expected.required`:
-- If signals agree -> trust the captured set; split into `required` and `dependencies` as before.
-- If `**Rules Loaded**` lists rules not in tool reads -> treat as fabrication; verify each rule was actually needed for the prompt before including it.
-- If tool reads contain rules not in the declared section -> the agent read but did not declare; usually safe to include but worth investigating.
-- If citation drift is reported -> the agent likely cited values from pretraining; re-run the seeder until citations match.
-
-Then split the captured `expected.required` list manually between
-`required` (direct matches) and `dependencies` (transitively pulled
-in), fill in `trigger_evidence`, and commit.
-
-**Forbidden-rule violations are warn-only by default.** Use
-`--strict-forbidden` to opt into hard-fail.
+See [`docs/EVALUATING_RULE_LOADER.md`](docs/EVALUATING_RULE_LOADER.md) for the full
+command reference (validate, eval, create, refresh, refresh-all, compare, and the
+fixture schema) and
+[`fixtures/rule_loader_eval/AUTHORING_GUIDE.md`](fixtures/rule_loader_eval/AUTHORING_GUIDE.md)
+for prompt-writing guidance.

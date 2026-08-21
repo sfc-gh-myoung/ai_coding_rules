@@ -289,7 +289,8 @@ def apply_rule_size_flags(aggregated: dict) -> dict:
 def generate_review_document(aggregated: dict, params: dict, context: dict) -> str:
     """Generate the final review markdown document.
     
-    Output MUST conform to references/REVIEW-OUTPUT-TEMPLATE.md structure.
+    Output MUST conform to the `rule-review-result/v1` canonical JSON schema.
+    Validate with `ai-rules review-artifact validate` before rendering Markdown.
     """
     
     # Build score table (template-compliant columns)

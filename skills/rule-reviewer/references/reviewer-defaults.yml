@@ -1,0 +1,105 @@
+# Canonical reviewer defaults — rule-review-result/v1
+#
+# This file is the single authority for scoring weights, hard caps,
+# verdict thresholds, and dimension names. Do not duplicate these values
+# in SKILL.md, examples, or templates. JSON Schema (schemas/rule-review-result-v1.schema.json)
+# owns structural shape; this file owns the numeric policy.
+
+schema_version: "rule-review-result/v1"
+
+# ── Dimensions ────────────────────────────────────────────────────────────────
+# Exactly six canonical dimensions. Names must match the enum in the JSON Schema.
+# Formula: raw_score (0–10) × weight = points. Max total = 100.
+
+dimensions:
+  - name: actionability
+    weight: 3.0
+    max_points: 30
+    focus: "Can agents execute every instruction without judgment?"
+  - name: rule_size
+    weight: 2.5
+    max_points: 25
+    focus: "Is the rule within the 500-line target? (deterministic line count)"
+  - name: parsability
+    weight: 1.5
+    max_points: 15
+    focus: "Does the rule pass schema validation and use consistent formatting?"
+  - name: completeness
+    weight: 1.5
+    max_points: 15
+    focus: "Are all required scenarios and edge cases covered?"
+  - name: consistency
+    weight: 1.0
+    max_points: 10
+    focus: "Are terms and behavior definitions internally consistent?"
+  - name: cross_agent_consistency
+    weight: 0.5
+    max_points: 5
+    focus: "Does the rule work identically across all supported agent runtimes?"
+
+total_max_points: 100
+raw_score_range: [0, 10]
+
+# ── Hard caps ─────────────────────────────────────────────────────────────────
+# Applied after score arithmetic. Multiple caps may stack; the lowest cap wins.
+
+hard_caps:
+  - condition: "line_count > 700"
+    effect: "cap_score_at"
+    value: 50
+    description: "Rule exceeds 700 lines — score capped at 50/100."
+  - condition: "line_count > 600"
+    effect: "cap_score_at"
+    value: 70
+    description: "Rule exceeds 600 lines — score capped at 70/100."
+  - condition: "blocking_issue_count >= 10"
+    effect: "force_verdict"
+    value: "NOT_EXECUTABLE"
+    description: "10 or more blocking issues — verdict forced to NOT_EXECUTABLE."
+  - condition: "blocking_issue_count >= 6"
+    effect: "cap_score_at"
+    value: 80
+    description: "6 or more blocking issues — score capped at 80/100."
+
+# ── Verdict thresholds ────────────────────────────────────────────────────────
+# Applied to the final (post-cap) score. Hard-cap force_verdict overrides these.
+
+verdicts:
+  - label: "EXECUTABLE"
+    min_score: 90
+    max_score: 100
+  - label: "EXECUTABLE_WITH_REFINEMENTS"
+    min_score: 80
+    max_score: 89
+  - label: "NEEDS_REFINEMENT"
+    min_score: 60
+    max_score: 79
+  - label: "NOT_EXECUTABLE"
+    min_score: 0
+    max_score: 59
+
+# ── Informational dimensions (not scored) ────────────────────────────────────
+# Findings appear in recommendations but do not affect the score.
+
+informational_only:
+  - name: token_efficiency
+    note: "Merged into rule_size findings."
+  - name: staleness
+    note: "Flagged in recommendations. Not scored."
+
+# ── Evidence requirements ─────────────────────────────────────────────────────
+# Applied by the semantic validator in review_results.py.
+
+evidence:
+  blocking_finding_requires_source_or_docs: true
+  source_evidence_requires_path_and_line: true
+  source_evidence_line_window: 5  # quote must appear within ±5 lines of the cited line
+  min_line_references_per_review: 15
+  min_direct_quotes_per_review: 3
+
+# ── Review modes ─────────────────────────────────────────────────────────────
+
+review_modes:
+  - FULL
+  - FOCUSED
+  - STALENESS

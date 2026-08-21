@@ -104,12 +104,15 @@ if [ -f "$MICRO_KERNEL_FILE" ]; then
 fi
 echo "## Matched Rules for This Request"
 echo ""
-echo "The following rules were matched for your request. Read each one before responding:"
+echo "Ranked rule candidates for your request (most relevant first). These are"
+echo "candidates, not a read-list: select the most relevant (up to 3 per the cap"
+echo "above), then read those plus any of their required dependencies. Required"
+echo "dependencies do not count against the 3-rule cap."
 echo ""
 printf '%s\n' "$ABSOLUTE_PATHS" | while IFS= read -r abs; do
     echo "- $abs"
 done
 echo ""
-echo "Use the Read tool on each rule above."
+echo "Read only the candidates you select with the Read tool."
 echo "</system-reminder>"
 exit 0

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Skill Timing CLI Module.
 
 Provides timing instrumentation for Claude Code skills.
@@ -65,10 +65,10 @@ ALERT_THRESHOLDS = {
 # Last updated: 2026-04-05
 # Sources: https://platform.claude.com/docs/en/about-claude/pricing
 COST_PER_1M_TOKENS = {
-    "claude-sonnet-45": {"input": 3.00, "output": 15.00},
-    "claude-sonnet-46": {"input": 3.00, "output": 15.00},
-    "claude-opus-45": {"input": 5.00, "output": 25.00},
-    "claude-opus-46": {"input": 5.00, "output": 25.00},
+    "claude-sonnet-4-5": {"input": 3.00, "output": 15.00},
+    "claude-sonnet-4-6": {"input": 3.00, "output": 15.00},
+    "claude-opus-4-5": {"input": 5.00, "output": 25.00},
+    "claude-opus-4-6": {"input": 5.00, "output": 25.00},
     "claude-opus-4": {"input": 15.00, "output": 75.00},
     "gpt-4-turbo": {"input": 10.00, "output": 30.00},
     "default": {"input": 5.00, "output": 15.00},
@@ -77,13 +77,22 @@ COST_PER_1M_TOKENS = {
 TTL_DAYS = 7
 REGISTRY_STALE_HOURS = 24
 
-VERSION = "2.0.0-rc1"
+VERSION = "2.0.1"
 
 EXIT_SUCCESS = 0
 EXIT_ERROR = 1
 EXIT_SHORTCUT_DETECTED = 2
 EXIT_ABOVE_BASELINE = 3
 EXIT_INSTRUMENTATION_FAILED = 4
+
+# Central run-ID format: 16 lowercase hex characters.
+RUN_ID_PATTERN = re.compile(r"^[a-f0-9]{16}$")
+
+
+def is_valid_run_id(run_id: str) -> bool:
+    """Return True iff run_id is a 16-character lowercase hex string."""
+    return bool(RUN_ID_PATTERN.match(run_id))
+
 
 PRICING_LAST_UPDATED = "2026-04-05"
 PRICING_REVIEW_INTERVAL_DAYS = 90
@@ -258,6 +267,11 @@ def format_checkpoint_elapsed(elapsed: float) -> str:
 
 def calculate_cost(input_tokens: int, output_tokens: int, model: str) -> dict:
     """Calculate estimated cost for token usage."""
+    if model not in COST_PER_1M_TOKENS:
+        print(
+            f"WARNING: Unknown model '{model}'; using default pricing — actual cost may differ.",
+            file=sys.stderr,
+        )
     costs = COST_PER_1M_TOKENS.get(model, COST_PER_1M_TOKENS["default"])
     estimated_cost = (input_tokens / 1_000_000) * costs["input"] + (
         output_tokens / 1_000_000
@@ -472,7 +486,7 @@ def validate_timing_data(data: dict[str, Any]) -> tuple[bool, list[str]]:
     for field in required_fields:
         if field not in data:
             errors.append(f"Missing required field: {field}")
-    if "run_id" in data and not re.match(r"^[a-f0-9]{16}$", data["run_id"]):
+    if "run_id" in data and not is_valid_run_id(data["run_id"]):
         errors.append(f"Invalid run_id format: {data['run_id']}")
     valid_statuses = [
         "completed",
@@ -1276,7 +1290,7 @@ def cmd_end(args):
         output_format = "json"
 
     # Validate run_id format before attempting file operations
-    if run_id != "none" and not re.match(r"^[a-f0-9]{16}$", run_id):
+    if run_id != "none" and not is_valid_run_id(run_id):
         if output_format != "quiet":
             print(f"WARNING: Invalid run_id format: {run_id}", file=sys.stderr)
             print("Expected: 16-character hex string (e.g., a1b2c3d4e5f67890)", file=sys.stderr)
@@ -2106,7 +2120,7 @@ def main():
         epilog="""
 Examples:
   # Start timing a skill
-  %(prog)s start --skill rule-reviewer --target rules/100.md --model claude-sonnet-45
+  %(prog)s start --skill rule-reviewer --target rules/100.md --model claude-sonnet-4-5
 
   # Record a checkpoint
   %(prog)s checkpoint --run-id a1b2c3d4e5f67890 --name schema_validated
@@ -2116,7 +2130,7 @@ Examples:
       --input-tokens 1000 --output-tokens 500
 
   # Set performance baseline
-  %(prog)s baseline set --skill rule-reviewer --mode FULL --model claude-sonnet-45
+  %(prog)s baseline set --skill rule-reviewer --mode FULL --model claude-sonnet-4-5
 
   # Analyze recent timing data
   %(prog)s analyze --skill rule-reviewer --days 7
@@ -2130,7 +2144,7 @@ For detailed documentation, see docs/USING_SKILL_TIMER_SKILL.md
     start_parser = subparsers.add_parser("start", help="Start timing for a skill execution")
     start_parser.add_argument("--skill", required=True, help="Skill name (e.g., rule-reviewer)")
     start_parser.add_argument("--target", required=True, help="Target file path")
-    start_parser.add_argument("--model", required=True, help="Model slug (e.g., claude-sonnet-45)")
+    start_parser.add_argument("--model", required=True, help="Model slug (e.g., claude-sonnet-4-5)")
     start_parser.add_argument(
         "--mode", default="FULL", help="Review mode (FULL, FOCUSED, STALENESS)"
     )

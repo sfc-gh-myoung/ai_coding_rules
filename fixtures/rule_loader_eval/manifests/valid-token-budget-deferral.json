@@ -1,97 +1,70 @@
 {
-  "schema_version": "rule-loader-manifest/v1",
-  "runtime": {
-    "primitive": "Task",
-    "spawn_evidence": "toolu_02XyZ...",
-    "agent_id": "agent-1a2b3c4d"
-  },
-  "keywords_searched": ["streamlit", "test", "document", "dashboard"],
-  "index_evidence": [
-    {
-      "kind": "hook",
-      "target": "hook-injected-manifest",
-      "query": "matcher: streamlit|test|docs",
-      "result_summary": "101-snowflake-streamlit-core.md, 206-python-pytest.md, 204-python-docs.md"
-    }
-  ],
+  "schema_version": "rule-loader-matcher/v1",
   "candidate_rules": [
     {
-      "rule_path": "rules/101-snowflake-streamlit-core.md",
-      "rule_name": "101-snowflake-streamlit-core.md",
-      "reason_type": "activity_keyword",
-      "reason": "keyword: Streamlit",
-      "context_tier": "High",
-      "token_estimate": 3000,
+      "rule_path": "rules/100-snowflake-core.md",
       "layer": "SOFT",
-      "required": false
+      "context_tier": "High",
+      "description": "Snowflake core directives",
+      "token_budget": 5050
+    },
+    {
+      "rule_path": "rules/101-snowflake-streamlit-core.md",
+      "layer": "SOFT",
+      "context_tier": "High",
+      "description": "Streamlit core setup navigation state",
+      "token_budget": 2350
     },
     {
       "rule_path": "rules/206-python-pytest.md",
-      "rule_name": "206-python-pytest.md",
-      "reason_type": "activity_keyword",
-      "reason": "keyword: test",
-      "context_tier": "Medium",
-      "token_estimate": 2400,
       "layer": "SOFT",
-      "required": false
+      "context_tier": "Medium",
+      "description": "Python pytest patterns",
+      "token_budget": 3500
     },
     {
       "rule_path": "rules/204-python-docs.md",
-      "rule_name": "204-python-docs.md",
-      "reason_type": "activity_keyword",
-      "reason": "keyword: document",
-      "context_tier": "Low",
-      "token_estimate": 2800,
       "layer": "SOFT",
-      "required": false
+      "context_tier": "Low",
+      "description": "Python documentation standards",
+      "token_budget": 3500
     }
   ],
-  "candidate_count": 3,
   "load_sequence": [
     {
-      "order": 1,
       "rule_path": "rules/000-global-core.md",
-      "rule_name": "000-global-core.md",
-      "reason_type": "foundation",
-      "reason": "foundation",
+      "layer": "HARD",
       "context_tier": "Critical",
-      "token_estimate": 2550,
-      "layer": "FOUNDATION",
-      "required": true
+      "description": "Foundational operating contract",
+      "token_budget": 2550
     },
     {
-      "order": 2,
-      "rule_path": "rules/101-snowflake-streamlit-core.md",
-      "rule_name": "101-snowflake-streamlit-core.md",
-      "reason_type": "activity_keyword",
-      "reason": "keyword: Streamlit",
+      "rule_path": "rules/100-snowflake-core.md",
+      "layer": "SOFT",
       "context_tier": "High",
-      "token_estimate": 3000,
-      "layer": "SOFT",
-      "required": false
+      "description": "Snowflake core directives",
+      "token_budget": 5050
     },
     {
-      "order": 3,
-      "rule_path": "rules/206-python-pytest.md",
-      "rule_name": "206-python-pytest.md",
-      "reason_type": "activity_keyword",
-      "reason": "keyword: test",
-      "context_tier": "Medium",
-      "token_estimate": 2400,
+      "rule_path": "rules/101-snowflake-streamlit-core.md",
       "layer": "SOFT",
-      "required": false
+      "context_tier": "High",
+      "description": "Streamlit core setup navigation state",
+      "token_budget": 2350
+    },
+    {
+      "rule_path": "rules/206-python-pytest.md",
+      "layer": "SOFT",
+      "context_tier": "Medium",
+      "description": "Python pytest patterns",
+      "token_budget": 3500
     }
   ],
   "deferred_rules": [
     {
       "rule_path": "rules/204-python-docs.md",
-      "rule_name": "204-python-docs.md",
-      "reason_type": "context_tier_cap",
-      "reason": "Deferred by token-budget management after the 3-rule domain/activity cap",
-      "context_tier": "Low",
-      "token_estimate": 2800,
-      "layer": "SOFT",
-      "deferred_because": "ContextTier Low and the domain/activity cap (3) was reached by higher-tier rules; total estimated context would exceed the configured token-budget ceiling"
+      "reason": "token_budget"
     }
-  ]
+  ],
+  "warnings": []
 }

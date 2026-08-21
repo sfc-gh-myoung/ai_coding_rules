@@ -26,41 +26,42 @@ When the user request contains multiple technologies joined by delimiters (`+`, 
 
 1. Split request on delimiters to identify individual technologies
 2. Technical terms (capitalized, hyphenated, acronyms like SSE/API/SPCS) are almost always keywords
-3. Each technology should be included in the grep OR pattern
+3. Each technology should be included in the matcher prompt
 
 **Example:** `"FastAPI + HTMX + SSE in SPCS"` becomes:
 ```bash
-grep -iE "fastapi|htmx|sse|spcs" rules/rule frontmatter
+python3 src/ai_rules/match_rules.py --prompt "FastAPI + HTMX + SSE in SPCS" --rules-dir rules/
 ```
 
-### Step 2: Search rule frontmatter (grep against the index)
+### Step 2: Run the deterministic matcher
 
-Execute a single compound grep combining all keywords. Target
-`rules/rule frontmatter`: a space-separated, keyword-only
-projection of rule frontmatter designed to minimise tokens consumed by
-discovery. It is the ONLY index agents should grep.
+Run the matcher once with the complete user request. It scans YAML frontmatter
+directly from `rules/` and returns a metadata-only manifest.
 
 ```bash
-grep -iE "KEYWORD1|KEYWORD2|KEYWORD3" rules/rule frontmatter
+python3 src/ai_rules/match_rules.py --prompt "$USER_REQUEST" --rules-dir rules/
 ```
 
-Each hit is a self-contained row of the form
-`<filename> tier=<T> [ext=..] [file=..] [dir=..] kw=<w1> <w2> ...`: the
-rule filename is the first field.
+Use `candidate_rules`, `load_sequence`, and `deferred_rules` from the returned
+manifest. Rule bodies do not appear in the manifest.
 
-**If grep unavailable:** Read `rules/rule frontmatter` via `read_file` and manually scan for keywords. This is the required fallback.
+**If the matcher is unavailable:** Read YAML frontmatter from the relevant
+`rules/*.md` files directly and record the degraded discovery mode. Do not use
+or recreate a generated index.
 
-**FORBIDDEN:** Substituting glob, find, ls, or any file-discovery tool for grep.
+**FORBIDDEN:** Substituting a deleted or generated rule index for the matcher.
 
 ### Step 2.5: Sanity Check (MANDATORY)
 
-Zero results is almost always an anomaly. Expected corpus size and keyword volume are defined in `rules/.index-stats.json` (see `counts.rules`, `counts.keyword_entries`, and `sanity_thresholds`). If measured results are near zero for a common keyword, either the corpus shrank materially or the query is malformed.
+Zero results for a common request may indicate a malformed prompt or unavailable
+rules directory. Inspect the matcher result before treating it as a valid
+foundation-only selection.
 
 **On zero results for any common keyword (python, sql, docker, deploy, test, snowflake, fastapi, streamlit):**
 
 1. Re-execute grep once (transient failure recovery)
-2. If still zero: Execute `read_file` fallback immediately
-3. Document anomaly in response: "Grep returned unexpectedly empty - used fallback"
+2. If still zero: Execute the direct-frontmatter fallback immediately
+3. Document anomaly in response: "Matcher returned unexpectedly empty - used frontmatter fallback"
 
 **Expected output volume:**
 - Multi-technology requests: 5-50 matching lines
@@ -69,7 +70,7 @@ Zero results is almost always an anomaly. Expected corpus size and keyword volum
 
 ### Step 3: Record Matches
 
-From grep output, identify rules listed in Section 3 (Activity Rules). Record each with reason:
+From the matcher manifest, identify matching activity rules. Record each with reason:
 - `"(keyword: test)"` for keyword matches
 
 ### Step 4: High-Risk Action Check
@@ -88,8 +89,8 @@ If any high-risk keyword is present, the corresponding search is mandatory even 
 
 ## Rules
 
-- Gate 2 passes if grep (or read_file fallback) was executed AND specific matched lines can be cited
+- Gate 2 passes if the matcher (or direct-frontmatter fallback) was executed AND specific matched rules can be cited
 - A Gate 2 claim without tool execution is INVALID
 - Never claim Gate 2 passed based on memory or prior session context
-- If grep returns no matches for a keyword: note "No rules found for [keyword]"
-- **Zero results for common keywords (python, docker, deploy, test, snowflake, fastapi) is an ANOMALY**: re-execute grep once, then use read_file fallback
+- If the matcher returns no matches for a keyword: note "No rules found for [keyword]"
+- **Zero results for common keywords (python, docker, deploy, test, snowflake, fastapi) is an ANOMALY**: re-execute the matcher once, then use direct frontmatter fallback

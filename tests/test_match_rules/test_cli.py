@@ -100,23 +100,23 @@ class TestCLIOutput:
         main(["--keywords", "streamlit", "--rules-dir", str(rules_dir)])
         captured = capsys.readouterr()
         data = json.loads(captured.out)
-        assert data["schema_version"] == "rule-loader-manifest/v2"
+        assert data["schema_version"] == "rule-loader-matcher/v1"
 
     def test_load_sequence_contains_matched_rule(self, tmp_path, capsys):
         rules_dir = _make_rules_dir(tmp_path, {"101-streamlit.md": SAMPLE_RULE})
         main(["--keywords", "streamlit", "--rules-dir", str(rules_dir)])
         captured = capsys.readouterr()
         data = json.loads(captured.out)
-        filenames = [e["filename"] for e in data["load_sequence"]]
-        assert "101-streamlit.md" in filenames
+        rule_paths = [e["rule_path"] for e in data["load_sequence"]]
+        assert any("101-streamlit.md" in rp for rp in rule_paths)
 
     def test_extension_match(self, tmp_path, capsys):
         rules_dir = _make_rules_dir(tmp_path, {"101-streamlit.md": SAMPLE_RULE})
         main(["--keywords", "streamlit", "--extensions", ".py", "--rules-dir", str(rules_dir)])
         captured = capsys.readouterr()
         data = json.loads(captured.out)
-        filenames = [e["filename"] for e in data["load_sequence"]]
-        assert "101-streamlit.md" in filenames
+        rule_paths = [e["rule_path"] for e in data["load_sequence"]]
+        assert any("101-streamlit.md" in rp for rp in rule_paths)
 
     def test_empty_manifest_on_no_match(self, tmp_path, capsys):
         rules_dir = _make_rules_dir(tmp_path, {"101-streamlit.md": SAMPLE_RULE})
@@ -138,14 +138,16 @@ class TestCLIOutput:
         )
         captured = capsys.readouterr()
         data = json.loads(captured.out)
-        assert [entry["filename"] for entry in data["load_sequence"]] == ["801-project-readme.md"]
+        rule_paths = [entry["rule_path"] for entry in data["load_sequence"]]
+        assert any("801-project-readme.md" in rp for rp in rule_paths)
 
     def test_comma_delimited_keywords_remain_literal_match_terms(self, tmp_path, capsys):
         rules_dir = _make_rules_dir(tmp_path, {"101-streamlit.md": SAMPLE_RULE})
         main(["--keywords", "unrelated,streamlit", "--rules-dir", str(rules_dir)])
         captured = capsys.readouterr()
         data = json.loads(captured.out)
-        assert "101-streamlit.md" in [entry["filename"] for entry in data["load_sequence"]]
+        rule_paths = [entry["rule_path"] for entry in data["load_sequence"]]
+        assert any("101-streamlit.md" in rp for rp in rule_paths)
 
     def test_dependency_resolution_in_output(self, tmp_path, capsys):
         main_content = """\
@@ -168,8 +170,8 @@ depends:
         main(["--keywords", "streamlit", "--rules-dir", str(rules_dir)])
         captured = capsys.readouterr()
         data = json.loads(captured.out)
-        filenames = [e["filename"] for e in data["load_sequence"]]
-        assert "000-global-core.md" in filenames
+        rule_paths = [e["rule_path"] for e in data["load_sequence"]]
+        assert any("000-global-core.md" in rp for rp in rule_paths)
 
     def test_metadata_mode(self, tmp_path, capsys):
         rules_dir = _make_rules_dir(tmp_path, {"101-streamlit.md": SAMPLE_RULE})
@@ -179,3 +181,55 @@ depends:
         data = json.loads(captured.out)
         assert "rules" in data
         assert "101-streamlit.md" in [v["filename"] for v in data["rules"].values()]
+
+
+# ---------------------------------------------------------------------------
+# Published-schema conformance (negative control)
+# ---------------------------------------------------------------------------
+
+_SCHEMA_PATH = (
+    Path(__file__).resolve().parents[2] / "schemas" / "rule-loader-matcher-v1.schema.json"
+)
+
+# A rule whose required dependency is absent, so the matcher populates `warnings`
+# and exercises the field that previously failed the schema's additionalProperties.
+_RULE_WITH_MISSING_DEP = """\
+---
+schema_version: v3.5
+rule_version: v2.0.0
+last_updated: 2026-01-01
+keywords:
+  - kw:streamlit
+token_budget: ~500
+context_tier: High
+depends:
+  required:
+    - 999-does-not-exist.md
+---
+# Rule with a missing required dependency
+"""
+
+
+class TestSchemaConformance:
+    def test_matcher_output_validates_against_published_schema(self, tmp_path, capsys):
+        """Real matcher stdout must validate against the published matcher/v1 schema.
+
+        Negative control: this fails if the emitter and schema diverge again
+        (e.g. an emitted key the schema's additionalProperties:false rejects).
+        """
+        import jsonschema
+
+        rules_dir = _make_rules_dir(
+            tmp_path,
+            {
+                "000-global-core.md": FOUNDATION_RULE,
+                "101-streamlit.md": _RULE_WITH_MISSING_DEP,
+            },
+        )
+        code = main(["--keywords", "streamlit", "--rules-dir", str(rules_dir)])
+        assert code == 0
+        data = json.loads(capsys.readouterr().out)
+        # Guard: the warnings field (the schema-divergence trigger) is actually present.
+        assert data["warnings"], "expected a warning for the missing required dependency"
+        schema = json.loads(_SCHEMA_PATH.read_text(encoding="utf-8"))
+        jsonschema.validate(instance=data, schema=schema)

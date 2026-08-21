@@ -1,0 +1,6 @@
+{
+  "runtime_id": "cortex-code",
+  "status": "supported",
+  "capability_ids": ["subagents", "tools", "mode-switching", "user-questions"],
+  "fallback": null
+}

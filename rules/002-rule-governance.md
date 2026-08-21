@@ -1,8 +1,8 @@
 ---
 schema_version: v3.5
-rule_version: v4.1.0
+rule_version: v4.1.1
 description: "Schema standards (v3.3) for AI coding rule files. Defines required sections, metadata fields, Contract structure, and validation requirements. All rules must comply with schemas/rule-schema.yml v3.3"
-last_updated: 2026-07-15
+last_updated: 2026-08-20
 keywords:
   - kw:rule schema compliance
   - kw:metadata field requirements
@@ -346,7 +346,7 @@ If both options fail, note the validation gap in commit message and request revi
   - Keywords must enable reliable semantic discovery
   - Rule loading must be deterministic (same input produces same rules loaded)
   - Dependencies must be explicit and acyclic
-  - `rules/rule frontmatter` must be accurate and current
+  - The deterministic matcher must scan current rule YAML frontmatter directly
 
   **Priority 3 (HIGH): Context Window and Token Utilization Efficiency**
   - Minimize tokens without sacrificing Priority 1 or Priority 2

@@ -384,9 +384,7 @@ def validate_fixtures_cmd(
                     try:
                         data = _json.loads(mp.read_text(encoding="utf-8"))
                         non_foundation = [
-                            e
-                            for e in data.get("load_sequence", [])
-                            if e.get("reason_type") != "foundation"
+                            e for e in data.get("load_sequence", []) if e.get("layer") != "HARD"
                         ]
                         deferred = data.get("deferred_rules", [])
                         if len(non_foundation) < 1:
@@ -394,7 +392,7 @@ def validate_fixtures_cmd(
                                 (
                                     mrel,
                                     [
-                                        "token-budget fixture must have >=1 non-foundation "
+                                        "token-budget fixture must have >=1 non-HARD "
                                         "entry in load_sequence"
                                     ],
                                 )

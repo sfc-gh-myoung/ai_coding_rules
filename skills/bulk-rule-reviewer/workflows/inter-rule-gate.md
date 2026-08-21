@@ -112,51 +112,34 @@ for i, rule_file in enumerate(rule_files):
 
 ## Context Refresh (MANDATORY)
 
-**Every 5 rules (N % 5 == 0):** Force re-read of output format template:
+**Every 5 rules (N % 5 == 0):** Validate the last completed review JSON and re-read skill instructions:
 
 ```python
 if rule_number % 5 == 0:
-    read_file("skills/rule-reviewer/examples/TEMPLATE.md")
-    print(f"Output format template refreshed at rule #{rule_number}")
+    invoke("ai-rules review-artifact validate --input <last_review.json>")
+    print(f"Review validated at rule #{rule_number}")
 ```
 
-**Why every 5 rules?** Format drift is the primary cause of inconsistent reviews. The TEMPLATE.md contains the EXACT table structure and section order that all reviews MUST follow.
+**Why every 5 rules?** Schema drift is the primary cause of inconsistent reviews. The canonical JSON schema (`schemas/rule-review-result-v1.schema.json`) contains the EXACT dimension set, weights, and scoring rules that all reviews MUST follow.
 
-**Drift Detection Trigger:** If previous review file size < 2500 bytes OR format deviation detected:
+**Drift Detection Trigger:** If previous review JSON fails `ai-rules review-artifact validate` OR the `.json` file is missing:
 
 ```python
-if previous_review_size < 2500:
-    print("DRIFT DETECTED: Review too short")
-    read_file("skills/rule-reviewer/examples/TEMPLATE.md")
-    read_file("skills/bulk-rule-reviewer/SKILL.md")  # Full re-read
+if not json_path.exists():
+    print("DRIFT DETECTED: Review JSON missing")
+    read_file("skills/rule-reviewer/SKILL.md")  # Full re-read
+    read_file("skills/rule-reviewer/references/reviewer-defaults.yml")
 
-
-# Format deviation check - run after EVERY review
-def check_format_deviation(review_content):
-    """Check if review matches TEMPLATE.md structure."""
-    required_patterns = [
-        r"\| Dimension \| Raw \(0-10\) \| Weight \| Points \| Notes \|",  # Exact header
-        r"## Executive Summary",
-        r"## Schema Validation Results",
-        r"## Agent Executability Analysis",
-        r"## Dimension Analysis",
-        r"## Critical Issues",
-        r"## Recommendations",
-        r"## Conclusion",
-    ]
-    for pattern in required_patterns:
-        if not re.search(pattern, review_content):
-            return True  # Deviation detected
-    return False
-
-
-if check_format_deviation(last_review_content):
+if validate_exit_code != 0:
     print("FORMAT DEVIATION DETECTED")
-    read_file("skills/rule-reviewer/examples/TEMPLATE.md")
-    # Regenerate the review with correct format
+    # Fix the canonical JSON; re-render Markdown from corrected JSON
+    invoke(
+        "ai-rules review-artifact render --input <corrected.json> --output <review.md> --replace"
+    )
+    invoke("ai-rules review-artifact verify-pair --input <corrected.json> --markdown <review.md>")
 ```
 
-**Why file re-read, not memory?** LLM context management summarizes "older" content (skill instructions loaded at start) to make room for "newer" content (rules being processed). Periodic file re-reads inject fresh context that cannot be summarized away.
+**Why validate, not re-read template?** The canonical JSON schema is the format authority. Detecting drift via schema validation is deterministic and machine-verifiable, unlike pattern-matching in Markdown.
 
 ## Integration with Other Protocols
 

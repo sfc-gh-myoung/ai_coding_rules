@@ -1,8 +1,7 @@
 # Second-Pass Confirmation (Phase 3.5)
 
-**Manifest schema:** `rule-loader-manifest/v2`
-**SKILL.md version:** ≥ 2.0.0
-**Position in pipeline:** after activity matching (Phase 3), before dependency resolution (Phase 4).
+**Manifest schema:** `rule-loader-semantic-briefing/v1` (input) → `rule-loader-semantic/v1` (output)
+**Position in pipeline:** after matcher stage (Phase 2), before coordinator (final manifest).
 
 ## Purpose
 
@@ -124,18 +123,13 @@ precision gain and risks dropping mandatory rules.
 - The main agent must not persist `candidate_rules[*].second_pass` across
   sessions.
 
-## Manifest Impact (`rule-loader-manifest/v2`)
+## Manifest Impact (`rule-loader-semantic/v1`)
 
-- Per-candidate fields added (SOFT + HARD):
-  `second_pass: {evaluated, confirmed, confirmation_reason, scope_excerpt_hash}`.
-- `deferred_rules[*].reason_type` enum gains value
-  `"second_pass_rejected"`.
-- Root-level field added:
-  `second_pass_evidence: [{rule_path, confirmed, reason}]`.
-- `schema_version` bumps to `"rule-loader-manifest/v2"`.
-- **Backward compatibility:** v1 manifests remain accepted by the main agent
-  during the rollout window. v2 is emitted only when the skill advertises
-  version ≥ `2.0.0`.
+The semantic result's `decisions[]` array carries one entry per SOFT candidate
+with `rule_path`, `selected` (bool), and `evidence` (non-empty string).
+
+The coordinator attaches runtime evidence and produces the final
+`rule-loader-manifest/v3` artifact from this result.
 
 ## Example
 

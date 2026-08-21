@@ -2,6 +2,32 @@
 
 All notable changes to the `rule-reviewer` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## v2.12.1 (2026-08-21): Shared reviewer contract
+
+- Replaced restated passages with pointers to the new `skills/shared/reviewer-contract.md`: parameter-collection rules, skill-timer timing mechanism, and reviewer opt-out semantics now have one shared source.
+- Verdict-band restatement in the Verdicts section now points to `references/reviewer-defaults.yml` (single authority); critical-dimension override and rule-size flags remain inline.
+- JSON-authority note now points to `docs/ARCHITECTURE.md` §3.6.
+- `workflows/timing-integration.md`: removed the duplicated per-command validation + 4 anti-patterns (now in the shared contract); kept the rule-reviewer command table and copy-paste blocks. Fixed a stale "max 5" batch note to "max 4" in `workflows/parameter-collection.md`.
+- No behavior change.
+
+## v2.12.0 (2026-08-20): JSON-canonical output cutover
+
+- **Breaking:** Final review output is now `rule-review-result/v1` canonical JSON. Markdown is a deterministic derived artifact rendered by `ai-rules review-artifact render`, not a hand-authored primary output.
+- Step 9 rewritten: validate the assembled JSON via `ai-rules review-artifact validate` instead of checking against `REVIEW-OUTPUT-TEMPLATE.md`.
+- Step 10 rewritten: write `.json`, render `.md` via `ai-rules review-artifact render`, verify pair via `ai-rules review-artifact verify-pair`.
+- Outputs section updated: `.json` is primary; `.md` is derived same-stem.
+- Added `references/retry-contract.md` (new): repair routing, allowed pointers, rejected suffixes, terminal defect routing, and retry cap covering all four exit-code scenarios.
+- Format authority updated: `schemas/rule-review-result-v1.schema.json` + `references/reviewer-defaults.yml` (replaces `REVIEW-OUTPUT-TEMPLATE.md` as the format citation in Outputs and Examples).
+- Timing dependency bumped: `skill-timer v1.5.0+` → `skill-timer v2.0.0+` (Gate 8 requires v2.0.0+).
+
+## v2.11.0 (2026-08-19): Progressive disclosure — hot-path decomposition
+
+- `## Supported File Types` (29 lines) moved to `workflows/input-validation.md` `## Supported File Types` section. SKILL.md retains a 1-line pointer.
+- `## Required Sections in Review` (14 lines) moved to `workflows/review-verification.md` `## Required Review Sections` section. SKILL.md retains a 1-line pointer.
+- `## No-Overwrite Safety` (17 lines) moved to `workflows/file-write.md` `## No-Overwrite Safety` section. SKILL.md retains a 1-line pointer.
+- `### With skill-timer` timing command table (18 lines including table, working memory contract, and anti-pattern pointer) moved to `workflows/timing-integration.md` `## Full Command Table` section. SKILL.md retains a 4-line summary pointer.
+- SKILL.md reduced from 318 to 255 lines. No behavioral changes; all content remains accessible via referenced workflow files.
+
 ## v2.10.0 (2026-06-21): Audit remediation (progressive disclosure)
 
 Per [skills audit 2026-06-21](../../docs/audits/skills-audit-2026-06-21.md) findings RR-1 through RR-6, plus Audit P3 follow-up and Gate 8 integration:

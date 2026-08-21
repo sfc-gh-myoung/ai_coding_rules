@@ -1,4 +1,4 @@
-<!-- Output format: delegated to score-aggregation.md + references/REVIEW-OUTPUT-TEMPLATE.md -->
+<!-- Output format: canonical rule-review-result/v1 JSON. Validate with ai-rules review-artifact validate; render Markdown with ai-rules review-artifact render. Delegated to score-aggregation.md. -->
 
 # Parallel Execution Workflow
 

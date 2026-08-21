@@ -85,10 +85,10 @@ Before reading the rule, verify internally:
 If not already loaded:
 ```
 Read: skills/rule-reviewer/SKILL.md
-Read: skills/rule-reviewer/examples/TEMPLATE.md  # CRITICAL: Output format specification
+Read: skills/rule-reviewer/references/reviewer-defaults.yml  # canonical dimensions, weights, verdict thresholds
 ```
 
-**IMPORTANT:** The TEMPLATE.md defines the EXACT output format for reviews. Your reviews MUST match this structure.
+**IMPORTANT:** The canonical JSON schema (`schemas/rule-review-result-v1.schema.json`) defines the EXACT output format. Validate your assembled JSON with `ai-rules review-artifact validate` before rendering Markdown.
 
 **Step 3: Read Rule File**
 

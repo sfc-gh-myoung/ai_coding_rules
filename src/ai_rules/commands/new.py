@@ -1,4 +1,4 @@
-"""Generate rule file templates compliant with v3.4 schema.
+"""Generate rule file templates compliant with v3.5 schema.
 
 This module provides the `ai-rules new` command to create new rule files
 with all required sections and placeholders, making it easier for users
@@ -19,19 +19,22 @@ app = typer.Typer(help="Create new rule file templates.")
 
 
 class TemplateGenerator:
-    """Generate v3.4 compliant rule file templates."""
+    """Generate v3.5 compliant rule file templates."""
 
-    TEMPLATE = """# {title}
-
-## Metadata
-
-**SchemaVersion:** v3.4
-**RuleVersion:** v1.0.0
-**LastUpdated:** {last_updated}
-**Keywords:** {keywords}
-**TokenBudget:** ~1200
-**ContextTier:** {context_tier}
-**Depends:** 000-global-core.md
+    # YAML frontmatter + Markdown body; {keywords_yaml} is pre-indented YAML list lines.
+    TEMPLATE = """---
+schema_version: v3.5
+rule_version: v1.0.0
+last_updated: {last_updated}
+keywords:
+{keywords_yaml}
+token_budget: ~1200
+context_tier: {context_tier}
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns
+---
+# {title}
 
 ## Scope
 
@@ -44,17 +47,6 @@ class TemplateGenerator:
 - [Context 3 when this rule should be loaded]
 
 ## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns
-
-**Recommended:**
-- [Optional related rules that enhance this rule]
-
-**Related:**
-- [Other rules that may be relevant]
 
 ### External Documentation
 
@@ -130,12 +122,6 @@ Reference: Complete validation protocol in `000-global-core.md`
 1. [What to check before making recommendations]
 2. [How to verify project structure]
 3. [What patterns to look for]
-
-### Design Principles
-
-- **[Principle 1]:** [Description of design principle]
-- **[Principle 2]:** [Description of design principle]
-- **[Principle 3]:** [Description of design principle]
 
 ### Post-Execution Checklist
 
@@ -220,6 +206,19 @@ Reference: Complete validation protocol in `000-global-core.md`
     }
 
     @staticmethod
+    def _keywords_to_yaml_list(keywords: str) -> str:
+        """Convert comma-separated keywords to typed YAML list entries."""
+        typed_prefix_re = re.compile(r"^(kw:|ext:|file:|dir:)")
+        items = [kw.strip() for kw in keywords.split(",") if kw.strip()]
+        yaml_items = []
+        for kw in items:
+            if typed_prefix_re.match(kw):
+                yaml_items.append("  - " + kw)
+            else:
+                yaml_items.append("  - kw:" + kw)
+        return "\n".join(yaml_items)
+
+    @staticmethod
     def parse_rule_filename(filename: str) -> tuple[int, str, str]:
         """Parse rule filename to extract number and generate title.
 
@@ -266,7 +265,7 @@ Reference: Complete validation protocol in `000-global-core.md`
             slug: Rule slug (e.g., "snowflake-sql")
 
         Returns:
-            Comma-separated keyword string (5-11 keywords per v3.2 schema)
+            Comma-separated keyword string (5-11 keywords per v3.5 schema)
         """
         # Find matching range
         range_keywords = ""
@@ -288,7 +287,7 @@ Reference: Complete validation protocol in `000-global-core.md`
         keyword_list = [kw.strip() for kw in all_keywords.split(",")]
         keyword_list = list(dict.fromkeys(keyword_list))  # Remove duplicates, preserve order
 
-        # Ensure we have 5-11 keywords (v3.2 schema requirement)
+        # Ensure we have 5-11 keywords (v3.5 schema requirement)
         if len(keyword_list) < 5:
             # Add filler keywords
             fillers = [
@@ -340,9 +339,12 @@ Reference: Complete validation protocol in `000-global-core.md`
         # Get current date in UTC for LastUpdated field
         last_updated = datetime.now(UTC).strftime("%Y-%m-%d")
 
+        # Format keywords as indented YAML list
+        keywords_yaml = cls._keywords_to_yaml_list(keywords)
+
         return cls.TEMPLATE.format(
             title=title,
-            keywords=keywords,
+            keywords_yaml=keywords_yaml,
             context_tier=context_tier,
             last_updated=last_updated,
         )
@@ -460,7 +462,7 @@ def new(
         typer.Option(
             "--keywords",
             "-k",
-            help="Custom comma-separated keywords (5-11 terms per v3.2 schema).",
+            help="Custom comma-separated keywords (5-11 terms per v3.5 schema).",
         ),
     ] = None,
     force: Annotated[
@@ -472,7 +474,7 @@ def new(
         ),
     ] = False,
 ) -> None:
-    """Create a new rule file from a v3.4 compliant template.
+    """Create a new rule file from a v3.5 compliant template.
 
     Examples:
         # Create a Snowflake rule
@@ -481,7 +483,7 @@ def new(
         # Create a Python rule with custom tier
         ai-rules new 200-python-example --context-tier High
 
-        # Create a rule with custom keywords (5-11 terms per v3.2 schema)
+        # Create a rule with custom keywords (5-11 terms per v3.5 schema)
         ai-rules new 300-react-hooks --keywords "react, hooks, state, effects, custom hooks, lifecycle, functional components, useState, useEffect, optimization"
 
         # Overwrite existing file

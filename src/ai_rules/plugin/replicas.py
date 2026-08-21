@@ -113,6 +113,15 @@ BUILD_COPIES: tuple[BuildCopy, ...] = (
         is_tree=True,
     ),
     BuildCopy(
+        primary="skills/rule-loader/references",
+        dest="skills/rule-loader/references",
+        is_tree=True,
+    ),
+    BuildCopy(
+        primary="skills/shared/runtime-capabilities.md",
+        dest="skills/shared/runtime-capabilities.md",
+    ),
+    BuildCopy(
         primary="skills/show-rules/SKILL.md",
         dest="skills/show-rules/SKILL.md",
         required=False,

@@ -136,7 +136,7 @@ tasks:
       - sh: command -v uv
         msg: "uv not found. Install from https://docs.astral.sh/uv/"
     cmds:
-      - "{{.UV}} run pytest tests/ --tb=short"
+      - "PYTHONDONTWRITEBYTECODE=1 {{.UV}} run pytest tests/ --tb=short"
 
   test:coverage:
     desc: "Run tests with coverage report"
@@ -201,6 +201,12 @@ tasks:
       - "{{.UV}} run ai-rules validate rules/"
       - "{{.UV}} run ai-rules validate rules/examples/ --examples"
       - "{{.UV}} run ai-rules validate templates/ --templates"
+      - "{{.UV}} run ai-rules validate-skills skills/"
+
+  eval:
+    desc: "Run informational eval harness (all five metric types; thresholds are non-blocking)"
+    cmds:
+      - "{{.UV}} run pytest tests/reviewer_eval/ -q --tb=short"
 
   # ─── Clean ─────────────────────────────────────────────────────────────
   clean:cache:

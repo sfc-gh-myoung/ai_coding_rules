@@ -2,6 +2,12 @@
 
 All notable changes to the `skill-timer` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## v2.0.1 (2026-08-19): Runtime contract alignment
+
+- Raised the standalone Python floor to 3.11.
+- Aligned the runtime version, package version, and skill version on 2.0.1.
+- Canonicalized Claude pricing slugs, warns when default pricing is used for an unknown model, and centralized run-ID validation.
+
 ## v2.0.0 (2026-06-21): Robustness redesign, skill rename, audit remediation
 
 This release combines the 2026-05-14 skill rename (`skill-timing` → `skill-timer`), the v2.0.0 robustness redesign, and the 2026-06-21 audit remediation. The rename was authored on this branch but never released, so its breaking changes ship as part of v2.0.0.

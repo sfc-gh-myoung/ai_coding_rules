@@ -1,9 +1,9 @@
 ---
 name: rule-creator
 description: Create production-ready rule files by orchestrating template generation, schema validation, and keyword metadata generation. Triggers on keywords like "create rule", "add rule", "new rule", "generate rule". Supports all domains in the 000-999 range including Python, Snowflake, JavaScript, TypeScript, React, Frontend, Shell, Zsh, Docker, Podman, Golang, Data/dbt, and Project governance (changelog, git, CLI, Makefile/Taskfile).
-version: 1.1.3
+version: 1.1.5
 author: AI Coding Rules Project
-tags: [rule-generation, automation, v3.6-schema, template, validation, indexing]
+tags: [rule-generation, automation, v3.5-schema, template, validation, indexing]
 dependencies: []
 ---
 
@@ -11,7 +11,7 @@ dependencies: []
 
 ## Purpose
 
-Create production-ready rule files that comply with the repository’s v3.6 rule schema by orchestrating:
+Create production-ready rule files that comply with the repository's v3.5 rule schema by orchestrating:
 - `ai-rules new`
 - `ai-rules validate`
 - (optional) web research for current best practices
@@ -19,7 +19,7 @@ Create production-ready rule files that comply with the repository’s v3.6 rule
 ## Use this skill when
 
 - The user asks to **create a new rule** under `rules/` (e.g., `NNN-technology-aspect.md`).
-- The user asks to **add a rule to** `rule frontmatter`.
+- The user asks to add metadata or contract content to an existing rule.
 
 ## Inputs
 
@@ -116,4 +116,6 @@ See: `skills/rule-reviewer/SKILL.md`
 
 ## Version History
 
-See `CHANGELOG.md`.
+- 1.1.5: Point generic parameter-collection rules to the shared `skills/shared/reviewer-contract.md`; keep `timing_enabled` default `false`.
+- 1.1.4: Align generated-rule guidance with YAML frontmatter and Markdown `### Contract` subsections.
+- See `CHANGELOG.md` for earlier releases.

@@ -29,7 +29,7 @@ Match: implied .py -> 200-python-core.md
 - Domain nouns: `dashboard`, `tests`, `docstrings`
 
 ```bash
-grep -iE "test|docstring|dashboard" rules/rule frontmatter
+python3 src/ai_rules/match_rules.py --prompt "Build a Streamlit dashboard with Snowflake backend, pytest tests, and full docstrings" --rules-dir rules/
 # Matches: 206-python-pytest.md (keyword: test)
 #          204-python-docs.md (keyword: docstring)
 ```

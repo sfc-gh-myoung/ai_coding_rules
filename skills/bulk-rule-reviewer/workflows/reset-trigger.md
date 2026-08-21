@@ -62,7 +62,7 @@ For each review, check:
 - [ ] ≥3 direct quotes with line numbers?
 - [ ] Rule-specific findings (not generic)?
 - [ ] Schema validation section present?
-- [ ] All 7 dimensions scored (FULL mode)?
+- [ ] All 6 scored dimensions scored (FULL mode)?
 
 **Compromised reviews identified:** [list]
 

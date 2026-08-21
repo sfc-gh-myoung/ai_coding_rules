@@ -26,10 +26,8 @@ Match: implied .py -> 200-python-core.md
 - Domain nouns: `endpoint`, `authentication`
 
 ```bash
-grep -i "fastapi" rules/rule frontmatter
+python3 src/ai_rules/match_rules.py --prompt "Add a FastAPI endpoint for user authentication" --rules-dir rules/
 # Matches: 210-python-fastapi-core.md (keyword: fastapi)
-
-grep -i "security" rules/rule frontmatter
 # Matches: 210a-python-fastapi-security.md (keyword: fastapi-security)
 #          107-snowflake-security-governance.md (keyword: security)
 ```

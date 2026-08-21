@@ -1,0 +1,90 @@
+# YAML Schema for Skill Files v1.0
+# ==============================================================================
+# Purpose: Structural validation for skills/*/SKILL.md files.
+#
+# Checks:
+#   1. YAML frontmatter – required fields name, description, version.
+#   2. Version/changelog parity – frontmatter version must match the topmost
+#      semver entry in CHANGELOG.md (if that file exists inside the skill dir).
+#   3. Local file references – relative [text](path) links inside SKILL.md
+#      must resolve to existing files (one level: only SKILL.md is scanned,
+#      not the referenced files themselves).
+#   4. Maximum 500 lines – SKILL.md must not exceed 500 non-blank lines.
+#   5. Canonical headings – required H2 sections with narrow aliases allowed.
+#   6. Prose style – advisory only (INFO severity, never blocks CI).
+# ==============================================================================
+
+version: "1.0"
+description: "Structural validation schema for skill SKILL.md entrypoints"
+
+# ── Frontmatter ─────────────────────────────────────────────────────────────
+frontmatter:
+  required_fields:
+    - name: name
+      type: string
+      # Lowercase kebab-case; may start/end with a letter or digit.
+      pattern: "^[a-z][a-z0-9-]*[a-z0-9]$"
+      error_message: "Frontmatter 'name' is required and must be lowercase kebab-case (e.g., my-skill)"
+      severity: CRITICAL
+
+    - name: description
+      type: string
+      min_length: 20
+      error_message: "Frontmatter 'description' is required (minimum 20 characters)"
+      severity: CRITICAL
+
+    - name: version
+      type: string
+      # Plain semver without 'v' prefix: 1.0.0, 2.1.3, etc.
+      pattern: "^\\d+\\.\\d+\\.\\d+$"
+      error_message: "Frontmatter 'version' must be semver without 'v' prefix (e.g., 1.0.0)"
+      severity: CRITICAL
+
+# ── Structure ────────────────────────────────────────────────────────────────
+structure:
+  # SKILL.md must not exceed this many lines.
+  max_lines: 500
+  max_lines_severity: HIGH
+  max_lines_error_message: "SKILL.md exceeds 500 lines – extract sections to workflows/ or examples/"
+
+  # Required H2 headings.  Each entry may supply a list of 'aliases' that are
+  # accepted as equivalent spellings; the canonical name is the first one.
+  required_headings:
+    - canonical: "Purpose"
+      aliases: []
+      severity: HIGH
+      error_message: "Missing required '## Purpose' section"
+
+    - canonical: "Use this skill when"
+      aliases:
+        - "When to Use"
+        - "When to use"
+      severity: HIGH
+      error_message: "Missing '## Use this skill when' (or '## When to Use') section"
+
+# ── Checks ───────────────────────────────────────────────────────────────────
+checks:
+  # Compare frontmatter version against the topmost entry in CHANGELOG.md.
+  # Only active when CHANGELOG.md exists inside the skill directory.
+  changelog_parity:
+    enabled: true
+    # Matches lines like: ## [1.2.3], ## 1.2.3, ## v1.2.3
+    version_pattern: "^##\\s+\\[?v?(\\d+\\.\\d+\\.\\d+)\\]?"
+    severity: HIGH
+    error_message: "Frontmatter version does not match topmost CHANGELOG.md entry"
+
+  # Relative Markdown links [text](path) must point to existing files.
+  local_file_refs:
+    enabled: true
+    severity: HIGH
+    error_message: "Local file reference not found"
+    # Patterns excluded from existence checks (anchors, external URLs, mailto).
+    exclude_patterns:
+      - "^https?://"
+      - "^mailto:"
+      - "^#"
+
+  # Prose style items are informational only; they do not affect the exit code.
+  prose_style:
+    advisory_only: true
+    severity: INFO

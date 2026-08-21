@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/rule-reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 2.10.0
+version: 2.12.1
 ---
 
 # Rule Reviewer
@@ -29,9 +29,10 @@ review_mode: FULL
 model: claude-sonnet-4-6
 ```
 
-Output: `reviews/rule-reviews/200-python-core-claude-sonnet-4-6-2026-01-06.md`
+Output: `reviews/rule-reviews/200-python-core-claude-sonnet-4-6-2026-01-06.json` (canonical)
+        `reviews/rule-reviews/200-python-core-claude-sonnet-4-6-2026-01-06.md`  (derived)
 
-(With `output_root: mytest/` → `mytest/rule-reviews/200-python-core-claude-sonnet-4-6-2026-01-06.md`)
+(With `output_root: mytest/` → `mytest/rule-reviews/200-python-core-claude-sonnet-4-6-2026-01-06.{json,md}`)
 
 ## Scoring System (100 points)
 
@@ -76,7 +77,7 @@ ELSE:
 
 1. **Validate inputs**: date format YYYY-MM-DD, file exists, mode in {FULL, FOCUSED, STALENESS}. See `workflows/input-validation.md`.
 
-1a. **Collect ALL parameters** (use `ask_user_question`). See `workflows/parameter-collection.md`. **MANDATORY:** batched questions (max 4 per call); do NOT silently apply defaults. If `ask_user_question` unavailable, fall back to text-based prompting.
+1a. **Collect ALL parameters** (use `ask_user_question`). Question sets: `workflows/parameter-collection.md`. Shared collection rules (batched max-4, no silent defaults, text fallback): [`../shared/reviewer-contract.md`](../shared/reviewer-contract.md#parameter-collection).
 
 1b. **Detect file type.** Run the `target_basename` / `FILE_TYPE` / `SKIP_SCHEMA` detection from `workflows/input-validation.md` (File-Type Detection section). Outcomes: `rule` → full schema validation; `project` (PROJECT.md) → schema validation skipped.
 
@@ -112,17 +113,21 @@ ELSE:
    - `dim_consistency_start` / `dim_consistency_end`
    - `dim_cross_agent_start` / `dim_cross_agent_end`
 
-   On `timing-end`, pass `--auto-dimension-timings` (**preferred**) to derive the `dimension_timings` array from the captured checkpoint pairs automatically. Only assemble `--dimension-timings` JSON manually if you are aggregating sub-agent output (parallel mode).
+   Timing mechanism (`--auto-dimension-timings`, marker validation, anti-patterns): [`../shared/reviewer-contract.md`](../shared/reviewer-contract.md#timing-integration-skill-timer).
 
-   **FAILURE TO DO THIS:** The `### Per-Dimension Timing` subsection will be absent and the review will fail post-write Quality Gate 7 (see `workflows/review-verification.md`). Requires skill-timer v1.5.0+.
+   **FAILURE TO DO THIS:** The `### Per-Dimension Timing` subsection will be absent and the review will fail post-write Quality Gate 7 (see `workflows/review-verification.md`). Requires skill-timer v2.0.0+.
 
 7. **Mid-Review Canary (after dimension 3) (SILENT).** See Canary Checks below.
 
 8. **Generate recommendations**: specific line numbers, quantified fixes, expected score improvements.
 
-9. **Verify review authenticity.** Before writing, verify review contains ≥15 line references (FULL mode), direct quotes with line numbers, rule-specific findings (not generic); output matches `references/REVIEW-OUTPUT-TEMPLATE.md` structure. See `workflows/review-verification.md`. **FAILURE → Trigger reset: Re-read SKILL.md completely.**
+9. **Validate canonical JSON.** Before writing, assemble the `rule-review-result/v1` JSON and run `ai-rules review-artifact validate --input <review.json>`. Verify the review contains ≥15 line references (FULL mode), direct quotes with line numbers, and rule-specific findings (not generic). See `workflows/review-verification.md`. **FAILURE → Trigger reset: Re-read SKILL.md completely.**
 
-10. **Write review.** Path: `{output_root}/rule-reviews/[rule-name]-[model]-[date].md`. Auto-increment `-01.md`, `-02.md` if exists (when `overwrite=false`). See `workflows/file-write.md`.
+   Schema authority: `schemas/rule-review-result-v1.schema.json`. Canonical format spec: `skills/rule-reviewer/references/reviewer-defaults.yml`. Retry contract: `references/retry-contract.md`.
+
+10. **Publish review pair.** Write the canonical JSON first: `{output_root}/rule-reviews/[rule-name]-[model]-[date].json`. Then render Markdown deterministically: `ai-rules review-artifact render --input <review.json> --output <review.md>`. Verify the pair: `ai-rules review-artifact verify-pair --input <review.json> --markdown <review.md>`. Auto-increment suffix on conflict (when `overwrite=false`). See `workflows/file-write.md`.
+
+   **Markdown is derived output.** Never write Markdown directly as a final review artifact; the canonical JSON is the sole semantic authority. Authority model: [`../../docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) §3.6.
 
 **See `workflows/error-handling.md` for detailed error handling across all steps.**
 
@@ -136,11 +141,7 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
 
 ## Verdicts
 
-**Score Ranges (100-point scale):**
-- **90-100**: EXECUTABLE: Production-ready
-- **80-89**: EXECUTABLE_WITH_REFINEMENTS: Good, minor fixes
-- **60-79**: NEEDS_REFINEMENT: Needs work
-- **<60**: NOT_EXECUTABLE: Major issues
+**Score ranges & verdict labels** (90-100 EXECUTABLE … <60 NOT_EXECUTABLE): single source of truth is [`references/reviewer-defaults.yml`](references/reviewer-defaults.yml) (`verdicts:` block).
 
 **Critical dimension override:** If both Actionability ≤4/10 AND Completeness ≤4/10 → NOT_EXECUTABLE regardless of total score.
 
@@ -154,48 +155,11 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
 
 ## Supported File Types
 
-**Rule Files (rules/*.md):**
-- Domain-specific patterns and guidelines
-- Loaded on-demand by agents
-- Full schema validation against `schemas/rule-schema.yml`
-- All 6 dimensions scored (100 points max)
-- TokenBudget variance check applies
+Rule files (`rules/*.md`) and Project files (`PROJECT.md`). File-type detection logic, per-type schema behavior, and a comparison of how each type is scored: [`workflows/input-validation.md`](workflows/input-validation.md).
 
-**Project Files (PROJECT.md):**
-- Bootstrap and configuration documents
-- Loaded once during project initialization
-- Schema validation skipped (different structure than rules)
-- All 6 dimensions scored (100 points max)
-- TokenBudget variance skipped (no declared budget)
-- Still evaluated for actionability, completeness, consistency, markdown quality, and currency
+## Required Review Sections
 
-**Key Differences:**
-
-| Aspect | Rule Files | Project Files |
-|--------|------------|---------------|
-| Schema validation | Full check | Skipped |
-| Parsability scoring | Schema + markdown | Markdown only |
-| Token efficiency | Budget variance + redundancy | Redundancy + structure only |
-| Metadata required | 7 fields (SchemaVersion, etc.) | None |
-| Section structure | Scope → Contract → Content | Custom per project |
-| Max score | 100 points | 100 points |
-
-**Both file types are agent-executable documents**: they just follow different schemas optimized for their architectural roles.
-
-## Required Sections in Review
-
-1. File Header (H1 + 5 metadata fields)
-2. Executive Summary (score table + verdict block)
-3. Schema Validation Results
-4. Agent Executability Verdict
-5. Dimension Analysis (6 subsections for FULL mode)
-6. Critical Issues
-7. Recommendations (with inline Staleness)
-8. Post-Review Checklist (11 fixed items)
-9. Conclusion
-10. Timing Metadata (conditional)
-
-**Authoritative template:** `references/REVIEW-OUTPUT-TEMPLATE.md`
+10 required H2 sections, in order: File Header (H1 + 5 metadata fields), Executive Summary, Schema Validation Results, Agent Executability Verdict, Dimension Analysis (6 subsections for FULL), Critical Issues, Recommendations (with inline Staleness), Post-Review Checklist (11 fixed items), Conclusion, Timing Metadata (conditional). Authoritative JSON schema: `schemas/rule-review-result-v1.schema.json`. Rendered layout: `references/rendered-review-format.md`. Full checklist: [`workflows/review-verification.md`](workflows/review-verification.md).
 
 ## Inputs
 
@@ -205,18 +169,18 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
 - **model:** Lowercase-hyphenated slug (e.g., `claude-sonnet-4-6`)
 - **output_root:** (optional) Root directory for output files (default: `reviews/`). Subdirectory `rule-reviews/` is appended automatically. Supports relative paths including `../`.
 - **overwrite:** (optional) true | false (default: false): If true, overwrite existing review file. If false, use sequential numbering (-01, -02, etc.)
-- **timing_enabled:** (optional) true | false (default: true): set to `false` to explicitly opt out; the Per-Dimension Timing section is then satisfied by a single `not-requested` row.
+- **timing_enabled:** (optional) true | false (default: true). Opt-out semantics: [`../shared/reviewer-contract.md`](../shared/reviewer-contract.md#timing-opt-out-reviewers-only).
 - **execution_mode:** (optional) `parallel` | `sequential` (default: `parallel`)
   - `parallel`: Uses 5 sub-agents for scored dimension evaluation (faster, recommended for 8GB+ RAM)
   - `sequential`: Legacy single-agent behavior (for debugging or low-resource environments)
 
 ## Outputs
 
-Write to: `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` (default `output_root` is `reviews/`).
+Write to: `{output_root}/rule-reviews/[rule-name]-[model]-[date].json` (canonical). Markdown rendered as same-stem `.md` via `ai-rules review-artifact render` immediately after. (Default `output_root` is `reviews/`.)
 
-**No overwrites:** If file exists and `overwrite: false` (default), append `-01.md`, `-02.md`, etc. Set `overwrite: true` to replace. See **No-Overwrite Safety** section below for full behavior.
+**No overwrites:** If file exists and `overwrite: false` (default), append `-01.json`, `-02.json`, etc. Set `overwrite: true` to replace. See **No-Overwrite Safety** section below.
 
-**Format:** Reviews follow the structure defined in `references/REVIEW-OUTPUT-TEMPLATE.md`. See **Required Sections in Review** above for the section checklist.
+**Format:** Canonical review artifacts are `rule-review-result/v1` JSON. Schema: `schemas/rule-review-result-v1.schema.json`. Defaults (dimensions, weights, hard caps, verdicts): `references/reviewer-defaults.yml`. Rendered Markdown layout: `references/rendered-review-format.md`. Retry behavior: `references/retry-contract.md`.
 
 ## Integration with Other Skills
 
@@ -227,27 +191,9 @@ bulk-rule-reviewer invokes this skill once per rule file. **Never** implement re
 ### With skill-timer
 
 **Execute IF:** `timing_enabled: true` (default).
-**Skip IF:** `timing_enabled: false` (explicit opt-out): satisfy Gate 7 with a single `not-requested` row.
+**Skip IF:** `timing_enabled: false` (explicit opt-out): satisfy Gate 7 with a single `not-requested` row (see [`../shared/reviewer-contract.md`](../shared/reviewer-contract.md#timing-opt-out-reviewers-only)).
 
-When enabled, execute ALL steps below (not optional once enabled):
-
-| When | Action | Command | Track |
-|------|--------|---------|-------|
-| Before review | Start timing | `$PYTHON skill_timer.py start --skill rule-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
-| After schema validation | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | - |
-| Before EACH dimension | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_start` | - |
-| After EACH dimension | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_end` | - |
-| After scoring complete | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name review_complete` | - |
-| Before file write | End timing | `$PYTHON skill_timer.py end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer --format markdown --auto-dimension-timings` | Store `_timing_stdout` |
-| After file write | Embed | Append `_timing_stdout` to output file | - |
-
-**Working memory contract:** Retain `_timing_run_id`, `_timing_stdout`, and `_dimension_timings` from start through embed.
-
-**Per-dimension timing responsibility:** skill-timer **validates and formats** the timing data you pass in. **You are responsible for capturing** start/end markers (checkpoint pairs in sequential mode, or sub-agent self-reports in parallel mode) around each dimension. Use `--auto-dimension-timings` in sequential mode (preferred).
-
-**Copy-paste bash quick reference, 4 common anti-patterns, and per-command validation procedure:** `workflows/timing-integration.md`.
-
-**Schema + epoch capture reference:** `../skill-timer/SKILL.md`.
+When enabled, emit `skill_loaded` + the 6 dimension checkpoint pairs (`dim_<name>_start/end`) around each scored dimension. Shared mechanism (commands, marker validation, working-memory contract, anti-patterns): [`../shared/reviewer-contract.md`](../shared/reviewer-contract.md#timing-integration-skill-timer). Rule-reviewer specifics: [`workflows/timing-integration.md`](workflows/timing-integration.md).
 
 ## Error Handling
 
@@ -275,17 +221,7 @@ When enabled, execute ALL steps below (not optional once enabled):
 
 ## No-Overwrite Safety
 
-**When `overwrite: false` (default):**
-
-If `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` exists:
-- Try `-01.md`
-- Try `-02.md`
-- Increment until available (max: `-99.md`)
-- If `-99.md` exists: STOP, report error `Maximum review versions exceeded for [rule-name]`
-
-**When `overwrite: true`:**
-
-The existing file at `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` will be replaced. Use this when intentionally re-running a review to replace a previous version.
+When `overwrite: false` (default): auto-increment suffix (`-01.md`, `-02.md`, …, max `-99.md`). When `overwrite: true`: replace existing file. Max-versions error and full algorithm: [`workflows/file-write.md`](workflows/file-write.md).
 
 ## Validation Checklists
 
@@ -301,7 +237,7 @@ When `skill_timer.py end` returns `status ∈ {dimension_invalid, instrumentatio
 
 ## Examples
 
-Complete review samples in `examples/`: `full-review.md`, `focused-review.md`, `staleness-review.md`, `project-file-review.md`, `edge-cases.md`. Authoritative fill-in skeleton: `references/REVIEW-OUTPUT-TEMPLATE.md`.
+Complete review samples in `examples/`: `full-review.md`, `focused-review.md`, `staleness-review.md`, `project-file-review.md`, `edge-cases.md`. Authoritative JSON schema: `schemas/rule-review-result-v1.schema.json`. Markdown layout: `references/rendered-review-format.md`.
 
 ## Related Skills
 

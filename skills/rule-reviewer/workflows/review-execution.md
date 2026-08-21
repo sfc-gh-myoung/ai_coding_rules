@@ -168,29 +168,33 @@ Total = (Actionability × 3.0) + (Rule Size × 2.5) +
 Maximum: 100 points (v2.0)
 ```
 
-### Step 3.2a: Load Output Template
+### Step 3.2a: Prepare Canonical JSON Schema
 
-Read `references/REVIEW-OUTPUT-TEMPLATE.md` before generating review content.
+Assemble the `rule-review-result/v1` JSON object from the scored dimensions, findings, and metadata before generating any output.
 
-**Purpose:** Lock in output structure to prevent cross-model structural drift.
+**Purpose:** The canonical JSON is the sole semantic authority. Markdown is generated deterministically from it after validation.
 
-**GATE:** Do NOT generate review markdown until template is loaded.
+**GATE:** Do NOT render Markdown until the JSON passes `ai-rules review-artifact validate`.
 
-### Step 3.3: Generate Review (Using Output Template)
+### Step 3.3: Assemble and Validate Canonical JSON
 
-Populate `references/REVIEW-OUTPUT-TEMPLATE.md` section by section:
-1. Fill File Header placeholders
-2. Fill Executive Summary score table (6 rows + Total)
-3. Fill Schema Validation Results
-4. Fill Agent Executability Verdict
-5. Fill Dimension Analysis (6 subsections, each with inventory)
-6. Fill Critical Issues
-7. Fill Recommendations with inline Staleness
-8. Fill Post-Review Checklist (11 fixed items)
-9. Fill Conclusion
-10. Fill Timing Metadata (if timing_enabled)
+Assemble the `rule-review-result/v1` JSON and validate it:
 
-**Do NOT deviate from section order, heading names, or table column headers.**
+```bash
+uv run ai-rules review-artifact validate --input <review.json>
+```
+
+1. Populate `schema_version`, `artifact_id`, `rule_name`, `review_mode`, `producer`, `review_date`
+2. Populate `executive_summary` (claims with evidence)
+3. Populate `dimensions` array (6 canonical dimensions: raw_score, weight, points, findings)
+4. Populate `findings` array (blocking first; every blocking finding needs source or docs evidence)
+5. Set `score` = sum of dimension points; set `verdict` per canonical threshold
+6. Set `blocking_issue_count` = count of critical/high findings; set `hard_caps` if triggered
+7. Run `ai-rules review-artifact validate`; fix any issues before rendering
+8. Render Markdown: `ai-rules review-artifact render --input <review.json> --output <review.md>`
+9. Verify pair: `ai-rules review-artifact verify-pair --input <review.json> --markdown <review.md>`
+
+**Do NOT hand-edit the rendered Markdown.** Re-render from JSON if changes are needed.
 
 ---
 

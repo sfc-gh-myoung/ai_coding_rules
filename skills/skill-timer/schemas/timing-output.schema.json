@@ -24,7 +24,7 @@
     "model": {
       "type": "string",
       "minLength": 1,
-      "description": "Model slug (e.g., claude-sonnet-45)"
+      "description": "Model slug (e.g., claude-sonnet-4-5)"
     },
     "review_mode": {
       "type": "string",

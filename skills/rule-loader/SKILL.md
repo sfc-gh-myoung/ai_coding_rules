@@ -1,7 +1,7 @@
 ---
 name: rule-loader
 description: Determines which rule files to load for a given user request by matching file extensions, directory paths, and keywords using the deterministic Python matcher. Handles foundation loading, domain matching (HARD layer), activity matching (SOFT layer), dependency resolution, and token budget management. Runs as the single source of truth for rule discovery - typically invoked by the plugin hook, returning a metadata-only JSON manifest (never rule file contents). Use when loading rules, selecting rules for a task, resolving rule dependencies, or managing token budgets during rule loading.
-version: 2.1.0
+version: 2.2.2
 ---
 
 # Rule Loader
@@ -62,197 +62,13 @@ A `## Rules Loaded` section listing all selected rules with loading reasons, for
 
 ## Manifest Output
 
-When this skill runs inside a **discovery sub-agent**, its authoritative return
-value is the fenced JSON manifest below (`rule-loader-manifest/v2` - default
-emission since Phase 4 cutover; skill version ≥ `2.0.0`). It contains
-**PATHS + METADATA ONLY: never rule file contents**. The `## Rules Loaded` prose
-above is retained only for the inline-render (Step 2B) case; any Markdown table is
-display-only and cannot satisfy Gate 2.
+When this skill runs inside a **discovery sub-agent**, its authoritative return value is the `rule-loader-matcher/v1` fenced JSON block (**PATHS + METADATA ONLY: never rule file contents**). The `## Rules Loaded` prose above is retained only for the inline-render (Step 2B) case; Markdown tables are display-only and cannot satisfy Gate 2.
 
-```json
-{
-  "schema_version": "rule-loader-manifest/v2",
-  "request_fingerprint": "sha256:<hex of normalized user request>",
-  "runtime": {
-    "primitive": "Task|runtime-specific-direct-worker",
-    "spawn_evidence": "<tool_call_id or runtime-visible spawn record>",
-    "agent_id": "<worker agent id from the runtime result>"
-  },
-  "keywords_searched": ["<keyword-or-extension>"],
-  "index_evidence": [
-    {
-      "kind": "grep|read_file_fallback",
-      "target": "rules/rule frontmatter",
-      "query": "<exact grep/read expression>",
-      "result_summary": "<matched filenames or none>"
-    }
-  ],
-  "candidate_rules": [
-    {
-      "rule_path": "rules/202a-markdown-linting.md",
-      "rule_name": "202a-markdown-linting.md",
-      "reason_type": "extension|file|directory|activity_keyword|high_risk|dependency|optional_dependency",
-      "reason": "candidate discovered before token-budget / ContextTier capping",
-      "context_tier": "Low",
-      "token_estimate": 2800,
-      "layer": "SOFT",
-      "required": false
-    }
-  ],
-  "candidate_count": 1,
-  "degraded": false,
-  "failures": [
-    {
-      "stage": "domain_matching|activity_matching|dependency_resolution|token_budget",
-      "message": "<failure text>",
-      "fallback_used": "<fallback name or null>"
-    }
-  ],
-  "load_sequence": [
-    {
-      "order": 1,
-      "rule_path": "rules/000-global-core.md",
-      "rule_name": "000-global-core.md",
-      "reason_type": "foundation|extension|file|directory|activity_keyword|high_risk|dependency|project_context",
-      "reason": "foundation",
-      "context_tier": "Critical|High|Medium|Low",
-      "token_estimate": 2550,
-      "layer": "FOUNDATION|HARD|SOFT",
-      "required": true,
-      "read_required": true,
-      "description": "One-sentence summary sourced from the rule's desc= field in rule frontmatter. Optional; populated when desc= is present."
-    }
-  ],
-  "deferred_rules": [
-    {
-      "rule_path": "rules/202a-markdown-linting.md",
-      "rule_name": "202a-markdown-linting.md",
-      "reason_type": "token_budget|context_tier_cap|duplicate|superseded|optional_dependency",
-      "reason": "Deferred by token-budget management after dependency resolution",
-      "context_tier": "Low",
-      "token_estimate": 2800,
-      "layer": "SOFT",
-      "deferred_because": "ContextTier Low and total estimated context exceeded the configured token-budget cap"
-    }
-  ],
-  "execution_hints": {
-    "expected_turns_per_fixture": 3,
-    "max_output_tokens": 1000,
-    "note": "Advisory only. Calibrated from opus-4-6 baseline (91 turns / 35 fixtures ≈ 2.6 turns/fixture; 19k output tokens / 35 fixtures ≈ 543 tokens/fixture)."
-  }
-}
-```
+**Required top-level fields:** `schema_version`, `candidate_rules`, `load_sequence`, `deferred_rules`.
 
-Schema rules:
+**Completeness invariant:** every unique `candidate_rules[*].rule_path` must appear in exactly one of `load_sequence[*].rule_path` or `deferred_rules[*].rule_path`. A malformed manifest, missing required fields, or any rule body content triggers Step 2B fallback.
 
-- The fenced JSON block is the only authoritative manifest format. Markdown tables are display-only and cannot satisfy Gate 2.
-- `load_sequence[*].rule_path` is repository-relative and must start with `rules/`; absolute paths are rendered by the main agent.
-- `candidate_rules` is required, even when empty; the complete candidate universe after domain/activity/dependency discovery and before token-budget / ContextTier capping.
-- `candidate_count` must equal `len(candidate_rules)`.
-- `load_sequence` is dependency-resolved first, then token-budget-capped; duplicate `rule_path` entries are removed before ordering.
-- `deferred_rules` is required, even when empty; every candidate removed by token-budget / ContextTier-cap, optional-dependency deferral, duplicate suppression, or supersession.
-- **Completeness invariant:** every unique `candidate_rules[*].rule_path` must appear in exactly one of `load_sequence[*].rule_path` or `deferred_rules[*].rule_path`.
-- `deferred_rules[*]` `reason`, `reason_type`, and `deferred_because` must be specific enough for the main agent to preserve the deferral reason in Gate 3 output.
-- The manifest contains PATHS + METADATA ONLY. Rule file bodies never cross back.
-- A malformed manifest, missing `runtime.agent_id` / `runtime.spawn_evidence` / `index_evidence` / `candidate_rules` / `candidate_count` / `deferred_rules`, invalid JSON, failed candidate-completeness validation, or any rule body content triggers Step 2B fallback.
-
-See `examples/manifest-output.md` for a minimal valid example.
-
-## Manifest v2 (`rule-loader-manifest/v2`)
-
-Starting at skill version `2.0.0` and defaulted since Phase 4 cutover, the
-authoritative manifest schema is `rule-loader-manifest/v2`. The v2 schema is
-**additive** relative to v1: no fields are removed. `rule-loader-manifest/v1`
-manifests remain **accepted by the main agent** for legacy consumers that have
-not yet been updated; the skill itself emits v2 by default.
-
-**Added fields (all additive):**
-
-```json
-{
-  "schema_version": "rule-loader-manifest/v2",
-  "candidate_rules": [
-    {
-      "rule_path": "rules/206-python-pytest.md",
-      "rule_name": "206-python-pytest.md",
-      "reason_type": "activity_keyword",
-      "reason": "kw:pytest matched user request",
-      "context_tier": "High",
-      "token_estimate": 1800,
-      "layer": "SOFT",
-      "required": false,
-      "second_pass": {
-        "evaluated": true,
-        "confirmed": true,
-        "confirmation_reason": "scope-overlap: pytest",
-        "scope_excerpt_hash": "sha256:<hex>"
-      }
-    }
-  ],
-  "deferred_rules": [
-    {
-      "rule_path": "rules/210c-python-fastapi-deployment.md",
-      "rule_name": "210c-python-fastapi-deployment.md",
-      "reason_type": "second_pass_rejected",
-      "reason": "no-scope-overlap: request tokens absent from Scope",
-      "context_tier": "High",
-      "token_estimate": 2200,
-      "layer": "SOFT",
-      "deferred_because": "Phase 3.5 second-pass rejected: Scope excludes user request"
-    }
-  ],
-  "second_pass_evidence": [
-    {
-      "rule_path": "rules/206-python-pytest.md",
-      "confirmed": true,
-      "reason": "scope-overlap: pytest"
-    },
-    {
-      "rule_path": "rules/210c-python-fastapi-deployment.md",
-      "confirmed": false,
-      "reason": "no-scope-overlap: request tokens absent from Scope"
-    }
-  ]
-}
-```
-
-**v2 schema rules (additive to v1):**
-
-- `schema_version` MUST equal `"rule-loader-manifest/v2"` when emitted by
-  skill version ≥ `2.0.0`.
-- Every entry in `candidate_rules[]` MUST carry a `second_pass` object.
-  - For HARD candidates (`layer == "HARD"`): `{evaluated: false, confirmed: true, confirmation_reason: "hard-candidate-exempt"}`.
-  - For SOFT candidates evaluated in Phase 3.5 (top-8 by keyword-match count):
-    `{evaluated: true, confirmed: bool, confirmation_reason: string, scope_excerpt_hash: string}`.
-  - For SOFT candidates beyond the top-8 cap:
-    `{evaluated: false, confirmed: true, confirmation_reason: "cap-degraded-passthrough", degraded: true}`.
-- `deferred_rules[*].reason_type` enum gains value `"second_pass_rejected"`
-  (all v1 values remain valid).
-- Root-level `second_pass_evidence: [{rule_path, confirmed, reason}]` MUST be
-  present when v2 is emitted, even if empty (`[]` when no SOFT candidates were
-  evaluated).
-- **Completeness invariant is unchanged:** every unique
-  `candidate_rules[*].rule_path` must appear in exactly one of
-  `load_sequence[*].rule_path` or `deferred_rules[*].rule_path`.
-- **HARD-never-filtered invariant:** a HARD candidate MUST NOT appear in
-  `deferred_rules[]` with `reason_type: "second_pass_rejected"`. Second-pass
-  rejection applies only to SOFT candidates.
-
-**Backward compatibility:**
-
-- The main agent accepts both `rule-loader-manifest/v1` and
-  `rule-loader-manifest/v2` during the rollout window (schema-version
-  detection on `schema_version` field). Phase 4 flips the default emission to
-  v2 in this skill.
-- A v2-emitting skill invoked by a v1-only consumer degrades gracefully: the
-  consumer ignores the additive fields and reads `candidate_rules` +
-  `load_sequence` + `deferred_rules` as before.
-- Producing manifests without `schema_version`, or with an unrecognized
-  value, triggers Step 2B fallback.
-
-**Second-pass workflow:** see `workflows/second-pass-confirmation.md` for the
-Phase 3.5 filter algorithm, cap, latency budget, and cache invariants that
-produce the `second_pass` annotations and `second_pass_evidence` root list.
+**Full field definitions and schema rules:** [`references/manifest-schema.md`](references/manifest-schema.md). Minimal valid examples: [`examples/manifest-output.md`](examples/manifest-output.md).
 
 ## Python Script Invocation (Primary Path)
 
@@ -277,7 +93,7 @@ an empty manifest, return the empty-manifest sentinel and use the Step 2B
 fallback rather than treating it as a successful discovery result.
 
 **Exit codes:**
-- `0`: success, at least one rule matched; stdout contains `rule-loader-manifest/v2` JSON.
+- `0`: success, at least one rule matched; stdout contains `rule-loader-matcher/v1` JSON.
 - `1`: no rules matched; stdout contains valid JSON with `load_sequence: []`.
 - `2`: fatal error (e.g. `--rules-dir` not found); stdout is empty, error on stderr.
 
@@ -286,7 +102,7 @@ sentinel to the main agent:
 
 ```json
 {
-  "schema_version": "rule-loader-manifest/v2",
+  "schema_version": "rule-loader-matcher/v1",
   "error": "matcher_unavailable",
   "load_sequence": [],
   "deferred_rules": [],
@@ -295,13 +111,9 @@ sentinel to the main agent:
 }
 ```
 
-The main agent treats this as a Gate 2 failure and automatically falls through
-to the Step 2B grep fallback (rule frontmatter grep / read_file).  No manual
-intervention is required.
-
-**rule frontmatter status:** Retained for the Step 2B fallback path. Deprecated
-as the primary discovery mechanism.  Do not remove until all three model eval
-suites pass their targets and AC-11 (round-trip parity) is verified.
+The main agent treats this as a Gate 2 failure and uses the hook-injected
+manifest when available. In repo-only operation, invoke `match_rules.py` against
+`rules/`; it scans YAML frontmatter directly. No generated rule index exists.
 
 ## Workflow
 
@@ -313,12 +125,12 @@ Always load `000-global-core.md`. Non-negotiable.
 **Details:** `workflows/foundation-loading.md`
 
 ### Phase 2: Domain Matching
-Match file extensions and directory paths to domain rules using rule frontmatter.
+Match file extensions and directory paths with the deterministic matcher over `rules/` frontmatter.
 
 **Details:** `workflows/domain-matching.md`
 
 ### Phase 3: Activity Matching
-Search rule frontmatter for keyword matches from the user request.
+Search `rules/` frontmatter for keyword matches through the deterministic matcher.
 
 **Details:** `workflows/activity-matching.md`
 
@@ -337,7 +149,7 @@ Sum TokenBudget values, defer low-priority rules if over budget. `required:` dep
 
 **HARD layer (mechanical, reproducible):** file extension (`ext=`), explicit file
 (`file=`), directory (`dir=`), and the high-risk-action map. Resolved by
-exact-string lookup against `rules/rule frontmatter`. Same request → same
+exact-string lookup against rule frontmatter. Same request → same
 HARD rule set on every run. Covers safety-critical loads (.py, .sql, git, deploy, …).
 
 **SOFT layer (best-effort, non-deterministic):** activity keywords extracted via
@@ -357,7 +169,7 @@ After rule selection, verify:
 
 ## Error Handling
 
-**rule frontmatter not found:**
+**Matcher unavailable:**
 - Warn, fall back to foundation + file-extension matching only
 - Proceed in degraded mode
 
@@ -385,7 +197,7 @@ See `examples/` for complete walkthroughs:
 ## Related
 
 - **`hooks/user-prompt-submit`** - Plugin hook that runs this loading logic automatically
-- **rule frontmatter** - The agent discovery index (grep target). Generated from rule frontmatter.
+- **`scripts/match_rules.py`** - The deterministic discovery boundary used by the hook.
 - **002h-claude-code-skills.md** - Skill authoring standards this skill follows
 - **003-context-engineering.md** - Token budget and attention management principles
 

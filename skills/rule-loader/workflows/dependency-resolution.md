@@ -55,10 +55,11 @@ Load order:
 
 ### Step 3: Handle Missing Dependencies
 
-If a dependency cannot be loaded:
-- Skip the dependent rule
-- Log warning: "Dependency [name] not found, skipping [dependent-name]"
-- Continue with remaining rules
+If a required dependency cannot be found in the rule database:
+- Emit a warning: `{"rule": "<dependent>", "missing_dep": "<name>"}`
+- Keep the dependent rule in the load sequence (degraded load), since a matched
+  rule loading without one unresolvable parent is more useful than dropping it
+- Continue resolving the dependent's other dependencies and the remaining rules
 
 ### Step 4: Record Loading Reasons
 
@@ -68,7 +69,7 @@ Dependencies loaded via this phase use the reason format:
 ## Rules
 
 - Dependencies are loaded **before** the rules that require them
-- A missing dependency causes its dependent to be skipped (not a full stop)
+- A missing required dependency emits a warning; its dependent still loads (degraded), it is not skipped
 - Circular dependencies should not exist; if detected, log warning and break the cycle
 - Foundation (000-global-core.md) is never listed as a dependency to resolve since it is always loaded in Phase 1
 - **Dependencies loaded via `required:` closure do NOT count against the R3 domain-rule cap.** The cap counts only the agent's LEAF/domain SELECTIONS. `required:` dependency closure is loaded in addition to: and does not count against: the 3 domain/activity-selection cap, and a `required:` parent is never deferred for token pressure. If loading a mandatory closure would exceed the 20,000-token R4 ceiling, defer LEAF/optional selections first; a still-over-budget mandatory closure is escalated (see `token-budget.md` Q3-resolution), never silently trimmed.
@@ -83,7 +84,9 @@ Dependencies loaded via this phase use the reason format:
 | `115a-snowflake-cortex-agents-instructions.md` | `100-snowflake-core.md`, `115-snowflake-cortex-agents-core.md` |
 | `002a-rule-creation.md` | `002-rule-governance.md`, `000-global-core.md` |
 
-Consult `rules/rule frontmatter` (the agent discovery index) for the authoritative dependency list for each rule.
+Read each selected rule's YAML frontmatter for the authoritative `depends:`
+metadata. The matcher already scans that frontmatter directly; no generated
+index participates in dependency resolution.
 
 **Worked closure example:** Agent selects `119-snowflake-warehouse-core.md` (1 LEAF selection, counts as 1 against the 3-rule cap). `119` declares `required: 100-snowflake-core.md, 103-snowflake-sql-performance.md, 105-snowflake-query-patterns.md`. Transitive walk adds those 3 rules: closure = {100, 103, 105}. All three are loaded in addition to the cap, not counted against it. Cap usage = 1/3 (only the original leaf selection 119).
 

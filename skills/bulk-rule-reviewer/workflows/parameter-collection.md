@@ -2,7 +2,7 @@
 
 ## Overview
 
-This workflow handles interactive parameter collection when the user invokes the bulk-rule-reviewer skill without providing all required parameters. It uses the `ask_user_question` tool when available for better UX.
+This workflow defines the bulk-rule-reviewer-specific question sets. The shared collection rules — detection flow, batched **max-4** per call, no silent defaults, text-based fallback — are the single source of truth in [`../../shared/reviewer-contract.md`](../../shared/reviewer-contract.md#parameter-collection). This file does not restate them.
 
 ---
 
@@ -51,7 +51,7 @@ mode_question = {
     "question": "Which review mode do you want to use?",
     "multiSelect": False,
     "options": [
-        {"label": "FULL", "description": "Complete review of all 7 dimensions (default)"},
+        {"label": "FULL", "description": "Complete review of all 6 scored dimensions (default)"},
         {"label": "FOCUSED", "description": "Review Actionability + Completeness only"},
         {"label": "STALENESS", "description": "Quick check for outdated content"},
     ],
@@ -112,8 +112,8 @@ output_questions = [
         "question": "Enable execution timing?",
         "multiSelect": False,
         "options": [
-            {"label": "No", "description": "Skip timing metadata (default)"},
-            {"label": "Yes", "description": "Record and embed execution duration"},
+            {"label": "No", "description": "Opt out; per-rule reviews marked `not-requested`"},
+            {"label": "Yes", "description": "Record and embed execution duration + Per-Dimension Timing (default)"},
         ],
     },
     {
@@ -166,7 +166,7 @@ def collect_parameters_interactively(missing_params: list) -> dict:
                 "question": "Which review mode do you want to use?",
                 "multiSelect": False,
                 "options": [
-                    {"label": "FULL", "description": "Complete review of all 7 dimensions"},
+                    {"label": "FULL", "description": "Complete review of all 6 scored dimensions"},
                     {"label": "FOCUSED", "description": "Review Actionability + Completeness only"},
                     {"label": "STALENESS", "description": "Quick check for outdated content"},
                 ],
@@ -227,8 +227,8 @@ def collect_parameters_interactively(missing_params: list) -> dict:
             "question": "Enable execution timing?",
             "multiSelect": False,
             "options": [
-                {"label": "No", "description": "Skip timing metadata (default)"},
-                {"label": "Yes", "description": "Record and embed execution duration"},
+                {"label": "No", "description": "Opt out; per-rule reviews marked `not-requested`"},
+                {"label": "Yes", "description": "Record and embed execution duration + Per-Dimension Timing (default)"},
             ],
         },
         {
@@ -289,7 +289,7 @@ def collect_parameters_text(missing_params: list) -> dict:
 
     if "review_mode" in missing_params:
         print("**Review Mode:**")
-        print("  - FULL: Complete review of all 7 dimensions")
+        print("  - FULL: Complete review of all 6 scored dimensions")
         print("  - FOCUSED: Review Actionability + Completeness only")
         print("  - STALENESS: Quick check for outdated content")
         print()

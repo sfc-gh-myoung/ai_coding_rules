@@ -25,24 +25,30 @@ From Phase 2:
 
 ## Content Population Sequence
 
-### 3.1: Update Metadata (Lines 3-11)
+### 3.1: Update YAML Frontmatter
 
-Replace placeholder values:
+Replace placeholder values in the YAML frontmatter block at top of file:
 
-```markdown
-## Metadata
-
-**SchemaVersion:** v3.6
-**Keywords:** [REPLACE with 5-11 typed entries from Phase 1]
-**TokenBudget:** ~[ESTIMATE: lines × 2, round to 50]
-**ContextTier:** [KEEP from ai-rules new]
-**Depends:** rules/000-global-core.md, rules/[domain-core].md
+```yaml
+schema_version: v3.5
+rule_version: v1.0.0
+last_updated: YYYY-MM-DD
+keywords:
+  - kw:[semantic keyword 1]
+  - kw:[semantic keyword 2]
+  - kw:[add more from Phase 1, 5-11 total]
+token_budget: ~[ESTIMATE: lines × 2, round to 50]
+context_tier: [KEEP from ai-rules new]
+depends:
+  required:
+    - 000-global-core.md  # Foundation rule with core patterns
+  optional:
+    - [domain-core].md  # Domain foundation if applicable
 ```
 
 **Keywords Format:**
-- Exactly 5-11 combined typed entries
-- No quotes, no brackets
-- Example: `daisyui, tailwind, components, ui library, themes, accessibility, semantic html, css variables, responsive design, customization, utility-first, design system, best practices, patterns, optimization`
+- Exactly 5-11 typed entries using prefixes: `kw:` (semantic), `ext:` (extension), `file:` (filename), `dir:` (directory)
+- Example: `kw:daisyui, kw:tailwind, kw:component library, ext:.css, file:tailwind.config.js, kw:theming, kw:ui components`
 
 **TokenBudget Estimation:**
 - Quick formula: (expected_lines × 2) rounded to nearest 50
@@ -51,8 +57,8 @@ Replace placeholder values:
 - Format: `~1200` (tilde required)
 
 **Depends Field:**
-- Always include: `rules/000-global-core.md`
-- Add domain core: `rules/420-javascript-core.md` (for frontend)
+- Always include `000-global-core.md` as required
+- Add domain core as optional: `[domain-core].md`
 - Add related rules if dependent on specific patterns
 
 ### 3.2: Write Purpose (1-2 Sentences)
@@ -158,63 +164,72 @@ All web applications using DaisyUI v4.0+ component library for UI development wi
 
 ### 3.5: Fill Contract Section
 
-**All 6 XML tags must be populated:**
+**All 7 `### Header` subsections must be populated:**
 
 ```markdown
 ## Contract
 
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 [Replace with: What agent needs before starting]
 Example: Project using [TECHNOLOGY] v[VERSION]; configuration files; understanding of [concepts]
-</inputs_prereqs>
 
-<mandatory>
+### Mandatory
+
 [Replace with: Required tools, libraries, permissions]
 Example: [TECHNOLOGY] v[VERSION]+; [related tools]; text editor; terminal access; [specific access]
-</mandatory>
 
-<forbidden>
-[Replace with: Prohibited actions, approaches, anti-patterns]
-Example: Don't use deprecated [X]; don't skip [Y]; don't hardcode [Z]; avoid [anti-pattern]
-</forbidden>
+### Forbidden
 
-<steps>
+Don't use deprecated [X]; don't skip [Y]; don't hardcode [Z]; avoid [anti-pattern]
+
+### Execution Steps
+
 1. [Replace with specific, sequential, actionable step]
 2. [Second step - must be achievable]
 3. [Third step]
 4. [Fourth step]
 5. [Fifth step]
 [5-10 steps total - not too granular, not too high-level]
-</steps>
 
-<output_format>
+### Output Format
+
 [Replace with: Expected output description - file type, structure, validation method]
-Example: [TECHNOLOGY] configuration file with [structure]; UI component with [properties]; tested with [tool]
-</output_format>
+Example: [TECHNOLOGY] configuration file with [structure]
 
-<validation>
+### Validation
+
 [Replace with: How to verify success - specific commands and checks]
-Example: Run [command]; verify [output shows X]; check [file contains Y]; test [behavior Z works]
-</validation>
+Example: Run [command]; verify [output shows X]
+
+### Post-Execution Checklist
+
+- [ ] [Verification 1]
+- [ ] [Verification 2]
+- [ ] [Verification 3]
 ```
 
 **Example: DaisyUI (complete Contract)**
 ```markdown
 ## Contract
 
-<inputs_prereqs>
+### Inputs and Prerequisites
+
 Web application project using Tailwind CSS v3.0+; tailwind.config.js file; understanding of utility-first CSS and component composition
-</inputs_prereqs>
 
-<mandatory>
+
+### Mandatory
+
 DaisyUI v4.0+ installed as Tailwind plugin; modern browser for testing; HTML/CSS knowledge; PostCSS configured
-</mandatory>
 
-<forbidden>
+
+### Forbidden
+
 Don't use inline styles to override DaisyUI components; don't mix DaisyUI with other component libraries; don't use !important to force styles; avoid deprecated v3.x theme syntax
-</forbidden>
 
-<steps>
+
+### Execution Steps
+
 1. Install DaisyUI and add to Tailwind plugins in tailwind.config.js
 2. Configure themes array with custom color schemes if needed
 3. Apply data-theme attribute to HTML element for theme selection
@@ -222,15 +237,17 @@ Don't use inline styles to override DaisyUI components; don't mix DaisyUI with o
 5. Test theme switching and responsive behavior across breakpoints
 6. Validate accessibility with screen readers and keyboard navigation
 7. Optimize bundle size by purging unused components
-</steps>
 
-<output_format>
+
+### Output Format
+
 HTML templates with semantic structure, DaisyUI component classes, and Tailwind utilities; CSS output with configured themes; passes WCAG 2.1 AA accessibility checks
-</output_format>
 
-<validation>
+
+### Validation
+
 Run `npm run build` and verify CSS bundle includes only used components; test theme switching with data-theme changes; validate with axe DevTools for accessibility; check responsive behavior at 640px, 768px, 1024px breakpoints
-</validation>
+
 ```
 
 ### 3.6: Write Anti-Patterns Section
@@ -478,7 +495,7 @@ Check that all content is populated:
 - [x] Purpose: 1-2 meaningful sentences
 - [x] Rule Scope: 1 specific line
 - [x] Quick Start TL;DR: 3+ Essential Patterns, 5-7 Pre-Execution items
-- [x] Contract: All 6 XML tags filled with real content
+- [x] Contract: All 7 ### Header subsections filled with real content
 - [x] Contract placement: Before line 160
 - [x] Anti-Patterns: 2+ with code examples and explanations
 - [x] Post-Execution Checklist: 5+ verification items

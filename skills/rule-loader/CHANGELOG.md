@@ -2,6 +2,20 @@
 
 All notable changes to the `rule-loader` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## [2.2.2] - 2026-08-20
+
+### Changed
+
+- Removed active generated-index dependencies from rule-loader workflows, examples, and test scenarios. Repo-mode discovery now invokes `match_rules.py --prompt ... --rules-dir rules/`, which scans YAML frontmatter directly; direct frontmatter reads are the degraded fallback.
+
+## [2.2.0] - 2026-08-19
+
+### Changed
+
+- Progressive disclosure: extracted v1 and v2 manifest JSON schema definitions from `SKILL.md` into new `references/manifest-schema.md`. `SKILL.md` now carries a compact contract summary (~7 lines each) with pointers; behavior is unchanged.
+- `## Manifest Output` reduced from ~95 lines to 6 lines; `## Manifest v2` reduced from ~92 lines to 6 lines.
+- No behavioral changes; agents that load full schema definitions for strict validation should load `references/manifest-schema.md` on demand.
+
 ## [2.1.0] - 2026-07-16
 
 ### Changed

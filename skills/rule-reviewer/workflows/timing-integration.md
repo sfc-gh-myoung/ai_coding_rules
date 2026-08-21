@@ -2,6 +2,24 @@
 
 Detailed timing-integration procedures for the `rule-reviewer` skill. SKILL.md carries the high-level contract; this file carries the verbatim bash, anti-patterns, and per-command validation that agents should reference when `timing_enabled: true`.
 
+## Full Command Table
+
+Execute ALL steps when `timing_enabled: true` (not optional once enabled):
+
+| When | Action | Command | Track |
+|------|--------|---------|-------|
+| Before review | Start timing | `$PYTHON skill_timer.py start --skill rule-reviewer --target {{target_file}} --model {{model}} --mode {{review_mode}}` | Store `_timing_run_id` |
+| After schema validation | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name skill_loaded` | — |
+| Before EACH dimension | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_start` | — |
+| After EACH dimension | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name dim_{name}_end` | — |
+| After scoring complete | Checkpoint | `$PYTHON skill_timer.py checkpoint --run-id {{_timing_run_id}} --name review_complete` | — |
+| Before file write | End timing | `$PYTHON skill_timer.py end --run-id {{_timing_run_id}} --output-file {{output_file}} --skill rule-reviewer --format markdown --auto-dimension-timings` | Store `_timing_stdout` |
+| After file write | Embed | Append `_timing_stdout` to output file | — |
+
+**Working memory contract:** Retain `_timing_run_id`, `_timing_stdout`, and `_dimension_timings` from start through embed.
+
+**Per-dimension timing responsibility:** skill-timer **validates and formats** the timing data you pass in. **You are responsible for capturing** start/end markers (checkpoint pairs in sequential mode, or sub-agent self-reports in parallel mode) around each dimension. Use `--auto-dimension-timings` in sequential mode (preferred).
+
 ## Quick Reference: Sequential Mode (copy-paste verbatim)
 
 ```bash
@@ -39,94 +57,9 @@ $PYTHON $SCRIPT end --run-id {{_timing_run_id}} \
 
 Sub-agents self-report `start_epoch`/`end_epoch` in JSON. Coordinator assembles the array and passes `--dimension-timings` explicitly. See `workflows/parallel-execution.md`.
 
-## Per-Command Validation (MANDATORY)
+## Per-Command Validation and Anti-Patterns
 
-1. **After `start`:** Output must contain `TIMING_RUN_ID=`. If missing → STOP, report timing failure.
-2. **After `checkpoint`:** Output must contain `CHECKPOINT_STATUS=recorded`. If `missing` → note and continue.
-3. **After `end`:** Output must NOT contain `VALIDATION ERROR`. Check `PER_DIMENSION_STATUS=` stdout marker:
-   - `present`: explicit `--dimension-timings` accepted (parallel mode)
-   - `derived`: auto-derived from checkpoint pairs (sequential mode, expected)
-   - `missing`: FAIL: re-run with `--auto-dimension-timings` or document unavailability.
-   If `VALIDATION ERROR` present → per-dimension data was auto-stripped, note "Per-dimension timing unavailable" in review. If `end` fails entirely → re-run or read `reviews/.timing-data/skill-timer-{run_id}-complete.json` directly.
-4. **After file write:** Verify `## Timing Metadata` section exists in output file. If missing → append from `_timing_stdout`.
-
-**If ALL timing validation fails:** Write the review WITHOUT timing metadata and note `**Timing data unavailable** - validation failed at step N`. Never block the review on timing failures.
-
-## Common Timing Mistakes (Critical to Avoid)
-
-### Anti-Pattern 1: Copy-pasting example epochs from documentation
-
-```bash
-# WRONG - Agent uses example epoch from Quick Reference instead of real timestamps
-dimension_timings='[{"dimension":"actionability","start_epoch":1743897960,"end_epoch":1743897960,"mode":"coordinator"}]'
-# Result: All dimensions get identical fabricated epochs → 0s duration, validation error
-```
-
-**Correct:** Capture real timestamps around actual work:
-
-```bash
-start_epoch=$(python3 -c "import time; print(time.time())")
-# ... perform actual dimension scoring work ...
-end_epoch=$(python3 -c "import time; print(time.time())")
-duration=$(python3 -c "print($end_epoch - $start_epoch)")
-
-dimension_timings='[{"dimension":"actionability","duration_seconds":'$duration',"mode":"self-report","start_epoch":'$start_epoch',"end_epoch":'$end_epoch'}]'
-```
-
-### Anti-Pattern 2: Missing required `duration_seconds` or `mode` field
-
-```bash
-# WRONG - Only has start/end epochs, no duration_seconds or mode
-dimension_timings='[{"dimension":"actionability","start_epoch":100,"end_epoch":120}]'
-# Result: skill_timer.py rejects with "missing required fields"
-```
-
-**Correct:** Include all required fields (`dimension`, `duration_seconds`, `mode`):
-
-```bash
-dimension_timings='[{"dimension":"actionability","duration_seconds":20,"mode":"self-report","start_epoch":100,"end_epoch":120}]'
-```
-
-### Anti-Pattern 3: Ignoring `VALIDATION ERROR` from timing-end
-
-```bash
-# WRONG - Agent sees VALIDATION ERROR but proceeds without noting it
-output=$($PYTHON skill_timer.py end --dimension-timings "$dimension_timings" 2>&1)
-# Output contains: "VALIDATION ERROR: dimension_timings[0] missing required fields"
-# Agent ignores error and doesn't note timing failure in review
-```
-
-**Correct:** Check for errors and note in review:
-
-```bash
-output=$($PYTHON skill_timer.py end --dimension-timings "$dimension_timings" 2>&1)
-
-if echo "$output" | grep -q "VALIDATION ERROR"; then
-    echo "Per-dimension timing validation failed - aggregate timing only"
-    # Note in review: "Per-dimension timing unavailable - validation failed"
-fi
-```
-
-### Anti-Pattern 4: Calling `timing-end` without `--auto-dimension-timings` (or `--dimension-timings`)
-
-```bash
-# WRONG - dim_* checkpoints were recorded but neither flag is passed
-$PYTHON skill_timer.py end --run-id X --output-file Y --skill rule-reviewer
-# Result: Per-Dimension Timing section silently omitted. Stderr WARNING is easy to miss.
-#         Stdout shows PER_DIMENSION_STATUS=missing. Review fails Quality Gate 7.
-```
-
-**Correct:** Always pass `--auto-dimension-timings` in sequential mode (preferred), or assemble an explicit `--dimension-timings` JSON array in parallel mode:
-
-```bash
-# Sequential (auto-derive from dim_*_start / dim_*_end checkpoints)
-$PYTHON skill_timer.py end --run-id X --output-file Y --skill rule-reviewer \
-    --auto-dimension-timings
-
-# Parallel (explicit JSON from sub-agent self-reports)
-$PYTHON skill_timer.py end --run-id X --output-file Y --skill rule-reviewer \
-    --dimension-timings "$dimension_timings_json"
-```
+Marker validation (`TIMING_RUN_ID`/`CHECKPOINT_STATUS`/`PER_DIMENSION_STATUS`), the "if all timing validation fails" fallback, and the 4 timing anti-patterns (fabricated epochs, missing required fields, ignored `VALIDATION ERROR`, omitting `--auto-dimension-timings`) are the shared skill-timer mechanism — single source of truth in [`../../shared/reviewer-contract.md`](../../shared/reviewer-contract.md#timing-integration-skill-timer). This file carries only the rule-reviewer command table and copy-paste blocks above.
 
 ## Schema Reference
 

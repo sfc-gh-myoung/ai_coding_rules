@@ -2,6 +2,41 @@
 
 All notable changes to the `bulk-rule-reviewer` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## [2.6.1] - 2026-08-21
+
+### Fixed
+
+- Corrected `workflows/parameter-collection.md` to say "6 scored dimensions" (was "7") — aligns with rule-reviewer, `reviewer-defaults.yml`, and skill-timer `EXPECTED_DIMENSIONS`.
+- Corrected the interactive Timing question, which stalely marked "No" as the default; `timing_enabled` default is `true`, so "Yes" is now the shown default in both question blocks.
+
+### Changed
+
+- Replaced restated passages with pointers to the new `skills/shared/reviewer-contract.md`: parameter-collection rules, skill-timer timing mechanism, and opt-out semantics.
+- Priority-tier sections now annotate that band boundaries come from `../rule-reviewer/references/reviewer-defaults.yml`; no-overwrite and JSON-authority notes now point to `file-write.md` and `docs/ARCHITECTURE.md` §3.6.
+- `workflows/timing-integration.md`: removed the duplicated 4 anti-patterns (now shared); kept the bulk Quick Reference block, Contract, and Responsibility Split.
+
+## [2.6.0] - 2026-08-20
+
+### Changed
+
+- **Breaking:** Stage 3 Aggregation now discovers `.json` canonical review artifacts instead of parsing `.md` files. Uses `ai-rules review-artifact aggregate` to extract scores and verdicts from structured data. Orphan `.md` files (no same-stem `.json` sibling) are counted but excluded from statistics.
+- Individual review output updated: `.json` is primary canonical artifact; `.md` is derived via `ai-rules review-artifact render`.
+- Dependency bumped: `rule-reviewer skill v2.9.0+` → `v2.12.0+`; `skill-timer v1.5.0+` → `v2.0.0+`.
+- Markdown-only fallback prohibited: aggregation never accepts `.md` input without a same-stem `.json` artifact.
+
+## [2.5.0] - 2026-08-19
+
+### Changed
+
+- Progressive disclosure: consolidated 5 individual timing checkpoint subsections into a single "Timing Checkpoints" table. Replaced "Timing End: Compute" + "Timing End: Embed" + "Checkpoint: summary_complete" with a compact "Timing End" section.
+- Compressed "Timing Start" (10 lines → 3 lines) with pointer to `workflows/timing-integration.md`.
+- Replaced verbatim Gate 8 block (17 lines) with a pointer to the authoritative `../rule-reviewer/references/gate-8.md`.
+- "Installation Requirements" compressed to "Dependencies" (4 lines).
+- "Validation" section trimmed: key requirements list moved to `workflows/input-validation.md`; SKILL.md retains a 2-line pointer.
+- "Success Criteria" + "Expected Outcomes" (16 lines) merged into a 3-line summary.
+- "References" subsection removed (content accessible via Related Skills).
+- SKILL.md reduced from 298 to 222 lines. No behavioral changes.
+
 ## [2.4.1] - 2026-06-21
 
 ### Changed

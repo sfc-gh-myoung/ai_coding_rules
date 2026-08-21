@@ -154,6 +154,9 @@ jobs:
       - name: Validate rule schemas
         run: uv run ai-rules validate rules/
 
+      - name: Validate skill schemas
+        run: uv run ai-rules validate-skills skills/
+
       - name: Validate rule loader fixtures
         run: uv run ai-rules rule-loader validate
 

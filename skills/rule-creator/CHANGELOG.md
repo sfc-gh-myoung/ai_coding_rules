@@ -2,6 +2,19 @@
 
 All notable changes to the `rule-creator` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## v1.1.5 (2026-08-21): Shared parameter-collection rules
+
+### Changed
+
+- `workflows/parameter-collection.md` now points to `skills/shared/reviewer-contract.md` for the generic collection rules (detection flow, batched max-4, no silent defaults, text fallback) instead of restating them.
+- Kept rule-creator-specific question sets and the `timing_enabled` default of `false` (rule-creator is not reviewer-scoped). No behavior change.
+
+## v1.1.4 (2026-08-19): YAML rule generation
+
+### Changed
+
+- Align generated-rule guidance with YAML frontmatter and Markdown `### Contract` subsections.
+
 ## v1.1.3 (2026-07-11): Remove obsolete human-only framing
 
 ### Changed

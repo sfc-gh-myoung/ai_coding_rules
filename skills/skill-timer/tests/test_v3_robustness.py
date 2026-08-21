@@ -37,7 +37,9 @@ sys.path.insert(0, str(SCRIPT.parent))
 from skill_timer import (  # type: ignore[import-not-found]  # noqa: E402  # ty:ignore[unresolved-import]
     VALID_MODES,
     annotate_validation_status,
+    calculate_cost,
     escalate_status,
+    is_valid_run_id,
     resolve_work_window,
     validate_dimension_distribution,
     validate_timing_data,
@@ -344,3 +346,43 @@ def test_replay_against_good_fixture_exits_0(tmp_path: Path):
     good.write_text(json.dumps(payload))
     res = _run(["replay", "--fixture", str(good)], cwd=tmp_path)
     assert res.returncode == 0, f"stdout={res.stdout}\nstderr={res.stderr}"
+
+
+# ============================================================================
+# Central run-ID validation helper
+# ============================================================================
+
+
+def test_is_valid_run_id_accepts_valid_hex_16():
+    assert is_valid_run_id("a1b2c3d4e5f67890")
+    assert is_valid_run_id("0" * 16)
+    assert is_valid_run_id("abcdef0123456789")
+
+
+def test_is_valid_run_id_rejects_invalid_formats():
+    assert not is_valid_run_id("invalid-format-12345")  # non-hex chars + wrong length
+    assert not is_valid_run_id("a1b2c3d4e5f6789")  # 15 chars (too short)
+    assert not is_valid_run_id("a1b2c3d4e5f678901")  # 17 chars (too long)
+    assert not is_valid_run_id("A1B2C3D4E5F67890")  # uppercase not allowed
+    assert not is_valid_run_id("none")  # sentinel string
+
+
+# ============================================================================
+# Unknown-model pricing visibility
+# ============================================================================
+
+
+def test_calculate_cost_warns_for_unknown_model(capsys):
+    result = calculate_cost(1_000_000, 500_000, "totally-unknown-model-xyz")
+    captured = capsys.readouterr()
+    assert "totally-unknown-model-xyz" in captured.err
+    assert "default pricing" in captured.err
+    # Falls back to default pricing table; cost is deterministic and positive.
+    assert result["estimated_cost_usd"] > 0
+
+
+def test_calculate_cost_no_warning_for_known_model(capsys):
+    result = calculate_cost(1_000_000, 500_000, "claude-sonnet-4-6")
+    captured = capsys.readouterr()
+    assert captured.err == ""
+    assert result["estimated_cost_usd"] > 0

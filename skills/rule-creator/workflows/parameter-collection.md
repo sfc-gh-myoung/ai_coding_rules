@@ -2,7 +2,7 @@
 
 ## Overview
 
-This workflow handles interactive parameter collection when the user invokes the rule-creator skill without providing all required parameters. It uses the `ask_user_question` tool when available for better UX.
+This workflow defines the rule-creator-specific question sets. The shared collection rules — detection flow, batched **max-4** per call, no silent defaults, text-based fallback — are the single source of truth in [`../../shared/reviewer-contract.md`](../../shared/reviewer-contract.md#parameter-collection). This file does not restate them. Note: rule-creator is not a reviewer; its `timing_enabled` default is `false`.
 
 ---
 

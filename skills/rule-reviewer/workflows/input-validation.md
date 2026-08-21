@@ -29,6 +29,34 @@
 - Validated inputs ready for downstream workflows
 - `output_root`: normalized path with trailing slash (e.g., `reviews/` or `../mytest/`)
 
+## Supported File Types
+
+**Rule Files (`rules/*.md`):**
+- Domain-specific patterns and guidelines loaded on-demand by agents
+- Full schema validation against `schemas/rule-schema.yml`
+- All 6 dimensions scored (100 points max)
+- TokenBudget variance check applies
+
+**Project Files (`PROJECT.md`):**
+- Bootstrap and configuration documents loaded once during project initialization
+- Schema validation skipped (different structure than rules)
+- All 6 dimensions scored (100 points max)
+- TokenBudget variance skipped (no declared budget)
+- Evaluated for actionability, completeness, consistency, markdown quality, and currency
+
+**Key Differences:**
+
+| Aspect | Rule Files | Project Files |
+|--------|------------|---------------|
+| Schema validation | Full check | Skipped |
+| Parsability scoring | Schema + markdown | Markdown only |
+| Token efficiency | Budget variance + redundancy | Redundancy + structure only |
+| Metadata required | 7 fields (SchemaVersion, etc.) | None |
+| Section structure | Scope → Contract → Content | Custom per project |
+| Max score | 100 points | 100 points |
+
+Both file types are agent-executable documents; they follow different schemas optimized for their architectural roles.
+
 ## File-Type Detection
 
 After input validation, determine whether `target_file` is a rule file or a project file. This controls whether schema validation is run.

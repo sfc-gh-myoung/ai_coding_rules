@@ -2,7 +2,7 @@
 
 ## Overview
 
-This workflow handles interactive parameter collection when the user invokes the rule-reviewer skill without providing all required parameters. It uses the `ask_user_question` tool when available for better UX.
+This workflow defines the rule-reviewer-specific question sets. The shared collection rules — detection flow, batched **max-4** per call, no silent defaults, text-based fallback — are the single source of truth in [`../../shared/reviewer-contract.md`](../../shared/reviewer-contract.md#parameter-collection). This file does not restate them.
 
 ---
 
@@ -130,7 +130,7 @@ optional_questions = [
 
 ## Implementation Note
 
-Use `ask_user_question` with the Question Sets above, batching max 5 questions per call:
+Use `ask_user_question` with the Question Sets above, batching max 4 questions per call:
 - **Batch 1:** Target File, Mode, Execution, Timing
 - **Batch 2:** Overwrite, Output Dir
 

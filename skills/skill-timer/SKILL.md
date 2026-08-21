@@ -1,7 +1,7 @@
 ---
 name: skill-timer
 description: Measures skill execution time with microsecond precision and tracks performance baselines per skill, mode, and model. Use when timing a skill, measuring duration, comparing performance across models, analyzing execution speed, or detecting agent shortcuts. Triggers on "time this skill", "measure skill duration", "benchmark a skill", "skill performance", "detect shortcut".
-version: 2.0.0
+version: 2.0.1
 metadata:
   tags: [timing, performance, measurement, instrumentation, metrics, ci-cd]
 ---

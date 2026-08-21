@@ -1,6 +1,6 @@
 # Architecture: AI Coding Rules
 
-**Last Updated:** 2026-08-17
+**Last Updated:** 2026-08-20
 
 > **What this document is**
 > Design and rationale of the AI Coding Rules system: how it's shaped, why, and what extension points exist.
@@ -232,7 +232,7 @@ For the full command reference, see [README.md → CLI Commands](../README.md#cl
 
 ### 3.4 Agent Skills Architecture
 
-The project includes Agent Skills following [Anthropic's best practices](https://claude.com/blog/equipping-agents-for-the-real-world-with-agent-skills). Skills are agent-invokable, modular capabilities that live under `skills/<skill-name>/` with a consistent layout.
+The project includes Agent Skills following [Anthropic's best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills). Skills are agent-invokable, modular capabilities that live under `skills/<skill-name>/` with a consistent layout.
 
 **Common Skill Layout:**
 
@@ -320,6 +320,42 @@ skills, subagents, commands, hooks, and MCP servers. The rule library ships
 alongside those as plain files that the hook reads at match time.
 
 For build and install commands, see [README.md → Install the plugin](../README.md#install-the-plugin).
+
+---
+
+### 3.6 Review Artifact Authority Model
+
+Rule reviews follow a JSON-canonical authority model introduced in the Phase 4-5 remediation.
+
+**One semantic authority.** A rule review is stored as a `rule-review-result/v1` canonical JSON artifact. The JSON is the only machine-significant record of scores, findings, and evidence. Markdown is a deterministic presentation layer derived from the JSON by `ai-rules review-artifact render`.
+
+**Authority table:**
+
+| Concern | Authority | Excluded from |
+|---------|-----------|---------------|
+| Required fields, types, enums | `schemas/rule-review-result-v1.schema.json` | Cross-artifact and filesystem policy |
+| Score arithmetic, dimension set, evidence fidelity | `src/ai_rules/review_results.py` | Primitive type checks owned by schemas |
+| Scoring weights, hard caps, verdicts | `skills/rule-reviewer/references/reviewer-defaults.yml` | Implementation — never duplicated elsewhere |
+| Human layout, headings, tables | Deterministic renderer (`ai-rules review-artifact render`) | Does not summarize or rewrite accepted prose |
+| Retry and repair routing | `skills/rule-reviewer/references/retry-contract.md` | LLM may repair only declared `repairable_paths` |
+
+**Publication protocol.** For each accepted review:
+1. Validate canonical JSON: `ai-rules review-artifact validate --input <review.json>`
+2. Render Markdown: `ai-rules review-artifact render --input <review.json> --output <review.md>`
+3. Verify pair: `ai-rules review-artifact verify-pair --input <review.json> --markdown <review.md>`
+4. Publish Markdown first, then canonical JSON.
+
+Automation discovers accepted artifacts from `.json` files only. A `.md` file without a same-stem `.json` sibling is an orphan diagnostic artifact, not an accepted review.
+
+**Exit codes (shared across all `ai-rules review-artifact` operations):**
+
+| Exit | Meaning | Recovery |
+|------|---------|----------|
+| 0 | Success | Continue |
+| 1 | LLM-authored schema or semantic violation | Preserve rejected JSON; request bounded repair |
+| 2 | Missing, unreadable, or invalid JSON input | Retry producer |
+| 3 | Deterministic defect or pair-integrity violation | Stop; do not consume LLM retry |
+| 4 | Repair-integrity violation | Retry within repair cap |
 
 ---
 
@@ -431,10 +467,12 @@ The build performs seven steps, implemented in `src/ai_rules/commands/plugin.py`
 **The artifact contract.** `plugin.py` declares what a correct build looks like and
 checks it in **both** directions:
 
-- `EXPECTED_ARTIFACTS`: eight named files that must be present.
-- `EXPECTED_TREES`: three directory prefixes (`rules`, and the rule-loader
-  `examples/` and `workflows/`) whose contents vary. Splitting static files from
+- `EXPECTED_ARTIFACTS`: nine named files that must be present.
+- `EXPECTED_TREES`: four directory prefixes (`rules`, and the rule-loader
+  `examples/`, `workflows/`, and `references/`) whose contents vary. Splitting static files from
   dynamic trees is what keeps "add a rule" from requiring a code change.
+- Phase 2-5 added `skills/rule-loader/references/` and `skills/shared/runtime-capabilities.md`.
+  `src/ai_rules/plugin/replicas.py` is the single declarative source for all copy steps.
 - `check_artifacts()` asserts every declared artifact exists **and** that every
   emitted file is either declared or falls under a declared tree. The second
   direction is the important one: it catches a copy step that silently stops
@@ -714,9 +752,11 @@ For review modes, scoring rubrics, and invocation, see [USING_RULE_REVIEWER_SKIL
 ### 7.4 Schema and Validation
 
 - **[Schema Documentation](../schemas/README.md)**: current schema specification and field reference.
-- **[`schemas/rule-schema.yml`](../schemas/rule-schema.yml)**: authoritative declarative validation schema.
+- **[`schemas/rule-schema.yml`](../schemas/rule-schema.yml)**: authoritative structural schema for rule files.
+- **[`schemas/rule-review-result-v1.schema.json`](../schemas/rule-review-result-v1.schema.json)**: canonical review artifact schema (JSON Schema 2020-12). Structural authority for `rule-review-result/v1`; semantic invariants enforced by `src/ai_rules/review_results.py`.
+- **[`skills/rule-reviewer/references/reviewer-defaults.yml`](../skills/rule-reviewer/references/reviewer-defaults.yml)**: canonical scoring weights, hard caps, and verdict thresholds. Single source of truth for the 100-point model.
 
 ### 7.5 External References
 
-- **[Anthropic Agent Skills best practices](https://claude.com/blog/equipping-agents-for-the-real-world-with-agent-skills)**: background on the Agent Skills model used in section 3.5.
+- **[Anthropic Agent Skills best practices](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)**: background on the Agent Skills model used in section 3.5.
 - **[CommonMark Spec](https://spec.commonmark.org/)**: all rule files comply with CommonMark Markdown.

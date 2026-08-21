@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rule-loader-semantic-briefing-v1.schema.json",
+  "title": "Rule loader semantic briefing v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "request_sha256", "matcher", "semantic_scope", "runtime_capabilities", "output_contract", "retry"],
+  "properties": {
+    "schema_version": {"const": "rule-loader-semantic-briefing/v1"},
+    "request_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "matcher": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "semantic_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "soft_candidates", "hard_passthrough"],
+      "properties": {
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "soft_candidates": {"type": "array", "maxItems": 8, "items": {"$ref": "#/$defs/candidate"}},
+        "hard_passthrough": {"type": "array", "items": {"type": "string", "pattern": "^rules/.+\\.md$"}}
+      }
+    },
+    "runtime_capabilities": {"$ref": "#/$defs/runtimeCapabilities"},
+    "output_contract": {"type": "object"},
+    "retry": {"type": "object"}
+  },
+  "$defs": {
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rule_path", "excerpt"],
+      "properties": {
+        "rule_path": {"type": "string", "pattern": "^rules/.+\\.md$"},
+        "excerpt": {"type": "string", "maxLength": 600}
+      }
+    },
+    "runtimeCapabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime_id", "status", "capability_ids"],
+      "properties": {
+        "runtime_id": {"enum": ["cortex-code", "claude-code", "unsupported"]},
+        "status": {"enum": ["supported", "unsupported"]},
+        "capability_ids": {"type": "array", "items": {"type": "string"}},
+        "fallback": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

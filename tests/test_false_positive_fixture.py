@@ -1,14 +1,11 @@
-"""Unit tests for rule-loader-manifest/v2 schema validation.
+"""Tests for the false-positive fixture file structure and legacy manifest rejection.
 
-Covered invariants (per plan §5.3, §8.3 and skills/rule-loader/SKILL.md):
+Covered invariants:
 
-- v2 manifest with valid additive fields validates cleanly.
-- HARD candidates never appear in ``deferred_rules`` with
-  ``reason_type: "second_pass_rejected"``.
-- SOFT candidates rejected in Phase 3.5 appear in ``deferred_rules`` with
-  ``reason_type: "second_pass_rejected"``.
-- The completeness invariant is preserved (candidate is in load_sequence or deferred).
-- v1 manifests remain accepted (backward compatibility during rollout).
+- Fixture file exists and has the required shape.
+- Fixture entries have all required fields and the correct action expectations.
+- v2 manifests synthesized from fixture entries are rejected with
+  "unsupported schema version" (Phase 3 cutover).
 
 Fixture location: the curated false-positive fixture ships under
 ``tests/fixtures/`` (tracked). The plan-authored path
@@ -23,10 +20,9 @@ from pathlib import Path
 
 import pytest
 
-from ai_rules.rule_loader_eval.manifest import (
-    SCHEMA_VERSION_V2,
-    validate_manifest,
-)
+from ai_rules.rule_loader_eval.manifest import validate_manifest
+
+_SCHEMA_VERSION_V2 = "rule-loader-manifest/v2"
 
 FIXTURE_PATH = Path(__file__).resolve().parent / "fixtures" / "false_positive_fixtures.json"
 
@@ -103,10 +99,10 @@ def test_false_positive_fixture_hard_exempt_entries_have_required_fields(
 
 
 def _build_v2_manifest_from_fixture_entry(fp_entry: dict) -> dict:
-    """Synthesize a v2 manifest that reflects the fixture's expected v2 outcome."""
+    """Synthesize a (now-rejected) v2 manifest from fixture entry."""
     rp = fp_entry["false_positive_rule"]["rule_path"]
     return {
-        "schema_version": SCHEMA_VERSION_V2,
+        "schema_version": _SCHEMA_VERSION_V2,
         "runtime": {
             "primitive": "Task",
             "spawn_evidence": "tool_call_fixture",
@@ -175,27 +171,28 @@ def _build_v2_manifest_from_fixture_entry(fp_entry: dict) -> dict:
     }
 
 
-def test_false_positive_fixture_synthesized_manifest_validates(fixtures: dict) -> None:
-    """A v2 manifest built from each false-positive fixture validates cleanly:
-    the SOFT candidate is deferred with reason_type=second_pass_rejected and
-    the completeness invariant holds.
+def test_false_positive_fixture_synthesized_v2_manifest_is_rejected(fixtures: dict) -> None:
+    """After Phase 3 cutover, a v2 manifest built from any fixture entry must be
+    rejected with 'unsupported schema version'.
     """
     for entry in fixtures["false_positives"]:
         manifest = _build_v2_manifest_from_fixture_entry(entry)
         issues = validate_manifest(manifest)
-        assert issues == [], f"{entry['id']}: manifest validation issues: {issues}"
+        assert issues, f"{entry['id']}: expected rejection, got empty issues"
+        combined = " ".join(issues)
+        assert "unsupported schema version" in combined, (
+            f"{entry['id']}: expected unsupported-schema rejection, got: {issues}"
+        )
 
 
-def test_false_positive_fixture_hard_candidates_never_filtered(fixtures: dict) -> None:
-    """A HARD candidate in the fixture must NOT be movable to deferred_rules
-    with reason_type=second_pass_rejected. The validator enforces this.
+def test_false_positive_fixture_hard_exempt_v2_manifests_rejected(fixtures: dict) -> None:
+    """After Phase 3 cutover, corrupt v2 manifests using HARD-exempt fixture entries
+    are rejected wholesale (unsupported schema version) before any HARD-filter check.
     """
     for entry in fixtures["hard_exempt"]:
         rp = entry["hard_candidate"]["rule_path"]
-        # Corrupt-case manifest: place the HARD rule in deferred_rules with the
-        # second_pass_rejected reason: the validator MUST reject this.
         corrupt = {
-            "schema_version": SCHEMA_VERSION_V2,
+            "schema_version": _SCHEMA_VERSION_V2,
             "runtime": {
                 "primitive": "Task",
                 "spawn_evidence": "tool_call_fixture",
@@ -244,9 +241,11 @@ def test_false_positive_fixture_hard_candidates_never_filtered(fixtures: dict) -
             "second_pass_evidence": [],
         }
         issues = validate_manifest(corrupt)
-        assert any(
-            "HARD candidate" in issue and "second_pass_rejected" in issue for issue in issues
-        ), f"{entry['id']}: expected HARD-never-filtered violation, got {issues}"
+        assert issues, f"{entry['id']}: expected rejection, got empty issues"
+        combined = " ".join(issues)
+        assert "unsupported schema version" in combined, (
+            f"{entry['id']}: expected unsupported-schema rejection, got: {issues}"
+        )
 
 
 def test_false_positive_fixture_v1_loaded_v2_defers(fixtures: dict) -> None:

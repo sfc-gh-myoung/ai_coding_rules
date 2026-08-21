@@ -8,6 +8,7 @@ from ai_rules.match_rules import (
     FileContext,
     RuleEntry,
     _score_kw,
+    build_manifest,
     match_rules,
 )
 
@@ -202,3 +203,58 @@ class TestDependencyPreCap:
         capped, _ = resolve_dependencies(matched, db, max_direct=1)
         assert {r.filename for r in capped} == {"a.md", "dep-a.md"}
         assert "dep-b.md" not in {r.filename for r in capped}
+
+
+class TestMatcherManifestBoundary:
+    def test_foundation_is_inserted_when_matches_omit_it(self) -> None:
+        """The matcher manifest always starts with the foundation rule."""
+        foundation = _rule("000-global-core.md", tier="Critical")
+        direct = _rule("200-python-core.md", kw=["python"], tier="High")
+        manifest = build_manifest(
+            [direct],
+            [],
+            matched_filenames={direct.filename},
+            foundation=foundation,
+        )
+
+        assert manifest["load_sequence"][0]["rule_path"] == "rules/000-global-core.md"
+        assert manifest["candidate_rules"][0]["rule_path"] == "rules/000-global-core.md"
+
+
+class TestRemovedIndexReferences:
+    def test_active_rule_loader_guidance_uses_matcher_not_deleted_index(self) -> None:
+        """Live rule-loader documentation must not route discovery through an index."""
+        project_root = Path(__file__).resolve().parents[2]
+        active_guidance = (
+            project_root / "skills/rule-loader/workflows/activity-matching.md",
+            project_root / "skills/rule-loader/workflows/dependency-resolution.md",
+            project_root / "skills/rule-loader/examples/python-api.md",
+            project_root / "skills/rule-loader/examples/streamlit-dashboard.md",
+            project_root / "skills/rule-loader/examples/multi-domain.md",
+            project_root / "skills/rule-loader/examples/token-budget-deferral.md",
+            project_root / "skills/rule-loader/tests/test-scenarios.md",
+            project_root / "rules/002-rule-governance.md",
+            project_root / "rules/002n-agent-protocol-reference.md",
+        )
+
+        for path in active_guidance:
+            content = path.read_text(encoding="utf-8")
+            assert "RULES_INDEX.md" not in content, path
+            assert "rules/rule frontmatter" not in content, path
+
+        activity_workflow = active_guidance[0].read_text(encoding="utf-8")
+        assert "match_rules.py --prompt" in activity_workflow
+        assert "--rules-dir rules/" in activity_workflow
+
+    def test_rule_protocol_routes_runtime_discovery_through_hook_or_skill(self) -> None:
+        """Normal agent guidance must not tell agents to invoke the matcher directly."""
+        project_root = Path(__file__).resolve().parents[2]
+        protocol = (project_root / "rules/002n-agent-protocol-reference.md").read_text(
+            encoding="utf-8"
+        )
+
+        assert "The hook automatically injects a metadata-only manifest" in protocol
+        assert "invoke `$rule-loader`" in protocol
+        assert "Agents must not invoke it directly during ordinary task execution" in protocol
+        assert "[Agent executes: python3 src/ai_rules/match_rules.py" not in protocol
+        assert "Run `match_rules.py --prompt" not in protocol

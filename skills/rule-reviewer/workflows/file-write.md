@@ -32,7 +32,7 @@
     - [ ] Verdict block contains: Verdict, Blocking Issues, Hard Caps Applied, Rule Size Flag
     - [ ] **Gate 7 (if `timing_enabled: true`):** Review contains `### Per-Dimension Timing` heading AND the table has ≥6 dimension rows. See `review-verification.md` for the full gate definition and remediation steps.
 
-    **If ANY check fails:** STOP. Re-read `references/REVIEW-OUTPUT-TEMPLATE.md` and fix structure before writing. For Gate 7 failures, re-run `timing-end` with `--auto-dimension-timings` (sequential mode) or re-assemble `--dimension-timings` JSON (parallel mode).
+    **If ANY check fails:** STOP. Run `ai-rules review-artifact validate --input <review.json>` and fix the reported issues in the canonical JSON before rendering. For Gate 7 failures, re-run `timing-end` with `--auto-dimension-timings` (sequential mode) or re-assemble `--dimension-timings` JSON (parallel mode).
 
 6. Write `review_markdown` to the determined path.
 
@@ -81,3 +81,19 @@ def get_output_path(
 ## Output
 
 - `output_file`
+
+## No-Overwrite Safety
+
+**When `overwrite: false` (default):**
+
+If `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` exists:
+- Try `-01.md`
+- Try `-02.md`
+- Increment until available (max: `-99.md`)
+- If `-99.md` exists: STOP, report error `Maximum review versions exceeded for [rule-name]`
+
+**When `overwrite: true`:**
+
+The existing file at `{output_root}/rule-reviews/[rule-name]-[model]-[date].md` will be replaced. Use this when intentionally re-running a review to replace a previous version.
+
+The `get_output_path` Python function above (Overwrite Parameter Logic section) implements this algorithm.

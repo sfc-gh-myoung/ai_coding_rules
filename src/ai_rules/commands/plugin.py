@@ -25,10 +25,15 @@ from ai_rules.plugin.replicas import (
 
 
 class TargetPlatform(StrEnum):
-    """Supported assistant platforms for plugin installation."""
+    """Supported assistant platforms for plugin installation.
+
+    ``all`` is a CLI convenience that expands to every concrete platform via
+    :func:`_resolve_targets`; it is never a valid destination on its own.
+    """
 
     cortex = "cortex"
     claude = "claude"
+    all = "all"
 
 
 plugin_app = typer.Typer(
@@ -73,6 +78,19 @@ _IGNORED_NAMES: frozenset[str] = frozenset({".DS_Store"})
 # the single hook declaration. check_manifest() rejects an inline 'hooks' key.
 REQUIRED_MANIFEST_KEYS: tuple[str, ...] = ("name", "version", "description", "skills")
 
+# Claude Code auto-discovers skills/ and hooks/hooks.json, so its manifest carries
+# only identity keys; a "skills" key is not part of Claude Code's schema.
+CLAUDE_REQUIRED_MANIFEST_KEYS: tuple[str, ...] = ("name", "version", "description")
+
+# Manifest directory each platform reads. CoCo only recognises .cortex-plugin/ and
+# Claude Code only recognises .claude-plugin/ (a directory under ~/.claude/skills/
+# loads as a <name>@skills-dir plugin only when .claude-plugin/plugin.json exists).
+# The build emits both; install ships only the target platform's.
+MANIFEST_DIRS: dict[TargetPlatform, str] = {
+    TargetPlatform.cortex: ".cortex-plugin",
+    TargetPlatform.claude: ".claude-plugin",
+}
+
 # Placeholder the plugin host substitutes with the installed plugin's root directory.
 # CoCo Desktop substitutes it at config-load time (the variable is NOT exported into
 # the hook process env, so the hook script cannot rely on reading it); Claude Code
@@ -114,7 +132,7 @@ def _emitted_files(plugin_dir: Path) -> list[str]:
 
 
 def check_manifest(plugin_dir: Path) -> list[str]:
-    """Validate the generated plugin manifest against the Cortex plugin contract.
+    """Validate both generated plugin manifests against their host contracts.
 
     The Cortex CLI has no ``plugin validate`` subcommand: a malformed manifest
     is only discovered at install time, on the consumer's machine. This check
@@ -130,47 +148,67 @@ def check_manifest(plugin_dir: Path) -> list[str]:
         plugin_dir: Root of a built plugin directory.
 
     Returns:
+        Human-readable problem descriptions. Empty when the manifests are valid.
+    """
+    problems: list[str] = []
+    problems.extend(
+        _check_one_manifest(plugin_dir, ".cortex-plugin/plugin.json", REQUIRED_MANIFEST_KEYS)
+    )
+    problems.extend(
+        _check_one_manifest(plugin_dir, ".claude-plugin/plugin.json", CLAUDE_REQUIRED_MANIFEST_KEYS)
+    )
+    problems.extend(check_hooks_file(plugin_dir))
+    return problems
+
+
+def _check_one_manifest(plugin_dir: Path, rel: str, required_keys: tuple[str, ...]) -> list[str]:
+    """Validate a single plugin manifest file.
+
+    Args:
+        plugin_dir: Root of a built plugin directory.
+        rel: Manifest path relative to the plugin root, for lookup and messages.
+        required_keys: Keys that must be present and non-empty.
+
+    Returns:
         Human-readable problem descriptions. Empty when the manifest is valid.
     """
     problems: list[str] = []
-    manifest_path = plugin_dir / ".cortex-plugin" / "plugin.json"
+    manifest_path = plugin_dir / rel
 
     if not manifest_path.is_file():
-        return [f"missing manifest: {manifest_path.relative_to(plugin_dir)}"]
+        return [f"missing manifest: {rel}"]
 
     try:
         decoded = json.loads(manifest_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        return [f"invalid plugin.json: {exc}"]
+        return [f"invalid {rel}: {exc}"]
 
     if not isinstance(decoded, dict):
-        return ["plugin.json must be a JSON object"]
+        return [f"{rel} must be a JSON object"]
 
     manifest = cast("dict[str, Any]", decoded)
 
-    for key in REQUIRED_MANIFEST_KEYS:
+    for key in required_keys:
         if key not in manifest:
-            problems.append(f"plugin.json missing required key: {key}")
+            problems.append(f"{rel} missing required key: {key}")
         elif not manifest[key]:
-            problems.append(f"plugin.json key is empty: {key}")
+            problems.append(f"{rel} key is empty: {key}")
 
     skills = manifest.get("skills")
     if skills is not None and not isinstance(skills, list):
-        problems.append("plugin.json 'skills' must be a list")
+        problems.append(f"{rel} 'skills' must be a list")
 
-    # Hooks must NOT be declared inline. CoCo auto-discovers ./hooks/hooks.json
-    # when the manifest omits the key, and both CoCo Desktop and CoCo CLI were
-    # verified to load it and substitute ${CLAUDE_PLUGIN_ROOT} from there. Two
-    # declarations previously disagreed: Desktop read the inline key and ignored
-    # hooks.json, the CLI read hooks.json, so a fix applied to one silently did
-    # nothing on the other host.
+    # Hooks must NOT be declared inline. Every supported host auto-discovers
+    # ./hooks/hooks.json when the manifest omits the key, and both CoCo Desktop
+    # and CoCo CLI were verified to load it and substitute ${CLAUDE_PLUGIN_ROOT}
+    # from there. Two declarations previously disagreed: Desktop read the inline
+    # key and ignored hooks.json, the CLI read hooks.json, so a fix applied to
+    # one silently did nothing on the other host.
     if "hooks" in manifest:
         problems.append(
-            "plugin.json must not declare 'hooks' inline; hooks/hooks.json is the "
-            "single source (CoCo auto-discovers it). Two declarations diverge per host."
+            f"{rel} must not declare 'hooks' inline; hooks/hooks.json is the "
+            "single source (hosts auto-discover it). Two declarations diverge per host."
         )
-
-    problems.extend(check_hooks_file(plugin_dir))
 
     return problems
 
@@ -456,11 +494,16 @@ def build(
     dest_script = plugin_dir / "skills" / "rule-loader" / "scripts" / "match_rules.py"
     rules_dest = plugin_dir / "rules"
 
-    # --- 2. Write plugin manifest ---
-    # No inline "hooks" key. CoCo auto-discovers ./hooks/hooks.json, and that file
-    # is the single declaration -- verified firing on both CoCo Desktop and CoCo
-    # CLI with the inline key absent, in both cases with ${CLAUDE_PLUGIN_ROOT}
-    # substituted at config-load time.
+    # --- 2. Write plugin manifests ---
+    # One manifest per platform: CoCo only reads .cortex-plugin/plugin.json and
+    # Claude Code only reads .claude-plugin/plugin.json (a directory under
+    # ~/.claude/skills/ loads as a <name>@skills-dir plugin only when that
+    # manifest exists). The build emits both; install ships the target's.
+    #
+    # No inline "hooks" key in either. Both hosts auto-discover ./hooks/hooks.json,
+    # and that file is the single declaration -- verified firing on both CoCo
+    # Desktop and CoCo CLI with the inline key absent, in both cases with
+    # ${CLAUDE_PLUGIN_ROOT} substituted at config-load time.
     #
     # Declaring hooks in both places was actively harmful: Desktop read the inline
     # key and ignored hooks/hooks.json, while the CLI read hooks/hooks.json. A fix
@@ -475,6 +518,20 @@ def build(
         '  "description": "Deterministic rule loading for AI coding assistants",\n'
         '  "author": { "name": "Michael Young" },\n'
         '  "skills": ["./skills"]\n'
+        "}\n",
+        encoding="utf-8",
+    )
+
+    # Claude Code auto-discovers skills/ and hooks/hooks.json, so its manifest
+    # carries identity keys only; "skills" is not part of Claude Code's schema.
+    claude_manifest = plugin_dir / ".claude-plugin" / "plugin.json"
+    claude_manifest.parent.mkdir(parents=True, exist_ok=True)
+    claude_manifest.write_text(
+        "{\n"
+        '  "name": "ai-coding-rules",\n'
+        '  "version": "1.0.0",\n'
+        '  "description": "Deterministic rule loading for AI coding assistants",\n'
+        '  "author": { "name": "Michael Young" }\n'
         "}\n",
         encoding="utf-8",
     )
@@ -613,6 +670,20 @@ def sync(
 _PLUGIN_NAME = "ai-coding-rules"
 
 
+def _resolve_targets(target: TargetPlatform) -> tuple[TargetPlatform, ...]:
+    """Expand the CLI target into concrete platforms.
+
+    Args:
+        target: The value passed to --target, possibly ``all``.
+
+    Returns:
+        Concrete platforms to act on, in a stable order.
+    """
+    if target == TargetPlatform.all:
+        return (TargetPlatform.cortex, TargetPlatform.claude)
+    return (target,)
+
+
 def _global_dest(target: TargetPlatform) -> Path:
     home = Path.home()
     if target == TargetPlatform.cortex:
@@ -627,28 +698,38 @@ def _project_dest(target: TargetPlatform, project: Path) -> Path:
 
 
 def _is_our_plugin(path: Path) -> bool:
-    """Check that a directory is actually our plugin before removing."""
-    manifest = path / ".cortex-plugin" / "plugin.json"
-    if not manifest.is_file():
-        return False
-    try:
-        data = json.loads(manifest.read_text(encoding="utf-8"))
-        return data.get("name") == _PLUGIN_NAME
-    except (OSError, ValueError):
-        return False
+    """Check that a directory is actually our plugin before removing.
+
+    An installed copy carries only its target platform's manifest, so a match
+    in either .cortex-plugin/ or .claude-plugin/ is accepted.
+    """
+    for manifest_dir in MANIFEST_DIRS.values():
+        manifest = path / manifest_dir / "plugin.json"
+        if not manifest.is_file():
+            continue
+        try:
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if data.get("name") == _PLUGIN_NAME:
+            return True
+    return False
 
 
 def _copy_plugin(
     src: Path,
     dest: Path,
     *,
+    target: TargetPlatform,
     force: bool,
     with_hook: bool = True,
 ) -> None:
-    """Copy the built plugin to dest.
+    """Copy the built plugin to dest, shipping only the target's manifest.
 
-    Platform-neutral: the manifest and hooks/hooks.json are identical for every
-    target, because every supported host substitutes ${CLAUDE_PLUGIN_ROOT} itself.
+    The build emits both .cortex-plugin/ and .claude-plugin/; the other
+    platform's manifest directory is excluded from the copy. Everything else is
+    platform-neutral: hooks/hooks.json is auto-discovered and every supported
+    host substitutes ${CLAUDE_PLUGIN_ROOT} itself.
     """
     if dest.exists():
         if not force:
@@ -659,16 +740,17 @@ def _copy_plugin(
         shutil.rmtree(dest)
     dest.parent.mkdir(parents=True, exist_ok=True)
 
-    if with_hook:
-        # hooks/hooks.json is copied and kept: it is the single hook declaration,
-        # auto-discovered by CoCo. It was previously deleted here in favour of an
-        # inline manifest key, which is exactly what made Desktop and CLI disagree.
-        shutil.copytree(src, dest)
-    else:
+    excluded = [d for t, d in MANIFEST_DIRS.items() if t != target]
+    if not with_hook:
         # Omitting the hooks tree is sufficient to disable hooks. With no
         # hooks/hooks.json to auto-discover and no inline key in the manifest,
         # there is nothing for the host to load.
-        shutil.copytree(src, dest, ignore=shutil.ignore_patterns("hooks"))
+        excluded.append("hooks")
+    # When hooks ship, hooks/hooks.json is copied and kept: it is the single hook
+    # declaration, auto-discovered by every host. It was previously deleted here
+    # in favour of an inline manifest key, which is exactly what made CoCo
+    # Desktop and CoCo CLI disagree.
+    shutil.copytree(src, dest, ignore=shutil.ignore_patterns(*excluded))
 
     # No per-platform manifest rewrite. Both CoCo Desktop and CoCo CLI substitute
     # ${CLAUDE_PLUGIN_ROOT} at config-load time (verified: argv0 arrives fully
@@ -696,7 +778,9 @@ def _validate_build(plugin_dir: Path) -> None:
 
 @plugin_app.command()
 def install(
-    target: TargetPlatform = typer.Option(..., help="Target platform: cortex or claude"),  # noqa: B008
+    target: TargetPlatform = typer.Option(  # noqa: B008
+        ..., help="Target platform: cortex, claude, or all"
+    ),
     project: Path | None = typer.Option(None, help="Project directory for local install"),  # noqa: B008
     force: bool = typer.Option(False, help="Overwrite existing installation"),
     with_hook: bool = typer.Option(
@@ -706,7 +790,10 @@ def install(
     ),
     plugin_dir: Path = typer.Option(_PLUGIN_DIR, help="Built plugin directory"),  # noqa: B008
 ) -> None:
-    """Install the plugin for use with CoCo (cortex) or Claude Code.
+    """Install the plugin for use with CoCo (cortex), Claude Code (claude), or both (all).
+
+    Each install ships only the target platform's manifest: .cortex-plugin/ for
+    CoCo, .claude-plugin/ for Claude Code.
 
     Hooks are omitted by default. Add --with-hook to include the UserPromptSubmit
     hook so rules are injected automatically on every prompt.
@@ -718,10 +805,29 @@ def install(
     plugin_dir = plugin_dir.resolve()
     _validate_build(plugin_dir)
 
+    for resolved in _resolve_targets(target):
+        _install_one(
+            resolved,
+            project=project,
+            force=force,
+            with_hook=with_hook,
+            plugin_dir=plugin_dir,
+        )
+
+
+def _install_one(
+    target: TargetPlatform,
+    *,
+    project: Path | None,
+    force: bool,
+    with_hook: bool,
+    plugin_dir: Path,
+) -> None:
+    """Install the built plugin for a single concrete platform."""
     if project is not None:
         # Project-local install: always copy
         dest = _project_dest(target, project.resolve())
-        _copy_plugin(plugin_dir, dest, force=force, with_hook=with_hook)
+        _copy_plugin(plugin_dir, dest, target=target, force=force, with_hook=with_hook)
         console.print(f"[green]Installed to project:[/green] {dest}")
         if not with_hook:
             console.print(
@@ -773,7 +879,7 @@ def install(
         ):
             console.print("Aborted.")
             raise typer.Exit(0)
-        _copy_plugin(plugin_dir, dest, force=force, with_hook=with_hook)
+        _copy_plugin(plugin_dir, dest, target=target, force=force, with_hook=with_hook)
         console.print(f"[green]Installed (copy):[/green] {dest}")
         if not with_hook:
             console.print(
@@ -784,9 +890,12 @@ def install(
     else:
         # Claude: always copy (no local-path install CLI)
         dest = _global_dest(TargetPlatform.claude)
-        _copy_plugin(plugin_dir, dest, force=force, with_hook=with_hook)
+        _copy_plugin(plugin_dir, dest, target=target, force=force, with_hook=with_hook)
         console.print(f"[green]Installed:[/green] {dest}")
-        console.print("  Plugin will appear as ai-coding-rules@skills-dir in Claude Code.")
+        console.print(
+            "  Plugin will appear as ai-coding-rules@skills-dir in Claude Code.\n"
+            "  Run /reload-plugins or start a new session to activate."
+        )
         if not with_hook:
             console.print(
                 "  Hook not included. Use $rule-loader skill on demand. "
@@ -796,10 +905,18 @@ def install(
 
 @plugin_app.command()
 def uninstall(
-    target: TargetPlatform = typer.Option(..., help="Target platform: cortex or claude"),  # noqa: B008
+    target: TargetPlatform = typer.Option(  # noqa: B008
+        ..., help="Target platform: cortex, claude, or all"
+    ),
     project: Path | None = typer.Option(None, help="Project directory for local uninstall"),  # noqa: B008
 ) -> None:
-    """Uninstall the plugin from CoCo (cortex) or Claude Code."""
+    """Uninstall the plugin from CoCo (cortex), Claude Code (claude), or both (all)."""
+    for resolved in _resolve_targets(target):
+        _uninstall_one(resolved, project)
+
+
+def _uninstall_one(target: TargetPlatform, project: Path | None) -> None:
+    """Uninstall the plugin from a single concrete platform."""
     dest = _project_dest(target, project.resolve()) if project is not None else _global_dest(target)
 
     if not dest.exists():
@@ -812,7 +929,7 @@ def uninstall(
                     f"  Found project-local install at: {cwd_dest}\n"
                     f"  Use --project . to uninstall it."
                 )
-        raise typer.Exit(0)
+        return
 
     if not _is_our_plugin(dest):
         console.print(

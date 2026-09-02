@@ -1,6 +1,6 @@
 {%- import "_macros.j2" as labels -%}
   <!-- ========== TAB 7: MODEL EFFORT ========== -->
-  <section class="tab-panel" id="model-effort" role="tabpanel" data-tab-title="Model Effort" x-show="tab==='model-effort'" x-cloak x-transition:enter.opacity.duration.200ms>
+  <section class="tab-panel" id="model-effort" role="tabpanel" data-tab-title="Model Effort" x-show="tab==='model-effort'" x-cloak>
     <h2>Model Effort Analysis</h2>
 
     <p>Computational effort comparison across {{ total_models }} models{% if has_noplugin %} ({{ effort_data.models | length }} model/mode runs){% endif %} over {{ effort_data.fixtures | length - 1 }} test fixtures. Each cell shows the <strong>average</strong> value with a bar sized relative to the highest value in that column. The lighter bar extension shows how much worse the worst run was. Models are sorted by protocol compliance; <strong>click any column header to re-sort</strong>. Hover a cell for exact min/avg/max values.</p>
@@ -21,10 +21,11 @@
     </div>
 
     <div class="table-wrap" style="margin-top:1.25rem;">
-      <table id="effort-table" class="data-table sortable-table compact" data-sort-fallback="2:asc,5:asc,0:asc" aria-label="Model effort metrics: tokens, elapsed time, and turns per model">
+      <table id="effort-table" class="data-table sortable-table compact" data-sort-fallback="3:asc,6:asc,0:asc" aria-label="Model effort metrics: tokens, elapsed time, and turns per model">
         <thead>
           <tr>
             <th data-sort-type="text" style="text-align:left; min-width:150px;">Model</th>
+            <th data-sort-type="text" style="min-width:92px;">Run Date</th>
             <th class="sorted-desc" data-sort-type="number" style="text-align:right; min-width:80px;">Pass Rate</th>
             <th data-sort-type="number" style="text-align:left; min-width:150px;">Input Tokens</th>
             <th data-sort-type="number" style="text-align:left; min-width:150px;">Output Tokens</th>
@@ -40,6 +41,7 @@
               data-model-mode="{{ model_modes[model] | default('plugin') }}"
               data-pass="{{ pr }}"{% if model in effort_data.nodata_models %} class="row-nodata"{% endif %}>
             <td class="col-model" style="text-align:left;">{{ labels.model_label(model, abbreviate=true) }}{% if model_modes[model] | default('plugin') != 'plugin' %} {{ labels.no_plugin_pill() }}{% endif %}</td>
+            <td>{{ model_run_dates[model] | default("&mdash;" | safe, true) }}</td>
             <td class="col-num" style="text-align:right;">{% if pr >= 95 %}<span style="color:var(--sf-green); font-weight:600;">{{ pr }}%</span>{% elif pr >= 85 %}<span style="color:var(--sf-amber);">{{ pr }}%</span>{% else %}<span style="color:var(--sf-red);">{{ pr }}%</span>{% endif %}</td>
             {% for metric in ['input_tokens', 'output_tokens', 'elapsed_s', 'turns'] %}
             {% set s = agg[metric] %}

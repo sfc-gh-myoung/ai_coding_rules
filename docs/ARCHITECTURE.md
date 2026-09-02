@@ -279,7 +279,8 @@ The plugin is the distribution path for Cortex Code and Claude Code's native plu
 
 ```
 ai-coding-rules-plugin/
-├── .cortex-plugin/plugin.json    # Plugin manifest (skills declaration)
+├── .cortex-plugin/plugin.json    # Manifest read by CoCo (skills declaration)
+├── .claude-plugin/plugin.json    # Manifest read by Claude Code (identity only)
 ├── hooks/hooks.json              # UserPromptSubmit hook declaration
 ├── hooks/user-prompt-submit      # UserPromptSubmit hook (entry point)
 ├── micro_kernel_content.md       # Foundation micro-kernel (~500 tokens)
@@ -304,7 +305,7 @@ Without the hook, the `rule-loader` skill is still available on demand via `$rul
 1. **Hook is opt-in.** The hook fires on every prompt and adds latency; users who prefer on-demand discovery install without `--with-hook` and invoke `$rule-loader` explicitly.
 2. **Micro-kernel over full foundation.** The micro-kernel is a compact compression of `000-global-core.md` covering only mandatory behaviors. Full rules are still read on demand.
 3. **PRE-FLIGHT is on-demand.** The plugin does not require PRE-FLIGHT output by default. Use `$show-rules` for diagnostics.
-4. **Single manifest.** `.cortex-plugin/plugin.json` is accepted by both Cortex Code and Claude Code: no need for separate `.claude-plugin/` directory.
+4. **One manifest per platform.** CoCo only reads `.cortex-plugin/plugin.json` and Claude Code only reads `.claude-plugin/plugin.json` (a directory under `~/.claude/skills/` loads as a `<name>@skills-dir` plugin only when that manifest exists). The build emits both; `install` ships only the target platform's.
 5. **Stdlib-only matcher.** `match_rules.py` requires no pip dependencies, enabling zero-install plugin distribution. It is **vendored** into the plugin by the build rather than imported from an installed package: see [4.5 Plugin Build and Install Flow](#45-plugin-build-and-install-flow) for why, and how copy drift is caught.
 
 **Why the plugin replaced per-project deployment:**
@@ -483,8 +484,9 @@ two cannot disagree. CI additionally builds twice into separate directories and
 diffs them, proving the build is deterministic, and diffs the vendored matcher
 against its canonical source.
 
-**The manifest contract.** `check_manifest()` validates the generated
-`.cortex-plugin/plugin.json`: required keys present and non-empty, hook events
+**The manifest contract.** `check_manifest()` validates both generated
+manifests (`.cortex-plugin/plugin.json` and `.claude-plugin/plugin.json`):
+required keys present and non-empty, hook events
 recognised, each hook entry shaped correctly, and every referenced hook command
 actually present and executable in the build. The Cortex CLI has **no**
 `plugin validate` subcommand, so without this a malformed manifest would surface
@@ -524,7 +526,7 @@ flowchart TD
     Assemble --> CopyHook[hooks/user-prompt-submit]
     Assemble --> CopyKernel[micro_kernel_content.md]
     Assemble --> CopyMatcher[match_rules.py into skill scripts/]
-    Assemble --> Manifest[.cortex-plugin/plugin.json generated]
+    Assemble --> Manifest[.cortex-plugin + .claude-plugin manifests generated]
     Manifest --> Standalone{Matcher runs standalone?}
     Standalone -->|Fail| Error[Error: matcher is not self-contained]
     Standalone -->|Pass| Contract{check_artifacts: declared == emitted?}

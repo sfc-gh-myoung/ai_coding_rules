@@ -12,8 +12,13 @@ injected foundation or the ``rule-loader`` skill changes:
    citations must match the rule file's actual line count. Mismatch
    indicates the agent cited from pretraining instead of reading.
 
-Both checks are unconditional inputs to ``eval`` pass/fail. There are
-no escape flags by design - rule-loading correctness is non-negotiable.
+Both checks feed ``eval`` pass/fail, but they are not unconditional. When
+the injected manifest recalled every required rule and the agent loaded them
+(infrastructure healthy), a ``cited_without_read`` / ``cited_without_manifest``
+fabrication is reclassified by the engine as a non-scored ``model-skipped-reads``
+bucket rather than a hard failure - it is a model-behavior signal, not a
+rule-loader defect. This module still reports the raw signals verbatim; the
+scored-vs-non-scored decision is made in ``engine.RunResult.result``.
 """
 
 from __future__ import annotations
@@ -41,7 +46,9 @@ class SignalReport:
 
     - ``cited_without_read`` (B > A): the agent listed a rule in
       ``**Rules Loaded**`` but never `read_file`'d it. Pure fabrication
-      (R1 violation). Always fails the fixture.
+      (R1 violation). Sets ``ok = False`` here; the engine may reclassify a
+      run whose ONLY failure is this into the non-scored ``model-skipped-reads``
+      bucket when the manifest recalled the required rules (infra healthy).
     - ``read_without_cite_unexpected`` (A > B, path NOT in fixture's
       ``optional:`` list): the agent read a rule for triage and didn't cite it.
       Reported diagnostically; this no longer fails the fixture because the new
@@ -103,7 +110,7 @@ def signal_disagreement(
     reads = (set(run.loaded_via_reads) | set(run.prior_reads)) - _DISCOVERY_ARTIFACTS
     section = set(run.loaded_via_section) - _DISCOVERY_ARTIFACTS
     optional_set = set(fixture_optional)
-    manifest = set(run.manifest_paths)
+    manifest = set(run.manifest_paths or ())
 
     # RF10: marker-aware partition using citations_rules_loaded provenance
     citations = run.citations_rules_loaded

@@ -567,9 +567,16 @@ class RunPassWriter:
         errors: int,
         totals: dict[str, int | float],
         failures: list[str],
+        model_skipped: int = 0,
     ) -> None:
-        """Write the per-pass ``summary.json`` (§5.3)."""
-        pass_rate = round(passed / total, 3) if total else 0.0
+        """Write the per-pass ``summary.json`` (§5.3).
+
+        ``pass_rate`` excludes non-scored rows (infra ``errors`` and
+        ``model_skipped``) from the denominator so it measures rule-loader
+        infrastructure correctness, not model read/cite compliance.
+        """
+        scored = total - errors - model_skipped
+        pass_rate = round(passed / scored, 3) if scored else 0.0
         doc: dict[str, object] = {
             "schema_version": PASS_SUMMARY_SCHEMA,
             "run_number": self._run_number,
@@ -577,6 +584,7 @@ class RunPassWriter:
             "passed": int(passed),
             "failed": int(failed),
             "errors": int(errors),
+            "model_skipped": int(model_skipped),
             "pass_rate": pass_rate,
             "totals": {
                 "turns": int(totals.get("turns", 0)),

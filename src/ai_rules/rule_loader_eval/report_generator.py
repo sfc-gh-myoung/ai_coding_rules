@@ -21,6 +21,7 @@ from typing import Any
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from ai_rules._shared.console import log_warning
+from ai_rules.rule_loader_eval.engine import NON_SCORED_RESULTS
 from ai_rules.rule_loader_eval.results_schemas import classify_loaded_result
 
 logger = logging.getLogger(__name__)
@@ -104,6 +105,15 @@ class ModelResult:
     turn_stats: TurnStats | None
     result_dir: str
     mode: str = "plugin"
+    ts: str = ""
+    """Run timestamp (``YYYYMMDD-HHMMSS``) parsed from the run directory name."""
+
+    @property
+    def run_date(self) -> str:
+        """Run date as ``YYYY-MM-DD`` for provenance columns; empty when unknown."""
+        if len(self.ts) >= 8 and self.ts[:8].isdigit():
+            return f"{self.ts[:4]}-{self.ts[4:6]}-{self.ts[6:8]}"
+        return ""
 
     @property
     def display_key(self) -> str:
@@ -129,57 +139,72 @@ class ModelResult:
     discovery: dict[str, int] = field(default_factory=dict)
 
 
+def _run_dir_entry(child: Path) -> tuple[str, str, str] | None:
+    """Return ``(model, mode, ts)`` when ``child`` is a valid run directory.
+
+    Valid means: name matches ``<model>_<N>x_<timestamp>``, a ``summary.json``
+    is present, and the model is not the ``auto`` artifact. Mode is read from
+    ``manifest.json`` (default ``"plugin"`` for legacy runs).
+    """
+    if not child.is_dir():
+        return None
+    m = _DIR_RE.match(child.name)
+    if not m:
+        return None
+    if not (child / "summary.json").exists():
+        return None
+    model = m.group("model")
+    # Skip 'auto' model artifacts: not a real model identifier
+    if model == "auto":
+        return None
+    mode = "plugin"
+    manifest_path = child / "manifest.json"
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            mode = manifest.get("mode") or "plugin"
+        except (json.JSONDecodeError, OSError):
+            pass
+    return model, mode, m.group("ts")
+
+
+def _display_key(model: str, mode: str) -> str:
+    """Report display key: bare model name, suffixed for without-plugin runs."""
+    return model if mode == "plugin" else f"{model} [no-plugin]"
+
+
 def discover_results(results_dir: Path) -> dict[str, Path]:
     """Find the latest run directory per model+mode combination.
 
     Args:
-        results_dir: Directory containing model run subdirectories.
+        results_dir: The results root whose children are
+            ``<model>_<N>x_<timestamp>`` run directories. Pointing it directly
+            at a single run directory is also accepted and returns that run
+            alone.
 
     Returns:
         Mapping of display key (model or model[no-plugin]) to path of its
         latest run directory.
     """
+    single = _run_dir_entry(results_dir)
+    if single is not None:
+        model, mode, _ts = single
+        return {_display_key(model, mode): results_dir}
+
     # Key: (model, mode) -> (timestamp, path)
     candidates: dict[tuple[str, str], tuple[str, Path]] = {}
     for child in sorted(results_dir.iterdir()):
-        if not child.is_dir():
+        entry = _run_dir_entry(child)
+        if entry is None:
             continue
-        m = _DIR_RE.match(child.name)
-        if not m:
-            continue
-        summary = child / "summary.json"
-        if not summary.exists():
-            continue
-        model = m.group("model")
-        # Skip 'auto' model artifacts: not a real model identifier
-        if model == "auto":
-            continue
-        ts = m.group("ts")
-
-        # Read mode from manifest.json (default "plugin" for legacy runs)
-        mode = "plugin"
-        manifest_path = child / "manifest.json"
-        if manifest_path.exists():
-            try:
-                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-                mode = manifest.get("mode") or "plugin"
-            except (json.JSONDecodeError, OSError):
-                pass
-
+        model, mode, ts = entry
         key = (model, mode)
         existing = candidates.get(key)
         if existing is None or ts > existing[0]:
             candidates[key] = (ts, child)
 
-    # Return with unique display keys: same model can appear twice if both modes exist
-    result: dict[str, Path] = {}
-    for (model, mode), (_, path) in candidates.items():
-        # Use model name directly; if both modes exist for same model, suffix the without-plugin one
-        if mode == "plugin":
-            result[model] = path
-        else:
-            result[f"{model} [no-plugin]"] = path
-    return result
+    # Unique display keys: same model can appear twice if both modes exist
+    return {_display_key(model, mode): path for (model, mode), (_, path) in candidates.items()}
 
 
 def _collect_fixture_jsons(run_dir: Path) -> list[Path]:
@@ -229,9 +254,11 @@ def extract_model_stats(run_dir: Path) -> ModelResult:
     agg = summary.get("aggregate", {})
 
     model_name = run_dir.name
+    run_ts = ""
     m = _DIR_RE.match(run_dir.name)
     if m:
         model_name = m.group("model")
+        run_ts = m.group("ts")
 
     pass_rate = float(agg.get("mean_pass_rate", 0.0))
     fixture_count = int(summary.get("fixture_count", 0))
@@ -322,6 +349,7 @@ def extract_model_stats(run_dir: Path) -> ModelResult:
         turn_stats=turn_stats,
         result_dir=str(run_dir),
         mode=run_mode,
+        ts=run_ts,
         per_fixture=per_fixture,
         discovery=dict(discovery),
     )
@@ -329,7 +357,10 @@ def extract_model_stats(run_dir: Path) -> ModelResult:
 
 # Result categories that mean the deterministic matcher DID recall the required
 # set (manifest_recall True) vs. did NOT (Phase 6 discovery attribution).
-_RECALLED_CATEGORIES = frozenset({"pass", "agent-miss", "signal-violation"})
+# ``model-skipped-reads`` is recalled AND agent-compliant (the agent loaded the
+# rules) - it only cited without reading, so it is model behavior, not a
+# recall/compliance miss.
+_RECALLED_CATEGORIES = frozenset({"pass", "agent-miss", "signal-violation", "model-skipped-reads"})
 _NOT_RECALLED_CATEGORIES = frozenset({"matcher-miss", "empty-manifest"})
 
 
@@ -354,10 +385,13 @@ def _build_discovery_attribution(results: Sequence[ModelResult]) -> list[dict[st
                 "total": sum(d.values()),
                 "matcher_recall": {"recalled": recalled, "not_recalled": not_recalled},
                 "agent_compliance": {
-                    "complied": d.get("pass", 0) + d.get("signal-violation", 0),
+                    "complied": d.get("pass", 0)
+                    + d.get("signal-violation", 0)
+                    + d.get("model-skipped-reads", 0),
                     "missed": d.get("agent-miss", 0),
                 },
                 "recovery_only": d.get("recovery-only", 0),
+                "model_skipped": d.get("model-skipped-reads", 0),
                 "legacy": d.get("legacy", 0),
                 "errors": d.get("error", 0),
             }
@@ -640,7 +674,10 @@ def _build_failure_mode_data(results: Sequence[ModelResult]) -> dict[str, Any]:
 
             fixture_id = fx.get("fixture_id", fx_path.stem)
             passed = fx.get("passed", True)
-            fixture_outcomes.setdefault(fixture_id, []).append(passed)
+            # Exclude non-scored rows (infra errors, model-skipped-reads) from the
+            # per-fixture pass/flakiness aggregation: they are neither pass nor fail.
+            if fx.get("result", "") not in NON_SCORED_RESULTS:
+                fixture_outcomes.setdefault(fixture_id, []).append(passed)
 
             sr = fx.get("signal_report", {})
 
@@ -854,6 +891,8 @@ def _build_vega_chart_data(
                 "model": m,
                 "model_short": short,
                 "mode": "without-plugin" if r.mode != "plugin" else "plugin",
+                "run_date": r.run_date,
+                "runs": r.runs,
                 "pass_rate": round(r.pass_rate * 100, 1),
                 "avg_duration_s": round(r.duration_stats.mean_s, 1) if r.duration_stats else 0.0,
                 "avg_turns": round(r.turn_stats.mean, 1) if r.turn_stats else 0.0,
@@ -1429,6 +1468,11 @@ def render_report(
 
     template = env.get_template(template_name)
 
+    # Inlined into the HTML so tabs/filters/tables work with no network access
+    # (the Vega chart libs stay on the CDN and degrade gracefully). Vendored
+    # copy documented in templates/reports/assets/README.md.
+    alpine_js = (tmpl_dir / "assets" / "alpinejs-3.14.8.min.js").read_text(encoding="utf-8")
+
     chart_data = _build_chart_data(results)
     fixtures_data = _build_fixtures_data(results)
     # Effort data needed before vega_chart_data (pareto_data comes from effort)
@@ -1494,6 +1538,9 @@ def render_report(
     model_modes = {
         r.display_key: ("without-plugin" if r.mode != "plugin" else "plugin") for r in results
     }
+    # Provenance for tables keyed by display_key (effort table rows are
+    # model-keyed, not ModelResult-keyed).
+    model_run_dates = {r.display_key: r.run_date for r in results}
 
     # "Models" means distinct model identities, not model x plugin-mode runs. A model
     # evaluated both with and without the plugin is one model and two runs.
@@ -1505,12 +1552,14 @@ def render_report(
     total_rules = len(list(rules_dir.glob("*.md"))) if rules_dir.is_dir() else 0
 
     rendered = template.render(
+        alpine_js=alpine_js,
         results=results,
         plugin_results=plugin_results,
         noplugin_results=noplugin_results,
         has_noplugin=has_noplugin,
         model_modes=model_modes,
         model_modes_list=model_modes_list,
+        model_run_dates=model_run_dates,
         chart_data=chart_data,
         fixtures_data=fixtures_data,
         fixture_catalog=fixture_catalog,

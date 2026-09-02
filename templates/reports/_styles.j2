@@ -108,6 +108,25 @@ nav[role="tablist"] a {
 
 nav[role="tablist"] a:hover { color: var(--text); }
 
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* Cluster labels inside the tablist (Findings / Method / Operations). */
+.nav-group-label {
+  align-self: center;
+  padding: 0 0.6rem 0 1.1rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.75;
+  white-space: nowrap;
+  border-left: 1px solid var(--border);
+}
+.nav-group-label:first-child { border-left: none; padding-left: 0; }
+
 nav[role="tablist"] a.active {
   color: var(--sf-blue);
   border-bottom-color: var(--sf-blue);
@@ -210,6 +229,9 @@ nav[role="tablist"] a.active {
   border-radius: 8px;
   border: 1px solid var(--border);
 }
+/* Opt-in for tall matrices: the wrapper becomes the vertical scroll container,
+   which is what lets the sticky thead / sticky first column engage. */
+.table-wrap--scroll { max-height: 75vh; overflow: auto; }
 
 table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
 
@@ -274,6 +296,22 @@ h3 { font-size: 1.1rem; margin-top: 2rem; margin-bottom: 0.75rem; }
 
 /* Chart container: spans the full text column so all charts share one width. */
 .chart-container { margin: 2rem 0; position: relative; }
+/* Small provenance/context line under a chart or KPI row. */
+.chart-caption, .meta-strip { color: var(--text-muted); font-size: 0.82rem; }
+.chart-caption { margin: -1rem 0 1.5rem; }
+.meta-strip { margin: 0.75rem 0 1.5rem; }
+/* Readable measure for running prose. Direct children only: callouts,
+   tables, charts, and KPI grids keep the full content width. */
+.tab-panel > p, .tab-panel > ul li, .tab-panel > ol li { max-width: 70ch; }
+/* Shown in place of a chart when the Vega CDN scripts fail to load. */
+.chart-fallback {
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  background: var(--surface);
+}
 
 /* SVG diagrams */
 
@@ -485,6 +523,7 @@ footer {
   .tab-panel { display: block !important; page-break-inside: avoid; }
   .tab-panel::before { content: attr(data-tab-title); display: block; font-size: 14pt; font-weight: 700; margin: 1.5em 0 0.5em; border-bottom: 1px solid #ccc; }
   .table-wrap { overflow: visible; }
+  .table-wrap--scroll { max-height: none; overflow: visible; }
   table { font-size: 8pt; border-collapse: collapse; }
   th, td { border: 1px solid #ccc; padding: 2pt 4pt; }
   canvas { max-height: 250px; page-break-inside: avoid; }

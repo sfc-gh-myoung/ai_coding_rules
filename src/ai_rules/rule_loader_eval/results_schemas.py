@@ -26,7 +26,7 @@ from __future__ import annotations
 import json
 import subprocess
 from pathlib import Path
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, NotRequired, TypedDict
 
 if TYPE_CHECKING:
     from ai_rules.rule_loader_eval.agent_runner import TurnEvent
@@ -63,6 +63,8 @@ class PassEntryTotals(TypedDict):
     passed: int
     failed: int
     errors: int
+    model_skipped: NotRequired[int]
+    """Non-scored rows where infra was healthy but the model cited unread rules."""
 
 
 class PassEntry(TypedDict, total=False):
@@ -107,7 +109,7 @@ class FixtureStatusEntry(TypedDict, total=False):
     """One entry in ``run_meta.json.fixtures``."""
 
     status: str  # pending | in_progress | completed
-    result: str | None  # pass | fail | error | null
+    result: str | None  # pass | fail | error | model-skipped-reads | null
     started_at: str | None
     completed_at: str | None
 
@@ -150,6 +152,8 @@ class PassSummaryDoc(TypedDict, total=False):
     passed: int
     failed: int
     errors: int
+    model_skipped: NotRequired[int]
+    """Non-scored rows excluded from ``pass_rate`` (infra healthy, model skipped reads)."""
     pass_rate: float
     totals: PassTotals
     failures: list[str]
@@ -207,7 +211,8 @@ class FixtureResultDoc(TypedDict, total=False):
     run_number: int
     model: str
     passed: bool
-    result: str  # pass | fail | error | empty-manifest | recovery-only | matcher-miss | agent-miss | signal-violation | discovery-budget-exhausted
+    result: str  # pass | fail | error | empty-manifest | recovery-only | matcher-miss | agent-miss | signal-violation | model-skipped-reads | discovery-budget-exhausted
+    manifest_available: bool
     manifest_recall: bool
     agent_compliance: bool
     manifest_empty: bool
@@ -260,8 +265,10 @@ def _classify_result(run_result: RunResult) -> str:
 
     Delegates to :attr:`RunResult.result`, which implements the Section 6
     precedence: ``error`` (infra) → ``empty-manifest`` → ``recovery-only`` →
-    ``matcher-miss`` → ``agent-miss`` → ``signal-violation`` → ``pass``. Legacy
-    or unit rows without a captured manifest collapse to ``pass``/``fail``.
+    ``matcher-miss`` → ``agent-miss`` → ``model-skipped-reads`` /
+    ``signal-violation`` → ``pass``. ``model-skipped-reads`` is a non-scored
+    bucket (infra healthy, model cited unread rules). Legacy or unit rows
+    without a captured manifest collapse to ``pass``/``fail``.
     """
     return run_result.result
 
@@ -325,6 +332,7 @@ def serialize_run_result(run_result: RunResult, run_number: int) -> FixtureResul
         "model": getattr(run, "model", "") or "",
         "passed": bool(run_result.passed),
         "result": result,
+        "manifest_available": bool(getattr(run_result, "manifest_available", False)),
         "manifest_recall": bool(getattr(run_result, "manifest_recall", False)),
         "agent_compliance": bool(getattr(run_result, "agent_compliance", False)),
         "manifest_empty": bool(getattr(run_result, "manifest_empty", True)),

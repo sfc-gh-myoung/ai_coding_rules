@@ -186,6 +186,29 @@ def test_discover_empty_dir(tmp_path: Path) -> None:
     assert result == {}
 
 
+def test_discover_results_accepts_single_run_dir(tmp_path: Path) -> None:
+    """Pointing results_dir directly at one run directory returns that run."""
+    run_dir = _make_run_dir(tmp_path, "my-model", ts="20260718-120000")
+    result = discover_results(run_dir)
+    assert result == {"my-model": run_dir}
+
+
+def test_discover_results_single_run_dir_without_plugin_mode(tmp_path: Path) -> None:
+    """A single run dir keeps its [no-plugin] display key from manifest.json."""
+    run_dir = _make_run_dir(tmp_path, "my-model", ts="20260718-120000")
+    (run_dir / "manifest.json").write_text(json.dumps({"mode": "without-plugin"}), encoding="utf-8")
+    result = discover_results(run_dir)
+    assert result == {"my-model [no-plugin]": run_dir}
+
+
+def test_discover_results_single_run_dir_bad_name_returns_empty(tmp_path: Path) -> None:
+    """A dir with summary.json but a non-run name is not treated as a run dir."""
+    bad = tmp_path / "renamed-results"
+    bad.mkdir()
+    (bad / "summary.json").write_text(json.dumps(_SUMMARY_TEMPLATE), encoding="utf-8")
+    assert discover_results(bad) == {}
+
+
 def test_dirname_regex_edge_cases(tmp_path: Path) -> None:
     # Model name with hyphens and dots
     run_dir = _make_run_dir(tmp_path, "openai-gpt-5.2", ts="20260718-150000")
@@ -289,12 +312,20 @@ def test_extract_aggregates_across_passes(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _make_model_result(model: str = "test-model") -> ModelResult:
+def _make_model_result(
+    model: str = "test-model",
+    *,
+    mode: str = "plugin",
+    runs: int = 3,
+    ts: str = "20260718-120000",
+) -> ModelResult:
     return ModelResult(
         model=model,
         pass_rate=0.99,
         fixture_count=33,
-        runs=3,
+        runs=runs,
+        mode=mode,
+        ts=ts,
         flaky_fixtures=["complex-data-pipeline"],
         citation_drifts=1,
         duration_stats=DurationStats(mean_s=55.0, median_s=52.0, p95_s=90.0, total_s=5445.0),
@@ -338,7 +369,9 @@ def test_render_html(tmp_path: Path) -> None:
     assert 'id="model-effort"' in content
     assert "--sf-blue" in content
     assert "vega-lite" in content.lower()
-    assert "alpinejs" in content.lower()
+    # Alpine is inlined (vendored asset), never loaded from the CDN.
+    assert "cdn.jsdelivr.net/npm/alpinejs" not in content
+    assert "window.Alpine" in content
 
 
 def test_generate_reports_writes_html_only(tmp_path: Path) -> None:
@@ -1442,7 +1475,8 @@ def test_charts_span_text_width_consistently(tmp_path: Path) -> None:
     """
     import re
 
-    results = [_make_model_result()]
+    # Two models: single-model reports intentionally omit the ranking chart.
+    results = [_make_model_result(), _make_model_result("other-model")]
     out = tmp_path / "test.html"
     render_report(results, "compliance-report.html.j2", out)
     content = out.read_text(encoding="utf-8")
@@ -1472,3 +1506,128 @@ def test_chart_model_short_drops_bracket_suffix() -> None:
     np_rec = next(r for r in data if r["mode"] == "without-plugin")
     assert np_rec["model_short"].endswith("*")
     assert "[no-plugin]" not in np_rec["model_short"]
+
+
+# ---------------------------------------------------------------------------
+# UX remediation: resilience, provenance, comparability, single-model, a11y
+# ---------------------------------------------------------------------------
+
+
+def test_model_result_run_date_parses_ts() -> None:
+    r = _make_model_result(ts="20260825-040112")
+    assert r.run_date == "2026-08-25"
+
+
+def test_model_result_run_date_empty_when_no_ts() -> None:
+    r = _make_model_result(ts="")
+    assert r.run_date == ""
+
+
+def test_extract_model_stats_captures_run_timestamp(tmp_path: Path) -> None:
+    run_dir = _make_real_run_dir(tmp_path, "my-model", ts="20260825-040112")
+    mr = extract_model_stats(run_dir)
+    assert mr.ts == "20260825-040112"
+    assert mr.run_date == "2026-08-25"
+
+
+def _render(results, tmp_path: Path) -> str:
+    out = tmp_path / "out.html"
+    render_report(results, "compliance-report.html.j2", out)
+    return out.read_text(encoding="utf-8")
+
+
+def test_render_resilience_markers(tmp_path: Path) -> None:
+    """Vega load failure degrades per-chart; noscript stacks all panels."""
+    content = _render([_make_model_result(), _make_model_result("other-model")], tmp_path)
+    assert "__vegaLoadFailed" in content
+    assert "chart-fallback" in content
+    assert "<noscript>" in content
+    # Vega stays on the CDN with onerror detection
+    assert 'onerror="window.__vegaLoadFailed = true"' in content
+
+
+def test_render_provenance_run_date_columns(tmp_path: Path) -> None:
+    content = _render([_make_model_result(), _make_model_result("other-model")], tmp_path)
+    assert "Run Date" in content
+    assert "2026-07-18" in content
+
+
+def test_render_faceted_chart_when_both_modes(tmp_path: Path) -> None:
+    results = [
+        _make_model_result("model-a"),
+        _make_model_result("model-b", mode="without-plugin"),
+    ]
+    content = _render(results, tmp_path)
+    assert "const _hasBothModes = true" in content
+    assert "mode_label" in content
+    assert "Partitioned by evaluation mode" in content
+
+
+def test_render_no_facet_single_mode(tmp_path: Path) -> None:
+    content = _render([_make_model_result(), _make_model_result("other-model")], tmp_path)
+    assert "const _hasBothModes = false" in content
+    assert "Partitioned by evaluation mode" not in content
+
+
+def test_render_runs_range_in_meta_strip(tmp_path: Path) -> None:
+    results = [_make_model_result("model-a", runs=3), _make_model_result("model-b", runs=5)]
+    content = _render(results, tmp_path)
+    assert "runs per model: 3&ndash;5" in content
+
+
+def test_render_single_run_honesty(tmp_path: Path) -> None:
+    """runs=1 must never be captioned as stochastic verification."""
+    results = [_make_model_result("model-a", runs=1), _make_model_result("model-b", runs=1)]
+    content = _render(results, tmp_path)
+    assert "single pass &mdash; no variance data" in content
+    assert "Stochastic stability verification" not in content
+
+
+def test_render_findings_first_kpis_and_verdict(tmp_path: Path) -> None:
+    content = _render([_make_model_result(), _make_model_result("other-model")], tmp_path)
+    assert "Best Compliance" in content
+    assert "Worst Compliance" in content
+    assert "FM-1 Fabrications" in content
+    assert "Verdict" in content
+
+
+def test_render_single_model_adaptation(tmp_path: Path) -> None:
+    """Single-model reports drop the ranking chart and cross-model analysis."""
+    content = _render([_make_model_result()], tmp_path)
+    assert 'id="passRateChart"' not in content
+    assert "Single-model report." in content
+    assert "Cross-model comparisons are omitted" in content
+
+
+def test_render_results_matrix_scroll_wrapper(tmp_path: Path) -> None:
+    content = _render([_make_model_result(), _make_model_result("other-model")], tmp_path)
+    assert 'class="table-wrap table-wrap--scroll"' in content
+    assert ".table-wrap--scroll { max-height: 75vh; overflow: auto; }" in content
+    # Print must undo the scroll cage so the full matrix paginates.
+    assert ".table-wrap--scroll { max-height: none; overflow: visible; }" in content
+
+
+def test_render_reduced_motion_guard(tmp_path: Path) -> None:
+    content = _render([_make_model_result(), _make_model_result("other-model")], tmp_path)
+    assert "prefers-reduced-motion" in content
+
+
+def test_render_observations_ordered_list(tmp_path: Path) -> None:
+    content = _render([_make_model_result(), _make_model_result("other-model")], tmp_path)
+    assert '<ol class="observations-list">' in content
+
+
+def test_render_nav_groups(tmp_path: Path) -> None:
+    content = _render([_make_model_result(), _make_model_result("other-model")], tmp_path)
+    for label in ("Findings", "Method", "Operations"):
+        assert f'<span class="nav-group-label">{label}</span>' in content
+
+
+def test_render_filter_mode_hash_wiring(tmp_path: Path) -> None:
+    """Plugin filter pills route through setMode so the mode lands in the hash."""
+    content = _render(
+        [_make_model_result(), _make_model_result("other-model", mode="without-plugin")],
+        tmp_path,
+    )
+    assert "setMode('plugin')" in content
+    assert "writeHash()" in content

@@ -165,8 +165,25 @@ def build_eval_manifest(prompt: str, rules_db: dict) -> dict:
 def build_prompt(fixture_prompt: str, rules_index_path: Path) -> str:
     """Build the discovery system prompt for a fixture.
 
+    Thin wrapper over :func:`build_prompt_with_manifest` for callers that
+    only need the prompt text.
+    """
+    return build_prompt_with_manifest(fixture_prompt, rules_index_path)[0]
+
+
+def build_prompt_with_manifest(
+    fixture_prompt: str, rules_index_path: Path
+) -> tuple[str, frozenset[str]]:
+    """Build the discovery system prompt and the injected manifest paths.
+
     Uses the SAME code path as the production hook (user-prompt-submit) via the
     shared :func:`build_eval_manifest` builder, so eval tests exactly what ships.
+
+    Returns ``(system_prompt, manifest_paths)`` where ``manifest_paths`` is the
+    set of non-foundation rule paths injected into the prompt's Matched Rules
+    section. Passing it to the runner as ``manifest_paths`` activates the
+    Phase 6 manifest gates (manifest-recall / agent-compliance) for plugin-mode
+    rows; without it those rows silently fall back to legacy 4-gate scoring.
     """
     from ai_rules.match_rules import load_rules_db
     from ai_rules.plugin.micro_kernel import get_micro_kernel
@@ -195,7 +212,7 @@ def build_prompt(fixture_prompt: str, rules_index_path: Path) -> str:
             f"{rules_list}"
         )
 
-    return (
+    prompt = (
         # The stop boundary must be stated as an ORDERED two-step contract.
         # Stating "HARD STOP" alone caused agents to read it as "make no tool
         # calls at all" and emit a zero-rule Gate 3 without ever attempting
@@ -247,6 +264,7 @@ def build_prompt(fixture_prompt: str, rules_index_path: Path) -> str:
         "  - [x] Gate 3: none matched\n\n"
         "After the Gate 3 block, output `SEED_FIXTURE_COMPLETE` and IMMEDIATELY STOP."
     )
+    return prompt, frozenset(rule_paths)
 
 
 def _usage_get(usage: object, key: str, default: int = 0) -> int:
@@ -353,8 +371,13 @@ class AgentRun:
     a repeat read. Callers populate this from session state; the runner
     itself does not persist state across invocations.
     """
-    manifest_paths: frozenset[str] = field(default_factory=frozenset)
+    manifest_paths: frozenset[str] | None = None
     """RF9: paths from the rule-loader skill manifest (or grep fallback).
+
+    ``None`` means the manifest was NOT captured (legacy/unit rows): scoring
+    falls back to the pre-Phase-6 gates. An empty frozenset means the manifest
+    WAS captured but the matcher produced no candidates -- a real signal that
+    classifies as ``empty-manifest`` when the fixture requires rules.
 
     ``[~]`` citations of these paths pass. ``[~]`` citations of paths NOT in
     this set are hard failures (``cited_without_manifest``).
@@ -370,20 +393,43 @@ def _project_root() -> Path:
     return Path.cwd()
 
 
+def _accepted_rule_roots(project_root: Path) -> tuple[Path, ...]:
+    """Roots under which a ``rules/*.md`` read counts as a rule load.
+
+    In plugin mode the production hook resolves rules from the installed
+    plugin location, not the repo checkout, so reads from those roots are
+    legitimate. Install paths mirror ``_global_dest``/``_project_dest``
+    (cortex target) in ``commands/plugin.py``.
+    """
+    root = project_root.resolve()
+    plugin = Path("plugins") / "ai-coding-rules"
+    return (
+        root,
+        (Path.home() / ".snowflake" / "cortex" / plugin).resolve(),
+        root / ".cortex" / plugin,
+    )
+
+
 def _normalize_to_repo_rule(file_path: str, project_root: Path) -> str | None:
     """Translate an absolute path into a repo-relative rule path.
 
-    Accepts ``rules/*.md`` rule files.
+    Accepts ``rules/*.md`` rule files under the repo root or an installed
+    plugin root (see :func:`_accepted_rule_roots`).
     """
     try:
         p = Path(file_path).resolve()
-        rel = p.relative_to(project_root.resolve())
-    except (OSError, ValueError):
+        roots = _accepted_rule_roots(project_root)
+    except OSError:
         return None
-    rel_str = rel.as_posix()
-    if not rel_str.startswith("rules/") or not rel_str.endswith(".md"):
-        return None
-    return rel_str
+    for base in roots:
+        try:
+            rel = p.relative_to(base)
+        except ValueError:
+            continue
+        rel_str = rel.as_posix()
+        if rel_str.startswith("rules/") and rel_str.endswith(".md"):
+            return rel_str
+    return None
 
 
 # RF5: regex for bash commands that inspect rule files
@@ -1100,5 +1146,7 @@ async def run_live_async(
         total_cost_usd=total_cost_usd,
         skill_invocations=(),
         output_violations=output_violations,
-        manifest_paths=frozenset(manifest_paths or ()),
+        # Preserve the None-vs-empty distinction: None = manifest not captured
+        # (legacy scoring), empty = captured-but-empty (empty-manifest signal).
+        manifest_paths=frozenset(manifest_paths) if manifest_paths is not None else None,
     )

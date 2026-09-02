@@ -45,6 +45,7 @@ A fixture **does not fail** for:
 - Extra rules loaded that aren't in any list (warned as `extras`).
 - `read_without_cite_tolerated`: rule read for triage and listed in `optional:`. Benign.
 - Citation drift on `RuleVersion`/`LastUpdated` (those fields were dropped from citation format in v3.14.0).
+- `model-skipped-reads`: the matcher recalled every `required:` rule into the manifest and the agent loaded them (infra healthy), but the model cited a rule it never read. This is model behavior, not a rule-loader defect, so the fixture is **non-scored** (excluded from pass/fail), not failed. If the model also drifts a citation, violates output shape, or loads a forbidden rule, it fails normally.
 
 ## When to use each list
 

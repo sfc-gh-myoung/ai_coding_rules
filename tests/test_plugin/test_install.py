@@ -67,6 +67,15 @@ class TestIsOurPlugin:
         )
         assert _is_our_plugin(tmp_path) is True
 
+    def test_valid_claude_plugin(self, tmp_path: Path) -> None:
+        """A claude install carries only .claude-plugin/, which must also pass."""
+        manifest_dir = tmp_path / ".claude-plugin"
+        manifest_dir.mkdir()
+        (manifest_dir / "plugin.json").write_text(
+            json.dumps({"name": _PLUGIN_NAME}), encoding="utf-8"
+        )
+        assert _is_our_plugin(tmp_path) is True
+
     def test_wrong_name(self, tmp_path: Path) -> None:
         manifest_dir = tmp_path / ".cortex-plugin"
         manifest_dir.mkdir()
@@ -113,6 +122,8 @@ class TestInstallProjectLocal:
         assert result.exit_code == 0
         dest = project / ".cortex" / "plugins" / _PLUGIN_NAME
         assert (dest / ".cortex-plugin" / "plugin.json").is_file()
+        # Only the target platform's manifest ships
+        assert not (dest / ".claude-plugin").exists()
         # Hook excluded by default
         assert not (dest / "hooks").exists()
         assert "Use --with-hook to enable the plugin hook" in result.output
@@ -136,7 +147,10 @@ class TestInstallProjectLocal:
         )
         assert result.exit_code == 0
         dest = project / ".claude" / "plugins" / _PLUGIN_NAME
-        assert (dest / ".cortex-plugin" / "plugin.json").is_file()
+        # Claude Code only reads .claude-plugin/plugin.json; the cortex manifest
+        # must not ship with a claude install.
+        assert (dest / ".claude-plugin" / "plugin.json").is_file()
+        assert not (dest / ".cortex-plugin").exists()
         assert not (dest / "hooks").exists()
 
     def test_with_hook_includes_hooks(self, built_plugin: Path, tmp_path: Path) -> None:
@@ -191,11 +205,11 @@ class TestInstallProjectLocal:
         assert result.exit_code == 0
         dest = project / ".claude" / "plugins" / _PLUGIN_NAME
         assert (dest / "hooks" / "user-prompt-submit").is_file()
-        # Identical layout to the cortex target: the install is platform-neutral
+        # Same hook layout as the cortex target: hooks are platform-neutral
         # because Claude Code substitutes ${CLAUDE_PLUGIN_ROOT} just as CoCo does.
         hooks_file = dest / "hooks" / "hooks.json"
         assert hooks_file.is_file()
-        manifest = json.loads((dest / ".cortex-plugin" / "plugin.json").read_text())
+        manifest = json.loads((dest / ".claude-plugin" / "plugin.json").read_text())
         assert "hooks" not in manifest, "hooks must not be declared inline"
         hooks = json.loads(hooks_file.read_text())
         command = hooks["hooks"]["UserPromptSubmit"][0]["hooks"][0]["command"]
@@ -322,9 +336,41 @@ class TestInstallGlobalClaude:
                 ["install", "--target", "claude", "--plugin-dir", str(built_plugin)],
             )
         assert result.exit_code == 0
-        assert (fake_dest / ".cortex-plugin" / "plugin.json").is_file()
+        # .claude-plugin/plugin.json is what makes ~/.claude/skills/<name> load
+        # as a <name>@skills-dir plugin; without it Claude Code ignores the dir.
+        assert (fake_dest / ".claude-plugin" / "plugin.json").is_file()
+        assert not (fake_dest / ".cortex-plugin").exists()
         assert "skills-dir" in result.output
         assert "Use --with-hook to enable the plugin hook" in result.output
+
+
+class TestInstallTargetAll:
+    def test_project_install_all_installs_both_platforms(
+        self, built_plugin: Path, tmp_path: Path
+    ) -> None:
+        project = tmp_path / "my-project"
+        project.mkdir()
+        result = runner.invoke(
+            plugin_app,
+            [
+                "install",
+                "--target",
+                "all",
+                "--project",
+                str(project),
+                "--plugin-dir",
+                str(built_plugin),
+            ],
+        )
+        assert result.exit_code == 0
+
+        cortex_dest = project / ".cortex" / "plugins" / _PLUGIN_NAME
+        claude_dest = project / ".claude" / "plugins" / _PLUGIN_NAME
+        # Each install carries only its own platform's manifest.
+        assert (cortex_dest / ".cortex-plugin" / "plugin.json").is_file()
+        assert not (cortex_dest / ".claude-plugin").exists()
+        assert (claude_dest / ".claude-plugin" / "plugin.json").is_file()
+        assert not (claude_dest / ".cortex-plugin").exists()
 
 
 class TestInstallBuildNotFound:
@@ -375,6 +421,89 @@ class TestUninstallProjectLocal:
         )
         assert result.exit_code == 0
         assert "Not installed" in result.output
+
+    def test_removes_claude_install(self, built_plugin: Path, tmp_path: Path) -> None:
+        """A claude install carries only .claude-plugin/, and the safety check
+        must recognise it as ours.
+        """
+        project = tmp_path / "my-project"
+        project.mkdir()
+        runner.invoke(
+            plugin_app,
+            [
+                "install",
+                "--target",
+                "claude",
+                "--project",
+                str(project),
+                "--plugin-dir",
+                str(built_plugin),
+            ],
+        )
+        dest = project / ".claude" / "plugins" / _PLUGIN_NAME
+        assert dest.is_dir()
+
+        result = runner.invoke(
+            plugin_app, ["uninstall", "--target", "claude", "--project", str(project)]
+        )
+        assert result.exit_code == 0
+        assert not dest.exists()
+
+    def test_uninstall_all_removes_both_platforms(self, built_plugin: Path, tmp_path: Path) -> None:
+        project = tmp_path / "my-project"
+        project.mkdir()
+        runner.invoke(
+            plugin_app,
+            [
+                "install",
+                "--target",
+                "all",
+                "--project",
+                str(project),
+                "--plugin-dir",
+                str(built_plugin),
+            ],
+        )
+        cortex_dest = project / ".cortex" / "plugins" / _PLUGIN_NAME
+        claude_dest = project / ".claude" / "plugins" / _PLUGIN_NAME
+        assert cortex_dest.is_dir() and claude_dest.is_dir()
+
+        result = runner.invoke(
+            plugin_app, ["uninstall", "--target", "all", "--project", str(project)]
+        )
+        assert result.exit_code == 0
+        assert not cortex_dest.exists()
+        assert not claude_dest.exists()
+
+    def test_uninstall_all_continues_past_missing_platform(
+        self, built_plugin: Path, tmp_path: Path
+    ) -> None:
+        """With --target all, a platform that was never installed is reported
+        and skipped rather than aborting the other platform's removal.
+        """
+        project = tmp_path / "my-project"
+        project.mkdir()
+        runner.invoke(
+            plugin_app,
+            [
+                "install",
+                "--target",
+                "claude",
+                "--project",
+                str(project),
+                "--plugin-dir",
+                str(built_plugin),
+            ],
+        )
+        claude_dest = project / ".claude" / "plugins" / _PLUGIN_NAME
+        assert claude_dest.is_dir()
+
+        result = runner.invoke(
+            plugin_app, ["uninstall", "--target", "all", "--project", str(project)]
+        )
+        assert result.exit_code == 0
+        assert "Not installed" in result.output
+        assert not claude_dest.exists()
 
 
 class TestUninstallSafetyCheck:

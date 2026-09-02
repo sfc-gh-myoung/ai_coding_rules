@@ -81,7 +81,15 @@ class RepoReplica:
 
 #: Artifacts the build generates rather than copies. They have no primary, so
 #: they are part of the contract but excluded from byte comparison.
-GENERATED_ARTIFACTS: tuple[str, ...] = (".cortex-plugin/plugin.json",)
+#:
+#: Both manifests are emitted: CoCo only reads ``.cortex-plugin/plugin.json`` and
+#: Claude Code only reads ``.claude-plugin/plugin.json`` (a directory under
+#: ``~/.claude/skills/`` loads as a ``<name>@skills-dir`` plugin only when that
+#: manifest is present). Install ships just the target platform's manifest.
+GENERATED_ARTIFACTS: tuple[str, ...] = (
+    ".claude-plugin/plugin.json",
+    ".cortex-plugin/plugin.json",
+)
 
 #: Every copy the build performs. Order matches the build sequence so the emitted
 #: log reads top to bottom.

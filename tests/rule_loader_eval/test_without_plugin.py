@@ -306,6 +306,7 @@ def test_run_single_eval_without_plugin_manifest_available(tmp_path: Path) -> No
     assert len(results) == 1
     result = results[0]
     assert result.manifest_available is True
+    assert result.run.manifest_paths is not None
     assert "rules/999-test-core.md" in result.run.manifest_paths
 
 
@@ -344,6 +345,51 @@ def test_run_single_eval_without_plugin_false_never_calls_build_prompt(tmp_path:
         )
 
     mock_build_wp.assert_not_called()
+    assert len(results) == 1
+
+
+def test_run_single_eval_plugin_mode_passes_injected_manifest(tmp_path: Path) -> None:
+    """Plugin mode forwards the injected manifest paths as the scoring manifest.
+
+    Regression guard: plugin mode used to pass manifest_paths=None, silently
+    demoting every plugin row to the legacy 4-gate fallback (manifest-recall /
+    agent-compliance never evaluated).
+    """
+    from ai_rules.commands import rule_loader as rl
+
+    fixture = _make_fixture("fx")
+    captured: dict = {}
+
+    async def _fake_async(fixture_id, prompt, **kwargs):
+        captured["prompt"] = prompt
+        captured.update(kwargs)
+        return _pass_run(fixture_id)
+
+    with (
+        patch("ai_rules.rule_loader_eval.engine.run_live_async", new=_fake_async),
+        patch.object(rl, "load_rules_metadata", return_value={}),
+        patch(
+            "ai_rules.rule_loader_eval.agent_runner.build_prompt_with_manifest",
+            return_value=("SYNTHETIC PROMPT", frozenset({"rules/999-test-core.md"})),
+        ),
+    ):
+        results, _ = rl._run_single_eval(
+            fixtures=[fixture],
+            root=Path("."),
+            resolved_connection="test-conn",
+            strict_forbidden=False,
+            max_turns=3,
+            effort="low",
+            model="auto",
+            debug=False,
+            out_dir=None,
+            label="test",
+            concurrency=1,
+            without_plugin=False,
+        )
+
+    assert captured["manifest_paths"] == frozenset({"rules/999-test-core.md"})
+    assert captured["system_prompt"] == "SYNTHETIC PROMPT"
     assert len(results) == 1
 
 

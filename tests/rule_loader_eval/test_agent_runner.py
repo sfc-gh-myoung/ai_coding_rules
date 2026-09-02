@@ -439,6 +439,67 @@ def test_normalize_to_repo_rule_valid_rules_path(tmp_path) -> None:
     assert result == "rules/100-snowflake-core.md"
 
 
+@pytest.mark.unit
+def test_normalize_to_repo_rule_global_plugin_install_path(tmp_path, monkeypatch) -> None:
+    """Reads from the global cortex plugin install dir count as rule loads."""
+    from ai_rules.rule_loader_eval.agent_runner import _normalize_to_repo_rule
+
+    home = tmp_path / "home"
+    monkeypatch.setenv("HOME", str(home))
+    rule_file = (
+        home
+        / ".snowflake"
+        / "cortex"
+        / "plugins"
+        / "ai-coding-rules"
+        / "rules"
+        / "116-snowflake-cortex-search.md"
+    )
+    rule_file.parent.mkdir(parents=True)
+    rule_file.touch()
+    project_root = tmp_path / "repo"
+    project_root.mkdir()
+    result = _normalize_to_repo_rule(str(rule_file), project_root)
+    assert result == "rules/116-snowflake-cortex-search.md"
+
+
+@pytest.mark.unit
+def test_normalize_to_repo_rule_project_plugin_install_path(tmp_path) -> None:
+    """Reads from the project-local cortex plugin install dir count as rule loads."""
+    from ai_rules.rule_loader_eval.agent_runner import _normalize_to_repo_rule
+
+    rule_file = (
+        tmp_path / ".cortex" / "plugins" / "ai-coding-rules" / "rules" / "100-snowflake-core.md"
+    )
+    rule_file.parent.mkdir(parents=True)
+    rule_file.touch()
+    result = _normalize_to_repo_rule(str(rule_file), tmp_path)
+    assert result == "rules/100-snowflake-core.md"
+
+
+@pytest.mark.unit
+def test_normalize_to_repo_rule_other_plugin_returns_none(tmp_path, monkeypatch) -> None:
+    """A rules/*.md read from an unrelated plugin's install dir is not counted."""
+    from ai_rules.rule_loader_eval.agent_runner import _normalize_to_repo_rule
+
+    home = tmp_path / "home"
+    monkeypatch.setenv("HOME", str(home))
+    rule_file = (
+        home
+        / ".snowflake"
+        / "cortex"
+        / "plugins"
+        / "some-other-plugin"
+        / "rules"
+        / "100-snowflake-core.md"
+    )
+    rule_file.parent.mkdir(parents=True)
+    rule_file.touch()
+    project_root = tmp_path / "repo"
+    project_root.mkdir()
+    assert _normalize_to_repo_rule(str(rule_file), project_root) is None
+
+
 # --- Gate 3 tests ---
 
 

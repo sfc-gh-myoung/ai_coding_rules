@@ -516,6 +516,7 @@ class TestSerializeRunResult:
             "model",
             "passed",
             "result",
+            "manifest_available",
             "manifest_recall",
             "agent_compliance",
             "manifest_empty",

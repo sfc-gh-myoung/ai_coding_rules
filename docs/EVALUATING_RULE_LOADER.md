@@ -202,8 +202,9 @@ Options:
   --concurrency INTEGER Fixtures evaluated in parallel within each run
                         [default: 1 = sequential]. --runs still executes one
                         pass at a time; output order is deterministic.
-  --retry-infra INTEGER Retry a fixture N times on infra error (SDK/model/
-                        connection failure, not a fixture failure).
+  --retry-infra INTEGER Retry a fixture up to N times on infra error (SDK/model/
+                        connection failure, not a fixture failure), i.e. N+1
+                        total attempts [default: 0 = no retry].
   --debug               Developer diagnostics (timing, signal disagreements) to stderr.
   --progress / -P TEXT  auto|screen|rich|plain|json|none  [default: auto]
   --no-progress         Alias for --progress=none.
@@ -236,13 +237,30 @@ out-of-manifest model recovery:
 6. **Agent compliance**: the agent loaded every required rule the manifest
    offered.
 
-Any failing gate fails the fixture. There are no escape flags: rule loading
-correctness is non-negotiable.
+Any failing gate fails the fixture, with one deliberate exception. When the
+infrastructure demonstrably worked -- the deterministic matcher recalled every
+`required:` rule into the injected manifest and the agent loaded them -- but the
+model cited a rule it never read (`cited_without_read` / `cited_without_manifest`)
+and no other gate failed, the fixture is classified `model-skipped-reads`. That
+is a model-behavior signal, not a rule-loader defect, so it is **non-scored**:
+excluded from the pass/fail denominator (`RunResult.scored is False`) and never
+flips the run to a failing exit code. Matcher-miss, empty-manifest, citation
+drift, and output-shape violations still hard-fail.
 
 Each record also carries a total `result` string with fixed precedence:
 `error` → `empty-manifest` → `recovery-only` → `matcher-miss` → `agent-miss` →
-`signal-violation` → `pass`. `out_of_manifest_recovery` records rules the agent
-found outside the manifest: never credited as a pass.
+`model-skipped-reads` / `signal-violation` → `pass`. `out_of_manifest_recovery`
+records rules the agent found outside the manifest: never credited as a pass.
+The non-scored `result` strings are collected in
+`engine.NON_SCORED_RESULTS` (`error`, `model-skipped-reads`); `pass_rate` is
+`passes / scored`, where `scored` excludes those rows from both numerator and
+denominator.
+
+Each record also carries `manifest_available`: whether the injected manifest
+was captured for the run (`manifest_paths` is `None` when it was not). A
+captured-but-empty manifest (`manifest_available: true`, `manifest_empty:
+true`) is a real matcher signal and classifies required-rule fixtures as
+`empty-manifest`; only uncaptured rows fall back to legacy scoring.
 
 **Migration note.** Records written before Phase 6 lack the `manifest_recall`,
 `agent_compliance`, `manifest_empty`, and `out_of_manifest_recovery` fields;

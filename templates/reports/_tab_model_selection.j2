@@ -1,5 +1,5 @@
   <!-- ========== TAB: MODEL SELECTION (merged sovereignty + recommendations + AI insights) ========== -->
-  <section class="tab-panel" id="model-selection" role="tabpanel" data-tab-title="Model Selection" x-show="tab==='model-selection'" x-cloak x-transition:enter.opacity.duration.200ms>
+  <section class="tab-panel" id="model-selection" role="tabpanel" data-tab-title="Model Selection" x-show="tab==='model-selection'" x-cloak>
     <h2>Model Selection</h2>
 
     <p>Protocol compliance measures one specific dimension of model behavior: how deterministically a model follows structured, multi-step procedural instructions with verifiable checkpoints. It does not measure general intelligence, coding ability, or reasoning quality. This tab collects the evidence that model choice matters, the tiers that say which models qualify, and the guidance that follows from both.</p>
@@ -15,7 +15,7 @@
 
 {#- ===================== MACRO: provider family block ===================== -#}
 {%- macro family_block(fc, insight) -%}
-    {% if fc %}
+    {% if fc | length >= 2 %}
     <h3>Provider Family Comparison</h3>
     <div class="table-wrap">
       <table class="data-table sortable-table compact" data-sort-fallback="2:desc,0:asc" aria-label="Provider family comparison statistics">
@@ -57,11 +57,16 @@
     </p>
 
     <h3 style="margin-top:2rem;">Strategic Implications</h3>
+    {% set _fam_names = fc | map(attribute='family') | list %}
     <div class="two-col">
+      {#- The iteration-strategy contrast describes OpenAI vs Anthropic
+          behavior; only render it when the filtered slice contains both. -#}
+      {% if 'OpenAI' in _fam_names and 'Anthropic' in _fam_names %}
       <div style="border-left:4px solid var(--sf-green);">
         <h4>Iteration Strategy Matters</h4>
         <p>Single-turn models (OpenAI) batch all tool calls in one shot &mdash; they either comply fully or fail entirely. Multi-turn models (Anthropic) iterate sequentially, enabling partial compliance and recovery but consuming more tokens and wall-clock time.</p>
       </div>
+      {% endif %}
       <div style="border-left:4px solid var(--sf-blue, #3b82f6);">
         <h4>Cost &ne; Quality</h4>
         <p>Higher token consumption does not correlate with higher compliance. The cheapest-per-pass model varies by fixture complexity &mdash; consult the Pareto frontier in the Model Effort tab for per-model cost/quality trade-offs.</p>
@@ -75,6 +80,10 @@
       <p>{{ insight }}</p>
     </div>
     {% endif %}
+    {% elif fc %}
+    <div class="callout" style="border-left:4px solid var(--sf-amber); background:rgba(245,158,11,0.06);">
+      <strong>Single provider family in this slice</strong> ({{ fc[0].family }}, n={{ fc[0].n }}). A one-row family comparison is not meaningful; switch the plugin-status filter or add runs from another provider to compare families.
+    </div>
     {% else %}
     <div class="callout" style="border-left:4px solid var(--sf-amber); background:rgba(245,158,11,0.06);">
       <strong>Insufficient data.</strong> Family comparison requires at least two models with usable data.
@@ -179,19 +188,29 @@
 
     <!-- ---------- SUB-PANEL: PROVIDER FAMILIES ---------- -->
     <div class="sub-panel" id="selection-families" x-show="selectionTab==='families'" x-cloak>
+      {% if results | length == 1 %}
+      <h3>Model Sovereignty Analysis</h3>
+      <div class="callout" style="border-left:4px solid var(--sf-amber); background:rgba(245,158,11,0.06);">
+        <strong>Single-model report.</strong> Cross-model comparison requires &ge;2 model runs in the results directory; provider-family analysis is omitted. Point <code>--results-dir</code> at the results root to compare models.
+      </div>
+      {% else %}
       <h3>Model Sovereignty Analysis</h3>
 
       <p>Provider-family comparison reveals that model choice is a <strong>consequential, workload-specific decision</strong> &mdash; not a quality gap. Different families achieve statistically comparable compliance through fundamentally different architectural strategies.</p>
 
+      {% set _all_fams = family_comparisons['all'] | map(attribute='family') | list %}
+      {% if 'OpenAI' in _all_fams and 'Anthropic' in _all_fams %}
       <div class="callout callout-info">
         <div class="callout-title">Key Finding</div>
         <p>OpenAI models converge in ~1 turn (batched tool calls); Anthropic models average ~3 turns for statistically indistinguishable pass rates. This is a real architectural difference in iteration strategy, not a quality gap &mdash; the strongest available evidence that model choice is a consequential, workload-specific decision.</p>
       </div>
+      {% endif %}
 
       {# Three pre-rendered variants, switched by the global plugin filter. #}
       <div x-show="$store.filter.mode === 'all'">{{ family_block(family_comparisons['all'], sovereignty_insights['all']) }}</div>
       <div x-show="$store.filter.mode === 'plugin'" x-cloak>{{ family_block(family_comparisons['plugin'], sovereignty_insights['plugin']) }}</div>
       <div x-show="$store.filter.mode === 'without-plugin'" x-cloak>{{ family_block(family_comparisons['without-plugin'], sovereignty_insights['without-plugin']) }}</div>
+      {% endif %}
     </div><!-- end sub-panel families -->
 
     <!-- ---------- SUB-PANEL: AI ANALYSIS ---------- -->

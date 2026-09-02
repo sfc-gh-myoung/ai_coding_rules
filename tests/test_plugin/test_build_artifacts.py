@@ -141,25 +141,40 @@ def test_build_cleans_stale_undeclared_output(tmp_path: Path) -> None:
     assert check_artifacts(out) == []
 
 
-def test_verify_fails_on_invalid_manifest(tmp_path: Path) -> None:
-    """`plugin verify` exits non-zero when the generated manifest is not valid JSON."""
+@pytest.mark.parametrize("manifest_dir", [".cortex-plugin", ".claude-plugin"])
+def test_verify_fails_on_invalid_manifest(tmp_path: Path, manifest_dir: str) -> None:
+    """`plugin verify` exits non-zero when a generated manifest is not valid JSON."""
     out = tmp_path / "plugin"
     assert runner.invoke(plugin_app, ["build", "--plugin-dir", str(out)]).exit_code == 0
 
-    (out / ".cortex-plugin" / "plugin.json").write_text("{ not json", encoding="utf-8")
+    (out / manifest_dir / "plugin.json").write_text("{ not json", encoding="utf-8")
 
     result = runner.invoke(plugin_app, ["verify", "--plugin-dir", str(out)])
     assert result.exit_code == 1
-    assert "invalid plugin.json" in result.output
+    assert f"invalid {manifest_dir}/plugin.json" in result.output
 
 
 def test_generated_manifest_is_valid_json(built_plugin: Path) -> None:
-    """The generated manifest parses and declares the skills directory."""
+    """The generated cortex manifest parses and declares the skills directory."""
     manifest = json.loads(
         (built_plugin / ".cortex-plugin" / "plugin.json").read_text(encoding="utf-8")
     )
     assert manifest["name"] == "ai-coding-rules"
     assert "./skills" in manifest["skills"]
+
+
+def test_generated_claude_manifest_is_valid_json(built_plugin: Path) -> None:
+    """The generated claude manifest parses and carries identity keys only.
+
+    Claude Code auto-discovers skills/ and hooks/hooks.json, so declaring either
+    in the manifest is at best redundant and at worst a second source of truth.
+    """
+    manifest = json.loads(
+        (built_plugin / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
+    )
+    assert manifest["name"] == "ai-coding-rules"
+    assert "skills" not in manifest
+    assert "hooks" not in manifest
 
 
 def test_rules_tree_matches_source(built_plugin: Path) -> None:

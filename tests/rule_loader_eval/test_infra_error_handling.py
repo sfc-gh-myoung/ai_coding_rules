@@ -358,6 +358,69 @@ def test_aggregator_early_abort_runs_count(tmp_path):
     assert summary_buggy["per_fixture"][fixture_id]["n_runs"] == 1
 
 
+def _make_model_skipped_run_result(fixture_id: str) -> RunResult:
+    """RunResult where infra is healthy but the model cited an unread rule."""
+    rule = "rules/112-x.md"
+    loaded = ("rules/000-global-core.md", rule)
+    run = AgentRun(
+        fixture_id=fixture_id,
+        loaded=loaded,
+        loaded_via_reads=("rules/000-global-core.md",),  # rule NOT read
+        loaded_via_reads_performed=(),
+        loaded_via_section=loaded,  # but cited
+        manifest_paths=frozenset({rule}),
+    )
+    match = MatchResult(
+        missing_required=(),
+        missing_dependencies=(),
+        forbidden_present=(),
+        optional_loaded=(),
+        passed=True,
+    )
+    return RunResult(
+        fixture_id=fixture_id,
+        run=run,
+        match=match,
+        signal_report=SignalReport(ok=False, disagreements=(), cited_without_read=(rule,)),
+        effective_loaded=loaded,
+        required=(rule,),
+    )
+
+
+def test_model_skipped_reads_excluded_from_pass_rate_and_exit(tmp_path):
+    """A healthy-infra model-skip must be non-scored: pass_rate and failed exclude it."""
+    from ai_rules.commands.rule_loader import _write_pass_artifacts
+
+    passed = _make_minimal_run_result("fx-pass")
+    skipped = _make_model_skipped_run_result("fx-skip")
+    assert skipped.result == "model-skipped-reads"
+    assert skipped.scored is False
+    results = [passed, skipped]
+
+    writer = _make_results_run_writer(tmp_path / "run")
+    pass_writer = writer.start_pass(1)
+    _write_pass_artifacts(pass_writer, results, status="completed")
+
+    pass_summary = json.loads(
+        (tmp_path / "run" / "test-run" / "run-01" / "summary.json").read_text()
+    )
+    # 1 pass / 1 scored row (skip excluded) → 1.0; no scored failures.
+    assert pass_summary["pass_rate"] == 1.0
+    assert pass_summary["model_skipped"] == 1
+    assert pass_summary["failed"] == 0
+    assert "fx-skip" not in pass_summary["failures"]
+
+    # Exit-code gate: a model-skip must not flip the run to a hard failure.
+    assert not any(r.scored and not r.passed for r in results)
+
+    _write_aggregate_and_finalize(writer, [results], 1, status="completed")
+    aggregate = json.loads((tmp_path / "run" / "test-run" / "summary.json").read_text())
+    assert aggregate["aggregate"]["mean_pass_rate"] == 1.0
+    assert aggregate["per_fixture"]["fx-skip"]["passes"] == 0
+    assert aggregate["per_fixture"]["fx-skip"]["fails"] == 0
+    assert aggregate["per_fixture"]["fx-skip"]["pass_rate"] == 0.0
+
+
 # ---------------------------------------------------------------------------
 # --retry-infra: retry on InfraError with timing exclusion
 # ---------------------------------------------------------------------------
@@ -382,7 +445,7 @@ def _make_fixture(fixture_id: str) -> Fixture:
 
 
 def test_retry_infra_retries_then_succeeds():
-    """When retry_infra > 1, a transient InfraError is retried and the fixture passes."""
+    """When retry_infra > 0, a transient InfraError is retried and the fixture passes."""
     from ai_rules.commands.rule_loader import _run_single_eval
     from ai_rules.rule_loader_eval.engine import InfraError, RunResult
 
@@ -429,7 +492,8 @@ def test_retry_infra_retries_then_succeeds():
         patch("ai_rules.rule_loader_eval.engine.run_fixture_async", mock_run_fixture_async),
         patch("ai_rules.commands.rule_loader.load_rules_metadata", return_value={}),
         patch(
-            "ai_rules.rule_loader_eval.agent_runner.build_prompt", return_value="mock system prompt"
+            "ai_rules.rule_loader_eval.agent_runner.build_prompt_with_manifest",
+            return_value=("mock system prompt", frozenset()),
         ),
         patch("asyncio.sleep", return_value=None),
     ):
@@ -445,10 +509,10 @@ def test_retry_infra_retries_then_succeeds():
             out_dir=None,
             label="",
             concurrency=1,
-            retry_infra=2,
+            retry_infra=1,
         )
 
-    assert call_count == 2, "Should have been called twice (1 failure + 1 success)"
+    assert call_count == 2, "Should have been called twice (1 failure + 1 retry success)"
     assert is_infra is False, "Should not be infra error after successful retry"
     assert len(_results) == 1
     assert _results[0].passed is True
@@ -472,7 +536,8 @@ def test_retry_infra_exhausted_triggers_failfast():
         patch("ai_rules.rule_loader_eval.engine.run_fixture_async", mock_run_fixture_async),
         patch("ai_rules.commands.rule_loader.load_rules_metadata", return_value={}),
         patch(
-            "ai_rules.rule_loader_eval.agent_runner.build_prompt", return_value="mock system prompt"
+            "ai_rules.rule_loader_eval.agent_runner.build_prompt_with_manifest",
+            return_value=("mock system prompt", frozenset()),
         ),
         patch("asyncio.sleep", return_value=None),
     ):
@@ -491,12 +556,12 @@ def test_retry_infra_exhausted_triggers_failfast():
             retry_infra=2,
         )
 
-    assert call_count == 2, "Should have tried twice before giving up"
+    assert call_count == 3, "Should have tried 3 times (initial + 2 retries) before giving up"
     assert is_infra is True, "Should signal infra error after exhausting retries"
 
 
 def test_retry_infra_default_no_retry():
-    """With default retry_infra=1, first InfraError triggers immediate fail-fast."""
+    """With default retry_infra=0, first InfraError triggers immediate fail-fast."""
     from ai_rules.commands.rule_loader import _run_single_eval
     from ai_rules.rule_loader_eval.engine import InfraError
 
@@ -513,7 +578,8 @@ def test_retry_infra_default_no_retry():
         patch("ai_rules.rule_loader_eval.engine.run_fixture_async", mock_run_fixture_async),
         patch("ai_rules.commands.rule_loader.load_rules_metadata", return_value={}),
         patch(
-            "ai_rules.rule_loader_eval.agent_runner.build_prompt", return_value="mock system prompt"
+            "ai_rules.rule_loader_eval.agent_runner.build_prompt_with_manifest",
+            return_value=("mock system prompt", frozenset()),
         ),
     ):
         _results, is_infra = _run_single_eval(
@@ -528,10 +594,10 @@ def test_retry_infra_default_no_retry():
             out_dir=None,
             label="",
             concurrency=1,
-            retry_infra=1,
+            retry_infra=0,
         )
 
-    assert call_count == 1, "Should only try once with retry_infra=1"
+    assert call_count == 1, "Should only try once with retry_infra=0"
     assert is_infra is True
 
 

@@ -16,15 +16,26 @@ document.addEventListener('alpine:init', () => {
   Alpine.data('reportApp', () => ({
     tab: 'overview',
     selectionTab: 'guidance',
+    // Hash format: #<tab>[.<filter-mode>]; the mode suffix is omitted for
+    // the default 'all' so plain #<tab> links stay canonical.
     applyHash(hash) {
       if (!hash) return;
-      const alias = _TAB_ALIASES[hash];
+      const dot = hash.indexOf('.');
+      const head = dot === -1 ? hash : hash.slice(0, dot);
+      const modePart = dot === -1 ? '' : hash.slice(dot + 1);
+      const alias = _TAB_ALIASES[head];
+      const el = document.getElementById(head);
       if (alias) {
         this.tab = alias[0];
         this.selectionTab = alias[1];
-        return;
+      } else if (el && el.classList.contains('tab-panel')) {
+        // Only tab-panel ids switch tabs; other in-page anchors (e.g.
+        // "view data as table" links) scroll natively within the panel.
+        this.tab = head;
       }
-      if (document.getElementById(hash)) this.tab = hash;
+      if (modePart === 'all' || modePart === 'plugin' || modePart === 'without-plugin') {
+        Alpine.store('filter').mode = modePart;
+      }
     },
     initFromHash() {
       this.applyHash(location.hash.slice(1));
@@ -32,10 +43,19 @@ document.addEventListener('alpine:init', () => {
         this.applyHash(location.hash.slice(1));
       });
     },
+    writeHash() {
+      const mode = Alpine.store('filter').mode;
+      const suffix = mode && mode !== 'all' ? '.' + mode : '';
+      history.replaceState(null, '', '#' + this.tab + suffix);
+    },
     switchTab(id) {
       this.tab = id;
-      history.replaceState(null, '', '#' + id);
+      this.writeHash();
       this.$nextTick(() => window.dispatchEvent(new Event('resize')));
+    },
+    setMode(mode) {
+      Alpine.store('filter').mode = mode;
+      this.writeHash();
     }
   }));
 });
@@ -58,23 +78,54 @@ const vegaConfig = {
 };
 
 // ===== 3. Chart 1: Pass Rate Bar =====
-const passRateSpec = {
+// When both eval modes are present the chart is row-faceted by mode: a
+// hook-injected 1x run and a prompt-only 5x run are not one comparable
+// ranking, and a screenshot of a single sorted bar row would imply they are.
+const _hasBothModes = {{ (has_noplugin and (plugin_results | length > 0)) | tojson }};
+
+const _passRateTransform = [
+  {"filter": "modeFilter === 'all' || datum.mode === modeFilter"},
+  {"calculate": "datum.pass_rate >= 95 ? 'Compliant (≥95%)' : datum.pass_rate >= 90 ? 'Partial (90-95%)' : datum.pass_rate >= 85 ? 'Low (85-90%)' : 'Failing (<85%)'", "as": "tier"},
+  {"calculate": "datum.mode === 'plugin' ? 'With plugin (hook injection)' : 'Without plugin (prompt-only)'", "as": "mode_label"}
+];
+const _passRateMark = {"type": "bar", "cornerRadiusTopLeft": 4, "cornerRadiusTopRight": 4, "width": {"band": 0.75}};
+const _passRateEncoding = {
+  "x": {"field": "model_short", "type": "nominal", "sort": {"field": "pass_rate", "order": "descending"}, "axis": {"labelAngle": -45, "labelLimit": 120, "title": null}},
+  "y": {"field": "pass_rate", "type": "quantitative", "scale": {"domain": [0, 100]}, "axis": {"title": "Pass Rate (%)", "labelExpr": "datum.value + '%'", "tickCount": 5}},
+  "color": {"field": "tier", "type": "nominal", "scale": {"domain": ["Compliant (≥95%)", "Partial (90-95%)", "Low (85-90%)", "Failing (<85%)"], "range": ["#10B981", "#F59E0B", "#F97316", "#EF4444"]}, "legend": {"title": "Tier", "orient": "bottom", "direction": "horizontal"}},
+  "order": {"field": "pass_rate", "type": "quantitative", "sort": "descending"},
+  "tooltip": [{"field": "model", "title": "Model"}, {"field": "mode", "title": "Mode"}, {"field": "run_date", "title": "Run date"}, {"field": "runs", "title": "Runs"}, {"field": "pass_rate", "title": "Pass Rate (%)", "format": ".1f"}]
+};
+
+// "container" width is unsupported for faceted specs, so the faceted variant
+// measures its container at embed time (static width thereafter).
+function _passRateWidth() {
+  const el = document.getElementById('passRateChart');
+  const w = el ? el.clientWidth : 0;
+  return Math.max(320, (w || 960) - 90);
+}
+
+const passRateSpec = _hasBothModes ? {
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {"values": vegaChartData},
+  "params": [{"name": "modeFilter", "value": "all"}],
+  "facet": {"row": {"field": "mode_label", "title": null, "sort": ["With plugin (hook injection)", "Without plugin (prompt-only)"], "header": {"labelFontWeight": 600, "labelFontSize": 12, "labelAngle": 0, "labelAlign": "left", "labelOrient": "top"}}},
+  "resolve": {"scale": {"x": "independent"}},
+  "spec": {
+    "width": _passRateWidth(),
+    "height": 210,
+    "transform": _passRateTransform,
+    "mark": _passRateMark,
+    "encoding": _passRateEncoding
+  }
+} : {
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
   "width": "container", "height": 320,
   "data": {"values": vegaChartData},
   "params": [{"name": "modeFilter", "value": "all"}],
-  "transform": [
-    {"filter": "modeFilter === 'all' || datum.mode === modeFilter"},
-    {"calculate": "datum.pass_rate >= 95 ? 'Compliant (≥95%)' : datum.pass_rate >= 90 ? 'Partial (90-95%)' : datum.pass_rate >= 85 ? 'Low (85-90%)' : 'Failing (<85%)'", "as": "tier"}
-  ],
-  "mark": {"type": "bar", "cornerRadiusTopLeft": 4, "cornerRadiusTopRight": 4, "width": {"band": 0.75}},
-  "encoding": {
-    "x": {"field": "model_short", "type": "nominal", "sort": {"field": "pass_rate", "order": "descending"}, "axis": {"labelAngle": -45, "labelLimit": 120, "title": null}},
-    "y": {"field": "pass_rate", "type": "quantitative", "scale": {"domain": [0, 100]}, "axis": {"title": "Pass Rate (%)", "labelExpr": "datum.value + '%'", "tickCount": 5}},
-    "color": {"field": "tier", "type": "nominal", "scale": {"domain": ["Compliant (≥95%)", "Partial (90-95%)", "Low (85-90%)", "Failing (<85%)"], "range": ["#10B981", "#F59E0B", "#F97316", "#EF4444"]}, "legend": {"title": "Tier", "orient": "bottom", "direction": "horizontal"}},
-    "order": {"field": "pass_rate", "type": "quantitative", "sort": "descending"},
-    "tooltip": [{"field": "model", "title": "Model"}, {"field": "mode", "title": "Mode"}, {"field": "pass_rate", "title": "Pass Rate (%)", "format": ".1f"}]
-  }
+  "transform": _passRateTransform,
+  "mark": _passRateMark,
+  "encoding": _passRateEncoding
 };
 
 // ===== 4. Chart 2: Latency vs Quality Pareto =====
@@ -101,7 +152,7 @@ const latencyParetoSpec = {
         "size": {"field": "avg_turns", "type": "quantitative", "scale": {"range": [60, 400]}, "legend": {"title": "Avg Turns"}},
         "color": {"field": "category_latency", "type": "nominal", "scale": {"domain": ["On frontier", "Off frontier", "Below threshold"], "range": ["#10B981", "#94A3B8", "#EF4444"]}, "legend": {"title": "Status", "orient": "bottom"}},
         "shape": {"field": "category_latency", "type": "nominal", "scale": {"domain": ["On frontier", "Off frontier", "Below threshold"], "range": ["circle", "circle", "triangle-up"]}, "legend": null},
-        "tooltip": [{"field": "model", "title": "Model"}, {"field": "mode", "title": "Mode"}, {"field": "avg_duration_s", "title": "Duration (s)", "format": ".1f"}, {"field": "pass_rate", "title": "Pass Rate (%)", "format": ".1f"}, {"field": "avg_turns", "title": "Turns", "format": ".1f"}]
+        "tooltip": [{"field": "model", "title": "Model"}, {"field": "mode", "title": "Mode"}, {"field": "run_date", "title": "Run date"}, {"field": "runs", "title": "Runs"}, {"field": "avg_duration_s", "title": "Duration (s)", "format": ".1f"}, {"field": "pass_rate", "title": "Pass Rate (%)", "format": ".1f"}, {"field": "avg_turns", "title": "Turns", "format": ".1f"}]
       }
     },
     {
@@ -135,7 +186,7 @@ const costParetoSpec = {
         "size": {"field": "avg_turns", "type": "quantitative", "scale": {"range": [60, 400]}, "legend": {"title": "Avg Turns"}},
         "color": {"field": "category_cost", "type": "nominal", "scale": {"domain": ["On frontier", "Off frontier", "Below threshold"], "range": ["#10B981", "#94A3B8", "#EF4444"]}, "legend": {"title": "Status", "orient": "bottom"}},
         "shape": {"field": "category_cost", "type": "nominal", "scale": {"domain": ["On frontier", "Off frontier", "Below threshold"], "range": ["circle", "circle", "triangle-up"]}, "legend": null},
-        "tooltip": [{"field": "model", "title": "Model"}, {"field": "mode", "title": "Mode"}, {"field": "avg_total_tokens", "title": "Tokens", "format": ","}, {"field": "pass_rate", "title": "Pass Rate (%)", "format": ".1f"}, {"field": "avg_turns", "title": "Turns", "format": ".1f"}]
+        "tooltip": [{"field": "model", "title": "Model"}, {"field": "mode", "title": "Mode"}, {"field": "run_date", "title": "Run date"}, {"field": "runs", "title": "Runs"}, {"field": "avg_total_tokens", "title": "Tokens", "format": ","}, {"field": "pass_rate", "title": "Pass Rate (%)", "format": ".1f"}, {"field": "avg_turns", "title": "Turns", "format": ".1f"}]
       }
     },
     {
@@ -145,21 +196,38 @@ const costParetoSpec = {
   ]
 };
 
-// ===== 6. Embed Charts (graceful degradation via allSettled) =====
+// ===== 6. Embed Charts (graceful degradation when the CDN is unreachable) =====
 const _embedOpts = {actions: false, renderer: 'canvas', config: vegaConfig};
 const _views = {};
 
+// Vega loads from cdn.jsdelivr.net; on locked-down/offline networks the
+// scripts never arrive. Each chart then degrades to a note pointing at the
+// table that carries the same data, instead of leaving an empty container.
+function _chartFallback(sel) {
+  const el = document.querySelector(sel);
+  if (!el) return;
+  el.innerHTML = '<p class="chart-fallback">Chart unavailable &mdash; rendering requires network access to cdn.jsdelivr.net. The same data appears in the adjacent table.</p>';
+}
+
 (async function _initCharts() {
-  const results = await Promise.allSettled([
-    vegaEmbed('#passRateChart', passRateSpec, _embedOpts),
-    vegaEmbed('#scatter-chart', latencyParetoSpec, _embedOpts),
-    vegaEmbed('#effort-pareto-chart', costParetoSpec, _embedOpts),
-  ]);
-  if (results[0].status === 'fulfilled') _views.passRate = results[0].value.view;
-  if (results[1].status === 'fulfilled') _views.latency = results[1].value.view;
-  if (results[2].status === 'fulfilled') _views.cost = results[2].value.view;
+  const targets = [
+    ['#passRateChart', passRateSpec, 'passRate'],
+    ['#scatter-chart', latencyParetoSpec, 'latency'],
+    ['#effort-pareto-chart', costParetoSpec, 'cost'],
+  ];
+  if (window.__vegaLoadFailed || typeof vegaEmbed === 'undefined') {
+    targets.forEach(([sel]) => _chartFallback(sel));
+    return;
+  }
+  const results = await Promise.allSettled(
+    targets.map(([sel, spec]) => vegaEmbed(sel, spec, _embedOpts))
+  );
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled') _views[targets[i][2]] = r.value.view;
+    else _chartFallback(targets[i][0]);
+  });
   // Replay current filter into all views that loaded after a potential early store change
-  const currentMode = Alpine.store('filter')?.mode || 'all';
+  const currentMode = (typeof Alpine !== 'undefined' && Alpine.store('filter')?.mode) || 'all';
   Object.values(_views).forEach(view => { view.signal('modeFilter', currentMode).run(); });
 })();
 

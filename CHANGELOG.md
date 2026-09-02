@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **feat(plugin):** build and install for Claude Code as a target platform, emitting a Claude-specific `.claude-plugin/plugin.json` alongside `.cortex-plugin/` plus an `all` target that expands to every supported host.
+
+### Changed
+
+- **feat(rule-loader-eval):** classify pure model read/cite fabrication as a non-scored `model-skipped-reads` result and exclude it from `pass_rate` when the matcher recalled every required rule and the agent loaded it, so the metric measures rule-loader infrastructure rather than model behavior.
+- **feat(report):** inline Alpine.js into the generated HTML report so tabs, filters, and tables work offline, degrade Vega charts to a data-table fallback when the CDN is unreachable, add a `<noscript>` stacked view, and regroup navigation into Findings / Method / Operations.
+
 ### Removed
 
 - **fix(cli):** remove the inert `ai-rules configure` wizard (`setup/wizard.py`) and its `.ai-coding-rules.yaml.example`. The generated config was never consumed by the matcher, so it produced a config file with no effect.

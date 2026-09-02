@@ -29,9 +29,17 @@ def _rr(
     drifts=(),
     output_violations=(),
     infra=False,
+    cited_without_read=(),
+    cited_without_manifest=(),
+    forbidden=(),
 ):
-    """Build a RunResult with explicit manifest/loaded/required sets."""
-    manifest_paths = frozenset() if manifest is None else frozenset(manifest)
+    """Build a RunResult with explicit manifest/loaded/required sets.
+
+    ``manifest=None`` models a legacy/unit row where the manifest was not
+    captured; any other value (including an empty set) models a captured
+    manifest.
+    """
+    manifest_paths = None if manifest is None else frozenset(manifest)
     loaded_full = (FOUND, *loaded)
     run = AgentRun(
         fixture_id="fx",
@@ -49,15 +57,22 @@ def _rr(
     match = MatchResult(
         missing_required=tuple(sorted(req_set - loaded_set)),
         missing_dependencies=(),
-        forbidden_present=(),
+        forbidden_present=tuple(forbidden),
         optional_loaded=(),
-        passed=req_set <= loaded_set,
+        passed=(req_set <= loaded_set) and not forbidden,
     )
+    # A read/cite fabrication forces signal_report.ok False (mirrors diagnostics).
+    sr_ok = signal_ok and not cited_without_read and not cited_without_manifest
     return RunResult(
         fixture_id="fx",
         run=run,
         match=match,
-        signal_report=SignalReport(ok=signal_ok, disagreements=()),
+        signal_report=SignalReport(
+            ok=sr_ok,
+            disagreements=(),
+            cited_without_read=tuple(cited_without_read),
+            cited_without_manifest=tuple(cited_without_manifest),
+        ),
         citation_drifts=tuple(drifts),
         effective_loaded=loaded_full,
         required=tuple(required),
@@ -109,6 +124,17 @@ def test_empty_manifest() -> None:
     assert rr.passed is False
 
 
+def test_empty_manifest_captured_empty_set() -> None:
+    # A captured manifest with zero candidates (what the real pipeline produces
+    # when the matcher matches nothing: foundation is filtered out upstream)
+    # must classify as empty-manifest, not fall back to legacy scoring.
+    rr = _rr(required=("rules/112-x.md",), manifest=set(), loaded=())
+    assert rr.manifest_available is True
+    assert rr.manifest_empty is True
+    assert rr.result == "empty-manifest"
+    assert rr.passed is False
+
+
 def test_empty_manifest_precedes_recovery() -> None:
     # Manifest empty AND the agent recovered the rule → empty-manifest wins.
     rr = _rr(required=("rules/112-x.md",), manifest={FOUND}, loaded=("rules/112-x.md",))
@@ -130,6 +156,96 @@ def test_signal_violation() -> None:
 def test_infra_error_wins() -> None:
     rr = _rr(required=("rules/112-x.md",), manifest={"rules/112-x.md"}, loaded=(), infra=True)
     assert rr.result == "error"
+
+
+# ── model-skipped-reads: infra healthy, model cited unread rules ─────────────
+
+
+def test_model_skipped_reads_cited_without_read() -> None:
+    # Manifest recalled the rule and the agent loaded it (infra healthy), but the
+    # model cited a rule it never read. Non-scored model behavior, not a failure.
+    rr = _rr(
+        required=("rules/112-x.md",),
+        manifest={"rules/112-x.md"},
+        loaded=("rules/112-x.md",),
+        cited_without_read=("rules/112-x.md",),
+    )
+    assert rr.result == "model-skipped-reads"
+    assert rr.passed is False
+    assert rr.scored is False
+    assert rr.manifest_recall and rr.agent_compliance
+
+
+def test_model_skipped_reads_cited_without_manifest() -> None:
+    rr = _rr(
+        required=("rules/112-x.md",),
+        manifest={"rules/112-x.md"},
+        loaded=("rules/112-x.md",),
+        cited_without_manifest=("rules/999-hallucinated.md",),
+    )
+    assert rr.result == "model-skipped-reads"
+    assert rr.scored is False
+
+
+def test_citation_drift_still_signal_violation() -> None:
+    # A read/cite fabrication PLUS citation drift is not a pure model-skip: the
+    # drift is a genuine protocol violation, so it stays a scored failure.
+    rr = _rr(
+        required=("rules/112-x.md",),
+        manifest={"rules/112-x.md"},
+        loaded=("rules/112-x.md",),
+        cited_without_read=("rules/112-x.md",),
+        drifts=("rules/112-x.md",),
+    )
+    assert rr.result == "signal-violation"
+    assert rr.scored is True
+
+
+def test_output_violation_still_signal_violation() -> None:
+    rr = _rr(
+        required=("rules/112-x.md",),
+        manifest={"rules/112-x.md"},
+        loaded=("rules/112-x.md",),
+        cited_without_read=("rules/112-x.md",),
+        output_violations=("missing Rules Loaded (Gate 3 or **Rules Loaded**) section",),
+    )
+    assert rr.result == "signal-violation"
+    assert rr.scored is True
+
+
+def test_forbidden_present_still_signal_violation() -> None:
+    # match fails via a forbidden rule → not a pure model-skip.
+    rr = _rr(
+        required=("rules/112-x.md",),
+        manifest={"rules/112-x.md"},
+        loaded=("rules/112-x.md",),
+        cited_without_read=("rules/112-x.md",),
+        forbidden=("rules/900-forbidden.md",),
+    )
+    assert rr.result == "signal-violation"
+
+
+def test_scored_property_across_buckets() -> None:
+    passed = _rr(
+        required=("rules/112-x.md",), manifest={"rules/112-x.md"}, loaded=("rules/112-x.md",)
+    )
+    skipped = _rr(
+        required=("rules/112-x.md",),
+        manifest={"rules/112-x.md"},
+        loaded=("rules/112-x.md",),
+        cited_without_read=("rules/112-x.md",),
+    )
+    infra = _rr(required=("rules/112-x.md",), manifest={"rules/112-x.md"}, loaded=(), infra=True)
+    violation = _rr(
+        required=("rules/112-x.md",),
+        manifest={"rules/112-x.md"},
+        loaded=("rules/112-x.md",),
+        signal_ok=False,
+    )
+    assert passed.scored is True
+    assert skipped.scored is False
+    assert infra.scored is False
+    assert violation.scored is True
 
 
 def test_no_required_rules_passes_with_empty_manifest() -> None:
@@ -175,6 +291,13 @@ def test_classify_loaded_result_current_record() -> None:
 # ── serialization carries the new fields ─────────────────────────────────────
 
 
+def test_serialize_emits_manifest_available() -> None:
+    captured = _rr(required=("rules/112-x.md",), manifest=set(), loaded=())
+    legacy = _rr(required=("rules/112-x.md",), manifest=None, loaded=("rules/112-x.md",))
+    assert serialize_run_result(captured, run_number=1)["manifest_available"] is True
+    assert serialize_run_result(legacy, run_number=1)["manifest_available"] is False
+
+
 def test_serialize_emits_phase6_fields() -> None:
     rr = _rr(required=("rules/112-x.md",), manifest={"rules/999.md"}, loaded=("rules/112-x.md",))
     doc = serialize_run_result(rr, run_number=1)
@@ -183,3 +306,15 @@ def test_serialize_emits_phase6_fields() -> None:
     assert doc["agent_compliance"] is True
     assert doc["manifest_empty"] is False
     assert doc["out_of_manifest_recovery"]["count"] == 1
+
+
+def test_serialize_emits_model_skipped_reads() -> None:
+    rr = _rr(
+        required=("rules/112-x.md",),
+        manifest={"rules/112-x.md"},
+        loaded=("rules/112-x.md",),
+        cited_without_read=("rules/112-x.md",),
+    )
+    doc = serialize_run_result(rr, run_number=1)
+    assert doc["result"] == "model-skipped-reads"
+    assert doc["passed"] is False

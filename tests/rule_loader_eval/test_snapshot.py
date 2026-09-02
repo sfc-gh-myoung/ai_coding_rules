@@ -409,3 +409,48 @@ def test_legacy_snapshot_defaults_attribution_fields() -> None:
     assert parsed.manifest_empty is False
     assert parsed.out_of_manifest_recovery == ()
     assert parsed.result == ""
+
+
+# ── model-skipped-reads: non-scored bucket ───────────────────────────────────
+
+
+def test_scored_property_excludes_non_scored_rows() -> None:
+    assert _row("p", passed=True).scored is True
+    assert _row("f", passed=False).scored is True  # result="" → scored fail
+    skipped = _row("s", passed=False)
+    skipped = FixtureSnapshot(**{**skipped.__dict__, "result": "model-skipped-reads"})
+    assert skipped.scored is False
+    infra = _row("e", passed=False)
+    infra = FixtureSnapshot(**{**infra.__dict__, "is_infra_error": True})
+    assert infra.scored is False
+
+
+def test_compute_summary_excludes_model_skipped_from_failed() -> None:
+    rows = [
+        _row("p", passed=True),
+        FixtureSnapshot(**{**_row("s", passed=False).__dict__, "result": "model-skipped-reads"}),
+    ]
+    summary = compute_summary(rows)
+    assert summary.total == 2
+    assert summary.passed == 1
+    # The model-skipped row is non-scored, so it is not a failure.
+    assert summary.failed == 0
+
+
+def test_write_snapshot_pass_rate_excludes_model_skipped(tmp_path: Path) -> None:
+    rows = [
+        _row("p", passed=True),
+        FixtureSnapshot(**{**_row("s", passed=False).__dict__, "result": "model-skipped-reads"}),
+    ]
+    meta = SnapshotMeta(schema_version=SNAPSHOT_SCHEMA_VERSION, captured_at="2026-08-24T00:00:00Z")
+    write_eval_snapshot(tmp_path, rows, meta)
+
+    aggregate = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
+    # 1 pass / 1 scored row (model-skipped excluded from denominator) → 1.0.
+    assert aggregate["aggregate"]["mean_pass_rate"] == 1.0
+
+    pass_summary = json.loads((tmp_path / "run-01" / "summary.json").read_text(encoding="utf-8"))
+    assert pass_summary["pass_rate"] == 1.0
+    assert pass_summary["model_skipped"] == 1
+    assert pass_summary["failed"] == 0
+    assert "s" not in pass_summary["failures"]

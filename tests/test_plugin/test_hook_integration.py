@@ -300,13 +300,16 @@ class TestPluginManifest:
         assert len(entries) >= 1
         assert entries[0]["hooks"][0]["type"] == "command"
 
-    def test_no_duplicate_claude_plugin_dir(self):
-        """Only .cortex-plugin/ should exist -- both CoCo and Claude Code accept it."""
+    def test_both_platform_manifests_exist(self):
+        """The build emits one manifest per platform.
+
+        Claude Code only reads .claude-plugin/plugin.json (a directory under
+        ~/.claude/skills/ loads as a <name>@skills-dir plugin only when it
+        exists) and CoCo only reads .cortex-plugin/plugin.json. Install ships
+        just the target platform's manifest.
+        """
         assert (_plugin_dir() / ".cortex-plugin" / "plugin.json").exists()
-        assert not (_plugin_dir() / ".claude-plugin").exists(), (
-            ".claude-plugin/ should not exist alongside .cortex-plugin/ -- "
-            "both CoCo and Claude Code accept .cortex-plugin/"
-        )
+        assert (_plugin_dir() / ".claude-plugin" / "plugin.json").exists()
 
 
 @pytest.mark.integration

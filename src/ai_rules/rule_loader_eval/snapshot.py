@@ -34,6 +34,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from ai_rules.rule_loader_eval.engine import NON_SCORED_RESULTS
+
 if TYPE_CHECKING:
     from ai_rules.rule_loader_eval.engine import RunResult
     from ai_rules.rule_loader_eval.fixtures import Fixture
@@ -128,7 +130,19 @@ class FixtureSnapshot:
     out_of_manifest_recovery: tuple[str, ...] = ()
     """Required rules the agent found outside the manifest (never credited as a pass)."""
     result: str = ""
-    """Engine result string (pass/matcher-miss/agent-miss/recovery-only/empty-manifest/signal-violation/error/discovery-budget-exhausted). Empty on pre-Phase-6 snapshots."""
+    """Engine result string (pass/matcher-miss/agent-miss/recovery-only/empty-manifest/signal-violation/model-skipped-reads/error/discovery-budget-exhausted). Empty on pre-Phase-6 snapshots."""
+
+    @property
+    def scored(self) -> bool:
+        """False when this row is excluded from the pass/fail denominator.
+
+        Infra ``error`` rows and ``model-skipped-reads`` rows count as neither
+        pass nor fail (see :data:`ai_rules.rule_loader_eval.engine.NON_SCORED_RESULTS`).
+        Legacy rows with an empty ``result`` fall back to ``is_infra_error``.
+        """
+        if self.is_infra_error:
+            return False
+        return self.result not in NON_SCORED_RESULTS
 
     def to_dict(self) -> dict:
         """Serialize to a JSON-compatible dict (tuples become lists)."""
@@ -345,12 +359,15 @@ def compute_summary(fixtures: list[FixtureSnapshot]) -> SnapshotSummary:
     if total == 0:
         return SnapshotSummary(0, 0, 0, 0.0, 0.0, 0, 0)
     passed = sum(1 for f in fixtures if f.passed)
+    # Non-scored rows (infra errors, model-skipped-reads) count as neither pass
+    # nor fail so ``failed`` reflects only genuine scored failures.
+    scored_total = sum(1 for f in fixtures if f.scored)
     total_depends_viol = sum(len(f.depends_violations) for f in fixtures)
     depends_ok_count = sum(1 for f in fixtures if f.depends_ok)
     return SnapshotSummary(
         total=total,
         passed=passed,
-        failed=total - passed,
+        failed=scored_total - passed,
         mean_turns=round(sum(f.turns for f in fixtures) / total, 2),
         mean_duration_ms=round(sum(f.duration_ms for f in fixtures) / total, 2),
         total_signal_disagreements=sum(f.signal_disagreements for f in fixtures),
@@ -445,7 +462,9 @@ def _fixture_to_doc(fx: FixtureSnapshot, *, run_number: int = 1) -> dict:
     ``snapshot_extras`` so ``read_eval_snapshot`` can round-trip a
     ``FixtureSnapshot`` losslessly.
     """
-    if fx.is_infra_error:
+    if fx.result:
+        result_str = fx.result
+    elif fx.is_infra_error:
         result_str = "error"
     elif fx.passed:
         result_str = "pass"
@@ -584,14 +603,20 @@ def write_eval_snapshot(
     summary = compute_summary(fixtures)
     passed = sum(1 for f in fixtures if f.passed)
     errors = sum(1 for f in fixtures if f.is_infra_error)
-    failed = len(fixtures) - passed - errors
-    failures = [f.fixture_id for f in fixtures if not f.passed]
+    model_skipped = sum(
+        1 for f in fixtures if not f.is_infra_error and f.result == "model-skipped-reads"
+    )
+    # pass_rate denominator excludes non-scored rows (infra errors + model-skipped-reads).
+    scored_total = sum(1 for f in fixtures if f.scored)
+    failed = scored_total - passed
+    failures = [f.fixture_id for f in fixtures if f.scored and not f.passed]
 
     manifest = _meta_to_manifest(meta, fixture_count=len(fixtures))
     manifest["passes"][0]["totals"] = {
         "passed": passed,
         "failed": failed,
         "errors": errors,
+        "model_skipped": model_skipped,
     }
     _write_json(out_dir / "manifest.json", manifest)
 
@@ -603,15 +628,15 @@ def write_eval_snapshot(
             f.fixture_id: {
                 "n_runs": int(f.n_runs),
                 "passes": 1 if f.passed else 0,
-                "fails": 0 if f.passed else 1,
+                "fails": 1 if (f.scored and not f.passed) else 0,
                 "flake_score": float(f.flake_score),
                 "pass_rate": 1.0 if f.passed else 0.0,
-                "deterministic_fail": not f.passed and f.n_runs > 0,
+                "deterministic_fail": f.scored and not f.passed and f.n_runs > 0,
             }
             for f in fixtures
         },
         "aggregate": {
-            "mean_pass_rate": round(passed / len(fixtures), 3) if fixtures else 0.0,
+            "mean_pass_rate": round(passed / scored_total, 3) if scored_total else 0.0,
             "flaky_fixtures": [],
             "total_cost_usd": float(sum(f.total_cost_usd for f in fixtures)),
             "total_input_tokens": int(sum(f.input_tokens for f in fixtures)),
@@ -652,7 +677,8 @@ def write_eval_snapshot(
         "fixtures": {
             f.fixture_id: {
                 "status": "completed",
-                "result": "error" if f.is_infra_error else ("pass" if f.passed else "fail"),
+                "result": f.result
+                or ("error" if f.is_infra_error else ("pass" if f.passed else "fail")),
                 "started_at": manifest["started_at"],
                 "completed_at": manifest["completed_at"],
             }
@@ -668,7 +694,8 @@ def write_eval_snapshot(
         "passed": passed,
         "failed": failed,
         "errors": errors,
-        "pass_rate": round(passed / len(fixtures), 3) if fixtures else 0.0,
+        "model_skipped": model_skipped,
+        "pass_rate": round(passed / scored_total, 3) if scored_total else 0.0,
         "totals": {
             "turns": int(sum(f.turns for f in fixtures)),
             "input_tokens": int(sum(f.input_tokens for f in fixtures)),

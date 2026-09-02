@@ -115,7 +115,8 @@ The build assembles a self-contained plugin directory:
 | `rules/` | The rule library, read by the matcher when it scores a prompt |
 | `hooks/` | `UserPromptSubmit` hook (opt-in via `--with-hook` at install) |
 | `micro_kernel_content.md` | Compact foundation injected by the hook or `$rule-loader` |
-| `.cortex-plugin/plugin.json` | Manifest declaring skills |
+| `.cortex-plugin/plugin.json` | Manifest read by CoCo (declares skills) |
+| `.claude-plugin/plugin.json` | Manifest read by Claude Code (skills and hooks are auto-discovered) |
 
 Validate the build before installing:
 
@@ -131,6 +132,9 @@ uv run ai-rules plugin install --target cortex
 
 # Install globally for Claude Code
 uv run ai-rules plugin install --target claude
+
+# Install globally for both platforms
+uv run ai-rules plugin install --target all
 
 # Install into a specific project (project-local)
 uv run ai-rules plugin install --target cortex --project /path/to/project
@@ -151,6 +155,7 @@ Use `--force` to overwrite an existing installation. Uninstall with:
 
 ```bash
 uv run ai-rules plugin uninstall --target cortex
+uv run ai-rules plugin uninstall --target all
 uv run ai-rules plugin uninstall --target cortex --project /path/to/project
 ```
 

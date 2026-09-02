@@ -37,6 +37,16 @@ _FOUNDATION_RULE = "rules/000-global-core.md"
 
 _GATE3_VIOLATION = "missing Rules Loaded (Gate 3 or **Rules Loaded**) section"
 
+# Result strings that are NOT scored against the benchmark's pass/fail rate.
+# These rows are excluded from BOTH numerator and denominator of pass_rate:
+#   - ``error``: an infra failure (SDK/model/connection) - the run never validly
+#     assessed rule loading.
+#   - ``model-skipped-reads``: the infrastructure demonstrably worked (the matcher
+#     recalled every required rule into the injected manifest and the agent loaded
+#     them), but the model cited rules it never ``Read``. That is a model-behavior
+#     signal, not a rule-loader defect, so it must not count as a benchmark failure.
+NON_SCORED_RESULTS: frozenset[str] = frozenset({"error", "model-skipped-reads"})
+
 
 def _is_missing_gate3_violation(violations: Iterable[str]) -> bool:
     """Return True iff violations contains the exact Gate 3 missing-section string."""
@@ -57,7 +67,13 @@ class RunResult:
     but does NOT gate pass/fail (Phase 1 decouple).
     ``effective_loaded`` is the closure-expanded loaded set used for scoring (Phase 2).
 
-    All checks are unconditional. There are no escape flags.
+    One escape hatch exists by design: ``model-skipped-reads``. When the injected
+    manifest recalled every required rule and the agent loaded them (infra healthy)
+    but the model cited a rule it never ``Read`` (``cited_without_read`` /
+    ``cited_without_manifest``) with no other gate failure, the fixture is
+    classified as ``model-skipped-reads`` and excluded from the pass/fail
+    denominator (see :attr:`scored`). This is a model-behavior signal, not a
+    rule-loader defect. All other checks remain unconditional.
     """
 
     fixture_id: str
@@ -101,8 +117,13 @@ class RunResult:
 
     @property
     def manifest_available(self) -> bool:
-        """True when the injected manifest was captured (real run, not a legacy/unit row)."""
-        return bool(getattr(self.run, "manifest_paths", None))
+        """True when the injected manifest was captured (real run, not a legacy/unit row).
+
+        ``manifest_paths=None`` means not captured; an empty frozenset means
+        captured-but-empty and still counts as available so ``empty-manifest``
+        can fire.
+        """
+        return getattr(self.run, "manifest_paths", None) is not None
 
     @property
     def manifest_empty(self) -> bool:
@@ -136,6 +157,25 @@ class RunResult:
         )
 
     @property
+    def _is_model_skipped_reads(self) -> bool:
+        """True when the only gate failure is a read/cite fabrication (model behavior).
+
+        Reached only from the ``result`` truth table AFTER ``manifest_recall`` and
+        ``agent_compliance`` have both passed, i.e. the matcher/hook delivered the
+        required rules into the manifest and the agent loaded them. If, at that
+        point, the match is clean, there is no citation drift, and no output-shape
+        violation, then ``signal_report.ok`` can only be False because of
+        ``cited_without_read`` / ``cited_without_manifest`` -- the model cited a
+        rule it never read. That is model behavior, not a rule-loader defect.
+        """
+        sr = self.signal_report
+        only_read_cite_failure = bool(sr.cited_without_read or sr.cited_without_manifest)
+        no_other_failure = (
+            self.match.passed and not self.citation_drifts and not self.run.output_violations
+        )
+        return only_read_cite_failure and no_other_failure
+
+    @property
     def passed(self) -> bool:
         """Composite pass/fail.
 
@@ -148,6 +188,17 @@ class RunResult:
         if not self.manifest_available:
             return self._legacy_gates
         return self._legacy_gates and self.manifest_recall and self.agent_compliance
+
+    @property
+    def scored(self) -> bool:
+        """False when this row is excluded from the pass/fail denominator.
+
+        Non-scored rows (:data:`NON_SCORED_RESULTS`) are infra ``error`` rows and
+        ``model-skipped-reads`` rows. They count as neither pass nor fail so that
+        pass_rate measures rule-loader infrastructure correctness, not model
+        read/cite compliance.
+        """
+        return self.result not in NON_SCORED_RESULTS
 
     @property
     def result(self) -> str:
@@ -177,6 +228,11 @@ class RunResult:
         if not self.agent_compliance:
             return "agent-miss"
         if not self._legacy_gates:
+            # Infra is healthy here (manifest_recall + agent_compliance both hold).
+            # A pure read/cite fabrication is model behavior, not a rule-loader
+            # defect: classify it as a non-scored bucket instead of a hard fail.
+            if self._is_model_skipped_reads:
+                return "model-skipped-reads"
             return "signal-violation"
         return "pass"
 

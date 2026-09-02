@@ -1,5 +1,5 @@
   <!-- ========== TAB 2: PROTOCOL & METHODOLOGY ========== -->
-  <section class="tab-panel" id="protocol" role="tabpanel" data-tab-title="Protocol" x-show="tab==='protocol'" x-cloak x-transition:enter.opacity.duration.200ms>
+  <section class="tab-panel" id="protocol" role="tabpanel" data-tab-title="Protocol" x-show="tab==='protocol'" x-cloak>
     <div x-data="{ subTab: 'protocol-overview' }">
     <nav class="sub-tablist" aria-label="Protocol sub-sections">
       <a role="tab" :aria-selected="(subTab==='protocol-overview').toString()" :tabindex="subTab==='protocol-overview' ? 0 : -1" :class="{ active: subTab==='protocol-overview' }" @click.prevent="subTab = 'protocol-overview'">Protocol</a>

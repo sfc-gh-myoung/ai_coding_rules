@@ -593,7 +593,7 @@ def _run_single_eval(
     label: str,
     concurrency: int = 1,
     pass_writer: RunPassWriter | None = None,
-    retry_infra: int = 1,
+    retry_infra: int = 0,
     without_plugin: bool = False,
 ) -> tuple[list[RunResult], bool]:
     """Execute a single eval pass. Returns (results, is_infra_error).
@@ -618,9 +618,12 @@ def _run_single_eval(
     rules_meta = load_rules_metadata(_rules_dir(root))
     index_by_id = {f.id: i for i, f in enumerate(fixtures)}
 
-    # Build prompt factory
-    _prompt_cache: dict[str, str] = {}
-    from ai_rules.rule_loader_eval.agent_runner import build_eval_manifest, build_prompt
+    # Build prompt factory. Cache holds (system_prompt, injected manifest paths).
+    _prompt_cache: dict[str, tuple[str, frozenset[str]]] = {}
+    from ai_rules.rule_loader_eval.agent_runner import (
+        build_eval_manifest,
+        build_prompt_with_manifest,
+    )
 
     rules_index_path = root / "rules"
 
@@ -649,13 +652,18 @@ def _run_single_eval(
                 if r["rule_path"] != "rules/000-global-core.md"
             )
         else:
+            # Plugin mode: the manifest injected into the prompt doubles as the
+            # scoring manifest, activating the Phase 6 gates (manifest-recall /
+            # agent-compliance) instead of the legacy 4-gate fallback.
             if fixture.id not in _prompt_cache:
-                _prompt_cache[fixture.id] = build_prompt(fixture.prompt, rules_index_path)
-            sys_prompt = _prompt_cache[fixture.id]
-            shadow_paths = None
+                _prompt_cache[fixture.id] = build_prompt_with_manifest(
+                    fixture.prompt, rules_index_path
+                )
+            sys_prompt, shadow_paths = _prompt_cache[fixture.id]
 
         last_exc: InfraError | None = None
-        for attempt in range(1, retry_infra + 1):
+        # retry_infra counts *retries*: 1 initial attempt + retry_infra more.
+        for attempt in range(retry_infra + 1):
             try:
                 return await run_fixture_async(
                     fixture,
@@ -674,7 +682,7 @@ def _run_single_eval(
                 last_exc = exc
                 if attempt < retry_infra:
                     log_info(
-                        f"  infra retry {attempt}/{retry_infra} for {fixture.id}"
+                        f"  infra retry {attempt + 1}/{retry_infra} for {fixture.id}"
                         f" (waiting 30s, excluded from timing)"
                     )
                     await asyncio.sleep(30)
@@ -914,8 +922,11 @@ def _write_pass_artifacts(
     total = len(results)
     passed = sum(1 for r in results if r.passed)
     errors = sum(1 for r in results if getattr(r.run, "is_infra_error", False))
-    failed = total - passed - errors
-    failures = [r.fixture_id for r in results if not r.passed]
+    # Non-scored: infra healthy but the model cited rules it never read.
+    model_skipped = sum(1 for r in results if r.result == "model-skipped-reads")
+    scored_total = sum(1 for r in results if r.scored)
+    failed = scored_total - passed
+    failures = [r.fixture_id for r in results if r.scored and not r.passed]
 
     turns_total = 0
     input_total = 0
@@ -945,6 +956,7 @@ def _write_pass_artifacts(
         passed=passed,
         failed=failed,
         errors=errors,
+        model_skipped=model_skipped,
         totals=totals,
         failures=failures,
     )
@@ -978,13 +990,10 @@ def _write_aggregate_and_finalize(
         for r in pass_results:
             fixture_totals[r.fixture_id] = fixture_totals.get(r.fixture_id, 0) + 1
             counter = fixture_counts.setdefault(r.fixture_id, Counter())
-            if getattr(r.run, "is_infra_error", False):
-                result_str = "error"
-            elif r.passed:
-                result_str = "pass"
-            else:
-                result_str = "fail"
-            counter[result_str] += 1
+            # ``r.result`` yields the authoritative bucket (pass / fail /
+            # signal-violation / model-skipped-reads / error / ...). Non-scored
+            # buckets are carved out of the pass_rate denominator below.
+            counter[r.result] += 1
 
             run = r.run
             if run is not None:
@@ -1004,10 +1013,14 @@ def _write_aggregate_and_finalize(
     for fid, counter in fixture_counts.items():
         n = fixture_totals[fid]
         passes = counter.get("pass", 0)
-        fails = counter.get("fail", 0) + counter.get("error", 0)
+        # Non-scored runs (infra errors, model-skipped-reads) are excluded from
+        # the pass_rate denominator: neither pass nor fail.
+        non_scored = counter.get("error", 0) + counter.get("model-skipped-reads", 0)
+        scored_runs = n - non_scored
+        fails = scored_runs - passes
         modal = counter.most_common(1)[0][1] if counter else n
         flake_score = round((n - modal) / n, 3) if n else 0.0
-        pass_rate = round(passes / n, 3) if n else 0.0
+        pass_rate = round(passes / scored_runs, 3) if scored_runs else 0.0
         per_fixture[fid] = {
             "n_runs": n,
             "passes": passes,
@@ -1015,9 +1028,12 @@ def _write_aggregate_and_finalize(
             "flake_score": flake_score,
             "pass_rate": pass_rate,
         }
-        if 0 < passes < n:
+        if 0 < passes < scored_runs:
             flaky.append(fid)
-        pass_rates.append(pass_rate)
+        # A fully non-scored fixture (all runs error / model-skipped-reads) must
+        # not contribute a 0.0 to mean_pass_rate.
+        if scored_runs > 0:
+            pass_rates.append(pass_rate)
 
     mean_pass_rate = round(sum(pass_rates) / len(pass_rates), 3) if pass_rates else 0.0
 
@@ -1105,12 +1121,12 @@ def eval_cmd(
         typer.Option(
             "--retry-infra",
             help=(
-                "Retry a fixture N times on infra error before fail-fast "
-                "(default 1 = no retry). Delay between retries (30s) is "
-                "excluded from fixture timing."
+                "Retry a fixture up to N times on infra error before "
+                "fail-fast, i.e. N+1 total attempts (default 0 = no retry). "
+                "Delay between retries (30s) is excluded from fixture timing."
             ),
         ),
-    ] = 1,
+    ] = 0,
     debug: Annotated[
         bool,
         typer.Option(
@@ -1178,8 +1194,8 @@ def eval_cmd(
         log_error("--concurrency must be >= 1")
         raise typer.Exit(EXIT_FIXTURE_INVALID)
 
-    if retry_infra < 1:
-        log_error("--retry-infra must be >= 1")
+    if retry_infra < 0:
+        log_error("--retry-infra must be >= 0")
         raise typer.Exit(EXIT_FIXTURE_INVALID)
 
     root = find_project_root()
@@ -1292,7 +1308,9 @@ def eval_cmd(
 
         _write_pass_artifacts(pass_writer, results, status="failed" if is_infra else "completed")
 
-        if any(not r.passed for r in results):
+        # A model-skipped-reads or infra-error row is non-scored: it must not
+        # flip the run to a hard failure exit code.
+        if any(r.scored and not r.passed for r in results):
             any_failure = True
 
         if is_infra:
@@ -1340,9 +1358,17 @@ def _print_results(results: list[RunResult]) -> None:
         input_tk = f"{run.input_tokens:,}" if run.input_tokens else "-"
         output_tk = f"{run.output_tokens:,}" if run.output_tokens else "-"
         duration = f"{run.duration_ms / 1000:.1f}s" if run.duration_ms else "-"
+        # green = pass, yellow = non-scored (infra error / model-skipped-reads),
+        # red = genuine scored failure.
+        if r.passed:
+            style = "green"
+        elif not r.scored:
+            style = "yellow"
+        else:
+            style = "red"
         table.add_row(
             r.fixture_id,
-            f"[green]{r.result}[/green]" if r.passed else f"[red]{r.result}[/red]",
+            f"[{style}]{r.result}[/{style}]",
             str(run.turns) if run.turns else "-",
             input_tk,
             output_tk,
@@ -1355,6 +1381,13 @@ def _print_results(results: list[RunResult]) -> None:
             str(len(r.run.output_violations)) if r.run.output_violations else "-",
         )
     console.print(table)
+    model_skipped = [r.fixture_id for r in results if r.result == "model-skipped-reads"]
+    if model_skipped:
+        console.print(
+            f"[yellow]\u2139 {len(model_skipped)} fixture(s) model-skipped-reads "
+            "(infra healthy; model cited rules it never read): non-scored, "
+            f"excluded from pass/fail: {', '.join(model_skipped)}[/yellow]"
+        )
 
 
 def _print_mode_context(mode: str) -> None:
@@ -2464,7 +2497,7 @@ def report_cmd(
     Pass --connection to enable AI-generated efficiency insights in the
     Model Effort tab of the HTML report.
     """
-    from ai_rules.rule_loader_eval.report_generator import generate_reports
+    from ai_rules.rule_loader_eval.report_generator import discover_results, generate_reports
 
     resolved_connection = _resolve_connection(connection)
 
@@ -2479,26 +2512,30 @@ def report_cmd(
         )
         raise typer.Exit(EXIT_FIXTURE_INVALID)
 
-    # Validate that at least one summary.json exists
-    summaries = list(resolved_results.glob("*/summary.json"))
-    if not summaries:
-        log_error(
-            f"No summary.json files found under {resolved_results}\n"
-            "Run 'ai-rules rule-loader eval' first to produce results."
-        )
+    # Pre-flight with the SAME discovery the generator uses, so the error
+    # names the actual problem instead of a misleading summary.json hint.
+    discovered = discover_results(resolved_results)
+    if not discovered:
+        if (resolved_results / "summary.json").exists():
+            log_error(
+                f"{resolved_results} looks like a single run directory, but its "
+                "name does not parse as <model>_<N>x_<timestamp> (or the model "
+                "is 'auto').\n"
+                "Pass the results ROOT instead, e.g. --results-dir results"
+            )
+        else:
+            log_error(
+                f"No run directories found under {resolved_results}\n"
+                "Expected the results root containing <model>_<N>x_<timestamp>/ "
+                "run directories (each with a summary.json).\n"
+                "Run 'ai-rules rule-loader eval' first to produce results."
+            )
         raise typer.Exit(EXIT_FIXTURE_INVALID)
 
     if strict:
         # In strict mode, validate extraction before rendering
-        from ai_rules.rule_loader_eval.report_generator import (
-            discover_results,
-            extract_model_stats,
-        )
+        from ai_rules.rule_loader_eval.report_generator import extract_model_stats
 
-        discovered = discover_results(resolved_results)
-        if not discovered:
-            log_error("No valid result directories found.")
-            raise typer.Exit(EXIT_FIXTURE_INVALID)
         for model, run_dir in sorted(discovered.items()):
             try:
                 extract_model_stats(run_dir)
@@ -2518,8 +2555,12 @@ def report_cmd(
     )
 
     if not written:
+        # Discovery already succeeded above, so this means extraction or
+        # rendering failed for every model (warnings were logged per model).
         log_error(
-            "No reports were generated. Check --results-dir contains valid summary.json files."
+            "No reports were generated: extraction or rendering failed for "
+            "every discovered model (see warnings above). Re-run with --strict "
+            "to fail on the first extraction error."
         )
         raise typer.Exit(EXIT_FIXTURE_INVALID)
 

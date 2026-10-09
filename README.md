@@ -10,12 +10,26 @@
 
 > **One portable AI coding rule set for any assistant, IDE, or agent. Built with Snowflake Cortex Code.**
 
+## v4.0.0 breaking changes
+
+> [!IMPORTANT]
+> **v4.0.0 contains breaking changes.** Rules now ship as a plugin for CoCo (Cortex Code) and Claude Code instead of
+> files copied into each project. A `UserPromptSubmit` hook and the `rule-loader` skill run a deterministic matcher,
+> so every model receives the same candidate rules for a prompt rather than searching the library itself. All 195
+> rules move to schema v4.0 with a 250-line limit, which cut the rule library by 68% in tokens and rule content loaded
+> per task by about 57%. In a live A/B, input tokens per task fell 4.7% with no change in pass rate (105/105).
+>
+> `ai-rules deploy`, `index`, and `refs` are removed: run `ai-rules plugin install` instead of copying `AGENTS.md`,
+> `RULES_INDEX.md`, and rules into projects. See [CHANGELOG.md](CHANGELOG.md#400---2026-10-08) for every breaking
+> change and [docs/EVALUATING_RULE_LOADER.md](docs/EVALUATING_RULE_LOADER.md#v400-result-250-line-rule-limit) for the
+> measurements.
+
 ## Quick Overview
 
-**What:** Universal AI coding rule system working with any assistant/IDE  
-**Works with:** Cursor, Claude Code, GitHub Copilot, VS Code, ChatGPT, and more  
+**What:** AI coding rules delivered as an assistant plugin with automatic rule discovery  
+**Works with:** CoCo (Cortex Code) and Claude Code as a plugin; other assistants can read the rule files directly  
 **Install:** build the plugin, then install it with your assistant's plugin command
-**Benefit:** production-ready rules, automatic discovery, zero vendor lock-in
+**Benefit:** focused rules, deterministic discovery, plain Markdown with no vendor lock-in
 
 **Quick Checklist:**
 - [ ] Prerequisites met? → [Prerequisites](#prerequisites)
@@ -25,20 +39,20 @@
 
 ## Overview
 
-A universal AI coding rule system that works with any AI assistant, IDE, or development tool. Write rules once in a portable Markdown format and use them anywhere.
+A library of AI coding rules written once in portable Markdown and delivered as a plugin that discovers the right rules for each prompt.
 
-**What you get:** A library of engineering rules covering Python, SQL, Snowflake, Go, Docker, Shell scripting, React, HTMX, Alpine.js, data engineering, analytics, and project governance. The rules work with Cursor, Claude Code, GitHub Copilot, Visual Studio Code, and other AI coding assistants.
+**What you get:** A library of engineering rules covering Python, SQL, Snowflake, Go, Docker, Shell scripting, React, HTMX, Alpine.js, data engineering, analytics, and project governance. CoCo and Claude Code load them through the plugin. Cursor, GitHub Copilot, Visual Studio Code, and other assistants can use the same rule files when you add them to context.
 
 **Important:** Some rules are opinionated about naming conventions, project structure, the use of uv/uvx/ruff, and documentation standards. Review them and adjust to fit your team's practices.
 
 ## Key Features
 
 - **195 rule files** covering Snowflake, Python, Go, React, HTMX, Alpine.js, Docker, Podman, Shell scripting, and project management.
-- **Portable Markdown format** that works with Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and similar tools.
-- **Automatic discovery** via semantic keyword matching (matches by meaning, not just exact text).
+- **Plugin delivery** for CoCo and Claude Code: one install, no per-project bootstrap files.
+- **Deterministic discovery** that scores your prompt against each rule's typed keywords, file extensions, and paths.
 - **Explicit dependency chains** so rules load in the correct order.
-- **Modular files** (ideally no more than 250 lines; see [Content Guidelines](CONTRIBUTING.md#content-guidelines)) keep context-window usage low.
-- **No vendor lock-in.** Plain Markdown with embedded metadata.
+- **Modular files** capped at 250 lines by the v4 schema validator (see [Content Guidelines](CONTRIBUTING.md#content-guidelines)) keep context-window usage low.
+- **No vendor lock-in.** Plain Markdown with YAML metadata.
 
 This project was inspired, in part, by:
 
@@ -50,6 +64,7 @@ This project was inspired, in part, by:
 
 **For Users:**
 
+- [v4.0.0 breaking changes](#v400-breaking-changes)
 - [Overview](#overview)
 - [Key Features](#key-features)
 - [Prerequisites](#prerequisites)
@@ -77,12 +92,15 @@ Before getting started, ensure you have:
 - **Python 3.12+**: [Download Python](https://www.python.org/downloads/)
 - **Git** (for cloning): [Install Git](https://git-scm.com/downloads)
 - **uv** (Python package manager): [Install uv](https://docs.astral.sh/uv/)
+- **Task 3.45.3+** (runs the setup commands): [Install Task](https://taskfile.dev/installation/)
+- **jq** (only for the optional `--with-hook` install): the hook reads its prompt with `jq`
 
 **Quick check:**
 
 ```bash
 python --version  # Should show 3.12 or higher
 git --version     # Should show Git version
+task --version    # Should show 3.45.3 or higher
 ```
 
 ## Quick Start
@@ -172,12 +190,11 @@ uv run ai-rules plugin uninstall --target cortex --project /path/to/project
 # CoCo: install directly via CLI
 cortex plugin install ./ai-coding-rules-plugin
 
-# CoCo: install from git
-cortex plugin install sfc-gh-myoung/ai_coding_rules
-
 # CoCo: use without installing (session only)
 cortex --plugin-dir ./ai-coding-rules-plugin
 ```
+
+The plugin directory is a build output and is not committed, so build it before installing from a local path.
 
 Place the built directory in `.cortex/plugins/` (CoCo) or `.claude/plugins/` (Claude Code)
 inside your project to load it automatically without a global install.
@@ -231,11 +248,11 @@ Track rule updates via git submodule, then rebuild the plugin after each pull:
 ```bash
 # From your project root
 git submodule add https://github.com/sfc-gh-myoung/ai_coding_rules.git .ai-rules
-cd .ai-rules && uv sync --all-groups && uv run ai-rules plugin build
+cd .ai-rules && task env:sync && uv run ai-rules plugin build
 
 # Update later
 cd .ai-rules && git pull && uv run ai-rules plugin build
-cortex plugin update ai-coding-rules
+uv run ai-rules plugin install --target cortex --force
 ```
 
 ## Understanding Rules
@@ -246,14 +263,14 @@ AI coding rules are structured Markdown files that guide AI assistants on how to
 
 **Key Concepts:**
 
-- **Universal Format:** Write once, use everywhere (any IDE, LLM, or agent)
-- **Automatic Discovery:** AI finds relevant rules based on your task keywords
+- **Universal Format:** Write once in plain Markdown; the plugin delivers it, and any assistant can read it
+- **Automatic Discovery:** The matcher finds relevant rules from your prompt's keywords, file extensions, and paths
 - **Dependency-Aware:** Rules load prerequisites automatically in correct order
-- **Token-Efficient:** Small, focused rules (ideally no more than 250 lines each) minimize context usage
+- **Token-Efficient:** Small, focused rules (at most 250 lines each) minimize context usage
 
 ### How Automatic Discovery Works
 
-AI assistants automatically discover and load relevant rules based on your task using a three-step process:
+AI assistants automatically discover and load relevant rules based on your task:
 
 <details>
 <summary><strong>Visual Flowchart: Rule Discovery System</strong> (click to expand)</summary>
@@ -314,8 +331,9 @@ Example Loading Sequence:
 
 > **Keywords Drive Discovery**
 >
-> The `Keywords` metadata in each rule enables semantic search. When you say "optimize Streamlit performance,"
-> the hook scores your prompt against rule keywords: "performance", "streamlit", "caching", "optimization".
+> The typed `keywords` list in each rule's YAML frontmatter (`kw:`, `ext:`, `file:`, `dir:`) drives discovery. When you
+> say "optimize Streamlit performance," the matcher scores your prompt against those entries deterministically: it
+> matches the words and file types you use, not their meaning.
 >
 > Specific keywords help the AI load the most relevant rules.
 > See [prompts/README.md](prompts/README.md) for effective prompt patterns.
@@ -467,7 +485,7 @@ Learn how to write effective prompts that help AI assistants automatically disco
 
 ```
 Task: Fix all Ruff linting errors in Python validation modules
-Files: src/ai_rules/commands/validate.py, src/ai_rules/commands/index.py
+Files: src/ai_rules/commands/validate.py, src/ai_rules/commands/tokens.py
 Errors: 9 total (F841 unused variables, UP037 quoted type annotations)
 ```
 
@@ -540,7 +558,8 @@ uv run ai-rules --help
 | Command | Description |
 |---------|-------------|
 | `ai-rules validate` | Validate rule files against the active v4 schema |
-| `ai-rules tokens` | Validate/update TokenBudget metadata; `--context-estimate` reports total per-response context |
+| `ai-rules validate-skills` | Validate `skills/*/SKILL.md` frontmatter, version and CHANGELOG parity, and local links |
+| `ai-rules tokens` | Validate/update `token_budget` metadata; `--context-estimate` reports total per-response context |
 | `ai-rules new` | Generate a v4 rule scaffold; populate and review its instructions before use |
 | `ai-rules badges` | Update README badges (version, tests, coverage) |
 | `ai-rules plugin build` | Build the distributable `ai-coding-rules-plugin/` |
@@ -548,6 +567,7 @@ uv run ai-rules --help
 | `ai-rules plugin install` / `uninstall` | Manage CoCo or Claude plugin installations |
 | `ai-rules rule-loader` | Rule Loading Evaluator: live-agent sanity check |
 | `ai-rules rule-loader keywords` | Suggest/update keywords via Snowflake Cortex (AI_COMPLETE) |
+| `ai-rules review-artifact` | Validate, render, and aggregate `rule-review-result/v1` rule reviews |
 
 ## Development Commands
 
@@ -573,11 +593,11 @@ The rules are organized by domain using a three-digit numbering system. Each cat
 | **Snowflake** | 100-199 | 86 | Data platform | SQL, Streamlit, performance, Cortex AI, security, notebooks, pipelines, demo creation, data quality, dynamic tables, Cortex Code Agent SDK |
 | **Python** | 200-299 | 44 | Software engineering | Core patterns, FastAPI, Flask, Typer CLI, Pydantic, pytest, Pandas, **HTMX**, datetime, Faker |
 | **Shell/Containers** | 300-399 | 13 | Automation & Infrastructure | Bash and Zsh scripting, security, testing, Docker, **Podman** |
-| **Frontend (JS/TS)** | 400-499 | 9 | Client-side frameworks | JavaScript, TypeScript, React, Alpine.js, **HTMX frontend** |
-| **Frontend** | 500-599 | 3 | Client-side | HTMX frontend, browser globals |
+| **Frontend (JS/TS)** | 400-499 | 9 | Client-side frameworks | JavaScript, TypeScript, React, Alpine.js, JS/TS documentation |
+| **Frontend** | 500-599 | 3 | Client-side | HTMX frontend, browser globals, Reveal.js |
 | **Systems/Backend Languages** | 600-699 | 2 | Backend development | **Go/Golang** core patterns, advanced patterns, error handling, concurrency |
 | **Reserved** | 700-799 | 0 | Future use | Reserved for future domain expansion |
-| **Project Management** | 800-899 | 12 | Workflows | Git, changelog, README, contributing, CLI design, Taskfile, Makefile-rule-authoring |
+| **Project Management** | 800-899 | 12 | Workflows | Git, changelog, README, contributing, documentation, technical writing, workbench policy, CLI design, Taskfile, Makefile |
 | **Analytics & Governance** | 900-999 | 5 | Business intelligence | Data science, data governance, business analytics, semantic views, dbt |
 
 **Browse rules:** see the [Rule Categories](#rule-categories) table above, or `grep -ril "<keyword>" rules/` to search by keyword.
@@ -729,12 +749,12 @@ cortex plugin list
 1. **Add rules to context (assistants without plugin support)**
    - **Claude Projects:** upload the relevant `rules/*.md` files to project knowledge
    - **ChatGPT:** Add files to custom instructions or upload via file attachment
-   - **Cursor:** install the plugin, or load a rule explicitly in your prompt
+   - **Cursor:** load a rule explicitly in your prompt, for example `Load rules/200-python-core.md`
    - **Other LLMs:** Refer to specific tool documentation for context management
 
 2. **Test Rule Loading**
    - Ask: "What rules are available for Snowflake development?"
-   - AI should cite the matched rules under RULES_LOADED
+   - AI should cite the matched rules under `## Rules Loaded`
    - If not, run `/plugin reload` and confirm `cortex plugin list` shows the plugin active
 
 ### How to Verify Rules Are Working
@@ -743,7 +763,7 @@ cortex plugin list
 
 ```
 Prompt: "What rules are available for Snowflake development?"
-Expected: AI cites 100-series Snowflake rules under RULES_LOADED
+Expected: AI cites 100-series Snowflake rules under `## Rules Loaded`
 ```
 
 **Test 2: Rule Application**

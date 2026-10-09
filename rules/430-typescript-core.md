@@ -1,523 +1,75 @@
-# TypeScript Core: Strictness & Modern Patterns
-
-> **CORE RULE: PRESERVE WHEN POSSIBLE**
->
-> This rule defines essential TypeScript patterns. Load for TypeScript tasks.
-> Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** TypeScript, Zod, Strict Mode, Type Inference, Union Types, Satisfies, Generics, Utility Types, Matt Pocock, Total TypeScript
-**TokenBudget:** ~3950
-**ContextTier:** High
-**Depends:** 000-global-core.md
-**LoadTrigger:** ext:.ts, ext:.tsx
+---
+schema_version: v4.0
+rule_version: v5.0.0
+description: "Establishes the definitive standards for writing production-grade TypeScript in 2026. This rule enforces Strict Mode, prioritizes Type Inference over manual typing, mandates Runtime Validation (Zod)"
+last_updated: 2026-10-06
+keywords:
+  - kw:strict mode enforcement
+  - kw:Zod runtime validation
+  - kw:type inference over annotation
+  - kw:enum namespace forbidden
+  - kw:satisfies operator
+  - kw:discriminated union patterns
+token_budget: ~1000
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 434-typescript-docs.md  # TSDoc documentation standards
+    - 440-react-core.md  # TypeScript usage in React applications
+    - 420-javascript-core.md  # JavaScript patterns that complement TypeScript
+---
+# TypeScript Core: Strictness and Modern Patterns
 
 ## Scope
 
 **What This Rule Covers:**
-Establishes the definitive standards for writing production-grade TypeScript in 2026. This rule enforces **Strict Mode**, prioritizes **Type Inference** over manual typing, mandates **Runtime Validation** (Zod) at I/O boundaries, and explicitly forbids legacy features like Enums and Namespaces.
+Strict static checking, external-data validation, inference/narrowing, discriminated unions and deliberate configuration/library contracts.
 
 **When to Load This Rule:**
-- Working with TypeScript files (.ts, .tsx)
-- Setting up TypeScript project configuration
-- Implementing type-safe validation patterns
-- Refactoring JavaScript to TypeScript
-- Reviewing TypeScript code for best practices
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **434-typescript-docs.md** - TSDoc documentation standards
-- **440-react-core.md** - TypeScript usage in React applications
-- **420-javascript-core.md** - JavaScript patterns that complement TypeScript
-
-### External Documentation
-
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/) - Official documentation
-- [Total TypeScript (Matt Pocock)](https://www.totaltypescript.com/) - Advanced patterns and tips
-- [Zod Documentation](https://zod.dev/) - Schema validation library
-- [TS Reset](https://github.com/total-typescript/ts-reset) - Better built-in types
+When modifying .ts/.tsx, tsconfig, typed boundaries or JavaScript-to-TypeScript migration.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- TypeScript 5.0+ installed
-- Node.js 20+ environment
-- Understanding of type systems
-- Familiarity with modern JavaScript
-- `tsc` compiler for type checking
-- `zod` library for runtime validation
-
-**Recommended:**
-- `@total-typescript/ts-reset` — fixes standard library annoyances (e.g., `JSON.parse` returning `any`). Use when you want safer built-in types without manual overrides.
-- `ts-pattern` — exhaustive pattern matching for discriminated unions. Use when complex branching logic benefits from compile-time exhaustiveness checks.
+- Actual tsconfig/compiler/runtime/framework and package lock/tooling.
+- Existing validation library, public interfaces and authorized migration scope.
 
 ### Mandatory
 
-- MUST enable `strict: true` in `tsconfig.json`
-- MUST validate all external data (API responses, URL params, form inputs) with Zod schemas
-- MUST NOT use `any`, `enum`, or `namespace`
-
-### Forbidden
-
-- `any` type (strict ban - use `unknown` instead)
-- `enum` keyword (use string unions or const objects)
-- `namespace` keyword (use ES modules)
-- Hungarian Notation (no `IInterface` naming)
-- Implementation code in `.d.ts` files
+- Use strict checking for new production TypeScript and preserve project strictness. Existing strict migration must be staged/approved with each error resolved, not disabled globally to pass.
+- Treat external JSON/form/URL/storage data as unknown and validate at trust boundaries with the established schema/predicate library. Zod is an option, not automatic permission to add/replace dependencies.
+- Avoid authored any and unsafe casts; narrow unknown, model nullability and use specific justified temporary ts-expect-error instead of blanket ts-ignore. Third-party any requires a contained boundary, not rewriting vendor declarations blindly.
+- Prefer inferred local types and explicit public contracts where useful. Use satisfies to check shape without a type annotation, but do not claim it automatically preserves every string literal; use as const when exact readonly literal semantics are intended.
+- Prefer string unions/const objects and ES modules in new application code over enums/namespaces. Preserve required declaration augmentation/library compatibility; .d.ts contains declarations, not implementation.
+- Use discriminated unions for variant outcomes, exhaustive branching and generic constraints only for operations actually required. Unconstrained generics are valid when no shape is needed.
+- Derive static types from runtime schemas where appropriate; branded IDs need validated creation, not casts that manufacture evidence of validity.
+- Respect actual Node/bundler moduleResolution/lib/target settings. skipLibCheck or global reset packages are deliberate compatibility choices with coverage implications, not mandatory setup defaults.
+- Handle parse failures deliberately with parse/throw or safeParse/result according to API contract. Capture async errors as unknown and normalize explicitly; PromiseRejectedResult.reason can be any in standard declarations, not magically unknown under strict mode.
+- Cancellable fetch/streaming work needs AbortController/timeout cleanup and fully handled outcomes. Do not lose partial failures or leak resources in typed wrappers.
 
 ### Execution Steps
 
-1. **Enable Strictness:** Verify `tsconfig.json` has `"strict": true` and `"noImplicitAny": true`
-2. **Validate I/O:** All external data (API responses, URL params) MUST be validated with Zod schemas
-3. **Narrow Unknowns:** Treat 3rd party untyped data as `unknown` and narrow via predicates or Zod
-4. **Infer Types:** Do not manually type variables if the compiler can infer them (`const x = 5` not `const x: number = 5`)
-5. **Use Satisfies:** Use `satisfies` operator to validate types without widening them
-6. **Check Configuration:** Review existing `tsconfig.json` before making changes
-7. **Validate Output:** Run `tsc --noEmit` to ensure zero type errors
-
-### Output Format
-
-TypeScript files (`.ts` or `.tsx`) with:
-- Strict typing enabled
-- Zero compilation errors
-- Zod schemas for external data
-- Type inference where possible
-- No forbidden patterns
+1. Read tsconfig/manifests/source/tests and current validator/library convention before changing types/config.
+2. Implement focused strict public contracts, inference and unknown-data validation/narrowing.
+3. Define variant/generic/error/cancellation semantics and deliberate third-party compatibility boundaries.
+4. Run the project's compiler/type checks (such as tsc --noEmit), lint/format and regression tests under actual runtime/build settings.
+5. Review runtime schemas against static types and disclose unavailable runtime checks; no false correctness claim from compiler success alone.
 
 ### Validation
 
-**Pre-Task-Completion Checks:**
-- `tsconfig.json` has `"strict": true`
-- No `any` types in code
-- Zod schemas defined for all API responses
-- No `enum` definitions exist
-- No `ISomething` interface names
-- `satisfies` used for config objects
-- Generics have `extends` constraints where applicable
-
-**Success Criteria:**
-- `tsc --noEmit` passes with exit code 0
-- Zod schemas match their inferred types
-- Type inference works without explicit annotations
-- All external data validated at runtime
-
-**Negative Tests:**
-- Assigning string to number variable fails compilation
-- Accessing property on `unknown` without narrowing fails
-- Using `any` type triggers linter error
-
-### Design Principles
-
-- **Type Safety First:** Strict mode is non-negotiable for production code
-- **Runtime Validation:** Static types alone are insufficient - validate at I/O boundaries
-- **Inference Over Annotation:** Let TypeScript infer types when obvious
-- **Modern Patterns Only:** Avoid legacy features like enums and namespaces
-- **Composition Over Duplication:** Use utility types to derive new types
-
-### Post-Execution Checklist
-
-- [ ] `"strict": true` is set in tsconfig.json
-- [ ] `any` is nowhere to be found in code
-- [ ] Zod is used for all API responses and external data
-- [ ] No `enum` definitions exist
-- [ ] No `ISomething` interface names (Hungarian notation)
-- [ ] `satisfies` is used for configuration objects
-- [ ] Generics have `extends` constraints where applicable
-- [ ] `tsc --noEmit` passes with zero errors
-- [ ] Type inference used instead of explicit annotations where possible
-
-## Anti-Patterns and Common Mistakes
-
-**Anti-Pattern 1: The explicit `any`**
-```typescript
-// Bad: Disabling the type checker
-function process(data: any) {
- return data.foo.bar; // Unsafe access
-}
-```
-**Problem:** Spreads potential runtime errors throughout the app. "Type virus".
-
-**Correct Pattern:**
-```typescript
-// Good: Unknown + Narrowing
-import { z } from 'zod';
-const Schema = z.object({ foo: z.object({ bar: z.string() }) });
-
-function process(data: unknown) {
- const parsed = Schema.parse(data); // Validates
- return parsed.foo.bar; // Safe
-}
-```
-
-**Anti-Pattern 2: The `I` Prefix (Hungarian Notation)**
-```typescript
-// Bad: C# style naming
-interface IUserData {
- name: string;
-}
-```
-**Problem:** Redundant. In TS, everything is a type/interface.
-
-**Correct Pattern:**
-```typescript
-// Good: Clean naming
-type UserData = {
- name: string;
-};
-```
-
-**Anti-Pattern 3: Return Type `void` used incorrectly**
-```typescript
-// Bad: Misunderstanding void in callbacks
-// In TS, a void returning callback can actually return a value, it just gets ignored.
-```
-**Problem:** Can lead to subtle bugs if you rely on return values being undefined.
-
-**Correct Pattern:**
-```typescript
-// Use 'undefined' if you strictly mean "returns nothing"
-type StrictCallback = () => undefined;
-```
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read `tsconfig.json`** to understand strictness level and paths.
-> 2. **Check for existing validation libraries** (Zod, Yup, Valibot) before introducing a new one.
-> 3. **Do not blindly add types** if inference works. Read the code to see if the type is obvious.
-
-## Output Format Examples
-
-```markdown
-MODE: PLAN
-
-Investigation:
-- Verified `tsconfig.json`: Strict mode is enabled.
-- Found explicit `any` in `src/utils.ts`.
-- Goal: Refactor `fetchData` to use Zod validation and strict typing.
-
-Implementation:
-Defining Zod schema for API response and inferring return types.
-```
-
-```typescript
-import { z } from 'zod';
-
-// 1. Define Schema
-const ApiResponseSchema = z.object({
- data: z.array(z.object({
- id: z.number(),
- title: z.string()
- })),
- page: z.number()
-});
-
-// 2. Derive Type
-type ApiResponse = z.infer<typeof ApiResponseSchema>;
-
-// 3. Strict Implementation
-export async function fetchData(url: string): Promise<ApiResponse> {
- const res = await fetch(url);
- if (!res.ok) throw new Error('Network error');
-
- const json: unknown = await res.json();
-
- // Runtime Validation
- return ApiResponseSchema.parse(json);
-}
-```
-
-```bash
-# Validation
-npx tsc --noEmit
-```
-
-## Configuration & Project Setup
-
-### Compiler Options
-- **Requirement:** Strict mode is non-negotiable.
-- **Recommendation:** Use `skipLibCheck: true` to avoid breaking on broken 3rd party types.
-
-```json
-// tsconfig.json
-{
- "compilerOptions": {
- "target": "ES2022",
- "lib": ["DOM", "DOM.Iterable", "ESNext"],
- "module": "ESNext",
- "strict": true,
- "noImplicitAny": true,
- "strictNullChecks": true,
- "noUncheckedIndexedAccess": true,
- "skipLibCheck": true,
- "moduleResolution": "bundler",
- "resolveJsonModule": true,
- "isolatedModules": true,
- "noEmit": true
- }
-}
-```
-
-### Global Resets
-- **Use** `@total-typescript/ts-reset` to fix standard library annoyances (like `JSON.parse` returning `any` instead of `unknown`).
-
-## Core Typing Patterns
-
-### Unions vs Enums
-- **Rule:** DO NOT use `enum`. They add runtime code and have nominal typing quirks.
-- **Correct Pattern:** Use String Unions or `as const` objects.
-
-```typescript
-// Bad: Legacy Enum
-enum Status {
- Active,
- Inactive
-}
-
-// Good: String Union (Preferred)
-type Status = 'active' | 'inactive';
-
-// Good: Constant Object (If values needed at runtime)
-const STATUS = {
- Active: 'active',
- Inactive: 'inactive'
-} as const;
-type StatusType = typeof STATUS[keyof typeof STATUS];
-```
-
-### Discriminated Unions
-- **Rule:** Use discriminated unions for type-safe branching. The discriminant field enables exhaustive narrowing.
-
-```typescript
-type Result<T> =
- | { success: true; data: T }
- | { success: false; error: Error };
-
-function handle(result: Result<User>) {
- if (result.success) {
-  console.log(result.data.name); // narrowed to { success: true; data: User }
- } else {
-  console.error(result.error.message); // narrowed to { success: false; error: Error }
- }
-}
-```
-
-### Validation & Type Inference
-- **Requirement:** Define the source of truth in Zod (runtime), then derive the static type.
-
-```typescript
-import { z } from 'zod';
-
-// 1. Define Schema (Runtime)
-export const UserSchema = z.object({
- id: z.string().uuid(),
- username: z.string().min(3),
- email: z.string().email(),
- role: z.enum(['admin', 'user', 'guest']), // z.enum() is Zod runtime validation — NOT the banned TypeScript `enum` keyword
-});
-
-// 2. Infer Type (Compile time)
-export type User = z.infer<typeof UserSchema>;
-
-// 3. Validate Input
-function createUser(input: unknown) {
- const user = UserSchema.parse(input); // Throws if invalid
- return user; // Type is User
-}
-```
-
-### The `satisfies` Operator
-- **Rule:** Use `satisfies` to ensure an object matches a type without widening it (preserving exact values).
-
-```typescript
-type Routes = Record<string, { path: string; protected: boolean }>;
-
-// Bad: Type annotation loses literal values
-// const routes: Routes = { ... }
-
-// Good: Checks structure but keeps 'home' as literal key
-const routes = {
- home: { path: '/', protected: false },
- dashboard: { path: '/dash', protected: true }
-} satisfies Routes;
-
-// TS knows routes.home.path is exactly '/'
-```
-
-## Advanced Patterns
-
-### Generic Constraints
-- **Rule:** Always constrain generics to the minimal required shape.
-- **Avoid:** `T extends any` or unconstrained `T`.
-
-```typescript
-// Good: Constrained generic
-function getProperty<T extends object, K extends keyof T>(obj: T, key: K) {
- return obj[key];
-}
-```
-
-### Branded Types
-- **Use** "Branded Types" for primitive identifiers (IDs) to prevent mixing them up.
-
-```typescript
-declare const __brand: unique symbol;
-type Brand<T, B> = T & { [__brand]: B };
-
-type UserId = Brand<string, 'UserId'>;
-type PostId = Brand<string, 'PostId'>;
-
-const getUser = (id: UserId) => { ... };
-const myId = '123' as UserId; // Explicit cast required at boundary
-
-// Zod integration: validate and brand at I/O boundary
-const UserIdSchema = z.string().uuid().transform(s => s as UserId);
-const parsed = UserIdSchema.parse(rawInput); // typed as UserId
-```
-
-## Error Recovery Patterns
-
-### Zod Parse Failures
-- **Rule:** Use `.safeParse()` at I/O boundaries to handle invalid data gracefully instead of throwing.
-
-```typescript
-import { z } from 'zod';
-
-const UserSchema = z.object({ name: z.string(), age: z.number() });
-
-function handleInput(data: unknown) {
- const result = UserSchema.safeParse(data);
- if (!result.success) {
-  const messages = result.error.issues.map(i => `${i.path.join('.')}: ${i.message}`);
-  return { ok: false, errors: messages } as const;
- }
- return { ok: true, data: result.data } as const;
-}
-```
-
-### Strict Mode Migration
-- **Rule:** Enable strict flags incrementally. Fix all errors per flag before enabling the next.
-
-**Migration sequence:**
-```json
-// Step 1: Start with null safety (highest-value flag)
-{ "compilerOptions": { "strictNullChecks": true } }
-
-// Step 2: Eliminate implicit any
-{ "compilerOptions": { "strictNullChecks": true, "noImplicitAny": true } }
-
-// Step 3: Function parameter bivariance
-{ "compilerOptions": { "strictNullChecks": true, "noImplicitAny": true, "strictFunctionTypes": true } }
-
-// Step 4: Enable full strict (includes all above + strictBindCallApply, etc.)
-{ "compilerOptions": { "strict": true } }
-```
-
-Use `// @ts-expect-error REASON` (never `@ts-ignore`) for temporary suppression during migration. Track remaining suppressions: `grep -rn "@ts-expect-error" --include="*.ts" --include="*.tsx" | wc -l`.
-
-### Third-Party Type Conflicts
-- **Rule:** Use `declare module` overrides for incorrect third-party types. Always document the reason.
-
-```typescript
-// fix-bad-lib-types.d.ts — override incorrect return type in bad-lib v2.1.0
-declare module 'bad-lib' {
- export function getData(): Promise<unknown>; // upstream declares `any`
-}
-```
-
-- Use `// @ts-expect-error` with a justification comment when a surgical override is needed:
-```typescript
-// @ts-expect-error bad-lib v2.1.0 types missing optional config param
-const result = badLib.init({ debug: true });
-```
-
-### Async Error Typing
-- **Rule:** Type async error results explicitly using `Error` cause chaining.
-
-```typescript
-async function fetchWithContext(url: string): Promise<Data> {
- try {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`, { cause: { url, status: res.status } });
-  const json: unknown = await res.json();
-  return DataSchema.parse(json);
- } catch (err) {
-  throw new Error('fetchWithContext failed', { cause: err });
- }
-}
-```
-
-### Cancellable Async with AbortController
-- **Rule:** Use `AbortController` for cancellable fetch requests and timeouts.
-
-```typescript
-async function fetchWithTimeout(url: string, timeoutMs = 5000): Promise<Response> {
- const controller = new AbortController();
- const id = setTimeout(() => controller.abort(), timeoutMs);
- try { return await fetch(url, { signal: controller.signal }); }
- finally { clearTimeout(id); }
-}
-```
-
-## Concurrent Type Patterns
-
-### Promise.allSettled Return Types
-- **Rule:** Handle `PromiseSettledResult<T>` discriminated union exhaustively.
-
-```typescript
-const results = await Promise.allSettled([fetchUsers(), fetchPosts()]);
-
-for (const result of results) {
- if (result.status === 'fulfilled') {
-  console.log(result.value); // T
- } else {
-  console.error(result.reason); // unknown in strict mode
- }
-}
-
-// Extract only fulfilled values with type safety
-function getFulfilled<T>(results: PromiseSettledResult<T>[]): T[] {
- return results.filter((r): r is PromiseFulfilledResult<T> => r.status === 'fulfilled').map(r => r.value);
-}
-```
-
-### Async Generator Types
-- **Rule:** Type async generators explicitly for paginated or streaming data.
-
-```typescript
-async function* paginate<T>(fetchPage: (cursor: string) => Promise<{ data: T[]; next?: string }>): AsyncGenerator<T[], void, undefined> {
- let cursor = '';
- do {
-  const page = await fetchPage(cursor);
-  yield page.data;
-  cursor = page.next ?? '';
- } while (cursor);
-}
-
-// Usage: for await (const batch of paginate(fetchUsers)) { ... }
-```
-
-### Typed Error Boundaries
-- **Rule:** Type error boundary state for framework integration (React example).
-
-```typescript
-type ErrorBoundaryState =
- | { status: 'ok' }
- | { status: 'error'; error: Error; errorInfo: { componentStack: string } };
-
-function handleError(error: unknown): Error {
- return error instanceof Error ? error : new Error(String(error));
-}
-```
-
-> **See also:** Type narrowing patterns (`in`, `instanceof`, `is` predicates) are essential when working with `unknown` — consider creating a `430a-typescript-patterns.md` companion rule.
+- Configured strict type check passes with no new unsafe any/casts/blanket suppression.
+- External data runtime validation matches documented schema and types; malformed/null inputs handled.
+- Public interfaces/union exhaustive cases/generics align with callers and actual compiler behavior.
+- Module/runtime/lib settings and third-party augmentation deliberate, no speculative reset package or validator install.
+- Async failure/cancellation resources tested, actual lint/format/types/tests pass and unavailable checks disclosed.
+
+## References
+
+- [TypeScript handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+- [TypeScript tsconfig](https://www.typescriptlang.org/tsconfig/)
+- [TypeScript satisfies](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html)
+- [TypeScript narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
+- [Zod](https://zod.dev/)

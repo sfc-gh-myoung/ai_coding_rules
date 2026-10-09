@@ -1,0 +1,30 @@
+schema_version: 3
+updated: 2026-05-19T08:00:00-04:00
+id: complex-cortex-agent-design
+description: Design a multi-tool Cortex Agent end-to-end
+variant: complex
+prompt: |
+  We're designing a multi-tool Cortex Agent for a customer support use case.
+  It needs to query our case-history table, call out to our internal docs via
+  Cortex Search, and respond using approved tone guidelines. Walk me through
+  the orchestration instructions, response instructions, and how to test the
+  agent end-to-end before promoting to production.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/115-snowflake-cortex-agents-core.md  # kw: cortex agent, multi tool
+    - rules/115a-snowflake-cortex-agents-instructions.md  # kw: orchestration instructions, response instructions
+  forbidden: []
+  optional:
+    - rules/115c-snowflake-cortex-agents-testing.md  # optional: prompt has "test the agent end-to-end" — plausible inferred testing context, but no exact kw: phrase match
+    - rules/116-snowflake-cortex-search.md  # kw: cortex search
+    - rules/115d-snowflake-cortex-agents-observability.md  # may load on observability detail
+trigger_evidence:
+  kw: [cortex agent, orchestration instructions, response instructions, cortex search]
+    # n-gram (no rule): "multi-tool Cortex Agent for"
+    # n-gram (no rule): "customer support use case"
+    # n-gram (no rule): "Cortex Search"
+    # n-gram (no rule): "test the agent end-to-end"
+  ext: []
+  file: []
+  dir: []

@@ -167,7 +167,7 @@ CRITICAL ERROR: Cannot proceed - rules/000-global-core.md not accessible
 
 **Input:** `user_request: "FastAPI + HTMX + SSE in SPCS"`
 
-**Expected grep pattern:** `grep -iE "fastapi|htmx|sse|spcs" rules/RULES_INDEX.md`
+**Expected matcher invocation:** `python3 src/ai_rules/match_rules.py --prompt "FastAPI + HTMX + SSE in SPCS" --rules-dir rules/`
 
 **Expected rules:**
 ```markdown
@@ -177,19 +177,19 @@ CRITICAL ERROR: Cannot proceed - rules/000-global-core.md not accessible
 - rules/210-python-fastapi-core.md (keyword: fastapi)
 ```
 
-**Notes:** All 4 keywords must appear in the grep OR pattern. HTMX/SSE/SPCS may not match any rules in RULES_INDEX.md — note "No rules found for [keyword]" for each unmatched term.
+**Notes:** The complete request reaches the matcher. HTMX/SSE/SPCS may not match any rules in YAML frontmatter: note "No rules found for [keyword]" for each unmatched term.
 
 ---
 
 ## Scenario 12: Grep Zero-Result Anomaly Recovery
 
 **Input:** `user_request: "Deploy the Python application"`
-**Condition:** grep returns empty (simulated anomaly)
+**Condition:** matcher returns an empty manifest (simulated anomaly)
 
 **Expected behavior:**
-1. Re-execute grep once (transient failure recovery)
-2. If still zero: Execute `read_file` fallback immediately
-3. Document anomaly: "Grep returned unexpectedly empty - used fallback"
+1. Re-execute the matcher once (transient failure recovery)
+2. If still zero: Execute the direct-frontmatter fallback immediately
+3. Document anomaly: "Matcher returned unexpectedly empty - used frontmatter fallback"
 
 **Expected rules (after fallback):**
 ```markdown

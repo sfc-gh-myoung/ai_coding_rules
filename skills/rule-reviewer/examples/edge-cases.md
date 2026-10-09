@@ -233,7 +233,7 @@ Expected: Claude model slug
 Valid Claude slugs:
 - claude-opus-4
 - claude-sonnet-4
-- claude-sonnet-45
+- claude-sonnet-4-6
 - claude-haiku
 
 For output filename, will normalize to provided slug:
@@ -243,7 +243,7 @@ Note: The review will be performed by the current Claude model,
 regardless of the slug provided. The slug is for filename 
 identification only.
 
-Proceed with slug "gpt-4-turbo"? (yes/no/use claude-sonnet-45)
+Proceed with slug "gpt-4-turbo"? (yes/no/use claude-sonnet-4-6)
 ```
 
 ---
@@ -348,7 +348,7 @@ Cross-skill validation request detected.
 Workflow:
 1. Verify rule-creator completion:
    - Check ai-rules validate passed (exit code 0)
-   - Check RULES_INDEX.md entry exists
+   - Check rules/*.md Keywords entry exists
 
 2. Run rule-reviewer FULL review:
    - target_file: rules/425-nextjs-core.md
@@ -416,7 +416,7 @@ When reviewing rules created by rule-creator skill:
 
 2. **Check indexing:**
    ```bash
-   grep "<rule-name>" RULES_INDEX.md
+   grep "<rule-name>" rules/*.md Keywords
    # Must find entry
    ```
 

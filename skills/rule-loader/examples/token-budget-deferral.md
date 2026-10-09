@@ -29,7 +29,7 @@ Match: implied .py -> 200-python-core.md
 - Domain nouns: `dashboard`, `tests`, `docstrings`
 
 ```bash
-grep -iE "test|docstring|dashboard" rules/RULES_INDEX.md
+python3 src/ai_rules/match_rules.py --prompt "Build a Streamlit dashboard with Snowflake backend, pytest tests, and full docstrings" --rules-dir rules/
 # Matches: 206-python-pytest.md (keyword: test)
 #          204-python-docs.md (keyword: docstring)
 ```
@@ -68,8 +68,8 @@ grep -iE "test|docstring|dashboard" rules/RULES_INDEX.md
 
 ### Step 2: Check Against Limit
 
-- Soft warning threshold (75% of 20,000): 15,000 tokens -- **EXCEEDED**
-- Hard limit (100% of 20,000): 20,000 tokens -- Not exceeded
+- Soft warning threshold (75% of 20,000): 15,000 tokens: **EXCEEDED**
+- Hard limit (100% of 20,000): 20,000 tokens: Not exceeded
 
 **Action:** Begin evaluating Low-tier rules for deferral.
 

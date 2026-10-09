@@ -1,235 +1,69 @@
+---
+schema_version: v4.0
+rule_version: v3.0.0
+description: "Explicit validated Pydantic Settings sources, nested environment semantics, pure startup validation and protected credentials."
+last_updated: 2026-10-07
+keywords:
+  - kw:pydantic-settings
+  - kw:BaseSettings
+  - kw:environment variable loading
+  - kw:SettingsConfigDict
+  - kw:nested settings delimiter
+  - kw:startup validation
+token_budget: ~900
+context_tier: Medium
+depends:
+  required:
+    - 230-python-pydantic.md  # Core Pydantic model patterns
+  optional:
+    - 220a-python-typer-config.md  # CLI configuration integration
+    - 210-python-fastapi-core.md  # FastAPI settings injection
+---
 # Python Pydantic Settings Management
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:pydantic-settings, kw:env-file, kw:app-config
-**Keywords:** Pydantic Settings, BaseSettings, environment variables, configuration, env_file, nested settings, config precedence
-**TokenBudget:** ~1800
-**ContextTier:** Medium
-**Depends:** 230-python-pydantic.md
 
 ## Scope
 
 **What This Rule Covers:**
-Application configuration management using pydantic-settings, including BaseSettings patterns, environment variable loading, nested configuration, and startup validation.
+Typed source precedence, environment/nested/secret inputs, pure validation and deliberate runtime resource creation.
 
 **When to Load This Rule:**
-- Setting up application configuration with pydantic-settings
-- Loading configuration from environment variables or .env files
-- Implementing nested settings (e.g., database, cache, API configs)
-- Validating configuration at application startup
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **230-python-pydantic.md** - Core Pydantic model patterns
-
-**Related:**
-- **220a-python-typer-config.md** - CLI configuration integration
-- **210-python-fastapi-core.md** - FastAPI settings injection
+When implementing configuration with pydantic-settings; read CLI/FastAPI companions for injection/lifecycle when relevant.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Pydantic v2 project (from 230-python-pydantic.md)
-- `pydantic-settings>=2.0.0` installed via `uv add pydantic-settings`
+- Existing settings owner/version/source order, environment prefix/aliases/nested merge and deployment configuration.
+- Required versus optional values, secret mechanism and authorized startup/resources/test scope.
 
 ### Mandatory
 
-- **Always:** Use `pydantic-settings` for configuration management
-- **Always:** Validate all configuration values at startup
-- **Rule:** Support multiple configuration sources with clear precedence
-- **Rule:** Use `SettingsConfigDict` for settings configuration (not plain dicts)
-
-### Forbidden
-
-- Side-effects in settings validators (directory creation, network calls)
-- Hardcoded secrets in settings defaults
-- Using plain dicts for model_config in settings classes
+- Reuse existing BaseSettings/source owner and installed APIs; don't force replacing another working configuration library or installing packages. SettingsConfigDict improves typed configuration; supported plain dict isn't forbidden syntax.
+- Document actual priority for init/CLI/env/dotenv/files/secrets/defaults and implement needed custom sources explicitly. env_file doesn't read arbitrary TOML; source precedence and aliases/prefix/case differ by configuration.
+- Namespace environment names where appropriate and retain required platform names intentionally. Prefix in comments is not active unless configured; aliases can override prefix behavior. Test actual nested JSON/delimiter/partial update semantics.
+- Prefer nested BaseModel for values parsed by a parent source unless independently sourced nested BaseSettings is deliberate. default_factory on a required nested Settings can read unrelated env or fail before intended merge; test real construction.
+- Fields have actual type/range/domain constraints and no secret fallback/blank default. A count of distinct characters is not a valid entropy estimate. SecretStr masks default representations, not encrypted memory/storage or custom serializer/get_secret_value leakage.
+- Validate before serving traffic, but avoid eager global construction that blocks --help/tests or needed CLI overrides. Inject one scoped/cached instance with explicit cache reset/reload policy; configuration provenance isn't recoverable from model_dump alone.
+- Validators remain pure: no directories/files/network/grants. Path validation versus existence/runtime creation is separate and authorization-scoped; no automatic startup mkdir just because a setting parsed.
+- Construct database URLs with supported escaping/builders; interpolated password/user strings can corrupt URLs and expose secrets in logs. Reveal values only to approved consumers, redact errors/trace/config reports.
+- Fail invalid/missing settings clearly at entry boundary without raw ValidationError sensitive input. Library code doesn't sys.exit unexpectedly; CLI/server owner translates failure to correct startup/error behavior.
+- Test source combinations, false/zero/empty/unset, case/alias/nested fields, missing secrets, invalid files and cached reload. No production secret reads or unauthorized persistent resources.
 
 ### Execution Steps
 
-1. Install pydantic-settings: `uv add pydantic-settings`
-2. Define settings classes with typed fields and defaults
-3. Configure env_file, env_prefix, and nested delimiter
-4. Add validators for complex settings (validate only, no side-effects)
-5. Create global settings instance and validate at startup
-6. Wire settings into application via dependency injection
-
-### Output Format
-
-Settings classes with environment variable loading, validation, and startup checks.
+1. Read current sources/settings and define precise priority/validation/lifecycle contract.
+2. Implement minimal typed fields/pure validators and approved sources with safe injection.
+3. Test actual source/nested/cache/secret/error behavior and resource-free parsing.
+4. Run project checks and report effective behavior/provenance and startup gaps.
 
 ### Validation
 
-**Pre-Task-Completion Checks:**
-- [ ] Settings load from environment variables with prefix
-- [ ] .env file loading works correctly
-- [ ] Nested settings resolve with delimiter
-- [ ] Invalid values raise ValidationError at startup
+- Source/prefix/alias/nested precedence proven by tests, required settings not masked by defaults.
+- Pure parsing and scoped runtime resource creation distinct; no secret/URL/error leakage.
+- Invalid startup and caching/reload behavior intentional and test-isolated.
 
-### Design Principles
+## References
 
-- **Validate, don't create:** Settings validators should check values, not create resources
-- **Fail at startup:** Invalid configuration should prevent application start
-- **Namespace env vars:** Use env_prefix to avoid collisions
-
-### Post-Execution Checklist
-
-- [ ] pydantic-settings installed
-- [ ] Settings class with SettingsConfigDict
-- [ ] Environment variable prefix configured
-- [ ] Nested settings properly configured
-- [ ] Startup validation in place
-- [ ] No side-effects in validators
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Side-Effects in Settings Validators
-
-**Problem:** Creating directories or files inside a `@field_validator` on a settings class. Validators run during instantiation and testing, causing unexpected file system changes.
-
-**Correct Pattern:** Validate only in validators; create resources at application startup.
-
-```python
-# Wrong: Creates directories during validation
-@field_validator("data_dir")
-@classmethod
-def validate_data_dir(cls, v: Path) -> Path:
-    v.mkdir(parents=True, exist_ok=True)  # Side-effect!
-    return v
-
-# Correct: Validate only; create at startup
-@field_validator("data_dir")
-@classmethod
-def validate_data_dir(cls, v: Path) -> Path:
-    if not v.parent.exists():
-        raise ValueError(f"Parent directory does not exist: {v.parent}")
-    return v
-
-# In main.py or app startup:
-settings = AppSettings()
-settings.data_dir.mkdir(parents=True, exist_ok=True)
-```
-
-### Anti-Pattern 2: Missing Env Prefix
-
-**Problem:** Settings without `env_prefix` collide with system or other application environment variables (e.g., `HOST`, `PORT`, `DEBUG`).
-
-**Correct Pattern:** Namespace all settings with an application-specific `env_prefix` via `SettingsConfigDict`.
-
-```python
-# Wrong: Generic names without prefix
-class AppSettings(BaseSettings):
-    host: str = "0.0.0.0"  # Collides with HOST env var
-    debug: bool = False     # Collides with DEBUG env var
-
-# Correct: Namespaced with prefix
-class AppSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_prefix="MYAPP_")
-    host: str = "0.0.0.0"  # Reads MYAPP_HOST
-    debug: bool = False     # Reads MYAPP_DEBUG
-```
-
-## Settings Patterns
-
-### Application Settings with Nested Configuration
-
-```python
-from pydantic import Field, SecretStr, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional, List
-from pathlib import Path
-
-class DatabaseSettings(BaseSettings):
-    """Database configuration settings."""
-
-    host: str = Field(default="localhost", description="Database host")
-    port: int = Field(default=5432, ge=1, le=65535)
-    username: str = Field(..., description="Database username")
-    password: SecretStr = Field(..., description="Database password")
-    database: str = Field(..., description="Database name")
-
-    @property
-    def url(self) -> str:
-        """Generate database URL."""
-        return f"postgresql://{self.username}:{self.password.get_secret_value()}@{self.host}:{self.port}/{self.database}"
-
-class AppSettings(BaseSettings):
-    """Main application settings."""
-
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        env_nested_delimiter="__",
-        case_sensitive=False,
-    )
-
-    # Application settings
-    app_name: str = Field(default="MyApp", description="Application name")
-    debug: bool = Field(default=False, description="Debug mode")
-    log_level: str = Field(default="INFO", pattern=r'^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$')
-
-    # Server settings
-    host: str = Field(default="0.0.0.0")
-    port: int = Field(default=8000, ge=1, le=65535)
-
-    # Security settings
-    secret_key: SecretStr = Field(..., min_length=32, description="Secret key for encryption")
-    allowed_hosts: List[str] = Field(default_factory=lambda: ["localhost", "127.0.0.1"])
-
-    # Nested database settings
-    database: DatabaseSettings = Field(default_factory=DatabaseSettings)
-
-    # File paths
-    data_dir: Path = Field(default=Path("./data"))
-    log_file: Optional[Path] = Field(default=None)
-
-    @field_validator("data_dir")
-    @classmethod
-    def validate_data_dir(cls, v: Path) -> Path:
-        """Validate data directory path (create at startup, not here)."""
-        if not v.parent.exists():
-            raise ValueError(f"Parent directory does not exist: {v.parent}")
-        return v
-
-    @field_validator("secret_key")
-    @classmethod
-    def validate_secret_key(cls, v: SecretStr) -> SecretStr:
-        """Ensure secret key is sufficiently complex."""
-        secret = v.get_secret_value()
-        if len(set(secret)) < 10:
-            raise ValueError("Secret key must have sufficient entropy")
-        return v
-
-# Usage: set env vars with MYAPP_ prefix and __ for nesting
-# MYAPP_DEBUG=true
-# MYAPP_DATABASE__HOST=db.example.com
-# MYAPP_DATABASE__PORT=5432
-settings = AppSettings()
-```
-
-### Startup Validation Pattern
-
-```python
-def create_app() -> FastAPI:
-    """Create application with validated settings."""
-    try:
-        settings = AppSettings()
-    except ValidationError as e:
-        print(f"Configuration error: {e}")
-        sys.exit(1)
-
-    # Create resources AFTER validation, not inside validators
-    settings.data_dir.mkdir(parents=True, exist_ok=True)
-
-    app = FastAPI(title=settings.app_name, debug=settings.debug)
-    app.state.settings = settings
-    return app
-```
+- [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/)
+- [Secret types](https://docs.pydantic.dev/latest/api/types/#pydantic.types.SecretStr)
+- [FastAPI settings lifecycle](https://fastapi.tiangolo.com/advanced/settings/)

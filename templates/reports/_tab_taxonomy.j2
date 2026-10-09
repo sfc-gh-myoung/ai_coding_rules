@@ -1,0 +1,169 @@
+{%- import "_macros.j2" as labels -%}
+  <!-- ========== TAB 3: FAILURE MODES ========== -->
+  <section class="tab-panel" id="taxonomy" role="tabpanel" data-tab-title="Failure Modes" x-show="tab==='taxonomy'" x-cloak>
+    <h2>Seven Failure Modes</h2>
+
+    <p>Through systematic analysis of tool traces across all runs, seven distinct ways models deviate from the protocol were identified. They range from catastrophic (citing rules never read) to benign (loading more than necessary). Each reveals a different facet of how models process procedural instructions under real-world conditions.</p>
+
+    <p>The taxonomy is organized by severity. High-severity modes undermine the protocol&rsquo;s core guarantee (grounded responses). Medium-severity modes create measurement challenges or correctness risks. Low-severity modes are inefficiencies that don&rsquo;t threaten trust.</p>
+
+    <div class="callout callout-info">
+      <strong>Note:</strong> Specific model behaviors described below reflect the evaluation run used to generate this report. Model behavior may change across versions, updates, and API routing changes.
+    </div>
+
+    <h3>Failure Mode Distribution</h3>
+    <p>Each cell shows the number of fixture-runs where the failure mode was observed. Darker shading indicates higher occurrence.</p>
+    <div class="table-wrap">
+      <table id="fm-heatmap" aria-label="Failure mode occurrence heatmap across models">
+        <thead>
+          <tr>
+            <th style="text-align:left; min-width:200px;">Failure Mode</th>
+            {% for model in failure_mode_data.models %}
+            <th style="font-size:0.72rem;" data-model-mode="{{ failure_mode_data.model_modes[loop.index0] }}">{{ labels.model_label(model) }}{% if failure_mode_data.model_modes[loop.index0] != 'plugin' %}<br>{{ labels.no_plugin_pill() }}{% endif %}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for mode_idx in range(failure_mode_data.modes | length) %}
+          <tr>
+            <td style="text-align:left; font-weight:500; font-size:0.8rem;">{{ failure_mode_data.modes[mode_idx] }}</td>
+            {% for model_idx in range(failure_mode_data.models | length) %}
+            {% set count = failure_mode_data.counts[model_idx][mode_idx] %}
+            {% if count == 0 %}
+            <td class="fm-zero">-</td>
+            {% elif count <= 3 %}
+            <td class="fm-low">{{ count }}</td>
+            {% elif count <= 10 %}
+            <td class="fm-mid">{{ count }}</td>
+            {% else %}
+            <td class="fm-high">{{ count }}</td>
+            {% endif %}
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- FM-1: HIGH -->
+    <h3>FM-1 Declared-but-not-read <span class="badge badge-high">High Severity</span></h3>
+    <p><em>Definition: Model lists rules in its PRE-FLIGHT header that it never accessed via any tool call.</em></p>
+    {% set fm1_models = [] %}
+    {% for model_idx in range(failure_mode_data.models | length) %}
+      {% if failure_mode_data.counts[model_idx][0] > 0 %}
+        {% set _ = fm1_models.append(failure_mode_data.models[model_idx]) %}
+      {% endif %}
+    {% endfor %}
+    {% if fm1_models %}<p>{% for m in fm1_models %}<span class="badge badge-model">{{ m }}</span> {% endfor %}</p>{% endif %}
+    <p><strong>Impact:</strong> This is the highest-severity failure mode because it is <em>invisible without tool-trace auditing</em>. The PRE-FLIGHT header looks fully compliant. Only by inspecting the tool trace can the violation be detected. The model&rsquo;s output is indistinguishable from compliant output without ground-truth trace data.</p>
+    <p><strong>Mechanism:</strong> The model produces a correctly-formatted PRE-FLIGHT block citing multiple rules, but the tool trace shows no corresponding <code>read_file</code> calls for those paths. The model is generating plausible citations from its parametric memory rather than from actual file reads.</p>
+
+    <!-- FM-2: MEDIUM -->
+    <h3>FM-2 Hallucinated Metadata <span class="badge badge-medium">Medium Severity</span></h3>
+    <p><em>Definition: Model declares specific line counts or version numbers in citations that don&rsquo;t match actual file properties.</em></p>
+    {% set fm2_models = [] %}
+    {% for model_idx in range(failure_mode_data.models | length) %}
+      {% if failure_mode_data.counts[model_idx][1] > 0 %}
+        {% set _ = fm2_models.append(failure_mode_data.models[model_idx]) %}
+      {% endif %}
+    {% endfor %}
+    {% if fm2_models %}<p>{% for m in fm2_models %}<span class="badge badge-model">{{ m }}</span> {% endfor %}</p>{% endif %}
+    <p><strong>Impact:</strong> The citation-format compliance metric becomes untrustworthy. Metadata is always in the right ballpark but systematically off. This is a trust-erosion signal even when the underlying grounding (the read) is real.</p>
+
+    <!-- FM-3: MEDIUM -->
+    <h3>FM-3 Tool Substitution <span class="badge badge-medium">Medium Severity</span></h3>
+    <p><em>Definition: Model uses shell commands (bash) instead of the expected <code>read_file</code> tool to access rule content.</em></p>
+    {% set fm3_models = [] %}
+    {% for model_idx in range(failure_mode_data.models | length) %}
+      {% if failure_mode_data.counts[model_idx][2] > 0 %}
+        {% set _ = fm3_models.append(failure_mode_data.models[model_idx]) %}
+      {% endif %}
+    {% endfor %}
+    {% if fm3_models %}<p>{% for m in fm3_models %}<span class="badge badge-model">{{ m }}</span> {% endfor %}</p>{% endif %}
+    <p><strong>Impact:</strong> Creates a measurement challenge. The model may have genuinely loaded rule content via alternative tool paths (<code>bash cat</code>, <code>head</code>, <code>grep</code>), but the eval harness&rsquo;s primary detection hooks <code>read_file</code> calls. Depending on harness coverage of bash-based reads, this may produce false negatives in compliance measurement.</p>
+
+    <!-- FM-4: MEDIUM -->
+    <h3>FM-4 Under-Matching <span class="badge badge-medium">Medium Severity</span></h3>
+    <p><em>Definition: Model fails to discover and load rules that keyword or file-extension triggers should have surfaced.</em></p>
+    {% set fm4_models = [] %}
+    {% for model_idx in range(failure_mode_data.models | length) %}
+      {% if failure_mode_data.counts[model_idx][3] > 0 %}
+        {% set _ = fm4_models.append(failure_mode_data.models[model_idx]) %}
+      {% endif %}
+    {% endfor %}
+    {% if fm4_models %}<p>{% for m in fm4_models %}<span class="badge badge-model">{{ m }}</span> {% endfor %}</p>{% endif %}
+    <p><strong>Impact:</strong> File-extension triggers and abbreviated keywords are particularly prone to being missed. The response uses parametric memory instead of current rule content, missing potentially updated guidance.</p>
+
+    <!-- FM-5: MEDIUM -->
+    <h3>FM-5 Stochastic Instability <span class="badge badge-medium">Medium Severity</span></h3>
+    <p><em>Definition: Same model, same fixture, same prompt, same temperature; produces different compliance outcomes across runs.</em></p>
+    {% set fm5_models = [] %}
+    {% for model_idx in range(failure_mode_data.models | length) %}
+      {% if failure_mode_data.counts[model_idx][4] > 0 %}
+        {% set _ = fm5_models.append(failure_mode_data.models[model_idx]) %}
+      {% endif %}
+    {% endfor %}
+    {% if fm5_models %}<p>{% for m in fm5_models %}<span class="badge badge-model">{{ m }}</span> {% endfor %}</p>{% endif %}
+    <p><strong>Impact:</strong> Protocol compliance is a distribution, not a binary. Multiple runs per fixture are essential; a single run would have rated some models anywhere from 70% to 95% depending on sampling luck. This failure mode is why the benchmark uses {{ results[0].runs if results else 5 }} runs per fixture.</p>
+
+    <!-- FM-6: LOW -->
+    <h3>FM-6 Over-Eager Loading <span class="badge badge-low">Low Severity</span></h3>
+    <p><em>Definition: Model loads significantly more rules than the fixture&rsquo;s keyword triggers require.</em></p>
+    {% set fm6_models = [] %}
+    {% for model_idx in range(failure_mode_data.models | length) %}
+      {% if failure_mode_data.counts[model_idx][5] > 0 %}
+        {% set _ = fm6_models.append(failure_mode_data.models[model_idx]) %}
+      {% endif %}
+    {% endfor %}
+    {% if fm6_models %}<p>{% for m in fm6_models %}<span class="badge badge-model">{{ m }}</span> {% endfor %}</p>{% endif %}
+    <p><strong>Impact:</strong> Low severity. The protocol permits loading more than the minimum. Context window is consumed by marginally-relevant rules, increasing cost without improving correctness. Not a trust issue: the model is being thorough, not deceptive.</p>
+
+    <!-- FM-7: LOW -->
+    <h3>FM-7 Protocol Shape Divergence <span class="badge badge-low">Low Severity</span></h3>
+    <p><em>Definition: Models emit structurally different PRE-FLIGHT header formats despite identical format specifications.</em></p>
+    {% set fm7_models = [] %}
+    {% for model_idx in range(failure_mode_data.models | length) %}
+      {% if failure_mode_data.counts[model_idx][6] > 0 %}
+        {% set _ = fm7_models.append(failure_mode_data.models[model_idx]) %}
+      {% endif %}
+    {% endfor %}
+    {% if fm7_models %}<p>{% for m in fm7_models %}<span class="badge badge-model">{{ m }}</span> {% endfor %}</p>{% endif %}
+    <p><strong>Impact:</strong> Low severity for trust, but creates eval-engineering challenges. Automated parsing requires permissive regex patterns or per-model heuristics when citation formats deviate from the specified shape.</p>
+
+    <h3>Failure Mode Co-occurrence</h3>
+    <ul>
+      <li><strong>FM-1 + FM-5:</strong> Declared-but-not-read manifests stochastically: models that fabricate citations do so inconsistently.</li>
+      <li><strong>FM-3 + FM-7:</strong> Tool substitution naturally leads to protocol shape divergence (different tool paths produce different output patterns).</li>
+      <li><strong>FM-4 + FM-6:</strong> Under-matching and over-eager loading are opposite poles of the same calibration challenge.</li>
+      <li><strong>FM-2 is typically isolated:</strong> Models that read rules correctly but fabricate metadata show a different failure mechanism than those that skip reading entirely.</li>
+    </ul>
+
+    <div class="callout callout-danger">
+      <strong>The Invisible Failure</strong>
+      <p>Of all seven modes, only FM-1 (declared-but-not-read) is completely invisible in the model&rsquo;s output text. All other modes leave detectable signals in the response itself. But FM-1 produces output that is <em>indistinguishable from compliant output</em> without inspecting the tool trace. This is why tool-call auditing is the only reliable ground truth for compliance verification.</p>
+    </div>
+
+    <h3>Severity Summary</h3>
+    <div class="table-wrap">
+      <table aria-label="Failure mode severity summary">
+        <thead>
+          <tr>
+            <th style="text-align:left">Mode</th>
+            <th style="text-align:left">Name</th>
+            <th>Severity</th>
+            <th style="text-align:left">Primary Risk</th>
+            <th style="text-align:left">Detectable Without Trace?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td style="text-align:left">FM-1</td><td style="text-align:left">Declared-but-not-read</td><td><span class="badge badge-high">High</span></td><td style="text-align:left">False grounding</td><td style="text-align:left">No</td></tr>
+          <tr><td style="text-align:left">FM-2</td><td style="text-align:left">Hallucinated Metadata</td><td><span class="badge badge-medium">Medium</span></td><td style="text-align:left">Trust erosion</td><td style="text-align:left">Yes (verify counts)</td></tr>
+          <tr><td style="text-align:left">FM-3</td><td style="text-align:left">Tool Substitution</td><td><span class="badge badge-medium">Medium</span></td><td style="text-align:left">Measurement gap</td><td style="text-align:left">Partially (bash in trace)</td></tr>
+          <tr><td style="text-align:left">FM-4</td><td style="text-align:left">Under-Matching</td><td><span class="badge badge-medium">Medium</span></td><td style="text-align:left">Missing guidance</td><td style="text-align:left">Yes (compare to expected)</td></tr>
+          <tr><td style="text-align:left">FM-5</td><td style="text-align:left">Stochastic Instability</td><td><span class="badge badge-medium">Medium</span></td><td style="text-align:left">Unreliable compliance</td><td style="text-align:left">Only via multiple runs</td></tr>
+          <tr><td style="text-align:left">FM-6</td><td style="text-align:left">Over-Eager Loading</td><td><span class="badge badge-low">Low</span></td><td style="text-align:left">Token waste</td><td style="text-align:left">Yes (count citations)</td></tr>
+          <tr><td style="text-align:left">FM-7</td><td style="text-align:left">Protocol Shape Divergence</td><td><span class="badge badge-low">Low</span></td><td style="text-align:left">Parse brittleness</td><td style="text-align:left">Yes (format check)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>

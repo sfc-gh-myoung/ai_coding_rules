@@ -1,11 +1,11 @@
 """Tests for the ai-rules new command.
-
-Validates that the CLI command creates v3.2 schema compliant rule templates.
+Validates that the CLI command creates v4.0 schema compliant rule templates.
 """
 
 from pathlib import Path
 
 import pytest
+import yaml
 from typer.testing import CliRunner
 
 from ai_rules.cli import app
@@ -19,7 +19,6 @@ class TestNewCommandHelp:
     def test_help_output(self):
         """Test --help output shows correct information."""
         result = runner.invoke(app, ["new", "--help"])
-
         assert result.exit_code == 0
         assert "Create a new rule file" in result.output
         assert "--output-dir" in result.output
@@ -34,40 +33,43 @@ class TestNewCommandHappyPath:
     def test_create_basic_rule_file(self, tmp_path: Path):
         """Test creating a basic rule file."""
         result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
-
         assert result.exit_code == 0
-
         # Verify file created
         output_path = tmp_path / "100-test-rule.md"
         assert output_path.exists()
-
         # Verify content
         content = output_path.read_text()
         assert "# 100-test-rule" in content
-        assert "## Metadata" in content
-        assert "**SchemaVersion:** v3.2" in content
-        assert "**ContextTier:** Medium" in content  # Default tier
+        assert "schema_version: v4.0" in content
+
+        assert "context_tier: Medium" in content  # Default tier
+        # v4.0 required sections (YAML frontmatter + Markdown body)
+        assert "## Scope" in content
+        assert "**What This Rule Covers:**" in content
+        assert "**When to Load This Rule:**" in content
+        assert "## References" in content
+        assert "depends:" in content
+        assert (
+            content.index("## Scope")
+            < content.index("## Contract")
+            < content.index("## References")
+        )
 
     def test_create_rule_with_letter_suffix(self, tmp_path: Path):
         """Test creating a rule file with letter suffix (e.g., 111a-example)."""
         result = runner.invoke(
             app, ["new", "111a-snowflake-feature", "--output-dir", str(tmp_path)]
         )
-
         assert result.exit_code == 0
-
         output_path = tmp_path / "111a-snowflake-feature.md"
         assert output_path.exists()
-
         content = output_path.read_text()
         assert "# 111a-snowflake-feature" in content
 
     def test_create_rule_with_md_extension(self, tmp_path: Path):
         """Test creating a rule file when filename includes .md extension."""
         result = runner.invoke(app, ["new", "100-test-rule.md", "--output-dir", str(tmp_path)])
-
         assert result.exit_code == 0
-
         # Should not double the extension
         output_path = tmp_path / "100-test-rule.md"
         assert output_path.exists()
@@ -84,11 +86,9 @@ class TestNewCommandContextTier:
             app,
             ["new", "200-test-rule", "--output-dir", str(tmp_path), "--context-tier", tier],
         )
-
         assert result.exit_code == 0
-
         content = (tmp_path / "200-test-rule.md").read_text()
-        assert f"**ContextTier:** {tier}" in content
+        assert f"context_tier: {tier}" in content
 
     def test_invalid_context_tier_error(self, tmp_path: Path):
         """Test error with invalid context tier."""
@@ -103,7 +103,6 @@ class TestNewCommandContextTier:
                 "InvalidTier",
             ],
         )
-
         assert result.exit_code == 1
         assert "Invalid context tier" in result.output or "invalid" in result.output.lower()
 
@@ -118,11 +117,11 @@ class TestNewCommandKeywords:
             app,
             ["new", "300-test-rule", "--output-dir", str(tmp_path), "--keywords", custom_keywords],
         )
-
         assert result.exit_code == 0
-
         content = (tmp_path / "300-test-rule.md").read_text()
-        assert custom_keywords in content
+        # Keywords formatted as YAML list with kw: prefix - check each term
+        for kw in [k.strip() for k in custom_keywords.split(",")]:
+            assert "kw:" + kw in content
 
     def test_invalid_keyword_count_too_few(self, tmp_path: Path):
         """Test error with too few keywords."""
@@ -131,7 +130,6 @@ class TestNewCommandKeywords:
             app,
             ["new", "100-test-rule", "--output-dir", str(tmp_path), "--keywords", too_few_keywords],
         )
-
         assert result.exit_code == 1
         assert "5-20" in result.output or "Keywords must contain" in result.output
 
@@ -149,7 +147,6 @@ class TestNewCommandKeywords:
                 too_many_keywords,
             ],
         )
-
         assert result.exit_code == 1
         assert "5-20" in result.output or "Keywords must contain" in result.output
 
@@ -162,9 +159,7 @@ class TestNewCommandForce:
         # Create file first time
         result1 = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
         assert result1.exit_code == 0
-
         first_content = (tmp_path / "100-test-rule.md").read_text()
-
         # Overwrite with different tier using --force
         result2 = runner.invoke(
             app,
@@ -179,21 +174,17 @@ class TestNewCommandForce:
             ],
         )
         assert result2.exit_code == 0
-
         second_content = (tmp_path / "100-test-rule.md").read_text()
-
         assert first_content != second_content
-        assert "**ContextTier:** Critical" in second_content
+        assert "context_tier: Critical" in second_content
 
     def test_file_exists_error_without_force(self, tmp_path: Path):
         """Test error when file exists without --force."""
         # Create file first time
         result1 = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
         assert result1.exit_code == 0
-
         # Try to create again without --force
         result2 = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
-
         assert result2.exit_code == 1
         assert "already exists" in result2.output
 
@@ -204,21 +195,18 @@ class TestNewCommandErrors:
     def test_invalid_filename_no_number(self, tmp_path: Path):
         """Test error with invalid filename (no number prefix)."""
         result = runner.invoke(app, ["new", "invalid-filename", "--output-dir", str(tmp_path)])
-
         assert result.exit_code == 1
         assert "Invalid filename format" in result.output
 
     def test_invalid_filename_wrong_number_format(self, tmp_path: Path):
         """Test error with invalid filename (wrong number format)."""
         result = runner.invoke(app, ["new", "1-snowflake-sql", "--output-dir", str(tmp_path)])
-
         assert result.exit_code == 1
         assert "Invalid filename format" in result.output
 
     def test_invalid_filename_uppercase(self, tmp_path: Path):
         """Test error with invalid filename (uppercase letters)."""
         result = runner.invoke(app, ["new", "100-Snowflake-SQL", "--output-dir", str(tmp_path)])
-
         assert result.exit_code == 1
         assert "Invalid filename format" in result.output
 
@@ -230,7 +218,6 @@ class TestNewCommandOutputDirectory:
         """Test that nested output directories are created."""
         nested_dir = tmp_path / "custom" / "nested" / "path"
         result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(nested_dir)])
-
         assert result.exit_code == 0
         assert nested_dir.exists()
         assert (nested_dir / "100-test-rule.md").exists()
@@ -238,7 +225,6 @@ class TestNewCommandOutputDirectory:
     def test_default_output_dir_message(self, tmp_path: Path):
         """Test that success message shows correct output path."""
         result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
-
         assert result.exit_code == 0
         # The path may be wrapped by Rich console, so check for filename
         assert "100-test-rule.md" in result.output
@@ -250,7 +236,6 @@ class TestNewCommandOutput:
     def test_success_output_contains_next_steps(self, tmp_path: Path):
         """Test that success output contains next steps."""
         result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
-
         assert result.exit_code == 0
         assert "Next steps" in result.output
         assert "Validate" in result.output or "validate" in result.output
@@ -258,7 +243,6 @@ class TestNewCommandOutput:
     def test_success_output_shows_summary(self, tmp_path: Path):
         """Test that success output shows summary panel."""
         result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
-
         assert result.exit_code == 0
         # Check for key summary elements
         assert "100-test-rule" in result.output
@@ -269,63 +253,78 @@ class TestNewCommandTemplateContent:
     """Test generated template content."""
 
     def test_template_has_required_sections(self, tmp_path: Path):
-        """Test that generated template has all required v3.2 sections."""
+        """Test that generated template has all required v4.0 sections."""
         result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
-
         assert result.exit_code == 0
-
         content = (tmp_path / "100-test-rule.md").read_text()
-
         required_sections = [
-            "## Metadata",
+            "schema_version: v4.0",
             "## Scope",
             "## References",
             "## Contract",
-            "## Anti-Patterns and Common Mistakes",
         ]
-
         for section in required_sections:
             assert section in content, f"Missing required section: {section}"
 
     def test_template_has_contract_subsections(self, tmp_path: Path):
         """Test that Contract section has all required subsections."""
         result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
-
         assert result.exit_code == 0
-
         content = (tmp_path / "100-test-rule.md").read_text()
-
         contract_subsections = [
             "### Inputs and Prerequisites",
             "### Mandatory",
-            "### Forbidden",
             "### Execution Steps",
-            "### Output Format",
             "### Validation",
-            "### Post-Execution Checklist",
         ]
-
         for subsection in contract_subsections:
             assert subsection in content, f"Missing Contract subsection: {subsection}"
 
     def test_template_keyword_count(self, tmp_path: Path):
-        """Test that auto-generated keywords meet 5-20 count requirement."""
-        import re
-
+        """Test that auto-generated keywords meet the schema count requirement."""
         result = runner.invoke(app, ["new", "200-test-keywords", "--output-dir", str(tmp_path)])
-
         assert result.exit_code == 0
-
         content = (tmp_path / "200-test-keywords.md").read_text()
+        metadata = yaml.safe_load(content.split("---", 2)[1])
+        assert 5 <= len(metadata["keywords"]) <= 11
 
-        # Extract keywords line
-        keywords_match = re.search(r"\*\*Keywords:\*\*\s+(.+)", content)
-        assert keywords_match
+    def test_template_omits_optional_padding(self, tmp_path: Path):
+        result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
+        assert result.exit_code == 0
+        content = (tmp_path / "100-test-rule.md").read_text()
+        for heading in (
+            "Post-Execution Checklist",
+            "Anti-Patterns",
+            "### Forbidden",
+            "### Output Format",
+        ):
+            assert heading not in content
+        contract = content.split("## Contract\n", 1)[1].split("## References\n", 1)[0]
+        sections = contract.split("### ")[1:]
+        assert len(sections) == 4
+        assert all(section.partition("\n")[2].strip() for section in sections)
 
-        keywords = keywords_match.group(1)
-        keyword_list = [kw.strip() for kw in keywords.split(",")]
+    def test_generated_template_passes_active_validator(self, tmp_path: Path):
+        result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
+        assert result.exit_code == 0
+        validation = runner.invoke(app, ["validate", str(tmp_path / "100-test-rule.md")])
+        assert validation.exit_code == 0, validation.output
 
-        assert 5 <= len(keyword_list) <= 20
+    @pytest.mark.parametrize("count", [11, 12])
+    def test_custom_keyword_upper_boundary(self, tmp_path: Path, count: int):
+        keywords = ", ".join(f"keyword{index}" for index in range(count))
+        result = runner.invoke(
+            app, ["new", "100-test-rule", "--output-dir", str(tmp_path), "--keywords", keywords]
+        )
+        assert result.exit_code == (0 if count == 11 else 1)
+        assert (tmp_path / "100-test-rule.md").exists() == (count == 11)
+
+    def test_long_slug_keyword_count(self, tmp_path: Path):
+        filename = "100-one-two-three-four-five-six-seven-eight-nine-ten-eleven-twelve"
+        result = runner.invoke(app, ["new", filename, "--output-dir", str(tmp_path)])
+        assert result.exit_code == 0
+        content = (tmp_path / f"{filename}.md").read_text()
+        assert len(yaml.safe_load(content.split("---", 2)[1])["keywords"]) == 11
 
 
 class TestTemplateGeneratorDirect:
@@ -351,7 +350,6 @@ class TestTemplateGeneratorDirect:
             "RANGE_KEYWORDS",
             {(0, 99): "core"},
         )
-
         keywords = TemplateGenerator.get_default_keywords(50, "x")
         keyword_list = [kw.strip() for kw in keywords.split(",")]
         assert len(keyword_list) >= 5
@@ -382,6 +380,13 @@ class TestTemplateGeneratorDirect:
         assert "Created rule template" in msg
         assert "Next steps" in msg
         assert "100-test-rule.md" in msg
+        # Every step must interpolate the path, not print a literal placeholder.
+        # A missing f-prefix previously leaked "{output_path}" into step 3.
+        assert "{output_path}" not in msg
+        assert msg.count("100-test-rule.md") == 4  # header + 3 steps
+        # The recommended commands must be ones the CLI actually exposes.
+        assert "ai-rules validate" in msg
+        assert "ai-rules rule-loader keywords run" in msg
 
     def test_format_error_message(self):
         """Test format_error_message returns expected content."""
@@ -399,7 +404,6 @@ class TestNewCLIEdgeCases:
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ):
         """Test that ValueError during summary parse_rule_filename falls back gracefully.
-
         Lines 510-511: When create_rule_file succeeds but the summary
         parse_rule_filename call raises ValueError, it falls back to
         'auto-generated' keywords.
@@ -419,13 +423,11 @@ class TestNewCLIEdgeCases:
             return original_parse(filename)
 
         monkeypatch.setattr(TemplateGenerator, "parse_rule_filename", patched_parse)
-
         result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
         assert result.exit_code == 0
 
     def test_unexpected_exception_handler(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         """Test that unexpected exceptions are caught and exit with code 1.
-
         Lines 535-537: generic Exception handler in new() CLI function.
         """
         from ai_rules.commands.new import TemplateGenerator
@@ -435,7 +437,6 @@ class TestNewCLIEdgeCases:
             "create_rule_file",
             staticmethod(lambda **kwargs: (_ for _ in ()).throw(RuntimeError("disk on fire"))),
         )
-
         result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
         assert result.exit_code == 1
         assert "Unexpected error" in result.output or "disk on fire" in result.output

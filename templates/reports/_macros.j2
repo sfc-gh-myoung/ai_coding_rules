@@ -1,0 +1,12 @@
+{#- Shared label helpers for the compliance report templates. -#}
+
+{#- Single source of truth for the no-plugin badge markup. -#}
+{%- macro no_plugin_pill(inline=false) -%}
+<span style="background:light-dark(#FEF3C7,#451A03); color:light-dark(#92400E,#FCD34D); padding:0.1rem 0.4rem; border-radius:3px; font-size:0.7rem; font-weight:600;{% if inline %} margin-left:0.4rem;{% endif %}">no-plugin</span>
+{%- endmacro -%}
+
+{#- Strips the ` [no-plugin]` / `*` mode suffix so the pill is the only marker. -#}
+{%- macro model_label(name, abbreviate=false) -%}
+{%- set base = name | replace(' [no-plugin]', '') -%}
+{{- base | replace('claude-', '') | replace('openai-', '') if abbreviate else base -}}
+{%- endmacro -%}

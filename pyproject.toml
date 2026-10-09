@@ -3,11 +3,11 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/agent_eval", "src/ai_rules"]
+packages = ["src/ai_rules"]
 
 [project]
 name = "ai_coding_rules"
-version = "3.7.3"
+version = "4.0.0"
 description = "Production-ready AI coding rules for consistent, reliable software engineering across LLMs and IDEs"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE" }
@@ -20,14 +20,14 @@ keywords = [
     "snowflake", "python", "data-engineering", "cursor", "copilot"
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Environment :: Console",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Quality Assurance",
     "Topic :: Software Development :: Documentation",
     "Topic :: Text Processing :: Markup :: Markdown",
@@ -39,24 +39,33 @@ dependencies = [
     "typer>=0.17.0",
     "rich>=14.0.0",
     "tiktoken>=0.12.0",  # Token counting for GPT models
-    "requests>=2.32.0",  # HTTP client for Cortex REST API
+    "requests>=2.32.0",  # HTTP client for Cortex REST API fallback transport
+    "snowflake-connector-python>=3.12.0",  # AI_COMPLETE transport + connections.toml resolution
+    "jinja2>=3.0",  # HTML/Markdown report templating
+    "ruamel-yaml>=0.18",
+    "filelock>=3.13.0",  # Cross-platform file locking for concurrent cache writes
 ]
 
-[project.optional-dependencies]
-agent-eval = [
-    "requests>=2.32.5",
-]
 [dependency-groups]
 dev = [
     "ruff>=0.15.1",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
-    "ty>=0.0.17",
+    "ty==0.0.35",
+    "pre-commit>=4.0",
+    "pymarkdownlnt>=0.9.0",
+    "jsonschema>=4.26.0",  # validate matcher output against its published schema
+    "check-jsonschema==0.37.0",
+]
+# Optional group: live-agent path for the Rule Loading Evaluator.
+# CI does not install this group; only `ai-rules rule-loader doctor`,
+# `eval`, and `refresh` need the SDK at runtime.
+live-agent = [
+    "cortex-code-agent-sdk>=1.0.6",
 ]
 
 [project.scripts]
 ai-rules = "ai_rules.cli:app"
-agent-eval = "agent_eval.cli:app"
 
 [project.urls]
 Homepage = "https://github.com/sfc-gh-myoung/ai_coding_rules"
@@ -68,8 +77,15 @@ Documentation = "https://github.com/sfc-gh-myoung/ai_coding_rules/blob/main/READ
 package = true
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 line-length = 100
+# The vendored matcher is a byte-identical generated copy of
+# src/ai_rules/match_rules.py (asserted by the CI fidelity gate). Linting it
+# separately would strip noqa directives that the source legitimately needs
+# under its own (non-skills) rule set, breaking the byte-for-byte contract.
+extend-exclude = ["out/", "skills/rule-loader/scripts/match_rules.py"]
+# Honor excludes even when files are passed explicitly (pre-commit, editors).
+force-exclude = true
 
 [tool.ruff.lint]
 select = [
@@ -95,6 +111,13 @@ ignore = [
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417", "SIM117", "F841", "RUF043", "RUF059", "RUF005"]
+"scripts/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
+"skills/**/tests/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
+"skills/**/scripts/**" = ["D100", "D101", "D102", "D103", "D104", "D105", "D107", "D205", "D301", "D417"]
+"src/ai_rules/plugin/**" = ["D101", "D102"]
+
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
@@ -108,18 +131,21 @@ markers = [
     "unit: fast, hermetic unit tests",
     "integration: tests requiring multiple components or file I/O",
     "slow: long-running tests involving subprocesses or network",
+    "live: tests requiring live Cortex Code Agent SDK (gated by RUN_LIVE_AGENT=1)",
+    "characterization: narrow tests against real on-disk artifacts (read-only)",
 ]
 addopts = [
     "--strict-markers",
     "--strict-config",
     "-v",
+    "-m", "not live",  # live tests require RUN_LIVE_AGENT=1; never auto-run
 ]
 filterwarnings = [
     "ignore:This script is deprecated:DeprecationWarning",
 ]
 
 [tool.coverage.run]
-source = ["src/agent_eval", "src/ai_rules"]
+source = ["src/ai_rules"]
 omit = [
     "tests/*",
     ".venv/*",
@@ -141,6 +167,15 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
+# Enforced by the `coverage` job in .github/workflows/ci.yml.
+#
+# Set to 87 against a measured 88.01 so the gate is real and green from the day
+# it is wired, with one point of headroom for normal noise. This is a ratchet:
+# raise it as coverage rises, never lower it to accommodate a regression.
+#
+# Was 92 while nothing passed --cov, so it enforced nothing -- a gate that
+# cannot fail is worse than no gate, because it reads as protection.
+fail_under = 87
 
 [[tool.ty.overrides]]
 include = ["tests/**"]
@@ -148,6 +183,12 @@ include = ["tests/**"]
 invalid-argument-type = "ignore"  # LiteralString vs str in test fixtures
 invalid-assignment = "ignore"  # list[LiteralString] vs list[str] in test fixtures
 
-[tool.rule_deployer]
-exclude_skills = [
-]
+[[tool.ty.overrides]]
+# Cortex Code Agent SDK is preview software with an evolving API. The
+# live-agent path imports it lazily and gracefully falls back when absent
+# or when the API doesn't match the pin. CI never touches this code path,
+# so silence type diagnostics here rather than churn against preview stubs.
+include = ["src/ai_rules/rule_loader_eval/agent_runner.py"]
+[tool.ty.overrides.rules]
+unresolved-import = "ignore"
+invalid-argument-type = "ignore"

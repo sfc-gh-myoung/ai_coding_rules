@@ -2,7 +2,7 @@
 
 ## Overview
 
-This workflow handles interactive parameter collection when the user invokes the rule-reviewer skill without providing all required parameters. It uses the `ask_user_question` tool when available for better UX.
+This workflow defines the rule-reviewer-specific question sets. The shared collection rules — detection flow, batched **max-4** per call, no silent defaults, text-based fallback — are the single source of truth in [`../../shared/reviewer-contract.md`](../../shared/reviewer-contract.md#parameter-collection). This file does not restate them.
 
 ---
 
@@ -50,19 +50,9 @@ target_question = {
     "question": "Which rule file do you want to review?",
     "multiSelect": False,
     "options": [
-        {
-            "label": "rules/*.md",
-            "description": "Select a specific rule file"
-        },
-        {
-            "label": "AGENTS.md",
-            "description": "Review the AGENTS.md bootstrap file"
-        },
-        {
-            "label": "PROJECT.md",
-            "description": "Review the PROJECT.md configuration"
-        }
-    ]
+        {"label": "rules/*.md", "description": "Select a specific rule file"},
+        {"label": "PROJECT.md", "description": "Review the PROJECT.md configuration"},
+    ],
 }
 # Note: User can select "Something else" to specify custom path
 ```
@@ -75,19 +65,10 @@ mode_question = {
     "question": "Which review mode do you want to use?",
     "multiSelect": False,
     "options": [
-        {
-            "label": "FULL",
-            "description": "Complete review of all 6 scored dimensions (default)"
-        },
-        {
-            "label": "FOCUSED",
-            "description": "Review Actionability + Completeness only"
-        },
-        {
-            "label": "STALENESS",
-            "description": "Quick check for outdated content"
-        }
-    ]
+        {"label": "FULL", "description": "Complete review of all 6 scored dimensions (default)"},
+        {"label": "FOCUSED", "description": "Review Actionability + Completeness only"},
+        {"label": "STALENESS", "description": "Quick check for outdated content"},
+    ],
 }
 ```
 
@@ -103,26 +84,35 @@ optional_questions = [
         "multiSelect": False,
         "options": [
             {"label": "parallel", "description": "Use 5 sub-agents (faster, default)"},
-            {"label": "sequential", "description": "Single-agent (for debugging)"}
-        ]
+            {"label": "sequential", "description": "Single-agent (for debugging)"},
+        ],
     },
     {
         "header": "Timing",
-        "question": "Enable execution timing? (default: Yes — timing is the universal default as of v2.9.0)",
+        "question": "Enable execution timing? (default: Yes - timing is the universal default as of v2.9.0)",
         "multiSelect": False,
         "options": [
-            {"label": "Yes", "description": "Record and embed execution duration + Per-Dimension Timing (default)"},
-            {"label": "No", "description": "Opt out; Gate 7 satisfied by single `not-requested` row"}
-        ]
+            {
+                "label": "Yes",
+                "description": "Record and embed execution duration + Per-Dimension Timing (default)",
+            },
+            {
+                "label": "No",
+                "description": "Opt out; Gate 7 satisfied by single `not-requested` row",
+            },
+        ],
     },
     {
         "header": "Overwrite",
         "question": "Overwrite existing review file if present?",
         "multiSelect": False,
         "options": [
-            {"label": "No", "description": "Use sequential numbering (-01, -02, etc.) if file exists (default)"},
-            {"label": "Yes", "description": "Replace existing file"}
-        ]
+            {
+                "label": "No",
+                "description": "Use sequential numbering (-01, -02, etc.) if file exists (default)",
+            },
+            {"label": "Yes", "description": "Replace existing file"},
+        ],
     },
     {
         "header": "Output Dir",
@@ -130,9 +120,9 @@ optional_questions = [
         "multiSelect": False,
         "options": [
             {"label": "reviews/", "description": "Default output directory"},
-            {"label": "../reviews/", "description": "Parent directory"}
-        ]
-    }
+            {"label": "../reviews/", "description": "Parent directory"},
+        ],
+    },
 ]
 ```
 
@@ -140,7 +130,7 @@ optional_questions = [
 
 ## Implementation Note
 
-Use `ask_user_question` with the Question Sets above, batching max 5 questions per call:
+Use `ask_user_question` with the Question Sets above, batching max 4 questions per call:
 - **Batch 1:** Target File, Mode, Execution, Timing
 - **Batch 2:** Overwrite, Output Dir
 
@@ -164,7 +154,7 @@ If `ask_user_question` is unavailable, prompt for each parameter as text, listin
 User: review rule
 
 System: [ask_user_question tool - Batch 1]
-  - Target File? [rules/*.md / AGENTS.md / PROJECT.md / Something else]
+  - Target File? [rules/*.md / PROJECT.md / Something else]
   - Mode? [FULL / FOCUSED / STALENESS]
   - Execution? [parallel / sequential]
   - Timing? [No / Yes]

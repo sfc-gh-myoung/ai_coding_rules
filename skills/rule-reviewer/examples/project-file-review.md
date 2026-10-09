@@ -1,6 +1,6 @@
 # Example: Project File Review
 
-## Reviewing AGENTS.md or PROJECT.md
+## Reviewing PROJECT.md
 
 ```text
 Use the rule-reviewer skill.
@@ -8,12 +8,12 @@ Use the rule-reviewer skill.
 target_file: PROJECT.md
 review_date: 2026-01-15
 review_mode: FULL
-model: claude-sonnet-45
+model: claude-sonnet-4-6
 ```
 
 Expected output file:
 
-`reviews/rule-reviews/PROJECT-claude-sonnet-45-2026-01-15.md`
+`reviews/rule-reviews/PROJECT-claude-sonnet-4-6-2026-01-15.md`
 
 ---
 
@@ -25,7 +25,7 @@ Expected output file:
 # Agent detects project file automatically
 target_basename=$(basename "PROJECT.md")
 
-if [[ "$target_basename" =~ ^(AGENTS|PROJECT)\.md$ ]]; then
+if [[ "$target_basename" =~ ^PROJECT\.md$ ]]; then
     FILE_TYPE="project"
     SKIP_SCHEMA=true
 fi
@@ -128,7 +128,7 @@ echo "Schema validation skipped for project file"
 
 **Rule:** PROJECT.md  
 **File Type:** Project Configuration  
-**Reviewer:** claude-sonnet-45  
+**Reviewer:** claude-sonnet-4-6
 **Review Date:** 2026-01-15  
 **Review Mode:** FULL  
 **Max Score:** 100 points
@@ -147,7 +147,7 @@ echo "Schema validation skipped for project file"
 | **Cross-Agent** | 9/10 | ×0.5 | 4.5 | 5 |
 | **TOTAL** | - | - | **82.5** | **100** |
 
-**Overall Verdict:** EXECUTABLE_WITH_REFINEMENTS (75-89)
+**Overall Verdict:** EXECUTABLE_WITH_REFINEMENTS (80-89)
 
 **Note:** PROJECT.md is a project configuration file. Schema validation skipped. Token Efficiency and Staleness tracked as informational only (not scored).
 
@@ -224,7 +224,7 @@ echo "Schema validation skipped for project file"
 - Cross-agent consistency scoring
 - Rule Size scoring (line count)
 - Max score: 100 points
-- Verdict thresholds: 90-100 EXECUTABLE, 75-89 REFINEMENTS, 50-74 NEEDS_REFINEMENT, <50 NOT_EXECUTABLE
+- Verdict thresholds: 90-100 EXECUTABLE, 80-89 REFINEMENTS, 60-79 NEEDS_REFINEMENT, <60 NOT_EXECUTABLE
 - Review file size: 3000-8000 bytes
 
 ### What's Different

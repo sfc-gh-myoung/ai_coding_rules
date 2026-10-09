@@ -1,0 +1,32 @@
+schema_version: 3
+updated: '2026-07-20T13:00:00-04:00'
+id: complex-mixed-sql-py
+description: Python ingest loader + SQL transformation in a single analytics deploy
+variant: complex
+prompt: 'We''re standing up a new analytics product. What''s the recommended approach for
+
+  a Python loader at ingest/loader.py that reads from S3 and writes a raw
+
+  landing table, combined with a transformation in transforms/clean.sql that
+
+  produces a curated view with aggregate metrics? How should both steps be
+
+  coordinated in a single deploy?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/102-snowflake-sql-core.md
+  - rules/200-python-core.md
+  forbidden: []
+  optional:
+  - rules/100-snowflake-core.md
+trigger_evidence:
+  kw:
+  - sql
+  ext:
+  - .py
+  - .sql
+  file: []
+  dir: []

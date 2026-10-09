@@ -1,0 +1,233 @@
+{
+  "concurrency": 2,
+  "wall_seconds": 956.738,
+  "total": 28,
+  "succeeded": 28,
+  "failed": 0,
+  "outcomes": [
+    {
+      "id": "complex-cortex-search-build",
+      "safe_id": "complex-cortex-search-build",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/complex-cortex-search-build.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "complex-cost-investigation",
+      "safe_id": "complex-cost-investigation",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/complex-cost-investigation.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "complex-mixed-sql-py",
+      "safe_id": "complex-mixed-sql-py",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/complex-mixed-sql-py.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "complex-python-etl",
+      "safe_id": "complex-python-etl",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/complex-python-etl.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "complex-rule-governance",
+      "safe_id": "complex-rule-governance",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/complex-rule-governance.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "complex-skill-author",
+      "safe_id": "complex-skill-author",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/complex-skill-author.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "complex-skill-pipeline-dir",
+      "safe_id": "complex-skill-pipeline-dir",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/complex-skill-pipeline-dir.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "complex-snowcli-app-spec",
+      "safe_id": "complex-snowcli-app-spec",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/complex-snowcli-app-spec.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "complex-snowcli-config",
+      "safe_id": "complex-snowcli-config",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/complex-snowcli-config.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "complex-snowcli-deploy",
+      "safe_id": "complex-snowcli-deploy",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/complex-snowcli-deploy.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "complex-spcs-app",
+      "safe_id": "complex-spcs-app",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/complex-spcs-app.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "complex-sql-pipeline",
+      "safe_id": "complex-sql-pipeline",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/complex-sql-pipeline.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "complex-streamlit-deploy",
+      "safe_id": "complex-streamlit-deploy",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/complex-streamlit-deploy.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-cortex-search",
+      "safe_id": "simple-cortex-search",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-cortex-search.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-cost-governance",
+      "safe_id": "simple-cost-governance",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-cost-governance.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-mcp-server",
+      "safe_id": "simple-mcp-server",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-mcp-server.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-python-task",
+      "safe_id": "simple-python-task",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-python-task.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-rules-dir",
+      "safe_id": "simple-rules-dir",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-rules-dir.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-skill-add-dir",
+      "safe_id": "simple-skill-add-dir",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-skill-add-dir.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-skill-dir",
+      "safe_id": "simple-skill-dir",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-skill-dir.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-snowcli-app-file",
+      "safe_id": "simple-snowcli-app-file",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-snowcli-app-file.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-snowcli-deploy-file",
+      "safe_id": "simple-snowcli-deploy-file",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-snowcli-deploy-file.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-snowcli-file",
+      "safe_id": "simple-snowcli-file",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-snowcli-file.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-sql-edit",
+      "safe_id": "simple-sql-edit",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-sql-edit.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-sql-procedure",
+      "safe_id": "simple-sql-procedure",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-sql-procedure.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-streamlit-dashboard",
+      "safe_id": "simple-streamlit-dashboard",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-streamlit-dashboard.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-streams-tasks",
+      "safe_id": "simple-streams-tasks",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-streams-tasks.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    },
+    {
+      "id": "simple-warehouse",
+      "safe_id": "simple-warehouse",
+      "path": "/Users/myoung/Development/ai_coding_rules/fixtures/rule_loader_eval/simple-warehouse.yaml",
+      "succeeded": true,
+      "error_type": null,
+      "error_message": null
+    }
+  ]
+}

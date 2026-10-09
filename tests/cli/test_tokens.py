@@ -59,11 +59,11 @@ class TestTokensHelpOutput:
 
     @pytest.mark.unit
     def test_tokens_help_shows_path_argument(self):
-        """Test that --help shows PATH argument."""
+        """Test that --help shows path argument."""
         result = runner.invoke(app, ["tokens", "--help"])
 
         assert result.exit_code == 0
-        assert "PATH" in result.output
+        assert "path" in result.output.lower()
 
 
 class TestTokensSingleFile:
@@ -477,6 +477,88 @@ class TestTokenBudgetAnalysisDataclass:
 
 class TestTokenBudgetUpdaterUnit:
     """Unit tests for TokenBudgetUpdater class."""
+
+    @pytest.mark.parametrize("budget", ["~9000", "'~9000'", '"~9000"'])
+    @pytest.mark.parametrize("newline", ["\n", "\r\n"])
+    def test_frontmatter_update_preserves_other_bytes(
+        self, tmp_path: Path, budget: str, newline: str
+    ):
+        original = newline.join(
+            [
+                "---",
+                "description: 'Keep this quote' # note",
+                "keywords: [kw:test]",
+                f"token_budget: {budget} # preserve",
+                "depends: {}",
+                "---",
+                "# Test",
+                "**TokenBudget:** ~1234",
+                "Body stays unchanged.",
+                "",
+            ]
+        ).encode()
+        target = tmp_path / "100-test.md"
+        target.write_bytes(original)
+        updater = tokens.TokenBudgetUpdater()
+        analysis = updater.analyze_file(target)
+        assert analysis.current_budget == 9000
+        assert analysis.status != "MISSING"
+        assert updater.update_file(analysis)
+        expected = original.replace(b"~9000", f"~{analysis.suggested_budget}".encode(), 1)
+        assert target.read_bytes() == expected
+        updater.update_file(updater.analyze_file(target))
+        assert target.read_bytes() == expected
+
+    def test_frontmatter_missing_budget_inserts_inside_fence(self, tmp_path: Path):
+        original = b"---\nkeywords: [kw:test]\ncontext_tier: Low\n---\n# Body\n"
+        target = tmp_path / "100-test.md"
+        target.write_bytes(original)
+        updater = tokens.TokenBudgetUpdater()
+        analysis = updater.analyze_file(target)
+        assert analysis.current_budget is None
+        assert updater.update_file(analysis)
+        expected = original.replace(
+            b"---\n# Body", f"token_budget: ~{analysis.suggested_budget}\n---\n# Body".encode()
+        )
+        assert target.read_bytes() == expected
+
+    def test_frontmatter_dry_run_preserves_bytes(self, tmp_path: Path):
+        target = tmp_path / "100-test.md"
+        original = b"---\r\ntoken_budget: '~9000' # note\r\n---\r\n# Body\r\n"
+        target.write_bytes(original)
+        result = runner.invoke(app, ["tokens", str(target), "--dry-run"])
+        assert result.exit_code == 0
+        assert "Would update" in result.output
+        assert "MISSING" not in result.output
+        assert target.read_bytes() == original
+
+    @pytest.mark.parametrize(
+        "frontmatter",
+        [
+            "token_budget: [broken",
+            "{keywords: [kw:test]}",
+            "- not-a-mapping",
+            "token_budget: nope",
+            "token_budget: ~1\ntoken_budget: ~2",
+            "token_budget: &budget ~1",
+            "other: &budget ~1\ntoken_budget: *budget",
+        ],
+    )
+    def test_malformed_frontmatter_refuses_write(self, tmp_path: Path, frontmatter: str):
+        target = tmp_path / "100-test.md"
+        original = f"---\n{frontmatter}\n---\n# Body\n"
+        target.write_text(original)
+        updater = tokens.TokenBudgetUpdater()
+        analysis = updater.analyze_file(target)
+        assert analysis.status == "ERROR"
+        assert not updater.update_file(analysis)
+        assert target.read_text() == original
+
+    def test_unclosed_frontmatter_is_error(self, tmp_path: Path):
+        target = tmp_path / "100-test.md"
+        target.write_text("---\ntoken_budget: ~500\n")
+        analysis = tokens.TokenBudgetUpdater().analyze_file(target)
+        assert analysis.error == "Unclosed YAML frontmatter"
 
     @pytest.mark.unit
     def test_round_to_increment(self):
@@ -988,3 +1070,117 @@ class TestTokensCLIBranches:
             result = runner.invoke(app, ["tokens", str(weird_path)])
 
         assert result.exit_code == 1
+
+
+@pytest.fixture
+def estimate_repo(tmp_path: Path) -> Path:
+    """Build a minimal repo skeleton for --context-estimate tests."""
+    (tmp_path / "templates").mkdir()
+    rules = tmp_path / "rules"
+    rules.mkdir()
+    (rules / "000-global-core.md").write_text("# core\n" + ("core line\n" * 15))
+    skills = tmp_path / "skills" / "rule-loader"
+    skills.mkdir(parents=True)
+    (skills / "SKILL.md").write_text("# skill\n" + ("skill line\n" * 10))
+    (rules / "100-snowflake-core.md").write_text("# sql\n" + ("sql line\n" * 30))
+    return tmp_path
+
+
+class TestContextEstimate:
+    """Tests for `ai-rules tokens --context-estimate` (R4)."""
+
+    @pytest.mark.unit
+    def test_help_shows_context_estimate_option(self):
+        """--help lists the new --context-estimate option."""
+        result = runner.invoke(app, ["tokens", "--help"])
+
+        assert result.exit_code == 0
+        assert "--context-estimate" in result.output
+
+    @pytest.mark.unit
+    def test_under_ceiling_exits_zero_and_prints_total(self, estimate_repo: Path):
+        """A selected rule under the ceiling prints a TOTAL and exits 0."""
+        result = runner.invoke(
+            app,
+            [
+                "tokens",
+                str(estimate_repo),
+                "--context-estimate",
+                "--selected",
+                "100-snowflake-core.md",
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert "TOTAL" in result.output
+        assert "within budget" in result.output
+
+    @pytest.mark.unit
+    def test_over_ceiling_exits_one(self, estimate_repo: Path):
+        """Exceeding a tiny ceiling exits 1."""
+        result = runner.invoke(
+            app,
+            [
+                "tokens",
+                str(estimate_repo),
+                "--context-estimate",
+                "--selected",
+                "100-snowflake-core.md",
+                "--ceiling",
+                "100",
+            ],
+        )
+
+        assert result.exit_code == 1
+        assert "OVER BUDGET" in result.output
+
+    @pytest.mark.unit
+    def test_missing_selected_rule_exits_two(self, estimate_repo: Path):
+        """A selected rule that does not exist exits 2."""
+        result = runner.invoke(
+            app,
+            [
+                "tokens",
+                str(estimate_repo),
+                "--context-estimate",
+                "--selected",
+                "does-not-exist.md",
+            ],
+        )
+
+        assert result.exit_code == 2
+
+    @pytest.mark.unit
+    def test_estimate_never_writes_files(self, estimate_repo: Path):
+        """Estimate mode is read-only: no floor/rule file is modified."""
+        watched = [
+            estimate_repo / "rules" / "000-global-core.md",
+            estimate_repo / "rules" / "100-snowflake-core.md",
+        ]
+        before = {p: p.stat().st_mtime_ns for p in watched}
+
+        result = runner.invoke(
+            app,
+            [
+                "tokens",
+                str(estimate_repo),
+                "--context-estimate",
+                "--selected",
+                "100-snowflake-core.md",
+            ],
+        )
+
+        assert result.exit_code == 0
+        after = {p: p.stat().st_mtime_ns for p in watched}
+        assert before == after
+
+    @pytest.mark.unit
+    def test_no_selected_uses_default_index_cost(self, estimate_repo: Path):
+        """With no --selected, floor + default index cost still totals and exits 0."""
+        result = runner.invoke(
+            app,
+            ["tokens", str(estimate_repo), "--context-estimate"],
+        )
+
+        assert result.exit_code == 0
+        assert "TOTAL" in result.output

@@ -1,0 +1,70 @@
+{
+  "schema_version": "rule-loader-matcher/v1",
+  "candidate_rules": [
+    {
+      "rule_path": "rules/100-snowflake-core.md",
+      "layer": "SOFT",
+      "context_tier": "High",
+      "description": "Snowflake core directives",
+      "token_budget": 5050
+    },
+    {
+      "rule_path": "rules/101-snowflake-streamlit-core.md",
+      "layer": "SOFT",
+      "context_tier": "High",
+      "description": "Streamlit core setup navigation state",
+      "token_budget": 2350
+    },
+    {
+      "rule_path": "rules/206-python-pytest.md",
+      "layer": "SOFT",
+      "context_tier": "Medium",
+      "description": "Python pytest patterns",
+      "token_budget": 3500
+    },
+    {
+      "rule_path": "rules/204-python-docs.md",
+      "layer": "SOFT",
+      "context_tier": "Low",
+      "description": "Python documentation standards",
+      "token_budget": 3500
+    }
+  ],
+  "load_sequence": [
+    {
+      "rule_path": "rules/000-global-core.md",
+      "layer": "HARD",
+      "context_tier": "Critical",
+      "description": "Foundational operating contract",
+      "token_budget": 2550
+    },
+    {
+      "rule_path": "rules/100-snowflake-core.md",
+      "layer": "SOFT",
+      "context_tier": "High",
+      "description": "Snowflake core directives",
+      "token_budget": 5050
+    },
+    {
+      "rule_path": "rules/101-snowflake-streamlit-core.md",
+      "layer": "SOFT",
+      "context_tier": "High",
+      "description": "Streamlit core setup navigation state",
+      "token_budget": 2350
+    },
+    {
+      "rule_path": "rules/206-python-pytest.md",
+      "layer": "SOFT",
+      "context_tier": "Medium",
+      "description": "Python pytest patterns",
+      "token_budget": 3500
+    }
+  ],
+  "deferred_rules": [
+    {
+      "rule_path": "rules/204-python-docs.md",
+      "reason": "token_budget"
+    }
+  ],
+  "warnings": []
+}

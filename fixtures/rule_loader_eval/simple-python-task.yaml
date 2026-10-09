@@ -1,0 +1,22 @@
+schema_version: 3
+updated: '2026-07-20T13:00:00-04:00'
+id: simple-python-task
+description: null
+variant: simple
+prompt: 'What''s the best approach for adding error handling around the database
+
+  write step in analytics/etl_pipeline.py?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/200-python-core.md
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw: []
+  ext:
+  - .py
+  file: []
+  dir: []

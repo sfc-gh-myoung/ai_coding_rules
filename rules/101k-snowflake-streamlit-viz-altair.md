@@ -1,499 +1,69 @@
-# Streamlit Visualization: Altair Deep Dive
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** altair, vega-lite, st.altair_chart, declarative visualization, grammar of graphics, mark_point, mark_line, mark_bar, encoding, selection, interactive, layered charts
-**TokenBudget:** ~3400
-**ContextTier:** Medium
-**Depends:** 000-global-core.md, 101a-snowflake-streamlit-visualization.md
+---
+schema_version: v4.0
+rule_version: v3.0.0
+description: "Altair in Streamlit: explicit encoding types, labeled declarative charts, linked selections, current sizing API, row-limit handling and colorblind-safe schemes."
+last_updated: 2026-10-07
+keywords:
+  - kw:altair declarative encoding
+  - kw:vega-lite grammar
+  - kw:mark_point mark_line mark_bar
+  - kw:st.altair_chart
+  - kw:interval selection brushing
+  - kw:data type suffixes
+token_budget: ~850
+context_tier: Medium
+depends:
+  optional:
+    - 101a-snowflake-streamlit-visualization.md  # Visualization overview and library selection
+---
+# Altair in Streamlit
 
 ## Scope
 
 **What This Rule Covers:**
-Altair visualization patterns using the declarative grammar of graphics approach. Altair excels at statistical visualizations and linked multi-view displays with minimal code.
+Vega-Altair charts via `st.altair_chart`: marks, encodings and type suffixes, transforms, layering, faceting and concatenation, interval/point selections and Streamlit selection events, themes, scales, row limits and error handling.
 
 **When to Load This Rule:**
-- Building statistical/analytical visualizations
-- Creating linked interactive views
-- Rapid exploratory data analysis
-- Declarative chart specification preferred
-- Complex encoding relationships (color, size, shape by data)
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation patterns and conventions `[Available]`
-- **101a-snowflake-streamlit-visualization.md** - Visualization overview and library selection `[Available]`
-
-**Related:**
-- **101i-snowflake-streamlit-viz-plotly.md** - Plotly for general-purpose charts
-
-### External Documentation
-
-**Official Documentation:**
-- [Altair Documentation](https://altair-viz.github.io/) - Official Vega-Altair docs
-- [st.altair_chart()](https://docs.streamlit.io/develop/api-reference/charts/st.altair_chart) - Streamlit integration
-- [Vega-Lite](https://vega.github.io/vega-lite/) - Underlying grammar specification
-
-**Best Practices:**
-- [Altair Gallery](https://altair-viz.github.io/gallery/index.html) - Example visualizations
-- [Encoding Types](https://altair-viz.github.io/user_guide/encoding.html) - Data encoding reference
+When building declarative statistical charts or linked views in Streamlit; load `101a-snowflake-streamlit-visualization.md` first for library selection.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Streamlit 1.46+ with altair installed
-- Data in pandas DataFrame format
-- Understanding of declarative visualization concepts
-- vegafusion package for datasets >5000 rows (optional -- enables server-side data transformations)
+- Installed Streamlit, Altair (v5 APIs such as `selection_point`/`selection_interval` and `add_params`) and optional VegaFusion versions for the runtime.
+- Data shape, types and volume, chart question and existing themes or palettes.
 
 ### Mandatory
 
-- **Declarative encoding** - Map data columns to visual properties
-- **use_container_width=True** - Use for responsive charts (the code examples demonstrate this pattern)
-- **Clear encoding** - Explicit axis titles and labels
-
-### Forbidden
-
-- Using go.Figure() or manual data manipulation when alt.transform_*() or alt.Chart() can achieve the same result
-- Missing axis labels/titles
-- Charts with >3 encoding channels per mark (split into linked views -- see Anti-Pattern 3)
+- Declare encoding types explicitly (`:Q`, `:N`, `:O`, `:T`) and cast columns to match (datetimes to datetime, categories to string) instead of relying on inference.
+- Title charts and label axes and legends with units; add tooltips with formatted fields.
+- Use the installed Altair API: v5 selections with `add_params` and `alt.condition`/`alt.when`; avoid removed v4 selection helpers.
+- Size with the installed `st.altair_chart` API (`width`/`height`; `use_container_width` is deprecated); set explicit sub-chart sizes for faceted and concatenated charts.
+- Respect Altair's default 5,000-row embedded-data limit: aggregate in Snowflake, sample with disclosure, or enable VegaFusion when installed rather than silently disabling the limit.
+- Keep encodings readable: split overloaded charts into linked views instead of stacking many channels on one mark.
+- Use colorblind-safe schemes (for example `viridis`, `tableau10`, or explicit safe ranges) and never color alone; avoid red-green conditional highlighting.
+- When using `on_select` with Streamlit, name selections, handle empty selections and keep derived state in session state.
+- Handle empty data and type errors with clear messages before rendering.
+- Verify rendering, selections, tooltips and resize in the target runtime with realistic data.
 
 ### Execution Steps
 
-1. Import altair as alt and streamlit as st
-2. Prepare data in pandas DataFrame format
-3. Create Chart with appropriate mark type (point, line, bar, etc.)
-4. Define encodings with data type suffixes (:Q, :N, :O, :T)
-5. Add properties (title, dimensions) and configure styling
-6. Render with `st.altair_chart(chart, use_container_width=True)`
-
-### Output Format
-
-```python
-import altair as alt
-import streamlit as st
-
-chart = alt.Chart(df).mark_point().encode(
-    x='x:Q', y='y:Q', color='category:N'
-).properties(title='Chart Title')
-st.altair_chart(chart, use_container_width=True)
-```
+1. Read data types, volume, versions and the chart question.
+2. Build typed, labeled charts with transforms, selections and accessible schemes.
+3. Run in the target runtime and test interaction, row-limit handling and resizing.
+4. Report charts, versions, data handling and evidence.
 
 ### Validation
 
-- [ ] Data type suffixes specified for all encodings
-- [ ] `use_container_width=True` used for responsive display
-- [ ] Clear axis titles and labels present
-- [ ] Chart type matches data per When to Use section: scatter for correlation, line for trends, bar for comparison, heatmap for matrix
-- [ ] Interactive selections tested (if applicable)
-
-### Post-Execution Checklist
-
-- [ ] All charts use `use_container_width=True`
-- [ ] Colorblind-safe color schemes applied
-- [ ] Tooltips configured for hover information
-- [ ] Large datasets sampled or using vegafusion
-
-## When to Use Altair vs Plotly
-
-**Quick statistical exploration:** Use **Altair** - concise syntax
-**Linked brushing/selection:** Use **Altair** - native support
-**Complex dashboard:** Use **Plotly** - more layout control
-**Maps/geospatial:** Use **Plotly** - better map support
-**Animations:** Use **Plotly** - native animation_frame
-**3D visualizations:** Use **Plotly** - scatter_3d, surface
-**Custom interactivity:** Use **Plotly** - more flexibility
-
-## Core Altair Concepts
-
-### Grammar of Graphics
-
-```python
-import altair as alt
-import streamlit as st
-
-chart = alt.Chart(df).mark_point().encode(
-    x='x_column:Q',
-    y='y_column:Q',
-    color='category:N',
-    size='value:Q'
-).properties(
-    title='Scatter Plot'
-)
-
-st.altair_chart(chart, use_container_width=True)
-```
-
-### Data Types
-
-**`:Q` (Quantitative):** Continuous numeric values
-**`:N` (Nominal):** Categorical, unordered
-**`:O` (Ordinal):** Categorical, ordered
-**`:T` (Temporal):** Date/time values
-
-## Basic Chart Types
-
-### Scatter Plot
-
-```python
-chart = alt.Chart(df).mark_point().encode(
-    x=alt.X('x:Q', title='X Axis Label'),
-    y=alt.Y('y:Q', title='Y Axis Label'),
-    color=alt.Color('category:N', legend=alt.Legend(title='Category')),
-    tooltip=['name', 'x', 'y', 'category']
-).properties(
-    title='Scatter Plot',
-    height=400  # width omitted -- use_container_width=True handles responsive width
-)
-st.altair_chart(chart, use_container_width=True)
-```
-
-### Line Chart
-
-```python
-chart = alt.Chart(df).mark_line().encode(
-    x=alt.X('date:T', title='Date'),
-    y=alt.Y('value:Q', title='Value'),
-    color='series:N',
-    strokeDash='series:N'
-).properties(
-    title='Time Series'
-)
-st.altair_chart(chart, use_container_width=True)
-```
-
-### Bar Chart
-
-```python
-chart = alt.Chart(df).mark_bar().encode(
-    x=alt.X('category:N', sort='-y', title='Category'),
-    y=alt.Y('value:Q', title='Value'),
-    color=alt.Color('category:N', legend=None)
-).properties(
-    title='Bar Chart'
-)
-st.altair_chart(chart, use_container_width=True)
-```
-
-### Histogram
-
-```python
-chart = alt.Chart(df).mark_bar().encode(
-    x=alt.X('value:Q', bin=alt.Bin(maxbins=30), title='Value'),
-    y=alt.Y('count()', title='Frequency'),
-    color='category:N'
-).properties(
-    title='Distribution'
-)
-st.altair_chart(chart, use_container_width=True)
-```
-
-### Heatmap
-
-```python
-chart = alt.Chart(df).mark_rect().encode(
-    x=alt.X('x_category:O', title='X'),
-    y=alt.Y('y_category:O', title='Y'),
-    color=alt.Color('value:Q', scale=alt.Scale(scheme='viridis'), title='Value')
-).properties(
-    title='Heatmap'
-)
-st.altair_chart(chart, use_container_width=True)
-```
-
-### Box Plot
-
-```python
-chart = alt.Chart(df).mark_boxplot().encode(
-    x=alt.X('category:N', title='Category'),
-    y=alt.Y('value:Q', title='Value'),
-    color='category:N'
-).properties(
-    title='Distribution by Category'
-)
-st.altair_chart(chart, use_container_width=True)
-```
-
-## Layered Charts
-
-```python
-threshold = 50  # Define threshold value for conditional styling
-
-base = alt.Chart(df).encode(
-    x=alt.X('date:T', title='Date')
-)
-
-line = base.mark_line().encode(
-    y=alt.Y('value:Q', title='Value')
-)
-
-points = base.mark_point(filled=True, size=50).encode(
-    y='value:Q',
-    color=alt.condition(
-        alt.datum.value > threshold,
-        alt.value('red'),
-        alt.value('steelblue')
-    )
-)
-
-rule = alt.Chart(pd.DataFrame({'y': [threshold]})).mark_rule(
-    strokeDash=[5, 5],
-    color='gray'
-).encode(y='y:Q')
-
-chart = (line + points + rule).properties(title='Trend with Threshold')
-st.altair_chart(chart, use_container_width=True)
-```
-
-## Interactive Selection
-
-### Interval Selection (Brushing)
-
-```python
-brush = alt.selection_interval()
-
-points = alt.Chart(df).mark_point().encode(
-    x='x:Q',
-    y='y:Q',
-    color=alt.condition(brush, 'category:N', alt.value('lightgray'))
-).add_params(brush)
-
-bars = alt.Chart(df).mark_bar().encode(
-    x='count()',
-    y='category:N',
-    color='category:N'
-).transform_filter(brush)
-
-chart = points & bars
-st.altair_chart(chart, use_container_width=True)
-```
-
-### Point Selection (Click)
-
-```python
-selection = alt.selection_point(fields=['category'])
-
-chart = alt.Chart(df).mark_point().encode(
-    x='x:Q',
-    y='y:Q',
-    color=alt.condition(selection, 'category:N', alt.value('lightgray')),
-    opacity=alt.condition(selection, alt.value(1), alt.value(0.2))
-).add_params(selection)
-
-st.altair_chart(chart, use_container_width=True)
-```
-
-### Legend Selection
-
-```python
-selection = alt.selection_point(fields=['category'], bind='legend')
-
-chart = alt.Chart(df).mark_line().encode(
-    x='date:T',
-    y='value:Q',
-    color='category:N',
-    opacity=alt.condition(selection, alt.value(1), alt.value(0.1))
-).add_params(selection)
-
-st.altair_chart(chart, use_container_width=True)
-```
-
-## Faceting (Small Multiples)
-
-```python
-chart = alt.Chart(df).mark_line().encode(
-    x='date:T',
-    y='value:Q',
-    color='series:N'
-).properties(
-    width=200,
-    height=150
-).facet(
-    column='region:N',
-    row='year:O'
-)
-
-st.altair_chart(chart)
-```
-
-**Note:** `use_container_width=True` may cause rendering issues with faceted or concatenated charts. For faceted charts, set explicit `width` in `.properties()` and omit `use_container_width`.
-
-## Concatenation
-
-```python
-chart1 = alt.Chart(df).mark_bar().encode(x='category:N', y='value:Q')
-chart2 = alt.Chart(df).mark_line().encode(x='date:T', y='value:Q')
-
-combined_h = chart1 | chart2  # Horizontal concatenation
-combined_v = chart1 & chart2  # Vertical concatenation
-st.altair_chart(combined_h, use_container_width=True)
-```
-
-## Data Transformations
-
-```python
-chart = alt.Chart(df).mark_bar().encode(
-    x='category:N',
-    y='mean(value):Q'
-)
-
-chart = alt.Chart(df).transform_filter(
-    alt.datum.value > 0
-).transform_calculate(
-    log_value='log(datum.value)'
-).mark_point().encode(
-    x='x:Q',
-    y='log_value:Q'
-)
-
-chart = alt.Chart(df).transform_window(
-    rolling_mean='mean(value)',
-    frame=[-7, 0]
-).mark_line().encode(
-    x='date:T',
-    y='rolling_mean:Q'
-)
-```
-
-## Styling and Themes
-
-```python
-alt.themes.enable('dark')
-
-chart = alt.Chart(df).mark_point().encode(
-    x='x:Q',
-    y='y:Q'
-).configure_axis(
-    labelFontSize=12,
-    titleFontSize=14
-).configure_title(
-    fontSize=16,
-    anchor='start'
-).configure_legend(
-    titleFontSize=12,
-    labelFontSize=11
-)
-```
-
-## Color Scales
-
-```python
-# Continuous: use built-in schemes (viridis, plasma, inferno, magma)
-chart = alt.Chart(df).mark_point().encode(
-    x='x:Q', y='y:Q',
-    color=alt.Color('value:Q', scale=alt.Scale(scheme='viridis'))
-)
-
-# Categorical: explicit colorblind-safe mapping
-chart = alt.Chart(df).mark_bar().encode(
-    x='category:N', y='value:Q',
-    color=alt.Color('category:N', scale=alt.Scale(
-        domain=['A', 'B', 'C'],
-        range=['#0173B2', '#DE8F05', '#029E73']
-    ))
-)
-```
-
-## Performance with Large Data
-
-```python
-alt.data_transformers.enable('vegafusion')
-
-if len(df) > 5000:
-    df_sample = df.sample(n=5000, random_state=42)
-    st.caption(f"Showing sample of {5000:,} from {len(df):,} rows")
-else:
-    df_sample = df
-
-chart = alt.Chart(df_sample).mark_point().encode(...)
-```
-
-## Error Handling for Altair Rendering
-
-**Encoding type mismatch:** Ensure columns match declared types. A `:T` encoding on a string column without date format causes silent failures or blank charts.
-
-```python
-# Ensure date column is datetime before using :T encoding
-df['date'] = pd.to_datetime(df['date'], errors='coerce')
-```
-
-**Unsupported mark/encoding combos:** Not all marks support all encodings. For example, `mark_rect()` does not support `size`. Check [Altair encoding docs](https://altair-viz.github.io/user_guide/encoding.html) for supported combinations.
-
-**Data type coercion:** Altair infers types from the first few rows. Explicitly cast columns to avoid misinterpretation:
-
-```python
-df['category'] = df['category'].astype(str)  # Prevent numeric inference
-df['value'] = pd.to_numeric(df['value'], errors='coerce')  # Ensure numeric
-```
-
-**Empty DataFrame:** Always check before rendering to avoid blank charts:
-
-```python
-if df.empty:
-    st.info("No data available for visualization.")
-    st.stop()
-```
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Missing Data Type Suffix
-
-**Problem:** Omitting Altair data type suffixes in encodings.
-```python
-alt.Chart(df).encode(x='date', y='value')
-```
-
-**Correct Pattern:**
-```python
-alt.Chart(df).encode(x='date:T', y='value:Q')
-```
-
-### Anti-Pattern 2: Not Using use_container_width
-
-**Problem:** Not using `use_container_width=True` for responsive layouts.
-```python
-st.altair_chart(chart)
-```
-
-**Correct Pattern:**
-```python
-st.altair_chart(chart, use_container_width=True)
-```
-
-### Anti-Pattern 3: Overloading Single Chart
-
-**Problem:** Using too many encoding channels on a single chart, making it unreadable.
-
-```python
-chart = alt.Chart(df).mark_point().encode(
-    x='x:Q', y='y:Q', color='c1:N', size='s:Q', 
-    shape='c2:N', opacity='o:Q', strokeWidth='sw:Q'
-)
-```
-
-**Correct Pattern:**
-```python
-# Split into linked views with max 3 encoding channels per mark
-brush = alt.selection_interval()
-scatter = alt.Chart(df).mark_point().encode(x='x:Q', y='y:Q', color='c1:N').add_params(brush)
-detail = alt.Chart(df).mark_bar().encode(x='c2:N', y='count()').transform_filter(brush)
-chart = scatter | detail
-```
-
-## Validation Checklist
-
-- [ ] Using `use_container_width=True` for responsive display
-- [ ] Data type suffixes specified (`:Q`, `:N`, `:O`, `:T`)
-- [ ] Clear axis titles and labels
-- [ ] Chart type matches data: scatter for correlation, line for trends, bar for comparison, heatmap for matrix
-- [ ] Large datasets sampled or using vegafusion
-- [ ] Interactive selections tested
-- [ ] Colorblind-safe color schemes
-- [ ] Tooltips configured for hover information
+- Encoding types explicit and consistent with data.
+- Current Altair and Streamlit APIs used; faceted sizes explicit.
+- Row limits handled transparently; schemes colorblind-safe.
+- Interactivity verified in the target runtime.
+
+## References
+
+- [st.altair_chart](https://docs.streamlit.io/develop/api-reference/charts/st.altair_chart)
+- [Vega-Altair](https://altair-viz.github.io/)
+- [Encodings](https://altair-viz.github.io/user_guide/encodings/index.html)
+- [Interactive charts](https://altair-viz.github.io/user_guide/interactions/index.html)
+- [Large datasets](https://altair-viz.github.io/user_guide/large_datasets.html)

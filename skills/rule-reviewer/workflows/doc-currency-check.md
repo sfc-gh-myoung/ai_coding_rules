@@ -53,21 +53,21 @@ For each successfully fetched page:
 
 ```python
 HIGH_CONFIDENCE = [
-    r'\bdeprecated\b.{0,100}\b(function|method|api|endpoint|feature|parameter)\b',
-    r'\bend[- ]of[- ]life\b',
-    r'\bEOL\b',
-    r'\bsunset(ted|ting)?\b',
-    r'\bno longer supported\b',
-    r'\bremoved in (version|v)?\s*\d',
-    r'\bbreaking change\b',
+    r"\bdeprecated\b.{0,100}\b(function|method|api|endpoint|feature|parameter)\b",
+    r"\bend[- ]of[- ]life\b",
+    r"\bEOL\b",
+    r"\bsunset(ted|ting)?\b",
+    r"\bno longer supported\b",
+    r"\bremoved in (version|v)?\s*\d",
+    r"\bbreaking change\b",
 ]
 
 MEDIUM_CONFIDENCE = [
-    r'\blegacy\b.{0,50}\b(api|method|approach)\b',
-    r'\breplaced by\b',
-    r'\bsuperseded by\b',
-    r'\bwill be removed\b',
-    r'\bscheduled for removal\b',
+    r"\blegacy\b.{0,50}\b(api|method|approach)\b",
+    r"\breplaced by\b",
+    r"\bsuperseded by\b",
+    r"\bwill be removed\b",
+    r"\bscheduled for removal\b",
 ]
 ```
 
@@ -111,11 +111,9 @@ if links_failed / links_total > 0.5:
 {
     "links_scanned": int,
     "links_failed": int,
-    "signals_found": [
-        {"url": str, "signal": str, "context": str, "confidence": "high"|"medium"}
-    ],
+    "signals_found": [{"url": str, "signal": str, "context": str, "confidence": "high" | "medium"}],
     "penalty": float,  # 0, -0.5, -1, or -2
-    "notes": [str]
+    "notes": [str],
 }
 ```
 

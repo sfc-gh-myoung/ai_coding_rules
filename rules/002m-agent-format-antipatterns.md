@@ -1,279 +1,95 @@
-# 002m: Agent Format Anti-Patterns
+---
+schema_version: v4.0
+rule_version: v3.0.0
+description: "Repair ambiguous agent-facing prose with explicit actions, meaningful structure, consistent terms, and positive examples."
+last_updated: 2026-09-30
+keywords:
+  - kw:agent-optimized formatting
+  - kw:ASCII table violations
+  - kw:arrow character replacement
+  - kw:imperative voice instructions
+  - kw:visual diagram prohibition
+  - kw:nested conditional lists
+  - kw:mermaid
+token_budget: ~850
+context_tier: Medium
+depends:
+  required:
+    - 002g-agent-optimization.md
+    - 000-global-core.md
+---
+# Agent Instruction Formatting Repairs
 
-> **REFERENCE RULE: FORMAT VIOLATION EXAMPLES**
->
-> Complete set of formatting anti-patterns for agent-optimized rules.
-> Extracted from 002g-agent-optimization.md for size management.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** anti-pattern, format, ASCII table, arrow character, decision tree, passive voice, terminology, mermaid, horizontal rule, agent optimization
-**TokenBudget:** ~1650
-**ContextTier:** Medium
-**Depends:** 002g-agent-optimization.md, 000-global-core.md
+> **REFERENCE RULE: LOAD WHEN NEEDED**
 
 ## Scope
 
 **What This Rule Covers:**
-The 9 formatting anti-patterns that prevent reliable agent execution, extracted from 002g-agent-optimization.md. Each anti-pattern includes the problem, a failing example, and the correct pattern.
+Concrete repairs for unclear agent instructions. Apply the audience and evidence boundaries in `002g-agent-optimization.md`, not a universal ban on visual syntax.
 
 **When to Load This Rule:**
-- Reviewing or auditing rule files for formatting violations
-- Need detailed examples of correct vs incorrect formatting
-- Referenced from 002g-agent-optimization.md for full anti-pattern details
-
-## References
-
-### Rule Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns
-- **002g-agent-optimization.md** - Parent rule for agent optimization
-
-**Related:**
-- **002-rule-governance.md** - v3.2 schema standards
+- Review rules, prompts, or skill instructions with ambiguous actions or relationships.
+- Do not apply rule-only constraints to human documentation or literal external tool output.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Rule file identified with formatting violations
-- Access to `ai-rules validate` command
-- Understanding of v3.2 schema requirements
+- Read the affected instructions, their required owners, and applicable formatting configuration.
+- Identify the intended action or relationship before choosing a replacement structure.
 
 ### Mandatory
 
-- Apply structured lists instead of ASCII tables
-- Use sequential phrasing instead of arrow characters
-- Use active voice with explicit agent subjects
-- Maintain consistent terminology throughout
-
-### Forbidden
-
-- ASCII table patterns (`|---|`)
-- Arrow characters for sequences (`→`, `->`)
-- Passive voice without explicit subjects
-- Inconsistent terminology across sections
+- Preserve the instruction's scope, condition, actor, action, and outcome when reformatting.
+- State restrictions before the affected action. Do not bury authorization or error handling in an example.
+- Prefer explicit labels over meaning conveyed only by alignment, proximity, or an unlabeled arrow.
+- Keep one term for one concept while preserving distinctions such as estimates versus observed usage.
+- Use imperative voice for instructions and positive executable examples. Explain the failure being avoided in prose.
+- Preserve meaningful tabular relationships and real code/output syntax. Do not alter data merely to remove a character.
+- Keep YAML frontmatter fences intact. Decorative separators are not a substitute for descriptive headings.
 
 ### Execution Steps
 
-1. Identify which anti-pattern applies to the formatting issue
-2. Compare current content against the Problem example
-3. Apply the Correct Pattern transformation
-4. Verify with `ai-rules validate`
+1. Describe the ambiguity in the existing instruction and identify the actual required behavior.
+2. Select a concise structure that preserves that behavior: prose for a condition, numbered steps for order, or a list for independent requirements.
+3. Apply the smallest rewrite and compare prerequisites, permissions, and outcomes with the original.
+4. Run schema and Markdown checks, then inspect whether a reader can follow the action without guessing.
 
 ### Validation
 
-**Success Criteria:**
-- All 9 anti-patterns are recognizable by example
-- Correct patterns are copy-paste applicable
+- [ ] The rewrite preserves every unique requirement and does not invent a new action.
+- [ ] Conditions and responsible actors are explicit; terminology remains consistent.
+- [ ] Code, external output, and metadata were not corrupted by prose formatting changes.
+- [ ] Validation passes and any unresolved meaning conflict is reported, not hidden behind a placeholder.
 
-### Output Format
+If the meaning cannot be preserved in the proposed format, retain the original relationship and flag it for review. Correct only task-owned changes after a failed check.
 
-```markdown
-**Problem:** [Description of why this pattern fails]
+## References
 
-**Correct Pattern:** [Description of the fix]
-- **Item 1:** Description
-- **Item 2:** Description
+- `002g-agent-optimization.md`: canonical audience scope and review priorities.
+- `002-rule-governance.md`: v4 structure and semantic review requirements.
+
+## Positive rewrite patterns
+
+For an action whose actor was unclear:
+
+```text
+Log the validation error before returning the failure result.
 ```
 
-### Post-Execution Checklist
+For a prerequisite that must precede a read:
 
-- [ ] Identified applicable anti-pattern from the 9 patterns
-- [ ] Compared against Problem example
-- [ ] Applied Correct Pattern transformation
-- [ ] Verified with `ai-rules validate`
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: ASCII Tables for Simple Data
-
-**Problem:** Tables waste tokens and confuse sequential parsing
-
-```markdown
-| Option | Description |
-|--------|-------------|
-| --verbose | Show details |
-| --quiet | Suppress output |
+```text
+Verify that the input file exists and is readable. If it is missing, report the path and stop before processing.
 ```
 
-**Correct Pattern:** Use structured lists
+For a condition with distinct outcomes:
 
-```markdown
-**Options:**
-- **`--verbose`** - Show details
-- **`--quiet`** - Suppress output
+```text
+If the file is valid, process it and report the result.
+If validation fails, preserve the original file and report the diagnostics.
 ```
 
-### Anti-Pattern 2: Passive Voice Instructions
+For independent option descriptions, use a list rather than alignment-only columns. For a relationship, name the verb: "depends on", "writes to", or "runs after". Use an actual branch only when the alternative changes the result.
 
-**Problem:** Passive voice creates ambiguity about who acts
-
-```markdown
-Errors should be logged before the function returns.
-```
-
-**Correct Pattern:** Use imperative voice
-
-```markdown
-Log errors before returning from the function.
-```
-
-### Anti-Pattern 3: Visual Formatting for Meaning
-
-**Problem:** Agents don't interpret visual layout
-
-```markdown
-CRITICAL    ...    Always do this
-OPTIONAL    ...    Consider doing this
-```
-
-**Correct Pattern:** Use explicit labels
-
-```markdown
-**CRITICAL:** Always do this
-**OPTIONAL:** Consider doing this
-```
-
-### Anti-Pattern 4: Inconsistent Terminology
-
-**Problem:** Different terms for same concept cause confusion
-
-```markdown
-Run the validator... Execute the checker... Start the verification...
-```
-
-**Correct Pattern:** Single term throughout
-
-```markdown
-Run the validator... Run the validator... Run the validator...
-```
-
-### Anti-Pattern 5: Buried Critical Information
-
-**Problem:** Important content hidden in middle of paragraph
-
-```markdown
-When working with files, you should consider various factors including
-performance, readability, and most importantly, always validate the path
-exists before attempting to read or write.
-```
-
-**Correct Pattern:** Front-load critical information
-
-```markdown
-**Always validate path exists before read/write operations.**
-Consider performance and readability as secondary factors.
-```
-
-### Anti-Pattern 6: Arrow Characters for Flow
-
-**Problem:** Arrow character (`→`) is ambiguous for agents
-
-```markdown
-Step 1 → Step 2 → Step 3
-Input → Process → Output
-Bad pattern → Use this instead
-```
-
-**Correct Pattern:** Use context-appropriate text
-
-```markdown
-# For sequences:
-Step 1, then Step 2, then Step 3
-
-# For data flow:
-Input to Process to Output
-
-# For corrections:
-Bad pattern. Instead, use this.
-
-# For navigation paths:
-Monitoring > Traces > Logs
-```
-
-### Anti-Pattern 7: ASCII Decision Trees
-
-**Problem:** Tree characters (`├─`, `└─`, `│`) confuse sequential parsing
-
-```markdown
-Is condition true?
-├─ YES → Do action A
-│  └─ Then do B
-└─ NO → Do action C
-```
-
-**Correct Pattern:** Use nested conditional lists
-
-```markdown
-**Is condition true?**
-- If YES: Do action A, then do B
-- If NO: Do action C
-```
-
-### Anti-Pattern 8: Visual Diagrams (Mermaid, ASCII Art)
-
-**Problem:** Rules are for agents, not humans. Visual diagrams waste tokens.
-
-````markdown
-```mermaid
-flowchart TD
-    A[Start] --> B{Decision}
-    B -->|Yes| C[Action]
-```
-````
-
-**Why It Fails:** Agents parse Mermaid as raw DSL syntax, not rendered flowcharts. The diagram above consumes ~50 tokens while conveying less information than 2 lines of structured text. Rules in `rules/` are intended exclusively for autonomous agents — any content targeting human visual consumption is wasted token space.
-
-**Correct Pattern:** Use structured conditional lists
-
-```markdown
-**Decision Flow:**
-1. Start process
-2. If CONDITION: Do Action
-3. If NOT CONDITION: Do Alternative
-```
-
-**Rule:** Mermaid diagrams and ASCII art are FORBIDDEN in rule files. All content must provide direct value to agent execution.
-
-### Anti-Pattern 9: Horizontal Rule Separators
-
-**Problem:** Standalone `---` lines waste tokens as visual dividers
-
-```markdown
-**Section A content**
-
----
-
-**Section B content**
-```
-
-**Why It Fails:** Markdown headers (`###`, `####`) already provide structure. Horizontal rules add ~4 tokens per occurrence with zero semantic value for agents.
-
-**Correct Pattern:** Use headers for structure, remove visual separators
-
-```markdown
-### Section A
-Content...
-
-### Section B
-Content...
-```
-
-**Rule:** Horizontal rule separators (`---`) are FORBIDDEN in rule files. Use headers to delineate sections.
-
-### Legacy Rule Migration
-
-When optimizing existing rules with heavy visual formatting, fix in priority order:
-
-1. CRITICAL violations first (ASCII tables, undefined subjective terms)
-2. Arrow characters using the Arrow Replacement Guide in 002g-agent-optimization.md
-3. ASCII decision trees using nested conditional lists
-4. Mermaid diagrams and ASCII art, replace with structured text
-5. Horizontal rule separators last (lowest impact)
-
-Run `ai-rules validate` after each step.
+A Markdown table can preserve genuine comparisons; a prose conversion that loses row/column relationships is not an improvement. Human-facing diagrams and directory trees remain valid where they help the intended reader. Formatting policy alone does not establish a model limitation.

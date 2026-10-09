@@ -1,267 +1,74 @@
+---
+schema_version: v4.0
+rule_version: v5.0.0
+description: Observation-time feature windows, grain-safe aggregates, missing-data policy, ratios and train-serve consistency.
+last_updated: 2026-10-07
+keywords:
+  - kw:feature engineering
+  - kw:windowed aggregations
+  - kw:RFM features
+  - kw:velocity features
+  - kw:NULLIF division protection
+  - kw:deterministic transformations
+token_budget: ~1050
+context_tier: Low
+depends:
+  required:
+    - 113-snowflake-feature-store.md  # Feature Store core patterns
+---
 # Snowflake Feature Store: Feature Engineering Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:feature-engineering
-**Keywords:** feature engineering, aggregation features, time-based features, recency features, frequency features, monetary features, velocity features, RFM features, windowed aggregations, derived features
-**TokenBudget:** ~2550
-**ContextTier:** Low
-**Depends:** 100-snowflake-core.md, 113-snowflake-feature-store.md
 
 ## Scope
 
 **What This Rule Covers:**
-Feature engineering patterns for Snowflake Feature Store including aggregation features, time-based features, derived ratios, and common RFM (Recency, Frequency, Monetary) patterns. Provides SQL templates for building reusable feature transformations.
+Behavioral/time-window aggregates, recency/frequency/monetary features, safe ratios, deterministic time context and value/refresh tests.
 
 **When to Load This Rule:**
-- Building feature transformations for ML models
-- Creating aggregation features (time-window, rolling)
-- Implementing RFM or behavioral features
-- Designing feature views with derived metrics
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **113-snowflake-feature-store.md** - Feature Store core patterns
-
-### External Documentation
-
-- [Snowflake Feature Store](https://docs.snowflake.com/en/developer-guide/snowflake-ml/feature-store/overview) - Official Feature Store documentation
+When authoring or reviewing Feature Store transformation logic and ML feature correctness.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Feature Store configured (see 113-snowflake-feature-store.md)
-- Raw data tables with event/transaction data
-- Entity definitions for feature subjects
+- Actual entity/event grain/keys, source fields/types, observation/availability timestamps, units, label horizon and expected feature meanings.
+- Registered-view/API support, business-selected windows, NULL/default policy, train/serve contract and approved computation scope.
 
 ### Mandatory
 
-- Use deterministic functions only in feature transformations
-- Use NULLIF to prevent division by zero in ratio features
-- Include multiple time windows for behavioral features (7d, 30d, 90d)
-
-### Forbidden
-
-- Non-deterministic functions (CURRENT_TIMESTAMP, RANDOM) in feature definitions
-- Division without NULLIF protection
-- Single time-window features when multiple windows provide signal
+- Define output grain and key/time uniqueness before aggregates; deduplicate source events by approved keys, not arbitrary DISTINCT to hide fanout.
+- Anchor historical features to explicit observation/cutoff time and data availability. Relative CURRENT_DATE snapshots do not reconstruct historical features automatically; ingestion time is not always the correct prediction cutoff.
+- Use deliberate bounded intervals (including upper cutoff) and correct time-zone/type semantics. Test exact boundaries, future events, sparse/no history, late arrivals and ties to prevent leakage.
+- Distinct windows need distinct conditional filters/ranges; identical COUNT/SUM expressions over one 30-day WHERE clause do not create 7-day features. Multi-window features are optional evidence-driven signals, not a universal 7/30/90 requirement.
+- Recency is time since last eligible past event; frequency counts intended events, monetary aggregates defined currency/precision. Preserve zero-event entities through suitable spine joins and declare missing recency explicitly.
+- Ratios protect zero denominators with NULLIF or another supported explicit guard. Decide NULL versus zero/default from business meaning; COALESCE is not automatically correct for missing evidence.
+- Velocity ratios across unequal/overlapping windows are fractions of activity, not necessarily acceleration. Define comparable rate baselines and duration normalization before naming trends/acceleration.
+- Lag/rolling/cyclical features need ordered unique time semantics and correct window frames. Training-fitted normalization/imputation must not use holdout/future data; no universal scale >100x rule.
+- Preserve deterministic fixed-input/time-context outputs and train/serve versions/order/types. Observability timestamps/randomness require explicit purpose and reproducibility; do not ban all timestamp fields or promise distributed seed determinism.
+- Verify supported dynamic-table/feature-view transformations and refresh mode; expensive windows/full refresh need actual profile/cost review. Freshness and history quality are separate from syntactic correctness.
+- Validate key coverage, counts, ranges, types, NULL rates, units and independent expected values, including empty/negative/zero cases. Nonempty feature views are not proof of valid training inputs.
+- Refresh failures require actual history/error/upstream evidence and scoped ownership-approved fixes. Unexpected NULLs can arise from temporal coverage or policy/context, not automatically source freshness.
+- Register new reviewed feature versions for logic changes; data computation, registration, refresh changes and alerts require execution authority. Preserve existing consumers and uncertain-state evidence.
 
 ### Execution Steps
 
-1. Identify feature subjects (entities) and raw data sources
-2. Design aggregation features with appropriate time windows
-3. Create time-based and recency features
-4. Build derived ratio and velocity features
-5. Register as feature views with versioning
-
-### Output Format
-
-- SQL feature transformation queries
-- Feature view definitions with refresh schedules
+1. Inspect sources/entity/time contracts and define supported business feature meanings/windows/defaults.
+2. Implement correct grain/time-bounded aggregations, ratios and temporal features with fixed observation context.
+3. Test synthetic boundary/duplicate/missing/future cases and independent expected values.
+4. Under execution approval, compute/register intended versions and inspect actual values/refresh/access/cost evidence.
+5. Report feature definitions, exact versions, test outcomes and unresolved leakage/coverage or serving differences.
 
 ### Validation
 
-- All transformations are deterministic
-- Division operations protected with NULLIF
-- Time windows aligned with business requirements
-- Feature views registered and refreshing correctly
+- Correct keys/grain and distinct time windows; no future/holdout leakage or lost zero-history entities.
+- Ratio/default/type/unit and trend meanings explicit, independent expected values match edge cases.
+- Fixed-input/time outputs and train/serve contract reproducible, actual refresh support/freshness verified where authorized.
+- Mutation/version scope preserves consumers; unexecuted account checks remain unverified.
+- Deliver reviewed transformation/data contract with verification evidence and limitations.
 
-### Design Principles
+## References
 
-- Multi-window aggregations capture temporal patterns
-- Deterministic transformations ensure reproducibility
-- NULLIF prevents division-by-zero errors in ratios
-- RFM patterns cover most behavioral feature needs
-
-### Post-Execution Checklist
-
-- [ ] Aggregation features created with multiple time windows
-- [ ] Time-based features use deterministic functions
-- [ ] Ratio features protected with NULLIF
-- [ ] Feature views registered with versioning
-- [ ] Refresh schedules configured
-
-## Aggregation Features
-
-- **Rule:** Use time-window aggregations (7d, 30d, 90d) for behavioral features
-- **Requirement:** Include multiple aggregation functions (COUNT, SUM, AVG, MAX, MIN, STDDEV)
-- **Rule:** Create features at multiple time windows for model to learn temporal patterns
-
-```sql
--- Multi-window aggregation pattern
-SELECT
-    customer_id,
-    -- 7-day window
-    COUNT(DISTINCT order_id) AS orders_7d,
-    SUM(order_amount) AS spend_7d,
-    -- 30-day window
-    COUNT(DISTINCT order_id) AS orders_30d,
-    SUM(order_amount) AS spend_30d,
-    -- Ratios (velocity indicators)
-    orders_7d / NULLIF(orders_30d, 0) AS order_velocity_ratio
-FROM ORDERS
-WHERE order_date >= DATEADD('day', -30, CURRENT_DATE())
-GROUP BY customer_id
-```
-
-## Time-Based Features
-
-- **Rule:** Extract temporal components for cyclical patterns (day_of_week, hour, month)
-- **Requirement:** Use `DATEDIFF` for recency features (days_since_last_purchase)
-- **Rule:** Use lag features for time-series forecasting scenarios
-
-## Derived and Ratio Features
-
-- **Rule:** Create ratios and derived metrics to capture relationships
-- **Requirement:** Use `NULLIF` to prevent division by zero errors
-- **Rule:** Normalize features within feature view when feature ranges differ by >100x (e.g., income in thousands vs. age in decades)
-
-## Common Feature Patterns (RFM)
-
-### Recency Features
-```sql
--- Days since last event
-DATEDIFF('day', MAX(event_timestamp), CURRENT_DATE()) AS days_since_last_event
-```
-
-### Frequency Features
-```sql
--- Count distinct events in time window
-COUNT(DISTINCT event_id) AS events_30d
-```
-
-### Monetary Features
-```sql
--- Spend aggregations with nullif for safety
-SUM(amount) AS total_spend_30d,
-AVG(amount) AS avg_transaction_value,
-SUM(amount) / NULLIF(COUNT(*), 0) AS spend_per_transaction
-```
-
-### Velocity and Trend Features
-```sql
--- Compare recent vs. historical behavior
-orders_7d / NULLIF(orders_30d, 0) AS order_acceleration,
-spend_7d - spend_30d AS spend_trend
--- Edge case: When all windows return 0, velocity ratios will be NULL — handle with COALESCE:
--- COALESCE(orders_7d / NULLIF(orders_30d, 0), 0) AS order_acceleration
-```
-
-## Feature Validation Commands
-
-- **Always:** Validate feature correctness after creating or updating feature views:
-
-```sql
--- Check for unexpected NULLs in critical features
-SELECT COUNT(*) AS null_count FROM <feature_view> WHERE <feature_col> IS NULL;
-
--- Verify value ranges are within expected bounds
-SELECT MIN(<feature_col>), MAX(<feature_col>), AVG(<feature_col>) FROM <feature_view>;
-
--- Check row counts match expected entity count
-SELECT COUNT(DISTINCT <entity_col>) FROM <feature_view>;
-```
-
-## Anti-Patterns and Common Mistakes
-
-**Anti-Pattern 1: Using Non-Deterministic Functions in Feature Definitions**
-
-**Problem:** Developers use `CURRENT_TIMESTAMP()`, `RANDOM()`, or `UUID_STRING()` directly inside feature view transformations. Because feature views are refreshed on a schedule, these functions produce different values on every refresh, making features non-reproducible. A model trained on features computed at time T gets different feature values when the view refreshes at time T+1, causing training-serving skew and making debugging nearly impossible.
-
-**Correct Pattern:** Pass timestamps and random seeds as columns from the source table, not as function calls in the transformation. For recency features, compute `DATEDIFF('day', event_timestamp, refresh_timestamp)` where `refresh_timestamp` is a concrete column value populated at ingestion time, not `CURRENT_DATE()`. This ensures the same input rows always produce the same feature values.
-
-```sql
--- Wrong: Non-deterministic function in feature view — values change on every refresh
-SELECT
-    customer_id,
-    DATEDIFF('day', MAX(order_date), CURRENT_DATE()) AS days_since_last_order,
-    UUID_STRING() AS feature_id
-FROM ORDERS
-GROUP BY customer_id;
--- Result: days_since_last_order changes every day, feature_id changes every refresh
-
--- Correct: Use a concrete timestamp column for deterministic recency features
-SELECT
-    customer_id,
-    DATEDIFF('day', MAX(order_date), snapshot_date) AS days_since_last_order
-FROM ORDERS
--- snapshot_date is a concrete column populated at ingestion, not a function call
-WHERE snapshot_date = (SELECT MAX(snapshot_date) FROM ORDERS)
-GROUP BY customer_id, snapshot_date;
-```
-
-**Anti-Pattern 2: Division Without NULLIF Protection in Ratio Features**
-
-**Problem:** Ratio features like `total_spend / order_count` or `clicks / impressions` are computed without guarding against zero denominators. When a customer has zero orders or zero impressions, the query produces a division-by-zero error or returns NULL, which silently propagates through downstream aggregations and model training. Entire batch feature computations can fail because one entity has a zero denominator.
-
-**Correct Pattern:** Always wrap denominators with `NULLIF(denominator, 0)` so division by zero returns NULL instead of erroring. Then handle NULLs explicitly with `COALESCE` if the model requires a default value: `COALESCE(total_spend / NULLIF(order_count, 0), 0) AS avg_order_value`.
-
-```sql
--- Wrong: Division by zero when customer has no orders — query error or silent NULL
-SELECT
-    customer_id,
-    total_spend / order_count AS avg_order_value,
-    clicks / impressions AS click_through_rate
-FROM CUSTOMER_METRICS;
--- Fails when order_count=0 or impressions=0
-
--- Correct: NULLIF protection with COALESCE for default values
-SELECT
-    customer_id,
-    COALESCE(total_spend / NULLIF(order_count, 0), 0) AS avg_order_value,
-    COALESCE(clicks / NULLIF(impressions, 0), 0) AS click_through_rate
-FROM CUSTOMER_METRICS;
-```
-
-**Anti-Pattern 3: Using a Single Time Window for Behavioral Features**
-
-**Problem:** A feature like `orders_30d` captures only one time horizon. The model cannot distinguish between a customer who placed 10 orders spread evenly over 30 days versus one who placed all 10 in the last 2 days. Single-window features miss acceleration, deceleration, and recency signals that are critical for churn prediction, fraud detection, and recommendation models.
-
-**Correct Pattern:** Always create features at multiple time windows (e.g., 7d, 30d, 90d) and include ratio features between windows. `orders_7d / NULLIF(orders_30d, 0) AS order_velocity_ratio` captures whether activity is accelerating or decelerating. This gives the model temporal pattern information without requiring complex time-series architectures.
-
-```sql
--- Wrong: Single time window — no temporal signal for the model
-SELECT
-    customer_id,
-    COUNT(DISTINCT order_id) AS orders_30d,
-    SUM(order_amount) AS spend_30d
-FROM ORDERS
-WHERE order_date >= DATEADD('day', -30, CURRENT_DATE())
-GROUP BY customer_id;
-
--- Correct: Multiple windows with velocity ratios
-SELECT
-    customer_id,
-    -- Multi-window counts
-    COUNT_IF(order_date >= DATEADD('day', -7, CURRENT_DATE())) AS orders_7d,
-    COUNT_IF(order_date >= DATEADD('day', -30, CURRENT_DATE())) AS orders_30d,
-    COUNT_IF(order_date >= DATEADD('day', -90, CURRENT_DATE())) AS orders_90d,
-    -- Multi-window spend
-    SUM(IFF(order_date >= DATEADD('day', -7, CURRENT_DATE()), order_amount, 0)) AS spend_7d,
-    SUM(IFF(order_date >= DATEADD('day', -30, CURRENT_DATE()), order_amount, 0)) AS spend_30d,
-    -- Velocity ratios — captures acceleration/deceleration
-    orders_7d / NULLIF(orders_30d, 0) AS order_velocity_7d_30d,
-    orders_30d / NULLIF(orders_90d, 0) AS order_velocity_30d_90d
-FROM ORDERS
-WHERE order_date >= DATEADD('day', -90, CURRENT_DATE())
-GROUP BY customer_id;
-```
-
-## Error Recovery
-
-- **If feature view refresh fails:** Check `DYNAMIC_TABLE_REFRESH_HISTORY` for error details:
-  ```sql
-  SELECT * FROM TABLE(INFORMATION_SCHEMA.DYNAMIC_TABLE_REFRESH_HISTORY(
-    NAME => 'MY_FEATURE_VIEW'
-  )) ORDER BY refresh_start_time DESC LIMIT 5;
-  ```
-- **If refresh shows UPSTREAM_FAILED:** The source table or upstream dynamic table has an error — fix upstream first.
-- **If features return unexpected NULLs:** Verify source data freshness and check for schema changes in upstream tables.
+- [Advanced feature engineering](https://docs.snowflake.com/en/developer-guide/snowflake-ml/feature-store/advanced-feature-engineering)
+- [Feature-view lifecycle](https://docs.snowflake.com/en/developer-guide/snowflake-ml/feature-store/feature-views)
+- [NULLIF](https://docs.snowflake.com/en/sql-reference/functions/nullif)
+- `113-snowflake-feature-store.md` for entity/time foundations.
+- `113a-snowflake-feature-store-patterns.md` for leakage/version review.

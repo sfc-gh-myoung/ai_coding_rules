@@ -1,6 +1,6 @@
 # Using the Rule Reviewer Skill
 
-**Last Updated:** 2026-04-11
+**Last Updated:** 2026-08-18
 
 The Rule Reviewer Skill evaluates rule files to ensure autonomous agents can execute them successfully. It scores rules across 6 dimensions using a weighted scoring system optimized for agent executability.
 
@@ -11,10 +11,10 @@ The Rule Reviewer Skill evaluates rule files to ensure autonomous agents can exe
 ```text
 Use the rule-reviewer skill.
 
-target_file: rules/200-python-core.md  # Required — rule to evaluate
-review_date: 2026-03-27              # Required — date stamp for output
-review_mode: FULL                    # Required — review depth
-model: claude-sonnet-45              # Required — model slug for naming
+target_file: rules/200-python-core.md  # Required: rule to evaluate
+review_date: 2026-03-27              # Required: date stamp for output
+review_mode: FULL                    # Required: review depth
+model: claude-sonnet-45              # Required: model slug for naming
 ```
 
 ### FULL With All Optional Settings
@@ -26,10 +26,10 @@ target_file: rules/200-python-core.md  # Required
 review_date: 2026-03-27              # Required
 review_mode: FULL                    # Required
 model: claude-sonnet-45              # Required
-output_root: quarterly-audit/        # Optional (default: reviews/) — custom output directory
-execution_mode: sequential           # Optional (default: parallel) — sequential is also valid for production
-timing_enabled: true                 # Optional (default: true as of v2.9.0) — adds timing metadata
-overwrite: true                      # Optional (default: false) — replaces existing file
+output_root: quarterly-audit/        # Optional (default: reviews/): custom output directory
+execution_mode: sequential           # Optional (default: parallel): sequential is also valid for production
+timing_enabled: true                 # Optional (default: true as of v2.9.0): adds timing metadata
+overwrite: true                      # Optional (default: false): replaces existing file
 ```
 
 ### FOCUSED Mode Example
@@ -38,7 +38,7 @@ overwrite: true                      # Optional (default: false) — replaces ex
 Use the rule-reviewer skill.
 
 target_file: rules/200-python-core.md  # Required
-review_mode: FOCUSED                 # Required — Actionability + Completeness only
+review_mode: FOCUSED                 # Required: Actionability + Completeness only
 review_date: 2026-03-27              # Required
 model: claude-sonnet-45              # Required
 ```
@@ -49,7 +49,7 @@ model: claude-sonnet-45              # Required
 Use the rule-reviewer skill.
 
 target_file: rules/200-python-core.md  # Required
-review_mode: STALENESS               # Required — Staleness dimension only
+review_mode: STALENESS               # Required: Staleness dimension only
 review_date: 2026-03-27              # Required
 model: claude-sonnet-45              # Required
 ```
@@ -59,8 +59,8 @@ model: claude-sonnet-45              # Required
 
 | Mode | Purpose | When to Use |
 |------|---------|-------------|
-| **FULL** | Full 7-dimension review | Validate rules before deployment |
-| **FOCUSED** | Deep-dive on critical areas | Quick check on Actionability + Completeness only |
+| **FULL** | Full 6-dimension review | Validate rules before deployment |
+| **FOCUSED** | Actionability + Completeness only | Quick check on the two scored dimensions |
 | **STALENESS** | Check for outdated content | Periodic currency audits |
 
 ### FULL Mode
@@ -97,10 +97,10 @@ review_mode: STALENESS
 
 | Score | Verdict | Action |
 |-------|---------|--------|
-| 94-105 | **EXECUTABLE** | Production-ready |
-| 84-93 | **EXECUTABLE_WITH_REFINEMENTS** | Good, minor fixes needed |
-| 63-83 | **NEEDS_REFINEMENT** | Significant refinement required |
-| <63 | **NOT_EXECUTABLE** | Major revision needed |
+| 90-100 | **EXECUTABLE** | Production-ready |
+| 80-89 | **EXECUTABLE_WITH_REFINEMENTS** | Good, minor fixes needed |
+| 60-79 | **NEEDS_REFINEMENT** | Significant refinement required |
+| <60 | **NOT_EXECUTABLE** | Major revision needed |
 
 **Critical dimension override:** If both Actionability ≤4/10 AND Completeness ≤4/10 → NOT_EXECUTABLE regardless of total score.
 
@@ -111,15 +111,15 @@ Rules are scored across 6 dimensions with weighted points:
 | Dimension | Weight | Max Points | Key Question |
 |-----------|--------|------------|--------------|
 | Actionability | 3.0 | 30 | Can agents execute without judgment? |
-| Rule Size | 2.5 | 25 | Within 500-line target? (deterministic) |
+| Rule Size | 2.5 | 25 | Within the reviewer's 500-line scoring target? (deterministic; see note below) |
 | Parsability | 1.5 | 15 | Is metadata/schema valid? |
 | Completeness | 1.5 | 15 | Are all scenarios covered? |
 | Consistency | 1.0 | 10 | Is internal alignment correct? |
 | Cross-Agent Consistency | 0.5 | 5 | Works across all agents? |
 
 **Informational Only (Not Scored):**
-- **Token Efficiency** — Merged into Rule Size; findings in recommendations
-- **Staleness** — Flagged in recommendations; not scored
+- **Token Efficiency**: Merged into Rule Size; findings in recommendations
+- **Staleness**: Flagged in recommendations; not scored
 
 **Scoring Formula:** `Raw (0-10) × Weight = Points`
 
@@ -130,14 +130,19 @@ Rules are scored across 6 dimensions with weighted points:
 
 ### Rule Size Flags
 
+> **Project guideline vs reviewer scale.** Rules and skills should ideally be no more than 250 lines, and `ai-rules validate` already reports a HIGH finding for any rule over 250 lines (see [CONTRIBUTING.md → Content Guidelines](../CONTRIBUTING.md#content-guidelines)). The reviewer's Rule Size dimension has not been realigned yet: it still scores against the 500-line scale below. A rule can therefore fail validation at 251 lines and still receive full Rule Size points. Realignment is tracked in [issue #8](https://github.com/sfc-gh-myoung/ai_coding_rules/issues/8).
+
 The Rule Size dimension includes deployment flags:
 
 | Line Count | Flag | Action |
 |------------|------|--------|
-| ≤500 | — | Optimal |
-| 501-600 | `OPTIMIZATION_RECOMMENDED` | Suggest consolidation |
-| 601-800 | `SPLITTING_REQUIRED` | Block deployment, require split plan |
-| >800 | `NOT_DEPLOYABLE` | Fail review, mandatory remediation |
+| ≤500 | None | Optimal or at target |
+| 501-550 | `SPLIT_RECOMMENDED` | Review for split |
+| 551-600 | `SPLIT_REQUIRED` | Mandatory split plan |
+| 601-700 | `NOT_DEPLOYABLE` | Block deployment; score capped at 70/100 |
+| >700 | `BLOCKED` | Reject review; score capped at 50/100 |
+
+Source of truth: [`rubrics/rule-size.md`](../skills/rule-reviewer/rubrics/rule-size.md).
 
 ### Blocking Issues
 
@@ -147,7 +152,7 @@ The skill counts issues that prevent autonomous execution:
 - Missing conditional branches (no explicit else)
 - Visual formatting (ASCII art, arrows, diagrams)
 
-**Impact on score:** ≥10 blocking issues → Score capped at 60
+**Impact on score:** Six or more blocking issues cap the total score at 80/100. Ten or more blocking issues force the `NOT_EXECUTABLE` verdict. See [`skills/rule-reviewer/rubrics/scoring.md`](../skills/rule-reviewer/rubrics/scoring.md) for the full hard-cap rules.
 
 
 ## Advanced Usage
@@ -168,23 +173,7 @@ timing_enabled: true
 
 Adds timing metadata to output (duration, token usage, cost estimation).
 
-**Example timing metadata:**
-
-```markdown
-## Timing Metadata
-
-| Metric | Value |
-|--------|-------|
-| Run ID | `a1b2c3d4e5f67890` |
-| Duration | 3m 45s (225.5s) |
-| Model | claude-sonnet-45 |
-| Tokens | 16,700 (12,500 in / 4,200 out) |
-| Cost | ~$0.04 |
-```
-
-**Timing thresholds:**
-- <60 seconds: Warning (possible shortcut)
-- >180 seconds: Warning (possible issue)
+For the current timing metadata format, threshold definitions, and cost calculation, see [Using the Skill Timer Skill](USING_SKILL_TIMER_SKILL.md). The timer implementation is the source of truth for those volatile values.
 
 ### Execution Modes
 
@@ -213,10 +202,10 @@ overwrite: true
 
 **Rule Files (rules/*.md):**
 - Full schema validation against `schemas/rule-schema.yml`
-- All 8 dimensions scored
+- All 6 dimensions scored
 - TokenBudget variance check applies
 
-**Project Files (AGENTS.md, PROJECT.md):**
+**Project Files (PROJECT.md):**
 - Schema validation skipped (different structure)
 - All dimensions scored except schema-specific checks
 - TokenBudget variance skipped
@@ -236,12 +225,9 @@ An executable rule has:
 
 Use a lowercase-hyphenated slug like `claude-sonnet-45`. Raw model names are normalized automatically.
 
-### What's the difference between rule-reviewer and plan-reviewer?
+### What should I use for implementation plan review?
 
-- **rule-reviewer**: Validates rule files for agent executability, schema compliance, token efficiency
-- **plan-reviewer**: Validates implementation plans for task completeness, success criteria, scope clarity
-
-Use rule-reviewer for rule files agents will load. Use plan-reviewer for plans agents will execute.
+Use `rule-reviewer` for rule files agents will load. Implementation plan review is handled by the external portable-skills repository, not by a local skill in this project.
 
 ### Why does my review take 90-120 seconds?
 
@@ -272,7 +258,7 @@ Coordinator (Main Agent)
 │
 ├── Phase 2: Dimension Evaluation (parallel: 5 sub-agents, or sequential)
 │   ├── Actionability (30pts)
-│   ├── Rule Size (25pts) — computed inline
+│   ├── Rule Size (25pts): computed inline
 │   ├── Parsability (15pts)
 │   ├── Completeness (15pts)
 │   ├── Consistency (10pts)
@@ -289,6 +275,8 @@ Coordinator (Main Agent)
 
 ### File Structure
 
+Representative layout (see `skills/rule-reviewer/` for the complete current inventory):
+
 ```text
 skills/rule-reviewer/
 ├── SKILL.md               # Main skill (entrypoint)
@@ -301,6 +289,7 @@ skills/rule-reviewer/
 │   ├── rule-size.md
 │   ├── staleness.md
 │   ├── cross-agent-consistency.md
+│   ├── scoring.md
 │   └── _overlap-resolution.md
 ├── examples/              # Mode walkthroughs
 │   ├── full-review.md
@@ -309,7 +298,7 @@ skills/rule-reviewer/
 │   ├── project-file-review.md
 │   └── edge-cases.md
 ├── tests/                 # Test cases
-│   ├── README.md
+│   ├── TESTING.md
 │   ├── test-inputs.md
 │   ├── test-modes.md
 │   └── test-outputs.md
@@ -319,7 +308,9 @@ skills/rule-reviewer/
     ├── review-execution.md
     ├── schema-validation.md
     ├── file-write.md
-    └── error-handling.md
+    ├── error-handling.md
+    ├── execution-discipline.md
+    └── validation-checklists.md
 ```
 
 ### Integration with Other Skills
@@ -329,9 +320,9 @@ skills/rule-reviewer/
 **With rule-creator:** Validate rules after creation:
 1. Create rule using rule-creator skill
 2. Run FULL review on the created rule
-3. Verify: score ≥75/100, no CRITICAL issues
+3. Verify: score ≥80/100, no CRITICAL issues
 
-**With skill-timing:** Adds execution timing when `timing_enabled: true`.
+**With skill-timer:** Adds execution timing when `timing_enabled: true`.
 
 ### Output Paths
 
@@ -347,4 +338,4 @@ skills/rule-reviewer/
 - **Examples:** `skills/rule-reviewer/examples/*.md`
 - **Tests:** `skills/rule-reviewer/tests/*.md`
 - **Troubleshooting:** `workflows/error-handling.md`
-- **Timing system:** `docs/USING_SKILL_TIMING_SKILL.md`
+- **Timing system:** `docs/USING_SKILL_TIMER_SKILL.md`

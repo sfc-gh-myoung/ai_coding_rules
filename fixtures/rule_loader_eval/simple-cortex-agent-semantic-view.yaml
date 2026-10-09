@@ -1,0 +1,21 @@
+schema_version: 3
+updated: 2026-07-20T12:00:00-04:00
+id: simple-cortex-agent-semantic-view
+description: Identify rules for Cortex Agent semantic view integration
+variant: simple
+prompt: |
+  How should a Cortex Agent be configured to use a semantic view for
+  data grounding and natural language queries?
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/115-snowflake-cortex-agents-core.md  # kw: cortex agent
+  forbidden: []
+  optional:
+    - rules/106c-snowflake-semantic-views-integration.md  # kw: cortex agent grounding, semantic view
+    - rules/106-snowflake-semantic-views-core.md  # kw: semantic view
+trigger_evidence:
+  kw: [cortex agent, semantic view, data grounding]
+  ext: []
+  file: []
+  dir: []

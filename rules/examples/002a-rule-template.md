@@ -1,128 +1,85 @@
-# 002a Example: Rule Template v3.2 Structure (Markdown)
+# 002a Example: V4 Rule Template
 
 > **EXAMPLE FILE** - Reference implementation for `002a-rule-creation.md`
-> Not a rule file. Not validated against rule-schema.yml.
+> This companion documents the generator; it is not an operational rule.
 
 ## Context
 
 **Parent Rule:** 002a-rule-creation.md
-**Demonstrates:** Complete v3.2 rule file structure for creating new rules
-**Use When:** Creating a new rule file from scratch
-**Version:** 1.0
-**Last Validated:** 2026-03-09
+**Demonstrates:** Generate and populate a v4 rule scaffold
+**Use When:** Creating a new rule without copying obsolete structure
+**Version:** 3.0
+**Last Validated:** 2026-09-30
 
 ## Prerequisites
 
-- Familiarity with rule schema v3.2
-- Understanding of rule naming conventions (NNN-technology-aspect.md)
+- Read the parent rule and `schemas/rule-schema.yml`.
+- Choose an unused filename in the correct domain range.
+- Use the project's configured CLI and an authorized output directory.
 
 ## Implementation
 
+Replace the filename placeholder before executing:
+
+```bash
+uv run ai-rules new <NNN-technology-aspect> --context-tier High
+```
+
+The generator emits YAML frontmatter with schema_version v4.0, rule_version v1.0.0, a current last_updated date, 5-11 typed keyword entries, token_budget, context_tier, and required dependencies. Replace generated content with task-specific requirements and measure the final token estimate.
+
+The required body layout is:
+
 ```markdown
-# [NNN]-[technology]-[aspect]
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** [YYYY-MM-DD]
-**Keywords:** [5-20 keywords here]
-**TokenBudget:** ~[estimate]
-**ContextTier:** [Critical|High|Medium|Low]
-**Depends:** 000-global-core.md
-
 ## Scope
 
 **What This Rule Covers:**
-[1-2 sentence description of what this rule accomplishes]
+State the task this rule governs.
 
 **When to Load This Rule:**
-- [Condition 1]
-- [Condition 2]
-- [Condition 3]
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **[related-rule].md** - [Brief description]
-
-### External Documentation
-
-- **[Resource Name]:** [URL or path]
+- State the applicable task and exclusions.
 
 ## Contract
 
 ### Inputs and Prerequisites
-[Prerequisites here]
+
+Name the required inputs, permissions, and initial state.
 
 ### Mandatory
-[Required tools/libraries]
 
-### Forbidden
-[Prohibited actions]
+State task-specific constraints and preserve safety requirements not already owned by a required dependency.
 
 ### Execution Steps
-1. [Step 1]
-2. [Step 2]
-3. [Step 3]
-4. [Step 4]
-5. [Step 5]
 
-### Output Format
-[Expected output description]
+1. Perform the required action after checking its prerequisite.
+2. Verify the result and report failed or uncertain outcomes.
 
 ### Validation
-**Pre-Task-Completion Checks:**
-- [Check 1]
 
-**Success Criteria:**
-- [Criterion 1]
+- [ ] Record the actual check, expected result, and completion evidence.
 
-### Post-Execution Checklist
-- [ ] Verification item 1
-- [ ] Verification item 2
+## References
 
-## Anti-Patterns and Common Mistakes
-[Anti-patterns with code examples]
+Link focused sources for external claims, or state None when no source applies.
 ```
 
-## Importance Markers
+This excerpt describes the body; it is not a complete standalone rule. For a complete synthetic rule, read `002-rule-governance-structure-example.md` in this directory.
 
-Add an importance marker after the title for foundation rules:
+Do not add a second completion checklist or a fixed number of examples. Preserve distinct prohibitions and output requirements under Mandatory, Validation, or an optional subsection. Show correct executable examples only.
 
-**When to use CORE FOUNDATION marker (domain cores only):**
-- Rule name ends with `-core.md`
-- Defines essential patterns for a technology domain
-- Other rules in the domain depend on it
-
-**When to use FOUNDATION marker (governance rules only):**
-- Rule is in 002-series
-- Defines rule creation/maintenance patterns
-- Required for rule infrastructure work
-
-**When to use no marker (most rules):**
-- Standard specialized rules
-- Can be summarized if context limits reached
+Keep dependency justifications in YAML comments. Use the foundation/domain importance marker only when its documented role applies. Do not introduce inline legacy metadata or a prose Dependencies inventory.
 
 ## Validation
 
-To verify the template was applied correctly:
+After replacing all scaffold placeholders, validate the generated rule:
 
 ```bash
-# Validate the new rule file
-uv run ai-rules validate rules/NNN-technology-aspect.md
-
-# Expected output: 0 CRITICAL, 0 HIGH errors
+uv run ai-rules validate rules/<NNN-technology-aspect>.md --verbose
 ```
 
-**Checklist:**
-- [ ] File name follows `NNN-technology-aspect.md` pattern
-- [ ] All required sections present (Metadata, Scope, Contract, Anti-Patterns)
-- [ ] SchemaVersion is v3.2
-- [ ] Depends field references appropriate parent rules
-- [ ] TokenBudget is within limits (500 advisory, 600 hard cap)
+Expected result: zero CRITICAL and HIGH findings. Review keyword relevance, dependency closure, token estimates, and technical accuracy separately; a scaffold can pass structural checks before its placeholders are meaningfully populated.
+
+Validate this companion through the example entrypoint:
+
+```bash
+uv run ai-rules validate rules/examples/ --examples
+```

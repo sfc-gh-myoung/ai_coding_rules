@@ -1,80 +1,87 @@
-# 002 Example: Rule Governance Structure (Markdown)
+# 002 Example: V4 Rule Governance Structure
 
 > **EXAMPLE FILE** - Reference implementation for `002-rule-governance.md`
-> Not a rule file. Not validated against rule-schema.yml.
+> Not an operational rule. Validate this wrapper with the example schema.
 
 ## Context
 
 **Parent Rule:** 002-rule-governance.md
-**Demonstrates:** Minimal and full rule structure examples
-**Use When:** Creating or updating rule files
-**Version:** v1.0.0
-**Last Validated:** 2026-03-10
+**Demonstrates:** A complete v4 rule with four meaningful Contract subsections
+**Use When:** Checking the structure of a new or migrated operational rule
+**Version:** 2.0
+**Last Validated:** 2026-09-30
 
 ## Prerequisites
 
-- [ ] Understanding of rule schema v3.2
-- [ ] Familiarity with 002-rule-governance.md parent rule
+- Read `002-rule-governance.md` and the active rule schema.
+- Save the embedded rule under an unused filename when testing it; do not overwrite a real rule.
+- Use the project's configured `ai-rules` environment.
 
 ## Implementation
 
-### Minimal Rule Example
+This synthetic rule demonstrates structure, not a new production workflow. Its dependency is the existing foundation rule.
 
 ```markdown
-# Rule Name
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-01-15
-**Keywords:** keyword1, keyword2, keyword3, keyword4, keyword5
-**TokenBudget:** ~1500
-**ContextTier:** Medium
-**Depends:** 000-global-core.md
+---
+schema_version: v4.0
+rule_version: v1.0.0
+last_updated: 2026-09-30
+keywords:
+  - kw:rule validation
+  - kw:validation result
+  - kw:source preservation
+  - kw:failure reporting
+  - kw:read-only inspection
+token_budget: ~350
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Shared authorization and validation requirements
+---
+# 999-example-rule: Inspect a Rule
 
 ## Scope
-...
+
+**What This Rule Covers:**
+Inspect a supplied rule without modifying it.
+
+**When to Load This Rule:**
+- A user requests read-only rule validation.
 
 ## Contract
-...
-```
 
-### Full Rule Structure Example
+### Inputs and Prerequisites
 
-```markdown
-# Rule Name
+- A readable rule path and the project validator.
 
-## Metadata
-[7 required fields]
+### Mandatory
 
-## Scope
-[What/When]
+- Preserve the source file. Do not convert a validation request into authorization to repair it.
+- Report missing inputs and failed checks rather than inventing success.
+
+### Execution Steps
+
+1. Read the supplied rule and run the configured validator on that file.
+2. Report its exit code and diagnostics without applying changes.
+
+### Validation
+
+- [ ] The validator ran against the supplied path.
+- [ ] The source is unchanged and all diagnostics are reported accurately.
 
 ## References
-[Dependencies/Related/External]
 
-## Contract
-[Inputs/Mandatory/Forbidden/Steps/Output/Validation]
-
-## Key Principles
-[Design guidance]
-
-## Anti-Patterns
-[Problem/Correct patterns]
+- `schemas/rule-schema.yml`: structure checked by the validator.
 ```
+
+Forbidden and Output Format subsections are optional when needed. Keep unique restrictions in Mandatory and the completion checklist in Validation. Do not add an anti-pattern gallery or duplicate checklist solely to increase section count.
 
 ## Validation
 
-After creating a rule file:
+Validate this companion wrapper separately:
 
 ```bash
-# Validate rule structure against schema
-uv run ai-rules validate rules/<your-rule>.md
+uv run ai-rules validate rules/examples/ --examples
 ```
 
-**Expected Results:**
-- All 7 required metadata fields present
-- Scope section defines What and When
-- Contract section includes at minimum Mandatory and Forbidden subsections
-- No CRITICAL or HIGH severity validation errors
+Extract the embedded Markdown into an unused temporary `.md` file, then pass that file to `uv run ai-rules validate`. Expected result: zero CRITICAL and HIGH findings, with required sections ordered Scope, Contract, References. Structural validation does not demonstrate that an agent followed the read-only behavior.

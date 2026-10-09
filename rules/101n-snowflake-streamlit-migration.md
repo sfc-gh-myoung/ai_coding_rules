@@ -1,326 +1,68 @@
-# Streamlit Deployment Migration Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.2.0
-**LastUpdated:** 2026-05-11
-**Keywords:** migration, Warehouse Runtime, Container Runtime, in-place upgrade, live version, environment.yml, pyproject.toml, get_active_session, st.connection, runtime migration, bidirectional migration
-**TokenBudget:** ~2100
-**ContextTier:** Low
-**Depends:** 101l-snowflake-streamlit-deployment.md
+---
+schema_version: v4.0
+rule_version: v3.0.0
+description: "Streamlit runtime migrations and in-place upgrades: prerequisites, dependency and API conversion, in-place ALTER of runtime properties, preserved grants and verified rollback."
+last_updated: 2026-10-07
+keywords:
+  - kw:Streamlit runtime migration
+  - kw:environment.yml to pyproject.toml
+  - kw:get_active_session replacement
+  - kw:Container Runtime infrastructure
+  - kw:bidirectional runtime swap
+  - kw:in-place Streamlit upgrade
+token_budget: ~1000
+context_tier: Low
+depends:
+  optional:
+    - 101l-snowflake-streamlit-deployment.md  # Runtime selection, EAI setup, compute pool creation
+---
+# Streamlit Runtime Migration and Upgrades
 
 ## Scope
 
 **What This Rule Covers:**
-Streamlit deployment migration patterns: Warehouse ↔ Container Runtime migrations, in-place upgrades within the same runtime (e.g., updating Streamlit version or dependencies), and safe swap workflows.
+Moving Streamlit in Snowflake apps between warehouse and container runtimes, upgrading ROOT_LOCATION apps to FROM, and in-place Streamlit or dependency upgrades: prerequisites, dependency conversion, code changes, object updates, verification and rollback.
 
 **When to Load This Rule:**
-- Migrating an existing Warehouse Runtime app to Container Runtime
-- Migrating a Container Runtime app back to Warehouse Runtime
-- Upgrading Streamlit version or dependencies within the same runtime
-- Converting environment.yml to pyproject.toml (or vice versa)
-- Replacing get_active_session() with st.connection()
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **101l-snowflake-streamlit-deployment.md** - Runtime selection, EAI setup, compute pool creation
-
-**Related:**
-- **101c-snowflake-streamlit-security.md** - Secrets migration patterns
+When changing an existing app's runtime, object type or dependency versions; load `101l-snowflake-streamlit-deployment.md` for integrations, pools and deployment mechanics.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Existing Streamlit app deployed on Warehouse Runtime
-- Access to create EAI and compute pools
-- Required privileges:
-  - CREATE EXTERNAL ACCESS INTEGRATION privilege
-  - CREATE COMPUTE POOL privilege (or ACCOUNTADMIN)
-  - USAGE on warehouse
+- Existing Streamlit object (`DESCRIBE STREAMLIT`), source in version control, current dependency file, grants, secrets and viewer roles.
+- Target runtime availability in the region, owner privileges (USAGE on compute pool and EAI for container runtime), Snowflake CLI version if used and approval for each change.
 
 ### Mandatory
 
-- Convert dependency file format
-- Update connection handling for thread safety
-- Set up Container Runtime infrastructure before migration
-
-### Forbidden
-
-- Migrating without testing locally first
-- Using get_active_session() in Container Runtime
+- Back up or confirm version control of source before changes and record current object properties and grants.
+- ROOT_LOCATION apps are warehouse-only; upgrade them to FROM-based objects per the documented procedure before any runtime migration.
+- Warehouse to container: make the app compatible first (Python 3.11, Streamlit 1.50+), convert `environment.yml` to `pyproject.toml` or `requirements.txt` at the source root using verified PyPI names and versions, replace `get_active_session()` and `_snowflake` calls with `st.connection("snowflake")` and `st.secrets`, and review shared-server effects (module globals, caches, memory).
+- Container to warehouse: confirm packages exist in the Snowflake Conda channel, convert to `environment.yml`, remove container-only features (PyPI-only packages, cross-session caches, container secrets) and use warehouse-runtime secret access.
+- Migrate in place with `ALTER STREAMLIT ... SET RUNTIME_NAME` and `COMPUTE_POOL` (plus integrations and secrets) rather than DROP and CREATE, preserving the object, URL and grants; then publish a new live version.
+- In-place upgrades change the dependency file in source and redeploy a new live version; test the upgrade in a development copy first and read Streamlit release notes for breaking changes.
+- If a parallel copy is used for testing, deploy it under a separate name with restricted access and remove it after cutover; never drop the original before the replacement is verified.
+- All ALTER/CREATE/DROP/GRANT and integration or pool changes are approved mutations; viewers may keep old warehouse sessions until they reload.
+- Verify after migration as owner and viewer: app loads, imports resolve, queries run, secrets resolve, caching and memory behave and logs are clean; keep the previous runtime settings and source revision as the rollback.
 
 ### Execution Steps
 
-1. Convert dependencies (environment.yml to pyproject.toml)
-2. Update connection handling
-3. Update secrets access
-4. Set up infrastructure (EAI + compute pool)
-5. Recreate Streamlit object
-
-### Output Format
-
-Migrated Streamlit app running on Container Runtime.
+1. Inspect object, source, dependencies, grants and region support; record rollback state.
+2. Prepare code and dependency changes and required infrastructure with approval.
+3. Apply in-place ALTER or redeploy, publish the live version and verify as owner and viewer.
+4. Report changes, evidence, rollback path and follow-ups.
 
 ### Validation
 
-- App loads without errors on Container Runtime
-- All queries execute correctly
-- Secrets accessible
+- Prerequisites met; ROOT_LOCATION objects upgraded first.
+- Dependencies and APIs converted for the target runtime.
+- Migration done in place with grants preserved; no premature drops.
+- Owner and viewer verification passed with a documented rollback.
 
-**Troubleshooting:** If app fails to start on Container Runtime, check compute pool status: `DESCRIBE COMPUTE POOL <name>` -- state must be ACTIVE or IDLE. If SUSPENDED, resume it with `ALTER COMPUTE POOL <name> RESUME`.
+## References
 
-### Post-Execution Checklist
-
-- [ ] Dependencies converted
-- [ ] Connection handling updated
-- [ ] Infrastructure provisioned
-- [ ] App tested on new runtime
-
-## Step 1: Convert Dependencies
-
-**From environment.yml:**
-```yaml
-name: my_app
-channels:
-  - snowflake
-dependencies:
-  - streamlit=1.51.0
-  - pandas
-  - plotly
-  - pillow
-```
-
-**To pyproject.toml:**
-```toml
-[project]
-requires-python = ">=3.11"
-dependencies = [
-    "streamlit>=1.51",
-    "pandas",
-    "plotly",
-    "Pillow",  # Note: PyPI name differs from conda
-]
-```
-
-**Common Name Differences:**
-- `pillow` (conda) becomes `Pillow` (PyPI)
-- `opencv` (conda) becomes `opencv-python` (PyPI)
-- `pyyaml` (conda) becomes `PyYAML` (PyPI)
-
-## Step 2: Update Connection Handling
-
-**Before (Warehouse Runtime):**
-```python
-from snowflake.snowpark.context import get_active_session
-session = get_active_session()  # NOT thread-safe, won't work in Container
-```
-
-**After (Both Runtimes):**
-```python
-import streamlit as st
-conn = st.connection("snowflake")
-session = conn.session()
-```
-
-## Step 3: Update Secrets Access
-
-See `101c-snowflake-streamlit-security.md` for detailed secrets migration patterns.
-
-**Summary:**
-- Container Runtime: Use `SYSTEM$GET_SECRET('secret_name')` in SQL or `SELECT SYSTEM$GET_SECRET('my_secret')` from Python via session.sql()
-- Warehouse Runtime: Can use `_snowflake` module directly
-
-## Step 4: Set Up Infrastructure
-
-1. Create External Access Integration (see 101l)
-2. Create Compute Pool (see 101l)
-3. Grant necessary permissions
-
-**Verify infrastructure before proceeding:**
-
-```sql
-SHOW COMPUTE POOLS LIKE 'streamlit%';
-DESCRIBE EXTERNAL ACCESS INTEGRATION pypi_access_integration;
-```
-
-## Step 5: Recreate Streamlit Object
-
-```sql
--- Drop old Streamlit (Warehouse Runtime)
-DROP STREAMLIT my_db.my_schema.my_app;
-
--- Create new Streamlit (Container Runtime)
-CREATE STREAMLIT my_db.my_schema.my_app
-  FROM '@my_db.my_schema.my_stage/streamlit_app'
-  MAIN_FILE = 'streamlit_app.py'
-  RUNTIME_NAME = 'SYSTEM$ST_CONTAINER_RUNTIME_PY3_11'
-  COMPUTE_POOL = streamlit_compute_pool
-  QUERY_WAREHOUSE = my_warehouse
-  EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration);
-
--- Activate live version so non-owner roles can access the app
-ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
-```
-
-## Migration Checklist
-
-- [ ] Convert `environment.yml` to `pyproject.toml`
-- [ ] Update package names (conda to PyPI)
-- [ ] Replace `get_active_session()` with `st.connection("snowflake")`
-- [ ] Update secrets access pattern (if using `_snowflake` module)
-- [ ] Create External Access Integration
-- [ ] Create Compute Pool
-- [ ] Recreate Streamlit object with new parameters
-- [ ] Run `ALTER STREAMLIT <name> ADD LIVE VERSION FROM LAST` after CREATE
-- [ ] Test all functionality in new runtime
-
-## Container to Warehouse Runtime (Downgrade)
-
-If reverting a Container Runtime app to Warehouse Runtime (e.g., to reduce infrastructure complexity or use Anaconda-only packages):
-
-1. **Convert `pyproject.toml` back to `environment.yml`** with `snowflake` channel and pinned Streamlit version.
-2. **Update connection handling** — `st.connection("snowflake")` still works in Warehouse Runtime; no changes required if already using it.
-3. **Remove EAI and compute pool** from the `CREATE STREAMLIT` statement.
-4. **Re-upload files to stage** with `AUTO_COMPRESS=FALSE` (mandatory for Warehouse Runtime `.py` files).
-5. **Recreate the Streamlit object** without `RUNTIME_NAME` or `COMPUTE_POOL`:
-
-```sql
-DROP STREAMLIT my_db.my_schema.my_app;
-CREATE STREAMLIT my_db.my_schema.my_app
-  FROM '@my_db.my_schema.my_stage/streamlit_app'
-  MAIN_FILE = 'streamlit_app.py'
-  QUERY_WAREHOUSE = my_warehouse;
-ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
-```
-
-## In-Place Upgrades
-
-Use in-place upgrades when changing dependencies or Streamlit version without switching runtimes.
-
-### Warehouse Runtime: Update Streamlit Version
-
-1. Update `environment.yml` with the new pinned version.
-2. Re-upload files to stage (`AUTO_COMPRESS=FALSE`).
-3. Recreate the Streamlit object (environment.yml is read at CREATE time):
-
-```sql
-DROP STREAMLIT IF EXISTS my_db.my_schema.my_app;
-CREATE STREAMLIT my_db.my_schema.my_app
-  FROM '@my_db.my_schema.my_stage/streamlit_app'
-  MAIN_FILE = 'streamlit_app.py'
-  QUERY_WAREHOUSE = my_warehouse;
-ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
-```
-
-### Container Runtime: Update Dependencies
-
-1. Update `pyproject.toml` with the new dependency versions.
-2. Re-upload files to stage.
-3. Recreate the Streamlit object (Container Runtime reads `pyproject.toml` at startup):
-
-```sql
-DROP STREAMLIT IF EXISTS my_db.my_schema.my_app;
-CREATE STREAMLIT my_db.my_schema.my_app
-  FROM '@my_db.my_schema.my_stage/streamlit_app'
-  MAIN_FILE = 'streamlit_app.py'
-  RUNTIME_NAME = 'SYSTEM$ST_CONTAINER_RUNTIME_PY3_11'
-  COMPUTE_POOL = streamlit_compute_pool
-  QUERY_WAREHOUSE = my_warehouse
-  EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration);
-ALTER STREAMLIT my_db.my_schema.my_app ADD LIVE VERSION FROM LAST;
-```
-
-## Anti-Patterns and Common Mistakes
-
-**Anti-Pattern 1: Using `get_active_session()` in Container Runtime**
-
-**Problem:** Copying `get_active_session()` calls into a Container Runtime app, or wrapping it in a try/except as a "fallback." This function relies on the Warehouse Runtime's injected Snowpark session and is fundamentally incompatible with Container Runtime's architecture. It will raise an error at runtime, and try/except wrappers hide the real issue and make debugging harder.
-
-```python
-# WRONG - Fallback pattern masks the real problem
-try:
-    from snowflake.snowpark.context import get_active_session
-    session = get_active_session()
-except Exception:
-    import streamlit as st
-    session = st.connection("snowflake").session()
-```
-
-**Correct Pattern:** Use `st.connection("snowflake")` unconditionally. It works on both Warehouse and Container Runtimes, is thread-safe, and is the supported API going forward.
-
-```python
-import streamlit as st
-conn = st.connection("snowflake")
-session = conn.session()
-```
-
-**Anti-Pattern 2: Copying `environment.yml` Package Names Directly into `pyproject.toml`**
-
-**Problem:** Taking conda package names verbatim and placing them in `pyproject.toml` `dependencies`. Conda and PyPI use different package naming conventions. Some names happen to overlap, but others (like `pillow`, `opencv`, `pyyaml`) differ and will cause install failures or pull the wrong package in Container Runtime.
-
-```toml
-# WRONG - conda names used verbatim
-[project]
-dependencies = [
-    "pillow",          # PyPI name is "Pillow" (case-sensitive on some resolvers)
-    "opencv",          # Does not exist on PyPI; need "opencv-python"
-    "pyyaml",          # PyPI name is "PyYAML"
-    "scikit-learn",    # This one happens to be correct
-]
-```
-
-**Correct Pattern:** Look up each package's actual PyPI name before adding it to `pyproject.toml`. Check common differences: `pillow` -> `Pillow`, `opencv` -> `opencv-python`, `pyyaml` -> `PyYAML`.
-
-```toml
-[project]
-dependencies = [
-    "Pillow",
-    "opencv-python",
-    "PyYAML",
-    "scikit-learn",
-]
-```
-
-**Anti-Pattern 3: Dropping the Old Streamlit Object Before Verifying the New Infrastructure**
-
-**Problem:** Running `DROP STREAMLIT` on the existing Warehouse Runtime app before confirming the compute pool, External Access Integration, and permissions are all in place. If any infrastructure step fails, the app is down with no quick rollback path.
-
-```sql
--- WRONG - Dropping first with no safety net
-DROP STREAMLIT my_db.my_schema.my_app;
-
--- Then discovering the compute pool doesn't exist yet...
-CREATE STREAMLIT my_db.my_schema.my_app
-  FROM '@my_db.my_schema.my_stage/streamlit_app'
-  MAIN_FILE = 'streamlit_app.py'
-  RUNTIME_NAME = 'SYSTEM$ST_CONTAINER_RUNTIME_PY3_11'
-  COMPUTE_POOL = streamlit_compute_pool  -- ERROR: pool not found
-  ...;
-```
-
-**Correct Pattern:** Provision and verify all Container Runtime infrastructure first. Optionally deploy under a temporary name to validate, then swap.
-
-```sql
--- 1. Verify infrastructure exists
-SHOW COMPUTE POOLS LIKE 'streamlit_compute_pool';
-SHOW EXTERNAL ACCESS INTEGRATIONS LIKE 'pypi_access_integration';
-
--- 2. Deploy with a temporary name to test
-CREATE STREAMLIT my_db.my_schema.my_app_v2
-  FROM '@my_db.my_schema.my_stage/streamlit_app'
-  MAIN_FILE = 'streamlit_app.py'
-  RUNTIME_NAME = 'SYSTEM$ST_CONTAINER_RUNTIME_PY3_11'
-  COMPUTE_POOL = streamlit_compute_pool
-  QUERY_WAREHOUSE = my_warehouse
-  EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration);
-ALTER STREAMLIT my_db.my_schema.my_app_v2 ADD LIVE VERSION FROM LAST;
-
--- 3. Verify my_app_v2 works, then swap
-DROP STREAMLIT my_db.my_schema.my_app;
-ALTER STREAMLIT my_db.my_schema.my_app_v2 RENAME TO my_db.my_schema.my_app;
-```
+- [Migrating between runtime environments](https://docs.snowflake.com/en/developer-guide/streamlit/migrations-and-upgrades/runtime-migration)
+- [Migrate from ROOT_LOCATION to FROM](https://docs.snowflake.com/en/developer-guide/streamlit/migrations-and-upgrades/root-location)
+- [Types of Streamlit objects](https://docs.snowflake.com/en/developer-guide/streamlit/migrations-and-upgrades/overview)
+- [ALTER STREAMLIT](https://docs.snowflake.com/en/sql-reference/sql/alter-streamlit)
+- [Default container runtime behavior change](https://docs.snowflake.com/en/release-notes/bcr-bundles/2026_06/bcr-2342)

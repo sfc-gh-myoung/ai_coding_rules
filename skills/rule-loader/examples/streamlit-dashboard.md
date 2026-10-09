@@ -27,10 +27,8 @@ Match: implied .py -> 200-python-core.md
 - Primary technology: `Streamlit`
 
 ```bash
-grep -i "test" rules/RULES_INDEX.md
+python3 src/ai_rules/match_rules.py --prompt "Write tests for my Streamlit dashboard" --rules-dir rules/
 # Matches: 206-python-pytest.md (keyword: test)
-
-grep -i "streamlit" rules/RULES_INDEX.md
 # Matches: 101-snowflake-streamlit-core.md (already selected in Phase 2)
 ```
 

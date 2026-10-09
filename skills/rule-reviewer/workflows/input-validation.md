@@ -29,6 +29,34 @@
 - Validated inputs ready for downstream workflows
 - `output_root`: normalized path with trailing slash (e.g., `reviews/` or `../mytest/`)
 
+## Supported File Types
+
+**Rule Files (`rules/*.md`):**
+- Domain-specific patterns and guidelines loaded on-demand by agents
+- Full schema validation against `schemas/rule-schema.yml`
+- All 6 dimensions scored (100 points max)
+- TokenBudget variance check applies
+
+**Project Files (`PROJECT.md`):**
+- Bootstrap and configuration documents loaded once during project initialization
+- Schema validation skipped (different structure than rules)
+- All 6 dimensions scored (100 points max)
+- TokenBudget variance skipped (no declared budget)
+- Evaluated for actionability, completeness, consistency, markdown quality, and currency
+
+**Key Differences:**
+
+| Aspect | Rule Files | Project Files |
+|--------|------------|---------------|
+| Schema validation | Full check | Skipped |
+| Parsability scoring | Schema + markdown | Markdown only |
+| Token efficiency | Budget variance + redundancy | Redundancy + structure only |
+| Metadata required | 7 fields (SchemaVersion, etc.) | None |
+| Section structure | Scope → Contract → Content | Custom per project |
+| Max score | 100 points | 100 points |
+
+Both file types are agent-executable documents; they follow different schemas optimized for their architectural roles.
+
 ## File-Type Detection
 
 After input validation, determine whether `target_file` is a rule file or a project file. This controls whether schema validation is run.
@@ -36,7 +64,7 @@ After input validation, determine whether `target_file` is a rule file or a proj
 ```bash
 target_basename=$(basename "$target_file")
 
-if [[ "$target_basename" =~ ^(AGENTS|PROJECT)\.md$ ]]; then
+if [[ "$target_basename" =~ ^PROJECT\.md$ ]]; then
     FILE_TYPE="project"
     SKIP_SCHEMA=true
     echo "File type: Project configuration (schema validation skipped)"
@@ -45,13 +73,13 @@ elif [[ "$target_file" == rules/*.md ]]; then
     SKIP_SCHEMA=false
     echo "File type: Rule (full schema validation)"
 else
-    echo "ERROR: Target must be AGENTS.md, PROJECT.md, or rules/*.md"
+    echo "ERROR: Target must be PROJECT.md or rules/*.md"
     exit 1
 fi
 ```
 
-**Rationale:** `AGENTS.md` and `PROJECT.md` are bootstrap/configuration files with different structure than domain rules. They do not use rule metadata (`SchemaVersion`, `RuleVersion`, `TokenBudget`) or rule sections (`Scope`, `Contract`, `References`).
+**Rationale:** `PROJECT.md` is a project configuration file with different structure than domain rules. It does not use rule metadata (`SchemaVersion`, `RuleVersion`, `TokenBudget`) or rule sections (`Scope`, `Contract`, `References`).
 
 **Outputs set:**
-- `FILE_TYPE` — one of `rule`, `project`
-- `SKIP_SCHEMA` — boolean, consumed by `schema-validation.md`
+- `FILE_TYPE`: one of `rule`, `project`
+- `SKIP_SCHEMA`: boolean, consumed by `schema-validation.md`

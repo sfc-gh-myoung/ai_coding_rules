@@ -1,360 +1,76 @@
-# Snowflake MODEL MONITOR (ML Observability)
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.1
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:model-monitor, kw:ml-observability
-**Keywords:** model monitor, drift detection, baseline data, scoring data, ML observability, model performance monitoring, prediction drift, schema alignment, enable_monitoring
-**TokenBudget:** ~3300
-**ContextTier:** Medium
-**Depends:** 100-snowflake-core.md, 110-snowflake-model-registry.md
+---
+schema_version: v4.0
+rule_version: v5.0.0
+description: Schema-grounded model monitoring with correct function/version binding, baseline semantics, and scoped lifecycle recovery.
+last_updated: 2026-10-07
+keywords:
+  - kw:MODEL MONITOR
+  - kw:enable_monitoring
+  - kw:drift detection
+  - kw:baseline scoring schema
+  - kw:ml observability
+  - kw:monitor refresh interval
+token_budget: ~1200
+context_tier: Medium
+depends:
+  required:
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+    - 110-snowflake-model-registry.md  # Model Registry core patterns
+---
+# Snowflake MODEL MONITOR: ML Observability
 
 ## Scope
 
 **What This Rule Covers:**
-MODEL MONITOR integration for ML Observability including drift detection, performance monitoring, baseline/scoring table setup, schema alignment, and privilege configuration.
+Model-version monitoring of stored inference data, drift/performance requirements, schema/privilege binding, refresh diagnostics and safe recovery.
 
 **When to Load This Rule:**
-- Creating MODEL MONITORs for ML Observability
-- Setting up drift detection and model performance monitoring
-- Configuring baseline and scoring tables
-- Troubleshooting MODEL MONITOR errors
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **110-snowflake-model-registry.md** - Model Registry core patterns
-
-### External Documentation
-
-- [MODEL MONITOR Overview](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/model-observability) - ML Observability and drift detection
-- [CREATE MODEL MONITOR Syntax](https://docs.snowflake.com/en/sql-reference/sql/create-model-monitor) - SQL reference for MODEL MONITOR creation
+When designing or troubleshooting MODEL MONITOR, scoring/baseline datasets, or model quality monitoring.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Model registered in Snowflake Model Registry with `enable_monitoring=True`
-- Baseline data table (representative sample of training distribution)
-- Scoring data table (production predictions, append-only)
-- Warehouse for monitor refresh operations
+- Actual model/version/function/task, supported monitor type, current SDK/SQL capabilities and representative scoring/baseline schema/data.
+- Approved monitor/compute scope, refresh/window requirements, expected metrics, labels and owner response policy.
+- Verify CREATE MODEL MONITOR on schema, model USAGE, source SELECT, warehouse USAGE and parent access for the chosen workflow; inspect current monitor privileges for lifecycle changes.
 
 ### Mandatory
 
-- Registry initialized with `options={"enable_monitoring": True}`
-- Baseline and scoring table schemas match exactly
-- Session context set (USE DATABASE/SCHEMA) before CREATE MODEL MONITOR
-
-### Forbidden
-
-- Creating MODEL MONITOR without `enable_monitoring` on Registry
-- Mismatched schemas between baseline and scoring tables
+- Inspect registered model/version and actual grants/source before diagnosing not-found/not-authorized errors. Do not claim every failure is missing enable_monitoring or require DROP/re-registration; current SQL documentation does not establish that destructive prerequisite.
+- Bind model, version and function explicitly using supported identifiers and literal syntax; version/function names are quoted string values in current CREATE syntax. Fully qualify cross-schema objects; USE session context is not a universal substitute for a correct model FQN.
+- Distinguish model-version monitors from gateway monitors and verify feature/task/output support. Do not transfer a VERSION/SOURCE syntax contract to a gateway workflow without its documented GATEWAY/ground-truth requirements.
+- Stored source contains relevant input features, predictions, TIMESTAMP_NTZ observation time, and optional actuals/IDs. Column arrays contain string names; verify supported classification/regression types and no conflicting reuse across parameters.
+- At least one supported prediction class/score column is needed for a version monitor. Accuracy/performance metrics need appropriate actual labels; absence of ground truth must not become an accuracy pass.
+- Baseline is optional but required for drift; it represents a reviewed reference distribution and is snapshotted into the monitor. Align relevant features/types/semantics with source; do not assert every metadata column must universally match exactly or create a guessed unsupported view workaround.
+- Validate keys, timestamps, labels, class/score mapping and allowed values, including NULL/NaN/infinite/out-of-range data. Delayed ground truth and late data need explicit reconciliation, not an append-only assertion that prevents updates.
+- Choose supported refresh interval and aggregation window based on data/SLA/cost (version-monitor windows use days). Review current feature/segment/monitor limits and account capabilities rather than copy stale universal counts.
+- Inspect SHOW/DESCRIBE status/errors and documented model-monitor metric functions for actual refresh/metric evidence. Do not invent INFORMATION_SCHEMA.MODEL_MONITOR_REFRESH_HISTORY or treat DESCRIBE as the metric result itself.
+- Missing metrics can reflect no data, timing, source/grant changes, unsupported values or suspended refreshes. Inspect aggregation status/last errors and source progress before approved resume; no automatic warehouse/privilege escalation.
+- Basic monitored model/source/baseline configuration is not freely mutable. Adding a missing baseline may require reviewed recreation; preserve dependencies/evidence and require explicit ownership/deletion approval rather than promise ALTER can attach it.
+- Monitor warehouse/storage/dashboard costs and privacy. Configure alerts/remediation/retraining as approved workflows; drift indicates distribution change, not guaranteed accuracy degradation or automatic permission to retrain/deploy.
+- CREATE/ALTER/SUSPEND/RESUME/DROP, grants and data population are mutations. Separate design, inspection, and approved execution; preserve existing monitors and known-good state on uncertain outcomes.
 
 ### Execution Steps
 
-1. Initialize Registry with `enable_monitoring=True`
-2. Register model with monitoring-enabled Registry
-3. Create baseline and scoring tables with matching schemas
-4. Set session context and create MODEL MONITOR
-5. Grant monitoring privileges
-
-### Output Format
-
-- Registry initialization with monitoring enabled
-- CREATE MODEL MONITOR SQL statements
-- Baseline/scoring table DDL
-- Privilege grant statements
+1. Inspect model/version/function, source/baseline schemas/data and current monitor state/privileges.
+2. Design supported column/task/time bindings, baseline/label expectations, refresh/window and owner response.
+3. Prepare scoped definition and data-quality tests without replacing existing models or creating resources implicitly.
+4. Under execution approval, create/update the intended monitor and inspect actual status plus correlated metric results after refresh.
+5. Diagnose failures from actual evidence and apply approved scoped recovery; report unavailable accuracy/drift separately.
 
 ### Validation
 
-- Verify MODEL MONITOR created: `SHOW MODEL MONITORS`
-- Check monitor details: `DESC MODEL MONITOR <name>`
-- Confirm baseline/scoring schemas match
-- Test privilege grants for monitoring role
+- Actual model/version/function and supported task/schema bindings verified, labels and baseline sufficient for claimed metrics.
+- Data types/values/time/IDs align; no fabricated monitoring flag/drop requirement or unknown history function.
+- Refresh/status/metrics and cost/access behavior observed where authorized; no empty-result correctness claim.
+- Recovery/recreation scope and immutable configuration limits explicit, existing model consumers preserved.
+- Deliver definition/data contract/runbook and exact tested/unverified outcomes; no unexecuted cloud checks counted as passes.
 
-### Design Principles
+## References
 
-- Always enable monitoring at Registry creation time
-- Align baseline and scoring schemas before creating monitors
-- Set explicit session context for reliable model resolution
-- Use views to align schemas when baseline has extra columns
-
-### Post-Execution Checklist
-
-- [ ] Registry initialized with `enable_monitoring=True`
-- [ ] Model registered with monitoring-enabled Registry
-- [ ] Baseline table created with training data sample
-- [ ] Scoring table created with matching schema
-- [ ] MODEL MONITOR created with appropriate refresh interval
-- [ ] Privileges granted to monitoring role
-- [ ] Monitor status verified with SHOW/DESC
-
-## Prerequisites for MODEL MONITOR
-
-- **Critical Requirement:** Registry MUST be initialized with `options={"enable_monitoring": True}` to use MODEL MONITOR
-- **Rule:** The `enable_monitoring` option must be set at Registry creation time - models registered without it cannot be monitored
-- **Warning:** Models registered without `enable_monitoring` will cause "MODEL does not exist or not authorized" errors when creating monitors, even though the model exists
-- **Rule:** If model was registered without `enable_monitoring`, you must DROP the model and re-register using a monitoring-enabled Registry
-
-### Registry Initialization for MODEL MONITOR
-```python
-from snowflake.ml.registry import Registry
-
-# REQUIRED: Enable monitoring in options to use MODEL MONITOR
-registry = Registry(
-    session=session,
-    database_name="ML",
-    schema_name="REGISTRY",
-    options={"enable_monitoring": True}  # CRITICAL for MODEL MONITOR!
-)
-```
-
-### Model Registration for MODEL MONITOR
-```python
-# Initialize with monitoring enabled (see Registry Initialization above)
-# Then register model - no special parameters needed if Registry has monitoring enabled
-model_ref = registry.log_model(
-    model=trained_model,
-    model_name="customer_churn_predictor",
-    version_name="v1_0_0",
-    comment="Binary classifier for customer churn prediction",
-    sample_input_data=X_test.head(5),
-    conda_dependencies=["scikit-learn", "pandas", "numpy"]
-)
-```
-
-## Creating a MODEL MONITOR
-
-- **Requirement:** Prepare baseline and scoring data tables before creating monitor
-- **Rule:** Baseline table should contain representative sample of training data distribution
-- **Rule:** Scoring table accumulates production predictions for drift comparison
-- **Critical:** Set explicit session context (USE DATABASE/SCHEMA) before CREATE MODEL MONITOR to ensure model reference resolves correctly
-- **Critical:** Baseline and scoring table schemas MUST match exactly - same columns with same names and compatible types
-- **Tip:** You can create MODEL MONITOR without BASELINE for accuracy-only monitoring; add BASELINE later once schemas align
-
-```sql
--- IMPORTANT: Set session context before creating monitor
-USE DATABASE ML;
-USE SCHEMA MONITORING;
-
--- Create MODEL MONITOR for drift detection and performance monitoring
-CREATE MODEL MONITOR customer_churn_monitor
-  WITH 
-    MODEL = CUSTOMER_CHURN_PREDICTOR,  -- Uses current schema context
-    VERSION = V1_0_0,
-    SOURCE = SCORING_DATA,              -- Production predictions
-    BASELINE = BASELINE_DATA,           -- Training distribution (optional, enables drift)
-    TIMESTAMP_COLUMN = PREDICTION_TIMESTAMP,
-    PREDICTION_SCORE_COLUMNS = (PREDICTION),
-    ACTUAL_CLASS_COLUMNS = (ACTUAL_LABEL),  -- Optional: for accuracy monitoring
-    ID_COLUMNS = (CUSTOMER_ID),
-    WAREHOUSE = MY_WH,
-    REFRESH_INTERVAL = '1 hour',
-    AGGREGATION_WINDOW = '1 day';
-
--- Check monitor status
-SHOW MODEL MONITORS;
-DESC MODEL MONITOR customer_churn_monitor;
-```
-
-## Querying Monitor Results
-
-After the monitor refreshes, query drift and accuracy metrics:
-
-```sql
--- Check monitor refresh history and status
-SELECT * FROM TABLE(INFORMATION_SCHEMA.MODEL_MONITOR_REFRESH_HISTORY(
-    MONITOR_NAME => 'customer_churn_monitor'
-));
-
--- Query drift results from the monitor's output
--- The monitor populates results accessible via DESCRIBE and system functions
-DESC MODEL MONITOR customer_churn_monitor;
-
--- Check for prediction drift scores
--- High drift scores indicate the production data distribution has shifted
--- from the baseline training distribution
-```
-
-## Schema Alignment for Baseline/Scoring Tables
-
-- **Rule:** Both tables must have identical feature columns for drift detection to work
-- **Warning:** Extra columns in baseline that don't exist in scoring will cause schema mismatch errors
-- **Pattern:** Create a view over baseline that selects only the columns present in scoring table
-
-```sql
--- If baseline has extra columns, create aligned view
-CREATE OR REPLACE VIEW ML.MONITORING.BASELINE_ALIGNED AS
-SELECT 
-    CUSTOMER_ID,
-    FEATURE_1,
-    FEATURE_2,
-    PREDICTION,
-    ACTUAL_LABEL,
-    PREDICTION_TIMESTAMP
-FROM ML.MONITORING.BASELINE_DATA;
--- Then use BASELINE = BASELINE_ALIGNED in MODEL MONITOR
-```
-
-## Required Table Structures
-
-```sql
--- Baseline table: sample from training data
-CREATE TABLE ML.MONITORING.BASELINE_DATA (
-    CUSTOMER_ID VARCHAR,
-    FEATURE_1 FLOAT,
-    FEATURE_2 FLOAT,
-    -- ... all model input features
-    PREDICTION FLOAT,           -- Model prediction
-    ACTUAL_LABEL INT,           -- Ground truth (if available)
-    PREDICTION_TIMESTAMP TIMESTAMP_NTZ
-);
-
--- Scoring table: production predictions (append-only)
-CREATE TABLE ML.MONITORING.SCORING_DATA (
-    CUSTOMER_ID VARCHAR,
-    FEATURE_1 FLOAT,
-    FEATURE_2 FLOAT,
-    -- ... all model input features (must match baseline)
-    PREDICTION FLOAT,
-    ACTUAL_LABEL INT,           -- Populated later when ground truth available
-    PREDICTION_TIMESTAMP TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
-);
-```
-
-## MODEL MONITOR Privileges
-
-```sql
--- Grant privileges for MODEL MONITOR operations
-GRANT USAGE ON MODEL ML.REGISTRY.CUSTOMER_CHURN_PREDICTOR TO ROLE ml_monitoring;
-GRANT SELECT ON TABLE ML.MONITORING.BASELINE_DATA TO ROLE ml_monitoring;
-GRANT SELECT ON TABLE ML.MONITORING.SCORING_DATA TO ROLE ml_monitoring;
-GRANT CREATE MODEL MONITOR ON SCHEMA ML.MONITORING TO ROLE ml_monitoring;
-```
-
-## Monitor Lifecycle Management
-
-```sql
--- Modify refresh interval
-ALTER MODEL MONITOR customer_churn_monitor SET REFRESH_INTERVAL = '30 minutes';
-
--- Suspend monitoring temporarily
-ALTER MODEL MONITOR customer_churn_monitor SUSPEND;
-
--- Resume monitoring
-ALTER MODEL MONITOR customer_churn_monitor RESUME;
-
--- Drop monitor when no longer needed
-DROP MODEL MONITOR IF EXISTS customer_churn_monitor;
-```
-
-## Refresh Troubleshooting
-
-If the monitor is not producing results:
-
-```sql
--- Check monitor status and last refresh time
-DESC MODEL MONITOR customer_churn_monitor;
--- Look for: status (ACTIVE/SUSPENDED), last_refresh_time, next_refresh_time
-
--- Verify scoring table has new data since last refresh
-SELECT COUNT(*), MAX(PREDICTION_TIMESTAMP) FROM ML.MONITORING.SCORING_DATA;
-
--- Check warehouse is available and not suspended
-SHOW WAREHOUSES LIKE 'MY_WH';
-```
-
-> If refresh fails repeatedly, verify the warehouse has sufficient permissions and the scoring table schema hasn't changed since monitor creation.
-
-## Anti-Patterns and Common Mistakes
-
-**Anti-Pattern 1: Registering Models Without enable_monitoring Then Wondering Why Monitors Fail**
-
-**Problem:** Developers register a model using a Registry initialized without `options={"enable_monitoring": True}`, then attempt to create a MODEL MONITOR. The CREATE MODEL MONITOR statement fails with "MODEL does not exist or not authorized" even though `SHOW MODELS` lists the model. The only fix is to DROP the model and re-register it with a monitoring-enabled Registry, which disrupts production references.
-
-**Correct Pattern:** Always initialize the Registry with `options={"enable_monitoring": True}` before registering any model you plan to monitor. Treat this as a one-time setup step per registry schema and verify it before the first `log_model` call.
-
-```python
-# Wrong: Registry without enable_monitoring — monitors will fail with "MODEL does not exist"
-from snowflake.ml.registry import Registry
-registry = Registry(session=session, database_name="ML", schema_name="REGISTRY")
-registry.log_model(model, model_name="CHURN_MODEL", version_name="v1_0_0")
-# Later: CREATE MODEL MONITOR ... MODEL = CHURN_MODEL -> ERROR
-
-# Correct: Always enable monitoring at Registry creation time
-registry = Registry(
-    session=session,
-    database_name="ML",
-    schema_name="REGISTRY",
-    options={"enable_monitoring": True}  # Required for MODEL MONITOR
-)
-registry.log_model(model, model_name="CHURN_MODEL", version_name="v1_0_0")
-```
-
-**Anti-Pattern 2: Schema Mismatch Between Baseline and Scoring Tables**
-
-**Problem:** The baseline table is created from the full training DataFrame (which includes target columns, metadata, or extra engineered features), while the scoring table only contains the columns populated at inference time. CREATE MODEL MONITOR fails with a schema mismatch error, or drift detection produces misleading results because columns don't align.
-
-**Correct Pattern:** Create a view over the baseline table that selects only the columns present in the scoring table. Use `DESCRIBE TABLE` on both tables to confirm column names and types match exactly before creating the monitor. Define the baseline schema from the scoring schema, not the other way around.
-
-```sql
--- Wrong: Baseline has extra columns not in scoring table — schema mismatch error
-CREATE TABLE ML.MONITORING.BASELINE_DATA AS
-SELECT * FROM TRAINING_DATA;  -- Includes target, metadata, extra features
-
-CREATE TABLE ML.MONITORING.SCORING_DATA (
-    CUSTOMER_ID VARCHAR, FEATURE_1 FLOAT, PREDICTION FLOAT, PREDICTION_TIMESTAMP TIMESTAMP_NTZ
-);
--- CREATE MODEL MONITOR ... BASELINE = BASELINE_DATA -> schema mismatch error
-
--- Correct: Create aligned view matching scoring schema exactly
-DESCRIBE TABLE ML.MONITORING.SCORING_DATA;  -- Check columns first
-
-CREATE OR REPLACE VIEW ML.MONITORING.BASELINE_ALIGNED AS
-SELECT CUSTOMER_ID, FEATURE_1, PREDICTION, PREDICTION_TIMESTAMP
-FROM ML.MONITORING.BASELINE_DATA;  -- Only columns that exist in scoring
-
--- Use the aligned view as baseline
-CREATE MODEL MONITOR churn_monitor
-  WITH MODEL = CHURN_MODEL, VERSION = V1_0_0,
-    SOURCE = SCORING_DATA, BASELINE = BASELINE_ALIGNED,
-    TIMESTAMP_COLUMN = PREDICTION_TIMESTAMP,
-    PREDICTION_SCORE_COLUMNS = (PREDICTION),
-    ID_COLUMNS = (CUSTOMER_ID), WAREHOUSE = MY_WH,
-    REFRESH_INTERVAL = '1 hour', AGGREGATION_WINDOW = '1 day';
-```
-
-**Anti-Pattern 3: Skipping Session Context Before CREATE MODEL MONITOR**
-
-**Problem:** Developers run `CREATE MODEL MONITOR` without first setting `USE DATABASE` and `USE SCHEMA`, relying on fully qualified model names. The model reference fails to resolve because MODEL MONITOR uses session context to locate models in the registry, leading to confusing "model not found" errors even with correct fully-qualified names.
-
-**Correct Pattern:** Always set explicit session context with `USE DATABASE <db>; USE SCHEMA <schema>;` immediately before `CREATE MODEL MONITOR`. This ensures the model reference resolves correctly against the registry schema where the model is registered.
-
-```sql
--- Wrong: No session context — model reference fails to resolve
-CREATE MODEL MONITOR churn_monitor
-  WITH MODEL = ML.REGISTRY.CUSTOMER_CHURN_PREDICTOR, VERSION = V1_0_0,
-    SOURCE = ML.MONITORING.SCORING_DATA,
-    TIMESTAMP_COLUMN = PREDICTION_TIMESTAMP,
-    PREDICTION_SCORE_COLUMNS = (PREDICTION),
-    ID_COLUMNS = (CUSTOMER_ID), WAREHOUSE = MY_WH,
-    REFRESH_INTERVAL = '1 hour', AGGREGATION_WINDOW = '1 day';
--- Error: "MODEL does not exist or not authorized" despite correct FQN
-
--- Correct: Set session context before creating monitor
-USE DATABASE ML;
-USE SCHEMA MONITORING;
-
-CREATE MODEL MONITOR churn_monitor
-  WITH MODEL = CUSTOMER_CHURN_PREDICTOR, VERSION = V1_0_0,
-    SOURCE = SCORING_DATA, BASELINE = BASELINE_ALIGNED,
-    TIMESTAMP_COLUMN = PREDICTION_TIMESTAMP,
-    PREDICTION_SCORE_COLUMNS = (PREDICTION),
-    ID_COLUMNS = (CUSTOMER_ID), WAREHOUSE = MY_WH,
-    REFRESH_INTERVAL = '1 hour', AGGREGATION_WINDOW = '1 day';
-```
+- [CREATE MODEL MONITOR](https://docs.snowflake.com/en/sql-reference/sql/create-model-monitor)
+- [ML Observability workflow and metric functions](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/model-observability)
+- [ALTER MODEL MONITOR](https://docs.snowflake.com/en/sql-reference/sql/alter-model-monitor)
+- `110-snowflake-model-registry.md` for registration and serving contracts.
+- `110b-snowflake-model-registry-operations.md` for cost/promotion governance.

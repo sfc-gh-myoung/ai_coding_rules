@@ -1,0 +1,178 @@
+  <!-- ========== TAB 2: PROTOCOL & METHODOLOGY ========== -->
+  <section class="tab-panel" id="protocol" role="tabpanel" data-tab-title="Protocol" x-show="tab==='protocol'" x-cloak>
+    <div x-data="{ subTab: 'protocol-overview' }">
+    <nav class="sub-tablist" aria-label="Protocol sub-sections">
+      <a role="tab" :aria-selected="(subTab==='protocol-overview').toString()" :tabindex="subTab==='protocol-overview' ? 0 : -1" :class="{ active: subTab==='protocol-overview' }" @click.prevent="subTab = 'protocol-overview'">Protocol</a>
+      <a role="tab" :aria-selected="(subTab==='protocol-methodology').toString()" :tabindex="subTab==='protocol-methodology' ? 0 : -1" :class="{ active: subTab==='protocol-methodology' }" @click.prevent="subTab = 'protocol-methodology'">Methodology</a>
+    </nav>
+
+    <div class="sub-panel" id="protocol-overview" x-show="subTab==='protocol-overview'">
+    <h2>Protocol: How Instruction Compliance Is Measured</h2>
+
+    <p>This benchmark evaluates whether language models follow a structured, multi-step protocol when given explicit procedural instructions. The protocol is deliberately designed to produce <strong>verifiable artifacts</strong> at each step, tool calls, file reads, structured citations, that an evaluation harness can audit without relying on the model&rsquo;s self-report.</p>
+
+    <p>The underlying task is straightforward: a library of domain-specific rules (coding conventions, deployment checklists, security policies) is maintained independently of any model&rsquo;s training data. Models must consult the <em>current</em> version of relevant rules, not their parametric memory of what the rules used to say, before responding. The protocol enforces this by requiring a tool-call read of the actual file before the model may claim it as loaded.</p>
+
+    <h3>The Protocol Sequence</h3>
+
+    <p>On every user prompt, the system executes the following sequence:</p>
+
+    <ol>
+      <li><strong>Automatic Injection (Hook).</strong> A shell hook runs before the model sees the prompt. It extracts keywords, file extensions, and paths from the user&rsquo;s message, matches them against rule frontmatter, and injects two things into the model&rsquo;s context as a <code>&lt;system-reminder&gt;</code> block:
+        <ul>
+          <li>A compressed <strong>micro-kernel</strong> (~500 tokens) defining mandatory behaviors, validation sequences, and the rule-loading contract.</li>
+          <li>A <strong>ranked candidate list</strong> of domain rules whose triggers matched the prompt content.</li>
+        </ul>
+      </li>
+      <li><strong>Selection &amp; Reading.</strong> The model selects the most relevant candidates from the injected list (up to 3), then reads each via the <code>read_file</code> tool. This is the critical grounding step; rule content is now in the model&rsquo;s context window, not just its parametric memory.</li>
+      <li><strong>Citation.</strong> The model declares what it read in a structured PRE-FLIGHT header with version-tagged citations. This creates the auditable artifact.</li>
+      <li><strong>Response.</strong> The model generates its response, informed by the loaded rules.</li>
+    </ol>
+
+    <svg viewBox="0 0 720 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Protocol sequence flow diagram" style="max-width:720px; margin:24px auto; display:block; background:light-dark(var(--sf-gray-100, #F1F5F9), #1E293B); border-radius:12px; padding:16px;">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="light-dark(#334155, #94A3B8)"/></marker>
+        <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#29B5E8"/></marker>
+        <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#10B981"/></marker>
+      </defs>
+      <!-- User Prompt -->
+      <rect x="260" y="10" width="200" height="40" rx="8" fill="#29B5E8"/><text x="360" y="35" text-anchor="middle" font-size="13" font-weight="600" fill="#fff" font-family="system-ui">User Prompt Arrives</text>
+      <!-- Hook -->
+      <rect x="220" y="80" width="280" height="56" rx="8" fill="light-dark(#FFFBEB,#422006)" stroke="#F59E0B" stroke-width="1.5"/><text x="360" y="102" text-anchor="middle" font-size="12" font-weight="600" fill="light-dark(#92400E,#FDE68A)" font-family="system-ui">Shell Hook (automatic)</text><text x="360" y="122" text-anchor="middle" font-size="10" fill="light-dark(#334155,#CBD5E1)" font-family="system-ui">keyword extraction &rarr; match_rules &rarr; inject manifest</text>
+      <!-- Injected context -->
+      <rect x="120" y="170" width="180" height="44" rx="8" fill="light-dark(#EFF8FF,#0C2D48)" stroke="#29B5E8"/><text x="210" y="190" text-anchor="middle" font-size="11" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">Micro-kernel (~500 tok)</text><text x="210" y="205" text-anchor="middle" font-size="10" fill="light-dark(#475569,#94A3B8)" font-family="system-ui">mandatory behaviors</text>
+      <rect x="420" y="170" width="180" height="44" rx="8" fill="light-dark(#EFF8FF,#0C2D48)" stroke="#29B5E8"/><text x="510" y="190" text-anchor="middle" font-size="11" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">Candidate Rule List</text><text x="510" y="205" text-anchor="middle" font-size="10" fill="light-dark(#475569,#94A3B8)" font-family="system-ui">up to 3 ranked matches</text>
+      <!-- Model reads -->
+      <rect x="230" y="250" width="260" height="40" rx="8" fill="light-dark(#fff,#334155)" stroke="light-dark(#E2E8F0,#475569)"/><text x="360" y="275" text-anchor="middle" font-size="12" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">Model: read_file(each candidate)</text>
+      <!-- Cite -->
+      <rect x="230" y="320" width="260" height="40" rx="8" fill="light-dark(#fff,#334155)" stroke="light-dark(#E2E8F0,#475569)"/><text x="360" y="345" text-anchor="middle" font-size="12" font-weight="500" fill="light-dark(#1A2332,#E2E8F0)" font-family="system-ui">Cite in PRE-FLIGHT header</text>
+      <!-- Response -->
+      <rect x="280" y="390" width="160" height="40" rx="20" fill="#10B981"/><text x="360" y="415" text-anchor="middle" font-size="13" font-weight="600" fill="#fff" font-family="system-ui">Generate Response</text>
+      <!-- Arrows -->
+      <line x1="360" y1="50" x2="360" y2="80" stroke="light-dark(#334155,#94A3B8)" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <line x1="300" y1="136" x2="210" y2="170" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <line x1="420" y1="136" x2="510" y2="170" stroke="#F59E0B" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <line x1="210" y1="214" x2="310" y2="250" stroke="#29B5E8" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+      <line x1="510" y1="214" x2="410" y2="250" stroke="#29B5E8" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+      <line x1="360" y1="290" x2="360" y2="320" stroke="light-dark(#334155,#94A3B8)" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <line x1="360" y1="360" x2="360" y2="390" stroke="light-dark(#334155,#94A3B8)" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <!-- Labels -->
+      <text x="230" y="155" font-size="9" font-weight="600" fill="#F59E0B" font-family="system-ui">injects</text>
+      <text x="470" y="155" font-size="9" font-weight="600" fill="#F59E0B" font-family="system-ui">injects</text>
+    </svg>
+
+    <h3>The &ldquo;Read Before You Cite&rdquo; Contract</h3>
+    <p>The protocol is explicit about what constitutes a &ldquo;loaded&rdquo; rule. Two conditions must both be met:</p>
+    <ol>
+      <li><code>read_file</code> was called on the rule and returned successfully (verifiable in the tool trace)</li>
+      <li>The rule is declared in the PRE-FLIGHT header with a version tag</li>
+    </ol>
+    <p>This is the central invariant that the evaluation harness checks. When a model claims a rule is loaded (condition 2) without a corresponding <code>read_file</code> call (condition 1) in the tool trace, that is a protocol violation, specifically, failure mode FM-1 (<em>declared-but-not-read</em>).</p>
+
+    <div class="callout">
+      <p><strong>The contract is: inject, read, cite, respond. Every failure mode in this report is a deviation from one of these steps.</strong></p>
+    </div>
+
+    <h3>What the Harness Does NOT Check</h3>
+    <p>The evaluation harness verifies the <em>procedural</em> chain (was the file read? was it cited?) but does <strong>not</strong> evaluate whether the rule&rsquo;s guidance was correctly applied in the response content. Assessing application quality would require semantic judgment and is outside the scope of this protocol compliance benchmark.</p>
+
+    <h3>Why This Design?</h3>
+    <p><strong>Verifiability.</strong> Each step produces an observable artifact. The harness doesn&rsquo;t need to understand <em>what</em> the model read; it only needs to confirm <em>that</em> it read.</p>
+    <p><strong>Freshness guarantee.</strong> Without the read requirement, a model could &ldquo;comply&rdquo; using stale parametric knowledge. The <code>read_file</code> call forces the current version into context.</p>
+    <p><strong>Deterministic injection.</strong> The hook-based matching uses the same deterministic code path in both production and evaluation, ensuring the benchmark tests exactly what ships.</p>
+
+    <h3>Rules vs. Infrastructure</h3>
+    <div class="two-col">
+      <div>
+        <h4>Rules (read + cited by model)</h4>
+        <p>Files under <code>rules/</code> with numeric prefixes (e.g., <code>100-snowflake-core.md</code>). These are the domain-specific guidance documents that models must read and cite in their PRE-FLIGHT header.</p>
+      </div>
+      <div>
+        <h4>Infrastructure (injected automatically)</h4>
+        <p>The micro-kernel and candidate list are injected by the hook; the model does not read these via tool calls. They provide the behavioral contract and discovery hints, but are not themselves cited as rules.</p>
+      </div>
+    </div>
+
+    <h3>Key Terminology</h3>
+    <details>
+      <summary>Glossary of terms used in this report</summary>
+      <ul>
+        <li><strong>Fixture:</strong> A synthetic user prompt designed to test specific rule-loading paths, with an explicit expected rule set.</li>
+        <li><strong>Micro-kernel:</strong> A compressed (~500 token) foundation injected on every prompt, defining mandatory behaviors and the rule-loading contract.</li>
+        <li><strong>Candidate list:</strong> A ranked set of rule files whose keyword/extension/path triggers matched the current prompt, injected alongside the micro-kernel.</li>
+        <li><strong>PRE-FLIGHT header:</strong> The structured block in the model&rsquo;s response declaring which rules were read and cited.</li>
+        <li><strong>Tool trace:</strong> The complete sequence of tool calls made by the model during a single run: the ground truth for compliance auditing.</li>
+        <li><strong>Parametric memory:</strong> Knowledge encoded in the model&rsquo;s weights during training, which may be stale relative to current rule content.</li>
+        <li><strong>Stochastic instability:</strong> Identical inputs producing different compliance outcomes across runs due to sampling variance.</li>
+      </ul>
+    </details>
+    </div><!-- end sub-panel protocol-overview -->
+
+    <div class="sub-panel" id="protocol-methodology" x-show="subTab==='protocol-methodology'" x-cloak>
+    <!-- ===== METHODOLOGY SECTION (merged from Architecture tab) ===== -->
+    <h2 style="margin-top:0;">Methodology: How the Benchmark Works</h2>
+
+    <p>The evaluation benchmark exists to answer one operational question: <em>is the protocol being followed?</em> It is invoked via the <code>ai-rules rule-loader eval</code> CLI command, which dispatches fixture runs, resolves model connections via Snowflake Cortex, controls concurrency, and streams structured results to disk.</p>
+
+    <p>The current architecture, a deterministic shell hook that injects matched rules into context before the model responds, exists as a direct consequence of these evaluation runs. An earlier incarnation relied on a <code>RULES_INDEX.md</code> manifest and an <code>AGENTS.md</code> instruction file that told models to discover and load matching rules on their own. The matching logic was conceptually identical, but the <em>discovery</em> step was left entirely to the model. Evaluation results revealed a sharply fragmented picture: instruction-following accuracy varied wildly across models when discovery was model-driven, producing unreliable compliance even when the underlying rules were clear and unambiguous.</p>
+    <p>Moving the matching logic into a hook, which invokes the rule-loader skill automatically on every prompt, eliminated this variance for compliant models and reduced the evaluation to a narrower, more actionable question: given that the correct rules are already surfaced, does the model follow the read-then-cite contract? Users who prefer not to install the hook can still invoke the rule-loader skill manually to achieve the same result.</p>
+
+    <h3>A Single Benchmark Run</h3>
+
+    <p>When the eval is invoked, the harness executes each test fixture against the target model one or more times (<code>--runs</code>). Each fixture is a synthetic user prompt constructed to trigger a specific set of rule-loading paths. The fixture definition includes the expected rules, any rules that must <em>not</em> be loaded, and dependency relationships between rules.</p>
+
+    <p>The runner dispatches each fixture to the model as a conversational turn with the micro-kernel and matched candidate list injected as the system context (identical to the production hook path). It captures the full tool-call trace across all turns until the model produces a final response. That response and trace are then passed to the scoring engine, which checks compliance across several dimensions before writing results to disk.</p>
+
+    <h3>Test Fixtures</h3>
+
+    <p>Fixtures are the fundamental unit of measurement. Each fixture specifies the prompt text, the set of rules the model <em>must</em> load (<code>required</code>), rules it must <em>not</em> load (<code>forbidden</code>), and dependency relationships between rules. Fixtures are organized into three complexity tiers:</p>
+
+    <ul>
+      <li><strong>Simple:</strong> Single-domain prompts that should trigger exactly one or two rules. Low ambiguity, high determinism.</li>
+      <li><strong>Medium:</strong> Multi-domain prompts where the correct rule set is non-obvious. Tests classification accuracy without over-loading.</li>
+      <li><strong>Complex:</strong> Multi-step tasks spanning several domains with dependent rules, forbidden exclusions, and structured output requirements. Most closely reflect real-world agentic workloads.</li>
+    </ul>
+
+    <p>Each fixture is run multiple times per model to distinguish stable compliance from lucky passes. A model that passes a fixture only partially across runs is flagged as stochastically unstable: the rule loading is sensitive to sampling variance, which is a reliability risk even if the aggregate pass rate looks acceptable.</p>
+
+    <h3>Scoring Dimensions</h3>
+    <p>The scoring engine checks each fixture-run against multiple dimensions:</p>
+    <ul>
+      <li><strong>Required rules present:</strong> Were all expected rules read via <code>read_file</code> and cited?</li>
+      <li><strong>Forbidden rules absent:</strong> Were rules explicitly excluded by the fixture avoided?</li>
+      <li><strong>Dependencies satisfied:</strong> If rule A was loaded, was its declared dependency B also loaded?</li>
+      <li><strong>Cited-without-read detection (FM-1):</strong> Cross-references PRE-FLIGHT citations against the tool trace to detect fabricated claims.</li>
+      <li><strong>Citation drift (FM-2):</strong> Validates declared metadata (line counts, versions) against actual file properties.</li>
+    </ul>
+
+    <h3>Output Artifacts</h3>
+
+    <p>Every invocation streams results to a timestamped run directory under <code>results/</code>. Artifacts are written incrementally as each fixture completes, so partial runs are always recoverable:</p>
+
+    <dl style="display:grid; grid-template-columns: max-content 1fr; gap:0.4rem 1.2rem; font-size:0.9rem;">
+      <dt><code>manifest.json</code></dt>
+      <dd>Run-level metadata: model, runs, fixture count, concurrency, git SHA, timestamps, per-pass status index.</dd>
+
+      <dt><code>run-NN/fixtures/&lt;id&gt;.json</code></dt>
+      <dd>Primary scoring artifact: match result, signal report (FM signals), citation drifts, token counts, duration, final response text.</dd>
+
+      <dt><code>run-NN/fixtures/&lt;id&gt;.transcript.jsonl</code></dt>
+      <dd>Full tool-call trace as newline-delimited JSON. Ground truth for FM-1 detection.</dd>
+
+      <dt><code>summary.json</code></dt>
+      <dd>Aggregate pass rates consumed by the report generator to produce this document.</dd>
+    </dl>
+
+    <h3>Limitations</h3>
+    <div class="callout callout-warning">
+      <strong>Scope of this benchmark</strong>
+      <ul style="margin:0.5rem 0 0 1rem; padding:0;">
+        <li>Measures procedural compliance (read + cite) only, not response quality or rule application correctness.</li>
+        <li>Uses synthetic fixtures, not real user prompts. Real-world compliance may differ.</li>
+        <li>Models are accessed via a single API provider (Snowflake Cortex). Provider-specific routing or caching could affect results.</li>
+        <li>No cross-benchmark correlation data exists to compare these results against general reasoning or coding benchmarks.</li>
+      </ul>
+    </div>
+    </div><!-- end sub-panel protocol-methodology -->
+    </div><!-- end x-data subTab -->
+  </section>

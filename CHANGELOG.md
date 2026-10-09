@@ -7,36 +7,75 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-10-08
+
+### Added
+
+- **feat(plugin):** ship rules as a self-contained CoCo and Claude Code plugin with `rule-loader` and `show-rules` skills, a compact micro-kernel, and an opt-in `UserPromptSubmit` discovery hook.
+- **feat(plugin):** add `ai-rules plugin build`, `verify`, `sync`, `install`, and `uninstall`, with an artifact contract that fails on missing, undeclared, or drifted files.
+- **feat(rule-loader):** add a deterministic, stdlib-only matcher that scores typed keywords, extensions, and paths and loads required dependencies before their dependents.
+- **feat(rule-loader-eval):** add `ai-rules rule-loader` evaluation with 35 fixtures, a CI trigger-evidence check, live-agent `eval`, snapshot `compare`, keyword suggestions, and a corpus reachability audit.
+- **feat(rule-loader-eval):** evaluate any model in the curated CoCo catalog or all of them with `--all-models`, excluding pure model read fabrication from the pass rate.
+- **feat(report):** generate an offline-capable HTML compliance report from rule-loader eval results.
+- **feat(cortex):** add an `ai_rules.cortex` client on AI_COMPLETE with REST fallback, plus a CoCo model catalog priced from Table 6(e) AI-credit rates.
+- **feat(review-artifact):** add canonical `rule-review-result/v1` JSON reviews with `ai-rules review-artifact` validate, render, verify-pair, verify-repair, and aggregate commands.
+- **feat(skills):** add `ai-rules validate-skills` to check SKILL.md frontmatter, the 500-line limit, version and CHANGELOG parity, and local links.
+- **feat(rules):** add `002n-agent-protocol-reference`, `126-snowflake-cortex-code-agent-sdk`, `805-technical-writing-style`, `806-workbench-folder-policy`, and `810-cli-design-core` (191 → 195 rules).
+- **feat(taskfile):** add Task-based setup, quality, test, validation, release, and GitLab mirror automation, tested in disposable repositories on macOS and Linux.
+- **feat(skill-timer):** estimate cost in AI Credits from Table 6(e) rates at $2 per credit, and report unknown models as unpriced instead of guessing.
+
+### Changed
+
+- **feat(rules)!:** **Breaking:** migrate every rule to schema v4.0: YAML frontmatter, typed `keywords` (`kw:`, `ext:`, `file:`, `dir:`), `depends` required/optional buckets, and `Scope`, `Contract`, `References` sections.
+- **feat(validate)!:** **Breaking:** enforce the v4 structure, including four required Contract subsections, a 250-line limit, and at most three fenced examples; reject unknown top-level schema keys.
+- **feat(rules):** correct guidance contradicted by current primary documentation and drop negative executable examples and duplicate checklists across the corpus.
+- **perf(rules):** cut rule content loaded per task by about 57% and the rule library by 68% through the v4 250-line limit. In a live same-mode A/B, input tokens per task fell 4.7% with no change in pass rate (105/105) or turns (see `docs/EVALUATING_RULE_LOADER.md`).
+- **feat(skills)!:** **Breaking:** rename the `skill-timing` skill to `skill-timer`, including its runtime data file prefix.
+- **feat(new):** generate v4.0 rule scaffolds from `ai-rules new`.
+- **feat(tokens):** update `token_budget` in YAML frontmatter without reserializing other metadata, and add `--context-estimate` for per-response context totals.
+- **feat(keywords):** move keyword generation to `ai-rules rule-loader keywords`, backed by the Cortex client.
+- **build(deps):** require `snowflake-connector-python`, `jinja2`, `ruamel-yaml`, and `filelock`, and enforce an 87% coverage floor.
+- **ci:** run CI through Task entry points, add coverage and automation jobs, and test Python 3.12 and 3.13.
+- **docs:** align project docs with the plugin, Taskfile, and v4 contract, and document the 250-line guideline for rules and skills.
+
+### Removed
+
+- **feat(cli)!:** **Breaking:** remove `ai-rules deploy`, `ai-rules index`, and `ai-rules refs`; use `ai-rules plugin install` instead of copying `AGENTS.md`, `RULES_INDEX.md`, and rules into each project.
+- **build!:** **Breaking:** remove the root `Makefile` in favor of `Taskfile.yml`.
+- **refactor!:** **Breaking:** remove the `agent_eval` package and the `agent-eval` console script.
+- **refactor(rules):** remove `002i-rule-loadtrigger` and the `LoadTrigger` field; triggers now live in typed `keywords`.
+- **chore(skills):** move `create-plan`, `doc-reviewer`, and `plan-reviewer` to the external portable-skills repository.
+
 ## [3.7.3] - 2026-05-13
 
 ### Added
-- **feat(rules):** add Adaptive Warehouses (Public Preview) section to `119-snowflake-warehouse-management.md` (v3.2.0 → v3.3.0) — `CREATE ADAPTIVE WAREHOUSE` DDL, `MAX_QUERY_PERFORMANCE_LEVEL`/`QUERY_THROUGHPUT_MULTIPLIER` tuning, online conversion, `SYSTEM$BULK_UPDATE_WH` migration, monitoring queries, and limitations; updated decision matrix and design principles
-- **feat(rules):** add cloud-aware "Instance Family Selection" guidance to `120-snowflake-spcs.md` (v3.1.0 → v3.2.0) — current-gen `GEN_X64_G2_*`/`MEM_X64_G2_*` for AWS/Azure with GCP `CPU_X64_*`/`HIGHMEM_X64_*` notes, current-gen GPU families per cloud (L40S/RTX PRO 6000/A10G on AWS, T4/A10/A100 on Azure, L4/A100 on GCP), previous-generation migration map, and mandatory `SHOW COMPUTE POOL INSTANCE FAMILIES` discovery step
+- **feat(rules):** add Adaptive Warehouses (Public Preview) section to `119-snowflake-warehouse-management.md` (v3.2.0 → v3.3.0): `CREATE ADAPTIVE WAREHOUSE` DDL, `MAX_QUERY_PERFORMANCE_LEVEL`/`QUERY_THROUGHPUT_MULTIPLIER` tuning, online conversion, `SYSTEM$BULK_UPDATE_WH` migration, monitoring queries, and limitations; updated decision matrix and design principles
+- **feat(rules):** add cloud-aware "Instance Family Selection" guidance to `120-snowflake-spcs.md` (v3.1.0 → v3.2.0): current-gen `GEN_X64_G2_*`/`MEM_X64_G2_*` for AWS/Azure with GCP `CPU_X64_*`/`HIGHMEM_X64_*` notes, current-gen GPU families per cloud (L40S/RTX PRO 6000/A10G on AWS, T4/A10/A100 on Azure, L4/A100 on GCP), previous-generation migration map, and mandatory `SHOW COMPUTE POOL INSTANCE FAMILIES` discovery step
 - **feat(rules):** add Anti-Pattern 1b (previous-generation instance families on AWS/Azure) to `120-snowflake-spcs.md`
-- **feat(skills):** add `create-plan` skill (v1.0.1) — produces 15-section implementation plans with 4-phase workflow (Research, Apply Constraints, Write, Self-Audit) and 13-item self-audit checklist
+- **feat(skills):** add `create-plan` skill (v1.0.1): produces 15-section implementation plans with 4-phase workflow (Research, Apply Constraints, Write, Self-Audit) and 13-item self-audit checklist
   - `skills/create-plan/SKILL.md`, `skills/create-plan/CHANGELOG.md`
   - `docs/USING_CREATE_PLAN_SKILL.md` user guide (292 lines)
 - **feat(skills):** add `CHANGELOG.md` to 7 skills per project convention
   - rule-reviewer, bulk-rule-reviewer, plan-reviewer, doc-reviewer, rule-creator, rule-loader, skill-timing
-- **feat(skill-timing):** v1.5.0 — `--auto-dimension-timings` flag, `PER_DIMENSION_STATUS` stdout marker, silent-omission warning
-- **feat(plan-reviewer):** v2.4.0 — per-dimension timing capture for 8 dimensions
+- **feat(skill-timing):** v1.5.0: `--auto-dimension-timings` flag, `PER_DIMENSION_STATUS` stdout marker, silent-omission warning
+- **feat(plan-reviewer):** v2.4.0: per-dimension timing capture for 8 dimensions
   - Quick Reference, Step 4a checkpoint pairs, Gate 7, anti-pattern block, parallel sub-agent schema
-- **feat(rule-reviewer):** v2.8.0 — Gate 7 (Per-Dimension Timing), Step 6a checkpoints, Anti-Pattern 4
-- **feat(bulk-rule-reviewer):** v2.3.0 — per-rule timing propagation
+- **feat(rule-reviewer):** v2.8.0: Gate 7 (Per-Dimension Timing), Step 6a checkpoints, Anti-Pattern 4
+- **feat(bulk-rule-reviewer):** v2.3.0: per-rule timing propagation
   - Quick Reference, steps 4a/15a, Timing Aggregation, Gate 8, sub-agent contract, 8 test cases
 - **feat(prompts):** add 4 reusable prompt templates (analyze-plan, commit-changes, execute-plan, update-changelog)
-- **feat(prompts):** add `EXAMPLE_PROMPT_08.md` — bulk rule design-priority audit prompt
-- **feat(rules):** add `804-project-documentation.md` — docs/ folder organization, ARCHITECTURE/DEPLOYMENT/ADR conventions, GitHub Pages, link maintenance
+- **feat(prompts):** add `EXAMPLE_PROMPT_08.md`: bulk rule design-priority audit prompt
+- **feat(rules):** add `804-project-documentation.md`: docs/ folder organization, ARCHITECTURE/DEPLOYMENT/ADR conventions, GitHub Pages, link maintenance
 - **feat(rules):** add dynamic `GRANT ROLE TO USER` pattern using `SET` + `IDENTIFIER($var)` (102, 107, 130)
 - **feat(rules):** add `434-typescript-docs.md` (TSDoc) and `424-javascript-docs.md` (JSDoc) documentation standards
 - **feat(rules):** add YAML agent spec format section to `115-snowflake-cortex-agents-core`
 - **docs(plans):** add `plans/bulk-rule-reviewer-timing-MIGRATION.md`
 
 ### Changed
-- **refactor(rules):** modernize Streamlit Container Runtime compute pool examples in `101l-snowflake-streamlit-deployment.md` (v1.2.0 → v1.3.0) — replace `CPU_X64_XS/S/M` with `GEN_X64_G2_2/4/8` (with GCP fallback notes), add `SHOW COMPUTE POOL INSTANCE FAMILIES` discovery step, expand instance family guidelines for cloud-aware selection
-- **refactor(examples):** update `examples/120-spcs-service-spec-example.md` (v1.0 → v1.1) — Step 3 uses `GEN_X64_G2_2` and `GPU_L40S_G1_8` with per-cloud comments and instance-family discovery
-- **chore(rules):** prefer Gen2 in dedicated Cortex Analyst agent warehouse example in `115d-snowflake-cortex-agents-observability.md` (v3.0.0 → v3.0.1) — add `GENERATION = '2'` and cross-reference to 119
-- **docs(architecture):** condense `docs/ARCHITECTURE.md` from 2275 to 372 lines — replace verbose section walkthroughs with reference tables, cross-links to README/CONTRIBUTING/USING_*_SKILL guides, and add `create-plan` to per-skill guide table
+- **refactor(rules):** modernize Streamlit Container Runtime compute pool examples in `101l-snowflake-streamlit-deployment.md` (v1.2.0 → v1.3.0): replace `CPU_X64_XS/S/M` with `GEN_X64_G2_2/4/8` (with GCP fallback notes), add `SHOW COMPUTE POOL INSTANCE FAMILIES` discovery step, expand instance family guidelines for cloud-aware selection
+- **refactor(examples):** update `examples/120-spcs-service-spec-example.md` (v1.0 → v1.1): Step 3 uses `GEN_X64_G2_2` and `GPU_L40S_G1_8` with per-cloud comments and instance-family discovery
+- **chore(rules):** prefer Gen2 in dedicated Cortex Analyst agent warehouse example in `115d-snowflake-cortex-agents-observability.md` (v3.0.0 → v3.0.1): add `GENERATION = '2'` and cross-reference to 119
+- **docs(architecture):** condense `docs/ARCHITECTURE.md` from 2275 to 372 lines: replace verbose section walkthroughs with reference tables, cross-links to README/CONTRIBUTING/USING_*_SKILL guides, and add `create-plan` to per-skill guide table
 - **docs(skills):** replace "comprehensive" wording with explicit dimension counts across 4 USING_*_SKILL.md guides (bulk-rule-reviewer, doc-reviewer, plan-reviewer, rule-reviewer)
 - **chore(gitignore):** ignore generated prompt templates (`prompts/analyze-plan.md`, `commit-changes.md`, `execute-plan.md`, `update-changelog.md`, `update-project-docs.md`)
 - **refactor(rules):** migrate Streamlit deployment rules from legacy `ROOT_LOCATION` to `FROM` syntax (9 rule files + 1 example)
@@ -50,18 +89,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All `snowflake-cli` version pins updated to `3.16.0`; `LastUpdated` set to `2026-05-11` on all modified files
 - **feat(prompts):** expand `analyze-plan.md` from stub to full structured prompt
   - Preflight, plan-file selection rules, analysis framework, output spec, and quality checklist
-- **feat(rule-reviewer):** v2.9.0 — timing universal default, SKILL.md compression, project-file support
+- **feat(rule-reviewer):** v2.9.0: timing universal default, SKILL.md compression, project-file support
   - `timing_enabled` defaults to `true`; opt-out emits `not-requested` row (Gate 7 satisfied)
   - Extracted workflows: `timing-integration.md`, `determinism.md`, `bulk-coordination.md`
   - File-type detection skips schema validation for `AGENTS.md`/`PROJECT.md`; byte cap 12000 → 13500
-- **feat(bulk-rule-reviewer):** v2.4.0 — timing universal default; depends on rule-reviewer v2.9.0
-- **feat(plan-reviewer):** v2.5.0 — timing universal default; Gate 7 unconditional; byte cap 12000 → 13500
-- **feat(doc-reviewer):** v2.2.0 — per-dimension timing as first-class workflow (Step 4a, Gate 7, output template)
-- **feat(skill-timing):** v1.5.0 — stricter dimension validation, pricing refresh, `find_python.sh` portability
+- **feat(bulk-rule-reviewer):** v2.4.0: timing universal default; depends on rule-reviewer v2.9.0
+- **feat(plan-reviewer):** v2.5.0: timing universal default; Gate 7 unconditional; byte cap 12000 → 13500
+- **feat(doc-reviewer):** v2.2.0: per-dimension timing as first-class workflow (Step 4a, Gate 7, output template)
+- **feat(skill-timing):** v1.5.0: stricter dimension validation, pricing refresh, `find_python.sh` portability
   - Runner mode for zsh; resolution order `python3` → `python` → `uv run python`
 - **docs(rules):** add CHANGELOG.md convention and `tests/` guidance to 002h-claude-code-skills (v3.7.0)
 - **docs(rules):** add Anti-Pattern 5 (repetitive scope prefixes) and Entry Consolidation Guidelines to 800-project-changelog (v3.2.0)
-- **docs(rules):** update 119-snowflake-warehouse-management (v3.2.0) — correct Gen2 DDL syntax, credit tables
+- **docs(rules):** update 119-snowflake-warehouse-management (v3.2.0): correct Gen2 DDL syntax, credit tables
 - **refactor(rules):** rename `204-python-docs-comments.md` to `204-python-docs.md` (16 file refs updated)
 - **refactor(rules):** standardize SQL naming to `NN_<schema>_<operation>.sql` across 9 rule files
 
@@ -73,8 +112,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **fix(validator):** eliminate false-positive MEDIUM warnings for delegation-pattern Anti-Patterns sections
 
 ### Removed
-- **refactor(skill-timing):** delete `VALIDATION.md` — human-facing validation procedures superseded by automated test suite (`tests/test_skill_timing.sh`, 23 tests)
-- **refactor(skill-timing):** delete `run_timing.sh` — exec wrapper replaced by `find_python.sh` discovery + direct `skill_timing.py` invocation
+- **refactor(skill-timing):** delete `VALIDATION.md`: human-facing validation procedures superseded by automated test suite (`tests/test_skill_timing.sh`, 23 tests)
+- **refactor(skill-timing):** delete `run_timing.sh`: exec wrapper replaced by `find_python.sh` discovery + direct `skill_timing.py` invocation
 
 ## [3.7.2] - 2026-04-03
 
@@ -86,15 +125,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **fix:** replace stale `task index:generate` references with `make index-generate` across 7 files
   - Root cause fixed in `src/ai_rules/commands/index.py`; RULES_INDEX.md regenerated
 - **fix(ci):** resolve 4 `ty` typecheck failures blocking CI
-  - `fix(skill-timing)`: narrow `dt["duration_seconds"]` with `isinstance` walrus — resolves `invalid-argument-type` and `unsupported-operator` in `validate_timing_data()`
-  - `fix(agent-eval)`: add `assert self.client is not None` after `connect()` — resolves `unresolved-attribute` on `CortexClient | None`
-  - `fix(keywords)`: add `unresolved-import` to `type: ignore` codes on `tomli` fallback import — resolves ty's `unresolved-import` on Python 3.12
+  - `fix(skill-timing)`: narrow `dt["duration_seconds"]` with `isinstance` walrus: resolves `invalid-argument-type` and `unsupported-operator` in `validate_timing_data()`
+  - `fix(agent-eval)`: add `assert self.client is not None` after `connect()`: resolves `unresolved-attribute` on `CortexClient | None`
+  - `fix(keywords)`: add `unresolved-import` to `type: ignore` codes on `tomli` fallback import: resolves ty's `unresolved-import` on Python 3.12
 
 ### Added
 - **feat(makefile):** add `release`, `release-dry`, and `mirror` targets for local release workflow
-  - `make release VERSION=X.Y.Z` — bump version, tag, push to origin + gitlab, create draft GitHub release
-  - `make release-dry VERSION=X.Y.Z` — preview all release steps without executing
-  - `make mirror` — push main and tags to gitlab mirror
+  - `make release VERSION=X.Y.Z`: bump version, tag, push to origin + gitlab, create draft GitHub release
+  - `make release-dry VERSION=X.Y.Z`: preview all release steps without executing
+  - `make mirror`: push main and tags to gitlab mirror
 - **feat(skill-timing):** add per-dimension timing support (v1.3.0 to v1.4.0)
   - New `--dimension-timings`, `--per-dimension` flags on `end`, `analyze`, `baseline set` commands
   - Per-dimension baseline comparison, JSON schema extension, and 8 new tests (16-23)
@@ -119,20 +158,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 100-snowflake-core (v3.3.0), 200-python-core (v4.1.0), 206-python-pytest (v3.2.0), 300-bash-scripting-core (v3.2.0), 310-zsh-scripting-core (v3.2.0), 000-global-core (v3.5.0): replace ambiguous qualifiers with deterministic criteria, add error recovery patterns and edge cases
 - **docs(rules):** remediate review findings in 4 frontend/container rules
   - 440-react-core (v3.3.0), 420-javascript-core (v3.3.0), 351-podman-core (v1.1.0), 350-docker-core (v3.3.0): quantify thresholds, fix version contradictions, extract companion files
-- **docs(rules):** update 112-snowflake-snowcli (v3.2.0) — pin to CLI v3.16.0, add PAT/WIF/OAuth auth, config.toml, 6 new command groups
-- **docs(rules):** update 950-dbt-core (v1.1.0) — add schema customization, snow://dbt/ URI, deploy/execute CLI refs
+- **docs(rules):** update 112-snowflake-snowcli (v3.2.0): pin to CLI v3.16.0, add PAT/WIF/OAuth auth, config.toml, 6 new command groups
+- **docs(rules):** update 950-dbt-core (v1.1.0): add schema customization, snow://dbt/ URI, deploy/execute CLI refs
 - **docs(rules):** add deferred Anthropic alignment items to 002l-skill-advanced-patterns (v1.2.0)
 - **refactor(rules):** automation-framework-agnostic remediation across 14 rule files
   - Centralize automation-detection protocol in 000-global-core.md; replace hardcoded `task`/`make` with generic language
 - **refactor(rules):** makefile-primary remediation across 7 rule files
   - Replace Taskfile-first references with Makefile-primary patterns; RULES_INDEX.md regenerated
 - **refactor(rules):** replace hardcoded `make` commands with generic automation language in 4 rule files
-- **docs(templates):** refresh AGENTS templates — Makefile examples and Last Updated timestamps (→ 2026-03-26)
+- **docs(templates):** refresh AGENTS templates: Makefile examples and Last Updated timestamps (→ 2026-03-26)
 - **chore(docs):** update hardcoded rule counts to 187 across README, ARCHITECTURE, schemas, and skill files
 - **chore(validate):** fix ruff lint violations in `scripts/validate_timing.py` (D-series docstrings, UP-series type annotations, W293 whitespace, unused imports) and `skills/skill-timing/scripts/skill_timing.py` (SIM108 ternary); fix MD028 blank-line-in-blockquote in `440-react-core.md`; regenerate RULES_INDEX.md
 
 ### Removed
-- **chore(ci):** delete `.github/workflows/release.yml` — releases are now done locally via `make release` to ensure all commits are GPG-signed via Beyond Identity
+- **chore(ci):** delete `.github/workflows/release.yml`: releases are now done locally via `make release` to ensure all commits are GPG-signed via Beyond Identity
 
 ### Infrastructure
 - **feat(git):** establish GitHub-to-GitLab mirror workflow using orphan-commit strategy
@@ -332,14 +371,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Prevents real credentials lookup during unit tests
   - `TestLoadSnowflakeConfig` class restores real function for its tests
 - **feat(cli):** add `ai-rules` CLI with 8 subcommands for rule management
-  - `validate` — Run schema validation on rule files
-  - `index` — Generate RULES_INDEX.md from rule files
-  - `keywords` — Extract and analyze keywords from rules
-  - `deploy` — Deploy rules and skills to target directories
-  - `tokens` — Validate and update TokenBudget metadata
-  - `new` — Create new rule files from templates
-  - `badges` — Generate and update README badges
-  - `refs` — Check and fix cross-references between rules
+  - `validate`: Run schema validation on rule files
+  - `index`: Generate RULES_INDEX.md from rule files
+  - `keywords`: Extract and analyze keywords from rules
+  - `deploy`: Deploy rules and skills to target directories
+  - `tokens`: Validate and update TokenBudget metadata
+  - `new`: Create new rule files from templates
+  - `badges`: Generate and update README badges
+  - `refs`: Check and fix cross-references between rules
   - Built with Typer and Rich for modern CLI experience
   - Entry point: `ai-rules` (via pyproject.toml console_scripts)
 - **feat(build):** add Makefile as primary development automation entry point
@@ -359,8 +398,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `scripts/clean.sh` for cache/venv/all cleanup operations
 - `scripts/validate.sh` for composite CI validation
 - `scripts/status.sh` for project status summary
-- AGENTS-only split deploy mode — `deploy:split` now works with `--agents-dest` alone (no `--rules-dest` required)
-- Template fallback in `rule_deployer.py` — if `AGENTS.md` source is missing, auto-generates from template
+- AGENTS-only split deploy mode: `deploy:split` now works with `--agents-dest` alone (no `--rules-dest` required)
+- Template fallback in `rule_deployer.py`: if `AGENTS.md` source is missing, auto-generates from template
 - **feat(skills):** add parallel sub-agent execution to bulk-rule-reviewer skill
   - New `workflows/parallel-execution.md` for parallel orchestration strategy
   - New `workflows/subagent-prompt-template.md` with complete sub-agent prompts
@@ -553,16 +592,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **refactor(deploy):** remove `--agents-dest requires --rules-dest` validation constraint, enabling AGENTS-only deployments
 - **chore(rules):** update TokenBudget in 203-python-project-setup.md (~3600 → ~4150) and 800-project-changelog.md (~3350 → ~3600)
 - **chore(pyproject):** clear default `exclude_skills` list in `[tool.rule_deployer]` (skills no longer excluded by default)
-- **chore(templates):** streamline AGENTS_NO_MODE.md.template header — remove redundant comparison to AGENTS.md and authorization note
+- **chore(templates):** streamline AGENTS_NO_MODE.md.template header: remove redundant comparison to AGENTS.md and authorization note
 - **refactor(cli):** convert `badges`, `refs`, and `index` from flat commands to Typer sub-apps with explicit subcommands (`badges update`, `refs check`, `index generate`, `index check`)
-- **refactor(cli):** make positional arguments optional on `validate`, `keywords`, `new`, and `deploy` — shows help instead of erroring when called with no arguments
+- **refactor(cli):** make positional arguments optional on `validate`, `keywords`, `new`, and `deploy`: shows help instead of erroring when called with no arguments
 - **refactor(Makefile):** rename `test-coverage` / `test-coverage-open` targets to `test-cov` / `test-cov-open`
 - **refactor(Makefile):** update Make targets for new CLI sub-command syntax (`index generate`, `badges update`, `refs check`)
 - **feat(AGENTS):** add context continuation check (Step 0.5) and mandatory Gate 2 verification (Step 2D) to bootstrap protocol templates
 - **chore(pyproject):** add pytest `filterwarnings` for deprecated script warnings and `ty` type checker overrides for `prompt_eval` and `tests`
-- **feat(governance):** normalize placeholder filenames across governance rules (002, 002a, 002b, 002c, 002e, 002f, 802) — replace `NNN-rule.md` / `bad-rule.md` with `<your-rule>.md` / `<example-rule>.md`
+- **feat(governance):** normalize placeholder filenames across governance rules (002, 002a, 002b, 002c, 002e, 002f, 802): replace `NNN-rule.md` / `bad-rule.md` with `<your-rule>.md` / `<example-rule>.md`
 - **feat(index):** regenerate RULES_INDEX.md with 102b, 821, 821a entries and activity keywords
-- **refactor(docs):** remove legacy `scripts/` reference section from ARCHITECTURE.md — all script documentation replaced with `ai-rules` CLI equivalents, Mermaid diagrams and directory trees updated
+- **refactor(docs):** remove legacy `scripts/` reference section from ARCHITECTURE.md: all script documentation replaced with `ai-rules` CLI equivalents, Mermaid diagrams and directory trees updated
 - **docs(readme):** update file paths from `scripts/` to `src/`, `./dev` to `make`, remove `scripts/` from project directory tree
 - **feat(templates):** add `rule-loader` skill cross-references to AGENTS_MODE and AGENTS_NO_MODE bootstrap templates
 - **chore(pyproject):** bump `requires-python` from `>=3.11` to `>=3.12` and add Python 3.12 classifier
@@ -591,7 +630,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 112-snowflake-snowcli.md: Updated snow CLI command patterns
 
 ### Deprecated
-- **scripts/*.py** — Legacy Python scripts deprecated in favor of `ai-rules` CLI
+- **scripts/*.py**: Legacy Python scripts deprecated in favor of `ai-rules` CLI
   - `scripts/schema_validator.py` → `ai-rules validate`
   - `scripts/index_generator.py` → `ai-rules index`
   - `scripts/keyword_generator.py` → `ai-rules keywords`
@@ -610,9 +649,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **refactor(skills):** remove `clarifying-questions` skill
   - Replaced with 4-line `ask_user_question` tips in AGENTS templates
   - 625+ lines of skill files → 4 lines of guidance
-- `Taskfile.yml` — all commands migrated to `./dev` wrapper using `uv`/`uvx`
-- `AGENTS.md` and `AGENTS_NO_MODE.md` — now generated from templates at deploy time; source `.gitignore`d
-- `scripts/template_sync.py` — no longer needed since AGENTS.md is generated from templates, not synced from source
+- `Taskfile.yml`: all commands migrated to `./dev` wrapper using `uv`/`uvx`
+- `AGENTS.md` and `AGENTS_NO_MODE.md`: now generated from templates at deploy time; source `.gitignore`d
+- `scripts/template_sync.py` - no longer needed since AGENTS.md is generated from templates, not synced from source
 - **refactor(scripts):** delete legacy `scripts/*.py` after migration to `src/ai_rules/`
   - Removed: badge_updater.py, index_generator.py, keyword_generator.py, rule_deployer.py, schema_validator.py, template_generator.py, token_validator.py, validate_index_references.py
   - All functionality now available via `ai-rules` CLI
@@ -635,7 +674,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **fix(scripts):** rename `warnings` variable to `warning_count` in `schema_validator.py` to avoid shadowing built-in
 - **fix(tokens):** exclude `RULES_INDEX.md` from token budget analysis and improve summary label clarity
 - **test(cli):** expand test suites with +5200 lines across 12 files covering sub-app refactor, edge cases, and comprehensive validation coverage
-- **fix(lint):** add `"code_blocks": false` to `no-hard-tabs` in pymarkdown.rules.json — allow tabs in fenced code blocks (Makefile examples require real tabs)
+- **fix(lint):** add `"code_blocks": false` to `no-hard-tabs` in pymarkdown.rules.json: allow tabs in fenced code blocks (Makefile examples require real tabs)
 - **fix(rules):** strip trailing null bytes from 002a-rule-creation.md, 002b-rule-update.md, 102b-snowflake-sql-procedures.md
 
 ## [3.5.3] - 2026-02-03
@@ -1470,22 +1509,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - feat(rules): add Snowflake connection error classification rule
-  - `100f-snowflake-connection-errors.md` — Systematic error classification for snowflake-connector-python
+  - `100f-snowflake-connection-errors.md`: Systematic error classification for snowflake-connector-python
   - Message-first classification to prevent misdiagnosis of network policy violations as auth failures
   - Detection order: Network Policy → Authentication → Transient → Generic connection errors
   - Actionable guidance output for each error type (VPN reconnect, auth refresh, retry/backoff)
 - feat(rules): add Snowflake MCP server rule
-  - `117-snowflake-mcp-server.md` — Tool-agnostic guidance for Snowflake-managed MCP servers
+  - `117-snowflake-mcp-server.md`: Tool-agnostic guidance for Snowflake-managed MCP servers
   - CREATE MCP SERVER patterns for Cortex Analyst, Search, and Agents integration
   - OAuth security patterns and least-privilege per-tool configuration
   - Standard MCP JSON-RPC client flow (initialize → tools/list → tools/call)
 - feat(rules): add Snowflake role introspection rule
-  - `125-snowflake-role-introspection.md` — Programmatic RBAC inspection patterns
+  - `125-snowflake-role-introspection.md`: Programmatic RBAC inspection patterns
   - Account role vs database role detection (check for `.` in role name)
   - Correct SHOW GRANTS syntax for each role type
   - Error 000906 "too many qualifiers" handling
 - feat(skills): add plan-reviewer skill for implementation plan review
-  - `skills/plan-reviewer/` — Complete skill with PROMPT, README, SKILL, VALIDATION docs
+  - `skills/plan-reviewer/` - Complete skill with PROMPT, README, SKILL, VALIDATION docs
   - Workflows for error handling, file write, input validation, model slugging, review execution
   - Examples and test documentation for FULL, COMPARISON, and META review modes
 - feat(rules): add Streamlit connection error UI patterns to 101e
@@ -1528,11 +1567,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - feat(schema): add SchemaVersion and RuleVersion metadata fields to schema v3.1
-  - **SchemaVersion** — Required CRITICAL field for tracking schema compatibility
+  - **SchemaVersion**: Required CRITICAL field for tracking schema compatibility
     - Semantic versioning format (vX.Y or vX.Y.Z, e.g., v3.1 or v3.1.0)
     - CRITICAL severity validation error if missing or malformed
     - All 103 existing rules updated with `**SchemaVersion:** v3.1`
-  - **RuleVersion** — Required HIGH field for tracking individual rule versions
+  - **RuleVersion**: Required HIGH field for tracking individual rule versions
     - Semantic versioning format (vX.Y.Z, e.g., v1.0.0)
     - Enables users to report issues against specific rule versions
     - HIGH severity validation error if missing or malformed
@@ -1747,13 +1786,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Debug mode and edge cases (keyword_generator, token_validator)
     - File operation error handling (all scripts)
     - CodeBlockTracker and ValidationResult properties (schema_validator)
-- `scripts/token_validator.py` — Enhanced to support single file validation matching schema_validator.py UX pattern
+- `scripts/token_validator.py` - Enhanced to support single file validation matching schema_validator.py UX pattern
   - Changed `--directory` flag to required positional `path` argument
   - Added automatic path type detection (file vs directory)
   - Single file mode provides focused analysis output
   - Backward compatible: directory validation still works as before
   - Updated help text with single file and directory examples
-- `Taskfile.yml` — Comprehensive improvements for portability, UX, and automation
+- `Taskfile.yml`: Comprehensive improvements for portability, UX, and automation
   - **Portability:** Removed hard-coded executable paths (use PATH-resolved `uv`/`uvx`)
   - **Dynamic version:** Project version extracted from `pyproject.toml` via `awk`
   - **Preconditions:** Added `_check:uv`, `_check:uvx`, `_check:coreutils`, `_check:xdg-open` internal tasks for tool availability validation
@@ -1765,7 +1804,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Help:** New categorized `default` task with ASCII fallback support (`task ASCII=true`)
   - **Descriptions:** Harmonized all task descriptions for consistent `task -l` output
   - **Dependencies:** Added `deps: [env:sync]` to most tasks for automatic environment setup
-- `pyproject.toml` — Added `ty` to dev dependencies for project-owned type checking (`uv run ty ...`)
+- `pyproject.toml`: Added `ty` to dev dependencies for project-owned type checking (`uv run ty ...`)
 
 ## [3.3.0] - 2025-12-10
 
@@ -1814,7 +1853,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.2.1] - 2025-12-10
 
 ### Added
-- `100f-snowflake-connection-errors.md` — New Snowflake connection error classification rule (102 → 103 rules)
+- `100f-snowflake-connection-errors.md`: New Snowflake connection error classification rule (102 → 103 rules)
   - Error classification hierarchy: network policy → auth → transient → permission → connection
   - Detection functions for each error type with message content analysis
   - Error code mapping with anti-patterns for 1:1 code assumptions
@@ -1822,14 +1861,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Complete implementation example with SnowflakeErrorType enum
   - Usage patterns for Python scripts, CLIs, REST APIs, Streamlit apps, Snowpark
   - Prevents VPN disconnection misclassification as authentication failure
-- `207-python-logging.md` — New Python logging best practices rule (100 → 101 rules)
+- `207-python-logging.md`: New Python logging best practices rule (100 → 101 rules)
   - Rich console bridging to Python logger for dual CLI/web UI output
   - WebLogHandler implementation for SSE streaming
   - Operation-scoped handler attachment patterns
   - Hierarchical logger naming conventions
   - SUCCESS message prefix pattern for level detection
 - README.md and docs/ARCHITECTURE.md updated to reflect 101 rules
-- `scripts/keyword_generator.py` — New script for generating semantically relevant keywords for rule files
+- `scripts/keyword_generator.py` - New script for generating semantically relevant keywords for rule files
   - Uses TF-IDF and multi-signal extraction (headers, code languages, emphasized terms, technology terms)
   - Supports `--suggest` (default), `--update`, `--diff`, and `--corpus` modes
   - Domain-aware filtering with technology terms and stop words
@@ -1839,46 +1878,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Taskfile keyword tasks: `keywords:suggest`, `keywords:diff`, `keywords:update`, `keywords:all`
 - Documentation updates for keyword_generator in README.md and docs/ARCHITECTURE.md
 - Template character restrictions for Snowflake CLI compatibility across SQL rules
-  - `100-snowflake-core.md` — New "Reserved Characters (CLI Compatibility)" section
-  - `106-snowflake-semantic-views-core.md` — New Anti-Pattern 6: Using Template Characters
-  - `106a-snowflake-semantic-views-advanced.md` — New Section 4.8: Template Character Validation
-  - `102-snowflake-sql-demo-engineering.md` — New Section 4.4: Reserved Characters
+  - `100-snowflake-core.md`: New "Reserved Characters (CLI Compatibility)" section
+  - `106-snowflake-semantic-views-core.md`: New Anti-Pattern 6: Using Template Characters
+  - `106a-snowflake-semantic-views-advanced.md`: New Section 4.8: Template Character Validation
+  - `102-snowflake-sql-demo-engineering.md`: New Section 4.4: Reserved Characters
   - Characters to avoid: `&` (Snowflake CLI), `<%`/`%>` (SnowSQL), `{{`/`}}` (Jinja2/dbt)
 
 ### Changed
 - **docs(standards):** Integrated Conventional Commits and Conventional Branch specifications across documentation
-  - `CONTRIBUTING.md` — Added explicit "Commit and Branch Standards" section with specification links
+  - `CONTRIBUTING.md`: Added explicit "Commit and Branch Standards" section with specification links
     - Links to [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification) and [Conventional Branch v1.0.0](https://conventional-branch.github.io/#specification)
     - Added breaking change examples and anti-patterns for non-standard formats
     - Cross-reference to `rules/803-project-git-workflow.md` for AI agent validation protocols
 - **rules(standards):** Strengthened Conventional Commits and Conventional Branch specifications in workflow rules
-  - `803-project-git-workflow.md` — Enhanced specification compliance guidance for AI agents
+  - `803-project-git-workflow.md`: Enhanced specification compliance guidance for AI agents
     - Updated Quick Start TL;DR with specification links
     - New "Conventional Commits Specification Compliance" section with AI agent guidance protocol
     - New "Conventional Branch Specification Compliance" section with validation patterns
     - Updated External Documentation with versioned specification links
     - Added regex patterns for automated validation with flexibility for justified exceptions
-  - `800-project-changelog.md` — Enhanced Conventional Commits preference
+  - `800-project-changelog.md`: Enhanced Conventional Commits preference
     - Updated Purpose to emphasize strong preference for Conventional Commits format
     - Changed "Optional" to "Preferred format" with specification link
     - Updated External Documentation to mark Conventional Commits as PREFERRED standard
     - Strengthened recommendation in Required Structure & Format section
   - All documents cross-reference each other for consistency
   - Validation: Schema validation passed for both rule files (803: 924 checks, 800: 429 checks)
-- `101e-snowflake-streamlit-sql-errors.md` — Added Streamlit-specific connection error handling patterns
+- `101e-snowflake-streamlit-sql-errors.md`: Added Streamlit-specific connection error handling patterns
   - New section: "Connection Error Handling in Streamlit" (~140 lines)
   - Streamlit UI patterns (st.expander, st.warning, st.error, retry buttons)
   - Auto-retry with exponential backoff implementation
   - Session state recovery pattern
   - References 100f for classification logic, focuses on presentation layer
-- `100-snowflake-core.md` — Added reference to 100f-snowflake-connection-errors.md in Related Rules
-- `803-project-git-workflow.md` — Added comprehensive pre-commit hooks guidance for sandboxed environments
+- `100-snowflake-core.md`: Added reference to 100f-snowflake-connection-errors.md in Related Rules
+- `803-project-git-workflow.md`: Added comprehensive pre-commit hooks guidance for sandboxed environments
   - New Anti-Pattern 6: Ignoring Pre-Commit Hook Failures with correct resolution patterns
   - New Section 6: Pre-Commit Hooks (understanding, permission requirements, handling failures, detection)
   - Updated Quick Start TL;DR with "Pre-commit aware" pattern and checklist item
   - Updated Post-Execution Checklist with pre-commit hooks validation
   - Enhanced validation script with pre-commit configuration detection
-- `AGENTS.md` — Optimized based on GitHub (2,500+ repos) and HumanLayer best practices analysis
+- `AGENTS.md`: Optimized based on GitHub (2,500+ repos) and HumanLayer best practices analysis
   - Reordered sections: Mandatory Rule Loading Protocol now appears first for attention priority
   - Added Persona section for behavioral anchoring
   - Added Boundaries table (ALWAYS/ASK FIRST/NEVER categories)
@@ -1892,7 +1931,7 @@ Processed 1 finding (MEDIUM-HIGH severity): Snowflake error code 08001 misclassi
 ## [3.2.0] - 2025-12-04
 
 ### Added
-- `600-golang-core.md` — New Go/Golang core rule establishing 600s range for systems/backend languages (99 → 100 rules)
+- `600-golang-core.md`: New Go/Golang core rule establishing 600s range for systems/backend languages (99 → 100 rules)
   - Project structure patterns (`cmd/`, `internal/`, `pkg/`)
   - Error handling with `fmt.Errorf` and `%w` wrapping
   - Interface design ("accept interfaces, return structs")
@@ -1900,7 +1939,7 @@ Processed 1 finding (MEDIUM-HIGH severity): Snowflake error code 08001 misclassi
   - Concurrency fundamentals (context, goroutines, channels)
   - Tooling integration (`go fmt`, `go vet`, `golangci-lint`)
 - `ty` type checker integration as primary Python type checker (Astral toolchain)
-  - New Section 4.3 in `200-python-core.md` — Type Checking with ty
+  - New Section 4.3 in `200-python-core.md`: Type Checking with ty
   - `uvx ty check .` added to mandatory Pre-Task-Completion Validation Gate
   - ty configuration example in `203-python-project-setup.md`
   - Taskfile pattern with `lint-ty` task in `201-python-lint-format.md`
@@ -1912,10 +1951,10 @@ Processed 1 finding (MEDIUM-HIGH severity): Snowflake error code 08001 misclassi
   - Error troubleshooting moved to `106c-snowflake-semantic-views-integration.md`
   - Agent tool testing patterns moved to `115-snowflake-cortex-agents-core.md`
   - Updated all cross-references from deleted rule to appropriate destinations
-- `200-python-core.md` — Added ty as primary type checker, mypy as fallback; updated keywords, validation gate, command patterns
-- `201-python-lint-format.md` — Updated Taskfile example to include ty type checking task
-- `203-python-project-setup.md` — Added `[tool.ty]` configuration example alongside mypy
-- `106-snowflake-semantic-views-core.md` — Documented verified queries DDL limitation with Anti-Pattern 5, YAML workaround example, and cross-references to Cortex Analyst integration rules
+- `200-python-core.md`: Added ty as primary type checker, mypy as fallback; updated keywords, validation gate, command patterns
+- `201-python-lint-format.md`: Updated Taskfile example to include ty type checking task
+- `203-python-project-setup.md`: Added `[tool.ty]` configuration example alongside mypy
+- `106-snowflake-semantic-views-core.md`: Documented verified queries DDL limitation with Anti-Pattern 5, YAML workaround example, and cross-references to Cortex Analyst integration rules
 - Renamed HTMX rules to resolve 220 numbering conflict (220-python-typer-cli.md keeps 220):
   - `220-python-htmx-core.md` → `221-python-htmx-core.md`
   - `221-python-htmx-templates.md` → `221a-python-htmx-templates.md`
@@ -1928,7 +1967,7 @@ Processed 1 finding (MEDIUM-HIGH severity): Snowflake error code 08001 misclassi
 - README.md and docs/ARCHITECTURE.md updated to reflect 100 rules and new Go domain
 
 ### Removed
-- `117-snowflake-cortex-analyst.md` — Content redistributed to reduce overlap with semantic views rules
+- `117-snowflake-cortex-analyst.md`: Content redistributed to reduce overlap with semantic views rules
 - mypy retained as fallback type checker for projects requiring mypy plugins
 
 ### Fixed
@@ -1938,14 +1977,14 @@ Processed 1 finding (MEDIUM-HIGH severity): Snowflake error code 08001 misclassi
 
 ### Added
 - 8 new HTMX rules for building hypermedia-driven web applications (92 → 100 total rules, later reduced to 99 via consolidation)
-  - `221-python-htmx-core.md` — Request/response lifecycle, HTTP headers, security patterns, HATEOAS
-  - `221a-python-htmx-templates.md` — Jinja2 template organization, partials, fragments, conditional rendering
-  - `221b-python-htmx-flask.md` — Flask-HTMX extension integration, blueprints, authentication patterns
-  - `221c-python-htmx-fastapi.md` — FastAPI async patterns with HTMX, dependency injection, background tasks
-  - `221d-python-htmx-testing.md` — Pytest fixtures, header assertions, HTML validation, mocking strategies
-  - `221e-python-htmx-patterns.md` — Common patterns: CRUD, forms, infinite scroll, search, real-time, modals
-  - `221f-python-htmx-integrations.md` — Frontend library integrations (Alpine.js, _hyperscript, Tailwind, Bootstrap, Chart.js)
-  - `500-frontend-htmx-core.md` — Pure frontend HTMX reference (attributes, events, CSS transitions, debugging)
+  - `221-python-htmx-core.md`: Request/response lifecycle, HTTP headers, security patterns, HATEOAS
+  - `221a-python-htmx-templates.md`: Jinja2 template organization, partials, fragments, conditional rendering
+  - `221b-python-htmx-flask.md`: Flask-HTMX extension integration, blueprints, authentication patterns
+  - `221c-python-htmx-fastapi.md`: FastAPI async patterns with HTMX, dependency injection, background tasks
+  - `221d-python-htmx-testing.md`: Pytest fixtures, header assertions, HTML validation, mocking strategies
+  - `221e-python-htmx-patterns.md`: Common patterns: CRUD, forms, infinite scroll, search, real-time, modals
+  - `221f-python-htmx-integrations.md`: Frontend library integrations (Alpine.js, _hyperscript, Tailwind, Bootstrap, Chart.js)
+  - `500-frontend-htmx-core.md`: Pure frontend HTMX reference (attributes, events, CSS transitions, debugging)
 - Python domain expanded from 15 to 23 rules (+8 HTMX rules)
 - Frontend/Containers domain expanded from 4 to 5 rules (+1 HTMX frontend rule)
 - Comprehensive HTMX rule coverage across Flask, FastAPI, testing, templates, and frontend integration
@@ -2202,31 +2241,3 @@ Processed 2 retrospective findings from Cortex Agent testing project:
 - Initial release with 25 core rules
 - Basic validation scripts
 - Documentation templates
-
-[Unreleased]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.4...HEAD
-[3.4.4]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.3...v3.4.4
-[3.4.3]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.2...v3.4.3
-[3.4.2]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.4.0...v3.4.2
-[3.4.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.3.0...v3.4.0
-[3.3.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.1...v3.3.0
-[3.2.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.2.0...v3.2.1
-[3.2.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.1.0...v3.2.0
-[3.1.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v3.0.0...v3.1.0
-[3.0.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.6.1...v3.0.0
-[2.6.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.6.0...v2.6.1
-[2.6.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.5.1...v2.6.0
-[2.5.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.5.0...v2.5.1
-[2.5.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.4.2...v2.5.0
-[2.4.2]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.4.1...v2.4.2
-[2.4.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.4.0...v2.4.1
-[2.4.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.3.2...v2.4.0
-[2.3.2]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.3.1...v2.3.2
-[2.3.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.3.0...v2.3.1
-[2.3.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.2.2...v2.3.0
-[2.2.2]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.2.1...v2.2.2
-[2.2.1]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.2.0...v2.2.1
-[2.2.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.1.0...v2.2.0
-[2.1.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v2.0.0...v2.1.0
-[2.0.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v1.5.0...v2.0.0
-[1.5.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/compare/v1.0.0...v1.5.0
-[1.0.0]: https://github.com/sfc-gh-myoung/ai_coding_rules/releases/tag/v1.0.0

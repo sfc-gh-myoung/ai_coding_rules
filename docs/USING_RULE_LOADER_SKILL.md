@@ -1,8 +1,8 @@
 # Using the Rule Loader Skill
 
-**Last Updated:** 2026-03-27
+**Last Updated:** 2026-07-27
 
-The Rule Loader Skill determines which rule files to load for any user request by analyzing file extensions, directory paths, and keywords against RULES_INDEX.md. It ensures consistent, dependency-aware rule discovery across all agents and sessions, formalizing the rule-loading algorithm from AGENTS.md (Steps 1-3) into a reusable skill with progressive disclosure.
+The Rule Loader Skill determines which rule files to load for any user request by analyzing file extensions, directory paths, and keywords against the YAML frontmatter of the rules in `rules/`. It ensures consistent, dependency-aware rule discovery across all agents and sessions.
 
 ## Examples
 
@@ -11,7 +11,7 @@ The Rule Loader Skill determines which rule files to load for any user request b
 ```text
 Use the rule-loader skill.
 
-user_request: "Fix this Python bug"  # Required — the request to analyze
+user_request: "Fix this Python bug"  # Required - the request to analyze
 ```
 
 ### With All Optional Settings
@@ -20,9 +20,8 @@ user_request: "Fix this Python bug"  # Required — the request to analyze
 Use the rule-loader skill.
 
 user_request: "Build a Streamlit dashboard with Snowflake backend and pytest tests"  # Required
-token_budget_limit: 10000            # Optional (default: standard) — max tokens for loaded rules
-context_tier_filter: critical+high   # Optional (default: all) — pre-filter by tier
-rules_path: custom-rules/            # Optional (default: rules/) — alternate rules directory
+token_budget_limit: 10000            # Optional (default: 20000) - max tokens for loaded rules
+context_tier_filter: critical+high   # Optional (default: all) - pre-filter by tier
 ```
 
 ### Minimal Mode (Constrained Context)
@@ -31,7 +30,7 @@ rules_path: custom-rules/            # Optional (default: rules/) — alternate 
 Use the rule-loader skill.
 
 user_request: "Fix this Python bug"  # Required
-token_budget_limit: 5000             # Optional — limits to foundation + domain only
+token_budget_limit: 5000             # Optional - limits to foundation + domain only
 ```
 
 ### Complete Mode (Multi-Domain)
@@ -40,9 +39,8 @@ token_budget_limit: 5000             # Optional — limits to foundation + domai
 Use the rule-loader skill.
 
 user_request: "Build a Streamlit dashboard with Snowflake backend and pytest tests"  # Required
-context_tier_filter: all             # Optional (default: all) — includes all tiers
+context_tier_filter: all             # Optional (default: all) - includes all tiers
 ```
-
 
 ## Loading Modes
 
@@ -80,31 +78,36 @@ user_request: "Build a Streamlit dashboard with Snowflake backend and pytest tes
 context_tier_filter: all
 ```
 
-
 ## Understanding Your Results
 
 ### Output Format
 
-The skill produces a `## Rules Loaded` section listing all selected rules with loading reasons:
+The skill produces a manifest that the agent uses internally. When diagnostic output is requested (via `$show-rules` or during eval testing), the agent renders the manifest as a PRE-FLIGHT block: Gate 1 carries the foundation citation, Gate 3 lists all selected domain/activity rules with loading reasons:
 
 ```markdown
-## Rules Loaded
-- rules/000-global-core.md (foundation)
-- rules/200-python-core.md (file extension: .py)
-- rules/100-snowflake-core.md (dependency of 101)
-- rules/101-snowflake-streamlit-core.md (keyword: Streamlit)
-- rules/206-python-pytest.md (keyword: test)
-- [Deferred: 204-python-docs.md - Low tier, not required for task]
+PRE-FLIGHT:
+- [x] Gate 1: Foundation rules/000-global-core.md - vX.Y.Z
+- [x] Gate 2: Searched: python, streamlit, test
+- [x] Gate 3: +4 domain rules:
+  - rules/200-python-core.md (file extension: .py) - vX.Y.Z
+  - rules/100-snowflake-core.md (dependency of 101) - vX.Y.Z
+  - rules/101-snowflake-streamlit-core.md (keyword: Streamlit) - vX.Y.Z
+  - rules/206-python-pytest.md (keyword: test) - vX.Y.Z
+  - [Deferred: 204-python-docs.md - Low tier, not required for task]
+
+Task Switch: FIRST
 ```
+
+> **Note:** PRE-FLIGHT output is not emitted by default. It appears only when explicitly requested or during eval runs.
 
 ### Loading Reasons
 
 | Reason | Meaning |
 |--------|---------|
-| `(foundation)` | Always-loaded base rule (000-global-core.md) |
+| `(foundation)` | Foundation rule (000-global-core.md): cited on Gate 1, not as a Gate 3 row |
 | `(file extension: .py)` | Matched from file extension in request |
 | `(directory: skills/)` | Matched from directory path in request |
-| `(keyword: test)` | Matched keyword in RULES_INDEX.md |
+| `(keyword: test)` | Matched keyword in a rule's frontmatter |
 | `(dependency of NNN)` | Loaded as prerequisite for another rule |
 | `[Deferred: ...]` | Skipped due to token budget constraints |
 
@@ -114,9 +117,9 @@ The skill executes 5 phases in order:
 
 | Phase | Name | What Happens |
 |-------|------|--------------|
-| 1 | **Foundation Loading** | Always loads `000-global-core.md` (~4,050 tokens) |
+| 1 | **Foundation Loading** | Always loads `000-global-core.md` (~1,600 tokens) |
 | 2 | **Domain Matching** | Matches file extensions and directories to domain rules |
-| 3 | **Activity Matching** | Searches RULES_INDEX.md for keyword matches |
+| 3 | **Activity Matching** | Scores rule frontmatter keywords against the prompt |
 | 4 | **Dependency Resolution** | Loads prerequisites before dependent rules |
 | 5 | **Token Budget Management** | Defers low-priority rules if over budget |
 
@@ -128,7 +131,6 @@ When over the token budget, rules are deferred in this order:
 2. **Medium tier** rules not directly related to task keywords
 3. **High tier** rules only if critically over budget
 4. **Critical tier** rules are never deferred
-
 
 ## Advanced Usage
 
@@ -161,33 +163,24 @@ Pre-filters to only consider rules at specified tiers.
 | `critical+high` | Critical and High |
 | `critical+high+medium` | Excludes Low tier |
 
-### Custom Rules Path
-
-```text
-rules_path: custom-rules/
-```
-
-Uses an alternate rules directory instead of the default `rules/`.
-
-
 ## FAQ
 
-### What is the relationship to AGENTS.md?
+### What is the relationship to the plugin hook?
 
-AGENTS.md contains the bootstrap protocol that invokes rule-loading logic inline (Steps 1-3). This skill provides detailed workflow files for each loading phase, worked examples showing the complete selection process, and test scenarios for validating rule-loading behavior. AGENTS.md remains self-contained; this skill offers enriched reference material.
+When installed with `--with-hook`, the plugin's `UserPromptSubmit` hook runs the same matching algorithm automatically on every prompt and injects the result. Without the hook, invoke `$rule-loader` on demand. This skill provides detailed workflow files for each loading phase, worked examples showing the complete selection process, and test scenarios for validating rule-loading behavior.
 
 ### Why was my expected rule not loaded?
 
 Check these causes in order:
 
-1. **No keyword match:** The keyword may not exist in RULES_INDEX.md
-2. **No extension match:** Verify the extension mapping in RULES_INDEX.md Section 2
+1. **No keyword match:** No rule declares that keyword in its frontmatter
+2. **No extension match:** Use `grep -rl "<ext>" rules/` to find the authoritative rule for that extension
 3. **Dependency missing:** A missing prerequisite skips the dependent rule
 4. **Deferred for budget:** Check if it was listed in the Deferred section
 
-### What happens if RULES_INDEX.md is not found?
+### What happens if the `rules/` directory is not found?
 
-The skill falls back to foundation + file-extension matching only. Keyword-based activity matching is skipped. Regenerate the index with `make index-generate`.
+The skill falls back to the injected foundation only. Confirm the plugin is installed and active with `cortex plugin list`.
 
 ### What if a rule file is not found?
 
@@ -196,14 +189,13 @@ The skill falls back to foundation + file-extension matching only. Keyword-based
 
 ### How are token budgets calculated?
 
-Each rule declares a `TokenBudget` value in its metadata (e.g., `~3,500`). The skill sums these values. Agent self-regulates; there is no external enforcement.
+Each rule declares a `token_budget` value in its YAML frontmatter (e.g., `~1600`). The skill sums these values. Agent self-regulates; there is no external enforcement.
 
 ### Token budget exceeded - what should I do?
 
 1. Low-tier rules are deferred automatically
-2. Check which rules are Critical vs Low tier in RULES_INDEX.md metadata
+2. Check which rules are Critical vs Low tier in their frontmatter `context_tier`
 3. Consider using `context_tier_filter: critical+high` to pre-filter
-
 
 ## Reference
 
@@ -213,28 +205,30 @@ Each rule declares a `TokenBudget` value in its metadata (e.g., `~3,500`). The s
 User Request
 │
 ├── Phase 1: Foundation Loading
-│   └── Load 000-global-core.md (always, ~4,050 tokens)
+│   └── Load 000-global-core.md (always, ~1,600 tokens)
 │
 ├── Phase 2: Domain Matching
 │   ├── Check directory paths (skills/, rules/)
 │   └── Match file extensions (.py, .sql, .ts, etc.)
 │
 ├── Phase 3: Activity Matching
-│   └── Search RULES_INDEX.md for keywords
+│   └── Score rule frontmatter keywords
 │
 ├── Phase 4: Dependency Resolution
 │   └── Load prerequisites before dependents
 │
 └── Phase 5: Token Budget Management
-    ├── Sum TokenBudget values
+    ├── Sum token_budget values
     └── Defer Low/Medium tier if over budget
 ```
 
 ### File Structure
 
+Representative layout (see `skills/rule-loader/` for the complete current inventory):
+
 ```text
 skills/rule-loader/
-├── SKILL.md                        # Main entrypoint (~120 lines)
+├── SKILL.md                        # Main entrypoint (~200 lines)
 ├── workflows/
 │   ├── foundation-loading.md       # Phase 1: Always-load foundation
 │   ├── domain-matching.md          # Phase 2: File ext & directory matching
@@ -245,6 +239,8 @@ skills/rule-loader/
 │   ├── streamlit-dashboard.md      # Cross-domain: Streamlit + Python + test
 │   ├── python-api.md               # Python + FastAPI endpoint
 │   └── multi-domain.md             # Snowflake SQL + Python
+├── scripts/
+│   └── match_rules.py              # Vendored deterministic matcher
 └── tests/
     └── test-scenarios.md           # Input/output test cases (16 scenarios)
 ```
@@ -278,5 +274,4 @@ skills/rule-loader/
 - **Skill entrypoint:** `skills/rule-loader/SKILL.md`
 - **Workflow guides:** `skills/rule-loader/workflows/*.md`
 - **Examples:** `skills/rule-loader/examples/*.md`
-- **RULES_INDEX.md:** Authoritative source for rule discovery mappings
-- **AGENTS.md:** Bootstrap protocol that invokes rule-loading (Steps 1-3)
+- **Discovery path:** the `UserPromptSubmit` hook, or the `rule-loader` skill invoked directly

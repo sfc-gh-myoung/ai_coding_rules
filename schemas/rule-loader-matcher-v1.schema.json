@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rule-loader-matcher-v1.schema.json",
+  "title": "Rule loader matcher artifact v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "candidate_rules", "load_sequence", "deferred_rules"],
+  "properties": {
+    "schema_version": {"const": "rule-loader-matcher/v1"},
+    "candidate_rules": {"type": "array", "items": {"$ref": "#/$defs/rule"}},
+    "load_sequence": {"type": "array", "items": {"$ref": "#/$defs/rule"}},
+    "deferred_rules": {"type": "array", "items": {"type": "object"}},
+    "warnings": {"type": "array", "items": {"type": "object"}}
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "required": ["rule_path", "layer"],
+      "properties": {
+        "rule_path": {"type": "string", "pattern": "^rules/.+\\.md$"},
+        "layer": {"enum": ["HARD", "SOFT"]},
+        "context_tier": {"enum": ["Critical", "High", "Medium", "Low"]},
+        "description": {"type": "string", "maxLength": 600},
+        "token_budget": {"type": "integer"}
+      }
+    }
+  }
+}

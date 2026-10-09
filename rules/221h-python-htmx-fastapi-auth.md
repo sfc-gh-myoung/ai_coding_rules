@@ -1,323 +1,72 @@
-# 221h: FastAPI + HTMX Authentication, SSE & CSRF
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**Keywords:** fastapi, htmx, jwt, authentication, sse, csrf, starlette-wtf, oauth2, server-sent-events
-**TokenBudget:** ~2400
-**ContextTier:** Medium
-**Depends:** 221c-python-htmx-fastapi.md, 221-python-htmx-core.md
-**LoadTrigger:** kw:htmx-fastapi-auth, kw:htmx-jwt, kw:htmx-sse-fastapi, kw:htmx-csrf-fastapi
+---
+schema_version: v4.0
+rule_version: v3.0.0
+description: "FastAPI HTMX trusted auth/CSRF, representation-aware denial and protected bounded SSE progress."
+last_updated: 2026-10-07
+keywords:
+  - kw:FastAPI HTMX authentication
+  - kw:HX-Redirect header
+  - kw:SSE streaming FastAPI
+  - kw:call_soon_threadsafe queue
+  - kw:Starlette-WTF CSRF
+  - kw:HTTPBearer dependency injection
+  - kw:fastapi
+token_budget: ~1050
+context_tier: Medium
+depends:
+  optional:
+    - 221c-python-htmx-fastapi.md  # Core FastAPI+HTMX patterns (Jinja2Templates, DI, async routes)
+    - 210a-python-fastapi-security.md  # FastAPI security patterns
+    - 221g-python-htmx-sse.md  # General SSE patterns
+---
+# FastAPI HTMX Authentication, SSE and CSRF
 
 ## Scope
 
 **What This Rule Covers:**
-Authentication, Server-Sent Events (SSE), and CSRF protection patterns for FastAPI+HTMX applications. Split from 221c to keep rule sizes manageable.
+Existing auth/session dependencies, HTMX login/denial navigation, cookie CSRF and authorized operation streams.
 
 **When to Load This Rule:**
-- Implementing JWT authentication for HTMX endpoints in FastAPI
-- Setting up SSE streaming with HTMX
-- Configuring CSRF protection with Starlette-WTF
-- Handling 401/403 redirects for HTMX requests
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **221c-python-htmx-fastapi.md** - Core FastAPI+HTMX patterns (Jinja2Templates, DI, async routes)
-- **221-python-htmx-core.md** - HTMX foundation patterns
-
-**Related:**
-- **210a-python-fastapi-security.md** - FastAPI security patterns
-- **221g-python-htmx-sse.md** - General SSE patterns
-- **221d-python-htmx-testing.md** - Testing auth+HTMX
-
-### External Documentation
-
-- [FastAPI Security](https://fastapi.tiangolo.com/tutorial/security/) - Official security guide
-- [Starlette-WTF](https://github.com/muicss/starlette-wtf) - CSRF protection for Starlette/FastAPI
-- [HTMX SSE Extension](https://htmx.org/extensions/server-sent-events/) - SSE with HTMX
+When protecting FastAPI HTMX forms/SSE; read `210a-python-fastapi-security.md` for token verification and `221g-python-htmx-sse.md` for stream/replay lifecycle.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- FastAPI+HTMX application configured (see 221c)
-- Jinja2Templates and HTMX detection dependency set up
-- Understanding of FastAPI dependency injection
+- Existing auth/session/CSRF/exception handlers and actual library/template/HTMX versions.
+- Resource/tenant access policy, cookie/header transport, operation ownership, stream format and permitted tests/changes.
 
 ### Mandatory
 
-- JWT via `python-jose` or `PyJWT` for token auth
-- `python-multipart` for form-based login
-- Starlette-WTF or custom middleware for CSRF
-- Async-compatible patterns throughout
-
-### Forbidden
-
-- Storing JWT secrets in code — use environment variables
-- Skipping CSRF protection on state-changing HTMX routes
-- Using synchronous I/O in SSE generators
+- Reuse current trusted auth and security libraries, not duplicate get_current_user or impose JWT on every session app. Bearer extraction isn't verification; check actual required signature/issuer/audience/expiry/purpose/subject and active user.
+- HTTPAuthorizationCredentials and token strings have distinct dependency types. Use current FastAPI credential API and expected 401 challenge; validate role/resource/tenant ownership independently of HX presentation hints.
+- Detect HX-Request==true and implement tested login navigation for 401, denied inline feedback for 403 where policy requires. Preserve status and non-HTMX JSON/plain behavior; don't raw-render str(exc.detail) as HTML or change all exceptions to 200/login redirects.
+- Actual error-swap/responseHandling/client behavior determines how auth headers are processed. A 302 login response can be fetched as fragment instead of navigating; use supported HX-Redirect/client logic with safe approved local return URL and preserve WWW-Authenticate where relevant.
+- Cookie-authenticated state changes require actual CSRF verification bound to session, not only csrf_secret or a template function name. Verify installed Starlette-WTF/other middleware constructor, token generation/context/form validation and session prerequisite; no guessed Flask-style csrf_token global.
+- Inject token to approved same-origin requests; test missing/invalid/cross-session tokens and avoid exemption for convenience. Header-token auth versus browser cookie sessions have different CSRF/credential policies.
+- Authorize stream and operation identity per trusted caller; do not start destructive work inside a GET stream or expose another user's progress by guessing op_id. Native EventSource lacks arbitrary headers; no JWT query parameter workaround by default.
+- SSE events need actual data format: HTMX sse-swap consumes safe HTML, JSON needs explicit renderer or refresh trigger. Use current loaded extension, exact events, bounded queues/timeouts and no raw secret/error text.
+- Capture running loop before threads and hand off thread-safely with bounded queue/backpressure. Supervise producer failure/completion/disconnect, close client listeners/connections, and cooperative-stop threaded work; to_thread cancellation doesn't kill it.
+- Tests verify denied auth/CSRF/resource paths, partial/full/error representations, stream expiry/disconnect/producer failure and same-session browser behavior. Static header tests don't establish navigation/stream safety.
 
 ### Execution Steps
 
-1. Implement JWT authentication dependency
-2. Add HTMX-aware exception handler for 401/403
-3. Configure SSE streaming endpoints (if needed)
-4. Install and configure CSRF middleware
-
-### Output Format
-
-```python
-# Example: JWT authentication dependency
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer
-
-security = HTTPBearer()
-
-async def require_auth(token: str = Depends(security)) -> dict:
-    """Validate JWT and return payload."""
-    try:
-        payload = decode_jwt(token.credentials)
-        return payload
-    except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-```
+1. Inspect auth/CSRF/handlers/session and define actual navigation/operation-stream boundaries.
+2. Add minimal compatible verification/authorization and safe HTML/HX error contract.
+3. Implement protected bounded SSE only where required, with actual extension/format/cleanup.
+4. Test synthetic security/stream/browser cases and project checks; report unverified client/runtime behavior.
 
 ### Validation
 
-**Success Criteria:**
-- JWT auth dependency rejects invalid tokens with 401
-- HTMX 401 responses include `HX-Redirect` to login
-- SSE streams deliver real-time updates to HTMX clients
-- CSRF tokens validated on all POST/PUT/DELETE requests
+- Trusted tokens/sessions/users and resource ownership enforced independent of HX headers.
+- 401/403/non-HTMX behavior and safe errors preserved; login redirects validated.
+- CSRF really verified with actual session/token and stream format/bounds/cleanup correct.
+- Backend/browser evidence distinct; no unapproved install/model/server/secret exposure.
 
-### Post-Execution Checklist
+## References
 
-- [ ] JWT authentication dependency implemented
-- [ ] Exception handler redirects HTMX 401s to login
-- [ ] SSE streaming uses `asyncio.to_thread()` for blocking work
-- [ ] Cross-thread communication uses `loop.call_soon_threadsafe()`
-- [ ] CSRF middleware configured with secret from environment
-- [ ] Templates include `{{ csrf_token() }}`
-
-> **Investigation Required**
-> Before modifying FastAPI+HTMX auth/SSE/CSRF, the agent MUST:
-> 1. Check existing authentication dependencies — never create a duplicate `get_current_user`
-> 2. Verify existing CSRF middleware setup (Starlette-WTF may already be configured)
-> 3. Check if SSE endpoints already exist — extend rather than duplicate
-> 4. Read existing exception handlers for 401/403 before adding new ones
-> 5. Verify `python-jose` or `PyJWT` is installed: `uv pip list | grep -i jose`
-
-## Key Principles
-
-### 1. Authentication with Dependency Injection
-
-**JWT Authentication:**
-```python
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
-
-security = HTTPBearer()
-
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
-):
-    token = credentials.credentials
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        if username is None:
-            raise HTTPException(status_code=401)
-        return username
-    except JWTError:
-        raise HTTPException(status_code=401)
-
-@app.get("/dashboard")
-async def dashboard(
-    request: Request,
-    current_user: str = Depends(get_current_user),
-    htmx: bool = Depends(is_htmx)
-):
-    if htmx:
-        return templates.TemplateResponse(
-            "partials/_dashboard.html",
-            {"request": request, "user": current_user}
-        )
-
-    return templates.TemplateResponse(
-        "pages/dashboard.html",
-        {"request": request, "user": current_user}
-    )
-```
-
-**Exception Handler for HTMX:**
-```python
-from fastapi import Request
-from fastapi.responses import HTMLResponse
-
-@app.exception_handler(HTTPException)
-async def htmx_exception_handler(request: Request, exc: HTTPException):
-    is_htmx_request = request.headers.get('HX-Request') == 'true'
-
-    if exc.status_code == 401 and is_htmx_request:
-        # Redirect to login for HTMX requests
-        response = HTMLResponse(content="", status_code=401)
-        response.headers['HX-Redirect'] = '/login'
-        return response
-
-    # Default handling for non-HTMX
-    return HTMLResponse(content=str(exc.detail), status_code=exc.status_code)
-```
-
-### 2. Server-Sent Events (SSE) with HTMX
-
-**SSE Streaming for Long-Running Operations:**
-```python
-from fastapi.responses import StreamingResponse
-import asyncio
-import json
-
-@app.get("/operations/{op_id}/stream")
-async def stream_operation_progress(op_id: str):
-    """Stream progress updates via SSE for HTMX consumption."""
-    # Capture event loop BEFORE any thread work
-    loop = asyncio.get_running_loop()
-    progress_queue: asyncio.Queue[dict] = asyncio.Queue()
-
-    def progress_callback(step: str, message: str) -> None:
-        """Thread-safe callback - uses captured loop reference."""
-        loop.call_soon_threadsafe(
-            progress_queue.put_nowait,
-            {"step": step, "message": message, "timestamp": datetime.now().isoformat()}
-        )
-
-    async def event_generator():
-        # Run blocking work with asyncio.to_thread()
-        task = asyncio.create_task(
-            asyncio.to_thread(run_operation, op_id, progress_callback)
-        )
-
-        while True:
-            if task.done():
-                # Drain remaining messages
-                while not progress_queue.empty():
-                    msg = await progress_queue.get()
-                    yield f"data: {json.dumps(msg)}\n\n"
-
-                try:
-                    result = task.result()
-                    yield f"data: {json.dumps({'step': 'done', 'success': True})}\n\n"
-                except Exception as e:
-                    yield f"data: {json.dumps({'step': 'error', 'message': str(e)})}\n\n"
-                break
-
-            try:
-                msg = await asyncio.wait_for(progress_queue.get(), timeout=0.5)
-                yield f"data: {json.dumps(msg)}\n\n"
-            except TimeoutError:
-                # Keepalive ping
-                yield f"data: {json.dumps({'step': 'ping'})}\n\n"
-
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
-    )
-```
-
-**HTMX SSE Extension Usage:**
-```html
-<!-- Include SSE extension -->
-<script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
-
-<!-- Connect to SSE stream -->
-<div hx-ext="sse" sse-connect="/operations/123/stream">
-    <div sse-swap="message" hx-swap="beforeend">
-        <!-- Progress messages will be appended here -->
-    </div>
-</div>
-```
-
-**Critical Pattern - Cross-Thread Communication:**
-```python
-# CORRECT: Capture loop before thread starts
-loop = asyncio.get_running_loop()  # In async context
-loop.call_soon_threadsafe(queue.put_nowait, data)  # From thread
-
-# WRONG: Accessing event loop from thread
-asyncio.get_event_loop()  # Raises "no current event loop in thread"
-```
-
-### 3. CSRF Protection
-
-**Using Starlette-WTF:**
-```bash
-uv add starlette-wtf
-```
-
-```python
-import os
-from starlette_wtf import CSRFProtectMiddleware
-
-app.add_middleware(
-    CSRFProtectMiddleware,
-    csrf_secret=os.environ['CSRF_SECRET']
-)
-
-# Template usage
-@app.get("/form")
-async def form_page(request: Request):
-    return templates.TemplateResponse(
-        "partials/_form.html",
-        {"request": request}
-    )
-
-# In template: {{ csrf_token() }}
-```
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Hardcoded JWT Secret
-
-**Problem:** Storing `SECRET_KEY` directly in source code.
-
-**Correct Pattern:**
-```python
-import os
-SECRET_KEY = os.environ["JWT_SECRET_KEY"]
-ALGORITHM = "HS256"
-```
-
-### Anti-Pattern 2: Missing HTMX Exception Handler
-
-**Problem:** Default FastAPI exception handler returns JSON for 401/403, breaking HTMX flows.
-
-**Correct Pattern:**
-```python
-# BAD: Default JSON response breaks HTMX
-@app.exception_handler(HTTPException)
-async def default_handler(request, exc):
-    return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
-# HTMX receives JSON instead of redirect, page doesn't update
-
-# GOOD: Return HX-Redirect for HTMX requests
-@app.exception_handler(HTTPException)
-async def htmx_exception_handler(request: Request, exc: HTTPException):
-    if request.headers.get("HX-Request"):
-        if exc.status_code in (401, 403):
-            response = Response(status_code=exc.status_code)
-            response.headers["HX-Redirect"] = "/login"
-            return response
-    return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
-```
-
-Use the `htmx_exception_handler` from Section 1 to return `HX-Redirect` headers for HTMX requests.
-
-## Output Format
-
-See Section 1 for JWT auth + exception handler, Section 2 for SSE streaming, Section 3 for CSRF setup.
+- [FastAPI security](https://fastapi.tiangolo.com/tutorial/security/)
+- [FastAPI errors](https://fastapi.tiangolo.com/tutorial/handling-errors/)
+- [Starlette-WTF](https://github.com/muicss/starlette-wtf)
+- [HTMX SSE](https://htmx.org/extensions/sse/)
+- [HTMX](https://htmx.org/docs/)

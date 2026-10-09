@@ -193,7 +193,9 @@ Options:
   --fixture TEXT        Run only this fixture id.
   --runs INTEGER        Number of eval passes (default 3; accounts for LLM variance).
   --effort TEXT         low|medium|high  [default: medium]
-  --model TEXT          Model override  [default: auto]
+  --model TEXT          Model override. Accepts an auto mode (auto, auto-intelligent,
+                        auto-efficient) or a tracked CoCo catalog model. [default: auto]
+  --all-models          Run each catalog model in an isolated output directory.
   --connection TEXT     Snowflake connection name.
   --out-dir PATH        Base directory for snapshots. Auto-generates out/eval-run-N.
   --label TEXT          Label stored in meta.json.
@@ -572,9 +574,9 @@ and the tab renders a degradation callout instead of insights.
 
 ## Pre-commit Hook
 
-The `rule-loader-eval` local hook runs five representative fixtures through the
-live Cortex Code Agent SDK before each commit, catching regressions before they
-land.
+The optional `rule-loader-eval` local hook is not configured by default. Once
+added, it runs five representative fixtures through the live Cortex Code Agent
+SDK before each commit, catching regressions before they land.
 
 ### Adding the hook
 
@@ -705,3 +707,36 @@ When a change targets rule-loading token cost (e.g. COMPACT-only discovery, boot
 3. Compare: `uv run ai-rules rule-loader compare <baseline-snapshot> <post-snapshot>`.
 
 Acceptance = **zero discovery regressions** (same rule sets matched per fixture) AND a measurable reduction in mean input tokens/fixture. Use `ai-rules tokens --context-estimate --selected <rule> ...` for a fast static estimate of per-response context (fixed floor + COMPACT index match + selected rules) without a live run.
+
+### v4.0.0 result: 250-line rule limit
+
+Static measurement of rule files only, using the `o200k_base` tokenizer that `ai-rules tokens` uses. Baseline: the v3.5 rules at commit `5fea6c3c`. Post: the v4.0.0 rules.
+
+| Scope | v3.5 | v4.0.0 | Change |
+|---|---|---|---|
+| Rule library tokens (195 rules) | 694,831 | 220,832 | -68.2% |
+| Rule library lines | 83,682 | 15,426 | -81.6% |
+| Rule tokens per fixture (required + dependencies, mean of 35) | 8,063 | 3,453 | -57.2% (median -58.5%, range -40.8% to -69.9%) |
+
+Before v4, 187 of 195 rules exceeded 250 lines (maximum 807). After v4, none do (maximum 171).
+
+**Attribution.** The v4 migration also capped examples at three and removed anti-pattern galleries and duplicate checklists. The 250-line limit forced those cuts, so these figures describe v4 compaction as a whole, not the line limit in isolation.
+
+**Live impact.** Same-mode live A/B, run 2026-10-08. Both arms used plugin mode with `claude-opus-5`, `--effort medium`, `--max-turns 25`, `--concurrency 1`, and identical trees that differed only in `rules/` (pre: v3.5 rules at `5fea6c3c`; post: v4.0.0). Each arm has 3 samples for each of the 35 fixtures (105 per arm). Arms alternated to spread load drift evenly, and the installed `ai-coding-rules` plugin was disabled so its hook could not inject v4 rules into either arm.
+
+| Metric (mean of 105 samples) | v3.5 | v4.0.0 | Change |
+|---|---|---|---|
+| Pass rate | 105/105 | 105/105 | +0 |
+| Turns | 2.00 | 2.00 | +0.00 |
+| Duration (ms) | 37,327 | 36,387 | -2.5% |
+| Input tokens | 316,134 | 301,360 | -4.7% |
+| Output tokens | 552 | 547 | -0.9% |
+| Total tokens | 316,686 | 301,907 | -4.7% |
+
+Paired by fixture, v4 saves a mean of 14,774 input tokens (median per-fixture change -6.8%, mean -4.1%). That is about 3x the static saving of 4,610 rule tokens per fixture. Input tokens are summed across turns, so rule text that stays in context is probably counted once per turn. This was not verified per turn.
+
+`rule-loader compare` on the merged arms (strict-majority loaded sets, median metrics) returned DRIFT ONLY: 35/35 → 35/35 with no regressions, no signal disagreements, and no citation drift. Six fixtures changed loaded sets (+4 / -5 rules), all pass → pass. The baseline keeps the v3.5 `keywords`, so manifests differ for the 8 fixtures that use the 8 rules whose keywords changed.
+
+Infra errors: v3.5 had 2 (`simple-skill-dir` `error_during_execution`; `simple-cortex-agent-semantic-view` `Control request timeout: initialize`) and v4.0.0 had 1 (`complex-snowcli-config`, the same timeout). All three happened before any file read, during full passes that ran alongside about 21 other headless `cortex -w` sessions. Eval is fail-fast, so each error dropped the rest of its pass. The missing samples were backfilled one fixture per call on an idle machine, with `--retry-infra 1`, and the backfill hit zero infra errors. Treat duration as noisy because the earlier passes shared the machine.
+
+An earlier A/B compared `--without-plugin` against plugin mode. That measures the plugin, not rule size.

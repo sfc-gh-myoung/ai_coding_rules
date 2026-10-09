@@ -1,324 +1,72 @@
 # Using the Rule Creator Skill
 
-**Last Updated:** 2026-08-18
+**Last Updated:** 2026-09-30
 
-The Rule Creator Skill automates creation of production-ready rules following schema v3.6 standards. It guides you through research, template generation, content population, and validation.
+Use rule-creator to research, scaffold, populate, and validate a rule against the v4 contract. The skill lives in the source repository and is not included in the distributable plugin.
 
-> **Internal Use Only:** This skill is excluded from deployment to consuming projects. See [Deployment Exclusion](#deployment-exclusion) for rationale.
-
-## Examples
-
-### Minimal Required Example
+## Start a rule
 
 ```text
-Use the rule-creator skill.
-
-rule_name: 422-daisyui-core          # Required - rule filename (NNN-lowercase-hyphenated)
-domain: JavaScript/Frontend           # Required - technology domain
+Use the rule-creator skill to create a rule for pytest security testing.
+Domain: Python
+Aspect: security
+Context tier: High
+Use supplied documentation only; do not call paid models.
 ```
 
-### With All Optional Settings
+The skill checks existing ownership and the current [rule-category map](../README.md#rule-categories) before choosing an unused filename. Specify a filename if needed, but an existing file is not overwritten automatically. ContextTier reflects importance and applicability, not a token-size range.
 
-```text
-Use the rule-creator skill.
+## Workflow
 
-rule_name: 209-python-pytest-security  # Required
-domain: Python                         # Required
-context_tier: High                     # Optional (default: Medium) - token budget tier
-timing_enabled: true                   # Optional (default: false) - track creation duration
-```
+| Phase | Result |
+|---|---|
+| Discovery and research | Existing owners, applicable sources, available filename, dependency decisions |
+| Template generation | A scaffold from `ai-rules new` |
+| Content population | Task-specific instructions and typed YAML metadata |
+| Validation | Executed structural checks plus separate semantic review |
+| Keyword and discovery verification | Relevant/irrelevant request checks and integrated loader/plugin verification |
 
-### With Aspect (Non-Core Rule)
+Model-assisted keyword generation is optional. The skill can use manually authored keywords; model calls require authorization for content transmission, model identity, and cost. No separate index file is generated.
 
-```text
-Create a new rule for pytest security testing patterns
-```
+## V4 authoring requirements
 
-Creates: `209-python-pytest-security.md` (aspect: "security").
+Required H2 order is **Scope, Contract, References**. Contract requires four meaningful subsections: Inputs and Prerequisites, Mandatory, Execution Steps, Validation. Forbidden and Output Format are optional when they add distinct requirements.
 
-### Multiple Dependencies
+Keep one completion checklist under Validation. Show correct executable examples only and describe defects in prose. No fixed number of steps, examples, or anti-patterns is required. Preserve authorization, confidentiality, required reads, and safe recovery in the active rule or its required dependencies.
 
-```text
-Create a new rule for Snowflake+Python integration patterns
-```
+The seven required YAML fields are `schema_version`, `rule_version`, `last_updated`, `keywords`, `token_budget`, `context_tier`, and `depends`. Keywords have a combined bound of 5-11 typed entries. Token budgets are estimates of final text, not observed runtime usage.
 
-Agent adds both `rules/100-snowflake-core.md` and `rules/200-python-core.md` to Depends.
+## Verify the result
 
-## Workflow Phases
-
-| Phase | Name | What Happens |
-|-------|------|--------------|
-| 1 | **Discovery & Research** | Scans `rules/` frontmatter, identifies domain, checks for duplicates |
-| 2 | **Template Generation** | Runs `ai-rules new` with domain and context tier |
-| 3 | **Content Population** | Fills all schema sections with researched, domain-specific content |
-| 4 | **Validation Loop** | Runs `ai-rules validate` until 0 CRITICAL errors |
-| 5 | **Verification** | Confirms the rule is discoverable by the matcher |
-
-### Phase 1: Discovery & Research
-
-The skill reads the frontmatter of existing rules in `rules/` to:
-- Check for existing rules covering the same technology
-- Identify the correct domain range (000-999 based on technology)
-- Gather context from related rules
-
-### Phase 4: Validation Loop
-
-The skill iterates until all CRITICAL errors are resolved:
-
-```text
-Iteration 1: 3 CRITICAL, 5 RECOMMENDED
-Iteration 2: 1 CRITICAL, 3 RECOMMENDED
-Iteration 3: 0 CRITICAL, 2 RECOMMENDED ✓ (passed)
-```
-
-RECOMMENDED issues are logged but do not block completion.
-
-## Understanding Your Results
-
-### Verdicts
-
-| Outcome | Criteria | Action |
-|---------|----------|--------|
-| **PASSED** | 0 CRITICAL errors | Rule is schema-compliant |
-| **FAILED** | ≥1 CRITICAL errors after 3 iterations | Manual intervention required |
-
-### Output Artifacts
-
-The skill produces two artifacts:
-
-1. **Rule file:** `rules/<rule-name>.md`: The complete rule document
-2. **Validation log:** Console output: Shows iteration history
-
-### Validation Gates
-
-All rules must pass these gates before completion:
-
-| Gate | Requirement |
-|------|-------------|
-| Discovery | `rules/` scanned, domain identified, number available |
-| Template | `ai-rules new` executed, v3.6 sections present |
-| Metadata | Keywords (5-11), TokenBudget (~NUMBER), ContextTier valid |
-| Contract | 6 Markdown headers present, placed before line 200 |
-| Validation | `ai-rules validate` returns exit code 0 |
-| Verification | Rule is matched by the loader for its keywords |
-
-### Common Errors and Fixes
-
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `Keywords count: 3 (expected 5-11)` | Too few keywords | Add more semantic keywords |
-| `TokenBudget format invalid` | Missing tilde | Change `1200` to `~1200` |
-| `Missing header: ### Validation` | Incomplete Contract | Add all 6 required headers |
-| `Contract after line 200` | Contract too late | Move Contract earlier in file |
-| `Invalid filename format` | Wrong casing/format | Use `NNN-lowercase-hyphenated` |
-
-## Advanced Usage
-
-### Domain Selection
-
-Rules are numbered by domain range. The skill auto-suggests the next available number.
-
-| Range | Domain | Examples |
-|-------|--------|----------|
-| 000-099 | Core/Foundational | 000-global-core, 002-rule-governance |
-| 100-199 | Snowflake | 100-snowflake-core, 125-snowflake-role-introspection |
-| 200-299 | Python | 200-python-core, 206-python-pytest |
-| 300-399 | Shell/Bash | 300-bash-scripting-core |
-| 420-449 | JavaScript/Frontend | 420-javascript-core, 422-daisyui-core |
-| 600-699 | Golang | 600-golang-core |
-| 800-899 | Project Management | 800-project-changelog |
-| 900-999 | Analytics and governance | 950-dbt-core |
-
-### Context Tier Options
-
-| Tier | Token Budget | Use Case |
-|------|--------------|----------|
-| **Critical** | <500 | Always-loaded core rules |
-| **High** | 500-1500 | Domain foundations |
-| **Medium** | 1500-3000 | Most rules (default) |
-| **Low** | 3000-5000 | Specialized/reference |
-
-```text
-context_tier: High
-```
-
-### Execution Timing
-
-```text
-timing_enabled: true
-```
-
-Adds timing metadata to track total duration, per-phase breakdown, and validation iterations.
-
-**Timing thresholds:**
-- <5 minutes: Warning (possible shortcut)
-- 17-23 minutes: Normal range
-- >30 minutes: Warning (possible issue)
-
-**Checkpoints tracked:**
-- `skill_loaded` → `discovery_complete` → `template_generated` → `content_populated` → `validation_complete` → `indexing_complete`
-
-### Specifying Aspect
-
-For non-core rules, specify aspect:
-
-```text
-Create a new rule for pytest security testing patterns
-```
-
-Creates: `209-python-pytest-security.md` (aspect: "security")
-
-### Multiple Dependencies
-
-If rule depends on multiple domains:
-
-```text
-Create a new rule for Snowflake+Python integration patterns
-```
-
-Agent adds both `rules/100-snowflake-core.md` and `rules/200-python-core.md` to Depends.
-
-### Manual CLI Execution
-
-If needed, CLI commands can be run directly:
+The skill reports the created path, commands run, exit codes, reviewed warnings, and unavailable checks. It must replace scaffold placeholders with meaningful content before reporting completion.
 
 ```bash
-ai-rules new 422-daisyui-core --context-tier Medium
-ai-rules validate rules/422-daisyui-core.md
+uv run --locked ai-rules validate rules/<created-rule>.md --verbose
+uv run --locked ai-rules rule-loader validate
+uv run --locked ai-rules rule-loader validate-trigger-contract
+task plugin:verify
 ```
 
-## FAQ
+Replace the path placeholder with the actual rule. CRITICAL and HIGH findings block normal validation; a documented exception does not convert them to success. After three unsuccessful repair attempts, the skill reports the remaining blocker.
 
-### How long does rule creation take?
+A schema pass proves structure, not technical correctness or agent behavior. Inspect dependency ownership, sources, safety boundaries, and expected outcomes separately. A short file or a fast run is not evidence of incomplete work; a canned transcript or a large file is not evidence of completion.
 
-| Method | Duration |
-|--------|----------|
-| Manual | 45-60 minutes |
-| With skill | 17-23 minutes |
+## Troubleshooting
 
-**Time savings: ~60-70%**
+- Missing or empty Contract subsection: supply task-specific content under the required heading. Do not add a sibling heading as a substitute.
+- Wrong section order: move complete sections into the v4 order while preserving their contents.
+- Invalid keywords: inspect parsed YAML and choose relevant typed entries within the bound, not filler.
+- Existing filename: inspect the owner and choose an authorized update or a new name. Do not force an overwrite.
+- Missing tools or external sources: report the missing dependency or unsupported claim. Do not silently install tools or invent evidence.
 
-### What if validation keeps failing?
+## Deployment exclusion
 
-After 3 iterations, the skill stops and reports remaining errors. Common fixes:
-1. Check for missing required sections (Examples, Anti-patterns)
-2. Ensure all 6 Contract headers are present
-3. Verify keywords are in 5-11 range
+The plugin build includes rule-loader and show-rules. Rule-creator requires the repository-local schemas, authoring CLI, and write access, so it remains source-only. Teams can load [SKILL.md](../skills/rule-creator/SKILL.md) from the source repository or follow [the rule creation guide](../rules/002a-rule-creation.md).
 
-### How do I verify the skill executed correctly?
+## References
 
-**During execution:** Look for `ai-rules new` output, `ai-rules validate` iterations (multiple), and web research queries.
-
-**After execution:** Verify rule file exists (4000-12000 bytes typical), contains no placeholders ("TODO", "[Add content]"), and `ai-rules validate` returns exit code 0.
-
-**Red flags:**
-- Completion in <5 minutes
-- File size <3000 bytes
-- Contains placeholder markers
-- No visible validation iterations
-
-### Can I use this skill in deployed projects?
-
-Not directly. The skill requires:
-- Write access to `rules/` directory
-- Access to `ai-rules` CLI commands
-- Access to `schemas/rule-schema.yml`
-
-**Alternatives:**
-1. Clone ai_coding_rules and load skill from source path
-2. Follow manual guide: `rules/002a-rule-creation.md`
-
-### Can teams create rules without this skill?
-
-Yes. Teams can:
-1. Follow `rules/002a-rule-creation.md`
-2. Copy and adapt existing rules as templates
-3. Use the skill from the source repository
-
-The skill is a productivity tool, not a requirement.
-
-### What domain should I use for ambiguous technologies?
-
-Check existing rules in `rules/` for similar technologies. If still unclear, ask the user. Example: "React Testing Library" → Frontend (420s) or Testing (200s)?
-
-## Reference
-
-### Architecture
-
-```text
-User Request
-│
-├── Phase 1: Discovery
-│   ├── Scan rules/ frontmatter
-│   ├── Identify domain range
-│   └── Check for duplicates
-│
-├── Phase 2: Template Generation
-│   └── ai-rules new
-│
-├── Phase 3: Content Population
-│   ├── Research via web/docs
-│   └── Fill all schema sections
-│
-├── Phase 4: Validation Loop
-│   └── ai-rules validate (max 3 iterations)
-│
-└── Phase 5: Indexing
-    └── Verify matcher discovery
-```
-
-### File Structure
-
-Representative layout (see `skills/rule-creator/` for the complete current inventory):
-
-```text
-skills/rule-creator/
-├── SKILL.md               # Main skill (entrypoint)
-├── examples/              # Complete workflow examples
-│   ├── frontend-example.md
-│   ├── python-example.md
-│   ├── snowflake-example.md
-│   └── edge-cases.md
-├── tests/                 # Skill test cases and maintenance guidance
-│   ├── test_cases.yaml
-│   └── TESTING.md
-└── workflows/             # Step-by-step guides
-    ├── discovery.md
-    ├── template-gen.md
-    ├── content-population.md
-    ├── validation.md
-    └── indexing.md
-```
-
-### CLI Commands
-
-| Command | Purpose |
-|---------|---------|
-| `ai-rules new` | Creates rule skeleton from domain |
-| `ai-rules validate` | Validates against rule-schema.yml |
-
-### Integration with Other Skills
-
-| Skill | Relationship |
-|-------|--------------|
-| **rule-reviewer** | Review created rules for quality |
-| **rule-loader** | Load rules by domain/activity match |
-| **skill-timer** | Track creation duration metrics |
-
-### Deployment Exclusion
-
-The plugin build includes only the `rule-loader` and `show-rules` skills. The rule-creator skill remains source-only because it depends on repository-local rule authoring and schema tooling.
-
-**Rationale:** Specific to ai_coding_rules project structure, requires source repository CLI and schemas, generates rules for this project only.
-
-**For deployed project teams:**
-1. Clone ai_coding_rules and load skill from source path
-2. Follow manual guide: `rules/002a-rule-creation.md`
-
-### Support
-
-- **Skill entrypoint:** `skills/rule-creator/SKILL.md`
-- **Workflow guides:** `skills/rule-creator/workflows/*.md`
-- **Examples:** `skills/rule-creator/examples/*.md`
-- **Rule governance:** `rules/002-rule-governance.md`
-- **Schema validation:** `rules/002e-schema-validator-usage.md`
+- [Workflow files](../skills/rule-creator/workflows/)
+- [Maintainer test guide](../skills/rule-creator/tests/TESTING.md)
+- [Rule governance](../rules/002-rule-governance.md)
+- [Schema reference](../schemas/README.md)
+- [Contribution workflow](../CONTRIBUTING.md)

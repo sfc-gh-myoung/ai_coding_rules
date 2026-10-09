@@ -97,7 +97,7 @@ Rules use letter suffixes to split large topics into focused, independently-load
 
 **Token budget benefits:**
 
-- A Streamlit security task loads `101-core` + `101c-security` (~4K tokens) instead of all 15 Streamlit files (~25K+ tokens).
+- A Streamlit security task loads `101-core` + `101c-security` (~2.2K tokens) instead of all 15 Streamlit files (~15K tokens).
 - Progressive expansion: start with core, add companions as task complexity grows.
 - Independent updates: modify a companion without affecting siblings.
 
@@ -106,15 +106,11 @@ Rules use letter suffixes to split large topics into focused, independently-load
 - Core rule must be self-sufficient for basic tasks (companions are optional extensions).
 - Companions must not create circular dependencies.
 - Each companion should cover a single, clearly delineated subtopic.
-- Split when a rule exceeds ~5500 tokens and covers multiple separable concepts.
+- Split when a rule approaches the 250-line limit and covers multiple separable concepts.
 
-**Rule size thresholds:**
+**Rule size limit:**
 
-| Threshold | Lines | Tokens | Action |
-|-----------|-------|--------|--------|
-| Optimal | 200-400 | ~2000-3500 | Standard rules, load normally |
-| Advisory limit | 500 | ~5000 | Begin evaluating split candidates |
-| Hard cap | 600 | ~5500+ | Must split into companion files |
+Rules and skills should ideally be no more than 250 lines. For rules this is enforced: `ai-rules validate` reports a HIGH finding above `structure.max_lines: 250` in [`schemas/rule-schema.yml`](../schemas/rule-schema.yml). For skills, 250 is the target; `ai-rules validate-skills` fails a `SKILL.md` only above 500 lines. See [CONTRIBUTING.md → Content Guidelines](../CONTRIBUTING.md#content-guidelines). The limit applies to rules and skills, not to project documentation.
 
 ### 2.3 Context Management
 
@@ -187,7 +183,7 @@ For the file naming convention, rule lifecycle, and contribution flow, see [CONT
 
 ### 3.2 The Schema (`schemas/rule-schema.yml`)
 
-The schema is a declarative YAML document that defines what a valid rule file looks like: required sections, metadata fields and patterns, severity levels, allowed orderings, and section-specific constraints. The validator (`ai-rules validate`) reads the schema and applies it to rule files.
+The schema defines rule structure: metadata fields, severity levels, required section order, and non-empty Contract subsections. The validator (`ai-rules validate`) enforces structural checks. The v4 `authoring_contract` records separate manual requirements; a structural pass does not prove semantic preservation or model behavior.
 
 **Architecture:**
 
@@ -195,15 +191,16 @@ The schema is a declarative YAML document that defines what a valid rule file lo
 schemas/rule-schema.yml
 ├── version + project metadata
 ├── metadata.required_fields[]      # SchemaVersion, RuleVersion, etc.
-├── sections.required[]             # Scope, References, Contract, …
-├── content_validation              # tier/keyword/dependency rules
-└── severity_levels                 # CRITICAL / HIGH / MEDIUM / LOW
+├── structure.required_sections[]   # Scope, Contract, References
+├── content_rules.contract          # Four non-empty required subsections
+├── authoring_contract              # Manual semantic review, not schema enforcement
+└── error_reporting.severity_levels # CRITICAL / HIGH / MEDIUM / INFO
 ```
 
 **Key design decisions:**
 
 1. **Schema is the specification.** Contributors learn rule structure from the YAML, not from validator code.
-2. **Severity-tiered findings.** CRITICAL fails CI; HIGH/MEDIUM/LOW are reported but configurable.
+2. **Severity-tiered findings.** CRITICAL and HIGH fail normal validation; strict mode also fails on warnings.
 3. **External-tool friendly.** Other tools (linters, generators, IDE plugins) can parse the schema without depending on `ai-rules`.
 
 For schema field reference and validation usage, see [`schemas/rule-schema.yml`](../schemas/rule-schema.yml) and [CONTRIBUTING.md → Rule Validation](../CONTRIBUTING.md#rule-validation).
@@ -433,14 +430,15 @@ AI assistants follow a two-phase loading process: the hook (if installed) or the
 flowchart TD
     Start([User: Create New Rule]) --> Generate
     Generate["ai-rules new XXX"] --> Template
-    Template[ai-rules new] --> Create[Create rules/XXX.md with v3.6 structure]
+    Template[ai-rules new] --> Create[Create rules/XXX.md with v4 structure]
     Create --> Edit[User: Edit Content]
     Edit --> Validate{Validate?}
     Validate -->|"ai-rules validate rules/"| SchemaVal[ai-rules validate]
     SchemaVal --> Pass{Passed?}
     Pass -->|No| Fix[Fix Errors]
     Fix --> Edit
-    Pass -->|Yes| Build["ai-rules plugin build"]
+    Pass -->|Yes| Review[Review semantics and safety]
+    Review --> Build["ai-rules plugin build"]
     Build --> Commit[git commit]
     Commit --> End([Rule Ready])
 ```
@@ -609,12 +607,15 @@ This section captures the rationale behind the major architectural choices. Each
 **Implementation pattern:**
 
 ```yaml
-# schemas/rule-schema.yml
-sections:
-  required:
-    - name: Contract
-      order: 4
-      required_before_line: 200
+# schemas/rule-schema.yml (excerpt)
+structure:
+  max_lines: 250
+  required_sections:
+    - name: "Contract"
+      order: 2
+      placement:
+        after: "Scope"
+        max_line_number: 200
 ```
 
 vs. the older hard-coded approach:
@@ -721,7 +722,7 @@ The `rule-reviewer` and `bulk-rule-reviewer` skills automate quality reviews. Re
 - **Foundation rules (000-*):** quarterly, FULL mode.
 - **Domain cores (1XX, 2XX, …):** quarterly, STALENESS mode.
 - **Specialized / activity rules:** semi-annually, STALENESS mode.
-- **Reference rules (>5000 tokens):** annually, STALENESS mode.
+- **Rules near the 250-line limit:** annually, STALENESS mode.
 
 For review modes, scoring rubrics, and invocation, see [USING_RULE_REVIEWER_SKILL.md](USING_RULE_REVIEWER_SKILL.md) and [USING_BULK_RULE_REVIEWER_SKILL.md](USING_BULK_RULE_REVIEWER_SKILL.md).
 

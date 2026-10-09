@@ -32,41 +32,48 @@ timing_enabled: true                 # Required: enables timing
 
 ```bash
 # 1. Start timing
+# Required: --skill, --target, --model
+# Optional: --mode (default: FULL), --agent (default: auto-detected)
 PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
 $PYTHON skills/skill-timer/scripts/skill_timer.py start \
-    --skill rule-reviewer \           # Required: skill being timed
-    --target rules/100-snowflake-core.md \  # Required: target file
-    --model claude-sonnet-45 \        # Required: model slug
-    --mode FULL \                     # Optional (default: FULL): review mode
-    --agent cortex-code               # Optional (default: auto-detected): agent name
+    --skill rule-reviewer \
+    --target rules/100-snowflake-core.md \
+    --model claude-sonnet-45 \
+    --mode FULL \
+    --agent cortex-code
 
 # Output: TIMING_RUN_ID=a1b2c3d4e5f67890
 
 # 2. Record checkpoints
+# Required: --run-id (from start output), --name
 $PYTHON skills/skill-timer/scripts/skill_timer.py checkpoint \
-    --run-id a1b2c3d4e5f67890 \       # Required: from start output
-    --name rules_loaded                # Required: checkpoint name
+    --run-id a1b2c3d4e5f67890 \
+    --name rules_loaded
 
 # 3. End timing with all options
+# Required: --run-id, --output-file, --skill (for recovery)
+# Optional: --input-tokens, --output-tokens, --format (default: human), --ci (exit codes)
 $PYTHON skills/skill-timer/scripts/skill_timer.py end \
-    --run-id a1b2c3d4e5f67890 \       # Required: from start output
-    --output-file reviews/rule-review.md \  # Required: output path
-    --skill rule-reviewer \           # Required: for recovery
-    --input-tokens 12500 \            # Optional: token count
-    --output-tokens 4200 \            # Optional: token count
-    --format json \                   # Optional (default: human): output format
-    --ci                              # Optional: CI mode with exit codes
+    --run-id a1b2c3d4e5f67890 \
+    --output-file reviews/rule-review.md \
+    --skill rule-reviewer \
+    --input-tokens 12500 \
+    --output-tokens 4200 \
+    --format json \
+    --ci
 ```
 
 ### Baseline Set Example
 
 ```bash
+# Required: --skill, --mode, --model
+# Optional: --days (default: 30), --min-samples (default: 5)
 $PYTHON skills/skill-timer/scripts/skill_timer.py baseline set \
-    --skill rule-reviewer \           # Required: skill name
-    --mode FULL \                     # Required: review mode
-    --model claude-sonnet-45 \        # Required: model slug
-    --days 30 \                       # Optional (default: 30): days of history
-    --min-samples 5                   # Optional (default: 5): minimum data points
+    --skill rule-reviewer \
+    --mode FULL \
+    --model claude-sonnet-45 \
+    --days 30 \
+    --min-samples 5
 ```
 
 ## Commands

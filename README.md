@@ -37,7 +37,7 @@ A universal AI coding rule system that works with any AI assistant, IDE, or deve
 - **Portable Markdown format** that works with Cursor, VS Code, Claude, ChatGPT, GitHub Copilot, and similar tools.
 - **Automatic discovery** via semantic keyword matching (matches by meaning, not just exact text).
 - **Explicit dependency chains** so rules load in the correct order.
-- **Modular files** (150-500 lines) keep context-window usage low.
+- **Modular files** (ideally no more than 250 lines; see [Content Guidelines](CONTRIBUTING.md#content-guidelines)) keep context-window usage low.
 - **No vendor lock-in.** Plain Markdown with embedded metadata.
 
 This project was inspired, in part, by:
@@ -103,8 +103,8 @@ git clone git@github.com:sfc-gh-myoung/ai_coding_rules.git
 
 ```bash
 cd ai_coding_rules
-uv sync --all-groups                 # Install dependencies
-uv run ai-rules plugin build         # Assemble ai-coding-rules-plugin/
+task env:sync                        # Install locked development dependencies
+uv run --locked ai-rules plugin build # Assemble ai-coding-rules-plugin/
 ```
 
 The build assembles a self-contained plugin directory:
@@ -249,7 +249,7 @@ AI coding rules are structured Markdown files that guide AI assistants on how to
 - **Universal Format:** Write once, use everywhere (any IDE, LLM, or agent)
 - **Automatic Discovery:** AI finds relevant rules based on your task keywords
 - **Dependency-Aware:** Rules load prerequisites automatically in correct order
-- **Token-Efficient:** Small, focused rules (150-500 lines each) minimize context usage
+- **Token-Efficient:** Small, focused rules (ideally no more than 250 lines each) minimize context usage
 
 ### How Automatic Discovery Works
 
@@ -329,14 +329,14 @@ This project uses **modular, topic-focused rules** instead of large monolithic f
 **Benefits:**
 
 - **Better LLM Accuracy:** Clear signal-to-noise ratio, reduced conflicting guidance, precise pattern matching
-- **Context Efficiency:** Load only what's needed (~300-600 tokens per rule vs ~4000+ for monoliths)
+- **Context Efficiency:** Load only what's needed (~800-2,200 tokens per rule, median ~1,100, vs ~4000+ for monoliths)
 - **Easier Maintenance:** Update one focused file instead of searching through thousands of lines
 - **Better Composability:** Mix and match rules for your specific tech stack
 
 **Example:** For a Snowflake data engineering project:
 
-- Load: `100-snowflake-core` (500 tokens) + `104-snowflake-streams-tasks` (400 tokens) + `121-snowflake-snowpipe` (2000 tokens)
-- **Total: ~3400 tokens** of highly relevant, focused guidance
+- Load: `100-snowflake-core` (~1,600 tokens) + `104-snowflake-streams-tasks` (~1,300 tokens) + `121-snowflake-snowpipe` (~1,550 tokens)
+- **Total: ~4,450 tokens** of highly relevant, focused guidance
 - Alternative: One "Data Engineering Monolith" would be 5000+ tokens with irrelevant Spark/Airflow content
 
 ## Rule Selection Decision Tree
@@ -438,8 +438,8 @@ Search for additional rules by keyword with `grep -ril "<keyword>" rules/` (test
 000-global-core.md (foundation)
 └── 100-snowflake-core.md (SQL patterns)
     └── 101-snowflake-streamlit-core.md (app basics)
-        ├── 101a-streamlit-visualization.md (if using charts)
-        └── 101b-streamlit-performance.md (if optimizing)
+        ├── 101a-snowflake-streamlit-visualization.md (if using charts)
+        └── 101b-snowflake-streamlit-performance.md (if optimizing)
 ```
 
 **Python FastAPI with Testing:**
@@ -448,7 +448,7 @@ Search for additional rules by keyword with `grep -ril "<keyword>" rules/` (test
 000-global-core.md (foundation)
 └── 200-python-core.md (Python basics)
     ├── 210-python-fastapi-core.md (API framework)
-    │   └── 210a-fastapi-security.md (if auth needed)
+    │   └── 210a-python-fastapi-security.md (if auth needed)
     └── 206-python-pytest.md (testing patterns)
 ```
 
@@ -539,9 +539,9 @@ uv run ai-rules --help
 
 | Command | Description |
 |---------|-------------|
-| `ai-rules validate` | Validate rule files against v3.6 schema |
+| `ai-rules validate` | Validate rule files against the active v4 schema |
 | `ai-rules tokens` | Validate/update TokenBudget metadata; `--context-estimate` reports total per-response context |
-| `ai-rules new` | Generate new rule file from v3.6 template |
+| `ai-rules new` | Generate a v4 rule scaffold; populate and review its instructions before use |
 | `ai-rules badges` | Update README badges (version, tests, coverage) |
 | `ai-rules plugin build` | Build the distributable `ai-coding-rules-plugin/` |
 | `ai-rules plugin verify` | Verify plugin replicas and built artifact fidelity |
@@ -556,8 +556,8 @@ Run `task --list` to see development automation, or `uv run ai-rules --help` for
 ```bash
 task quality:all:fix                    # Fix all code quality issues
 task test:run                           # Run all pytest tests
-task validate                           # Run local quality, tests, schemas, and plugin verification
-uv run ai-rules plugin build             # Build the distributable plugin
+task validate                           # Run the complete local CI contract
+uv run --locked ai-rules plugin build   # Build the distributable plugin
 
 ```
 
@@ -609,54 +609,19 @@ AI loads: 000-global-core → 100-snowflake-core → 101-snowflake-streamlit-cor
 grep -ril "performance" rules/
 ```
 
-**Check rule dependencies:**
+**Check rule dependencies:** Read the YAML `depends.required` and `depends.optional` lists at the beginning of each rule. Required dependencies load before their dependents; optional references load when their stated condition applies.
+
+**Preview token budgets without writing:**
 
 ```bash
-grep "**Depends:**" rules/101-snowflake-streamlit-core.md
+uv run ai-rules tokens rules/ --detailed --dry-run
 ```
 
-**Calculate total token budget:**
+These are tokenizer estimates, not observed runtime usage. `--context-estimate` accounts for explicitly selected rules; it does not traverse dependencies automatically.
 
-```bash
-grep "**TokenBudget:**" rules/*.md | awk -F: '{sum+=$3} END {print sum}'
-```
+### Programmatic Rule Loading
 
-### Programmatic Rule Loading Example
-
-```python
-import re
-from pathlib import Path
-
-
-def load_rule_with_dependencies(rule_name, rules_dir="rules"):
-    """Load a rule and all its dependencies in correct order."""
-    loaded = []
-    to_load = [rule_name]
-
-    while to_load:
-        current = to_load.pop(0)
-        if current not in loaded and current != "None":
-            # Read the rule file
-            rule_path = Path(rules_dir) / current
-            if rule_path.exists():
-                content = rule_path.read_text()
-
-                # Extract dependencies
-                depends_match = re.search(r"\*\*Depends:\*\* (.+)", content)
-                if depends_match:
-                    deps = depends_match.group(1).split(", ")
-                    # Add dependencies to load queue (they'll load first)
-                    to_load = [f"{d}.md" for d in deps if d != "None"] + to_load
-
-                loaded.append(current)
-
-    return loaded  # Returns rules in dependency order
-
-
-# Example usage
-rules_to_load = load_rule_with_dependencies("101-snowflake-streamlit-core.md")
-# Returns: ["000-global-core.md", "100-snowflake-core.md", "101-snowflake-streamlit-core.md"]
-```
+Use the existing matcher and dependency-resolution implementation through the hook or rule-loader workflow. Do not parse retired inline `Depends` fields with a separate regular expression or treat missing required files as successfully loaded. See [the rule-loader guide](docs/USING_RULE_LOADER_SKILL.md) for the maintained interface and [architecture](docs/ARCHITECTURE.md#4-rule-loading-workflow) for the loading contract.
 
 ## Memory Bank System (Optional)
 
@@ -887,6 +852,5 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 ## Support
 
 - **Issues:** [GitHub Issues](https://github.com/sfc-gh-myoung/ai_coding_rules/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/sfc-gh-myoung/ai_coding_rules/discussions)
 - **Documentation:** All rules include links to official documentation
 - **Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md)

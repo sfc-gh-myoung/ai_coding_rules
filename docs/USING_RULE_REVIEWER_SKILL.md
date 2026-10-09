@@ -111,7 +111,7 @@ Rules are scored across 6 dimensions with weighted points:
 | Dimension | Weight | Max Points | Key Question |
 |-----------|--------|------------|--------------|
 | Actionability | 3.0 | 30 | Can agents execute without judgment? |
-| Rule Size | 2.5 | 25 | Within 500-line target? (deterministic) |
+| Rule Size | 2.5 | 25 | Within the reviewer's 500-line scoring target? (deterministic; see note below) |
 | Parsability | 1.5 | 15 | Is metadata/schema valid? |
 | Completeness | 1.5 | 15 | Are all scenarios covered? |
 | Consistency | 1.0 | 10 | Is internal alignment correct? |
@@ -130,14 +130,19 @@ Rules are scored across 6 dimensions with weighted points:
 
 ### Rule Size Flags
 
+> **Project guideline vs reviewer scale.** Rules and skills should ideally be no more than 250 lines, and `ai-rules validate` already reports a HIGH finding for any rule over 250 lines (see [CONTRIBUTING.md → Content Guidelines](../CONTRIBUTING.md#content-guidelines)). The reviewer's Rule Size dimension has not been realigned yet: it still scores against the 500-line scale below. A rule can therefore fail validation at 251 lines and still receive full Rule Size points. Realignment is tracked in [issue #8](https://github.com/sfc-gh-myoung/ai_coding_rules/issues/8).
+
 The Rule Size dimension includes deployment flags:
 
 | Line Count | Flag | Action |
 |------------|------|--------|
-| ≤500 |: | Optimal |
-| 501-600 | `OPTIMIZATION_RECOMMENDED` | Suggest consolidation |
-| 601-800 | `SPLITTING_REQUIRED` | Block deployment, require split plan |
-| >800 | `NOT_DEPLOYABLE` | Fail review, mandatory remediation |
+| ≤500 | None | Optimal or at target |
+| 501-550 | `SPLIT_RECOMMENDED` | Review for split |
+| 551-600 | `SPLIT_REQUIRED` | Mandatory split plan |
+| 601-700 | `NOT_DEPLOYABLE` | Block deployment; score capped at 70/100 |
+| >700 | `BLOCKED` | Reject review; score capped at 50/100 |
+
+Source of truth: [`rubrics/rule-size.md`](../skills/rule-reviewer/rubrics/rule-size.md).
 
 ### Blocking Issues
 

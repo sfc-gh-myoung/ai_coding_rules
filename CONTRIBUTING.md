@@ -333,19 +333,21 @@ uv run ai-rules new 300-example-rule --force
 
 ### Rule Structure
 
-All rules must follow the v3.6 schema defined in [rules/002-rule-governance.md](rules/002-rule-governance.md).
+New and migrated rules target v4 as defined in [schemas/rule-schema.yml](schemas/rule-schema.yml) and [rules/002-rule-governance.md](rules/002-rule-governance.md). Declaring v4 is not a substitute for migrating and reviewing the body.
 
 **Quick reference:**
 
-- **Required metadata:** SchemaVersion, RuleVersion, LastUpdated, Keywords (5-11 combined typed entries), TokenBudget, ContextTier, Depends (each entry uses `required:`/`optional:` bucket prefix; see `rules/002-rule-governance.md` "Depends Bucket Semantics")
-- **Required sections:** Scope, References, Contract, Anti-Patterns, Post-Execution Checklist
-- **Contract must appear before line 200**
+- **Required YAML frontmatter:** `schema_version`, `rule_version`, `last_updated`, `keywords` (5-11 combined typed entries), `token_budget`, `context_tier`, and `depends` with required/optional filename lists.
+- **Required H2 order:** Scope, Contract, References.
+- **Required Contract H3 sections:** Inputs and Prerequisites, Mandatory, Execution Steps, Validation; each must have meaningful content.
+- **Manual authoring review:** Preserve safety and dependency ownership, use one completion checklist under Validation, and show correct executable examples only. No fixed step count or anti-pattern gallery is required.
+- **Validation:** Zero CRITICAL and HIGH findings. A structural pass does not prove technical accuracy or behavioral equivalence. Apply the active schema's placement limits rather than a copied historical limit.
 
 For complete structure requirements, see [002-rule-governance.md](rules/002-rule-governance.md).
 
 ### Rule Versioning
 
-Rule files use [Semantic Versioning](https://semver.org) for the `RuleVersion` field. When modifying any rule file in `rules/`, you must update both the version and date:
+Rule files use [Semantic Versioning](https://semver.org) for the YAML `rule_version` field. When modifying any rule file in `rules/`, update both the version and date:
 
 **Version Increment Criteria:**
 
@@ -357,8 +359,8 @@ Rule files use [Semantic Versioning](https://semver.org) for the `RuleVersion` f
 
 **Required Updates:**
 
-1. **RuleVersion**: Increment per semantic versioning criteria above
-2. **LastUpdated**: Set to current date in `YYYY-MM-DD` format
+1. **rule_version**: Increment per semantic versioning criteria above; schema migration is MAJOR
+2. **last_updated**: Set to current date in `YYYY-MM-DD` format
 
 For the full versioning policy and edge cases, see [002b-rule-update.md](rules/002b-rule-update.md).
 
@@ -376,7 +378,7 @@ This vocabulary is canonical for the project. README and architecture documentat
 
 ### Content Guidelines
 
-- **Length**: Keep rules focused (target 150-300 lines, max 500)
+- **Length**: Rules and skills should ideally be no more than 250 lines. `ai-rules validate` reports a HIGH finding for any rule over 250 lines (`schemas/rule-schema.yml` `structure.max_lines`). `ai-rules validate-skills` fails a `SKILL.md` only above 500 lines, so for skills 250 is the target and 500 is the hard check. Move optional detail into a focused companion rule or a skill's `workflows/`, `references/`, or `examples/` files without dropping required dependencies or safety instructions. Size alone does not prove quality. This limit does not apply to project documentation such as `README.md`, `CONTRIBUTING.md`, or `docs/`.
 - **Clarity**: Use clear, unambiguous language
 - **Examples**: Include concrete code examples where helpful
 - **Links**: Reference official documentation
@@ -486,7 +488,8 @@ git commit  # WRONG - plugin not rebuilt
 ```bash
 vim rules/450-new-rule.md
 uv run ai-rules plugin build
-git add rules/450-new-rule.md ai-coding-rules-plugin/
+task plugin:verify            # build fidelity against the sources
+git add rules/450-new-rule.md # ai-coding-rules-plugin/ is gitignored build output
 git commit  # CORRECT
 ```
 
@@ -549,13 +552,12 @@ All contributors must follow the [Code of Conduct](CODE_OF_CONDUCT.md). Report c
 ### Community Support
 
 - **GitHub Issues:** [File an issue](https://github.com/sfc-gh-myoung/ai_coding_rules/issues) for bugs, features, or rule suggestions
-- **GitHub Discussions:** [Join the discussion](https://github.com/sfc-gh-myoung/ai_coding_rules/discussions) for questions and community support
 - **Issue templates:** [bug reports](.github/ISSUE_TEMPLATE/bug_report.yml) and [feature requests](.github/ISSUE_TEMPLATE/feature_request.yml) capture the required context
 - **Security issues:** Follow the private reporting process in [SECURITY.md](SECURITY.md); do not file suspected vulnerabilities as public issues
 
 ## Rule Quality Standards
 
-All rules follow **Section 11: Universal Compatibility Standards** from `002-rule-governance.md`, ensuring consistent behavior across all AI agents and LLMs.
+The v4 authoring contract in `002-rule-governance.md` governs rule structure and semantic review. Cross-model behavior requires evaluation; portable Markdown alone does not guarantee it.
 
 **Key Standards:**
 
@@ -570,7 +572,7 @@ All rules follow **Section 11: Universal Compatibility Standards** from `002-rul
 
 - **Validate rules:** `uv run ai-rules validate rules/`
 - **Run all CI checks:** `task validate`
-- **Complete standards:** See `rules/002-rule-governance.md` Section 11
+- **Complete standards:** See `rules/002-rule-governance.md` and the active schema
 
 ## Recognition
 
@@ -593,13 +595,10 @@ the full reference.
 
 Two points matter when you commit:
 
-- **Pre-commit hook.** The local `rule-loader-eval` hook runs five representative
-  fixtures through the live SDK. Commits without Snowflake credentials should bypass
-  it explicitly:
-
-  ```bash
-  SKIP=rule-loader-eval git commit -m "..."
-  ```
+- **Optional pre-commit hook.** `rule-loader-eval` is not in `.pre-commit-config.yaml`
+  by default. If you add it (see [Adding the hook](docs/EVALUATING_RULE_LOADER.md#adding-the-hook)),
+  bypass it on commits without Snowflake credentials with
+  `SKIP=rule-loader-eval git commit -m "..."`.
 
 - **CI does not run the live agent.** CI runs only the trigger-evidence invariant
   (`uv run ai-rules rule-loader validate`, called from `task validate`).

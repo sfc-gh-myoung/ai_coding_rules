@@ -20,9 +20,8 @@ user_request: "Fix this Python bug"  # Required - the request to analyze
 Use the rule-loader skill.
 
 user_request: "Build a Streamlit dashboard with Snowflake backend and pytest tests"  # Required
-token_budget_limit: 10000            # Optional (default: standard) - max tokens for loaded rules
+token_budget_limit: 10000            # Optional (default: 20000) - max tokens for loaded rules
 context_tier_filter: critical+high   # Optional (default: all) - pre-filter by tier
-rules_path: custom-rules/            # Optional (default: rules/) - alternate rules directory
 ```
 
 ### Minimal Mode (Constrained Context)
@@ -118,7 +117,7 @@ The skill executes 5 phases in order:
 
 | Phase | Name | What Happens |
 |-------|------|--------------|
-| 1 | **Foundation Loading** | Always loads `000-global-core.md` (~2,400 tokens) |
+| 1 | **Foundation Loading** | Always loads `000-global-core.md` (~1,600 tokens) |
 | 2 | **Domain Matching** | Matches file extensions and directories to domain rules |
 | 3 | **Activity Matching** | Scores rule frontmatter keywords against the prompt |
 | 4 | **Dependency Resolution** | Loads prerequisites before dependent rules |
@@ -164,14 +163,6 @@ Pre-filters to only consider rules at specified tiers.
 | `critical+high` | Critical and High |
 | `critical+high+medium` | Excludes Low tier |
 
-### Custom Rules Path
-
-```text
-rules_path: custom-rules/
-```
-
-Uses an alternate rules directory instead of the default `rules/`.
-
 ## FAQ
 
 ### What is the relationship to the plugin hook?
@@ -198,7 +189,7 @@ The skill falls back to the injected foundation only. Confirm the plugin is inst
 
 ### How are token budgets calculated?
 
-Each rule declares a `TokenBudget` value in its metadata (e.g., `~3,500`). The skill sums these values. Agent self-regulates; there is no external enforcement.
+Each rule declares a `token_budget` value in its YAML frontmatter (e.g., `~1600`). The skill sums these values. Agent self-regulates; there is no external enforcement.
 
 ### Token budget exceeded - what should I do?
 
@@ -214,7 +205,7 @@ Each rule declares a `TokenBudget` value in its metadata (e.g., `~3,500`). The s
 User Request
 │
 ├── Phase 1: Foundation Loading
-│   └── Load 000-global-core.md (always, ~2,400 tokens)
+│   └── Load 000-global-core.md (always, ~1,600 tokens)
 │
 ├── Phase 2: Domain Matching
 │   ├── Check directory paths (skills/, rules/)
@@ -227,7 +218,7 @@ User Request
 │   └── Load prerequisites before dependents
 │
 └── Phase 5: Token Budget Management
-    ├── Sum TokenBudget values
+    ├── Sum token_budget values
     └── Defer Low/Medium tier if over budget
 ```
 
@@ -237,7 +228,7 @@ Representative layout (see `skills/rule-loader/` for the complete current invent
 
 ```text
 skills/rule-loader/
-├── SKILL.md                        # Main entrypoint (~120 lines)
+├── SKILL.md                        # Main entrypoint (~200 lines)
 ├── workflows/
 │   ├── foundation-loading.md       # Phase 1: Always-load foundation
 │   ├── domain-matching.md          # Phase 2: File ext & directory matching

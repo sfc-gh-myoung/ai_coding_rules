@@ -12,7 +12,7 @@ case "$MODE" in cache | venv | all) ;; *)
   exit 1
   ;;
 esac
-[[ -f Taskfile.yml && -f pyproject.toml ]] || {
+[[ -f Makefile && -f pyproject.toml ]] || {
   printf 'Run from the project root.\n' >&2
   exit 1
 }
@@ -43,7 +43,7 @@ if [[ "$MODE" != venv ]]; then
     find "$directory" -type d \( -name .venv -o -name venv -o -name node_modules -o -name .git \) -prune -o \
       -type f -name '*.pyc' -exec rm -f -- {} +
   done
-  rm -rf -- .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage .coverage.* .task
+  rm -rf -- .pytest_cache .mypy_cache .ruff_cache htmlcov .coverage .coverage.*
 fi
 if [[ "$MODE" != cache ]]; then
   rm -rf -- .venv

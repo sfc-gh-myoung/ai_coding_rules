@@ -24,9 +24,23 @@ def repo(tmp_path, monkeypatch):
     monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
     monkeypatch.setenv("GIT_CONFIG_KEY_0", "core.hooksPath")
     monkeypatch.setenv("GIT_CONFIG_VALUE_0", os.devnull)
-    for variable in ("DRY_RUN", "FORCE", "UV", "TASK_BIN", "GIT_INDEX_FILE"):
+    # Isolate from the caller, including an outer `make test-automation`.
+    for variable in (
+        "DRY_RUN",
+        "FORCE",
+        "UV",
+        "UV_PYTHON",
+        "PYTHON_VERSION",
+        "CLI_ARGS",
+        "VERSION",
+        "MAKE_BIN",
+        "MAKEFLAGS",
+        "MFLAGS",
+        "MAKELEVEL",
+        "GIT_INDEX_FILE",
+    ):
         monkeypatch.delenv(variable, raising=False)
-    for relative in ("Taskfile.yml", "scripts"):
+    for relative in ("Makefile", "scripts"):
         source = ROOT / relative
         if source.is_dir():
             shutil.copytree(source, root / relative, ignore=shutil.ignore_patterns("__pycache__"))
@@ -40,7 +54,7 @@ def repo(tmp_path, monkeypatch):
         'version = 1\n[[package]]\nname = "sample"\nversion = "1.0.0"\n'
         'source = { editable = "." }\n'
     )
-    (root / ".gitignore").write_text(".venv/\n.task/\n__pycache__/\n.pytest_cache/\n")
+    (root / ".gitignore").write_text(".venv/\n__pycache__/\n.pytest_cache/\n")
     git(root, "init", "-b", "main")
     git(root, "add", ".")
     git(root, "commit", "-m", "Initial tree")
@@ -80,7 +94,7 @@ if command == "git":
         sys.exit(1)
     arguments = [argument for argument in arguments if argument not in ("-S", "-s")]
     sys.exit(subprocess.call([os.environ["REAL_GIT"], *arguments]))
-if command == "task":
+if command == "make":
     sys.exit(int(os.environ.get("FAIL_VALIDATION", "0")))
 if command == "uv":
     if "python" in arguments:
@@ -95,9 +109,9 @@ if command == "uv":
         lock.write_text('version = 1\\n[[package]]\\nname = "sample"\\nversion = "' + version + '"\\nsource = { editable = "." }\\n')
 sys.exit(0)
 """
-    # shellcheck and shfmt satisfy quality:automation preconditions, which Task
-    # evaluates even under --dry.
-    for name in ("git", "uv", "task", "gh", "cortex", "shellcheck", "shfmt"):
+    # The make stub stands in for the `make ci` call inside release.sh; tests
+    # that exercise the Makefile invoke the real make by absolute path.
+    for name in ("git", "uv", "make", "gh", "cortex", "shellcheck", "shfmt"):
         binary = binaries / name
         binary.write_text(script)
         binary.chmod(0o755)

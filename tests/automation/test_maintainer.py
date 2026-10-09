@@ -41,7 +41,7 @@ def test_release_preview_does_not_call_tools_or_change_files(repo, stubs):
     assert result.returncode == 0, result.stderr
     assert "DRY RUN" in result.stdout
     calls = [json.loads(line) for line in stubs.read_text().splitlines()]
-    assert not any(call[0] in ("uv", "gh", "task") for call in calls)
+    assert not any(call[0] in ("uv", "gh", "make") for call in calls)
     assert not any(call[1] in ("fetch", "push", "commit") for call in calls)
     assert git(repo, "rev-parse", "HEAD") == before
     assert git(repo, "status", "--porcelain") == ""
@@ -104,7 +104,7 @@ def test_bump_validates_before_signed_commit_and_push(repo, stubs):
     result = run_script(repo, "release.sh", "bump", "1.0.1")
     assert result.returncode == 0, result.stderr
     calls = [json.loads(line) for line in stubs.read_text().splitlines()]
-    validation = calls.index(["task", "--force", "ci"])
+    validation = calls.index(["make", "ci"])
     commit = next(index for index, call in enumerate(calls) if call[1:3] == ["commit", "-S"])
     push = next(index for index, call in enumerate(calls) if call[1:2] == ["push"])
     assert validation < commit < push

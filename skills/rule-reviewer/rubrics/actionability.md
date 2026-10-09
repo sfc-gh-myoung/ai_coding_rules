@@ -48,13 +48,13 @@
 ### What Counts as ONE Blocking Issue
 
 **Undefined Thresholds (1 issue each):**
-- Single subjective term: "large", "significant", "appropriate" = 1 issue each
-- Compound phrase: "large and significant" = 2 issues (count each term)
+- Count a missing decision criterion only when it changes correctness or safety and is not supplied by context or a required owner.
+- Record the affected decision, not a separate issue for each adjective describing the same gap.
 - Partial definition: Defines some cases but not all = 0.5 issue
 
 **Missing Conditional Branches (1 issue each):**
-- `if X` without explicit else/default = 1 issue
-- `when X` without alternative = 1 issue
+- `if X` or `when X` without a safe, inferable outcome for a materially different case = 1 issue
+- A harmless implicit no-op is not a missing branch; apply Non-Issues Pattern 4 before counting.
 - Multiple missing branches in same block = count each
 
 **Ambiguous Actions (1 issue each):**
@@ -99,7 +99,7 @@
 
 ## Undefined Threshold Patterns
 
-Search for these patterns (each occurrence = 1 blocking issue):
+Search for these terms as candidates, then inspect the decision they govern. A term alone is not a blocking issue:
 
 **Size/Volume:**
 - "large", "small", "big", "huge", "tiny"
@@ -122,23 +122,11 @@ Search for these patterns (each occurrence = 1 blocking issue):
 
 ## Quantification Examples
 
-**Vague Term Replacements:**
-- "large file": >10MB OR >10000 lines
-- "significant changes": >100 lines modified OR >10 files changed
-- "complex function": >50 lines OR >5 branches OR cyclomatic complexity >10
-- "many requests": >1000 requests/minute
-- "high error rate": >5% of requests fail OR >100 errors/hour
-- "slow query": >5 seconds execution time
-- "frequent updates": >10 updates/day OR >100 updates/month
+Use exact values from the applicable specification, service objective, or project configuration. Label a local default and its rationale when the project owns that choice. Do not invent file-size, row-count, latency, or branch thresholds to improve a review score.
 
 ## Conditional Branch Completeness
 
-**Incomplete (1 blocking issue):**
-```python
-if error_occurs:
-    retry()
-# What if error doesn't occur? Missing else branch!
-```
+Missing failure handling matters when the next action could corrupt state, exceed authorization, or misreport success. A conditional with an obvious safe no-op does not need a redundant else clause.
 
 **Complete (0 blocking issues):**
 ```python
@@ -214,8 +202,8 @@ Line 150: "The configuration should be verified"
 - Passive voice: 1 (line 150)
 
 **Priority fixes:**
-1. Line 45: Define "large tables" (e.g., >10M rows OR >5GB)
-2. Line 67: Define "slow" (e.g., >5 seconds)
+1. Line 45: State the actual evidence required for the clustering decision
+2. Line 67: Reference the applicable latency objective rather than inventing one
 3. Line 89: Replace "Consider...if necessary" with explicit condition
 ```
 
@@ -276,10 +264,9 @@ If Agent Execution Test finds ≥10 blocking issues:
 **Action:** Remove from inventory with note "Standard terminology"
 
 ### Pattern 7: Examples That Illustrate
-**Pattern:** Code example that demonstrates the rule
-**Example:** Example shows `SELECT *` when demonstrating what NOT to do
-**Why NOT an issue:** Example is illustrative, not prescriptive
-**Action:** Remove from inventory with note "Illustrative example"
+**Pattern:** A correct example demonstrates the rule, while defects are described in prose
+**Why NOT an issue:** The example resolves a real ambiguity without supplying an incorrect executable pattern
+**Action:** Remove false positives with note "Correct illustrative example". An incorrect executable example remains a v4 authoring-contract finding; illustration is not a waiver.
 
 ### Pattern 8: Conditional Chains
 **Pattern:** Multiple if-then statements covering all cases

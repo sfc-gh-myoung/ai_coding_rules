@@ -52,7 +52,7 @@
 
 ### Error Scenario Coverage
 
-**Minimum required scenarios (count presence):**
+**Candidate scenarios (count only applicable coverage):**
 1. Input validation failures (malformed data, missing files)
 2. Execution errors (timeouts, permission denied)
 3. External dependencies (network, API, tools)
@@ -98,6 +98,8 @@ Coverage % = (categories addressed / 4 categories) × 100
 ```
 
 ### Domain Applicability Adjustment (REQUIRED)
+
+Before scoring any coverage category, exclude non-applicable requirements using the Non-Issues list and document the exclusion. This applies to error scenarios, prerequisites, and validation phases as well as edge cases. The matrix's full counts describe workflows where every listed category applies; do not demand filler to reach those counts in a narrower rule. Report applicable coverage separately and explain the selected tier.
 
 Before calculating edge case coverage %, exclude non-applicable items from the denominator using Non-Issues Pattern 3:
 
@@ -364,6 +366,8 @@ If **both** Actionability ≤4/10 **and** Completeness ≤4/10:
 **Example:** Error handling covered by 000-global-core.md listed in Depends
 **Why NOT an issue:** Dependency provides the coverage
 **Action:** Remove from inventory with note "Covered by [dependency]"
+
+Verify that the dependency is required and was actually read. Essential safety guidance available only through an optional reference does not satisfy this exception.
 
 ### Pattern 3: Not Applicable to Domain
 **Pattern:** Coverage area doesn't apply to rule's domain

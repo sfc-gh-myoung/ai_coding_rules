@@ -1,169 +1,24 @@
-# Example: Python Library Rule Creation (pytest-mock)
+# Example: Python Library Rule Creation
 
-## User Request
+This walkthrough illustrates authoring a pytest-mock rule. It does not record an executed run or prescribe mocking over the project's existing test strategy.
 
-```
-Create a new rule documenting pytest-mock best practices following schema
-```
+## Request
 
-## Abbreviated Workflow (Key Steps Only)
-
-### Phase 1: Discovery (5 min)
-
-**Search rule frontmatter:**
-```bash
-$ grep -i "pytest\|mock\|python.*test" rule frontmatter
-|| `200-python-core.md` | Python foundations | ...
-|| `206-python-pytest.md` | pytest usage | ...
-
-# Analysis:
-Domain: 200-299 (Python)
-Similar: 206 (pytest)
-Next available: 209
+```text
+Create a focused rule for pytest-mock where our tests need controlled external dependencies. Preserve the existing testing policy.
 ```
 
-**Research findings:**
-- pytest-mock simplifies unittest.mock for pytest
-- mocker fixture preferred over unittest.mock.patch
-- spy() for verifying calls without replacing
-- Integration with pytest fixtures
+## Workflow
 
-**Keywords (13):**
-```
-pytest-mock, mocking, testing, fixtures, mocker, spy, patch, unittest.mock,
-test doubles, test isolation, Python testing, pytest plugins, mock verification
-```
+1. Discover existing Python/testing owners and read them. Check whether extending an existing rule is sufficient before choosing an unused Python-domain filename.
+2. Read the project's dependency versions, test patterns, and current library documentation. Distinguish repository preferences from library requirements.
+3. Generate a scaffold with `uv run ai-rules new <NNN-python-aspect> --context-tier Medium`, replacing the filename placeholder.
+4. Populate YAML frontmatter and Scope, Contract, References. Include the four meaningful required Contract subsections and one completion checklist. Keep Python/testing owners required when the procedure relies on them.
+5. Add only correct examples that demonstrate a distinct ambiguity, with imports, setup, and expected assertions. Explain avoided failures in prose instead of embedding broken code.
+6. Validate the populated rule, preview its token estimate with `--dry-run`, and verify representative discovery and plugin fidelity through the creator workflows.
 
----
+## Expected result
 
-### Phase 2: Template Generation (1 min)
+Return the rule path and actual validation evidence, including zero CRITICAL and HIGH findings. Review keyword relevance and dependency ownership separately from schema success. Manual keyword selection must remain available when paid generation is not authorized.
 
-```bash
-$ uv run ai-rules new 209-python-pytest-mock \
-    --context-tier Medium \
-    --output-dir rules/
-
- Created rule template: rules/209-python-pytest-mock.md
-```
-
----
-
-### Phase 3: Content Population (8 min)
-
-**Metadata:**
-```markdown
-**Keywords:** pytest-mock, mocking, testing, fixtures, mocker, spy, patch, unittest.mock, test doubles, test isolation, Python testing, pytest plugins, mock verification
-**TokenBudget:** ~1000
-**ContextTier:** Medium
-**Depends:** rules/000-global-core.md, rules/200-python-core.md, rules/206-python-pytest.md
-```
-
-**Essential Patterns:**
-```markdown
-- **mocker fixture preferred:** Use mocker.patch() instead of unittest.mock.patch as decorator
-- **spy for verification:** Use mocker.spy() to verify calls without replacing implementation
-- **Integration with fixtures:** Combine mocker with pytest fixtures for clean test setup
-- **mock_return_value pattern:** Use return_value for simple mocks, side_effect for complex behavior
-```
-
-**Sample Anti-Pattern:**
-```markdown
-### Anti-Pattern 1: Using unittest.mock Directly
-
-**Problem:** Importing and using unittest.mock.patch() in pytest tests instead of mocker fixture
-
-```python
-# Wrong: unittest.mock in pytest
-from unittest.mock import patch
-
-@patch('module.function')
-def test_something(mock_func):
-    mock_func.return_value = 42
-    assert module.function() == 42
-```
-
-**Why It Fails:**
-- Doesn't integrate with pytest fixtures
-- Cleanup not automatic (may leak state)
-- Less Pythonic in pytest context
-
-**Correct Pattern:**
-```python
-# Right: Use mocker fixture
-def test_something(mocker):
-    mock_func = mocker.patch("module.function", return_value=42)
-    assert module.function() == 42
-    mock_func.assert_called_once()
-```
-
-**Benefits:**
-- Automatic cleanup via pytest fixture
-- Better integration with pytest ecosystem
-- More readable and consistent
-```
-
----
-
-### Phase 4: Validation (2 min, 1 iteration)
-
-```bash
-$ uv run ai-rules validate rules/209-python-pytest-mock.md
-
-SUMMARY:
-   CRITICAL: 0
-    HIGH: 0
-  ℹ️  MEDIUM: 0
-   Passed: 458 checks
-
-RESULT:  PASSED (exit code 0)
-```
-
- Passed on first try!
-
----
-
-### Phase 5: Indexing (1 min)
-
-**Entry:**
-```markdown
-| 209-python-pytest-mock | pytest-mock library patterns for test doubles and mocking | pytest-mock, mocking, testing, fixtures, mocker, spy, patch | rules/200-python-core.md, rules/206-python-pytest.md |
-```
-
-**Inserted after:**
-```bash
-|| `206-python-pytest.md` | ...
-|| `209-python-pytest-mock.md` | ... [NEW]
-|| `210-python-fastapi-core.md` | ...
-```
-
- Indexed successfully
-
----
-
-## Final Output
-
-```
- Production-ready rule created: rules/209-python-pytest-mock.md
-
-Statistics:
-- Total time: ~17 minutes
-- Validation iterations: 1 (passed first time)
-- Size: ~15KB, ~380 lines
-- TokenBudget: ~1000 tokens
-
-Ready for use: rules/209-python-pytest-mock.md
-```
-
-## Key Differences from Frontend Example
-
-**Domain:** Python (200-299) vs JavaScript (420-449)
-**Dependencies:** More complex - depends on both 200-python-core AND 206-python-pytest
-**Keywords:** More technical (mocking, fixtures) vs design-focused (themes, components)
-**Validation:** Passed on first iteration (Frontend took 2)
-
-**Success factors:**
-- Clear domain (Python testing)
-- Well-established library (pytest-mock)
-- Followed existing patterns from 206-python-pytest.md
-- Accurate keyword count from start
-
+Do not create a separate index, copy a historical filename over an existing rule, or claim runtime library verification from a Markdown check. Report any unverified technical assumptions.

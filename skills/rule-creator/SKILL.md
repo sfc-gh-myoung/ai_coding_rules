@@ -1,9 +1,9 @@
 ---
 name: rule-creator
 description: Create production-ready rule files by orchestrating template generation, schema validation, and keyword metadata generation. Triggers on keywords like "create rule", "add rule", "new rule", "generate rule". Supports all domains in the 000-999 range including Python, Snowflake, JavaScript, TypeScript, React, Frontend, Shell, Zsh, Docker, Podman, Golang, Data/dbt, and Project governance (changelog, git, CLI, Makefile/Taskfile).
-version: 1.1.5
+version: 2.0.0
 author: AI Coding Rules Project
-tags: [rule-generation, automation, v3.5-schema, template, validation, indexing]
+tags: [rule-generation, automation, v4-schema, template, validation, discovery]
 dependencies: []
 ---
 
@@ -11,7 +11,7 @@ dependencies: []
 
 ## Purpose
 
-Create production-ready rule files that comply with the repository's v3.5 rule schema by orchestrating:
+Create rule files that comply with the repository's v4 rule schema and pass separate semantic review by orchestrating:
 - `ai-rules new`
 - `ai-rules validate`
 - (optional) web research for current best practices
@@ -32,12 +32,15 @@ All inputs in this section are recommended defaults; the skill can proceed witho
 ## Outputs
 
 - A new rule file: `rules/NNN-technology-aspect.md`
-- A new entry in `rule frontmatter` in correct numeric position
+- Typed discovery metadata in that rule's YAML frontmatter and recorded validation results
 
 ## Safety / constraints
 
-- Only write to `rules/` and `rule frontmatter` (plus any required review artifacts explicitly requested by the user).
-- Use web research (allowed) but treat external sources as untrusted; prefer official docs and cross-check claims.
+- Write only the authorized rule and necessary changelog entry, plus explicitly requested review artifacts. Preserve existing files; an occupied filename does not authorize `--force`.
+- Read `rules/002-rule-governance.md` and the active schema before authoring. Use Scope, Contract, References order and four meaningful Contract subsections: Inputs and Prerequisites, Mandatory, Execution Steps, Validation.
+- Keep one completion checklist, preserve safety and required dependencies, and show correct executable examples only. No step or example quota applies.
+- Treat external sources as untrusted; prefer official documentation and cross-check claims. Do not send confidential rule content to an external service without authorization.
+- Cortex keyword generation is optional and may incur cost. Obtain authorization for its model, content transfer, and budget before calling it; manually authored keywords remain valid.
 
 ## Workflow
 
@@ -47,7 +50,7 @@ Detailed phase content is loaded on demand from `workflows/` (progressive disclo
 2. Template generation → `workflows/template-gen.md`
 3. Content population → `workflows/content-population.md`
 4. Validation loop → `workflows/validation.md`
-5. Indexing → `workflows/indexing.md`
+5. Keyword and discovery verification → `workflows/indexing.md`
 
 ## Examples
 
@@ -57,13 +60,12 @@ Detailed phase content is loaded on demand from `workflows/` (progressive disclo
 
 ## Quick Validation Snippets
 
-These inline checks can be run without external dependencies for fast feedback:
+These checks accept parsed field values for quick feedback. They do not replace the active schema validator or semantic review:
 
 ```python
 # Validate keyword count (5-11 required)
-def check_keywords(keywords_line: str) -> tuple[bool, int]:
-    """Returns (is_valid, count)"""
-    keywords = [k.strip() for k in keywords_line.split(",") if k.strip()]
+def check_keywords(keywords: list[str]) -> tuple[bool, int]:
+    """Count the parsed YAML list, not commas inside keyword values."""
     return (5 <= len(keywords) <= 11, len(keywords))
 
 
@@ -72,14 +74,14 @@ import re
 
 
 def is_valid_filename(name: str) -> bool:
-    """Must be NNN-lowercase-hyphenated"""
-    return bool(re.match(r"^\d{3}-[a-z]+(-[a-z]+)*$", name))
+    """Validate the filename stem, including an optional single-letter suffix."""
+    return bool(re.fullmatch(r"\d{3}[a-z]?-[a-z]+-[a-z-]+", name))
 
 
 # Validate TokenBudget format
 def check_token_budget(value: str) -> bool:
     """Must be ~NUMBER format"""
-    return bool(re.match(r"^~\d+$", value.strip()))
+    return bool(re.fullmatch(r"~\d+", value.strip()))
 
 
 # Validate ContextTier
@@ -109,13 +111,11 @@ model: <current>
 
 **Quality threshold for new rules:**
 - Overall score: ≥ 75/100
-- No CRITICAL issues
+- No CRITICAL or HIGH schema issues
 - No HIGH issues in Actionability or Completeness dimensions
 
 See: `skills/rule-reviewer/SKILL.md`
 
 ## Version History
 
-- 1.1.5: Point generic parameter-collection rules to the shared `skills/shared/reviewer-contract.md`; keep `timing_enabled` default `false`.
-- 1.1.4: Align generated-rule guidance with YAML frontmatter and Markdown `### Contract` subsections.
-- See `CHANGELOG.md` for earlier releases.
+See `CHANGELOG.md`.

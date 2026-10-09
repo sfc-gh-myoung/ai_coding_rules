@@ -2,6 +2,15 @@
 
 All notable changes to the `rule-creator` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## v2.0.0 (2026-09-30): V4 authoring contract
+
+### Changed
+
+- Generate and review Scope, Contract, References order with four non-empty required Contract subsections and one completion checklist.
+- Remove retired section requirements, fixed step/example quotas, and executable negative examples from authoring workflows.
+- Treat CRITICAL and HIGH findings as blockers; preserve dependency ownership and distinguish structural from semantic validation.
+- Keep manual keyword authoring available and require authorization before paid model generation.
+
 ## v1.1.5 (2026-08-21): Shared parameter-collection rules
 
 ### Changed

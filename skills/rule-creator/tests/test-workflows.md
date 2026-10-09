@@ -1,367 +1,45 @@
-# Test Cases: Workflow Execution
+# Workflow Test Cases
 
-## Phase 1: Discovery Tests
+These are evaluation cases, not recorded results. Run against disposable outputs in `.workbench/`; do not overwrite operational rules or execute cloud examples.
 
-### Test 1.1: Domain Discovery - Clear Match
+## Discovery
 
-**Input:**
-```
-technology: FastAPI
-```
+- Clear domain: a Python-library request resolves against the current Python rules and README map. Existing ownership is checked before choosing an unused filename.
+- Ambiguous domain: a request with materially different frontend/backend interpretations produces concrete choices before authoring.
+- Offline research: the workflow uses supplied sources and reports unsupported claims instead of inventing current product behavior.
+- Required context: the foundation and applicable domain owners are actually read; their necessary dependency edges remain required.
 
-**Expected:**
-- Search rule frontmatter for "fastapi", "python", "api"
-- Find Python domain (200-299)
-- Identify next available number
+## Template generation
 
-**Verification:** (rule frontmatter)
-```bash
-grep -i "fastapi\|python" rule frontmatter
-```
+- Valid unused filename: the generator creates v4 frontmatter and Scope, Contract, References in order. All four required Contract subsections have bodies. The real validator accepts the scaffold structurally.
+- Invalid filename: the generator reports the format error and creates no rule.
+- Existing filename: creation fails without changing the original bytes. No automatic force-overwrite retry occurs.
+- Unsupported ContextTier: the actual diagnostic is reported and the value is corrected deliberately, not inferred from file length.
 
-**Pass Criteria:**
-- [ ] Domain: 200-299
-- [ ] Number: Next available after existing Python rules
-- [ ] Core rule loaded: rules/200-python-core.md
+## Content population
 
----
+- Metadata: the YAML contains all seven required fields, the schema-derived combined keyword bound, an estimated token budget, and required/optional dependency lists.
+- Contract: prerequisites, constraints, necessary ordered actions, and observable checks are meaningful. A structural scaffold pass does not count as completed population.
+- Safety: authorization, confidentiality, required reads, and recovery remain explicit. An unavailable tool or uncertain write result cannot be treated as success.
+- Examples: include correct implementations when useful and explain defects in prose. No minimum pattern count or duplicate completion checklist is required.
 
-### Test 1.2: Domain Discovery - Ambiguous Match
+## Validation
 
-**Input:**
-```
-technology: GraphQL
-```
+- Valid populated rule: actual validator exit zero, with zero CRITICAL and HIGH findings.
+- Wrong H2 order: a disposable copy with References before Contract fails for section order.
+- Empty required subsection: each of Inputs and Prerequisites, Mandatory, Execution Steps, and Validation fails when emptied; code-fenced headings cannot supply the missing real structure.
+- Keyword boundary: use parsed YAML entries and the active schema bounds. Invalid counts fail without padding with irrelevant terms.
+- Repair: rerun after an authorized correction and retain both the original diagnostic and final result. Persistent failure after the workflow's retry limit remains blocked.
+- No-op or unavailable validator: a missing report, malformed JSON, or zero checked files is not a pass.
 
-**Expected:**
-- Could be: API (general), JavaScript (Apollo), Python (Strawberry)
-- User clarification requested
+## Keyword and discovery verification
 
-**Pass Criteria:**
-- [ ] Ambiguity detected
-- [ ] Options presented with rationale
-- [ ] User selection captured
+- Manual keywords: complete discovery checks without calling a paid model when authorization is absent.
+- Authorized generation: inspect the keyword diff, preserve required dependencies, and rerun schema validation after updates.
+- Relevant task: the actual matcher selects the intended rule for a representative request with competing terms, not just an exact keyword self-match.
+- Irrelevant task: the new rule is not selected solely through generic filler terms.
+- Integration: loader fixtures, trigger-contract validation, and plugin fidelity pass. No separate index file is created or edited.
 
----
+## End-to-end result
 
-### Test 1.3: Web Research Execution
-
-**Input:**
-```
-technology: Pydantic
-constraints: online research allowed
-```
-
-**Expected Searches:**
-1. "2024 2025 Pydantic best practices"
-2. "Pydantic official documentation"
-3. "Pydantic common mistakes"
-
-**Pass Criteria:**
-- [ ] 3+ searches executed
-- [ ] Results summarized
-- [ ] Keywords extracted (5-11)
-- [ ] Anti-patterns identified (2+)
-
----
-
-## Phase 2: Template Generation Tests
-
-### Test 2.1: Successful Template Generation
-
-**Input:**
-```bash
-uv run ai-rules new 210-python-pydantic-core \
-    --context-tier Medium \
-    --output-dir rules/
-```
-
-**Expected:**
-- File created: `rules/210-python-pydantic-core.md`
-- Contains required v3.6 frontmatter and sections
-- Contains required Contract Markdown subsections
-- Contract before line 160
-
-**Verification:**
-```bash
-# Check file exists
-ls rules/210-python-pydantic-core.md
-
-# Confirm canonical top-level sections
-grep -c "^## " rules/210-python-pydantic-core.md
-# Expected: 3+
-
-# Check Contract placement
-grep -n "## Contract" rules/210-python-pydantic-core.md
-# Expected: Line < 160
-```
-
-**Pass Criteria:**
-- [ ] File created
-- [ ] Required sections present
-- [ ] Contract before line 160
-- [ ] Required Contract subsections present
-
----
-
-### Test 2.2: Template Generation - Invalid Filename
-
-**Input:**
-```bash
-uv run ai-rules new InvalidName \
-    --output-dir rules/
-```
-
-**Expected:**
-- Error: Invalid filename format
-- Expected format: NNN-technology-aspect
-
-**Pass Criteria:**
-- [ ] Error message clear
-- [ ] No file created
-- [ ] Format requirements shown
-
----
-
-### Test 2.3: Template Generation - Existing File
-
-**Input:**
-```bash
-uv run ai-rules new 200-python-core \
-    --output-dir rules/
-```
-
-**Expected:**
-- Warning: File already exists
-- Option to overwrite or abort
-
-**Pass Criteria:**
-- [ ] Existing file not overwritten without confirmation
-- [ ] Clear warning message
-
----
-
-## Phase 3: Content Population Tests
-
-### Test 3.1: Metadata Population
-
-**Input:**
-```
-Keywords from research: pydantic, validation, data models, type hints,
-  serialization, deserialization, settings, BaseModel, Field, validators
-```
-
-**Expected:**
-```markdown
-**Keywords:** pydantic, validation, data models, type hints, serialization, deserialization, settings, BaseModel, Field, validators
-**TokenBudget:** ~1200
-**ContextTier:** Medium
-**Depends:** rules/000-global-core.md, rules/200-python-core.md
-```
-
-**Pass Criteria:**
-- [ ] Keywords: 5-11 count
-- [ ] TokenBudget: ~NUMBER format
-- [ ] ContextTier: Valid value
-- [ ] Depends: Includes foundation + domain core
-
----
-
-### Test 3.2: Anti-Pattern Population
-
-**Expected Structure:**
-```markdown
-### Anti-Pattern 1: [Name]
-
-**Problem:** [Description]
-
-```python
-# Wrong approach
-[code example]
-```
-
-**Why It Fails:** [Explanation]
-
-**Correct Pattern:**
-```python
-# Right approach
-[code example]
-```
-```
-
-**Pass Criteria:**
-- [ ] 2+ anti-patterns included
-- [ ] Each has Problem, Wrong code, Why It Fails, Correct code
-- [ ] Code examples are syntactically correct
-
----
-
-## Phase 4: Validation Tests
-
-### Test 4.1: Validation Pass on First Try
-
-**Input:**
-```bash
-uv run ai-rules validate rules/210-python-pydantic-core.md
-```
-
-**Expected:**
-```
-SUMMARY:
-   CRITICAL: 0
-    HIGH: 0
-  ℹ️  MEDIUM: 0
-   Passed: 458 checks
-
-RESULT:  PASSED (exit code 0)
-```
-
-**Pass Criteria:**
-- [ ] Exit code: 0
-- [ ] CRITICAL: 0
-- [ ] HIGH: 0
-
----
-
-### Test 4.2: Validation Failure - Keywords Count
-
-**Scenario:** Rule has only 4 keywords
-
-**Expected:**
-```
- CRITICAL ISSUES (1):
-[Metadata] Keywords count: 4 (expected 5-11)
-  Line: 5
-  Fix: Add one more keyword to reach the minimum of 5
-```
-
-**Pass Criteria:**
-- [ ] Error correctly identified
-- [ ] Line number provided
-- [ ] Fix suggestion clear
-
----
-
-### Test 4.3: Validation Loop - Fix and Retry
-
-**Scenario:** First validation fails, fixes applied, second passes
-
-**Expected Sequence:**
-1. Iteration 1: FAIL (2 CRITICAL)
-2. Apply fixes
-3. Iteration 2: PASS (0 CRITICAL)
-
-**Pass Criteria:**
-- [ ] Errors fixed correctly
-- [ ] Re-validation executed
-- [ ] Exit code 0 on retry
-
----
-
-### Test 4.4: Validation Loop - Max Iterations
-
-**Scenario:** Errors persist after 3 iterations
-
-**Expected:**
-```
- Still failing after 3 iterations
-Manual intervention required
-
-Unresolved errors:
-- [Error 1]
-- [Error 2]
-
-Reference: rules/002e-schema-validator-usage.md
-```
-
-**Pass Criteria:**
-- [ ] Stopped at 3 iterations
-- [ ] Errors clearly listed
-- [ ] Reference to help documentation
-
----
-
-## Phase 5: Indexing Tests
-
-### Test 5.1: Successful Indexing
-
-**Input:**
-```
-Rule: rules/210-python-pydantic-core.md
-```
-
-**Expected Entry:**
-```markdown
-| 210-python-pydantic-core | Pydantic validation and data modeling | pydantic, validation, data models, type hints, ... | rules/200-python-core.md |
-```
-
-**Verification:** (rule frontmatter)
-```bash
-grep "210-python-pydantic" rule frontmatter
-```
-
-**Pass Criteria:**
-- [ ] Entry added to rule frontmatter
-- [ ] Correct numeric position (after 209, before 211)
-- [ ] All columns populated
-- [ ] Table formatting preserved
-
----
-
-### Test 5.2: Indexing - Maintain Sort Order
-
-**Scenario:** Adding rule 215 when 210 and 220 exist
-
-**Expected:**
-```markdown
-- **220-python-...** - ...
-```
-
-**Pass Criteria:**
-- [ ] Inserted in correct numeric order
-- [ ] No duplicate entries
-- [ ] Table structure intact
-
----
-
-## End-to-End Tests
-
-### Test E2E.1: Complete Workflow - Python Library
-
-**Input:**
-```
-Create a new rule for httpx best practices following schema
-```
-
-**Expected Timeline:**
-- Discovery: ~5 min
-- Template: ~1 min
-- Content: ~10 min
-- Validation: ~2 min (1-2 iterations)
-- Indexing: ~1 min
-- **Total: ~19 min**
-
-**Pass Criteria:**
-- [ ] File exists: rules/2XX-python-httpx-core.md
-- [ ] Validation: exit code 0
-- [ ] Indexed in rule frontmatter
-- [ ] Total time < 30 min
-
----
-
-### Test E2E.2: Complete Workflow - Frontend Framework
-
-**Input:**
-```
-Create a new rule for Svelte best practices following schema
-```
-
-**Expected:**
-- Domain: 420-449 (JavaScript/Frontend)
-- Dependencies: rules/420-javascript-core.md
-
-**Pass Criteria:**
-- [ ] Correct domain assignment
-- [ ] Dependencies include JS core
-- [ ] Keywords include "svelte", "components", "reactivity"
-
+The output is a populated rule, reviewed metadata, and executed validation evidence. Record source hashes and runtime/model identity for approved live runs. Do not use file size, duration, or a canned transcript as proof of completion.

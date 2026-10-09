@@ -248,7 +248,7 @@ Dimension scores table must be valid markdown:
 ## Version Compatibility
 
 - **SKILL.md (with rubric)** - Current
-- **Rule schema** - v3.6
+- **Rule schema** - v4: Scope, Contract, References; four meaningful required Contract subsections
 - **reviews/ directory** - Writable
 
 ## Validation Schedule

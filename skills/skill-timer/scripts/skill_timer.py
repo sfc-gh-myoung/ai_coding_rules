@@ -41,6 +41,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
+from ai_rules.cortex.models import CONSUMPTION_TABLE_EFFECTIVE_DATE, get_benchmark_model
+
 # ============================================================================
 # Configuration
 # ============================================================================
@@ -61,18 +63,10 @@ ALERT_THRESHOLDS = {
     },
 }
 
-# Cost estimates per 1M tokens (update periodically as pricing changes)
-# Last updated: 2026-04-05
-# Sources: https://platform.claude.com/docs/en/about-claude/pricing
-COST_PER_1M_TOKENS = {
-    "claude-sonnet-4-5": {"input": 3.00, "output": 15.00},
-    "claude-sonnet-4-6": {"input": 3.00, "output": 15.00},
-    "claude-opus-4-5": {"input": 5.00, "output": 25.00},
-    "claude-opus-4-6": {"input": 5.00, "output": 25.00},
-    "claude-opus-4": {"input": 15.00, "output": 75.00},
-    "gpt-4-turbo": {"input": 10.00, "output": 30.00},
-    "default": {"input": 5.00, "output": 15.00},
-}
+# Table 6(e) prices are AI Credits per one million tokens. Dollar estimates
+# use the documented Global-routing price because this benchmark runs with
+# CORTEX_ENABLED_CROSS_REGION=ANY_REGION.
+AI_CREDIT_USD_GLOBAL = 2.00
 
 TTL_DAYS = 7
 REGISTRY_STALE_HOURS = 24
@@ -94,7 +88,7 @@ def is_valid_run_id(run_id: str) -> bool:
     return bool(RUN_ID_PATTERN.match(run_id))
 
 
-PRICING_LAST_UPDATED = "2026-04-05"
+PRICING_LAST_UPDATED = CONSUMPTION_TABLE_EFFECTIVE_DATE
 PRICING_REVIEW_INTERVAL_DAYS = 90
 
 # ============================================================================
@@ -244,8 +238,10 @@ def format_duration_seconds(seconds: float) -> str:
     return f"{seconds:.2f}s"
 
 
-def format_cost(cost_usd: float) -> str:
-    """Format cost with 4 decimal places and $ prefix."""
+def format_cost(cost_usd: float | None) -> str:
+    """Format a USD cost estimate with four decimal places."""
+    if cost_usd is None:
+        return "N/A"
     return f"${cost_usd:.4f}"
 
 
@@ -266,21 +262,36 @@ def format_checkpoint_elapsed(elapsed: float) -> str:
 
 
 def calculate_cost(input_tokens: int, output_tokens: int, model: str) -> dict:
-    """Calculate estimated cost for token usage."""
-    if model not in COST_PER_1M_TOKENS:
+    """Calculate Table 6(e) AI-credit and Global-routing USD estimates."""
+    model_pricing = get_benchmark_model(model)
+    if (
+        model_pricing is None
+        or model_pricing.input_credits_per_million is None
+        or model_pricing.output_credits_per_million is None
+    ):
         print(
-            f"WARNING: Unknown model '{model}'; using default pricing — actual cost may differ.",
+            f"WARNING: Table 6(e) pricing is unavailable for model '{model}'.",
             file=sys.stderr,
         )
-    costs = COST_PER_1M_TOKENS.get(model, COST_PER_1M_TOKENS["default"])
-    estimated_cost = (input_tokens / 1_000_000) * costs["input"] + (
+        return {
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "total_tokens": input_tokens + output_tokens,
+            "estimated_ai_credits": None,
+            "estimated_cost_usd": None,
+            "pricing_source": "unavailable",
+        }
+    estimated_ai_credits = (input_tokens / 1_000_000) * model_pricing.input_credits_per_million + (
         output_tokens / 1_000_000
-    ) * costs["output"]
+    ) * model_pricing.output_credits_per_million
     return {
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,
         "total_tokens": input_tokens + output_tokens,
-        "estimated_cost_usd": round(estimated_cost, 4),
+        "estimated_ai_credits": round(estimated_ai_credits, 6),
+        "estimated_cost_usd": round(estimated_ai_credits * AI_CREDIT_USD_GLOBAL, 4),
+        "pricing_source": f"Snowflake Service Consumption Table 6(e), {PRICING_LAST_UPDATED}",
+        "usd_per_ai_credit": AI_CREDIT_USD_GLOBAL,
     }
 
 
@@ -1027,7 +1038,11 @@ def print_stdout_summary(
             f"Tokens:      {format_tokens(tokens['total_tokens'])} "
             f"({format_tokens(tokens['input_tokens'])} in / {format_tokens(tokens['output_tokens'])} out)"
         )
-        print(f"Cost:        {format_cost(tokens['estimated_cost_usd'])}")
+        credits = tokens.get("estimated_ai_credits")
+        print(
+            f"AI Credits:  {credits:.6f} (estimated)" if credits is not None else "AI Credits:  N/A"
+        )
+        print(f"Cost:        {format_cost(tokens['estimated_cost_usd'])} (estimated)")
     else:
         print("Tokens:      N/A")
         print("Cost:        N/A")
@@ -1078,6 +1093,7 @@ def generate_markdown_table(data: dict) -> str:
             f"({format_tokens(tokens['input_tokens'])} in / {format_tokens(tokens['output_tokens'])} out)"
         )
         cost_str = format_cost(tokens["estimated_cost_usd"])
+    credits_str = tokens.get("estimated_ai_credits", "N/A") if tokens else "N/A"
 
     baseline_str = "N/A"
     if baseline:
@@ -1101,7 +1117,8 @@ def generate_markdown_table(data: dict) -> str:
         f"| Status | {data.get('status', 'unknown')} |",
         f"| Checkpoints | {cp_str} |",
         f"| Tokens | {tokens_str} |",
-        f"| Cost | {cost_str} |",
+        f"| AI Credits | {credits_str} (estimated) |",
+        f"| Cost | {cost_str} (estimated) |",
         f"| Baseline | {baseline_str} |",
     ]
 

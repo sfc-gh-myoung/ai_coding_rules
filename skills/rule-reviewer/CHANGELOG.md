@@ -2,6 +2,13 @@
 
 All notable changes to the `rule-reviewer` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## v3.0.0 (2026-09-30): V4 rule reviews
+
+- Review Scope, Contract, References order and four non-empty required Contract subsections without requiring retired padding or duplicate checklists.
+- Separate structural results from semantic requirements and model-behavior evidence.
+- Preserve HIGH findings as blockers, use structured validator output, and keep scoring on the canonical 0-10 raw scale.
+- Distinguish unavailable validation from a successfully executed check that found invalid content.
+
 ## v2.12.1 (2026-08-21): Shared reviewer contract
 
 - Replaced restated passages with pointers to the new `skills/shared/reviewer-contract.md`: parameter-collection rules, skill-timer timing mechanism, and reviewer opt-out semantics now have one shared source.

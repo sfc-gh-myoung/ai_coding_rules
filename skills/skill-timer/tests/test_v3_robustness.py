@@ -376,13 +376,23 @@ def test_calculate_cost_warns_for_unknown_model(capsys):
     result = calculate_cost(1_000_000, 500_000, "totally-unknown-model-xyz")
     captured = capsys.readouterr()
     assert "totally-unknown-model-xyz" in captured.err
-    assert "default pricing" in captured.err
-    # Falls back to default pricing table; cost is deterministic and positive.
-    assert result["estimated_cost_usd"] > 0
+    assert "pricing is unavailable" in captured.err
+    assert result["estimated_ai_credits"] is None
+    assert result["estimated_cost_usd"] is None
+
+
+def test_calculate_cost_warns_for_tracked_model_without_rates(capsys):
+    result = calculate_cost(1_000_000, 500_000, "gemini-3.1-pro")
+    captured = capsys.readouterr()
+    assert "pricing is unavailable" in captured.err
+    assert result["estimated_ai_credits"] is None
+    assert result["pricing_source"] == "unavailable"
 
 
 def test_calculate_cost_no_warning_for_known_model(capsys):
     result = calculate_cost(1_000_000, 500_000, "claude-sonnet-4-6")
     captured = capsys.readouterr()
     assert captured.err == ""
-    assert result["estimated_cost_usd"] > 0
+    assert result["estimated_ai_credits"] == 5.775
+    assert result["estimated_cost_usd"] == 11.55
+    assert result["usd_per_ai_credit"] == 2.00

@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/rule-reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 2.12.1
+version: 3.0.0
 ---
 
 # Rule Reviewer
@@ -9,6 +9,8 @@ version: 2.12.1
 ## Purpose
 
 Execute comprehensive agent-centric reviews evaluating whether autonomous agents can execute rules without judgment calls.
+
+For v4 rules, read the active schema and governance contract before applying the rubrics. Required H2 order is Scope, Contract, References, with four non-empty Contract subsections. Do not penalize omitted optional sections, fixed step/example counts, or a missing duplicate checklist. Structural checks and semantic review remain separate.
 
 ## Use this skill when
 
@@ -86,10 +88,10 @@ ELSE:
 3. **Run schema validation (conditional).** If `FILE_TYPE == "rule"`, execute `uv run ai-rules validate <target_file>` and parse CRITICAL/HIGH/MEDIUM errors. If `FILE_TYPE == "project"`, skip and set `schema_validation_result = "SKIPPED (project file)"`. Full procedure, file-type gating, and error handling: `workflows/schema-validation.md`.
 
 4. **Agent Execution Test (SILENT - results go to review file).** Count blocking issues (≥6 caps score at 80/100, ≥10 forces NOT_EXECUTABLE):
-   - Undefined thresholds ("large", "significant", "appropriate")
-   - Missing conditional branches (no explicit else)
+   - Undefined criteria where a decision affects correctness or safety; use specification values or labeled project policy, not invented thresholds
+   - Missing conditional outcomes where the alternative affects correctness or safety; harmless no-ops need no fabricated branch
    - Ambiguous actions (multiple interpretations)
-   - Visual formatting (ASCII art, arrows, diagrams)
+   - Formatting that loses a required relationship or violates an applicable rule policy; characters alone do not prove a model limitation
 
 5. **Post-Read Canary Check (SILENT).** See Canary Checks below.
 
@@ -198,9 +200,8 @@ When enabled, emit `skill_loaded` + the 6 dimension checkpoint pairs (`dim_<name
 ## Error Handling
 
 **Schema validator fails:**
-- Continue review
-- Note validation unavailable in Parsability section
-- Recommend manual schema check
+- If the rule has CRITICAL/HIGH findings, continue the review and report failed validation with those findings.
+- If tooling or output is unavailable, report that limitation and apply the rubric's manual-assessment limit. Do not turn a content failure into an unavailable check.
 
 **Rule file not found:**
 - Report: "File not found: [path]"

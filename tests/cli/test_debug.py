@@ -8,7 +8,7 @@ from typer.testing import CliRunner
 from ai_rules._shared.runtime import is_debug_enabled, set_debug
 from ai_rules.cli import app
 
-runner = CliRunner()
+runner = CliRunner(env={"NO_COLOR": "1", "CI": "true", "TERM": "dumb"})
 
 
 @pytest.fixture(autouse=True)

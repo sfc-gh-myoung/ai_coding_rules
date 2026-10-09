@@ -163,7 +163,7 @@ tasks:
     summary: |
       Run all quality gates, coverage tests, schemas, rule-loader checks, and plugin fidelity.
       Matches hosted checks for one selected interpreter. Hosted CI also tests Python 3.13
-      and automation on macOS/Linux with Task 3.45.0 and Task 3.53.1.
+      and automation on macOS/Linux with Task 3.45.3 and Task 3.53.1.
       No Task fingerprints suppress validation. Cortex loader validation is optional;
       use plugin:verify:strict when Cortex must be present.
     cmds:

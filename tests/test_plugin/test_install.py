@@ -18,7 +18,7 @@ from ai_rules.commands.plugin import (
     plugin_app,
 )
 
-runner = CliRunner()
+runner = CliRunner(env={"NO_COLOR": "1", "CI": "true", "TERM": "dumb"})
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PLUGIN_DIR = REPO_ROOT / "ai-coding-rules-plugin"

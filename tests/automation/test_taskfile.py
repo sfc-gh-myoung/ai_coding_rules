@@ -14,7 +14,7 @@ TASK = shutil.which("task")
 
 
 def task(repo, *arguments, environment=None):
-    assert TASK, "Install Task >=3.45.0 to run automation tests"
+    assert TASK, "Install Task >=3.45.3 to run automation tests"
     return subprocess.run(
         [TASK, "--taskfile", str(repo / "Taskfile.yml"), *arguments],
         cwd=repo,

@@ -95,7 +95,9 @@ if command == "uv":
         lock.write_text('version = 1\\n[[package]]\\nname = "sample"\\nversion = "' + version + '"\\nsource = { editable = "." }\\n')
 sys.exit(0)
 """
-    for name in ("git", "uv", "task", "gh", "cortex"):
+    # shellcheck and shfmt satisfy quality:automation preconditions, which Task
+    # evaluates even under --dry.
+    for name in ("git", "uv", "task", "gh", "cortex", "shellcheck", "shfmt"):
         binary = binaries / name
         binary.write_text(script)
         binary.chmod(0o755)

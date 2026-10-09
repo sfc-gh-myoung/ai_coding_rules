@@ -2,7 +2,7 @@
 
 The repository uses [Task](https://taskfile.dev/) for development automation. Run commands from the repository root.
 
-Install Task 3.45.0 or later. Install `uv`, ShellCheck, and `shfmt` before you run the complete validation pipeline.
+Install Task 3.45.3 or later. Install `uv`, ShellCheck, and `shfmt` before you run the complete validation pipeline.
 
 ## Find a task
 
@@ -32,7 +32,7 @@ Set `PYTHON_VERSION=3.13` to run a task with Python 3.13. Task passes the versio
 
 `task validate` includes coverage, schema validation, the rule-loader fixture and reachability gates, trigger-count validation, and plugin fidelity. It validates the Cortex plugin loader when the `cortex` command exists. Run `task plugin:verify:strict` when absence of `cortex` must fail.
 
-GitHub Actions uses the same Task entry points. It also tests Python 3.12 and 3.13, macOS and Linux, Task 3.45.0, and Task 3.53.1.
+GitHub Actions uses the same Task entry points. It also tests Python 3.12 and 3.13, macOS and Linux, Task 3.45.3, and Task 3.53.1.
 
 ## Remove local artifacts
 

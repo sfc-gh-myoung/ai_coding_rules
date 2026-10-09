@@ -527,6 +527,35 @@ def test_compare_snapshots_token_deltas_end_to_end() -> None:
     assert "tokens:" in joined
 
 
+def test_compare_reports_baseline_and_post_means() -> None:
+    """Per-side means cover turns, duration and tokens; total is derived from input + output."""
+    base = _snapshot(
+        "base",
+        [
+            _row("a", turns=4, duration_ms=1000, input_tokens=1000, output_tokens=200),
+            _row("b", turns=2, duration_ms=3000, input_tokens=800, output_tokens=100),
+        ],
+    )
+    post = _snapshot(
+        "post", [_row("a", turns=2, duration_ms=500, input_tokens=600, output_tokens=50)]
+    )
+    report = compare_snapshots(base, post)
+
+    # Means use shared fixtures only, matching the delta population.
+    assert report.baseline_means == {
+        "turns": 4.0,
+        "duration_ms": 1000.0,
+        "input_tokens": 1000.0,
+        "output_tokens": 200.0,
+        "total_tokens": 1200.0,
+    }
+    assert report.post_means["total_tokens"] == 650.0
+    assert "| mean turns | 4.00 | 2.00 | -2.00 |" in render_markdown(report)
+    assert "| mean total tokens | 1,200.00 | 650.00 | -550.00 |" in render_markdown(report)
+    assert json.loads(render_json(report))["post_means"]["input_tokens"] == 600.0
+    assert any("mean input tokens" in line for line in render_table(report))
+
+
 def test_render_table_suppresses_token_line_when_no_data() -> None:
     """render_table omits the tokens: line when all token counts are zero."""
     rows = [_row("a"), _row("b")]

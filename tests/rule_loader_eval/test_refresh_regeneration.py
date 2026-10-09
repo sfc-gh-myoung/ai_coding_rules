@@ -62,15 +62,6 @@ def _variant_from_fixture(raw: dict) -> str:
 
 
 @pytest.mark.integration
-@pytest.mark.xfail(
-    reason=(
-        "Suggestion engine assumes source-branch rule keyword content. On the "
-        "legacy-port branch, rule Keywords are derived in place from local v3.2 "
-        "metadata, so the regenerator may promote rules whose keywords don't "
-        "literally match the prompt. Tracked as a known limitation."
-    ),
-    strict=False,
-)
 def test_refresh_all_regeneration_passes_validate(project_root: Path) -> None:
     """Re-rendering each committed fixture from its loaded set passes validate."""
     fixtures_dir = project_root / "fixtures" / "rule_loader_eval"

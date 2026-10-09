@@ -39,6 +39,36 @@ def test_cli_help() -> None:
     assert "seed-fixture" not in result.output
 
 
+@pytest.mark.unit
+def test_eval_rejects_legacy_model_before_live_sdk_work() -> None:
+    """Explicit benchmark selections cannot use lifecycle-ineligible models."""
+    result = runner.invoke(app, ["rule-loader", "eval", "--model", "mistral-large2"])
+    assert result.exit_code == 4
+    assert "unsupported benchmark model" in result.output
+    assert "claude-sonnet-5" in result.output
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("mode", ["auto-intelligent", "auto-efficient"])
+def test_eval_rejects_all_models_with_explicit_auto_mode(mode: str) -> None:
+    """Explicit auto modes pass model validation and reach the --all-models guard."""
+    result = runner.invoke(app, ["rule-loader", "eval", "--all-models", "--model", mode])
+    assert result.exit_code == 4
+    assert "unsupported benchmark model" not in result.output
+    assert "cannot be combined" in result.output
+
+
+@pytest.mark.unit
+def test_eval_rejects_all_models_with_explicit_model() -> None:
+    """The all-model matrix cannot combine outputs under an explicit model label."""
+    result = runner.invoke(
+        app,
+        ["rule-loader", "eval", "--all-models", "--model", "claude-sonnet-5"],
+    )
+    assert result.exit_code == 4
+    assert "cannot be combined" in result.output
+
+
 @pytest.mark.integration
 def test_validate_fixtures_passes(project_root: Path) -> None:
     """`validate` runs the invariant against committed fixtures."""

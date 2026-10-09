@@ -243,6 +243,30 @@ class SchemaValidator:
             schema = yaml.safe_load(f)
 
         # Basic schema validation
+        if not isinstance(schema, dict):
+            raise ValueError("Schema must be a YAML mapping")
+        supported_keys = {
+            "$schema",
+            "version",
+            "description",
+            "last_updated",
+            "authoring_contract",
+            "metadata",
+            "structure",
+            "content_rules",
+            "placement",
+            "restrictions",
+            "link_validation",
+            "error_reporting",
+            "excluded_files",
+            "validation",
+        }
+        unknown_keys = schema.keys() - supported_keys
+        if unknown_keys:
+            raise ValueError(
+                "Schema contains unsupported top-level keys: "
+                + ", ".join(sorted(map(str, unknown_keys)))
+            )
         required_keys = ["version", "metadata", "structure", "content_rules"]
         for key in required_keys:
             if key not in schema:
@@ -512,6 +536,7 @@ class SchemaValidator:
         lines = content.split("\n")
 
         # Run validation phases
+        self._validate_rule_size(content, result)
         self._validate_metadata(content, lines, result)
         self._validate_structure(content, lines, result)
         self._validate_body_sections(content, lines, result)
@@ -520,6 +545,42 @@ class SchemaValidator:
         self._validate_links(content, lines, result)
 
         return result
+
+    def _validate_rule_size(self, content: str, result: ValidationResult) -> None:
+        """Enforce physical line and fenced-example limits from the schema."""
+        structure = self.schema.get("structure", {})
+        line_count = len(content.splitlines())
+        max_lines = structure.get("max_lines")
+        if max_lines is not None and line_count > max_lines:
+            result.errors.append(
+                ValidationError(
+                    severity="HIGH",
+                    message=f"Rule exceeds {max_lines} lines: {line_count}",
+                    error_group="Structure",
+                    line_num=max_lines + 1,
+                    fix_suggestion="Keep essential instructions in the rule; move optional detail to focused references.",
+                )
+            )
+        max_examples = structure.get("max_fenced_examples")
+        if max_examples is None:
+            return
+        fences = []
+        tracker = CodeBlockTracker()
+        for line_num, line in enumerate(content.splitlines(), 1):
+            was_in_code = tracker.in_code_block
+            tracker.update(line)
+            if not was_in_code and tracker.in_code_block:
+                fences.append(line_num)
+        if len(fences) > max_examples:
+            result.errors.append(
+                ValidationError(
+                    severity="HIGH",
+                    message=f"Rule exceeds {max_examples} fenced examples: {len(fences)}",
+                    error_group="Structure",
+                    line_num=fences[max_examples],
+                    fix_suggestion="Keep at most three correct, distinct examples; review correctness manually.",
+                )
+            )
 
     # ------------------------------------------------------------------
     # Frontmatter helpers (schema v3.5 dual-parse)
@@ -1062,8 +1123,23 @@ class SchemaValidator:
             lines, r"Contract", track_code_blocks=True
         )
 
-        if not section_start:
+        if section_start is None:
             return
+
+        visible_content = re.sub(
+            r"<!--.*?-->",
+            lambda match: "\n" * match.group().count("\n"),
+            section_content,
+            flags=re.DOTALL,
+        )
+        section_lines = visible_content.split("\n")
+        headings = []
+        tracker = CodeBlockTracker()
+        for offset, line in enumerate(section_lines):
+            was_in_code = tracker.in_code_block
+            tracker.update(line)
+            if not was_in_code and not tracker.in_code_block and re.match(r"^###\s+\S", line):
+                headings.append((offset, line))
 
         # Validate required subsections (v3.2 uses ### Markdown headers)
         for validation in config.get("validations", []):
@@ -1072,7 +1148,12 @@ class SchemaValidator:
                     subsection_name = subsection["name"]
                     pattern = subsection["pattern"]
 
-                    if not re.search(pattern, section_content):
+                    matching = [
+                        (position, offset)
+                        for position, (offset, heading) in enumerate(headings)
+                        if re.fullmatch(pattern + r"(?:\s+\([^\n]*\))?\s*", heading)
+                    ]
+                    if not matching:
                         fix_msg = validation["fix_suggestion"].format(
                             subsection_name=subsection_name
                         )
@@ -1086,7 +1167,25 @@ class SchemaValidator:
                             )
                         )
                     else:
-                        result.passed_checks += 1
+                        for position, offset in matching:
+                            end = (
+                                headings[position + 1][0]
+                                if position + 1 < len(headings)
+                                else len(section_lines)
+                            )
+                            body = "\n".join(section_lines[offset + 1 : end])
+                            if subsection.get("non_empty") and not body.strip():
+                                result.errors.append(
+                                    ValidationError(
+                                        severity=validation["severity"],
+                                        message=f"Contract subsection must not be empty: {subsection_name}",
+                                        error_group="Contract",
+                                        line_num=section_start + offset + 1,
+                                        fix_suggestion=f"Add content under ### {subsection_name}",
+                                    )
+                                )
+                            else:
+                                result.passed_checks += 1
 
             elif validation["type"] == "no_xml_tags":
                 # Check for XML tags (v3.2 prohibition)

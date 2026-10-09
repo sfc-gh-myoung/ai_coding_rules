@@ -36,6 +36,7 @@ from ai_rules._shared.console import (
     log_warning,
 )
 from ai_rules._shared.paths import find_project_root
+from ai_rules.cortex.models import AUTO_MODES, SUPPORTED_MODELS
 from ai_rules.rule_loader_eval import SDK_PIN
 from ai_rules.rule_loader_eval.annotations import (
     parse_preservation_annotations_from_path,
@@ -104,6 +105,18 @@ EXIT_INTERNAL = 5
 # Reuses EXIT_SDK_OR_CONN (3) so existing CI/scripts that distinguish
 # 0/1/3 keep working.
 EXIT_INFRA_ERROR = EXIT_SDK_OR_CONN
+
+
+def _validate_benchmark_model(model: str) -> None:
+    """Reject lifecycle-ineligible explicit benchmark model selections."""
+    if model in AUTO_MODES or model in SUPPORTED_MODELS:
+        return
+    allowed = ", ".join((*AUTO_MODES, *SUPPORTED_MODELS))
+    log_error(
+        f"unsupported benchmark model {model!r}; use an auto mode or a tracked "
+        f"CoCo model: {allowed}"
+    )
+    raise typer.Exit(EXIT_FIXTURE_INVALID)
 
 
 def _resolve_connection(connection: str | None) -> str | None:
@@ -1075,6 +1088,13 @@ def eval_cmd(
     ] = None,
     effort: Annotated[str, typer.Option("--effort")] = DEFAULT_EFFORT,
     model: Annotated[str, typer.Option("--model")] = "auto",
+    all_models: Annotated[
+        bool,
+        typer.Option(
+            "--all-models",
+            help="Run one isolated evaluation per current GA/preview Table 6(e) benchmark model.",
+        ),
+    ] = False,
     connection: Annotated[
         str | None, typer.Option("--connection", help="Snowflake CLI connection name.")
     ] = None,
@@ -1186,6 +1206,37 @@ def eval_cmd(
     no multi-run aggregation. Useful for rapid iteration during rule edits.
     Expect higher variance -- use ``--runs 3`` (default) for definitive results.
     """
+    if all_models:
+        if model != "auto":
+            log_error("--all-models cannot be combined with an explicit --model")
+            raise typer.Exit(EXIT_FIXTURE_INVALID)
+        failures = 0
+        for catalog_model in SUPPORTED_MODELS:
+            try:
+                eval_cmd(
+                    fixture_id=fixture_id,
+                    strict_forbidden=strict_forbidden,
+                    max_turns=max_turns,
+                    effort=effort,
+                    model=catalog_model,
+                    all_models=False,
+                    connection=connection,
+                    out_dir=out_dir,
+                    label=label,
+                    runs=runs,
+                    concurrency=concurrency,
+                    retry_infra=retry_infra,
+                    debug=debug,
+                    without_plugin=without_plugin,
+                )
+            except typer.Exit as exc:
+                failures += 1
+                log_error(f"benchmark model {catalog_model!r} exited with code {exc.exit_code}")
+        if failures:
+            raise typer.Exit(EXIT_FIXTURE_FAIL)
+        return
+
+    _validate_benchmark_model(model)
     if runs < 1:
         log_error("--runs must be >= 1")
         raise typer.Exit(EXIT_FIXTURE_INVALID)
@@ -2191,20 +2242,33 @@ def compare_cmd(
         EXIT_NO_CHANGE,
         EXIT_REGRESSION,
         compare_snapshots,
+        merge_snapshots,
         parse_alias_map,
         render_json,
         render_markdown,
         render_table,
     )
-    from ai_rules.rule_loader_eval.snapshot import read_eval_snapshot
+    from ai_rules.rule_loader_eval.fixtures import load_fixtures
+    from ai_rules.rule_loader_eval.snapshot import Snapshot, backfill_expected, read_eval_runs
 
     if output_format not in {"table", "json", "markdown"}:
         log_error(f"--format must be one of table|json|markdown, got {output_format!r}")
         raise typer.Exit(EXIT_FIXTURE_INVALID)
 
+    def _read_side(snapshot_dir: Path, fixtures_by_id: dict) -> Snapshot:
+        # Merge every run-NN pass (majority/median) so multi-run evals are not
+        # judged on run-01 alone, then restore expectations eval did not record.
+        runs = read_eval_runs(snapshot_dir)
+        snap = runs[0] if len(runs) == 1 else merge_snapshots(runs, label=runs[0].meta.label)
+        return backfill_expected(snap, fixtures_by_id)
+
     try:
-        baseline = read_eval_snapshot(baseline_dir)
-        post = read_eval_snapshot(post_dir)
+        fixtures_by_id = {
+            f.id: f
+            for f in load_fixtures(_fixtures_dir(find_project_root()), enforce_invariant=False)
+        }
+        baseline = _read_side(baseline_dir, fixtures_by_id)
+        post = _read_side(post_dir, fixtures_by_id)
     except (FileNotFoundError, ValueError) as exc:
         log_error(f"failed to read snapshot: {exc}")
         raise typer.Exit(EXIT_FIXTURE_INVALID) from exc
@@ -2288,14 +2352,14 @@ def suggest_kw_cmd(
         uv run ai-rules rule-loader suggest-kw complex-snowcli-deploy
         uv run ai-rules rule-loader suggest-kw --from-snapshot out/post-v3.3
     """
-    from ai_rules.rule_loader_eval.fixtures import load_fixture
+    from ai_rules.rule_loader_eval.fixtures import load_fixture, load_fixtures
     from ai_rules.rule_loader_eval.kw_suggester import (
         KwProposal,
         render_proposals_table,
         suggest_for_fixture,
     )
     from ai_rules.rule_loader_eval.rules_meta import load_rules_metadata
-    from ai_rules.rule_loader_eval.snapshot import read_eval_snapshot
+    from ai_rules.rule_loader_eval.snapshot import backfill_expected, read_eval_snapshot
 
     project_root = find_project_root()
     rules_meta = load_rules_metadata(_rules_dir(project_root))
@@ -2306,6 +2370,11 @@ def suggest_kw_cmd(
         except (FileNotFoundError, ValueError) as exc:
             log_error(f"failed to read snapshot: {exc}")
             raise typer.Exit(EXIT_FIXTURE_INVALID) from exc
+        # Live eval docs omit expectations; without them every loaded rule is "spurious".
+        fixtures_by_id = {
+            f.id: f for f in load_fixtures(_fixtures_dir(project_root), enforce_invariant=False)
+        }
+        snap = backfill_expected(snap, fixtures_by_id)
 
         fx_rows = [f for f in snap.fixtures if (fixture_id is None or f.fixture_id == fixture_id)]
         if not fx_rows:

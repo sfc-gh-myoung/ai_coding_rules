@@ -25,6 +25,9 @@ from .client import (
     verify_connection,
 )
 from .models import (
+    AUTO_MODES,
+    COCO_BENCHMARK_MODELS,
+    CONSUMPTION_TABLE_EFFECTIVE_DATE,
     DEFAULT_BATCH_CHUNK_SIZE,
     DEFAULT_MAX_RETRIES,
     DEFAULT_MAX_TOKENS,
@@ -33,10 +36,15 @@ from .models import (
     DEFAULT_TIMEOUT_SECONDS,
     KEYWORDS_SCHEMA,
     SUPPORTED_MODELS,
+    CortexModel,
     CortexResponse,
+    get_benchmark_model,
 )
 
 __all__ = [
+    "AUTO_MODES",
+    "COCO_BENCHMARK_MODELS",
+    "CONSUMPTION_TABLE_EFFECTIVE_DATE",
     "DEFAULT_BATCH_CHUNK_SIZE",
     "DEFAULT_MAX_RETRIES",
     "DEFAULT_MAX_TOKENS",
@@ -45,10 +53,12 @@ __all__ = [
     "DEFAULT_TIMEOUT_SECONDS",
     "KEYWORDS_SCHEMA",
     "SUPPORTED_MODELS",
+    "CortexModel",
     "CortexResponse",
     "Transport",
     "complete",
     "complete_batch",
+    "get_benchmark_model",
     "list_models",
     "verify_connection",
 ]

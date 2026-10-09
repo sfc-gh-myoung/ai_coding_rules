@@ -29,7 +29,8 @@ from __future__ import annotations
 
 import json
 import subprocess
-from dataclasses import asdict, dataclass, field
+from collections.abc import Mapping
+from dataclasses import asdict, dataclass, field, replace
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -737,13 +738,7 @@ def read_eval_snapshot(snapshot_dir: Path) -> Snapshot:
 
     meta = _manifest_to_meta(manifest)
 
-    pass_dir = snapshot_dir / "run-01"
-    fixtures_dir = pass_dir / "fixtures"
-    fixture_rows: list[FixtureSnapshot] = []
-    if fixtures_dir.is_dir():
-        for path in sorted(fixtures_dir.glob("*.json")):
-            doc = json.loads(path.read_text(encoding="utf-8"))
-            fixture_rows.append(_doc_to_fixture(doc))
+    fixture_rows = _read_run_rows(snapshot_dir / "run-01")
 
     summary: SnapshotSummary | None = None
     aggregate_path = snapshot_dir / "summary.json"
@@ -766,6 +761,66 @@ def read_eval_snapshot(snapshot_dir: Path) -> Snapshot:
         )
 
     return Snapshot(meta=meta, fixtures=tuple(fixture_rows), summary=summary)
+
+
+def _read_run_rows(pass_dir: Path) -> list[FixtureSnapshot]:
+    """Read every ``<pass_dir>/fixtures/*.json`` row; empty when the dir is absent."""
+    fixtures_dir = pass_dir / "fixtures"
+    if not fixtures_dir.is_dir():
+        return []
+    return [
+        _doc_to_fixture(json.loads(path.read_text(encoding="utf-8")))
+        for path in sorted(fixtures_dir.glob("*.json"))
+    ]
+
+
+def read_eval_runs(snapshot_dir: Path) -> list[Snapshot]:
+    """Load each ``run-NN/`` pass of an ``eval --runs N`` directory as its own Snapshot.
+
+    :func:`read_eval_snapshot` reads ``run-01`` only; callers that want every
+    pass (e.g. ``compare`` on a multi-run eval) merge the returned list with
+    ``compare.merge_snapshots``. Every pass shares the directory's meta and has
+    no per-pass summary. A directory with no ``run-*`` subdirs yields the
+    single :func:`read_eval_snapshot` result.
+    """
+    base = read_eval_snapshot(snapshot_dir)
+    pass_dirs = sorted(p for p in snapshot_dir.glob("run-*") if p.is_dir())
+    if len(pass_dirs) <= 1:
+        return [base]
+    return [Snapshot(meta=base.meta, fixtures=tuple(_read_run_rows(p))) for p in pass_dirs]
+
+
+def backfill_expected(snapshot: Snapshot, fixtures: Mapping[str, Fixture]) -> Snapshot:
+    """Fill rows whose ``expected_*`` fields are all empty from the fixture YAML.
+
+    Live ``eval`` writes per-fixture docs via ``results_schemas`` without the
+    fixture's expectations, so rows read back from those directories carry
+    empty ``expected_*`` tuples and every loaded rule looks unexpected to
+    ``compare``/``suggest-kw``. Rows that already carry expectations (written by
+    :func:`write_eval_snapshot`) and rows with no matching fixture are unchanged.
+    """
+    rows = []
+    for row in snapshot.fixtures:
+        fixture = fixtures.get(row.fixture_id)
+        has_expected = (
+            row.expected_required
+            or row.expected_dependencies
+            or row.expected_optional
+            or row.expected_forbidden
+        )
+        if fixture is None or has_expected:
+            rows.append(row)
+            continue
+        rows.append(
+            replace(
+                row,
+                expected_required=tuple(fixture.required),
+                expected_dependencies=tuple(fixture.dependencies),
+                expected_optional=tuple(fixture.optional),
+                expected_forbidden=tuple(fixture.forbidden),
+            )
+        )
+    return replace(snapshot, fixtures=tuple(rows))
 
 
 def capture_meta(

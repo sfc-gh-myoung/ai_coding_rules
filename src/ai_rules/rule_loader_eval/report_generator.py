@@ -143,7 +143,7 @@ def _run_dir_entry(child: Path) -> tuple[str, str, str] | None:
     """Return ``(model, mode, ts)`` when ``child`` is a valid run directory.
 
     Valid means: name matches ``<model>_<N>x_<timestamp>``, a ``summary.json``
-    is present, and the model is not the ``auto`` artifact. Mode is read from
+    is present, and the model is not the implicit ``auto`` artifact. Mode is read from
     ``manifest.json`` (default ``"plugin"`` for legacy runs).
     """
     if not child.is_dir():
@@ -154,7 +154,8 @@ def _run_dir_entry(child: Path) -> tuple[str, str, str] | None:
     if not (child / "summary.json").exists():
         return None
     model = m.group("model")
-    # Skip 'auto' model artifacts: not a real model identifier
+    # Skip 'auto' model artifacts: the default, not a deliberate selection.
+    # Explicit routing modes (auto-intelligent, auto-efficient) are reported.
     if model == "auto":
         return None
     mode = "plugin"
@@ -1335,6 +1336,8 @@ def _build_sovereignty_insight(
 def _classify_family(model_name: str) -> str:
     """Classify a model display_key into its provider family."""
     lower = model_name.lower()
+    if lower.startswith("auto-"):
+        return "Auto"
     if "claude" in lower or "anthropic" in lower:
         return "Anthropic"
     if "gpt" in lower or "openai" in lower or "o1" in lower or "o3" in lower or "o4" in lower:

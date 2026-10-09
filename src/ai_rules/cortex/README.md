@@ -14,6 +14,7 @@ from ai_rules.cortex import (
     list_models,  # curated, validated model ids
     CortexResponse,  # frozen dataclass: text + request_id
     DEFAULT_MODEL,  # "claude-sonnet-4-5"
+    COCO_BENCHMARK_MODELS,  # current GA and preview Table 6(e) models
     KEYWORDS_SCHEMA,  # JSON schema for keyword extraction (structured outputs)
     SUPPORTED_MODELS,  # tuple of validated model ids
 )
@@ -94,6 +95,17 @@ complete("Hello, Cortex.")  # uses snowhouse_sso
 | `DEFAULT_MAX_RETRIES` | `3` |
 | `DEFAULT_BATCH_CHUNK_SIZE` | `20` |
 | `DEFAULT_TIMEOUT_SECONDS` | `30.0` |
+
+## Benchmark Model Catalog
+
+`COCO_BENCHMARK_MODELS` is the curated CoCo benchmark roster. It contains current
+GA and preview models listed in Snowflake Service Consumption Table 6(e), and excludes
+legacy and end-of-life models. Each entry stores input/output and cache AI-credit rates
+per million tokens. `SUPPORTED_MODELS` is derived from this catalog for compatibility.
+
+The catalog is a benchmark/discovery convenience, not a restriction on `complete()`.
+Use `SHOW CORTEX BASE MODELS` before a live run to confirm lifecycle and regional
+availability for the connected account.
 
 ## Module layout
 

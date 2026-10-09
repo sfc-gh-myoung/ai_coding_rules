@@ -127,6 +127,9 @@ class CompareReport:
     # Skill invocation counts (K/N fixtures invoked the rule-loader skill)
     baseline_skill_invocations: int = 0
     post_skill_invocations: int = 0
+    # Per-side means over shared fixtures, keyed by _MEAN_METRICS (same population as the deltas)
+    baseline_means: dict[str, float] = field(default_factory=dict)
+    post_means: dict[str, float] = field(default_factory=dict)
 
     @property
     def exit_code(self) -> int:
@@ -161,12 +164,38 @@ class CompareReport:
             "mean_output_tokens_delta": self.mean_output_tokens_delta,
             "mean_total_tokens_delta": self.mean_total_tokens_delta,
             "mean_total_cost_usd_delta": self.mean_total_cost_usd_delta,
+            "baseline_means": dict(self.baseline_means),
+            "post_means": dict(self.post_means),
             "regressions": [_delta_to_dict(d) for d in self.regressions],
             "improvements": [_delta_to_dict(d) for d in self.improvements],
             "drift_only": [_delta_to_dict(d) for d in self.drift_only],
             "manifest_regressions": [_delta_to_dict(d) for d in self.manifest_regressions],
             "deltas": [_delta_to_dict(d) for d in self.deltas],
         }
+
+
+# (FixtureSnapshot attribute, display label) for the before/after means columns.
+_MEAN_METRICS: tuple[tuple[str, str], ...] = (
+    ("turns", "mean turns"),
+    ("duration_ms", "mean duration ms"),
+    ("input_tokens", "mean input tokens"),
+    ("output_tokens", "mean output tokens"),
+    ("total_tokens", "mean total tokens"),
+)
+
+
+def _side_means(rows: list[FixtureSnapshot]) -> dict[str, float]:
+    """Mean of each _MEAN_METRICS attribute across ``rows`` (0.0 when empty).
+
+    ``total_tokens`` is derived as input + output because older fixture JSON
+    omits the stored field (it loads as 0).
+    """
+    n = len(rows) or 1
+
+    def value(r: FixtureSnapshot, attr: str) -> int:
+        return r.input_tokens + r.output_tokens if attr == "total_tokens" else getattr(r, attr)
+
+    return {attr: round(sum(value(r, attr) for r in rows) / n, 2) for attr, _ in _MEAN_METRICS}
 
 
 def _delta_to_dict(d: FixtureDelta) -> dict:
@@ -304,6 +333,8 @@ def compare_snapshots(
             1 for d in deltas if "rule-loader" in d.baseline.skill_invocations
         ),
         post_skill_invocations=sum(1 for d in deltas if "rule-loader" in d.post.skill_invocations),
+        baseline_means=_side_means([d.baseline for d in deltas]),
+        post_means=_side_means([d.post for d in deltas]),
     )
 
 
@@ -413,6 +444,11 @@ def render_table(report: CompareReport, *, verbose: bool = False) -> list[str]:
             f"tokens:     input {report.mean_input_tokens_delta:+,.0f}; "
             f"output {report.mean_output_tokens_delta:+,.0f} (means)"
         )
+    if report.baseline_means and report.post_means:
+        lines.append("means:      baseline -> post (delta)")
+        for attr, label in _MEAN_METRICS:
+            b, p = report.baseline_means.get(attr, 0.0), report.post_means.get(attr, 0.0)
+            lines.append(f"  {label:<20}{b:>14,.2f} -> {p:>14,.2f}  ({p - b:+,.2f})")
     n_total = len(report.deltas)
     has_invocation_data = any(d.post.skill_invocations for d in report.deltas)
     if has_invocation_data:
@@ -551,8 +587,9 @@ def render_markdown(report: CompareReport, *, verbose: bool = False) -> list[str
     )
     lines.append(f"| signal disagreements | - | - | {report.total_signal_disagreements_delta:+d} |")
     lines.append(f"| citation drifts | - | - | {report.total_citation_drifts_delta:+d} |")
-    lines.append(f"| mean turns | - | - | {report.mean_turns_delta:+.2f} |")
-    lines.append(f"| mean duration ms | - | - | {report.mean_duration_ms_delta:+.2f} |")
+    for attr, label in _MEAN_METRICS:
+        b, p = report.baseline_means.get(attr, 0.0), report.post_means.get(attr, 0.0)
+        lines.append(f"| {label} | {b:,.2f} | {p:,.2f} | {p - b:+,.2f} |")
 
     churn = _detect_universal_churn(report)
     if churn:

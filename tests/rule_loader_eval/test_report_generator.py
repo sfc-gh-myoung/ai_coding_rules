@@ -977,6 +977,8 @@ class TestClassifyFamily:
             ("o3-mini", "OpenAI"),
             ("gemini-3.1-pro", "Google"),
             ("glm-4-plus", "Zhipu"),
+            ("auto-intelligent", "Auto"),
+            ("auto-efficient", "Auto"),
             ("unknown-model-x", "Other"),
         ],
     )

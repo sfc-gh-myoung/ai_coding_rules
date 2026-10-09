@@ -12,6 +12,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+import yaml
 from typer.testing import CliRunner
 
 from ai_rules.cli import app
@@ -28,8 +29,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
 @pytest.fixture
-def valid_rule_content() -> str:
-    """A valid rule file that passes schema validation."""
+def legacy_rule_content() -> str:
+    """Pre-frontmatter content retained for explicit legacy rejection."""
     return """# 100-test-rule: Test Rule
 
 ## Metadata
@@ -138,6 +139,52 @@ def process(data):
 
 
 @pytest.fixture
+def valid_rule_content() -> str:
+    """Independent v4.0 content for successful rule validation."""
+    return """---
+schema_version: v4.0
+rule_version: v1.0.0
+last_updated: 2026-09-17
+keywords: [kw:test, kw:validation, kw:example, kw:sample, kw:demo]
+token_budget: ~500
+context_tier: Medium
+depends: {}
+---
+# 100-test-rule: Test Rule
+
+## Scope
+
+**What This Rule Covers:**
+Validate a synthetic rule without external dependencies.
+
+**When to Load This Rule:**
+- When testing rule validation.
+
+## Contract
+
+### Inputs and Prerequisites
+
+Use the synthetic input and active schema.
+
+### Mandatory
+
+Report each validation error.
+
+### Execution Steps
+
+1. Validate the input and collect diagnostics.
+
+### Validation
+
+Return success only when required checks pass.
+
+## References
+
+None.
+"""
+
+
+@pytest.fixture
 def invalid_rule_content() -> str:
     """A rule file with validation errors (missing required sections)."""
     return """# Invalid Rule
@@ -168,6 +215,7 @@ metadata:
       format: "**Keywords:**"
       severity: HIGH
       error_message: "Missing Keywords metadata field"
+      yaml_key: keywords
       min_items: 5
       max_items: 20
       fix_suggestion: "Add {needed} more keywords"
@@ -175,11 +223,13 @@ metadata:
       format: "**TokenBudget:**"
       severity: MEDIUM
       error_message: "Missing TokenBudget metadata field"
+      yaml_key: token_budget
       pattern: '^~[0-9]+$'
     - name: ContextTier
       format: "**ContextTier:**"
       severity: HIGH
       error_message: "Missing ContextTier metadata field"
+      yaml_key: context_tier
       allowed_values:
         - Critical
         - High
@@ -290,14 +340,15 @@ class TestValidateHappyPath:
         schemas_dir.mkdir()
 
         # Copy schema from project root
+        (schemas_dir / "rule-schema.yml").write_bytes(
+            (PROJECT_ROOT / "schemas/rule-schema.yml").read_bytes()
+        )
         monkeypatch.setattr(validate_module, "find_project_root", lambda: tmp_path)
 
         # Act
         result = runner.invoke(app, ["validate", str(rule_file)])
 
-        # Assert - may fail due to missing schema, but command should run
-        # Exit code depends on schema availability
-        assert result.exit_code in [0, 1]
+        assert result.exit_code == 0, result.output
 
     @pytest.mark.unit
     def test_validate_with_custom_schema(
@@ -321,7 +372,7 @@ class TestValidateHappyPath:
         result = runner.invoke(app, ["validate", str(rule_file), "--schema", str(minimal_schema)])
 
         # Assert
-        assert result.exit_code in [0, 1]  # Schema may have stricter requirements
+        assert result.exit_code == 0, result.output
 
 
 # ============================================================================
@@ -904,6 +955,56 @@ class TestCodeBlockTracker:
 class TestSchemaValidator:
     """Test SchemaValidator class methods."""
 
+    @pytest.mark.parametrize("unknown", ["enforce_positive_examples", "content_rulez"])
+    def test_unknown_top_level_schema_key_rejected(self, tmp_path: Path, unknown: str):
+        data = yaml.safe_load((PROJECT_ROOT / "schemas/rule-schema.yml").read_text())
+        data[unknown] = True
+        schema_path = tmp_path / "unsupported.yml"
+        schema_path.write_text(yaml.safe_dump(data))
+        with pytest.raises(ValueError, match=f"unsupported top-level keys: {unknown}"):
+            validate_module.SchemaValidator(schema_path=schema_path, project_root=tmp_path)
+
+    def test_manual_authoring_contract_is_not_enforcement(
+        self, tmp_path: Path, valid_rule_content: str
+    ):
+        data = yaml.safe_load((PROJECT_ROOT / "schemas/rule-schema.yml").read_text())
+        data["authoring_contract"] = {"arbitrary_manual_requirement": "not a parser check"}
+        schema_path = tmp_path / "manual.yml"
+        schema_path.write_text(yaml.safe_dump(data))
+        target = tmp_path / "100-test-rule.md"
+        target.write_text(valid_rule_content)
+        validator = validate_module.SchemaValidator(schema_path=schema_path, project_root=tmp_path)
+        assert validator.validate_file(target).is_clean
+
+    @pytest.mark.parametrize("line_count", [250, 251])
+    def test_rule_line_limit(self, tmp_path: Path, valid_rule_content: str, line_count: int):
+        target = tmp_path / "100-test-rule.md"
+        lines = valid_rule_content.splitlines()
+        target.write_text("\n".join([*lines, *(["More detail."] * (line_count - len(lines)))]))
+        result = validate_module.SchemaValidator(project_root=PROJECT_ROOT).validate_file(target)
+        size_errors = [
+            error for error in result.errors if "Rule exceeds 250 lines" in error.message
+        ]
+        assert bool(size_errors) == (line_count > 250)
+
+    @pytest.mark.parametrize("example_count", [3, 4])
+    def test_rule_fenced_example_limit(
+        self, tmp_path: Path, valid_rule_content: str, example_count: int
+    ):
+        target = tmp_path / "100-test-rule.md"
+        examples = "\n".join("```python\nprint('ok')\n```" for _ in range(example_count))
+        target.write_text(valid_rule_content + "\n## Examples\n" + examples + "\n")
+        result = validate_module.SchemaValidator(project_root=PROJECT_ROOT).validate_file(target)
+        example_errors = [error for error in result.errors if "fenced examples" in error.message]
+        assert bool(example_errors) == (example_count > 3)
+
+    def test_legacy_content_is_rejected(self, tmp_path: Path, legacy_rule_content: str):
+        target = tmp_path / "100-legacy.md"
+        target.write_text(legacy_rule_content)
+        result = validate_module.SchemaValidator(project_root=PROJECT_ROOT).validate_file(target)
+        assert result.has_critical_or_high
+        assert any(error.error_group == "Metadata" for error in result.errors)
+
     @pytest.mark.unit
     def test_normalize_section_name(self, tmp_path: Path, minimal_schema: Path):
         """Test section name normalization."""
@@ -1155,6 +1256,47 @@ link_validation:
 
 class TestValidateContract:
     """Test _validate_contract method."""
+
+    @pytest.mark.parametrize(
+        "name", ["Inputs and Prerequisites", "Mandatory", "Execution Steps", "Validation"]
+    )
+    @pytest.mark.parametrize("body", ["", "   \n\t", "<!-- hidden\ncomment -->"])
+    def test_empty_required_body_fails(
+        self, tmp_path: Path, name: str, body: str, valid_rule_content: str
+    ):
+        prefix, rest = valid_rule_content.split(f"### {name}\n", 1)
+        boundary = rest.find("\n##")
+        content = prefix + f"### {name}\n" + body + rest[boundary:]
+        target = tmp_path / "100-empty.md"
+        target.write_text(content)
+        result = validate_module.SchemaValidator(project_root=PROJECT_ROOT).validate_file(target)
+        failures = [error for error in result.errors if "must not be empty" in error.message]
+        assert len(failures) == 1
+        assert failures[0].message == f"Contract subsection must not be empty: {name}"
+        assert failures[0].severity == "HIGH"
+        assert result.has_critical_or_high
+
+    @pytest.mark.parametrize("fence", ["```", "~~~", "````"])
+    def test_heading_in_example_does_not_supply_subsection(self, tmp_path: Path, fence: str):
+        validator = validate_module.SchemaValidator(project_root=PROJECT_ROOT)
+        content = f"## Contract\n\n{fence}markdown\n### Mandatory\nDo something.\n{fence}\n"
+        result = validate_module.ValidationResult(file_path=tmp_path / "example.md")
+        validator._validate_contract(
+            content, content.split("\n"), result, validator.schema["content_rules"]["contract"]
+        )
+        assert any(
+            error.message == "Contract missing required subsection: Mandatory"
+            for error in result.errors
+        )
+
+    def test_non_empty_false_preserves_presence_only(self, tmp_path: Path, full_schema: Path):
+        validator = validate_module.SchemaValidator(schema_path=full_schema, project_root=tmp_path)
+        content = "## Contract\n\n### Mandatory\n\n### Forbidden\n"
+        result = validate_module.ValidationResult(file_path=tmp_path / "test.md")
+        validator._validate_contract(
+            content, content.split("\n"), result, validator.schema["content_rules"]["contract"]
+        )
+        assert result.is_clean
 
     @pytest.mark.unit
     def test_contract_with_required_subsections(self, tmp_path: Path, full_schema: Path):

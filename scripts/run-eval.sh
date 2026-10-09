@@ -14,22 +14,33 @@ readonly RETRY_INFRA=2
 readonly CONCURRENCY=3
 
 readonly MODELS=(
-  claude-sonnet-4-5
-  claude-sonnet-4-6
-  claude-sonnet-5
-  claude-opus-4-5
-  claude-opus-4-6
-  claude-opus-4-7
-  claude-opus-4-8
+  auto-intelligent
+  auto-efficient
+  openai-gpt-6-astra
+  claude-opus-5-5
+  openai-gpt-6-sol
   claude-opus-5
-  openai-gpt-5.2
-  openai-gpt-5.4
-  openai-gpt-5.5
+  claude-opus-4-8
+  claude-opus-4-7
+  claude-opus-4-6
+  claude-opus-4-5
+  claude-sonnet-5
+  claude-sonnet-4-6
+  claude-sonnet-4-5
   openai-gpt-5.6-sol
+  openai-gpt-5.5
+  openai-gpt-5.4
+  openai-gpt-5.2
+  gemini-3.1-pro
+  gemini-3.8-flash
+  openai-gpt-6-luna
+  kimi-k3
+  deepseek-v4-flash
+  glm-5.2
   openai-gpt-5.6-terra
   openai-gpt-5.6-luna
-  gemini-3.1-pro
-  glm-5.2
+  grok-4.6
+  gemini-3.7-flash
 )
 
 show_usage() {

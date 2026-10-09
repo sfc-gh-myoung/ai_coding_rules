@@ -1,4 +1,4 @@
-"""Generate rule file templates compliant with v3.5 schema.
+"""Generate rule file templates compliant with v4.0 schema.
 
 This module provides the `ai-rules new` command to create new rule files
 with all required sections and placeholders, making it easier for users
@@ -19,11 +19,11 @@ app = typer.Typer(help="Create new rule file templates.")
 
 
 class TemplateGenerator:
-    """Generate v3.5 compliant rule file templates."""
+    """Generate v4.0 compliant rule file templates."""
 
     # YAML frontmatter + Markdown body; {keywords_yaml} is pre-indented YAML list lines.
     TEMPLATE = """---
-schema_version: v3.5
+schema_version: v4.0
 rule_version: v1.0.0
 last_updated: {last_updated}
 keywords:
@@ -42,153 +42,33 @@ depends:
 [1-2 sentence description of what this rule accomplishes and why it matters]
 
 **When to Load This Rule:**
-- [Context 1 when this rule should be loaded]
-- [Context 2 when this rule should be loaded]
-- [Context 3 when this rule should be loaded]
-
-## References
-
-### External Documentation
-
-**Official Documentation:**
-- [Link description](https://example.com) - Brief explanation of resource
-
-**Best Practices Guides:**
-- [Link description](https://example.com) - Brief explanation of resource
+- [Task or condition that requires this rule; state exclusions here]
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- [What the agent needs to have/know before starting this task]
-- [Required environment, tools, or access]
-- [Expected initial state]
+- [Required inputs, tools, permissions, and expected initial state]
 
 ### Mandatory
 
-- [Required tools, libraries, permissions, access]
-- [Must-follow patterns or conventions]
-- [Critical requirements that cannot be skipped]
-
-### Forbidden
-
-- [Prohibited actions, tools, or approaches]
-- [Anti-patterns to avoid]
-- [Security or safety restrictions]
+- [Task-specific condition, required action, and observable result]
+- [Authorization or safety boundary not already owned by a required dependency]
 
 ### Execution Steps
 
-1. [First required step]
-2. [Second required step]
-3. [Third required step]
-4. [Fourth required step]
-5. [Fifth required step]
-
-### Output Format
-
-[Description of expected output format (file type, structure, content)]
-
-```bash
-# Example command
-[command here]
-
-# Expected output:
-[output here]
-```
-
-```[language]
-# Example code output
-[code example here]
-```
+1. [Required action and its prerequisite; add steps only when order matters]
+2. [Verification action; name the fallback or escalation if the result is uncertain]
 
 ### Validation
 
-**Pre-Task-Completion Validation Gate (CRITICAL):**
+- [ ] [Exact check command, expected result, and evidence required for completion]
+- [ ] [Required output shape and treatment of failed or unverified checks]
 
-Reference: Complete validation protocol in `000-global-core.md`
+## References
 
-**CRITICAL:** Before marking any task as complete, ALL of the following checks MUST pass:
-
-**Code Quality:**
-- **CRITICAL:** [Validation command 1] - Must pass with zero errors
-- **CRITICAL:** [Validation command 2] - Must pass with zero errors
-
-**Success Criteria:**
-- [How to verify rule compliance]
-- [Specific commands or tools to run]
-- [Expected outcomes]
-
-**Investigation Required:**
-1. [What to check before making recommendations]
-2. [How to verify project structure]
-3. [What patterns to look for]
-
-### Post-Execution Checklist
-
-**Before Starting:**
-- [ ] Rule dependencies loaded (000-global-core.md)
-- [ ] [First prerequisite check]
-- [ ] [Second prerequisite check]
-
-**After Completion:**
-- [ ] **CRITICAL:** [First verification item]
-- [ ] **CRITICAL:** [Second verification item]
-- [ ] [Third verification item]
-- [ ] [Fourth verification item]
-- [ ] [Fifth verification item]
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: [Name of anti-pattern]
-
-```[language]
-# Bad: [Code example showing the wrong way]
-[code here]
-```
-
-**Problem:** [Explanation of why this is problematic]
-
-**Correct Pattern:**
-```[language]
-# Good: [Code example showing the right way]
-[code here]
-```
-
-**Benefits:** [Explanation of why the correct pattern is better]
-
-### Anti-Pattern 2: [Name of anti-pattern]
-
-```[language]
-# Bad: [Code example showing the wrong way]
-[code here]
-```
-
-**Problem:** [Explanation of why this is problematic]
-
-**Correct Pattern:**
-```[language]
-# Good: [Code example showing the right way]
-[code here]
-```
-
-**Benefits:** [Explanation of why the correct pattern is better]
-
-### Anti-Pattern 3: [Name of anti-pattern]
-
-```[language]
-# Bad: [Code example showing the wrong way]
-[code here]
-```
-
-**Problem:** [Explanation of why this is problematic]
-
-**Correct Pattern:**
-```[language]
-# Good: [Code example showing the right way]
-[code here]
-```
-
-**Benefits:** [Explanation of why the correct pattern is better]
+- `000-global-core.md`: shared validation and surgical-edit protocol.
+- [Replace with focused primary sources for external claims, or state None]
 """
 
     # Numbering ranges and their default keywords
@@ -265,7 +145,7 @@ Reference: Complete validation protocol in `000-global-core.md`
             slug: Rule slug (e.g., "snowflake-sql")
 
         Returns:
-            Comma-separated keyword string (5-11 keywords per v3.5 schema)
+            Comma-separated keyword string (5-11 keywords per v4.0 schema)
         """
         # Find matching range
         range_keywords = ""
@@ -287,7 +167,7 @@ Reference: Complete validation protocol in `000-global-core.md`
         keyword_list = [kw.strip() for kw in all_keywords.split(",")]
         keyword_list = list(dict.fromkeys(keyword_list))  # Remove duplicates, preserve order
 
-        # Ensure we have 5-11 keywords (v3.5 schema requirement)
+        # Ensure we have 5-11 keywords (v4.0 schema requirement)
         if len(keyword_list) < 5:
             # Add filler keywords
             fillers = [
@@ -299,7 +179,7 @@ Reference: Complete validation protocol in `000-global-core.md`
             ]
             keyword_list.extend(fillers[: 5 - len(keyword_list)])
 
-        keyword_list = keyword_list[:20]  # Cap at 20
+        keyword_list = keyword_list[:11]
 
         return ", ".join(keyword_list)
 
@@ -331,9 +211,9 @@ Reference: Complete validation protocol in `000-global-core.md`
         if keywords is None:
             keywords = cls.get_default_keywords(number, slug)
         else:
-            # Validate keyword count (v3.2: 5-11 keywords)
+            # Validate keyword count (v4.0: 5-11 keywords)
             keyword_list = [kw.strip() for kw in keywords.split(",")]
-            if len(keyword_list) < 5 or len(keyword_list) > 20:
+            if len(keyword_list) < 5 or len(keyword_list) > 11:
                 raise ValueError(f"Keywords must contain 5-11 terms, got {len(keyword_list)}")
 
         # Get current date in UTC for LastUpdated field
@@ -462,7 +342,7 @@ def new(
         typer.Option(
             "--keywords",
             "-k",
-            help="Custom comma-separated keywords (5-11 terms per v3.5 schema).",
+            help="Custom comma-separated keywords (5-11 terms per v4.0 schema).",
         ),
     ] = None,
     force: Annotated[
@@ -474,7 +354,7 @@ def new(
         ),
     ] = False,
 ) -> None:
-    """Create a new rule file from a v3.5 compliant template.
+    """Create a new rule file from a v4.0 compliant template.
 
     Examples:
         # Create a Snowflake rule
@@ -483,7 +363,7 @@ def new(
         # Create a Python rule with custom tier
         ai-rules new 200-python-example --context-tier High
 
-        # Create a rule with custom keywords (5-11 terms per v3.5 schema)
+        # Create a rule with custom keywords (5-11 terms per v4.0 schema)
         ai-rules new 300-react-hooks --keywords "react, hooks, state, effects, custom hooks, lifecycle, functional components, useState, useEffect, optimization"
 
         # Overwrite existing file

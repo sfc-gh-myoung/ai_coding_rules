@@ -1,4 +1,4 @@
-"""Track B CI gates: v3.5 frontmatter roundtrip, depends parity.
+"""Track B CI gates: v4.0 frontmatter roundtrip, depends parity.
 
 Tests here cover the Track B migration validation gates that remain valid
 under hook-based rule discovery, after the legacy standalone rule index was
@@ -20,7 +20,7 @@ FULL_REPORT = REPO_ROOT / ".workbench" / "results" / "full_migration_report.json
 
 
 def _iter_frontmatter_rules() -> list[Path]:
-    """Return rules that use YAML frontmatter (v3.5)."""
+    """Return rules that use YAML frontmatter."""
     out: list[Path] = []
     for p in sorted(RULES_DIR.glob("*.md")):
         first = p.read_text(encoding="utf-8").split("\n", 1)[0]
@@ -42,7 +42,7 @@ def test_frontmatter_roundtrip_all_migrated_rules() -> None:
         "depends",
     }
     files = _iter_frontmatter_rules()
-    assert files, "expected at least one migrated (v3.5 frontmatter) rule"
+    assert files, "expected at least one migrated (frontmatter) rule"
     for path in files:
         text = path.read_text(encoding="utf-8")
         block = text.split("---", 2)[1]
@@ -50,8 +50,8 @@ def test_frontmatter_roundtrip_all_migrated_rules() -> None:
         assert isinstance(data, dict), f"{path.name}: frontmatter is not a mapping"
         missing = required_keys - set(data.keys())
         assert not missing, f"{path.name}: missing frontmatter keys {missing}"
-        assert str(data["schema_version"]).strip() == "v3.5", (
-            f"{path.name}: schema_version={data['schema_version']!r} (expected v3.5)"
+        assert str(data["schema_version"]).strip() == "v4.0", (
+            f"{path.name}: schema_version={data['schema_version']!r} (expected v4.0)"
         )
 
 

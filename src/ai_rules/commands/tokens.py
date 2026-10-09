@@ -19,6 +19,7 @@ from typing import Annotated
 
 import tiktoken
 import typer
+import yaml
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
@@ -42,7 +43,7 @@ class TokenBudgetAnalysis:
         """Get status string for display."""
         if self.error:
             return "ERROR"
-        elif not self.current_budget:
+        elif self.current_budget is None:
             return "MISSING"
         elif not self.needs_update:
             return "OK"
@@ -97,6 +98,42 @@ class TokenBudgetUpdater:
         """
         return int(round(value / self.config.rounding_increment) * self.config.rounding_increment)
 
+    @staticmethod
+    def _frontmatter_budget(content: str) -> tuple[int | None, int, int, str] | None:
+        """Locate a YAML budget scalar without reserializing unrelated metadata."""
+        lines = content.splitlines(keepends=True)
+        if not lines or lines[0].strip() != "---":
+            return None
+        closing = next(
+            (index for index in range(1, len(lines)) if lines[index].strip() == "---"), None
+        )
+        if closing is None:
+            raise ValueError("Unclosed YAML frontmatter")
+        block = "".join(lines[1:closing])
+        node = yaml.compose(block, Loader=yaml.SafeLoader)
+        if not isinstance(node, yaml.MappingNode):
+            raise ValueError("Frontmatter must be a YAML mapping")
+        if node.flow_style:
+            raise ValueError("Frontmatter must use a block mapping")
+        keys = [key.value for key, _ in node.value if isinstance(key, yaml.ScalarNode)]
+        if len(keys) != len(node.value) or len(keys) != len(set(keys)):
+            raise ValueError("Frontmatter keys must be unique scalars")
+        for key, value in node.value:
+            if key.value != "token_budget":
+                continue
+            if not isinstance(value, yaml.ScalarNode) or not re.fullmatch(r"~\d+", value.value):
+                raise ValueError("token_budget must be a scalar in ~NUMBER format")
+            start = len(lines[0]) + value.start_mark.index
+            end = len(lines[0]) + value.end_mark.index
+            raw = content[start:end]
+            if raw != value.value and raw not in (f"'{value.value}'", f'"{value.value}"'):
+                raise ValueError("token_budget must be a plain or quoted scalar without anchors")
+            if value.start_mark.index < key.end_mark.index:
+                raise ValueError("token_budget aliases are not supported")
+            return int(value.value[1:]), start, end, value.style or ""
+        offset = len(lines[0]) + len(block)
+        return None, offset, offset, ""
+
     def analyze_file(self, file_path: Path) -> TokenBudgetAnalysis:
         """Analyze a single file's token budget.
 
@@ -119,9 +156,15 @@ class TokenBudgetUpdater:
                 error=f"Failed to read file: {e}",
             )
 
-        # Extract current TokenBudget
-        token_match = re.search(r"^\*\*TokenBudget:\*\*\s*~?(\d+)", content, re.MULTILINE)
-        current_budget = int(token_match.group(1)) if token_match else None
+        try:
+            frontmatter = self._frontmatter_budget(content)
+        except (ValueError, yaml.YAMLError) as error:
+            return TokenBudgetAnalysis(file_path, None, 0, 0, None, False, str(error))
+        if frontmatter is not None:
+            current_budget = frontmatter[0]
+        else:
+            token_match = re.search(r"^\*\*TokenBudget:\*\*\s*~?(\d+)", content, re.MULTILINE)
+            current_budget = int(token_match.group(1)) if token_match else None
 
         # Calculate estimates
         estimated = self.estimate_tokens(content)
@@ -153,16 +196,26 @@ class TokenBudgetUpdater:
         Returns:
             True if file was updated, False otherwise
         """
-        if not analysis.needs_update:
+        if analysis.error or not analysis.needs_update:
             return False
 
         if self.config.dry_run:
             return True
 
         try:
-            content = analysis.file_path.read_text(encoding="utf-8")
+            content = analysis.file_path.read_bytes().decode("utf-8")
+            frontmatter = self._frontmatter_budget(content)
 
-            if analysis.current_budget:
+            if frontmatter is not None:
+                current, start, end, quote = frontmatter
+                if current != analysis.current_budget:
+                    raise ValueError("Token budget changed since analysis")
+                replacement = f"{quote}~{analysis.suggested_budget}{quote}"
+                if current is None:
+                    newline = "\r\n" if content.startswith("---\r\n") else "\n"
+                    replacement = f"token_budget: ~{analysis.suggested_budget}{newline}"
+                new_content = content[:start] + replacement + content[end:]
+            elif analysis.current_budget:
                 # Replace existing budget
                 old_line = f"**TokenBudget:** ~{analysis.current_budget}"
                 new_line = f"**TokenBudget:** ~{analysis.suggested_budget}"
@@ -174,7 +227,7 @@ class TokenBudgetUpdater:
                 new_content = re.sub(keywords_pattern, replacement, content, flags=re.MULTILINE)
 
             if new_content != content:
-                analysis.file_path.write_text(new_content, encoding="utf-8")
+                analysis.file_path.write_bytes(new_content.encode("utf-8"))
                 return True
             else:
                 return False

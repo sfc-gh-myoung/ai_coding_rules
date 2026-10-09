@@ -1,10 +1,11 @@
 """Tests for the ai-rules new command.
-Validates that the CLI command creates v3.2 schema compliant rule templates.
+Validates that the CLI command creates v4.0 schema compliant rule templates.
 """
 
 from pathlib import Path
 
 import pytest
+import yaml
 from typer.testing import CliRunner
 
 from ai_rules.cli import app
@@ -39,16 +40,20 @@ class TestNewCommandHappyPath:
         # Verify content
         content = output_path.read_text()
         assert "# 100-test-rule" in content
-        assert "schema_version: v3.5" in content
+        assert "schema_version: v4.0" in content
 
         assert "context_tier: Medium" in content  # Default tier
-        # v3.5 required sections (YAML frontmatter + Markdown body)
+        # v4.0 required sections (YAML frontmatter + Markdown body)
         assert "## Scope" in content
         assert "**What This Rule Covers:**" in content
         assert "**When to Load This Rule:**" in content
         assert "## References" in content
         assert "depends:" in content
-        assert "### External Documentation" in content
+        assert (
+            content.index("## Scope")
+            < content.index("## Contract")
+            < content.index("## References")
+        )
 
     def test_create_rule_with_letter_suffix(self, tmp_path: Path):
         """Test creating a rule file with letter suffix (e.g., 111a-example)."""
@@ -248,16 +253,15 @@ class TestNewCommandTemplateContent:
     """Test generated template content."""
 
     def test_template_has_required_sections(self, tmp_path: Path):
-        """Test that generated template has all required v3.5 sections."""
+        """Test that generated template has all required v4.0 sections."""
         result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
         assert result.exit_code == 0
         content = (tmp_path / "100-test-rule.md").read_text()
         required_sections = [
-            "schema_version: v3.5",
+            "schema_version: v4.0",
             "## Scope",
             "## References",
             "## Contract",
-            "## Anti-Patterns and Common Mistakes",
         ]
         for section in required_sections:
             assert section in content, f"Missing required section: {section}"
@@ -270,25 +274,57 @@ class TestNewCommandTemplateContent:
         contract_subsections = [
             "### Inputs and Prerequisites",
             "### Mandatory",
-            "### Forbidden",
             "### Execution Steps",
-            "### Output Format",
             "### Validation",
-            "### Post-Execution Checklist",
         ]
         for subsection in contract_subsections:
             assert subsection in content, f"Missing Contract subsection: {subsection}"
 
     def test_template_keyword_count(self, tmp_path: Path):
-        """Test that auto-generated keywords meet 5-20 count requirement."""
-        import re
-
+        """Test that auto-generated keywords meet the schema count requirement."""
         result = runner.invoke(app, ["new", "200-test-keywords", "--output-dir", str(tmp_path)])
         assert result.exit_code == 0
         content = (tmp_path / "200-test-keywords.md").read_text()
-        # Extract keywords from YAML list (each line: "  - kw:term")
-        yaml_kw_lines = re.findall(r"  - (.+)", content)
-        assert 5 <= len(yaml_kw_lines) <= 20
+        metadata = yaml.safe_load(content.split("---", 2)[1])
+        assert 5 <= len(metadata["keywords"]) <= 11
+
+    def test_template_omits_optional_padding(self, tmp_path: Path):
+        result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
+        assert result.exit_code == 0
+        content = (tmp_path / "100-test-rule.md").read_text()
+        for heading in (
+            "Post-Execution Checklist",
+            "Anti-Patterns",
+            "### Forbidden",
+            "### Output Format",
+        ):
+            assert heading not in content
+        contract = content.split("## Contract\n", 1)[1].split("## References\n", 1)[0]
+        sections = contract.split("### ")[1:]
+        assert len(sections) == 4
+        assert all(section.partition("\n")[2].strip() for section in sections)
+
+    def test_generated_template_passes_active_validator(self, tmp_path: Path):
+        result = runner.invoke(app, ["new", "100-test-rule", "--output-dir", str(tmp_path)])
+        assert result.exit_code == 0
+        validation = runner.invoke(app, ["validate", str(tmp_path / "100-test-rule.md")])
+        assert validation.exit_code == 0, validation.output
+
+    @pytest.mark.parametrize("count", [11, 12])
+    def test_custom_keyword_upper_boundary(self, tmp_path: Path, count: int):
+        keywords = ", ".join(f"keyword{index}" for index in range(count))
+        result = runner.invoke(
+            app, ["new", "100-test-rule", "--output-dir", str(tmp_path), "--keywords", keywords]
+        )
+        assert result.exit_code == (0 if count == 11 else 1)
+        assert (tmp_path / "100-test-rule.md").exists() == (count == 11)
+
+    def test_long_slug_keyword_count(self, tmp_path: Path):
+        filename = "100-one-two-three-four-five-six-seven-eight-nine-ten-eleven-twelve"
+        result = runner.invoke(app, ["new", filename, "--output-dir", str(tmp_path)])
+        assert result.exit_code == 0
+        content = (tmp_path / f"{filename}.md").read_text()
+        assert len(yaml.safe_load(content.split("---", 2)[1])["keywords"]) == 11
 
 
 class TestTemplateGeneratorDirect:

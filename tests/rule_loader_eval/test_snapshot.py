@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 import pytest
@@ -10,9 +11,12 @@ import pytest
 from ai_rules.rule_loader_eval.snapshot import (
     SNAPSHOT_SCHEMA_VERSION,
     FixtureSnapshot,
+    Snapshot,
     SnapshotMeta,
+    backfill_expected,
     capture_meta,
     compute_summary,
+    read_eval_runs,
     read_eval_snapshot,
     serialize_run_result,
     write_eval_snapshot,
@@ -454,3 +458,70 @@ def test_write_snapshot_pass_rate_excludes_model_skipped(tmp_path: Path) -> None
     assert pass_summary["model_skipped"] == 1
     assert pass_summary["failed"] == 0
     assert "s" not in pass_summary["failures"]
+
+
+def _fixture(fixture_id: str, *, required: tuple[str, ...], optional: tuple[str, ...] = ()):
+    from ai_rules.rule_loader_eval.fixtures import Fixture, TriggerEvidence
+
+    return Fixture(
+        path=Path("<synthetic>"),
+        schema_version=1,
+        updated="2026-10-08T00:00:00+00:00",
+        id=fixture_id,
+        description="d",
+        variant="simple",
+        prompt="p",
+        required=required,
+        dependencies=(),
+        forbidden=(),
+        optional=optional,
+        trigger_evidence=TriggerEvidence(),
+    )
+
+
+def _meta() -> SnapshotMeta:
+    return SnapshotMeta(schema_version=SNAPSHOT_SCHEMA_VERSION, captured_at="2026-10-08T00:00:00Z")
+
+
+def test_read_eval_runs_returns_every_pass(tmp_path: Path) -> None:
+    """A run-01 + run-02 directory yields one Snapshot per pass, not run-01 only."""
+    write_eval_snapshot(tmp_path / "multi", [_row("fx", passed=True)], _meta())
+    write_eval_snapshot(tmp_path / "second", [_row("fx", passed=False)], _meta())
+    shutil.copytree(tmp_path / "second" / "run-01", tmp_path / "multi" / "run-02")
+
+    runs = read_eval_runs(tmp_path / "multi")
+
+    assert [s.fixtures[0].passed for s in runs] == [True, False]
+
+
+def test_read_eval_runs_single_pass_matches_read_eval_snapshot(tmp_path: Path) -> None:
+    write_eval_snapshot(tmp_path, [_row("fx")], _meta())
+
+    assert read_eval_runs(tmp_path) == [read_eval_snapshot(tmp_path)]
+
+
+def test_backfill_expected_restores_expectations_missing_from_eval_docs(tmp_path: Path) -> None:
+    """Live eval docs carry no snapshot_extras; backfill restores expectations from fixtures."""
+    write_eval_snapshot(tmp_path, [_row("fx", loaded=("rules/b.md",))], _meta())
+    doc_path = tmp_path / "run-01" / "fixtures" / "fx.json"
+    doc = json.loads(doc_path.read_text(encoding="utf-8"))
+    del doc["snapshot_extras"]
+    doc_path.write_text(json.dumps(doc), encoding="utf-8")
+    snap = read_eval_snapshot(tmp_path)
+    assert snap.fixtures[0].expected_optional == ()
+
+    filled = backfill_expected(
+        snap, {"fx": _fixture("fx", required=("rules/a.md",), optional=("rules/b.md",))}
+    )
+
+    assert filled.fixtures[0].expected_required == ("rules/a.md",)
+    assert filled.fixtures[0].expected_optional == ("rules/b.md",)
+
+
+def test_backfill_expected_keeps_rows_that_already_have_expectations() -> None:
+    row = _row("fx")  # expected_required already set
+    snap = Snapshot(meta=_meta(), fixtures=(row,))
+
+    filled = backfill_expected(snap, {"fx": _fixture("fx", required=("rules/other.md",))})
+
+    assert filled.fixtures == (row,)

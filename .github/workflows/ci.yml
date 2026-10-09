@@ -33,7 +33,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --all-groups
+        run: task env:sync
 
       - name: Run lint
         run: task quality:lint
@@ -66,7 +66,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --all-groups
+        run: task env:sync
 
       - name: Lint markdown
         run: task quality:markdown
@@ -74,6 +74,8 @@ jobs:
   # Job 3: Tests with Python Matrix (parallel)
   test:
     runs-on: ubuntu-latest
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
     strategy:
       matrix:
         python-version: ['3.12', '3.13']
@@ -96,7 +98,7 @@ jobs:
         run: uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --all-groups
+        run: task env:sync
 
       - name: Run tests
         run: task test:run
@@ -122,7 +124,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --all-groups
+        run: task env:sync
 
       - name: Enforce coverage threshold
         run: task test:coverage
@@ -149,22 +151,13 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --all-groups
+        run: task env:sync
 
-      - name: Validate rule schemas
-        run: uv run ai-rules validate rules/
+      - name: Validate schemas
+        run: task validate:schemas
 
-      - name: Validate skill schemas
-        run: uv run ai-rules validate-skills skills/
-
-      - name: Validate rule loader fixtures
-        run: uv run ai-rules rule-loader validate
-
-      - name: Audit corpus trigger reachability
-        run: uv run ai-rules rule-loader audit --fail-on-miss
-
-      - name: Validate trigger-count contract
-        run: uv run ai-rules rule-loader validate-trigger-contract
+      - name: Validate rule loader contracts
+        run: task validate:rule-loader
 
       - name: Verify plugin replicas and build fidelity
         # Manifest-driven, so this step cannot fall behind the copy set. The
@@ -177,3 +170,27 @@ jobs:
         # src/ai_rules/plugin/replicas.py, which is also what `task plugin:verify`
         # runs locally, so local and CI enforce the same contract.
         run: task plugin:verify
+
+  automation:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        task-version: ['3.45.0', '3.53.1']
+    steps:
+      - uses: actions/checkout@v5
+      - uses: arduino/setup-task@v2
+        with:
+          version: ${{ matrix.task-version }}
+      - uses: astral-sh/setup-uv@v8.0.0
+        with:
+          python-version: '3.12'
+      - name: Install shell checks on Linux
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y shellcheck shfmt
+      - name: Install shell checks on macOS
+        if: runner.os == 'macOS'
+        run: brew install shellcheck shfmt
+      - run: task env:sync
+      - run: task quality:automation
+      - run: task test:automation

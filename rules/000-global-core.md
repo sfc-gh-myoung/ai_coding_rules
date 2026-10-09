@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v4.1.0
+schema_version: v4.0
+rule_version: v5.0.0
 description: "Foundational operating contract: PRE-FLIGHT gates, surgical edits, validation sequences, and communication standards for all AI agents."
-last_updated: 2026-07-27
+last_updated: 2026-10-06
 keywords:
   - kw:surgical edits
   - kw:pre-flight gates
@@ -11,7 +11,7 @@ keywords:
   - kw:foundation operating contract
   - kw:task list confirmation
   - kw:pytest
-token_budget: ~2550
+token_budget: ~1600
 context_tier: Critical
 depends:
   optional:
@@ -23,242 +23,107 @@ depends:
 
 > **CRITICAL: DO NOT SUMMARIZE THIS FILE**
 >
-> This is the foundation rule that defines core patterns for ALL agents. Required
-> for every response. If context limits are reached, preserve this file completely.
-> Summarize task history or other files first - this foundation must remain accessible.
+> Foundation rule for ALL agents. Preserve this file before summarizing task history.
+> If context limits are reached, summarize old turns first; never drop this rule while working.
 
 ## Scope
 
 **What This Rule Covers:**
-Foundational operating contract for all AI coding assistants, ensuring reliable, safe, and consistent workflows through validation protocols, surgical editing principles, and professional communication standards.
+Foundational operating contract for all AI coding agents: PRE-FLIGHT gates, surgical editing, validation sequences, context-window management, and professional communication standards.
 
 **When to Load This Rule:**
-- **ALWAYS** - This is the foundation rule loaded by all agents for every response
-- Establishes validation requirements
-- Sets professional communication standards
-- Guides context window management
-- Defines surgical editing principles
+- **ALWAYS** — loaded for every agent response
+- Establishes validation requirements, surgical editing principles, and communication standards
+- Guides context window management and language-rule loading
 
-> **Note:** This rule defines operational behavior: validation commands, surgical edits,
-> communication standards, and context management.
-> The plugin hook provides per-turn rule discovery automatically.
-
-## References
-
-### External Documentation
-
-**Best Practices Guides:**
-- [Claude Documentation](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview) - Prompt engineering techniques
-- [Technical Writing Standards](https://developers.google.com/tech-writing) - Professional documentation
-- [Conventional Commits](https://www.conventionalcommits.org/) - Standardized commit messages
+**Context preservation priority (when approaching context limits):**
+1. Always preserve: injected foundation, `000-global-core.md`, active domain `-core.md`
+2. Summarize first: old conversation turns, analyzed files no longer needed, lookup-only reference rules
+3. Never summarize or drop `000-global-core.md` or the injected foundation while working
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Project workspace access
-- **Permissions:** File read/write access, shell command execution, tool invocation within workspace scope
-- Tool availability (read_file, list_dir, grep, and project-specific tools (as defined in Taskfile.yml, Makefile, or package.json scripts)). If tool discovery fails, list available tools and ask user for guidance.
-- Up-to-date rule files (from current branch HEAD)
-- User requirements
+- Project workspace with file read/write access and shell execution
+- Tool availability: `read_file`, `list_dir`, `grep`, project automation (Taskfile.yml, Makefile, package.json)
+- Rule files from current branch HEAD; user requirements
 
-**Edge Cases:**
-- If user request is empty or unclear: Ask for clarification before proceeding
-- If no rules match from the discovery manifest: Proceed with foundation rule only, note "No domain rules matched" under Gate 3
-- If no files require validation (e.g., documentation-only change): Skip validation sequence, note "No code changes to validate"
-- If a rule has already been loaded in this session: Skip re-loading, note "already loaded" under Gate 3
+**Edge cases:**
+- Empty or unclear request: ask for clarification before proceeding
+- No rules matched by discovery manifest: proceed with foundation only; note "No domain rules matched" under Gate 3
+- Rule already loaded this session: skip re-loading; note "already loaded" under Gate 3
+- File ownership conflict (permission denied or parallel-agent lock): report the conflict with the file path and offer options — (A) wait and retry, (B) proceed with read-only context, (C) cancel
 
 ### Mandatory
 
-- **Rules read:** Read all matched rules before applying them
-- **Task list:** Present task list before any modifications
-- **Validation:** Run language-specific validation (see Validation Command Reference) before marking complete
-- **Surgical edits:** Make minimal, targeted changes only
+- **Rules read:** read all matched rules via `read_file` before applying them; a rule declared loaded when `read_file` failed is a CRITICAL violation — stop, remove the false declaration, report to user with options: (A) provide correct path, (B) proceed without rule, (C) cancel
+- **Task list:** present a task list for user confirmation before any modifications
+- **Surgical edits:** make only minimal, targeted changes; preserve existing style, indentation, naming, and import ordering of surrounding code
+- **Tool authority:** an exposed tool is not permission to call it. Apply the current task's operation and path allowlist before every call; read-only design permits supplied-file reads, not state inspection, checks or writes unless specifically authorized. A denial is a failed attempt, not permission to try another route.
+- **Confined workflows:** Generic language/skill-loading requirements do not authorize a forbidden skill, agent, shell or network call. When the task explicitly allows only named in-process tools, use those tools and supplied rule reads; report any unavailable workflow rather than invoking it. SQL in a read-only proposal is not permission to call a SQL-authoring skill outside that allowlist.
+- **Design-only boundary:** when instructed to inspect supplied files and propose a design, use file reads only. Do not call `inspect_state` to discover target ownership or availability; report that state unverified. Reserve recovery-state inspection for explicitly authorized interrupted-write recovery, never ordinary design.
+- **Language rules:** load the domain rule when modifying files or running language-specific tools
+  - MUST load: modifying `.py`/`.sql`/`.sh`/`.go` files, running language tools (pytest, ruff, shellcheck), making code recommendations
+  - MAY skip: reading for context only, language-agnostic operations (git, file moves, directory listing)
+  - Cap: at most 3 domain/activity rules per response; `required:` closure counts separately and is never deferred for token pressure
+- **Version fields:** when editing `rules/` files, increment `rule_version` (semantic versioning per `002b-rule-update.md`) and set `last_updated` to current date (YYYY-MM-DD); update `LastUpdated:`/`**Last Updated:**` in any other edited file similarly
+- **Professional tone:** senior-engineer style, concise, code-first; no emojis unless explicitly requested
 
 ### Forbidden
 
-- **File modifications without presenting task list:** Always present a task list before making changes
-- **False rule declaration:** Never declare rule as loaded when `read_file` failed
+- **False rule declaration:** never declare a rule loaded when `read_file` failed
+- **Broad rollback:** never overwrite staged, unrelated, or concurrent edits, including within a file this task modified; recover only verified task-owned changes
+- **Skip validation:** never skip validation (lint, format, test) because a change appears documentation-only — run well-formedness checks (markdown lint, link check) before marking complete
+- **Modifications without task list:** always present task list before making any file changes
 
 ### Execution Steps
 
-1. Read all matched rules before applying them
+1. Read all matched rules via `read_file` before applying them
 2. Present clear task list for user confirmation
-3. Perform surgical edits (see Mandatory section above)
-4. Validate changes immediately (lint, test, format)
-5. Update documentation files that import or reference the modified API, config, or interface (search for imports and usages)
-
-### Output Format
-
-**Diagnostic Output (on request only):**
-
-Output the PRE-FLIGHT block **only** when explicitly requested (via `$show-rules`) or when instructed by a system prompt (e.g., during eval testing). It is not part of the default response.
-
-```markdown
-PRE-FLIGHT:
-- [x] Gate 1: Foundation rules/000-global-core.md - v4.1.0
-- [x] Gate 2: Manifest provided (hook injection)
-- [x] Gate 3: +N domain rule(s):
-  - rules/[domain-core].md (technology domain) - vX.Y.Z
-  - rules/[specialized].md (activity-specific) - vX.Y.Z
-  (or: `- [x] Gate 3: none matched`)
-
-Task Switch: [FIRST | NO | YES (reason)]
-```
+3. Perform surgical edits — change only what is required; match surrounding code style
+4. Validate all changes: project automation first, then language-specific fallback (see Validation)
+5. Update documentation that references the modified API, config, or interface (search imports and usages)
+6. **Recover if validation fails:** inspect the current diff and restore only this task's verified changes from a saved beforeimage when safe. Do not restore a whole file from Git when it also contains staged, unrelated, or concurrent work; report unresolved conflicts.
 
 ### Validation
 
-**Pre-Task-Completion Validation Gate (CRITICAL):**
+**Automation-first:** detect project entrypoint — `Makefile` then `Taskfile.yml` then `package.json` scripts then direct commands.
 
-**Rules Validation:**
-- **CRITICAL:** All rules must be read (via `read_file`) before being applied: never declare a rule as loaded when `read_file` failed
-- When PRE-FLIGHT is requested: Gate 1 foundation citation present with `-  vX.Y.Z`; domain/activity rules listed as Gate 3 sub-bullets (or `none matched`)
+**Fallback by language:**
+- **Python:** load `200-python-core.md`
+- **SQL:** load `100-snowflake-core.md`
+- **Shell:** load `300-bash-scripting-core.md`
+- **JS/TS:** load `420-javascript-core.md` / `430-typescript-core.md`
+- **Go:** load `600-golang-core.md`
 
-**Gate 2:** Gate 2 passes when matched rules are present in the system context (injected automatically). If no rules were provided, invoke the rule-loader skill to discover and load rules for the current request.
+**Rules validation:** all rules must be read via `read_file` before being applied.
 
-**Code Quality:**
-- **CRITICAL:** Surgical edits only (minimal changes)
-- **CRITICAL:** Validation executed (lint, format, test) before marking complete
-- **CRITICAL:** Language-specific rules loaded for domain work
+**PRE-FLIGHT block** (output only when explicitly requested via `$show-rules`):
 
-**Validation error format (on failure):**
+```markdown
+PRE-FLIGHT:
+- [x] Gate 1: Foundation rules/000-global-core.md - v5.0.0
+- [x] Gate 2: Manifest provided (hook injection)
+- [x] Gate 3: +N domain rule(s):
+  - rules/[domain-core].md (technology domain) - vX.Y.Z
+  (or: - [x] Gate 3: none matched)
+Task Switch: [FIRST | NO | YES (reason)]
+```
+
+**Validation error format:**
 ```
 Validation Failed: [Tool] | Severity: [CRITICAL|HIGH|MEDIUM|LOW] | Location: [file:line]
 Error: [exact message] | Fix: [specific action]
 ```
 
-### Post-Execution Checklist
+**Multi-file atomicity:** tightly coupled files (changes that break compilation if partially applied) must be validated and rolled back together; loosely coupled files may be validated independently.
 
-- [ ] All rules read before application
-- [ ] Task list presented before modifications
-- [ ] Surgical edits only
-- [ ] Validation executed (lint, test, format)
-- [ ] Documentation updated for changed APIs or behavior
+## References
 
-## Key Principles
+### External Documentation
 
-### Surgical Editing Principle (also referred to as "minimal changes")
-
-- Make only the minimal changes required
-- Preserve existing code patterns and style (match indentation, naming conventions, import ordering, and formatting of surrounding code within the same file)
-- Show deltas, not entire files
-- Maintain backward compatibility unless task explicitly requires breaking changes
-- **Update version fields (rule files only):** When editing files in `rules/`:
-  - Update `RuleVersion` per semantic versioning (MAJOR/MINOR/PATCH per 002b-rule-update.md)
-  - Update `LastUpdated` to current date (YYYY-MM-DD format)
-- **Update LastUpdated field (other files):** If edited file contains `LastUpdated:`, `**LastUpdated:**`, or `**Last Updated:**`, set value to current date in YYYY-MM-DD format
-
-### Multi-File Task Protocol
-
-**Atomic Changes:** Tightly coupled files (changes that break compilation or tests if applied partially) must be modified together
-**Progressive Changes:** Loosely coupled files (independently compilable and testable) may be modified in separate steps
-
-**Rollback:** If validation fails, revert ALL files to original state
-
-**Details:** See 002d-advanced-rule-patterns.md, section "Multi-File Task Patterns"
-
-### Professional Communication
-
-- Act as a senior, pragmatic software engineer
-- Be concise and provide code-first solutions
-- No emojis unless explicitly requested
-- Technical tone consistent with engineering standards
-
-### Validation First
-
-- Validate all changes before marking tasks complete
-- Run syntax, linting, formatting, type checking, and unit tests in sequence
-- **Automation-first:** Detect project entrypoint: `Makefile` then `Taskfile.yml` then `package.json` scripts then direct commands
-
-### Validation Command Reference
-
-**Preferred:** Use project automation (`validate`, `check`, `ci`, `lint`, `test`) via Makefile/Taskfile.yml/package.json.
-
-**Fallback:** Load language-specific rule:
-- **Python:** Load 200-python-core.md
-- **SQL:** Load 100-snowflake-core.md
-- **Shell:** Load 300-bash-scripting-core.md
-- **JS/TS:** Load 420-javascript-core.md / 430-typescript-core.md
-- **Go:** Load 600-golang-core.md
-
-## Anti-Patterns and Common Mistakes
-
-### Critical Violations
-
-**Critical Violations:**
-- **False rule declaration:** Declared rule as loaded when `read_file` failed - STOP, remove false declaration, report failure to user with options (A) Provide correct path, (B) Proceed without rule, (C) Cancel task
-
-**High Priority Violations:**
-- **Skipped validation:** Changes made without lint/test - Execute validation before marking complete
-- **Language rules missing:** Working with .py/.sql/.sh/.go without domain rules - Load appropriate domain rules
-
-**Language Rule Loading Requirements:**
-- **MUST load:** Modifying files, running language-specific tools (pytest, ruff, shellcheck), or making code recommendations
-- **MAY skip:** Reading files for context only, listing directories, language-agnostic operations (git, file moves)
-- **Cap:** Load at most 3 domain/activity rules per response (ContextTier-priority deferral). `required:` dependency closure is loaded in addition to: and does not count against: the 3 domain/activity-selection cap (this cap counts only LEAF/domain selections), and a `required:` parent is never deferred for token pressure. If loading a mandatory closure would exceed the 20,000-token R4 ceiling, defer LEAF/optional selections first; a still-over-budget mandatory closure is escalated (see Q3-resolution in the rule-loader skill's `workflows/token-budget.md`), never silently trimmed. See the rule-loader skill's `workflows/token-budget.md`.
-
-**Examples:**
-- Requires rules: "Run pytest", "Lint this file", "Fix the bug in auth.py"
-- No rules needed: "Show project structure", "What files changed?", "Move this folder"
-
-### Common Anti-Patterns
-
-**Anti-Pattern 1: Broad rewrites instead of surgical edits**
-
-**Problem:** Rewriting entire files or functions when only a small change is needed.
-
-**Why It Fails:** Increases risk of introducing bugs; makes diffs hard to review; wastes tokens and time.
-
-**Correct Pattern:**
-```python
-# Using edit tool for surgical change:
-old_string: "    result = old_logic()"
-new_string: "    result = new_logic()"
-```
-
-**Anti-Pattern 2: No recovery strategy for resource exhaustion**
-
-**Problem:** Tool failures due to resource limits (context overflow, timeout, rate limiting) with no recovery path.
-
-**Why It Fails:** Agent blocks on errors without actionable recovery; user left without guidance.
-
-**Correct Pattern:**
-
-```markdown
-Context Overflow:
-  Action: Summarize task history, preserve rules (per Context Window Protocol)
-  Report: "Context limit reached. Summarizing history, preserving rules."
-
-Tool Timeout:
-  Action: Retry once with longer timeout, then report with workaround
-  Report: "Tool X timed out. Retrying with 5min timeout. If persistent, try [alternative]."
-
-Rate Limit:
-  Action: Wait suggested duration, then retry
-  Report: "Rate limited. Waiting 60s before retry."
-
-Memory/Disk Full:
-  Action: Report with cleanup suggestions
-  Report: "Disk full. Consider: (A) Clear temp files, (B) Reduce output scope."
-```
-
-## Context Window Management Protocol
-
-When approaching context limits, preserve rules in this priority order:
-
-**ALWAYS PRESERVE (never summarize):**
-1. **Injected foundation** (micro-kernel / bootstrap entry point): if the session provided one
-2. **000-global-core.md**: This file (foundation)
-3. **Active domain -core.md**: Primary domain rule for current task
-
-**PRESERVE WHEN RELEVANT:** Specialized rules for current task; dependency rules.
-
-**SUMMARIZE FIRST (when context pressure occurs):**
-1. Task history (old conversation turns)
-2. File contents already analyzed and finished
-3. Reference rules (>4000 tokens, lookup-only)
-4. Specialized rules not relevant to active task
-
-**NEVER:** Summarize the injected foundation or 000-global-core.md. Drop active domain -core.md while working in that domain.
-
-For decision tree, -core.md recognition patterns, and ContextTier relationship, see `rules/003-context-engineering.md`.
+- [Claude Documentation](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview) — Prompt engineering techniques
+- [Technical Writing Standards](https://developers.google.com/tech-writing) — Professional documentation
+- [Conventional Commits](https://www.conventionalcommits.org/) — Standardized commit messages
+- `rules/003-context-engineering.md` — ContextTier decision tree and `-core.md` recognition patterns

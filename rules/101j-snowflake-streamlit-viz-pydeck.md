@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v2.0.0
-description: "PyDeck (deck.gl) visualization patterns for Streamlit, including 3D visualizations, hexbin aggregation, terrain rendering, and large-scale geospatial data. PyDeck excels where Plotly reaches"
-last_updated: 2026-07-15
+schema_version: v4.0
+rule_version: v3.0.0
+description: "PyDeck in Streamlit: deck.gl layers for 3D, aggregation and large geospatial data, explicit view state, managed basemap keys, validated coordinates and bounded WebGL usage."
+last_updated: 2026-10-07
 keywords:
   - kw:pydeck
   - kw:deck.gl layers
@@ -11,341 +11,61 @@ keywords:
   - kw:ViewState configuration
   - kw:hexbin aggregation
   - kw:streamlit
-token_budget: ~2950
+token_budget: ~1000
 context_tier: Medium
 depends:
   optional:
     - 101a-snowflake-streamlit-visualization.md  # Visualization overview and library selection
     - 101i-snowflake-streamlit-viz-plotly.md  # Plotly for 2D charts and maps
 ---
-# Streamlit Visualization: PyDeck Deep Dive
+# PyDeck in Streamlit
 
 ## Scope
 
 **What This Rule Covers:**
-PyDeck (deck.gl) visualization patterns for Streamlit, including 3D visualizations, hexbin aggregation, terrain rendering, and large-scale geospatial data. PyDeck excels where Plotly reaches limitations.
+`st.pydeck_chart` with deck.gl layers (scatter, hexagon, column, polygon, GeoJSON, arc, terrain), view state, basemaps and API keys, tooltips, selections, data volume, WebGL limits and error handling; layer details in `101m-snowflake-streamlit-pydeck-layers.md`.
 
 **When to Load This Rule:**
-- Creating 3D extruded visualizations
-- Hexbin aggregation for dense point data
-- Rendering terrain or elevation data
-- Visualizing point clouds
-- Large datasets (>100k points) requiring GPU acceleration
-- Complex multi-layer geospatial compositing
-
-## References
-
-### External Documentation
-
-**Official Documentation:**
-- [st.pydeck_chart()](https://docs.streamlit.io/develop/api-reference/charts/st.pydeck_chart) - Streamlit integration
-- [PyDeck Documentation](https://deckgl.readthedocs.io/en/latest/) - Python library docs
-- [deck.gl Layer Catalog](https://deck.gl/docs/api-reference/layers) - All available layers
-
-**Best Practices:**
-- [PyDeck Layer Overview](https://deckgl.readthedocs.io/en/latest/layer.html) - Layer configuration guide
+When maps need 3D, aggregation layers, many points or multi-layer compositing; use `101i-snowflake-streamlit-viz-plotly.md` for simple 2D maps.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Streamlit 1.46+ with pydeck installed
-- Data with latitude/longitude coordinates
-- Understanding of WebGL limitations
+- Installed Streamlit and pydeck versions for the runtime, coordinate columns and CRS (WGS84 longitude/latitude), data volume and map purpose.
+- Basemap provider requirements (Carto default, Mapbox optional) and whether the runtime has external access for tiles.
 
 ### Mandatory
 
-- **width="stretch"** - Always use for responsive maps
-- **WebGL limit awareness** - Maximum ~8 PyDeck charts per page
-- **ViewState configuration** - Always set initial view (lat, lon, zoom, pitch, bearing)
-- **Coordinate validation** - Validate lat/lon before rendering
-
-### Forbidden
-
-- More than 8 PyDeck charts on single page (WebGL context limit)
-- Missing ViewState configuration
-- Unvalidated coordinates
-- Using PyDeck for simple 2D maps (use Plotly instead)
+- Use PyDeck where it adds value (3D extrusion, hexbin/grid aggregation, arcs, terrain, very large point sets, layered composition); prefer Plotly for simple 2D maps.
+- Set an explicit `pdk.ViewState` (latitude, longitude, zoom, pitch, bearing) or compute it from the data, and keep zoom/pitch bounds sensible for the extent.
+- Validate coordinates before rendering: drop NULLs, range-check latitude (−90..90) and longitude (−180..180), confirm longitude/latitude order and report filtered rows.
+- Basemaps: Streamlit uses Carto tiles by default; Mapbox styles require a key passed through `api_keys` or `MAPBOX_API_KEY` from managed secrets, never hard-coded. In Snowflake runtimes, tile hosts may need an external access integration, or use `map_style=None`.
+- Size with the installed API (`width="stretch"` default and explicit `height`; `use_container_width` is deprecated).
+- Each chart is a WebGL context and browsers cap contexts per page; combine layers into one deck, isolate maps in tabs or pages, and measure rather than assuming a fixed count.
+- Bound data: aggregate (H3, hexagon or grid) or sample in Snowflake before transfer, pass only needed columns and use pixel radius limits for dense points; disclose sampling.
+- Tooltips show labeled, formatted fields; render untrusted text only through text tooltips, not raw HTML.
+- Accessor expressions must reference existing columns; prefer precomputed color/size columns over complex JavaScript expressions.
+- Cache data loading, not Deck objects, and handle empty data and rendering failures with clear messages.
+- Verify rendering, interaction and basemap loading in the target runtime and browsers.
 
 ### Execution Steps
 
-1. Import pydeck as pdk and streamlit as st
-2. Validate coordinate data (lat/lon within valid ranges)
-3. Select layer type per PyDeck vs Plotly decision matrix (When to Use section)
-4. Configure ViewState (latitude, longitude, zoom, pitch, bearing)
-5. Create Deck combining layers and view state
-6. Render with `st.pydeck_chart(deck, width="stretch")`
-
-### Output Format
-
-```python
-import pydeck as pdk
-import streamlit as st
-
-layer = pdk.Layer("ScatterplotLayer", data=df, get_position="[longitude, latitude]")
-view_state = pdk.ViewState(latitude=37.77, longitude=-122.4, zoom=10)
-deck = pdk.Deck(layers=[layer], initial_view_state=view_state)
-st.pydeck_chart(deck, width="stretch")
-```
+1. Read data, coordinates, volume, versions and basemap constraints; confirm PyDeck is warranted.
+2. Prepare validated, aggregated data and build layers, view state, tooltips and basemap configuration.
+3. Run in the target runtime and test interaction, performance and basemap access.
+4. Report layers, data handling, keys/integrations required and verification evidence.
 
 ### Validation
 
-- [ ] ViewState configured with valid coordinates
-- [ ] Coordinate data validated before rendering
-- [ ] Maximum 8 PyDeck charts per page
-- [ ] `width="stretch"` used for responsive display
-- [ ] Tooltips configured for interactivity
+- PyDeck justified; view state explicit; coordinates validated.
+- Basemap keys managed as secrets; tile access available or basemap disabled.
+- WebGL usage bounded; data aggregated or sampled with disclosure.
+- Rendering verified in the target runtime.
 
-### Post-Execution Checklist
+## References
 
-- [ ] All PyDeck charts use `width="stretch"`
-- [ ] WebGL limit not exceeded
-- [ ] Map renders correctly with all layers
-- [ ] Tooltips display on hover
-
-## When to Use PyDeck vs Plotly
-
-**2D scatter map:** Use **Plotly** `px.scatter_map()`
-**2D choropleth:** Use **Plotly** `px.choropleth_map()`
-**3D extruded buildings:** Use **PyDeck** `PolygonLayer`
-**Hexbin aggregation:** Use **PyDeck** `HexagonLayer`
-**Point cloud (>100k):** Use **PyDeck** `ScatterplotLayer`
-**Arc/flow visualization:** Use **PyDeck** `ArcLayer`
-**Terrain/elevation:** Use **PyDeck** `TerrainLayer`
-**Simple line routes:** Use **Plotly** `px.line_map()`
-**Animated timeline:** Use **Plotly** (animation_frame)
-
-## Core PyDeck Structure
-
-```python
-import pydeck as pdk
-import streamlit as st
-
-layer = pdk.Layer(
-    "ScatterplotLayer",
-    data=df,
-    get_position="[longitude, latitude]",
-    get_color="[200, 30, 0, 160]",
-    get_radius=100,
-    pickable=True,
-)
-
-view_state = pdk.ViewState(latitude=37.7749, longitude=-122.4194, zoom=11, pitch=45, bearing=0)
-
-deck = pdk.Deck(
-    layers=[layer], initial_view_state=view_state, tooltip={"text": "{name}\nValue: {value}"}
-)
-
-st.pydeck_chart(deck, width="stretch")
-```
-
-## Common Layer Patterns
-
-See **101m-snowflake-streamlit-pydeck-layers.md** for complete layer patterns: ScatterplotLayer, HexagonLayer, GeoJsonLayer, ArcLayer, ColumnLayer, HeatmapLayer, PathLayer, TerrainLayer, PointCloudLayer, and multi-layer composition.
-
-## ViewState Configuration
-
-```python
-view_state = pdk.ViewState(
-    latitude=37.7749, longitude=-122.4194, zoom=11, min_zoom=5, max_zoom=18, pitch=45, bearing=-27
-)
-
-view_state = pdk.data_utils.compute_view(points_df[["longitude", "latitude"]])
-view_state.pitch = 45
-view_state.bearing = 0
-```
-
-## Map Styles
-
-```python
-deck = pdk.Deck(
-    layers=[layer], initial_view_state=view_state, map_style="mapbox://styles/mapbox/light-v10"
-)
-
-deck = pdk.Deck(layers=[layer], initial_view_state=view_state, map_style=None)
-```
-
-**Available Mapbox styles:**
-- `mapbox://styles/mapbox/light-v10` - Light theme
-- `mapbox://styles/mapbox/dark-v10` - Dark theme
-- `mapbox://styles/mapbox/streets-v11` - Street map
-- `mapbox://styles/mapbox/satellite-v9` - Satellite imagery
-- `None` - No basemap (transparent)
-
-**Mapbox token:** Mapbox styles require an API token. For token-free usage, use `map_style=None` (no basemap). For local development with Mapbox styles: `MAPBOX_API_KEY = st.secrets.get("mapbox_api_key", "")` and set via `pdk.settings.custom_libraries`. In Streamlit in Snowflake, Mapbox styles may not be available; use `map_style=None` for reliable rendering.
-
-## Coordinate Validation
-
-```python
-def validate_coordinates(df, lat_col="latitude", lon_col="longitude"):
-    """Validate and clean coordinate data for PyDeck."""
-    df_clean = df.dropna(subset=[lat_col, lon_col])
-    df_clean = df_clean[
-        (df_clean[lat_col].between(-90, 90)) & (df_clean[lon_col].between(-180, 180))
-    ]
-
-    if len(df_clean) == 0:
-        st.warning("No valid coordinates found")
-        return None
-
-    if len(df_clean) < len(df):
-        st.info(f"Filtered {len(df) - len(df_clean)} invalid coordinates")
-
-    return df_clean
-
-
-df_valid = validate_coordinates(df)
-if df_valid is not None:
-    st.pydeck_chart(deck, width="stretch")
-```
-
-## Expression Parser
-
-PyDeck supports JavaScript expressions for dynamic styling:
-
-```python
-layer = pdk.Layer(
-    "ScatterplotLayer",
-    data=df,
-    get_position="[longitude, latitude]",
-    get_color='[status == "active" ? 0 : 255, status == "active" ? 255 : 0, 0, 180]',
-    get_radius="value > 100 ? 500 : 200",
-)
-```
-
-**Note:** JavaScript expressions in `get_color` and `get_radius` work reliably when data is passed as a list of dicts. When using a DataFrame, PyDeck auto-converts, but some expression features may not work as expected. If expressions fail, convert first: `data=df.to_dict('records')`.
-
-## Tooltips
-
-```python
-deck = pdk.Deck(
-    layers=[layer],
-    initial_view_state=view_state,
-    tooltip={
-        "html": "<b>{name}</b><br/>Value: {value}<br/>Status: {status}",
-        "style": {"backgroundColor": "steelblue", "color": "white"},
-    },
-)
-```
-
-## Performance Considerations
-
-```python
-if len(df) > 100000:
-    df_sample = df.sample(n=100000, random_state=42)
-    st.info(f"Sampling {100000:,} of {len(df):,} points for performance")
-else:
-    df_sample = df
-
-layer = pdk.Layer(
-    "ScatterplotLayer",
-    data=df_sample,
-    get_position="[longitude, latitude]",
-    radius_min_pixels=1,
-    radius_max_pixels=10,
-)
-```
-
-**Caching:** Cache expensive data loading, not the deck object itself (PyDeck objects are not serializable by `@st.cache_data`):
-
-```python
-@st.cache_data(ttl=600)
-def load_geo_data():
-    return session.sql("SELECT * FROM locations").to_pandas()
-
-
-df = load_geo_data()
-# Build deck from cached data (deck creation is fast)
-layer = pdk.Layer("ScatterplotLayer", data=df, get_position="[longitude, latitude]")
-deck = pdk.Deck(layers=[layer], initial_view_state=view_state)
-st.pydeck_chart(deck, width="stretch")
-```
-
-## WebGL Context Limit Warning
-
-```python
-MAX_PYDECK_CHARTS = 8
-
-
-def render_pydeck_safely(deck, chart_count):
-    """Render PyDeck chart with WebGL limit awareness."""
-    if chart_count >= MAX_PYDECK_CHARTS:
-        st.warning(
-            f"WebGL limit reached ({MAX_PYDECK_CHARTS} charts max). Consider consolidating layers."
-        )
-        return chart_count
-
-    st.pydeck_chart(deck, width="stretch")
-    return chart_count + 1
-```
-
-## Render Error Handling
-
-PyDeck relies on WebGL, which may fail in some browser/environment configurations:
-
-```python
-try:
-    st.pydeck_chart(deck, width="stretch")
-except Exception as e:
-    st.error(f"Map rendering failed (WebGL may not be supported): {e}")
-    st.info("Try refreshing the page or using a WebGL-compatible browser (Chrome, Firefox).")
-```
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Missing ViewState
-
-**Problem:** Creating PyDeck charts without initial view state configuration.
-```python
-deck = pdk.Deck(layers=[layer])
-st.pydeck_chart(deck)
-```
-
-**Correct Pattern:**
-```python
-view_state = pdk.ViewState(latitude=37.77, longitude=-122.4, zoom=10)
-deck = pdk.Deck(layers=[layer], initial_view_state=view_state)
-st.pydeck_chart(deck, width="stretch")
-```
-
-### Anti-Pattern 2: Using PyDeck for Simple 2D Maps
-
-**Problem:** Using PyDeck for simple scatter plots when Plotly is more appropriate.
-```python
-layer = pdk.Layer('ScatterplotLayer', data=df, ...)
-```
-
-**Correct (use Plotly for 2D):**
-```python
-fig = px.scatter_map(df, lat='latitude', lon='longitude', ...)
-st.plotly_chart(fig, width="stretch")
-```
-
-### Anti-Pattern 3: Too Many PyDeck Charts
-
-**Problem:** Creating separate PyDeck charts in a loop, hitting WebGL context limits.
-
-```python
-for region in regions:
-    deck = pdk.Deck(layers=[create_layer(region)], ...)
-    st.pydeck_chart(deck)
-```
-
-**Correct Pattern:**
-```python
-# Consolidate all regions into one chart with multiple layers
-layers = [create_layer(region) for region in regions]
-deck = pdk.Deck(layers=layers, initial_view_state=view_state)
-st.pydeck_chart(deck, width="stretch")
-```
-
-## Validation Checklist
-
-- [ ] Using `width="stretch"` for responsive display
-- [ ] ViewState configured with valid lat (-90 to 90), lon (-180 to 180), zoom (5-18), pitch (0-60)
-- [ ] Coordinates validated before rendering
-- [ ] Maximum 8 PyDeck charts per page
-- [ ] Using PyDeck only for 3D/hexbin/terrain use cases
-- [ ] Tooltips configured for interactivity
-- [ ] Large datasets sampled or aggregated
-- [ ] Map style: light-v10 for data overlay, dark-v10 for glowing effects, None for clean 3D
+- [st.pydeck_chart](https://docs.streamlit.io/develop/api-reference/charts/st.pydeck_chart)
+- [pydeck](https://deckgl.readthedocs.io/en/latest/)
+- [deck.gl layer catalog](https://deck.gl/docs/api-reference/layers)
+- [External network access](https://docs.snowflake.com/en/developer-guide/external-network-access/external-network-access-overview)

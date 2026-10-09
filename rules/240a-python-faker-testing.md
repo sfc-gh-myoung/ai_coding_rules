@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v2.0.0
-description: "Pytest integration with Faker including fixture patterns, Factory Boy for complex models, and seeding strategies for reproducible and parallel-safe tests."
-last_updated: 2026-07-15
+schema_version: v4.0
+rule_version: v3.0.0
+description: "Isolated Faker/factory fixtures with reproducible sequences, stable relationships and real parallel uniqueness boundaries."
+last_updated: 2026-10-07
 keywords:
   - kw:faker pytest fixtures
   - kw:seed_instance parallel
@@ -10,7 +10,7 @@ keywords:
   - kw:pytest-xdist worker seeding
   - kw:conftest fixture hierarchy
   - kw:unique value cleanup
-token_budget: ~3150
+token_budget: ~900
 context_tier: Low
 depends:
   required:
@@ -24,433 +24,46 @@ depends:
 ## Scope
 
 **What This Rule Covers:**
-Pytest integration with Faker including fixture patterns, Factory Boy for complex models, and seeding strategies for reproducible and parallel-safe tests.
+Fixture/factory reuse, isolated RNG/unique pools, relational synthetic data and deterministic parallel execution.
 
 **When to Load This Rule:**
-- Creating pytest fixtures with Faker data
-- Using Factory Boy for model factories
-- Setting up seeded test data for CI reproducibility
-- Running Faker-based tests with pytest-xdist
-
-## References
-
-### External Documentation
-
-_None._
+When using Faker/Factory Boy in pytest; read `240b-python-faker-advanced.md` for providers/large generation.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Faker installed (from 240-python-faker.md)
-- pytest installed for testing integration
+- Existing fixtures/factories/plugins, source models/relationships, seed/version/time convention and database isolation.
+- Actual serial/xdist worker configuration and permitted synthetic resource scope.
 
 ### Mandatory
 
-- **Critical:** Use `seed_instance()` for per-instance seeding, not `Faker.seed()` which is global and unsafe for parallel tests
-- **Always:** Use fixtures for reusable fake data in tests
-- **Rule:** Use Factory Boy with SubFactory for related model creation
-
-### Forbidden
-
-- Using `Faker.seed()` in parallel test environments (use `seed_instance()`)
-- Creating Faker instances without seeding in tests
-- Duplicating fixture logic across test files (centralize in conftest.py)
+- Reuse fixture owners and existing factory style; Factory Boy/SubFactory is useful for relationships, not mandatory for every object. Don't add pytest-faker/xdist/factory-boy dependencies or -n auto configuration unasked.
+- Prefer per-test/scenario seeded Faker with frozen clock/version/locale and stable call order. Session RNG makes output depend on test order; clearing unique alone doesn't reseed. Fresh function-scoped Faker doesn't inherit another test's unique pool.
+- Faker.seed affects process-local shared RNG, not all separate xdist workers remotely. Instance isolation avoids coupling within a process; worker processes already isolate globals, but shared databases/files still require separate identities.
+- Worker-specific seeds can diversify outputs but don't guarantee no collisions or identical output after scheduler reassignment. Derive deterministic scenario/nodeid seed when reproducibility must not depend on worker; use explicit namespaces/sequences and isolated DB/schema for cross-worker uniqueness.
+- Seed Factory Boy's actual RNG separately through its supported API when used; fake.seed_instance does not automatically seed every factory.Faker source. Reset sequences only at intended isolated scope, not inside a batch needing unique IDs.
+- Factories accept intentional overrides/traits and compose parent relationships without inconsistent foreign keys. build versus create and lazy attributes differ; fixtures must not persist to a production session or claim creating data when only a Python object exists.
+- unique pools can exhaust; clear only at test/dataset boundary and keep required same-batch uniqueness. Validate generated field formats/ranges/relations, not assume all usernames/emails are collision-free in a shared persistent store.
+- Use explicit literal edge/invalid values and meaningful behavior assertions; random data isn't proof of every boundary. Record seeds/config on failure and retain it, not change seed to make tests green.
+- Teardown restores RNG/unique/sequence/env/database state and closes resources; scoped conftest fixtures match actual sharing need without excessive autouse. Serial/parallel checks use installed plugins only and disclose unrun configurations.
 
 ### Execution Steps
 
-1. Create seeded Faker fixture in conftest.py
-2. Build data generation fixtures using factory functions
-3. Set up Factory Boy factories for complex models
-4. Verify reproducibility by running tests twice with same seed
-5. Verify parallel safety with `pytest -n auto` (if using xdist)
-
-### Output Format
-
-conftest.py with seeded Faker fixtures, Factory Boy factories, and reproducible test data.
+1. Inspect current fixtures/factories/plugins and define data/seed/time/isolation contract.
+2. Add minimal constrained factories/overrides/relations with scoped RNG and unique lifecycle.
+3. Test valid/invalid/relationship/exhaustion/repeated-order cases and permitted parallel database namespaces.
+4. Run project checks and report actual serial/parallel reproducibility scope.
 
 ### Validation
 
-**Pre-Task-Completion Checks:**
-- [ ] Faker fixtures use `seed_instance()` not `Faker.seed()`
-- [ ] Factory functions accept override parameters
-- [ ] Factory Boy factories use SubFactory for relationships
-- [ ] Tests produce same results on repeated runs
-
-### Investigation Required
-
-Before adding or modifying Faker test fixtures, agents MUST check:
-
-- [ ] **Existing conftest.py**: Search for `Faker` in `conftest.py` files: avoid creating duplicate fixtures or conflicting seeds
-- [ ] **Factory Boy status**: Check `pyproject.toml` for `factory-boy` in dev dependencies: install only if needed for complex model relationships
-- [ ] **Test parallelization**: Check for `pytest-xdist` in dependencies and `addopts = "-n"` in config: parallel tests require `seed_instance()` not `Faker.seed()`
-- [ ] **Existing factory patterns**: Search for `class.*Factory.*` to find existing Factory Boy factories and match their conventions
-- [ ] **Seed conventions**: Check existing fixtures for seed values: use the same seed across the team for consistency
-
-### Design Principles
-
-- **Instance seeding:** Always use `seed_instance()` for test isolation
-- **Override pattern:** Fixtures accept keyword overrides for flexibility
-- **Factory composition:** Use SubFactory for related models
-
-### Post-Execution Checklist
-
-- [ ] Seeded Faker fixture in conftest.py
-- [ ] Data generation fixtures with override support
-- [ ] Factory Boy factories for complex models
-- [ ] Parallel test safety verified
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Global Seeding in Parallel Tests
-
-**Problem:** `Faker.seed()` is a CLASS method that seeds ALL Faker instances globally. In parallel test execution (pytest-xdist), one worker's seed overwrites another's, causing non-deterministic failures.
-
-**Correct Pattern:** Use `seed_instance()` for per-instance seeding that is safe for parallel execution.
-
-```python
-# Wrong: Global seed - race condition with pytest-xdist
-fake = Faker()
-Faker.seed(12345)  # Affects ALL Faker instances across all workers!
-
-# Correct: Instance-level seed - safe for parallel execution
-fake = Faker()
-fake.seed_instance(12345)  # Only seeds THIS instance
-```
-
-### Anti-Pattern 2: Fixture Logic Scattered Across Test Files
-
-**Problem:** Each test file creates its own Faker instance and data generation functions, leading to inconsistent seeding and duplicated logic.
-
-**Correct Pattern:** Centralize Faker fixtures in `conftest.py` with consistent seeding and reusable data generators.
-
-```python
-# Wrong: Duplicated in every test file
-# tests/test_users.py
-fake = Faker()
-fake.seed_instance(42)
-
-
-def make_user(): ...
-
-
-# tests/test_orders.py
-fake = Faker()
-fake.seed_instance(99)  # Different seed!
-
-
-def make_user(): ...  # Duplicated!
-
-
-# Correct: Centralized in conftest.py
-# tests/conftest.py
-@pytest.fixture
-def fake():
-    f = Faker()
-    f.seed_instance(12345)
-    return f
-
-
-@pytest.fixture
-def fake_user(fake):
-    def _generate(**overrides):
-        data = {"username": fake.user_name(), "email": fake.email()}
-        data.update(overrides)
-        return data
-
-    return _generate
-```
-
-### conftest.py Hierarchy
-
-For multi-directory test suites, use conftest.py at each level:
-
-```
-tests/
-├── conftest.py              # Root - seeded_faker, reset_unique (shared by ALL tests)
-├── unit/
-│   ├── conftest.py          # Unit - fake_user, fake_product (unit-specific data)
-│   └── test_models.py
-├── integration/
-│   ├── conftest.py          # Integration - fake_db_record, fake_api_response
-│   └── test_api.py
-└── e2e/
-    ├── conftest.py          # E2E - fake_full_workflow (uses Factory Boy)
-    └── test_workflow.py
-```
-
-- **`seeded_faker`:** Root conftest.py, scope `session`: shared by all tests
-- **`reset_faker_unique`:** Root conftest.py, scope `function` (autouse): clears unique values between all tests
-- **`fake_user`:** Unit conftest.py, scope `function`: domain-specific to unit tests
-- **`UserFactory`:** Root conftest.py, N/A (class): shared across unit and integration
-- **`fake_api_response`:** Integration conftest.py, scope `function`: specific to API tests
-
-## Pytest Fixture Patterns
-
-### Seeded Faker Fixture
-
-```python
-# conftest.py
-import pytest
-from faker import Faker
-
-
-@pytest.fixture
-def fake():
-    """Per-test seeded Faker for reproducible, isolated test data."""
-    f = Faker()
-    f.seed_instance(12345)
-    return f
-```
-
-### Unique Value Cleanup
-
-When using `fake.unique.*` methods, values accumulate across calls within the same instance. Without clearing, tests eventually raise `UniquenessException`:
-
-```python
-@pytest.fixture(autouse=True)
-def reset_faker_unique(fake):
-    """Clear unique value tracking after each test.
-
-    Prevents UniquenessException when many tests use fake.unique.*.
-    autouse=True ensures this runs for every test automatically.
-    """
-    yield
-    fake.unique.clear()
-```
-
-Why this matters:
-```python
-# Without clearing - test 2 fails:
-def test_create_user_1(fake):
-    name = fake.unique.user_name()  # "john_doe" ✓
-
-
-def test_create_user_2(fake):
-    name = fake.unique.user_name()  # UniquenessException!
-    # "john_doe" already in unique pool from test_1 (same seed = same first value)
-```
-
-### Data Generation Fixtures with Overrides
-
-```python
-from typing import Dict
-from myapp.models import User
-
-
-@pytest.fixture
-def fake_user_data(fake):
-    """Generate fake user data with optional overrides."""
-
-    def _generate(**overrides) -> Dict:
-        data = {
-            "username": fake.unique.user_name(),
-            "email": fake.unique.email(),
-            "first_name": fake.first_name(),
-            "last_name": fake.last_name(),
-            "age": fake.random_int(min=18, max=80),
-            "is_active": True,
-        }
-        data.update(overrides)
-        return data
-
-    return _generate
-
-
-@pytest.fixture
-def fake_users_batch(fake_user_data):
-    """Generate batch of fake users."""
-
-    def _generate_batch(count: int = 10):
-        return [fake_user_data() for _ in range(count)]
-
-    return _generate_batch
-```
-
-### Test Examples
-
-```python
-class TestUserModel:
-    def test_user_creation(self, fake_user_data):
-        user_data = fake_user_data()
-        user = User(**user_data)
-        assert user.username == user_data["username"]
-
-    def test_user_validation_with_invalid_data(self, fake_user_data):
-        invalid_data = fake_user_data(age=-5, email="invalid")
-        with pytest.raises(ValidationError):
-            User(**invalid_data)
-
-    def test_batch_processing(self, fake_users_batch):
-        users_data = fake_users_batch(50)
-        users = [User(**data) for data in users_data]
-        assert len(users) == 50
-        usernames = [u.username for u in users]
-        assert len(set(usernames)) == len(usernames)  # All unique
-```
-
-## Factory Boy Integration
-
-### Model Factories with SubFactory
-
-```python
-import factory
-from factory.faker import Faker as FactoryFaker
-from myapp.models import User, Order
-
-
-class UserFactory(factory.Factory):
-    class Meta:
-        model = User
-
-    id = factory.Sequence(lambda n: n + 1)
-    username = factory.LazyAttribute(lambda obj: f"user_{obj.id}")
-    email = FactoryFaker("email")
-    first_name = FactoryFaker("first_name")
-    is_active = True
-
-
-class OrderFactory(factory.Factory):
-    class Meta:
-        model = Order
-
-    user = factory.SubFactory(UserFactory)
-    quantity = FactoryFaker("random_int", min=1, max=10)
-    status = FactoryFaker("random_element", elements=["pending", "shipped"])
-
-
-# Usage
-def test_create_order():
-    order = OrderFactory()
-    assert order.user is not None
-    assert order.quantity > 0
-```
-
-## Seeding Strategies
-
-### Per-Scenario Seeding
-
-```python
-from faker import Faker
-from typing import Dict, List
-
-
-class SeededDataGenerator:
-    """Generate scenario-specific test data with isolated seeds."""
-
-    def __init__(self, base_seed: int = 12345):
-        self.base_seed = base_seed
-        self.scenario_seeds = {
-            "user_registration": base_seed + 1,
-            "error_scenarios": base_seed + 2,
-        }
-
-    def get_seeded_faker(self, scenario: str) -> Faker:
-        """Get a Faker instance seeded for a specific scenario."""
-        fake = Faker()
-        # seed_instance() seeds only THIS instance (safe for parallel tests)
-        # Faker.seed() is global and affects ALL instances (unsafe for xdist)
-        fake.seed_instance(self.scenario_seeds[scenario])
-        return fake
-
-    def generate_test_data(self, scenario: str, count: int = 10) -> List[Dict]:
-        fake = self.get_seeded_faker(scenario)
-        if scenario == "user_registration":
-            return [
-                {
-                    "username": fake.user_name(),
-                    "email": fake.email(),
-                    "age": fake.random_int(min=18, max=65),
-                }
-                for _ in range(count)
-            ]
-        return []
-```
-
-## Factory Traits for Model Variants
-
-Use `factory.Trait` to define reusable model state presets:
-
-```python
-class UserFactory(factory.Factory):
-    class Meta:
-        model = User
-
-    user_id = factory.Sequence(lambda n: n + 1)
-    username = factory.LazyAttribute(lambda o: f"user_{o.user_id}")
-    email = factory.LazyAttribute(lambda o: f"{o.username}@example.com")
-    role = "viewer"
-    is_active = True
-
-    class Params:
-        admin = factory.Trait(
-            role="admin",
-            username=factory.LazyAttribute(lambda o: f"admin_{o.user_id}"),
-        )
-        inactive = factory.Trait(
-            is_active=False,
-        )
-        suspended = factory.Trait(
-            is_active=False,
-            role="suspended",
-        )
-
-
-# Usage - clean and expressive:
-viewer = UserFactory()  # Default viewer
-admin = UserFactory(admin=True)  # Admin with admin_ prefix
-inactive = UserFactory(inactive=True)  # Inactive viewer
-suspended_admin = UserFactory(admin=True, suspended=True)  # Combine traits
-
-
-# In tests:
-def test_admin_can_delete():
-    admin = UserFactory(admin=True)
-    assert admin.role == "admin"
-    assert admin.username.startswith("admin_")
-
-
-def test_inactive_user_rejected():
-    user = UserFactory(inactive=True)
-    assert not user.is_active
-```
-
-## pytest-xdist Configuration
-
-For parallel test execution with Faker, configure in `pyproject.toml`:
-
-```toml
-# pyproject.toml
-[tool.pytest.ini_options]
-addopts = "-n auto"  # Auto-detect CPU count for parallel workers
-
-[dependency-groups]
-dev = [
-    "faker>=28.0.0",
-    "pytest>=8.0.0",
-    "pytest-xdist>=3.5.0",
-]
-```
-
-### Worker-Safe Seeding
-
-```python
-# conftest.py - each worker gets a unique seed based on worker ID
-import pytest
-from faker import Faker
-
-
-@pytest.fixture(scope="session")
-def seeded_faker(worker_id):
-    """Worker-safe Faker instance for parallel tests.
-
-    Each xdist worker gets a different seed to avoid duplicate data
-    across workers while maintaining reproducibility per worker.
-    """
-    # worker_id is "master" (no xdist) or "gw0", "gw1", etc.
-    base_seed = 12345
-    worker_offset = int(worker_id.replace("gw", "")) if worker_id != "master" else 0
-    fake = Faker("en_US")
-    fake.seed_instance(base_seed + worker_offset)
-    return fake
-```
+- Required seed/version/time/order and Factory Boy sources controlled; no shared fixture-state leak.
+- Relationships/overrides/traits and uniqueness hold in actual isolated serial/parallel resources.
+- Failures reproducible and boundary assertions meaningful; no unapproved plugin/database writes.
+
+## References
+
+- [Faker pytest integration](https://faker.readthedocs.io/en/master/pytest.html)
+- [Factory Boy reproducibility](https://factoryboy.readthedocs.io/en/stable/recipes.html#using-reproducible-randomness)
+- [Factory Boy reference](https://factoryboy.readthedocs.io/en/stable/reference.html)
+- [xdist workers](https://pytest-xdist.readthedocs.io/en/stable/how-to.html)

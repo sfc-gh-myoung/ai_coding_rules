@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v2.0.0
+schema_version: v4.0
+rule_version: v3.0.0
 description: "Advanced Taskfile patterns including categorized help output, subtask file organization, cross-platform patterns, and AI agent integration considerations."
-last_updated: 2026-07-15
+last_updated: 2026-10-06
 keywords:
   - kw:taskfile includes
   - kw:categorized help output
@@ -10,7 +10,7 @@ keywords:
   - kw:cross-platform task guards
   - kw:task namespaces
   - kw:AI agent task discovery
-token_budget: ~3450
+token_budget: ~900
 context_tier: Low
 depends:
   required:
@@ -21,497 +21,50 @@ depends:
 ## Scope
 
 **What This Rule Covers:**
-Advanced Taskfile patterns including categorized help output, subtask file organization, cross-platform patterns, and AI agent integration considerations.
+Includes/namespaces, categorized help, variable scopes, platform-specific workflows, incremental status and agent-consumable automation.
 
 **When to Load This Rule:**
-- Implementing categorized help for 8+ task Taskfiles
-- Organizing tasks into subtask files/modules
-- Building cross-platform task automation
-- Designing tasks for AI agent consumption
-
-**For core Taskfile patterns, see `820-taskfile-automation.md`.**
-
-## References
-
-### External Documentation
-- [Taskfile Includes](https://taskfile.dev/usage/#including-other-taskfiles) - Namespacing and modules
-- [Taskfile Variables](https://taskfile.dev/usage/#variables) - Dynamic resolution
+When a Taskfile's complexity warrants modules/help grouping or when reviewing portability, CI sequencing and machine-readable discovery.
 
 ## Contract
 
 ### Inputs and Prerequisites
-- Task CLI installed (v3.45+)
-- Understanding of core Taskfile patterns (820)
-- For cross-platform: target platforms identified
+
+- Core Task guidance read, existing root/includes/helper source and actual Task version.
+- Task users, platform matrix, workflow dependency/authorization boundaries and dynamic-variable behavior.
 
 ### Mandatory
 
-> **Inherited:** All mandates from `820-taskfile-automation.md` apply (version, pipefail, desc, preconditions, uv/uvx). This companion rule adds:
-
-- MUST implement categorized help for Taskfiles with 8+ tasks
-- MUST use `namespace:action` naming pattern for subtask organization (extends parent naming convention to multi-file structures)
-- Variables MUST be defined at the Taskfile-level `vars:` block or at the top of each task
-- MUST use `platforms:` guards on all OS-specific commands in cross-platform Taskfiles
-- MUST mark non-CLI internal tasks with `internal: true`
-
-### Forbidden
-- OS-specific commands without `platforms:` guards
-- Hard-coded paths in portable tasks
-- Missing `desc:` on public tasks
+- Use stable namespace:action names with ergonomic aliases and descriptions; internal tasks remain internal. Categorized help is useful for larger sets, not a required redesign at an arbitrary eighth task.
+- Split into modules when domain/reuse/platform complexity warrants it; file size is a signal, not sufficient cause. Keep existing project module conventions.
+- Define includes with explicit `taskfile` paths and intended `dir`; `dir` is execution directory, not a universally reliable implicit include selector. Validate paths against current Task documentation/version.
+- Required modules fail clearly when missing; optional includes may use optional:true only when absence is intended. Avoid circular includes or flattening until collision behavior is verified.
+- Keep variable scope/precedence explicit at root/include/task. Quote values via supported helpers rather than nested escaping; dynamic sh vars can execute during list/preview.
+- Guard OS-specific actions and verify supported platform behavior, using actual Task platform facilities rather than guessed uname fallback labels.
+- Use ordered commands for dependent validation/build/deploy; deps may be parallel. Do not deploy simply because CI environment variable exists.
+- Fingerprints/status must prove outputs current, including lock/config changes. Directory existence alone does not prove environment dependencies synchronized.
+- Agent output should support structured status/errors, stable exit codes and plain/JSON forms where useful; no decorative Unicode/emoji requirement, secrets or verbose repeated command echo.
+- Installation, publication, cleanup and cloud mutations remain explicit separately authorized tasks, never hidden in discovery/check tasks.
 
 ### Execution Steps
-1. Identify if Taskfile has 8+ tasks (categorized help threshold)
-2. Determine need for subtask files (150+ lines)
-3. Implement patterns from sections below
-4. Validate with `task --list`
 
-### Output Format
-- Categorized help output for default task
-- Subtask files in `task/` directory
-- Machine-readable output options
+1. Inspect root and included Taskfiles/helpers, namespaces, actual platform/version matrix and user overrides.
+2. Choose minimal modular/help changes and preserve public names/aliases unless breaking change is approved.
+3. Define include paths, variable scopes, platform guards and required/optional module behavior.
+4. Encode actual dependency sequence, safe preconditions and honest status/fingerprint contracts.
+5. Run schema/list/preview checks after reviewing dynamic evaluation; exercise missing includes, collisions, quoted paths and failure cases safely.
+6. Verify representative platforms/CI and machine-readable output; report unsupported or untested paths explicitly.
 
 ### Validation
-- Categorized help displays correctly
-- Includes resolve without errors
-- Cross-platform tasks work on target platforms
 
-### Post-Execution Checklist
-- [ ] Categorized help implemented for 8+ tasks
-- [ ] Subtask files use namespaces
-- [ ] Cross-platform compatibility verified
-- [ ] AI-consumable output options provided
+- Includes resolve and no circular/flattened-name ambiguity; optional absence intentional.
+- Help matches actual public tasks, descriptions/aliases discoverable and no terminal overflow.
+- Platform/version/variable assumptions verified, quoting safe and secrets redacted.
+- Dependencies sequence correctly; status cannot silently skip required sync/checks.
+- Agent/CI outcomes accurate, no unauthorized install/deploy/cleanup from previews.
 
-### Investigation Required
+## References
 
-Before applying advanced Taskfile patterns, complete these checks:
-
-1. **Read existing Taskfile.yml:** `cat Taskfile.yml`: count tasks and assess current structure
-2. **Check for existing subtask directory:** `ls task/ 2>/dev/null`: identify existing modules
-3. **Count current tasks:** `task --list | wc -l`: if 8+, categorized help is mandatory
-4. **Identify target platforms:** Check CI/CD config for OS matrix (e.g., `.github/workflows/*.yml`)
-5. **Check parent 820 rule compliance:** Verify `version`, `set: [pipefail]`, `desc:` on all public tasks
-6. **Determine AI agent consumption:** Check if tasks are invoked by AI coding agents (e.g., Cortex Code, Cursor)
-
-## Subtask Files and Includes
-
-### When to Create Subtask Files
-
-Use 2+ of these signals:
-- Root Taskfile exceeds 150-200 lines
-- Clear domain separation (dev, db, docker, ci)
-- Tasks reused across repos
-- OS/toolchain-specific variants needed
-
-### Include Patterns
-
-```yaml
-version: '3.45'
-set: [pipefail]
-
-includes:
-  dev:
-    dir: ./task/dev              # uses ./task/dev/Taskfile.yml
-  db:
-    taskfile: ./task/db.yml      # explicit file include
-    optional: true               # safe if file absent
-  ci:
-    dir: ./task/ci
-    aliases: [pipeline]
-  docker:
-    dir: ./task/docker
-```
-
-**Requirements:**
-- Use `includes` with explicit namespaces
-- Prefer directory-based modules with `dir:`
-- Avoid `flatten` unless collision-free API curated
-- Use `optional: true` for environment-specific modules
-- Mark non-CLI tasks as `internal: true`
-
-**Debugging Failed Includes:**
-- Run `task --list`: unresolved includes show errors in output
-- Check `optional: true` flag on includes for files that may not exist
-- Verify `dir:` paths are relative to the root Taskfile location
-
-**Error: Failed Include Resolution**
-
-When an included path doesn't exist and `optional: true` is missing:
-
-```
-task: error loading Taskfile: stat ./task/missing/Taskfile.yml: no such file or directory
-```
-
-**Resolution:**
-1. Add `optional: true` if the include is environment-specific:
-   ```yaml
-   includes:
-     local:
-       dir: ./task/local
-       optional: true  # Safe if file doesn't exist
-   ```
-2. Or verify the path exists: `ls ./task/missing/Taskfile.yml`
-3. Check for typos in `dir:` or `taskfile:` paths
-
-**Error: Circular Include**
-
-If Taskfile A includes B and B includes A:
-
-```
-task: include cycle detected
-```
-
-**Resolution:** Restructure includes so each file includes only lower-level modules, never the root.
-
-**Invocation examples:**
-- `task db:migrate` runs `migrate` from `task/db.yml`
-- `task dev:setup` runs `setup` from `task/dev/Taskfile.yml`
-
-## Cross-Platform Task Patterns
-
-### Platform Detection
-
-```yaml
-vars:
-  OS:
-    sh: uname -s 2>/dev/null || echo "Windows"
-  ARCH:
-    sh: uname -m 2>/dev/null || echo "unknown"
-```
-
-### Platform-Specific Tasks
-
-```yaml
-tasks:
-  install:deps:
-    desc: "Install system dependencies"
-    cmds:
-      - task: install:deps:{{.OS}}
-
-  install:deps:Darwin:
-    internal: true
-    cmds:
-      - brew install libpq postgresql
-
-  install:deps:Linux:
-    internal: true
-    cmds:
-      - sudo apt-get install -y libpq-dev
-```
-
-### Platform Guards
-
-```yaml
-tasks:
-  open:coverage:
-    desc: "Open coverage report (macOS)"
-    platforms: [darwin]
-    cmds:
-      - open htmlcov/index.html
-
-  open:coverage:linux:
-    desc: "Open coverage report (Linux)"
-    platforms: [linux]
-    cmds:
-      - xdg-open htmlcov/index.html
-```
-
-## Categorized Help Output
-
-### When to Use
-
-**Threshold:** 8+ tasks in Taskfile
-
-**Benefits:**
-- Faster task discovery through logical grouping
-- Improved onboarding with quickstart section
-- Better scannability with visual hierarchy
-
-### Visual Design Standards
-
-**Border Characters:**
-- Major sections: Double-line `════` (U+2550)
-- Category separators: Single-line `────` (U+2500)
-
-**Alignment:**
-- Task names: Left-aligned
-- Descriptions: Start at column 30
-
-**Terminal Width:** 72-80 characters
-
-### Standard Category Names
-
-**Core Categories:**
-- **Quickstart** - 5-8 most frequently used commands
-- **Setup/Environment** - Configuration, dependencies
-- **Code Quality** - Linting, formatting
-- **Testing** - Unit, integration, coverage
-- **Build/Generation** - Compilation, artifacts
-- **Deployment** - Deploy to environments
-- **Validation** - Pre-commit, CI/CD gates
-- **Cleanup** - Remove generated files
-
-### Implementation Example
-
-```yaml
-tasks:
-  default:
-    desc: "Show categorized task list"
-    silent: true
-    cmds:
-      - |
-        echo "══════ Project Name ══════"
-        echo "🚀 QUICKSTART"
-        echo "  task quality:fix    Fix all code quality issues"
-        echo "🔍 CODE QUALITY"
-        echo "  task lint           Run linter"
-        echo "For standard task list{{":"}} task -l"
-```
-
-**Key Details:**
-- `silent: true` prevents command echoing
-- `{{":"}}` template syntax for colons in output
-- Multiline string (`|`) for clean formatting
-
-### CI/CD Pipeline Patterns
-
-```yaml
-ci:
-    desc: "Run full CI pipeline"
-    deps: [quality:lint, test, build]
-    cmds:
-        - task: deploy
-          vars: { ENV: "{{.CI_ENVIRONMENT}}" }
-    preconditions:
-        - sh: "[ -n \"$CI\" ]"
-          msg: "ci task must run in CI environment"
-```
-
-Use `deps` for parallel execution and `preconditions` to enforce CI-only targets.
-
-### Project-Type Templates
-
-**Python Projects:**
-```
-Categories: Quickstart, Code Quality, Testing, Dependencies, Build, Deployment, Cleanup
-```
-
-**Docker Projects:**
-```
-Categories: Quickstart, Build, Run, Testing, Deployment, Network, Cleanup
-```
-
-**Data Pipeline Projects:**
-```
-Categories: Quickstart, Setup, Extract, Transform, Load, Validation, Cleanup
-```
-
-## AI Agent Considerations
-
-### Machine-Readable Output
-
-```yaml
-tasks:
-  quality:lint:
-    desc: "Run linter (supports JSON=true for machine output)"
-    cmds:
-      - "{{.UVX}} ruff check . {{if .JSON}}--output-format json{{end}}"
-    vars:
-      JSON: '{{.JSON | default ""}}'
-```
-
-### Predictable Task Discovery
-
-Requirements for AI agents:
-- All public tasks have `desc:` fields
-- Internal tasks marked `internal: true`
-- Task names follow `namespace:action` pattern
-- Stable canonical namespace with ergonomic aliases
-
-```yaml
-tasks:
-  quality:lint:        # namespace:action pattern
-    aliases: [lint]    # ergonomic alias
-  quality:format:
-    aliases: [format, fmt]
-```
-
-### Idempotent Task Design
-
-```yaml
-tasks:
-  setup:
-    desc: "Setup environment (idempotent)"
-    status:
-      - test -d .venv
-      - test -f .venv/pyvenv.cfg
-    cmds:
-      - uv venv
-      - uv sync
-```
-
-### Error Messages for Agents
-
-```yaml
-tasks:
-  build:
-    preconditions:
-      - sh: test -f pyproject.toml
-        msg: "ERROR: pyproject.toml not found. Run from project root."
-      - sh: command -v uv
-        msg: "ERROR: uv not installed. Install with: curl -LsSf https://astral.sh/uv/install.sh | sh"
-```
-
-### Agent Workflow Integration
-
-**Pre-flight Checks:**
-```yaml
-tasks:
-  preflight:
-    desc: "Verify environment ready for agent operations"
-    preconditions:
-      - sh: command -v uv
-        msg: "uv required"
-      - sh: test -f Taskfile.yml
-        msg: "Taskfile.yml required"
-    cmds:
-      - echo "Environment ready"
-```
-
-**Batch Operations:**
-```yaml
-tasks:
-  agent:validate:
-    desc: "Run all validation (for CI/CD and agent workflows)"
-    cmds:
-      - task: quality:lint
-      - task: quality:format
-      - task: test
-```
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: OS-Specific Commands Without Platform Guards
-
-**Problem:** Using platform-specific commands (e.g., `open`, `xdg-open`, `brew`) without `platforms:` guards.
-
-**Why It Fails:** Tasks fail silently or with confusing errors on unsupported platforms. CI/CD pipelines break when run on different OS than development machines.
-
-**Correct Pattern:**
-```yaml
-# WRONG: macOS-only command without guard
-tasks:
-  open:docs:
-    cmds:
-      - open docs/index.html  # Fails on Linux/Windows
-
-# CORRECT: Platform-guarded with alternatives
-tasks:
-  open:docs:
-    platforms: [darwin]
-    cmds:
-      - open docs/index.html
-
-  open:docs:linux:
-    platforms: [linux]
-    cmds:
-      - xdg-open docs/index.html
-```
-
-### Anti-Pattern 2: Missing Descriptions on Public Tasks
-
-**Problem:** Omitting `desc:` fields on tasks intended for user invocation.
-
-**Why It Fails:** `task --list` shows empty descriptions, making task discovery impossible. AI agents cannot determine task purpose without descriptions.
-
-**Correct Pattern:**
-```yaml
-# WRONG: No description
-tasks:
-  lint:
-    cmds:
-      - ruff check .
-
-# CORRECT: Clear description for discovery
-tasks:
-  lint:
-    desc: "Run Ruff linter on all Python files"
-    cmds:
-      - ruff check .
-```
-
-### Anti-Pattern 3: Using flatten on Includes with Overlapping Names
-
-**Problem:** Using `flatten` on included Taskfiles where task names collide.
-
-**Why It Fails:** When two included files both define a task with the same name (e.g., `lint`), the last include wins silently. No error is shown, and the overridden task is lost.
-
-**Correct Pattern:**
-```yaml
-# WRONG: flatten with potential collisions
-includes:
-  frontend:
-    dir: ./task/frontend
-    flatten: true  # frontend:lint becomes just "lint"
-  backend:
-    dir: ./task/backend
-    flatten: true  # backend:lint also becomes "lint" - COLLISION
-
-# CORRECT: Use namespaces, add aliases for frequently used tasks
-includes:
-  frontend:
-    dir: ./task/frontend
-  backend:
-    dir: ./task/backend
-
-# In root Taskfile, create aliases if needed:
-tasks:
-  lint:
-    desc: "Run all linters"
-    cmds:
-      - task: frontend:lint
-      - task: backend:lint
-```
-
-### Anti-Pattern 4: Deeply Nested Include Namespaces
-
-**Problem:** Nesting includes more than 2 levels deep, creating unwieldy task names.
-
-**Why It Fails:** Task names like `infra:docker:build:staging` are hard to type, hard to remember, and break tab-completion. Discoverability drops as namespace depth increases.
-
-**Correct Pattern:**
-```yaml
-# WRONG: 3+ levels of nesting
-includes:
-  infra:
-    dir: ./task/infra  # Contains includes for docker, k8s, etc.
-    # Results in: infra:docker:build, infra:k8s:deploy:staging
-
-# CORRECT: Maximum 2 levels, use flat structure with clear prefixes
-includes:
-  docker:
-    dir: ./task/docker    # docker:build, docker:push
-  k8s:
-    dir: ./task/k8s       # k8s:deploy, k8s:rollback
-```
-
-**Rule of thumb:** If `task --list` output requires horizontal scrolling, namespaces are too deep.
-
-## Example Portable Taskfile
-
-The full portable Taskfile example is in **820-taskfile-automation.md**. Key structural pattern:
-
-```yaml
-version: '3.45'
-set: [pipefail]
-
-vars:
-  UV: { sh: "command -v uv || echo 'uv'" }
-
-tasks:
-  quality:lint:
-    desc: "Run Ruff linter"
-    preconditions:
-      - { sh: "command -v uvx", msg: "uvx not found" }
-    cmds:
-      - "{{.UVX}} ruff check ."
-```
+- [Task documentation](https://taskfile.dev/docs/)
+- [Task schema](https://taskfile.dev/schema.json)
+- `820-taskfile-automation.md` for core safety and sequencing.

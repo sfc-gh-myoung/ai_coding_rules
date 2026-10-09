@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v2.0.0
+schema_version: v4.0
+rule_version: v3.0.0
 description: "Common anti-patterns in Snowflake SQL stored procedures and UDFs: incorrect delimiter usage, missing EXECUTE AS, SQL injection via string concatenation, literal $$ in bodies, and unqualified object"
-last_updated: 2026-07-15
+last_updated: 2026-10-06
 keywords:
   - kw:stored procedure anti-patterns
   - kw:dollar quoting
@@ -11,254 +11,60 @@ keywords:
   - kw:fully qualified object names
   - kw:procedure delimiter escaping
   - kw:udf
-token_budget: ~1700
+token_budget: ~900
 context_tier: Low
 depends:
   optional:
     - 102b-snowflake-sql-procedures.md  # Procedure creation patterns and templates
 ---
-# Snowflake SQL: Stored Procedure Anti-Patterns
+# Snowflake SQL: Procedure Safety Review
 
 ## Scope
 
 **What This Rule Covers:**
-Common anti-patterns in Snowflake SQL stored procedures and UDFs: incorrect delimiter usage, missing EXECUTE AS, SQL injection via string concatenation, literal `$$` in bodies, and unqualified object names.
+Reviewing procedure/function quoting, rights, bindings, identifier scope, exceptions and destructive lifecycle assumptions. Defects are described in prose only.
 
 **When to Load This Rule:**
-- Reviewing or debugging stored procedures
-- Troubleshooting quoting or delimiter errors
-- Security review of dynamic SQL in procedures
-- Code review for Snowflake procedure best practices
-
-## References
-
-### External Documentation
-
-_None._
+When debugging/reviewing SQL handlers or checking dynamic SQL security and execution context.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Existing stored procedure or UDF code for review
-- Understanding of `$$` delimiters and EXECUTE AS model (see 102b)
+- Existing handler source, object kind/signature, actual grants/callers and user edit/execution scope.
+- Current primary rights/binding documentation; load procedure-authoring companion when implementing.
 
 ### Mandatory
 
-- Fix all anti-patterns before deploying procedures to production
-- Use `$$` delimiters, explicit EXECUTE AS, and bind variables
-
-### Forbidden
-
-- Deploying procedures with any of the anti-patterns listed below
+- Prefer dollar-quoted bodies while preserving real string escaping. Literal closing delimiter inside a body terminates it even in comments/strings; construct necessary dollar pairs from parts.
+- Procedures explicitly choose OWNER/CALLER/RESTRICTED CALLER by approved privilege boundary. Restricted caller uses caller privileges constrained by caller grants, not owner privileges. Functions do not take procedure EXECUTE AS.
+- Use colon-prefixed variables/parameters in SQL statements, bound values with placeholders/USING, and authorized IDENTIFIER syntax for dynamic object names where supported.
+- Never concatenate arbitrary input into dynamic SQL; shell escaping is not SQL binding. Identifier syntax validation alone is not object authorization.
+- Persistent references fully qualified and tested against actual owner/caller resolution; no claim every unqualified object resolves identically across rights modes.
+- Replacements/truncate/reloads need explicit target/ownership/data-loss/dependent/grant review; no destructive example presented as automatically correct.
+- Exceptions/status must truthfully propagate failure and multi-statement transactions reflect real scope/DDL commits. Do not turn failed operations into successful error-string returns.
+- Binding/quoting improvements do not guarantee performance gains; measure actual behavior before claims.
 
 ### Execution Steps
 
-1. Review procedure code against each anti-pattern
-2. Fix delimiter issues (single quotes to `$$`)
-3. Add explicit EXECUTE AS clause
-4. Replace string concatenation with bind variables
-5. Fully qualify all object names
-
-### Output Format
-
-Corrected SQL procedure code with anti-patterns resolved.
+1. Read complete source/callers and classify procedure versus UDF/UDTF, rights and resource scope.
+2. Identify quoted-body/SQL-binding/identifier/exception/lifecycle defects with exact evidence.
+3. Apply scoped correct patterns and preserve approved behavior, not copied negative implementations.
+4. Run safe static checks; create/CALL/query tests only when authorized and in a controlled target.
+5. Report authored/compiled/executed status and residual security/runtime gaps separately.
 
 ### Validation
 
-- Procedure creates without syntax errors
-- No SQL injection vectors in dynamic SQL
-- EXECUTE AS explicitly specified on all procedures
+- Correct delimiters/strings, explicit applicable rights, variable bindings and fully qualified targets.
+- Dynamic values/identifiers safe and approved; no arbitrary input concatenation or unowned resource mutation.
+- Error/status/transaction behavior correct, replacement/destructive scope separately authorized.
+- Review findings grounded and actual tests distinguish static inspection from runtime verification.
 
-### Post-Execution Checklist
+## References
 
-- [ ] No single-quote delimiters on bodies with string literals
-- [ ] EXECUTE AS explicitly specified
-- [ ] Bind variables used for dynamic SQL values
-- [ ] No literal `$$` inside procedure bodies
-- [ ] All object names fully qualified
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Using Single-Quote Delimiters for Bodies with Strings
-
-**Problem:**
-```sql
--- Quoting nightmare: every internal quote must be escaped
-CREATE OR REPLACE PROCEDURE my_db.my_schema.log_event(event_name VARCHAR)
-RETURNS VARCHAR
-LANGUAGE SQL
-AS
-'
-BEGIN
-    INSERT INTO my_db.my_schema.audit_log (event, message)
-    VALUES (:event_name, ''Event processed at '' || CURRENT_TIMESTAMP()::VARCHAR);
-    RETURN ''Done'';
-END;
-';
-```
-
-**Why It Fails:** Every single quote inside the body must be doubled. As procedures grow, this becomes unreadable and error-prone. Adding a new string literal requires finding and escaping quotes correctly. Debugging is difficult because the visual noise obscures the actual SQL logic.
-
-**Correct Pattern:**
-```sql
--- Clean: $$ eliminates all escaping
-CREATE OR REPLACE PROCEDURE my_db.my_schema.log_event(event_name VARCHAR)
-RETURNS VARCHAR
-LANGUAGE SQL
-EXECUTE AS OWNER
-AS
-$$
-BEGIN
-    INSERT INTO my_db.my_schema.audit_log (event, message)
-    VALUES (:event_name, 'Event processed at ' || CURRENT_TIMESTAMP()::VARCHAR);
-    RETURN 'Done';
-END;
-$$;
-```
-
-**Benefits:** Readable body; no escaping needed for string literals; easier maintenance; standard practice.
-
-### Anti-Pattern 2: Omitting EXECUTE AS (Silent Default to OWNER)
-
-**Problem:**
-```sql
--- No EXECUTE AS specified: silently defaults to OWNER
-CREATE OR REPLACE PROCEDURE my_db.my_schema.check_access()
-RETURNS VARCHAR
-LANGUAGE SQL
-AS
-$$
-BEGIN
-    -- Developer expects this to run as CALLER but it runs as OWNER
-    -- Session variables are inaccessible, caller permissions ignored
-    RETURN CURRENT_ROLE();
-END;
-$$;
-```
-
-**Why It Fails:** The default is OWNER, which means the procedure runs with the creating role's privileges. If the developer intended CALLER rights (to respect the calling user's permissions or access session variables), the procedure silently does the wrong thing. This is a common source of security and permission bugs.
-
-**Correct Pattern:**
-```sql
-CREATE OR REPLACE PROCEDURE my_db.my_schema.check_access()
-RETURNS VARCHAR
-LANGUAGE SQL
-EXECUTE AS CALLER
-COMMENT = 'Returns the current role of the calling user'
-AS
-$$
-BEGIN
-    RETURN CURRENT_ROLE();
-END;
-$$;
-```
-
-**Benefits:** Intent is explicit; no ambiguity about security context; easier code review; prevents privilege surprises.
-
-### Anti-Pattern 3: String Concatenation Instead of Bind Variables
-
-**Problem:**
-```sql
-AS
-$$
-DECLARE
-    query VARCHAR;
-    rs RESULTSET;
-BEGIN
-    -- SQL injection risk: region_param is concatenated directly
-    query := 'SELECT * FROM my_db.my_schema.orders WHERE region = ''' || :region_param || '''';
-    rs := (EXECUTE IMMEDIATE :query);
-    RETURN TABLE(rs);
-END;
-$$;
-```
-
-**Why It Fails:** Direct string concatenation allows SQL injection if the parameter contains malicious input (e.g., `' OR 1=1 --`). It also introduces nested quoting complexity that makes the code fragile and hard to read.
-
-**Correct Pattern:**
-```sql
-AS
-$$
-DECLARE
-    query VARCHAR DEFAULT 'SELECT * FROM my_db.my_schema.orders WHERE region = ?';
-    rs RESULTSET;
-BEGIN
-    rs := (EXECUTE IMMEDIATE :query USING (:region_param));
-    RETURN TABLE(rs);
-END;
-$$;
-```
-
-**Benefits:** Prevents SQL injection; eliminates nested quoting; cleaner code; better performance (Snowflake can cache the query plan).
-
-### Anti-Pattern 4: Literal `$$` Inside a Dollar-Quoted Body
-
-**Problem:**
-```sql
-AS
-$$
-BEGIN
-    -- This terminates the body prematurely!
-    RETURN 'The delimiter is $$';
-END;
-$$;
-```
-
-**Why It Fails:** The `$$` inside the string literal is interpreted as the closing delimiter for the procedure body. Everything after it becomes a syntax error. This is the one limitation of dollar-quoting.
-
-**Correct Pattern:**
-```sql
-AS
-$$
-DECLARE
-    result VARCHAR;
-BEGIN
-    result := '$' || '$';
-    RETURN 'The delimiter is ' || :result;
-END;
-$$;
-```
-
-**Benefits:** Avoids premature body termination; works correctly; clear intent.
-
-### Anti-Pattern 5: Unqualified Object Names Inside Procedure Bodies
-
-**Problem:**
-```sql
-CREATE OR REPLACE PROCEDURE my_db.my_schema.refresh_summary()
-RETURNS VARCHAR
-LANGUAGE SQL
-EXECUTE AS OWNER
-AS
-$$
-BEGIN
-    -- Relies on session context for object resolution
-    TRUNCATE TABLE summary_table;
-    INSERT INTO summary_table SELECT * FROM source_table;
-    RETURN 'Refreshed';
-END;
-$$;
-```
-
-**Why It Fails:** When the procedure is called from a different database or schema context, `summary_table` and `source_table` resolve to the caller's current schema (for CALLER) or may fail entirely. This makes the procedure fragile and non-portable.
-
-**Correct Pattern:**
-```sql
-CREATE OR REPLACE PROCEDURE my_db.my_schema.refresh_summary()
-RETURNS VARCHAR
-LANGUAGE SQL
-EXECUTE AS OWNER
-COMMENT = 'Truncate and reload the summary table from source'
-AS
-$$
-BEGIN
-    TRUNCATE TABLE my_db.my_schema.summary_table;
-    INSERT INTO my_db.my_schema.summary_table
-    SELECT * FROM my_db.my_schema.source_table;
-    RETURN 'Refreshed';
-END;
-$$;
-```
-
-**Benefits:** Works from any calling context regardless of the caller's current database or schema; no silent wrong-table bugs; fully portable.
+- [Snowflake SQL Scripting procedures](https://docs.snowflake.com/en/developer-guide/stored-procedure/stored-procedures-snowflake-scripting)
+- [Snowflake execution rights](https://docs.snowflake.com/en/developer-guide/stored-procedure/stored-procedures-rights)
+- [Restricted caller rights](https://docs.snowflake.com/en/developer-guide/restricted-callers-rights)
+- [IDENTIFIER](https://docs.snowflake.com/en/sql-reference/identifier-literal)
+- [EXECUTE IMMEDIATE](https://docs.snowflake.com/en/sql-reference/sql/execute-immediate)
+- `102b-snowflake-sql-procedures.md` for implementation detail.

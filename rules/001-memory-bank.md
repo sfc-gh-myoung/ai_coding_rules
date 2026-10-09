@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v4.0.0
+schema_version: v4.0
+rule_version: v5.0.0
 description: "Memory bank patterns for AI context preservation across sessions. All writes scoped to memory-bank/ only."
-last_updated: 2026-07-15
+last_updated: 2026-10-06
 keywords:
   - kw:memory bank
   - kw:context preservation
@@ -10,7 +10,7 @@ keywords:
   - kw:aggressive pruning
   - kw:activeContext.md
   - kw:session initialization
-token_budget: ~1500
+token_budget: ~1000
 context_tier: Critical
 depends:
   required:
@@ -24,192 +24,50 @@ depends:
 ## Scope
 
 **What This Rule Covers:**
-Memory bank patterns for AI context preservation across sessions. All writes scoped to `memory-bank/` only.
+File-based project context preservation and recovery across sessions. Memory-bank maintenance writes are restricted to `memory-bank/`; this does not authorize changes to project source or external systems.
 
 **When to Load This Rule:**
-- Implementing/maintaining memory bank systems
-- Managing project context across session resets
-- Setting up context preservation for AI agents
-
-**Scope Boundary:** Write operations to `memory-bank/` directory ONLY.
-
-## References
-
-### External Documentation
-- [Effective Context Engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
+When the user requests memory-bank initialization or maintenance, or an established project memory bank is used for session recovery.
 
 ## Contract
 
 ### Inputs and Prerequisites
-- Project context files
-- Markdown-formatted documentation with headings and bullet lists
-- Required tools: file read, file write, directory list (if directory list unavailable, use file read to check known paths)
+
+- User-authorized memory-bank workflow, project requirements and existing files.
+- File read/write access within `memory-bank/`; list tools or known-path reads to establish initialization state.
+- Current source evidence to verify remembered status and constraints before acting.
 
 ### Mandatory
-- Read ALL memory bank files at session start
-- Single source of truth per information type
-- ALL writes scoped to `memory-bank/` directory
 
-### Forbidden
-- Writing files outside `memory-bank/`
-- Duplicating information across contexts
-- Unstructured narrative documentation
-- Skipping initialization check before first write
+- Read all active memory-bank files at session start when using this system. Load archives only when needed; do not treat historical notes as current authorization.
+- Keep one authoritative location per information type. Use headings and actionable lists rather than a narrative diary.
+- Scope every memory-bank write to `memory-bank/`. Never overwrite existing files during initialization or replace unrelated source work during recovery.
+- Keep `activeContext.md` at most 100 lines, with Quick Start in its first 30 lines: objective, next three steps, blockers and validation signal.
+- File budgets: `projectbrief.md` and `productContext.md` at most 120 lines each; `systemPatterns.md` and `techContext.md` at most 150 each; `progress.md` at most 140. Keep the active bank at most 600 lines total.
+- Update on architectural decisions, new/resolved blockers, feature completion, three or more changed files, user request, or `activeContext.md` reaching 90 lines.
+- Preserve core requirements, architectural decisions and unresolved blockers; do not prune them solely because of age.
+- Condense completed work older than seven days to one line, archive completed work older than 30 days, and remove resolved blockers older than 14 days. Remove deleted references and duplicates; condense verbose explanations.
+- For concurrent writers, inspect current contents and timestamps before merging. Do not blindly apply last-writer-wins or discard another writer's content.
 
 ### Execution Steps
-1. Initialize if needed (check `memory-bank/` exists)
-2. Read ALL memory bank files at session start
-3. Maintain single source of truth
-4. Update when triggers met
-5. Prune outdated content per Pruning Rules below
-6. Structure for rapid recovery
 
-### Output Format
-Structured documentation with clear sections, minimal redundancy, forward-looking focus.
+1. Check whether `memory-bank/` and the six core files exist. On an authorized initialization request, create only missing files; never overwrite existing content.
+2. Read the active bank and verify the current objective, constraints and blockers against current project evidence.
+3. Present the maintenance scope, then update only triggered information in its authoritative file.
+4. Archive historical content to `memory-bank/archive/YYYY-MM.md` before removing it from active files; validate the archive write succeeded.
+5. Recheck file/total budgets, Quick Start placement, references and recovery usefulness. Report blocked writes or unresolved conflicts without claiming completion.
 
 ### Validation
-- `memory-bank/` exists
-- No writes outside directory
-- Quick Start in first 30 lines of activeContext.md
-- AI can resume work effectively
 
-### Design Principles
-- **Rapid Recovery:** Productive within 20-30 lines
-- **Signal Maximization:** Every line contains a specific instruction, threshold, or status
-- **Zero Redundancy:** Each info in exactly one place
-- **Aggressive Pruning:** Remove outdated content per Pruning Rules temporal thresholds below
-- **Context Rot Awareness:** As context grows, attention degrades
+- All maintenance writes stay under `memory-bank/`; existing and concurrent content is preserved.
+- Six core files exist when initialization was authorized: activeContext, projectbrief, productContext, systemPatterns, techContext and progress.
+- Quick Start is readable within the first 30 lines and states a concrete next action and validation criterion.
+- Per-file/total budgets hold; information is nonduplicated and current evidence supports active status.
+- Permission denial: report exact path and missing access; do not change permissions or request elevation without approval.
+- Disk/write failure: report it and confirm successful persistence before pruning or retrying an uncertain write.
+- Corruption: preserve a recoverable copy under `memory-bank/` before authorized repair; reconstruct from verified requirements, not invented history.
 
-### Post-Execution Checklist
-- [ ] All files within size budgets
-- [ ] All writes under `memory-bank/`
-- [ ] activeContext.md updated
-- [ ] No information duplication
-- [ ] Quick start accessible
+## References
 
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Context Pollution
-```markdown
-# BAD: Verbose unfocused log
-## Session Log
-Yesterday we discussed auth. John suggested OAuth2...
-[50 lines of narrative]
-```
-**Problem:** Context rot - as context grows, attention degrades.
-
-**Correct Pattern:**
-```markdown
-# GOOD: Focused actionable
-## Quick Start
-- Primary: Implement user auth
-- Blocked: Waiting on API keys
-- Next: Write unit tests
-```
-
-### Anti-Pattern 2: Stale Memory Without Pruning
-**Problem:** Memory becomes archaeological record, AI wastes tokens on irrelevant history.
-
-**Correct Pattern:**
-1. After task: Remove details, keep outcome summary
-2. Weekly: Archive older content
-3. Per session: Verify activeContext.md ≤100 lines
-
-## Core Files and Size Budgets
-
-**activeContext.md (≤100 lines) - MOST CRITICAL:**
-- Quick Start (lines 1-30): objective, next 3 steps, blockers, validation
-- Current work focus
-- Session change log (≤5 entries)
-
-**projectbrief.md (≤120 lines):** Foundation, scope, requirements
-
-**productContext.md (≤120 lines):** Why project exists, user goals
-
-**systemPatterns.md (≤150 lines):** Architecture, design patterns
-
-**techContext.md (≤150 lines):** Stack, constraints, commands
-
-**progress.md (≤140 lines):** Status, known issues, roadmap
-
-**Total: ≤600 lines**
-
-## Quick Start Template
-
-```markdown
-## Quick Start
-**Current Objective:** [Concise statement]
-**Next 3 Steps:**
-1. [Action]
-2. [Action]
-3. [Action]
-**Active Blockers:** [List or "None"]
-**Validation Signal:** [Success criteria]
-```
-
-## Pruning Rules
-
-**Temporal:**
-- Completed work (>7 days): Condense to 1-line
-- Completed work (>30 days): Archive to `archive/YYYY-MM.md`
-- Resolved blockers (>14 days): Remove
-
-**Content:**
-- Deleted file references: Remove
-- Duplicate updates: Keep most recent
-- Verbose explanations (>5 lines): Condense to bullets
-
-**Preservation Exceptions:**
-- Architectural decisions: Keep in systemPatterns.md
-- Core requirements: Keep in projectbrief.md
-- Active unresolved blockers: Keep full details
-
-## Context Update Triggers
-
-Update when:
-- ≥3 files modified in task
-- Architecture decision made
-- Blocker resolved/discovered
-- Feature completed
-- activeContext.md ≥90 lines
-- User requests "update memory bank"
-
-## Initialization Protocol
-
-**Trigger:** User says "initialize memory bank"
-
-**Creates:**
-- `memory-bank/` directory
-- Core template files (activeContext, projectbrief, productContext, systemPatterns, techContext, progress)
-- `memory-bank/archive/` (optional)
-
-**Idempotency:**
-- If exists: Check missing files only
-- Never overwrite existing content
-
-## Session Start Protocol
-
-1. Read ALL memory bank files
-2. Check completeness, create missing
-3. Verify current context
-4. Present approach to user
-
-## Failure Recovery
-
-**Missing folder:** Run initialization protocol
-
-**Corrupted file:** Rename to `.corrupted-TIMESTAMP`, create from template
-
-**File exceeds budget:** Condense per Pruning Rules above, archive oldest content
-
-**Permission denied:** Report error with path, suggest `chmod u+w memory-bank/` or running with correct user permissions
-
-**Disk full / write failure:** Report error, suggest freeing disk space or reducing memory bank scope. Do not retry writes until space is confirmed available
-
-**Concurrent access:** If multiple agents access memory-bank/, use last-writer-wins with timestamp comparison. Include ISO 8601 timestamps in commit messages to resolve conflicts.
-
-**Archive Workflow:**
-1. Create `memory-bank/archive/YYYY-MM.md`
-2. Append content under date header
-3. Remove from source
-4. Validate source within budget
+- [Anthropic: Effective context engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
+- `003-context-engineering.md` for attention budgets and required-rule preservation.

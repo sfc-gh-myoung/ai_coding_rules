@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v4.0.0
-description: "Comprehensive logging best practices for Snowflake handler code, covering standard library integration, strategic log level usage, conditional logging patterns, and volume control strategies to"
-last_updated: 2026-07-15
+schema_version: v4.0
+rule_version: v5.0.0
+description: Runtime-supported Snowflake handler logging with safe structured attributes, volume controls, and correlated collection verification.
+last_updated: 2026-10-07
 keywords:
   - kw:handler logging
   - kw:log volume control
@@ -11,7 +11,7 @@ keywords:
   - kw:event table routing
   - kw:tight loop logging
   - kw:udf
-token_budget: ~4000
+token_budget: ~1100
 context_tier: High
 depends:
   required:
@@ -23,462 +23,54 @@ depends:
 ## Scope
 
 **What This Rule Covers:**
-Comprehensive logging best practices for Snowflake handler code, covering standard library integration, strategic log level usage, conditional logging patterns, and volume control strategies to optimize observability while managing costs.
+Handler logging APIs, effective levels/routing, safe structured context, bounded sampling, truthful operation outcomes and collection checks.
 
 **When to Load This Rule:**
-- Implementing logging in Snowflake handlers (Python, Java, JavaScript)
-- Managing log volumes and costs
-- Using conditional logging patterns
-- Integrating with standard logging libraries
-- Optimizing logging for production environments
-
-### Quantification Standards
-
-**Frequency Thresholds:**
-- **High-frequency operation:** >1000 log calls per minute OR >100 iterations per second in a loop (context: requires sampling strategy)
-- **Sampling rate for tight loops:** Log every 100th-1000th iteration (e.g., log every 100th row processed in batch of 10K+ rows)
-- **Acceptable log volume:** <10MB per handler execution OR <1000 log entries per minute (context: cost management)
-- **Production log level:** WARN or ERROR only (DEBUG generates 10-100x more volume, see 111-snowflake-observability-core.md)
-
-## References
-
-### External Documentation
-- [Snowflake Logging Overview](https://docs.snowflake.com/en/developer-guide/logging-tracing/logging) - Official logging documentation for Snowflake handlers
-- [Python Logging Library](https://docs.python.org/3/library/logging.html) - Standard Python logging library documentation
-- [SLF4J (Java)](https://www.slf4j.org/) - Standard Java logging facade
+When instrumenting Snowflake Python/Java/JavaScript handlers or investigating missing/expensive logs.
 
 ## Contract
 
 ### Inputs and Prerequisites
-- Active event table configured (see `111-snowflake-observability-core.md`)
-- Telemetry levels configured appropriately for environment
-- Standard logging library available (Python `logging`, Java `slf4j`)
+
+- Actual handler language/runtime, supported logging API, existing logger config, active event destination and effective thresholds.
+- Approved emission/query/configuration scope, safe attribute taxonomy, volume budget, retention/access policy and expected correlated events.
 
 ### Mandatory
-- Standard logging libraries (Python `logging`, Java `slf4j`, JavaScript `console`)
-- Conditional logging with if-statements for volume control
-- Sampling strategies for high-frequency operations (>1000 log calls/min OR >100 iterations/sec)
 
-### Forbidden
-- `print` statements instead of logging (do NOT route to event tables)
-- DEBUG logging in production environments without cost analysis
-- Logging in tight loops without sampling
-- Logging sensitive data (PII, credentials, tokens)
+- Use supported language/runtime logging APIs: Python logging, documented Java SLF4J integration, or Snowflake-supported JavaScript logging. Do not assume console or print universally routes to event tables.
+- Create appropriately named module/class loggers and preserve framework handlers/configuration. Avoid broad basicConfig/handler replacement in managed runtime; inspect effective Python and SQL levels before overrides.
+- INFO milestones, WARN anomalies and ERROR/CRITICAL failures reflect actual severity. Python CRITICAL maps to FATAL in Snowflake; production severity policy depends on operational needs, not a universal WARN-only requirement.
+- Approved temporary verbose logging must be scoped, time-bounded, cost/privacy-reviewed and restored. No fixed 10-100x multiplier or universal entries-per-minute threshold; measure actual volume/signal.
+- Prefer operation/batch summaries to per-row UDF logs. Apply meaningful conditional/rate/sampling controls when measured workload volume warrants them; record sampling context and counts so consumers do not mistake sampled logs for complete audit evidence.
+- Repeated failures can also flood logs; aggregate/rate-limit duplicate failures while retaining critical alerts/counts and required audit events. Do not swallow failed records then claim every record processed successfully.
+- Never log credentials/tokens, personal/sensitive rows, unapproved SQL/prompts or arbitrary exception bodies. Short unsalted hashes are not guaranteed anonymization; use approved opaque correlation identifiers instead.
+- Use deferred message formatting and guard expensive diagnostics when appropriate. Logging must not cause repeated count/collect actions, convert a Snowpark DataFrame to a local list, or use len(df) as an assumed distributed count.
+- Python logger extra key/value attributes are supported and stored in RECORD_ATTRIBUTES; prefer safe structured fields over delimiter-split strings. Span attributes describe tracing and are not a universal substitute for log attributes.
+- Query actual event schema: RECORD severity, SCOPE logger name, VALUE message and applicable attribute fields. Do not query invented BODY or flat severity columns or infer log persistence merely from emitted calls.
+- Verify correlated handler events after authorized runtime invocation with effective thresholds/destination and realistic ingestion delay. Missing logs remain unverified until diagnosed; no accountwide routing/debug mutation as automatic fallback.
+- Logging success means actual completed work, not queued/lazy transformations. Preserve exception propagation and partial-failure semantics; clean sensitive errors before exposed diagnostics.
+- External log export/integrations and configuration/grant/lifecycle changes need separate authorization; retain immutable failure evidence and unrelated telemetry.
 
 ### Execution Steps
-1. **Import:** Use standard logging library at module level
-2. **Configure:** Set appropriate log levels for environment (see `111-snowflake-observability-core.md`)
-3. **Implement:** Add strategic log statements at key decision points
-4. **Sample:** Use conditional logging or sampling (every 100th-1000th iteration) for high-frequency operations (>1000 calls/min OR >100 iter/sec)
-5. **Validate:** Verify logs appear in event tables after deployment
 
-### Output Format
-- Python/Java/JavaScript code with proper logging import statements
-- Log messages with meaningful context (include relevant variables)
-- Conditional logging for volume control
-- Comments explaining sampling strategy
+1. Inspect handler and current logger/telemetry destination/threshold, supported API and privacy/volume policy.
+2. Add safe structured milestones/errors and appropriate conditional/sampling summaries without costly extra data actions.
+3. Test logger messages/attributes/partial failures locally with synthetic inputs and review redaction/volume behavior.
+4. Under runtime approval, emit representative events and verify correlated records through actual event schema.
+5. Report actual outcomes and missing collection checks; restore approved temporary overrides without deleting unrelated logs.
 
 ### Validation
-- Verify standard logging library is imported
-- Confirm log levels match environment (no DEBUG in prod)
-- Check tight loops use sampling or conditional logging
-- Validate logs appear in event tables
 
-### Design Principles
-- Use standard logging libraries that automatically route to event tables (Python `logging`, Java `slf4j`)
-- Set log levels based on environment: WARN+ for production, DEBUG for development only
-- Implement conditional logging to capture only meaningful scenarios and control data volume
-- **CRITICAL:** Use sampling strategies for high-frequency operations (>1000 log calls/min OR >100 iter/sec: log every Nth iteration in tight loops)
-- Include relevant context in log messages (variable values, record counts, error details)
-- **CRITICAL:** Never log sensitive data (PII, credentials, API tokens) - security and compliance violation
-
-### Post-Execution Checklist
-- [ ] Standard logging library imported (not print statements)
-- [ ] Log levels appropriate (WARN+ for prod, DEBUG for dev)
-- [ ] Tight loops use sampling (every Nth iteration, typically 1000)
-- [ ] Sensitive data excluded from logs (PII, credentials, tokens)
-- [ ] Meaningful context included in log messages
-- [ ] Conditional logging used for volume control
-
-## Anti-Patterns and Common Mistakes
-
-**Anti-Pattern 1: Using print() Instead of Standard Logging Library**
-```python
-# Bad: print() statements don't route to event tables
-def process_data(records):
-    print(f"Processing {len(records)} records")  # Lost in stdout!
-    for record in records:
-        print(f"Processing record {record['id']}")  # No persistence
-    print("Processing complete")
-```
-**Problem:** Logs not captured in event tables; no persistence; debugging impossible in production
-
-**Correct Pattern:**
-```python
-# Good: Use standard logging library
-import logging
-
-logger = logging.getLogger(__name__)
-
-
-def process_data(records):
-    logger.info(f"Processing {len(records)} records")
-    # [process records with sampling - see anti-pattern 2]
-    logger.info("Processing complete")
-
-
-# Logs automatically routed to event table for querying
-```
-**Benefits:** Logs persisted in event tables; queryable history; proper log levels
-
-**Anti-Pattern 2: Logging Every Iteration in Tight Loops**
-```python
-# Bad: Log every record in large dataset
-for i, record in enumerate(large_dataset):  # 1 million records
-    logger.info(f"Processing record {i}: {record['id']}")
-# Generates 1 million log entries! Massive costs!
-```
-**Problem:** Massive log volume; 1000x normal costs; performance degradation
-
-**Correct Pattern:**
-```python
-# Good: Sample logging - every 1000th iteration
-for i, record in enumerate(large_dataset):
-    if i % 1000 == 0:  # Log every 1000th record
-        logger.info(f"Processing batch: record {i} of {len(large_dataset)}")
-# Final summary
-logger.info(f"Completed processing {len(large_dataset)} records")
-```
-**Benefits:** 1000x fewer logs; manageable costs; actionable signal
-
-**Anti-Pattern 3: Logging Sensitive Data (PII, Credentials)**
-```python
-# Bad: Log sensitive information
-def authenticate_user(username, password, ssn):
-    logger.info(f"Authenticating user: {username}, SSN: {ssn}, password: {password}")
-    # SECURITY VIOLATION: PII and credentials in logs!
-```
-**Problem:** Security breach; PII exposure; compliance violations (GDPR, HIPAA)
-
-**Correct Pattern:**
-```python
-# Good: Exclude sensitive data, log safe identifiers only
-def authenticate_user(username, password, ssn):
-    # Hash or mask sensitive fields
-    user_hash = hashlib.sha256(username.encode()).hexdigest()[:8]
-    logger.info(f"Authenticating user_hash: {user_hash}")
-    # Never log: password, ssn, credit cards, tokens, API keys
-```
-**Benefits:** Security maintained; compliance-ready; no PII exposure
-
-**Anti-Pattern 4: Using DEBUG Log Level in Production**
-```python
-# Bad: DEBUG level in production
-import logging
-
-logging.basicConfig(level=logging.DEBUG)  # In production!
-logger = logging.getLogger(__name__)
-
-
-def process_order(order):
-    logger.debug(f"Order details: {order}")  # 100x more data volume
-    logger.debug(f"Validating order {order['id']}")
-    logger.debug(f"Processing payment {order['payment']}")
-    # Generates massive log volume, high costs
-```
-**Problem:** 10-100x log volume increase; massive costs; signal-to-noise destroyed
-
-**Correct Pattern:**
-```python
-# Good: Environment-appropriate log levels
-import logging
-import os
-
-# Production: WARN or ERROR only
-if os.getenv("ENV") == "production":
-    logging.basicConfig(level=logging.WARN)
-else:  # Development
-    logging.basicConfig(level=logging.DEBUG)
-
-logger = logging.getLogger(__name__)
-
-
-def process_order(order):
-    logger.info(f"Processing order {order['id']}")  # Key milestone only
-    # Errors logged automatically at WARN+ level
-    if validation_error:
-        logger.error(f"Order validation failed: {error_code}")
-```
-**Benefits:** Cost-effective production logging; manageable volume; actionable signal
-
-## Output Format Examples
-```python
-# Logging Best Practices Template
-
-import logging
-
-# Configure logger at module level
-logger = logging.getLogger(__name__)
-
-
-def my_handler(session, input_data):
-    """Handler with logging best practices."""
-
-    # Log entry point with context
-    logger.info(f"Starting processing for {len(input_data)} records")
-
-    try:
-        # Validate inputs with conditional logging
-        if not input_data:
-            logger.error("Input data is empty")
-            return None
-
-        # Warn about large datasets
-        if len(input_data) > 100000:
-            logger.warning(f"Large dataset: {len(input_data)} records (may take time)")
-
-        # Process with sampling for progress
-        results = []
-        for i, record in enumerate(input_data):
-            # Sample progress logging (every 10,000 records)
-            if i % 10000 == 0 and i > 0:
-                logger.info(f"Progress: {i}/{len(input_data)} ({i / len(input_data) * 100:.1f}%)")
-
-            try:
-                result = process_record(record)
-                results.append(result)
-            except Exception as e:
-                # Always log individual failures
-                logger.error(f"Failed processing record {record.id}: {e}")
-
-        # Log completion with summary
-        logger.info(f"Processing complete: {len(results)}/{len(input_data)} successful")
-        return results
-
-    except Exception as e:
-        # Log fatal errors
-        logger.error(f"Handler failed: {str(e)}")
-        raise
-```
-
-### Logging Documentation
-- [Snowflake Logging Guide](https://docs.snowflake.com/en/developer-guide/logging-tracing/logging) - Comprehensive guide to logging messages from functions and procedures
-- [Python logging module](https://docs.python.org/3/library/logging.html) - Official Python logging documentation
-- [SLF4J documentation](https://www.slf4j.org/manual.html) - Java/Scala logging framework
-
-## Standard Library Integration
-
-### Python Logging
-- **Always:** Use Python's built-in `logging` module which automatically routes to event tables.
-- **Rule:** Configure logger at module level, not inside functions.
-
-```python
-import logging
-
-# Configure logging at module level
-logger = logging.getLogger(__name__)
-
-
-def process_data(session, df):
-    """Process DataFrame with comprehensive logging."""
-    logger.info(f"Starting data processing for {len(df)} rows")
-
-    try:
-        # Processing logic
-        result = df.filter(df.amount > 0)
-        logger.info(f"Filtered to {len(result)} valid records")
-
-        if len(result) == 0:
-            logger.warning("No valid records found after filtering")
-            return None
-
-        # Additional processing
-        transformed = result.withColumn("processed_at", current_timestamp())
-        logger.info("Data transformation completed successfully")
-
-        return transformed
-
-    except Exception as e:
-        logger.error(f"Data processing failed: {str(e)}")
-        raise
-```
-
-### Java/Scala Logging (SLF4J)
-- **Always:** Use SLF4J logging framework for Java and Scala handlers.
-- **Rule:** Follow same patterns as Python (strategic placement, appropriate levels).
-
-```java
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class DataProcessor {
-    private static final Logger logger = LoggerFactory.getLogger(DataProcessor.class);
-
-    public DataFrame processData(Session session, DataFrame df) {
-        logger.info("Starting data processing for {} rows", df.count());
-
-        try {
-            DataFrame result = df.filter(col("amount").gt(0));
-            logger.info("Filtered to {} valid records", result.count());
-
-            if (result.count() == 0) {
-                logger.warning("No valid records found after filtering");
-                return null;
-            }
-
-            DataFrame transformed = result.withColumn("processed_at", current_timestamp());
-            logger.info("Data transformation completed successfully");
-
-            return transformed;
-
-        } catch (Exception e) {
-            logger.error("Data processing failed: {}", e.getMessage());
-            throw e;
-        }
-    }
-}
-```
-
-## Log Level Strategy
-
-### Environment-Based Log Levels
-- **Production:** Use WARN or ERROR to capture significant events without excessive verbosity.
-- **Development:** Use INFO or DEBUG for detailed troubleshooting.
-- **Critical Systems:** Use ERROR or FATAL for mission-critical components.
-
-**Configuration (see `111-snowflake-observability-core.md` for SQL commands):**
-```sql
--- Production environment logging
-ALTER DATABASE prod_db SET LOG_LEVEL = WARN;
-
--- Development environment logging
-ALTER DATABASE dev_db SET LOG_LEVEL = INFO;
-
--- Critical UDF debugging
-ALTER FUNCTION critical_calculation(number, number) SET LOG_LEVEL = DEBUG;
-```
-
-### When to Use Each Log Level
-
-**DEBUG:** Development/troubleshooting only
-```python
-logger.debug(f"Variable state: x={x}, y={y}, computed_value={computed_value}")
-```
-
-**INFO:** Normal operation milestones
-```python
-logger.info(f"Processing completed: {len(results)} records processed in {elapsed_time}s")
-```
-
-**WARN:** Potential issues or unexpected states
-```python
-logger.warning(f"Large dataset detected: {len(data)} records (may impact performance)")
-```
-
-**ERROR:** Operation failures that are caught
-```python
-logger.error(f"Failed to process record {record.id}: {str(e)}")
-```
-
-**CRITICAL:** Critical system failures
-```python
-logger.critical(f"Database connection lost: {str(e)}")
-```
-
-## Conditional Logging
-
-### Logging Only Meaningful Scenarios
-- **Rule:** Use conditional statements to log only when there's meaningful information to capture.
-- **Benefit:** Reduces log volume and focuses on actionable insights.
-
-```python
-def validate_input(data):
-    """Validate input with conditional logging."""
-    if not data:
-        logger.error("Input data is empty or null")
-        return False
-
-    if len(data) > 10000:
-        logger.warning(f"Large dataset detected: {len(data)} records")
-
-    # Only log validation details for problematic cases
-    invalid_count = sum(1 for row in data if not is_valid(row))
-    if invalid_count > 0:
-        logger.warning(f"Found {invalid_count} invalid records out of {len(data)}")
-
-    return invalid_count == 0
-```
-
-### Progress Logging for Long Operations
-```python
-def process_large_dataset(records):
-    """Process with intelligent logging."""
-    total = len(records)
-    logger.info(f"Starting processing of {total} records")
-
-    for i, record in enumerate(records):
-        # Log progress at intervals (not every record)
-        if i % 10000 == 0:
-            logger.info(f"Progress: {i}/{total} records ({i / total * 100:.1f}%)")
-
-        try:
-            process_record(record)
-        except Exception as e:
-            # Always log failures
-            logger.error(f"Failed processing record {record.id}: {e}")
-
-    logger.info(f"Processing complete: {total} records processed")
-```
-
-## Sampling Strategies
-
-### Anti-Pattern: Logging in Tight Loops
-
-> See **Anti-Pattern 2** above for the wrong pattern (logging every iteration). The correct sampling approach is shown in **Progress Logging for Long Operations** above.
-
-### Sampling with Configurable Rate
-```python
-import random
-
-
-# Volume-conscious logging strategy
-def log_with_sampling(logger, level, message, sample_rate=0.1):
-    """Log messages with sampling to control volume."""
-    if random.random() < sample_rate:
-        logger.log(level, f"[SAMPLED {sample_rate * 100}%] {message}")
-
-
-# Use for high-frequency operations
-for record in large_dataset:
-    result = process_record(record)
-
-    # Only log a sample of successful operations
-    if result.success:
-        log_with_sampling(logger, logging.INFO, f"Processed record {record.id}", sample_rate=0.01)
-    else:
-        # Always log failures
-        logger.warning(f"Failed to process record {record.id}: {result.error}")
-```
-
-### Structured Logging Fields
-
-When emitting logs from handlers, include structured context for queryability.
-
-**Note:** For native structured attribute support without string splitting, use `snowflake.telemetry` module's `set_span_attribute()` which stores attributes as queryable JSON fields directly in the event table. See `111b-snowflake-observability-tracing.md` for details.
-
-```python
-import logging
-import json
-
-logger = logging.getLogger(__name__)
-
-
-def process_order(session, order_id):
-    # Include structured context as JSON for event table querying
-    context = json.dumps({"order_id": order_id, "stage": "validation"})
-    logger.info(f"Processing order | {context}")
-
-    # Query these structured logs from event table:
-    # SELECT PARSE_JSON(SPLIT(body, '| ')[1]):order_id::STRING
-    # FROM <event_table> WHERE record_type = 'LOG';
-```
+- Supported logging API/logger config preserved, severity/threshold semantics correct and intended events correlated where tested.
+- Secrets/PII and arbitrary exception payloads excluded, structured attributes queryable and sampling completeness disclosed.
+- No tight-loop flood, repeated distributed diagnostics, blanket hash-anonymization claim or swallowed failure success.
+- Actual emission/collection tests distinct from synthetic logger tests; unavailable runtime evidence remains unverified.
+- Deliver scoped instrumentation, volume/privacy rationale, exact checks and limitations.
+
+## References
+
+- [Python handler logging and custom attributes](https://docs.snowflake.com/en/developer-guide/logging-tracing/logging-python)
+- [Snowflake logging APIs](https://docs.snowflake.com/en/developer-guide/logging-tracing/logging)
+- [Python logging](https://docs.python.org/3/library/logging.html)
+- [Event-table columns](https://docs.snowflake.com/en/developer-guide/logging-tracing/event-table-columns)
+- `111-snowflake-observability-core.md` for destination/levels and cost.

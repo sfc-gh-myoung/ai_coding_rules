@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v4.0.0
-description: "Comprehensive data generation and modeling standards for Business Analysts, Executive Users, Data Scientists, and Data Engineers. Covers naming conventions, Kimball dimensional modeling, view"
-last_updated: 2026-07-15
+schema_version: v4.0
+rule_version: v4.2.0
+description: "Naming conventions, Kimball dimensional modeling, view taxonomy, and data generator standards for Snowflake demo environments. Covers fact/dimension table structure with declared grains, date dimension join patterns, SCD strategy, and backward-compatibility rules."
+last_updated: 2026-10-08
 keywords:
   - kw:Kimball dimensional modeling
   - kw:fact dimension FK naming
@@ -10,8 +10,7 @@ keywords:
   - kw:synthetic data referential integrity
   - kw:business-first column naming
   - kw:scd type 2 surrogate
-  - kw:etl
-token_budget: ~4350
+token_budget: ~2200
 context_tier: High
 depends:
   required:
@@ -26,499 +25,112 @@ depends:
 ## Scope
 
 **What This Rule Covers:**
-Comprehensive data generation and modeling standards for Business Analysts, Executive Users, Data Scientists, and Data Engineers. Covers naming conventions, Kimball dimensional modeling, view taxonomy, and backward compatibility strategies.
+Naming conventions, Kimball dimensional modeling patterns, view taxonomy, and data generator standards for Snowflake demo environments. Covers fact/dimension table structure with declared grains, date dimension join patterns, SCD strategy, view taxonomy prefixes, column documentation, and backward-compatibility rules.
 
 **When to Load This Rule:**
-- Designing data models for analytics or demos
-- Creating Python data generators
-- Writing SQL DDL for fact and dimension tables
-- Building view hierarchies (BASE, INTERMEDIATE, ANALYTICS)
-- Implementing backward-compatible schema changes
-
-## References
-
-### External Documentation
-
-- [Kimball Dimensional Modeling](https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/)
-- [Snowflake Data Modeling](https://docs.snowflake.com/en/user-guide/data-modeling)
+Load this rule when designing data models for analytics demos, writing SQL DDL for fact and dimension tables, building view hierarchies, or implementing backward-compatible schema changes.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Data entity requirements and relationship diagrams
-- Target analytical use cases defined
-- Understanding of Kimball dimensional modeling
-- Snowflake SQL DDL knowledge
+- Entity relationships and analytical use cases defined before writing DDL
+- `DIM_DATE` table created before fact tables that join to it
+- Grain of each fact table declared before designing its columns
 
 ### Mandatory
 
-- Python generators for synthetic data with referential integrity
-- SQL DDL with explicit primary keys and foreign keys
-- View creation with taxonomy prefixes (VW_BA_, VW_EXEC_, VW_DS_)
-- Column and view COMMENT documentation
-- Temporal columns (created_at, updated_at)
+**Naming conventions:**
+- Primary keys: `<entity>_id` (e.g., `asset_id`, `customer_id`)
+- Foreign keys: must exactly match the referenced primary key name
+- Display names: `<entity>_name`; external/customer-facing IDs: `<entity>_number`
+- Timestamps: `<event>_timestamp TIMESTAMP_NTZ`; dates: `<event>_date DATE`
+- Booleans: prefix `is_`, `has_`, `can_`, or `should_`
+- Measurements: include unit in column name (`consumption_kwh`, `ambient_temp_c`)
 
-### Forbidden
+**Declared grain:** State the fact grain in its table `COMMENT`. Use a supplied unique transaction key for transaction grain, or a composite time/entity key when that identifies the declared grain. Include numeric measures, dimension FKs matching referenced PK names, and metadata (`load_timestamp`, `source_system`). Verify uniqueness in data; a declaration is not proof of enforcement.
 
-- Ad-hoc naming without documented rationale
-- Breaking changes without backward compatibility strategy
-- Primary keys that don't follow `<entity>_id` pattern
-- Foreign keys that don't match referenced primary key names
-- Views without PURPOSE comments
+**Date dimension and joins:** Use `DIM_DATE` when the demo needs calendar attributes; give it one row per unique `date_key DATE`, a derived `month_start DATE`, and the attributes actually needed. Populate it across every fact date before relying on inner-joined views, and check for uncovered fact dates; creating an empty dimension is insufficient. Join each fact timestamp to exactly one daily row with `DATE(f.<timestamp_col>) = d.date_key`, then group by `d.month_start` for monthly views. The expected number of month rows comes from distinct months in actual fact timestamps, never an inferred history window. Never join an unaggregated fact directly on `d.month_start`: a daily dimension has multiple rows per month and multiplies fact amounts. If a separate month dimension is used instead, verify one unique row per month key. Do not substitute day-count approximations for calendar joins.
+
+**View taxonomy:** All views must carry a taxonomy prefix. The `COMMENT = '...'` clause must appear before the `AS` keyword in the DDL:
+- `VW_BA_*` — pre-joined dimensions, business-friendly column aliases
+- `VW_EXEC_*` — aggregated KPIs, monthly or quarterly grain
+- `VW_DS_*` — wide format, null-handled, ML-ready features
+- `VW_DE_*` — ETL pipeline and lineage views
+- `VW_REF_*` — static reference lookups
+- `VW_OPS_*` — real-time operational status
+
+**Validation phases:** Before views, check all persisted keys, including `DIM_DATE.date_key` uniqueness (the PK declaration alone is insufficient), non-null fact dates, FK/date coverage, counts and base-table column comments. After views exist, check view comments, one-order BA grain, distinct-month EXEC grain and monthly totals. No pre-view gate may query or inspect a not-yet-created view. Name the monthly measure (for example `total_revenue_usd`) and reuse that exact alias when reconciling to the fact measure.
+
+**Design handoff:** Include every supplied entity key, type, unit, count, seed and reference clock; inspected Python version, lint/format/type-check tools and unknown manager; creation and explicit load order; each parent/fact/date key's uniqueness; orphan coverage; separate post-view grain/totals checks; and truthful execution status. Do not omit toolchain findings from a design merely because no code is written. A nonunique parent key can multiply rows just like a nonunique date key.
+
+**Evidence boundary:** Separate supplied workload facts from proposed design choices and unresolved inputs. Example category sets, identifier storage types and date windows are not fixture facts. Never label values copied from rule examples as supplied or verified. A clock without a sampling interval leaves timestamp-generation requirements unresolved; list that missing input before the generation workflow.
+
+**Column comments:** Every column requires a `COMMENT` with: business definition, unit of measure (if numeric), valid values (if categorical), and FK target (if foreign key).
+
+**SCD strategy:** Use Type 1 (overwrite) for demo attributes that do not need history. Use Type 2 (surrogate key + `effective_from`/`effective_to`/`is_current`) only when the demo scenario showcases historical analysis. Do not default to SCD2 without a narrative reason.
+
+**Backward compatibility:** When renaming a table or schema, create a compatibility view with the old name pointing to the new object. Set a concrete removal event in the `COMMENT` tied to a known migration milestone (e.g., `'DEPRECATED: use DIM_GRID_ASSET. Remove after workshop-2026-12 consumers migrated.'`). Do not state a generic time window as a deprecation period — the window is determined by the actual consumer migration timeline.
+
+**Reverse dependency order:** A separately authorized teardown removes dependent views first, then facts, then parent/date dimensions. Do not list views last in deferred prose or executable steps. If any dependent is unowned or unverified, stop and obtain a scoped dependency disposition; ownership of a table does not authorize deleting its consumers.
+
+```sql
+-- Grain: one row per meter reading per 15-minute interval
+CREATE TABLE IF NOT EXISTS DEMO_DB.GRID_DATA.FACT_METER_READINGS (
+    asset_id        VARCHAR(50)    NOT NULL  COMMENT 'FK -> DIM_GRID_ASSET.asset_id',
+    read_timestamp  TIMESTAMP_NTZ  NOT NULL  COMMENT 'UTC timestamp of the reading',
+    customer_id     VARCHAR(50)    NOT NULL  COMMENT 'FK -> DIM_CUSTOMER.customer_id',
+    consumption_kwh FLOAT          NOT NULL  COMMENT 'Energy consumed in kilowatt-hours',
+    demand_kw       FLOAT          NOT NULL  COMMENT 'Peak demand in kilowatts',
+    load_timestamp  TIMESTAMP_NTZ  NOT NULL  DEFAULT CURRENT_TIMESTAMP() COMMENT 'Load time',
+    source_system   VARCHAR(50)    NOT NULL COMMENT 'Origin system',
+    PRIMARY KEY (asset_id, read_timestamp)
+) COMMENT = 'Grain: one row per meter reading per 15-minute interval';
+```
+
+```sql
+-- VW_BA_: pre-joined for analyst self-service; COMMENT placed before AS
+CREATE VIEW DEMO_DB.GRID_DATA.VW_BA_METER_READINGS
+COMMENT = 'BA View: Meter readings with asset, customer, and date dimensions pre-joined'
+AS
+SELECT
+    f.read_timestamp,
+    a.asset_name,
+    c.customer_name,
+    f.consumption_kwh,
+    f.demand_kw,
+    d.fiscal_quarter
+FROM DEMO_DB.GRID_DATA.FACT_METER_READINGS  f
+JOIN DEMO_DB.GRID_DATA.DIM_GRID_ASSET       a  ON f.asset_id    = a.asset_id
+JOIN DEMO_DB.GRID_DATA.DIM_CUSTOMER         c  ON f.customer_id = c.customer_id
+JOIN DEMO_DB.GRID_DATA.DIM_DATE             d  ON DATE(f.read_timestamp) = d.date_key;
+```
 
 ### Execution Steps
 
-1. Define entity model with standardized primary keys (`<entity>_id` pattern)
-2. Apply universal naming conventions (Business Analyst-friendly)
-3. Implement dimensional modeling patterns (Kimball methodology)
-4. Create business-friendly view taxonomy (VW_BA_, VW_EXEC_, VW_DS_)
-5. Document all relationships and metadata with COMMENT
-6. Enforce referential integrity with foreign key constraints
-7. Validate with compliance checklist
-8. Test Business Analyst queries against views
+Use the following ordered workflow in the final execution plan. For design-only work, describe every action as proposed and mark missing inputs; never execute it.
 
-### Output Format
-
-- Python DataFrames with standardized columns (`<entity>_id`, temporal columns)
-- SQL DDL with explicit PKs/FKs and COMMENT documentation
-- View definitions with clear taxonomy prefixes and PURPOSE comments
+1. Establish authorization, target state, supplied entity keys/grain/units and Python toolchain. Resolve missing date-window inputs before implementing timestamp generation.
+2. Generate parent and fact rows in memory with the supplied seed/reference clock. Derive one unique date-dimension row per covered calendar date from those generated timestamps; validate the generated keys and parent references.
+3. Create base tables in dependency order, using entity-key naming, declared grain, metadata and column comments. Do not replace existing objects without separate approval.
+4. **Load parent dimensions**, using only authorized targets.
+5. **Load `DIM_DATE` rows** generated in step 2. This must be its own execution-plan action, not merely an inventory note.
+6. **Load fact rows.** Only after all three table types exist and are loaded, verify persisted counts, each parent/fact/date key's uniqueness, non-null timestamps, FK/date coverage and base-table comments. Never run a full fact-referencing gate between dimension load and fact creation/load. Stop on any failed check. This gate does not include views.
+7. Create required taxonomy-prefixed views with `COMMENT` before `AS`, after checking existing names, grants and dependents. Use a unique daily date join before grouping by month. For renamed objects, use approved compatibility views with a concrete removal event.
+8. After views exist, verify their comments, representative queries, BA/EXEC grain and monthly reconciliation using the declared output alias. Derive distinct fact months from `DATE_TRUNC('month', f.<timestamp_col>)`, not a `month_start` column absent from the fact definition. Check every verification expression against the columns actually defined above and remove contradictory claims (view `COMMENT` placement applies even when no COPY operation exists). Report actual results; unexecuted checks remain unverified.
 
 ### Validation
 
-**Success Criteria:**
-- All primary keys follow `<entity>_id` pattern
-- Foreign key names exactly match referenced primary key names
-- All columns have clear COMMENT documentation
-- All views have PURPOSE comments
-- Business Analyst queries execute successfully against views
-- FK integrity validation passes
-- View taxonomy compliance verified
-
-### Design Principles
-
-- **Business-First Naming:** Column and table names immediately understandable to non-technical business analysts
-- **Consistent Identity:** Every entity uses `<entity>_id` as primary key; external identifiers use `<entity>_number`
-- **FK Matching:** Foreign key names MUST exactly match referenced primary key names
-- **Dimensional Modeling:** Separate facts (measures) from dimensions (attributes)
-- **View Layering:** Progressive abstraction from raw tables to analytical views
-- **Self-Documenting:** Every column has clear COMMENT; every view has PURPOSE comment
-- **Backward Compatible:** All schema changes provide migration path via views
-
-### Post-Execution Checklist
-
-- [ ] Entity IDs use `<entity>_id` suffix
-- [ ] FKs exactly match referenced PK names
-- [ ] Display names use `<entity>_name`
-- [ ] Temporal columns use `<event>_timestamp` or `<event>_date`
-- [ ] Boolean columns use `is_`, `has_`, `can_`, `should_`
-- [ ] Measurements include unit in column name
-- [ ] Views use taxonomy prefixes (VW_BA_, VW_EXEC_, VW_DS_)
-- [ ] All columns have COMMENT
-- [ ] Date dimension exists and is used
-- [ ] Backward compatibility views created for renames
-- [ ] FK integrity validated in generator
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Inconsistent FK Naming
-
-```sql
--- BAD: FK name doesn't match PK
-CREATE TABLE TRANSFORMER_DATA (equipment_id VARCHAR(50));  -- References asset_id
-```
-
-**Problem:** Business Analysts must memorize that `equipment_id` = `asset_id`. Creates cognitive load and query errors.
-
-**Correct Pattern:**
-```sql
-CREATE TABLE FACT_TRANSFORMER_READINGS (asset_id VARCHAR(50));  -- Matches DIM_GRID_ASSET.asset_id
-```
-
-### Anti-Pattern 2: Ambiguous View Names
-
-```sql
--- BAD: Generic, unclear purpose
-CREATE VIEW ENRICHED_ASSET_FEATURES AS ...;
-```
-
-**Problem:** Users don't know if view is for Business Analysts, Data Scientists, or Engineers.
-
-**Correct Pattern:**
-```sql
-CREATE VIEW VW_DS_ASSET_FEATURES AS ...
-COMMENT = 'DS View: ML-ready feature table for transformer failure prediction';
-```
-
-### Anti-Pattern 3: Unitless Measurements
-
-```sql
--- BAD: Units unclear
-CREATE TABLE AMI_DATA (consumption FLOAT, temperature FLOAT, voltage FLOAT);
-```
-
-**Problem:** Analysts must guess units or reference external documentation.
-
-**Correct Pattern:**
-```sql
-CREATE TABLE FACT_METER_READINGS (
-    consumption_kwh FLOAT COMMENT 'Energy consumption in kilowatt-hours',
-    ambient_temp_c FLOAT COMMENT 'Ambient temperature in Celsius'
-);
-```
-
-### Anti-Pattern 4: Missing Date Dimension
-
-```sql
--- BAD: Direct date filtering with functions
-SELECT YEAR(read_timestamp), SUM(consumption_kwh) FROM AMI_DATA;
-```
-
-**Problem:** Expensive date functions; no fiscal year/holiday logic; not BA-friendly.
-
-**Correct Pattern:**
-```sql
-SELECT d.year_num, d.fiscal_quarter, SUM(f.consumption_kwh)
-FROM FACT_METER_READINGS f JOIN DIM_DATE d ON DATE(f.read_timestamp) = d.date_key;
-```
-
-## Universal Naming Conventions
-
-### Entity Identifier Standards
-
-**Mandatory Patterns:**
-- **Primary Keys**: Always `<entity>_id` (e.g., `asset_id`, `meter_id`, `customer_id`)
-- **Foreign Keys**: Must exactly match referenced PK name
-- **Display Names**: Use `<entity>_name` for human-readable labels
-- **External IDs**: Use `<entity>_number` for customer-facing identifiers
-
-### Temporal Column Standards
-
-- **Exact timestamp:** `<event>_timestamp` (TIMESTAMP_NTZ)
-- **Date only:** `<event>_date` (DATE)
-- **Duration:** `<event>_duration_<unit>` (NUMBER)
-
-### Boolean Column Standards
-
-All boolean columns must use: `is_`, `has_`, `can_`, `should_` prefixes.
-
-### Measurement Column Standards
-
-All measurements include unit: `<metric>_kwh`, `<metric>_kw`, `<metric>_volts`, `<metric>_temp_c`
-
-## Dimensional Modeling Standards (Kimball)
-
-### Fact Table Patterns
-
-**Naming:** `FACT_<business_process>` (e.g., `FACT_METER_READINGS`, `FACT_BILLING`)
-
-**Required Columns:**
-1. Composite Primary Key (time + entity FK)
-2. Measures (numeric facts)
-3. Dimension FKs (matching dimension PKs)
-4. Metadata (`load_timestamp`, `source_system`)
-
-```sql
-CREATE TABLE FACT_METER_READINGS (
-    meter_id VARCHAR(50) NOT NULL,
-    read_timestamp TIMESTAMP_NTZ NOT NULL,
-    customer_id VARCHAR(50) NOT NULL,
-    consumption_kwh FLOAT NOT NULL,
-    demand_kw FLOAT NOT NULL,
-    load_timestamp TIMESTAMP_NTZ NOT NULL DEFAULT CURRENT_TIMESTAMP(),
-    source_system VARCHAR(50) NOT NULL,
-    PRIMARY KEY (meter_id, read_timestamp)
-);
-```
-
-### Dimension Table Patterns
-
-**Naming:** `DIM_<entity>` (e.g., `DIM_GRID_ASSET`, `DIM_CUSTOMER`, `DIM_DATE`)
-
-**Required Columns:**
-1. Primary Key (`<entity>_id`)
-2. Business Key (`<entity>_name` or `<entity>_number`)
-3. Attributes (descriptive text, categories)
-4. Metadata (`created_timestamp`, `updated_timestamp`)
-
-```sql
-CREATE TABLE DIM_GRID_ASSET (
-    asset_id VARCHAR(50) NOT NULL PRIMARY KEY,
-    asset_name VARCHAR(100) NOT NULL,
-    asset_type VARCHAR(20) NOT NULL,
-    manufacturer VARCHAR(100),
-    install_date DATE,
-    operational_status VARCHAR(20),
-    created_timestamp TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
-) COMMENT = 'Dimension: Grid asset inventory';
-```
-
-### SCD Patterns for Dimensions
-
-**Type 1 (Overwrite):** Current value only; simplest for demos:
-```sql
--- MERGE overwrites changed attributes, keeps same PK
-MERGE INTO DIM_GRID_ASSET tgt USING staging src ON tgt.asset_id = src.asset_id
-WHEN MATCHED AND (tgt.operational_status != src.operational_status
-                   OR tgt.asset_name != src.asset_name) THEN
-  UPDATE SET tgt.operational_status = src.operational_status,
-             tgt.asset_name = src.asset_name,
-             tgt.updated_timestamp = CURRENT_TIMESTAMP()
-WHEN NOT MATCHED THEN
-  INSERT (asset_id, asset_name, asset_type, operational_status, created_timestamp)
-  VALUES (src.asset_id, src.asset_name, src.asset_type, src.operational_status, CURRENT_TIMESTAMP());
-```
-
-**Type 2 (History):** Track attribute changes over time with surrogate keys:
-```sql
-CREATE TABLE DIM_CUSTOMER_SCD2 (
-    customer_sk INT AUTOINCREMENT PRIMARY KEY,  -- Surrogate key
-    customer_id VARCHAR(50) NOT NULL,           -- Natural/business key
-    customer_name VARCHAR(100),
-    segment VARCHAR(20),
-    effective_from TIMESTAMP_NTZ NOT NULL,
-    effective_to TIMESTAMP_NTZ DEFAULT '9999-12-31',
-    is_current BOOLEAN DEFAULT TRUE
-) COMMENT = 'Dimension: Customer with SCD Type 2 history';
-
--- Current-only view for simple queries:
-CREATE VIEW VW_BA_CURRENT_CUSTOMERS AS
-SELECT customer_sk, customer_id, customer_name, segment
-FROM DIM_CUSTOMER_SCD2 WHERE is_current = TRUE;
-```
-
-**Guidance:** Use Type 1 for demo attributes that don't need history (operational_status). Use Type 2 when demos showcase historical analysis (customer segment changes over time).
-
-### Bridge Table Patterns (Many-to-Many)
-
-**Naming:** `BRIDGE_<entity1>_<entity2>`
-
-```sql
-CREATE TABLE BRIDGE_METER_CONTRACT (
-    meter_id VARCHAR(50) NOT NULL,
-    contract_id VARCHAR(50) NOT NULL,
-    effective_start_date DATE NOT NULL,
-    is_active BOOLEAN DEFAULT TRUE,
-    PRIMARY KEY (meter_id, contract_id, effective_start_date)
-);
-```
-
-### Date Dimension (Mandatory)
-
-Every dimensional model MUST include a date dimension with calendar attributes, business attributes (is_holiday, fiscal_year), and utility-specific fields.
-
-## View Taxonomy (Business-First Design)
-
-### View Prefix Standards
-
-- **`VW_BA_*`** - Business Analyst views (pre-joined, low complexity)
-- **`VW_EXEC_*`** - Executive dashboard views (aggregated KPIs)
-- **`VW_DS_*`** - Data Science feature views (wide format, ML-ready)
-- **`VW_DE_*`** - Data Engineering pipeline views (ETL/lineage)
-- **`VW_REF_*`** - Reference lookup views (static lists)
-- **`VW_OPS_*`** - Operational monitoring (real-time status)
-
-### Business Analyst Views (`VW_BA_*`)
-
-**Design Principles:**
-- Pre-join all relevant dimensions
-- Use business-friendly column aliases
-- Include commonly filtered dimensions
-- Add inline documentation via column comments
-
-```sql
-CREATE VIEW VW_BA_METER_READINGS AS
-SELECT f.read_timestamp, d.asset_name, c.customer_name,
-       f.consumption_kwh, f.demand_kw, dt.fiscal_quarter
-FROM FACT_METER_READINGS f
-JOIN DIM_GRID_ASSET d ON f.asset_id = d.asset_id
-JOIN DIM_CUSTOMER c ON f.customer_id = c.customer_id
-JOIN DIM_DATE dt ON DATE(f.read_timestamp) = dt.date_key
-COMMENT = 'BA View: Pre-joined meter readings with asset and customer dimensions';
-```
-
-### Executive Dashboard Views (`VW_EXEC_*`)
-
-**Design Principles:**
-- Highly aggregated (monthly, quarterly grains)
-- Include trend calculations (YoY, MoM)
-- Pre-calculate KPIs and ratios
-- Focus on business outcomes
-
-```sql
-CREATE VIEW VW_EXEC_ENERGY_KPI AS
-SELECT dt.fiscal_quarter, dt.year_num,
-       SUM(f.consumption_kwh) AS total_consumption_kwh,
-       COUNT(DISTINCT f.meter_id) AS active_meters,
-       ROUND(SUM(f.consumption_kwh) / COUNT(DISTINCT f.meter_id), 2) AS avg_consumption_per_meter
-FROM FACT_METER_READINGS f
-JOIN DIM_DATE dt ON DATE(f.read_timestamp) = dt.date_key
-GROUP BY dt.fiscal_quarter, dt.year_num
-COMMENT = 'EXEC View: Quarterly energy KPIs with per-meter averages';
-```
-
-### Data Science Feature Views (`VW_DS_*`)
-
-**Design Principles:**
-- Wide format (one row per entity)
-- Include engineered features (lags, rolling aggregates)
-- Handle nulls explicitly
-- Include target variable columns for ML
-
-```sql
-CREATE VIEW VW_DS_ASSET_FEATURES AS
-SELECT d.asset_id, d.asset_type, d.operational_status,
-       COALESCE(agg.avg_consumption_kwh, 0) AS avg_consumption_kwh,
-       COALESCE(agg.max_demand_kw, 0) AS max_demand_kw,
-       COALESCE(agg.reading_count, 0) AS reading_count,
-       DATEDIFF('day', d.install_date, CURRENT_DATE()) AS asset_age_days
-FROM DIM_GRID_ASSET d
-LEFT JOIN (
-  SELECT asset_id, AVG(consumption_kwh) AS avg_consumption_kwh,
-         MAX(demand_kw) AS max_demand_kw, COUNT(*) AS reading_count
-  FROM FACT_METER_READINGS GROUP BY asset_id
-) agg ON d.asset_id = agg.asset_id
-COMMENT = 'DS View: ML-ready asset features for predictive maintenance';
-```
-
-## Backward Compatibility and Migration
-
-### Migration Principles
-
-1. **Create new objects with standard names** (e.g., `DIM_GRID_ASSET`)
-2. **Create compatibility views with old names** (e.g., `GRID_ASSETS` pointing to new)
-3. **Deprecation notice period** (minimum 30 days)
-4. **Remove old objects** only after all consumers migrated
-
-```sql
--- Backward compatibility view
-CREATE VIEW GRID_ASSETS AS
-SELECT asset_id, asset_name, asset_type,
-       asset_id AS equipment_id  -- Compatibility alias
-FROM DIM_GRID_ASSET
-COMMENT = 'DEPRECATED: Use DIM_GRID_ASSET instead. Removing 2026-07-01.';
-```
-
-## Data Generator Requirements
-
-### Generator Output Standards
-
-All Python generators must produce:
-1. Standardized column names (Section 1 conventions)
-2. Metadata columns (`created_timestamp`, `source_system`)
-3. Explicit data types
-4. Referential integrity (all FKs reference valid PKs)
-
-### Required Columns for All Entities
-
-```python
-required_columns = {
-    "<entity>_id": "VARCHAR(50)",
-    "<entity>_name": "VARCHAR(100)",
-    "created_timestamp": "TIMESTAMP_NTZ",
-    "source_system": "VARCHAR(50)",
-}
-```
-
-### Relationship Integrity Validation
-
-```python
-def validate_foreign_keys(df_child, df_parent, fk_column, pk_column):
-    missing_refs = df_child[~df_child[fk_column].isin(df_parent[pk_column])]
-    if not missing_refs.empty:
-        raise ValueError(f"Referential integrity violation: {len(missing_refs)} rows")
-```
-
-## SQL DDL Standards
-
-### Column Comment Standards
-
-Every column must have COMMENT including:
-1. What it represents (business definition)
-2. Unit of measure (if numeric)
-3. Valid values (if categorical)
-4. FK reference (if foreign key)
-
-```sql
-consumption_kwh FLOAT COMMENT 'Total energy in kilowatt-hours',
-operational_status VARCHAR(20) COMMENT 'Values: ACTIVE, FAILED, MAINTENANCE',
-parent_asset_id VARCHAR(50) COMMENT 'References DIM_GRID_ASSET.asset_id'
-```
-
-## Naming Convention Compliance Check
-
-Run these queries to validate naming conventions after creating demo objects:
-
-```sql
--- Find tables missing naming convention (no FACT_, DIM_, BRIDGE_, AGG_ prefix)
-SELECT table_name
-FROM INFORMATION_SCHEMA.TABLES
-WHERE table_schema = 'MY_SCHEMA'
-  AND table_type = 'BASE TABLE'
-  AND table_name NOT LIKE 'FACT_%'
-  AND table_name NOT LIKE 'DIM_%'
-  AND table_name NOT LIKE 'BRIDGE_%'
-  AND table_name NOT LIKE 'AGG_%'
-ORDER BY table_name;
-
--- Find views missing taxonomy prefix
-SELECT table_name AS view_name
-FROM INFORMATION_SCHEMA.VIEWS
-WHERE table_schema = 'MY_SCHEMA'
-  AND table_name NOT LIKE 'VW_BA_%'
-  AND table_name NOT LIKE 'VW_EXEC_%'
-  AND table_name NOT LIKE 'VW_DS_%'
-  AND table_name NOT LIKE 'VW_DE_%'
-  AND table_name NOT LIKE 'VW_REF_%'
-  AND table_name NOT LIKE 'VW_OPS_%'
-ORDER BY view_name;
-
--- Find columns missing COMMENT
-SELECT table_name, column_name
-FROM INFORMATION_SCHEMA.COLUMNS
-WHERE table_schema = 'MY_SCHEMA'
-  AND (comment IS NULL OR comment = '')
-ORDER BY table_name, ordinal_position;
-
--- Find PKs not following <entity>_id pattern
-SELECT tc.table_name, kcu.column_name
-FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
-JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu
-  ON tc.constraint_name = kcu.constraint_name
-WHERE tc.constraint_type = 'PRIMARY KEY'
-  AND tc.table_schema = 'MY_SCHEMA'
-  AND kcu.column_name NOT LIKE '%_id'
-ORDER BY tc.table_name;
-```
-
-## Aggregate Tables
-
-Pre-aggregate fact tables for common query patterns to improve demo performance:
-
-**Naming:** `AGG_<grain>_<business_process>` (e.g., `AGG_DAILY_METER_READINGS`, `AGG_MONTHLY_BILLING`)
-
-```sql
--- Daily aggregate: pre-computed for dashboard queries
-CREATE OR REPLACE TABLE AGG_DAILY_METER_READINGS AS
-SELECT
-    DATE(read_timestamp) AS reading_date,
-    asset_id,
-    customer_id,
-    SUM(consumption_kwh) AS total_consumption_kwh,
-    AVG(demand_kw) AS avg_demand_kw,
-    COUNT(*) AS reading_count
-FROM FACT_METER_READINGS
-GROUP BY reading_date, asset_id, customer_id;
-
--- Monthly aggregate: executive dashboard grain
-CREATE OR REPLACE TABLE AGG_MONTHLY_ENERGY AS
-SELECT
-    DATE_TRUNC('month', read_timestamp)::DATE AS month_start,
-    COUNT(DISTINCT meter_id) AS active_meters,
-    SUM(consumption_kwh) AS total_kwh,
-    ROUND(SUM(consumption_kwh) / COUNT(DISTINCT meter_id), 2) AS avg_kwh_per_meter
-FROM FACT_METER_READINGS
-GROUP BY month_start;
-```
-
-**When to use:** Create aggregate tables when VW_EXEC_ views are slow due to scanning large fact tables. For demos, pre-build aggregates during setup to ensure fast dashboard queries.
+- All PKs follow `<entity>_id`; all FKs exactly match their referenced PK name
+- Every fact table has grain declared in its table-level `COMMENT`
+- `DIM_DATE.date_key` is type `DATE` and populated for all fact dates; an orphan/coverage check returns zero before joining dependent views
+- Daily fact-to-date joins preserve one dimension row per fact; group by month only after that join and reconcile monthly totals to the fact total
+- All views carry a taxonomy prefix and `COMMENT` placed before the `AS` keyword
+- Every column has a `COMMENT`; validate with `INFORMATION_SCHEMA.COLUMNS WHERE comment IS NULL OR comment = ''`
+- Backward-compatibility views reference a concrete removal event, not a generic time window
+- Representative `VW_BA_*` queries execute correctly against fact and dimension joins
+
+## References
+
+- [Snowflake Data Modeling](https://docs.snowflake.com/en/user-guide/data-modeling)
+- [Kimball Dimensional Modeling Techniques](https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/)

@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v4.0.0
-description: "Advanced semantic view patterns: anti-patterns, validation rules, quality checks, compliance."
-last_updated: 2026-07-15
+schema_version: v4.0
+rule_version: v5.0.0
+description: Advanced semantic-view relationship, expression, data-quality, and deployment validation.
+last_updated: 2026-10-07
 keywords:
   - kw:semantic view anti-patterns
   - kw:relationship granularity
@@ -10,7 +10,7 @@ keywords:
   - kw:expression reference cycles
   - kw:template character restrictions
   - kw:semantic view quality checks
-token_budget: ~1900
+token_budget: ~1150
 context_tier: High
 depends:
   required:
@@ -20,237 +20,57 @@ depends:
     - 106b-snowflake-semantic-views-querying.md  # Query patterns, SEMANTIC_VIEW() function
     - 106c-snowflake-semantic-views-integration.md  # Cortex Analyst/Agent integration
 ---
-# Snowflake Semantic Views: Advanced Patterns & Validation
+# Snowflake Semantic Views: Advanced Patterns and Validation
 
 ## Scope
 
 **What This Rule Covers:**
-Advanced semantic view patterns: anti-patterns, validation rules, quality checks, compliance.
+Schema grounding, relationship paths/granularity, expression dependencies, window metrics, data integrity, and evidence-based quality review.
 
 **When to Load This Rule:**
-- Avoiding common semantic view mistakes
-- Implementing validation rules
-- Debugging semantic view errors
-
-## References
-
-### External Documentation
-- [CREATE SEMANTIC VIEW DDL](https://docs.snowflake.com/en/sql-reference/sql/create-semantic-view)
-- [Validation Rules](https://docs.snowflake.com/en/user-guide/views-semantic/validation-rules)
+When reviewing complex semantic models, diagnosing definition/query errors, or designing semantic-view quality gates.
 
 ## Contract
 
 ### Inputs and Prerequisites
-- Understanding of semantic view basics (from 106-snowflake-semantic-views-core)
-- Role with CREATE SEMANTIC VIEW privilege on target schema
-- USAGE privilege on referenced tables/views
-- Semantic view created and accessible
+
+- Core rule loaded, actual source metadata and semantic definition, relationship/key evidence, and expected business calculations.
+- Authorized inspection/test scope and relevant role privileges; CREATE SEMANTIC VIEW and source SELECT for creation, not a nonexistent table USAGE requirement.
 
 ### Mandatory
-- Run `DESCRIBE TABLE` to verify physical column names before any semantic view DDL
-- Use `alias.physical_column AS logical_name` mapping syntax consistently
-- Validate with `SHOW SEMANTIC VIEWS/DIMENSIONS/METRICS` after creation
-- Follow clause order: TABLES, FACTS, DIMENSIONS, METRICS
 
-### Forbidden
-- Circular or self-referencing relationships
-- Expression reference cycles between metrics
-- Template characters (`&`, `<%`, `{{`) in SYNONYMS or COMMENT values
-- Window function metrics referenced from other metrics or dimensions
-
-### Conditional
-- PRIMARY KEY required only when relationships are defined
-- Composite keys when table grain requires multiple columns
+- Verify exact physical columns with DESCRIBE TABLE/view or equivalent current schema evidence before DDL. Compare case-sensitive identifiers accurately; uppercasing every name can hide quoted-name mismatches.
+- Use alias.logical_name AS expression, with physical columns on the expression side. Require at least one dimension or metric; preserve TABLES/RELATIONSHIPS/FACTS/DIMENSIONS/METRICS order when present.
+- Keys use supported physical columns or direct-column expressions; referenced keys must meet documented primary/unique-key constraints for the chosen relationship. Test actual uniqueness, NULLs, orphan keys, and composite-key completeness.
+- Review many-to-one and one-to-one relationships, transitive paths, and multipath restrictions. Reject cycles and self-references; do not assume two tables with matching column names are related.
+- Bind semantic expressions to their logical table and refer across tables through connected semantic expressions, not arbitrary remote physical columns. Check name resolution when physical and semantic names overlap.
+- Facts/dimensions permit row-level scalar expressions; table functions are not allowed in dimensions. Do not ban CAST/DATE_TRUNC categorically or confuse table alias qualification with a function-name prefix.
+- Follow documented same/equal/lower/higher-granularity expression rules, including required aggregation or nested aggregation. Reject semantic-expression and table-reference cycles; review derived metrics for correct aggregation level rather than assuming every metric contains SUM.
+- One-to-one relationships have equal-grain rules distinct from many-to-one: row-level references are direct and metrics reference row-level values through a single aggregate, or other equal-grain metrics directly.
+- Window-function metrics cannot feed row-level facts/dimensions or other metric definitions. Validate partition/order/frame meanings and required query dimensions independently.
+- Inspect the actual CLI/renderer before handling template characters in synonyms/comments. Correct escaping or disable unwanted substitution according to approved tooling; do not change business labels solely to satisfy an invented universal character ban.
+- Separate structural validation from business/data correctness. Compilation or SHOW output does not prove cardinality, measure totals, access policy, performance, or NLQ quality.
+- Preserve current grants/consumers/materializations and authorization through deployment/recovery. Keep source data and sensitive metadata out of external validators and test prompts unless explicitly authorized.
 
 ### Execution Steps
-1) Review anti-patterns 2) Apply validation rules 3) Run quality checks 4) Verify compliance
 
-### Output Format
-Validation queries, compliance checklists, quality reports
+1. Inspect existing DDL/schema and document logical-to-physical mappings, keys, grain, units, and dependencies.
+2. Trace relationship/expression graphs and review names, cardinality, aggregation, windows, renderer behavior, and privileges.
+3. Prepare expected-result tests for key/NULL/orphan/duplicate cases, fanout, empty sets, and representative metric combinations.
+4. Execute only approved definition/data tests; inspect effective DDL and SHOW/DESCRIBE output after authorized deployment.
+5. Compare semantic and independent physical results at the same grain/filter scope; report failures and unresolved verification separately from optional Analyst checks.
 
 ### Validation
-No anti-patterns detected; validation passes; compliant with requirements
 
-### Design Principles
-- Avoid anti-patterns for maintainability and performance
-- Apply comprehensive validation rules before deployment
+- Each physical reference grounded; relationships and expressions meet current documented restrictions without circular/self references.
+- Key quality and result cardinality/totals verified with actual data; quoted identifiers and NULL cases handled accurately.
+- Window/derived metrics and renderer behavior tested where applicable, with no unsupported character/function prohibition.
+- Review output records definition/data/security findings, supporting evidence, corrected guidance, and remaining gaps. No unrun SQL or inferred compliance pass.
 
-### Post-Execution Checklist
-- [ ] Anti-patterns reviewed and avoided
-- [ ] Validation rules applied
-- [ ] Physical column names verified against base table (DESCRIBE TABLE)
-- [ ] Quality checks passed
+## References
 
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Reversed Mapping Syntax
-```sql
--- WRONG
-FACTS (orders.order_amount AS total_amount)  -- Reversed!
-```
-**Problem:** Syntax error: "invalid identifier"
-
-**Correct Pattern:**
-```sql
-FACTS (orders.total_amount AS order_amount)  -- logical_name AS physical_column
-```
-
-### Anti-Pattern 2: Complex Expressions in DIMENSIONS
-
-**Problem:** Using CAST, DATE_TRUNC, or other transformations directly in DIMENSIONS.
-```sql
--- WRONG: Complex expression in DIMENSIONS
-DIMENSIONS (orders.DATE_TRUNC('month', order_date) AS order_month)
-```
-
-**Why It Fails:** DIMENSIONS must be direct column references. Complex expressions cause syntax errors.
-
-**Correct Pattern:**
-```sql
--- Use a derived column in the base table or a view
-DIMENSIONS (orders.order_month AS order_month)  -- Pre-computed column
-```
-
-### Additional Reference
-
-See `106-snowflake-semantic-views-core.md` for additional anti-patterns:
-- **Missing Equals Sign in COMMENT** - use `COMMENT = 'text'`
-- **Wrong Clause Order** - must be TABLES, FACTS, DIMENSIONS, METRICS
-- **Referencing Non-Existent Columns** - always verify with `DESCRIBE TABLE` first
-
-## Validation Rules
-
-### General Rules
-
-**Required Elements:** Must have at least one dimension or metric.
-```sql
--- ERROR: No dimensions or metrics
-CREATE SEMANTIC VIEW my_view TABLES (...);  -- Fails
-```
-
-**Table Alias References:** Use defined alias, not physical table name.
-```sql
-TABLES (orders AS db.schema.orders_table ...)
-DIMENSIONS (orders.order_id AS id)  -- Use 'orders', not 'orders_table'
-```
-
-### Relationship Rules
-
-**Many-to-One Relationships:**
-```sql
-RELATIONSHIPS (orders_to_customer AS orders(o_custkey) REFERENCES customer(c_custkey))
--- c_custkey must be PRIMARY KEY
-```
-
-**FORBIDDEN:**
-- Circular relationships
-- Self-references (table cannot reference itself)
-- Expression reference cycles
-
-### Expression Rules
-
-**Table Association Required:**
-```sql
--- WRONG
-DIMENSIONS (customer_name AS c_name)  -- Missing table prefix
--- CORRECT
-DIMENSIONS (customer.customer_name AS c_name)
-```
-
-**Granularity Rules:**
-- Row-level expressions can reference same or lower granularity directly
-- Higher granularity requires aggregation
-
-```sql
--- customer is lower granularity than orders (one customer = many orders)
-DIMENSIONS (
-  customer.name AS c_name,
-  orders.customer_name AS customer.name  -- Lower granularity: OK
-)
-
--- Must aggregate when referencing higher granularity
-DIMENSIONS (
-  customer.total_orders AS COUNT(orders.order_key)  -- Must aggregate
-)
-```
-
-**Window Function Restrictions:**
-- Cannot use in dimensions or facts
-- Cannot use in other metrics
-
-### Template Character Validation (CLI Compatibility)
-
-**Forbidden in SYNONYMS and COMMENT:**
-- `&` - CLI template variable prefix
-- `<%` `%>` - SnowSQL variables
-- `{{` `}}` - Jinja/dbt templates
-
-```sql
--- WRONG (fails via CLI)
-SYNONYMS ('R&D', 'Sales & Marketing')
--- CORRECT
-SYNONYMS ('R and D', 'Sales and Marketing')
-```
-
-## Post-Creation Validation
-
-**Step 1: Extract DDL**
-```sql
-SELECT GET_DDL('SEMANTIC_VIEW', 'DB.SCHEMA.SEM_VIEW_NAME');
-```
-
-**Step 2: Verify columns exist in base table**
-```sql
-DESCRIBE TABLE DB.SCHEMA.BASE_TABLE;
--- Cross-reference each column in DDL
-```
-
-**Step 3: Test columns directly**
-```sql
-SELECT DISTINCT equipment_id FROM DB.SCHEMA.TABLE LIMIT 1;  -- If fails, column wrong
-```
-
-**Step 4: Test with Cortex Analyst** (ultimate validation)
-
-**Automated Validation Query:**
-```sql
-WITH semantic_columns AS (
-  SELECT 'equipment_id' AS column_name UNION ALL SELECT 'load_kw'
-),
-actual_columns AS (
-  SELECT COLUMN_NAME FROM DB.INFORMATION_SCHEMA.COLUMNS
-  WHERE TABLE_SCHEMA = 'SCHEMA' AND TABLE_NAME = 'TABLE'
-)
-SELECT s.column_name,
-  CASE WHEN a.COLUMN_NAME IS NOT NULL THEN 'EXISTS' ELSE 'MISSING' END AS status
-FROM semantic_columns s
-LEFT JOIN actual_columns a ON UPPER(s.column_name) = UPPER(a.COLUMN_NAME);
-```
-
-### Pre-Creation Checklist
-- [ ] At least one dimension or metric defined
-- [ ] PRIMARY KEY uses physical columns only
-- [ ] Relationships are many-to-one (no circular, no self-ref)
-- [ ] Table aliases used consistently
-- [ ] No circular expression or table references
-- [ ] Row-level expressions respect granularity rules
-- [ ] Metrics use proper aggregation
-- [ ] Window function metrics not used in other expressions
-- [ ] Only scalar functions in dimensions (no table functions)
-- [ ] No template characters in SYNONYMS or COMMENT
-- [ ] **CRITICAL: All physical column names verified against base table**
-
-### Post-Creation Validation
-```sql
-SHOW SEMANTIC VIEWS IN SCHEMA my_schema;
-DESCRIBE SEMANTIC VIEW my_schema.my_view;
-SHOW SEMANTIC DIMENSIONS IN my_schema.my_view;
-SHOW SEMANTIC METRICS IN my_schema.my_view;
-```
-
-> **Investigation Required:**
-> 1. **Read existing semantic views BEFORE creating new ones**
-> 2. **Verify base table schemas** - Use DESCRIBE TABLE to confirm column names
-> 3. **Never assume table structures** - Query INFORMATION_SCHEMA.COLUMNS
-> 4. **Check existing relationships** between tables
-> 5. **Validate granularity assumptions** - fact tables vs dimension tables
+- [Semantic-view validation rules](https://docs.snowflake.com/en/user-guide/views-semantic/validation-rules)
+- [CREATE SEMANTIC VIEW](https://docs.snowflake.com/en/sql-reference/sql/create-semantic-view)
+- [Querying semantic views](https://docs.snowflake.com/en/user-guide/views-semantic/querying)
+- `106-snowflake-semantic-views-core.md` for deployment and mapping fundamentals.
+- `106b-snowflake-semantic-views-querying.md` for metric/dimension compatibility tests.

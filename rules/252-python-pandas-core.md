@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v4.0.0
-description: "Core Pandas best practices: vectorization over loops, explicit indexing with .loc/.iloc, method chaining, conditional operations, and anti-pattern avoidance."
-last_updated: 2026-07-15
+schema_version: v4.0
+rule_version: v5.0.0
+description: "Correct pandas indexing/alignment/NULL semantics, scoped transformations and measured vectorization."
+last_updated: 2026-10-07
 keywords:
   - kw:pandas vectorization
   - kw:SettingWithCopyWarning
@@ -11,7 +11,7 @@ keywords:
   - kw:np.where np.select conditional
   - kw:iterrows apply anti-patterns
   - kw:pandas
-token_budget: ~2550
+token_budget: ~1000
 context_tier: High
 depends:
   required:
@@ -26,304 +26,47 @@ depends:
 ## Scope
 
 **What This Rule Covers:**
-Core Pandas best practices: vectorization over loops, explicit indexing with .loc/.iloc, method chaining, conditional operations, and anti-pattern avoidance.
+Existing frame/schema investigation, label/position alignment, safe assignment, vectorization/conditions and independent transformation checks.
 
 **When to Load This Rule:**
-- Working with Pandas DataFrames or Series
-- Debugging SettingWithCopyWarning errors
-- Replacing loops with vectorized operations
-- Building data transformation pipelines
-
-## References
-
-### External Documentation
-- [Pandas User Guide](https://pandas.pydata.org/docs/user_guide/index.html)
-- [Enhancing Performance](https://pandas.pydata.org/docs/user_guide/enhancingperf.html)
-- [Indexing and Selecting Data](https://pandas.pydata.org/docs/user_guide/indexing.html)
+When transforming pandas frames/Series; read datetime/performance/IO companions for those tasks.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-Python 3.11+, pandas 2.x+, basic NumPy knowledge
-
-> **Pandas 2.x Copy-on-Write (CoW):** Pandas 2.0+ enables Copy-on-Write by default in future versions. With CoW, chained assignment silently does nothing instead of warning. Always use `.loc` for assignments. To test CoW behavior now: `pd.set_option('mode.copy_on_write', True)`
+- Actual data shape/schema/dtypes/index, installed pandas/NumPy and Copy-on-Write behavior.
+- Intended output grain/order/NULL/type/precision and authorized data/operation scope.
 
 ### Mandatory
 
-- **Always:** Use vectorized operations instead of loops (10x-100x+ faster)
-- **Always:** Use .loc/.iloc for explicit indexing (prevents SettingWithCopyWarning)
-- **Rule:** Use method chaining for clear data pipelines
-- **Rule:** Use np.where/np.select for conditional column operations
-
-### Forbidden
-
-- `iterrows()` for computation (read-only display OK)
-- `apply()` when vectorization is possible
-- Chained assignment without .loc (e.g., `df[mask]['col'] = val`)
-- `df.append()` (deprecated in Pandas 2.x; use `pd.concat([df, new_rows])` instead)
-- `inplace=True` (generally discouraged; use assignment instead)
+- Read current operations and actual dtypes/index before optimization; don't assume shape, types or CoW defaults across versions. Diagnose exact warning/error; suppressing SettingWithCopy warnings isn't a fix.
+- Use .loc for labeled selection/assignment and .iloc for positions; masks/Series align by index. Duplicate labels, reordered RHS and mismatched indices can silently change results; explicit positional conversion only when contract warrants.
+- Modify original frame with one assignment, not chained df[mask][column]. For independent subset use intentional copy under actual CoW semantics. Changes to iterrows row objects aren't reliable frame writes.
+- Prefer native vectorized arithmetic/string/datetime/agg where correct and measured; apply/itertuples can suit distinct unsupported operations. No guaranteed 10x/100x or categorical prohibition on every loop; external per-row calls require separate approval/bounds.
+- np.where/np.select can coerce dtypes/evaluate both branches; nullable Boolean pd.NA may need explicit mask policy. Series.where/mask or guarded arithmetic can preserve nullable/index semantics; no dividing by zero in a supposedly inactive vector branch.
+- Use .str operations with deliberate regex/literal/NA handling and actual string types. Input query/eval expression must be trusted/static; never interpolate arbitrary user strings as executable pandas expressions.
+- Preserve NULL/missing/zero distinctions, integer/Decimal/floating precision and business tolerances. sum/count/size/mean/groupby dropna defaults differ and all-missing sums can become zero; define intended population.
+- Readable assign/pipe/chains suit transformations but intermediate named stages are valid for clarity. Don't automatically remove outliers, drop duplicates/NULLs or fill values as a generic cleanup; these change data meaning and need requirement/authority.
+- df.append removed in pandas2; collect/concat intentionally rather than loop-concat quadratic memory. inplace isn't itself universally deprecated/unsafe, but assignment is clearer under actual version/CoW ownership.
+- Inspect resulting rows/keys/index/dtypes/order and reconcile independent counts/totals. Test empty/all-null/duplicate index/mask/type boundaries before claimed correctness; performance measurement separate.
 
 ### Execution Steps
 
-1. Use vectorized operations instead of loops
-2. Use .loc/.iloc for explicit indexing
-3. Use method chaining for transformation pipelines
-4. Profile performance for operations on large DataFrames
-5. Validate with: `uvx ruff check .` and `uv run pytest tests/`
-
-### Output Format
-
-Performant Pandas code with vectorized operations, explicit indexing, and clear method chains.
+1. Inspect frame/version/current transformation and define output invariants.
+2. Implement minimal index/NULL/type-correct operation with suitable vectorization.
+3. Test independent expected values/rows/dtypes, empty and alignment edge cases.
+4. Run project checks and approved benchmarks; report semantic/performance gaps.
 
 ### Validation
 
-**Pre-Task-Completion Checks:**
-- Vectorized operations used instead of iterrows() for computation
-- .loc/.iloc used for explicit indexing (no chained assignment)
-- Method chaining used for data pipelines
-
-**Negative Tests:**
-- iterrows() loop (should be very slow)
-- Chained assignment (should warn)
-
-### Design Principles
-
-- **Vectorization First:** Always prefer vectorized operations over loops (10x-100x+ faster)
-- **Explicit Indexing:** Use .loc/.iloc to prevent SettingWithCopyWarning
-- **Method Chaining:** Chain operations for clarity and efficiency
-
-### Post-Execution Checklist
-
-- [ ] Vectorized operations used instead of iterrows()
-- [ ] apply() avoided when vectorization possible
-- [ ] .loc/.iloc used for explicit indexing
-- [ ] Method chaining used for data pipelines
-- [ ] No deprecated APIs (df.append, inplace=True)
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: iterrows() for Computation
-
-**Problem:** Python loops with iterrows() are 50x-100x+ slower than vectorized operations due to Python interpreter overhead per iteration.
-
-**Correct Pattern:** Use vectorized Pandas operations for column arithmetic.
-
-```python
-# Wrong: 100x slower for large DataFrames
-for idx, row in df.iterrows():
-    df.at[idx, "total"] = row["price"] * row["quantity"]
-
-# Correct: Vectorized operation (100x+ faster)
-df["total"] = df["price"] * df["quantity"]
-```
-
-### Anti-Pattern 2: Chained Assignment (SettingWithCopyWarning)
-
-**Problem:** Chained indexing may modify a copy instead of the original DataFrame. Changes silently lost.
-
-**Correct Pattern:** Use `.loc` for explicit indexing to modify the original DataFrame.
-
-```python
-# Wrong: May not modify original DataFrame
-df[df["status"] == "active"]["price"] = df["price"] * 1.1
-
-# Correct: Explicit .loc indexing
-df.loc[df["status"] == "active", "price"] *= 1.1
-```
-
-### Anti-Pattern 3: apply() When Vectorization Works
-
-**Problem:** apply() with axis=1 is nearly as slow as iterrows().
-
-**Correct Pattern:** Use vectorized arithmetic instead of row-wise apply.
-
-```python
-# Wrong: Unnecessary apply() (10x slower)
-df["total"] = df.apply(lambda row: row["price"] * row["qty"], axis=1)
-
-# Correct: Vectorized multiplication
-df["total"] = df["price"] * df["qty"]
-```
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read existing DataFrame operations BEFORE optimizing** - Check for iterrows(), apply(), chained assignment
-> 2. **Profile actual performance** - Measure before and after
-> 3. **Never speculate about DataFrame shape** - Use df.shape, df.dtypes
-> 4. **Check memory usage** - Use df.memory_usage(deep=True)
-> 5. **Check Pandas version** - `python -c "import pandas; print(pandas.__version__)"`: behavior differs between 1.x and 2.x (Copy-on-Write default, deprecated APIs)
-
-## Vectorization Patterns
-
-### Simple Arithmetic
-
-```python
-df["total"] = df["price"] * df["quantity"]
-df["discount"] = df["price"] * 0.1
-df["final_price"] = df["price"] - df["discount"]
-```
-
-### Conditional Operations
-
-```python
-import numpy as np
-
-# Single condition
-df["category"] = np.where(df["price"] > 100, "expensive", "affordable")
-
-# Multiple conditions
-df["tier"] = np.select(
-    [df["score"] >= 90, df["score"] >= 70, df["score"] >= 50], ["A", "B", "C"], default="F"
-)
-```
-
-### String Operations
-
-```python
-df["upper_name"] = df["name"].str.upper()
-df["first_word"] = df["description"].str.split().str[0]
-df["contains_keyword"] = df["text"].str.contains("important", case=False)
-```
-
-### When iterrows() is Acceptable
-
-Read-only operations where vectorization is not possible:
-
-```python
-# ACCEPTABLE: Display in Streamlit (read-only)
-for _, row in df.iterrows():
-    st.metric(row["metric_name"], f"{row['value']:.2f}")
-
-# ACCEPTABLE: External API calls per row
-for _, row in df.iterrows():
-    result = complex_external_api_call(row["id"])
-```
-
-### When apply() is Appropriate
-
-Complex operations with no vectorized equivalent:
-
-```python
-def complex_calculation(row):
-    if row["type"] == "A":
-        return row["value"] * row["factor"] ** 2
-    elif row["type"] == "B":
-        return row["value"] / row["denominator"]
-    else:
-        return row["default_value"]
-
-
-df["result"] = df.apply(complex_calculation, axis=1)
-```
-
-## Explicit Indexing with .loc/.iloc
-
-### Preventing SettingWithCopyWarning
-
-```python
-# BAD: Chained indexing - may modify copy
-df[df["status"] == "active"]["price"] = 100
-
-# GOOD: .loc for explicit indexing
-df.loc[df["status"] == "active", "price"] = 100
-
-# GOOD: Multiple columns
-df.loc[df["status"] == "active", ["price", "cost"]] *= 1.1
-```
-
-### Working with DataFrame Subsets
-
-```python
-# GOOD: Explicit copy if you want a separate DataFrame
-subset = df[df["category"] == "A"].copy()
-subset["price"] *= 1.1  # No warning, independent copy
-
-# GOOD: Modify original directly
-df.loc[df["category"] == "A", "price"] *= 1.1
-```
-
-### Query Method for Filtering
-
-```python
-# Cleaner syntax for complex filters
-expensive = df.query('price > 100 and category == "electronics"')
-
-# Reference local variables with @
-min_price = 50
-filtered = df.query("price >= @min_price")
-```
-
-> **Note:** For large DataFrames (>100K rows), `pd.eval()` and `df.eval()` can speed up arithmetic expressions by using Numexpr under the hood. Example: `df.eval('total = price * quantity', inplace=False)`
-
-## Method Chaining
-
-### Readable Pipelines
-
-```python
-result = (
-    df.query('status == "active"')
-    .assign(
-        total=lambda x: x["price"] * x["quantity"],
-        discount=lambda x: x["total"] * 0.1,
-    )
-    .groupby("category")
-    .agg({"total": "sum", "discount": "sum"})
-    .reset_index()
-    .sort_values("total", ascending=False)
-)
-```
-
-### Using .pipe() for Reusable Transformations
-
-```python
-def remove_outliers(df: pd.DataFrame, column: str, n_std: float = 3) -> pd.DataFrame:
-    mean, std = df[column].mean(), df[column].std()
-    return df[df[column].between(mean - n_std * std, mean + n_std * std)]
-
-
-def add_computed_columns(df: pd.DataFrame) -> pd.DataFrame:
-    return df.assign(
-        total=lambda x: x["price"] * x["quantity"],
-        margin=lambda x: x["total"] - x["cost"],
-    )
-
-
-result = (
-    df.pipe(remove_outliers, column="price")
-    .pipe(add_computed_columns)
-    .sort_values("margin", ascending=False)
-)
-```
-
-### Assign for New Columns in Chain
-
-```python
-df_processed = df.assign(
-    total=lambda x: x["price"] * x["qty"],
-    tax=lambda x: x["total"] * 0.08,
-    final_price=lambda x: x["total"] + x["tax"],
-)
-```
-
-## Index Operations
-
-### When to Use Index
-
-```python
-# Time series data
-df_ts = df.set_index("timestamp").sort_index()
-df_ts["2024-01":"2024-03"]  # Slice by date range
-
-# MultiIndex for hierarchical data
-df_multi = df.set_index(["country", "city", "date"])
-df_multi.loc[("USA", "New York")]
-```
-
-### Reset Index After Operations
-
-```python
-result = (
-    df.groupby("category")["sales"].sum().reset_index()  # Convert index back to column
-)
-```
+- Index/label/position/mask ownership correct, no chained assignment or silently lost changes.
+- NULL/type/precision/grain/order preserve intended values; no unapproved cleanup/drop.
+- Actual before/after correctness and measured performance separate; checks pass.
+
+## References
+
+- [Pandas indexing](https://pandas.pydata.org/docs/user_guide/indexing.html)
+- [Copy-on-Write](https://pandas.pydata.org/docs/user_guide/copy_on_write.html)
+- [Missing data](https://pandas.pydata.org/docs/user_guide/missing_data.html)
+- [Pandas performance](https://pandas.pydata.org/docs/user_guide/enhancingperf.html)

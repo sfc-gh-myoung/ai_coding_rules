@@ -1,138 +1,85 @@
-# 002a Example: Rule Template v3.5 Structure (YAML frontmatter)
+# 002a Example: V4 Rule Template
 
 > **EXAMPLE FILE** - Reference implementation for `002a-rule-creation.md`
-> Not a rule file. Not validated against rule-schema.yml.
+> This companion documents the generator; it is not an operational rule.
 
 ## Context
 
 **Parent Rule:** 002a-rule-creation.md
-**Demonstrates:** Complete v3.5 rule file structure for creating new rules
-**Use When:** Creating a new rule file from scratch
-**Version:** 2.0
-**Last Validated:** 2026-07-14
+**Demonstrates:** Generate and populate a v4 rule scaffold
+**Use When:** Creating a new rule without copying obsolete structure
+**Version:** 3.0
+**Last Validated:** 2026-09-30
 
 ## Prerequisites
 
-- Familiarity with rule schema v3.5 (YAML frontmatter canonical; inline dual-parse fallback still accepted)
-- Understanding of rule naming conventions (NNN-technology-aspect.md)
+- Read the parent rule and `schemas/rule-schema.yml`.
+- Choose an unused filename in the correct domain range.
+- Use the project's configured CLI and an authorized output directory.
 
 ## Implementation
 
+Replace the filename placeholder before executing:
+
+```bash
+uv run ai-rules new <NNN-technology-aspect> --context-tier High
+```
+
+The generator emits YAML frontmatter with schema_version v4.0, rule_version v1.0.0, a current last_updated date, 5-11 typed keyword entries, token_budget, context_tier, and required dependencies. Replace generated content with task-specific requirements and measure the final token estimate.
+
+The required body layout is:
+
 ```markdown
----
-schema_version: v3.5
-rule_version: v1.0.0
-last_updated: [YYYY-MM-DD]
-keywords:
-  - kw:[semantic keyword one]
-  - kw:[semantic keyword two]
-  - ext:.[file extension]
-  - file:[specific filename]
-  - dir:[specific directory prefix]
-token_budget: ~[estimate]
-context_tier: [Critical|High|Medium|Low]
-depends:
-  required:
-    - 000-global-core.md  # Foundation rule with core patterns and validation gates
-  optional:
-    - [related-rule].md  # [Brief description of why this rule is optional context]
----
-
-# [NNN]-[technology]-[aspect]
-
 ## Scope
 
 **What This Rule Covers:**
-[1-2 sentence description of what this rule accomplishes]
+State the task this rule governs.
 
 **When to Load This Rule:**
-- [Condition 1]
-- [Condition 2]
-- [Condition 3]
-
-## References
-
-### External Documentation
-
-- **[Resource Name]:** [URL or path]
+- State the applicable task and exclusions.
 
 ## Contract
 
 ### Inputs and Prerequisites
-[Prerequisites here]
+
+Name the required inputs, permissions, and initial state.
 
 ### Mandatory
-[Required tools/libraries]
 
-### Forbidden
-[Prohibited actions]
+State task-specific constraints and preserve safety requirements not already owned by a required dependency.
 
 ### Execution Steps
-1. [Step 1]
-2. [Step 2]
-3. [Step 3]
-4. [Step 4]
-5. [Step 5]
 
-### Output Format
-[Expected output description]
+1. Perform the required action after checking its prerequisite.
+2. Verify the result and report failed or uncertain outcomes.
 
 ### Validation
-**Pre-Task-Completion Checks:**
-- [Check 1]
 
-**Success Criteria:**
-- [Criterion 1]
+- [ ] Record the actual check, expected result, and completion evidence.
 
-### Post-Execution Checklist
-- [ ] Verification item 1
-- [ ] Verification item 2
+## References
 
-## Anti-Patterns and Common Mistakes
-[Anti-patterns with code examples]
+Link focused sources for external claims, or state None when no source applies.
 ```
 
-## Migration note (v3.4 → v3.5)
+This excerpt describes the body; it is not a complete standalone rule. For a complete synthetic rule, read `002-rule-governance-structure-example.md` in this directory.
 
-- The `## Metadata` H2 header is no longer required; a YAML frontmatter block at top-of-file replaces it.
-- The `### Dependencies` prose subsection is no longer required; dependency data lives in the frontmatter `depends:` field with per-item YAML comment justifications (Option B: see the v5 refactor plan).
-- Keywords count bound set to a combined **5-11** typed entries (mix of `kw:`, `ext:`, `file:`, `dir:`). The earlier, wider range is retired.
-- Inline `**Field:**` format is still accepted as a dual-parse fallback during migration, but new rules should use YAML frontmatter.
+Do not add a second completion checklist or a fixed number of examples. Preserve distinct prohibitions and output requirements under Mandatory, Validation, or an optional subsection. Show correct executable examples only.
 
-## Importance Markers
-
-Add an importance marker after the title for foundation rules:
-
-**When to use CORE FOUNDATION marker (domain cores only):**
-- Rule name ends with `-core.md`
-- Defines essential patterns for a technology domain
-- Other rules in the domain depend on it
-
-**When to use FOUNDATION marker (governance rules only):**
-- Rule is in 002-series
-- Defines rule creation/maintenance patterns
-- Required for rule infrastructure work
-
-**When to use no marker (most rules):**
-- Standard specialized rules
-- Can be summarized if context limits reached
+Keep dependency justifications in YAML comments. Use the foundation/domain importance marker only when its documented role applies. Do not introduce inline legacy metadata or a prose Dependencies inventory.
 
 ## Validation
 
-To verify the template was applied correctly:
+After replacing all scaffold placeholders, validate the generated rule:
 
 ```bash
-# Validate the new rule file
-uv run ai-rules validate rules/NNN-technology-aspect.md
-
-# Expected output: 0 CRITICAL, 0 HIGH errors
+uv run ai-rules validate rules/<NNN-technology-aspect>.md --verbose
 ```
 
-**Checklist:**
-- [ ] File name follows `NNN-technology-aspect.md` pattern
-- [ ] YAML frontmatter block at top-of-file (or inline `**Field:**` fallback with `## Metadata` header for pre-v3.5 legacy rules)
-- [ ] All required sections present (Scope, References with `### External Documentation`, Contract, optional Anti-Patterns)
-- [ ] `schema_version: v3.5`
-- [ ] `depends:` references appropriate parent rules with YAML comment justifications
-- [ ] `token_budget` is within limits (500 advisory, 600 hard cap)
-- [ ] `keywords:` contains 5-11 typed entries
+Expected result: zero CRITICAL and HIGH findings. Review keyword relevance, dependency closure, token estimates, and technical accuracy separately; a scaffold can pass structural checks before its placeholders are meaningfully populated.
+
+Validate this companion through the example entrypoint:
+
+```bash
+uv run ai-rules validate rules/examples/ --examples
+```

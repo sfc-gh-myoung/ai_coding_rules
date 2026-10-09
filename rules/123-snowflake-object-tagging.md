@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v4.0.0
-description: "Comprehensive best practices for Snowflake object tagging to enable effective data governance, cost attribution, security classification, and policy automation. Covers tag taxonomy design,"
-last_updated: 2026-07-15
+schema_version: v4.0
+rule_version: v5.0.0
+description: "Governed tag taxonomy, assignment/inheritance, supported masking bindings, coverage, attribution, and lifecycle impact."
+last_updated: 2026-10-07
 keywords:
   - kw:object tagging
   - kw:tag inheritance
@@ -10,7 +10,7 @@ keywords:
   - kw:ALLOWED_VALUES
   - kw:TAG_REFERENCES
   - kw:cost attribution tags
-token_budget: ~3450
+token_budget: ~1450
 context_tier: High
 depends:
   required:
@@ -22,418 +22,60 @@ depends:
 ## Scope
 
 **What This Rule Covers:**
-Comprehensive best practices for Snowflake object tagging to enable effective data governance, cost attribution, security classification, and policy automation. Covers tag taxonomy design, inheritance patterns, tag-based policies, cost attribution, and governance enforcement.
+Reusable classification/attribution taxonomy, tag privileges and effective values, inheritance versus propagation, masking, audits, and safe removal.
 
 **When to Load This Rule:**
-- Designing or implementing Snowflake object tagging strategy
-- Setting up cost attribution and chargeback systems
-- Implementing tag-based masking or row access policies
-- Auditing tag coverage and compliance
-
-## References
-
-### External Documentation
-
-- [Snowflake Object Tagging](https://docs.snowflake.com/en/user-guide/object-tagging)
-- [Tag-Based Masking Policies](https://docs.snowflake.com/en/user-guide/tag-based-masking-policies)
-- [Tag-Based Row Access Policies](https://docs.snowflake.com/en/user-guide/tag-based-row-access-policies)
+When designing/applying tags, assessing coverage or lineage, configuring tag-based masking, or reconciling cost/access evidence.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Snowflake account with tag creation privileges (`CREATE TAG`)
-- Governance requirements and compliance framework
-- Cost allocation strategy
-- Understanding of tag inheritance and lineage
+- Approved taxonomy/values, steward/ownership model, exact tag/object identities, current assignments/inheritance/propagation, and policy consumers.
+- Creation/APPLY/object ownership or supported global privileges and parent access; actual edition support for propagation/masking.
+- Explicit assignment/policy/classification/lifecycle mutation scope and authorized metadata/audit reads.
 
 ### Mandatory
 
-- SQL DDL for tag creation with ALLOWED_VALUES
-- Tag assignment across object hierarchy
-- TAG_REFERENCES functions for lineage tracking
-- Documented tag taxonomy and governance policies
-
-### Forbidden
-
-- Creating more than 50 tags per object
-- Creating tags without documented taxonomy
-- Uncontrolled tag proliferation across teams
-- Inconsistent tag naming conventions
+- Reuse a documented concept/owner rather than proliferating synonymous team tags. Choose centralized/decentralized/hybrid stewardship from actual responsibilities; naming/schema examples are organization policy, not mandatory GOVERNANCE.TAGS creation.
+- Tags are schema-level metadata objects; values are strings. Define ALLOWED_VALUES for bounded categories where appropriate, not every free-form identifier. Current documented bounds are 5000 allowed values and 256 characters per value; inspect actual list with SYSTEM$GET_TAG_ALLOWED_VALUES.
+- Changing allowed values does not rewrite existing assignments. Audit/remediate now-disallowed values deliberately. Allowed-value order can affect supported propagation conflict handling; review before reordering.
+- Respect documented 50-tag per-object and 50-different-tag combined-column limits, plus 100 tag/entity associations per table/view statement. Count applicable entities and current assignments rather than assuming fifty per individual column or silently consolidating protection tags.
+- Distinguish CREATE TAG, tag OWNERSHIP, specific APPLY plus target ownership, and supported global APPLY TAG. Future grants on tags are not supported. No automatic role/grant escalation or broad APPLY privilege merely to make assignment succeed.
+- Hierarchical inheritance follows securable containment; table columns can inherit table/schema/database/account tags. A derived view does not inherit a source-table tag solely from its SQL dependency; dependency/data-movement propagation is a separate configured feature.
+- For automatic propagation inspect supported objects/operations, edition, PROPAGATE mode, conflicts and manual/inherited/classified overrides. Check effective values and apply_method/lineage after changes instead of promising every derived/replicated object is protected.
+- Metadata tags alone do not authorize or restrict data access. Tag-based masking requires an actual supported masking-policy binding with matching column type. Existing direct masking takes precedence under documented rules; test all consumer identities and type cases.
+- A tag can hold distinct masking policies by data type, not an automatic policy selection per tag value. One STRING policy on a semantic-category tag can affect all tagged STRING categories; branch using documented tag lookup or use separate approved tags where needed. Preserve compatible output types and explicit entitlements.
+- Do not invent ALTER TAG SET ROW ACCESS POLICY. Row-access policies attach to supported tables/views and may inspect trusted entitlements/tag values where appropriate; the tag assignment itself is not automatic row isolation.
+- Sensitive-data classification must use current documented procedure/profile interfaces and approved sampling/tag application. Do not blindly call SYSTEM$CLASSIFY as a SELECT or assume system tags accept arbitrary custom masking attachments. Classification labels need review and policy enforcement evidence.
+- Audit direct/effective inherited/propagated tags using appropriate TAG_REFERENCES, TAG_REFERENCES_WITH_LINEAGE or SYSTEM$GET_TAG; inspect function/view scope/access/latency. Tag references are not exhaustive data lineage or proof of policy effectiveness.
+- Coverage checks join full database/schema/object/domain/column and tag identities, exclude dropped objects where applicable, and distinguish direct from effective assignments. Define critical-object denominator/coverage goal from policy; no fabricated universal 90% success threshold.
+- Chargeback and access-history joins need stable identities, matching time grain and deduplication. Current tags/object names cannot establish historical classification or allocations at time of usage; reconcile sums and direct/base object/column access separately.
+- Clone/LIKE/replication behavior is operation/scope dependent. Inspect copied/remapped tag/policy references and target permissions; inherited defaults can change under the destination hierarchy. Do not assume policy attachments and cross-database definitions replicate identically.
+- Unset/drop/replacement can remove protection triggers and attribution. Inspect dependents and effective attachments, obtain approval, retain beforeimages and verify consumers. Documented DROP TAG grace/UNDROP is recovery assistance, not permission to remove controls.
 
 ### Execution Steps
 
-1. Define tag taxonomy aligned with governance requirements
-2. Create tags with ALLOWED_VALUES constraints
-3. Establish tag ownership (centralized vs decentralized)
-4. Apply tags at appropriate hierarchy level for inheritance
-5. Document tag purposes and allowed values
-6. Monitor tag coverage using TAG_REFERENCES functions
-7. Integrate tags with masking policies and cost monitoring
-
-### Output Format
-
-- Tag DDL with documentation and ALLOWED_VALUES
-- Tag assignment statements
-- Monitoring queries for tag lineage and coverage
+1. Inventory existing taxonomy, assignments/lineage, effective policies, ownership and consumer requirements through approved reads.
+2. Design minimal reuse/allowed-value/assignment scope with explicit inheritance/propagation and masking/row-policy boundaries.
+3. Prepare authorized versioned changes and recovery, including quota/conflict and clone/replication effects.
+4. Apply only approved changes; inspect effective values/attachments and test allowed/denied consumers independently.
+5. Reconcile coverage/cost/access evidence and report unresolved historical attribution or policy gaps.
 
 ### Validation
 
-**Success Criteria:**
-- Tags appear in SHOW TAGS output
-- Tag assignments visible in TAG_REFERENCES views
-- Tag inheritance working (parent to child propagation)
-- Tag-based policies functioning correctly
-- Cost attribution queries returning accurate results
-- Tag coverage >90% for critical objects
-
-### Design Principles
-
-- **Define Once, Apply Many:** Centralized tag creation, apply across objects
-- **Leverage Inheritance:** Set tags on parent objects (databases, schemas) for automatic child propagation
-- **Control with Constraints:** Use ALLOWED_VALUES for consistent values
-- **Integrate with Policies:** Combine tags with masking and row access policies
-- **Monitor Coverage:** Regularly audit tag usage
-
-### Post-Execution Checklist
-
-- [ ] Tag taxonomy defined and documented
-- [ ] Tags created with ALLOWED_VALUES
-- [ ] Tag ownership assigned
-- [ ] Schema-level tags applied for inheritance
-- [ ] Tag-based policies configured
-- [ ] Cost attribution tags on warehouses
-- [ ] Tag coverage monitoring automated
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Tag Proliferation Without Governance
-
-```sql
--- BAD: Different teams creating inconsistent tags
-CREATE TAG ANALYTICS.TAG.SENSITIVE_DATA;
-CREATE TAG FINANCE.TAG.SENSITIVE;
-CREATE TAG SALES.TAG.IS_SENSITIVE;
-```
-
-**Problem:** Duplicate concepts, inconsistent naming, broken governance.
-
-**Correct Pattern:**
-```sql
--- See Tag Fundamentals section for CREATE TAG with ALLOWED_VALUES
-GRANT APPLY ON TAG GOVERNANCE.TAGS.DATA_CLASSIFICATION TO ROLE ANALYTICS_TEAM;
-```
-
-### Anti-Pattern 2: Not Leveraging Inheritance
-
-```sql
--- BAD: Manually tagging every column
-ALTER TABLE t1 MODIFY COLUMN col1 SET TAG TAG1='val';
-ALTER TABLE t1 MODIFY COLUMN col2 SET TAG TAG1='val';
--- ... hundreds more
-```
-
-**Problem:** Massive maintenance overhead, inconsistent coverage.
-
-**Correct Pattern:**
-```sql
-ALTER SCHEMA ANALYTICS.SENSITIVE SET TAG
-  GOVERNANCE.TAGS.DATA_CLASSIFICATION = 'CONFIDENTIAL';
--- All tables and columns inherit automatically
-```
-
-### Anti-Pattern 3: Tags Without ALLOWED_VALUES
-
-```sql
--- BAD: Inconsistent values
-ALTER DATABASE DB1 SET TAG ENVIRONMENT = 'prod';
-ALTER DATABASE DB2 SET TAG ENVIRONMENT = 'PROD';
-ALTER DATABASE DB3 SET TAG ENVIRONMENT = 'Production';
-```
-
-**Problem:** Broken reporting, unreliable policy enforcement.
-
-**Correct Pattern:**
-```sql
--- See Tag Fundamentals section for CREATE TAG with ALLOWED_VALUES
--- Use ALLOWED_VALUES to enforce consistency across all assignments
-```
-
-### Anti-Pattern 4: Missing Cost Attribution Tags
-
-```sql
--- BAD: No cost tracking
-CREATE WAREHOUSE WH_ANALYTICS WAREHOUSE_SIZE = 'LARGE';
-```
-
-**Problem:** No chargeback capability, no accountability.
-
-**Correct Pattern:**
-```sql
-ALTER WAREHOUSE WH_ANALYTICS SET TAG
-  GOVERNANCE.TAGS.COST_CENTER = 'ANALYTICS',
-  GOVERNANCE.TAGS.OWNER_TEAM = 'ANALYTICS_PLATFORM';
-```
-
-### Anti-Pattern 5: Not Monitoring Coverage
-
-```sql
--- BAD: Tags created but never audited
-CREATE TAG GOVERNANCE.TAGS.PII_LEVEL ...;
--- No monitoring of which tables are tagged
-```
-
-**Problem:** False sense of security, governance gaps.
-
-**Correct Pattern:**
-```sql
-SELECT t.table_name, 'Missing PII_LEVEL' AS issue
-FROM INFORMATION_SCHEMA.TABLES t
-WHERE NOT EXISTS (
-  SELECT 1 FROM SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES tr
-  WHERE tr.object_name = t.table_name AND tr.tag_name = 'PII_LEVEL'
-);
-```
-
-## Tag Fundamentals
-
-**Key Characteristics:**
-- Schema-level objects (fully qualified: `DATABASE.SCHEMA.TAG_NAME`)
-- Key-value pairs assigned to objects
-- Up to 50 unique tags per object
-- ALLOWED_VALUES constraints enforce consistency
-
-**Tag Creation:**
-```sql
-CREATE SCHEMA IF NOT EXISTS GOVERNANCE.TAGS;
-
-CREATE TAG GOVERNANCE.TAGS.ENVIRONMENT
-  ALLOWED_VALUES 'DEV', 'QA', 'STAGING', 'PROD';
-
-CREATE TAG GOVERNANCE.TAGS.DATA_CLASSIFICATION
-  ALLOWED_VALUES 'PUBLIC', 'INTERNAL', 'CONFIDENTIAL', 'RESTRICTED';
-```
-
-**Tag Assignment:**
-```sql
--- During creation
-CREATE DATABASE ANALYTICS WITH TAG (GOVERNANCE.TAGS.COST_CENTER = 'DATA_SCIENCE');
-
--- On existing objects
-ALTER TABLE CUSTOMERS SET TAG
-  GOVERNANCE.TAGS.DATA_CLASSIFICATION = 'CONFIDENTIAL',
-  GOVERNANCE.TAGS.PII_LEVEL = 'HIGH';
-
--- On columns
-ALTER TABLE CUSTOMERS MODIFY COLUMN email SET TAG
-  GOVERNANCE.TAGS.PII_LEVEL = 'MEDIUM';
-```
-
-## Tag Inheritance
-
-**Hierarchy:** Account, then Database, then Schema, then Table, then Column
-
-Tags flow top-down:
-- Database tags inherit to schemas, tables, columns
-- Schema tags inherit to tables, views, columns
-- Table tags inherit to columns
-- Child objects can override inherited tags
-
-```sql
--- Set at database level
-ALTER DATABASE ANALYTICS SET TAG GOVERNANCE.TAGS.COST_CENTER = 'DATA_SCIENCE';
--- All schemas, tables, columns inherit automatically
-
--- Override for specific table
-ALTER TABLE ANALYTICS.SENSITIVE.PUBLIC_SUMMARY SET TAG
-  GOVERNANCE.TAGS.DATA_CLASSIFICATION = 'INTERNAL';  -- Exception
-```
-
-## Tag-Based Masking Policies
-
-Assign masking policy once to a tag; automatically applies to all matching columns.
-
-```sql
--- Create semantic category tag
-CREATE TAG GOVERNANCE.TAGS.SEMANTIC_CATEGORY
-  ALLOWED_VALUES 'EMAIL', 'PHONE', 'SSN', 'NAME';
-
--- Create masking policies
-CREATE MASKING POLICY GOVERNANCE.POLICIES.MASK_EMAIL AS (val STRING) RETURNS STRING ->
-  CASE WHEN CURRENT_ROLE() IN ('ADMIN') THEN val
-       ELSE REGEXP_REPLACE(val, '.+@', '***@') END;
-
--- Associate masking policy with tag
-ALTER TAG GOVERNANCE.TAGS.SEMANTIC_CATEGORY SET
-  MASKING POLICY GOVERNANCE.POLICIES.MASK_EMAIL;
-
--- Tag columns for automatic masking
-ALTER TABLE CUSTOMERS MODIFY COLUMN email SET TAG
-  GOVERNANCE.TAGS.SEMANTIC_CATEGORY = 'EMAIL';
-```
-
-### Automated PII Tagging with SYSTEM$CLASSIFY
-
-Use Snowflake's built-in classification to automatically detect and tag PII columns:
-
-```sql
--- Classify all columns in a table (returns JSON with detected categories):
-SELECT SYSTEM$CLASSIFY('MY_DB.MY_SCHEMA.CUSTOMERS');
-
--- Apply classification results as tags automatically:
-CALL SYSTEM$CLASSIFY('MY_DB.MY_SCHEMA.CUSTOMERS', {'auto_tag': true});
-
--- Classify entire schema:
-CALL SYSTEM$CLASSIFY_SCHEMA('MY_DB.MY_SCHEMA', {'auto_tag': true});
-```
-
-> **Integration with tag-based masking:** After `SYSTEM$CLASSIFY` auto-tags columns with
-> `SNOWFLAKE.CORE.SEMANTIC_CATEGORY` (e.g., `EMAIL`, `PHONE_NUMBER`), attach masking
-> policies to those system tags for automatic protection. See 107-snowflake-security-governance
-> for masking policy details.
-
-## Tag-Based Row Access Policies
-
-Assign row access policy to a tag; automatically filters rows on all tagged tables.
-
-```sql
--- Create row access policy based on tag value
-CREATE ROW ACCESS POLICY GOVERNANCE.POLICIES.REGION_FILTER AS (region_val VARCHAR)
-  RETURNS BOOLEAN ->
-  CURRENT_ROLE() IN ('ADMIN') OR IS_ROLE_IN_SESSION('REGION_' || region_val);
-
--- Associate row access policy with tag
-ALTER TAG GOVERNANCE.TAGS.REGION SET
-  ROW ACCESS POLICY GOVERNANCE.POLICIES.REGION_FILTER;
-
--- Tag tables - row access policy automatically applies
-ALTER TABLE SALES SET TAG GOVERNANCE.TAGS.REGION = 'US';
-ALTER TABLE ORDERS SET TAG GOVERNANCE.TAGS.REGION = 'EU';
-```
-
-## Tag Lifecycle Management
-
-```sql
--- Remove tag from object
-ALTER TABLE CUSTOMERS UNSET TAG GOVERNANCE.TAGS.DATA_CLASSIFICATION;
-ALTER WAREHOUSE WH_ANALYTICS UNSET TAG GOVERNANCE.TAGS.COST_CENTER;
-
--- Drop tag definition (removes all assignments)
-DROP TAG IF EXISTS GOVERNANCE.TAGS.DEPRECATED_TAG;
-
--- Modify allowed values
-ALTER TAG GOVERNANCE.TAGS.ENVIRONMENT SET ALLOWED_VALUES 'DEV', 'QA', 'STAGING', 'PROD', 'DR';
-```
-
-**Error Handling:**
-- **ALLOWED_VALUES violation:** Setting a tag to a value not in the allowed list returns an error. Fix: check allowed values with `SHOW TAGS LIKE 'TAG_NAME'` before assignment.
-- **Tag quota exceeded:** Max 50 tags per object. Fix: audit with TAG_REFERENCES and consolidate redundant tags.
-
-## Cost Attribution
-
-**Warehouse tagging for chargeback:**
-```sql
-ALTER WAREHOUSE WH_ANALYTICS SET TAG
-  GOVERNANCE.TAGS.COST_CENTER = 'ANALYTICS',
-  GOVERNANCE.TAGS.ENVIRONMENT = 'PROD';
-
--- Cost attribution query
-SELECT tr.tag_value, SUM(wh.credits_used) AS total_credits
-FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY wh
-JOIN SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES tr
-  ON tr.object_name = wh.warehouse_name AND tr.object_domain = 'WAREHOUSE'
-WHERE tr.tag_name = 'COST_CENTER'
-GROUP BY tr.tag_value;
-```
-
-## Tag Quotas
-
-- **50 unique tags** per object
-- **50 total tags** across all columns in a table/view (plus 50 on table itself)
-- **100 tag assignments** maximum per single statement
-
-## Monitoring Tags
-
-**TAG_REFERENCES: Function vs View**
-- `TABLE(INFORMATION_SCHEMA.TAG_REFERENCES(...))`: real-time table function, scoped to current database
-- `SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES`: account-level view with up to 120-minute latency
-
-```sql
--- Get tags for specific object
-SELECT * FROM TABLE(INFORMATION_SCHEMA.TAG_REFERENCES('MY_DB.MY_SCHEMA.MY_TABLE', 'TABLE'));
-
--- All tag assignments in account
-SELECT tag_name, tag_value, object_name, object_domain, apply_method
-FROM SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES
-WHERE tag_database = 'GOVERNANCE';
-
--- Find untagged tables
-SELECT t.table_name, 'Missing DATA_CLASSIFICATION' AS issue
-FROM INFORMATION_SCHEMA.TABLES t
-LEFT JOIN SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES tr
-  ON tr.object_name = t.table_name AND tr.tag_name = 'DATA_CLASSIFICATION'
-WHERE tr.tag_name IS NULL;
-
--- Tag usage statistics
-SELECT tag_name, tag_value, object_domain, COUNT(*) AS count
-FROM SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES
-GROUP BY tag_name, tag_value, object_domain;
-```
-
-### Tag-Based Access History
-
-Query who accessed objects with specific tags:
-
-```sql
--- Who accessed CONFIDENTIAL data in the last 7 days?
-SELECT ah.user_name, ah.query_start_time, ah.direct_objects_accessed,
-  tr.tag_value AS classification
-FROM SNOWFLAKE.ACCOUNT_USAGE.ACCESS_HISTORY ah,
-  LATERAL FLATTEN(ah.direct_objects_accessed) obj
-JOIN SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES tr
-  ON tr.object_name = obj.value:"objectName"::STRING
-  AND tr.tag_name = 'DATA_CLASSIFICATION'
-  AND tr.tag_value = 'CONFIDENTIAL'
-WHERE ah.query_start_time >= DATEADD(day, -7, CURRENT_TIMESTAMP())
-ORDER BY ah.query_start_time DESC;
-
--- Access frequency by tag value (audit summary):
-SELECT tr.tag_value, COUNT(DISTINCT ah.user_name) AS unique_users,
-  COUNT(*) AS access_count
-FROM SNOWFLAKE.ACCOUNT_USAGE.ACCESS_HISTORY ah,
-  LATERAL FLATTEN(ah.direct_objects_accessed) obj
-JOIN SNOWFLAKE.ACCOUNT_USAGE.TAG_REFERENCES tr
-  ON tr.object_name = obj.value:"objectName"::STRING
-  AND tr.tag_name = 'DATA_CLASSIFICATION'
-WHERE ah.query_start_time >= DATEADD(day, -30, CURRENT_TIMESTAMP())
-GROUP BY tr.tag_value ORDER BY access_count DESC;
-```
-
-## Management Approaches
-
-**Centralized:** Core governance team creates/manages all tags. Teams get APPLY privilege only.
-
-**Tag Naming Conventions:**
-- Use UPPER_SNAKE_CASE for tag names: `DATA_CLASSIFICATION`, `COST_CENTER`, `PII_LEVEL`
-- Group related tags in a dedicated schema: `GOVERNANCE.TAGS`
-- Prefix environment-specific tags: `ENV_TYPE`, `ENV_OWNER`
-- Document every tag with COMMENT and ALLOWED_VALUES constraints
-
-**Decentralized:** Teams create tags in their schemas. Governance creates shared tags.
-
-**Hybrid (Recommended):** Core governance tags centrally managed; domain-specific tags managed by teams.
-
-```sql
--- Central governance
-CREATE TAG GOVERNANCE.TAGS.DATA_CLASSIFICATION ...;
-GRANT APPLY ON TAG ... TO ROLE DATA_ENGINEER;
-
--- Team-specific
-CREATE TAG ANALYTICS.METADATA.MODEL_VERSION;
-```
-
-## Cloning and Replication
-
-- **CLONE:** Tags are preserved on cloned objects
-- **LIKE:** Tags are copied (not data)
-- **Replication:** Tag definitions and assignments replicate to secondary databases
+- Taxonomy/values/owners and actual privileges match policy; supported limits and allowed-value history are respected.
+- Effective inheritance/propagation and direct overrides are observed on actual targets, not inferred from a tag definition.
+- Masking types/entitlements and row isolation function through consumer paths; no tag-only security claim.
+- Coverage, historical cost/access joins and clone/replication behavior are scoped and reconciled without fanout.
+- Output includes definitions/assignments, impact/ownership, tests and gaps; no unapproved classification, grant, or protection removal.
+
+## References
+
+- [Tag fundamentals and quotas](https://docs.snowflake.com/en/user-guide/object-tagging/introduction)
+- [Tag DDL, allowed values, access, and lifecycle](https://docs.snowflake.com/en/user-guide/object-tagging/work)
+- [Inheritance](https://docs.snowflake.com/en/user-guide/object-tagging/inheritance)
+- [Automatic propagation](https://docs.snowflake.com/en/user-guide/object-tagging/propagation)
+- [Tag-based masking](https://docs.snowflake.com/en/user-guide/tag-based-masking-policies)
+- [Row access policies](https://docs.snowflake.com/en/user-guide/security-row-intro)
+- [Monitoring tags](https://docs.snowflake.com/en/user-guide/object-tagging/monitor)

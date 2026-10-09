@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v2.0.0
-description: "Taskfile implementation patterns for Snowflake application deployment automation, including task structure per application, variable configuration, includes, preconditions, and deployment validation"
-last_updated: 2026-07-15
+schema_version: v4.0
+rule_version: v3.0.0
+description: Ordered fail-closed Task deployment workflows with explicit scope, preconditions, and actual artifact verification.
+last_updated: 2026-10-07
 keywords:
   - kw:Taskfile deployment automation
   - kw:five-step deployment workflow
@@ -11,7 +11,7 @@ keywords:
   - kw:stage file upload tasks
   - kw:notebook streamlit deployment
   - kw:snowsight
-token_budget: ~3100
+token_budget: ~1000
 context_tier: Low
 depends:
   required:
@@ -22,331 +22,53 @@ depends:
 ## Scope
 
 **What This Rule Covers:**
-Taskfile implementation patterns for Snowflake application deployment automation, including task structure per application, variable configuration, includes, preconditions, and deployment validation tasks.
+Task-based packaging/transfers/object publication, environment binding, shared helpers, preflight gates, sequencing and failure evidence.
 
 **When to Load This Rule:**
-- Setting up Taskfile-based deployment automation
-- Implementing the 5-step deployment workflow in Taskfile
-- Configuring deployment variables and preconditions
-- Adding deployment validation tasks
-
-## References
-
-### External Documentation
-
-_None._
+When implementing or reviewing Taskfile-based Snowflake application deployment.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Taskfile.yml structure in place
-- SQL scripts created per 109g
-- Snowflake CLI installed
+- Existing Taskfile/includes/helpers, installed Task/CLI versions, supported app lifecycle scripts, manifest and approved environments.
+- Explicit target/account/role/compute/prefix policy, operation ownership, deployment approval and separate cleanup/publication scope.
 
 ### Mandatory
 
-- 5 core tasks: upload, create, drop, remove, deploy
-- deploy task runs full workflow: drop, remove, upload, create
-- Preconditions check for required files before upload
-
-### Forbidden
-
-- Manual deployment without Taskfile automation
-- Missing preconditions on upload tasks
+- Match existing task naming/layout and shared helpers. Define necessary package/upload/update/publish/verify operations; do not mandate five tasks or a destructive drop-remove-upload-create sequence.
+- Use ordered cmds task calls for dependent steps; deps may execute concurrently and must not encode ordered publication/cleanup. Parallelize only independent work with disjoint mutation scopes.
+- Validate source files, dependency config, manifest, required variables/tools, target allowlist, and approval before any mutation. Repeat relevant preconditions on directly callable upload/update tasks to prevent bypass.
+- Use valid precondition objects with sh and msg as supported, not a standalone message entry or invented test field. Preconditions and dynamic variables can execute shell; task --list/--dry are not unconditional sandboxes.
+- Resolve environment via a validated enum/map; reject unknown values, missing accounts or inconsistent database/schema/stage rather than silently falling back to dev. Production needs explicit promotion authorization.
+- Pass scoped variables to shared helpers consistently and quote filesystem/shell arguments. Task templates are not SQL escaping; validate SQL identifiers/literals at the renderer layer and avoid shell interpolation injection.
+- Pin tools through project-managed versions and supported command syntax. Credentials stay in approved config/secret stores, never vars printed through task output or inline YAML SQL strings containing secrets.
+- Preserve established script-based SQL rendering and runtime-aware compression/path/publication semantics from deployment rules. No blanket environment.yml requirement for every runtime.
+- Fail closed on command/nonzero transfer or verification errors; do not ignore_error or append success output regardless of prior outcome. Keep exact exit/query/artifact evidence with redacted sensitive data.
+- Verify manifest files/content and effective source/runtime/live-version/grants, not only LIST/SHOW display or task count. App health calls may execute SQL and need approval.
+- Cleanup/drop tasks are explicit exceptional operations with independently checked ownership/path/deletion approval; deploy must not implicitly delete shared artifacts or an existing production object.
+- Local/CI entrypoints share configuration and intended artifact identity; publication, scheduling, Git commit/push, and external notifications require their own authorization.
 
 ### Execution Steps
 
-1. Create task/app/Taskfile.yml with variable definitions
-2. Implement all 5 core tasks
-3. Add preconditions for file existence
-4. Add includes for shared utilities
-5. Test each task individually and full deploy
-
-### Output Format
-
-Taskfile.yml files with deployment task definitions.
+1. Read Task/helpers/SQL and identify intended ordered lifecycle and direct-call preconditions.
+2. Implement minimal tasks/includes with validated environment bindings and preflight before mutation.
+3. Parse/check automation and inspect safe dry/list behavior; run local helper tests without deploying.
+4. Under deployment approval, execute ordered transfer/update/publication and manifest/object/functionality verification.
+5. Retain failed/partial outcomes, inspect current state and invoke only scoped approved recovery.
 
 ### Validation
 
-`task --list` shows all 5 required operations. Individual tasks run successfully. Full deploy workflow completes without errors.
+- Valid Task syntax/helper paths, preconditions before every mutating entrypoint, no unsafe dynamic variable/argument injection.
+- Dependent steps sequential, unknown environment rejected, credentials protected and production gate explicit.
+- Effective artifact/runtime/viewer access and actual per-step exit results verified where authorized.
+- No forced destructive five-step workflow or success claim from --list alone; unrun account checks disclosed.
+- Deliver Task changes, script contracts, ownership/recovery boundaries and exact local/runtime outcomes.
 
-### Design Principles
+## References
 
-- Modular tasks that can run independently or as a workflow.
-- Preconditions prevent partial deployments.
-- Variables enable environment-specific configuration.
-
-### Post-Execution Checklist
-
-- [ ] All 5 core tasks defined (upload, create, drop, remove, deploy)
-- [ ] Deploy task runs drop, remove, upload, create in order
-- [ ] Preconditions check for required files
-- [ ] Variables configured for database, warehouse, stage
-
-## Implementation Details
-
-## Taskfile Implementation
-
-### Task Structure Per Application
-
-```yaml
-# task/notebook/Taskfile.yml
-version: '3.45'
-
-set: [pipefail]
-
-vars:
-  SNOWFLAKE_CLI_VERSION: "3.12"
-  SNOWFLAKE_DB: UTILITY_DEMO_V2
-  SNOWFLAKE_WH: UTILITY_DEMO_WH
-  NOTEBOOK_DIR: notebooks
-  SNOW_CLI_BASE: "uvx --from=snowflake-cli=={{.SNOWFLAKE_CLI_VERSION}} snow"
-
-includes:
-  utils:
-    taskfile: ../utils/Taskfile.yml
-    internal: true
-
-# The shared utility task referenced above (../utils/Taskfile.yml):
-# tasks:
-#   sql:template:
-#     cmds:
-#       - "{{.SNOW_CLI_BASE}} sql -D STAGE={{.STAGE}} -D DATABASE={{.DATABASE}} -f {{.SQL_FILE}}"
-
-tasks:
-  # 1. DROP - Remove notebook object
-  drop:app:
-    desc: Drop notebook object from schema
-    silent: true
-    cmds:
-      - echo "Dropping notebook object..."
-      - task: utils:sql:template
-        vars:
-          SQL_FILE: sql/operations/notebook/drop/drop_app.sql
-          DATABASE: "{{.SNOWFLAKE_DB}}"
-      - echo "Notebook object dropped"
-
-  # 2. REMOVE - Delete stage files
-  remove:app:
-    desc: Remove notebook files from stage
-    silent: true
-    vars:
-      SNOWFLAKE_STAGE: "{{.SNOWFLAKE_DB}}.SCHEMA.NOTEBOOK_STAGE"
-    cmds:
-      - echo "Removing notebook files from stage..."
-      - task: utils:sql:template
-        vars:
-          SQL_FILE: sql/operations/notebook/03_notebook_remove_files.sql
-          STAGE: "{{.SNOWFLAKE_STAGE}}"
-      - echo "Notebook files removed from @SCHEMA.NOTEBOOK_STAGE"
-
-  # 3. UPLOAD - Upload files to stage
-  upload:app:
-    desc: Upload notebook files to stage
-    silent: true
-    vars:
-      SNOWFLAKE_STAGE: "{{.SNOWFLAKE_DB}}.SCHEMA.NOTEBOOK_STAGE"
-    cmds:
-      - echo "Uploading notebook files to stage..."
-      - task: utils:sql:template
-        vars:
-          SQL_FILE: sql/operations/notebook/02_notebook_upload_files.sql
-          STAGE: "{{.SNOWFLAKE_STAGE}}"
-          NOTEBOOK_DIR: "{{.NOTEBOOK_DIR}}"
-      - echo "Notebook uploaded to @SCHEMA.NOTEBOOK_STAGE"
-    preconditions:
-      - test -f {{.NOTEBOOK_DIR}}/app.ipynb
-      - msg: "app.ipynb not found"
-
-  # 4. CREATE - Create notebook from stage
-  create:app:
-    desc: Create notebook object from staged files
-    silent: true
-    vars:
-      SNOWFLAKE_STAGE: "{{.SNOWFLAKE_DB}}.SCHEMA.NOTEBOOK_STAGE"
-    cmds:
-      - echo "Creating notebook from staged files..."
-      - task: utils:sql:template
-        vars:
-          SQL_FILE: sql/operations/notebook/create/create_app.sql
-          DATABASE: "{{.SNOWFLAKE_DB}}"
-          STAGE: "{{.SNOWFLAKE_STAGE}}"
-          WAREHOUSE: "{{.SNOWFLAKE_WH}}"
-      - echo "Notebook created successfully"
-
-  # 5. DEPLOY - Full workflow (drop, then remove, then upload, then create)
-  deploy:app:
-    desc: Deploy notebook with clean slate (drop + remove + upload + create)
-    silent: true
-    vars:
-      NOTEBOOK_NAME: APP_NOTEBOOK
-    cmds:
-      - echo "Deploying notebook to Snowflake..."
-      - task: drop:app
-      - task: remove:app
-      - task: upload:app
-      - task: create:app
-      - echo "Notebook deployed successfully"
-      - echo ""
-      - echo "Access in Snowsight - Projects - Notebooks - {{.NOTEBOOK_NAME}}"
-    preconditions:
-      - test -f {{.NOTEBOOK_DIR}}/app.ipynb
-      - msg: "app.ipynb not found"
-```
-
-### Streamlit Taskfile Variant
-
-For Streamlit apps, adjust the upload task for `pages/`, `utils/`, and `environment.yml`:
-
-```yaml
-# task/streamlit/Taskfile.yml - key differences from notebook variant
-vars:
-  STREAMLIT_DIR: streamlit
-  SNOWFLAKE_STAGE: "{{.SNOWFLAKE_DB}}.SCHEMA.STREAMLIT_STAGE"
-
-tasks:
-  upload:app:
-    desc: Upload Streamlit files to stage
-    silent: true
-    cmds:
-      - task: utils:sql:template
-        vars:
-          SQL_FILE: sql/operations/streamlit/02_streamlit_upload_files.sql
-          STAGE: "{{.SNOWFLAKE_STAGE}}"
-          APP_DIR: "{{.STREAMLIT_DIR}}"
-    preconditions:
-      - test -f {{.STREAMLIT_DIR}}/streamlit_app.py
-      - test -f {{.STREAMLIT_DIR}}/environment.yml
-
-  create:app:
-    desc: Create Streamlit object from staged files
-    cmds:
-      - task: utils:sql:template
-        vars:
-          SQL_FILE: sql/operations/streamlit/create/create_app.sql
-          DATABASE: "{{.SNOWFLAKE_DB}}"
-          STAGE: "{{.SNOWFLAKE_STAGE}}"
-          WAREHOUSE: "{{.SNOWFLAKE_WH}}"
-```
-
-> Upload SQL must include `pages/*.py`, `utils/*.py`, and `environment.yml` with `AUTO_COMPRESS=FALSE`. See **109g** for the full PUT script template.
-
-### Verification Task
-
-Add a `verify:app` task to confirm deployment succeeded:
-
-```yaml
-  verify:app:
-    desc: Verify deployment succeeded
-    silent: true
-    cmds:
-      - "{{.SNOW_CLI_BASE}} sql -q 'LIST @{{.SNOWFLAKE_STAGE}};'"
-      - "{{.SNOW_CLI_BASE}} sql -q 'SHOW NOTEBOOKS IN SCHEMA {{.SNOWFLAKE_DB}}.SCHEMA;'"
-```
-
-## Anti-Patterns and Common Mistakes
-
-**Anti-Pattern 1: Deploy Task Without Ordered Dependencies (Using `deps` Instead of `cmds`)**
-
-**Problem:** Developers use Taskfile's `deps` field to run drop, remove, upload, and create as parallel dependencies of the deploy task. Since `deps` run concurrently, the upload may start before remove finishes, or create may run before upload completes. This causes intermittent failures: sometimes the deployment works (tasks happen to finish in order), sometimes it fails (upload races with remove), making the issue difficult to reproduce and diagnose.
-
-**Correct Pattern:** The deploy task must use sequential `cmds` with `task:` calls, not `deps`. The order is strict: drop -> remove -> upload -> create. Each step must complete before the next begins. Use `cmds` with `- task: drop:app` / `- task: remove:app` / `- task: upload:app` / `- task: create:app` in sequence.
-
-```yaml
-# Wrong: Using deps causes parallel execution - race conditions
-deploy:app:
-  deps:
-    - drop:app
-    - remove:app
-    - upload:app     # May run before remove finishes!
-    - create:app     # May run before upload finishes!
-
-# Correct: Using cmds ensures strict sequential execution
-deploy:app:
-  desc: Deploy notebook (drop + remove + upload + create)
-  cmds:
-    - task: drop:app
-    - task: remove:app
-    - task: upload:app
-    - task: create:app
-```
-
-**Anti-Pattern 2: Missing Preconditions on Upload Tasks**
-
-**Problem:** The upload task has no `preconditions` block checking that required files exist locally. When a developer runs `task deploy:app` from a clean checkout or wrong directory, the PUT command fails with a cryptic Snowflake error about file not found. Worse, the drop and remove steps already ran successfully, so the previous working deployment is now gone with nothing to replace it.
-
-**Correct Pattern:** Add `preconditions` to every upload task that verify required local files exist before any deployment step runs. Also add preconditions to the deploy task itself so the check happens before drop/remove execute: `preconditions: [{ test: -f {{.NOTEBOOK_DIR}}/app.ipynb, msg: "app.ipynb not found" }]`.
-
-```yaml
-# Wrong: No preconditions - drop/remove succeed, then upload fails on missing file
-upload:app:
-  cmds:
-    - task: utils:sql:template
-      vars:
-        SQL_FILE: sql/upload_app.sql
-# Result: Previous deployment already dropped, upload fails, app is gone
-
-# Correct: Preconditions on both deploy and upload tasks
-deploy:app:
-  preconditions:
-    - test -f {{.NOTEBOOK_DIR}}/app.ipynb
-    - msg: "app.ipynb not found - run from project root"
-  cmds:
-    - task: drop:app
-    - task: remove:app
-    - task: upload:app
-    - task: create:app
-
-upload:app:
-  preconditions:
-    - test -f {{.NOTEBOOK_DIR}}/app.ipynb
-    - msg: "app.ipynb not found"
-  cmds:
-    - task: utils:sql:template
-      vars:
-        SQL_FILE: sql/upload_app.sql
-```
-
-**Anti-Pattern 3: Hardcoding Database and Stage Names Instead of Using Variables**
-
-**Problem:** Developers hardcode database names, stage paths, and warehouse names directly in task commands (e.g., `@UTILITY_DEMO_V2.GRID_DATA.NOTEBOOK_STAGE`) instead of using Taskfile `vars`. This makes it impossible to deploy to different environments without editing the Taskfile, and copy-paste errors across tasks lead to mismatched database/stage references where one task targets dev and another targets prod.
-
-**Correct Pattern:** Define all environment-specific values as `vars` at the top of the Taskfile (`SNOWFLAKE_DB`, `SNOWFLAKE_WH`, `SNOWFLAKE_STAGE`). Reference them in commands with `{{.SNOWFLAKE_DB}}` syntax. For multi-environment support, use `ENV` variable with a shell case statement to resolve the correct database name per environment.
-
-```yaml
-# Wrong: Hardcoded names - impossible to deploy to different environments
-drop:app:
-  cmds:
-    - snow sql -q "DROP NOTEBOOK IF EXISTS UTILITY_DEMO_V2.GRID_DATA.MY_NOTEBOOK;"
-upload:app:
-  cmds:
-    - snow sql -q "PUT file://app.ipynb @PROD_DB.SCHEMA.STAGE AUTO_COMPRESS=FALSE;"
-    #                                     ^^^^^^^ Oops, different DB than drop task!
-
-# Correct: Variables at top, referenced everywhere
-vars:
-  SNOWFLAKE_DB: "{{.ENV_DB | default \"DEV_DB\"}}"
-  SNOWFLAKE_WH: UTILITY_DEMO_WH
-  SNOWFLAKE_STAGE: "{{.SNOWFLAKE_DB}}.GRID_DATA.NOTEBOOK_STAGE"
-
-drop:app:
-  cmds:
-    - snow sql -q "DROP NOTEBOOK IF EXISTS {{.SNOWFLAKE_DB}}.GRID_DATA.MY_NOTEBOOK;"
-upload:app:
-  cmds:
-    - snow sql -q "PUT file://app.ipynb @{{.SNOWFLAKE_STAGE}} AUTO_COMPRESS=FALSE;"
-```
-
-**Multi-Environment Deployment:**
-
-```bash
-# Deploy to dev (default)
-task deploy:app
-
-# Deploy to QA
-ENV_DB=QA_DB task deploy:app
-
-# Deploy to prod
-ENV_DB=PROD_DB task deploy:app
-```
+- [Task guide](https://taskfile.dev/docs/guide)
+- [Task schema](https://taskfile.dev/docs/reference/schema)
+- [CREATE STREAMLIT](https://docs.snowflake.com/en/sql-reference/sql/create-streamlit)
+- `820-taskfile-automation.md` for Task semantics.
+- `109b-snowflake-app-deployment-core.md` and `109g-snowflake-app-deployment-sql-scripts.md` for approved lifecycle/transfer details.

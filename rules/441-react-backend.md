@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v4.0.0
-description: "Establishes backend integration patterns for React applications, with Python (FastAPI/Flask) as the organizational default. Covers API communication, authentication flows, CORS configuration, and"
-last_updated: 2026-07-15
+schema_version: v4.0
+rule_version: v5.0.0
+description: "React-to-backend integration: existing or Python-default backend, cookie session security with CSRF, explicit CORS, validated typed API layer and end-to-end tests."
+last_updated: 2026-10-07
 keywords:
   - kw:FastAPI React integration
   - kw:httpOnly cookie authentication
@@ -11,570 +11,64 @@ keywords:
   - kw:Python-first full-stack
   - kw:JWT refresh token rotation
   - kw:fastapi
-token_budget: ~4350
+token_budget: ~1150
 context_tier: High
 depends:
   required:
     - 440-react-core.md  # React patterns and architecture
     - 200-python-core.md  # Python development standards
 ---
-# React Backend Integration: Python-First Full-Stack Patterns
+# React Backend Integration
 
 ## Scope
 
 **What This Rule Covers:**
-Establishes backend integration patterns for React applications, with Python (FastAPI/Flask) as the organizational default. Covers API communication, authentication flows, CORS configuration, and type sharing between frontend and backend.
+React frontends calling backends (FastAPI/Flask default, framework routes or existing services): backend selection, typed validated API layer, cookie-based sessions, refresh rotation, CSRF, CORS and environment configuration.
 
 **When to Load This Rule:**
-- Building full-stack React applications
-- Integrating React frontend with Python backend
-- Implementing authentication flows
-- Configuring CORS for API communication
-- Choosing backend framework for React apps
-- Setting up API layer with TanStack Query
-
-## References
-
-### External Documentation
-
-- [FastAPI Documentation](https://fastapi.tiangolo.com/) - Modern async Python web framework
-- [Flask Documentation](https://flask.palletsprojects.com/) - Mature Python web framework
-- [TanStack Query](https://tanstack.com/query/latest) - Async state management for React
-- [CORS MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) - Cross-Origin Resource Sharing
+When connecting React to an API, implementing login/session flows or debugging CORS; load `440-react-core.md` for component and state conventions.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- React application (per 440-react-core.md)
-- Python environment (per 200-python-core.md)
-- Understanding of REST API patterns
-- Knowledge of authentication flows
-- TanStack Query for API state management
-- Environment variables for API URLs
-- CORS middleware on backend
-- Type-safe API layer
+- Existing frontend and backend code, frameworks/versions, deployment topology (same-origin, subdomains, cross-site), identity provider and auth requirements.
+- Environment configuration, secret management, existing API contracts (OpenAPI/schemas) and the project's frontend/backend test commands.
 
 ### Mandatory
 
-- MUST use httpOnly cookies for authentication tokens
-- MUST validate API responses with Zod schemas
-- MUST configure CORS with specific origins (no wildcards in production)
-
-### Forbidden
-
-- Node.js/Express backend (unless user explicitly requests)
-- JWT in localStorage (security risk)
-- Hardcoded API URLs
-- `*` CORS origin in production
-- Raw fetch in useEffect for data fetching
+- Extend the existing backend and auth mechanism when present. For new backends default to Python (FastAPI for async/OpenAPI, Flask for simple synchronous services) unless the user, framework routes or team constraints call for another stack; this is an organizational preference, not a security property.
+- Browser sessions use server-set `HttpOnly`, `Secure` cookies with deliberate `SameSite`, `Path` and lifetime; never store access or refresh tokens in localStorage, sessionStorage or client state stores. Prefer an established auth library or identity provider over hand-rolled JWT handling.
+- Cookie-authenticated state-changing requests need CSRF protection (synchronizer or double-submit token, plus Origin/Referer checks) regardless of SPA or SSR; SameSite reduces but does not replace this.
+- Refresh rotation invalidates the presented refresh token, detects reuse, scopes the refresh cookie path, and is serialized on the client so concurrent 401s trigger one refresh and one replay at most; failed refresh clears session state and routes to login without loops.
+- Logout revokes the server session or refresh token and clears cookies server-side.
+- CORS lists exact allowed origins per environment from configuration, never `*` with credentials; allow only needed methods and headers (including CSRF headers). Same-origin deployment or a proxy avoids CORS where possible.
+- Cross-site cookies require `SameSite=None; Secure` and an explicit decision; prefer same-site API hosting.
+- API URLs come from environment configuration. Frontend build-time variables (`VITE_*`, `NEXT_PUBLIC_*`) are public and must never hold secrets; backend secrets come from approved secret management, not committed files.
+- Typed API functions check `response.ok`, map errors to typed results, include credentials only where required and validate untrusted response shapes (such as Zod) at the boundary; generated OpenAPI clients are acceptable.
+- Fetch through the project's server-state tooling (TanStack Query or equivalent) per `440-react-core.md`; invalidate or clear auth-dependent cache on login/logout.
+- Backends validate input with typed models (Pydantic), authorize every request server-side and never trust client-side role checks.
+- Test the real flow: login, authenticated request, refresh, logout, CSRF rejection, disallowed-origin CORS and API failure states; do not claim auth or CORS correctness from configuration review alone.
 
 ### Execution Steps
 
-1. **Determine Backend Need:** Assess if Next.js API routes suffice or separate backend required
-2. **Select Framework:** Choose FastAPI (async, auto-docs) or Flask (simpler) based on requirements
-3. **Configure CORS:** Set up CORS middleware with specific origins for dev and production
-4. **Implement Authentication:** Set up JWT with httpOnly cookies and refresh token rotation
-5. **Set Up TanStack Query:** Configure QueryClient with appropriate defaults for API communication
-6. **Create API Layer:** Build typed API functions that TanStack Query will call
-7. **Configure Environment:** Set up environment variables for API URLs across environments
-8. **Validate Integration:** Test CORS, auth flow, and API calls end-to-end
-
-### Output Format
-
-TypeScript React code (`.tsx`) with:
-- TanStack Query hooks for API calls
-- Type-safe API layer
-- Environment-based configuration
-
-Python backend code (FastAPI or Flask) with:
-- CORS middleware configured
-- Authentication middleware
-- Type hints and validation
+1. Read frontend/backend code, auth mechanism, deployment topology and environment setup; choose or confirm the backend.
+2. Implement the minimal API, session, CSRF, CORS and typed client changes using established libraries.
+3. Run backend and frontend lint/type/tests and exercise integration and negative paths against a local stack.
+4. Report endpoints, auth/cookie/CORS decisions, commands with results and remaining unverified security behavior.
 
 ### Validation
 
-**Pre-Task-Completion Checks:**
-- [ ] Determine if separate backend is needed (vs Next.js API routes)
-- [ ] Identify backend framework: FastAPI (async, OpenAPI) vs Flask (simpler, mature)
-- [ ] Check existing backend code/patterns before adding new endpoints
-- [ ] Verify CORS configuration exists for development and production
-- [ ] Confirm authentication strategy (JWT, session, OAuth)
-- [ ] Review environment variable setup for API URLs
-- [ ] TanStack Query configured with proper defaults
-- [ ] API layer is type-safe
-- [ ] Authentication uses httpOnly cookies
-- [ ] CORS allows specific origins only
-
-**Success Criteria:**
-- Frontend: `npm run test` passes, `npm run type-check` clean
-- Backend: `uv run pytest` passes, `uvx ruff check .` clean
-- Integration: API calls succeed with proper CORS headers and auth tokens
-- No CORS errors in browser console
-- JWT tokens stored securely in httpOnly cookies
-
-### Design Principles
-
-- **Python Backend Default:** Use FastAPI or Flask unless explicitly requested otherwise
-- **Secure Authentication:** Store JWT in httpOnly cookies, never localStorage
-- **Type Safety:** Share types between frontend and backend where possible
-- **Environment Configuration:** Use environment variables for all URLs and secrets
-- **Proper CORS:** Configure specific origins, never use wildcard in production
-
-### Post-Execution Checklist
-
-- [ ] Verify all Pre-Task-Completion Checks still pass
-- [ ] Frontend tests pass (`npm run test`)
-- [ ] Backend tests pass (`uv run pytest`)
-- [ ] Type checking clean on both frontend and backend
-- [ ] API calls work end-to-end with authentication
-
-### Negative Tests
-
-- [ ] Requesting from an unlisted origin returns no `Access-Control-Allow-Origin` header:
-  ```bash
-  curl -s -H "Origin: http://evil.example.com" http://localhost:8000/api/health -v 2>&1 | grep "Access-Control"
-  # Should return empty (no CORS headers)
-  ```
-- [ ] Accessing `/auth/refresh` without valid refresh cookie returns 401
-
-## Key Principles
-
-### Backend Framework Selection
-
-#### Decision Tree
-
-**When to use FastAPI:**
-- Async operations, WebSockets
-- Auto-generated OpenAPI docs needed
-- ML/AI integration (async preferred)
-
-**When to use Flask:**
-- REST API with <10 endpoints, quick setup
-- Large existing Flask codebase
-- ML/AI integration (sync acceptable)
-
-**When to use Next.js API Routes:**
-- Simple API within Next.js app
-
-**When to use Express:**
-- Team has strong Node.js expertise (when user requests)
-
-#### Organizational Default Rationale
-
-This organization defaults to Python backends because:
-- Team expertise in Python ecosystem
-- Integration with data science/ML workflows
-- Mature tooling (FastAPI, Pydantic, SQLAlchemy)
-- Strong typing with Pydantic models
-
-**Note:** This is an organizational preference, not a universal industry standard. Node.js backends are equally valid when team expertise or project requirements favor them.
-
-### API Communication Patterns
-
-#### TanStack Query Setup
-
-```typescript
-// src/lib/queryClient.ts
-import { QueryClient } from '@tanstack/react-query';
-
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-```
-
-#### Typed API Layer
-
-```typescript
-// src/features/users/api/userApi.ts
-import { z } from 'zod';
-
-const API_BASE = import.meta.env.VITE_API_URL;
-
-export const UserSchema = z.object({
-  id: z.string(),
-  email: z.string().email(),
-  name: z.string(),
-});
-
-export type User = z.infer<typeof UserSchema>;
-
-export async function fetchUser(userId: string): Promise<User> {
-  const response = await fetch(`${API_BASE}/users/${userId}`, {
-    credentials: 'include', // Include httpOnly cookies
-  });
-  if (!response.ok) throw new Error('Failed to fetch user');
-  const data = await response.json();
-  return UserSchema.parse(data);
-}
-```
-
-#### Query Hook Usage
-
-```typescript
-// src/features/users/hooks/useUser.ts
-import { useQuery } from '@tanstack/react-query';
-import { fetchUser } from '../api/userApi';
-
-export const useUser = (userId: string) => {
-  return useQuery({
-    queryKey: ['user', userId],
-    queryFn: () => fetchUser(userId),
-    enabled: !!userId,
-  });
-};
-```
-
-### Authentication Flow
-
-#### JWT with httpOnly Cookies (Recommended)
-
-```python
-# FastAPI backend - auth endpoint
-from fastapi import FastAPI, Response
-from fastapi.middleware.cors import CORSMiddleware
-
-app = FastAPI()
-
-# SECURITY: Never use allow_origins=["*"] with allow_credentials=True
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite dev server
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["*"],
-)
-
-
-@app.post("/auth/login")
-async def login(response: Response, credentials: LoginRequest):
-    # Validate credentials, generate JWT
-    token = create_access_token(credentials.email)
-
-    response.set_cookie(
-        key="access_token",
-        value=token,
-        httponly=True,
-        secure=True,  # HTTPS only in production
-        samesite="lax",
-        max_age=3600,
-    )
-    return {"message": "Login successful"}
-```
-
-#### Frontend Auth State
-
-```typescript
-// src/features/auth/hooks/useAuth.ts
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-export const useAuth = () => {
-  const queryClient = useQueryClient();
-
-  const { data: user, isLoading } = useQuery({
-    queryKey: ['auth', 'me'],
-    queryFn: fetchCurrentUser,
-    retry: false,
-  });
-
-  const logout = useMutation({
-    mutationFn: logoutApi,
-    onSuccess: () => {
-      queryClient.setQueryData(['auth', 'me'], null);
-      queryClient.invalidateQueries();
-    },
-  });
-
-  return { user, isLoading, isAuthenticated: !!user, logout };
-};
-```
-
-#### Refresh Token Rotation
-```typescript
-// Server MUST invalidate the old refresh token on each rotation
-// Frontend simply calls the refresh endpoint - cookies are handled by the browser
-async function refreshAuth(): Promise<void> {
-  const response = await fetch('/auth/refresh', {
-    method: 'POST',
-    credentials: 'include',  // Sends httpOnly cookies automatically
-  });
-
-  if (!response.ok) {
-    // Refresh failed - token expired or revoked, redirect to login
-    clearAuthState();  // Clear any client-side auth state (user info, not tokens)
-    window.location.href = '/login';
-    throw new Error('Session expired');
-  }
-  // Server sets new httpOnly cookies in the response
-  // No client-side token storage needed - browser handles cookie updates
-}
-```
-
-**Server-side (Python/FastAPI) complement:**
-```python
-@app.post("/auth/refresh")
-async def refresh_token(request: Request, response: Response):
-    refresh_token = request.cookies.get("refresh_token")
-    if not refresh_token or not validate_refresh_token(refresh_token):
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
-
-    # Rotate: invalidate old, issue new
-    invalidate_token(refresh_token)
-    new_access = create_access_token(user_id)
-    new_refresh = create_refresh_token(user_id)
-
-    response.set_cookie("access_token", new_access, httponly=True, secure=True, samesite="lax")
-    response.set_cookie("refresh_token", new_refresh, httponly=True, secure=True, samesite="lax")
-    return {"status": "refreshed"}
-```
-
-#### Concurrent Refresh Protection
-
-When multiple API calls fail with 401 simultaneously, prevent each from triggering a separate refresh:
-
-```typescript
-let refreshPromise: Promise<void> | null = null;
-
-async function refreshAuthOnce(): Promise<void> {
-  // If a refresh is already in progress, wait for it instead of starting another
-  if (refreshPromise) return refreshPromise;
-
-  refreshPromise = refreshAuth()  // From refresh token rotation above
-    .finally(() => { refreshPromise = null; });
-
-  return refreshPromise;
-}
-
-// In 401 interceptor:
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401 && !error.config._retry) {
-      error.config._retry = true;
-      await refreshAuthOnce();
-      return api(error.config);  // Replay the original request
-    }
-    return Promise.reject(error);
-  }
-);
-```
-
-#### CSRF Protection
-```typescript
-// Required for cookie-based auth (SSR). SPA with token-based auth is CSRF-safe.
-const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
-api.defaults.headers.common["X-CSRF-Token"] = csrfToken;
-```
-
-#### 401 Interceptor
-```typescript
-// Global handler: redirect to login on expired/invalid tokens
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      clearTokens();
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  }
-);
-```
-
-#### CORS Preflight Failure Debugging
-
-If you see `403` or `CORS error` on `OPTIONS` requests:
-
-1. **Verify origin match:** The origin in `allow_origins` must match exactly: protocol + host + port. `http://localhost:3000` ≠ `http://localhost:5173` ≠ `https://localhost:3000`.
-2. **Check credentials:** If using cookies, `allow_credentials=True` (FastAPI) or `supports_credentials=True` (Flask-CORS) must be set. With credentials, `allow_origins` cannot be `["*"]`: list specific origins.
-3. **Check methods:** Ensure `allow_methods` includes the method being used (`POST`, `PUT`, `DELETE`, `PATCH`). `GET` and `HEAD` don't trigger preflight.
-4. **Check headers:** If sending custom headers (e.g., `X-CSRF-Token`), add them to `allow_headers`.
-5. **Server logs:** Check the backend logs for CORS middleware rejection messages: the browser error is intentionally vague for security.
-
-```bash
-# Quick test: simulate preflight from terminal
-curl -X OPTIONS http://localhost:8000/api/endpoint \
-  -H "Origin: http://localhost:3000" \
-  -H "Access-Control-Request-Method: POST" \
-  -H "Access-Control-Request-Headers: Content-Type" \
-  -v 2>&1 | grep -i "access-control"
-```
-
-### CORS Configuration
-
-#### FastAPI CORS
-
-```python
-# Development: specific origin
-origins = ["http://localhost:5173", "http://localhost:3000"]
-
-# Production: your domain
-origins = ["https://app.example.com"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,  # Never use ["*"] in production
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["*"],
-)
-```
-
-#### Flask CORS
-
-```python
-from flask import Flask
-from flask_cors import CORS
-
-app = Flask(__name__)
-CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
-```
-
-### Environment Management
-
-```bash
-# Frontend (.env.development)
-VITE_API_URL=http://localhost:8000/api
-
-# Frontend (.env.production)
-VITE_API_URL=https://api.example.com
-
-# Backend (.env)
-CORS_ORIGINS=http://localhost:5173,http://localhost:3000
-# Generate with: python -c "import secrets; print(secrets.token_hex(32))"
-JWT_SECRET=<generated-hex-value>
-# WARNING: Never commit .env files to source control. Add .env to .gitignore.
-```
-
-## Anti-Patterns and Common Mistakes
-
-**Anti-Pattern 1: JWT in localStorage**
-```typescript
-// Bad: Vulnerable to XSS attacks
-localStorage.setItem('token', jwt);
-```
-**Problem:** Any XSS vulnerability exposes the token.
-
-**Correct Pattern:**
-```typescript
-// Good: httpOnly cookie (set by backend)
-fetch('/api/data', { credentials: 'include' });
-```
-
-**Anti-Pattern 2: Hardcoded API URLs**
-```typescript
-// Bad: Hardcoded URL
-fetch('http://localhost:8000/api/users');
-```
-**Problem:** Breaks in production, hard to configure per environment.
-
-**Correct Pattern:**
-```typescript
-// Good: Environment variable
-const API_URL = import.meta.env.VITE_API_URL;
-fetch(`${API_URL}/users`);
-```
-
-**Anti-Pattern 3: useEffect for Data Fetching from Backend API**
-
-```typescript
-// BAD: Manual fetch in useEffect
-function UserProfile({ userId }: { userId: string }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch(`/api/users/${userId}`)
-      .then(res => res.json())
-      .then(data => { setUser(data); setLoading(false); });
-  }, [userId]);
-  // Problems: no error handling, no caching, no deduplication, race conditions
-
-  if (loading) return <Spinner />;
-  return <div>{user?.name}</div>;
-}
-```
-
-```typescript
-// GOOD: TanStack Query with typed API
-function UserProfile({ userId }: { userId: string }) {
-  const { data: user, isLoading, error } = useQuery({
-    queryKey: ['users', userId],
-    queryFn: () => api.get<User>(`/api/users/${userId}`).then(r => r.data),
-  });
-
-  if (isLoading) return <Spinner />;
-  if (error) return <ErrorDisplay error={error} />;
-  return <div>{user.name}</div>;
-}
-```
-
-**Why:** TanStack Query provides caching, automatic retry, deduplication, background refetching, and proper loading/error states. Manual `useEffect` + `fetch` requires reimplementing all of this. See `440-react-core.md` Anti-Pattern 1 for additional context.
-
-**Negative Test Example:**
-```typescript
-it("handles API failure gracefully", async () => {
-  server.use(rest.get("/api/user", (req, res, ctx) => ctx.status(500)));
-  render(<UserProfile />);
-  expect(await screen.findByText("Something went wrong")).toBeInTheDocument();
-});
-```
-
-> **Investigation Required**
-> When applying this rule:
-> 1. **Check existing backend** - Is there already a backend? What framework?
-> 2. **Review auth requirements** - OAuth? SAML? Simple JWT?
-> 3. **Identify API complexity** - Simple CRUD or complex business logic?
-> 4. **Check deployment model** - Monorepo? Separate repos? Serverless?
-
-## Output Format Examples
-
-```markdown
-MODE: PLAN
-
-Investigation:
-- Reviewed project: React + Vite frontend, no existing backend.
-- Requirements: User auth, CRUD for projects, file uploads.
-- Decision: FastAPI backend (async file handling, auto OpenAPI docs).
-
-Implementation:
-1. Create FastAPI backend with CORS and JWT auth
-2. Set up TanStack Query in React app
-3. Create typed API layer with Zod schemas
-```
-
-```python
-# Backend: FastAPI with auth middleware
-from fastapi import FastAPI, Depends
-from fastapi.middleware.cors import CORSMiddleware
-
-app = FastAPI(title="Project API")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-@app.get("/api/projects")
-async def list_projects(user: User = Depends(get_current_user)):
-    return await ProjectService.list_for_user(user.id)
-```
-
-```bash
-# Validation commands
-# Frontend
-npm run lint && npm run test && npm run type-check
-
-# Backend
-uvx ruff check . && uvx ruff format --check . && uv run pytest
-```
+- No tokens in browser-readable storage; cookies `HttpOnly`/`Secure` with deliberate SameSite and path.
+- CSRF enforced for cookie-authenticated mutations; CORS exact-origin with credentials only as needed.
+- Refresh rotation single-flight with reuse detection; logout revokes server-side.
+- No secrets in frontend env or source; integration and negative tests pass or gaps reported.
+
+## References
+
+- [FastAPI CORS](https://fastapi.tiangolo.com/tutorial/cors/)
+- [Flask-CORS](https://pypi.org/project/flask-cors/)
+- [MDN CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS)
+- [MDN Set-Cookie](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie)
+- [OWASP CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
+- [Vite env variables](https://vite.dev/guide/env-and-mode)

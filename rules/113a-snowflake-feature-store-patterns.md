@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v4.0.0
-description: "Anti-patterns and common mistakes when implementing Snowflake Feature Store, including data leakage from improper joins, feature versioning errors, non-deterministic transformations, unmonitored"
-last_updated: 2026-07-15
+schema_version: v4.0
+rule_version: v5.0.0
+description: Feature-store temporal leakage, reproducibility, version safety, and measured refresh-cost review.
+last_updated: 2026-10-07
 keywords:
   - kw:ASOF JOIN
   - kw:feature view versioning
@@ -10,299 +10,64 @@ keywords:
   - kw:dynamic table refresh costs
   - kw:training data leakage
   - kw:train serve skew
-token_budget: ~2300
+token_budget: ~1000
 context_tier: Low
 depends:
   required:
     - 100-snowflake-core.md  # Snowflake foundation patterns
     - 113-snowflake-feature-store.md  # Feature Store core patterns
 ---
-# Snowflake Feature Store: Anti-Patterns and Common Mistakes
+# Snowflake Feature Store: Correctness and Operational Review
 
 ## Scope
 
 **What This Rule Covers:**
-Anti-patterns and common mistakes when implementing Snowflake Feature Store, including data leakage from improper joins, feature versioning errors, non-deterministic transformations, unmonitored refresh costs, and governance gaps.
+Temporal leakage and join correctness, deterministic/reproducible feature definitions, version compatibility, refresh costs and governance gaps.
 
 **When to Load This Rule:**
-- Reviewing or auditing Feature Store implementations
-- Debugging feature-related model performance issues
-- Investigating data leakage or train/serve skew
-- Optimizing feature view refresh costs
-
-## References
-
-### External Documentation
-
-- [Snowflake Feature Store](https://docs.snowflake.com/en/developer-guide/snowflake-ml/feature-store/overview) - Official Feature Store documentation
+When auditing feature datasets/views, train-serve skew, feature changes or refresh costs.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Feature Store configured (see 113-snowflake-feature-store.md)
-- Existing feature views and entity definitions
-- Understanding of ML training/inference pipelines
+- Existing registered entities/view versions, transformation/source data, spine/labels, serving consumers and actual APIs.
+- Time/availability/grain rules, expected values, refresh/compute cost evidence and approved review/remediation scope.
 
 ### Mandatory
 
-- Use ASOF JOIN for point-in-time correctness in training datasets
-- Version all feature views with semantic versioning
-- Use only deterministic functions in feature transformations
-- Monitor feature view refresh costs
-
-### Forbidden
-
-- Regular JOINs for training data that require temporal correctness
-- Overwriting feature view versions without incrementing
-- Non-deterministic functions (CURRENT_TIMESTAMP, RANDOM) in feature definitions
-- Unmonitored aggressive refresh schedules
+- Trace feature values to inputs available at observation time. Current/latest keyed joins are unsafe for changing historical features, but static correct keyed joins need not always use ASOF.
+- Use supported temporal retrieval/ASOF semantics where required and test key grouping, latest-before boundary, equal-time ties, missing matches and late/retroactive data. ASOF does not repair features themselves computed from future information.
+- Pin registered feature versions and dataset/model identities; new logic/columns requires a new reviewed version. No same-version overwrite of consumers or undocumented @fv/decorator/generate_training_set recipes.
+- Preserve deterministic business calculations from fixed inputs/time context. Relative-time features use explicit observation/cutoff semantics; current-time ingestion metadata can be valid but must not silently change training feature meaning.
+- Randomness must have a justified purpose, reproducible configuration and train/serve semantics. Do not promise a seed makes every distributed operation deterministic or categorically ban timestamps needed for observability.
+- Check feature order/types/units, preprocessing, NULL/default behavior and point-in-time coverage between training and inference. Offline/online timestamp/session context can differ and requires specific validation.
+- Inspect actual refresh mode, query support, source cadence and lag versus SLA. Aggressive refresh can cost more, but no universal hour/default warehouse or guaranteed dollar-per-day assertion.
+- Use documented refresh/history fields and separate applicable metering for cost attribution; do not invent credits_used on every dynamic-table history function or equate target lag with an exact schedule.
+- Changes to warehouse/frequency/tracking/materialization/alerts need approved scope and measured tradeoffs. No automatic shrink, clustering or scheduled account task merely because a checklist names cost monitoring.
+- Apply approved governance metadata/access and verify actual consumer policies; registration/lineage alone does not prove security or temporal correctness.
+- Preserve existing feature versions/source objects and failures. Propose scoped fixes/new versions, test independently, and inspect uncertain state before recovery rather than deleting/replacing shared resources.
 
 ### Execution Steps
 
-1. Review existing feature views for anti-pattern violations
-2. Fix data leakage issues with ASOF JOIN
-3. Implement proper versioning strategy
-4. Replace non-deterministic transformations
-5. Set up cost monitoring for feature view refreshes
-
-### Output Format
-
-- Corrected feature view definitions
-- Cost monitoring queries
-- Versioning strategy documentation
+1. Inspect registered definitions and trace source/time/key contracts to actual training/serving consumption.
+2. Review leakage, duplicate/tie/NULL behavior, deterministic transformation and version changes with expected-result tests.
+3. Compare actual refresh/lag/cost evidence to workload requirements and document attribution limits.
+4. Prepare minimal corrected definitions or new versions and test locally/synthetically first.
+5. Execute account remediation only when authorized; verify actual values/consumers/security and retain failed outcomes.
 
 ### Validation
 
-- ASOF JOINs produce point-in-time correct datasets
-- Feature views use semantic versioning
-- All transformations are deterministic
-- Refresh costs are monitored and within budget
+- Time-available features, grain/tie/key coverage and train/serve contracts verified; no ASOF-as-universal-guarantee.
+- Versions/data/config reproducible, metadata honest and no unsupported API snippets.
+- Refresh/cost recommendations grounded in actual fields/usage and approved SLA, not fixed thresholds.
+- Existing consumers and ownership protected, local tests separate from unexecuted account checks.
+- Deliver findings, scoped changes, expected-result evidence and unresolved temporal/cost/security gaps.
 
-### Design Principles
+## References
 
-- Point-in-time correctness prevents data leakage
-- Versioning enables reproducibility and rollback
-- Deterministic transformations ensure training/inference consistency
-- Cost monitoring prevents runaway refresh expenses
-
-### Post-Execution Checklist
-
-- [ ] All training datasets use ASOF JOIN
-- [ ] Feature views versioned with semantic versioning
-- [ ] Non-deterministic functions removed from features
-- [ ] Refresh cost monitoring configured
-- [ ] Governance metadata applied to all feature views
-
-## Anti-Patterns and Common Mistakes
-
-**Anti-Pattern 1: Not Using ASOF JOIN for Point-in-Time Correctness**
-```python
-# Bad: Regular JOIN causes data leakage
-training_data = entities_df.join(features_df, on="customer_id", how="left")
-# Uses latest feature values, not values at prediction time!
-# Leaks future information into training data!
-```
-**Problem:** Data leakage; inflated model performance; production model fails
-
-**Correct Pattern:**
-```python
-# Good: ASOF JOIN for point-in-time correctness
-from snowflake.ml.feature_store import FeatureStore
-
-fs = FeatureStore(session, database="FEATURE_STORE_DB", schema="CUSTOMER_FEATURES")
-
-training_data = fs.generate_training_set(
-    spine_df=entities_df,  # Has customer_id and prediction_timestamp
-    features=["customer_features@v1", "transaction_features@v2"],
-    spine_timestamp_col="prediction_timestamp",  # Point-in-time!
-    exclude_columns=["internal_id"],
-)
-
-# ASOF JOIN ensures features use only data available before prediction_timestamp
-# No data leakage, realistic training data
-```
-**Benefits:** No data leakage; realistic model performance; production accuracy matches training
-
-**Anti-Pattern 2: Not Versioning Feature Views**
-```python
-# Bad: Overwrite feature view without versioning
-@fv(name="customer_features", version="1.0")
-def customer_features(df):
-    return df.select("customer_id", "age", "income")
-
-
-# Later: Change feature logic but keep same name/version
-@fv(name="customer_features", version="1.0")  # Same name!
-def customer_features(df):
-    return df.select("customer_id", "age_bucket", "income_log")  # Different features!
-
-
-# Models trained on old features break, can't reproduce results!
-```
-**Problem:** Can't reproduce models; training/inference mismatch; broken lineage
-
-**Correct Pattern:**
-```python
-# Good: Semantic versioning for feature views
-from snowflake.ml.feature_store import FeatureStore, FeatureView
-
-fs = FeatureStore(session, database="FEATURE_STORE_DB", schema="CUSTOMER_FEATURES")
-
-
-# Version 1.0: Initial features
-@fv(name="customer_features", version="1.0")
-def customer_features_v1(df):
-    return df.select(col("customer_id"), col("age"), col("income"))
-
-
-# Version 2.0: Breaking change - different feature engineering
-@fv(name="customer_features", version="2.0")  # New version!
-def customer_features_v2(df):
-    return df.select(
-        col("customer_id"),
-        when(col("age") < 30, "young")
-        .when(col("age") < 50, "middle")
-        .otherwise("senior")
-        .alias("age_bucket"),
-        log(col("income") + 1).alias("income_log"),
-    )
-
-
-# Models reference specific versions
-model_v1 = train_model(features="customer_features@1.0")
-model_v2 = train_model(features="customer_features@2.0")
-
-# Can reproduce, rollback, and maintain multiple versions
-```
-**Benefits:** Reproducible models; clear lineage; rollback capability
-
-**Anti-Pattern 3: Using Non-Deterministic Functions in Feature Engineering**
-```python
-# Bad: Non-deterministic transformations
-@fv(name="transaction_features", version="1.0")
-def transaction_features(df):
-    return df.select(
-        col("transaction_id"),
-        col("amount"),
-        CURRENT_TIMESTAMP().alias("feature_created_at"),  # Changes every run!
-        uniform(0, 1, random()).alias("random_feature"),  # Different every time!
-    )
-
-
-# Training and inference produce different feature values!
-```
-**Problem:** Training/inference mismatch; non-reproducible; model instability
-
-**Correct Pattern:**
-```python
-# Good: Deterministic transformations only
-@fv(name="transaction_features", version="1.0")
-def transaction_features(df):
-    return df.select(
-        col("transaction_id"),
-        col("amount"),
-        col("transaction_timestamp"),  # Use existing timestamp column
-        (col("amount") * 0.1).alias("amount_scaled"),  # Deterministic math
-        when(col("amount") > 1000, 1).otherwise(0).alias("high_value_flag"),  # Deterministic logic
-    )
-
-
-# If you need current time context, use spine timestamp
-@fv(name="time_aware_features", version="1.0")
-def time_aware_features(df):
-    # df already has event_timestamp from source
-    return df.select(
-        col("customer_id"),
-        col("event_timestamp"),
-        datediff("day", col("last_purchase_date"), col("event_timestamp")).alias(
-            "days_since_last_purchase"
-        ),
-        # Deterministic: same inputs always produce same outputs
-    )
-```
-**Benefits:** Reproducible features; training/inference consistency; reliable predictions
-
-**Anti-Pattern 4: Not Monitoring Feature View Refresh Costs**
-```python
-# Bad: Set aggressive refresh schedule without monitoring
-CREATE DYNAMIC TABLE customer_features_view
-TARGET_LAG = '1 MINUTE'  -- Refreshes constantly!
-WAREHOUSE = LARGE_WH     -- Expensive warehouse!
-AS
-SELECT
-  customer_id,
-  -- Complex aggregations over millions of rows
-  COUNT(*) OVER (PARTITION BY customer_id ORDER BY timestamp ROWS BETWEEN 1000 PRECEDING AND CURRENT ROW) as rolling_count
-FROM raw_events;
-
--- Bills hundreds of dollars per day, features rarely used!
-```
-**Problem:** Runaway costs; unnecessary refreshes; wasted credits; budget overruns
-
-**Correct Pattern:**
-```python
-# Good: Monitor costs and optimize refresh schedule
-
-# Step 1: Start with conservative refresh schedule
-CREATE DYNAMIC TABLE customer_features_view
-TARGET_LAG = '1 HOUR'    -- Less frequent initially
-WAREHOUSE = SMALL_WH     -- Start small
-AS
-SELECT
-  customer_id,
-  COUNT(*) as purchase_count,
-  SUM(amount) as total_spend
-FROM transactions
-GROUP BY customer_id;
-
-# Step 2: Monitor refresh costs
-# Note: DYNAMIC_TABLE_REFRESH_HISTORY may return empty results if:
-# - The dynamic table was created less than 24 hours ago (Account Usage latency)
-# - No refreshes have occurred yet. Use INFORMATION_SCHEMA equivalent for real-time data.
-SELECT
-  table_name,
-  refresh_action,
-  completion_time,
-  credits_used,
-  rows_inserted,
-  rows_updated
-FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLE_REFRESH_HISTORY
-WHERE table_name = 'CUSTOMER_FEATURES_VIEW'
-  AND start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP())
-ORDER BY start_time DESC;
-
-# Step 3: Calculate cost per refresh
-SELECT
-  AVG(credits_used) as avg_credits_per_refresh,
-  SUM(credits_used) as total_credits_weekly,
-  COUNT(*) as refresh_count
-FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLE_REFRESH_HISTORY
-WHERE table_name = 'CUSTOMER_FEATURES_VIEW'
-  AND start_time >= DATEADD('day', -7, CURRENT_TIMESTAMP());
-
-# Step 4: Optimize based on actual usage
--- If source data updates less than once per 4 hours, increase TARGET_LAG to reduce costs
-ALTER DYNAMIC TABLE customer_features_view
-SET TARGET_LAG = '4 HOURS';  -- Reduce refresh frequency
-
--- If daily credits exceed budget threshold (e.g., >5 credits/day), use smaller warehouse
-ALTER DYNAMIC TABLE customer_features_view
-SET WAREHOUSE = XSMALL_WH;
-
-# Step 5: Set up cost alerts
-CREATE OR REPLACE TASK monitor_feature_costs
-WAREHOUSE = MONITORING_WH
-SCHEDULE = '1 DAY'
-AS
-INSERT INTO feature_cost_alerts
-SELECT
-  table_name,
-  SUM(credits_used) as daily_credits,
-  CURRENT_DATE() as alert_date
-FROM SNOWFLAKE.ACCOUNT_USAGE.DYNAMIC_TABLE_REFRESH_HISTORY
-WHERE start_time >= DATEADD('day', -1, CURRENT_TIMESTAMP())
-GROUP BY table_name
-HAVING SUM(credits_used) > 10;  -- Alert if >10 credits/day
-```
-**Benefits:** Cost visibility; optimized refreshes; budget control; proactive alerts
+- [Feature Store](https://docs.snowflake.com/en/developer-guide/snowflake-ml/feature-store/overview)
+- [Feature-view lifecycle](https://docs.snowflake.com/en/developer-guide/snowflake-ml/feature-store/feature-views)
+- [ASOF JOIN](https://docs.snowflake.com/en/sql-reference/constructs/asof-join)
+- `113-snowflake-feature-store.md` for entity/API foundations.
+- `105-snowflake-cost-governance.md` for attribution/control limits.

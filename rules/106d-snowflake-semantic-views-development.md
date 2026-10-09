@@ -1,8 +1,8 @@
 ---
-schema_version: v3.5
-rule_version: v2.0.0
-description: "Development workflows for Semantic Views including the Semantic View Generator tool, Verified Query Repository (VQR) for YAML semantic models, and iterative refinement patterns."
-last_updated: 2026-07-15
+schema_version: v4.0
+rule_version: v3.0.0
+description: Reviewed semantic generation, verified-question repositories, versioned deployment, and iterative business validation.
+last_updated: 2026-10-07
 keywords:
   - kw:semantic view generator
   - kw:verified query repository
@@ -10,7 +10,7 @@ keywords:
   - kw:YAML semantic model
   - kw:iterative refinement workflow
   - kw:onboarding questions
-token_budget: ~3500
+token_budget: ~1150
 context_tier: Medium
 depends:
   required:
@@ -22,449 +22,54 @@ depends:
 ## Scope
 
 **What This Rule Covers:**
-Development workflows for Semantic Views including the Semantic View Generator tool, Verified Query Repository (VQR) for YAML semantic models, and iterative refinement patterns.
+Generator-assisted modeling, native/YAML verified queries, expected-result tests, onboarding questions, and controlled iterative deployment.
 
 **When to Load This Rule:**
-- Using the Semantic View Generator tool
-- Creating YAML semantic models with verified queries
-- Implementing VQR for improved Cortex Analyst accuracy
-- Following iterative development workflows
-
-**For DDL syntax and core patterns, see `106-snowflake-semantic-views-core.md`.**
-**For Cortex Analyst integration and governance, see `106c-snowflake-semantic-views-integration.md`.**
-
-## References
-
-### External Documentation
-- [Semantic View Generator](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/semantic-model-generator) - Automated view creation
-- [Verified Query Repository](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/verified-query-repository) - VQR documentation
-- [Verified Query Suggestions](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/verified-query-suggestions) - AI-suggested queries
+When building/refining semantic models, reviewing generated definitions, or maintaining verified question-SQL pairs.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Base tables exist and are populated
-- CREATE SEMANTIC VIEW privilege granted
-- For VQR: Stage access for YAML file upload
+- Actual source metadata/data availability, glossary, grain/keys/units, representative business questions, and expected calculations.
+- Existing native/YAML workflow and schema version, configured generator/service interface, approved deployment scope, and relevant creation/source/stage privileges.
 
 ### Mandatory
 
-- Semantic View Generator (Snowsight UI or API)
-- YAML semantic model format for VQR
-- Iterative validation workflow
-
-### Forbidden
-
-- Deploying Generator output without validation
-- Using physical table names in VQR SQL (must use `__logical_name`)
-- Skipping testing phase
+- Generator assistance is optional. Inspect the actual installed/Snowsight/open-source interface and supported capabilities instead of claiming a universal Snowsight-only/API workflow or inferred-key guarantee.
+- Treat generated DDL/YAML and suggested verified queries as untrusted drafts. Review columns, numeric identifiers versus measures, grain/key uniqueness, relationships, aggregations, time zones, units, security, synonyms, and comments before deployment.
+- Use alias.logical_name AS expression in native DDL. Follow current clause/validation rules and do not require every key/block or fabricate schema names from examples.
+- Native SQL supports AI_VERIFIED_QUERIES; YAML semantic models use verified_queries. Do not label VQR YAML-only, conflate their formats, or promise guaranteed accuracy/direct reuse for every similar question.
+- For legacy YAML VQR SQL, use `__logical_table` names and logical column names defined in that model. Do not substitute physical column names or aggregate an already-aggregated logical metric blindly. Native verified-query SQL follows its documented native workflow, not an automatic `__` prefix rule.
+- Each verified query must answer its stated question with independently checked grain, filters, aggregation, joins, date boundaries, NULL behavior, and access context. A model-generated suggestion is not verified until reviewed and tested.
+- Add questions that cover important/repeated business needs, ambiguity, synonyms, and complex logic; onboarding questions must be meaningful for intended users. More variants do not automatically improve accuracy.
+- Verification timestamps/verifier metadata represent actual review, not a fabricated name or current date after an untested edit. Revalidate after relevant schema, policy, metric, or business-definition changes; data arrival alone does not prove a definition invalid.
+- Validate YAML parsing and schema field names with the actual consumer. Preserve multiline SQL with suitable block scalars/indentation; reject unsupported fields and do not copy malformed documentation examples.
+- Maintain definitions and expected-result tests in project version control, but commit only with explicit user approval. Stage upload/overwrite and native deployment are separate authorized mutations; inspect existing versions, ownership, grants, consumers, and recovery before replacing.
+- Analyst tests need the current typed-message API contract and authorized endpoint. Capture generated SQL and compare actual results, including unavailable/ambiguous cases; no paid/API call simply to satisfy an authoring checklist.
+- Preserve immutable failed test evidence and identify exact source/model/service versions. Promotion requires reviewed artifact identity and applicable tests, not generator success or a saved-query label.
 
 ### Execution Steps
 
-1. Use Generator for initial structure (if starting from scratch)
-2. Validate Generator output against base table schema
-3. Add WITH SYNONYMS for business terms
-4. Add COMMENT clauses for documentation
-5. Test with Cortex Analyst
-6. For VQR: Create YAML model, upload to stage, test verified queries
-
-### Output Format
-
-- Validated `CREATE SEMANTIC VIEW` DDL
-- YAML semantic model with VQR (when verified queries needed)
+1. Inspect existing models/sources and establish business definitions and test expectations; use a configured generator only when useful and authorized.
+2. Review/refine logical structure, expressions, synonyms/comments, and security before writing deployable definitions.
+3. Add native or YAML verified-query entries in the correct format; validate parsing/schema and independently review each SQL/question pair.
+4. Execute tests only with account/service authorization; update verification metadata from actual results, not anticipated outcomes.
+5. Deploy/upload the reviewed version only in approved scope, verify effective identity, test consumers, and record scoped recovery steps.
 
 ### Validation
 
-- Generator output matches base table schema
-- VQR SQL uses `__logical_name` syntax
-- All verified queries return expected results
-
-### Post-Execution Checklist
-
-- [ ] Generator output validated before execution
-- [ ] Column names verified against base table
-- [ ] Synonyms added for key business terms
-- [ ] VQR tested with Cortex Analyst (if applicable)
-- [ ] Development workflow documented
-
-## Verified Query Repository (VQR)
-
-### What is VQR?
-
-VQR is a YAML-only feature providing pre-verified question-SQL pairs. When users ask questions similar to verified queries, Cortex Analyst uses the verified SQL directly.
-
-**Key Benefits:**
-- Guaranteed accuracy for high-stakes questions
-- Reduced SQL generation errors
-- Faster response for common questions
-- Onboarding questions for new users
-
-### VQR Syntax Requirements
-
-> **CRITICAL: Table Naming in VQR SQL**
-> VQR SQL uses **logical table names** with a **double underscore prefix (`__`)**.
-> - Reference tables as `__logical_name` (from `tables.name` in YAML)
-> - Do NOT use physical table names (e.g., `DATABASE.SCHEMA.TABLE`)
-
-**VQR YAML Structure:**
-```yaml
-verified_queries:
-  - name: query_identifier
-    question: "Natural language question?"
-    sql: |
-      SELECT column1, SUM(metric)
-      FROM __logical_table_name     # CRITICAL: __ prefix + logical name
-      WHERE condition
-      GROUP BY column1
-    verified_at: 1737590400         # Unix timestamp
-    verified_by: team_name
-    use_as_onboarding_question: true
-```
-
-**Complete VQR Example:**
-```yaml
-name: sales_semantic_model
-description: Sales analytics with verified queries
-
-tables:
-  - name: sales_data                # Logical name becomes __sales_data in VQR
-    base_table:
-      database: ANALYTICS
-      schema: CORE
-      table: SALES_FACT             # Physical table (NOT used in VQR SQL)
-    
-    dimensions:
-      - name: sale_date
-        expr: order_date
-        data_type: DATE
-      - name: region
-        expr: sales_region
-        data_type: VARCHAR
-
-    metrics:
-      - name: total_revenue
-        expr: SUM(amount)
-      - name: order_count
-        expr: COUNT(*)
-
-verified_queries:
-  - name: revenue_by_region
-    question: "What is the total revenue by region?"
-    sql: |
-      SELECT region, SUM(total_revenue) AS revenue
-      FROM __sales_data
-      GROUP BY region
-      ORDER BY revenue DESC
-    verified_at: 1737590400
-    verified_by: analytics_team
-    use_as_onboarding_question: true
-
-  - name: monthly_trend
-    question: "Show me the monthly revenue trend"
-    sql: |
-      SELECT DATE_TRUNC('MONTH', sale_date) AS month, SUM(total_revenue) AS revenue
-      FROM __sales_data
-      GROUP BY month
-      ORDER BY month
-    verified_at: 1737590400
-    verified_by: analytics_team
-
-  - name: customer_revenue
-    question: "Revenue by customer region?"
-    sql: |
-      SELECT c.region, SUM(s.total_revenue)
-      FROM __sales_data s
-      JOIN __customer_data c ON s.customer_id = c.customer_id
-      GROUP BY c.region
-    verified_at: 1737590400
-    verified_by: analytics_team
-```
-
-### Common VQR Mistakes
-
-See Anti-Pattern 1 below for the most common VQR error (using physical table names instead of `__logical_name`).
-
-### VQR Deployment Workflow
-
-**Step 1:** Create YAML with verified queries (see Complete VQR Example above for full syntax)
-
-**Step 2: Upload to stage**
-```sql
-CREATE STAGE IF NOT EXISTS PROD.ANALYTICS.SEMANTIC_MODELS;
-PUT file:///path/to/sales_model.yaml @PROD.ANALYTICS.SEMANTIC_MODELS/;
-LIST @PROD.ANALYTICS.SEMANTIC_MODELS/;
-```
-
-**Step 3: Test with Cortex Analyst**
-```python
-payload = {
-    "semantic_model_file": "@PROD.ANALYTICS.SEMANTIC_MODELS/sales_model.yaml",
-    "messages": [{"role": "user", "content": "What is total revenue by month?"}],
-}
-```
-
-### VQR Update and Versioning Workflow
-
-When updating verified queries:
-1. Edit the YAML file locally with new/modified queries
-2. Update `verified_at` timestamps for changed queries
-3. Re-upload to stage: `PUT file:///path/to/model.yaml @STAGE/ OVERWRITE=TRUE;`
-4. Test modified queries with Cortex Analyst to confirm accuracy
-5. Commit YAML changes to version control
-
-**Versioning strategy:** Keep YAML files in git alongside application code. Use `verified_at` timestamps to track when each query was last validated.
-
-### VQR SQL Debugging Tips
-
-- **"Table not found" error:** Verify you used `__logical_name` (double underscore), not physical table name
-- **Wrong results:** Run the VQR SQL directly against the base table (replacing `__logical_name` with physical name) to verify logic
-- **Column mismatch:** VQR SQL must reference dimension/metric `name` fields from the YAML, not physical column names
-- **Test independently:** Execute each VQR query in a worksheet before adding to YAML
-
-### Common YAML Validation Errors
-
-- **YAML parsing error:** Check indentation (2 spaces), ensure `sql: |` uses pipe for multiline, verify no tabs are used
-- **Unexpected key error:** Verify field names match expected schema (`name`, `question`, `sql`, `verified_at`, `verified_by`)
-- **Multiline SQL truncated:** Ensure `sql: |` (pipe) is used, not `sql: >` (folded), and indentation is consistent under the pipe
-
-### Suggested Queries (Preview)
-
-Snowflake provides AI-generated VQR suggestions:
-
-**Snowsight Access:**
-1. Navigate to AI & ML, then Cortex Analyst
-2. Select semantic model, then Verified Queries tab
-3. Click Review Suggestions
-
-**API Access:**
-```python
-url = f"https://{account}.snowflakecomputing.com/api/v2/cortex/analyst/suggestions"
-payload = {
-    "semantic_model_file": "@ANALYTICS.MODELS/model.yaml",
-    "mode": "ca_requests_based",  # or "query_history_based"
-    "limit": 10,
-}
-```
-
-### VQR Best Practices
-
-**When to Add Verified Queries:**
-- High-stakes business questions (revenue, KPIs)
-- Frequently asked questions with poor accuracy
-- Complex queries with specific business logic
-
-**Design Guidelines:**
-1. Use natural language questions matching user phrasing
-2. Test SQL independently before adding to VQR
-3. Include question variations
-4. Set onboarding questions for new users
-5. Update timestamps when data changes
-
-## Semantic View Generator
-
-### When to Use Generator
-
-- Starting new semantic view from scratch
-- Exploring unfamiliar database schemas
-- Creating baseline views for refinement
-- Rapid prototyping
-
-### Generator Workflow
-
-The Semantic View Generator is a **Snowsight-only** feature (no CLI equivalent). It analyzes table structure and suggests DDL.
-
-**Usage:** Snowsight > Data > select table > Generate Semantic View > Review output > Execute validated DDL
-
-**Generator produces:** `CREATE SEMANTIC VIEW` with inferred PRIMARY KEY, numeric columns as FACTS, string/date columns as DIMENSIONS, and common aggregations as METRICS.
-
-### Generator Limitations
-
-- Cannot infer complex business logic
-- May misclassify columns (review FACTS vs DIMENSIONS)
-- Does not add synonyms automatically
-- Cannot create relationships between views
-
-### Post-Generation Refinement
-
-- [ ] Verify PRIMARY KEY matches business grain
-- [ ] Review FACTS classification (numeric measures)
-- [ ] Review DIMENSIONS classification (categorical/temporal)
-- [ ] Add WITH SYNONYMS for NLQ matching
-- [ ] Add COMMENT clauses for documentation
-- [ ] Test with Cortex Analyst queries
-
-## Iterative Development Workflow
-
-### Phase 1: Generate and Validate
-
-```sql
--- Read base table structure
-DESCRIBE TABLE SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES;
-
--- Create minimal semantic view
-CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES
-  TABLES (
-    sales AS SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES
-      PRIMARY KEY (SS_SOLD_DATE_SK, SS_ITEM_SK, SS_CUSTOMER_SK)
-  )
-  FACTS (
-    sales.sales_price AS SS_SALES_PRICE,
-    sales.quantity AS SS_QUANTITY
-  )
-  DIMENSIONS (
-    sales.item_sk AS SS_ITEM_SK,
-    sales.sold_date_sk AS SS_SOLD_DATE_SK
-  )
-  METRICS (
-    sales.total_sales AS SUM(SS_SALES_PRICE)
-  );
-
--- Verify structure
-SHOW SEMANTIC VIEWS LIKE 'SEM_STORE_SALES';
-SHOW SEMANTIC DIMENSIONS IN ...;
-```
-
-### Phase 2: Add Business Context
-
-```sql
--- Add synonyms and comments
-CREATE OR REPLACE SEMANTIC VIEW SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES
-  TABLES (
-    sales AS SAMPLE_DATA.TPCDS_SF10TCL.STORE_SALES
-      PRIMARY KEY (SS_SOLD_DATE_SK, SS_ITEM_SK, SS_CUSTOMER_SK)
-      WITH SYNONYMS ('store sales', 'retail transactions')
-  )
-  FACTS (
-    sales.sales_price AS SS_SALES_PRICE
-      WITH SYNONYMS ('price', 'revenue', 'amount')
-      COMMENT = 'Sales price per item'
-  )
-  ...
-```
-
-### Phase 3: Test with Cortex Analyst
-
-```python
-test_queries = [
-    "What are the top 10 items by revenue?",
-    "Show me total units sold by customer",
-]
-
-for query in test_queries:
-    payload = {
-        "semantic_view": "SAMPLE_DATA.TPCDS_SF10TCL.SEM_STORE_SALES",
-        "messages": [{"role": "user", "content": query}],
-    }
-    response = requests.post(url, headers=headers, json=payload)
-    print(f"Query: {query}\nResponse: {response.json()}\n")
-```
-
-### Development Checklist
-
-**Before creating:**
-- [ ] Read base table with DESCRIBE TABLE
-- [ ] Understand business grain and primary key
-- [ ] Identify numeric columns for FACTS
-- [ ] Identify categorical columns for DIMENSIONS
-
-**During creation:**
-- [ ] Use correct mapping: `logical_name AS physical_column`
-- [ ] Follow clause order: TABLES, FACTS, DIMENSIONS, METRICS
-- [ ] Add WITH SYNONYMS for business terms
-- [ ] Use COMMENT = 'text' syntax
-
-**After creation:**
-- [ ] Verify with SHOW SEMANTIC VIEWS
-- [ ] Test basic query with SEMANTIC_VIEW()
-- [ ] Test Cortex Analyst NLQ queries
-- [ ] Document view purpose
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Using Physical Table Names in VQR SQL
-
-**Problem:** Writing VQR SQL with fully qualified physical table names instead of logical names.
-
-**Why It Fails:** Cortex Analyst expects `__logical_name` syntax in VQR SQL. Physical table names cause query resolution failures and "table not found" errors.
-
-```yaml
-# WRONG: Physical table name
-verified_queries:
-  - name: revenue_query
-    sql: SELECT * FROM ANALYTICS.CORE.SALES_FACT
-
-# WRONG: Single underscore
-verified_queries:
-  - name: revenue_query
-    sql: SELECT * FROM _sales_data
-```
-
-**Correct Pattern:**
-```yaml
-# CORRECT: Double underscore + logical name from tables.name
-verified_queries:
-  - name: revenue_query
-    sql: SELECT * FROM __sales_data  # matches tables.name in YAML
-```
-
-### Anti-Pattern 2: Deploying Generator Output Without Validation
-
-**Problem:** Executing Generator-produced DDL directly without reviewing column classifications.
-
-**Why It Fails:** Generator may misclassify columns (e.g., numeric IDs as FACTS instead of DIMENSIONS). Incorrect classifications cause wrong aggregations and misleading query results.
-
-**Correct Pattern:**
-```sql
--- WRONG: Execute Generator output blindly
-CREATE SEMANTIC VIEW SEM_ORDERS ...;  -- Generator output, unreviewed
-
--- CORRECT: Review and validate before execution
--- Step 1: Check FACTS are actual measures (not IDs)
--- Step 2: Check DIMENSIONS are categorical/temporal
--- Step 3: Verify PRIMARY KEY matches business grain
--- Step 4: Add synonyms and comments
--- Step 5: Execute validated DDL
-```
-
-## Output Format Examples
-
-```yaml
-# Complete YAML semantic model with VQR
-name: grid_operations
-description: Grid operations semantic model
-
-tables:
-  - name: transformer_health
-    base_table:
-      database: PROD
-      schema: GRID_DATA
-      table: TRANSFORMER_TELEMETRY
-    
-    dimensions:
-      - name: equipment_id
-        expr: transformer_id
-        data_type: VARCHAR
-        synonyms: ["transformer ID", "unit ID"]
-      - name: reading_time
-        expr: timestamp
-        data_type: TIMESTAMP
-
-    metrics:
-      - name: avg_load
-        expr: AVG(load_kw)
-        synonyms: ["average load", "mean power"]
-
-verified_queries:
-  - name: high_load_transformers
-    question: "Which transformers have high load?"
-    sql: |
-      SELECT equipment_id, AVG(load_kw) AS avg_load  -- 'load_kw' is the expr from metrics, not the metric name 'avg_load'
-      FROM __transformer_health
-      GROUP BY equipment_id
-      HAVING AVG(load_kw) > 80
-      ORDER BY avg_load DESC
-    verified_at: 1737590400
-    verified_by: grid_ops_team
-    use_as_onboarding_question: true
-```
+- Generated mappings/keys/metrics and YAML/native fields match actual source and consumer contracts.
+- Verified queries use correct logical naming and answer their questions under independently checked result/role/time semantics.
+- Onboarding/synonym coverage and test failures reviewed without accuracy guarantees or fabricated verification metadata.
+- Version/deployment identity, permissions, stage overwrite scope, and recovery are explicit.
+- Deliver definition, verified-query repository, expected tests, change rationale, and actual verification gaps; unexecuted SQL/services remain unverified.
+
+## References
+
+- [Verified Query Repository](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/verified-query-repository)
+- [Native SQL verified queries](https://docs.snowflake.com/en/user-guide/views-semantic/sql)
+- [CREATE SEMANTIC VIEW](https://docs.snowflake.com/en/sql-reference/sql/create-semantic-view)
+- [Analyst API request/response](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/rest-api)
+- [Verified-query suggestions](https://docs.snowflake.com/en/user-guide/views-semantic/verified-query-suggestions)
+- `106c-snowflake-semantic-views-integration.md` for service/policy testing.

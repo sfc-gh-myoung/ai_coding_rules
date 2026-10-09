@@ -1,7 +1,7 @@
 # Test cases for rule-creator skill evaluation
 # Following the agent_eval pattern for YAML test case loading
 
-version: "1.0"
+version: "2.0"
 description: "Evaluation test cases for rule-creator skill"
 
 test_cases:
@@ -15,23 +15,20 @@ test_cases:
     expected:
       validation_passes: true
       has_required_sections:
-        - "## Metadata"
         - "## Scope"
-        - "## References"
         - "## Contract"
         - "### Inputs and Prerequisites"
         - "### Mandatory"
-        - "### Forbidden"
         - "### Execution Steps"
-        - "### Output Format"
         - "### Validation"
+        - "## References"
       keyword_count_min: 5
-      keyword_count_max: 20
+      keyword_count_max: 11
       file_pattern: "rules/2\\d{2}-python-pytest-asyncio.md"
     evaluation_criteria:
       - "Rule file created in correct domain range (200-299)"
-      - "All v3.2 required sections present"
-      - "Keywords within 5-20 range"
+      - "V4 section order and four non-empty required Contract subsections"
+      - "Keywords within 5-11 range"
       - "ai-rules validate exits with code 0"
 
   - id: "create-snowflake-rule"
@@ -44,16 +41,19 @@ test_cases:
     expected:
       validation_passes: true
       has_required_sections:
-        - "## Metadata"
         - "## Scope"
-        - "## References"
         - "## Contract"
+        - "### Inputs and Prerequisites"
+        - "### Mandatory"
+        - "### Execution Steps"
+        - "### Validation"
+        - "## References"
       keyword_count_min: 5
-      keyword_count_max: 20
+      keyword_count_max: 11
       file_pattern: "rules/1\\d{2}-snowflake-dynamic-tables.md"
     evaluation_criteria:
       - "Rule file created in correct domain range (100-199)"
-      - "All v3.2 required sections present"
+      - "V4 section order and four non-empty required Contract subsections"
       - "ai-rules validate exits with code 0"
 
   - id: "create-javascript-rule"
@@ -66,14 +66,19 @@ test_cases:
     expected:
       validation_passes: true
       has_required_sections:
-        - "## Metadata"
+        - "## Scope"
         - "## Contract"
+        - "### Inputs and Prerequisites"
+        - "### Mandatory"
+        - "### Execution Steps"
+        - "### Validation"
+        - "## References"
       keyword_count_min: 5
-      keyword_count_max: 20
+      keyword_count_max: 11
       file_pattern: "rules/4\\d{2}-tanstack-query.md"
     evaluation_criteria:
       - "Rule file created in correct domain range (400-499)"
-      - "All v3.2 required sections present"
+      - "V4 section order and four non-empty required Contract subsections"
       - "ai-rules validate exits with code 0"
 
   - id: "validation-loop-recovery"
@@ -89,8 +94,8 @@ test_cases:
       validation_after_fix: true
       max_iterations: 3
     evaluation_criteria:
-      - "Skill detects CRITICAL keyword count error"
-      - "Skill auto-fixes by adding keywords"
+      - "Skill records the blocking keyword-count diagnostic with its actual severity"
+      - "Skill selects relevant typed keywords without filler or unauthorized model calls"
       - "Validation passes within 3 iterations"
 
   - id: "existing-rule-detection"
@@ -103,12 +108,12 @@ test_cases:
       detects_existing: true
       aborts_creation: true
     evaluation_criteria:
-      - "Skill searches RULES_INDEX.md for existing rule"
+      - "Skill searches rule frontmatter for existing rule"
       - "Skill reports that rule already exists"
       - "Skill does NOT create duplicate rule"
 
-  - id: "index-entry-creation"
-    description: "Test RULES_INDEX.md entry creation"
+  - id: "frontmatter-discovery"
+    description: "Test discovery from rule YAML frontmatter"
     input:
       domain: "shell"
       technology: "zsh-completions"
@@ -116,32 +121,32 @@ test_cases:
       context_tier: "Low"
     expected:
       validation_passes: true
-      index_entry_added: true
-      index_position_correct: true
+      frontmatter_keywords_present: true
+      representative_discovery_passes: true
     evaluation_criteria:
       - "Rule created in shell domain (300-399)"
-      - "Entry added to RULES_INDEX.md"
-      - "Entry in correct numeric order"
-      - "Keywords in index match rule keywords"
+      - "Typed keywords are stored in the rule's YAML frontmatter"
+      - "Representative and irrelevant requests exercise actual matcher behavior"
+      - "No separate index file is created"
 
 # Scoring rubric for evaluation
 scoring:
   validation_passes:
     weight: 30
-    description: "Rule passes ai-rules validate with 0 CRITICAL errors"
+    description: "Rule passes ai-rules validate with zero CRITICAL and HIGH findings"
   
   section_completeness:
     weight: 25
-    description: "All required v3.2 sections present and properly formatted"
+    description: "V4 required sections are ordered and meaningful, with one completion checklist"
   
   keyword_quality:
     weight: 15
-    description: "Keywords are relevant, 5-20 count, aid discovery"
+    description: "Keywords are relevant, 5-11 count, aid discovery"
   
   domain_accuracy:
     weight: 15
     description: "Rule placed in correct domain range with proper filename"
   
-  index_integration:
+  discovery_integration:
     weight: 15
-    description: "RULES_INDEX.md entry correct and in proper position"
+    description: "Typed YAML frontmatter supports verified representative discovery"

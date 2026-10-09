@@ -1,0 +1,27 @@
+schema_version: 3
+updated: '2026-07-20T13:00:00-04:00'
+id: simple-mcp-server
+description: null
+variant: simple
+prompt: 'What configuration is needed for a snowflake-managed mcp server endpoint
+
+  for the local agent?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/117-snowflake-mcp-server.md
+  forbidden: []
+  optional:
+  - rules/100-snowflake-core.md
+  - rules/107-snowflake-security-governance.md
+  - rules/112-snowflake-snowcli.md
+  - rules/126-snowflake-cortex-code-agent-sdk.md
+trigger_evidence:
+  kw:
+  - mcp
+  - mcp server
+  ext: []
+  file: []
+  dir: []

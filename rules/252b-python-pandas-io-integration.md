@@ -1,269 +1,74 @@
+---
+schema_version: v4.0
+rule_version: v3.0.0
+description: "Authorized typed pandas IO, permission-scoped Streamlit caches/filters and semantically correct chart/export boundaries."
+last_updated: 2026-10-07
+keywords:
+  - kw:streamlit cache_data
+  - kw:plotly aggregation
+  - kw:interactive dataframe filtering
+  - kw:csv download button
+  - kw:dtype optimization caching
+  - kw:pandas streamlit plotly
+  - kw:pandas
+token_budget: ~1000
+context_tier: Medium
+depends:
+  required:
+    - 252-python-pandas-core.md  # Core Pandas patterns
+  optional:
+    - 252a-python-pandas-performance.md  # Memory optimization and groupby
+    - 101a-snowflake-streamlit-visualization.md  # Plotly chart patterns
+    - 101b-snowflake-streamlit-performance.md  # Caching strategies
+---
 # Pandas IO and Integration Patterns
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:streamlit-pandas, kw:plotly-pandas, kw:pandas-io, kw:cache-data
-**Keywords:** pandas Streamlit, pandas Plotly, cache_data, DataFrame caching, interactive filtering, CSV download, aggregate visualization, data loading
-**TokenBudget:** ~1800
-**ContextTier:** Medium
-**Depends:** 252-python-pandas-core.md
 
 ## Scope
 
 **What This Rule Covers:**
-Pandas integration with Streamlit (caching, filtering, download) and Plotly (aggregation before plotting, performance), plus efficient data loading patterns.
+Load/error/type contracts, selective cache/freshness, UI filters, chart aggregation and safe exact exports.
 
 **When to Load This Rule:**
-- Integrating Pandas with Streamlit caching and widgets
-- Visualizing DataFrames with Plotly
-- Building interactive data apps
-- Exporting processed DataFrames
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **252-python-pandas-core.md** - Core Pandas patterns
-
-**Related:**
-- **252a-python-pandas-performance.md** - Memory optimization and groupby
-- **101a-snowflake-streamlit-visualization.md** - Plotly chart patterns
-- **101b-snowflake-streamlit-performance.md** - Caching strategies
+When pandas crosses file/Streamlit/Plotly boundaries; read actual cache/visualization companions for those implementation tasks.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Pandas 2.x+ DataFrames (from 252 core)
-- Streamlit for UI integration (optional)
-- Plotly for visualization (optional)
+- Source/path/format/schema/dtypes/encoding/timezone and actual pandas/UI/chart versions.
+- Authorized data/tenant/cache/export scope, expected rows/keys/totals and freshness/chart aggregation requirements.
 
 ### Mandatory
 
-- **Always:** Cache DataFrame loading with `@st.cache_data`
-- **Always:** Aggregate data before Plotly visualization (never plot 1M+ raw rows)
-- **Rule:** Optimize dtypes inside cached loading functions
-- **Rule:** Use `df.query()` for interactive filtering with Streamlit widgets
-- **Rule:** Verify minimum versions: Streamlit ≥1.18 (for `st.cache_data`), Plotly ≥5.0 (for `px` API)
-
-### Forbidden
-
-- Plotting raw DataFrames >1M rows without aggregation (slow, cluttered)
-- Missing `@st.cache_data` on data loading functions
-- Using `inplace=True` inside cached functions (confusing behavior)
+- Load only approved paths/hosts and required columns with explicit format/schema/NA/time semantics. Parsing failure, inaccessible source and genuinely empty result are different states; don't return a cached empty frame as successful outage recovery.
+- Validate required columns/types/row counts before downstream widgets; optimize dtype only after range/precision checks, never blanket status_code.astype(int8). Keep errors safe without leaking local/private paths or data.
+- Cache only eligible deterministic authorized computations with key including actual source identity/version/filter/role/user boundary where required and appropriate freshness/TTL. st.cache_data can share across users; don't omit tenant/auth inputs or assume DataFrame copy makes disclosure safe.
+- No mandatory cache on every loader or fixed 3600s TTL. Source content can change with same path; explicit invalidation/version is needed. Clear only intended function/entry, not app-wide st.cache_data.clear for routine refresh without impact review.
+- Keep loader errors separate from UI messages and verified data; avoid replayed st.error inside cached functions confusing recovery. Cache mutations/dtypes/serialization under actual installed lifecycle API.
+- Guard empty data/no options/incomplete date range and NULL categories; widgets provide valid bounded values and actual filtering preserves index/type/security. query expressions must stay trusted/static with safe values; .loc masks are valid, query isn't compulsory.
+- Plot raw/detail data when justified and bounded; aggregate/downsample only to intended business/time/entity grain with correct sum/count/weighted mean/extrema. No universal million-row boundary or converting same timestamps into assumed days.
+- Keep typed temporal axes/order/zone and explicit units, missing gaps and sample/reduction labels. Rendering width/options follow installed version; static fig construction isn't successful browser render.
+- Exports reflect exactly the authorized displayed/defined filtered data with deliberate index/encoding/columns/precision/date/NULL semantics. Bound memory; CSV formula injection and sensitive column/role scope need mitigation for intended spreadsheet consumers.
+- Download permission is distinct from on-screen access where policy requires; do not upload/export files externally by implication. Test CSV round-trip and count/key/total reconciliation plus cache role/freshness change.
 
 ### Execution Steps
 
-1. Wrap data loading in `@st.cache_data(ttl=...)`
-2. Optimize dtypes inside the cached function
-3. Use query() for interactive filtering from widgets
-4. Aggregate before Plotly visualization
-5. Provide CSV download for filtered data
-
-### Output Format
-
-Cached data loading, interactive Streamlit filtering, aggregated Plotly charts, CSV download.
+1. Inspect source/schema/cache/widget/chart/export and define exact authorized boundary.
+2. Implement minimal typed load, eligible scoped cache and safe bounded filters.
+3. Verify chart grain and export round-trip against independent expected values.
+4. Run project/browser checks where authorized and report runtime/freshness gaps.
 
 ### Validation
 
-**Pre-Task-Completion Checks:**
-- [ ] Data loading cached with @st.cache_data
-- [ ] dtypes optimized in cached function
-- [ ] Data aggregated before plotting
-- [ ] Interactive filtering works correctly
+- Load errors/empty/schema and dtype precision clearly distinguished; no missing rows hidden.
+- Cache/user/source/freshness and filtering boundaries secure, widget states complete.
+- Chart/extracted CSV match actual intended grain/data/units, formula and sensitive fields handled.
+- Actual browser/download checks separate from static tests; no unauthorized external transfer.
 
-### Design Principles
+## References
 
-- **Cache Early:** Cache data loading and processing together
-- **Aggregate Before Plot:** Never send raw millions of rows to Plotly
-- **Interactive:** Use Streamlit widgets with query() for filtering
-
-### Post-Execution Checklist
-
-- [ ] @st.cache_data applied to loading functions
-- [ ] dtypes optimized inside cache
-- [ ] Plotly charts use aggregated data
-- [ ] Interactive filtering with query()
-- [ ] CSV download available
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Plotting Raw Large DataFrames
-
-**Problem:** Sending millions of rows to Plotly makes the chart slow to render and visually cluttered.
-
-**Correct Pattern:** Aggregate data before plotting to reduce row count.
-
-```python
-# Wrong: Plot 1M rows (slow, cluttered)
-fig = px.scatter(df, x='date', y='value')  # df has 1M rows
-
-# Correct: Aggregate first, then plot
-df_daily = df.groupby('date').agg({'value': 'mean'}).reset_index()
-fig = px.line(df_daily, x='date', y='value')  # 365 rows - fast!
-```
-
-### Anti-Pattern 2: Missing Cache on Data Loading
-
-**Problem:** Without caching, data reloads on every Streamlit rerun (widget interaction, page refresh).
-
-**Correct Pattern:** Wrap data loading with `@st.cache_data` and optimize dtypes inside the cached function.
-
-```python
-# Wrong: Reloads every rerun
-def load_data():
-    return pd.read_csv('large_data.csv')
-
-# Correct: Cached with TTL
-@st.cache_data(ttl=3600)
-def load_data():
-    df = pd.read_csv('large_data.csv')
-    df['category'] = df['category'].astype('category')
-    return df
-```
-
-## Streamlit Integration
-
-### Efficient Caching with Pandas
-
-```python
-import streamlit as st
-import pandas as pd
-
-@st.cache_data(ttl=3600)
-def load_and_process_data():
-    """Cache DataFrame loading and dtype optimization together."""
-    df = pd.read_csv('large_data.csv')
-
-    # Optimize dtypes for memory
-    df['category'] = df['category'].astype('category')
-    df['status_code'] = df['status_code'].astype('int8')
-
-    # Pre-compute expensive operations
-    df['total'] = df['price'] * df['quantity']
-
-    return df
-
-df = load_and_process_data()
-```
-
-### Interactive Filtering
-
-```python
-# User filters
-category = st.selectbox('Category', df['category'].unique())
-min_price = st.slider('Min Price', 0, 1000, 100)
-
-# Efficient filtering with query()
-filtered_df = df.query('category == @category and price >= @min_price')
-st.dataframe(filtered_df)
-```
-
-### Download Processed Data
-
-```python
-@st.cache_data
-def convert_df_to_csv(df):
-    return df.to_csv(index=False).encode('utf-8')
-
-csv = convert_df_to_csv(filtered_df)
-st.download_button(
-    label="Download filtered data as CSV",
-    data=csv,
-    file_name='filtered_data.csv',
-    mime='text/csv',
-)
-```
-
-## Plotly Integration
-
-### Aggregate Before Plotting
-
-```python
-import plotly.express as px
-
-# Pre-process for Plotly
-df_viz = (
-    df
-    .groupby(['date', 'category'])
-    .agg({'sales': 'sum'})
-    .reset_index()
-    .sort_values('date')
-)
-
-fig = px.line(df_viz, x='date', y='sales', color='category')
-st.plotly_chart(fig, use_container_width=True)
-```
-
-## Output Format Example
-
-```python
-import pandas as pd
-import streamlit as st
-import plotly.express as px
-
-@st.cache_data(ttl=3600)
-def load_data():
-    df = pd.read_csv('data.csv')
-    df['category'] = df['category'].astype('category')
-    df['status_code'] = df['status_code'].astype('int8')
-    df['total'] = df['price'] * df['quantity']
-    return df
-
-df = load_data()
-
-category = st.selectbox('Category', df['category'].unique())
-filtered_df = df.query('category == @category')
-
-df_viz = filtered_df.groupby('date').agg({'total': 'sum'}).reset_index()
-fig = px.line(df_viz, x='date', y='total')
-st.plotly_chart(fig, use_container_width=True)
-```
-
-## Error Handling
-
-### Data Loading Errors
-
-```python
-@st.cache_data(ttl=3600)
-def load_data_safe(filepath: str) -> pd.DataFrame:
-    try:
-        df = pd.read_csv(filepath)
-    except FileNotFoundError:
-        st.error(f"Data file not found: {filepath}")
-        return pd.DataFrame()
-    except pd.errors.EmptyDataError:
-        st.warning("Data file is empty")
-        return pd.DataFrame()
-    df['category'] = df['category'].astype('category')
-    return df
-```
-
-### Empty DataFrame Widget Guards
-
-```python
-df = load_data_safe('data.csv')
-if df.empty:
-    st.warning("No data available")
-    st.stop()
-
-# Safe widget population — avoid errors on empty unique()
-categories = df['category'].unique().tolist()
-if not categories:
-    st.info("No categories found in data")
-    st.stop()
-category = st.selectbox('Category', categories)
-```
-
-### Cache Invalidation
-
-```python
-# Force cache refresh when data source changes
-if st.button("Refresh Data"):
-    st.cache_data.clear()
-    st.rerun()
-```
+- [Pandas IO](https://pandas.pydata.org/docs/user_guide/io.html)
+- [Streamlit cache_data](https://docs.streamlit.io/develop/api-reference/caching-and-state/st.cache_data)
+- [Streamlit downloads](https://docs.streamlit.io/develop/api-reference/widgets/st.download_button)
+- [Plotly charts](https://plotly.com/python/)
+- [OWASP CSV injection](https://owasp.org/www-community/attacks/CSV_Injection)

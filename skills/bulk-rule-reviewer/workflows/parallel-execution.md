@@ -46,7 +46,7 @@ Group rules by their numeric prefix to keep related rules together:
 ```python
 def partition_rules_by_domain(rule_files, num_workers=5):
     """Partition rules into domain-based groups for parallel processing.
-    
+
     Domain groupings:
     - 000-0xx: Foundation/Meta rules
     - 100-1xx: Snowflake rules
@@ -55,33 +55,33 @@ def partition_rules_by_domain(rule_files, num_workers=5):
     - 500-9xx: Other/Project rules
     """
     domains = {
-        'foundation': [],  # 000-099
-        'snowflake': [],   # 100-199
-        'python': [],      # 200-299
-        'scripting': [],   # 300-499
-        'other': []        # 500-999
+        "foundation": [],  # 000-099
+        "snowflake": [],  # 100-199
+        "python": [],  # 200-299
+        "scripting": [],  # 300-499
+        "other": [],  # 500-999
     }
-    
+
     for rule_path in rule_files:
         rule_name = extract_rule_name(rule_path)
-        prefix = int(rule_name.split('-')[0])
-        
+        prefix = int(rule_name.split("-")[0])
+
         if prefix < 100:
-            domains['foundation'].append(rule_path)
+            domains["foundation"].append(rule_path)
         elif prefix < 200:
-            domains['snowflake'].append(rule_path)
+            domains["snowflake"].append(rule_path)
         elif prefix < 300:
-            domains['python'].append(rule_path)
+            domains["python"].append(rule_path)
         elif prefix < 500:
-            domains['scripting'].append(rule_path)
+            domains["scripting"].append(rule_path)
         else:
-            domains['other'].append(rule_path)
-    
+            domains["other"].append(rule_path)
+
     # Combine into N roughly-equal groups
     all_rules = []
     for domain_rules in domains.values():
         all_rules.extend(domain_rules)
-    
+
     return chunk_list(all_rules, num_workers)
 
 
@@ -89,7 +89,7 @@ def chunk_list(items, num_chunks):
     """Split list into N roughly-equal chunks."""
     chunk_size = len(items) // num_chunks
     remainder = len(items) % num_chunks
-    
+
     chunks = []
     start = 0
     for i in range(num_chunks):
@@ -98,7 +98,7 @@ def chunk_list(items, num_chunks):
         if start < len(items):
             chunks.append(items[start:end])
         start = end
-    
+
     return [c for c in chunks if c]  # Remove empty chunks
 ```
 
@@ -107,46 +107,42 @@ def chunk_list(items, num_chunks):
 ```python
 def launch_parallel_subagents(rule_groups, params):
     """Launch parallel sub-agents for rule reviews.
-    
+
     Args:
         rule_groups: List of rule file lists (one per sub-agent)
         params: Dict with review_date, review_mode, model, output_root, etc.
-    
+
     Returns:
         List of agent_ids for monitoring
     """
     agent_ids = []
-    
+
     for i, rules in enumerate(rule_groups):
         worker_num = i + 1
-        rules_list = '\n'.join(f"- {r}" for r in rules)
-        
+        rules_list = "\n".join(f"- {r}" for r in rules)
+
         prompt = generate_subagent_prompt(
-            worker_num=worker_num,
-            total_workers=len(rule_groups),
-            rules=rules,
-            params=params
+            worker_num=worker_num, total_workers=len(rule_groups), rules=rules, params=params
         )
-        
+
         # Launch background sub-agent
         agent_id = task(
             subagent_type="general-purpose",
             description=f"Review rules batch {worker_num}",
             prompt=prompt,
             run_in_background=True,
-            agent_mode="autonomous"
+            agent_mode="autonomous",
         )
-        
-        agent_ids.append({
-            'id': agent_id,
-            'worker_num': worker_num,
-            'rules': rules,
-            'status': 'running'
-        })
-        
-        print(f"[Coordinator] Launched Sub-Agent {worker_num}/{len(rule_groups)} "
-              f"with {len(rules)} rules")
-    
+
+        agent_ids.append(
+            {"id": agent_id, "worker_num": worker_num, "rules": rules, "status": "running"}
+        )
+
+        print(
+            f"[Coordinator] Launched Sub-Agent {worker_num}/{len(rule_groups)} "
+            f"with {len(rules)} rules"
+        )
+
     return agent_ids
 ```
 
@@ -155,49 +151,55 @@ def launch_parallel_subagents(rule_groups, params):
 ```python
 def monitor_subagents(agent_ids, poll_interval_seconds=60):
     """Poll sub-agents for progress updates.
-    
+
     Args:
         agent_ids: List of agent info dicts from launch_parallel_subagents
         poll_interval_seconds: How often to check (default 60s)
-    
+
     Returns:
         Updated agent_ids with status and results
     """
     all_complete = False
-    
+
     while not all_complete:
         all_complete = True
-        
+
         for agent_info in agent_ids:
-            if agent_info['status'] == 'complete':
+            if agent_info["status"] == "complete":
                 continue
-            
+
             # Check agent status
-            output = agent_output(agent_id=agent_info['id'])
-            
-            if output.status == 'complete':
-                agent_info['status'] = 'complete'
-                agent_info['result'] = parse_subagent_result(output.messages)
-                print(f"[Coordinator] Sub-Agent {agent_info['worker_num']} complete: "
-                      f"{len(agent_info['result']['completed'])} reviews")
-            elif output.status == 'failed':
-                agent_info['status'] = 'failed'
-                agent_info['error'] = output.error_message
-                print(f"[Coordinator] Sub-Agent {agent_info['worker_num']} FAILED: "
-                      f"{agent_info['error']}")
+            output = agent_output(agent_id=agent_info["id"])
+
+            if output.status == "complete":
+                agent_info["status"] = "complete"
+                agent_info["result"] = parse_subagent_result(output.messages)
+                print(
+                    f"[Coordinator] Sub-Agent {agent_info['worker_num']} complete: "
+                    f"{len(agent_info['result']['completed'])} reviews"
+                )
+            elif output.status == "failed":
+                agent_info["status"] = "failed"
+                agent_info["error"] = output.error_message
+                print(
+                    f"[Coordinator] Sub-Agent {agent_info['worker_num']} FAILED: "
+                    f"{agent_info['error']}"
+                )
             else:
                 all_complete = False
-        
+
         if not all_complete:
             # Show progress summary
-            running = sum(1 for a in agent_ids if a['status'] == 'running')
-            complete = sum(1 for a in agent_ids if a['status'] == 'complete')
-            print(f"[Coordinator] Progress: {complete}/{len(agent_ids)} workers complete, "
-                  f"{running} running")
-            
+            running = sum(1 for a in agent_ids if a["status"] == "running")
+            complete = sum(1 for a in agent_ids if a["status"] == "complete")
+            print(
+                f"[Coordinator] Progress: {complete}/{len(agent_ids)} workers complete, "
+                f"{running} running"
+            )
+
             # Wait before next poll
             time.sleep(poll_interval_seconds)
-    
+
     return agent_ids
 ```
 
@@ -206,40 +208,42 @@ def monitor_subagents(agent_ids, poll_interval_seconds=60):
 ```python
 def aggregate_subagent_results(agent_ids):
     """Combine results from all sub-agents into unified results list.
-    
+
     Args:
         agent_ids: List of agent info dicts with results
-    
+
     Returns:
         Consolidated results list for master summary
     """
     all_results = []
     failed_agents = []
-    
+
     for agent_info in agent_ids:
-        if agent_info['status'] == 'complete':
-            all_results.extend(agent_info['result']['completed'])
-            all_results.extend(agent_info['result']['failed'])
+        if agent_info["status"] == "complete":
+            all_results.extend(agent_info["result"]["completed"])
+            all_results.extend(agent_info["result"]["failed"])
         else:
             # Agent itself failed - mark all its rules as failed
-            failed_agents.append(agent_info['worker_num'])
-            for rule_path in agent_info['rules']:
-                all_results.append({
-                    'rule_name': extract_rule_name(rule_path),
-                    'score': None,
-                    'verdict': 'AGENT_FAILED',
-                    'review_path': None,
-                    'status': 'FAILED',
-                    'error_message': f"Sub-agent {agent_info['worker_num']} failed: "
-                                    f"{agent_info.get('error', 'Unknown error')}"
-                })
-    
+            failed_agents.append(agent_info["worker_num"])
+            for rule_path in agent_info["rules"]:
+                all_results.append(
+                    {
+                        "rule_name": extract_rule_name(rule_path),
+                        "score": None,
+                        "verdict": "AGENT_FAILED",
+                        "review_path": None,
+                        "status": "FAILED",
+                        "error_message": f"Sub-agent {agent_info['worker_num']} failed: "
+                        f"{agent_info.get('error', 'Unknown error')}",
+                    }
+                )
+
     if failed_agents:
         print(f"[Coordinator] WARNING: Sub-agents {failed_agents} failed")
-    
+
     # Sort by rule name for consistent output
-    all_results.sort(key=lambda r: r['rule_name'])
-    
+    all_results.sort(key=lambda r: r["rule_name"])
+
     return all_results
 ```
 
@@ -260,8 +264,8 @@ See `workflows/subagent-prompt-template.md` for the complete prompt template tha
 3. Different rules = different filenames = no conflicts
 
 ```
-Sub-Agent 1 writes: 000-global-core-claude-sonnet-45-2026-01-15.md
-Sub-Agent 2 writes: 100-snowflake-core-claude-sonnet-45-2026-01-15.md
+Sub-Agent 1 writes: 000-global-core-claude-sonnet-4-6-2026-01-15.md
+Sub-Agent 2 writes: 100-snowflake-core-claude-sonnet-4-6-2026-01-15.md
                     ↑ Different rules, different files
 ```
 
@@ -327,7 +331,7 @@ With `skip_existing=true` (default):
 1. Emit `rule_{slug}_start` / `rule_{slug}_end` checkpoints on `$BULK_RUN_ID` for every rule dispatched to a sub-agent (see SKILL.md Quick Reference). These are the canonical per-rule durations.
 2. Inject `timing_enabled: true` into every sub-agent prompt via `workflows/subagent-prompt-template.md`.
 3. Collect sub-agent JSON payloads (schema below) and merge with on-disk review file parsing in `workflows/aggregation.md`.
-4. At end, invoke `skill_timing.py end --run-id $BULK_RUN_ID --auto-dimension-timings`.
+4. At end, invoke `skill_timer.py end --run-id $BULK_RUN_ID --auto-dimension-timings`.
 
 ### Sub-Agent Responsibilities
 
@@ -349,7 +353,7 @@ Each sub-agent MUST:
       "score": 94,
       "verdict": "EXECUTABLE",
       "critical_issues": 0,
-      "review_path": "reviews/rule-reviews/100-snowflake-core-claude-sonnet-45-2026-04-21.md",
+      "review_path": "reviews/rule-reviews/100-snowflake-core-claude-sonnet-4-6-2026-04-21.md",
       "timing": {
         "run_id": "rr-20260421-001234-abc",
         "duration_s": 11.42,
@@ -382,11 +386,13 @@ def merge_subagent_timings(subagent_results):
     for worker in subagent_results:
         for entry in worker.get("completed", []):
             if "timing" in entry:
-                timings.append({
-                    "rule_name": entry["rule_name"],
-                    "worker_num": worker["worker_num"],
-                    **entry["timing"],
-                })
+                timings.append(
+                    {
+                        "rule_name": entry["rule_name"],
+                        "worker_num": worker["worker_num"],
+                        **entry["timing"],
+                    }
+                )
     return timings
 ```
 

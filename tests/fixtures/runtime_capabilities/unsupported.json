@@ -1,0 +1,6 @@
+{
+  "runtime_id": "unsupported",
+  "status": "unsupported",
+  "capability_ids": [],
+  "fallback": "Stop with a terminal runtime-unsupported error."
+}

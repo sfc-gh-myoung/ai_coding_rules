@@ -1,0 +1,301 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "timing-output.schema.json#v2.0.0",
+  "title": "Skill Timing Output",
+  "description": "Schema for skill-timer output data. v2.0.0 robustness redesign: monotonic clock, expanded mode/status enums, distribution alerts, finalize stages, and per-row validation_status. All timing data must conform to this schema.",
+  "type": "object",
+  "required": ["run_id", "skill_name", "model", "start_iso", "end_iso", "duration_seconds", "status"],
+  "additionalProperties": true,
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{16}$",
+      "description": "16-character hex identifier for this timing run"
+    },
+    "skill_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Name of the skill being timed"
+    },
+    "target_file": {
+      "type": "string",
+      "description": "Path to the primary target file"
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Model slug (e.g., claude-sonnet-4-5)"
+    },
+    "review_mode": {
+      "type": "string",
+      "default": "FULL",
+      "description": "Review mode if applicable (FULL, FOCUSED, STALENESS)"
+    },
+    "agent": {
+      "type": "string",
+      "description": "Agent identifier (e.g., cortex-code, cursor)"
+    },
+    "pid": {
+      "type": "integer",
+      "description": "Process ID of the timing session"
+    },
+    "start_epoch": {
+      "type": "number",
+      "description": "Unix wall-clock timestamp of start time"
+    },
+    "start_monotonic": {
+      "type": "number",
+      "description": "v2.0.0: time.monotonic() value at start (per-process only)"
+    },
+    "start_iso": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of start time"
+    },
+    "end_epoch": {
+      "type": "number",
+      "description": "Unix wall-clock timestamp of end time"
+    },
+    "end_monotonic": {
+      "type": "number",
+      "description": "v2.0.0: time.monotonic() value at end"
+    },
+    "clock_source": {
+      "type": "string",
+      "enum": ["monotonic", "wall"],
+      "description": "v2.0.0: which clock supplied duration_seconds"
+    },
+    "duration_seconds_monotonic": {
+      "type": "number",
+      "description": "v2.0.0: full-precision monotonic delta (when clock_source=monotonic)"
+    },
+    "end_iso": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of end time"
+    },
+    "duration_seconds": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Duration in seconds (2 decimal places)"
+    },
+    "duration_human": {
+      "type": "string",
+      "pattern": "^\\d+m \\d+s$",
+      "description": "Human-readable duration (e.g., '3m 45s')"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "warning", "error", "missing", "dimension_invalid", "instrumentation_failed"],
+      "description": "Final status of the timing run (v2.0.0 adds dimension_invalid, instrumentation_failed)"
+    },
+    "work_window_seconds": {
+      "type": "number",
+      "description": "v2.0.0: denominator used for coverage / post-review-gap math"
+    },
+    "work_window_source": {
+      "type": "string",
+      "description": "v2.0.0: which fallback rule supplied the work_window"
+    },
+    "finalize": {
+      "type": "object",
+      "description": "v2.0.0: stage markers for work-complete semantics",
+      "properties": {
+        "pre_write_epoch": {"type": "number"},
+        "pre_write_monotonic": {"type": "number"},
+        "post_write_epoch": {"type": "number"},
+        "post_write_monotonic": {"type": "number"},
+        "review_artifact": {"type": "string"}
+      }
+    },
+    "output_file": {
+      "type": "string",
+      "description": "Path to the output file where timing metadata is embedded"
+    },
+    "checkpoints": {
+      "type": "array",
+      "description": "Intermediate timing checkpoints",
+      "items": {
+        "type": "object",
+        "required": ["name", "elapsed_seconds"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Checkpoint name (e.g., gates_started, rules_loaded)"
+          },
+          "elapsed_seconds": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Seconds elapsed since start (2 decimal places)"
+          },
+          "elapsed_seconds_raw": {
+            "type": "number",
+            "description": "v2.0.0: full-precision monotonic elapsed (no rounding)"
+          },
+          "epoch": {
+            "type": "number",
+            "description": "v2.0.0: wall-clock epoch at which checkpoint was recorded"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO 8601 UTC timestamp of checkpoint"
+          }
+        }
+      }
+    },
+    "tokens": {
+      "type": "object",
+      "description": "Token usage and cost estimation",
+      "properties": {
+        "input_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of input tokens"
+        },
+        "output_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of output tokens"
+        },
+        "total_tokens": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total tokens (input + output)"
+        },
+        "estimated_cost_usd": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Estimated cost in USD (4 decimal places)"
+        }
+      }
+    },
+    "alerts": {
+      "type": "array",
+      "description": "Anomaly alerts triggered during timing (legacy + v2.0.0 distribution validator)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "error_short_duration",
+              "warning_short_duration",
+              "warning_long_duration",
+              "dim_uniformity_suspect",
+              "dim_floor_violation",
+              "dim_coverage_low",
+              "dim_coverage_severe",
+              "dim_coverage_overrun",
+              "dim_total_short",
+              "checkpoint_burst",
+              "post_review_gap",
+              "clock_skew",
+              "missing_expected_dimension",
+              "duplicate_dim_checkpoints"
+            ],
+            "description": "Alert type (legacy + v2.0.0 distribution validator)"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["warning", "error"],
+            "description": "v2.0.0: alert severity"
+          },
+          "threshold_seconds": {"type": "number"},
+          "actual_seconds": {"type": "number"},
+          "message": {"type": "string"},
+          "details": {"type": "object", "additionalProperties": true}
+        }
+      }
+    },
+    "dimension_timings": {
+      "type": "array",
+      "description": "Per-dimension timing breakdown for multi-dimension skills",
+      "items": {
+        "type": "object",
+        "required": ["dimension", "duration_seconds", "mode"],
+        "properties": {
+          "dimension": {
+            "type": "string",
+            "description": "Dimension name (e.g., actionability, rule_size)"
+          },
+          "duration_seconds": {
+            "type": "number",
+            "minimum": -1,
+            "description": "Time spent on this dimension in seconds (-1 for failed/timed-out)"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "checkpoint",
+              "self-report",
+              "self-report-flagged",
+              "coordinator",
+              "inline",
+              "wrap",
+              "failed",
+              "validation-failed",
+              "unavailable",
+              "not-requested"
+            ],
+            "description": "How timing was measured. v2.0.0 adds wrap/unavailable/not-requested."
+          },
+          "validation_status": {
+            "type": "string",
+            "enum": ["valid", "warning", "failed", "not_requested", "unavailable"],
+            "description": "v2.0.0: per-row validation outcome"
+          },
+          "validation_warning": {"type": "string"},
+          "validation_error": {"type": "string"},
+          "start_epoch": {
+            "type": "number",
+            "description": "Unix timestamp when dimension evaluation started"
+          },
+          "end_epoch": {
+            "type": "number",
+            "description": "Unix timestamp when dimension evaluation ended"
+          },
+          "start_monotonic": {"type": "number"},
+          "end_monotonic": {"type": "number"},
+          "clock_source": {
+            "type": "string",
+            "enum": ["monotonic", "wall"]
+          },
+          "evidence_bytes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "v2.0.0: bytes of --evidence supplied to wrap subcommand"
+          },
+          "evidence_source": {"type": "string"}
+        }
+      }
+    },
+    "baseline_comparison": {
+      "type": "object",
+      "description": "Comparison against historical baseline",
+      "properties": {
+        "baseline_avg_seconds": {
+          "type": "number",
+          "description": "Baseline average duration"
+        },
+        "baseline_stddev_seconds": {
+          "type": "number",
+          "description": "Baseline standard deviation"
+        },
+        "delta_seconds": {
+          "type": "number",
+          "description": "Difference from baseline average"
+        },
+        "delta_percent": {
+          "type": "number",
+          "description": "Percentage difference from baseline (1 decimal place)"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["within_normal", "slightly_outside", "significantly_outside"],
+          "description": "Baseline comparison status"
+        }
+      }
+    }
+  }
+}

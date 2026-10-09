@@ -2,286 +2,44 @@
 
 ## Purpose
 
-Integrate automated schema validation into the rule review process to provide objective, deterministic Parsability scoring based on compliance with `schemas/rule-schema.yml` v3.2 standards.
+Record objective structural findings from the active v4 schema before scoring a rule. Schema validation does not verify technical accuracy or the manual authoring contract.
 
-## When to Use
+## Applicability
 
-This workflow is executed as **MANDATORY STEP 2** in every FULL and FOCUSED review mode (after reading the rule file, before scoring dimensions). STALENESS mode may skip this workflow.
+Consume `FILE_TYPE` and `SKIP_SCHEMA` from input validation. Run this workflow for rule files in FULL and FOCUSED modes. STALENESS mode may skip it. PROJECT.md uses a different structure: record `SKIPPED (project file)` rather than running the operational rule schema.
 
 ## Prerequisites
 
-- Rule file has been read completely
-- `ai-rules validate` CLI command is available
-- Python 3.11+ environment is active
+- Read the complete target rule.
+- Use the project's configured Python/uv environment and current schema.
+- Preserve the target: reviewing does not authorize repairs.
 
-## Execution Steps
+## Execution
 
-### Step 1: Run Schema Validator
+1. Run `uv run --locked ai-rules validate <target_file> --json`, substituting the actual path. Capture stdout, stderr, and exit status separately.
+2. Parse JSON with a JSON parser. Require a summary with the expected nonzero file count and the `failed_files` and `warning_files` collections. Missing, malformed, or truncated output is unavailable evidence, never a zero-error result.
+3. Collect each returned error's severity, group, message, line, and fix from both collections. Use returned severities rather than counting decorative text markers. The current validator uses CRITICAL, HIGH, MEDIUM, and INFO, not LOW.
+4. Record all CRITICAL and HIGH findings as blocking schema findings. A failed content check can still produce a completed review; it cannot be called a passing rule validation.
+5. Apply [the parsability rubric](../rubrics/parsability.md) on its 0-10 raw scale and the configured 1.5 weight. Do not use the retired 1-5 calculation or invent a new cap here.
+6. Populate the canonical review JSON with the executed status, diagnostics, and limitations. Follow SKILL.md's render/verify workflow rather than writing a second authoritative Markdown report.
 
-Execute the schema validator and capture both stdout and exit code:
+## V4 interpretation
 
-```python
-import subprocess
-import shutil
+Check required H2 order Scope, Contract, References. Contract requires non-empty Inputs and Prerequisites, Mandatory, Execution Steps, and Validation. An empty subsection is not repaired by a sibling heading or a code-fenced example heading.
 
-def run_schema_validation(target_file: str) -> tuple[str, int, dict]:
-    """
-    Run schema validator and parse results.
-    
-    Returns:
-        (output_text, exit_code, error_counts)
-    """
-    result = subprocess.run(
-        ['uv', 'run', 'ai-rules', 'validate', target_file],
-        capture_output=True,
-        text=True,
-        timeout=30
-    )
-    
-    output = result.stdout + result.stderr
-    exit_code = result.returncode
-    
-    # Count error severities
-    error_counts = {
-        'CRITICAL': output.count('[CRITICAL]'),
-        'HIGH': output.count('[HIGH]'),
-        'MEDIUM': output.count('[MEDIUM]'),
-        'INFO': output.count('[INFO]')
-    }
-    
-    return (output, exit_code, error_counts)
-```
+Do not penalize the absence of optional Forbidden or Output Format sections, a separate Post-Execution Checklist, an anti-pattern gallery, or a fixed number of steps. Review the single completion checklist and positive-example policy as manual authoring requirements, separately from emitted structural diagnostics.
 
-### Step 2: Parse Error Messages
+## Failure handling
 
-Extract specific error messages with line numbers for the Critical Issues section:
+- Tool unavailable or execution timeout: preserve the actual diagnostic and mark validation unavailable. Continue other review work if possible, applying the rubric's documented manual-assessment limit.
+- Nonzero exit with valid findings: report the failed rule validation, including HIGH errors. Do not classify ordinary content failure as missing tooling.
+- Unexpected exit or output: report the uncertainty; do not turn absent fields into empty success collections.
+- No files checked: correct the target or mark the check blocked. Exit zero alone does not prove the requested file was reviewed.
 
-```python
-import re
+## Completion
 
-def parse_schema_errors(output: str) -> dict[str, list[str]]:
-    """
-    Parse validator output into categorized error lists.
-    
-    Returns:
-        {
-            'CRITICAL': ['Error message 1', 'Error message 2'],
-            'HIGH': [...],
-            'MEDIUM': [...],
-            'INFO': [...]
-        }
-    """
-    errors = {'CRITICAL': [], 'HIGH': [], 'MEDIUM': [], 'INFO': []}
-    
-    # Pattern: [SEVERITY] Message (may span multiple lines)
-    # Look for lines starting with severity markers
-    pattern = r'\[(CRITICAL|HIGH|MEDIUM|INFO)\]\s+(.+?)(?=\n\[|$)'
-    
-    for match in re.finditer(pattern, output, re.DOTALL):
-        severity = match.group(1)
-        message = match.group(2).strip()
-        
-        # Extract line number if present
-        line_match = re.search(r'Line:\s+(\d+)', message)
-        line_num = line_match.group(1) if line_match else 'N/A'
-        
-        # Format message
-        formatted = f"{message} (line {line_num})" if line_num != 'N/A' else message
-        errors[severity].append(formatted)
-    
-    return errors
-```
-
-### Step 3: Apply Scoring Caps
-
-Determine maximum Parsability score based on schema validation results:
-
-```python
-def calculate_parsability_cap(error_counts: dict) -> int:
-    """
-    Calculate maximum allowed Parsability score based on schema errors.
-    
-    Returns:
-        Maximum score (1-5)
-    """
-    critical_count = error_counts.get('CRITICAL', 0)
-    high_count = error_counts.get('HIGH', 0)
-    
-    if critical_count >= 1:
-        return 2  # Cap at 2/5 (6/15)
-    elif high_count >= 3:
-        return 3  # Cap at 3/5 (9/15)
-    else:
-        return 5  # No cap
-```
-
-### Step 4: Generate Review Output Section
-
-Format schema validation results for inclusion in review:
-
-```python
-def format_schema_section(error_counts: dict, parsed_errors: dict, 
-                          parsability_score: int) -> str:
-    """
-    Generate formatted schema validation section for review.
-    
-    Returns:
-        Markdown-formatted section
-    """
-    section = f"""#### Parsability Score: {parsability_score}/5 ({parsability_score * 3}/15)
-
-**Schema Validation Results:**
-- CRITICAL: {error_counts['CRITICAL']} errors
-- HIGH: {error_counts['HIGH']} errors
-- MEDIUM: {error_counts['MEDIUM']} errors
-
-"""
-    
-    # Add rationale
-    if error_counts['CRITICAL'] >= 1:
-        section += "**Rationale:** Schema validation detected CRITICAL errors, capping this score at 2/5 per rubric.\n\n"
-    elif error_counts['HIGH'] >= 3:
-        section += "**Rationale:** Schema validation detected 3+ HIGH errors, capping this score at 3/5 per rubric.\n\n"
-    else:
-        section += "**Rationale:** Schema validation passed with no critical violations.\n\n"
-    
-    # Add critical schema violations if present
-    if error_counts['CRITICAL'] > 0 or error_counts['HIGH'] > 0:
-        section += "**Critical Schema Violations:**\n"
-        
-        for i, error in enumerate(parsed_errors['CRITICAL'], 1):
-            section += f"{i}. [CRITICAL] {error}\n"
-        
-        for i, error in enumerate(parsed_errors['HIGH'], len(parsed_errors['CRITICAL']) + 1):
-            section += f"{i}. [HIGH] {error}\n"
-        
-        section += "\n"
-    
-    return section
-```
-
-### Step 5: Document in Critical Issues
-
-Add schema violations to the overall Critical Issues section:
-
-```python
-def add_schema_to_critical_issues(critical_issues: list, parsed_errors: dict) -> list:
-    """
-    Merge schema violations into Critical Issues list.
-    
-    Returns:
-        Updated critical_issues list
-    """
-    schema_issues = []
-    
-    # CRITICAL errors always go to Critical Issues
-    for error in parsed_errors['CRITICAL']:
-        schema_issues.append(f"**Schema Violation (CRITICAL):** {error}")
-    
-    # HIGH errors with count ≥3 also go to Critical Issues
-    if len(parsed_errors['HIGH']) >= 3:
-        for error in parsed_errors['HIGH']:
-            schema_issues.append(f"**Schema Violation (HIGH):** {error}")
-    
-    return critical_issues + schema_issues
-```
-
-## Error Handling
-
-### Validator Not Found
-
-```python
-if not shutil.which('ai-rules'):
-    print("WARNING: ai-rules CLI not found. Skipping schema validation.")
-    print("Parsability will be scored manually without schema validation caps.")
-    return None
-```
-
-### Validator Execution Failed
-
-```python
-try:
-    result = subprocess.run([...], timeout=30)
-except subprocess.TimeoutExpired:
-    print("WARNING: Schema validation timed out after 30s.")
-    print("Proceeding with manual Parsability scoring.")
-    return None
-except Exception as e:
-    print(f"WARNING: Schema validation failed: {e}")
-    print("Proceeding with manual Parsability scoring.")
-    return None
-```
-
-### Invalid Output Format
-
-```python
-if not output or exit_code not in [0, 1]:
-    print(f"WARNING: Unexpected validator output (exit code {exit_code})")
-    print("Proceeding with manual Parsability scoring.")
-    return None
-```
-
-## Integration Points
-
-This workflow integrates with:
-
-1. **review-execution.md** - Called as Step 2 (after file read, before dimension scoring)
-2. **SKILL.md** - Provides scoring caps and format requirements
-3. **file-write.md** - Schema results included in final review output
-
-## Expected Output
-
-The workflow produces three outputs:
-
-1. **error_counts** - Dictionary of counts by severity (used for scoring caps)
-2. **parsed_errors** - Dictionary of error messages by severity (used for Critical Issues)
-3. **schema_section** - Formatted markdown section (inserted into Parsability dimension)
-
-## Success Criteria
-
-- Schema validator executed successfully
-- Error counts extracted correctly
-- Parsability cap applied per rubric rules
-- All CRITICAL/HIGH errors documented in review
-- Schema section formatted per SKILL.md requirements
-
-## Example Output
-
-```markdown
-#### Parsability Score: 2/5 (6/15)
-
-**Schema Validation Results:**
-- CRITICAL: 1 errors
-- HIGH: 2 errors
-- MEDIUM: 3 errors
-
-**Rationale:** Schema validation detected CRITICAL errors, capping this score at 2/5 per rubric.
-
-**Critical Schema Violations:**
-1. [CRITICAL] Missing metadata field: Depends (line 10)
-2. [HIGH] Section order violation: Contract appears before References (line 45)
-3. [HIGH] Metadata field order incorrect: TokenBudget before Keywords (line 8)
-```
-
-## Review Mode Considerations
-
-- **FULL mode:** Always run schema validation (mandatory)
-- **FOCUSED mode:** Run if Parsability is one of the evaluated dimensions
-- **STALENESS mode:** Skip schema validation (not relevant for staleness checks)
-
-## File-Type Conditional Invocation
-
-Schema validation is only meaningful for rule files. Consume `FILE_TYPE` / `SKIP_SCHEMA` set by `workflows/input-validation.md`:
-
-```bash
-if [[ "$FILE_TYPE" == "rule" ]]; then
-    uv run ai-rules validate "$target_file"
-    # parse output for CRITICAL/HIGH/MEDIUM errors (see Step 2 above)
-else
-    echo "Schema validation skipped for project file"
-    echo "Note: Project files use different structure than rule schema"
-    schema_validation_result="SKIPPED (project file)"
-fi
-```
-
-**Rationale:** `AGENTS.md` / `PROJECT.md` do not use the rule metadata schema (`SchemaVersion`, `RuleVersion`, `TokenBudget`) or the `Scope → Contract → References` section structure. Running the validator on them would produce spurious CRITICAL errors.
+- [ ] File-type gating is explicit and no operational-rule requirements were imposed on PROJECT.md.
+- [ ] The intended rule was checked, or the unavailable check is accurately disclosed.
+- [ ] Diagnostics preserve real severities and line references, including all HIGH findings.
+- [ ] Scoring uses the canonical raw scale, weight, and rubric caps.
+- [ ] Canonical review JSON distinguishes structural results from semantic review and unverified behavior.

@@ -1,0 +1,26 @@
+{
+  "schema_version": "rule-loader-matcher/v1",
+  "candidate_rules": [
+    {
+      "rule_path": "rules/200-python-core.md",
+      "layer": "SOFT",
+      "context_tier": "High",
+      "description": "Python core"
+    }
+  ],
+  "load_sequence": [
+    {
+      "rule_path": "rules/000-global-core.md",
+      "layer": "HARD",
+      "context_tier": "Critical",
+      "content": "# This should not contain rule body content"
+    },
+    {
+      "rule_path": "rules/200-python-core.md",
+      "layer": "SOFT",
+      "context_tier": "High",
+      "description": "Python core"
+    }
+  ],
+  "deferred_rules": []
+}

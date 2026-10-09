@@ -50,7 +50,7 @@ Agent at rule 30/187, token usage at 25K.
 - Rules optimize for tokens (frequent use); skills optimize for quality (rare use)
 - Abbreviated reviews have zero value
 - $0.45 total cost is acceptable for 113-rule QA
-- False economy—one bad rule costs more
+- False economy: one bad rule costs more
 
 ###  CORRECT: Recognize Skills ≠ Rules
 
@@ -204,7 +204,7 @@ Agent notices many rules have similar structures and considers templating.
 > [Generates recommendations specific to THIS rule]
 > [Writes complete review]
 >
-> Review written: reviews/rule-reviews/103-snowflake-performance-tuning-claude-sonnet-45-2026-01-06.md
+> Review written: reviews/rule-reviews/103-snowflake-performance-tuning-claude-sonnet-4-6-2026-01-06.md
 >
 > Continuing with rule 26/113..."
 

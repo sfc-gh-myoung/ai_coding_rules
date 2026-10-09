@@ -32,11 +32,11 @@
 ### Counting Protocol
 
 > **Standard 5-Step Counting Protocol:**
-> 1. **Create Empty Inventory** — Copy template above into working document. Do NOT start reading rule yet.
-> 2. **Read Rule Systematically** — Start at line 1, read to END (no skipping). Record all matches with line numbers.
-> 3. **Calculate Raw Totals** — Sum counts by category using dimension-specific definitions.
-> 4. **Check Non-Issues List** — Review EACH flagged item against this dimension's Non-Issues section. Remove false positives with note. Recalculate totals.
-> 5. **Look Up Score** — Use adjusted totals in Score Decision Matrix. Record score with inventory evidence.
+> 1. **Create Empty Inventory**: Copy template above into working document. Do NOT start reading rule yet.
+> 2. **Read Rule Systematically**: Start at line 1, read to END (no skipping). Record all matches with line numbers.
+> 3. **Calculate Raw Totals**: Sum counts by category using dimension-specific definitions.
+> 4. **Check Non-Issues List**: Review EACH flagged item against this dimension's Non-Issues section. Remove false positives with note. Recalculate totals.
+> 5. **Look Up Score**: Use adjusted totals in Score Decision Matrix. Record score with inventory evidence.
 >
 > **Inter-run consistency:** Use inventory tables with line numbers for evidence. If variance exceeds threshold documented below, re-count using checklists and document ambiguous cases.
 >
@@ -52,7 +52,7 @@
 
 ### Error Scenario Coverage
 
-**Minimum required scenarios (count presence):**
+**Candidate scenarios (count only applicable coverage):**
 1. Input validation failures (malformed data, missing files)
 2. Execution errors (timeouts, permission denied)
 3. External dependencies (network, API, tools)
@@ -98,6 +98,8 @@ Coverage % = (categories addressed / 4 categories) × 100
 ```
 
 ### Domain Applicability Adjustment (REQUIRED)
+
+Before scoring any coverage category, exclude non-applicable requirements using the Non-Issues list and document the exclusion. This applies to error scenarios, prerequisites, and validation phases as well as edge cases. The matrix's full counts describe workflows where every listed category applies; do not demand filler to reach those counts in a narrower rule. Report applicable coverage separately and explain the selected tier.
 
 Before calculating edge case coverage %, exclude non-applicable items from the denominator using Non-Issues Pattern 3:
 
@@ -364,6 +366,8 @@ If **both** Actionability ≤4/10 **and** Completeness ≤4/10:
 **Example:** Error handling covered by 000-global-core.md listed in Depends
 **Why NOT an issue:** Dependency provides the coverage
 **Action:** Remove from inventory with note "Covered by [dependency]"
+
+Verify that the dependency is required and was actually read. Essential safety guidance available only through an optional reference does not satisfy this exception.
 
 ### Pattern 3: Not Applicable to Domain
 **Pattern:** Coverage area doesn't apply to rule's domain

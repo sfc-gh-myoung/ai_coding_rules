@@ -1,0 +1,35 @@
+{
+  "schema_version": "rule-review-result/v1",
+  "artifact_id": "test-review-001",
+  "rule_name": "rules/000-global-core.md",
+  "review_mode": "FULL",
+  "producer": {
+    "model": "claude-sonnet-4-5",
+    "session_id": null,
+    "agent_id": null
+  },
+  "review_date": "2026-08-20",
+  "executive_summary": [
+    {
+      "text": "The rule is well-formed and agent-executable with minor refinements needed.",
+      "evidence": [
+        { "kind": "source", "locator": "rules/000-global-core.md:1", "quote": "# Global Core" }
+      ]
+    }
+  ],
+  "dimensions": [
+    { "name": "actionability", "raw_score": 8, "weight": 3.0, "points": 24.0, "findings": [] },
+    { "name": "rule_size", "raw_score": 9, "weight": 2.5, "points": 22.5, "findings": [] },
+    { "name": "parsability", "raw_score": 10, "weight": 1.5, "points": 15.0, "findings": [] },
+    { "name": "completeness", "raw_score": 8, "weight": 1.5, "points": 12.0, "findings": [] },
+    { "name": "consistency", "raw_score": 9, "weight": 1.0, "points": 9.0, "findings": [] },
+    { "name": "cross_agent_consistency", "raw_score": 9, "weight": 0.5, "points": 4.5, "findings": [] }
+  ],
+  "findings": [],
+  "score": 87.0,
+  "verdict": "EXECUTABLE_WITH_REFINEMENTS",
+  "blocking_issue_count": 0,
+  "hard_caps": [],
+  "timing": null,
+  "extensions": {}
+}

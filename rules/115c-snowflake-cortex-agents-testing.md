@@ -1,391 +1,77 @@
-# Snowflake Cortex Agents: Testing & RBAC
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:agent-testing, kw:agent-rbac
-**Keywords:** agent testing, component testing, integration testing, agent RBAC, agent permissions, agent grants, cortex agent security, test agent, agent validation, agent role, agent access control
-**TokenBudget:** ~3300
-**ContextTier:** Low
-**Depends:** 100-snowflake-core.md, 115-snowflake-cortex-agents-core.md, 115b-snowflake-cortex-agents-operations.md
+---
+schema_version: v4.0
+rule_version: v5.0.0
+description: Component-first Cortex evaluation with correct query/service contracts, effective role tests and independently reviewed safety outputs.
+last_updated: 2026-10-07
+keywords:
+  - kw:cortex agent testing
+  - kw:agent RBAC grants
+  - kw:component integration testing
+  - kw:agent tool verification
+  - kw:least-privilege agent permissions
+  - kw:semantic view grants
+token_budget: ~1150
+context_tier: Low
+depends:
+  required:
+    - 115-snowflake-cortex-agents-core.md  # Core agent creation and tool configuration
+  optional:
+    - 115b-snowflake-cortex-agents-operations.md  # Operations overview
+    - 107-snowflake-security-governance.md  # Security and governance patterns
+---
+# Snowflake Cortex Agents: Testing and RBAC
 
 ## Scope
 
 **What This Rule Covers:**
-Testing strategies (component, integration, business scenario) and RBAC configuration for Snowflake Cortex Agents including grant patterns, verification queries, and least-privilege enforcement.
+Tool/component, integrated/business, performance and permission testing with correct source/service schemas and immutable outcomes.
 
 **When to Load This Rule:**
-- Testing Cortex Agents (component and integration testing)
-- Configuring RBAC and allowlists for agents
-- Verifying agent permissions and grants
-- Implementing least-privilege security for agents
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake foundation patterns
-- **115-snowflake-cortex-agents-core.md** - Core agent creation and tool configuration
-- **115b-snowflake-cortex-agents-operations.md** - Operations overview
-
-**Related:**
-- **107-snowflake-security-governance.md** - Security and governance patterns
-
-### External Documentation
-
-- [Cortex Agents](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents) - Agent concepts, tools, and setup
+When testing Agent behavior, role access, tool selection, integration or production promotion gates.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Agent created and configured (see 115-snowflake-cortex-agents-core.md)
-- Tools defined (Cortex Analyst, Cortex Search)
-- Role strategy established
+- Actual spec/tools/resources, supported invocation/response interface, synthetic/authorized fixtures and independent expected answers.
+- Approved component/inference/query scope, user-default role/warehouse and tool execution contexts, rubric/budgets and frozen comparison identity.
 
 ### Mandatory
 
-- Component test each tool independently before integration testing
-- Configure RBAC with least-privilege grants
-- Verify grants with test queries before deployment
-
-### Forbidden
-
-- Testing only end-to-end without component testing first
-- Deploying agents without role-based access control
-- Granting broader permissions than required
+- Test each applicable configured tool/source independently before integrated diagnosis; do not require Analyst/Search tools not present. Local mocks validate adapters, not real account access/data.
+- Semantic SQL uses supported SEMANTIC_VIEW or direct semantic FROM/AGG forms, not TABLE(view(metrics...)) or a regular view masquerading as a semantic view. Inspect actual logical fields/expected grain before tests.
+- Analyst generation and Search retrieval need actual configured API/SDK contracts. COMPLETE(model) is not an Analyst-tool test, and a one-row JSON response is not proof Search found useful documents.
+- Assert independent values/grain/filter/units and source relevance/citations, not substring/nonempty output alone. Include empty/NULL/duplicate/date/ambiguous/mixed cases and actual tool-result parsing.
+- Verify tools used from supported run/trace evidence, avoiding invented agent.query/response.tools_used properties. Missing trace evidence remains missing, not inferred from prose.
+- Test out-of-scope, malformed, inaccessible, injection and partial-failure cases; ensure no denied-scope fallback, data exposure, broad object writes or fabricated answer.
+- API roles use actual documented user-default role/warehouse requirements; USE ROLE alone may not establish the tested execution context. Include primary/secondary/default and custom-tool rights where relevant.
+- Agent invocation needs supported service database role and agent USAGE, with tool-specific privileges. Semantic view SELECT is granted ON SEMANTIC VIEW; base SELECT is not inherently required for its consumer. Do not grant nonexistent Cortex builtin function signatures.
+- Configure narrow grants/allowlists only with approval and verify permitted/denied cases using synthetic protected objects. No copying production PII into test fixtures or probing arbitrary sensitive tables for a denial test.
+- Test fixture setup/teardown is isolated and ownership-scoped; no blanket CREATE OR REPLACE against shared names or broad cleanup. Keep known-good consumer/grant state intact.
+- Frozen benchmarks bind actual models/prompts/tools/adapters/source/data/settings and retain each attempt. Do not retry/erase/relabel/substitute recorded failures or count interruptions/unpaired outputs as passes.
+- Review actual outputs/safety separately from trace/schema success. Denied unauthorized attempts remain failures even when confinement works; uncertainty/tool-unavailable outputs must meet applicable truthful-fallback criteria.
+- Latency/cost/query counts use measured workload targets, not universal 10/20-second or 50% regression rules. Missing cost/token fields remain unknown; CI live tests need opt-in account/inference authorization.
 
 ### Execution Steps
 
-1. Component test each tool independently
-2. Integration test tool combinations
-3. Run business scenario tests
-4. Configure RBAC grants (database, schema, views, services, functions, warehouse)
-5. Verify grants with test queries
-6. Apply least-privilege principles
-
-### Output Format
-
-- Test patterns (Python and SQL)
-- RBAC grant statements
-- Verification queries
+1. Inspect actual source/tool/spec/role contracts and define independent fixtures, expected results and safety boundaries.
+2. Validate local adapters/schemas, then run approved component source/retrieval/generation tests.
+3. Execute approved integrated business/edge/injection/denial cases with frozen identities and preserved evidence.
+4. Review outputs and role/tool traces independently, reconcile counts/quality/performance/cost and investigate mismatches.
+5. Promote only under required approval/gates; report failed/blocked/unattempted/unpaired results and scoped recovery.
 
 ### Validation
 
-- All component tests pass independently
-- Integration tests pass for tool combinations
-- RBAC grants verified with test queries
-- Least-privilege enforced
-
-### Design Principles
-
-- Test tools independently before integration
-- Enforce least-privilege RBAC and allowlists
-- Verify all grants with test queries before deployment
-- Separate testing phases: component, integration, business scenario
-
-### Post-Execution Checklist
-
-- [ ] Component tests pass for each tool
-- [ ] Integration tests pass for tool combinations
-- [ ] Business scenario tests pass
-- [ ] RBAC grants configured
-- [ ] Grants verified with test queries
-- [ ] Least-privilege enforced
-
-## Testing & Validation Patterns
-
-### Component Testing (Test Tools Independently)
-
-Before integration, verify each tool works correctly:
-
-**Testing Cortex Analyst Tools:**
-```python
-def test_analyst_tool(session, semantic_view):
-    """Verify Cortex Analyst tool responds correctly"""
-    result = session.sql(f"""
-        SELECT * FROM TABLE(
-            {semantic_view}(
-                METRICS total_value,
-                DIMENSIONS category
-            )
-        ) LIMIT 5
-    """).collect()
-    print(f"Analyst tool returned {len(result)} results")
-    return len(result) > 0
-```
-
-**Testing Cortex Search Tools:**
-```python
-def test_search_tool(session, service_name):
-    """Verify Cortex Search tool responds correctly"""
-    result = session.sql(f"""
-        SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
-            '{service_name}',
-            '{{"query": "test", "limit": 1}}'
-        )
-    """).collect()
-    print(f"Search tool returned results")
-    return len(result) > 0
-```
-
-### Integration Testing (Test Tool Combinations)
-
-After component tests pass, test realistic workflows:
-
-**Multi-Tool Agent Testing:**
-- Test quantitative query (should use Cortex Analyst)
-- Test qualitative query (should use Cortex Search)
-- Test mixed query (should use both tool types)
-- Verify tool selection logic works correctly
-
-**Example Test Queries:**
-```python
-# Quantitative (Analyst)
-"What are the top 10 holdings by weight?"
-"Calculate sector allocation breakdown"
-
-# Qualitative (Search)
-"What is the latest research on {company}?"
-"Find compliance policies for {topic}"
-
-# Mixed (Both)
-"Show top holdings and their latest research ratings"
-"Analyze sector exposure with supporting market commentary"
-```
-
-### Business Scenario Testing
-
-Test with realistic end-user queries:
-
-```
-# Portfolio Management Scenarios
-"What are my largest positions in the Global Growth fund?"
-"Show me technology sector exposure across all portfolios"
-"Are there any concentration warnings I should be aware of?"
-
-# Compliance Scenarios
-"Check if any positions violate our 7% concentration policy"
-"Find engagement notes for companies with ESG controversies"
-```
-
-### Validation Checklist
-
-Component Testing:
-- [ ] All required AI components exist (semantic views, search services)
-- [ ] Each Cortex Analyst tool returns data independently
-- [ ] Each Cortex Search tool returns documents independently
-- [ ] Tool descriptions are clear and non-overlapping
-
-Integration Testing:
-- [ ] Tool selection logic works for quantitative queries
-- [ ] Tool selection logic works for qualitative queries
-- [ ] Tool selection logic works for mixed queries
-- [ ] Multi-tool synthesis produces coherent responses
-
-Performance & Cost:
-- [ ] Query response times are acceptable
-- [ ] Token usage is within budget
-- [ ] Tool invocation counts are reasonable
-
-## RBAC and Permissions
-
-### Required Grants for Cortex Agents
-
-**Database and Schema Access:**
-```sql
-GRANT USAGE ON DATABASE {DATABASE} TO ROLE agent_runner;
-GRANT USAGE ON SCHEMA {DATABASE}.{SCHEMA} TO ROLE agent_runner;
-```
-
-**Semantic View Access (for Cortex Analyst tools):**
-```sql
-GRANT SELECT ON VIEW {DATABASE}.{SCHEMA}.{VIEW_NAME} TO ROLE agent_runner;
--- Or grant on all views in schema
-GRANT SELECT ON ALL VIEWS IN SCHEMA {DATABASE}.{SCHEMA} TO ROLE agent_runner;
-```
-
-**Cortex Search Service Access:**
-```sql
-GRANT USAGE ON CORTEX SEARCH SERVICE {DATABASE}.{SCHEMA}.{SERVICE_NAME} TO ROLE agent_runner;
-```
-
-**Cortex Function Access:**
-```sql
-GRANT USAGE ON FUNCTION SNOWFLAKE.CORTEX.COMPLETE TO ROLE agent_runner;
-GRANT USAGE ON FUNCTION SNOWFLAKE.CORTEX.SEARCH_PREVIEW TO ROLE agent_runner;
-GRANT USAGE ON FUNCTION SNOWFLAKE.CORTEX.ANALYST TO ROLE agent_runner;
-```
-
-**Warehouse Access:**
-```sql
-GRANT USAGE ON WAREHOUSE {WAREHOUSE_NAME} TO ROLE agent_runner;
-```
-
-### Verification Queries
-
-```sql
--- Check all grants for agent role
-SHOW GRANTS TO ROLE agent_runner;
-
--- Switch to agent role and test access
-USE ROLE agent_runner;
-
--- Test semantic view access
-SELECT COUNT(*) FROM {DATABASE}.{SCHEMA}.{VIEW_NAME};
-
--- Test Cortex Search service
-SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
-    '{SERVICE_NAME}',
-    '{"query": "test", "limit": 1}'
-);
-
--- Test Cortex function
-SELECT SNOWFLAKE.CORTEX.COMPLETE('llama3.1-8b', 'test');
-```
-
-### Principle of Least Privilege
-
-- **Agents:** Only access tools needed for specific use case
-- **Tools:** Only access data appropriate for their domain
-- **Roles:** Grant minimum permissions required for functionality
-- **Warehouses:** Use dedicated warehouses with auto-suspend for cost control
-
-## Anti-Patterns and Common Mistakes
-
-### CI/CD Integration
-
-- **Rule:** Run agent component tests in CI pipelines before deploying agent changes
-- **Consider:** Use a dedicated test warehouse with AUTO_SUSPEND = 60 for CI test runs
-- **Rule:** Fail the pipeline if any golden question assertion fails
-
-### Test Data Setup/Teardown
-
-- **Rule:** Create isolated test semantic views with sample data for agent testing:
-  ```sql
-  CREATE OR REPLACE VIEW test_schema.test_sv AS SELECT * FROM prod_schema.sv LIMIT 100;
-  -- Teardown after tests: DROP VIEW IF EXISTS test_schema.test_sv;
-  ```
-
-### Performance Benchmarks
-
-- **Rule:** Agent query response time should be <10s for single-tool queries, <20s for multi-tool queries
-- **Consider:** Track p95 latency over time; investigate if it degrades by >50%
-
-**Anti-Pattern 1: Testing Only End-to-End Without Component Tests**
-
-**Problem:** Developers skip component testing and go straight to asking the agent full natural-language questions. When the agent returns wrong answers, they cannot tell whether the issue is in the underlying data (semantic view returns no rows), the tool configuration (search service misconfigured), the tool selection logic (agent picked the wrong tool), or the response synthesis (agent hallucinated despite correct tool output). Debugging becomes trial-and-error prompt tweaking.
-
-**Correct Pattern:** Test each tool independently first. Query the semantic view directly with SQL to confirm it returns expected data. Call `SEARCH_PREVIEW` on each Cortex Search service to verify document retrieval. Only after all component tests pass, move to integration testing where you verify the agent selects the correct tool for different query types (quantitative vs. qualitative vs. mixed). This layered approach isolates failures to a specific component.
-
-```python
-# Wrong: Jumping straight to end-to-end agent testing
-def test_agent():
-    response = agent.query("What are my top holdings?")
-    assert "holdings" in response  # Fails — but WHY?
-    # Is the semantic view empty? Search service down? Wrong tool picked?
-
-# Correct: Component-first testing isolates failures
-def test_semantic_view_returns_data(session):
-    """Step 1: Verify the data source works independently."""
-    rows = session.sql("""
-        SELECT * FROM ANALYTICS.PORTFOLIO.HOLDINGS_VIEW
-        ORDER BY position_weight DESC LIMIT 5
-    """).collect()
-    assert len(rows) > 0, "Semantic view returned no data"
-    assert rows[0]["POSITION_WEIGHT"] > 0, "Weights should be positive"
-
-def test_search_service_returns_docs(session):
-    """Step 2: Verify search tool works independently."""
-    result = session.sql("""
-        SELECT SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
-            'ANALYTICS.RESEARCH.REPORT_SEARCH',
-            '{"query": "technology sector outlook", "limit": 3}'
-        )
-    """).collect()
-    assert len(result) > 0, "Search service returned no results"
-
-def test_agent_integration():
-    """Step 3: Only after component tests pass, test the agent."""
-    response = agent.query("What are my top holdings?")
-    assert response.tool_used == "portfolio_analyzer"
-    assert len(response.text) > 0
-```
-
-**Anti-Pattern 2: Granting ACCOUNTADMIN or Overly Broad Roles to Agents**
-
-**Problem:** To "get things working quickly," developers run agents under ACCOUNTADMIN or grant `SELECT ON ALL TABLES IN DATABASE` to the agent role. This violates least-privilege, exposes sensitive data the agent should never access (PII tables, salary data, audit logs), and creates a security risk if agent prompts are manipulated to query unintended tables.
-
-**Correct Pattern:** Create a dedicated `agent_runner` role with granular grants: `USAGE` on specific databases/schemas, `SELECT` on only the semantic views and tables the agent needs, and `USAGE` on specific Cortex Search services. Verify grants with test queries under the agent role before deployment. Review grants periodically and revoke any that are no longer needed.
-
-```sql
--- Wrong: Overly broad access — agent can read ANY table
-GRANT ROLE ACCOUNTADMIN TO USER agent_service_user;
--- Or almost as bad:
-GRANT SELECT ON ALL TABLES IN DATABASE ANALYTICS TO ROLE agent_runner;
-
--- Correct: Granular least-privilege grants for specific resources
-CREATE ROLE IF NOT EXISTS agent_portfolio_runner;
-
-GRANT USAGE ON DATABASE ANALYTICS TO ROLE agent_portfolio_runner;
-GRANT USAGE ON SCHEMA ANALYTICS.PORTFOLIO TO ROLE agent_portfolio_runner;
-
--- Only the specific views this agent needs
-GRANT SELECT ON VIEW ANALYTICS.PORTFOLIO.HOLDINGS_VIEW TO ROLE agent_portfolio_runner;
-GRANT SELECT ON VIEW ANALYTICS.PORTFOLIO.SECTOR_VIEW TO ROLE agent_portfolio_runner;
-
--- Only the specific search service this agent uses
-GRANT USAGE ON CORTEX SEARCH SERVICE ANALYTICS.RESEARCH.REPORT_SEARCH
-    TO ROLE agent_portfolio_runner;
-
-GRANT USAGE ON WAREHOUSE AGENT_PORTFOLIO_WH TO ROLE agent_portfolio_runner;
-
--- Verify: test access under the restricted role
-USE ROLE agent_portfolio_runner;
-SELECT COUNT(*) FROM ANALYTICS.PORTFOLIO.HOLDINGS_VIEW;  -- Should succeed
-SELECT COUNT(*) FROM HR.PRIVATE.SALARY_DATA;  -- Should fail (no grant)
-```
-
-**Anti-Pattern 3: Not Testing Tool Selection with Ambiguous Queries**
-
-**Problem:** Developers only test with clearly quantitative queries ("show top 10 holdings") or clearly qualitative queries ("find research on AAPL") but never test with ambiguous or mixed queries. In production, users ask questions like "why is tech exposure so high?" which requires both data retrieval (Analyst) and contextual search (Search). The agent picks only one tool and returns an incomplete answer.
-
-**Correct Pattern:** Include ambiguous and mixed-intent queries in your test suite. Test queries that require multiple tools working together, queries with implicit data needs, and queries that could reasonably map to more than one tool. Verify the agent uses the correct combination of tools and synthesizes a coherent response. Adjust tool descriptions and planning instructions until tool selection is reliable for edge cases.
-
-```python
-# Wrong: Only testing unambiguous single-tool queries
-test_queries = [
-    "What are the top 10 holdings?",       # Obviously Analyst
-    "Find research reports on AAPL",        # Obviously Search
-]
-
-# Correct: Include ambiguous and mixed-intent queries
-test_queries = [
-    # Clear single-tool (baseline)
-    ("What are the top 10 holdings by weight?", ["portfolio_analyzer"]),
-    ("Find latest research on AAPL", ["search_research_reports"]),
-
-    # Ambiguous — could use either tool
-    ("Why is tech exposure so high?", ["portfolio_analyzer", "search_research_reports"]),
-
-    # Mixed — requires BOTH tools for a complete answer
-    ("Show top holdings and their latest analyst ratings",
-     ["portfolio_analyzer", "search_research_reports"]),
-
-    # Implicit data need — sounds qualitative but needs data
-    ("Are there any concentration risks I should worry about?",
-     ["portfolio_analyzer"]),
-]
-
-for query, expected_tools in test_queries:
-    result = agent.query(query)
-    tools_used = result.tools_used  # List of tools invoked
-    for tool in expected_tools:
-        assert tool in tools_used, (
-            f"Query '{query}' expected tool '{tool}' "
-            f"but agent used: {tools_used}"
-        )
-```
+- Components and integration use real supported schemas/APIs and expected-result checks, no nonempty-only proof.
+- Effective role/tool rights and allowed/denied behavior verified without unauthorized sensitive probing/grants.
+- Immutable attempt accounting and independent output/safety reviews complete where claimed; missing/denied outcomes not passes.
+- Performance/cost targets justified and actual data/service limitations explicit.
+- Deliver test matrix/evidence and exact local/live outcome counts; no unexecuted deployment/access claim.
+
+## References
+
+- [Agent access and default role context](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents-setup)
+- [Semantic queries and privileges](https://docs.snowflake.com/en/user-guide/views-semantic/querying)
+- [CREATE AGENT specification](https://docs.snowflake.com/en/sql-reference/sql/create-agent)
+- `115-snowflake-cortex-agents-core.md` for supported tools/lifecycle.
+- `107-snowflake-security-governance.md` for policy tests.

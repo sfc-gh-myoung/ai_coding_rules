@@ -85,10 +85,10 @@ Before reading the rule, verify internally:
 If not already loaded:
 ```
 Read: skills/rule-reviewer/SKILL.md
-Read: skills/rule-reviewer/examples/TEMPLATE.md  # CRITICAL: Output format specification
+Read: skills/rule-reviewer/references/reviewer-defaults.yml  # canonical dimensions, weights, verdict thresholds
 ```
 
-**IMPORTANT:** The TEMPLATE.md defines the EXACT output format for reviews. Your reviews MUST match this structure.
+**IMPORTANT:** The canonical JSON schema (`schemas/rule-review-result-v1.schema.json`) defines the EXACT output format. Validate your assembled JSON with `ai-rules review-artifact validate` before rendering Markdown.
 
 **Step 3: Read Rule File**
 
@@ -119,7 +119,7 @@ Count blocking issues:
 - Ambiguous actions (multiple interpretations)
 - Visual formatting (ASCII art, arrows, diagrams)
 
-Cap score at 60 if ≥10 blocking issues.
+Apply the reviewer hard caps: six or more blocking issues cap the total score at 80/100, and ten or more force the `NOT_EXECUTABLE` verdict. See `skills/rule-reviewer/rubrics/scoring.md`.
 
 **Step 7: Score Dimensions**
 
@@ -213,7 +213,7 @@ When all assigned rules are complete, return this JSON summary:
       "rule_name": "000-global-core",
       "score": 95,
       "verdict": "EXECUTABLE",
-      "review_path": "reviews/rule-reviews/000-global-core-claude-sonnet-45-2026-01-15.md",
+      "review_path": "reviews/rule-reviews/000-global-core-claude-sonnet-4-6-2026-01-15.md",
       "status": "SUCCESS"
     }
   ],
@@ -230,7 +230,7 @@ When all assigned rules are complete, return this JSON summary:
   "skipped": [
     {
       "rule_name": "002-rule-governance",
-      "review_path": "reviews/rule-reviews/002-rule-governance-claude-sonnet-45-2026-01-15.md",
+      "review_path": "reviews/rule-reviews/002-rule-governance-claude-sonnet-4-6-2026-01-15.md",
       "status": "SKIPPED",
       "reason": "Review already exists"
     }
@@ -293,7 +293,7 @@ When all assigned rules are complete, return this JSON summary:
 | `{rules_list}` | Markdown list of rule paths | `- rules/100-snowflake-core.md` |
 | `{review_date}` | ISO date | `2026-01-15` |
 | `{review_mode}` | Review mode | `FULL` |
-| `{model}` | Model slug | `claude-sonnet-45` |
+| `{model}` | Model slug | `claude-sonnet-4-6` |
 | `{output_root}` | Output directory | `reviews/` |
 | `{skip_existing}` | Skip existing reviews | `true` |
 

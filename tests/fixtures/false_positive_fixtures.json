@@ -1,0 +1,152 @@
+{
+  "schema": "rule-loader-false-positive-fixtures/v1",
+  "purpose": "Curated fixtures for Phase 3.5 second-pass validation. Each false_positives entry is a case where the v1 rule-loader would load a rule based on a single keyword hit that the v2 second-pass filter must reject (via Scope semantic overlap check). Each hard_exempt entry is a HARD candidate (ext/file/dir/high-risk/dependency) that the second-pass MUST NOT filter, regardless of Scope.",
+  "generated_by": "plan-executor (Phase 3, Track C)",
+  "false_positive_count": 6,
+  "hard_exempt_count": 3,
+  "false_positives": [
+    {
+      "id": "fp-streaming-in-python-venv-request",
+      "request": "How do I set up a Python venv for a new project?",
+      "false_positive_rule": {
+        "rule_path": "rules/121d-snowflake-snowpipe-streaming-sdk.md",
+        "layer": "SOFT",
+        "keywords_matched": ["snowpipe-streaming-sdk"]
+      },
+      "why_v1_loads": "v1 keyword hit on 'streaming'/'sdk' fragment matching against tokenized request; no Scope check.",
+      "why_v2_defers": "Scope of 121d is Snowflake Snowpipe Streaming SDK — Java/Python ingest-client with channel lifecycle. Request is about setting up a local Python venv, no Snowpipe context. Zero verb/technology overlap on Scope.",
+      "expected_v1_action": "load",
+      "expected_v2_action": "defer",
+      "expected_reason_type": "second_pass_rejected",
+      "expected_confirmation_reason_substr": "no-scope-overlap"
+    },
+    {
+      "id": "fp-schema-word-in-pydantic-request",
+      "request": "Write a Pydantic schema for a user profile",
+      "false_positive_rule": {
+        "rule_path": "rules/121c-snowflake-snowpipe-troubleshooting.md",
+        "layer": "SOFT",
+        "keywords_matched": ["schema-mismatch-resolution"]
+      },
+      "why_v1_loads": "v1 keyword substring hit on 'schema' fragment; no context awareness.",
+      "why_v2_defers": "Scope of 121c is Snowpipe debugging (pipe-execution-failures, streaming-channel-errors, latency-diagnosis). Request is about Pydantic model authoring. Zero overlap on verbs/technologies.",
+      "expected_v1_action": "load",
+      "expected_v2_action": "defer",
+      "expected_reason_type": "second_pass_rejected",
+      "expected_confirmation_reason_substr": "no-scope-overlap"
+    },
+    {
+      "id": "fp-dmf-in-cortex-agent-request",
+      "request": "Configure a Cortex Agent to answer sales questions",
+      "false_positive_rule": {
+        "rule_path": "rules/124b-snowflake-data-quality-operations.md",
+        "layer": "SOFT",
+        "keywords_matched": ["quality-alerting"]
+      },
+      "why_v1_loads": "v1 keyword hit on 'quality' as a broad term.",
+      "why_v2_defers": "Scope of 124b is DMF-scheduling, expectation-failures, remediation workflows — data-quality operations. Request is about agent configuration, not quality monitoring. No verb/technology overlap.",
+      "expected_v1_action": "load",
+      "expected_v2_action": "defer",
+      "expected_reason_type": "second_pass_rejected",
+      "expected_confirmation_reason_substr": "no-scope-overlap"
+    },
+    {
+      "id": "fp-dbt-in-python-utility-request",
+      "request": "Write a Python helper to parse a CSV file",
+      "false_positive_rule": {
+        "rule_path": "rules/950-dbt-core.md",
+        "layer": "SOFT",
+        "keywords_matched": ["dbt-workspaces"]
+      },
+      "why_v1_loads": "v1 keyword hit against a loose fragment; no context awareness of request domain.",
+      "why_v2_defers": "Scope of 950 is dbt-project-object, EXECUTE-DBT-PROJECT, snow-dbt-deploy — data-modeling. Request is a Python utility script. Zero overlap on verbs/technologies.",
+      "expected_v1_action": "load",
+      "expected_v2_action": "defer",
+      "expected_reason_type": "second_pass_rejected",
+      "expected_confirmation_reason_substr": "no-scope-overlap"
+    },
+    {
+      "id": "fp-model-registry-in-openai-request",
+      "request": "Call the OpenAI API from a Python script",
+      "false_positive_rule": {
+        "rule_path": "rules/110-snowflake-model-registry.md",
+        "layer": "SOFT",
+        "keywords_matched": ["model-registry"]
+      },
+      "why_v1_loads": "v1 keyword hit on 'model' — a broad token that appears in many domains.",
+      "why_v2_defers": "Scope of 110 is Snowflake Model Registry (ml-model-versioning, model-RBAC-privileges). Request is about calling an external LLM API, not Snowflake ML. Zero overlap on Snowflake / model-registry verbs.",
+      "expected_v1_action": "load",
+      "expected_v2_action": "defer",
+      "expected_reason_type": "second_pass_rejected",
+      "expected_confirmation_reason_substr": "no-scope-overlap"
+    },
+    {
+      "id": "fp-fastapi-in-pytest-only-request",
+      "request": "Write pytest fixtures for a data-processing library",
+      "false_positive_rule": {
+        "rule_path": "rules/210c-python-fastapi-deployment.md",
+        "layer": "SOFT",
+        "keywords_matched": ["gunicorn-uvicorn-worker"]
+      },
+      "why_v1_loads": "v1 activity-keyword hit against a loose 'worker' or 'deployment' fragment.",
+      "why_v2_defers": "Scope of 210c is gunicorn/uvicorn worker deployment, multi-stage docker build. Request is pytest fixture authoring for a data library. Zero overlap on verbs/technologies.",
+      "expected_v1_action": "load",
+      "expected_v2_action": "defer",
+      "expected_reason_type": "second_pass_rejected",
+      "expected_confirmation_reason_substr": "no-scope-overlap"
+    }
+  ],
+  "hard_exempt": [
+    {
+      "id": "hard-python-file-edit",
+      "request": "Fix a bug in src/auth/handler.py",
+      "hard_candidate": {
+        "rule_path": "rules/200-python-core.md",
+        "layer": "HARD",
+        "trigger_type": "extension",
+        "trigger": "ext:.py"
+      },
+      "why_hard_exempt": "Matched by extension trigger, not activity keyword. HARD candidates are typed and precise; the second-pass filter never opens or scores them.",
+      "expected_v2_action": "load",
+      "expected_second_pass": {
+        "evaluated": false,
+        "confirmed": true,
+        "confirmation_reason": "hard-candidate-exempt"
+      }
+    },
+    {
+      "id": "hard-git-high-risk",
+      "request": "Commit and push my changes to main",
+      "hard_candidate": {
+        "rule_path": "rules/000-global-core.md",
+        "layer": "HARD",
+        "trigger_type": "high_risk_action",
+        "trigger": "git commit / push"
+      },
+      "why_hard_exempt": "High-risk action loads foundation and applicable safety rules. Even if the second-pass filter scored Scope as non-overlapping, HARD candidates MUST NOT be filtered — safety-critical.",
+      "expected_v2_action": "load",
+      "expected_second_pass": {
+        "evaluated": false,
+        "confirmed": true,
+        "confirmation_reason": "hard-candidate-exempt"
+      }
+    },
+    {
+      "id": "hard-required-dependency-closure",
+      "request": "Update rules/206-python-pytest.md's Depends field",
+      "hard_candidate": {
+        "rule_path": "rules/000-global-core.md",
+        "layer": "HARD",
+        "trigger_type": "dependency",
+        "trigger": "required:-closure via 002b-rule-update.md"
+      },
+      "why_hard_exempt": "Loaded via `depends.required:` closure from 002b (rule-update workflow). Mandatory closure rules are never deferred by second-pass — the closure rule from workflows/token-budget.md guarantees they load.",
+      "expected_v2_action": "load",
+      "expected_second_pass": {
+        "evaluated": false,
+        "confirmed": true,
+        "confirmation_reason": "hard-candidate-exempt"
+      }
+    }
+  ]
+}

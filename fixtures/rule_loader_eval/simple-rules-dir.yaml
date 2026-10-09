@@ -1,0 +1,21 @@
+schema_version: 3
+updated: '2026-07-20T13:00:00-04:00'
+id: simple-rules-dir
+description: null
+variant: simple
+prompt: 'What''s the correct procedure for bumping RuleVersion in the metadata block of an existing entry in rules/?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/002-rule-governance.md
+  forbidden: []
+  optional:
+  - rules/002b-rule-update.md
+trigger_evidence:
+  kw: []
+  ext: []
+  file: []
+  dir:
+  - rules/

@@ -1,142 +1,75 @@
+---
+schema_version: v4.0
+rule_version: v3.0.0
+description: 'Snowflake SQL file patterns: file headers, COPY INTO and CREATE VIEW syntax, qualified names, and CLI-safe idempotent DDL.'
+last_updated: 2026-10-06
+keywords:
+  - kw:SQL file headers
+  - kw:COPY INTO ON_ERROR placement
+  - kw:CREATE VIEW COMMENT syntax
+  - kw:fully qualified object names
+  - kw:CLI templating reserved characters
+  - kw:idempotent DDL patterns
+  - ext:.sql
+token_budget: ~1800
+context_tier: High
+depends:
+  required:
+    - 100-snowflake-core.md
+  optional:
+    - 130-snowflake-demo-sql.md
+    - 102a-snowflake-sql-automation.md
+    - 112-snowflake-snowcli.md
+---
 # Snowflake SQL: Core File Patterns
 
 > **CORE RULE: PRESERVE WHEN POSSIBLE**
 >
-> This rule defines essential SQL file authoring patterns for Snowflake.
-> Load for any SQL file creation. Demo and production rules extend this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.3.0
-**LastUpdated:** 2026-03-09
-**Keywords:** SQL files, file headers, COPY INTO, FILE_FORMAT, CREATE VIEW, fully qualified names, idempotent, reserved characters, CLI compatibility, ON_ERROR, JOIN, ambiguous column, table alias
-**TokenBudget:** ~4100
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md
-**LoadTrigger:** ext:.sql, kw:sql
+> Essential SQL file authoring patterns for Snowflake. Load for any SQL file creation.
 
 ## Scope
 
 **What This Rule Covers:**
-Essential SQL file authoring patterns for Snowflake: file headers, COPY INTO syntax, CREATE VIEW syntax, fully qualified object names, reserved character handling for CLI compatibility, and idempotent pattern foundations. This rule provides general patterns that apply to both demo and production SQL files.
+Essential patterns for Snowflake SQL files: standard headers, COPY INTO syntax, CREATE VIEW syntax, fully qualified object names, CLI reserved character handling, idempotent DDL, CTE naming, and JOIN column qualification. Applies to both demo and production SQL; environment-specific idempotent patterns are extended in `130-snowflake-demo-sql.md` (demo) and `102a-snowflake-sql-automation.md` (production).
 
 **When to Load This Rule:**
-- Writing any Snowflake SQL files (.sql)
-- Using COPY INTO for data loading
-- Creating views with documentation
+- Writing or reviewing Snowflake SQL files (.sql)
+- Using COPY INTO for data loading or CREATE VIEW for views
 - Ensuring CLI compatibility (snow sql, snowsql)
 - Setting up SQL file standards for a project
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake fundamentals
-
-**Related:**
-- **130-snowflake-demo-sql.md** - Demo/workshop SQL patterns (extends this rule)
-- **102a-snowflake-sql-automation.md** - Production CI/CD patterns (extends this rule)
-- **112-snowflake-snowcli.md** - Snowflake CLI usage
-
-### External Documentation
-
-**Snowflake:**
-- [SQL Command Reference](https://docs.snowflake.com/en/sql-reference-commands.html) - Complete SQL syntax
-- [COPY INTO](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table.html) - Data loading reference
-- [CREATE TABLE](https://docs.snowflake.com/en/sql-reference/sql/create-table.html) - Table creation syntax
-- [CREATE VIEW](https://docs.snowflake.com/en/sql-reference/sql/create-view.html) - View creation syntax
-- [FILE FORMAT](https://docs.snowflake.com/en/sql-reference/sql/create-file-format.html) - File format options
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Snowflake account with SYSADMIN or equivalent role, warehouse (X-SMALL or larger), and target database/schema created
-- USAGE privilege on target database and schema; CREATE TABLE/VIEW privileges on schema
-- For COPY INTO: USAGE privilege on the stage; for external stages, the storage integration must be configured
-- Snowflake CLI (`snow sql`) or Snowsight access for execution
+- Snowflake account with SYSADMIN or equivalent role, running warehouse, target database/schema created
+- USAGE on target database and schema; CREATE TABLE/VIEW privileges on schema
+- COPY INTO: USAGE on stage; for external stages, storage integration configured and IAM/SAS trust policy verified
+- Snowflake CLI (`snow sql`) or Snowsight for execution
 
 ### Mandatory
 
-- File headers with filename, description, prerequisites
-- Fully qualified object names (DATABASE.SCHEMA.OBJECT)
-- Correct COPY INTO syntax (ON_ERROR outside FILE_FORMAT)
-- Correct CREATE VIEW syntax (COMMENT before AS)
-- No reserved characters in identifiers/comments
-
-### Forbidden
-
-- `ON_ERROR` inside `FILE_FORMAT` (syntax error)
-- Reserved template characters in SQL without `--enable-templating NONE`: `&`, `<%`, `%>`, `{{`, `}}`
-- Unqualified object names in reusable SQL files
-- `COMMENT` after `AS` in CREATE VIEW
+- **File header:** Every SQL file must begin with the standard header block (filename, description, prerequisites, creates); add parameters and usage block when the file uses templated variables
+- **Fully qualified names:** Use `DATABASE.SCHEMA.OBJECT` for all objects in reusable SQL files; unqualified names depend on session context and break in CLI/automation
+- **COPY INTO syntax:** `ON_ERROR` is a COPY INTO option, not a FILE_FORMAT option; placing it inside `FILE_FORMAT = (...)` causes a syntax error
+- **CREATE VIEW syntax:** `COMMENT` must appear before `AS`; placing it after AS causes a syntax error
+- **Reserved characters:** SQL executed via CLI that contains `&`, `<%`, `%>`, `{{`, or `}}` must use `snow sql --enable-templating NONE`; never replace `&` with `and` in data values — fix at the CLI layer
+- **Rerunnable DDL:** `CREATE TABLE IF NOT EXISTS` preserves an existing table but does not reconcile its definition. `CREATE OR REPLACE TABLE` replaces an existing table; use only where that loss is authorized. Replacing a view can affect grants and dependent objects: inspect those effects and obtain authorization first. Use `EXPLAIN` only for applicable query statements; it does not establish that DDL is safe to execute.
+- **JOIN column qualification:** Qualify all SELECT-clause columns with table aliases in JOINs; shared column names (`STATUS`, `ID`, `CREATED_AT`, `UPDATED_AT`) cause `ambiguous column name` compile errors
+- **CTE naming:** Use descriptive names reflecting purpose (`filtered_orders`, `daily_revenue`); never use generic placeholders (`cte1`, `temp`, `data`)
+- **Dynamic identifiers:** DDL requires literal identifier tokens; use `SET var = expr; ... IDENTIFIER($var)` for dynamic values (e.g., `GRANT ROLE r TO USER IDENTIFIER($MY_USER)`)
 
 ### Execution Steps
 
-1. Create file with standard header (filename, description, prerequisites)
-2. Use fully qualified names for all objects
-3. Apply correct syntax for COPY INTO and CREATE VIEW
-4. Use `--enable-templating NONE` when executing SQL with reserved characters via CLI
-5. Choose idempotent pattern based on environment (demo vs production)
+1. Begin every SQL file with the standard header; add parameters/usage block for templated files
+2. Use fully qualified `DATABASE.SCHEMA.OBJECT` names throughout
+3. Place `ON_ERROR` outside `FILE_FORMAT = (...)` in all COPY INTO statements
+4. Place `COMMENT = '...'` before `AS` in all CREATE VIEW statements
+5. Execute via CLI with `--enable-templating NONE` when the file contains reserved characters
+6. Choose idempotent pattern: `IF NOT EXISTS` for production tables; `OR REPLACE` for views and demo/staging tables only
+7. Qualify all SELECT-clause columns with table aliases in any JOIN
 
-### Output Format
-
-SQL files with .sql extension, UTF-8 encoding, Unix line endings
-
-### Validation
-
-**Test Requirements:**
-- SQL compiles without syntax errors
-- Executes successfully via CLI (snow sql, snowsql)
-- No template variable expansion errors
-
-**Success Criteria:**
-- File header present and complete
-- All objects fully qualified
-- No reserved character issues
-- Correct syntax for all statements
-
-### Design Principles
-
-- **Clarity First**: Self-documenting headers and structure
-- **CLI Compatible**: Works with snow sql, snowsql, CI/CD pipelines
-- **Environment Agnostic**: Patterns apply to demo and production
-- **Explicit Qualification**: DATABASE.SCHEMA.OBJECT always
-
-### Post-Execution Checklist
-
-- [ ] File header includes filename, description, prerequisites
-- [ ] All object names fully qualified (DB.SCHEMA.OBJECT)
-- [ ] No reserved characters (`&`, `<%`, `%>`, `{{`, `}}`)
-- [ ] COPY INTO uses ON_ERROR outside FILE_FORMAT
-- [ ] CREATE VIEW places COMMENT before AS
-- [ ] JOINs use table aliases and qualify all columns
-- [ ] SQL executes without errors via CLI
-- [ ] **FK constraints reference existing tables** (or will exist when executed)
-- [ ] **No CHECK constraints** (unsupported in Snowflake)
-- [ ] Performance optimized (see **103-snowflake-performance-tuning.md**)
-- [ ] Cost implications reviewed (see **105-snowflake-cost-governance.md**)
-
-## File Header Standard
-
-### Required Header Format
-
-**Rule:** All SQL files must include a documentation header
-
-**Template:**
-```sql
--- ============================================================================
--- Filename: <filename>.sql
--- Description: <Brief one-line description>
---
--- Prerequisites: <What must exist before running>
--- Creates: <What this script creates or modifies>
--- ============================================================================
-```
-
-**Example:**
+**Example — standard SQL file header:**
 ```sql
 -- ============================================================================
 -- Filename: 01_customer_analytics_setup.sql
@@ -147,404 +80,46 @@ SQL files with .sql extension, UTF-8 encoding, Unix line endings
 -- ============================================================================
 ```
 
-### Extended Header (Production Templates)
-
-**Use when:** SQL files have parameterized variables
-
+**Example — COPY INTO with ON_ERROR correctly placed:**
 ```sql
--- ============================================================================
--- Filename: <filename>.sql
--- Description: <Brief description>
---
--- Parameters:
---   DATABASE - Target database (e.g., DEV_DB, PROD_DB)
---   SCHEMA   - Target schema (e.g., ANALYTICS)
---
--- Usage:
---   snow sql -D DATABASE=DEV -D SCHEMA=ANALYTICS -f <filename>.sql
---
--- Example:
---   snow sql -D DATABASE=PROD -D SCHEMA=CUSTOMER -f <filename>.sql
---
--- Prerequisites: <Dependencies>
--- Creates: <Objects created>
--- Idempotency: <Explain why safe to rerun>
--- ============================================================================
-```
-
-## Runtime SQL Validation
-
-### Pre-Execution Syntax Check
-
-**Rule:** Validate generated SQL before executing against production data
-
-Use `EXPLAIN` to catch syntax errors without modifying data:
-
-```sql
--- Validate DML syntax without executing
-EXPLAIN
-SELECT c.CUSTOMER_ID, o.ORDER_TOTAL
-FROM ANALYTICS_DB.SALES.CUSTOMERS c
-JOIN ANALYTICS_DB.SALES.ORDERS o ON c.CUSTOMER_ID = o.CUSTOMER_ID;
-```
-
-For DDL statements, use `IF NOT EXISTS` or `OR REPLACE` guards so scripts are safe to rerun:
-
-```sql
--- Safe to rerun: won't fail if table already exists
-CREATE TABLE IF NOT EXISTS ANALYTICS_DB.SALES.CUSTOMERS (
-    CUSTOMER_ID NUMBER PRIMARY KEY,
-    NAME VARCHAR(255)
-);
-```
-
-**Note:** `EXPLAIN` works for SELECT, INSERT, UPDATE, DELETE, and MERGE. It does not work for DDL (CREATE, ALTER, DROP) -- use `IF NOT EXISTS` guards for those instead.
-
-## COPY INTO Syntax
-
-### Basic Pattern
-
-**Rule:** COPY INTO loads files from stages into tables
-
-```sql
-COPY INTO <database>.<schema>.<table>
-FROM @<database>.<schema>.<stage>
-PATTERN = '.*filename_pattern.*\\.csv'
-FILE_FORMAT = (
-    TYPE = 'CSV',
-    SKIP_HEADER = 1,
-    FIELD_DELIMITER = ',',
-    FIELD_OPTIONALLY_ENCLOSED_BY = '"'
-);
-```
-
-### Critical: ON_ERROR Placement
-
-**Rule:** `ON_ERROR` is a COPY INTO parameter, NOT a FILE_FORMAT parameter
-
-**Correct:**
-```sql
-COPY INTO my_table
-FROM @my_stage/file.csv
-FILE_FORMAT = (TYPE = 'CSV', SKIP_HEADER = 1)
+COPY INTO ANALYTICS_DB.SALES.ORDERS
+FROM @ANALYTICS_DB.SALES.DATA_STAGE
+FILE_FORMAT = (TYPE = 'CSV', SKIP_HEADER = 1, FIELD_OPTIONALLY_ENCLOSED_BY = '"')
 ON_ERROR = 'CONTINUE';
 ```
 
-**Incorrect:**
+**Example — qualify all columns in JOINs:**
 ```sql
--- CAUSES SYNTAX ERROR
-COPY INTO my_table
-FROM @my_stage/file.csv
-FILE_FORMAT = (
-    TYPE = 'CSV',
-    ON_ERROR = 'CONTINUE'  -- WRONG: ON_ERROR is not a FILE_FORMAT option
-);
-```
-
-### Common FILE_FORMAT Options
-
-```sql
-FILE_FORMAT = (
-    TYPE = 'CSV',
-    SKIP_HEADER = 1,
-    FIELD_DELIMITER = ',',
-    FIELD_OPTIONALLY_ENCLOSED_BY = '"',
-    NULL_IF = ('NULL', 'null', ''),
-    EMPTY_FIELD_AS_NULL = TRUE,
-    TRIM_SPACE = TRUE
-)
-```
-
-### Common COPY INTO Options
-
-```sql
-COPY INTO target_table
-FROM @source_stage
-FILE_FORMAT = (TYPE = 'CSV', SKIP_HEADER = 1)
-PATTERN = '.*data.*\\.csv'
-ON_ERROR = 'CONTINUE'           -- Skip bad rows
-FORCE = TRUE                    -- Reload already-loaded files
-PURGE = TRUE;                   -- Delete files after load
-```
-
-## CREATE VIEW Syntax
-
-### COMMENT Placement
-
-**Rule:** COMMENT must appear BEFORE the AS keyword
-
-**Correct:**
-```sql
-CREATE OR REPLACE VIEW my_db.my_schema.my_view
-COMMENT = 'Business-friendly view for dashboards'
-AS
-SELECT
-    customer_id,
-    order_count,
-    total_spend
-FROM my_db.my_schema.customer_orders;
-```
-
-**Incorrect:**
-```sql
--- CAUSES SYNTAX ERROR
-CREATE OR REPLACE VIEW my_db.my_schema.my_view AS
-SELECT customer_id, order_count
-FROM customer_orders
-COMMENT = 'My view';  -- WRONG: COMMENT must be before AS
-```
-
-## Fully Qualified Object Names
-
-### Rule
-
-**Always use DATABASE.SCHEMA.OBJECT format in SQL files**
-
-**Why:** Ensures scripts work regardless of session context
-
-**Correct:**
-```sql
-CREATE TABLE ANALYTICS_DB.CUSTOMER_DATA.CUSTOMERS (...);
-
-COPY INTO ANALYTICS_DB.CUSTOMER_DATA.ORDERS
-FROM @ANALYTICS_DB.CUSTOMER_DATA.DATA_STAGE/orders.csv
-FILE_FORMAT = (TYPE = 'CSV');
-
-SELECT * FROM ANALYTICS_DB.CUSTOMER_DATA.VW_CUSTOMER_SUMMARY;
-```
-
-**Incorrect:**
-```sql
--- Relies on session context - fragile
-USE DATABASE ANALYTICS_DB;
-USE SCHEMA CUSTOMER_DATA;
-CREATE TABLE CUSTOMERS (...);  -- May fail in CLI automation
-```
-
-### When USE Is Acceptable
-
-- Interactive sessions in Snowsight
-- Single-file scripts executed as one unit
-- Development/exploration only
-
-## CTE Naming Conventions
-
-### Rule
-
-**Name CTEs descriptively to reflect their purpose**
-
-**Why:** Generic names like `cte1`, `temp`, `data` make SQL unreadable and unmaintainable.
-
-**Correct:**
-```sql
-WITH filtered_orders AS (
-    SELECT * FROM ANALYTICS_DB.SALES.ORDERS WHERE STATUS = 'COMPLETED'
-),
-aggregated_metrics AS (
-    SELECT CUSTOMER_ID, SUM(ORDER_TOTAL) AS TOTAL_SPEND
-    FROM filtered_orders
-    GROUP BY CUSTOMER_ID
-),
-ranked_customers AS (
-    SELECT *, RANK() OVER (ORDER BY TOTAL_SPEND DESC) AS SPEND_RANK
-    FROM aggregated_metrics
-)
-SELECT * FROM ranked_customers WHERE SPEND_RANK <= 100;
-```
-
-**Incorrect:**
-```sql
--- WRONG: Generic CTE names
-WITH cte1 AS (...),
-     temp AS (...),
-     data AS (...)
-SELECT * FROM data;
-```
-
-**Naming pattern:** `<verb_or_adjective>_<noun>` -- e.g., `filtered_orders`, `daily_revenue`, `active_users`, `joined_events`.
-
-## Reserved Characters (CLI Compatibility)
-
-For reserved character handling (`&`, `<%`, `%>`, `{{`, `}}`), single-quote escaping, and `--enable-templating NONE` usage, see **102c-snowflake-sql-reserved-chars.md**.
-
-**Quick rule:** Use `snow sql --enable-templating NONE -f file.sql` when SQL contains `&` characters. Never replace `&` with `and` in data.
-
-## Idempotent Patterns Overview
-
-### Demo vs Production
-
-SQL files should be rerunnable without errors. The specific patterns differ by environment:
-
-**Demo environment (130-snowflake-demo-sql.md):**
-- Tables: `CREATE OR REPLACE TABLE`
-- Schemas: `CREATE SCHEMA IF NOT EXISTS`
-- Views: `CREATE OR REPLACE VIEW`
-- Data: Direct INSERT/COPY
-
-**Production environment (102a-snowflake-sql-automation.md):**
-- Tables: `CREATE TABLE IF NOT EXISTS` + `MERGE`
-- Schemas: `CREATE SCHEMA IF NOT EXISTS`
-- Views: `CREATE OR REPLACE VIEW`
-- Data: MERGE for idempotent upserts
-
-### Schema Creation (Both Environments)
-
-```sql
-CREATE SCHEMA IF NOT EXISTS my_db.my_schema
-    COMMENT = 'Schema description';
-```
-
-### View Creation (Both Environments)
-
-```sql
-CREATE OR REPLACE VIEW my_db.my_schema.my_view
-COMMENT = 'View description'
-AS
-SELECT ...;
-```
-
-**Views are always safe for CREATE OR REPLACE** - they store no data.
-
-## Dynamic Identifiers in DDL
-
-### SET + IDENTIFIER($var) Pattern
-
-Some DDL statements require literal identifiers and do not accept function calls. Use session variables to resolve dynamic values:
-
-```sql
--- Dynamic user in GRANT ROLE
-SET MY_USER = CURRENT_USER();
-GRANT ROLE MY_ROLE TO USER IDENTIFIER($MY_USER);
-
--- Dynamic database name
-SET MY_DB = 'ANALYTICS_' || CURRENT_ACCOUNT();
-CREATE DATABASE IF NOT EXISTS IDENTIFIER($MY_DB);
-```
-
-**Why:** DDL parsing happens before function evaluation. The parser expects literal tokens, not function calls.
-
-### Table Creation
-
-**Demo environment:**
-```sql
--- OK for demos - drops and recreates (data loss acceptable)
-CREATE OR REPLACE TABLE my_db.my_schema.my_table (...);
-```
-
-**Production environment:**
-```sql
--- Production-safe - preserves existing data
-CREATE TABLE IF NOT EXISTS my_db.my_schema.my_table (...);
-
--- Use MERGE for updates
-MERGE INTO my_db.my_schema.my_table AS target
-USING source_data AS source
-ON target.id = source.id
-WHEN MATCHED THEN UPDATE SET ...
-WHEN NOT MATCHED THEN INSERT ...;
-```
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: ON_ERROR Inside FILE_FORMAT
-
-**Problem:**
-```sql
-COPY INTO my_table FROM @my_stage
-FILE_FORMAT = (TYPE = 'CSV', ON_ERROR = 'CONTINUE');
-```
-
-**Why It Fails:** ON_ERROR is a COPY INTO parameter, not a FILE_FORMAT option. Placing it inside FILE_FORMAT causes a syntax error.
-
-**Correct Pattern:**
-```sql
-COPY INTO my_table FROM @my_stage
-FILE_FORMAT = (TYPE = 'CSV')
-ON_ERROR = 'CONTINUE';
-```
-
-### Anti-Pattern 2: COMMENT After AS in Views
-
-**Problem:**
-```sql
-CREATE VIEW my_view AS SELECT * FROM t COMMENT = 'desc';
-```
-
-**Why It Fails:** COMMENT must appear before the AS keyword in CREATE VIEW syntax.
-
-**Correct Pattern:**
-```sql
-CREATE VIEW my_view COMMENT = 'desc' AS SELECT * FROM t;
-```
-
-### Anti-Pattern 3: Unqualified Names in Reusable SQL
-
-**Problem:**
-```sql
-CREATE TABLE customers (...);
-SELECT * FROM orders;
-```
-
-**Why It Fails:** Relies on session context. Fails when executed via CLI or in different database/schema contexts.
-
-**Correct Pattern:**
-```sql
-CREATE TABLE my_db.my_schema.customers (...);
-SELECT * FROM my_db.my_schema.orders;
-```
-
-### Anti-Pattern 4: Reserved Characters in SQL Files Without Disabling Templating
-
-**Problem:**
-```sql
--- Executing via CLI without --enable-templating NONE:
--- snow sql -f seed_data.sql
-INSERT INTO items (name, brand) VALUES
-('M&Ms Milk Chocolate 1.69oz', 'M&Ms'),
-('A&W Root Beer 20oz', 'Keurig Dr Pepper');
--- ERROR: SQL template rendering error: 'Ms' is undefined
-```
-
-**Why It Fails:** The `&` character is interpreted as a template variable prefix by `snow sql` in LEGACY mode (the default). The CLI attempts to expand `&W`, `&Ms`, etc. as variables. Do NOT corrupt data by replacing `&` with `and` -- instead disable templating at the CLI layer.
-
-**Correct Pattern:**
-```bash
-# Correct: disable templating so & is passed through to Snowflake
-snow sql --enable-templating NONE -f seed_data.sql
-```
-```sql
--- Keep real data intact -- no need to change SQL
-INSERT INTO items (name, brand) VALUES
-('M&Ms Milk Chocolate 1.69oz', 'M&Ms'),
-('A&W Root Beer 20oz', 'Keurig Dr Pepper');
-```
-
-See the **Reserved Characters (CLI Compatibility)** section above for full details.
-
-### Anti-Pattern 5: Unqualified Columns in JOINs
-
-**Problem:**
-```sql
--- Both tables have ERROR_COUNT column - ambiguous
-SELECT
-    SUM(TOTAL_QUERIES) AS TOTAL_OPS,
-    SUM(ERROR_COUNT) AS ERROR_COUNT
-FROM latest_metrics l
-LEFT JOIN worker_heartbeats h
+SELECT l.CUSTOMER_ID, l.TOTAL_QUERIES, l.ERROR_COUNT
+FROM MY_DB.MY_SCHEMA.latest_metrics l
+LEFT JOIN MY_DB.MY_SCHEMA.worker_heartbeats h
   ON h.RUN_ID = l.RUN_ID AND h.WORKER_ID = l.WORKER_ID;
 ```
 
-**Why It Fails:** When joining tables that share column names, Snowflake throws `SQL compilation error: ambiguous column name`. Common offenders: `ERROR_COUNT`, `STATUS`, `TIMESTAMP`, `ID`, `NAME`, `CREATED_AT`, `UPDATED_AT`.
+### Validation
 
-**Correct Pattern:**
-```sql
--- Always qualify columns with table alias in JOINs
-SELECT
-    SUM(l.TOTAL_QUERIES) AS TOTAL_OPS,
-    SUM(l.ERROR_COUNT) AS ERROR_COUNT
-FROM latest_metrics l
-LEFT JOIN worker_heartbeats h
-  ON h.RUN_ID = l.RUN_ID AND h.WORKER_ID = l.WORKER_ID;
-```
+- [ ] Every SQL file has a complete standard header
+- [ ] All objects fully qualified (DATABASE.SCHEMA.OBJECT)
+- [ ] `ON_ERROR` is outside `FILE_FORMAT = (...)` in all COPY INTO statements
+- [ ] `COMMENT` appears before `AS` in all CREATE VIEW statements
+- [ ] No unescaped reserved characters (`&`, `<%`, `%>`, `{{`, `}}`) in CLI-executed SQL, or `--enable-templating NONE` is used
+- [ ] `CREATE OR REPLACE TABLE` is absent from production files (data loss risk); `IF NOT EXISTS` used instead
+- [ ] All SELECT-clause columns qualified with table aliases in JOINs
+- [ ] CTE names are descriptive; no `cte1`, `temp`, `data`
+- [ ] Any constraint claims are checked against current product documentation; data integrity is verified independently of declared constraints
+- [ ] Record whether SQL was compiled, executed, or neither; never report an unperformed check as passed
 
-**Rule:** When writing JOINs, qualify ALL columns in the SELECT clause with table aliases, even if currently unambiguous. This prevents future breakage when columns are added to joined tables.
+**Negative tests — must never appear in reviewed SQL files:**
+- `ON_ERROR` inside `FILE_FORMAT = (...)` block
+- `COMMENT = '...'` placed after `AS` in CREATE VIEW
+- Unqualified object names in reusable SQL files
+- `&` in CLI-executed SQL without `--enable-templating NONE`
+
+## References
+
+- [COPY INTO (Table)](https://docs.snowflake.com/en/sql-reference/sql/copy-into-table) — Data loading reference; `ON_ERROR` is listed under COPY INTO options, not FILE_FORMAT
+- [CREATE VIEW](https://docs.snowflake.com/en/sql-reference/sql/create-view) — Syntax showing COMMENT placement before AS
+- [CREATE TABLE](https://docs.snowflake.com/en/sql-reference/sql/create-table) — Table creation including IF NOT EXISTS and OR REPLACE semantics
+- [CREATE FILE FORMAT](https://docs.snowflake.com/en/sql-reference/sql/create-file-format) — FILE_FORMAT options (ON_ERROR is absent here, confirming placement)
+- [snow sql CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/sql/sql-command) — `--enable-templating NONE` flag reference
+- [IDENTIFIER function](https://docs.snowflake.com/en/sql-reference/identifier-fn) — Dynamic identifier pattern for DDL

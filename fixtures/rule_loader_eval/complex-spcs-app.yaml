@@ -1,0 +1,24 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: complex-spcs-app
+description: # TODO
+variant: complex
+prompt: |
+  We're deploying a long running Snowpark Container Services deployment to host a
+  small inference API. The container image is built from our internal registry and
+  needs to integrate with a small warehouse for periodic SQL lookups. Walk
+  me through the service specification YAML, ingress, and a sane scaling baseline.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/120-snowflake-spcs.md  # suggested: kw: container, spcs
+  forbidden: []
+  optional:
+    - rules/100-snowflake-core.md  # auto-demoted (was dep): no trigger evidence
+      # missing: ext=.sql
+    - rules/examples/120-spcs-service-spec-example.md  # example file read for SPCS context
+trigger_evidence:
+  kw: [Snowpark Container Services, service specification YAML]
+  ext: []
+  file: []
+  dir: []

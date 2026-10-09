@@ -36,11 +36,11 @@
 ### Counting Protocol
 
 > **Standard 5-Step Counting Protocol:**
-> 1. **Create Empty Inventory** — Copy template above into working document. Do NOT start reading rule yet.
-> 2. **Read Rule Systematically** — Start at line 1, read to END (no skipping). Record all matches with line numbers.
-> 3. **Calculate Raw Totals** — Sum counts by category using dimension-specific definitions.
-> 4. **Check Non-Issues List** — Review EACH flagged item against this dimension's Non-Issues section. Remove false positives with note. Recalculate totals.
-> 5. **Look Up Score** — Use adjusted totals in Score Decision Matrix. Record score with inventory evidence.
+> 1. **Create Empty Inventory**: Copy template above into working document. Do NOT start reading rule yet.
+> 2. **Read Rule Systematically**: Start at line 1, read to END (no skipping). Record all matches with line numbers.
+> 3. **Calculate Raw Totals**: Sum counts by category using dimension-specific definitions.
+> 4. **Check Non-Issues List**: Review EACH flagged item against this dimension's Non-Issues section. Remove false positives with note. Recalculate totals.
+> 5. **Look Up Score**: Use adjusted totals in Score Decision Matrix. Record score with inventory evidence.
 >
 > **Inter-run consistency:** Use inventory tables with line numbers for evidence. If variance exceeds threshold documented below, re-count using checklists and document ambiguous cases.
 >
@@ -48,9 +48,7 @@
 
 ## Purpose
 
-Measures whether rule content produces consistent interpretation and execution
-across ALL major agents (GPT, Claude, Gemini, Cursor, Cline, Claude Code,
-Gemini CLI, GitHub Copilot).
+Reviews portability risks in instructions. Static scoring cannot establish identical behavior across models or hosts; claim behavioral compatibility only for the environments actually evaluated.
 
 ## Scoring Formula
 
@@ -98,8 +96,8 @@ Gemini CLI, GitHub Copilot).
 - References specific model versions without generalization
 
 **Conditional Gaps:**
-- if/when without else (agents may default differently)
-- Implicit defaults (different agents assume different defaults)
+- Missing alternative behavior where it materially affects safety or correctness
+- Ambiguous implicit defaults; exclude obvious harmless no-ops from gap counts and record why
 
 ### Count 0.5 each:
 
@@ -112,10 +110,12 @@ Gemini CLI, GitHub Copilot).
 
 - Universal programming concepts
 - Standard tool references (git, npm, pytest, etc.)
-- Standard agent tool operations (read_file/Read, edit/Edit, list_dir/Glob, grep/Grep, search — these are universal operations with platform-specific names)
+- Standard agent tool operations (read_file/Read, edit/Edit, list_dir/Glob, grep/Grep, search: these are universal operations with platform-specific names)
 - Explicit conditionals with all branches defined
 - Quantified thresholds
 - Issues already assigned to Actionability via overlap resolution Rule 2 (do not double-count)
+
+For the conditional percentage, use only applicable decisions where an alternative outcome needs specification. When none apply, report the component as N/A and score the consideration component; do not invent branches or divide by zero.
 
 ## Worked Example
 
@@ -167,7 +167,7 @@ Universal %: 17/20 = 85%
 **Priority fixes:**
 1. Line 45: Replace with generic "Use available file search tool"
 2. Line 67: Add explicit else branch
-3. Line 130: Quantify "appropriate timeout" (e.g., ">30 seconds")
+3. Line 130: Reference the actual timeout policy or document an approved local default and rationale
 ```
 
 ## Inter-Run Consistency Target

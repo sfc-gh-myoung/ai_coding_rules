@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rule-loader-manifest-v3.schema.json",
+  "title": "Rule loader final manifest v3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "matcher_sha256", "scope_sha256", "load_sequence", "deferred_rules", "runtime_evidence"],
+  "properties": {
+    "schema_version": {"const": "rule-loader-manifest/v3"},
+    "matcher_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "scope_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "load_sequence": {"type": "array", "items": {"type": "string", "pattern": "^rules/.+\\.md$"}},
+    "deferred_rules": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["rule_path", "reason"], "properties": {"rule_path": {"type": "string", "pattern": "^rules/.+\\.md$"}, "reason": {"const": "semantic_rejected"}}}},
+    "runtime_evidence": {"$ref": "#/$defs/runtimeEvidence"}
+  },
+  "$defs": {
+    "runtimeEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runtime", "capability_ids", "status"],
+      "properties": {
+        "runtime": {"enum": ["cortex-code", "claude-code", "unsupported"]},
+        "capability_ids": {"type": "array", "items": {"type": "string"}},
+        "invocation_id": {"type": ["string", "null"]},
+        "result_id": {"type": ["string", "null"]},
+        "status": {"enum": ["attested", "unsupported"]}
+      }
+    }
+  }
+}

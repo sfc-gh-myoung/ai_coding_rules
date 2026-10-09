@@ -1,0 +1,641 @@
+<script>
+// ===== 1. Alpine.js Store + Components =====
+document.addEventListener('alpine:init', () => {
+  // Global filter store
+  Alpine.store('filter', { mode: 'all' });
+
+  // Tab routing component
+  // Legacy hashes from before the Model Selection merge. Each maps to the merged tab plus
+  // the sub-panel that now holds the content, so existing external links keep working.
+  const _TAB_ALIASES = {
+    'sovereignty':     ['model-selection', 'families'],
+    'recommendations': ['model-selection', 'guidance'],
+    'ai-insights':     ['model-selection', 'ai-analysis'],
+  };
+
+  Alpine.data('reportApp', () => ({
+    tab: 'overview',
+    selectionTab: 'guidance',
+    // Hash format: #<tab>[.<filter-mode>]; the mode suffix is omitted for
+    // the default 'all' so plain #<tab> links stay canonical.
+    applyHash(hash) {
+      if (!hash) return;
+      const dot = hash.indexOf('.');
+      const head = dot === -1 ? hash : hash.slice(0, dot);
+      const modePart = dot === -1 ? '' : hash.slice(dot + 1);
+      const alias = _TAB_ALIASES[head];
+      const el = document.getElementById(head);
+      if (alias) {
+        this.tab = alias[0];
+        this.selectionTab = alias[1];
+      } else if (el && el.classList.contains('tab-panel')) {
+        // Only tab-panel ids switch tabs; other in-page anchors (e.g.
+        // "view data as table" links) scroll natively within the panel.
+        this.tab = head;
+      }
+      if (modePart === 'all' || modePart === 'plugin' || modePart === 'without-plugin') {
+        Alpine.store('filter').mode = modePart;
+      }
+    },
+    initFromHash() {
+      this.applyHash(location.hash.slice(1));
+      window.addEventListener('hashchange', () => {
+        this.applyHash(location.hash.slice(1));
+      });
+    },
+    writeHash() {
+      const mode = Alpine.store('filter').mode;
+      const suffix = mode && mode !== 'all' ? '.' + mode : '';
+      history.replaceState(null, '', '#' + this.tab + suffix);
+    },
+    switchTab(id) {
+      this.tab = id;
+      this.writeHash();
+      this.$nextTick(() => window.dispatchEvent(new Event('resize')));
+    },
+    setMode(mode) {
+      Alpine.store('filter').mode = mode;
+      this.writeHash();
+    }
+  }));
+});
+
+// ===== 2. Vega-Lite Data + Config =====
+const vegaChartData = {{ vega_chart_data | tojson }};
+
+const _isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const _textColor = _isDark ? '#E2E8F0' : '#0F172A';
+const _mutedColor = _isDark ? '#94A3B8' : '#64748B';
+const _gridColor = _isDark ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.2)';
+
+const vegaConfig = {
+  background: 'transparent',
+  font: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  axis: { labelColor: _mutedColor, titleColor: _textColor, gridColor: _gridColor, domainColor: _gridColor, tickColor: _gridColor, labelFontSize: 11, titleFontSize: 12 },
+  legend: { labelColor: _mutedColor, titleColor: _textColor, labelFontSize: 11 },
+  title: { color: _textColor, subtitleColor: _mutedColor },
+  view: { stroke: null }
+};
+
+// ===== 3. Chart 1: Pass Rate Bar =====
+// When both eval modes are present the chart is row-faceted by mode: a
+// hook-injected 1x run and a prompt-only 5x run are not one comparable
+// ranking, and a screenshot of a single sorted bar row would imply they are.
+const _hasBothModes = {{ (has_noplugin and (plugin_results | length > 0)) | tojson }};
+
+const _passRateTransform = [
+  {"filter": "modeFilter === 'all' || datum.mode === modeFilter"},
+  {"calculate": "datum.pass_rate >= 95 ? 'Compliant (≥95%)' : datum.pass_rate >= 90 ? 'Partial (90-95%)' : datum.pass_rate >= 85 ? 'Low (85-90%)' : 'Failing (<85%)'", "as": "tier"},
+  {"calculate": "datum.mode === 'plugin' ? 'With plugin (hook injection)' : 'Without plugin (prompt-only)'", "as": "mode_label"}
+];
+const _passRateMark = {"type": "bar", "cornerRadiusTopLeft": 4, "cornerRadiusTopRight": 4, "width": {"band": 0.75}};
+const _passRateEncoding = {
+  "x": {"field": "model_short", "type": "nominal", "sort": {"field": "pass_rate", "order": "descending"}, "axis": {"labelAngle": -45, "labelLimit": 120, "title": null}},
+  "y": {"field": "pass_rate", "type": "quantitative", "scale": {"domain": [0, 100]}, "axis": {"title": "Pass Rate (%)", "labelExpr": "datum.value + '%'", "tickCount": 5}},
+  "color": {"field": "tier", "type": "nominal", "scale": {"domain": ["Compliant (≥95%)", "Partial (90-95%)", "Low (85-90%)", "Failing (<85%)"], "range": ["#10B981", "#F59E0B", "#F97316", "#EF4444"]}, "legend": {"title": "Tier", "orient": "bottom", "direction": "horizontal"}},
+  "order": {"field": "pass_rate", "type": "quantitative", "sort": "descending"},
+  "tooltip": [{"field": "model", "title": "Model"}, {"field": "mode", "title": "Mode"}, {"field": "run_date", "title": "Run date"}, {"field": "runs", "title": "Runs"}, {"field": "pass_rate", "title": "Pass Rate (%)", "format": ".1f"}]
+};
+
+// "container" width is unsupported for faceted specs, so the faceted variant
+// measures its container at embed time (static width thereafter).
+function _passRateWidth() {
+  const el = document.getElementById('passRateChart');
+  const w = el ? el.clientWidth : 0;
+  return Math.max(320, (w || 960) - 90);
+}
+
+const passRateSpec = _hasBothModes ? {
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {"values": vegaChartData},
+  "params": [{"name": "modeFilter", "value": "all"}],
+  "facet": {"row": {"field": "mode_label", "title": null, "sort": ["With plugin (hook injection)", "Without plugin (prompt-only)"], "header": {"labelFontWeight": 600, "labelFontSize": 12, "labelAngle": 0, "labelAlign": "left", "labelOrient": "top"}}},
+  "resolve": {"scale": {"x": "independent"}},
+  "spec": {
+    "width": _passRateWidth(),
+    "height": 210,
+    "transform": _passRateTransform,
+    "mark": _passRateMark,
+    "encoding": _passRateEncoding
+  }
+} : {
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "width": "container", "height": 320,
+  "data": {"values": vegaChartData},
+  "params": [{"name": "modeFilter", "value": "all"}],
+  "transform": _passRateTransform,
+  "mark": _passRateMark,
+  "encoding": _passRateEncoding
+};
+
+// ===== 4. Chart 2: Latency vs Quality Pareto =====
+const latencyParetoSpec = {
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "width": "container", "height": 420,
+  "data": {"values": vegaChartData},
+  "params": [{"name": "modeFilter", "value": "all"}],
+  "transform": [
+    {"filter": "modeFilter === 'all' || datum.mode === modeFilter"},
+    {"filter": "datum.avg_duration_s > 0"}
+  ],
+  "layer": [
+    {
+      "transform": [{"filter": "datum.on_frontier_latency && !datum.below_threshold_latency"}],
+      "mark": {"type": "line", "strokeDash": [5, 4], "strokeWidth": 1.5, "opacity": 0.4, "color": "#10B981"},
+      "encoding": {"x": {"field": "avg_duration_s", "type": "quantitative"}, "y": {"field": "pass_rate", "type": "quantitative"}, "order": {"field": "avg_duration_s"}}
+    },
+    {
+      "mark": {"type": "point", "filled": true, "opacity": 0.85},
+      "encoding": {
+        "x": {"field": "avg_duration_s", "type": "quantitative", "axis": {"title": "Average Duration (seconds) — lower is better", "grid": true}},
+        "y": {"field": "pass_rate", "type": "quantitative", "scale": {"zero": false, "padding": 5}, "axis": {"title": "Pass Rate (%)", "labelExpr": "datum.value + '%'", "grid": true}},
+        "size": {"field": "avg_turns", "type": "quantitative", "scale": {"range": [60, 400]}, "legend": {"title": "Avg Turns"}},
+        "color": {"field": "category_latency", "type": "nominal", "scale": {"domain": ["On frontier", "Off frontier", "Below threshold"], "range": ["#10B981", "#94A3B8", "#EF4444"]}, "legend": {"title": "Status", "orient": "bottom"}},
+        "shape": {"field": "category_latency", "type": "nominal", "scale": {"domain": ["On frontier", "Off frontier", "Below threshold"], "range": ["circle", "circle", "triangle-up"]}, "legend": null},
+        "tooltip": [{"field": "model", "title": "Model"}, {"field": "mode", "title": "Mode"}, {"field": "run_date", "title": "Run date"}, {"field": "runs", "title": "Runs"}, {"field": "avg_duration_s", "title": "Duration (s)", "format": ".1f"}, {"field": "pass_rate", "title": "Pass Rate (%)", "format": ".1f"}, {"field": "avg_turns", "title": "Turns", "format": ".1f"}]
+      }
+    },
+    {
+      "mark": {"type": "text", "align": "left", "dx": 10, "dy": -2, "fontSize": 9, "font": "'SF Mono', Menlo, monospace", "opacity": 0.85},
+      "encoding": {"x": {"field": "avg_duration_s", "type": "quantitative"}, "y": {"field": "pass_rate", "type": "quantitative"}, "text": {"field": "model_short"}, "color": {"value": _mutedColor}}
+    }
+  ]
+};
+
+// ===== 5. Chart 3: Cost vs Quality Pareto =====
+const costParetoSpec = {
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "width": "container", "height": 420,
+  "data": {"values": vegaChartData},
+  "params": [{"name": "modeFilter", "value": "all"}],
+  "transform": [
+    {"filter": "modeFilter === 'all' || datum.mode === modeFilter"},
+    {"filter": "datum.avg_total_tokens > 0"}
+  ],
+  "layer": [
+    {
+      "transform": [{"filter": "datum.on_frontier_cost && !datum.below_threshold_cost"}],
+      "mark": {"type": "line", "strokeDash": [5, 4], "strokeWidth": 1.5, "opacity": 0.4, "color": "#10B981"},
+      "encoding": {"x": {"field": "avg_total_tokens", "type": "quantitative"}, "y": {"field": "pass_rate", "type": "quantitative"}, "order": {"field": "avg_total_tokens"}}
+    },
+    {
+      "mark": {"type": "point", "filled": true, "opacity": 0.85},
+      "encoding": {
+        "x": {"field": "avg_total_tokens", "type": "quantitative", "axis": {"title": "Avg Total Tokens (lower = cheaper)", "format": "~s", "grid": true}},
+        "y": {"field": "pass_rate", "type": "quantitative", "scale": {"zero": false, "padding": 5}, "axis": {"title": "Pass Rate (%)", "labelExpr": "datum.value + '%'", "grid": true}},
+        "size": {"field": "avg_turns", "type": "quantitative", "scale": {"range": [60, 400]}, "legend": {"title": "Avg Turns"}},
+        "color": {"field": "category_cost", "type": "nominal", "scale": {"domain": ["On frontier", "Off frontier", "Below threshold"], "range": ["#10B981", "#94A3B8", "#EF4444"]}, "legend": {"title": "Status", "orient": "bottom"}},
+        "shape": {"field": "category_cost", "type": "nominal", "scale": {"domain": ["On frontier", "Off frontier", "Below threshold"], "range": ["circle", "circle", "triangle-up"]}, "legend": null},
+        "tooltip": [{"field": "model", "title": "Model"}, {"field": "mode", "title": "Mode"}, {"field": "run_date", "title": "Run date"}, {"field": "runs", "title": "Runs"}, {"field": "avg_total_tokens", "title": "Tokens", "format": ","}, {"field": "pass_rate", "title": "Pass Rate (%)", "format": ".1f"}, {"field": "avg_turns", "title": "Turns", "format": ".1f"}]
+      }
+    },
+    {
+      "mark": {"type": "text", "align": "left", "dx": 10, "dy": -2, "fontSize": 9, "font": "'SF Mono', Menlo, monospace", "opacity": 0.85},
+      "encoding": {"x": {"field": "avg_total_tokens", "type": "quantitative"}, "y": {"field": "pass_rate", "type": "quantitative"}, "text": {"field": "model_short"}, "color": {"value": _mutedColor}}
+    }
+  ]
+};
+
+// ===== 6. Embed Charts (graceful degradation when the CDN is unreachable) =====
+const _embedOpts = {actions: false, renderer: 'canvas', config: vegaConfig};
+const _views = {};
+
+// Vega loads from cdn.jsdelivr.net; on locked-down/offline networks the
+// scripts never arrive. Each chart then degrades to a note pointing at the
+// table that carries the same data, instead of leaving an empty container.
+function _chartFallback(sel) {
+  const el = document.querySelector(sel);
+  if (!el) return;
+  el.innerHTML = '<p class="chart-fallback">Chart unavailable &mdash; rendering requires network access to cdn.jsdelivr.net. The same data appears in the adjacent table.</p>';
+}
+
+(async function _initCharts() {
+  const targets = [
+    ['#passRateChart', passRateSpec, 'passRate'],
+    ['#scatter-chart', latencyParetoSpec, 'latency'],
+    ['#effort-pareto-chart', costParetoSpec, 'cost'],
+  ];
+  if (window.__vegaLoadFailed || typeof vegaEmbed === 'undefined') {
+    targets.forEach(([sel]) => _chartFallback(sel));
+    return;
+  }
+  const results = await Promise.allSettled(
+    targets.map(([sel, spec]) => vegaEmbed(sel, spec, _embedOpts))
+  );
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled') _views[targets[i][2]] = r.value.view;
+    else _chartFallback(targets[i][0]);
+  });
+  // Replay current filter into all views that loaded after a potential early store change
+  const currentMode = (typeof Alpine !== 'undefined' && Alpine.store('filter')?.mode) || 'all';
+  Object.values(_views).forEach(view => { view.signal('modeFilter', currentMode).run(); });
+})();
+
+// ===== 7. Alpine → Vega Signal Bridge =====
+document.addEventListener('alpine:init', () => {
+  Alpine.effect(() => {
+    const mode = Alpine.store('filter').mode;
+    if (_views.passRate) _views.passRate.signal('modeFilter', mode).run();
+    if (_views.latency) _views.latency.signal('modeFilter', mode).run();
+    if (_views.cost) _views.cost.signal('modeFilter', mode).run();
+  });
+});
+
+// ===== 8. Results Table Builder (sync, runs before Alpine) =====
+const _fixtures = {{ fixtures_data | tojson }};
+const _modelKeys = {{ chart_data.labels | tojson }};
+const _modelPerFixture = {{ per_fixture_data | tojson }};
+
+(function _buildResultsTable() {
+  const tbody = document.querySelector('#results-table tbody');
+  if (!tbody) return;
+  let currentTier = '';
+  _fixtures.forEach(fixture => {
+    if (fixture.tier !== currentTier) {
+      currentTier = fixture.tier;
+      const sep = document.createElement('tr');
+      const sepTd = document.createElement('td');
+      sepTd.colSpan = _modelKeys.length + 1;
+      sepTd.style.cssText = 'background:var(--bg);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);text-align:left;padding:0.6rem;';
+      sepTd.textContent = fixture.tier + ' tier';
+      sep.appendChild(sepTd);
+      tbody.appendChild(sep);
+    }
+    const tr = document.createElement('tr');
+    const nameTd = document.createElement('td');
+    nameTd.style.cssText = "text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;font-weight:500;font-size:0.75rem;font-family:'SF Mono',monospace;";
+    nameTd.textContent = fixture.name;
+    tr.appendChild(nameTd);
+    _modelKeys.forEach(model => {
+      const td = document.createElement('td');
+      const mData = _modelPerFixture[model] || {};
+      const fData = mData[fixture.name];
+      if (fData === undefined || fData === null) {
+        td.textContent = '\u2014';
+        td.classList.add('na');
+      } else {
+        const passes = fData.passes || 0;
+        const nRuns = fData.n_runs || 3;
+        td.textContent = passes + '/' + nRuns;
+        if (passes === nRuns) td.classList.add('pass-3');
+        else if (passes >= nRuns - 1) td.classList.add('pass-2');
+        else if (passes > 0) td.classList.add('pass-1');
+        else td.classList.add('pass-0');
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  // Summary row
+  const passRates = {{ chart_data.pass_rates | tojson }};
+  const sumRow = document.createElement('tr');
+  sumRow.style.fontWeight = '700';
+  sumRow.style.borderTop = '3px solid var(--border)';
+  const sumLabel = document.createElement('td');
+  sumLabel.style.cssText = 'text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;';
+  sumLabel.textContent = 'Overall Pass Rate';
+  sumRow.appendChild(sumLabel);
+  passRates.forEach(r => {
+    const td = document.createElement('td');
+    td.textContent = r + '%';
+    td.style.fontWeight = '700';
+    if (r >= 95) td.style.color = 'var(--sf-green)';
+    else if (r >= 90) td.style.color = 'var(--sf-amber)';
+    else if (r >= 85) td.style.color = 'var(--sf-orange)';
+    else td.style.color = 'var(--sf-red)';
+    sumRow.appendChild(td);
+  });
+  tbody.appendChild(sumRow);
+})();
+
+// ===== 9. Results Table Column Filter =====
+document.addEventListener('alpine:init', () => {
+  Alpine.effect(() => {
+    const mode = Alpine.store('filter').mode;
+    const ths = document.querySelectorAll('#results-table thead th[data-model-mode]');
+    ths.forEach(th => {
+      const show = mode === 'all' || th.dataset.modelMode === mode;
+      const colIdx = th.cellIndex;
+      th.style.display = show ? '' : 'none';
+      document.querySelectorAll('#results-table tbody tr').forEach(row => {
+        const cell = row.cells[colIdx];
+        if (cell) cell.style.display = show ? '' : 'none';
+      });
+    });
+  });
+});
+
+// ===== 10. Effort Table (imperative bars, Alpine-triggered) =====
+const _effortData = {{ effort_data | tojson }};
+const _EFFORT_METRICS = ['input_tokens', 'output_tokens', 'elapsed_s', 'turns'];
+
+function _effFormat(v, metric) {
+  if (v === null || v === undefined || isNaN(v)) return '-';
+  if (metric === 'turns') return (Math.round(v * 10) / 10).toString();
+  if (metric === 'elapsed_s') return (Math.round(v * 10) / 10) + 's';
+  if (v >= 1e6) return (v / 1e6).toFixed(2) + 'M';
+  if (v >= 1e3) return (v / 1e3).toFixed(1) + 'k';
+  return Math.round(v).toString();
+}
+
+function _effRenderCells(fixtureId) {
+  const effTable = document.getElementById('effort-table');
+  if (!effTable || !_effortData || !_effortData.by_fixture) return;
+  const byFixture = _effortData.by_fixture[fixtureId] || {};
+  const rows = Array.from(effTable.querySelectorAll('tbody tr'));
+  rows.forEach(row => {
+    const model = row.dataset.model;
+    const stats = byFixture[model] || {};
+    row.querySelectorAll('td.col-bar').forEach(cell => {
+      const metric = cell.dataset.metric;
+      const s = stats[metric] || {min_val: 0, avg_val: 0, max_val: 0};
+      cell.dataset.avg = s.avg_val || 0;
+      cell.dataset.min = s.min_val || 0;
+      cell.dataset.max = s.max_val || 0;
+      cell.dataset.sortValue = s.avg_val || 0;
+    });
+  });
+  _effSizeBars();
+}
+
+function _effSizeBars() {
+  const effTable = document.getElementById('effort-table');
+  if (!effTable) return;
+  const rows = Array.from(effTable.querySelectorAll('tbody tr'))
+    .filter(r => r.style.display !== 'none');
+  _EFFORT_METRICS.forEach(metric => {
+    let colMax = 0;
+    rows.forEach(row => {
+      const cell = row.querySelector('td.col-bar[data-metric="' + metric + '"]');
+      if (!cell) return;
+      const mx = parseFloat(cell.dataset.max) || 0;
+      const av = parseFloat(cell.dataset.avg) || 0;
+      colMax = Math.max(colMax, mx, av);
+    });
+    if (colMax <= 0) colMax = 1;
+    rows.forEach(row => {
+      const cell = row.querySelector('td.col-bar[data-metric="' + metric + '"]');
+      if (!cell) return;
+      const avg = parseFloat(cell.dataset.avg) || 0;
+      const min = parseFloat(cell.dataset.min) || 0;
+      const max = parseFloat(cell.dataset.max) || 0;
+      const avgPct = Math.max(0, Math.min(100, (avg / colMax) * 100));
+      const spreadPct = Math.max(0, Math.min(100 - avgPct, ((max - avg) / colMax) * 100));
+      cell.innerHTML =
+        '<span class="bar-wrap">' +
+          '<span class="bar-primary" style="width:' + avgPct.toFixed(2) + '%"></span>' +
+          '<span class="bar-extent" style="left:' + avgPct.toFixed(2) + '%; width:' + spreadPct.toFixed(2) + '%"></span>' +
+        '</span>' +
+        '<span class="bar-label">' + _effFormat(avg, metric) + '</span>';
+      cell.title = 'Min: ' + _effFormat(min, metric) + '  |  Avg: ' + _effFormat(avg, metric) + '  |  Max: ' + _effFormat(max, metric);
+    });
+  });
+}
+
+// Wire effort fixture selector and filter
+(function() {
+  const sel = document.getElementById('effort-fixture-select');
+  if (sel) {
+    sel.addEventListener('change', () => _effRenderCells(sel.value));
+  }
+  // Initial render
+  _effRenderCells('__aggregate__');
+})();
+
+// Rescale bars when filter changes
+document.addEventListener('alpine:init', () => {
+  Alpine.effect(() => {
+    void Alpine.store('filter').mode; // subscribe to changes
+    setTimeout(_effSizeBars, 50); // allow x-show to update display first
+  });
+});
+
+// ===== 11. Performance Table Highlighting =====
+function _highlightPerfTable() {
+  const perfTable = document.getElementById('perf-table');
+  if (!perfTable) return;
+  const rows = Array.from(perfTable.querySelectorAll('tbody tr[data-model-mode]'));
+  const visibleRows = rows.filter(r => r.style.display !== 'none');
+  if (visibleRows.length < 2) return;
+  const colIndices = [3, 4, 5, 6, 7, 8];
+  rows.forEach(row => {
+    colIndices.forEach(colIdx => {
+      const cell = row.cells[colIdx];
+      if (cell) { cell.style.color = ''; cell.style.fontWeight = ''; }
+    });
+  });
+  colIndices.forEach(colIdx => {
+    const values = visibleRows.map(row => {
+      const cell = row.cells[colIdx];
+      if (!cell) return null;
+      const text = cell.textContent.trim().replace('s', '');
+      const num = parseFloat(text);
+      return isNaN(num) ? null : num;
+    });
+    const validValues = values.filter(v => v !== null);
+    if (validValues.length < 2) return;
+    const minVal = Math.min(...validValues);
+    const maxVal = Math.max(...validValues);
+    if (minVal === maxVal) return;
+    visibleRows.forEach((row, i) => {
+      if (values[i] === null) return;
+      const cell = row.cells[colIdx];
+      if (values[i] === minVal) { cell.style.color = 'var(--sf-green)'; cell.style.fontWeight = '600'; }
+      else if (values[i] === maxVal) { cell.style.color = 'var(--sf-red)'; cell.style.fontWeight = '600'; }
+    });
+  });
+}
+
+// Run once and on filter changes
+_highlightPerfTable();
+document.addEventListener('alpine:init', () => {
+  Alpine.effect(() => {
+    void Alpine.store('filter').mode;
+    setTimeout(_highlightPerfTable, 50);
+  });
+});
+
+// ===== 12. Initialize Sortable Tables =====
+// Single source of truth for all sortable table initialization.
+const _SORT_COLLATOR = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
+// _styles.j2 defines subscript indicators for tie-breaker ranks 2..5 only.
+const _SORT_RANK_MAX = 5;
+
+// Templates declare both "number" and "num"; normalize so the numeric path is
+// not silently skipped (a mismatch here sends numbers through the collator).
+function _normSortType(raw) {
+  return (raw === 'num' || raw === 'number') ? 'num' : 'text';
+}
+
+// Map column index -> header cell, preferring the topmost declaration.
+function _thByCol(table) {
+  const map = new Map();
+  table.querySelectorAll('th[data-sort-type]').forEach(th => {
+    if (!map.has(th.cellIndex)) map.set(th.cellIndex, th);
+  });
+  return map;
+}
+
+// Parse data-sort-fallback="6:asc,3:asc,0:asc" into ordered tie-breaker steps.
+// Directions are absolute: a chain step keeps its declared direction regardless
+// of which way the primary column is sorted.
+function _parseSortChain(table) {
+  const spec = table.dataset.sortFallback;
+  if (!spec) return [];
+  const steps = [];
+  spec.split(',').forEach(part => {
+    const [idxRaw, dirRaw] = part.split(':');
+    const idx = parseInt(idxRaw, 10);
+    if (Number.isNaN(idx)) return;
+    steps.push({idx: idx, dir: dirRaw === 'desc' ? 'desc' : 'asc'});
+  });
+  return steps;
+}
+
+function _sortCellValue(row, colIdx, type) {
+  const cell = row.cells[colIdx];
+  if (!cell) return type === 'num' ? Number.NEGATIVE_INFINITY : '';
+  const raw = cell.dataset.sortValue !== undefined ? cell.dataset.sortValue : cell.textContent.trim();
+  if (type !== 'num') return raw;
+  const n = parseFloat(String(raw).replace(/[,%\s]/g, ''));
+  return Number.isNaN(n) ? Number.NEGATIVE_INFINITY : n;
+}
+
+// Explicit comparison rather than (av - bv): two missing numeric cells both
+// yield -Infinity, and Infinity - Infinity is NaN, which corrupts the sort.
+function _compareCol(a, b, colIdx, type, dir) {
+  const av = _sortCellValue(a, colIdx, type);
+  const bv = _sortCellValue(b, colIdx, type);
+  let cmp;
+  if (type === 'num') cmp = av === bv ? 0 : (av < bv ? -1 : 1);
+  else cmp = _SORT_COLLATOR.compare(av, bv);
+  return dir === 'asc' ? cmp : -cmp;
+}
+
+// A header is the current primary iff it carries a direction class and is not
+// itself a tie-breaker. Templates pre-mark the default column with a bare
+// class, so that state reads as primary and the first click toggles it.
+function _isPrimarySortTh(th) {
+  return !th.hasAttribute('data-sort-rank') &&
+    (th.classList.contains('sorted-asc') || th.classList.contains('sorted-desc'));
+}
+
+// Primary gets the full-size arrow and aria-sort; tie-breakers get
+// data-sort-rank plus a direction class, which activates the subscript arrows.
+// aria-sort stays on the primary alone so assistive tech reports one sort column.
+function _markSortIndicators(table, primaryTh, dir, chain, byCol) {
+  table.querySelectorAll('th').forEach(other => {
+    other.classList.remove('sorted-asc', 'sorted-desc');
+    other.removeAttribute('aria-sort');
+    other.removeAttribute('data-sort-rank');
+  });
+  primaryTh.classList.add(dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+  primaryTh.setAttribute('aria-sort', dir === 'asc' ? 'ascending' : 'descending');
+  let rank = 1;
+  for (const step of chain) {
+    if (step.idx === primaryTh.cellIndex) continue;
+    rank += 1;
+    if (rank > _SORT_RANK_MAX) break;
+    const th = byCol.get(step.idx);
+    if (!th) continue;
+    th.setAttribute('data-sort-rank', String(rank));
+    th.classList.add(step.dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+  }
+}
+
+// Resolve chain steps against the live header row, dropping the primary column
+// (already compared) and columns that declare no sortable header.
+function _resolveSortSteps(chain, primaryIdx, byCol) {
+  const steps = [];
+  for (const step of chain) {
+    if (step.idx === primaryIdx) continue;
+    const th = byCol.get(step.idx);
+    steps.push({
+      idx: step.idx,
+      dir: step.dir,
+      type: th ? _normSortType(th.dataset.sortType) : 'text',
+    });
+  }
+  return steps;
+}
+
+function _renumberRanks(table) {
+  let n = 0;
+  Array.from(table.tBodies[0]?.rows || []).forEach(row => {
+    const cell = row.querySelector('td.col-rank');
+    if (!cell) return;
+    if (row.style.display === 'none' || row.classList.contains('row-nodata')) {
+      cell.textContent = '\u2013'; return;
+    }
+    cell.textContent = ++n;
+  });
+}
+
+function _applySort(table, th) {
+  const tbody = table.tBodies[0];
+  if (!tbody) return;
+  const type = _normSortType(th.dataset.sortType);
+  const colIdx = th.cellIndex;
+  let dir;
+  if (_isPrimarySortTh(th) && th.classList.contains('sorted-desc')) dir = 'asc';
+  else if (_isPrimarySortTh(th) && th.classList.contains('sorted-asc')) dir = 'desc';
+  else dir = th.dataset.sortDefault || (type === 'num' ? 'desc' : 'asc');
+
+  const chain = _parseSortChain(table);
+  const byCol = _thByCol(table);
+  const steps = _resolveSortSteps(chain, colIdx, byCol);
+  _markSortIndicators(table, th, dir, chain, byCol);
+
+  const rows = Array.from(tbody.rows);
+  rows.sort((a, b) => {
+    const aNo = a.classList.contains('row-nodata');
+    const bNo = b.classList.contains('row-nodata');
+    if (aNo !== bNo) return aNo ? 1 : -1;
+    let cmp = _compareCol(a, b, colIdx, type, dir);
+    if (cmp !== 0) return cmp;
+    for (const s of steps) {
+      cmp = _compareCol(a, b, s.idx, s.type, s.dir);
+      if (cmp !== 0) return cmp;
+    }
+    return 0;
+  });
+  rows.forEach(r => tbody.appendChild(r));
+  _renumberRanks(table);
+}
+
+function initSortableTable(table) {
+  if (table.dataset.sortableInitialized === 'true') return;
+  table.dataset.sortableInitialized = 'true';
+  table.querySelectorAll('th[data-sort-type]').forEach(th => {
+    th.setAttribute('tabindex', '0');
+    th.setAttribute('role', 'button');
+    th.addEventListener('click', () => _applySort(table, th));
+    th.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _applySort(table, th); }
+    });
+  });
+  // Rows arrive pre-sorted from Python, so decorate the declared chain without
+  // re-sorting: re-sorting here could reorder ties away from the server order.
+  const preSorted = Array.from(table.querySelectorAll('th[data-sort-type]'))
+    .find(_isPrimarySortTh);
+  if (preSorted) {
+    const dir = preSorted.classList.contains('sorted-asc') ? 'asc' : 'desc';
+    _markSortIndicators(table, preSorted, dir, _parseSortChain(table), _thByCol(table));
+  }
+  _renumberRanks(table);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('table.sortable-table').forEach(initSortableTable);
+});
+
+// Re-renumber ranks when filter changes
+document.addEventListener('alpine:init', () => {
+  Alpine.effect(() => {
+    void Alpine.store('filter').mode;
+    setTimeout(() => {
+      document.querySelectorAll('table.sortable-table[data-sortable-initialized="true"]').forEach(_renumberRanks);
+    }, 50);
+  });
+});
+</script>

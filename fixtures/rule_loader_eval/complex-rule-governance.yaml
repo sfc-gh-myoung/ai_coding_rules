@@ -1,0 +1,28 @@
+schema_version: 3
+updated: 2026-05-17T16:26:51-04:00
+id: complex-rule-governance
+description: # TODO
+variant: complex
+prompt: |
+  We're tightening rule governance and need an audit pass over rules/. The
+  goal is to identify rules with stale RuleVersion or LastUpdated values
+  and produce a remediation plan. Walk me through the audit checklist and
+  the right way to bump metadata once changes are made.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/002-rule-governance.md  # migrated from dependencies (v3.15)
+  forbidden: []
+  optional:
+    - rules/002b-rule-update.md  # auto-demoted: no trigger evidence
+      # missing: rule has no file-context triggers (ext:/file:/dir:)
+trigger_evidence:
+  kw: []
+    # n-gram (no rule): "bump metadata once changes"
+    # n-gram (no rule): "re tightening rule governance"
+    # n-gram (no rule): "audit pass over rules"
+    # n-gram (no rule): "identify rules with stale"
+    # n-gram (no rule): "metadata once changes are"
+  ext: []
+  file: []
+  dir: [rules/]   # suggested

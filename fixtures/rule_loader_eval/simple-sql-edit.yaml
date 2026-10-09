@@ -1,0 +1,25 @@
+schema_version: 3
+updated: '2026-07-20T13:00:00-04:00'
+id: simple-sql-edit
+description: null
+variant: simple
+prompt: 'What''s the right CTE pattern for adding a daily revenue aggregation to
+
+  queries.sql? The query should aggregate daily revenue from the orders table.
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/102-snowflake-sql-core.md
+  - rules/100-snowflake-core.md
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw:
+  - sql
+  ext:
+  - .sql
+  file:
+  - queries.sql
+  dir: []

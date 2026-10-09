@@ -1,270 +1,78 @@
-# 125-snowflake-role-introspection: Snowflake Role Introspection
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:role, kw:introspection, kw:access
-**Keywords:** account roles, database roles, SHOW GRANTS, role introspection, RBAC, Python automation, error 000906, too many qualifiers, grants inspection, programmatic RBAC
-**TokenBudget:** ~2350
-**ContextTier:** Medium
-**Depends:** 000-global-core.md, 100-snowflake-core.md
+---
+schema_version: v4.0
+rule_version: v5.0.0
+description: "Typed and safely quoted account/database role inspection, explicit grant versus hierarchy semantics, and visibility-aware audits."
+last_updated: 2026-10-07
+keywords:
+  - kw:role introspection
+  - kw:account roles vs database roles
+  - kw:SHOW GRANTS syntax
+  - kw:SQL compilation error 000906
+  - kw:role type detection
+  - kw:RBAC automation
+  - kw:rbac
+token_budget: ~1300
+context_tier: Medium
+depends:
+  required:
+    - 000-global-core.md  # Core foundation patterns
+    - 100-snowflake-core.md  # Snowflake foundation patterns
+  optional:
+    - 107-snowflake-security-governance.md  # RBAC and privilege patterns
+    - 200-python-core.md  # Python development patterns
+---
+# Snowflake Role Introspection
 
 ## Scope
 
 **What This Rule Covers:**
-Patterns for programmatically inspecting Snowflake roles and grants, handling both account-scoped roles and database roles to avoid SQL compilation errors when automating RBAC audits and permission checks. Covers role type detection, syntax differences, error handling (000906), and Python automation patterns.
+Account/database role identity, quoted identifiers, safe grant inspection, upward/downward hierarchy traversal, and incomplete audit evidence.
 
 **When to Load This Rule:**
-- Writing Python scripts or Jupyter notebooks that introspect roles
-- Automating RBAC audits and permission checks
-- Encountering SQL compilation error 000906 ("too many qualifiers")
-- Building tools that need to distinguish account roles from database roles
-- Troubleshooting `SHOW GRANTS` failures
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Core foundation patterns
-- **100-snowflake-core.md** - Snowflake foundation patterns
-
-**Related:**
-- **107-snowflake-security-governance.md** - RBAC and privilege patterns
-- **200-python-core.md** - Python development patterns
-
-### External Documentation
-
-- [SHOW GRANTS](https://docs.snowflake.com/en/sql-reference/sql/show-grants) - Grant inspection syntax
-- [Database Roles](https://docs.snowflake.com/en/user-guide/security-access-control-overview#database-roles) - Database role concepts
-- [Account Roles](https://docs.snowflake.com/en/user-guide/security-access-control-overview#account-roles) - Account role concepts
+When automating role/grant audits, handling qualifier errors, or evaluating role inheritance. Read `107-snowflake-security-governance.md` for access design and `200-python-core.md` for Python implementation.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Access to Snowflake account
-- Roles with SHOW GRANTS privileges
-- Understanding of account vs database role distinction
-- `snowflake-connector-python` or equivalent
+- Explicit role type or role inventory metadata, canonical identifier components/database context, current session role and intended inspection direction.
+- Authorized read-only connection/client, visibility scope and current command/schema documentation; no implied grants/role switches.
+- Expected result shape, deduplication/traversal limits and precise error/query evidence.
 
 ### Mandatory
 
-- Detect role type by checking for `.` in role name (after stripping outer quotes)
-- Use `SHOW GRANTS TO ROLE` for account roles
-- Use `SHOW GRANTS TO DATABASE ROLE` for database roles
-- Handle SQL compilation error 000906
-- Handle quoted identifiers containing dots (e.g., `"my.role"` is an account role)
-
-### Forbidden
-
-- Using `SHOW GRANTS TO ROLE` for database roles
-- Assuming all roles are account-scoped
-- Ignoring role name qualifiers (dots)
+- Prefer explicit type from authoritative inventory/caller contract, not dot heuristics. Account roles have one identifier component; database roles use database.role, not database.schema.role. A database role can be relative under a known database context, so lack of a dot does not prove account type.
+- Preserve quoted identifier semantics: one quoted component containing a dot is not two components; separately quoted database/role components are qualified. Escaped double quotes, case and database context must survive structured parsing. Never strip outer quotes and split blindly.
+- Validate resolved identity against authorized inventory and safely quote every component. A name returned by SHOW can still contain SQL punctuation; trusted origin does not make raw f-string SQL interpolation safe. Do not concatenate arbitrary user names or switch to another query route after validation fails.
+- Choose type-specific supported grant command/API: account-role TO lists explicit privileges/roles granted to it, OF lists grantees. Database-role inspection needs its supported current interface; do not assume generic documentation lists every variant or claim live compilation without a permitted check.
+- Current generic SHOW GRANTS reference does not list TO/OF DATABASE ROLE in its syntax, while listing SHOW FUTURE GRANTS TO DATABASE ROLE. Existing database-role variants must be verified against applicable interface/version or clearly marked unverified; a documentation omission alone doesn't prove the feature absent.
+- Introspection is read-only; no grant, revoke, ownership transfer, role creation, elevation or production test mutation to make an audit succeed. Missing visibility should produce an incomplete report, not an empty-grants safety conclusion.
+- SHOW outputs explicit grants, not a fully expanded effective privilege closure. Future grants differ from current object access; object/role OWNERSHIP is not synonymous with inherited privileges. Primary/secondary roles and policy effects matter for actual authorization.
+- For downward traversal follow typed role/database-role membership edges from grants TO; for upward traversal follow OF grantees. Roles granted to a parent convey privileges upward; users/shares/app/service roles are distinct node kinds, not every result is another account role.
+- Traverse a bounded work queue with visited keys including type/database/quoted identity. Avoid appending to the list being iterated; deduplicate grants and preserve path provenance/shared ancestors. Detect cycles/malformed edges and report truncation rather than silently dropping coverage.
+- Read actual result columns from cursor metadata or a dictionary cursor. SHOW postprocessing columns are lowercase and need quoting in SQL. Do not claim list-of-dictionaries while returning positional tuples.
+- Inspect structured exception errno/SQLSTATE/message/query ID, not string-match 000906 and automatically try the opposite role type. Qualifier failure can mean malformed identity or wrong syntax; access/network errors require different diagnosis. Retain original error and verify type before a bounded read-only retry.
+- Record inspection time, current identity/role, commands/sources, visibility/latency, unsupported variants and limits. Account Usage can be delayed; grants can change mid-traversal, and a non-atomic audit should disclose that consistency limit.
 
 ### Execution Steps
 
-1. Extract role name from query result or user input
-2. Detect if role is database role by checking for `.` character in name
-3. Construct appropriate `SHOW GRANTS` command based on role type
-4. Execute command and handle results
-5. Validate results include expected grant structure
-
-### Output Format
-
-Python functions produce:
-- Lists of grants for both role types
-- Transparent handling of account and database roles
-- Proper error handling for SQL compilation errors
+1. Read current inventory/type metadata and caller intent; resolve canonical components, context and permitted visibility.
+2. Build safely quoted supported inspection operations and validate expected result/error shape without privilege changes.
+3. Fetch permitted explicit grants and bounded typed hierarchy closure, retaining provenance and incompleteness.
+4. Test quoted dots/quotes/case, relative database roles, malformed names, inaccessible objects, shared ancestors and cycles in fixtures.
+5. Report actual grants/paths and remaining syntax/access/runtime gaps; verify live variants only if separately permitted.
 
 ### Validation
 
-**Pre-Task-Completion Checks:**
-- Script distinguishes between account roles and database roles
-- Role name qualification detection implemented (check for `.`)
-- Correct `SHOW GRANTS` syntax used for each role type
-- Error handling catches SQL compilation error 000906
+- Account/database identity and quote/qualification handling are correct; no three-component database role or injection-prone concatenation.
+- TO/OF/future/current/effective semantics and role edge directions are explicit.
+- Traversal terminates/deduplicates and reports incomplete visibility, limits and changing state.
+- Structured errors retain original evidence without speculative alternate-type retry or self-grants.
+- Output includes typed identity, actual grant result shape/provenance and limitations. Uncompiled command variants stay unverified.
 
-**Success Criteria:**
-- Test with account roles (`ACCOUNTADMIN`, `PUBLIC`) succeeds
-- Test with database roles (`SNOWFLAKE.CORTEX_USER`, `DB.SCHEMA.ROLE`) succeeds
-- No SQL compilation errors
-- Expected grant structure returned
+## References
 
-**Negative Tests:**
-- Invalid role names fail gracefully
-- Error 000906 handled correctly
-
-### Design Principles
-
-- **Type detection:** Distinguish account roles from database roles by checking for qualifiers
-- **Correct syntax:** Use appropriate `SHOW GRANTS` syntax for each role type
-- **Error handling:** Catch and handle SQL compilation error 000906
-- **Transparency:** Functions handle both role types seamlessly
-
-### Post-Execution Checklist
-
-- [ ] Script distinguishes between account roles and database roles
-- [ ] Role name qualification detection implemented (check for `.` character)
-- [ ] Correct `SHOW GRANTS` syntax used for each role type
-- [ ] Error handling catches SQL compilation error 000906
-- [ ] Test cases include both account roles and database roles
-- [ ] Script tested with production role names
-
-## Anti-Patterns and Common Mistakes
-
-**Anti-Pattern 1: Using Account Role Syntax for All Roles**
-```python
-# Bad: Assumes all roles are account-scoped
-def get_role_grants(role_name):
-    return execute_query(f"SHOW GRANTS TO ROLE {role_name}")
-# Fails for database roles like SNOWFLAKE.CORTEX_USER
-```
-**Problem:** Database roles have qualifiers (dots) and require different syntax; script crashes with error 000906
-
-**Correct Pattern:** See canonical `get_role_grants()` in Output Format Examples section.
-
-**Anti-Pattern 2: Hard-Coding Role Type Assumptions**
-```python
-# Bad: Only handles SNOWFLAKE.* database roles
-def get_role_grants(role_name):
-    if role_name.startswith('SNOWFLAKE.'):
-        return execute_query(f"SHOW GRANTS TO DATABASE ROLE {role_name}")
-    return execute_query(f"SHOW GRANTS TO ROLE {role_name}")
-# Misses custom database roles like MYDB.PUBLIC.CUSTOM_ROLE
-```
-**Problem:** Only handles `SNOWFLAKE.*` database roles; misses custom database roles in user databases
-
-**Correct Pattern:** Use generic dot detection after stripping quotes:
-```python
-def is_database_role(role_name):
-    if role_name.startswith('"') and role_name.endswith('"'):
-        return False
-    return '.' in role_name.strip('"')
-```
-
-## Output Format Examples
-
-```python
-import snowflake.connector
-from snowflake.connector.errors import ProgrammingError
-
-def execute_query(cursor, query):
-    """Execute SQL and return results."""
-    cursor.execute(query)
-    return cursor.fetchall()
-
-def is_database_role(role_name):
-    """Detect if role is a database role by checking for dots outside quotes.
-    
-    Quoted identifiers like '"my.dotted.role"' are account roles despite containing dots.
-    """
-    stripped = role_name.strip('"')
-    # If the original had outer quotes and stripping removed them, it's a quoted account role
-    if role_name.startswith('"') and role_name.endswith('"'):
-        return False
-    return '.' in stripped
-
-def get_role_grants(cursor, role_name):
-    """Get grants for a Snowflake role (account or database role).
-    
-    Handles quoted identifiers, database roles, and error 000906.
-    Role names should come from trusted sources (SHOW ROLES output).
-    
-    Args:
-        cursor: Snowflake cursor (DictCursor recommended)
-        role_name: Role name (e.g., 'PUBLIC', 'SNOWFLAKE.CORTEX_USER', '"my.role"')
-    Returns:
-        List of grant dictionaries
-    """
-    try:
-        if is_database_role(role_name):
-            query = f"SHOW GRANTS TO DATABASE ROLE {role_name}"
-        else:
-            query = f"SHOW GRANTS TO ROLE {role_name}"
-        return execute_query(cursor, query)
-    except ProgrammingError as e:
-        if '000906' in str(e):
-            # Retry with opposite syntax
-            alt_query = (f"SHOW GRANTS TO ROLE {role_name}" 
-                        if is_database_role(role_name)
-                        else f"SHOW GRANTS TO DATABASE ROLE {role_name}")
-            return execute_query(cursor, alt_query)
-        raise
-
-# Usage — role names should come from SHOW ROLES (trusted source)
-conn = snowflake.connector.connect(...)
-cur = conn.cursor(snowflake.connector.DictCursor)
-
-account_grants = get_role_grants(cur, 'ACCOUNTADMIN')
-db_role_grants = get_role_grants(cur, 'SNOWFLAKE.CORTEX_USER')
-quoted_grants = get_role_grants(cur, '"my.dotted.role"')  # Account role despite dots
-```
-
-## Role Hierarchy Traversal
-
-Use `SHOW GRANTS OF ROLE` to find which roles and users a role has been granted to (upward traversal), and `SHOW GRANTS TO ROLE` for what privileges a role holds (downward traversal).
-
-### Grants OF vs TO
-
-```python
-def get_role_hierarchy(cursor, role_name):
-    """Get both privilege grants and role membership for a role.
-    
-    - SHOW GRANTS TO ROLE: What privileges does this role have?
-    - SHOW GRANTS OF ROLE: Who/what has been granted this role?
-    """
-    role_keyword = "DATABASE ROLE" if is_database_role(role_name) else "ROLE"
-    
-    # Downward: what can this role do?
-    privileges = execute_query(cursor, f"SHOW GRANTS TO {role_keyword} {role_name}")
-    
-    # Upward: who has this role?
-    members = execute_query(cursor, f"SHOW GRANTS OF {role_keyword} {role_name}")
-    
-    return {"privileges": privileges, "granted_to": members}
-```
-
-### Recursive Hierarchy Walk
-
-```python
-def walk_role_tree(cursor, root_role, direction="down", visited=None):
-    """Recursively traverse role hierarchy.
-    
-    Args:
-        direction: "down" = privileges this role inherits; "up" = roles/users granted this role
-    """
-    if visited is None:
-        visited = set()
-    if root_role in visited:
-        return []  # Prevent cycles
-    visited.add(root_role)
-    
-    role_keyword = "DATABASE ROLE" if is_database_role(root_role) else "ROLE"
-    
-    if direction == "down":
-        grants = execute_query(cursor, f"SHOW GRANTS TO {role_keyword} {root_role}")
-        # Find child roles (granted_on = 'ROLE') and recurse
-        for grant in grants:
-            if grant.get('granted_on') == 'ROLE':
-                child_role = grant['name']
-                grants.extend(walk_role_tree(cursor, child_role, "down", visited))
-    else:  # up
-        grants = execute_query(cursor, f"SHOW GRANTS OF {role_keyword} {root_role}")
-        for grant in grants:
-            if grant.get('granted_to') == 'ROLE':
-                parent_role = grant['grantee_name']
-                grants.extend(walk_role_tree(cursor, parent_role, "up", visited))
-    
-    return grants
-
-# Example: find all inherited privileges for ANALYST role
-all_privileges = walk_role_tree(cur, 'ANALYST', direction="down")
-
-# Example: find all roles/users that ultimately hold SYSADMIN
-all_holders = walk_role_tree(cur, 'SYSADMIN', direction="up")
-```
-
-**Security Note:** The `role_name` parameter uses f-strings in SHOW GRANTS commands. Ensure role names come from trusted sources (e.g., `SHOW ROLES` output) rather than untrusted user input. For user-provided names, validate against the output of `SHOW ROLES` before use.
+- [SHOW GRANTS scope, output, and listed variants](https://docs.snowflake.com/en/sql-reference/sql/show-grants)
+- [SHOW DATABASE ROLES](https://docs.snowflake.com/en/sql-reference/sql/show-database-roles)
+- [Access control and database-role identity](https://docs.snowflake.com/en/user-guide/security-access-control-overview)
+- [Quoted identifiers](https://docs.snowflake.com/en/sql-reference/identifiers-syntax)

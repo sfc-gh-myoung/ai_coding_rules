@@ -427,7 +427,7 @@ class TestGetTestPercentageEdgeCases:
     @patch("subprocess.run")
     def test_no_passed_no_failed_returns_zero(self, mock_run: MagicMock):
         """Test returns zeros when pytest output has no passed/failed counts."""
-        # Arrange — output with no "passed" or "failed" tokens
+        # Arrange: output with no "passed" or "failed" tokens
         mock_run.return_value = MagicMock(
             stdout="no tests ran in 0.01s\n",
             stderr="",

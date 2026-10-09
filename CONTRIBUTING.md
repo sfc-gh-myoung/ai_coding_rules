@@ -34,7 +34,7 @@ Thank you for your interest in contributing to AI Coding Rules! This project pro
 | Improve an existing rule | [Development Workflow](#development-workflow) |
 | Create a new rule | [Rule Authoring Guidelines](#rule-authoring-guidelines) |
 | Understand the architecture | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| Find available commands | Run `make help` or see [Development Commands](#development-commands) |
+| Find available commands | Run `uv run ai-rules --help` or see [Development Commands](#development-commands) |
 
 ## Types of Contributions
 
@@ -93,9 +93,9 @@ Use our issue templates:
 ### Before Submitting
 
 - [ ] **Test** your changes locally
-- [ ] **Run** `make quality-fix` to fix any quality issues
-- [ ] **Test** rule deployment with `make deploy-dry DEST=/tmp/test`
-- [ ] **Run** `make validate` to run all CI/CD checks
+- [ ] **Run** `task quality:all:fix` to fix any quality issues
+- [ ] **Build** the plugin with `uv run ai-rules plugin build` and validate it
+- [ ] **Run** `task validate` to run the local validation pipeline
 - [ ] **Update** documentation if needed
 - [ ] **Add** yourself to contributors if first contribution
 
@@ -107,8 +107,9 @@ The GitHub Actions CI workflow runs automatically on pushes and PRs to `main`:
 |-----|---------|---------|
 | `quality` | Code quality | ruff lint, ruff format, ty type check |
 | `markdown` | Markdown linting | pymarkdownlnt for rules/ and docs/ |
-| `test` | Unit tests | pytest with Python 3.11, 3.12, 3.13 matrix |
-| `validate` | Rules validation | schema validation, RULES_INDEX.md check |
+| `test` | Unit tests | pytest with Python 3.12, 3.13 matrix |
+| `coverage` | Coverage gate | pytest coverage report with the configured minimum |
+| `validate` | Rules and plugin validation | rule schema, trigger evidence, corpus audit, trigger contract, and source-faithful plugin verification |
 
 All jobs run in parallel for fast feedback. Ensure all checks pass before requesting review.
 
@@ -174,7 +175,7 @@ This project follows industry standards for Git workflow:
 
 ## Project Structure
 
-The project uses a production-ready rules architecture. For complete details, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#directory-structure).
+The project uses a production-ready rules architecture. For complete details, see [docs/ARCHITECTURE.md → System Components](docs/ARCHITECTURE.md#3-system-components).
 
 **Key directories:**
 
@@ -185,10 +186,10 @@ The project uses a production-ready rules architecture. For complete details, se
 
 **Key files:**
 
-- `AGENTS.md` - AI agent bootstrap protocol
-- `RULES_INDEX.md` - Searchable rule catalog
+- `ai-coding-rules-plugin/` - built plugin: rules, skills, and the discovery hook
+- `hooks/user-prompt-submit` - hook source; injects matched rules on every prompt (opt-in via `--with-hook`)
 
-**Key Principle:** All rules in `rules/` are production-ready and deploy directly - no generation step required.
+**Key Principle:** All rules in `rules/` are production-ready and ship directly in the plugin - no generation step required.
 
 ## Development Workflow
 
@@ -196,11 +197,11 @@ The project uses a production-ready rules architecture. For complete details, se
 
 We use modern Python tooling for consistent development:
 
-- **Python 3.11+** - Language runtime
+- **Python 3.12+** - Language runtime
 - **uv** - Fast Python package installer and resolver
 - **Ruff** - Lightning-fast linting and formatting
 - **ty** - Fast type checker (Astral toolchain)
-- **make** - Task automation
+- **Task (go-task)** - Task automation
 
 ```bash
 # Python environment with uv (recommended)
@@ -209,52 +210,62 @@ uv sync --all-groups         # Sync all dependencies
 # Alternative with pip (fallback)
 python -m venv .venv
 source .venv/bin/activate    # On Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
+pip install -e .
 ```
 
 ### Development Commands
 
-The project uses a Makefile for task automation. Run `make help` for a categorized command list.
+The project uses [Task](https://taskfile.dev/) for development automation. Run `task --list` for the full command list.
 
 **Common commands:**
 
 ```bash
-make quality-fix    # Fix all code quality issues
-make test           # Run all pytest tests
-make validate       # Run all CI/CD checks
-make rules-validate # Validate rules against schema
-make index-generate # Regenerate RULES_INDEX.md
-make deploy DEST=~  # Deploy rules to project
+task quality:all:fix    # Fix all code quality issues
+task test:run           # Run all pytest tests
+task validate           # Run local quality, tests, schemas, and plugin verification
+uv run ai-rules validate rules/          # Validate rules against schema
+uv run ai-rules plugin build             # Build the distributable plugin
 ```
 
-**See [docs/ARCHITECTURE.md#makefile-architecture](docs/ARCHITECTURE.md#makefile-architecture) for complete command reference.**
+**See [docs/USING_DEV_CLI.md](docs/USING_DEV_CLI.md) for the complete task reference.**
+
+For the complete Task catalog and the distinction between local validation and hosted CI, see [docs/USING_DEV_CLI.md](docs/USING_DEV_CLI.md).
 
 ### Code Quality and Linting
 
 ```bash
-# Quality tasks (recommended)
-make quality-fix      # Fix all quality issues (lint, format)
-make lint             # Run ruff linter (check only)
-make format           # Run ruff formatter (check only)
-make typecheck        # Run ty type checker
+# Run all quality checks at once
+task quality:all          # check only
+task quality:all:fix    # fix all auto-fixable issues
 
-# Manual commands (if make unavailable)
-uv run ruff check .          # Check linting
-uv run ruff format --check . # Check formatting
-uv run ruff format .         # Apply formatting
-uv run ty check .            # Type check
+# Or run individual checks
+task quality:lint         # ruff linter (check only)
+task quality:lint:fix   # apply lint fixes
+task quality:format       # ruff formatter (check only)
+task quality:format:fix # apply formatting
+task quality:typecheck    # ty type checker
+task quality:markdown     # pymarkdownlnt
 ```
+
+### Pre-commit hooks
+
+After cloning, install the hooks once:
+
+```bash
+uv run pre-commit install
+```
+
+This runs `ruff`, `ruff-format`, and `ty check` before each commit, matching CI.
+The existing Entro secret-scan hook must also pass unless the team-approved skip
+configuration (`git config entro.skipSecretScan true`) is set.
 
 ### Rule Validation
 
 ```bash
 # Validate rules
-make rules-validate                                    # Validate all rules
+uv run ai-rules validate rules/                       # Validate all rules
 uv run ai-rules validate rules/100-snowflake-core.md  # Validate single rule
 uv run ai-rules validate rules/ --verbose             # Verbose output
-
-# Regenerate index
-make index-generate                                    # Regenerate RULES_INDEX.md
 ```
 
 ### Testing Your Changes
@@ -263,29 +274,26 @@ Before submitting a PR, ensure your changes work correctly:
 
 ```bash
 # 1. Validate all rules
-make rules-validate
+uv run ai-rules validate rules/
 
 # 2. Validate specific rule you modified
 uv run ai-rules validate rules/XXX-rule-name.md --verbose
 
-# 3. Regenerate RULES_INDEX.md if metadata changed
-make index-generate
+# 3. Rebuild and verify the plugin
+uv run ai-rules plugin build
+uv run ai-rules plugin verify
 
-# 4. Test deployment
-make deploy-dry DEST=/tmp/test
+# 4. Run test suite
+task test:run
 
-# 5. Run test suite
-make test
-
-# 6. Run all quality checks
-make quality-fix
+# 5. Run all quality checks
+task quality:all:fix
 ```
 
 **Commit your changes:**
 
 ```bash
 git add rules/XXX-rule-name.md
-git add RULES_INDEX.md  # If you regenerated it
 git commit -m "feat: update XXX rule"
 ```
 
@@ -299,18 +307,7 @@ git commit -m "feat: update XXX rule"
 
 ### File Naming Convention
 
-Follow the established 3-digit numbering system:
-
-- **000-099**: Core foundation rules
-- **100-199**: Data platform rules (Snowflake)
-- **200-299**: Software engineering rules (Python)
-  - **210-219**: FastAPI framework subsection
-- **300-399**: Shell/Containers
-- **400-499**: Frontend (JavaScript/TypeScript)
-- **500-599**: Frontend (HTMX)
-- **600-699**: Systems/Backend (Go)
-- **800-899**: Project management
-- **900-999**: Analytics and governance
+Use the canonical [README rule-category map](README.md#rule-categories) to select the 3-digit domain range. The FastAPI subsection remains 210-219.
 
 Use format: `XXX-topic-description.md` (3-digit number)
 
@@ -322,36 +319,35 @@ Use the template generator to create schema-compliant rule files:
 
 ```bash
 # Generate new rule template
-make rule-new FILENAME=300-example-rule TIER=High
-
-# Or use CLI directly
 uv run ai-rules new 300-example-rule --context-tier High
 
 # Overwrite existing file (use with caution)
-make rule-new-force FILENAME=300-example-rule
+uv run ai-rules new 300-example-rule --force
 ```
 
 **After generation:**
 
 1. Edit the generated file and replace placeholders with actual content
-2. Validate: `make rules-validate`
-3. Update index: `make index-generate`
+2. Validate: `uv run ai-rules validate rules/`
+3. Rebuild the plugin: `uv run ai-rules plugin build`
 
 ### Rule Structure
 
-All rules must follow the v3.2 schema defined in [rules/002-rule-governance.md](rules/002-rule-governance.md).
+New and migrated rules target v4 as defined in [schemas/rule-schema.yml](schemas/rule-schema.yml) and [rules/002-rule-governance.md](rules/002-rule-governance.md). Declaring v4 is not a substitute for migrating and reviewing the body.
 
 **Quick reference:**
 
-- **Required metadata:** SchemaVersion, RuleVersion, LastUpdated, Keywords (5-20), TokenBudget, ContextTier, Depends
-- **Required sections:** Scope, References, Contract, Anti-Patterns, Post-Execution Checklist
-- **Contract must appear before line 200**
+- **Required YAML frontmatter:** `schema_version`, `rule_version`, `last_updated`, `keywords` (5-11 combined typed entries), `token_budget`, `context_tier`, and `depends` with required/optional filename lists.
+- **Required H2 order:** Scope, Contract, References.
+- **Required Contract H3 sections:** Inputs and Prerequisites, Mandatory, Execution Steps, Validation; each must have meaningful content.
+- **Manual authoring review:** Preserve safety and dependency ownership, use one completion checklist under Validation, and show correct executable examples only. No fixed step count or anti-pattern gallery is required.
+- **Validation:** Zero CRITICAL and HIGH findings. A structural pass does not prove technical accuracy or behavioral equivalence. Apply the active schema's placement limits rather than a copied historical limit.
 
 For complete structure requirements, see [002-rule-governance.md](rules/002-rule-governance.md).
 
 ### Rule Versioning
 
-Rule files use [Semantic Versioning](https://semver.org) for the `RuleVersion` field. When modifying any rule file in `rules/`, you must update both the version and date:
+Rule files use [Semantic Versioning](https://semver.org) for the YAML `rule_version` field. When modifying any rule file in `rules/`, update both the version and date:
 
 **Version Increment Criteria:**
 
@@ -363,10 +359,10 @@ Rule files use [Semantic Versioning](https://semver.org) for the `RuleVersion` f
 
 **Required Updates:**
 
-1. **RuleVersion**: Increment per semantic versioning criteria above
-2. **LastUpdated**: Set to current date in `YYYY-MM-DD` format
+1. **rule_version**: Increment per semantic versioning criteria above; schema migration is MAJOR
+2. **last_updated**: Set to current date in `YYYY-MM-DD` format
 
-For comprehensive versioning policy and edge cases, see [002b-rule-update.md](rules/002b-rule-update.md).
+For the full versioning policy and edge cases, see [002b-rule-update.md](rules/002b-rule-update.md).
 
 ### Directive Language
 
@@ -378,9 +374,11 @@ Use explicit, actionable language:
 - **Avoid:** Anti-patterns to prevent
 - **Consider:** Recommendations for specific scenarios
 
+This vocabulary is canonical for the project. README and architecture documentation link here rather than define separate hierarchies.
+
 ### Content Guidelines
 
-- **Length**: Keep rules focused (target 150-300 lines, max 500)
+- **Length**: Rules and skills should ideally be no more than 250 lines. `ai-rules validate` reports a HIGH finding for any rule over 250 lines (`schemas/rule-schema.yml` `structure.max_lines`). `ai-rules validate-skills` fails a `SKILL.md` only above 500 lines, so for skills 250 is the target and 500 is the hard check. Move optional detail into a focused companion rule or a skill's `workflows/`, `references/`, or `examples/` files without dropping required dependencies or safety instructions. Size alone does not prove quality. This limit does not apply to project documentation such as `README.md`, `CONTRIBUTING.md`, or `docs/`.
 - **Clarity**: Use clear, unambiguous language
 - **Examples**: Include concrete code examples where helpful
 - **Links**: Reference official documentation
@@ -395,22 +393,22 @@ Use explicit, actionable language:
 git checkout -b feature/add-terraform-rules
 
 # 2. Generate template
-make rule-new FILENAME=450-terraform-best-practices TIER=High
+uv run ai-rules new 450-terraform-best-practices --context-tier High
 
 # 3. Edit the generated file and fill in content
 vim rules/450-terraform-best-practices.md
 
 # 4. Validate the rule
-make rules-validate
+uv run ai-rules validate rules/
 
-# 5. Regenerate RULES_INDEX.md
-make index-generate
+# 5. Rebuild the plugin
+uv run ai-rules plugin build
 
 # 6. Run quality checks
-make quality-fix
+task quality:all:fix
 
-# 7. Commit the new rule and updated index
-git add rules/450-terraform-best-practices.md RULES_INDEX.md
+# 7. Commit the new rule
+git add rules/450-terraform-best-practices.md
 git commit -m "feat(rules): add Terraform best practices rule
 
 - Comprehensive Terraform IaC guidelines
@@ -433,14 +431,14 @@ vim rules/200-python-core.md
 # 3. Validate changes
 uv run ai-rules validate rules/200-python-core.md --verbose
 
-# 4. Update index if metadata changed
-make index-generate
+# 4. Rebuild the plugin
+uv run ai-rules plugin build
 
 # 5. Run quality checks
-make quality-fix
+task quality:all:fix
 
 # 6. Commit changes
-git add rules/200-python-core.md RULES_INDEX.md
+git add rules/200-python-core.md
 git commit -m "fix(python): update core rule with type hints guidance"
 
 # 7. Push and create PR
@@ -458,8 +456,8 @@ vim rules/450-new-rule.md  # WRONG - manual creation error-prone
 **Always use template generator:**
 
 ```bash
-make rule-new FILENAME=450-new-rule  # CORRECT
-vim rules/450-new-rule.md            # Then edit generated template
+uv run ai-rules new 450-new-rule  # CORRECT
+vim rules/450-new-rule.md         # Then edit generated template
 ```
 
 **Don't skip validation:**
@@ -472,7 +470,7 @@ git commit  # WRONG - may have validation errors
 **Always validate before committing:**
 
 ```bash
-make rules-validate
+uv run ai-rules validate rules/
 git add rules/450-new-rule.md
 git commit  # CORRECT
 ```
@@ -482,15 +480,16 @@ git commit  # CORRECT
 ```bash
 vim rules/450-new-rule.md
 git add rules/450-new-rule.md
-git commit  # WRONG - RULES_INDEX.md not updated
+git commit  # WRONG - plugin not rebuilt
 ```
 
-**Always regenerate index after rule changes:**
+**Always rebuild the plugin after rule changes:**
 
 ```bash
 vim rules/450-new-rule.md
-make index-generate
-git add rules/450-new-rule.md RULES_INDEX.md
+uv run ai-rules plugin build
+task plugin:verify            # build fidelity against the sources
+git add rules/450-new-rule.md # ai-coding-rules-plugin/ is gitignored build output
 git commit  # CORRECT
 ```
 
@@ -523,7 +522,7 @@ this does not happen again.
 
 For systematic, cross-model compatible reviews, use the skill at [skills/rule-reviewer/SKILL.md](skills/rule-reviewer/SKILL.md).
 
-For usage guide, see [docs/USING_RULE_REVIEW_SKILL.md](docs/USING_RULE_REVIEW_SKILL.md).
+For usage guide, see [docs/USING_RULE_REVIEWER_SKILL.md](docs/USING_RULE_REVIEWER_SKILL.md).
 
 ```text
 Review rules/XXX-rule-name.md using the Agent-Centric Rule Review criteria.
@@ -533,42 +532,35 @@ Review Mode: STALENESS
 
 This provides:
 
-- **6-point scoring** - Actionability, Completeness, Consistency, Parsability, Token Efficiency, Staleness
-- **Three review modes** - FULL (comprehensive), FOCUSED (targeted), STALENESS (periodic maintenance)
+- **100-point scoring** - Six scored dimensions with hard caps defined by the reviewer rubric
+- **Three review modes** - FULL, FOCUSED (targeted), STALENESS (periodic maintenance)
 - **Staleness detection** - Identifies outdated tool versions, deprecated patterns, API changes
-- **Cross-model compatibility** - Tested on GPT-4o, GPT-5.1, GPT-5.2, Claude Sonnet 4.5, Claude Opus 4.5, Gemini 2.5 Pro, Gemini 3 Pro
+- **Cross-model compatibility** - Review criteria are designed for consistent evaluation across supported agent families
 
 ## Code of Conduct
 
-We are committed to fostering an open and welcoming environment. Please:
-
-- **Be respectful** in all interactions
-- **Be collaborative** and help others learn
-- **Be patient** with newcomers and different perspectives
-- **Be constructive** in feedback and criticism
-- **Be inclusive** and welcome diverse contributors
+All contributors must follow the [Code of Conduct](CODE_OF_CONDUCT.md). Report conduct concerns privately through the repository owner's GitHub profile.
 
 ## Getting Help
 
 ### Self-Service Resources
 
 - **README.md** - Project overview, setup, troubleshooting
-- **RULES_INDEX.md** - Find rules by keyword or category
-- **AGENTS.md** - Rule loading protocol details
+- **`rules/000-global-core.md`** - Rule loading contract and execution protocols
 - **docs/ARCHITECTURE.md** - System architecture and design decisions
 
 ### Community Support
 
 - **GitHub Issues:** [File an issue](https://github.com/sfc-gh-myoung/ai_coding_rules/issues) for bugs, features, or rule suggestions
-- **GitHub Discussions:** [Join the discussion](https://github.com/sfc-gh-myoung/ai_coding_rules/discussions) for questions and community support
+- **Issue templates:** [bug reports](.github/ISSUE_TEMPLATE/bug_report.yml) and [feature requests](.github/ISSUE_TEMPLATE/feature_request.yml) capture the required context
+- **Security issues:** Follow the private reporting process in [SECURITY.md](SECURITY.md); do not file suspected vulnerabilities as public issues
 
 ## Rule Quality Standards
 
-All rules follow **Section 11: Universal Compatibility Standards** from `002-rule-governance.md`, ensuring consistent behavior across all AI agents and LLMs.
+The v4 authoring contract in `002-rule-governance.md` governs rule structure and semantic review. Cross-model behavior requires evaluation; portable Markdown alone does not guarantee it.
 
 **Key Standards:**
 
-- Quick Start TL;DR sections - Essential patterns in 30 seconds
 - Standardized metadata order - Consistent parsing across agents
 - Investigation-First protocols - Prevents hallucinations
 - Complete response templates - Working code examples
@@ -578,9 +570,9 @@ All rules follow **Section 11: Universal Compatibility Standards** from `002-rul
 
 **For Contributors:**
 
-- **Validate rules:** `make rules-validate`
-- **Run all CI checks:** `make validate`
-- **Complete standards:** See `rules/002-rule-governance.md` Section 11
+- **Validate rules:** `uv run ai-rules validate rules/`
+- **Run all CI checks:** `task validate`
+- **Complete standards:** See `rules/002-rule-governance.md` and the active schema
 
 ## Recognition
 
@@ -592,3 +584,27 @@ Contributors are recognized in several ways:
 - **Community spotlights** in discussions
 
 Thank you for helping make AI Coding Rules better for everyone!
+
+## Rule Loading Evaluator: authoring fixtures
+
+The Rule Loading Evaluator is a live-agent sanity check that the
+Cortex Code Agent SDK, given the injected rule context plus a fixture
+prompt, loads the rules each fixture declares. See
+[`docs/EVALUATING_RULE_LOADER.md`](docs/EVALUATING_RULE_LOADER.md) for
+the full reference.
+
+Two points matter when you commit:
+
+- **Optional pre-commit hook.** `rule-loader-eval` is not in `.pre-commit-config.yaml`
+  by default. If you add it (see [Adding the hook](docs/EVALUATING_RULE_LOADER.md#adding-the-hook)),
+  bypass it on commits without Snowflake credentials with
+  `SKIP=rule-loader-eval git commit -m "..."`.
+
+- **CI does not run the live agent.** CI runs only the trigger-evidence invariant
+  (`uv run ai-rules rule-loader validate`, called from `task validate`).
+
+See [`docs/EVALUATING_RULE_LOADER.md`](docs/EVALUATING_RULE_LOADER.md) for the full
+command reference (validate, eval, create, refresh, refresh-all, compare, and the
+fixture schema) and
+[`fixtures/rule_loader_eval/AUTHORING_GUIDE.md`](fixtures/rule_loader_eval/AUTHORING_GUIDE.md)
+for prompt-writing guidance.

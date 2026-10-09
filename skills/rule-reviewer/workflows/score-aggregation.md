@@ -67,63 +67,67 @@ def apply_hard_caps(total_score: float, line_count: int, blocking_issues: int) -
 ```python
 def aggregate_dimension_results(dimension_results: list) -> dict:
     """Combine 6 dimension worksheets into final review."""
-    
+
     total_score = 0
     worksheets = []
     failed_dimensions = []
-    
+
     # Weight mapping for v2.0
     weights = {
-        'actionability': 3.0,
-        'rule_size': 2.5,
-        'parsability': 1.5,
-        'completeness': 1.5,
-        'consistency': 1.0,
-        'cross_agent_consistency': 0.5
+        "actionability": 3.0,
+        "rule_size": 2.5,
+        "parsability": 1.5,
+        "completeness": 1.5,
+        "consistency": 1.0,
+        "cross_agent_consistency": 0.5,
     }
-    
+
     for result in dimension_results:
-        if result.get('status') == 'failed' or result.get('status') == 'timeout':
-            failed_dimensions.append({
-                'dimension': result['dimension'],
-                'weight': weights.get(result['dimension'], 1),
-                'max_points': weights.get(result['dimension'], 1) * 10,
-                'status': result.get('status'),
-                'error': result.get('error')
-            })
+        if result.get("status") == "failed" or result.get("status") == "timeout":
+            failed_dimensions.append(
+                {
+                    "dimension": result["dimension"],
+                    "weight": weights.get(result["dimension"], 1),
+                    "max_points": weights.get(result["dimension"], 1) * 10,
+                    "status": result.get("status"),
+                    "error": result.get("error"),
+                }
+            )
             continue
-        
+
         # Apply formula: Raw × Weight
-        raw_score = result.get('raw_score', 0)
-        weight = weights.get(result['dimension'], 1)
+        raw_score = result.get("raw_score", 0)
+        weight = weights.get(result["dimension"], 1)
         points = raw_score * weight
         max_points = weight * 10
-        
+
         total_score += points
-        
-        worksheets.append({
-            'dimension': result['dimension'],
-            'raw_score': raw_score,
-            'weight': weight,
-            'points': round(points, 1),
-            'max_points': max_points,
-            'tier': result.get('tier', 'Unknown'),
-            'evidence': result.get('evidence', []),
-            'issues_found': result.get('issues_found', []),
-            'issues_deferred': result.get('issues_deferred', [])
-        })
-    
+
+        worksheets.append(
+            {
+                "dimension": result["dimension"],
+                "raw_score": raw_score,
+                "weight": weight,
+                "points": round(points, 1),
+                "max_points": max_points,
+                "tier": result.get("tier", "Unknown"),
+                "evidence": result.get("evidence", []),
+                "issues_found": result.get("issues_found", []),
+                "issues_deferred": result.get("issues_deferred", []),
+            }
+        )
+
     # Calculate max possible score based on completed dimensions
-    completed_max = sum(w['max_points'] for w in worksheets)
+    completed_max = sum(w["max_points"] for w in worksheets)
     full_max = 100  # Always 100 for reference (v2.0)
-    
+
     return {
-        'total_score': round(total_score, 1),
-        'max_score': full_max,
-        'completed_max': completed_max,
-        'worksheets': worksheets,
-        'failed_dimensions': failed_dimensions,
-        'is_partial': len(failed_dimensions) > 0
+        "total_score": round(total_score, 1),
+        "max_score": full_max,
+        "completed_max": completed_max,
+        "worksheets": worksheets,
+        "failed_dimensions": failed_dimensions,
+        "is_partial": len(failed_dimensions) > 0,
     }
 ```
 
@@ -132,33 +136,33 @@ def aggregate_dimension_results(dimension_results: list) -> dict:
 ```python
 def apply_critical_override(aggregated: dict) -> dict:
     """Apply critical dimension override rule."""
-    
+
     # Find Actionability and Completeness scores
     actionability_score = None
     completeness_score = None
-    
-    for worksheet in aggregated['worksheets']:
-        if worksheet['dimension'] == 'actionability':
-            actionability_score = worksheet['raw_score']
-        elif worksheet['dimension'] == 'completeness':
-            completeness_score = worksheet['raw_score']
-    
+
+    for worksheet in aggregated["worksheets"]:
+        if worksheet["dimension"] == "actionability":
+            actionability_score = worksheet["raw_score"]
+        elif worksheet["dimension"] == "completeness":
+            completeness_score = worksheet["raw_score"]
+
     # Critical override: If both Actionability ≤4/10 AND Completeness ≤4/10
     # → NOT_EXECUTABLE regardless of total score
     override_triggered = False
     if actionability_score is not None and completeness_score is not None:
         if actionability_score <= 4 and completeness_score <= 4:
             override_triggered = True
-            aggregated['verdict'] = 'NOT_EXECUTABLE'
-            aggregated['override_reason'] = (
+            aggregated["verdict"] = "NOT_EXECUTABLE"
+            aggregated["override_reason"] = (
                 f"Critical dimension override: Actionability ({actionability_score}/10) "
                 f"and Completeness ({completeness_score}/10) both ≤4"
             )
-    
+
     if not override_triggered:
-        aggregated['verdict'] = determine_verdict(aggregated['total_score'])
-        aggregated['override_reason'] = None
-    
+        aggregated["verdict"] = determine_verdict(aggregated["total_score"])
+        aggregated["override_reason"] = None
+
     return aggregated
 ```
 
@@ -170,9 +174,9 @@ def determine_verdict(total_score: float) -> str:
     
     if total_score >= 90:
         return "EXECUTABLE"
-    elif total_score >= 75:
+    elif total_score >= 80:
         return "EXECUTABLE_WITH_REFINEMENTS"
-    elif total_score >= 50:
+    elif total_score >= 60:
         return "NEEDS_REFINEMENT"
     else:
         return "NOT_EXECUTABLE"
@@ -181,9 +185,9 @@ def determine_verdict(total_score: float) -> str:
 | Score Range | Verdict | Description |
 |-------------|---------|-------------|
 | 90-100 | EXECUTABLE | Production-ready |
-| 75-89 | EXECUTABLE_WITH_REFINEMENTS | Good, minor fixes |
-| 50-74 | NEEDS_REFINEMENT | Needs work |
-| <50 | NOT_EXECUTABLE | Major issues |
+| 80-89 | EXECUTABLE_WITH_REFINEMENTS | Good, minor fixes |
+| 60-79 | NEEDS_REFINEMENT | Needs work |
+| <60 | NOT_EXECUTABLE | Major issues |
 
 ## Partial Results Handling
 
@@ -192,43 +196,45 @@ When fewer than 6 dimensions complete successfully:
 ```python
 def aggregate_with_partial_results(dimension_results: list) -> dict:
     """Aggregate results even when some dimensions failed (v2.0)."""
-    
-    completed = [r for r in dimension_results if r.get('status') == 'completed']
-    failed = [r for r in dimension_results if r.get('status') != 'completed']
-    
+
+    completed = [r for r in dimension_results if r.get("status") == "completed"]
+    failed = [r for r in dimension_results if r.get("status") != "completed"]
+
     # Calculate partial score using v2.0 weights
-    completed_weight = sum(r['weight'] for r in completed)
-    partial_score = sum(r['raw_score'] * r['weight'] for r in completed)
-    
+    completed_weight = sum(r["weight"] for r in completed)
+    partial_score = sum(r["raw_score"] * r["weight"] for r in completed)
+
     # Extrapolate if we have enough data
     if len(completed) >= 3:
         # Scale up to 100-point max
         extrapolated_score = (partial_score / completed_weight) * 100
     else:
         extrapolated_score = None
-    
+
     confidence = "high" if len(completed) >= 5 else "medium" if len(completed) >= 3 else "low"
-    
+
     report = {
         "status": "partial" if failed else "complete",
         "completed_dimensions": len(completed),
         "failed_dimensions": len(failed),
-        "failed_dimension_names": [r['dimension'] for r in failed],
+        "failed_dimension_names": [r["dimension"] for r in failed],
         "partial_score": round(partial_score, 1),
         "partial_max": completed_weight,
         "extrapolated_score": round(extrapolated_score, 1) if extrapolated_score else None,
         "confidence": confidence,
-        "disclaimer": None
+        "disclaimer": None,
     }
-    
+
     if failed:
         report["disclaimer"] = (
             f"WARNING: {len(failed)} dimensions failed ({', '.join(report['failed_dimension_names'])}). "
             f"Score of {report['partial_score']}/{report['partial_max']} is incomplete. "
         )
         if extrapolated_score:
-            report["disclaimer"] += f"Extrapolated: ~{report['extrapolated_score']}/100 ({confidence} confidence)"
-    
+            report["disclaimer"] += (
+                f"Extrapolated: ~{report['extrapolated_score']}/100 ({confidence} confidence)"
+            )
+
     return report
 ```
 
@@ -237,38 +243,43 @@ def aggregate_with_partial_results(dimension_results: list) -> dict:
 ```python
 def apply_rule_size_flags(aggregated: dict) -> dict:
     """Apply Rule Size flags to aggregated results (v2.0)."""
-    
+
     rule_size_result = None
-    for worksheet in aggregated['worksheets']:
-        if worksheet['dimension'] == 'rule_size':
+    for worksheet in aggregated["worksheets"]:
+        if worksheet["dimension"] == "rule_size":
             rule_size_result = worksheet
             break
-    
+
     if not rule_size_result:
         return aggregated
-    
+
     # v2.0 flags: SPLIT_RECOMMENDED, SPLIT_REQUIRED, NOT_DEPLOYABLE, BLOCKED
     flag = None
-    for issue in rule_size_result.get('issues_found', []):
-        if issue.get('description') in ['SPLIT_RECOMMENDED', 'SPLIT_REQUIRED', 'NOT_DEPLOYABLE', 'BLOCKED']:
-            flag = issue['description']
+    for issue in rule_size_result.get("issues_found", []):
+        if issue.get("description") in [
+            "SPLIT_RECOMMENDED",
+            "SPLIT_REQUIRED",
+            "NOT_DEPLOYABLE",
+            "BLOCKED",
+        ]:
+            flag = issue["description"]
             break
-    
+
     if flag:
-        aggregated['rule_size_flag'] = flag
-        
-        if flag == 'BLOCKED':
-            aggregated['verdict'] = 'NOT_EXECUTABLE'
-            aggregated['override_reason'] = f"Rule Size flag: BLOCKED (≥10 blocking issues)"
-        elif flag == 'NOT_DEPLOYABLE':
-            aggregated['verdict'] = 'NOT_EXECUTABLE'
-            aggregated['override_reason'] = f"Rule Size flag: NOT_DEPLOYABLE (>700 lines)"
-        elif flag == 'SPLIT_REQUIRED':
-            if aggregated['verdict'] in ['EXECUTABLE', 'EXECUTABLE_WITH_REFINEMENTS']:
-                aggregated['verdict'] = 'NEEDS_REFINEMENT'
-                aggregated['rule_size_warning'] = f"Deployment blocked until split (>600 lines)"
+        aggregated["rule_size_flag"] = flag
+
+        if flag == "BLOCKED":
+            aggregated["verdict"] = "NOT_EXECUTABLE"
+            aggregated["override_reason"] = f"Rule Size flag: BLOCKED (≥10 blocking issues)"
+        elif flag == "NOT_DEPLOYABLE":
+            aggregated["verdict"] = "NOT_EXECUTABLE"
+            aggregated["override_reason"] = f"Rule Size flag: NOT_DEPLOYABLE (>700 lines)"
+        elif flag == "SPLIT_REQUIRED":
+            if aggregated["verdict"] in ["EXECUTABLE", "EXECUTABLE_WITH_REFINEMENTS"]:
+                aggregated["verdict"] = "NEEDS_REFINEMENT"
+                aggregated["rule_size_warning"] = f"Deployment blocked until split (>600 lines)"
         # SPLIT_RECOMMENDED is advisory only - no verdict change
-    
+
     return aggregated
 ```
 
@@ -278,7 +289,8 @@ def apply_rule_size_flags(aggregated: dict) -> dict:
 def generate_review_document(aggregated: dict, params: dict, context: dict) -> str:
     """Generate the final review markdown document.
     
-    Output MUST conform to references/REVIEW-OUTPUT-TEMPLATE.md structure.
+    Output MUST conform to the `rule-review-result/v1` canonical JSON schema.
+    Validate with `ai-rules review-artifact validate` before rendering Markdown.
     """
     
     # Build score table (template-compliant columns)
@@ -300,7 +312,7 @@ def generate_review_document(aggregated: dict, params: dict, context: dict) -> s
 **Review Date:** {params['review_date']}
 **Review Mode:** {params.get('review_mode', 'FULL')}
 **Model:** {params.get('model', 'unknown')}
-**Reviewer Skill:** rule-reviewer v{params.get('skill_version', '2.7.0')}
+**Reviewer Skill:** rule-reviewer v{params.get('skill_version', '2.9.0')}
 **Schema Validator:** ai-rules validate
 
 ## Executive Summary
@@ -496,30 +508,31 @@ def generate_review_document(aggregated: dict, params: dict, context: dict) -> s
 ```python
 def get_output_path(params: dict) -> str:
     """Generate output file path with no-overwrite safety."""
-    
-    output_root = params.get('output_root', 'reviews/')
-    target_file = params['target_file']
-    model = params.get('model', 'unknown')
-    review_date = params['review_date']
-    overwrite = params.get('overwrite', False)
-    
+
+    output_root = params.get("output_root", "reviews/")
+    target_file = params["target_file"]
+    model = params.get("model", "unknown")
+    review_date = params["review_date"]
+    overwrite = params.get("overwrite", False)
+
     # Extract rule name from path
     import os
+
     rule_name = os.path.splitext(os.path.basename(target_file))[0]
-    
+
     base_path = f"{output_root}/rule-reviews/{rule_name}-{model}-{review_date}"
-    
+
     if overwrite:
         return f"{base_path}.md"
-    
+
     # No-overwrite: increment if exists
     if not os.path.exists(f"{base_path}.md"):
         return f"{base_path}.md"
-    
+
     for i in range(1, 100):
         path = f"{base_path}-{i:02d}.md"
         if not os.path.exists(path):
             return path
-    
+
     raise ValueError(f"Maximum review versions exceeded for {rule_name}")
 ```

@@ -89,6 +89,7 @@ def test_first():
     global state
     state = "initialized"
 
+
 def test_second():
     assert state == "initialized"  # Fails if test_first doesn't run first
 ```
@@ -101,6 +102,7 @@ def test_second():
 @pytest.fixture
 def initialized_state():
     return "initialized"
+
 
 def test_with_fixture(initialized_state):
     assert initialized_state == "initialized"  # Works independently

@@ -21,7 +21,7 @@ This is how skill composition works in Claude Code - orchestrator skills load an
 - List of rule file paths (from discovery.md)
 - `review_date`: Date stamp for reviews (YYYY-MM-DD)
 - `review_mode`: FULL | FOCUSED | STALENESS
-- `model`: Model identifier (e.g., claude-sonnet-45)
+- `model`: Model identifier (e.g., claude-sonnet-4-6)
 - `skip_existing`: Boolean (default: true)
 - `max_parallel`: Integer 1-10 (default: 5) - Number of concurrent sub-agents
 - `output_root`: Root directory for output files (default: `reviews/`)
@@ -120,10 +120,10 @@ Before processing any rules, verify the agent understands protocol requirements:
 ```python
 def verify_protocol_compliance():
     """Ensure agent commits to following protocol exactly."""
-    
-    print("="*60)
+
+    print("=" * 60)
     print("PROTOCOL VERIFICATION")
-    print("="*60)
+    print("=" * 60)
     print()
     print("This workflow REQUIRES:")
     print("   Execute rule-reviewer workflow for EACH rule")
@@ -137,11 +137,12 @@ def verify_protocol_compliance():
     print("Estimated time: sequential execution will scale with rule count and review depth")
     print("Resume capability: Use skip_existing=true to resume after interruption")
     print()
-    print("="*60)
+    print("=" * 60)
     print()
-    
+
     # This serves as documentation/reminder; agent cannot self-verify
     # User must monitor for protocol violations during execution
+
 
 verify_protocol_compliance()
 ```
@@ -163,13 +164,10 @@ for rule_path in rule_file_paths:
     if not workflow_loaded:
         load_rule_reviewer_skill()
         workflow_loaded = True
-    
+
     # Execute complete review workflow for this rule
     review_result = execute_rule_review_workflow(
-        target_file=rule_path,
-        review_date=review_date,
-        review_mode=review_mode,
-        model=model
+        target_file=rule_path, review_date=review_date, review_mode=review_mode, model=model
     )
 ```
 
@@ -297,15 +295,15 @@ for rule_path in rule_file_paths:
 ### Step 3: Summary Report
 
 ```python
-print(f"\n{'='*60}")
+print(f"\n{'=' * 60}")
 print(f"Bulk Review Complete")
-print(f"{'='*60}")
+print(f"{'=' * 60}")
 print(f"Total rules: {total_files}")
 print(f"Successful: {completed - failed}")
 print(f"Failed: {failed}")
 print(f"Skipped: {skipped}")
 print(f"Average score: {calculate_average_score(results)}/100")
-print(f"{'='*60}\n")
+print(f"{'=' * 60}\n")
 
 return results
 ```
@@ -318,22 +316,23 @@ return results
 def check_for_drift(review_path, rule_number):
     """Detect optimization drift via review quality indicators."""
     import os
-    
+
     review_size = os.path.getsize(review_path)
-    
+
     # Size-based drift detection
     if review_size < 2500:
         print(f"DRIFT DETECTED at rule #{rule_number}: Review only {review_size} bytes")
         print("Executing context refresh...")
         read_file("skills/bulk-rule-reviewer/workflows/context-anchor.md")
         return True
-    
+
     # Periodic context refresh (every 10 rules)
     if rule_number % 10 == 0:
         print(f"Context refresh at rule #{rule_number}")
         read_file("skills/bulk-rule-reviewer/workflows/context-anchor.md")
-    
+
     return False
+
 
 # In main loop, after writing review:
 drift_detected = check_for_drift(review_path, completed)
@@ -351,10 +350,11 @@ if drift_detected:
 ```python
 def extract_rule_name(file_path):
     """Extract rule name from file path.
-    
+
     Example: "rules/100-snowflake-core.md" → "100-snowflake-core"
     """
     import os
+
     basename = os.path.basename(file_path)  # "100-snowflake-core.md"
     name_without_ext = os.path.splitext(basename)[0]  # "100-snowflake-core"
     return name_without_ext
@@ -366,6 +366,7 @@ def extract_rule_name(file_path):
 def file_exists(path):
     """Check if file exists at given path."""
     import os
+
     return os.path.exists(path)
 ```
 
@@ -374,38 +375,34 @@ def file_exists(path):
 ```python
 def extract_metadata_from_review(review_path):
     """Extract score, verdict, and critical issues from review file.
-    
+
     Reads ONLY first 100 lines to avoid context overflow.
     """
     import re
-    
-    with open(review_path, 'r') as f:
+
+    with open(review_path, "r") as f:
         lines = f.readlines()[:100]  # First 100 lines only
-        content = ''.join(lines)
-    
+        content = "".join(lines)
+
     # Extract overall score: "**Overall:** 85/100"
-    score_match = re.search(r'\*\*Overall:\*\* (\d+)/100', content)
+    score_match = re.search(r"\*\*Overall:\*\* (\d+)/100", content)
     score = int(score_match.group(1)) if score_match else None
-    
+
     # Extract verdict: "### Agent Executability Verdict\n**EXECUTABLE**"
-    verdict_match = re.search(r'### Agent Executability Verdict\s+\*\*([A-Z_]+)\*\*', content)
+    verdict_match = re.search(r"### Agent Executability Verdict\s+\*\*([A-Z_]+)\*\*", content)
     verdict = verdict_match.group(1) if verdict_match else "UNKNOWN"
-    
+
     # Count critical issues (count occurrences of "### Critical Issues" header)
     # Then count numbered items in that section
-    critical_section_match = re.search(r'### Critical Issues\s+(.*?)(?=###|\Z)', content, re.DOTALL)
+    critical_section_match = re.search(r"### Critical Issues\s+(.*?)(?=###|\Z)", content, re.DOTALL)
     if critical_section_match:
         critical_text = critical_section_match.group(1)
         # Count numbered items: "1.", "2.", etc.
-        critical_issues = len(re.findall(r'^\d+\.', critical_text, re.MULTILINE))
+        critical_issues = len(re.findall(r"^\d+\.", critical_text, re.MULTILINE))
     else:
         critical_issues = 0
-    
-    return {
-        "score": score,
-        "verdict": verdict,
-        "critical_issues": critical_issues
-    }
+
+    return {"score": score, "verdict": verdict, "critical_issues": critical_issues}
 ```
 
 ### parse_review_path(review_result_text)
@@ -413,12 +410,12 @@ def extract_metadata_from_review(review_path):
 ```python
 def parse_review_path(review_result_text):
     """Parse review file path from rule-reviewer output.
-    
-    Expected format: "Review written to: reviews/100-snowflake-core-claude-sonnet-45-2026-01-06.md"
+
+    Expected format: "Review written to: reviews/100-snowflake-core-claude-sonnet-4-6-2026-01-06.md"
     """
     import re
-    
-    match = re.search(r'Review written to:\s+(.+\.md)', review_result_text)
+
+    match = re.search(r"Review written to:\s+(.+\.md)", review_result_text)
     if match:
         return match.group(1).strip()
     else:
@@ -481,7 +478,7 @@ def execute_rule_review_workflow(target_file, review_date, review_mode, model):
         target_file: Path to rule file (e.g., rules/100-snowflake-core.md)
         review_date: Date stamp (YYYY-MM-DD)
         review_mode: FULL | FOCUSED | STALENESS
-        model: Model identifier (e.g., claude-sonnet-45)
+        model: Model identifier (e.g., claude-sonnet-4-6)
     
     Returns:
         dict with keys: review_path, score, verdict, critical_issues
@@ -616,7 +613,7 @@ Only show the minimal progress output below. Do NOT display:
 
 ```
 Starting bulk review: 187 rules
-Review mode: FULL | Model: claude-sonnet-45 | Date: 2026-01-06
+Review mode: FULL | Model: claude-sonnet-4-6 | Date: 2026-01-06
 Skip existing: true
 
 [1/187] Starting: 000-global-core.md

@@ -1,0 +1,23 @@
+schema_version: 3
+updated: '2026-07-20T13:00:00-04:00'
+id: simple-snowcli-app-file
+description: null
+variant: simple
+prompt: 'What''s needed to include an additional native app artifact entry in
+
+  snowflake.yml?
+
+  '
+expected:
+  required:
+  - rules/000-global-core.md
+  - rules/112-snowflake-snowcli.md
+  forbidden: []
+  optional:
+  - rules/100-snowflake-core.md
+trigger_evidence:
+  kw: []
+  ext: []
+  file:
+  - snowflake.yml
+  dir: []

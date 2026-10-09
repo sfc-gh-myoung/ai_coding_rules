@@ -1,0 +1,6 @@
+{
+  "runtime_id": "claude-code",
+  "status": "supported",
+  "capability_ids": ["subagents", "tools", "user-questions"],
+  "fallback": "Run directly when mode switching is unavailable."
+}

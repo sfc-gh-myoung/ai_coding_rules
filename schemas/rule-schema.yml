@@ -1,13 +1,48 @@
-# YAML Schema for AI Coding Rules v3.2
+# YAML Schema for AI Coding Rules v4.0
 # ==============================================================================
-# Purpose: Validation schema for rule files per 002-rule-governance.md v3.2
+# Purpose: Compact, action-first rule authoring and validation contract
 # Usage: ai-rules validate rules/NNN-rule.md
+#
+# Migration note (v3.4 → v3.5):
+# - YAML frontmatter is now the canonical metadata format; inline **Field:**
+#   format is still accepted during rollout (dual-parse mode).
+# - `## Metadata` H2 header is no longer required (frontmatter fence replaces it).
+# - `### Dependencies` prose subsection is no longer required in References;
+#   dependency data lives in frontmatter `depends:` with per-item YAML
+#   comment justifications.
+# - Keywords count bound set to a combined 5-11 typed entries (kw:/ext:/file:/dir:).
+#   Advisory shape within that hard bound: 2-4 structural (ext:/file:/dir:) plus
+#   5-7 semantic (kw:). `--count` controls the semantic count only.
 # ==============================================================================
 
 $schema: "http://json-schema.org/draft-07/schema#"
-version: "3.2"
-description: "Validation schema for AI coding rules v3.2 (eliminated Purpose/Quick Start, added Scope, early References, Markdown-only Contract)"
-last_updated: "2025-12-22"
+version: "4.0"
+description: "Action-first rules: Scope, Contract, References; four required Contract subsections; positive examples on demand. Metadata discovery remains compatible. Semantic authoring requirements are reviewed separately from structural validation."
+last_updated: "2026-09-16"
+
+authoring_contract:
+  enforcement: "Manual review; this block is not consumed by SchemaValidator. Structural checks below apply immediately, regardless of a rule's declared version."
+  migration: "Migrate rule bodies and governance/templates together before declaring v4.0 conformance. Existing v3.x declarations remain parseable, not exempt from active structural checks."
+  sources:
+    - "https://agentskills.io/specification"
+    - "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices"
+    - "https://developers.openai.com/api/docs/guides/prompt-engineering"
+  requirements:
+    - "State applicability and exclusions once; preserve discovery metadata without repeating its summary verbatim."
+    - "Keep task-specific constraints in Mandatory; keep shared safety constraints in their required owner."
+    - "Write condition, action, and observable result. Define fallback or escalation where failure changes safety or correctness."
+    - "Use exact values from a specification or project configuration; label local defaults and their rationale. Do not invent thresholds to replace judgment."
+    - "Match procedural detail to operational risk. Use ordered steps only for sequences; do not pad to a step count."
+    - "State required output shape in Validation or an optional Output Format subsection. Keep one completion checklist, not a duplicate Post-Execution Checklist."
+    - "Preserve authorization, data boundaries, non-idempotent retry handling, and ownership-scoped recovery when compressing."
+    - "Show correct examples only, with inputs, prerequisites, and expected outcomes. Cite defects without including incorrect executable examples."
+    - "Use no more than three correct examples per rule; add one only when it resolves a distinct ambiguity. Do not include incorrect executable examples, generic tutorials, or duplicates."
+    - "Keep each operational rules/*.md file within 250 physical lines; move nonessential detail to a focused companion or primary documentation without dropping essential safety instructions."
+    - "Link to focused primary documentation for external claims. Distinguish product requirements, repository policy, and unverified assumptions."
+    - "For optional resources, name the load condition and exact path; retain essential safety instructions in the active contract."
+    - "Keep references shallow and dependency ownership acyclic. Measure the loaded dependency closure, not just individual file size."
+    - "Use Markdown structures that preserve meaning; format restrictions are repository policy, not proof of universal model limitations."
+    - "Compare representative tasks before and after compression; verify discovery, required reads, outputs, and failure handling. Static schema success is not behavioral proof."
 
 # ==============================================================================
 # METADATA VALIDATION RULES
@@ -18,15 +53,17 @@ metadata:
   required_fields:
     - name: "SchemaVersion"
       format: "**SchemaVersion:**"
+      yaml_key: "schema_version"
       type: "string"
       pattern: "^v\\d+\\.\\d+(\\.\\d+)?$"
-      error_message: "SchemaVersion must be semantic version format (e.g., v3.1 or v3.1.0)"
-      fix_suggestion: "Add **SchemaVersion:** v3.1 (or current schema version)"
+      error_message: "SchemaVersion must be a version string (e.g., v4.0)"
+      fix_suggestion: "Set schema_version: v4.0 after migrating to the active contract"
       severity: "CRITICAL"
       docs_reference: "002-rule-governance.md Section 11.1"
     
     - name: "RuleVersion"
       format: "**RuleVersion:**"
+      yaml_key: "rule_version"
       type: "string"
       pattern: "^v\\d+\\.\\d+\\.\\d+$"
       error_message: "RuleVersion must be semantic version format (e.g., v1.0.0)"
@@ -36,6 +73,7 @@ metadata:
     
     - name: "LastUpdated"
       format: "**LastUpdated:**"
+      yaml_key: "last_updated"
       type: "string"
       pattern: "^\\d{4}-\\d{2}-\\d{2}$"
       error_message: "LastUpdated must be date format YYYY-MM-DD (e.g., 2025-12-23)"
@@ -46,18 +84,22 @@ metadata:
     
     - name: "Keywords"
       format: "**Keywords:**"
+      yaml_key: "keywords"
       type: "array"
       min_items: 5
-      max_items: 20
+      max_items: 11
       item_type: "string"
       separator: ", "
-      error_message: "Keywords must contain 5-20 comma-separated terms"
-      fix_suggestion: "Add {needed} more semantic keywords for better discovery"
+      pattern: "^(kw:[a-z0-9][a-z0-9 _.-]*|ext:\\.[a-z0-9]+|file:[A-Za-z0-9_.+-]+|dir:[A-Za-z0-9_/-]+/?)$"
+      description: "Typed-prefix keywords for rule discovery (schema v3.6). Four prefixes: kw: (semantic keyword, lowercase), ext: (file extension, e.g. ext:.py), file: (specific filename, e.g. file:Dockerfile), dir: (directory path, e.g. dir:tests/). All entries count toward the combined 5-11 minimum/maximum (advisory shape within that hard bound: 2-4 structural ext:/file:/dir: plus 5-7 semantic kw:). Foundation rules use kw: prefixes only (no ext:/file:/dir:)."
+      error_message: "Keywords entries must use a typed prefix (kw:, ext:, file:, dir:) and total 5-11 entries (combined)."
+      fix_suggestion: "Use typed prefixes on every entry. Example: kw:python, ext:.py, file:pyproject.toml. Currently {actual} entries (need {min}-{max})."
       severity: "HIGH"
       docs_reference: "002-rule-governance.md Section 11.1"
     
     - name: "TokenBudget"
       format: "**TokenBudget:**"
+      yaml_key: "token_budget"
       type: "string"
       pattern: "^~[0-9]+$"
       accuracy_tolerance: 0.10  # ±10% of actual word count
@@ -68,6 +110,7 @@ metadata:
     
     - name: "ContextTier"
       format: "**ContextTier:**"
+      yaml_key: "context_tier"
       type: "enum"
       allowed_values: ["Critical", "High", "Medium", "Low"]
       error_message: "ContextTier must be one of: Critical, High, Medium, Low"
@@ -78,62 +121,57 @@ metadata:
     
     - name: "Depends"
       format: "**Depends:**"
+      yaml_key: "depends"
       type: "array"
-      min_items: 1
+      min_items: 0
       item_type: "string"
-      pattern: "rules/[a-zA-Z0-9_-]+\\.md"
+      pattern: "^(required|optional):[a-zA-Z0-9_-]+\\.md$"
       check_file_exists: true
-      allow_placeholders: ["000-global-core"]
-      error_message: "Depends must list at least one prerequisite rule"
-      fix_suggestion: "Add rules/000-global-core or other dependencies"
+      allow_placeholders: ["None", "-", "-"]
+      error_message: "Depends entries must use 'required:FILENAME.md' or 'optional:FILENAME.md' (or 'None' for foundation rules)"
+      fix_suggestion: "Prefix each entry with required: or optional:. Example: required:000-global-core.md, optional:200-python-core.md"
       severity: "HIGH"
       docs_reference: "002-rule-governance.md Section 11.1"
   
-  # Optional metadata fields (used by index generator but not required for all rules)
-  optional_fields:
-    - name: "LoadTrigger"
-      format: "**LoadTrigger:**"
-      type: "array"
-      item_type: "string"
-      separator: ", "
-      pattern: "^(ext:\\.[a-z0-9]+|file:[a-zA-Z0-9_.-]+|dir:[a-zA-Z0-9_/-]+|kw:[a-z0-9_-]+)$"
-      description: "Triggers for automatic rule loading. Prefixes: ext: (file extension), file: (specific filename), dir: (directory), kw: (keyword)"
-      example: "ext:.py, ext:.pyi, file:pyproject.toml"
-      error_message: "LoadTrigger items must use prefix format: ext:.py, file:Dockerfile, dir:skills/, kw:test"
-      severity: "MEDIUM"
-      docs_reference: "002-rule-governance.md Section 11.1"
-  
+  # Optional metadata fields (deprecated in v3.3 — LoadTrigger merged into Keywords)
+  optional_fields: []
+
   field_order:
     required: true
     order: ["SchemaVersion", "RuleVersion", "LastUpdated", "Keywords", "TokenBudget", "ContextTier", "Depends"]
-    optional_after: ["LoadTrigger"]  # Optional fields allowed after required fields
-    error_message: "Metadata fields must appear in order: SchemaVersion, RuleVersion, LastUpdated, Keywords, TokenBudget, ContextTier, Depends (LoadTrigger optional after Depends)"
+    optional_after: []
+    error_message: "Metadata fields must appear in order: SchemaVersion, RuleVersion, LastUpdated, Keywords, TokenBudget, ContextTier, Depends"
     fix_suggestion: "Reorder metadata fields per Section 11.1 of 002-rule-governance.md"
     severity: "HIGH"
     docs_reference: "002-rule-governance.md Section 11.1"
   
   placement:
+    # v3.5: YAML frontmatter (`---` fenced block) MUST appear at the very top of
+    # the file (line 1). Inline `**Field:**` format (v3.4 fallback) still permitted
+    # before the Scope section during dual-parse rollout.
+    frontmatter_fence_at_top: true
     before_section: "Scope"
-    error_message: "Metadata must appear before Scope section"
-    fix_suggestion: "Move metadata to lines 3-7, immediately after H1 title"
+    error_message: "Metadata must appear as YAML frontmatter at top-of-file, or (dual-parse fallback) as inline fields before Scope"
+    fix_suggestion: "Wrap metadata block in `---` fences at line 1, or place inline `**Field:**` lines before the `## Scope` header"
     severity: "CRITICAL"
   
-  header:
-    required: true
-    format: "## Metadata"
-    placement: "after_h1_before_fields"
-    error_message: "Metadata fields must be under ## Metadata header"
-    fix_suggestion: "Add '## Metadata' header after H1 title, before metadata fields"
-    severity: "HIGH"
-    docs_reference: "002-rule-governance.md Section 11.1"
+  # header block removed in v3.5:
+  # `## Metadata` H2 header is no longer required — the YAML frontmatter fence
+  # (`---`) at top-of-file replaces it. Inline dual-parse mode does not require
+  # the H2 header either.
 
 # ==============================================================================
 # DOCUMENT STRUCTURE RULES
 # ==============================================================================
 structure:
   description: "Document structure validation rules"
+  max_lines: 250
+  max_fenced_examples: 3
   
   # Single H1 title requirement
+  # Note (v3.5): the regex matches the H1 line content only; leading YAML
+  # frontmatter block (`---` fences at top-of-file) is tolerated by the parser
+  # which locates the first `^# ` line rather than assuming a fixed position.
   title:
     level: 1
     count: 1
@@ -153,7 +191,7 @@ structure:
       max_paragraphs: 3
       placement:
         after: "Metadata"
-        before: "References"
+        before: "Contract"
       content_validation:
         required_keywords: ["What This Rule Covers", "When to Load This Rule"]
         min_lines: 5
@@ -162,83 +200,49 @@ structure:
       severity: "CRITICAL"
       docs_reference: "002-rule-governance.md Section 11.2"
     
-    - name: "References"
+    - name: "Contract"
       level: 2
       order: 2
       required: true
-      placement:
-        after: "Scope"
-        before: "Contract"
-        max_percentage: 10
-      content_validation:
-        required_subsections: ["Dependencies", "External Documentation"]
-        min_items: 1
-      error_message: "References section is required early in file (after Scope, before Contract)"
-      error_group: "Structure"
-      severity: "HIGH"
-      docs_reference: "002-rule-governance.md Section 11.2"
-    
-    - name: "Contract"
-      level: 2
-      order: 3
-      required: true
       description: "Structured contract using Markdown headers (### subsections)"
       placement:
-        after: "References"
+        after: "Scope"
         max_line_number: 200
         calculate_allowance: true
       content_validation:
         required_subsections:
           - "Inputs and Prerequisites"
           - "Mandatory"
-          - "Forbidden"
           - "Execution Steps"
-          - "Output Format"
           - "Validation"
-          - "Post-Execution Checklist"
         no_xml_tags: true
-        required_steps:
-          min: 5
-          max: 10
-          pattern: "^\\s*\\d+\\."
-      error_message: "Contract section is required after References (before line 200)"
+      error_message: "Contract section is required after Scope and before References"
       error_group: "Contract"
       severity: "CRITICAL"
       docs_reference: "002-rule-governance.md Section 11.3"
     
-    - name: "Anti-Patterns and Common Mistakes"
+    - name: "References"
       level: 2
-      order: 4
-      required: false
-      description: "Problem/Correct Pattern pairs showing what NOT to do and why"
-      content_validation:
-        code_blocks:
-          min: 2
-        required_keywords: ["Problem:", "Correct Pattern:"]
-        pattern_pairs:
-          min: 2
-          structure: "Problem:.*?Correct Pattern:"
-      error_message: "Anti-Patterns and Common Mistakes section is strongly recommended but optional"
-      error_group: "Anti-Patterns"
-      severity: "MEDIUM"
-      docs_reference: "002-rule-governance.md Section 5a"
+      order: 3
+      required: true
+      placement:
+        after: "Contract"
+      description: "Focused source links with claim context; state None when no external source applies."
+      error_message: "References section is required after Contract"
+      error_group: "Structure"
+      severity: "HIGH"
   
   # Optional sections
   optional_sections:
-    - name: "Key Principles"
+    - name: "Examples"
       level: 2
-      order_range: [4, 10]  # Between Contract and Output Format Examples
-      content_validation:
-        principle_count:
-          min: 3
-          max: 7
-      docs_reference: "002-rule-governance.md Section 5"
+      description: "Optional correct examples only; use focused companions for long examples. No minimum count. Semantic review required."
   
   # Section order validation
   section_order:
     validate_sequence: true
     error_message: "Sections must appear in correct order per schema spec"
-    fix_suggestion: "Reorder sections: Metadata → Scope → References → Contract → ... → Output Format Examples"
+    fix_suggestion: "Reorder required sections: Scope, Contract, References"
     severity: "HIGH"
 
 # ==============================================================================
@@ -258,72 +262,22 @@ content_rules:
           - name: "Mandatory"
             pattern: "###\\s+Mandatory"
             non_empty: true
-          - name: "Forbidden"
-            pattern: "###\\s+Forbidden"
-            non_empty: true
           - name: "Execution Steps"
             pattern: "###\\s+Execution Steps"
-            non_empty: true
-          - name: "Output Format"
-            pattern: "###\\s+Output Format"
             non_empty: true
           - name: "Validation"
             pattern: "###\\s+Validation"
             non_empty: true
-          - name: "Post-Execution Checklist"
-            pattern: "###\\s+Post-Execution Checklist"
-            non_empty: true
-        error_message: "Contract must contain all 7 required subsections (Markdown ### headers)"
+        error_message: "Contract requires Inputs and Prerequisites, Mandatory, Execution Steps, and Validation"
         fix_suggestion: "Missing subsection: ### {subsection_name}"
         severity: "HIGH"
       
       - type: "no_xml_tags"
         forbidden_patterns: ["<inputs_prereqs>", "<mandatory>", "<forbidden>", "<steps>", "<output_format>", "<validation>", "<design_principles>"]
-        error_message: "Contract must NOT use XML tags (v3.2 uses Markdown headers only)"
+        error_message: "Use Markdown Contract subsection headings; legacy XML contract tags are not supported by this repository"
         fix_suggestion: "Replace XML tags with Markdown headers (###)"
         severity: "HIGH"
       
-      - type: "numbered_list"
-        name: "execution_steps"
-        min: 5
-        max: 10
-        pattern: "^\\s*\\d+\\."
-        error_message: "Contract Execution Steps must have 5-10 steps"
-        fix_suggestion: "Current: {actual} steps. Add more explicit steps."
-        severity: "MEDIUM"
-  
-  anti_patterns:
-    section: "Anti-Patterns and Common Mistakes"
-    validations:
-      - type: "code_block_count"
-        min: 2
-        error_message: "Anti-Patterns should have at least 2 code examples for clarity"
-        fix_suggestion: "Add code examples showing Problem and Correct Pattern"
-        severity: "MEDIUM"
-      
-      - type: "keyword_presence"
-        must_contain: ["Problem:", "Correct Pattern:"]
-        error_message: "Anti-Patterns should show 'Problem:' and 'Correct Pattern:' structure"
-        fix_suggestion: "Use structure: Problem: ... → Why It Fails: ... → Correct Pattern: ..."
-        severity: "MEDIUM"
-      
-      - type: "pattern_pairs"
-        min: 2
-        pattern: "Problem:.*?Correct Pattern:"
-        error_message: "Anti-Patterns must have at least 2 Problem → Correct Pattern pairs"
-        severity: "MEDIUM"
-  
-  investigation_protocol:
-    conditional:
-      metadata_field: "ContextTier"
-      values: ["Critical", "High"]
-    validations:
-      - type: "keyword_presence"
-        must_contain_any: ["investigate", "research", "analyze", "understand", "review"]
-        error_message: "High-tier rules must include investigation protocol"
-        fix_suggestion: "Add investigation step in Required Steps or Key Principles"
-        severity: "MEDIUM"
-
 # ==============================================================================
 # PLACEMENT RULES
 # ==============================================================================
@@ -338,18 +292,16 @@ placement:
   scope_placement:
     section: "Scope"
     after: "Metadata"
-    before: "References"
+    before: "Contract"
     max_percentage: 5
-    error_message: "Scope must be after Metadata, before References (early position)"
+    error_message: "Scope must be after Metadata and before Contract"
     severity: "CRITICAL"
     docs_reference: "002-rule-governance.md Section 11.2"
   
   references_placement:
     section: "References"
-    after: "Scope"
-    before: "Contract"
-    max_percentage: 10
-    error_message: "References must be after Scope, before Contract (early position)"
+    after: "Contract"
+    error_message: "References must follow Contract"
     severity: "CRITICAL"
     docs_reference: "002-rule-governance.md Section 11.2"
 
@@ -362,7 +314,7 @@ restrictions:
   no_numbered_sections:
     enabled: true
     pattern: "^##\\s+\\d+\\."
-    error_message: "Numbered sections (## 1., ## 2.) are not allowed in v3.2"
+    error_message: "Use descriptive, unnumbered H2 headings"
     fix_suggestion: "Replace with descriptive section names (e.g., '## Environment and Tooling Requirements')"
     severity: "HIGH"
     docs_reference: "002-rule-governance.md Section 11.2"
@@ -380,7 +332,7 @@ restrictions:
     docs_reference: "002-rule-governance.md Section 11.5"
   
   no_yaml_frontmatter:
-    enabled: true
+    enabled: false  # v3.5: YAML frontmatter is now the canonical metadata format (dual-parse rollout)
     pattern: "^---\\s*$"
     error_message: "YAML frontmatter is not allowed (universal output format)"
     fix_suggestion: "Convert YAML frontmatter to inline **Field:** format"
@@ -397,7 +349,7 @@ restrictions:
   universal_format:
     enabled: true
     inline_metadata: true
-    no_yaml_blocks: true
+    no_yaml_blocks: false  # v3.5: YAML frontmatter block allowed for metadata
     markdown_only: true
     error_message: "File must use universal Markdown format"
     severity: "HIGH"
@@ -449,16 +401,13 @@ link_validation:
       required: false  # Subsection is recommended but optional
       rule_reference_format:
         # Rules can be referenced with or without 'rules/' prefix
-        # The rules/ location is defined in AGENTS.md for token efficiency
+        # The rules/ location is defined in the rule-loader protocol for token efficiency
         pattern: "([a-zA-Z0-9_-]+\\.md|rules/[a-zA-Z0-9_-]+\\.md)"
         # Allow root-level project files
         allowed_root_files:
-          - "AGENTS.md"
           - "CHANGELOG.md"
           - "CONTRIBUTING.md"
           - "README.md"
-          - "RULES_INDEX.md"
-        # No error for missing prefix - both formats valid
         severity: "INFO"
         docs_reference: "002-rule-governance.md Section 11"
 
@@ -539,10 +488,10 @@ excluded_files:
     - "README.md"
     - "CHANGELOG.md"
     - "CONTRIBUTING.md"
-    - "RULES_INDEX.md"
     - "UNIVERSAL_PROMPT.md"
-    - "AGENTS.md"
     - "002a-rule-boilerplate.md"  # Boilerplate is reference, not validated
+    - "002a-rule-template.md"  # Template example (placeholder syntax), not validated
+    - "002i-rule-loadtrigger.md"  # DEPRECATED TOMBSTONE — retained for inbound-link stability; no Contract
 
 # ==============================================================================
 # VALIDATION BEHAVIOR

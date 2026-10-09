@@ -1,0 +1,29 @@
+{
+  "schema_version": "rule-loader-matcher/v1",
+  "candidate_rules": [
+    {
+      "rule_path": "rules/200-python-core.md",
+      "layer": "SOFT",
+      "context_tier": "High",
+      "description": "Python core engineering directives",
+      "token_budget": 2600
+    }
+  ],
+  "load_sequence": [
+    {
+      "rule_path": "rules/000-global-core.md",
+      "layer": "HARD",
+      "context_tier": "Critical",
+      "description": "Foundational operating contract"
+    },
+    {
+      "rule_path": "rules/200-python-core.md",
+      "layer": "SOFT",
+      "context_tier": "High",
+      "description": "Python core engineering directives",
+      "token_budget": 2600
+    }
+  ],
+  "deferred_rules": [],
+  "warnings": []
+}

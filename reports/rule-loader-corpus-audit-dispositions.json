@@ -1,0 +1,142 @@
+{
+  "rules/100-snowflake-core.md|ext|.sql|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/101b-snowflake-streamlit-performance.md|kw|@st.cache_data decorator|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/101b-snowflake-streamlit-performance.md|kw|@st.cache_resource decorator|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/101c-snowflake-streamlit-security.md|kw|container runtime secrets|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  },
+  "rules/101d-snowflake-streamlit-testing.md|kw|pytest coverage 80%|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/101n-snowflake-streamlit-migration.md|kw|container runtime infrastructure|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "Cap-displacement: scores 13, ranks 4th (MAX_DIRECT=3). Rule is fully reachable via 5 other keywords."
+  },
+  "rules/102-snowflake-sql-core.md|ext|.sql|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/102b-snowflake-sql-procedures.md|ext|.sql|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/102d-snowflake-sql-cicd.md|kw|ci/cd|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/109b-snowflake-app-deployment-core.md|kw|stage as source of truth|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/109f-snowflake-notebook-two-approach-pattern.md|kw|feature demonstration without full utilization|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  },
+  "rules/109h-snowflake-app-deployment-taskfile.md|kw|snowsight|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  },
+  "rules/121b-snowflake-snowpipe-monitoring.md|kw|snowpipe|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  },
+  "rules/121c-snowflake-snowpipe-troubleshooting.md|kw|snowpipe|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  },
+  "rules/121d-snowflake-snowpipe-streaming-sdk.md|kw|snowpipe|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  },
+  "rules/125-snowflake-role-introspection.md|kw|account roles vs database roles|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  },
+  "rules/200-python-core.md|ext|.py|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/200b-python-environment-tooling.md|kw|uvx|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/202a-markdown-linting.md|kw|.pymarkdown.yml|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/205-python-classes.md|kw|@property decorator|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  },
+  "rules/210d-python-fastapi-monitoring.md|kw|fastapi|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  },
+  "rules/210e-python-fastapi-security-hardening.md|kw|fastapi|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  },
+  "rules/220c-python-typer-rich.md|kw|pytest|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  },
+  "rules/221h-python-htmx-fastapi-auth.md|kw|fastapi|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  },
+  "rules/230-python-pydantic.md|kw|@field_validator decorator|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/230-python-pydantic.md|kw|@model_validator decorator|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/230b-python-pydantic-integration.md|kw|fastapi|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  },
+  "rules/252-python-pandas-core.md|kw|.loc .iloc indexing|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/252b-python-pandas-io-integration.md|kw|pandas|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  },
+  "rules/351a-podman-examples.md|kw|ini|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/421a-javascript-alpinejs-advanced.md|kw|$dispatch cross-component|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/424-javascript-docs.md|kw|@param @returns tags|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/424-javascript-docs.md|kw|@ts-check validation|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/424-javascript-docs.md|kw|@typedef custom types|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "pre-existing matcher tokenization limitation: punctuation/casing-heavy kw phrase does not form an exact self-match n-gram; corpus-precision issue out of scope for the regression remediation (plan Non-Goal: no matcher scoring rewrite)."
+  },
+  "rules/806-workbench-folder-policy.md|kw|.workbench/ folder|5167665252a84f9cf72f7f53caaea8fa37c6a17419c5000cef3a7305a00a3584|77f4325c7bce6dffc313a8c15a3117004d2810871adeed7be52fe7f1f9915461|4.0|1": {
+    "disposition": "intentional-exception",
+    "justification": "generic single-word/short kw legitimately loses to more-specific rules under the top-3 direct cap; expected competition outcome, out of scope for the regression remediation."
+  }
+}

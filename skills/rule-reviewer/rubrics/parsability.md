@@ -13,20 +13,19 @@
 | Line | Severity | Error Description |
 |------|----------|-------------------|
 | 10 | HIGH | Missing Depends field |
-| 45 | MEDIUM | Section order violation |
-| 78 | LOW | Inconsistent list markers |
+| 45 | HIGH | Section order violation |
 
 **Metadata Field Checklist:**
 
 | Field | Present? | Valid Format? | Notes |
 |-------|----------|---------------|-------|
-| SchemaVersion | Y/N | Y/N | Expected: v3.2 |
+| schema_version | Y/N | Y/N | Target: v4.0 for migrated rules |
 | RuleVersion | Y/N | Y/N | Expected: vX.Y.Z |
 | LastUpdated | Y/N | Y/N | Expected: YYYY-MM-DD |
-| Keywords | Y/N | Y/N | Expected: 3+ terms |
+| keywords | Y/N | Y/N | Typed YAML list within active schema bounds |
 | TokenBudget | Y/N | Y/N | Expected: ~NNNN |
 | ContextTier | Y/N | Y/N | Expected: Critical/High/Medium/Low |
-| Depends | Y/N | Y/N | Expected: list or "None" |
+| depends | Y/N | Y/N | Required/optional filename lists |
 
 **Markdown Issues:**
 
@@ -44,11 +43,11 @@
 ### Counting Protocol
 
 > **Standard 5-Step Counting Protocol:**
-> 1. **Create Empty Inventory** — Copy template above into working document. Do NOT start reading rule yet.
-> 2. **Read Rule Systematically** — Start at line 1, read to END (no skipping). Record all matches with line numbers.
-> 3. **Calculate Raw Totals** — Sum counts by category using dimension-specific definitions.
-> 4. **Check Non-Issues List** — Review EACH flagged item against this dimension's Non-Issues section. Remove false positives with note. Recalculate totals.
-> 5. **Look Up Score** — Use adjusted totals in Score Decision Matrix. Record score with inventory evidence.
+> 1. **Create Empty Inventory**: Copy template above into working document. Do NOT start reading rule yet.
+> 2. **Read Rule Systematically**: Start at line 1, read to END (no skipping). Record all matches with line numbers.
+> 3. **Calculate Raw Totals**: Sum counts by category using dimension-specific definitions.
+> 4. **Check Non-Issues List**: Review EACH flagged item against this dimension's Non-Issues section. Remove false positives with note. Recalculate totals.
+> 5. **Look Up Score**: Use adjusted totals in Score Decision Matrix. Record score with inventory evidence.
 >
 > **Inter-run consistency:** Use inventory tables with line numbers for evidence. If variance exceeds threshold documented below, re-count using checklists and document ambiguous cases.
 >
@@ -57,8 +56,8 @@
 ## Scoring Formula
 
 **Raw Score:** 0-10
-**Weight:** 3
-**Points:** Raw × (3/2) = Raw × 1.5
+**Weight:** 1.5
+**Points:** Raw × 1.5
 
 ## Counting Definitions
 
@@ -73,26 +72,26 @@ uv run ai-rules validate [target_file]
 - **CRITICAL:** Prevents agent parsing (e.g., missing required section, invalid YAML)
 - **HIGH:** Major structural issue (e.g., section out of order, missing Depends)
 - **MEDIUM:** Moderate issue (e.g., missing optional field, minor format error)
-- **LOW:** Minor issue (e.g., whitespace, style inconsistency)
+- **INFO:** Informational diagnostic; keep manual style findings separate
 
 **Count by severity (fill in during review):**
 - CRITICAL errors: ___ (lines: ___)
 - HIGH errors: ___ (lines: ___)
 - MEDIUM errors: ___ (lines: ___)
-- LOW errors: ___ (lines: ___)
+- INFO diagnostics: ___ (lines: ___)
 
 ### Metadata Field Checklist
 
-**Required fields (v3.2 schema) - check Y/N:**
+**Required YAML fields (v4 schema) - check Y/N:**
 
 **Metadata Field Checklist:**
-- SchemaVersion: Present? Valid format (v3.2)?
-- RuleVersion: Present? Valid format (vX.Y.Z semver)?
-- LastUpdated: Present? Valid format (YYYY-MM-DD)?
-- Keywords: Present? Valid format (3+ comma-separated)?
-- TokenBudget: Present? Valid format (~NNNN)?
-- ContextTier: Present? Valid value (Critical/High/Medium/Low)?
-- Depends: Present? Valid format (list or "None")?
+- schema_version: Present? Target v4.0 after body migration?
+- rule_version: Present? Valid format (vX.Y.Z semver)?
+- last_updated: Present? Valid format (YYYY-MM-DD)?
+- keywords: Present? Typed entries within the active schema's combined bound?
+- token_budget: Present? Valid format (~NNNN)?
+- context_tier: Present? Valid value (Critical/High/Medium/Low)?
+- depends: Present? Required/optional filename lists with valid dependencies?
 
 **Count:** ___/7 fields present and valid
 
@@ -112,7 +111,7 @@ uv run ai-rules validate [target_file]
 
 ### Visual Formatting Issues
 
-**Forbidden patterns (count each occurrence):**
+**Count only applicable policy violations or demonstrated loss of meaning.** Do not count a character merely because it is an arrow, code operator, table separator, or real external output. Use the audience boundaries in `002g-agent-optimization.md`.
 
 **Visual Formatting Checklist:**
 - ASCII art/diagrams: ___ (lines: ___)
@@ -127,8 +126,8 @@ uv run ai-rules validate [target_file]
 **Score Tier Criteria:**
 - **10/10 (15 pts):** 0 schema errors, 7/7 metadata, 0 markdown issues, 0 visual issues
 - **9/10 (13.5 pts):** 0 schema errors, 7/7 metadata, 1 markdown issue, 0 visual issues
-- **8/10 (12 pts):** 1 LOW schema error, 7/7 metadata, 2 markdown issues, 0 visual issues
-- **7/10 (10.5 pts):** 2 LOW schema errors, 6-7/7 metadata, 3 markdown issues, 0-1 visual issues
+- **8/10 (12 pts):** 1 minor style finding, 7/7 metadata, 2 markdown issues, 0 visual issues
+- **7/10 (10.5 pts):** 2 minor style findings, 6-7/7 metadata, 3 markdown issues, 0-1 visual issues
 - **6/10 (9 pts):** 1 MEDIUM schema error, 6/7 metadata, 4 markdown issues, 1 visual issue
 - **5/10 (7.5 pts):** 2 MEDIUM schema errors, 5-6/7 metadata, 5 markdown issues, 2 visual issues
 - **4/10 (6 pts):** 1 HIGH or 3 MEDIUM schema errors, 4-5/7 metadata, 6-7 markdown issues, 3 visual issues
@@ -141,18 +140,17 @@ uv run ai-rules validate [target_file]
 
 ## Schema Compliance Checklist
 
-### Required Section Order (v3.2 schema)
+### Required Section Order (v4 schema)
 
 Check order (mark sequence violations):
 
 **Section Order Checklist:**
-1. Title and preamble: Present? Correct order?
-2. ## Metadata: Present? Correct order?
-3. ## Scope: Present? Correct order?
-4. ## References: Present? Correct order?
-5. ## Contract: Present? Correct order?
-6. Content sections: Present? Correct order?
-7. Post-Execution Checklist: Present? Correct order?
+1. YAML frontmatter, title, and applicable preamble: Present? Correct order?
+2. ## Scope: Present with What This Rule Covers and When to Load This Rule?
+3. ## Contract: Present with non-empty Inputs and Prerequisites, Mandatory, Execution Steps, and Validation?
+4. ## References: Present after Contract?
+
+Review one completion checklist under Validation as a manual authoring requirement. Forbidden and Output Format are optional. A separate Metadata heading, Post-Execution Checklist, or anti-pattern gallery is not required. Do not penalize a rule for omitting them or for using fewer than five necessary steps.
 
 **Sequence violations:** ___
 
@@ -177,7 +175,7 @@ If `ai-rules validate` is unavailable:
    ```
 
 4. **Scoring adjustment:**
-   - Cap at 4/5 maximum without validator
+   - Cap at 8/10 raw (12/15 weighted) without validator; label the assessment provisional
    - Recommend manual schema check in review
 
 ## Markdown Structure Validation
@@ -241,33 +239,11 @@ BAD (1 issue):
 
 ## Visual Formatting Issues
 
-### Forbidden Patterns
+### Relationship review
 
-Agents cannot interpret these (count each occurrence):
+The examples below illustrate legacy formatting concerns, not universal model limitations. Count a finding only when the active schema/policy prohibits it or the actual relationship is ambiguous; do not penalize valid code or meaningful Markdown tables.
 
-**ASCII Art / Diagrams:**
-```
-FORBIDDEN (box diagrams):
-    +----------+
-    |  Start   |
-    +----+-----+
-         |
-         v
-```
-
-**Arrow Characters:**
-```
-FORBIDDEN (unicode arrows):
-Input -> Process -> Output (use text: "Input, then Process, then Output")
-```
-
-**Box Drawing:**
-```
-FORBIDDEN (unicode box drawing):
-+===========+
-|  Header   |
-+===========+
-```
+Record the relationship that is lost or ambiguous and the applicable policy. An unlabeled connection may need a verb such as "runs after" or "writes to". Do not treat arrows, boxes, or tables as automatically defective.
 
 ### Acceptable Alternatives
 
@@ -286,24 +262,18 @@ Or as list:
 
 ## Worked Example
 
-**Target:** Rule with parsability issues
+**Target:** Hypothetical rule with two HIGH structural findings. This is an illustration, not output from the named source file.
 
 ### Step 1: Run Schema Validator
 
-```bash
-$ uv run ai-rules validate rules/example.md
+Run the real validator and retain its JSON findings. For this illustration, assume it reports a missing Depends field and References before Contract. A separate Markdown inspection finds mixed list markers.
 
-[HIGH] Missing metadata field: Depends (line 10)
-[MEDIUM] Section order violation: Contract before References (line 45)
-[LOW] Inconsistent list markers (line 78)
-```
-
-**Count:** 1 HIGH, 1 MEDIUM, 1 LOW
+**Count:** 2 HIGH findings plus one manually observed list-style issue. The validator does not emit LOW; keep manual style findings distinct.
 
 ### Step 2: Check Metadata
 
 **Metadata Assessment:**
-- SchemaVersion: Yes, valid (v3.2)
+- schema_version: Yes, target v4.0
 - RuleVersion: Yes, valid (v1.0.0)
 - LastUpdated: Yes, valid (2026-01-06)
 - Keywords: Yes, valid (5 terms)
@@ -328,7 +298,7 @@ $ uv run ai-rules validate rules/example.md
 
 **Pattern Inventory:**
 - ASCII art: 0
-- Arrows: 1 (line 150: unicode arrow)
+- Ambiguous relationships: 1 (line 150: connection does not state the required operation)
 - Box drawing: 0
 
 **Total:** 1 visual issue
@@ -336,22 +306,21 @@ $ uv run ai-rules validate rules/example.md
 ### Step 5: Calculate Score
 
 **Component Assessment:**
-- Schema errors: 1 HIGH = 2/5 cap
-- Metadata: 6/7 = 4/5 range
-- Markdown: 3 issues = 4/5 range
-- Visual: 1 issue = 4/5 range
+- Schema findings: 2 HIGH, selecting the matrix's 3/10 tier
+- Metadata: 6/7 fields valid
+- Markdown: 3 independent issues
+- Visual: 1 demonstrated relationship ambiguity
 
-**Final:** 4/10 (6 points) - HIGH schema error caps score
+**Final:** 3/10 (4.5 points). Use the lowest applicable tier; do not mix the retired 1-5 scale with raw 0-10 scores.
 
 ### Step 6: Document in Review
 
 ```markdown
-## Parsability: 4/10 (6 points)
+## Parsability: 3/10 (4.5 points)
 
 **Schema validation:**
 - [HIGH] Missing Depends field (line 10) - CAPS SCORE
-- [MEDIUM] Section order: Contract before References (line 45)
-- [LOW] Mixed list markers (line 78)
+- [HIGH] Section order: References before Contract (line 45)
 
 **Metadata:** 6/7 fields
 - Missing: Depends
@@ -361,11 +330,11 @@ $ uv run ai-rules validate rules/example.md
 - Missing language tags (lines 90, 120)
 
 **Visual formatting:** 1
-- Arrow character (line 150)
+- Ambiguous operation relationship (line 150)
 
 **Priority fixes:**
 1. Add Depends field to metadata
-2. Reorder: References before Contract
+2. Reorder: Scope, Contract, References
 3. Add language tags to code blocks
 ```
 
@@ -387,7 +356,7 @@ $ uv run ai-rules validate rules/example.md
 
 ## Parsability for Project Files
 
-**Applies to:** AGENTS.md, PROJECT.md
+**Applies to:** PROJECT.md
 
 **When FILE_TYPE == "project":**
 
@@ -395,7 +364,7 @@ $ uv run ai-rules validate rules/example.md
 
 **Evaluate ONLY:**
 - ✓ Markdown structure (heading hierarchy, lists, code blocks)
-- ✓ No visual formatting (ASCII art, arrows, box drawing)
+- ✓ Explicit relationships without reliance on unexplained visual positioning
 - ✓ No broken external links
 - ✓ Code blocks properly fenced with language tags
 - ✓ Consistent list markers
@@ -419,7 +388,7 @@ $ uv run ai-rules validate rules/example.md
 | Missing language tags | -0.5 points each | -2 points |
 | Malformed tables | -1 point each | -2 points |
 | Broken external links | -1 point each | -3 points |
-| Visual formatting (ASCII art, arrows) | -1 point each | -3 points |
+| Demonstrated ambiguous visual relationship | -1 point each | -3 points |
 
 **Score Ranges:**
 - 10/10 (15 pts): Perfect markdown, no issues
@@ -430,7 +399,7 @@ $ uv run ai-rules validate rules/example.md
 - 5/10 (7.5 pts): 9-10 minor issues OR 4 major issues
 - <5/10: Extensive markdown problems
 
-**Major issues:** Unclosed code fences, extensive visual formatting
+**Major issues:** Unclosed code fences, missing relationships needed for execution
 **Minor issues:** Missing language tags, mixed list markers
 
 ### Example: Project File Review
@@ -442,7 +411,7 @@ $ uv run ai-rules validate rules/example.md
 
 **Schema Validation:** SKIPPED (project file)
 
-**Rationale:** AGENTS.md is a bootstrap/configuration file with different structure than domain rules. Schema validation against rule schema is not applicable.
+**Rationale:** PROJECT.md is a project configuration file with different structure than domain rules. Schema validation against rule schema is not applicable.
 
 **Markdown Structure:** Excellent
 
@@ -476,7 +445,7 @@ $ uv run ai-rules validate rules/example.md
    - Project files: No standardized metadata, custom structure per project needs
 
 3. **Different section structure:**
-   - Rule files: Scope → References → Contract → Content → Checklist
+   - Rule files: Scope → Contract (including Validation) → References
    - Project files: Custom sections optimized for onboarding (Overview, Commands, Workflows, etc.)
 
 4. **Still valuable to review:**
@@ -496,8 +465,8 @@ $ uv run ai-rules validate rules/example.md
 ### Pattern 1: Intentional Code Block Without Language
 **Pattern:** Code block without language tag showing generic output
 **Example:** ``` block showing command output (not source code)
-**Why NOT an issue:** Output blocks don't need language tags
-**Action:** Remove from inventory with note "Output block, not source"
+**Why NOT automatically an issue:** Apply the target's actual Markdown policy; `text` is suitable for literal output when a language tag is required
+**Action:** Remove only when the applicable policy permits it; do not create a blanket exemption
 
 ### Pattern 2: Markdown Tables with Alignment
 **Pattern:** Table using alignment syntax (`:---`, `:---:`, `---:`)

@@ -1,0 +1,32 @@
+{
+  "schema_version": "rule-loader-matcher/v1",
+  "candidate_rules": [
+    {
+      "rule_path": "rules/200-python-core.md",
+      "layer": "SOFT",
+      "context_tier": "High",
+      "description": "Python core"
+    },
+    {
+      "rule_path": "rules/999-orphan.md",
+      "layer": "SOFT",
+      "context_tier": "Low",
+      "description": "orphan not placed"
+    }
+  ],
+  "load_sequence": [
+    {
+      "rule_path": "rules/000-global-core.md",
+      "layer": "HARD",
+      "context_tier": "Critical",
+      "description": "Foundation rule"
+    },
+    {
+      "rule_path": "rules/200-python-core.md",
+      "layer": "SOFT",
+      "context_tier": "High",
+      "description": "Python core"
+    }
+  ],
+  "deferred_rules": []
+}

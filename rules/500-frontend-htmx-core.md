@@ -1,522 +1,80 @@
+---
+schema_version: v4.0
+rule_version: v5.0.0
+description: "Provides a standalone frontend reference for HTMX attributes, client-side events, CSS transitions, debugging techniques, and browser compatibility considerations for pure HTMX usage without backend"
+last_updated: 2026-10-06
+keywords:
+  - kw:hx-get
+  - kw:hx-swap
+  - kw:hx-trigger
+  - kw:htmx lifecycle events
+  - kw:hypermedia-driven UI
+  - kw:progressive enhancement fallbacks
+  - kw:htmx
+token_budget: ~1200
+context_tier: Low
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+  optional:
+    - 221-python-htmx-core.md  # HTMX with Python backends
+    - 421-javascript-alpinejs-core.md  # Alpine.js for client-side reactivity
+---
 # HTMX Frontend Reference
-
-> **CORE RULE: PRESERVE WHEN POSSIBLE**
->
-> This rule defines essential Frontend HTMX patterns. Load for HTMX tasks.
-> Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.2.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:htmx, kw:frontend
-**Keywords:** htmx attributes, client-side, events, css transitions, debugging, browser compatibility, hx-get, hx-post, hx-swap, hx-trigger, hx-target
-**TokenBudget:** ~3800
-**ContextTier:** Low
-**Depends:** 000-global-core.md
 
 ## Scope
 
 **What This Rule Covers:**
-Provides a standalone frontend reference for HTMX attributes, client-side events, CSS transitions, debugging techniques, and browser compatibility considerations for pure HTMX usage without backend specifics.
+HTML-driven requests, target/swap/trigger behavior, progressive enhancement, history, lifecycle/error handling and version-compatible extensions.
 
 **When to Load This Rule:**
-- Working with HTMX frontend applications
-- Adding hypermedia-driven interactivity
-- Implementing server-driven UI updates
-- Debugging HTMX requests and responses
-- Choosing between HTMX and JavaScript frameworks
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-
-**Related:**
-- **221-python-htmx-core.md** - HTMX with Python backends
-- **421-javascript-alpinejs-core.md** - Alpine.js for client-side reactivity
-
-### External Documentation
-
-- [HTMX Official Docs](https://htmx.org/docs/) - Complete HTMX documentation
-- [HTMX Examples](https://htmx.org/examples/) - Practical HTMX patterns
-- [HTMX Essays](https://htmx.org/essays/) - Hypermedia philosophy
+When editing HTMX frontend markup, requests/swaps/history or debugging client-side lifecycle behavior. Backend-specific patterns are optional companions.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- HTMX library loaded (1.9.x+)
-- Basic HTML/CSS knowledge
-- Understanding of HTTP methods
-- Browser dev tools access
+- Actual installed HTMX version/script source, existing markup/CSP/CSRF and supported browser matrix.
+- Endpoint/HTML response contract, relevant Alpine/extension lifecycle and authorized browser validation.
 
 ### Mandatory
 
-- MUST specify `hx-target` for all non-self swap requests to prevent accidental element replacement
-- MUST add `hx-indicator` for user feedback on every request that may take >200ms
-- MUST implement progressive enhancement fallbacks for forms (include `action` and `method` attributes alongside `hx-post`/`hx-get`)
-
-### Forbidden
-
-- Using HTMX with incompatible browsers (IE11 and below — not supported, no polyfills)
-- Missing CSRF protection for state-changing requests
-- Skipping progressive enhancement fallbacks
+- Inspect current HTMX version/patterns before loading/upgrading scripts. Library/extension URLs and compatibility need current official docs, not assumed legacy dist/ext paths.
+- Specify hx-target for non-self swaps and choose hx-swap intentionally (inner/outer/insertion/delete/none). Target IDs and returned HTML must preserve required structure/accessibility.
+- Configure triggers/debounce/polling based on actual interaction needs; avoid unbounded polling or duplicate event listener registration across swaps.
+- Provide loading/error/empty/success states and prevent duplicate submissions. Indicator/transition timing should suit UX and reduced-motion preferences, not invented universal 200/500ms thresholds.
+- Preserve form action/method and meaningful link href for non-JavaScript fallbacks where required. hx-boost enhances those semantics; do not assume every custom interaction degrades automatically.
+- Mutating requests need appropriate backend CSRF/auth checks; HX-Request is not authentication. Escape untrusted HTML and use safe headers/values, never eval-like dynamic attributes from user input.
+- Preserve hx-push-url/history/back-forward behavior and native window.history. Do not disable history as a collision fix; scope/name JS factories and update every HTML call site.
+- Handle request errors/timeouts through supported lifecycle hooks and provide deliberate retry only for safe operations. hx-request configuration is valid object syntax; no malformed timeout string examples.
+- Register/clean lifecycle handlers deliberately (beforeRequest/configRequest/afterSwap/historyRestore/popstate) and reinitialize third-party components only as needed. Returned fragments should not leak handlers or implicit globals.
+- Empty response behavior and status swap policies require explicit endpoint/UI contract; do not universally prevent valid empty swaps or force every error body into content.
+- Browser support, settle defaults and HTMX1->2 changes must be checked against installed version/official migration docs; no fixed unsupported browser/version guarantees.
+- Real-time SSE/WebSocket use official compatible extensions only when needed, with connection cleanup/auth/error/backpressure and no unapproved external loading.
 
 ### Execution Steps
 
-1. Load HTMX library in HTML document
-2. Add HTMX attributes to HTML elements (hx-get, hx-target, hx-swap)
-3. Configure triggers (hx-trigger) for user interactions
-4. Define CSS transitions for smooth animations
-5. Add event listeners for HTMX lifecycle hooks
-6. Test in browser with dev tools open
-7. Enable debugging (htmx.logAll()) if issues arise
-
-### Output Format
-
-HTML with HTMX attributes:
-- Core attributes (hx-get, hx-post, etc.)
-- Targeting and swapping configuration
-- CSS transitions for animations
-- JavaScript event listeners for HTMX lifecycle
+1. Read script/version, markup/endpoint contracts and current targets/history/CSRF/lifecycle conventions.
+2. Make focused request/trigger/target/swap changes preserving accessibility and non-JS fallback where applicable.
+3. Implement clear loading/error/empty states and safe lifecycle/component cleanup; preserve native globals/history.
+4. Under browser authorization, inspect network HX-Request/response headers and test swaps, forms, back/forward and console/lifecycle behavior in supported browsers.
+5. Run configured static checks/tests and report unavailable browser/endpoint/runtime checks as unverified rather than passed.
 
 ### Validation
 
-**Pre-Task-Completion Checks:**
-- [ ] HTMX library loaded (CDN or local)
-- [ ] HTMX attributes configured on elements
-- [ ] Correct hx-swap value selected for each use case (innerHTML, outerHTML, etc.)
-- [ ] Event listeners set up for lifecycle hooks
-- [ ] CSS transitions defined for smooth UX
-- [ ] Debugging tools ready (browser dev tools, htmx.logAll())
-
-**Success Criteria:**
-- Network tab shows expected HTMX requests with HX-Request: true header
-- Responses swap into target elements as expected
-- CSS transitions complete within 500ms with no visual glitch
-- Event listeners fire at appropriate lifecycle points
-- No console errors
-- Works in all target browsers
-
-**Network Failure Handling:**
-- Implement `htmx:sendError` listener to show user-friendly error messages
-- Use `hx-indicator` to show loading state during requests
-- Provide retry mechanism for failed requests (e.g., `htmx:afterOnLoad` with status check)
-- Set appropriate timeouts via `hx-request="timeout:10000"`
-
-### Design Principles
-
-- **Hypermedia-Driven:** Server returns HTML fragments, not JSON
-- **Progressive Enhancement:** Works without JavaScript, enhanced with HTMX
-- **Declarative:** Express behavior through HTML attributes
-- **Minimal JavaScript:** Most interactivity through HTMX attributes
-- **Server-Centric:** Logic lives on server, not client
-
-### Post-Execution Checklist
-
-- [ ] HTMX library loaded correctly
-- [ ] HTMX attributes configured on elements
-- [ ] Swap strategies working as expected
-- [ ] Event listeners registered for lifecycle hooks
-- [ ] CSS transitions smooth and performant
-- [ ] Debugging enabled if needed (htmx.logAll())
-- [ ] CSRF protection implemented for state-changing requests
-- [ ] Progressive enhancement fallbacks in place
-- [ ] Tested in all target browsers
-- [ ] No console errors
-
-> **Investigation Required**
-> When applying this rule:
-> 1. Check if HTMX is already loaded (search for `<script src` containing `htmx`)
-> 2. Identify HTMX version (1.x vs 2.0) — check `htmx.version` in console or script URL
-> 3. Scan for existing HTMX patterns (`hx-get`, `hx-post`, `hx-swap`) to match conventions
-> 4. Verify CSRF middleware is configured on the backend if using cookie-based auth
-
-## Key Principles
-
-### Core HTMX Attributes
-
-**HTTP Method Attributes:**
-- **`hx-get`** - Issue GET request (e.g., `<button hx-get="/data">Load</button>`)
-- **`hx-post`** - Issue POST request (e.g., `<form hx-post="/submit">...</form>`)
-- **`hx-put`** - Issue PUT request (e.g., `<button hx-put="/update">Save</button>`)
-- **`hx-delete`** - Issue DELETE request (e.g., `<button hx-delete="/remove">Delete</button>`)
-- **`hx-patch`** - Issue PATCH request (e.g., `<button hx-patch="/partial">Update</button>`)
-
-**Targeting and Swapping:**
-- **`hx-target`** - Element to swap content into (e.g., `hx-target="#results"`)
-- **`hx-swap`** - How to swap content (e.g., `hx-swap="outerHTML"`)
-- **`hx-select`** - CSS selector to extract from response (e.g., `hx-select="#content"`)
-
-**Swap Strategies:**
-- `innerHTML` - Replace inner HTML (default)
-- `outerHTML` - Replace entire element
-- `beforebegin` - Insert before target
-- `afterbegin` - Insert at start of target
-- `beforeend` - Insert at end of target
-- `afterend` - Insert after target
-- `delete` - Delete target element
-- `none` - Do not swap
-
-**Example:**
-```html
-<button hx-get="/users"
-        hx-target="#user-list"
-        hx-swap="innerHTML">
-    Load Users
-</button>
-
-<div id="user-list">
-    <!-- Users will be loaded here -->
-</div>
-```
-
-### Trigger Patterns
-
-**Basic Triggers:**
-```html
-<!-- Click (default for buttons) -->
-<button hx-get="/data">Click me</button>
-
-<!-- Input events -->
-<input hx-get="/search"
-       hx-trigger="input"
-       hx-target="#results">
-
-<!-- Change events -->
-<select hx-get="/filter"
-        hx-trigger="change"
-        hx-target="#results">
-    <option value="all">All</option>
-</select>
-
-<!-- Load on element appearance -->
-<div hx-get="/content"
-     hx-trigger="load">
-</div>
-```
-
-**Advanced Triggers:**
-```html
-<!-- Debounced input (wait 500ms after typing stops) -->
-<input hx-get="/search"
-       hx-trigger="input changed delay:500ms"
-       hx-target="#results">
-
-<!-- Multiple triggers -->
-<div hx-get="/status"
-     hx-trigger="load, every 5s">
-</div>
-
-<!-- Trigger on scroll into view -->
-<div hx-get="/more-items"
-     hx-trigger="revealed">
-    Loading more...
-</div>
-
-<!-- Trigger from another element -->
-<input type="text" id="search-input">
-<button hx-get="/search"
-        hx-trigger="click, keyup from:#search-input">
-    Search
-</button>
-```
-
-### Request Configuration
-
-**Including Values:**
-```html
-<!-- Include form values from closest form -->
-<button hx-post="/submit"
-        hx-include="closest form">
-    Submit
-</button>
-
-<!-- Include specific element values -->
-<button hx-post="/update"
-        hx-include="#name, #email">
-    Update
-</button>
-
-<!-- Include all inputs in parent container -->
-<div>
-    <input name="field1">
-    <input name="field2">
-    <button hx-post="/save" hx-include="closest div">
-        Save
-    </button>
-</div>
-```
-
-**Request Parameters:**
-```html
-<!-- Add parameters to request -->
-<button hx-get="/filter"
-        hx-vals='{"category": "books", "sort": "newest"}'>
-    Filter Books
-</button>
-
-<!-- Dynamic parameters with JavaScript -->
-<button hx-get="/data"
-        hx-vals="js:{timestamp: Date.now()}">
-    Load with Timestamp
-</button>
-```
-
-**Request Headers:**
-```html
-<!-- Add custom headers -->
-<button hx-get="/api/data"
-        hx-headers='{"X-Custom-Header": "value"}'>
-    API Request
-</button>
-```
-
-**CSRF Protection:** MUST include CSRF tokens on all mutating requests.
-```javascript
-// Attach CSRF token to every HTMX request globally
-document.body.addEventListener('htmx:configRequest', function(event) {
-    event.detail.headers['X-CSRFToken'] =
-        document.querySelector('meta[name="csrf-token"]').content;
-});
-```
-
-### Response Indicators
-
-**Loading Indicators:**
-```html
-<div hx-get="/data"
-     hx-indicator="#spinner">
-    Load Data
-</div>
-
-<div id="spinner" class="htmx-indicator">
-    <img src="spinner.gif" alt="Loading...">
-</div>
-```
-
-```css
-/* Hide indicator by default, show during request */
-.htmx-indicator {
-    display: none;
-}
-
-.htmx-request .htmx-indicator,
-.htmx-request.htmx-indicator {
-    display: inline;
-}
-```
-
-**Request Classes:**
-HTMX automatically adds classes during request lifecycle:
-- `htmx-request` - Added during request
-- `htmx-swapping` - Added during swap
-- `htmx-settling` - Added during settle (400ms default)
-
-### CSS Transitions
-
-**Fade Transition:**
-```css
-/* Define transition on settling class */
-.htmx-settling * {
-    transition: opacity 300ms ease-in;
-}
-
-/* Initial state when swapping starts */
-.htmx-swapping * {
-    opacity: 0;
-}
-```
-
-**Slide Transition:**
-```css
-.htmx-settling .slide-in {
-    transition: transform 300ms ease-out;
-}
-
-.htmx-swapping .slide-in {
-    transform: translateX(-100%);
-}
-```
-
-**Custom Transition with View Transitions API:**
-```html
-<div hx-get="/content"
-     hx-swap="innerHTML transition:true">
-</div>
-```
-
-### Client-Side Events
-
-**Event Listening:**
-```javascript
-// Before request is sent
-document.body.addEventListener('htmx:beforeRequest', function(event) {
-    console.log('About to send request to:', event.detail.path);
-});
-
-// After swap is complete
-document.body.addEventListener('htmx:afterSwap', function(event) {
-    console.log('Content swapped into:', event.detail.target);
-});
-
-// On error
-document.body.addEventListener('htmx:responseError', function(event) {
-    console.error('Request failed:', event.detail.xhr.status);
-});
-
-// Before swap (can modify response)
-document.body.addEventListener('htmx:beforeSwap', function(event) {
-    if (event.detail.xhr.status === 404) {
-        event.detail.shouldSwap = true; // Force swap even on error
-        event.detail.target = document.getElementById('error-div');
-    }
-});
-
-// Empty response handling: 200 with empty body clears target with innerHTML swap
-// Use hx-swap="none" for fire-and-forget, or return empty-state HTML from server
-document.body.addEventListener('htmx:beforeSwap', function(event) {
-    if (event.detail.xhr.status === 200 && !event.detail.xhr.responseText.trim()) {
-        event.detail.shouldSwap = false;  // Prevent clearing the target
-    }
-});
-```
-
-**Custom Events (Server-Triggered):**
-```javascript
-// Server sends: HX-Trigger: itemDeleted
-document.body.addEventListener('itemDeleted', function(event) {
-    console.log('Item was deleted on server');
-    // Update other parts of UI
-});
-
-// Server sends: HX-Trigger: {"showNotification": {"message": "Saved!"}}
-document.body.addEventListener('showNotification', function(event) {
-    alert(event.detail.value.message);
-});
-```
-
-### Debugging Techniques
-
-**Enable Logging:**
-```javascript
-// Enable verbose logging — shows full request lifecycle in console
-htmx.logAll();
-```
-
-**Inspecting HTMX Requests:**
-```javascript
-// Inspect specific element's HTMX config
-console.log(htmx.config);
-
-// Check if element has HTMX
-const element = document.getElementById('my-button');
-console.log(element.getAttribute('hx-get'));
-
-// Manually trigger HTMX request
-htmx.trigger(element, 'click');
-```
-
-**Network Tab:**
-- Open browser dev tools, then select Network tab
-- Look for requests with `HX-Request: true` header
-- Check response headers for `HX-Trigger`, `HX-Redirect`, etc.
-
-### Browser Compatibility
-
-**Supported Browsers:**
-- Chrome 70+
-- Firefox 65+
-- Safari 12+
-- Edge 79+
-
-**IE11 Note:** IE11 is not supported. HTMX 2.0 officially dropped IE11 support; do not use polyfills.
-
-**Progressive Enhancement:**
-```html
-<!-- Form works without HTMX (falls back to full page submit) -->
-<form action="/submit" method="POST"
-      hx-post="/submit"
-      hx-target="#result">
-    <input type="text" name="data">
-    <button type="submit">Submit</button>
-</form>
-```
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: No Target Specified
-
-**Problem:** Omitting `hx-target` causes the triggering element to replace itself with the response.
-
-**Why It Fails:** Button disappears after click; unexpected UI behavior; confuses users.
-
-**Correct Pattern:**
-```html
-<button hx-get="/data" hx-target="#content">Load</button>
-<div id="content"></div>
-```
-
-### Anti-Pattern 2: Incorrect Swap Strategy
-
-**Problem:** Using default `innerHTML` swap when `outerHTML` is needed, causing nested elements.
-
-**Why It Fails:** Creates deeply nested DOM structures; breaks CSS selectors; memory leaks.
-
-**Correct Pattern:**
-```html
-<div id="content" hx-get="/data" hx-target="#content" hx-swap="outerHTML">
-</div>
-```
-
-### Anti-Pattern 3: No Loading Indicator
-
-**Problem:** Not providing visual feedback during HTMX requests.
-
-**Why It Fails:** Users don't know if action worked; may click repeatedly; poor UX.
-
-**Correct Pattern:**
-```html
-<button hx-get="/data" hx-target="#content" hx-indicator="#spinner">Load</button>
-<span id="spinner" class="htmx-indicator">Loading...</span>
-```
-
-### Anti-Pattern 4: Missing Progressive Enhancement
-
-**Problem:** HTMX-only forms that break without JavaScript — accessibility issues, SEO problems.
-
-**Correct Pattern:** See [Progressive Enhancement](#browser-compatibility) above — always include `action` and `method` attributes alongside HTMX attributes on forms.
-
-### Progressive Enhancement with hx-boost
-
-Use `hx-boost="true"` on navigation links and forms to convert standard requests into AJAX with no other attribute changes. The page degrades gracefully when JS is disabled.
-```html
-<nav hx-boost="true">
-    <a href="/about">About</a> <!-- AJAX-ified, falls back to normal link -->
-</nav>
-```
-
-### Server-Sent Events (SSE) and WebSockets
-
-For real-time updates, use the official SSE or WebSocket extensions. Load separately from `htmx.org/dist/ext/`.
-
-```html
-<!-- SSE: Server pushes updates to client -->
-<div hx-ext="sse" sse-connect="/events" sse-swap="message">
-    <!-- Content updates when server sends SSE "message" event -->
-</div>
-```
-
-See [SSE extension docs](https://htmx.org/extensions/sse/) and [WebSocket extension docs](https://htmx.org/extensions/ws/) for configuration options.
-
-## HTMX 2.0 Changes
-
-- **IE11 dropped** — No longer supported; remove any IE11 polyfills
-- **`hx-on` syntax changed** — Use `hx-on:event="handler"` instead of `hx-on="event: handler"`
-- **`hx-swap` default behavior** — `outerHTML` settling behavior changed; test swap transitions after upgrade
-- **Attribute inheritance** — Some attributes no longer inherit by default; check `hx-inherit` docs
-- See [HTMX 2.0 Migration Guide](https://htmx.org/migration-guide-htmx-1/) for full details
+- Requests target/swap intended content and all HTML/JS references coherent; no repeated listeners/global collision.
+- Form/link fallback, focus/accessibility, CSRF/auth and escaped HTML maintained.
+- Loading/error/empty/timeout/cancellation outcomes visible; safe retries not blind mutation replay.
+- hx-push-url/native history/back-forward/restoration preserved and tested when browser available.
+- Actual version/extension/browser compatibility checked, no speculative upgrade/network workaround.
+- Static inspections distinct from real network/browser verification; unavailable checks disclosed.
+
+## References
+
+- [HTMX documentation](https://htmx.org/docs/)
+- [HTMX reference](https://htmx.org/reference/)
+- [HTMX lifecycle events](https://htmx.org/events/)
+- [HTMX1 migration guide](https://htmx.org/migration-guide-htmx-1/)
+- [HTMX SSE extension](https://htmx.org/extensions/sse/)
+- [HTMX WebSocket extension](https://htmx.org/extensions/ws/)
+- `501-frontend-browser-globals-collisions.md` for focused global-collision repair.

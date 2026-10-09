@@ -1,0 +1,6 @@
+# Date: 2026-08-17
+# Host: macOS local release-validation environment
+# Command: built plugin hook invoked with CLAUDE_PLUGIN_ROOT from a temporary build directory
+# Result: PASS
+
+The isolated hook emitted a system-reminder containing canonical absolute rule paths for a pytest prompt.

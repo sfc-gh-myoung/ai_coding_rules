@@ -1,343 +1,79 @@
-# React Core: Modern Architecture & Best Practices
-
-> **CORE RULE: PRESERVE WHEN POSSIBLE**
->
-> This rule defines essential React patterns. Load for React tasks.
-> Specialized rules depend on this foundation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.3.0
-**LastUpdated:** 2026-03-25
-**Keywords:** React, Next.js, RSC, Hooks, Tailwind, Zustand, TanStack Query, Shadcn, Feature-based, TypeScript, Vitest, Testing Library, debug hooks, fix React error, component rendering
-**TokenBudget:** ~3200
-**ContextTier:** High
-**Depends:** 000-global-core.md, 420-javascript-core.md, 430-typescript-core.md
-**LoadTrigger:** ext:.jsx, ext:.tsx, kw:react
+---
+schema_version: v4.0
+rule_version: v5.0.0
+description: "React with TypeScript: follow the project's framework and structure, server/client state separation, accessible typed components and behavior-focused tests."
+last_updated: 2026-10-07
+keywords:
+  - kw:feature-based architecture
+  - kw:TanStack Query
+  - kw:RSC server components
+  - kw:Zustand client state
+  - kw:named exports components
+  - kw:shadcn Tailwind patterns
+  - kw:tsx
+token_budget: ~1150
+context_tier: High
+depends:
+  required:
+    - 000-global-core.md  # Foundation for all rules
+    - 420-javascript-core.md  # JavaScript patterns
+    - 430-typescript-core.md  # TypeScript strict typing
+  optional:
+    - 440a-react-anti-patterns.md  # Anti-patterns, error recovery, hydration, resource exhaustion, cleanup, output examples
+    - 441-react-backend.md  # Python backend patterns, API communication, authentication
+---
+# React Core
 
 ## Scope
 
 **What This Rule Covers:**
-Establishes the definitive standards for developing scalable, maintainable React applications in 2026. This rule enforces "Feature-based" architecture, Server Components (RSC) usage, and modern state management patterns to replace legacy approaches like global Redux or huge `useEffect` chains.
+React function components in TypeScript: framework and rendering-model detection, feature-based structure, server/client state, Server Components, styling conventions, accessibility and tests.
 
 **When to Load This Rule:**
-- Building or maintaining React applications
-- Setting up Next.js or Vite projects
-- Implementing React component architecture
-- Choosing state management solutions
-- Configuring React testing strategies
-- Reviewing React code for best practices
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation for all rules
-- **420-javascript-core.md** - JavaScript patterns
-- **430-typescript-core.md** - TypeScript strict typing
-
-**Related:**
-- **440a-react-anti-patterns.md** - Anti-patterns, error recovery, hydration, resource exhaustion, cleanup, output examples
-- **441-react-backend.md** - Python backend patterns, API communication, authentication
-
-### External Documentation
-
-- [React.dev (Official Docs)](https://react.dev/) - The definitive guide to modern React
-- [TanStack Query Docs](https://tanstack.com/query/latest) - Standard for async state management
-- [Zustand Docs](https://github.com/pmndrs/zustand) - Minimalist client state management
-- [Redux Toolkit Docs](https://redux-toolkit.js.org/) - Enterprise state management
-- [Bulletproof React](https://github.com/alan2207/bulletproof-react) - Architecture reference for feature-based structure
+When creating or reviewing React `.tsx` code; read `440a-react-anti-patterns.md` for error, hydration, cleanup and performance review and `441-react-backend.md` for API/auth integration.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Node.js 18+ installed
-- React 18+ project
-- TypeScript 5+ configured
-- Understanding of modern React patterns (hooks, functional components)
-- Package manager: `npm`, `pnpm`, `yarn`, or `bun`
-- Build tool: `vite` or `next`
-- Testing: `vitest` and React Testing Library
-- Linting: `biome` (or `eslint`/`prettier`)
-- Styling: Tailwind CSS
+- `package.json`, lockfile, React/framework versions (Next.js, Vite, Remix/React Router, other), tsconfig paths and existing directory layout.
+- Existing data-fetching, state, styling, component library, lint/format and test tooling, plus the project's lint/type-check/test commands.
 
 ### Mandatory
 
-- MUST use feature-based folder structure (`src/features/<domain>`)
-- MUST use TanStack Query for server state (or Server Components for Next.js). For other React frameworks (Remix, Astro, etc.), default to TanStack Query and consult framework SSR documentation.
-- MUST test user interactions, not implementation details
-
-### Forbidden
-
-- `create-react-app` (deprecated)
-- `class components` (legacy pattern)
-- `default exports` for components. Next.js convention files exempt:
-  - `page.tsx`
-  - `layout.tsx`
-  - `loading.tsx`
-  - `error.tsx`
-  - `not-found.tsx`
-  - `route.ts`
-- `barrel files` (circular dependency risks — exception: one `index.ts` per feature as public API boundary, re-exporting only that feature's public surface)
-- `enzyme` testing library (deprecated)
-- Manual data fetching with `useEffect` + `useState`
+- Investigate before editing: identify framework, router, rendering model (CSR, SSR, RSC) and established conventions. Follow them for new code; restructuring, framework changes or new dependencies are separate approved work.
+- Prefer feature-based organization (`src/features/<domain>` with shared UI in a common components directory) for new projects or where already used; do not mass-migrate an existing layout as a side effect.
+- Write function components with typed props; avoid `any` and use runtime validation (such as Zod) at untrusted boundaries. Class components remain acceptable only where required, such as custom error boundaries.
+- Prefer named component exports; default exports are required for framework convention files (for example Next.js App Router `page`, `layout`, `loading`, `error`, `not-found`, `template`, `default`) and lazy-loaded modules where the API expects them.
+- Fetch server data with the framework's data mechanism (Server Components, loaders, server actions) or the project's server-state library (TanStack Query, SWR, RTK Query). Do not hand-roll fetching with `useEffect` + `useState` for new code; where unavoidable, handle cancellation, races and errors.
+- Keep server state out of global client stores. Use local state first, lift or compose before adding a store, and use the project's client-state library (Zustand, Redux Toolkit, Context for low-frequency values) for genuinely shared UI state.
+- Never keep auth tokens or secrets in client stores or localStorage; follow `441-react-backend.md` for session handling.
+- In RSC frameworks, mark `'use client'` only at the boundary that needs state, effects, event handlers or browser APIs; keep server-only code and secrets out of client modules and pass only serializable props across the boundary.
+- Follow the project's styling system (Tailwind/shadcn-style composition where established); do not introduce a new styling approach without approval.
+- Components are accessible: semantic elements, labelled controls, keyboard operation, focus management and correct ARIA where native semantics are insufficient.
+- Test user-visible behavior with React Testing Library queries by role/label and `user-event`, not internal state; mock network at the boundary.
+- Keep `React.StrictMode` where the project uses it; do not remove it to hide double-invocation bugs.
+- Run the project's actual lint, type-check and test commands; do not claim rendering or interaction correctness from static review.
 
 ### Execution Steps
 
-1. **Investigate Project:** Read `package.json` to identify framework (Next.js vs Vite) and existing dependencies
-2. **Check Configuration:** Review `tsconfig.json` for path aliases (e.g., `@/*`)
-3. **Validate Architecture:** Confirm if the project uses Feature-based folder structure before adding files
-4. **Check Rendering Strategy:** Identify if the context is Client Side (CSR) or Server Side (RSC) to apply correct data fetching patterns
-5. **Enforce Strict Mode:** Ensure `React.StrictMode` is enabled
-6. **Prefer Composition:** Use component composition over complex custom hooks for UI logic
-7. **Verify Types:** Ensure all props and state are typed with Zod or TypeScript interfaces (no `any`)
-8. **Apply State Pattern:** Use TanStack Query for server state, Zustand for client state
-9. **Validate Output:** Run linting and tests before marking complete
-
-### Output Format
-
-TypeScript code (`.tsx`, `.ts`) with:
-- Functional components using named exports
-- Feature-based folder structure
-- TanStack Query for async data
-- Zustand for global UI state
-- Tailwind CSS for styling
-- React Testing Library for tests
+1. Read package, framework, tsconfig, directory and existing component/state/test conventions; confirm rendering model.
+2. Implement the minimal typed, accessible component and data/state change using established libraries and boundaries.
+3. Add or update behavior tests and run available lint, type-check, tests and build.
+4. Report files, rendering/state choices, commands with results and any unverified browser or accessibility behavior.
 
 ### Validation
 
-**Pre-Task-Completion Checks:**
-- [ ] Read `package.json` to identify framework and dependencies
-- [ ] Check `tsconfig.json` for path aliases
-- [ ] Scan existing `src` folder structure before adding files
-- [ ] Identify rendering strategy: Client Side (CSR) or Server Side (RSC)
-- [ ] Confirm `React.StrictMode` is enabled
-- [ ] Verify Tailwind and testing libraries are configured
-- [ ] Feature code placed in `src/features/<domain>` structure
-- [ ] `useQuery` or RSC used for data fetching (no `useEffect` for async)
-- [ ] Global UI state uses Zustand (or RTK if: >5 independent state slices with cross-slice middleware, team already uses Redux, or requires Redux DevTools time-travel debugging)
-- [ ] Components typed with TypeScript interfaces (no `any`)
-- [ ] No `useEffect` for derived state (use `useMemo` or direct calculation)
-- [ ] `vitest` tests written for user interactions
-- [ ] `className` prop support enabled via `cn()` utility
-- [ ] All imports use absolute paths (e.g., `@/components/...`)
-- [ ] Custom hooks under 50 lines of logic (split into smaller hooks if larger)
+- Changes follow the detected framework, structure and libraries; no unapproved dependencies or migrations.
+- Server data uses framework or server-state tooling; client stores hold no server data or credentials.
+- Client/server boundaries minimal and serializable; components typed and accessible.
+- Behavior tests, lint, type-check and build pass, or failures and gaps are reported.
 
-**Success Criteria:**
-- `npm run test` (vitest) passes all tests
-- `npm run type-check` (tsc --noEmit) shows no type errors
-- `npm run lint` passes without errors
-- App builds without strict mode warnings
+## References
 
-**Negative Tests:**
-- Importing a component via `default` should trigger a lint warning (if configured)
-- Direct `fetch` calls in components should be flagged in code review
-
-### Design Principles
-
-- **Feature-Based Architecture:** Organize by business domain, not technical layers
-- **Server State Separation:** Use TanStack Query or RSC for async data, never `useEffect`
-- **Composition Over Complexity:** Prefer component composition over custom hooks with >50 lines of logic
-- **Type Safety:** All components and state fully typed with TypeScript
-- **Test User Behavior:** Test interactions, not implementation details
-
-### Post-Execution Checklist
-
-- [ ] Verify all Pre-Task-Completion Checks still pass
-- [ ] Linting and type-check pass: `npm run lint && npm run type-check`
-- [ ] No `useEffect` used for data fetching (use TanStack Query or RSC)
-- [ ] Feature-based directory structure maintained (`src/features/<domain>`)
-- [ ] No default exports (except Next.js convention files: `page.tsx`, `layout.tsx`, `loading.tsx`, `error.tsx`, `not-found.tsx`, `route.ts`)
-- [ ] TanStack Query error boundaries wrap feature sections
-- [ ] Tests use Testing Library queries (`getByRole`, `getByText`), not implementation details
-- [ ] No barrel files introduced (exception: feature-level `index.ts` as public API boundary)
-
-## Key Principles
-
-### Project Architecture & Structure
-
-#### Feature-based Organization
-- **Requirement:** Organize the `src` directory by "features" (business domains) rather than technical layers.
-- **Rule:** Shared UI components go in `src/components/ui`. Domain-specific logic goes in `src/features/<domain>`.
-
-```typescript
-// Good: Feature-based structure
-src/
-  features/
-    discussions/
-      api/        # Data fetching logic
-      components/ # Components scoped to this feature
-      hooks/      # Hooks scoped to this feature
-      types/      # TypeScript types for this feature
-      index.ts    # Public API of the feature
-  components/
-    ui/           # Generic UI components (Buttons, Inputs)
-  lib/            # Application-wide utilities (axios, queryClient)
-```
-
-#### Component Definition
-- **Requirement:** Use Functional Components with Named Exports.
-- **Avoid:** Default exports (re-exporting and refactoring pain).
-
-```typescript
-// Good: Named export and explicit return type
-import { ReactNode } from 'react';
-
-interface ButtonProps {
-  children: ReactNode;
-  onClick: () => void;
-  variant?: 'primary' | 'secondary';
-}
-
-export const Button = ({ children, onClick, variant = 'primary' }: ButtonProps) => {
-  return (
-    <button onClick={onClick} className={`btn-${variant}`}>
-      {children}
-    </button>
-  );
-};
-```
-
-### State Management & Data Fetching
-
-#### Server State (Async Data)
-- **Requirement:** DO NOT use `useEffect` + `useState` for data fetching.
-- **Always:** Use **TanStack Query** (Client) or **Server Components** (Next.js/RSC) for async operations.
-
-```typescript
-// Recommended default configuration
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,   // 5 minutes
-      retry: 2,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-```
-
-```typescript
-// Good: Using TanStack Query
-import { useQuery } from '@tanstack/react-query';
-import { fetchUser } from './api';
-
-export const UserProfile = ({ userId }: { userId: string }) => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['user', userId],
-    queryFn: () => fetchUser(userId),
-  });
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error</div>;
-
-  return <div>{data.name}</div>;
-};
-```
-
-#### Client State (Global UI)
-- **Recommended:** Use **Zustand** for global client state (sidebar open/close, theme, session tokens).
-- **Alternative:** **Redux Toolkit** when: (a) >5 independent state slices with cross-slice middleware, (b) existing Redux codebase, or (c) Redux DevTools time-travel debugging required.
-- **Avoid:** React Context for frequently-updating state (performance issues with re-renders).
-
-```typescript
-// Good: Zustand Store
-import { create } from 'zustand';
-
-interface UIStore {
-  isSidebarOpen: boolean;
-  toggleSidebar: () => void;
-}
-
-export const useUIStore = create<UIStore>((set) => ({
-  isSidebarOpen: false,
-  toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
-}));
-```
-
-**Zustand Persist Middleware (with SSR safety):**
-```typescript
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-
-interface ThemeStore {
-  theme: 'light' | 'dark';
-  toggleTheme: () => void;
-}
-
-export const useThemeStore = create<ThemeStore>()(
-  persist(
-    (set) => ({
-      theme: 'light',
-      toggleTheme: () => set((s) => ({ theme: s.theme === 'light' ? 'dark' : 'light' })),
-    }),
-    {
-      name: 'theme-store',
-      storage: createJSONStorage(() => {
-        // SSR/private browsing safety: fall back to in-memory if localStorage unavailable
-        try {
-          return localStorage;
-        } catch {
-          return sessionStorage;
-        }
-      }),
-    }
-  )
-);
-```
-
-> **Note:** `persist` hydrates asynchronously. Use `useThemeStore.persist.hasHydrated()` to avoid flash of default state. In SSR (Next.js), the store hydrates on the client only — use the hydration mismatch pattern from above.
-
-### Styling & UI Patterns
-
-#### Tailwind & Shadcn/UI
-- **Requirement:** Use Utility-First CSS (Tailwind).
-- **Rule:** Implement component patterns similar to **Shadcn/UI** (Radix Primitives + Tailwind).
-- **Avoid:** CSS Modules, styled-components, or heavy runtime CSS-in-JS libraries.
-
-```tsx
-// Good: Tailwind composition with cn utility
-import { cn } from '@/lib/utils';
-
-interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export const Card = ({ className, ...props }: CardProps) => (
-  <div
-    className={cn("rounded-xl border bg-card text-card-foreground shadow", className)}
-    {...props}
-  />
-);
-```
-
-### Integration & Testing
-
-#### Testing Strategy
-- **Requirement:** Write tests using **Vitest** and **React Testing Library**.
-- **Rule:** Test user interactions (clicks, typing), not implementation details (state changes, internal methods).
-
-```typescript
-// Good: Testing user interaction
-import { render, screen, fireEvent } from '@testing-library/react';
-import { Counter } from './Counter';
-
-test('increments count when button is clicked', () => {
-  render(<Counter />);
-  const button = screen.getByRole('button', { name: /increment/i });
-  fireEvent.click(button);
-  expect(screen.getByText(/count: 1/i)).toBeInTheDocument();
-});
-```
-
-## Anti-Patterns and Common Mistakes
-
-> **See:** [440a-react-anti-patterns.md](./440a-react-anti-patterns.md) for anti-patterns, error recovery patterns, hydration handling, resource exhaustion prevention, cleanup/unmount patterns, and output format examples.
-> **Investigation Required**
-> When applying this rule:
-> 1. **Read `package.json` first** to determine framework (Next.js vs Vite) and dependencies.
-> 2. **Check `tsconfig.json`** for path aliases (e.g., `@/*`).
-> 3. **Scan existing `src` folder** to respect current architectural patterns if migrating gradually.
-> 4. **If uncertain, explicitly state:** "I need to check the routing configuration to recommend the correct data loading strategy."
-> 5. **Make grounded recommendations** based on the actual tech stack version (e.g., Next 13 vs 14).
+- [React documentation](https://react.dev/)
+- [Server Components](https://react.dev/reference/rsc/server-components)
+- ['use client'](https://react.dev/reference/rsc/use-client)
+- [TanStack Query](https://tanstack.com/query/latest/docs/framework/react/overview)
+- [Testing Library](https://testing-library.com/docs/react-testing-library/intro/)
+- [Next.js file conventions](https://nextjs.org/docs/app/api-reference/file-conventions)

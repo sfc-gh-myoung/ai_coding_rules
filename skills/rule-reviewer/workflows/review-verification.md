@@ -79,10 +79,12 @@ To produce a valid review under these requirements, the agent MUST:
 
 ### 4. Template Compliance
 
-- [ ] Executive Summary table uses exact column headers from REVIEW-OUTPUT-TEMPLATE.md
-- [ ] All 9 required H2 sections present in correct order
-- [ ] Post-Review Checklist has exactly 11 items
-- [ ] Informational sections (Token Efficiency, Staleness) are inline, not separate H2
+- [ ] Canonical JSON passes `ai-rules review-artifact validate` (exit 0)
+- [ ] `dimensions` array has exactly 6 canonical dimensions
+- [ ] `score` equals sum of dimension points (within ±0.5)
+- [ ] `verdict` matches canonical threshold for `score`
+- [ ] `blocking_issue_count` matches count of critical/high findings
+- [ ] Every blocking finding has source or docs evidence
 
 ## Quality Gates
 
@@ -117,6 +119,23 @@ omission is visible rather than silent. No other remediation is required.
 
 **Integration point:** This gate is checked in `workflows/file-write.md` Step 5a
 (pre-write structural validation).
+
+## Required Review Sections
+
+All FULL-mode reviews must contain these 10 H2 sections in order:
+
+1. File Header (H1 `# Rule Review: {filename}` + 5 metadata fields)
+2. Executive Summary (score table + verdict block)
+3. Schema Validation Results
+4. Agent Executability Verdict
+5. Dimension Analysis (6 scored subsections)
+6. Critical Issues
+7. Recommendations (with inline Staleness)
+8. Post-Review Checklist (11 fixed items)
+9. Conclusion
+10. Timing Metadata (required unless `timing_enabled: false`, in which case a single `not-requested` row satisfies the heading requirement)
+
+**Authoritative schema:** `schemas/rule-review-result-v1.schema.json`. Validate with `ai-rules review-artifact validate`.
 
 ## Integration Point
 

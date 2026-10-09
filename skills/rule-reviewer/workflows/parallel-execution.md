@@ -1,4 +1,4 @@
-<!-- Output format: delegated to score-aggregation.md + references/REVIEW-OUTPUT-TEMPLATE.md -->
+<!-- Output format: canonical rule-review-result/v1 JSON. Validate with ai-rules review-artifact validate; render Markdown with ai-rules review-artifact render. Delegated to score-aggregation.md. -->
 
 # Parallel Execution Workflow
 
@@ -71,14 +71,14 @@ Before launching sub-agents, validate the rule file:
 ```bash
 target_basename=$(basename "$target_file")
 
-if [[ "$target_basename" =~ ^(AGENTS|PROJECT)\.md$ ]]; then
+if [[ "$target_basename" =~ ^PROJECT\.md$ ]]; then
     FILE_TYPE="project"
     SKIP_SCHEMA=true
 elif [[ "$target_file" == rules/*.md ]]; then
     FILE_TYPE="rule"
     SKIP_SCHEMA=false
 else
-    echo "ERROR: Target must be AGENTS.md, PROJECT.md, or rules/*.md"
+    echo "ERROR: Target must be PROJECT.md or rules/*.md"
     exit 1
 fi
 ```
@@ -121,7 +121,7 @@ Launch 5 sub-agents using the Task tool, one per non-deterministic scored dimens
 **Launch procedure:**
 1. For each dimension, generate a prompt containing: rubric content, rule content, overlap rules for that dimension, and review parameters
 
-> **Note:** Each rubric file is self-contained — it includes the full counting protocol inline. No additional files (e.g., `_shared-preamble.md`) need to be loaded for sub-agents.
+> **Note:** Each rubric file is self-contained: it includes the full counting protocol inline. No additional files (e.g., `_shared-preamble.md`) need to be loaded for sub-agents.
 2. Launch via Task tool with `subagent_type="general-purpose"`, `run_in_background=True`
 3. Wait 5 seconds between launches (API rate limit safety)
 4. Track each agent ID, dimension name, weight, and status
@@ -229,7 +229,7 @@ After collecting all sub-agent results, build the `_dimension_timings` array wit
 - If `wc -l` exits non-zero or produces no output:
   - Set `duration_seconds: -1`
   - Set `mode: "failed"`
-  - Log: "WARNING: Rule Size inline measurement failed — wc -l returned non-zero"
+  - Log: "WARNING: Rule Size inline measurement failed; wc -l returned non-zero"
 - Else:
   - Record `end_epoch` after score lookup
   - Append with `"mode": "inline"` and computed duration
@@ -274,12 +274,12 @@ See `score-aggregation.md` for detailed aggregation workflow.
 Parallel mode uses sub-agent self-reports (not coordinator checkpoints) for per-dimension
 timing. Before calling `timing-end`, serialize the aggregated `_dimension_timings` array to a
 JSON string and pass it explicitly via `--dimension-timings`. Do **not** use
-`--auto-dimension-timings` in parallel mode — coordinator checkpoints would double-count
+`--auto-dimension-timings` in parallel mode: coordinator checkpoints would double-count
 wall-clock time (dimensions run concurrently, not sequentially).
 
 ```bash
-PYTHON=$(bash skills/skill-timing/scripts/find_python.sh)
-$PYTHON skills/skill-timing/scripts/skill_timing.py end \
+PYTHON=$(bash skills/skill-timer/scripts/find_python.sh)
+$PYTHON skills/skill-timer/scripts/skill_timer.py end \
     --run-id {{_timing_run_id}} \
     --output-file {{output_file}} \
     --skill rule-reviewer \
@@ -295,7 +295,7 @@ $PYTHON skills/skill-timing/scripts/skill_timing.py end \
    (or `"self-report-flagged"` / `"validation-failed"` per Step 3.1a validation).
 3. Serialize to JSON, pass via `--dimension-timings`.
 4. Verify `PER_DIMENSION_STATUS=present` in stdout and that the output file contains
-   `### Per-Dimension Timing` with ≥6 rows — this satisfies Quality Gate 7
+   `### Per-Dimension Timing` with ≥6 rows: this satisfies Quality Gate 7
    (see `workflows/review-verification.md`).
 
 **Gate 7 failure remediation in parallel mode:** Re-aggregate the sub-agent self-reports and

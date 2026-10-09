@@ -1,0 +1,24 @@
+schema_version: 3
+updated: 2026-07-04T00:00:00Z
+id: complex-python-etl
+description: # TODO
+variant: complex
+prompt: |
+  Our nightly ETL is implemented in jobs/extract_load.py. It currently uses a
+  fragile retry loop and we have observed intermittent timeouts when the source
+  database is under load. Please review the file and suggest a more resilient
+  retry policy with jittered backoff, then add hierarchical logger names with
+  operation-scoped handler attachment so we can trace each attempt. Do not change
+  the public function signature; downstream orchestration depends on it.
+expected:
+  required:
+    - rules/000-global-core.md  # foundation (always loaded)
+    - rules/207-python-logging.md  # matches: kw:python logging, kw:handlers
+    - rules/200-python-core.md  # migrated from dependencies (v3.15)
+  forbidden: []
+  optional: []
+trigger_evidence:
+  kw: [hierarchical logger names, operation-scoped handler attachment]
+  ext: [.py]
+  file: []
+  dir: []

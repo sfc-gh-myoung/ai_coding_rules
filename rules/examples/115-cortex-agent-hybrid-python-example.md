@@ -34,7 +34,7 @@ prereq_check = session.sql("""
             SYSTEM$SHOW_PARAMETERS_AS_JSON('CORTEX_ENABLED_CROSS_REGION', 'ACCOUNT')
         ))) WHERE VALUE:name = 'CORTEX_ENABLED_CROSS_REGION'):value::STRING AS cortex_enabled
 """).collect()
-assert prereq_check[0]['CORTEX_ENABLED'] == 'true', "Cortex not enabled"
+assert prereq_check[0]["CORTEX_ENABLED"] == "true", "Cortex not enabled"
 
 # Step 3: Test tools independently before agent creation
 # Test semantic view
@@ -92,17 +92,17 @@ agent_config = AgentConfig(
             name="sales_semantic_view",
             type="semantic_view",
             reference="my_db.my_schema.sales_semantic_view",
-            description="Query structured sales and revenue data"
+            description="Query structured sales and revenue data",
         ),
         Tool(
-            name="docs_search_service", 
+            name="docs_search_service",
             type="cortex_search",
             reference="my_db.my_schema.docs_search_service",
-            description="Search company policies and documentation"
-        )
+            description="Search company policies and documentation",
+        ),
     ],
     planning_instructions=PLANNING_INSTRUCTIONS,
-    response_instructions=RESPONSE_INSTRUCTIONS
+    response_instructions=RESPONSE_INSTRUCTIONS,
 )
 
 # Step 6: Create agent
@@ -110,14 +110,16 @@ agent = Agent.create(
     session=session,
     name="my_hybrid_agent",
     config=agent_config,
-    comment="Sales analytics with document search"
+    comment="Sales analytics with document search",
 )
+
 
 # Step 7: Test agent execution
 def test_agent(question: str) -> str:
     """Test agent with a question and return response."""
     result = agent.run(question)
     return result.response
+
 
 # Component tests
 print("Testing structured data query...")
@@ -144,8 +146,8 @@ assert len(agents) == 1, "Agent not created"
 # Test tool routing
 test_cases = [
     ("What was revenue last month?", "semantic_view"),  # Should use SV
-    ("What is our refund policy?", "cortex_search"),    # Should use CS
-    ("Tell me a joke", "decline"),                       # Should decline
+    ("What is our refund policy?", "cortex_search"),  # Should use CS
+    ("Tell me a joke", "decline"),  # Should decline
 ]
 
 for question, expected_tool in test_cases:

@@ -8,7 +8,7 @@ Manage the total token cost of loaded rules to prevent context window exhaustion
 
 ### Step 1: Sum Token Budgets
 
-For each rule selected in Phases 1-4, read its `TokenBudget` metadata value. Sum all values.
+For each rule selected in Phases 1-4, read its `token_budget:` metadata value (v3.6 YAML frontmatter key; inline `**TokenBudget:**` remains readable via dual-parse fallback). Sum all values.
 
 ### Step 2: Check Against Limit
 
@@ -65,13 +65,32 @@ Deferred rules must be declared in the Rules Loaded section:
 | **Standard** | + 1-2 activity rules | ~8,000-12,000 |
 | **Complete** | + specialized rules | ~15,000-20,000 |
 
+## Domain-rule cap (R3)
+
+- Load at most **3** domain/activity rules per response by default (`max_domain_rules = 3`).
+- **This cap counts only the agent's LEAF/domain SELECTIONS: rules chosen in Phases 2–3 of the skill.** Rules loaded via `required:` dependency closure are exempt from this count.
+- When >3 candidates match, keep by ContextTier priority: Critical > High > Medium > Low.
+- Break ties by descending keyword-match count, then ascending TokenBudget.
+- Declare every deferral: `[Deferred: <rule> - <tier> tier, over rule cap]`.
+
+## Total-context accounting (R4)
+
+- The budget ceiling (default 20,000) applies to the WHOLE per-response context,
+  not just selected rules:
+  `total = fixed_floor + index_match + sum(selected rules)`.
+- `fixed_floor` = injected micro-kernel + 000-global-core.md + rule-loader/SKILL.md (always injected).
+- Verify with: `ai-rules tokens --context-estimate --selected <rule> [--selected <rule> ...]`.
+- `required:` dependency closure is loaded in addition to: and does not count against: the 3 domain/activity-selection cap, and a `required:` parent is never deferred for token pressure. If loading a mandatory closure would exceed the 20,000-token R4 ceiling, defer LEAF/optional selections first; a still-over-budget mandatory closure is escalated (see Q3-resolution below), never silently trimmed.
+- If `total > ceiling`: defer Low, then Medium, then apply the rule cap before deferring any High/Critical rule.
+  **Exception: rules loaded via `required:` closure are exempt from this deferral path: they are NEVER deferred regardless of ContextTier or total token count. Apply the deferral sequence only to LEAF/optional selections. If total still exceeds the 20,000-token ceiling after deferring all non-required selections, escalate per Q3-resolution below; do not silently trim a `required:` parent.**
+
 ## Rules
 
 - Agent self-regulates token budget (no external enforcement)
 - Warning threshold: 15,000 tokens
 - Hard limit: 20,000 tokens
-- Token budgets are approximate (declared in each rule's `TokenBudget` metadata)
-- When in doubt about a rule's priority, check its `ContextTier` metadata
+- Token budgets are approximate (declared in each rule's `token_budget:` metadata; inline `**TokenBudget:**` on unmigrated rules)
+- When in doubt about a rule's priority, check its `context_tier:` metadata (inline `**ContextTier:**` on unmigrated rules)
 
 ## Worked Example
 
@@ -79,7 +98,7 @@ Deferred rules must be declared in the Rules Loaded section:
 
 | Rule | TokenBudget | ContextTier |
 |------|------------|-------------|
-| 000-global-core.md | ~4,050 | Critical |
+| 000-global-core.md | ~2,400 | Critical |
 | 200-python-core.md | ~1,800 | High |
 | 206-python-pytest.md | ~3,500 | Medium |
 | 100-snowflake-core.md | ~1,800 | High |
@@ -88,3 +107,7 @@ Deferred rules must be declared in the Rules Loaded section:
 **Total:** ~14,850 tokens (under warning threshold, load all)
 
 If a 6th rule with ~4,000 tokens were needed, total would hit ~18,850. At that point, evaluate whether any Medium/Low tier rules can be deferred.
+
+## Q3-resolution: UNSATISFIABLE mandatory closure
+
+If total token cost still exceeds the 20,000-token ceiling after deferring ALL non-`required:` selections, the closure is UNSATISFIABLE. Default remediation: demote the highest-TokenBudget `required:` edge in that closure to `optional:` in that rule's `Depends` metadata. Document the specific edge (source → target), its TokenBudget, and rationale. After demotion, run `ai-rules rule-loader validate` to confirm no R8 regressions. If validate fails after demotion, escalate with evidence: do not proceed silently.

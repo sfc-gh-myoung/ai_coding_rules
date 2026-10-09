@@ -8,7 +8,7 @@
 
 ### Why This Is Required
 
-- **100% deterministic:** Line count is objective—no judgment required
+- **100% deterministic:** Line count is objective: no judgment required
 - **Unambiguous signals:** Clear thresholds produce clear remediation actions
 - **Zero inter-run variance:** Same file always produces same line count
 - **Agent executability:** Clear decision boundaries for autonomous action
@@ -170,7 +170,7 @@ Per 000-global-core.md Priority 3 (HIGH):
 ### Agent Loading Patterns
 
 Typical agent task loads:
-1. Foundation rule (000-global-core.md): ~700 lines (exception—always loaded)
+1. Foundation rule (000-global-core.md): ~700 lines (exception: always loaded)
 2. Domain core (e.g., 200-python-core.md): ~400-500 lines
 3. Specialized rules (1-3): ~200-400 lines each
 4. Activity rules (1-2): ~150-300 lines each
@@ -292,9 +292,9 @@ Small rules may lack coverage.
 
 ### Pattern 1: Foundation Rules
 
-**Pattern:** 000-global-core.md, AGENTS.md exceed 500 lines
+**Pattern:** 000-global-core.md exceeds 500 lines
 **Why NOT an issue:** Foundation rules are architectural exceptions
-**Action:** Note in review: "Foundation rule—size exception applies"
+**Action:** Note in review: "Foundation rule: size exception applies"
 
 ### Pattern 2: Reference Tables
 
@@ -306,4 +306,4 @@ Small rules may lack coverage.
 
 **Pattern:** Rule contains many code examples for clarity
 **Why NOT an issue:** Examples improve agent executability (Priority 1)
-**Action:** Note in review: "Example-heavy—consider extracting to examples/"
+**Action:** Note in review: "Example-heavy: consider extracting to examples/"

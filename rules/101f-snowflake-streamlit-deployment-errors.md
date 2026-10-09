@@ -1,385 +1,71 @@
+---
+schema_version: v4.0
+rule_version: v4.0.0
+description: "Diagnose Streamlit in Snowflake deployment failures from logs and object state: runtime mismatches, dependencies, EAI/network rules, compute pools, stage files and privileges."
+last_updated: 2026-10-07
+keywords:
+  - kw:Streamlit deployment
+  - kw:Container Runtime
+  - kw:Warehouse Runtime
+  - kw:External Access Integration
+  - kw:stage upload compression
+  - kw:compute pool provisioning
+token_budget: ~1050
+context_tier: Low
+depends:
+  required:
+    - 101-snowflake-streamlit-core.md  # Core Streamlit patterns
+  optional:
+    - 101l-snowflake-streamlit-deployment.md  # Deployment guidance
+---
 # Streamlit Deployment Errors
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v2.2.0
-**LastUpdated:** 2026-03-09
-**Keywords:** deployment error, Container Runtime, Warehouse Runtime, EAI error, compute pool, stage upload, service startup, troubleshooting, runtime error
-**TokenBudget:** ~2800
-**ContextTier:** Low
-**Depends:** 101-snowflake-streamlit-core.md, 101l-snowflake-streamlit-deployment.md
 
 ## Scope
 
 **What This Rule Covers:**
-Deployment error scenarios and resolution steps for Streamlit applications in both Container Runtime and Warehouse Runtime environments.
+Troubleshooting failed or unhealthy Streamlit in Snowflake deployments in container and warehouse runtimes: logs, dependency resolution, external access, compute pools, stage file layout and compression, runtime API mismatches, privileges and resource limits.
 
 **When to Load This Rule:**
-- Debugging Container Runtime deployment failures
-- Troubleshooting Warehouse Runtime errors
-- Resolving External Access Integration (EAI) issues
-- Fixing compute pool or stage problems
-- Diagnosing service startup timeouts
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **000-global-core.md** - Foundation rule with core patterns and validation gates `[Available]`
-- **101-snowflake-streamlit-core.md** - Core Streamlit patterns `[Available]`
-- **101l-snowflake-streamlit-deployment.md** - Deployment guidance `[Available]`
-
-**Related:**
-- **101c-snowflake-streamlit-security.md** - Security patterns `[Available]`
-
-### External Documentation
-
-- [Runtime Environments](https://docs.snowflake.com/en/developer-guide/streamlit/app-development/runtime-environments)
-- [Streamlit Troubleshooting](https://docs.snowflake.com/en/developer-guide/streamlit/troubleshooting)
+When a Streamlit app fails to deploy, start, import or query; load `101l-snowflake-streamlit-deployment.md` for the deployment workflow itself.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- Streamlit deployment attempted
-- Error message from deployment or app logs
-- Access to Snowflake account with appropriate permissions
+- Exact error text, Streamlit object definition (`DESCRIBE STREAMLIT`), runtime, source files and dependency file, and recent changes.
+- Logs (container live console, event table telemetry, `snow streamlit logs`), roles and privileges and authority for any fix.
 
 ### Mandatory
 
-- Identify error type from error message
-- Follow resolution steps in order
-- Verify fix before redeploying
-
-### Forbidden
-
-- Deploying without testing locally first (run: `streamlit run app.py --server.port 8501`). Local testing validates UI logic only. Use `snow streamlit deploy --replace` to a dev environment for full integration testing with Snowflake features.
-- Ignoring service logs when debugging
-- Hardcoding credentials
+- Diagnose before changing: capture the exact error and logs, inspect the Streamlit object, runtime, compute pool, integrations and files, and match the evidence to a cause rather than applying generic fixes.
+- Fixes that create or alter network rules, integrations, compute pools, warehouses, grants or Streamlit objects are mutations requiring approval; prefer the narrowest change and avoid `CREATE OR REPLACE` on shared objects.
+- Runtime mismatch: `get_active_session()` and `_snowflake` are warehouse-runtime only; container runtime needs `st.connection`, `st.secrets` and Python 3.11 per current docs.
+- Dependency failures: container runtime resolves `pyproject.toml`/`requirements.txt` from a package index through an EAI allowing the index hosts (for PyPI, `pypi.org` and `files.pythonhosted.org`); warehouse runtime uses Snowflake Conda channel packages in `environment.yml`. Verify package and version availability for the runtime and pin critical versions.
+- API errors such as missing `st.navigation`/`st.Page` mean the selected Streamlit version is older than the feature; choose a version the runtime offers that includes the API rather than downgrading code blindly.
+- Compute pool issues: confirm state, instance family capacity and USAGE privileges; resuming or resizing pools incurs cost and needs approval.
+- Stage-based deploys: files must keep directory layout and be uncompressed (`--no-auto-compress`/`AUTO_COMPRESS=FALSE`); verify with `LIST` and redeploy the live version as the docs require.
+- Privilege errors: grant only the missing privilege (database/schema USAGE, CREATE STREAMLIT, warehouse or compute pool USAGE, object reads) to the owning role, never broad admin roles.
+- Memory and timeout errors: reduce data pulled into the app, aggregate in Snowflake and cache appropriately before increasing compute.
+- Verify the fix by redeploying in a non-production or approved target and confirming the app loads, imports resolve, queries run and logs are clean; report anything unverified.
 
 ### Execution Steps
 
-1. Match error message to error scenario below
-2. Follow resolution steps for that scenario
-3. Verify fix locally if possible
-4. Redeploy and monitor
-
-### Output Format
-
-Resolved deployment with Streamlit app accessible.
+1. Collect error text, logs and object, runtime, pool, integration, file and grant state.
+2. Identify the root cause and propose the minimal fix with required approvals.
+3. Apply the approved fix, redeploy and re-check logs and app behavior.
+4. Report cause, change, evidence and any residual risk.
 
 ### Validation
 
-- App loads without errors
-- All features functional
-- Logs show no warnings
-
-**Negative Tests:**
-- EAI includes both `pypi.org` and `files.pythonhosted.org` -- FAIL if either missing
-- Stage files are `.py` not `.py.gz` -- FAIL if compressed
-- Compute pool is ACTIVE before deployment -- FAIL if suspended or provisioning
-- `get_active_session()` not used in Container Runtime code -- FAIL if present
-
-### Post-Execution Checklist
-
-- [ ] Error identified and matched to scenario
-- [ ] Resolution steps followed in order
-- [ ] Fix verified before redeploying
-- [ ] App accessible after deployment
-
-## Container Runtime Errors
-
-### Error 1: External Access Integration Missing
-
-```
-Error: External access integration required for Container Runtime
-Could not resolve host: pypi.org
-```
-
-**Cause:** Container Runtime requires EAI to access PyPI for package installation.
-
-**Resolution:**
-1. Create network rule for PyPI:
-```sql
-CREATE OR REPLACE NETWORK RULE pypi_network_rule
-  TYPE = HOST_PORT
-  MODE = EGRESS
-  VALUE_LIST = ('pypi.org:443', 'files.pythonhosted.org:443');
-```
-2. Create external access integration:
-```sql
-CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION pypi_access_integration
-  ALLOWED_NETWORK_RULES = (pypi_network_rule)
-  ENABLED = TRUE;
-```
-3. Add EAI to CREATE STREAMLIT command:
-```sql
-CREATE STREAMLIT ... EXTERNAL_ACCESS_INTEGRATIONS = (pypi_access_integration);
-```
-
-### Error 2: Compute Pool Not Ready
-
-```
-Error: Compute pool 'STREAMLIT_COMPUTE_POOL' is not in ACTIVE state
-```
-
-**Cause:** Compute pool not created, suspended, or still provisioning.
-
-**Resolution:**
-1. Check compute pool status: `SHOW COMPUTE POOLS`
-2. Resume if suspended: `ALTER COMPUTE POOL streamlit_compute_pool RESUME`
-3. Wait for ACTIVE state (may take several minutes on first creation)
-4. Verify pool: MIN_NODES >= 1, instance family has >= 4GB memory for typical Streamlit apps. Check with SHOW COMPUTE POOLS.
-
-### Retrieving Service Logs
-
-When debugging Container Runtime issues, retrieve service logs:
-```bash
-snow spcs service logs <service-name> --container-name <name>
-```
-```sql
--- Or via SQL
-SELECT SYSTEM$GET_SERVICE_LOGS('<service-name>', 0, '<container-name>');
-```
-
-### Error 3: Package Installation Failure
-
-```
-Error: Failed to install package 'mypackage>=1.0'
-No matching distribution found
-```
-
-**Cause:** Package not available on PyPI or version constraint unsatisfiable.
-
-**Resolution:**
-1. Verify package exists on PyPI: `pip index versions mypackage` or check pypi.org
-2. Check version constraints in `pyproject.toml` are valid
-3. Test locally: `uv pip install -r pyproject.toml`
-4. Use >= constraints (e.g., mypackage>=1.0,<2.0) instead of exact pins (mypackage==1.0.3)
-
-### Error 4: Python Version Mismatch
-
-```
-Error: Container Runtime requires Python 3.11
-```
-
-**Cause:** Container Runtime only supports Python 3.11 (as of 2026-03; check [Snowflake documentation](https://docs.snowflake.com/en/developer-guide/streamlit/app-development/runtime-environments) for current supported versions).
-
-**Resolution:**
-1. Update `pyproject.toml`:
-```toml
-[project]
-requires-python = ">=3.11"
-```
-2. Ensure all dependencies are compatible with Python 3.11
-3. Test locally with Python 3.11
-
-## Warehouse Runtime Errors
-
-### Error 5: Stage Upload Compression Issue
-
-```
-TypeError: bad argument type for built-in operation
-ModuleNotFoundError: No module named 'my_module'
-```
-
-**Cause:** Files compressed during upload; Python can't import `.py.gz` files.
-
-**Resolution:**
-1. Always disable auto-compression:
-```bash
-snow stage copy streamlit/ @STAGE --recursive --no-auto-compress --overwrite
-```
-```sql
-PUT file://streamlit_app.py @STAGE AUTO_COMPRESS=FALSE OVERWRITE=TRUE;
-```
-2. Verify files on stage are `.py` not `.py.gz`: `LIST @STAGE`
-3. Re-upload all files with compression disabled
-
-### Error 6: environment.yml Python Version
-
-```
-Error: Python version specification not allowed in environment.yml
-```
-
-**Cause:** Warehouse Runtime manages Python version; explicit `python=X.Y` forbidden.
-
-**Resolution:**
-1. Remove `python=X.Y` from environment.yml:
-```yaml
-# CORRECT
-name: my_app
-channels:
-  - snowflake
-dependencies:
-  - streamlit=1.51.0
-  - pandas
-```
-2. Use only `snowflake` channel
-3. Avoid conda-forge or other channels
-
-### Error 7: Missing Streamlit Version Pin
-
-```
-Error: st.navigation is not a function
-AttributeError: module 'streamlit' has no attribute 'Page'
-```
-
-**Cause:** Default bundled Streamlit version (1.22.0) lacks modern APIs.
-
-**Resolution:**
-1. Pin Streamlit version in environment.yml:
-```yaml
-dependencies:
-  - streamlit=1.51.0  # Pin to modern version
-```
-2. Ensure version >=1.50 for `st.navigation()`, `st.Page()`
-3. Check available versions: [Snowflake Anaconda Channel](https://repo.anaconda.com/pkgs/snowflake/)
-
-### Error 8: get_active_session() Failure
-
-```
-SnowparkSessionException: No active session
-```
-
-**Cause:** `get_active_session()` only works in Warehouse Runtime, not Container Runtime.
-
-**Resolution:**
-1. Use `st.connection("snowflake")` instead (works in both runtimes):
-```python
-# Works in both Container Runtime and Warehouse Runtime
-conn = st.connection("snowflake")
-df = conn.query("SELECT * FROM my_table")
-```
-2. Avoid `snowflake.snowpark.context.get_active_session()` for portability
-
-## Common Errors (Both Runtimes)
-
-### Error 9: Stage Path Not Found
-
-```
-Error: Stage '@MY_DB.MY_SCHEMA.MY_STAGE/streamlit_app' does not exist
-```
-
-**Cause:** Stage doesn't exist or path incorrect.
-
-**Resolution:**
-1. Verify stage exists: `SHOW STAGES IN SCHEMA`
-2. Check full path matches CREATE STREAMLIT exactly
-3. Ensure files uploaded to correct subdirectory
-4. Verify grants: `SHOW GRANTS ON STAGE <name>`
-
-### Error 10: Permission Denied
-
-```
-Error: Insufficient privileges to operate on schema 'MY_SCHEMA'
-```
-
-**Cause:** Missing privileges on database, schema, or warehouse.
-
-**Resolution:**
-1. Grant required privileges:
-```sql
-GRANT USAGE ON DATABASE my_db TO ROLE my_role;
-GRANT USAGE ON SCHEMA my_db.my_schema TO ROLE my_role;
-GRANT CREATE STREAMLIT ON SCHEMA my_db.my_schema TO ROLE my_role;
-GRANT USAGE ON WAREHOUSE my_warehouse TO ROLE my_role;
-```
-2. For Container Runtime, also grant compute pool usage:
-```sql
-GRANT USAGE ON COMPUTE POOL streamlit_compute_pool TO ROLE my_role;
-```
-
-### Error 11: Memory Limit Exceeded / Request Timeout
-
-```
-Error: Container exceeded memory limit
-Error: Request timeout after 300s
-MemoryError: Unable to allocate
-```
-
-**Cause:** App loads too much data into memory or a query/operation exceeds the container or warehouse timeout.
-
-**Resolution:**
-1. Reduce data loaded into memory — use server-side filtering and aggregation:
-```python
-# Bad: loads entire table into memory
-df = session.table("LARGE_TABLE").to_pandas()
-
-# Good: filter and limit server-side
-df = session.table("LARGE_TABLE").filter(col("DATE") >= "2025-01-01").limit(10000).to_pandas()
-```
-2. For Container Runtime, increase container memory in compute pool configuration
-3. For Warehouse Runtime, increase warehouse size by one tier (e.g., ALTER WAREHOUSE SET WAREHOUSE_SIZE = 'MEDIUM') or add `STATEMENT_TIMEOUT_IN_SECONDS`:
-```sql
-ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = 600;
-```
-4. Use `@st.cache_data` to avoid reloading data on every rerun
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Debugging Without Checking Runtime Type
-
-```python
-# Assuming Warehouse Runtime patterns work in Container Runtime
-from snowflake.snowpark.context import get_active_session
-session = get_active_session()  # Fails silently in Container Runtime
-```
-
-**Problem:** Different runtimes have different capabilities. `get_active_session()` only works in Warehouse Runtime.
-
-**Correct Pattern:**
-```python
-# Use st.connection which works in both runtimes
-conn = st.connection("snowflake")
-df = conn.query("SELECT * FROM my_table")
-```
-
-### Anti-Pattern 2: Ignoring Compression on Stage Upload
-
-```bash
-# Missing --no-auto-compress flag
-snow stage copy app/ @STAGE --recursive --overwrite
-```
-
-**Problem:** Files get compressed to `.py.gz`, causing silent import failures with cryptic `TypeError` messages.
-
-**Correct Pattern:**
-```bash
-snow stage copy app/ @STAGE --recursive --no-auto-compress --overwrite
-```
-
-### Anti-Pattern 3: Creating EAI Without All Required Domains
-
-```sql
--- Missing required PyPI domains
-CREATE NETWORK RULE pypi_rule
-  TYPE = HOST_PORT MODE = EGRESS
-  VALUE_LIST = ('pypi.org:443');  -- Incomplete!
-```
-
-**Problem:** Package downloads fail because `files.pythonhosted.org` is not included.
-
-**Correct Pattern:**
-```sql
-CREATE NETWORK RULE pypi_rule
-  TYPE = HOST_PORT MODE = EGRESS
-  VALUE_LIST = ('pypi.org:443', 'files.pythonhosted.org:443');
-```
-
-## Validation Checklist
-
-**Before Deployment:**
-- [ ] Dependencies tested locally
-- [ ] Stage exists and files uploaded (compression disabled for Warehouse Runtime)
-- [ ] EAI configured (Container Runtime)
-- [ ] Compute pool active (Container Runtime)
-- [ ] Grants verified
-
-**After Deployment:**
-- [ ] App loads successfully
-- [ ] All imports resolve
-- [ ] Database queries execute
-- [ ] No errors in logs
+- Cause established from logs and object state, not guessed.
+- Fix minimal, approved and runtime-appropriate.
+- Files uncompressed and dependencies available for the runtime.
+- App loads and queries succeed after redeploy, with clean logs.
+
+## References
+
+- [Troubleshooting Streamlit in Snowflake](https://docs.snowflake.com/en/developer-guide/streamlit/troubleshooting)
+- [Runtime environments](https://docs.snowflake.com/en/developer-guide/streamlit/app-development/runtime-environments)
+- [Dependency management](https://docs.snowflake.com/en/developer-guide/streamlit/app-development/dependency-management)
+- [Logging and tracing](https://docs.snowflake.com/en/developer-guide/streamlit/features/logging-tracing)
+- [snow streamlit logs](https://docs.snowflake.com/en/developer-guide/snowflake-cli/command-reference/streamlit-commands/logs)

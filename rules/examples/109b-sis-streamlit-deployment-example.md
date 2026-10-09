@@ -255,17 +255,18 @@ When wrapping `snow stage copy` in a Python function for deployment automation,
 the compression flag must be handled correctly. The CLI **defaults to compression ON**,
 so the wrapper must explicitly pass `--no-auto-compress` when compression is disabled.
 
-**Wrong — inverted flag logic (silent deployment failure):**
+**Wrong: inverted flag logic (silent deployment failure):**
 ```python
 # BAD: Adds --auto-compress when True (redundant), never adds --no-auto-compress when False
 def snow_stage_copy(source, dest, auto_compress=True, recursive=False):
     flags = ["--overwrite"]
     if auto_compress:
-        flags.append("--auto-compress")   # Redundant — already the CLI default
+        flags.append("--auto-compress")  # Redundant - already the CLI default
     if recursive:
         flags.append("--recursive")
     cmd = ["snow", "stage", "copy", source, dest] + flags
     subprocess.run(cmd, check=True)
+
 
 # Caller thinks compression is disabled, but --no-auto-compress is never passed:
 snow_stage_copy("streamlit/", "@STAGE", auto_compress=False, recursive=True)
@@ -273,7 +274,7 @@ snow_stage_copy("streamlit/", "@STAGE", auto_compress=False, recursive=True)
 # Result: .py files silently compressed to .py.gz → TypeError at runtime
 ```
 
-**Correct — default `auto_compress=False` for app deployment:**
+**Correct: default `auto_compress=False` for app deployment:**
 ```python
 # GOOD: Defaults to no compression, explicitly passes --no-auto-compress
 def snow_stage_copy(source, dest, auto_compress=False, recursive=False):
@@ -284,6 +285,7 @@ def snow_stage_copy(source, dest, auto_compress=False, recursive=False):
         flags.append("--recursive")
     cmd = ["snow", "stage", "copy", source, dest] + flags
     subprocess.run(cmd, check=True)
+
 
 # Now compression is correctly disabled:
 snow_stage_copy("streamlit/", "@STAGE", auto_compress=False, recursive=True)

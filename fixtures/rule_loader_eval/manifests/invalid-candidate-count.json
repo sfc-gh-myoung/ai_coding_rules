@@ -1,0 +1,13 @@
+{
+  "schema_version": "rule-loader-matcher/v1",
+  "candidate_rules": [
+    {
+      "rule_path": "rules/200-python-core.md",
+      "layer": "SOFT",
+      "context_tier": "High",
+      "description": "Python core"
+    }
+  ],
+  "load_sequence": [],
+  "deferred_rules": []
+}

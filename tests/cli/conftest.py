@@ -91,7 +91,7 @@ pytest tests/
 
 ## References
 ### Related Rules
-- `000-global-core.md`
+- `999-test-core.md`
 """
     )
 

@@ -1,334 +1,73 @@
+---
+schema_version: v4.0
+rule_version: v5.0.0
+description: 'Creating and safely evolving Snowflake Native Semantic Views: logical tables, expressions, relationships, and validation.'
+last_updated: 2026-10-07
+keywords:
+- kw:CREATE SEMANTIC VIEW
+- kw:TABLES PRIMARY KEY
+- kw:FACTS DIMENSIONS METRICS
+- kw:RELATIONSHIPS clause
+- kw:mapping syntax alias.physical_column
+- kw:SHOW SEMANTIC DIMENSIONS
+- kw:semantic view
+token_budget: ~1150
+context_tier: High
+depends:
+  required:
+  - 100-snowflake-core.md
+---
 # Snowflake Native Semantic Views: Core DDL
-
-> **CORE RULE:** Essential Semantic Views patterns for DDL creation and validation.
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v3.1.0
-**LastUpdated:** 2026-03-09
-**Keywords:** TABLES, RELATIONSHIPS, PRIMARY KEY, semantic view, create semantic view, SQL, YAML, NLQ, mapping syntax
-**TokenBudget:** ~2550
-**ContextTier:** High
-**Depends:** 100-snowflake-core.md
-**LoadTrigger:** kw:semantic-view, kw:semantic-model
 
 ## Scope
 
 **What This Rule Covers:**
-Creating Snowflake Native Semantic Views using `CREATE SEMANTIC VIEW` DDL: structure, components, and validation.
+Native semantic-view definitions, physical/logical mappings, relationships, business expressions, metadata, and safe deployment.
 
-**When to Load:**
-- Creating semantic views with DDL
-- Defining TABLES, RELATIONSHIPS, PRIMARY KEY
-- Debugging semantic view creation errors
-
-**Related Rules:**
-- **106a** - Advanced patterns, validation rules
-- **106b** - Query patterns, SEMANTIC_VIEW() function
-- **106c** - Cortex Analyst/Agent integration
-
-## References
-
-### Dependencies
-**Must Load First:**
-- **100-snowflake-core.md** - Snowflake SQL patterns
-
-### Related Examples
-
-- **examples/106-semantic-view-ddl-example.md** - Complete DDL creation workflow
-- **examples/106-semantic-view-yaml-vqr-example.md** - YAML with verified queries
-- **examples/106-semantic-view-workarounds-example.md** - Dimension transformation workarounds
-
-### External Documentation
-- [Snowflake Semantic Views](https://docs.snowflake.com/en/user-guide/semantic-views)
-- [Cortex Analyst](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst)
+**When to Load This Rule:**
+When creating, reviewing, or debugging CREATE SEMANTIC VIEW definitions and their evolution.
 
 ## Contract
 
 ### Inputs and Prerequisites
-- Role with CREATE SEMANTIC VIEW privilege on target schema
-- USAGE privilege on referenced tables/views
-- Physical base tables with defined structure
-- Business glossary for naming
+
+- Actual source schemas, business glossary, table grain/keys, relationship cardinality, metric units/NULL policy, and approved target.
+- Read existing semantic definitions and exact physical columns through available metadata. Creation needs CREATE SEMANTIC VIEW on the schema and SELECT on referenced tables/views, with applicable parent privileges; changing existing definitions needs appropriate ownership.
+- Separate design from account execution. Missing source data blocks result validation, not necessarily definition authoring; do not invent columns or claim data checks passed.
 
 ### Mandatory
-- `CREATE SEMANTIC VIEW` DDL
-- `SHOW SEMANTIC VIEWS/DIMENSIONS/METRICS`
 
-### Forbidden
-- CAST, DATE_TRUNC in DIMENSIONS (use simple columns)
-- Verified queries in DDL (use YAML files)
-
-### Approach Selection
-**SQL (Preferred):** Use `CREATE SEMANTIC VIEW` for structure, synonyms, relationships.
-
-**YAML (Alternative):** Use for verified queries (VQR), file-based CI/CD, or `semantic_model_file` parameter.
+- Use current documented SQL or YAML creation workflows according to project requirements. SQL now supports AI_VERIFIED_QUERIES; do not claim verified queries are YAML-only or assume YAML/service payloads are interchangeable.
+- Follow clause order: TABLES, optional RELATIONSHIPS, FACTS, DIMENSIONS, METRICS, then supported view properties. A definition needs at least one dimension or metric, not all optional blocks.
+- Map logical names to expressions: alias.logical_name AS sql_expression. TABLES maps a logical alias to a qualified physical source. Preserve exact physical identifier case; never reverse the expression mapping because a trigger keyword uses older terminology.
+- Facts and dimensions are row-level expressions; metrics are aggregate-level calculations. Dimensions support scalar expressions, not merely direct columns. Validate each expression against documented granularity/function restrictions; use a base view when it genuinely simplifies the model.
+- Declare keys that reflect actual grain, including composite keys where needed. Verify uniqueness/non-NULL values and relationship coverage; a key declaration is not proof of data integrity. Respect documented allowed key expressions and relationship target constraints.
+- Define supported many-to-one/one-to-one relationships and aliases; reject self/circular paths. Review fanout, ambiguous paths, and cross-table expression rules before publishing metrics.
+- Define aggregation, derived ratios, units, date/time zones, and NULL behavior explicitly. Avoid unintended double aggregation and denominator-zero errors; substitution of NULLs must match business meaning.
+- Add distinct synonyms and explanatory comments without confidential/regulated metadata. COMMENT uses equals syntax. Template characters are a client-renderer concern, not a universal semantic-view ban; inspect configured substitution/escaping before execution.
+- Inspect existing grants, consumers, and materializations before evolution. ALTER does not support arbitrary ADD/DROP DIMENSIONS/METRICS; use supported CREATE OR ALTER or reviewed replacement. CREATE OR ALTER can unset omitted properties; replacement can drop materializations and explicit grants without COPY GRANTS.
+- No CREATE OR REPLACE against an assumed disposable production target. Define ownership-scoped deployment, compatibility checks, and recovery; changing a view definition is a mutation requiring authorization.
 
 ### Execution Steps
-1. Define TABLES with PRIMARY KEY
-2. Declare FACTS (numeric at row level)
-3. Declare DIMENSIONS (simple columns only)
-4. Define METRICS (aggregations)
-5. Add SYNONYMS for NLQ accuracy
-6. Add COMMENT clauses (use `=` syntax)
-7. Validate with SHOW commands
 
-### Output Format
-Minimal, runnable `CREATE SEMANTIC VIEW` DDL with TABLES, FACTS, DIMENSIONS, METRICS blocks
+1. Inspect sources and existing semantic views, resolve glossary/grain/keys/units, and identify deployment scope and unresolved inputs.
+2. Define logical tables and valid relationships, then logical expressions/metrics, synonyms/comments, and any approved verified queries.
+3. Review syntax, expression dependencies, cardinality, aggregation, security, and client rendering against current primary documentation.
+4. Only with execution approval, deploy in the intended scope and inspect DESCRIBE/SHOW SEMANTIC VIEWS, DIMENSIONS, FACTS, METRICS, and GET_DDL evidence as supported.
+5. Compare representative semantic results with independently derived physical-table calculations; test consumers/NLQ only when authorized and configured.
 
 ### Validation
-DDL compiles; SHOW commands confirm creation; validation rules pass
 
-### Design Principles
-- **Clause ordering:** TABLES, then FACTS, then DIMENSIONS, then METRICS
-- **Simple expressions:** DIMENSIONS use simple columns only
-- **Comment syntax:** Use `COMMENT = 'text'` (with equals)
-- **Physical columns:** Verify with DESCRIBE TABLE before creating
+- Physical names/mapping direction, clause order, required expression presence, keys, relationships, and metric semantics verified.
+- Actual key/NULL/coverage tests distinguish data quality from syntactic validity; empty data is not evidence of correct business totals.
+- Effective definition, grants, consumers, and materializations meet approved deployment expectations.
+- Deliver reviewed definition, business meanings, prerequisites, deployment/recovery steps, and exact validation outcomes. Compile/deploy/NLQ checks not run remain unverified; a successful Analyst response is not sufficient correctness proof.
 
-> **STOP Gate:** Before creating semantic views:
-> - [ ] Base tables exist with data
-> - [ ] User has CREATE SEMANTIC VIEW privilege
-> - [ ] Physical column names verified via DESCRIBE TABLE
->
-> **CRITICAL:** Run `DESCRIBE TABLE <base_table>` and use exact column names in DDL.
+## References
 
-### Post-Execution Checklist
-- [ ] All mapping syntax: `alias.physical_column AS logical_name`
-- [ ] Physical columns verified against base table
-- [ ] COMMENT uses equals sign
-- [ ] DIMENSIONS use simple columns only
-- [ ] At least one dimension or metric defined
-- [ ] Test with Cortex Analyst NLQ query
-
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern 1: Wrong Clause Order
-```sql
--- WRONG: DIMENSIONS before TABLES
-CREATE SEMANTIC VIEW v AS DIMENSIONS (...) TABLES (...);
-```
-**Problem:** Syntax error - clauses out of order.
-
-**Correct Pattern:** Order: TABLES, FACTS, DIMENSIONS, METRICS
-
-### Anti-Pattern 2: Complex Expressions in DIMENSIONS
-```sql
--- WRONG: DATE_TRUNC in dimensions
-DIMENSIONS (sale_month AS DATE_TRUNC('MONTH', order_date))
-```
-**Problem:** Functions not allowed in dimensions.
-
-**Correct Pattern:** Use simple column references; pre-compute in base view if needed.
-
-### Anti-Pattern 3: Missing Equals in COMMENT
-```sql
--- WRONG
-COMMENT 'text'
--- CORRECT
-COMMENT = 'text'
-```
-
-### Anti-Pattern 4: Referencing Non-Existent Columns
-```sql
--- WRONG: Using invented column names
-FACTS (tfm.load_kilowatts AS load_kw)  -- "load_kilowatts" doesn't exist!
-```
-**Problem:** DDL may compile but Cortex Analyst queries fail.
-
-**Correct Pattern:**
-```sql
-DESCRIBE TABLE PROD.GRID_DATA.TRANSFORMER_DATA;
--- Use exact column names from output
-FACTS (tfm.load_kw AS load_kw)  -- Matches actual column
-```
-
-### Anti-Pattern 5: Template Characters in SYNONYMS
-```sql
--- WRONG: & causes CLI issues
-SYNONYMS ('R&D', 'Sales & Marketing')
--- CORRECT
-SYNONYMS ('R and D', 'Sales and Marketing')
-```
-**Problem:** CLI interprets `&` as template variable.
-
-## Implementation Details
-
-### Complete DDL Structure
-```sql
-CREATE [OR REPLACE] SEMANTIC VIEW <db>.<schema>.<view>
-  TABLES (
-    <alias> AS <db>.<schema>.<table>
-      PRIMARY KEY (<col>)
-      [WITH SYNONYMS ('<syn>')]
-      [COMMENT = '<desc>']
-  )
-  FACTS (
-    <alias>.<logical_name> AS <physical_col>
-      [WITH SYNONYMS ('<syn>')]
-      [COMMENT = '<desc>']
-  )
-  DIMENSIONS (
-    -- IMPORTANT: Must be simple column references, not expressions
-    <alias>.<logical_name> AS <physical_col>
-      [WITH SYNONYMS ('<syn>')]
-      [COMMENT = '<desc>']
-  )
-  METRICS (
-    <alias>.<metric_name> AS <aggregate>(<expr>)
-      [WITH SYNONYMS ('<syn>')]
-      [COMMENT = '<desc>']
-  );
-```
-
-### Minimal Example
-```sql
-CREATE OR REPLACE SEMANTIC VIEW PROD.DATA.SEM_INVENTORY
-  TABLES (
-    asset AS PROD.DATA.ASSETS PRIMARY KEY (asset_id)
-  )
-  FACTS (
-    asset.rated_capacity AS rated_capacity
-  )
-  DIMENSIONS (
-    asset.asset_id AS asset_id,
-    asset.asset_type AS asset_type
-  )
-  METRICS (
-    asset.asset_count AS COUNT(DISTINCT asset_id)
-  );
-```
-
-### Multi-Table with Relationships
-
-In multi-table semantic views, always use fully-qualified table names to avoid ambiguity.
-
-```sql
-CREATE OR REPLACE SEMANTIC VIEW PROD.SALES.SEM_ORDERS
-  TABLES (
-    customer AS PROD.SALES.CUSTOMER PRIMARY KEY (c_custkey),
-    orders AS PROD.SALES.ORDERS PRIMARY KEY (o_orderkey)
-  )
-  RELATIONSHIPS (
-    orders_to_customer AS orders(o_custkey) REFERENCES customer(c_custkey)
-  )
-  FACTS (
-    orders.amount AS o_totalprice
-  )
-  DIMENSIONS (
-    customer.name AS c_name WITH SYNONYMS ('customer name'),
-    orders.date AS o_orderdate WITH SYNONYMS ('order date')
-  )
-  METRICS (
-    orders.total_revenue AS SUM(o_totalprice) WITH SYNONYMS ('revenue', 'sales')
-  );
-```
-
-### ALTER SEMANTIC VIEW Patterns
-
-```sql
--- Add new dimensions or metrics to existing view
-ALTER SEMANTIC VIEW PROD.SALES.SEM_ORDERS ADD
-  DIMENSIONS (
-    orders.status AS o_orderstatus WITH SYNONYMS ('order status')
-  );
-
--- Drop dimensions or metrics
-ALTER SEMANTIC VIEW PROD.SALES.SEM_ORDERS DROP
-  DIMENSIONS (orders.status);
-
--- Rename the semantic view
-ALTER SEMANTIC VIEW PROD.SALES.SEM_ORDERS RENAME TO PROD.SALES.SEM_ORDERS_V2;
-```
-
-### NULL Handling and Primary Key Guidance
-
-**NULL in Primary Keys:** PRIMARY KEY columns should not contain NULLs. Snowflake does not enforce PK constraints, so validate data before creating semantic views:
-```sql
--- Check for NULLs in intended PK column
-SELECT COUNT(*) AS null_count FROM db.schema.table WHERE pk_column IS NULL;
--- Check for duplicates in intended PK column
-SELECT pk_column, COUNT(*) FROM db.schema.table GROUP BY pk_column HAVING COUNT(*) > 1;
-```
-
-**NULL in FACTS/DIMENSIONS:** NULLs in fact or dimension columns are passed through. Metrics like `SUM()` and `AVG()` ignore NULLs per standard SQL. Use `COALESCE` in base views if NULL substitution is needed.
-
-### Component Rules
-
-**TABLES Block:**
-- One TABLES block per view
-- PRIMARY KEY required for relationships
-- Composite keys supported: `PRIMARY KEY (col1, col2)`
-
-**FACTS Block:**
-- Numeric measures at row level
-- Simple expressions: `physical_column`, `col1 * col2`
-- Mapping: `alias.physical_col AS logical_name`
-
-**DIMENSIONS Block:**
-- Categorical/temporal attributes
-- **Simple columns only** - no CAST, DATE_TRUNC
-- Mapping: `alias.physical_col AS logical_name`
-- For temporal granularity (TIME_GRAIN), pre-compute in base view:
-
-```sql
--- Base view with pre-computed time grains
-CREATE VIEW sales_base AS
-SELECT *, DATE_TRUNC('MONTH', order_date) AS order_month,
-         DATE_TRUNC('QUARTER', order_date) AS order_quarter
-FROM raw_sales;
-
--- Semantic view uses simple columns
-DIMENSIONS (
-  s.order_date AS order_date,
-  s.order_month AS order_month WITH SYNONYMS ('month', 'monthly'),
-  s.order_quarter AS order_quarter WITH SYNONYMS ('quarter', 'quarterly')
-)
-```
-
-**METRICS Block:**
-- Aggregations: COUNT, SUM, AVG, MIN, MAX
-- Mapping: `metric_name AS aggregate(expression)`
-
-### YAML Verified Queries (VQR)
-
-VQR only supported in YAML files (not DDL). Table references use `__logical_name`:
-
-```yaml
-verified_queries:
-  - name: monthly_revenue
-    question: "What is total revenue by month?"
-    sql: |
-      SELECT DATE_TRUNC('MONTH', sale_date) AS month, SUM(total_revenue) AS revenue
-      FROM __sales_data  -- Double underscore + logical table name
-      GROUP BY month
-```
-
-**Common VQR Mistake:**
-```yaml
-# WRONG: Using physical table name
-sql: SELECT * FROM PROD.SALES.SALES_FACT
-# CORRECT: Double underscore + logical name
-sql: SELECT * FROM __sales_data
-```
-
-### Prerequisites Verification
-```sql
-SHOW TABLES LIKE '%table_name%';
-DESCRIBE TABLE db.schema.table;
-SHOW GRANTS ON SCHEMA db.schema;
-SELECT CURRENT_WAREHOUSE();
-```
-
-### Post-Creation Validation
-```sql
-SHOW SEMANTIC VIEWS LIKE '%view_name%';
-SHOW SEMANTIC DIMENSIONS IN db.schema.view;
-SHOW SEMANTIC METRICS IN db.schema.view;
-SELECT GET_DDL('SEMANTIC_VIEW', 'db.schema.view');
-```
-
-> **SYNTAX NOTE:** `DESCRIBE SEMANTIC VIEW` and `GRANT ... ON SEMANTIC VIEW` use the
-> `SEMANTIC VIEW` keywords, but `SHOW SEMANTIC DIMENSIONS/METRICS/FACTS IN` does NOT.
-> The `IN` clause accepts a bare semantic view name (fully qualified), `ACCOUNT`,
-> `DATABASE <name>`, or `SCHEMA <name>`.
+- [CREATE SEMANTIC VIEW](https://docs.snowflake.com/en/sql-reference/sql/create-semantic-view)
+- [ALTER SEMANTIC VIEW](https://docs.snowflake.com/en/sql-reference/sql/alter-semantic-view)
+- [Semantic-view validation](https://docs.snowflake.com/en/user-guide/views-semantic/validation-rules)
+- [SQL creation and management](https://docs.snowflake.com/en/user-guide/views-semantic/sql)
+- `106a-snowflake-semantic-views-advanced.md` for expression/cardinality validation.
+- `106b-snowflake-semantic-views-querying.md` and `106c-snowflake-semantic-views-integration.md` for consumers.

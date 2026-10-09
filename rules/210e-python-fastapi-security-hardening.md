@@ -1,380 +1,79 @@
-# 210e: FastAPI Security Hardening
-
-## Metadata
-
-**SchemaVersion:** v3.2
-**RuleVersion:** v1.0.0
-**LastUpdated:** 2026-03-09
-**LoadTrigger:** kw:fastapi-security, kw:cors, kw:rate-limit, kw:security-headers
-**Keywords:** FastAPI hardening, CORS, CSRF, rate limiting, security headers, input validation, SQL injection, XSS prevention, trusted hosts, production security
-**TokenBudget:** ~2800
-**ContextTier:** Medium
-**Depends:** 210a-python-fastapi-security.md
+---
+schema_version: v4.0
+rule_version: v3.0.0
+description: "FastAPI CORS/proxy/browser controls, bounded rate limits, parameterized data access, context-safe rendering and defensive configuration."
+last_updated: 2026-10-07
+keywords:
+  - kw:FastAPI hardening
+  - kw:CORS middleware
+  - kw:slowapi rate limiting
+  - kw:security headers middleware
+  - kw:parameterized queries
+  - kw:Pydantic field validators
+  - kw:fastapi
+token_budget: ~1400
+context_tier: Medium
+depends:
+  optional:
+    - 210a-python-fastapi-security.md  # Authentication and authorization patterns
+---
+# FastAPI Security Hardening
 
 ## Scope
 
 **What This Rule Covers:**
-Infrastructure security hardening for FastAPI applications. Covers CORS configuration, security headers, rate limiting, input validation, SQL injection prevention, XSS prevention, and production deployment security. For authentication and authorization patterns, see **210a-python-fastapi-security.md**.
+Origin/host/proxy trust, browser security headers, abuse/resource limits, SQL/XSS/SSRF boundaries, input validation and production error/docs policy.
 
 **When to Load This Rule:**
-- Configuring CORS middleware for FastAPI
-- Adding security headers to API responses
-- Implementing rate limiting per endpoint
-- Hardening input validation against injection attacks
-- Preparing FastAPI applications for production deployment
-
-## References
-
-### Dependencies
-
-**Must Load First:**
-- **210a-python-fastapi-security.md** - Authentication and authorization patterns
-
-**Related:**
-- **210-python-fastapi-core.md** - FastAPI foundation patterns
-- **210c-python-fastapi-deployment.md** - Deployment configuration
-
-### External Documentation
-
-- [OWASP API Security](https://owasp.org/www-project-api-security/)
-- [FastAPI CORS Documentation](https://fastapi.tiangolo.com/tutorial/cors/)
+When hardening FastAPI middleware/endpoints or deployment; read `210a-python-fastapi-security.md` for auth and `210c-python-fastapi-deployment.md` for runtime boundaries.
 
 ## Contract
 
 ### Inputs and Prerequisites
 
-- FastAPI application with authentication configured (210a)
-- Understanding of CORS and security header requirements
-- Knowledge of expected API consumers (origins)
+- Existing middleware/auth/session/frontend architecture, allowed origins/hosts, proxy/TLS trust, deployment replicas, input/output contexts and actual limit library.
+- Approved security policy, credential/session data flow, threat/resource budgets and test scope.
+- Current FastAPI/Starlette/browser/library behavior and existing integration/exception handlers; no unapproved external scanner transmission.
 
 ### Mandatory
 
-- CORS middleware with explicit origin allowlist
-- Security headers on all responses
-- Rate limiting on authentication and write endpoints
-- Parameterized queries for all database operations
-- Input validation via Pydantic models
-
-### Forbidden
-
-- Using `allow_origins=["*"]` in production CORS
-- String concatenation in SQL queries
-- Trusting user input without validation
-- Disabling security headers for convenience
+- Inspect existing controls before adding middleware/packages. CORS governs browser response access, not server authentication or general CSRF protection. Non-browser clients ignore CORS; enforce resource authorization and CSRF where cookie/session semantics require it.
+- Use explicit approved origins/methods/headers for credentialed cross-origin requests and handle preflight/errors correctly. A wildcard can suit intentionally public noncredentialed resources under policy; wildcard plus credentials must not be copied as safe authenticated configuration.
+- Validate trusted hosts and forwarded headers only from approved proxies. Client IP/rate keys derived from arbitrary forwarding headers are spoofable. TLS redirection/HSTS behind a proxy needs trusted scheme handling and loop testing.
+- Apply content/type/framing/referrer/CSP and other headers suitable for response context; JSON-only API and HTML docs have different needs. X-XSS-Protection is obsolete, not modern XSS defense. HSTS includeSubDomains/preload requires deliberate complete-domain HTTPS policy.
+- Middleware order/global wrapping affects headers on exception responses, CORS and streaming. Verify actual allow/deny/error routes rather than assuming a registration-order slogan. Use supported Starlette imports and real installed header-library API.
+- Limit abuse-sensitive auth/reset/write/upload/read endpoints with policy-derived rates and distributed state where replicas require it. Limits are mitigation, not guaranteed brute-force prevention; fixed five/minute examples are not universal requirements.
+- If using slowapi/another existing limiter, wire its actual request argument, app state, exception handler/middleware/store and decorator order per version. Return meaningful 429/Retry-After and protect store failures; an unused Limiter instance doesn't enforce anything.
+- Bound request body/upload size, concurrency/timeouts, decompression/parsing and expensive downstream work. Pydantic length validation occurs after parsing and is not a transport memory limit; enforce appropriate server/proxy/app controls without buffering unbounded bodies.
+- Parameterize SQL values and use safe validated identifier builders/allowlists for dynamic names/order clauses. ORM use alone does not make embedded text queries safe. Valid shape/regex does not replace query binding or business authorization.
+- Apply typed validation to actual domain/precision/NULL requirements and allow only intended writable fields. Preserve valid punctuation/international text; stripping quotes/angle brackets from every string is not SQL/XSS protection and can corrupt data.
+- Escape output for its HTML/attribute/JS/URL context; use a reviewed sanitizer for intentionally allowed rich HTML. Do not mark untrusted templates safe or rely on regex character deletion. JSON encoding isn't universal HTML/JS embedding safety.
+- For user-controlled URLs/files, verify allowed schemes/hosts/resolved networks/redirects and path ownership; prevent unsafe internal destinations and traversal before fetch/read. Input field validation alone is not SSRF or filesystem authorization.
+- Disable debug/error trace exposure in production; docs/schema can be disabled/protected/public under explicit policy, not mandatory secrecy. Hiding /docs isn't enforcement and can leave /openapi.json exposed if policy intended otherwise.
+- Keep secret/key values out of configs/transcripts/scans; authorized local tests use synthetic inputs. Do not send proprietary app URLs/data to securityheaders.com or another external scanner without approval.
+- Verify trusted/untrusted origin/host/preflight/auth/CSRF, rate/store failure, parameter binding/output encoding and payload limits. Report residual risk; no checklist or header scan certifies security/compliance.
 
 ### Execution Steps
 
-1. Configure CORS middleware with explicit allowed origins
-2. Add security headers middleware
-3. Implement per-endpoint rate limiting with slowapi
-4. Validate all inputs with Pydantic models and field validators
-5. Ensure parameterized queries for database operations
-6. Disable API docs and debug mode in production
-7. Test security headers and CORS behavior
-
-### Output Format
-
-```python
-# Example: Secure FastAPI configuration
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from secure import SecureHeaders
-
-app = FastAPI(docs_url=None, redoc_url=None)  # Disable in production
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://app.example.com"],  # Explicit allowlist
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["Authorization", "Content-Type"],
-)
-```
-
-### Post-Execution Checklist
-
-- [ ] CORS middleware uses explicit origin allowlist (no wildcards in production)
-- [ ] Security headers middleware configured
-- [ ] Rate limiting applied to auth and write endpoints
-- [ ] All SQL queries use parameterization
-- [ ] Pydantic models validate all user inputs
-- [ ] API docs disabled in production deployments
+1. Read actual frontend/session/middleware/proxy/input trust boundaries and existing controls; define permitted test and change scope.
+2. Implement minimal correct origin/host/header/rate/resource/parameterization/rendering controls using installed APIs.
+3. Exercise synthetic positive/negative/error/replica/proxy cases and verify no data-corrupting sanitization or secret exposure.
+4. Run project validation and authorized deployment smoke only; inspect actual returned headers/status/effects.
+5. Report controls, evidence, limitations and approved follow-up without external scanning or production changes by implication.
 
 ### Validation
 
-**Pre-Task-Completion Checks:**
-- CORS configured with explicit allowed origins
-- Security headers present on all responses
-- Rate limiting active on auth and write endpoints
-- No string concatenation in SQL queries
-- Pydantic validation on all user inputs
-- API docs disabled in production
+- CORS/host/proxy/CSRF/auth responsibilities remain separate and correctly enforced through actual client paths.
+- Headers and rate/resource limits work on success/error/preflight/stream cases with supported distributed semantics.
+- SQL binding, safe identifiers, context-aware rendering and URL/path boundaries resist untrusted inputs without corrupting valid data.
+- Production debug/docs/secret policy is explicit; no private data sent to external scanners.
+- Output includes exact configuration/tests and unresolved risks, not guaranteed security from Pydantic or HTTP headers.
 
-**Success Criteria:**
-- CORS blocks unauthorized origins
-- Security headers pass securityheaders.com scan
-- Rate-limited endpoints return 429 when exceeded
-- SQL injection attempts are rejected
-- Invalid inputs return 422 with clear error messages
+## References
 
-## Anti-Patterns and Common Mistakes
-
-### Anti-Pattern: Overly Permissive CORS Configuration
-
-**Problem:** Setting `allow_origins=["*"]` in production CORS middleware, allowing any website to make authenticated requests to your API.
-
-**Why It Fails:** Enables cross-site request forgery (CSRF) attacks. Malicious sites can make authenticated API calls using victim's cookies. Credential theft and data exfiltration become trivial.
-
-**Correct Pattern:**
-```python
-# BAD: Allow all origins in production
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Any site can call your API!
-    allow_credentials=True,
-)
-
-# GOOD: Explicit origin allowlist
-ALLOWED_ORIGINS = [
-    "https://myapp.com",
-    "https://admin.myapp.com",
-]
-if settings.environment == "development":
-    ALLOWED_ORIGINS.append("http://localhost:3000")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-)
-```
-
-### Anti-Pattern 2: Missing Rate Limiting on Authentication Endpoints
-
-**Problem:** Not rate limiting login/auth endpoints allows brute force password attacks.
-
-**Why It Fails:** Attackers can attempt thousands of password combinations per minute. Without rate limiting, credential stuffing attacks succeed quickly.
-
-**Correct Pattern:**
-```python
-# BAD: No rate limiting
-@app.post("/auth/login")
-async def login(credentials: LoginRequest):
-    return authenticate(credentials)  # Unlimited attempts!
-
-# GOOD: Rate limited authentication
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-
-limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
-
-@app.post("/auth/login")
-@limiter.limit("5/minute")  # Max 5 attempts per minute per IP
-async def login(request: Request, credentials: LoginRequest):
-    return authenticate(credentials)
-```
-
-## Security Middleware
-
-### CORS Configuration
-- **Always:** Configure CORS with explicit allowlist of origins.
-- **Rule:** Only allow origins hosting your frontend in production.
-- **Rule:** Only allow necessary HTTP methods and headers.
-
-```python
-# app/middleware/security.py
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from app.config import Settings
-
-def add_security_middleware(app: FastAPI, settings: Settings):
-    """Add security middleware to FastAPI application."""
-
-    # CORS middleware
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.allowed_origins,
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "DELETE"],
-        allow_headers=["Authorization", "Content-Type", "Accept"],
-        max_age=600,  # Cache preflight requests for 10 minutes
-    )
-
-    # Trusted hosts middleware (production only)
-    if not settings.debug:
-        app.add_middleware(
-            TrustedHostMiddleware,
-            allowed_hosts=settings.allowed_hosts
-        )
-```
-
-### Security Headers
-- **Always:** Add security headers to protect against common attacks.
-- **Rule:** Use HTTPS in production; redirect HTTP to HTTPS.
-
-```python
-# app/middleware/headers.py
-from fastapi import Request, Response
-from fastapi.middleware.base import BaseHTTPMiddleware
-
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    """Add security headers to all responses."""
-
-    async def dispatch(self, request: Request, call_next):
-        response: Response = await call_next(request)
-
-        # Security headers
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
-
-        # HSTS (only over HTTPS)
-        if request.url.scheme == "https":
-            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-
-        return response
-```
-
-### Per-Endpoint Rate Limiting
-
-```python
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-
-limiter = Limiter(key_func=get_remote_address)
-
-@app.post("/auth/login")
-@limiter.limit("5/minute")  # Strict for auth endpoints
-async def login(request: Request, credentials: LoginForm):
-    ...
-
-@app.get("/api/data")
-@limiter.limit("100/minute")  # Generous for data endpoints
-async def get_data(request: Request):
-    ...
-```
-
-**Rate limit tiers:**
-
-- **Auth (login/register):** 5/minute — prevents brute force
-- **Password reset:** 3/minute — prevents email spam
-- **API reads:** 100/minute — normal usage
-- **API writes:** 30/minute — prevents abuse
-- **File upload:** 10/minute — resource-intensive
-
-## Input Sanitization and Validation
-
-### SQL Injection Prevention
-- **Always:** Use parameterized queries with SQLAlchemy.
-- **Never:** Concatenate user input directly into SQL strings.
-- **Rule:** Validate and sanitize all user inputs (strip HTML tags using `bleach.clean()` or Pydantic validators).
-
-```python
-# CORRECT: Using SQLAlchemy ORM (automatically parameterized)
-async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
-    """Get user by email - safe from SQL injection."""
-    result = await db.execute(
-        select(User).where(User.email == email)
-    )
-    return result.scalar_one_or_none()
-
-# CORRECT: Using raw SQL with parameters
-async def search_users(db: AsyncSession, search_term: str) -> List[User]:
-    """Search users by name - parameterized query."""
-    result = await db.execute(
-        text("SELECT * FROM users WHERE full_name ILIKE :search"),
-        {"search": f"%{search_term}%"}
-    )
-    return result.fetchall()
-
-# INCORRECT: String concatenation (vulnerable to SQL injection)
-async def bad_search_users(db: AsyncSession, search_term: str):
-    """DO NOT USE - vulnerable to SQL injection."""
-    query = f"SELECT * FROM users WHERE full_name LIKE '%{search_term}%'"
-    result = await db.execute(text(query))  # DANGEROUS!
-    return result.fetchall()
-```
-
-### Input Validation with Pydantic
-- **Always:** Use Pydantic validators for complex validation logic.
-- **Rule:** Sanitize inputs that will be displayed to users.
-
-```python
-# app/models/security.py
-from pydantic import BaseModel, field_validator, Field, EmailStr
-import re
-from typing import Optional
-
-class SecureUserInput(BaseModel):
-    """Example of secure input validation."""
-    username: str = Field(..., min_length=3, max_length=50)
-    email: EmailStr
-    bio: Optional[str] = Field(None, max_length=500)
-
-    @field_validator('username')
-    @classmethod
-    def validate_username(cls, v: str) -> str:
-        # Only allow alphanumeric and underscore
-        if not re.match(r'^[a-zA-Z0-9_]+$', v):
-            raise ValueError('Username can only contain letters, numbers, and underscores')
-        return v.lower()
-
-    @field_validator('bio')
-    @classmethod
-    def sanitize_bio(cls, v: Optional[str]) -> Optional[str]:
-        if v:
-            # Remove potentially dangerous characters
-            v = re.sub(r'[<>"\']', '', v)
-            return v.strip()
-        return v
-```
-
-## Production Security Hardening
-
-### Deployment Security Checklist
-- **Always:** Disable debug mode in production.
-- **Always:** Hide API documentation in production.
-
-```python
-# app/main.py - Production security configuration
-from app.config import get_settings
-from app.middleware.security import add_security_middleware, SecurityHeadersMiddleware
-
-def create_secure_app() -> FastAPI:
-    """Create FastAPI app with production security settings."""
-    settings = get_settings()
-
-    # Production-specific FastAPI configuration
-    app = FastAPI(
-        title=settings.app_name,
-        description=settings.description,
-        version=settings.version,
-        # Disable docs in production
-        docs_url="/docs" if settings.debug else None,
-        redoc_url="/redoc" if settings.debug else None,
-        openapi_url="/openapi.json" if settings.debug else None,
-    )
-
-    # Add security middleware
-    add_security_middleware(app, settings)
-    app.add_middleware(SecurityHeadersMiddleware)
-
-    # Add rate limiting
-    if not settings.debug:
-        limiter = add_rate_limiting_middleware(app)
-
-    return app
-```
-
-### Post-Execution Checklist
-
-- [ ] CORS configured with explicit origin allowlist
-- [ ] Security headers middleware active
-- [ ] Rate limiting on auth and write endpoints
-- [ ] All SQL queries use parameterized patterns
-- [ ] Pydantic validation on all user inputs
-- [ ] API docs disabled in production
-- [ ] Debug mode disabled in production
+- [FastAPI CORS](https://fastapi.tiangolo.com/tutorial/cors/)
+- [Starlette middleware](https://www.starlette.io/middleware/)
+- [SlowAPI integration](https://slowapi.readthedocs.io/en/latest/)
+- [OWASP SQL injection prevention](https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html)
+- [OWASP XSS prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html)
+- [OWASP CSRF prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)

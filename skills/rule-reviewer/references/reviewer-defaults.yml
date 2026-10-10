@@ -19,7 +19,7 @@ dimensions:
   - name: rule_size
     weight: 2.5
     max_points: 25
-    focus: "Is the rule within the 500-line target? (deterministic line count)"
+    focus: "Is the rule within the 250-line limit? (deterministic line count)"
   - name: parsability
     weight: 1.5
     max_points: 15
@@ -40,18 +40,47 @@ dimensions:
 total_max_points: 100
 raw_score_range: [0, 10]
 
+# ── Rule size scale ───────────────────────────────────────────────────────────
+# Line count is `wc -l` of the whole rule file. 250 matches the
+# `ai-rules validate` limit (schemas/rule-schema.yml structure.max_lines), so
+# any rule over 250 lines loses Rule Size points and cannot reach EXECUTABLE
+# (max possible total 87.5/100). Bands do not overlap; first match wins.
+
+rule_size_bands:
+  - max_lines: 150
+    raw_score: 10
+    flag: null
+  - max_lines: 200
+    raw_score: 9
+    flag: null
+  - max_lines: 250
+    raw_score: 8
+    flag: null
+  - max_lines: 275
+    raw_score: 5
+    flag: "SPLIT_RECOMMENDED"
+  - max_lines: 300
+    raw_score: 3
+    flag: "SPLIT_REQUIRED"
+  - max_lines: 350
+    raw_score: 1
+    flag: "NOT_DEPLOYABLE"
+  - max_lines: null  # > 350
+    raw_score: 0
+    flag: "BLOCKED"
+
 # ── Hard caps ─────────────────────────────────────────────────────────────────
 # Applied after score arithmetic. Multiple caps may stack; the lowest cap wins.
 
 hard_caps:
-  - condition: "line_count > 700"
+  - condition: "line_count > 350"
     effect: "cap_score_at"
     value: 50
-    description: "Rule exceeds 700 lines — score capped at 50/100."
-  - condition: "line_count > 600"
+    description: "Rule exceeds 350 lines — score capped at 50/100."
+  - condition: "line_count > 300"
     effect: "cap_score_at"
     value: 70
-    description: "Rule exceeds 600 lines — score capped at 70/100."
+    description: "Rule exceeds 300 lines — score capped at 70/100."
   - condition: "blocking_issue_count >= 10"
     effect: "force_verdict"
     value: "NOT_EXECUTABLE"

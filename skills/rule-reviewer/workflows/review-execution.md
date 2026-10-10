@@ -225,7 +225,7 @@ Before submitting review, verify:
 - [ ] Overlap resolution applied?
 - [ ] Inventories included in output?
 - [ ] Scores from decision matrices?
-- [ ] Rule Size flags applied if >500 lines?
+- [ ] Rule Size flags applied if >250 lines?
 
 **If ANY checkbox NO:** Review is INVALID, regenerate from Phase 1.
 

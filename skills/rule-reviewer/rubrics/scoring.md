@@ -12,7 +12,7 @@
 | Dimension | Weight | Max Points | Focus |
 |---|---|---|---|
 | Actionability | 3.0 | 30 | Can agents execute without judgment? |
-| Rule Size | 2.5 | 25 | Within 500-line target? (deterministic) |
+| Rule Size | 2.5 | 25 | Within 250-line limit? (deterministic) |
 | Parsability | 1.5 | 15 | Schema valid? |
 | Completeness | 1.5 | 15 | All scenarios covered? |
 | Consistency | 1.0 | 10 | Internal alignment correct? |
@@ -27,8 +27,8 @@
 
 | Condition | Effect |
 |---|---|
-| > 600 lines | Total score capped at 70/100 |
-| > 700 lines | Total score capped at 50/100 |
+| > 300 lines | Total score capped at 70/100 |
+| > 350 lines | Total score capped at 50/100 |
 | ≥ 6 blocking issues | Total score capped at 80/100 |
 | ≥ 10 blocking issues | Verdict forced to NOT_EXECUTABLE |
 

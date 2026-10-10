@@ -19,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(report):** generate an offline-capable HTML compliance report from rule-loader eval results.
 - **feat(cortex):** add an `ai_rules.cortex` client on AI_COMPLETE with REST fallback, plus a CoCo model catalog priced from Table 6(e) AI-credit rates.
 - **feat(review-artifact):** add canonical `rule-review-result/v1` JSON reviews with `ai-rules review-artifact` validate, render, verify-pair, verify-repair, and aggregate commands.
-- **feat(skills):** add `ai-rules validate-skills` to check SKILL.md frontmatter, the 500-line limit, version and CHANGELOG parity, and local links.
+- **feat(skills):** add `ai-rules validate-skills` to check SKILL.md frontmatter, the 250-line limit, version and CHANGELOG parity, and local links.
 - **feat(rules):** add `002n-agent-protocol-reference`, `126-snowflake-cortex-code-agent-sdk`, `805-technical-writing-style`, `806-workbench-folder-policy`, and `810-cli-design-core` (191 → 195 rules).
 - **feat(make):** extend the root `Makefile` to cover setup, quality, test, validation (with a `ci` alias), plugin verification, eval, cleanup, status, release, and GitLab mirror automation, tested in disposable repositories on macOS and Linux.
 - **feat(skill-timer):** estimate cost in AI Credits from Table 6(e) rates at $2 per credit, and report unknown models as unpriced instead of guessing.
@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(rules):** correct guidance contradicted by current primary documentation and drop negative executable examples and duplicate checklists across the corpus.
 - **perf(rules):** cut rule content loaded per task by about 57% and the rule library by 68% through the v4 250-line limit. In a live same-mode A/B, input tokens per task fell 4.7% with no change in pass rate (105/105) or turns (see `docs/EVALUATING_RULE_LOADER.md`).
 - **feat(skills)!:** **Breaking:** rename the `skill-timing` skill to `skill-timer`, including its runtime data file prefix.
+- **feat(rule-reviewer):** score Rule Size against the 250-line limit `ai-rules validate` enforces, replacing the 500-line scale: ≤250 unflagged, 251-275 `SPLIT_RECOMMENDED`, 276-300 `SPLIT_REQUIRED`, 301-350 `NOT_DEPLOYABLE` (70/100 cap), >350 `BLOCKED` (50/100 cap). A rule over 250 lines can no longer score full Rule Size points, and foundation and table-heavy rules no longer get line-count exceptions (#8).
+- **feat(skills):** `ai-rules validate-skills` fails a `SKILL.md` above 250 lines, down from 500. `rule-reviewer` 3.1.0 and `skill-timer` 2.0.2 move detail into `workflows/` and `references/` to fit, with no behavior change (#8).
 - **feat(new):** generate v4.0 rule scaffolds from `ai-rules new`.
 - **feat(tokens):** update `token_budget` in YAML frontmatter without reserializing other metadata, and add `--context-estimate` for per-response context totals.
 - **feat(keywords):** move keyword generation to `ai-rules rule-loader keywords`, backed by the Cortex client.

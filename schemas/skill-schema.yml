@@ -9,7 +9,8 @@
 #   3. Local file references – relative [text](path) links inside SKILL.md
 #      must resolve to existing files (one level: only SKILL.md is scanned,
 #      not the referenced files themselves).
-#   4. Maximum 500 lines – SKILL.md must not exceed 500 non-blank lines.
+#   4. Maximum 250 lines – SKILL.md must not exceed 250 lines (all lines,
+#      including frontmatter and blank lines).
 #   5. Canonical headings – required H2 sections with narrow aliases allowed.
 #   6. Prose style – advisory only (INFO severity, never blocks CI).
 # ==============================================================================
@@ -43,9 +44,9 @@ frontmatter:
 # ── Structure ────────────────────────────────────────────────────────────────
 structure:
   # SKILL.md must not exceed this many lines.
-  max_lines: 500
+  max_lines: 250
   max_lines_severity: HIGH
-  max_lines_error_message: "SKILL.md exceeds 500 lines – extract sections to workflows/ or examples/"
+  max_lines_error_message: "SKILL.md exceeds 250 lines – extract sections to workflows/, references/, or examples/"
 
   # Required H2 headings.  Each entry may supply a list of 'aliases' that are
   # accepted as equivalent spellings; the canonical name is the first one.

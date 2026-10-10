@@ -1,7 +1,7 @@
 ---
 name: rule-reviewer
 description: Execute agent-centric rule reviews (FULL/FOCUSED/STALENESS modes) using 6-dimension rubric and write results to reviews/rule-reviews/ with no-overwrite safety. Use when reviewing rule files, auditing rule quality, checking rule staleness, validating rule compliance, or analyzing agent executability.
-version: 3.0.0
+version: 3.1.0
 ---
 
 # Rule Reviewer
@@ -38,7 +38,7 @@ Output: `reviews/rule-reviews/200-python-core-claude-sonnet-4-6-2026-01-06.json`
 
 ## Scoring System (100 points)
 
-6 scored dimensions, 100 points total. Hard caps apply for size (> 600 lines / > 700 lines) and blocking issues (≥ 6 / ≥ 10).
+6 scored dimensions, 100 points total. Hard caps apply for size (> 300 lines / > 350 lines) and blocking issues (≥ 6 / ≥ 10).
 
 **Quick reference:**
 
@@ -147,11 +147,7 @@ All three canaries are internal self-tests. If any fails, re-read the referenced
 
 **Critical dimension override:** If both Actionability ≤4/10 AND Completeness ≤4/10 → NOT_EXECUTABLE regardless of total score.
 
-**Rule Size flags:**
-- `SPLIT_RECOMMENDED` (501-550 lines): Review for split opportunities
-- `SPLIT_REQUIRED` (551-600 lines): Mandatory split plan required
-- `NOT_DEPLOYABLE` (601-700 lines): Block deployment, hard cap 70/100
-- `BLOCKED` (>700 lines): Reject review, hard cap 50/100
+**Rule Size flags** (`SPLIT_RECOMMENDED`, `SPLIT_REQUIRED`, `NOT_DEPLOYABLE`, `BLOCKED`) start above the 250-line limit. Line bands and agent actions: [`rubrics/rule-size.md`](rubrics/rule-size.md#score-decision-matrix).
 
 **Hard caps:** See Scoring System above (single source of truth).
 
@@ -199,26 +195,7 @@ When enabled, emit `skill_loaded` + the 6 dimension checkpoint pairs (`dim_<name
 
 ## Error Handling
 
-**Schema validator fails:**
-- If the rule has CRITICAL/HIGH findings, continue the review and report failed validation with those findings.
-- If tooling or output is unavailable, report that limitation and apply the rubric's manual-assessment limit. Do not turn a content failure into an unavailable check.
-
-**Rule file not found:**
-- Report: "File not found: [path]"
-- Verify path and try again
-
-**Review write fails:**
-- Print: `OUTPUT_FILE: [path]`
-- Print full review content
-- User must save manually
-
-**Documentation currency check fails:**
-- If `web_fetch` unavailable: skip currency check, note in review
-- If >50% links timeout: skip penalty, note "Currency check incomplete"
-- If all links fail: note "Unable to verify documentation currency - manual review recommended"
-- Continue with remaining staleness scoring (LastUpdated, deprecated tools, patterns, link status)
-
-**See:** `workflows/error-handling.md`
+Continue the review when the schema validator reports CRITICAL/HIGH findings (report them). On a failed write, print `OUTPUT_FILE: [path]` and the full review for manual save. Full cases (validator failure, missing file, write failure, documentation currency failure): [`workflows/error-handling.md`](workflows/error-handling.md#quick-reference).
 
 ## No-Overwrite Safety
 

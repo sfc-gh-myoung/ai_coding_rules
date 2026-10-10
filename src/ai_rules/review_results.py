@@ -58,8 +58,8 @@ _CANONICAL_MAX_POINTS: dict[str, float] = {k: v * 10 for k, v in _CANONICAL_DIME
 _HARD_CAP_SCORE_LIMITS: list[tuple[str, float]] = [
     ("blocking_issue_count >= 10", float("-inf")),  # forces NOT_EXECUTABLE
     ("blocking_issue_count >= 6", 80.0),
-    ("line_count > 700", 50.0),
-    ("line_count > 600", 70.0),
+    ("line_count > 350", 50.0),
+    ("line_count > 300", 70.0),
 ]
 
 # Verdict thresholds (post-cap score → verdict)

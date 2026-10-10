@@ -49,6 +49,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **refactor(rules):** remove `002i-rule-loadtrigger` and the `LoadTrigger` field; triggers now live in typed `keywords`.
 - **chore(skills):** move `create-plan`, `doc-reviewer`, and `plan-reviewer` to the external portable-skills repository.
 
+### Fixed
+
+- **fix(badges):** `ai-rules badges update` counts errored tests as failures in the test pass ratio (`passed / (passed + failed + errors)`) and reports the skipped count in its output; skipped, xfail, xpass, and deselected tests stay out of the ratio (#12).
+- **fix(version):** `ai_rules.__version__` and `ai-rules --version` read the installed package metadata, so `pyproject.toml` is the only place the version is defined; `release-bump` no longer edits `src/ai_rules/__init__.py` (#15).
+
 ## [3.7.3] - 2026-05-13
 
 ### Added

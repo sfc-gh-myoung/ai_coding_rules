@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import ast
 import contextlib
 import os
 import re
@@ -18,7 +17,7 @@ VERSION_RE = re.compile(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*
 README_BADGE_RE = re.compile(
     r"badge/version-([0-9]+\.[0-9]+\.[0-9]+(?:[.-][A-Za-z0-9]+)?)(?=-blue)"
 )
-VERSION_PATHS = ("pyproject.toml", "src/ai_rules/__init__.py", "README.md", "uv.lock")
+VERSION_PATHS = ("pyproject.toml", "README.md", "uv.lock")
 
 
 def atomic_write(path: Path, content: bytes) -> None:
@@ -34,32 +33,17 @@ def atomic_write(path: Path, content: bytes) -> None:
             Path(temporary).unlink()
 
 
-def runtime_version(root: Path) -> str:
-    """Read the literal package version without importing project dependencies."""
-    tree = ast.parse((root / "src/ai_rules/__init__.py").read_text())
-    values = [
-        ast.literal_eval(statement.value)
-        for statement in tree.body
-        if isinstance(statement, ast.Assign)
-        and any(
-            isinstance(target, ast.Name) and target.id == "__version__"
-            for target in statement.targets
-        )
-    ]
-    if len(values) != 1 or not isinstance(values[0], str):
-        raise ValueError("Expected one literal __version__ assignment")
-    return values[0]
-
-
 def check_versions(root: Path, expected: str) -> None:
-    """Require package, runtime, README, and editable lock entry to agree."""
+    """Require package, README, and editable lock entry to agree.
+
+    ai_rules.__version__ is read from package metadata, so it is not checked here.
+    """
     project = tomllib.loads((root / "pyproject.toml").read_text())["project"]
     lock = tomllib.loads((root / "uv.lock").read_text())
     entries = [entry for entry in lock["package"] if entry.get("source") == {"editable": "."}]
     badge = README_BADGE_RE.findall((root / "README.md").read_text())
     versions = [
         project["version"],
-        runtime_version(root),
         *badge,
         *[entry["version"] for entry in entries],
     ]
@@ -93,11 +77,6 @@ def bump(root: Path, version: str) -> None:
         "pyproject.toml": project_text[: project_match.start(1)]
         + project_section
         + project_text[project_match.end(1) :],
-        "src/ai_rules/__init__.py": replace_one(
-            r'^__version__\s*=\s*"[^"\n]+"$',
-            f'__version__ = "{version}"',
-            originals["src/ai_rules/__init__.py"].decode(),
-        ),
         "README.md": README_BADGE_RE.sub(
             f"badge/version-{version}", originals["README.md"].decode()
         ),

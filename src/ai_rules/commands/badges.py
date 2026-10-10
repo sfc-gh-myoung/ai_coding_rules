@@ -6,7 +6,7 @@ Updates README.md badges with current version, test pass percentage, and coverag
 import re
 import subprocess
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, NamedTuple
 
 import typer
 
@@ -33,14 +33,35 @@ def extract_version(pyproject_path: Path) -> str:
     return match.group(1)
 
 
-def get_test_percentage(pytest_output: str | None = None) -> tuple[int, int, float]:
+class PytestCounts(NamedTuple):
+    """Test pass ratio parsed from a pytest summary.
+
+    total is passed + failed + errors; skipped is reported but never counted.
+    """
+
+    passed: int
+    total: int
+    percentage: float
+    skipped: int
+
+
+def _count(pattern: str, pytest_output: str) -> int:
+    """Return the first summary count matching pattern, or 0."""
+    match = re.search(pattern, pytest_output)
+    return int(match.group(1)) if match else 0
+
+
+def get_test_percentage(pytest_output: str | None = None) -> PytestCounts:
     """Extract test pass percentage from pytest output.
+
+    Errors count as failures. Skipped tests are reported separately; xfail,
+    xpass, and deselected tests are ignored.
 
     Args:
         pytest_output: Pre-captured pytest stdout+stderr. If None, runs pytest as subprocess.
 
     Returns:
-        Tuple of (passed, total, percentage)
+        PytestCounts of (passed, total, percentage, skipped)
     """
     if pytest_output is None:
         try:
@@ -53,23 +74,23 @@ def get_test_percentage(pytest_output: str | None = None) -> tuple[int, int, flo
             pytest_output = result.stdout + result.stderr
         except subprocess.TimeoutExpired:
             log_warning("pytest timed out")
-            return 0, 0, 0.0
+            return PytestCounts(0, 0, 0.0, 0)
         except Exception as e:
             log_warning(f"Failed to run pytest: {e}")
-            return 0, 0, 0.0
+            return PytestCounts(0, 0, 0.0, 0)
 
-    match = re.search(r"(\d+) passed", pytest_output)
-    passed = int(match.group(1)) if match else 0
+    # \b keeps "xpassed"/"xfailed" from matching "passed"/"failed".
+    passed = _count(r"\b(\d+) passed\b", pytest_output)
+    failed = _count(r"\b(\d+) failed\b", pytest_output)
+    errors = _count(r"\b(\d+) errors?\b", pytest_output)
+    skipped = _count(r"\b(\d+) skipped\b", pytest_output)
 
-    match = re.search(r"(\d+) failed", pytest_output)
-    failed = int(match.group(1)) if match else 0
-
-    total = passed + failed
+    total = passed + failed + errors
     if total == 0:
-        return 0, 0, 0.0
+        return PytestCounts(0, 0, 0.0, skipped)
 
     percentage = (passed / total) * 100
-    return passed, total, percentage
+    return PytestCounts(passed, total, percentage, skipped)
 
 
 def get_coverage_percentage(project_root: Path) -> float:
@@ -239,8 +260,8 @@ def update(
             else:
                 log_warning(f"Pytest output file not found: {pytest_output}, running pytest")
 
-        passed, total, test_percentage = get_test_percentage(captured_output)
-        log_info(f"Tests: {passed}/{total} passed ({test_percentage:.1f}%)")
+        passed, total, test_percentage, skipped = get_test_percentage(captured_output)
+        log_info(f"Tests: {passed}/{total} passed ({test_percentage:.1f}%), {skipped} skipped")
 
         coverage_percentage = get_coverage_percentage(project_root)
         log_info(f"Coverage: {coverage_percentage:.1f}%")
@@ -250,7 +271,7 @@ def update(
             test_color = get_badge_color(test_percentage)
             coverage_color = get_badge_color(coverage_percentage)
             log_info(f"  Version: {version} (blue)")
-            log_info(f"  Tests: {test_percentage:.0f}% passing ({test_color})")
+            log_info(f"  Tests: {test_percentage:.0f}% passing ({test_color}), {skipped} skipped")
             log_info(f"  Coverage: {coverage_percentage:.0f}% ({coverage_color})")
         else:
             update_readme_badges(readme_path, version, test_percentage, coverage_percentage)

@@ -117,7 +117,7 @@ These run from `.pre-commit-config.yaml` after `uv run pre-commit install`.
 
 | Script | Command | Purpose |
 |---|---|---|
-| `run-eval.sh` | `bash scripts/run-eval.sh [--effort LEVEL] [--label TEXT]` | Runs `rule-loader eval` for every model in its `MODELS` list. Each model incurs live Cortex token costs |
+| `run-eval.sh` | `bash scripts/run-eval.sh [--effort LEVEL] [--label TEXT]` | Runs `rule-loader eval` for every model in its `MODELS` list, which equals the benchmark model catalog (see [Benchmark model catalog](EVALUATING_RULE_LOADER.md#benchmark-model-catalog)). Each model incurs live Cortex token costs |
 | `eval_precision.py` | `uv run python scripts/eval_precision.py` | Reports matcher precision (missing and extra rules) across all rule-loader fixtures, without calling an agent |
 | `verify_report_browser.py` | `uvx --with playwright python scripts/verify_report_browser.py` | Checks the sorting and tabs in `reports/llm-protocol-compliance-report.html` in a headless browser |
 

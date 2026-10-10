@@ -67,7 +67,7 @@ Release commands accept stable `X.Y.Z` versions only. They require signed Git co
 6. Run `make release-merge VERSION=X.Y.Z DRY_RUN=1`.
 7. Run `make release-merge VERSION=X.Y.Z`.
 
-`release-bump` updates `pyproject.toml`, `src/ai_rules/__init__.py`, the README version badge, and `uv.lock`. It runs `make ci` before it creates a signed commit or pushes the branch.
+`release-bump` updates `pyproject.toml`, the README version badge, and `uv.lock`. `ai_rules.__version__` reads the installed package metadata, so it needs no edit. It runs `make ci` before it creates a signed commit or pushes the branch.
 
 `release-merge` fetches `origin`, verifies that the local and remote release commits match, and creates an isolated Git worktree from `origin/main`. It applies the squash without conflict overrides, validates the result, signs the commit and tag, atomically pushes both refs, and creates a draft GitHub release. It does not switch the active checkout or update local `main`.
 
@@ -75,7 +75,7 @@ Release commands accept stable `X.Y.Z` versions only. They require signed Git co
 
 Do not rerun a failed release command until you identify its last successful external action.
 
-- If `release-bump` fails before the commit, review the four version files and the validation output. The command does not push.
+- If `release-bump` fails before the commit, review the three version files and the validation output. The command does not push.
 - If the commit succeeds but the branch push fails, inspect `git log -1` and push the existing commit. Do not create another version commit.
 - If `release-merge` stops before the atomic push, inspect the retained worktree path printed by the command. Resolve the cause or remove it with `git worktree remove <path>`.
 - If the atomic push succeeds but draft creation fails, run `gh release create vX.Y.Z --verify-tag --title vX.Y.Z --draft --generate-notes`.

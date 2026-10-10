@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **build!:** **Breaking:** drop the GitLab mirror. Remove `make mirror-sync`, `scripts/mirror.sh`, `.gitlab-ci.yml`, and `.gitlab/repo_meta.yaml`; GitHub is the only remote (#11).
+
+### Security
+
+- **chore(security):** rewrite git history on GitHub to replace example password literals with `<password>` in every branch, tag, and commit message. Every commit SHA changed; release tags were re-signed with their original messages. Re-clone instead of pulling (#11).
+
 ## [4.0.0] - 2026-10-08
 
 ### Added

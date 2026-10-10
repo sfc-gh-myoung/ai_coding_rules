@@ -36,7 +36,7 @@ MAKEFLAGS += --no-print-directory
 
 MARKDOWN_RULES_TARGETS := rules/
 MARKDOWN_DOCS_TARGETS := docs/ README.md CONTRIBUTING.md CHANGELOG.md
-SHELL_SCRIPTS := scripts/maintainer-common.sh scripts/release.sh scripts/mirror.sh scripts/clean.sh scripts/plugin-verify.sh
+SHELL_SCRIPTS := scripts/maintainer-common.sh scripts/release.sh scripts/clean.sh scripts/plugin-verify.sh
 
 .PHONY: help check-uv
 help: check-uv ## Show categorized targets
@@ -199,7 +199,7 @@ status-preflight: check-uv ## Check uv availability and lockfile consistency
 
 ##@ Release
 
-# Release and mirror recipes must never reference $(MAKE): make -n executes
+# Release recipes must never reference $(MAKE): make -n executes
 # such lines, which would turn a dry run into a real release.
 .PHONY: release-bump release-merge
 release-bump: ## Validate, bump, sign, and push release/vX.Y.Z (VERSION=X.Y.Z; preview DRY_RUN=1)
@@ -209,9 +209,3 @@ release-bump: ## Validate, bump, sign, and push release/vX.Y.Z (VERSION=X.Y.Z; p
 release-merge: ## Squash-merge in an isolated worktree, tag, push, draft release (VERSION=X.Y.Z; preview DRY_RUN=1)
 	$(call require,VERSION,make release-merge VERSION=X.Y.Z [DRY_RUN=1])
 	UV=$(UV_Q) UV_PYTHON=$(PY_Q) DRY_RUN=$(call shq,$(DRY_RUN)) bash scripts/release.sh merge $(call shq,$(VERSION))
-
-##@ Mirror
-
-.PHONY: mirror-sync
-mirror-sync: ## Mirror the committed local main tree to gitlab (preview DRY_RUN=1)
-	DRY_RUN=$(call shq,$(DRY_RUN)) bash scripts/mirror.sh

@@ -67,7 +67,7 @@ If issue is INTERNAL contradiction or variation:
 
 If issue is LINE COUNT related:
 - Assign to **Rule Size**
-- Examples: File exceeds 500 lines, needs splitting
+- Examples: File exceeds 250 lines, needs splitting
 - Rationale: Physical size constraint (100% deterministic)
 - **Note:** Rule Size has NO overlaps with other dimensions - line count is a unique metric
 

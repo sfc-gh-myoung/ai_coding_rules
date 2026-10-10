@@ -44,12 +44,12 @@ def apply_hard_caps(total_score: float, line_count: int, blocking_issues: int) -
     cap_reason = None
     
     # Rule Size hard caps
-    if line_count > 700:
+    if line_count > 350:
         capped_score = min(capped_score, 50)
-        cap_reason = f">700 lines ({line_count}) - capped at 50/100"
-    elif line_count > 600:
+        cap_reason = f">350 lines ({line_count}) - capped at 50/100"
+    elif line_count > 300:
         capped_score = min(capped_score, 70)
-        cap_reason = f">600 lines ({line_count}) - capped at 70/100"
+        cap_reason = f">300 lines ({line_count}) - capped at 70/100"
     
     # Blocking issues hard caps
     if blocking_issues >= 10:
@@ -270,14 +270,14 @@ def apply_rule_size_flags(aggregated: dict) -> dict:
 
         if flag == "BLOCKED":
             aggregated["verdict"] = "NOT_EXECUTABLE"
-            aggregated["override_reason"] = f"Rule Size flag: BLOCKED (≥10 blocking issues)"
+            aggregated["override_reason"] = f"Rule Size flag: BLOCKED (>350 lines)"
         elif flag == "NOT_DEPLOYABLE":
             aggregated["verdict"] = "NOT_EXECUTABLE"
-            aggregated["override_reason"] = f"Rule Size flag: NOT_DEPLOYABLE (>700 lines)"
+            aggregated["override_reason"] = f"Rule Size flag: NOT_DEPLOYABLE (301-350 lines)"
         elif flag == "SPLIT_REQUIRED":
             if aggregated["verdict"] in ["EXECUTABLE", "EXECUTABLE_WITH_REFINEMENTS"]:
                 aggregated["verdict"] = "NEEDS_REFINEMENT"
-                aggregated["rule_size_warning"] = f"Deployment blocked until split (>600 lines)"
+                aggregated["rule_size_warning"] = f"Deployment blocked until split (276-300 lines)"
         # SPLIT_RECOMMENDED is advisory only - no verdict change
 
     return aggregated

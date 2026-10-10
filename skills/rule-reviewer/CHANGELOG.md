@@ -2,6 +2,15 @@
 
 All notable changes to the `rule-reviewer` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## v3.1.0 (2026-10-09): Rule Size realigned to the 250-line limit
+
+- Rule Size now scores against the 250-line limit that `ai-rules validate` enforces (`schemas/rule-schema.yml` `structure.max_lines`), replacing the 500-line scale. Bands: ≤150 = 10, 151-200 = 9, 201-250 = 8, 251-275 = 5 `SPLIT_RECOMMENDED`, 276-300 = 3 `SPLIT_REQUIRED`, 301-350 = 1 `NOT_DEPLOYABLE`, >350 = 0 `BLOCKED`.
+- Hard caps move from >600 / >700 lines to >300 lines (70/100) and >350 lines (50/100). A rule over 250 lines scores at most 87.5/100 and cannot be rated EXECUTABLE.
+- `references/reviewer-defaults.yml` gains a `rule_size_bands` block so the band table has one numeric authority.
+- Removed the rubric's foundation-rule size exception and 50% line weighting for reference tables; every rule is scored on raw `wc -l`, matching the validator. Dropped the undocumented >800-line 30/100 cap, which appeared only in `rubrics/rule-size.md`.
+- Updated every reviewer file that cited the old scale (`rubrics/scoring.md`, `rubrics/_overlap-resolution.md`, `workflows/score-aggregation.md`, `workflows/parallel-execution.md`, `workflows/review-execution.md`, `workflows/error-handling.md`, `examples/edge-cases.md`) and the budgeting and worked examples in `rubrics/rule-size.md`.
+- `SKILL.md` drops from 255 to 232 lines to meet the new `ai-rules validate-skills` limit of 250 lines: the Rule Size flag list now points to `rubrics/rule-size.md`, and the Error Handling quick list moved to `workflows/error-handling.md` → Quick Reference.
+
 ## v3.0.0 (2026-09-30): V4 rule reviews
 
 - Review Scope, Contract, References order and four non-empty required Contract subsections without requiring retired padding or duplicate checklists.

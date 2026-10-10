@@ -11,6 +11,29 @@ Define deterministic fallback behavior when validation, review, or file writing 
 - **File write failure** - Severity: RECOVERABLE, Action: Print OUTPUT_FILE + full content
 - **Permission error** - Severity: RECOVERABLE, Action: Suggest alternative path or print content
 
+## Quick Reference
+
+Summary of the most common failures. The sections below give full detail.
+
+**Schema validator fails:**
+- If the rule has CRITICAL/HIGH findings, continue the review and report failed validation with those findings.
+- If tooling or output is unavailable, report that limitation and apply the rubric's manual-assessment limit. Do not turn a content failure into an unavailable check.
+
+**Rule file not found:**
+- Report: "File not found: [path]"
+- Verify path and try again
+
+**Review write fails:**
+- Print: `OUTPUT_FILE: [path]`
+- Print full review content
+- User must save manually
+
+**Documentation currency check fails:**
+- If `web_fetch` unavailable: skip currency check, note in review
+- If >50% links timeout: skip penalty, note "Currency check incomplete"
+- If all links fail: note "Unable to verify documentation currency - manual review recommended"
+- Continue with remaining staleness scoring (LastUpdated, deprecated tools, patterns, link status)
+
 ## Input Validation Errors
 
 ### Error 1: Target File Not Found
@@ -170,7 +193,7 @@ Error: Review generation timed out after 120s
 ```
 Review generation failed: Operation timed out.
 
-This may occur with very large rule files (>500 lines).
+This may occur with very large rule files (>250 lines).
 
 Options:
 1. Use FOCUSED mode instead of FULL

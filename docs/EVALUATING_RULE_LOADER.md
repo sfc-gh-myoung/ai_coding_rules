@@ -23,7 +23,7 @@ fixture declares:
 | Behavioral (live agent) | `rule-loader eval` | Yes | **No: manual only** |
 
 > **`rule-loader eval` is an explicit, opt-in command.** It never runs
-> automatically: not in CI, not in pre-commit, not in `task test:run`, and not
+> automatically: not in CI, not in pre-commit, not in `make test-run`, and not
 > in the default pytest suite. The `live` pytest marker is deselected by
 > default (`addopts = ["-m", "not live"]` in `pyproject.toml`). To run the live
 > behavioral evaluation, invoke it directly:
@@ -636,7 +636,7 @@ required:
 uv run ai-rules rule-loader validate
 ```
 
-This is also called from `task validate` as part of the
+This is also called from `make validate` as part of the
 full validation suite. The live `eval` command is explicitly excluded from CI
 because it requires a Snowflake connection and accounts for LLM variance only
 meaningful over multiple local runs.

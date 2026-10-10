@@ -92,7 +92,7 @@ Before getting started, ensure you have:
 - **Python 3.12+**: [Download Python](https://www.python.org/downloads/)
 - **Git** (for cloning): [Install Git](https://git-scm.com/downloads)
 - **uv** (Python package manager): [Install uv](https://docs.astral.sh/uv/)
-- **Task 3.45.3+** (runs the setup commands): [Install Task](https://taskfile.dev/installation/)
+- **GNU Make 3.81+** (runs the setup commands): included with macOS (Xcode Command Line Tools) and most Linux distributions
 - **jq** (only for the optional `--with-hook` install): the hook reads its prompt with `jq`
 
 **Quick check:**
@@ -100,7 +100,7 @@ Before getting started, ensure you have:
 ```bash
 python --version  # Should show 3.12 or higher
 git --version     # Should show Git version
-task --version    # Should show 3.45.3 or higher
+make --version    # Should show GNU Make 3.81 or higher
 ```
 
 ## Quick Start
@@ -121,7 +121,7 @@ git clone git@github.com:sfc-gh-myoung/ai_coding_rules.git
 
 ```bash
 cd ai_coding_rules
-task env:sync                        # Install locked development dependencies
+make env-sync                        # Install locked development dependencies
 uv run --locked ai-rules plugin build # Assemble ai-coding-rules-plugin/
 ```
 
@@ -239,7 +239,7 @@ skill: it prints the PRE-FLIGHT gates and the rules that were cited.
 | **[docs/MEMORY_BANK.md](docs/MEMORY_BANK.md)** | Memory Bank system for long-running projects | When using Memory Bank (optional) |
 | **[docs/EVALUATING_RULE_LOADER.md](docs/EVALUATING_RULE_LOADER.md)** | Rule Loading Evaluator: live-agent sanity check (pre-commit) for rule discovery + dependency loading | When changing rules, the hook, or fixtures |
 | **[CHANGELOG.md](CHANGELOG.md)** | Version history, changes | When checking updates |
-| **[docs/USING_DEV_CLI.md](docs/USING_DEV_CLI.md)** | Development task reference (Taskfile) | When running tasks |
+| **[docs/USING_DEV_CLI.md](docs/USING_DEV_CLI.md)** | Development command reference (Makefile) | When running development commands |
 
 ### Option: Git Submodule (Version Tracking)
 
@@ -248,7 +248,7 @@ Track rule updates via git submodule, then rebuild the plugin after each pull:
 ```bash
 # From your project root
 git submodule add https://github.com/sfc-gh-myoung/ai_coding_rules.git .ai-rules
-cd .ai-rules && task env:sync && uv run ai-rules plugin build
+cd .ai-rules && make env-sync && uv run ai-rules plugin build
 
 # Update later
 cd .ai-rules && git pull && uv run ai-rules plugin build
@@ -571,12 +571,12 @@ uv run ai-rules --help
 
 ## Development Commands
 
-Run `task --list` to see development automation, or `uv run ai-rules --help` for the rules management CLI. Common commands:
+Run `make` to see development automation, or `uv run ai-rules --help` for the rules management CLI. Common commands:
 
 ```bash
-task quality:all:fix                    # Fix all code quality issues
-task test:run                           # Run all pytest tests
-task validate                           # Run the complete local CI contract
+make quality-all-fix                    # Fix all code quality issues
+make test-run                           # Run all pytest tests
+make validate                           # Run the complete local CI contract
 uv run --locked ai-rules plugin build   # Build the distributable plugin
 
 ```
@@ -667,7 +667,7 @@ python --version
 1. **Install Dependencies**
 
 ```bash
-task env:sync
+make env-sync
 # OR directly:
 uv sync --all-groups
 ```
@@ -708,15 +708,15 @@ python3 --version
 1. **Use uv to Pin Version**
 
 ```bash
-task env:setup
+make env-setup
 # Creates .python-version file pinning to 3.12
 ```
 
 1. **Clean and Reinstall**
 
 ```bash
-task clean:venv FORCE=1                  # Remove virtual environment
-task env:sync               # Reinstall dependencies
+make clean-venv FORCE=1                  # Remove virtual environment
+make env-sync                            # Reinstall dependencies
 ```
 
 1. **Manual venv Setup (fallback)**
@@ -845,8 +845,8 @@ rules the hook matched and which the assistant actually read.
 
 **Common Fixes:**
 - Update uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-- Clear cache: `task clean:cache`
-- Reinstall dependencies: `task clean:venv FORCE=1 && task env:sync`
+- Clear cache: `make clean-cache`
+- Reinstall dependencies: `make clean-venv FORCE=1 && make env-sync`
 
 ## Author
 

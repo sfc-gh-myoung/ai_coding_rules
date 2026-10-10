@@ -22,7 +22,7 @@ body:
       label: Steps to Reproduce
       description: Steps to reproduce the behavior
       placeholder: |
-        1. Run `task validate` or `uv run ai-rules plugin build`
+        1. Run `make validate` or `uv run ai-rules plugin build`
         2. See error
     validations:
       required: true

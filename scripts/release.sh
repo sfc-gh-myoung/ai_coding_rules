@@ -8,7 +8,7 @@ source "$SCRIPT_DIR/maintainer-common.sh"
 ACTION=$1
 VERSION=$2
 UV=${UV:-uv}
-TASK_BIN=${TASK_BIN:-task}
+MAKE_BIN=${MAKE_BIN:-make}
 DRY_RUN=${DRY_RUN:-0}
 require_boolean DRY_RUN "$DRY_RUN"
 require_version "$VERSION"
@@ -37,17 +37,23 @@ if [[ "$DRY_RUN" == 1 ]]; then
 fi
 
 require_tool "$UV"
-require_tool "$TASK_BIN"
+require_tool "$MAKE_BIN"
 if [[ "$ACTION" == merge ]]; then
   require_tool gh
   gh auth status
 fi
+# Drop flags inherited from an outer make (such as -i or -k) so validation
+# always stops on the first failure before anything is committed.
+run_ci() {
+  env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL "$MAKE_BIN" ci
+}
+
 REMOTE_TAG=$(git ls-remote --tags "$PUSH_URL" "refs/tags/v$VERSION")
 [[ -z "$REMOTE_TAG" ]] || fail "Remote tag v$VERSION already exists."
 
 if [[ "$ACTION" == bump ]]; then
   "$UV" run --locked python scripts/bump_version.py "$VERSION"
-  "$TASK_BIN" --force ci
+  run_ci
   while IFS= read -r changed; do
     case "$changed" in
       pyproject.toml | README.md | src/ai_rules/__init__.py | uv.lock) ;;
@@ -58,7 +64,7 @@ if [[ "$ACTION" == bump ]]; then
   git add -- pyproject.toml README.md src/ai_rules/__init__.py uv.lock
   git commit -S -m "chore: bump version to $VERSION"
   git push "$PUSH_URL" "HEAD:refs/heads/$BRANCH"
-  printf 'Version bumped. Next: task release:merge VERSION=%s\n' "$VERSION"
+  printf 'Version bumped. Next: make release-merge VERSION=%s\n' "$VERSION"
   exit 0
 fi
 
@@ -84,7 +90,7 @@ git -C "$WORKTREE" merge --squash "$SOURCE"
 (
   cd -- "$WORKTREE"
   "$UV" run --locked python scripts/bump_version.py --check "$VERSION"
-  "$TASK_BIN" --force ci
+  run_ci
   git diff --quiet || fail "Validation changed tracked files. Review the retained worktree."
   [[ -z $(git ls-files --others --exclude-standard) ]] || fail "Validation created untracked files."
   git commit -S -m "chore: squash merge $BRANCH into main"

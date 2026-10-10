@@ -33,7 +33,7 @@ uv run ai-rules validate rules/<NNN-technology-aspect>.md --verbose
 uv run ai-rules tokens rules/<NNN-technology-aspect>.md --dry-run
 uv run ai-rules rule-loader validate
 uv run ai-rules rule-loader validate-trigger-contract
-task plugin:verify
+make plugin-verify
 ```
 
 Record actual results. Resolve CRITICAL and HIGH findings without weakening checks. Test a representative relevant request and an irrelevant request against the matcher. Model-assisted keyword generation remains optional and requires authorization.

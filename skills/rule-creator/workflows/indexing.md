@@ -46,7 +46,7 @@ Revalidate metadata and integrated discovery after any keyword edit:
 uv run ai-rules validate rules/<NNN-technology-aspect>.md
 uv run ai-rules rule-loader validate
 uv run ai-rules rule-loader validate-trigger-contract
-task plugin:verify
+make plugin-verify
 ```
 
 ### Step 5.4: Check for Collisions

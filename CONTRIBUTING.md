@@ -93,9 +93,9 @@ Use our issue templates:
 ### Before Submitting
 
 - [ ] **Test** your changes locally
-- [ ] **Run** `task quality:all:fix` to fix any quality issues
+- [ ] **Run** `make quality-all-fix` to fix any quality issues
 - [ ] **Build** the plugin with `uv run ai-rules plugin build` and validate it
-- [ ] **Run** `task validate` to run the local validation pipeline
+- [ ] **Run** `make validate` to run the local validation pipeline
 - [ ] **Update** documentation if needed
 - [ ] **Add** yourself to contributors if first contribution
 
@@ -201,7 +201,7 @@ We use modern Python tooling for consistent development:
 - **uv** - Fast Python package installer and resolver
 - **Ruff** - Lightning-fast linting and formatting
 - **ty** - Fast type checker (Astral toolchain)
-- **Task (go-task)** - Task automation
+- **GNU Make 3.81+** - Development automation (root `Makefile`)
 
 ```bash
 # Python environment with uv (recommended)
@@ -215,36 +215,36 @@ pip install -e .
 
 ### Development Commands
 
-The project uses [Task](https://taskfile.dev/) for development automation. Run `task --list` for the full command list.
+The project uses a root `Makefile` for development automation. Run `make` for the categorized command list.
 
 **Common commands:**
 
 ```bash
-task quality:all:fix    # Fix all code quality issues
-task test:run           # Run all pytest tests
-task validate           # Run local quality, tests, schemas, and plugin verification
+make quality-all-fix    # Fix all code quality issues
+make test-run          # Run all pytest tests
+make validate           # Run local quality, tests, schemas, and plugin verification
 uv run ai-rules validate rules/          # Validate rules against schema
 uv run ai-rules plugin build             # Build the distributable plugin
 ```
 
-**See [docs/USING_DEV_CLI.md](docs/USING_DEV_CLI.md) for the complete task reference.**
+**See [docs/USING_DEV_CLI.md](docs/USING_DEV_CLI.md) for the complete command reference.**
 
-For the complete Task catalog and the distinction between local validation and hosted CI, see [docs/USING_DEV_CLI.md](docs/USING_DEV_CLI.md).
+For the complete Make target catalog and the distinction between local validation and hosted CI, see [docs/USING_DEV_CLI.md](docs/USING_DEV_CLI.md).
 
 ### Code Quality and Linting
 
 ```bash
 # Run all quality checks at once
-task quality:all          # check only
-task quality:all:fix    # fix all auto-fixable issues
+make quality-all          # check only
+make quality-all-fix      # fix all auto-fixable issues
 
 # Or run individual checks
-task quality:lint         # ruff linter (check only)
-task quality:lint:fix   # apply lint fixes
-task quality:format       # ruff formatter (check only)
-task quality:format:fix # apply formatting
-task quality:typecheck    # ty type checker
-task quality:markdown     # pymarkdownlnt
+make quality-lint         # ruff linter (check only)
+make quality-lint-fix     # apply lint fixes
+make quality-format       # ruff formatter (check only)
+make quality-format-fix   # apply formatting
+make quality-typecheck    # ty type checker
+make quality-markdown     # pymarkdownlnt
 ```
 
 ### Pre-commit hooks
@@ -284,10 +284,10 @@ uv run ai-rules plugin build
 uv run ai-rules plugin verify
 
 # 4. Run test suite
-task test:run
+make test-run
 
 # 5. Run all quality checks
-task quality:all:fix
+make quality-all-fix
 ```
 
 **Commit your changes:**
@@ -405,7 +405,7 @@ uv run ai-rules validate rules/
 uv run ai-rules plugin build
 
 # 6. Run quality checks
-task quality:all:fix
+make quality-all-fix
 
 # 7. Commit the new rule
 git add rules/450-terraform-best-practices.md
@@ -435,7 +435,7 @@ uv run ai-rules validate rules/200-python-core.md --verbose
 uv run ai-rules plugin build
 
 # 5. Run quality checks
-task quality:all:fix
+make quality-all-fix
 
 # 6. Commit changes
 git add rules/200-python-core.md
@@ -488,7 +488,7 @@ git commit  # WRONG - plugin not rebuilt
 ```bash
 vim rules/450-new-rule.md
 uv run ai-rules plugin build
-task plugin:verify            # build fidelity against the sources
+make plugin-verify            # build fidelity against the sources
 git add rules/450-new-rule.md # ai-coding-rules-plugin/ is gitignored build output
 git commit  # CORRECT
 ```
@@ -571,7 +571,7 @@ The v4 authoring contract in `002-rule-governance.md` governs rule structure and
 **For Contributors:**
 
 - **Validate rules:** `uv run ai-rules validate rules/`
-- **Run all CI checks:** `task validate`
+- **Run all CI checks:** `make validate`
 - **Complete standards:** See `rules/002-rule-governance.md` and the active schema
 
 ## Recognition
@@ -601,7 +601,7 @@ Two points matter when you commit:
   `SKIP=rule-loader-eval git commit -m "..."`.
 
 - **CI does not run the live agent.** CI runs only the trigger-evidence invariant
-  (`uv run ai-rules rule-loader validate`, called from `task validate`).
+  (`uv run ai-rules rule-loader validate`, called from `make validate`).
 
 See [`docs/EVALUATING_RULE_LOADER.md`](docs/EVALUATING_RULE_LOADER.md) for the full
 command reference (validate, eval, create, refresh, refresh-all, compare, and the

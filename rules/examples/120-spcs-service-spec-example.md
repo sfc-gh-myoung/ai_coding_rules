@@ -91,7 +91,7 @@ DESC COMPUTE POOL my_app_pool;
 -- Create secret for database credentials
 CREATE SECRET my_db.my_schema.db_credentials
   TYPE = GENERIC_STRING
-  SECRET_STRING = '{"username": "app_user", "password": "secure_password_here"}';
+  SECRET_STRING = '{"username": "app_user", "password": "<DB_PASSWORD>"}';
 
 -- Grant usage to service role
 GRANT USAGE ON SECRET my_db.my_schema.db_credentials 

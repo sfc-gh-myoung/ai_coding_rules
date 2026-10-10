@@ -48,8 +48,11 @@ def repo(tmp_path, monkeypatch):
             shutil.copy2(source, root / relative)
     (root / "pyproject.toml").write_text('[project]\nname = "sample"\nversion = "1.0.0"\n')
     (root / "README.md").write_text("badge/version-1.0.0-blue\n")
+    # Mirrors the real package: no version literal for the bump to edit.
     (root / "src/ai_rules").mkdir(parents=True)
-    (root / "src/ai_rules/__init__.py").write_text('__version__ = "1.0.0"\n')
+    (root / "src/ai_rules/__init__.py").write_text(
+        'from importlib.metadata import version\n__version__ = version("sample")\n'
+    )
     (root / "uv.lock").write_text(
         'version = 1\n[[package]]\nname = "sample"\nversion = "1.0.0"\n'
         'source = { editable = "." }\n'

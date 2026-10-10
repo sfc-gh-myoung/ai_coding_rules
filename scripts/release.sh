@@ -27,7 +27,7 @@ fi
 if [[ "$DRY_RUN" == 1 ]]; then
   printf 'DRY RUN: %s v%s on %s\n' "$ACTION" "$VERSION" "$BRANCH"
   if [[ "$ACTION" == bump ]]; then
-    printf '%s\n' 'Update pyproject.toml, runtime version, README badge, and uv.lock.'
+    printf '%s\n' 'Update pyproject.toml, README badge, and uv.lock.'
     printf '%s\n' 'Run uncached CI validation, create a signed commit, then push the release branch.'
   else
     printf '%s\n' 'Fetch origin, check source/version, squash in an isolated worktree without conflict overrides.'
@@ -56,12 +56,12 @@ if [[ "$ACTION" == bump ]]; then
   run_ci
   while IFS= read -r changed; do
     case "$changed" in
-      pyproject.toml | README.md | src/ai_rules/__init__.py | uv.lock) ;;
+      pyproject.toml | README.md | uv.lock) ;;
       *) fail "Unexpected changed file after validation: $changed. Review before committing." ;;
     esac
   done < <(git diff --name-only HEAD)
   [[ -z $(git ls-files --others --exclude-standard) ]] || fail "Unexpected untracked files after validation."
-  git add -- pyproject.toml README.md src/ai_rules/__init__.py uv.lock
+  git add -- pyproject.toml README.md uv.lock
   git commit -S -m "chore: bump version to $VERSION"
   git push "$PUSH_URL" "HEAD:refs/heads/$BRANCH"
   printf 'Version bumped. Next: make release-merge VERSION=%s\n' "$VERSION"

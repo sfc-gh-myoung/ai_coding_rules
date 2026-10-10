@@ -84,7 +84,7 @@ def get_coverage_percentage(project_root: Path) -> float:
     htmlcov_index = project_root / "htmlcov" / "index.html"
 
     if not htmlcov_index.exists():
-        log_warning(f"{htmlcov_index} not found. Run 'task test:coverage' first.")
+        log_warning(f"{htmlcov_index} not found. Run 'make test-coverage' first.")
         return 0.0
 
     try:

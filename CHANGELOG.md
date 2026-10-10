@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(review-artifact):** add canonical `rule-review-result/v1` JSON reviews with `ai-rules review-artifact` validate, render, verify-pair, verify-repair, and aggregate commands.
 - **feat(skills):** add `ai-rules validate-skills` to check SKILL.md frontmatter, the 500-line limit, version and CHANGELOG parity, and local links.
 - **feat(rules):** add `002n-agent-protocol-reference`, `126-snowflake-cortex-code-agent-sdk`, `805-technical-writing-style`, `806-workbench-folder-policy`, and `810-cli-design-core` (191 → 195 rules).
-- **feat(taskfile):** add Task-based setup, quality, test, validation, release, and GitLab mirror automation, tested in disposable repositories on macOS and Linux.
+- **feat(make):** extend the root `Makefile` to cover setup, quality, test, validation (with a `ci` alias), plugin verification, eval, cleanup, status, release, and GitLab mirror automation, tested in disposable repositories on macOS and Linux.
 - **feat(skill-timer):** estimate cost in AI Credits from Table 6(e) rates at $2 per credit, and report unknown models as unpriced instead of guessing.
 
 ### Changed
@@ -35,13 +35,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(tokens):** update `token_budget` in YAML frontmatter without reserializing other metadata, and add `--context-estimate` for per-response context totals.
 - **feat(keywords):** move keyword generation to `ai-rules rule-loader keywords`, backed by the Cortex client.
 - **build(deps):** require `snowflake-connector-python`, `jinja2`, `ruamel-yaml`, and `filelock`, and enforce an 87% coverage floor.
-- **ci:** run CI through Task entry points, add coverage and automation jobs, and test Python 3.12 and 3.13.
-- **docs:** align project docs with the plugin, Taskfile, and v4 contract, and document the 250-line guideline for rules and skills.
+- **ci:** run CI through Make entry points, add coverage and automation jobs, and test Python 3.12 and 3.13 on macOS and Linux.
+- **docs:** align project docs with the plugin, Makefile, and v4 contract, and document the 250-line guideline for rules and skills.
 
 ### Removed
 
 - **feat(cli)!:** **Breaking:** remove `ai-rules deploy`, `ai-rules index`, and `ai-rules refs`; use `ai-rules plugin install` instead of copying `AGENTS.md`, `RULES_INDEX.md`, and rules into each project.
-- **build!:** **Breaking:** remove the root `Makefile` in favor of `Taskfile.yml`.
+- **build!:** **Breaking:** rename Make targets to the v4 surface (for example `lint` → `quality-lint`, `test` → `test-run`, `clean` → `clean-all`, `release` → `release-bump`, `mirror` → `mirror-sync`), drop targets for removed commands (`index-*`, `deploy-*`, `keywords-*`, `refs-check`), and require Python 3.12+ in `env-setup`.
+- **build:** drop the `check-jsonschema` dev dependency, which only validated the Taskfile schema.
 - **refactor!:** **Breaking:** remove the `agent_eval` package and the `agent-eval` console script.
 - **refactor(rules):** remove `002i-rule-loadtrigger` and the `LoadTrigger` field; triggers now live in typed `keywords`.
 - **chore(skills):** move `create-plan`, `doc-reviewer`, and `plan-reviewer` to the external portable-skills repository.

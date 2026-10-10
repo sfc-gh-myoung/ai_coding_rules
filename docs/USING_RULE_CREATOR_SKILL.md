@@ -44,7 +44,7 @@ The skill reports the created path, commands run, exit codes, reviewed warnings,
 uv run --locked ai-rules validate rules/<created-rule>.md --verbose
 uv run --locked ai-rules rule-loader validate
 uv run --locked ai-rules rule-loader validate-trigger-contract
-task plugin:verify
+make plugin-verify
 ```
 
 Replace the path placeholder with the actual rule. CRITICAL and HIGH findings block normal validation; a documented exception does not convert them to success. After three unsuccessful repair attempts, the skill reports the remaining blocker.

@@ -72,7 +72,7 @@ _IGNORED_NAMES: frozenset[str] = frozenset({".DS_Store"})
 # loader expectations, but it is an external binary that may not be installed, and
 # it does not know this repo's source-fidelity requirements. check_manifest()
 # enforces the shape at build time so a malformed manifest fails here rather than
-# at install time on a consumer's machine. `task plugin:verify` runs both.
+# at install time on a consumer's machine. `make plugin-verify` runs both.
 #
 # "hooks" is deliberately absent: CoCo auto-discovers ./hooks/hooks.json, which is
 # the single hook declaration. check_manifest() rejects an inline 'hooks' key.

@@ -70,7 +70,9 @@ class TestBadgesHappyPath:
 
         monkeypatch.setattr(badges, "find_project_root", lambda: tmp_path)
 
-        with patch.object(badges, "get_test_percentage", return_value=(98, 100, 98.0)):
+        with patch.object(
+            badges, "get_test_percentage", return_value=badges.PytestCounts(98, 100, 98.0, 0)
+        ):
             # Act
             result = runner.invoke(app, ["badges", "update"])
 
@@ -102,7 +104,9 @@ class TestBadgesHappyPath:
 
         monkeypatch.setattr(badges, "find_project_root", lambda: tmp_path)
 
-        with patch.object(badges, "get_test_percentage", return_value=(100, 100, 100.0)):
+        with patch.object(
+            badges, "get_test_percentage", return_value=badges.PytestCounts(100, 100, 100.0, 0)
+        ):
             # Act
             result = runner.invoke(app, ["badges", "update"])
 
@@ -137,7 +141,9 @@ class TestBadgesDryRun:
 
         monkeypatch.setattr(badges, "find_project_root", lambda: tmp_path)
 
-        with patch.object(badges, "get_test_percentage", return_value=(90, 100, 90.0)):
+        with patch.object(
+            badges, "get_test_percentage", return_value=badges.PytestCounts(90, 100, 90.0, 0)
+        ):
             # Act
             result = runner.invoke(app, ["badges", "update", "--dry-run"])
 
@@ -165,7 +171,9 @@ class TestBadgesDryRun:
 
         monkeypatch.setattr(badges, "find_project_root", lambda: tmp_path)
 
-        with patch.object(badges, "get_test_percentage", return_value=(85, 100, 85.0)):
+        with patch.object(
+            badges, "get_test_percentage", return_value=badges.PytestCounts(85, 100, 85.0, 0)
+        ):
             # Act
             result = runner.invoke(app, ["badges", "update", "--dry-run"])
 
@@ -330,12 +338,13 @@ class TestBadgesFunctions:
         )
 
         # Act
-        passed, total, percentage = badges.get_test_percentage()
+        passed, total, percentage, skipped = badges.get_test_percentage()
 
         # Assert
         assert passed == 50
         assert total == 50
         assert percentage == 100.0
+        assert skipped == 0
 
     @pytest.mark.unit
     @patch("subprocess.run")
@@ -348,12 +357,13 @@ class TestBadgesFunctions:
         )
 
         # Act
-        passed, total, percentage = badges.get_test_percentage()
+        passed, total, percentage, skipped = badges.get_test_percentage()
 
         # Assert
         assert passed == 45
         assert total == 50
         assert percentage == 90.0
+        assert skipped == 0
 
 
 class TestUpdateReadmeBadges:
@@ -434,12 +444,13 @@ class TestGetTestPercentageEdgeCases:
         )
 
         # Act
-        passed, total, percentage = badges.get_test_percentage()
+        passed, total, percentage, skipped = badges.get_test_percentage()
 
         # Assert
         assert passed == 0
         assert total == 0
         assert percentage == 0.0
+        assert skipped == 0
 
     @pytest.mark.unit
     @patch("subprocess.run")
@@ -451,12 +462,13 @@ class TestGetTestPercentageEdgeCases:
         mock_run.side_effect = subprocess.TimeoutExpired(cmd="pytest", timeout=300)
 
         # Act
-        passed, total, percentage = badges.get_test_percentage()
+        passed, total, percentage, skipped = badges.get_test_percentage()
 
         # Assert
         assert passed == 0
         assert total == 0
         assert percentage == 0.0
+        assert skipped == 0
 
     @pytest.mark.unit
     @patch("subprocess.run")
@@ -466,12 +478,13 @@ class TestGetTestPercentageEdgeCases:
         mock_run.side_effect = OSError("Command not found")
 
         # Act
-        passed, total, percentage = badges.get_test_percentage()
+        passed, total, percentage, skipped = badges.get_test_percentage()
 
         # Assert
         assert passed == 0
         assert total == 0
         assert percentage == 0.0
+        assert skipped == 0
 
     @pytest.mark.unit
     def test_pre_captured_output_all_passed(self):
@@ -480,12 +493,13 @@ class TestGetTestPercentageEdgeCases:
         output = "======================== 50 passed in 1.0s ========================\n"
 
         # Act
-        passed, total, percentage = badges.get_test_percentage(pytest_output=output)
+        passed, total, percentage, skipped = badges.get_test_percentage(pytest_output=output)
 
         # Assert
         assert passed == 50
         assert total == 50
         assert percentage == 100.0
+        assert skipped == 0
 
     @pytest.mark.unit
     def test_pre_captured_output_with_failures(self):
@@ -494,12 +508,65 @@ class TestGetTestPercentageEdgeCases:
         output = "=============== 45 passed, 5 failed in 2.0s ===============\n"
 
         # Act
-        passed, total, percentage = badges.get_test_percentage(pytest_output=output)
+        passed, total, percentage, skipped = badges.get_test_percentage(pytest_output=output)
 
         # Assert
         assert passed == 45
         assert total == 50
         assert percentage == 90.0
+        assert skipped == 0
+
+
+class TestGetTestPercentageRatio:
+    """Errors count as failures; skipped is reported but excluded from the ratio."""
+
+    @pytest.mark.unit
+    @pytest.mark.parametrize(
+        ("output", "expected"),
+        [
+            ("10 passed, 2 failed, 3 errors, 90 skipped in 1.0s", (10, 15, 10 / 15 * 100, 90)),
+            ("4 passed, 1 error in 0.5s", (4, 5, 80.0, 0)),
+            ("5 passed in 0.1s", (5, 5, 100.0, 0)),
+            ("3 passed, 2 xfailed, 1 xpassed, 7 deselected in 0.2s", (3, 3, 100.0, 0)),
+            ("no tests ran in 0.01s", (0, 0, 0.0, 0)),
+            ("12 skipped in 0.01s", (0, 0, 0.0, 12)),
+        ],
+        ids=[
+            "errors-plural",
+            "error-singular",
+            "all-passed",
+            "x-and-deselected",
+            "none",
+            "skip-only",
+        ],
+    )
+    def test_summary_parsing(self, output: str, expected: tuple[int, int, float, int]):
+        """Test passed/total/percentage/skipped for each pytest summary shape."""
+        # Act
+        result = badges.get_test_percentage(pytest_output=output)
+
+        # Assert
+        assert result == pytest.approx(expected)
+
+    @pytest.mark.unit
+    def test_dry_run_reports_skipped(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Test that the command output reports the skipped count."""
+        # Arrange
+        (tmp_path / "pyproject.toml").write_text('[project]\nversion = "1.0.0"\n')
+        (tmp_path / "README.md").write_text("# Project\n")
+        output_file = tmp_path / "pytest.txt"
+        output_file.write_text("10 passed, 2 failed, 3 errors, 90 skipped in 1.0s\n")
+        monkeypatch.setattr(badges, "find_project_root", lambda: tmp_path)
+
+        # Act
+        result = runner.invoke(
+            app, ["badges", "update", "--dry-run", "--pytest-output", str(output_file)]
+        )
+
+        # Assert
+        assert result.exit_code == 0
+        assert "10/15 passed" in result.output
+        assert "90 skipped" in result.output
 
 
 class TestGetCoveragePercentageEdgeCases:

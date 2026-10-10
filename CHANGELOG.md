@@ -37,6 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **feat(tokens):** update `token_budget` in YAML frontmatter without reserializing other metadata, and add `--context-estimate` for per-response context totals.
 - **feat(keywords):** move keyword generation to `ai-rules rule-loader keywords`, backed by the Cortex client.
 - **build(deps):** require `snowflake-connector-python`, `jinja2`, `ruamel-yaml`, and `filelock`, and enforce an 87% coverage floor.
+- **feat(cortex):** list every concrete CoCo model picker model in the benchmark catalog, adding `claude-sonnet-5-5`, `glm-5.3`, and `openai-gpt-6.1-sol`, and price the catalog from the Table 6(e) effective 2026-10-09. That revision reprices `claude-sonnet-5` (cache read 0.11), applies promotional rates to `openai-gpt-5.6-sol`, and prices `deepseek-v4-flash`; `gemini-3.1-pro` and `glm-5.2` stay unpriced (#18).
+- **feat(eval):** `scripts/run-eval.sh` runs exactly the catalog models and no longer runs the `auto-intelligent` and `auto-efficient` routing modes; a test keeps the script and eval docs in step with the catalog (#18).
 - **ci:** run CI through Make entry points, add coverage and automation jobs, and test Python 3.12 and 3.13 on macOS and Linux.
 - **docs:** align project docs with the plugin, Makefile, and v4 contract, and document the 250-line guideline for rules and skills.
 

@@ -1,7 +1,7 @@
 ---
 name: skill-timer
 description: Measures skill execution time with microsecond precision and tracks performance baselines per skill, mode, and model. Use when timing a skill, measuring duration, comparing performance across models, analyzing execution speed, or detecting agent shortcuts. Triggers on "time this skill", "measure skill duration", "benchmark a skill", "skill performance", "detect shortcut".
-version: 2.0.1
+version: 2.0.2
 metadata:
   tags: [timing, performance, measurement, instrumentation, metrics, ci-cd]
 ---
@@ -67,29 +67,11 @@ timing_enabled: true
 - `input_tokens`: `integer` (default: none).
 - `output_tokens`: `integer` (default: none).
 - `format`: `string` (default: `human`): `human`, `json`, `markdown`, `quiet`.
-- `dimension_timings`: `JSON array` (default: none): per-dimension timing data (schema below).
+- `dimension_timings`: `JSON array` (default: none): per-dimension timing data.
 - `auto_dimension_timings`: `flag` (default: off): derive `dimension_timings` automatically from `dim_<name>_start` / `dim_<name>_end` checkpoint pairs. Explicit `dimension_timings` wins if both are supplied (with WARNING).
 - `review_mode`: `string` (default: `FULL`).
 
-### `dimension_timings` schema
-
-| Field | Required | Type | Notes |
-|---|---|---|---|
-| `dimension` | Yes | string | Dimension name (e.g., `actionability`). |
-| `duration_seconds` | Yes | number | Actual duration in seconds. Use `-1` for failed/unavailable. |
-| `mode` | Yes | string | `checkpoint` (auto-derived), `self-report`, `self-report-flagged`, `coordinator`, `inline`, `validation-failed`, `failed`, `not-requested`. |
-| `start_epoch` | No | number | Unix timestamp (fractional). |
-| `end_epoch` | No | number | Unix timestamp (fractional). |
-| `validation_warning` | No | string | Warning message if flagged. |
-| `validation_error` | No | string | Error message if validation failed. |
-
-**Epoch capture (IMPORTANT):** Use `python3 -c "import time; print(time.time())"` for fractional precision. Do NOT use `date +%s` (integer-only).
-
-Validation gates applied automatically by `timing-end`:
-
-- **Plausibility:** rejects if `end_epoch <= start_epoch` or timestamps fall outside execution window (±60s buffer).
-- **Fabrication detection:** flags suspiciously round durations (exact 60s multiples ≥60s) or unusually long durations (>300s for a single dimension).
-- **Outcomes:** `self-report` (passed), `self-report-flagged` (warning, accepted), `validation-failed` (rejected, duration set to -1).
+**`dimension_timings` entries** need `dimension`, `duration_seconds` (`-1` if unavailable), and `mode`; epochs are optional. Capture epochs with `python3 -c "import time; print(time.time())"`, never `date +%s` (integer-only). `timing-end` runs plausibility and fabrication checks on every entry. Field schema and validation gates: [`references/dimension-timings.md`](references/dimension-timings.md).
 
 ## Outputs
 
@@ -187,31 +169,7 @@ Validate after every command; on failure, write the output without timing metada
 
 ## Integration Pattern
 
-Add this step to your skill's workflow:
-
-```markdown
-### [CONDITIONAL] Timing Instrumentation
-
-**Execute IF:** `timing_enabled: true`
-**Skip IF:** `timing_enabled: false`
-
-| When | Action | Track Variable |
-|------|--------|----------------|
-| Before core work | timing-start | `_timing_run_id` |
-| After Gate 1 | checkpoint: gates_started | - |
-| After Gate 3 | checkpoint: rules_loaded | - |
-| After setup | checkpoint: skill_loaded | - |
-| After core work | checkpoint: work_complete | - |
-| Before file write | timing-end --format markdown | `_timing_stdout` |
-| After file write | Append `_timing_stdout` to file | - |
-```
-
-**Per-Dimension Timing (optional):**
-
-- **Sequential mode (preferred):** record `dim_{name}_start` / `dim_{name}_end` checkpoint pairs around each dimension; call `timing-end --auto-dimension-timings` to derive the array.
-- **Parallel mode:** sub-agents self-report `start_epoch` / `end_epoch`; coordinator assembles and passes via `--dimension-timings`.
-- **Explicit override:** `--dimension-timings` wins over `--auto-dimension-timings`.
-- **Precision:** capture fractional epochs with `python3 -c "import time; print(time.time())"`.
+Add a `[CONDITIONAL] Timing Instrumentation` step to your skill's workflow: execute if `timing_enabled: true`, skip if `false`. Call timing-start before core work, record checkpoints (`gates_started`, `rules_loaded`, `skill_loaded`, `work_complete`), run `timing-end --format markdown` before the file write, then append `_timing_stdout` to the file. For per-dimension timing, prefer `dim_{name}_start` / `dim_{name}_end` checkpoint pairs plus `--auto-dimension-timings`. Copy-ready step table and parallel-mode details: [`references/integration-pattern.md`](references/integration-pattern.md).
 
 ## Working Memory Contract
 
@@ -264,6 +222,9 @@ skill-timer/
 ├── CHANGELOG.md                      # Version history
 ├── schemas/
 │   └── timing-output.schema.json     # JSON schema for timing output
+├── references/
+│   ├── dimension-timings.md          # dimension_timings schema + validation gates
+│   └── integration-pattern.md        # Workflow step for calling skills
 ├── scripts/
 │   ├── skill_timer.py                # Core CLI
 │   └── find_python.sh                # Python interpreter discovery

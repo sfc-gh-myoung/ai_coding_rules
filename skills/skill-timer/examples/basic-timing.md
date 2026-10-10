@@ -51,7 +51,7 @@ TIMING_START=2026-01-06T10:30:00+00:00
 TIMING_END=2026-01-06T10:33:45+00:00
 TIMING_STATUS=completed
 
-TIMING: skill-timer v2.0.1
+TIMING: skill-timer v2.0.2
 ----------------------------------------
 Run ID:      a1b2c3d4e5f67890
 Skill:       rule-reviewer

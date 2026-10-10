@@ -378,7 +378,7 @@ This vocabulary is canonical for the project. README and architecture documentat
 
 ### Content Guidelines
 
-- **Length**: Rules and skills should ideally be no more than 250 lines. `ai-rules validate` reports a HIGH finding for any rule over 250 lines (`schemas/rule-schema.yml` `structure.max_lines`). `ai-rules validate-skills` fails a `SKILL.md` only above 500 lines, so for skills 250 is the target and 500 is the hard check. Move optional detail into a focused companion rule or a skill's `workflows/`, `references/`, or `examples/` files without dropping required dependencies or safety instructions. Size alone does not prove quality. This limit does not apply to project documentation such as `README.md`, `CONTRIBUTING.md`, or `docs/`.
+- **Length**: Rules and skills should be no more than 250 lines. `ai-rules validate` reports a HIGH finding for any rule over 250 lines (`schemas/rule-schema.yml` `structure.max_lines`). `ai-rules validate-skills` fails a `SKILL.md` above 250 lines (`schemas/skill-schema.yml` `structure.max_lines`), and the rule-reviewer's Rule Size dimension scores against the same limit. Move optional detail into a focused companion rule or a skill's `workflows/`, `references/`, or `examples/` files without dropping required dependencies or safety instructions. Size alone does not prove quality. This limit does not apply to project documentation such as `README.md`, `CONTRIBUTING.md`, or `docs/`.
 - **Clarity**: Use clear, unambiguous language
 - **Examples**: Include concrete code examples where helpful
 - **Links**: Reference official documentation

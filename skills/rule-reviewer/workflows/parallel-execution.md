@@ -98,13 +98,13 @@ Computed directly by coordinator (no LLM needed). Run `wc -l [rule_path]` and lo
 
 | Lines | Raw Score | Points | Flag | Hard Cap |
 |-------|-----------|--------|------|----------|
-| ≤300 | 10 | 25 | None | - |
-| 301-400 | 9 | 22.5 | None | - |
-| 401-500 | 8 | 20 | None | - |
-| 501-550 | 5 | 12.5 | `SPLIT_RECOMMENDED` | - |
-| 551-600 | 3 | 7.5 | `SPLIT_REQUIRED` | - |
-| 601-700 | 1 | 2.5 | `NOT_DEPLOYABLE` | Max 70/100 |
-| >700 | 0 | 0 | `BLOCKED` | Max 50/100 |
+| ≤150 | 10 | 25 | None | - |
+| 151-200 | 9 | 22.5 | None | - |
+| 201-250 | 8 | 20 | None | - |
+| 251-275 | 5 | 12.5 | `SPLIT_RECOMMENDED` | - |
+| 276-300 | 3 | 7.5 | `SPLIT_REQUIRED` | - |
+| 301-350 | 1 | 2.5 | `NOT_DEPLOYABLE` | Max 70/100 |
+| >350 | 0 | 0 | `BLOCKED` | Max 50/100 |
 
 ### 2.2 Launch Sub-Agents
 

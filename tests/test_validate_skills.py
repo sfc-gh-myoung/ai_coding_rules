@@ -129,14 +129,30 @@ class TestMaxLines:
         size_errors = [e for e in result.errors if e.error_group == "Size"]
         assert size_errors == []
 
-    def test_501_lines_fails(self, tmp_path: Path) -> None:
-        padding = "x\n" * 497
-        body = f"## Purpose\n{padding}\n## Use this skill when\n- Yes.\n"
+    @staticmethod
+    def _skill_with_total_lines(tmp_path: Path, total: int) -> Path:
+        """Build a SKILL.md with exactly *total* lines (frontmatter included)."""
+        # Frontmatter block is 6 lines; the headings and bullet add 3 more.
+        padding = "x\n" * (total - 9)
+        body = f"## Purpose\n{padding}## Use this skill when\n- Yes.\n"
         skill_dir = _make_skill(tmp_path, body=body)
+        lines = (skill_dir / "SKILL.md").read_text(encoding="utf-8").splitlines()
+        assert len(lines) == total
+        return skill_dir
+
+    def test_250_lines_passes(self, tmp_path: Path) -> None:
+        skill_dir = self._skill_with_total_lines(tmp_path, 250)
+        result = _validator().validate_skill_dir(skill_dir)
+        size_errors = [e for e in result.errors if e.error_group == "Size"]
+        assert size_errors == []
+
+    def test_251_lines_fails(self, tmp_path: Path) -> None:
+        skill_dir = self._skill_with_total_lines(tmp_path, 251)
         result = _validator().validate_skill_dir(skill_dir)
         size_errors = [e for e in result.errors if e.error_group == "Size"]
         assert size_errors, "Expected Size error for oversized SKILL.md"
         assert size_errors[0].severity == "HIGH"
+        assert "250" in size_errors[0].message
 
 
 class TestRequiredHeadings:

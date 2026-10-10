@@ -110,7 +110,7 @@ Rules use letter suffixes to split large topics into focused, independently-load
 
 **Rule size limit:**
 
-Rules and skills should ideally be no more than 250 lines. For rules this is enforced: `ai-rules validate` reports a HIGH finding above `structure.max_lines: 250` in [`schemas/rule-schema.yml`](../schemas/rule-schema.yml). For skills, 250 is the target; `ai-rules validate-skills` fails a `SKILL.md` only above 500 lines. See [CONTRIBUTING.md → Content Guidelines](../CONTRIBUTING.md#content-guidelines). The limit applies to rules and skills, not to project documentation.
+Rules and skills should be no more than 250 lines, and both limits are enforced. `ai-rules validate` reports a HIGH finding for a rule above `structure.max_lines: 250` in [`schemas/rule-schema.yml`](../schemas/rule-schema.yml). `ai-rules validate-skills` fails a `SKILL.md` above `structure.max_lines: 250` in [`schemas/skill-schema.yml`](../schemas/skill-schema.yml). The rule-reviewer's Rule Size dimension scores against the same 250-line limit. See [CONTRIBUTING.md → Content Guidelines](../CONTRIBUTING.md#content-guidelines). The limit applies to rules and skills, not to project documentation.
 
 ### 2.3 Context Management
 

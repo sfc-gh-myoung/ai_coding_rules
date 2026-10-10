@@ -4,7 +4,7 @@ Checks:
   1. YAML frontmatter (name, description, version).
   2. Version/changelog parity against CHANGELOG.md in the skill directory.
   3. Local file references in SKILL.md resolve to existing files (one level).
-  4. SKILL.md does not exceed 500 lines.
+  4. SKILL.md does not exceed 250 lines.
   5. Canonical H2 headings (with narrow aliases) are present.
   6. Prose style advisory (INFO only, never blocks CI).
 """
@@ -231,7 +231,7 @@ class SkillSchemaValidator:
 
     def _check_max_lines(self, lines: list[str], result: SkillResult) -> None:
         struct = self.schema.get("structure", {})
-        max_lines: int = struct.get("max_lines", 500)
+        max_lines: int = struct.get("max_lines", 250)
         total = len(lines)
         if total > max_lines:
             result.errors.append(
@@ -245,7 +245,7 @@ class SkillSchemaValidator:
                     line_num=max_lines + 1,
                     fix_suggestion=(
                         f"Move content beyond line {max_lines} to "
-                        "workflows/ or examples/ subdirectories."
+                        "workflows/, references/, or examples/ subdirectories."
                     ),
                 )
             )
@@ -468,7 +468,7 @@ def validate_skills(
     """Validate skills/*/SKILL.md files against schemas/skill-schema.yml.
 
     Checks frontmatter fields, version/changelog parity, local file references,
-    maximum 500 lines, and canonical section headings.  Prose style issues are
+    maximum 250 lines, and canonical section headings.  Prose style issues are
     advisory only and never block the build.
 
     Examples:

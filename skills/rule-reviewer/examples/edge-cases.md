@@ -139,26 +139,28 @@ The review will note this as a HIGH severity issue in the
 
 ## Edge Case 5: Very Large Rule File
 
-**Scenario:** Rule exceeds typical size (>500 lines, >5000 tokens)
+**Scenario:** Rule exceeds the 250-line limit (>250 lines, >2500 tokens)
 
 **Example:**
 ```
-target_file: rules/000-global-core.md
-Size: 622 lines, ~6500 tokens
+target_file: rules/350-docker-core.md
+Size: 325 lines, ~2600 tokens
 ```
 
 **Resolution Pattern:**
 ```
 Large rule file detected:
 
-File: rules/000-global-core.md
-Lines: 622
-Estimated tokens (tiktoken): ~6500
+File: rules/350-docker-core.md
+Lines: 325
+Estimated tokens (tiktoken): ~2600
 
 Run token validation:
-$ uv run ai-rules tokens rules/000-global-core.md
+$ uv run ai-rules tokens rules/350-docker-core.md
 
 Considerations:
+- Rule Size: 301-350 lines = NOT_DEPLOYABLE, total score capped at 70/100
+- `ai-rules validate` also reports HIGH (>250 lines)
 - Full review may timeout
 - TokenBudget may be intentionally high (Critical tier)
 - May need chunked analysis

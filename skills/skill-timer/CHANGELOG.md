@@ -2,6 +2,13 @@
 
 All notable changes to the `skill-timer` skill. Current version is tracked in `SKILL.md` frontmatter.
 
+## v2.0.2 (2026-10-09): SKILL.md under the 250-line limit
+
+- Moved the `dimension_timings` field schema and `timing-end` validation gates to `references/dimension-timings.md`, and the calling-skill Integration Pattern step table to `references/integration-pattern.md`. `SKILL.md` keeps a summary of each with a link.
+- `SKILL.md` drops from 283 to 244 lines to meet the new `ai-rules validate-skills` limit of 250 lines.
+- Aligned the runtime version, package version, and skill version on 2.0.2.
+- No behavior change.
+
 ## v2.0.1 (2026-08-19): Runtime contract alignment
 
 - Raised the standalone Python floor to 3.11.

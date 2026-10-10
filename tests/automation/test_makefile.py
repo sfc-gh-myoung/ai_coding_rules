@@ -1,6 +1,6 @@
 """Execute real make targets with contained file operations and stubbed external tools.
 
-No test here performs a real push, tag, release, mirror sync, or cleanup outside
+No test here performs a real push, tag, release, or cleanup outside
 the disposable repository built by the `repo` fixture.
 """
 
@@ -171,24 +171,6 @@ def test_release_invalid_dry_run_value_fails(repo, stubs):
     assert not any(call[1] in ("push", "commit") for call in logged(stubs))
 
 
-def test_mirror_preview_never_pushes(repo, stubs, tmp_path):
-    destination = tmp_path / "mirror.git"
-    git(tmp_path, "init", "--bare", str(destination))
-    git(repo, "remote", "add", "gitlab", str(destination))
-    result = make(repo, "mirror-sync", "DRY_RUN=1")
-    assert result.returncode == 0, result.stderr
-    assert "DRY RUN: mirror main commit" in result.stdout
-    assert git(destination, "for-each-ref") == ""
-    assert not any(call[1] in ("push", "commit-tree") for call in logged(stubs))
-
-
-def test_make_dry_run_never_runs_mirror_script(repo, stubs):
-    result = make(repo, "-n", "mirror-sync")
-    assert result.returncode == 0, result.stderr
-    assert "bash scripts/mirror.sh" in result.stdout
-    assert logged(stubs) == []
-
-
 def test_configured_uv_path_with_spaces(repo, tmp_path):
     uv = executable(tmp_path, "uv with spaces", "exit 0\n")
     result = make(repo, "quality-lint", f"UV={uv}")
@@ -285,7 +267,7 @@ def test_status_preflight_requires_lockfile(repo, tmp_path):
 def test_default_goal_prints_categorized_help(repo, tmp_path):
     result = make(repo, f"UV={python_runner(tmp_path)}")
     assert result.returncode == 0, result.stderr
-    for heading in ("ENVIRONMENT", "QUALITY", "TESTING", "VALIDATION", "RELEASE", "MIRROR"):
+    for heading in ("ENVIRONMENT", "QUALITY", "TESTING", "VALIDATION", "RELEASE"):
         assert f"\n{heading}\n" in result.stdout
     documented = re.findall(r"^([a-z][a-z0-9-]*):[^=\n]*?##", (repo / "Makefile").read_text(), re.M)
     for target in documented:

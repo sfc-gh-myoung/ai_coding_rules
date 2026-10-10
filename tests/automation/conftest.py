@@ -93,8 +93,6 @@ arguments = sys.argv[1:]
 with open(os.environ["AUTOMATION_LOG"], "a") as stream:
     stream.write(json.dumps([command, *arguments]) + "\\n")
 if command == "git":
-    if os.environ.get("FAIL_PUSH") == "1" and "push" in arguments:
-        sys.exit(1)
     arguments = [argument for argument in arguments if argument not in ("-S", "-s")]
     sys.exit(subprocess.call([os.environ["REAL_GIT"], *arguments]))
 if command == "make":

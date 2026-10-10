@@ -55,50 +55,6 @@ def test_release_refuses_untracked_files(repo, stubs):
     assert "Uncommitted or untracked" in result.stderr
 
 
-def test_mirror_uses_main_not_current_branch(repo, stubs, tmp_path):
-    destination = tmp_path / "mirror.git"
-    git(tmp_path, "init", "--bare", str(destination))
-    git(repo, "remote", "add", "gitlab", str(destination))
-    main_tree = git(repo, "rev-parse", "main^{tree}")
-    git(repo, "checkout", "-b", "feature")
-    (repo / "feature.txt").write_text("Not for the mirror")
-    git(repo, "add", ".")
-    git(repo, "commit", "-m", "Feature work")
-    before = git(repo, "rev-parse", "HEAD")
-    result = run_script(repo, "mirror.sh")
-    assert result.returncode == 0, result.stderr
-    assert git(destination, "rev-parse", "main^{tree}") == main_tree
-    assert git(destination, "rev-list", "--count", "main") == "1"
-    assert git(repo, "branch", "--show-current") == "feature"
-    assert git(repo, "rev-parse", "HEAD") == before
-    assert git(repo, "status", "--porcelain") == ""
-    calls = [json.loads(line) for line in stubs.read_text().splitlines()]
-    assert any(call[1:3] == ["commit-tree", "-S"] for call in calls)
-    assert any(
-        argument.startswith("--force-with-lease=refs/heads/main:")
-        for call in calls
-        for argument in call
-    )
-
-
-def test_mirror_failure_preserves_checkout(repo, stubs, tmp_path):
-    destination = tmp_path / "mirror.git"
-    git(tmp_path, "init", "--bare", str(destination))
-    git(repo, "remote", "add", "gitlab", str(destination))
-    before = git(repo, "rev-parse", "HEAD")
-    result = run_script(repo, "mirror.sh", FAIL_PUSH="1")
-    assert result.returncode != 0
-    assert git(repo, "rev-parse", "HEAD") == before
-    assert git(repo, "status", "--porcelain") == ""
-
-
-def test_mirror_requires_exact_remote_name(repo):
-    git(repo, "remote", "add", "not-gitlab", "/unused")
-    result = run_script(repo, "mirror.sh", DRY_RUN="1")
-    assert result.returncode != 0
-    assert "not configured" in result.stderr
-
-
 def test_bump_validates_before_signed_commit_and_push(repo, stubs):
     git(repo, "checkout", "-b", "release/v1.0.1")
     result = run_script(repo, "release.sh", "bump", "1.0.1")

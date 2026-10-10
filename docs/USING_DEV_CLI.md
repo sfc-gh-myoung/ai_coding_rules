@@ -17,7 +17,7 @@ Targets accept these variables on the command line or from the environment:
 | `CLI_ARGS` | empty | Extra pytest arguments for `make test-run` |
 | `VERSION` | none | Required by `release-bump` and `release-merge` |
 | `FORCE` | `0` | `1` skips the cleanup prompt |
-| `DRY_RUN` | `0` | `1` previews release and mirror commands without writes or network |
+| `DRY_RUN` | `0` | `1` previews release commands without writes or network |
 
 ## Set up the environment
 
@@ -38,7 +38,7 @@ Set `PYTHON_VERSION=3.13` to run a target with Python 3.13, for example `make te
 | `make quality-all-fix` | Applies safe Python and Markdown fixes, then runs all quality checks |
 | `make test-run` | Runs all non-live pytest tests; pass extra pytest arguments with `CLI_ARGS="-k name"` |
 | `make test-coverage` | Runs tests and enforces the configured coverage threshold |
-| `make test-automation` | Tests Make targets, cleanup, version, release, and mirror behavior in disposable repositories |
+| `make test-automation` | Tests Make targets, cleanup, version, and release behavior in disposable repositories |
 | `make validate` or `make ci` | Runs the full local validation pipeline and stops at the first failing gate |
 
 `make validate` includes coverage, schema validation, the rule-loader fixture and reachability gates, trigger-count validation, and plugin fidelity. It validates the Cortex plugin loader when the `cortex` command exists. Run `make plugin-verify-strict` when absence of `cortex` must fail.
@@ -80,12 +80,6 @@ Do not rerun a failed release command until you identify its last successful ext
 - If `release-merge` stops before the atomic push, inspect the retained worktree path printed by the command. Resolve the cause or remove it with `git worktree remove <path>`.
 - If the atomic push succeeds but draft creation fails, run `gh release create vX.Y.Z --verify-tag --title vX.Y.Z --draft --generate-notes`.
 
-## Sync the GitLab mirror
-
-Run `make mirror-sync DRY_RUN=1`, then `make mirror-sync`. The command mirrors the committed local `main` tree, not the active branch. Synchronize and review local `main` first.
-
-The command creates a signed parentless commit with a temporary Git index. It pushes to the single configured `gitlab` push URL with an explicit lease. Concurrent changes to `gitlab/main` cause the push to fail. The command does not switch branches or alter the working tree.
-
 ## Scripts reference
 
 The `scripts/` folder holds only long-lived project scripts. Put plan-scoped or one-off scripts in `.workbench/scripts/` instead (see `rules/806-workbench-folder-policy.md`).
@@ -100,9 +94,8 @@ Run these through their Make targets, not directly.
 | `clean.sh` | `make clean-cache`, `clean-venv`, `clean-all` | Removes caches and, with confirmation or `FORCE=1`, `.venv` |
 | `plugin-verify.sh` | `make plugin-verify`, `plugin-verify-strict` | Checks replica sync, builds the plugin to a temp directory, and verifies it |
 | `release.sh` | `make release-bump`, `release-merge` | Runs the guarded release flow described in [Cut a release](#cut-a-release) |
-| `bump_version.py` | Called by `release.sh bump` | Updates the four version files and restores them on failure |
-| `mirror.sh` | `make mirror-sync` | Pushes the local `main` tree to the GitLab mirror |
-| `maintainer-common.sh` | Sourced by `release.sh` and `mirror.sh` | Shared guards: clean tree, repo root, version format, single push URL |
+| `bump_version.py` | Called by `release.sh bump` | Updates the three version files and restores them on failure |
+| `maintainer-common.sh` | Sourced by `release.sh` | Shared guards: clean tree, repo root, version format, single push URL |
 
 ### Called by pre-commit hooks
 

@@ -524,23 +524,23 @@ uv run ai-rules rule-loader suggest-kw \
 
 ### `report`: render the HTML compliance report
 
-Aggregates every `results/<model>_<runs>x_<timestamp>/` directory into a
-cross-model report. Picks the newest run per model; directories whose model is
-`auto` are skipped.
+See [Evidence-bound eval reports](EVAL_REPORTS.md) for selection, metric definitions,
+offline artifacts and verification. Comparative rankings require an explicit
+`--selection`; without it, latest runs are shown only as labeled inspection.
+Rendering is deterministic and never authenticates or calls AI.
 
 ```text
 uv run ai-rules rule-loader report [OPTIONS]
 
 Options:
-  --output PATH        Output directory (defaults to reports/).
-  --results-dir PATH   Results directory (defaults to results/).
-  --strict             Fail on any extraction error instead of warning.
-  --connection TEXT    Snowflake connection name for the AI_COMPLETE insights in
-                       the Model Effort tab (overrides SNOWFLAKE_CONNECTION_NAME).
-                       Omit to skip AI insights; the tab still renders.
+  --output PATH        Parent for immutable HTML/JSON generations.
+  --results-dir PATH   Latest-run inspection root (defaults to results/).
+  --selection PATH     Explicit source/digest/pricing comparison selection.
+  --strict             Compatibility option; evidence errors always fail closed.
+  --connection TEXT    Compatibility option; unused by local rendering.
 ```
 
-The HTML report carries eight tabs (`REQUIRED_TABS` in
+The archived legacy HTML report carries eight tabs (`REQUIRED_TABS` in
 `rule_loader_eval/report_generator.py`): `overview`, `protocol`, `taxonomy`,
 `results`, `fixtures`, `performance`, `model-effort`, and `model-selection`.
 
@@ -579,16 +579,16 @@ Efficiency is reported as **accuracy-adjusted tokens**
 raw token count.
 
 ```bash
-# Full report with AI insights
-uv run ai-rules rule-loader report --connection default
+# Explicit comparison from a reviewed selection
+uv run ai-rules rule-loader report --selection .workbench/selection.json
 
 # No Snowflake round-trip
 uv run ai-rules rule-loader report
 ```
 
-When `--connection` is supplied, insights come from `claude-sonnet-4-5` via
-AI_COMPLETE. Failures are non-fatal: a connector or parse error logs a warning
-and the tab renders a degradation callout instead of insights.
+The new CLI uses a comparison-first offline viewer and an embedded versioned
+payload. The older helper/template APIs remain for archived integrations; their
+tabs and optional AI insights described above are not the new report CLI contract.
 
 ---
 

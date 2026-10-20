@@ -84,6 +84,13 @@ rule_loader_app.add_typer(keywords_app, name="keywords")
 # in their own modules, not in this hub).
 from ai_rules.commands.rule_loader.audit import audit_cmd  # noqa: E402
 from ai_rules.commands.rule_loader.audit_report import audit_report_cmd  # noqa: E402
+from ai_rules.commands.rule_loader.evidence_report import (  # noqa: E402
+    report_cmd as evidence_report_cmd,
+)
+from ai_rules.commands.rule_loader.evidence_report import (  # noqa: E402
+    select_report_cmd,
+    verify_report_cmd,
+)
 from ai_rules.commands.rule_loader.rank_snapshot import rank_snapshot_cmd  # noqa: E402
 from ai_rules.commands.rule_loader.trigger_contract import (  # noqa: E402
     validate_trigger_contract_cmd,
@@ -93,6 +100,9 @@ rule_loader_app.command("rank-snapshot")(rank_snapshot_cmd)
 rule_loader_app.command("validate-trigger-contract")(validate_trigger_contract_cmd)
 rule_loader_app.command("audit")(audit_cmd)
 rule_loader_app.command("audit-report")(audit_report_cmd)
+rule_loader_app.command("report")(evidence_report_cmd)
+rule_loader_app.command("verify-report")(verify_report_cmd)
+rule_loader_app.command("select-report")(select_report_cmd)
 
 EXIT_OK = 0
 EXIT_FIXTURE_FAIL = 1
@@ -2531,7 +2541,6 @@ def _extract_variant(fixture_path: Path) -> str:
 # ---------------------------------------------------------------------------
 
 
-@rule_loader_app.command("report")
 def report_cmd(
     output: Annotated[
         Path | None,

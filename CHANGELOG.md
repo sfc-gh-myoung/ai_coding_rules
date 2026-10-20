@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **feat(report):** add evidence-bound report selections, exact protocol `pass@1`/`pass@3`/`pass^3` metrics, immutable offline HTML/JSON generations, source-verifying artifacts, and opt-in pinned-browser acceptance tests. Latest-run reports are labeled non-ranking inspection; rendering never authenticates or calls AI (#33).
+
 ### Removed
 
 - **build!:** **Breaking:** drop the GitLab mirror. Remove `make mirror-sync`, `scripts/mirror.sh`, `.gitlab-ci.yml`, and `.gitlab/repo_meta.yaml`; GitHub is the only remote (#11).

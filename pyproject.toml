@@ -62,6 +62,9 @@ dev = [
 live-agent = [
     "cortex-code-agent-sdk>=1.0.6",
 ]
+test-browser = [
+    "playwright==1.55.0",
+]
 
 [project.scripts]
 ai-rules = "ai_rules.cli:app"
@@ -132,12 +135,13 @@ markers = [
     "slow: long-running tests involving subprocesses or network",
     "live: tests requiring live Cortex Code Agent SDK (gated by RUN_LIVE_AGENT=1)",
     "characterization: narrow tests against real on-disk artifacts (read-only)",
+    "browser: opt-in pinned-browser report acceptance tests",
 ]
 addopts = [
     "--strict-markers",
     "--strict-config",
     "-v",
-    "-m", "not live",  # live tests require RUN_LIVE_AGENT=1; never auto-run
+    "-m", "not live and not browser",  # live/browser tests are explicit opt-ins
 ]
 filterwarnings = [
     "ignore:This script is deprecated:DeprecationWarning",

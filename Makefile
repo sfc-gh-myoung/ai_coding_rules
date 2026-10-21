@@ -172,7 +172,19 @@ plugin-verify-strict: check-uv ## Check plugin fidelity and require Cortex loade
 
 .PHONY: eval
 eval: check-uv ## Run informational reviewer eval tests
-	$(UV_RUN) pytest tests/reviewer_eval/ -q --tb=short
+  $(UV_RUN) pytest tests/reviewer_eval/ -q --tb=short
+
+.PHONY: eval-report eval-report-verify test-report-browser
+eval-report: check-uv ## Render offline eval report (CLI_ARGS="--selection selection.json --output reports")
+	$(UV_RUN) ai-rules rule-loader report $(CLI_ARGS)
+
+eval-report-verify: check-uv ## Verify an evidence report (REPORT=reports/eval-report-id)
+	$(call require,REPORT,make eval-report-verify REPORT=reports/eval-report-id)
+	$(UV_RUN) ai-rules rule-loader verify-report $(call shq,$(REPORT))
+
+test-report-browser: check-uv ## Run pinned offline browser report acceptance tests
+	$(UV_RUN) --group test-browser python -m playwright install chromium
+	$(UV_RUN) --group test-browser pytest tests/report_browser/ -m browser -q --tb=short
 
 ##@ Cleanup
 

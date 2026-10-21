@@ -14,7 +14,7 @@ Targets accept these variables on the command line or from the environment:
 |---|---|---|
 | `UV` | `uv` | Path to the `uv` executable |
 | `PYTHON_VERSION` | `UV_PYTHON`, then `3.12` | Interpreter passed to `uv --python` |
-| `CLI_ARGS` | empty | Extra pytest arguments for `make test-run` |
+| `CLI_ARGS` | empty | Extra arguments for `make test-run` or `make eval-report` |
 | `VERSION` | none | Required by `release-bump` and `release-merge` |
 | `FORCE` | `0` | `1` skips the cleanup prompt |
 | `DRY_RUN` | `0` | `1` previews release commands without writes or network |
@@ -44,6 +44,17 @@ Set `PYTHON_VERSION=3.13` to run a target with Python 3.13, for example `make te
 `make validate` includes coverage, schema validation, the rule-loader fixture and reachability gates, trigger-count validation, and plugin fidelity. It validates the Cortex plugin loader when the `cortex` command exists. Run `make plugin-verify-strict` when absence of `cortex` must fail.
 
 GitHub Actions uses the same Make entry points. It also tests Python 3.12 and 3.13, and runs the automation tests on macOS and Linux.
+
+## Render local eval reports
+
+`make eval` still runs reviewer eval tests. For deterministic report generation,
+use `make eval-report CLI_ARGS="--selection .workbench/selection.json"`. Verify
+the printed generation with `make eval-report-verify REPORT=<generation>`.
+Run `make test-report-browser` explicitly for pinned offline browser acceptance;
+normal validation excludes browser and live-agent tests. See
+[Evidence-bound eval reports](EVAL_REPORTS.md) for source selection, metrics,
+inspection mode, pricing capture and print limitations. No connection is needed
+to render or open a report.
 
 ## Remove local artifacts
 

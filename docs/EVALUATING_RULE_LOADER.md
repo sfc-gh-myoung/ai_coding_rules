@@ -172,6 +172,11 @@ Prints fixture id, variant, required rules, and dependency rules.
 
 ### `doctor`: environment health check
 
+For unattended work, add `--require-pat --connection <name>` to doctor and eval.
+The guard checks named-connection metadata before SDK calls; `--with-smoke`
+verifies actual authentication. See [PAT evaluation](PAT_EVALUATION.md) for
+screen-lock, expiry, policy and network limitations. Reports remain offline.
+
 ```
 uv run ai-rules rule-loader doctor [OPTIONS]
 

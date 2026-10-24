@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **feat(eval):** add opt-in named PAT connection preflight, explicit shell connection selection, live doctor/single/all-model Make targets, and consistent environment connection forwarding to doctor smoke. Preserve attended SSO and offline reports; document locked-screen and token-policy limitations (#31).
+- **feat(setup):** add configurable dedicated evaluation user/role/PAT defaults, preview-only setup and lifecycle SQL, guarded identity checks, and complete administrator-reviewed setup/use documentation. No token issuance, credential capture, or account mutation runs automatically (#31).
+
 - **feat(report):** add evidence-bound report selections, exact protocol `pass@1`/`pass@3`/`pass^3` metrics, immutable offline HTML/JSON generations, source-verifying artifacts, and opt-in pinned-browser acceptance tests. Latest-run reports are labeled non-ranking inspection; rendering never authenticates or calls AI (#33).
 
 ### Removed

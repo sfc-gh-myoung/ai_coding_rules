@@ -172,7 +172,30 @@ plugin-verify-strict: check-uv ## Check plugin fidelity and require Cortex loade
 
 .PHONY: eval
 eval: check-uv ## Run informational reviewer eval tests
-  $(UV_RUN) pytest tests/reviewer_eval/ -q --tb=short
+	$(UV_RUN) pytest tests/reviewer_eval/ -q --tb=short
+
+.PHONY: eval-setup-preview eval-doctor eval-live eval-all-models
+eval-setup-preview: check-uv ## Preview user/PAT SQL only (CLI_ARGS="identity --network-policy POLICY --output path.sql")
+	$(UV_RUN) ai-rules rule-loader setup-preview $(CLI_ARGS)
+
+EVAL_USER ?= $(if $(AI_RULES_EVAL_USER),$(AI_RULES_EVAL_USER),AI_RULES_EVAL_USER)
+EVAL_ROLE ?= $(if $(AI_RULES_EVAL_ROLE),$(AI_RULES_EVAL_ROLE),AI_RULES_EVAL_ROLE)
+EVAL_PAT ?= $(if $(AI_RULES_EVAL_PAT),$(AI_RULES_EVAL_PAT),AI_RULES_EVAL_PAT)
+export AI_RULES_EVAL_USER := $(EVAL_USER)
+export AI_RULES_EVAL_ROLE := $(EVAL_ROLE)
+export AI_RULES_EVAL_PAT := $(EVAL_PAT)
+
+eval-doctor: check-uv ## Live preflight (CONNECTION=name; CLI_ARGS="--require-pat --with-smoke")
+	$(call require,CONNECTION,make eval-doctor CONNECTION=name)
+	$(UV_RUN) --group live-agent ai-rules rule-loader doctor --connection $(call shq,$(CONNECTION)) $(CLI_ARGS)
+
+eval-live: check-uv ## Live fixture eval (CONNECTION=name; CLI_ARGS="--require-pat --model model")
+	$(call require,CONNECTION,make eval-live CONNECTION=name)
+	$(UV_RUN) --group live-agent ai-rules rule-loader eval --connection $(call shq,$(CONNECTION)) $(CLI_ARGS)
+
+eval-all-models: check-uv ## Catalog live eval (CONNECTION=name; CLI_ARGS="--require-pat")
+	$(call require,CONNECTION,make eval-all-models CONNECTION=name)
+	$(UV_RUN) --group live-agent ai-rules rule-loader eval --all-models --connection $(call shq,$(CONNECTION)) $(CLI_ARGS)
 
 .PHONY: eval-report eval-report-verify test-report-browser
 eval-report: check-uv ## Render offline eval report (CLI_ARGS="--selection selection.json --output reports")

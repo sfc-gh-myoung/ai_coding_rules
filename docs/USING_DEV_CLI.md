@@ -47,6 +47,16 @@ GitHub Actions uses the same Make entry points. It also tests Python 3.12 and 3.
 
 ## Render local eval reports
 
+For a new live-evaluation user, render reviewed setup SQL with
+`make eval-setup-preview CLI_ARGS="identity --network-policy POLICY --output path.sql"`.
+Override defaults using `EVAL_USER`, `EVAL_ROLE`, `EVAL_PAT`, or direct CLI parameters.
+See [evaluation identity setup](../setup/README.md); preview never executes SQL.
+
+For live evaluation, use `make eval-doctor`, `make eval-live`, or
+`make eval-all-models` with `CONNECTION=<name>`. Use `CLI_ARGS="--require-pat"`
+for unattended PAT preflight; doctor also accepts `--with-smoke`. See
+[PAT-backed unattended evaluation](PAT_EVALUATION.md) for safe setup and limits.
+
 `make eval` still runs reviewer eval tests. For deterministic report generation,
 use `make eval-report CLI_ARGS="--selection .workbench/selection.json"`. Verify
 the printed generation with `make eval-report-verify REPORT=<generation>`.

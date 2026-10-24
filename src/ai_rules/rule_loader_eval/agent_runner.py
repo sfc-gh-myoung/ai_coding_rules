@@ -59,6 +59,9 @@ def _filter_coco_stderr(line: str) -> None:
     """SDK stderr callback: drop known benign auto-apply warnings, forward the rest."""
     if _COCO_AUTO_APPLY_NOISE_RE.search(line):
         return
+    from ai_rules.rule_loader_eval.connections import redact_auth_error
+
+    line = redact_auth_error(line)
     sys.stderr.write(line if line.endswith("\n") else line + "\n")
 
 
@@ -1053,7 +1056,9 @@ async def run_live_async(
         # abort attributed to infrastructure.
         raise
     except Exception as exc:
-        transport_error = f"{type(exc).__name__}: {exc}"
+        from ai_rules.rule_loader_eval.connections import redact_auth_error
+
+        transport_error = redact_auth_error(f"{type(exc).__name__}: {exc}")
         notes.append(f"transport error: {transport_error}")
         events.append(
             TurnEvent(t_ms=_now_ms(), kind="transport_error", detail=transport_error[:200])

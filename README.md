@@ -87,6 +87,11 @@ This project was inspired, in part, by:
 
 ## Prerequisites
 
+For unattended live rule-loader evaluations, see the
+[configurable evaluation user/PAT setup](setup/README.md) and
+[PAT evaluation guide](docs/PAT_EVALUATION.md). Plugin installation and offline
+HTML reporting do not require provisioning an evaluation identity.
+
 Before getting started, ensure you have:
 
 - **Python 3.12+**: [Download Python](https://www.python.org/downloads/)

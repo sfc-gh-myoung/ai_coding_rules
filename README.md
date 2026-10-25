@@ -90,7 +90,8 @@ This project was inspired, in part, by:
 For unattended live rule-loader evaluations, see the
 [configurable evaluation user/PAT setup](setup/README.md) and
 [PAT evaluation guide](docs/PAT_EVALUATION.md). Plugin installation and offline
-evaluation reporting do not provision account objects. The named setup workflow is:
+evaluation reporting do not provision account objects. `EVAL_ACCOUNT` and
+`EVAL_NETWORK_POLICY` are required (no defaults); `make eval-setup` lists any missing ones at once. The named setup workflow is:
 
 ```bash
 make eval-setup EVAL_ACCOUNT=myorg-myaccount EVAL_NETWORK_POLICY=USER_NW_POLICY

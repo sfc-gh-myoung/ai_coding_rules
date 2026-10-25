@@ -9,7 +9,7 @@ from pathlib import Path
 
 import typer
 
-from ai_rules.commands.rule_loader.setup import identifier, render_setup
+from ai_rules.commands.rule_loader.setup import check_inputs, identifier, render_setup
 
 OPERATIONS = {
     "setup",
@@ -48,8 +48,7 @@ def settings(values: dict) -> dict:
 
 def generate(operation: str, data: dict, *, confirm: bool = False) -> Path:
     """Create a new hashed bundle; never update a global latest pointer."""
-    if operation in {"create-pat", "rotate-pat"} and not data["network_policy"]:
-        raise ValueError("Token issuance/rotation requires an explicit approved network policy.")
+    check_inputs(operation, data["account"], data["network_policy"])
     operations = ["identity", "verify", "create-pat"] if operation == "setup" else [operation]
     rendered = {}
     for index, name in enumerate(operations, 1):

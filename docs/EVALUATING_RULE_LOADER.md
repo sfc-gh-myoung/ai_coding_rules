@@ -191,7 +191,8 @@ endpoint is reachable.
 
 The preferred named Make commands are `make eval-check EVAL_CONNECTION=name`,
 `make eval-smoke EVAL_CONNECTION=name`, and `make eval-run EVAL_CONNECTION=name EVAL_MODEL=model`.
-See [setup](../setup/README.md) for generation/apply commands and current credential
+See [setup](../setup/README.md) for generation/apply commands (including the required
+`EVAL_ACCOUNT` and `EVAL_NETWORK_POLICY`) and current credential
 handoff limits. Direct stream-JSON execution uses `coco-cli-stream/v1`; historical
 SDK results are a separate comparison protocol. No Agent SDK is needed by the runner.
 

@@ -122,12 +122,58 @@ def test_every_generated_file_starts_with_account_guard(tmp_path):
         assert "UPPER('MYORG-MYACCOUNT')" in text
 
 
-def test_account_must_be_org_account(tmp_path):
-    with pytest.raises(ValueError, match="ORGANIZATION-ACCOUNT"):
+def test_invalid_account_error_explains_formats_and_rejects_connection_name(tmp_path):
+    with pytest.raises(ValueError) as err:
         generate(
             "identity",
-            settings({"account": "x", "network_policy": "P", "output_dir": str(tmp_path)}),
+            settings(
+                {
+                    "account": "myoung_iuc17074_all",
+                    "network_policy": "P",
+                    "output_dir": str(tmp_path),
+                }
+            ),
         )
+    message = str(err.value)
+    assert "ORGANIZATION-ACCOUNT" in message and "MYORG-MYACCOUNT" in message
+    assert "locator" in message
+    assert "connection name is not accepted" in message
+    assert "SELECT CURRENT_ORGANIZATION_NAME() || '-' || CURRENT_ACCOUNT_NAME()" in message
+
+
+def test_all_missing_inputs_reported_in_one_error(tmp_path):
+    with pytest.raises(ValueError) as err:
+        generate("setup", settings({"account": "", "output_dir": str(tmp_path)}))
+    message = str(err.value)
+    assert "EVAL_ACCOUNT" in message and "EVAL_NETWORK_POLICY" in message
+    assert "make eval-setup" in message and "setup/eval.local.mk" in message
+
+
+def test_single_missing_input_names_only_that_input(tmp_path):
+    with pytest.raises(ValueError) as err:
+        generate("setup", settings({"output_dir": str(tmp_path)}))
+    message = str(err.value)
+    assert "EVAL_NETWORK_POLICY" in message
+    assert "Missing required input(s): EVAL_NETWORK_POLICY." in message
+
+
+def test_locator_account_guard_compares_current_account(tmp_path):
+    data = settings(
+        {"account": "xy12345.us-east-1", "network_policy": "P", "output_dir": str(tmp_path)}
+    )
+    for sql_file in generate("setup", data).glob("*.sql"):
+        text = sql_file.read_text()
+        assert "UPPER(CURRENT_ACCOUNT()) != UPPER('xy12345')" in text
+        assert "CURRENT_ORGANIZATION_NAME()" not in text
+
+
+def test_org_account_guard_compares_organization_and_account(tmp_path):
+    data = settings({"network_policy": "P", "output_dir": str(tmp_path)})
+    text = next(generate("identity", data).glob("*.sql")).read_text()
+    assert (
+        "UPPER(CURRENT_ORGANIZATION_NAME() || '-' || CURRENT_ACCOUNT_NAME()) "
+        "!= UPPER('MYORG-MYACCOUNT')" in text
+    )
 
 
 def test_check_bundle_detects_edits(tmp_path):

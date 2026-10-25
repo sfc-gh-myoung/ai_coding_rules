@@ -368,9 +368,11 @@ EVAL_ROLE ?= AI_RULES_EVAL_ROLE
 EVAL_PAT ?= AI_RULES_EVAL_PAT
 EVAL_CONNECTION ?= ai_rules_eval
 EVAL_AUTHENTICATOR ?= PROGRAMMATIC_ACCESS_TOKEN
+# Required for SQL generation (no default): ORGANIZATION-ACCOUNT or account locator; not a connection name.
 EVAL_ACCOUNT ?=
 # Account written to the connection; defaults to EVAL_ACCOUNT (set to e.g. a locator if your environment requires it).
 EVAL_CONNECTION_ACCOUNT ?= $(EVAL_ACCOUNT)
+# Required for identity and PAT bundles (no default): an approved network policy name.
 EVAL_NETWORK_POLICY ?=
 EVAL_NETWORK_RULE ?=
 EVAL_ALLOWED_NETWORKS ?=
@@ -400,7 +402,7 @@ eval: check-uv ## Run informational reviewer eval tests
 eval-network-policy: check-uv ## Generate explicit ingress policy SQL
 	$(EVAL_WORKFLOW) network-policy $(EVAL_OPTIONS)
 
-## @inputs EVAL_ACCOUNT=ORG-ACCOUNT EVAL_NETWORK_POLICY=name
+## @inputs EVAL_ACCOUNT=ORG-ACCOUNT|locator EVAL_NETWORK_POLICY=name
 eval-setup: check-uv ## Generate reviewed identity/verification/PAT bundle
 	$(EVAL_WORKFLOW) setup $(EVAL_OPTIONS)
 

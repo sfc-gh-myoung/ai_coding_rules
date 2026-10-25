@@ -29,6 +29,56 @@ def identifier(value: str, *, qualified: bool = False) -> str:
     return value.upper()
 
 
+# Operations whose bundle needs a network policy; per-file SQL only embeds it for the first three.
+POLICY_OPERATIONS = {"setup", "identity", "network-policy", "verify", "create-pat", "rotate-pat"}
+TEMPLATE_POLICY_OPERATIONS = {"identity", "network-policy", "verify"}
+ORG_ACCOUNT = re.compile(r"[A-Za-z0-9_]+-[A-Za-z0-9_]+")
+LOCATOR = re.compile(r"([A-Za-z0-9_]+)\.[A-Za-z0-9_.-]+")
+ORG_EXPR = "CURRENT_ORGANIZATION_NAME() || '-' || CURRENT_ACCOUNT_NAME()"
+ACCOUNT_HELP = (
+    "EVAL_ACCOUNT names the Snowflake account the generated SQL is allowed to change; "
+    "each file stops if you are connected to a different account. "
+    "Use ORGANIZATION-ACCOUNT (<organization name>-<account name>, e.g. MYORG-MYACCOUNT) "
+    "or an account locator with a dot (e.g. xy12345.us-east-1). "
+    "A connections.toml connection name is not accepted. "
+    "Find it with: SELECT CURRENT_ORGANIZATION_NAME() || '-' || CURRENT_ACCOUNT_NAME()"
+)
+
+
+def account_guard(account: str) -> tuple[str, str]:
+    """Return (SQL expression, expected value) for the guard, or raise with the accepted formats."""
+    if locator := LOCATOR.fullmatch(account):
+        return "CURRENT_ACCOUNT()", locator.group(1)
+    if ORG_ACCOUNT.fullmatch(account):
+        return ORG_EXPR, account
+    raise ValueError(f"Invalid EVAL_ACCOUNT '{account}'. {ACCOUNT_HELP}")
+
+
+def check_inputs(
+    operation: str,
+    account: str | None,
+    network_policy: str | None,
+    policy_operations: set[str] = POLICY_OPERATIONS,
+) -> None:
+    """Report every missing required input in one error, then validate the account format."""
+    missing = []
+    if not account:
+        missing.append(("EVAL_ACCOUNT", "ORGANIZATION-ACCOUNT or account locator"))
+    if operation in policy_operations and not network_policy:
+        missing.append(("EVAL_NETWORK_POLICY", "approved network policy name"))
+    if missing:
+        names = ", ".join(name for name, _ in missing)
+        example = " ".join(f"{name}=<{what}>" for name, what in missing)
+        raise ValueError(
+            f"Missing required input(s): {names}. "
+            f"Example: make eval-setup EVAL_ACCOUNT=MYORG-MYACCOUNT EVAL_NETWORK_POLICY=USER_NW_POLICY "
+            f"(here: {example}). Set them once in setup/eval.local.mk to avoid repeating them. "
+            f"{ACCOUNT_HELP if any(n == 'EVAL_ACCOUNT' for n, _ in missing) else ''}".rstrip()
+        )
+    if account:
+        account_guard(account)
+
+
 def render_setup(
     operation: str,
     *,
@@ -57,10 +107,9 @@ def render_setup(
         raise ValueError(
             "Destructive preview requires --confirm-destructive; execution is still a separate administrator action."
         )
+    check_inputs(operation, account, network_policy, TEMPLATE_POLICY_OPERATIONS)
     names = {"user": identifier(user), "role": identifier(role), "token": identifier(token)}
     policy = network_policy
-    if operation in {"identity", "network-policy", "verify"} and not policy:
-        raise ValueError("An explicit approved network policy (EVAL_NETWORK_POLICY) is required.")
     replacements = {
         "__USER__": names["user"],
         "__ROLE__": names["role"],
@@ -91,10 +140,9 @@ def render_setup(
         sql = (templates / "eval_identity_check.sql").read_text(encoding="utf-8") + "\n" + sql
     for placeholder, value in replacements.items():
         sql = sql.replace(placeholder, value)
-    if not re.fullmatch(r"[A-Za-z0-9_]+-[A-Za-z0-9_]+", account):
-        raise ValueError("Account must be ORGANIZATION-ACCOUNT (EVAL_ACCOUNT).")
+    expr, expected = account_guard(account)
     guard = (templates / "eval_account_guard.sql").read_text(encoding="utf-8")
-    sql = guard.replace("__ACCOUNT__", account) + "\n" + sql
+    sql = guard.replace("__ACCOUNT_EXPR__", expr).replace("__ACCOUNT__", expected) + "\n" + sql
     if re.search(r"__[A-Z_]+__", sql):
         raise ValueError("Unresolved SQL parameters")
     return sql

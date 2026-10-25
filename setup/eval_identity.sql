@@ -1,7 +1,7 @@
 -- Filename: eval_identity.sql
 -- Description: Provision only the project-managed rule-discovery identity.
 -- Prerequisites: Administrator role with CREATE USER, CREATE ROLE and grant authority;
--- an existing approved network policy.
+-- an existing approved network policy (EVAL_NETWORK_POLICY is required to render this file).
 -- Creates: Configurable service user and Cortex Agent evaluation role.
 -- Parameters: Rendered by make eval-setup / eval-identity (see setup/README.md).
 EXECUTE IMMEDIATE $$

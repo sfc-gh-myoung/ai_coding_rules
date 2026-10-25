@@ -264,18 +264,72 @@ def test_status_preflight_requires_lockfile(repo, tmp_path):
     assert "--check" not in result.stdout
 
 
-def test_default_goal_prints_categorized_help(repo, tmp_path):
-    result = make(repo, f"UV={python_runner(tmp_path)}")
+ESCAPE = "\x1b["
+
+
+def test_default_goal_prints_plain_categorized_help_without_uv(repo, tmp_path):
+    result = make(repo, f"UV={tmp_path / 'missing-uv'}", environment={"NO_COLOR": ""})
     assert result.returncode == 0, result.stderr
-    for heading in ("ENVIRONMENT", "QUALITY", "TESTING", "VALIDATION", "RELEASE"):
+    assert ESCAPE not in result.stdout
+    assert result.stdout.startswith("AI Coding Rules 1.0.0 (")
+    for heading in ("Quickstart", "Environment", "Quality", "Testing", "Validation", "Release"):
         assert f"\n{heading}\n" in result.stdout
-    documented = re.findall(r"^([a-z][a-z0-9-]*):[^=\n]*?##", (repo / "Makefile").read_text(), re.M)
-    for target in documented:
-        assert f"make {target} " in result.stdout
-    release_merge = next(
-        line for line in result.stdout.splitlines() if "make release-merge" in line
+    documented = re.findall(
+        r"^([a-z][a-z0-9-]*):[^=\n]*? ## ", (repo / "Makefile").read_text(), re.M
     )
-    assert "DRY_RUN=1" in release_merge
+    for target in documented:
+        assert f"\n  {target} " in result.stdout
+    assert "inputs: VERSION=X.Y.Z [DRY_RUN=1]" in result.stdout
+
+
+@pytest.mark.parametrize(
+    ("environment", "colored"),
+    [
+        ({}, False),
+        ({"TERM": "dumb"}, False),
+        ({"FORCE_COLOR": "1"}, True),
+        ({"CLICOLOR_FORCE": "1"}, True),
+        ({"FORCE_COLOR": "1", "NO_COLOR": "1"}, False),
+    ],
+)
+def test_help_color_rules_when_piped(repo, environment, colored):
+    result = make(repo, "help", environment={"NO_COLOR": "", **environment})
+    assert result.returncode == 0, result.stderr
+    assert (ESCAPE in result.stdout) is colored
+
+
+def test_bare_make_changes_nothing_and_works_from_another_directory(repo, tmp_path):
+    before = sorted(path.name for path in repo.iterdir())
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    for arguments in ((), ("-C", str(repo)), ("-f", str(repo / "Makefile"))):
+        result = make(elsewhere if arguments else repo, *arguments, "help")
+        assert result.returncode == 0, result.stderr
+        assert "make validate" in result.stdout
+    assert sorted(path.name for path in repo.iterdir()) == before
+    assert list(elsewhere.iterdir()) == []
+
+
+def test_error_messages_are_plain_when_piped_and_colored_when_forced(repo, tmp_path):
+    arguments = ("status-preflight", f"UV={argument_probe(tmp_path)}")
+    (repo / "uv.lock").unlink()
+    plain = make(repo, *arguments, environment={"NO_COLOR": ""})
+    forced = make(repo, *arguments, environment={"FORCE_COLOR": "1"})
+    assert ESCAPE not in plain.stderr
+    assert ESCAPE in forced.stderr
+    missing = make(repo, "release-bump", environment={"FORCE_COLOR": "1"})
+    assert "VERSION is required" in missing.stderr
+    assert ESCAPE in missing.stderr
+
+
+def test_quality_makefile_flags_undocumented_and_unphony_targets(repo):
+    assert make(repo, "quality-makefile").returncode == 0
+    with (repo / "Makefile").open("a") as handle:
+        handle.write("\nstray:\n\t@true\n")
+    result = make(repo, "quality-makefile")
+    assert result.returncode != 0
+    assert "No ## description: stray" in result.stdout
+    assert "Missing from .PHONY: stray" in result.stdout
 
 
 def test_no_target_installs_or_selects_python_311(repo):

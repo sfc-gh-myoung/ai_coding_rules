@@ -635,7 +635,7 @@ def test_run_live_async_converts_transport_exception_to_infra_flag(monkeypatch):
             "query": staticmethod(_boom),
         },
     )
-    monkeypatch.setitem(sys.modules, "cortex_code_agent_sdk", fake_sdk)
+    monkeypatch.setitem(sys.modules, "ai_rules.rule_loader_eval.cli_transport", fake_sdk)
 
     run = asyncio.run(
         ar.run_live_async(
@@ -714,7 +714,7 @@ def test_run_live_async_reraises_programming_errors(monkeypatch):
 
     monkeypatch.setitem(
         sys.modules,
-        "cortex_code_agent_sdk",
+        "ai_rules.rule_loader_eval.cli_transport",
         _fake_sdk_raising(lambda: AttributeError("'NoneType' has no attribute 'content'")),
     )
 
@@ -744,7 +744,7 @@ def test_run_live_async_exception_group_of_ordinary_errors_is_infra(monkeypatch)
 
     monkeypatch.setitem(
         sys.modules,
-        "cortex_code_agent_sdk",
+        "ai_rules.rule_loader_eval.cli_transport",
         _fake_sdk_raising(lambda: ExceptionGroup("tg", [OSError("broken pipe")])),
     )
 
@@ -793,7 +793,7 @@ def test_transport_failure_does_not_produce_scored_discovery_fail(monkeypatch, t
 
     monkeypatch.setitem(
         sys.modules,
-        "cortex_code_agent_sdk",
+        "ai_rules.rule_loader_eval.cli_transport",
         _fake_sdk_raising(lambda: ConnectionResetError("peer closed connection")),
     )
 

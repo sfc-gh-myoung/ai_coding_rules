@@ -59,6 +59,9 @@ def _filter_coco_stderr(line: str) -> None:
     """SDK stderr callback: drop known benign auto-apply warnings, forward the rest."""
     if _COCO_AUTO_APPLY_NOISE_RE.search(line):
         return
+    from ai_rules.rule_loader_eval.connections import redact_auth_error
+
+    line = redact_auth_error(line)
     sys.stderr.write(line if line.endswith("\n") else line + "\n")
 
 
@@ -94,8 +97,8 @@ _SEED_SYSTEM_PROMPT = (
     "itself declares further `required:` deps must also be read, until "
     "the required-dependency closure is fully loaded. Consider "
     "`optional:` deps based on context.\n"
-    "  4. Use the `Read`, `Grep`, and `Bash` tools for rule discovery "
-    "(Glob/find/ls only to locate rule files, never the user's task "
+    "  4. Use the `Read`, `Grep`, and `Glob` tools for rule discovery "
+    "(Glob only to locate rule files, never the user's task "
     "files) - do not answer from memory.\n\n"
     "Your FINAL assistant message MUST include a PRE-FLIGHT block with "
     "Gate 1 foundation citation and Gate 3 domain rules formatted as:\n\n"
@@ -497,7 +500,7 @@ def _classify_infra(
       4. Zero turns AND zero reads (agent never engaged)
     """
     if transport_error:
-        return True, f"SDK transport failure: {transport_error}"
+        return True, f"CoCo CLI transport failure: {transport_error}"
     if stop_reason in _INFRA_STOP_REASONS:
         return True, f"SDK reported stop_reason={stop_reason!r}"
     if not saw_result_message:
@@ -860,44 +863,17 @@ async def run_live_async(
     manifest_paths: frozenset[str] | None = None,
 ) -> AgentRun:
     """Async core of the live SDK runner. Intended for batch use."""
-    try:
-        from cortex_code_agent_sdk import (  # type: ignore[import-not-found,import-untyped]
-            AssistantMessage,
-            CortexCodeAgentOptions,
-            HookMatcher,
-            ResultMessage,
-            query,
-        )
-    except ImportError as exc:  # pragma: no cover: covered by doctor
-        raise RuntimeError(
-            "Cortex Code Agent SDK not installed. Live runs require: "
-            "`uv add --group live-agent cortex-code-agent-sdk` "
-            "(or the equivalent `uv pip install cortex-code-agent-sdk`)."
-        ) from exc
+    from ai_rules.rule_loader_eval.cli_transport import (
+        AssistantMessage,
+        CortexCodeAgentOptions,
+        ResultMessage,
+        query,
+    )
 
     root = project_root or _project_root()
     reads: set[str] = set()
     final_text_chunks: list[str] = []
     notes: list[str] = []
-
-    async def pre_tool_use(input_data, _tool_use_id, _context):
-        """Record every rule-file Read or Bash-inspection path."""
-        # PreToolUseHookInput exposes ``tool_name`` and ``tool_input`` fields.
-        tool = getattr(input_data, "tool_name", None) or ""
-        tool_input = getattr(input_data, "tool_input", None) or {}
-        if tool.lower() == "read":
-            target = tool_input.get("file_path") or tool_input.get("filePath") or ""
-            if target:
-                rel = _normalize_to_repo_rule(target, root)
-                if rel:
-                    reads.add(rel)
-                    notes.append(f"Read: {rel}")
-        elif tool.lower() == "bash":
-            cmd = tool_input.get("command") or ""
-            for rule_path in _extract_bash_rule_paths(cmd):
-                reads.add(rule_path)
-                notes.append(f"BashRead: {rule_path}")
-        return {}
 
     options = CortexCodeAgentOptions(
         cwd=str(root),
@@ -905,14 +881,15 @@ async def run_live_async(
         effort=effort,
         model=model,
         setting_sources=["project"],
-        allowed_tools=["Read", "Glob", "Grep", "Bash"],
-        system_prompt=(system_prompt or _SEED_SYSTEM_PROMPT),
-        hooks={
-            "PreToolUse": [
-                HookMatcher(matcher="Read", hooks=[pre_tool_use]),
-                HookMatcher(matcher="Bash", hooks=[pre_tool_use]),
-            ]
-        },
+        allowed_tools=["Read", "Glob", "Grep"],
+        system_prompt=(
+            system_prompt
+            or (
+                "Availability probe only. Do not use tools; reply OK."
+                if fixture_id == "__smoke__"
+                else _SEED_SYSTEM_PROMPT
+            )
+        ),
         connection=connection,
         stderr=_filter_coco_stderr,
     )
@@ -932,6 +909,8 @@ async def run_live_async(
         return int((time.perf_counter() - start) * 1000)
 
     def _short_tool_detail(name: str, ti: object) -> str:
+        from typing import Any, cast
+
         if isinstance(ti, dict):
             for key in (
                 "file_path",
@@ -942,7 +921,7 @@ async def run_live_async(
                 "skill_name",
                 "name",
             ):
-                v = ti.get(key)
+                v = cast(dict[str, Any], ti).get(key)
                 if isinstance(v, str) and v:
                     return f"{name} {key}={v[:120]}"
         return name
@@ -1053,7 +1032,9 @@ async def run_live_async(
         # abort attributed to infrastructure.
         raise
     except Exception as exc:
-        transport_error = f"{type(exc).__name__}: {exc}"
+        from ai_rules.rule_loader_eval.connections import redact_auth_error
+
+        transport_error = redact_auth_error(f"{type(exc).__name__}: {exc}")
         notes.append(f"transport error: {transport_error}")
         events.append(
             TurnEvent(t_ms=_now_ms(), kind="transport_error", detail=transport_error[:200])

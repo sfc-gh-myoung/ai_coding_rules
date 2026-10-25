@@ -98,6 +98,7 @@ class ManifestDoc(TypedDict, total=False):
     connection: str
     git: GitContext
     ai_rules_version: str
+    execution_protocol: str
     fixture_selection: list[str]
     fixture_count: int
     passes: list[PassEntry]

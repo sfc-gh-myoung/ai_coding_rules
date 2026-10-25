@@ -72,23 +72,21 @@ def test_validate_cmd_bulk_yaml_error_with_debug(tmp_path: Path) -> None:
 
 
 @pytest.mark.unit
-def test_ensure_sdk_version_mismatch_exits() -> None:
-    """_ensure_sdk_and_connection exits when installed SDK version != pin."""
+def test_cli_prerequisite_ignores_sdk_version() -> None:
+    """Direct CLI execution does not require an installed SDK."""
     from ai_rules.commands.rule_loader import _ensure_sdk_and_connection
 
     with patch("importlib.metadata.version", return_value="0.0.0-wrong"):
-        with pytest.raises(typer.Exit):
+        with patch("shutil.which", return_value="/fake/cortex"):
             _ensure_sdk_and_connection()
 
 
 @pytest.mark.unit
-def test_ensure_sdk_package_not_found_exits() -> None:
-    """_ensure_sdk_and_connection handles PackageNotFoundError (lines 665-666)."""
-    from importlib.metadata import PackageNotFoundError
-
+def test_missing_cli_exits() -> None:
+    """Direct CLI execution rejects a missing executable."""
     from ai_rules.commands.rule_loader import _ensure_sdk_and_connection
 
-    with patch("importlib.metadata.version", side_effect=PackageNotFoundError("not found")):
+    with patch("shutil.which", return_value=None):
         with pytest.raises(typer.Exit):
             _ensure_sdk_and_connection()
 

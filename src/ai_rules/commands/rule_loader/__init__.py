@@ -37,9 +37,13 @@ from ai_rules._shared.console import (
 )
 from ai_rules._shared.paths import find_project_root
 from ai_rules.cortex.models import AUTO_MODES, SUPPORTED_MODELS
-from ai_rules.rule_loader_eval import SDK_PIN
 from ai_rules.rule_loader_eval.annotations import (
     parse_preservation_annotations_from_path,
+)
+from ai_rules.rule_loader_eval.connections import (
+    ConnectionPreflightError,
+    require_pat_connection,
+    resolve_connection,
 )
 from ai_rules.rule_loader_eval.defaults import DEFAULT_EFFORT, DEFAULT_MAX_TURNS
 from ai_rules.rule_loader_eval.diagnostics import (
@@ -95,6 +99,7 @@ from ai_rules.commands.rule_loader.rank_snapshot import rank_snapshot_cmd  # noq
 from ai_rules.commands.rule_loader.trigger_contract import (  # noqa: E402
     validate_trigger_contract_cmd,
 )
+from ai_rules.commands.rule_loader.workflow import workflow_cmd  # noqa: E402
 
 rule_loader_app.command("rank-snapshot")(rank_snapshot_cmd)
 rule_loader_app.command("validate-trigger-contract")(validate_trigger_contract_cmd)
@@ -103,6 +108,7 @@ rule_loader_app.command("audit-report")(audit_report_cmd)
 rule_loader_app.command("report")(evidence_report_cmd)
 rule_loader_app.command("verify-report")(verify_report_cmd)
 rule_loader_app.command("select-report")(select_report_cmd)
+rule_loader_app.command("workflow")(workflow_cmd)
 
 EXIT_OK = 0
 EXIT_FIXTURE_FAIL = 1
@@ -135,10 +141,7 @@ def _resolve_connection(connection: str | None) -> str | None:
     Preference order: explicit ``--connection`` arg > ``SNOWFLAKE_CONNECTION_NAME`` env var.
     Returns ``None`` when neither is set.
     """
-    if connection:
-        return connection
-    env_value = os.environ.get("SNOWFLAKE_CONNECTION_NAME")
-    return env_value if env_value else None
+    return resolve_connection(connection)
 
 
 def _require_connection_or_exit(connection: str | None) -> str:
@@ -482,24 +485,12 @@ def list_fixtures_cmd(
 
 
 def _ensure_sdk_and_connection() -> None:
-    """Hard-fail when the SDK is missing or the version pin doesn't match."""
-    try:
-        from importlib.metadata import PackageNotFoundError, version
+    """Require the direct CoCo CLI, not the Agent SDK."""
+    import shutil
 
-        try:
-            installed = version("cortex-code-agent-sdk")
-        except PackageNotFoundError:
-            installed = "missing"
-        if installed != SDK_PIN:
-            log_error(
-                f"cortex-code-agent-sdk version mismatch: installed={installed} "
-                f"pin={SDK_PIN}; install via `uv sync --group live-agent` or bump "
-                f"the pin in src/ai_rules/rule_loader_eval/__init__.py via PR"
-            )
-            raise typer.Exit(EXIT_SDK_OR_CONN)
-    except ImportError as exc:  # pragma: no cover
-        log_error(f"unable to check SDK installation: {exc}")
-        raise typer.Exit(EXIT_SDK_OR_CONN) from exc
+    if not shutil.which("cortex"):
+        log_error("CoCo CLI is required for live evaluation; install cortex first.")
+        raise typer.Exit(EXIT_SDK_OR_CONN)
 
 
 def _doctor_check(
@@ -507,6 +498,7 @@ def _doctor_check(
     require_connection: bool = False,
     with_smoke: bool = False,
     connection: str | None = None,
+    require_pat: bool = False,
 ) -> None:
     """Run pre-flight checks: SDK pin, connection resolution, fixture parse, optional smoke probe.
 
@@ -517,10 +509,20 @@ def _doctor_check(
     """
     root = find_project_root()
     log_info(f"project root: {root}")
-    log_info(f"SDK pin: {SDK_PIN}")
+    log_info("Execution protocol: coco-cli-stream/v1")
 
     _ensure_sdk_and_connection()
-    log_success(f"cortex-code-agent-sdk {SDK_PIN} matches pin")
+    log_success("CoCo CLI executable found")
+    resolved_connection = _resolve_connection(connection)
+    if require_pat:
+        try:
+            require_pat_connection(resolved_connection)
+        except ConnectionPreflightError as exc:
+            log_error(str(exc))
+            raise typer.Exit(EXIT_INFRA_ERROR) from exc
+        log_success(
+            "Connection has a credential source (format only, not validated); run eval-smoke to verify it"
+        )
 
     if require_connection:
         resolved = _require_connection_or_exit(connection)
@@ -557,21 +559,26 @@ def _doctor_check(
             max_turns=2,
             effort="low",
             model="auto",
-            connection=connection,
+            connection=resolved_connection,
         )
         if getattr(smoke, "is_infra_error", False):
             log_error("=" * 78)
             log_error(f"INFRA ERROR (smoke probe): {smoke.infra_error_detail}")
-            log_error("The agent SDK could not complete a trivial request.")
+            log_error("The CoCo CLI could not complete a trivial request.")
             log_error("")
-            log_error("Likely causes:")
-            log_error("  - Model unavailable / quota exhausted")
-            log_error("  - Auth / PAT expired")
-            log_error("  - Network or proxy blocking the model endpoint")
-            log_error("")
-            log_error("Remediation:")
-            log_error("  - Check ~/.snowflake/cortex/config.toml")
-            log_error("  - Run `snow connection test --connection <name>`")
+            if "not allowed by your organization" in str(smoke.infra_error_detail):
+                log_error("CoCo's managed policy rejected this connection's authentication method")
+                log_error("for this account before any login. It is not a PAT or network problem.")
+                log_error("Ask the policy owner which methods are allowed for this account.")
+            else:
+                log_error("Likely causes:")
+                log_error("  - Model unavailable / quota exhausted")
+                log_error("  - Auth / PAT expired")
+                log_error("  - Network or proxy blocking the model endpoint")
+                log_error("")
+                log_error("Remediation:")
+                log_error("  - Check ~/.snowflake/cortex/config.toml")
+                log_error("  - Run `snow connection test --connection <name>`")
             log_error("=" * 78)
             raise typer.Exit(EXIT_INFRA_ERROR)
         log_success(f"smoke probe OK ({smoke.duration_ms}ms; turns={smoke.turns})")
@@ -579,6 +586,13 @@ def _doctor_check(
 
 @rule_loader_app.command("doctor")
 def doctor_cmd(
+    require_pat: Annotated[
+        bool,
+        typer.Option(
+            "--require-pat",
+            help="Reject interactive or unverifiable PAT connection metadata before SDK calls.",
+        ),
+    ] = False,
     with_smoke: Annotated[
         bool,
         typer.Option(
@@ -594,7 +608,12 @@ def doctor_cmd(
     ] = None,
 ) -> None:
     """Verify SDK pin, connection, and fixture parse. Optionally runs a smoke probe."""
-    _doctor_check(require_connection=False, with_smoke=with_smoke, connection=connection)
+    _doctor_check(
+        require_connection=False,
+        with_smoke=with_smoke,
+        connection=connection,
+        require_pat=require_pat,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1082,6 +1101,13 @@ def _write_aggregate_and_finalize(
 
 @rule_loader_app.command("eval")
 def eval_cmd(
+    require_pat: Annotated[
+        bool,
+        typer.Option(
+            "--require-pat",
+            help="Require a named PAT-backed connection; never fall back to interactive SSO.",
+        ),
+    ] = False,
     fixture_id: Annotated[
         str | None, typer.Option("--fixture", help="Run only this fixture id.")
     ] = None,
@@ -1217,6 +1243,12 @@ def eval_cmd(
     Expect higher variance -- use ``--runs 3`` (default) for definitive results.
     """
     if all_models:
+        if require_pat:
+            try:
+                require_pat_connection(_resolve_connection(connection))
+            except ConnectionPreflightError as exc:
+                log_error(str(exc))
+                raise typer.Exit(EXIT_INFRA_ERROR) from exc
         if model != "auto":
             log_error("--all-models cannot be combined with an explicit --model")
             raise typer.Exit(EXIT_FIXTURE_INVALID)
@@ -1224,6 +1256,7 @@ def eval_cmd(
         for catalog_model in SUPPORTED_MODELS:
             try:
                 eval_cmd(
+                    require_pat=require_pat,
                     fixture_id=fixture_id,
                     strict_forbidden=strict_forbidden,
                     max_turns=max_turns,
@@ -1261,6 +1294,12 @@ def eval_cmd(
 
     root = find_project_root()
     resolved_connection = _require_connection_or_exit(connection)
+    if require_pat:
+        try:
+            require_pat_connection(resolved_connection)
+        except ConnectionPreflightError as exc:
+            log_error(str(exc))
+            raise typer.Exit(EXIT_INFRA_ERROR) from exc
     rules = load_rules_metadata(_rules_dir(root))
     if fixture_id:
         try:

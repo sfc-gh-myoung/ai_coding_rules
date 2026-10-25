@@ -87,6 +87,24 @@ This project was inspired, in part, by:
 
 ## Prerequisites
 
+For unattended live rule-loader evaluations, see the
+[configurable evaluation user/PAT setup](setup/README.md) and
+[PAT evaluation guide](docs/PAT_EVALUATION.md). Plugin installation and offline
+evaluation reporting do not provision account objects. The named setup workflow is:
+
+```bash
+make eval-setup EVAL_ACCOUNT=myorg-myaccount EVAL_NETWORK_POLICY=USER_NW_POLICY
+make eval-setup-apply BUNDLE=setup/sql/generated-bundle ADMIN_CONNECTION=my_admin ADMIN_ROLE=ACCOUNTADMIN
+make eval-connection-add EVAL_ACCOUNT=myorg-myaccount
+make eval-smoke
+make eval-run
+```
+
+Replace the generated bundle/account/connection with reviewed values. Setup generation
+and administrator execution are separate. Generated SQL is ignored under `setup/sql/`.
+The [setup guide](setup/README.md) documents the separate-administrator path and the
+verified CLI handoff and remaining fresh-provisioning acceptance checks.
+
 Before getting started, ensure you have:
 
 - **Python 3.12+**: [Download Python](https://www.python.org/downloads/)

@@ -197,6 +197,11 @@ tmp/
 # Workbench (short-life project assets; see rules/806-workbench-folder-policy.md)
 .workbench/
 
+# Generated evaluation SQL bundles and nonsecret local settings
+/setup/sql/*
+!/setup/sql/.gitkeep
+/setup/eval.local.mk
+
 # Task automation
 .task/
 

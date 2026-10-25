@@ -448,6 +448,7 @@ def build_payload(selection: Json, *, inspection: bool = False) -> Json:
             "fixtures": sorted(fixture_inventory),
             "settings": {name: manifest.get(name) for name in SETTINGS},
             "version": manifest.get("ai_rules_version"),
+            "execution_protocol": manifest.get("execution_protocol", "legacy-sdk/v1"),
         }
         if not inspection and (
             not signature["sha"]

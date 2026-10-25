@@ -8,7 +8,6 @@ IFS=$'\n\t'
 readonly SCRIPT_NAME="${BASH_SOURCE[0]##*/}"
 
 # --- Configuration (update as needed) ---
-readonly CONNECTION="default"
 readonly RUNS=5
 readonly RETRY_INFRA=2
 readonly CONCURRENCY=3
@@ -55,6 +54,8 @@ Run ai-rules rule-loader eval across multiple models.
 
 Options:
     -h                  Show this help message
+    --connection NAME   Explicit connection (otherwise SNOWFLAKE_CONNECTION_NAME)
+    --require-pat       Reject interactive/unverifiable PAT connections
     --max-turns N       Max agent turns per fixture (default: eval default)
     --effort LEVEL      Effort level: low|medium|high (default: eval default)
     --label TEXT        Label recorded in manifest.json
@@ -76,17 +77,66 @@ main() {
   local effort=""
   local label=""
   local without_plugin=false
+  local connection="${SNOWFLAKE_CONNECTION_NAME:-}"
+  local require_pat=false
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      -h|--help) show_usage; exit 0 ;;
-      --max-turns) max_turns="$2"; shift 2 ;;
-      --effort) effort="$2"; shift 2 ;;
-      --label) label="$2"; shift 2 ;;
-      --without-plugin) without_plugin=true; shift ;;
-      *) echo "ERROR: Unknown option: $1" >&2; show_usage >&2; exit 1 ;;
+      -h | --help)
+        show_usage
+        exit 0
+        ;;
+      --connection)
+        [[ $# -ge 2 && -n "$2" && "$2" != --* ]] || {
+          echo "ERROR: --connection requires a name" >&2
+          exit 2
+        }
+        connection="$2"
+        shift 2
+        ;;
+      --require-pat)
+        require_pat=true
+        shift
+        ;;
+      --max-turns | --effort | --label)
+        [[ $# -ge 2 && -n "$2" && "$2" != --* ]] || {
+          echo "ERROR: $1 requires a value" >&2
+          exit 2
+        }
+        case "$1" in
+          --max-turns)
+            [[ "$2" =~ ^[1-9][0-9]*$ ]] || {
+              echo "ERROR: invalid max turns" >&2
+              exit 2
+            }
+            max_turns="$2"
+            ;;
+          --effort)
+            [[ "$2" == low || "$2" == medium || "$2" == high ]] || {
+              echo "ERROR: invalid effort" >&2
+              exit 2
+            }
+            effort="$2"
+            ;;
+          --label) label="$2" ;;
+        esac
+        shift 2
+        ;;
+      --without-plugin)
+        without_plugin=true
+        shift
+        ;;
+      *)
+        echo "ERROR: Unknown option: $1" >&2
+        show_usage >&2
+        exit 1
+        ;;
     esac
   done
+  [[ -n "${connection}" ]] || {
+    echo "ERROR: pass --connection or set SNOWFLAKE_CONNECTION_NAME" >&2
+    exit 2
+  }
 
   if ! command -v ai-rules &>/dev/null; then
     echo "ERROR: ai-rules command not found" >&2
@@ -99,6 +149,10 @@ main() {
   [[ -n "${effort}" ]] && extra_args+=(--effort "${effort}")
   [[ -n "${label}" ]] && extra_args+=(--label "${label}")
   [[ "${without_plugin}" == "true" ]] && extra_args+=(--without-plugin)
+  [[ "${require_pat}" == "true" ]] && extra_args+=(--require-pat)
+  if [[ "${require_pat}" == "true" ]]; then
+    ai-rules rule-loader doctor --connection "${connection}" --require-pat
+  fi
 
   echo "Starting eval run: ${#MODELS[@]} models, ${RUNS} runs each"
 
@@ -108,7 +162,7 @@ main() {
     echo "=== Running eval: ${model} ==="
     local rc=0
     ai-rules rule-loader eval \
-      --connection "${CONNECTION}" \
+      --connection "${connection}" \
       --model "${model}" \
       --runs "${RUNS}" \
       --retry-infra "${RETRY_INFRA}" \

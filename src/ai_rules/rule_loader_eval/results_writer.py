@@ -439,6 +439,7 @@ class ResultsRunWriter:
             "connection": ctx.connection,
             "git": dict(ctx.git),
             "ai_rules_version": ctx.ai_rules_version,
+            "execution_protocol": "coco-cli-stream/v1",
             "fixture_selection": list(ctx.fixture_selection),
             "fixture_count": ctx.fixture_count,
             "mode": ctx.mode,

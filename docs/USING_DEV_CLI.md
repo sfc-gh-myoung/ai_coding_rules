@@ -24,8 +24,7 @@ Targets accept these variables on the command line or from the environment:
 | Command | Result |
 |---|---|
 | `make env-setup` | Installs and pins Python 3.12, then creates `.venv` |
-| `make env-sync` | Syncs locked development dependencies without the `live-agent` group |
-| `make env-sync-live` | Syncs locked dependencies and includes the optional `live-agent` group |
+| `make env-sync` | Syncs locked development dependencies; live execution uses installed CoCo CLI |
 | `make env-lock` | Updates `uv.lock`, then syncs development dependencies |
 
 Set `PYTHON_VERSION=3.13` to run a target with Python 3.13, for example `make test-run PYTHON_VERSION=3.13`. Make passes the version through `uv --python`, so an inherited `UV_PYTHON` value does not override it.
@@ -46,6 +45,17 @@ Set `PYTHON_VERSION=3.13` to run a target with Python 3.13, for example `make te
 GitHub Actions uses the same Make entry points. It also tests Python 3.12 and 3.13, and runs the automation tests on macOS and Linux.
 
 ## Render local eval reports
+
+For a new evaluation identity, use `make eval-setup EVAL_ACCOUNT=org-account
+EVAL_NETWORK_POLICY=POLICY`. Run the reviewed SQL with `make eval-setup-apply BUNDLE=path
+ADMIN_CONNECTION=name ADMIN_ROLE=ACCOUNTADMIN` (a wrapper over `snow sql --filename`). Generation defaults to ignored
+`setup/sql/` bundles. See [evaluation identity setup](../setup/README.md), including
+the `EVAL_*` default/override table and the manual or custom process, which needs no Make targets.
+
+Use `make eval-check`, `make eval-smoke`, `make eval-run` or `make eval-all-models`
+with `EVAL_CONNECTION=name`. Make is quiet by default; use `V=1` to echo commands. Options are `EVAL_*` Make variables (command line > environment > `setup/eval.local.mk` > Makefile default), not `CLI_ARGS`.
+The runner invokes CoCo CLI directly; no Agent SDK is required. Smoke/run cost
+credits. See [PAT-backed unattended evaluation](PAT_EVALUATION.md).
 
 `make eval` still runs reviewer eval tests. For deterministic report generation,
 use `make eval-report CLI_ARGS="--selection .workbench/selection.json"`. Verify

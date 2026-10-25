@@ -215,7 +215,7 @@ pip install -e .
 
 ### Development Commands
 
-The project uses a root `Makefile` for development automation. Run `make` for the categorized command list.
+The project uses a root `Makefile` for development automation. Run `make` for the colored, categorized command list. Makefile conventions are in [AGENTS.md](AGENTS.md).
 
 **Common commands:**
 

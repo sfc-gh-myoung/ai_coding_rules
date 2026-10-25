@@ -238,7 +238,9 @@ reports/*
 
 # Consumer-side bootstrap files. This project no longer generates them, but an
 # operator working in this repo may have local copies; never commit them.
+# The root AGENTS.md is the exception: it holds this repo's Makefile conventions.
 AGENTS.md
+!/AGENTS.md
 PROJECT.md
 
 prompts/archive/

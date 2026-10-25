@@ -1,22 +1,11 @@
-"""Preview reviewed PAT identity lifecycle SQL without connecting to an account."""
+"""Render reviewed PAT identity lifecycle SQL without connecting to an account."""
 
 from __future__ import annotations
 
 import ipaddress
-import os
 import re
 from pathlib import Path
-from typing import Annotated
 
-import typer
-
-from ai_rules._shared.console import log_error, log_success
-
-DEFAULTS = {
-    "user": "AI_RULES_EVAL_USER",
-    "role": "AI_RULES_EVAL_ROLE",
-    "token": "AI_RULES_EVAL_PAT",
-}
 OPERATIONS = {
     "identity": "eval_identity.sql",
     "network-policy": "eval_network_policy.sql",
@@ -40,30 +29,13 @@ def identifier(value: str, *, qualified: bool = False) -> str:
     return value.upper()
 
 
-def identity_names(user: str | None, role: str | None, token: str | None) -> dict[str, str]:
-    """Resolve parameters before environment before defaults consistently."""
-    return {
-        name: identifier(
-            explicit
-            if explicit is not None
-            else os.environ.get(
-                "AI_RULES_EVAL_PAT" if name == "token" else f"AI_RULES_EVAL_{name.upper()}", default
-            )
-        )
-        for name, explicit, default in (
-            ("user", user, DEFAULTS["user"]),
-            ("role", role, DEFAULTS["role"]),
-            ("token", token, DEFAULTS["token"]),
-        )
-    }
-
-
 def render_setup(
     operation: str,
     *,
-    user: str | None = None,
-    role: str | None = None,
-    token: str | None = None,
+    user: str,
+    role: str,
+    token: str,
+    account: str,
     network_policy: str | None = None,
     network_rule: str | None = None,
     allowed_networks: list[str] | None = None,
@@ -85,16 +57,10 @@ def render_setup(
         raise ValueError(
             "Destructive preview requires --confirm-destructive; execution is still a separate administrator action."
         )
-    names = identity_names(user, role, token)
-    policy = (
-        network_policy
-        if network_policy is not None
-        else os.environ.get("AI_RULES_EVAL_NETWORK_POLICY")
-    )
+    names = {"user": identifier(user), "role": identifier(role), "token": identifier(token)}
+    policy = network_policy
     if operation in {"identity", "network-policy", "verify"} and not policy:
-        raise ValueError(
-            "An explicit approved --network-policy or AI_RULES_EVAL_NETWORK_POLICY is required."
-        )
+        raise ValueError("An explicit approved network policy (EVAL_NETWORK_POLICY) is required.")
     replacements = {
         "__USER__": names["user"],
         "__ROLE__": names["role"],
@@ -125,63 +91,10 @@ def render_setup(
         sql = (templates / "eval_identity_check.sql").read_text(encoding="utf-8") + "\n" + sql
     for placeholder, value in replacements.items():
         sql = sql.replace(placeholder, value)
+    if not re.fullmatch(r"[A-Za-z0-9_]+-[A-Za-z0-9_]+", account):
+        raise ValueError("Account must be ORGANIZATION-ACCOUNT (EVAL_ACCOUNT).")
+    guard = (templates / "eval_account_guard.sql").read_text(encoding="utf-8")
+    sql = guard.replace("__ACCOUNT__", account) + "\n" + sql
     if re.search(r"__[A-Z_]+__", sql):
         raise ValueError("Unresolved SQL parameters")
     return sql
-
-
-def setup_preview_cmd(
-    operation: Annotated[
-        str,
-        typer.Argument(
-            help="identity|network-policy|create-pat|rotate-pat|revoke-pat|verify|teardown"
-        ),
-    ],
-    output: Annotated[
-        Path, typer.Option("--output", help="New nonsecret SQL preview file; never overwritten.")
-    ],
-    user: Annotated[
-        str | None,
-        typer.Option("--user", help="Overrides AI_RULES_EVAL_USER; default AI_RULES_EVAL_USER."),
-    ] = None,
-    role: Annotated[
-        str | None, typer.Option("--role", help="Overrides AI_RULES_EVAL_ROLE.")
-    ] = None,
-    token: Annotated[
-        str | None,
-        typer.Option("--token", help="PAT name, never a token value; overrides AI_RULES_EVAL_PAT."),
-    ] = None,
-    network_policy: Annotated[str | None, typer.Option("--network-policy")] = None,
-    network_rule: Annotated[str | None, typer.Option("--network-rule")] = None,
-    allowed_network: Annotated[list[str] | None, typer.Option("--allowed-network")] = None,
-    days_to_expiry: Annotated[int, typer.Option("--days-to-expiry", min=1, max=365)] = 15,
-    rotation_overlap_hours: Annotated[
-        int, typer.Option("--rotation-overlap-hours", min=0, max=24)
-    ] = 24,
-    confirm_destructive: Annotated[bool, typer.Option("--confirm-destructive")] = False,
-) -> None:
-    """Render setup SQL only; never connect, issue a PAT or print its secret."""
-    try:
-        sql = render_setup(
-            operation,
-            user=user,
-            role=role,
-            token=token,
-            network_policy=network_policy,
-            network_rule=network_rule,
-            allowed_networks=allowed_network,
-            days=days_to_expiry,
-            overlap=rotation_overlap_hours,
-            confirm_destructive=confirm_destructive,
-        )
-        output.parent.mkdir(parents=True, exist_ok=True)
-        with output.open("x", encoding="utf-8") as stream:
-            stream.write(sql)
-    except (OSError, ValueError) as exc:
-        log_error(str(exc))
-        raise typer.Exit(4) from exc
-    log_success(f"SQL preview written: {output}. No account changes executed.")
-    if operation in {"create-pat", "rotate-pat"}:
-        typer.echo(
-            "Execute only in a private administrator UI: one-time token_secret output must not enter agent transcripts or logs."
-        )

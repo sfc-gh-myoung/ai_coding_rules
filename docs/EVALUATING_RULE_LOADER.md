@@ -173,7 +173,7 @@ Prints fixture id, variant, required rules, and dependency rules.
 ### `doctor`: environment health check
 
 For unattended work, add `--require-pat --connection <name>` to doctor and eval.
-The guard checks named-connection metadata before SDK calls; `--with-smoke`
+The guard checks named-connection metadata before direct CoCo CLI calls; `--with-smoke`
 verifies actual authentication. See [PAT evaluation](PAT_EVALUATION.md) for
 screen-lock, expiry, policy and network limitations. Reports remain offline.
 
@@ -185,9 +185,15 @@ Options:
   --connection TEXT    Snowflake connection name (overrides SNOWFLAKE_CONNECTION_NAME).
 ```
 
-Verifies SDK pin, Snowflake connection, and fixture parse. Run before `eval`
+Verifies the CoCo CLI executable, Snowflake connection, and fixture parse. Run before `eval`
 if you suspect infrastructure issues. Add `--with-smoke` to confirm the model
 endpoint is reachable.
+
+The preferred named Make commands are `make eval-check EVAL_CONNECTION=name`,
+`make eval-smoke EVAL_CONNECTION=name`, and `make eval-run EVAL_CONNECTION=name EVAL_MODEL=model`.
+See [setup](../setup/README.md) for generation/apply commands and current credential
+handoff limits. Direct stream-JSON execution uses `coco-cli-stream/v1`; historical
+SDK results are a separate comparison protocol. No Agent SDK is needed by the runner.
 
 ### `eval`: live behavioral evaluation
 

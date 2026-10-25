@@ -1,9 +1,9 @@
 -- Filename: eval_identity.sql
 -- Description: Provision only the project-managed rule-discovery identity.
 -- Prerequisites: Administrator role with CREATE USER, CREATE ROLE and grant authority;
--- an existing approved network policy. No SQL executes through the preview tool.
+-- an existing approved network policy.
 -- Creates: Configurable service user and Cortex Agent evaluation role.
--- Parameters: Render with ai-rules rule-loader setup-preview (see setup/README.md).
+-- Parameters: Rendered by make eval-setup / eval-identity (see setup/README.md).
 EXECUTE IMMEDIATE $$
 DECLARE
   existing_count INTEGER;

@@ -2,7 +2,7 @@
 -- Description: Explicit guarded teardown of only the project-managed user and role.
 -- Prerequisites: Stop all runs, inspect ownership/dependencies/grants, administrator authority.
 -- Creates: Nothing. Never drops shared warehouses, databases, network policies or rules.
--- Parameters: --user/--role; requires --confirm-destructive in preview.
+-- Parameters: --user/--role; generate with CONFIRM=1.
 -- Ownership markers are safeguards, not proof there are no user-added dependencies.
 EXECUTE IMMEDIATE $$
 DECLARE

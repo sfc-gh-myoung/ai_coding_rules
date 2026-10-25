@@ -12,6 +12,15 @@ class ConnectionPreflightError(ValueError):
     """The selected connection cannot satisfy an unattended PAT run."""
 
 
+def normalize_authenticator(value: str) -> str:
+    """Accept explicit PAT or standard Snowflake password-slot authentication."""
+    if value.upper() == "PROGRAMMATIC_ACCESS_TOKEN":
+        return "PROGRAMMATIC_ACCESS_TOKEN"
+    if value.lower() == "snowflake":
+        return "snowflake"
+    raise ValueError("Authenticator must be PROGRAMMATIC_ACCESS_TOKEN or snowflake.")
+
+
 def redact_auth_error(text: str) -> str:
     """Remove token-shaped strings and labeled credentials from SDK diagnostics."""
     text = re.sub(r"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b", "[REDACTED]", text)
@@ -62,7 +71,19 @@ def require_pat_connection(name: str | None, *, home: Path | None = None) -> str
         raise ConnectionPreflightError(
             "Selected connection is not PAT authentication. Choose a PAT-backed connection; interactive SSO is not allowed with --require-pat."
         )
-    credential = selected.get("password")
+    prefix = f"SNOWFLAKE_CONNECTIONS_{name.upper()}"
+    credential = os.environ.get(f"{prefix}_PASSWORD") or selected.get("password")
+    if authenticator == "programmatic_access_token":
+        credential = (
+            os.environ.get(f"{prefix}_TOKEN")
+            or os.environ.get("SNOWFLAKE_TOKEN")
+            or selected.get("token")
+            or credential
+        )
+        if not credential and (
+            selected.get("token_file_path") or os.environ.get("SNOWFLAKE_TOKEN_FILE_PATH")
+        ):
+            credential = "configured-token-provider"
     if not isinstance(credential, str) or not credential.strip():
         raise ConnectionPreflightError(
             "Selected PAT connection has no configured password credential. Use supported connection/secret management; do not pass tokens as command arguments."

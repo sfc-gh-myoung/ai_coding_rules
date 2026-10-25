@@ -26,6 +26,11 @@ shq = '$(subst ','"'"',$(1))'
 # Stop with a usage message when a variable is empty: $(call require,VAR,usage)
 require = $(if $(strip $($(1))),,$(error $(1) is required. Usage: $(2)))
 
+# Recipes do not echo commands by default; `make V=1 <target>` (or VERBOSE=1) shows them.
+ifeq ($(strip $(V)$(VERBOSE)),)
+.SILENT:
+endif
+
 UV_Q = $(call shq,$(UV))
 PY_Q = $(call shq,$(PYTHON_VERSION))
 UV_RUN = $(UV_Q) run --locked --python $(PY_Q)
@@ -48,17 +53,14 @@ check-uv:
 
 ##@ Environment
 
-.PHONY: env-setup env-sync env-sync-live env-lock
+.PHONY: env-setup env-sync env-lock
 env-setup: check-uv ## Pin Python (PYTHON_VERSION, default 3.12) and create .venv
 	$(UV_Q) python install $(PY_Q)
 	$(UV_Q) python pin $(PY_Q)
 	$(UV_Q) venv --python $(PY_Q)
 
 env-sync: check-uv ## Sync locked development dependencies
-	$(UV_Q) sync --locked --python $(PY_Q) --no-group live-agent
-
-env-sync-live: check-uv ## Opt in to locked live-agent dependencies
-	$(UV_Q) sync --locked --python $(PY_Q) --group live-agent
+	$(UV_Q) sync --locked --python $(PY_Q)
 
 env-lock: check-uv ## Update lockfile and sync development dependencies
 	$(UV_Q) lock
@@ -174,30 +176,76 @@ plugin-verify-strict: check-uv ## Check plugin fidelity and require Cortex loade
 eval: check-uv ## Run informational reviewer eval tests
 	$(UV_RUN) pytest tests/reviewer_eval/ -q --tb=short
 
-.PHONY: eval-setup-preview eval-doctor eval-live eval-all-models
-eval-setup-preview: check-uv ## Preview user/PAT SQL only (CLI_ARGS="identity --network-policy POLICY --output path.sql")
-	$(UV_RUN) ai-rules rule-loader setup-preview $(CLI_ARGS)
+# Evaluation defaults. Precedence: `make VAR=x` > environment (`VAR=x make`) > setup/eval.local.mk > these.
+EVAL_LOCAL ?= setup/eval.local.mk
+-include $(EVAL_LOCAL)
+EVAL_USER ?= AI_RULES_EVAL_USER
+EVAL_ROLE ?= AI_RULES_EVAL_ROLE
+EVAL_PAT ?= AI_RULES_EVAL_PAT
+EVAL_CONNECTION ?= ai_rules_eval
+EVAL_AUTHENTICATOR ?= PROGRAMMATIC_ACCESS_TOKEN
+EVAL_ACCOUNT ?=
+# Account written to the connection; defaults to EVAL_ACCOUNT (set to e.g. a locator if your environment requires it).
+EVAL_CONNECTION_ACCOUNT ?= $(EVAL_ACCOUNT)
+EVAL_NETWORK_POLICY ?=
+EVAL_NETWORK_RULE ?=
+EVAL_ALLOWED_NETWORKS ?=
+EVAL_OUTPUT_DIR ?= setup/sql
+EVAL_DAYS ?= 15
+EVAL_OVERLAP_HOURS ?= 24
+EVAL_MODEL ?= auto
+EVAL_FIXTURE ?= simple-python-task
+EVAL_RUNS ?= 1
+EVAL_MAX_TURNS ?= 5
+EVAL_EFFORT ?= low
+# Per-invocation inputs without defaults: BUNDLE, ADMIN_CONNECTION, ADMIN_ROLE, PHASE (all|identity), CONFIRM=1.
+PHASE ?= all
+EVAL_BUNDLE_FILES = $(sort $(wildcard $(BUNDLE)/*.sql))
+EVAL_APPLY_FILES = $(if $(filter identity,$(PHASE)),$(filter-out %-create-pat.sql,$(EVAL_BUNDLE_FILES)),$(EVAL_BUNDLE_FILES))
+eval-opt = --$(2) $(call shq,$($(1)))
+# SQL bundle generation (the only logic that needs Python).
+EVAL_OPTIONS = $(call eval-opt,EVAL_USER,user) $(call eval-opt,EVAL_ROLE,role) $(call eval-opt,EVAL_PAT,token) $(call eval-opt,EVAL_ACCOUNT,account) $(call eval-opt,EVAL_NETWORK_POLICY,network-policy) $(call eval-opt,EVAL_NETWORK_RULE,network-rule) $(call eval-opt,EVAL_ALLOWED_NETWORKS,allowed-networks) $(call eval-opt,EVAL_OUTPUT_DIR,output-dir) $(call eval-opt,EVAL_DAYS,days) $(call eval-opt,EVAL_OVERLAP_HOURS,overlap) $(if $(filter 1,$(CONFIRM)),--confirm)
+EVAL_WORKFLOW = $(UV_RUN) ai-rules rule-loader workflow
+# Existing rule-loader commands, pinned to PAT connections.
+EVAL_RUN_OPTIONS = --require-pat --connection $(call shq,$(EVAL_CONNECTION)) --model $(call shq,$(EVAL_MODEL)) --runs $(call shq,$(EVAL_RUNS)) --max-turns $(call shq,$(EVAL_MAX_TURNS)) --effort $(call shq,$(EVAL_EFFORT)) --concurrency 1
+.PHONY: eval-network-policy
+eval-network-policy: check-uv ## Generate explicit ingress policy SQL (EVAL_NETWORK_POLICY, EVAL_NETWORK_RULE, EVAL_ALLOWED_NETWORKS)
+	$(EVAL_WORKFLOW) network-policy $(EVAL_OPTIONS)
+.PHONY: eval-setup eval-identity eval-verify eval-pat-create eval-pat-rotate eval-pat-revoke eval-teardown eval-setup-apply eval-connection-add eval-check eval-smoke eval-run eval-all-models
+eval-setup: check-uv ## Generate reviewed identity/verification/PAT bundle (EVAL_NETWORK_POLICY=name)
+	$(EVAL_WORKFLOW) setup $(EVAL_OPTIONS)
+eval-identity: check-uv ## Generate identity SQL only
+	$(EVAL_WORKFLOW) identity $(EVAL_OPTIONS)
+eval-verify: check-uv ## Generate read-only verification SQL
+	$(EVAL_WORKFLOW) verify $(EVAL_OPTIONS)
+eval-pat-create: check-uv ## Generate initial PAT issuance SQL
+	$(EVAL_WORKFLOW) create-pat $(EVAL_OPTIONS)
+eval-pat-rotate: check-uv ## Generate rotation SQL (EVAL_OVERLAP_HOURS)
+	$(EVAL_WORKFLOW) rotate-pat $(EVAL_OPTIONS)
+eval-pat-revoke: check-uv ## Generate revocation SQL (CONFIRM=1)
+	$(EVAL_WORKFLOW) revoke-pat $(EVAL_OPTIONS)
+eval-teardown: check-uv ## Generate identity teardown SQL (CONFIRM=1)
+	$(EVAL_WORKFLOW) teardown $(EVAL_OPTIONS)
+eval-setup-apply: check-uv ## Run a reviewed bundle with snow sql (BUNDLE, ADMIN_CONNECTION, ADMIN_ROLE; PHASE=identity skips PAT issuance)
+	$(call require,BUNDLE,make eval-setup-apply BUNDLE=path ADMIN_CONNECTION=name ADMIN_ROLE=role)
+	$(call require,ADMIN_CONNECTION,make eval-setup-apply BUNDLE=path ADMIN_CONNECTION=name ADMIN_ROLE=role)
+	$(call require,ADMIN_ROLE,make eval-setup-apply BUNDLE=path ADMIN_CONNECTION=name ADMIN_ROLE=role)
+	$(EVAL_WORKFLOW) check-bundle --bundle $(call shq,$(BUNDLE))
+	[ "$(CONFIRM)" = 1 ] || { printf 'Run %s as %s/%s? [y/N] ' $(call shq,$(BUNDLE)) $(call shq,$(ADMIN_CONNECTION)) $(call shq,$(ADMIN_ROLE)); read answer; [ "$$answer" = y ] || { echo 'Aborted.'; exit 1; }; }
+	snow sql --connection $(call shq,$(ADMIN_CONNECTION)) --role $(call shq,$(ADMIN_ROLE)) $(foreach f,$(EVAL_APPLY_FILES),--filename $(call shq,$(f)))
+eval-connection-add: ## Register a credential-free connection via snow (EVAL_CONNECTION_ACCOUNT, defaults to EVAL_ACCOUNT)
+	$(call require,EVAL_CONNECTION_ACCOUNT,make eval-connection-add EVAL_ACCOUNT=org-account)
+	snow connection add --no-interactive --connection-name $(call shq,$(EVAL_CONNECTION)) --account $(call shq,$(EVAL_CONNECTION_ACCOUNT)) --user $(call shq,$(EVAL_USER)) --role $(call shq,$(EVAL_ROLE)) --authenticator $(call shq,$(EVAL_AUTHENTICATOR))
+	@echo "Registered without a credential. Supply the PAT via SNOWFLAKE_CONNECTIONS_$(shell echo $(EVAL_CONNECTION) | tr a-z- A-Z_)_PASSWORD or your approved provider."
+eval-check: check-uv ## Check CLI and credential source without a model call
+	$(UV_RUN) ai-rules rule-loader doctor --require-pat --connection $(call shq,$(EVAL_CONNECTION))
+eval-smoke: check-uv ## Run direct CLI smoke (costs AI credits)
+	$(UV_RUN) ai-rules rule-loader doctor --require-pat --with-smoke --connection $(call shq,$(EVAL_CONNECTION))
+eval-run: check-uv ## Run one fixture through CoCo CLI (EVAL_MODEL, EVAL_FIXTURE, EVAL_RUNS)
+	$(UV_RUN) ai-rules rule-loader eval $(EVAL_RUN_OPTIONS) --fixture $(call shq,$(EVAL_FIXTURE))
+eval-all-models: check-uv ## Evaluate all fixtures on all catalog models (costs AI credits)
+	$(UV_RUN) ai-rules rule-loader eval $(EVAL_RUN_OPTIONS) --all-models
 
-EVAL_USER ?= $(if $(AI_RULES_EVAL_USER),$(AI_RULES_EVAL_USER),AI_RULES_EVAL_USER)
-EVAL_ROLE ?= $(if $(AI_RULES_EVAL_ROLE),$(AI_RULES_EVAL_ROLE),AI_RULES_EVAL_ROLE)
-EVAL_PAT ?= $(if $(AI_RULES_EVAL_PAT),$(AI_RULES_EVAL_PAT),AI_RULES_EVAL_PAT)
-export AI_RULES_EVAL_USER := $(EVAL_USER)
-export AI_RULES_EVAL_ROLE := $(EVAL_ROLE)
-export AI_RULES_EVAL_PAT := $(EVAL_PAT)
-
-eval-doctor: check-uv ## Live preflight (CONNECTION=name; CLI_ARGS="--require-pat --with-smoke")
-	$(call require,CONNECTION,make eval-doctor CONNECTION=name)
-	$(UV_RUN) --group live-agent ai-rules rule-loader doctor --connection $(call shq,$(CONNECTION)) $(CLI_ARGS)
-
-eval-live: check-uv ## Live fixture eval (CONNECTION=name; CLI_ARGS="--require-pat --model model")
-	$(call require,CONNECTION,make eval-live CONNECTION=name)
-	$(UV_RUN) --group live-agent ai-rules rule-loader eval --connection $(call shq,$(CONNECTION)) $(CLI_ARGS)
-
-eval-all-models: check-uv ## Catalog live eval (CONNECTION=name; CLI_ARGS="--require-pat")
-	$(call require,CONNECTION,make eval-all-models CONNECTION=name)
-	$(UV_RUN) --group live-agent ai-rules rule-loader eval --all-models --connection $(call shq,$(CONNECTION)) $(CLI_ARGS)
-
-.PHONY: eval-report eval-report-verify test-report-browser
 eval-report: check-uv ## Render offline eval report (CLI_ARGS="--selection selection.json --output reports")
 	$(UV_RUN) ai-rules rule-loader report $(CLI_ARGS)
 

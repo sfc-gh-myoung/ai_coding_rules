@@ -1,21 +1,20 @@
 """Provisioning preview renders nonsecret SQL and never opens an account session."""
 
 import pytest
-from typer.testing import CliRunner
 
-from ai_rules.cli import app
-from ai_rules.commands.rule_loader.setup import identity_names, render_setup
+from ai_rules.commands.rule_loader.setup import identifier
+from ai_rules.commands.rule_loader.setup import render_setup as _render
+
+NAMES = {
+    "user": "AI_RULES_EVAL_USER",
+    "role": "AI_RULES_EVAL_ROLE",
+    "token": "AI_RULES_EVAL_PAT",
+    "account": "MYORG-MYACCOUNT",
+}
 
 
-def test_defaults_and_override_precedence(monkeypatch):
-    for key in ("USER", "ROLE", "PAT"):
-        monkeypatch.delenv("AI_RULES_EVAL_" + key, raising=False)
-    assert identity_names(None, None, None)["user"] == "AI_RULES_EVAL_USER"
-    monkeypatch.setenv("AI_RULES_EVAL_USER", "environment_user")
-    monkeypatch.setenv("AI_RULES_EVAL_PAT", "environment_pat")
-    assert identity_names(None, None, None)["user"] == "ENVIRONMENT_USER"
-    assert identity_names("explicit_user", None, None)["user"] == "EXPLICIT_USER"
-    assert identity_names(None, None, None)["token"] == "ENVIRONMENT_PAT"
+def render_setup(operation, **kwargs):
+    return _render(operation, **{**NAMES, **kwargs})
 
 
 @pytest.mark.parametrize(
@@ -23,7 +22,7 @@ def test_defaults_and_override_precedence(monkeypatch):
 )
 def test_identifier_injection_rejected(name):
     with pytest.raises(ValueError):
-        identity_names(name, None, None)
+        identifier(name)
 
 
 @pytest.mark.parametrize(
@@ -77,7 +76,7 @@ def test_identity_guard_metadata_contract_and_bindings():
 
 
 def test_policy_requires_approved_networks():
-    with pytest.raises(ValueError, match="explicit approved"):
+    with pytest.raises(ValueError, match="network policy"):
         render_setup("identity")
     with pytest.raises(ValueError, match="requires"):
         render_setup("network-policy", network_policy="policy")
@@ -108,37 +107,5 @@ def test_destructive_preview_requires_explicit_opt_in():
         render_setup("rotate-pat", overlap=25)
 
 
-def test_cli_preview_no_connection_and_no_overwrite(tmp_path, monkeypatch):
-    import snowflake.connector
-
-    def forbidden(*args, **kwargs):
-        raise AssertionError("Preview must not connect")
-
-    monkeypatch.setattr(snowflake.connector, "connect", forbidden)
-    output = tmp_path / "setup.sql"
-    args = [
-        "rule-loader",
-        "setup-preview",
-        "identity",
-        "--network-policy",
-        "approved",
-        "--user",
-        "custom",
-        "--output",
-        str(output),
-    ]
-    result = CliRunner().invoke(app, args)
-    assert result.exit_code == 0, result.output
-    assert "No account changes executed" in result.output
-    assert "CREATE USER IF NOT EXISTS CUSTOM" in output.read_text()
-    assert CliRunner().invoke(app, args).exit_code == 4
-
-
-def test_token_preview_has_no_credential_result(tmp_path):
-    output = tmp_path / "create.sql"
-    result = CliRunner().invoke(
-        app, ["rule-loader", "setup-preview", "create-pat", "--output", str(output)]
-    )
-    assert result.exit_code == 0, result.output
-    assert "private administrator UI" in result.output
-    assert "RETURN v_secret" not in output.read_text()
+def test_token_sql_has_no_credential_result():
+    assert "RETURN v_secret" not in render_setup("create-pat")

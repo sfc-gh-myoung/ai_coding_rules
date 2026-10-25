@@ -9,8 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **feat(setup):** Makefile owns evaluation defaults via `?=` (`EVAL_*` variables), overridable by environment or command line; optional ignored `setup/eval.local.mk` replaces the TOML config. `eval-check` now states that the credential format is not validated (#31).
+- **feat(setup):** Make no longer echoes recipe commands by default; `V=1` or `VERBOSE=1` shows them (#31).
+- **feat(setup):** `EVAL_AUTHENTICATOR` defaults to `PROGRAMMATIC_ACCESS_TOKEN`; `snowflake` is an explicit opt-in. `make eval-connection-add` runs `snow connection add` using `EVAL_CONNECTION_ACCOUNT` (default `EVAL_ACCOUNT`); `eval-check/smoke/run/all-models` call the existing `rule-loader doctor` and `eval` commands directly. `rule-loader workflow` only generates and integrity-checks SQL bundles and has no defaults of its own (#31).
 - **feat(eval):** add opt-in named PAT connection preflight, explicit shell connection selection, live doctor/single/all-model Make targets, and consistent environment connection forwarding to doctor smoke. Preserve attended SSO and offline reports; document locked-screen and token-policy limitations (#31).
-- **feat(setup):** add configurable dedicated evaluation user/role/PAT defaults, preview-only setup and lifecycle SQL, guarded identity checks, and complete administrator-reviewed setup/use documentation. No token issuance, credential capture, or account mutation runs automatically (#31).
+- **feat(setup):** add named Make commands, configurable evaluation identities and hashed SQL bundles under ignored `setup/sql/`. Every generated file starts with an `ORGANIZATION-ACCOUNT` guard (`EVAL_ACCOUNT`), and `make eval-setup-apply` runs the files with `snow sql --filename`. Identity-ownership and rotation/teardown policy checks are left to administrators and documented for manual or custom processes (#31).
+- **feat(eval):** replace Agent SDK execution with direct CoCo CLI stream events, deny mutation tools including Bash, preserve scoring/read evidence, and separate the new execution protocol from historical SDK comparison cohorts (#31).
 
 - **feat(report):** add evidence-bound report selections, exact protocol `pass@1`/`pass@3`/`pass^3` metrics, immutable offline HTML/JSON generations, source-verifying artifacts, and opt-in pinned-browser acceptance tests. Latest-run reports are labeled non-ranking inspection; rendering never authenticates or calls AI (#33).
 

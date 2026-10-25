@@ -56,12 +56,6 @@ dev = [
     "pymarkdownlnt>=0.9.0",
     "jsonschema>=4.26.0",  # validate matcher output against its published schema
 ]
-# Optional group: live-agent path for the Rule Loading Evaluator.
-# CI does not install this group; only `ai-rules rule-loader doctor`,
-# `eval`, and `refresh` need the SDK at runtime.
-live-agent = [
-    "cortex-code-agent-sdk>=1.0.6",
-]
 test-browser = [
     "playwright==1.55.0",
 ]

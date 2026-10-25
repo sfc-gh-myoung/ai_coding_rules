@@ -4,7 +4,7 @@
 -- MODIFY PROGRAMMATIC AUTHENTICATION METHODS on this user when issuing for another user.
 -- Creates: Role-restricted PAT with configured lifetime (account policy may reject it).
 -- Parameters: Same --user/--role/--token as identity setup; --days-to-expiry.
--- SECURITY: Run only in a private administrator UI with logging/export disabled.
+-- SECURITY: Run only in a private terminal or administrator UI with logging/export disabled.
 -- The result contains a one-time token_secret. Do not run through captured agent tools.
 ALTER USER __USER__ ADD PROGRAMMATIC ACCESS TOKEN __TOKEN__
   ROLE_RESTRICTION = '__ROLE__' DAYS_TO_EXPIRY = __DAYS__

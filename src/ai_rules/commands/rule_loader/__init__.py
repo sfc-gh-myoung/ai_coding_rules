@@ -37,7 +37,6 @@ from ai_rules._shared.console import (
 )
 from ai_rules._shared.paths import find_project_root
 from ai_rules.cortex.models import AUTO_MODES, SUPPORTED_MODELS
-from ai_rules.rule_loader_eval import SDK_PIN
 from ai_rules.rule_loader_eval.annotations import (
     parse_preservation_annotations_from_path,
 )
@@ -97,10 +96,10 @@ from ai_rules.commands.rule_loader.evidence_report import (  # noqa: E402
     verify_report_cmd,
 )
 from ai_rules.commands.rule_loader.rank_snapshot import rank_snapshot_cmd  # noqa: E402
-from ai_rules.commands.rule_loader.setup import setup_preview_cmd  # noqa: E402
 from ai_rules.commands.rule_loader.trigger_contract import (  # noqa: E402
     validate_trigger_contract_cmd,
 )
+from ai_rules.commands.rule_loader.workflow import workflow_cmd  # noqa: E402
 
 rule_loader_app.command("rank-snapshot")(rank_snapshot_cmd)
 rule_loader_app.command("validate-trigger-contract")(validate_trigger_contract_cmd)
@@ -109,7 +108,7 @@ rule_loader_app.command("audit-report")(audit_report_cmd)
 rule_loader_app.command("report")(evidence_report_cmd)
 rule_loader_app.command("verify-report")(verify_report_cmd)
 rule_loader_app.command("select-report")(select_report_cmd)
-rule_loader_app.command("setup-preview")(setup_preview_cmd)
+rule_loader_app.command("workflow")(workflow_cmd)
 
 EXIT_OK = 0
 EXIT_FIXTURE_FAIL = 1
@@ -486,24 +485,12 @@ def list_fixtures_cmd(
 
 
 def _ensure_sdk_and_connection() -> None:
-    """Hard-fail when the SDK is missing or the version pin doesn't match."""
-    try:
-        from importlib.metadata import PackageNotFoundError, version
+    """Require the direct CoCo CLI, not the Agent SDK."""
+    import shutil
 
-        try:
-            installed = version("cortex-code-agent-sdk")
-        except PackageNotFoundError:
-            installed = "missing"
-        if installed != SDK_PIN:
-            log_error(
-                f"cortex-code-agent-sdk version mismatch: installed={installed} "
-                f"pin={SDK_PIN}; install via `uv sync --group live-agent` or bump "
-                f"the pin in src/ai_rules/rule_loader_eval/__init__.py via PR"
-            )
-            raise typer.Exit(EXIT_SDK_OR_CONN)
-    except ImportError as exc:  # pragma: no cover
-        log_error(f"unable to check SDK installation: {exc}")
-        raise typer.Exit(EXIT_SDK_OR_CONN) from exc
+    if not shutil.which("cortex"):
+        log_error("CoCo CLI is required for live evaluation; install cortex first.")
+        raise typer.Exit(EXIT_SDK_OR_CONN)
 
 
 def _doctor_check(
@@ -522,10 +509,10 @@ def _doctor_check(
     """
     root = find_project_root()
     log_info(f"project root: {root}")
-    log_info(f"SDK pin: {SDK_PIN}")
+    log_info("Execution protocol: coco-cli-stream/v1")
 
     _ensure_sdk_and_connection()
-    log_success(f"cortex-code-agent-sdk {SDK_PIN} matches pin")
+    log_success("CoCo CLI executable found")
     resolved_connection = _resolve_connection(connection)
     if require_pat:
         try:
@@ -534,7 +521,7 @@ def _doctor_check(
             log_error(str(exc))
             raise typer.Exit(EXIT_INFRA_ERROR) from exc
         log_success(
-            "Selected connection has noninteractive PAT candidate metadata; live validity requires --with-smoke"
+            "Connection has a credential source (format only, not validated); run eval-smoke to verify it"
         )
 
     if require_connection:
@@ -577,16 +564,21 @@ def _doctor_check(
         if getattr(smoke, "is_infra_error", False):
             log_error("=" * 78)
             log_error(f"INFRA ERROR (smoke probe): {smoke.infra_error_detail}")
-            log_error("The agent SDK could not complete a trivial request.")
+            log_error("The CoCo CLI could not complete a trivial request.")
             log_error("")
-            log_error("Likely causes:")
-            log_error("  - Model unavailable / quota exhausted")
-            log_error("  - Auth / PAT expired")
-            log_error("  - Network or proxy blocking the model endpoint")
-            log_error("")
-            log_error("Remediation:")
-            log_error("  - Check ~/.snowflake/cortex/config.toml")
-            log_error("  - Run `snow connection test --connection <name>`")
+            if "not allowed by your organization" in str(smoke.infra_error_detail):
+                log_error("CoCo's managed policy rejected this connection's authentication method")
+                log_error("for this account before any login. It is not a PAT or network problem.")
+                log_error("Ask the policy owner which methods are allowed for this account.")
+            else:
+                log_error("Likely causes:")
+                log_error("  - Model unavailable / quota exhausted")
+                log_error("  - Auth / PAT expired")
+                log_error("  - Network or proxy blocking the model endpoint")
+                log_error("")
+                log_error("Remediation:")
+                log_error("  - Check ~/.snowflake/cortex/config.toml")
+                log_error("  - Run `snow connection test --connection <name>`")
             log_error("=" * 78)
             raise typer.Exit(EXIT_INFRA_ERROR)
         log_success(f"smoke probe OK ({smoke.duration_ms}ms; turns={smoke.turns})")

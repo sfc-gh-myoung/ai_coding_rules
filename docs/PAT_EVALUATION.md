@@ -13,6 +13,8 @@ For a new project identity, follow the complete
 all lifecycle SQL templates, Make helpers and a manual or custom process. Defaults are
 `AI_RULES_EVAL_USER`, `AI_RULES_EVAL_ROLE`, `AI_RULES_EVAL_PAT`, and local connection
 `ai_rules_eval`; override them with `EVAL_USER` and the other `EVAL_*` Make variables.
+`EVAL_ACCOUNT` and `EVAL_NETWORK_POLICY` have no defaults and are required to generate
+setup SQL; see the variable table in the setup guide for accepted account formats.
 
 Configure an authorized named connection using your supported Snowflake client
 and secret-management workflow. Keep credentials outside this repository; do not

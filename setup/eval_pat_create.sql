@@ -1,6 +1,6 @@
 -- Filename: eval_pat_create.sql
 -- Description: Explicit initial issuance; never replaces an existing named PAT.
--- Prerequisites: Verified project-managed service user/role and approved network policy;
+-- Prerequisites: Verified project-managed service user/role and approved network policy (EVAL_NETWORK_POLICY is required to render this file);
 -- MODIFY PROGRAMMATIC AUTHENTICATION METHODS on this user when issuing for another user.
 -- Creates: Role-restricted PAT with configured lifetime (account policy may reject it).
 -- Parameters: Same --user/--role/--token as identity setup; --days-to-expiry.

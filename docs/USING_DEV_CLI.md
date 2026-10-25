@@ -51,7 +51,7 @@ GitHub Actions uses the same Make entry points. It also tests Python 3.12 and 3.
 ## Render local eval reports
 
 For a new evaluation identity, use `make eval-setup EVAL_ACCOUNT=org-account
-EVAL_NETWORK_POLICY=POLICY`. Run the reviewed SQL with `make eval-setup-apply BUNDLE=path
+EVAL_NETWORK_POLICY=POLICY` (both are required; `EVAL_ACCOUNT` is `ORGANIZATION-ACCOUNT` or an account locator, never a connection name). Run the reviewed SQL with `make eval-setup-apply BUNDLE=path
 ADMIN_CONNECTION=name ADMIN_ROLE=ACCOUNTADMIN` (a wrapper over `snow sql --filename`). Generation defaults to ignored
 `setup/sql/` bundles. See [evaluation identity setup](../setup/README.md), including
 the `EVAL_*` default/override table and the manual or custom process, which needs no Make targets.

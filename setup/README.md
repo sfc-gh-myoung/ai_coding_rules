@@ -27,6 +27,10 @@ make eval-smoke
 make eval-run
 ```
 
+`EVAL_ACCOUNT` and `EVAL_NETWORK_POLICY` are both required. If either is missing,
+`make eval-setup` reports every missing input in one error with an example command; set
+them once in `setup/eval.local.mk` (see [Defaults and overrides](#defaults-and-overrides)).
+
 Step 2 asks for confirmation (`CONFIRM=1` skips it). It runs each bundle file in order
 with `snow sql --filename` and stops at the first failing statement. DDL is not
 transactional; inspect partial setup before retrying.
@@ -65,9 +69,9 @@ The `Makefile` defines every default with `?=`. Precedence, highest first:
 | `EVAL_PAT` | `AI_RULES_EVAL_PAT` (PAT object name) |
 | `EVAL_CONNECTION` | `ai_rules_eval` |
 | `EVAL_AUTHENTICATOR` | `PROGRAMMATIC_ACCESS_TOKEN` (or `snowflake`) |
-| `EVAL_ACCOUNT` | none; `ORGANIZATION-ACCOUNT` form, required to generate SQL and register a connection |
+| `EVAL_ACCOUNT` | none; required to generate SQL and register a connection. The account the generated SQL may change (each file stops on a different account). Use `ORGANIZATION-ACCOUNT` (`<organization name>-<account name>`, for example `MYORG-MYACCOUNT`) or an account locator with a dot (`xy12345.us-east-1`; the guard compares `CURRENT_ACCOUNT()` with the part before the first dot). A `connections.toml` connection name is not accepted. Look it up with `SELECT CURRENT_ORGANIZATION_NAME() \|\| '-' \|\| CURRENT_ACCOUNT_NAME()` |
 | `EVAL_CONNECTION_ACCOUNT` | `EVAL_ACCOUNT`; the account string `eval-connection-add` writes to the connection. Set it when your environment uses another form, such as a locator (`iuc17074.us-east-1`), while the generated SQL guard keeps `EVAL_ACCOUNT` |
-| `EVAL_NETWORK_POLICY` | none; required to generate identity and PAT bundles |
+| `EVAL_NETWORK_POLICY` | none; required to generate identity and PAT bundles. There is no default policy: an administrator must approve one |
 | `EVAL_NETWORK_RULE`, `EVAL_ALLOWED_NETWORKS` | none; only for `eval-network-policy` |
 | `EVAL_OUTPUT_DIR` | `setup/sql` (contents are Git-ignored) |
 | `EVAL_DAYS`, `EVAL_OVERLAP_HOURS` | `15`, `24` |
@@ -96,7 +100,7 @@ switches authenticators after a policy rejection.
 | `eval-run`, `eval-all-models` | `ai-rules rule-loader eval --require-pat` |
 
 Generated files each start with an account guard that stops the run before any change
-if the connected `ORGANIZATION-ACCOUNT` differs from `EVAL_ACCOUNT`. `check-bundle`
+if the connected account (`ORGANIZATION-ACCOUNT`, or account locator) differs from `EVAL_ACCOUNT`. `check-bundle`
 refuses a bundle whose SQL was edited after generation; if you want to edit the SQL,
 run the files with `snow sql` or Snowsight directly instead.
 

@@ -7,6 +7,7 @@ import json
 import os
 import shutil
 import subprocess
+import tomllib
 from enum import StrEnum
 from pathlib import Path
 from typing import Any, cast
@@ -45,6 +46,13 @@ plugin_app = typer.Typer(
 # Repo root: 3 levels up from this file (src/ai_rules/commands/plugin.py)
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _PLUGIN_DIR = _REPO_ROOT / "ai-coding-rules-plugin"
+
+
+def _project_version() -> str:
+    """Return the project version, whose only source is ``pyproject.toml``."""
+    data = tomllib.loads((_REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    return str(data["project"]["version"])
+
 
 # Single source of truth for the plugin's artifact contract.
 #
@@ -193,6 +201,13 @@ def _check_one_manifest(plugin_dir: Path, rel: str, required_keys: tuple[str, ..
             problems.append(f"{rel} missing required key: {key}")
         elif not manifest[key]:
             problems.append(f"{rel} key is empty: {key}")
+
+    expected_version = _project_version()
+    if manifest.get("version") and manifest["version"] != expected_version:
+        problems.append(
+            f"{rel} version {manifest['version']!r} does not match "
+            f"pyproject.toml version {expected_version!r}"
+        )
 
     skills = manifest.get("skills")
     if skills is not None and not isinstance(skills, list):
@@ -509,12 +524,13 @@ def build(
     # key and ignored hooks/hooks.json, while the CLI read hooks/hooks.json. A fix
     # applied to one file therefore appeared to work on one host and silently did
     # nothing on the other.
+    version = _project_version()
     cortex_manifest = plugin_dir / ".cortex-plugin" / "plugin.json"
     cortex_manifest.parent.mkdir(parents=True, exist_ok=True)
     cortex_manifest.write_text(
         "{\n"
         '  "name": "ai-coding-rules",\n'
-        '  "version": "1.0.0",\n'
+        f'  "version": "{version}",\n'
         '  "description": "Deterministic rule loading for AI coding assistants",\n'
         '  "author": { "name": "Michael Young" },\n'
         '  "skills": ["./skills"]\n'
@@ -529,7 +545,7 @@ def build(
     claude_manifest.write_text(
         "{\n"
         '  "name": "ai-coding-rules",\n'
-        '  "version": "1.0.0",\n'
+        f'  "version": "{version}",\n'
         '  "description": "Deterministic rule loading for AI coding assistants",\n'
         '  "author": { "name": "Michael Young" }\n'
         "}\n",

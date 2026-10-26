@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -276,6 +277,28 @@ def test_manifest_empty_required_key_is_flagged(tmp_path: Path) -> None:
     _rewrite_manifest(out, lambda d: d.update(name=""))
 
     assert any("empty" in p and "name" in p for p in check_manifest(out))
+
+
+def test_built_manifests_carry_project_version(built_plugin: Path) -> None:
+    """Both generated manifests report the pyproject.toml version."""
+    expected = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text())["project"]["version"]
+    for rel in (".cortex-plugin/plugin.json", ".claude-plugin/plugin.json"):
+        data = json.loads((built_plugin / rel).read_text())
+        assert data["version"] == expected, rel
+
+
+@pytest.mark.parametrize("rel", [".cortex-plugin/plugin.json", ".claude-plugin/plugin.json"])
+def test_manifest_version_mismatch_is_flagged(tmp_path: Path, rel: str) -> None:
+    """A manifest whose version differs from pyproject.toml fails verification."""
+    out = tmp_path / "p"
+    assert runner.invoke(plugin_app, ["build", "--plugin-dir", str(out)]).exit_code == 0
+    manifest = out / rel
+    data = json.loads(manifest.read_text())
+    data["version"] = "0.0.1"
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+
+    assert any("does not match pyproject.toml" in p for p in check_manifest(out))
+    assert runner.invoke(plugin_app, ["verify", "--plugin-dir", str(out)]).exit_code == 1
 
 
 def test_manifest_unknown_hook_event_is_flagged(tmp_path: Path) -> None:

@@ -231,6 +231,17 @@ uv run ai-rules plugin build             # Build the distributable plugin
 
 For the complete Make target catalog and the distinction between local validation and hosted CI, see [docs/USING_DEV_CLI.md](docs/USING_DEV_CLI.md).
 
+### Resetting your environment
+
+```bash
+make clean-cache              # Remove project caches and coverage output, excluding virtual environments
+make clean-venv               # Remove .venv; prompts on a terminal
+make clean-venv FORCE=1       # Remove .venv without the prompt
+make clean-all                # Confirm once, then remove caches and .venv
+```
+
+`clean-cache` keeps `.venv`. After removing `.venv`, run `make env-sync` to reinstall dependencies.
+
 ### Code Quality and Linting
 
 ```bash

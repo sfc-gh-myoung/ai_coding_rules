@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -374,7 +375,7 @@ class TestHookAbsolutePaths:
 class TestHookFailOpen:
     """Negative tests for hook fail-open behavior."""
 
-    def test_missing_matcher_exits_zero_without_output(self, tmp_path: Path):
+    def test_missing_matcher_exits_zero_with_diagnostic(self, tmp_path: Path):
         plugin_dir = tmp_path / "missing_matcher"
         _build_plugin_at(plugin_dir)
         (plugin_dir / "skills" / "rule-loader" / "scripts" / "match_rules.py").unlink()
@@ -382,9 +383,10 @@ class TestHookFailOpen:
         result = _run_hook_with_plugin_dir(plugin_dir, "Write a Snowflake stored procedure")
 
         assert result.returncode == 0
-        assert result.stdout == ""
+        assert "rule matcher not found" in result.stderr
+        assert "rule matcher not found" in result.stdout
 
-    def test_malformed_matcher_output_exits_zero_without_output(self, tmp_path: Path):
+    def test_malformed_matcher_output_exits_zero_with_diagnostic(self, tmp_path: Path):
         plugin_dir = tmp_path / "malformed_matcher"
         _build_plugin_at(plugin_dir)
         matcher = plugin_dir / "skills" / "rule-loader" / "scripts" / "match_rules.py"
@@ -393,9 +395,10 @@ class TestHookFailOpen:
         result = _run_hook_with_plugin_dir(plugin_dir, "Write a Snowflake stored procedure")
 
         assert result.returncode == 0
-        assert result.stdout == ""
+        assert "could not be parsed" in result.stderr
+        assert "could not be parsed" in result.stdout
 
-    def test_broken_canonicalizer_exits_zero_without_output(self, tmp_path: Path):
+    def test_broken_canonicalizer_exits_zero_with_diagnostic(self, tmp_path: Path):
         plugin_dir = tmp_path / "broken_canonicalizer"
         _build_plugin_at(plugin_dir)
         hook = plugin_dir / "hooks" / "user-prompt-submit"
@@ -408,19 +411,137 @@ class TestHookFailOpen:
         result = _run_hook_with_plugin_dir(plugin_dir, "Write a Snowflake stored procedure")
 
         assert result.returncode == 0
-        assert result.stdout == ""
+        assert "could not resolve matched rule paths" in result.stderr
+        assert "could not resolve matched rule paths" in result.stdout
 
-    def test_empty_canonicalized_output_exits_zero_without_output(self, tmp_path: Path):
+    def test_empty_canonicalized_output_exits_zero_with_diagnostic(self, tmp_path: Path):
         plugin_dir = tmp_path / "empty_canonicalizer"
         _build_plugin_at(plugin_dir)
         hook = plugin_dir / "hooks" / "user-prompt-submit"
         hook_text = hook.read_text(encoding="utf-8")
+        head, sep, tail = hook_text.partition("def markdown_escape")
         hook.write_text(
-            hook_text.replace("print('\\n'.join(out))", "print('')", 1),
+            head + sep + tail.replace("print('\\n'.join(out))", "print('')", 1),
             encoding="utf-8",
         )
 
         result = _run_hook_with_plugin_dir(plugin_dir, "Write a Snowflake stored procedure")
 
         assert result.returncode == 0
-        assert result.stdout == ""
+        assert "could not resolve matched rule paths" in result.stderr
+        assert "could not resolve matched rule paths" in result.stdout
+
+
+PROMPT = "Write a Snowflake stored procedure"
+
+
+@pytest.mark.integration
+class TestHookDiagnostics:
+    """Broken or partial installs must say why nothing was injected (issue #42)."""
+
+    def test_missing_rules_dir_reports_it(self, tmp_path: Path):
+        plugin_dir = tmp_path / "no_rules"
+        _build_plugin_at(plugin_dir)
+        shutil.rmtree(plugin_dir / "rules")
+
+        result = _run_hook_with_plugin_dir(plugin_dir, PROMPT)
+
+        assert result.returncode == 0
+        assert "rules directory not found" in result.stderr
+        assert "rules directory not found" in result.stdout
+
+    def test_missing_python_reports_it(self, tmp_path: Path):
+        plugin_dir = tmp_path / "no_python"
+        _build_plugin_at(plugin_dir)
+        bin_dir = tmp_path / "bin"
+        bin_dir.mkdir()
+        for tool in ("dirname", "cat", "readlink", "jq"):
+            found = shutil.which(tool)
+            if found:
+                (bin_dir / tool).symlink_to(found)
+        env = {"PATH": str(bin_dir), "CLAUDE_PLUGIN_ROOT": str(plugin_dir)}
+
+        result = subprocess.run(
+            [shutil.which("bash") or "bash", str(plugin_dir / "hooks" / "user-prompt-submit")],
+            input=json.dumps({"prompt": PROMPT}),
+            capture_output=True,
+            text=True,
+            timeout=30,
+            env=env,
+        )
+
+        assert result.returncode == 0
+        assert "python3 and python are not on PATH" in result.stderr
+        assert "python3 and python are not on PATH" in result.stdout
+
+    def test_unsubstituted_plugin_root_falls_back_with_warning(self, tmp_path: Path):
+        plugin_dir = tmp_path / "literal_root"
+        _build_plugin_at(plugin_dir)
+        env = os.environ.copy()
+        env["CLAUDE_PLUGIN_ROOT"] = "${CLAUDE_PLUGIN_ROOT}"
+
+        result = subprocess.run(
+            ["bash", str(plugin_dir / "hooks" / "user-prompt-submit")],
+            input=json.dumps({"prompt": PROMPT}),
+            capture_output=True,
+            text=True,
+            timeout=30,
+            env=env,
+        )
+
+        assert result.returncode == 0
+        assert "CLAUDE_PLUGIN_ROOT is not a directory" in result.stderr
+        assert "Hook warnings:" in result.stdout
+        assert _extract_injected_rule_paths(result.stdout)
+
+    def test_symlinked_hook_resolves_real_install_root(self, tmp_path: Path):
+        plugin_dir = tmp_path / "real_install"
+        _build_plugin_at(plugin_dir)
+        link_dir = tmp_path / "elsewhere"
+        link_dir.mkdir()
+        link = link_dir / "user-prompt-submit"
+        link.symlink_to(plugin_dir / "hooks" / "user-prompt-submit")
+        env = os.environ.copy()
+        env.pop("CLAUDE_PLUGIN_ROOT", None)
+
+        result = subprocess.run(
+            ["bash", str(link)],
+            input=json.dumps({"prompt": PROMPT}),
+            capture_output=True,
+            text=True,
+            timeout=30,
+            env=env,
+        )
+
+        assert result.returncode == 0
+        assert result.stderr == ""
+        emitted = _extract_injected_rule_paths(result.stdout)
+        assert emitted
+        for path in emitted:
+            _assert_rendered_rule_path(path, plugin_dir)
+
+    def test_missing_micro_kernel_warns_but_still_injects(self, tmp_path: Path):
+        plugin_dir = tmp_path / "no_kernel"
+        _build_plugin_at(plugin_dir)
+        (plugin_dir / "micro_kernel_content.md").unlink()
+
+        result = _run_hook_with_plugin_dir(plugin_dir, PROMPT)
+
+        assert result.returncode == 0
+        assert "micro_kernel_content.md not found" in result.stderr
+        assert "Hook warnings:" in result.stdout
+        assert _extract_injected_rule_paths(result.stdout)
+
+    def test_healthy_install_emits_no_diagnostics(self, tmp_path: Path):
+        plugin_dir = tmp_path / "healthy"
+        _build_plugin_at(plugin_dir)
+
+        result = _run_hook_with_plugin_dir(plugin_dir, PROMPT)
+
+        assert result.returncode == 0
+        assert result.stderr == ""
+        assert "Hook warnings" not in result.stdout
+        assert result.stdout.startswith("<system-reminder>\n## AI Coding Rules — Rule Discovery")
+        assert result.stdout.endswith(
+            "Read only the candidates you select with the Read tool.\n</system-reminder>\n"
+        )

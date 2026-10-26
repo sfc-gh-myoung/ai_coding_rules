@@ -12,8 +12,52 @@ if [ -z "$USER_PROMPT" ]; then
     USER_PROMPT="$INPUT_JSON"
 fi
 
+# Diagnostics: every problem is printed to stderr and collected so it can also be
+# shown in the injected context (some clients hide hook stderr). The hook always
+# exits 0, so a broken install never blocks the user's prompt.
+WARNINGS=()
+warn() {
+    WARNINGS+=("$1")
+    echo "ai-rules hook: $1" >&2
+}
+
+# Emit only the warnings (nothing could be injected) and exit 0.
+bail() {
+    warn "$1"
+    emit_warnings_only
+    exit 0
+}
+
+emit_warnings_only() {
+    echo "<system-reminder>"
+    echo "## AI Coding Rules — Hook Warning"
+    echo ""
+    echo "Rule discovery could not inject rules for this request:"
+    echo ""
+    for w in "${WARNINGS[@]}"; do
+        echo "- $w"
+    done
+    echo "</system-reminder>"
+}
+
+# Resolve this script through symlinks (BSD/bash 3.2 safe: no readlink -f).
+SCRIPT="$0"
+while [ -L "$SCRIPT" ]; do
+    LINK_DIR=$(cd "$(dirname "$SCRIPT")" && pwd -P)
+    SCRIPT=$(readlink "$SCRIPT")
+    case "$SCRIPT" in
+        /*) ;;
+        *) SCRIPT="${LINK_DIR}/${SCRIPT}" ;;
+    esac
+done
+SCRIPT_ROOT="$(cd "$(dirname "$SCRIPT")/.." && pwd -P)"
+
 # Resolve plugin root and paths using BSD-safe physical directory resolution.
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd -P)}"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$SCRIPT_ROOT}"
+if [ ! -d "$PLUGIN_ROOT" ]; then
+    warn "CLAUDE_PLUGIN_ROOT is not a directory (${PLUGIN_ROOT}); using ${SCRIPT_ROOT}"
+    PLUGIN_ROOT="$SCRIPT_ROOT"
+fi
 RULES_DIR="${PLUGIN_ROOT}/rules"
 MATCH_SCRIPT="${PLUGIN_ROOT}/skills/rule-loader/scripts/match_rules.py"
 
@@ -25,12 +69,15 @@ elif command -v python3 &>/dev/null; then
 elif command -v python &>/dev/null; then
     PYTHON="python"
 else
-    exit 0
+    bail "python3 and python are not on PATH; install Python 3 to enable rule discovery"
 fi
 
-# Verify the standalone script exists
+# Verify the standalone script and rules directory exist
 if [ ! -f "$MATCH_SCRIPT" ]; then
-    exit 0
+    bail "rule matcher not found at ${MATCH_SCRIPT}; the install is incomplete"
+fi
+if [ ! -d "$RULES_DIR" ]; then
+    bail "rules directory not found at ${RULES_DIR}; the install is incomplete"
 fi
 
 # Run the deterministic matcher
@@ -39,13 +86,17 @@ MANIFEST=$("$PYTHON" "$MATCH_SCRIPT" \
     --rules-dir "$RULES_DIR" \
     --max-entries 8 \
     --max-tokens 100000 \
-    2>/dev/null) || MANIFEST=""
+    2>/dev/null) || MATCH_RC=$?
 
+if [ "${MATCH_RC:-0}" -ne 0 ]; then
+    bail "rule matcher failed (exit ${MATCH_RC}); run ${MATCH_SCRIPT} manually to see the error"
+fi
 if [ -z "$MANIFEST" ]; then
-    exit 0
+    bail "rule matcher produced no output"
 fi
 
-# Extract rule paths from manifest load_sequence (deduplicated)
+# Extract rule paths from manifest load_sequence (deduplicated). An empty list
+# is a normal "nothing matched"; unparseable matcher output is a failure.
 RULE_PATHS=$(printf '%s\n' "$MANIFEST" | "$PYTHON" -c "
 import json, sys
 data = json.load(sys.stdin)
@@ -58,7 +109,7 @@ for r in data.get('load_sequence', []):
     seen.add(p)
     out.append(p)
 print('\n'.join(out))
-" 2>/dev/null || echo "")
+" 2>/dev/null) || bail "rule matcher output could not be parsed"
 
 if [ -z "$RULE_PATHS" ]; then
     exit 0
@@ -83,16 +134,19 @@ for line in sys.stdin:
     if rel:
         out.append(markdown_escape(os.path.realpath(os.path.join(root, rel))))
 print('\n'.join(out))
-" "${PLUGIN_ROOT}" 2>/dev/null || echo "")
+" "${PLUGIN_ROOT}" 2>/dev/null) || bail "could not resolve matched rule paths"
 
 if [ -z "$ABSOLUTE_PATHS" ]; then
-    exit 0
+    bail "could not resolve matched rule paths"
 fi
 
 # Inject micro-kernel + matched rules as system-reminder
 MICRO_KERNEL_FILE="${PLUGIN_ROOT}/micro_kernel_content.md"
 if [ ! -f "$MICRO_KERNEL_FILE" ]; then
     MICRO_KERNEL_FILE="${PLUGIN_ROOT}/src/ai_rules/plugin/micro_kernel_content.md"
+fi
+if [ ! -f "$MICRO_KERNEL_FILE" ]; then
+    warn "foundation kernel micro_kernel_content.md not found; injecting matched rules without it"
 fi
 
 echo "<system-reminder>"
@@ -114,5 +168,12 @@ printf '%s\n' "$ABSOLUTE_PATHS" | while IFS= read -r abs; do
 done
 echo ""
 echo "Read only the candidates you select with the Read tool."
+if [ "${#WARNINGS[@]}" -gt 0 ]; then
+    echo ""
+    echo "Hook warnings:"
+    for w in "${WARNINGS[@]}"; do
+        echo "- $w"
+    done
+fi
 echo "</system-reminder>"
 exit 0

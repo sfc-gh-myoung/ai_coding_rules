@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **chore(agents):** opt in to the git-workflow agent loop with `.github/git-workflow-agents.yml` (issue triager and implementer only; the readiness role stays off). Agents write only through `gw_agent.py apply`, and merging stays human-only.
+
 ### Changed
 
 - **fix(plugin):** `ai-rules plugin build` now writes the `pyproject.toml` version into both generated `plugin.json` manifests instead of a hardcoded `1.0.0`, and `plugin verify` (and the build-time contract check) fails when either manifest version differs from the project version (#43). The `CHANGELOG.md` head is not checked.

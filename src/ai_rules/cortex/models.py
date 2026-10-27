@@ -61,10 +61,13 @@ class CortexModel:
 CONSUMPTION_TABLE_EFFECTIVE_DATE = "2026-10-09"
 
 #: Canonical CoCo benchmark catalog: exactly the concrete models in the CoCo
-#: model picker (2026-10-08), priced from Table 6(e) where a row exists. Models
+#: model picker (2026-10-08) plus the five added for #46, priced from Table 6(e) where a row exists. Models
 #: with no Table 6(e) row as of 2026-10-09 carry ``None`` rates. Auto routing
 #: modes are not models and are excluded (see ``AUTO_MODES``).
 COCO_BENCHMARK_MODELS: tuple[CortexModel, ...] = (
+    CortexModel("claude-fable-5", "Anthropic", "GA", 5.50, 27.50, 6.88, 0.55),
+    CortexModel("claude-fable-5.1", "Anthropic", "GA", 5.50, 27.50, 6.875, 0.138),
+    CortexModel("claude-haiku-5-5", "Anthropic", "GA", 0.055, 0.275, 0.069, 0.006),
     CortexModel("claude-opus-4-5", "Anthropic", "GA", 2.75, 13.75, 3.44, 0.28),
     CortexModel("claude-opus-4-6", "Anthropic", "GA", 2.75, 13.75, 3.44, 0.28),
     CortexModel("claude-opus-4-7", "Anthropic", "GA", 2.75, 13.75, 3.44, 0.28),
@@ -79,9 +82,10 @@ COCO_BENCHMARK_MODELS: tuple[CortexModel, ...] = (
     CortexModel("gemini-3.1-pro", "Google", "Preview", None, None, None, None),
     CortexModel("gemini-3.7-flash", "Google", "Preview", 0.413, 2.063, None, 0.041),
     CortexModel("gemini-3.8-flash", "Google", "Preview", 0.413, 2.063, None, 0.041),
-    CortexModel("glm-5.2", "Z.ai", "Preview", None, None, None, None),
+    CortexModel("gemini-4-argon", "Google", "GA", 1.10, 5.50, None, 0.055),
     CortexModel("glm-5.3", "Z.ai", "Preview", 0.77, 2.42, None, 0.143),
     CortexModel("grok-4.6", "xAI", "Preview", 1.10, 3.30, None, 0.275),
+    CortexModel("grok-4.7", "xAI", "GA", 1.10, 3.30, None, 0.275),
     CortexModel("kimi-k3", "Moonshot AI", "Preview", 1.65, 8.25, 2.063, 0.165),
     CortexModel("openai-gpt-5.2", "OpenAI", "GA", 0.97, 7.70, None, 0.10),
     CortexModel("openai-gpt-5.4", "OpenAI", "Preview", 1.38, 8.25, None, 0.14),

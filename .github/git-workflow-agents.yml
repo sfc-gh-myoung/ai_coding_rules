@@ -1,0 +1,18 @@
+# Opt-in for the git-workflow agent loop (plugins/git-workflow in Snowflake-Solutions/myoung-skills-and-plugins).
+# The readiness-checker role stays off: it is not listed in enabled_roles.
+version: 1
+enabled_roles: [issue-triager, issue-implementer]
+base: main
+branch_prefix: agent/
+caps:
+  max_parallel: 2
+  max_writes_per_tick: 20
+  max_babysit_iterations: 5
+  max_diff_lines: 400
+  max_files: 15
+  max_merges_per_tick: 1
+  max_ready_per_tick: 3
+stale_days: 14
+claim_lease_minutes: 120
+validation:
+  command: make validate

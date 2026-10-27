@@ -44,8 +44,6 @@ readonly MODELS=(
   gemini-3.7-flash
   gemini-3.8-flash
   claude-haiku-5-5
-  claude-fable-5
-  claude-fable-5.1
   grok-4.7
   gemini-4-argon
 )

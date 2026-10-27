@@ -313,14 +313,15 @@ model in the CoCo model picker as of 2026-10-08:
 `gemini-3.1-pro`, `openai-gpt-6-luna`, `kimi-k3`, `deepseek-v4-flash`,
 `glm-5.3`, `openai-gpt-5.6-terra`, `openai-gpt-5.6-luna`, `openai-gpt-6.1-sol`,
 `grok-4.6`, `gemini-3.7-flash`, `gemini-3.8-flash`, `claude-haiku-5-5`,
-`claude-fable-5`, `claude-fable-5.1`, `grok-4.7`, `gemini-4-argon`.
+`grok-4.7`, `gemini-4-argon`.
 
 Each entry carries its Table 6(e) AI-credit rates from the Snowflake Service
-Consumption Table effective 2026-10-09. The last five models in the list were added
+Consumption Table effective 2026-10-09. The last three models in the list were added
 later to match the benchmark project's tracked set; their rates come from that
 project's `analysis/pricing.yaml` and still need confirming against the current
 table. `gemini-3.1-pro` has no Table 6(e) row, so its rates are `None` and no cost
-can be estimated for it from the catalog. `glm-5.2` is deferred, as in the benchmark
+can be estimated for it from the catalog. `claude-fable-5` and `claude-fable-5.1` are deferred (#46): they were not available
+from the account that probed them, so re-add them once access is confirmed. `glm-5.2` is deferred, as in the benchmark
 project: it is not in the catalog or in `--all-models`. The catalog stays a curated
 list. The `auto` routing modes are excluded because they pick a model
 at run time and have no rates of their own. Pass one with `--model` instead.

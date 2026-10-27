@@ -1,7 +1,7 @@
 # Opt-in for the git-workflow agent loop (plugins/git-workflow in Snowflake-Solutions/myoung-skills-and-plugins).
-# The readiness-checker role stays off: it is not listed in enabled_roles.
+# The readiness-checker role is on: it promotes human:ready issues to agent:ready only with a gw:brief that passes the readiness rubric.
 version: 1
-enabled_roles: [issue-triager, issue-implementer]
+enabled_roles: [issue-triager, readiness-checker, issue-implementer]
 base: main
 branch_prefix: agent/
 caps:

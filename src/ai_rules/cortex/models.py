@@ -61,12 +61,10 @@ class CortexModel:
 CONSUMPTION_TABLE_EFFECTIVE_DATE = "2026-10-09"
 
 #: Canonical CoCo benchmark catalog: exactly the concrete models in the CoCo
-#: model picker (2026-10-08) plus the five added for #46, priced from Table 6(e) where a row exists. Models
+#: model picker (2026-10-08) plus the three added for #46 (the two Fable models are deferred), priced from Table 6(e) where a row exists. Models
 #: with no Table 6(e) row as of 2026-10-09 carry ``None`` rates. Auto routing
 #: modes are not models and are excluded (see ``AUTO_MODES``).
 COCO_BENCHMARK_MODELS: tuple[CortexModel, ...] = (
-    CortexModel("claude-fable-5", "Anthropic", "GA", 5.50, 27.50, 6.88, 0.55),
-    CortexModel("claude-fable-5.1", "Anthropic", "GA", 5.50, 27.50, 6.875, 0.138),
     CortexModel("claude-haiku-5-5", "Anthropic", "GA", 0.055, 0.275, 0.069, 0.006),
     CortexModel("claude-opus-4-5", "Anthropic", "GA", 2.75, 13.75, 3.44, 0.28),
     CortexModel("claude-opus-4-6", "Anthropic", "GA", 2.75, 13.75, 3.44, 0.28),

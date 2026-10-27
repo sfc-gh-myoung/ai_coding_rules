@@ -2,6 +2,7 @@
 
 import pytest
 
+from ai_rules.cortex.models import SUPPORTED_MODELS
 from ai_rules.rule_loader_eval.connections import (
     ConnectionPreflightError,
     redact_auth_error,
@@ -107,7 +108,7 @@ def test_shell_connection_argument_precedence(tmp_path, monkeypatch):
     )
     assert result.returncode == 0
     lines = log.read_text().splitlines()
-    assert len(lines) == 29
+    assert len(lines) == len(SUPPORTED_MODELS) + 1  # one eval per model, then the report
     assert all("--connection explicit" in line and "--require-pat" in line for line in lines)
     assert "environment" not in log.read_text()
 

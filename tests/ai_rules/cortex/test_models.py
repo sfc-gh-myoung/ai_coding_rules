@@ -51,7 +51,11 @@ TRACKED_MODELS = {
     "openai-gpt-6-luna",
     "kimi-k3",
     "deepseek-v4-flash",
-    "glm-5.2",
+    "claude-haiku-5-5",
+    "claude-fable-5",
+    "claude-fable-5.1",
+    "grok-4.7",
+    "gemini-4-argon",
     "glm-5.3",
     "openai-gpt-5.6-terra",
     "openai-gpt-5.6-luna",
@@ -78,7 +82,11 @@ EXPECTED_RATES = {
     "gemini-3.1-pro": (None, None, None, None),
     "gemini-3.7-flash": (0.413, 2.063, None, 0.041),
     "gemini-3.8-flash": (0.413, 2.063, None, 0.041),
-    "glm-5.2": (None, None, None, None),
+    "claude-haiku-5-5": (0.055, 0.275, 0.069, 0.006),
+    "claude-fable-5": (5.50, 27.50, 6.88, 0.55),
+    "claude-fable-5.1": (5.50, 27.50, 6.875, 0.138),
+    "grok-4.7": (1.10, 3.30, None, 0.275),
+    "gemini-4-argon": (1.10, 5.50, None, 0.055),
     "glm-5.3": (0.77, 2.42, None, 0.143),
     "grok-4.6": (1.10, 3.30, None, 0.275),
     "kimi-k3": (1.65, 8.25, 2.063, 0.165),
@@ -170,7 +178,7 @@ class TestSupportedModels:
         opus = get_benchmark_model("claude-opus-5-5")
         assert opus is not None
         assert (opus.input_credits_per_million, opus.output_credits_per_million) == (2.20, 11.00)
-        for model_id in ("gemini-3.1-pro", "glm-5.2"):
+        for model_id in ("gemini-3.1-pro",):
             model = get_benchmark_model(model_id)
             assert model is not None
             assert model.input_credits_per_million is None
@@ -207,6 +215,11 @@ class TestSupportedModels:
         documented = _documented_models()
         assert len(documented) == len(set(documented))
         assert set(documented) == set(SUPPORTED_MODELS)
+
+    @pytest.mark.unit
+    def test_glm_5_2_is_deferred(self):
+        """glm-5.2 is deferred (benchmark project parity): not run by --all-models."""
+        assert "glm-5.2" not in SUPPORTED_MODELS
 
     @pytest.mark.unit
     def test_no_duplicate_entries(self):

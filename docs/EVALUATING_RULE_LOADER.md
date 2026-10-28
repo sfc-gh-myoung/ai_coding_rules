@@ -316,10 +316,9 @@ model in the CoCo model picker as of 2026-10-08:
 `grok-4.7`, `gemini-4-argon`.
 
 Each entry carries its Table 6(e) AI-credit rates from the Snowflake Service
-Consumption Table effective 2026-10-09. The last three models in the list were added
-later to match the benchmark project's tracked set; their rates come from that
-project's `analysis/pricing.yaml` and still need confirming against the current
-table. `gemini-3.1-pro` has no Table 6(e) row, so its rates are `None` and no cost
+Consumption Table effective 2026-10-15 (CreditConsumptionTable.pdf), including the
+three models added for #46. `gemini-4-argon` is promotional pricing that Snowflake
+states will rise 100% on 2026-12-01. `gemini-3.1-pro` has no Table 6(e) row, so its rates are `None` and no cost
 can be estimated for it from the catalog. `claude-fable-5` and `claude-fable-5.1` are deferred (#46): they were not available
 from the account that probed them, so re-add them once access is confirmed. `glm-5.2` is deferred, as in the benchmark
 project: it is not in the catalog or in `--all-models`. The catalog stays a curated

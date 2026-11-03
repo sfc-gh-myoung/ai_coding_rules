@@ -64,13 +64,13 @@ TRACKED_MODELS = {
 
 #: Table 6(e) rates (input, output, cache write, cache read) per catalog model.
 #: Rows for models whose Table 6(e) rows did not change between the 2026-09-25
-#: and 2026-10-09 revisions must stay exactly as they were.
+#: and 2026-10-15 revisions must stay exactly as they were.
 EXPECTED_RATES = {
     "claude-opus-4-5": (2.75, 13.75, 3.44, 0.28),
     "claude-opus-4-6": (2.75, 13.75, 3.44, 0.28),
     "claude-opus-4-7": (2.75, 13.75, 3.44, 0.28),
     "claude-opus-4-8": (2.75, 13.75, 3.44, 0.28),
-    "claude-opus-5": (2.75, 13.75, 3.44, 0.28),
+    "claude-opus-5": (2.75, 13.75, 3.438, 0.275),
     "claude-opus-5-5": (2.20, 11.00, 2.75, 0.11),
     "claude-sonnet-4-5": (1.65, 8.25, 2.07, 0.17),
     "claude-sonnet-4-6": (1.65, 8.25, 2.07, 0.17),
@@ -83,7 +83,7 @@ EXPECTED_RATES = {
     "claude-haiku-5-5": (0.055, 0.275, 0.069, 0.006),
     "grok-4.7": (1.10, 3.30, None, 0.275),
     "gemini-4-argon": (1.10, 5.50, None, 0.055),
-    "glm-5.3": (0.77, 2.42, None, 0.143),
+    "glm-5.3": (0.924, 2.904, 1.155, 0.172),
     "grok-4.6": (1.10, 3.30, None, 0.275),
     "kimi-k3": (1.65, 8.25, 2.063, 0.165),
     "openai-gpt-5.2": (0.97, 7.70, None, 0.10),
@@ -157,7 +157,7 @@ class TestSupportedModels:
     @pytest.mark.unit
     def test_table_6e_rates_are_available_for_each_model(self):
         """Every benchmark model carries the canonical input and output rates."""
-        assert CONSUMPTION_TABLE_EFFECTIVE_DATE == "2026-10-09"
+        assert CONSUMPTION_TABLE_EFFECTIVE_DATE == "2026-10-15"
         assert len(COCO_BENCHMARK_MODELS) == len(SUPPORTED_MODELS)
         sonnet = get_benchmark_model("claude-sonnet-5")
         terra = get_benchmark_model("openai-gpt-5.6-terra")

@@ -58,7 +58,7 @@ class CortexModel:
 
 #: Effective date of the attached Snowflake Service Consumption Table 6(e).
 #: Rates are AI Credits per one million tokens, not vendor API dollar prices.
-CONSUMPTION_TABLE_EFFECTIVE_DATE = "2026-10-09"
+CONSUMPTION_TABLE_EFFECTIVE_DATE = "2026-10-15"
 
 #: Canonical CoCo benchmark catalog: exactly the concrete models in the CoCo
 #: model picker (2026-10-08) plus the three added for #46 (the two Fable models are deferred), priced from Table 6(e) where a row exists. Models
@@ -70,7 +70,7 @@ COCO_BENCHMARK_MODELS: tuple[CortexModel, ...] = (
     CortexModel("claude-opus-4-6", "Anthropic", "GA", 2.75, 13.75, 3.44, 0.28),
     CortexModel("claude-opus-4-7", "Anthropic", "GA", 2.75, 13.75, 3.44, 0.28),
     CortexModel("claude-opus-4-8", "Anthropic", "GA", 2.75, 13.75, 3.44, 0.28),
-    CortexModel("claude-opus-5", "Anthropic", "GA", 2.75, 13.75, 3.44, 0.28),
+    CortexModel("claude-opus-5", "Anthropic", "GA", 2.75, 13.75, 3.438, 0.275),
     CortexModel("claude-opus-5-5", "Anthropic", "Preview", 2.20, 11.00, 2.75, 0.11),
     CortexModel("claude-sonnet-4-5", "Anthropic", "GA", 1.65, 8.25, 2.07, 0.17),
     CortexModel("claude-sonnet-4-6", "Anthropic", "GA", 1.65, 8.25, 2.07, 0.17),
@@ -81,7 +81,7 @@ COCO_BENCHMARK_MODELS: tuple[CortexModel, ...] = (
     CortexModel("gemini-3.7-flash", "Google", "Preview", 0.413, 2.063, None, 0.041),
     CortexModel("gemini-3.8-flash", "Google", "Preview", 0.413, 2.063, None, 0.041),
     CortexModel("gemini-4-argon", "Google", "GA", 1.10, 5.50, None, 0.055),
-    CortexModel("glm-5.3", "Z.ai", "Preview", 0.77, 2.42, None, 0.143),
+    CortexModel("glm-5.3", "Z.ai", "Preview", 0.924, 2.904, 1.155, 0.172),
     CortexModel("grok-4.6", "xAI", "Preview", 1.10, 3.30, None, 0.275),
     CortexModel("grok-4.7", "xAI", "GA", 1.10, 3.30, None, 0.275),
     CortexModel("kimi-k3", "Moonshot AI", "Preview", 1.65, 8.25, 2.063, 0.165),

@@ -285,7 +285,8 @@ ai-coding-rules-plugin/
 └── skills/
     ├── rule-loader/              # Deterministic matcher + manifest builder
     │   └── scripts/match_rules.py  # Stdlib-only Python scorer
-    └── show-rules/               # $show-rules diagnostic skill
+    ├── show-rules/               # $show-rules diagnostic skill
+    └── ai-coding-rules-help/     # $ai-coding-rules-help reference card
 ```
 
 **How it works:**
@@ -458,6 +459,7 @@ The build performs seven steps, implemented in `src/ai_rules/commands/plugin.py`
 | 3 | Copy the hook | `hooks/` |
 | 4 | Copy the `rule-loader` skill (`SKILL.md`, `workflows/`, `examples/`) | `skills/rule-loader/` |
 | 4b | Copy the `show-rules` skill (`SKILL.md` only) | `skills/show-rules/` |
+| 4c | Copy the `ai-coding-rules-help` skill (`SKILL.md` only) | `skills/ai-coding-rules-help/` |
 | 5 | Copy the micro-kernel content | `src/ai_rules/plugin/micro_kernel_content.md` |
 | 6 | Generate the plugin manifest | written, not copied |
 | 7 | Validate that the copied matcher runs standalone | executes the script |
@@ -520,7 +522,7 @@ flowchart TD
     Start([User: Build Plugin]) --> Command
     Command["ai-rules plugin build"] --> Assemble
     Assemble[Assemble plugin tree] --> CopyRules[rules/*.md]
-    Assemble --> CopySkills[skills/rule-loader, skills/show-rules]
+    Assemble --> CopySkills[skills/rule-loader, skills/show-rules, skills/ai-coding-rules-help]
     Assemble --> CopyHook[hooks/user-prompt-submit]
     Assemble --> CopyKernel[micro_kernel_content.md]
     Assemble --> CopyMatcher[match_rules.py into skill scripts/]

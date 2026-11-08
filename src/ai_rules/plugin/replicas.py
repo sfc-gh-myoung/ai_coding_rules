@@ -135,6 +135,10 @@ BUILD_COPIES: tuple[BuildCopy, ...] = (
         required=False,
     ),
     BuildCopy(
+        primary="skills/ai-coding-rules-help/SKILL.md",
+        dest="skills/ai-coding-rules-help/SKILL.md",
+    ),
+    BuildCopy(
         primary="src/ai_rules/plugin/micro_kernel_content.md",
         dest="micro_kernel_content.md",
         required=False,

@@ -148,7 +148,7 @@ The build assembles a self-contained plugin directory:
 
 | Component | Contents |
 |-----------|----------|
-| `skills/` | `rule-loader`, `show-rules` |
+| `skills/` | `rule-loader`, `show-rules`, `ai-coding-rules-help` |
 | `rules/` | The rule library, read by the matcher when it scores a prompt |
 | `hooks/` | `UserPromptSubmit` hook (opt-in via `--with-hook` at install) |
 | `micro_kernel_content.md` | Compact foundation injected by the hook or `$rule-loader` |
@@ -241,6 +241,10 @@ There is nothing to load by hand and no per-project bootstrap file.
 
 To see what was matched for a given prompt, invoke the bundled `$show-rules`
 skill: it prints the PRE-FLIGHT gates and the rules that were cited.
+
+For a one-screen summary of the plugin's skills, configuration and update steps,
+invoke `$ai-coding-rules-help` (Claude Code: `/ai-coding-rules:ai-coding-rules-help`).
+It only prints the card and writes nothing.
 
 **Next Steps:**
 

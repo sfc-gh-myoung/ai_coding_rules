@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **feat(plugin):** ship an `ai-coding-rules-help` skill: a read-only, one-screen reference card listing the plugin's shipped skills (`rule-loader`, `show-rules`, `ai-coding-rules-help`) with triggers, how rule loading works, install-time configuration, update steps and doc links. It writes no files or flags. A contract test fails when the card's skill table drifts from the skills the build ships (#59).
 - **chore(agents):** opt in to the git-workflow agent loop with `.github/git-workflow-agents.yml` (issue triager and implementer only; the readiness role stays off). Agents write only through `gw_agent.py apply`, and merging stays human-only.
 
 ### Changed

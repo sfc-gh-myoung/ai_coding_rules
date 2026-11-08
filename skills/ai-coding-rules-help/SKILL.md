@@ -52,19 +52,21 @@ Set at install time from a clone of the repository:
 - `--project <dir>`: install into one project instead of globally (in CoCo, a global install wins over a project install)
 - `--force`: overwrite an existing install
 
-To change a setting, reinstall with the new flags plus `--force`, or uninstall with `uv run ai-rules plugin uninstall --target <target>`.
+To change a setting, reinstall with the new flags plus `--force`. To uninstall, repeat your install scope: `uv run ai-rules plugin uninstall --target <target> [--project <dir>]`.
 
 ### Update
+
+Repeat the same `--target`, `--project <dir>` and `--with-hook` flags you installed with, so the update replaces that install rather than creating a global one:
 
 ```bash
 git pull
 make env-sync
 uv run --locked ai-rules plugin build
 uv run ai-rules plugin verify
-uv run ai-rules plugin install --target <target> --force   # add --with-hook to keep the hook
+uv run ai-rules plugin install --target <target> [--project <dir>] [--with-hook] --force
 ```
 
-Then run `/plugin reload` or restart the assistant.
+Then reload: `/plugin reload` in CoCo, `/reload-plugins` in Claude Code, or restart the assistant.
 
 ### Docs
 

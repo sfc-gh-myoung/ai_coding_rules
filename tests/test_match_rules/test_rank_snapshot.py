@@ -7,6 +7,8 @@ detection, and sidecar-key validation: without invoking the live corpus.
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 
 import pytest
 from typer.testing import CliRunner
@@ -138,14 +140,37 @@ def test_default_baseline_path_derives_suffix():
     )
 
 
-def test_git_sha_real_repo_and_unknown(tmp_path):
+def test_git_sha_real_repo_and_unknown(tmp_path, monkeypatch):
     # Real repo root resolves to a concrete SHA (40 hex chars).
     root = RS.find_project_root()
     sha = RS._git_sha(root)
     assert sha != "unknown"
     assert len(sha) == 40 and all(c in "0123456789abcdef" for c in sha)
-    # A non-git directory falls back to "unknown".
+    # A non-git directory falls back to "unknown". tmp_path may sit inside a
+    # checkout (in-repo TMPDIR), so stop Git discovery above it.
+    monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path.parent))
     assert RS._git_sha(tmp_path) == "unknown"
+
+
+def test_git_sha_ceiling_isolates_scratch_inside_disposable_checkout(tmp_path, monkeypatch):
+    # Disposable checkout with ignored scratch inside it, mirroring in-repo TMPDIR.
+    checkout = tmp_path / "checkout"
+    scratch = checkout / ".coco-tmp" / "case"
+    scratch.mkdir(parents=True)
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
+    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
+    git = ["git", "-C", str(checkout), "-c", "user.name=t", "-c", "user.email=t@example.invalid"]
+    subprocess.run([*git, "init", "-q"], check=True)
+    subprocess.run([*git, "commit", "-q", "--allow-empty", "--no-gpg-sign", "-m", "x"], check=True)
+    expected = subprocess.run(
+        [*git, "rev-parse", "HEAD"], check=True, capture_output=True, text=True
+    ).stdout.strip()
+    # Positive control: without isolation, scratch inherits the checkout identity.
+    assert RS._git_sha(scratch) == expected
+    assert RS._git_sha(checkout) == expected
+    # Negative control: the test-scoped ceiling stops discovery at the scratch dir.
+    monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(scratch.parent))
+    assert RS._git_sha(scratch) == "unknown"
 
 
 def test_rules_digest_is_stable_and_excludes_readme(tmp_path):
@@ -187,7 +212,8 @@ def test_schema_version_missing_file_is_unknown(tmp_path):
     assert RS._schema_version(tmp_path) == "unknown"
 
 
-def test_identity_capture_from_bare_dirs(tmp_path):
+def test_identity_capture_from_bare_dirs(tmp_path, monkeypatch):
+    monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path.parent))
     rules = tmp_path / "rules"
     rules.mkdir()
     (rules / "100-a.md").write_text("a", encoding="utf-8")

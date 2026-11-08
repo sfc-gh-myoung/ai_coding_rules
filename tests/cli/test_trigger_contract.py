@@ -151,6 +151,30 @@ def test_clean_temp_tree_passes(tmp_path: Path, monkeypatch) -> None:
     assert tc.validate_trigger_contract(tmp_path) == []
 
 
+def test_generated_scratch_is_excluded_but_new_source_is_detected(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Scratch copies are skipped; the same token in unstaged source still fails."""
+    bad = "Keywords must be 5-8 typed entries"
+    _write(tmp_path, "schemas/rule-schema.yml", _SCHEMA_5_11)
+    _write(tmp_path, "rules/registered.md", "Keywords: 5-11 combined typed entries")
+    _write(tmp_path, ".coco-tmp/build/rules/copy.md", bad)
+    _write(tmp_path, ".tmp/plugin-verify.abc/rules/copy.md", bad)
+    monkeypatch.setattr(tc, "REGISTERED_SURFACES", frozenset({"rules/registered.md"}))
+    monkeypatch.setattr(tc, "ALLOWLISTED_SURFACES", frozenset())
+
+    assert tc.validate_trigger_contract(tmp_path) == []
+
+    # The tree is not a Git repository, so detection does not depend on staging.
+    _write(tmp_path, "rules/new-unstaged.md", bad)
+    violations = tc.validate_trigger_contract(tmp_path)
+    assert len(violations) == 1 and "rules/new-unstaged.md" in violations[0]
+
+    # Registered surfaces are still validated against the schema bound.
+    _write(tmp_path, "rules/registered.md", "Keywords: 5-9 combined typed entries")
+    assert any("rules/registered.md:1" in v for v in tc.validate_trigger_contract(tmp_path))
+
+
 # ── real repo + CLI ──────────────────────────────────────────────────────────
 
 

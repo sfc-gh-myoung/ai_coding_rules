@@ -15,7 +15,10 @@ if [[ "$MODE" == required ]]; then
   }
 fi
 "$UV" run --locked ai-rules plugin sync --check
-BUILD_DIR=$(mktemp -d)
+# Explicit template: template-less `mktemp -d` ignores TMPDIR on macOS.
+# Failure exits (set -e) instead of falling back to another location.
+SCRATCH_ROOT=${TMPDIR:-/tmp}
+BUILD_DIR=$(mktemp -d "${SCRATCH_ROOT%/}/plugin-verify.XXXXXX")
 trap 'rm -rf -- "$BUILD_DIR"' EXIT
 "$UV" run --locked ai-rules plugin build --plugin-dir "$BUILD_DIR"
 "$UV" run --locked ai-rules plugin verify --plugin-dir "$BUILD_DIR"

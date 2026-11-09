@@ -36,12 +36,21 @@ VALIDATE_GATES = (
 )
 
 
+def caller_environment():
+    """The caller's environment minus exported shell functions (``BASH_FUNC_*``).
+
+    An exported function such as ``cortex`` would satisfy ``command -v`` in make
+    recipes and defeat missing-tool preflights, so the harness drops them itself.
+    """
+    return {k: v for k, v in os.environ.items() if not k.startswith("BASH_FUNC_")}
+
+
 def make(repo, *arguments, environment=None):
     assert MAKE, "GNU Make is required to run automation tests"
     return subprocess.run(
         [MAKE, *arguments],
         cwd=repo,
-        env={**os.environ, **(environment or {})},
+        env={**caller_environment(), **(environment or {})},
         input="",
         capture_output=True,
         text=True,
@@ -254,6 +263,115 @@ def test_tool_preflights_fail_without_tools(repo, tmp_path, target, message):
     assert result.returncode != 0
     assert message in result.stderr
     assert "plugin-verify.sh" not in result.stdout
+
+
+def test_exported_cortex_function_cannot_defeat_strict_preflight(repo, tmp_path, monkeypatch):
+    sentinel = tmp_path / "cortex-function-ran"
+    # Simulates `export -f cortex` in the caller; bash imports BASH_FUNC_<name>%%.
+    monkeypatch.setenv("BASH_FUNC_cortex%%", f'() {{ /usr/bin/touch "{sentinel}"; }}')
+    uv = argument_probe(tmp_path)
+    result = make(repo, "plugin-verify-strict", f"UV={uv}", environment={"PATH": "/usr/bin:/bin"})
+    assert result.returncode != 0
+    assert "Cortex CLI is required" in result.stderr
+    assert not sentinel.exists()
+
+
+def plugin_verify(tmp_path, scratch_root, fail_step=None, extra_bin=None):
+    """Run scripts/plugin-verify.sh with stub uv/cortex; return (result, logged calls).
+
+    Each logged call is (step, plugin-dir) where step is the uv plugin subcommand
+    or "validate" for `cortex plugin validate`.
+    """
+    stub_bin = tmp_path / "pv-bin"
+    stub_bin.mkdir(exist_ok=True)
+    log = tmp_path / "pv.log"
+    uv = executable(
+        stub_bin,
+        "uv",
+        'printf "%s\\t%s\\n" "$5" "$7" >>"$PV_LOG"\n'
+        '[ "$5" = build ] && : >"$7/built"\n'
+        '[ "$5" = "$PV_FAIL" ] && exit 3\nexit 0\n',
+    )
+    executable(stub_bin, "cortex", 'printf "validate\\t%s\\n" "$3" >>"$PV_LOG"\n')
+    path = f"{stub_bin}:/usr/bin:/bin"
+    if extra_bin:
+        path = f"{extra_bin}:{path}"
+    environment = {
+        **caller_environment(),
+        "PATH": path,
+        "UV": str(uv),
+        "TMPDIR": scratch_root,
+        "PV_LOG": str(log),
+        "PV_FAIL": fail_step or "",
+    }
+    result = subprocess.run(
+        ["bash", str(ROOT / "scripts" / "plugin-verify.sh"), "optional"],
+        cwd=tmp_path,
+        env=environment,
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    calls = (
+        [tuple(line.split("\t")) for line in log.read_text().splitlines()] if log.exists() else []
+    )
+    return result, calls
+
+
+@pytest.mark.parametrize("suffix", ["", "/"])
+def test_plugin_verify_builds_beneath_tmpdir_and_cleans_only_its_build(tmp_path, suffix):
+    scratch = tmp_path / "scratch with spaces"
+    scratch.mkdir()
+    sentinel = scratch / "sibling-sentinel"
+    sentinel.write_text("keep")
+    result, calls = plugin_verify(tmp_path, f"{scratch}{suffix}")
+    assert result.returncode == 0, result.stderr
+    assert [step for step, _ in calls] == ["sync", "build", "verify", "validate"]
+    build = {directory for step, directory in calls if step != "sync"}
+    assert len(build) == 1
+    build_dir = build.pop()
+    assert os.path.dirname(build_dir) == str(scratch)
+    assert os.path.basename(build_dir).startswith("plugin-verify.")
+    assert not os.path.exists(build_dir)
+    assert sentinel.read_text() == "keep"
+    assert sorted(p.name for p in scratch.iterdir()) == ["sibling-sentinel"]
+
+
+def test_plugin_verify_command_failure_removes_only_its_build(tmp_path):
+    scratch = tmp_path / "scratch with spaces"
+    scratch.mkdir()
+    sentinel = scratch / "sibling-sentinel"
+    sentinel.write_text("keep")
+    result, calls = plugin_verify(tmp_path, str(scratch), fail_step="verify")
+    assert result.returncode == 3
+    assert [step for step, _ in calls] == ["sync", "build", "verify"]
+    assert not os.path.exists(calls[1][1])
+    assert sorted(p.name for p in scratch.iterdir()) == ["sibling-sentinel"]
+
+
+def test_plugin_verify_allocation_failure_does_not_fall_back(tmp_path):
+    missing = tmp_path / "scratch with spaces" / "absent"
+    result, calls = plugin_verify(tmp_path, str(missing))
+    assert result.returncode != 0
+    assert [step for step, _ in calls] == ["sync"]
+    assert not missing.exists()
+
+
+def test_plugin_verify_passes_explicit_template_to_mktemp(tmp_path):
+    # Controlled allocation stub: records arguments and allocates under scratch.
+    scratch = tmp_path / "scratch with spaces"
+    scratch.mkdir()
+    fake = tmp_path / "fake-mktemp"
+    fake.mkdir()
+    record = tmp_path / "mktemp-args"
+    executable(
+        fake,
+        "mktemp",
+        f'printf "%s\\n" "$@" >"{record}"\n/usr/bin/mktemp -d "{scratch}/stub.XXXXXX"\n',
+    )
+    result, _ = plugin_verify(tmp_path, str(scratch), extra_bin=fake)
+    assert result.returncode == 0, result.stderr
+    assert record.read_text().splitlines() == ["-d", f"{scratch}/plugin-verify.XXXXXX"]
 
 
 def test_status_preflight_requires_lockfile(repo, tmp_path):

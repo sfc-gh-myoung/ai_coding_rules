@@ -20,6 +20,11 @@ from ai_rules.commands import badges
 runner = CliRunner(env={"NO_COLOR": "1", "CI": "true", "TERM": "dumb"})
 
 
+def _squash(text: str) -> str:
+    """Drop all whitespace so Rich line wrapping cannot split an expected message."""
+    return "".join(text.split())
+
+
 class TestBadgesHelpOutput:
     """Test --help output for badges command."""
 
@@ -199,9 +204,24 @@ class TestBadgesErrorHandling:
         # Act
         result = runner.invoke(app, ["badges", "update"])
 
-        # Assert
+        # Assert: Rich may wrap a long path, so compare whitespace-free text.
         assert result.exit_code == 1
-        assert "not found" in result.output
+        assert _squash(f"{tmp_path / 'pyproject.toml'} not found") in _squash(result.output)
+
+    @pytest.mark.unit
+    def test_missing_pyproject_toml_long_path(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        """A path long enough to wrap still reports the missing file and exits 1."""
+        root = tmp_path / ("very-long-directory-name-" * 6)
+        root.mkdir()
+        (root / "README.md").write_text("# Project\n")
+        monkeypatch.setattr(badges, "find_project_root", lambda: root)
+
+        result = runner.invoke(app, ["badges", "update"])
+
+        assert result.exit_code == 1
+        assert _squash(f"{root / 'pyproject.toml'} not found") in _squash(result.output)
 
     @pytest.mark.unit
     def test_missing_readme(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):

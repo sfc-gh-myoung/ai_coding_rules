@@ -81,19 +81,22 @@ def test_split_depends_empty_payload_in_private_function() -> None:
 
 
 @pytest.mark.unit
-def test_git_short_sha_non_git_dir_returns_empty(tmp_path: Path) -> None:
+def test_git_short_sha_non_git_dir_returns_empty(tmp_path: Path, monkeypatch) -> None:
     """_git_short_sha returns '' in a non-git directory."""
     from ai_rules.rule_loader_eval.snapshot import _git_short_sha
 
+    # tmp_path may sit inside a checkout (in-repo TMPDIR); stop discovery above it.
+    monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path.parent))
     result = _git_short_sha(tmp_path)
     assert result == ""
 
 
 @pytest.mark.unit
-def test_git_branch_non_git_dir_returns_empty(tmp_path: Path) -> None:
+def test_git_branch_non_git_dir_returns_empty(tmp_path: Path, monkeypatch) -> None:
     """_git_branch returns '' in a non-git directory."""
     from ai_rules.rule_loader_eval.snapshot import _git_branch
 
+    monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path.parent))
     result = _git_branch(tmp_path)
     assert result == ""
 

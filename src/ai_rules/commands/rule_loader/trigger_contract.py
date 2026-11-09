@@ -164,10 +164,13 @@ ALLOWLISTED_SURFACES: frozenset[str] = frozenset(
 )
 
 # Directories excluded from the completeness scan: generated output, tests with
-# their own schema doubles, historical artifacts, and tooling caches.
+# their own schema doubles, historical artifacts, tooling caches, and local
+# scratch (.coco-tmp, .tmp) that may hold generated copies of contract surfaces.
 _EXCLUDED_DIRS: frozenset[str] = frozenset(
     {
         ".git",
+        ".coco-tmp",
+        ".tmp",
         "__pycache__",
         "node_modules",
         ".venv",
